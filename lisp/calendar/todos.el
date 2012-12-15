@@ -5329,6 +5329,7 @@ this category does not exist in the archive, it is created."
 			  (get-buffer-create afile)))
 	       (item (and (todos-done-item-p) (concat (todos-item-string) "\n")))
 	       (count 0)
+	       (opoint (unless (todos-done-item-p) (point)))
 	       marked-items beg end all-done
 	       buffer-read-only)
 	  (cond
@@ -5358,7 +5359,10 @@ this category does not exist in the archive, it is created."
 				  (match-beginning 0)
 				(point-max))
 			  all-done (buffer-substring-no-properties beg end)
-			  count (todos-get-count 'done))))
+			  count (todos-get-count 'done))
+		    ;; Restore starting point, unless it was on a done
+		    ;; item, since they will all be deleted.
+		    (when opoint (goto-char opoint))))
 	      (throw 'end nil))))
 	  (when (or marked all item)
 	    (with-current-buffer archive
@@ -5389,7 +5393,11 @@ this category does not exist in the archive, it is created."
 		  (write-region nil nil afile)
 		  (kill-buffer))))
 	    (with-current-buffer tbuf
-	      (cond ((or marked item)
+	      (cond ((or marked
+			 ;; If we're archiving all done items, can't
+			 ;; first archive item point was on, since
+			 ;; that will short-circuit the rest.
+			 (and item (not all)))
 		     (and marked (goto-char (point-min)))
 		     (catch 'done
 		       (while (not (eobp))
@@ -5405,10 +5413,14 @@ this category does not exist in the archive, it is created."
 				 (throw 'done (setq item nil))))
 			   (todos-forward-item)))))
 		    (all
-		     (remove-overlays beg end)
-		     (delete-region beg end)
-		     (todos-update-count 'done (- count))
-		     (todos-update-count 'archived count)))
+		     (save-excursion
+		       (save-restriction
+			 ;; Make sure done items are accessible.
+			 (widen)
+			 (remove-overlays beg end)
+			 (delete-region beg end)
+			 (todos-update-count 'done (- count))
+			 (todos-update-count 'archived count)))))
 	      (when marked
 		(remove-overlays (point-min) (point-max)
 				 'before-string todos-item-mark)
@@ -5420,7 +5432,12 @@ this category does not exist in the archive, it is created."
 	  (todos-category-number cat)
 	  (todos-category-select)
 	  (split-window-below)
-	  (set-window-buffer (selected-window) tbuf))))))
+	  (set-window-buffer (selected-window) tbuf)
+	  ;; Make todo file current to select category.
+	  (find-file (buffer-file-name tbuf))
+	  ;; Make sure done item separator is hidden (if done items
+	  ;; were initially visible).
+	  (let (todos-show-with-done) (todos-category-select)))))))
 
 (defun todos-archive-category-done-items ()
   "Move all done items in this category to its archive."

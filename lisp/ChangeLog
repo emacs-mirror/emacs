@@ -1,3 +1,8 @@
+2012-12-15  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-archive-done-item): Fix archiving of
+	all done items in a category and resulting display of todo file.
+
 2012-12-14  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-priorities-rules): Fix customization
