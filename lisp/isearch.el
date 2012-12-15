@@ -1707,6 +1707,9 @@ and reads its face argument using `hi-lock-read-face-name'."
 
 (defun isearch-delete-char ()
   "Discard last input item and move point back.
+Last input means the last character or the last isearch command
+that added or deleted characters from the search string,
+moved point, toggled regexp mode or case-sensitivity, etc.
 If no previous match was done, just beep."
   (interactive)
   (if (null (cdr isearch-cmds))
@@ -1716,6 +1719,8 @@ If no previous match was done, just beep."
 
 (defun isearch-del-char (&optional arg)
   "Delete character from end of search string and search again.
+Unlike `isearch-delete-char', it only deletes the last character,
+but doesn't cancel the effect of other isearch command.
 If search string is empty, just beep."
   (interactive "p")
   (if (= 0 (length isearch-string))
