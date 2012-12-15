@@ -2180,7 +2180,7 @@ commands to perform arbitrary editing while in the middle of another
 Emacs command.  For example, when you type @kbd{C-r} inside of a
 @code{query-replace}, you enter a recursive edit in which you can change
 the current buffer.  On exiting from the recursive edit, you go back to
-the @code{query-replace}.
+the @code{query-replace}.  @xref{Query Replace}.
 
 @kindex C-M-c
 @findex exit-recursive-edit
