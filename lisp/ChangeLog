@@ -1,5 +1,19 @@
 2012-12-15  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-mode-map): Bind `C-x 8 RET' to
+	`isearch-insert-char-by-name'.
+	(with-isearch-suspended): New defmacro with body mostly from
+	`isearch-edit-string' except the part that sets
+	`isearch-new-string' and `isearch-new-message'.
+	(isearch-edit-string): Use new macro `with-isearch-suspended' with
+	body that sets `isearch-new-string' and `isearch-new-message'.
+	(isearch-insert-char-by-name): New command.
+	* international/mule-cmds.el (read-char-by-name): Let-bind
+	`enable-recursive-minibuffers' to t.
+	http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00234.html
+
+2012-12-15  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-delete-char, isearch-del-char): Doc fix.
 	(Bug#13175)
 

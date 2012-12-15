@@ -520,7 +520,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\C-x" nil)
     (define-key map [?\C-x t] 'isearch-other-control-char)
     (define-key map "\C-x8" nil)
-    (define-key map "\C-x8\r" 'isearch-other-control-char)
+    (define-key map "\C-x8\r" 'isearch-insert-char-by-name)
 
     map)
   "Keymap for `isearch-mode'.")
@@ -1118,23 +1118,17 @@ If MSG is non-nil, use `isearch-message', otherwise `isearch-string'."
 	  (length succ-msg)
 	0))))
 
-(defun isearch-edit-string ()
-  "Edit the search string in the minibuffer.
-The following additional command keys are active while editing.
-\\<minibuffer-local-isearch-map>
-\\[exit-minibuffer] to resume incremental searching with the edited string.
-\\[isearch-nonincremental-exit-minibuffer] to do one nonincremental search.
-\\[isearch-forward-exit-minibuffer] to resume isearching forward.
-\\[isearch-reverse-exit-minibuffer] to resume isearching backward.
-\\[isearch-complete-edit] to complete the search string using the search ring."
-
+(defmacro with-isearch-suspended (&rest body)
+  "Exit Isearch mode, run BODY, and reinvoke the pending search.
+You can update the global isearch variables by setting new values to
+`isearch-new-string', `isearch-new-message', `isearch-new-forward',
+`isearch-new-word', `isearch-new-case-fold'."
   ;; This code is very hairy for several reasons, explained in the code.
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
   ;; If there were a way to catch any change of buffer from the minibuffer,
   ;; this could be simplified greatly.
   ;; Editing doesn't back up the search point.  Should it?
-  (interactive)
-  (condition-case nil
+  `(condition-case nil
       (progn
 	(let ((isearch-nonincremental isearch-nonincremental)
 
@@ -1197,29 +1191,7 @@ The following additional command keys are active while editing.
 	  (setq old-point (point) old-other-end isearch-other-end)
 
 	  (unwind-protect
-	      (let* ((message-log-max nil)
-		     ;; Don't add a new search string to the search ring here
-		     ;; in `read-from-minibuffer'. It should be added only
-		     ;; by `isearch-update-ring' called from `isearch-done'.
-		     (history-add-new-input nil)
-		     ;; Binding minibuffer-history-symbol to nil is a work-around
-		     ;; for some incompatibility with gmhist.
-		     (minibuffer-history-symbol))
-		(setq isearch-new-string
-                      (read-from-minibuffer
-                       (isearch-message-prefix nil isearch-nonincremental)
-		       (cons isearch-string (1+ (or (isearch-fail-pos)
-						    (length isearch-string))))
-                       minibuffer-local-isearch-map nil
-                       (if isearch-regexp
-			   (cons 'regexp-search-ring
-				 (1+ (or regexp-search-ring-yank-pointer -1)))
-			 (cons 'search-ring
-			       (1+ (or search-ring-yank-pointer -1))))
-                       nil t)
-		      isearch-new-message
-		      (mapconcat 'isearch-text-char-description
-				 isearch-new-string "")))
+	      (progn ,@body)
 
 	    ;; Set point at the start (end) of old match if forward (backward),
 	    ;; so after exiting minibuffer isearch resumes at the start (end)
@@ -1277,6 +1249,41 @@ The following additional command keys are active while editing.
     (quit  ; handle abort-recursive-edit
      (isearch-abort)  ;; outside of let to restore outside global values
      )))
+
+(defun isearch-edit-string ()
+  "Edit the search string in the minibuffer.
+The following additional command keys are active while editing.
+\\<minibuffer-local-isearch-map>
+\\[exit-minibuffer] to resume incremental searching with the edited string.
+\\[isearch-nonincremental-exit-minibuffer] to do one nonincremental search.
+\\[isearch-forward-exit-minibuffer] to resume isearching forward.
+\\[isearch-reverse-exit-minibuffer] to resume isearching backward.
+\\[isearch-complete-edit] to complete the search string using the search ring."
+  (interactive)
+  (with-isearch-suspended
+   (let* ((message-log-max nil)
+	  ;; Don't add a new search string to the search ring here
+	  ;; in `read-from-minibuffer'. It should be added only
+	  ;; by `isearch-update-ring' called from `isearch-done'.
+	  (history-add-new-input nil)
+	  ;; Binding minibuffer-history-symbol to nil is a work-around
+	  ;; for some incompatibility with gmhist.
+	  (minibuffer-history-symbol))
+     (setq isearch-new-string
+	   (read-from-minibuffer
+	    (isearch-message-prefix nil isearch-nonincremental)
+	    (cons isearch-string (1+ (or (isearch-fail-pos)
+					 (length isearch-string))))
+	    minibuffer-local-isearch-map nil
+	    (if isearch-regexp
+		(cons 'regexp-search-ring
+		      (1+ (or regexp-search-ring-yank-pointer -1)))
+	      (cons 'search-ring
+		    (1+ (or search-ring-yank-pointer -1))))
+	    nil t)
+	   isearch-new-message
+	   (mapconcat 'isearch-text-char-description
+		      isearch-new-string "")))))
 
 (defun isearch-nonincremental-exit-minibuffer ()
   (interactive)
@@ -1840,6 +1847,17 @@ Subword is used when `subword-mode' is activated. "
   (isearch-yank-internal
    (lambda () (let ((inhibit-field-text-motion t))
 		(line-end-position (if (eolp) 2 1))))))
+
+(defun isearch-insert-char-by-name ()
+  "Read a character by its Unicode name and insert it into search string."
+  (interactive)
+  (with-isearch-suspended
+   (let ((char (read-char-by-name "Insert character (Unicode name or hex): ")))
+     (when char
+       (setq isearch-new-string (concat isearch-string (string char))
+	     isearch-new-message (concat isearch-message
+					 (mapconcat 'isearch-text-char-description
+						    (string char) "")))))))
 
 (defun isearch-search-and-update ()
   ;; Do the search and update the display.

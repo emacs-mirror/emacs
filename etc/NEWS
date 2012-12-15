@@ -73,6 +73,11 @@ amounts of data into the ERC input.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
 
+** Isearch
+
+*** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
+and adds it to the search string.
+
 ** MH-E has been updated to MH-E version 8.4.
 See MH-E-NEWS for details.
 
