@@ -15743,7 +15743,6 @@ esac
 
 
 
-
 case $opsys in
   aix4-2)
     $as_echo "#define USG /**/" >>confdefs.h
@@ -15782,9 +15781,7 @@ $as_echo "#define CYGWIN 1" >>confdefs.h
     ;;
 
   darwin)
-        $as_echo "#define BSD4_2 /**/" >>confdefs.h
-
-    $as_echo "#define BSD_SYSTEM /**/" >>confdefs.h
+        $as_echo "#define BSD_SYSTEM /**/" >>confdefs.h
 
 
 $as_echo "#define DARWIN_OS /**/" >>confdefs.h
@@ -15792,16 +15789,12 @@ $as_echo "#define DARWIN_OS /**/" >>confdefs.h
     ;;
 
   freebsd)
-    $as_echo "#define BSD4_2 /**/" >>confdefs.h
-
 
 $as_echo "#define BSD_SYSTEM_AHB 1" >>confdefs.h
 
     ;;
 
   gnu | netbsd | openbsd )
-    $as_echo "#define BSD4_2 /**/" >>confdefs.h
-
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
