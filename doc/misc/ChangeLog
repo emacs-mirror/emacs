@@ -1,3 +1,8 @@
+2012-12-14  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi (copying): Include a copy of the GFDL.
+	(GNU Free Documentation License): New section.
+
 2012-12-13  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi: Fix typos.

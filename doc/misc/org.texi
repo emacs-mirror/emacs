@@ -262,7 +262,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -273,13 +273,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -305,6 +299,9 @@ with contributions by David O'Toole, Bastien Guerry, Philip Rooke, Dan Davison, 
 @contents
 
 @ifnottex
+@c FIXME These hand-written next,prev,up node pointers make editing a lot
+@c harder.  There should be no need for them, makeinfo can do it
+@c automatically for any document with a normal structure.
 @node Top, Introduction, (dir), (dir)
 @top Org Mode Manual
 
@@ -330,6 +327,7 @@ with contributions by David O'Toole, Bastien Guerry, Philip Rooke, Dan Davison, 
 * Hacking::                     How to hack your way around
 * MobileOrg::                   Viewing and capture on a mobile device
 * History and Acknowledgments::  How Org came into being
+* GNU Free Documentation License::  The license for this documentation.
 * Main Index::                  An index of Org's concepts and features
 * Key Index::                   Key bindings and where they are described
 * Command and Function Index::  Command names and some internal functions
@@ -16606,7 +16604,7 @@ last pull.  This might include a file that is not currently in your list of
 agenda files.  If you later use @kbd{C-c a ?} to regenerate the view, only
 the current agenda files will be searched.} using @kbd{C-c a ?}.
 
-@node History and Acknowledgments, Main Index, MobileOrg, Top
+@node History and Acknowledgments, GNU Free Documentation License, MobileOrg, Top
 @appendix History and acknowledgments
 @cindex acknowledgments
 @cindex history
@@ -16949,7 +16947,12 @@ and contributed various ideas and code snippets.
 @end itemize
 
 
-@node Main Index, Key Index, History and Acknowledgments, Top
+@node GNU Free Documentation License, Main Index, History and Acknowledgments, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+@node Main Index, Key Index, GNU Free Documentation License, Top
 @unnumbered Concept index
 
 @printindex cp
