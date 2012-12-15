@@ -1,3 +1,8 @@
+2012-12-15  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* dired-x.el (dired-guess-shell-command): Put colon at the end of
+	the prompt.  (Bug#13045)
+
 2012-12-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/macroexp.el (macroexp--warn-and-return):
