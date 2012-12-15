@@ -68,17 +68,41 @@ enum {
    a socket, the process handle in pi is NULL. */
 typedef struct _child_process
 {
-  int                   fd;
-  int                   pid;
-  HANDLE                char_avail;
-  HANDLE                char_consumed;
-  HANDLE                thrd;
-  HWND                  hwnd;
-  PROCESS_INFORMATION   procinfo;
-  volatile int          status;
-  char                  chr;
-  OVERLAPPED            ovl_read;
-  OVERLAPPED            ovl_write;
+  /* File descriptor for sockets and serial port connections, and for
+     reading output from async subprocesses; otherwise -1.  */
+  int                 fd;
+  /* PID for subprocess, either async or not; otherwise -1.  */
+  int                 pid;
+  /* Handle to an event object that is signaled when a read operation
+     is completed, either successfully (in which case there're indeed
+     "characters available") or not.  Used by sys_select to wait for
+     output from subprocesses or socket/serial connections.  */
+  HANDLE              char_avail;
+  /* Handle to an event that is signaled to wake up the reader thread
+     and tell it to try reading more output from a subprocess.  */
+  HANDLE              char_consumed;
+  /* Handle to the reader thread to read output from a subprocess or a
+     socket or a comm port.  */
+  HANDLE              thrd;
+  /* Handle to the console window of a subprocess.  Used to forcibly
+     terminate it by sys_kill.  */
+  HWND                hwnd;
+  /* Information about subprocess returned by CreateProcess.  Includes
+     handles to the subprocess and its primary thread, and the
+     corresponding process ID and thread ID numbers.  The PID is
+     mirrored by the 'pid' member above.  The process handle is used
+     to wait on it.  */
+  PROCESS_INFORMATION procinfo;
+  /* Status of subprocess/connection and of reading its output.  For
+     values, see the enumeration above.  */
+  volatile int        status;
+  /* Holds a single character read by _sys_read_ahead, when a
+     subprocess has some output ready.  */
+  char                chr;
+  /* Used for async read operations on serial comm ports.  */
+  OVERLAPPED          ovl_read;
+  /* Used for async write operations on serial comm ports.  */
+  OVERLAPPED          ovl_write;
 } child_process;
 
 #define MAXDESC FD_SETSIZE

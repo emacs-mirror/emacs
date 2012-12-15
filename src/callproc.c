@@ -1274,7 +1274,7 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
   set_process_dir (SDATA (current_dir));
-  /* Spawn the child.  (See ntproc.c:Spawnve).  */
+  /* Spawn the child.  (See w32proc.c:sys_spawnve).  */
   cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
   reset_standard_handles (in, out, err, handles);
   if (cpid == -1)

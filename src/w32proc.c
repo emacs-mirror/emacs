@@ -1857,7 +1857,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	  }
 	else
 	  {
-	    /* Child process and socket input */
+	    /* Child process and socket/comm port input.  */
 	    cp = fd_info[i].cp;
 	    if (cp)
 	      {
@@ -1870,7 +1870,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		    /* Wake up the reader thread for this process */
 		    cp->status = STATUS_READ_READY;
 		    if (!SetEvent (cp->char_consumed))
-		      DebPrint (("nt_select.SetEvent failed with "
+		      DebPrint (("sys_select.SetEvent failed with "
 				 "%lu for fd %ld\n", GetLastError (), i));
 		  }
 

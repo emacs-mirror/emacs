@@ -6085,7 +6085,8 @@ sys_pipe (int * phandles)
 }
 
 /* Function to do blocking read of one byte, needed to implement
-   select.  It is only allowed on sockets and pipes. */
+   select.  It is only allowed on communication ports, sockets, or
+   pipes. */
 int
 _sys_read_ahead (int fd)
 {
