@@ -812,6 +812,8 @@ new_child (void)
   cp->pid = -1;
   cp->procinfo.hProcess = NULL;
   cp->status = STATUS_READ_ERROR;
+  cp->input_file = NULL;
+  cp->pending_deletion = 0;
 
   /* use manual reset event so that select() will function properly */
   cp->char_avail = CreateEvent (NULL, TRUE, FALSE, NULL);
@@ -859,6 +861,21 @@ delete_child (child_process *cp)
 
   if (!CHILD_ACTIVE (cp))
     return;
+
+  /* Delete the child's temporary input file, if any, that is pending
+     deletion.  */
+  if (cp->input_file)
+    {
+      if (cp->pending_deletion)
+	{
+	  if (unlink (cp->input_file))
+	    DebPrint (("delete_child.unlink (%s) failed, errno: %d\n",
+		       cp->input_file, errno));
+	  cp->pending_deletion = 0;
+	}
+      xfree (cp->input_file);
+      cp->input_file = NULL;
+    }
 
   /* reap thread if necessary */
   if (cp->thrd)
@@ -1056,11 +1073,11 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
    This way the select emulator knows how to match file handles with
    entries in child_procs.  */
 void
-register_child (int pid, int fd)
+register_child (pid_t pid, int fd)
 {
   child_process *cp;
 
-  cp = find_child_pid (pid);
+  cp = find_child_pid ((DWORD)pid);
   if (cp == NULL)
     {
       DebPrint (("register_child unable to find pid %lu\n", pid));
@@ -1087,6 +1104,45 @@ register_child (int pid, int fd)
   fd_info[fd].cp = cp;
 }
 
+/* Record INFILE as an input file for process PID.  */
+void
+record_infile (pid_t pid, char *infile)
+{
+  child_process *cp;
+
+  /* INFILE should never be NULL, since xstrdup would have signaled
+     memory full condition in that case, see callproc.c where this
+     function is called.  */
+  eassert (infile);
+
+  cp = find_child_pid ((DWORD)pid);
+  if (cp == NULL)
+    {
+      DebPrint (("record_infile is unable to find pid %lu\n", pid));
+      return;
+    }
+
+  cp->input_file = infile;
+}
+
+/* Mark the input file INFILE of the corresponding subprocess as
+   temporary, to be deleted when the subprocess exits.  */
+void
+record_pending_deletion (char *infile)
+{
+  child_process *cp;
+
+  eassert (infile);
+
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+    if (CHILD_ACTIVE (cp)
+	&& cp->input_file && xstrcasecmp (cp->input_file, infile) == 0)
+      {
+	cp->pending_deletion = 1;
+	break;
+      }
+}
+
 /* Called from waitpid when a process exits.  */
 static void
 reap_subprocess (child_process *cp)
@@ -1097,7 +1153,7 @@ reap_subprocess (child_process *cp)
 #ifdef FULL_DEBUG
       /* Process should have already died before we are called.  */
       if (WaitForSingleObject (cp->procinfo.hProcess, 0) != WAIT_OBJECT_0)
-	DebPrint (("reap_subprocess: child fpr fd %d has not died yet!", cp->fd));
+	DebPrint (("reap_subprocess: child for fd %d has not died yet!", cp->fd));
 #endif
       CloseHandle (cp->procinfo.hProcess);
       cp->procinfo.hProcess = NULL;
@@ -1465,7 +1521,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   Lisp_Object program, full;
   char *cmdline, *env, *parg, **targ;
   int arglen, numenv;
-  int pid;
+  pid_t pid;
   child_process *cp;
   int is_dos_app, is_cygnus_app, is_gui_app;
   int do_quoting = 0;
@@ -2129,7 +2185,7 @@ find_child_console (HWND hwnd, LPARAM arg)
 
 /* Emulate 'kill', but only for other processes.  */
 int
-sys_kill (int pid, int sig)
+sys_kill (pid_t pid, int sig)
 {
   child_process *cp;
   HANDLE proc_hand;

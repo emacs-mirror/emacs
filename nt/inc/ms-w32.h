@@ -178,6 +178,10 @@ extern char *getenv ();
 #define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
+/* This prototype is needed because some files include config.h
+   _after_ the standard headers, so sys_unlink gets no prototype from
+   stdio.h or io.h.  */
+extern int sys_unlink (const char *);
 #undef write
 #define write   sys_write
 

@@ -103,6 +103,12 @@ typedef struct _child_process
   OVERLAPPED          ovl_read;
   /* Used for async write operations on serial comm ports.  */
   OVERLAPPED          ovl_write;
+  /* Input file, if any, for this subprocess.  Should only be non-NULL
+     for async subprocesses.  */
+  char               *input_file;
+  /* If non-zero, the subprocess input file is temporary and should be
+     deleted when the subprocess exits.  */
+  int                 pending_deletion;
 } child_process;
 
 #define MAXDESC FD_SETSIZE
@@ -184,7 +190,9 @@ extern int sys_pipe (int *);
 
 extern void set_process_dir (char *);
 extern int sys_spawnve (int, char *, char **, char **);
-extern void register_child (int, int);
+extern void register_child (pid_t, int);
+extern void record_infile (pid_t, char *);
+extern void record_pending_deletion (char *);
 
 extern void sys_sleep (int);
 extern int sys_link (const char *, const char *);

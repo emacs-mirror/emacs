@@ -2203,14 +2203,17 @@ internal_delete_file_1 (Lisp_Object ignore)
   return Qt;
 }
 
-/* Delete file FILENAME.
+/* Delete file FILENAME, returning 1 if successful and 0 if failed.
    This ignores `delete-by-moving-to-trash'.  */
 
-void
+int
 internal_delete_file (Lisp_Object filename)
 {
-  internal_condition_case_2 (Fdelete_file, filename, Qnil,
-			     Qt, internal_delete_file_1);
+  Lisp_Object tem;
+
+  tem = internal_condition_case_2 (Fdelete_file, filename, Qnil,
+				   Qt, internal_delete_file_1);
+  return NILP (tem);
 }
 
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,

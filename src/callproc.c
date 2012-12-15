@@ -402,10 +402,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   filefd = emacs_open (SSDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
-    {
-      infile = DECODE_FILE (infile);
-      report_file_error ("Opening process input file", Fcons (infile, Qnil));
-    }
+    report_file_error ("Opening process input file",
+		       Fcons (DECODE_FILE (infile), Qnil));
 
   if (STRINGP (output_file))
     {
@@ -612,6 +610,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 #ifdef WINDOWSNT
     pid = child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
+    /* We need to record the input file of this child, for when we are
+       called from call-process-region to create an async subprocess.
+       That's because call-process-region's unwind procedure will
+       attempt to delete the temporary input file, which will fail
+       because that file is still in use.  Recording it with the child
+       will allow us to delete the file when the subprocess exits.
+       The second part of this is in delete_temp_file, q.v.  */
+    if (pid > 0 && INTEGERP (buffer) && nargs >= 2 && !NILP (args[1]))
+      record_infile (pid, xstrdup (SSDATA (infile)));
 #else  /* not WINDOWSNT */
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -924,7 +931,21 @@ delete_temp_file (Lisp_Object name)
   /* Suppress jka-compr handling, etc.  */
   ptrdiff_t count = SPECPDL_INDEX ();
   specbind (intern ("file-name-handler-alist"), Qnil);
+#ifdef WINDOWSNT
+  /* If this is called when the subprocess didn't exit yet, the
+     attempt to delete its input file will fail.  In that case, we
+     schedule the file for deletion when the subprocess exits.  This
+     is the 2nd part of handling this situation; see the call to
+     record_infile in call-process above, for the first part.  */
+  if (!internal_delete_file (name))
+    {
+      Lisp_Object encoded_file = ENCODE_FILE (name);
+
+      record_pending_deletion (SSDATA (encoded_file));
+    }
+#else
   internal_delete_file (name);
+#endif
   unbind_to (count, Qnil);
   return Qnil;
 }

@@ -1,3 +1,34 @@
+2012-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix bug #13079 on MS-Windows with temp files not being deleted.
+	* w32.h (_child_process): New members input_file and
+	pending_deletion.
+	(register_child): First argument is now pid_t.
+	(record_infile, record_pending_deletion): New prototypes.
+
+	* w32proc.c (new_child): Initialize input_file and
+	pending_deletion members of the child.
+	(delete_child): Delete the child's temporary input file, if any,
+	that is pending deletion.
+	(register_child): First argument is now pid_t.
+	(record_infile, record_pending_deletion): New functions.
+	(reap_subprocess): Fix a typo in DebPrint string.
+	(sys_spawnve, sys_kill): Use pid_t for PID arguments.
+
+	* fileio.c (internal_delete_file): Return an int again: non-zero
+	if delete-file succeeds, zero otherwise.
+
+	* lisp.h (internal_delete_file): Adjust prototype.
+
+	* callproc.c (Fcall_process): Don't overwrite infile with result
+	of DECODE_FILE.
+	[WINDOWSNT] If BUFFER is an integer, i.e. we are launching an
+	asynchronous subprocess, record the name of the input file name,
+	if any.
+	(delete_temp_file) [WINDOWSNT]: If internal_delete_file fails to
+	delete the file, record it as pending deletion when the subprocess
+	exits.
+
 2012-12-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c [HAVE_PWD_H]: Include grp.h.
