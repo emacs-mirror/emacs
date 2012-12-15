@@ -1313,8 +1313,9 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	     non-nil, we can use boyer-moore search only if TRT can be
 	     represented by the byte array of 256 elements.  For that,
 	     all non-ASCII case-equivalents of all case-sensitive
-	     characters in STRING must belong to the same charset and
-	     row.  */
+	     characters in STRING must belong to the same character
+	     group (every 64 characters form a group; U+0000..U+003F,
+	     U+0040..U+007F, U+0080..U+00BF, ...).  */
 
 	  while (--len >= 0)
 	    {
