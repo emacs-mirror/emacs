@@ -517,25 +517,29 @@ comparison ignores case differences.
 @end defun
 
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
-This function compares the specified part of @var{string1} with the
+This function compares a specified part of @var{string1} with a
 specified part of @var{string2}.  The specified part of @var{string1}
-runs from index @var{start1} up to index @var{end1} (@code{nil} means
-the end of the string).  The specified part of @var{string2} runs from
-index @var{start2} up to index @var{end2} (@code{nil} means the end of
-the string).
+runs from index @var{start1} (inclusive) up to index @var{end1}
+(exclusive); @code{nil} for @var{start1} means the start of the
+string, while @code{nil} for @var{end1} means the length of the
+string.  Likewise, the specified part of @var{string2} runs from index
+@var{start2} up to index @var{end2}.
 
-The strings are both converted to multibyte for the comparison
-(@pxref{Text Representations}) so that a unibyte string and its
-conversion to multibyte are always regarded as equal.  If
-@var{ignore-case} is non-@code{nil}, then case is ignored, so that
-upper case letters can be equal to lower case letters.
+The strings are compared by the numeric values of their characters.
+For instance, @var{str1} is considered ``smaller than'' @var{str2} if
+its first differing character has a smaller numeric value.  If
+@var{ignore-case} is non-@code{nil}, characters are converted to
+lower-case before comparing them.  Unibyte strings are converted to
+multibyte for comparison (@pxref{Text Representations}), so that a
+unibyte string and its conversion to multibyte are always regarded as
+equal.
 
 If the specified portions of the two strings match, the value is
 @code{t}.  Otherwise, the value is an integer which indicates how many
-leading characters agree, and which string is less.  Its absolute value
-is one plus the number of characters that agree at the beginning of the
-two strings.  The sign is negative if @var{string1} (or its specified
-portion) is less.
+leading characters agree, and which string is less.  Its absolute
+value is one plus the number of characters that agree at the beginning
+of the two strings.  The sign is negative if @var{string1} (or its
+specified portion) is less.
 @end defun
 
 @defun assoc-string key alist &optional case-fold

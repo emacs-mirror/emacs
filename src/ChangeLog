@@ -1,3 +1,7 @@
+2012-12-15  Chong Yidong  <cyd@gnu.org>
+
+	* fns.c (Fcompare_strings): Doc fix (Bug#13081).
+
 2012-12-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (get_name_and_id): Always pass NULL as the first argument
