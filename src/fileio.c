@@ -2203,10 +2203,10 @@ internal_delete_file_1 (Lisp_Object ignore)
   return Qt;
 }
 
-/* Delete file FILENAME, returning 1 if successful and 0 if failed.
+/* Delete file FILENAME, returning true if successful.
    This ignores `delete-by-moving-to-trash'.  */
 
-int
+bool
 internal_delete_file (Lisp_Object filename)
 {
   Lisp_Object tem;

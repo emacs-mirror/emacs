@@ -1,3 +1,7 @@
+2012-12-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (internal_delete_file): Use bool for boolean.
+
 2012-12-15  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix bug #13079 on MS-Windows with temp files not being deleted.

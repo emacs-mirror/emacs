@@ -3199,7 +3199,7 @@ EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
-extern int internal_delete_file (Lisp_Object);
+extern bool internal_delete_file (Lisp_Object);
 extern bool file_directory_p (const char *);
 extern bool file_accessible_directory_p (const char *);
 extern void syms_of_fileio (void);
