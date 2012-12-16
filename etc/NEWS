@@ -41,6 +41,10 @@ bound to <f11> and S-<f11>, respectively.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** Battery
+
+*** Battery information via the BSD `apm' utility is now supported.
+
 ** cl-lib
 
 *** New macro cl-tagbody.
