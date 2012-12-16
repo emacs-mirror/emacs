@@ -13417,27 +13417,27 @@ dates.  @xref{Specifying Operators}.  To avoid confusion with nameless
 functions, your date formats should avoid using the @samp{#} character.
 
 @menu
-* ISO-8601::
+* ISO 8601::
 * Date Formatting Codes::
 * Free-Form Dates::
 * Standard Date Formats::
 @end menu
 
-@node ISO-8601, Date Formatting Codes, Date Formats, Date Formats
-@subsubsection ISO-8601
+@node ISO 8601, Date Formatting Codes, Date Formats, Date Formats
+@subsubsection ISO 8601
 
 @noindent
-@cindex ISO-8601
+@cindex ISO 8601
 The same date can be written down in different formats and Calc tries
 to allow you to choose your preferred format.  Some common formats are
 ambiguous, however; for example, 10/11/2012 means October 11,
 2012 in the United States but it means November 10, 2012 in
 Europe.  To help avoid such ambiguities, the International Organization
-for Standardization (ISO) provides the ISO-8601 standard, which
+for Standardization (ISO) provides the ISO 8601 standard, which
 provides three different but easily distinguishable and unambiguous
 ways to represent a date.
 
-The ISO-8601 calendar date representation is
+The ISO 8601 calendar date representation is
 
 @example
    @var{YYYY}-@var{MM}-@var{DD}
@@ -13452,9 +13452,9 @@ later.)  The year, which should be padded with zeros to ensure it has at
 least four digits, is the Gregorian year, except that the year before
 0001 (1 AD) is the year 0000 (1 BC).  The date October 11, 2012 is
 written 2012-10-11 in this representation and November 10, 2012 is
-written 2012-11-10. 
+written 2012-11-10.
 
-The ISO-8601 ordinal date representation is 
+The ISO 8601 ordinal date representation is
 
 @example
   @var{YYYY}-@var{DDD}
@@ -13463,9 +13463,9 @@ The ISO-8601 ordinal date representation is
 @noindent
 where @var{YYYY} is the year, as above, and @var{DDD} is the day of the year.
 The date December 31, 2011 is written 2011-365 in this representation
-and January 1, 2012 is written 2012-001.  
+and January 1, 2012 is written 2012-001.
 
-The ISO-8601 week date representation is 
+The ISO 8601 week date representation is
 
 @example
  @var{YYYY}-W@var{ww}-@var{D}
@@ -13476,32 +13476,32 @@ where @var{YYYY} is the ISO week-numbering year, @var{ww} is the two
 digit week number (preceded by a literal ``W''), and @var{D} is the day
 of the week (1 for Monday through 7 for Sunday).  The ISO week-numbering
 year is based on the Gregorian year but can differ slightly.  The first
-week of an ISO week-numbering year is the week with the Gregorian year's 
+week of an ISO week-numbering year is the week with the Gregorian year's
 first Thursday in it (equivalently, the week containing January 4);
 any day of that week (Monday through Sunday) is part of the same ISO
 week-numbering year, any day from the previous week is part of the
 previous year.  For example, January 4, 2013 is on a Friday, and so
 the first week for the ISO week-numbering year 2013 starts  on
-Monday, December 31, 2012.  The day December 31, 2012 is then part of the 
+Monday, December 31, 2012.  The day December 31, 2012 is then part of the
 Gregorian year 2012 but ISO week-numbering year 2013.  In the week
 date representation, this week goes from 2013-W01-1 (December 31,
 2012) to 2013-W01-7 (January 6, 2013).
 
-All three ISO-8601 representations arrange the numbers from most
+All three ISO 8601 representations arrange the numbers from most
 significant to least significant; as well as being unambiguous
 representations, they are easy to sort since chronological order in
 this formats corresponds to lexicographical order. The hyphens are
 sometimes omitted.
 
-The ISO-8601 standard uses a 24 hour clock; a particular time is
+The ISO 8601 standard uses a 24 hour clock; a particular time is
 represented by @var{hh}:@var{mm}:@var{ss} where @var{hh} is the
 two-digit hour (from 00 to 24), @var{mm} is the two-digit minute (from
 00 to 59) and @var{ss} is the two-digit second.  The seconds or minutes
 and seconds can be omitted, and decimals can be added.  If a date with a
 time is represented, they should be separated by a literal ``T'', so noon
-on December 13, 2012 can be represented as 2012-12-13T12:00
+on December 13, 2012 can be represented as 2012-12-13T12:00.
 
-@node Date Formatting Codes, Free-Form Dates, ISO-8601, Date Formats
+@node Date Formatting Codes, Free-Form Dates, ISO 8601, Date Formats
 @subsubsection Date Formatting Codes
 
 @noindent
@@ -13543,9 +13543,9 @@ Year:  ``1991'' for 1991, ``23'' for 23 AD.
 @item YYYY
 Year:  ``1991'' for 1991, ``+23'' for 23 AD.
 @item ZYYY
-Year:  ``1991'' for 1991, ``0023'' for 23 AD., ``0000'' for 1 BC.
+Year:  ``1991'' for 1991, ``0023'' for 23 AD, ``0000'' for 1 BC.
 @item IYYY
-Year:  ISO-8601 week-numbering year.
+Year:  ISO 8601 week-numbering year.
 @item aa
 Year:  ``ad'' or blank.
 @item AA
@@ -13607,7 +13607,7 @@ Weekday:  ``SUNDAY'' for Sunday.
 @item Wwww
 Weekday:  ``Sunday'' for Sunday.
 @item Iww
-Week number:  ISO-8601 week number, ``W01'' for week 1.
+Week number:  ISO 8601 week number, ``W01'' for week 1.
 @item d
 Day of year:  ``34'' for Feb. 3.
 @item ddd
@@ -13792,7 +13792,7 @@ command (@pxref{Mode Settings}).
 @item 10
 @samp{ZYYY-MM-DD Www< hh:mm>} (Org mode format)
 @item 11
-@samp{IYYY-Iww-w<Thh:mm:ss>} (ISO-8601 week numbering format)
+@samp{IYYY-Iww-w<Thh:mm:ss>} (ISO 8601 week numbering format)
 @end table
 
 @node Truncating the Stack, Justification, Date Formats, Display Modes

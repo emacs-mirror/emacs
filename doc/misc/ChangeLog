@@ -1,3 +1,8 @@
+2012-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calc.texi (ISO 8601): Rename from ISO-8601,
+	as it's typically spelled without a hyphen.
+
 2012-12-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (ISO-8601): New section.
