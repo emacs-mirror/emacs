@@ -1,3 +1,9 @@
+2012-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (emacs_abort): Bump backtrace size to 40.
+	Companion to the 2012-09-30 patch.  Suggested by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00796.html>.
+
 2012-12-16  Romain Francoise  <romain@orebokech.com>
 
 	* fileio.c (Ffile_acl, Fset_file_acl): New functions.

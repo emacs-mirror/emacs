@@ -2110,7 +2110,7 @@ emacs_backtrace (int backtrace_limit)
 void
 emacs_abort (void)
 {
-  terminate_due_to_signal (SIGABRT, 10);
+  terminate_due_to_signal (SIGABRT, 40);
 }
 #endif
 
