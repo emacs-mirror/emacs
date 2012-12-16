@@ -3879,6 +3879,27 @@ Interactively, confirmation is required unless you supply a prefix argument."
   ;; the one at the old location.
   (vc-find-file-hook))
 
+(defun file-extended-attributes (filename)
+  "Return an alist of extended attributes of file FILENAME.
+
+Extended attributes are platform-specific metadata about the file,
+such as SELinux context, list of ACL entries, etc."
+  `((acl . ,(file-acl filename))
+    (selinux-context . ,(file-selinux-context filename))))
+
+(defun set-file-extended-attributes (filename attributes)
+  "Set extended attributes of file FILENAME to ATTRIBUTES.
+
+ATTRIBUTES must be an alist of file attributes as returned by
+`file-extended-attributes'."
+  (dolist (elt attributes)
+    (let ((attr (car elt))
+	  (val (cdr elt)))
+      (cond ((eq attr 'acl)
+	     (set-file-acl filename val))
+	    ((eq attr 'selinux-context)
+	     (set-file-selinux-context filename val))))))
+
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.
 This is normally done before saving the buffer the first time.
@@ -3888,13 +3909,14 @@ variable `make-backup-files'.  If it's done by renaming, then the file is
 no longer accessible under its old name.
 
 The value is non-nil after a backup was made by renaming.
-It has the form (MODES SELINUXCONTEXT BACKUPNAME).
+It has the form (MODES EXTENDED-ATTRIBUTES BACKUPNAME).
 MODES is the result of `file-modes' on the original
 file; this means that the caller, after saving the buffer, should change
 the modes of the new file to agree with the old modes.
-SELINUXCONTEXT is the result of `file-selinux-context' on the original
-file; this means that the caller, after saving the buffer, should change
-the SELinux context of the new file to agree with the old context.
+EXTENDED-ATTRIBUTES is the result of `file-extended-attributes'
+on the original file; this means that the caller, after saving
+the buffer, should change the extended attributes of the new file
+to agree with the old attributes.
 BACKUPNAME is the backup file name, which is the old file renamed."
   (if (and make-backup-files (not backup-inhibited)
 	   (not buffer-backed-up)
@@ -3923,7 +3945,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 				(y-or-n-p (format "Delete excess backup versions of %s? "
 						  real-file-name)))))
 		      (modes (file-modes buffer-file-name))
-		      (context (file-selinux-context buffer-file-name)))
+		      (extended-attributes
+		       (file-extended-attributes buffer-file-name)))
 		  ;; Actually write the back up file.
 		  (condition-case ()
 		      (if (or file-precious-flag
@@ -3943,10 +3966,13 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
 					  (not (file-ownership-preserved-p
 						real-file-name t))))))
-			  (backup-buffer-copy real-file-name backupname modes context)
+			  (backup-buffer-copy real-file-name
+					      backupname modes
+					      extended-attributes)
 			;; rename-file should delete old backup.
 			(rename-file real-file-name backupname t)
-			(setq setmodes (list modes context backupname)))
+			(setq setmodes (list modes extended-attributes
+					     backupname)))
 		    (file-error
 		     ;; If trouble writing the backup, write it in
 		     ;; .emacs.d/%backup%.
@@ -3954,7 +3980,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		     (message "Cannot write backup file; backing up in %s"
 			      backupname)
 		     (sleep-for 1)
-		     (backup-buffer-copy real-file-name backupname modes context)))
+		     (backup-buffer-copy real-file-name backupname
+					 modes extended-attributes)))
 		  (setq buffer-backed-up t)
 		  ;; Now delete the old versions, if desired.
 		  (if delete-old-versions
@@ -3966,7 +3993,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		  setmodes)
 	    (file-error nil))))))
 
-(defun backup-buffer-copy (from-name to-name modes context)
+(defun backup-buffer-copy (from-name to-name modes extended-attributes)
   (let ((umask (default-file-modes)))
     (unwind-protect
 	(progn
@@ -3994,8 +4021,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
       (set-default-file-modes umask)))
   (and modes
        (set-file-modes to-name (logand modes #o1777)))
-  (and context
-       (set-file-selinux-context to-name context)))
+  (and extended-attributes
+       (set-file-extended-attributes to-name extended-attributes)))
 
 (defvar file-name-version-regexp
   "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
@@ -4593,7 +4620,8 @@ Before and after saving the buffer, this function runs
 		(condition-case ()
 		    (progn
 		      (set-file-modes buffer-file-name (car setmodes))
-		      (set-file-selinux-context buffer-file-name (nth 1 setmodes)))
+		      (set-file-extended-attributes buffer-file-name
+						    (nth 1 setmodes)))
 		  (error nil))))
 	  ;; If the auto-save file was recent before this command,
 	  ;; delete it now.
@@ -4606,7 +4634,8 @@ Before and after saving the buffer, this function runs
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
 ;; but inhibited if one of write-file-functions returns non-nil.
-;; It returns a value (MODES SELINUXCONTEXT BACKUPNAME), like backup-buffer.
+;; It returns a value (MODES EXTENDED-ATTRIBUTES BACKUPNAME), like
+;; backup-buffer.
 (defun basic-save-buffer-1 ()
   (prog1
       (if save-buffer-coding-system
@@ -4618,7 +4647,8 @@ Before and after saving the buffer, this function runs
       (setq buffer-file-coding-system-explicit
 	    (cons last-coding-system-used nil)))))
 
-;; This returns a value (MODES SELINUXCONTEXT BACKUPNAME), like backup-buffer.
+;; This returns a value (MODES EXTENDED-ATTRIBUTES BACKUPNAME), like
+;; backup-buffer.
 (defun basic-save-buffer-2 ()
   (let (tempsetmodes setmodes)
     (if (not (file-writable-p buffer-file-name))
@@ -4693,7 +4723,7 @@ Before and after saving the buffer, this function runs
 	    (setq setmodes (or setmodes
  			       (list (or (file-modes buffer-file-name)
 					 (logand ?\666 umask))
-				     (file-selinux-context buffer-file-name)
+				     (file-extended-attributes buffer-file-name)
 				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
@@ -4705,10 +4735,10 @@ Before and after saving the buffer, this function runs
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
 	       (setq setmodes (list (file-modes buffer-file-name)
-				    (file-selinux-context buffer-file-name)
+				    (file-extended-attributes buffer-file-name)
 				    buffer-file-name))
 	       (set-file-modes buffer-file-name (logior (car setmodes) 128))
-	       (set-file-selinux-context buffer-file-name (nth 1 setmodes)))))
+	       (set-file-extended-attributes buffer-file-name (nth 1 setmodes)))))
 	(let (success)
 	  (unwind-protect
 	      (progn

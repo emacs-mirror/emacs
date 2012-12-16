@@ -22,6 +22,12 @@ so we will look at it and add it to the manual.
 
 
 * Installation Changes in Emacs 24.4
+
+** Emacs can be compiled with POSIX ACL support.
+This happens by default if a suitable support library is found at
+build time, like libacl on GNU/Linux.  To prevent this, use the
+configure option `--without-acl'.
+
 * Startup Changes in Emacs 24.4
 * Changes in Emacs 24.4
 
@@ -32,6 +38,14 @@ if there is one.
 ** The option `set-mark-default-inactive' has been deleted.
 This unfinished feature was introduced by accident in Emacs 23.1;
 simply disabling Transient Mark mode does the same thing.
+
+** ACL support has been added.
++++
+*** Emacs preserves the ACL entries of files when backing up.
++++
+*** New functions `file-acl' and `set-file-acl' get and set the ACL
+entries of a file.  On GNU/Linux the POSIX ACL interface is used via
+libacl.
 
 * Editing Changes in Emacs 24.4
 
@@ -149,6 +163,12 @@ special-forms any more.
 VAR was bound to nil which was not tremendously useful and just lead to
 spurious warnings about an unused var.
 
+** The return value of `backup-buffer' has changed.
+The second argument is no longer an SELinux context, instead it is an
+alist of extended attributes as returned by the new function
+`file-extended-attributes'.  The attributes can be applied to another
+file using `set-file-extended-attributes'.
+
 * Lisp changes in Emacs 24.4
 
 ** Support for filesystem notifications.
@@ -185,6 +205,10 @@ argument GROUP which causes it check for file group too.  This can be
 used in place of the 9th element of `file-attributes'.
 
 ** New functions `group-gid' and `group-real-gid'.
+
+** The 6th argument to `copy-file' has been renamed to
+`preserve-extended-attributes' as it now handles both SELinux context
+and ACL entries.
 
 * Changes in Emacs 24.4 on non-free operating systems
 

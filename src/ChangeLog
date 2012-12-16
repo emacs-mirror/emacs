@@ -1,3 +1,14 @@
+2012-12-16  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (Ffile_acl, Fset_file_acl): New functions.
+	(Fcopy_file): Change last arg to `preserve_extended_attributes'
+	and copy ACL entries of file in addition to SELinux context if
+	set.
+	(syms_of_fileio): Add `file-acl' and `set-file-acl'.
+
+	* Makefile.in (LIBACL_LIBS): New macro.
+	(LIBES): Use it.
+
 2012-12-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (internal_delete_file): Use bool for boolean.

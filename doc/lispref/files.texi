@@ -1352,6 +1352,36 @@ not support SELinux, or if Emacs was not compiled with SELinux
 support, then the return value is @code{(nil nil nil nil)}.
 @end defun
 
+@cindex access control list
+@cindex ACL entries
+  If Emacs has been compiled with @dfn{ACL} (access control list)
+support, you can use the function @code{file-acl} to retrieve a file's
+ACL entries.  The format is platform-specific; on GNU/Linux and BSD,
+Emacs uses the POSIX ACL interface.  For the function
+@code{set-file-acl}, see @ref{Changing Files}.
+
+@defun file-acl filename
+This function returns the ACL entries of the file @var{filename}.
+The return value is a string containing the textual representation of
+the ACL entries, like the following:
+
+@example
+@group
+user::rw-
+group::r--
+group:gnu:rwx
+mask::rwx
+other::r--
+@end group
+@end example
+
+If the file does not exist or is inaccessible, or if Emacs was unable to
+determine the ACL entries, then the return value is @code{nil}.  The
+latter can happen for local files if Emacs was not compiled with ACL
+support, or for remote files if the file handler returns nil for the
+file's ACL entries.
+@end defun
+
 @node Locating Files
 @subsection How to Locate Files in Standard Places
 @cindex locate file in path
@@ -1541,9 +1571,10 @@ non-@code{nil}, we attempt to copy the user and group ownership of the
 file.  This works only on some operating systems, and only if you have
 the correct permissions to do so.
 
-If the optional argument @var{preserve-selinux} is non-@code{nil}, and
-Emacs has been compiled with SELinux support, this function attempts
-to copy the file's SELinux context (@pxref{File Attributes}).
+If the optional argument @var{preserve-extended-attributes} is
+non-@code{nil}, and Emacs has been built with the appropriate support,
+this function attempts to copy the file's extended attributes, such as
+its SELinux context and ACL entries (@pxref{File Attributes}).
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
@@ -1682,6 +1713,13 @@ a list @code{(@var{user} @var{role} @var{type} @var{range})}, like the
 return value of @code{file-selinux-context}.  The function does
 nothing if SELinux is disabled, or if Emacs was compiled without
 SELinux support.
+@end defun
+
+@defun set-file-acl filename acl-string
+This function sets the ACL entries of the file @var{filename} to
+@var{acl-string}.  @xref{File Attributes}, for a brief description of
+ACLs.  The @var{acl-string} argument should be a string containing the
+textual representation of the desired ACL entries.
 @end defun
 
 @node File Names

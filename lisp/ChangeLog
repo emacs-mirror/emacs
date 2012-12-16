@@ -1,3 +1,13 @@
+2012-12-16  Romain Francoise  <romain@orebokech.com>
+
+	* files.el (file-extended-attributes)
+	(set-file-extended-attributes): New functions.
+	(backup-buffer): Use them to handle both SELinux context and ACL
+	entries.
+	(backup-buffer-copy): Work with an alist of extended attributes,
+	rather than an SELinux context.
+	(basic-save-buffer-2): Ditto.
+
 2012-12-16  Timo Myyrä  <timo.myyra@gmail.com>
 
 	* battery.el (battery-bsd-apm): New function.
