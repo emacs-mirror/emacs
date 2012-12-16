@@ -13792,7 +13792,7 @@ command (@pxref{Mode Settings}).
 @item 10
 @samp{ZYYY-MM-DD Www< hh:mm>} (Org mode format)
 @item 11
-@samp{IYYY-Iww-w< Thh:mm:ss>} (ISO-8601 week numbering format)
+@samp{IYYY-Iww-w<Thh:mm:ss>} (ISO-8601 week numbering format)
 @end table
 
 @node Truncating the Stack, Justification, Date Formats, Display Modes

@@ -789,7 +789,7 @@ If nil, selections displayed but ignored.")
     "j<, h:mm:SS>"
     "YYddd< hh:mm:ss>"
     "ZYYY-MM-DD Www< hh:mm>"
-    "IYYY-Iww-w< Thh:mm:ss>"))
+    "IYYY-Iww-w<Thh:mm:ss>"))
 
 (defcalcmodevar calc-autorange-units nil
   "If non-nil, automatically set unit prefixes to keep units in a reasonable range.")
