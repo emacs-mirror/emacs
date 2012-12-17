@@ -304,16 +304,17 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	(wrong-number-of-arguments (file-attributes filename))))))
 
 ;; PRESERVE-UID-GID does not exist in XEmacs.
-;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.1.
+;; PRESERVE-EXTENDED-ATTRIBUTES has been introduced with Emacs 24.1
+;; (as PRESERVE-SELINUX-CONTEXT), and renamed in Emacs 24.3.
 (defun tramp-compat-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-selinux-context)
+	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files (compat function)."
   (cond
-   (preserve-selinux-context
+   (preserve-extended-attributes
     (tramp-compat-funcall
      'copy-file filename newname ok-if-already-exists keep-date
-     preserve-uid-gid preserve-selinux-context))
+     preserve-uid-gid preserve-extended-attributes))
    (preserve-uid-gid
     (tramp-compat-funcall
      'copy-file filename newname ok-if-already-exists keep-date

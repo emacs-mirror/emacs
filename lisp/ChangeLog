@@ -1,3 +1,34 @@
+2012-12-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Add support for preserving ACL entries of files.
+
+	* net/tramp.el (tramp-file-name-for-operation): Add `file-acl' and
+	`set-file-acl' handlers.
+
+	* net/tramp-adb.el (tramp-adb-handle-copy-file): Handle
+	PRESERVE-EXTENDED-ATTRIBUTES.
+
+	* net/tramp-compat.el (tramp-compat-copy-file): Handle
+	PRESERVE-EXTENDED-ATTRIBUTES.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist): Add
+	`file-acl' and `set-file-acl' handlers.
+	(tramp-gvfs-handle-copy-file): Handle
+	PRESERVE-EXTENDED-ATTRIBUTES.
+	(tramp-gvfs-handle-file-acl, tramp-gvfs-handle-set-file-acl): New
+	defuns.
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Add
+	`file-acl' and `set-file-acl' handlers.
+	(tramp-remote-acl-p, tramp-sh-handle-file-acl)
+	(tramp-sh-handle-set-file-acl): New defuns.
+	(tramp-sh-handle-copy-file, tramp-do-copy-or-rename-file): Handle
+	PRESERVE-EXTENDED-ATTRIBUTES.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add
+	`file-acl' and `set-file-acl' handlers.
+	(tramp-smb-handle-copy-file): Handle PRESERVE-EXTENDED-ATTRIBUTES.
+
 2012-12-17  Kelly Dean  <kellydeanch@yahoo.com> (tiny change)
 
 	* help-macro.el (make-help-screen): Instead of switch-to-buffer

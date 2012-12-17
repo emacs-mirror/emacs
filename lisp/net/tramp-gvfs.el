@@ -385,6 +385,7 @@ Every entry is a list (NAME ADDRESS).")
     ;; `executable-find' is not official yet. performed by default handler.
     (expand-file-name . tramp-gvfs-handle-expand-file-name)
     ;; `file-accessible-directory-p' performed by default handler.
+    (file-acl . tramp-gvfs-handle-file-acl)
     (file-attributes . tramp-gvfs-handle-file-attributes)
     (file-directory-p . tramp-gvfs-handle-file-directory-p)
     (file-executable-p . tramp-gvfs-handle-file-executable-p)
@@ -417,6 +418,7 @@ Every entry is a list (NAME ADDRESS).")
     (make-symbolic-link . ignore)
     (process-file . tramp-gvfs-handle-process-file)
     (rename-file . tramp-gvfs-handle-rename-file)
+    (set-file-acl . tramp-gvfs-handle-set-file-acl)
     (set-file-modes . tramp-gvfs-handle-set-file-modes)
     (set-file-selinux-context . tramp-gvfs-handle-set-file-selinux-context)
     (set-visited-file-modtime . tramp-gvfs-handle-set-visited-file-modtime)
@@ -539,7 +541,7 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-selinux-context)
+	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files."
   (with-parsed-tramp-file-name
       (if (tramp-tramp-file-p filename) filename newname) nil
@@ -555,8 +557,8 @@ is no information where to trace the message.")
 		      (tramp-gvfs-fuse-file-name newname)
 		    newname)
 		  ok-if-already-exists keep-date preserve-uid-gid)))
-	    (when preserve-selinux-context
-	      (setq args (append args (list preserve-selinux-context))))
+	    (when preserve-extended-attributes
+	      (setq args (append args (list preserve-extended-attributes))))
 	    (apply 'copy-file args))
 
 	;; Error case.  Let's try it with the GVFS utilities.
@@ -654,6 +656,10 @@ is no information where to trace the message.")
        method user host
        (tramp-run-real-handler
 	'expand-file-name (list localname))))))
+
+(defun tramp-gvfs-handle-file-acl (filename)
+  "Like `file-acl' for Tramp files."
+  (tramp-compat-funcall 'file-acl (tramp-gvfs-fuse-file-name filename)))
 
 (defun tramp-gvfs-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -780,6 +786,11 @@ is no information where to trace the message.")
     (with-parsed-tramp-file-name newname nil
       (tramp-flush-file-property v (file-name-directory localname))
       (tramp-flush-file-property v localname))))
+
+(defun tramp-gvfs-handle-set-file-acl (filename acl-string)
+  "Like `set-file-acl' for Tramp files."
+  (with-tramp-gvfs-error-message filename 'set-file-acl
+    (tramp-gvfs-fuse-file-name filename) acl-string))
 
 (defun tramp-gvfs-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for Tramp files."

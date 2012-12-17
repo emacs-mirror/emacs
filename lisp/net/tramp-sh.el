@@ -985,6 +985,8 @@ This is used to map a mode number to a permission string.")
     (verify-visited-file-modtime . tramp-sh-handle-verify-visited-file-modtime)
     (file-selinux-context . tramp-sh-handle-file-selinux-context)
     (set-file-selinux-context . tramp-sh-handle-set-file-selinux-context)
+    (file-acl . tramp-sh-handle-file-acl)
+    (set-file-acl . tramp-sh-handle-set-file-acl)
     (vc-registered . tramp-sh-handle-vc-registered))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
@@ -1532,6 +1534,39 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
   ;; We always return nil.
   nil)
 
+(defun tramp-remote-acl-p (vec)
+  "Check, whether ACL is enabled on the remote host."
+  (with-tramp-connection-property (tramp-get-connection-process vec) "acl-p"
+    (tramp-send-command-and-check vec "getfacl /")))
+
+(defun tramp-sh-handle-file-acl (filename)
+  "Like `file-acl' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (with-tramp-file-property v localname "file-acl"
+      (when (and (tramp-remote-acl-p v)
+		 (tramp-send-command-and-check
+		  v (format
+		     "getfacl -ac %s 2>/dev/null"
+		     (tramp-shell-quote-argument localname))))
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (buffer-string))))))
+
+(defun tramp-sh-handle-set-file-acl (filename acl-string)
+  "Like `set-file-acl' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (if (and (stringp acl-string)
+	     (tramp-remote-acl-p v)
+	     (tramp-send-command-and-check
+	      v
+	      (format "setfacl --set-file=- %s <<'EOF'\n%s\nEOF\n"
+		      (tramp-shell-quote-argument localname)
+		      acl-string)
+	      t))
+	(tramp-set-file-property v localname "file-acl" acl-string)
+      (tramp-set-file-property v localname "file-acl-string" 'undef)))
+  ;; We always return nil.
+  nil)
+
 ;; Simple functions using the `test' command.
 
 (defun tramp-sh-handle-file-executable-p (filename)
@@ -1883,7 +1918,7 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 
 (defun tramp-sh-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-selinux-context)
+	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (setq newname (expand-file-name newname))
@@ -1893,13 +1928,13 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	(tramp-tramp-file-p newname))
     (tramp-do-copy-or-rename-file
      'copy filename newname ok-if-already-exists keep-date
-     preserve-uid-gid preserve-selinux-context))
+     preserve-uid-gid preserve-extended-attributes))
    ;; Compat section.
-   (preserve-selinux-context
+   (preserve-extended-attributes
     (tramp-run-real-handler
      'copy-file
      (list filename newname ok-if-already-exists keep-date
-	   preserve-uid-gid preserve-selinux-context)))
+	   preserve-uid-gid preserve-extended-attributes)))
    (preserve-uid-gid
     (tramp-run-real-handler
      'copy-file
@@ -1962,7 +1997,7 @@ tramp-sh-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 
 (defun tramp-do-copy-or-rename-file
   (op filename newname &optional ok-if-already-exists keep-date
-      preserve-uid-gid preserve-selinux-context)
+      preserve-uid-gid preserve-extended-attributes)
   "Copy or rename a remote file.
 OP must be `copy' or `rename' and indicates the operation to perform.
 FILENAME specifies the file to copy or rename, NEWNAME is the name of
@@ -1971,7 +2006,7 @@ OK-IF-ALREADY-EXISTS means don't barf if NEWNAME exists already.
 KEEP-DATE means to make sure that NEWNAME has the same timestamp
 as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid if both files are on the same host.
-PRESERVE-SELINUX-CONTEXT activates selinux commands.
+PRESERVE-EXTENDED-ATTRIBUTES activates selinux and acl commands.
 
 This function is invoked by `tramp-sh-handle-copy-file' and
 `tramp-sh-handle-rename-file'.  It is an error if OP is neither
@@ -1982,8 +2017,8 @@ file names."
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
 	(length (nth 7 (file-attributes (file-truename filename))))
-	(context (and preserve-selinux-context
-		      (apply 'file-selinux-context (list filename))))
+	(attributes (and preserve-extended-attributes
+			 (apply 'file-extended-attributes (list filename))))
 	pr tm)
 
     (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -2053,8 +2088,9 @@ file names."
 	  ;; One of them must be a Tramp file.
 	  (error "Tramp implementation says this cannot happen")))
 
-	;; Handle `preserve-selinux-context'.
-	(when context (apply 'set-file-selinux-context (list newname context)))
+	;; Handle `preserve-extended-attributes'.
+	(when attributes
+	  (apply 'set-file-extended-attributes (list newname attributes)))
 
 	;; In case of `rename', we must flush the cache of the source file.
 	(when (and t1 (eq op 'rename))
