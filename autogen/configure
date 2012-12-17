@@ -1201,6 +1201,7 @@ FONTCONFIG_LIBS
 FONTCONFIG_CFLAGS
 LIBXMU
 LIBXTR6
+LIBACL_LIBS
 LIBGNUTLS_LIBS
 LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
@@ -1395,6 +1396,7 @@ with_dbus
 with_gconf
 with_gsettings
 with_selinux
+with_acl
 with_gnutls
 with_inotify
 with_makeinfo
@@ -2118,6 +2120,7 @@ Optional Packages:
   --without-gconf         don't compile with GConf support
   --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
+  --without-acl           don't compile with ACL support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
   --without-inotify       don't compile with inotify (file-watch) support
   --without-makeinfo      don't require makeinfo for building manuals
@@ -4171,6 +4174,14 @@ if test "${with_selinux+set}" = set; then :
   withval=$with_selinux;
 else
      with_selinux=$with_features
+fi
+
+
+# Check whether --with-acl was given.
+if test "${with_acl+set}" = set; then :
+  withval=$with_acl;
+else
+     with_acl=$with_features
 fi
 
 
@@ -11488,6 +11499,73 @@ if test "$ac_cv_func_inotify_init1" = yes; then
 $as_echo "#define HAVE_INOTIFY 1" >>confdefs.h
 
 fi
+
+HAVE_POSIX_ACL=no
+LIBACL_LIBS=
+if test "${with_acl}" = "yes"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for acl_set_file in -lacl" >&5
+$as_echo_n "checking for acl_set_file in -lacl... " >&6; }
+if test "${ac_cv_lib_acl_acl_set_file+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lacl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char acl_set_file ();
+int
+main ()
+{
+return acl_set_file ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_acl_acl_set_file=yes
+else
+  ac_cv_lib_acl_acl_set_file=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_acl_acl_set_file" >&5
+$as_echo "$ac_cv_lib_acl_acl_set_file" >&6; }
+if test "x$ac_cv_lib_acl_acl_set_file" = x""yes; then :
+  HAVE_POSIX_ACL=yes
+else
+  HAVE_POSIX_ACL=no
+fi
+
+  if test "$HAVE_POSIX_ACL" = yes; then
+
+$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
+
+    LIBACL_LIBS=-lacl
+  else
+    ac_fn_c_check_func "$LINENO" "acl_set_file" "ac_cv_func_acl_set_file"
+if test "x$ac_cv_func_acl_set_file" = x""yes; then :
+  HAVE_POSIX_ACL=yes
+else
+  HAVE_POSIX_ACL=no
+fi
+
+    if test "$HAVE_POSIX_ACL" = yes; then
+
+$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
+
+    fi
+ fi
+fi
+
 
 HAVE_XAW3D=no
 LUCID_LIBW=
