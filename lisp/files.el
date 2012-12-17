@@ -5717,7 +5717,7 @@ See also `auto-save-file-name-p'."
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
 FILENAME should lack slashes.  You can redefine this for customization."
-  (string-match "^#.*#$" filename))
+  (string-match "\\`#.*#\\'" filename))
 
 (defun wildcard-to-regexp (wildcard)
   "Given a shell file name pattern WILDCARD, return an equivalent regexp.

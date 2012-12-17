@@ -1,3 +1,7 @@
+2012-12-17  Kevin Ryde  <user42@zip.com.au>
+
+	* files.el (auto-save-file-name-p): Use \` and \' (bug#13186).
+
 2012-12-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	Add support for preserving ACL entries of files.
@@ -5,34 +9,34 @@
 	* net/tramp.el (tramp-file-name-for-operation): Add `file-acl' and
 	`set-file-acl' handlers.
 
-	* net/tramp-adb.el (tramp-adb-handle-copy-file): Handle
-	PRESERVE-EXTENDED-ATTRIBUTES.
+	* net/tramp-adb.el (tramp-adb-handle-copy-file):
+	Handle PRESERVE-EXTENDED-ATTRIBUTES.
 
-	* net/tramp-compat.el (tramp-compat-copy-file): Handle
-	PRESERVE-EXTENDED-ATTRIBUTES.
+	* net/tramp-compat.el (tramp-compat-copy-file):
+	Handle PRESERVE-EXTENDED-ATTRIBUTES.
 
-	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist): Add
-	`file-acl' and `set-file-acl' handlers.
-	(tramp-gvfs-handle-copy-file): Handle
-	PRESERVE-EXTENDED-ATTRIBUTES.
-	(tramp-gvfs-handle-file-acl, tramp-gvfs-handle-set-file-acl): New
-	defuns.
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	Add `file-acl' and `set-file-acl' handlers.
+	(tramp-gvfs-handle-copy-file):
+	Handle PRESERVE-EXTENDED-ATTRIBUTES.
+	(tramp-gvfs-handle-file-acl, tramp-gvfs-handle-set-file-acl):
+	New defuns.
 
-	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Add
-	`file-acl' and `set-file-acl' handlers.
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	Add `file-acl' and `set-file-acl' handlers.
 	(tramp-remote-acl-p, tramp-sh-handle-file-acl)
 	(tramp-sh-handle-set-file-acl): New defuns.
-	(tramp-sh-handle-copy-file, tramp-do-copy-or-rename-file): Handle
-	PRESERVE-EXTENDED-ATTRIBUTES.
+	(tramp-sh-handle-copy-file, tramp-do-copy-or-rename-file):
+	Handle PRESERVE-EXTENDED-ATTRIBUTES.
 
-	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add
-	`file-acl' and `set-file-acl' handlers.
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Add `file-acl' and `set-file-acl' handlers.
 	(tramp-smb-handle-copy-file): Handle PRESERVE-EXTENDED-ATTRIBUTES.
 
 2012-12-17  Kelly Dean  <kellydeanch@yahoo.com> (tiny change)
 
 	* help-macro.el (make-help-screen): Instead of switch-to-buffer
-	use pop-to-buffer with NORECORD argument t.  As buffer name use
+	use pop-to-buffer with NORECORD argument t.  As buffer name, use
 	*Metahelp* with a leading space (Bug#13190).
 
 2012-12-16  Romain Francoise  <romain@orebokech.com>
@@ -101,8 +105,8 @@
 
 2012-12-14  Julien Danjou  <julien@danjou.info>
 
-	* progmodes/sql.el (sql-mode-postgres-font-lock-keywords): Update
-	keywords list, data type and PL/pgSQL.
+	* progmodes/sql.el (sql-mode-postgres-font-lock-keywords):
+	Update keywords list, data type and PL/pgSQL.
 
 2012-12-14  Dave Abrahams  <dave@boostpro.com>
 
