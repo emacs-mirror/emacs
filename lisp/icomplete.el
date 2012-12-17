@@ -337,8 +337,10 @@ are exhibited within the square braces.)"
 				((= compare (length name))
                                  ;; Typical case: name is a prefix.
 				 (substring most compare))
-				((< compare 5) most)
-				(t (concat "..." (substring most compare))))
+                                ;; Don't bother truncating if it doesn't gain
+                                ;; us at least 2 columns.
+				((< compare 3) most)
+				(t (concat "…" (substring most compare))))
 			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
 	     (prospects-len (+ (length determ) 6 ;; take {,...} into account
