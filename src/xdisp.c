@@ -869,7 +869,6 @@ static void push_it (struct it *, struct text_pos *);
 static void iterate_out_of_display_property (struct it *);
 static void pop_it (struct it *);
 static void sync_frame_with_window_matrix_rows (struct window *);
-static void select_frame_for_redisplay (Lisp_Object);
 static void redisplay_internal (void);
 static int echo_area_display (int);
 static void redisplay_windows (Lisp_Object);
@@ -1330,7 +1329,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 			   BVAR (current_buffer, header_line_format));
 
   start_display (&it, w, top);
-  move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
+  move_it_to (&it, charpos, -1, it.last_visible_y - 1, -1,
 	      (charpos >= 0 ? MOVE_TO_POS : 0) | MOVE_TO_Y);
 
   if (charpos >= 0
@@ -1338,7 +1337,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	   && IT_CHARPOS (it) >= charpos)
 	  /* When scanning backwards under bidi iteration, move_it_to
 	     stops at or _before_ CHARPOS, because it stops at or to
-	     the _right_ of the character at CHARPOS. */
+	     the _right_ of the character at CHARPOS.  */
 	  || (it.bidi_p && it.bidi_it.scan_dir == -1
 	      && IT_CHARPOS (it) <= charpos)))
     {
@@ -12966,7 +12965,9 @@ select_frame_for_redisplay (Lisp_Object frame)
   eassert (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame)));
 
   selected_frame = frame;
-  selected_window = XFRAME (frame)->selected_window;
+  /* If redisplay causes scrolling, it sets point in the window, so we need to
+     be careful with the selected-window's point handling.  */
+  select_window_1 (XFRAME (frame)->selected_window, 0);
 
   do {
     for (tail = XFRAME (frame)->param_alist;
@@ -13490,10 +13491,8 @@ redisplay_internal (void)
 
 	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
-	      if (! EQ (frame, selected_frame))
-		/* Select the frame, for the sake of frame-local
-		   variables.  */
-		select_frame_for_redisplay (frame);
+	      /* Select the frame, for the sake of frame-local variables.  */
+	      ensure_selected_frame (frame);
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
@@ -13790,8 +13789,8 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
     {
       struct buffer *b = XBUFFER (w->buffer);
 
-      w->last_modified = accurate_p ? BUF_MODIFF(b) : 0;
-      w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF(b) : 0;
+      w->last_modified = accurate_p ? BUF_MODIFF (b) : 0;
+      w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF (b) : 0;
       w->last_had_star
 	= BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
 
@@ -20360,8 +20359,11 @@ display_mode_lines (struct window *w)
   Lisp_Object old_frame_selected_window = XFRAME (new_frame)->selected_window;
   int n = 0;
 
-  selected_frame = w->frame;
+  selected_frame = new_frame;
+  /* FIXME: If we were to allow the mode-line's computation changing the buffer
+     or window's point, then we'd need select_window_1 here as well.  */
   XSETWINDOW (selected_window, w);
+  XFRAME (new_frame)->selected_window = selected_window;
 
   /* These will be set while the mode line specs are processed.  */
   line_number_displayed = 0;

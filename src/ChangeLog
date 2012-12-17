@@ -1,3 +1,13 @@
+2012-12-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (select_frame_for_redisplay): Use select_window_1 to
+	propagate redisplay's scrolling (if any) to the right window.
+	(redisplay_internal): Use ensure_selected_frame.
+	(display_mode_lines): Complete last fix.
+	* window.c (select_window_1): New func, extracted from select_window.
+	(select_window): Use it.
+	* window.h (select_window_1): Declare.
+
 2012-12-17  Eli Zaretskii  <eliz@gnu.org>
 
 	Emulate Posix ACL APIs on MS-Windows.
@@ -42,8 +52,7 @@
 
 	* fileio.c (Ffile_acl, Fset_file_acl): New functions.
 	(Fcopy_file): Change last arg to `preserve_extended_attributes'
-	and copy ACL entries of file in addition to SELinux context if
-	set.
+	and copy ACL entries of file in addition to SELinux context if set.
 	(syms_of_fileio): Add `file-acl' and `set-file-acl'.
 
 	* Makefile.in (LIBACL_LIBS): New macro.
@@ -166,7 +175,7 @@
 
 2012-12-12  Daniel Colascione  <dancol@dancol.org>
 
-	* unexcw.c (fixup_executable): use posix_fallocate to ensure that
+	* unexcw.c (fixup_executable): Use posix_fallocate to ensure that
 	the dumped Emacs is not a sparse file, greatly improving Cygwin
 	"make bootstrap" performance.
 
@@ -235,8 +244,7 @@
 	* w32fns.c (cache_system_info): Initialize the global hinst
 	variable here so various initialization calls DTRT.
 
-	* unexw32.c (hprevinst, lpCmdLine, nCmdShow): Remove unused
-	variables.
+	* unexw32.c (hprevinst, lpCmdLine, nCmdShow): Remove unused variables.
 	(hinst): Remove unneeded extern declaration.
 	(_start): Remove initialization of above variables; remove
 	initialization of hinst, as cache_system_info now does that.
@@ -308,8 +316,7 @@
 	* w32fns.c (w32_wnd_proc): Handle the WM_EMACS_FILENOTIFY message
 	by posting it to the w32_read_socket queue.
 
-	* termhooks.h (enum event_kind) [HAVE_NTGUI]: Support
-	FILE_NOTIFY_EVENT.
+	* termhooks.h (enum event_kind) [HAVE_NTGUI]: Support FILE_NOTIFY_EVENT.
 
 	* makefile.w32-in (OBJ2): Add $(BLD)/w32notify.$(O).
 	(GLOBAL_SOURCES): Add w32notify.c
@@ -317,8 +324,8 @@
 
 	* lisp.h (syms_of_w32notify) [WINDOWSNT]: Add prototype.
 
-	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]: Handle
-	FILE_NOTIFY_EVENT.
+	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]:
+	Handle FILE_NOTIFY_EVENT.
 	(syms_of_keyboard) [HAVE_NTGUI] <Qfile_notify>: New symbol.
 	(keys_of_keyboard) [WINDOWSNT]: Bind file-notify to
 	w32notify-handle-event by default.
@@ -329,8 +336,7 @@
 2012-12-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	Support for filesystem notifications on GNU/Linux via inotify.
-	* termhooks.h (enum event_kind) [HAVE_INOTIFY]: Add
-	FILE_NOTIFY_EVENT.
+	* termhooks.h (enum event_kind) [HAVE_INOTIFY]: Add FILE_NOTIFY_EVENT.
 
 	* lisp.h (syms_of_inotify) [HAVE_INOTIFY]: Add prototype.
 
@@ -647,9 +653,9 @@
 2012-12-03  Fabrice Popineau  <fabrice.popineau@gmail.com>
 
 	* w32fns.c: Remove prototype of atof.
-	(syspage_mask): Declared DWORD_PTR, for compatibility with 64-bit
+	(syspage_mask): Make it DWORD_PTR, for compatibility with 64-bit
 	builds.
-	(file_dialog_callback): Declared UINT_PTR.
+	(file_dialog_callback): Make it UINT_PTR.
 
 	* w32common.h (syspage_mask): Declare DWORD_PTR, for compatibility
 	with 64-bit builds.

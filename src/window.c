@@ -487,7 +487,6 @@ static Lisp_Object
 select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 {
   register struct window *w;
-  register struct window *ow;
   struct frame *sf;
 
   CHECK_LIVE_WINDOW (window);
@@ -523,12 +522,25 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   else
     fset_selected_window (sf, window);
 
+  select_window_1 (window, inhibit_point_swap);
+
+  bset_last_selected_window (XBUFFER (w->buffer), window);
+  windows_or_buffers_changed++;
+  return window;
+}
+
+/* Select window with a minimum of fuss, i.e. don't record the change anywhere
+   (not even for rediaplay's benefit), and assume that the window's frame is
+   already selected.  */
+void
+select_window_1 (Lisp_Object window, bool inhibit_point_swap)
+{
   /* Store the old selected window's buffer's point in pointm of the old
      selected window.  It belongs to that window, and when the window is
      not selected, must be in the window.  */
   if (!inhibit_point_swap)
     {
-      ow = XWINDOW (selected_window);
+      struct window *ow = XWINDOW (selected_window);
       if (! NILP (ow->buffer))
 	set_marker_both (ow->pointm, ow->buffer,
 			 BUF_PT (XBUFFER (ow->buffer)),
@@ -536,7 +548,6 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
     }
 
   selected_window = window;
-  bset_last_selected_window (XBUFFER (w->buffer), window);
 
   /* Go to the point recorded in the window.
      This is important when the buffer is in more
@@ -544,7 +555,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
      redisplay_window has altered point after scrolling,
      because it makes the change only in the window.  */
   {
-    register ptrdiff_t new_point = marker_position (w->pointm);
+    register ptrdiff_t new_point = marker_position (XWINDOW (window)->pointm);
     if (new_point < BEGV)
       SET_PT (BEGV);
     else if (new_point > ZV)
@@ -552,9 +563,6 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
     else
       SET_PT (new_point);
   }
-
-  windows_or_buffers_changed++;
-  return window;
 }
 
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
