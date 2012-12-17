@@ -44,8 +44,9 @@ simply disabling Transient Mark mode does the same thing.
 *** Emacs preserves the ACL entries of files when backing up.
 +++
 *** New functions `file-acl' and `set-file-acl' get and set the ACL
-entries of a file.  On GNU/Linux the POSIX ACL interface is used via
-libacl.
+entries of a file.  On GNU/Linux, the POSIX ACL interface is used via
+libacl.  On MS-Windows, the NT Security APIs are used to emulate the
+POSIX ACL interfaces.
 
 * Editing Changes in Emacs 24.4
 

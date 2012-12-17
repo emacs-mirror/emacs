@@ -293,6 +293,10 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #define NSIG 23
 #endif
 
+#ifndef ENOTSUP
+#define ENOTSUP ENOSYS
+#endif
+
 #ifdef _MSC_VER
 typedef int sigset_t;
 typedef int ssize_t;

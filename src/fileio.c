@@ -1956,6 +1956,14 @@ entries (depending on how Emacs was built).  */)
     out_st.st_mode = 0;
 
 #ifdef WINDOWSNT
+  if (!NILP (preserve_extended_attributes))
+    {
+#ifdef HAVE_POSIX_ACL
+      acl = acl_get_file (SDATA (encoded_file), ACL_TYPE_ACCESS);
+      if (acl == NULL && errno != ENOTSUP)
+	report_file_error ("Getting ACL", Fcons (file, Qnil));
+#endif
+    }
   if (!CopyFile (SDATA (encoded_file),
 		 SDATA (encoded_newname),
 		 FALSE))
@@ -1983,6 +1991,17 @@ entries (depending on how Emacs was built).  */)
       /* Restore original attributes.  */
       SetFileAttributes (filename, attributes);
     }
+#ifdef HAVE_POSIX_ACL
+  if (acl != NULL)
+    {
+      bool fail =
+	acl_set_file (SDATA (encoded_newname), ACL_TYPE_ACCESS, acl) != 0;
+      if (fail && errno != ENOTSUP)
+	report_file_error ("Setting ACL", Fcons (newname, Qnil));
+
+      acl_free (acl);
+    }
+#endif
 #else /* not WINDOWSNT */
   immediate_quit = 1;
   ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);

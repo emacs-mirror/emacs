@@ -1,3 +1,27 @@
+2012-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Emulate Posix ACL APIs on MS-Windows.
+	* w32.c: Include sddl.h and sys/acl.h.
+	(SDDL_REVISION_1): Define if not already defined.
+	(g_b_init_get_security_descriptor_dacl)
+	(g_b_init_convert_sd_to_sddl, g_b_init_convert_sddl_to_sd)
+	(g_b_init_is_valid_security_descriptor)
+	(g_b_init_set_file_security): New static flags.
+	(globals_of_w32): Initialize them to zero.
+	(SetFileSecurity_Name): New string constant.
+	(SetFileSecurity_Proc, GetSecurityDescriptorDacl_Proc)
+	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)
+	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)
+	(IsValidSecurityDescriptor_Proc): New typedefs.
+	(get_file_security, get_security_descriptor_owner)
+	(get_security_descriptor_group): Set errno to ENOTSUP.
+	(set_file_security, get_security_descriptor_dacl)
+	(is_valid_security_descriptor, convert_sd_to_sddl)
+	(convert_sddl_to_sd, acl_valid, acl_to_text, acl_from_text)
+	(acl_free, acl_get_file, acl_set_file): New functions.
+
+	* fileio.c (Fcopy_file) [WINDOWSNT]: Support copying ACLs.
+
 2012-12-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't reraise SIGCHLD, as that can now lose (Bug#13192).

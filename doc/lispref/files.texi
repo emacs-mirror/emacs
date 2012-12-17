@@ -1357,13 +1357,14 @@ support, then the return value is @code{(nil nil nil nil)}.
   If Emacs has been compiled with @dfn{ACL} (access control list)
 support, you can use the function @code{file-acl} to retrieve a file's
 ACL entries.  The format is platform-specific; on GNU/Linux and BSD,
-Emacs uses the POSIX ACL interface.  For the function
-@code{set-file-acl}, see @ref{Changing Files}.
+Emacs uses the POSIX ACL interface, while on MS-Windows Emacs emulates
+the POSIX ACL interface with native file security APIs.  For the
+function @code{set-file-acl}, see @ref{Changing Files}.
 
 @defun file-acl filename
 This function returns the ACL entries of the file @var{filename}.
 The return value is a string containing the textual representation of
-the ACL entries, like the following:
+the ACL entries.  On Posix hosts, it looks like this:
 
 @example
 @group
@@ -1374,6 +1375,12 @@ mask::rwx
 other::r--
 @end group
 @end example
+
+@cindex security descriptor, file
+@cindex SDDL, MS-Windows
+On MS-Windows, the return value is a textual description of the file's
+@dfn{security descriptor} in @acronym{SDDL}, the @dfn{Security
+Descriptor Definition Language}.
 
 If the file does not exist or is inaccessible, or if Emacs was unable to
 determine the ACL entries, then the return value is @code{nil}.  The
@@ -1719,7 +1726,8 @@ SELinux support.
 This function sets the ACL entries of the file @var{filename} to
 @var{acl-string}.  @xref{File Attributes}, for a brief description of
 ACLs.  The @var{acl-string} argument should be a string containing the
-textual representation of the desired ACL entries.
+textual representation of the desired ACL entries in the format
+appropriate for the ACL interface being used.
 @end defun
 
 @node File Names
