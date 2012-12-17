@@ -61,9 +61,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef BROKEN_PTY_READ_AFTER_EAGAIN
 
 /* Define if the system is compatible with BSD 4.2. */
-#undef BSD4_2
-
-/* Define if the system is compatible with BSD 4.2. */
 #undef BSD_SYSTEM
 
 /* Define if AH_BOTTOM should change BSD_SYSTEM. */
@@ -725,7 +722,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <png.h> header file. */
 #undef HAVE_PNG_H
 
-/* Define to 1 if you have the POSIX ACL support. */
+/* Define to 1 if using POSIX ACL support. */
 #define HAVE_POSIX_ACL 1
 
 /* Define to 1 if you have the `posix_memalign' function. */
