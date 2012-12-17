@@ -781,7 +781,6 @@ $(BLD)/editfns.$(O) : \
 	$(SRC)/editfns.c \
 	$(SRC)/blockinput.h \
 	$(NT_INC)/pwd.h \
-	$(NT_INC)/grp.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/intprops.h \
 	$(GNU_LIB)/strftime.h \
@@ -791,6 +790,7 @@ $(BLD)/editfns.$(O) : \
 	$(CODING_H) \
 	$(CONFIG_H) \
 	$(FRAME_H) \
+	$(GRP_H) \
 	$(INTERVALS_H) \
 	$(LISP_H) \
 	$(SYSTIME_H) \
@@ -843,6 +843,7 @@ $(BLD)/fileio.$(O) : \
 	$(SRC)/commands.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/acl.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
@@ -1185,6 +1186,7 @@ $(BLD)/w32.$(O) : \
 	$(SRC)/w32select.h \
 	$(NT_INC)/dirent.h \
 	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/acl.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/time.h \
 	$(GNU_LIB)/allocator.h \

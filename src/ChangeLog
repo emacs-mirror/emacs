@@ -1,3 +1,8 @@
+2012-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/editfns.$(O), $(BLD)/fileio.$(O))
+	($(BLD)/w32.$(O)): Update dependencies.
+
 2012-12-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (select_frame_for_redisplay): Use select_window_1 to
