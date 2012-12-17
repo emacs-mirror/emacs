@@ -134,7 +134,7 @@ and then returns."
 		   (when (or (eq char ??) (eq char help-char)
 			     (memq char help-event-list))
 		     (setq config (current-window-configuration))
-		     (switch-to-buffer-other-window "*Help*")
+		     (pop-to-buffer " *Metahelp*" nil t)
 		     (and (fboundp 'make-frame)
 			  (not (eq (window-frame (selected-window))
 				   prev-frame))
