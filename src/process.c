@@ -4773,11 +4773,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 Therefore, if we get an error reading and errno =
 		 EIO, just continue, because the child process has
 		 exited and should clean itself up soon (e.g. when we
-		 get a SIGCHLD).
-
-		 However, it has been known to happen that the SIGCHLD
-		 got lost.  So raise the signal again just in case.
-		 It can't hurt.  */
+		 get a SIGCHLD).  */
 	      else if (nread == -1 && errno == EIO)
 		{
 		  struct Lisp_Process *p = XPROCESS (proc);
@@ -4795,8 +4791,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		      p->tick = ++process_tick;
 		      pset_status (p, Qfailed);
 		    }
-                  else
-		    handle_child_signal (SIGCHLD);
 		}
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the

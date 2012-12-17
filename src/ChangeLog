@@ -1,3 +1,13 @@
+2012-12-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't reraise SIGCHLD, as that can now lose (Bug#13192).
+	With the 2012-12-03 fix for Bug#12980 in place, an old workaround
+	for some of that bug's symptoms can now cause Emacs to abort.
+	Remove the workaround.
+	* process.c (wait_reading_process_output): Don't reraise SIGCHLD.
+	The bug that caused SIGCHLD to get lost has been fixed, and the
+	workaround for it can now cause Emacs to abort.
+
 2012-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (emacs_abort): Bump backtrace size to 40.
