@@ -4518,7 +4518,7 @@ readlink (const char *name, char *buf, size_t buf_size)
 	errno = EINVAL;
       else
 	{
-	  /* Copy the link target name, in wide characters, fro
+	  /* Copy the link target name, in wide characters, from
 	     reparse_data, then convert it to multibyte encoding in
 	     the current locale's codepage.  */
 	  WCHAR *lwname;
@@ -4766,6 +4766,7 @@ acl_t
 acl_get_file (const char *fname, acl_type_t type)
 {
   PSECURITY_DESCRIPTOR psd = NULL;
+  const char *filename;
 
   if (type == ACL_TYPE_ACCESS)
     {
@@ -4775,6 +4776,12 @@ acl_get_file (const char *fname, acl_type_t type)
 	GROUP_SECURITY_INFORMATION |
 	DACL_SECURITY_INFORMATION ;
       int e = errno;
+
+      filename = map_w32_filename (fname, NULL);
+      if ((volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+	fname = chase_symlinks (filename);
+      else
+	fname = filename;
 
       errno = 0;
       if (!get_file_security (fname, si, psd, 0, &sd_len)
@@ -4819,6 +4826,7 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
   BOOL dflt;
   BOOL dacl_present;
   int e;
+  const char *filename;
 
   if (acl_valid (acl) != 0
       || (type != ACL_TYPE_DEFAULT && type != ACL_TYPE_ACCESS))
@@ -4832,6 +4840,12 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
       errno = ENOSYS;
       return -1;
     }
+
+  filename = map_w32_filename (fname, NULL);
+  if ((volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+    fname = chase_symlinks (filename);
+  else
+    fname = filename;
 
   if (get_security_descriptor_owner ((PSECURITY_DESCRIPTOR)acl, &psid, &dflt)
       && psid)
@@ -4866,10 +4880,13 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
   errno = 0;
   set_file_security ((char *)fname, flags, (PSECURITY_DESCRIPTOR)acl);
   err = GetLastError ();
-  if (st >= 2)
-    restore_privilege (&old2);
-  if (st >= 1)
-    restore_privilege (&old1);
+  if (st)
+    {
+      if (st >= 2)
+	restore_privilege (&old2);
+      restore_privilege (&old1);
+      revert_to_self ();
+    }
 
   if (errno == ENOTSUP)
     ;
