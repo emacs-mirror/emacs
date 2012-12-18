@@ -1455,6 +1455,11 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	   (or (and (bufferp buffer) buffer)
 	       (and (processp vec-or-proc) (process-buffer vec-or-proc))
 	       (tramp-get-connection-buffer vec-or-proc)))
+	  (when (string-equal fmt-string "Process died")
+	    (message
+	     "%s\n    %s"
+	     "Tramp failed to connect.  If this happens repeatedly, try"
+	     "`M-x tramp-cleanup-this-connection'"))
 	  (sit-for 30))))))
 
 (defmacro with-parsed-tramp-file-name (filename var &rest body)
