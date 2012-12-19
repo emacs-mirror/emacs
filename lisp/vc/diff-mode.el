@@ -1298,7 +1298,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
                           (re-search-forward diff-context-mid-hunk-header-re
                                              nil t)))))
           (when (and ;; Don't try to fixup changes in the hunk header.
-                 (> (car diff-unhandled-changes) start)
+                 (>= (car diff-unhandled-changes) start)
                  ;; Don't try to fixup changes in the mid-hunk header either.
                  (or (not mid)
                      (< (cdr diff-unhandled-changes) (match-beginning 0))
