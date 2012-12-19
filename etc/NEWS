@@ -130,6 +130,9 @@ duplicate lines everywhere in the region without regard to adjacency.
 *** New connection method "adb", which allows to access Android
 devices by the Android Debug Bridge.  The variable `tramp-adb-sdk-dir'
 must be set to the Android SDK installation directory.
++++
+*** Handlers for `file-acl' and `set-file-acl' for remote machines
+which support POSIX ACLs.
 
 ** Woman
 
