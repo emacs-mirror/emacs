@@ -1549,7 +1549,9 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 		     "getfacl -ac %s 2>/dev/null"
 		     (tramp-shell-quote-argument localname))))
 	(with-current-buffer (tramp-get-connection-buffer v)
-	  (buffer-string))))))
+	  (goto-char (point-max))
+	  (delete-blank-lines)
+	  (substring-no-properties (buffer-string)))))))
 
 (defun tramp-sh-handle-set-file-acl (filename acl-string)
   "Like `set-file-acl' for Tramp files."
@@ -1557,11 +1559,8 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
     (if (and (stringp acl-string)
 	     (tramp-remote-acl-p v)
 	     (tramp-send-command-and-check
-	      v
-	      (format "setfacl --set-file=- %s <<'EOF'\n%s\nEOF\n"
-		      (tramp-shell-quote-argument localname)
-		      acl-string)
-	      t))
+	      v (format "setfacl --set-file=- %s <<'EOF'\n%s\nEOF\n"
+			(tramp-shell-quote-argument localname) acl-string)))
 	(tramp-set-file-property v localname "file-acl" acl-string)
       (tramp-set-file-property v localname "file-acl-string" 'undef)))
   ;; We always return nil.
