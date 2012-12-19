@@ -280,7 +280,7 @@ adjust_window_count (struct window *w, int arg)
   if (BUFFERP (w->buffer))
     {
       struct buffer *b = XBUFFER (w->buffer);
-      
+
       if (b->base_buffer)
 	b = b->base_buffer;
       b->window_count += arg;
@@ -530,7 +530,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 }
 
 /* Select window with a minimum of fuss, i.e. don't record the change anywhere
-   (not even for rediaplay's benefit), and assume that the window's frame is
+   (not even for redisplay's benefit), and assume that the window's frame is
    already selected.  */
 void
 select_window_1 (Lisp_Object window, bool inhibit_point_swap)
