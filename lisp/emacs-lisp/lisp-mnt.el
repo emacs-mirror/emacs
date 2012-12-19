@@ -208,10 +208,10 @@ If the given section does not exist, return nil."
 The HEADER is the section string marking the beginning of the
 section.  If the given section does not exist, return nil.
 
-The end of the section is defined as the beginning of the next
-section of the same level or lower.  The function
-`lisp-outline-level' is used to compute the level of a section.
-If no such section exists, return the end of the buffer."
+The section ends before the first non-comment text or the next
+section of the same level or lower; whatever comes first.  The
+function `lisp-outline-level' is used to compute the level of
+a section."
   (require 'outline)   ;; for outline-regexp.
   (let ((start (lm-section-start header)))
     (when start
@@ -229,9 +229,15 @@ If no such section exists, return the end of the buffer."
                            (beginning-of-line)
                            (lisp-outline-level))
                          level)))
-          (if next-section-found
-              (line-beginning-position)
-            (point-max)))))))
+	  (min (if next-section-found
+		   (progn (beginning-of-line 0)
+			  (unless (looking-at "")
+			    (beginning-of-line 2))
+			  (point))
+		 (point-max))
+	       (progn (goto-char start)
+		      (while (forward-comment 1))
+		      (point))))))))
 
 (defsubst lm-code-start ()
   "Return the buffer location of the `Code' start marker."
@@ -282,13 +288,8 @@ The returned value is a list of strings, one per line."
       (when res
 	(setq res (list res))
 	(forward-line 1)
-	(while (and (or (looking-at (concat lm-header-prefix "[\t ]+"))
-			(and (not (looking-at
-				   (lm-get-header-re "\\sw\\(\\sw\\|\\s_\\)*")))
-			     (looking-at lm-header-prefix)))
-		    (goto-char (match-end 0))
-		    (looking-at ".+"))
-	  (setq res (cons (match-string-no-properties 0) res))
+	(while (looking-at "^;+\\(\t\\|[\t\s]\\{2,\\}\\)\\(.+\\)")
+	  (push (match-string-no-properties 2) res)
 	  (forward-line 1)))
       (nreverse res))))
 
@@ -306,10 +307,13 @@ If FILE is nil, execute BODY in the current buffer."
 	     (emacs-lisp-mode)
 	     ,@body)
 	 (save-excursion
-	   ;; Switching major modes is too drastic, so just switch
-	   ;; temporarily to the Emacs Lisp mode syntax table.
-	   (with-syntax-table emacs-lisp-mode-syntax-table
-	     ,@body))))))
+           (save-restriction
+             (widen)
+             (goto-char (point-min))
+             ;; Switching major modes is too drastic, so just switch
+             ;; temporarily to the Emacs Lisp mode syntax table.
+             (with-syntax-table emacs-lisp-mode-syntax-table
+               ,@body)))))))
 
 ;; Fixme: Probably this should be amalgamated with copyright.el; also
 ;; we need a check for ranges in copyright years.
@@ -488,6 +492,14 @@ absent, return nil."
     (let ((start (lm-commentary-start)))
       (when start
         (buffer-substring-no-properties start (lm-commentary-end))))))
+
+(defun lm-homepage (&optional file)
+  "Return the homepage in file FILE, or current buffer if FILE is nil."
+  (let ((page (lm-with-file file
+		(lm-header "\\(?:x-\\)?\\(?:homepage\\|url\\)"))))
+    (if (and page (string-match "^<.+>$" page))
+	(substring page 1 -1)
+      page)))
 
 ;;; Verification and synopses
 

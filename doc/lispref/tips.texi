@@ -942,6 +942,7 @@ explains these conventions, starting with an example:
 ;; Created: 14 Jul 2010
 @group
 ;; Keywords: languages
+;; Homepage: http://example.com/foo
 
 ;; This file is not part of GNU Emacs.
 
@@ -980,8 +981,7 @@ the conventional possibilities for @var{header-name}:
 @item Author
 This line states the name and email address of at least the principal
 author of the library.  If there are multiple authors, list them on
-continuation lines led by @code{;;} and whitespace (this is easier
-for tools to parse than having more than one author on one line).
+continuation lines led by @code{;;} and a tab or at least two spaces.
 We recommend including a contact email address, of the form
 @samp{<@dots{}>}.  For example:
 
@@ -1027,6 +1027,9 @@ commas, or both.
 The name of this field is unfortunate, since people often assume it is
 the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
+
+@item Homepage
+This line states the homepage of the library.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then
