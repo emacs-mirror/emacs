@@ -8426,9 +8426,6 @@ highest priority.  */)
   ptrdiff_t from, to;
   ptrdiff_t from_byte, to_byte;
 
-  CHECK_NUMBER_COERCE_MARKER (start);
-  CHECK_NUMBER_COERCE_MARKER (end);
-
   validate_region (&start, &end);
   from = XINT (start), to = XINT (end);
   from_byte = CHAR_TO_BYTE (from);
@@ -8872,8 +8869,6 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
   ptrdiff_t from, from_byte, to, to_byte;
   Lisp_Object src_object;
 
-  CHECK_NUMBER_COERCE_MARKER (start);
-  CHECK_NUMBER_COERCE_MARKER (end);
   if (NILP (coding_system))
     coding_system = Qno_conversion;
   else
