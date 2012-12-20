@@ -134,14 +134,13 @@ specifies the value of ERROR-BUFFER."
 		       current-prefix-arg
 		       shell-command-default-error-buffer
 		       t)))
-  (let ((error-file
-	 (if error-buffer
-	     (make-temp-file
-	      (expand-file-name "scor"
-                                (if (featurep 'xemacs)
-                                    (temp-directory)
-                                  temporary-file-directory)))
-	   nil))
+  (let ((input-file (org-babel-temp-file "input-"))
+	(error-file (if error-buffer (org-babel-temp-file "scor-") nil))
+	(shell-file-name
+	 (if (file-executable-p
+	      (concat (file-remote-p default-directory) shell-file-name))
+	     shell-file-name
+	   "/bin/sh"))
 	exit-status)
     (if (or replace
 	    (and output-buffer
@@ -151,12 +150,14 @@ specifies the value of ERROR-BUFFER."
 	  ;; Don't muck with mark unless REPLACE says we should.
 	  (goto-char start)
 	  (and replace (push-mark (point) 'nomsg))
+	  (write-region start end input-file)
+	  (delete-region start end)
 	  (setq exit-status
-		(call-process-region start end shell-file-name t
-				     (if error-file
-					 (list output-buffer error-file)
-				       t)
-				     nil shell-command-switch command))
+		(process-file shell-file-name input-file
+			      (if error-file
+				  (list output-buffer error-file)
+				t)
+			      nil shell-command-switch command))
 	  ;; It is rude to delete a buffer which the command is not using.
 	  ;; (let ((shell-buffer (get-buffer "*Shell Command Output*")))
 	  ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
@@ -175,14 +176,14 @@ specifies the value of ERROR-BUFFER."
 		(progn (setq buffer-read-only nil)
 		       (delete-region (max start end) (point-max))
 		       (delete-region (point-min) (min start end))
+		       (write-region (point-min) (point-max) input-file)
+		       (delete-region (point-min) (point-max))
 		       (setq exit-status
-			     (call-process-region (point-min) (point-max)
-						  shell-file-name t
-						  (if error-file
-						      (list t error-file)
-						    t)
-						  nil shell-command-switch
-						  command)))
+			     (process-file shell-file-name input-file
+					   (if error-file
+					       (list t error-file)
+					     t)
+					   nil shell-command-switch command)))
 	      ;; Clear the output buffer, then run the command with
 	      ;; output there.
 	      (let ((directory default-directory))
@@ -192,11 +193,11 @@ specifies the value of ERROR-BUFFER."
 		      (setq default-directory directory))
 		  (erase-buffer)))
 	      (setq exit-status
-		    (call-process-region start end shell-file-name nil
-					 (if error-file
-					     (list buffer error-file)
-					   buffer)
-					 nil shell-command-switch command)))
+		    (process-file shell-file-name nil
+				  (if error-file
+				      (list buffer error-file)
+				    buffer)
+				  nil shell-command-switch command)))
 	  ;; Report the output.
 	  (with-current-buffer buffer
 	    (setq mode-line-process
@@ -229,6 +230,9 @@ specifies the value of ERROR-BUFFER."
 	    ;; Don't kill: there might be useful info in the undo-log.
 	    ;; (kill-buffer buffer)
 	    ))))
+
+    (when (and input-file (file-exists-p input-file))
+      (delete-file input-file))
 
     (when (and error-file (file-exists-p error-file))
       (if (< 0 (nth 7 (file-attributes error-file)))
