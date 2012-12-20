@@ -190,15 +190,15 @@ program."
 ;; We usually come up with two candidates and ediff-file-name-sans-prefix
 ;;    resolves this later.
 ;;
-;; The marker `marker1' delimits the beginning of the corresponding patch and
-;;    `marker2' does it for the end.
+;; The marker `mark1' delimits the beginning of the corresponding patch and
+;;    `mark2' does it for the end.
 ;; The result of ediff-map-patch-buffer is a list, which is then assigned
 ;; to ediff-patch-map.
 ;; The function returns the number of elements in the list ediff-patch-map
 (defun ediff-map-patch-buffer (buf)
   (ediff-with-current-buffer buf
     (let ((count 0)
-	  (mark1 (move-marker (make-marker) (point-min)))
+	  (mark1 (point-min-marker))
 	  (mark1-end (point-min))
 	  (possible-file-names '("/dev/null" . "/dev/null"))
 	  mark2-end mark2 filenames
