@@ -1,3 +1,12 @@
+2012-12-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/grep.el (rgrep): Escape command line.  Sometimes, it
+	is too long for Tramp.  See discussion in
+	<http://thread.gmane.org/gmane.emacs.tramp/8233/focus=8244>.
+
+	* progmodes/compile.el (compilation-start): Remove line escape
+	template.
+
 2012-12-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* vc/ediff-ptch.el (ediff-map-patch-buffer): Use `point-min-marker'.

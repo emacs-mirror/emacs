@@ -1611,7 +1611,11 @@ Returns the compilation buffer created."
 		(format "%s started at %s\n\n"
 			mode-name
 			(substring (current-time-string) 0 19))
-		command "\n")
+		;; The command could be split into several lines, see
+		;; `rgrep' for example.  We want to display it as one
+		;; line.
+		(apply 'concat (split-string command (regexp-quote "\\\n") t))
+		"\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; Pop up the compilation buffer.
