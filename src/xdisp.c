@@ -12951,49 +12951,6 @@ reconsider_clip_changes (struct window *w, struct buffer *b)
 }
 
 
-/* Select FRAME to forward the values of frame-local variables into C
-   variables so that the redisplay routines can access those values
-   directly.  */
-
-static void
-select_frame_for_redisplay (Lisp_Object frame)
-{
-  Lisp_Object tail, tem;
-  Lisp_Object old = selected_frame;
-  struct Lisp_Symbol *sym;
-
-  eassert (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame)));
-
-  selected_frame = frame;
-  /* If redisplay causes scrolling, it sets point in the window, so we need to
-     be careful with the selected-window's point handling.  */
-  select_window_1 (XFRAME (frame)->selected_window, 0);
-
-  do {
-    for (tail = XFRAME (frame)->param_alist;
-	 CONSP (tail); tail = XCDR (tail))
-      if (CONSP (XCAR (tail))
-	  && (tem = XCAR (XCAR (tail)),
-	      SYMBOLP (tem))
-	  && (sym = indirect_variable (XSYMBOL (tem)),
-	      sym->redirect == SYMBOL_LOCALIZED)
-	  && sym->val.blv->frame_local)
-	/* Use find_symbol_value rather than Fsymbol_value
-	   to avoid an error if it is void.  */
-	find_symbol_value (tem);
-  } while (!EQ (frame, old) && (frame = old, 1));
-}
-
-/* Make sure that previously selected OLD_FRAME is selected unless it has been
-   deleted (by an X connection failure during redisplay, for example).  */
-
-static void
-ensure_selected_frame (Lisp_Object frame)
-{
-  if (!EQ (frame, selected_frame) && FRAME_LIVE_P (XFRAME (frame)))
-    select_frame_for_redisplay (frame);
-}
-
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
        polling_stopped_here = 1; } while (0)
@@ -13077,12 +13034,6 @@ redisplay_internal (void)
  retry:
   /* Remember the currently selected window.  */
   sw = w;
-
-  /* When running redisplay, we play a bit fast-and-loose and allow e.g.
-     selected_frame and selected_window to be temporarily out-of-sync so
-     when we come back here via `goto retry', we need to resync because we
-     may need to run Elisp code (via prepare_menu_bars).  */
-  ensure_selected_frame (old_frame);
 
   pending = 0;
   reconsider_clip_changes (w, current_buffer);
@@ -13491,9 +13442,6 @@ redisplay_internal (void)
 
 	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
-	      /* Select the frame, for the sake of frame-local variables.  */
-	      ensure_selected_frame (frame);
-
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
 	      if (FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
@@ -13543,10 +13491,6 @@ redisplay_internal (void)
 	    }
 	}
 
-      /* We played a bit fast-and-loose above and allowed selected_frame
-	 and selected_window to be temporarily out-of-sync but let's make
-	 sure this stays contained.  */
-      ensure_selected_frame (old_frame);
       eassert (EQ (XFRAME (selected_frame)->selected_window, selected_window));
 
       if (!pending)
@@ -13772,7 +13716,6 @@ static Lisp_Object
 unwind_redisplay (Lisp_Object old_frame)
 {
   redisplaying_p = 0;
-  ensure_selected_frame (old_frame);
   return Qnil;
 }
 

@@ -156,6 +156,10 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** frame-local variables that affect redisplay do not work any more.
+More specifically, the redisplay does not bother to check for a frame-local
+value when looking up variables.
+
 ** nil and "unbound" are indistinguishable in symbol-function.
 `symbol-function' never signals `void-function' any more.
 `fboundp' returns non-nil if the symbol was `fset' to nil.
