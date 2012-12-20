@@ -2599,7 +2599,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      ptrdiff_t begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
 	      add_len = CHAR_TO_BYTE (search_regs.end[idx]) - begbyte;
 	      if (search_regs.start[idx] < GPT && GPT < search_regs.end[idx])
-		move_gap (search_regs.start[idx]);
+		move_gap_both (search_regs.start[idx], begbyte);
 	      add_stuff = BYTE_POS_ADDR (begbyte);
 	    }
 

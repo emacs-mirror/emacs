@@ -571,7 +571,8 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
 	    col += width;
 	    if (endp > scan) /* Avoid infinite loops with 0-width overlays.  */
 	      {
-		scan = endp; scan_byte = charpos_to_bytepos (scan);
+		scan = endp;
+		scan_byte = CHAR_TO_BYTE (scan);
 		continue;
 	      }
 	  }

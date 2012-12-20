@@ -5556,19 +5556,19 @@ it is sent in several bunches.  This may happen even for shorter regions.
 Output from processes can arrive in between bunches.  */)
   (Lisp_Object process, Lisp_Object start, Lisp_Object end)
 {
-  Lisp_Object proc;
-  ptrdiff_t start1, end1;
+  Lisp_Object proc = get_process (process);
+  ptrdiff_t start_byte, end_byte;
 
-  proc = get_process (process);
   validate_region (&start, &end);
 
-  if (XINT (start) < GPT && XINT (end) > GPT)
-    move_gap (XINT (start));
+  start_byte = CHAR_TO_BYTE (XINT (start));
+  end_byte = CHAR_TO_BYTE (XINT (end));
 
-  start1 = CHAR_TO_BYTE (XINT (start));
-  end1 = CHAR_TO_BYTE (XINT (end));
-  send_process (proc, (char *) BYTE_POS_ADDR (start1), end1 - start1,
-		Fcurrent_buffer ());
+  if (XINT (start) < GPT && XINT (end) > GPT)
+    move_gap_both (XINT (start), start_byte);
+
+  send_process (proc, (char *) BYTE_POS_ADDR (start_byte), 
+		end_byte - start_byte, Fcurrent_buffer ());
 
   return Qnil;
 }

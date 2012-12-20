@@ -4131,7 +4131,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       prepare_to_modify_buffer (GPT, GPT, NULL);
     }
 
-  move_gap (PT);
+  move_gap_both (PT, PT_BYTE);
   if (GAP_SIZE < total)
     make_gap (total - GAP_SIZE);
 

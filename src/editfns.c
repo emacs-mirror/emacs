@@ -2501,7 +2501,7 @@ make_buffer_string_both (ptrdiff_t start, ptrdiff_t start_byte,
   Lisp_Object result, tem, tem1;
 
   if (start < GPT && GPT < end)
-    move_gap (start);
+    move_gap_both (start, start_byte);
 
   if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
     result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
@@ -2599,7 +2599,7 @@ If narrowing is in effect, this function returns only the visible part
 of the buffer.  */)
   (void)
 {
-  return make_buffer_string (BEGV, ZV, 1);
+  return make_buffer_string_both (BEGV, BEGV_BYTE, ZV, ZV_BYTE, 1);
 }
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,

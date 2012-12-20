@@ -90,7 +90,7 @@ check_markers (void)
 void
 move_gap (ptrdiff_t charpos)
 {
-  move_gap_both (charpos, charpos_to_bytepos (charpos));
+  move_gap_both (charpos, CHAR_TO_BYTE (charpos));
 }
 
 /* Move gap to byte position BYTEPOS, which is also char position CHARPOS.
