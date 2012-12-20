@@ -1,3 +1,7 @@
+2012-12-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (redisplay_internal): Remove now-unused local.
+
 2012-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (select_frame_for_redisplay, ensure_selected_frame): Remove.

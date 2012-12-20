@@ -12976,7 +12976,7 @@ redisplay_internal (void)
   ptrdiff_t count, count1;
   struct frame *sf;
   int polling_stopped_here = 0;
-  Lisp_Object tail, frame, old_frame = selected_frame;
+  Lisp_Object tail, frame;
   struct backtrace backtrace;
 
   /* Non-zero means redisplay has to consider all windows on all
