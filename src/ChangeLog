@@ -1,3 +1,9 @@
+2012-12-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* textprop.c (set_text_properties_1): Do not allow NULL interval.
+	Rename 4th argument since it may be buffer or string.  Adjust comment.
+	* intervals.c (graft_intervals_info_buffer): Find an interval here.
+
 2012-12-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coding.c (Fdetect_coding_region): Do not check start and end with

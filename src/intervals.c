@@ -1624,7 +1624,8 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
 	  XSETBUFFER (buf, buffer);
 	  set_text_properties_1 (make_number (position),
 				 make_number (position + length),
-				 Qnil, buf, 0);
+				 Qnil, buf,
+				 find_interval (tree, position));
 	}
       /* Shouldn't be necessary.  --Stef  */
       buffer_balance_intervals (buffer);
