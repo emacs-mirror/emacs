@@ -77,8 +77,13 @@ ENDKEYFUN moves from the start of the sort key to the end of the sort key.
 ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
 same as ENDRECFUN.
 
-PREDICATE is the function to use to compare keys.  If keys are numbers,
-it defaults to `<', otherwise it defaults to `string<'."
+PREDICATE, if non-nil, is the predicate function for comparing
+keys; it is called with two arguments, the keys to compare, and
+should return non-nil if the first key should sort before the
+second key.  If PREDICATE is nil, comparison is done with `<' if
+the keys are numbers, with `compare-buffer-substrings' if the
+keys are cons cells (the car and cdr of each cons cell are taken
+as start and end positions), and with `string<' otherwise."
   ;; Heuristically try to avoid messages if sorting a small amt of text.
   (let ((messages (> (- (point-max) (point-min)) 50000)))
     (save-excursion
