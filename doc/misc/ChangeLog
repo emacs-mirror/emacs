@@ -1,5 +1,12 @@
 2012-12-21  Glenn Morris  <rgm@gnu.org>
 
+	* auth.texi, emacs-gnutls.texi, epa.texi, ert.texi:
+	* gnus-coding.texi, info.texi, nxml-mode.texi, sasl.texi:
+	May as well just include doclicense.texi in everything.
+
+	* ede.texi, eieio.texi, mairix-el.texi: Include a copy of GFDL,
+	which @copying says is included.
+
 	* ada-mode.texi, auth.texi, autotype.texi, bovine.texi, calc.texi:
 	* cc-mode.texi, cl.texi, dbus.texi, dired-x.texi, ebrowse.texi:
 	* ede.texi, ediff.texi, edt.texi, eieio.texi, emacs-gnutls.texi:
