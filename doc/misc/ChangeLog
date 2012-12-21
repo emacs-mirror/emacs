@@ -1,5 +1,18 @@
 2012-12-21  Glenn Morris  <rgm@gnu.org>
 
+	* ada-mode.texi, auth.texi, autotype.texi, bovine.texi, calc.texi:
+	* cc-mode.texi, cl.texi, dbus.texi, dired-x.texi, ebrowse.texi:
+	* ede.texi, ediff.texi, edt.texi, eieio.texi, emacs-gnutls.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, ert.texi, eshell.texi:
+	* eudc.texi, flymake.texi, forms.texi, gnus-coding.texi, gnus.texi:
+	* idlwave.texi, info.texi, mairix-el.texi, message.texi, mh-e.texi:
+	* newsticker.texi, nxml-mode.texi, pcl-cvs.texi, pgg.texi:
+	* rcirc.texi, reftex.texi, remember.texi, sasl.texi, sc.texi:
+	* semantic.texi, ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* srecode.texi, tramp.texi, url.texi, vip.texi, viper.texi:
+	* widget.texi, wisent.texi, woman.texi: Do not mention buying
+	copies from the FSF, which does not publish these manuals.
+
 	* erc.texi: No need to include gpl in this small manual.
 
 2012-12-14  Glenn Morris  <rgm@gnu.org>
