@@ -62,10 +62,6 @@ and modified without restriction.
 * Advanced Usage::              Cool ways of using ERC.
 * Getting Help and Reporting Bugs::
 * History::                     The history of ERC.
-* Copying::                     The GNU General Public License gives you
-                                  permission to redistribute ERC on
-                                  certain terms; it also explains that
-                                  there is no warranty.
 * GNU Free Documentation License::  The license for this documentation.
 * Concept Index::               Search for terms.
 
@@ -854,10 +850,6 @@ Since about 2009, ERC is no longer developed as a separate project, but
 is maintained as part of Emacs.
 
 @end itemize
-
-@node Copying
-@appendix GNU GENERAL PUBLIC LICENSE
-@include gpl.texi
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
