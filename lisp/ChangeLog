@@ -4,8 +4,6 @@
 
 2012-12-20  Bastien Guerry  <bzg@gnu.org>
 
-	* ldefs-boot.el (tags-search): Fix typo.
-
 	* progmodes/etags.el (tags-search): Fix typo.  Bug #13232.
 
 2012-12-11  Alan Mackenzie  <acm@muc.de>
