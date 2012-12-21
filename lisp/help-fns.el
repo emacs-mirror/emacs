@@ -789,7 +789,7 @@ it is displayed along with the global value."
 	      (cond
                ((bufferp locus)
                 (princ (format "Local in buffer %s; "
-                               (buffer-name))))
+                               (buffer-name buffer))))
                ((framep locus)
                 (princ (format "It is a frame-local variable; ")))
                ((terminal-live-p locus)
