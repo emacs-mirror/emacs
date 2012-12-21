@@ -1,3 +1,7 @@
+2012-12-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (process-file): Overwrite stderr file, if exists.
+
 2012-12-21  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg--start): Print GPG_AGENT_INFO in the debug buffer.
