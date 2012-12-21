@@ -1,3 +1,8 @@
+2012-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (transpose-subr-1): Preserve marker positions by
+	changing the insertion sequence (Bug#13122).
+
 2012-12-21  Kelly Dean  <kellydeanch@yahoo.com>  (tiny change)
 
 	* simple.el (kill-region): Deactivate mark even for empty regions

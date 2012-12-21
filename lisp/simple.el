@@ -5300,14 +5300,21 @@ current object."
       (setq pos1 pos2 pos2 swap)))
   (if (> (cdr pos1) (car pos2)) (error "Don't have two things to transpose"))
   (atomic-change-group
-   (let (word2)
-     ;; FIXME: We first delete the two pieces of text, so markers that
-     ;; used to point to after the text end up pointing to before it :-(
-     (setq word2 (delete-and-extract-region (car pos2) (cdr pos2)))
-     (goto-char (car pos2))
-     (insert (delete-and-extract-region (car pos1) (cdr pos1)))
-     (goto-char (car pos1))
-     (insert word2))))
+    ;; This sequence of insertions attempts to preserve marker
+    ;; positions at the start and end of the transposed objects.
+    (let* ((word (buffer-substring (car pos2) (cdr pos2)))
+	   (len1 (- (cdr pos1) (car pos1)))
+	   (len2 (length word))
+	   (boundary (make-marker)))
+      (set-marker boundary (car pos2))
+      (goto-char (cdr pos1))
+      (insert-before-markers word)
+      (setq word (delete-and-extract-region (car pos1) (+ (car pos1) len1)))
+      (goto-char boundary)
+      (insert word)
+      (goto-char (+ boundary len1))
+      (delete-region (point) (+ (point) len2))
+      (set-marker boundary nil))))
 
 (defun backward-word (&optional arg)
   "Move backward until encountering the beginning of a word.
