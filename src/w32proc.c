@@ -795,7 +795,7 @@ new_child (void)
   DWORD id;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (!CHILD_ACTIVE (cp))
+    if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
       goto Initialize;
   if (child_proc_count == MAX_CHILDREN)
     return NULL;
@@ -852,7 +852,7 @@ delete_child (child_process *cp)
     if (fd_info[i].cp == cp)
       emacs_abort ();
 
-  if (!CHILD_ACTIVE (cp))
+  if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
     return;
 
   /* reap thread if necessary */
@@ -896,7 +896,8 @@ delete_child (child_process *cp)
   if (cp == child_procs + child_proc_count - 1)
     {
       for (i = child_proc_count-1; i >= 0; i--)
-	if (CHILD_ACTIVE (&child_procs[i]))
+	if (CHILD_ACTIVE (&child_procs[i])
+	    || child_procs[i].procinfo.hProcess != NULL)
 	  {
 	    child_proc_count = i + 1;
 	    break;
@@ -913,7 +914,8 @@ find_child_pid (DWORD pid)
   child_process *cp;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (CHILD_ACTIVE (cp) && pid == cp->pid)
+    if ((CHILD_ACTIVE (cp) || cp->procinfo.hProcess != NULL)
+	&& pid == cp->pid)
       return cp;
   return NULL;
 }
