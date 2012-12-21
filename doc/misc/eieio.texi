@@ -76,6 +76,7 @@ Emacs.
 * Naming Conventions::    Name your objects in an Emacs friendly way.
 * CLOS compatibility::    What are the differences?
 * Wish List::             Things about EIEIO that could be improved.
+* GNU Free Documentation License::  The license for this documentation.
 * Function Index::
 @end menu
 
@@ -1948,6 +1949,10 @@ buffers.
 @item
 Allow method overloading of method-like functions in Emacs.
 @end enumerate
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Function Index
 @unnumbered Function Index
