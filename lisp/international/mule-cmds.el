@@ -2953,14 +2953,18 @@ point or a number in hash notation, e.g. #o21430 for octal,
 	     (let ((completion-ignore-case t))
 	       (if (eq action 'metadata)
 		   '(metadata (category . unicode-name))
-		 (complete-with-action action (ucs-names) string pred)))))))
-    (cond
-     ((string-match-p "\\`[0-9a-fA-F]+\\'" input)
-      (string-to-number input 16))
-     ((string-match-p "\\`#" input)
-      (read input))
-     (t
-      (cdr (assoc-string input (ucs-names) t))))))
+		 (complete-with-action action (ucs-names) string pred))))))
+	 (char
+	  (cond
+	   ((string-match-p "\\`[0-9a-fA-F]+\\'" input)
+	    (string-to-number input 16))
+	   ((string-match-p "\\`#" input)
+	    (read input))
+	   (t
+	    (cdr (assoc-string input (ucs-names) t))))))
+    (unless (characterp char)
+      (error "Invalid character"))
+    char))
 
 (define-obsolete-function-alias 'ucs-insert 'insert-char "24.3")
 (define-key ctl-x-map "8\r" 'insert-char)
