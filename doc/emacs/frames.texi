@@ -77,8 +77,8 @@ for doing so on MS-DOS).
 Move point to where you click (@code{mouse-set-point}).
 
 @item Drag-Mouse-1
-Activate the region around the text selected by dragging, and copy it
-to the kill ring (@code{mouse-set-region}).
+Activate the region around the text selected by dragging, and put the
+text in the primary selection (@code{mouse-set-region}).
 
 @item Mouse-2
 Move point to where you click, and insert the contents of the primary
