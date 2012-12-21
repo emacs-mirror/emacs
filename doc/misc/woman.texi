@@ -4,7 +4,7 @@
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @c FIXME
 @c Manual last updated:
-@set UPDATED Time-stamp: <Thu 24-Jun-2010 00:06:54 gm on grasmoor>
+@set UPDATED Time-stamp: <Fri 21-Dec-2012 10:15:12 gm on skiddaw>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -29,8 +29,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 

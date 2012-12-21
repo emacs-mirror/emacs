@@ -445,7 +445,7 @@ install-arch-dep: src install-arch-indep install-doc
 	    INSTALL_STRIP=${INSTALL_STRIP}
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
-	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
+	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) || true; \
 	  if test "x${NO_BIN_LINK}" = x; then \
 	    rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
 	    cd $(DESTDIR)${bindir} && $(LN_S) $(EMACSFULL) $(EMACS); \

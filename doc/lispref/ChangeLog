@@ -1,3 +1,12 @@
+2012-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Auto Major Mode): Fix typo (Bug#13230).
+
+	* customize.texi (Simple Types): Document key-sequence type
+	(Bug#13048).
+
+	* strings.texi (Text Comparison): Doc fix for compare-strings.
+
 2012-12-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Add `file-acl',

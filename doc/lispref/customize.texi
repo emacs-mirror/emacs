@@ -620,6 +620,11 @@ you can specify that the value must be @code{nil} or @code{t}, but also
 specify the text to describe each value in a way that fits the specific
 meaning of the alternative.
 
+@item key-sequence
+The value is a key sequence.  The customization buffer shows the key
+sequence using the same syntax as the @kbd{kbd} function.  @xref{Key
+Sequences}.
+
 @item coding-system
 The value must be a coding-system name, and you can do completion with
 @kbd{M-@key{TAB}}.

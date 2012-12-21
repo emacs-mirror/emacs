@@ -12,7 +12,7 @@ EUDC is the Emacs Unified Directory Client, a common interface to
 directory servers using various protocols such as LDAP or the CCSO white
 pages directory system (PH/QI)
 
-Copyright @copyright{} 1998, 2000-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1998, 2000-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -23,8 +23,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 

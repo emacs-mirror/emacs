@@ -17,8 +17,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -61,6 +60,7 @@ database.
 * Setting up mairix.el::        Set up mairix.el
 * Using mairix.el::             List of interactive functions
 * Extending mairix.el::         Support your favorite mail reader!
+* GNU Free Documentation License::  The license for this documentation.
 @end menu
 
 @node About mairix and mairix.el
@@ -346,6 +346,8 @@ Then add the functions to @code{mairix-display-functions} and
 
 And that's it!
 
-
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @bye

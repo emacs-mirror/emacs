@@ -1,3 +1,34 @@
+2012-12-21  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi, emacs-gnutls.texi, epa.texi, ert.texi:
+	* gnus-coding.texi, info.texi, nxml-mode.texi, sasl.texi:
+	May as well just include doclicense.texi in everything.
+
+	* ede.texi, eieio.texi, mairix-el.texi: Include a copy of GFDL,
+	which @copying says is included.
+
+	* ada-mode.texi, auth.texi, autotype.texi, bovine.texi, calc.texi:
+	* cc-mode.texi, cl.texi, dbus.texi, dired-x.texi, ebrowse.texi:
+	* ede.texi, ediff.texi, edt.texi, eieio.texi, emacs-gnutls.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, ert.texi, eshell.texi:
+	* eudc.texi, flymake.texi, forms.texi, gnus-coding.texi, gnus.texi:
+	* idlwave.texi, info.texi, mairix-el.texi, message.texi, mh-e.texi:
+	* newsticker.texi, nxml-mode.texi, pcl-cvs.texi, pgg.texi:
+	* rcirc.texi, reftex.texi, remember.texi, sasl.texi, sc.texi:
+	* semantic.texi, ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* srecode.texi, tramp.texi, url.texi, vip.texi, viper.texi:
+	* widget.texi, wisent.texi, woman.texi: Do not mention buying
+	copies from the FSF, which does not publish these manuals.
+
+	* erc.texi: No need to include gpl in this small manual.
+
+	* org.texi (copying): Include a copy of the GFDL.
+	(GNU Free Documentation License): New section.
+
+2012-12-21  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi: Fix typos.
+
 2012-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* calc.texi (ISO 8601): Rename from ISO-8601,
@@ -440,7 +471,7 @@
 	* org.texi (Moving subtrees): Document the ability to archive to a
 	datetree.
 
-2012-09-30  Bastien Guerry  <bzg@altern.org>
+2012-09-30  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation, Feedback, Batch execution): Use
 	(add-to-list 'load-path ... t) for the contrib dir.
@@ -1046,7 +1077,7 @@
 
 	* org.texi: Edit :noweb no header argument for correctness.
 
-2012-04-01  Bastien Guerry  <bzg@altern.org>
+2012-04-01  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Customization): Update the approximate number of Org
 	variables.

@@ -9735,7 +9735,7 @@ If FILE-LIST-FORM is non-nil, it should be a form that, when
 evaluated, will return a list of file names.  The search will be
 restricted to these files.
 
-Aleso see the documentation of the `tags-file-name' variable.
+Also see the documentation of the `tags-file-name' variable.
 
 \(fn REGEXP &optional FILE-LIST-FORM)" t nil)
 

@@ -20,8 +20,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 
 All Emacs Lisp code contained in this document may be used, distributed,
 and modified without restriction.
@@ -62,10 +61,6 @@ and modified without restriction.
 * Advanced Usage::              Cool ways of using ERC.
 * Getting Help and Reporting Bugs::
 * History::                     The history of ERC.
-* Copying::                     The GNU General Public License gives you
-                                  permission to redistribute ERC on
-                                  certain terms; it also explains that
-                                  there is no warranty.
 * GNU Free Documentation License::  The license for this documentation.
 * Concept Index::               Search for terms.
 
@@ -854,10 +849,6 @@ Since about 2009, ERC is no longer developed as a separate project, but
 is maintained as part of Emacs.
 
 @end itemize
-
-@node Copying
-@appendix GNU GENERAL PUBLIC LICENSE
-@include gpl.texi
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

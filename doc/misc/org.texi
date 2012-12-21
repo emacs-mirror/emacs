@@ -262,7 +262,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -273,13 +273,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -305,6 +299,9 @@ with contributions by David O'Toole, Bastien Guerry, Philip Rooke, Dan Davison, 
 @contents
 
 @ifnottex
+@c FIXME These hand-written next,prev,up node pointers make editing a lot
+@c harder.  There should be no need for them, makeinfo can do it
+@c automatically for any document with a normal structure.
 @node Top, Introduction, (dir), (dir)
 @top Org Mode Manual
 
@@ -330,6 +327,7 @@ with contributions by David O'Toole, Bastien Guerry, Philip Rooke, Dan Davison, 
 * Hacking::                     How to hack your way around
 * MobileOrg::                   Viewing and capture on a mobile device
 * History and Acknowledgments::  How Org came into being
+* GNU Free Documentation License::  The license for this documentation.
 * Main Index::                  An index of Org's concepts and features
 * Key Index::                   Key bindings and where they are described
 * Command and Function Index::  Command names and some internal functions
@@ -14811,7 +14809,7 @@ buffer, most useful for specifying the allowed values of a property.
 @item #+SETUPFILE: file
 This line defines a file that holds more in-buffer setup.  Normally this is
 entirely ignored.  Only when the buffer is parsed for option-setting lines
-(i.e.@: when starting Org mode for a file, when pressing @kbd{C-c C-c} in a
+(i.e., when starting Org mode for a file, when pressing @kbd{C-c C-c} in a
 settings line, or when exporting), then the contents of this file are parsed
 as if they had been included in the buffer.  In particular, the file can be
 any other Org mode file with internal setup.  You can visit the file the
@@ -15173,7 +15171,7 @@ example using the color @code{grey90} on a white background.
 Things become cleaner still if you skip all the even levels and use only odd
 levels 1, 3, 5..., effectively adding two stars to go from one outline level
 to the next@footnote{When you need to specify a level for a property search
-or refile targets, @samp{LEVEL=2} will correspond to 3 stars, etc@.}.  In this
+or refile targets, @samp{LEVEL=2} will correspond to 3 stars, etc.}.  In this
 way we get the outline view shown at the beginning of this section.  In order
 to make the structure editing and export commands handle this convention
 correctly, configure the variable @code{org-odd-levels-only}, or set this on
@@ -15264,7 +15262,7 @@ names for natural constants or units.  Instead of defining your own
 constants in the variable @code{org-table-formula-constants}, install
 the @file{constants} package which defines a large number of constants
 and units, and lets you use unit prefixes like @samp{M} for
-@samp{Mega}, etc@.  You will need version 2.0 of this package, available
+@samp{Mega}, etc.  You will need version 2.0 of this package, available
 at @url{http://www.astro.uva.nl/~dominik/Tools}.  Org checks for
 the function @code{constants-get}, which has to be autoloaded in your
 setup.  See the installation instructions in the file
@@ -16606,7 +16604,7 @@ last pull.  This might include a file that is not currently in your list of
 agenda files.  If you later use @kbd{C-c a ?} to regenerate the view, only
 the current agenda files will be searched.} using @kbd{C-c a ?}.
 
-@node History and Acknowledgments, Main Index, MobileOrg, Top
+@node History and Acknowledgments, GNU Free Documentation License, MobileOrg, Top
 @appendix History and acknowledgments
 @cindex acknowledgments
 @cindex history
@@ -16949,7 +16947,12 @@ and contributed various ideas and code snippets.
 @end itemize
 
 
-@node Main Index, Key Index, History and Acknowledgments, Top
+@node GNU Free Documentation License, Main Index, History and Acknowledgments, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+
+@node Main Index, Key Index, GNU Free Documentation License, Top
 @unnumbered Concept index
 
 @printindex cp

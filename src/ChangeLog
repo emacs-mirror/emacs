@@ -1,3 +1,31 @@
+2012-12-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Doc fix.
+
+	* w32proc.c (new_child, delete_child, find_child_pid): For a
+	subprocess, consider its slot being in use as long as its process
+	handle (procinfo.hProcess) is not NULL.  This avoids reusing the
+	slot when a new process is started immediately after killing
+	another one, without waiting enough time for the first process to
+	be reaped and resources allocated for it be orderly freed.
+	(Bug#13086)
+	Suggested by Fabrice Popineau <fabrice.popineau@supelec.fr>.
+
+2012-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* buffer.c (Fset_buffer_major_mode): Doc fix (Bug#13231).
+
+	* fns.c (Fcompare_strings): Doc fix (Bug#13081).
+
+2012-12-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (get_name_and_id): Always pass NULL as the first argument
+	of lookup_account_sid.  Avoids crashes with UNC file names that
+	refer to DFS domains, not to specific machine names.  (Bug#12621)
+	Remove now unused argument FNAME; all callers changed.
+	(get_file_owner_and_group): Remove now unused argument FNAME; all
+	callers changed.
+
 2012-12-21  Chong Yidong  <cyd@gnu.org>
 
 	* editfns.c (Finsert_char): Since read-char-by-name now signals an

@@ -3417,7 +3417,10 @@ the number of characters that replace previous buffer contents.
 
 This function does code conversion according to the value of
 `coding-system-for-read' or `file-coding-system-alist', and sets the
-variable `last-coding-system-used' to the coding system actually used.  */)
+variable `last-coding-system-used' to the coding system actually used.
+
+In addition, this function decodes the inserted text from known formats
+by calling `format-decode', which see.  */)
   (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end, Lisp_Object replace)
 {
   struct stat st;

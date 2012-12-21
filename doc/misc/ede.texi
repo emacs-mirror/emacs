@@ -5,7 +5,8 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998-2001, 2004-2005, 2008-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1998-2001, 2004-2005, 2008-2012
+Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -16,8 +17,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -88,6 +88,7 @@ learn and adopt GNU ways of doing things.
 * Building and Debugging::      Initiating a build or debug session.
 * Miscellaneous commands::      Other project related commands.
 * Extending EDE::               Programming and extending @ede{}.
+* GNU Free Documentation License::  The license for this documentation.
 @end menu
 
 @node EDE Project Concepts, EDE Mode, top, top
@@ -1092,7 +1093,7 @@ You can add your own locate tool but subclassing from
 methods.  See the code in @file{ede-locate.el} for GNU Global as a
 simple example.
 
-@node Extending EDE,  , Miscellaneous commands, top
+@node Extending EDE, GNU Free Documentation License, Miscellaneous commands, top
 @chapter Extending @ede{}
 
 This chapter is intended for users who want to write new parts or fix
@@ -4435,5 +4436,9 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 
 @end table
 @end table
+
+@node GNU Free Documentation License, , Extending EDE, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @bye

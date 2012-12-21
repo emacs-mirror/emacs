@@ -3644,8 +3644,7 @@ w32_add_to_cache (PSID sid, unsigned id, char *name)
 #define GID 2
 
 static int
-get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
-		 unsigned *id, char *nm, int what)
+get_name_and_id (PSECURITY_DESCRIPTOR psd, unsigned *id, char *nm, int what)
 {
   PSID sid = NULL;
   char machine[MAX_COMPUTERNAME_LENGTH+1];
@@ -3655,7 +3654,6 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
   DWORD name_len = sizeof (name);
   char domain[1024];
   DWORD domain_len = sizeof (domain);
-  char *mp = NULL;
   int use_dflt = 0;
   int result;
 
@@ -3670,22 +3668,7 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
     use_dflt = 1;
   else if (!w32_cached_id (sid, id, nm))
     {
-      /* If FNAME is a UNC, we need to lookup account on the
-	 specified machine.  */
-      if (IS_DIRECTORY_SEP (fname[0]) && IS_DIRECTORY_SEP (fname[1])
-	  && fname[2] != '\0')
-	{
-	  const char *s;
-	  char *p;
-
-	  for (s = fname + 2, p = machine;
-	       *s && !IS_DIRECTORY_SEP (*s); s++, p++)
-	    *p = *s;
-	  *p = '\0';
-	  mp = machine;
-	}
-
-      if (!lookup_account_sid (mp, sid, name, &name_len,
+      if (!lookup_account_sid (NULL, sid, name, &name_len,
 			       domain, &domain_len, &ignore)
 	  || name_len > UNLEN+1)
 	use_dflt = 1;
@@ -3700,9 +3683,7 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
 }
 
 static void
-get_file_owner_and_group (PSECURITY_DESCRIPTOR psd,
-			  const char *fname,
-			  struct stat *st)
+get_file_owner_and_group (PSECURITY_DESCRIPTOR psd, struct stat *st)
 {
   int dflt_usr = 0, dflt_grp = 0;
 
@@ -3713,9 +3694,9 @@ get_file_owner_and_group (PSECURITY_DESCRIPTOR psd,
     }
   else
     {
-      if (get_name_and_id (psd, fname, &st->st_uid, st->st_uname, UID))
+      if (get_name_and_id (psd, &st->st_uid, st->st_uname, UID))
 	dflt_usr = 1;
-      if (get_name_and_id (psd, fname, &st->st_gid, st->st_gname, GID))
+      if (get_name_and_id (psd, &st->st_gid, st->st_gname, GID))
 	dflt_grp = 1;
     }
   /* Consider files to belong to current user/group, if we cannot get
@@ -3939,23 +3920,23 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	 If getting security by handle fails, and we don't need to
 	 resolve symlinks, we try getting security by name.  */
       if (!w32_stat_get_owner_group || is_windows_9x () == TRUE)
-	get_file_owner_and_group (NULL, name, buf);
+	get_file_owner_and_group (NULL, buf);
       else
 	{
 	  psd = get_file_security_desc_by_handle (fh);
 	  if (psd)
 	    {
-	      get_file_owner_and_group (psd, name, buf);
+	      get_file_owner_and_group (psd, buf);
 	      LocalFree (psd);
 	    }
 	  else if (!(is_a_symlink && follow_symlinks))
 	    {
 	      psd = get_file_security_desc_by_name (name);
-	      get_file_owner_and_group (psd, name, buf);
+	      get_file_owner_and_group (psd, buf);
 	      xfree (psd);
 	    }
 	  else
-	    get_file_owner_and_group (NULL, name, buf);
+	    get_file_owner_and_group (NULL, buf);
 	}
       CloseHandle (fh);
     }
@@ -4064,7 +4045,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
       else
 	buf->st_mode = S_IFREG;
 
-      get_file_owner_and_group (NULL, name, buf);
+      get_file_owner_and_group (NULL, buf);
     }
 
 #if 0

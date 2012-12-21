@@ -22,8 +22,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -77,6 +76,7 @@ Emacs.
 * Naming Conventions::    Name your objects in an Emacs friendly way.
 * CLOS compatibility::    What are the differences?
 * Wish List::             Things about EIEIO that could be improved.
+* GNU Free Documentation License::  The license for this documentation.
 * Function Index::
 @end menu
 
@@ -1949,6 +1949,10 @@ buffers.
 @item
 Allow method overloading of method-like functions in Emacs.
 @end enumerate
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Function Index
 @unnumbered Function Index

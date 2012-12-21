@@ -1,3 +1,13 @@
+2012-12-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-xtra.texi (copying): The FSF does not sell copies of this.
+	Simply include doclicense.
+
+2012-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Mouse Commands): Fix description of the effect of
+	mouse dragging (Bug#13049).
+
 2012-12-15  Juri Linkov  <juri@jurta.org>
 
 	* misc.texi (Recursive Edit): Add a link to "Query Replace".

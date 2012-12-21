@@ -24,7 +24,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001-2003, 2005-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2001-2003, 2005-2012 Free Software Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
 
@@ -41,8 +41,7 @@ Back-Cover Texts as in (a) below. A copy of the license is included in
 the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual. Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 
 @item
 the GNU General Public License as published by the Free Software

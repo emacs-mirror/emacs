@@ -1,13 +1,6 @@
-@c This file is included by semantic.texi
-
+@c This is part of the Semantic manual.
 @c Copyright (C) 1999-2005, 2007, 2009-2012 Free Software Foundation, Inc.
-
-@c Permission is granted to copy, distribute and/or modify this
-@c document under the terms of the GNU Free Documentation License,
-@c Version 1.3 or any later version published by the Free Software
-@c Foundation; with no Invariant Sections, no Front-Cover Texts, and
-@c no Back-Cover Texts.  A copy of the license is included in the
-@c section entitled ``GNU Free Documentation License''.
+@c See file semantic.texi for copying conditions.
 
 You can begin using @semantic{} by enabling Semantic mode, a global
 minor mode: type @kbd{M-x semantic-mode}, or open the @samp{Tools}
