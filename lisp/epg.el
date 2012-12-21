@@ -161,6 +161,7 @@
 (defvar epg-prompt-alist nil)
 
 (put 'epg-error 'error-conditions '(epg-error error))
+(put 'epg-error 'error-message "GPG error")
 
 (defun epg-make-data-from-file (file)
   "Make a data object from FILE."

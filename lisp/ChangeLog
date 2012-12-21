@@ -1,6 +1,7 @@
 2012-12-21  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg--start): Print GPG_AGENT_INFO in the debug buffer.
+	(epg-error): Set `error-message' property.
 
 2012-12-21  Chong Yidong  <cyd@gnu.org>
 
