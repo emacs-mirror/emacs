@@ -3370,6 +3370,7 @@ to make one entry in the kill ring."
 	    (kill-new string nil yank-handler)))
 	(when (or string (eq last-command 'kill-region))
 	  (setq this-command 'kill-region))
+	(setq deactivate-mark t)
 	nil)
     ((buffer-read-only text-read-only)
      ;; The code above failed because the buffer, or some of the characters

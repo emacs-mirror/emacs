@@ -1,3 +1,8 @@
+2012-12-21  Kelly Dean  <kellydeanch@yahoo.com>  (tiny change)
+
+	* simple.el (kill-region): Deactivate mark even for empty regions
+	(Bug#13169).
+
 2012-12-21  Chong Yidong  <cyd@gnu.org>
 
 	* help-fns.el (describe-variable): Make sure we get the right
