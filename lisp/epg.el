@@ -1130,12 +1130,12 @@ This function is for internal use only."
 	     (if (eq (epg-context-protocol context) 'CMS)
 		 epg-gpgsm-program
 	       epg-gpg-program)))
-  (let* ((args (append (list "--no-tty"
+  (let* ((agent-info (getenv "GPG_AGENT_INFO"))
+	 (args (append (list "--no-tty"
 			     "--status-fd" "1"
 			     "--yes")
 		       (if (and (not (eq (epg-context-protocol context) 'CMS))
-				(string-match ":" (or (getenv "GPG_AGENT_INFO")
-						      "")))
+				(string-match ":" (or agent-info "")))
 			   '("--use-agent"))
 		       (if (and (not (eq (epg-context-protocol context) 'CMS))
 				(epg-context-progress-callback context))
@@ -1161,7 +1161,10 @@ This function is for internal use only."
 	    (setq epg-debug-buffer (generate-new-buffer " *epg-debug*")))
 	  (set-buffer epg-debug-buffer)
 	  (goto-char (point-max))
-	  (insert (format "%s %s\n"
+	  (insert (if agent-info
+		      (format "GPG_AGENT_INFO=%s\n" agent-info)
+		    "GPG_AGENT_INFO is not set\n")
+		  (format "%s %s\n"
 			  (if (eq (epg-context-protocol context) 'CMS)
 			      epg-gpgsm-program
 			   epg-gpg-program)
