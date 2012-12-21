@@ -2,11 +2,7 @@
 @c %**start of header
 @setfilename ../../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
-@c FIXME
-@c Manual last updated:
-@set UPDATED Time-stamp: <Fri 21-Dec-2012 10:15:12 gm on skiddaw>
-@c Software version:
-@set VERSION 0.54 (beta)
+@include emacsver.texi
 @afourpaper
 @c With different size paper the printed page breaks will need attention!
 @c Look for @page and @need commands.
@@ -43,7 +39,7 @@ modify this GNU manual.''
 @titlepage
 @title WoMan
 @subtitle Browse Unix Manual Pages ``W.O. (without) Man''
-@subtitle Software Version @value{VERSION}
+@subtitle as distributed with Emacs @value{EMACSVER}
 @author Francis J. Wright
 @sp 2
 @author School of Mathematical Sciences
@@ -53,8 +49,6 @@ modify this GNU manual.''
 @author @email{F.J.Wright@@qmul.ac.uk}
 @author @uref{http://centaur.maths.qmw.ac.uk/}
 @c He no longer maintains this manual.
-@sp 2
-@author Manual Last Updated @value{UPDATED}
 
 @comment  The following two commands start the copyright page.
 @page
@@ -67,13 +61,12 @@ modify this GNU manual.''
 @c ===================================================================
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
+@node Top
 @comment  node-name,  next,  previous,  up
 @top WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 
 @display
-Software Version @value{VERSION}
-Manual Last Updated @value{UPDATED}
+As distributed with Emacs @value{EMACSVER}.
 
 @email{F.J.Wright@@qmw.ac.uk, Francis J. Wright}
 @uref{http://centaur.maths.qmw.ac.uk/, School of Mathematical Sciences}
@@ -103,7 +96,7 @@ Mile End Road, London E1 4NS, UK
 
 @c ===================================================================
 
-@node Introduction, Background, Top, Top
+@node Introduction
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex introduction
@@ -165,7 +158,7 @@ Reporting Bugs}.
 
 @c ===================================================================
 
-@node Background, Finding, Introduction, Top
+@node Background
 @comment  node-name,  next,  previous,  up
 @chapter Background
 @cindex background
@@ -295,7 +288,7 @@ be possible to move WoMan from an emulation of @code{nroff} to an
 emulation of @code{troff} as GNU Emacs moves to providing bit-mapped
 display facilities.
 
-@node Finding, Browsing, Background, Top
+@node Finding
 @comment  node-name,  next,  previous,  up
 @chapter Finding and Formatting Man Pages
 @cindex using, finding man pages
@@ -352,7 +345,7 @@ setting WoMan file paths.
 * Automatic::           Automatic Interface
 @end menu
 
-@node Topic, Filename, Finding, Finding
+@node Topic
 @comment  node-name,  next,  previous,  up
 @section Topic Interface
 @cindex topic interface
@@ -434,7 +427,7 @@ slow.  @xref{Cache, , The WoMan Topic Cache}, for further details.
 * Word at point::       Using the "Word at Point" as a Topic Suggestion
 @end menu
 
-@node Cache, Word at point, Topic, Topic
+@node Cache
 @comment  node-name,  next,  previous,  up
 @subsection The WoMan Topic Cache
 @cindex topic cache
@@ -469,7 +462,7 @@ automatically update its cache file on disc (if one is in use) the next
 time it is run in a new Emacs session.
 
 
-@node Word at point,  , Cache, Topic
+@node Word at point
 @comment  node-name,  next,  previous,  up
 @subsection Using the "Word at Point" as a Topic Suggestion
 @cindex word at point
@@ -496,7 +489,7 @@ point without seeking confirmation:
 @end lisp
 
 
-@node Filename, Automatic, Topic, Finding
+@node Filename
 @comment  node-name,  next,  previous,  up
 @section Filename Interface
 @cindex filename interface
@@ -546,7 +539,7 @@ the current buffer if it is visiting a man file, although it is
 primarily used internally by WoMan.
 
 
-@node Automatic,  , Filename, Finding
+@node Automatic
 @comment  node-name,  next,  previous,  up
 @section Automatic Interface
 @cindex automatic interface
@@ -584,7 +577,7 @@ by automatic major mode selection.]
 
 @c ===================================================================
 
-@node Browsing, Customization, Finding, Top
+@node Browsing
 @comment  node-name,  next,  previous,  up
 @chapter Browsing Man Pages
 @cindex using, browsing man pages
@@ -615,7 +608,7 @@ blank lines squeezed to a single blank line.
 * Imenu::               Imenu Support; Contents Menu
 @end menu
 
-@node Fonts, Navigation, Browsing, Browsing
+@node Fonts
 @comment  node-name,  next,  previous,  up
 @section Fonts and Faces
 @cindex fonts
@@ -631,7 +624,7 @@ currently means the characters ^ and _ used to indicate super- and
 sub-scripts, which are not displayed well by WoMan.
 
 
-@node Navigation, References, Fonts, Browsing
+@node Navigation
 @comment  node-name,  next,  previous,  up
 @section Navigation
 @cindex navigation
@@ -677,7 +670,7 @@ described by @code{Man-see-also-regexp}.
 @end table
 
 
-@node References, Changing, Navigation, Browsing
+@node References
 @comment  node-name,  next,  previous,  up
 @section Following References
 @cindex following references
@@ -721,7 +714,7 @@ default is based on word at point.
 @end table
 
 
-@node Changing, Convenience, References, Browsing
+@node Changing
 @comment  node-name,  next,  previous,  up
 @section Changing the Current Man Page
 @cindex changing current man page
@@ -789,7 +782,7 @@ Call WoMan to reformat the last man page formatted by WoMan
 @end table
 
 
-@node Convenience, Imenu, Changing, Browsing
+@node Convenience
 @comment  node-name,  next,  previous,  up
 @section Convenience Key Bindings
 @cindex convenience key bindings
@@ -831,7 +824,7 @@ followed by the minor modes, each on a separate page.
 @end table
 
 
-@node Imenu,  , Convenience, Browsing
+@node Imenu
 @comment  node-name,  next,  previous,  up
 @section Imenu Support; Contents Menu
 @cindex imenu support
@@ -852,7 +845,7 @@ is distributed with GNU Emacs.
 
 @c ===================================================================
 
-@node Customization, Log, Browsing, Top
+@node Customization
 @comment  node-name,  next,  previous,  up
 @chapter Customization
 @cindex customization
@@ -910,7 +903,7 @@ man page.
 * Special symbols::
 @end menu
 
-@node Interface Options, Formatting Options, Customization, Customization
+@node Interface Options
 @comment  node-name,  next,  previous,  up
 @section Interface Options
 @cindex interface options
@@ -1137,7 +1130,7 @@ default value is non-@code{nil}.
 @end vtable
 
 
-@node Formatting Options, Faces, Interface Options, Customization
+@node Formatting Options
 @comment  node-name,  next,  previous,  up
 @section Formatting Options
 @cindex formatting options
@@ -1181,7 +1174,7 @@ untested.
 @end vtable
 
 
-@node Faces, Special symbols, Formatting Options, Customization
+@node Faces
 @comment  node-name,  next,  previous,  up
 @section Faces
 @cindex faces
@@ -1217,7 +1210,7 @@ Default: foreground orange.
 @end vtable
 
 
-@node Special symbols,  , Faces, Customization
+@node Special symbols
 @comment  node-name,  next,  previous,  up
 @section Special symbols
 @cindex special symbols
@@ -1255,7 +1248,7 @@ Under MS-Windows, the default is
 
 @c ===================================================================
 
-@node Log, Technical, Customization, Top
+@node Log
 @comment  node-name,  next,  previous,  up
 @chapter The *WoMan-Log* Buffer
 @cindex log buffer
@@ -1280,7 +1273,7 @@ left in the formatted buffer to indicate precisely where they occurred.
 
 @c ===================================================================
 
-@node Technical, Bugs, Log, Top
+@node Technical
 @comment  node-name,  next,  previous,  up
 @chapter Technical Details
 @cindex technical details
@@ -1305,7 +1298,7 @@ is output.
 
 @c ===================================================================
 
-@node Bugs, Acknowledgments, Technical, Top
+@node Bugs
 @comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
 @cindex reporting bugs
@@ -1330,7 +1323,7 @@ man source file from, but do not send it unless asked to send it.
 
 @c ===================================================================
 
-@node Acknowledgments, GNU Free Documentation License, Bugs, Top
+@node Acknowledgments
 @comment  node-name,  next,  previous,  up
 @chapter Acknowledgments
 @cindex acknowledgments
@@ -1387,17 +1380,17 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @page
 
 
-@node GNU Free Documentation License, Command Index, Acknowledgments, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Command Index, Variable Index, GNU Free Documentation License, Top
+@node Command Index
 @comment  node-name,           next,      previous,  up
 @unnumbered Command Index
 
 @printindex fn
 
-@node Variable Index, Keystroke Index, Command Index, Top
+@node Variable Index
 @comment   node-name,            next,      previous, up
 @unnumbered Variable Index
 
@@ -1409,7 +1402,7 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 
 @page
 
-@node Keystroke Index, Concept Index, Variable Index, Top
+@node Keystroke Index
 @comment  node-name,            next,      previous,  up
 @unnumbered Keystroke Index
 
@@ -1421,7 +1414,7 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 
 @page
 
-@node Concept Index,  , Keystroke Index, Top
+@node Concept Index
 @comment  node-name, next,     previous, up
 @unnumbered Concept Index
 

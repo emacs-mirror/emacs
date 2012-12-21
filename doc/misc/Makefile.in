@@ -27,7 +27,6 @@ srcdir=@srcdir@
 ## Where the output files go.
 buildinfodir = $(srcdir)/../../info
 ## Directory with emacsver.texi.
-## Currently only used by efaq and calc.
 emacsdir = $(srcdir)/../emacs
 
 MKDIR_P = @MKDIR_P@
@@ -685,12 +684,12 @@ wisent.pdf: ${srcdir}/wisent.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/wisent.texi
 
 woman : $(buildinfodir)/woman$(INFO_EXT)
-$(buildinfodir)/woman$(INFO_EXT): ${srcdir}/woman.texi
+$(buildinfodir)/woman$(INFO_EXT): ${srcdir}/woman.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/woman.texi
-woman.dvi: ${srcdir}/woman.texi
+woman.dvi: ${srcdir}/woman.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/woman.texi
-woman.pdf: ${srcdir}/woman.texi
+woman.pdf: ${srcdir}/woman.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/woman.texi
 
 

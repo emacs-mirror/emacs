@@ -1,5 +1,10 @@
 2012-12-21  Glenn Morris  <rgm@gnu.org>
 
+	* woman.texi (UPDATED, VERSION): Remove in favor of EMACSVER.
+	Include emacsver.texi.  Nuke hand-written node pointers.
+	* Makefile.in ($(buildinfodir)/woman$(INFO_EXT), woman.dvi, woman.pdf):
+	Depend on emacsver.texi.
+
 	* auth.texi, emacs-gnutls.texi, epa.texi, ert.texi:
 	* gnus-coding.texi, info.texi, nxml-mode.texi, sasl.texi:
 	May as well just include doclicense.texi in everything.
