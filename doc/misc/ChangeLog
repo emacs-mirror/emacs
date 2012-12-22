@@ -1,3 +1,8 @@
+2012-12-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (gfdl): New variable.  Use throughout where
+	appropriate so that targets depend on doclicense.texi.
+
 2012-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(INFO_TARGETS), $(DVI_TARGETS)): Depend on
