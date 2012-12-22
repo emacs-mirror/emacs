@@ -2,7 +2,7 @@
 
 	* ada-mode.texi, ebrowse.texi, ediff.texi, ert.texi, eshell.texi:
 	* eudc.texi, idlwave.texi, rcirc.texi, remember.texi, ses.texi:
-	* speedbar.texi, vip.texi: Nuke hand-written node pointers.
+	* speedbar.texi, vip.texi, widget.texi: Nuke hand-written node pointers.
 
 	* Makefile.in (gfdl): New variable.  Use throughout where
 	appropriate so that targets depend on doclicense.texi.
