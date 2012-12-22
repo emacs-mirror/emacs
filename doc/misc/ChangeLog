@@ -1,5 +1,7 @@
 2012-12-22  Glenn Morris  <rgm@gnu.org>
 
+	* widget.texi (Programming Example): Break some long lines.
+
 	* wisent.texi (Wisent Overview): Fix xref.
 	(Grammar format, Understanding the automaton): Avoid overfill.
 
