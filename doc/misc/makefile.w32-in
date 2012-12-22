@@ -106,102 +106,100 @@ info.dvi: $(INFOSOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/info.texi
 
 
-$(infodir)/ccmode$(INFO_EXT): cc-mode.texi doclicense.texi
+$(infodir)/ccmode$(INFO_EXT): cc-mode.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ cc-mode.texi
-cc-mode.dvi: cc-mode.texi doclicense.texi
+cc-mode.dvi: cc-mode.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/cc-mode.texi
 
-$(infodir)/ada-mode$(INFO_EXT): ada-mode.texi doclicense.texi
+$(infodir)/ada-mode$(INFO_EXT): ada-mode.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ada-mode.texi
-ada-mode.dvi: ada-mode.texi doclicense.texi
+ada-mode.dvi: ada-mode.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ada-mode.texi
 
-$(infodir)/pcl-cvs$(INFO_EXT): pcl-cvs.texi doclicense.texi
+$(infodir)/pcl-cvs$(INFO_EXT): pcl-cvs.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ pcl-cvs.texi
-pcl-cvs.dvi: pcl-cvs.texi doclicense.texi
+pcl-cvs.dvi: pcl-cvs.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/pcl-cvs.texi
 
-$(infodir)/eshell$(INFO_EXT): eshell.texi doclicense.texi
+$(infodir)/eshell$(INFO_EXT): eshell.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ eshell.texi
-eshell.dvi: eshell.texi doclicense.texi
+eshell.dvi: eshell.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/eshell.texi
 
-$(infodir)/cl$(INFO_EXT): cl.texi doclicense.texi
+$(infodir)/cl$(INFO_EXT): cl.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ cl.texi
-cl.dvi: cl.texi doclicense.texi
+cl.dvi: cl.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/cl.texi
 
-$(infodir)/dbus$(INFO_EXT): dbus.texi doclicense.texi
+$(infodir)/dbus$(INFO_EXT): dbus.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ dbus.texi
-dbus.dvi: dbus.texi doclicense.texi
+dbus.dvi: dbus.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/dbus.texi
 
-$(infodir)/dired-x$(INFO_EXT): dired-x.texi $(emacsdir)/emacsver.texi doclicense.texi
+$(infodir)/dired-x$(INFO_EXT): dired-x.texi $(emacsdir)/emacsver.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ dired-x.texi
-dired-x.dvi: dired-x.texi $(emacsdir)/emacsver.texi doclicense.texi
+dired-x.dvi: dired-x.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/dired-x.texi
 
-$(infodir)/ediff$(INFO_EXT): ediff.texi doclicense.texi
+$(infodir)/ediff$(INFO_EXT): ediff.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ediff.texi
-ediff.dvi: ediff.texi doclicense.texi
+ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ediff.texi
 
-$(infodir)/flymake$(INFO_EXT): flymake.texi doclicense.texi
+$(infodir)/flymake$(INFO_EXT): flymake.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ flymake.texi
-flymake.dvi: flymake.texi doclicense.texi
+flymake.dvi: flymake.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/flymake.texi
 
-$(infodir)/forms$(INFO_EXT): forms.texi doclicense.texi
+$(infodir)/forms$(INFO_EXT): forms.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ forms.texi
-forms.dvi: forms.texi doclicense.texi
+forms.dvi: forms.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/forms.texi
 
 # gnus/message/emacs-mime/sieve/pgg are part of Gnus:
 $(infodir)/gnus$(INFO_EXT): gnus.texi gnus-overrides.texi message.texi emacs-mime.texi \
-		 sieve.texi pgg.texi sasl.texi gnus-news.texi gnus-faq.texi \
-		 doclicense.texi
+		 sieve.texi pgg.texi sasl.texi gnus-news.texi gnus-faq.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ gnus.texi
 gnus.dvi: gnus.texi gnus-overrides.texi message.texi emacs-mime.texi \
-	  sieve.texi pgg.texi sasl.texi gnus-news.texi gnus-faq.texi \
-	  doclicense.texi
+	  sieve.texi pgg.texi sasl.texi gnus-news.texi gnus-faq.texi
 	sed -e "/@iflatex/,/@end iflatex/d" $(srcdir)/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*
 #
-$(infodir)/message$(INFO_EXT): message.texi gnus-overrides.texi doclicense.texi
+$(infodir)/message$(INFO_EXT): message.texi gnus-overrides.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ message.texi
-message.dvi: message.texi gnus-overrides.texi doclicense.texi
+message.dvi: message.texi gnus-overrides.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/message.texi
 #
-$(infodir)/emacs-mime$(INFO_EXT): emacs-mime.texi gnus-overrides.texi doclicense.texi
+$(infodir)/emacs-mime$(INFO_EXT): emacs-mime.texi gnus-overrides.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ --enable-encoding emacs-mime.texi
-emacs-mime.dvi: emacs-mime.texi gnus-overrides.texi doclicense.texi
+emacs-mime.dvi: emacs-mime.texi gnus-overrides.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-mime.texi
 #
-$(infodir)/sieve$(INFO_EXT): sieve.texi gnus-overrides.texi doclicense.texi
+$(infodir)/sieve$(INFO_EXT): sieve.texi gnus-overrides.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ sieve.texi
-sieve.dvi: sieve.texi gnus-overrides.texi doclicense.texi
+sieve.dvi: sieve.texi gnus-overrides.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/sieve.texi
 #
-$(infodir)/pgg$(INFO_EXT): pgg.texi gnus-overrides.texi doclicense.texi
+$(infodir)/pgg$(INFO_EXT): pgg.texi gnus-overrides.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ pgg.texi
-pgg.dvi: pgg.texi gnus-overrides.texi doclicense.texi
+pgg.dvi: pgg.texi gnus-overrides.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/pgg.texi
 
-$(infodir)/mh-e$(INFO_EXT): mh-e.texi doclicense.texi gpl.texi
+$(infodir)/mh-e$(INFO_EXT): mh-e.texi gpl.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ mh-e.texi
-mh-e.dvi: mh-e.texi doclicense.texi gpl.texi
+mh-e.dvi: mh-e.texi gpl.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/mh-e.texi
 
-$(infodir)/reftex$(INFO_EXT): reftex.texi doclicense.texi
+$(infodir)/reftex$(INFO_EXT): reftex.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ reftex.texi
-reftex.dvi: reftex.texi doclicense.texi
+reftex.dvi: reftex.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/reftex.texi
 
-$(infodir)/remember$(INFO_EXT): remember.texi doclicense.texi
+$(infodir)/remember$(INFO_EXT): remember.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ remember.texi
-remember.dvi: remember.texi doclicense.texix
+remember.dvi: remember.texix
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/remember.texi
 
 $(infodir)/sasl$(INFO_EXT): sasl.texi gnus-overrides.texi
@@ -209,24 +207,24 @@ $(infodir)/sasl$(INFO_EXT): sasl.texi gnus-overrides.texi
 sasl.dvi: sasl.texi gnus-overrides.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/sasl.texi
 
-$(infodir)/sc$(INFO_EXT): sc.texi doclicense.texi
+$(infodir)/sc$(INFO_EXT): sc.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ sc.texi
-sc.dvi: sc.texi doclicense.texi
+sc.dvi: sc.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/sc.texi
 
-$(infodir)/vip$(INFO_EXT): vip.texi doclicense.texi
+$(infodir)/vip$(INFO_EXT): vip.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ vip.texi
-vip.dvi: vip.texi doclicense.texi
+vip.dvi: vip.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/vip.texi
 
-$(infodir)/viper$(INFO_EXT): viper.texi doclicense.texi
+$(infodir)/viper$(INFO_EXT): viper.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ viper.texi
-viper.dvi: viper.texi doclicense.texi
+viper.dvi: viper.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/viper.texi
 
-$(infodir)/widget$(INFO_EXT): widget.texi doclicense.texi
+$(infodir)/widget$(INFO_EXT): widget.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ widget.texi
-widget.dvi: widget.texi doclicense.texi
+widget.dvi: widget.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/widget.texi
 
 $(infodir)/efaq$(INFO_EXT): faq.texi $(emacsdir)/emacsver.texi
@@ -234,56 +232,56 @@ $(infodir)/efaq$(INFO_EXT): faq.texi $(emacsdir)/emacsver.texi
 faq.dvi: faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/faq.texi
 
-$(infodir)/autotype$(INFO_EXT): autotype.texi doclicense.texi
+$(infodir)/autotype$(INFO_EXT): autotype.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ autotype.texi
-autotype.dvi: autotype.texi doclicense.texi
+autotype.dvi: autotype.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/autotype.texi
 
-$(infodir)/calc$(INFO_EXT): calc.texi $(emacsdir)/emacsver.texi gpl.texi doclicense.texi
+$(infodir)/calc$(INFO_EXT): calc.texi $(emacsdir)/emacsver.texi gpl.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ calc.texi
-calc.dvi: calc.texi $(emacsdir)/emacsver.texi gpl.texi doclicense.texi
+calc.dvi: calc.texi $(emacsdir)/emacsver.texi gpl.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/calc.texi
 
 # This is produced with --no-split to avoid making files whose
 # names clash on DOS 8+3 filesystems
-$(infodir)/idlwave$(INFO_EXT): idlwave.texi doclicense.texi
+$(infodir)/idlwave$(INFO_EXT): idlwave.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ idlwave.texi
-idlwave.dvi: idlwave.texi doclicense.texi
+idlwave.dvi: idlwave.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/idlwave.texi
 
-$(infodir)/eudc$(INFO_EXT): eudc.texi doclicense.texi
+$(infodir)/eudc$(INFO_EXT): eudc.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ eudc.texi
-eudc.dvi: eudc.texi doclicense.texi
+eudc.dvi: eudc.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/eudc.texi
 
-$(infodir)/ebrowse$(INFO_EXT): ebrowse.texi doclicense.texi
+$(infodir)/ebrowse$(INFO_EXT): ebrowse.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ebrowse.texi
-ebrowse.dvi: ebrowse.texi doclicense.texi
+ebrowse.dvi: ebrowse.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ebrowse.texi
 
-$(infodir)/woman$(INFO_EXT): woman.texi doclicense.texi
+$(infodir)/woman$(INFO_EXT): woman.texi $(emacsdir)/emacsver.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ woman.texi
-woman.dvi: woman.texi doclicense.texi
+woman.dvi: woman.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/woman.texi
 
-$(infodir)/speedbar$(INFO_EXT): speedbar.texi doclicense.texi
+$(infodir)/speedbar$(INFO_EXT): speedbar.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ speedbar.texi
-speedbar.dvi: speedbar.texi doclicense.texi
+speedbar.dvi: speedbar.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/speedbar.texi
 
-$(infodir)/tramp$(INFO_EXT): tramp.texi trampver.texi doclicense.texi
+$(infodir)/tramp$(INFO_EXT): tramp.texi trampver.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ tramp.texi
-tramp.dvi: tramp.texi trampver.texi doclicense.texi
+tramp.dvi: tramp.texi trampver.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/tramp.texi
 
-$(infodir)/ses$(INFO_EXT): ses.texi doclicense.texi
+$(infodir)/ses$(INFO_EXT): ses.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ses.texi
-ses.dvi: ses.texi doclicense.texi
+ses.dvi: ses.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ses.texi
 
-$(infodir)/smtpmail$(INFO_EXT): smtpmail.texi doclicense.texi
+$(infodir)/smtpmail$(INFO_EXT): smtpmail.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ smtpmail.texi
-smtpmail.dvi: smtpmail.texi doclicense.texi
+smtpmail.dvi: smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/smtpmail.texi
 
 $(infodir)/org$(INFO_EXT): org.texi
@@ -291,14 +289,14 @@ $(infodir)/org$(INFO_EXT): org.texi
 org.dvi: org.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/org.texi
 
-$(infodir)/url$(INFO_EXT): url.texi doclicense.texi
+$(infodir)/url$(INFO_EXT): url.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ url.texi
-url.dvi: url.texi doclicense.texi
+url.dvi: url.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/url.texi
 
-$(infodir)/newsticker$(INFO_EXT): newsticker.texi doclicense.texi
+$(infodir)/newsticker$(INFO_EXT): newsticker.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ newsticker.texi
-newsticker.dvi: newsticker.texi doclicense.texi
+newsticker.dvi: newsticker.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/newsticker.texi
 
 $(infodir)/nxml-mode$(INFO_EXT): nxml-mode.texi
@@ -306,14 +304,14 @@ $(infodir)/nxml-mode$(INFO_EXT): nxml-mode.texi
 nxml-mod.dvi: nxml-mode.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/nxml-mode.texi
 
-$(infodir)/rcirc$(INFO_EXT): rcirc.texi doclicense.texi
+$(infodir)/rcirc$(INFO_EXT): rcirc.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ rcirc.texi
-rcirc.dvi: rcirc.texi doclicense.texi
+rcirc.dvi: rcirc.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/rcirc.texi
 
-$(infodir)/erc$(INFO_EXT): erc.texi gpl.texi doclicense.texi
+$(infodir)/erc$(INFO_EXT): erc.texi gpl.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ erc.texi
-erc.dvi: erc.texi gpl.texi doclicense.texi
+erc.dvi: erc.texi gpl.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/erc.texi
 
 $(infodir)/ert$(INFO_EXT): ert.texi
@@ -346,35 +344,38 @@ $(infodir)/ede$(INFO_EXT): ede.texi
 ede.dvi: ede.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ede.texi
 
-$(infodir)/semantic$(INFO_EXT): semantic.texi sem-user.texi doclicense.texi
+$(infodir)/semantic$(INFO_EXT): semantic.texi sem-user.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ semantic.texi
-semantic.dvi: semantic.texi sem-user.texi doclicense.texi
+semantic.dvi: semantic.texi sem-user.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/semantic.texi
 
-$(infodir)/edt$(INFO_EXT): edt.texi doclicense.texi
+$(infodir)/edt$(INFO_EXT): edt.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ edt.texi
-edt.dvi: edt.texi doclicense.texi
+edt.dvi: edt.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/edt.texi
 
-$(infodir)/emacs-gnutls$(INFO_EXT): emacs-gnutls.texi doclicense.texi
+$(infodir)/emacs-gnutls$(INFO_EXT): emacs-gnutls.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ emacs-gnutls.texi
-emacs-gnutls.dvi: emacs-gnutls.texi doclicense.texi
+emacs-gnutls.dvi: emacs-gnutls.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-gnutls.texi
 
-$(infodir)/srecode$(INFO_EXT): srecode.texi doclicense.texi
+$(infodir)/srecode$(INFO_EXT): srecode.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ srecode.texi
-srecode.dvi: srecode.texi doclicense.texi
+srecode.dvi: srecode.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/srecode.texi
 
-$(infodir)/bovine$(INFO_EXT): bovine.texi doclicense.texi
+$(infodir)/bovine$(INFO_EXT): bovine.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ bovine.texi
-bovine.dvi: bovine.texi doclicense.texi
+bovine.dvi: bovine.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/bovine.texi
 
-$(infodir)/wisent$(INFO_EXT): wisent.texi doclicense.texi
+$(infodir)/wisent$(INFO_EXT): wisent.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ wisent.texi
-wisent.dvi: wisent.texi doclicense.texi
+wisent.dvi: wisent.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/wisent.texi
+
+$(INFO_TARGETS): doclicense.texi
+$(DVI_TARGETS): doclicense.texi
 
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
