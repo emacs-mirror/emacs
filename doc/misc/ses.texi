@@ -993,7 +993,7 @@ cell.
 @c ===================================================================
 
 @node Acknowledgments
-@chapter Acknowledgments
+@unnumbered Acknowledgments
 
 Coding by:
 @quotation
