@@ -1,3 +1,9 @@
+2012-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Attributes, Changing Files): Remove the details
+	about the text returned by file-acl.  Instead, just document that
+	it is an opaque string meant to be used by set-file-acl.
+
 2012-12-21  Chong Yidong  <cyd@gnu.org>
 
 	* modes.texi (Auto Major Mode): Fix typo (Bug#13230).
