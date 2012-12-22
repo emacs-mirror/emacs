@@ -154,7 +154,8 @@ and simplest configuration is:
 (setq auth-sources '((:source "~/.authinfo.gpg")))
 ;;; even shorter and the @emph{default}:
 (setq auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc"))
-;;; use the Secrets API @var{Login} collection (@pxref{Secret Service API})
+;;; use the Secrets API @var{Login} collection
+;;; (@pxref{Secret Service API})
 (setq auth-sources '("secrets:Login"))
 @end lisp
 
@@ -167,7 +168,8 @@ have unusual setups and the remaining 10% are @emph{really} unusual).
 Here's a mixed example using two sources:
 
 @lisp
-(setq auth-sources '((:source (:secrets default) :host "myserver" :user "joe")
+(setq auth-sources '((:source (:secrets default)
+                      :host "myserver" :user "joe")
                      "~/.authinfo.gpg"))
 @end lisp
 
