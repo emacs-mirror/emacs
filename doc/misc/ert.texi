@@ -10,7 +10,7 @@
 @end direntry
 
 @copying
-Copyright @copyright{} 2008, 2010-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -91,7 +91,7 @@ Appendix
 
 ERT allows you to define @emph{tests} in addition to functions,
 macros, variables, and the other usual Lisp constructs.  Tests are
-simply Lisp code --- code that invokes other code and checks whether
+simply Lisp code: code that invokes other code and checks whether
 it behaves as expected.
 
 ERT keeps track of the tests that are defined and provides convenient
@@ -132,8 +132,8 @@ will pass if the three calls to @code{equal} all return true
 better error reporting.  @xref{The @code{should} Macro}.
 
 Each test should have a name that describes what functionality it tests.
-Test names can be chosen arbitrarily --- they are in a
-namespace separate from functions and variables --- but should follow
+Test names can be chosen arbitrarily---they are in a
+namespace separate from functions and variables---but should follow
 the usual Emacs Lisp convention of having a prefix that indicates
 which package they belong to.  Test names are displayed by ERT when
 reporting failures and can be used when selecting which tests to run.
@@ -502,7 +502,7 @@ buffer if one is already visiting the requested file; and it runs
 Instead, it is better to use lower-level mechanisms with simple and
 predictable semantics like @code{with-temp-buffer}, @code{insert} or
 @code{insert-file-contents-literally}, and to activate any desired mode
-by calling the corresponding function directly --- after binding the
+by calling the corresponding function directly, after binding the
 hook variables to nil.  This avoids the above problems.
 
 
@@ -559,9 +559,9 @@ could be used instead.
 The reason why this test only checks the first line of the backtrace
 is that the remainder of the backtrace is dependent on ERT's internals
 as well as whether the code is running interpreted or compiled.  By
-looking only at the first line, the test checks a useful property
---- that the backtrace correctly captures the call to @code{signal} that
-results from the call to @code{ert-fail} --- without being brittle.
+looking only at the first line, the test checks a useful property---that
+the backtrace correctly captures the call to @code{signal} that
+results from the call to @code{ert-fail}---without being brittle.
 
 This example also shows that writing tests is much easier if the code
 under test was structured with testing in mind.
@@ -699,12 +699,12 @@ strips them out, so it is more convenient.
 failed.  This can be useful to figure out how far it got.
 
 @item You can instrument tests for debugging the same way you instrument
-@code{defun}s for debugging --- go to the source code of the test and
+@code{defun}s for debugging: go to the source code of the test and
 type @kbd{@kbd{C-u} @kbd{C-M-x}}.  Then, go back to the ERT buffer and
 re-run the test with @kbd{r} or @kbd{d}.
 
 @item If you have been editing and rearranging tests, it is possible that
-ERT remembers an old test that you have since renamed or removed ---
+ERT remembers an old test that you have since renamed or removed:
 renamings or removals of definitions in the source code leave around a
 stray definition under the old name in the running process (this is a
 common problem in Lisp).  In such a situation, hit @kbd{D} to let ERT

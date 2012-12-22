@@ -5,7 +5,7 @@
 @copying
 This file documents the EDT emulation package for Emacs.
 
-Copyright @copyright{} 1986, 1992, 1994-1995, 1999-2012
+Copyright @copyright{} 1986, 1992, 1994--1995, 1999--2012
 Free Software Foundation, Inc.
 
 @quotation
@@ -102,25 +102,25 @@ how to customize it to your liking.
 @itemize
 
 @item
-@file{edt.texi} - This manual.
+@file{edt.texi}---This manual.
 
 @item
-@file{edt-user.el} - An example customization file.
+@file{edt-user.el}---An example customization file.
 
 @item
-@file{edt.el} - EDT emulation functions and default configuration.
+@file{edt.el}---EDT emulation functions and default configuration.
 
 @item
-@file{edt-lk201.el} - Built-in support for DEC LK-201 keyboards.
+@file{edt-lk201.el}---Built-in support for DEC LK-201 keyboards.
 
 @item
-@file{edt-vt100.el} - Built-in support for DEC VT-100 (and above) terminals.
+@file{edt-vt100.el}---Built-in support for DEC VT-100 (and above) terminals.
 
 @item
-@file{edt-pc.el} - Built-in support for PC 101 Keyboards under MS-DOS.
+@file{edt-pc.el}---Built-in support for PC 101 Keyboards under MS-DOS.
 
 @item
-@file{edt-mapper.el} - Create an EDT LK-201 map file for keyboards
+@file{edt-mapper.el}---Create an EDT LK-201 map file for keyboards
 without built-in support.
 
 @end itemize

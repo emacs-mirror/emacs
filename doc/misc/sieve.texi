@@ -11,7 +11,7 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -212,7 +212,7 @@ Bury the Manage Sieve buffer without closing the connection.
 @kindex ?
 @kindex h
 @findex sieve-help
-Displays help in the minibuffer. 
+Displays help in the minibuffer.
 
 @end table
 

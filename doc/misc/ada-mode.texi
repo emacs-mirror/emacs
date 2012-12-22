@@ -3,7 +3,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1506,7 +1506,7 @@ Start a comment in default column.
 @item M-j
 Continue comment on next line.
 @item C-c ;
-Comment the selected region (add -- at the beginning of lines).
+Comment the selected region (add @samp{--} at the beginning of lines).
 @item C-c :
 Uncomment the selected region
 @item M-q

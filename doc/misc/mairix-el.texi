@@ -6,7 +6,7 @@
 @documentencoding ISO-8859-1
 
 @copying
-Copyright @copyright{} 2008-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -27,7 +27,7 @@ modify this GNU manual.''
 @end direntry
 
 @titlepage
-@title mairix.el - Mairix interface for Emacs
+@title mairix.el---Mairix interface for Emacs
 
 @author David Engster
 @page
@@ -38,7 +38,7 @@ modify this GNU manual.''
 @contents
 
 @node Top
-@top mairix.el - Mairix interface for Emacs
+@top mairix.el---Mairix interface for Emacs
 
 Mairix is a tool for indexing and searching words in locally stored
 mail.  It was written by Richard Curnow and is licensed under the

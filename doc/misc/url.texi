@@ -20,7 +20,8 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993-1999, 2002, 2004-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1993--1999, 2002, 2004--2012 Free Software
+Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

@@ -171,7 +171,7 @@ latter are unique to Emacs Lisp.
 @end tex
 to
 @ifnottex
-2**29 - 1)
+2**29 @minus{} 1)
 @end ifnottex
 @tex
 @math{2^{29}-1})

@@ -11,7 +11,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -355,8 +355,8 @@ Which fringe (if any) should show the warning/error bitmaps.
 @cindex Adding support for a new syntax check tool
 
 @menu
-* Example -- Configuring a tool called directly::
-* Example -- Configuring a tool called via make::
+* Example---Configuring a tool called directly::
+* Example---Configuring a tool called via make::
 @end menu
 
 Syntax check tools are configured using the
@@ -406,8 +406,8 @@ the @code{flymake-err-line-patterns} list.
 The following sections contain some examples of configuring Flymake
 support for various syntax check tools.
 
-@node Example -- Configuring a tool called directly
-@subsection Example -- Configuring a tool called directly
+@node Example---Configuring a tool called directly
+@subsection Example---Configuring a tool called directly
 @cindex Adding support for perl
 
 In this example, we will add support for @code{perl} as a syntax check
@@ -455,8 +455,8 @@ Finally, we add an entry to @code{flymake-err-line-patterns}:
             flymake-err-line-patterns))
 @end lisp
 
-@node Example -- Configuring a tool called via make
-@subsection Example -- Configuring a tool called via make
+@node Example---Configuring a tool called via make
+@subsection Example---Configuring a tool called via make
 @cindex Adding support for C (gcc+make)
 
 In this example we will add support for C files syntax checked by
@@ -528,7 +528,7 @@ check-syntax:
 Syntax check is started by calling @code{flymake-start-syntax-check-for-current-buffer}.
 Flymake first determines whether it is able to do syntax
 check. It then saves a copy of the buffer in a temporary file in the
-buffer's directory (or in the system temp directory -- for java
+buffer's directory (or in the system temp directory, for java
 files), creates a syntax check command and launches a process with
 this command. The output is parsed using a list of error message patterns,
 and error information (file name, line number, type and text) is

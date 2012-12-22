@@ -817,5 +817,5 @@ of color names and RGB triplets.  Color names should be enclosed with
 double quotes, e.g., @samp{"red"}.  RGB triplets should be written
 without double quotes, e.g., @samp{#ff0000}.  GTK-style RGB triplets
 have the form @w{@code{@{ @var{r}, @var{g}, @var{b} @}}}, where
-@var{r}, @var{g} and @var{b} are either integers in the range 0-65535
-or floats in the range 0.0-1.0.
+@var{r}, @var{g} and @var{b} are either integers in the range 0--65535
+or floats in the range 0.0--1.0.

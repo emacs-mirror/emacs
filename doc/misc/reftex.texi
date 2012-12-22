@@ -45,7 +45,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -609,7 +609,7 @@ Promote the current section.  This will convert @code{\section} to
 @code{\chapter}, @code{\subsection} to @code{\section} etc. If there is
 an active region, all sections in the region will be promoted, including
 the one at point.  To avoid mistakes, @RefTeX{} requires a fresh
-document scan before executing this command -- if necessary, it will
+document scan before executing this command; if necessary, it will
 automatically do this scan and ask the user to repeat the promotion
 command.
 
@@ -625,7 +625,7 @@ useful when a package like @file{fancyref} is used where the label
 prefix determines the wording of a reference.  After a
 promotion/demotion it may be necessary to change a few labels from
 @samp{sec:xyz} to @samp{cha:xyz} or vice versa.  This command can be
-used to do this - it launches a query replace to rename the definition
+used to do this; it launches a query replace to rename the definition
 and all references of a label.
 
 @tablesubheading{Exiting}
@@ -787,7 +787,7 @@ records the figure counter, not the section counter.
 
 Several different environments can share a common counter and therefore
 a common label category.  For example labels in both @code{equation} and
-@code{eqnarray} environments record the value of the same counter -- the
+@code{eqnarray} environments record the value of the same counter: the
 equation counter.
 
 @menu
@@ -1448,8 +1448,8 @@ The empty pairs of brackets indicate the different arguments of the
 indicates that this is a figure label which will be listed together with
 labels from normal figure environments.  The @code{nil} entries for
 prefix and reference format mean to use the defaults for figure labels.
-The @samp{3} for the context method means to grab the third macro argument
--- the caption.
+The @samp{3} for the context method means to grab the third macro argument:
+the caption.
 
 As a side effect of this configuration, @code{reftex-label} will now
 insert the required naked label (without the @code{\label} macro) when
@@ -1518,7 +1518,7 @@ following is equivalent to the line above.
 @end lisp
 
 Note that this is automatically done by the @file{amsmath.el} style file
-of @AUCTeX{} (@pxref{Style Files}) -- so if you use @AUCTeX{},
+of @AUCTeX{} (@pxref{Style Files}); so if you use @AUCTeX{},
 this configuration will not be necessary.
 
 @node Non-Standard Environments, Putting it Together, Using \eqref, Defining Label Environments
@@ -1743,7 +1743,7 @@ package where a macro call like @code{\fref@{@var{fig:map-of-germany}@}}
 creates not only the number of the referenced counter but also the
 complete text around it, like @samp{Figure 3 on the preceding page}.  In
 order to make it work you need to use label prefixes like @samp{fig:}
-consistently -- something @RefTeX{} does automatically.  For each of
+consistently---something @RefTeX{} does automatically.  For each of
 these packages a variable could be configured to make its macros to take
 precedence over @code{\ref}.  Those were @code{reftex-vref-is-default}
 and @code{reftex-fref-is-default} respectively.  While still working,
@@ -2284,7 +2284,7 @@ format.  A phrase line looks like this:
 @code{<TABs>} stands for white space containing at least one @key{TAB}.
 @var{key} must be at the start of the line and is the character
 identifying one of the macros defined in the file header.  It is
-optional - when omitted, the first macro definition line in the file
+optional; when omitted, the first macro definition line in the file
 will be used for this phrase.  The @var{phrase} is the phrase to be
 searched for when indexing.  It may contain several words separated by
 spaces.  By default the search phrase is also the text entered as
@@ -2330,7 +2330,7 @@ and will therefore create two different index entries.
 @kindex C-c C-s
 Before indexing the phrases in the phrases buffer, they should be
 checked carefully for consistency.  A first step is to sort the phrases
-alphabetically - this is done with the command @kbd{C-c C-s}
+alphabetically; this is done with the command @kbd{C-c C-s}
 (@code{reftex-index-sort-phrases}).  It will sort all phrases in the
 buffer alphabetically by search phrase.  If you want to group certain
 phrases and only sort within the groups, insert empty lines between the
@@ -2678,7 +2678,7 @@ unique. @code{?i}, @code{?I}, and @code{?g} are reserved for the
 respectively.
 
 The following string is empty unless your macro adds a superordinate
-entry to the index key - this is the case for the @code{\astobj} macro.
+entry to the index key; this is the case for the @code{\astobj} macro.
 
 The next entry can be a hook function to exclude certain matches, it
 almost always can be @code{nil}.
@@ -3740,8 +3740,8 @@ library which is part of @AUCTeX{}, the string is first processed with the
 @deffn Command reftex-index-phrase-selection-or-word
 Add current selection or the word at point to the phrases buffer.
 When you are in transient-mark-mode and the region is active, the
-selection will be used - otherwise the word at point.
-You get a chance to edit the entry in the phrases buffer - to save the
+selection will be used; otherwise the word at point.
+You get a chance to edit the entry in the phrases buffer; to save the
 buffer and return to the @LaTeX{} document, finish with @kbd{C-c C-c}.
 @end deffn
 
@@ -3881,7 +3881,7 @@ removes the parse file associated with the current document.
 @cindex Options, list of
 
 Here is a complete list of @RefTeX{}'s configuration variables.  All
-variables have customize support - so if you are not familiar with Emacs
+variables have customize support, so if you are not familiar with Emacs
 Lisp (and even if you are) you might find it more comfortable to use
 @code{customize} to look at and change these variables. @kbd{M-x
 reftex-customize} will get you there.
@@ -4061,7 +4061,7 @@ Name of the environment (like @samp{table}) or macro (like
 @samp{\myfig}).  For macros, indicate the arguments, as in
 @samp{\myfig[]@{@}@{@}@{*@}@{@}}.  Use square brackets for optional
 arguments, a star to mark the label argument, if any.  The macro does
-not have to have a label argument - you could also use
+not have to have a label argument; you could also use
 @samp{\label@{...@}} inside one of its arguments.
 
 Special names: @code{section} for section labels, @code{any} to define a
@@ -4215,7 +4215,7 @@ names like @samp{chapter}, integer section levels (as given in
 @defopt reftex-default-context-regexps
 Alist with default regular expressions for finding context.  The emacs
 lisp form @w{@code{(format regexp (regexp-quote environment))}} is used
-to calculate the final regular expression - so @samp{%s} will be
+to calculate the final regular expression, so @samp{%s} will be
 replaced with the environment or macro.
 @end defopt
 
@@ -4404,7 +4404,7 @@ The available label types are: @code{s} (section), @code{f} (figure),
 @code{t} (table), @code{i} (item), @code{e} (equation), @code{n}
 (footnote), plus any definitions in @code{reftex-label-alist}.
 
-Most options can also be switched from the label menu itself - so if you
+Most options can also be switched from the label menu itself, so if you
 decide here to not have a table of contents in the label menu, you can
 still get one interactively during selection from the label menu.
 @end defopt
@@ -4462,7 +4462,7 @@ Non-@code{nil} means, @code{reftex-reference} will try to guess the
 label type.  To do that, @RefTeX{} will look at the word before the
 cursor and compare it with the magic words given in
 @code{reftex-label-alist}.  When it finds a match, @RefTeX{} will
-immediately offer the correct label menu - otherwise it will prompt you
+immediately offer the correct label menu; otherwise it will prompt you
 for a label type.  If you set this variable to @code{nil}, @RefTeX{}
 will always prompt for a label type.
 @end defopt
@@ -4726,11 +4726,11 @@ The final entry may also be a symbol.  It must have an association in
 the variable @code{reftex-index-macros-builtin} to specify the main
 indexing package you are using.  Valid values are currently
 @example
-default         @r{The @LaTeX{} default - unnecessary to specify this one}
+default         @r{The @LaTeX{} default; unnecessary to specify this one}
 multind         @r{The multind.sty package}
 index           @r{The index.sty package}
 index-shortcut  @r{The index.sty packages with the ^ and _ shortcuts.}
-                @r{Should not be used - only for old documents}
+                @r{Should not be used; only for old documents}
 @end example
 Note that @AUCTeX{} sets these things internally for @RefTeX{} as well,
 so with a sufficiently new version of @AUCTeX{}, you should not set the
@@ -4741,7 +4741,7 @@ package here.
 The default index macro for @code{reftex-index-selection-or-word}.
 This is a list with @code{(@var{macro-key} @var{default-tag})}.
 
-@var{macro-key} is a character identifying an index macro - see
+@var{macro-key} is a character identifying an index macro; see
 @code{reftex-index-macros}.
 
 @var{default-tag} is the tag to be used if the macro requires a
@@ -4829,7 +4829,7 @@ case, that match will be ignored.
 
 @defopt reftex-index-phrases-wrap-long-lines
 Non-@code{nil} means, when indexing from the phrases buffer, wrap lines.
-Inserting indexing commands in a line makes the line longer - often
+Inserting indexing commands in a line makes the line longer, often
 so long that it does not fit onto the screen.  When this variable is
 non-@code{nil}, newlines will be added as necessary before and/or after the
 indexing command to keep lines short.  However, the matched text
@@ -5007,7 +5007,7 @@ Non-@code{nil} means, search all specified directories before trying
 recursion.  Thus, in a path @samp{.//:/tex/}, search first @samp{./},
 then @samp{/tex/}, and then all subdirectories of @samp{./}.  If this
 option is @code{nil}, the subdirectories of @samp{./} are searched
-before @samp{/tex/}.  This is mainly for speed - most of the time the
+before @samp{/tex/}.  This is mainly for speed; most of the time the
 recursive path is for the system files and not for the user files.  Set
 this to @code{nil} if the default makes @RefTeX{} finding files with
 equal names in wrong sequence.
@@ -5128,7 +5128,7 @@ cannot be placed with certainty into the internal label list.
 @defopt reftex-use-multiple-selection-buffers
 Non-@code{nil} means use a separate selection buffer for each label
 type.  These buffers are kept from one selection to the next and need
-not to be created for each use - so the menu generally comes up faster.
+not be created for each use, so the menu generally comes up faster.
 The selection buffers will be erased (and therefore updated)
 automatically when new labels in its category are added.  See the
 variable @code{reftex-auto-update-selection-buffers}.

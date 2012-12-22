@@ -372,7 +372,7 @@ Generate a one-month calendar (@code{cal-html-cursor-month}).
 @item H y
 Generate a calendar file for each month of a year, as well as an index
 page (@code{cal-html-cursor-year}).  By default, this command writes
-files to a @var{yyyy} subdirectory - if this is altered some hyperlinks
+files to a @var{yyyy} subdirectory---if this is altered some hyperlinks
 between years will not work.
 @end table
 

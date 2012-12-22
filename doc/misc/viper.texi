@@ -7,7 +7,7 @@
 @setfilename ../../info/viper
 
 @copying
-Copyright @copyright{} 1995-1997, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--1997, 2001--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -75,7 +75,7 @@ Viper, formerly known as VIP-19, was written by Michael Kifer.  It is based
 on VIP version 3.5 by Masahiko Sato and VIP version 4.4 by Aamod Sane.
 About 15% of the code still comes from those older packages.
 
-Viper is intended to be usable without reading this manual --- the defaults
+Viper is intended to be usable without reading this manual; the defaults
 are set to make Viper as close to Vi as possible.  At startup, Viper will
 try to set the most appropriate default environment for you, based on
 your familiarity with Emacs.  It will also tell you the basic GNU Emacs window
@@ -133,8 +133,8 @@ Viper was written by Michael Kifer.  It is based on VIP version 3.5 by
 Masahiko Sato and VIP version 4.4 by Aamod Sane.  About 15% of the code
 still comes from those older packages.
 
-Viper is intended to be usable out of the box, without reading this manual
---- the defaults are set to make Viper as close to Vi as possible.  At
+Viper is intended to be usable out of the box, without reading this manual;
+the defaults are set to make Viper as close to Vi as possible.  At
 startup, Viper will attempt to set the most appropriate default environment
 for you, based on your familiarity with Emacs.  It will also tell you the
 basic GNU Emacs window management commands to help you start immediately.
@@ -446,7 +446,7 @@ doing soon!), you should learn about the meaning of the various keys in
 those special modes (typing @kbd{C-h m} in a buffer provides
 help with key bindings for the major mode of that buffer).
 
-If you switch to Vi in Dired or similar modes---no harm is done.  It is just
+If you switch to Vi in Dired or similar modes, no harm is done.  It is just
 that the special key bindings provided by those modes will be temporarily
 overshadowed by Viper's bindings.  Switching back to Viper's Emacs state
 will revive the environment provided by the current major mode.
@@ -1714,7 +1714,7 @@ If not @code{nil}, search wraps around the end/beginning of buffer.
 @item viper-search-scroll-threshold 2
 If search lands within this many lines of the window top or bottom, the
 window will be scrolled up or down by about 1/7-th of its size, to reveal
-the context.  If the value is negative---don't scroll.
+the context.  If the value is negative, don't scroll.
 @item viper-tags-file-name "TAGS"
 The name of the file used as the tag table.
 @item viper-re-query-replace nil
@@ -2785,7 +2785,7 @@ type @kbd{C-x q} (for confirmation) or @kbd{C-u C-x q} (for prompt).
 For details, @pxref{Keyboard Macro Query,,Customization,emacs,The GNU Emacs
 Manual} @refill
 
-When the user finishes defining a macro (which is done by typing @kbd{C-x)} ---
+When the user finishes defining a macro (which is done by typing @kbd{C-x)},
 a departure from Vi), you will be asked whether you want this
 macro to be global, mode-specific, or buffer-specific.  You will also be
 given a chance to save the macro in your @file{~/.viper} file.
@@ -3264,7 +3264,7 @@ inserts them automatically in front of the Ex command.
 @item <count>  $
 To the end of line <count> from the cursor.
 @item <count>  ^
-To the first CHAR <count> - 1 lines lower.
+To the first CHAR <count> @minus{} 1 lines lower.
 @item <count>  -
 To the first CHAR <count> lines higher.
 @item <count>  +  <cr>
@@ -3646,10 +3646,10 @@ Shift <count> lines one shiftwidth to the left.
 
 @table @kbd
 @item <count>  r<char>
-Replace <count> chars by <char> - no <esc>.
+Replace <count> chars by <char>; no <esc>.
 @item <count>  R
 Overwrite the rest of the line,
-appending change @var{count - 1} times.
+appending change @var{count} @minus{} 1 times.
 @item <count>  s
 Substitute <count> chars.
 @item <count>  S
@@ -3659,7 +3659,7 @@ Change from begin to endpoint of <count><move>.
 @item <count>  cc
 Change <count> lines.
 @item <count>  C
-The rest of the line and <count> - 1 next lines.
+The rest of the line and <count> @minus{} 1 next lines.
 @item <count>  =<move>
 Reindent the region described by move.
 @item <count>  ~
@@ -3912,7 +3912,7 @@ give file name, status, current line number
 and relative position.@*
 At user levels 2 and higher, abort the current command.
 @item C-c g
-Give file name, status, current line number and relative position -- all
+Give file name, status, current line number and relative position---all
 user levels.
 @item C-l
 Refresh the screen.
@@ -4021,7 +4021,7 @@ Save and kill buffer.
 @item :x!@: [<file>]
 @kbd{:w![<file>]} and @kbd{:q}.
 @item :pre
-Preserve the file -- autosave buffers.
+Preserve the file---autosave buffers.
 @item :rec
 Recover file from autosave.
 @item :f [<file>]
@@ -4253,7 +4253,7 @@ Run the make command in the current directory.
 @item autoindent
 @itemx ai
 @cindex autoindent
-autoindent -- In append mode after a <cr> the
+autoindent: In append mode after a <cr> the
 cursor will move directly below the first
 character on the previous line.
 This setting affects the current buffer only.
@@ -4269,7 +4269,7 @@ Cancel autoindent-global.
 @item ignorecase
 @itemx ic
 @cindex case and searching
-ignorecase -- No distinction between upper and lower cases when searching.
+ignorecase: No distinction between upper and lower cases when searching.
 @item noignorecase
 @itemx noic
 Cancel ignorecase.
@@ -4283,7 +4283,7 @@ Cancel magic.
 @item readonly
 @itemx ro
 @cindex readonly files
-readonly -- The file is not to be changed.
+readonly: The file is not to be changed.
 If the user attempts to write to this file, confirmation will be requested.
 @item noreadonly
 @itemx noro
@@ -4291,18 +4291,18 @@ Cancel readonly.
 @item shell=<string>
 @itemx sh=<string>
 @cindex shell
-shell -- The program to be used for shell escapes
+shell: The program to be used for shell escapes
 (default @samp{$SHELL} (default @file{/bin/sh})).
 @item shiftwidth=<count>
 @itemx sw=<count>
 @cindex layout
 @cindex shifting text
-shiftwidth -- Gives the shiftwidth (default 8 positions).
+shiftwidth: Gives the shiftwidth (default 8 positions).
 @item showmatch
 @itemx sm
 @cindex paren matching
 @cindex matching parens
-showmatch -- Whenever you append a @kbd{)}, Vi shows
+showmatch: Whenever you append a @kbd{)}, Vi shows
 its match if it's on the same page; also with
 @kbd{@{} and @kbd{@}}.  If there's no match, Vi will beep.
 @item noshowmatch
@@ -4312,7 +4312,7 @@ Cancel showmatch.
 @itemx ts=<count>
 @cindex changing tab width
 @cindex tabbing
-tabstop -- The length of a <ht>; warning: this is
+tabstop: The length of a <ht>; warning: this is
 only IN the editor, outside of it <ht>s have
 their normal length (default 8 positions).
 This setting affects the current buffer only.
@@ -4323,13 +4323,13 @@ Same as `tabstop', but affects all buffers.
 @itemx wm=<count>
 @cindex auto fill
 @cindex word wrap
-wrapmargin -- In append mode Vi automatically
+wrapmargin: In append mode Vi automatically
 puts a <lf> whenever there is a <sp> or <ht>
 within <wm> columns from the right margin.
 @item wrapscan
 @itemx ws
 @cindex searching
-wrapscan -- When searching, the end is
+wrapscan: When searching, the end is
 considered @samp{stuck} to the begin of the file.
 @item nowrapscan
 @itemx nows
