@@ -62,7 +62,6 @@ modify this GNU manual.''
 
 @ifnottex
 @node Top
-@comment  node-name,  next,  previous,  up
 @top WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 
 @display
@@ -97,7 +96,6 @@ Mile End Road, London E1 4NS, UK
 @c ===================================================================
 
 @node Introduction
-@comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex introduction
 
@@ -159,7 +157,6 @@ Reporting Bugs}.
 @c ===================================================================
 
 @node Background
-@comment  node-name,  next,  previous,  up
 @chapter Background
 @cindex background
 
@@ -289,7 +286,6 @@ emulation of @code{troff} as GNU Emacs moves to providing bit-mapped
 display facilities.
 
 @node Finding
-@comment  node-name,  next,  previous,  up
 @chapter Finding and Formatting Man Pages
 @cindex using, finding man pages
 @cindex using, formatting man pages
@@ -346,7 +342,6 @@ setting WoMan file paths.
 @end menu
 
 @node Topic
-@comment  node-name,  next,  previous,  up
 @section Topic Interface
 @cindex topic interface
 
@@ -428,7 +423,6 @@ slow.  @xref{Cache, , The WoMan Topic Cache}, for further details.
 @end menu
 
 @node Cache
-@comment  node-name,  next,  previous,  up
 @subsection The WoMan Topic Cache
 @cindex topic cache
 @cindex cache, topic
@@ -463,7 +457,6 @@ time it is run in a new Emacs session.
 
 
 @node Word at point
-@comment  node-name,  next,  previous,  up
 @subsection Using the "Word at Point" as a Topic Suggestion
 @cindex word at point
 @cindex point, word at
@@ -490,7 +483,6 @@ point without seeking confirmation:
 
 
 @node Filename
-@comment  node-name,  next,  previous,  up
 @section Filename Interface
 @cindex filename interface
 
@@ -540,7 +532,6 @@ primarily used internally by WoMan.
 
 
 @node Automatic
-@comment  node-name,  next,  previous,  up
 @section Automatic Interface
 @cindex automatic interface
 
@@ -578,7 +569,6 @@ by automatic major mode selection.]
 @c ===================================================================
 
 @node Browsing
-@comment  node-name,  next,  previous,  up
 @chapter Browsing Man Pages
 @cindex using, browsing man pages
 @cindex browsing man pages
@@ -609,7 +599,6 @@ blank lines squeezed to a single blank line.
 @end menu
 
 @node Fonts
-@comment  node-name,  next,  previous,  up
 @section Fonts and Faces
 @cindex fonts
 @cindex faces
@@ -625,7 +614,6 @@ sub-scripts, which are not displayed well by WoMan.
 
 
 @node Navigation
-@comment  node-name,  next,  previous,  up
 @section Navigation
 @cindex navigation
 
@@ -671,7 +659,6 @@ described by @code{Man-see-also-regexp}.
 
 
 @node References
-@comment  node-name,  next,  previous,  up
 @section Following References
 @cindex following references
 @cindex references
@@ -715,7 +702,6 @@ default is based on word at point.
 
 
 @node Changing
-@comment  node-name,  next,  previous,  up
 @section Changing the Current Man Page
 @cindex changing current man page
 @cindex current man page, changing
@@ -783,7 +769,6 @@ Call WoMan to reformat the last man page formatted by WoMan
 
 
 @node Convenience
-@comment  node-name,  next,  previous,  up
 @section Convenience Key Bindings
 @cindex convenience key bindings
 @cindex key bindings, convenience
@@ -825,7 +810,6 @@ followed by the minor modes, each on a separate page.
 
 
 @node Imenu
-@comment  node-name,  next,  previous,  up
 @section Imenu Support; Contents Menu
 @cindex imenu support
 @cindex contents menu
@@ -846,7 +830,6 @@ is distributed with GNU Emacs.
 @c ===================================================================
 
 @node Customization
-@comment  node-name,  next,  previous,  up
 @chapter Customization
 @cindex customization
 
@@ -904,7 +887,6 @@ man page.
 @end menu
 
 @node Interface Options
-@comment  node-name,  next,  previous,  up
 @section Interface Options
 @cindex interface options
 
@@ -1131,7 +1113,6 @@ default value is non-@code{nil}.
 
 
 @node Formatting Options
-@comment  node-name,  next,  previous,  up
 @section Formatting Options
 @cindex formatting options
 
@@ -1175,7 +1156,6 @@ untested.
 
 
 @node Faces
-@comment  node-name,  next,  previous,  up
 @section Faces
 @cindex faces
 
@@ -1211,7 +1191,6 @@ Default: foreground orange.
 
 
 @node Special symbols
-@comment  node-name,  next,  previous,  up
 @section Special symbols
 @cindex special symbols
 
@@ -1249,7 +1228,6 @@ Under MS-Windows, the default is
 @c ===================================================================
 
 @node Log
-@comment  node-name,  next,  previous,  up
 @chapter The *WoMan-Log* Buffer
 @cindex log buffer
 @cindex buffer, log
@@ -1274,7 +1252,6 @@ left in the formatted buffer to indicate precisely where they occurred.
 @c ===================================================================
 
 @node Technical
-@comment  node-name,  next,  previous,  up
 @chapter Technical Details
 @cindex technical details
 @cindex horizontal spacing
@@ -1299,7 +1276,6 @@ is output.
 @c ===================================================================
 
 @node Bugs
-@comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
 @cindex reporting bugs
 @cindex bugs, reporting
@@ -1324,7 +1300,6 @@ man source file from, but do not send it unless asked to send it.
 @c ===================================================================
 
 @node Acknowledgments
-@comment  node-name,  next,  previous,  up
 @chapter Acknowledgments
 @cindex acknowledgments
 
@@ -1385,13 +1360,11 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @include doclicense.texi
 
 @node Command Index
-@comment  node-name,           next,      previous,  up
 @unnumbered Command Index
 
 @printindex fn
 
 @node Variable Index
-@comment   node-name,            next,      previous, up
 @unnumbered Variable Index
 
 @printindex vr
@@ -1403,7 +1376,6 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @page
 
 @node Keystroke Index
-@comment  node-name,            next,      previous,  up
 @unnumbered Keystroke Index
 
 @printindex ky
@@ -1415,7 +1387,6 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @page
 
 @node Concept Index
-@comment  node-name, next,     previous, up
 @unnumbered Concept Index
 
 @printindex cp
