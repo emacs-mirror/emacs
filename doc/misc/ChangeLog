@@ -1,5 +1,8 @@
 2012-12-22  Glenn Morris  <rgm@gnu.org>
 
+	* viper.texi (Rudimentary Changes, Key Bindings, Key Bindings):
+	Avoid some overfull lines.
+
 	* widget.texi (Programming Example): Break some long lines.
 
 	* wisent.texi (Wisent Overview): Fix xref.
