@@ -1296,10 +1296,12 @@ windows.
 @cindex selecting a window
 
 @defun select-window window &optional norecord
-This function makes @var{window} the selected window, as well as the
-window selected within its frame (@pxref{Basic Windows}).  @var{window}
-must be a live window.  This function makes also @var{window}'s buffer
-current (@pxref{Buffers and Windows}).  The return value is
+This function makes @var{window} the selected window and the window
+selected within its frame (@pxref{Basic Windows}) and selects that
+frame.  @var{window} must be a live window.  This function also makes
+@var{window}'s buffer (@pxref{Buffers and Windows}) current and sets
+that buffer's value of @code{point} to the value of @code{window-point}
+(@pxref{Window Point}) in @var{window}.  The return value is
 @var{window}.
 
 By default, this function also moves @var{window}'s buffer to the front
