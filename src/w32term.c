@@ -5648,6 +5648,77 @@ x_check_fullscreen (struct frame *f)
     }
 }
 
+static void
+w32fullscreen_hook (FRAME_PTR f)
+{
+  static int normal_width, normal_height, normal_top, normal_left;
+
+  if (f->async_visible)
+    {
+      int width, height, top_pos, left_pos, pixel_height, pixel_width;
+      int cur_w = FRAME_COLS (f), cur_h = FRAME_LINES (f);
+      RECT workarea_rect;
+
+      block_input ();
+      if (normal_height <= 0)
+	normal_height = cur_h;
+      if (normal_width <= 0)
+	normal_width = cur_w;
+      x_real_positions (f, &f->left_pos, &f->top_pos);
+      x_fullscreen_adjust (f, &width, &height, &top_pos, &left_pos);
+
+      SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
+      pixel_height = workarea_rect.bottom - workarea_rect.top;
+      pixel_width  = workarea_rect.right  - workarea_rect.left;
+
+      switch (f->want_fullscreen)
+	{
+	  /* No difference between these two when there is no WM */
+	case FULLSCREEN_MAXIMIZED:
+	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, 0xf030, 0);
+	  break;
+	case FULLSCREEN_BOTH:
+	  height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height) - 2;
+	  width  = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width);
+	  left_pos = workarea_rect.left;
+	  top_pos = workarea_rect.top;
+	  break;
+	case FULLSCREEN_WIDTH:
+	  width  = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width);
+	  if (normal_height > 0)
+	    height = normal_height;
+	  left_pos = workarea_rect.left;
+	  break;
+	case FULLSCREEN_HEIGHT:
+	  height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height) - 2;
+	  if (normal_width > 0)
+	    width = normal_width;
+	  top_pos = workarea_rect.top;
+	  break;
+	case FULLSCREEN_NONE:
+	  if (normal_height > 0)
+	    height = normal_height;
+	  else
+	    normal_height = height;
+	  if (normal_width > 0)
+	    width = normal_width;
+	  else
+	    normal_width = width;
+	  /* FIXME: Should restore the original position of the frame.  */
+	  top_pos = left_pos = 0;
+	  break;
+	}
+
+      if (cur_w != width || cur_h != height)
+	{
+	  x_set_offset (f, left_pos, top_pos, 1);
+	  x_set_window_size (f, 1, width, height);
+	  do_pending_window_change (0);
+	}
+      unblock_input ();
+    }
+}
+
 /* Call this to change the size of frame F's x-window.
    If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
    for this size change and subsequent size changes.
@@ -6338,7 +6409,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->mouse_position_hook = w32_mouse_position;
   terminal->frame_rehighlight_hook = w32_frame_rehighlight;
   terminal->frame_raise_lower_hook = w32_frame_raise_lower;
-  /* terminal->fullscreen_hook = XTfullscreen_hook; */
+  terminal->fullscreen_hook = w32fullscreen_hook;
   terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;

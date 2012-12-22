@@ -1,3 +1,8 @@
+2012-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32fullscreen_hook): New function.
+	(w32_create_terminal): Plug it into the terminal's fullscreen_hook.
+
 2012-12-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Finsert_file_contents): Doc fix.
