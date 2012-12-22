@@ -58,8 +58,8 @@ modify this GNU manual.''
 @c                   The real text starts here
 @c ================================================================
 
-@node Top, About PCL-CVS, (dir), (dir)
 @ifnottex
+@node Top
 @top PCL-CVS
 
 This manual describes PCL-CVS, the GNU Emacs front-end to CVS@.  It
@@ -127,7 +127,7 @@ Customization
 @end detailmenu
 @end menu
 
-@node     About PCL-CVS, Getting started, Top, Top
+@node     About PCL-CVS
 @chapter About PCL-CVS
 @cindex About PCL-CVS
 
@@ -151,7 +151,7 @@ functionality and taking over the maintenance.
 * Contributors::                Contributors to PCL-CVS.
 @end menu
 
-@node     Contributors,, About PCL-CVS, About PCL-CVS
+@node     Contributors
 @section Contributors to PCL-CVS
 @cindex Contributors
 @cindex Authors
@@ -228,7 +228,7 @@ requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of PCL-CVS.
 
 
-@node Getting started, Buffer contents, About PCL-CVS, Top
+@node Getting started
 @chapter Getting started
 @cindex Introduction
 @cindex Example run
@@ -296,7 +296,7 @@ press @kbd{l} to get the output from @samp{cvs log}.  Many more such
 commands are available simply by pressing a key (@pxref{Getting info
 about files}).
 
-@node Buffer contents, Selected files, Getting started, Top
+@node Buffer contents
 @chapter Buffer contents
 @cindex Buffer contents
 @cindex @code{*cvs*} buffer contents
@@ -425,7 +425,7 @@ The file has been unexpectedly removed from your working directory
 although it has not been @samp{cvs remove}d.
 @end table
 
-@node Selected files, Commands, Buffer contents, Top
+@node Selected files
 @chapter Selected files
 @cindex Selected files
 @cindex Marked files
@@ -467,7 +467,7 @@ it, it is quite powerful.
 
 For commands to mark and unmark files, see @ref{Marking files}.
 
-@node Commands, Log Edit Mode, Selected files, Top
+@node Commands
 @chapter Commands
 
 @iftex
@@ -501,7 +501,7 @@ you can use in PCL-CVS@.  They are grouped together by type.
 @end menu
 
 
-@node Entering PCL-CVS, Setting flags, Commands, Commands
+@node Entering PCL-CVS
 @section Entering PCL-CVS
 @findex cvs-update
 @findex cvs-examine
@@ -561,7 +561,7 @@ argument to the command (e.g., by typing
 @kbd{C-u M-x cvs-update @key{RET} -l @key{RET}}).
 
 
-@node Setting flags, Updating the buffer, Entering PCL-CVS, Commands
+@node Setting flags
 @section Setting flags for CVS commands
 @cindex Optional switches to CVS
 @cindex Command-line options to CVS
@@ -617,7 +617,7 @@ Forces the next command to apply to every selected file rather than only
 to the ones PCL-CVS thinks are relevant.
 @end table
 
-@node Updating the buffer, Movement commands, Setting flags, Commands
+@node Updating the buffer
 @section Updating the @samp{*cvs*} buffer
 @findex cvs-update
 @findex cvs-examine
@@ -662,7 +662,7 @@ put in @samp{cvs-status-mode}.@refill
 @end table
 
 
-@node Movement commands, Marking files, Updating the buffer, Commands
+@node Movement commands
 @section Movement Commands
 @cindex Movement Commands
 @findex cvs-mode-next-line
@@ -688,7 +688,7 @@ This key moves one file backward, towards the beginning of the buffer
 @end table
 
 
-@node Marking files, Committing changes, Movement commands, Commands
+@node Marking files
 @section Marking files
 @cindex Selecting files (commands to mark files)
 @cindex Marking files
@@ -746,7 +746,7 @@ Toggle use of marks for the next command (@code{cvs-mode-toggle-marks}).
 @end table
 
 
-@node Committing changes, Editing files, Marking files, Commands
+@node Committing changes
 @section Committing changes
 @cindex Committing changes
 @findex cvs-mode-commit
@@ -805,7 +805,7 @@ your buffer, or if @samp{cvs-auto-revert} is set to
 @samp{nil}.
 
 
-@node Editing files, Getting info about files, Committing changes, Commands
+@node Editing files
 @section Editing files
 @cindex Editing files
 @cindex Finding files
@@ -842,7 +842,7 @@ directory (@code{cvs-mode-add-change-log-entry-other-window}).@refill
 @end table
 
 
-@node Getting info about files, Adding and removing files, Editing files, Commands
+@node Getting info about files
 @section Getting info about files
 @cindex Status (cvs command)
 @cindex Log (RCS/cvs command)
@@ -867,7 +867,7 @@ all selected files, and show the result in a temporary buffer
 @end table
 
 
-@node Adding and removing files, Undoing changes, Getting info about files, Commands
+@node Adding and removing files
 @section Adding and removing files
 @cindex Adding files
 @cindex Removing files
@@ -908,7 +908,7 @@ The command that is run is @code{cvs-mode-remove-file}.
 @end table
 
 
-@node Undoing changes, Removing handled entries, Adding and removing files, Commands
+@node Undoing changes
 @section Undoing changes
 @cindex Undo changes
 @cindex Flush changes
@@ -924,7 +924,7 @@ version from the repository (@code{cvs-mode-undo-local-changes}).
 @end table
 
 
-@node Removing handled entries, Ignoring files, Undoing changes, Commands
+@node Removing handled entries
 @section Removing handled entries
 @cindex Expunging uninteresting entries
 @cindex Uninteresting entries, getting rid of them
@@ -956,7 +956,7 @@ not delete, but that you want to delete (@code{cvs-mode-acknowledge}).
 @end table
 
 
-@node Ignoring files, Viewing differences, Removing handled entries, Commands
+@node Ignoring files
 @section Ignoring files
 @cindex Ignoring files
 @kindex i@r{--ignoring files}
@@ -974,7 +974,7 @@ but you could ignore it as well, if you like it better that way.
 This runs @code{cvs-mode-ignore}.
 @end table
 
-@node Viewing differences, Invoking Ediff, Ignoring files, Commands
+@node Viewing differences
 @section Viewing differences
 @cindex Diff
 @cindex Invoking @code{diff}
@@ -1037,7 +1037,7 @@ head revision in the repository
 By default, @samp{diff} commands ignore the marks.  This can be changed
 with @code{cvs-invert-ignore-marks}.
 
-@node Invoking Ediff, Updating files, Viewing differences, Commands
+@node Invoking Ediff
 @section Running ediff
 @cindex Ediff
 @cindex Invoking ediff
@@ -1069,7 +1069,7 @@ any way if you use this command.  If you use the @kbd{q} command inside
 created will be overwritten.@refill
 @end table
 
-@node Updating files, Tagging files, Invoking Ediff, Commands
+@node Updating files
 @section Updating files
 @findex cvs-mode-update
 @cindex Updating files
@@ -1082,7 +1082,7 @@ Update all selected files with status @samp{Need-update} by running
 @end table
 
 
-@node Tagging files, Miscellaneous commands, Updating files, Commands
+@node Tagging files
 @section Tagging files
 @findex cvs-mode-tag
 @findex cvs-mode-untag
@@ -1109,7 +1109,7 @@ only be applied to directories, see @code{cvs-force-dir-tag} if you want
 to change this behavior.
 
 
-@node Miscellaneous commands,  , Tagging files, Commands
+@node Miscellaneous commands
 @section Miscellaneous commands
 @findex cvs-mode-byte-compile-files
 @cindex Recompiling elisp files
@@ -1154,7 +1154,7 @@ Bury the PCL-CVS buffer (@code{cvs-bury-buffer}).
 Quit PCL-CVS, killing the @samp{*cvs*} buffer.
 @end table
 
-@node Log Edit Mode, Log View Mode, Commands, Top
+@node Log Edit Mode
 @chapter Editing a Log Message
 
 @cindex Log Edit mode
@@ -1187,7 +1187,7 @@ exit the buffer and commit the change.
 
 @c Fixme: customization variables
 
-@node Log View Mode, Customization, Log Edit Mode, Top
+@node Log View Mode
 @chapter Browsing a Log of Changes
 
 @cindex Log View mode
@@ -1208,7 +1208,7 @@ argument, these commands move that many messages of files.
 @c @node CVS Status Mode
 @c @chapter Viewing CVS' Status output
 
-@node Customization, Bugs, Log View Mode, Top
+@node Customization
 @chapter Customization
 @vindex log-edit-changelog-full-paragraphs@r{ (variable)}
 @vindex cvs-auto-remove-handled@r{ (variable)}
@@ -1319,7 +1319,7 @@ default.
 * Customizing Faces::
 @end menu
 
-@node Customizing Faces,  , Customization, Customization
+@node Customizing Faces
 @section Customizing Faces
 @vindex cvs-header (face)
 @vindex cvs-filename (face)
@@ -1358,7 +1358,7 @@ Used to highlight CVS messages.
 @end table
 
 
-@node   Bugs, GNU Free Documentation License, Customization, Top
+@node   Bugs
 @chapter Bugs (known and unknown)
 @cindex Reporting bugs and ideas
 @cindex Bugs, how to report them
@@ -1398,13 +1398,13 @@ output of the CVS process (which should be found in the @samp{ *cvs-tmp*}
 buffer), and the versions of Emacs, PCL-CVS and CVS you are using.
 @end table
 
-@node GNU Free Documentation License, Function and Variable Index, Bugs, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
 
 
-@node Function and Variable Index, Concept Index, GNU Free Documentation License, Top
+@node Function and Variable Index
 @unnumbered Function and Variable Index
 
 This is an index of all the functions and variables documented in this
@@ -1412,14 +1412,14 @@ manual.
 
 @printindex fn
 
-@node     Concept Index, Key Index, Function and Variable Index, Top
+@node     Concept Index
 @unnumbered Concept Index
 
 This is an index of concepts discussed in this manual.
 
 @printindex cp
 
-@node     Key Index,  , Concept Index, Top
+@node     Key Index
 @unnumbered Key Index
 
 This index includes an entry for each PCL-CVS key sequence documented in
