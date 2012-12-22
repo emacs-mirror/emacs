@@ -95,7 +95,7 @@ modify this GNU manual.''
 @contents
 
 @ifnottex
-@node Top,,,(dir)
+@node Top
 @top @RefTeX{}
 
 @RefTeX{} is a package for managing Labels, References, Citations and
@@ -123,14 +123,13 @@ other parts of this document when needed.
 * Multifile Documents::              Document spread over many files.
 * Language Support::                 How to support other languages.
 * Finding Files::                    Included @TeX{} files and @BibTeX{} .bib files.
-* AUCTeX::                           Cooperation with @AUCTeX{}.
 * Optimizations::                    When RefTeX is too slow.
+* AUCTeX::                           Cooperation with @AUCTeX{}.
 * Problems and Work-Arounds::        First Aid.
 * Imprint::                          Author, Web-site, Thanks
 
 * Commands::                         Which are the available commands.
 * Options::                          How to extend and configure RefTeX.
-* Keymaps and Hooks::                For customization.
 * Changes::                          A List of recent changes to RefTeX.
 * GNU Free Documentation License::   The license for this documentation.
 
@@ -214,7 +213,7 @@ Options, Keymaps, Hooks
 
 @end ifnottex
 
-@node Introduction, Table of Contents, , Top
+@node Introduction
 @chapter Introduction
 @cindex Introduction
 
@@ -242,7 +241,7 @@ reports or suggestions.
 * RefTeX in a Nutshell::             A brief summary and quick guide.
 @end menu
 
-@node Installation, RefTeX in a Nutshell, , Introduction
+@node Installation
 @section Installation
 @cindex Installation
 
@@ -360,7 +359,7 @@ systems these variables do not contain the full search path.  If
 @xref{Finding Files}.
 
 @page
-@node RefTeX in a Nutshell, , Installation, Introduction
+@node RefTeX in a Nutshell
 @section @RefTeX{} in a Nutshell
 @cindex Quick-Start
 @cindex Getting Started
@@ -516,7 +515,7 @@ a tutorial way how to use and customize @RefTeX{}.  The second
 part is a command and variable reference.
 @end enumerate
 
-@node Table of Contents, Labels and References, Introduction, Top
+@node Table of Contents
 @chapter Table of Contents
 @cindex @file{*toc*} buffer
 @cindex Structure editing
@@ -765,7 +764,7 @@ environments to the table of contents.  This is probably only useful for
 theorem-like environments. @xref{Defining Label Environments}, for an
 example.
 
-@node Labels and References, Citations, Table of Contents, Top
+@node Labels and References
 @chapter Labels and References
 @cindex Labels in LaTeX
 @cindex References in LaTeX
@@ -800,7 +799,7 @@ equation counter.
 * xr (LaTeX package)::               References to external documents.
 @end menu
 
-@node Creating Labels, Referencing Labels, , Labels and References
+@node Creating Labels
 @section Creating Labels
 @cindex Creating labels
 @cindex Labels, creating
@@ -867,7 +866,7 @@ If you are using @AUCTeX{} to write your @LaTeX{} documents, you can
 set it up to delegate the creation of labels to
 @RefTeX{}. @xref{AUCTeX}, for more information.
 
-@node Referencing Labels, Builtin Label Environments, Creating Labels, Labels and References
+@node Referencing Labels
 @section Referencing Labels
 @cindex Referencing labels
 @cindex Labels, referencing
@@ -1092,7 +1091,7 @@ package),,xr}).
 In order to define additional commands for the selection process, the
 keymap @code{reftex-select-label-map} may be used.
 
-@node Builtin Label Environments, Defining Label Environments, Referencing Labels, Labels and References
+@node Builtin Label Environments
 @section Builtin Label Environments
 @cindex Builtin label environments
 @cindex Label environments, builtin
@@ -1197,7 +1196,7 @@ If you want to use other labeled environments, defined with
 @code{\newtheorem}, @RefTeX{} needs to be configured to recognize
 them (@pxref{Defining Label Environments}).
 
-@node Defining Label Environments, Reference Info, Builtin Label Environments, Labels and References
+@node Defining Label Environments
 @section Defining Label Environments
 @cindex Label environments, defining
 
@@ -1230,7 +1229,7 @@ Environments}).
 * Putting it Together::              How to combine many entries.
 @end menu
 
-@node Theorem and Axiom, Quick Equation, , Defining Label Environments
+@node Theorem and Axiom
 @subsection Theorem and Axiom Environments
 @cindex @code{theorem}, newtheorem
 @cindex @code{axiom}, newtheorem
@@ -1362,7 +1361,7 @@ and @code{reftex-label-menu-flags} (@pxref{Options (Referencing
 Labels)}).
 
 
-@node Quick Equation, Figure Wrapper, Theorem and Axiom , Defining Label Environments
+@node Quick Equation
 @subsection Quick Equation Macro
 @cindex Quick equation macro
 @cindex Macros as environment wrappers
@@ -1410,7 +1409,7 @@ Reftex Label Alist: [Hide]
             [ ] Make TOC entry    : [Value Menu] No entry
 @end example
 
-@node Figure Wrapper, Adding Magic Words, Quick Equation, Defining Label Environments
+@node Figure Wrapper
 @subsection Figure Wrapping Macro
 @cindex Macros as environment wrappers
 @cindex Figure wrapping macro
@@ -1470,7 +1469,7 @@ Again, here the configuration in the customization buffer:
             [ ] Make TOC entry    : [Value Menu] No entry
 @end example
 
-@node Adding Magic Words, Using \eqref, Figure Wrapper, Defining Label Environments
+@node Adding Magic Words
 @subsection Adding Magic Words
 @cindex Magic words
 @cindex German magic words
@@ -1494,7 +1493,7 @@ predefined label categories.
     (nil ?i nil nil nil ("Punkt"))))
 @end lisp
 
-@node Using \eqref, Non-Standard Environments, Adding Magic Words, Defining Label Environments
+@node Using \eqref
 @subsection Using @code{\eqref}
 @cindex @code{\eqref}, AMS-LaTeX macro
 @cindex AMS-LaTeX
@@ -1521,7 +1520,7 @@ Note that this is automatically done by the @file{amsmath.el} style file
 of @AUCTeX{} (@pxref{Style Files}); so if you use @AUCTeX{},
 this configuration will not be necessary.
 
-@node Non-Standard Environments, Putting it Together, Using \eqref, Defining Label Environments
+@node Non-Standard Environments
 @subsection Non-standard Environments
 @cindex Non-standard environments
 @cindex Environments without @code{\begin}
@@ -1622,7 +1621,7 @@ for @RefTeX{}.
             (incf cnt))))))))
 @end lisp
 
-@node Putting it Together, , Non-Standard Environments, Defining Label Environments
+@node Putting it Together
 @subsection Putting it all together
 
 When you have to put several entries into @code{reftex-label-alist}, just
@@ -1640,7 +1639,7 @@ the entries described above:
     (detect-linguex ?x "ex:" "~\\ref@{%s@}" nil ("Example" "Ex."))))
 @end lisp
 
-@node Reference Info, Reference Styles, Defining Label Environments, Labels and References
+@node Reference Info
 @section Reference Info
 @findex reftex-view-crossref
 @findex reftex-mouse-view-crossref
@@ -1662,7 +1661,7 @@ message.
 @code{\label} macro.  @xref{Viewing Cross-References}, for more
 information.
 
-@node Reference Styles, xr (LaTeX package), Reference Info, Labels and References
+@node Reference Styles
 @section Reference Styles
 
 In case you defined your own macros for referencing or you are using
@@ -1750,7 +1749,7 @@ and @code{reftex-fref-is-default} respectively.  While still working,
 these variables are deprecated now.  Instead of setting them, the
 variable @code{reftex-ref-style-default-list} should be adapted now.
 
-@node xr (LaTeX package), , Reference Styles, Labels and References
+@node xr (LaTeX package)
 @section @code{xr}: Cross-Document References
 @cindex @code{xr}, LaTeX package
 @cindex LaTeX packages, @code{xr}
@@ -1785,7 +1784,7 @@ For this kind of inter-document cross-references, saving of parsing
 information and the use of multiple selection buffers can mean a large
 speed-up (@pxref{Optimizations}).
 
-@node Citations, Index Support, Labels and References, Top
+@node Citations
 @chapter Citations
 @cindex Citations
 @cindex @code{\cite}
@@ -1805,7 +1804,7 @@ support for citations helps to select the correct key quickly.
 * BibTeX Database Subsets::          Extract parts of a big database.
 @end menu
 
-@node Creating Citations, Citation Styles, , Citations
+@node Creating Citations
 @section Creating Citations
 @cindex Creating citations
 @cindex Citations, creating
@@ -1955,7 +1954,7 @@ buffers by adding the following expression to your init file:
 @end lisp
 
 
-@node Citation Styles, Citation Info, Creating Citations, Citations
+@node Citation Styles
 @section Citation Styles
 @cindex Citation styles
 @cindex Citation styles, @code{natbib}
@@ -2020,7 +2019,7 @@ citation style based on the @code{usepackage} commands in a given
 document.  @xref{Style Files}, for information on how to set up the style
 files correctly.
 
-@node Citation Info, Chapterbib and Bibunits, Citation Styles, Citations
+@node Citation Info
 @section Citation Info
 @cindex Displaying citations
 @cindex Citations, displaying
@@ -2041,7 +2040,7 @@ entry corresponding to a @code{\cite} macro, or all citation locations
 corresponding to a @code{\bibitem} or @BibTeX{} database entry.
 @xref{Viewing Cross-References}.
 
-@node Chapterbib and Bibunits, Citations Outside LaTeX, Citation Info, Citations
+@node Chapterbib and Bibunits
 @section Chapterbib and Bibunits
 @cindex @code{chapterbib}, LaTeX package
 @cindex @code{bibunits}, LaTeX package
@@ -2056,7 +2055,7 @@ separate file (as it is required for @code{chapterbib} anyway).  Then
 you have multiple bibliographies within a @emph{single file}, this may
 or may not be the case.
 
-@node Citations Outside LaTeX, BibTeX Database Subsets, Chapterbib and Bibunits, Citations
+@node Citations Outside LaTeX
 @section Citations outside @LaTeX{}
 @cindex Citations outside LaTeX
 @vindex reftex-default-bibliography
@@ -2081,7 +2080,7 @@ binding for @code{reftex-cite-format}.
                            (reftex-citation))))))
 @end lisp
 
-@node BibTeX Database Subsets, , Citations Outside LaTeX, Citations
+@node BibTeX Database Subsets
 @section Database Subsets
 @cindex BibTeX database subsets
 @findex reftex-create-bibtex-file
@@ -2109,7 +2108,7 @@ entries in the selection buffer with the @kbd{m} key and then export
 either the @i{marked} entries (with the @kbd{e} key) or the
 @i{unmarked} entries (with the @kbd{E} key).
 
-@node Index Support, Viewing Cross-References, Citations, Top
+@node Index Support
 @chapter Index Support
 @cindex Index Support
 @cindex @code{\index}
@@ -2176,7 +2175,7 @@ Style}), or globally for all your documents with
 * Defining Index Macros::                ... and macros it  doesn't.
 @end menu
 
-@node Creating Index Entries, The Index Phrases File, , Index Support
+@node Creating Index Entries
 @section Creating Index Entries
 @cindex Creating index entries
 @cindex Index entries, creating
@@ -2207,7 +2206,7 @@ index tag is a string identifying one of multiple indices.  With the
 @file{multind} and @file{index} packages, this tag is the first argument
 to the redefined @code{\index} macro.
 
-@node The Index Phrases File, Displaying and Editing the Index, Creating Index Entries, Index Support
+@node The Index Phrases File
 @section The Index Phrases File
 @cindex Index phrase file
 @cindex Phrase file
@@ -2255,7 +2254,7 @@ repeat @var{word} outside the macro.
 * Global Indexing::                  The interactive indexing process.
 @end menu
 
-@node Collecting Phrases, Consistency Checks, , The Index Phrases File
+@node Collecting Phrases
 @subsection Collecting Phrases
 @cindex Collecting index phrases
 @cindex Index phrases, collection
@@ -2321,7 +2320,7 @@ Finally, every occurrence of @samp{Pluto} will be indexed as
 @samp{\index@{Planets!Pluto@}\index@{Kuiper Belt Objects!Pluto@}Pluto}
 and will therefore create two different index entries.
 
-@node Consistency Checks, Global Indexing, Collecting Phrases, The Index Phrases File
+@node Consistency Checks
 @subsection Consistency Checks
 @cindex Index phrases, consistency checks
 @cindex Phrases, consistency checks
@@ -2354,7 +2353,7 @@ the buffer which is either duplicate or a subphrase of another phrase.
 In order to check the whole buffer like this, start at the beginning and
 execute this command repeatedly.
 
-@node Global Indexing, , Consistency Checks, The Index Phrases File
+@node Global Indexing
 @subsection Global Indexing
 @cindex Global indexing
 @cindex Indexing, global
@@ -2435,7 +2434,7 @@ to the changed regions.  The command
 purpose.  When called from a @LaTeX{} document with active region, it will
 apply @code{reftex-index-all-phrases} to the current region.
 
-@node Displaying and Editing the Index, Builtin Index Macros, The Index Phrases File, Index Support
+@node Displaying and Editing the Index
 @section Displaying and Editing the Index
 @cindex Displaying the Index
 @cindex Editing the Index
@@ -2616,7 +2615,7 @@ indices).
 @end table
 
 
-@node Builtin Index Macros, Defining Index Macros, Displaying and Editing the Index, Index Support
+@node Builtin Index Macros
 @section Builtin Index Macros
 @cindex Builtin index macros
 @cindex Index macros, builtin
@@ -2634,7 +2633,7 @@ the different definitions of the @code{\index} macro are incompatible,
 you will have to explicitly specify the index style used.
 @xref{Creating Index Entries}, for information on how to do that.
 
-@node Defining Index Macros, , Builtin Index Macros, Index Support
+@node Defining Index Macros
 @section Defining Index Macros
 @cindex  Defining Index Macros
 @cindex Index macros, defining
@@ -2731,7 +2730,7 @@ which specifies that the macro identified with the character @code{?x} (the
 in the buffer with @kbd{C-c /} (@code{reftex-index-selection-or-word}).
 The index tag is "idx".
 
-@node Viewing Cross-References, RefTeXs Menu, Index Support, Top
+@node Viewing Cross-References
 @chapter Viewing Cross-References
 @findex reftex-view-crossref
 @findex reftex-mouse-view-crossref
@@ -2810,8 +2809,11 @@ in the variable @code{reftex-view-crossref-extra}.
 @iftex
 @chapter All the Rest
 @end iftex
+@ifnottex
+@raisesections
+@end ifnottex
 
-@node RefTeXs Menu, Key Bindings, Viewing Cross-References, Top
+@node RefTeXs Menu
 @section @RefTeX{}'s Menu
 @cindex RefTeXs Menu
 @cindex Menu, in the menu bar
@@ -2822,7 +2824,7 @@ which support this.  From this menu you can access all of
 @code{Customize} submenu which can be used to access @RefTeX{}'s
 entire set of options.
 
-@node Key Bindings, Faces, RefTeXs Menu, Top
+@node Key Bindings
 @section Default Key Bindings
 @cindex Key Bindings, summary
 
@@ -2896,7 +2898,7 @@ Changing and adding to @RefTeX{}'s key bindings is best done in the hook
 @code{reftex-load-hook}.  For information on the keymaps
 which should be used to add keys, see @ref{Keymaps and Hooks}.
 
-@node Faces, AUCTeX, Key Bindings, Top
+@node Faces
 @section Faces
 @cindex Faces
 
@@ -2908,7 +2910,7 @@ reasonable because people who like faces will very likely have it
 loaded.  If you wish to turn off fontification or change the involved
 faces, see @ref{Options (Fontification)}.
 
-@node Multifile Documents, Language Support, AUCTeX, Top
+@node Multifile Documents
 @section Multifile Documents
 @cindex Multifile documents
 @cindex Documents, spread over files
@@ -2961,7 +2963,7 @@ outside the current file can still use that section title as
 context.
 @end itemize
 
-@node Language Support, Finding Files, Multifile Documents, Top
+@node Language Support
 @section Language Support
 @cindex Language support
 
@@ -3003,7 +3005,7 @@ dependent.  See the variables @code{reftex-multiref-punctuation} and
 @code{reftex-cite-punctuation}.
 @end itemize
 
-@node Finding Files, Optimizations, Language Support, Top
+@node Finding Files
 @section Finding Files
 @cindex Finding files
 
@@ -3089,7 +3091,7 @@ the new extension must also be known to @AUCTeX{} via the variable
       '( "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
 @end lisp
 
-@node Optimizations, Problems and Work-Arounds, Finding Files, Top
+@node Optimizations
 @section Optimizations
 @cindex Optimizations
 
@@ -3242,7 +3244,7 @@ with the @kbd{g} key.  To get this behavior, use instead
 @end group
 @end lisp
 
-@node AUCTeX, Multifile Documents, Faces, Top
+@node AUCTeX
 @section @AUCTeX{}
 @cindex @code{AUCTeX}, Emacs package
 @cindex Emacs packages, @code{AUCTeX}
@@ -3259,7 +3261,7 @@ XEmacs package.} by FTP from the @value{AUCTEXSITE}.
 * Bib-Cite::                         Hypertext reading of a document
 @end menu
 
-@node AUCTeX-RefTeX Interface, Style Files, , AUCTeX
+@node AUCTeX-RefTeX Interface
 @subsection The @AUCTeX{}-@RefTeX{} Interface
 
 @RefTeX{} contains code to interface with @AUCTeX{}.  When this
@@ -3343,7 +3345,7 @@ Labels}).
 @RefTeX{} will add all newly created labels to @AUCTeX{}'s completion list.
 @end itemize
 
-@node Style Files, Bib-Cite, AUCTeX-RefTeX Interface, AUCTeX
+@node Style Files
 @subsection Style Files
 @cindex Style files, AUCTeX
 @findex TeX-add-style-hook, @r{AUCTeX}
@@ -3463,7 +3465,7 @@ is a style file @file{foils.el} that will inform @RefTeX{} about these:
                                       ("rotatefoilhead" . 3))))))
 @end lisp
 
-@node Bib-Cite, , Style Files, AUCTeX
+@node Bib-Cite
 @subsection Bib-Cite
 @cindex @code{bib-cite}, Emacs package
 @cindex Emacs packages, @code{bib-cite}
@@ -3491,7 +3493,7 @@ make use of this feature, try
 @end lisp
 
 @page
-@node Problems and Work-Arounds, Imprint, Optimizations, Top
+@node Problems and Work-Arounds
 @section Problems and Work-arounds
 @cindex Problems and work-arounds
 
@@ -3627,7 +3629,7 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @end itemize
 
 @page
-@node Imprint, Commands, Problems and Work-Arounds, Top
+@node Imprint
 @section Imprint
 @cindex Imprint
 @cindex Maintainer
@@ -3674,7 +3676,12 @@ Finally thanks to @i{Uwe Bolick} who first got me interested in
 supporting @LaTeX{} labels and references with an editor (which was
 MicroEmacs at the time).
 
-@node Commands, Options, Imprint, Top
+@c Turn off the raising that we turned on in ``All the rest''.
+@ifnottex
+@lowersections
+@end ifnottex
+
+@node Commands
 @chapter Commands
 @cindex Commands, list of
 
@@ -3876,7 +3883,7 @@ Enforce rebuilding of several internal lists and variables.  Also
 removes the parse file associated with the current document.
 @end deffn
 
-@node Options, Keymaps and Hooks, Commands, Top
+@node Options
 @chapter Options, Keymaps, Hooks
 @cindex Options, list of
 
@@ -3898,9 +3905,10 @@ reftex-customize} will get you there.
 * Options (Optimizations)::
 * Options (Fontification)::
 * Options (Misc)::
+* Keymaps and Hooks::
 @end menu
 
-@node Options (Table of Contents), Options (Defining Label Environments), ,  Options
+@node Options (Table of Contents)
 @section Table of Contents
 @cindex Options, table of contents
 @cindex Table of contents, options
@@ -4024,7 +4032,7 @@ The keymap which is active in the @file{*toc*} buffer.
 (@pxref{Table of Contents}).
 @end deffn
 
-@node Options (Defining Label Environments), Options (Creating Labels), Options (Table of Contents), Options
+@node Options (Defining Label Environments)
 @section Defining Label Environments
 @cindex Options, defining label environments
 @cindex Defining label environments, options
@@ -4251,7 +4259,7 @@ labels fn:xxx, you may want to set this variable to the value "^fn:$" or
 non-footnote labels.
 @end defopt
 
-@node Options (Creating Labels), Options (Referencing Labels), Options (Defining Label Environments), Options
+@node Options (Creating Labels)
 @section Creating Labels
 @cindex Options, creating labels
 @cindex Creating labels, options
@@ -4367,7 +4375,7 @@ Character class after  abbrev point in word.
 @end table
 @end defopt
 
-@node Options (Referencing Labels), Options (Creating Citations), Options (Creating Labels), Options
+@node Options (Referencing Labels)
 @section Referencing Labels
 @cindex Options, referencing labels
 @cindex Referencing labels, options
@@ -4489,7 +4497,7 @@ The keymap which is active in the labels selection process
 (@pxref{Referencing Labels}).
 @end deffn
 
-@node Options (Creating Citations), Options (Index Support), Options (Referencing Labels), Options
+@node Options (Creating Citations)
 @section Creating Citations
 @cindex Options, creating citations
 @cindex Creating citations, options
@@ -4667,7 +4675,7 @@ Footer to insert in BibTeX files generated by
 @end defopt
 
 
-@node Options (Index Support), Options (Viewing Cross-References), Options (Creating Citations),  Options
+@node Options (Index Support)
 @section Index Support
 @cindex Options, Index support
 @cindex Index support, options
@@ -4887,7 +4895,7 @@ The keymap which is active in the @file{*Index*} buffer
 (@pxref{Index Support}).
 @end deffn
 
-@node Options (Viewing Cross-References), Options (Finding Files), Options (Index Support),  Options
+@node Options (Viewing Cross-References)
 @section Viewing Cross-References
 @cindex Options, viewing cross-references
 @cindex Viewing cross-references, options
@@ -4946,7 +4954,7 @@ saved along with the parsing information.  The cache survives document
 scans.  In order to clear it, use @kbd{M-x reftex-reset-mode}.
 @end defopt
 
-@node Options (Finding Files), Options (Optimizations), Options (Viewing Cross-References),  Options
+@node Options (Finding Files)
 @section Finding Files
 @cindex Options, Finding Files
 @cindex Finding files, options
@@ -5036,7 +5044,7 @@ non-@code{nil}.
 @end defopt
 
 @page
-@node Options (Optimizations), Options (Fontification), Options (Finding Files), Options
+@node Options (Optimizations)
 @section Optimizations
 @cindex Options, optimizations
 @cindex Optimizations, options
@@ -5145,7 +5153,7 @@ effect when @code{reftex-use-multiple-selection-buffers} is
 non-@code{nil}.
 @end defopt
 
-@node Options (Fontification), Options (Misc), Options (Optimizations), Options
+@node Options (Fontification)
 @section Fontification
 @cindex Options, fontification
 @cindex Fontification, options
@@ -5243,7 +5251,7 @@ Face name for index names (for multiple indices).
 Face name for index entries.
 @end defopt
 
-@node Options (Misc), , Options (Fontification), Options
+@node Options (Misc)
 @section Miscellaneous
 @cindex Options, misc
 
@@ -5288,7 +5296,7 @@ this will be the case even if @code{\bb} is defined with zero or one
 argument.
 @end defopt
 
-@node Keymaps and Hooks, Changes, Options, Top
+@node Keymaps and Hooks
 @section Keymaps and Hooks
 @cindex Keymaps
 
@@ -5312,7 +5320,7 @@ their own keymaps and mode hooks.  See the respective sections.  There
 are many more hooks which are described in the relevant sections about
 options for a specific part of @RefTeX{}.
 
-@node Changes, GNU Free Documentation License, Keymaps and Hooks, Top
+@node Changes
 @chapter Changes
 @cindex Changes
 
@@ -6077,11 +6085,11 @@ new labels.
 released on 7 Jan 1997.
 @end itemize
 
-@node GNU Free Documentation License, Index, Changes, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Index, , GNU Free Documentation License, Top
+@node Index
 @unnumbered Index
 @printindex cp
 
