@@ -202,142 +202,144 @@ This function returns a notification id, an integer, which can be
 used to manipulate the notification item with
 `notifications-close-notification' or the `:replaces-id' argument
 of another `notifications-notify' call."
-  (let ((bus (or (plist-get params :bus) :session))
-	(title (plist-get params :title))
-        (body (plist-get params :body))
-        (app-name (plist-get params :app-name))
-        (replaces-id (plist-get params :replaces-id))
-        (app-icon (plist-get params :app-icon))
-        (actions (plist-get params :actions))
-        (timeout (plist-get params :timeout))
-        ;; Hints
-        (hints '())
-        (urgency (plist-get params :urgency))
-        (category (plist-get params :category))
-        (desktop-entry (plist-get params :desktop-entry))
-        (image-data (plist-get params :image-data))
-        (image-path (plist-get params :image-path))
-	(action-items (plist-get params :action-items))
-        (sound-file (plist-get params :sound-file))
-        (sound-name (plist-get params :sound-name))
-        (suppress-sound (plist-get params :suppress-sound))
-	(resident (plist-get params :resident))
-	(transient (plist-get params :transient))
-        (x (plist-get params :x))
-        (y (plist-get params :y))
-        id)
-    ;; Build hints array
-    (when urgency
-      (add-to-list 'hints `(:dict-entry
-                            "urgency"
-                            (:variant :byte ,(pcase urgency
-                                               (`low 0)
-                                               (`critical 2)
-                                               (_ 1)))) t))
-    (when category
-      (add-to-list 'hints `(:dict-entry
-                            "category"
-                            (:variant :string ,category)) t))
-    (when desktop-entry
-      (add-to-list 'hints `(:dict-entry
-                            "desktop-entry"
-                            (:variant :string ,desktop-entry)) t))
-    (when image-data
-      (add-to-list 'hints `(:dict-entry
-                            "image-data"
-                            (:variant :struct ,image-data)) t))
-    (when image-path
-      (add-to-list 'hints `(:dict-entry
-                            "image-path"
-                            (:variant :string ,image-path)) t))
-    (when action-items
-      (add-to-list 'hints `(:dict-entry
-                            "action-items"
-                            (:variant :boolean ,action-items)) t))
-    (when sound-file
-      (add-to-list 'hints `(:dict-entry
-                            "sound-file"
-                            (:variant :string ,sound-file)) t))
-    (when sound-name
-      (add-to-list 'hints `(:dict-entry
-                            "sound-name"
-                            (:variant :string ,sound-name)) t))
-    (when suppress-sound
-      (add-to-list 'hints `(:dict-entry
-                            "suppress-sound"
-                            (:variant :boolean ,suppress-sound)) t))
-    (when resident
-      (add-to-list 'hints `(:dict-entry
-                            "resident"
-                            (:variant :boolean ,resident)) t))
-    (when transient
-      (add-to-list 'hints `(:dict-entry
-                            "transient"
-                            (:variant :boolean ,transient)) t))
-    (when x
-      (add-to-list 'hints `(:dict-entry "x" (:variant :int32 ,x)) t))
-    (when y
-      (add-to-list 'hints `(:dict-entry "y" (:variant :int32 ,y)) t))
+  (with-demoted-errors
+    (let ((bus (or (plist-get params :bus) :session))
+	  (title (plist-get params :title))
+	  (body (plist-get params :body))
+	  (app-name (plist-get params :app-name))
+	  (replaces-id (plist-get params :replaces-id))
+	  (app-icon (plist-get params :app-icon))
+	  (actions (plist-get params :actions))
+	  (timeout (plist-get params :timeout))
+	  ;; Hints
+	  (hints '())
+	  (urgency (plist-get params :urgency))
+	  (category (plist-get params :category))
+	  (desktop-entry (plist-get params :desktop-entry))
+	  (image-data (plist-get params :image-data))
+	  (image-path (plist-get params :image-path))
+	  (action-items (plist-get params :action-items))
+	  (sound-file (plist-get params :sound-file))
+	  (sound-name (plist-get params :sound-name))
+	  (suppress-sound (plist-get params :suppress-sound))
+	  (resident (plist-get params :resident))
+	  (transient (plist-get params :transient))
+	  (x (plist-get params :x))
+	  (y (plist-get params :y))
+	  id)
+      ;; Build hints array
+      (when urgency
+	(add-to-list 'hints `(:dict-entry
+			      "urgency"
+			      (:variant :byte ,(pcase urgency
+						 (`low 0)
+						 (`critical 2)
+						 (_ 1)))) t))
+      (when category
+	(add-to-list 'hints `(:dict-entry
+			      "category"
+			      (:variant :string ,category)) t))
+      (when desktop-entry
+	(add-to-list 'hints `(:dict-entry
+			      "desktop-entry"
+			      (:variant :string ,desktop-entry)) t))
+      (when image-data
+	(add-to-list 'hints `(:dict-entry
+			      "image-data"
+			      (:variant :struct ,image-data)) t))
+      (when image-path
+	(add-to-list 'hints `(:dict-entry
+			      "image-path"
+			      (:variant :string ,image-path)) t))
+      (when action-items
+	(add-to-list 'hints `(:dict-entry
+			      "action-items"
+			      (:variant :boolean ,action-items)) t))
+      (when sound-file
+	(add-to-list 'hints `(:dict-entry
+			      "sound-file"
+			      (:variant :string ,sound-file)) t))
+      (when sound-name
+	(add-to-list 'hints `(:dict-entry
+			      "sound-name"
+			      (:variant :string ,sound-name)) t))
+      (when suppress-sound
+	(add-to-list 'hints `(:dict-entry
+			      "suppress-sound"
+			      (:variant :boolean ,suppress-sound)) t))
+      (when resident
+	(add-to-list 'hints `(:dict-entry
+			      "resident"
+			      (:variant :boolean ,resident)) t))
+      (when transient
+	(add-to-list 'hints `(:dict-entry
+			      "transient"
+			      (:variant :boolean ,transient)) t))
+      (when x
+	(add-to-list 'hints `(:dict-entry "x" (:variant :int32 ,x)) t))
+      (when y
+	(add-to-list 'hints `(:dict-entry "y" (:variant :int32 ,y)) t))
 
-    ;; Call Notify method.
-    (setq id
-          (dbus-call-method bus
-                            notifications-service
-                            notifications-path
-                            notifications-interface
-                            notifications-notify-method
-                            :string (or app-name
-                                        notifications-application-name)
-                            :uint32 (or replaces-id 0)
-                            :string (if app-icon
-                                        (expand-file-name app-icon)
-                                      ;; If app-icon is nil because user
-                                      ;; requested it to be so, send the
-                                      ;; empty string
-                                      (if (plist-member params :app-icon)
-                                          ""
-                                        ;; Otherwise send the default icon path
-                                        notifications-application-icon))
-                            :string (or title "")
-                            :string (or body "")
-                            `(:array ,@actions)
-                            (or hints '(:array :signature "{sv}"))
-                            :int32 (or timeout -1)))
+      ;; Call Notify method.
+      (setq id
+	    (dbus-call-method bus
+			      notifications-service
+			      notifications-path
+			      notifications-interface
+			      notifications-notify-method
+			      :string (or app-name
+					  notifications-application-name)
+			      :uint32 (or replaces-id 0)
+			      :string (if app-icon
+					  (expand-file-name app-icon)
+					;; If app-icon is nil because user
+					;; requested it to be so, send the
+					;; empty string
+					(if (plist-member params :app-icon)
+					    ""
+					  ;; Otherwise send the
+					  ;; default icon path
+					  notifications-application-icon))
+			      :string (or title "")
+			      :string (or body "")
+			      `(:array ,@actions)
+			      (or hints '(:array :signature "{sv}"))
+			      :int32 (or timeout -1)))
 
-    ;; Register close/action callback function.  We must also remember
-    ;; the daemon's unique name, because the daemon could have
-    ;; restarted.
-    (let ((on-action (plist-get params :on-action))
-          (on-close (plist-get params :on-close))
-	  (unique-name (dbus-get-name-owner bus notifications-service)))
-      (when on-action
-        (add-to-list 'notifications-on-action-map
-		     (list (list bus unique-name id) on-action))
-	(unless notifications-on-action-object
-	  (setq notifications-on-action-object
-		(dbus-register-signal
-		 bus
-		 nil
-		 notifications-path
-		 notifications-interface
-		 notifications-action-signal
-		 'notifications-on-action-signal))))
+      ;; Register close/action callback function.  We must also
+      ;; remember the daemon's unique name, because the daemon could
+      ;; have restarted.
+      (let ((on-action (plist-get params :on-action))
+	    (on-close (plist-get params :on-close))
+	    (unique-name (dbus-get-name-owner bus notifications-service)))
+	(when on-action
+	  (add-to-list 'notifications-on-action-map
+		       (list (list bus unique-name id) on-action))
+	  (unless notifications-on-action-object
+	    (setq notifications-on-action-object
+		  (dbus-register-signal
+		   bus
+		   nil
+		   notifications-path
+		   notifications-interface
+		   notifications-action-signal
+		   'notifications-on-action-signal))))
 
-      (when on-close
-        (add-to-list 'notifications-on-close-map
-		     (list (list bus unique-name id) on-close))
-	(unless notifications-on-close-object
-	  (setq notifications-on-close-object
-		(dbus-register-signal
-		 bus
-		 nil
-		 notifications-path
-		 notifications-interface
-		 notifications-closed-signal
-		 'notifications-on-closed-signal)))))
+	(when on-close
+	  (add-to-list 'notifications-on-close-map
+		       (list (list bus unique-name id) on-close))
+	  (unless notifications-on-close-object
+	    (setq notifications-on-close-object
+		  (dbus-register-signal
+		   bus
+		   nil
+		   notifications-path
+		   notifications-interface
+		   notifications-closed-signal
+		   'notifications-on-closed-signal)))))
 
-    ;; Return notification id
-    id))
+      ;; Return notification id
+      id)))
 
 (defun notifications-close-notification (id &optional bus)
   "Close a notification with identifier ID.
