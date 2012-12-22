@@ -5,6 +5,7 @@
 	mentioned it explicitly.
 	($(infodir)/woman$(INFO_EXT), woman.dvi): Depend on
 	$(emacsdir)/emacsver.texi.
+	($(infodir)/erc$(INFO_EXT), erc.dvi): Don't depend on gpl.texi.
 
 2012-12-21  Glenn Morris  <rgm@gnu.org>
 

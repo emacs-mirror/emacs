@@ -309,9 +309,9 @@ $(infodir)/rcirc$(INFO_EXT): rcirc.texi
 rcirc.dvi: rcirc.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/rcirc.texi
 
-$(infodir)/erc$(INFO_EXT): erc.texi gpl.texi
+$(infodir)/erc$(INFO_EXT): erc.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ erc.texi
-erc.dvi: erc.texi gpl.texi
+erc.dvi: erc.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/erc.texi
 
 $(infodir)/ert$(INFO_EXT): ert.texi
