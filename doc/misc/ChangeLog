@@ -1,5 +1,10 @@
 2012-12-22  Glenn Morris  <rgm@gnu.org>
 
+	* ada-mode.texi (Project file variables):
+	Reword to reduce underfull hbox.
+	(No project files, Use GNAT project file):
+	Use smallexample to make some overfull lines less terrible.
+
 	* autotype.texi, bovine.texi, ede.texi, eieio.texi, pcl-cvs.texi:
 	Fix cross-references to separate manuals.
 
