@@ -982,7 +982,31 @@ connection if a previous connection has died for some reason."
 	    (tramp-adb-wait-for-output p)
 	    (unless (eq 'run (process-status p))
 	      (tramp-error  vec 'file-error "Terminated!"))
-	    (set-process-query-on-exit-flag p nil)))))))
+	    (set-process-query-on-exit-flag p nil)
+
+	    ;; Check whether the properties have been changed.  If
+	    ;; yes, this is a strong indication that we must expire all
+	    ;; connection properties.  We start again.
+	    (tramp-message vec 5 "Checking system information")
+	    (tramp-adb-send-command
+	     vec "echo \\\"`getprop ro.product.model` `getprop ro.product.version` `getprop ro.build.version.release`\\\"")
+	    (let ((old-getprop
+		   (tramp-get-connection-property vec "getprop" nil))
+		  (new-getprop
+		   (tramp-set-connection-property
+		    vec "getprop"
+		    (with-current-buffer (tramp-get-connection-buffer vec)
+		      ;; Read the expression.
+		      (goto-char (point-min))
+		      (read (current-buffer))))))
+	      (when (and (stringp old-getprop)
+			 (not (string-equal old-getprop new-getprop)))
+		(tramp-cleanup vec)
+		(tramp-message
+		 vec 3
+		 "Connection reset, because remote host changed from `%s' to `%s'"
+		 old-getprop new-getprop)
+		(tramp-adb-maybe-open-connection vec)))))))))
 
 (provide 'tramp-adb)
 ;;; tramp-adb.el ends here
