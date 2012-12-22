@@ -46,9 +46,8 @@ modify this GNU manual.''
 @contents
 
 @ifnottex
-@node Top, Overview,, (DIR)
-
-@unnumbered Viper
+@node Top
+@top Viper
 
 We believe that one or more of the following statements are adequate
 descriptions of Viper:
@@ -99,16 +98,13 @@ Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 * Improvements over Vi::        New features, Improvements
 * Customization::               How to customize Viper
 * Commands::                    Vi and Ex Commands
-
+* GNU Free Documentation License:: The license for this documentation.
+* Acknowledgments::
 * Key Index::                   Index of Vi and Ex Commands
 * Function Index::              Index of Viper Functions
 * Variable Index::              Index of Viper Variables
 * Package Index::               Index of Packages Mentioned in this Document
 * Concept Index::               Vi, Ex and Emacs concepts
-
-* Acknowledgments::
-* GNU Free Documentation License:: The license for this documentation.
-
 @end menu
 @iftex
 @unnumbered Introduction
@@ -155,7 +151,7 @@ Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 
 @end iftex
 
-@node Overview,Improvements over Vi,Top,Top
+@node Overview
 @chapter Overview of Viper
 
 Viper is a Vi emulation on top of Emacs.  At the same time, Viper provides a
@@ -185,7 +181,7 @@ included in your @file{~/.viper} file and are found at the following URL:
 * Unimplemented Features::      That are unlikely to be implemented.
 @end menu
 
-@node Emacs Preliminaries, Loading Viper, Overview, Overview
+@node Emacs Preliminaries
 @section Emacs Preliminaries
 
 @cindex buffer
@@ -313,7 +309,7 @@ Emacs is structured as a Lisp interpreter around a C core.  Emacs keys
 cause Lisp functions to be called.  It is possible to call these
 functions directly, by typing @kbd{M-x function-name}.
 
-@node Loading Viper, States in Viper, Emacs Preliminaries, Overview
+@node Loading Viper
 @section Loading Viper
 
 The most common way to load it automatically is to include the following
@@ -368,7 +364,7 @@ copy of Emacs after Viper has been loaded, the command @kbd{M-x
 viper-go-away} will do it for you.  The function @code{toggle-viper-mode}
 toggles Viperization of Emacs on and off.
 
-@node States in Viper, The Minibuffer, Loading Viper,Overview
+@node States in Viper
 @section States in Viper
 
 @kindex @kbd{C-z}
@@ -474,7 +470,7 @@ to allow Emacs keys in Insert state.
                         replacement commands, such as cw, C, R, etc.
 @end menu
 
-@node Emacs State, Vi State, States in Viper, States in Viper
+@node Emacs State
 @subsection Emacs State
 
 @kindex @kbd{C-z}
@@ -506,7 +502,7 @@ from the Insert state: typing @kbd{C-z} will let you execute a
 single Vi command while staying in Viper's Insert state.
 
 
-@node Vi State, Insert State, Emacs State, States in Viper
+@node Vi State
 @subsection Vi State
 
 @cindex Vi state
@@ -666,7 +662,7 @@ Having found the appropriate command, it can be then executed by typing
 `@kbd{.}'.
 @xref{Improvements over Vi}, for more information.
 
-@node Insert State, Replace State, Vi State, States in Viper
+@node Insert State
 @subsection Insert State
 
 @cindex Insert state
@@ -726,7 +722,7 @@ the Insert state.
 
 When Viper is in Insert state, you will see <I> in the mode line.
 
-@node Replace State,, Insert State, States in Viper
+@node Replace State
 @subsection Replace State
 
 @cindex Replace state
@@ -758,7 +754,7 @@ was still inside the replacement region.  So, in the above situation, Viper
 would delete text between this position and the end of the replacement
 region.
 
-@node The Minibuffer,Multiple Files in Viper, States in Viper, Overview
+@node The Minibuffer
 @section The Minibuffer
 
 @cindex Minibuffer
@@ -808,7 +804,7 @@ has no mode line to tell which Vi state it is in.
 The appearance of the text in the minibuffer can be changed.
 @xref{Viper Specials}, for more details.
 
-@node Multiple Files in Viper,Unimplemented Features,The Minibuffer,Overview
+@node Multiple Files in Viper
 @section Multiple Files in Viper
 
 @cindex multiple files
@@ -883,7 +879,7 @@ Currently undisplayed files can be listed using the @kbd{:ar} command.  The
 command @kbd{:n} can be given counts from the @kbd{:ar} list to switch to
 other files. For example, use `:n3' to move to the third file in that list.
 
-@node Unimplemented Features,,Multiple Files in Viper,Overview
+@node Unimplemented Features
 @section Unimplemented Features
 
 Unimplemented features include:
@@ -904,8 +900,7 @@ be used directly inside Emacs, since Emacs will obdurately change @samp{^I}
 back to normal tabs.@refill
 @end itemize
 
-@comment  node-name,  next,  previous,  up
-@node Improvements over Vi, Customization, Overview, Top
+@node Improvements over Vi
 @chapter Improvements over Vi
 
 Some common problems with Vi and Ex have been solved in Viper.  This
@@ -926,7 +921,7 @@ the facilities provided by Emacs.
                             you should know about.
 @end menu
 
-@node Basics, Undo and Backups, Improvements over Vi, Improvements over Vi
+@node Basics
 @section Basics
 
 The Vi command set is based on the idea of combining motion commands
@@ -997,7 +992,7 @@ buffers.  These can be seen in the @kbd{:args} list and switched using
 specify @code{(setq ex-cycle-through-non-files t)} in your @file{.viper}
 file.  @xref{Customization}, for details.
 
-@node Undo and Backups, History, Basics, Improvements over Vi
+@node Undo and Backups
 @section Undo and Backups
 
 @cindex undo
@@ -1033,7 +1028,7 @@ will show the text around the textmarker.  @samp{register} and @samp{textmarker}
 can be any letters from a through z.
 @comment ] balance parens
 
-@node History,  Macros and Registers, Undo and Backups,Improvements over Vi
+@node History
 @section History
 
 @cindex history
@@ -1072,7 +1067,7 @@ Similarly, commands that have to do with switching buffers
 have a buffer history, and commands that expect strings or regular
 expressions keep a history on those items.
 
-@node Macros and Registers,Completion,History,Improvements over Vi
+@node Macros and Registers
 @section Macros and Registers
 
 @cindex keyboard macros
@@ -1119,7 +1114,7 @@ Keyboard Macro execution @kbd{@@@@} (the replace).
 Viper also provides Vi-style macros.  @xref{Vi Macros}, for details.
 
 
-@node Completion, Improved Search, Macros and Registers, Improvements over Vi
+@node Completion
 @section Completion
 
 @cindex completion
@@ -1130,7 +1125,7 @@ no longer work for that file name.  Remember that Emacs interprets a file name
 of the form @kbd{/foo//bar} as @kbd{/bar} and @kbd{/foo/~/bar} as
 @kbd{~/bar}.
 
-@node Improved Search, Abbreviation Facilities, Completion, Improvements over Vi
+@node Improved Search
 @section Improved Search
 
 @cindex buffer search
@@ -1198,7 +1193,7 @@ faces are grouped together under Viper's
 
 Try it: it is really simple!
 
-@node Abbreviation Facilities,Movement and Markers,Improved Search,Improvements over Vi
+@node Abbreviation Facilities
 @section Abbreviation Facilities
 
 @cindex abbrevs
@@ -1222,7 +1217,7 @@ keystroke, which appears earlier in the text.  Emacs binds this to
 @code{dabbrev-expand} to that key.
 Facilities like this make Vi's @kbd{:ab} command obsolete.
 
-@node Movement and Markers, New Commands, Abbreviation Facilities, Improvements over Vi
+@node Movement and Markers
 @section Movement and Markers
 
 @cindex Ex style motion
@@ -1298,7 +1293,7 @@ switch files by simply doing @kbd{'a}.  If you set up a regimen for using
 Textmarkers, this is very useful.  Contents of textmarkers can be viewed
 by @kbd{[marker}.  (Contents of registers can be viewed by @kbd{]register}).
 
-@node New Commands, Useful Packages, Movement and Markers, Improvements over Vi
+@node New Commands
 @section New Commands
 
 These commands have no Vi analogs.
@@ -1487,7 +1482,7 @@ Apart from the new commands, many old commands have been enhanced.  Most
 notably, Vi style macros are much more powerful in Viper than in Vi.  @xref{Vi
 Macros}, for details.
 
-@node Useful Packages, ,New Commands, Improvements over Vi
+@node Useful Packages
 @section Useful Packages
 
 Some Emacs packages are mentioned here as an aid to the new Viper user, to
@@ -1568,7 +1563,7 @@ Emacs Lisp archives exist on
 and @samp{wuarchive.wustl.edu}@refill
 
 
-@node Customization,Commands,Improvements over Vi,Top
+@node Customization
 @chapter Customization
 
 @cindex customization
@@ -1614,7 +1609,7 @@ cases, examples are provided that you can use directly.
 * Vi Macros::                    How to do Vi style macros.
 @end menu
 
-@node Rudimentary Changes,Key Bindings,Customization,Customization
+@node Rudimentary Changes
 @section Rudimentary Changes
 
 @cindex setting variables
@@ -1955,7 +1950,7 @@ can include a line like this in your @file{.viper} file:
 @vindex @code{viper-replace-state-hook}
 @vindex @code{viper-emacs-state-hook}
 
-@node Key Bindings, Packages that Change Keymaps, Rudimentary Changes,Customization
+@node Key Bindings
 @section Key Bindings
 
 @cindex key bindings
@@ -2191,8 +2186,8 @@ bindings in Emacs.
 @findex @code{viper-add-local-keys}
 @findex @code{viper-zap-local-keys}
 
-@node Packages that Change Keymaps,Viper Specials,Key Bindings,Customization
-@subsection Packages that Change Keymaps
+@node Packages that Change Keymaps
+@section Packages that Change Keymaps
 @cindex C-c and Viper
 @cindex Viper and C-c
 
@@ -2320,7 +2315,7 @@ compatible with Viper is to have the file @file{my-mode.el} include the followin
 @findex @code{remove-hook}
 @findex @code{add-hook}
 
-@node Viper Specials,Vi Macros,Packages that Change Keymaps,Customization
+@node Viper Specials
 @section Viper Specials
 
 Viper extends Vi with a number of useful features.  This includes various
@@ -2705,7 +2700,7 @@ you will then have to write such a function and make it known to your
 Emacs.  The function @code{viper-surrounding-word} in @file{viper.el} can be
 used as a guiding example.
 
-@node Vi Macros, ,Viper Specials,Customization
+@node Vi Macros
 @section Vi Macros
 
 @cindex Vi macros
@@ -2992,7 +2987,7 @@ Finally, Viper provides a function that conveniently displays all macros
 currently defined.  To see all macros along with their definitions, type
 @kbd{M-x viper-describe-kbd-macros}.
 
-@node Commands,,Customization,Top
+@node Commands
 @chapter Commands
 
 This section is a semi-automatically bowdlerized version of the Vi
@@ -3011,8 +3006,7 @@ found on the Vi archives.  This reference has been adapted for Viper.@refill
 * Mouse-bound Commands::        Search and insertion of text
 @end menu
 
-@node Groundwork, Text Handling, Commands, Commands
-@comment  node-name,  next,  previous,  up
+@node Groundwork
 @section Groundwork
 
 The VI command set is based on the idea of combining motion commands
@@ -3222,7 +3216,7 @@ ends at line 135.  There is no need to type the line numbers, since Viper
 inserts them automatically in front of the Ex command.
 @cindex Ex commands
 
-@node Text Handling, Display, Groundwork, Commands
+@node Text Handling
 @section Text Handling
 
 @menu
@@ -3237,7 +3231,7 @@ inserts them automatically in front of the Ex command.
 * Undoing::                     Multiple Undo, Backups
 @end menu
 
-@node Move Commands,Marking,,Text Handling
+@node Move Commands
 @subsection Move Commands
 
 @cindex movement commands
@@ -3433,7 +3427,7 @@ in your @file{~/.viper} file.
 @kindex @kbd{l}
 @vindex @code{viper-parse-sexp-ignore-comments}
 
-@node Marking,Appending Text,Move Commands,Text Handling
+@node Marking
 @subsection Marking
 
 Emacs mark is referred to in the region specifiers @kbd{r} and @kbd{R}.
@@ -3485,7 +3479,7 @@ Go to specified Viper mark and go to the first CHAR on line.
 @kindex @kbd{`<a-z>}
 @kindex @kbd{'<a-z>}
 
-@node  Appending Text, Editing in Insert State, Marking,Text Handling
+@node  Appending Text
 @subsection Appending Text
 
 @xref{Options}, to see how to change tab and shiftwidth size.  See the GNU
@@ -3567,7 +3561,7 @@ functions doing the perusing can be bound to unused keyboard keys in the
 @kindex @kbd{A}
 @kindex @kbd{a}
 
-@node Editing in Insert State, Deleting Text, Appending Text,Text Handling
+@node Editing in Insert State
 @subsection Editing in Insert State
 
 Minibuffer can be edited similarly to Insert state, and you can switch
@@ -3593,7 +3587,7 @@ current line.
 @kindex @kbd{C-w}
 @kindex @kbd{C-v}
 
-@node Deleting Text, Changing Text, Editing in Insert State, Text Handling
+@node Deleting Text
 @subsection Deleting Text
 
 
@@ -3636,7 +3630,7 @@ Shift <count> lines one shiftwidth to the left.
 @kindex @kbd{X}
 @kindex @kbd{x}
 
-@node Changing Text, Search and Replace, Deleting Text,Text Handling
+@node Changing Text
 @subsection Changing Text
 
 @cindex joining lines
@@ -3744,7 +3738,7 @@ destructive Vi commands.
 @kindex @kbd{R}
 @kindex @kbd{r<char>}
 
-@node Search and Replace, Yanking, Changing Text,Text Handling
+@node Search and Replace
 @subsection Search and Replace
 
 @xref{Groundwork}, for Ex address syntax.  @xref{Options}, to see how to
@@ -3827,7 +3821,7 @@ Execute <ex-command> on all lines that do not match <pattern>.
 @kindex @kbd{?<string>}
 @kindex @kbd{/<string>}
 
-@node Yanking,Undoing,Search and Replace,Text Handling
+@node Yanking
 @subsection Yanking
 
 @cindex cut and paste
@@ -3874,7 +3868,7 @@ Put the contents of the (default undo) buffer
 @kindex @kbd{yank}
 @findex @kbd{:yank}
 
-@node Undoing,, Yanking,Text Handling
+@node Undoing
 @subsection Undoing
 
 @cindex undo
@@ -3900,7 +3894,7 @@ that have a @samp{~} appended to them.
 @kindex @kbd{U}
 @kindex @kbd{u}
 
-@node Display, File and Buffer Handling, Text Handling, Commands
+@node Display
 @section Display
 
 @cindex scrolling
@@ -3959,7 +3953,7 @@ Put line <count> in the center of the window
 @kindex @kbd{C-g}
 
 
-@node File and Buffer Handling, Mapping, Display,Commands
+@node File and Buffer Handling
 @section File and Buffer Handling
 
 @cindex multiple files
@@ -4111,7 +4105,7 @@ is typed in minibuffer.  File completion and history are supported.
 @findex @kbd{:cd [<dir>]}
 @findex @kbd{:pwd}
 
-@node Mapping, Shell Commands, File and Buffer Handling, Commands
+@node Mapping
 @section Mapping
 
 @cindex key bindings
@@ -4178,7 +4172,7 @@ Show contents of register.
 @findex @kbd{:unmap!@: <char>}
 @findex @kbd{:map!@: <char> <seq>}
 
-@node Shell Commands, Options, Mapping, Commands
+@node Shell Commands
 @section Shell Commands
 
 @cindex % (Current file)
@@ -4244,7 +4238,7 @@ Run the make command in the current directory.
 @findex @kbd{:sh}
 @findex @kbd{:make}
 
-@node Options,Emacs Related Commands,Shell Commands,Commands
+@node Options
 @section Options
 
 @cindex Vi options
@@ -4365,7 +4359,7 @@ Set <option> to <value>.
 @findex @kbd{:set ai}
 @findex @kbd{:set autoindent}
 
-@node Emacs Related Commands,,Options,Commands
+@node Emacs Related Commands
 @section Emacs Related Commands
 
 @table @kbd
@@ -4415,7 +4409,7 @@ you need.
 @kindex @kbd{C-\}
 @kindex @kbd{C-c\}
 
-@node Mouse-bound Commands,,,Commands
+@node Mouse-bound Commands
 @section Mouse-bound Commands
 
 The following two mouse actions are normally bound to special search and
@@ -4444,8 +4438,11 @@ already bound to something else.
 @kindex @kbd{meta button1up}
 @kindex @kbd{meta button2up}
 
-@node Acknowledgments,,,Top
-@comment  node-name,  next,  previous,  up
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Acknowledgments
 @unnumbered Acknowledgments
 
 Viper, formerly known as VIP-19, was written by Michael Kifer.  Viper is
@@ -4519,36 +4516,27 @@ whicken@@dragon.parasoft.com (Wendell Hicken),
 zapman@@cc.gatech.edu (Jason Zapman II),
 @end example
 
-@node GNU Free Documentation License,,, Top
-@appendix GNU Free Documentation License
-@include doclicense.texi
-
-@node Key Index,Function Index,,Top
-@comment  node-name,  next,  previous,  up
+@node Key Index
 @unnumbered Key Index
 
 @printindex ky
 
-@node Function Index,Variable Index,Key Index,Top
-@comment  node-name,  next,  previous,  up
+@node Function Index
 @unnumbered Function Index
 
 @printindex fn
 
-@node Variable Index,Package Index,Function Index,Top
-@comment  node-name,  next,  previous,  up
+@node Variable Index
 @unnumbered Variable Index
 
 @printindex vr
 
-@node Package Index,Concept Index,Variable Index,Top
-@comment  node-name,  next,  previous,  up
+@node Package Index
 @unnumbered Package Index
 
 @printindex pg
 
-@node Concept Index,,Package Index,Top
-@comment  node-name,  next,  previous,  up
+@node Concept Index
 @unnumbered Concept Index
 
 @printindex cp
