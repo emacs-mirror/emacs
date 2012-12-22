@@ -7,7 +7,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 2004-2005, 2007-2012 Free Software
+Copyright @copyright{} 2004--2005, 2007--2012 Free Software
 Foundation, Inc.
 
 @quotation
@@ -300,7 +300,7 @@ reason.
 @c (typically so far the only exception has been that the changes
 @c already exist in the trunk in modified form).
 Because of this, when the next major version of Gnus will be included in
-Emacs, it should be very easy -- just plonk in the files from the Gnus
+Emacs, it should be very easy---just plonk in the files from the Gnus
 trunk without worrying about lost changes from the Emacs tree.
 
 The effect of this is that as hacker, you should generally only have to
@@ -314,7 +314,7 @@ tree, and it will show up in the Gnus tree a few days later.
 
 If you don't have Emacs bzr access (or it's inconvenient), you can
 change such a file in the v5-10 branch, and it should propagate to Emacs
-bzr -- however, it will get some extra scrutiny (by Miles) to see if the
+bzr---however, it will get some extra scrutiny (by Miles) to see if the
 changes are possibly controversial and need discussion on the mailing
 list.  Many changes are obvious bug-fixes however, so often there won't
 be any problem.
@@ -329,7 +329,7 @@ including improvements on the documentation.
 If you know that there will be conflicts (perhaps because the affected
 source code is different in v5-10 and the Gnus git trunk), then you can
 install your change in both places, and when I try to sync them, there
-will be a conflict -- however, since in most such cases there would be a
+will be a conflict---however, since in most such cases there would be a
 conflict @emph{anyway}, it's often easier for me to resolve it simply if
 I see two @samp{identical} changes, and can just choose the proper one,
 rather than having to actually fix the code.

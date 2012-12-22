@@ -1421,23 +1421,23 @@ This stands for the day of month, blank-padded.
 @item %h
 This is a synonym for @samp{%b}.
 @item %H
-This stands for the hour (00-23).
+This stands for the hour (00--23).
 @item %I
-This stands for the hour (01-12).
+This stands for the hour (01--12).
 @item %j
-This stands for the day of the year (001-366).
+This stands for the day of the year (001--366).
 @item %k
-This stands for the hour (0-23), blank padded.
+This stands for the hour (0--23), blank padded.
 @item %l
-This stands for the hour (1-12), blank padded.
+This stands for the hour (1--12), blank padded.
 @item %m
-This stands for the month (01-12).
+This stands for the month (01--12).
 @item %M
-This stands for the minute (00-59).
+This stands for the minute (00--59).
 @item %n
 This stands for a newline.
 @item %N
-This stands for the nanoseconds (000000000-999999999).  To ask for
+This stands for the nanoseconds (000000000--999999999).  To ask for
 fewer digits, use @samp{%3N} for milliseconds, @samp{%6N} for
 microseconds, etc.  Any excess digits are discarded, without rounding.
 @item %p
@@ -1447,18 +1447,18 @@ This is a synonym for @samp{%I:%M:%S %p}.
 @item %R
 This is a synonym for @samp{%H:%M}.
 @item %S
-This stands for the seconds (00-59).
+This stands for the seconds (00--59).
 @item %t
 This stands for a tab character.
 @item %T
 This is a synonym for @samp{%H:%M:%S}.
 @item %U
-This stands for the week of the year (01-52), assuming that weeks
+This stands for the week of the year (01--52), assuming that weeks
 start on Sunday.
 @item %w
-This stands for the numeric day of week (0-6).  Sunday is day 0.
+This stands for the numeric day of week (0--6).  Sunday is day 0.
 @item %W
-This stands for the week of the year (01-52), assuming that weeks
+This stands for the week of the year (01--52), assuming that weeks
 start on Monday.
 @item %x
 This has a locale-specific meaning.  In the default locale (named
@@ -1467,7 +1467,7 @@ This has a locale-specific meaning.  In the default locale (named
 This has a locale-specific meaning.  In the default locale (named
 @samp{C}), it is equivalent to @samp{%T}.
 @item %y
-This stands for the year without century (00-99).
+This stands for the year without century (00--99).
 @item %Y
 This stands for the year with century.
 @item %Z

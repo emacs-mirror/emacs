@@ -11,7 +11,7 @@
 @copying
 This manual describes specialized features of Emacs.
 
-Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -53,7 +53,7 @@ modify this GNU manual.''
 @menu
 * Introduction::        What documentation belongs here?
 @iftex
-* Picture Mode::        Editing pictures made up of characters using 
+* Picture Mode::        Editing pictures made up of characters using
                          the quarter-plane screen model.
 
 * Autorevert::          Auto Reverting non-file buffers.

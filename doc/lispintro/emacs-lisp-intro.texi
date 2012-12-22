@@ -228,7 +228,8 @@ people who are not programmers.
 @sp 1
 Edition @value{edition-number}, @value{update-date}
 @sp 1
-Copyright @copyright{} 1990-1995, 1997, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1995, 1997, 2001--2012 Free Software
+Foundation, Inc.
 @sp 1
 
 @iftex
@@ -6281,7 +6282,7 @@ the arithmetic, a conversion is necessary, and
 @findex / @r{(division)}
 @cindex Division
 The second argument is @code{(/ size 10)}.  This expression divides
-the numeric value by ten --- the numeric value of the size of the
+the numeric value by ten---the numeric value of the size of the
 accessible portion of the buffer.  This produces a number that tells
 how many characters make up one tenth of the buffer size.  (In Lisp,
 @code{/} is used for division, just as @code{*} is used for
@@ -9402,7 +9403,7 @@ either by setting it manually or by using @code{customize}.
 
 For me, the major use of the @code{set-variable} command is to suggest
 variables that I might want to set in my @file{.emacs} file.  There
-are now more than 700 such variables --- far too many to remember
+are now more than 700 such variables, far too many to remember
 readily.  Fortunately, you can press @key{TAB} after calling the
 @code{M-x set-variable} command to see the list of variables.
 (@xref{Examining, , Examining and Setting Variables, emacs,
@@ -11195,8 +11196,8 @@ The @code{dolist} expression does very much the same as the
 of the work you have to do when writing a @code{while} expression.
 
 Like a @code{while} loop, a @code{dolist} loops.  What is different is
-that it automatically shortens the list each time it loops --- it
-`@sc{cdr}s down the list' on its own --- and it automatically binds
+that it automatically shortens the list each time it loops---it
+`@sc{cdr}s down the list' on its own---and it automatically binds
 the @sc{car} of each shorter version of the list to the first of its
 arguments.
 
@@ -13300,8 +13301,8 @@ We can see that this is a decrementing counter @code{while} loop,
 using the expression @code{(setq arg (1- arg))} as the decrementer.
 That expression is not far from the @code{while}, but is hidden in
 another Lisp macro, an @code{unless} macro.  Unless we are at the end
-of the buffer --- that is what the @code{eobp} function determines; it
-is an abbreviation of @samp{End Of Buffer P} --- we decrease the value
+of the buffer---that is what the @code{eobp} function determines; it
+is an abbreviation of @samp{End Of Buffer P}---we decrease the value
 of @code{arg} by one.
 
 (If we are at the end of the buffer, we cannot go forward any more and
@@ -15657,7 +15658,7 @@ as a list that looks like this (but with more elements):
 The @code{directory-files-and-attributes} function returns a list of
 lists.  Each of the lists within the main list consists of 13
 elements.  The first element is a string that contains the name of the
-file -- which, in GNU/Linux, may be a `directory file', that is to
+file---which, in GNU/Linux, may be a `directory file', that is to
 say, a file with the special attributes of a directory.  The second
 element of the list is @code{t} for a directory, a string
 for symbolic link (the string is the name linked to), or @code{nil}.
@@ -16850,7 +16851,7 @@ Write a line graph version of the graph printing functions.
 @cindex Customizing your @file{.emacs} file
 @cindex Initialization file
 
-``You don't have to like Emacs to like it'' -- this seemingly
+``You don't have to like Emacs to like it''---this seemingly
 paradoxical statement is the secret of GNU Emacs.  The plain, `out of
 the box' Emacs is a generic tool.  Most people who use it, customize
 it to suit themselves.
@@ -18282,7 +18283,7 @@ or `All'.  (A lower case @samp{p} tell you the percentage above the
 @emph{top} of the window.)  @samp{%-} inserts enough dashes to fill
 out the line.
 
-Remember, ``You don't have to like Emacs to like it'' --- your own
+Remember, ``You don't have to like Emacs to like it''---your own
 Emacs can have different colors, different commands, and different
 keys than a default Emacs.
 
@@ -21946,7 +21947,7 @@ Here is the graph:
 @sp 2
 
 @noindent
-The largest group of functions contain 10 -- 19 words and symbols each.
+The largest group of functions contain 10--19 words and symbols each.
 
 @node Free Software and Free Manuals
 @appendix Free Software and Free Manuals

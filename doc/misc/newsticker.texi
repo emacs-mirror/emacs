@@ -13,7 +13,7 @@
 This manual is for Newsticker (version @value{VERSION}, @value{UPDATED}).
 
 @noindent
-Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -34,7 +34,7 @@ modify this GNU manual.''
 @end direntry
 
 @titlepage
-@title Newsticker -- a Newsticker for Emacs
+@title Newsticker---a Newsticker for Emacs
 @subtitle for version @value{VERSION}, @value{UPDATED}
 @author Ulf Jasper
 @author @email{ulf.jasper@@web.de}
@@ -131,8 +131,8 @@ which contains @file{xml.el} for XEmacs.
 Newsticker retrieves headlines either via Emacs's built-in retrieval
 functions, by an arbitrary external program that retrieves files via
 http and prints them to stdout (like
-@uref{http://www.gnu.org/software/wget/wget.html, wget}, or -- on a
-per feed basis -- via an arbitrary Lisp command.
+@uref{http://www.gnu.org/software/wget/wget.html, wget}, or---on a
+per feed basis---via an arbitrary Lisp command.
 
 
 @node Installation

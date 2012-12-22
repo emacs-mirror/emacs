@@ -262,7 +262,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -984,7 +984,7 @@ default.  If you are using an earlier version of Emacs, add this line to your
 (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
 @end lisp
 
-Org mode buffers need font-lock to be turned on - this is the default in
+Org mode buffers need font-lock to be turned on: this is the default in
 Emacs@footnote{If you don't use font-lock globally, turn it on in Org buffer
 with @code{(add-hook 'org-mode-hook 'turn-on-font-lock)}}.
 
@@ -2685,7 +2685,7 @@ computations in Lisp:
   '(concat (substring $1 1 2) (substring $1 0 1) (substring $1 2))
 @r{Add columns 1 and 2, equivalent to Calc's @code{$1+$2}}
   '(+ $1 $2);N
-@r{Compute the sum of columns 1-4, like Calc's @code{vsum($1..$4)}}
+@r{Compute the sum of columns 1--4, like Calc's @code{vsum($1..$4)}}
   '(apply '+ '($1..$4));N
 @end example
 
@@ -3374,7 +3374,7 @@ buffer:
 For Org files, if there is a @samp{<<target>>} at the cursor, the link points
 to the target.  Otherwise it points to the current headline, which will also
 be the description@footnote{If the headline contains a timestamp, it will be
-removed from the link and result in a wrong link -- you should avoid putting
+removed from the link and result in a wrong link---you should avoid putting
 timestamp in the headline.}.
 
 @vindex org-link-to-org-use-id
@@ -5236,8 +5236,8 @@ same summary information.
 The @code{est+} summary type requires further explanation.  It is used for
 combining estimates, expressed as low-high ranges.  For example, instead
 of estimating a particular task will take 5 days, you might estimate it as
-5-6 days if you're fairly confident you know how much work is required, or
-1-10 days if you don't really know what needs to be done.  Both ranges
+5--6 days if you're fairly confident you know how much work is required, or
+1--10 days if you don't really know what needs to be done.  Both ranges
 average at 5.5 days, but the first represents a more predictable delivery.
 
 When combining a set of such estimates, simply adding the lows and highs
@@ -5247,7 +5247,7 @@ from the sum.  For example, suppose you had ten tasks, each of which was
 estimated at 0.5 to 2 days of work.  Straight addition produces an estimate
 of 5 to 20 days, representing what to expect if everything goes either
 extremely well or extremely poorly.  In contrast, @code{est+} estimates the
-full job more realistically, at 10-15 days.
+full job more realistically, at 10--15 days.
 
 Here is an example for a complete columns definition, along with allowed
 values.
@@ -6539,7 +6539,7 @@ suggestion.}  for capturing new material.
 @table @kbd
 @orgcmd{C-c c,org-capture}
 Call the command @code{org-capture}.  Note that this keybinding is global and
-not active by default - you need to install it.  If you have templates
+not active by default; you need to install it.  If you have templates
 @cindex date tree
 defined @pxref{Capture templates}, it will offer these templates for
 selection or use a new Org outline node as the default template.  It will
@@ -8117,7 +8117,7 @@ February 1st, @kbd{9 w} to ISO week number 9.  When setting day, week, or
 month view, a year may be encoded in the prefix argument as well.  For
 example, @kbd{200712 w} will jump to week 12 in 2007.  If such a year
 specification has only one or two digits, it will be mapped to the interval
-1938-2037.  @kbd{v @key{SPC}} will reset to what is set in
+1938--2037.  @kbd{v @key{SPC}} will reset to what is set in
 @code{org-agenda-span}.
 @c
 @orgcmd{f,org-agenda-later}
@@ -8276,7 +8276,7 @@ You can then filter for an effort by first typing an operator, one of
 @kbd{<}, @kbd{>}, and @kbd{=}, and then the one-digit index of an effort
 estimate in your array of allowed values, where @kbd{0} means the 10th value.
 The filter will then restrict to entries with effort smaller-or-equal, equal,
-or larger-or-equal than the selected value.  If the digits 0-9 are not used
+or larger-or-equal than the selected value.  If the digits 0--9 are not used
 as fast access keys to tags, you can also simply press the index digit
 directly without an operator.  In this case, @kbd{<} will be assumed.  For
 application of the operator, entries without a defined effort will be treated
@@ -8334,7 +8334,7 @@ selected.
 @tsubheading{Remote editing}
 @cindex remote editing, from agenda
 
-@item 0-9
+@item 0--9
 Digit argument.
 @c
 @cindex undoing remote-editing events
@@ -11148,7 +11148,7 @@ files directly, or generate the required styles using an application like
 LibreOffice.  The latter method is suitable for expert and non-expert
 users alike, and is described here.
 
-@subsubsection Applying custom styles - the easy way
+@subsubsection Applying custom styles: the easy way
 
 @enumerate
 @item
@@ -11161,8 +11161,8 @@ to ODT format.
 
 @item
 Open the above @file{example.odt} using LibreOffice.  Use the @file{Stylist}
-to locate the target styles - these typically have the @samp{Org} prefix -
-and modify those to your taste.  Save the modified file either as an
+to locate the target styles---these typically have the @samp{Org} prefix---and
+modify those to your taste.  Save the modified file either as an
 OpenDocument Text (@file{.odt}) or OpenDocument Template (@file{.ott}) file.
 
 @item
@@ -11215,8 +11215,8 @@ with a cross-reference and sequence number of the labeled entity.
 @cindex tables, in DocBook export
 
 Export of native Org mode tables (@pxref{Tables}) and simple @file{table.el}
-tables is supported.  However, export of complex @file{table.el} tables -
-tables that have column or row spans - is not supported.  Such tables are
+tables is supported.  However, export of complex @file{table.el} tables---tables
+that have column or row spans---is not supported.  Such tables are
 stripped from the exported document.
 
 By default, a table is exported with top and bottom frames and with rules
@@ -11348,7 +11348,7 @@ height:width ratio, do the following
 @cindex #+ATTR_ODT
 You can control the manner in which an image is anchored by setting the
 @code{:anchor} property of it's @code{#+ATTR_ODT} line.  You can specify one
-of the the following three values for the @code{:anchor} property -
+of the the following three values for the @code{:anchor} property:
 @samp{"as-char"}, @samp{"paragraph"} and @samp{"page"}.
 
 To create an image that is anchored to a page, do the following:
@@ -11454,8 +11454,8 @@ or
 @node Labels and captions in ODT export, Literal examples in ODT export, Math formatting in ODT export, OpenDocument Text export
 @subsection Labels and captions in ODT export
 
-You can label and caption various category of objects - an inline image, a
-table, a @LaTeX{} fragment or a Math formula - using @code{#+LABEL} and
+You can label and caption various category of objects---an inline image, a
+table, a @LaTeX{} fragment or a Math formula---using @code{#+LABEL} and
 @code{#+CAPTION} lines.  @xref{Images and tables}.  ODT exporter enumerates
 each labeled or captioned object of a given category separately.  As a
 result, each such object is assigned a sequence number based on order of it's
@@ -11619,8 +11619,8 @@ the exporter.
 
 @item
 It contains @samp{<text:sequence-decl>}@dots{}@samp{</text:sequence-decl>}
-elements that control how various entities - tables, images, equations etc -
-are numbered.
+elements that control how various entities---tables, images, equations,
+etc.---are numbered.
 @end enumerate
 @end itemize
 
@@ -11754,7 +11754,7 @@ OpenDocument-v1.2 Specification}}
 
 
 
-@subsubheading Custom table styles - an illustration
+@subsubheading Custom table styles: an illustration
 
 To have a quick preview of this feature, install the below setting and export
 the table that follows.
@@ -11786,7 +11786,7 @@ Template} in @file{OrgOdtContentTemplate.xml}
 (@pxref{x-orgodtcontenttemplate-xml,,Factory styles}).  If you need
 additional templates you have to define these styles yourselves.
 
-@subsubheading Custom table styles - the nitty-gritty
+@subsubheading Custom table styles: the nitty-gritty
 To use this feature proceed as follows:
 
 @enumerate
@@ -14800,7 +14800,7 @@ These lines (several are allowed) specify link abbreviations.
 @vindex org-lowest-priority
 @vindex org-default-priority
 This line sets the limits and the default for the priorities.  All three
-must be either letters A-Z or numbers 0-9.  The highest priority must
+must be either letters A--Z or numbers 0--9.  The highest priority must
 have a lower ASCII number than the lowest priority.
 @item #+PROPERTY: Property_Name Value
 This line sets a default inheritance value for entries in the current
@@ -15104,7 +15104,7 @@ indentation shifts by two@footnote{See the variable
 stars but the last one are made invisible using the @code{org-hide}
 face@footnote{Turning on @code{org-indent-mode} sets
 @code{org-hide-leading-stars} to @code{t} and @code{org-adapt-indentation} to
-@code{nil}.} - see below under @samp{2.} for more information on how this
+@code{nil}.}; see below under @samp{2.} for more information on how this
 works.  You can turn on @code{org-indent-mode} for all files by customizing
 the variable @code{org-startup-indented}, or you can turn it on for
 individual files using
@@ -16713,7 +16713,7 @@ a great help, and the list would not be so active without him.
 @end table
 
 I received support from so many users that it is clearly impossible to be
-fair when shortlisting a few of them -- but Org's history would not be
+fair when shortlisting a few of them, but Org's history would not be
 complete if the ones above were not mentioned in this manual.
 
 @section List of contributions

@@ -11,7 +11,7 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright @copyright{} 1998-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1855,7 +1855,7 @@ Conformance Criteria and Examples
 Languages, and Continuations
 
 @item RFC1843
-HZ - A Data Format for Exchanging Files of Arbitrarily Mixed Chinese and
+HZ---A Data Format for Exchanging Files of Arbitrarily Mixed Chinese and
 @acronym{ASCII} characters
 
 @item draft-ietf-drums-msg-fmt-05.txt

@@ -24,7 +24,8 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001-2003, 2005-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2001--2003, 2005--2012 Free Software
+Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
 
@@ -214,7 +215,7 @@ The MH-E package is distributed with Emacs@footnote{Version
 @value{VERSION} of MH-E appeared in Emacs 24.4. It is supported in GNU
 Emacs 23 and higher, as well as XEmacs 21.4.22 and 21.5.31. MH-E is
 known not to work with GNU Emacs versions 20 and below, and XEmacs
-version 21.5.9 - 21.5.16. It is compatible with MH versions 6.8.4 and
+version 21.5.9--21.5.16. It is compatible with MH versions 6.8.4 and
 higher, all versions of nmh, and GNU mailutils 1.0 and higher}, so you
 shouldn't have to do anything special to use it. Gnus is also
 required; version 5.10 or higher is recommended. This manual covers
@@ -5644,7 +5645,7 @@ The command @kbd{C-c C-w} (@code{mh-check-whom}) expands aliases so
 you can check the actual address(es) in the alias. A new buffer named
 @samp{*MH-E Recipients*} is created with the output of @command{whom}
 (@pxref{Miscellaneous})@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/senove.html#WhaPro, What now? -- and the
+@uref{@value{MH-BOOK-HOME}/senove.html#WhaPro, What now?---and the
 whatnow Program} in the MH book.}.
 
 @node Sending Message, Killing Draft, Checking Recipients, Editing Drafts
@@ -7762,7 +7763,7 @@ all of your interesting messages and add a couple of points to be
 conservative. Add that many dots to the @samp{X-Spam-Level:} header
 field above to send messages with that score down the drain.
 
-In the example above, messages with a score of 5-9 are set aside in
+In the example above, messages with a score of 5--9 are set aside in
 the @samp{+spam} folder for later review. The major weakness of
 rules-based filters is a plethora of false positives so it is
 worthwhile to check.
@@ -8664,7 +8665,7 @@ In order to send mail within Gnus using MH-E, set this option to
 Since Gnus keeps track of which messages you have read, it would be
 bad if Gnus expired the last message, for example, message 100, and
 @command{rcvstore} gave the next new message number 1. Gnus would then
-ignore it since it thinks that you've read messages 1-100. Turning on
+ignore it since it thinks that you've read messages 1--100. Turning on
 this option ensures that the last message is never removed thereby
 eliminating this problem.
 @end vtable
@@ -8881,7 +8882,7 @@ same structure as MH-E (i.e., invoked MH programs), though it was
 simpler and the commands were slightly different. Unfortunately, I no
 longer have a copy so the differences are lost in the mists of time.
 
-In '82-83, I was working at BBN and wrote a lot of mlisp code in
+In '82--83, I was working at BBN and wrote a lot of mlisp code in
 Gosling Emacs to make it look more like Tennex Emacs. One of the
 packages that I picked up and improved was Reid's mail system. In '83,
 I went back to Berkeley. About that time, Stallman's first version of

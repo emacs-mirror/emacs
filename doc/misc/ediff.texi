@@ -25,7 +25,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -556,8 +556,8 @@ Makes the next difference region current.
 Makes the very first difference region current.
 
 @kbd{-j} makes the last region current.  Typing a number, N, and then `j'
-makes the difference region N current.  Typing -N (a negative number) then
-`j' makes current the region Last - N.
+makes the difference region N current.  Typing @minus{}N (a negative number) then
+`j' makes current the region Last @minus{} N.
 
 @item ga
 @kindex ga
@@ -954,7 +954,7 @@ difference.
 @vindex ediff-use-toolbar-p
 The use of the toolbar can also be specified via the variable
 @code{ediff-use-toolbar-p} (default is @code{t}).  This variable can be set
-only in @file{.emacs} --- do @strong{not} change it interactively.  Use the
+only in @file{.emacs}: do @strong{not} change it interactively.  Use the
 function @code{ediff-toggle-use-toolbar} instead.
 
 @item ediff-revert-buffers-then-recompute-diffs
@@ -1326,7 +1326,7 @@ Hooks run just before exiting a session group.
 @item ediff-meta-buffer-keymap-setup-hook
 @vindex ediff-meta-buffer-keymap-setup-hook
 @vindex ediff-meta-buffer-map
-Hooks run just after setting up the @code{ediff-meta-buffer-map} --- the
+Hooks run just after setting up the @code{ediff-meta-buffer-map}, the
 map that controls key bindings in the meta buffer.  Since
 @code{ediff-meta-buffer-map} is a local variable, you can set different
 bindings for different kinds of meta buffers.

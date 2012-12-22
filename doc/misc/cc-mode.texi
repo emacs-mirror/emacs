@@ -156,7 +156,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -219,7 +219,7 @@ Objective-C, Java, CORBA IDL (and the variants PSDL and CIDL), Pike
 and AWK code.  It provides syntax-based indentation, font locking, and
 has several handy commands and some minor modes to make the editing
 easier.  It does not provide tools to look up and navigate between
-functions, classes etc - there are other packages for that.
+functions, classes, etc.; there are other packages for that.
 
 @insertcopying
 @end ifnottex
@@ -369,7 +369,7 @@ Late in 1997, Martin Stjernholm joined Barry on the @ccmode{}
 Maintainers Team, and implemented the Pike support.  In 2000 Martin
 took over as the sole maintainer.  In 2001 Alan Mackenzie joined the
 team, implementing AWK support in version 5.30.  @ccmode{} did not
-originally contain the font lock support for its languages --- that
+originally contain the font lock support for its languages; that
 was added in version 5.30.
 
 This manual describes @ccmode{}
@@ -441,7 +441,7 @@ increasing detail.
 @itemize @bullet
 @item
 The chapter ``Configuration Basics'' tells you @emph{how} to write
-customizations - whether in hooks, in styles, in both, or in neither,
+customizations: whether in hooks, in styles, in both, or in neither,
 depending on your needs.  It describes the @ccmode{} style system and
 lists the standard styles that @ccmode{} supplies.
 
@@ -468,7 +468,7 @@ The FAQ contains a list of common problems and questions.
 
 @item
 The next two chapters tell you how to get in touch with the @ccmode{}
-project - whether for updating @ccmode{} or submitting bug reports.
+project: whether for updating @ccmode{} or submitting bug reports.
 @end itemize
 
 @noindent
@@ -715,7 +715,7 @@ current line.
 When it is @code{nil}, @key{TAB} (re)indents the line only if point is
 to the left of the first non-whitespace character on the line.
 Otherwise it inserts some whitespace (a tab or an equivalent number of
-spaces - see below) at point.
+spaces; see below) at point.
 @item
 With some other value, the line is reindented.  Additionally, if point
 is within a string or comment, some whitespace is inserted.
@@ -820,10 +820,10 @@ often (in seconds) progress messages are to be displayed.
 @kindex C-c C-c
 @findex comment-region
 This command comments out the lines that start in the region.  With a
-negative argument, it does the opposite - it deletes the comment
+negative argument, it does the opposite: it deletes the comment
 delimiters from these lines.  @xref{Multi-Line Comments,,, emacs, GNU
 Emacs Manual}, for fuller details.  @code{comment-region} isn't
-actually part of @ccmode{} - it is given a @ccmode{} binding for
+actually part of @ccmode{}; it is given a @ccmode{} binding for
 convenience.
 
 @item @kbd{M-;} (@code{comment-dwim} or @code{indent-for-comment} @footnote{The name of this command varies between (X)Emacs versions.})
@@ -1147,7 +1147,7 @@ them yourself, e.g., after typing @samp{@}}s.  Its action is suppressed
 when electric mode is disabled.
 @item hungry-delete mode
 This lets you delete a contiguous block of whitespace with a single
-key - for example, the newline and indentation just inserted by
+key: for example, the newline and indentation just inserted by
 auto-newline when you want to back up and write a comment after the
 last statement.
 @item subword mode
@@ -1176,7 +1176,7 @@ are enabled but the other two modes are disabled.
 
 @ccmode{} displays the current state of the first four of these minor
 modes on the modeline by appending letters to the major mode's name,
-one letter for each enabled minor mode - @samp{l} for electric mode,
+one letter for each enabled minor mode: @samp{l} for electric mode,
 @samp{a} for auto-newline mode, @samp{h} for hungry delete mode, and
 @samp{w} for subword mode.  If all these modes were enabled, you'd see
 @samp{C/lahw}@footnote{The @samp{C} would be replaced with the name of
@@ -1234,7 +1234,7 @@ turn it (or them) off.
 @cindex electric characters
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-Most punctuation keys provide @dfn{electric} behavior - as well as
+Most punctuation keys provide @dfn{electric} behavior: as well as
 inserting themselves they perform some other action, such as
 reindenting the line.  This reindentation saves you from having to
 reindent a line manually after typing, say, a @samp{@}}.  A few
@@ -2101,7 +2101,7 @@ initialization and the result is prepended.  For an example, see
 @code{javadoc-font-lock-keywords} in @file{cc-fonts.el}.
 
 If you add support for another doc comment style, please consider
-contributing it - send a note to @email{bug-cc-mode@@gnu.org}.
+contributing it: send a note to @email{bug-cc-mode@@gnu.org}.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2249,7 +2249,7 @@ more sophisticated facilities, hooks and styles.
 An Emacs @dfn{hook} is a place to put Lisp functions that you want
 Emacs to execute later in specific circumstances.
 @xref{Hooks,,,@lispref{}, @lispreftitle{}}.  @ccmode{} supplies a main
-hook and a language-specific hook for each language it supports - any
+hook and a language-specific hook for each language it supports; any
 functions you put onto these hooks get executed as the last part of a
 buffer's initialization.  Typically you put most of your customization
 within the main hook, and use the language-specific hooks to vary the
@@ -2683,7 +2683,7 @@ string.
 If none of the built-in styles is appropriate, you'll probably want to
 create a new @dfn{style definition}, possibly based on an existing
 style.  To do this, put the new style's settings into a list with the
-following format - the list can then be passed as an argument to the
+following format; the list can then be passed as an argument to the
 function @code{c-add-style}.  You can see an example of a style
 definition in @ref{Sample .emacs File}.
 
@@ -3166,7 +3166,7 @@ different ways, depending on the character just typed:
 @item Braces and Colons
 @ccmode{} first determines the syntactic context of the brace or colon
 (@pxref{Syntactic Symbols}), then looks for a corresponding element in
-an alist.  This element specifies where to put newlines - this is any
+an alist.  This element specifies where to put newlines: this is any
 combination of before and after the brace or colon.  If no alist
 element is found, newlines are inserted both before and after a brace,
 but none are inserted around a colon.  See @ref{Hanging Braces} and
@@ -3267,7 +3267,7 @@ syntactic symbol, the associated value is either @code{nil}, a list,
 or a function.
 
 @table @asis
-@item The Key - the syntactic symbol
+@item The Key: the syntactic symbol
 The syntactic symbols that are useful as keys in this list are
 @code{brace-list-intro}, @code{statement-cont},
 @code{inexpr-class-open}, @code{inexpr-class-close}, and all the
@@ -3290,7 +3290,7 @@ lists in this regard, even though they do for normal indentation
 purposes.  It's currently not possible to set automatic newlines on
 these constructs.
 
-@item The associated value - the ``ACTION'' list or function
+@item The associated value: the ``ACTION'' list or function
 The value associated with each syntactic symbol in this association
 list is called an @var{action}, which can be either a list or a
 function which returns a list.  @xref{Custom Braces}, for how to use
@@ -3460,7 +3460,7 @@ that the brace appears on a line by itself.
 
 Using a mechanism similar to brace hanging (@pxref{Hanging Braces}),
 colons can also be made to hang using the style variable
-@code{c-hanging-colons-alist} - When a colon is typed, @ccmode
+@code{c-hanging-colons-alist}: when a colon is typed, @ccmode
 determines its syntactic context, looks this up in the alist
 @code{c-changing-colons-alist} and inserts up to two newlines
 accordingly.  Here, however, If @ccmode fails to find an entry for a
@@ -3471,17 +3471,17 @@ newly typed colon.
 @vindex hanging-colons-alist (c-)
 
 @table @asis
-@item The Key - the syntactic symbol
+@item The Key: the syntactic symbol
 The syntactic symbols appropriate as keys in this association list
 are: @code{case-label}, @code{label}, @code{access-label},
 @code{member-init-intro}, and @code{inher-intro}.  @xref{Syntactic
 Symbols}.  Elements with any other value as a key get ignored.
 
-@item The associate value - the ``ACTION'' list
+@item The associated value: the ``ACTION'' list
 The @var{action} here is simply a list containing a combination of the
 symbols @code{before} and @code{after}.  Unlike in
 @code{c-hanging-braces-alist}, functions as @var{actions} are not
-supported - there doesn't seem to be any need for them.
+supported; there doesn't seem to be any need for them.
 @end table
 @end defopt
 
@@ -3913,7 +3913,7 @@ recognized, e.g., @code{statement}, @code{substatement},
 @code{class-open}, @code{class-close}, etc.  @xref{Syntactic Symbols},
 for a complete list of currently recognized syntactic symbols and
 their semantics.  The remaining entries are various data associated
-with the recognized construct - there might be zero or more.
+with the recognized construct; there might be zero or more.
 
 @cindex anchor position
 Conceptually, a line of code is always indented relative to some
@@ -4570,7 +4570,7 @@ example:
 Here, lines 4, 7, and 10 are all assigned @code{case-label} syntax,
 while lines 5 and 8 are assigned @code{statement-case-intro}.  Line 11
 is treated slightly differently since it contains a brace that opens a
-block --- it is given @code{statement-case-open} syntax.
+block; it is given @code{statement-case-open} syntax.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Brace List Symbols, External Scope Symbols, Switch Statement Symbols, Syntactic Symbols
@@ -4798,7 +4798,7 @@ Line 2 is assigned the @code{func-decl-cont} syntax.
 @ssindex comment-intro
 Line 4 is assigned both @code{defun-block-intro} @emph{and}
 @code{comment-intro} syntax.  A syntactic element with
-@code{comment-intro} has no anchor point --- It is always accompanied
+@code{comment-intro} has no anchor point.  It is always accompanied
 by another syntactic element which does have one.
 
 @item
@@ -5282,15 +5282,15 @@ values that the special symbols correspond to:
 @item +
 @code{c-basic-offset} times 1
 @item -
-@code{c-basic-offset} times -1
+@code{c-basic-offset} times @minus{}1
 @item ++
 @code{c-basic-offset} times 2
 @item --
-@code{c-basic-offset} times -2
+@code{c-basic-offset} times @minus{}2
 @item *
 @code{c-basic-offset} times 0.5
 @item /
-@code{c-basic-offset} times -0.5
+@code{c-basic-offset} times @minus{}0.5
 @end table
 
 @item A vector
@@ -5332,10 +5332,10 @@ Use the first offset that doesn't evaluate to @code{nil}.  Subsequent
 elements of the list don't get evaluated.
 @item min
 Use the minimum of all the offsets.  All must be either relative or
-absolute - they can't be mixed.
+absolute; they can't be mixed.
 @item max
 Use the maximum of all the offsets.  All must be either relative or
-absolute - they can't be mixed.
+absolute; they can't be mixed.
 @item add
 Add all the evaluated offsets together.  Exactly one of them may be
 absolute, in which case the result is absolute.  Any relative offsets
@@ -5493,7 +5493,7 @@ any problems writing custom line-up functions for AWK mode.
 The calling convention for line-up functions is described fully in
 @ref{Custom Line-Up}.  Roughly speaking, the return value is either an
 offset itself (such as @code{+} or @code{[0]}) or it's @code{nil},
-meaning ``this function is inappropriate in this case - try a
+meaning ``this function is inappropriate in this case; try a
 different one''.  @xref{c-offsets-alist}.
 
 The subsections below describe all the standard line-up functions,
@@ -6514,12 +6514,12 @@ your setup for this by using the access functions
 @vindex c-syntactic-context
 @vindex syntactic-context (c-)
 Some syntactic symbols, e.g., @code{arglist-cont-nonempty}, have more
-info in the syntactic element - typically other positions that can be
+info in the syntactic element: typically other positions that can be
 interesting besides the anchor position.  That info can't be accessed
 through the passed argument, which is a cons cell.  Instead, you can
 get this information from the variable @code{c-syntactic-element},
 which is dynamically bound to the complete syntactic element.  The
-variable @code{c-syntactic-context} might also be useful - it gets
+variable @code{c-syntactic-context} might also be useful: it gets
 dynamically bound to the complete syntactic context.  @xref{Custom
 Braces}.
 

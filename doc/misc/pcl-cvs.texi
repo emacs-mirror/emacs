@@ -1,12 +1,12 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename ../../info/pcl-cvs
-@settitle PCL-CVS --- Emacs Front-End to CVS
+@settitle PCL-CVS---Emacs Front-End to CVS
 @syncodeindex vr fn
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1991-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1991--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -34,7 +34,7 @@ modify this GNU manual.''
 @sp
 @center @titlefont{to}
 @sp
-@center @titlefont{PCL-CVS --- The Emacs Front-End to CVS}
+@center @titlefont{PCL-CVS---The Emacs Front-End to CVS}
 @ignore
 @sp 2
 @center release 2.9

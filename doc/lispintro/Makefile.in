@@ -43,6 +43,8 @@ ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
 
 mkinfodir = @${MKDIR_P} ${buildinfodir}
 
+srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi
+
 .PHONY: info dvi html pdf ps
 
 info: ${buildinfodir}/eintr$(INFO_EXT)
@@ -55,20 +57,20 @@ ps: emacs-lisp-intro.ps
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
 # Note: "<" is not portable in ordinary make rules.
-${buildinfodir}/eintr$(INFO_EXT): ${srcdir}/emacs-lisp-intro.texi
+${buildinfodir}/eintr$(INFO_EXT): ${srcs}
 	$(mkinfodir)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
 
-emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
+emacs-lisp-intro.dvi: ${srcs}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-lisp-intro.texi
 
 emacs-lisp-intro.ps: emacs-lisp-intro.dvi
 	$(DVIPS) -o $@ emacs-lisp-intro.dvi
 
-emacs-lisp-intro.pdf: ${srcdir}/emacs-lisp-intro.texi
+emacs-lisp-intro.pdf: ${srcs}
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-lisp-intro.texi
 
-emacs-lisp-intro.html: ${srcdir}/emacs-lisp-intro.texi
+emacs-lisp-intro.html: ${srcs}
 	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ ${srcdir}/emacs-lisp-intro.texi
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean

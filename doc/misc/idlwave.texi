@@ -22,7 +22,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}.
 
-Copyright @copyright{} 1999-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -84,9 +84,9 @@ Interactive Data Language (IDL), and running IDL as an inferior shell.
 
 Getting Started (Tutorial)
 
-* Lesson I -- Development Cycle::
-* Lesson II -- Customization::
-* Lesson III -- User Catalog::
+* Lesson I---Development Cycle::
+* Lesson II---Customization::
+* Lesson III---User Catalog::
 
 The IDLWAVE Major Mode
 
@@ -263,7 +263,7 @@ had to be renamed because of a name space conflict with CORBA's
 @code{idl-mode}, defined in Emacs in the file @file{cc-mode.el}.
 
 In this manual, each section ends with a list of related user options.
-Don't be confused by the sheer number of options available --- in most
+Don't be confused by the sheer number of options available: in most
 cases the default settings are just fine.  The variables are listed here
 to make sure you know where to look if you want to change anything.  For
 a full description of what a particular variable does and how to
@@ -372,12 +372,12 @@ at point.
 @cindex Getting Started
 
 @menu
-* Lesson I -- Development Cycle::
-* Lesson II -- Customization::
-* Lesson III -- User Catalog::
+* Lesson I---Development Cycle::
+* Lesson II---Customization::
+* Lesson III---User Catalog::
 @end menu
 
-@node  Lesson I -- Development Cycle, Lesson II -- Customization, Getting Started, Getting Started
+@node  Lesson I---Development Cycle, Lesson II---Customization, Getting Started, Getting Started
 @section Lesson I: Development Cycle
 
 The purpose of this tutorial is to guide you through a very basic
@@ -448,7 +448,7 @@ cursor after the @code{end} statement of the @code{for} loop and press
 @key{SPC}.  IDLWAVE blinks back to the beginning of the block and
 changes the generic @code{end} to the specific @code{endfor}
 automatically (as long as the variable @code{idlwave-expand-generic-end}
-is turned on --- @pxref{Lesson II -- Customization}).  Now place the
+is turned on; @pxref{Lesson II---Customization}).  Now place the
 cursor in any line you would like to split and press @kbd{M-@key{RET}}.
 The line is split at the cursor position, with the continuation @samp{$}
 and indentation all taken care of.  Use @kbd{C-/} to undo the last
@@ -504,7 +504,7 @@ Recompile with @kbd{C-c C-d C-c}. Jump back into the shell with
 @kbd{C-c C-s}, press the @key{UP} arrow to recall the previous command
 and execute again.
 
-This time we get a plot, but it is pretty ugly --- the points are all
+This time we get a plot, but it is pretty ugly: the points are all
 connected with a line.  Hmm, isn't there a way for @code{plot} to use
 symbols instead?  What was that keyword?  Position the cursor on the
 plot line after a comma (where you'd normally type a keyword), and hit
@@ -520,7 +520,7 @@ by now: @kbd{C-c C-d C-c}), go back to the shell (if it's vanished,
 you know what to do: @kbd{C-c C-s}) and execute again.  Now things
 look pretty good.
 
-Let's try a different day --- how about April fool's day?
+Let's try a different day.  How about April fool's day?
 
 @example
 plot_wday,1,4
@@ -551,14 +551,14 @@ command.  Everything should now work fine.  How about those leap years?
 Change the code to plot 100 years and see that every 28 years, the
 sequence of weekdays repeats.
 
-@node  Lesson II -- Customization, Lesson III -- User Catalog, Lesson I -- Development Cycle, Getting Started
+@node  Lesson II---Customization, Lesson III---User Catalog, Lesson I---Development Cycle, Getting Started
 @section Lesson II: Customization
 
 Emacs is probably the most customizable piece of software ever written,
 and it would be a shame if you did not make use of this to adapt IDLWAVE
 to your own preferences.  Customizing Emacs or IDLWAVE is accomplished
 by setting Lisp variables in the @file{.emacs} file in your home
-directory --- but do not be dismayed; for the most part, you can just
+directory---but do not be dismayed; for the most part, you can just
 copy and work from the examples given here.
 
 Let's first use a boolean variable.  These are variables which you turn
@@ -635,7 +635,7 @@ breakpoints (try it, it's easier).  You can enable this with:
 
 @noindent to get compilation on @kbd{S-c}.  Often, a modifier key like
 @key{SUPER} or @key{HYPER} is bound or can be bound to an otherwise
-unused key on your keyboard --- consult your system documentation.
+unused key on your keyboard; consult your system documentation.
 
 You can also assign specific commands to keys.  This you must do in the
 @emph{mode-hook}, a special function which is run when a new IDLWAVE
@@ -661,7 +661,7 @@ endless.  Here we set function keys f4-f8 to common debugging commands.
     (local-set-key [f8] 'idlwave-shell-clear-all-bp)))
 @end lisp
 
-@node  Lesson III -- User Catalog,  , Lesson II -- Customization, Getting Started
+@node  Lesson III---User Catalog,  , Lesson II---Customization, Getting Started
 @section Lesson III: User and Library Catalogs
 
 We have already used the routine info display in the first part of this
@@ -684,7 +684,7 @@ Directories} from the IDLWAVE entry in the menu bar.  If necessary,
 start the shell first with @kbd{C-c C-s} (@pxref{Starting the Shell}).
 IDLWAVE will find out about the IDL @code{!PATH} variable and offer a
 list of directories on the path.  Simply select them all (or whichever
-you want --- directories with existing library catalogs will not be
+you want; directories with existing library catalogs will not be
 selected by default) and click on the @samp{Scan&Save} button.  Then
 go for a cup of coffee while IDLWAVE collects information for each and
 every IDL routine on your search path.  All this information is
@@ -1251,8 +1251,8 @@ For IDL system routines, extensive documentation is supplied with IDL@.
 IDLWAVE can access the HTML version of this documentation very quickly
 and accurately, based on the local context.  This can be @emph{much}
 faster than using the IDL online help application, because IDLWAVE
-usually gets you to the right place in the documentation directly ---
-e.g., a specific keyword of a routine --- without any additional browsing
+usually gets you to the right place in the documentation directly---e.g.,
+a specific keyword of a routine---without any additional browsing
 and scrolling.
 
 For this online help to work, an HTML version of the IDL documentation
@@ -1525,7 +1525,7 @@ IDLWAVE offers completion for class names, routine names, keywords,
 system variables, system variable tags, class structure tags, regular
 structure tags and file names.  As in many programming modes, completion
 is bound to @kbd{M-@key{TAB}} (or simply @kbd{@key{TAB}} in the IDLWAVE
-Shell --- @pxref{Using the Shell}).  Completion uses exactly the same
+Shell; @pxref{Using the Shell}).  Completion uses exactly the same
 internal information as routine info, so when necessary (rarely) it can
 be updated with @kbd{C-c C-i} (@code{idlwave-update-routine-info}).
 
@@ -1581,7 +1581,7 @@ text.
 
 @cindex Completion, canceling
 @cindex Canceling completion
-Completion is not a blocking operation --- you are free to continue
+Completion is not a blocking operation; you are free to continue
 editing, enter commands, or simply ignore the @file{*Completions*}
 buffer during a completion operation.  If, however, the most recent
 command was a completion, @kbd{C-g} will remove the buffer and restore
@@ -1898,7 +1898,7 @@ used to insert code templates all start with a @samp{\} (the backslash),
 or, optionally, any other character set in
 @code{idlwave-abbrev-start-char}. IDLWAVE ensures that abbreviations are
 only expanded where they should be (i.e., not in a string or comment),
-and permits the point to be moved after an abbreviation expansion ---
+and permits the point to be moved after an abbreviation expansion:
 very useful for positioning the mark inside of parentheses, etc.
 
 Special abbreviations are pre-defined for code templates and other
@@ -2377,7 +2377,7 @@ interactively, to compile and run IDL programs in Emacs buffers and to
 debug these programs.  The IDLWAVE shell is built on @file{comint}, an
 Emacs packages which handles the communication with the IDL program.
 Unfortunately, IDL for Windows does not have command-prompt versions and
-thus do not allow the interaction with Emacs --- so the IDLWAVE shell
+thus do not allow the interaction with Emacs, so the IDLWAVE shell
 currently only works under Unix and MacOSX.
 
 @menu
@@ -2735,8 +2735,8 @@ the prefix key @kbd{C-c C-d}, so, for example, setting a breakpoint is
 done with @kbd{C-c C-d C-b}, and compiling a source file with @kbd{C-c
 C-d C-c}.  You can also easily configure IDLWAVE to use one or more
 modifier keys not in use by other commands, in lieu of the prefix
-@kbd{C-c C-d} (though these bindings will typically also be available
---- see @code{idlwave-shell-activate-prefix-keybindings}).  For
+@kbd{C-c C-d} (though these bindings will typically also be available;
+see @code{idlwave-shell-activate-prefix-keybindings}).  For
 example, if you include in @file{.emacs}:
 
 @lisp
@@ -2749,9 +2749,9 @@ source file will be on @kbd{C-S-c}, deleting a breakpoint @kbd{C-S-d},
 etc.  In the remainder of this chapter we will assume that the
 @kbd{C-c C-d} bindings are active, but each of these bindings will
 have an equivalent shortcut if modifiers are given in the
-@code{idlwave-shell-debug-modifiers} variable (@pxref{Lesson II --
-Customization}).  A much simpler and faster form of debugging for
-running code is also available by default --- see @ref{Electric Debug
+@code{idlwave-shell-debug-modifiers} variable (@pxref{Lesson
+II---Customization}).  A much simpler and faster form of debugging for
+running code is also available by default; see @ref{Electric Debug
 Mode}.
 
 @defopt idlwave-shell-prefix-key (@kbd{C-c C-d})
@@ -2787,7 +2787,7 @@ prefix arg of 1 (i.e., @kbd{C-1 C-c C-d C-b}), the breakpoint gets a
 With a numeric prefix greater than one (e.g., @kbd{C-4 C-c C-d C-b}),
 the breakpoint will only be active the @code{nth} time it is hit.
 With a single non-numeric prefix (i.e., @kbd{C-u C-c C-d C-b}), prompt
-for a condition --- an IDL expression to be evaluated and trigger the
+for a condition: an IDL expression to be evaluated and trigger the
 breakpoint only if true.  To clear the breakpoint in the current line,
 use @kbd{C-c C-d C-d} (@code{idlwave-clear-current-bp}).  When
 executed from the shell window, the breakpoint where IDL is currently
@@ -3118,10 +3118,10 @@ time (as long as the shell is running), and are very useful when
 execution is stopped in a buffer due to a triggered breakpoint or error,
 or while composing a long command in the IDLWAVE shell.  In the latter
 case, the command is sent to the shell and its output is visible, but
-point remains unmoved in the command being composed --- you can inspect
+point remains unmoved in the command being composed: you can inspect
 the constituents of a command you're building without interrupting the
 process of building it!  You can even print arbitrary expressions from
-older input or output further up in the shell window --- any expression,
+older input or output further up in the shell window; any expression,
 variable, number, or function you see can be examined.
 
 If the variable @code{idlwave-shell-separate-examine-output} is
@@ -3505,7 +3505,7 @@ Starting with version 5.0, there are two types of catalogs available
 with IDLWAVE@.  The traditional @emph{user catalog} and the newer
 @emph{library catalogs}.  Although they can be used interchangeably, the
 library catalogs are more flexible, and preferred.  There are few
-occasions when a user catalog might be preferred --- read below.  Both
+occasions when a user catalog might be preferred---read below.  Both
 types of catalogs can coexist without causing problems.
 
 To facilitate the catalog systems, IDLWAVE stores information it gathers
@@ -3563,7 +3563,7 @@ Library catalogs consist of files named @file{.idlwave_catalog} stored
 in directories containing @code{.pro} routine files.  They are
 discovered on the IDL search path and loaded automatically when routine
 information is read.  Each catalog file documents the routines found in
-that directory --- one catalog per directory.  Every catalog has a
+that directory---one catalog per directory.  Every catalog has a
 library name associated with it (e.g., @emph{AstroLib}).  This name will
 be shown briefly when the catalog is found, and in the routine info of
 routines it documents.
@@ -4061,7 +4061,7 @@ system.  I am assuming that IDLWAVE has been installed in
 
 @end lisp
 
-@noindent Furthermore, Windows sometimes tries to outsmart you --- make
+@noindent Furthermore, Windows sometimes tries to outsmart you; make
 sure you check the following things:
 
 @itemize @bullet

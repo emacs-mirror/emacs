@@ -94,7 +94,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990-1991, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1991, 2001--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -17435,7 +17435,7 @@ daylight saving computations.  This is an internal version of
 the user-level @code{pwday} function described in the previous
 section. It takes four arguments:  The floating-point date value,
 the corresponding six-element date list, the day-of-month number,
-and the weekday number (0-6).
+and the weekday number (0--6).
 
 The default daylight saving hook ignores the time zone name, but a
 more sophisticated hook could use different algorithms for different
@@ -36748,7 +36748,7 @@ time zone number or name from the top of the stack.  @xref{Time Zones}.
 
 @c 17
 @item
-A prefix argument specifies a day number (0-6, 0-31, or 0-366).
+A prefix argument specifies a day number (0--6, 0--31, or 0--366).
 
 @c 18
 @item

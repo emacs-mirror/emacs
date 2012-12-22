@@ -5,7 +5,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2006-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2006--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -898,7 +898,7 @@ client doesn't realize that it has been disconnected.  It takes several
 minutes until the client decides that the connection has in fact been
 lost.  The simple solution is to use @kbd{M-x rcirc}.  The problem is
 that this opens an @emph{additional} connection, so you'll have two
-copies of every channel buffer --- one dead and one live.
+copies of every channel buffer, one dead and one live.
 
 The real answer, therefore, is a @code{/reconnect} command:
 

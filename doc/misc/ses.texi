@@ -11,7 +11,7 @@
 @copying
 This file documents @acronym{SES}: the Simple Emacs Spreadsheet.
 
-Copyright @copyright{} 2002-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2002--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -751,7 +751,7 @@ Export a range of cells as tab-separated values (@code{ses-export-tsv}).
 Export a range of cells as tab-separated formulas (@code{ses-export-tsf}).
 @end table
 
-The exported text goes to the kill ring --- you can paste it into
+The exported text goes to the kill ring; you can paste it into
 another buffer.  Columns are separated by tabs, rows by newlines.
 
 To import text, use any of the yank commands where the text to paste
@@ -947,7 +947,7 @@ order to avoid a virus warning.
 You can define functions by making them values for the fake local
 variable @code{eval}.  Such functions can then be used in your
 formulas and printers, but usually each @code{eval} is presented to
-the user during file loading as a potential virus --- this can get
+the user during file loading as a potential virus.  This can get
 annoying.
 
 You can define functions in your @file{.emacs} file.  Other people can

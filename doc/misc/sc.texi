@@ -14,7 +14,7 @@
 This document describes Supercite, an Emacs package for citing and
 attributing replies to mail and news messages.
 
-Copyright @copyright{} 1993, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1479,7 +1479,7 @@ recognizing specific alternative forms.
 @vindex sc-cite-frame-alist
 @vindex sc-uncite-frame-alist
 @vindex sc-recite-frame-alist
-For each of the actions -- citing, unciting, and reciting -- an alist is
+For each of the actions---citing, unciting, and reciting---an alist is
 consulted to find the frame to use (@code{sc-cite-frame-alist},
 @code{sc-uncite-frame-alist}, and @code{sc-recite-frame-alist}
 respectively).  These frames can contain alists of the form:

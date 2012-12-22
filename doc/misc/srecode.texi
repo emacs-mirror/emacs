@@ -15,7 +15,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -463,7 +463,7 @@ show NAME
 This will enable that section.
 
 
-NOTE: May 11, 2008 - I haven't used this yet, so I don't know if it works.
+NOTE: May 11, 2008: I haven't used this yet, so I don't know if it works.
 
 
 @node Special Variables
@@ -575,10 +575,10 @@ macros which will enable different @var{sections}.  The automatic
 section variables are.
 
 @itemize @bullet
-@item @var{first} - The first entry in the table.
-@item @var{notfirst} - Not the first entry in the table.
-@item @var{last} - The last entry in the table
-@item @var{notlast} - Not the last entry in the table.
+@item @var{first}---The first entry in the table.
+@item @var{notfirst}---Not the first entry in the table.
+@item @var{last}---The last entry in the table
+@item @var{notlast}---Not the last entry in the table.
 @end itemize
 
 @node Compound Variable Values
@@ -1655,7 +1655,7 @@ This would be a field of the class being inserted into.
 
 Inside a body of code, such as a function or method body.
 
- - no conventions yet.
+ ---no conventions yet.
 
 @section Standard Dictionary Values
 
@@ -1779,7 +1779,7 @@ all template files for that application will be loaded.
 @end defun
 
 
- todo - Add examples.  Most core stuff is already described above.
+ todo: Add examples.  Most core stuff is already described above.
 
 
 @node GNU Free Documentation License

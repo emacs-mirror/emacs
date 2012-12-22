@@ -566,9 +566,11 @@ select_window_1 (Lisp_Object window, bool inhibit_point_swap)
 }
 
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
-       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
-Also make WINDOW's buffer current and make WINDOW the frame's selected
-window.  Return WINDOW.
+       doc: /* Select WINDOW which must be a live window.
+Also make WINDOW's frame the selected frame and WINDOW that frame's
+selected window.  In addition, make WINDOW's buffer current and set that
+buffer's value of `point' to the value of WINDOW's `window-point'.
+Return WINDOW.
 
 Optional second arg NORECORD non-nil means do not put this buffer at the
 front of the buffer list and do not make this window the most recently

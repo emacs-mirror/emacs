@@ -1,3 +1,8 @@
+2012-12-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Selecting Windows): Reword description of
+	select-window (Bug#13248).
+
 2012-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.texi (File Attributes, Changing Files): Remove the details

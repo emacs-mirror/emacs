@@ -1296,10 +1296,12 @@ windows.
 @cindex selecting a window
 
 @defun select-window window &optional norecord
-This function makes @var{window} the selected window, as well as the
-window selected within its frame (@pxref{Basic Windows}).  @var{window}
-must be a live window.  This function makes also @var{window}'s buffer
-current (@pxref{Buffers and Windows}).  The return value is
+This function makes @var{window} the selected window and the window
+selected within its frame (@pxref{Basic Windows}) and selects that
+frame.  @var{window} must be a live window.  This function also makes
+@var{window}'s buffer (@pxref{Buffers and Windows}) current and sets
+that buffer's value of @code{point} to the value of @code{window-point}
+(@pxref{Window Point}) in @var{window}.  The return value is
 @var{window}.
 
 By default, this function also moves @var{window}'s buffer to the front
@@ -1865,7 +1867,7 @@ default value is empty, i.e., @code{(nil . nil)}.
 @defopt display-buffer-alist
 The value of this option is an alist mapping conditions to display
 actions.  Each condition may be either a regular expression matching a
-buffer name or a function that takes two arguments - a buffer name and
+buffer name or a function that takes two arguments: a buffer name and
 the @var{action} argument passed to @code{display-buffer}.  If the name
 of the buffer passed to @code{display-buffer} either matches a regular
 expression in this alist or the function specified by a condition
@@ -1966,7 +1968,7 @@ height of the frame's root window.
 
 @item
 If the @sc{cdr} specifies a function, that function is called with one
-argument - the new window.  The function is supposed to adjust the
+argument: the new window.  The function is supposed to adjust the
 height of the window; its return value is ignored.  Suitable functions
 are @code{shrink-window-if-larger-than-buffer} and
 @code{fit-window-to-buffer}, see @ref{Resizing Windows}.
@@ -1987,7 +1989,7 @@ width of the frame's root window.
 
 @item
 If the @sc{cdr} specifies a function, that function is called with one
-argument - the new window.  The function is supposed to adjust the width
+argument: the new window.  The function is supposed to adjust the width
 of the window; its return value is ignored.
 @end itemize
 
@@ -3616,10 +3618,10 @@ This parameter is installed by the buffer display functions
 (@pxref{Choosing Window}) and consulted by @code{quit-restore-window}
 (@pxref{Quitting Windows}).  It contains four elements:
 
-The first element is one of the symbols @code{window} - meaning that the
-window has been specially created by @code{display-buffer}, @code{frame}
-- a separate frame has been created, @code{same} - the window has
-displayed the same buffer before, or @code{other} - the window showed
+The first element is one of the symbols @code{window}, meaning that the
+window has been specially created by @code{display-buffer}; @code{frame},
+a separate frame has been created; @code{same}, the window has
+displayed the same buffer before; or @code{other}, the window showed
 another buffer before.
 
 The second element is either one of the symbols @code{window} or

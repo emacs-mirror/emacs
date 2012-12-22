@@ -650,7 +650,7 @@ the last modification time of that directory, as recorded by Dired.
 For a new buffer visiting a not yet existing file, @var{high} is
 @minus{}1 and @var{low} is 65535, that is,
 @ifnottex
-@w{2**16 - 1.}
+@w{2**16 @minus{} 1.}
 @end ifnottex
 @tex
 @math{2^{16}-1}.

@@ -11,7 +11,7 @@
 @c appreciate a notice if you do).
 
 @copying
-Copyright @copyright{} 2001-2012 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2012 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
 Reuven M. Lerner@*
 Copyright @copyright{} 1992, 1993 Steven Byrnes@*
@@ -2738,7 +2738,7 @@ type @kbd{C-h C-p} to read it.
 
 Old versions (i.e., anything before 19.29) of Emacs had problems editing
 files larger than 8 megabytes.  In versions 19.29 and later, the maximum
-buffer size is at least 2^27-1, or 134,217,727 bytes, or 132 MBytes.
+buffer size is at least 2^27@minus{}1, or 134,217,727 bytes, or 132 MBytes.
 The maximum buffer size on 32-bit machines increased to 256 MBytes in
 Emacs 22, and again to 512 MBytes in Emacs 23.2.
 

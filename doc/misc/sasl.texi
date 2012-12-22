@@ -10,7 +10,7 @@
 @copying
 This file describes the Emacs SASL library, version @value{VERSION}.
 
-Copyright @copyright{} 2000, 2004-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2004--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -54,18 +54,18 @@ SASL is a common interface to share several authentication mechanisms between
 applications using different protocols.
 
 @ifnottex
-@insertcopying 
+@insertcopying
 @end ifnottex
 
 @menu
 * Overview::                    What Emacs SASL library is.
 * How to use::                  Adding authentication support to your applications.
-* Data types::                  
+* Data types::
 * Back end drivers::             Writing your own drivers.
 * GNU Free Documentation License::  The license for this documentation.
-* Index::                       
-* Function Index::              
-* Variable Index::              
+* Index::
+* Function Index::
+* Variable Index::
 @end menu
 
 @node Overview
@@ -106,9 +106,9 @@ security layer---a mechanism, a client parameter and an authentication
 step.
 
 @menu
-* Mechanisms::                  
-* Clients::                     
-* Steps::                       
+* Mechanisms::
+* Clients::
+* Steps::
 @end menu
 
 @node Mechanisms

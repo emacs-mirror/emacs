@@ -2660,7 +2660,7 @@ The command @code{quoted-insert} uses this function.
 @cindex control characters, reading
 @cindex nonprinting characters, reading
 This function is like @code{read-char}, except that if the first
-character read is an octal digit (0-7), it reads any number of octal
+character read is an octal digit (0--7), it reads any number of octal
 digits (but stopping if a non-octal digit is found), and returns the
 character represented by that numeric character code.  If the
 character that terminates the sequence of octal digits is @key{RET},

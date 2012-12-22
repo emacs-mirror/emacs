@@ -1,3 +1,7 @@
+2012-12-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fselect_window): Reword doc-string (Bug#13248).
+
 2012-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32fullscreen_hook): New function.

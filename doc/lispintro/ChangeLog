@@ -1,3 +1,10 @@
+2012-12-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (srcs): New variable, adding doclicense.texi.
+	(${buildinfodir}/eintr$(INFO_EXT), emacs-lisp-intro.dvi)
+	(emacs-lisp-intro.pdf, emacs-lisp-intro.html):
+	Use $srcs for dependencies.
+
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix permissions bugs with setgid directories etc. (Bug#13125)

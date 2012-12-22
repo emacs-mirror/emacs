@@ -43,7 +43,7 @@ minimum range is @minus{}536870912 to 536870911 (30 bits; i.e.,
 @end tex
 to
 @ifnottex
-2**29 - 1),
+2**29 @minus{} 1),
 @end ifnottex
 @tex
 @math{2^{29}-1}),

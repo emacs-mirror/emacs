@@ -3,7 +3,7 @@
 @settitle Emacs SMTP Library
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2003--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -70,8 +70,8 @@ not necessarily involve SMTP, however.  Here is short overview of what
 is involved.
 
 @cindex MUA
-   The mail program --- also called a mail user agent (MUA) ---
-usually sends outgoing mail to a mail host.  When your computer is
+   The mail program---also called a mail user agent (MUA)---usually
+sends outgoing mail to a mail host.  When your computer is
 permanently connected to the internet, it might even be a mail host
 itself.  In this case, the MUA will pipe mail to the
 @file{/usr/lib/sendmail} application.  It will take care of your mail
@@ -283,8 +283,8 @@ The variable @code{smtpmail-stream-type} controls what form of
 connection the SMTP library uses.  The default value is @code{nil},
 which means to use a plain connection, but try to switch to a STARTTLS
 encrypted connection if the server supports it.  Other possible values
-are: @code{starttls} - insist on STARTTLS; @code{ssl} - use TLS/SSL;
-and @code{plain} - no encryption.
+are: @code{starttls} to insist on STARTTLS; @code{ssl} to use TLS/SSL;
+and @code{plain} for encryption.
 
 Use of any form of TLS/SSL requires support in Emacs.  You can either
 use the built-in support (in Emacs 24.1 and later), or the
