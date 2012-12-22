@@ -58,7 +58,7 @@ over and over again.  This is especially true of form letters and programming
 language constructs.  Project-specific header comments, flow-control
 constructs or magic numbers are essentially the same every time.  Emacs has
 various features for doing tedious and repetitive typing chores for you
-in addition to the Abbrev features (@pxref{(emacs)Abbrevs}).
+in addition to the Abbrev features (@pxref{Abbrevs,,, emacs, The GNU Emacs Manual}).
 
   One solution is using skeletons, flexible rules that say what to
 insert, and how to do it.  Various programming language modes offer some
@@ -113,7 +113,7 @@ completions and expansions of text at point.
 programming language you are using, skeletons are a means of accomplishing
 this.  Normally skeletons each have a command of their own, that, when called,
 will insert the skeleton.  These commands can be issued in the usual ways
-(@pxref{(emacs)Commands}).  Modes that offer various skeletons will often
+(@pxref{Commands,,, emacs, The GNU Emacs Manual}).  Modes that offer various skeletons will often
 bind these to key-sequences on the @kbd{C-c} prefix, as well as having
 an @cite{Insert} menu and maybe even predefined abbrevs for them
 (@pxref{Skeletons as Abbrevs}).
@@ -146,18 +146,18 @@ accomplishing this, and can even, in the case of programming languages,
 reindent the wrapped code for you.
 
   Skeleton commands take an optional numeric prefix argument
-(@pxref{(emacs)Arguments}).  This is interpreted in two different ways depending
+(@pxref{Arguments,,, emacs, The GNU Emacs Manual}).  This is interpreted in two different ways depending
 on whether the prefix is positive, i.e., forwards oriented, or negative,
 i.e., backwards oriented.
 
   A positive prefix means to wrap the skeleton around that many
 following words.  This is accomplished by putting the words there where
 the point is normally left after that skeleton is inserted (@pxref{Using
-Skeletons}).  The point (@pxref{(emacs)Point}) is left at the next
+Skeletons}).  The point (@pxref{Point,,, emacs, The GNU Emacs Manual}) is left at the next
 interesting spot in the skeleton instead.
 
   A negative prefix means to do something similar with that many previously
-marked interregions (@pxref{(emacs)Mark}).  In the simplest case, if you type
+marked interregions (@pxref{Mark,,, emacs, The GNU Emacs Manual}).  In the simplest case, if you type
 @kbd{M--} just before issuing the skeleton command, that will wrap the
 skeleton around the current region, just like a positive argument would have
 wrapped it around a number of words.
@@ -189,8 +189,8 @@ tried to follow the order in which you marked these points.
 @cindex skeletons as abbrevs
 
   Rather than use a key binding for every skeleton command, you can also
-define an abbreviation (@pxref{(emacs)Defining Abbrevs}) that will expand
-(@pxref{(emacs)Expanding Abbrevs}) into the skeleton.
+define an abbreviation (@pxref{Defining Abbrevs,,, emacs, The GNU Emacs Manual}) that will expand
+(@pxref{Expanding Abbrevs,,, emacs, The GNU Emacs Manual}) into the skeleton.
 
   Say you want @samp{ifst} to be an abbreviation for the C language if
 statement.  You will tell Emacs that @samp{ifst} expands to the empty string
@@ -290,7 +290,7 @@ skeleton.  The first argument is the command name, the second is a
 documentation string, and the rest is an interactor and any number of skeleton
 elements together forming a skeleton.  This skeleton is assigned to a variable
 of the same name as the command and can thus be overridden from your
-@file{~/.emacs} file (@pxref{(emacs)Init File}).
+@file{~/.emacs} file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 
 
 
@@ -309,14 +309,14 @@ fingers backwards, this can be quite relieving too.
 
 @findex skeleton-pair-insert-maybe
 @vindex skeleton-pair
-  This is done by binding the first key (@pxref{(emacs)Rebinding}) of
+  This is done by binding the first key (@pxref{Rebinding,,, emacs, The GNU Emacs Manual}) of
 the pair to @code{skeleton-pair-insert-maybe} instead of
 @code{self-insert-command}.  The ``maybe'' comes from the fact that
 this at-first surprising behavior is initially turned off.  To enable
 it, you must set @code{skeleton-pair} to some non-@code{nil} value.
-And even then, a positive argument (@pxref{(emacs)Arguments}) will
+And even then, a positive argument (@pxref{Arguments,,, emacs, The GNU Emacs Manual}) will
 make this key behave like a self-inserting key
-(@pxref{(emacs)Inserting Text}).
+(@pxref{Inserting Text,,, emacs, The GNU Emacs Manual}).
 
 @vindex skeleton-pair-on-word
   While this breaks with the stated intention of always balancing pairs, it
@@ -354,7 +354,7 @@ the buffer.  The main application for this function, as its name suggests,
 is to have it be called automatically every time an empty, and only an
 empty file is visited.  This is accomplished by putting @code{(add-hook
 'find-file-hook 'auto-insert)} into your @file{~/.emacs} file
-(@pxref{(emacs)Init File}).
+(@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 
 @vindex auto-insert-alist
   What gets inserted, if anything, is determined by the variable
@@ -392,10 +392,10 @@ source files insert the usual header, with a copyright of your
 environment variable @env{$ORGANIZATION} or else the FSF, and prompt
 for valid keywords describing the contents.  Files in a @file{bin}
 directory for which Emacs could determine no specialized mode
-(@pxref{(emacs)Choosing Modes}) are set to Shell script mode.
+(@pxref{Choosing Modes,,, emacs, The GNU Emacs Manual}) are set to Shell script mode.
 
 @findex define-auto-insert
-  In Lisp (@pxref{(emacs)Init File}) you can use the function
+  In Lisp (@pxref{Init File,,, emacs, The GNU Emacs Manual}) you can use the function
 @code{define-auto-insert} to add to or modify
 @code{auto-insert-alist}.  See its documentation with @kbd{C-h f
 define-auto-insert}.
@@ -438,7 +438,7 @@ expression that matched the filename.
   @kbd{M-x copyright} is a skeleton inserting command, that adds a copyright
 notice at the point.  The ``by'' part is taken from your environment variable
 @env{$ORGANIZATION} or if that isn't set you are prompted for it.  If the
-buffer has a comment syntax (@pxref{(emacs)Comments}), this is inserted as a comment.
+buffer has a comment syntax (@pxref{Comments,,, emacs, The GNU Emacs Manual}), this is inserted as a comment.
 
 @findex copyright-update
 @vindex copyright-limit
@@ -450,13 +450,13 @@ existing ones, in the same format as the preceding year, i.e., 1994, '94 or 94.
 If a dash-separated year list up to last year is found, that is extended to
 current year, else the year is added separated by a comma.  Or it replaces
 them when this is called with a prefix argument.  If a header referring to a
-wrong version of the GNU General Public License (@pxref{(emacs)Copying}) is found,
+wrong version of the GNU General Public License (@pxref{Copying,,, emacs, The GNU Emacs Manual}) is found,
 that is updated too.
 
   An interesting application for this function is to have it be called
 automatically every time a file is saved.  This is accomplished by
 putting @code{(add-hook 'before-save-hook 'copyright-update)} into
-your @file{~/.emacs} file (@pxref{(emacs)Init File}).  Alternative,
+your @file{~/.emacs} file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).  Alternative,
 you can do @kbd{M-x customize-variable @key{RET} before-save-hook
 @key{RET}}.  @code{copyright-update} is conveniently listed as an
 option in the customization buffer.

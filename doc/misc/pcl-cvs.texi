@@ -1169,13 +1169,13 @@ kill the contents of the buffer with @kbd{C-w}.
 
 @findex log-edit-insert-changelog
 If you work by writing entries in the @file{ChangeLog}
-(@pxref{(emacs)Change Log}) and then commit the change under revision
+(@pxref{Change Log,,, emacs, The GNU Emacs Manual}) and then commit the change under revision
 control, you can generate the Log Edit text from the ChangeLog using
 @kbd{C-c C-a} (@kbd{log-edit-insert-changelog}).  This looks for
 entries for the file(s) concerned in the top entry in the ChangeLog
 and uses those paragraphs as the log text.  This text is only inserted
 if the top entry was made under your user name on the current date.
-@xref{(emacs)Change Logs and VC}, for the opposite way of
+@xref{Change Logs and VC,,, emacs, The GNU Emacs Manual}, for the opposite way of
 working---generating ChangeLog entries from the revision control log.
 
 In the Log Edit buffer, @kbd{C-c C-f} (@kbd{M-x log-edit-show-files})

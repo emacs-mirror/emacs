@@ -1110,7 +1110,7 @@ superclasses.  In this way, specific behaviors such as how a project
 is saved, or how a target is compiled can be customized by a project
 author in detail.  @ede{} communicates to these project objects via an
 API using methods.  The commands you use in @ede{} mode are high-level
-functional wrappers over these methods.  @xref{(eieio)Top}. For
+functional wrappers over these methods.  @xref{Top,,, eieio, EIEIO manual}. For
 details on using @eieio{} to extending classes, and writing methods.
 
 If you intend to extend @ede{}, it is most likely that a new target type is
@@ -1361,7 +1361,8 @@ association when a file is loaded.  It is generally unnecessary to
 override this unless you keep auxiliary files.
 @end table
 
-These methods are used by the semantic package extensions @xref{(semantic)Top}.
+These methods are used by the semantic package extensions.
+@xref{Top,,, semantic, Semantic manual}.
 
 @table @code
 @item ede-buffer-header-file
