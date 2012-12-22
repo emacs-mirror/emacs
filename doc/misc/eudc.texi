@@ -48,9 +48,8 @@ modify this GNU manual.''
 @contents
 
 @ifnottex
-@node     Top, Overview, (dir), (dir)
+@node     Top
 @top Emacs Unified Directory Client
-@comment  node-name,  next,         previous, up
 
 @insertcopying
 @end ifnottex
@@ -69,8 +68,7 @@ modify this GNU manual.''
 
 
 
-@node     Overview, Installation, Top, Top
-@comment  node-name,   next,  previous,  up
+@node     Overview
 @chapter Overview
 
 EUDC, the @dfn{Emacs Unified Directory Client}, provides a common user
@@ -115,8 +113,7 @@ Interface to BBDB to let you insert server records into your own BBDB database
 
 
 
-@node LDAP, CCSO PH/QI, Overview, Overview
-@comment  node-name,  next,  previous,  up
+@node LDAP
 @section LDAP
 
 LDAP, @dfn{the Lightweight Directory Access Protocol}, is a communication
@@ -142,8 +139,7 @@ EUDC requires external support to access LDAP directory servers
 (@pxref{LDAP Requirements})
 
 
-@node CCSO PH/QI, BBDB, LDAP, Overview
-@comment  node-name,  next,  previous,  up
+@node CCSO PH/QI
 @section CCSO PH/QI
 
 The Central Computing Services Office (CCSO) of the University of
@@ -164,8 +160,7 @@ possible to change records in the database.  This is not implemented in
 EUDC.
 
 
-@node BBDB,  , CCSO PH/QI, Overview
-@comment  node-name,  next,  previous,  up
+@node BBDB
 @section BBDB
 
 BBDB is the @dfn{Big Brother's Insidious Database}, a package for Emacs
@@ -187,8 +182,7 @@ performing queries on multiple servers.
 EUDC also offers a means to insert results from directory queries into
 your own local BBDB (@pxref{Creating BBDB Records})
 
-@node Installation, Usage, Overview, Top
-@comment  node-name,  next,  previous,  up
+@node Installation
 @chapter Installation
 
 Add the following to your @file{.emacs} init file:
@@ -218,8 +212,7 @@ email composition buffers (@pxref{Inline Query Expansion})
 * LDAP Requirements::           EUDC needs external support for LDAP
 @end menu
 
-@node LDAP Requirements,  , Installation, Installation
-@comment  node-name,  next,  previous,  up
+@node LDAP Requirements
 @section LDAP Requirements
 
 LDAP support is added by means of @file{ldap.el}, which is part of Emacs.
@@ -228,8 +221,7 @@ LDAP support is added by means of @file{ldap.el}, which is part of Emacs.
 (@url{http://www.openldap.org/}).
 
 
-@node Usage, Credits, Installation, Top
-@comment  node-name,  next,  previous,  up
+@node Usage
 @chapter Usage
 
 This chapter describes the usage of EUDC@.  Most functions and
@@ -248,8 +240,7 @@ submenu of the @samp{Tools} submenu.
 @end menu
 
 
-@node Querying Servers, Query Form, Usage, Usage
-@comment  node-name,  next,  previous,  up
+@node Querying Servers
 @section Querying Servers
 
 EUDC's basic functionality is to let you query a directory server and
@@ -263,7 +254,7 @@ to customize in this process.
 * Duplicate Attributes::        What to do when records have duplicate attributes
 @end menu
 
-@node Selecting a Server, Return Attributes, Querying Servers, Querying Servers
+@node Selecting a Server
 @subsection Selecting a Server
 
 Before doing any query you will need to set the directory server.  You
@@ -302,7 +293,7 @@ This command accessible from @samp{New Server} submenu lets you specify a
 new directory server and protocol.
 @end deffn
 
-@node Return Attributes, Duplicate Attributes, Selecting a Server, Querying Servers
+@node Return Attributes
 @subsection Return Attributes
 
 Directory servers may be configured to return a default set of
@@ -326,7 +317,7 @@ If non-@code{nil}, entries that do not contain all the requested return
 attributes are ignored.  Default is @code{t}.
 @end defopt
 
-@node Duplicate Attributes,  , Return Attributes, Querying Servers
+@node Duplicate Attributes
 @subsection Duplicate Attributes
 
 Directory standards may authorize different instances of the same
@@ -381,8 +372,7 @@ to all attribute names. Available methods are: @code{list},
 
 
 
-@node Query Form, Display of Query Results, Querying Servers, Usage
-@comment  node-name,  next,  previous,  up
+@node Query Form
 @section Query Form
 
 The simplest way to query your directory server is to use the query
@@ -436,8 +426,7 @@ Otherwise, directory query/response forms display the user attribute
 names defined in @code{eudc-user-attribute-names-alist}.
 @end defvar
 
-@node Display of Query Results, Inline Query Expansion, Query Form, Usage
-@comment  node-name,  next,  previous,  up
+@node Display of Query Results
 @section Display of Query Results
 
 Upon successful completion of a form query, EUDC will display a buffer
@@ -514,8 +503,7 @@ be passed to the program.
 @end defvar
 
 
-@node Inline Query Expansion, The Server Hotlist, Display of Query Results, Usage
-@comment  node-name,  next,  previous,  up
+@node Inline Query Expansion
 @section Inline Query Expansion
 
 Inline query expansion is a powerful method to get completion from your
@@ -615,8 +603,7 @@ Default is @code{select}
 
 
 
-@node The Server Hotlist, Multi-server Queries, Inline Query Expansion, Usage
-@comment  node-name,  next,  previous,  up
+@node The Server Hotlist
 @section The Server Hotlist
 
 EUDC lets you maintain a list of frequently used servers so that you
@@ -654,8 +641,7 @@ loaded.
 * The Hotlist Edit Buffer::     An interactive hotlist editing facility
 @end menu
 
-@node The Hotlist Edit Buffer,  , The Server Hotlist, The Server Hotlist
-@comment  node-name,  next,  previous,  up
+@node The Hotlist Edit Buffer
 @subsection The Hotlist Edit Buffer
 
 The hotlist edit buffer offers a means to manage a list of frequently
@@ -691,8 +677,7 @@ Save the changes and quit the hotlist edit buffer.  Use @kbd{x} or
 @end deffn
 
 
-@node Multi-server Queries, Creating BBDB Records, The Server Hotlist, Usage
-@comment  node-name,  next,  previous,  up
+@node Multi-server Queries
 @section Multi-server Queries
 
 When using inline query expansion (@pxref{Inline Query Expansion}), EUDC
@@ -723,8 +708,7 @@ that all available servers should be tried.
 
 
 
-@node Creating BBDB Records, Server/Protocol Locals, Multi-server Queries, Usage
-@comment  node-name,  next,  previous,  up
+@node Creating BBDB Records
 @section Creating BBDB Records
 
 @findex eudc-insert-record-at-point-into-bbdb
@@ -839,8 +823,7 @@ Note that only a subset of the attributes you selected with
 actually be inserted as part of the newly created BBDB record.
 
 
-@node Server/Protocol Locals,  , Creating BBDB Records, Usage
-@comment  node-name,  next,  previous,  up
+@node Server/Protocol Locals
 @section Server/Protocol Locals
 
 EUDC can be customized independently for each server or directory
@@ -852,8 +835,7 @@ like buffer-local bindings but on a per server or per protocol basis.
 * Manipulating local bindings::  Functions to set and query local bindings
 @end menu
 
-@node Manipulating local bindings,  , Server/Protocol Locals, Server/Protocol Locals
-@comment  node-name,  next,  previous,  up
+@node Manipulating local bindings
 @subsection Manipulating local bindings
 
 EUDC offers functions that let you set and query variables on a per
@@ -930,8 +912,7 @@ Update all EUDC variables according to their local settings.
 
 
 
-@node Credits, GNU Free Documentation License, Usage, Top
-@comment  node-name,  next,  previous,  up
+@node Credits
 @chapter Credits
 
 EUDC was written by Oscar Figueiredo based on @file{ph.el} by the
@@ -940,18 +921,16 @@ same author.
 Thanks to Soren Dayton for his suggestions, his enthusiasm and his help
 in testing and proofreading the code and docs of @file{ph.el}.
 
-@node GNU Free Documentation License, Command and Function Index, Credits, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Command and Function Index, Variables Index, GNU Free Documentation License, Top
-@comment  node-name,  next,  previous,  up
+@node Command and Function Index
 @unnumbered Command and Function Index
 
 @printindex fn
 
-@node Variables Index,  , Command and Function Index, Top
-@comment  node-name,  next,  previous,  up
+@node Variables Index
 @unnumbered Variables Index
 
 @printindex vr

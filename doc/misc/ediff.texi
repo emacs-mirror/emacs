@@ -61,7 +61,7 @@ modify this GNU manual.''
 
 @contents
 
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top Ediff
 
 @insertcopying
@@ -79,7 +79,7 @@ modify this GNU manual.''
 * Index::
 @end menu
 
-@node Introduction, Major Entry Points, Top, Top
+@node Introduction
 @chapter Introduction
 
 @cindex Comparing files and buffers
@@ -127,7 +127,7 @@ functions are adaptations from Emerge.  Although Ediff subsumes and greatly
 extends Emerge, much of the functionality in Ediff is influenced by Emerge.
 The architecture and the interface are, of course, drastically different.
 
-@node Major Entry Points, Session Commands, Introduction, Top
+@node Major Entry Points
 @chapter Major Entry Points
 
 When Ediff starts up, it displays a small control window, which accepts the
@@ -397,7 +397,7 @@ Moreover, the functions @code{ediff-directory-revisions},
 related Ediff sessions by taking a directory and comparing (or merging)
 versions of files in that directory.
 
-@node Session Commands, Registry of Ediff Sessions, Major Entry Points, Top
+@node Session Commands
 @chapter Session Commands
 
 All Ediff commands are displayed in a Quick Help window, unless you type
@@ -430,7 +430,7 @@ command (see @kbd{ga}, @kbd{gb}, and @kbd{gc}).
 * Other Session Commands::          Commands that are not bound to keys.
 @end menu
 
-@node Quick Help Commands,Other Session Commands,,Session Commands
+@node Quick Help Commands
 @section Quick Help Commands
 @cindex command help
 @cindex important commands
@@ -911,7 +911,7 @@ merge buffer and then select regions in those buffers.
 
 @end table
 
-@node Other Session Commands,,Quick Help Commands,Session Commands
+@node Other Session Commands
 @section Other Session Commands
 
 The following commands can be invoked from within any Ediff session,
@@ -977,7 +977,7 @@ making it run faster.  The function @code{ediff-profile} toggles
 profiling of ediff commands.
 @end table
 
-@node Registry of Ediff Sessions, Session Groups, Session Commands, Top
+@node Registry of Ediff Sessions
 @chapter Registry of Ediff Sessions
 
 Ediff maintains a registry of all its invocations that are
@@ -1008,7 +1008,7 @@ and @kbd{DEL} (previous registry record).  There are other commands as well,
 but you don't need to memorize them, since they are listed at the top of
 the registry buffer.
 
-@node Session Groups, Remote and Compressed Files, Registry of Ediff Sessions, Top
+@node Session Groups
 @chapter Session Groups
 
 Several major entries of Ediff perform comparison and merging on
@@ -1127,7 +1127,7 @@ user whether or not to do a recursive descent.
 
 
 
-@node Remote and Compressed Files, Customization, Session Groups, Top
+@node Remote and Compressed Files
 @chapter Remote and Compressed Files
 
 Ediff works with remote, compressed, and encrypted files.  Ediff
@@ -1150,7 +1150,7 @@ i.e., the original is renamed into @file{source-name.orig} and the result
 of the patch is placed into the file source-name (@file{_orig} is used
 on systems like DOS, etc.)
 
-@node Customization, Credits, Remote and Compressed Files, Top
+@node Customization
 @chapter Customization
 
 Ediff has a rather self-explanatory interface, and in most cases you
@@ -1186,7 +1186,7 @@ refer to Emacs manual for the information on how to set Emacs X resources.
 * Notes on Heavy-duty Customization::  Customization for the gurus.
 @end menu
 
-@node Hooks, Quick Help Customization, Customization, Customization
+@node Hooks
 @section Hooks
 
 The bulk of customization can be done via the following hooks:
@@ -1332,7 +1332,7 @@ map that controls key bindings in the meta buffer.  Since
 bindings for different kinds of meta buffers.
 @end table
 
-@node Quick Help Customization, Window and Frame Configuration, Hooks, Customization
+@node Quick Help Customization
 @section Quick Help Customization
 @vindex ediff-use-long-help-message
 @vindex ediff-control-buffer
@@ -1356,7 +1356,7 @@ basis, you must use @code{ediff-startup-hook} to change the value of
 the variable @code{ediff-help-message}, which is local to
 @code{ediff-control-buffer}.
 
-@node Window and Frame Configuration, Selective Browsing, Quick Help Customization, Customization
+@node Window and Frame Configuration
 @section Window and Frame Configuration
 
 On a non-windowing display, Ediff sets things up in one frame, splitting
@@ -1493,7 +1493,7 @@ can switch between sessions by suspending one session and then switching
 to another control panel.  (Different control panel buffers are
 distinguished by a numerical suffix, e.g., @samp{Ediff Control Panel<3>}.)
 
-@node Selective Browsing, Highlighting Difference Regions, Window and Frame Configuration, Customization
+@node Selective Browsing
 @section Selective Browsing
 
 Sometimes it is convenient to be able to step through only some difference
@@ -1608,7 +1608,7 @@ ignoring letter case or not. It can be set in @file{.emacs} using
 When case sensitivity is toggled, all difference
 regions are recomputed.
 
-@node Highlighting Difference Regions, Narrowing, Selective Browsing, Customization
+@node Highlighting Difference Regions
 @section Highlighting Difference Regions
 
 The following variables control the way Ediff highlights difference
@@ -1735,7 +1735,7 @@ faces, you can modify them when Ediff is being loaded using
 or @code{set/make-face-@dots{}} as shown above. Emacs's low-level
 face-manipulation functions should be avoided.
 
-@node Narrowing, Refinement of Difference Regions, Highlighting Difference Regions, Customization
+@node Narrowing
 @section Narrowing
 
 If buffers being compared are narrowed at the time of invocation of
@@ -1767,7 +1767,7 @@ Controls whether on quitting Ediff should restore the accessible range
 that existed before the current invocation.
 @end table
 
-@node Refinement of Difference Regions, Patch and Diff Programs, Narrowing, Customization
+@node Refinement of Difference Regions
 @section Refinement of Difference Regions
 
 Ediff has variables to control the way fine differences are
@@ -1839,7 +1839,7 @@ command @kbd{@@}.  Repeated typing of this key cycles through three
 different states: auto-refining, no-auto-refining, and no-highlighting
 of fine differences.
 
-@node Patch and Diff Programs, Merging and diff3, Refinement of Difference Regions, Customization
+@node Patch and Diff Programs
 @section Patch and Diff Programs
 
 This section describes variables that specify the programs to be used for
@@ -1948,7 +1948,7 @@ Specifies the default directory to look for patches.
 @code{diff}.  Instead, make sure you are using some implementation of POSIX
 @code{diff}, such as @code{gnudiff}.
 
-@node Merging and diff3, Support for Version Control, Patch and Diff Programs, Customization
+@node Merging and diff3
 @section Merging and diff3
 
 Ediff supports three-way comparison via the functions @code{ediff-files3} and
@@ -2152,7 +2152,7 @@ When merge buffers are saved automatically as directed by
 specified by the variable @code{ediff-merge-filename-prefix}. The default
 is @code{merge_}, but this can be changed by the user.
 
-@node Support for Version Control, Customizing the Mode Line, Merging and diff3, Customization
+@node Support for Version Control
 @section Support for Version Control
 
 
@@ -2197,7 +2197,7 @@ In case of @file{pcl-cvs.el}, Ediff can also be invoked via the function
 @code{run-ediff-from-cvs-buffer}---see the documentation string for this
 function.
 
-@node Customizing the Mode Line, Miscellaneous, Support for Version Control, Customization
+@node Customizing the Mode Line
 @section Customizing the Mode Line
 
 When Ediff is running, the mode line of @samp{Ediff Control Panel}
@@ -2216,7 +2216,7 @@ don't like the way Ediff changes the mode line, you can use
 @pindex @file{uniquify.el}
 @pindex @file{mode-line.el}
 
-@node Miscellaneous, Notes on Heavy-duty Customization, Customizing the Mode Line, Customization
+@node Miscellaneous
 @section Miscellaneous
 
 Here are a few other variables for customizing Ediff:
@@ -2333,7 +2333,7 @@ Try different settings and see which one is for you.
 @end table
 
 
-@node Notes on Heavy-duty Customization, , Miscellaneous, Customization
+@node Notes on Heavy-duty Customization
 @section Notes on Heavy-duty Customization
 
 Some users need to customize Ediff in rather sophisticated ways, which
@@ -2402,7 +2402,7 @@ non-@code{nil} only if Ediff uses the multiframe display, i.e., when
 the control buffer is in its own frame.
 @end table
 
-@node Credits, GNU Free Documentation License, Customization, Top
+@node Credits
 @chapter Credits
 
 Ediff was written by Michael Kifer <kifer@@cs.stonybrook.edu>.  It was inspired
@@ -2520,12 +2520,12 @@ Ilya Zakharevich (ilya at math.ohio-state.edu),
 Eli Zaretskii (eliz at is.elta.co.il)
 @end example
 
-@node GNU Free Documentation License, Index, Credits, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
 
-@node Index, , GNU Free Documentation License, Top
+@node Index
 @unnumbered Index
 @printindex cp
 

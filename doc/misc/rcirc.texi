@@ -35,7 +35,7 @@ modify this GNU manual.''
 @contents
 
 @ifnottex
-@node Top, Basics, (dir), (dir)
+@node Top
 @top rcirc Manual
 
 @code{rcirc} is an Emacs IRC client.
@@ -92,7 +92,7 @@ Hacking and Tweaking
 @end detailmenu
 @end menu
 
-@node Basics, Reference, Top, Top
+@node Basics
 @chapter Basics
 
 This chapter contains a brief introduction to IRC (Internet Relay Chat),
@@ -103,7 +103,7 @@ and a quick tutorial on @code{rcirc}.
 * Getting started with rcirc::
 @end menu
 
-@node Internet Relay Chat, Getting started with rcirc, Basics, Basics
+@node Internet Relay Chat
 @section Internet Relay Chat
 @cindex internet relay chat
 @cindex irc
@@ -156,7 +156,7 @@ deego: fsbot rules!
 @kindex TAB
 Since this is so common, you can use @key{TAB} to do nick completion.
 
-@node Getting started with rcirc, , Internet Relay Chat, Basics
+@node Getting started with rcirc
 @section Getting started with rcirc
 @cindex getting started
 @cindex connecting to a server
@@ -245,7 +245,7 @@ To make this permanent, add the following to your init file:
 
 Use @kbd{C-c C-@key{SPC}} to switch to these buffers.
 
-@node Reference, Fighting Information Overload, Basics, Top
+@node Reference
 @chapter Reference
 @cindex reference
 
@@ -259,7 +259,7 @@ documentation.
 * Configuration::
 @end menu
 
-@node rcirc commands, Useful IRC commands, Reference, Reference
+@node rcirc commands
 @section rcirc commands
 @cindex rcirc commands
 @cindex commands
@@ -402,7 +402,7 @@ buffer, you automatically quit the server and part all channels.  (Also
 @code{/quit ZZZzzz...}.)
 @end table
 
-@node Useful IRC commands, Configuration, rcirc commands, Reference
+@node Useful IRC commands
 @section Useful IRC commands
 @cindex irc commands
 @cindex commands
@@ -430,7 +430,7 @@ about the fantastic world of IRC online at
 @uref{http://www.irchelp.org/, the Internet Relay Chat (IRC) help
 archive}.
 
-@node Configuration, , Useful IRC commands, Reference
+@node Configuration
 @section Configuration
 @cindex configuring rcirc
 
@@ -594,7 +594,7 @@ confuse the Bitlbee account with all the other accounts.
 
 @end table
 
-@node Fighting Information Overload, Hacking and Tweaking, Reference, Top
+@node Fighting Information Overload
 @chapter Fighting Information Overload
 @cindex information overload
 
@@ -610,7 +610,7 @@ daunting task.  This chapters tells you how @code{rcirc} can help.
 * Notices::
 @end menu
 
-@node Channels, People, Fighting Information Overload, Fighting Information Overload
+@node Channels
 @section Channels
 @cindex channels
 @cindex modeline
@@ -668,7 +668,7 @@ If you prefer a channel to never show up in the modeline, then you
 have to ignore it.  Use @kbd{C-c @key{TAB}} to ignore the current
 channel.
 
-@node People, Keywords, Channels, Fighting Information Overload
+@node People
 @section People
 @cindex people, how to ignore
 @cindex nicks, how to ignore
@@ -726,7 +726,7 @@ messages by dimmed nicks will not register as activity.  Example:
 @end table
 
 
-@node Keywords, Notices, People, Fighting Information Overload
+@node Keywords
 @section Keywords
 @cindex keywords
 
@@ -742,7 +742,7 @@ one.  If you don't provide a keyword, the current keywords are
 listed.  Example: @code{/keyword manual}.
 @end table
 
-@node Notices, , Keywords, Fighting Information Overload
+@node Notices
 @section Notices
 @cindex part notices, how to omit
 @cindex join notices, how to omit
@@ -774,7 +774,7 @@ active and only omits a message if the nick has not been active.  The
 window @code{rcirc} considers is controlled by the
 @code{rcirc-omit-threshold} variable.
 
-@node Hacking and Tweaking, GNU Free Documentation License, Fighting Information Overload, Top
+@node Hacking and Tweaking
 @chapter Hacking and Tweaking
 @cindex hacking and tweaking
 
@@ -789,7 +789,7 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 * Reconnecting after you have lost the connection::
 @end menu
 
-@node Skipping /away messages using handlers, Using fly spell mode, Hacking and Tweaking, Hacking and Tweaking
+@node Skipping /away messages using handlers
 @section Skipping @code{/away} messages using handlers
 @cindex /away messages
 
@@ -809,7 +809,7 @@ require @code{rcirc} before defining the handler:
   "/away message handler.")
 @end example
 
-@node Using fly spell mode, Scrolling conservatively, Skipping /away messages using handlers, Hacking and Tweaking
+@node Using fly spell mode
 @section Using fly spell mode
 @cindex fly spell
 @cindex spelling
@@ -828,7 +828,7 @@ for @code{rcirc} buffers:
 @xref{Spelling, , Flyspell mode, emacs, The GNU Emacs Manual},
 for details.
 
-@node Scrolling conservatively, Changing the time stamp format, Using fly spell mode, Hacking and Tweaking
+@node Scrolling conservatively
 @section Scrolling conservatively
 @cindex input line
 @cindex scrolling
@@ -850,7 +850,7 @@ window when possible.  The following snippet uses a local value for
 @xref{Scrolling, , Scrolling conservatively, emacs, The GNU Emacs
 Manual}, for details.
 
-@node Changing the time stamp format, Defining a new command, Scrolling conservatively, Hacking and Tweaking
+@node Changing the time stamp format
 @section Changing the time stamp format
 @cindex time stamp
 @cindex date time
@@ -864,7 +864,7 @@ how to include the date in the time stamp:
 (setq rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
 
-@node Defining a new command, Reconnecting after you have lost the connection, Changing the time stamp format, Hacking and Tweaking
+@node Defining a new command
 @section Defining a new command
 @cindex defining commands
 @cindex commands, defining
@@ -887,7 +887,7 @@ because @code{defun-rcirc-command} is not yet available, and without
                          (concat "I use " rcirc-id-string))))
 @end smallexample
 
-@node Reconnecting after you have lost the connection, , Defining a new command, Hacking and Tweaking
+@node Reconnecting after you have lost the connection
 @section Reconnecting after you have lost the connection
 @cindex reconnecting
 @cindex disconnecting servers, reconnecting
@@ -928,20 +928,20 @@ The real answer, therefore, is a @code{/reconnect} command:
                       channels))))
 @end smallexample
 
-@node GNU Free Documentation License, Key Index, Hacking and Tweaking, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
 
-@node Key Index, Variable Index, GNU Free Documentation License, Top
+@node Key Index
 @unnumbered Key Index
 @printindex ky
 
-@node Variable Index, Index, Key Index, Top
+@node Variable Index
 @unnumbered Variable Index
 @printindex vr
 
-@node Index, , Variable Index, Top
+@node Index
 @unnumbered Index
 @printindex cp
 

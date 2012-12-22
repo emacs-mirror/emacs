@@ -40,7 +40,7 @@ modify this GNU manual.''
 @end direntry
 
 @ifnottex
-@node Top, Survey,, (DIR)
+@node Top
 @top VIP
 
 VIP is a Vi emulating package written in Emacs Lisp.  VIP implements most
@@ -90,7 +90,7 @@ Comments and bug reports are welcome.  Please send messages to
 @code{masahiko@@unsun.riec.tohoku.junet} if you are in Japan.
 @end iftex
 
-@node Survey, Basic Concepts, Top, Top
+@node Survey
 @chapter A Survey of VIP
 
 In this chapter we describe basics of VIP with emphasis on the features not
@@ -104,7 +104,7 @@ found in Vi and on how to use VIP under GNU Emacs.
 * Differences from Vi:: Differences of VIP from Vi is explained.
 @end menu
 
-@node Basic Concepts, Loading VIP, Survey, Survey
+@node Basic Concepts
 @section Basic Concepts
 
 We begin by explaining some basic concepts of Emacs.  These concepts are
@@ -151,7 +151,7 @@ be executed when you type the key.  If no function is bound to a key in the
 local map, however, the function bound to the key in the global map becomes
 in effect.@refill
 
-@node Loading VIP, Modes in VIP, Basic Concepts, Survey
+@node Loading VIP
 @section Loading VIP
 
 The recommended way to load VIP automatically is to include the line:
@@ -177,7 +177,7 @@ M-x vip-mode
 @end example
 @noindent
 
-@node Modes in VIP, Emacs Mode, Loading VIP, Survey
+@node Modes in VIP
 @section Modes in VIP
 
 @kindex 032 @kbd{C-z} (@code{vip-change-mode-to-vi})
@@ -257,7 +257,7 @@ emacs mode             vi mode                 insert mode
                           know enough Emacs commands.
 @end menu
 
-@node Emacs Mode, Vi Mode, Modes in VIP, Modes in VIP
+@node Emacs Mode
 @subsection Emacs Mode
 
 @kindex 032 @kbd{C-z} (@code{vip-change-mode-to-vi})
@@ -267,14 +267,14 @@ normal Emacs editing in this mode.  Note that the key @kbd{C-z} is globally
 bound to @code{vip-change-mode-to-vi}.  So, if you type @kbd{C-z} in this mode
 then you will be in vi mode.@refill
 
-@node Vi Mode, Insert Mode, Emacs Mode, Modes in VIP
+@node Vi Mode
 @subsection Vi Mode
 
 This mode corresponds to Vi's command mode.  Most Vi commands work as they
 do in Vi.  You can go back to emacs mode by typing @kbd{C-z}.  You can
 enter insert mode, just as in Vi, by typing @kbd{i}, @kbd{a} etc.
 
-@node Insert Mode, Differences from Vi, Vi Mode, Modes in VIP
+@node Insert Mode
 @subsection Insert Mode
 
 The key bindings in this mode is the same as in the emacs mode except for
@@ -298,7 +298,7 @@ Thus typing @kbd{C-z x} in insert mode will have the same effect as typing
 @kbd{ESC x} in emacs mode.
 @end table
 
-@node Differences from Vi, Undoing, Insert Mode, Survey
+@node Differences from Vi
 @section Differences from Vi
 
 The major differences from Vi are explained below.
@@ -323,7 +323,7 @@ The major differences from Vi are explained below.
 * Misc Commands::       Other useful commands.
 @end menu
 
-@node Undoing, Changing, Differences from Vi, Differences from Vi
+@node Undoing
 @subsection Undoing
 
 @kindex 165 @kbd{u} (@code{vip-undo})
@@ -334,7 +334,7 @@ a single change, while @kbd{u .@: .@: .@:}, for instance, will undo 4 previous
 changes.  Undo is undoable as in Vi.  So the content of the buffer will
 be the same before and after @kbd{u u}.@refill
 
-@node Changing, Searching, Undoing, Differences from Vi
+@node Changing
 @subsection Changing
 
 Some commands which change a small number of characters are executed
@@ -347,7 +347,7 @@ then VIP will prompt you for a new word in the minibuffer by the prompt
 @kindex 007 @kbd{C-g} (@code{vip-keyboard-quit})
 you can abort a partially formed command by typing @kbd{C-g}.@refill
 
-@node Searching, z Command, Changing, Differences from Vi
+@node Searching
 @subsection Searching
 
 @kindex 057 @kbd{/} (@code{vip-search-forward})
@@ -363,7 +363,7 @@ search string.  (It is a limitation.)  By default, search will wrap around
 the buffer as in Vi.  You can change this by rebinding the variable
 @code{vip-search-wrap-around}.  @xref{Customization}, for how to do this.@refill
 
-@node z Command, Counts, Searching, Differences from Vi
+@node z Command
 @subsection z Command
 
 @kindex 1723 @kbd{z H} (@code{vip-line-to-top})
@@ -378,7 +378,7 @@ For those of you who cannot remember which of @kbd{z} followed by @key{RET},
 @kbd{M} and @kbd{L} to place the current line in the Home (Middle, and
 Last) line of the window.@refill
 
-@node Counts, Marking, z Command, Differences from Vi
+@node Counts
 @subsection Counts
 
 Some Vi commands which do not accept a count now accept one
@@ -404,7 +404,7 @@ line.
 Given a count @var{n}, @var{n}-th occurrence will be searched.
 @end table
 
-@node Marking, Region Commands, Counts, Differences from Vi
+@node Marking
 @subsection Marking
 
 Typing an @kbd{m} followed by a lower-case character @var{ch} marks the
@@ -424,7 +424,7 @@ Set mark at point (and push old mark on mark ring).
 Jump to mark (and pop mark off the mark ring).
 @end table
 
-@node Region Commands, New Commands, Marking, Differences from Vi
+@node Region Commands
 @subsection Region Commands
 
 @cindex region
@@ -438,7 +438,7 @@ of @kbd{r} the region will first be enlarged so that it will become the
 smallest region containing the original region and consisting of whole
 lines.  Thus @kbd{m .@: d R} will have the same effect as @kbd{d d}.@refill
 
-@node New Commands, New Bindings, Region Commands, Differences from Vi
+@node New Commands
 @subsection Some New Commands
 
 Note that the keys below (except for @kbd{R}) are not used in Vi.
@@ -530,7 +530,7 @@ Check spelling of words in the region (@code{spell-region}).
 Call last keyboard macro.
 @end table
 
-@node New Bindings, Window Commands, New Commands, Differences from Vi
+@node New Bindings
 @subsection New Key Bindings
 
 In VIP the meanings of some keys are entirely different from Vi.  These key
@@ -590,7 +590,7 @@ In addition to these, @code{ctl-x-map} is slightly modified:
 This is equivalent to @kbd{C-x 1 C-x 2} (1 + 2 = 3).
 @end table
 
-@node Window Commands, Buffer Commands, New Bindings, Differences from Vi
+@node Window Commands
 @subsection Window Commands
 
 In this and following subsections, we give a summary of key bindings for
@@ -614,7 +614,7 @@ Split current window into two windows.
 Show current buffer in two windows.
 @end table
 
-@node Buffer Commands, File Commands, Window Commands, Differences from Vi
+@node Buffer Commands
 @subsection Buffer Commands
 
 @table @kbd
@@ -635,7 +635,7 @@ Kill the current buffer if it is not modified.
 Save the current buffer in the file associated to the buffer.
 @end table
 
-@node File Commands, Misc Commands, Buffer Commands, Differences from Vi
+@node File Commands
 @subsection File Commands
 
 @table @kbd
@@ -656,7 +656,7 @@ Write current buffer into the specified file.
 Insert specified file at point.
 @end table
 
-@node Misc Commands, Vi Commands, File Commands, Differences from Vi
+@node Misc Commands
 @subsection Miscellaneous Commands
 
 @table @kbd
@@ -683,7 +683,7 @@ Query replace.
 Replace.
 @end table
 
-@node Vi Commands, Numeric Arguments, Misc Commands, Top
+@node Vi Commands
 @chapter Vi Commands
 
 This chapter describes Vi commands other than Ex commands implemented in
@@ -704,7 +704,7 @@ commands described in this chapter are to be used in vi mode.
 * Commands in Insert Mode::  Commands for entering insert mode.
 @end menu
 
-@node Numeric Arguments, Important Keys, Vi Commands, Vi Commands
+@node Numeric Arguments
 @section Numeric Arguments
 
 @cindex numeric arguments
@@ -725,7 +725,7 @@ In many cases, if a count is given, the command is executed that many times.
 For instance, @kbd{5 d d} deletes 5 lines while simple @kbd{d d} deletes a
 line.  In this manual the metavariable @var{n} will denote a count.@refill
 
-@node Important Keys, Buffers and Windows, Numeric Arguments, Vi Commands
+@node Important Keys
 @section Important Keys
 
 The keys @kbd{C-g} and @kbd{C-l} are unique in that their associated
@@ -775,7 +775,7 @@ typing @kbd{\}.  Thus @kbd{5 \ +}, as well as @kbd{\ C-u 5 +}, will insert
 @samp{+++++} before point.@refill
 @end table
 
-@node Buffers and Windows, Files, Important Keys, Vi Commands
+@node Buffers and Windows
 @section Buffers and Windows
 
 @cindex buffer
@@ -842,7 +842,7 @@ by @key{RET}.  The default buffer name to switch to will also be prompted,
 and you can select it by giving a simple @key{RET}.  See GNU Emacs Manual
 for details of completion.
 
-@node Files, Viewing the Buffer, Buffers and Windows, Vi Commands
+@node Files
 @section Files
 
 We have the following commands related to files.  They are used to visit,
@@ -923,7 +923,7 @@ case), you can just say @kbd{X S}.  If you wish to save it in another file,
 you can type @kbd{X W}.  You will then get a similar prompt as you get for
 @kbd{v}, to which you can enter the file name.@refill
 
-@node Viewing the Buffer, Mark Commands, Files, Vi Commands
+@node Viewing the Buffer
 @section Viewing the Buffer
 
 In this and next section we discuss commands for moving around in the
@@ -991,7 +991,7 @@ point will be placed in the @var{n}-th line from bottom
 Center point in window and redisplay screen (@code{recenter}).
 @end table
 
-@node Mark Commands, Motion Commands, Viewing the Buffer, Vi Commands
+@node Mark Commands
 @section Mark Commands
 
 The following commands are used to mark positions in the buffer.
@@ -1019,7 +1019,7 @@ latest element of the mark ring (replacing the oldest one).  By repeating
 the command `@kbd{m ,}' you can visit older and older marked positions.  You
 will eventually be in a loop as the mark ring is a ring.
 
-@node Motion Commands, Searching and Replacing, Mark Commands, Vi Commands
+@node Motion Commands
 @section Motion Commands
 
 Commands for moving around in the current buffer are collected here.  These
@@ -1213,7 +1213,7 @@ Repeat previous @kbd{f}, @kbd{t}, @kbd{F} or @kbd{T} command, in the
 opposite direction (@code{vip-repeat-find-opposite}).
 @end table
 
-@node Searching and Replacing, Modifying Commands, Motion Commands, Vi Commands
+@node Searching and Replacing
 @section Searching and Replacing
 
 Following commands are available for searching and replacing.
@@ -1277,7 +1277,7 @@ count, replace that many characters by @var{ch} (@code{vip-replace-char}).
 The commands @kbd{/} and @kbd{?} mark point before move, so that you can
 return to the original point by @w{@kbd{` `}}.
 
-@node Modifying Commands, Delete Commands, Searching and Replacing, Vi Commands
+@node Modifying Commands
 @section Modifying Commands
 
 In this section, commands for modifying the content of a buffer are
@@ -1315,7 +1315,7 @@ command.
 * Change Commands::     Commands for changing text.
 * Repeating and Undoing Modifications::
 @end menu
-@node Delete Commands, Yank Commands, Modifying Commands, Modifying Commands
+@node Delete Commands
 @subsection Delete Commands
 
 @table @kbd
@@ -1367,7 +1367,7 @@ Delete a character before point.  Given @var{n}, delete @var{n} characters
 (@code{vip-delete-backward-char}).
 @end table
 
-@node Yank Commands, Put Back Commands, Delete Commands, Modifying Commands
+@node Yank Commands
 @subsection Yank Commands
 
 @cindex yank
@@ -1403,7 +1403,7 @@ Yank current region.
 Expand current region and yank it.
 @end table
 
-@node Put Back Commands, Change Commands, Yank Commands, Modifying Commands
+@node Put Back Commands
 @subsection Put Back Commands
 Deleted or yanked texts can be put back into the buffer by the command
 below.
@@ -1434,7 +1434,7 @@ numeral between @kbd{1} and @kbd{9}.  If the number register @var{n} is
 specified, @var{n}-th previously deleted/yanked text will be put back.  It
 is an error to specify a number register for the delete/yank commands.
 
-@node Change Commands, Repeating and Undoing Modifications, Put Back Commands, Modifying Commands
+@node Change Commands
 @subsection Change Commands
 
 Most commonly used change command takes the following form.
@@ -1467,7 +1467,7 @@ Change current region.
 Expand current region and change it.
 @end table
 
-@node Repeating and Undoing Modifications, Other Vi Commands, Change Commands, Modifying Commands
+@node Repeating and Undoing Modifications
 @subsection Repeating and Undoing Modifications
 
 VIP records the previous modifying command, so that it is easy to repeat
@@ -1487,7 +1487,7 @@ count for the repeated command.  Otherwise, the count for the last
 modifying command is used again (@code{vip-repeat}).
 @end table
 
-@node Other Vi Commands, Commands in Insert Mode, Repeating and Undoing Modifications, Vi Commands
+@node Other Vi Commands
 @section Other Vi Commands
 
 Miscellaneous Vi commands are collected here.
@@ -1608,7 +1608,7 @@ command @kbd{P} or @kbd{p} can retrieve it from kill ring
 (@code{kill-region}).
 @end table
 
-@node Commands in Insert Mode, Ex Commands, Other Vi Commands, Vi Commands
+@node Commands in Insert Mode
 @section Insert Mode
 
 You can enter insert mode by one of the following commands.  In addition to
@@ -1676,7 +1676,7 @@ start point is saved for later use by repeat command etc.  Therefore, repeat
 command will not really repeat insertion if you move point by emacs
 commands while in insert mode.
 
-@node Ex Commands, Ex Command Reference, Commands in Insert Mode, Top
+@node Ex Commands
 @chapter Ex Commands
 
 @kindex 072 @kbd{:} (@code{vip-ex})
@@ -1713,7 +1713,7 @@ character @samp{|}.
 @menu
 * Ex Command Reference::        Explain all the Ex commands available in VIP.
 @end menu
-@node Ex Command Reference, Customization, Ex Commands, Ex Commands
+@node Ex Command Reference
 @section Ex Command Reference
 In this section we briefly explain all the Ex commands supported by VIP@.
 Most Ex commands expect @var{address} as their argument, and they use
@@ -1859,7 +1859,7 @@ The following Ex commands are available in Vi, but not implemented in VIP.
 @kbd{unabbreviate}, @kbd{xit}, @kbd{z}
 @end example
 
-@node Customization, Customizing Constants, Ex Command Reference, Top
+@node Customization
 @chapter Customization
 
 If you have a file called @file{.vip} in your home directory, then it
@@ -1871,7 +1871,7 @@ customizing VIP.
 * Customizing Key Bindings::    How to change key bindings.
 @end menu
 
-@node Customizing Constants, Customizing Key Bindings, Customization, Customization
+@node Customizing Constants
 @section Customizing Constants
 An easy way to customize VIP is to change the values of constants used
 in VIP@.  Here is the list of the constants used in VIP and their default
@@ -1907,7 +1907,7 @@ can include a line like this in your @file{.vip} file:
 (setq vip-case-fold-search t)
 @end example
 
-@node Customizing Key Bindings,, Customizing Constants, Customization
+@node Customizing Key Bindings
 @section Customizing Key Bindings
 
 @cindex local keymap
@@ -1931,7 +1931,7 @@ file.
 (define-key vip-command-mode-map "X" 'vip-delete-backward-char)
 @end example
 
-@node GNU Free Documentation License,,, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

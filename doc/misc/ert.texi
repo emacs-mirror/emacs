@@ -25,7 +25,7 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top ERT: Emacs Lisp Regression Testing
 
 ERT is a tool for automated testing in Emacs Lisp.  Its main features
@@ -86,7 +86,7 @@ Appendix
 @end detailmenu
 @end menu
 
-@node Introduction, How to Run Tests, Top, Top
+@node Introduction
 @chapter Introduction
 
 ERT allows you to define @emph{tests} in addition to functions,
@@ -154,7 +154,7 @@ test.  Tests should clean up even if they fail.  @xref{Tests and Their
 Environment}.
 
 
-@node  How to Run Tests, How to Write Tests, Introduction, Top
+@node  How to Run Tests
 @chapter How to Run Tests
 
 You can run tests either in the Emacs you are working in, or on the
@@ -172,7 +172,7 @@ different Emacs versions.
 @end menu
 
 
-@node Running Tests Interactively, Running Tests in Batch Mode, How to Run Tests, How to Run Tests
+@node Running Tests Interactively
 @section Running Tests Interactively
 
 You can run the tests that are currently defined in your Emacs with
@@ -251,7 +251,7 @@ while point is on a test failure will increase the limits to show more
 of the expression.
 
 
-@node Running Tests in Batch Mode, Test Selectors, Running Tests Interactively, How to Run Tests
+@node Running Tests in Batch Mode
 @section Running Tests in Batch Mode
 
 ERT supports automated invocations from the command line or from
@@ -275,7 +275,7 @@ additional @code{-L} flags to ensure that @code{my-tests.el} and all the
 files that it requires are on your @code{load-path}.
 
 
-@node Test Selectors,  , Running Tests in Batch Mode, How to Run Tests
+@node Test Selectors
 @section Test Selectors
 
 Functions like @code{ert} accept a @emph{test selector}, a Lisp
@@ -314,7 +314,7 @@ result in the last run, and tag-based selectors such as @code{(not
 @code{:causes-redisplay}.
 
 
-@node How to Write Tests, How to Debug Tests, How to Run Tests, Top
+@node How to Write Tests
 @chapter How to Write Tests
 
 ERT lets you define tests in the same way you define functions.  You
@@ -334,7 +334,7 @@ to find where a test was defined if the test was loaded from a file.
 * Useful Techniques::           Some examples.
 @end menu
 
-@node The @code{should} Macro, Expected Failures, How to Write Tests, How to Write Tests
+@node The @code{should} Macro
 @section The @code{should} Macro
 
 Test bodies can include arbitrary code; but to be useful, they need to
@@ -398,7 +398,7 @@ default.
 @code{should} reports.
 
 
-@node Expected Failures, Tests and Their Environment, The @code{should} Macro, How to Write Tests
+@node Expected Failures
 @section Expected Failures
 
 Some bugs are complicated to fix, or not very important, and are left as
@@ -451,7 +451,7 @@ versions, specific architectures, etc.:
 @end lisp
 
 
-@node Tests and Their Environment, Useful Techniques, Expected Failures, How to Write Tests
+@node Tests and Their Environment
 @section Tests and Their Environment
 
 The outcome of running a test should not depend on the current state
@@ -506,7 +506,7 @@ by calling the corresponding function directly, after binding the
 hook variables to nil.  This avoids the above problems.
 
 
-@node Useful Techniques,  , Tests and Their Environment, How to Write Tests
+@node Useful Techniques
 @section Useful Techniques when Writing Tests
 
 Testing simple functions that have no side effects and no dependencies
@@ -587,7 +587,7 @@ for testing.  Usually, this makes the interfaces easier to use as
 well.
 
 
-@node How to Debug Tests, Extending ERT, How to Write Tests, Top
+@node How to Debug Tests
 @chapter How to Debug Tests
 
 This section describes how to use ERT's features to understand why
@@ -600,7 +600,7 @@ a test failed.
 @end menu
 
 
-@node Understanding Explanations, Interactive Debugging, How to Debug Tests, How to Debug Tests
+@node Understanding Explanations
 @section Understanding Explanations
 
 Failed @code{should} forms are reported like this:
@@ -667,7 +667,7 @@ ERT only provides explanations for predicates that have an explanation
 function registered.  @xref{Defining Explanation Functions}.
 
 
-@node Interactive Debugging,  , Understanding Explanations, How to Debug Tests
+@node Interactive Debugging
 @section Interactive Debugging
 
 Debugging failed tests essentially works the same way as debugging any
@@ -712,7 +712,7 @@ forget about the obsolete test.
 @end itemize
 
 
-@node Extending ERT, Other Testing Concepts, How to Debug Tests, Top
+@node Extending ERT
 @chapter Extending ERT
 
 There are several ways to add functionality to ERT.
@@ -723,7 +723,7 @@ There are several ways to add functionality to ERT.
 @end menu
 
 
-@node Defining Explanation Functions, Low-Level Functions for Working with Tests, Extending ERT, Extending ERT
+@node Defining Explanation Functions
 @section Defining Explanation Functions
 
 The explanation function for a predicate is a function that takes the
@@ -741,7 +741,7 @@ The value of the property should be the symbol that names the
 explanation function.
 
 
-@node Low-Level Functions for Working with Tests,  , Defining Explanation Functions, Extending ERT
+@node Low-Level Functions for Working with Tests
 @section Low-Level Functions for Working with Tests
 
 Both @code{ert-run-tests-interactively} and @code{ert-run-tests-batch}
@@ -757,7 +757,7 @@ meant to be usable by other code.  But there is no mature API yet.
 Contributions to ERT are welcome.
 
 
-@node Other Testing Concepts, GNU Free Documentation License , Extending ERT, Top
+@node Other Testing Concepts
 @chapter Other Testing Concepts
 
 For information on mocks, stubs, fixtures, or test suites, see below.
@@ -768,7 +768,7 @@ For information on mocks, stubs, fixtures, or test suites, see below.
 * Fixtures and Test Suites::  How ERT differs from tools for other languages.
 @end menu
 
-@node Mocks and Stubs, Fixtures and Test Suites, Other Testing Concepts, Other Testing Concepts
+@node Mocks and Stubs
 @section Other Tools for Emacs Lisp
 
 Stubbing out functions or using so-called @emph{mocks} can make it
@@ -781,7 +781,7 @@ ERT does not have built-in support for mocks or stubs.  The package
 offers mocks for Emacs Lisp and can be used in conjunction with ERT.
 
 
-@node Fixtures and Test Suites,  , Mocks and Stubs, Other Testing Concepts
+@node Fixtures and Test Suites
 @section Fixtures and Test Suites
 
 In many ways, ERT is similar to frameworks for other languages like
@@ -840,7 +840,7 @@ e.g., to run quick tests during interactive development and slow tests less
 often.  This can be achieved with the @code{:tag} argument to
 @code{ert-deftest} and @code{tag} test selectors.
 
-@node GNU Free Documentation License, , Other Testing Concepts, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

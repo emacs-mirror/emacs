@@ -44,8 +44,7 @@ modify this GNU manual.''
 @contents
 
 @ifnottex
-@node Top, Preface, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@node Top
 @top Remember
 
 @insertcopying
@@ -76,8 +75,7 @@ Backends
 @end detailmenu
 @end menu
 
-@node Preface, Introduction, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Preface
 @chapter Preface
 
 This document describes remember-el, which was written by John Wiegley,
@@ -87,8 +85,7 @@ developers.
 This document is a work in progress, and your contribution will be
 greatly appreciated.
 
-@node Introduction, Installation, Preface, Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 
 Todo lists, schedules, phone databases... everything we use databases
@@ -130,8 +127,7 @@ in order to record them---it would map much more closely to how the mind
 manual-ness which computers from the very beginning have been championed
 as being able to reduce.
 
-@node Installation, Implementation, Introduction, Top
-@comment  node-name,  next,  previous,  up
+@node Installation
 @chapter Installation
 
 Installing Remember Mode is as simple as adding the following lines to
@@ -143,8 +139,7 @@ your Emacs configuration file (usually @file{~/.emacs.d/init.el} or
 (require 'remember)
 @end lisp
 
-@node Implementation, Quick Start, Installation, Top
-@comment  node-name,  next,  previous,  up
+@node Implementation
 @chapter Implementation
 
 Hyperbole, as a data presentation tool, always struck me as being very
@@ -185,8 +180,7 @@ rather than requiring a billion keystrokes to reorganize your
 hierarchy.  Well, as the future arrives, hopefully experience and user
 feedback will help to make this as intuitive a tool as possible.
 
-@node Quick Start, Function Reference, Implementation, Top
-@comment  node-name,  next,  previous,  up
+@node Quick Start
 @chapter Quick Start
 
 @itemize
@@ -257,8 +251,7 @@ remember-annotation-functions. For example:
   (call-interactively 'remember)))
 @end lisp
 
-@node Function Reference, Keystrokes, Quick Start, Top
-@comment  node-name,  next,  previous,  up
+@node Function Reference
 @chapter Function Reference
 
 @file{remember.el} defines the following interactive functions:
@@ -291,8 +284,7 @@ buffer is used to collect data that you want remember.  Just hit
 the data for latter retrieval, and possible indexing.
 @end defun
 
-@node Keystrokes, Backends, Function Reference, Top
-@comment  node-name,  next,  previous,  up
+@node Keystrokes
 @chapter Keystroke Reference
 
 @file{remember.el} defines the following keybindings by default:
@@ -310,8 +302,7 @@ Remember the contents of the current buffer.
 
 @end table
 
-@node Backends, GNU Free Documentation License, Keystrokes, Top
-@comment  node-name,  next,  previous,  up
+@node Backends
 @chapter Backends
 
 You can save remembered notes to a variety of backends.
@@ -323,8 +314,7 @@ You can save remembered notes to a variety of backends.
 * Org::                         Saving to an Org Mode file.
 @end menu
 
-@node Text File, Diary, Backends, Backends
-@comment  node-name,  next,  previous,  up
+@node Text File
 @section Saving to a Text File
 @cindex text file, saving to
 
@@ -344,8 +334,7 @@ The file in which to store unprocessed data.
 The text used to begin each remember item.
 @end defopt
 
-@node Diary, Mailbox, Text File, Backends
-@comment  node-name,  next,  previous,  up
+@node Diary
 @section Saving to a Diary file
 @cindex diary, integration
 
@@ -362,8 +351,7 @@ File for extracted diary entries.
 If this is nil, then @code{diary-file} will be used instead."
 @end defopt
 
-@node Mailbox, Org, Diary, Backends
-@comment  node-name,  next,  previous,  up
+@node Mailbox
 @section Saving to a Mailbox
 @cindex mailbox, saving to
 
@@ -383,8 +371,7 @@ The file in which to store remember data as mail.
 The default priority for remembered mail messages.
 @end defopt
 
-@node Org, , Mailbox, Backends
-@comment  node-name,  next,  previous,  up
+@node Org
 @section Saving to an Org Mode file
 @cindex org mode, integration
 
@@ -398,12 +385,11 @@ for org-remember at @url{http://orgmode.org/org-remember.pdf}.
 For instructions on how to integrate Remember with Org Mode,
 consult @ref{Capture, , , org}.
 
-@node GNU Free Documentation License, Concept Index, Backends, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Concept Index,  , GNU Free Documentation License, Top
-@comment  node-name,  next,  previous,  up
+@node Concept Index
 @unnumbered Index
 
 @printindex cp

@@ -49,7 +49,7 @@ modify this GNU manual.''
 @c ===================================================================
 
 @ifnottex
-@node Top, Sales Pitch, (dir), (dir)
+@node Top
 @comment  node-name,  next,  previous,  up
 @top @acronym{SES}: Simple Emacs Spreadsheet
 
@@ -76,7 +76,7 @@ To report bugs, send email to @email{jyavner@@member.fsf.org}.
 
 @c ===================================================================
 
-@node Sales Pitch, The Basics, Top, Top
+@node Sales Pitch
 @comment  node-name,  next,  previous,  up
 @chapter Sales Pitch
 @cindex features
@@ -98,7 +98,7 @@ To report bugs, send email to @email{jyavner@@member.fsf.org}.
 
 @c ===================================================================
 
-@node The Basics, Advanced Features, Sales Pitch, Top
+@node The Basics
 @comment  node-name,  next,  previous,  up
 @chapter The Basics
 @cindex basic commands
@@ -157,7 +157,7 @@ Highlight all cells (@code{mark-whole-buffer}).
 * Customizing @acronym{SES}::
 @end menu
 
-@node Formulas, Resizing, The Basics, The Basics
+@node Formulas
 @section Cell formulas
 @cindex formulas
 @cindex formulas, entering
@@ -210,7 +210,7 @@ Force recalculation of the current cell or range (@code{ses-recalculate-cell}).
 Recalculate the entire spreadsheet (@code{ses-recalculate-all}).
 @end table
 
-@node Resizing, Printer functions, Formulas, The Basics
+@node Resizing
 @section Resizing the spreadsheet
 @cindex resizing spreadsheets
 @findex ses-insert-row
@@ -266,7 +266,7 @@ Undo previous action (@code{(undo)}).
 @end table
 
 
-@node Printer functions, Clearing cells, Resizing, The Basics
+@node Printer functions
 @section Printer functions
 @cindex printer functions
 @findex ses-read-cell-printer
@@ -331,7 +331,7 @@ Centering with tildes (~) and spill-over.
 @end table
 
 
-@node Clearing cells, Copy/cut/paste, Printer functions, The Basics
+@node Clearing cells
 @section Clearing cells
 @cindex clearing commands
 @findex ses-clear-cell-backward
@@ -348,7 +348,7 @@ Clear cell and move right (@code{ses-clear-cell-forward}).
 @end table
 
 
-@node Copy/cut/paste, Customizing @acronym{SES}, Clearing cells, The Basics
+@node Copy/cut/paste
 @section Copy, cut, and paste
 @cindex copy
 @cindex cut
@@ -423,7 +423,7 @@ Emacs yank-pop, the @acronym{SES} version uses @code{undo} to delete the old
 yank.  This doesn't make any difference?
 @end table
 
-@node Customizing @acronym{SES},  , Copy/cut/paste, The Basics
+@node Customizing @acronym{SES}
 @section Customizing @acronym{SES}
 @cindex customizing
 @vindex enable-local-eval
@@ -460,7 +460,7 @@ safety belts!
 
 @c ===================================================================
 
-@node Advanced Features, For Gurus, The Basics, Top
+@node Advanced Features
 @chapter Advanced Features
 @cindex advanced features
 @findex ses-read-header-row
@@ -503,7 +503,7 @@ repair that use function @code{ses-repair-cell-reference-all}
 * Spreadsheets with details and summary::
 @end menu
 
-@node The print area, Ranges in formulas, Advanced Features, Advanced Features
+@node The print area
 @section The print area
 @cindex print area
 @findex widen
@@ -529,7 +529,7 @@ Recreate print area by reevaluating printer functions for all cells
 (@code{ses-reprint-all}).
 @end table
 
-@node Ranges in formulas, Sorting by column, The print area, Advanced Features
+@node Ranges in formulas
 @section Ranges in formulas
 @cindex ranges
 @findex ses-insert-range-click
@@ -635,7 +635,7 @@ is only one row or column in the range, that is to say the
 corresponding matrix is flattened.
 @end table
 
-@node Sorting by column, Standard formula functions, Ranges in formulas, Advanced Features
+@node Sorting by column
 @section Sorting by column
 @cindex sorting
 @findex ses-sort-column
@@ -664,7 +664,7 @@ formulas that refer to other rows in the range or to cells outside the
 range.
 
 
-@node Standard formula functions, More on cell printing, Sorting by column, Advanced Features
+@node Standard formula functions
 @section Standard formula functions
 @cindex standard formula functions
 @cindex *skip*
@@ -689,7 +689,7 @@ Average of non-blank elements in @var{list}.  Here the list is passed
 as a single argument, since you'll probably use it with @code{ses-range}.
 @end table
 
-@node More on cell printing, Import and export, Standard formula functions, Advanced Features
+@node More on cell printing
 @section More on cell printing
 @cindex cell printing, more
 @findex ses-truncate-cell
@@ -737,7 +737,7 @@ that are empty of contain strings will use the fallback printer.
 argument type''.
 
 
-@node Import and export, Virus protection, More on cell printing, Advanced Features
+@node Import and export
 @section Import and export
 @cindex import and export
 @cindex export, and import
@@ -757,7 +757,7 @@ another buffer.  Columns are separated by tabs, rows by newlines.
 To import text, use any of the yank commands where the text to paste
 contains tabs and/or newlines.  Imported formulas are not relocated.
 
-@node Virus protection, Spreadsheets with details and summary, Import and export, Advanced Features
+@node Virus protection
 @section Virus protection
 @cindex virus protection
 
@@ -784,7 +784,7 @@ parts of the Emacs Lisp environment can be excluded without cramping
 your style as a formula-writer.  See the documentation in @file{unsafep.el}
 for more info on how Lisp forms are classified as safe or unsafe.
 
-@node Spreadsheets with details and summary,  , Virus protection, Advanced Features
+@node Spreadsheets with details and summary
 @section Spreadsheets with details and summary
 @cindex details and summary
 @cindex summary, and details
@@ -820,7 +820,7 @@ details-and-summary spreadsheet.
 
 @c ===================================================================
 
-@node For Gurus, Index, Advanced Features, Top
+@node For Gurus
 @chapter For Gurus
 @cindex advanced features
 
@@ -832,7 +832,7 @@ details-and-summary spreadsheet.
 * Uses of defadvice in @acronym{SES}::
 @end menu
 
-@node Deferred updates, Nonrelocatable references, For Gurus, For Gurus
+@node Deferred updates
 @section Deferred updates
 @cindex deferred updates
 @cindex updates, deferred
@@ -864,7 +864,7 @@ a momentary glitch after C-x C-v and certain scrolling commands.  You
 can type ahead without worrying about the glitch.
 
 
-@node Nonrelocatable references, The data area, Deferred updates, For Gurus
+@node Nonrelocatable references
 @section Nonrelocatable references
 @cindex nonrelocatable references
 @cindex references, nonrelocatable
@@ -892,7 +892,7 @@ to get the value from the leftmost column in the current row.  This
 kind of dependency is also not recorded.
 
 
-@node The data area, Buffer-local variables in spreadsheets, Nonrelocatable references, For Gurus
+@node The data area
 @section The data area
 @cindex data area
 @findex ses-reconstruct-all
@@ -924,7 +924,7 @@ data structures:
 @end table
 
 
-@node Buffer-local variables in spreadsheets, Uses of defadvice in @acronym{SES}, The data area, For Gurus
+@node Buffer-local variables in spreadsheets
 @section Buffer-local variables in spreadsheets
 @cindex buffer-local variables
 @cindex variables, buffer-local
@@ -958,7 +958,7 @@ avoid virus warnings, each function used in a formula needs
 (put 'your-function-name 'safe-function t)
 @end lisp
 
-@node Uses of defadvice in @acronym{SES},  , Buffer-local variables in spreadsheets, For Gurus
+@node Uses of defadvice in @acronym{SES}
 @section Uses of defadvice in @acronym{SES}
 @cindex defadvice
 @cindex undo-more
@@ -985,14 +985,14 @@ cell.
 @end table
 
 @c ===================================================================
-@node Index, Acknowledgments, For Gurus, Top
+@node Index
 @unnumbered Index
 
 @printindex cp
 
 @c ===================================================================
 
-@node Acknowledgments, GNU Free Documentation License, Index, Top
+@node Acknowledgments
 @chapter Acknowledgments
 
 Coding by:
@@ -1034,7 +1034,7 @@ Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 
 @c ===================================================================
 
-@node GNU Free Documentation License, , Acknowledgments, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 

@@ -44,7 +44,7 @@ modify this GNU manual.''
 @contents
 
 @ifnottex
-@node Top, Overview, (dir), (dir)
+@node Top
 @top Ebrowse
 
 You can browse C++ class hierarchies from within Emacs by using
@@ -67,7 +67,7 @@ Ebrowse.
 
 
 
-@node Overview, Generating browser files, Top, Top
+@node Overview
 @chapter Introduction
 
 When working in software projects using C++, I frequently missed
@@ -177,8 +177,7 @@ them, if you like.
 
 
 
-@node Generating browser files, Loading a Tree, Overview, Top
-@comment node-name,  next,  previous,  up
+@node Generating browser files
 @chapter Processing Source Files
 
 @cindex @command{ebrowse}, the program
@@ -225,7 +224,7 @@ available command line options.@refill
 
 
 @comment name,     next,        prev,                     up
-@node Input files, Output file, Generating browser files, Generating browser files
+@node Input files
 @section Specifying Input Files
 
 @table @samp
@@ -266,7 +265,7 @@ properly identifying friend functions of a class.
 
 
 @comment name,     next,               prev,        up
-@node Output file, Structs and unions, Input files, Generating browser files
+@node Output file
 @section Changing the Output File Name
 
 @table @samp
@@ -301,7 +300,7 @@ with this command line option.
 
 
 @comment name,            next,     prev,        up
-@node Structs and unions, Matching, Output file, Generating browser files
+@node Structs and unions
 @section Structs and Unions
 @cindex structs
 @cindex unions
@@ -321,7 +320,7 @@ tree.
 
 
 @comment name,  next,      prev,               up
-@node Matching, Verbosity, Structs and unions, Generating browser files
+@node Matching
 @section Regular Expressions
 
 @cindex regular expressions, recording
@@ -374,8 +373,7 @@ the probability that it will no longer match after editing the file.
 
 
 
-@node Verbosity, , Matching, Generating browser files
-@comment  node-name,  next,  previous,  up
+@node Verbosity
 @section Verbose Mode
 @cindex verbose operation
 
@@ -395,8 +393,7 @@ the names of the classes seen.
 
 
 
-@node Loading a Tree, Tree Buffers, Generating browser files, Top
-@comment  node-name,  next,  previous,  up
+@node Loading a Tree
 @chapter Starting to Browse
 @cindex loading
 @cindex browsing
@@ -436,8 +433,7 @@ where no highlight is displayed.
 @comment ***
 @comment ****************************************************************
 
-@node Tree Buffers, Member Buffers, Loading a Tree, Top
-@comment  node-name,  next,  previous,  up
+@node Tree Buffers
 @chapter Tree Buffers
 @cindex tree buffer mode
 @cindex class trees
@@ -468,8 +464,7 @@ buffers.
 
 
 
-@node Source Display, Member Display, Tree Buffers, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node Source Display
 @section Viewing and Finding Class Declarations
 @cindex viewing, class
 @cindex finding a class
@@ -497,8 +492,7 @@ The same functionality is available from the menu opened with
 
 
 
-@node Member Display, Go to Class, Source Display, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node Member Display
 @section Displaying Members
 @cindex @samp{*Members*} buffer
 @cindex @samp{*Globals*}
@@ -561,8 +555,7 @@ These lists are also available from the class' context menu invoked with
 
 
 
-@node Go to Class, Quitting, Member Display, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node Go to Class
 @section Finding a Class
 @cindex locate class
 @cindex expanding branches
@@ -589,8 +582,7 @@ local copy of the regular expression last searched in it.
 
 
 
-@node Quitting, File Name Display, Go to Class, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node Quitting
 @section Burying a Tree Buffer
 @cindex burying tree buffer
 
@@ -602,8 +594,7 @@ Is a synonym for @kbd{M-x bury-buffer}.
 
 
 
-@node File Name Display, Expanding and Collapsing, Quitting, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node File Name Display
 @section Displaying File Names
 
 @table @kbd
@@ -633,8 +624,7 @@ Here is an example of a tree buffer with file names displayed.
 @end example
 
 
-@node Expanding and Collapsing, Tree Indentation, File Name Display, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node Expanding and Collapsing
 @section Expanding and Collapsing a Tree
 @cindex expand tree branch
 @cindex collapse tree branch
@@ -673,8 +663,7 @@ This command expands all collapsed branches in the tree.
 
 
 
-@node Tree Indentation, Killing Classes, Expanding and Collapsing, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node Tree Indentation
 @section Changing the Tree Indentation
 @cindex tree indentation
 @cindex indentation of the tree
@@ -689,8 +678,7 @@ available from the tree buffer's context menu.
 
 
 
-@node Killing Classes, Saving a Tree, Tree Indentation, Tree Buffers
-@comment  node-name,  next,  previous,  up
+@node Killing Classes
 @section Removing Classes from the Tree
 @cindex killing classes
 @cindex class, remove from tree
@@ -705,9 +693,7 @@ deletion is actually performed.
 
 
 
-@node Saving a Tree, Statistics, Killing Classes, Tree Buffers
-@comment  node-name,  next,  previous,  up
-@comment node-name, next, previous, up
+@node Saving a Tree
 @section Saving a Tree
 @cindex save tree to a file
 @cindex tree, save to a file
@@ -725,8 +711,8 @@ Writes the tree to a file whose name is read from the minibuffer.
 
 
 
-@node     Statistics, Marking Classes, Saving a Tree, Tree Buffers
-@comment  node-name,  next,        previous, up
+@node     Statistics
+@section Statistics
 @cindex statistics for a tree
 @cindex tree statistics
 @cindex class statistics
@@ -741,8 +727,8 @@ context menu.
 
 
 
-@node     Marking Classes, , Statistics, Tree Buffers
-@comment  node-name,       next,       previous,      up
+@node     Marking Classes
+@section Marking Classes
 @cindex marking classes
 @cindex operations on marked classes
 
@@ -783,8 +769,7 @@ display, like in the following example
 @c ***
 @c ****************************************************************
 
-@node Member Buffers, Tags-like Functions, Tree Buffers, Top
-@comment  node-name,       next,       previous,      up
+@node Member Buffers
 @chapter Member Buffers
 @cindex members
 @cindex member buffer mode
@@ -834,8 +819,7 @@ buffer: members, classes, and the buffer itself.
 
 
 
-@node Switching Member Lists, Finding/Viewing, Member Buffers, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Switching Member Lists
 @section Switching Member Lists
 @cindex member lists, in member buffers
 @cindex static members
@@ -881,8 +865,7 @@ context menu.
 
 
 
-@node Finding/Viewing, Inherited Members, Switching Member Lists, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Finding/Viewing
 @section Finding and Viewing Member Source
 @cindex finding members, in member buffers
 @cindex viewing members, in member buffers
@@ -919,8 +902,7 @@ displayed when clicking @kbd{Mouse-2} on a member name.
 
 
 
-@node Inherited Members, Searching Members, Finding/Viewing, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Inherited Members
 @section Display of Inherited Members
 @cindex superclasses, members
 @cindex base classes, members
@@ -935,8 +917,7 @@ buffer.  This is also in the buffer's context menu.
 
 
 
-@node Searching Members, Switching to Tree, Inherited Members, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Searching Members
 @section Searching Members
 @cindex searching members
 
@@ -965,8 +946,7 @@ a mouse.
 
 
 
-@node Switching to Tree, Filters, Searching Members, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Switching to Tree
 @section Switching to Tree Buffer
 @cindex tree buffer, switch to
 @cindex buffer switching
@@ -984,8 +964,7 @@ displayed in the member buffer.
 
 
 
-@node Filters, Attributes, Switching to Tree, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Filters
 @section Filters
 @cindex filters
 
@@ -1029,8 +1008,7 @@ These commands are also found in the buffer's context menu.
 
 
 
-@node Attributes, Long and Short Display, Filters, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Attributes
 @section Displaying Member Attributes
 @cindex attributes
 @cindex member attribute display
@@ -1086,8 +1064,7 @@ This command is also in the buffer's context menu.
 
 
 
-@node Long and Short Display, Regexp Display, Attributes, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Long and Short Display
 @section Long and Short Member Display
 @cindex display form
 @cindex long display
@@ -1121,8 +1098,7 @@ not been produced with the @command{ebrowse} option @samp{--no-regexps}.
 
 
 
-@node Regexp Display, Switching Classes, Long and Short Display, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Regexp Display
 @section Display of Regular Expressions
 @cindex regular expression display
 
@@ -1140,8 +1116,7 @@ see @ref{Matching, --no-regexps, Regular Expressions}.
 
 
 
-@node Switching Classes, Killing/Burying, Regexp Display, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Switching Classes
 @section Displaying Another Class
 @cindex base class, display
 @cindex derived class, display
@@ -1173,8 +1148,7 @@ Switch to the next sibling of the class in the class tree.
 
 
 
-@node Killing/Burying, Column Width, Switching Classes, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Killing/Burying
 @section Burying a Member Buffer
 @cindex burying member buffers
 
@@ -1186,8 +1160,7 @@ This command is a synonym for @kbd{M-x bury-buffer}.
 
 
 
-@node Column Width, Redisplay, Killing/Burying, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Column Width
 @section Setting the Column Width
 @cindex column width
 @cindex member indentation
@@ -1202,8 +1175,7 @@ This command sets the column width depending on the display form used
 
 
 
-@node Redisplay, Getting Help, Column Width, Member Buffers
-@comment  node-name,       next,       previous,      up
+@node Redisplay
 @section Forced Redisplay
 @cindex redisplay of member buffers
 
@@ -1218,8 +1190,8 @@ columns.
 
 
 
-@node Getting Help, , Redisplay, Member Buffers
-@comment  node-name,  next,  previous,  up
+@node Getting Help
+@section Getting Help
 @cindex help
 
 @table @kbd
@@ -1234,8 +1206,7 @@ This key is bound to @code{describe-mode}.
 @comment ***                TAGS LIKE FUNCTIONS
 @comment **************************************************************
 
-@node Tags-like Functions, GNU Free Documentation License, Member Buffers, Top
-@comment  node-name,       next,       previous,      up
+@node Tags-like Functions
 @chapter Tags-like Functions
 
 Ebrowse provides tags functions similar to those of the standard
@@ -1254,8 +1225,7 @@ Emacs Tags facility, but better suited to the needs of C++ programmers.
 
 
 
-@node Finding and Viewing, Position Stack, Tags-like Functions, Tags-like Functions
-@comment  node-name,       next,       previous,      up
+@node Finding and Viewing
 @section Finding and Viewing Members
 @cindex finding class member, in C++ source
 @cindex viewing class member, in C++ source
@@ -1314,8 +1284,7 @@ View a member's declaration in another frame.
 
 
 
-@node Position Stack, Search & Replace, Finding and Viewing, Tags-like Functions
-@comment  node-name,       next,       previous,      up
+@node Position Stack
 @section The Position Stack
 @cindex position stack
 
@@ -1351,8 +1320,7 @@ view a position with @kbd{v}.
 
 
 
-@node Search & Replace, Members in Files, Position Stack, Tags-like Functions
-@comment  node-name,       next,       previous,      up
+@node Search & Replace
 @section Searching and Replacing
 @cindex searching multiple C++ files
 @cindex replacing in multiple C++ files
@@ -1389,8 +1357,7 @@ This restarts the last tags operation with the next file in the list.
 
 
 
-@node Members in Files, Apropos, Search & Replace, Tags-like Functions
-@comment  node-name,       next,       previous,      up
+@node Members in Files
 @section Members in Files
 @cindex files
 @cindex members in file, listing
@@ -1403,8 +1370,7 @@ name is read from the minibuffer with completion.
 
 
 
-@node Apropos, Symbol Completion, Members in Files, Tags-like Functions
-@comment  node-name,       next,       previous,      up
+@node Apropos
 @section Member Apropos
 @cindex apropos on class members
 @cindex members, matching regexp
@@ -1421,8 +1387,7 @@ command @kbd{C-c C-m f}, for example, to jump to a specific member.
 
 
 
-@node Symbol Completion, Member Buffer Display, Apropos, Tags-like Functions
-@comment  node-name,       next,       previous,      up
+@node Symbol Completion
 @section Symbol Completion
 @cindex completion
 @cindex symbol completion
@@ -1432,7 +1397,7 @@ The command @kbd{C-c C-m @key{TAB}} completes the symbol in front of point.
 
 
 
-@node Member Buffer Display, , Symbol Completion, Tags-like Functions
+@node Member Buffer Display
 @section Quick Member Display
 @cindex member buffer, for member at point
 
@@ -1440,12 +1405,12 @@ You can quickly display a member buffer containing the member the cursor
 in on with the command @kbd{C-c C-m m}.
 
 
-@node GNU Free Documentation License, Concept Index, Tags-like Functions, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
 
-@node Concept Index, , GNU Free Documentation License, Top
+@node Concept Index
 @unnumbered Concept Index
 @printindex cp
 

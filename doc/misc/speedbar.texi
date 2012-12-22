@@ -37,8 +37,7 @@ modify this GNU manual.''
 
 @contents
 
-@node Top, , , (dir)Top
-@comment  node-name,  next,  previous,  up
+@node Top
 @top Speedbar
 
 Speedbar is a program for Emacs which can be used to summarize
@@ -83,8 +82,7 @@ on.  @xref{Basic Navigation}.
 * Index::
 @end menu
 
-@node Introduction, Basic Navigation, , Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 @cindex introduction
 
@@ -115,8 +113,7 @@ The function to use when switching between frames using the keyboard is
 @code{speedbar-get-focus}.  This function will toggle between frames, and
 it's useful to bind it to a key in terminal mode.  @xref{Customizing}.
 
-@node Basic Navigation, File Mode, Introduction, Top
-@comment  node-name,  next,  previous,  up
+@node Basic Navigation
 @chapter Basic Navigation
 
 Speedbar can display different types of data, and has several display
@@ -131,8 +128,7 @@ to use.
 * Displays Submenu::
 @end menu
 
-@node Basic Key Bindings, Basic Visuals, Basic Navigation, Basic Navigation
-@comment  node-name,  next,  previous,  up
+@node Basic Key Bindings
 @section Basic Key Bindings
 @cindex key bindings
 
@@ -205,8 +201,7 @@ flushed.  This is similar to a power click.  @xref{Mouse Bindings}.
 Contract the current group, hiding sub items.
 @end table
 
-@node Basic Visuals, Mouse Bindings, Basic Key Bindings, Basic Navigation
-@comment  node-name,  next,  previous,  up
+@node Basic Visuals
 @section Basic Visuals
 @cindex visuals
 
@@ -307,8 +302,7 @@ The face naming convention mirrors the File display mode.  Modes which
 do not use files will attempt to use the same colors on analogous
 entries.
 
-@node Mouse Bindings, Displays Submenu, Basic Visuals, Basic Navigation
-@comment  node-name,  next,  previous,  up
+@node Mouse Bindings
 @section Mouse Bindings
 @cindex mouse bindings
 
@@ -352,8 +346,7 @@ should be displayed in the minibuffer of the attached frame.  Sometimes
 this can contain extra information such as file permissions, or tag
 location.
 
-@node Displays Submenu, , Mouse Bindings, Basic Navigation
-@comment  node-name,  next,  previous,  up
+@node Displays Submenu
 @section Displays Submenu
 @cindex displays submenu
 
@@ -369,8 +362,7 @@ The contents are modes currently loaded into emacs.  By default, this
 would include Files, Quick Buffers, and Buffers.  Other major display
 modes such as Info are loaded separately.
 
-@node File Mode, Buffer Mode, Basic Navigation, Top
-@comment  node-name,  next,  previous,  up
+@node File Mode
 @chapter File Mode
 @cindex file mode
 
@@ -387,8 +379,7 @@ Advanced behavior, like copying and renaming files, is also provided.
 * File Key Bindings::   Performing file operations.
 @end menu
 
-@node Directory Display, Hidden Files, File Mode, File Mode
-@comment  node-name,  next,  previous,  up
+@node Directory Display
 @section Directory Display
 @cindex directory display
 
@@ -471,8 +462,7 @@ Some group names may say something like @samp{speedbar-t to speedbar-v},
 indicating that all symbols which alphabetically fall between those
 categories are included in that sub-group.  @xref{Tag Hierarchy Methods}.
 
-@node Hidden Files, File Key Bindings, Directory Display, File Mode
-@comment  node-name,  next,  previous,  up
+@node Hidden Files
 @section Hidden Files
 @cindex hidden files
 
@@ -498,8 +488,7 @@ Object files fall into the category of level 2 hidden files.  You can
 determine their presence by the @samp{#} and @samp{!} file indicators.
 @xref{Directory Display}.
 
-@node File Key Bindings, , Hidden Files, File Mode
-@comment  node-name,  next,  previous,  up
+@node File Key Bindings
 @section File Key Bindings
 @cindex file key bindings
 
@@ -537,8 +526,7 @@ list, are shown.  By showing all files, additional files such as text files are
 also displayed, but they are prefixed with the @samp{[?]} symbol.  This
 means that it is a file, but Emacs doesn't know how to expand it.
 
-@node Buffer Mode, Minor Modes, File Mode, Top
-@comment  node-name,  next,  previous,  up
+@node Buffer Mode
 @chapter Buffer Mode
 @cindex buffer mode
 
@@ -569,8 +557,7 @@ Thus, if you are in File mode, and you need quick access to a buffer,
 press @kbd{b}, click on the buffer you want, and speedbar will revert
 back to File mode.
 
-@node Minor Modes, Customizing, Buffer Mode, Top
-@comment  node-name,  next,  previous,  up
+@node Minor Modes
 @chapter Minor Display Modes
 @cindex minor display modes
 
@@ -592,8 +579,7 @@ key bindings and visuals, but will have specialized behaviors.
             stack trace.
 @end menu
 
-@node RMAIL, Info, Minor Modes, Minor Modes
-@comment  node-name,  next,  previous,  up
+@node RMAIL
 @section RMAIL
 @cindex RMAIL
 
@@ -614,8 +600,7 @@ the current RMAIL folder into a different folder by clicking the
 In this way you can manage your existing RMAIL folders fairly easily
 using the mouse.
 
-@node Info, GDB, RMAIL, Minor Modes
-@comment  node-name,  next,  previous,  up
+@node Info
 @section Info
 @cindex Info
 
@@ -629,8 +614,7 @@ are available.  Since these sub-topics are not examined until you click
 the @samp{[+]} button, sometimes a @samp{[?]} will appear when you click on
 a @samp{[+]}, indicating that there are no sub-topics.
 
-@node GDB, , Info, Minor Modes
-@comment  node-name,  next,  previous,  up
+@node GDB
 @section GDB
 @cindex gdb
 @cindex gud
@@ -652,8 +636,7 @@ You can click on any stack element and gdb will move to that stack
 level.  You can then check variables local to that level at the GDB
 prompt.
 
-@node Customizing, Extending, Minor Modes, Top
-@comment  node-name,  next,  previous,  up
+@node Customizing
 @chapter Customizing
 @cindex customizing
 
@@ -680,8 +663,7 @@ Customize speedbar's many colors and fonts.
 * Hooks::                   The many hooks you can use.
 @end menu
 
-@node Frames and Faces, Tag Hierarchy Methods, Customizing, Customizing
-@comment  node-name,  next,  previous,  up
+@node Frames and Faces
 @section Frames and Faces
 @cindex faces
 @cindex frame parameters
@@ -725,8 +707,7 @@ it.
 In XEmacs, change the plist @code{speedbar-frame-plist}.  This is the
 XEmacs way of doing the same thing.
 
-@node Tag Hierarchy Methods, Version Control, Frames and Faces, Customizing
-@comment  node-name,  next,  previous,  up
+@node Tag Hierarchy Methods
 @section Tag Hierarchy Methods
 @cindex tag hierarchy
 @cindex tag groups
@@ -805,8 +786,7 @@ are next to each other, then they are combined until this number of
 items is reached.
 @end table
 
-@node Version Control, Hooks, Tag Hierarchy Methods, Customizing
-@comment  node-name,  next,  previous,  up
+@node Version Control
 @section Version Control
 @cindex version control
 @cindex vc extensions
@@ -840,8 +820,7 @@ placed near this file.
 Lastly, you can change the VC indicator using the variable
 @code{speedbar-vc-indicator}, and specify a single character string.
 
-@node Hooks, , Version Control, Customizing
-@comment  node-name,  next,  previous,  up
+@node Hooks
 @section Hooks
 @cindex hooks
 
@@ -883,8 +862,7 @@ Set this to implement your own scanning or rescan safe functions with
 state data.
 @end table
 
-@node Extending, GNU Free Documentation License, Customizing, Top
-@comment  node-name,  next,  previous,  up
+@node Extending
 @chapter Extending
 @cindex extending
 
@@ -908,7 +886,7 @@ create specialized tagging functions.
 * Creating a display::     How to insert buttons and hierarchies.
 @end menu
 
-@node Minor Display Modes, Major Display Modes, Extending, Extending
+@node Minor Display Modes
 @section Minor Display Modes
 @cindex create minor display mode
 
@@ -966,7 +944,7 @@ want to do is execute a check to see if you need to re-create your
 display.  If it needs to be cleared, you need to erase the speedbar
 buffer yourself, and start drawing buttons.  @xref{Creating a display}.
 
-@node Major Display Modes, Tagging Extensions, Minor Display Modes, Extending
+@node Major Display Modes
 @section Major Display Modes
 @cindex create major display mode
 
@@ -1097,7 +1075,7 @@ Your custom function might look like this:
 Once you have done all this, speedbar will show an entry in the
 @samp{Displays} menu declaring that your extension is available.
 
-@node Tagging Extensions, Creating a display, Major Display Modes, Extending
+@node Tagging Extensions
 @section Tagging Extensions
 
 It is possible to create new methods for tagging files in speedbar.
@@ -1137,7 +1115,7 @@ If your parser is only good for a few types of files, make sure that it
 is either a buffer local modification, or that the tag generator returns
 @code{t} for non valid buffers.
 
-@node Creating a display, , Tagging Extensions, Extending
+@node Creating a display
 @section Creating a display
 @cindex creating a display
 
@@ -1239,13 +1217,12 @@ Two good values are @code{nil} and @code{statictag}.
 
 @end defun
 
-@node GNU Free Documentation License, Index, Extending, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
 
-@node Index, , GNU Free Documentation License, Top
-@comment  node-name,  next,  previous,  up
+@node Index
 @unnumbered Concept Index
 @printindex cp
 

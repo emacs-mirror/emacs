@@ -57,7 +57,7 @@ modify this GNU manual.''
 @c ================================================================
 
 @ifnottex
-@node Top, What is Eshell?, (dir), (dir)
+@node Top
 @top Eshell
 
 Eshell is a shell-like command interpreter
