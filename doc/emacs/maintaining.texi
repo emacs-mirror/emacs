@@ -1065,7 +1065,7 @@ the version control system which the VC Directory buffer should use.
 @cindex CVS directory mode
   In addition to the VC Directory buffer, Emacs has a similar facility
 called PCL-CVS which is specialized for CVS@.  @xref{Top, , About
-PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
+PCL-CVS, pcl-cvs, PCL-CVS---The Emacs Front-End to CVS}.
 @end ifnottex
 
 @menu
