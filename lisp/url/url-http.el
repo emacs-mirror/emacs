@@ -890,8 +890,11 @@ should be shown to the user."
 		 (url-http-activate-callback)
 	       ;; Call `url-http' again if our connection expired.
 	       (erase-buffer)
-	       (url-http url-current-object url-callback-function
-			 url-callback-arguments (current-buffer))))
+               (let ((url-request-method url-http-method)
+                     (url-request-extra-headers url-http-extra-headers)
+                     (url-request-data url-http-data))
+                 (url-http url-current-object url-callback-function
+                           url-callback-arguments (current-buffer)))))
 	    ((url-http-parse-headers)
 	     (url-http-activate-callback))))))
 

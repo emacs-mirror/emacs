@@ -39,12 +39,13 @@
   silent (use-cookies t))
 
 (defsubst url-port (urlobj)
-  "Return the port number for the URL specified by URLOBJ."
+  "Return the port number for the URL specified by URLOBJ.
+If the port spec is nil (i.e. URLOBJ specifies no port number),
+return the default port number for URLOBJ's scheme."
   (declare (gv-setter (lambda (port) `(setf (url-portspec ,urlobj) ,port))))
   (or (url-portspec urlobj)
       (if (url-type urlobj)
           (url-scheme-get-property (url-type urlobj) 'default-port))))
-
 
 (defun url-path-and-query (urlobj)
   "Return the path and query components of URLOBJ.
