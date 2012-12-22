@@ -368,8 +368,8 @@ Is the kind of tag being create, such as @code{function}, or
 @code{variable}, though any symbol will work.
 
 @item attributes
-Is an optional set of labeled values such as @w{@code{:constant-flag t :parent
-"parenttype"}}.
+Is an optional set of labeled values such as @code{:constant-flag t :parent
+"parenttype"}.
 @end table
 
 @item  (TAG-VARIABLE @var{name} @var{type} @var{default-value} [@var{attributes}])

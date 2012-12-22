@@ -1,5 +1,7 @@
 2012-12-22  Glenn Morris  <rgm@gnu.org>
 
+	* bovine.texi (Optional Lambda Expression): Allow line break.
+
 	* auth.texi (Help for users): Break long lines.
 
 	* ada-mode.texi (Project file variables):
