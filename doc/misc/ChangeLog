@@ -1,3 +1,9 @@
+2012-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(INFO_TARGETS), $(DVI_TARGETS)): Depend on
+	doclicense.texi.  Remove doclicense.texi from all targets that
+	mentioned it explicitly.
+
 2012-12-21  Glenn Morris  <rgm@gnu.org>
 
 	* auth.texi, emacs-gnutls.texi, epa.texi, ert.texi:
