@@ -1,3 +1,7 @@
+2012-12-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* TODO: Adjust entry about NS event loop.
+
 2012-12-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Tramp implements `file-acl' and `set-file-acl'.
