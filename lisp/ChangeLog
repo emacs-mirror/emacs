@@ -1,3 +1,9 @@
+2012-12-23  Alan Mackenzie  <acm@muc.de>
+
+	Speed up fontification where there's large brace blocks.
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): Add a limit
+	to a call of c-beginning-of-decl-1.
+
 2012-12-21  Chong Yidong  <cyd@gnu.org>
 
 	* sort.el (sort-subr): Doc fix (Bug#13056).
