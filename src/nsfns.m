@@ -2106,7 +2106,9 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 void
 ns_run_ascript (void)
 {
-  as_status = ns_do_applescript (as_script, as_result);
+  if (! NILP (as_script))
+    as_status = ns_do_applescript (as_script, as_result);
+  as_script = Qnil;
 }
 
 DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
@@ -2143,11 +2145,14 @@ In case the execution fails, an error is signaled. */)
                                data2: NSAPP_DATA2_RUNASSCRIPT];
 
   [NSApp postEvent: nxev atStart: NO];
-  [NSApp run];
+
+  // If there are other events, the event loop may exit.  Keep running
+  // until the script has been handeled.  */
+  while (! NILP (as_script))
+    [NSApp run];
 
   status = as_status;
   as_status = 0;
-  as_script = Qnil;
   as_result = 0;
   unblock_input ();
   if (status == 0)
