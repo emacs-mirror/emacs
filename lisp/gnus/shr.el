@@ -894,7 +894,7 @@ ones, in case fg and bg are nil."
   (shr-fontize-cont cont 'italic))
 
 (defun shr-tag-em (cont)
-  (shr-fontize-cont cont 'bold))
+  (shr-fontize-cont cont 'italic))
 
 (defun shr-tag-strong (cont)
   (shr-fontize-cont cont 'bold))
