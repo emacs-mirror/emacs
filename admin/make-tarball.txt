@@ -66,9 +66,8 @@ For each step, check for possible errors.
 
 11. Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your
-    GPG key acknowledged by the ftp people.  Mail <ftp-upload@gnu.org>
-    for instructions.
-
+    GPG key acknowledged by the ftp people.  For instructions, see
+    http://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html
     You can use the gnupload script to upload each FILE, like this:
      gnupload --to alpha.gnu.org:emacs/pretest FILE (for a pretest)
      gnupload --to ftp.gnu.org:emacs FILE           (for a release)
