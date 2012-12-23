@@ -6401,7 +6401,21 @@ sys_close (int fd)
 
 		  winsock_inuse--; /* count open sockets */
 		}
-	      delete_child (cp);
+	      /* If the process handle is NULL, it's either a socket
+		 or serial connection, or a subprocess that was
+		 already reaped by reap_subprocess, but whose
+		 resources were not yet freed, because its output was
+		 not fully read yet by the time it was reaped.  (This
+		 usually happens with async subprocesses whose output
+		 is being read by Emacs.)  Otherwise, this process was
+		 not reaped yet, so we set its FD to a negative value
+		 to make sure sys_select will eventually get to
+		 calling the SIGCHLD handler for it, which will then
+		 invoke waitpid and reap_subprocess.  */
+	      if (cp->procinfo.hProcess == NULL)
+		delete_child (cp);
+	      else
+		cp->fd = -1;
 	    }
 	}
     }

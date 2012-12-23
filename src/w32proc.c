@@ -965,7 +965,7 @@ reader_thread (void *arg)
     {
       int rc;
 
-      if (fd_info[cp->fd].flags & FILE_LISTEN)
+      if (cp->fd >= 0 && fd_info[cp->fd].flags & FILE_LISTEN)
 	rc = _sys_wait_accept (cp->fd);
       else
 	rc = _sys_read_ahead (cp->fd);
@@ -993,6 +993,8 @@ reader_thread (void *arg)
 		     "%lu for fd %ld\n", GetLastError (), cp->fd));
 	  break;
         }
+      if (cp->status == STATUS_READ_ERROR)
+	break;
     }
   return 0;
 }
@@ -1163,11 +1165,11 @@ reap_subprocess (child_process *cp)
       cp->procinfo.hThread = NULL;
     }
 
-  /* For asynchronous children, the child_proc resources will be freed
-     when the last pipe read descriptor is closed; for synchronous
-     children, we must explicitly free the resources now because
-     register_child has not been called. */
-  if (cp->fd == -1)
+  /* If cp->fd was not closed yet, we might be still reading the
+     process output, so don't free its resources just yet.  The call
+     to delete_child on behalf of this subprocess will be made by
+     sys_read when the subprocess output is fully read.  */
+  if (cp->fd < 0)
     delete_child (cp);
 }
 

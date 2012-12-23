@@ -1,3 +1,22 @@
+2012-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (reader_thread): Do not index fd_info[] with negative
+	values.
+	(reader_thread): Exit when cp->status becomes STATUS_READ_ERROR
+	after WaitForSingleObject returns normally.  This expedites reader
+	thread shutdown when delete_child triggers it.
+	(reap_subprocess): More accurate commentary for why we call
+	delete_child only when cp->fd is negative.
+
+	* w32.c (sys_close): Do not call delete_child on a subprocess
+	whose handle is not yet closed.  Instead, set its file descriptor
+	to a negative value, so that reap_subprocess will call
+	delete_child on that subprocess when its SIGCHLD arrives.  This
+	avoids closing handles used for communications between sys_select
+	and reader_thread, which doesn't give sys_select a chance to
+	notice that the process exited and invoke the SIGCHLD handler for
+	it.
+
 2012-12-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (Fns_do_applescript): Run event loop until script has
