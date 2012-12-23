@@ -4876,8 +4876,31 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
       retval = 0;
       errno = e;
     }
-  else if (err == ERROR_INVALID_OWNER)
-    errno = EPERM;
+  else if (err == ERROR_INVALID_OWNER || err == ERROR_NOT_ALL_ASSIGNED)
+    {
+      /* Maybe the requested ACL and the one the file already has are
+	 identical, in which case we can silently ignore the
+	 failure.  (And no, Windows doesn't.)  */
+      acl_t current_acl = acl_get_file (fname, ACL_TYPE_ACCESS);
+
+      errno = EPERM;
+      if (current_acl)
+	{
+	  char *acl_from = acl_to_text (current_acl, NULL);
+	  char *acl_to = acl_to_text (acl, NULL);
+
+	  if (acl_from && acl_to && xstrcasecmp (acl_from, acl_to) == 0)
+	    {
+	      retval = 0;
+	      errno = e;
+	    }
+	  if (acl_from)
+	    acl_free (acl_from);
+	  if (acl_to)
+	    acl_free (acl_to);
+	  acl_free (current_acl);
+	}
+    }
   else if (err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND)
     errno = ENOENT;
 
