@@ -138,6 +138,11 @@ and `gnus-topic-alist'.  Also see `gnus-variable-list'."
 (defvar gnus-sync-newsrc-loader nil
   "Carrier for newsrc data")
 
+(defcustom gnus-sync-file-encrypt-to nil
+  "If non-nil, `epa-file-encrypt-to' is set from this for encrypting the Sync
+  file."
+  :group 'gnus-sync)
+
 (defcustom gnus-sync-lesync-name (system-name)
   "The LeSync name for this machine."
   :group 'gnus-sync
@@ -762,6 +767,9 @@ With a prefix, FORCE is set and all groups will be saved."
         (progn
           (let ((coding-system-for-write gnus-ding-file-coding-system)
                 (standard-output (current-buffer)))
+            (when gnus-sync-file-encrypt-to
+              (set (make-local-variable 'epa-file-encrypt-to)
+                   gnus-sync-file-encrypt-to))
             (princ (format ";; -*- mode:emacs-lisp; coding: %s; -*-\n"
                            gnus-ding-file-coding-system))
             (princ ";; Gnus sync data v. 0.0.1\n")

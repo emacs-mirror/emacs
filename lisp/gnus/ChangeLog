@@ -1,3 +1,15 @@
+2012-12-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-backend-trace): Factor out into its own function
+	for reuse.
+	(gnus-open-server): Use it to add more tracing.
+	(gnus-finish-retrieve-group-infos): Add backend tracing.
+
+2012-12-22  Philipp Haselwarter  <philipp@haselwarter.org>
+
+	* gnus-sync.el (gnus-sync-file-encrypt-to, gnus-sync-save): Set
+	epa-file-encrypt-to from variable to avoid querying.
+
 2012-12-14  Akinori MUSHA  <knu@iDaemons.org>  (tiny change)
 
 	* sieve-mode.el (sieve-font-lock-keywords):
