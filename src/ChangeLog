@@ -1,3 +1,18 @@
+2012-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (file_name_as_directory, directory_file_name): Accept
+	an additional argument MULTIBYTE to indicate whether the input C
+	came from a multibyte or a unibyte Lisp string; all callers
+	adjusted.  Don't assume the input string is always multibyte.
+	(Bug#13262)
+	(Ffile_name_directory) [DOS_NT]: Handle unibyte strings correctly:
+	don't ENCODE_FILE them, and return a unibyte string if the input
+	was unibyte.
+	(Fexpand_file_name): Don't mix unibyte with multibyte strings, and
+	don't assume the input strings will always be multibyte.  If the
+	input strings are multibyte, decode strings obtained from C
+	library functions.
+
 2012-12-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fselect_window): Reword doc-string (Bug#13248).
