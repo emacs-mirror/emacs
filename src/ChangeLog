@@ -5,6 +5,9 @@
 	struct buffer_text to avoid accessing an uninitialized value
 	when compact_buffer is called for the first time.
 	(compact_buffer): Use convenient BUF_COMPACT and BUF_MODIFF.
+	(Fset_buffer_modified_p): Use buffer_window_count to check
+	whether the buffer is displayed in some window.
+	* xdisp.c (message_dolog): Likewise.
 
 2012-12-23  Eli Zaretskii  <eliz@gnu.org>
 

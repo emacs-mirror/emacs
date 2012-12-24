@@ -1341,7 +1341,7 @@ DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
 A non-nil FLAG means mark the buffer modified.  */)
   (Lisp_Object flag)
 {
-  Lisp_Object fn, buffer, window;
+  Lisp_Object fn;
 
 #ifdef CLASH_DETECTION
   /* If buffer becoming modified, lock the file.
@@ -1394,9 +1394,7 @@ A non-nil FLAG means mark the buffer modified.  */)
      Ideally, I think there should be another mechanism for fontifying
      buffers without "modifying" buffers, or redisplay should be
      smarter about updating the `*' in mode lines.  --gerd  */
-  XSETBUFFER (buffer, current_buffer);
-  window = Fget_buffer_window (buffer, Qt);
-  if (WINDOWP (window))
+  if (buffer_window_count (current_buffer))
     {
       ++update_mode_lines;
       current_buffer->prevent_redisplay_optimizations_p = 1;

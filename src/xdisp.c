@@ -9397,7 +9397,8 @@ message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
       int old_windows_or_buffers_changed = windows_or_buffers_changed;
       ptrdiff_t point_at_end = 0;
       ptrdiff_t zv_at_end = 0;
-      Lisp_Object old_deactivate_mark, tem;
+      Lisp_Object old_deactivate_mark;
+      bool shown;
       struct gcpro gcpro1;
 
       old_deactivate_mark = Vdeactivate_mark;
@@ -9539,9 +9540,9 @@ message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
       unchain_marker (XMARKER (oldbegv));
       unchain_marker (XMARKER (oldzv));
 
-      tem = Fget_buffer_window (Fcurrent_buffer (), Qt);
+      shown = buffer_window_count (current_buffer) > 0;
       set_buffer_internal (oldbuf);
-      if (NILP (tem))
+      if (!shown)
 	windows_or_buffers_changed = old_windows_or_buffers_changed;
       message_log_need_newline = !nlflag;
       Vdeactivate_mark = old_deactivate_mark;
