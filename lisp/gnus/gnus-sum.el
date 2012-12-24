@@ -11647,10 +11647,10 @@ If PREDICATE is supplied, threads that satisfy this predicate
 will not be hidden.
 Returns nil if no threads were there to be hidden."
   (interactive)
+  (beginning-of-line)
   (let ((start (point))
 	(starteol (line-end-position))
 	(article (gnus-summary-article-number)))
-    (goto-char start)
     ;; Go forward until either the buffer ends or the subthread ends.
     (when (and (not (eobp))
 	       (or (zerop (gnus-summary-next-thread 1 t))

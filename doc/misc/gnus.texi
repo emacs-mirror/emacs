@@ -3645,6 +3645,15 @@ Describe the current group (@code{gnus-browse-describe-group}).
 @findex gnus-browse-describe-briefly
 Describe browse mode briefly (well, there's not much to describe, is
 there) (@code{gnus-browse-describe-briefly}).
+
+@item DEL
+@kindex DEL (Browse)
+@findex gnus-browse-delete-group
+This function will delete the current group
+(@code{gnus-browse-delete-group}).  If given a prefix, this function
+will actually delete all the articles in the group, and forcibly
+remove the group itself from the face of the Earth.  Use a prefix only
+if you are absolutely sure of what you are doing.
 @end table
 
 

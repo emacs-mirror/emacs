@@ -1,3 +1,21 @@
+2012-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-srvr.el (gnus-browse-delete-group): Fix syntax error.
+
+	* message.el (message-ignored-news-headers): Always remove
+	X-Message-SMTP-Method to avoid information leakage if the user
+	mistakenly inserts the header into news messages.
+
+	* gnus-srvr.el (gnus-browse-delete-group): New command and keystroke.
+
+	* gnus-sum.el (gnus-summary-hide-thread): If point were further to the
+	right than four characters, this command would move point to
+	`point-max'.  Don't do that.
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Set the active data
+	to nil to allow re-selecting groups that gain articles.
+	(gnus-bug-group-download-format-alist): Update the URL.
+
 2012-12-23  Andreas Schwab  <schwab@suse.de>
 
 	* shr.el (shr-tag-em): Render em as italic, not bold.

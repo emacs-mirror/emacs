@@ -713,6 +713,7 @@ claim them."
     "q" gnus-browse-exit
     "Q" gnus-browse-exit
     "d" gnus-browse-describe-group
+    [delete] gnus-browse-delete-group
     "\C-c\C-c" gnus-browse-exit
     "?" gnus-browse-describe-briefly
 
@@ -963,6 +964,16 @@ how new groups will be entered into the group buffer."
   "Describe the current group."
   (interactive (list (gnus-browse-group-name)))
   (gnus-group-describe-group nil group))
+
+(defun gnus-browse-delete-group (group force)
+  "Delete the current group.  Only meaningful with editable groups.
+If FORCE (the prefix) is non-nil, all the articles in the group will
+be deleted.  This is \"deleted\" as in \"removed forever from the face
+of the Earth\".  There is no undo.  The user will be prompted before
+doing the deletion."
+  (interactive (list (gnus-browse-group-name)
+		     current-prefix-arg))
+  (gnus-group-delete-group group force))
 
 (defun gnus-browse-unsubscribe-group ()
   "Toggle subscription of the current group in the browse buffer."

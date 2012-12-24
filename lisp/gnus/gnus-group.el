@@ -2310,6 +2310,7 @@ Return the name of the group if selection was successful."
   (let ((group (if (gnus-group-foreign-p group) group
 		 (gnus-group-prefixed-name (gnus-group-real-name group)
 					   method))))
+    (gnus-set-active group nil)
     (gnus-sethash
      group
      `(-1 nil (,group
@@ -2441,7 +2442,7 @@ Valid input formats include:
     (gnus-read-ephemeral-gmane-group group start range)))
 
 (defcustom gnus-bug-group-download-format-alist
-  '((emacs . "http://debbugs.gnu.org/%s;mboxmaint=yes;mboxstat=yes")
+  '((emacs . "http://debbugs.gnu.org/cgi/bugreport.cgi?bug=%s;mboxmaint=yes;mboxstat=yes")
     (debian
      . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes;mboxmaint=yes"))
   "Alist of symbols for bug trackers and the corresponding URL format string.
