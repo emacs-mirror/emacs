@@ -78,7 +78,7 @@ ftypelet (mode_t bits)
     return 'C';
   if (S_ISDOOR (bits))
     return 'D';
-  if (S_ISMPB (bits) || S_ISMPC (bits))
+  if (S_ISMPB (bits) || S_ISMPC (bits) || S_ISMPX (bits))
     return 'm';
   if (S_ISNWK (bits))
     return 'n';

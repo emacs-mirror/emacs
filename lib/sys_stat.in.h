@@ -150,6 +150,10 @@
 # endif
 #endif
 
+#ifndef S_ISMPX /* AIX */
+# define S_ISMPX(m) 0
+#endif
+
 #ifndef S_ISNAM /* Xenix */
 # ifdef S_IFNAM
 #  define S_ISNAM(m) (((m) & S_IFMT) == S_IFNAM)
