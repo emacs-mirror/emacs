@@ -1,3 +1,12 @@
+2012-12-24  Constantin Kulikov <zxnotdead@gmail.com>  (tiny change)
+
+	* startup.el (initial-buffer-choice): Allow function as value
+	(Bug#13251).
+	(command-line-1): Handle case where initial-buffer-choice
+	specifies a function.
+	* server.el (server-execute): Handle case where
+	initial-buffer-choice specifies a function.
+
 2012-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-try-auth-method): Refactored out into

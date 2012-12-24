@@ -39,6 +39,9 @@ if there is one.
 This unfinished feature was introduced by accident in Emacs 23.1;
 simply disabling Transient Mark mode does the same thing.
 
+** `initial-buffer-choice' can now specify a function to set up the
+initial buffer.
+
 ** ACL support has been added.
 +++
 *** Emacs preserves the ACL entries of files when backing up.
