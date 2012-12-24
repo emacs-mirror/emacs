@@ -193,6 +193,9 @@ INLINE_HEADER_BEGIN
 /* FIXME: should we move this into ->text->auto_save_modiff?  */
 #define BUF_AUTOSAVE_MODIFF(buf) ((buf)->auto_save_modified)
 
+/* Compaction count.  */
+#define BUF_COMPACT(buf) ((buf)->text->compact)
+
 /* Marker chain of buffer.  */
 #define BUF_MARKERS(buf) ((buf)->text->markers)
 

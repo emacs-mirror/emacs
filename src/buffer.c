@@ -575,6 +575,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
+  BUF_COMPACT (b) = 1;
   set_buffer_intervals (b, NULL);
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
@@ -1669,7 +1670,7 @@ compact_buffer (struct buffer *buffer)
      which aren't changed since last compaction.  */
   if (BUFFER_LIVE_P (buffer)
       && (buffer->base_buffer == NULL)
-      && (buffer->text->compact != buffer->text->modiff))
+      && (BUF_COMPACT (buffer) != BUF_MODIFF (buffer)))
     {
       /* If a buffer's undo list is Qt, that means that undo is
 	 turned off in that buffer.  Calling truncate_undo_list on
@@ -1694,7 +1695,7 @@ compact_buffer (struct buffer *buffer)
 	      current_buffer = save_current;
 	    }
 	}
-      buffer->text->compact = buffer->text->modiff;
+      BUF_COMPACT (buffer) = BUF_MODIFF (buffer);
     }
 }
 

@@ -1,3 +1,11 @@
+2012-12-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.h (BUF_COMPACT): New macro to follow the common style.
+	* buffer.c (Fget_buffer_create): Use it to set compact field of
+	struct buffer_text to avoid accessing an uninitialized value
+	when compact_buffer is called for the first time.
+	(compact_buffer): Use convenient BUF_COMPACT and BUF_MODIFF.
+
 2012-12-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (acl_set_file): If setting the file security descriptor
