@@ -1,3 +1,9 @@
+2012-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_ISMPX): Define to zero, to accommodate changes
+	in lib/filemode.c that broke the MS-Windows build.
+	Suggested by Andy Moreton <andrewjmoreton@gmail.com>.
+
 2012-12-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
