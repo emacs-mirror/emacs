@@ -3684,7 +3684,6 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
 $as_echo "$MKDIR_P" >&6; }
 
-
 mkdir_p="$MKDIR_P"
 case $mkdir_p in
   [\\/$]* | ?:[\\/]*) ;;
