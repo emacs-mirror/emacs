@@ -8,6 +8,7 @@
 	for reuse.
 	(gnus-open-server): Use it to add more tracing.
 	(gnus-finish-retrieve-group-infos): Add backend tracing.
+	(gnus-backend-trace): Also note the elapsed seconds.
 
 2012-12-22  Philipp Haselwarter  <philipp@haselwarter.org>
 
