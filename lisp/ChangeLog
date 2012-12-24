@@ -1,3 +1,10 @@
+2012-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-method): Refactored out into
+	its own function.
+	(smtpmail-try-auth-methods): Forget the user name/password if the
+	login is unsuccessful (bug#12424).
+
 2012-12-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el (notifications-notify): Protect body with

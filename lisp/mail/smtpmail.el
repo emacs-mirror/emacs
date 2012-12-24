@@ -529,6 +529,18 @@ The list is in preference order.")
 	    password (plist-get auth-info :secret)))
     (when (functionp password)
       (setq password (funcall password)))
+    (let ((result (catch 'done
+		    (smtpmail-try-auth-method process mech user password))))
+      (if (stringp result)
+	  (progn
+	    (auth-source-forget+ :host host :port port)
+	    (throw 'done result))
+	(when save-function
+	  (funcall save-function))
+	result))))
+
+(defun smtpmail-try-auth-method (process mech user password)
+  (let (ret)
     (cond
      ((or (not mech)
 	  (not user)
@@ -554,16 +566,11 @@ The list is in preference order.")
 	       ;; are taken as a response to the server, and the
 	       ;; authentication fails.
 	       (encoded (base64-encode-string response t)))
-	  (smtpmail-command-or-throw process encoded)
-	  (when save-function
-	    (funcall save-function)))))
+	  (smtpmail-command-or-throw process encoded))))
      ((eq mech 'login)
       (smtpmail-command-or-throw process "AUTH LOGIN")
-      (smtpmail-command-or-throw
-       process (base64-encode-string user t))
-      (smtpmail-command-or-throw process (base64-encode-string password t))
-      (when save-function
-	(funcall save-function)))
+      (smtpmail-command-or-throw process (base64-encode-string user t))
+      (smtpmail-command-or-throw process (base64-encode-string password t)))
      ((eq mech 'plain)
       ;; We used to send an empty initial request, and wait for an
       ;; empty response, and then send the password, but this
@@ -574,9 +581,7 @@ The list is in preference order.")
        process
        (concat "AUTH PLAIN "
 	       (base64-encode-string (concat "\0" user "\0" password) t))
-       235)
-      (when save-function
-	(funcall save-function)))
+       235))
      (t
       (error "Mechanism %s not implemented" mech)))))
 
