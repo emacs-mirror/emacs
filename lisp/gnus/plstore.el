@@ -126,7 +126,8 @@ symmetric encryption will be used.")
 
 (defun plstore-passphrase-callback-function (_context _key-id plstore)
   (if plstore-cache-passphrase-for-symmetric-encryption
-      (let* ((file (file-truename (plstore--get-buffer plstore)))
+      (let* ((file (file-truename (buffer-file-name
+				   (plstore--get-buffer plstore))))
 	     (entry (assoc file plstore-passphrase-alist))
 	     passphrase)
 	(or (copy-sequence (cdr entry))

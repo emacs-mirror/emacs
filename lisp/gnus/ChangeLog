@@ -1,3 +1,9 @@
+2012-12-25  Leo Liu  <sdl.web@gmail.com>
+
+	* plstore.el (plstore-passphrase-callback-function): Fix error when
+	error when plstore-cache-passphrase-for-symmetric-encryption is set
+	(bug#13264).
+
 2012-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-set-global-variables): Don't copy over the summary
