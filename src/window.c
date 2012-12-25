@@ -801,12 +801,12 @@ window_body_cols (struct window *w)
        occupies one column only.  */
     width -= 1;
 
+  /* Display margins cannot be used for normal text.  */
+  width -= WINDOW_LEFT_MARGIN_COLS (w) + WINDOW_RIGHT_MARGIN_COLS (w);
+
   if (FRAME_WINDOW_P (f))
-    /* On window-systems, fringes and display margins cannot be
-       used for normal text.  */
-    width -= (WINDOW_FRINGE_COLS (w)
-	      + WINDOW_LEFT_MARGIN_COLS (w)
-	      + WINDOW_RIGHT_MARGIN_COLS (w));
+    /* On window-systems, fringes cannot be used for normal text.  */
+    width -= WINDOW_FRINGE_COLS (w);
 
   return width;
 }
