@@ -4693,7 +4693,7 @@ acl_to_text (acl_t acl, ssize_t *size)
     GROUP_SECURITY_INFORMATION |
     DACL_SECURITY_INFORMATION;
   char *retval = NULL;
-  ssize_t local_size;
+  ULONG local_size;
   int e = errno;
 
   errno = 0;
