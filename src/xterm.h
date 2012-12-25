@@ -475,8 +475,6 @@ struct x_output
   GtkWidget *toolbar_widget;
   /* The handle box that makes the tool bar detachable.  */
   GtkWidget *handlebox_widget;
-  /* Non-zero if the tool bar is detached.  */
-  int toolbar_detached;
   /* Non-zero if tool bar is packed into the hbox widget (i.e. vertical).  */
   int toolbar_in_hbox;
 

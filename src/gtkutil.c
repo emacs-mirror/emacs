@@ -4138,7 +4138,7 @@ xg_tool_bar_detach_callback (GtkHandleBox *wbox,
   if (f)
     {
       GtkRequisition req, req2;
-      FRAME_X_OUTPUT (f)->toolbar_detached = 1;
+
       gtk_widget_get_preferred_size (GTK_WIDGET (wbox), NULL, &req);
       gtk_widget_get_preferred_size (w, NULL, &req2);
       req.width -= req2.width;
@@ -4173,7 +4173,7 @@ xg_tool_bar_attach_callback (GtkHandleBox *wbox,
   if (f)
     {
       GtkRequisition req, req2;
-      FRAME_X_OUTPUT (f)->toolbar_detached = 0;
+
       gtk_widget_get_preferred_size (GTK_WIDGET (wbox), NULL, &req);
       gtk_widget_get_preferred_size (w, NULL, &req2);
       req.width += req2.width;
@@ -4347,7 +4347,6 @@ xg_create_tool_bar (FRAME_PTR f)
     }
 
   x->toolbar_widget = gtk_toolbar_new ();
-  x->toolbar_detached = 0;
 
   gtk_widget_set_name (x->toolbar_widget, "emacs-toolbar");
 

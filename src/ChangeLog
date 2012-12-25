@@ -2,6 +2,10 @@
 
 	* xdisp.c (redisplay_window): Remove inner local variable
 	because the outer shadowed one has the same meaning.
+	* xterm.h (struct x_output): Remove toolbar_detached member since it's
+	set but never used.
+	* gtkutil.c (xg_tool_bar_detach_callback, xg_tool_bar_attach_callback)
+	(xg_create_tool_bar): Adjust users.
 
 2012-12-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
