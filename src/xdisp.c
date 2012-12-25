@@ -15649,7 +15649,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  /* Some people insist on not letting point enter the scroll
 	     margin, even though this part handles windows that didn't
 	     scroll at all.  */
-	  struct frame *f = XFRAME (w->frame);
 	  int margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
 	  int pixel_margin = margin * FRAME_LINE_HEIGHT (f);
 	  bool header_line = WINDOW_WANTS_HEADER_LINE_P (w);

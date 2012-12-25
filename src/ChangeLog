@@ -1,3 +1,8 @@
+2012-12-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (redisplay_window): Remove inner local variable
+	because the outer shadowed one has the same meaning.
+
 2012-12-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* buffer.h (BUF_COMPACT): New macro to follow the common style.
@@ -94,7 +99,7 @@
 	(charpos_to_bytepos): Remove.
 	* fileio.c (Finsert_file_contents): Use move_gap_both.
 	* search.c (Freplace_match): Likewise.
-	* process.c (process_send_region): Likewise. Use convenient
+	* process.c (process_send_region): Likewise.  Use convenient
 	names for byte positions.
 	* lisp.h (charpos_to_bytepos): Remove prototype.
 	* indent.c (scan_for_column): Use CHAR_TO_BYTE.
