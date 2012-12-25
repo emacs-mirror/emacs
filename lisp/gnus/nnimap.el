@@ -99,7 +99,8 @@ Uses the same syntax as `nnmail-split-methods'.")
 
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
-Possible choices are nil (use default methods) or `anonymous'.")
+Possible choices are nil (use default methods), `anonymous',
+`login', `plain' and `cram-md5'.")
 
 (defvoo nnimap-expunge t
   "If non-nil, expunge articles after deleting them.
@@ -487,9 +488,13 @@ textual parts.")
    ;; round trips than CRAM-MD5, and it's less likely to be buggy),
    ;; and we're using an encrypted connection.
    ((and (not (nnimap-capability "LOGINDISABLED"))
-	 (eq (nnimap-stream-type nnimap-object) 'tls))
+	 (eq (nnimap-stream-type nnimap-object) 'tls)
+	 (or (null nnimap-authenticator)
+	     (eq nnimap-authenticator 'login)))
     (nnimap-command "LOGIN %S %S" user password))
-   ((nnimap-capability "AUTH=CRAM-MD5")
+   ((and (nnimap-capability "AUTH=CRAM-MD5")
+	 (or (null nnimap-authenticator)
+	     (eq nnimap-authenticator 'cram-md5)))
     (erase-buffer)
     (let ((sequence (nnimap-send-command "AUTHENTICATE CRAM-MD5"))
 	  (challenge (nnimap-wait-for-line "^\\+\\(.*\\)\n")))
@@ -502,9 +507,13 @@ textual parts.")
 			       (base64-decode-string challenge))))
 	"\r\n"))
       (nnimap-wait-for-response sequence)))
-   ((not (nnimap-capability "LOGINDISABLED"))
+   ((and (not (nnimap-capability "LOGINDISABLED"))
+	 (or (null nnimap-authenticator)
+	     (eq nnimap-authenticator 'login)))
     (nnimap-command "LOGIN %S %S" user password))
-   ((nnimap-capability "AUTH=PLAIN")
+   ((and (nnimap-capability "AUTH=PLAIN")
+	 (or (null nnimap-authenticator)
+	     (eq nnimap-authenticator 'plain)))
     (nnimap-command
      "AUTHENTICATE PLAIN %s"
      (base64-encode-string

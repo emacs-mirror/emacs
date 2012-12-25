@@ -14208,7 +14208,11 @@ what you need.
 
 @item nnimap-authenticator
 Some @acronym{IMAP} servers allow anonymous logins.  In that case,
-this should be set to @code{anonymous}.
+this should be set to @code{anonymous}.  If this variable isn't set,
+the normal login methods will be used.  If you wish to specify a
+specific login method to be used, you can set this variable to either
+@code{login} (the traditional @acronym{IMAP} login method),
+@code{plain} or @code{cram-md5}.
 
 @item nnimap-expunge
 If non-@code{nil}, expunge articles after deleting them.  This is always done
