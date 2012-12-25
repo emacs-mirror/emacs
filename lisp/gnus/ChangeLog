@@ -1,5 +1,47 @@
 2012-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-set-global-variables): Don't copy over the summary
+	buffer to the article buffer here, because that clobbers multiple
+	article buffers.
+
+	* gnus-art.el (gnus-article-setup-buffer): Make sure that the article
+	buffer always points to the right summary buffer.
+
+2012-12-25  John Wiegley  <jwiegley@gmail.com>
+
+	* auth-source.el (auth-source-netrc-parse): Allow using "password" as
+	the password (bug#12097).
+
+2012-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-a): Don't tagify <A> elements that don't have HREFs
+	(bug#13263).
+
+	* gnus-salt.el (gnus-highlight-selected-tree): Check whether the Tree
+	buffer exists before using it (bug#12475).
+
+	* gnus-agent.el (gnus-agent-fetch-articles): Don't fetch articles from
+	offline groups (bug#11937).
+
+	* message.el (message-yank-original): When using customize to set the
+	value of `message-cite-style', the variable it set to a symbol that's
+	the name of the variable, which must then be dereferenced (bug#12616).
+
+2012-12-25  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* lisp/gnus-spec.el (gnus-face-face-function): Initialize the value of
+	the `face' property with a list whose car is the face specified in the
+	format string and whose cdr is (nil).
+	* lisp/gnus-util.el
+	(gnus-put-text-property-excluding-characters-with-faces): Change
+	accordingly.
+	(gnus-get-text-property-excluding-characters-with-faces): New function.
+	* lisp/gnus-sum.el (gnus-summary-highlight-line):
+	* lisp/gnus-salt.el (gnus-tree-highlight-node):
+	* lisp/gnus-group.el (gnus-group-highlight-line): Use it.
+
+2012-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
 	* nnimap.el (nnimap-authenticator): Expand to allow specifying the
 	login methods.
 	(nnimap-login): Respect the `nnimap-authenticator' variable.
@@ -8,7 +50,7 @@
 	mark state when moving articles.  Otherwise unticked articles will get
 	their ticks back after moving.
 
-2012-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+2012-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-srvr.el (gnus-browse-delete-group): Fix syntax error.
 
@@ -26,11 +68,11 @@
 	to nil to allow re-selecting groups that gain articles.
 	(gnus-bug-group-download-format-alist): Update the URL.
 
-2012-12-23  Andreas Schwab  <schwab@suse.de>
+2012-12-25  Andreas Schwab  <schwab@suse.de>
 
 	* shr.el (shr-tag-em): Render em as italic, not bold.
 
-2012-12-23  Lars Ingebrigtsen  <larsi@gnus.org>
+2012-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-int.el (gnus-backend-trace): Factor out into its own function
 	for reuse.
@@ -38,7 +80,7 @@
 	(gnus-finish-retrieve-group-infos): Add backend tracing.
 	(gnus-backend-trace): Also note the elapsed seconds.
 
-2012-12-22  Philipp Haselwarter  <philipp@haselwarter.org>
+2012-12-25  Philipp Haselwarter  <philipp@haselwarter.org>
 
 	* gnus-sync.el (gnus-sync-file-encrypt-to, gnus-sync-save): Set
 	epa-file-encrypt-to from variable to avoid querying.

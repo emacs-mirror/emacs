@@ -659,7 +659,7 @@ Two predefined functions are available:
 	(while (and list
 		    (not (eval (caar list))))
 	  (setq list (cdr list)))))
-    (unless (eq (setq face (cdar list)) (get-text-property beg 'face))
+    (unless (eq (setq face (cdar list)) (gnus-get-text-property-excluding-characters-with-faces beg 'face))
       (gnus-put-text-property-excluding-characters-with-faces
        beg end 'face
        (if (boundp face) (symbol-value face) face)))))
@@ -828,31 +828,33 @@ Two predefined functions are available:
 
 (defun gnus-highlight-selected-tree (article)
   "Highlight the selected article in the tree."
-  (let ((buf (current-buffer))
-	region)
-    (set-buffer gnus-tree-buffer)
-    (when (setq region (gnus-tree-article-region article))
-      (when (or (not gnus-selected-tree-overlay)
-		(gnus-extent-detached-p gnus-selected-tree-overlay))
-	;; Create a new overlay.
-	(gnus-overlay-put
-	 (setq gnus-selected-tree-overlay
-	       (gnus-make-overlay (point-min) (1+ (point-min))))
-	 'face gnus-selected-tree-face))
-      ;; Move the overlay to the article.
-      (gnus-move-overlay
-       gnus-selected-tree-overlay (goto-char (car region)) (cdr region))
-      (gnus-tree-minimize)
-      (gnus-tree-recenter)
-      (let ((selected (selected-window)))
-	(when (gnus-get-buffer-window (set-buffer gnus-tree-buffer) t)
-	  (select-window (gnus-get-buffer-window (set-buffer gnus-tree-buffer) t))
-	  (gnus-horizontal-recenter)
-	  (select-window selected))))
-;; If we remove this save-excursion, it updates the wrong mode lines?!?
-    (with-current-buffer gnus-tree-buffer
-      (gnus-set-mode-line 'tree))
-    (set-buffer buf)))
+  (when (buffer-live-p gnus-tree-buffer)
+    (let ((buf (current-buffer))
+	  region)
+      (set-buffer gnus-tree-buffer)
+      (when (setq region (gnus-tree-article-region article))
+	(when (or (not gnus-selected-tree-overlay)
+		  (gnus-extent-detached-p gnus-selected-tree-overlay))
+	  ;; Create a new overlay.
+	  (gnus-overlay-put
+	   (setq gnus-selected-tree-overlay
+		 (gnus-make-overlay (point-min) (1+ (point-min))))
+	   'face gnus-selected-tree-face))
+	;; Move the overlay to the article.
+	(gnus-move-overlay
+	 gnus-selected-tree-overlay (goto-char (car region)) (cdr region))
+	(gnus-tree-minimize)
+	(gnus-tree-recenter)
+	(let ((selected (selected-window)))
+	  (when (gnus-get-buffer-window (set-buffer gnus-tree-buffer) t)
+	    (select-window
+	     (gnus-get-buffer-window (set-buffer gnus-tree-buffer) t))
+	    (gnus-horizontal-recenter)
+	    (select-window selected))))
+      ;; If we remove this save-excursion, it updates the wrong mode lines?!?
+      (with-current-buffer gnus-tree-buffer
+	(gnus-set-mode-line 'tree))
+      (set-buffer buf))))
 
 (defun gnus-tree-highlight-article (article face)
   (with-current-buffer (gnus-get-tree-buffer)

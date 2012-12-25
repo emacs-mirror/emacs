@@ -931,7 +931,8 @@ ones, in case fg and bg are nil."
 	(start (point))
 	shr-start)
     (shr-generic cont)
-    (shr-urlify (or shr-start start) (shr-expand-url url) title)))
+    (when url
+      (shr-urlify (or shr-start start) (shr-expand-url url) title))))
 
 (defun shr-tag-object (cont)
   (let ((start (point))

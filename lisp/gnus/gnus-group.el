@@ -1667,7 +1667,7 @@ and ends at END."
   (let ((face (cdar (gnus-group-update-eval-form
                       group
                       gnus-group-highlight))))
-    (unless (eq face (get-text-property beg 'face))
+    (unless (eq face (gnus-get-text-property-excluding-characters-with-faces beg 'face))
       (let ((inhibit-read-only t))
         (gnus-put-text-property-excluding-characters-with-faces
          beg end 'face

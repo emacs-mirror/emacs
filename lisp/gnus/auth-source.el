@@ -1008,7 +1008,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                     (while (and (zerop (forward-line 1))
                                 (looking-at "$")))
                     (narrow-to-region (point) (point)))
-                   ((member elem tokens)
+                   ((and (member elem tokens) (null pair))
                     ;; Tokens that don't have a following value are ignored,
                     ;; except "default".
                     (when (and pair (or (cdr pair)

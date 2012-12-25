@@ -4539,18 +4539,17 @@ commands:
 	    (gnus-article-mode))
 	  (setq truncate-lines gnus-article-truncate-lines)
 	  (current-buffer))
-      (with-current-buffer (gnus-get-buffer-create name)
-	(gnus-article-mode)
-	(setq truncate-lines gnus-article-truncate-lines)
-	(make-local-variable 'gnus-summary-buffer)
-	(setq gnus-summary-buffer
-	      (gnus-summary-buffer-name gnus-newsgroup-name))
-	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(when article-lapsed-timer
-	  (gnus-stop-date-timer))
-	(when gnus-article-update-date-headers
-	  (gnus-start-date-timer gnus-article-update-date-headers))
-	(current-buffer)))))
+      (let ((summary gnus-summary-buffer))
+	(with-current-buffer (gnus-get-buffer-create name)
+	  (gnus-article-mode)
+	  (setq truncate-lines gnus-article-truncate-lines)
+	  (set (make-local-variable 'gnus-summary-buffer) summary)
+	  (gnus-summary-set-local-parameters gnus-newsgroup-name)
+	  (when article-lapsed-timer
+	    (gnus-stop-date-timer))
+	  (when gnus-article-update-date-headers
+	    (gnus-start-date-timer gnus-article-update-date-headers))
+	  (current-buffer))))))
 
 (defun gnus-article-stop-animations ()
   (dolist (timer (and (boundp 'timer-list)
