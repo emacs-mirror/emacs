@@ -1,3 +1,10 @@
+2012-12-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (auto-mode-alist): `purecopy' the
+	Rakefile regexp.
+	(auto-mode-alist): Associate .gemspec files with ruby-mode
+	(https://bugs.ruby-lang.org/issues/5453).
+
 2012-12-26  Jürgen Hötzel  <juergen@archlinux.org>
 
 	* net/tramp-adb.el (tramp-adb-get-ls-command): New defun.  Suppress
