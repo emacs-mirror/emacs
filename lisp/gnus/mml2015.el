@@ -735,6 +735,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defvar epg-user-id-alist)
 (defvar epg-digest-algorithm-alist)
+(defvar epg-gpg-program)
 (defvar inhibit-redisplay)
 
 (autoload 'epg-make-context "epg")
@@ -743,7 +744,6 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-context-set-signers "epg")
 (autoload 'epg-context-result-for "epg")
 (autoload 'epg-new-signature-digest-algorithm "epg")
-(autoload 'epg-verify-result-to-string "epg")
 (autoload 'epg-list-keys "epg")
 (autoload 'epg-decrypt-string "epg")
 (autoload 'epg-verify-string "epg")
@@ -755,6 +755,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-sub-key-capability "epg")
 (autoload 'epg-sub-key-validity "epg")
 (autoload 'epg-sub-key-fingerprint "epg")
+(autoload 'epg-signature-key-id "epg")
+(autoload 'epg-signature-to-string "epg")
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
@@ -818,6 +820,34 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	(setq secret-keys (cdr secret-keys))))
     secret-key))
 
+(defun mml2015-epg-key-image (key-id)
+  "Return the image of a key, if any"
+  (let ((filename
+	 (replace-regexp-in-string
+	  "\n" ""
+	  (shell-command-to-string
+	   (format "%s --photo-viewer 'echo %%I >&2' --list-keys %s > /dev/null"
+		   epg-gpg-program key-id)))))
+    (when (and (not (string-equal filename ""))
+	       (file-exists-p filename))
+      (create-image filename))))
+
+(defun mml2015-epg-key-image-to-string (key-id)
+  "Return a string with the image of a key, if any"
+  (let* ((result "")
+         (key-image (mml2015-epg-key-image key-id)))
+    (when key-image
+      (setq result "  ")
+      (put-text-property 1 2 'display key-image result))
+    result))
+
+(defun mml2015-epg-signature-to-string (signature)
+  (concat (epg-signature-to-string signature)
+	  (mml2015-epg-key-image-to-string (epg-signature-key-id signature))))
+
+(defun mml2015-epg-verify-result-to-string (verify-result)
+  (mapconcat #'mml2015-epg-signature-to-string verify-result "\n"))
+
 (defun mml2015-epg-decrypt (handle ctl)
   (catch 'error
     (let ((inhibit-redisplay t)
@@ -860,7 +890,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	    (mm-set-handle-multipart-parameter
 	     mm-security-handle 'gnus-info
 	     (concat "OK\n"
-		     (epg-verify-result-to-string
+		     (mml2015-epg-verify-result-to-string
 		      (epg-context-result-for context 'verify))))
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-info "OK"))
@@ -908,7 +938,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
       (if (epg-context-result-for context 'verify)
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-details
-	   (epg-verify-result-to-string
+	   (mml2015-epg-verify-result-to-string
 	    (epg-context-result-for context 'verify)))))))
 
 (defun mml2015-epg-verify (handle ctl)
@@ -942,7 +972,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	 (throw 'error handle)))
       (mm-set-handle-multipart-parameter
        mm-security-handle 'gnus-info
-       (epg-verify-result-to-string (epg-context-result-for context 'verify)))
+       (mml2015-epg-verify-result-to-string
+	(epg-context-result-for context 'verify)))
       handle)))
 
 (defun mml2015-epg-clear-verify ()
@@ -965,7 +996,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	(progn
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-info
-	   (epg-verify-result-to-string
+	   (mml2015-epg-verify-result-to-string
 	    (epg-context-result-for context 'verify)))
 	  (delete-region (point-min) (point-max))
 	  (insert (mm-decode-coding-string plain coding-system-for-read)))

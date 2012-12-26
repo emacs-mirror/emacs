@@ -1,3 +1,19 @@
+2012-12-26  Daiki Ueno  <ueno@gnu.org>
+
+	* mml2015.el (mml2015-epg-signature-to-string): New function.
+	(mml2015-epg-verify-result-to-string): New function.
+	(mml2015-epg-decrypt, mml2015-epg-clear-decrypt, mml2015-epg-verify)
+	(mml2015-epg-clear-verify): Use mml2015-epg-verify-result-to-string
+	instead of epg-verify-result-to-string.
+	(epg-signature-key-id, epg-signature-to-string): Autoload.
+	(epg-verify-result-to-string): Remove autoload.
+
+2012-12-25  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* mml2015.el (mml2015-epg-key-image): New function, to retrieve photo
+	ID image from GPG public key.
+	(mml2015-epg-key-image-to-string): New function.
+
 2012-12-25  Leo Liu  <sdl.web@gmail.com>
 
 	* plstore.el (plstore-passphrase-callback-function): Fix error when

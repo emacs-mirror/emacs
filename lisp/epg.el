@@ -967,34 +967,12 @@ This function is for internal use only."
 	(setcdr entry value)
       (epg-context-set-result context (cons (cons name value) result)))))
 
-(defun epg-key-image (key-id)
-  "Return the image of a key, if any"
-  (let ((filename
-	 (replace-regexp-in-string
-	  "\n" ""
-	  (shell-command-to-string
-	   (concat "/usr/bin/gpg --photo-viewer 'echo %I >&2' --list-keys "
-		   key-id " > /dev/null")))))
-    (when (and (not (string-equal filename ""))
-	       (file-exists-p filename))
-      (create-image filename))))
-
-(defun epg-key-image-to-string (key-id)
-  "Return a string with the image of a key, if any"
-  (let* ((result "")
-         (key-image (epg-key-image key-id)))
-    (when key-image
-      (setq result "  ")
-      (put-text-property 1 2 'display key-image result))
-    result))
-
 (defun epg-signature-to-string (signature)
   "Convert SIGNATURE to a human readable string."
   (let* ((user-id (cdr (assoc (epg-signature-key-id signature)
 			      epg-user-id-alist)))
 	 (pubkey-algorithm (epg-signature-pubkey-algorithm signature))
-	 (key-id (epg-signature-key-id signature))
-	 (key-image (epg-key-image-to-string key-id)))
+	 (key-id (epg-signature-key-id signature)))
     (concat
      (cond ((eq (epg-signature-status signature) 'good)
 	    "Good signature from ")
@@ -1009,7 +987,6 @@ This function is for internal use only."
 	   ((eq (epg-signature-status signature) 'no-pubkey)
 	    "No public key for "))
      key-id
-     key-image
      (if user-id
 	 (concat " "
 		 (if (stringp user-id)
