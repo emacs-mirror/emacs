@@ -1,3 +1,14 @@
+2012-12-26  Jürgen Hötzel  <juergen@archlinux.org>
+
+	* net/tramp-adb.el (tramp-adb-get-ls-command): New defun.  Suppress
+	coloring, if possible (required for BusyBox based systems like
+	CynagenMod).
+	(tramp-adb-handle-file-attributes)
+	(tramp-adb-handle-insert-directory)
+	(tramp-adb-handle-file-name-all-completions): Use it.
+	(tramp-adb-get-toolbox): New defun.  Check for remote shell
+	implementation (BusyBox or Toolbox).
+
 2012-12-24  Constantin Kulikov <zxnotdead@gmail.com>  (tiny change)
 
 	* startup.el (initial-buffer-choice): Allow function as value

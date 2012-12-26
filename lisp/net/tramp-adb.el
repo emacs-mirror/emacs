@@ -46,13 +46,15 @@
 (defconst tramp-adb-method "adb"
   "*When this method name is used, forward all calls to Android Debug Bridge.")
 
-(defcustom tramp-adb-prompt "^\\(?:[[:alnum:]]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
+(defcustom tramp-adb-prompt
+  "^\\(?:[[:alnum:]]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
   "Regexp used as prompt in almquist shell."
   :type 'string
   :version "24.4"
   :group 'tramp)
 
-(defconst tramp-adb-ls-date-regexp "[[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]][0-9][0-9]:[0-9][0-9][[:space:]]")
+(defconst tramp-adb-ls-date-regexp
+  "[[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]][0-9][0-9]:[0-9][0-9][[:space:]]")
 
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods `(,tramp-adb-method))
@@ -269,16 +271,21 @@ pass to the OPERATION."
   (unless id-format (setq id-format 'integer))
   (ignore-errors
     (with-parsed-tramp-file-name filename nil
-      (with-tramp-file-property v localname (format "file-attributes-%s" id-format)
+      (with-tramp-file-property
+	  v localname (format "file-attributes-%s" id-format)
 	(tramp-adb-barf-unless-okay
-	 v (format "ls -d -l %s" (tramp-shell-quote-argument localname)) "")
+	 v (format "%s -d -l %s"
+		   (tramp-adb-get-ls-command v)
+		   (tramp-shell-quote-argument localname)) "")
 	(with-current-buffer (tramp-get-buffer v)
 	  (tramp-adb-sh-fix-ls-output)
 	  (let* ((columns (split-string (buffer-string)))
 		 (mod-string (nth 0 columns))
 		 (is-dir (eq ?d (aref mod-string 0)))
 		 (is-symlink (eq ?l (aref mod-string 0)))
-		 (symlink-target (and is-symlink (cadr (split-string (buffer-string) "\\( -> \\|\n\\)"))))
+		 (symlink-target
+		  (and is-symlink
+		       (cadr (split-string (buffer-string) "\\( -> \\|\n\\)"))))
 		 (uid (nth 1 columns))
 		 (gid (nth 2 columns))
 		 (date (format "%s %s" (nth 4 columns) (nth 5 columns)))
@@ -297,6 +304,27 @@ pass to the OPERATION."
 	     ;; fake
 	     t 1 1)))))))
 
+(defun tramp-adb-get-ls-command (vec)
+  (with-tramp-connection-property vec "ls"
+    (tramp-message vec 5 "Finding a suitable `ls' command")
+    (if	(zerop (tramp-adb-command-exit-status
+		vec "ls --color=never -al /dev/null"))
+	;; On CyanogenMod based system BusyBox is used and "ls" output
+	;; coloring is enabled by default.  So we try to disable it
+	;; when possible.
+	"ls --color=never"
+      "ls")))
+
+(defun tramp-adb-get-toolbox (vec)
+  "Get shell toolbox implementation: `toolbox' for orginal distributions
+or `busybox' for CynagenMode based distributions"
+  (with-tramp-connection-property vec "toolbox"
+    (tramp-message vec 5 "Checking shell toolbox implementation")
+    (cond
+     ((zerop (tramp-adb-command-exit-status vec "busybox")) 'busybox)
+     ((zerop (tramp-adb-command-exit-status vec "toolbox")) 'toolbox)
+     (t 'unkown))))
+
 (defun tramp-adb--gnu-switches-to-ash
   (switches)
   "Almquist shell can't handle multiple arguments.
@@ -310,7 +338,8 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
 		  ;; FIXME: Warning about removed switches (long and non-dash).
 		  (delq nil
 			(mapcar
-			 (lambda (s) (and (not (string-match "\\(^--\\|^[^-]\\)" s)) s))
+			 (lambda (s)
+			   (and (not (string-match "\\(^--\\|^[^-]\\)" s)) s))
 			 switches))))))
 
 (defun tramp-adb-handle-insert-directory
@@ -325,14 +354,15 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
 	    (switch-t (member "-t" switches))
 	    (switches (mapconcat 'identity (remove "-t" switches) " ")))
 	(tramp-adb-barf-unless-okay
-	 v (format "ls %s %s" switches name)
+	 v (format "%s %s %s" (tramp-adb-get-ls-command v) switches name)
 	 "Cannot insert directory listing: %s" filename)
 	(unless switch-d
 	  ;; We insert also filename/. and filename/.., because "ls" doesn't.
 	  (narrow-to-region (point) (point))
 	  (ignore-errors
 	    (tramp-adb-barf-unless-okay
-	     v (format "ls -d %s %s %s"
+	     v (format "%s -d %s %s %s"
+		       (tramp-adb-get-ls-command v)
 		       switches
 		       (concat (file-name-as-directory name) ".")
 		       (concat (file-name-as-directory name) ".."))
@@ -342,11 +372,15 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
     (insert-buffer-substring (tramp-get-buffer v))))
 
 (defun tramp-adb-sh-fix-ls-output (&optional sort-by-time)
-  "Androids ls command doesn't insert size column for directories: Emacs dired can't find files. Insert dummy 0 in empty size columns."
+  "Insert dummy 0 in empty size columns.
+Androids \"ls\" command doesn't insert size column for directories:
+Emacs dired can't find files."
   (save-excursion
     ;; Insert missing size.
     (goto-char (point-min))
-    (while (search-forward-regexp "[[:space:]]\\([[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]]\\)" nil t)
+    (while
+	(search-forward-regexp
+	 "[[:space:]]\\([[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]]\\)" nil t)
       (replace-match "0\\1" "\\1" nil)
       ;; Insert missing "/".
       (when (looking-at "[0-9][0-9]:[0-9][0-9][[:space:]]+$")
@@ -429,7 +463,9 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
      (with-tramp-file-property v localname "file-name-all-completions"
        (save-match-data
 	 (tramp-adb-send-command
-	  v (format "ls %s" (tramp-shell-quote-argument localname)))
+	  v (format "%s %s"
+		    (tramp-adb-get-ls-command v)
+		    (tramp-shell-quote-argument localname)))
 	 (mapcar
 	  (lambda (f)
 	    (if (file-directory-p f)
@@ -787,7 +823,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		(tramp-compat-funcall 'display-message-or-buffer output-buffer)
 	      (pop-to-buffer output-buffer))))))))
 
-;; We use BUFFER also as connection buffer during setup. Because of
+;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
 (defun tramp-adb-handle-start-file-process (name buffer program &rest args)
