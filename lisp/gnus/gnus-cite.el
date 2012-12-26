@@ -745,28 +745,14 @@ See also the documentation for `gnus-article-highlight-citation'."
 	  (gnus-article-search-signature)
 	  (setq total (count-lines start (point)))
 	  (while atts
-	    (setq hidden (+ hidden (length (cdr (assoc (cdar atts)
-						       gnus-cite-prefix-alist))))
+	    (setq hidden (+ hidden (length
+				    (cdr (assoc (cdar atts)
+						gnus-cite-prefix-alist))))
 		  atts (cdr atts)))
 	  (when (or force
 		    (and (> (* 100 hidden) (* gnus-cite-hide-percentage total))
 			 (> hidden gnus-cite-hide-absolute)))
-	    (gnus-add-wash-type 'cite)
-	    (setq atts gnus-cite-attribution-alist)
-	    (while atts
-	      (setq total (cdr (assoc (cdar atts) gnus-cite-prefix-alist))
-		    atts (cdr atts))
-	      (while total
-		(setq hidden (car total)
-		      total (cdr total))
-		(goto-char (point-min))
-		(forward-line (1- hidden))
-		(unless (assq hidden gnus-cite-attribution-alist)
-		  (gnus-add-text-properties
-		   (point) (progn (forward-line 1) (point))
-		   (nconc (list 'article-type 'cite)
-			  gnus-hidden-properties)))))))))
-    (gnus-set-mode-line 'article)))
+	    (gnus-article-hide-citation)))))))
 
 (defun gnus-article-hide-citation-in-followups ()
   "Hide cited text in non-root articles."

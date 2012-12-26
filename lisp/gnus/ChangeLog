@@ -1,3 +1,12 @@
+2012-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el (gnus-goto-colon): Move to the beginning of the visual
+	lines.  This makes summary commands with hidden threads work more
+	reliably.
+
+	* gnus-cite.el (gnus-article-hide-citation-maybe): Leave an expansion
+	button to mark the hidden citations (bug#9395).
+
 2012-12-26  Daiki Ueno  <ueno@gnu.org>
 
 	* mml2015.el (mml2015-epg-signature-to-string): New function.

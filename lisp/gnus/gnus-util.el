@@ -225,7 +225,7 @@ is slower."
 
 
 (defun gnus-goto-colon ()
-  (beginning-of-line)
+  (move-beginning-of-line 1)
   (let ((eol (point-at-eol)))
     (goto-char (or (text-property-any (point) eol 'gnus-position t)
 		   (search-forward ":" eol t)
