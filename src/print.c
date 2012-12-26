@@ -2054,7 +2054,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		  {
 		    Lisp_Object maybe = ((Lisp_Object *) v->pointer)[i];
 
-		    if (valid_lisp_object_p (maybe))
+		    if (valid_lisp_object_p (maybe) > 0)
 		      {
 			PRINTCHAR (' ');
 			print_object (maybe, printcharfun, escapeflag);
