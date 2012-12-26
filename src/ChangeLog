@@ -2,6 +2,10 @@
 
 	* lisp.h (toplevel): Add two notices to the comment about
 	defining a new Lisp data type.
+	* print.c (print_object): If Lisp_Save_Value object's pointer
+	is the address of a memory area containing Lisp_Objects, try
+	to print them.
+	* alloc.c (valid_lisp_object_p): Adjust comment.
 
 2012-12-26  Dmitry Antipov  <dmantipov@yandex.ru>
 

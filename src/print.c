@@ -2034,14 +2034,44 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  break;
 
 	case Lisp_Misc_Save_Value:
-	  strout ("#<save_value ", -1, -1, printcharfun);
 	  {
-	    int len = sprintf (buf, "ptr=%p int=%"pD"d",
-			       XSAVE_VALUE (obj)->pointer,
-			       XSAVE_VALUE (obj)->integer);
-	    strout (buf, len, len, printcharfun);
+	    int i;
+	    struct Lisp_Save_Value *v = XSAVE_VALUE (obj);
+
+	    strout ("#<save-value ", -1, -1, printcharfun);
+	    if (v->dogc)
+	      {
+		int lim = min (v->integer, 8);
+		
+		/* Try to print up to 8 objects we have saved.  Although
+		   valid_lisp_object_p is slow, this shouldn't be a real
+		   bottleneck because such a saved values are quite rare.  */
+
+		i = sprintf (buf, "with %"pD"d objects", v->integer);
+		strout (buf, i, i, printcharfun);
+
+		for (i = 0; i < lim; i++)
+		  {
+		    Lisp_Object maybe = ((Lisp_Object *) v->pointer)[i];
+
+		    if (valid_lisp_object_p (maybe))
+		      {
+			PRINTCHAR (' ');
+			print_object (maybe, printcharfun, escapeflag);
+		      }
+		    else
+		      strout (" <invalid>", -1, -1, printcharfun);
+		  }
+		if (i == lim && i < v->integer)
+		  strout (" ...", 4, 4, printcharfun);
+	      }
+	    else
+	      {
+		i = sprintf (buf, "ptr=%p int=%"pD"d", v->pointer, v->integer);
+		strout (buf, i, i, printcharfun);
+	      }
+	    PRINTCHAR ('>');
 	  }
-	  PRINTCHAR ('>');
 	  break;
 
 	default:
