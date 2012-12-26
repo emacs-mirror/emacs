@@ -978,7 +978,6 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
-extern void select_window_1 (Lisp_Object window, bool inhibit_point_swap);
 extern struct window *decode_live_window (Lisp_Object);
 extern struct window *decode_any_window (Lisp_Object);
 extern bool compare_window_configurations (Lisp_Object, Lisp_Object, bool);

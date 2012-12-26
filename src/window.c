@@ -87,6 +87,7 @@ static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
 static int window_resize_check (struct window *, int);
 static void window_resize_apply (struct window *, int);
 static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
+static void select_window_1 (Lisp_Object, bool);
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -532,7 +533,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 /* Select window with a minimum of fuss, i.e. don't record the change anywhere
    (not even for redisplay's benefit), and assume that the window's frame is
    already selected.  */
-void
+static void
 select_window_1 (Lisp_Object window, bool inhibit_point_swap)
 {
   /* Store the old selected window's buffer's point in pointm of the old
