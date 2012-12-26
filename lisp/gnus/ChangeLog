@@ -1,4 +1,17 @@
+2012-12-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml2015.el (mml2015-epg-key-image): Use mm-set-buffer-multibyte.
+
+2012-12-25  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* mml2015.el (mml2015-epg-key-image): use --attribute-fd rather than
+	temporary file to get PGP key image. Pass no-show-photos when extracting
+	image to avoid having it pop up twice.
+
 2012-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-treat-types): Include text/html as parts
+	eligible for treatment.
 
 	* gnus-util.el (gnus-goto-colon): Move to the beginning of the visual
 	lines.  This makes summary commands with hidden threads work more

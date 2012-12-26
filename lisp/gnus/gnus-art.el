@@ -1121,8 +1121,8 @@ parts.  When nil, redisplay article."
 	   (const :tag "Header" head)))
 
 (defvar gnus-article-treat-types '("text/plain" "text/x-verbatim"
-				   "text/x-patch")
-  "Parts to treat.")
+				   "text/x-patch" "text/html")
+  "Part types eligible for treatment.")
 
 (defvar gnus-inhibit-treatment nil
   "Whether to inhibit treatment.")

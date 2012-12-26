@@ -822,15 +822,16 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defun mml2015-epg-key-image (key-id)
   "Return the image of a key, if any"
-  (let ((filename
-	 (replace-regexp-in-string
-	  "\n" ""
-	  (shell-command-to-string
-	   (format "%s --photo-viewer 'echo %%I >&2' --list-keys %s > /dev/null"
-		   epg-gpg-program key-id)))))
-    (when (and (not (string-equal filename ""))
-	       (file-exists-p filename))
-      (create-image filename))))
+  (with-temp-buffer
+    (mm-set-buffer-multibyte nil)
+    (let* ((coding-system-for-write 'binary)
+           (coding-system-for-read 'binary)
+           (data (shell-command-to-string
+                  (format "%s --list-options no-show-photos --attribute-fd 2 --list-keys %s > /dev/null"
+                          epg-gpg-program key-id))))
+      (when (> (length data) 0)
+        (insert (substring data 16))
+        (create-image (buffer-string) nil t)))))
 
 (defun mml2015-epg-key-image-to-string (key-id)
   "Return a string with the image of a key, if any"
