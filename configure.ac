@@ -727,22 +727,11 @@ else
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
   nw="$nw -Wshadow"
 
+  # Emacs's use of alloca inhibits protecting the stack.
+  nw="$nw -Wstack-protector"
+
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
-
-  AC_MSG_CHECKING([whether to use -Wstack-protector])
-  AC_PREPROC_IFELSE(
-    [AC_LANG_PROGRAM(
-       [[#if (1 <= __LONG_MAX__ >> 31 >> 31 \
-           && 4 < __GNUC__ + (7 < __GNUC_MINOR__ + (2 <= __GNUC_PATCHLEVEL__)))
-	   /* OK */
-         #else
-	   #error "Not GCC, or GCC before 4.7.2, or 'long int' has < 64 bits."
-	 #endif
-       ]])],
-    [AC_MSG_RESULT(yes)],
-    [AC_MSG_RESULT(no)
-     nw="$nw -Wstack-protector"])
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])

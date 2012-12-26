@@ -1,3 +1,10 @@
+2012-12-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert static checking of stack smashing.
+	* configure.ac (WARN_CFLAGS): Omit -Wstack-protector when
+	configured with --enable-gcc-warnings.  -Wstack-protector causes
+	diagnostics to be issued on Ubuntu 12.10 x86-64.
+
 2012-12-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
