@@ -64,8 +64,9 @@
   "Regexp to match keywords that nest without blocks.")
 
 (defconst ruby-indent-beg-re
-  (concat "^\\s *" (regexp-opt '("class" "module" "def" "if" "unless" "case"
-                                 "while" "until" "for" "begin")) "\\_>")
+  (concat "^\\(\\s *" (regexp-opt '("class" "module" "def")) "\\|"
+          (regexp-opt '("if" "unless" "case" "while" "until" "for" "begin"))
+          "\\)\\_>")
   "Regexp to match where the indentation gets deeper.")
 
 (defconst ruby-modifier-beg-keywords

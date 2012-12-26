@@ -202,6 +202,19 @@ VALUES-PLIST is a list with alternating index and value elements."
    |  end
    |"))
 
+(ert-deftest ruby-indent-after-block-in-continued-expression ()
+  (ruby-should-indent-buffer
+   "var =
+   |  begin
+   |    val
+   |  end
+   |statement"
+   "var =
+   |begin
+   |val
+   |end
+   |statement"))
+
 (ert-deftest ruby-move-to-block-stops-at-indentation ()
   (with-temp-buffer
     (insert "def f\nend")
