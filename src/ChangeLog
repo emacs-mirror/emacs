@@ -1,3 +1,16 @@
+2012-12-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* keyboard.c (record_asynch_buffer_change): Initialize an event
+	only if it's really needed.
+	* frame.h (enum output_method): Remove output_mac member since
+	it's a leftover from the deleted code.
+	* frame.c (Fframep): Adjust user here ...
+	* terminal.c (Fterminal_live_p): ... and here.
+	* coding.c (Qmac): Now here because it's only used to denote
+	end-of-line encoding type.
+	(syms_of_coding): DEFSYM it.
+	* frame.h (Qmac): Remove duplicated declaration.
+
 2012-12-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* window.c (select_window_1): Now static, since it's used only here.

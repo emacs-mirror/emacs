@@ -6700,37 +6700,35 @@ get_input_pending (int flags)
 void
 record_asynch_buffer_change (void)
 {
-  struct input_event event;
-  Lisp_Object tem;
-  EVENT_INIT (event);
-
-  event.kind = BUFFER_SWITCH_EVENT;
-  event.frame_or_window = Qnil;
-  event.arg = Qnil;
-
   /* We don't need a buffer-switch event unless Emacs is waiting for input.
      The purpose of the event is to make read_key_sequence look up the
      keymaps again.  If we aren't in read_key_sequence, we don't need one,
      and the event could cause trouble by messing up (input-pending-p).
      Note: Fwaiting_for_user_input_p always returns nil when async
      subprocesses aren't supported.  */
-  tem = Fwaiting_for_user_input_p ();
-  if (NILP (tem))
-    return;
-
-  /* Make sure no interrupt happens while storing the event.  */
-#ifdef USABLE_SIGIO
-  if (interrupt_input)
-    kbd_buffer_store_event (&event);
-  else
-#endif
+  if (!NILP (Fwaiting_for_user_input_p ()))
     {
-      stop_polling ();
-      kbd_buffer_store_event (&event);
-      start_polling ();
+      struct input_event event;
+
+      EVENT_INIT (event);
+      event.kind = BUFFER_SWITCH_EVENT;
+      event.frame_or_window = Qnil;
+      event.arg = Qnil;
+
+      /* Make sure no interrupt happens while storing the event.  */
+#ifdef USABLE_SIGIO
+      if (interrupt_input)
+	kbd_buffer_store_event (&event);
+      else
+#endif
+	{
+	  stop_polling ();
+	  kbd_buffer_store_event (&event);
+	  start_polling ();
+	}
     }
 }
-
+
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 

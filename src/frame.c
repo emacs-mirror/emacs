@@ -60,7 +60,7 @@ Lisp_Object Qns_parse_geometry;
 Lisp_Object Qframep, Qframe_live_p;
 Lisp_Object Qicon, Qmodeline;
 Lisp_Object Qonly, Qnone;
-Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
+Lisp_Object Qx, Qw32, Qpc, Qns;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
 static Lisp_Object Qbackground_mode;
@@ -225,8 +225,6 @@ See also `frame-live-p'.  */)
       return Qw32;
     case output_msdos_raw:
       return Qpc;
-    case output_mac:
-      return Qmac;
     case output_ns:
       return Qns;
     default:

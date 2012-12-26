@@ -301,7 +301,7 @@ Lisp_Object Vcoding_system_hash_table;
 
 static Lisp_Object Qcoding_system, Qeol_type;
 static Lisp_Object Qcoding_aliases;
-Lisp_Object Qunix, Qdos;
+Lisp_Object Qunix, Qdos, Qmac;
 Lisp_Object Qbuffer_file_coding_system;
 static Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 static Lisp_Object Qdefault_char;
@@ -10303,6 +10303,7 @@ syms_of_coding (void)
   DEFSYM (Qeol_type, "eol-type");
   DEFSYM (Qunix, "unix");
   DEFSYM (Qdos, "dos");
+  DEFSYM (Qmac, "mac");
 
   DEFSYM (Qbuffer_file_coding_system, "buffer-file-coding-system");
   DEFSYM (Qpost_read_conversion, "post-read-conversion");
