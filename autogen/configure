@@ -15534,7 +15534,7 @@ esac
 
 
 case $opsys in
-      aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd )
+      aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd | darwin )
     $as_echo "#define SIGNALS_VIA_CHARACTERS 1" >>confdefs.h
 
     ;;
