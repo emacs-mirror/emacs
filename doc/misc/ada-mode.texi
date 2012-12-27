@@ -521,8 +521,8 @@ ada_project_path_sep=:
 ada_project_path=$GDS_ROOT/makerules
 ada_project_path=../opentoken
 @end example
-the environment variable @code{ADA_PROJECT_PATH} will be set to
-@code{"/home/shared/makerules:/home/opentoken/"}.
+then as a result the environment variable @code{ADA_PROJECT_PATH} will
+be set to @code{"/home/shared/makerules:/home/opentoken/"}.
 
 The default value is not the current value of this environment
 variable, because that will typically have been set by another
@@ -730,7 +730,7 @@ In buffer @file{hello.adb}, invoke @samp{Ada | Check file}. You should
 get a @code{*compilation*} buffer containing something like (the
 directory paths will be different):
 
-@example
+@smallexample
 cd c:/Examples/Example_1/
 gnatmake -u -c -gnatc -g c:/Examples/Example_1/hello.adb -cargs -gnatq -gnatQ
 gcc -c -Ic:/Examples/Example_1/ -gnatc -g -gnatq -gnatQ -I- c:/Examples/Example_1/hello.adb
@@ -738,7 +738,7 @@ hello.adb:4:04: "Put_Line" is not visible
 hello.adb:4:04: non-visible declaration at a-textio.ads:264
 hello.adb:4:04: non-visible declaration at a-textio.ads:260
 gnatmake: "c:/Examples/Example_1/hello.adb" compilation error
-@end example
+@end smallexample
 
 If you have enabled font-lock, the lines with actual errors (starting
 with @file{hello.adb}) are highlighted, with the file name in red.
@@ -1045,14 +1045,14 @@ Then, again in @file{hello_4.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
-@example
+@smallexample
 cd c:/Examples/Example_4/Gnat_Project/
 gnatmake -o hello_4 hello_4 -Phello_4.gpr -cargs -gnatq -gnatQ -bargs  -largs
 gcc -c -g -gnatyt -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\Gnat_Project\hello_4.adb
 gcc -c -g -gnatyt -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\hello_pkg.adb
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
 gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
-@end example
+@end smallexample
 
 Compare the @code{gcc} options to the compiler output in @ref{Set
 compiler options}; this shows that @file{hello_4.gpr} is being used to
@@ -1112,14 +1112,14 @@ Then, again in @file{hello_5.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
-@example
+@smallexample
 cd c:/Examples/Example_5/
 gnatmake -o hello_5 hello_5 -Phello_5.gpr -g -cargs -gnatq -gnatQ -bargs  -largs
 gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_5\hello_5.adb
 gcc -c -g -gnatyt -g -gnatq -gnatQ -I- -gnatA c:\Examples\Example_4\hello_pkg.adb
 hello_pkg.adb:2:08: keyword "body" expected here [see file name]
 gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
-@end example
+@end smallexample
 
 Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
 demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being

@@ -360,13 +360,14 @@ Interface}).
   (setq widget-example-repeat
         (widget-create 'editable-list
                        :entry-format "%i %d %v"
-                       :notify (lambda (widget &rest ignore)
-                                 (let ((old (widget-get widget
-                                                        ':example-length))
-                                       (new (length (widget-value widget))))
-                                   (unless (eq old new)
-                                     (widget-put widget ':example-length new)
-                                     (message "You can count to %d." new))))
+                       :notify
+                       (lambda (widget &rest ignore)
+                         (let ((old (widget-get widget
+                                                ':example-length))
+                               (new (length (widget-value widget))))
+                           (unless (eq old new)
+                             (widget-put widget ':example-length new)
+                             (message "You can count to %d." new))))
                        :value '("One" "Eh, two?" "Five!")
                        '(editable-field :value "three")))
   (widget-insert "\n\nSelect multiple:\n\n")
@@ -383,11 +384,13 @@ Interface}).
                  :notify (lambda (widget &rest ignore)
                            (message "You selected %s"
                                     (widget-value widget)))
-                 '(item "One") '(item "Another One.") '(item "A Final One."))
+                 '(item "One") '(item "Another One.")
+                 '(item "A Final One."))
   (widget-insert "\n")
   (widget-create 'push-button
                  :notify (lambda (&rest ignore)
-                           (if (= (length (widget-value widget-example-repeat))
+                           (if (= (length
+                                   (widget-value widget-example-repeat))
                                   3)
                                (message "Congratulation!")
                              (error "Three was the count!")))

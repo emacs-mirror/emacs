@@ -1591,6 +1591,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
   (let* ((paren-state (c-parse-state))
+	 (decl-search-lim (c-determine-limit 1000))
 	 decl-context in-typedef ps-elt)
     ;; Are we in any nested struct/union/class/etc. braces?
     (while paren-state
@@ -1599,7 +1600,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (when (and (atom ps-elt)
 		 (eq (char-after ps-elt) ?\{))
 	(goto-char ps-elt)
-	(setq decl-context (c-beginning-of-decl-1)
+	(setq decl-context (c-beginning-of-decl-1 decl-search-lim)
 	      in-typedef (looking-at c-typedef-key))
 	(if in-typedef (c-forward-token-2))
 	(when (and c-opt-block-decls-with-vars-key

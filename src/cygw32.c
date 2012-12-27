@@ -110,23 +110,25 @@ DEFUN ("cygwin-convert-file-name-to-windows",
        Fcygwin_convert_file_name_to_windows,
        Scygwin_convert_file_name_to_windows,
        1, 2, 0,
-       doc: /* Convert PATH to a Windows path.  If ABSOLUTE-P is
-non-nil, return an absolute path.*/)
-  (Lisp_Object path, Lisp_Object absolute_p)
+       doc: /* Convert a Cygwin file name FILE to a Windows-style file name.
+If ABSOLUTE-P is non-nil, return an absolute file name.
+For the reverse operation, see `cygwin-convert-file-name-from-windows'.  */)
+  (Lisp_Object file, Lisp_Object absolute_p)
 {
   return from_unicode (
-    conv_filename_to_w32_unicode (path, EQ (absolute_p, Qnil) ? 0 : 1));
+    conv_filename_to_w32_unicode (file, EQ (absolute_p, Qnil) ? 0 : 1));
 }
 
 DEFUN ("cygwin-convert-file-name-from-windows",
        Fcygwin_convert_file_name_from_windows,
        Scygwin_convert_file_name_from_windows,
        1, 2, 0,
-       doc: /* Convert a Windows path to a Cygwin path.  If ABSOLUTE-P
-is non-nil, return an absolute path.*/)
-  (Lisp_Object path, Lisp_Object absolute_p)
+       doc: /* Convert a Windows-style file name FILE to a Cygwin file name.
+If ABSOLUTE-P is non-nil, return an absolute file name.
+For the reverse operation, see `cygwin-convert-file-name-to-windows'.  */)
+  (Lisp_Object file, Lisp_Object absolute_p)
 {
-  return conv_filename_from_w32_unicode (to_unicode (path, &path),
+  return conv_filename_from_w32_unicode (to_unicode (file, &file),
                                          EQ (absolute_p, Qnil) ? 0 : 1);
 }
 

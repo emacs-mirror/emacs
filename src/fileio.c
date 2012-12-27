@@ -379,12 +379,26 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	    strcat (res, "/");
 	  beg = res;
 	  p = beg + strlen (beg);
+	  dostounix_filename (beg);
+	  tem_fn = make_specified_string (beg, -1, p - beg,
+					  STRING_MULTIBYTE (filename));
 	}
+      else
+	tem_fn = make_specified_string (beg - 2, -1, p - beg + 2,
+					STRING_MULTIBYTE (filename));
     }
-  tem_fn = ENCODE_FILE (make_specified_string (beg, -1, p - beg,
-					       STRING_MULTIBYTE (filename)));
-  dostounix_filename (SSDATA (tem_fn));
-  return DECODE_FILE (tem_fn);
+  else if (STRING_MULTIBYTE (filename))
+    {
+      tem_fn = ENCODE_FILE (make_specified_string (beg, -1, p - beg, 1));
+      dostounix_filename (SSDATA (tem_fn));
+      tem_fn = DECODE_FILE (tem_fn);
+    }
+  else
+    {
+      dostounix_filename (beg);
+      tem_fn = make_specified_string (beg, -1, p - beg, 0);
+    }
+  return tem_fn;
 #else  /* DOS_NT */
   return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
 #endif	/* DOS_NT */
@@ -459,12 +473,14 @@ get a current directory to run processes in.  */)
   return Ffile_name_directory (filename);
 }
 
-/* Convert from file name SRC of length SRCLEN to directory name
-   in DST.  On UNIX, just make sure there is a terminating /.
-   Return the length of DST in bytes.  */
+/* Convert from file name SRC of length SRCLEN to directory name in
+   DST.  MULTIBYTE non-zero means the file name in SRC is a multibyte
+   string.  On UNIX, just make sure there is a terminating /.  Return
+   the length of DST in bytes.  */
 
 static ptrdiff_t
-file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen)
+file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen,
+			bool multibyte)
 {
   if (srclen == 0)
     {
@@ -483,14 +499,17 @@ file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen)
       srclen++;
     }
 #ifdef DOS_NT
-  {
-    Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
+  if (multibyte)
+    {
+      Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
 
-    tem_fn = ENCODE_FILE (tem_fn);
-    dostounix_filename (SSDATA (tem_fn));
-    tem_fn = DECODE_FILE (tem_fn);
-    memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
-  }
+      tem_fn = ENCODE_FILE (tem_fn);
+      dostounix_filename (SSDATA (tem_fn));
+      tem_fn = DECODE_FILE (tem_fn);
+      memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
+    }
+  else
+    dostounix_filename (dst);
 #endif
   return srclen;
 }
@@ -526,16 +545,18 @@ For a Unix-syntax file name, just appends a slash.  */)
     }
 
   buf = alloca (SBYTES (file) + 10);
-  length = file_name_as_directory (buf, SSDATA (file), SBYTES (file));
+  length = file_name_as_directory (buf, SSDATA (file), SBYTES (file),
+				   STRING_MULTIBYTE (file));
   return make_specified_string (buf, -1, length, STRING_MULTIBYTE (file));
 }
 
-/* Convert from directory name SRC of length SRCLEN to
-   file name in DST.  On UNIX, just make sure there isn't
-   a terminating /.  Return the length of DST in bytes.  */
+/* Convert from directory name SRC of length SRCLEN to file name in
+   DST.  MULTIBYTE non-zero means the file name in SRC is a multibyte
+   string.  On UNIX, just make sure there isn't a terminating /.
+   Return the length of DST in bytes.  */
 
 static ptrdiff_t
-directory_file_name (char *dst, char *src, ptrdiff_t srclen)
+directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
 {
   /* Process as Unix format: just remove any final slash.
      But leave "/" unchanged; do not change it to "".  */
@@ -551,14 +572,17 @@ directory_file_name (char *dst, char *src, ptrdiff_t srclen)
       srclen--;
     }
 #ifdef DOS_NT
-  {
-    Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
+  if (multibyte)
+    {
+      Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
 
-    tem_fn = ENCODE_FILE (tem_fn);
-    dostounix_filename (SSDATA (tem_fn));
-    tem_fn = DECODE_FILE (tem_fn);
-    memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
-  }
+      tem_fn = ENCODE_FILE (tem_fn);
+      dostounix_filename (SSDATA (tem_fn));
+      tem_fn = DECODE_FILE (tem_fn);
+      memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
+    }
+  else
+    dostounix_filename (dst);
 #endif
   return srclen;
 }
@@ -594,7 +618,8 @@ In Unix-syntax, this function just removes the final slash.  */)
     }
 
   buf = alloca (SBYTES (directory) + 20);
-  length = directory_file_name (buf, SSDATA (directory), SBYTES (directory));
+  length = directory_file_name (buf, SSDATA (directory), SBYTES (directory),
+				STRING_MULTIBYTE (directory));
   return make_specified_string (buf, -1, length, STRING_MULTIBYTE (directory));
 }
 
@@ -1044,7 +1069,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  /* `egetenv' may return a unibyte string, which will bite us since
 	     we expect the directory to be multibyte.  */
 	  tem = build_string (newdir);
-	  if (!STRING_MULTIBYTE (tem))
+	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
 	      hdir = DECODE_FILE (tem);
 	      newdir = SSDATA (hdir);
@@ -1066,7 +1091,18 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  unblock_input ();
 	  if (pw)
 	    {
+	      Lisp_Object tem;
+
 	      newdir = pw->pw_dir;
+	      /* `getpwnam' may return a unibyte string, which will
+		 bite us since we expect the directory to be
+		 multibyte.  */
+	      tem = build_string (newdir);
+	      if (multibyte && !STRING_MULTIBYTE (tem))
+		{
+		  hdir = DECODE_FILE (tem);
+		  newdir = SSDATA (hdir);
+		}
 	      nm = p;
 #ifdef DOS_NT
 	      collapse_newdir = 0;
@@ -1090,6 +1126,13 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  adir = alloca (MAXPATHLEN + 1);
 	  if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
 	    adir = NULL;
+	  else if (multibyte)
+	    {
+	      Lisp_Object tem = build_string (adir);
+
+	      tem = DECODE_FILE (tem);
+	      memcpy (adir, SSDATA (tem), SBYTES (tem) + 1);
+	    }
 	}
       if (!adir)
 	{
@@ -1148,6 +1191,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	     indirectly by prepending newdir to nm if necessary, and using
 	     cwd (or the wd of newdir's drive) as the new newdir.  */
 	  char *adir;
+
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
 	      drive = (unsigned char) newdir[0];
@@ -1157,7 +1201,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    {
 	      ptrdiff_t newlen = strlen (newdir);
 	      char *tmp = alloca (newlen + strlen (nm) + 2);
-	      file_name_as_directory (tmp, newdir, newlen);
+	      file_name_as_directory (tmp, newdir, newlen, multibyte);
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
@@ -1165,10 +1209,17 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (drive)
 	    {
 	      if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
-		newdir = "/";
+		strcpy (adir, "/");
 	    }
 	  else
 	    getcwd (adir, MAXPATHLEN + 1);
+	  if (multibyte)
+	    {
+	      Lisp_Object tem = build_string (adir);
+
+	      tem = DECODE_FILE (tem);
+	      memcpy (adir, SSDATA (tem), SBYTES (tem) + 1);
+	    }
 	  newdir = adir;
 	}
 
@@ -1255,7 +1306,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    strcpy (target, newdir);
 	}
       else
-	file_name_as_directory (target, newdir, length);
+	file_name_as_directory (target, newdir, length, multibyte);
     }
 
   strcat (target, nm);
@@ -1341,9 +1392,14 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	target[1] = ':';
       }
     result = make_specified_string (target, -1, o - target, multibyte);
-    result = ENCODE_FILE (result);
-    dostounix_filename (SSDATA (result));
-    result = DECODE_FILE (result);
+    if (multibyte)
+      {
+	result = ENCODE_FILE (result);
+	dostounix_filename (SSDATA (result));
+	result = DECODE_FILE (result);
+      }
+    else
+      dostounix_filename (SSDATA (result));
 #else  /* !DOS_NT */
     result = make_specified_string (target, -1, o - target, multibyte);
 #endif /* !DOS_NT */
@@ -1625,18 +1681,24 @@ those `/' is discarded.  */)
   memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
-  {
-    Lisp_Object encoded_filename = ENCODE_FILE (filename);
-    Lisp_Object tem_fn;
+  if (multibyte)
+    {
+      Lisp_Object encoded_filename = ENCODE_FILE (filename);
+      Lisp_Object tem_fn;
 
-    dostounix_filename (SDATA (encoded_filename));
-    tem_fn = DECODE_FILE (encoded_filename);
-    nm = alloca (SBYTES (tem_fn) + 1);
-    memcpy (nm, SDATA (tem_fn), SBYTES (tem_fn) + 1);
-    substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
-    if (substituted)
-      filename = tem_fn;
-  }
+      dostounix_filename (SDATA (encoded_filename));
+      tem_fn = DECODE_FILE (encoded_filename);
+      nm = alloca (SBYTES (tem_fn) + 1);
+      memcpy (nm, SDATA (tem_fn), SBYTES (tem_fn) + 1);
+      substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
+      if (substituted)
+	filename = tem_fn;
+    }
+  else
+    {
+      dostounix_filename (nm);
+      substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
+    }
 #endif
   endp = nm + SBYTES (filename);
 

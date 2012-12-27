@@ -112,7 +112,7 @@ of the GNU Compiler Compiler Bison. Its code is a port of the C code
 of GNU Bison 1.28 & 1.31.
 
 For more details on the basic concepts for understanding Wisent, it is
-worthwhile to read the @ref{Top, Bison Manual, bison}.
+worthwhile to read the @ref{Top, Bison Manual, , bison}.
 @ifhtml
 @uref{http://www.gnu.org/manual/bison/html_node/index.html}.
 @end ifhtml
@@ -302,7 +302,7 @@ If @var{components} in a rule is @code{nil}, it means that the rule
 can match the empty string.  For example, here is how to define a
 comma-separated sequence of zero or more @samp{exp} groupings:
 
-@example
+@smallexample
 @group
 (expseq  (nil)               ;; expseq: ;; empty
          ((expseq1))         ;;       | expseq1
@@ -312,7 +312,7 @@ comma-separated sequence of zero or more @samp{exp} groupings:
          ((expseq1 ?, exp))  ;;        | expseq1 ',' exp
          )                   ;;        ;
 @end group
-@end example
+@end smallexample
 
 @cindex precedence level
 @item precedence
@@ -339,7 +339,7 @@ serves to stand for its precedence:
 
 Now the precedence of @code{UMINUS} can be used in specific rules:
 
-@example
+@smallexample
 @group
 (exp    @dots{}                  ;; exp:    @dots{}
          ((exp ?- exp))      ;;         | exp '-' exp
@@ -348,7 +348,7 @@ Now the precedence of @code{UMINUS} can be used in specific rules:
         @dots{}                  ;;         @dots{}
         )                    ;;         ;
 @end group
-@end example
+@end smallexample
 
 If you forget to append @code{[UMINUS]} to the rule for unary minus,
 Wisent silently assumes that minus has its usual precedence.  This
@@ -1029,7 +1029,6 @@ state 8
     $default    reduce using rule 2 (exp)
 
 
-
 state 9
 
     exp  ->  exp . '+' exp   (rule 1)
@@ -1042,7 +1041,6 @@ state 9
 
     '/' [reduce using rule 3 (exp)]
     $default    reduce using rule 3 (exp)
-
 
 
 state 10

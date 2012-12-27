@@ -7,7 +7,7 @@
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/RubyMode
 ;; Created: Fri Feb  4 14:49:13 JST 1994
 ;; Keywords: languages ruby
-;; Version: 1.0
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -64,8 +64,9 @@
   "Regexp to match keywords that nest without blocks.")
 
 (defconst ruby-indent-beg-re
-  (concat "^\\s *" (regexp-opt '("class" "module" "def" "if" "unless" "case"
-                                 "while" "until" "for" "begin")) "\\_>")
+  (concat "^\\(\\s *" (regexp-opt '("class" "module" "def")) "\\|"
+          (regexp-opt '("if" "unless" "case" "while" "until" "for" "begin"))
+          "\\)\\_>")
   "Regexp to match where the indentation gets deeper.")
 
 (defconst ruby-modifier-beg-keywords

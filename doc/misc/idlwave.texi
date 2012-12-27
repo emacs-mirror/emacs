@@ -4067,7 +4067,7 @@ sure you check the following things:
 @itemize @bullet
 @item When you download the IDLWAVE distribution, make sure you save the
 file under the names @file{idlwave.tar.gz}.
-@item M-TAB switches among running programs --- use Esc-TAB
+@item M-TAB switches among running programs---use Esc-TAB
 instead.
 @item Other issues as yet unnamed...
 @end itemize

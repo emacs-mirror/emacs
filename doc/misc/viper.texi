@@ -1833,10 +1833,10 @@ replacement regions, you can change @code{viper-replace-overlay-face} by
 specifying a new face.  (Emacs faces are described in the Emacs Lisp
 reference.)  On a color display, the following customization method is
 usually most effective:
-@example
+@smallexample
 (set-face-foreground viper-replace-overlay-face "DarkSlateBlue")
 (set-face-background viper-replace-overlay-face "yellow")
-@end example
+@end smallexample
 For a complete list of colors available to you, evaluate the expression
 @code{(x-defined-colors)}.  (Type it in the buffer @code{*scratch*} and then
 hit the @kbd{C-j} key.
@@ -2039,7 +2039,8 @@ can write this:
 @noindent
 To customize the binding for @kbd{C-h} in Insert state:
 @example
-(define-key viper-insert-global-user-map "\C-h" 'my-del-backwards-function)
+(define-key viper-insert-global-user-map "\C-h"
+  'my-del-backwards-function)
 @end example
 @noindent
 
@@ -2088,7 +2089,8 @@ Dired functions, the trick can be accomplished via the following code:
 (setq my-dired-vi-purist-map (make-sparse-keymap))
 (define-key my-dired-vi-purist-map "k" 'viper-previous-line)
 (define-key my-dired-vi-purist-map "l" 'viper-forward-char)
-(viper-modify-major-mode 'dired-mode 'emacs-state my-dired-vi-purist-map)
+(viper-modify-major-mode 'dired-mode
+                         'emacs-state my-dired-vi-purist-map)
 @end example
 
 Yet another way to customize key bindings in a major mode is to edit the

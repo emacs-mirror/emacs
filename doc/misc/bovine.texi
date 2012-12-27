@@ -138,7 +138,7 @@ of simplified Emacs Lisp expressions for concocting the parse tree.
 In bison, each time an element of @var{components} is found, it is
 @dfn{shifted} onto the parser stack.  (The stack of matched elements.)
 When all @var{components}' elements have been matched, it is
-@dfn{reduced} to @var{result}.  @xref{(bison)Algorithm}.
+@dfn{reduced} to @var{result}.  @xref{Algorithm,,, bison, The GNU Bison Manual}.
 
 A particular @var{result} written into your grammar becomes
 the parser's goal.  It is designated by a @code{%start} statement
@@ -368,8 +368,8 @@ Is the kind of tag being create, such as @code{function}, or
 @code{variable}, though any symbol will work.
 
 @item attributes
-Is an optional set of labeled values such as @w{@code{:constant-flag t :parent
-"parenttype"}}.
+Is an optional set of labeled values such as @code{:constant-flag t :parent
+"parenttype"}.
 @end table
 
 @item  (TAG-VARIABLE @var{name} @var{type} @var{default-value} [@var{attributes}])

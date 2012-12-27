@@ -1733,12 +1733,20 @@ how to manipulate file names.
 can operate on file names that do not refer to an existing file or
 directory.
 
+@findex cygwin-convert-file-name-from-windows
+@findex cygwin-convert-file-name-to-windows
+@cindex MS-Windows file-name syntax
+@cindex converting file names from/to MS-Windows syntax
   On MS-DOS and MS-Windows, these functions (like the function that
 actually operate on files) accept MS-DOS or MS-Windows file-name syntax,
 where backslashes separate the components, as well as Unix syntax; but
 they always return Unix syntax.  This enables Lisp programs to specify
 file names in Unix syntax and work properly on all systems without
-change.
+change.@footnote{In MS-Windows versions of Emacs compiled for the Cygwin
+environment, you can use the functions
+@code{cygwin-convert-file-name-to-windows} and
+@code{cygwin-convert-file-name-from-windows} to convert between the
+two file-name syntaxes.}
 
 @menu
 * File Name Components::  The directory part of a file name, and the rest.
