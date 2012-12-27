@@ -1,3 +1,13 @@
+2012-12-27  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* gnus-spec.el (gnus-face-face-function): Don't use nil as no-op face
+	place holder since this gives `Invalid face reference: nil' messages.
+	Use the `default' face instead.  It has the same effect here, even
+	though it is not no-op.
+
+	* gnus-util.el
+	(gnus-put-text-property-excluding-characters-with-faces): Similarly.
+
 2012-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-summary-resend-message): Don't bug out on

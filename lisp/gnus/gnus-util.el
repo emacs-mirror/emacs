@@ -875,7 +875,7 @@ Otherwise, do nothing."
     (let ((stop (next-single-property-change beg 'face nil end)))
       (if (get-text-property beg 'gnus-face)
 	  (when (eq prop 'face)
-	    (setcar (cdr (get-text-property beg 'face)) val))
+	    (setcar (cdr (get-text-property beg 'face)) (or val 'default)))
 	(inline
 	  (gnus-put-text-property beg stop prop val)))
       (setq beg stop))))
