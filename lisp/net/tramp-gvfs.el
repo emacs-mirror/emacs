@@ -384,7 +384,7 @@ Every entry is a list (NAME ADDRESS).")
     (dired-uncache . tramp-handle-dired-uncache)
     ;; `executable-find' is not official yet. performed by default handler.
     (expand-file-name . tramp-gvfs-handle-expand-file-name)
-    ;; `file-accessible-directory-p' performed by default handler.
+    (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
     (file-acl . tramp-gvfs-handle-file-acl)
     (file-attributes . tramp-gvfs-handle-file-attributes)
     (file-directory-p . tramp-gvfs-handle-file-directory-p)

@@ -2757,6 +2757,11 @@ User is always nil."
       (if (or dir-p (file-directory-p dir)) dir (file-name-directory dir)) nil
     (tramp-flush-directory-property v localname)))
 
+(defun tramp-handle-file-accessible-directory-p (filename)
+  "Like `file-accessible-directory-p' for Tramp files."
+  (and (file-directory-p filename)
+       (file-executable-p filename)))
+
 (defun tramp-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
   (not (null (file-attributes filename))))

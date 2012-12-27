@@ -82,6 +82,7 @@
     (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
+    (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
     (file-directory-p . tramp-adb-handle-file-directory-p)
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; FIXME: This is too sloppy.
