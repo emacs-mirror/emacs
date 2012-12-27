@@ -23,6 +23,9 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
+dnl This is the documented way to record the args passed to configure,
+dnl rather than $ac_configure_args.
+emacs_config_options="$@"
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
@@ -4068,7 +4071,9 @@ fi
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
-AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
+dnl Replace any embedded " characters (bug#13274).
+emacs_config_options=`echo "$emacs_config_options" | sed -e "s/\"/'/g"`
+AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${emacs_config_options}",
 		   [Define to the options passed to configure.])
 AH_TEMPLATE(config_opsysfile, [Some platforms that do not use configure
   define this to include extra configuration information.])
