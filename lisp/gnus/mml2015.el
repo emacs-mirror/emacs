@@ -827,7 +827,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
     (let* ((coding-system-for-write 'binary)
            (coding-system-for-read 'binary)
            (data (shell-command-to-string
-                  (format "%s --list-options no-show-photos --attribute-fd 2 --list-keys %s > /dev/null"
+                  (format "%s --list-options no-show-photos --attribute-fd 3 --list-keys %s 3>&1 >/dev/null 2>&1"
                           epg-gpg-program key-id))))
       (when (> (length data) 0)
         (insert (substring data 16))
