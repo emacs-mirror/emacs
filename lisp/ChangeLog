@@ -1,5 +1,18 @@
 2012-12-27  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-file-completions): New variable.
+	(Info-read-node-name-1): Complete node names in the Info file
+	when a file name is given.  Call `Info-build-node-completions'
+	with a file name.
+	(Info-build-node-completions): Add new arg `file'.  When it is
+	non-nil, visit it in a temporary buffer and cache its completions in
+	`Info-current-file-completions'.  Move most of the function body to
+	`Info-build-node-completions-1'.
+	(Info-build-node-completions-1): New function with the body from
+	`Info-build-node-completions'.  (Bug#12456)
+
+2012-12-27  Juri Linkov  <juri@jurta.org>
+
 	* frame.el (frame-maximization-style): Remove user option.
 	(cycle-frame-maximized): Remove function.
 	(toggle-frame-maximized): Rewrite and bind to M-<f10>.
