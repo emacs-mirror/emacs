@@ -2120,19 +2120,31 @@ This function should be in the list `comint-output-filter-functions'."
 	 ((bound-and-true-p follow-mode)
 	  (follow-comint-scroll-to-bottom))
 	 (t
-	  (let ((selected (selected-window)))
-	    (dolist (w (get-buffer-window-list current nil t))
-	      (select-window w)
-	      (unwind-protect
-		  (progn
-		    (comint-adjust-point selected)
-		    ;; Optionally scroll to the bottom of the window.
-		    (and comint-scroll-show-maximum-output
-			 (eobp)
-			 (recenter (- -1 scroll-margin))))
-		(select-window selected))))))
+          (dolist (w (get-buffer-window-list current nil t))
+            (comint-adjust-window-point w process)
+            ;; Optionally scroll to the bottom of the window.
+            (and comint-scroll-show-maximum-output
+                 (eq (window-point w) (point-max))
+                 (with-selected-window w
+                   (recenter (- -1 scroll-margin)))))))
       (set-buffer current))))
 
+
+(defun comint-adjust-window-point (window process)
+  "Move point in WINDOW based on Comint settings.
+For point adjustment use the process-mark of PROCESS."
+  (and (< (window-point window) (process-mark process))
+       (or (memq comint-move-point-for-output '(t all))
+           ;; Maybe user wants point to jump to end.
+           (eq comint-move-point-for-output
+               (if (eq (selected-window) window) 'this 'others))
+           ;; If point was at the end, keep it at end.
+           (and (marker-position comint-last-output-start)
+                (>= (window-point window) comint-last-output-start)))
+       (set-window-point window (process-mark process))))
+
+
+;; this function is nowhere used
 (defun comint-adjust-point (selected)
   "Move point in the selected window based on Comint settings.
 SELECTED is the window that was originally selected."
