@@ -53,8 +53,8 @@ POSIX ACL interfaces.
 
 * Editing Changes in Emacs 24.4
 
-** New commands `toggle-frame-maximized' and `cycle-frame-maximized',
-bound to <f11> and S-<f11>, respectively.
+** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
+bound to <f11> and M-<f10>, respectively.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4

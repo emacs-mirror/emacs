@@ -1654,32 +1654,49 @@ terminals, cursor blinking is controlled by the terminal."
                                'blink-cursor-start))))
 
 
-;; Frame maximization
-(defcustom frame-maximization-style 'maximized
-  "The maximization style of \\[toggle-frame-maximized]."
-  :version "24.4"
-  :type '(choice
-          (const :tab "Respect window manager screen decorations." maximized)
-          (const :tab "Ignore window manager screen decorations." fullscreen))
-  :group 'frames)
+;; Frame maximization/fullscreen
 
 (defun toggle-frame-maximized ()
-  "Maximize/un-maximize Emacs frame according to `frame-maximization-style'.
-See also `cycle-frame-maximized'."
+  "Toggle maximization state of the selected frame.
+Maximize the selected frame or un-maximize if it is already maximized.
+Respect window manager screen decorations.
+If the frame is in fullscreen mode, don't change its mode,
+just toggle the temporary frame parameter `maximized',
+so the frame will go to the right maximization state
+after disabling fullscreen mode.
+See also `toggle-frame-fullscreen'."
   (interactive)
-  (modify-frame-parameters
-   nil `((fullscreen . ,(if (frame-parameter nil 'fullscreen)
-                            nil frame-maximization-style)))))
+  (if (eq (frame-parameter nil 'fullscreen) 'fullscreen)
+      (modify-frame-parameters
+       nil
+       `((maximized
+	  . ,(unless (eq (frame-parameter nil 'maximized) 'maximized)
+	       'maximized))))
+    (modify-frame-parameters
+     nil
+     `((fullscreen
+	. ,(unless (eq (frame-parameter nil 'fullscreen) 'maximized)
+	     'maximized))))))
 
-(defun cycle-frame-maximized ()
-  "Cycle Emacs frame between normal, maximized, and fullscreen.
+(defun toggle-frame-fullscreen ()
+  "Toggle fullscreen mode of the selected frame.
+Enable fullscreen mode of the selected frame or disable if it is
+already fullscreen.  Ignore window manager screen decorations.
+When turning on fullscreen mode, remember the previous value of the
+maximization state in the temporary frame parameter `maximized'.
+Restore the maximization state when turning off fullscreen mode.
 See also `toggle-frame-maximized'."
   (interactive)
   (modify-frame-parameters
-   nil `((fullscreen . ,(cl-case (frame-parameter nil 'fullscreen)
-                                 ((nil) 'maximized)
-                                 ((maximized) 'fullscreen)
-                                 ((fullscreen) nil))))))
+   nil
+   `((maximized
+      . ,(unless (eq (frame-parameter nil 'fullscreen) 'fullscreen)
+	   (frame-parameter nil 'fullscreen)))
+     (fullscreen
+      . ,(if (eq (frame-parameter nil 'fullscreen) 'fullscreen)
+	     (if (eq (frame-parameter nil 'maximized) 'maximized)
+		 'maximized)
+	   'fullscreen)))))
 
 
 ;;;; Key bindings
@@ -1688,8 +1705,8 @@ See also `toggle-frame-maximized'."
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
-(define-key global-map [f11] 'toggle-frame-maximized)
-(define-key global-map [(shift f11)] 'cycle-frame-maximized)
+(define-key global-map [f11] 'toggle-frame-fullscreen)
+(define-key global-map [(meta f10)] 'toggle-frame-maximized)
 
 
 ;; Misc.
