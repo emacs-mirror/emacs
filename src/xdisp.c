@@ -14241,7 +14241,12 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	 CHARPOS is zero or negative.  */
       int empty_line_p =
 	(row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end)
-	&& INTEGERP (glyph->object) && glyph->charpos > 0;
+	&& INTEGERP (glyph->object) && glyph->charpos > 0
+	/* On a TTY, continued and truncated rows also have a glyph at
+	   their end whose OBJECT is zero and whose CHARPOS is
+	   positive (the continuation and truncation glyphs), but such
+	   rows are obviously not "empty".  */
+	&& !(row->continued_p || row->truncated_on_right_p);
 
       if (row->ends_in_ellipsis_p && pos_after == last_pos)
 	{
