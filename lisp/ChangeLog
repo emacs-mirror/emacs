@@ -16,7 +16,7 @@
 
 	* progmodes/ruby-mode.el (ruby-indent-beg-re): Only allow "class",
 	"module" and "def" to have indentation before them.  Regression
-	from Bug#109911 (see the new test).
+	from revno:109911 (see the new test).
 
 	* progmodes/ruby-mode.el: Bump the version to 1.2 (Bug#13200).
 
