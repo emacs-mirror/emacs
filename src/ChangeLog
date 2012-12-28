@@ -1,3 +1,9 @@
+2012-12-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port EXTERNALLY_VISIBLE to Clang 3.2.
+	* conf_post.h (__has_attribute): New macro.
+	(EXTERNALLY_VISIBLE): Use it.  This ports to Clang 3.2.
+
 2012-12-27  Glenn Morris  <rgm@gnu.org>
 
 	* cygw32.c (Fcygwin_convert_file_name_to_windows)

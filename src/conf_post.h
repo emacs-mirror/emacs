@@ -40,6 +40,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+#ifndef __has_attribute
+# define __has_attribute(a) 0 /* non-clang */
+#endif
+
 /* This silences a few compilation warnings on FreeBSD.  */
 #ifdef BSD_SYSTEM_AHB
 #undef BSD_SYSTEM_AHB
@@ -191,7 +195,9 @@ extern void _DebPrint (const char *fmt, ...);
 #define NO_INLINE
 #endif
 
-#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#if (__clang__								\
+     ? __has_attribute (externally_visible)				\
+     : (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE
