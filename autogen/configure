@@ -3330,6 +3330,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+emacs_config_options="$@"
 ac_config_headers="$ac_config_headers src/config.h:src/config.in"
 
 
@@ -16106,9 +16107,10 @@ cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
 
+emacs_config_options=`echo "$emacs_config_options" | sed -e "s/\"/'/g"`
 
 cat >>confdefs.h <<_ACEOF
-#define EMACS_CONFIG_OPTIONS "${ac_configure_args}"
+#define EMACS_CONFIG_OPTIONS "${emacs_config_options}"
 _ACEOF
 
 
