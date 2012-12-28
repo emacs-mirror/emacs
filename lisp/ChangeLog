@@ -1,3 +1,13 @@
+2012-12-28  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el: Support pinentry-curses.
+	Suggested by Werner Koch in
+	<http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00755.html>.
+	(epg-agent-file, epg-agent-mtime): New variable.
+	(epg--start): Record the modified time of gpg-agent socket file,
+	to restore Emacs frame after pinentry-curses termination.
+	(epg-wait-for-completion): Restore Emacs frame here.
+
 2012-12-27  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-file-completions): New variable.

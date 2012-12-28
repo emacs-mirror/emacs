@@ -37,6 +37,8 @@
 (defvar epg-key-id nil)
 (defvar epg-context nil)
 (defvar epg-debug-buffer nil)
+(defvar epg-agent-file nil)
+(defvar epg-agent-mtime nil)
 
 ;; from gnupg/include/cipher.h
 (defconst epg-cipher-algorithm-alist
@@ -1156,7 +1158,28 @@ This function is for internal use only."
 	 process-connection-type
 	 (orig-mode (default-file-modes))
 	 (buffer (generate-new-buffer " *epg*"))
-	 process)
+	 process
+	 terminal-name
+	 agent-file
+	 (agent-mtime '(0 0 0 0)))
+    ;; Set GPG_TTY and TERM for pinentry-curses.  Note that we can't
+    ;; use `terminal-name' here to get the real pty name for the child
+    ;; process, though /dev/fd/0" is not portable.
+    (with-temp-buffer
+      (when (= (call-process "tty" "/dev/fd/0" t) 0)
+	(delete-backward-char 1)
+	(setq terminal-name (buffer-string))))
+    (when terminal-name
+      (setenv "GPG_TTY" terminal-name)
+      (setenv "TERM" "xterm"))
+    ;; Record modified time of gpg-agent socket to restore the Emacs
+    ;; frame on text terminal in `epg-wait-for-completion'.
+    ;; See
+    ;; <http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00755.html>
+    ;; for more details.
+    (when (and agent-info (string-match "\\(.*\\):[0-9]+:[0-9]+" agent-info))
+      (setq agent-file (match-string 1 agent-info)
+	    agent-mtime (or (nth 5 (file-attributes agent-file)) '(0 0 0 0))))
     (if epg-debug
 	(save-excursion
 	  (unless epg-debug-buffer
@@ -1185,7 +1208,11 @@ This function is for internal use only."
       (make-local-variable 'epg-key-id)
       (setq epg-key-id nil)
       (make-local-variable 'epg-context)
-      (setq epg-context context))
+      (setq epg-context context)
+      (make-local-variable 'epg-agent-file)
+      (setq epg-agent-file agent-file)
+      (make-local-variable 'epg-agent-mtime)
+      (setq epg-agent-mtime agent-mtime))
     (unwind-protect
 	(progn
 	  (set-default-file-modes 448)
@@ -1262,6 +1289,13 @@ This function is for internal use only."
     (accept-process-output (epg-context-process context) 1))
   ;; This line is needed to run the process-filter right now.
   (sleep-for 0.1)
+  ;; Restore Emacs frame on text terminal, when pinentry-curses has terminated.
+  (if (with-current-buffer (process-buffer (epg-context-process context))
+	(and epg-agent-file
+	     (> (float-time (or (nth 5 (file-attributes epg-agent-file))
+				'(0 0 0 0)))
+		(float-time epg-agent-mtime))))
+      (redraw-frame))
   (epg-context-set-result-for
    context 'error
    (nreverse (epg-context-result-for context 'error))))
