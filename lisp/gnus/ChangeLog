@@ -1,3 +1,9 @@
+2012-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-open-connection): Use HELP as the capability command
+	instead of CAPABILITY because Typhoon v2.2.2.503 chokes completely on
+	unknown commands.  And CAPABILITY is an unknown command (bug#12763).
+
 2012-12-27  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* gnus-spec.el (gnus-face-face-function): Don't use nil as no-op face

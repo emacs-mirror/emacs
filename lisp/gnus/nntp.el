@@ -1282,7 +1282,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		     "nntpd" pbuffer nntp-address nntp-port-number
 		     :type (cadr (assoc nntp-open-connection-function map))
 		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
-		     :capability-command "CAPABILITIES\r\n"
+		     :capability-command "HELP\r\n"
 		     :success "^3"
 		     :starttls-function
 		     (lambda (capabilities)
