@@ -4224,31 +4224,17 @@ This has an effect only if a summary buffer exists."
 
 ;; Put the summary buffer back on the screen, if user wants that.
 (defun rmail-maybe-display-summary ()
-  (let ((selected (selected-window))
-	(buffer (current-buffer))
-	window)
+  (let (window size)
     ;; If requested, make sure the summary is displayed.
     (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
 	 rmail-redisplay-summary
-	 (if (get-buffer-window rmail-summary-buffer 0)
-	     ;; It's already in some frame; show that one.
-	     (let ((frame (window-frame
-			   (get-buffer-window rmail-summary-buffer 0))))
-	       (make-frame-visible frame)
-	       (raise-frame frame))
-	   (display-buffer rmail-summary-buffer)))
-    ;; If requested, set the height of the summary window.
-    (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
+	 (setq window
+	       (display-buffer
+		rmail-summary-buffer '(nil (reusable-frames . visible))))
 	 rmail-summary-window-size
-	 (setq window (get-buffer-window rmail-summary-buffer))
-	 ;; Don't try to change the size if just one window in frame.
-	 (not (eq window (frame-root-window (window-frame window))))
-	 (unwind-protect
-	     (progn
-	       (select-window window)
-	       (enlarge-window (- rmail-summary-window-size (window-height))))
-	   (select-window selected)
-	   (set-buffer buffer)))))
+	 (setq size (- rmail-summary-window-size (window-height window)))
+	 (window--resizable-p window size)
+	 (window-resize window size))))
 
 ;;;; *** Rmail Local Fontification ***
 
