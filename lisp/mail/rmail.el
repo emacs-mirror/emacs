@@ -4224,17 +4224,15 @@ This has an effect only if a summary buffer exists."
 
 ;; Put the summary buffer back on the screen, if user wants that.
 (defun rmail-maybe-display-summary ()
-  (let (window size)
-    ;; If requested, make sure the summary is displayed.
-    (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
-	 rmail-redisplay-summary
-	 (setq window
-	       (display-buffer
-		rmail-summary-buffer '(nil (reusable-frames . visible))))
-	 rmail-summary-window-size
-	 (setq size (- rmail-summary-window-size (window-height window)))
-	 (window--resizable-p window size)
-	 (window-resize window size))))
+  ;; If requested, make sure the summary is displayed.
+  (when (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
+	     rmail-redisplay-summary)
+    (display-buffer
+     rmail-summary-buffer
+     `(nil
+       (reusable-frames . 0)
+       ,(when rmail-summary-window-size
+	  `(window-height . ,rmail-summary-window-size))))))
 
 ;;;; *** Rmail Local Fontification ***
 
