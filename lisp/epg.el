@@ -1156,6 +1156,7 @@ This function is for internal use only."
 	 (coding-system-for-write 'binary)
 	 (coding-system-for-read 'binary)
 	 process-connection-type
+	 (process-environment process-environment)
 	 (orig-mode (default-file-modes))
 	 (buffer (generate-new-buffer " *epg*"))
 	 process
@@ -1170,8 +1171,9 @@ This function is for internal use only."
 	(delete-backward-char 1)
 	(setq terminal-name (buffer-string))))
     (when terminal-name
-      (setenv "GPG_TTY" terminal-name)
-      (setenv "TERM" "xterm"))
+      (setq process-environment
+	    (cons (concat "GPG_TTY=" terminal-name)
+		  (cons "TERM=xterm" process-environment))))
     ;; Record modified time of gpg-agent socket to restore the Emacs
     ;; frame on text terminal in `epg-wait-for-completion'.
     ;; See
