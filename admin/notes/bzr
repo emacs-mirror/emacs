@@ -182,6 +182,71 @@ where revision N+1 is the one where file was removed.
 You could also try `bzr add --file-ids-from', if you have a copy of
 another branch where file still exists.
 
+* Undoing a commit (uncommitting)
+
+It is possible to undo/remove a bzr commit (ie, to uncommit).
+Only do this if you really, really, need to.  For example, if you
+somehow made a commit that triggers a bug in bzr itself.
+Don't do it because you made a typo in a commit or the log.
+
+If you do need to do this, do it as soon as possible, because the
+longer you leave it, the more work is involved.
+
+0. First, tell emacs-devel that you are going to do this, and suggest
+people not commit anything to the affected branch for the duration.
+
+In the following, replace USER with your Savannah username, and
+BRANCH with the name of the branch.
+Let's assume that revno 100 is the bad commit, and that there have
+been two more commits after that (because nothing is ever easy).
+
+1. Ensure your copy of the branch is up-to-date (for a bound
+branch, bzr up; for an unbound branch, bzr pull) and has no local
+changes (bzr st).
+
+2. Make a record of the commits you are going to undo:
+bzr diff -c 102 > /tmp/102.diff
+etc
+
+Also record the commit message, author, and any --fixes information.
+
+3. Most Emacs branches are set up to prevent just this kind of thing.
+So we need to disable that protection:
+
+bzr config append_revisions_only=False \
+  -d bzr+ssh://USER@bzr.savannah.gnu.org/emacs/BRANCH/
+
+4. Undo the commits:
+bzr uncommit -r -4
+
+This will show the commits it is going to undo, and prompt you to confirm.
+
+5. If using an unbound branch:
+bzr push --overwrite
+
+6. Now, replay the commits you just undid (obviously, fix whatever it
+was in the bad commit that caused the problem):
+
+patch -p0 < /tmp/100.diff
+bzr commit --author ... --fixes ... -F /tmp/100.log
+etc
+
+7. If using an unbound branch:
+bzr push
+
+8. Finally, re-enable the branch protection:
+bzr config append_revisions_only=True \
+  -d bzr+ssh://USER@bzr.savannah.gnu.org/emacs/BRANCH/
+
+9. Tell emacs-devel that it is ok to use the branch again.
+Anyone with local changes should back them up before doing anything.
+
+For a bound branch, bzr up will convert any of the undone commits to a
+pending merge. Just bzr revert these away.
+
+For an unbound branch, bzr pull will complain about diverged branches
+and refuse to do anything.  Use bzr pull --overwrite.
+
 * Loggerhead
 
 Loggerhead is the bzr tool for viewing a repository over http (similar
