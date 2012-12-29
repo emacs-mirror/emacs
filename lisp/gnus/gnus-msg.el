@@ -1384,7 +1384,8 @@ For the \"inline\" alternatives, also see the variable
     (dolist (style (if styles
 		       (append gnus-posting-styles (list (cons ".*" styles)))
 		     gnus-posting-styles))
-      (when (string-match (pop style) gnus-newsgroup-name)
+      (when (and (stringp (car style))
+		 (string-match (pop style) gnus-newsgroup-name))
 	(when (setq tem (cadr (assq 'name style)))
 	  (setq user-full-name tem))
 	(when (setq tem (cadr (assq 'address style)))
