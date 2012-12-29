@@ -3065,7 +3065,7 @@ or if Emacs was not compiled with SELinux support.  */)
 
 	  context_free (parsed_con);
 	  freecon (con);
-	  return Qt;
+	  return fail ? Qnil : Qt;
 	}
       else
 	report_file_error ("Doing lgetfilecon", Fcons (absname, Qnil));
@@ -3171,7 +3171,7 @@ support.  */)
 	report_file_error ("Setting ACL", Fcons (absname, Qnil));
 
       acl_free (acl);
-      return Qt;
+      return fail ? Qnil : Qt;
     }
 #endif
 
