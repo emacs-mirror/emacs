@@ -746,11 +746,15 @@ in `Info-file-supports-index-cookies-list'."
 		  (push dir Info-directory-list)))))))
 
 ;;;###autoload
-(defun info-other-window (&optional file-or-node)
+(defun info-other-window (&optional file-or-node buffer)
   "Like `info' but show the Info buffer in another window."
-  (interactive (if current-prefix-arg
-		   (list (read-file-name "Info file name: " nil nil t))))
-  (info-setup file-or-node (switch-to-buffer-other-window "*info*")))
+  (interactive (list
+		(if (and current-prefix-arg (not (numberp current-prefix-arg)))
+		    (read-file-name "Info file name: " nil nil t))
+		(if (numberp current-prefix-arg)
+		    (format "*info*<%s>" current-prefix-arg))))
+  (info-setup file-or-node
+	      (switch-to-buffer-other-window (or buffer "*info*"))))
 
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
@@ -767,8 +771,9 @@ with the top-level Info directory.
 
 In interactive use, a non-numeric prefix argument directs
 this command to read a file name from the minibuffer.
-A numeric prefix argument selects an Info buffer with the prefix number
-appended to the Info buffer name.
+
+A numeric prefix argument N selects an Info buffer named
+\"*info*<%s>\".
 
 The search path for Info files is in the variable `Info-directory-list'.
 The top-level Info directory is made by combining all the files named `dir'
