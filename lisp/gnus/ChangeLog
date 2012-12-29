@@ -1,3 +1,9 @@
+2012-12-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnfolder.el (nnfolder-recursive-directory-files): New function.
+	(nnfolder-generate-active-file): Make this function work with recursive
+	folder names.
+
 2012-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nntp.el (nntp-open-connection): Use HELP as the capability command

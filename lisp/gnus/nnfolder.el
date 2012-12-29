@@ -1004,6 +1004,28 @@ deleted.  Point is left where the deleted region was."
 	    (nnfolder-save-nov))
 	  (current-buffer))))))
 
+(defun nnfolder-recursive-directory-files (dir prefix)
+  (let ((files nil))
+    (dolist (file (directory-files dir))
+      (cond
+       ((or (file-symlink-p (expand-file-name file dir))
+	    (member file '("." "..")))
+	;; Ignore
+	)
+       ((file-directory-p (expand-file-name file dir))
+	(setq files (nconc (nnfolder-recursive-directory-files
+			    (expand-file-name file dir)
+			    (if prefix
+				(concat prefix "." (directory-file-name file))
+			      (file-name-nondirectory file)))
+			   files)))
+       ((file-regular-p (expand-file-name file dir))
+	(push (if prefix
+		  (concat prefix "." file)
+		file)
+	      files))))
+    files))
+
 ;;;###autoload
 (defun nnfolder-generate-active-file ()
   "Look for mbox folders in the nnfolder directory and make them into groups.
@@ -1020,10 +1042,13 @@ This command does not work if you use short group names."
       (when (not (message-mail-file-mbox-p file))
 	(ignore-errors
 	  (delete-file file)))))
-    (dolist (file (directory-files nnfolder-directory))
+    (dolist (file (if nnmail-use-long-file-names
+		      (directory-files nnfolder-directory)
+		    (nnfolder-recursive-directory-files
+		     nnfolder-directory nil)))
       (when (and (not (backup-file-name-p file))
 		 (message-mail-file-mbox-p
-		  (nnheader-concat nnfolder-directory file)))
+		  (nnfolder-group-pathname file)))
 	(let ((oldgroup (assoc file nnfolder-group-alist)))
 	  (if oldgroup
 	      (nnheader-message 5 "Refreshing group %s..." file)
