@@ -2008,7 +2008,14 @@ Returns the output.  See `python-shell-send-string-no-output'."
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
-  (python-shell-send-string (buffer-substring start end) nil t))
+  (python-shell-send-string
+   (concat
+    (let ((line-num (line-number-at-pos start)))
+      ;; When sending a region, add blank lines for non sent code so
+      ;; backtraces remain correct.
+      (make-string (1- line-num) ?\n))
+    (buffer-substring start end))
+   nil t))
 
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
