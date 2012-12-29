@@ -1,6 +1,6 @@
 2012-12-29  Damien Cassou  <damien.cassou@gmail.com>
 
-	* info.el (info-other-window): 
+	* info.el (info-other-window): New arg, for consistency with info.
 
 2012-12-28  Martin Rudalics  <rudalics@gmx.at>
 
