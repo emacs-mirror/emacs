@@ -2996,8 +2996,10 @@ DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
 CONTEXT should be a list (USER ROLE TYPE RANGE), where the list
 elements are strings naming the components of a SELinux context.
 
-This function does nothing if SELinux is disabled, or if Emacs was not
-compiled with SELinux support.  */)
+Value is t if setting of SELinux context was successful, nil otherwise.
+
+This function does nothing and returns nil if SELinux is disabled,
+or if Emacs was not compiled with SELinux support.  */)
   (Lisp_Object filename, Lisp_Object context)
 {
   Lisp_Object absname;
@@ -3063,6 +3065,7 @@ compiled with SELinux support.  */)
 
 	  context_free (parsed_con);
 	  freecon (con);
+	  return Qt;
 	}
       else
 	report_file_error ("Doing lgetfilecon", Fcons (absname, Qnil));
@@ -3127,6 +3130,8 @@ DEFUN ("set-file-acl", Fset_file_acl, Sset_file_acl,
 ACL-STRING should contain the textual representation of the ACL
 entries in a format suitable for the platform.
 
+Value is t if setting of ACL was successful, nil otherwise.
+
 Setting ACL for local files requires Emacs to be built with ACL
 support.  */)
   (Lisp_Object filename, Lisp_Object acl_string)
@@ -3166,6 +3171,7 @@ support.  */)
 	report_file_error ("Setting ACL", Fcons (absname, Qnil));
 
       acl_free (acl);
+      return Qt;
     }
 #endif
 

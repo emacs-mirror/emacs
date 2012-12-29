@@ -1703,9 +1703,11 @@ This function sets the SELinux security context of the file
 @var{filename} to @var{context}.  @xref{File Attributes}, for a brief
 description of SELinux contexts.  The @var{context} argument should be
 a list @code{(@var{user} @var{role} @var{type} @var{range})}, like the
-return value of @code{file-selinux-context}.  The function does
-nothing if SELinux is disabled, or if Emacs was compiled without
-SELinux support.
+return value of @code{file-selinux-context}.  The function returns
+@code{t} if it succeeds to set the SELinux security context of
+@var{filename}, @code{nil} otherwise.  The function does nothing and
+returns @code{nil} if SELinux is disabled, or if Emacs was compiled
+without SELinux support.
 @end defun
 
 @defun set-file-acl filename acl-string
@@ -1713,7 +1715,9 @@ This function sets the ACL entries of the file @var{filename} to
 @var{acl-string}.  @xref{File Attributes}, for a brief description of
 ACLs.  The @var{acl-string} argument should be a string containing the
 textual representation of the desired ACL entries as returned by
-@code{file-acl} (@pxref{File Attributes, file-acl}).
+@code{file-acl} (@pxref{File Attributes, file-acl}).  The function
+returns @code{t} if it succeeds to set the ACL entries of
+@var{filename}, @code{nil} otherwise.
 @end defun
 
 @node File Names

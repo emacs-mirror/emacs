@@ -4019,10 +4019,12 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	      nil)))
       ;; Reset the umask.
       (set-default-file-modes umask)))
-  (and modes
-       (set-file-modes to-name (logand modes #o1777)))
-  (and extended-attributes
-       (set-file-extended-attributes to-name extended-attributes)))
+  ;; If set-file-extended-attributes fails, fall back on set-file-modes.
+  (unless (and extended-attributes
+	       (with-demoted-errors
+		 (set-file-extended-attributes to-name extended-attributes)))
+    (and modes
+	 (set-file-modes to-name (logand modes #o1777)))))
 
 (defvar file-name-version-regexp
   "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
@@ -4737,8 +4739,14 @@ Before and after saving the buffer, this function runs
 	       (setq setmodes (list (file-modes buffer-file-name)
 				    (file-extended-attributes buffer-file-name)
 				    buffer-file-name))
-	       (set-file-modes buffer-file-name (logior (car setmodes) 128))
-	       (set-file-extended-attributes buffer-file-name (nth 1 setmodes)))))
+	       ;; If set-file-extended-attributes fails, fall back on
+	       ;; set-file-modes.
+	       (unless
+		   (with-demoted-errors
+		     (set-file-extended-attributes buffer-file-name
+						   (nth 1 setmodes)))
+		 (set-file-modes buffer-file-name
+				 (logior (car setmodes) 128))))))
 	(let (success)
 	  (unwind-protect
 	      (progn

@@ -1,3 +1,9 @@
+2012-12-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (backup-buffer-copy, basic-save-buffer-2): If
+	set-file-extended-attributes fails, fall back on set-file-modes
+	instead of signaling an error.  (Bug#13298)
+
 2012-12-29  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: Support other commands triggering
