@@ -506,7 +506,7 @@ This function returns the current syntax table, which is the table for
 the current buffer.
 @end defun
 
-@defmac with-syntax-table @var{table} @var{body}@dots{}
+@defmac with-syntax-table table body@dots{}
 This macro executes @var{body} using @var{table} as the current syntax
 table.  It returns the value of the last form in @var{body}, after
 restoring the old current syntax table.
@@ -998,7 +998,7 @@ corresponds to each syntax flag.
 @samp{4} @tab @code{(lsh 1 19)}
 @end multitable
 
-@defun string-to-syntax @var{desc}
+@defun string-to-syntax desc
 Given a syntax descriptor @var{desc} (a string), this function returns
 the corresponding raw syntax descriptor.
 @end defun

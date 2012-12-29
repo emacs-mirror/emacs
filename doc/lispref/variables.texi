@@ -1057,7 +1057,7 @@ variables}.  Every variable that has been defined with @code{defvar},
 (@pxref{Defining Variables}).  All other variables are subject to
 lexical binding.
 
-@defun special-variable-p SYMBOL
+@defun special-variable-p symbol
 This function returns non-@code{nil} if @var{symbol} is a special
 variable (i.e., it has a @code{defvar}, @code{defcustom}, or
 @code{defconst} variable definition).  Otherwise, the return value is

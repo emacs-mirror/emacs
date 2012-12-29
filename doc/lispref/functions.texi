@@ -1266,7 +1266,7 @@ obsolete, or giving its forms a special @key{TAB} indentation
 convention in Emacs Lisp mode.
 
 @anchor{Definition of declare}
-@defmac declare @var{specs}@dots{}
+@defmac declare specs@dots{}
 This macro ignores its arguments and evaluates to @code{nil}; it has
 no run-time effect.  However, when a @code{declare} form occurs in the
 @var{declare} argument of a @code{defun} or @code{defsubst} function
