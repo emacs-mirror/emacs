@@ -321,14 +321,14 @@ struct glyph
      the right edge of a row have their position set to the next
      buffer position that is not shown on this row.  Glyphs inserted
      by redisplay, such as the empty space after the end of a line on
-     TTYs, have this set to -1.  */
+     TTYs, or the overlay-arrow on a TTY, have this set to -1.  */
   ptrdiff_t charpos;
 
   /* Lisp object source of this glyph.  Currently either a buffer or a
      string, if the glyph was produced from characters which came from
      a buffer or a string; or 0 if the glyph was inserted by redisplay
-     for its own purposes such as padding or truncation/continuation
-     glyphs on TTYs.  */
+     for its own purposes, such as padding or truncation/continuation
+     glyphs, or the overlay-arrow glyphs on TTYs.  */
   Lisp_Object object;
 
   /* Width in pixels.  */
