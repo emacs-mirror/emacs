@@ -1460,8 +1460,8 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS}"
 GNU_OBJC_CFLAGS=
+LIBS_GNUSTEP=
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -1488,9 +1488,9 @@ if test "${with_ns}" != no; then
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
+     LIBS_GNUSTEP="-lgnustep-gui -lgnustep-base -lobjc -lpthread"
      LIB_STANDARD=
      START_FILES=
-     TEMACS_LDFLAGS2=
      dnl GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS to 0 or 1.
      dnl If they had chosen to either define it or not, we could have
      dnl just used AC_CHECK_DECL here.
@@ -1541,7 +1541,7 @@ fail;
   fi
 fi
 
-AC_SUBST(TEMACS_LDFLAGS2)
+AC_SUBST(LIBS_GNUSTEP)
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
 ns_self_contained=no
@@ -4355,10 +4355,6 @@ case "$opsys" in
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
-
-if test "$NS_IMPL_GNUSTEP" = "yes"; then
-  LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
-fi
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 

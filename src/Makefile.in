@@ -109,9 +109,6 @@ LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
-## $LDFLAGS or empty if NS_IMPL_GNUSTEP (for some reason).
-TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
-
 ## If available, the full path to the paxctl program.
 ## On grsecurity/PaX systems, unexec will fail due to a gap between
 ## the bss section and the heap.  This can be prevented by disabling
@@ -226,6 +223,9 @@ LIBX_OTHER=@LIBX_OTHER@
 ## sets it at present, and if something ever does, it should be
 ## configure, which should set it to nil in non-X builds.
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
+
+## Only used for GNUstep
+LIBS_GNUSTEP=@LIBS_GNUSTEP@
 
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
@@ -389,7 +389,7 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
 ## Note that SunOS needs -lm to come before -lc; otherwise, you get
 ## duplicated symbols.  If the standard libraries were compiled
 ## with GCC, we might need LIB_GCC again after them.
-LIBES = $(LIBS) $(W32_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) \
    $(LIB_TIMER_TIME) $(DBUS_LIBS) \
@@ -463,7 +463,7 @@ $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
 temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
-	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
+	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
