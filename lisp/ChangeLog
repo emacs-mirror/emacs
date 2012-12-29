@@ -1,3 +1,8 @@
+2012-12-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-set-file-uid-gid): Convert UID and GID to
+	integers, if they are real numbers.  (Bug#13282)
+
 2012-12-26  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-indent-beg-re): Only allow "class",

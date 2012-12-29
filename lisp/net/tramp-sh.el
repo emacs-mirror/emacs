@@ -1455,7 +1455,9 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
   ;; working with su(do)? when it is needed, so it shall succeed in
   ;; the majority of cases.
   ;; Don't modify `last-coding-system-used' by accident.
-  (let ((last-coding-system-used last-coding-system-used))
+  (let ((last-coding-system-used last-coding-system-used)
+	(uid (and (numberp uid) (round uid)))
+	(gid (and (numberp gid) (round gid))))
     (if (file-remote-p filename)
 	(with-parsed-tramp-file-name filename nil
 	  (if (and (zerop (user-uid)) (tramp-local-host-p v))
