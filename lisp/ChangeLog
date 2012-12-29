@@ -1,5 +1,12 @@
 2012-12-29  Fabián Ezequiel Gallina  <fgallina@cuca>
 
+	* progmodes/python.el: Support other commands triggering
+	python-indent-line so indentation cycling continues to work.
+	(python-indent-trigger-commands): New defcustom.
+	(python-indent-line): Use it.
+
+2012-12-29  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	* progmodes/python.el (python-shell-send-region): Add blank lines
 	for non sent code so backtraces remain correct.
 
