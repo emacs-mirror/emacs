@@ -27,19 +27,19 @@ You can explicitly require a specific version by passing
 ** New configure option `--enable-link-time-optimization', to utilize
 an appropriate feature provided by GCC since version 4.5.0.
 
-** New configure option `--enable-gcc-warnings', intended for developers.
-If building with GCC, this enables compile-time checks that warn about
-possibly-questionable C code.  On a recent GNU system there should be
-no warnings; on older and on non-GNU systems the generated warnings
-may be useful.
+** New configure option `--without-all' to disable most of the optional
+features (image support, etc.) that are normally enabled by default.
+
+** New configure option `--enable-gcc-warnings' (for developing/debugging
+Emacs).  If building with GCC, this enables compile-time checks that
+warn about possibly-questionable C code.  On a recent GNU system there
+should be no warnings; on older and on non-GNU systems the generated
+warnings may be useful.
 
 ** The configure option `--enable-use-lisp-union-type' has been
 renamed to `--enable-check-lisp-object-type', as the resulting
 Lisp_Object type no longer uses a union to implement the compile time
 check that this option enables.
-
-** New configure option `--without-all' to disable most of the optional
-features (image support, etc.) that are normally enabled by default.
 
 ** The configure option `--disable-maintainer-mode' has been removed,
 as it was confusingly-named and rarely useful.
@@ -586,17 +586,11 @@ The option `follow-intercept-processes' has been removed.
 In most cases, assoc+member+push+delq work just as well.
 And in any case it's just a terrible package: ugly semantics, terrible
 inefficiency, and not namespace-clean.
-
 *** bruce.el
-
 *** cust-print.el
-
 *** ledit.el
-
 *** mailpost.el
-
 *** mouse-sel.el
-
 *** patcomp.el
 
 
