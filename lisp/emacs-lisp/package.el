@@ -604,7 +604,11 @@ untar into a directory named DIR; otherwise, signal an error."
   (require 'tar-mode)
   (tar-mode)
   ;; Make sure everything extracts into DIR.
-  (let ((regexp (concat "\\`" (regexp-quote dir) "/")))
+  (let ((regexp (concat "\\`" (regexp-quote dir)
+			;; Tarballs created by some utilities don't
+			;; list directories with a trailing slash
+			;; (Bug#13136).
+			"\\(/\\|\\'\\)")))
     (dolist (tar-data tar-parse-info)
       (unless (string-match regexp (aref tar-data 2))
 	(error "Package does not untar cleanly into directory %s/" dir))))
