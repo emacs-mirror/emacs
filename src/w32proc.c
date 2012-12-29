@@ -970,6 +970,11 @@ reader_thread (void *arg)
       else
 	rc = _sys_read_ahead (cp->fd);
 
+      /* Don't bother waiting for the event if we already have been
+	 told to exit by delete_child.  */
+      if (cp->status == STATUS_READ_ERROR || !cp->char_avail)
+	break;
+
       /* The name char_avail is a misnomer - it really just means the
 	 read-ahead has completed, whether successfully or not. */
       if (!SetEvent (cp->char_avail))
@@ -986,6 +991,11 @@ reader_thread (void *arg)
       if (rc == STATUS_READ_FAILED)
 	break;
 
+      /* Don't bother waiting for the acknowledge if we already have
+	 been told to exit by delete_child.  */
+      if (cp->status == STATUS_READ_ERROR || !cp->char_consumed)
+	break;
+
       /* Wait until our input is acknowledged before reading again */
       if (WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
         {
@@ -993,6 +1003,8 @@ reader_thread (void *arg)
 		     "%lu for fd %ld\n", GetLastError (), cp->fd));
 	  break;
         }
+      /* delete_child sets status to STATUS_READ_ERROR when it wants
+	 us to exit.  */
       if (cp->status == STATUS_READ_ERROR)
 	break;
     }
