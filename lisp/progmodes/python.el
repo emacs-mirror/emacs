@@ -204,7 +204,6 @@
 
 (require 'ansi-color)
 (require 'comint)
-(eval-when-compile (require 'cl-lib))
 
 ;; Avoid compiler warnings
 (defvar view-return-to-alist)
@@ -529,7 +528,7 @@ is used to limit the scan."
     (while (and (< i 3)
                 (or (not limit) (< (+ point i) limit))
                 (eq (char-after (+ point i)) quote-char))
-      (cl-incf i))
+      (setq i (1+ i)))
     i))
 
 (defun python-syntax-stringify ()
@@ -2487,12 +2486,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (let* ((marker (point-marker))
          (str-start-pos
-          (let ((m (make-marker)))
-            (setf (marker-position m)
-                  (or (python-syntax-context 'string)
-                      (and (equal (string-to-syntax "|")
-                                  (syntax-after (point)))
-                           (point)))) m))
+          (set-marker
+           (make-marker)
+           (or (python-syntax-context 'string)
+               (and (equal (string-to-syntax "|")
+                           (syntax-after (point)))
+                    (point)))))
          (num-quotes (python-syntax-count-quotes
                       (char-after str-start-pos) str-start-pos))
          (str-end-pos
