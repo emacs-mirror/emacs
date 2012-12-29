@@ -4621,9 +4621,11 @@ Before and after saving the buffer, this function runs
 	    (if setmodes
 		(condition-case ()
 		    (progn
-		      (set-file-modes buffer-file-name (car setmodes))
-		      (set-file-extended-attributes buffer-file-name
-						    (nth 1 setmodes)))
+		      (unless
+			  (with-demoted-errors
+			    (set-file-modes buffer-file-name (car setmodes)))
+			(set-file-extended-attributes buffer-file-name
+						      (nth 1 setmodes))))
 		  (error nil))))
 	  ;; If the auto-save file was recent before this command,
 	  ;; delete it now.
