@@ -2029,7 +2029,15 @@ entries (depending on how Emacs was built).  */)
   if (!CopyFile (SDATA (encoded_file),
 		 SDATA (encoded_newname),
 		 FALSE))
-    report_file_error ("Copying file", Fcons (file, Fcons (newname, Qnil)));
+    {
+      /* CopyFile doesn't set errno when it fails.  By far the most
+	 "popular" reason is that the target is read-only.  */
+      if (GetLastError () == 5)
+	errno = EACCES;
+      else
+	errno = EPERM;
+      report_file_error ("Copying file", Fcons (file, Fcons (newname, Qnil)));
+    }
   /* CopyFile retains the timestamp by default.  */
   else if (NILP (keep_time))
     {

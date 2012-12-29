@@ -3,6 +3,7 @@
 	* fileio.c (Fset_file_selinux_context, Fset_file_acl): Return t if
 	file's SELinux context or ACLs successfully set, nil otherwise.
 	(Bug#13298)
+	(Fcopy_file) [WINDOWSNT]: Improve diagnostics when CopyFile fails.
 
 	* w32proc.c (reader_thread): Avoid passing NULL handles to
 	SetEvent and WaitForSingleObject.
