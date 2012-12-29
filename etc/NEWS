@@ -17,41 +17,41 @@ with a prefix argument or by typing C-u C-h C-n.
 * Installation Changes in Emacs 24.3
 
 ** The default toolkit has been changed to Gtk+ version 3.
-If you don't pass --with-x-toolkit to configure or if you pass
---with-x-toolkit=gtk or --with-x-toolkit=yes, configure will try to build
-with Gtk+ version 3, and if that fails, try Gtk+ version 2.
+If you don't pass `--with-x-toolkit' to configure, or if you use
+`--with-x-toolkit=gtk' or `--with-x-toolkit=yes', configure will try
+to build with Gtk+ version 3, and if that fails, try Gtk+ version 2.
 You can explicitly require a specific version by passing
---with-x-toolkit=gtk2 or --with-x-toolkit=gtk3 to configure.
+`--with-x-toolkit=gtk2' or `--with-x-toolkit=gtk3' to configure.
 
-** New configure option '--without-all' to disable additional features.
+** New configure option `--without-all' to disable additional features.
 This disables most of the features that are normally enabled by default.
 
-** New configure option '--enable-link-time-optimization' to utilize
+** New configure option `--enable-link-time-optimization' to utilize
 an appropriate feature provided by GCC since version 4.5.0.
 
-** New configure option '--enable-gcc-warnings', intended for developers.
+** New configure option `--enable-gcc-warnings', intended for developers.
 If building with GCC, this enables compile-time checks that warn about
 possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
-** The configure option '--enable-use-lisp-union-type' has been
+** The configure option `--enable-use-lisp-union-type' has been
 renamed to '--enable-check-lisp-object-type', as the resulting
 Lisp_Object type no longer uses a union to implement the compile time
 check that this option enables.
 
-** The configure option '--disable-maintainer-mode' has been removed,
+** The configure option `--disable-maintainer-mode' has been removed,
 as it was confusingly-named and rarely useful.
-
-** You can use `NO_BIN_LINK=t make install' to prevent the installation
-overwriting "emacs" in the installation bin/ directory with a link
-to emacs-VERSION.
 
 ** The configure options `--program-prefix', `--program-suffix', and
 `--program-transform-name' apply to more than just the installed
 binaries.  Now they also affect the man pages, icons, and the
 etc/emacs.desktop file; but not the info pages, since this would break
 links between the various manuals.
+
+** You can use `NO_BIN_LINK=t make install' to prevent the installation
+overwriting "emacs" in the installation bin/ directory with a link
+to emacs-VERSION.
 
 ** Emacs uses libtinfo in preference to libncurses, if available.
 
@@ -68,15 +68,15 @@ no longer relevant, the latter is replaced by lisp (in vc-sccs.el).
 
 ** Emacs no longer searches for `leim-list.el' files beneath the standard
 lisp/ directory.  There should not be any there anyway.  If you have
-been adding them there, put them somewhere else, eg site-lisp.
+been adding them there, put them somewhere else; e.g., site-lisp.
 
 ** The `--no-site-lisp' command line option now works for Nextstep builds.
 
 
 * Changes in Emacs 24.3
 
-** Most y-or-n prompts now allow you to scroll the selected window.
-Typing C-v or M-v at a y-or-n prompt scrolls forward or backward
+** Most `y-or-n' prompts now allow you to scroll the selected window.
+Typing `C-v' or `M-v' at a y-or-n prompt scrolls forward or backward
 respectively, without exiting from the prompt.
 
 ** Mode line changes
@@ -105,8 +105,9 @@ autoloads have been redefined as functions).
 *** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
 next and previous path separator, respectively.
 
-*** minibuffer-electric-default-mode can rewrite (default ...) to [...].
-Just set minibuffer-eldef-shorten-default to t before enabling the mode.
+*** `minibuffer-electric-default-mode' can shorten "(default ...)" to "[...]"
+in minibuffer prompts.  Just set `minibuffer-eldef-shorten-default'
+non-nil before enabling the mode.
 
 ** ImageMagick support, if available, is automatically enabled.
 It is no longer necessary to call `imagemagick-register-types'
@@ -114,8 +115,8 @@ explicitly to install ImageMagick image types; that function is called
 automatically at startup, or when customizing an imagemagick- option.
 
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
-ImageMagick to view images.  You must call imagemagick-register-types
-afterwards if you do not use customize to change this.
+ImageMagick to view images.  (You must call `imagemagick-register-types'
+afterwards if you do not use customize to change this.)
 
 *** The new variable `imagemagick-enabled-types' also affects which
 ImageMagick types are treated as images.  The function
@@ -123,7 +124,7 @@ ImageMagick types are treated as images.  The function
 treated as images.
 
 *** Images displayed via ImageMagick now support transparency and the
-:background image spec property.
+:background image specification property.
 
 ** Server and client changes
 
@@ -168,7 +169,7 @@ The PCL-CVS commands are still available via the keyboard.
 
 ** Nextstep (GNUstep / Mac OS X) port changes
 
-*** Fullscreen and frame parameter fullscreen is supported.
+*** Support for fullscreen and the frame parameter fullscreen.
 
 *** A file dialog is used for open/save operations initiated from the
 menu/toolbar.
@@ -191,7 +192,7 @@ interactively with no prefix arg.  Previously, it moved to column 1.
 Each sequence of spaces in the supplied search string may match any
 sequence of one or more whitespace characters, as specified by the
 variable `search-whitespace-regexp'.  (This variable is also used by a
-similar existing feature for regexp Isearch).
+similar existing feature for regexp Isearch.)
 
 *** New Isearch command `M-s SPC' toggles lax space matching.
 This applies to both ordinary and regexp Isearch.
@@ -217,20 +218,20 @@ of the buffer.  It defaults to t.
 
 ** Register changes
 
-*** `C-x r +' is now overloaded to invoke `append-to-register.
+*** `C-x r +' is now overloaded to invoke `append-to-register'.
 
 *** New option `register-separator' specifies the register containing
-the text to put between collected texts for use with M-x
-append-to-register and M-x prepend-to-register.
+the text to put between collected texts for use with
+M-x append-to-register and M-x prepend-to-register.
 
 ** `C-u M-=' now counts lines/words/characters in the entire buffer.
 
-** New command `C-x r M-w' (copy-rectangle-as-kill).
+** New command `C-x r M-w' (`copy-rectangle-as-kill').
 It copies the region-rectangle as the last rectangle kill.
 
 ** New option `yank-handled-properties' allows processing of text
-properties on yanked text, in more ways that are more general than
-just removing them, as done by `yank-excluded-properties'.
+properties on yanked text, in ways that are more general than just
+removing them, as done by `yank-excluded-properties'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.3
@@ -241,11 +242,12 @@ just removing them, as done by `yank-excluded-properties'.
 These faces are named `apropos-symbol', `apropos-keybinding', and so on;
 see the `apropos' Custom group for details.
 
-*** The old options whose values specified faces to use were removed
+*** The old options whose values specified faces to use have been removed
 (i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
 
 ** Buffer Menu
-This package has been rewritten to use Tabulated List mode.
+
+*** This package has been rewritten to use Tabulated List mode.
 
 *** Option `Buffer-menu-buffer+size-width' is now obsolete.
 Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
@@ -263,17 +265,18 @@ Customize `cal-html-holidays' to change this.
 ** CL
 
 *** CL's main entry is now (require 'cl-lib).
-`cl-lib' is like the old `cl' except that it uses the namespace cleanly,
-i.e. all its definitions have the "cl-" prefix (and internal definitions use
-the "cl--" prefix).
+`cl-lib' is like the old `cl' except that it uses the namespace cleanly;
+i.e., all its definitions have the "cl-" prefix (and internal definitions
+use the "cl--" prefix).
 
-If `cl' provided a feature under the name `foo', then `cl-lib' provides it
-under the name `cl-foo' instead, with the exceptions of the few definitions
-that had to use `foo*' to avoid conflicts with pre-existing Elisp entities,
-which have not been renamed to `cl-foo*' but just `cl-foo'.
+If `cl' provided a feature under the name `foo', then `cl-lib'
+provides it under the name `cl-foo' instead; with the exceptions of the
+few `cl' definitions that had to use `foo*' to avoid conflicts with
+pre-existing Elisp entities.  These have been renamed to `cl-foo'
+rather than `cl-foo*'.
 
 The old `cl' is now deprecated and is mainly just a bunch of aliases that
-provide the old non-prefixed names.  Some exceptions are listed below.
+provide the old, non-prefixed names.  Some exceptions are listed below:
 
 *** `cl-flet' is not like `flet' (which is deprecated).
 Instead it obeys the behavior of Common-Lisp's `flet'.
@@ -281,17 +284,18 @@ In particular, in cl-flet function definitions are lexically scoped,
 whereas in flet the scoping is dynamic.
 
 *** `cl-labels' is slightly different from `labels'.
-The difference is that it relies on the `lexical-binding' machinery (as opposed
-to the `lexical-let' machinery used previously) to capture definitions in
-closures, so such closures will only work if `lexical-binding' is in use.
+The difference is that it relies on the `lexical-binding' machinery
+(as opposed to the `lexical-let' machinery used previously) to capture
+definitions in closures, so such closures will only work if `lexical-binding'
+is in use.
 
 *** `cl-letf' is not exactly like `letf'.
 The only difference is in details that relate to some deprecated usage
 of `symbol-function' in place forms.
 
 *** `progv' was rewritten to use the `let' machinery.
-A side effect is that vars without corresponding value are bound to nil
-rather than making them unbound.
+A side effect is that variables without corresponding values are bound
+to nil rather than being made unbound.
 
 *** The following methods of extending `setf' are obsolete
 (use features from gv.el instead):
@@ -307,7 +311,7 @@ rather than making them unbound.
 *** `custom-reset-button-menu' now defaults to t.
 
 *** Non-option variables are never matched in `customize-apropos' and
-`customize-apropos-options' (i.e. the prefix argument does nothing for
+`customize-apropos-options' (i.e., the prefix argument does nothing for
 these commands now).
 
 ** `desktop-path' no longer includes the "." directory.
@@ -322,14 +326,13 @@ Desktop files are now located in ~/.emacs.d by default.
 *** Variables of type :(u)int32 and :(u)int64 accept floating points,
 if their value does not fit into Emacs's integer range.
 
-*** The function `dbus-call-method' works non-blocking now, it can be
-interrupted by C-g.  `dbus-call-method-non-blocking' is obsolete.
+*** The function `dbus-call-method' is now non-blocking.
+It can be interrupted by `C-g'.  `dbus-call-method-non-blocking' is obsolete.
 
-*** Signals can be sent also as unicast message.
+*** Signals can also be sent as unicast messages.
 
 *** The argument list of `dbus-register-signal' has been extended,
-according to the new match rule types of D-Bus.  See the manual for
-details.
+according to the new match rule types of D-Bus.  See the manual for details.
 
 *** `dbus-init-bus' supports private connections.
 
@@ -356,12 +359,12 @@ whitespace introduced by a diff.
 if the command ends in `;' (when operating on multiple files).
 Otherwise, it executes the command on each file in parallel.
 
-*** Typing M-n in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
-`dired-do-chown', `dired-do-touch' pulls the file attributes of the
+*** Typing `M-n' in the minibuffer of `dired-do-chmod', `dired-do-chgrp',
+`dired-do-chown', and `dired-do-touch' yanks the attributes of the
 file at point.
 
 *** When the region is active, `m' (`dired-mark'), `u' (`dired-unmark'),
-`DEL' (`dired-unmark-backward'), `d' (`dired-flag-file-deletion')
+`DEL' (`dired-unmark-backward'), and `d' (`dired-flag-file-deletion')
 mark/unmark/flag all files in the active region.
 
 *** The minibuffer default for `=' (`dired-diff) has changed.
@@ -419,14 +422,14 @@ per-buffer shells, better indentation, Python 3 support, and improved
 shell-interaction compatible with iPython (and virtually any other
 text based shell).
 
-*** Some user options have been replaced/renamed:
+*** Some user options have been replaced/renamed, including:
 Old defcustom:                | New defcustom:
 python-indent                 | python-indent-offset
 python-guess-indent           | python-indent-guess-indent-offset
 python-pdbtrack-do-tracking-p | python-pdbtrack-activate
 python-use-skeletons          | python-skeleton-autoinsert
 
-*** Some user options have been removed:
+*** Some user options have been removed, including:
 
 **** `python-indent-string-contents': Strings are never indented.
 
@@ -490,7 +493,7 @@ Sphinx support has been improved.
 
 ** Shell Script mode
 
-*** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
+*** Pairing of parens/quotes uses `electric-pair-mode' instead of skeleton-pair.
 
 *** `sh-electric-here-document-mode' now controls auto-insertion of here-docs.
 
@@ -505,15 +508,14 @@ If non-nil, newlines sent to the command interpreter will be escaped
 by a backslash.  The default does not escape the newlines and assumes
 that the sql statement will be terminated by a semicolon.
 
-** Tabulated List and packages derived from it
-
-*** New command `tabulated-list-sort', bound to `S', sorts the column
-at point, or the Nth column if a numeric prefix argument is given.
+** New command `tabulated-list-sort', bound to `S' in Tabulated List mode
+(and modes that derive from it), sorts the column at point, or the Nth
+column if a numeric prefix argument is given.
 
 ** Term
 
-*** The variables `term-default-fg-color' and `term-default-bg-color' are
-now deprecated in favor of the customizable face `term'.
+*** The variables `term-default-fg-color' and `term-default-bg-color'
+are now deprecated in favor of the customizable face `term'.
 
 *** You can customize how to display ANSI terminal colors and styles
 by customizing the corresponding `term-color-<COLOR>',
@@ -524,14 +526,14 @@ by customizing the corresponding `term-color-<COLOR>',
 *** The syntax has been extended in order to allow ad-hoc proxy definitions.
 See the manual for details.
 
-*** Remote processes are now supported also on remote Windows host.
+*** Remote processes are now also supported on remote MS-Windows hosts.
 
 ** URL
 
 *** Structs made by `url-generic-parse-url' have nil `attributes' slot.
 Previously, this slot stored semicolon-separated attribute-value pairs
 appended to some imap URLs, but this is not compatible with RFC 3986.
-So now the `filename' slot stores the entire path and query components
+So now the `filename' slot stores the entire path and query components,
 and the `attributes' slot is always nil.
 
 *** New function `url-encode-url' for encoding a URI string.
@@ -551,8 +553,8 @@ in case that is not properly encoded.
 ** `which-func-modes' now defaults to t, so Which Function mode, when
 enabled, applies to all applicable major modes.
 
-** winner-mode-hook now runs when the mode is disabled, as well as when it is
-enabled.
+** winner-mode-hook now runs when the mode is disabled, as well as when
+it is enabled.
 
 ** Hooks renamed to avoid obsolete "-hooks" suffix:
 *** semantic-lex-reset-hooks -> semantic-lex-reset-functions
@@ -602,8 +604,8 @@ inefficiency, and not namespace-clean.
 
 ** set-buffer-multibyte now signals an error in narrowed buffers.
 
-** (random) by default now returns a different random sequence in
-every Emacs run.  Use (random S), where S is a string, to set the
+** `random' by default now returns a different random sequence in
+every Emacs run.  Use `(random S)', where S is a string, to set the
 random seed to a value based on S, in order to get a repeatable
 sequence in later calls.
 
@@ -642,11 +644,10 @@ define a compatible replacement for `get-setf-method'.  See the file
 gv.el for internal details of the new implementation.
 
 ** Spelling changes.
-Some Lisp symbols have been renamed to avoid problems with spelling
-that is incorrect or inconsistent with how Emacs normally spells a word.
+Some Lisp symbols have been renamed to correct their spelling,
+or to be more consistent with standard Emacs terminology.
 
 *** Renamed functions
-
 **** hangul-input-method-inactivate -> hangul-input-method-deactivate
 **** inactivate-input-method -> deactivate-input-method
 **** quail-inactivate -> quail-deactivate
@@ -709,7 +710,7 @@ The interpretation of the DECLS is determined by `defun-declarations-alist'.
 
 *** `read-regexp' has a new argument HISTORY; the first argument PROMPT
 of `read-regexp' accepts a string ending with a colon and space, and its
-second argument DEFAULTS can be a list of strings accessible via M-n
+second argument DEFAULTS can be a list of strings accessible via `M-n'
 in the minibuffer ahead of other hard-coded useful regexp-related values.
 More commands use `read-regexp' now to read their regexp arguments.
 
@@ -738,7 +739,7 @@ recursive invocations.
 
 ** Window changes
 
-*** The functions get-lru-window, get-mru-window and get-largest-window
+*** The functions `get-lru-window', `get-mru-window' and `get-largest-window'
 now accept a third argument to avoid choosing the selected window.
 
 *** Additional values recognized for option `window-combination-limit'.
@@ -755,7 +756,7 @@ fit the contents.
 *** The command `fit-window-to-buffer' can adjust the frame height
 if the new option `fit-frame-to-buffer' is non-nil.
 
-*** New option switch-to-buffer-preserve-window-point to restore a
+*** New option `switch-to-buffer-preserve-window-point' to restore a
 window's point when switching buffers.
 
 *** New display action functions `display-buffer-below-selected',
@@ -772,25 +773,18 @@ non-nil, specifies frame parameters to give any newly-created frame.
 specifies window to reuse in `display-buffer-in-previous-window'.
 
 *** New display action alist entries `window-height' and `window-width'
-to specify size of new window created by `display-buffer'.
+specify the size of new windows created by `display-buffer'.
 
 *** The following variables are obsolete, as they can be replaced by
 appropriate entries in the `display-buffer-alist' function introduced
 in Emacs 24.1:
-
-**** `display-buffer-reuse-frames'
-
-**** `special-display-regexps'
-
-**** `special-display-frame-alist'
-
-**** `special-display-buffer-names'
-
-**** `special-display-function'
-
-**** `display-buffer-function'
-
 **** `dired-shrink-to-fit'
+**** `display-buffer-reuse-frames'
+**** `display-buffer-function'
+**** `special-display-buffer-names'
+**** `special-display-frame-alist'
+**** `special-display-function'
+**** `special-display-regexps'
 
 ** Time
 
@@ -801,20 +795,20 @@ by the underlying C implementation.
 *** `current-time' now returns extended-format time stamps
 (HIGH LOW USEC PSEC), where the new PSEC slot specifies picoseconds.
 PSEC is typically a multiple of 1000 on current machines.  Other
-functions that use this format, such as file-attributes and
-format-time-string, have been changed accordingly.  Old-format time
+functions that use this format, such as `file-attributes' and
+`format-time-string', have been changed accordingly.  Old-format time
 stamps are still accepted.
 
-*** The format of timers in timer-list and timer-idle-list is now
+*** The format of timers in `timer-list' and `timer-idle-list' is now
 [TRIGGERED-P HI-SECS LO-SECS USECS REPEAT-DELAY FUNCTION ARGS IDLE-DELAY PSECS].
 The PSECS slot is new, and uses picosecond resolution.  It can be
-accessed via the new timer--psecs accessor.
+accessed via the new `timer--psecs' accessor.
 
 *** Last-modified time stamps in undo lists now are of the form
 (t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
 
 ** Floating point functions now always return special values like NaN,
-instead of signaling errors, if given invalid args, e.g. (log -1.0).
+instead of signaling errors, if given invalid args; e.g., (log -1.0).
 Previously, they returned NaNs on some platforms but signaled errors
 on others.  The affected functions are acos, asin, tan, exp, expt,
 log, log10, sqrt, and mod.
@@ -854,7 +848,7 @@ takes precedence over most other maps for a short while (normally one key).
 
 ** Changes to special forms and macros
 
-*** `defun' and `defmacro' are now macros rather than special forms
+*** `defun' and `defmacro' are now macros rather than special forms.
 
 *** `kbd' is now a function rather than a macro.
 
@@ -882,7 +876,7 @@ takes precedence over most other maps for a short while (normally one key).
 * Changes in Emacs 24.3 on non-free operating systems
 
 ** Cygwin builds can use the native MS Windows user interface.
-Pass --with-w32 to configure.  The default remains the X11 interface.
+Pass `--with-w32' to configure.  The default remains the X11 interface.
 
 ** Two new functions are available in Cygwin builds:
 `cygwin-convert-file-name-from-windows' and
@@ -896,12 +890,12 @@ Emacs now supports `mouse-highlight', help-echo (in the echo area), and
 
 ** On MS Windows Vista and later Emacs now supports symbolic links.
 
-** On MS Windows, you can pass --without-libxml2 to configure.bat to omit
+** On MS Windows, you can pass `--without-libxml2' to configure.bat to omit
 support for libxml2, even if its presence is detected.
 
 ** On Mac OS X, the Nextstep port requires OS X 10.4 or later.
 
-** On Mac OS X, configure no longer automatically adds the Fink /sw
+** On Mac OS X, configure no longer automatically adds the Fink "/sw"
 directories to the search path.  You must add them yourself if you want them.
 
 
