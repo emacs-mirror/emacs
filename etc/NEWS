@@ -316,7 +316,7 @@ text based shell).
 **** `python-indent-string-contents': Strings are never indented.
 
 **** `python-honour-comment-indentation':
-Comments are never considered as indentation markers themselves.
+Comments are always considered as indentation markers.
 
 **** `python-continuation-offset': Indentation is automatically
 calculated in a pep8 compliant way depending on the context.
