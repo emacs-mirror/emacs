@@ -4269,6 +4269,12 @@ xg_tool_bar_item_expose_callback (GtkWidget *w,
   gtk_toolbar_set_orientation (GTK_TOOLBAR (w), o)
 #endif
 
+#ifdef HAVE_GTK_HANDLE_BOX_NEW
+#define TOOLBAR_TOP_WIDGET(x) ((x)->handlebox_widget)
+#else
+#define TOOLBAR_TOP_WIDGET(x) ((x)->toolbar_widget)
+#endif
+
 /* Attach a tool bar to frame F.  */
 
 static void
@@ -4276,14 +4282,16 @@ xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
   bool into_hbox = EQ (pos, Qleft) || EQ (pos, Qright);
+  GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
 
   toolbar_set_orientation (x->toolbar_widget,
                            into_hbox
                            ? GTK_ORIENTATION_VERTICAL
                            : GTK_ORIENTATION_HORIZONTAL);
+#ifdef HAVE_GTK_HANDLE_BOX_NEW
   if (!x->handlebox_widget)
     {
-      x->handlebox_widget = gtk_handle_box_new ();
+      top_widget = x->handlebox_widget = gtk_handle_box_new ();
       g_signal_connect (G_OBJECT (x->handlebox_widget), "child-detached",
                         G_CALLBACK (xg_tool_bar_detach_callback), f);
       g_signal_connect (G_OBJECT (x->handlebox_widget), "child-attached",
@@ -4291,34 +4299,40 @@ xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
       gtk_container_add (GTK_CONTAINER (x->handlebox_widget),
                          x->toolbar_widget);
     }
+#endif
 
   if (into_hbox)
     {
+#ifdef HAVE_GTK_HANDLE_BOX_NEW
       gtk_handle_box_set_handle_position (GTK_HANDLE_BOX (x->handlebox_widget),
                                           GTK_POS_TOP);
-      gtk_box_pack_start (GTK_BOX (x->hbox_widget), x->handlebox_widget,
+#endif
+      gtk_box_pack_start (GTK_BOX (x->hbox_widget), top_widget,
                           FALSE, FALSE, 0);
 
       if (EQ (pos, Qleft))
         gtk_box_reorder_child (GTK_BOX (x->hbox_widget),
-                               x->handlebox_widget,
+                               top_widget,
                                0);
-      x->toolbar_in_hbox = 1;
+      x->toolbar_in_hbox = true;
     }
   else
     {
       bool vbox_pos = x->menubar_widget != 0;
+#ifdef HAVE_GTK_HANDLE_BOX_NEW
       gtk_handle_box_set_handle_position (GTK_HANDLE_BOX (x->handlebox_widget),
                                           GTK_POS_LEFT);
-      gtk_box_pack_start (GTK_BOX (x->vbox_widget), x->handlebox_widget,
+#endif
+      gtk_box_pack_start (GTK_BOX (x->vbox_widget), top_widget,
                           FALSE, FALSE, 0);
 
       if (EQ (pos, Qtop))
         gtk_box_reorder_child (GTK_BOX (x->vbox_widget),
-                               x->handlebox_widget,
+                               top_widget,
                                vbox_pos);
-      x->toolbar_in_hbox = 0;
+      x->toolbar_in_hbox = false;
     }
+  x->toolbar_is_packed = true;
 }
 
 /* Create a tool bar for frame F.  */
@@ -4561,13 +4575,14 @@ xg_update_tool_bar_sizes (FRAME_PTR f)
   struct x_output *x = f->output_data.x;
   GtkRequisition req;
   int nl = 0, nr = 0, nt = 0, nb = 0;
+  GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
 
-  gtk_widget_get_preferred_size (GTK_WIDGET (x->handlebox_widget), NULL, &req);
+  gtk_widget_get_preferred_size (GTK_WIDGET (top_widget), NULL, &req);
   if (x->toolbar_in_hbox)
     {
       int pos;
       gtk_container_child_get (GTK_CONTAINER (x->hbox_widget),
-                               x->handlebox_widget,
+                               top_widget,
                                "position", &pos, NULL);
       if (pos == 0) nl = req.width;
       else nr = req.width;
@@ -4576,7 +4591,7 @@ xg_update_tool_bar_sizes (FRAME_PTR f)
     {
       int pos;
       gtk_container_child_get (GTK_CONTAINER (x->vbox_widget),
-                               x->handlebox_widget,
+                               top_widget,
                                "position", &pos, NULL);
       if (pos == 0 || (pos == 1 && x->menubar_widget)) nt = req.height;
       else nb = req.height;
@@ -4611,7 +4626,6 @@ update_frame_tool_bar (FRAME_PTR f)
   GtkToolbar *wtoolbar;
   GtkToolItem *ti;
   GtkTextDirection dir;
-  bool pack_tool_bar = x->handlebox_widget == NULL;
   Lisp_Object style;
   bool text_image, horiz;
   struct xg_frame_tb_info *tbinfo;
@@ -4865,9 +4879,9 @@ update_frame_tool_bar (FRAME_PTR f)
 
   if (f->n_tool_bar_items != 0)
     {
-      if (pack_tool_bar)
+      if (! x->toolbar_is_packed)
         xg_pack_tool_bar (f, f->tool_bar_position);
-      gtk_widget_show_all (GTK_WIDGET (x->handlebox_widget));
+      gtk_widget_show_all (TOOLBAR_TOP_WIDGET (x));
       if (xg_update_tool_bar_sizes (f))
         xg_height_or_width_changed (f);
     }
@@ -4886,24 +4900,26 @@ free_frame_tool_bar (FRAME_PTR f)
   if (x->toolbar_widget)
     {
       struct xg_frame_tb_info *tbinfo;
-      bool is_packed = x->handlebox_widget != 0;
+      GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
+
       block_input ();
       /* We may have created the toolbar_widget in xg_create_tool_bar, but
          not the x->handlebox_widget which is created in xg_pack_tool_bar.  */
-      if (is_packed)
+      if (x->toolbar_is_packed)
         {
           if (x->toolbar_in_hbox)
             gtk_container_remove (GTK_CONTAINER (x->hbox_widget),
-                                  x->handlebox_widget);
+                                  top_widget);
           else
             gtk_container_remove (GTK_CONTAINER (x->vbox_widget),
-                                  x->handlebox_widget);
+                                  top_widget);
         }
       else
         gtk_widget_destroy (x->toolbar_widget);
 
       x->toolbar_widget = 0;
-      x->handlebox_widget = 0;
+      TOOLBAR_TOP_WIDGET (x) = 0;
+      x->toolbar_is_packed = false;
       FRAME_TOOLBAR_TOP_HEIGHT (f) = FRAME_TOOLBAR_BOTTOM_HEIGHT (f) = 0;
       FRAME_TOOLBAR_LEFT_WIDTH (f) = FRAME_TOOLBAR_RIGHT_WIDTH (f) = 0;
 
@@ -4927,20 +4943,25 @@ void
 xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
+  GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);
 
-  if (! x->toolbar_widget || ! x->handlebox_widget)
+  if (! x->toolbar_widget || ! top_widget)
     return;
 
   block_input ();
-  g_object_ref (x->handlebox_widget);
-  if (x->toolbar_in_hbox)
-    gtk_container_remove (GTK_CONTAINER (x->hbox_widget),
-                          x->handlebox_widget);
-  else
-    gtk_container_remove (GTK_CONTAINER (x->vbox_widget),
-                          x->handlebox_widget);
+  g_object_ref (top_widget);
+  if (x->toolbar_is_packed)
+    {
+      if (x->toolbar_in_hbox)
+        gtk_container_remove (GTK_CONTAINER (x->hbox_widget),
+                              top_widget);
+      else
+        gtk_container_remove (GTK_CONTAINER (x->vbox_widget),
+                              top_widget);
+    }
+
   xg_pack_tool_bar (f, pos);
-  g_object_unref (x->handlebox_widget);
+  g_object_unref (top_widget);
   if (xg_update_tool_bar_sizes (f))
     xg_height_or_width_changed (f);
 

@@ -1,3 +1,21 @@
+2012-12-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (TOOLBAR_TOP_WIDGET): New macro.
+	(xg_pack_tool_bar): Use TOOLBAR_TOP_WIDGET, condition out use of
+	handlebox_widget.  Set toolbar_in_hbox to false/true, set
+	toolbar_is_packed to true.
+	(xg_update_tool_bar_sizes): Use widget returned by TOOLBAR_TOP_WIDGET.
+	(update_frame_tool_bar): Check toolbar_is_packed for packing.
+	Show all on TOOLBAR_TOP_WIDGET.
+	(free_frame_tool_bar): Check toolbar_is_packed.  Use widget returned
+	by TOOLBAR_TOP_WIDGET.
+	(xg_change_toolbar_position): Use widget returned by TOOLBAR_TOP_WIDGET.
+	Check toolbar_is_packed.
+
+	* xterm.h (struct x_output): Surround handlebox_widget with
+	#ifdef HAVE_GTK_HANDLE_BOX_NEW.  toolbar_is_packed is new,
+	toolbar_in_hbox is bool.
+
 2012-12-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* src/Makefile.in (TEMACS_LDFLAGS2): Remove.
