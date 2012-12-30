@@ -1,3 +1,10 @@
+2012-12-30  Glenn Morris  <rgm@gnu.org>
+
+	* net/mairix.el (rmail, rmail-summary-displayed, rmail-summary):
+	Remove unnecessary/buggy autoloads (missing interactive).  (Bug#13294)
+	(rmail-summary-displayed, rmail-summary): Declare.
+	(mairix-rmail-display): Just require rmail.
+
 2012-12-29  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/package.el (package-untar-buffer): Improve integrity
