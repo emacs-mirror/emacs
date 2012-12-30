@@ -359,6 +359,11 @@ AC_ARG_ENABLE(autodepend,
  		 found])],
 [ac_enable_autodepend="${enableval}"],[ac_enable_autodepend=yes])
 
+AC_ARG_ENABLE(gtk-deprecation-warnings,
+[AS_HELP_STRING([--enable-gtk-deprecation-warnings],
+		[Show Gtk+/Gdk deprecation warnings for Gtk+ >= 3.0])],
+[ac_enable_gtk_deprecation_warnings="${enableval}"],[])
+
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the file name through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
@@ -1996,6 +2001,9 @@ if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOO
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
      USE_GTK_TOOLKIT="GTK3"
+     if test "x$ac_enable_gtk_deprecation_warnings" = x; then
+         GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
+     fi
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
