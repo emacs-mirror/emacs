@@ -1530,10 +1530,11 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 			(if (stringp (nth 3 context))
 			    (format "--range=%s" (nth 3 context)) "")
 			(tramp-shell-quote-argument localname))))
-	(tramp-set-file-property v localname "file-selinux-context" context)
-      (tramp-set-file-property v localname "file-selinux-context" 'undef)))
-  ;; We always return nil.
-  nil)
+	(progn
+	  (tramp-set-file-property v localname "file-selinux-context" context)
+	  t)
+      (tramp-set-file-property v localname "file-selinux-context" 'undef)
+      nil)))
 
 (defun tramp-remote-acl-p (vec)
   "Check, whether ACL is enabled on the remote host."

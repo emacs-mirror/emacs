@@ -230,7 +230,7 @@ See `tramp-actions-before-shell' for more info.")
     (rename-file . tramp-smb-handle-rename-file)
     (set-file-acl . ignore)
     (set-file-modes . tramp-smb-handle-set-file-modes)
-    ;; `set-file-selinux-context' performed by default handler.
+    (set-file-selinux-context . ignore)
     (set-file-times . ignore)
     (set-visited-file-modtime . ignore)
     (shell-command . tramp-handle-shell-command)
