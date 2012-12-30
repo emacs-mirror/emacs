@@ -2416,6 +2416,8 @@ make_menu_item (const char *utf8_label,
   return w;
 }
 
+#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
+
 static int xg_detached_menus;
 
 /* Return true if there are detached menus.  */
@@ -2454,7 +2456,13 @@ tearoff_activate (GtkWidget *widget, gpointer client_data)
                         G_CALLBACK (tearoff_remove), 0);
     }
 }
-
+#else /* ! HAVE_GTK_TEAROFF_MENU_ITEM_NEW */
+bool
+xg_have_tear_offs (void)
+{
+  return false;
+}
+#endif /* ! HAVE_GTK_TEAROFF_MENU_ITEM_NEW */
 
 /* Create a menu item widget, and connect the callbacks.
    ITEM describes the menu item.
@@ -2526,7 +2534,8 @@ xg_create_one_menuitem (widget_value *item,
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
    If POP_UP_P, create a popup menu.
    If MENU_BAR_P, create a menu bar.
-   If ADD_TEAROFF_P, add a tearoff menu item.  Ignored if MENU_BAR_P.
+   If ADD_TEAROFF_P, add a tearoff menu item.  Ignored if MENU_BAR_P or
+   the Gtk+ version used does not have tearoffs.
    TOPMENU is the topmost GtkWidget that others shall be placed under.
    It may be NULL, in that case we create the appropriate widget
    (menu bar or menu item depending on POP_UP_P and MENU_BAR_P)
@@ -2599,6 +2608,7 @@ create_menus (widget_value *data,
                           "selection-done", deactivate_cb, 0);
     }
 
+#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
   if (! menu_bar_p && add_tearoff_p)
     {
       GtkWidget *tearoff = gtk_tearoff_menu_item_new ();
@@ -2607,6 +2617,7 @@ create_menus (widget_value *data,
       g_signal_connect (G_OBJECT (tearoff), "activate",
                         G_CALLBACK (tearoff_activate), 0);
     }
+#endif
 
   for (item = data; item; item = item->next)
     {
@@ -2897,11 +2908,13 @@ xg_update_menubar (GtkWidget *menubar,
 
           gtk_label_set_text (wlabel, utf8_label);
 
+#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
           /* If this item has a submenu that has been detached, change
              the title in the WM decorations also.  */
           if (submenu && gtk_menu_get_tearoff_state (GTK_MENU (submenu)))
             /* Set the title of the detached window.  */
             gtk_menu_set_title (GTK_MENU (submenu), utf8_label);
+#endif
 
           if (utf8_label) g_free (utf8_label);
           iter = g_list_next (iter);
@@ -3129,7 +3142,8 @@ xg_update_submenu (GtkWidget *submenu,
   {
     GtkWidget *w = GTK_WIDGET (iter->data);
 
-    /* Skip tearoff items, they have no counterpart in val.  */
+#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
+  /* Skip tearoff items, they have no counterpart in val.  */
     if (GTK_IS_TEAROFF_MENU_ITEM (w))
       {
         has_tearoff_p = 1;
@@ -3137,6 +3151,7 @@ xg_update_submenu (GtkWidget *submenu,
         if (iter) w = GTK_WIDGET (iter->data);
         else break;
       }
+#endif
 
     /* Remember first radio button in a group.  If we get a mismatch in
        a radio group we must rebuild the whole group so that the connections
@@ -4987,7 +5002,9 @@ xg_initialize (void)
 
   gdpy_def = NULL;
   xg_ignore_gtk_scrollbar = 0;
+#ifdef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
   xg_detached_menus = 0;
+#endif
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
     xg_menu_item_cb_list.prev = xg_menu_item_cb_list.next = 0;
 

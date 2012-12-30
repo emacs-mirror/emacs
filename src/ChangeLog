@@ -11,6 +11,17 @@
 	by TOOLBAR_TOP_WIDGET.
 	(xg_change_toolbar_position): Use widget returned by TOOLBAR_TOP_WIDGET.
 	Check toolbar_is_packed.
+	(xg_have_tear_offs, tearoff_remove, tearoff_activate): Condition on
+	HAVE_GTK_TEAROFF_MENU_ITEM_NEW.
+	(xg_have_tear_offs): When ! HAVE_GTK_TEAROFF_MENU_ITEM_NEW, return
+	false.
+	(create_menus): Create tearoff only if HAVE_GTK_TEAROFF_MENU_ITEM_NEW.
+	(xg_update_menubar): Update title only if
+	HAVE_GTK_TEAROFF_MENU_ITEM_NEW.
+	(xg_update_submenu): Skip tearoff only if
+	HAVE_GTK_TEAROFF_MENU_ITEM_NEW.
+	(xg_initialize): Initialize xg_detached_menus only if
+	HAVE_GTK_TEAROFF_MENU_ITEM_NEW.
 
 	* xterm.h (struct x_output): Surround handlebox_widget with
 	#ifdef HAVE_GTK_HANDLE_BOX_NEW.  toolbar_is_packed is new,
