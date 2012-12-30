@@ -408,7 +408,7 @@ stands for zero or more arguments.  Parentheses are used when several
 arguments are grouped into additional levels of list structure.  Here
 is an example:
 
-@defspec count-loop (@var{var} [@var{from} @var{to} [@var{inc}]]) @var{body}@dots{}
+@defspec count-loop (var [from to [inc]]) body@dots{}
 This imaginary special form implements a loop that executes the
 @var{body} forms and then increments the variable @var{var} on each
 iteration.  On the first iteration, the variable has the value

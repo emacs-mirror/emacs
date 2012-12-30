@@ -596,6 +596,8 @@ EXTRA-PROPERTIES is currently unused."
 
 (defvar tar-parse-info)
 (declare-function tar-untar-buffer "tar-mode" ())
+(declare-function tar-header-name "tar-mode" (tar-header))
+(declare-function tar-header-link-type "tar-mode" (tar-header))
 
 (defun package-untar-buffer (dir)
   "Untar the current buffer.
@@ -604,10 +606,16 @@ untar into a directory named DIR; otherwise, signal an error."
   (require 'tar-mode)
   (tar-mode)
   ;; Make sure everything extracts into DIR.
-  (let ((regexp (concat "\\`" (regexp-quote dir) "/")))
+  (let ((regexp (concat "\\`" (regexp-quote (expand-file-name dir)) "/"))
+	(case-fold-search (memq system-type '(windows-nt ms-dos cygwin))))
     (dolist (tar-data tar-parse-info)
-      (unless (string-match regexp (aref tar-data 2))
-	(error "Package does not untar cleanly into directory %s/" dir))))
+      (let ((name (expand-file-name (tar-header-name tar-data))))
+	(or (string-match regexp name)
+	    ;; Tarballs created by some utilities don't list
+	    ;; directories with a trailing slash (Bug#13136).
+	    (and (string-equal dir name)
+		 (eq (tar-header-link-type tar-data) 5))
+	    (error "Package does not untar cleanly into directory %s/" dir)))))
   (tar-untar-buffer))
 
 (defun package-unpack (package version)

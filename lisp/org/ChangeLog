@@ -4583,12 +4583,7 @@
 	(org-set-autofill-regexps): Add previous function to
 	`fill-nobreak-predicate'.
 
-2012-04-01  Vitalie Spinu  <spinuvit@gmail.com>
-
-	* ob-R.el (org-babel-R-evaluate-session): Inhibit R evaluation
-	visibility regardless of local user customization.
-
-2012-04-01  Vitalie Spinu  <spinuvit@gmail.com>
+2012-04-01  Vitalie Spinu  <spinuvit@gmail.com>  (tiny change)
 
 	* ob-R.el (org-babel-R-evaluate-session): Inhibit R evaluation
 	visibility regardless of local user customization.

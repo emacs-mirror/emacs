@@ -1,3 +1,8 @@
+2012-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (TEMACS_LDFLAGS2): Remove editing.
+	(LIBS_GNUSTEP): Edit to empty.
+
 2012-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp: Dump emacs.exe and copy to b-emacs.exe before

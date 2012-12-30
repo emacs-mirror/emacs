@@ -222,14 +222,12 @@ Currently there are 'threads and 'flags.")
 
 ;;; RMail
 
-;; Display function:
-(autoload 'rmail "rmail")
-(autoload 'rmail-summary-displayed "rmail")
-(autoload 'rmail-summary "rmailsum")
-(defvar rmail-buffer)
+(declare-function rmail-summary-displayed "rmail" ())
+(declare-function rmail-summary "rmailsum" ()) ; autoloaded in rmail
 
 (defun mairix-rmail-display (folder)
   "Display mbox file FOLDER with RMail."
+  (require 'rmail)
   (let (show-summary)
     ;; If it exists, select existing RMail window
     (when (and (boundp 'rmail-buffer)
@@ -248,6 +246,8 @@ Currently there are 'threads and 'flags.")
     ;; Update summary if necessary
     (when show-summary
       (rmail-summary))))
+
+(defvar rmail-buffer)
 
 ;; Fetching mail header field:
 (defun mairix-rmail-fetch-field (field)

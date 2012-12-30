@@ -1,3 +1,16 @@
+2012-12-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* src/Makefile.in (TEMACS_LDFLAGS2): Remove.
+	(LIBS_GNUSTEP): Define.
+	(LIBES): Add $(LIBS_GNUSTEP).
+	(temacs$(EXEEXT)): Use $(LDFLAGS) instead of $(TEMACS_LDFLAGS2).
+
+2012-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't confuse a truncation or
+	continuation glyph on a TTY with an indication of an empty line.
+	(Bug#13277)
+
 2012-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fset_file_selinux_context, Fset_file_acl): Return t if
