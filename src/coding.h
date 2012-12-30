@@ -767,7 +767,7 @@ extern Lisp_Object Qcoding_system_p;
 extern Lisp_Object Qraw_text, Qemacs_mule, Qno_conversion, Qundecided;
 extern Lisp_Object Qbuffer_file_coding_system;
 
-extern Lisp_Object Qunix, Qdos, Qmac;
+extern Lisp_Object Qunix, Qdos;
 
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;
