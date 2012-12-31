@@ -479,11 +479,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gtk_file_selection_new' function. */
 #undef HAVE_GTK_FILE_SELECTION_NEW
 
+/* Define to 1 if you have the `gtk_handle_box_new' function. */
+#undef HAVE_GTK_HANDLE_BOX_NEW
+
 /* Define to 1 if you have the `gtk_main' function. */
 #undef HAVE_GTK_MAIN
 
 /* Define to 1 if you have the `gtk_orientable_set_orientation' function. */
 #undef HAVE_GTK_ORIENTABLE_SET_ORIENTATION
+
+/* Define to 1 if you have the `gtk_tearoff_menu_item_new' function. */
+#undef HAVE_GTK_TEAROFF_MENU_ITEM_NEW
 
 /* Define to 1 if you have the `gtk_widget_get_mapped' function. */
 #undef HAVE_GTK_WIDGET_GET_MAPPED
