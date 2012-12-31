@@ -128,12 +128,12 @@ DECLS is a list of elements of the form (PROP . VALUES).  These are
 interpreted according to `macro-declarations-alist'.
 The return value is undefined."
        (if (stringp docstring) nil
-         (if decl (setq body (cons decl body)))
-         (setq decl docstring)
-         (setq docstring nil))
+	 (setq body (cons decl body))
+	 (setq decl docstring)
+	 (setq docstring nil))
        (if (or (null decl) (eq 'declare (car-safe decl))) nil
-         (setq body (cons decl body))
-         (setq decl nil))
+	 (setq body (cons decl body))
+	 (setq decl nil))
        (if (null body) (setq body '(nil)))
        (if docstring (setq body (cons docstring body)))
        ;; Can't use backquote because it's not defined yet!
