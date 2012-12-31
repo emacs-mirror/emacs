@@ -451,11 +451,15 @@ to writing a completion function."
 			(all-completions filename obarray 'functionp))
 		   completions)))))))
 
-(defun eshell-pcomplete ()
+(defun eshell-pcomplete (&optional interactively)
   "Eshell wrapper for `pcomplete'."
-  (interactive)
+  (interactive "p")
+  ;; Pretend to be pcomplete so that cycling works (bug#13293).
+  (setq this-command 'pcomplete)
   (condition-case nil
-      (pcomplete)
+      (if interactively
+	  (call-interactively 'pcomplete)
+	(pcomplete))
     (text-read-only (completion-at-point)))) ; Workaround for bug#12838.
 
 (provide 'em-cmpl)

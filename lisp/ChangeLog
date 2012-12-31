@@ -1,5 +1,8 @@
 2012-12-31  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-cmpl.el (eshell-pcomplete):
+	More thoroughly imitate pcomplete.  (Bug#13293)
+
 	* files.el (parse-colon-path): Doc fix.  (Bug#12351)
 	Return nil for empty path elements.  (Bug#13296)
 
