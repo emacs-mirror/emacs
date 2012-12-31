@@ -319,7 +319,9 @@ automatically."
   "AList of known headers and the face to use to highlight them.")
 
 (defconst log-edit-header-contents-regexp
-  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?")
+  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?"
+  "Regular expression matching a header field.
+The first subexpression is the actual text of the field.")
 
 (defun log-edit-match-to-eoh (_limit)
   ;; FIXME: copied from message-match-to-eoh.
