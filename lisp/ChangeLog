@@ -1,3 +1,9 @@
+2012-12-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/byte-run.el (defmacro): Use same argument parsing as
+	defun.  Don't check for DECL if DOCSTRING isn't a string.
+	(defun): Likewise.
+
 2012-12-31  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/em-cmpl.el (eshell-pcomplete):
