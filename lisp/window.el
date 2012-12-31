@@ -1340,7 +1340,7 @@ violate size restrictions of WINDOW or its child windows."
 	 delta))
    (t 0)))
 
-(defun window--resizable-p (window delta &optional horizontal ignore trail noup nodown)
+(defun window-resizable-p (window delta &optional horizontal ignore trail noup nodown)
   "Return t if WINDOW can be resized vertically by DELTA lines.
 WINDOW must be a valid window and defaults to the selected one.
 For the meaning of the arguments of this function see the
@@ -1943,7 +1943,7 @@ instead."
       ;; nil or the minibuffer window is active, resize the minibuffer
       ;; window.
       (window--resize-mini-window minibuffer-window (- delta)))
-     ((window--resizable-p window delta horizontal ignore)
+     ((window-resizable-p window delta horizontal ignore)
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
       (if (and (not window-combination-resize)
@@ -1968,6 +1968,14 @@ instead."
       (window-resize-apply frame horizontal))
      (t
       (error "Cannot resize window %s" window)))))
+
+(defun window-resize-no-error (window delta &optional horizontal ignore)
+  "Resize WINDOW vertically if it is resizable by DELTA lines.
+This function is like `window-resize' but does not signal an
+error when WINDOW cannot be resized.  For the meaning of the
+optional arguments see the documentation of `window-resize'."
+  (when (window-resizable-p window delta horizontal ignore)
+    (window-resize window delta horizontal ignore)))
 
 (defun window--resize-child-windows-skip-p (window)
   "Return non-nil if WINDOW shall be skipped by resizing routines."
@@ -2594,7 +2602,7 @@ negative, shrink selected window by -DELTA lines or columns."
       ;; If the selected window is full height and `resize-mini-windows'
       ;; is nil, resize the minibuffer window.
       (window--resize-mini-window minibuffer-window (- delta)))
-     ((window--resizable-p nil delta horizontal)
+     ((window-resizable-p nil delta horizontal)
       (window-resize nil delta horizontal))
      (t
       (window-resize
@@ -2627,7 +2635,7 @@ Also see the `window-min-height' variable."
       ;; If the selected window is full height and `resize-mini-windows'
       ;; is nil, resize the minibuffer window.
       (window--resize-mini-window minibuffer-window delta))
-     ((window--resizable-p nil (- delta) horizontal)
+     ((window-resizable-p nil (- delta) horizontal)
       (window-resize nil (- delta) horizontal))
      (t
       (window-resize
@@ -2901,7 +2909,7 @@ that is its frame's root window."
 	  (set-window-new-normal
 	   sibling (+ (window-normal-size sibling horizontal)
 		      (window-normal-size window horizontal))))
-	 ((window--resizable-p window (- size) horizontal nil nil nil t)
+	 ((window-resizable-p window (- size) horizontal nil nil nil t)
 	  ;; Can do without resizing fixed-size windows.
 	  (window--resize-siblings window (- size) horizontal))
 	 (t
@@ -4440,13 +4448,13 @@ value can be also stored on disk and read back in a new session."
 	      (let ((delta (- (cdr (assq 'total-height item))
 			      (window-total-height window)))
 		    window-size-fixed)
-		(when (window--resizable-p window delta)
+		(when (window-resizable-p window delta)
 		  (window-resize window delta)))
 	    ;; Else check whether the window is not high enough.
 	    (let* ((min-size (window-min-size window nil ignore))
 		   (delta (- min-size (window-total-size window))))
 	      (when (and (> delta 0)
-			 (window--resizable-p window delta nil ignore))
+			 (window-resizable-p window delta nil ignore))
 		(window-resize window delta nil ignore))))
 	  ;; Adjust horizontally.
 	  (if (memq window-size-fixed '(t width))
@@ -4454,13 +4462,13 @@ value can be also stored on disk and read back in a new session."
 	      (let ((delta (- (cdr (assq 'total-width item))
 			      (window-total-width window)))
 		    window-size-fixed)
-		(when (window--resizable-p window delta)
+		(when (window-resizable-p window delta)
 		  (window-resize window delta)))
 	    ;; Else check whether the window is not wide enough.
 	    (let* ((min-size (window-min-size window t ignore))
 		   (delta (- min-size (window-total-size window t))))
 	      (when (and (> delta 0)
-			 (window--resizable-p window delta t ignore))
+			 (window-resizable-p window delta t ignore))
 		(window-resize window delta t ignore))))
 	  ;; Set dedicated status.
 	  (set-window-dedicated-p window (cdr (assq 'dedicated state)))
@@ -5211,7 +5219,7 @@ live."
 		     (* (window-total-size (frame-root-window window))
 			height))))
 		 (delta (- new-height (window-total-size window))))
-	    (when (and (window--resizable-p window delta nil 'safe)
+	    (when (and (window-resizable-p window delta nil 'safe)
 		       (window-combined-p window))
 	      (window-resize window delta nil 'safe))))
 	 ((functionp height)
@@ -5227,7 +5235,7 @@ live."
 		     (* (window-total-size (frame-root-window window) t)
 			width))))
 		 (delta (- new-width (window-total-size window t))))
-	    (when (and (window--resizable-p window delta t 'safe)
+	    (when (and (window-resizable-p window delta t 'safe)
 		       (window-combined-p window t))
 	      (window-resize window delta t 'safe))))
 	 ((functionp width)
