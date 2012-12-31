@@ -2805,7 +2805,7 @@ Otherwise, return nil."
 (defun special-form-p (object)
   "Non-nil if and only if OBJECT is a special form."
   (if (and (symbolp object) (fboundp object))
-      (setq object (indirect-function object)))
+      (setq object (indirect-function object t)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun field-at-pos (pos)
