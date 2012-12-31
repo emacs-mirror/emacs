@@ -77,7 +77,7 @@ item.  Please don't overdo this, since the result would be annoying.
 @item :link @var{link-data}
 @kindex link@r{, customization keyword}
 Include an external link after the documentation string for this item.
-This is a sentence containing an active field which references some
+This is a sentence containing a button that references some
 other documentation.
 
 There are several alternatives you can use for @var{link-data}:
@@ -1080,8 +1080,7 @@ Substitute the item's documentation string.
 
 @item %h
 Like @samp{%d}, but if the documentation string is more than one line,
-add an active field to control whether to show all of it or just the
-first line.
+add a button to control whether to show all of it or just the first line.
 
 @item %t
 Substitute the tag here.  You specify the tag with the @code{:tag}
