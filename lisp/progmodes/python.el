@@ -222,7 +222,7 @@
 (defgroup python nil
   "Python Language's flying circus support for Emacs."
   :group 'languages
-  :version "23.2"
+  :version "24.3"
   :link '(emacs-commentary-link "python"))
 
 
