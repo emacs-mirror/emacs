@@ -14,9 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -292,9 +290,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -972,9 +968,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1286,9 +1280,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1487,9 +1479,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1520,9 +1510,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the GNU C Library; see the file COPYING.  If not, write to
-the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.  */
+along with the GNU C Library.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* uClibc defines __GNU_LIBRARY__, but it is not completely
    compatible.  */
@@ -1566,9 +1554,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.  */
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.  */
 
 void *(*__memalign_hook) (size_t size, size_t alignment);
 
@@ -1686,9 +1672,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1730,9 +1714,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library; see the file COPYING.  If
-not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-Fifth Floor, Boston, MA 02110-1301, USA.
+License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
