@@ -1,3 +1,9 @@
+2012-12-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-nav-end-of-statement): Rewrite in
+	order to improve efficiency (Based on Daniel Colascione's
+	<dancol@dancol.org> patch).  (Bug#13182)
+
 2012-12-31  Glenn Morris  <rgm@gnu.org>
 
 	* vc/log-edit.el (log-edit-header-contents-regexp): Add doc string.
