@@ -101,7 +101,7 @@ Link to a web page; @var{url} is a string which specifies the
 
 @item (emacs-commentary-link @var{library})
 Link to the commentary section of a library; @var{library} is a string
-which specifies the library name.
+which specifies the library name.  @xref{Library Headers}.
 
 @item (emacs-library-link @var{library})
 Link to an Emacs Lisp library file; @var{library} is a string which

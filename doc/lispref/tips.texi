@@ -1063,6 +1063,7 @@ names---they have no standard meanings, so they can't do any harm.
 library file.  These should be separated from anything else by blank
 lines.  Here is a table of them:
 
+@cindex commentary, in a Lisp library
 @table @samp
 @item ;;; Commentary:
 This begins introductory comments that explain how the library works.
