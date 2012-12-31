@@ -1,3 +1,8 @@
+2012-12-31  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (parse-colon-path): Doc fix.  (Bug#12351)
+	Return nil for empty path elements.  (Bug#13296)
+
 2012-12-31  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-nav-end-of-statement): Rewrite in
