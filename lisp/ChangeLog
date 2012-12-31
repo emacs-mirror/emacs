@@ -1,3 +1,11 @@
+2012-12-31  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (math-parse-date): Try using
+	`math-parse-iso-date' when it looks like it might be needed.  Allow
+	times of 24:00.
+	(math-parse-date-validate, math-parse-iso-date-validate):  Allow times
+	of 24:00.
+
 2012-12-30  Glenn Morris  <rgm@gnu.org>
 
 	* net/mairix.el (rmail, rmail-summary-displayed, rmail-summary):

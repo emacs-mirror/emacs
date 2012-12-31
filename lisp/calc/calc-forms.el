@@ -918,7 +918,7 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
   (catch 'syntax
     (or (math-parse-standard-date math-pd-str t)
 	(math-parse-standard-date math-pd-str nil)
-        (and (or (memq 'IYYY calc-date-format) (memq 'Iww calc-date-format))
+        (and (string-match "W[0-9][0-9]" math-pd-str)
              (math-parse-iso-date math-pd-str))
 	(and (string-match "\\`[^-+/0-9a-zA-Z]*\\([-+]?[0-9]+\\.?[0-9]*\\([eE][-+]?[0-9]+\\)?\\)[^-+/0-9a-zA-Z]*\\'" math-pd-str)
 	     (list 'date (math-read-number (math-match-substring math-pd-str 1))))
@@ -943,8 +943,12 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 		    (setq second 0)
 		  (setq second (math-read-number second)))
 		(if (equal ampm "")
-		    (if (> hour 23)
-			(throw 'syntax "Hour value out of range"))
+		    (if (or
+                         (> hour 24)
+                         (and (= hour 24)
+                              (not (= minute 0))
+                              (not (eq second 0))))
+			(throw 'syntax "Hour value is out of range"))
 		  (setq ampm (upcase (aref ampm 0)))
 		  (if (memq ampm '(?N ?M))
 		      (if (and (= hour 12) (= minute 0) (eq second 0))
@@ -952,7 +956,7 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 			(throw 'syntax
 			       "Time must be 12:00:00 in this context"))
 		    (if (or (= hour 0) (> hour 12))
-			(throw 'syntax "Hour value out of range"))
+			(throw 'syntax "Hour value is out of range"))
 		    (if (eq (= ampm ?A) (= hour 12))
 			(setq hour (% (+ hour 12) 24)))))))
 
@@ -1075,7 +1079,11 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
       (throw 'syntax "Day value is out of range"))
   (and hour
        (progn
-	 (if (or (< hour 0) (> hour 23))
+	 (if (or (< hour 0) 
+                 (> hour 24)
+                 (and (= hour 24)
+                      (not (= minute 0))
+                      (not (eq second 0))))
 	     (throw 'syntax "Hour value is out of range"))
 	 (if (or (< minute 0) (> minute 59))
 	     (throw 'syntax "Minute value is out of range"))
@@ -1091,7 +1099,11 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
       (throw 'syntax "Weekday value is out of range"))
   (and hour
        (progn
-	 (if (or (< hour 0) (> hour 23))
+	 (if (or (< hour 0) 
+                 (> hour 24)
+                 (and (= hour 24)
+                      (not (= minute 0))
+                      (not (eq second 0))))
 	     (throw 'syntax "Hour value is out of range"))
 	 (if (or (< minute 0) (> minute 59))
 	     (throw 'syntax "Minute value is out of range"))
