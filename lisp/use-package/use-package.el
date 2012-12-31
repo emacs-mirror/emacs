@@ -314,6 +314,12 @@
                                     :url (match-string 1))))))))
     args))
 
+
+(defun use-package-ensure-elpa (package)
+  (when (not (package-installed-p package))
+    (package-install package)))
+
+
 (defmacro use-package (name &rest args)
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
@@ -342,6 +348,11 @@
          (name-symbol (if (stringp name) (intern name) name)))
 
     (unless (plist-get args :disabled)
+      
+      ;; force this immediately -- one off cost!
+      (if (plist-get args :ensure)
+          (use-package-ensure-elpa name))
+      
       (if diminish-var
           (setq config-body
                 `(progn
