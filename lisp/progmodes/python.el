@@ -597,6 +597,12 @@ It makes underscores and dots word constituent chars.")
   :group 'python
   :safe 'booleanp)
 
+(defcustom python-indent-trigger-commands
+  '(indent-for-tab-command yas-expand yas/expand)
+  "Commands that might trigger a `python-indent-line' call."
+  :type '(repeat symbol)
+  :group 'python)
+
 (define-obsolete-variable-alias
   'python-indent 'python-indent-offset "24.3")
 
@@ -895,20 +901,21 @@ Uses the offset calculated in
 indicated by the variable `python-indent-levels' to set the
 current indentation.
 
-When the variable `last-command' is equal to
-`indent-for-tab-command' or FORCE-TOGGLE is non-nil it cycles
-levels indicated in the variable `python-indent-levels' by
-setting the current level in the variable
-`python-indent-current-level'.
+When the variable `last-command' is equal to one of the symbols
+inside `python-indent-trigger-commands' or FORCE-TOGGLE is
+non-nil it cycles levels indicated in the variable
+`python-indent-levels' by setting the current level in the
+variable `python-indent-current-level'.
 
-When the variable `last-command' is not equal to
-`indent-for-tab-command' and FORCE-TOGGLE is nil it calculates
-possible indentation levels and saves it in the variable
-`python-indent-levels'.  Afterwards it sets the variable
-`python-indent-current-level' correctly so offset is equal
-to (`nth' `python-indent-current-level' `python-indent-levels')"
+When the variable `last-command' is not equal to one of the
+symbols inside `python-indent-trigger-commands' and FORCE-TOGGLE
+is nil it calculates possible indentation levels and saves it in
+the variable `python-indent-levels'.  Afterwards it sets the
+variable `python-indent-current-level' correctly so offset is
+equal to (`nth' `python-indent-current-level'
+`python-indent-levels')"
   (or
-   (and (or (and (eq this-command 'indent-for-tab-command)
+   (and (or (and (memq this-command python-indent-trigger-commands)
                  (eq last-command this-command))
             force-toggle)
         (not (equal python-indent-levels '(0)))
@@ -1998,7 +2005,14 @@ Returns the output.  See `python-shell-send-string-no-output'."
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
   (interactive "r")
-  (python-shell-send-string (buffer-substring start end) nil t))
+  (python-shell-send-string
+   (concat
+    (let ((line-num (line-number-at-pos start)))
+      ;; When sending a region, add blank lines for non sent code so
+      ;; backtraces remain correct.
+      (make-string (1- line-num) ?\n))
+    (buffer-substring start end))
+   nil t))
 
 (defun python-shell-send-buffer (&optional arg)
   "Send the entire buffer to inferior Python process.
