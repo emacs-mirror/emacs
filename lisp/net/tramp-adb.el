@@ -998,11 +998,24 @@ COMMAND is nil, just sends `echo $?'.  Returns the exit status found."
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
   (let* ((buf (tramp-get-connection-buffer vec))
-	 (p (get-buffer-process buf)))
+	 (p (get-buffer-process buf))
+	 (devices (mapcar 'cadr (tramp-adb-parse-device-names nil))))
     (unless
 	(and p (processp p) (memq (process-status p) '(run open)))
       (save-match-data
 	(when (and p (processp p)) (delete-process p))
+	(if (not devices)
+	    (tramp-error vec 'file-error "No device connected"))
+	(if (and (tramp-file-name-host vec)
+		 (not (member (tramp-file-name-host vec) devices)))
+	    (tramp-error
+	     vec 'file-error
+	     "Device %s not connected" (tramp-file-name-host vec)))
+	(if (and (not (eq (length devices) 1))
+		 (not (tramp-file-name-host vec)))
+	    (tramp-error
+	     vec 'file-error
+	     "Multiple Devices connected: No Host/Device specified"))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ;is this correct?
 		 (process-connection-type tramp-process-connection-type)

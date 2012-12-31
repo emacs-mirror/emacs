@@ -1,3 +1,8 @@
+2012-12-31  Jürgen Hötzel  <juergen@archlinux.org>
+
+	* net/tramp-adb.el (tramp-adb-maybe-open-connection): Handle errors
+	(No device connected, invalid device name). (Bug #13299)
+
 2012-12-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-resizable--p): Rename to window-resizable-p.
