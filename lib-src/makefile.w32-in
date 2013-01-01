@@ -216,7 +216,8 @@ lisp1= \
 	$(lispsource)international/mule-cmds.elc \
 	$(lispsource)international/characters.elc \
 	$(lispsource)international/charprop.el \
-	$(lispsource)case-table.elc
+	$(lispsource)case-table.elc \
+	$(lispsource)emacs-lisp/macroexp.elc
 
 lisp2 = \
 	$(lispsource)language/chinese.elc \
