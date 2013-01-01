@@ -463,8 +463,9 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   :lighter " View" :keymap view-mode-map
   (if view-mode (view-mode-enable) (view-mode-disable)))
 
-(defun view-mode-enable ()
-  "Turn on View mode."
+(defun view-mode-enable (&optional run-view-mode-hook)
+  "Turn on View mode.
+Run `view-mode-hook' when RUN-VIEW-MODE-HOOK is non-nil."
   ;; Always leave view mode before changing major mode.
   ;; This is to guarantee that the buffer-read-only variable is restored.
   (add-hook 'change-major-mode-hook 'view-mode-disable nil t)
@@ -482,7 +483,8 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 			(file-name-nondirectory (buffer-file-name))
 		      (buffer-name)))))
   (force-mode-line-update)
-  (run-hooks 'view-mode-hook))
+  (when run-view-mode-hook
+    (run-hooks 'view-mode-hook)))
 
 (defun view-mode-disable ()
   "Turn off View mode."
@@ -560,7 +562,7 @@ This function runs the normal hook `view-mode-hook'."
     (setq view-exit-action exit-action))
 
   (unless view-mode
-    (view-mode-enable)
+    (view-mode-enable t)
     (force-mode-line-update)
     (unless view-inhibit-help-message
       (message "%s"

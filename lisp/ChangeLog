@@ -1,3 +1,10 @@
+2013-01-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* view.el (view-mode-enable): New argument run-view-mode-hook.
+	Run view-mode-hook only when it's non-nil (Bug#13315).
+	(view-mode-enter): Call view-mode-enable with run-view-mode-hook
+	argument t.
+
 2012-12-31  Jürgen Hötzel  <juergen@archlinux.org>
 
 	* net/tramp-adb.el (tramp-adb-maybe-open-connection): Handle errors
