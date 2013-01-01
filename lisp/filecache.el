@@ -1,6 +1,6 @@
 ;;; filecache.el --- find files using a pre-loaded cache
 
-;; Copyright (C) 1996, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996

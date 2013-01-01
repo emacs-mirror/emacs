@@ -1,5 +1,6 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993-1994, 2000-2012  Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1994, 2000-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 

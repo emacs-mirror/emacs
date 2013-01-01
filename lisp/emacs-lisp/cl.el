@@ -1,6 +1,6 @@
 ;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions

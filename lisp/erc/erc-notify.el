@@ -1,6 +1,6 @@
 ;;; erc-notify.el --- Online status change notification
 
-;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Maintainer: FSF

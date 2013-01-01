@@ -1,6 +1,7 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers
 
-;; Copyright (C) 1992-1996, 1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF

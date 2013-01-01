@@ -1,6 +1,6 @@
 ;;; url-expand.el --- expand-file-name for URLs
 
-;; Copyright (C) 1999, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2013 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 

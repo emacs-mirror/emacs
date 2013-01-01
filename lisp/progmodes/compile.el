@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>

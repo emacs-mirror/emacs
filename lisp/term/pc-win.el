@@ -1,7 +1,7 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Maintainer: FSF

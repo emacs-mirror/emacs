@@ -1,6 +1,7 @@
 ;;; rfc822.el --- hairy rfc822 parser for mail and news and suchlike
 
-;; Copyright (C) 1986-1987, 1990, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1990, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF

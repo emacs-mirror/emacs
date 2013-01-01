@@ -4,7 +4,7 @@
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @c FIXME
 @c Manual last updated:
-@set UPDATED Time-stamp: <Fri 21-Dec-2012 10:15:12 gm on skiddaw>
+@set UPDATED Time-stamp: <2012-12-31 21:44:20 eggert>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -18,7 +18,7 @@
 This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001--2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

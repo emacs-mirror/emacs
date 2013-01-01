@@ -1,6 +1,6 @@
 ;;; mh-thread.el --- MH-E threading support
 
-;; Copyright (C) 2002-2004, 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

@@ -1,7 +1,7 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal

@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode
 
-;; Copyright (C) 2003-2004, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML

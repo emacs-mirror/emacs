@@ -1,6 +1,6 @@
 ;;; files.el --- tests for file handling.
 
-;; Copyright (C) 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

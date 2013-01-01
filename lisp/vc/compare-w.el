@@ -1,7 +1,7 @@
 ;;; compare-w.el --- compare text between windows for Emacs
 
-;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience files vc

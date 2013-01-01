@@ -1,6 +1,6 @@
 @c -*- coding: iso-latin-1 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1994-1997, 1999-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1994-1997, 1999-2013 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @node Acknowledgments

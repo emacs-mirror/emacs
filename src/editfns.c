@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.
 
-Copyright (C) 1985-1987, 1989, 1993-2012 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

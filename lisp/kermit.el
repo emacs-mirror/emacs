@@ -1,6 +1,6 @@
 ;;; kermit.el --- additions to shell mode for use with kermit
 
-;; Copyright (C) 1988, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Maintainer: FSF

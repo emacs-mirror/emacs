@@ -10,7 +10,7 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2012
+Copyright @copyright{} 1994--1995, 1999, 2001--2013
 Free Software Foundation, Inc.
 
 @quotation

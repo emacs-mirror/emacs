@@ -1,7 +1,7 @@
 #!/bin/sh
 ### autogen.sh - tool to help build Emacs from a bzr checkout
 
-## Copyright (C) 2011-2012  Free Software Foundation, Inc.
+## Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 

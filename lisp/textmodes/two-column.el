@@ -1,6 +1,6 @@
 ;;; two-column.el --- minor mode for editing of two-column text
 
-;; Copyright (C) 1992-1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1995, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer

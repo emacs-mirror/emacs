@@ -1,6 +1,6 @@
 ;;; latexenc.el --- guess correct coding system in LaTeX files -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
 ;; Author: Arne J,Ax(Brgensen <arne@arnested.dk>
 ;; Keywords: mule, coding system, latex

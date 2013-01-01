@@ -5,7 +5,7 @@
 @copying
 This file documents the EDT emulation package for Emacs.
 
-Copyright @copyright{} 1986, 1992, 1994--1995, 1999--2012
+Copyright @copyright{} 1986, 1992, 1994--1995, 1999--2013
 Free Software Foundation, Inc.
 
 @quotation

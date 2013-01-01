@@ -1,5 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft Windows API.
-# Copyright (C) 2000-2012 Free Software Foundation, Inc.
+# Copyright (C) 2000-2013 Free Software Foundation, Inc.
 #
 # Top level makefile for building GNU Emacs on Windows NT
 #
