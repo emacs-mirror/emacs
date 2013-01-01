@@ -11,7 +11,7 @@
 ;;;;;;  cl--map-overlays cl--map-intervals cl--map-keymap-recursively
 ;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
 ;;;;;;  cl-mapl cl-mapc cl-maplist cl-map cl--mapcar-many cl-equalp
-;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "b7d4e24fe58609eaf4fb319c81eb829e")
+;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "6c7926a10c377679687a2ab6a4d1c186")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -267,7 +267,7 @@ including `cl-block' and `cl-eval-when'.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "efc316b31a183f3617768c58f65dc6e0")
+;;;;;;  "cl-macs" "cl-macs.el" "ad8afd35d8d75f5f22e7547b02bac556")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -759,7 +759,7 @@ surrounded by (cl-block NAME ...).
 ;;;;;;  cl-nsubstitute-if cl-nsubstitute cl-substitute-if-not cl-substitute-if
 ;;;;;;  cl-substitute cl-delete-duplicates cl-remove-duplicates cl-delete-if-not
 ;;;;;;  cl-delete-if cl-delete cl-remove-if-not cl-remove-if cl-remove
-;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "4c1e1191e82dc8d5449a5ec4d59efc10")
+;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "5ce2761d9a21845a7f6a2da0e4543844")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'cl-reduce "cl-seq" "\
