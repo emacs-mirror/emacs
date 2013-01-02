@@ -1398,12 +1398,7 @@ is used to further constrain the set of candidates.  */)
 				      eltstring, zero,
 				      make_number (compare),
 				      completion_ignore_case ? Qt : Qnil);
-	      if (EQ (tem, Qt))
-		matchsize = compare;
-	      else if (XINT (tem) < 0)
-		matchsize = - XINT (tem) - 1;
-	      else
-		matchsize = XINT (tem) - 1;
+	      matchsize = EQ (tem, Qt) ? compare : eabs (XINT (tem)) - 1;
 
 	      if (completion_ignore_case)
 		{

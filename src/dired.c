@@ -671,10 +671,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 				name, zero,
 				make_number (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  ptrdiff_t matchsize
-	    = (EQ (cmp, Qt)     ? compare
-	       : XINT (cmp) < 0 ? - XINT (cmp) - 1
-	       :                  XINT (cmp) - 1);
+	  ptrdiff_t matchsize = EQ (cmp, Qt) ? compare : eabs (XINT (cmp)) - 1;
 
 	  if (completion_ignore_case)
 	    {

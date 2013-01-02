@@ -2236,8 +2236,7 @@ x_draw_image_foreground (struct glyph_string *s)
 	     nothing here for mouse-face.  */
 	  if (s->hl == DRAW_CURSOR)
 	    {
-	      int relief = s->img->relief;
-	      if (relief < 0) relief = -relief;
+	      int relief = eabs (s->img->relief);
 	      XDrawRectangle (s->display, s->window, s->gc,
 			      x - relief, y - relief,
 			      s->slice.width + relief*2 - 1,
@@ -2368,8 +2367,7 @@ x_draw_image_foreground_1 (struct glyph_string *s, Pixmap pixmap)
 	     nothing here for mouse-face.  */
 	  if (s->hl == DRAW_CURSOR)
 	    {
-	      int r = s->img->relief;
-	      if (r < 0) r = -r;
+	      int r = eabs (s->img->relief);
 	      XDrawRectangle (s->display, s->window, s->gc, x - r, y - r,
 			      s->slice.width + r*2 - 1,
 			      s->slice.height + r*2 - 1);

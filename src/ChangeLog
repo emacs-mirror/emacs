@@ -1,3 +1,17 @@
+2013-01-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify via eabs.
+	* dired.c (file_name_completion):
+	* doc.c (get_doc_string):
+	* floatfns.c (round2):
+	* font.c (font_score, font_delete_unmatched):
+	* fringe.c (compute_fringe_widths):
+	* lread.c (read_list):
+	* minibuf.c (Ftry_completion):
+	* term.c (tty_ins_del_lines):
+	* xterm.c (x_draw_image_foreground, x_draw_image_foreground_1):
+	Use eabs (x) rather than open-coding it as (x < 0 ? -x : x).
+
 2012-12-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (unsetenv): Set up the string passed to _putenv

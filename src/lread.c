@@ -3569,9 +3569,8 @@ read_list (bool flag, Lisp_Object readcharfun)
 			 doc string, caller must make it
 			 multibyte.  */
 
-		      EMACS_INT pos = XINT (XCDR (val));
 		      /* Position is negative for user variables.  */
-		      if (pos < 0) pos = -pos;
+		      EMACS_INT pos = eabs (XINT (XCDR (val)));
 		      if (pos >= saved_doc_string_position
 			  && pos < (saved_doc_string_position
 				    + saved_doc_string_length))

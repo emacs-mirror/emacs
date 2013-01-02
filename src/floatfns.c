@@ -399,8 +399,8 @@ round2 (EMACS_INT i1, EMACS_INT i2)
      odd.  */
   EMACS_INT q = i1 / i2;
   EMACS_INT r = i1 % i2;
-  EMACS_INT abs_r = r < 0 ? -r : r;
-  EMACS_INT abs_r1 = (i2 < 0 ? -i2 : i2) - abs_r;
+  EMACS_INT abs_r = eabs (r);
+  EMACS_INT abs_r1 = eabs (i2) - abs_r;
   return q + (abs_r + (q & 1) <= abs_r1 ? 0 : (i2 ^ r) < 0 ? -1 : 1);
 }
 

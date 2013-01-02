@@ -2101,9 +2101,7 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
       {
 	EMACS_INT diff = ((XINT (AREF (entity, i)) >> 8)
 			  - (XINT (spec_prop[i]) >> 8));
-	if (diff < 0)
-	  diff = - diff;
-	score |= min (diff, 127) << sort_shift_bits[i];
+	score |= min (eabs (diff), 127) << sort_shift_bits[i];
       }
 
   /* Score the size.  Maximum difference is 127.  */
@@ -2118,10 +2116,7 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 
       if (CONSP (Vface_font_rescale_alist))
 	pixel_size *= font_rescale_ratio (entity);
-      diff = pixel_size - XINT (AREF (entity, FONT_SIZE_INDEX));
-      if (diff < 0)
-	diff = - diff;
-      diff <<= 1;
+      diff = eabs (pixel_size - XINT (AREF (entity, FONT_SIZE_INDEX))) << 1;
       if (! NILP (spec_prop[FONT_DPI_INDEX])
 	  && ! EQ (spec_prop[FONT_DPI_INDEX], AREF (entity, FONT_DPI_INDEX)))
 	diff |= 1;
@@ -2671,9 +2666,7 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	{
 	  int diff = XINT (AREF (entity, FONT_SIZE_INDEX)) - size;
 
-	  if (diff != 0
-	      && (diff < 0 ? -diff > FONT_PIXEL_SIZE_QUANTUM
-		  : diff > FONT_PIXEL_SIZE_QUANTUM))
+	  if (eabs (diff) > FONT_PIXEL_SIZE_QUANTUM)
 	    prop = FONT_SPEC_MAX;
 	}
       if (prop < FONT_SPEC_MAX
