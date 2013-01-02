@@ -1,3 +1,12 @@
+2012-12-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Don't insert Gcc headers if Gnus
+	isn't running, because Gnus will probably not know how to handle the
+	Gcc header (bug#11941).
+
+	* nnimap.el (nnimap-update-info): Treat \Deleted articles as \Read
+	articles.
+
 2012-12-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnfolder.el (nnfolder-recursive-directory-files): New function.

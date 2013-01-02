@@ -1745,7 +1745,8 @@ this is a reply."
 	      (setq var (cdr var)))
 	    result)))
 	 name)
-    (when (or groups gcc-self-val)
+    (when (and (or groups gcc-self-val)
+	       (gnus-alive-p))
       (when (stringp groups)
 	(setq groups (list groups)))
       (save-excursion
