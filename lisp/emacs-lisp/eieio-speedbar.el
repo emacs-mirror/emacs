@@ -1,6 +1,7 @@
 ;;; eieio-speedbar.el -- Classes for managing speedbar displays.
 
-;; Copyright (C) 1999-2002, 2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2002, 2005, 2007-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, tools

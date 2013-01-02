@@ -1,6 +1,6 @@
 ;;; semantic-utest-c.el --- C based parsing tests.
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

@@ -1,6 +1,7 @@
 ;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Frank Bresz
 ;; (according to authors.el)

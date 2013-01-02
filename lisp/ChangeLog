@@ -1,3 +1,44 @@
+2012-12-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/byte-run.el (defmacro): Use same argument parsing as
+	defun.  Don't check for DECL if DOCSTRING isn't a string.
+	(defun): Likewise.
+
+2012-12-31  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-cmpl.el (eshell-pcomplete):
+	More thoroughly imitate pcomplete.  (Bug#13293)
+
+	* files.el (parse-colon-path): Doc fix.  (Bug#12351)
+	Return nil for empty path elements.  (Bug#13296)
+
+2012-12-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-nav-end-of-statement): Rewrite in
+	order to improve efficiency (Based on Daniel Colascione's
+	<dancol@dancol.org> patch).  (Bug#13182)
+
+2012-12-31  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-edit.el (log-edit-header-contents-regexp): Add doc string.
+
+2012-12-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Support other commands triggering
+	python-indent-line so indentation cycling continues to work.
+	(python-indent-trigger-commands): New defcustom.
+	(python-indent-line): Use it.
+
+2012-12-31  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-send-region): Add blank lines
+	for non sent code so backtraces remain correct.
+
+2012-12-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/byte-run.el (defmacro): Don't lose final nil if
+	neither DOCSTRING nor DECL was given.  (Bug#13316)
+
 2013-01-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-set-file-acl): Add argument to
@@ -22924,7 +22965,7 @@ See ChangeLog.15 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2012  Free Software Foundation, Inc.
+  Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

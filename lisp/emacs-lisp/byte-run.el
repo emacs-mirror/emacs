@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -121,7 +121,7 @@ and the VALUES and should return the code to use to set this property.")
 (defalias 'defmacro
   (cons
    'macro
-   #'(lambda (name arglist &optional docstring decl &rest body)
+   #'(lambda (name arglist &optional docstring &rest body)
        "Define NAME as a macro.
 When the macro is called, as in (NAME ARGS...),
 the function (lambda ARGLIST BODY...) is applied to
@@ -130,32 +130,38 @@ and the result should be a form to be evaluated instead of the original.
 DECL is a declaration, optional, of the form (declare DECLS...) where
 DECLS is a list of elements of the form (PROP . VALUES).  These are
 interpreted according to `macro-declarations-alist'.
-The return value is undefined."
-       (if (stringp docstring) nil
-         (if decl (setq body (cons decl body)))
-         (setq decl docstring)
-         (setq docstring nil))
-       (if (or (null decl) (eq 'declare (car-safe decl))) nil
-         (setq body (cons decl body))
-         (setq decl nil))
-       (if (null body) (setq body '(nil)))
-       (if docstring (setq body (cons docstring body)))
-       ;; Can't use backquote because it's not defined yet!
-       (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
-              (def (list 'defalias
-                         (list 'quote name)
-                         (list 'cons ''macro fun)))
-              (declarations
-               (mapcar
-                #'(lambda (x)
-                    (let ((f (cdr (assq (car x) macro-declarations-alist))))
-                      (if f (apply (car f) name arglist (cdr x))
-                        (message "Warning: Unknown macro property %S in %S"
-                                 (car x) name))))
-                (cdr decl))))
-         (if declarations
-             (cons 'prog1 (cons def declarations))
-           def)))))
+The return value is undefined.
+
+\(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
+       ;; We can't just have `decl' as an &optional argument, because we need
+       ;; to distinguish
+       ;;    (defmacro foo (arg) (bar) nil)
+       ;; from
+       ;;    (defmacro foo (arg) (bar)).
+       (let ((decls (cond
+		     ((eq (car-safe docstring) 'declare)
+		      (prog1 (cdr docstring) (setq docstring nil)))
+		     ((and (stringp docstring)
+			   (eq (car-safe (car body)) 'declare))
+		      (prog1 (cdr (car body)) (setq body (cdr body)))))))
+	 (if docstring (setq body (cons docstring body))
+	   (if (null body) (setq body '(nil))))
+	 ;; Can't use backquote because it's not defined yet!
+	 (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
+		(def (list 'defalias
+			   (list 'quote name)
+			   (list 'cons ''macro fun)))
+		(declarations
+		 (mapcar
+		  #'(lambda (x)
+		      (let ((f (cdr (assq (car x) macro-declarations-alist))))
+			(if f (apply (car f) name arglist (cdr x))
+			  (message "Warning: Unknown macro property %S in %S"
+				   (car x) name))))
+		  decls)))
+	   (if declarations
+	       (cons 'prog1 (cons def declarations))
+	     def))))))
 
 ;; Now that we defined defmacro we can use it!
 (defmacro defun (name arglist &optional docstring &rest body)
@@ -177,7 +183,8 @@ The return value is undefined.
   (let ((decls (cond
                 ((eq (car-safe docstring) 'declare)
                  (prog1 (cdr docstring) (setq docstring nil)))
-                ((eq (car-safe (car body)) 'declare)
+                ((and (stringp docstring)
+		      (eq (car-safe (car body)) 'declare))
                  (prog1 (cdr (car body)) (setq body (cdr body)))))))
     (if docstring (setq body (cons docstring body))
       (if (null body) (setq body '(nil))))

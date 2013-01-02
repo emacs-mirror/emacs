@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fabian@anue.biz>
 ;; URL: https://github.com/fgallina/python.el
@@ -220,7 +220,7 @@
 (defgroup python nil
   "Python Language's flying circus support for Emacs."
   :group 'languages
-  :version "23.2"
+  :version "24.3"
   :link '(emacs-commentary-link "python"))
 
 
@@ -1187,16 +1187,27 @@ Returns nil if point is not in a def or class."
                 (forward-line -1))))
   (point-marker))
 
-(defun python-nav-end-of-statement ()
-  "Move to end of current statement."
+(defun python-nav-end-of-statement (&optional noend)
+  "Move to end of current statement.
+Optional argument NOEND is internal and makes the logic to not
+jump to the end of line when moving forward searching for the end
+of the statement."
   (interactive "^")
-  (while (and (goto-char (line-end-position))
-              (not (eobp))
-              (when (or
-                     (python-info-line-ends-backslash-p)
-                     (python-syntax-context 'string)
-                     (python-syntax-context 'paren))
-                (forward-line 1))))
+  (let (string-start bs-pos)
+    (while (and (or noend (goto-char (line-end-position)))
+                (not (eobp))
+                (cond ((setq string-start (python-syntax-context 'string))
+                       (goto-char string-start)
+                       (python-nav-end-of-statement t))
+                      ((python-syntax-context 'paren)
+                       ;; The statement won't end before we've escaped
+                       ;; at least one level of parenthesis.
+                       (condition-case err
+                           (goto-char (scan-lists (point) 1 -1))
+                         (scan-error (goto-char (nth 3 err)))))
+                      ((setq bs-pos (python-info-line-ends-backslash-p))
+                       (goto-char bs-pos)
+                       (forward-line 1))))))
   (point-marker))
 
 (defun python-nav-backward-statement (&optional arg)

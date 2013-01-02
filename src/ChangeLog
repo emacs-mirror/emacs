@@ -1,3 +1,7 @@
+2012-12-31  Glenn Morris  <rgm@gnu.org>
+
+	* keymap.c (Fkey_description): Doc fix.  (Bug#13323)
+
 2013-01-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify via eabs.
@@ -21305,7 +21309,7 @@ See ChangeLog.11 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2012 Free Software Foundation, Inc.
+  Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

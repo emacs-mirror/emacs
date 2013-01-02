@@ -228,7 +228,7 @@ people who are not programmers.
 @sp 1
 Edition @value{edition-number}, @value{update-date}
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2012 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2013 Free Software
 Foundation, Inc.
 @sp 1
 

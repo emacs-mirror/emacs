@@ -1,6 +1,6 @@
 ;;; color.el --- Color manipulation library -*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Authors: Julien Danjou <julien@danjou.info>
 ;;          Drew Adams <drew.adams@oracle.com>

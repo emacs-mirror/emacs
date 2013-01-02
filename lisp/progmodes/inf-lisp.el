@@ -1,6 +1,7 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993-1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1994, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp

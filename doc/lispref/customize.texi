@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1997-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Customization
 @chapter Customization Settings
@@ -77,7 +77,7 @@ item.  Please don't overdo this, since the result would be annoying.
 @item :link @var{link-data}
 @kindex link@r{, customization keyword}
 Include an external link after the documentation string for this item.
-This is a sentence containing an active field which references some
+This is a sentence containing a button that references some
 other documentation.
 
 There are several alternatives you can use for @var{link-data}:
@@ -101,7 +101,7 @@ Link to a web page; @var{url} is a string which specifies the
 
 @item (emacs-commentary-link @var{library})
 Link to the commentary section of a library; @var{library} is a string
-which specifies the library name.
+which specifies the library name.  @xref{Library Headers}.
 
 @item (emacs-library-link @var{library})
 Link to an Emacs Lisp library file; @var{library} is a string which
@@ -1082,8 +1082,7 @@ Substitute the item's documentation string.
 
 @item %h
 Like @samp{%d}, but if the documentation string is more than one line,
-add an active field to control whether to show all of it or just the
-first line.
+add a button to control whether to show all of it or just the first line.
 
 @item %t
 Substitute the tag here.  You specify the tag with the @code{:tag}

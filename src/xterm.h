@@ -1,5 +1,6 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2012 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993-1994, 1998-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 

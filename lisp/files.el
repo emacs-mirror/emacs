@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985-1987, 1992-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -660,11 +660,14 @@ Not actually set up until the first time you use it.")
   "Explode a search path into a list of directory names.
 Directories are separated by `path-separator' (which is colon in
 GNU and Unix systems).  Substitute environment variables into the
-resulting list of directory names."
+resulting list of directory names.  For an empty path element (i.e.,
+a leading or trailing separator, or two adjacent separators), return
+nil (meaning `default-directory') as the associated list element."
   (when (stringp search-path)
     (mapcar (lambda (f)
-	      (substitute-in-file-name (file-name-as-directory f)))
-	    (split-string search-path path-separator t))))
+	      (if (equal "" f) nil
+		(substitute-in-file-name (file-name-as-directory f))))
+	    (split-string search-path path-separator))))
 
 (defun cd-absolute (dir)
   "Change current directory to given absolute file name DIR."

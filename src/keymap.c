@@ -1,5 +1,6 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985-1988, 1993-1995, 1998-2012 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1998-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2047,7 +2048,7 @@ DEFUN ("key-description", Fkey_description, Skey_description, 1, 2, 0,
 Optional arg PREFIX is the sequence of keys leading up to KEYS.
 For example, [?\C-x ?l] is converted into the string \"C-x l\".
 
-The `kbd' macro is an approximate inverse of this.  */)
+For an approximate inverse of this, see `kbd'.  */)
   (Lisp_Object keys, Lisp_Object prefix)
 {
   ptrdiff_t len = 0;

@@ -16102,7 +16102,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2012 Free Software Foundation, Inc."
+copyright="Copyright (C) 2013 Free Software Foundation, Inc."
 
 cat >>confdefs.h <<_ACEOF
 #define COPYRIGHT "$copyright"

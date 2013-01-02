@@ -1,7 +1,7 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 

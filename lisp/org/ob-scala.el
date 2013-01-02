@@ -1,6 +1,6 @@
 ;;; ob-scala.el --- org-babel functions for Scala evaluation
 
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Andrzej Lichnerowicz
 ;; Keywords: literate programming, reproducible research

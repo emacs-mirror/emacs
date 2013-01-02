@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1997-1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware

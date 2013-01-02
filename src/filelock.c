@@ -1,6 +1,6 @@
 /* Lock files for editing.
-   Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 

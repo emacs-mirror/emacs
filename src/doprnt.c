@@ -1,7 +1,7 @@
 /* Output like sprintf to a buffer of specified size.
    Also takes args differently: pass one pointer to the end
    of the format string in addition to the format string itself.
-   Copyright (C) 1985, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

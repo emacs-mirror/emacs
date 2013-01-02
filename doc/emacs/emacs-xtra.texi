@@ -11,7 +11,7 @@
 @copying
 This manual describes specialized features of Emacs.
 
-Copyright @copyright{} 2004--2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

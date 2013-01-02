@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point
 
-;; Copyright (C) 1991-1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: FSF

@@ -1,5 +1,6 @@
 @c This is part of the Semantic manual.
-@c Copyright (C) 1999-2005, 2007, 2009-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1999-2005, 2007, 2009-2013 Free Software Foundation,
+@c Inc.
 @c See file semantic.texi for copying conditions.
 
 You can begin using @semantic{} by enabling Semantic mode, a global

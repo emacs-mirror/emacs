@@ -1,6 +1,6 @@
 ;;; org-bibtex.el --- Org links to BibTeX entries
 ;;
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg at altern dot org>
 ;;       Carsten Dominik <carsten dot dominik at gmail dot com>

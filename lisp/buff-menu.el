@@ -1,7 +1,7 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience

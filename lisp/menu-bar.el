@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
