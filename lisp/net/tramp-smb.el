@@ -195,7 +195,7 @@ See `tramp-actions-before-shell' for more info.")
     (dired-uncache . tramp-handle-dired-uncache)
     (expand-file-name . tramp-smb-handle-expand-file-name)
     (file-accessible-directory-p . tramp-smb-handle-file-directory-p)
-    (file-acl . ignore)
+    (file-acl . tramp-smb-handle-file-acl)
     (file-attributes . tramp-smb-handle-file-attributes)
     (file-directory-p .  tramp-smb-handle-file-directory-p)
     (file-executable-p . tramp-handle-file-exists-p)
@@ -640,6 +640,22 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (tramp-make-tramp-file-name
        method user host
        (tramp-run-real-handler 'expand-file-name (list localname))))))
+
+(defun tramp-smb-handle-file-acl (filename)
+  "Like `file-acl' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (with-tramp-file-property v localname "file-acl"
+      (when (tramp-smb-send-command
+	     v (format "getfacl \"%s\"" (tramp-smb-get-localname v)))
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (goto-char (point-min))
+	  (while (looking-at-p "^#")
+	    (forward-line)
+	    (delete-region (point-min) (point)))
+	  (goto-char (point-max))
+	  (delete-blank-lines)
+	  (when (> (point-max) (point-min))
+	    (substring-no-properties (buffer-string))))))))
 
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -1815,6 +1831,5 @@ Returns nil if an error message has appeared."
 ;; * Try to remove the inclusion of dummy "" directory.  Seems to be at
 ;;   several places, especially in `tramp-smb-handle-insert-directory'.
 ;; * Ignore case in file names.
-;; * Implement `tramp-smb-handle-file-acl' for proper Samba versions.
 
 ;;; tramp-smb.el ends here
