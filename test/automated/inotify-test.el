@@ -1,6 +1,6 @@
 ;;; inotify-tests.el --- Test suite for inotify. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 ;; Keywords:       internal

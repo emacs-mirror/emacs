@@ -1,6 +1,6 @@
 ;;; leuven-theme.el --- Emacs custom theme
 
-;; Copyright (C) 2003-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 ;; Time-stamp: <2012-12-05 Wed 10:47>
 
 ;; Author: Fabrice Niessen <(concat "fniessen" at-sign "pirilampo.org")>
