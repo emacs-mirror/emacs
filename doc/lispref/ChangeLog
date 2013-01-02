@@ -1,4 +1,4 @@
-2012-12-31  Glenn Morris  <rgm@gnu.org>
+2013-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* customize.texi (Common Keywords, Type Keywords):
 	Replace "active field" with "button".  (Bug#13310)

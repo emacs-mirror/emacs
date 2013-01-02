@@ -1,4 +1,4 @@
-2012-12-31  Glenn Morris  <rgm@gnu.org>
+2013-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* keymap.c (Fkey_description): Doc fix.  (Bug#13323)
 
