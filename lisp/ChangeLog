@@ -1,3 +1,7 @@
+2013-01-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/README: Mention ISO 8601 week-numbering dates.
+
 2013-01-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* view.el (view-mode-enable): New argument run-view-mode-hook.

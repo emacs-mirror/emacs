@@ -77,6 +77,7 @@ Emacs 24.4
   dates.)  This can be configured with the customizable variable
   `calc-gregorian-switch'.
 
+* Support for ISO 8601 dates added.
 Emacs 24.3
 
 * Algebraic simplification mode is now the default.

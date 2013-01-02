@@ -13717,15 +13717,21 @@ abbreviated to one letter, and the alternate forms @samp{a.m.},
 @samp{p.m.}, and @samp{mid} are also understood.  Obviously
 @samp{noon} and @samp{midnight} are allowed only on 12:00:00.
 The words @samp{noon}, @samp{mid}, and @samp{midnight} are also
-recognized with no number attached.
+recognized with no number attached.  Midnight will represent the
+beginning of a day.
 
 If there is no AM/PM indicator, the time is interpreted in 24-hour
 format.
 
-To read the date portion, all words and numbers are isolated
-from the string; other characters are ignored.  All words must
-be either month names or day-of-week names (the latter of which
-are ignored).  Names can be written in full or as three-letter
+When reading the date portion, Calc first checks to see if it is an
+ISO 8601 week-numbering date; if the string contains an integer
+representing the year, a ``W'' followed by two digits for the week
+number, and an integer from 1 to 7 representing the weekday (in that
+order), then all other characters are ignored and this information
+determines the date.  Otherwise, all words and numbers are isolated
+from the string; other characters are ignored.  All words must be
+either month names or day-of-week names (the latter of which are
+ignored). Names can be written in full or as three-letter
 abbreviations.
 
 Large numbers, or numbers with @samp{+} or @samp{-} signs,

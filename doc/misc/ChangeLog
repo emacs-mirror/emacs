@@ -1,3 +1,8 @@
+2013-01-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Free-Form Dates): Expand on the date reading
+	algorithm.
+
 2012-12-27  Glenn Morris  <rgm@gnu.org>
 
 	* viper.texi (Rudimentary Changes, Key Bindings, Key Bindings):
