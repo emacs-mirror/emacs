@@ -1,5 +1,8 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (eval-after-load): Don't purecopy the form, so that it
+	can be nconc'd later on; reverts 2009-11-11 change.  (Bug#13331)
+
 	* emacs-lisp/byte-run.el (defun): Place cl declarations
 	after any interactive spec.  (Bug#13265)
 
