@@ -1,5 +1,8 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/make-mode.el (makefile-fill-paragraph): Add doc.
+	Handle paragraph starting at beginning of buffer.
+
 	* subr.el (eval-after-load): Don't purecopy the form, so that it
 	can be nconc'd later on; reverts 2009-11-11 change.  (Bug#13331)
 
