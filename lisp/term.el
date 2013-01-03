@@ -3216,18 +3216,24 @@ See `term-prompt-regexp'."
         (let ((color
                (if term-ansi-current-reverse
                    (face-foreground
-                    (elt ansi-term-color-vector term-ansi-current-color))
+                    (elt ansi-term-color-vector term-ansi-current-color)
+                    nil 'default)
                  (face-background
-                  (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+                  (elt ansi-term-color-vector term-ansi-current-bg-color)
+                  nil 'default))))
           (setq term-current-face
                 (list :background color
                       :foreground color))
           ) ;; No need to bother with anything else if it's invisible.
       (setq term-current-face
             (list :foreground
-                  (face-foreground (elt ansi-term-color-vector term-ansi-current-color))
+                  (face-foreground
+                   (elt ansi-term-color-vector term-ansi-current-color)
+                   nil 'default)
                   :background
-                  (face-background (elt ansi-term-color-vector term-ansi-current-bg-color))
+                  (face-background
+                   (elt ansi-term-color-vector term-ansi-current-bg-color)
+                   nil 'default)
                   :inverse-video term-ansi-current-reverse))
 
       (when term-ansi-current-bold

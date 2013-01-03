@@ -1,5 +1,8 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* term.el (term-handle-colors-array): Ensure face attributes
+	are fully specified, not nil.  (Bug#13337)
+
 	* term.el (term-default-fg-color, term-default-bg-color):
 	Fix custom type.
 
