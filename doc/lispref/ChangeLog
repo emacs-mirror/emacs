@@ -1,3 +1,7 @@
+2013-01-03  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* hash.texi (Defining Hash): Fix typo.  (Bug#13345)
+
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* processes.texi (System Processes):
