@@ -478,17 +478,17 @@ it easier to see the character returned by @code{char-syntax}.)
 @end group
 
 @group
-;; Forward slash characters have punctuation syntax.  Note that this
-;; @code{char-syntax} call does not reveal that it is also part of
-;; comment-start and -end sequences.
+;; Forward slash characters have punctuation syntax.
+;; Note that this @code{char-syntax} call does not reveal
+;; that it is also part of comment-start and -end sequences.
 (string (char-syntax ?/))
      @result{} "."
 @end group
 
 @group
-;; Open parenthesis characters have open parenthesis syntax.  Note
-;; that this @code{char-syntax} call does not reveal that it has a
-;; matching character, @samp{)}.
+;; Open parenthesis characters have open parenthesis syntax.
+;; Note that this @code{char-syntax} call does not reveal that
+;; it has a matching character, @samp{)}.
 (string (char-syntax ?\())
      @result{} "("
 @end group
