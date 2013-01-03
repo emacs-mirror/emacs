@@ -1,5 +1,7 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* check-doc-strings: Update for CVS->bzr, moved lispref/ directory.
+
 	* emacs-pretesters, make-announcement, make-changelog-diff:
 	Remove files.
 
