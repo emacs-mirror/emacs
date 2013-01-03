@@ -4,6 +4,9 @@ Instructions to create pretest or release tarballs.
 
 For each step, check for possible errors.
 
+0.  Decide on versions of automake and autoconf, and ensure you will
+    have them available for the duration of the release process.
+
 1.  `bzr update' (for a bound branch), or `bzr pull'.
      bzr status # check for locally modified files
 
@@ -11,13 +14,13 @@ For each step, check for possible errors.
     make sure that the later tagged version will bootstrap, should it be
     necessary to check it out.
 
-3.  Regenerate Emacs' etc/AUTHORS file (M-x load-file RET
-    lisp/emacs-lisp/authors.el RET, then M-x authors RET, then save
-    the *Authors* buffer).  This may require fixing syntactically
-    incorrect ChangeLog entries beforehand.
+3.  Regenerate the etc/AUTHORS file:
+    M-: (require 'authors) RET, M-x authors RET, save the *Authors* buffer.
+    If there are errors that relate to syntactically incorrect
+    ChangeLog entries, consider fixing them and repeating.
 
 4.  Set the version number (M-x load-file RET admin/admin.el RET, then
-    M-x set-version RET).  For a release, add released change log
+    M-x set-version RET).  For a release, add released ChangeLog
     entries (M-x add-release-logs RET).
 
     For a pretest, start at version .90.  After .99, use .990 (so that
@@ -46,9 +49,7 @@ For each step, check for possible errors.
     something like `find . | sort' in a clean bzr tree, and compare the
     results against the new tar contents.
 
-8.   xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
-
-9.   tar -zxf emacs-NEW.tar.gz; cd emacs-NEW
+8.   tar -zxf emacs-NEW.tar.gz; cd emacs-NEW
      ./configure && make && make -n install
     Use `script' or M-x compile to save the compilation log in
     compile-NEW.log and compare it against an old one.  The easiest way
@@ -56,7 +57,7 @@ For each step, check for possible errors.
     number of the old Emacs to __, do the same with the new log and do
     M-x ediff.  Especially check that Info files aren't built.
 
-10.  cd EMACS_ROOT_DIR; bzr tag TAG
+9.  cd EMACS_ROOT_DIR; bzr tag TAG
     TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.
 
     Shortly before the release, cut the version branch also, and open
@@ -64,11 +65,11 @@ For each step, check for possible errors.
     be sent to the emacs-diffs mailing list (by default, the list
     normally only gets commits to the trunk).
 
-11. Now you should upload the files to the GNU ftp server.  In order to
+10. Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your
     GPG key acknowledged by the ftp people.  For instructions, see
     http://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html
-    You can use the gnupload script to upload each FILE, like this:
+    You can use the gnulib script "gnupload" to upload each FILE, like this:
      gnupload --to alpha.gnu.org:emacs/pretest FILE (for a pretest)
      gnupload --to ftp.gnu.org:emacs FILE           (for a release)
 
@@ -84,16 +85,17 @@ For each step, check for possible errors.
     For a pretest, place the files in /incoming/alpha instead, so that
     they appear on ftp://alpha.gnu.org/.
 
-    For a release, upload a bz2 tarfile as well; this can save a lot
+    For a release, upload xz and bz2 tarfiles as well; this can save a lot
     of bandwidth.
 
-12. After five minutes, verify that the files are visible at
+11. After five minutes, verify that the files are visible at
     ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, at
     ftp://ftp.gnu.org/gnu/emacs/ for a release.
 
-13. For a pretest, announce it on emacs-devel and BCC the pretesters.
-    For a release, announce it on info-gnu@gnu.org,
-    info-gnu-emacs@gnu.org, and emacs-devel.
+12. For a pretest, announce it on emacs-devel and info-gnu-emacs@gnu.org.
+    For a release, also announce it on info-gnu@gnu.org.  (Probably
+    bcc the info- addresses to make it less likely that people will
+    followup on those lists.)
 
-14. For a release, update the Emacs homepage in the web repository.
+13. For a release, update the Emacs homepage in the web repository.
     Also add the new NEWS file as NEWS.xx.y.
