@@ -78,7 +78,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef CLASH_DETECTION
 
 /* Short copyright string for this version of Emacs. */
-#define COPYRIGHT "Copyright (C) 2012 Free Software Foundation, Inc."
+#define COPYRIGHT "Copyright (C) 2013 Free Software Foundation, Inc."
 
 /* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
    systems. This function is required for 'alloca.c' support on those systems.

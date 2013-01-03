@@ -1,3 +1,12 @@
+2013-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (System Processes):
+	* syntax.texi (Syntax Table Functions): Tweak some line breaks.
+
+	* searching.texi (Replacing Match): Fix xref.
+
+	* elisp.texi (DATE): Bump to Jan 2013.
+
 2013-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* customize.texi (Common Keywords, Type Keywords):

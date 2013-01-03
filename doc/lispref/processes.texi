@@ -1804,12 +1804,12 @@ The number of threads in the process.
 
 @item start
 The time when the process was started, in the same
-@w{@code{(@var{high} @var{low} @var{microsec} @var{picosec})}} format used by
-@code{current-time} and by @code{file-attributes}.
+@code{(@var{high} @var{low} @var{microsec} @var{picosec})} format used by
+@code{file-attributes} and @code{current-time}.
 
 @item etime
-The time elapsed since the process started, in the @w{@code{(@var{high}
-@var{low} @var{microsec} @var{picosec})}} format.
+The time elapsed since the process started, in the format @code{(@var{high}
+@var{low} @var{microsec} @var{picosec})}.
 
 @item vsize
 The virtual memory size of the process, measured in kilobytes.

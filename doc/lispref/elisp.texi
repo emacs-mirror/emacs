@@ -56,7 +56,7 @@
 @c (See comments for EDITION in emacs.texi)
 @set VERSION  3.1
 @include emacsver.texi
-@set DATE May 2012
+@set DATE January 2013
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
