@@ -1325,7 +1325,7 @@ This stands for a single @samp{\} in the replacement text.
 
 @item @samp{\?}
 This stands for itself (for compatibility with @code{replace-regexp}
-and related commands; @pxref{Regexp Replacement,,, emacs, The GNU
+and related commands; @pxref{Regexp Replace,,, emacs, The GNU
 Emacs Manual}).
 @end table
 

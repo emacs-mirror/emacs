@@ -1,5 +1,7 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* searching.texi (Replacing Match): Fix xref.
+
 	* elisp.texi (DATE): Bump to Jan 2013.
 
 2012-12-31  Glenn Morris  <rgm@gnu.org>
