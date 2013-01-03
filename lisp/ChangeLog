@@ -1,3 +1,51 @@
+2013-01-03  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Implement extended category completions.
+	(todos-default-todos-file): Change default value to correct custom
+	type.
+	(todos-category-completions-files): New defcustom.
+	(todos-reevaluate-category-completions-files-defcustom)
+	(todos-absolute-file-name, todos-category-completions): New defuns.
+	(todos-reevaluate-filelist-defcustoms):
+	Add todos-category-completions-files and
+	todos-reevaluate-category-completions-files-defcustom.
+	(todos-allcats-file, todos-all-categories-alist)
+	(todos-jump-to-category-other-file, todos-jump-to-any-category)
+	(todos-move-item-to-file): Remove (todos-all-categories-alist both
+	as defvar and as defun).
+	(todos-read-category): Rewrite using extended category completions
+	and better handling of completion against existing or non-existing
+	categories.
+	(todos-validate-name): Correct doc string; use local instead of
+	dynamic variables in function body.
+	(todos-insert-category-line): Adjust use of todos-jump-to-category
+	to new argument list.
+	(todos-key-bindings, todos-menu): Delete entries for removed
+	commands.
+	(todos-show): Get absolute name of todos-default-todos-file;
+	add `nowarn' argument to find-file-noselect; adjust use of
+	todos-add-category to new argument list.
+	(todos-jump-to-category): Rewrite using extended category
+	completions; reverse argument list, adapting FILE argument to new
+	completion mechanism; add autoload cookie; call todos-show if
+	there are no Todos files.
+	(todos-add-category): Rewrite using extended category completions;
+	add FILE argument to accommodate new completion mechanism.
+	(todos-merge-category): Adapt to extended category completions,
+	adding prefix argument.
+	(todos-insert-item): Adapt to extended category completions; use
+	todos-read-category instead of todos-jump-to-category in prefix
+	argument calls; call todos-show if there are no Todos files; if
+	item is inserted at end of category, recenter to ensure the items
+	above it are displayed in the window.
+	(todos-move-item): Adapt to extended category completions, making
+	argument prefix argument; allow moving within category (for the
+	sake of code simplification); add `nowarn' argument to
+	find-file-noselect.
+	(todos-archive-done-item): Prevent error when attempting to
+	archive not-done todo item; adjust use of todos-add-category to
+	new argument list.
+
 2012-12-15  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-archive-done-item): Fix archiving of
