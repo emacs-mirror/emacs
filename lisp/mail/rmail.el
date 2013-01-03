@@ -2173,20 +2173,35 @@ If MSGNUM is nil, use the current message."
 
 (defun rmail-set-header-1 (name value)
   "Subroutine of `rmail-set-header'.
-Narrow to header, set header NAME to VALUE, replacing existing if present.
-VALUE nil means to remove NAME altogether."
+Narrow to headers, set header NAME to VALUE, replacing existing if present.
+VALUE nil means to remove NAME altogether.
+
+Only changes the first instance of NAME.  If VALUE is multi-line,
+continuation lines should already be indented.  VALUE should not
+end in a newline."
   (if (search-forward "\n\n" nil t)
       (progn
 	(forward-char -1)
 	(narrow-to-region (point-min) (point))
+	;; cf mail-fetch-field.
 	(goto-char (point-min))
-	(if (re-search-forward (concat "^" (regexp-quote name) ":") nil 'move)
+	(if (let ((case-fold-search t))
+	      (re-search-forward (concat "^" (regexp-quote name) "[ \t]*:")
+				 nil 'move))
+	    (let ((start (point))
+		  end)
+	      (while (and (zerop (forward-line 1))
+			  (looking-at "[ \t]")))
+	      ;; Back up over newline.
+	      (forward-char -1)
+	      (setq end (point))
+	      (goto-char start)
             (if value
                 (progn
-                  (delete-region (point) (line-end-position))
+		    (delete-region start end)
                   (insert " " value))
-              (delete-region (line-beginning-position)
-                             (line-beginning-position 2)))
+		(delete-region (line-beginning-position) (1+ end))))
+	  ;; Not already present: insert at end of headers.
           (if value (insert name ": " value "\n"))))
     (rmail-error-bad-format)))
 

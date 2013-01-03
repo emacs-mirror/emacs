@@ -1,5 +1,8 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-set-header-1): Ignore case.
+	Handle multi-line headers.  (Bug#13330)
+
 	* progmodes/make-mode.el (makefile-fill-paragraph): Add doc.
 	Handle paragraph starting at beginning of buffer.
 
