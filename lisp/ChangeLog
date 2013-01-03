@@ -1,3 +1,8 @@
+2013-01-03  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg--start): Ignore errors when /dev/fd/0 does not
+	exist.  (Bug#13344)
+
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-set-header-1): Ignore case.

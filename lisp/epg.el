@@ -1167,9 +1167,11 @@ This function is for internal use only."
     ;; use `terminal-name' here to get the real pty name for the child
     ;; process, though /dev/fd/0" is not portable.
     (with-temp-buffer
-      (when (= (call-process "tty" "/dev/fd/0" t) 0)
-	(delete-backward-char 1)
-	(setq terminal-name (buffer-string))))
+      (condition-case nil
+	  (when (= (call-process "tty" "/dev/fd/0" t) 0)
+	    (delete-backward-char 1)
+	    (setq terminal-name (buffer-string)))
+	(file-error)))
     (when terminal-name
       (setq process-environment
 	    (cons (concat "GPG_TTY=" terminal-name)
