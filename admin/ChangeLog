@@ -1,6 +1,7 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-pretesters: Remove file.
+	* emacs-pretesters, make-announcement, make-changelog-diff:
+	Remove files.
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
