@@ -24,10 +24,6 @@ Instructions to create pretest or release tarballs, announcements, etc.
 
 Utilities for setting version numbers and alike.
 
-** make-announcement, make-changelog-diff
-
-Scripts used to prepare release announcements.
-
 
 * Scripts that can be used to build and test Emacs.
 
