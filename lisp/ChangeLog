@@ -1,5 +1,9 @@
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/etags.el (tags-compression-info-list): Doc fix.
+	(tag-find-file-of-tag-noselect): Check auto-compression-mode
+	rather than 'jka-compr being loaded.  (Bug#13338)
+
 	* subr.el (eval-after-load): Don't purecopy the form, so that it
 	can be nconc'd later on; reverts 2009-11-11 change.  (Bug#13331)
 
