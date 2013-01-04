@@ -358,7 +358,7 @@ w32_restore_glyph_string_clip (struct glyph_string *s)
 void
 w32_draw_underwave (struct glyph_string *s, COLORREF color)
 {
-  int wave_height = 2, wave_length = 3;
+  int wave_height = 3, wave_length = 2;
   int dx, dy, x0, y0, width, x1, y1, x2, y2, odd, xmax;
   XRectangle wave_clip, string_clip, final_clip;
   RECT w32_final_clip, w32_string_clip;
@@ -367,7 +367,7 @@ w32_draw_underwave (struct glyph_string *s, COLORREF color)
   dx = wave_length;
   dy = wave_height - 1;
   x0 = s->x;
-  y0 = s->ybase + 1;
+  y0 = s->ybase - wave_height + 3;
   width = s->width;
   xmax = x0 + width;
 
@@ -2456,7 +2456,8 @@ x_draw_glyph_string (struct glyph_string *s)
               unsigned long thickness, position;
               int y;
 
-              if (s->prev && s->prev->face->underline_p)
+              if (s->prev && s->prev->face->underline_p
+		  && s->prev->face->underline_type == FACE_UNDER_LINE)
                 {
                   /* We use the same underline style as the previous one.  */
                   thickness = s->prev->underline_thickness;

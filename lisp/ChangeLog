@@ -1,3 +1,21 @@
+2013-01-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-set-file-uid-gid): UID and GID must be
+	non-negative integers.  Otherwise, the default values are used.
+	(tramp-convert-file-attributes): Convert uid and gid to integers.
+
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* term.el (term-handle-colors-array): Ensure face attributes
+	are fully specified, not nil.  (Bug#13337)
+
+	* term.el (term-default-fg-color, term-default-bg-color):
+	Fix custom type.
+
+	* progmodes/etags.el (tags-compression-info-list): Doc fix.
+	(tag-find-file-of-tag-noselect): Check auto-compression-mode
+	rather than 'jka-compr being loaded.  (Bug#13338)
+
 2013-01-04  Wesley Dawson  <whd@lavabit.com>  (tiny change)
 
 	* icomplete.el (icomplete-completions):

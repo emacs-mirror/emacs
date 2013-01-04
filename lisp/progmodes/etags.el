@@ -67,11 +67,8 @@ Use the `etags' program to make a tags table file."
 ;;;###autoload
 (defcustom tags-compression-info-list
   (purecopy '("" ".Z" ".bz2" ".gz" ".xz" ".tgz"))
-  "List of extensions tried by etags when jka-compr is used.
-An empty string means search the non-compressed file.
-These extensions will be tried only if jka-compr was activated
-\(i.e. via customize of `auto-compression-mode' or by calling the function
-`auto-compression-mode')."
+  "List of extensions tried by etags when `auto-compression-mode' is on.
+An empty string means search the non-compressed file."
   :version "24.1"			; added xz
   :type  '(repeat string)
   :group 'etags)
@@ -1182,7 +1179,7 @@ error message."
   "Find the right line in the specified FILE."
   ;; If interested in compressed-files, search files with extensions.
   ;; Otherwise, search only the real file.
-  (let* ((buffer-search-extensions (if (featurep 'jka-compr)
+  (let* ((buffer-search-extensions (if auto-compression-mode
 				       tags-compression-info-list
 				     '("")))
 	 the-buffer
@@ -1206,7 +1203,7 @@ error message."
 	  (setq file-search-extensions (cdr file-search-extensions))
 	(setq the-buffer (find-file-noselect (concat file (car file-search-extensions))))))
     (if (not the-buffer)
-	(if (featurep 'jka-compr)
+	(if auto-compression-mode
 	    (error "File %s (with or without extensions %s) not found" file tags-compression-info-list)
 	  (error "File %s not found" file))
       (set-buffer the-buffer))))

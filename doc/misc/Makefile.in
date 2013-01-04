@@ -43,7 +43,7 @@ MAKEINFO_OPTS = --force -I$(emacsdir)
 INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq \
-	flymake forms gnus emacs-gnutls idlwave info.info \
+	flymake forms gnus emacs-gnutls htmlfontify idlwave info.info \
 	mairix-el message mh-e newsticker nxml-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode tramp \
@@ -75,6 +75,7 @@ DVI_TARGETS = \
 	forms.dvi \
 	gnus.dvi \
 	emacs-gnutls.dvi \
+	htmlfontify.dvi \
 	idlwave.dvi \
 	info.dvi \
 	mairix-el.dvi \
@@ -129,6 +130,7 @@ PDF_TARGETS = \
 	flymake.pdf \
 	forms.pdf \
 	gnus.pdf \
+	htmlfontify.pdf \
 	emacs-gnutls.pdf \
 	idlwave.pdf \
 	info.pdf \
@@ -439,6 +441,15 @@ gnus.pdf: ${srcdir}/gnus.texi ${srcdir}/gnus-faq.texi ${gfdl}
 	$(ENVADD) $(TEXI2PDF) gnustmp.texi
 	cp gnustmp.pdf $@
 	rm gnustmp.*
+
+htmlfontify : $(buildinfodir)/htmlfontify$(INFO_EXT)
+$(buildinfodir)/htmlfontify$(INFO_EXT): ${srcdir}/htmlfontify.texi ${gfdl}
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/htmlfontify.texi
+htmlfontify.dvi: ${srcdir}/htmlfontify.texi ${gfdl}
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/htmlfontify.texi
+htmlfontify.pdf: ${srcdir}/htmlfontify.texi ${gfdl}
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/htmlfontify.texi
 
 # NB this one needs --no-split even without a .info extension.
 idlwave : $(buildinfodir)/idlwave$(INFO_EXT)

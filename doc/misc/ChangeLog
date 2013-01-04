@@ -1,3 +1,19 @@
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS):
+	Add htmlfontify.
+	(htmlfontify, $(buildinfodir)/htmlfontify$(INFO_EXT))
+	(htmlfontify.dvi, htmlfontify.pdf): New targets.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add htmlfontify.
+	($(infodir)/htmlfontify$(INFO_EXT), htmlfontify.dvi): New targets.
+
+	* htmlfontify.texi: Miscellaneous fixes and updates.
+	Set copyright to FSF, update license to GFDL 1.3+.
+
+2013-01-04  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* htmlfontify.texi: New file.
+
 2013-01-02  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Free-Form Dates): Expand on the date reading

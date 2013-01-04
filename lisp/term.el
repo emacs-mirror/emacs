@@ -778,14 +778,14 @@ Buffer local variable.")
 (defcustom term-default-fg-color nil
   "If non-nil, default color for foreground in Term mode."
   :group 'term
-  :type 'string)
+  :type '(choice (const nil) (string :tag "color")))
 (make-obsolete-variable 'term-default-fg-color "use the face `term' instead."
                         "24.3")
 
 (defcustom term-default-bg-color nil
   "If non-nil, default color for foreground in Term mode."
   :group 'term
-  :type 'string)
+  :type '(choice (const nil) (string :tag "color")))
 (make-obsolete-variable 'term-default-bg-color "use the face `term' instead."
                         "24.3")
 
@@ -3222,18 +3222,24 @@ See `term-prompt-regexp'."
         (let ((color
                (if term-ansi-current-reverse
                    (face-foreground
-                    (elt ansi-term-color-vector term-ansi-current-color))
+                    (elt ansi-term-color-vector term-ansi-current-color)
+                    nil 'default)
                  (face-background
-                  (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+                  (elt ansi-term-color-vector term-ansi-current-bg-color)
+                  nil 'default))))
           (setq term-current-face
                 (list :background color
                       :foreground color))
           ) ;; No need to bother with anything else if it's invisible.
       (setq term-current-face
             (list :foreground
-                  (face-foreground (elt ansi-term-color-vector term-ansi-current-color))
+                  (face-foreground
+                   (elt ansi-term-color-vector term-ansi-current-color)
+                   nil 'default)
                   :background
-                  (face-background (elt ansi-term-color-vector term-ansi-current-bg-color))
+                  (face-background
+                   (elt ansi-term-color-vector term-ansi-current-bg-color)
+                   nil 'default)
                   :inverse-video term-ansi-current-reverse))
 
       (when term-ansi-current-bold

@@ -1,3 +1,7 @@
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add htmlfontify.
+
 2013-01-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

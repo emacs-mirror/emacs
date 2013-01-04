@@ -1,3 +1,15 @@
+2013-01-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* nsterm.m (ns_draw_underwave):
+	* w32term.c (w32_draw_underwave):
+	* xterm.c (x_draw_underwave): Make underwave look more triangular
+	and also degrade gracefully for small fonts.  (Bug#13000)
+
+	* nsterm.m (ns_draw_text_decoration):
+	* w32term.c (x_draw_glyph_string):
+	* xterm.c (x_draw_glyph_string): Don't use previous underline
+	thickness and position if previous underline type is underwave.
+
 2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Ffile_acl): Undocument return format.

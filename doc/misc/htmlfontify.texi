@@ -1,0 +1,1609 @@
+\input texinfo
+@comment %**start of header
+@setfilename ../../info/htmlfontify
+@settitle Htmlfontify User Manual
+@exampleindent 2
+@comment %**end of header
+
+@copying
+This manual documents Htmlfontify, a source code -> crosslinked +
+formatted + syntax colorised html transformer.
+
+Copyright @copyright{} 2002, 2003, 2013 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
+
+@dircategory Emacs misc features
+@direntry
+* Htmlfontify: (htmlfontify).    Convert source code to html.
+@end direntry
+
+@titlepage
+@title Htmlfontify User Manual
+@sp 4
+@subtitle Htmlfontify version 0.20
+@sp 1
+@subtitle Jun 2002
+@sp 5
+@author Vivek Dasmohapatra
+@page
+
+@vskip 0pt plus 1filll
+@noindent
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Htmlfontify
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::                   About Htmlfontify.
+* Usage & Examples::               How to use Htmlfontify.
+* Customisation::                  Fine-tuning Htmlfontify's behaviour.
+* Requirements::                   External programs used by Htmlfontify.
+* GNU Free Documentation License:: The license for this documentation.
+* Index::                          Index of contents.
+@end menu
+
+@node Introduction
+@chapter Introduction
+@cindex Introduction
+
+Htmlfontify provides a means of converting individual Emacs buffers,
+source files, or entire source trees to html, preserving formatting
+and Emacs colorisation / syntax highlighting as much as possible
+through careful application of CSS stylesheets and html tags.
+
+It can also turn instances of functions, methods and (for some
+languages) variables and other constructs and items into links
+to their definitions, and create an index file (or files) of
+all such symbols, also linked to their points of definition.
+
+Htmlfontify also provides several customisation items, which should
+allow it to mesh more-or-less seamlessly with various templating or
+publishing systems (in the event, for instance, that you don't want
+to produce the html pages directly).
+
+@node Usage & Examples
+@chapter Usage & Examples
+@cindex Usage & Examples
+
+Htmlfontify can be used both interactively and as part of another
+elisp function.  If you're running it in a modern Emacs, it will also
+run when attached to a terminal (i.e., without X) or even when in
+batch mode.
+
+@menu
+* Interactive::               Using Htmlfontify interactively.
+* Non-interactive::           Using Htmlfontify from elisp.
+* Variables::                 Variables (other than customisation entries).
+* Data Structures::           Important data structures.
+* Examples::                  Example(s) of Htmlfontify in use.
+@end menu
+
+@node Interactive
+@section Interactive
+@cindex Interactive
+@cindex functions (interactive)
+
+Htmlfontify provides the following interactive functions:
+
+@table @code
+@item htmlfontify-buffer
+@findex htmlfontify-buffer
+@anchor{htmlfontify-buffer}
+
+@lisp
+
+(htmlfontify-buffer &optional @var{srcdir} @var{file})
+@end lisp
+
+Create a new buffer, named for the current buffer + a .html extension,
+containing an inline CSS-stylesheet and formatted CSS-markup html that
+reproduces the look of the current Emacs buffer as closely as possible.
+
+``Dangerous'' characters in the existing buffer are turned into html
+entities, so you should even be able to do html-within-html fontified
+display.
+
+You should, however, note that random control or eight-bit characters
+such as ^L (\x0c) or ¤ (\xa4) won't get mapped yet.
+
+If the @var{srcdir} and @var{file} arguments are set, lookup etags
+derived entries in the @ref{hfy-tags-cache} and add html anchors
+and hyperlinks as appropriate.
+
+@item htmlfontify-run-etags
+@findex htmlfontify-run-etags
+@anchor{htmlfontify-run-etags}
+
+@lisp
+
+(htmlfontify-run-etags @var{srcdir})
+@end lisp
+
+Load the etags cache for @var{srcdir}.  See @ref{hfy-load-tags-cache}.
+
+@item htmlfontify-copy-and-link-dir
+@findex htmlfontify-copy-and-link-dir
+@anchor{htmlfontify-copy-and-link-dir}
+
+@lisp
+
+(htmlfontify-copy-and-link-dir @var{srcdir} @var{dstdir} &optional @var{f-ext} @var{l-ext})
+@end lisp
+
+Trawl @var{srcdir} and write fontified-and-hyperlinked output in
+@var{dstdir}.  @var{f-ext} and @var{l-ext} specify values for
+@ref{hfy-extn} and @ref{hfy-link-extn}.
+
+You may also want to set @ref{hfy-page-header} and @ref{hfy-page-footer}.
+
+@item htmlfontify-load-rgb-file
+@findex htmlfontify-load-rgb-file
+@anchor{htmlfontify-load-rgb-file}
+
+@lisp
+
+(htmlfontify-load-rgb-file &optional @var{file})
+@end lisp
+
+Load an X11 style rgb.txt file (search @code{hfy-rgb-load-path} if
+@var{file} is not specified).
+
+Note that this is not necessary if all you want is the standard X11
+(XFree86 4.1.0) color name -> rgb triplet mapping.  Htmlfontify has
+a copy built in, for use when it cannot contact an X server.
+
+Loads the variable @code{hfy-rgb-txt-color-map}, which is used by
+@ref{hfy-fallback-color-values}.
+
+@item htmlfontify-unload-rgb-file
+@findex htmlfontify-unload-rgb-file
+@anchor{htmlfontify-unload-rgb-file}
+
+@lisp
+
+(htmlfontify-unload-rgb-file)
+@end lisp
+
+Unload the currently loaded X11 style rgb.txt file (if any).
+@end table
+
+@node Non-interactive
+@section Non-interactive
+@cindex Noninteractive
+@cindex functions (noninteractive)
+
+In addition to the aforementioned interactive methods, Htmlfontify
+provides the following non-interactive ones:
+
+@table @code
+@comment  AUTOGENERATED BLOCK
+
+@item hfy-face-to-style
+@findex hfy-face-to-style
+@anchor{hfy-face-to-style}
+
+@lisp
+
+(hfy-face-to-style @var{fn})
+@end lisp
+
+Take @var{fn}, a font or @code{defface} style font specification,
+(as returned by @code{face-attr-construct} or @ref{hfy-face-attr-for-class})
+and return a @ref{hfy-style-assoc}.
+
+See also: @ref{hfy-face-to-style-i}, @ref{hfy-flatten-style}.
+
+@item hfy-fallback-color-values
+@findex hfy-fallback-color-values
+@anchor{hfy-fallback-color-values}
+
+@lisp
+
+(hfy-fallback-color-values @var{color-string})
+@end lisp
+
+Use a fallback method for obtaining the rgb values for a color.
+If @ref{htmlfontify-load-rgb-file} has been called, it uses the
+color map specified, otherwise it uses Htmlfontify's built in map.
+
+@item hfy-combined-face-spec
+@findex hfy-combined-face-spec
+@anchor{hfy-combined-face-spec}
+
+@lisp
+
+(hfy-combined-face-spec @var{face})
+@end lisp
+
+Return a @code{defface} style alist of possible specifications for
+@var{face}, with any entries resulting from user customisation
+(@code{custom-set-faces}) taking precedence.
+
+See also: @ref{hfy-default-face-def}
+
+@item hfy-word-regex
+@findex hfy-word-regex
+@anchor{hfy-word-regex}
+
+@lisp
+
+(hfy-word-regex @var{string})
+@end lisp
+
+Return a regex that matches @var{string} as the first @code{match-string},
+with non word characters on either side (vaguely emulating the perl @code{\b}
+regex atom).
+
+@item hfy-force-fontification
+@findex hfy-force-fontification
+@anchor{hfy-force-fontification}
+
+@lisp
+
+(hfy-force-fontification)
+@end lisp
+
+Emacs's fontification is designed for interactive use.  As such, it sometimes
+does things like deferring fontification until a section of the buffer is
+exposed and rendered, or until Emacs is idle for a while.  Sometimes, in
+non-interactive circumstances, or if it can't see X, it doesn't bother
+with some of the harder stuff.  While this is all great from the perspective
+of a user waiting for Emacs to load a 20000 line file and colorise it,
+it's a pain from the point of view from non-interactive code.  This function
+lies, cheats, steals and generally bullies Emacs into fontifying a buffer
+from start to finish, with all the extra frills, whether it thinks it nneds
+to or not.  Oh yes: it operates on the current buffer.
+
+@item hfy-link-style-string
+@findex hfy-link-style-string
+@anchor{hfy-link-style-string}
+
+@lisp
+
+(hfy-link-style-string @var{style-string})
+@end lisp
+
+Replace the end of a CSS style declaration @var{style-string} with the contents
+of the variable @ref{hfy-src-doc-link-style}, removing text matching the
+regex @ref{hfy-src-doc-link-unstyle} first, if necessary.
+
+
+@item hfy-prepare-index-i
+@findex hfy-prepare-index-i
+@anchor{hfy-prepare-index-i}
+
+@lisp
+
+(hfy-prepare-index-i @var{srcdir} @var{dstdir} @var{filename} &optional @var{stub} @var{map})
+@end lisp
+
+Prepare a tags index buffer for @var{srcdir}.
+@ref{hfy-tags-cache} must already have an entry for @var{srcdir} for
+this to work.  @ref{hfy-page-header}, @ref{hfy-page-footer},
+@ref{hfy-link-extn} and @ref{hfy-extn} all play a part here.
+
+If @var{stub} is set, prepare an (appropriately named) index buffer
+specifically for entries beginning with @var{stub}.
+
+If @var{map} is set, use that instead of @ref{hfy-tags-cache}.
+
+@item hfy-compile-stylesheet
+@findex hfy-compile-stylesheet
+@anchor{hfy-compile-stylesheet}
+
+@lisp
+
+(hfy-compile-stylesheet)
+@end lisp
+
+Trawl the current buffer, construct and return a @ref{hfy-sheet-assoc}.
+
+@item hfy-css-name
+@findex hfy-css-name
+@anchor{hfy-css-name}
+
+@lisp
+
+(hfy-css-name @var{fn})
+@end lisp
+
+Strip some of the boring bits from a font-name and return a CSS style
+name.  If @var{fn} is a @code{defface} attribute list, either construct
+a name for it, store it in the cache, and return it, or just fetch it
+from the cache if it's already there.
+
+@item hfy-make-directory
+@findex hfy-make-directory
+@anchor{hfy-make-directory}
+
+@lisp
+
+(hfy-make-directory @var{dir})
+@end lisp
+
+Approximate equivalent of @code{mkdir -p @var{dir}}.
+
+@item hfy-triplet
+@findex hfy-triplet
+@anchor{hfy-triplet}
+
+@lisp
+
+(hfy-triplet @var{color})
+@end lisp
+
+Takes a color name (string) and return a CSS rgb(R, G, B) triplet string.
+Uses the definition of ``white'' to map the numbers to the 0-255 range, so
+if you've redefined white, (especially if you've redefined it to have
+a triplet member lower than that of the color you are processing,
+strange things may happen).
+
+@item hfy-default-footer
+@findex hfy-default-footer
+@anchor{hfy-default-footer}
+
+@lisp
+
+(hfy-default-footer @var{file})
+@end lisp
+
+Default value for @ref{hfy-page-footer}
+
+@item hfy-list-files
+@findex hfy-list-files
+@anchor{hfy-list-files}
+
+@lisp
+
+(hfy-list-files @var{directory})
+@end lisp
+
+Return a list of files under @var{directory}.
+Strips any leading @samp{./} from each filename.
+
+@item hfy-color-vals
+@findex hfy-color-vals
+@anchor{hfy-color-vals}
+
+@lisp
+
+(hfy-color-vals @var{color})
+@end lisp
+
+Where @var{color} is a color name or #XXXXXX style triplet, return a list of
+3 (16 bit) rgb values for said color.  If a window system is unavailable,
+calls @ref{hfy-fallback-color-values}.
+
+@item hfy-href-stub
+@findex hfy-href-stub
+@anchor{hfy-href-stub}
+
+@lisp
+
+(hfy-href-stub @var{this-file} @var{def-files} @var{tag})
+@end lisp
+
+Return an href stub for a tag href: if @var{def-files} (list of files
+containing definitions for the tag in question) contains only one entry,
+the href should link straight to that file.  Otherwise, the link should
+be to the index file.
+
+We are not yet concerned with the file extensions/tag line number and
+so on at this point.
+
+If @ref{hfy-split-index} is set, and the href will be to an index file
+rather than a source file, append a @samp{.X} to @ref{hfy-index-file}, where
+@samp{X} is the uppercased first character of @var{tag}.
+
+See also: @ref{hfy-relstub}, @ref{hfy-index-file}.
+
+@item hfy-line-number
+@findex hfy-line-number
+@anchor{hfy-line-number}
+
+@lisp
+
+(hfy-line-number)
+@end lisp
+
+Returns the line number of the point in the current buffer.
+
+@item hfy-merge-adjacent-spans
+@findex hfy-merge-adjacent-spans
+@anchor{hfy-merge-adjacent-spans}
+
+@lisp
+
+(hfy-merge-adjacent-spans @var{face-map})
+@end lisp
+
+Where @var{face-map} is a @ref{hfy-facemap-assoc} for the current buffer,
+this function merges adjacent style blocks which are of the same value
+and are separated by nothing more interesting than whitespace.
+
+@code{<span class="foo">narf</span> <span class="foo">brain</span>}
+
+(as interpreted from @var{face-map}) would become:
+
+@code{<span class="foo">narf brain</span>}
+
+Returns a modified copy of @var{face-map} (also a @ref{hfy-facemap-assoc}).
+
+@item hfy-mark-tag-names
+@findex hfy-mark-tag-names
+@anchor{hfy-mark-tag-names}
+
+@lisp
+
+(hfy-mark-tag-names @var{srcdir} @var{file})
+@end lisp
+
+Mark tags in @var{file} (lookup @var{srcdir} in @ref{hfy-tags-cache}) with the
+@code{hfy-anchor} property, with a value of @samp{tag.line-number}.
+
+@item hfy-weight
+@findex hfy-weight
+@anchor{hfy-weight}
+
+@lisp
+
+(hfy-weight @var{weight})
+@end lisp
+
+Derive a font-weight CSS specifier from an Emacs weight specification symbol.
+
+@item hfy-size
+@findex hfy-size
+@anchor{hfy-size}
+
+@lisp
+
+(hfy-size @var{height})
+@end lisp
+
+Derive a CSS font-size specifier from an Emacs font @code{:height} attribute.
+Does not cope with the case where height is a function to be applied to
+the height of the underlying font.
+
+@item hfy-default-header
+@findex hfy-default-header
+@anchor{hfy-default-header}
+
+@lisp
+
+(hfy-default-header @var{file} @var{style})
+@end lisp
+
+Default value for @ref{hfy-page-header}
+
+@item hfy-family
+@findex hfy-family
+@anchor{hfy-family}
+
+@lisp
+
+(hfy-family @var{family})
+@end lisp
+
+Derives a CSS font-family specifier from an Emacs @code{:family} attribute.
+
+@item hfy-mark-tag-hrefs
+@findex hfy-mark-tag-hrefs
+@anchor{hfy-mark-tag-hrefs}
+
+@lisp
+
+(hfy-mark-tag-hrefs @var{srcdir} @var{file})
+@end lisp
+
+Mark href start points with the @code{hfy-link} property (value: href string).
+
+Mark href end points with the @code{hfy-endl} property (value @code{t}).
+
+Avoid overlapping links, and mark links in descending length of
+tag name in order to prevent subtags from usurping supertags;
+e.g., ``term'' for ``terminal'').
+
+@item hfy-box
+@findex hfy-box
+@anchor{hfy-box}
+
+@lisp
+
+(hfy-box @var{box})
+@end lisp
+
+Derive CSS border-* attributes from the Emacs @code{:box} attribute.
+
+@item hfy-box-to-style
+@findex hfy-box-to-style
+@anchor{hfy-box-to-style}
+
+@lisp
+
+(hfy-box-to-style @var{spec})
+@end lisp
+
+Convert a complex @code{:box} Emacs font attribute set to a list of
+CSS border-* attributes.  Don't call this directly---it is called by
+@ref{hfy-box} when necessary.
+
+@item hfy-html-enkludge-buffer
+@findex hfy-html-enkludge-buffer
+@anchor{hfy-html-enkludge-buffer}
+
+@lisp
+
+(hfy-html-enkludge-buffer)
+@end lisp
+
+Mark dangerous @samp{["<>]} characters with the @code{hfy-quoteme} property.
+
+See also @ref{hfy-html-dekludge-buffer}.
+
+@item hfy-buffer
+@findex hfy-buffer
+@anchor{hfy-buffer}
+
+@lisp
+
+(hfy-buffer)
+@end lisp
+
+Generate and return an Htmlfontify html output buffer for the current
+buffer.  May trample an existing buffer.
+
+@item hfy-fontified-p
+@findex hfy-fontified-p
+@anchor{hfy-fontified-p}
+
+@lisp
+
+(hfy-fontified-p)
+@end lisp
+
+@code{font-lock} doesn't like to say a buffer's been fontified when in
+batch mode, but we want to know if we should fontify or raw copy, so in
+batch mode we check for non-default face properties.  Otherwise we test
+@code{font-lock-mode} and @code{font-lock-fontified} for truth.
+
+@item hfy-lookup
+@findex hfy-lookup
+@anchor{hfy-lookup}
+
+@lisp
+
+(hfy-lookup @var{face} @var{style})
+@end lisp
+
+Where @var{style} is a @ref{hfy-sheet-assoc} and @var{face} is an Emacs face,
+return the relevant @var{css} style name.
+
+@item hfy-fontify-buffer
+@findex hfy-fontify-buffer
+@anchor{hfy-fontify-buffer}
+
+@lisp
+
+(hfy-fontify-buffer &optional @var{srcdir} @var{file})
+@end lisp
+
+Implement the guts of @ref{htmlfontify-buffer}.
+
+@item hfy-color
+@findex hfy-color
+@anchor{hfy-color}
+
+@lisp
+
+(hfy-color @var{color})
+@end lisp
+
+Convert an Emacs :foreground property to a CSS color property.
+
+@item hfy-flatten-style
+@findex hfy-flatten-style
+@anchor{hfy-flatten-style}
+
+@lisp
+
+(hfy-flatten-style @var{style})
+@end lisp
+
+Take @var{style} (see @ref{hfy-face-to-style-i}, @ref{hfy-face-to-style})
+and merge any multiple attributes appropriately.  Currently only font-size is
+merged down to a single occurrence---others may need special handling, but I
+haven't encountered them yet.  Returns a @ref{hfy-style-assoc}.
+
+@item hfy-size-to-int
+@findex hfy-size-to-int
+@anchor{hfy-size-to-int}
+
+@lisp
+
+(hfy-size-to-int @var{spec})
+@end lisp
+
+Convert @var{spec}, a CSS font-size specifier, back to an Emacs
+@code{:height} attribute value.  Used while merging multiple font-size
+attributes.
+
+@item hfy-sprintf-stylesheet
+@findex hfy-sprintf-stylesheet
+@anchor{hfy-sprintf-stylesheet}
+
+@lisp
+
+(hfy-sprintf-stylesheet @var{css} @var{file})
+@end lisp
+
+Generates a header, via @ref{hfy-page-header}, for @var{file}, containing the
+stylesheet derived from @var{css}, which is a @ref{hfy-sheet-assoc}.  Returns a
+string containing the same.
+
+@item hfy-relstub
+@findex hfy-relstub
+@anchor{hfy-relstub}
+
+@lisp
+
+(hfy-relstub @var{file} &optional @var{start})
+@end lisp
+
+Return a @samp{../} stub of the appropriate length for the current source
+tree depth (as determined from @var{file}). @c iyswim.
+
+@item hfy-compile-face-map
+@findex hfy-compile-face-map
+@anchor{hfy-compile-face-map}
+
+@lisp
+
+(hfy-compile-face-map)
+@end lisp
+
+Compile and return a @ref{hfy-facemap-assoc} for the current buffer.
+
+@item hfy-prepare-index
+@findex hfy-prepare-index
+@anchor{hfy-prepare-index}
+
+@lisp
+
+(hfy-prepare-index @var{srcdir} @var{dstdir})
+@end lisp
+
+Return as list of index buffer(s), as determined by @ref{hfy-split-index}.
+Uses @ref{hfy-prepare-index-i} to do this.
+
+@item hfy-prepare-tag-map
+@findex hfy-prepare-tag-map
+@anchor{hfy-prepare-tag-map}
+
+@lisp
+
+(hfy-prepare-tag-map @var{srcdir} @var{dstdir})
+@end lisp
+
+Prepare the counterpart(s) to the index buffer(s)---a list of buffers with
+the same structure, but listing (and linking to) instances of tags (as
+opposed to their definitions).
+
+See also: @ref{hfy-prepare-index}, @ref{hfy-split-index}
+
+@item hfy-subtract-maps
+@findex hfy-subtract-maps
+@anchor{hfy-subtract-maps}
+
+@lisp
+
+(hfy-subtract-maps @var{srcdir})
+@end lisp
+
+Internal function---strips definitions of tags from the instance map.
+See: @ref{hfy-tags-cache} and @ref{hfy-tags-rmap}
+
+@item hfy-face-to-style-i
+@findex hfy-face-to-style-i
+@anchor{hfy-face-to-style-i}
+
+@lisp
+
+(hfy-face-to-style-i @var{fn})
+@end lisp
+
+The guts of @ref{hfy-face-to-style}.  @var{fn} should be a @code{defface}
+font specification, as returned by @code{face-attr-construct} or
+@ref{hfy-face-attr-for-class}.  Note that this function does not get
+font-sizes right if they are based on inherited modifiers (via the
+:inherit) attribute, and any other modifiers that are cumulative if they
+appear multiple times need to be merged by the user---@ref{hfy-flatten-style}
+should do this.
+
+@item hfy-face-to-css
+@findex hfy-face-to-css
+@anchor{hfy-face-to-css}
+
+@lisp
+
+(hfy-face-to-css @var{fn})
+@end lisp
+
+Take @var{fn}, a font or @code{defface} specification (c.f.
+@code{face-attr-construct}) and return a CSS style specification.
+
+See also: @ref{hfy-face-to-style}
+
+@item hfy-html-quote
+@findex hfy-html-quote
+@anchor{hfy-html-quote}
+
+@lisp
+
+(hfy-html-quote @var{char-string})
+@end lisp
+
+Map a string (usually 1 character long) to an html safe string
+(entity) if need be.
+
+@item hfy-link-style
+@findex hfy-link-style
+@anchor{hfy-link-style}
+
+@lisp
+
+(hfy-link-style @var{style-string})
+@end lisp
+
+Convert the CSS style spec @var{style-string} to its equivalent
+hyperlink style.
+
+See: @ref{hfy-link-style-fun}.
+
+@item hfy-p-to-face
+@findex hfy-p-to-face
+@anchor{hfy-p-to-face}
+
+@lisp
+
+(hfy-p-to-face @var{props})
+@end lisp
+
+Given @var{props}, a list of text-properties, return the value of the
+face property, or nil.
+
+@item hfy-box-to-border-assoc
+@findex hfy-box-to-border-assoc
+@anchor{hfy-box-to-border-assoc}
+
+@lisp
+
+(hfy-box-to-border-assoc @var{spec})
+@end lisp
+
+Helper function for @ref{hfy-box-to-style}.
+
+@item hfy-face-attr-for-class
+@findex hfy-face-attr-for-class
+@anchor{hfy-face-attr-for-class}
+
+@lisp
+
+(hfy-face-attr-for-class @var{face} &optional @var{class})
+@end lisp
+
+Return the face attributes for @var{face}.  If @var{class} is set, it
+must be a @code{defface} alist key [see below].  Prior to version 0.18,
+the first face specification returned by @ref{hfy-combined-face-spec}
+which @emph{didn't} clash with @var{class} was returned.  In versions
+from 0.18 onwards, each font attribute list is scored, and the
+non-conflicting list with the highest score is returned.  (A specification
+with a class of @code{t} is considered to match any class you specify.
+This matches Emacs's behaviour when deciding on which face attributes to
+use, to the best of my understanding ).
+
+If @var{class} is nil, then you just get get whatever
+@code{face-attr-construct} returns; i.e., the current specification in
+effect for @var{face}.
+
+See @ref{hfy-display-class} for details of valid values for @var{class}.
+
+@item hfy-face-at
+@findex hfy-face-at
+@anchor{hfy-face-at}
+
+@lisp
+
+(hfy-face-at P)
+@end lisp
+
+Find face in effect at point P.  If overlays are to be considered
+(see @ref{hfy-optimisations}) then this may return a @code{defface} style
+list of face properties instead of a face symbol.
+
+@item hfy-bgcol
+@findex hfy-bgcol
+@anchor{hfy-bgcol}
+
+@lisp
+
+(hfy-bgcol @var{color})
+@end lisp
+
+As per @ref{hfy-color} but for background colors.
+
+@item hfy-kludge-cperl-mode
+@findex hfy-kludge-cperl-mode
+@anchor{hfy-kludge-cperl-mode}
+
+@lisp
+
+(hfy-kludge-cperl-mode)
+@end lisp
+
+cperl mode does its damndest not to do some of its fontification when not
+in a windowing system---we try to trick it@dots{}
+
+@item hfy-href
+@findex hfy-href
+@anchor{hfy-href}
+
+@lisp
+
+(hfy-href @var{this-file} @var{def-files} @var{tag} @var{tag-map})
+@end lisp
+
+Return a relative href to the tag in question, based on
+
+@var{this-file} @ref{hfy-link-extn} @ref{hfy-extn} @var{def-files} @var{tag} and @var{tag-map}
+
+@var{this-file} is the current source file
+@var{def-files} is a list of file containing possible link endpoints for @var{tag}
+@var{tag} is the @var{tag} in question
+@var{tag-map} is the entry in @ref{hfy-tags-cache}.
+
+@item hfy-shell
+@findex hfy-shell
+@anchor{hfy-shell}
+
+@lisp
+
+(hfy-shell)
+@end lisp
+
+Returns a best guess at a Bourne compatible shell to use: If the current
+shell doesn't look promising, fall back to @ref{hfy-shell-file-name}.
+
+@item hfy-load-tags-cache
+@findex hfy-load-tags-cache
+@anchor{hfy-load-tags-cache}
+
+@lisp
+
+(hfy-load-tags-cache @var{srcdir})
+@end lisp
+
+Run @ref{hfy-etags-cmd} on @var{srcdir}: load @ref{hfy-tags-cache} and @ref{hfy-tags-sortl}.
+
+@item hfy-parse-tags-buffer
+@findex hfy-parse-tags-buffer
+@anchor{hfy-parse-tags-buffer}
+
+@lisp
+
+(hfy-parse-tags-buffer @var{srcdir} @var{buffer})
+@end lisp
+
+Parse a @var{buffer} containing etags formatted output, loading the
+@ref{hfy-tags-cache} and @ref{hfy-tags-sortl} entries for @var{srcdir}.
+
+@item hfy-interq
+@findex hfy-interq
+@anchor{hfy-interq}
+
+@lisp
+
+(hfy-interq @var{set-a} @var{set-b})
+@end lisp
+
+Return the intersection (using @code{eq}) of 2 lists.
+
+@item hfy-text-p
+@findex hfy-text-p
+@anchor{hfy-text-p}
+
+@lisp
+
+(hfy-text-p @var{srcdir} @var{file})
+@end lisp
+
+Is @var{srcdir}/@var{file} text?  Uses @ref{hfy-istext-command} to determine this.
+
+@item hfy-opt
+@findex hfy-opt
+@anchor{hfy-opt}
+
+@lisp
+
+(hfy-opt @var{symbol})
+@end lisp
+
+Is @ref{hfy-optimisations} member @var{symbol} set or not?
+
+@item hfy-dirname
+@findex hfy-dirname
+@anchor{hfy-dirname}
+
+@lisp
+
+(hfy-dirname @var{file})
+@end lisp
+
+Return everything preceding the last @samp{/} from a relative filename,
+on the assumption that this will produce a relative directory name.  Hardly
+bombproof, but good enough in the context in which it is being used.
+
+@item hfy-html-dekludge-buffer
+@findex hfy-html-dekludge-buffer
+@anchor{hfy-html-dekludge-buffer}
+
+@lisp
+
+(hfy-html-dekludge-buffer)
+@end lisp
+
+Transform all dangerous characters marked with the @code{hfy-quoteme} property
+using @ref{hfy-html-quote}
+
+See also @ref{hfy-html-enkludge-buffer}.
+
+@item hfy-copy-and-fontify-file
+@findex hfy-copy-and-fontify-file
+@anchor{hfy-copy-and-fontify-file}
+
+@lisp
+
+(hfy-copy-and-fontify-file @var{srcdir} @var{dstdir} @var{file})
+@end lisp
+
+Open @var{file} in @var{srcdir}---if fontified, write a fontified copy to @var{dstdir}
+adding an extension of @ref{hfy-extn}.  Fontification is actually done by
+@ref{htmlfontify-buffer}.  If the buffer is not fontified, just copy it.
+
+@item hfy-decor
+@findex hfy-decor
+@anchor{hfy-decor}
+
+@lisp
+
+(hfy-decor @var{tag} @var{val})
+@end lisp
+
+Derive CSS text-decoration specifiers from various Emacs font attributes.
+
+@item hfy-slant
+@findex hfy-slant
+@anchor{hfy-slant}
+
+@lisp
+
+(hfy-slant @var{slant})
+@end lisp
+
+Derive a font-style CSS specifier from the Emacs :slant
+attribute---CSS does not define the reverse-* styles, so just maps
+those to the regular specifiers.
+
+@item hfy-tags-for-file
+@findex hfy-tags-for-file
+@anchor{hfy-tags-for-file}
+
+@lisp
+
+(hfy-tags-for-file @var{srcdir} @var{file})
+@end lisp
+
+List of etags tags that have definitions in this @var{file}.  Looks up
+the tags cache in @ref{hfy-tags-cache} using @var{srcdir} as the key.
+
+@item hfy-width
+@findex hfy-width
+@anchor{hfy-width}
+
+@lisp
+
+(hfy-width @var{width})
+@end lisp
+
+Convert an Emacs @code{:width} attribute to a CSS font-stretch attribute.
+
+@comment /AUTOGENERATED BLOCK
+@end table
+
+@node Variables
+@section Variables
+@cindex variables
+
+Important variables that are not customisation items:
+
+@table @code
+
+@item hfy-tags-cache
+@vindex hfy-tags-cache
+@anchor{hfy-tags-cache}
+
+This is an alist of the form:
+
+@example
+(("/src/dir/0" . tag-hash0) ("/src/dir/1" tag-hash1) @dots{} )
+@end example
+
+Each tag hash entry then contains entries of the form:
+
+@example
+"tag_string" => (("file/name.ext" line char) @dots{} )
+@end example
+
+i.e., an alist mapping (relative) file paths to line and character offsets.
+
+See @ref{hfy-load-tags-cache}.
+
+@item hfy-tags-rmap
+@vindex hfy-tags-rmap
+@anchor{hfy-tags-rmap}
+
+@code{hfy-tags-rmap} is an alist of the form:
+
+@lisp
+(("/src/dir" . tag-rmap-hash))
+@end lisp
+
+Where tag-rmap-hash has entries of the form:
+
+@example
+"tag_string" => ( "file/name.ext" line char )
+@end example
+
+Unlike @ref{hfy-tags-cache} these are the locations of occurrences of
+tagged items, not the locations of their definitions.
+
+@item hfy-tags-sortl
+@vindex hfy-tags-sortl
+@anchor{hfy-tags-sortl}
+
+@code{hfy-tags-sortl} is an alist of the form:
+
+@example
+(("/src/dir" . (tag0 tag1 tag2)) @dots{} )
+@end example
+
+Where the tags are stored in descending order of length.
+
+See: @ref{hfy-load-tags-cache}.
+
+@end table
+
+@node Data Structures
+@section Data Structures
+@cindex Data Structures
+
+Some of the (informal) data structures used in Htmlfontify are detailed here:
+
+@table @code
+
+@item hfy-style-assoc
+@cindex hfy-style-assoc
+@anchor{hfy-style-assoc}
+
+An assoc representing/describing an Emacs face.  Properties may be repeated,
+in which case later properties should be treated as if they were inherited
+from a ``parent'' font.  (For some properties, only the first encountered value
+is of any importance, for others the values might be cumulative, and for
+others they might be cumulative in a complex way.)
+
+Some examples:
+
+@lisp
+(hfy-face-to-style 'default) =>
+
+  (("background"      . "rgb(0, 0, 0)"      )
+   ("color"           . "rgb(255, 255, 255)")
+   ("font-style"      . "normal"            )
+   ("font-weight"     . "500"               )
+   ("font-stretch"    . "normal"            )
+   ("font-family"     . "misc-fixed"        )
+   ("font-size"       . "13pt"              )
+   ("text-decoration" . "none"              ))
+
+(hfy-face-to-style 'Info-title-3-face) =>
+
+  (("font-weight"     . "700"        )
+   ("font-family"     . "helv"       )
+   ("font-size"       . "120%"       )
+   ("text-decoration" . "none")      )
+@end lisp
+
+@item hfy-sheet-assoc
+@cindex hfy-sheet-assoc
+@anchor{hfy-sheet-assoc}
+
+An assoc with elements of the form @samp{(face-name style-name . style-string)}.
+The actual stylesheet for each page is derived from one of these.
+
+@lisp
+'((default       "default" . "@{ background: black; color: white@}")
+  (font-lock-string-face "string"  . "@{ color: rgb(64,224,208) @}"))
+@end lisp
+
+@item hfy-facemap-assoc
+@cindex hfy-facemap-assoc
+@anchor{hfy-facemap-assoc}
+
+An assoc of @code{(point . @var{face-symbol})} or
+@code{(point . @code{defface} attribute list)} and @code{(point
+. end)} elements, in descending order of point value (i.e., from the
+file's end to its beginning).  The map is in reverse order because
+inserting a @samp{<style>} tag (or any other string) at @var{point}
+invalidates the map for all entries with a greater value of point. By
+traversing the map from greatest to least @var{point}, we still
+invalidate the map as we go, but only those points we have already
+dealt with (and therefore no longer care about) will be invalid at any
+time.
+
+@lisp
+'((64820 . end)
+  (64744 . font-lock-comment-face)
+  (64736 . end)
+  (64722 . font-lock-string-face)
+  (64630 . end)
+  (64623 . font-lock-string-face)
+  (64449 . end)
+  ;; Big similar section elided.  You get the idea.
+  (5459 . end)
+  (5431 . (:inherit font-lock-keyword-face :background "7e7e7e"))
+  (5431 . end)
+  (4285 . font-lock-constant-face)
+  (4285 . end)
+  (4221 . font-lock-comment-face)
+  (4221 . end)
+  (4197 . font-lock-constant-face)
+  (4197 . end)
+  (1 . font-lock-comment-face))
+@end lisp
+
+@end table
+
+@node Examples
+@section Examples
+@cindex Examples
+
+The following is a lump of code I use to fontify source code on my
+site, @url{http://rtfm.etla.org/} (which was the reason, incidentally,
+that Htmlfontify was written in the first place).
+
+@lisp
+(defvar rtfm-section nil)
+
+;; Constructs an appropriate header string to fit in with rtfm's
+;; templating system, based on the file and the stylesheet string
+(defun rtfm-build-page-header (file style)
+  (format "#define  TEMPLATE red+black.html
+#define  DEBUG    1
+#include <build/menu-dirlist|>\n
+html-css-url := /css/red+black.css
+title        := rtfm.etla.org ( %s / src/%s )
+bodytag      :=
+head         <=STYLESHEET;\n
+%s
+STYLESHEET
+main-title   := rtfm / %s / src/%s\n
+main-content <=MAIN_CONTENT;\n" rtfm-section file style rtfm-section file))
+
+;; the footer:
+(defun rtfm-build-page-footer (file) "\nMAIN_CONTENT\n")
+
+(defun rtfm-fontify-buffer (section)
+  (interactive "s section[eg- emacs / p4-blame]: ")
+  (require 'htmlfontify)
+  (let ((hfy-page-header  'rtfm-build-page-header)
+	(hfy-page-footer  'rtfm-build-page-footer)
+	(rtfm-section                     section))
+    (htmlfontify-buffer)
+    )
+  )
+
+;; Here's the function I actually call---it asks me for a section label,
+;; and source and destination directories, and then binds a couple of
+;; customisation variable in a let before calling htmlfontify:
+(defun rtfm-build-source-docs (section srcdir destdir)
+  (interactive
+   "s section[eg- emacs / p4-blame]:\nD source-dir: \nD output-dir: ")
+  (require 'htmlfontify)
+  (hfy-load-tags-cache srcdir)
+  (let ((hfy-page-header  'rtfm-build-page-header)
+	(hfy-page-footer  'rtfm-build-page-footer)
+	(rtfm-section                     section)
+	(hfy-index-file                   "index")
+	(auto-mode-alist (append auto-mode-alist
+				 '(("dbi\\(shell\\|gtk\\)$" . cperl-mode)
+				   ("\\.xpm$"               . c-mode    ))))
+	)
+    (htmlfontify-run-etags srcdir)
+    (htmlfontify-copy-and-link-dir srcdir destdir ".src" ".html")))
+@end lisp
+
+@node Customisation
+@chapter Customisation
+@cindex variables (customisation)
+
+Htmlfontify provides the following variable and customisation entries:
+
+@table @code
+@comment  AUTOGENERATED BLOCK
+
+@item hfy-link-style-fun
+@vindex hfy-link-style-fun
+@anchor{hfy-link-style-fun}
+
+Set this to a function, which will be called with one argument
+(a @samp{@{ foo: bar; @dots{}@}} CSS style-string)---it should return a copy of
+its argument, altered so as to make any changes you want made for text which
+is a hyperlink, in addition to being in the class to which that style would
+normally be applied.
+
+@item hfy-html-quote-regex
+@vindex hfy-html-quote-regex
+@anchor{hfy-html-quote-regex}
+
+Regex to match (with a single back-reference per match) strings in HTML
+which should be quoted with @ref{hfy-html-quote}
+(and @pxref{hfy-html-quote-map}) to make them safe.
+
+@item hfy-page-footer
+@vindex hfy-page-footer
+@anchor{hfy-page-footer}
+
+As @ref{hfy-page-header}, but generates the output footer
+(and takes only 1 argument, the filename).
+
+@item hfy-display-class
+@vindex hfy-display-class
+@anchor{hfy-display-class}
+
+Display class to use to determine which display class to use when
+calculating a face's attributes.  This is useful when, for example, you
+are running Emacs on a tty or in batch mode, and want Htmlfontify to have
+access to the face spec you would use if you were connected to an X display.
+
+Some valid class specification elements are:
+
+@lisp
+  '(class      color)
+  '(class      grayscale)
+  '(background dark)
+  '(background light)
+  '(type       x-toolkit)
+  '(type       tty)
+  '(type       motif)
+  '(type       lucid)
+@end lisp
+
+Multiple values for a tag may be combined, to indicate that any one or more
+of these values in the specification key constitutes a match, eg:
+
+'((class color grayscale) (type tty)) would match any of:
+@lisp
+  '((class color))
+  '((class grayscale))
+  '((class color grayscale)))
+  '((class color foo))
+  '((type  tty))
+  '((type  tty) (class color))
+@end lisp
+and so on.
+
+@item hfy-page-header
+@vindex hfy-page-header
+@anchor{hfy-page-header}
+
+Function called with two arguments (the filename relative to the top
+level source directory being etag'd and fontified), and a string containing
+the @samp{<style>@dots{}</style>} text to embed in the document---the string
+returned will be used as the header for the htmlfontified version of
+the source file.
+
+See also: @ref{hfy-page-footer}
+
+@item hfy-src-doc-link-style
+@vindex hfy-src-doc-link-style
+@anchor{hfy-src-doc-link-style}
+
+String to add to the @samp{<style> a} variant of an Htmlfontify CSS class.
+
+@item hfy-fast-lock-save
+@vindex hfy-fast-lock-save
+@anchor{hfy-fast-lock-save}
+
+Minimum size of a buffer for cached fontification.
+This value is temporarily assigned to @code{fast-lock-minimum-size} during
+html-fontification.
+
+Only buffers more than this can have associated Font Lock cache files saved.
+
+If nil, means cache files are never created.
+
+If a list, each element should be a cons pair of the form
+@code{(@var{major-mode} . @var{size})}, where @var{major-mode}
+is a symbol or t (meaning the default).  For example:
+
+@lisp
+ ((c-mode     . 25600  )
+  (c++-mode   . 25600  )
+  (rmail-mode . 1048576))
+@end lisp
+
+means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
+for buffers in Rmail mode, and size is irrelevant (i.e., no saves) otherwise.
+
+@item hfy-split-index
+@vindex hfy-split-index
+@anchor{hfy-split-index}
+
+Whether or not to split the index @ref{hfy-index-file} alphabetically
+on the first letter of each tag.  Useful when the index would otherwise
+be large and take a long time to render or be difficult to navigate.
+
+@item hfy-find-cmd
+@vindex hfy-find-cmd
+@anchor{hfy-find-cmd}
+
+``find'' command used to harvest a list of files to attempt to fontify.
+
+@item hfy-extn
+@vindex hfy-extn
+@anchor{hfy-extn}
+
+File extension used for output files
+
+@item hfy-default-face-def
+@vindex hfy-default-face-def
+@anchor{hfy-default-face-def}
+
+Fallback @code{defface} specification for the face @code{default}, used
+when @ref{hfy-display-class} has been set (the normal Htmlfontify way of
+extracting potentially non-current face information doesn't necessarily
+work for @code{default}).
+
+For example, I customise this to:
+
+@lisp
+((t :background "black" :foreground "white" :family "misc-fixed"))
+@end lisp
+
+@item hfy-init-kludge-hooks
+@vindex hfy-init-kludge-hooks
+@anchor{hfy-init-kludge-hooks}
+
+List of functions to call when starting htmlfontify-buffer to do any
+kludging necessary to get highlighting modes to bahave as you want, even
+when not running under a window system.
+
+@item hfy-shell-file-name
+@vindex hfy-shell-file-name
+@anchor{hfy-shell-file-name}
+
+Should be set to a Bourne compatible shell, which will be invoked
+for the more complex shell interactions needed by Htmlfontify.
+Currently this is only required/used when using GNU etags, see
+@ref{hfy-etags-cmd-alist} for details.
+
+@item hfy-optimisations
+@vindex hfy-optimisations
+@anchor{hfy-optimisations}
+
+Optimisations to turn on.  So far, the following have been implemented:
+
+@table @option
+@item merge-adjacent-tags
+If two (or more) span tags are adjacent, identical and separated by nothing
+more than whitespace, they will be merged into one span.
+
+@item zap-comment-links
+Suppress hyperlinking of tags found in comments.
+
+@item zap-string-links
+Suppress hyperlinking of tags found in strings.
+
+@item div-wrapper
+Add @samp{<div class="default"> </div>} tags around the fontified body.
+(Some people like this because they cut and paste the html into
+a page with different colors than the fontified code.)
+
+@item keep-overlays
+Preserve overlay highlighting (c.f. @code{ediff} or @code{goo-font-lock})
+as well as basic faces.  Can result in extremely verbose highlighting
+if there are many overlays (as is the case with @code{goo-font-lock}).
+
+@end table
+
+And the following are planned but not yet available:
+
+@table @option
+@item kill-context-leak
+Suppress hyperlinking between files highlighted by different modes.
+
+@end table
+
+Note: like compiler optimisations, these optimise the _output_ of the code,
+not the processing of the source itself, and are therefore likely to slow
+Htmlfontify down, at least a little.  Except for skip-refontification,
+which can never slow you down, but may result in incomplete fontification.
+
+@item hfy-src-doc-link-unstyle
+@vindex hfy-src-doc-link-unstyle
+@anchor{hfy-src-doc-link-unstyle}
+
+Regex to remove from the <style> a variant of an Htmlfontify CSS class.
+
+@item hfy-link-extn
+@vindex hfy-link-extn
+@anchor{hfy-link-extn}
+
+File extension used for href links---useful where the Htmlfontify
+output files are going to be processed again, with a rersulting change
+in file extension.  If @code{nil}, then any code using this should fall back
+to @ref{hfy-extn}.
+
+@item hfy-istext-command
+@vindex hfy-istext-command
+@anchor{hfy-istext-command}
+
+Command to run with the name of a file, to see whether it is a text file
+or not.  The command should emit a string containing the word @samp{text} if
+the file is a text file, and a string not containing @samp{text} otherwise.
+
+@item hfy-etags-cmd-alist
+@vindex hfy-etags-cmd-alist
+@anchor{hfy-etags-cmd-alist}
+
+An alist of possible shell commands that will generate etags output that
+Htmlfontify can use.  @samp{%s} will be replaced by @ref{hfy-etags-bin}.
+
+@item hfy-etags-bin
+@vindex hfy-etags-bin
+@anchor{hfy-etags-bin}
+
+The location of the etags binary (we begin by assuming it's in your path).
+
+Note that if etags is not in your path, you will need to alter the shell
+commands in @ref{hfy-etags-cmd-alist}.
+
+[As of version 0.17, this requirement has been removed: it should
+  all just work(tm).]
+
+@item hfy-etags-cmd
+@vindex hfy-etags-cmd
+@anchor{hfy-etags-cmd}
+
+An etags shell command to run in the source directory to generate a tags
+file for the whole source tree from there on down.  The command should emit
+the etags output on standard output.
+
+Two canned commands are provided---they drive Emacs's etags and
+exuberant-ctags's etags respectively.
+
+@item hfy-etag-regex
+@vindex hfy-etag-regex
+@anchor{hfy-etag-regex}
+
+Regex used to parse an etags entry: must have 3 subexps, corresponding,
+in order, to:
+
+@enumerate
+   The tag
+   The line
+   The character (point) at which the tag occurs
+@end enumerate
+
+@item hfy-index-file
+@vindex hfy-index-file
+@anchor{hfy-index-file}
+
+Name (sans extension) of the index file produced during
+fontification-and-hyperlinking.
+
+@item hfy-instance-file
+@vindex hfy-instance-file
+@anchor{hfy-instance-file}
+
+Name (sans extension) of the tag usage index file produced during
+fontification-and-hyperlinking.
+
+@item hfy-html-quote-map
+@vindex hfy-html-quote-map
+@anchor{hfy-html-quote-map}
+
+An alist of character -> entity mappings used to make the text html-safe.
+
+@comment /AUTOGENERATED BLOCK
+@end table
+
+@node Requirements
+@chapter Requirements
+@cindex Requirements, Prerequisites
+
+Htmlfontify has a couple of external requirements:
+
+@itemize @bullet
+
+@item
+GNU Emacs 20.7+ or 21.1+
+
+Other versions may work---these have been used successfully by the
+author.  If you intend to use Htmlfontify in batch mode, 21.1+ is
+pretty much required.  The author does not know if XEmacs, NTemacs,
+or J.Random Emacs will run Htmlfontify, but reports/patches/bags of
+money are always welcome.
+
+@item
+A copy of etags (exuberant-ctags or GNU etags).  Htmlfontify attempts
+to autodetect the version you have and customise itself accordingly,
+but you should be able to override this.
+
+See: @ref{Customisation}
+
+@item
+A copy of find (e.g., GNU find) that provides the @code{-path} predicate.
+
+You may be able to work around this with a suitable clever shell
+command and the customisation entry: @ref{hfy-find-cmd}
+
+@item
+A copy of sed (e.g., GNU sed).
+
+@item
+A copy of the @code{file} command.
+
+@end itemize
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Index
+@unnumbered Index
+
+@table @var
+@item Concepts
+@printindex cp
+
+@item Functions
+@printindex fn
+
+@item Variables & Customisation
+@printindex vr
+
+@end table
+
+@setchapternewpage odd
+@bye

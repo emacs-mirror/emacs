@@ -2566,7 +2566,7 @@ ns_get_glyph_string_clip_rect (struct glyph_string *s, NativeRectangle *nr)
    Draw a wavy line under glyph string s. The wave fills wave_height
    pixels from y.
 
-                    x          wave_length = 3
+                    x          wave_length = 2
                                  --
                 y    *   *   *   *   *
                      |* * * * * * * * *
@@ -2576,14 +2576,14 @@ ns_get_glyph_string_clip_rect (struct glyph_string *s, NativeRectangle *nr)
 static void
 ns_draw_underwave (struct glyph_string *s, CGFloat width, CGFloat x)
 {
-  int wave_height = 3, wave_length = 3;
+  int wave_height = 3, wave_length = 2;
   int y, dx, dy, odd, xmax;
   NSPoint a, b;
   NSRect waveClip;
 
   dx = wave_length;
   dy = wave_height - 1;
-  y =  s->ybase + 1;
+  y =  s->ybase - wave_height + 3;
   xmax = x + width;
 
   /* Find and set clipping rectangle */
@@ -2592,10 +2592,10 @@ ns_draw_underwave (struct glyph_string *s, CGFloat width, CGFloat x)
   NSRectClip (waveClip);
 
   /* Draw the waves */
-  a.x = x - ((int)(x) % dx);
+  a.x = x - ((int)(x) % dx) + 0.5;
   b.x = a.x + dx;
   odd = (int)(a.x/dx) % 2;
-  a.y = b.y = y;
+  a.y = b.y = y + 0.5;
 
   if (odd)
     a.y += dy;
@@ -2606,7 +2606,7 @@ ns_draw_underwave (struct glyph_string *s, CGFloat width, CGFloat x)
     {
       [NSBezierPath strokeLineFromPoint:a toPoint:b];
       a.x = b.x, a.y = b.y;
-      b.x += dx, b.y = y + odd*dy;
+      b.x += dx, b.y = y + 0.5 + odd*dy;
       odd = !odd;
     }
 
@@ -2646,6 +2646,7 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
           /* If the prev was underlined, match its appearance. */
           if (s->prev && s->prev->face->underline_p
+	      && s->prev->face->underline_type == FACE_UNDER_LINE
               && s->prev->underline_thickness > 0)
             {
               thickness = s->prev->underline_thickness;
