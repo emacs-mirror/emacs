@@ -1,3 +1,9 @@
+2013-01-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-set-file-uid-gid): UID and GID must be
+	non-negative integers.  Otherwise, the default values are used.
+	(tramp-convert-file-attributes): Convert uid and gid to integers.
+
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* term.el (term-handle-colors-array): Ensure face attributes
