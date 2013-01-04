@@ -1,3 +1,10 @@
+2013-01-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* nsterm.m (ns_draw_underwave):
+	* w32term.c (w32_draw_underwave):
+	* xterm.c (x_draw_underwave): Make underwave look more triangular
+	and also degrade gracefully for small fonts.  (Bug#13000)
+
 2012-12-31  Glenn Morris  <rgm@gnu.org>
 
 	* keymap.c (Fkey_description): Doc fix.  (Bug#13323)
