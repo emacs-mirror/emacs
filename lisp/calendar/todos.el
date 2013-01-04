@@ -4387,7 +4387,6 @@ the priority is not given by HERE but by prompting."
 	;; todos-set-item-priority.
 	;; (todos-category-number cat)
 	;; (todos-category-select)
-	(goto-char (point-min))
 	(let (buffer-read-only)
 	  (setq new-item
 		;; Add date, time and diary marking as required.
