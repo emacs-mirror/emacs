@@ -209,7 +209,6 @@ have fast storage with limited space, such as a RAM disk."
 (declare-function dired-unmark "dired" (arg))
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))
 (declare-function dos-8+3-filename "dos-fns" (filename))
-(declare-function view-mode-disable "view" ())
 (declare-function dosified-file-name "dos-fns" (file-name))
 
 (defvar file-name-invalid-regexp
@@ -2125,7 +2124,7 @@ unless NOMODES is non-nil."
     (setq buffer-read-only t))
   (unless nomodes
     (when (and view-read-only view-mode)
-      (view-mode-disable))
+      (view-mode -1))
     (normal-mode t)
     ;; If requested, add a newline at the end of the file.
     (and (memq require-final-newline '(visit visit-save))

@@ -5,6 +5,18 @@ setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 
 # adsgsdg
 
+case $X in
+    foo)
+        do_something
+        ;;
+    arg=*)			# bug#12953
+        do_something_else_based_on_arg
+        ;;
+    *)
+        default
+        ;;
+esac
+
 echo -n $(( 5 << 2 ))
 # This should not be treated as a heredoc (bug#12770).
 2

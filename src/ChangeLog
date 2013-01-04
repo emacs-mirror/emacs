@@ -261,7 +261,7 @@
 
 	* xdisp.c (select_frame_for_redisplay, ensure_selected_frame): Remove.
 	(redisplay_internal): Don't bother selecting the frame to get the
-	proper value of frame-local variables.
+	proper value of frame-local variables (bug#13225).
 
 2012-12-20  Dmitry Antipov  <dmantipov@yandex.ru>
 

@@ -1,5 +1,13 @@
 2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* view.el (view--enable, view--disable): Rename from view-mode-enable
+	and view-mode-disable and assume it's called from view-mode.
+	(view-mode-enable, view-mode-disable): Redefine as obsolete
+	compatibility layer above view-mode.
+	(view-mode-enter): Call `view-mode'.
+
+	* files.el (after-find-file): Call `view-mode'.
+
 	* doc-view.el (doc-view-scale-internally): New var.
 	(doc-view-enlarge, doc-view-insert-image): Obey it.
 
@@ -347,6 +355,8 @@
 	the first line.
 	(lm-homepage): New function.
 	(lm-with-file): Don't be confused if narrowing is in effect.
+
+2012-12-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/diff-mode.el (diff-post-command-hook): Don't ignore changes at the
 	very beginning of a hunk (e.g. killing the first line).
