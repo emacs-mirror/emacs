@@ -1,3 +1,8 @@
+2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-scale-internally): New var.
+	(doc-view-enlarge, doc-view-insert-image): Obey it.
+
 2013-01-03  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg--start): Ignore errors when /dev/fd/0 does not

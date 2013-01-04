@@ -173,9 +173,17 @@ Higher values result in larger images."
   :type 'number
   :group 'doc-view)
 
+(defcustom doc-view-scale-internally t
+  "Whether we should try to rescale images ourselves.
+If nil, the document is re-rendered every time the scaling factor is modified.
+This only has an effect if the image libraries linked with Emacs support
+scaling."
+  :type 'boolean)
+
 (defcustom doc-view-image-width 850
   "Default image width.
-Has only an effect if imagemagick support is compiled into emacs."
+Has only an effect if `doc-view-scale-internally' is non-nil and support for
+scaling is compiled into emacs."
   :version "24.1"
   :type 'number
   :group 'doc-view)
@@ -669,8 +677,9 @@ OpenDocument format)."
 (defun doc-view-enlarge (factor)
   "Enlarge the document by FACTOR."
   (interactive (list doc-view-shrink-factor))
-  (if (eq (plist-get (cdr (doc-view-current-image)) :type)
-	  'imagemagick)
+  (if (and doc-view-scale-internally
+           (eq (plist-get (cdr (doc-view-current-image)) :type)
+               'imagemagick))
       ;; ImageMagick supports on-the-fly-rescaling.
       (let ((new (ceiling (* factor doc-view-image-width))))
         (unless (equal new doc-view-image-width)
@@ -1133,10 +1142,11 @@ ARGS is a list of image descriptors."
     (setq doc-view-pending-cache-flush nil))
   (let ((ol (doc-view-current-overlay))
         (image (if (and file (file-readable-p file))
-		   (if (not (fboundp 'imagemagick-types))
+		   (if (not (and doc-view-scale-internally
+                                 (fboundp 'imagemagick-types)))
 		       (apply 'create-image file 'png nil args)
 		     (unless (member :width args)
-		       (setq args (append args (list :width doc-view-image-width))))
+		       (setq args `(,@args :width ,doc-view-image-width)))
 		     (apply 'create-image file 'imagemagick nil args))))
         (slice (doc-view-current-slice)))
     (setf (doc-view-current-image) image)
