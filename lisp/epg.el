@@ -1166,12 +1166,13 @@ This function is for internal use only."
     ;; Set GPG_TTY and TERM for pinentry-curses.  Note that we can't
     ;; use `terminal-name' here to get the real pty name for the child
     ;; process, though /dev/fd/0" is not portable.
-    (with-temp-buffer
-      (condition-case nil
-	  (when (= (call-process "tty" "/dev/fd/0" t) 0)
-	    (delete-backward-char 1)
-	    (setq terminal-name (buffer-string)))
-	(file-error)))
+    (unless (memq system-type '(ms-dos windows-nt))
+      (with-temp-buffer
+	(condition-case nil
+	    (when (= (call-process "tty" "/dev/fd/0" t) 0)
+	      (delete-backward-char 1)
+	      (setq terminal-name (buffer-string)))
+	  (file-error))))
     (when terminal-name
       (setq process-environment
 	    (cons (concat "GPG_TTY=" terminal-name)

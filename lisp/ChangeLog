@@ -1,3 +1,8 @@
+2013-01-04  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg--start): Don't call "tty" program on W32 platforms.
+	Suggested by Eli Zaretskii  <eliz@gnu.org>.
+
 2013-01-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-set-file-uid-gid): UID and GID must be
