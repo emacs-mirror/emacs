@@ -5,6 +5,11 @@
 	* xterm.c (x_draw_underwave): Make underwave look more triangular
 	and also degrade gracefully for small fonts.  (Bug#13000)
 
+	* nsterm.m (ns_draw_text_decoration):
+	* w32term.c (x_draw_glyph_string):
+	* xterm.c (x_draw_glyph_string): Don't use previous underline
+	thickness and position if previous underline type is underwave.
+
 2012-12-31  Glenn Morris  <rgm@gnu.org>
 
 	* keymap.c (Fkey_description): Doc fix.  (Bug#13323)
