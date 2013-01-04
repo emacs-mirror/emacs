@@ -1,5 +1,11 @@
 2013-01-04  Daiki Ueno  <ueno@gnu.org>
 
+	* epg.el: Silence byte-compiler warnings.
+	(epg--start): Use delete-char instead of delete-backward-char.
+	(epg-wait-for-completion): Pass FRAME arg to redraw-frame.
+
+2013-01-04  Daiki Ueno  <ueno@gnu.org>
+
 	* epg.el (epg--start): Don't call "tty" program on W32 platforms.
 	Suggested by Eli Zaretskii  <eliz@gnu.org>.
 

@@ -1170,7 +1170,7 @@ This function is for internal use only."
       (with-temp-buffer
 	(condition-case nil
 	    (when (= (call-process "tty" "/dev/fd/0" t) 0)
-	      (delete-backward-char 1)
+	      (delete-char -1)
 	      (setq terminal-name (buffer-string)))
 	  (file-error))))
     (when terminal-name
@@ -1300,7 +1300,7 @@ This function is for internal use only."
 	     (> (float-time (or (nth 5 (file-attributes epg-agent-file))
 				'(0 0 0 0)))
 		(float-time epg-agent-mtime))))
-      (redraw-frame))
+      (redraw-frame (selected-frame)))
   (epg-context-set-result-for
    context 'error
    (nreverse (epg-context-result-for context 'error))))
