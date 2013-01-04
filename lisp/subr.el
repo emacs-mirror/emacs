@@ -3977,8 +3977,8 @@ the number of frames to skip (minus 1).")
     `(progn
        (defvar ,sym
          (let ((i 1))
-           (while (not (eq (nth 1 (backtrace-frame i))
-                           'called-interactively-p))
+           (while (not (eq (indirect-function (nth 1 (backtrace-frame i)) t)
+                           (indirect-function 'called-interactively-p)))
              (setq i (1+ i)))
            i))
        ;; (unless (eq (nth 1 (backtrace-frame ,sym)) 'called-interactively-p)

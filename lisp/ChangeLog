@@ -1,5 +1,8 @@
 2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (internal--called-interactively-p--get-frame): Find aliases
+	of called-interactively-p as well (bug#13237).
+
 	* view.el (view--enable, view--disable): Rename from view-mode-enable
 	and view-mode-disable and assume it's called from view-mode.
 	(view-mode-enable, view-mode-disable): Redefine as obsolete
