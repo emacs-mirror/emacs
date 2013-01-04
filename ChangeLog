@@ -1,3 +1,7 @@
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add htmlfontify.
+
 2012-12-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.ac (TEMACS_LDFLAGS2): Don't define.

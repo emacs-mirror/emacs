@@ -74,6 +74,7 @@ Emacs misc features
 * Flymake: (flymake).           A universal on-the-fly syntax checker.
 * Forms: (forms).               Emacs package for editing data bases
                                   by filling in forms.
+* Htmlfontify: (htmlfontify).   Convert source code to html.
 * PCL-CVS: (pcl-cvs).           Emacs front-end to CVS.
 * RefTeX: (reftex).             Emacs support for LaTeX cross-references
                                   and citations.
