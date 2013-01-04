@@ -1,3 +1,7 @@
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (312): Fix typo.  (Bug#13235)
+
 2012-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-accidental-paste-threshold-seconds): Add :version.

@@ -1633,8 +1633,8 @@ See `erc-display-server-message'." nil
 
 (define-erc-response-handler (312)
   "Server name response in WHOIS." nil
-  (pcase-let ((`(,nick ,server-host))
-              (cdr (erc-response.command-args parsed)))
+  (pcase-let ((`(,nick ,server-host)
+              (cdr (erc-response.command-args parsed))))
     (erc-display-message
      parsed 'notice 'active 's312
      ?n nick ?s server-host ?c (erc-response.contents parsed))))
