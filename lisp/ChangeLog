@@ -1,5 +1,11 @@
 2013-01-04  Stephen Berman  <Stephen.Berman@rub.de>
 
+	* calendar/todos.el (todos-reset-global-current-todos-file)
+	(todos-display-categories-1): Use absolute name of
+	todos-default-todos-file.
+
+2013-01-04  Stephen Berman  <Stephen.Berman@rub.de>
+
 	* calendar/todos.el (todos-insert-item): Fix copy and paste error
 	from previous change.
 

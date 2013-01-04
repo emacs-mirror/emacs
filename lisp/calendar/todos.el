@@ -954,8 +954,9 @@ the value of `todos-default-todos-file'.
 This function is added to `kill-buffer-hook' in Todos mode."
   (let ((filename (file-truename (buffer-file-name))))
     (setq todos-file-buffers (delete filename todos-file-buffers))
-    (setq todos-global-current-todos-file (or (car todos-file-buffers)
-					      todos-default-todos-file))))
+    (setq todos-global-current-todos-file
+	  (or (car todos-file-buffers)
+	      (todos-absolute-file-name todos-default-todos-file)))))
 
 (defvar todos-categories nil
   "Alist of categories in the current Todos file.
@@ -1292,6 +1293,7 @@ With nil or omitted CATEGORY, default to the current category."
 		   ;; to this file, so have to initialize Todos file and
 		   ;; categories variables in order e.g. to enable categories
 		   ;; display.
+		   ;; FIXME: is this right?
 		   (setq todos-default-todos-file (buffer-file-name))
 		   (setq todos-categories (todos-make-categories-list t)))
 	  ;; With empty buffer (e.g. with new archive in
@@ -2298,8 +2300,9 @@ which is the value of the user option
 (defun todos-display-categories-1 ()
   "Prepare buffer for displaying table of categories and item counts."
   (unless (eq major-mode 'todos-categories-mode)
-    (setq todos-global-current-todos-file (or todos-current-todos-file
-					      todos-default-todos-file))
+    (setq todos-global-current-todos-file
+	  (or todos-current-todos-file
+	      (todos-absolute-file-name todos-default-todos-file)))
     (set-window-buffer (selected-window)
 		       (set-buffer (get-buffer-create todos-categories-buffer)))
     (kill-all-local-variables)
