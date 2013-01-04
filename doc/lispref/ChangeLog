@@ -1,3 +1,7 @@
+2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.texi (File Attributes): Undocument return format of file-acl.
+
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* processes.texi (System Processes):

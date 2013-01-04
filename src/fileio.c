@@ -3084,11 +3084,11 @@ or if Emacs was not compiled with SELinux support.  */)
 }
 
 DEFUN ("file-acl", Ffile_acl, Sfile_acl, 1, 1, 0,
-       doc: /* Return ACL entries of file named FILENAME, as a string.
+       doc: /* Return ACL entries of file named FILENAME.
+The entries are returned in a format suitable for use in `set-file-acl'
+but is otherwise undocumented and subject to change.
 Return nil if file does not exist or is not accessible, or if Emacs
-was unable to determine the ACL entries.  The latter can happen for
-local files if Emacs was not compiled with ACL support, or for remote
-files if the file handler returns nil for the file's ACL entries.  */)
+was unable to determine the ACL entries.  */)
   (Lisp_Object filename)
 {
   Lisp_Object absname;

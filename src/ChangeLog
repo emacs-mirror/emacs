@@ -1,3 +1,7 @@
+2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Ffile_acl): Undocument return format.
+
 2013-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* keymap.c (Fkey_description): Doc fix.  (Bug#13323)

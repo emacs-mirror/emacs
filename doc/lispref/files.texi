@@ -1363,7 +1363,7 @@ security APIs.
 
 @defun file-acl filename
 This function returns the ACL entries of the file @var{filename}.  The
-return value is a platform-dependent string containing the textual
+return value is a platform-dependent object containing some
 representation of the ACL entries.  Don't use it for anything except
 passing it to the @code{set-file-acl} function (@pxref{Changing Files,
 set-file-acl}).
