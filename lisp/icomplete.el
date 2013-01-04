@@ -343,8 +343,10 @@ are exhibited within the square braces.)"
 				(t (concat "…" (substring most compare))))
 			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
-	     (prospects-len (+ (length determ) 6 ;; take {,...} into account
-                               (string-width (buffer-string))))
+	     (prospects-len (+ (length determ)
+			       (string-width icomplete-separator)
+			       3 ;; take {…} into account
+			       (string-width (buffer-string))))
              (prospects-max
               ;; Max total length to use, including the minibuffer content.
               (* (+ icomplete-prospects-height
@@ -375,7 +377,9 @@ are exhibited within the square braces.)"
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))
 		  (t (setq prospects-len
-                           (+ (string-width comp) 1 prospects-len))
+                           (+ (string-width comp)
+			      (string-width icomplete-separator)
+			      prospects-len))
 		     (if (< prospects-len prospects-max)
 			 (push comp prospects)
 		       (setq limit t))))))

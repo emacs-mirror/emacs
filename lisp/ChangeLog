@@ -1,3 +1,9 @@
+2013-01-04  Wesley Dawson  <whd@lavabit.com>  (tiny change)
+
+	* icomplete.el (icomplete-completions):
+	Honor icomplete-prospects-height once more following
+	2012-11-29 changes.  (Bug#13224)
+
 2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (internal--called-interactively-p--get-frame): Find aliases
