@@ -1,3 +1,7 @@
+2013-01-04  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* htmlfontify.texi: New file.
+
 2012-12-22  Glenn Morris  <rgm@gnu.org>
 
 	* viper.texi (Rudimentary Changes, Key Bindings, Key Bindings):
