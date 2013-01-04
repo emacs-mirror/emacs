@@ -1,3 +1,14 @@
+2013-01-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-01-04 stdio: remove now-unnecessary stdio.c
+	2013-01-04 fprintftime: depend on stdio, not ignore-value
+	2013-01-04 fwrite: silence __wur only for older glibc versions
+	2013-01-04 fwrite: silence __wur without using inline
+	* lib/stdio.c: Remove.
+	* lib/stdio.in.h, lib/strftime.c: Update from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2013-01-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating copyright-date changes and:

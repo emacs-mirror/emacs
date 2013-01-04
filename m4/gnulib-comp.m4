@@ -712,7 +712,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
-  lib/stdio.c
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/strftime.c
