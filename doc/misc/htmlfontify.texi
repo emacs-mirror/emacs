@@ -1,35 +1,33 @@
 \input texinfo
-@c documentation for htmlfontify
-@c written by Vivek Dasmohapatra
-
-@comment %**start of header (This is for running Texinfo on a region.)
-
-@setfilename htmlfontify.info
+@comment %**start of header
+@setfilename ../../info/htmlfontify
 @settitle Htmlfontify User Manual
-
-@dircategory Emacs
-@direntry 
-* Htmlfontify: (htmlfontify).    A source code -> linked html + css transformer
-@end direntry
-
 @exampleindent 2
-@comment %**end of header (This is for running Texinfo on a region.)
+@comment %**end of header
 
-@ifinfo
+@copying
+This manual documents Htmlfontify, a source code -> crosslinked +
+formatted + syntax colorised html transformer.
 
-This file documents Htmlfontify, a source code -> crosslinked + formatted +
-syntax colourised html transformer.
+Copyright @copyright{} 2002, 2003, 2013 Free Software Foundation, Inc.
 
-Copyright (c) 2002,2003 Vivek Dasmohapatra <vivek@@etla.org>
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
 
-Permission is granted to copy, distribute and/or modify this
-document under the terms of the GNU Free Documentation Licence,
-Version 1.1 or any later version published by the Free Software
-Foundation; with no Invariant Sections, no Front-Cover Texts and
-no Back-Cover Texts.  A copy of the licence is included in the
-section entitled "GNU Free Documentation Licence".
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
 
-@end ifinfo
+@dircategory Emacs misc features
+@direntry
+* Htmlfontify: (htmlfontify).    Convert source code to html.
+@end direntry
 
 @titlepage
 @title Htmlfontify User Manual
@@ -43,66 +41,64 @@ section entitled "GNU Free Documentation Licence".
 
 @vskip 0pt plus 1filll
 @noindent
-Copyright @copyright{} 2002 Vivek Dasmohapatra <vivek@@etla.org>
-
-Permission is granted to copy, distribute and/or modify this document 
-under the terms of the GNU Free Documentation Licence, Version 1.1 or 
-any later version published by the Free Software Foundation; with no 
-Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A 
-copy of the licence is included in the section entitled "GNU Free 
-Documentation Licence".
-
+@insertcopying
 @end titlepage
-@page
 
-@node Top, Introduction, (dir), (dir)
+@contents
+
+@ifnottex
+@node Top
+@top Htmlfontify
+
+@insertcopying
+@end ifnottex
 
 @menu
 * Introduction::                   About Htmlfontify.
 * Usage & Examples::               How to use Htmlfontify.
-* Customisation::                  Fine tuning Htmlfontify's behaviour.
+* Customisation::                  Fine-tuning Htmlfontify's behaviour.
 * Requirements::                   External programs used by Htmlfontify.
-* Index::                          Index of Contents.
-* COPYING::                        The GNU Free Documentation Licence.
+* GNU Free Documentation License:: The license for this documentation.
+* Index::                          Index of contents.
 @end menu
 
-@node Introduction, Usage & Examples, Top, Top
+@node Introduction
 @chapter Introduction
 @cindex Introduction
 
-Htmlfontify provides a means of converting individual emacs buffers, 
-source files, or entire source trees to html, preserving formatting 
-and emacs colourisation / syntax highlighting as much as possible 
+Htmlfontify provides a means of converting individual Emacs buffers,
+source files, or entire source trees to html, preserving formatting
+and Emacs colorisation / syntax highlighting as much as possible
 through careful application of CSS stylesheets and html tags.
 
-It can also turn instances of functions, methods and ( for some 
-languages ) variables and other constructs and items into links 
-to their definitions, and create an index file ( or files ) of 
+It can also turn instances of functions, methods and (for some
+languages) variables and other constructs and items into links
+to their definitions, and create an index file (or files) of
 all such symbols, also linked to their points of definition.
 
-Htmlfontify also provides several customisation items, which should 
-allow it to mesh more-or-less seamlessly with various templating or 
-publishing systems ( in the event, for instance, that you don't want 
-to produce the html pages directly ).
+Htmlfontify also provides several customisation items, which should
+allow it to mesh more-or-less seamlessly with various templating or
+publishing systems (in the event, for instance, that you don't want
+to produce the html pages directly).
 
-@node Usage & Examples, Customisation, Introduction, Top
+@node Usage & Examples
 @chapter Usage & Examples
 @cindex Usage & Examples
 
-Htmlfontify can be used both interactively and as part of another 
-elisp function. If you're running it in emacs21 ( its native land,
-it were ), it will also run when attached to a terminal ( ie w/o X ) 
-or even when in batch mode.
+Htmlfontify can be used both interactively and as part of another
+elisp function.  If you're running it in a modern Emacs, it will also
+run when attached to a terminal (i.e., without X) or even when in
+batch mode.
 
 @menu
-* Interactive::               Using htmlfontify interactively.
-* Non-interactive::           Using htmlfontify from elisp.
+* Interactive::               Using Htmlfontify interactively.
+* Non-interactive::           Using Htmlfontify from elisp.
 * Variables::                 Variables (other than customisation entries).
-* Data Structures::           Important Data Structures.
-* Examples::                  Example(s) of htmlfontify in use.
+* Data Structures::           Important data structures.
+* Examples::                  Example(s) of Htmlfontify in use.
 @end menu
 
-@node Interactive, Non-interactive, , Usage & Examples
+@node Interactive
 @section Interactive
 @cindex Interactive
 @cindex functions (interactive)
@@ -120,18 +116,18 @@ Htmlfontify provides the following interactive functions:
 @end lisp
 
 Create a new buffer, named for the current buffer + a .html extension,
-containing an inline css-stylesheet and formatted css-markup html that
-reproduces the look of the current emacs buffer as closely as possible.
+containing an inline CSS-stylesheet and formatted CSS-markup html that
+reproduces the look of the current Emacs buffer as closely as possible.
 
-``Dangerous'' characters in the existing buffer are turned into html 
-entities, so you should even be able to do html-within-html fontified 
-display. 
+``Dangerous'' characters in the existing buffer are turned into html
+entities, so you should even be able to do html-within-html fontified
+display.
 
 You should, however, note that random control or eight-bit characters
 such as ^L (\x0c) or ¤ (\xa4) won't get mapped yet.
 
-If the @var{srcdir} and @var{file} arguments are set, lookup etags 
-derived entries in the @ref{hfy-tags-cache} and add html anchors 
+If the @var{srcdir} and @var{file} arguments are set, lookup etags
+derived entries in the @ref{hfy-tags-cache} and add html anchors
 and hyperlinks as appropriate.
 
 @item htmlfontify-run-etags
@@ -143,7 +139,7 @@ and hyperlinks as appropriate.
 (htmlfontify-run-etags @var{srcdir})
 @end lisp
 
-Load the etags cache for @var{srcdir}. See @ref{hfy-load-tags-cache}.
+Load the etags cache for @var{srcdir}.  See @ref{hfy-load-tags-cache}.
 
 @item htmlfontify-copy-and-link-dir
 @findex htmlfontify-copy-and-link-dir
@@ -154,8 +150,8 @@ Load the etags cache for @var{srcdir}. See @ref{hfy-load-tags-cache}.
 (htmlfontify-copy-and-link-dir @var{srcdir} @var{dstdir} &optional @var{f-ext} @var{l-ext})
 @end lisp
 
-Trawl @var{srcdir} and write fontified-and-hyperlinked output in 
-@var{dstdir} @var{f-ext} and @var{l-ext} specify values for 
+Trawl @var{srcdir} and write fontified-and-hyperlinked output in
+@var{dstdir}.  @var{f-ext} and @var{l-ext} specify values for
 @ref{hfy-extn} and @ref{hfy-link-extn}.
 
 You may also want to set @ref{hfy-page-header} and @ref{hfy-page-footer}.
@@ -169,15 +165,15 @@ You may also want to set @ref{hfy-page-header} and @ref{hfy-page-footer}.
 (htmlfontify-load-rgb-file &optional @var{file})
 @end lisp
 
-Load an X11 style rgb.txt file (search @code{hfy-rgb-load-path} if 
+Load an X11 style rgb.txt file (search @code{hfy-rgb-load-path} if
 @var{file} is not specified).
 
 Note that this is not necessary if all you want is the standard X11
-(XFree86 4.1.0) colour name -> rgb triplet mapping, htmlfontify has 
+(XFree86 4.1.0) color name -> rgb triplet mapping.  Htmlfontify has
 a copy built in, for use when it cannot contact an X server.
 
-Loads the variable @code{hfy-rgb-txt-colour-map}, which is used by
-@ref{hfy-fallback-colour-values}.
+Loads the variable @code{hfy-rgb-txt-color-map}, which is used by
+@ref{hfy-fallback-color-values}.
 
 @item htmlfontify-unload-rgb-file
 @findex htmlfontify-unload-rgb-file
@@ -188,15 +184,15 @@ Loads the variable @code{hfy-rgb-txt-colour-map}, which is used by
 (htmlfontify-unload-rgb-file)
 @end lisp
 
-Unload the currently loaded X11 style rgb.txt file ( if any ).
+Unload the currently loaded X11 style rgb.txt file (if any).
 @end table
 
-@node Non-interactive, Variables, Interactive, Usage & Examples
+@node Non-interactive
 @section Non-interactive
 @cindex Noninteractive
 @cindex functions (noninteractive)
 
-In addition to the aforementioned interactive methods, htmlfontify
+In addition to the aforementioned interactive methods, Htmlfontify
 provides the following non-interactive ones:
 
 @table @code
@@ -212,23 +208,23 @@ provides the following non-interactive ones:
 @end lisp
 
 Take @var{fn}, a font or @code{defface} style font specification,
-(as returned by @code{face-attr-construct} or @ref{hfy-face-attr-for-class}) 
+(as returned by @code{face-attr-construct} or @ref{hfy-face-attr-for-class})
 and return a @ref{hfy-style-assoc}.
 
 See also: @ref{hfy-face-to-style-i}, @ref{hfy-flatten-style}.
 
-@item hfy-fallback-colour-values
-@findex hfy-fallback-colour-values
-@anchor{hfy-fallback-colour-values}
+@item hfy-fallback-color-values
+@findex hfy-fallback-color-values
+@anchor{hfy-fallback-color-values}
 
 @lisp
 
-(hfy-fallback-colour-values @var{colour-string})
+(hfy-fallback-color-values @var{color-string})
 @end lisp
 
-Use a fallback method for obtaining the rgb values for a colour.
+Use a fallback method for obtaining the rgb values for a color.
 If @ref{htmlfontify-load-rgb-file} has been called, it uses the
-colour map specified, otherwise it uses htmlfontify's built in map.
+color map specified, otherwise it uses Htmlfontify's built in map.
 
 @item hfy-combined-face-spec
 @findex hfy-combined-face-spec
@@ -239,8 +235,8 @@ colour map specified, otherwise it uses htmlfontify's built in map.
 (hfy-combined-face-spec @var{face})
 @end lisp
 
-Return a @code{defface} style alist of possible specifications for 
-@var{face}, with any entries resulting from user customisation 
+Return a @code{defface} style alist of possible specifications for
+@var{face}, with any entries resulting from user customisation
 (@code{custom-set-faces}) taking precedence.
 
 See also: @ref{hfy-default-face-def}
@@ -254,8 +250,8 @@ See also: @ref{hfy-default-face-def}
 (hfy-word-regex @var{string})
 @end lisp
 
-Return a regex that matches @var{string} as the first @code{match-string}, 
-with non word characters on either side (vaguely emulating the perl @code{\b} 
+Return a regex that matches @var{string} as the first @code{match-string},
+with non word characters on either side (vaguely emulating the perl @code{\b}
 regex atom).
 
 @item hfy-force-fontification
@@ -267,16 +263,16 @@ regex atom).
 (hfy-force-fontification)
 @end lisp
 
-Emacs' fontification is designed for interactive use. As such, it sometimes 
-does things like deferring fontification until a section of the buffer is 
-exposed and rendered, or until emacs is idle for a while. Sometimes, in 
-non-interactive circumstances, or if it can't see X, it doesn't bother 
-with some of the harder stuff. While this is all great from the perspective
-of a user waiting for emacs to load a 20000 line file and colourise it, 
-it's a pain from the point of view from non-interactive code. This function
-lies, cheats, steals and generally bullies emacs into fontifying a buffer
+Emacs's fontification is designed for interactive use.  As such, it sometimes
+does things like deferring fontification until a section of the buffer is
+exposed and rendered, or until Emacs is idle for a while.  Sometimes, in
+non-interactive circumstances, or if it can't see X, it doesn't bother
+with some of the harder stuff.  While this is all great from the perspective
+of a user waiting for Emacs to load a 20000 line file and colorise it,
+it's a pain from the point of view from non-interactive code.  This function
+lies, cheats, steals and generally bullies Emacs into fontifying a buffer
 from start to finish, with all the extra frills, whether it thinks it nneds
-to or not. Oh yes: it operates on the current buffer.
+to or not.  Oh yes: it operates on the current buffer.
 
 @item hfy-link-style-string
 @findex hfy-link-style-string
@@ -287,8 +283,8 @@ to or not. Oh yes: it operates on the current buffer.
 (hfy-link-style-string @var{style-string})
 @end lisp
 
-Replace the end of a css style declaration @var{style-string} with the contents
-of the variable @ref{hfy-src-doc-link-style}, removing text matching the 
+Replace the end of a CSS style declaration @var{style-string} with the contents
+of the variable @ref{hfy-src-doc-link-style}, removing text matching the
 regex @ref{hfy-src-doc-link-unstyle} first, if necessary.
 
 
@@ -302,8 +298,8 @@ regex @ref{hfy-src-doc-link-unstyle} first, if necessary.
 @end lisp
 
 Prepare a tags index buffer for @var{srcdir}.
-@ref{hfy-tags-cache} must already have an entry for @var{srcdir} for 
-this to work. @ref{hfy-page-header}, @ref{hfy-page-footer}, 
+@ref{hfy-tags-cache} must already have an entry for @var{srcdir} for
+this to work.  @ref{hfy-page-header}, @ref{hfy-page-footer},
 @ref{hfy-link-extn} and @ref{hfy-extn} all play a part here.
 
 If @var{stub} is set, prepare an (appropriately named) index buffer
@@ -331,8 +327,8 @@ Trawl the current buffer, construct and return a @ref{hfy-sheet-assoc}.
 (hfy-css-name @var{fn})
 @end lisp
 
-Strip some of the boring bits from a font-name and return a css style 
-name. If @var{fn} is a @code{defface} attribute list, either construct
+Strip some of the boring bits from a font-name and return a CSS style
+name.  If @var{fn} is a @code{defface} attribute list, either construct
 a name for it, store it in the cache, and return it, or just fetch it
 from the cache if it's already there.
 
@@ -345,7 +341,7 @@ from the cache if it's already there.
 (hfy-make-directory @var{dir})
 @end lisp
 
-Approx equivalent of mkdir -p @var{dir}
+Approximate equivalent of @code{mkdir -p @var{dir}}.
 
 @item hfy-triplet
 @findex hfy-triplet
@@ -353,14 +349,14 @@ Approx equivalent of mkdir -p @var{dir}
 
 @lisp
 
-(hfy-triplet @var{colour})
+(hfy-triplet @var{color})
 @end lisp
 
-Takes a colour name (string) and return a CSS rgb(R, G, B) triplet string.
-Uses the definition of "white" to map the numbers to the 0-255 range, so
-if you've redefined white, (esp if you've redefined it to have a triplet
-member lower than that of the colour you are processing, strange things
-may happen).
+Takes a color name (string) and return a CSS rgb(R, G, B) triplet string.
+Uses the definition of ``white'' to map the numbers to the 0-255 range, so
+if you've redefined white, (especially if you've redefined it to have
+a triplet member lower than that of the color you are processing,
+strange things may happen).
 
 @item hfy-default-footer
 @findex hfy-default-footer
@@ -383,20 +379,20 @@ Default value for @ref{hfy-page-footer}
 @end lisp
 
 Return a list of files under @var{directory}.
-Strips any leading "./" from each filename.
+Strips any leading @samp{./} from each filename.
 
-@item hfy-colour-vals
-@findex hfy-colour-vals
-@anchor{hfy-colour-vals}
+@item hfy-color-vals
+@findex hfy-color-vals
+@anchor{hfy-color-vals}
 
 @lisp
 
-(hfy-colour-vals @var{colour})
+(hfy-color-vals @var{color})
 @end lisp
 
-Where @var{colour} is a colour name or #XXXXXX style triplet, return a list of 
-3 (16 bit) rgb values for said colour. If a window system is unavailable,
-calls @ref{hfy-fallback-colour-values}.
+Where @var{color} is a color name or #XXXXXX style triplet, return a list of
+3 (16 bit) rgb values for said color.  If a window system is unavailable,
+calls @ref{hfy-fallback-color-values}.
 
 @item hfy-href-stub
 @findex hfy-href-stub
@@ -407,17 +403,17 @@ calls @ref{hfy-fallback-colour-values}.
 (hfy-href-stub @var{this-file} @var{def-files} @var{tag})
 @end lisp
 
-Return an href stub for a tag href: if @var{def-files} (list of files 
+Return an href stub for a tag href: if @var{def-files} (list of files
 containing definitions for the tag in question) contains only one entry,
-the href should link straight to that file. Otherwise, the link should 
+the href should link straight to that file.  Otherwise, the link should
 be to the index file.
 
-We are not yet concerned with the file extensions/tag line number and 
+We are not yet concerned with the file extensions/tag line number and
 so on at this point.
 
-If @ref{hfy-split-index} is set, and the href wil be to an index file 
-rather than a source file, append a .X to @ref{hfy-index-file}, where 
-X is the uppercased first character of @var{tag}.
+If @ref{hfy-split-index} is set, and the href will be to an index file
+rather than a source file, append a @samp{.X} to @ref{hfy-index-file}, where
+@samp{X} is the uppercased first character of @var{tag}.
 
 See also: @ref{hfy-relstub}, @ref{hfy-index-file}.
 
@@ -441,7 +437,7 @@ Returns the line number of the point in the current buffer.
 (hfy-merge-adjacent-spans @var{face-map})
 @end lisp
 
-Where @var{face-map} is a @ref{hfy-facemap-assoc} for the current buffer, 
+Where @var{face-map} is a @ref{hfy-facemap-assoc} for the current buffer,
 this function merges adjacent style blocks which are of the same value
 and are separated by nothing more interesting than whitespace.
 
@@ -462,8 +458,8 @@ Returns a modified copy of @var{face-map} (also a @ref{hfy-facemap-assoc}).
 (hfy-mark-tag-names @var{srcdir} @var{file})
 @end lisp
 
-Mark tags in @var{file} (lookup @var{srcdir} in @ref{hfy-tags-cache}) with the 
-'hfy-anchor property, with a value of "tag.line-number".
+Mark tags in @var{file} (lookup @var{srcdir} in @ref{hfy-tags-cache}) with the
+@code{hfy-anchor} property, with a value of @samp{tag.line-number}.
 
 @item hfy-weight
 @findex hfy-weight
@@ -474,7 +470,7 @@ Mark tags in @var{file} (lookup @var{srcdir} in @ref{hfy-tags-cache}) with the
 (hfy-weight @var{weight})
 @end lisp
 
-Derive a font-weight css specifier from an emacs weight spec symbol.
+Derive a font-weight CSS specifier from an Emacs weight specification symbol.
 
 @item hfy-size
 @findex hfy-size
@@ -485,7 +481,7 @@ Derive a font-weight css specifier from an emacs weight spec symbol.
 (hfy-size @var{height})
 @end lisp
 
-Derive a css font-size specifier from an emacs font :height attribute.
+Derive a CSS font-size specifier from an Emacs font @code{:height} attribute.
 Does not cope with the case where height is a function to be applied to
 the height of the underlying font.
 
@@ -509,7 +505,7 @@ Default value for @ref{hfy-page-header}
 (hfy-family @var{family})
 @end lisp
 
-Derives a css font-family specifier from an emacs :family attribute.
+Derives a CSS font-family specifier from an Emacs @code{:family} attribute.
 
 @item hfy-mark-tag-hrefs
 @findex hfy-mark-tag-hrefs
@@ -520,13 +516,13 @@ Derives a css font-family specifier from an emacs :family attribute.
 (hfy-mark-tag-hrefs @var{srcdir} @var{file})
 @end lisp
 
-Mark href start points with the 'hfy-link prop (value: href string)
+Mark href start points with the @code{hfy-link} property (value: href string).
 
-Mark href end points with the 'hfy-endl prop (value t)
+Mark href end points with the @code{hfy-endl} property (value @code{t}).
 
 Avoid overlapping links, and mark links in descending length of
-tag name in order to prevent subtags from usurping supertags,
-(eg "term" for "terminal"). 
+tag name in order to prevent subtags from usurping supertags;
+e.g., ``term'' for ``terminal'').
 
 @item hfy-box
 @findex hfy-box
@@ -537,7 +533,7 @@ tag name in order to prevent subtags from usurping supertags,
 (hfy-box @var{box})
 @end lisp
 
-Derive CSS border-* attributes from the emacs :box attribute.
+Derive CSS border-* attributes from the Emacs @code{:box} attribute.
 
 @item hfy-box-to-style
 @findex hfy-box-to-style
@@ -548,9 +544,9 @@ Derive CSS border-* attributes from the emacs :box attribute.
 (hfy-box-to-style @var{spec})
 @end lisp
 
-Convert a complex :box emacs font attribute set to a list of CSS border-*
-attributes. Don't call this directly - it is called by @ref{hfy-box}
-when necessary.
+Convert a complex @code{:box} Emacs font attribute set to a list of
+CSS border-* attributes.  Don't call this directly---it is called by
+@ref{hfy-box} when necessary.
 
 @item hfy-html-enkludge-buffer
 @findex hfy-html-enkludge-buffer
@@ -561,7 +557,7 @@ when necessary.
 (hfy-html-enkludge-buffer)
 @end lisp
 
-Mark dangerous ["<>] characters with the 'hfy-quoteme property.
+Mark dangerous @samp{["<>]} characters with the @code{hfy-quoteme} property.
 
 See also @ref{hfy-html-dekludge-buffer}.
 
@@ -574,8 +570,8 @@ See also @ref{hfy-html-dekludge-buffer}.
 (hfy-buffer)
 @end lisp
 
-Generate and return an htmlfontify html output buffer for the current 
-buffer. May trample an existing buffer.
+Generate and return an Htmlfontify html output buffer for the current
+buffer.  May trample an existing buffer.
 
 @item hfy-fontified-p
 @findex hfy-fontified-p
@@ -586,9 +582,9 @@ buffer. May trample an existing buffer.
 (hfy-fontified-p)
 @end lisp
 
-@code{font-lock} doesn't like to say a buffer's been fontified when in 
-batch mode, but we want to know if we should fontify or raw copy, so in 
-batch mode we check for non-default face properties. Otherwise we test
+@code{font-lock} doesn't like to say a buffer's been fontified when in
+batch mode, but we want to know if we should fontify or raw copy, so in
+batch mode we check for non-default face properties.  Otherwise we test
 @code{font-lock-mode} and @code{font-lock-fontified} for truth.
 
 @item hfy-lookup
@@ -600,7 +596,7 @@ batch mode we check for non-default face properties. Otherwise we test
 (hfy-lookup @var{face} @var{style})
 @end lisp
 
-Where @var{style} is a @ref{hfy-sheet-assoc} and @var{face} is an emacs face, 
+Where @var{style} is a @ref{hfy-sheet-assoc} and @var{face} is an Emacs face,
 return the relevant @var{css} style name.
 
 @item hfy-fontify-buffer
@@ -612,18 +608,18 @@ return the relevant @var{css} style name.
 (hfy-fontify-buffer &optional @var{srcdir} @var{file})
 @end lisp
 
-Implement the guts of @ref{htmlfontify-buffer}
+Implement the guts of @ref{htmlfontify-buffer}.
 
-@item hfy-colour
-@findex hfy-colour
-@anchor{hfy-colour}
+@item hfy-color
+@findex hfy-color
+@anchor{hfy-color}
 
 @lisp
 
-(hfy-colour @var{colour})
+(hfy-color @var{color})
 @end lisp
 
-Convert an emacs :foreground property to a CSS colour property.
+Convert an Emacs :foreground property to a CSS color property.
 
 @item hfy-flatten-style
 @findex hfy-flatten-style
@@ -634,10 +630,10 @@ Convert an emacs :foreground property to a CSS colour property.
 (hfy-flatten-style @var{style})
 @end lisp
 
-Take @var{style} (see @ref{hfy-face-to-style-i}, @ref{hfy-face-to-style}) 
-and merge any multiple attributes appropriately. Currently only font-size is 
-merged down to a single occurrence - others may need special handling, but I
-haven't encountered them yet. Returns a @ref{hfy-style-assoc}.
+Take @var{style} (see @ref{hfy-face-to-style-i}, @ref{hfy-face-to-style})
+and merge any multiple attributes appropriately.  Currently only font-size is
+merged down to a single occurrence---others may need special handling, but I
+haven't encountered them yet.  Returns a @ref{hfy-style-assoc}.
 
 @item hfy-size-to-int
 @findex hfy-size-to-int
@@ -648,8 +644,9 @@ haven't encountered them yet. Returns a @ref{hfy-style-assoc}.
 (hfy-size-to-int @var{spec})
 @end lisp
 
-Convert @var{spec}, a css font-size specifier, back to an emacs :height attribute
-value. Used while merging multiple font-size attributes.
+Convert @var{spec}, a CSS font-size specifier, back to an Emacs
+@code{:height} attribute value.  Used while merging multiple font-size
+attributes.
 
 @item hfy-sprintf-stylesheet
 @findex hfy-sprintf-stylesheet
@@ -660,8 +657,8 @@ value. Used while merging multiple font-size attributes.
 (hfy-sprintf-stylesheet @var{css} @var{file})
 @end lisp
 
-Generates a header, via @ref{hfy-page-header}, for @var{file}, containing the 
-stylesheet derived from @var{css}, which is a @ref{hfy-sheet-assoc}. Returns a 
+Generates a header, via @ref{hfy-page-header}, for @var{file}, containing the
+stylesheet derived from @var{css}, which is a @ref{hfy-sheet-assoc}.  Returns a
 string containing the same.
 
 @item hfy-relstub
@@ -673,8 +670,8 @@ string containing the same.
 (hfy-relstub @var{file} &optional @var{start})
 @end lisp
 
-Return a "../" stub of the appropriate length for the current source
-tree depth (as determined from @var{file}). iyswim.
+Return a @samp{../} stub of the appropriate length for the current source
+tree depth (as determined from @var{file}). @c iyswim.
 
 @item hfy-compile-face-map
 @findex hfy-compile-face-map
@@ -708,9 +705,9 @@ Uses @ref{hfy-prepare-index-i} to do this.
 (hfy-prepare-tag-map @var{srcdir} @var{dstdir})
 @end lisp
 
-Prepare the counterpart(s) to the index buffer(s) - a list of buffers with 
-the same structure, but listing ( and linking to ) instances of tags ( as 
-opposed to their definitions ).
+Prepare the counterpart(s) to the index buffer(s)---a list of buffers with
+the same structure, but listing (and linking to) instances of tags (as
+opposed to their definitions).
 
 See also: @ref{hfy-prepare-index}, @ref{hfy-split-index}
 
@@ -723,7 +720,7 @@ See also: @ref{hfy-prepare-index}, @ref{hfy-split-index}
 (hfy-subtract-maps @var{srcdir})
 @end lisp
 
-Internal function - strips definitions of tags from the instance map.
+Internal function---strips definitions of tags from the instance map.
 See: @ref{hfy-tags-cache} and @ref{hfy-tags-rmap}
 
 @item hfy-face-to-style-i
@@ -735,12 +732,12 @@ See: @ref{hfy-tags-cache} and @ref{hfy-tags-rmap}
 (hfy-face-to-style-i @var{fn})
 @end lisp
 
-The guts of @ref{hfy-face-to-style}: @var{fn} should be a @code{defface}
-font specification, as returned by @code{face-attr-construct} or 
-@ref{hfy-face-attr-for-class}. Note that this function does not get 
-font-sizes right if they are based on inherited modifiers (via the 
-:inherit) attribute, and any other modifiers that are cumulative if they 
-appear multiple times need to be merged by the user - @ref{hfy-flatten-style} 
+The guts of @ref{hfy-face-to-style}.  @var{fn} should be a @code{defface}
+font specification, as returned by @code{face-attr-construct} or
+@ref{hfy-face-attr-for-class}.  Note that this function does not get
+font-sizes right if they are based on inherited modifiers (via the
+:inherit) attribute, and any other modifiers that are cumulative if they
+appear multiple times need to be merged by the user---@ref{hfy-flatten-style}
 should do this.
 
 @item hfy-face-to-css
@@ -752,7 +749,7 @@ should do this.
 (hfy-face-to-css @var{fn})
 @end lisp
 
-Take @var{fn}, a font or @code{defface} specification (cf. 
+Take @var{fn}, a font or @code{defface} specification (c.f.
 @code{face-attr-construct}) and return a CSS style specification.
 
 See also: @ref{hfy-face-to-style}
@@ -766,7 +763,8 @@ See also: @ref{hfy-face-to-style}
 (hfy-html-quote @var{char-string})
 @end lisp
 
-Map a string (usu. 1 char long) to an html safe string (entity) if need be.
+Map a string (usually 1 character long) to an html safe string
+(entity) if need be.
 
 @item hfy-link-style
 @findex hfy-link-style
@@ -777,7 +775,7 @@ Map a string (usu. 1 char long) to an html safe string (entity) if need be.
 (hfy-link-style @var{style-string})
 @end lisp
 
-Convert the CSS style spec @var{style-string} to it's equivalent 
+Convert the CSS style spec @var{style-string} to its equivalent
 hyperlink style.
 
 See: @ref{hfy-link-style-fun}.
@@ -791,7 +789,7 @@ See: @ref{hfy-link-style-fun}.
 (hfy-p-to-face @var{props})
 @end lisp
 
-Given @var{props}, a list of text-properties, return the value of the 
+Given @var{props}, a list of text-properties, return the value of the
 face property, or nil.
 
 @item hfy-box-to-border-assoc
@@ -814,18 +812,18 @@ Helper function for @ref{hfy-box-to-style}.
 (hfy-face-attr-for-class @var{face} &optional @var{class})
 @end lisp
 
-Return the face attributes for @var{face}. If @var{class} is set, it 
-must be a @code{defface} alist key [see below]. Prior to version 0.18, 
-the first face specification returned by @ref{hfy-combined-face-spec} 
-which @emph{didn't} clash with @var{class} was returned. In versions 
-from 0.18 onwards, each font attribute list is scored, and the 
-non-conflicting list with the highest score is returned. ( A specification 
-with a class of @code{t} is considered to match any class you specify: 
-This matches emacs' behaviour when deciding on which face attributes to 
+Return the face attributes for @var{face}.  If @var{class} is set, it
+must be a @code{defface} alist key [see below].  Prior to version 0.18,
+the first face specification returned by @ref{hfy-combined-face-spec}
+which @emph{didn't} clash with @var{class} was returned.  In versions
+from 0.18 onwards, each font attribute list is scored, and the
+non-conflicting list with the highest score is returned.  (A specification
+with a class of @code{t} is considered to match any class you specify.
+This matches Emacs's behaviour when deciding on which face attributes to
 use, to the best of my understanding ).
 
-If @var{class} is nil, then you just get get whatever 
-@code{face-attr-construct} returns, ie the current specification in 
+If @var{class} is nil, then you just get get whatever
+@code{face-attr-construct} returns; i.e., the current specification in
 effect for @var{face}.
 
 See @ref{hfy-display-class} for details of valid values for @var{class}.
@@ -839,7 +837,7 @@ See @ref{hfy-display-class} for details of valid values for @var{class}.
 (hfy-face-at P)
 @end lisp
 
-Find face in effect at point P. If overlays are to be considered
+Find face in effect at point P.  If overlays are to be considered
 (see @ref{hfy-optimisations}) then this may return a @code{defface} style
 list of face properties instead of a face symbol.
 
@@ -849,10 +847,10 @@ list of face properties instead of a face symbol.
 
 @lisp
 
-(hfy-bgcol @var{colour})
+(hfy-bgcol @var{color})
 @end lisp
 
-As per @ref{hfy-colour} but for background colours.
+As per @ref{hfy-color} but for background colors.
 
 @item hfy-kludge-cperl-mode
 @findex hfy-kludge-cperl-mode
@@ -864,7 +862,7 @@ As per @ref{hfy-colour} but for background colours.
 @end lisp
 
 cperl mode does its damndest not to do some of its fontification when not
-in a windowing system - we try to trick it...
+in a windowing system---we try to trick it@dots{}
 
 @item hfy-href
 @findex hfy-href
@@ -893,7 +891,7 @@ Return a relative href to the tag in question, based on
 (hfy-shell)
 @end lisp
 
-Returns a best guess at a bourne compatible shell to use: If the current 
+Returns a best guess at a Bourne compatible shell to use: If the current
 shell doesn't look promising, fall back to @ref{hfy-shell-file-name}.
 
 @item hfy-load-tags-cache
@@ -928,7 +926,7 @@ Parse a @var{buffer} containing etags formatted output, loading the
 (hfy-interq @var{set-a} @var{set-b})
 @end lisp
 
-Return the intersection ( using @code{eq} ) of 2 lists.
+Return the intersection (using @code{eq}) of 2 lists.
 
 @item hfy-text-p
 @findex hfy-text-p
@@ -939,7 +937,7 @@ Return the intersection ( using @code{eq} ) of 2 lists.
 (hfy-text-p @var{srcdir} @var{file})
 @end lisp
 
-Is @var{srcdir}/@var{file} text? Uses @ref{hfy-istext-command} to determine this.
+Is @var{srcdir}/@var{file} text?  Uses @ref{hfy-istext-command} to determine this.
 
 @item hfy-opt
 @findex hfy-opt
@@ -961,8 +959,8 @@ Is @ref{hfy-optimisations} member @var{symbol} set or not?
 (hfy-dirname @var{file})
 @end lisp
 
-Return everything preceding the last "/" from a relative filename,
-on the assumption that this will produce a relative directory name. Hardly
+Return everything preceding the last @samp{/} from a relative filename,
+on the assumption that this will produce a relative directory name.  Hardly
 bombproof, but good enough in the context in which it is being used.
 
 @item hfy-html-dekludge-buffer
@@ -974,7 +972,7 @@ bombproof, but good enough in the context in which it is being used.
 (hfy-html-dekludge-buffer)
 @end lisp
 
-Transform all dangerous characters marked with the 'hfy-quoteme property
+Transform all dangerous characters marked with the @code{hfy-quoteme} property
 using @ref{hfy-html-quote}
 
 See also @ref{hfy-html-enkludge-buffer}.
@@ -988,9 +986,9 @@ See also @ref{hfy-html-enkludge-buffer}.
 (hfy-copy-and-fontify-file @var{srcdir} @var{dstdir} @var{file})
 @end lisp
 
-open @var{file} in @var{srcdir} - if fontified, write a fontified copy to @var{dstdir}
-adding an extension of @ref{hfy-extn}. Fontification is actually done by
-@ref{htmlfontify-buffer}. If the buffer is not fontified, just copy it.
+Open @var{file} in @var{srcdir}---if fontified, write a fontified copy to @var{dstdir}
+adding an extension of @ref{hfy-extn}.  Fontification is actually done by
+@ref{htmlfontify-buffer}.  If the buffer is not fontified, just copy it.
 
 @item hfy-decor
 @findex hfy-decor
@@ -1001,7 +999,7 @@ adding an extension of @ref{hfy-extn}. Fontification is actually done by
 (hfy-decor @var{tag} @var{val})
 @end lisp
 
-Derive CSS text-decoration specifiers from various emacs font attributes.
+Derive CSS text-decoration specifiers from various Emacs font attributes.
 
 @item hfy-slant
 @findex hfy-slant
@@ -1012,9 +1010,9 @@ Derive CSS text-decoration specifiers from various emacs font attributes.
 (hfy-slant @var{slant})
 @end lisp
 
-Derive a font-style css specifier from the emacs :slant attribute -
-CSS does not define the reverse-* styles, so just maps those to the
-regular specifiers.
+Derive a font-style CSS specifier from the Emacs :slant
+attribute---CSS does not define the reverse-* styles, so just maps
+those to the regular specifiers.
 
 @item hfy-tags-for-file
 @findex hfy-tags-for-file
@@ -1025,7 +1023,7 @@ regular specifiers.
 (hfy-tags-for-file @var{srcdir} @var{file})
 @end lisp
 
-List of etags tags that have definitions in this @var{file}. Looks up
+List of etags tags that have definitions in this @var{file}.  Looks up
 the tags cache in @ref{hfy-tags-cache} using @var{srcdir} as the key.
 
 @item hfy-width
@@ -1037,16 +1035,16 @@ the tags cache in @ref{hfy-tags-cache} using @var{srcdir} as the key.
 (hfy-width @var{width})
 @end lisp
 
-Convert an emacs :width attribute to a CSS font-stretch attribute.
+Convert an Emacs @code{:width} attribute to a CSS font-stretch attribute.
 
 @comment /AUTOGENERATED BLOCK
 @end table
 
-@node Variables, Data Structures, Non-interactive, Usage & Examples
+@node Variables
 @section Variables
 @cindex variables
 
-Important variables which are not customisation items:
+Important variables that are not customisation items:
 
 @table @code
 
@@ -1057,16 +1055,16 @@ Important variables which are not customisation items:
 This is an alist of the form:
 
 @example
-(("/src/dir/0" . tag-hash0) ("/src/dir/1" tag-hash1) ...)
+(("/src/dir/0" . tag-hash0) ("/src/dir/1" tag-hash1) @dots{} )
 @end example
 
 Each tag hash entry then contains entries of the form:
 
 @example
-"tag_string" => (("file/name.ext" line char) ... )
+"tag_string" => (("file/name.ext" line char) @dots{} )
 @end example
 
-ie an alist mapping (relative) file paths to line and character offsets.
+i.e., an alist mapping (relative) file paths to line and character offsets.
 
 See @ref{hfy-load-tags-cache}.
 
@@ -1096,7 +1094,7 @@ tagged items, not the locations of their definitions.
 @code{hfy-tags-sortl} is an alist of the form:
 
 @example
-(("/src/dir" . (tag0 tag1 tag2)) ... )
+(("/src/dir" . (tag0 tag1 tag2)) @dots{} )
 @end example
 
 Where the tags are stored in descending order of length.
@@ -1105,7 +1103,7 @@ See: @ref{hfy-load-tags-cache}.
 
 @end table
 
-@node Data Structures, Examples, Variables, Usage & Examples
+@node Data Structures
 @section Data Structures
 @cindex Data Structures
 
@@ -1117,11 +1115,11 @@ Some of the (informal) data structures used in Htmlfontify are detailed here:
 @cindex hfy-style-assoc
 @anchor{hfy-style-assoc}
 
-An assoc representing/describing an emacs face. Properties may be repeated,
-In which case later properties should be treated as if they were inherited
-from a 'parent' font. (For some properties, only the first encountered value
+An assoc representing/describing an Emacs face.  Properties may be repeated,
+in which case later properties should be treated as if they were inherited
+from a ``parent'' font.  (For some properties, only the first encountered value
 is of any importance, for others the values might be cumulative, and for
-others they might be cumulative in a complex way).
+others they might be cumulative in a complex way.)
 
 Some examples:
 
@@ -1149,7 +1147,7 @@ Some examples:
 @cindex hfy-sheet-assoc
 @anchor{hfy-sheet-assoc}
 
-An assoc with elements of the form (face-name style-name . stlye-string):
+An assoc with elements of the form @samp{(face-name style-name . style-string)}.
 The actual stylesheet for each page is derived from one of these.
 
 @lisp
@@ -1157,18 +1155,19 @@ The actual stylesheet for each page is derived from one of these.
   (font-lock-string-face "string"  . "@{ color: rgb(64,224,208) @}"))
 @end lisp
 
-@item hfy-facemap-assoc 
+@item hfy-facemap-assoc
 @cindex hfy-facemap-assoc
 @anchor{hfy-facemap-assoc}
 
-An assoc of (point . @var{face-symbol}) or 
-(point . @code{defface} attribute list) and (point . 'end) elements, in
-descending order of point value (ie from the file's end to its beginning).
-The map is in reverse order because inserting a <style> tag (or any other
-string) at @var{point} invalidates the map for all entries with a greater 
-value of point. By traversing the map from greatest to least @var{point}, 
-we still invalidate the map as we go, but only those points we have already 
-dealt with ( and therefore no longer care about ) will be invalid at any 
+An assoc of @code{(point . @var{face-symbol})} or
+@code{(point . @code{defface} attribute list)} and @code{(point
+. end)} elements, in descending order of point value (i.e., from the
+file's end to its beginning).  The map is in reverse order because
+inserting a @samp{<style>} tag (or any other string) at @var{point}
+invalidates the map for all entries with a greater value of point. By
+traversing the map from greatest to least @var{point}, we still
+invalidate the map as we go, but only those points we have already
+dealt with (and therefore no longer care about) will be invalid at any
 time.
 
 @lisp
@@ -1179,7 +1178,7 @@ time.
   (64630 . end)
   (64623 . font-lock-string-face)
   (64449 . end)
-  ;; big similar section elided. You get the idea.
+  ;; Big similar section elided.  You get the idea.
   (5459 . end)
   (5431 . (:inherit font-lock-keyword-face :background "7e7e7e"))
   (5431 . end)
@@ -1194,18 +1193,18 @@ time.
 
 @end table
 
-@node Examples, , Data Structures, Usage & Examples
+@node Examples
 @section Examples
 @cindex Examples
 
-The following is a lump of code I use to fontify source code on my 
-site, @url{http://rtfm.etla.org/} ( which was the reason, incidentally, 
-that htmlfontify was written in the first place ).
+The following is a lump of code I use to fontify source code on my
+site, @url{http://rtfm.etla.org/} (which was the reason, incidentally,
+that Htmlfontify was written in the first place).
 
 @lisp
 (defvar rtfm-section nil)
 
-;; constructs an appropriate header string to fit in with rtfm's 
+;; Constructs an appropriate header string to fit in with rtfm's
 ;; templating system, based on the file and the stylesheet string
 (defun rtfm-build-page-header (file style)
   (format "#define  TEMPLATE red+black.html
@@ -1213,7 +1212,7 @@ that htmlfontify was written in the first place ).
 #include <build/menu-dirlist|>\n
 html-css-url := /css/red+black.css
 title        := rtfm.etla.org ( %s / src/%s )
-bodytag      := 
+bodytag      :=
 head         <=STYLESHEET;\n
 %s
 STYLESHEET
@@ -1233,7 +1232,7 @@ main-content <=MAIN_CONTENT;\n" rtfm-section file style rtfm-section file))
     )
   )
 
-;; here's the function I catually call - it asks me for a section label, 
+;; Here's the function I actually call---it asks me for a section label,
 ;; and source and destination directories, and then binds a couple of
 ;; customisation variable in a let before calling htmlfontify:
 (defun rtfm-build-source-docs (section srcdir destdir)
@@ -1253,7 +1252,7 @@ main-content <=MAIN_CONTENT;\n" rtfm-section file style rtfm-section file))
     (htmlfontify-copy-and-link-dir srcdir destdir ".src" ".html")))
 @end lisp
 
-@node Customisation, Requirements, Usage & Examples, Top
+@node Customisation
 @chapter Customisation
 @cindex variables (customisation)
 
@@ -1267,7 +1266,7 @@ Htmlfontify provides the following variable and customisation entries:
 @anchor{hfy-link-style-fun}
 
 Set this to a function, which will be called with one argument
-(a "@{ foo: bar; ...@}" css style-string) - it should return a copy of
+(a @samp{@{ foo: bar; @dots{}@}} CSS style-string)---it should return a copy of
 its argument, altered so as to make any changes you want made for text which
 is a hyperlink, in addition to being in the class to which that style would
 normally be applied.
@@ -1277,7 +1276,7 @@ normally be applied.
 @anchor{hfy-html-quote-regex}
 
 Regex to match (with a single back-reference per match) strings in HTML
-which should be quoted with @ref{hfy-html-quote} 
+which should be quoted with @ref{hfy-html-quote}
 (and @pxref{hfy-html-quote-map}) to make them safe.
 
 @item hfy-page-footer
@@ -1292,8 +1291,8 @@ As @ref{hfy-page-header}, but generates the output footer
 @anchor{hfy-display-class}
 
 Display class to use to determine which display class to use when
-calculating a face's attributes. This is useful when, for example, you
-are running emacs on a tty or in batch mode, and want htmlfontify to have
+calculating a face's attributes.  This is useful when, for example, you
+are running Emacs on a tty or in batch mode, and want Htmlfontify to have
 access to the face spec you would use if you were connected to an X display.
 
 Some valid class specification elements are:
@@ -1329,8 +1328,9 @@ and so on.
 
 Function called with two arguments (the filename relative to the top
 level source directory being etag'd and fontified), and a string containing
-the <style>...</style> text to embed in the document- the string returned will
-be used as the header for the htmlfontified version of the source file.
+the @samp{<style>@dots{}</style>} text to embed in the document---the string
+returned will be used as the header for the htmlfontified version of
+the source file.
 
 See also: @ref{hfy-page-footer}
 
@@ -1338,7 +1338,7 @@ See also: @ref{hfy-page-footer}
 @vindex hfy-src-doc-link-style
 @anchor{hfy-src-doc-link-style}
 
-String to add to the '<style> a' variant of an htmlfontify css class.
+String to add to the @samp{<style> a} variant of an Htmlfontify CSS class.
 
 @item hfy-fast-lock-save
 @vindex hfy-fast-lock-save
@@ -1352,8 +1352,8 @@ Only buffers more than this can have associated Font Lock cache files saved.
 
 If nil, means cache files are never created.
 
-If a list, each element should be a cons pair of the form 
-@code{(@var{major-mode} . @var{size})}, where @var{major-mode} 
+If a list, each element should be a cons pair of the form
+@code{(@var{major-mode} . @var{size})}, where @var{major-mode}
 is a symbol or t (meaning the default).  For example:
 
 @lisp
@@ -1363,14 +1363,14 @@ is a symbol or t (meaning the default).  For example:
 @end lisp
 
 means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
-for buffers in Rmail mode, and size is irrelevant (ie no saves) otherwise.
+for buffers in Rmail mode, and size is irrelevant (i.e., no saves) otherwise.
 
 @item hfy-split-index
 @vindex hfy-split-index
 @anchor{hfy-split-index}
 
 Whether or not to split the index @ref{hfy-index-file} alphabetically
-on the first letter of each tag. Useful when the index would otherwise
+on the first letter of each tag.  Useful when the index would otherwise
 be large and take a long time to render or be difficult to navigate.
 
 @item hfy-find-cmd
@@ -1389,12 +1389,12 @@ File extension used for output files
 @vindex hfy-default-face-def
 @anchor{hfy-default-face-def}
 
-Fallback @code{defface} specification for the face @code{default}, used 
-when @ref{hfy-display-class} has been set ( the normal htmlfontify way of 
-extracting potentially non-current face information doesn't necessarily 
-work for @code{default} ).
+Fallback @code{defface} specification for the face @code{default}, used
+when @ref{hfy-display-class} has been set (the normal Htmlfontify way of
+extracting potentially non-current face information doesn't necessarily
+work for @code{default}).
 
-Example: I customise this to:
+For example, I customise this to:
 
 @lisp
 ((t :background "black" :foreground "white" :family "misc-fixed"))
@@ -1412,20 +1412,20 @@ when not running under a window system.
 @vindex hfy-shell-file-name
 @anchor{hfy-shell-file-name}
 
-Should be set to a bourne compatible shell, which will be invoked 
-for the more complex shell interactions needed by htmlfontify.
-Currently this is only required/used when using GNU etags, see 
+Should be set to a Bourne compatible shell, which will be invoked
+for the more complex shell interactions needed by Htmlfontify.
+Currently this is only required/used when using GNU etags, see
 @ref{hfy-etags-cmd-alist} for details.
 
 @item hfy-optimisations
 @vindex hfy-optimisations
 @anchor{hfy-optimisations}
 
-Optimisations to turn on: So far, the following have been implemented:
+Optimisations to turn on.  So far, the following have been implemented:
 
 @table @option
 @item merge-adjacent-tags
-If two (or more) span tags are adjacent, identical and separated by nothing 
+If two (or more) span tags are adjacent, identical and separated by nothing
 more than whitespace, they will be merged into one span.
 
 @item zap-comment-links
@@ -1435,13 +1435,13 @@ Suppress hyperlinking of tags found in comments.
 Suppress hyperlinking of tags found in strings.
 
 @item div-wrapper
-Add <div class="default"> </div> tags around the fontified body.
-( some people like this because they cut and paste the html into 
-  a page with different colours than the fontified code. )
+Add @samp{<div class="default"> </div>} tags around the fontified body.
+(Some people like this because they cut and paste the html into
+a page with different colors than the fontified code.)
 
 @item keep-overlays
-preserve overlay highlighting (cf @code{ediff} or @code{goo-font-lock}) 
-as well as basic faces. Can result in extremely verbose highlighting 
+Preserve overlay highlighting (c.f. @code{ediff} or @code{goo-font-lock})
+as well as basic faces.  Can result in extremely verbose highlighting
 if there are many overlays (as is the case with @code{goo-font-lock}).
 
 @end table
@@ -1456,22 +1456,22 @@ Suppress hyperlinking between files highlighted by different modes.
 
 Note: like compiler optimisations, these optimise the _output_ of the code,
 not the processing of the source itself, and are therefore likely to slow
-htmlfontify down, at least a little. Except for skip-refontification,
+Htmlfontify down, at least a little.  Except for skip-refontification,
 which can never slow you down, but may result in incomplete fontification.
 
 @item hfy-src-doc-link-unstyle
 @vindex hfy-src-doc-link-unstyle
 @anchor{hfy-src-doc-link-unstyle}
 
-Regex to remove from the <style> a variant of an htmlfontify css class.
+Regex to remove from the <style> a variant of an Htmlfontify CSS class.
 
 @item hfy-link-extn
 @vindex hfy-link-extn
 @anchor{hfy-link-extn}
 
-File extension used for href links - Useful where the htmlfontify
+File extension used for href links---useful where the Htmlfontify
 output files are going to be processed again, with a rersulting change
-in file extension. If @code{nil}, then any code using this should fall back
+in file extension.  If @code{nil}, then any code using this should fall back
 to @ref{hfy-extn}.
 
 @item hfy-istext-command
@@ -1479,38 +1479,38 @@ to @ref{hfy-extn}.
 @anchor{hfy-istext-command}
 
 Command to run with the name of a file, to see whether it is a text file
-or not. The command should emit a string containing the word 'text' if
-the file is a text file, and a string not containing 'text' otherwise.
+or not.  The command should emit a string containing the word @samp{text} if
+the file is a text file, and a string not containing @samp{text} otherwise.
 
 @item hfy-etags-cmd-alist
 @vindex hfy-etags-cmd-alist
 @anchor{hfy-etags-cmd-alist}
 
 An alist of possible shell commands that will generate etags output that
-Htmlfontify can use. '%s' will be replaced by @ref{hfy-etags-bin}.
+Htmlfontify can use.  @samp{%s} will be replaced by @ref{hfy-etags-bin}.
 
 @item hfy-etags-bin
 @vindex hfy-etags-bin
 @anchor{hfy-etags-bin}
 
-The Location of the etags binary (we begin by assuming it's in your path).
+The location of the etags binary (we begin by assuming it's in your path).
 
 Note that if etags is not in your path, you will need to alter the shell
 commands in @ref{hfy-etags-cmd-alist}.
 
-[ As of version 0.17, this requirement has been removed: It should 
-  all just work(tm) ]
+[As of version 0.17, this requirement has been removed: it should
+  all just work(tm).]
 
 @item hfy-etags-cmd
 @vindex hfy-etags-cmd
 @anchor{hfy-etags-cmd}
 
 An etags shell command to run in the source directory to generate a tags
-file for the whole source tree from there on down. The command should emit
+file for the whole source tree from there on down.  The command should emit
 the etags output on standard output.
 
-Two canned commands are provided - they drive emacs' etags and
-exuberant-ctags' etags respectively.
+Two canned commands are provided---they drive Emacs's etags and
+exuberant-ctags's etags respectively.
 
 @item hfy-etag-regex
 @vindex hfy-etag-regex
@@ -1522,14 +1522,14 @@ in order, to:
 @enumerate
    The tag
    The line
-   The char (point) at which the tag occurs
+   The character (point) at which the tag occurs
 @end enumerate
 
 @item hfy-index-file
 @vindex hfy-index-file
 @anchor{hfy-index-file}
 
-Name (sans extension) of the index file produced during 
+Name (sans extension) of the index file produced during
 fontification-and-hyperlinking.
 
 @item hfy-instance-file
@@ -1543,12 +1543,12 @@ fontification-and-hyperlinking.
 @vindex hfy-html-quote-map
 @anchor{hfy-html-quote-map}
 
-An alist of char -> entity mappings used to make the text html-safe.
+An alist of character -> entity mappings used to make the text html-safe.
 
 @comment /AUTOGENERATED BLOCK
 @end table
 
-@node Requirements, Index, Customisation, Top
+@node Requirements
 @chapter Requirements
 @cindex Requirements, Prerequisites
 
@@ -1559,34 +1559,38 @@ Htmlfontify has a couple of external requirements:
 @item
 GNU Emacs 20.7+ or 21.1+
 
-Other versions may work - these have been used successfully by the 
-author. If you intend to use Htmlfontify in batch mode, 21.1+ is 
-pretty much required. The author does not know if XEmacs, NTemacs, 
-or J.Random Emacs will run Htmlfontify, but reports/patches/bags of 
+Other versions may work---these have been used successfully by the
+author.  If you intend to use Htmlfontify in batch mode, 21.1+ is
+pretty much required.  The author does not know if XEmacs, NTemacs,
+or J.Random Emacs will run Htmlfontify, but reports/patches/bags of
 money are always welcome.
 
-@item 
-A copy of etags ( exuberant-ctags or GNU etags ). Htmlfontify attempts 
-to autodetect the version you have and customise itself accordingly, 
-but you should be able to override this. 
+@item
+A copy of etags (exuberant-ctags or GNU etags).  Htmlfontify attempts
+to autodetect the version you have and customise itself accordingly,
+but you should be able to override this.
 
 See: @ref{Customisation}
 
 @item
-A copy of find (eg GNU find) that provides the @code{-path} predicate.
+A copy of find (e.g., GNU find) that provides the @code{-path} predicate.
 
 You may be able to work around this with a suitable clever shell
 command and the customisation entry: @ref{hfy-find-cmd}
 
-@item 
-A copy of sed (eg GNU sed).
+@item
+A copy of sed (e.g., GNU sed).
 
 @item
 A copy of the @code{file} command.
 
 @end itemize
 
-@node Index,  , Requirements, Top
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Index
 @unnumbered Index
 
 @table @var
@@ -1601,404 +1605,5 @@ A copy of the @code{file} command.
 
 @end table
 
-@node COPYING, , , Top
-@appendix GNU Free Documentation Licence
-
-@cindex FDL, GNU Free Documentation License
-@center Version 1.1, March 2000
-
-@display
-Copyright @copyright{} 2000 Free Software Foundation, Inc.
-59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
-
-Everyone is permitted to copy and distribute verbatim copies
-of this license document, but changing it is not allowed.
-@end display
-
-@enumerate 0
-@item
-PREAMBLE
-
-The purpose of this License is to make a manual, textbook, or other
-written document @dfn{free} in the sense of freedom: to assure everyone
-the effective freedom to copy and redistribute it, with or without
-modifying it, either commercially or noncommercially.  Secondarily,
-this License preserves for the author and publisher a way to get
-credit for their work, while not being considered responsible for
-modifications made by others.
-
-This License is a kind of ``copyleft'', which means that derivative
-works of the document must themselves be free in the same sense.  It
-complements the GNU General Public License, which is a copyleft
-license designed for free software.
-
-We have designed this License in order to use it for manuals for free
-software, because free software needs free documentation: a free
-program should come with manuals providing the same freedoms that the
-software does.  But this License is not limited to software manuals;
-it can be used for any textual work, regardless of subject matter or
-whether it is published as a printed book.  We recommend this License
-principally for works whose purpose is instruction or reference.
-
-@item
-APPLICABILITY AND DEFINITIONS
-
-This License applies to any manual or other work that contains a
-notice placed by the copyright holder saying it can be distributed
-under the terms of this License.  The ``Document'', below, refers to any
-such manual or work.  Any member of the public is a licensee, and is
-addressed as ``you''.
-
-A ``Modified Version'' of the Document means any work containing the
-Document or a portion of it, either copied verbatim, or with
-modifications and/or translated into another language.
-
-A ``Secondary Section'' is a named appendix or a front-matter section of
-the Document that deals exclusively with the relationship of the
-publishers or authors of the Document to the Document's overall subject
-(or to related matters) and contains nothing that could fall directly
-within that overall subject.  (For example, if the Document is in part a
-textbook of mathematics, a Secondary Section may not explain any
-mathematics.)  The relationship could be a matter of historical
-connection with the subject or with related matters, or of legal,
-commercial, philosophical, ethical or political position regarding
-them.
-
-The ``Invariant Sections'' are certain Secondary Sections whose titles
-are designated, as being those of Invariant Sections, in the notice
-that says that the Document is released under this License.
-
-The ``Cover Texts'' are certain short passages of text that are listed,
-as Front-Cover Texts or Back-Cover Texts, in the notice that says that
-the Document is released under this License.
-
-A ``Transparent'' copy of the Document means a machine-readable copy,
-represented in a format whose specification is available to the
-general public, whose contents can be viewed and edited directly and
-straightforwardly with generic text editors or (for images composed of
-pixels) generic paint programs or (for drawings) some widely available
-drawing editor, and that is suitable for input to text formatters or
-for automatic translation to a variety of formats suitable for input
-to text formatters.  A copy made in an otherwise Transparent file
-format whose markup has been designed to thwart or discourage
-subsequent modification by readers is not Transparent.  A copy that is
-not ``Transparent'' is called ``Opaque''.
-
-Examples of suitable formats for Transparent copies include plain
-@sc{ascii} without markup, Texinfo input format, La@TeX{} input format,
-@acronym{SGML} or @acronym{XML} using a publicly available
-@acronym{DTD}, and standard-conforming simple @acronym{HTML} designed
-for human modification.  Opaque formats include PostScript,
-@acronym{PDF}, proprietary formats that can be read and edited only by
-proprietary word processors, @acronym{SGML} or @acronym{XML} for which
-the @acronym{DTD} and/or processing tools are not generally available,
-and the machine-generated @acronym{HTML} produced by some word
-processors for output purposes only.
-
-The ``Title Page'' means, for a printed book, the title page itself,
-plus such following pages as are needed to hold, legibly, the material
-this License requires to appear in the title page.  For works in
-formats which do not have any title page as such, ``Title Page'' means
-the text near the most prominent appearance of the work's title,
-preceding the beginning of the body of the text.
-
-@item
-VERBATIM COPYING
-
-You may copy and distribute the Document in any medium, either
-commercially or noncommercially, provided that this License, the
-copyright notices, and the license notice saying this License applies
-to the Document are reproduced in all copies, and that you add no other
-conditions whatsoever to those of this License.  You may not use
-technical measures to obstruct or control the reading or further
-copying of the copies you make or distribute.  However, you may accept
-compensation in exchange for copies.  If you distribute a large enough
-number of copies you must also follow the conditions in section 3.
-
-You may also lend copies, under the same conditions stated above, and
-you may publicly display copies.
-
-@item
-COPYING IN QUANTITY
-
-If you publish printed copies of the Document numbering more than 100,
-and the Document's license notice requires Cover Texts, you must enclose
-the copies in covers that carry, clearly and legibly, all these Cover
-Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on
-the back cover.  Both covers must also clearly and legibly identify
-you as the publisher of these copies.  The front cover must present
-the full title with all words of the title equally prominent and
-visible.  You may add other material on the covers in addition.
-Copying with changes limited to the covers, as long as they preserve
-the title of the Document and satisfy these conditions, can be treated
-as verbatim copying in other respects.
-
-If the required texts for either cover are too voluminous to fit
-legibly, you should put the first ones listed (as many as fit
-reasonably) on the actual cover, and continue the rest onto adjacent
-pages.
-
-If you publish or distribute Opaque copies of the Document numbering
-more than 100, you must either include a machine-readable Transparent
-copy along with each Opaque copy, or state in or with each Opaque copy
-a publicly-accessible computer-network location containing a complete
-Transparent copy of the Document, free of added material, which the
-general network-using public has access to download anonymously at no
-charge using public-standard network protocols.  If you use the latter
-option, you must take reasonably prudent steps, when you begin
-distribution of Opaque copies in quantity, to ensure that this
-Transparent copy will remain thus accessible at the stated location
-until at least one year after the last time you distribute an Opaque
-copy (directly or through your agents or retailers) of that edition to
-the public.
-
-It is requested, but not required, that you contact the authors of the
-Document well before redistributing any large number of copies, to give
-them a chance to provide you with an updated version of the Document.
-
-@item
-MODIFICATIONS
-
-You may copy and distribute a Modified Version of the Document under
-the conditions of sections 2 and 3 above, provided that you release
-the Modified Version under precisely this License, with the Modified
-Version filling the role of the Document, thus licensing distribution
-and modification of the Modified Version to whoever possesses a copy
-of it.  In addition, you must do these things in the Modified Version:
-
-@enumerate A
-@item
-Use in the Title Page (and on the covers, if any) a title distinct
-from that of the Document, and from those of previous versions
-(which should, if there were any, be listed in the History section
-of the Document).  You may use the same title as a previous version
-if the original publisher of that version gives permission.
-
-@item
-List on the Title Page, as authors, one or more persons or entities
-responsible for authorship of the modifications in the Modified
-Version, together with at least five of the principal authors of the
-Document (all of its principal authors, if it has less than five).
-
-@item
-State on the Title page the name of the publisher of the
-Modified Version, as the publisher.
-
-@item
-Preserve all the copyright notices of the Document.
-
-@item
-Add an appropriate copyright notice for your modifications
-adjacent to the other copyright notices.
-
-@item
-Include, immediately after the copyright notices, a license notice
-giving the public permission to use the Modified Version under the
-terms of this License, in the form shown in the Addendum below.
-
-@item
-Preserve in that license notice the full lists of Invariant Sections
-and required Cover Texts given in the Document's license notice.
-
-@item
-Include an unaltered copy of this License.
-
-@item
-Preserve the section entitled ``History'', and its title, and add to
-it an item stating at least the title, year, new authors, and
-publisher of the Modified Version as given on the Title Page.  If
-there is no section entitled ``History'' in the Document, create one
-stating the title, year, authors, and publisher of the Document as
-given on its Title Page, then add an item describing the Modified
-Version as stated in the previous sentence.
-
-@item
-Preserve the network location, if any, given in the Document for
-public access to a Transparent copy of the Document, and likewise
-the network locations given in the Document for previous versions
-it was based on.  These may be placed in the ``History'' section.
-You may omit a network location for a work that was published at
-least four years before the Document itself, or if the original
-publisher of the version it refers to gives permission.
-
-@item
-In any section entitled ``Acknowledgments'' or ``Dedications'',
-preserve the section's title, and preserve in the section all the
-substance and tone of each of the contributor acknowledgments
-and/or dedications given therein.
-
-@item
-Preserve all the Invariant Sections of the Document,
-unaltered in their text and in their titles.  Section numbers
-or the equivalent are not considered part of the section titles.
-
-@item
-Delete any section entitled ``Endorsements''.  Such a section
-may not be included in the Modified Version.
-
-@item
-Do not retitle any existing section as ``Endorsements''
-or to conflict in title with any Invariant Section.
-@end enumerate
-
-If the Modified Version includes new front-matter sections or
-appendices that qualify as Secondary Sections and contain no material
-copied from the Document, you may at your option designate some or all
-of these sections as invariant.  To do this, add their titles to the
-list of Invariant Sections in the Modified Version's license notice.
-These titles must be distinct from any other section titles.
-
-You may add a section entitled ``Endorsements'', provided it contains
-nothing but endorsements of your Modified Version by various
-parties---for example, statements of peer review or that the text has
-been approved by an organization as the authoritative definition of a
-standard.
-
-You may add a passage of up to five words as a Front-Cover Text, and a
-passage of up to 25 words as a Back-Cover Text, to the end of the list
-of Cover Texts in the Modified Version.  Only one passage of
-Front-Cover Text and one of Back-Cover Text may be added by (or
-through arrangements made by) any one entity.  If the Document already
-includes a cover text for the same cover, previously added by you or
-by arrangement made by the same entity you are acting on behalf of,
-you may not add another; but you may replace the old one, on explicit
-permission from the previous publisher that added the old one.
-
-The author(s) and publisher(s) of the Document do not by this License
-give permission to use their names for publicity for or to assert or
-imply endorsement of any Modified Version.
-
-@item
-COMBINING DOCUMENTS
-
-You may combine the Document with other documents released under this
-License, under the terms defined in section 4 above for modified
-versions, provided that you include in the combination all of the
-Invariant Sections of all of the original documents, unmodified, and
-list them all as Invariant Sections of your combined work in its
-license notice.
-
-The combined work need only contain one copy of this License, and
-multiple identical Invariant Sections may be replaced with a single
-copy.  If there are multiple Invariant Sections with the same name but
-different contents, make the title of each such section unique by
-adding at the end of it, in parentheses, the name of the original
-author or publisher of that section if known, or else a unique number.
-Make the same adjustment to the section titles in the list of
-Invariant Sections in the license notice of the combined work.
-
-In the combination, you must combine any sections entitled ``History''
-in the various original documents, forming one section entitled
-``History''; likewise combine any sections entitled ``Acknowledgments'',
-and any sections entitled ``Dedications''.  You must delete all sections
-entitled ``Endorsements.''
-
-@item
-COLLECTIONS OF DOCUMENTS
-
-You may make a collection consisting of the Document and other documents
-released under this License, and replace the individual copies of this
-License in the various documents with a single copy that is included in
-the collection, provided that you follow the rules of this License for
-verbatim copying of each of the documents in all other respects.
-
-You may extract a single document from such a collection, and distribute
-it individually under this License, provided you insert a copy of this
-License into the extracted document, and follow this License in all
-other respects regarding verbatim copying of that document.
-
-@item
-AGGREGATION WITH INDEPENDENT WORKS
-
-A compilation of the Document or its derivatives with other separate
-and independent documents or works, in or on a volume of a storage or
-distribution medium, does not as a whole count as a Modified Version
-of the Document, provided no compilation copyright is claimed for the
-compilation.  Such a compilation is called an ``aggregate'', and this
-License does not apply to the other self-contained works thus compiled
-with the Document, on account of their being thus compiled, if they
-are not themselves derivative works of the Document.
-
-If the Cover Text requirement of section 3 is applicable to these
-copies of the Document, then if the Document is less than one quarter
-of the entire aggregate, the Document's Cover Texts may be placed on
-covers that surround only the Document within the aggregate.
-Otherwise they must appear on covers around the whole aggregate.
-
-@item
-TRANSLATION
-
-Translation is considered a kind of modification, so you may
-distribute translations of the Document under the terms of section 4.
-Replacing Invariant Sections with translations requires special
-permission from their copyright holders, but you may include
-translations of some or all Invariant Sections in addition to the
-original versions of these Invariant Sections.  You may include a
-translation of this License provided that you also include the
-original English version of this License.  In case of a disagreement
-between the translation and the original English version of this
-License, the original English version will prevail.
-
-@item
-TERMINATION
-
-You may not copy, modify, sublicense, or distribute the Document except
-as expressly provided for under this License.  Any other attempt to
-copy, modify, sublicense or distribute the Document is void, and will
-automatically terminate your rights under this License.  However,
-parties who have received copies, or rights, from you under this
-License will not have their licenses terminated so long as such
-parties remain in full compliance.
-
-@item
-FUTURE REVISIONS OF THIS LICENSE
-
-The Free Software Foundation may publish new, revised versions
-of the GNU Free Documentation License from time to time.  Such new
-versions will be similar in spirit to the present version, but may
-differ in detail to address new problems or concerns.  See
-@uref{http://www.gnu.org/copyleft/}.
-
-Each version of the License is given a distinguishing version number.
-If the Document specifies that a particular numbered version of this
-License ``or any later version'' applies to it, you have the option of
-following the terms and conditions either of that specified version or
-of any later version that has been published (not as a draft) by the
-Free Software Foundation.  If the Document does not specify a version
-number of this License, you may choose any version ever published (not
-as a draft) by the Free Software Foundation.
-@end enumerate
-
-@page
-@appendixsubsec ADDENDUM: How to use this License for your documents
-
-To use this License in a document you have written, include a copy of
-the License in the document and put the following copyright and
-license notices just after the title page:
-
-@smallexample
-@group
-  Copyright (C)  @var{year}  @var{your name}.
-  Permission is granted to copy, distribute and/or modify this document
-  under the terms of the GNU Free Documentation License, Version 1.1
-  or any later version published by the Free Software Foundation;
-  with the Invariant Sections being @var{list their titles}, with the
-  Front-Cover Texts being @var{list}, and with the Back-Cover Texts being @var{list}.
-  A copy of the license is included in the section entitled ``GNU
-  Free Documentation License''.
-@end group
-@end smallexample
-
-If you have no Invariant Sections, write ``with no Invariant Sections''
-instead of saying which ones are invariant.  If you have no
-Front-Cover Texts, write ``no Front-Cover Texts'' instead of
-``Front-Cover Texts being @var{list}''; likewise for Back-Cover Texts.
-
-If your document contains nontrivial examples of program code, we
-recommend releasing these examples in parallel under your choice of
-free software license, such as the GNU General Public License,
-to permit their use in free software.
-
 @setchapternewpage odd
-@contents
 @bye
