@@ -1,3 +1,7 @@
+2013-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Overlay Properties): Mention field.  (Bug#13364)
+
 2013-01-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* hooks.texi (Standard Hooks): Use @item, not @itemx, as the first
