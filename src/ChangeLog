@@ -1,3 +1,12 @@
+2013-01-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (dump_glyph): Align glyph data better.  Use "pD" instead
+	of a non-portable "t" to print ptrdiff_t values.  Allow up to 9
+	digits for buffer positions, before misalignment starts.  Display
+	"0" for integer "object" field.
+	(dump_glyph_row): Adapt the header line to changes in dump_glyph.
+	Display the newline glyph more unambiguously.
+
 2013-01-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* nsterm.m (ns_draw_underwave):
