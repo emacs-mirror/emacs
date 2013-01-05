@@ -20,6 +20,7 @@
 	before @end.
 	* tramp.texi (Obtaining Tramp): Remove extra dots.
 	(Configuration): Reorder menu to match structure.
+	(Remote shell setup): Replace literal NUL character by \0.
 	* viper.texi (Marking): Add missing argument for @item.
 
 2013-01-04  Glenn Morris  <rgm@gnu.org>
