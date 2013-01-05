@@ -17925,18 +17925,23 @@ dump_glyph_matrix (struct glyph_matrix *matrix, int glyphs)
 void
 dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
 {
-  if (glyph->type == CHAR_GLYPH)
+  if (glyph->type == CHAR_GLYPH
+      || glyph->type == GLYPHLESS_GLYPH)
     {
       fprintf (stderr,
-	       "  %5td %4c %6"pI"d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       "  %5"pD"d     %c %9"pI"d   %c %3d 0x%06x      %c %4d %1.1d%1.1d\n",
 	       glyph - row->glyphs[TEXT_AREA],
-	       'C',
+	       (glyph->type == CHAR_GLYPH
+		? 'C'
+		: 'G'),
 	       glyph->charpos,
 	       (BUFFERP (glyph->object)
 		? 'B'
 		: (STRINGP (glyph->object)
 		   ? 'S'
-		   : '-')),
+		   : (INTEGERP (glyph->object)
+		      ? '0'
+		      : '-'))),
 	       glyph->pixel_width,
 	       glyph->u.ch,
 	       (glyph->u.ch < 0x80 && glyph->u.ch >= ' '
@@ -17949,7 +17954,7 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
   else if (glyph->type == STRETCH_GLYPH)
     {
       fprintf (stderr,
-	       "  %5td %4c %6"pI"d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       "  %5"pD"d     %c %9"pI"d   %c %3d 0x%06x      %c %4d %1.1d%1.1d\n",
 	       glyph - row->glyphs[TEXT_AREA],
 	       'S',
 	       glyph->charpos,
@@ -17957,10 +17962,12 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
 		? 'B'
 		: (STRINGP (glyph->object)
 		   ? 'S'
-		   : '-')),
+		   : (INTEGERP (glyph->object)
+		      ? '0'
+		      : '-'))),
 	       glyph->pixel_width,
 	       0,
-	       '.',
+	       ' ',
 	       glyph->face_id,
 	       glyph->left_box_line_p,
 	       glyph->right_box_line_p);
@@ -17968,7 +17975,7 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
   else if (glyph->type == IMAGE_GLYPH)
     {
       fprintf (stderr,
-	       "  %5td %4c %6"pI"d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       "  %5"pD"d     %c %9"pI"d   %c %3d 0x%06x      %c %4d %1.1d%1.1d\n",
 	       glyph - row->glyphs[TEXT_AREA],
 	       'I',
 	       glyph->charpos,
@@ -17976,7 +17983,9 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
 		? 'B'
 		: (STRINGP (glyph->object)
 		   ? 'S'
-		   : '-')),
+		   : (INTEGERP (glyph->object)
+		      ? '0'
+		      : '-'))),
 	       glyph->pixel_width,
 	       glyph->u.img_id,
 	       '.',
@@ -17987,7 +17996,7 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
   else if (glyph->type == COMPOSITE_GLYPH)
     {
       fprintf (stderr,
-	       "  %5td %4c %6"pI"d %c %3d 0x%05x",
+	       "  %5"pD"d     %c %9"pI"d   %c %3d 0x%06x",
 	       glyph - row->glyphs[TEXT_AREA],
 	       '+',
 	       glyph->charpos,
@@ -17995,7 +18004,9 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
 		? 'B'
 		: (STRINGP (glyph->object)
 		   ? 'S'
-		   : '-')),
+		   : (INTEGERP (glyph->object)
+		      ? '0'
+		      : '-'))),
 	       glyph->pixel_width,
 	       glyph->u.cmp.id);
       if (glyph->u.cmp.automatic)
@@ -18020,10 +18031,10 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 {
   if (glyphs != 1)
     {
-      fprintf (stderr, "Row Start   End Used oE><\\CTZFesm     X    Y    W    H    V    A    P\n");
-      fprintf (stderr, "======================================================================\n");
+      fprintf (stderr, "Row     Start       End Used oE><\\CTZFesm     X    Y    W    H    V    A    P\n");
+      fprintf (stderr, "==============================================================================\n");
 
-      fprintf (stderr, "%3d %5"pI"d %5"pI"d %4d %1.1d%1.1d%1.1d%1.1d\
+      fprintf (stderr, "%3d %9"pI"d %9"pI"d %4d %1.1d%1.1d%1.1d%1.1d\
 %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d  %4d %4d %4d %4d %4d %4d %4d\n",
 	       vpos,
 	       MATRIX_ROW_START_CHARPOS (row),
@@ -18048,13 +18059,14 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 	       row->visible_height,
 	       row->ascent,
 	       row->phys_ascent);
-      fprintf (stderr, "%9"pD"d %5"pD"d\t%5d\n", row->start.overlay_string_index,
+      /* The next 3 lines should align to "Start" in the header.  */
+      fprintf (stderr, "    %9"pD"d %9"pD"d\t%5d\n", row->start.overlay_string_index,
 	       row->end.overlay_string_index,
 	       row->continuation_lines_width);
-      fprintf (stderr, "%9"pI"d %5"pI"d\n",
+      fprintf (stderr, "    %9"pI"d %9"pI"d\n",
 	       CHARPOS (row->start.string_pos),
 	       CHARPOS (row->end.string_pos));
-      fprintf (stderr, "%9d %5d\n", row->start.dpvec_index,
+      fprintf (stderr, "    %9d %9d\n", row->start.dpvec_index,
 	       row->end.dpvec_index);
     }
 
@@ -18072,7 +18084,7 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 	    ++glyph_end;
 
 	  if (glyph < glyph_end)
-	    fprintf (stderr, "  Glyph    Type Pos   O W    Code C Face LR\n");
+	    fprintf (stderr, " Glyph#  Type       Pos   O   W     Code      C Face LR\n");
 
 	  for (; glyph < glyph_end; ++glyph)
 	    dump_glyph (row, glyph, area);
@@ -18084,15 +18096,24 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 
       for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	{
-	  char *s = alloca (row->used[area] + 1);
+	  char *s = alloca (row->used[area] + 4);
 	  int i;
 
 	  for (i = 0; i < row->used[area]; ++i)
 	    {
 	      struct glyph *glyph = row->glyphs[area] + i;
-	      if (glyph->type == CHAR_GLYPH
-		  && glyph->u.ch < 0x80
-		  && glyph->u.ch >= ' ')
+	      if (i == row->used[area] - 1
+		  && area == TEXT_AREA
+		  && INTEGERP (glyph->object)
+		  && glyph->type == CHAR_GLYPH
+		  && glyph->u.ch == ' ')
+		{
+		  strcpy (&s[i], "[\\n]");
+		  i += 4;
+		}
+	      else if (glyph->type == CHAR_GLYPH
+		       && glyph->u.ch < 0x80
+		       && glyph->u.ch >= ' ')
 		s[i] = glyph->u.ch;
 	      else
 		s[i] = '.';

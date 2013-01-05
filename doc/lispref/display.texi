@@ -1559,6 +1559,14 @@ mouse onto the text in the overlay, Emacs displays a help string in the
 echo area, or in the tooltip window.  For details see @ref{Text
 help-echo}.
 
+@item field
+@kindex field @r{(overlay property)}
+@c Copied from Special Properties.
+Consecutive characters with the same @code{field} property constitute a
+@emph{field}.  Some motion functions including @code{forward-word} and
+@code{beginning-of-line} stop moving at a field boundary.
+@xref{Fields}.
+
 @item modification-hooks
 @kindex modification-hooks @r{(overlay property)}
 This property's value is a list of functions to be called if any

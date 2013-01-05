@@ -4611,7 +4611,8 @@ prompt for values.  Possible values are:
 @example
 nil     @r{Never prompt for optional arguments}
 t       @r{Always prompt}
-maybe   @r{Prompt only if @code{reftex-citation} was called with C-u prefix arg}@end example
+maybe   @r{Prompt only if @code{reftex-citation} was called with C-u prefix arg}
+@end example
 Unnecessary empty optional arguments are removed before insertion into
 the buffer.  See @code{reftex-cite-cleanup-optional-args}.
 @end defopt

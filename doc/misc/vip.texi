@@ -677,9 +677,9 @@ Call last remembered keyboard macro.
 Suspend Emacs.
 @item Z Z
 Exit Emacs.
-@itemx Q
+@item Q
 Query replace.
-@itemx R
+@item R
 Replace.
 @end table
 
@@ -944,11 +944,11 @@ Scroll text of current window upward almost full screen.  You can go
 @kindex 002 @kbd{C-b} (@code{vip-scroll-back})
 Scroll text of current window downward almost full screen.  You can go
 @i{backward} in the buffer by this command (@code{vip-scroll-back}).
-@itemx C-d
+@item C-d
 @kindex 004 @kbd{C-d} (@code{vip-scroll-up})
 Scroll text of current window upward half screen.  You can go
 @i{down} in the buffer by this command (@code{vip-scroll-down}).
-@itemx C-u
+@item C-u
 @kindex 025 @kbd{C-u} (@code{vip-scroll-down})
 Scroll text of current window downward half screen.  You can go
 @i{up} in the buffer by this command (@code{vip-scroll-up}).

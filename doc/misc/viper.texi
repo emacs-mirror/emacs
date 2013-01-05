@@ -3465,7 +3465,7 @@ Exchange point and mark.
 Exchange point and mark and go to the first CHAR on line.
 @item '<a-z>
 Go to specified Viper mark.
-@item
+@item `<a-z>
 Go to specified Viper mark and go to the first CHAR on line.
 @end table
 @kindex @kbd{m<a-z>}

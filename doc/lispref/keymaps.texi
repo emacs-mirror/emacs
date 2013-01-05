@@ -94,9 +94,6 @@ Manual}.
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
-
-This macro is not meant for use with arguments that vary---only
-with string constants.
 @end defun
 
 @node Keymap Basics

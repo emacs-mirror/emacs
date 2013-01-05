@@ -1,3 +1,28 @@
+2013-01-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* ada-mode.texi: Remove braces from @title argument.
+	* eudc.texi: Likewise.
+	* smtpmail.texi: Likewise.
+	* auth.texi (VERSION): Set before first use.
+	* emacs-gnutls.texi (VERSION): Likewise.
+	* pgg.texi (VERSION): Likewise.
+	* ede.texi (Top): Rename from top, all uses changed.
+	* eshell.texi: Add missing argument to @sp.
+	* forms.texi (Top): Reorder menu to match structure.
+	* htmlfontify.texi (Customisation): Add missing @item in
+	@enumerate.
+	* org.texi (Advanced features): Add missing argument for @item.
+	(Property searches): Use @backslashchar{} in macro argument.
+	* pcl-cvs.texi: Add missing argument to @sp.
+	(Movement commands): Fix use of @itemx.
+	* vip.texi (Misc Commands, Viewing the Buffer): Likewise.
+	* reftex.texi (Options (Creating Citations)): Add missing newline
+	before @end.
+	* tramp.texi (Obtaining Tramp): Remove extra dots.
+	(Configuration): Reorder menu to match structure.
+	(Remote shell setup): Replace literal NUL character by \0.
+	* viper.texi (Marking): Add missing argument for @item.
+
 2013-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS):

@@ -63,7 +63,7 @@ modify this GNU manual.''
 
 @contents
 
-@node top, EDE Project Concepts, (dir), (dir)
+@node Top, EDE Project Concepts, (dir), (dir)
 @top EDE
 @comment  node-name,  next,  previous,  up
 
@@ -91,7 +91,7 @@ learn and adopt GNU ways of doing things.
 * GNU Free Documentation License::  The license for this documentation.
 @end menu
 
-@node EDE Project Concepts, EDE Mode, top, top
+@node EDE Project Concepts, EDE Mode, Top, Top
 @chapter @ede{} Project Concepts
 
 @ede{} is a generic interface for managing projects.  It specifies a
@@ -126,7 +126,7 @@ of search to files in a single target, or to discover the location of
 documentation or interface files.  @ede{} can provide this
 information.
 
-@node EDE Mode, Quick Start, EDE Project Concepts, top
+@node EDE Mode, Quick Start, EDE Project Concepts, Top
 @chapter @ede{} Mode
 
 @ede{} is implemented as a minor mode, which augments other modes such
@@ -143,7 +143,7 @@ bar.  This menu provides several menu items for high-level @ede{}
 commands.  These menu items, and their corresponding keybindings, are
 independent of the type of project you are actually working on.
 
-@node Quick Start, Creating a project, EDE Mode, top
+@node Quick Start, Creating a project, EDE Mode, Top
 @chapter Quick Start
 
 Once you have @ede{} enabled, you can create a project.  This chapter
@@ -439,7 +439,7 @@ C-c . R RET RET
 If your program takes command line arguments, you can type them in
 when it offers the command line you want to use to run your program.
 
-@node Creating a project, Modifying your project, Quick Start, top
+@node Creating a project, Modifying your project, Quick Start, Top
 @chapter Creating a project
 
 To create a new project, first visit a file that you want to include
@@ -497,7 +497,7 @@ the top-most project's makefile as a starting place for the build.  How
 the toplevel project handles subprojects in the build process is
 dependent on that project's type.
 
-@node Modifying your project, Building and Debugging, Creating a project, top
+@node Modifying your project, Building and Debugging, Creating a project, Top
 @chapter Modifying your project
 
 In this chapter, we describe the generic features for manipulating
@@ -678,7 +678,7 @@ block for ``configurations''.  Add a new named configuration here.
 To switch between different active configurations, modify the
 ``configuration default'' slot.
 
-@node Building and Debugging, Miscellaneous commands, Modifying your project, top
+@node Building and Debugging, Miscellaneous commands, Modifying your project, Top
 @chapter Building and Debugging
 
 @ede{} provides the following ``project-aware'' compilation and
@@ -697,7 +697,7 @@ Build a distribution file for your project.
 
 These commands are also available from the @samp{Development} menu.
 
-@node Miscellaneous commands, Extending EDE, Building and Debugging, top
+@node Miscellaneous commands, Extending EDE, Building and Debugging, Top
 @chapter Miscellaneous commands
 
 If you opt to go in and edit @ede{} project files directly---for
@@ -1093,7 +1093,7 @@ You can add your own locate tool but subclassing from
 methods.  See the code in @file{ede-locate.el} for GNU Global as a
 simple example.
 
-@node Extending EDE, GNU Free Documentation License, Miscellaneous commands, top
+@node Extending EDE, GNU Free Documentation License, Miscellaneous commands, Top
 @chapter Extending @ede{}
 
 This chapter is intended for users who want to write new parts or fix

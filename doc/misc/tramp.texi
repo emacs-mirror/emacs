@@ -374,7 +374,7 @@ This release includes the full documentation and code for
 @value{tramp}, suitable for installation.  But Emacs (22 or later)
 includes @value{tramp} already, and there is a @value{tramp} package
 for XEmacs, as well.  So maybe it is easier to just use those.  But if
-you want the bleeding edge, read on@dots{...}
+you want the bleeding edge, read on@dots{}
 
 For the especially brave, @value{tramp} is available from Git.  The Git
 version is the latest version of the code and may contain incomplete
@@ -515,8 +515,8 @@ Method}.
 * Connection caching::          Reusing connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
-* Windows setup hints::         Issues with Cygwin ssh.
 * Auto-save and Backup::        Auto-save and Backup.
+* Windows setup hints::         Issues with Cygwin ssh.
 @end menu
 
 
@@ -1899,7 +1899,7 @@ of your (local or remote) host, you might need to adapt this. Example:
           "passwort" "Passwort"
           ;; Fran@,{c}ais
           "mot de passe" "Mot de passe") t)
-      ".*: ? *"))
+      ".*:\0? *"))
 @end lisp
 
 In parallel, it might also be necessary to adapt
