@@ -2,10 +2,10 @@
 
 @include gnus-overrides.texi
 
+@set VERSION 0.3
+
 @setfilename ../../info/auth
 @settitle Emacs auth-source Library @value{VERSION}
-
-@set VERSION 0.3
 
 @copying
 This file describes the Emacs auth-source library.

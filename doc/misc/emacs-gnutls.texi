@@ -1,9 +1,9 @@
 \input texinfo                  @c -*-texinfo-*-
 
+@set VERSION 0.3
+
 @setfilename ../../info/emacs-gnutls
 @settitle Emacs GnuTLS Integration @value{VERSION}
-
-@set VERSION 0.3
 
 @copying
 This file describes the Emacs GnuTLS integration.

@@ -24,9 +24,9 @@ modify this GNU manual.''
 @end direntry
 
 @titlepage
-@title{Emacs SMTP Library}
-@subtitle{An Emacs package for sending mail via SMTP}
-@author{Simon Josefsson, Alex Schroeder}
+@title Emacs SMTP Library
+@subtitle An Emacs package for sending mail via SMTP
+@author Simon Josefsson, Alex Schroeder
 @page
 @vskip 0pt plus 1filll
 @insertcopying

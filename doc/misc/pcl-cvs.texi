@@ -31,9 +31,9 @@ modify this GNU manual.''
 @sp 4
 @c The title is printed in a large font.
 @center @titlefont{User's Guide}
-@sp
+@sp 1
 @center @titlefont{to}
-@sp
+@sp 1
 @center @titlefont{PCL-CVS---The Emacs Front-End to CVS}
 @ignore
 @sp 2
@@ -682,7 +682,7 @@ the fact that the buffer is a PCL-CVS buffer:
 These keys move the cursor one file forward, towards the end of the
 buffer (@code{cvs-mode-next-line}).@refill
 
-@itemx p
+@item p
 This key moves one file backward, towards the beginning of the buffer
 (@code{cvs-mode-previous-line}).
 @end table

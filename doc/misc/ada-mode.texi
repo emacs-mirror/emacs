@@ -25,7 +25,7 @@ modify this GNU manual.''
 
 @titlepage
 @sp 10
-@title{Ada Mode}
+@title Ada Mode
 @sp 2
 @subtitle An Emacs major mode for programming in Ada
 @subtitle Ada Mode Version 4.00

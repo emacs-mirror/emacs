@@ -87,8 +87,8 @@ how to present it.
 * Miscellaneous::               Forms mode messages and other remarks.
 * Error Messages::              List of error messages forms mode can produce.
 * Long Example::                A more complex control file example.
-* GNU Free Documentation License:: The license for this documentation.
 * Credits::                     Thanks everyone.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                       Index to this manual.
 @end menu
 @end ifnottex

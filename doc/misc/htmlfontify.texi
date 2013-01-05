@@ -1520,9 +1520,12 @@ Regex used to parse an etags entry: must have 3 subexps, corresponding,
 in order, to:
 
 @enumerate
-   The tag
-   The line
-   The character (point) at which the tag occurs
+@item
+The tag
+@item
+The line
+@item
+The character (point) at which the tag occurs
 @end enumerate
 
 @item hfy-index-file

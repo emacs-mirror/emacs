@@ -32,9 +32,9 @@ modify this GNU manual.''
 @sp 4
 @c The title is printed in a large font.
 @center @titlefont{User's Guide}
-@sp
+@sp 1
 @center @titlefont{to}
-@sp
+@sp 1
 @center @titlefont{Eshell: The Emacs Shell}
 @ignore
 @sp 2

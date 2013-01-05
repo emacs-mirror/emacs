@@ -35,8 +35,8 @@ modify this GNU manual.''
 @footnotestyle end
 
 @titlepage
-@title{EUDC Manual}
-@subtitle{The Emacs Unified Directory Client}
+@title EUDC Manual
+@subtitle The Emacs Unified Directory Client
 @author by Oscar Figueiredo
 @code{1.30b}
 
