@@ -325,7 +325,7 @@ pass to the OPERATION."
 		 mod-string
 		 ;; fake
 		 t 1
-		 (tramp-get-device v))
+		 (tramp-get-device vec))
 		file-properties)))
       file-properties)))
 
@@ -335,7 +335,7 @@ pass to the OPERATION."
   (when (file-directory-p directory)
     (with-parsed-tramp-file-name (expand-file-name directory) nil
       (with-tramp-file-property
-	  v localname (format "directory-files-attributes-%s-%s-%s-s"
+	  v localname (format "directory-files-attributes-%s-%s-%s-%s"
 			      full match id-format nosort)
 	(tramp-adb-barf-unless-okay
 	 v (format "%s -a -l %s"
@@ -343,13 +343,17 @@ pass to the OPERATION."
 		   (tramp-shell-quote-argument localname)) "")
 	(with-current-buffer (tramp-get-buffer v)
 	  (tramp-adb-sh-fix-ls-output)
-	  (let ((result (tramp-do-parse-file-attributes-with-ls v (or id-format 'integer))))
+	  (let ((result (tramp-do-parse-file-attributes-with-ls
+			 v (or id-format 'integer))))
 	    (when full
-	      (setq result (mapcar
-			    (lambda (x) (cons (expand-file-name (car x) directory) (cdr x)))
-			    result)))
+	      (setq result
+		    (mapcar
+		     (lambda (x)
+		       (cons (expand-file-name (car x) directory) (cdr x)))
+		     result)))
 	    (unless nosort
-	      (setq result (sort result (lambda (x y) (string< (car x) (car y))))))
+	      (setq result
+		    (sort result (lambda (x y) (string< (car x) (car y))))))
 	    (delq nil
 		  (mapcar (lambda (x)
 			    (if (or (not match) (string-match match (car x)))

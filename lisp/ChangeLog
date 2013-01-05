@@ -1,3 +1,8 @@
+2013-01-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-do-parse-file-attributes-with-ls):
+	(tramp-adb-handle-directory-files-and-attributes): Fix typos.
+
 2013-01-05  Jürgen Hötzel  <juergen@archlinux.org>
 
 	* net/tramp-adb.el (tramp-adb-handle-file-attributes): More robust
