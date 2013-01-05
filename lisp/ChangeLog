@@ -1,3 +1,11 @@
+2013-01-05  Jürgen Hötzel  <juergen@archlinux.org>
+
+	* net/tramp-adb.el (tramp-adb-handle-file-attributes): More robust
+	parsing of ls output using regular expression (handle filenames
+	with spaces).  Use virtual device number.
+	(tramp-do-parse-file-attributes-with-ls): New defun (Code
+	cleanup).
+
 2013-01-04  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el: Silence byte-compiler warnings.

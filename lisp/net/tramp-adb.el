@@ -56,6 +56,15 @@
 (defconst tramp-adb-ls-date-regexp
   "[[:space:]][0-9]\\{4\\}-[0-9][0-9]-[0-9][0-9][[:space:]][0-9][0-9]:[0-9][0-9][[:space:]]")
 
+(defconst tramp-adb-ls-toolbox-regexp
+  (concat
+   "^[[:space:]]*\\([-[:alpha:]]+\\)" 	; \1 permissions
+   "[[:space:]]*\\([^[:space:]]+\\)"	; \2 username
+   "[[:space:]]+\\([^[:space:]]+\\)"	; \3 group
+   "[[:space:]]+\\([[:digit:]]\\)"	; \4 size
+   "[[:space:]]+\\([-[:digit:]]+[[:space:]][:[:digit:]]+\\)" ; \5 date
+   "[[:space:]]+\\(.*\\)$"))		; \6 filename
+
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods `(,tramp-adb-method))
 
@@ -95,6 +104,9 @@
     (expand-file-name . tramp-adb-handle-expand-file-name)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     (directory-files . tramp-handle-directory-files)
+    (directory-files-and-attributes
+     . tramp-adb-handle-directory-files-and-attributes)
+    (file-name-all-completions . tramp-sh-handle-file-name-all-completions)
     (make-directory . tramp-adb-handle-make-directory)
     (delete-directory . tramp-adb-handle-delete-directory)
     (delete-file . tramp-adb-handle-delete-file)
@@ -280,30 +292,69 @@ pass to the OPERATION."
 		   (tramp-shell-quote-argument localname)) "")
 	(with-current-buffer (tramp-get-buffer v)
 	  (tramp-adb-sh-fix-ls-output)
-	  (let* ((columns (split-string (buffer-string)))
-		 (mod-string (nth 0 columns))
-		 (is-dir (eq ?d (aref mod-string 0)))
-		 (is-symlink (eq ?l (aref mod-string 0)))
-		 (symlink-target
-		  (and is-symlink
-		       (cadr (split-string (buffer-string) "\\( -> \\|\n\\)"))))
-		 (uid (nth 1 columns))
-		 (gid (nth 2 columns))
-		 (date (format "%s %s" (nth 4 columns) (nth 5 columns)))
-		 (size (string-to-number (nth 3 columns))))
-	    (list
-	     (or is-dir symlink-target)
-	     1 					;link-count
-	     ;; no way to handle numeric ids in Androids ash
-	     (if (eq id-format 'integer) 0 uid)
-	     (if (eq id-format 'integer) 0 gid)
-	     '(0 0) ; atime
-	     (date-to-time date) ; mtime
-	     '(0 0) ; ctime
-	     size
-	     mod-string
-	     ;; fake
-	     t 1 1)))))))
+	  (cdar (tramp-do-parse-file-attributes-with-ls v id-format)))))))
+
+(defun tramp-do-parse-file-attributes-with-ls (vec &optional id-format)
+  "Parse `file-attributes' for Tramp files using the ls(1) command."
+  (with-current-buffer (tramp-get-buffer vec)
+    (goto-char (point-min))
+    (let ((file-properties nil))
+      (while (re-search-forward tramp-adb-ls-toolbox-regexp nil t)
+	(let* ((mod-string (match-string 1))
+	       (is-dir (eq ?d (aref mod-string 0)))
+	       (is-symlink (eq ?l (aref mod-string 0)))
+	       (uid (match-string 2))
+	       (gid (match-string 3))
+	       (size (string-to-number (match-string 4)))
+	       (date (match-string 5))
+	       (name (match-string 6))
+	       (symlink-target
+		(and is-symlink
+		     (cadr (split-string name "\\( -> \\|\n\\)")))))
+	  (push (list
+		 name
+		 (or is-dir symlink-target)
+		 1     ;link-count
+		 ;; no way to handle numeric ids in Androids ash
+		 (if (eq id-format 'integer) 0 uid)
+		 (if (eq id-format 'integer) 0 gid)
+		 '(0 0)			; atime
+		 (date-to-time date)	; mtime
+		 '(0 0)			; ctime
+		 size
+		 mod-string
+		 ;; fake
+		 t 1
+		 (tramp-get-device v))
+		file-properties)))
+      file-properties)))
+
+(defun tramp-adb-handle-directory-files-and-attributes
+  (directory &optional full match nosort id-format)
+  "Like `directory-files-and-attributes' for Tramp files."
+  (when (file-directory-p directory)
+    (with-parsed-tramp-file-name (expand-file-name directory) nil
+      (with-tramp-file-property
+	  v localname (format "directory-files-attributes-%s-%s-%s-s"
+			      full match id-format nosort)
+	(tramp-adb-barf-unless-okay
+	 v (format "%s -a -l %s"
+		   (tramp-adb-get-ls-command v)
+		   (tramp-shell-quote-argument localname)) "")
+	(with-current-buffer (tramp-get-buffer v)
+	  (tramp-adb-sh-fix-ls-output)
+	  (let ((result (tramp-do-parse-file-attributes-with-ls v (or id-format 'integer))))
+	    (when full
+	      (setq result (mapcar
+			    (lambda (x) (cons (expand-file-name (car x) directory) (cdr x)))
+			    result)))
+	    (unless nosort
+	      (setq result (sort result (lambda (x y) (string< (car x) (car y))))))
+	    (delq nil
+		  (mapcar (lambda (x)
+			    (if (or (not match) (string-match match (car x)))
+				x))
+			  result))))))))
 
 (defun tramp-adb-get-ls-command (vec)
   (with-tramp-connection-property vec "ls"
