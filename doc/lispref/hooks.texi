@@ -121,7 +121,7 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 @item delete-terminal-functions
 @xref{Multiple Terminals}.
 
-@itemx pop-up-frame-function
+@item pop-up-frame-function
 @itemx split-window-preferred-function
 @xref{Choosing Window Options}.
 

@@ -1,3 +1,8 @@
+2013-01-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* hooks.texi (Standard Hooks): Use @item, not @itemx, as the first
+	directive in a group of items.
+
 2013-04-02  Chong Yidong  <cyd@gnu.org>
 
 	* keymaps.texi (Key Sequences): Remove obsolete sentence
