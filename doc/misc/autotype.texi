@@ -37,8 +37,7 @@ modify this GNU manual.''
 
 @center @titlefont{Autotyping}
 @sp 2
-@center @subtitlefont{Convenient features for text that you enter
-frequently in Emacs}
+@center Convenient features for text that you enter frequently in Emacs
 @sp 2
 @center Daniel Pfeiffer
 @center additions by Dave Love

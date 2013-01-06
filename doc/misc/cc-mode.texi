@@ -188,7 +188,7 @@ modify this GNU manual.''
 
 @center @titlefont{CC Mode 5.32}
 @sp 2
-@center @subtitlefont{A GNU Emacs mode for editing C and C-like languages}
+@center A GNU Emacs mode for editing C and C-like languages
 @sp 2
 @center Barry A. Warsaw, Martin Stjernholm, Alan Mackenzie
 
