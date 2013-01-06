@@ -659,6 +659,10 @@
 (eval-when-compile
   (require 'dired))
 
+(declare-function dired-get-filename "dired" (&optional localp noerror))
+(declare-function dired-move-to-filename "dired" (&optional err eol))
+(declare-function dired-marker-regexp "dired" ())
+
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
   (setq minor-mode-alist
 	(cons '(vc-parent-buffer vc-parent-buffer-name)
@@ -1071,6 +1075,17 @@ For old-style locking-based version control systems, like RCS:
          ;; The backend should check that the checkout-model is consistent
          ;; among all the `files'.
 	 (model (nth 4 vc-fileset)))
+
+    ;; If a buffer has unsaved changes, a checkout would discard those
+    ;; changes, so treat the buffer as having unlocked changes.
+    (when (and (not (eq model 'implicit)) (eq state 'up-to-date))
+      (let ((files files))
+	(while files
+	  (let ((buffer (get-file-buffer (car files))))
+	    (and buffer
+		 (buffer-modified-p buffer)
+		 (setq state 'unlocked-changes
+		       files nil))))))
 
     ;; Do the right thing
     (cond

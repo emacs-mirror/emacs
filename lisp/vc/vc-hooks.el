@@ -703,19 +703,21 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; the state to 'edited and redisplay the mode line.
   (let* ((file buffer-file-name)
          (backend (vc-backend file)))
-    (and backend
-	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
-			 (nth 5 (file-attributes file)))
-		  ;; File has been saved in the same second in which
-		  ;; it was checked out.  Clear the checkout-time
-		  ;; to avoid confusion.
-		  (vc-file-setprop file 'vc-checkout-time nil))
-	     t)
-         (eq (vc-checkout-model backend (list file)) 'implicit)
-         (vc-state-refresh file backend)
-	 (vc-mode-line file backend))
-    ;; Try to avoid unnecessary work, a *vc-dir* buffer is
-    ;; present if this is true.
+    (cond
+     ((null backend))
+     ((eq (vc-checkout-model backend (list file)) 'implicit)
+      ;; If the file was saved in the same second in which it was
+      ;; checked out, clear the checkout-time to avoid confusion.
+      (if (equal (vc-file-getprop file 'vc-checkout-time)
+		 (nth 5 (file-attributes file)))
+	  (vc-file-setprop file 'vc-checkout-time nil))
+      (if (vc-state-refresh file backend)
+	  (vc-mode-line file backend)))
+     ;; If we saved an unlocked file on a locking based VCS, that
+     ;; file is not longer up-to-date.
+     ((eq (vc-file-getprop file 'vc-state) 'up-to-date)
+      (vc-file-setprop file 'vc-state nil)))
+    ;; Resynch *vc-dir* buffers, if any are present.
     (when vc-dir-buffers
       (vc-dir-resynch-file file))))
 
