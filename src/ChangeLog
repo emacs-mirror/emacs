@@ -1,3 +1,12 @@
+2013-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (echo_add_char): New function, factored out from
+	echo_char.  Don't add a space if the previous echo string was
+	empty (Bug#13255).
+	(echo_char): Use it.
+	(read_key_sequence): When echoing mock input, ensure that the
+	trailing dash is properly added.
+
 2013-01-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (dump_glyph): Align glyph data better.  Use "pD" instead

@@ -497,97 +497,103 @@ kset_system_key_syms (struct kboard *kb, Lisp_Object val)
 }
 
 
-/* Add C to the echo string, if echoing is going on.
-   C can be a character, which is printed prettily ("M-C-x" and all that
-   jazz), or a symbol, whose name is printed.  */
+/* Add C to the echo string, without echoing it immediately.  C can be
+   a character, which is pretty-printed, or a symbol, whose name is
+   printed.  */
+
+static void
+echo_add_char (Lisp_Object c)
+{
+  int size = KEY_DESCRIPTION_SIZE + 100;
+  char *buffer = alloca (size);
+  char *ptr = buffer;
+  Lisp_Object echo_string;
+
+  echo_string = KVAR (current_kboard, echo_string);
+
+  /* If someone has passed us a composite event, use its head symbol.  */
+  c = EVENT_HEAD (c);
+
+  if (INTEGERP (c))
+    ptr = push_key_description (XINT (c), ptr);
+  else if (SYMBOLP (c))
+    {
+      Lisp_Object name = SYMBOL_NAME (c);
+      int nbytes = SBYTES (name);
+
+      if (size - (ptr - buffer) < nbytes)
+	{
+	  int offset = ptr - buffer;
+	  size = max (2 * size, size + nbytes);
+	  buffer = alloca (size);
+	  ptr = buffer + offset;
+	}
+
+      ptr += copy_text (SDATA (name), (unsigned char *) ptr, nbytes,
+			STRING_MULTIBYTE (name), 1);
+    }
+
+  if ((NILP (echo_string) || SCHARS (echo_string) == 0)
+      && help_char_p (c))
+    {
+      const char *text = " (Type ? for further options)";
+      int len = strlen (text);
+
+      if (size - (ptr - buffer) < len)
+	{
+	  int offset = ptr - buffer;
+	  size += len;
+	  buffer = alloca (size);
+	  ptr = buffer + offset;
+	}
+
+      memcpy (ptr, text, len);
+      ptr += len;
+    }
+
+  /* Replace a dash from echo_dash with a space, otherwise add a space
+     at the end as a separator between keys.  */
+  if (STRINGP (echo_string) && SCHARS (echo_string) > 1)
+    {
+      Lisp_Object last_char, prev_char, idx;
+
+      idx = make_number (SCHARS (echo_string) - 2);
+      prev_char = Faref (echo_string, idx);
+
+      idx = make_number (SCHARS (echo_string) - 1);
+      last_char = Faref (echo_string, idx);
+
+      /* We test PREV_CHAR to make sure this isn't the echoing of a
+	 minus-sign.  */
+      if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
+	Faset (echo_string, idx, make_number (' '));
+      else
+	echo_string = concat2 (echo_string, build_string (" "));
+    }
+  else if (STRINGP (echo_string) && SCHARS (echo_string) > 0)
+    echo_string = concat2 (echo_string, build_string (" "));
+
+  kset_echo_string
+    (current_kboard,
+     concat2 (echo_string, make_string (buffer, ptr - buffer)));
+}
+
+/* Add C to the echo string, if echoing is going on.  C can be a
+   character or a symbol.  */
 
 static void
 echo_char (Lisp_Object c)
 {
   if (current_kboard->immediate_echo)
     {
-      int size = KEY_DESCRIPTION_SIZE + 100;
-      char *buffer = alloca (size);
-      char *ptr = buffer;
-      Lisp_Object echo_string;
-
-      echo_string = KVAR (current_kboard, echo_string);
-
-      /* If someone has passed us a composite event, use its head symbol.  */
-      c = EVENT_HEAD (c);
-
-      if (INTEGERP (c))
-	{
-	  ptr = push_key_description (XINT (c), ptr);
-	}
-      else if (SYMBOLP (c))
-	{
-	  Lisp_Object name = SYMBOL_NAME (c);
-	  int nbytes = SBYTES (name);
-
-	  if (size - (ptr - buffer) < nbytes)
-	    {
-	      int offset = ptr - buffer;
-	      size = max (2 * size, size + nbytes);
-	      buffer = alloca (size);
-	      ptr = buffer + offset;
-	    }
-
-	  ptr += copy_text (SDATA (name), (unsigned char *) ptr, nbytes,
-			    STRING_MULTIBYTE (name), 1);
-	}
-
-      if ((NILP (echo_string) || SCHARS (echo_string) == 0)
-	  && help_char_p (c))
-	{
-	  const char *text = " (Type ? for further options)";
-	  int len = strlen (text);
-
-	  if (size - (ptr - buffer) < len)
-	    {
-	      int offset = ptr - buffer;
-	      size += len;
-	      buffer = alloca (size);
-	      ptr = buffer + offset;
-	    }
-
-	  memcpy (ptr, text, len);
-	  ptr += len;
-	}
-
-      /* Replace a dash from echo_dash with a space, otherwise
-	 add a space at the end as a separator between keys.  */
-      if (STRINGP (echo_string)
-	  && SCHARS (echo_string) > 1)
-	{
-	  Lisp_Object last_char, prev_char, idx;
-
-	  idx = make_number (SCHARS (echo_string) - 2);
-	  prev_char = Faref (echo_string, idx);
-
-	  idx = make_number (SCHARS (echo_string) - 1);
-	  last_char = Faref (echo_string, idx);
-
-	  /* We test PREV_CHAR to make sure this isn't the echoing
-	     of a minus-sign.  */
-	  if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
-	    Faset (echo_string, idx, make_number (' '));
-	  else
-	    echo_string = concat2 (echo_string, build_string (" "));
-	}
-      else if (STRINGP (echo_string))
-	echo_string = concat2 (echo_string, build_string (" "));
-
-      kset_echo_string
-	(current_kboard,
-	 concat2 (echo_string, make_string (buffer, ptr - buffer)));
-
+      echo_add_char (c);
       echo_now ();
     }
 }
 
 /* Temporarily add a dash to the end of the echo string if it's not
-   empty, so that it serves as a mini-prompt for the very next character.  */
+   empty, so that it serves as a mini-prompt for the very next
+   character.  */
 
 static void
 echo_dash (void)
@@ -9218,8 +9224,12 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  key = keybuf[t];
 	  add_command_key (key);
 	  if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
-	      && NILP (Fzerop (Vecho_keystrokes)))
-	    echo_char (key);
+	      && NILP (Fzerop (Vecho_keystrokes))
+	      && current_kboard->immediate_echo)
+	    {
+	      echo_add_char (key);
+	      echo_dash ();
+	    }
 	}
 
       /* If not, we should actually read a character.  */
