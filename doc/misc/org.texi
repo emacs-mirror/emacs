@@ -3027,7 +3027,7 @@ lines will be left alone by this command.
 Selects this line for global recalculation with @kbd{C-u C-c *}, but
 not for automatic recalculation.  Use this when automatic
 recalculation slows down editing too much.
-@item @
+@item @w{ }
 Unmarked lines are exempt from recalculation with @kbd{C-u C-c *}.
 All lines that should be recalculated should be marked with @samp{#}
 or @samp{*}.
@@ -5050,7 +5050,7 @@ FILE         @r{The filename the entry is located in.}
 To create sparse trees and special lists with selection based on properties,
 the same commands are used as for tag searches (@pxref{Tag searches}).
 @table @kbd
-@orgcmdkkc{C-c / m,C-c @backslashchar{},org-match-sparse-tree}
+@orgcmdkkc{C-c / m,C-c \\,org-match-sparse-tree}
 Create a sparse tree with all matching entries.  With a
 @kbd{C-u} prefix argument, ignore headlines that are not a TODO line.
 @orgcmd{C-c a m,org-tags-view}

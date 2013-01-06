@@ -2,9 +2,9 @@
 
 @include gnus-overrides.texi
 
-@set VERSION 0.1
-
 @setfilename ../../info/pgg
+
+@set VERSION 0.1
 @settitle PGG @value{VERSION}
 
 @copying
