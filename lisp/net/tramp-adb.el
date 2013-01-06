@@ -66,7 +66,8 @@
    "[[:space:]]+\\(.*\\)$"))		; \6 filename
 
 ;;;###tramp-autoload
-(add-to-list 'tramp-methods `(,tramp-adb-method))
+(add-to-list 'tramp-methods `(,tramp-adb-method
+			      (tramp-tmpdir "/data/local/tmp")))
 
 ;;;###tramp-autoload
 (eval-after-load 'tramp
