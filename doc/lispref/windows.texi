@@ -3054,10 +3054,11 @@ pixels.  In this case, the return value is @var{lines}.
 @end defun
 
 @defvar auto-window-vscroll
-If this variable is non-@code{nil}, the line-move, scroll-up, and
-scroll-down functions will automatically modify the vertical scroll
-position to scroll through display rows that are taller than the height
-of the window, for example in the presence of large images.
+If this variable is non-@code{nil}, the @code{line-move},
+@code{scroll-up}, and @code{scroll-down} functions will automatically
+modify the vertical scroll position to scroll through display rows
+that are taller than the height of the window, for example in the
+presence of large images.
 @end defvar
 
 @node Horizontal Scrolling
