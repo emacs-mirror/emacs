@@ -61,7 +61,7 @@
    "^[[:space:]]*\\([-[:alpha:]]+\\)" 	; \1 permissions
    "[[:space:]]*\\([^[:space:]]+\\)"	; \2 username
    "[[:space:]]+\\([^[:space:]]+\\)"	; \3 group
-   "[[:space:]]+\\([[:digit:]]\\)"	; \4 size
+   "[[:space:]]+\\([[:digit:]]+\\)"	; \4 size
    "[[:space:]]+\\([-[:digit:]]+[[:space:]][:[:digit:]]+\\)" ; \5 date
    "[[:space:]]+\\(.*\\)$"))		; \6 filename
 
@@ -95,8 +95,8 @@
     (file-directory-p . tramp-adb-handle-file-directory-p)
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; FIXME: This is too sloppy.
-    (file-executable-p . file-exists-p)
-    (file-exists-p . tramp-adb-handle-file-exists-p)
+    (file-executable-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-handle-file-exists-p)
     (file-readable-p . tramp-handle-file-exists-p)
     (file-writable-p . tramp-adb-handle-file-writable-p)
     (file-local-copy . tramp-adb-handle-file-local-copy)
@@ -139,13 +139,7 @@
   "Invoke the ADB handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let ((fn (assoc operation tramp-adb-file-name-handler-alist))
-	;; `tramp-default-host's default value is (system-name).  Not
-	;; useful for us.
-	(tramp-default-host
-	 (unless (equal (eval (car (get 'tramp-default-host 'standard-value)))
-			tramp-default-host)
-	   tramp-default-host)))
+  (let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
     (if fn
 	(save-match-data (apply (cdr fn) args))
       (tramp-run-real-handler operation args))))
@@ -940,20 +934,19 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(tramp-set-connection-property v "process-name" nil)
 	(tramp-set-connection-property v "process-buffer" nil)))))
 
-;; Android < 4 doesn't provide test command.
-
-(defun tramp-adb-handle-file-exists-p (filename)
-  "Like `file-exists-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property v localname "file-exists-p"
-      (file-attributes filename))))
-
 ;; Helper functions.
+
+(defun tramp-adb-file-name-host (vec)
+  "Return host component of VEC.
+If it is equal to the default value of `tramp-default-host', `nil' is returned."
+  (let ((host (tramp-file-name-host vec)))
+    (unless (equal host (eval (car (get 'tramp-default-host 'standard-value))))
+      host)))
 
 (defun tramp-adb-execute-adb-command (vec &rest args)
   "Returns nil on success error-output on failure."
-  (when (tramp-file-name-host vec)
-    (setq args (append (list "-s" (tramp-file-name-host vec)) args)))
+  (when (tramp-adb-file-name-host vec)
+    (setq args (append (list "-s" (tramp-adb-file-name-host vec)) args)))
   (with-temp-buffer
     (prog1
 	(unless (zerop (apply 'call-process (tramp-adb-program) nil t nil args))
@@ -1061,21 +1054,21 @@ connection if a previous connection has died for some reason."
 	(when (and p (processp p)) (delete-process p))
 	(if (not devices)
 	    (tramp-error vec 'file-error "No device connected"))
-	(if (and (tramp-file-name-host vec)
-		 (not (member (tramp-file-name-host vec) devices)))
+	(if (and (tramp-adb-file-name-host vec)
+		 (not (member (tramp-adb-file-name-host vec) devices)))
 	    (tramp-error
 	     vec 'file-error
-	     "Device %s not connected" (tramp-file-name-host vec)))
+	     "Device %s not connected" (tramp-adb-file-name-host vec)))
 	(if (and (not (eq (length devices) 1))
-		 (not (tramp-file-name-host vec)))
+		 (not (tramp-adb-file-name-host vec)))
 	    (tramp-error
 	     vec 'file-error
 	     "Multiple Devices connected: No Host/Device specified"))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ;is this correct?
 		 (process-connection-type tramp-process-connection-type)
-		 (args (if (tramp-file-name-host vec)
-			   (list "-s" (tramp-file-name-host vec) "shell")
+		 (args (if (tramp-adb-file-name-host vec)
+			   (list "-s" (tramp-adb-file-name-host vec) "shell")
 			 (list "shell")))
 		 (p (let ((default-directory
 			    (tramp-compat-temporary-file-directory)))
@@ -1111,7 +1104,19 @@ connection if a previous connection has died for some reason."
 		 vec 3
 		 "Connection reset, because remote host changed from `%s' to `%s'"
 		 old-getprop new-getprop)
-		(tramp-adb-maybe-open-connection vec)))))))))
+		(tramp-adb-maybe-open-connection vec)))
+
+	    ;; Set "remote-path" connection property.  This is needed
+	    ;; for eshell.
+	    (tramp-adb-send-command vec "echo \\\"$PATH\\\"")
+	    (tramp-set-connection-property
+	     vec "remote-path"
+	     (split-string
+	      (with-current-buffer (tramp-get-connection-buffer vec)
+		;; Read the expression.
+		(goto-char (point-min))
+		(read (current-buffer)))
+	      ":" 'omit-nulls))))))))
 
 (provide 'tramp-adb)
 ;;; tramp-adb.el ends here
