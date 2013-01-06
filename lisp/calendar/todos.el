@@ -614,7 +614,31 @@ categories display according to priority."
     (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
     (((class color) (min-colors 8)) (:foreground "magenta"))
     (t (:weight bold :underline t)))
-  "Face for Todos prefix string."
+  "Face for Todos prefix or numerical priority string."
+  :group 'todos-faces)
+
+(defface todos-top-priority
+  ;; '((t :inherit font-lock-comment-face))
+  '((((class grayscale) (background light))
+     :foreground "DimGray" :weight bold :slant italic)
+    (((class grayscale) (background dark))
+     :foreground "LightGray" :weight bold :slant italic)
+    (((class color) (min-colors 88) (background light))
+     :foreground "Firebrick" :weight bold)
+    (((class color) (min-colors 88) (background dark))
+     :foreground "chocolate1" :weight bold)
+    (((class color) (min-colors 16) (background light))
+     :foreground "red" :weight bold)
+    (((class color) (min-colors 16) (background dark))
+     :foreground "red1" :weight bold)
+    (((class color) (min-colors 8) (background light))
+     :foreground "red" :weight bold)
+    (((class color) (min-colors 8) (background dark))
+     :foreground "yellow" :weight bold)
+    (t :weight bold :slant italic))
+  "Face for top priority Todos item numerical priority string.
+The item's priority number string has this face if the number is
+less than or equal the category's top priority setting."
   :group 'todos-faces)
 
 (defface todos-mark
@@ -738,77 +762,51 @@ categories display according to priority."
 
 (defface todos-done
   ;; '((t :inherit font-lock-comment-face))
-  '((((class grayscale)
-      (background light))
-     (:slant italic :weight bold :foreground "DimGray"))
-    (((class grayscale)
-      (background dark))
-     (:slant italic :weight bold :foreground "LightGray"))
-    (((class color)
-      (min-colors 88)
-      (background light))
-     (:foreground "Firebrick"))
-    (((class color)
-      (min-colors 88)
-      (background dark))
-     (:foreground "chocolate1"))
-    (((class color)
-      (min-colors 16)
-      (background light))
-     (:foreground "red"))
-    (((class color)
-      (min-colors 16)
-      (background dark))
-     (:foreground "red1"))
-    (((class color)
-      (min-colors 8)
-      (background light))
-     (:foreground "red"))
-    (((class color)
-      (min-colors 8)
-      (background dark))
-     (:foreground "yellow"))
-    (t
-     (:slant italic :weight bold)))
+  '((((class grayscale) (background light))
+     :foreground "DimGray" :weight bold :slant italic)
+    (((class grayscale) (background dark))
+     :foreground "LightGray" :weight bold :slant italic)
+    (((class color) (min-colors 88) (background light))
+     :foreground "Firebrick")
+    (((class color) (min-colors 88) (background dark))
+     :foreground "chocolate1")
+    (((class color) (min-colors 16) (background light))
+     :foreground "red")
+    (((class color) (min-colors 16) (background dark))
+     :foreground "red1")
+    (((class color) (min-colors 8) (background light))
+     :foreground "red")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "yellow")
+    (t :weight bold :slant italic))
   "Face for done Todos item header string."
   :group 'todos-faces)
 (defvar todos-done-face 'todos-done)
 
 (defface todos-comment
-  '((t :inherit todos-done))
+  ;; '((t :inherit font-lock-keyword-face))
+  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "Purple")
+    (((class color) (min-colors 88) (background dark))  :foreground "Cyan1")
+    (((class color) (min-colors 16) (background light)) :foreground "Purple")
+    (((class color) (min-colors 16) (background dark))  :foreground "Cyan")
+    (((class color) (min-colors 8)) :foreground "cyan" :weight bold)
+    (t :weight bold))
   "Face for comments appended to done Todos items."
   :group 'todos-faces)
 (defvar todos-comment-face 'todos-comment)
 
 (defface todos-done-sep
   ;; '((t :inherit font-lock-type-face))
-  '((((class grayscale)
-      (background light))
-     (:weight bold :foreground "Gray90"))
-    (((class grayscale)
-      (background dark))
-     (:weight bold :foreground "DimGray"))
-    (((class color)
-      (min-colors 88)
-      (background light))
-     (:foreground "ForestGreen"))
-    (((class color)
-      (min-colors 88)
-      (background dark))
-     (:foreground "PaleGreen"))
-    (((class color)
-      (min-colors 16)
-      (background light))
-     (:foreground "ForestGreen"))
-    (((class color)
-      (min-colors 16)
-      (background dark))
-     (:foreground "PaleGreen"))
-    (((class color)
-      (min-colors 8))
-     (:foreground "green"))
-    (t
-     (:underline t :weight bold)))
+  '((((class grayscale) (background light)) :foreground "Gray90" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 88) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 16) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 16) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 8)) :foreground "green")
+    (t :weight bold :underline t))
   "Face for separator string bewteen done and not done Todos items."
   :group 'todos-faces)
 (defvar todos-done-sep-face 'todos-done-sep)
@@ -904,7 +902,7 @@ mode following todo (not done) items."
    '(todos-date-string-matcher 1 todos-date-face t)
    '(todos-time-string-matcher 1 todos-time-face t)
    '(todos-done-string-matcher 0 todos-done-face t)
-   '(todos-comment-string-matcher 1 todos-done-face t)
+   '(todos-comment-string-matcher 1 todos-comment-face t)
    ;; '(todos-category-string-matcher 1 todos-done-sep-face t)
    '(todos-category-string-matcher-1 1 todos-done-sep-face t t)
    '(todos-category-string-matcher-2 1 todos-done-sep-face t t)
@@ -1535,7 +1533,7 @@ The final element is \"*\", indicating an unspecified month.")
   (todos-backward-item)
   (todos-prefix-overlays))
 
-(defun todos-prefix-overlays ()
+(defun todos-prefix-overlays ()		;FIXME: this is a category function
   "Put before-string overlay in front of this category's items.
 The overlay's value is the string `todos-prefix' or with non-nil
 `todos-number-priorities' an integer in the sequence from 1 to
@@ -1546,7 +1544,12 @@ of each other."
 	    (not (string-match "^[[:space:]]*$" todos-prefix)))
     (let ((prefix (propertize (concat todos-prefix " ")
 			      'face 'todos-prefix-string))
-	  (num 0))
+	  (num 0)
+	  (cat-tp (or (cdr (assoc-string (todos-current-category)
+		       (nth 2 (assoc-string todos-current-todos-file
+					    todos-priorities-rules))))
+		      todos-show-priorities))
+	  done)
       (save-excursion
 	(goto-char (point-min))
 	(while (not (eobp))
@@ -1560,9 +1563,13 @@ of each other."
 			 (looking-back (concat "^"
 					       (regexp-quote todos-category-done)
 					       "\n")))
-		(setq num 1))
+		(setq num 1
+		      done t))
 	      (setq prefix (propertize (concat (number-to-string num) " ")
-				       'face 'todos-prefix-string)))
+				       'face
+				       (if (and (not done) (<= num cat-tp))
+				       	   'todos-top-priority ; make defface
+					 'todos-prefix-string))))
 	    (let ((ovs (overlays-in (point) (point)))
 		  marked ov-pref)
 	      (if ovs
@@ -1571,14 +1578,17 @@ of each other."
 		      (if (equal val "*")
 			  (setq marked t)
 			(setq ov-pref val)))))
-	      (unless (equal ov-pref prefix)
+	      ;; Omitting this condition doesn't appear to slow
+	      ;; redisplay down, while having it prevents updating
+	      ;; display after changing number of top priorities.
+	      ;; (unless (equal ov-pref prefix)
 		;; Why doesn't this work?
 		;; (remove-overlays (point) (point) 'before-string)
-		(remove-overlays (point) (point))
-		(overlay-put (make-overlay (point) (point))
-			     'before-string prefix)
-		(and marked (overlay-put (make-overlay (point) (point))
-					 'before-string todos-item-mark)))))
+	      (remove-overlays (point) (point))
+	      (overlay-put (make-overlay (point) (point))
+			   'before-string prefix)
+	      (and marked (overlay-put (make-overlay (point) (point))
+				       'before-string todos-item-mark))));)
 	  (forward-line))))))
 
 ;; ---------------------------------------------------------------------------
@@ -2104,7 +2114,8 @@ set the user customizable option `todos-priorities-rules'."
 			  (list file cur nrule)
 			nrule)
 		      (delete frule rules)))
-    (customize-save-variable 'todos-priorities-rules rules)))
+    (customize-save-variable 'todos-priorities-rules rules)
+    (todos-prefix-overlays)))
 
 (defun todos-filtered-buffer-name (buffer-type file-list)
   "Rename Todos filtered buffer using BUFFER-TYPE and FILE-LIST.

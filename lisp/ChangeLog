@@ -1,3 +1,22 @@
+2013-01-06  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Display numerical priority string of top
+	priority items in category in a distinctive face.
+	(todos-prefix-string): Make doc string more precise.
+	(todos-top-priority): New defface.
+	(todos-done, todos-done-sep): Use more compact face definition
+	\(taken from font-lock.el).
+	(todos-comment): Give a complete face definition, instead of
+	inheriting from todos-done.
+	(todos-font-lock-keywords): Use todos-comment-face for
+	todos-comment-string-matcher.
+	(todos-prefix-overlays): Use todos-top-priority as the face
+	property of top priority items; don't condition reapplying item
+	prefix overlay on whether the string changed, since that prevents
+	updating display after changing number of top priorities.
+	(todos-set-top-priorities): Call todos-prefix-overlays to update
+	display.
+
 2013-01-04  Stephen Berman  <Stephen.Berman@rub.de>
 
 	* calendar/todos.el (todos-reset-global-current-todos-file)
