@@ -1280,7 +1280,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
       ;; whether or not omake's own error messages are recognized.
       (cond
        ((not (memq 'omake compilation-error-regexp-alist)) nil)
-       ((string-match "\\`\\([^^]\\|^\\( \\*\\|\\[\\)\\)" pat)
+       ((string-match "\\`\\([^^]\\|\\^\\( \\*\\|\\[\\)\\)" pat)
         nil) ;; Not anchored or anchored but already allows empty spaces.
        (t (setq pat (concat "^ *" (substring pat 1)))))
 
