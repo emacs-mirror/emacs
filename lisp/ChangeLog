@@ -1,3 +1,8 @@
+2013-01-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* wid-edit.el (widget-default-get): Work for inlined elements.
+	(Bug#12670)
+
 2013-01-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-default-host-alist): New defcustom.
@@ -11,7 +16,7 @@
 	(tramp-adb-execute-adb-command, tramp-adb-maybe-open-connection):
 	Use `tramp-file-name-host' instead of `tramp-adb-file-name-host'.
 
-	* net/tramp-sh.el : Move eshell integration code to tramp.el.
+	* net/tramp-sh.el: Move eshell integration code to tramp.el.
 
 2013-01-06  Jürgen Hötzel  <juergen@archlinux.org>
 

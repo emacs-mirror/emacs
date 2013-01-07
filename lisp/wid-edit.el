@@ -526,7 +526,16 @@ Otherwise, just return the value."
   "Extract the default external value of WIDGET."
   (widget-apply widget :value-to-external
 		(or (widget-get widget :value)
-		    (widget-apply widget :default-get))))
+		    (progn
+		      (when (widget-get widget :args)
+			(let (args)
+			  (dolist (arg (widget-get widget :args))
+			    (setq args (append args
+					       (if (widget-get arg :inline)
+						   (widget-get arg :args)
+						 (list arg)))))
+			  (widget-put widget :args args)))
+		      (widget-apply widget :default-get)))))
 
 (defun widget-match-inline (widget vals)
   "In WIDGET, match the start of VALS."
