@@ -381,6 +381,22 @@ Useful for su and sudo methods mostly."
   :group 'tramp
   :type 'string)
 
+;;;###tramp-autoload
+(defcustom tramp-default-host-alist nil
+  "Default host to use for specific method/user pairs.
+This is an alist of items (METHOD USER HOST).  The first matching item
+specifies the host to use for a file name which does not specify a
+host.  METHOD and HOST are regular expressions or nil, which is
+interpreted as a regular expression which always matches.  If no entry
+matches, the variable `tramp-default-host' takes effect.
+
+If the file name does not specify the method, lookup is done using the
+empty string for the method name."
+  :group 'tramp
+  :type '(repeat (list (choice :tag "Method regexp" regexp sexp)
+		       (choice :tag "  User regexp" regexp sexp)
+		       (choice :tag "    Host name" string (const nil)))))
+
 (defcustom tramp-default-proxies-alist nil
   "Route to be followed for specific host/user pairs.
 This is an alist of items (HOST USER PROXY).  The first matching
@@ -918,7 +934,7 @@ See `tramp-file-name-structure' for more explanations.")
 This regexp should match partial Tramp file names only.
 
 Please note that the entry in `file-name-handler-alist' is made when
-this file (tramp.el) is loaded.  This means that this variable must be set
+this file \(tramp.el\) is loaded.  This means that this variable must be set
 before loading tramp.el.  Alternatively, `file-name-handler-alist' can be
 updated after changing this variable.
 
@@ -1163,6 +1179,15 @@ This is USER, if non-nil. Otherwise, do a lookup in
   "Return the right host string to use.
 This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
   (or (and (> (length host) 0) host)
+      (let ((choices tramp-default-host-alist)
+	    lhost item)
+	(while choices
+	  (setq item (pop choices))
+	  (when (and (string-match (or (nth 0 item) "") (or method ""))
+		     (string-match (or (nth 1 item) "") (or user "")))
+	    (setq lhost (nth 2 item))
+	    (setq choices nil)))
+	lhost)
       tramp-default-host))
 
 (defun tramp-dissect-file-name (name &optional nodefault)
@@ -3860,6 +3885,34 @@ Only works for Bourne-like shells."
 	  (setq result (replace-match (format "'%s'" tramp-rsh-end-of-line)
 				      t t result)))
 	result))))
+
+;;; Integration of eshell.el:
+
+(eval-when-compile
+  (defvar eshell-path-env))
+
+;; eshell.el keeps the path in `eshell-path-env'.  We must change it
+;; when `default-directory' points to another host.
+(defun tramp-eshell-directory-change ()
+  "Set `eshell-path-env' to $PATH of the host related to `default-directory'."
+  (setq eshell-path-env
+	(if (file-remote-p default-directory)
+	    (with-parsed-tramp-file-name default-directory nil
+	      (mapconcat
+	       'identity
+	       (tramp-get-connection-property v "remote-path" nil)
+	       ":"))
+	  (getenv "PATH"))))
+
+(eval-after-load "esh-util"
+  '(progn
+     (tramp-eshell-directory-change)
+     (add-hook 'eshell-directory-change-hook
+	       'tramp-eshell-directory-change)
+     (add-hook 'tramp-unload-hook
+	       (lambda ()
+		 (remove-hook 'eshell-directory-change-hook
+			      'tramp-eshell-directory-change)))))
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages
