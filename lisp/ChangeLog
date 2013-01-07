@@ -1,3 +1,8 @@
+2013-01-07  Vitalie Spinu  <spinuvit@gmail.com>  (tiny change)
+
+	* comint.el (comint-send-input): Check size of buffer before
+	waiting for process output, in case already accepted.  (Bug#13290)
+
 2013-01-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-set-file-uid-gid): UID and GID must be
