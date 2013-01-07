@@ -107,6 +107,12 @@
                 (lambda (f &rest args)
                   (cons (cons 2 (called-interactively-p)) (apply f args))))
     (should (equal (call-interactively 'sm-test7) '((2 . t) (1 . t) 11)))
+
+    ;; Check handling of interactive spec.
+    (defun sm-test8 (a) (interactive "p") a)
+    (defadvice sm-test8 (before adv1 activate) nil)
+    (defadvice sm-test8 (before adv2 activate) (interactive "P") nil)
+    (should (equal (interactive-form 'sm-test8) '(interactive "P")))
     ))
 
 ;; Local Variables:

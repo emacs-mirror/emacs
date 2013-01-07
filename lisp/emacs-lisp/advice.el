@@ -2917,13 +2917,18 @@ If COMPILE is nil then the result depends on the value of
   "Redefine FUNCTION with its advised definition from cache or scratch.
 The resulting FUNCTION will be compiled if `ad-should-compile' returns t.
 The current definition and its cache-id will be put into the cache."
-  (let ((verified-cached-definition
-	 (if (ad-verify-cache-id function)
-	     (ad-get-cache-definition function)))
-        (advicefunname (ad-get-advice-info-field function 'advicefunname)))
+  (let* ((verified-cached-definition
+          (if (ad-verify-cache-id function)
+              (ad-get-cache-definition function)))
+         (advicefunname (ad-get-advice-info-field function 'advicefunname))
+         (old-ispec (interactive-form advicefunname)))
     (fset advicefunname
           (or verified-cached-definition
               (ad-make-advised-definition function)))
+    (unless (equal (interactive-form advicefunname) old-ispec)
+      ;; If the interactive-spec of advicefunname has changed, force nadvice to
+      ;; refresh its copy.
+      (advice-remove function advicefunname))
     (advice-add function :around advicefunname)
     (if (ad-should-compile function compile)
 	(ad-compile-function function))

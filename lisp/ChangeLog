@@ -1,3 +1,8 @@
+2013-01-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-activate-advised-definition): Refresh the
+	advice list when the interactive-spec of ad-Advice-* changes.
+
 2013-01-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* wid-edit.el (widget-default-get): Work for inlined elements.
@@ -7,7 +12,7 @@
 
 	* net/tramp.el (tramp-default-host-alist): New defcustom.
 	(tramp-find-host): Use it.
-	(tramp-eshell-directory-change): Moved from tramp-sh.el.  Add to
+	(tramp-eshell-directory-change): Move from tramp-sh.el.  Add to
 	`eshell-directory-change-hook'.
 
 	* net/tramp-adb.el (top): Add adb specific entry in
@@ -26,8 +31,8 @@
 
 	* net/tramp-adb.el (tramp-adb-ls-toolbox-regexp): The file size can
 	consist of more than one digit.
-	(tramp-adb-file-name-handler-alist): Use
-	`tramp-handle-file-exists-p' consistently.
+	(tramp-adb-file-name-handler-alist):
+	Use `tramp-handle-file-exists-p' consistently.
 	(tramp-adb-file-name-handler): Don't tweak `tramp-default-host'.
 	(tramp-adb-handle-file-exists-p): Remove function.
 	(tramp-adb-file-name-host): New defun.
@@ -161,8 +166,8 @@
 	(tramp-do-copy-or-rename-file): Ignore errors when calling
 	`set-file-extended-attributes'.
 
-	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add
-	handler for `file-acl'.
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Add handler for `file-acl'.
 	(tramp-smb-handle-file-acl): New defun.
 
 2013-01-02  Jay Belanger  <jay.p.belanger@gmail.com>
