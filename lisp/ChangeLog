@@ -1,3 +1,10 @@
+2013-01-07  Jürgen Hötzel  <juergen@archlinux.org>
+
+	* net/tramp-adb.el (tramp-do-parse-file-attributes-with-ls):
+	Handle filename correctly, when parsing "source -> target" symlink
+	output.
+	(tramp-adb-handle-set-file-times): New defun.
+
 2013-01-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-activate-advised-definition): Refresh the

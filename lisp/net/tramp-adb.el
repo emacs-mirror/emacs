@@ -123,7 +123,7 @@
     (vc-registered . ignore)	;no  vc control files on Android devices
     (write-region . tramp-adb-handle-write-region)
     (set-file-modes . tramp-adb-handle-set-file-modes)
-    (set-file-times . ignore)
+    (set-file-times . tramp-adb-handle-set-file-times)
     (copy-file . tramp-adb-handle-copy-file)
     (rename-file . tramp-adb-handle-rename-file)
     (process-file . tramp-adb-handle-process-file)
@@ -311,7 +311,9 @@ pass to the OPERATION."
 		(and is-symlink
 		     (cadr (split-string name "\\( -> \\|\n\\)")))))
 	  (push (list
-		 name
+		 (if is-symlink
+		     (car (split-string name "\\( -> \\|\n\\)"))
+		   name)
 		 (or is-dir symlink-target)
 		 1     ;link-count
 		 ;; no way to handle numeric ids in Androids ash
@@ -614,6 +616,19 @@ But handle the case, if the \"test\" command is not available."
     (tramp-adb-barf-unless-okay
      v (format "chmod %s %s" (tramp-compat-decimal-to-octal mode) localname)
      "Error while changing file's mode %s" filename)))
+
+(defun tramp-adb-handle-set-file-times (filename &optional time)
+  "Like `set-file-times' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (tramp-flush-file-property v localname)
+    (let ((time (if (or (null time) (equal time '(0 0)))
+		    (current-time)
+		  time)))
+      (tramp-adb-command-exit-status
+       ;; use shell arithmetic because of Emacs integer size limit
+       v (format "touch -t $(( %d * 65536 + %d )) %s"
+		 (car time) (cadr time)
+		 (tramp-shell-quote-argument localname))))))
 
 (defun tramp-adb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
