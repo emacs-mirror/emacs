@@ -1,3 +1,13 @@
+2013-01-07  Daiki Ueno  <ueno@gnu.org>
+
+	* mml-smime.el: Support signing by sender.
+	Requested by Uwe Brauer.
+	(mml-smime-sign-with-sender): New user option analogous
+	to mml2015-sign-with-sender.
+	(mml-smime-epg-sign): Respect mml-smime-sign-with-sender.
+	(mml-smime-epg-find-usable-secret-key): New helper function copied from
+	mml2015.el.
+
 2012-12-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-inews-insert-gcc): Don't insert Gcc headers if Gnus
