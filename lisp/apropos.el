@@ -69,7 +69,7 @@
   "Non nil means apropos commands will search more extensively.
 This may be slower.  This option affects the following commands:
 
-`apropos-variable' will search all variables, not just user variables.
+`apropos-user-option' will search all variables, not just user options.
 `apropos-command' will also search non-interactive functions.
 `apropos' will search all symbols, not just functions, variables, faces,
 and those with property lists.
@@ -114,6 +114,12 @@ include key-binding information in its output."
   "Button face indicating a variable in Apropos."
   :group 'apropos
   :version "24.3")
+
+(defface apropos-user-option-button
+  '((t (:inherit (font-lock-variable-name-face button))))
+  "Button face indicating a user option in Apropos."
+  :group 'apropos
+  :version "24.4")
 
 (defface apropos-misc-button
   '((t (:inherit (font-lock-constant-face button))))
@@ -257,6 +263,15 @@ term, and the rest of the words are alternative terms.")
   'apropos-short-label "v"
   'face 'apropos-variable-button
   'help-echo "mouse-2, RET: Display more help on this variable"
+  'follow-link t
+  'action (lambda (button)
+	    (describe-variable (button-get button 'apropos-symbol))))
+
+(define-button-type 'apropos-user-option
+  'apropos-label "User option"
+  'apropos-short-label "o"
+  'face 'apropos-user-option-button
+  'help-echo "mouse-2, RET: Display more help on this user option"
   'follow-link t
   'action (lambda (button)
 	    (describe-variable (button-get button 'apropos-symbol))))
@@ -461,15 +476,15 @@ This requires that at least 2 keywords (unless only one was given)."
 This is used to decide whether to print the result's type or not.")
 
 ;;;###autoload
-(defun apropos-variable (pattern &optional do-all)
-  "Show user variables that match PATTERN.
+(defun apropos-user-option (pattern &optional do-all)
+  "Show user options that match PATTERN.
 PATTERN can be a word, a list of words (separated by spaces),
 or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
 search for matches for any two (or more) of those words.
 
 With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also show
-normal variables."
+variables, not just user options."
   (interactive (list (apropos-read-pattern
 		      (if (or current-prefix-arg apropos-do-all)
 			  "variable" "user option"))
@@ -480,6 +495,17 @@ normal variables."
 			   (and (boundp symbol)
 				(get symbol 'variable-documentation)))
 		     'custom-variable-p)))
+
+;;;###autoload
+(defun apropos-variable (pattern &optional do-not-all)
+  "Show variables that match PATTERN.
+When DO-NOT-ALL is not-nil, show user options only, i.e. behave
+like `apropos-user-option'."
+  (interactive (list (apropos-read-pattern
+		      (if current-prefix-arg "user option" "variable"))
+                     current-prefix-arg))
+  (let ((apropos-do-all (if do-not-all nil t)))
+    (apropos-user-option pattern)))
 
 ;; For auld lang syne:
 ;;;###autoload
@@ -1099,7 +1125,11 @@ If non-nil TEXT is a string that will be printed as a heading."
 				   'apropos-macro
 				 'apropos-function))
 			     (not nosubst))
-	  (apropos-print-doc 3 'apropos-variable (not nosubst))
+	  (apropos-print-doc 3
+			     (if (custom-variable-p symbol)
+				 'apropos-user-option
+			       'apropos-variable)
+			     (not nosubst))
 	  (apropos-print-doc 7 'apropos-group t)
 	  (apropos-print-doc 6 'apropos-face t)
 	  (apropos-print-doc 5 'apropos-widget t)

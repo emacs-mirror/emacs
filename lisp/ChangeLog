@@ -1,3 +1,18 @@
+2013-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* menu-bar.el (menu-bar-search-documentation-menu): Use
+	`apropos-user-option' and fix the help message.
+
+2013-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* apropos.el (apropos-do-all): Update docstring.
+	(apropos-user-option-button): New face.
+	(apropos-user-option): Rename from `apropos-variable' and update
+	docstring.
+	(apropos-variable): Rewrite, now show all variables by default.
+	(apropos-print): Mention "User option" instead of "Variable" when
+	printing doc for user options.  (Bug#13276)
+
 2013-01-07  Jürgen Hötzel  <juergen@archlinux.org>
 
 	* net/tramp-adb.el (tramp-do-parse-file-attributes-with-ls):

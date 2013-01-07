@@ -1637,8 +1637,8 @@ key, a click, or a menu-item"))
       '(menu-item "Find Options by Value..." apropos-value
                   :help "Find variables whose values match a regexp"))
     (bindings--define-key menu [find-options-by-name]
-      '(menu-item "Find Options by Name..." apropos-variable
-                  :help "Find variables whose names match a regexp"))
+      '(menu-item "Find Options by Name..." apropos-user-option
+                  :help "Find user options whose names match a regexp"))
     (bindings--define-key menu [find-commands-by-name]
       '(menu-item "Find Commands by Name..." apropos-command
                   :help "Find commands whose names match a regexp"))

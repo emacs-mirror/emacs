@@ -295,10 +295,15 @@ search for noninteractive functions too.
 Search for functions and variables.  Both interactive functions
 (commands) and noninteractive functions can be found by this.
 
-@item M-x apropos-variable
-@findex apropos-variable
+@item M-x apropos-user-option
+@findex apropos-user-option
 Search for user-customizable variables.  With a prefix argument,
 search for non-customizable variables too.
+
+@item M-x apropos-variable
+@findex apropos-variable
+Search for variables.  With a prefix argument, search for
+customizable variables only.
 
 @item M-x apropos-value
 @findex apropos-value
