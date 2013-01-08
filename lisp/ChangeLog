@@ -1,5 +1,8 @@
 2013-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase--split-equal): Also take advantage if
+	the predicate returns nil.
+
 	* simple.el: Use lexical-binding.
 	(primitive-undo): Use pcase.
 	(minibuffer-history-isearch-push-state): Use a closure.
