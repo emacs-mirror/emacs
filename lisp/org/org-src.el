@@ -528,6 +528,14 @@ the language, a switch telling if the content should be in a single line."
 	(pos (point))
 	re1 re2 single beg end lang lfmt match-re1 ind entry)
     (catch 'exit
+      (when (org-at-table.el-p)
+	(re-search-backward "^[\t]*[^ \t|\\+]" nil t)
+	(setq beg (1+ (point-at-eol)))
+	(goto-char beg)
+	(or (re-search-forward "^[\t]*[^ \t|\\+]" nil t)
+	    (progn (goto-char (point-max)) (newline)))
+	(setq end (1- (point-at-bol)))
+	(throw 'exit (list beg end 'table.el nil nil 0)))
       (while (setq entry (pop re-list))
 	(setq re1 (car entry) re2 (nth 1 entry) lang (nth 2 entry)
 	      single (nth 3 entry))
@@ -558,16 +566,7 @@ the language, a switch telling if the content should be in a single line."
 			(throw 'exit
 			       (list (match-end 0) end
 				     (org-edit-src-get-lang lang)
-				     single lfmt ind)))))))))
-      (when (org-at-table.el-p)
-	(re-search-backward "^[\t]*[^ \t|\\+]" nil t)
-	(setq beg (1+ (point-at-eol)))
-	(goto-char beg)
-	(or (re-search-forward "^[\t]*[^ \t|\\+]" nil t)
-	    (progn (goto-char (point-max)) (newline)))
-	(setq end (point-at-bol))
-	(setq ind (org-edit-src-get-indentation beg))
-	(throw 'exit (list beg end 'table.el nil nil ind))))))
+				     single lfmt ind))))))))))))
 
 (defun org-edit-src-get-lang (lang)
   "Extract the src language."

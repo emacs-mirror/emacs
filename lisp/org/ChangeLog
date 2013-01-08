@@ -44,22 +44,8 @@
 	* org-src.el (org-edit-src-code): Fix bug when trying to edit a
 	table.el table.
 
-	* org-agenda.el (org-agenda-finalize): Don't remove tag alignment
-	depending on `org-prefix-has-tag', this should depend on
-	`org-agenda-remove-tags'.
-
-	* org-agenda.el (org-agenda-finalize): Don't remove tag alignment
-	depending on `org-prefix-has-tag', this should depend on
-	`org-agenda-remove-tags'.
-
-	* org-agenda.el (org-agenda-finalize): Downcase tags when readding
-	them after agenda generation.
-
-	* org.el (org-setup-filling): Set `auto-fill-inhibit-regexp' from
-	`org-outline-regexp'.
-
-	* org-agenda.el (org-agenda-use-tag-inheritance): Fix custom
-	definition.
+	* org-agenda.el (org-agenda-finalize): Inhibit readonly for the
+	whole function.
 
 	* org.el (org-entry-get): Speed up by let-binding some variables
 	only if needed.  Also fix a bug: consider an empty drawer as no
@@ -98,14 +84,12 @@
 	(org-agenda-get-sexps, org-agenda-get-deadlines)
 	(org-agenda-get-scheduled): Ditto.
 
-	* org.el (org-adaptive-fill-function): Fix checking of
-	post-affiliated.
-	(org-id-link-to-org-use-id): Fix compiler warning.
+	* org.el (org-id-link-to-org-use-id): Fix compiler warning.
 
 	* org-agenda.el (org-agenda-format-item): Do not use
-	org-get-effort to get the effort text property.
-	(org-agenda-get-sexps): Use `org-back-to-heading' when setting
-	the tags.
+	`org-get-effort' to get the effort text property.
+	(org-agenda-get-sexps): Use `org-back-to-heading' when setting the
+	tags.
 
 	* org-clock.el (org-clock-in): Refresh effort properties.
 
@@ -136,11 +120,11 @@
 	* org.el (org-get-priority): Save match data even when using
 	`org-get-priority-function'.
 
-	* org-mobile.el (org-mobile-create-index-file): Possibly
-	normalize `org-todo-keywords'.
+	* org-mobile.el (org-mobile-create-index-file): Possibly normalize
+	`org-todo-keywords'.
 
-	* org-mobile.el (org-mobile-push): Use the correct agenda
-	buffer names.
+	* org-mobile.el (org-mobile-push): Use the correct agenda buffer
+	names.
 
 	* org.el (org-store-link): Use `org-id-link-to-org-use-id' instead
 	of the obsolete variable name.
@@ -186,9 +170,8 @@
 
 	* org-agenda.el (org-agenda-open-link): Fix bug when no link is
 	matched.  Return a message instead of an error.
-
-	* org-agenda.el (org-agenda-priority): Remove useless parameter
-	and fix showing priority in agenda buffers.
+	(org-agenda-priority): Remove useless parameter and fix showing
+	priority in agenda buffers.
 
 	* org-macs.el (org-with-buffer-modified-unmodified): New macro.
 
@@ -231,16 +214,14 @@
 	compatibility function.
 
 	* org.el (org-table-map-tables): Fix allowed blocks.
-	(org-edit-special): Fix regression: allow editing HTML and
-	LaTeX source blocks again.
+	(org-edit-special): Fix regression: allow editing HTML and LaTeX
+	source blocks again.
 
 	* org-src.el (org-edit-src-code): Ditto.
 
 	* org.el (org-nonsticky-props): Add `htmlize-link'.
-
-	* org.el (org-nonsticky-props): Add `htmlize-link'.
-
-	* org.el (org-edit-special): Don't edit in verbatim blocks.
+	(org-nonsticky-props): Add `htmlize-link'.
+	(org-edit-special): Don't edit in verbatim blocks.
 
 	* org-src.el (org-edit-src-code): Ditto.
 
@@ -275,8 +256,7 @@
 
 	* org.el (org-todo): Ignore the comment string when changing the
 	TODO state of a headline.
-
-	* org.el (org-edit-special): Fix docstring.
+	(org-edit-special): Fix docstring.
 	(org-in-src-block-p): Small enhancement.
 
 	* org-publish.el (org-publish-org-to): Call `org-export-as-*'
@@ -392,9 +372,9 @@
 
 2013-01-08  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org.el (org-setup-filling): Ignore `auto-fill-inhibit-regexp'.
-	The idea behind this is that `org-adaptive-fill-function' already
-	determines which lines should be filled.
+	* org.el (org-setup-filling): Set `auto-fill-inhibit-regexp' to
+	nil because `org-adaptive-fill-function' already determines which
+	lines should be filled.
 
 	* org.el (org-fill-paragraph): Small refactoring.
 

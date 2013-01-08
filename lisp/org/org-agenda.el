@@ -3544,50 +3544,49 @@ generating a new one."
 	(unless (eq org-agenda-remove-tags t)
 	  (org-agenda-align-tags))
 	(unless org-agenda-with-colors
-	  (remove-text-properties (point-min) (point-max) '(face nil))))
-      (if (and (boundp 'org-agenda-overriding-columns-format)
-	       org-agenda-overriding-columns-format)
-	  (org-set-local 'org-agenda-overriding-columns-format
-			 org-agenda-overriding-columns-format))
-      (if (and (boundp 'org-agenda-view-columns-initially)
-	       org-agenda-view-columns-initially)
-	  (org-agenda-columns))
-      (when org-agenda-fontify-priorities
-	(org-agenda-fontify-priorities))
-      (when (and org-agenda-dim-blocked-tasks org-blocker-hook)
-      	(org-agenda-dim-blocked-tasks))
-      ;; We need to widen when `org-agenda-finalize' is called from
-      ;; `org-agenda-change-all-lines' (e.g. in `org-agenda-clock-in')
-      (when org-clock-current-task
-	(save-restriction
-	  (widen)
-	  (org-agenda-mark-clocking-task)))
-      (when org-agenda-entry-text-mode
-	(org-agenda-entry-text-hide)
-	(org-agenda-entry-text-show))
-      (if (and (functionp 'org-habit-insert-consistency-graphs)
-	       (save-excursion (next-single-property-change (point-min) 'org-habit-p)))
-	  (org-habit-insert-consistency-graphs))
-      (setq org-agenda-type (org-get-at-bol 'org-agenda-type))
-      (when (delq nil (mapcar (lambda (tp) (org-agenda-check-type nil tp))
-			      org-agenda-use-tag-inheritance))
-	(let (mrk)
-	  (save-excursion
-	    (goto-char (point-min))
-	    (while (equal (forward-line) 0)
-	      (when (setq mrk (or (get-text-property (point) 'org-hd-marker)
-				  (get-text-property (point) 'org-hd-marker)))
-		(put-text-property (point-at-bol) (point-at-eol)
-				   'tags (org-with-point-at mrk
-					   (delete-dups
-					    (mapcar 'downcase (org-get-tags-at))))))))))
-      (let ((inhibit-read-only t))
-	(run-hooks 'org-agenda-finalize-hook))
-      (when (or org-agenda-tag-filter (get 'org-agenda-tag-filter :preset-filter))
-	(org-agenda-filter-apply org-agenda-tag-filter 'tag))
-      (when (or org-agenda-category-filter (get 'org-agenda-category-filter :preset-filter))
-	(org-agenda-filter-apply org-agenda-category-filter 'category))
-      (org-add-hook 'kill-buffer-hook 'org-agenda-reset-markers 'append 'local))))
+	  (remove-text-properties (point-min) (point-max) '(face nil)))
+	(if (and (boundp 'org-agenda-overriding-columns-format)
+		 org-agenda-overriding-columns-format)
+	    (org-set-local 'org-agenda-overriding-columns-format
+			   org-agenda-overriding-columns-format))
+	(if (and (boundp 'org-agenda-view-columns-initially)
+		 org-agenda-view-columns-initially)
+	    (org-agenda-columns))
+	(when org-agenda-fontify-priorities
+	  (org-agenda-fontify-priorities))
+	(when (and org-agenda-dim-blocked-tasks org-blocker-hook)
+	  (org-agenda-dim-blocked-tasks))
+	;; We need to widen when `org-agenda-finalize' is called from
+	;; `org-agenda-change-all-lines' (e.g. in `org-agenda-clock-in')
+	(when org-clock-current-task
+	  (save-restriction
+	    (widen)
+	    (org-agenda-mark-clocking-task)))
+	(when org-agenda-entry-text-mode
+	  (org-agenda-entry-text-hide)
+	  (org-agenda-entry-text-show))
+	(if (and (functionp 'org-habit-insert-consistency-graphs)
+		 (save-excursion (next-single-property-change (point-min) 'org-habit-p)))
+	    (org-habit-insert-consistency-graphs))
+	(setq org-agenda-type (org-get-at-bol 'org-agenda-type))
+	(when (delq nil (mapcar (lambda (tp) (org-agenda-check-type nil tp))
+				org-agenda-use-tag-inheritance))
+	  (let (mrk)
+	    (save-excursion
+	      (goto-char (point-min))
+	      (while (equal (forward-line) 0)
+		(when (setq mrk (or (get-text-property (point) 'org-hd-marker)
+				    (get-text-property (point) 'org-hd-marker)))
+		  (put-text-property (point-at-bol) (point-at-eol)
+				     'tags (org-with-point-at mrk
+					     (delete-dups
+					      (mapcar 'downcase (org-get-tags-at))))))))))
+	(run-hooks 'org-agenda-finalize-hook)
+	(when (or org-agenda-tag-filter (get 'org-agenda-tag-filter :preset-filter))
+	  (org-agenda-filter-apply org-agenda-tag-filter 'tag))
+	(when (or org-agenda-category-filter (get 'org-agenda-category-filter :preset-filter))
+	  (org-agenda-filter-apply org-agenda-category-filter 'category))
+	(org-add-hook 'kill-buffer-hook 'org-agenda-reset-markers 'append 'local)))))
 
 (defun org-agenda-mark-clocking-task ()
   "Mark the current clock entry in the agenda if it is present."
