@@ -445,13 +445,23 @@ like <img alt=\"Some thing.\">."
 ;;*---------------------------------------------------------------------*/
 ;;*    Highlighting                                                     */
 ;;*---------------------------------------------------------------------*/
-(defface flyspell-incorrect '((t :underline t :inherit error))
+(defface flyspell-incorrect
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "Red1"))
+    (t
+     :underline t :inherit error))
   "Flyspell face for misspelled words."
+  :version "24.4"
   :group 'flyspell)
 
-(defface flyspell-duplicate '((t :underline t :inherit warning))
+(defface flyspell-duplicate
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "DarkOrange"))
+    (t
+     :underline t :inherit warning))
   "Flyspell face for words that appear twice in a row.
 See also `flyspell-duplicate-distance'."
+  :version "24.4"
   :group 'flyspell)
 
 (defvar flyspell-overlay nil)

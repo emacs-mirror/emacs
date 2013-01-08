@@ -1,3 +1,9 @@
+2013-01-08  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
+	* progmodes/flymake.el (flymake-errline, flymake-warnline):
+	Use underline style wave on terminals that support it.  (Bug#13000)
+
 2013-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--split-equal): Also take advantage if

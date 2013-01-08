@@ -1,3 +1,8 @@
+2013-01-08  Juri Linkov  <juri@jurta.org>
+
+	* xfaces.c (tty_supports_face_attributes_p): Return 0 for the case
+	of (supports :underline (:style wave)).  (Bug#13000)
+
 2013-01-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* undo.c (Fprimitive_undo): Move to simple.el.

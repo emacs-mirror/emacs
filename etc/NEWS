@@ -205,6 +205,9 @@ property using the supplied face spec.
 *** Face specs set via Custom themes now replace the `defface' spec
 rather than inheriting from it (as do face specs set via Customize).
 
+*** New face characteristic (supports :underline (:style wave))
+specifies whether or not the terminal can display a wavy line.
+
 ** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
