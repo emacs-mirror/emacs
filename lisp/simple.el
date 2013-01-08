@@ -1979,6 +1979,141 @@ then call `undo-more' one or more times to undo them."
     (if (null pending-undo-list)
 	(setq pending-undo-list t))))
 
+(defun primitive-undo (n list)
+  "Undo N records from the front of the list LIST.
+Return what remains of the list."
+
+  ;; This is a good feature, but would make undo-start
+  ;; unable to do what is expected.
+  ;;(when (null (car (list)))
+  ;;  ;; If the head of the list is a boundary, it is the boundary
+  ;;  ;; preceding this command.  Get rid of it and don't count it.
+  ;;  (setq list (cdr list))))
+
+  (let ((arg n)
+        ;; In a writable buffer, enable undoing read-only text that is
+        ;; so because of text properties.
+        (inhibit-read-only t)
+        ;; Don't let `intangible' properties interfere with undo.
+        (inhibit-point-motion-hooks t)
+        ;; We use oldlist only to check for EQ.  ++kfs
+        (oldlist buffer-undo-list)
+        (did-apply nil)
+        (next nil))
+    (while (> arg 0)
+      (while (and (consp list)
+                  (progn
+                    (setq next (car list))
+                    (setq list (cdr list))
+                    ;; Exit inner loop at undo boundary.
+                    (not (null next))))
+        ;; Handle an integer by setting point to that value.
+        (cond
+         ((integerp next) (goto-char next))
+         ((consp next)
+          (let ((car (car next))
+                (cdr (cdr next)))
+            (cond
+             ;; Element (t . TIME) records previous modtime.
+             ;; Preserve any flag of NONEXISTENT_MODTIME_NSECS or
+             ;; UNKNOWN_MODTIME_NSECS.
+             ((eq t car)
+              ;; If this records an obsolete save
+              ;; (not matching the actual disk file)
+              ;; then don't mark unmodified.
+              (when (or (equal cdr (visited-file-modtime))
+                        (and (consp cdr)
+                             (equal (list (car cdr) (cdr cdr))
+                                    (visited-file-modtime))))
+                (when (fboundp 'unlock-buffer)
+                  (unlock-buffer))
+                (set-buffer-modified-p nil)))
+             ;; Element (nil PROP VAL BEG . END) is property change.
+             ((eq nil car)
+              (let ((beg (nth 2 cdr))
+                    (end (nthcdr 3 cdr))
+                    (prop (car cdr))
+                    (val (cadr cdr)))
+                (when (or (> (point-min) beg)
+                          (< (point-max) end))
+                  (error "Changes to be undone are outside visible portion of buffer"))
+                (put-text-property beg end prop val)))
+             ((and (integerp car) (integerp cdr))
+              ;; Element (BEG . END) means range was inserted.
+              (when (or (< car (point-min))
+                        (> cdr (point-max)))
+                (error "Changes to be undone are outside visible portion of buffer"))
+              ;; Set point first thing, so that undoing this undo
+              ;; does not send point back to where it is now.
+              (goto-char car)
+              (delete-region car cdr))
+             ((eq car 'apply)
+              ;; Element (apply FUN . ARGS) means call FUN to undo.
+              (let ((currbuff (current-buffer))
+                    (car (car cdr))
+                    (cdr (cdr cdr)))
+                (if (integerp car)
+                    ;; Long format: (apply DELTA START END FUN . ARGS).
+                    (let* ((delta car)
+                           (start (car cdr))
+                           (end (cadr cdr))
+                           (start-mark (copy-marker start nil))
+                           (end-mark (copy-marker end t))
+                           (cdr (cddr cdr))
+                           (fun (car cdr))
+                           (args (cdr cdr)))
+                      (apply fun args) ;; Use `save-current-buffer'?
+                      ;; Check that the function did what the entry
+                      ;; said it would do.
+                      (unless (and (eq start
+                                       (marker-position start-mark))
+                                   (eq (+ delta end)
+                                       (marker-position end-mark)))
+                        (error "Changes to be undone by function different than announced"))
+                      (set-marker start-mark nil)
+                      (set-marker end-mark nil))
+                  (apply car cdr))
+                (unless (eq currbuff (current-buffer))
+                  (error "Undo function switched buffer"))
+                (setq did-apply t)))
+             ((and (stringp car) (integerp cdr))
+              ;; Element (STRING . POS) means STRING was deleted.
+              (let ((membuf car)
+                    (pos cdr))
+                (when (or (< (abs pos) (point-min))
+                          (> (abs pos) (point-max)))
+                  (error "Changes to be undone are outside visible portion of buffer"))
+                (if (< pos 0)
+                    (progn
+                      (goto-char (- pos))
+                      (insert membuf))
+                  (goto-char pos)
+                  ;; Now that we record marker adjustments
+                  ;; (caused by deletion) for undo,
+                  ;; we should always insert after markers,
+                  ;; so that undoing the marker adjustments
+                  ;; put the markers back in the right place.
+                  (insert membuf)
+                  (goto-char pos))))
+             ((and (markerp car) (integerp cdr))
+              ;; (MARKER . INTEGER) means a marker MARKER
+              ;; was adjusted by INTEGER.
+              (when (marker-buffer car)
+                (set-marker car
+                            (- (marker-position car) cdr)
+                            (marker-buffer car))))
+             (t (error "Unrecognized entry in undo list %S" next)))))
+         (t (error "Unrecognized entry in undo list %S" next))))
+      (setq arg (1- arg)))
+    ;; Make sure an apply entry produces at least one undo entry,
+    ;; so the test in `undo' for continuing an undo series
+    ;; will work right.
+    (if (and did-apply
+             (eq oldlist buffer-undo-list))
+        (setq buffer-undo-list
+              (cons (list 'apply 'cdr nil) buffer-undo-list))))
+  list)
+
 ;; Deep copy of a list
 (defun undo-copy-list (list)
   "Make a copy of undo list LIST."

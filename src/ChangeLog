@@ -1,3 +1,8 @@
+2013-01-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* undo.c (Fprimitive_undo): Move to simple.el.
+	(syms_of_undo): Remove declarations for Sprimitive_undo.
+
 2013-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (echo_add_key): Rename from echo_add_char.

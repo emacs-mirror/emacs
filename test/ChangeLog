@@ -1,3 +1,7 @@
+2013-01-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* automated/undo-tests.el: New file.
+
 2012-12-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el
