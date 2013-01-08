@@ -32,6 +32,13 @@ configure option `--without-acl'.
 * Changes in Emacs 24.4
 
 +++
+** `apropos-variable' is now `apropos-user-option'
+`apropos-user-option' shows all user options while `apropos-variable'
+shows all variables.  When called with a universal prefix argument,
+the two commands swap their behaviors.  When `apropos-do-all' is
+non-nil, they output the same results.
+
++++
 ** `eval-defun' on an already defined defcustom calls the :set function,
 if there is one.
 
