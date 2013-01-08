@@ -111,7 +111,6 @@
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-adb-handle-directory-files-and-attributes)
-    (file-name-all-completions . tramp-sh-handle-file-name-all-completions)
     (make-directory . tramp-adb-handle-make-directory)
     (delete-directory . tramp-adb-handle-delete-directory)
     (delete-file . tramp-adb-handle-delete-file)

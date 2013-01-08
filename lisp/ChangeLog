@@ -1,3 +1,8 @@
+2013-01-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist): Remove
+	spurious entry.
+
 2013-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* net/tramp.el (tramp-default-host-alist): Add :version.
