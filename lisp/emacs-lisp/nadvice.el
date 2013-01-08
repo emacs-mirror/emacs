@@ -167,20 +167,26 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
         (setq definition (advice--cdr definition))))
     found))
 
+(defun advice--tweak (flist tweaker)
+  (if (not (advice--p flist))
+      (funcall tweaker nil flist nil)
+    (let ((first (advice--car flist))
+          (rest (advice--cdr flist))
+          (props (advice--props flist)))
+      (or (funcall tweaker first rest props)
+          (let ((nrest (advice--tweak rest tweaker)))
+            (if (eq rest nrest) flist
+              (advice--make-1 (aref flist 1) (aref flist 3)
+                              first nrest props)))))))
+
 ;;;###autoload
 (defun advice--remove-function (flist function)
-  (if (not (advice--p flist))
-      flist
-    (let ((first (advice--car flist))
-          (props (advice--props flist)))
-      (if (or (equal function first)
-              (equal function (cdr (assq 'name props))))
-          (advice--cdr flist)
-        (let* ((rest (advice--cdr flist))
-               (nrest (advice--remove-function rest function)))
-          (if (eq rest nrest) flist
-            (advice--make-1 (aref flist 1) (aref flist 3)
-                            first nrest props)))))))
+  (advice--tweak flist
+                 (lambda (first rest props)
+                   (if (or (not first)
+                           (equal function first)
+                           (equal function (cdr (assq 'name props))))
+                       rest))))
 
 (defvar advice--buffer-local-function-sample nil)
 
@@ -269,15 +275,8 @@ of the piece of advice."
 ;;;; Specific application of add-function to `symbol-function' for advice.
 
 (defun advice--subst-main (old new)
-  (if (not (advice--p old))
-      new
-    (let* ((first (advice--car old))
-           (rest (advice--cdr old))
-           (props (advice--props old))
-           (nrest (advice--subst-main rest new)))
-      (if (equal rest nrest) old
-        (advice--make-1 (aref old 1) (aref old 3)
-                        first nrest props)))))
+  (advice--tweak old
+                 (lambda (first _rest _props) (if (not first) new))))
 
 (defun advice--normalize (symbol def)
   (cond

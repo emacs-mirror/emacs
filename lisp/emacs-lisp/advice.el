@@ -589,13 +589,11 @@
 ;; Advice implements forward advice mainly via the following: 1) Separation
 ;; of advice definition and activation that makes it possible to accumulate
 ;; advice information without having the original function already defined,
-;; 2) special versions of the built-in functions `fset/defalias' which check
-;; for advice information whenever they define a function.  If advice
-;; information was found then the advice will immediately get activated when
-;; the function gets defined.
+;; 2) Use of the `defalias-fset-function' symbol property which lets
+;; us advise the function when it gets defined.
 
 ;; Automatic advice activation means, that whenever a function gets defined
-;; with either `defun', `defmacro', `fset' or by loading a byte-compiled
+;; with either `defun', `defmacro', `defalias' or by loading a byte-compiled
 ;; file, and the function has some advice-info stored with it then that
 ;; advice will get activated right away.
 

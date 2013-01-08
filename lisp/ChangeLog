@@ -1,7 +1,14 @@
+2013-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--tweak): New function.
+	(advice--remove-function, advice--subst-main): Use it.
+
+	* emacs-lisp/advice.el: Update commentary.
+
 2013-01-08  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-adb.el (tramp-adb-file-name-handler-alist): Remove
-	spurious entry.
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	Remove spurious entry.
 
 2013-01-08  Glenn Morris  <rgm@gnu.org>
 
@@ -26,8 +33,8 @@
 
 2013-01-07  Bastien Guerry  <bzg@gnu.org>
 
-	* menu-bar.el (menu-bar-search-documentation-menu): Use
-	`apropos-user-option' and fix the help message.
+	* menu-bar.el (menu-bar-search-documentation-menu):
+	Use `apropos-user-option' and fix the help message.
 
 2013-01-07  Bastien Guerry  <bzg@gnu.org>
 
