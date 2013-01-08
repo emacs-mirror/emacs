@@ -1703,7 +1703,9 @@ escaped (\\\",\\\\)."
 If NODENAME is of the form (FILENAME)NODENAME, the node is in the Info file
 FILENAME; otherwise, NODENAME should be in the current Info file (or one of
 its sub-files).
-Completion is available, but only for node names in the current Info file.
+Completion is available for node names in the current Info file as well as
+in the Info file FILENAME after the closing parenthesis in (FILENAME).
+Empty NODENAME in (FILENAME) defaults to the Top node.
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new Info buffer.
 If FORK is a string, it is the name to use for the new buffer."
@@ -1784,16 +1786,19 @@ See `completing-read' for a description of arguments and usage."
    ((string-match "\\`(\\([^)]+\\))" string)
     (let ((file0 (match-string 0 string))
 	  (file1 (match-string 1 string))
-	  (node (substring string (match-end 0))))
-      (completion-table-with-context
-       file0
-       (apply-partially
-	(lambda (string pred action)
-	  (complete-with-action
-	   action
-	   (Info-build-node-completions (Info-find-file file1))
-	   string pred)))
-       node predicate code)))
+	  (nodename (substring string (match-end 0))))
+      (if (and (equal nodename "") (eq code 'lambda))
+	  ;; Empty node name is permitted that means "Top".
+	  t
+	(completion-table-with-context
+	 file0
+	 (apply-partially
+	  (lambda (string pred action)
+	    (complete-with-action
+	     action
+	     (Info-build-node-completions (Info-find-file file1))
+	     string pred)))
+	 nodename predicate code))))
    ;; Otherwise use Info-read-node-completion-table.
    (t (complete-with-action
        code Info-read-node-completion-table string predicate))))
@@ -1802,7 +1807,9 @@ See `completing-read' for a description of arguments and usage."
 (defun Info-read-node-name (prompt)
   "Read an Info node name with completion, prompting with PROMPT.
 A node name can have the form \"NODENAME\", referring to a node
-in the current Info file, or \"(FILENAME)NODENAME\"."
+in the current Info file, or \"(FILENAME)NODENAME\", referring to
+a node in FILENAME.  \"(FILENAME)\" is a short format to go to
+the Top node in FILENAME."
   (let* ((completion-ignore-case t)
 	 (Info-read-node-completion-table (Info-build-node-completions))
 	 (nodename (completing-read prompt 'Info-read-node-name-1 nil t)))
@@ -1810,14 +1817,14 @@ in the current Info file, or \"(FILENAME)NODENAME\"."
 	(Info-read-node-name prompt)
       nodename)))
 
-(defun Info-build-node-completions (&optional file)
-  (if file
-      (or (cdr (assoc file Info-file-completions))
+(defun Info-build-node-completions (&optional filename)
+  (if filename
+      (or (cdr (assoc filename Info-file-completions))
 	  (with-temp-buffer
 	    (Info-mode)
-	    (Info-goto-node (format "(%s)Top" file))
+	    (Info-goto-node (format "(%s)Top" filename))
 	    (Info-build-node-completions-1)
-	    (push (cons file Info-current-file-completions) Info-file-completions)
+	    (push (cons filename Info-current-file-completions) Info-file-completions)
 	    Info-current-file-completions))
     (or Info-current-file-completions
 	(Info-build-node-completions-1))))

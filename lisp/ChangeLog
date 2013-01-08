@@ -1,3 +1,12 @@
+2013-01-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-read-node-name-1): Allow empty node name in (FILENAME)
+	that defaults to the Top node.
+	(Info-goto-node, Info-read-node-name): Doc fix to mention that
+	the short format (FILENAME) goes to the Top node.
+	(Info-build-node-completions): Rename arg `file' to `filename'.
+	(Bug#13365)
+
 2013-01-07  Bastien Guerry  <bzg@gnu.org>
 
 	* menu-bar.el (menu-bar-search-documentation-menu): Use
