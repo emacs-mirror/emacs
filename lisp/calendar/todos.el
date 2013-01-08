@@ -2141,15 +2141,26 @@ in Todos Filter Items mode."
     (dolist (c categories longest)
       (setq longest (max longest (length c))))))
 
+(defun todos-adjusted-category-label-length ()
+  "Return adjusted length of category label button.
+The adjustment ensures proper tabular alignment in Todos
+Categories mode."
+  (let* ((categories (mapcar 'car todos-categories))
+	 (longest (todos-longest-category-name-length categories))
+	 (catlablen (length todos-categories-category-label))
+	 (lc-diff (- longest catlablen)))
+    (if (and (natnump lc-diff)
+	     (eq (logand lc-diff 1) 1))	; oddp from cl.el
+	(1+ longest)
+      (max longest catlablen))))
+
 (defun todos-padded-string (str)
-  "Return string STR padded with spaces.
+  "Return category name or label string STR padded with spaces.
 The placement of the padding is determined by the value of user
 option `todos-categories-align'."
-  (let* ((categories (mapcar 'car todos-categories))
-	 (len (max (todos-longest-category-name-length categories)
-		   (length todos-categories-category-label)))
+  (let* ((len (todos-adjusted-category-label-length))
 	 (strlen (length str))
-	 (strlen-odd (eq (logand strlen 1) 1)) ; oddp from cl.el
+	 (strlen-odd (eq (logand strlen 1) 1))
 	 (padding (max 0 (/ (- len strlen) 2)))
 	 (padding-left (cond ((eq todos-categories-align 'left) 0)
 			     ((eq todos-categories-align 'center) padding)

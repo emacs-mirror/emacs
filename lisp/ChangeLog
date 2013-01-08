@@ -1,5 +1,11 @@
 2013-01-08  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Fix tabular alignment in Todos Categories mode.
+	(todos-adjusted-category-label-length): New function.
+	(todos-padded-string): Use it.
+
+2013-01-08  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-move-item): Allow moving done items to
 	done section of another category.
 
