@@ -43,13 +43,6 @@ consistent with using the `:' key in agenda view.
 You can now use `=' for [[doc::org-columns][org-columns]].
 
 ** =org-float= is now obsolete, use =diary-float= instead
-** No GPL manual anymore
-
-There used to be a GPL version of the Org manual, but this is not the
-case anymore, the Free Software Foundation does not permit this.
-
-The GNU FDL license is now included in the manual directly.
-
 ** Enhanced compatibility with Emacs 22 and XEmacs
 
 Thanks to Achim for his work on enhancing Org's compatibility with

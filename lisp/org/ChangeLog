@@ -77,12 +77,11 @@
 
 	* org-icalendar.el (org-icalendar-print-entries): Refresh the
 	'org-appt-warntime property.
-	(org-icalendar-print-entries): Do not use `org-entry-get' to get
-	the "APPT_WARNTIME" property value.
-
+	(org-icalendar-print-entries):
 	* org-agenda.el (org-agenda-get-timestamps)
 	(org-agenda-get-sexps, org-agenda-get-deadlines)
-	(org-agenda-get-scheduled): Ditto.
+	(org-agenda-get-scheduled): Do not use `org-entry-get' to get the
+	"APPT_WARNTIME" property value.
 
 	* org.el (org-id-link-to-org-use-id): Fix compiler warning.
 
@@ -95,8 +94,9 @@
 
 	* org.el (org-refresh-effort-properties): New defun.
 	(org-get-effort): Delete.
-	(org-set-effort): Set the 'org-effort text property.
-	(org-property-next-allowed-value): Ditto.
+	(org-set-effort):
+	(org-property-next-allowed-value): Set the 'org-effort text
+	property.
 	(org-agenda-prepare-buffers): Refresh effort properties.
 
 	* org.el (org-read-date): Let-bind `mouse-autoselect-window' to
@@ -214,16 +214,16 @@
 	compatibility function.
 
 	* org.el (org-table-map-tables): Fix allowed blocks.
-	(org-edit-special): Fix regression: allow editing HTML and LaTeX
-	source blocks again.
 
-	* org-src.el (org-edit-src-code): Ditto.
+	* org.el (org-edit-special):
+	* org-src.el (org-edit-src-code): Fix regression: allow editing
+	HTML and LaTeX source blocks again.
 
 	* org.el (org-nonsticky-props): Add `htmlize-link'.
 	(org-nonsticky-props): Add `htmlize-link'.
-	(org-edit-special): Don't edit in verbatim blocks.
 
-	* org-src.el (org-edit-src-code): Ditto.
+	* org.el (org-edit-special):
+	* org-src.el (org-edit-src-code): Don't edit in verbatim blocks.
 
 	* org-table.el (org-table-fedit-lisp-indent)
 	(orgtbl-self-insert-command): Use `org-delete-backward-char'
@@ -240,19 +240,16 @@
 	"example" and "verbatim".
 
 	* org.el (org-delete-backward-char, org-delete-char): Save match
-	data (`delete-backward-char' and `delete-char' don't.)
-	(org-enable-table-editor, org-insert-heading)
+	data, `delete-backward-char' and `delete-char' don't.
+
+	* org.el (org-enable-table-editor, org-insert-heading)
 	(org-remove-timestamp-with-keyword, org-self-insert-command):
-	Use `delete-backward-char' instead of `backward-delete-char'.
-
 	* org-table.el (org-table-fedit-lisp-indent)
-	(orgtbl-self-insert-command): Ditto.
-
-	* org-latex.el (org-export-latex-subcontent): Ditto.
-
-	* org-clock.el (org-clocktable-write-default): Ditto.
-
-	* org-ascii.el (org-export-ascii-preprocess): Ditto.
+	(orgtbl-self-insert-command):
+	* org-latex.el (org-export-latex-subcontent):
+	* org-clock.el (org-clocktable-write-default):
+	* org-ascii.el (org-export-ascii-preprocess): Use
+	`delete-backward-char' instead of `backward-delete-char'.
 
 	* org.el (org-todo): Ignore the comment string when changing the
 	TODO state of a headline.
@@ -324,20 +321,12 @@
 
 2013-01-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* org-agenda.el (org-agenda-get-restriction-and-command): Use
-	`point-marker'.
-
-	* org-capture.el (org-capture-place-template): Ditto.
-
-	* org-colview-xemacs.el (org-dblock-write:columnview): Ditto.
-
-	* org-colview.el (org-dblock-write:columnview): Ditto.
-
-	* org-mobile.el (org-mobile-locate-entry): Ditto.
-
-	* org-table.el (org-table-convert-region): Ditto.
-
-	* org.el (org-update-statistics-cookies): Ditto.
+	* org-agenda.el (org-agenda-get-restriction-and-command):
+	* org-capture.el (org-capture-place-template):
+	* org-colview.el (org-dblock-write:columnview):
+	* org-mobile.el (org-mobile-locate-entry):
+	* org-table.el (org-table-convert-region):
+	* org.el (org-update-statistics-cookies): Use `point-marker'.
 
 2013-01-08  Eric Schulte  <eric.schulte@gmx.com>
 
@@ -505,9 +494,8 @@
 	* ob-haskell.el (org-export-as-latex): Don't use the obsoleted
 	argument `hidden'.
 
-	* org.el (org-refile): Run within `with-demoted-errors' so
-	that a corrupted bookmark file does not stop the refile
-	process.
+	* org.el (org-refile): Run within `with-demoted-errors' so that a
+	corrupted bookmark file does not stop the refile process.
 
 	* org-capture.el (org-capture-bookmark-last-stored-position):
 	Ditto for the capture process.
