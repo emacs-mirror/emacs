@@ -393,6 +393,7 @@ matches, the variable `tramp-default-host' takes effect.
 If the file name does not specify the method, lookup is done using the
 empty string for the method name."
   :group 'tramp
+  :version "24.4"
   :type '(repeat (list (choice :tag "Method regexp" regexp sexp)
 		       (choice :tag "  User regexp" regexp sexp)
 		       (choice :tag "    Host name" string (const nil)))))

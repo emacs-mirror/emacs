@@ -1,3 +1,7 @@
+2013-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp.el (tramp-default-host-alist): Add :version.
+
 2013-01-08  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-read-node-name-2): Don't duplicate suffixes for

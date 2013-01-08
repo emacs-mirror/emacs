@@ -1,3 +1,7 @@
+2013-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* mml-smime.el (mml-smime-sign-with-sender): Add :version.
+
 2013-01-07  Daiki Ueno  <ueno@gnu.org>
 
 	* mml-smime.el: Support signing by sender.

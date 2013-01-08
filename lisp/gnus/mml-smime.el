@@ -77,6 +77,7 @@ Whether the passphrase is cached at all is controlled by
 (defcustom mml-smime-sign-with-sender nil
   "If t, use message sender so find a key to sign with."
   :group 'mime-security
+  :version "24.4"
   :type 'boolean)
 
 (defun mml-smime-sign (cont)
