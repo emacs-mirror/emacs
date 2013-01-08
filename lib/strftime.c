@@ -208,7 +208,14 @@ extern char *tzname[];
          else if (to_uppcase)                                                 \
            fwrite_uppcase (p, (s), _n);                                       \
          else                                                                 \
-           fwrite (s, _n, 1, p);                                              \
+           {                                                                  \
+             /* Ignore the value of fwrite.  The caller can determine whether \
+                an error occured by inspecting ferror (P).  All known fwrite  \
+                implementations set the stream's error indicator when they    \
+                fail due to ENOMEM etc., even though C11 and POSIX.1-2008 do  \
+                not require this.  */                                         \
+             fwrite (s, _n, 1, p);                                            \
+           }                                                                  \
        }                                                                      \
      while (0)                                                                \
     )
