@@ -9,6 +9,9 @@
 	(Advanced features): Add missing argument for @item.
 	(Storing searches): Add index entries and a note about
 	*-tree agenda views.
+	(Structure editing): Document `org-mark-element' and
+	`org-mark-subtree'.
+	(Tag inheritance): Document `org-agenda-use-tag-inheritance'.
 
 2013-01-06  Andreas Schwab  <schwab@linux-m68k.org>
 

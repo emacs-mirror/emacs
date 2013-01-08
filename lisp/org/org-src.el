@@ -211,7 +211,8 @@ edited version.  An optional argument CONTEXT is used by \\[org-edit-src-save]
 when calling this function.  See `org-src-window-setup' to configure
 the display of windows containing the Org buffer and the code buffer."
   (interactive)
-  (if (not (org-in-block-p '("src" "example" "latex" "html")))
+  (if (not (or (org-in-block-p '("src" "example" "latex" "html"))
+	       (org-at-table.el-p)))
       (user-error "Not in a source code or example block")
     (unless (eq context 'save)
       (setq org-edit-src-saved-temp-window-config (current-window-configuration)))

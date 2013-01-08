@@ -2,7 +2,8 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 7.9.3 (GNU Emacs 24.3)
+
+@include org-version.inc
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -262,7 +263,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004--2013 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2012 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1470,6 +1471,13 @@ Move subtree up (swap with previous subtree of same
 level).
 @orgcmd{M-S-@key{down},org-move-subtree-down}
 Move subtree down (swap with next subtree of same level).
+@orgcmd{M-h,org-mark-element}
+Mark the element at point.  Hitting repeatedly will mark subsequent elements
+of the one just marked.  E.g. hitting @key{M-h} on a paragraph will mark it,
+hitting @key{M-h} immediately again will mark the next one.
+@orgcmd{C-c @@,org-mark-subtree}
+Mark the subtree at point.  Hitting repeatedly will mark subsequent subtrees
+of the same level than the marked subtree.
 @orgcmd{C-c C-x C-w,org-cut-subtree}
 Kill subtree, i.e., remove it from buffer but save in kill ring.
 With a numeric prefix argument N, kill N sequential subtrees.
@@ -4624,9 +4632,8 @@ changes in the line.}:
 @noindent
 @vindex org-use-tag-inheritance
 @vindex org-tags-exclude-from-inheritance
-To limit tag inheritance to specific tags, or to turn it off entirely, use
-the variables @code{org-use-tag-inheritance} and
-@code{org-tags-exclude-from-inheritance}.
+To limit tag inheritance to specific tags, use @code{org-tags-exclude-from-inheritance}.
+To turn it off entirely, use @code{org-use-tag-inheritance}.
 
 @vindex org-tags-match-list-sublevels
 When a headline matches during a tags search while tag inheritance is turned
@@ -4636,6 +4643,15 @@ complex tests including properties (@pxref{Property searches}).}.  The list
 of matches may then become very long.  If you only want to see the first tags
 match in a subtree, configure the variable
 @code{org-tags-match-list-sublevels} (not recommended).
+
+@vindex org-agenda-use-tag-inheritance
+Tag inheritance is relevant when the agenda search tries to match a tag,
+either in the @code{tags} or @code{tags-todo} agenda types.  In other agenda
+types, @code{org-use-tag-inheritance} has no effect.  Still, you may want to
+have your tags correctly set in the agenda, so that tag filtering works fine,
+with inherited tags.  Set @code{org-agenda-use-tag-inheritance} to control
+this: the default value includes all agenda types, but setting this to nil
+can really speed up agenda generation.
 
 @node Setting tags, Tag searches, Tag inheritance, Tags
 @section Setting tags
