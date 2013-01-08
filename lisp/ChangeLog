@@ -1,3 +1,8 @@
+2013-01-08  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-move-item): Allow moving done items to
+	done section of another category.
+
 2013-01-06  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Display numerical priority string of top
