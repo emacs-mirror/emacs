@@ -1742,6 +1742,7 @@ list of valid filename suffixes for Info files.  See
   (when (file-name-absolute-p string)
     (setq dirs (list (file-name-directory string))))
   (let ((names nil)
+	(names-sans-suffix nil)
         (suffix (concat (regexp-opt suffixes t) "\\'"))
         (string-dir (file-name-directory string)))
     (dolist (dir dirs)
@@ -1764,7 +1765,14 @@ list of valid filename suffixes for Info files.  See
 	  ;; add the unsuffixed name as a completion option.
 	  (when (string-match suffix file)
 	    (setq file (substring file 0 (match-beginning 0)))
-	    (push (if string-dir (concat string-dir file) file) names)))))
+	    (push (if string-dir (concat string-dir file) file)
+		  names-sans-suffix)))))
+    ;; If there is just one file, don't duplicate it with suffixes,
+    ;; so `Info-read-node-name-1' will be able to complete a single
+    ;; candidate and to add the terminating ")".
+    (if (and (= (length names) 1) (= (length names-sans-suffix) 1))
+	(setq names names-sans-suffix)
+      (setq names (append names-sans-suffix names)))
     (complete-with-action action names string pred)))
 
 (defun Info-read-node-name-1 (string predicate code)
@@ -5174,13 +5182,16 @@ Otherwise, visit the manual in a new Info buffer."
       (with-current-buffer buffer
 	(and (eq major-mode 'Info-mode)
 	     (stringp Info-current-file)
+	     (not (string= (substring (buffer-name) 0 1) " "))
 	     (push (file-name-sans-extension
 		    (file-name-nondirectory Info-current-file))
 		   names))))
     (delete-dups (append (nreverse names)
-			 (apply-partially 'Info-read-node-name-2
-					  Info-directory-list
-					  (mapcar 'car Info-suffix-list))))))
+			 (all-completions
+			  ""
+			  (apply-partially 'Info-read-node-name-2
+					   Info-directory-list
+					   (mapcar 'car Info-suffix-list)))))))
 
 (provide 'info)
 

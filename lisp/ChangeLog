@@ -1,5 +1,13 @@
 2013-01-08  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-read-node-name-2): Don't duplicate suffixes for
+	single completion.  (Bug#12456)
+	(info--manual-names): Expand node completions into an explicit list
+	before appending it to another list.  Filter out internal buffers
+	with the leading space in the buffer name.  (Bug#10771)
+
+2013-01-08  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-read-node-name-1): Allow empty node name in (FILENAME)
 	that defaults to the Top node.
 	(Info-goto-node, Info-read-node-name): Doc fix to mention that
