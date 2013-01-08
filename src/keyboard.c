@@ -502,7 +502,7 @@ kset_system_key_syms (struct kboard *kb, Lisp_Object val)
    printed.  */
 
 static void
-echo_add_char (Lisp_Object c)
+echo_add_key (Lisp_Object c)
 {
   int size = KEY_DESCRIPTION_SIZE + 100;
   char *buffer = alloca (size);
@@ -586,7 +586,7 @@ echo_char (Lisp_Object c)
 {
   if (current_kboard->immediate_echo)
     {
-      echo_add_char (c);
+      echo_add_key (c);
       echo_now ();
     }
 }
@@ -9227,7 +9227,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	      && NILP (Fzerop (Vecho_keystrokes))
 	      && current_kboard->immediate_echo)
 	    {
-	      echo_add_char (key);
+	      echo_add_key (key);
 	      echo_dash ();
 	    }
 	}
