@@ -44,6 +44,9 @@
 	  (set-face-doc-string new-face docstring)))))
 (put 'org-copy-face 'lisp-indent-function 2)
 
+(when (featurep 'xemacs)
+  (put 'mode-line 'face-alias 'modeline))
+
 (defgroup org-faces nil
   "Faces in Org-mode."
   :tag "Org Faces"

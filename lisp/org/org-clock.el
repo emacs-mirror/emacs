@@ -35,6 +35,7 @@
 (declare-function calendar-absolute-from-iso "cal-iso" (&optional date))
 (declare-function notifications-notify "notifications" (&rest params))
 (declare-function org-pop-to-buffer-same-window "org-compat" (&optional buffer-or-name norecord label))
+(declare-function org-refresh-properties "org" (dprop tprop))
 (defvar org-time-stamp-formats)
 (defvar org-ts-what)
 (defvar org-frame-title-format-backup frame-title-format)
@@ -159,12 +160,15 @@ the clock can be resumed from that point."
 The clock is resumed when Emacs restarts.
 When this is t, both the running clock, and the entire clock
 history are saved.  When this is the symbol `clock', only the
-running clock is saved.
+running clock is saved.  When this is the symbol `history', only
+the clock history is saved.
 
-When Emacs restarts with saved clock information, the file containing the
-running clock as well as all files mentioned in the clock history will
-be visited.
-All this depends on running `org-clock-persistence-insinuate' in .emacs"
+When Emacs restarts with saved clock information, the file containing
+the running clock as well as all files mentioned in the clock history
+will be visited.
+
+All this depends on running `org-clock-persistence-insinuate' in your
+Emacs initialization file."
   :group 'org-clock
   :type '(choice
 	  (const :tag "Just the running clock" clock)
@@ -201,7 +205,7 @@ file name  play this sound file.  If not possible, fall back to beep"
 	  (const :tag "Standard beep" t)
 	  (file :tag "Play sound file")))
 
-(define-obsolete-variable-alias 'org-clock-modeline-total
+(org-define-obsolete-variable-alias 'org-clock-modeline-total
   'org-clock-mode-line-total "24.3")
 
 (defcustom org-clock-mode-line-total 'auto
@@ -1078,6 +1082,7 @@ time as the start time \(see `org-clock-continuously' to
 make this the default behavior.)"
   (interactive "P")
   (setq org-clock-notification-was-shown nil)
+  (org-refresh-properties org-effort-property 'org-effort)
   (catch 'abort
     (let ((interrupting (and (not org-clock-resolving-clocks-due-to-idleness)
 			     (org-clocking-p)))
@@ -1199,7 +1204,7 @@ make this the default behavior.)"
 	      (setq org-clock-start-time
 		    (apply 'encode-time
 			   (org-parse-time-string (match-string 1))))
-	      (setq org-clock-effort (org-get-effort))
+	      (setq org-clock-effort (get-text-property (point) 'org-effort))
 	      (setq org-clock-total-time (org-clock-sum-current-item
 					  (org-clock-get-sum-start))))
 	     ((eq org-clock-in-resume 'auto-restart)
@@ -1219,7 +1224,7 @@ make this the default behavior.)"
 		(beginning-of-line 1)
 		(org-indent-line-to (- (org-get-indentation) 2)))
 	      (insert org-clock-string " ")
-	      (setq org-clock-effort (org-get-effort))
+	      (setq org-clock-effort (get-text-property (point) 'org-effort))
 	      (setq org-clock-total-time (org-clock-sum-current-item
 					  (org-clock-get-sum-start)))
 	      (setq org-clock-start-time

@@ -131,7 +131,7 @@ utf8      Use all UTF-8 characters")
   "Call `org-export-as-ascii` with output to a temporary buffer.
 No file is created.  The prefix ARG is passed through to `org-export-as-ascii'."
   (interactive "P")
-  (org-export-as-ascii arg nil nil "*Org ASCII Export*")
+  (org-export-as-ascii arg nil "*Org ASCII Export*")
   (when org-export-show-temporary-export-buffer
     (switch-to-buffer-other-window "*Org ASCII Export*")))
 
@@ -183,23 +183,19 @@ in a window.  A non-interactive call will only return the buffer."
     (goto-char end)
     (set-mark (point)) ;; to activate the region
     (goto-char beg)
-    (setq rtn (org-export-as-ascii
-	       nil nil ext-plist
-	       buffer body-only))
+    (setq rtn (org-export-as-ascii nil ext-plist buffer body-only))
     (if (fboundp 'deactivate-mark) (deactivate-mark))
     (if (and (org-called-interactively-p 'any) (bufferp rtn))
 	(switch-to-buffer-other-window rtn)
       rtn)))
 
 ;;;###autoload
-(defun org-export-as-ascii (arg &optional hidden ext-plist
-				to-buffer body-only pub-dir)
+(defun org-export-as-ascii (arg &optional ext-plist to-buffer body-only pub-dir)
   "Export the outline as a pretty ASCII file.
 If there is an active region, export only the region.
 The prefix ARG specifies how many levels of the outline should become
 underlined headlines, default is 3.    Lower levels will become bulleted
-lists.  When HIDDEN is non-nil, don't display the ASCII buffer.
-EXT-PLIST is a property list with external parameters overriding
+lists.  EXT-PLIST is a property list with external parameters overriding
 org-mode's default settings, but still inferior to file-local
 settings.  When TO-BUFFER is non-nil, create a buffer with that
 name and export to that buffer.  If TO-BUFFER is the symbol

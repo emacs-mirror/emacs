@@ -577,7 +577,7 @@ PUB-DIR is the publishing directory."
 	(setq export-buf-or-file
 	      (funcall (intern (concat "org-export-as-" format))
 		       (plist-get plist :headline-levels)
-		       nil plist nil
+		       plist nil
 		       (plist-get plist :body-only)
 		       pub-dir))
 	(when (and (bufferp export-buf-or-file)

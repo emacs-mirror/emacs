@@ -509,10 +509,10 @@ nil      When nil, the command tries to be smart and figure out the
 	 re)
     (goto-char beg)
     (beginning-of-line 1)
-    (setq beg (move-marker (make-marker) (point)))
+    (setq beg (point-marker))
     (goto-char end)
     (if (bolp) (backward-char 1) (end-of-line 1))
-    (setq end (move-marker (make-marker) (point)))
+    (setq end (point-marker))
     ;; Get the right field separator
     (unless separator
       (goto-char beg)
@@ -1895,7 +1895,7 @@ it can be edited in place."
       (if (and (boundp 'font-lock-mode) font-lock-mode)
 	  (font-lock-fontify-block))))
    (t
-    (let ((pos (move-marker (make-marker) (point)))
+    (let ((pos (point-marker))
 	  (coord
 	   (if (eq org-table-use-standard-references t)
 	       (concat (org-number-to-letters (org-table-current-column))
@@ -3219,7 +3219,7 @@ Parameters get priority."
   (let ((key (org-table-current-field-formula 'key 'noerror))
 	(eql (sort (org-table-get-stored-formulas 'noerror)
 		   'org-table-formula-less-p))
-	(pos (move-marker (make-marker) (point)))
+	(pos (point-marker))
 	(startline 1)
 	(wc (current-window-configuration))
 	(sel-win (selected-window))
@@ -3580,7 +3580,7 @@ With prefix ARG, apply the new formulas to the table."
 	    (beginning-of-line 1)
 	    (insert ind))
 	  (goto-char (point-max))
-	  (backward-delete-char 1)))
+	  (org-delete-backward-char 1)))
       (goto-char beg))
      (t nil))))
 
@@ -4235,7 +4235,7 @@ overwritten, and the table is not marked as requiring realignment."
 	   (looking-at "[^|\n]*  +|"))
       (let (org-table-may-need-update)
 	(goto-char (1- (match-end 0)))
-	(backward-delete-char 1)
+	(org-delete-backward-char 1)
 	(goto-char (match-beginning 0))
 	(self-insert-command N))
     (setq org-table-may-need-update t)

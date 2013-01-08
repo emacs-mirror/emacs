@@ -328,7 +328,7 @@ You can also customize this for each buffer, using something like
  * @licstart  The following is the entire license notice for the
  *  JavaScript code in %PATH.
  *
- * Copyright (C) 2012  MathJax
+ * Copyright (C) 2012-2013  MathJax
  *
  * Licensed under the Apache License, Version 2.0 (the \"License\");
  * you may not use this file except in compliance with the License.
@@ -793,7 +793,7 @@ If there is an active region, export only the region.
 The prefix ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will become bulleted lists."
   (interactive "P")
-  (org-export-as-html arg 'hidden)
+  (org-export-as-html arg)
   (org-open-file buffer-file-name)
   (when org-export-kill-product-buffer-when-displayed
     (kill-buffer (current-buffer))))
@@ -806,14 +806,14 @@ emacs   --batch
         --load=$HOME/lib/emacs/org.el
         --eval \"(setq org-export-headline-levels 2)\"
         --visit=MyFile --funcall org-export-as-html-batch"
-  (org-export-as-html org-export-headline-levels 'hidden))
+  (org-export-as-html org-export-headline-levels))
 
 ;;;###autoload
 (defun org-export-as-html-to-buffer (arg)
   "Call `org-export-as-html` with output to a temporary buffer.
 No file is created.  The prefix ARG is passed through to `org-export-as-html'."
   (interactive "P")
-  (org-export-as-html arg nil nil "*Org HTML Export*")
+  (org-export-as-html arg nil "*Org HTML Export*")
   (when org-export-show-temporary-export-buffer
     (switch-to-buffer-other-window "*Org HTML Export*")))
 
@@ -865,9 +865,7 @@ in a window.  A non-interactive call will only return the buffer."
     (goto-char end)
     (set-mark (point)) ;; to activate the region
     (goto-char beg)
-    (setq rtn (org-export-as-html
-	       nil nil ext-plist
-	       buffer body-only))
+    (setq rtn (org-export-as-html nil ext-plist buffer body-only))
     (if (fboundp 'deactivate-mark) (deactivate-mark))
     (if (and (org-called-interactively-p 'any) (bufferp rtn))
 	(switch-to-buffer-other-window rtn)
@@ -1171,14 +1169,12 @@ OPT-PLIST is the export options list."
 (defvar org-heading-keyword-regexp-format) ; defined in org.el
 
 ;;;###autoload
-(defun org-export-as-html (arg &optional hidden ext-plist
-			       to-buffer body-only pub-dir)
+(defun org-export-as-html (arg &optional ext-plist to-buffer body-only pub-dir)
   "Export the outline as a pretty HTML file.
 If there is an active region, export only the region.  The prefix
 ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will become bulleted
-lists.  HIDDEN is obsolete and does nothing.
-EXT-PLIST is a property list with external parameters overriding
+lists.  EXT-PLIST is a property list with external parameters overriding
 org-mode's default settings, but still inferior to file-local
 settings.  When TO-BUFFER is non-nil, create a buffer with that
 name and export to that buffer.  If TO-BUFFER is the symbol

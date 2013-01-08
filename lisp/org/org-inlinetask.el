@@ -75,6 +75,9 @@
 ;; Also, if you want to use refiling and archiving for inline tasks,
 ;; The END line must be present to make things work properly.
 ;;
+;; Note that you should not try to use inline tasks within plain list,
+;; visibility cycling is known to be problematic when doing so.
+;;
 ;; This package installs one new command:
 ;;
 ;; C-c C-x t      Insert a new inline task with END line

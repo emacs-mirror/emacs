@@ -28,7 +28,6 @@
 (eval-when-compile
   (require 'cl))
 
-(defvar obe-marker nil)
 (defvar org-current-export-file)
 (defvar org-babel-lob-one-liner-regexp)
 (defvar org-babel-ref-split-regexp)
