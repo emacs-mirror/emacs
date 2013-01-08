@@ -856,7 +856,8 @@ the problem."
 (defun cvs-cleanup-collection (c rm-handled rm-dirs rm-msgs)
   "Remove undesired entries.
 C is the collection
-RM-HANDLED if non-nil means remove handled entries.
+RM-HANDLED if non-nil means remove handled entries (if file is currently
+  visited, only remove if value is `all').
 RM-DIRS behaves like `cvs-auto-remove-directories'.
 RM-MSGS if non-nil means remove messages."
   (let (last-fi first-dir (rerun t))
@@ -870,16 +871,17 @@ RM-MSGS if non-nil means remove messages."
 		  (subtype (cvs-fileinfo->subtype fi))
 		  (keep
 		   (pcase type
-		     ;; remove temp messages and keep the others
+		     ;; Remove temp messages and keep the others.
 		     (`MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
-		     ;; remove entries
+		     ;; Remove dead entries.
 		     (`DEAD nil)
-		     ;; handled also?
+		     ;; Handled also?
 		     (`UP-TO-DATE
-                      (if (find-buffer-visiting (cvs-fileinfo->full-name fi))
-                          t
-                        (not rm-handled)))
-		     ;; keep the rest
+                      (not
+                       (if (find-buffer-visiting (cvs-fileinfo->full-name fi))
+                           (eq rm-handled 'all)
+                         rm-handled)))
+		     ;; Keep the rest.
 		     (_ (not (run-hook-with-args-until-success
 			      'cvs-cleanup-functions fi))))))
 
@@ -2121,7 +2123,7 @@ if you are convinced that the process that created the lock is dead."
 Empty directories are removed."
   (interactive)
   (cvs-cleanup-collection cvs-cookies
-			  t (or cvs-auto-remove-directories 'handled) t))
+			  'all (or cvs-auto-remove-directories 'handled) t))
 
 
 (defun-cvs-mode cvs-mode-acknowledge ()

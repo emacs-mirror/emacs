@@ -1,5 +1,8 @@
 2013-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/pcvs.el (cvs-cleanup-collection): Extend meaning of `rm-handled'.
+	(cvs-mode-remove-handled): Use it (bug#13380).
+
 	* emacs-lisp/nadvice.el (advice--tweak): New function.
 	(advice--remove-function, advice--subst-main): Use it.
 
