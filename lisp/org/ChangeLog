@@ -229,9 +229,6 @@
 	(orgtbl-self-insert-command): Use `org-delete-backward-char'
 	instead of `backward-delete-char'.
 
-	* org.el (org-delete-backward-char, org-delete-char): Save match
-	data.
-
 	* org-src.el (org-edit-src-code): Fix another bug about editing
 	special blocks "example" and "verbatim".
 
