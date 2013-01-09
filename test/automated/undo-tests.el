@@ -79,7 +79,7 @@
     (undo)
     (should
      (equal (should-error (undo-more nil))
-            '(wrong-type-argument integerp nil)))
+            '(wrong-type-argument number-or-marker-p nil)))
     (undo-more 7)
     (should (string-equal "" (buffer-string)))))
 

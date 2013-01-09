@@ -1,3 +1,7 @@
+2013-01-09  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* automated/undo-tests.el (undo-test0): Adjust error to code change.
+
 2013-01-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* automated/undo-tests.el: New file.
