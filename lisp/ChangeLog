@@ -1,5 +1,23 @@
 2013-01-09  Elias Pipping  <pipping@lavabit.com>
 
+	* doc-view.el: Add support for DjVu (bug#13164).
+	(doc-view-djvu->png-converter-function): New config var.
+	(doc-view-single-page-converter-function, doc-view--image-type)
+	(doc-view--image-file-extension): New vars.
+	(doc-view-mode): Initialize them.
+	(doc-view-goto-page): Use them.
+	(doc-view-mode-p): Add support for ddjvu.
+	(doc-view-djvu->png-converter-ddjvu, doc-view-djvu->png-1)
+	(doc-view-set-up-single-converter): New funs.
+	(doc-view-pdf/ps->png): Extend for djvu.
+	(doc-view-document->png): Rename from doc-view-pdf->png.
+	(doc-view-convert-current-doc): Handle djvu.
+	(doc-view-insert-image, doc-view-display)
+	(doc-view-already-converted-p): Don't hardcode png.
+	(doc-view-set-doc-type): Recognize djvu docs.
+
+2013-01-09  Elias Pipping  <pipping@lavabit.com>
+
 	* doc-view.el: Add support for mupdf converter (bug#13164).
 	(doc-view-pdfdraw-program, doc-view-pdf->png-converter-function)
 	(doc-view-ps->png-converter-function): New config vars.
