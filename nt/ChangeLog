@@ -1,3 +1,8 @@
+2013-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_GTK_HANDLE_BOX_NEW, HAVE_GTK_TEAROFF_MENU_ITEM_NEW): New macros.
+
 2012-12-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h (S_ISMPX): Define to zero, to accommodate changes
