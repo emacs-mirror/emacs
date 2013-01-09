@@ -1,3 +1,13 @@
+2013-01-09  Elias Pipping  <pipping@lavabit.com>
+
+	* doc-view.el: Add support for mupdf converter (bug#13164).
+	(doc-view-pdfdraw-program, doc-view-pdf->png-converter-function)
+	(doc-view-ps->png-converter-function): New config vars.
+	(doc-view-pdf->png-converter-ghostscript)
+	(doc-view-ps->png-converter-ghostscript)
+	(doc-view-pdf->png-converter-mupdf): New functions.
+	(doc-view-pdf/ps->png, doc-view-pdf->png-1): Use them.
+
 2013-01-09  Jürgen Hötzel  <juergen@archlinux.org>
 
 	* net/tramp.el (tramp-eshell-directory-change): Check remote-path

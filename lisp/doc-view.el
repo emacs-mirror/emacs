@@ -158,6 +158,30 @@
   :type 'file
   :group 'doc-view)
 
+(defcustom doc-view-pdfdraw-program "mudraw"
+  "Program to convert PDF files to PNG."
+  :type 'file
+  :version "24.4")
+
+(defcustom doc-view-pdf->png-converter-function
+  'doc-view-pdf->png-converter-ghostscript
+  "Function to call to convert a PDF file into a PNG file."
+  :type '(radio
+          (function-item doc-view-pdf->png-converter-ghostscript
+                         :doc "Use ghostscript")
+          (function-item doc-view-pdf->png-converter-mupdf
+                         :doc "Use mupdf")
+          function)
+  :version "24.4")
+
+(defcustom doc-view-ps->png-converter-function
+  'doc-view-ps->png-converter-ghostscript
+  "Function to call to convert a PS file into a PNG file."
+  :type '(radio (function-item doc-view-ps->png-converter-ghostscript
+                               :doc "Use ghostscript")
+                function)
+  :version "24.4")
+
 (defcustom doc-view-ghostscript-options
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
     ;; sources.
@@ -661,6 +685,7 @@ OpenDocument format)."
 		       (executable-find doc-view-dvipdfm-program)))))
 	((or (eq type 'postscript) (eq type 'ps) (eq type 'eps)
 	     (eq type 'pdf))
+	 ;; FIXME: allow mupdf here
 	 (and doc-view-ghostscript-program
 	      (executable-find doc-view-ghostscript-program)))
 	((eq type 'odf)
@@ -826,6 +851,25 @@ Should be invoked when the cached images aren't up-to-date."
 			    (list "-o" pdf dvi)
 			    callback)))
 
+(defun doc-view-pdf->png-converter-ghostscript (resolution pdf png &optional page)
+  `((command . ,doc-view-ghostscript-program)
+    (arguments . (,@doc-view-ghostscript-options
+		  ,(format "-r%d" resolution)
+		  ,@(if page `(,(format "-dFirstPage=%d" page)))
+		  ,@(if page `(,(format "-dLastPage=%d" page)))
+		  ,(concat "-sOutputFile=" png)
+		  ,pdf))))
+
+(defalias 'doc-view-ps->png-converter-ghostscript
+  'doc-view-pdf->png-converter-ghostscript)
+
+(defun doc-view-pdf->png-converter-mupdf (resolution pdf png &optional page)
+  `((command . ,doc-view-pdfdraw-program)
+    (arguments . (,(concat "-o" png)
+		  ,(format "-r%d" resolution)
+		  ,pdf
+		  ,@(if page `(,(format "%d" page)))))))
+
 (defun doc-view-odf->pdf (odf callback)
   "Convert ODF to PDF asynchronously and call CALLBACK when finished.
 The converted PDF is put into the current cache directory, and it
@@ -836,12 +880,15 @@ is named like ODF with the extension turned to pdf."
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
-  (doc-view-start-process
-   "pdf/ps->png" doc-view-ghostscript-program
-   (append doc-view-ghostscript-options
-           (list (format "-r%d" (round doc-view-resolution))
-                 (concat "-sOutputFile=" png)
-                 pdf-ps))
+  (let ((invocation
+         (pcase doc-view-doc-type
+           (`pdf (funcall doc-view-pdf->png-converter-function
+                          (round doc-view-resolution) pdf-ps png))
+           (_    (funcall doc-view-ps->png-converter-function
+                          (round doc-view-resolution) pdf-ps png)))))
+    (doc-view-start-process
+     "pdf/ps->png" (cdr (assoc 'command invocation))
+     (cdr (assoc 'arguments invocation))
    (let ((resolution doc-view-resolution))
      (lambda ()
        ;; Only create the resolution file when it's all done, so it also
@@ -853,7 +900,7 @@ is named like ODF with the extension turned to pdf."
        (when doc-view-current-timer
          (cancel-timer doc-view-current-timer)
          (setq doc-view-current-timer nil))
-       (doc-view-display (current-buffer) 'force))))
+       (doc-view-display (current-buffer) 'force)))))
   ;; Update the displayed pages as soon as they're done generating.
   (when doc-view-conversion-refresh-interval
     (setq doc-view-current-timer
@@ -864,17 +911,12 @@ is named like ODF with the extension turned to pdf."
 (defun doc-view-pdf->png-1 (pdf png page callback)
   "Convert a PAGE of a PDF file to PNG asynchronously.
 Call CALLBACK with no arguments when done."
-  (doc-view-start-process
-   "pdf->png-1" doc-view-ghostscript-program
-   (append doc-view-ghostscript-options
-           (list (format "-r%d" (round doc-view-resolution))
-                 ;; Sadly, `gs' only supports the page-range
-                 ;; for PDF files.
-                 (format "-dFirstPage=%d" page)
-                 (format "-dLastPage=%d" page)
-                 (concat "-sOutputFile=" png)
-                 pdf))
-   callback))
+  (let ((invocation (funcall doc-view-pdf->png-converter-function
+			     (round doc-view-resolution) pdf png page)))
+    (doc-view-start-process
+     "pdf/ps->png" (cdr (assoc 'command invocation))
+     (cdr (assoc 'arguments invocation))
+     callback)))
 
 (declare-function clear-image-cache "image.c" (&optional filter))
 
