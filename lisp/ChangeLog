@@ -1,3 +1,9 @@
+2013-01-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+	* net/tramp-adb.el (tramp-adb-get-toolbox):
+	Fix misspelling of 'unknown'.
+
 2013-01-08  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
@@ -436,7 +442,7 @@
 
 	* net/tramp-adb.el (tramp-adb-get-ls-command): New defun.
 	Suppress coloring, if possible (required for BusyBox based systems like
-	CynagenMod).
+	CyanogenMod).
 	(tramp-adb-handle-file-attributes)
 	(tramp-adb-handle-insert-directory)
 	(tramp-adb-handle-file-name-all-completions): Use it.
@@ -11609,7 +11615,7 @@
 
 2012-03-16  Alan Mackenzie  <acm@muc.de>
 
-	Further optimise the handling of large macros.
+	Further optimize the handling of large macros.
 
 	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Use a
 	limit to a call of `c-literal-limits'.
@@ -13261,7 +13267,7 @@
 
 2012-01-08  Alan Mackenzie  <acm@muc.de>
 
-	Optimise font locking in long enum definitions.
+	Optimize font locking in long enum definitions.
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Add an extra
 	arm to a cond form to handle enums.

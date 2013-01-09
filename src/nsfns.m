@@ -1503,12 +1503,12 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   [panel setDelegate: fileDelegate];
 
   panelOK = 0;
-  if (! NILP (dir_only_p)) 
+  if (! NILP (dir_only_p))
     {
       [panel setCanChooseDirectories: YES];
       [panel setCanChooseFiles: NO];
     }
-  
+
   block_input ();
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
@@ -1519,7 +1519,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     [panel setNameFieldStringValue: [initS lastPathComponent]];
   else
     [panel setNameFieldStringValue: @""];
-    
+
   ret = [panel runModal];
 #else
   if (NILP (mustmatch) && NILP (dir_only_p))
@@ -2147,7 +2147,7 @@ In case the execution fails, an error is signaled. */)
   [NSApp postEvent: nxev atStart: NO];
 
   // If there are other events, the event loop may exit.  Keep running
-  // until the script has been handeled.  */
+  // until the script has been handled.  */
   while (! NILP (as_script))
     [NSApp run];
 

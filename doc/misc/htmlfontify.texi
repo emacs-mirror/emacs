@@ -7,7 +7,7 @@
 
 @copying
 This manual documents Htmlfontify, a source code -> crosslinked +
-formatted + syntax colorised html transformer.
+formatted + syntax colorized html transformer.
 
 Copyright @copyright{} 2002, 2003, 2013 Free Software Foundation, Inc.
 
@@ -56,7 +56,7 @@ modify this GNU manual.''
 @menu
 * Introduction::                   About Htmlfontify.
 * Usage & Examples::               How to use Htmlfontify.
-* Customisation::                  Fine-tuning Htmlfontify's behaviour.
+* Customization::                  Fine-tuning Htmlfontify's behaviour.
 * Requirements::                   External programs used by Htmlfontify.
 * GNU Free Documentation License:: The license for this documentation.
 * Index::                          Index of contents.
@@ -68,7 +68,7 @@ modify this GNU manual.''
 
 Htmlfontify provides a means of converting individual Emacs buffers,
 source files, or entire source trees to html, preserving formatting
-and Emacs colorisation / syntax highlighting as much as possible
+and Emacs colorization / syntax highlighting as much as possible
 through careful application of CSS stylesheets and html tags.
 
 It can also turn instances of functions, methods and (for some
@@ -76,7 +76,7 @@ languages) variables and other constructs and items into links
 to their definitions, and create an index file (or files) of
 all such symbols, also linked to their points of definition.
 
-Htmlfontify also provides several customisation items, which should
+Htmlfontify also provides several customization items, which should
 allow it to mesh more-or-less seamlessly with various templating or
 publishing systems (in the event, for instance, that you don't want
 to produce the html pages directly).
@@ -93,7 +93,7 @@ batch mode.
 @menu
 * Interactive::               Using Htmlfontify interactively.
 * Non-interactive::           Using Htmlfontify from elisp.
-* Variables::                 Variables (other than customisation entries).
+* Variables::                 Variables (other than customization entries).
 * Data Structures::           Important data structures.
 * Examples::                  Example(s) of Htmlfontify in use.
 @end menu
@@ -236,7 +236,7 @@ color map specified, otherwise it uses Htmlfontify's built in map.
 @end lisp
 
 Return a @code{defface} style alist of possible specifications for
-@var{face}, with any entries resulting from user customisation
+@var{face}, with any entries resulting from user customization
 (@code{custom-set-faces}) taking precedence.
 
 See also: @ref{hfy-default-face-def}
@@ -268,10 +268,10 @@ does things like deferring fontification until a section of the buffer is
 exposed and rendered, or until Emacs is idle for a while.  Sometimes, in
 non-interactive circumstances, or if it can't see X, it doesn't bother
 with some of the harder stuff.  While this is all great from the perspective
-of a user waiting for Emacs to load a 20000 line file and colorise it,
+of a user waiting for Emacs to load a 20000 line file and colorize it,
 it's a pain from the point of view from non-interactive code.  This function
 lies, cheats, steals and generally bullies Emacs into fontifying a buffer
-from start to finish, with all the extra frills, whether it thinks it nneds
+from start to finish, with all the extra frills, whether it thinks it needs
 to or not.  Oh yes: it operates on the current buffer.
 
 @item hfy-link-style-string
@@ -861,7 +861,7 @@ As per @ref{hfy-color} but for background colors.
 (hfy-kludge-cperl-mode)
 @end lisp
 
-cperl mode does its damndest not to do some of its fontification when not
+cperl mode does its best to not do some of its fontification when not
 in a windowing system---we try to trick it@dots{}
 
 @item hfy-href
@@ -1044,7 +1044,7 @@ Convert an Emacs @code{:width} attribute to a CSS font-stretch attribute.
 @section Variables
 @cindex variables
 
-Important variables that are not customisation items:
+Important variables that are not customization items:
 
 @table @code
 
@@ -1234,7 +1234,7 @@ main-content <=MAIN_CONTENT;\n" rtfm-section file style rtfm-section file))
 
 ;; Here's the function I actually call---it asks me for a section label,
 ;; and source and destination directories, and then binds a couple of
-;; customisation variable in a let before calling htmlfontify:
+;; customization variable in a let before calling htmlfontify:
 (defun rtfm-build-source-docs (section srcdir destdir)
   (interactive
    "s section[eg- emacs / p4-blame]:\nD source-dir: \nD output-dir: ")
@@ -1252,11 +1252,11 @@ main-content <=MAIN_CONTENT;\n" rtfm-section file style rtfm-section file))
     (htmlfontify-copy-and-link-dir srcdir destdir ".src" ".html")))
 @end lisp
 
-@node Customisation
-@chapter Customisation
-@cindex variables (customisation)
+@node Customization
+@chapter Customization
+@cindex variables (customization)
 
-Htmlfontify provides the following variable and customisation entries:
+Htmlfontify provides the following variable and customization entries:
 
 @table @code
 @comment  AUTOGENERATED BLOCK
@@ -1394,7 +1394,7 @@ when @ref{hfy-display-class} has been set (the normal Htmlfontify way of
 extracting potentially non-current face information doesn't necessarily
 work for @code{default}).
 
-For example, I customise this to:
+For example, I customize this to:
 
 @lisp
 ((t :background "black" :foreground "white" :family "misc-fixed"))
@@ -1405,7 +1405,7 @@ For example, I customise this to:
 @anchor{hfy-init-kludge-hooks}
 
 List of functions to call when starting htmlfontify-buffer to do any
-kludging necessary to get highlighting modes to bahave as you want, even
+kludging necessary to get highlighting modes to behave as you want, even
 when not running under a window system.
 
 @item hfy-shell-file-name
@@ -1421,7 +1421,7 @@ Currently this is only required/used when using GNU etags, see
 @vindex hfy-optimisations
 @anchor{hfy-optimisations}
 
-Optimisations to turn on.  So far, the following have been implemented:
+Optimizations to turn on.  So far, the following have been implemented:
 
 @table @option
 @item merge-adjacent-tags
@@ -1454,7 +1454,8 @@ Suppress hyperlinking between files highlighted by different modes.
 
 @end table
 
-Note: like compiler optimisations, these optimise the _output_ of the code,
+Note: like compiler optimizations, these optimize the @emph{output} of
+the code,
 not the processing of the source itself, and are therefore likely to slow
 Htmlfontify down, at least a little.  Except for skip-refontification,
 which can never slow you down, but may result in incomplete fontification.
@@ -1470,7 +1471,7 @@ Regex to remove from the <style> a variant of an Htmlfontify CSS class.
 @anchor{hfy-link-extn}
 
 File extension used for href links---useful where the Htmlfontify
-output files are going to be processed again, with a rersulting change
+output files are going to be processed again, with a resulting change
 in file extension.  If @code{nil}, then any code using this should fall back
 to @ref{hfy-extn}.
 
@@ -1570,16 +1571,16 @@ money are always welcome.
 
 @item
 A copy of etags (exuberant-ctags or GNU etags).  Htmlfontify attempts
-to autodetect the version you have and customise itself accordingly,
+to autodetect the version you have and customize itself accordingly,
 but you should be able to override this.
 
-See: @ref{Customisation}
+See: @ref{Customization}
 
 @item
 A copy of find (e.g., GNU find) that provides the @code{-path} predicate.
 
 You may be able to work around this with a suitable clever shell
-command and the customisation entry: @ref{hfy-find-cmd}
+command and the customization entry: @ref{hfy-find-cmd}
 
 @item
 A copy of sed (e.g., GNU sed).
@@ -1603,7 +1604,7 @@ A copy of the @code{file} command.
 @item Functions
 @printindex fn
 
-@item Variables & Customisation
+@item Variables & Customization
 @printindex vr
 
 @end table

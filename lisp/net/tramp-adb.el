@@ -372,14 +372,14 @@ pass to the OPERATION."
       "ls")))
 
 (defun tramp-adb-get-toolbox (vec)
-  "Get shell toolbox implementation: `toolbox' for orginal distributions
-or `busybox' for CynagenMode based distributions"
+  "Get shell toolbox implementation: `toolbox' for original distributions
+or `busybox' for CyanogenMod based distributions"
   (with-tramp-connection-property vec "toolbox"
     (tramp-message vec 5 "Checking shell toolbox implementation")
     (cond
      ((zerop (tramp-adb-command-exit-status vec "busybox")) 'busybox)
      ((zerop (tramp-adb-command-exit-status vec "toolbox")) 'toolbox)
-     (t 'unkown))))
+     (t 'unknown))))
 
 (defun tramp-adb--gnu-switches-to-ash
   (switches)
