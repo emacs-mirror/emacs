@@ -412,8 +412,7 @@ make_gap_larger (ptrdiff_t nbytes_added)
   GPT_BYTE = Z_BYTE + GAP_SIZE;
   GAP_SIZE = nbytes_added;
 
-  /* Move the new gap down to be consecutive with the end of the old one.
-     This adjusts the markers properly too.  */
+  /* Move the new gap down to be consecutive with the end of the old one.  */
   gap_left (real_gap_loc + old_gap_size, real_gap_loc_byte + old_gap_size, 1);
 
   /* Now combine the two into one large gap.  */
@@ -467,8 +466,7 @@ make_gap_smaller (ptrdiff_t nbytes_removed)
   Z_BYTE += new_gap_size;
   GAP_SIZE = nbytes_removed;
 
-  /* Move the unwanted pretend gap to the end of the buffer.  This
-     adjusts the markers properly too.  */
+  /* Move the unwanted pretend gap to the end of the buffer.  */
   gap_right (Z, Z_BYTE);
 
   enlarge_buffer_text (current_buffer, -nbytes_removed);

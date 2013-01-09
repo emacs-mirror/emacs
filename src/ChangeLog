@@ -6,7 +6,7 @@
 	* editfns.c (Fbuffer_size): Rename from Fbufsize to fit the common
 	naming convention.
 	(syms_of_editfns): Adjust defsubr.  Drop commented-out obsolete code.
-	* insdel.c (make_gap_larger): Use GAP_BYTES_DFL.
+	* insdel.c (make_gap_larger): Use GAP_BYTES_DFL.  Adjust comment.
 	(make_gap_smaller): Use GAP_BYTES_MIN.  Adjust comment.
 	(make_gap_1): New function to adjust the gap of any buffer.
 	* coding.c (coding_alloc_by_making_gap): Use it.
