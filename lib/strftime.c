@@ -210,7 +210,7 @@ extern char *tzname[];
          else                                                                 \
            {                                                                  \
              /* Ignore the value of fwrite.  The caller can determine whether \
-                an error occured by inspecting ferror (P).  All known fwrite  \
+                an error occurred by inspecting ferror (P).  All known fwrite \
                 implementations set the stream's error indicator when they    \
                 fail due to ENOMEM etc., even though C11 and POSIX.1-2008 do  \
                 not require this.  */                                         \
