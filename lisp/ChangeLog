@@ -1,3 +1,8 @@
+2013-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/trace.el (trace-function, trace-function-background):
+	Doc fix.
+
 2013-01-09  Juri Linkov  <juri@jurta.org>
 
 	* international/mule-cmds.el (read-char-by-name): Move let-binding

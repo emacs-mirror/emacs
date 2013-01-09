@@ -254,7 +254,9 @@ and return values will be inserted into BUFFER.  This function generates the
 trace advice for FUNCTION and activates it together with any other advice
 there might be!!  The trace BUFFER will popup whenever FUNCTION is called.
 Do not use this to trace functions that switch buffers or do any other
-display oriented stuff, use `trace-function-background' instead."
+display oriented stuff, use `trace-function-background' instead.
+
+To untrace a function, use `untrace-function' or `untrace-all'."
   (interactive
    (list
     (intern (completing-read "Trace function: " obarray 'fboundp t))
@@ -271,7 +273,9 @@ and activates it together with any other advice there might be.
 The trace output goes to BUFFER quietly, without changing
 the window or buffer configuration.
 
-BUFFER defaults to `trace-buffer'."
+BUFFER defaults to `trace-buffer'.
+
+To untrace a function, use `untrace-function' or `untrace-all'."
   (interactive
    (list
     (intern
