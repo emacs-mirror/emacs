@@ -927,7 +927,8 @@ of the default face.  Value is FACE."
 
 (defun read-face-name (prompt &optional default multiple)
   "Read one or more face names, defaulting to the face(s) at point.
-PROMPT should be a prompt string; it should not end in a space.
+PROMPT should be a prompt string; it should not end in a space or
+a colon.
 
 The optional argument DEFAULT specifies the default face name(s)
 to return if the user just types RET.  If its value is non-nil,
