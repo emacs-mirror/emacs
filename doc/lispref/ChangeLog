@@ -1,3 +1,8 @@
+2013-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Interactive Codes):
+	Whitespace does not terminate interactive "S".  (Bug#13393)
+
 2013-01-06  Chong Yidong  <cyd@gnu.org>
 
 	* windows.texi (Vertical Scrolling): Fix typos (Bug#13267).
