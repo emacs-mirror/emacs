@@ -38,11 +38,6 @@
 ;; generation of trace output won't interfere with what you are currently
 ;; doing.
 
-;; Requirement:
-;; ============
-;; trace.el needs advice.el version 2.0 or later which you can get from the
-;; same place from where you got trace.el.
-
 ;; Restrictions:
 ;; =============
 ;; - Traced subrs when called interactively will always show nil as the
@@ -54,17 +49,6 @@
 ;;     with them (e.g., car, cdr, ...)
 ;;   + Macros that were expanded during compilation
 ;; - All the restrictions that apply to advice.el
-
-;; Installation:
-;; =============
-;; Put this file together with advice.el (version 2.0 or later) somewhere
-;; into your Emacs `load-path', byte-compile it/them for efficiency, and
-;; put the following autoload declarations into your .emacs
-;;
-;;    (autoload 'trace-function "trace" "Trace a function" t)
-;;    (autoload 'trace-function-background "trace" "Trace a function" t)
-;;
-;; or explicitly load it with (require 'trace) or (load "trace").
 
 ;; Usage:
 ;; ======
