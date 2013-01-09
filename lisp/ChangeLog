@@ -1,3 +1,12 @@
+2013-01-09  Juri Linkov  <juri@jurta.org>
+
+	* international/mule-cmds.el (read-char-by-name): Move let-binding
+	of completion-ignore-case around completing-read to fix regression
+	exhibited by the test case `C-x 8 RET *acc TAB' and caused by
+	`string-match-p' using the nil value of `case-fold-search' and
+	`completion-ignore-case' in `completion-pcm--all-completions'.
+	(Bug#12615).
+
 2013-01-07  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-parse-errors):
