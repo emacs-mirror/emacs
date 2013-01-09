@@ -1,3 +1,8 @@
+2013-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (execute-extended-command): Doc fix.
+	Bind prefix-arg around read-extended-command, for prompt.  (Bug#13395)
+
 2013-01-09  Chong Yidong  <cyd@gnu.org>
 
 	* faces.el (read-face-name): Doc fix.
