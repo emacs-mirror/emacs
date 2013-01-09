@@ -968,7 +968,7 @@ usage: (save-current-buffer &rest BODY)  */)
   return unbind_to (count, Fprogn (args));
 }
 
-DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 1, 0,
+DEFUN ("buffer-size", Fbuffer_size, Sbuffer_size, 0, 1, 0,
        doc: /* Return the number of characters in the current buffer.
 If BUFFER, return the number of characters in that buffer instead.  */)
   (Lisp_Object buffer)
@@ -4883,12 +4883,10 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sline_beginning_position);
   defsubr (&Sline_end_position);
 
-/*  defsubr (&Smark); */
-/*  defsubr (&Sset_mark); */
   defsubr (&Ssave_excursion);
   defsubr (&Ssave_current_buffer);
 
-  defsubr (&Sbufsize);
+  defsubr (&Sbuffer_size);
   defsubr (&Spoint_max);
   defsubr (&Spoint_min);
   defsubr (&Spoint_min_marker);

@@ -388,14 +388,13 @@ make_gap_larger (ptrdiff_t nbytes_added)
   ptrdiff_t real_gap_loc_byte;
   ptrdiff_t old_gap_size;
   ptrdiff_t current_size = Z_BYTE - BEG_BYTE + GAP_SIZE;
-  enum { enough_for_a_while = 2000 };
 
   if (BUF_BYTES_MAX - current_size < nbytes_added)
     buffer_overflow ();
 
   /* If we have to get more space, get enough to last a while;
      but do not exceed the maximum buffer size.  */
-  nbytes_added = min (nbytes_added + enough_for_a_while,
+  nbytes_added = min (nbytes_added + GAP_BYTES_DFL,
 		      BUF_BYTES_MAX - current_size);
 
   enlarge_buffer_text (current_buffer, nbytes_added);
@@ -443,9 +442,9 @@ make_gap_smaller (ptrdiff_t nbytes_removed)
   ptrdiff_t real_beg_unchanged;
   ptrdiff_t new_gap_size;
 
-  /* Make sure the gap is at least 20 bytes.  */
-  if (GAP_SIZE - nbytes_removed < 20)
-    nbytes_removed = GAP_SIZE - 20;
+  /* Make sure the gap is at least GAP_BYTES_MIN bytes.  */
+  if (GAP_SIZE - nbytes_removed < GAP_BYTES_MIN)
+    nbytes_removed = GAP_SIZE - GAP_BYTES_MIN;
 
   /* Prevent quitting in move_gap.  */
   tem = Vinhibit_quit;
@@ -500,7 +499,20 @@ make_gap (ptrdiff_t nbytes_added)
     make_gap_smaller (-nbytes_added);
 #endif
 }
-
+
+/* Add NBYTES to B's gap.  It's enough to temporarily
+   fake current_buffer and avoid real switch to B.  */
+
+void
+make_gap_1 (struct buffer *b, ptrdiff_t nbytes)
+{
+  struct buffer *oldb = current_buffer;
+
+  current_buffer = b;
+  make_gap (nbytes);
+  current_buffer = oldb;
+}
+
 /* Copy NBYTES bytes of text from FROM_ADDR to TO_ADDR.
    FROM_MULTIBYTE says whether the incoming text is multibyte.
    TO_MULTIBYTE says whether to store the text as multibyte.

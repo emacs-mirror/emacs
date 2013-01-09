@@ -1682,17 +1682,13 @@ compact_buffer (struct buffer *buffer)
       if (!buffer->text->inhibit_shrinking)
 	{
 	  /* If a buffer's gap size is more than 10% of the buffer
-	     size, or larger than 2000 bytes, then shrink it
-	     accordingly.  Keep a minimum size of 20 bytes.  */
-	  int size = min (2000, max (20, (buffer->text->z_byte / 10)));
-
-	  if (buffer->text->gap_size > size)
-	    {
-	      struct buffer *save_current = current_buffer;
-	      current_buffer = buffer;
-	      make_gap (-(buffer->text->gap_size - size));
-	      current_buffer = save_current;
-	    }
+	     size, or larger than GAP_BYTES_DFL bytes, then shrink it
+	     accordingly.  Keep a minimum size of GAP_BYTES_MIN bytes.  */
+	  ptrdiff_t size = clip_to_bounds (GAP_BYTES_MIN,
+					   BUF_Z_BYTE (buffer) / 10,
+					   GAP_BYTES_DFL);
+	  if (BUF_GAP_SIZE (buffer) > size)
+	    make_gap_1 (buffer, -(BUF_GAP_SIZE (buffer) - size));
 	}
       BUF_COMPACT (buffer) = BUF_MODIFF (buffer);
     }

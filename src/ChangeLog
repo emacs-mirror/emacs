@@ -1,3 +1,18 @@
+2013-01-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (make_gap_1): New prototype.
+	* buffer.h (GAP_BYTES_DFL, GAP_BYTES_MIN): New macros for the special
+	gap size values.
+	* editfns.c (Fbuffer_size): Rename from Fbufsize to fit the common
+	naming convention.
+	(syms_of_editfns): Adjust defsubr.  Drop commented-out obsolete code.
+	* insdel.c (make_gap_larger): Use GAP_BYTES_DFL.
+	(make_gap_smaller): Use GAP_BYTES_MIN.  Adjust comment.
+	(make_gap_1): New function to adjust the gap of any buffer.
+	* coding.c (coding_alloc_by_making_gap): Use it.
+	* buffer.c (compact_buffer): Likewise.  Use BUF_Z_BYTE, BUF_GAP_SIZE,
+	GAP_BYTES_DFL and GAP_BYTES_MIN.  Adjust comment.
+
 2013-01-08  Juri Linkov  <juri@jurta.org>
 
 	* xfaces.c (tty_supports_face_attributes_p): Return 0 for the case
