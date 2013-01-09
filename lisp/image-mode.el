@@ -63,8 +63,9 @@ otherwise it defaults to t, used for times when the buffer is not displayed."
   (when cleanup
     (setq image-mode-winprops-alist
   	  (delq nil (mapcar (lambda (winprop)
-  			      (if (window-live-p (car-safe winprop))
-  				  winprop))
+			      (let ((w (car-safe winprop)))
+				(if (or (not (windowp w)) (window-live-p w))
+				    winprop)))
   			    image-mode-winprops-alist))))
   (let ((winprops (assq window image-mode-winprops-alist)))
     ;; For new windows, set defaults from the latest.

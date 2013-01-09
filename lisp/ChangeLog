@@ -1,3 +1,8 @@
+2013-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-winprops): Don't throw away the fallback
+	`t' pseudo-window entry.
+
 2013-01-09  Alan Mackenzie  <acm@muc.de>
 
 	Fix bugs in the c-parse-state mechanism.  Reuse some markers
