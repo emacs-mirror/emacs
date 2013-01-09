@@ -327,6 +327,7 @@ When COMBINE is non nil, add the category to each line."
 	tmp pri categories location summary desc uid alarm alarm-time
 	(sexp-buffer (get-buffer-create "*ical-tmp*")))
     (org-refresh-category-properties)
+    (org-refresh-properties "APPT_WARNTIME" 'org-appt-warntime)
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward re1 nil t)
@@ -357,7 +358,7 @@ When COMBINE is non nil, add the category to each line."
 			(org-id-get-create)
 		      (or (org-id-get) (org-id-new)))
 		categories (org-export-get-categories)
-		alarm-time (org-entry-get nil "APPT_WARNTIME")
+		alarm-time (get-text-property (point) 'org-appt-warntime)
 		alarm-time (if alarm-time (string-to-number alarm-time) 0)
 		alarm ""
 		deadlinep nil scheduledp nil)
@@ -676,7 +677,7 @@ a time), or the day by one (if it does not contain a time)."
       (setq fmt (if have-time
 		    (replace-regexp-in-string "%Z"
 					      org-icalendar-timezone
-					      org-icalendar-date-time-format)
+					      org-icalendar-date-time-format t)
 		  ";VALUE=DATE:%Y%m%d"))
       (concat keyword (format-time-string fmt time
 					  (and (org-icalendar-use-UTC-date-timep)

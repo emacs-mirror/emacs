@@ -3808,7 +3808,8 @@ Elements are accumulated into ACC."
 		'section))
 	     (plain-list 'item)
 	     (table 'table-row))
-	   (org-element-property :structure element)
+	   (and (memq type '(item plain-list))
+		(org-element-property :structure element))
 	   granularity visible-only element))
 	 ;; ELEMENT has contents.  Parse objects inside, if
 	 ;; GRANULARITY allows it.
@@ -4249,8 +4250,11 @@ first element of current section."
 		   (plain-list
 		    (setq special-flag 'item
 			  struct (org-element-property :structure element)))
-		   (table (setq special-flag 'table-row))
-		   (otherwise (setq special-flag nil)))
+		   (item (setq special-flag nil))
+		   (property-drawer
+		    (setq special-flag 'node-property struct nil))
+		   (table (setq special-flag 'table-row struct nil))
+		   (otherwise (setq special-flag nil struct nil)))
 		 (setq end cend)
 		 (goto-char cbeg)))))))))))
 

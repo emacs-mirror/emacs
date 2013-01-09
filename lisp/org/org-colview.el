@@ -1243,7 +1243,7 @@ PARAMS is a property list of parameters:
 :skip-empty-rows
 	  When t, skip rows where all specifiers other than ITEM are empty.
 :format   When non-nil, specify the column view format to use."
-  (let ((pos (move-marker (make-marker) (point)))
+  (let ((pos (point-marker))
 	(hlines (plist-get params :hlines))
 	(vlines (plist-get params :vlines))
 	(maxlevel (plist-get params :maxlevel))

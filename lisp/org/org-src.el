@@ -39,6 +39,8 @@
 
 (declare-function org-do-remove-indentation "org" (&optional n))
 (declare-function org-at-table.el-p "org" ())
+(declare-function org-in-src-block-p "org" (&optional inside))
+(declare-function org-in-block-p "org" (names))
 (declare-function org-get-indentation "org" (&optional line))
 (declare-function org-switch-to-buffer-other-window "org" (&rest args))
 (declare-function org-pop-to-buffer-same-window
@@ -201,41 +203,40 @@ There is a mode hook, and keybindings for `org-edit-src-exit' and
 `org-edit-src-save'")
 
 (defun org-edit-src-code (&optional context code edit-buffer-name)
-  "Edit the source CODE example at point.
-The example is copied to a separate buffer, and that buffer is
-switched to the correct language mode.  When done, exit with
-\\[org-edit-src-exit].  This will remove the original code in the
-Org buffer, and replace it with the edited version.  An optional
-argument CONTEXT is used by \\[org-edit-src-save] when calling
-this function.  See `org-src-window-setup' to configure the
-display of windows containing the Org buffer and the code
-buffer."
+  "Edit the source CODE block at point.
+The code is copied to a separate buffer and the appropriate mode
+is turned on.  When done, exit with \\[org-edit-src-exit].  This will
+remove the original code in the Org buffer, and replace it with the
+edited version.  An optional argument CONTEXT is used by \\[org-edit-src-save]
+when calling this function.  See `org-src-window-setup' to configure
+the display of windows containing the Org buffer and the code buffer."
   (interactive)
-  (unless (eq context 'save)
-    (setq org-edit-src-saved-temp-window-config (current-window-configuration)))
-  (let* ((mark (and (org-region-active-p) (mark)))
-	 (case-fold-search t)
-	 (info
-	  ;; If the src region consists in no lines, we insert a blank
-	  ;; line.
-	  (let* ((temp (org-edit-src-find-region-and-lang))
-		 (beg (nth 0 temp))
-		 (end (nth 1 temp)))
-	    (if (>= end beg) temp
-	      (goto-char beg)
-	      (insert "\n")
-	      (org-edit-src-find-region-and-lang))))
-	 (full-info (org-babel-get-src-block-info 'light))
-	 (org-mode-p (derived-mode-p 'org-mode)) ;; derived-mode-p is reflexive
-	 (beg (make-marker))
-	 ;; Move marker with inserted text for case when src block is
-	 ;; just one empty line, i.e. beg == end.
-	 (end (copy-marker nil t))
-	 (allow-write-back-p (null code))
-	 block-nindent total-nindent ovl lang lang-f single lfmt buffer msg
-	 begline markline markcol line col transmitted-variables)
-    (if (not info)
-	nil
+  (if (not (or (org-in-block-p '("src" "example" "latex" "html"))
+	       (org-at-table.el-p)))
+      (user-error "Not in a source code or example block")
+    (unless (eq context 'save)
+      (setq org-edit-src-saved-temp-window-config (current-window-configuration)))
+    (let* ((mark (and (org-region-active-p) (mark)))
+	   (case-fold-search t)
+	   (info
+	    ;; If the src region consists in no lines, we insert a blank
+	    ;; line.
+	    (let* ((temp (org-edit-src-find-region-and-lang))
+		   (beg (nth 0 temp))
+		   (end (nth 1 temp)))
+	      (if (>= end beg) temp
+		(goto-char beg)
+		(insert "\n")
+		(org-edit-src-find-region-and-lang))))
+	   (full-info (org-babel-get-src-block-info 'light))
+	   (org-mode-p (derived-mode-p 'org-mode)) ;; derived-mode-p is reflexive
+	   (beg (make-marker))
+	   ;; Move marker with inserted text for case when src block is
+	   ;; just one empty line, i.e. beg == end.
+	   (end (copy-marker (make-marker) t))
+	   (allow-write-back-p (null code))
+	   block-nindent total-nindent ovl lang lang-f single lfmt buffer msg
+	   begline markline markcol line col transmitted-variables)
       (setq beg (move-marker beg (nth 0 info))
 	    end (move-marker end (nth 1 info))
 	    msg (if allow-write-back-p
@@ -244,7 +245,7 @@ buffer."
 		  "Exit with C-c ' (C-c and single quote)")
 	    code (or code (buffer-substring-no-properties beg end))
 	    lang (or (cdr (assoc (nth 2 info) org-src-lang-modes))
-                     (nth 2 info))
+		     (nth 2 info))
 	    lang (if (symbolp lang) (symbol-name lang) lang)
 	    single (nth 3 info)
 	    block-nindent (nth 5 info)
@@ -527,6 +528,14 @@ the language, a switch telling if the content should be in a single line."
 	(pos (point))
 	re1 re2 single beg end lang lfmt match-re1 ind entry)
     (catch 'exit
+      (when (org-at-table.el-p)
+	(re-search-backward "^[\t]*[^ \t|\\+]" nil t)
+	(setq beg (1+ (point-at-eol)))
+	(goto-char beg)
+	(or (re-search-forward "^[\t]*[^ \t|\\+]" nil t)
+	    (progn (goto-char (point-max)) (newline)))
+	(setq end (1- (point-at-bol)))
+	(throw 'exit (list beg end 'table.el nil nil 0)))
       (while (setq entry (pop re-list))
 	(setq re1 (car entry) re2 (nth 1 entry) lang (nth 2 entry)
 	      single (nth 3 entry))
@@ -557,16 +566,7 @@ the language, a switch telling if the content should be in a single line."
 			(throw 'exit
 			       (list (match-end 0) end
 				     (org-edit-src-get-lang lang)
-				     single lfmt ind)))))))))
-      (when (org-at-table.el-p)
-	(re-search-backward "^[\t]*[^ \t|\\+]" nil t)
-	(setq beg (1+ (point-at-eol)))
-	(goto-char beg)
-	(or (re-search-forward "^[\t]*[^ \t|\\+]" nil t)
-	    (progn (goto-char (point-max)) (newline)))
-	(setq end (point-at-bol))
-	(setq ind (org-edit-src-get-indentation beg))
-	(throw 'exit (list beg end 'table.el nil nil ind))))))
+				     single lfmt ind))))))))))))
 
 (defun org-edit-src-get-lang (lang)
   "Extract the src language."
@@ -633,7 +633,8 @@ with \",*\", \",#+\", \",,*\" and \",,#+\"."
   (unless (org-bound-and-true-p org-edit-src-from-org-mode)
     (error "This is not a sub-editing buffer, something is wrong"))
   (widen)
-  (let* ((beg org-edit-src-beg-marker)
+  (let* ((fixed-width-p (string-match "Fixed Width" (buffer-name)))
+	 (beg org-edit-src-beg-marker)
 	 (end org-edit-src-end-marker)
 	 (ovl org-edit-src-overlay)
 	 (bufstr (buffer-string))
@@ -670,7 +671,8 @@ with \",*\", \",#+\", \",,*\" and \",,#+\"."
 	    (goto-char (point-max)) (insert "\\n")))
 	(goto-char (point-min))
 	(if (looking-at "\\s-*") (replace-match " ")))
-      (when (org-bound-and-true-p org-edit-src-from-org-mode)
+      (when (and (org-bound-and-true-p org-edit-src-from-org-mode)
+		 (not fixed-width-p))
 	(org-escape-code-in-region (point-min) (point-max))
 	(setq delta (+ delta
 		       (save-excursion

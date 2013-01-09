@@ -1847,9 +1847,9 @@ Similarly for Soar, Scheme, etc."
           (let ((echo-len (- comint-last-input-end
                              comint-last-input-start)))
             ;; Wait for all input to be echoed:
-            (while (and (accept-process-output proc)
-                        (> (+ comint-last-input-end echo-len)
+            (while (and (> (+ comint-last-input-end echo-len)
                            (point-max))
+                        (accept-process-output proc)
                         (zerop
                          (compare-buffer-substrings
                           nil comint-last-input-start

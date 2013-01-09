@@ -1,3 +1,18 @@
+2013-01-09  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Pushing to MobileOrg): Add footnote about using
+	symbolic links in `org-directory'.
+	(Timestamps, Deadlines and scheduling): Use `diary-float' instead
+	of the now obsolete alias `org-float'.
+	(TODO basics): Add `org-use-fast-todo-selection' to the variable
+	index.  Fix description of TODO keywords cycling.
+	(Advanced features): Add missing argument for @item.
+	(Storing searches): Add index entries and a note about
+	*-tree agenda views.
+	(Structure editing): Document `org-mark-element' and
+	`org-mark-subtree'.
+	(Tag inheritance): Document `org-agenda-use-tag-inheritance'.
+
 2013-01-08  Juri Linkov  <juri@jurta.org>
 
 	* info.texi (Go to node): Mention the abbreviated format

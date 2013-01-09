@@ -1,9 +1,53 @@
 ORG NEWS -- history of user-visible changes.           -*- org -*-
 
+#+LINK: doc http://orgmode.org/worg/doc.html#%s
+
 Copyright (C) 2012-2013 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Org bug reports to emacs-orgmode@gnu.org.
+
+* Version 7.9.3
+
+** New option [[doc::org-agenda-use-tag-inheritance][org-agenda-use-tag-inheritance]]
+
+[[doc::org-use-tag-inheritance][org-use-tag-inheritance]] controls whether tags are inherited when
+org-tags-view is called (either in =tags=, =tags-tree= or =tags-todo=
+agenda views.)
+
+When generating other agenda types such as =agenda=, =todo= and
+=todo-tree=, tags inheritance is not used when selecting the entries
+to display.  Still, you might want to have all tag information correct
+in the agenda buffer, e.g. for tag filtering.  In that case, add the
+agenda type to this variable.
+
+Setting this variable to nil should considerably speeds up the agenda
+generation.
+
+Note that the default was to display inherited tags in the agenda
+lines even if `org-use-tag-inheritance' was nil.  The default is now
+to *never* display inherited tags in agenda lines, but to /know/ about
+them when the agenda type is listed in [[doc::org-agenda-use-tag-inheritance][org-agenda-use-tag-inheritance]].
+
+** New default value nil for [[doc::org-agenda-dim-blocked-tasks][org-agenda-dim-blocked-tasks]]
+
+Using `nil' as the default value speeds up the agenda generation.  You
+can hit `#' (or `C-u #') in agenda buffers to temporarily dim (or turn
+invisible) blocked tasks.
+
+** New speedy keys for [[doc::org-speed-commands-default][org-speed-commands-default]]
+
+You can now use `:' (instead of `;') for setting tags---this is
+consistent with using the `:' key in agenda view.
+
+You can now use `=' for [[doc::org-columns][org-columns]].
+
+** =org-float= is now obsolete, use =diary-float= instead
+** Enhanced compatibility with Emacs 22 and XEmacs
+
+Thanks to Achim for his work on enhancing Org's compatibility with
+various Emacsen.  Things may not be perfect, but Org should work okay
+in most environments.
 
 * Version 7.9.2
 

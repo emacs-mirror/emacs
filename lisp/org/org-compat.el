@@ -169,6 +169,24 @@ If DELETE is non-nil, delete all those overlays."
 	(set-buffer-modified-p modified-p))
     (decompose-region beg end)))
 
+(defmacro org-define-obsolete-function-alias (o-name c-name when &optional doc)
+  "Reconcile the two-argument form of
+`define-obsolete-function-alias' in XEmacs/Emacs 22 with the 3-4
+argument form in Emacs 23 and later."
+  (if (or (featurep 'xemacs)
+	  (< emacs-major-version 23))
+      `(define-obsolete-function-alias ,o-name ,c-name)
+    `(define-obsolete-function-alias ,o-name ,c-name ,when ,doc)))
+
+(defmacro org-define-obsolete-variable-alias (o-name c-name when &optional doc)
+  "Reconcile the two-argument form of
+`define-obsolete-variable-alias' in XEmacs/Emacs 22 with the 3-4
+argument form in Emacs 23 and later."
+  (if (or (featurep 'xemacs)
+	  (< emacs-major-version 23))
+      `(define-obsolete-variable-alias ,o-name ,c-name)
+    `(define-obsolete-variable-alias ,o-name ,c-name ,when ,doc)))
+
 ;; Miscellaneous functions
 
 (defun org-add-hook (hook function &optional append local)
@@ -195,9 +213,8 @@ passed through to `fit-window-to-buffer'.  If SHRINK-ONLY is set, call
 ignored in this case."
   (cond ((if (fboundp 'window-full-width-p)
 	     (not (window-full-width-p window))
-	   (> (frame-width) (window-width window)))
-	 ;; do nothing if another window would suffer
-	 )
+	   ;; do nothing if another window would suffer
+	   (> (frame-width) (window-width window))))
 	((and (fboundp 'fit-window-to-buffer) (not shrink-only))
 	 (fit-window-to-buffer window max-height min-height))
 	((fboundp 'shrink-window-if-larger-than-buffer)
@@ -256,7 +273,6 @@ Works on both Emacs and XEmacs."
 	(setq transient-mark-mode 'lambda))
       (when (boundp 'zmacs-regions)
 	(setq zmacs-regions t)))))
-
 
 ;; Invisibility compatibility
 
@@ -372,6 +388,20 @@ TIME defaults to the current time."
       (time-to-seconds (or time (current-time)))
     (float-time time)))
 
+;; `user-error' is only available from 24.2.50 on
+(unless (fboundp 'user-error)
+  (defalias 'user-error 'error))
+
+(defmacro org-no-popups (&rest body)
+  "Suppress popup windows.
+Let-bind some variables to nil around BODY to achieve the desired
+effect, which variables to use depends on the Emacs version."
+    (if (org-version-check "24.2.50" "" :predicate)
+	`(let (pop-up-frames display-buffer-alist)
+	   ,@body)
+      `(let (pop-up-frames special-display-buffer-names special-display-regexps special-display-function)
+	 ,@body)))
+
 (if (fboundp 'string-match-p)
     (defalias 'org-string-match-p 'string-match-p)
   (defun org-string-match-p (regexp string &optional start)
@@ -384,7 +414,7 @@ TIME defaults to the current time."
     (save-match-data
       (apply 'looking-at args))))
 
-					; XEmacs does not have `looking-back'.
+;; XEmacs does not have `looking-back'.
 (if (fboundp 'looking-back)
     (defalias 'org-looking-back 'looking-back)
   (defun org-looking-back (regexp &optional limit greedy)
@@ -435,12 +465,34 @@ With two arguments, return floor and remainder of their quotient."
 
 ;; `condition-case-unless-debug' has been introduced in Emacs 24.1
 ;; `condition-case-no-debug' has been introduced in Emacs 23.1
-(defalias 'org-condition-case-unless-debug
+(defmacro org-condition-case-unless-debug (var bodyform &rest handlers)
+  (declare (debug condition-case) (indent 2))
   (or (and (fboundp 'condition-case-unless-debug)
-	   'condition-case-unless-debug)
+	   `(condition-case-unless-debug ,var ,bodyform ,@handlers))
       (and (fboundp 'condition-case-no-debug)
-	   'condition-case-no-debug)
-      'condition-case))
+	   `(condition-case-no-debug ,var ,bodyform ,@handlers))
+      `(condition-case ,var ,bodyform ,@handlers)))
+
+;; RECURSIVE has been introduced with Emacs 23.2.
+;; This is copying and adapted from `tramp-compat-delete-directory'
+(defun org-delete-directory (directory &optional recursive)
+  "Compatibility function for `delete-directory'."
+  (if (null recursive)
+      (delete-directory directory)
+    (condition-case nil
+	(funcall 'delete-directory directory recursive)
+      ;; This Emacs version does not support the RECURSIVE flag.  We
+      ;; use the implementation from Emacs 23.2.
+      (wrong-number-of-arguments
+       (setq directory (directory-file-name (expand-file-name directory)))
+       (if (not (file-symlink-p directory))
+	   (mapc (lambda (file)
+		   (if (eq t (car (file-attributes file)))
+		       (org-delete-directory file recursive)
+		     (delete-file file)))
+		 (directory-files
+		  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
+       (delete-directory directory)))))
 
 ;;;###autoload
 (defmacro org-check-version ()

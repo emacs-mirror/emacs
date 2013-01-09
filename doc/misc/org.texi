@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 7.9.2 (GNU Emacs 24.3)
+@set VERSION 7.9.3+ (GNU Emacs 24.3)
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -1470,6 +1470,13 @@ Move subtree up (swap with previous subtree of same
 level).
 @orgcmd{M-S-@key{down},org-move-subtree-down}
 Move subtree down (swap with next subtree of same level).
+@orgcmd{M-h,org-mark-element}
+Mark the element at point.  Hitting repeatedly will mark subsequent elements
+of the one just marked.  E.g. hitting @key{M-h} on a paragraph will mark it,
+hitting @key{M-h} immediately again will mark the next one.
+@orgcmd{C-c @@,org-mark-subtree}
+Mark the subtree at point.  Hitting repeatedly will mark subsequent subtrees
+of the same level than the marked subtree.
 @orgcmd{C-c C-x C-w,org-cut-subtree}
 Kill subtree, i.e., remove it from buffer but save in kill ring.
 With a numeric prefix argument N, kill N sequential subtrees.
@@ -3747,6 +3754,8 @@ The most important commands to work with TODO entries are:
 @table @kbd
 @orgcmd{C-c C-t,org-todo}
 @cindex cycling, of TODO states
+@vindex org-use-fast-todo-selection
+
 Rotate the TODO state of the current item among
 
 @example
@@ -3754,14 +3763,19 @@ Rotate the TODO state of the current item among
 '--------------------------------'
 @end example
 
-The same rotation can also be done ``remotely'' from the timeline and
-agenda buffers with the @kbd{t} command key (@pxref{Agenda commands}).
+If TODO keywords have fast access keys (see @ref{Fast access to TODO
+states}), you will be prompted for a TODO keyword through the fast selection
+interface; this is the default behavior when
+@var{org-use-fast-todo-selection} is @code{non-nil}.
+
+The same rotation can also be done ``remotely'' from the timeline and agenda
+buffers with the @kbd{t} command key (@pxref{Agenda commands}).
 
 @orgkey{C-u C-c C-t}
-Select a specific keyword using completion or (if it has been set up)
-the fast selection interface.  For the latter, you need to assign keys
-to TODO states, see @ref{Per-file keywords}, and @ref{Setting tags}, for
-more information.
+When TODO keywords have no selection keys, select a specific keyword using
+completion; otherwise force cycling through TODO states with no prompt.  When
+@var{org-use-fast-todo-selection} is set to @code{prefix}, use the fast
+selection interface.
 
 @kindex S-@key{right}
 @kindex S-@key{left}
@@ -4617,9 +4631,8 @@ changes in the line.}:
 @noindent
 @vindex org-use-tag-inheritance
 @vindex org-tags-exclude-from-inheritance
-To limit tag inheritance to specific tags, or to turn it off entirely, use
-the variables @code{org-use-tag-inheritance} and
-@code{org-tags-exclude-from-inheritance}.
+To limit tag inheritance to specific tags, use @code{org-tags-exclude-from-inheritance}.
+To turn it off entirely, use @code{org-use-tag-inheritance}.
 
 @vindex org-tags-match-list-sublevels
 When a headline matches during a tags search while tag inheritance is turned
@@ -4629,6 +4642,15 @@ complex tests including properties (@pxref{Property searches}).}.  The list
 of matches may then become very long.  If you only want to see the first tags
 match in a subtree, configure the variable
 @code{org-tags-match-list-sublevels} (not recommended).
+
+@vindex org-agenda-use-tag-inheritance
+Tag inheritance is relevant when the agenda search tries to match a tag,
+either in the @code{tags} or @code{tags-todo} agenda types.  In other agenda
+types, @code{org-use-tag-inheritance} has no effect.  Still, you may want to
+have your tags correctly set in the agenda, so that tag filtering works fine,
+with inherited tags.  Set @code{org-agenda-use-tag-inheritance} to control
+this: the default value includes all agenda types, but setting this to nil
+can really speed up agenda generation.
 
 @node Setting tags, Tag searches, Tag inheritance, Tags
 @section Setting tags
@@ -5512,7 +5534,7 @@ example with optional time
 
 @example
 * 22:00-23:00 The nerd meeting on every 2nd Thursday of the month
-  <%%(org-float t 4 2)>
+  <%%(diary-float t 4 2)>
 @end example
 
 @item Time/Date range
@@ -5850,7 +5872,7 @@ entries.  Org mode will issue early and late warnings based on the
 assumption that the timestamp represents the @i{nearest instance} of
 the repeater.  However, the use of diary sexp entries like
 @c
-@code{<%%(org-float t 42)>}
+@code{<%%(diary-float t 42)>}
 @c
 in scheduling and deadline timestamps is limited.  Org mode does not
 know enough about the internals of each sexp function to issue early and
@@ -6539,7 +6561,7 @@ suggestion.}  for capturing new material.
 @table @kbd
 @orgcmd{C-c c,org-capture}
 Call the command @code{org-capture}.  Note that this keybinding is global and
-not active by default; you need to install it.  If you have templates
+not active by default: you need to install it.  If you have templates
 @cindex date tree
 defined @pxref{Capture templates}, it will offer these templates for
 selection or use a new Org outline node as the default template.  It will
@@ -8621,6 +8643,13 @@ buffer, or a sparse tree (the latter covering of course only the current
 buffer).
 @kindex C-c a C
 @vindex org-agenda-custom-commands
+@cindex agenda views, main example
+@cindex tags, as an agenda view
+@cindex todo, as an agenda view
+@cindex tags-todo
+@cindex todo-tree
+@cindex occur-tree
+@cindex tags-tree
 
 Custom commands are configured in the variable
 @code{org-agenda-custom-commands}.  You can customize this variable, for
@@ -8680,6 +8709,9 @@ as a prefix command for a HOME tags search where you have to press an
 additional key (@kbd{l}, @kbd{p} or @kbd{k}) to select a name (Lisa,
 Peter, or Kim) as additional tag to match.
 @end table
+
+Note that the @code{*-tree} agenda views need to be called from an
+Org buffer as they operate on the current buffer only.
 
 @node Block agenda, Setting Options, Storing searches, Custom agenda views
 @subsection Block agenda
@@ -16537,14 +16569,18 @@ to the directory @code{org-mobile-directory}.  By default this list contains
 all agenda files (as listed in @code{org-agenda-files}), but additional files
 can be included by customizing @code{org-mobile-files}.  File names will be
 staged with paths relative to @code{org-directory}, so all files should be
-inside this directory.  The push operation also creates a special Org file
-@file{agendas.org} with all custom agenda view defined by the
-user@footnote{While creating the agendas, Org mode will force ID properties
-on all referenced entries, so that these entries can be uniquely identified
-if @i{MobileOrg} flags them for further action.  If you do not want to get
-these properties in so many entries, you can set the variable
-@code{org-mobile-force-id-on-agenda-items} to @code{nil}.  Org mode will then
-rely on outline paths, in the hope that these will be unique enough.}.
+inside this directory@footnote{Symbolic links in @code{org-directory} need to
+have the same name than their targets.}.
+
+The push operation also creates a special Org file @file{agendas.org} with
+all custom agenda view defined by the user@footnote{While creating the
+agendas, Org mode will force ID properties on all referenced entries, so that
+these entries can be uniquely identified if @i{MobileOrg} flags them for
+further action.  If you do not want to get these properties in so many
+entries, you can set the variable @code{org-mobile-force-id-on-agenda-items}
+to @code{nil}.  Org mode will then rely on outline paths, in the hope that
+these will be unique enough.}.
+
 Finally, Org writes the file @file{index.org}, containing links to all other
 files.  @i{MobileOrg} first reads this file from the server, and then
 downloads all agendas and Org files listed in it.  To speed up the download,

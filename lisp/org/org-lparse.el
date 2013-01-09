@@ -1718,7 +1718,7 @@ information."
   (org-lparse-end-paragraph)
   (org-lparse-end-list-item (or type "u")))
 
-(define-obsolete-function-alias
+(org-define-obsolete-function-alias
   'org-lparse-preprocess-after-blockquote-hook
   'org-lparse-preprocess-after-blockquote
   "24.3")
@@ -1736,7 +1736,7 @@ information."
 	 (format "ORG-%s-END %s" (upcase (match-string 2))
 		 (match-string 3))) t t))))
 
-(define-obsolete-function-alias
+(org-define-obsolete-function-alias
   'org-lparse-strip-experimental-blocks-maybe-hook
   'org-lparse-strip-experimental-blocks-maybe
   "24.3")

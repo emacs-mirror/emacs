@@ -30,6 +30,7 @@
 (eval-when-compile (require 'cl))
 
 (defvar org-babel-error-buffer-name "*Org-Babel Error Output*")
+(declare-function org-babel-temp-file "ob-core" (prefix &optional suffix))
 
 (defun org-babel-eval-error-notify (exit-code stderr)
   "Open a buffer to display STDERR and a message with the value of EXIT-CODE."
@@ -142,6 +143,11 @@ specifies the value of ERROR-BUFFER."
 	     shell-file-name
 	   "/bin/sh"))
 	exit-status)
+    ;; There is an error in `process-file' when `error-file' exists.
+    ;; This is fixed in Emacs trunk as of 2012-12-21; let's use this
+    ;; workaround for now.
+    (unless (file-remote-p default-directory)
+      (delete-file error-file))
     (if (or replace
 	    (and output-buffer
 		 (not (or (bufferp output-buffer) (stringp output-buffer)))))

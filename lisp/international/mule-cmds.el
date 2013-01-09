@@ -2946,14 +2946,14 @@ This function also accepts a hexadecimal number of Unicode code
 point or a number in hash notation, e.g. #o21430 for octal,
 #x2318 for hex, or #10r8984 for decimal."
   (let* ((enable-recursive-minibuffers t)
+	 (completion-ignore-case t)
 	 (input
 	  (completing-read
 	   prompt
 	   (lambda (string pred action)
-	     (let ((completion-ignore-case t))
-	       (if (eq action 'metadata)
-		   '(metadata (category . unicode-name))
-		 (complete-with-action action (ucs-names) string pred))))))
+	     (if (eq action 'metadata)
+		 '(metadata (category . unicode-name))
+	       (complete-with-action action (ucs-names) string pred)))))
 	 (char
 	  (cond
 	   ((string-match-p "\\`[0-9a-fA-F]+\\'" input)

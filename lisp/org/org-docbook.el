@@ -274,14 +274,14 @@ For example:
 $ emacs --batch
         --load=$HOME/lib/emacs/org.el
         --visit=MyOrgFile.org --funcall org-export-as-docbook-batch"
-  (org-export-as-docbook 'hidden))
+  (org-export-as-docbook))
 
 ;;;###autoload
 (defun org-export-as-docbook-to-buffer ()
   "Call `org-export-as-docbook' with output to a temporary buffer.
 No file is created."
   (interactive)
-  (org-export-as-docbook nil nil "*Org DocBook Export*")
+  (org-export-as-docbook nil "*Org DocBook Export*")
   (when org-export-show-temporary-export-buffer
     (switch-to-buffer-other-window "*Org DocBook Export*")))
 
@@ -334,17 +334,14 @@ in a window.  A non-interactive call will only return the buffer."
     (goto-char end)
     (set-mark (point)) ;; To activate the region
     (goto-char beg)
-    (setq rtn (org-export-as-docbook
-	       nil nil
-	       buffer body-only))
+    (setq rtn (org-export-as-docbook nil buffer body-only))
     (if (fboundp 'deactivate-mark) (deactivate-mark))
     (if (and (org-called-interactively-p 'any) (bufferp rtn))
 	(switch-to-buffer-other-window rtn)
       rtn)))
 
 ;;;###autoload
-(defun org-export-as-docbook-pdf (&optional hidden ext-plist
-					    to-buffer body-only pub-dir)
+(defun org-export-as-docbook-pdf (&optional ext-plist to-buffer body-only pub-dir)
   "Export as DocBook XML file, and generate PDF file."
   (interactive "P")
   (if (or (not org-export-docbook-xslt-proc-command)
@@ -360,8 +357,7 @@ in a window.  A non-interactive call will only return the buffer."
 	   (org-combine-plists (org-default-export-plist)
 			       ext-plist
 			       (org-infile-export-plist))))
-	 (docbook-buf (org-export-as-docbook hidden ext-plist
-					     to-buffer body-only pub-dir))
+	 (docbook-buf (org-export-as-docbook ext-plist to-buffer body-only pub-dir))
 	 (filename (buffer-file-name docbook-buf))
 	 (base (file-name-sans-extension filename))
 	 (fofile (concat base ".fo"))
@@ -398,8 +394,7 @@ in a window.  A non-interactive call will only return the buffer."
 (defvar org-heading-keyword-regexp-format) ; defined in org.el
 
 ;;;###autoload
-(defun org-export-as-docbook (&optional hidden ext-plist
-					to-buffer body-only pub-dir)
+(defun org-export-as-docbook (&optional ext-plist to-buffer body-only pub-dir)
   "Export the current buffer as a DocBook file.
 If there is an active region, export only the region.  When
 HIDDEN is obsolete and does nothing.  EXT-PLIST is a

@@ -1,3 +1,357 @@
+2013-01-09  Achim Gratz  <Stromeko@Stromeko.de>
+
+	* org-compat.el (org-define-obsolete-function-alias)
+	(org-define-obsolete-variable-alias): Introduce new compatibility
+	macros to obsolete functions and variables.
+
+	* org-agenda.el, org-clock.el, org-id.el, org-lparse.el:
+	* org-protocol.el, org.el:
+	Use `org-define-obsolete-{function,variable}-alias' instead
+	of `define-obsolate{function,variable}-alias'.
+
+	* org-faces.el: Define face alias mode-line for XEmacs (it's
+	called modeline there).
+
+	* org-compat.el (org-condition-case-unless-debug): Do not use
+	defalias for special forms, the Emacs 22 byte-compiler does not
+	recognize them correctly when compiling macros.  Use a macro
+	instead and rely on macro expansion.  That however makes the
+	decision at compile time, which should be acceptable in this case
+	since it only affects debugging.
+
+	* org-compat.el (org-no-popups): New wrapper macro which let-binds
+	the correct variables to suppress popup windows depending on the
+	Emacs version in use.  This is a compile-time decision when
+	byte-compiling.
+
+	* org.el (org-get-location, org-switch-to-buffer-other-window):
+	Use the wrapper `org-no-popups' to let-bind the correct variables
+	for suppression of popup windows.
+
+	* org-compat.el (user-error): Defalias to `error' for Emacsen that
+	don't have it.
+
+	* org-agenda.el (org-agenda-write): Use org-called-interactively-p
+	instead of called-interactively-p.
+
+	* org.el (org-find-invisible-foreground): Do not use the value of
+	variables `default-frame-alist', `initial-frame-alist' and
+	`window-system-default-frame-alist' when their symbol is not bound.
+
+2013-01-09  Bastien Guerry  <bzg@gnu.org>
+
+	* org-src.el (org-edit-src-code): Fix bug when trying to edit a
+	table.el table.
+
+	* org-agenda.el (org-agenda-finalize): Inhibit readonly for the
+	whole function.
+
+	* org.el (org-entry-get): Speed up by let-binding some variables
+	only if needed.  Also fix a bug: consider an empty drawer as no drawer.
+
+	* org-agenda.el (org-search-view, org-agenda-get-todos)
+	(org-agenda-get-timestamps, org-agenda-get-sexps)
+	(org-agenda-get-progress, org-agenda-get-deadlines)
+	(org-agenda-get-scheduled, org-agenda-get-blocks)
+	(org-agenda-change-all-lines): Get local tags only.
+	(org-agenda-use-tag-inheritance): New option.
+	(org-agenda-finalize): When `org-agenda-use-tag-inheritance'
+	is non-nil, possibly reset tags in the agenda buffer.
+	(org-agenda-check-type): Enhance docstring.
+
+	* org.el (org-use-tag-inheritance): Fix typo in docstring.
+
+	* org-agenda.el (org-float): Don't alias `org-float'.
+
+	* org.el (org-scan-tags): The skipper already checks for archived
+	entries.
+
+	* org.el (org-refresh-properties): Rename from
+	`org-refresh-effort-properties' and use two new parameters.
+	(org-agenda-prepare-buffers): Use `org-refresh-properties'.
+	Also refresh the 'org-appt-warntime text property.
+
+	* org-clock.el (org-clock-in): Use the renamed defun.
+
+	* org-icalendar.el (org-icalendar-print-entries):
+	Refresh the 'org-appt-warntime property.
+	(org-icalendar-print-entries):
+	* org-agenda.el (org-agenda-get-timestamps)
+	(org-agenda-get-sexps, org-agenda-get-deadlines)
+	(org-agenda-get-scheduled): Do not use `org-entry-get' to get the
+	"APPT_WARNTIME" property value.
+
+	* org.el (org-id-link-to-org-use-id): Fix compiler warning.
+
+	* org-agenda.el (org-agenda-format-item): Do not use
+	`org-get-effort' to get the effort text property.
+	(org-agenda-get-sexps): Use `org-back-to-heading' when setting tags.
+
+	* org-clock.el (org-clock-in): Refresh effort properties.
+
+	* org.el (org-refresh-effort-properties): New defun.
+	(org-get-effort): Delete.
+	(org-set-effort):
+	(org-property-next-allowed-value): Set the 'org-effort text property.
+	(org-agenda-prepare-buffers): Refresh effort properties.
+
+	* org.el (org-read-date): Let-bind `mouse-autoselect-window' to
+	nil so that the mouse doesn't jump when the option is set to t globally.
+
+	* org-agenda.el (org-agenda-dim-blocked-tasks): Default to nil.
+	(org-agenda-dim-blocked-tasks): Make interactive and allow an
+	optional parameter 'invisible to hide blocked tasks instead of
+	just dimming them.
+	(org-agenda-mode-map): Bind `org-agenda-dim-blocked-tasks' to "#".
+
+	* org-agenda.el (org-agenda-finalize): Don't try to align tags
+	when there are no tags.  Only try to draw the habit consistency
+	graph when there is a habit in the buffer.  Only mark clocking
+	task when there is one.
+
+	* org.el (org-adaptive-fill-function): DTRT in `message-mode'.
+
+	* org.el (org-get-priority): Save match data even when using
+	`org-get-priority-function'.
+
+	* org-mobile.el (org-mobile-create-index-file):
+	Possibly normalize `org-todo-keywords'.
+
+	* org-mobile.el (org-mobile-push): Use the correct agenda buffer names.
+
+	* org.el (org-store-link): Use `org-id-link-to-org-use-id' instead
+	of the obsolete variable name.
+
+	* org.el (org-fontify-meta-lines-and-blocks-1):
+	Fix bug when fontifying keywords with no value.
+
+	* org.el (org-goto-auto-isearch): Enhance docstring.
+	(org-goto-map): Make a defun, so that the customized value of
+	org-goto-auto-isearch is correctly initialized.
+	(org-goto): Initialize the keymap with `org-goto-map'.
+	(org-get-location): Use *Org Help* as a temporary buffer.
+	Tell whether auto-isearch is on or off.
+
+	* org-exp.el (org-export-as-org): Remove useless argument.
+
+	* org-docbook.el (org-export-as-docbook-batch)
+	(org-export-region-as-docbook, org-export-as-docbook-pdf):
+	Fix the number of arguments.
+	(org-export-as-docbook): Remove useless argument.
+
+	* org.el (org-speed-commands-default): Use ":" instead of ";" for
+	`org-set-tags-command', which is consistent with ":" in agenda
+	view.  Use "=" for `org-columns".
+
+	* org.el (org-sparse-tree): Fix redundant information in prompt.
+
+	* org-exp.el (org-export-string): Fix number of arguments passed
+	to the org-export-as-* functions.
+
+	* org-latex.el (org-export-as-latex): Fix typo in docstring.
+
+	* org-list.el (org-cycle-include-plain-lists): Docstring enhancement.
+
+	* org.el (org-fontify-meta-lines-and-blocks-1): Fix fontification
+	bug when fontifying a keyword with no associated value.
+	(org-cycle-internal-local): Don't run hooks when cycling a plain
+	list before first headline.
+	(org-ctrl-c-ctrl-c): Throw a user error when trying to toggle a
+	blocked checkbox.
+	(org-indent-line): Fix table formulas indenting.
+
+	* org-agenda.el (org-agenda-open-link): Fix bug when no link is
+	matched.  Return a message instead of an error.
+	(org-agenda-priority): Remove useless parameter and fix showing
+	priority in agenda buffers.
+
+	* org-macs.el (org-with-buffer-modified-unmodified): New macro.
+
+	* org.el (org-entry-blocked-p): Use the new macro.
+
+	* org-src.el (org-edit-src-exit): Don't comma-escape the content
+	of a fixed width region.
+
+	* org.el (org-blocker-hook): Update the docstring to mention that
+	functions in this hook should not modify the buffer.
+	(org-trigger-hook): Small docstring fix.
+	(org-entry-blocked-p): Use `with-buffer-modified-unmodified'
+	so that the function never modifies the buffer.
+
+	* org-agenda.el (org-agenda-open-link): Allow to open an internal
+	link by using the new `org-offer-links-in-entry' function.
+
+	* org.el (org-offer-links-in-entry): Do not open the link directly
+	through `org-open-link-from-string', only offer to select a link
+	and return a cons with the link (as a string) and the end of entry.
+	(org-open-at-point): Use `org-offer-links-in-entry' correctly.
+
+	* org.el (org-cycle-internal-local):
+	Fix bug: allow headings with leading blank characters.
+
+	* org-clock.el (org-clock-persist):
+	Docstring fix: document the 'history value.
+
+	* org.el (org-insert-link): Fix bug when inserting links to
+	headlines containing the ">" character.
+
+	* org-crypt.el (org-at-encrypted-entry-p): Fix search boundary.
+
+	* org-compat.el (org-delete-directory): New compatibility function
+	for Emacs 22, where `delete-directory' does not support recursive
+	deletion.
+
+	* org-odt.el (org-odt-cleanup-xml-buffers):
+	Use the new compatibility function.
+
+	* org.el (org-table-map-tables): Fix allowed blocks.
+
+	* org.el (org-edit-special):
+	* org-src.el (org-edit-src-code): Fix regression: allow editing
+	HTML and LaTeX source blocks again.
+
+	* org.el (org-nonsticky-props): Add `htmlize-link'.
+	(org-nonsticky-props): Add `htmlize-link'.
+
+	* org.el (org-edit-special):
+	* org-src.el (org-edit-src-code): Don't edit in verbatim blocks.
+
+	* org-table.el (org-table-fedit-lisp-indent)
+	(orgtbl-self-insert-command): Use `org-delete-backward-char'
+	instead of `backward-delete-char'.
+
+	* org-src.el (org-edit-src-code): Fix another bug about editing
+	special blocks "example" and "verbatim".
+
+	* org.el (org-structure-template-alist): Add verbatim.
+	(org-edit-special): Fix bug about editing special blocks
+	"example" and "verbatim".
+
+	* org.el (org-delete-backward-char, org-delete-char):
+	Save match data, `delete-backward-char' and `delete-char' don't.
+
+	* org.el (org-enable-table-editor, org-insert-heading)
+	(org-remove-timestamp-with-keyword, org-self-insert-command):
+	* org-table.el (org-table-fedit-lisp-indent)
+	(orgtbl-self-insert-command):
+	* org-latex.el (org-export-latex-subcontent):
+	* org-clock.el (org-clocktable-write-default):
+	* org-ascii.el (org-export-ascii-preprocess):
+	Use `delete-backward-char' instead of `backward-delete-char'.
+
+	* org.el (org-todo): Ignore the comment string when changing the
+	TODO state of a headline.
+	(org-edit-special): Fix docstring.
+	(org-in-src-block-p): Small enhancement.
+
+	* org-publish.el (org-publish-org-to): Call `org-export-as-*'
+	functions with the correct list of arguments.
+
+	* org-html.el (org-export-as-html): Delete obsolete arg `hidden'.
+	(org-export-as-html-and-open, org-export-as-html-batch)
+	(org-export-region-as-html): Don't use obsolete arg.
+
+	* org-ascii.el (org-export-as-ascii): Delete obsolete arg `hidden'.
+	(org-export-as-ascii-to-buffer): Don't use obsolete arg.
+
+	* org.el (org-in-fixed-width-region-p): Save match data.
+	(org-in-src-block-p): Use case-folding for searching the block
+	boundaries.
+	(org-activate-plain-links, org-activate-angle-links)
+	(org-activate-bracket-links): Prevent link activation in
+	source code blocks.
+
+	* org-odt.el (org-odt-cleanup-xml-buffers): Fix Emacs Bug#13197 by
+	setting the correct buffer before marking it unmodified to
+	silently kill him.
+
+	* org.el (org-set-font-lock-defaults): Don't activate links in
+	source code blocks and fixed-width regions.
+
+	* org-agenda.el (org-agenda-finalize): Fix links activation.
+
+	* org.el (org-open-at-point): Throw the correct error on
+	non-links.  Use `user-error' instead of `error'.
+
+	* org.el (org-in-fixed-width-region-p): Define before use.
+
+	* org-src.el (org-in-src-block-p): Declare function.
+
+	* org-compat.el: Fix bug: don't use `eval-when-compile' when
+	aliasing `user-error'.
+
+	* org-agenda.el (org-agenda-skip): Only check if point is
+	inside a code block, not at a code block.
+
+	* org.el (org-in-fixed-width-region-p):
+	Rewrite using org-element.el.
+
+	* org.el (org-fill-paragraph): Fill correctly in source code block.
+
+	* org.el (org-in-fixed-width-region-p): New function.
+	(org-edit-special): Fix bug: make sure to DTRT in every
+	special environment.  Also use the new function to check
+	against fixed-width environment.
+
+	* org-src.el (org-edit-src-code): Check if we are in a source code
+	block with `org-in-src-block-p'.  Slightly reformat the docstring.
+
+	* org.el (org-in-src-block-p): Return t when point is at the
+	#+BEGIN_SRC/#+END_SRC lines unless the new optional parameter
+	'inside is set to t.
+
+	* ob-exp.el (obe-marker): Delete useless var.
+
+	* org-src.el (org-edit-src-code): Fix bug triggered by the sexp
+	(copy-marker nil) on Emacs <24.1.
+
+2013-01-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* org-agenda.el (org-agenda-get-restriction-and-command):
+	* org-capture.el (org-capture-place-template):
+	* org-colview.el (org-dblock-write:columnview):
+	* org-mobile.el (org-mobile-locate-entry):
+	* org-table.el (org-table-convert-region):
+	* org.el (org-update-statistics-cookies): Use `point-marker'.
+
+2013-01-09  Eric Schulte  <eric.schulte@gmx.com>
+
+	* org-exp.el (org-export-string): Pass the dir option on through
+	to any subsequent export functions.
+
+2013-01-09  Henning Weiss  <hdweiss@gmail.com>  (tiny change)
+
+	* org-mobile.el (org-mobile-sumo-agenda-command): Remove match
+	description from block agendas when they have a title.
+
+2013-01-09  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-odt.el (org-export-as-odt-batch): Init `org-odt-zip-dir'.
+	Fix Emacs Bug#13254.
+
+	* org-odt.el (org-odt-format-org-link): Add check for presence of
+	description in headline links.
+
+2013-01-09  Michael Gauland  <mike_gauland@stanfordalumni.org>  (tiny change)
+
+	* org-src.el: Create a marker to pass to copy-marker.
+
+2013-01-09  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-setup-filling): Set `auto-fill-inhibit-regexp' to
+	nil because `org-adaptive-fill-function' already determines which
+	lines should be filled.
+
+	* org.el (org-fill-paragraph): Small refactoring.
+
+	* org-element.el (org-element--parse-elements)
+	(org-element-at-point): Fix parsing of a list in a block in a list.
+
+2013-01-09  Sebastien Vauban  <wxhgmqzgwmuf-geNee64TY+gS+FvcfC7Uqw@public.gmane.org>
+
+	* org.el (org-copy-subtree, org-paste-subtree):
+	Fix whitespace handling when copying/pasting a subtree.
+
 2012-12-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ob.el (org-babel-temp-file): Fix setting of
@@ -129,9 +483,8 @@
 	* ob-haskell.el (org-export-as-latex): Don't use the obsoleted
 	argument `hidden'.
 
-	* org.el (org-refile): Run within `with-demoted-errors' so
-	that a corrupted bookmark file does not stop the refile
-	process.
+	* org.el (org-refile): Run within `with-demoted-errors' so that a
+	corrupted bookmark file does not stop the refile process.
 
 	* org-capture.el (org-capture-bookmark-last-stored-position):
 	Ditto for the capture process.
