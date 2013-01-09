@@ -5652,7 +5652,7 @@ x_check_fullscreen (struct frame *f)
 static void
 w32fullscreen_hook (FRAME_PTR f)
 {
-  static int normal_width, normal_height, normal_top, normal_left;
+  static int normal_width, normal_height;
 
   if (f->async_visible)
     {

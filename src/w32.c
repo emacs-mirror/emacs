@@ -3648,7 +3648,6 @@ static int
 get_name_and_id (PSECURITY_DESCRIPTOR psd, unsigned *id, char *nm, int what)
 {
   PSID sid = NULL;
-  char machine[MAX_COMPUTERNAME_LENGTH+1];
   BOOL dflt;
   SID_NAME_USE ignore;
   char name[UNLEN+1];
@@ -4800,7 +4799,6 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
 {
   TOKEN_PRIVILEGES old1, old2;
   DWORD err;
-  BOOL res;
   int st = 0, retval = -1;
   SECURITY_INFORMATION flags = 0;
   PSID psid;

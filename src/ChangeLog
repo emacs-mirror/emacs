@@ -1,3 +1,8 @@
+2013-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (get_name_and_id, acl_set_file):
+	* w32term.c (w32fullscreen_hook): Remove unused local variables.
+
 2013-01-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lisp.h (make_gap_1): New prototype.
