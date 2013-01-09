@@ -1,3 +1,10 @@
+2013-01-09  Jürgen Hötzel  <juergen@archlinux.org>
+
+	* net/tramp.el (tramp-eshell-directory-change): Check remote-path
+	first in session cache: When `tramp-own-remote-path' is in
+	`tramp-remote-path', the remote path is only set in the session
+	cache.
+
 2013-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/trace.el (trace-function-foreground)
