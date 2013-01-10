@@ -87,6 +87,13 @@ while [ $# -gt 0 ]; do
     "--lzma")
       default_gzip="lzma"
     ;;
+    ## Same with xz.
+    "--xz")
+      default_gzip="xz"
+    ;;
+    "--no-compress")
+      default_gzip="cat"
+    ;;
 
     "--snapshot")
       clean_up=yes
@@ -101,6 +108,8 @@ while [ $# -gt 0 ]; do
       echo "  --bzip2	use bzip2 instead of gzip"
       echo "  --clean-up	delete staging directories when done"
       echo "  --lzma	use lzma instead of gzip"
+      echo "  --xz		use xz instead of gzip"
+      echo "  --no-compress	don't compress"
       echo "  --newer=TIME	don't include files older than TIME"
       echo "  --no-check	don't check for bad file names etc."
       echo "  --no-update	don't recompile or do analogous things"
@@ -510,6 +519,7 @@ if [ "${make_tar}" = yes ]; then
   case "${default_gzip}" in
     bzip2) gzip_extension=.bz2 ;;
     lzma)  gzip_extension=.lzma ;;
+    xz)  gzip_extension=.xz ;;
     gzip)  gzip_extension=.gz ; default_gzip="gzip --best";;
        *)  gzip_extension= ;;
   esac
