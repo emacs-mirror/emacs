@@ -5041,7 +5041,9 @@ xg_initialize (void)
                                 "cancel", 0);
   update_theme_scrollbar_width ();
 
+#ifdef HAVE_FREETYPE
   x_last_font_name = NULL;
+#endif
 }
 
 #endif /* USE_GTK */

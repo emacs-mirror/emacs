@@ -1,3 +1,8 @@
+2013-01-10  Rainer Orth <ro@CeBiTec.Uni-Bielefeld.DE> (tiny change)
+
+	* gtkutil.c (xg_initialize): Add ifdef HAVE_FREETYPE around
+	x_last_font_name (Bug#13403).
+
 2013-01-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Omit buffer_slot_type_mismatch and use generic predicates to enforce
