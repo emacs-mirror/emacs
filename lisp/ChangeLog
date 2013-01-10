@@ -1,3 +1,9 @@
+2013-01-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-ignored-files)
+	(authors-valid-file-names, authors-renamed-files-alist):
+	Add some more entries.
+
 2013-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* image-mode.el (image-mode-winprops): Don't throw away the fallback
@@ -4186,7 +4192,7 @@
 
 2012-08-08  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el Fixed defsubst warning.
+	* progmodes/python.el: Fix defsubst warning.
 	(python-syntax-context) Rename from python-info-ppss-context.
 	(python-syntax-context-type): Rename from
 	python-info-ppss-context-type.
