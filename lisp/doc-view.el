@@ -942,7 +942,7 @@ is named like ODF with the extension turned to pdf."
 
 (declare-function clear-image-cache "image.c" (&optional filter))
 
-(defun doc-view-document->bitmap (pdf png pages single-page-converter)
+(defun doc-view-document->bitmap (pdf png pages)
   "Convert a document file to bitmap images asynchronously.
 Start by converting PAGES, and then the rest."
   (if (null pages)
@@ -952,7 +952,7 @@ Start by converting PAGES, and then the rest."
     ;; a single page anyway, and of the remaining 1%, few cases will have
     ;; consecutive pages, it's not worth the trouble.
     (let ((rest (cdr pages)))
-      (funcall single-page-converter
+      (funcall doc-view-single-page-converter-function
 	       pdf (format png (car pages)) (car pages)
        (lambda ()
          (if rest
@@ -1066,8 +1066,7 @@ Those files are saved in the directory given by the function
       ((or `pdf `djvu)
        (let ((pages (doc-view-active-pages)))
          ;; Convert doc to bitmap images starting with the active pages.
-         (doc-view-document->bitmap doc-view-buffer-file-name png-file pages
-                                    doc-view-single-page-converter-function)))
+         (doc-view-document->bitmap doc-view-buffer-file-name png-file pages)))
       (_
        ;; Convert to PNG images.
        (doc-view-pdf/ps->png doc-view-buffer-file-name png-file)))))

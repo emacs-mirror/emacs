@@ -1,3 +1,10 @@
+2013-01-10  Elias Pipping  <pipping@exherbo.org>
+
+	* files.el (auto-mode-alist): Use doc-view for djvu files (bug#13164).
+	* doc-view.el (doc-view-document->bitmap):
+	Use doc-view-single-page-converter-function instead of
+	single-page-converter arg; adjust callers.
+
 2013-01-10  Feng Li  <fengli@gmail.com>  (tiny change)
 
 	* progmodes/which-func.el (which-function): Understand Semantic's use
