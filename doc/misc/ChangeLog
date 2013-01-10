@@ -1,3 +1,7 @@
+2013-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Default Host): Introduce `tramp-default-host-alist'.
+
 2013-01-09  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Pushing to MobileOrg): Add footnote about using

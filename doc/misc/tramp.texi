@@ -1279,8 +1279,8 @@ example, if you always have to use the user @samp{john} in the domain
 @end lisp
 
 @noindent
-See the documentation for the variable
-@code{tramp-default-user-alist} for more details.
+See the documentation for the variable @code{tramp-default-user-alist}
+for more details.
 
 One trap to fall in must be known.  If @value{tramp} finds a default
 user, this user will be passed always to the connection command as
@@ -1337,6 +1337,18 @@ to John's home directory on target.
 Note, however, that the most simplification @samp{/::} won't work,
 because @samp{/:} is the prefix for quoted file names.
 @end ifset
+
+@vindex tramp-default-host-alist
+Like with methods and users, you can also specify different default
+hosts for certain method/user combinations via the variable
+@code{tramp-default-host-alist}.  Usually, this isn't necessary,
+because @code{tramp-default-host} should be sufficient.  For some
+methods, like @code{adb}, that default value must be overwritten,
+which is already the initial value of @code{tramp-default-host-alist}.
+
+@noindent
+See the documentation for the variable @code{tramp-default-host-alist}
+for more details.
 
 
 @node Multi-hops
