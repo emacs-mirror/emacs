@@ -1391,14 +1391,16 @@ If the value is non-nil and not a number, we wait 2 seconds."
   ;; Aaron S. Hawley <aaron.s.hawley(at)gmail.com> 2009-08-24
   "Read function name, then read its arguments and call it.
 
-To pass a numeric argument to the command you are invoking with, specify
+To pass a numeric argument to the command you are invoking, specify
 the numeric argument to this command.
 
 Noninteractively, the argument PREFIXARG is the prefix argument to
 give to the command you invoke, if it asks for an argument."
   (interactive (list current-prefix-arg (read-extended-command)))
   ;; Emacs<24 calling-convention was with a single `prefixarg' argument.
-  (if (null command-name) (setq command-name (read-extended-command)))
+  (if (null command-name)
+      (setq command-name (let ((current-prefix-arg prefixarg)) ; for prompt
+                           (read-extended-command))))
   (let* ((function (and (stringp command-name) (intern-soft command-name)))
          (binding (and suggest-key-bindings
 		       (not executing-kbd-macro)

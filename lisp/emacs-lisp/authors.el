@@ -295,6 +295,14 @@ Changes to files matching one of the regexps in this list are not listed.")
     "calc/INSTALL" "calc/Makefile"
     "vms-pp.trans" "_emacs" "batcomp.com" "notes/cpp" ; admin/
     "emacsver.texi.in"
+    "vpath.sed"
+    "Cocoa/Emacs.base/Contents/Info.plist"
+    "Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
+    "GNUstep/Emacs.base/Resources/Info-gnustep.plist"
+    "GNUstep/Emacs.base/Resources/Emacs.desktop"
+    "Cocoa/Emacs.base/Contents/Resources/English.lproj"
+    ;; Only existed briefly, then deleted:
+    "coccinelle/overlay.cocci" "coccinelle/symbol.cocci"
     ;; MH-E stuff not in Emacs:
     "import-emacs" "release-utils"
     ;; Erc stuff not in Emacs:
@@ -540,6 +548,7 @@ Changes to files in this list are not listed.")
     "makedist.bat"
     "makefile.def"
     "makefile.nt"
+    "ns.mk"
     "debug.bat.in" "emacs.bat.in"
     ".gdbinit-union"
     "alloca.s"
@@ -553,15 +562,17 @@ Changes to files in this list are not listed.")
     "ymakefile"
     "permute-index" "index.perm"
     "ibmrs6000.inp"
-    "b2m.c" "b2m.1" "b2m.pl"
+    "b2m.c" "b2m.1" "b2m.pl" "rcs-checkin.1"
     "emacs.bash" "emacs.csh" "ms-kermit"
     "emacs.ico"
     "emacs21.ico"
+    "emacs.py" "emacs2.py" "emacs3.py"
     "BABYL" "LPF" "LEDIT" "OTHER.EMACSES"
     "emacs16_mac.png" "emacs24_mac.png"
     "emacs256_mac.png" "emacs32_mac.png"
     "emacs48_mac.png" "emacs512_mac.png"
     "revdiff"				; admin/
+    "vcdiff" "rcs-checkin" "tindex.pl"
     "mainmake" "sed1.inp" "sed2.inp" "sed3.inp" ; msdos/
     "mac-fix-env.m"
     ;; Deleted vms stuff:
@@ -580,6 +591,7 @@ in the repository.")
     ("s/windowsnt.h" . "s/ms-w32.h")
     ("s/ms-w32.h" . "inc/ms-w32.h")
     ("winnt.el" . "w32-fns.el")
+    ("emacs.manifest" . "emacs-x86.manifest")
     ("config.emacs" . "configure")
     ("configure.in" . "configure.ac")
     ("config.h.dist" . "config.in")
@@ -616,6 +628,8 @@ in the repository.")
     ("build-install" . "build-ins.in")
     ("build-install.in" . "build-ins.in")
     ("unidata/Makefile" . "unidata/Makefile.in")
+    ("move-if-change" . "build-aux/move-if-change")
+    ("update-subdirs" . "build-aux/update-subdirs")
     ;; Not renamed, but we only have the latter in the Emacs repo.
     ("trampver.texi.in" . "trampver.texi")
     ("e/eterm" . "e/eterm-color")

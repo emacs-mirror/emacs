@@ -2464,8 +2464,12 @@ comment at the start of cc-engine.el for more info."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables which keep track of preprocessor constructs.
+(defvar c-state-old-cpp-beg-marker nil)
+(make-variable-buffer-local 'c-state-old-cpp-beg-marker)
 (defvar c-state-old-cpp-beg nil)
 (make-variable-buffer-local 'c-state-old-cpp-beg)
+(defvar c-state-old-cpp-end-marker nil)
+(make-variable-buffer-local 'c-state-old-cpp-end-marker)
 (defvar c-state-old-cpp-end nil)
 (make-variable-buffer-local 'c-state-old-cpp-end)
 ;; These are the limits of the macro containing point at the previous call of
@@ -2653,13 +2657,21 @@ comment at the start of cc-engine.el for more info."
   ;; reduce the time wasted in repeated fruitless searches in brace deserts.
   (save-excursion
     (save-restriction
-      (let ((bra from) ce		; Positions of "{" and "}".
-	    new-cons
-	    (cache-pos (c-state-cache-top-lparen)) ; might be nil.
-	    (macro-start-or-from
-	     (progn (goto-char from)
-		    (c-beginning-of-macro)
-		    (point))))
+      (let* (new-cons
+	     (cache-pos (c-state-cache-top-lparen)) ; might be nil.
+	     (macro-start-or-from
+	      (progn (goto-char from)
+		     (c-beginning-of-macro)
+		     (point)))
+	     (bra			; Position of "{".
+	      ;; Don't start scanning in the middle of a CPP construct unless
+	      ;; it contains HERE - these constructs, in Emacs, are "commented
+	      ;; out" with category properties.
+	      (if (eq (c-get-char-property macro-start-or-from 'category)
+			'c-cpp-delimiter)
+		    macro-start-or-from
+		  from))
+	     ce)			; Position of "}"
 	(or upper-lim (setq upper-lim from))
 
 	;; If we're essentially repeating a fruitless search, just give up.
@@ -2899,7 +2911,9 @@ comment at the start of cc-engine.el for more info."
 		  (point-max)
 		(min (point-max) c-state-old-cpp-beg)))
 	(while (and c-state-cache (>= (c-state-cache-top-lparen) upper-lim))
+	  (setq scan-back-pos (car-safe (car c-state-cache)))
 	  (setq c-state-cache (cdr c-state-cache)))
+
 	;; If `upper-lim' is inside the last recorded brace pair, remove its
 	;; RBrace and indicate we'll need to search backwards for a previous
 	;; brace pair.
@@ -3324,6 +3338,13 @@ comment at the start of cc-engine.el for more info."
      (c-with-cpps-commented-out
       (c-invalidate-state-cache-1 here)))))
 
+(defmacro c-state-maybe-marker (place marker)
+  ;; If PLACE is non-nil, return a marker marking it, otherwise nil.
+  ;; We (re)use MARKER.
+  `(and ,place
+	(or ,marker (setq ,marker (make-marker)))
+	(set-marker ,marker ,place)))
+
 (defun c-parse-state ()
   ;; This is a wrapper over `c-parse-state-1'.  See that function for a
   ;; description of the functionality and return value.
@@ -3350,9 +3371,10 @@ comment at the start of cc-engine.el for more info."
 	      (c-parse-state-1))
 	   (c-with-cpps-commented-out
 	    (c-parse-state-1))))
-      (setq c-state-old-cpp-beg (and here-cpp-beg (copy-marker here-cpp-beg t))
-	    c-state-old-cpp-end (and here-cpp-end (copy-marker here-cpp-end t)))
-      )))
+      (setq c-state-old-cpp-beg
+	    (c-state-maybe-marker here-cpp-beg c-state-old-cpp-beg-marker)
+	    c-state-old-cpp-end
+	    (c-state-maybe-marker here-cpp-end c-state-old-cpp-end-marker)))))
 
 ;; Debug tool to catch cache inconsistencies.  This is called from
 ;; 000tests.el.

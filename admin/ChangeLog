@@ -132,15 +132,14 @@
 
 	* grammars/bovine-grammar.el (bovine--grammar-newstyle-unquote):
 	Remove.
-        (bovine-grammar-expand-form): Test for emacs-major-version.
+	(bovine-grammar-expand-form): Test for emacs-major-version.
 
 	* grammars/c.by: Add EXPLICIT to keyword tokens.
+	Add %provide token.
 
-        * grammars/f90.by: Add %provide token.
-
-        * grammar/grammar.wy (semantic-grammar-lexer): Remove, since it
+	* grammars/grammar.wy (semantic-grammar-lexer): Remove, since it
 	was copied to grammar.el.  New %provide token to generate prefix
-	which conforms with Emacs conventions.  Remove lexer definition,
+	which conforms with Emacs conventions.	Remove lexer definition,
 	which is now in grammar.el.
 
 2012-09-27  Glenn Morris  <rgm@gnu.org>
@@ -184,7 +183,7 @@
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify SIGIO usage (Bug#12408).
-	* CPP_DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	* CPP-DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
 	(BROKEN_SIGPTY, NO_TERMIO): Remove.
 
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>

@@ -929,27 +929,29 @@ of the default face.  Value is FACE."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun read-face-name (prompt &optional default multiple)
-  "Read a face, defaulting to the face or faces at point.
-If the text at point has the property `read-face-name', that
-overrides the `face' property for determining the default.
+  "Read one or more face names, defaulting to the face(s) at point.
+PROMPT should be a prompt string; it should not end in a space or
+a colon.
 
-PROMPT should be a string that describes what the caller will do
-with the face; it should not end in a space.
+The optional argument DEFAULT specifies the default face name(s)
+to return if the user just types RET.  If its value is non-nil,
+it should be a list of face names (symbols); in that case, the
+default return value is the `car' of DEFAULT (if the argument
+MULTIPLE is non-nil), or DEFAULT (if MULTIPLE is nil).  See below
+for the meaning of MULTIPLE.
 
+If DEFAULT is nil, the list of default face names is taken from
+the `read-face-name' property of the text at point, or, if that
+is nil, from the `face' property of the text at point.
 
 This function uses `completing-read-multiple' with \",\" as the
-separator character, i.e.
-
-
-
-
-
-The optional argument DEFAULT provides the value to display in the
-minibuffer prompt that is returned if the user just types RET
-unless DEFAULT is a string (in which case nil is returned).
-
-If MULTIPLE is non-nil, return a list of faces (possibly only one).
-Otherwise, return a single face."
+separator character.  Thus, the user may enter multiple face
+names, separated by commas.  The optional argument MULTIPLE
+specifies the form of the return value.  If MULTIPLE is non-nil,
+return a list of face names; if the user entered just one face
+name, the return value would be a list of one face name.
+Otherwise, return a single face name; if the user entered more
+than one face name, return only the first one."
   (let ((faceprop (or (get-char-property (point) 'read-face-name)
 		      (get-char-property (point) 'face)))
         (aliasfaces nil)

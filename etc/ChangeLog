@@ -85,7 +85,7 @@
 
 2012-10-01  Eric Ludlam  <zappo@gnu.org>
 
-	* srecode/cc.srt, srecode/ede-autoconf.srt: New files.
+	* srecode/c.srt, srecode/ede-autoconf.srt: New files.
 
 	* srecode/cpp.srt: Move parts to c.srt.
 

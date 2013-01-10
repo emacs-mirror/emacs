@@ -471,10 +471,10 @@ Arbitrary text, read in the minibuffer and returned as a string
 these characters in the input.)  Prompt.
 
 @item S
-An interned symbol whose name is read in the minibuffer.  Any whitespace
-character terminates the input.  (Use @kbd{C-q} to include whitespace in
-the string.)  Other characters that normally terminate a symbol (e.g.,
-parentheses and brackets) do not do so here.  Prompt.
+An interned symbol whose name is read in the minibuffer.  Terminate
+the input with either @kbd{C-j} or @key{RET}.  Other characters that
+normally terminate a symbol (e.g., whitespace, parentheses and
+brackets) do not do so here.  Prompt.
 
 @item U
 A key sequence or @code{nil}.  Can be used after a @samp{k} or
