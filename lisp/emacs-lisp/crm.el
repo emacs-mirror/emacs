@@ -30,12 +30,12 @@
 ;; a single prompt, optionally using completion.
 
 ;; Multiple strings are specified by separating each of the strings
-;; with a prespecified separator character.  For example, if the
-;; separator character is a comma, the strings 'alice', 'bob', and
+;; with a prespecified separator regexp.  For example, if the
+;; separator regexp is ",", the strings 'alice', 'bob', and
 ;; 'eve' would be specified as 'alice,bob,eve'.
 
-;; The default value for the separator character is the value of
-;; `crm-default-separator' (comma).  The separator character may be
+;; The default value for the separator regexp is the value of
+;; `crm-default-separator' (comma).  The separator regexp may be
 ;; changed by modifying the value of `crm-separator'.
 
 ;; Contiguous strings of non-separator-characters are referred to as
@@ -96,14 +96,14 @@
 ;;   first revamped version
 
 ;;; Code:
-(defconst crm-default-separator ","
-  "Default separator for `completing-read-multiple'.")
+(defconst crm-default-separator "[ \t]*,[ \t]*"
+  "Default separator regexp for `completing-read-multiple'.")
 
 (defvar crm-separator crm-default-separator
-  "Separator used for separating strings in `completing-read-multiple'.
-It should be a single character string that doesn't appear in the list of
-completion candidates.  Modify this value to make `completing-read-multiple'
-use a separator other than `crm-default-separator'.")
+  "Separator regexp used for separating strings in `completing-read-multiple'.
+It should be a regexp that does not match the list of completion candidates.
+Modify this value to make `completing-read-multiple' use a separator other
+than `crm-default-separator'.")
 
 (defvar crm-local-completion-map
   (let ((map (make-sparse-keymap)))
@@ -173,13 +173,17 @@ Place an overlay on the element, with a `field' property, and return it."
     (overlay-put ol 'field (make-symbol "crm"))
     ol))
 
+(defmacro crm--completion-command (command)
+  "Make COMMAND a completion command for `completing-read-multiple'."
+  `(let ((ol (crm--select-current-element)))
+     (unwind-protect
+         ,command
+       (delete-overlay ol))))
+
 (defun crm-completion-help ()
   "Display a list of possible completions of the current minibuffer element."
   (interactive)
-  (let ((ol (crm--select-current-element)))
-    (unwind-protect
-        (minibuffer-completion-help)
-      (delete-overlay ol)))
+  (crm--completion-command (minibuffer-completion-help))
   nil)
 
 (defun crm-complete ()
@@ -188,19 +192,13 @@ If no characters can be completed, display a list of possible completions.
 
 Return t if the current element is now a valid match; otherwise return nil."
   (interactive)
-  (let ((ol (crm--select-current-element)))
-    (unwind-protect
-        (minibuffer-complete)
-      (delete-overlay ol))))
+  (crm--completion-command (minibuffer-complete)))
 
 (defun crm-complete-word ()
   "Complete the current element at most a single word.
 Like `minibuffer-complete-word' but for `completing-read-multiple'."
   (interactive)
-  (let ((ol (crm--select-current-element)))
-    (unwind-protect
-        (minibuffer-complete-word)
-      (delete-overlay ol))))
+  (crm--completion-command (minibuffer-complete-word)))
 
 (defun crm-complete-and-exit ()
   "If all of the minibuffer elements are valid completions then exit.
@@ -222,9 +220,10 @@ This function is modeled after `minibuffer-complete-and-exit'."
                      (setq doexit nil))
                  (goto-char (overlay-end ol))
                  (delete-overlay ol))
-               (not (eobp))))
+               (not (eobp)))
+             (looking-at crm-separator))
       ;; Skip to the next element.
-      (forward-char 1))
+      (goto-char (match-end 0)))
     (if doexit (exit-minibuffer))))
 
 (defun crm--choose-completion-string (choice buffer base-position
@@ -248,12 +247,12 @@ By using this functionality, a user may specify multiple strings at a
 single prompt, optionally using completion.
 
 Multiple strings are specified by separating each of the strings with
-a prespecified separator character.  For example, if the separator
-character is a comma, the strings 'alice', 'bob', and 'eve' would be
+a prespecified separator regexp.  For example, if the separator
+regexp is \",\", the strings 'alice', 'bob', and 'eve' would be
 specified as 'alice,bob,eve'.
 
-The default value for the separator character is the value of
-`crm-default-separator' (comma).  The separator character may be
+The default value for the separator regexp is the value of
+`crm-default-separator' (comma).  The separator regexp may be
 changed by modifying the value of `crm-separator'.
 
 Contiguous strings of non-separator-characters are referred to as
@@ -282,8 +281,8 @@ INHERIT-INPUT-METHOD."
 	       (map (if require-match
 			crm-local-must-match-map
 		      crm-local-completion-map))
-	       ;; If the user enters empty input, read-from-minibuffer returns
-	       ;; the empty string, not DEF.
+	       ;; If the user enters empty input, `read-from-minibuffer'
+	       ;; returns the empty string, not DEF.
 	       (input (read-from-minibuffer
 		       prompt initial-input map
 		       nil hist def inherit-input-method)))

@@ -1,3 +1,11 @@
+2013-01-10  Roland Winkler  <winkler@gnu.org>
+
+	* emacs-lisp/crm.el: Allow any regexp for separators.
+	(crm-default-separator): All spaces around the default comma separator.
+	(crm--completion-command): New macro.
+	(crm-completion-help, crm-complete, crm-complete-word): Use it.
+	(crm-complete-and-exit): Handle non-single-char separators.
+
 2013-01-09  Elias Pipping  <pipping@lavabit.com>
 
 	* doc-view.el: Add support for DjVu (bug#13164).

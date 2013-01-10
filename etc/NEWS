@@ -66,6 +66,9 @@ bound to <f11> and M-<f10>, respectively.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** completing-read-multiple's separator can now be a regexp.
+The default separator is changed to allow surrounding spaces around the comma.
+
 ** Battery
 
 *** Battery information via the BSD `apm' utility is now supported.
