@@ -1,3 +1,8 @@
+2013-01-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-01-09 stdlib: port to Solaris 2.6
+
 2013-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* info/dir: Add htmlfontify.

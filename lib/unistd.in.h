@@ -79,7 +79,9 @@
 /* Solaris declares getcwd not only in <unistd.h> but also in <stdlib.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
 #ifndef __GLIBC__
+# define __need_system_stdlib_h
 # include <stdlib.h>
+# undef __need_system_stdlib_h
 #endif
 
 /* Native Windows platforms declare chdir, getcwd, rmdir in

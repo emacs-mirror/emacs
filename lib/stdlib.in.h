@@ -20,8 +20,9 @@
 #endif
 @PRAGMA_COLUMNS@
 
-#if defined __need_malloc_and_calloc
-/* Special invocation convention inside glibc header files.  */
+#if defined __need_system_stdlib_h || defined __need_malloc_and_calloc
+/* Special invocation conventions inside some gnulib header files,
+   and inside some glibc header files, respectively.  */
 
 #@INCLUDE_NEXT@ @NEXT_STDLIB_H@
 

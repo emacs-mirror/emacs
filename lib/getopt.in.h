@@ -49,7 +49,9 @@
    linkers.  */
 #if defined __GETOPT_PREFIX && !defined __need_getopt
 # if !@HAVE_GETOPT_H@
+#  define __need_system_stdlib_h
 #  include <stdlib.h>
+#  undef __need_system_stdlib_h
 #  include <stdio.h>
 #  include <unistd.h>
 # endif
