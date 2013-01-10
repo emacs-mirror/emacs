@@ -1,3 +1,17 @@
+2013-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el: Add file watch support.
+	(auto-revert-notify-enabled): New defconst.
+	(auto-revert-notify-watch-descriptor-hash-list)
+	(auto-revert-notify-watch-descriptor)
+	(auto-revert-notify-modified-p): New defvars.
+	(auto-revert-notify-rm-watch, auto-revert-notify-add-watch)
+	(auto-revert-notify-handler): New defuns.
+	(auto-revert-mode, global-auto-revert-mode): Remove file watches
+	when mode is disabled.
+	(auto-revert-handler): Check for `auto-revert-notify-modified-p'.
+	(auto-revert-buffers): Add file watches for active buffers.
+
 2013-01-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* cus-start.el (toplevel): Only allow float values for

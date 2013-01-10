@@ -48,6 +48,9 @@
 ;; Emacs.  You should never even notice that this package is active
 ;; (except that your buffers will be reverted, of course).
 ;;
+;; If Emacs is compiled with file watch support, notifications are
+;; used instead of checking the time stamp of the files.
+;;
 ;; After reverting a file buffer, Auto Revert Mode normally puts point
 ;; at the same position that a regular manual revert would.  However,
 ;; there is one exception to this rule.  If point is at the end of the
@@ -276,6 +279,27 @@ the list of old buffers.")
  	    (set (make-local-variable 'auto-revert-tail-pos)
  		 (nth 7 (file-attributes buffer-file-name)))))
 
+(defconst auto-revert-notify-enabled
+  (or (featurep 'inotify) (featurep 'w32notify))
+  "Non-nil when Emacs has been compiled with file watch support.")
+
+(when auto-revert-notify-enabled
+  (add-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
+
+(defvar auto-revert-notify-watch-descriptor-hash-list
+  (make-hash-table :test 'equal)
+  "A hash table collecting all file watch descriptors.
+Hash key is a watch descriptor, hash value is the corresponding buffer.")
+
+(defvar auto-revert-notify-watch-descriptor nil
+  "The file watch descriptor active for the current buffer.")
+(make-variable-buffer-local 'auto-revert-notify-watch-descriptor)
+
+(defvar auto-revert-notify-modified-p nil
+  "Non-nil when file has been modified on the file system.
+This has been reported by a file watch event.")
+(make-variable-buffer-local 'auto-revert-notify-modified-p)
+
 ;; Functions:
 
 ;;;###autoload
@@ -296,6 +320,7 @@ without being changed in the part that is already in the buffer."
   (if auto-revert-mode
       (if (not (memq (current-buffer) auto-revert-buffer-list))
 	  (push (current-buffer) auto-revert-buffer-list))
+    (when auto-revert-notify-enabled (auto-revert-notify-rm-watch))
     (setq auto-revert-buffer-list
 	  (delq (current-buffer) auto-revert-buffer-list)))
   (auto-revert-set-timer)
@@ -399,9 +424,12 @@ It displays the text that `global-auto-revert-mode-text'
 specifies in the mode line."
   :global t :group 'auto-revert :lighter global-auto-revert-mode-text
   (auto-revert-set-timer)
-  (when global-auto-revert-mode
-    (auto-revert-buffers)))
-
+  (if global-auto-revert-mode
+      (auto-revert-buffers)
+    (when auto-revert-notify-enabled
+      (dolist (buf (buffer-list))
+	(with-current-buffer buf
+	  (auto-revert-notify-rm-watch))))))
 
 (defun auto-revert-set-timer ()
   "Restart or cancel the timer used by Auto-Revert Mode.
@@ -417,6 +445,39 @@ will use an up-to-date value of `auto-revert-interval'"
 	    (run-with-timer auto-revert-interval
 			    auto-revert-interval
 			    'auto-revert-buffers))))
+
+(defun auto-revert-notify-rm-watch ()
+  "Disable file watch for current buffer's associated file."
+  (when auto-revert-notify-watch-descriptor
+    (funcall (if (fboundp 'inotify-rm-watch) 'inotify-rm-watch 'w32-rm-watch)
+	     auto-revert-notify-watch-descriptor)
+    (remhash auto-revert-notify-watch-descriptor
+	     auto-revert-notify-watch-descriptor-hash-list))
+  (setq auto-revert-notify-watch-descriptor nil
+	auto-revert-notify-modified-p nil))
+
+(defun auto-revert-notify-add-watch ()
+  "Enable file watch for current buffer's associated file."
+  (when (and buffer-file-name auto-revert-notify-enabled)
+    (auto-revert-notify-rm-watch)
+    (let ((func (if (fboundp 'inotify-add-watch)
+		    'inotify-add-watch 'w32-add-watch))
+	  (aspect (if (fboundp 'inotify-add-watch)
+		      '(close-write) '(last-write-time))))
+      (setq auto-revert-notify-watch-descriptor
+	    (funcall func buffer-file-name aspect 'auto-revert-notify-handler))
+      (puthash auto-revert-notify-watch-descriptor
+	       (current-buffer)
+	       auto-revert-notify-watch-descriptor-hash-list))))
+
+(defun auto-revert-notify-handler (event)
+  "Handle an event returned from file watch."
+  (when (listp event)
+    (let ((buffer
+	   (gethash (car event) auto-revert-notify-watch-descriptor-hash-list)))
+      (when (bufferp buffer)
+	(with-current-buffer buffer
+	  (setq auto-revert-notify-modified-p t))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active (in current buffer or globally)."
@@ -445,9 +506,12 @@ This is an internal function used by Auto-Revert Mode."
 				    (setq size
 					  (nth 7 (file-attributes
 						  buffer-file-name))))))
-		       (and (not (file-remote-p buffer-file-name))
-			    (file-readable-p buffer-file-name)
-			    (not (verify-visited-file-modtime buffer)))))
+		       (if auto-revert-notify-enabled
+			   ;; There are file watches.
+			   auto-revert-notify-modified-p
+			 (and (not (file-remote-p buffer-file-name))
+			      (file-readable-p buffer-file-name)
+			      (not (verify-visited-file-modtime buffer))))))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)
 		     revert-buffer-function
@@ -456,6 +520,7 @@ This is an internal function used by Auto-Revert Mode."
 		     (funcall buffer-stale-function t))))
 	   eob eoblist)
       (when revert
+	(setq auto-revert-notify-modified-p nil)
 	(when (and auto-revert-verbose
 		   (not (eq revert 'fast)))
 	  (message "Reverting buffer `%s'." (buffer-name)))
@@ -561,7 +626,12 @@ the timer when no buffers need to be checked."
 			 (memq buf auto-revert-buffer-list))
 		    (setq auto-revert-buffer-list
 			  (delq buf auto-revert-buffer-list)))
-		(when (auto-revert-active-p) (auto-revert-handler)))
+		(when (auto-revert-active-p)
+		  ;; Enable file watches.
+		  (when (and auto-revert-notify-enabled buffer-file-name
+			     (not auto-revert-notify-watch-descriptor)
+		      (auto-revert-notify-add-watch)))
+		  (auto-revert-handler)))
 	    ;; Remove dead buffer from `auto-revert-buffer-list'.
 	    (setq auto-revert-buffer-list
 		  (delq buf auto-revert-buffer-list))))
