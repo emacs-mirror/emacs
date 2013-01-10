@@ -4576,27 +4576,7 @@ evaporate_overlays (ptrdiff_t pos)
   for (; CONSP (hit_list); hit_list = XCDR (hit_list))
     Fdelete_overlay (XCAR (hit_list));
 }
-
-/* Somebody has tried to store a value with an unacceptable type
-   in the slot with offset OFFSET.  */
 
-void
-buffer_slot_type_mismatch (Lisp_Object newval, int type)
-{
-  Lisp_Object predicate;
-
-  switch (type)
-    {
-    case_Lisp_Int:    predicate = Qintegerp; break;
-    case Lisp_String: predicate = Qstringp;  break;
-    case Lisp_Symbol: predicate = Qsymbolp;  break;
-    default: emacs_abort ();
-    }
-
-  wrong_type_argument (predicate, newval);
-}
-
-
 /***********************************************************************
 			 Allocation with mmap
  ***********************************************************************/
@@ -5370,25 +5350,23 @@ init_buffer (void)
   free (pwd);
 }
 
-/* Similar to defvar_lisp but define a variable whose value is the Lisp
-   Object stored in the current buffer.  address is the address of the slot
-   in the buffer that is current now. */
+/* Similar to defvar_lisp but define a variable whose value is the
+   Lisp_Object stored in the current buffer.  LNAME is the Lisp-level
+   variable name.  VNAME is the name of the buffer slot.  PREDICATE
+   is nil for a general Lisp variable.  If PREDICATE is non-nil, then
+   only Lisp values that satisfies the PREDICATE are allowed (except
+   that nil is allowed too).  DOC is a dummy where you write the doc
+   string as a comment.  */
 
-/* TYPE is nil for a general Lisp variable.
-   An integer specifies a type; then only Lisp values
-   with that type code are allowed (except that nil is allowed too).
-   LNAME is the Lisp-level variable name.
-   VNAME is the name of the buffer slot.
-   DOC is a dummy where you write the doc string as a comment.  */
-#define DEFVAR_PER_BUFFER(lname, vname, type, doc)			\
-  do {									\
-    static struct Lisp_Buffer_Objfwd bo_fwd;				\
-    defvar_per_buffer (&bo_fwd, lname, vname, type);			\
+#define DEFVAR_PER_BUFFER(lname, vname, predicate, doc)		\
+  do {								\
+    static struct Lisp_Buffer_Objfwd bo_fwd;			\
+    defvar_per_buffer (&bo_fwd, lname, vname, predicate);	\
   } while (0)
 
 static void
 defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
-		   Lisp_Object *address, Lisp_Object type)
+		   Lisp_Object *address, Lisp_Object predicate)
 {
   struct Lisp_Symbol *sym;
   int offset;
@@ -5398,7 +5376,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 
   bo_fwd->type = Lisp_Fwd_Buffer_Obj;
   bo_fwd->offset = offset;
-  bo_fwd->slottype = type;
+  bo_fwd->predicate = predicate;
   sym->declared_special = 1;
   sym->redirect = SYMBOL_FORWARDED;
   {
@@ -5661,7 +5639,7 @@ Decimal digits after the % specify field width to which to pad.  */);
 			  doc: /* Value of `major-mode' for new buffers.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &BVAR (current_buffer, major_mode),
-		     make_number (Lisp_Symbol),
+		     Qsymbolp,
 		     doc: /* Symbol for current buffer's major mode.
 The default value (normally `fundamental-mode') affects new buffers.
 A value of nil means to use the current buffer's major mode, provided
@@ -5692,17 +5670,17 @@ Use the command `abbrev-mode' to change this variable.  */);
 		     doc: /* Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &BVAR (current_buffer, fill_column),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &BVAR (current_buffer, left_margin),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Distance between tab stops (for display of tab characters), in columns.
 This should be an integer greater than zero.  */);
 
@@ -5787,7 +5765,7 @@ visual lines rather than logical lines.  See the documentation of
 `visual-line-mode'.  */);
 
   DEFVAR_PER_BUFFER ("default-directory", &BVAR (current_buffer, directory),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Name of default directory of current buffer.  Should end with slash.
 To interactively change the default directory, use command `cd'.  */);
 
@@ -5800,18 +5778,18 @@ NOTE: This variable is not a hook;
 its value may not be a list of functions.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-name", &BVAR (current_buffer, filename),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Name of file visited in current buffer, or nil if not visiting a file.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-truename", &BVAR (current_buffer, file_truename),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Abbreviated truename of file visited in current buffer, or nil if none.
 The truename of a file is calculated by `file-truename'
 and then abbreviated with `abbreviate-file-name'.  */);
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
 		     &BVAR (current_buffer, auto_save_file_name),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Name of file for auto-saving current buffer.
 If it is nil, that means don't auto-save this buffer.  */);
 
@@ -5823,7 +5801,7 @@ If it is nil, that means don't auto-save this buffer.  */);
 Backing up is done before the first time the file is saved.  */);
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &BVAR (current_buffer, save_length),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
 0 initially.
 -1 means auto-saving turned off until next real save.
@@ -5893,23 +5871,23 @@ In addition, a char-table has six extra slots to control the display of:
 See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 
   DEFVAR_PER_BUFFER ("left-margin-width", &BVAR (current_buffer, left_margin_cols),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of left marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
   DEFVAR_PER_BUFFER ("right-margin-width", &BVAR (current_buffer, right_margin_cols),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of right marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
   DEFVAR_PER_BUFFER ("left-fringe-width", &BVAR (current_buffer, left_fringe_width),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of this buffer's left fringe (in pixels).
 A value of 0 means no left fringe is shown in this buffer's window.
 A value of nil means to use the left fringe width from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("right-fringe-width", &BVAR (current_buffer, right_fringe_width),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of this buffer's right fringe (in pixels).
 A value of 0 means no right fringe is shown in this buffer's window.
 A value of nil means to use the right fringe width from the window's frame.  */);
@@ -5920,7 +5898,7 @@ A value of nil means to use the right fringe width from the window's frame.  */)
 A value of nil means to display fringes between margins and buffer text.  */);
 
   DEFVAR_PER_BUFFER ("scroll-bar-width", &BVAR (current_buffer, scroll_bar_width),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of this buffer's scroll bars in pixels.
 A value of nil means to use the scroll bar width from the window's frame.  */);
 
@@ -6000,7 +5978,7 @@ BITMAP is the corresponding fringe bitmap shown for the logical
 cursor type.  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
-		     &BVAR (current_buffer, scroll_up_aggressively), Qnil,
+		     &BVAR (current_buffer, scroll_up_aggressively), Qfloatp,
 		     doc: /* How far to scroll windows upward.
 If you move point off the bottom, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
@@ -6013,7 +5991,7 @@ window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
-		     &BVAR (current_buffer, scroll_down_aggressively), Qnil,
+		     &BVAR (current_buffer, scroll_down_aggressively), Qfloatp,
 		     doc: /* How far to scroll windows downward.
 If you move point off the top, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
@@ -6167,7 +6145,7 @@ then characters with property value PROP are invisible,
 and they have an ellipsis as well if ELLIPSIS is non-nil.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-count",
-		     &BVAR (current_buffer, display_count), Qnil,
+		     &BVAR (current_buffer, display_count), Qintegerp,
 		     doc: /* A number incremented each time this buffer is displayed in a window.
 The function `set-window-buffer' increments it.  */);
 
@@ -6226,7 +6204,7 @@ cursor's appearance is instead controlled by the variable
 `cursor-in-non-selected-windows'.  */);
 
   DEFVAR_PER_BUFFER ("line-spacing",
-		     &BVAR (current_buffer, extra_line_spacing), Qnil,
+		     &BVAR (current_buffer, extra_line_spacing), Qnumberp,
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on graphic displays,
 see `display-graphic-p'.

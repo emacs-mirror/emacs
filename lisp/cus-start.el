@@ -115,12 +115,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    (const :tag "On the right" (down . right))))
 	       (other :tag "On left, no arrows" t)))
 	     (scroll-up-aggressively windows
-				     (choice (const :tag "off" nil) number)
+				     (choice (const :tag "off" nil) float)
 				     "21.1")
 	     (scroll-down-aggressively windows
-				       (choice (const :tag "off" nil) number)
+				       (choice (const :tag "off" nil) float)
 				       "21.1")
-	     (line-spacing display (choice (const :tag "none" nil) integer)
+	     (line-spacing display (choice (const :tag "none" nil) number)
 			   "22.1")
 	     (cursor-in-non-selected-windows
 	      cursor boolean nil

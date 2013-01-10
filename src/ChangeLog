@@ -1,3 +1,23 @@
+2013-01-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Omit buffer_slot_type_mismatch and use generic predicates to enforce
+	the type of per-buffer values where appropriate.
+	* lisp.h (struct Lisp_Buffer_Objfwd): Rename slottype member to
+	predicate, which is how it's really used now.  Adjust comment.
+	* buffer.h (buffer_slot_type_mismatch): Remove prototype.
+	* buffer.c (buffer_slot_type_mismatch): Remove.
+	(DEFVAR_PER_BUFFER, defvar_per_buffer): Rename type argument to
+	predicate.  Adjust comment.
+	(syms_of_buffer): Use Qsymbolp for major-mode.  Use Qintegerp for
+	fill-column, left-margin, tab-width, buffer-saved-size,
+	left-margin-width, right-margin-width, left-fringe-width,
+	right-fringe-width, scroll-bar-width and buffer-display-count.
+	Use Qstringp for default-directory, buffer-file-name,
+	buffer-file-truename and buffer-auto-save-file-name.  Use Qfloatp for
+	scroll-up-aggressively and scroll-down-aggressively.  Use Qnumberp for
+	line-spacing.
+	* data.c (store_symval_forwarding): Adjust to call the predicate.
+
 2013-01-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (get_name_and_id, acl_set_file):

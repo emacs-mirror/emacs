@@ -914,13 +914,11 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
     case Lisp_Fwd_Buffer_Obj:
       {
 	int offset = XBUFFER_OBJFWD (valcontents)->offset;
-	Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
+	Lisp_Object predicate = XBUFFER_OBJFWD (valcontents)->predicate;
 
-	if (!(NILP (type) || NILP (newval)
-	      || (XINT (type) == Lisp_Int0
-		  ? INTEGERP (newval)
-		  : XTYPE (newval) == XINT (type))))
-	  buffer_slot_type_mismatch (newval, XINT (type));
+	if (!NILP (predicate) && !NILP (newval)
+	    && NILP (call1 (predicate, newval)))
+	  wrong_type_argument (predicate, newval);
 
 	if (buf == NULL)
 	  buf = current_buffer;

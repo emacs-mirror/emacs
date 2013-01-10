@@ -1,3 +1,9 @@
+2013-01-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* cus-start.el (toplevel): Only allow float values for
+	scroll-up-aggressively and scroll-down-aggressively.
+	Allow any number for line-spacing.
+
 2013-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-pdfdraw-program): Allow "pdfdraw" name.
