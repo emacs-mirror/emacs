@@ -49,7 +49,9 @@
 ;; (except that your buffers will be reverted, of course).
 ;;
 ;; If Emacs is compiled with file watch support, notifications are
-;; used instead of checking the time stamp of the files.
+;; used instead of checking the time stamp of the files.  You can
+;; disable this by setting the user option `auto-revert-use-notify' to
+;; nil.
 ;;
 ;; After reverting a file buffer, Auto Revert Mode normally puts point
 ;; at the same position that a regular manual revert would.  However,
@@ -257,6 +259,28 @@ buffers.  CPU usage depends on the version control system."
 This variable becomes buffer local when set in any fashion.")
 (make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
+(defconst auto-revert-notify-enabled
+  (or (featurep 'inotify) (featurep 'w32notify))
+  "Non-nil when Emacs has been compiled with file watch support.")
+
+(defcustom auto-revert-use-notify auto-revert-notify-enabled
+  "If non-nil Auto Revert Mode uses file watch functions.
+This requires Emacs being compiled with file watch support (see
+`auto-revert-notify-enabled').  You should set this variable
+through Custom only."
+  :group 'auto-revert
+  :type 'boolean
+  :set (lambda (variable value)
+	 (set-default variable (and auto-revert-notify-enabled value))
+	 (if (symbol-value variable)
+	     (add-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch)
+	   (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch)
+	   (when auto-revert-notify-enabled
+	     (dolist (buf (buffer-list))
+	       (with-current-buffer buf
+		 (auto-revert-notify-rm-watch))))))
+  :version "24.4")
+
 ;; Internal variables:
 
 (defvar auto-revert-buffer-list ()
@@ -278,13 +302,6 @@ the list of old buffers.")
  	  (lambda ()
  	    (set (make-local-variable 'auto-revert-tail-pos)
  		 (nth 7 (file-attributes buffer-file-name)))))
-
-(defconst auto-revert-notify-enabled
-  (or (featurep 'inotify) (featurep 'w32notify))
-  "Non-nil when Emacs has been compiled with file watch support.")
-
-(when auto-revert-notify-enabled
-  (add-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
 
 (defvar auto-revert-notify-watch-descriptor-hash-list
   (make-hash-table :test 'equal)
@@ -320,7 +337,7 @@ without being changed in the part that is already in the buffer."
   (if auto-revert-mode
       (if (not (memq (current-buffer) auto-revert-buffer-list))
 	  (push (current-buffer) auto-revert-buffer-list))
-    (when auto-revert-notify-enabled (auto-revert-notify-rm-watch))
+    (when auto-revert-use-notify (auto-revert-notify-rm-watch))
     (setq auto-revert-buffer-list
 	  (delq (current-buffer) auto-revert-buffer-list)))
   (auto-revert-set-timer)
@@ -426,7 +443,7 @@ specifies in the mode line."
   (auto-revert-set-timer)
   (if global-auto-revert-mode
       (auto-revert-buffers)
-    (when auto-revert-notify-enabled
+    (when auto-revert-use-notify
       (dolist (buf (buffer-list))
 	(with-current-buffer buf
 	  (auto-revert-notify-rm-watch))))))
@@ -458,7 +475,7 @@ will use an up-to-date value of `auto-revert-interval'"
 
 (defun auto-revert-notify-add-watch ()
   "Enable file watch for current buffer's associated file."
-  (when (and buffer-file-name auto-revert-notify-enabled)
+  (when (and buffer-file-name auto-revert-use-notify)
     (auto-revert-notify-rm-watch)
     (let ((func (if (fboundp 'inotify-add-watch)
 		    'inotify-add-watch 'w32-add-watch))
@@ -506,7 +523,7 @@ This is an internal function used by Auto-Revert Mode."
 				    (setq size
 					  (nth 7 (file-attributes
 						  buffer-file-name))))))
-		       (if auto-revert-notify-enabled
+		       (if auto-revert-use-notify
 			   ;; There are file watches.
 			   auto-revert-notify-modified-p
 			 (and (not (file-remote-p buffer-file-name))
@@ -628,7 +645,7 @@ the timer when no buffers need to be checked."
 			  (delq buf auto-revert-buffer-list)))
 		(when (auto-revert-active-p)
 		  ;; Enable file watches.
-		  (when (and auto-revert-notify-enabled buffer-file-name
+		  (when (and auto-revert-use-notify buffer-file-name
 			     (not auto-revert-notify-watch-descriptor)
 		      (auto-revert-notify-add-watch)))
 		  (auto-revert-handler)))

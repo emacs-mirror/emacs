@@ -1,3 +1,12 @@
+2013-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-enabled): Move up.
+	(auto-revert-use-notify): New defcustom.
+	(auto-revert-mode, global-auto-revert-mode)
+	(auto-revert-notify-add-watch, auto-revert-handler)
+	(auto-revert-buffers): Use `auto-revert-use-notify' instead of
+	`auto-revert-notify-enabled'.
+
 2013-01-10  Elias Pipping  <pipping@exherbo.org>
 
 	* files.el (auto-mode-alist): Use doc-view for djvu files (bug#13164).
