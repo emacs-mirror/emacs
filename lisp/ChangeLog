@@ -1,3 +1,8 @@
+2013-01-10  Feng Li  <fengli@gmail.com>  (tiny change)
+
+	* progmodes/which-func.el (which-function): Understand Semantic's use
+	of overlays in imenu--index-alist.
+
 2013-01-10  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* man.el: Handle different "man -k" behaviors (bug#13160).  Use utf-8.

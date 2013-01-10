@@ -319,7 +319,9 @@ If no function name is found, return nil."
                     namestack (cons (car pair) namestack)
                     alist     (cdr pair)))
 
-             ((number-or-marker-p (setq mark (cdr pair)))
+             ((or (number-or-marker-p (setq mark (cdr pair)))
+		  (and (overlayp mark)
+		       (setq mark (overlay-start mark))))
               (when (and (>= (setq offset (- (point) mark)) 0)
                          (< offset minoffset)) ; Find the closest item.
                 (setq minoffset offset
