@@ -1,3 +1,25 @@
+2013-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-pdfdraw-program): Allow "pdfdraw" name.
+	(doc-view-pdf->png-converter-function): Use mupdf if available.
+	(doc-view-djvu->png-converter-function)
+	(doc-view-ps->png-converter-function): Remove.
+	(doc-view--image-file-pattern): Replace doc-view--image-file-extension.
+	(doc-view-goto-page, doc-view-convert-current-doc, doc-view-display)
+	(doc-view-already-converted-p): Adjust accordingly.
+	(doc-view-mode-p): Simplify.
+	(doc-view-enlarge): Use setq-local.
+	(doc-view-pdf->png-converter-ghostscript)
+	(doc-view-djvu->png-converter-ddjvu)
+	(doc-view-pdf->png-converter-mupdf): Rework to call
+	doc-view-start-process directly.
+	(doc-view-pdf/ps->png): Simplify accordingly.
+	(doc-view-pdf->png-1, doc-view-djvu->png-1): Remove.
+	(doc-view-document->bitmap): Rename from doc-view-document->png.
+	(doc-view-convert-current-doc): Merge pdf and djvu cases.
+	(doc-view-set-slice-from-bounding-box): Fix completion table.
+	(doc-view-mode): Use add-hook for after-revert-hook.
+
 2013-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-ignored-files)

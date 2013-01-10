@@ -158,13 +158,18 @@
   :type 'file
   :group 'doc-view)
 
-(defcustom doc-view-pdfdraw-program "mudraw"
-  "Program to convert PDF files to PNG."
+(defcustom doc-view-pdfdraw-program
+  (cond
+   ((executable-find "pdfdraw") "pdfdraw")
+   (t "mudraw"))
+  "Name of MuPDF's program to convert PDF files to PNG."
   :type 'file
   :version "24.4")
 
 (defcustom doc-view-pdf->png-converter-function
-  'doc-view-pdf->png-converter-ghostscript
+  (if (executable-find doc-view-pdfdraw-program)
+      #'doc-view-pdf->png-converter-mupdf
+    #'doc-view-pdf->png-converter-ghostscript)
   "Function to call to convert a PDF file into a PNG file."
   :type '(radio
           (function-item doc-view-pdf->png-converter-ghostscript
@@ -172,23 +177,6 @@
           (function-item doc-view-pdf->png-converter-mupdf
                          :doc "Use mupdf")
           function)
-  :version "24.4")
-
-;; FIXME: Get rid of it: there's no choice.
-(defcustom doc-view-djvu->png-converter-function
-  'doc-view-djvu->png-converter-ddjvu
-  "Function to call to convert a DJVU file into a PNG file"
-  :type '(radio (function-item doc-view-djvu->png-converter-ddjvu
-                               :doc "Use ddjvu")
-                function))
-
-;; FIXME: Get rid of it: there's no choice.
-(defcustom doc-view-ps->png-converter-function
-  'doc-view-ps->png-converter-ghostscript
-  "Function to call to convert a PS file into a PNG file."
-  :type '(radio (function-item doc-view-ps->png-converter-ghostscript
-                               :doc "Use ghostscript")
-                function)
   :version "24.4")
 
 (defcustom doc-view-ghostscript-options
@@ -358,14 +346,13 @@ Can be `dvi', `pdf', or `ps'.")
 May operate on the source document or on some intermediate (typically PDF)
 conversion of it.")
 
-(defvar doc-view--image-type nil
+(defvar-local doc-view--image-type nil
   "The type of image in the current buffer.
 Can be `png' or `tiff'.")
 
-(defvar doc-view--image-file-extension nil
-  ;; FIXME: Replace it with a `format' string, like "page-%d.png".
-  "The file extension of the image type in the current buffer.
-Can be `png' or `tif'.")
+(defvar-local doc-view--image-file-pattern nil
+  "The `format' pattern of image file names.
+Typically \"page-%s.png\".")
 
 ;;;; DocView Keymaps
 
@@ -506,7 +493,7 @@ Can be `png' or `tif'.")
     ;; that's not right if the pages are not generated sequentially
     ;; or if the page isn't in doc-view-current-files yet.
     (let ((file (expand-file-name
-                 (format "page-%d.%s" page doc-view--image-file-extension)
+                 (format doc-view--image-file-pattern page)
                  (doc-view-current-cache-dir))))
       (doc-view-insert-image file :pointer 'arrow)
       (set-window-hscroll (selected-window) hscroll)
@@ -708,8 +695,7 @@ OpenDocument format)."
 		       (executable-find doc-view-dvipdf-program))
 		  (and doc-view-dvipdfm-program
 		       (executable-find doc-view-dvipdfm-program)))))
-	((or (eq type 'postscript) (eq type 'ps) (eq type 'eps)
-	     (eq type 'pdf))
+	((memq type '(postscript ps eps pdf))
 	 ;; FIXME: allow mupdf here
 	 (and doc-view-ghostscript-program
 	      (executable-find doc-view-ghostscript-program)))
@@ -735,13 +721,13 @@ OpenDocument format)."
       ;; ImageMagick supports on-the-fly-rescaling.
       (let ((new (ceiling (* factor doc-view-image-width))))
         (unless (equal new doc-view-image-width)
-          (set (make-local-variable 'doc-view-image-width) new)
+          (setq-local doc-view-image-width new)
           (doc-view-insert-image
            (plist-get (cdr (doc-view-current-image)) :file)
            :width doc-view-image-width)))
     (let ((new (ceiling (* factor doc-view-resolution))))
       (unless (equal new doc-view-resolution)
-        (set (make-local-variable 'doc-view-resolution) new)
+        (setq-local doc-view-resolution new)
         (doc-view-reconvert-doc)))))
 
 (defun doc-view-shrink (factor)
@@ -878,35 +864,44 @@ Should be invoked when the cached images aren't up-to-date."
 			    (list "-o" pdf dvi)
 			    callback)))
 
-(defun doc-view-pdf->png-converter-ghostscript (resolution pdf png &optional page)
-  `((command . ,doc-view-ghostscript-program)
-    (arguments . (,@doc-view-ghostscript-options
-		  ,(format "-r%d" resolution)
-		  ,@(if page `(,(format "-dFirstPage=%d" page)))
-		  ,@(if page `(,(format "-dLastPage=%d" page)))
-		  ,(concat "-sOutputFile=" png)
-		  ,pdf))))
+(defun doc-view-pdf->png-converter-ghostscript (pdf png page callback)
+  (doc-view-start-process
+   "pdf/ps->png" doc-view-ghostscript-program
+   `(,@doc-view-ghostscript-options
+     ,(format "-r%d" (round doc-view-resolution))
+     ,@(if page `(,(format "-dFirstPage=%d" page)))
+     ,@(if page `(,(format "-dLastPage=%d" page)))
+     ,(concat "-sOutputFile=" png)
+     ,pdf)
+   callback))
 
 (defalias 'doc-view-ps->png-converter-ghostscript
   'doc-view-pdf->png-converter-ghostscript)
 
-(defun doc-view-djvu->png-converter-ddjvu (resolution djvu png &optional page)
-  `((command . "ddjvu")
-    (arguments . ("-format=tiff"
-                  ;; ddjvu only accepts the range 1-999.
-		  ,(format "-scale=%d" resolution)
-		  ;; -eachpage was only added after djvulibre-3.5.25.3!
-		  ,@(unless page '("-eachpage"))
-		  ,@(if page `(,(format "-page=%d" page)))
-		  ,djvu
-		  ,png))))
+(defun doc-view-djvu->tiff-converter-ddjvu (djvu tiff page callback)
+  "Convert PAGE of a DJVU file to bitmap(s) asynchronously.
+Call CALLBACK with no arguments when done.
+If PAGE is nil, convert the whole document."
+  (doc-view-start-process
+   "djvu->tiff" "ddjvu"
+   `("-format=tiff"
+     ;; ddjvu only accepts the range 1-999.
+     ,(format "-scale=%d" (round doc-view-resolution))
+     ;; -eachpage was only added after djvulibre-3.5.25.3!
+     ,@(unless page '("-eachpage"))
+     ,@(if page `(,(format "-page=%d" page)))
+     ,djvu
+     ,tiff)
+   callback))
 
-(defun doc-view-pdf->png-converter-mupdf (resolution pdf png &optional page)
-  `((command . ,doc-view-pdfdraw-program)
-    (arguments . (,(concat "-o" png)
-		  ,(format "-r%d" resolution)
-		  ,pdf
-		  ,@(if page `(,(format "%d" page)))))))
+(defun doc-view-pdf->png-converter-mupdf (pdf png page callback)
+  (doc-view-start-process
+   "pdf->png" doc-view-pdfdraw-program
+   `(,(concat "-o" png)
+     ,(format "-r%d" (round doc-view-resolution))
+     ,pdf
+     ,@(if page `(,(format "%d" page))))
+   callback))
 
 (defun doc-view-odf->pdf (odf callback)
   "Convert ODF to PDF asynchronously and call CALLBACK when finished.
@@ -919,16 +914,12 @@ is named like ODF with the extension turned to pdf."
 (defun doc-view-pdf/ps->png (pdf-ps png)
   ;; FIXME: Fix name and docstring to account for djvu&tiff.
   "Convert PDF-PS to PNG asynchronously."
-  (let ((invocation
-         (funcall (pcase doc-view-doc-type
-                    (`pdf doc-view-pdf->png-converter-function)
-                    (`djvu doc-view-djvu->png-converter-function)
-                    (_    doc-view-ps->png-converter-function))
-                  (round doc-view-resolution) pdf-ps png)))
-
-    (doc-view-start-process
-     "pdf/ps->png" (cdr (assoc 'command invocation))
-     (cdr (assoc 'arguments invocation))
+  (funcall
+   (pcase doc-view-doc-type
+     (`pdf doc-view-pdf->png-converter-function)
+     (`djvu #'doc-view-djvu->tiff-converter-ddjvu)
+     (_ #'doc-view-ps->png-converter-ghostscript))
+   pdf-ps png nil
    (let ((resolution doc-view-resolution))
      (lambda ()
        ;; Only create the resolution file when it's all done, so it also
@@ -940,7 +931,8 @@ is named like ODF with the extension turned to pdf."
        (when doc-view-current-timer
          (cancel-timer doc-view-current-timer)
          (setq doc-view-current-timer nil))
-       (doc-view-display (current-buffer) 'force)))))
+       (doc-view-display (current-buffer) 'force))))
+
   ;; Update the displayed pages as soon as they're done generating.
   (when doc-view-conversion-refresh-interval
     (setq doc-view-current-timer
@@ -948,31 +940,10 @@ is named like ODF with the extension turned to pdf."
                        'doc-view-display
                        (current-buffer)))))
 
-(defun doc-view-pdf->png-1 (pdf png page callback)
-  "Convert a PAGE of a PDF file to PNG asynchronously.
-Call CALLBACK with no arguments when done."
-  (let ((invocation (funcall doc-view-pdf->png-converter-function
-			     (round doc-view-resolution) pdf png page)))
-    (doc-view-start-process
-     "pdf/ps->png" (cdr (assoc 'command invocation))
-     (cdr (assoc 'arguments invocation))
-     callback)))
-
-(defun doc-view-djvu->png-1 (djvu png page callback)
-  "Convert a PAGE of a DJVU file to bitmap asynchronously.
-Call CALLBACK with no arguments when done."
-  (let ((invocation (funcall doc-view-djvu->png-converter-function
-			     (round doc-view-resolution) djvu png page)))
-    (doc-view-start-process
-     "djvu->png" (cdr (assoc 'command invocation))
-     (cdr (assoc 'arguments invocation))
-     callback)))
-
 (declare-function clear-image-cache "image.c" (&optional filter))
 
-(defun doc-view-document->png (pdf png pages single-page-converter)
-  ;; FIXME: Fix docstring.
-  "Convert a PDF file to PNG asynchronously.
+(defun doc-view-document->bitmap (pdf png pages single-page-converter)
+  "Convert a document file to bitmap images asynchronously.
 Start by converting PAGES, and then the rest."
   (if (null pages)
       (doc-view-pdf/ps->png pdf png)
@@ -985,7 +956,7 @@ Start by converting PAGES, and then the rest."
 	       pdf (format png (car pages)) (car pages)
        (lambda ()
          (if rest
-             (doc-view-document->png pdf png rest)
+             (doc-view-document->bitmap pdf png rest)
            ;; Yippie, the important pages are done, update the display.
            (clear-image-cache)
            ;; For the windows that have a message (like "Welcome to
@@ -1065,7 +1036,7 @@ Those files are saved in the directory given by the function
   ;; resets during the redisplay).
   (setq doc-view-pending-cache-flush t)
   (let ((png-file (expand-file-name
-                   (concat "page-%d." doc-view--image-file-extension)
+                   (format doc-view--image-file-pattern "%d")
                    (doc-view-current-cache-dir))))
     (make-directory (doc-view-current-cache-dir) t)
     (pcase doc-view-doc-type
@@ -1092,15 +1063,11 @@ Those files are saved in the directory given by the function
 			      ;; Rename to doc.pdf
 			      (rename-file opdf pdf)
 			      (doc-view-pdf/ps->png pdf png-file)))))
-      (`pdf
+      ((or `pdf `djvu)
        (let ((pages (doc-view-active-pages)))
-         ;; Convert PDF to PNG images starting with the active pages.
-         (doc-view-document->png doc-view-buffer-file-name png-file pages
-				 'doc-view-pdf->png-1)))
-      (`djvu
-       (let ((pages (doc-view-active-pages)))
-	 (doc-view-document->png doc-view-buffer-file-name png-file pages
-				 'doc-view-djvu->png-1)))
+         ;; Convert doc to bitmap images starting with the active pages.
+         (doc-view-document->bitmap doc-view-buffer-file-name png-file pages
+                                    doc-view-single-page-converter-function)))
       (_
        ;; Convert to PNG images.
        (doc-view-pdf/ps->png doc-view-buffer-file-name png-file)))))
@@ -1211,9 +1178,10 @@ much more accurate than could be done manually using
       (let* ((is (image-size (doc-view-current-image) t))
 	     (iw (car is))
 	     (ih (cdr is))
-	     (ps (or (and (null force-paper-size) (doc-view-guess-paper-size iw ih))
+	     (ps (or (and (null force-paper-size)
+                          (doc-view-guess-paper-size iw ih))
 		     (intern (completing-read "Paper size: "
-					      (mapcar #'car doc-view-paper-sizes)
+                                              doc-view-paper-sizes
 					      nil t))))
 	     (bb (doc-view-scale-bounding-box ps iw ih bb))
 	     (x1 (nth 0 bb))
@@ -1294,16 +1262,15 @@ have the page we want to view."
     (let ((prev-pages doc-view-current-files))
       (setq doc-view-current-files
             (sort (directory-files (doc-view-current-cache-dir) t
-                                   (concat "page-[0-9]+\\."
-                                           doc-view--image-file-extension)
+                                   (format doc-view--image-file-pattern
+                                           "[0-9]+")
                                    t)
                   'doc-view-sort))
       (dolist (win (or (get-buffer-window-list buffer nil t)
 		       (list t)))
 	(let* ((page (doc-view-current-page win))
 	       (pagefile (expand-file-name
-                          (format "page-%d.%s"
-                                  page doc-view--image-file-extension)
+                          (format doc-view--image-file-pattern page)
                           (doc-view-current-cache-dir))))
 	  (when (or force
 		    (and (not (member pagefile prev-pages))
@@ -1369,7 +1336,7 @@ For now these keys are useful:
 	(doc-view-kill-proc)
 	(setq buffer-read-only nil)
 	(remove-overlays (point-min) (point-max) 'doc-view t)
-	(set (make-local-variable 'image-mode-winprops-alist) t)
+	(setq-local image-mode-winprops-alist t)
 	;; Switch to the previously used major mode or fall back to
 	;; normal mode.
 	(doc-view-fallback-mode)
@@ -1499,7 +1466,7 @@ If BACKWARD is non-nil, jump to the previous match."
                                           (doc-view-current-cache-dir)))
        (> (length (directory-files
                    (doc-view-current-cache-dir)
-                   nil (concat "\\." doc-view--image-file-extension "\\'")))
+                   nil (format doc-view--image-file-pattern "[0-9]+")))
           0)))
 
 (defun doc-view-initiate-display ()
@@ -1511,7 +1478,7 @@ If BACKWARD is non-nil, jump to the previous match."
 	(if (doc-view-already-converted-p)
 	    (progn
 	      (message "DocView: using cached files!")
-	      ;; Load the saved resolution
+	      ;; Load the saved resolution.
 	      (let* ((res-file (expand-file-name "resolution.el"
                                                  (doc-view-current-cache-dir)))
                      (res
@@ -1520,7 +1487,7 @@ If BACKWARD is non-nil, jump to the previous match."
                           (insert-file-contents res-file)
                           (read (current-buffer))))))
                 (when (numberp res)
-		  (set (make-local-variable 'doc-view-resolution) res)))
+		  (setq-local doc-view-resolution res)))
 	      (doc-view-display (current-buffer) 'force))
 	  (doc-view-convert-current-doc))
 	(message
@@ -1590,23 +1557,23 @@ If BACKWARD is non-nil, jump to the previous match."
 	    ((looking-at "%PDF") '(pdf))
 	    ((looking-at "\367\002") '(dvi))
 	    ((looking-at "AT&TFORM") '(djvu))))))
-    (set (make-local-variable 'doc-view-doc-type)
-	 (car (or (doc-view-intersection name-types content-types)
-		  (when (and name-types content-types)
-		    (error "Conflicting types: name says %s but content says %s"
-			   name-types content-types))
-		  name-types content-types
-		  (error "Cannot determine the document type"))))))
+    (setq-local doc-view-doc-type
+        (car (or (doc-view-intersection name-types content-types)
+                 (when (and name-types content-types)
+                   (error "Conflicting types: name says %s but content says %s"
+                          name-types content-types))
+                 name-types content-types
+                 (error "Cannot determine the document type"))))))
 
 (defun doc-view-set-up-single-converter ()
   "Find the right single-page converter for the current document type"
   (pcase-let ((`(,conv-function ,type ,extension)
                (pcase doc-view-doc-type
-                 (`djvu (list #'doc-view-djvu->png-1 'tiff "tif"))
-                 (_     (list #'doc-view-pdf->png-1  'png  "png")))))
+                 (`djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
+                 (_     (list doc-view-pdf->png-converter-function  'png  "png")))))
     (setq-local doc-view-single-page-converter-function conv-function)
     (setq-local doc-view--image-type type)
-    (setq-local doc-view--image-file-extension extension)))
+    (setq-local doc-view--image-file-pattern (concat "page-%s." extension))))
 
 ;;;###autoload
 (defun doc-view-mode ()
@@ -1631,8 +1598,7 @@ toggle between displaying the document or editing it as text.
 			      (unless (eq major-mode 'fundamental-mode)
 				major-mode))))
       (kill-all-local-variables)
-      (set (make-local-variable 'doc-view-previous-major-mode)
-           prev-major-mode))
+      (setq-local doc-view-previous-major-mode prev-major-mode))
 
     (dolist (var doc-view-saved-settings)
       (set (make-local-variable (car var)) (cdr var)))
@@ -1644,7 +1610,7 @@ toggle between displaying the document or editing it as text.
 
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
-    (set (make-local-variable 'doc-view-buffer-file-name)
+    (setq-local doc-view-buffer-file-name
 	 (cond
 	  (jka-compr-really-do-compress
            ;; FIXME: there's a risk of name conflicts here.
@@ -1683,20 +1649,19 @@ toggle between displaying the document or editing it as text.
 	      'doc-view-new-window-function nil t)
     (image-mode-setup-winprops)
 
-    (set (make-local-variable 'mode-line-position)
-	 '(" P" (:eval (number-to-string (doc-view-current-page)))
-	   "/" (:eval (number-to-string (doc-view-last-page-number)))))
+    (setq-local mode-line-position
+                '(" P" (:eval (number-to-string (doc-view-current-page)))
+                  "/" (:eval (number-to-string (doc-view-last-page-number)))))
     ;; Don't scroll unless the user specifically asked for it.
-    (set (make-local-variable 'auto-hscroll-mode) nil)
-    (set (make-local-variable 'mwheel-scroll-up-function)
-	 'doc-view-scroll-up-or-next-page)
-    (set (make-local-variable 'mwheel-scroll-down-function)
-	 'doc-view-scroll-down-or-previous-page)
-    (set (make-local-variable 'cursor-type) nil)
+    (setq-local auto-hscroll-mode nil)
+    (setq-local mwheel-scroll-up-function #'doc-view-scroll-up-or-next-page)
+    (setq-local mwheel-scroll-down-function
+                #'doc-view-scroll-down-or-previous-page)
+    (setq-local cursor-type nil)
     (use-local-map doc-view-mode-map)
-    (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
-    (set (make-local-variable 'bookmark-make-record-function)
-	 'doc-view-bookmark-make-record)
+    (add-hook 'after-revert-hook 'doc-view-reconvert-doc nil t)
+    (setq-local bookmark-make-record-function
+                #'doc-view-bookmark-make-record)
     (setq mode-name "DocView"
 	  buffer-read-only t
 	  major-mode 'doc-view-mode)
@@ -1705,7 +1670,7 @@ toggle between displaying the document or editing it as text.
     ;; canonical view mode for PDF/PS/DVI files.  This could be
     ;; switched on automatically depending on the value of
     ;; `view-read-only'.
-    (set (make-local-variable 'view-read-only) nil)
+    (setq-local view-read-only nil)
     (run-mode-hooks 'doc-view-mode-hook)))
 
 (defun doc-view-fallback-mode ()
