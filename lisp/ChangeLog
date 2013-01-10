@@ -1,3 +1,8 @@
+2013-01-10  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-nav-end-of-statement): Fix
+	cornercase when handling multiline strings.
+
 2013-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-ignored-files)
