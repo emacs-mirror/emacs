@@ -1,4 +1,4 @@
-;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
+;;; man.el --- browse UNIX manual pages  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1993-1994, 1996-1997, 2001-2013 Free Software
 ;; Foundation, Inc.
@@ -276,7 +276,7 @@ Used in `bookmark-set' to get the default bookmark name."
   :type 'hook
   :group 'man)
 
-(defvar Man-name-regexp "[-a-zA-Z0-9_­+][-a-zA-Z0-9_.:­+]*"
+(defvar Man-name-regexp "[-a-zA-Z0-9_Â­+][-a-zA-Z0-9_.:Â­+]*"
   "Regular expression describing the name of a manpage (without section).")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z0-9+]*\\|[LNln]"
@@ -780,6 +780,59 @@ POS defaults to `point'."
   ;; but apparently that's not the case in all cases, so let's add a cache.
   "Cache of completion table of the form (PREFIX . TABLE).")
 
+(defvar Man-man-k-use-anchor
+  ;; man-db or man-1.*
+  (memq system-type '(gnu gnu/linux gnu/kfreebsd))
+  "If non-nil prepend ^ to the prefix passed to \"man -k\" for completion.
+The value should be nil if \"man -k ^PREFIX\" may omit some man
+pages whose names start with PREFIX.
+
+Currently, the default value depends on `system-type' and is
+non-nil where the standard man programs are known to behave
+properly.  Setting the value to nil always gives correct results
+but computing the list of completions may take a bit longer.")
+
+(defun Man-parse-man-k ()
+  "Parse \"man -k\" output and return the list of page names.
+
+The current buffer should contain the output of a command of the
+form \"man -k keyword\", which is traditionally also available with
+apropos(1).
+
+While POSIX man(1p) is a bit vague about what to expect here,
+this function tries to parse some commonly used formats, which
+can be described in the following informal way, with square brackets
+indicating optional parts and whitespace being interpreted
+somewhat loosely.
+
+foo[, bar [, ...]] [other stuff] (sec) - description
+foo(sec)[, bar(sec) [, ...]] [other stuff] - description
+
+For more details and some regression tests, please see
+test/automated/man-tests.el in the emacs bzr repository."
+  (goto-char (point-min))
+  ;; See man-tests for data about which systems use which format (hopefully we
+  ;; will be able to simplify the code if/when some of those formats aren't
+  ;; used any more).
+  (let (table)
+    (while (search-forward-regexp "^\\([^ \t,\n]+\\)\\(.*?\\)\
+\\(?:[ \t]\\(([^ \t,\n]+?)\\)\\)?\\(?:[ \t]+- ?\\(.*\\)\\)?$" nil t)
+      (let ((section (match-string 3))
+	    (description (match-string 4))
+	    (bound (match-end 2)))
+        (goto-char (match-end 1))
+	(while
+            (progn
+              ;; The first regexp grouping may already match the section
+              ;; tacked on to the name, which is ok since for the formats we
+              ;; claim to support the third (non-shy) grouping does not
+              ;; match in this case, i.e., section is nil.
+              (push (propertize (concat (match-string 1) section)
+                                'help-echo description)
+                    table)
+              (search-forward-regexp "\\=, *\\([^ \t,]+\\)" bound t)))))
+    (nreverse table)))
+
 (defun Man-completion-table (string pred action)
   (cond
    ;; This ends up returning t for pretty much any string, and hence leads to
@@ -811,16 +864,15 @@ POS defaults to `point'."
             ;; run differently in Man-getpage-in-background, an error
             ;; here may not necessarily mean that we'll also get an
             ;; error later.
-            (ignore-errors
-              (call-process manual-program nil '(t nil) nil
-                            "-k" (concat "^" prefix))))
-          (goto-char (point-min))
-          (while (re-search-forward "^\\([^ \t\n]+\\)\\(?: ?\\((.+?)\\)\\(?:[ \t]+- \\(.*\\)\\)?\\)?" nil t)
-            (push (propertize (concat (match-string 1) (match-string 2))
-                              'help-echo (match-string 3))
-                  table)))
-        ;; Cache the table for later reuse.
-        (setq Man-completion-cache (cons prefix table)))
+	    (ignore-errors
+	      (call-process manual-program nil '(t nil) nil
+			    "-k" (concat (when (or Man-man-k-use-anchor
+						   (string-equal prefix ""))
+					   "^")
+					 prefix))))
+	  (setq table (Man-parse-man-k)))
+	;; Cache the table for later reuse.
+	(setq Man-completion-cache (cons prefix table)))
       ;; The table may contain false positives since the match is made
       ;; by "man -k" not just on the manpage's name.
       (if section
@@ -891,6 +943,7 @@ names or descriptions.  The pattern argument is usually an
 		;; ("man -k" is case-insensitive similarly, so the
 		;; table has everything available to complete)
 		(completion-ignore-case t)
+		Man-completion-cache    ;Don't cache across calls.
 		(input (completing-read
 			(format "Manual entry%s"
 				(if (string= default-entry "")
@@ -1395,7 +1448,7 @@ The following key bindings are currently in effect in the buffer:
 			      ;; Update len, in case a reference spans
 			      ;; more than two lines (paranoia).
 			      len (1- (length word))))
-		    (if (memq (aref word len) '(?- ?­))
+		    (if (memq (aref word len) '(?- ?Â­))
 			(setq hyphenated (substring word 0 len)))
 		    (and (string-match Man-reference-regexp word)
                          (not (member word Man--refpages))

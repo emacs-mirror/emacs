@@ -1,3 +1,11 @@
+2013-01-10  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* man.el: Handle different "man -k" behaviors (bug#13160).  Use utf-8.
+	(Man-man-k-use-anchor): New var.
+	(Man-parse-man-k): New function.
+	(Man-completion-table): Use it.
+	(man): Flush the completion cache between uses.
+
 2013-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el: Add file watch support.
