@@ -524,9 +524,9 @@ will use an up-to-date value of `auto-revert-interval'"
 	   (file (auto-revert-notify-event-file-name event))
 	   (buffer (gethash descriptor
 			    auto-revert-notify-watch-descriptor-hash-list)))
-      ;; Check, that event is meant for us.
-      ;; TODO: Filter events which stop watching, like `move' or `removed'.
       (ignore-errors
+	;; Check, that event is meant for us.
+	;; TODO: Filter events which stop watching, like `move' or `removed'.
 	(assert descriptor)
 	(when (featurep 'inotify) (assert (memq 'modify descriptor)))
 	(when (featurep 'w32notify) (assert (eq 'modified descriptor)))
@@ -534,11 +534,11 @@ will use an up-to-date value of `auto-revert-interval'"
 	(when (stringp file)
 	  (assert (string-equal
 		   (directory-file-name file)
-		   (directory-file-name (buffer-file-name buffer))))))
+		   (directory-file-name (buffer-file-name buffer)))))
 
-      ;; Mark buffer modified.
-      (with-current-buffer buffer
-	(setq auto-revert-notify-modified-p t)))))
+	;; Mark buffer modified.
+	(with-current-buffer buffer
+	  (setq auto-revert-notify-modified-p t))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active (in current buffer or globally)."
