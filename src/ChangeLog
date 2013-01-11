@@ -1,5 +1,11 @@
 2013-01-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Backport typo fix from trunk, for AIX (Bug#13408).
+	* eval.c (mark_backtrace) [BYTE_MARK_STACK]: Remove stray '*'.
+	This follows up on the 2012-09-29 patch that removed indirection
+	for the 'function' field.  Reported by Sergey Vinokurov in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00263.html>.
+
 	Fix SIGDANGER handlers, for AIX (Bug#13408).
 	* sysdep.c.c (handle_danger_signal, deliver_danger_signal) [SIGDANGER]:
 	Move handlers here from emacs.c; they were out of place.
