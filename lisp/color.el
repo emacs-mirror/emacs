@@ -130,7 +130,7 @@ inclusive."
 	 (max (max r g b))
 	 (min (min r g b)))
     (if (< (- max min) 1e-8)
-	(list 0.0 0.0 0.0)
+	(list 0.0 0.0 min)
       (list
        (/ (* 2 float-pi
 	     (cond ((and (= r g) (= g b)) 0)
@@ -146,7 +146,7 @@ inclusive."
 		    (+ 240 (* 60 (/ (- r g) (- max min)))))))
 	  360)
        (if (= max 0) 0 (- 1 (/ min max)))
-       (/ max 255.0)))))
+       max))))
 
 (defun color-rgb-to-hsl (red green blue)
   "Convert RGB colors to their HSL representation.

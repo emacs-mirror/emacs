@@ -1,3 +1,9 @@
+2013-01-11  Julien Danjou  <julien@danjou.info>
+
+	* color.el (color-rgb-to-hsv): Fix conversion computing in case min and
+	max are almost equal. Also return the correct value for V which is
+	already between 0 and 1.
+
 2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* emacs-lisp/ert.el (ert-run-test): Use point-max-marker.
