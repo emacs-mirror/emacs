@@ -461,8 +461,8 @@ STREAM or the value of `standard-input' may be:
 
 This version, from Edebug, maybe instruments the expression.  But the
 STREAM must be the current buffer to do so.  Whether it instruments is
-also dependent on the values of `edebug-all-defs' and
-`edebug-all-forms'."
+also dependent on the values of the option `edebug-all-defs' and
+the option `edebug-all-forms'."
   (or stream (setq stream standard-input))
   (if (eq stream (current-buffer))
       (edebug-read-and-maybe-wrap-form)
@@ -484,8 +484,8 @@ similarly.  Reinitialize the face according to `defface' specification.
 
 With a prefix argument, instrument the code for Edebug.
 
-Setting `edebug-all-defs' to a non-nil value reverses the meaning of
-the prefix argument.  Code is then instrumented when this function is
+Setting option `edebug-all-defs' to a non-nil value reverses the meaning
+of the prefix argument.  Code is then instrumented when this function is
 invoked without a prefix argument
 
 If acting on a `defun' for FUNCTION, and the function was instrumented,

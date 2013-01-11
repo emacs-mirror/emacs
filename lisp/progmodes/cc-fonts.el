@@ -2049,7 +2049,7 @@ styles specified by `c-doc-comment-style'.")
 
 (defconst c-font-lock-keywords-3 (c-lang-const c-matchers-3 c)
   "Accurate normal font locking for C mode.
-Like `c-font-lock-keywords-2' but detects declarations in a more
+Like the variable `c-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `c-font-lock-extra-types'.")
 
@@ -2207,7 +2207,7 @@ styles specified by `c-doc-comment-style'.")
 
 (defconst c++-font-lock-keywords-3 (c-lang-const c-matchers-3 c++)
   "Accurate normal font locking for C++ mode.
-Like `c++-font-lock-keywords-2' but detects declarations in a more
+Like the variable `c++-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `c++-font-lock-extra-types'.")
 
@@ -2313,7 +2313,7 @@ comment styles specified by `c-doc-comment-style'.")
 
 (defconst objc-font-lock-keywords-3 (c-lang-const c-matchers-3 objc)
   "Accurate normal font locking for Objective-C mode.
-Like `objc-font-lock-keywords-2' but detects declarations in a more
+Like the variable `objc-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `objc-font-lock-extra-types'.")
 
@@ -2356,7 +2356,7 @@ comment styles specified by `c-doc-comment-style'.")
 
 (defconst java-font-lock-keywords-3 (c-lang-const c-matchers-3 java)
   "Accurate normal font locking for Java mode.
-Like `java-font-lock-keywords-2' but detects declarations in a more
+Like variable `java-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `java-font-lock-extra-types'.")
 
@@ -2389,7 +2389,7 @@ styles specified by `c-doc-comment-style'.")
 
 (defconst idl-font-lock-keywords-3 (c-lang-const c-matchers-3 idl)
   "Accurate normal font locking for CORBA IDL mode.
-Like `idl-font-lock-keywords-2' but detects declarations in a more
+Like the variable `idl-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `idl-font-lock-extra-types'.")
 
@@ -2422,7 +2422,7 @@ comment styles specified by `c-doc-comment-style'.")
 
 (defconst pike-font-lock-keywords-3 (c-lang-const c-matchers-3 pike)
   "Accurate normal font locking for Pike mode.
-Like `pike-font-lock-keywords-2' but detects declarations in a more
+Like the variable `pike-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `pike-font-lock-extra-types'.")
 

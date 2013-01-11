@@ -435,9 +435,9 @@ when converting units."
 (defcustom calc-highlight-selections-with-faces
   nil
   "If non-nil, use a separate face to indicate selected sub-formulas.
-If `calc-show-selections' is non-nil, then selected sub-formulas are shown
-by displaying the rest of the formula in `calc-nonselected-face'.
-If `calc-show-selections' is nil, then selected sub-formulas are shown
+If option `calc-show-selections' is non-nil, then selected sub-formulas are
+shown by displaying the rest of the formula in `calc-nonselected-face'.
+If option `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
   :version "24.1"
   :group 'calc
@@ -1183,7 +1183,7 @@ Used by `calc-user-invocation'.")
 
 ;;;###autoload
 (defun calc-dispatch (&optional arg)
-  "Invoke the GNU Emacs Calculator.  See `calc-dispatch-help' for details."
+  "Invoke the GNU Emacs Calculator.  See \\[calc-dispatch-help] for details."
   (interactive "P")
 ;  (sit-for echo-keystrokes)
   (condition-case err   ; look for other keys bound to calc-dispatch

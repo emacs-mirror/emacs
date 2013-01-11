@@ -53,13 +53,13 @@ whitespace is considered to match, and is skipped."
   :group 'compare-windows)
 
 (defcustom compare-ignore-whitespace nil
-  "Non-nil means `compare-windows' ignores whitespace."
+  "Non-nil means command `compare-windows' ignores whitespace."
   :type 'boolean
   :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-ignore-case nil
-  "Non-nil means `compare-windows' ignores case differences."
+  "Non-nil means command `compare-windows' ignores case differences."
   :type 'boolean
   :group 'compare-windows)
 
@@ -379,7 +379,7 @@ on third call it again advances points to the next difference and so on."
 	(delete-overlay compare-windows-overlay2)))))
 
 (defun compare-windows-dehighlight ()
-  "Remove highlighting created by `compare-windows-highlight'."
+  "Remove highlighting created by function `compare-windows-highlight'."
   (interactive)
   (remove-hook 'pre-command-hook 'compare-windows-dehighlight)
   (mapc 'delete-overlay compare-windows-overlays1)

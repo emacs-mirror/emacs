@@ -199,7 +199,8 @@ Pop back to the last location with \\[negative-argument] \\[find-tag].")
 
 (defvar tags-table-files nil
   "List of file names covered by current tags table.
-nil means it has not yet been computed; use `tags-table-files' to do so.")
+nil means it has not yet been computed;
+use function `tags-table-files' to do so.")
 
 (defvar tags-completion-table nil
   "Obarray of tag names defined in current tags table.")
@@ -224,7 +225,7 @@ of the format-parsing tags function variables if successful.")
 One optional argument, a boolean specifying to return complete path (nil) or
 relative path (non-nil).")
 (defvar tags-table-files-function nil
-  "Function to do the work of `tags-table-files' (which see).")
+  "Function to do the work of function `tags-table-files' (which see).")
 (defvar tags-completion-table-function nil
   "Function to build the `tags-completion-table'.")
 (defvar snarf-tag-function nil
@@ -251,7 +252,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defvar tags-apropos-function nil
   "Function to do the work of `tags-apropos' (which see).")
 (defvar tags-included-tables-function nil
-  "Function to do the work of `tags-included-tables' (which see).")
+  "Function to do the work of function `tags-included-tables' (which see).")
 (defvar verify-tags-table-function nil
   "Function to return t if current buffer contains valid tags file.")
 

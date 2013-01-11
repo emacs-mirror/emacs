@@ -1,3 +1,14 @@
+2013-01-11  Aaron S. Hawley  <Aaron.Hawley@vtinfo.com>
+
+	* insdel.c (Fcombine_after_change_execute, syms_of_insdel): Fix
+	 ambiguous doc string cross-reference(s).
+
+	* keyboard.c (Fcommand_execute, syms_of_keyboard): Fix ambiguous
+	 doc string cross-reference(s).
+
+	* window.c (Fwindow_point, syms_of_window): Fix ambiguous doc
+	 string cross-reference(s).
+
 2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid unnecessary byte position calculation for the gap movement.

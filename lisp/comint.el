@@ -1521,7 +1521,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
 If there are no search errors, this function displays an overlay with
 the Isearch prompt which replaces the original comint prompt.
 Otherwise, it displays the standard Isearch message returned from
-`isearch-message'."
+the function `isearch-message'."
   (if (not (and isearch-success (not isearch-error)))
       ;; Use standard function `isearch-message' when not in comint prompt,
       ;; or search fails, or has an error (like incomplete regexp).

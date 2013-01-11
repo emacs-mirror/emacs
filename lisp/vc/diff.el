@@ -86,7 +86,7 @@ exists.  If NO-ASYNC is non-nil, call diff synchronously.
 
 When called interactively with a prefix argument, prompt
 interactively for diff switches.  Otherwise, the switches
-specified in `diff-switches' are passed to the diff command."
+specified in the variable `diff-switches' are passed to the diff command."
   (interactive
    (let* ((newf (if (and buffer-file-name (file-exists-p buffer-file-name))
 		    (read-file-name

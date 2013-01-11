@@ -1800,7 +1800,7 @@ The alist element has the form:
 Where:
 
 SYMBOL		It's a symbol to identify a text printer.  It's for
-		`pr-txt-name' variable setting and for menu selection.
+		setting option `pr-txt-name' and for menu selection.
 		Examples:
 			'prt_06a
 			'my_printer
@@ -1951,7 +1951,7 @@ The alist element has the form:
 Where:
 
 SYMBOL		It's a symbol to identify a PostScript printer.  It's for
-		`pr-ps-name' variable setting and for menu selection.
+		setting option `pr-ps-name' and for menu selection.
 		Examples:
 			'prt_06a
 			'my_printer
@@ -2935,9 +2935,9 @@ INHERITS	Specify the inheritance for SYMBOL group.  It's a symbol name
 
 		The example above has two setting groups: no-duplex and
 		no-duplex-and-landscape.  When setting no-duplex is activated
-		through `inherits-from:' (see `pr-ps-utility', `pr-mode-alist'
-		and `pr-ps-printer-alist'), the variables pr-file-duplex and
-		pr-file-tumble are both set to nil.
+		through `inherits-from:' (see option `pr-ps-utility',
+		`pr-mode-alist' and `pr-ps-printer-alist'), the variables
+		pr-file-duplex and pr-file-tumble are both set to nil.
 
 		Now when setting no-duplex-and-landscape is activated through
 		`inherits-from:', the variable pr-file-landscape is set to nil

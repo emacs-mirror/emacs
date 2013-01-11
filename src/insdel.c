@@ -2084,7 +2084,7 @@ Fcombine_after_change_execute_1 (Lisp_Object val)
 
 DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        Scombine_after_change_execute, 0, 0, 0,
-       doc: /* This function is for use internally in `combine-after-change-calls'.  */)
+       doc: /* This function is for use internally in the function `combine-after-change-calls'.  */)
   (void)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2176,7 +2176,7 @@ syms_of_insdel (void)
   combine_after_change_buffer = Qnil;
 
   DEFVAR_LISP ("combine-after-change-calls", Vcombine_after_change_calls,
-	       doc: /* Used internally by the `combine-after-change-calls' macro.  */);
+	       doc: /* Used internally by the function `combine-after-change-calls' macro.  */);
   Vcombine_after_change_calls = Qnil;
 
   DEFVAR_BOOL ("inhibit-modification-hooks", inhibit_modification_hooks,

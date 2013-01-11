@@ -1959,13 +1959,13 @@ Valid values are:
 
 Any other value is treated as nil.
 
-If you set `ps-selected-pages' (see it for documentation), first the pages are
-filtered by `ps-selected-pages' and then by `ps-even-or-odd-pages'.  For
-example, if we have:
+If you set option `ps-selected-pages', first the pages are
+filtered by option `ps-selected-pages' and then by `ps-even-or-odd-pages'.
+For example, if we have:
 
    (setq ps-selected-pages '(1 4 (6 . 10) (12 . 16) 20))
 
-Combining with `ps-even-or-odd-pages' and `ps-n-up-printing', we have:
+Combining with `ps-even-or-odd-pages' and option `ps-n-up-printing', we have:
 
 `ps-n-up-printing' = 1:
    `ps-even-or-odd-pages'	PAGES PRINTED
@@ -3566,9 +3566,9 @@ Use the command `ps-despool' to send the spooled images to the printer."
 ;;;###autoload
 (defun ps-spool-buffer-with-faces ()
   "Generate and spool a PostScript image of the buffer.
-Like `ps-spool-buffer', but includes font, color, and underline information in
-the generated image.  This command works only if you are using a window system,
-so it has a way to determine color values.
+Like the command `ps-spool-buffer', but includes font, color, and underline
+information in the generated image.  This command works only if you are using
+a window system, so it has a way to determine color values.
 
 Use the command `ps-despool' to send the spooled images to the printer."
   (interactive)
@@ -5369,7 +5369,7 @@ Each element has the following form:
    (KIND XCOL YCOL XLIN YLIN REPEAT END XSTART YSTART)
 
 Where:
-KIND is a valid value of `ps-n-up-filling'.
+KIND is a valid value of the variable `ps-n-up-filling'.
 XCOL YCOL are the relative position for the next column.
 XLIN YLIN are the relative position for the beginning of next line.
 REPEAT is the number of repetitions for external loop.

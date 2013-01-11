@@ -1,3 +1,11 @@
+2013-01-11  Aaron S. Hawley  <Aaron.Hawley@vtinfo.com>
+
+	* gnus-start.el (gnus-check-new-newsgroups): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* gnus-sum.el (gnus-summary-newsgroup-prefix): Fix ambiguous doc string
+	 cross-reference(s).
+
 2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* gnus-art.el (gnus-mime-display-security): Use point-min-marker

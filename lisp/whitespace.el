@@ -1271,19 +1271,19 @@ SYMBOL	is a valid symbol associated with CHAR.
 
 (defvar whitespace-point (point)
   "Used to save locally current point value.
-Used by `whitespace-trailing-regexp' function (which see).")
+Used by function `whitespace-trailing-regexp' (which see).")
 
 (defvar whitespace-font-lock-refontify nil
   "Used to save locally the font-lock refontify state.
-Used by `whitespace-post-command-hook' function (which see).")
+Used by function `whitespace-post-command-hook' (which see).")
 
 (defvar whitespace-bob-marker nil
   "Used to save locally the bob marker value.
-Used by `whitespace-post-command-hook' function (which see).")
+Used by function `whitespace-post-command-hook' (which see).")
 
 (defvar whitespace-eob-marker nil
   "Used to save locally the eob marker value.
-Used by `whitespace-post-command-hook' function (which see).")
+Used by function `whitespace-post-command-hook' (which see).")
 
 (defvar whitespace-buffer-changed nil
   "Used to indicate locally if buffer changed.

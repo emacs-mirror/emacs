@@ -607,12 +607,12 @@ executable followed by command-line options.  The command-line
 options should include \"-i=mi\" to use gdb's MI text interface.
 Note that the old \"--annotate\" option is no longer supported.
 
-If `gdb-many-windows' is nil (the default value) then gdb just
+If option `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
 it starts with two windows: one displaying the GUD buffer and the
 other with the source file with the main routine of the inferior.
 
-If `gdb-many-windows' is t, regardless of the value of
+If option `gdb-many-windows' is t, regardless of the value of
 `gdb-show-main', the layout below will appear.  Keybindings are
 shown in some of the buffers.
 
@@ -4069,7 +4069,7 @@ window is dedicated."
   (set-window-dedicated-p window t))
 
 (defun gdb-setup-windows ()
-  "Layout the window pattern for `gdb-many-windows'."
+  "Layout the window pattern for option `gdb-many-windows'."
   (gdb-get-buffer-create 'gdb-locals-buffer)
   (gdb-get-buffer-create 'gdb-stack-buffer)
   (gdb-get-buffer-create 'gdb-breakpoints-buffer)
@@ -4120,7 +4120,7 @@ of the debugged program.  Non-nil means display the layout shown for
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdb.
-This arrangement depends on the value of `gdb-many-windows'."
+This arrangement depends on the value of option `gdb-many-windows'."
   (interactive)
   (switch-to-buffer gud-comint-buffer) ;Select the right window and frame.
   (delete-other-windows)

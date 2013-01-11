@@ -1206,7 +1206,8 @@ changed with `comment-style'."
 (defun comment-box (beg end &optional arg)
   "Comment out the BEG .. END region, putting it inside a box.
 The numeric prefix ARG specifies how many characters to add to begin- and
-end- comment markers additionally to what `comment-add' already specifies."
+end- comment markers additionally to what variable `comment-add' already
+specifies."
   (interactive "*r\np")
   (comment-normalize-vars)
   (let ((comment-style (if (cadr (assoc comment-style comment-styles))

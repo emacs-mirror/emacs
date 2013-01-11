@@ -469,7 +469,7 @@ optimized.")
   "Alist of additional `font-lock-keywords' elements for major modes.
 
 Each element has the form (MODE KEYWORDS . HOW).
-`font-lock-set-defaults' adds the elements in the list KEYWORDS to
+Function `font-lock-set-defaults' adds the elements in the list KEYWORDS to
 `font-lock-keywords' when Font Lock is turned on in major mode MODE.
 
 If HOW is nil, KEYWORDS are added at the beginning of
@@ -484,7 +484,7 @@ This is normally set via `font-lock-add-keywords' and
 (defvar font-lock-removed-keywords-alist nil
   "Alist of `font-lock-keywords' elements to be removed for major modes.
 
-Each element has the form (MODE . KEYWORDS).  `font-lock-set-defaults'
+Each element has the form (MODE . KEYWORDS).  Function `font-lock-set-defaults'
 removes the elements in the list KEYWORDS from `font-lock-keywords'
 when Font Lock is turned on in major mode MODE.
 

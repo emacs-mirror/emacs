@@ -322,7 +322,7 @@ Commands:
 
 (defconst help-xref-symbol-regexp
   (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"  ; Link to var
- 		    "\\(function\\|command\\)\\|"          ; Link to function
+ 		    "\\(function\\|command\\|call\\)\\|"   ; Link to function
  		    "\\(face\\)\\|"			   ; Link to face
  		    "\\(symbol\\|program\\|property\\)\\|" ; Don't link
 		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"

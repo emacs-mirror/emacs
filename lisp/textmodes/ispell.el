@@ -1594,8 +1594,8 @@ You can set this variable in hooks in your init file -- eg:
 
 (defun ispell-accept-output (&optional timeout-secs timeout-msecs)
   "Wait for output from ispell process, or TIMEOUT-SECS and TIMEOUT-MSECS.
-If asynchronous subprocesses are not supported, call `ispell-filter' and
-pass it the output of the last ispell invocation."
+If asynchronous subprocesses are not supported, call function `ispell-filter'
+and pass it the output of the last ispell invocation."
   (if ispell-async-processp
       (accept-process-output ispell-process timeout-secs timeout-msecs)
     (if (null ispell-process)

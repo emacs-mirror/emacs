@@ -891,7 +891,7 @@ or one is an alias of the other."
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
 (defun add-to-coding-system-list (coding-system)
-  "Add CODING-SYSTEM to `coding-system-list' while keeping it sorted."
+  "Add CODING-SYSTEM to variable `coding-system-list' while keeping it sorted."
   (if (or (null coding-system-list)
 	  (coding-system-lessp coding-system (car coding-system-list)))
       (setq coding-system-list (cons coding-system coding-system-list))

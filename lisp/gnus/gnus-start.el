@@ -110,7 +110,7 @@ ask the servers (primary, secondary, and archive servers) to list new
 groups since the last time it checked:
   1. This variable is `ask-server'.
   2. This variable is a list of select methods (see below).
-  3. `gnus-read-active-file' is nil or `some'.
+  3. Option `gnus-read-active-file' is nil or `some'.
   4. A prefix argument is given to `gnus-find-new-newsgroups' interactively.
 
 Thus, if this variable is `ask-server' or a list of select methods or

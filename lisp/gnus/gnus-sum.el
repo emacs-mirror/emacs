@@ -1167,7 +1167,7 @@ using `gnus-ignored-from-addresses'."
 
 (defcustom gnus-summary-newsgroup-prefix "=> "
   "*String prefixed to the Newsgroup field in the summary
-line when using `gnus-ignored-from-addresses'."
+line when using the option `gnus-ignored-from-addresses'."
   :version "22.1"
   :group 'gnus-summary
   :type 'string)

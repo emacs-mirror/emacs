@@ -1436,7 +1436,7 @@ window were selected.
 
 Note that, when WINDOW is selected, the value returned is the same as
 that returned by `point' for WINDOW's buffer.  It would be more strictly
-correct to return the `top-level' value of `point', outside of any
+correct to return the top-level value of `point', outside of any
 `save-excursion' forms.  But that is hard to define.  */)
   (Lisp_Object window)
 {
@@ -6793,7 +6793,8 @@ same combination.
 
 Other values are reserved for future use.
 
-This variable takes no effect if `window-combination-limit' is non-nil.  */);
+This variable takes no effect if the variable `window-combination-limit' is
+non-nil.  */);
   Vwindow_combination_resize = Qnil;
 
   DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,

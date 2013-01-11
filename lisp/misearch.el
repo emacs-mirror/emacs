@@ -73,7 +73,7 @@ end of the search space).
 The first argument of this function is the current buffer where the
 search is currently searching.  It defines the base buffer relative to
 which this function should find the next buffer.  When the isearch
-direction is backward (when `isearch-forward' is nil), this function
+direction is backward (when option `isearch-forward' is nil), this function
 should return the previous buffer to search.
 
 If the second argument of this function WRAP is non-nil, then it

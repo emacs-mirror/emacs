@@ -63,7 +63,7 @@ Non-nil means use highlight, nil means use minibuffer messages."
   "Non-nil means Flyspell reports a repeated word as an error.
 See `flyspell-mark-duplications-exceptions' to add exceptions to this rule.
 Detection of repeated words is not implemented in
-\"large\" regions; see `flyspell-large-region'."
+\"large\" regions; see variable `flyspell-large-region'."
   :group 'flyspell
   :type 'boolean)
 
@@ -145,9 +145,10 @@ whose length is specified by `flyspell-delay'."
 (defcustom flyspell-default-deplacement-commands
   '(next-line previous-line
     handle-switch-frame handle-select-window
-    scroll-up scroll-down)
+    scroll-up
+    scroll-down)
   "The standard list of deplacement commands for Flyspell.
-See `flyspell-deplacement-commands'."
+See variable `flyspell-deplacement-commands'."
   :group 'flyspell
   :version "21.1"
   :type '(repeat (symbol)))

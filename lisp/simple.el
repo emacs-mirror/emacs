@@ -401,7 +401,7 @@ Other major modes are defined by comparison with this one."
 
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
-If `use-hard-newlines' is non-nil, the newline is marked with the
+If option `use-hard-newlines' is non-nil, the newline is marked with the
 text-property `hard'.
 With ARG, insert that many newlines.
 Call `auto-fill-function' if the current column number is greater
@@ -837,7 +837,7 @@ instead of deleted."
   "Delete the previous N characters (following if N is negative).
 If Transient Mark mode is enabled, the mark is active, and N is 1,
 delete the text in the region and deactivate the mark instead.
-To disable this, set `delete-active-region' to nil.
+To disable this, set option `delete-active-region' to nil.
 
 Optional second arg KILLFLAG, if non-nil, means to kill (save in
 kill ring) instead of delete.  Interactively, N is the prefix
@@ -873,7 +873,7 @@ the end of the line."
   "Delete the following N characters (previous if N is negative).
 If Transient Mark mode is enabled, the mark is active, and N is 1,
 delete the text in the region and deactivate the mark instead.
-To disable this, set `delete-active-region' to nil.
+To disable this, set variable `delete-active-region' to nil.
 
 Optional second arg KILLFLAG non-nil means to kill (save in kill
 ring) instead of delete.  Interactively, N is the prefix arg, and
@@ -1778,7 +1778,7 @@ Intended to be added to `minibuffer-setup-hook'."
 If there are no search errors, this function displays an overlay with
 the isearch prompt which replaces the original minibuffer prompt.
 Otherwise, it displays the standard isearch message returned from
-`isearch-message'."
+the function `isearch-message'."
   (if (not (and (minibufferp) isearch-success (not isearch-error)))
       ;; Use standard function `isearch-message' when not in the minibuffer,
       ;; or search fails, or has an error (like incomplete regexp).
@@ -3805,7 +3805,7 @@ If `show-trailing-whitespace' is non-nil, this command will just
 kill the rest of the current line, even if there are only
 nonblanks there.
 
-If `kill-whole-line' is non-nil, then this command kills the whole line
+If option `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
 with no argument.  As a consequence, you can always kill a whole line
 by typing \\[move-beginning-of-line] \\[kill-line].
@@ -4575,13 +4575,13 @@ to use and more reliable (no dependence on goal column, etc.)."
   "Non-nil means vertical motion starting at end of line keeps to ends of lines.
 This means moving to the end of each line moved onto.
 The beginning of a blank line does not count as the end of a line.
-This has no effect when `line-move-visual' is non-nil."
+This has no effect when the variable `line-move-visual' is non-nil."
   :type 'boolean
   :group 'editing-basics)
 
 (defcustom goal-column nil
   "Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil.
-A non-nil setting overrides `line-move-visual', which see."
+A non-nil setting overrides the variable `line-move-visual', which see."
   :type '(choice integer
 		 (const :tag "None" nil))
   :group 'editing-basics)
@@ -4592,7 +4592,7 @@ A non-nil setting overrides `line-move-visual', which see."
 It is the column where point was at the start of the current run
 of vertical motion commands.
 
-When moving by visual lines via `line-move-visual', it is a cons
+When moving by visual lines via the function `line-move-visual', it is a cons
 cell (COL . HSCROLL), where COL is the x-position, in pixels,
 divided by the default column width, and HSCROLL is the number of
 columns by which window is scrolled from left margin.

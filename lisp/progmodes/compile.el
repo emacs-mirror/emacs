@@ -1427,8 +1427,9 @@ and move to the source code that caused it.
 If optional second arg COMINT is t the buffer will be in Comint mode with
 `compilation-shell-minor-mode'.
 
-Interactively, prompts for the command if `compilation-read-command' is
-non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.
+Interactively, prompts for the command if the variable
+`compilation-read-command' is non-nil; otherwise uses`compile-command'.
+With prefix arg, always prompts.
 Additionally, with universal prefix arg, compilation buffer will be in
 comint mode, i.e. interactive.
 

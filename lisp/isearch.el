@@ -176,7 +176,7 @@ is non-nil if the user quits the search.")
 
 (defvar isearch-message-function nil
   "Function to call to display the search prompt.
-If nil, use `isearch-message'.")
+If nil, use function `isearch-message'.")
 
 (defvar isearch-wrap-function nil
   "Function to call to wrap the search when search is failed.
@@ -1101,7 +1101,7 @@ nonincremental search instead via `isearch-edit-string'."
 
 (defun isearch-fail-pos (&optional msg)
   "Return position of first mismatch in search string, or nil if none.
-If MSG is non-nil, use `isearch-message', otherwise `isearch-string'."
+If MSG is non-nil, use variable `isearch-message', otherwise `isearch-string'."
   (let ((cmds isearch-cmds)
 	(curr-msg (if msg isearch-message isearch-string))
 	succ-msg)

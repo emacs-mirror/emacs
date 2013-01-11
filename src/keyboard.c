@@ -10170,7 +10170,7 @@ DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 4, 0,
        doc: /* Execute CMD as an editor command.
 CMD must be a symbol that satisfies the `commandp' predicate.
 Optional second arg RECORD-FLAG non-nil
-means unconditionally put this command in `command-history'.
+means unconditionally put this command in the variable `command-history'.
 Otherwise, that is done only if an arg is read using the minibuffer.
 The argument KEYS specifies the value to use instead of (this-command-keys)
 when reading the arguments; if it is nil, (this-command-keys) is used.
@@ -12055,8 +12055,8 @@ This takes effect only when Transient Mark mode is enabled.  */);
 	       Vsaved_region_selection,
 	       doc: /* Contents of active region prior to buffer modification.
 If `select-active-regions' is non-nil, Emacs sets this to the
-text in the region before modifying the buffer.  The next
-`deactivate-mark' call uses this to set the window selection.  */);
+text in the region before modifying the buffer.  The next call to
+the function `deactivate-mark' uses this to set the window selection.  */);
   Vsaved_region_selection = Qnil;
 
   DEFVAR_LISP ("selection-inhibit-update-commands",

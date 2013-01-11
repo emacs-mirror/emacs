@@ -321,7 +321,7 @@ disable FFAP most of the time."
   "Last value returned by `ffap-next-guess'.")
 
 (defvar ffap-string-at-point-region '(1 1)
-  "List (BEG END), last region returned by `ffap-string-at-point'.")
+  "List (BEG END), last region returned by the function `ffap-string-at-point'.")
 
 (defun ffap-next-guess (&optional back lim)
   "Move point to next file or URL, and return it as a string.
@@ -346,7 +346,7 @@ Optional argument BACK says to search backwards.
 Optional argument WRAP says to try wrapping around if necessary.
 Interactively: use a single prefix to search backwards,
 double prefix to wrap forward, triple to wrap backwards.
-Actual search is done by `ffap-next-guess'."
+Actual search is done by the function `ffap-next-guess'."
   (interactive
    (cdr (assq (prefix-numeric-value current-prefix-arg)
 	      '((1) (4 t) (16 nil t) (64 t t)))))
@@ -1028,14 +1028,14 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
   "Alist of \(MODE CHARS BEG END\), where MODE is a symbol,
 possibly a major-mode name, or one of the symbol
 `file', `url', `machine', and `nocolon'.
-`ffap-string-at-point' uses the data fields as follows:
+Function `ffap-string-at-point' uses the data fields as follows:
 1. find a maximal string of CHARS around point,
 2. strip BEG chars before point from the beginning,
 3. Strip END chars after point from the end.")
 
 (defvar ffap-string-at-point nil
   ;; Added at suggestion of RHOGEE (for ff-paths), 7/24/95.
-  "Last string returned by `ffap-string-at-point'.")
+  "Last string returned by the function `ffap-string-at-point'.")
 
 (defun ffap-string-at-point (&optional mode)
   "Return a string of characters from around point.
@@ -1043,7 +1043,8 @@ MODE (defaults to value of `major-mode') is a symbol used to look up string
 syntax parameters in `ffap-string-at-point-mode-alist'.
 If MODE is not found, we use `file' instead of MODE.
 If the region is active, return a string from the region.
-Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
+Sets the variable `ffap-string-at-point' and the variable
+`ffap-string-at-point-region'."
   (let* ((args
 	  (cdr
 	   (or (assq (or mode major-mode) ffap-string-at-point-mode-alist)
@@ -1068,7 +1069,8 @@ Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
 
 (defun ffap-string-around ()
   ;; Sometimes useful to decide how to treat a string.
-  "Return string of two chars around last `ffap-string-at-point'.
+  "Return string of two chars around last result of function
+`ffap-string-at-point'.
 Assumes the buffer has not changed."
   (save-excursion
     (format "%c%c"
@@ -1082,7 +1084,7 @@ Assumes the buffer has not changed."
 
 (defun ffap-copy-string-as-kill (&optional mode)
   ;; Requested by MCOOK.  Useful?
-  "Call `ffap-string-at-point', and copy result to `kill-ring'."
+  "Call function `ffap-string-at-point', and copy result to `kill-ring'."
   (interactive)
   (let ((str (ffap-string-at-point mode)))
     (if (equal "" str)
@@ -1364,7 +1366,7 @@ which may actually result in an URL rather than a filename."
   :version "22.1")
 
 (defvar ffap-highlight-overlay nil
-  "Overlay used by `ffap-highlight'.")
+  "Overlay used by function `ffap-highlight'.")
 
 (defun ffap-highlight (&optional remove)
   "If `ffap-highlight' is set, highlight the guess in this buffer.
@@ -1734,7 +1736,7 @@ Only intended for interactive use."
     (call-interactively 'ffap)))
 
 (defun ffap-literally ()
-  "Like `ffap' and `find-file-literally'.
+  "Like `ffap' and command `find-file-literally'.
 Only intended for interactive use."
   (interactive)
   (let ((ffap-file-finder 'find-file-literally))

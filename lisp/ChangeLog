@@ -1,3 +1,95 @@
+2013-01-11  Aaron S. Hawley  <Aaron.Hawley@vtinfo.com>
+
+	* calc/calc.el (calc-highlight-selections-with-faces)
+	 (calc-dispatch): Fix ambiguous doc string cross-reference(s).
+
+	* comint.el (comint-history-isearch-message): Fix ambiguous doc
+	 string cross-reference(s).
+
+	* emacs-lisp/edebug.el (edebug-read, edebug-eval-defun): Fix
+	 ambiguous doc string cross-reference(s).
+
+	* ffap.el (ffap-string-at-point-region, ffap-next)
+	(ffap-string-at-point, ffap-string-around)
+	(ffap-copy-string-as-kill, ffap-highlight-overlay)
+	(ffap-literally): Fix ambiguous doc string cross-reference(s).
+
+	* font-lock.el (font-lock-keywords-alist)
+	(font-lock-removed-keywords-alist): Fix ambiguous doc string
+        cross-reference(s).
+
+	* help-mode.el (help-xref-symbol-regexp): Add "call" as a hint for
+	a cross-reference to a function.
+
+	* info.el (Info-find-emacs-command-nodes): Fix ambiguous doc
+	 string cross-reference(s).
+
+	* international/mule.el (add-to-coding-system-list): Fix ambiguous
+	 doc string cross-reference(s).
+
+	* isearch.el (isearch-message-function, isearch-fail-pos): Fix
+	 ambiguous doc string cross-reference(s).
+
+	* misearch.el (multi-isearch-next-buffer-function): Fix ambiguous
+	 doc string cross-reference(s).
+
+	* newcomment.el (comment-box): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* printing.el (pr-txt-printer-alist, pr-ps-printer-alist)
+	(pr-setting-database): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* progmodes/cc-fonts.el (c-font-lock-keywords-3)
+	(c++-font-lock-keywords-3, objc-font-lock-keywords-3)
+	(java-font-lock-keywords-3, idl-font-lock-keywords-3)
+	(pike-font-lock-keywords-3): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* progmodes/compile.el (compile): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* progmodes/etags.el (tags-table-files)
+	(tags-table-files-function, tags-included-tables-function): Fix
+	 ambiguous doc string cross-reference(s).
+
+	* progmodes/gdb-mi.el (gdb, gdb-setup-windows)
+	(gdb-restore-windows): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* ps-print.el (ps-even-or-odd-pages, ps-spool-buffer-with-faces)
+	(ps-n-up-filling-database): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* server.el (server-buffer, server-log): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* simple.el (newline, delete-backward-char, delete-forward-char)
+	(minibuffer-history-isearch-message, kill-line, track-eol)
+	(temporary-goal-column): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* textmodes/flyspell.el (flyspell-mark-duplications-flag)
+	(flyspell-default-deplacement-commands): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* textmodes/ispell.el (ispell-accept-output): Fix ambiguous doc
+	 string cross-reference(s).
+
+	* textmodes/sgml-mode.el (html-tag-help): Fix ambiguous doc string
+	 cross-reference(s).
+
+	* vc/compare-w.el (compare-ignore-whitespace)
+	(compare-ignore-case, compare-windows-dehighlight): Fix ambiguous
+	 doc string cross-reference(s).
+
+	* vc/diff.el (diff): Fix ambiguous doc string cross-reference(s).
+
+	* whitespace.el (whitespace-point)
+	(whitespace-font-lock-refontify, whitespace-bob-marker)
+	(whitespace-eob-marker): Fix ambiguous doc string
+	 cross-reference(s).
+
 2013-01-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (top): Require 'cl in order to pacify byte compiler.

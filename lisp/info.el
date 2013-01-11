@@ -4313,7 +4313,7 @@ If the element is just a file name, the file name also serves as the prefix.")
 The `info-file' property of COMMAND says which Info manual to search.
 If COMMAND has no property, the variable `Info-file-list-for-emacs'
 defines heuristics for which Info manual to try.
-The locations are of the format used in `Info-history', i.e.
+The locations are of the format used in the variable `Info-history', i.e.
 \(FILENAME NODENAME BUFFERPOS), where BUFFERPOS is the line number
 in the first element of the returned list (which is treated specially in
 `Info-goto-emacs-command-node'), and 0 for the rest elements of a list."

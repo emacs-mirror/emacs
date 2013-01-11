@@ -1926,7 +1926,7 @@ This takes effect when first loading the library.")
     ("ul" . "Unordered list")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
-  "Value of `sgml-tag-help' for HTML mode.")
+  "Value of variable `sgml-tag-help' for HTML mode.")
 
 (defvar outline-regexp)
 (defvar outline-heading-end-regexp)
