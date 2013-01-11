@@ -1,3 +1,9 @@
+2013-01-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix SIGDANGER handlers, for AIX (Bug#13408).
+	* sysdep.c.c (handle_danger_signal, deliver_danger_signal) [SIGDANGER]:
+	Move handlers here from emacs.c; they were out of place.
+
 2013-01-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (dump_glyph): Align glyph data better.  Use "pD" instead

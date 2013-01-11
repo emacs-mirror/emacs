@@ -346,25 +346,6 @@ terminate_due_to_signal (int sig, int backtrace_limit)
   /* This shouldn't be executed, but it prevents a warning.  */
   exit (1);
 }
-
-#ifdef SIGDANGER
-
-/* Handler for SIGDANGER.  */
-static void
-handle_danger_signal (int sig)
-{
-  malloc_warning ("Operating system warns that virtual memory is running low.\n");
-
-  /* It might be unsafe to call do_auto_save now.  */
-  force_auto_save_soon ();
-}
-
-static void
-deliver_danger_signal (int sig)
-{
-  deliver_process_signal (sig, handle_danger_signal);
-}
-#endif
 
 /* Code for dealing with Lisp access to the Unix command line.  */
 
