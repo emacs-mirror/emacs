@@ -1,3 +1,8 @@
+2013-01-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (syms_of_xterm): Adjust documentation for
+	scroll-bar-adjust-thumb-portion.
+
 2012-12-31  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* xterm.c (scroll-bar-adjust-thumb-portion): New variable to

@@ -1,3 +1,7 @@
+2013-01-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add scroll-bar-adjust-thumb-portion.
+
 2013-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-debug-mode): New minor mode.
