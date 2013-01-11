@@ -1,3 +1,8 @@
+2013-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (O_IGNORE_CTTY): Define, as it is unconditionally
+	used in term.c.  (Bug#13387)
+
 2013-01-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
