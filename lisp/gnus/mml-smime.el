@@ -80,6 +80,12 @@ Whether the passphrase is cached at all is controlled by
   :version "24.4"
   :type 'boolean)
 
+(defcustom mml-smime-encrypt-to-self nil
+  "If t, add your own key ID to recipient list when encryption."
+  :group 'mime-security
+  :version "24.4"
+  :type 'boolean)
+
 (defun mml-smime-sign (cont)
   (let ((func (nth 1 (assq mml-smime-use mml-smime-function-alist))))
     (if func
@@ -475,13 +481,17 @@ Content-Disposition: attachment; filename=smime.p7s
     (goto-char (point-max))))
 
 (defun mml-smime-epg-encrypt (cont)
-  (let ((inhibit-redisplay t)
-	(context (epg-make-context 'CMS))
-	(config (epg-configuration))
-	(recipients (message-options-get 'mml-smime-epg-recipients))
-	cipher signers
-	(boundary (mml-compute-boundary cont))
-	recipient-key)
+  (let* ((inhibit-redisplay t)
+	 (context (epg-make-context 'CMS))
+	 (config (epg-configuration))
+	 (recipients (message-options-get 'mml-smime-epg-recipients))
+	 cipher signers
+	 (sender (message-options-get 'message-sender))
+	 (signer-names (or mml-smime-signers
+			   (if (and mml-smime-sign-with-sender sender)
+			       (list (concat "<" sender ">")))))
+	 (boundary (mml-compute-boundary cont))
+	 recipient-key)
     (unless recipients
       (setq recipients
 	    (apply #'nconc
@@ -494,6 +504,10 @@ Content-Disposition: attachment; filename=smime.p7s
 			 (message-options-set 'message-recipients
 					      (read-string "Recipients: ")))
 		     "[ \f\t\n\r\v,]+"))))
+      (when mml-smime-encrypt-to-self
+	(unless signer-names
+	  (error "Neither message sender nor mml-smime-signers are set"))
+	(setq recipients (nconc recipients signer-names)))
       (if (eq mm-encrypt-option 'guided)
 	  (setq recipients
 		(epa-select-keys context "\
