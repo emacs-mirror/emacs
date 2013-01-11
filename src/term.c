@@ -2423,7 +2423,7 @@ frame's terminal). */)
       if (fd == -1)
         error ("Can not reopen tty device %s: %s", t->display_info.tty->name, strerror (errno));
 
-      if (strcmp (t->display_info.tty->name, DEV_TTY))
+      if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
         dissociate_if_controlling_tty (fd);
 
       t->display_info.tty->output = fdopen (fd, "w+");
@@ -2903,13 +2903,23 @@ set_tty_hooks (struct terminal *terminal)
   terminal->delete_terminal_hook = &delete_tty;
 }
 
-/* Drop the controlling terminal if fd is the same device. */
+/* If FD is the controlling terminal, drop it.  */
 static void
 dissociate_if_controlling_tty (int fd)
 {
-  pid_t pgid = tcgetpgrp (fd); /* If tcgetpgrp succeeds, fd is the ctty. */
-  if (0 <= pgid)
-    setsid ();
+  /* If tcgetpgrp succeeds, fd is the controlling terminal,
+     so dissociate it by invoking setsid.  */
+  if (0 <= tcgetpgrp (fd) && setsid () < 0)
+    {
+#ifdef TIOCNOTTY
+      /* setsid failed, presumably because Emacs is already a process
+	 group leader.  Fall back on the obsolescent way to dissociate
+	 a controlling tty.  */
+      block_tty_out_signal ();
+      ioctl (fd, TIOCNOTTY, 0);
+      unblock_tty_out_signal ();
+#endif
+    }
 }
 
 /* Create a termcap display on the tty device with the given name and
@@ -3030,14 +3040,9 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
 
   /* On some systems, tgetent tries to access the controlling
      terminal. */
-  {
-    sigset_t blocked;
-    sigemptyset (&blocked);
-    sigaddset (&blocked, SIGTTOU);
-    pthread_sigmask (SIG_BLOCK, &blocked, 0);
-    status = tgetent (tty->termcap_term_buffer, terminal_type);
-    pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-  }
+  block_tty_out_signal ();
+  status = tgetent (tty->termcap_term_buffer, terminal_type);
+  unblock_tty_out_signal ();
 
   if (status < 0)
     {

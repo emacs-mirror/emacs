@@ -1,3 +1,17 @@
+2013-01-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	emacsclient -t should not suspend Emacs server (Bug#13387)
+	* lisp.h, sysdep.c (block_tty_out_signal, unblock_tty_out_signal):
+	New functions.
+	* term.c (init_tty): Use them instead of rolling our own code.
+	* sysdep.c (tcsetpgrp_without_stopping): Likewise.  Here, this
+	switches from 'signal' to 'pthread_sigmask', which is safer in
+	multithreaded applications.
+	* term.c (Fresume_tty): Don't bother dissociating if O_IGNORE_CTTY,
+	which has already arranged for that.
+	(dissociate_if_controlling_tty): If setsid fails, fall back on TIOCNOTTY.
+	This is the main part of the bug fix.
+
 2013-01-10  Rainer Orth <ro@CeBiTec.Uni-Bielefeld.DE> (tiny change)
 
 	* gtkutil.c (xg_initialize): Add ifdef HAVE_FREETYPE around
