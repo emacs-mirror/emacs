@@ -1,3 +1,9 @@
+2013-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* autorevert.el (auto-revert-notify-rm-watch)
+	(auto-revert-notify-add-watch): Fix typos in w32notify function
+	names.
+
 2013-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-notify-enabled): Move up.

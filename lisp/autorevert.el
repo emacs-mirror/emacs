@@ -466,7 +466,8 @@ will use an up-to-date value of `auto-revert-interval'"
 (defun auto-revert-notify-rm-watch ()
   "Disable file watch for current buffer's associated file."
   (when auto-revert-notify-watch-descriptor
-    (funcall (if (fboundp 'inotify-rm-watch) 'inotify-rm-watch 'w32-rm-watch)
+    (funcall (if (fboundp 'inotify-rm-watch)
+		 'inotify-rm-watch 'w32notify-rm-watch)
 	     auto-revert-notify-watch-descriptor)
     (remhash auto-revert-notify-watch-descriptor
 	     auto-revert-notify-watch-descriptor-hash-list))
@@ -478,7 +479,7 @@ will use an up-to-date value of `auto-revert-interval'"
   (when (and buffer-file-name auto-revert-use-notify)
     (auto-revert-notify-rm-watch)
     (let ((func (if (fboundp 'inotify-add-watch)
-		    'inotify-add-watch 'w32-add-watch))
+		    'inotify-add-watch 'w32notify-add-watch))
 	  (aspect (if (fboundp 'inotify-add-watch)
 		      '(close-write) '(last-write-time))))
       (setq auto-revert-notify-watch-descriptor
