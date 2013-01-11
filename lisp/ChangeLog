@@ -1,3 +1,18 @@
+2013-01-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (top): Require 'cl in order to pacify byte compiler.
+	(auto-revert-notify-rm-watch): Ignore errors.
+	(auto-revert-notify-add-watch): Ignore errors.  Use '(modify) for
+	inotify, and '(size last-write-time) for w32notify.  Set
+	buffer-local `auto-revert-use-notify' to nil when adding a file
+	watch fails - this is a fallback to the file modification check.
+	(auto-revert-notify-event-p, auto-revert-notify-event-descriptor)
+	(auto-revert-notify-event-action)
+	(auto-revert-notify-event-file-name): New defuns.
+	(auto-revert-notify-handler): Use them.  Implement first
+	plausibility checks.
+	(auto-revert-handler): Handle also `auto-revert-tail-mode'.
+
 2013-01-11  Julien Danjou  <julien@danjou.info>
 
 	* color.el (color-rgb-to-hsv): Fix conversion computing in case min and
