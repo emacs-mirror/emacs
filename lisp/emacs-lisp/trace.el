@@ -167,6 +167,8 @@ some global variables)."
             (mapconcat 'char-to-string (make-string (1- level) ?|) " ")
             (if (> level 1) " " "")
             level
+            ;; FIXME: Make it so we can click the function name to jump to its
+            ;; definition and/or untrace it.
             (cons function args)
             context)))
 
@@ -275,16 +277,8 @@ To untrace a function, use `untrace-function' or `untrace-all'."
 ;;;###autoload
 (defun trace-function-background (function &optional buffer context)
   "Traces FUNCTION with trace output going quietly to BUFFER.
-When this tracing is enabled, every call to FUNCTION writes
-a Lisp-style trace message (showing the arguments and return value)
-into BUFFER.  This function generates advice to trace FUNCTION
-and activates it together with any other advice there might be.
-The trace output goes to BUFFER quietly, without changing
-the window or buffer configuration.
-
-BUFFER defaults to `trace-buffer'.
-
-To untrace a function, use `untrace-function' or `untrace-all'."
+Like `trace-function-foreground' but without popping up the trace BUFFER or
+changing the window configuration."
   (interactive (trace--read-args "Trace function in background: "))
   (trace-function-internal function buffer t context))
 
