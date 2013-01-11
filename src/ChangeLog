@@ -1,3 +1,14 @@
+2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid unnecessary byte position calculation for the gap movement.
+	Since all users of move_gap do CHAR_TO_BYTE for other purposes
+	anyway, all of them should use move_gap_both instead.
+	* lisp.h (move_gap): Remove prototype.
+	* insdel.c (move_gap): Remove.
+	(move_gap_both): Add eassert.
+	* editfns.c (Ftranspose_regions): Tweak to use move_gap_both.
+	* xml.c (parse_region): Likewise.
+
 2013-01-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	emacsclient -t should not suspend Emacs server (Bug#13387)

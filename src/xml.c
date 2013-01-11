@@ -180,8 +180,7 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
   xmlDoc *doc;
   Lisp_Object result = Qnil;
   const char *burl = "";
-  ptrdiff_t bytes;
-  ptrdiff_t istart, iend;
+  ptrdiff_t istart, iend, istart_byte, iend_byte;
 
   fn_xmlCheckVersion (LIBXML_VERSION);
 
@@ -189,9 +188,11 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
 
   istart = XINT (start);
   iend = XINT (end);
+  istart_byte = CHAR_TO_BYTE (istart);
+  iend_byte = CHAR_TO_BYTE (iend);
 
   if (istart < GPT && GPT < iend)
-    move_gap (iend);
+    move_gap_both (iend, iend_byte);
 
   if (! NILP (base_url))
     {
@@ -199,17 +200,15 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
       burl = SSDATA (base_url);
     }
 
-  bytes = CHAR_TO_BYTE (iend) - CHAR_TO_BYTE (istart);
-
   if (htmlp)
-    doc = fn_htmlReadMemory ((char *) BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
-			     bytes, burl, "utf-8",
+    doc = fn_htmlReadMemory ((char *) BYTE_POS_ADDR (istart_byte),
+			     iend_byte - istart_byte, burl, "utf-8",
 			     HTML_PARSE_RECOVER|HTML_PARSE_NONET|
 			     HTML_PARSE_NOWARNING|HTML_PARSE_NOERROR|
 			     HTML_PARSE_NOBLANKS);
   else
-    doc = fn_xmlReadMemory ((char *) BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
-			    bytes, burl, "utf-8",
+    doc = fn_xmlReadMemory ((char *) BYTE_POS_ADDR (istart_byte),
+			    iend_byte - istart_byte, burl, "utf-8",
 			    XML_PARSE_NONET|XML_PARSE_NOWARNING|
 			    XML_PARSE_NOBLANKS |XML_PARSE_NOERROR);
 

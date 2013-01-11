@@ -4522,7 +4522,7 @@ Transposing beyond buffer boundaries is an error.  */)
   (Lisp_Object startr1, Lisp_Object endr1, Lisp_Object startr2, Lisp_Object endr2, Lisp_Object leave_markers)
 {
   register ptrdiff_t start1, end1, start2, end2;
-  ptrdiff_t start1_byte, start2_byte, len1_byte, len2_byte;
+  ptrdiff_t start1_byte, start2_byte, len1_byte, len2_byte, end2_byte;
   ptrdiff_t gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
 
@@ -4583,20 +4583,22 @@ Transposing beyond buffer boundaries is an error.  */)
      the gap the minimum distance to get it out of the way, and then
      deal with an unbroken array.  */
 
+  start1_byte = CHAR_TO_BYTE (start1);
+  end2_byte = CHAR_TO_BYTE (end2);
+
   /* Make sure the gap won't interfere, by moving it out of the text
      we will operate on.  */
   if (start1 < gap && gap < end2)
     {
       if (gap - start1 < end2 - gap)
-	move_gap (start1);
+	move_gap_both (start1, start1_byte);
       else
-	move_gap (end2);
+	move_gap_both (end2, end2_byte);
     }
 
-  start1_byte = CHAR_TO_BYTE (start1);
   start2_byte = CHAR_TO_BYTE (start2);
   len1_byte = CHAR_TO_BYTE (end1) - start1_byte;
-  len2_byte = CHAR_TO_BYTE (end2) - start2_byte;
+  len2_byte = end2_byte - start2_byte;
 
 #ifdef BYTE_COMBINING_DEBUG
   if (end1 == start2)

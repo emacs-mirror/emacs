@@ -84,21 +84,14 @@ check_markers (void)
 
 #endif /* MARKER_DEBUG */
 
-/* Move gap to position CHARPOS.
-   Note that this can quit!  */
-
-void
-move_gap (ptrdiff_t charpos)
-{
-  move_gap_both (charpos, CHAR_TO_BYTE (charpos));
-}
-
 /* Move gap to byte position BYTEPOS, which is also char position CHARPOS.
    Note that this can quit!  */
 
 void
 move_gap_both (ptrdiff_t charpos, ptrdiff_t bytepos)
 {
+  eassert (charpos == BYTE_TO_CHAR (bytepos)
+	   && bytepos == CHAR_TO_BYTE (charpos));
   if (bytepos < GPT_BYTE)
     gap_left (charpos, bytepos, 0);
   else if (bytepos > GPT_BYTE)

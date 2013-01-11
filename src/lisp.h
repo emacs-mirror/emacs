@@ -2775,7 +2775,6 @@ extern void syms_of_image (void);
 
 /* Defined in insdel.c.  */
 extern Lisp_Object Qinhibit_modification_hooks;
-extern void move_gap (ptrdiff_t);
 extern void move_gap_both (ptrdiff_t, ptrdiff_t);
 extern _Noreturn void buffer_overflow (void);
 extern void make_gap (ptrdiff_t);
