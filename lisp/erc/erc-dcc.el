@@ -897,7 +897,7 @@ other client."
       (let* ((buffer (erc-dcc-find-file file))
              (size (buffer-size buffer))
              (start (with-current-buffer buffer
-                      (set-marker (make-marker) (point-min))))
+                      (point-min-marker)))
              (sproc (erc-dcc-server "dcc-send"
                                     'erc-dcc-send-filter
                                     'erc-dcc-send-sentinel))
@@ -1166,7 +1166,7 @@ other client."
     (setq erc-dcc-from nick)
     (setq erc-dcc-entry-data entry)
     (setq erc-dcc-unprocessed-output "")
-    (setq erc-insert-marker (set-marker (make-marker) (point-max)))
+    (setq erc-insert-marker (point-max-marker))
     (setq erc-input-marker (make-marker))
     (erc-display-prompt buffer (point-max))
     (set-process-buffer proc buffer)

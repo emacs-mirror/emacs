@@ -1,3 +1,8 @@
+2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* erc-dcc.el (erc-dcc-send-file): Use point-min-marker.
+	(erc-dcc-chat-setup): Use point-max-marker.
+
 2013-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* erc-backend.el (312): Fix typo.  (Bug#13235)

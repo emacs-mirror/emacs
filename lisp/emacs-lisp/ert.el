@@ -937,7 +937,7 @@ Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
   (cl-block error
     (let ((begin-marker
            (with-current-buffer (get-buffer-create "*Messages*")
-             (set-marker (make-marker) (point-max)))))
+             (point-max-marker))))
       (unwind-protect
           (let ((info (make-ert--test-execution-info
                        :test ert-test

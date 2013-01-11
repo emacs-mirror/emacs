@@ -254,7 +254,7 @@ that was fetched."
 	 gnus-async-article-alist
 	 (cons (list (intern (format "%s-%d" group article)
 			     gnus-async-hashtb)
-		     mark (set-marker (make-marker) (point-max))
+		     mark (point-max-marker)
 		     group article)
 	       gnus-async-article-alist))))
     (if (not (gnus-buffer-live-p summary))

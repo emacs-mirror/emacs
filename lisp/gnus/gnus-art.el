@@ -8688,9 +8688,7 @@ For example:
 	     gnus-mime-security-button-end-line-format))
 	(gnus-insert-mime-security-button handle)))
     (mm-set-handle-multipart-parameter
-     handle 'gnus-region
-     (cons (set-marker (make-marker) (point-min))
-	   (set-marker (make-marker) (point-max))))
+     handle 'gnus-region (cons (point-min-marker) (point-max-marker)))
     (goto-char (point-max))))
 
 (defun gnus-mime-security-run-function (function)
