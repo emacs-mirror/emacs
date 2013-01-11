@@ -3,7 +3,7 @@
 	* xterm.c (syms_of_xterm): Adjust documentation for
 	scroll-bar-adjust-thumb-portion.
 
-2012-12-31  Adam Sjøgren  <asjo@koldfront.dk>
+2012-12-31  Adam Sjøgren  <asjo@koldfront.dk> (tiny change)
 
 	* xterm.c (scroll-bar-adjust-thumb-portion): New variable to
 	determine whether scroll bar thumb size should be adjusted or
