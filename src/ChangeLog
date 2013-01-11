@@ -1,3 +1,12 @@
+2012-12-31  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* xterm.c (scroll-bar-adjust-thumb-portion): New variable to
+	determine whether scroll bar thumb size should be adjusted or
+	not. Use variable for MOTIF.
+
+	* gtkutil.c (scroll-bar-adjust-thumb-portion): Use variable for
+	GTK.
+
 2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (keyDown:): Set processingCompose to NO if an emacs key

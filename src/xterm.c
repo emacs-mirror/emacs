@@ -4802,21 +4802,24 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
 
 #ifdef USE_MOTIF
 
-  /* We use an estimate of 30 chars per line rather than the real
-     `portion' value.  This has the disadvantage that the thumb size
-     is not very representative, but it makes our life a lot easier.
-     Otherwise, we have to constantly adjust the thumb size, which
-     we can't always do quickly enough: while dragging, the size of
-     the thumb might prevent the user from dragging the thumb all the
-     way to the end.  but Motif and some versions of Xaw3d don't allow
-     updating the thumb size while dragging.  Also, even if we can update
-     its size, the update will often happen too late.
-     If you don't believe it, check out revision 1.650 of xterm.c to see
-     what hoops we were going through and the still poor behavior we got.  */
-  portion = WINDOW_TOTAL_LINES (XWINDOW (bar->window)) * 30;
-  /* When the thumb is at the bottom, position == whole.
-     So we need to increase `whole' to make space for the thumb.  */
-  whole += portion;
+  if (scroll_bar_adjust_thumb_portion_p)
+    {
+      /* We use an estimate of 30 chars per line rather than the real
+         `portion' value.  This has the disadvantage that the thumb size
+         is not very representative, but it makes our life a lot easier.
+         Otherwise, we have to constantly adjust the thumb size, which
+         we can't always do quickly enough: while dragging, the size of
+         the thumb might prevent the user from dragging the thumb all the
+         way to the end.  but Motif and some versions of Xaw3d don't allow
+         updating the thumb size while dragging.  Also, even if we can update
+         its size, the update will often happen too late.
+         If you don't believe it, check out revision 1.650 of xterm.c to see
+         what hoops we were going through and the still poor behavior we got.  */
+      portion = WINDOW_TOTAL_LINES (XWINDOW (bar->window)) * 30;
+      /* When the thumb is at the bottom, position == whole.
+         So we need to increase `whole' to make space for the thumb.  */
+      whole += portion;
+    }
 
   if (whole <= 0)
     top = 0, shown = 1;
@@ -10783,6 +10786,14 @@ With MS Windows or Nextstep, the value is t.  */);
 #else
   Vx_toolkit_scroll_bars = Qnil;
 #endif
+
+  DEFVAR_BOOL ("scroll-bar-adjust-thumb-portion",
+               scroll_bar_adjust_thumb_portion_p,
+               doc: /* Non-nil means adjust the thumb in the
+scroll bar to be less likely to resize which looks better.
+Set to nil if you want the thumb to fill the whole scroll bar
+when the entire buffer is visible.  */);
+  scroll_bar_adjust_thumb_portion_p = 1;
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
