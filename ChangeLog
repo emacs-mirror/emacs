@@ -1,3 +1,7 @@
+2013-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/getopt_.h: Regenerate.
+
 2013-01-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
