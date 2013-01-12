@@ -1,3 +1,8 @@
+2013-01-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-watch-descriptor): Give it
+	`permanent-local' property.
+
 2013-01-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* autorevert.el (auto-revert-notify-handler): Fix filtering of

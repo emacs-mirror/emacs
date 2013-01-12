@@ -311,7 +311,7 @@ Hash key is a watch descriptor, hash value is the corresponding buffer.")
 
 (defvar auto-revert-notify-watch-descriptor nil
   "The file watch descriptor active for the current buffer.")
-(make-variable-buffer-local 'auto-revert-notify-watch-descriptor)
+(put 'auto-revert-notify-watch-descriptor 'permanent-local t)
 
 (defvar auto-revert-notify-modified-p nil
   "Non-nil when file has been modified on the file system.
