@@ -160,10 +160,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Mark a secondary stack, like the register stack on the ia64. */
 #undef GC_MARK_SECONDARY_STACK
 
-/* Define to GC_USE_GCPROS_AS_BEFORE if conservative garbage collection is not
-   known to work. */
-#undef GC_MARK_STACK
-
 /* Define if setjmp is known to save all registers relevant for conservative
    garbage collection in the jmp_buf. */
 #undef GC_SETJMP_WORKS

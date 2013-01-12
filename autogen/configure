@@ -15707,14 +15707,7 @@ esac
 
 
 
-
-
 case $opsys in
-  aix4-2 | hpux* | unixware)
-            $as_echo "#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE" >>confdefs.h
-
-    ;;
-
           gnu-linux | gnu-kfreebsd )
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -15738,9 +15731,6 @@ main ()
 _ACEOF
 if ac_fn_c_try_cpp "$LINENO"; then :
   $as_echo "#define GC_SETJMP_WORKS 1" >>confdefs.h
-
-else
-  $as_echo "#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE" >>confdefs.h
 
 fi
 rm -f conftest.err conftest.$ac_ext
