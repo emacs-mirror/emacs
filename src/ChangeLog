@@ -1,4 +1,4 @@
-2013-01-11  Jan Djärv  <jan.h.d@swipnet.se>
+2013-01-11  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>  (tiny change)
 
 	* gtkutil.c (xg_initialize): Backport from trunk.
 	Add ifdef HAVE_FREETYPE around x_last_font_name (Bug#13403).
