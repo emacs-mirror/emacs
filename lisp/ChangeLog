@@ -1,3 +1,10 @@
+2013-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-bzr.el (vc-bzr--sanitize-header): New function (bug#13307).
+	(vc-bzr-checkin): Use it.
+	* vc/log-edit.el (log-edit-extract-headers): Don't presume FUNCTION
+	will preserve match-data.
+
 2013-01-11  Felix H. Dahlke  <fhd@ubercode.de>
 
 	* progmodes/js.el: Fix multiline declarations's indentation (bug#8576).

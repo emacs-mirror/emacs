@@ -620,15 +620,24 @@ or a superior directory.")
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
+(defun vc-bzr--sanitize-header (arg)
+  ;; Newlines in --fixes (and probably other fields as well) trigger a nasty
+  ;; Bazaar bug; see https://bugs.launchpad.net/bzr/+bug/1094180.
+  (lambda (str) (list arg
+                 (replace-regexp-in-string "\\`[ \t]+\\|[ \t]+\\'"
+                                           "" (replace-regexp-in-string
+                                               "\n[ \t]?" " " str)))))
+
 (defun vc-bzr-checkin (files rev comment)
   "Check FILES in to bzr with log message COMMENT.
 REV non-nil gets an error."
   (if rev (error "Can't check in a specific revision with bzr"))
-  (apply 'vc-bzr-command "commit" nil 0
-         files (cons "-m" (log-edit-extract-headers '(("Author" . "--author")
-						      ("Date" . "--commit-time")
-                                                      ("Fixes" . "--fixes"))
-                                                    comment))))
+  (apply 'vc-bzr-command "commit" nil 0 files
+         (cons "-m" (log-edit-extract-headers
+                     `(("Author" . ,(vc-bzr--sanitize-header "--author"))
+                       ("Date" . ,(vc-bzr--sanitize-header "--commit-time"))
+                       ("Fixes" . ,(vc-bzr--sanitize-header "--fixes")))
+                     comment))))
 
 (defun vc-bzr-find-revision (file rev buffer)
   "Fetch revision REV of file FILE and put it into BUFFER."
