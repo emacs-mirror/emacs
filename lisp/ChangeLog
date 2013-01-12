@@ -1,3 +1,9 @@
+2013-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* autorevert.el (auto-revert-notify-handler): Fix filtering of
+	file notification by ACTION. For filtering by file name, compare
+	only the non-directory part of the file name.
+
 2013-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autorevert.el: Use cl-lib instead of cl.
