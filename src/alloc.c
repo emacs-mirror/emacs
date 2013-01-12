@@ -4446,11 +4446,6 @@ mark_memory (void *start, void *end)
       }
 }
 
-/* setjmp will work with GCC unless NON_SAVING_SETJMP is defined in
-   the GCC system configuration.  In gcc 3.2, the only systems for
-   which this is so are i386-sco5 non-ELF, i386-sysv3 (maybe included
-   by others?) and ns32k-pc532-min.  */
-
 #if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
 
 static bool setjmp_tested_p;
