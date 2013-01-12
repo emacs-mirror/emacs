@@ -1,3 +1,8 @@
+2013-01-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* indent.c (Fvertical_motion): Remove now-incorrect GCPROs
+	for old_charpos and old_bytepos.
+
 2013-01-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bug with set-time-zone-rule and LOCALTIME_CACHE (Bug#13415).
