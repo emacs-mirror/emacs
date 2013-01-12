@@ -2188,6 +2188,7 @@ set_time_zone_rule (const char *tzstring)
       xputenv (set_time_zone_rule_tz[1]);
     }
   tzset ();
+  tzvalbuf_in_environ = 0;
 #endif
 
   if (!tzstring)

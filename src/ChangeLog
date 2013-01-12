@@ -1,3 +1,10 @@
+2013-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug with set-time-zone-rule and LOCALTIME_CACHE (Bug#13415).
+	* editfns.c (set_time_zone_rule) [LOCALTIME_CACHE]:
+	Clear tzvalbuf_in_environ if this workaround is in effect.
+	Problem and fix reported by Kazuhiro Ito.
+
 2013-01-11  Aaron S. Hawley  <Aaron.Hawley@vtinfo.com>
 
 	* insdel.c (Fcombine_after_change_execute, syms_of_insdel): Fix
