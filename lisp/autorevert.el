@@ -531,17 +531,14 @@ will use an up-to-date value of `auto-revert-interval'"
 	(when (featurep 'inotify) (cl-assert (memq 'modify action)))
 	(when (featurep 'w32notify) (cl-assert (eq 'modified action)))
 	(cl-assert (bufferp buffer))
-	(when (stringp file)
-	  (cl-assert (string-equal
-		      ;; w32notify returns the basename of the file
-		      ;; without its leading directories; inotify
-		      ;; returns its full absolute file name.
-                      (file-name-nondirectory (directory-file-name file))
-                      (file-name-nondirectory (directory-file-name
-					       (buffer-file-name buffer))))))
-
-	;; Mark buffer modified.
 	(with-current-buffer buffer
+	  (when (and (stringp file) (stringp buffer-file-name))
+	    ;; w32notify returns the basename of the file without its
+	    ;; leading directories; inotify returns its full absolute
+	    ;; file name.
+	    (cl-assert (file-equal-p file buffer-file-name)))
+
+	  ;; Mark buffer modified.
 	  (setq auto-revert-notify-modified-p t))))))
 
 (defun auto-revert-active-p ()

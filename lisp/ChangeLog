@@ -2,6 +2,7 @@
 
 	* autorevert.el (auto-revert-notify-watch-descriptor): Give it
 	`permanent-local' property.
+	(auto-revert-notify-handler): Use `file-equal-p'.
 
 2013-01-12  Eli Zaretskii  <eliz@gnu.org>
 
