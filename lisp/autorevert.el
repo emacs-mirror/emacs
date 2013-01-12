@@ -97,7 +97,7 @@
 
 ;; Dependencies:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'timer)
 
 ;; Custom Group:
@@ -527,14 +527,14 @@ will use an up-to-date value of `auto-revert-interval'"
       (ignore-errors
 	;; Check, that event is meant for us.
 	;; TODO: Filter events which stop watching, like `move' or `removed'.
-	(assert descriptor)
-	(when (featurep 'inotify) (assert (memq 'modify descriptor)))
-	(when (featurep 'w32notify) (assert (eq 'modified descriptor)))
-	(assert (bufferp buffer))
+	(cl-assert descriptor)
+	(when (featurep 'inotify) (cl-assert (memq 'modify descriptor)))
+	(when (featurep 'w32notify) (cl-assert (eq 'modified descriptor)))
+	(cl-assert (bufferp buffer))
 	(when (stringp file)
-	  (assert (string-equal
-		   (directory-file-name file)
-		   (directory-file-name (buffer-file-name buffer)))))
+	  (cl-assert (string-equal
+                      (directory-file-name file)
+                      (directory-file-name (buffer-file-name buffer)))))
 
 	;; Mark buffer modified.
 	(with-current-buffer buffer

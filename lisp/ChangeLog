@@ -1,5 +1,7 @@
 2013-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* autorevert.el: Use cl-lib instead of cl.
+
 	* vc/vc-bzr.el (vc-bzr--sanitize-header): New function (bug#13307).
 	(vc-bzr-checkin): Use it.
 	* vc/log-edit.el (log-edit-extract-headers): Don't presume FUNCTION
