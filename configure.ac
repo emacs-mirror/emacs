@@ -3777,22 +3777,13 @@ case $opsys in
 esac
 
 
-dnl These won't be used automatically yet.  We also need to know, at least,
+dnl This won't be used automatically yet.  We also need to know, at least,
 dnl that the stack is continuous.
 AH_TEMPLATE(GC_SETJMP_WORKS, [Define if setjmp is known to save all
   registers relevant for conservative garbage collection in the jmp_buf.])
 
-AH_TEMPLATE(GC_MARK_STACK, [Define to GC_USE_GCPROS_AS_BEFORE if
-  conservative garbage collection is not known to work.])
-
 
 case $opsys in
-  aix4-2 | hpux* | unixware)
-    dnl Conservative garbage collection has not been tested, so for now
-    dnl play it safe and stick with the old-fashioned way of marking.
-    AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE])
-    ;;
-
   dnl Not all the architectures are tested, but there are Debian packages
   dnl for SCM and/or Guile on them, so the technique must work.  See also
   dnl comments in alloc.c concerning setjmp and gcc.
@@ -3807,8 +3798,7 @@ case $opsys in
 #else
 # error "setjmp not known to work on this arch"
 #endif
-    ]], [[]])], AC_DEFINE(GC_SETJMP_WORKS, 1),
-      AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE]) )
+    ]], [[]])], AC_DEFINE(GC_SETJMP_WORKS, 1))
     ;;
 esac
 

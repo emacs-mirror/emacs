@@ -2217,8 +2217,12 @@ struct gcpro
    2    Mark the stack, and check that everything GCPRO'd is
 	marked.
    3	Mark using GCPRO's, mark stack last, and count how many
-	dead objects are kept alive.  */
+	dead objects are kept alive.
 
+   Formerly, method 0 was used.  Currently, method 1 is used unless
+   otherwise specified by hand when building, e.g.,
+   "make CPPFLAGS='-DGC_MARK_STACK=GC_USE_GCPROS_AS_BEFORE'".
+   Methods 2 and 3 are present mainly to debug the transition from 0 to 1.  */
 
 #define GC_USE_GCPROS_AS_BEFORE		0
 #define GC_MAKE_GCPROS_NOOPS		1

@@ -1,3 +1,10 @@
+2013-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Enable conservative stack scanning for all architectures.
+	Suggested by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00183.html>.
+	* configure.ac (GC_MARK_STACK): Remove.
+
 2013-01-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/getopt_.h: Remove trailing CRs that crept in.
