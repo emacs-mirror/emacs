@@ -1,3 +1,9 @@
+2013-01-13  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-insert-mime-forwarded-message): Get
+	current message boundaries and pass them to
+	message-forward-make-body-mime.  Minor style changes.
+
 2013-01-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Avoid warnings about

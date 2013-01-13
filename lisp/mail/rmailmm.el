@@ -1365,14 +1365,15 @@ The arguments ARG and STATE have no effect in this case."
 (defun rmail-insert-mime-forwarded-message (forward-buffer)
   "Insert the message in FORWARD-BUFFER as a forwarded message.
 This is the usual value of `rmail-insert-mime-forwarded-message-function'."
-  (let ((message-buffer
-	 (with-current-buffer forward-buffer
-	   (if rmail-buffer-swapped
-	       rmail-view-buffer
-	     forward-buffer))))
-    (save-restriction
-      (narrow-to-region (point) (point))
-      (message-forward-make-body-mime message-buffer))))
+  (let (contents-buffer start end)
+    (with-current-buffer forward-buffer
+      (setq contents-buffer
+	    (if rmail-buffer-swapped
+		rmail-view-buffer
+	      forward-buffer)
+	    start (rmail-msgbeg rmail-current-message)
+	    end (rmail-msgend rmail-current-message)))
+    (message-forward-make-body-mime contents-buffer start end)))
 
 (setq rmail-insert-mime-forwarded-message-function
       'rmail-insert-mime-forwarded-message)
