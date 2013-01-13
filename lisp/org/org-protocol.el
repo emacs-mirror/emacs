@@ -128,15 +128,15 @@
 		  (filename &optional up))
 (declare-function server-edit "server" (&optional arg))
 
-(org-define-obsolete-function-alias
+(define-obsolete-function-alias
   'org-protocol-unhex-compound 'org-link-unescape-compound
   "2011-02-17")
 
-(org-define-obsolete-function-alias
+(define-obsolete-function-alias
   'org-protocol-unhex-string 'org-link-unescape
   "2011-02-17")
 
-(org-define-obsolete-function-alias
+(define-obsolete-function-alias
   'org-protocol-unhex-single-byte-sequence
   'org-link-unescape-single-byte-sequence
   "2011-02-17")

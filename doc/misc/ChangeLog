@@ -1,3 +1,14 @@
+2013-01-13  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Installation): Simplify.
+
+2013-01-13  François Allisson  <francois@allisson.co>  (tiny change)
+
+	* org.texi (Handling links): Update the mention to the obsolete
+	variable `org-link-to-org-use-id' with a mention to the newer
+	variable `org-id-link-to-org-use-id'.  Mention the need to load
+	the org-id library.
+
 2013-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Default Host): Introduce `tramp-default-host-alist'.

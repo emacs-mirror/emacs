@@ -1,3 +1,7 @@
+2013-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add options for xz compression and no compression.
+
 2013-01-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Enable conservative stack scanning for all architectures.

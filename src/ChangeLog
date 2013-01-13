@@ -1,3 +1,16 @@
+2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (LCD_SMOOTHING_MARGIN): New define.
+	(nsfont_draw): Remove disabling of LCD smoothing.
+	(ns_glyph_metrics): Add LCD_SMOOTHING_MARGIN to bearings to fix
+	Bug#11484 with LCD smoothing on.
+
+2013-01-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix SIGDANGER handlers, for AIX (Bug#13408).
+	* sysdep.c.c (handle_danger_signal, deliver_danger_signal) [SIGDANGER]:
+	Move handlers here from emacs.c; they were out of place.
+
 2013-01-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (syms_of_xterm): Adjust documentation for

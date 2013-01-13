@@ -7402,7 +7402,12 @@ even level numbers will become the next higher odd number."
 	    ((< change 0) (max 1 (1+ (* 2 (/ (+ level (* 2 change)) 2))))))
     (max 1 (+ level (or change 0)))))
 
-(org-define-obsolete-function-alias 'org-get-legal-level 'org-get-valid-level "23.1")
+(if (boundp 'define-obsolete-function-alias)
+    (if (or (featurep 'xemacs) (< emacs-major-version 23))
+	(define-obsolete-function-alias 'org-get-legal-level
+	  'org-get-valid-level)
+      (define-obsolete-function-alias 'org-get-legal-level
+	'org-get-valid-level "23.1")))
 
 (defvar org-called-with-limited-levels nil) ;; Dynamically bound in
 ;; ̀org-with-limited-levels'
@@ -9684,12 +9689,14 @@ application the system uses for this file type."
 			 "[ \t]:[^ \t\n]+:[ \t]*$")))
 	   (not (get-text-property (point) 'org-linked-text)))
       (or (let* ((lkall (org-offer-links-in-entry (current-buffer) (point) arg))
-		 (lk (car lkall))
+		 (lk0 (car lkall))
+		 (lk (if (stringp lk0) (list lk0) lk0))
 		 (lkend (cdr lkall)))
-	    (when lk
-	      (prog1 (search-forward lk nil lkend)
-		(goto-char (match-beginning 0))
-		(org-open-at-point))))
+	    (mapcar (lambda(l)
+		      (search-forward l nil lkend)
+		      (goto-char (match-beginning 0))
+		      (org-open-at-point))
+		    lk))
 	  (progn (require 'org-attach) (org-attach-reveal 'if-exists))))
      ((run-hook-with-args-until-success 'org-open-at-point-functions))
      ((and (org-at-timestamp-p t)
@@ -13524,7 +13531,10 @@ ignore inherited ones."
 		(error nil)))))
 	(if local
 	    tags
-	  (append (org-remove-uninherited-tags org-file-tags) tags))))))
+	  (reverse (delete-dups
+		    (reverse (append
+			      (org-remove-uninherited-tags
+			       org-file-tags) tags)))))))))
 
 (defun org-add-prop-inherited (s)
   (add-text-properties 0 (length s) '(inherited t) s)
@@ -17798,7 +17808,7 @@ BEG and END default to the buffer boundaries."
 			     (list 'org-display-inline-remove-overlay))
 		(push ov org-inline-image-overlays)))))))))
 
-(org-define-obsolete-function-alias
+(define-obsolete-function-alias
   'org-display-inline-modification-hook 'org-display-inline-remove-overlay "24.3")
 
 (defun org-display-inline-remove-overlay (ov after beg end &optional len)
@@ -18178,7 +18188,7 @@ If not, return to the original position and throw an error."
 (defvar org-table-auto-blank-field) ; defined in org-table.el
 (defvar org-speed-command nil)
 
-(org-define-obsolete-function-alias
+(define-obsolete-function-alias
   'org-speed-command-default-hook 'org-speed-command-activate "24.3")
 
 (defun org-speed-command-activate (keys)
@@ -18191,7 +18201,7 @@ Use `org-speed-commands-user' for further customization."
     (cdr (assoc keys (append org-speed-commands-user
 			     org-speed-commands-default)))))
 
-(org-define-obsolete-function-alias
+(define-obsolete-function-alias
   'org-babel-speed-command-hook 'org-babel-speed-command-activate "24.3")
 
 (defun org-babel-speed-command-activate (keys)
@@ -19026,14 +19036,13 @@ Otherwise, return a user error."
       (beginning-of-line 1)
       (looking-at "\\(?:#\\+\\(?:setupfile\\|include\\):?[ \t]+\"?\\|[ \t]*<include\\>.*?file=\"\\)\\([^\"\n>]+\\)"))
     (find-file (org-trim (match-string 1))))
+   ((org-at-table.el-p) (org-edit-src-code))
    ((or (org-at-table-p)
 	(save-excursion
 	  (beginning-of-line 1)
 	  (let ((case-fold-search )) (looking-at "[ \t]*#\\+tblfm:"))))
     (call-interactively 'org-table-edit-formulas))
-   ((or (org-in-block-p '("src" "example" "latex" "html"))
-	(org-at-table.el-p))
-    (org-edit-src-code))
+   ((org-in-block-p '("src" "example" "latex" "html")) (org-edit-src-code))
    ((org-in-fixed-width-region-p) (org-edit-fixed-width-region))
    ((org-at-regexp-p org-any-link-re) (call-interactively 'ffap))
    (t (user-error "No special environment to edit here"))))

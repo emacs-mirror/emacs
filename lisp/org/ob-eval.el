@@ -137,11 +137,17 @@ specifies the value of ERROR-BUFFER."
 		       t)))
   (let ((input-file (org-babel-temp-file "input-"))
 	(error-file (if error-buffer (org-babel-temp-file "scor-") nil))
+	;; Unfortunately, `executable-find' does not support file name
+	;; handlers.  Therefore, we could use it in the local case
+	;; only.
 	(shell-file-name
-	 (if (file-executable-p
-	      (concat (file-remote-p default-directory) shell-file-name))
-	     shell-file-name
-	   "/bin/sh"))
+	 (cond ((and (not (file-remote-p default-directory))
+		     (executable-find shell-file-name))
+		shell-file-name)
+	       ((file-executable-p
+		 (concat (file-remote-p default-directory) shell-file-name))
+		shell-file-name)
+	       ("/bin/sh")))
 	exit-status)
     ;; There is an error in `process-file' when `error-file' exists.
     ;; This is fixed in Emacs trunk as of 2012-12-21; let's use this

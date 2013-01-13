@@ -447,7 +447,7 @@ values.  See Info node `(emacs) File Variables'."
 		     xml-files))
 	     ;; delete temporary directory.
 	     (org-delete-directory org-odt-zip-dir t)))))
-     (org-condition-case-unless-debug err
+     (condition-case err
 	 (prog1 (progn ,@body)
 	   (funcall --cleanup-xml-buffers))
        ((quit error)

@@ -44,6 +44,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #endif
 
 #define NSFONT_TRACE 0
+#define LCD_SMOOTHING_MARGIN 2
 
 extern Lisp_Object Qns;
 extern Lisp_Object Qnormal, Qbold, Qitalic;
@@ -1247,7 +1248,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     else
       CGContextSetShouldAntialias (gcontext, 1);
 
-    CGContextSetShouldSmoothFonts (gcontext, NO);
     CGContextSetTextMatrix (gcontext, fliptf);
 
     if (bgCol != nil)
@@ -1414,11 +1414,12 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
 
       lb = r.origin.x;
       rb = r.size.width - w;
+      // Add to bearing for LCD smoothing.  We don't know if it is there.
       if (lb < 0)
-        metrics->lbearing = round (lb);
+        metrics->lbearing = round (lb - LCD_SMOOTHING_MARGIN);
       if (font_info->ital)
         rb += 0.22 * font_info->height;
-      metrics->rbearing = lrint (w + rb);
+      metrics->rbearing = lrint (w + rb + LCD_SMOOTHING_MARGIN);
 
       metrics->descent = r.origin.y < 0 ? -r.origin.y : 0;
  /*lrint (hshrink * [sfont ascender] + expand * hd/2); */

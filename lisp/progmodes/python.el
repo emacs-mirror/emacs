@@ -1198,7 +1198,16 @@ of the statement."
                 (not (eobp))
                 (cond ((setq string-start (python-syntax-context 'string))
                        (goto-char string-start)
-                       (python-nav-end-of-statement t))
+                       (if (python-syntax-context 'paren)
+                           ;; Ended up inside a paren, roll again.
+                           (python-nav-end-of-statement t)
+                         ;; This is not inside a paren, move to the
+                         ;; end of this string.
+                         (goto-char (+ (point)
+                                       (python-syntax-count-quotes
+                                        (char-after (point)) (point))))
+                         (or (re-search-forward (rx (syntax string-delimiter)) nil t)
+                             (goto-char (point-max)))))
                       ((python-syntax-context 'paren)
                        ;; The statement won't end before we've escaped
                        ;; at least one level of parenthesis.
@@ -1312,7 +1321,7 @@ backward to previous block."
   "Safe version of standard `forward-sexp'.
 When ARG > 0 move forward, else if ARG is < 0."
   (or arg (setq arg 1))
-  (let ((forward-sexp-function nil)
+  (let ((forward-sexp-function)
         (paren-regexp
          (if (> arg 0) (python-rx close-paren) (python-rx open-paren)))
         (search-fn

@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 7.9.3+ (GNU Emacs 24.3)
+@set VERSION 7.9.3d (GNU Emacs 24.3)
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -339,7 +339,7 @@ with contributions by David O'Toole, Bastien Guerry, Philip Rooke, Dan Davison, 
 Introduction
 
 * Summary::                     Brief summary of what Org does
-* Installation::                How to install a downloaded version of Org
+* Installation::                Installing Org
 * Activation::                  How to activate Org for certain buffers
 * Feedback::                    Bug reports, ideas, patches etc.
 * Conventions::                 Typesetting conventions in the manual
@@ -771,7 +771,7 @@ MobileOrg
 
 @menu
 * Summary::                     Brief summary of what Org does
-* Installation::                How to install a downloaded version of Org
+* Installation::                Installing Org
 * Activation::                  How to activate Org for certain buffers
 * Feedback::                    Bug reports, ideas, patches etc.
 * Conventions::                 Typesetting conventions in the manual
@@ -851,118 +851,69 @@ Theory Ltd.}
 @cindex installation
 @cindex XEmacs
 
-@b{Important:} @i{If you the version of Org that comes with Emacs or as a
-XEmacs package, please skip this section and go directly to @ref{Activation}.
-If you downloaded Org as an ELPA package, please read the instructions on the
-@uref{http://orgmode.org/elpa.html, Org ELPA page}.  To see what version of Org
-(if any) is part of your Emacs distribution, type @kbd{M-x org-version} (if
-your Emacs distribution does not come with Org, this function will not be
-defined).}
-
-Installation of Org mode uses a build system, which is described in more
-detail on @uref{http://orgmode.org/worg/dev/org-build-system.html, Worg}.
-
-If you have downloaded Org from the Web as a distribution @file{.zip} or
-@file{.tar.gz} archive, take the following steps to install it:
+Org is part of recent distributions of GNU Emacs, so you normally don't need
+to install it.  If, for one reason or another, you want to install Org on top
+of this pre-packaged version, there are three ways to do it:
 
 @itemize @bullet
-@item Unpack the distribution archive.
-@item Change into (@code{cd}) the Org directory.
-@item Run @code{make help config}
-and then check and edit the file @file{local.mk} if the default configuration
-does not match your system.  Set the name of the Emacs binary (likely either
-@file{emacs} or @file{xemacs}), and the paths to the directories where local
-Lisp and Info files will be installed.  If the Emacs binary is not in your
-path, give the full path to the executable.  Avoid spaces in any path names.
-@item Run @code{make config}
-again to check the configuration.
-@item Run @code{make install} or @code{sudo make install}
-to build and install Org mode on your system.
+@item By using Emacs package system.
+@item By downloading Org as an archive.
+@item By using Org's git repository.
 @end itemize
 
-If you use a cloned Git repository, then the procedure is slightly different.
-The following description assumes that you are using the @code{master} branch
-(where the development is done).  You could also use the @code{maint} branch
-instead, where the release versions are published, just replace @code{master}
-with @code{maint} in the description below.
+We @b{strongly recommend} to stick to a single installation method.
 
-@itemize @bullet
-@item Change into (@code{cd}) the Org repository.
-@item Run @code{git checkout master}
-to switch to the @code{master} branch of the Org repository.
-@item Run @code{make help}
-and then check and edit the file @file{local.mk}.  You must set the name of
-the Emacs binary (likely either @file{emacs} or @file{xemacs}), and the paths
-to the directories where local Lisp and Info files will be installed.  If the
-Emacs binary is not in your path, you must give the full path to the
-executable.  Avoid spaces in any path names.
-@item Run @code{make config}
-to check the configuration.
-@item Optionally run @code{make test}
-to build Org mode and then run the full testsuite.
-@item Run @code{make update2} or @code{make up2}
-to update the Git repository and build and install Org mode.  The latter
-invocation runs the complete test suite before installation and installs only
-if the build passes all tests.
-@end itemize
+@subsubheading Using Emacs packaging system
 
-If you don't have access to the system-wide directories and you don't want to
-install somewhere into your home directory, you can run Org directly from the
-distribution directory or Org repository by compiling Org mode in place:
+Recent Emacs distributions include a packaging system which lets you install
+Elisp libraries.  You can install Org with @kbd{M-x package-install RET org}.
+To make sure your Org configuration is well taken into account, initialize
+the package system with @code{(package-initialize)} before setting any Org
+option.  If you want to use Org's package repository, check out the
+@uref{http://orgmode.org/elpa.html, Org ELPA page}.
 
-@itemize @bullet
-@item Change into (@code{cd}) the Org repository.
-@item Run @code{git checkout master}
-to switch to the @code{master} branch of the Org repository.
-@item Run @code{make compile}
-@end itemize
+@subsubheading Downloading Org as an archive
 
-Last but not least you can also run Org mode directly from an Org repository
-without any compilation.  Simply replace the last step in the recipe above
-with @code{make uncompiled}.
-
-Then add the following line to @file{.emacs}:
+You can download Org latest release from @uref{http://orgmode.org/, Org's
+website}.  In this case, make sure you set the load-path correctly in your
+@file{.emacs}:
 
 @example
 (add-to-list 'load-path "~/path/to/orgdir/lisp")
 @end example
 
-@noindent
-If you plan to use code from the @file{contrib} subdirectory without
-compiling them, do a similar step for this directory:
+The downloaded archive contains contributed libraries that are not included
+in Emacs.  If you want to use them, add the @file{contrib} directory to your
+load-path:
 
 @example
 (add-to-list 'load-path "~/path/to/orgdir/contrib/lisp" t)
 @end example
 
-If you want to include those files with the build and install, please
-customize the variable @code{ORG_ADD_CONTRIB} instead in your @code{local.mk}
-file, for more details please see this
-@uref{http://orgmode.org/worg/dev/org-build-system.html#sec-4-1-2,
-description on Worg}.
+Optionally, you can compile the files and/or install them in your system.
+Run @code{make help} to list compilation and installation options.
 
-Installing Info files is system dependent, because of differences in the
-@file{install-info} program.  The Info documentation is installed together
-with the rest of Org mode.  If you don't install Org mode, it is possible to
-install the Info documentation separately (you need to have
-install-info@footnote{The output from install-info (if any) is system
-dependent.  In particular Debian and its derivatives use two different
-versions of install-info and you may see the message:
+@subsubheading Using Org's git repository
+
+You can clone Org's repository and install Org like this:
 
 @example
-This is not dpkg install-info anymore, but GNU install-info
-See the man page for ginstall-info for command line arguments
+$ cd ~/src/
+$ git clone git://orgmode.org/org-mode.git
+$ make autoloads
 @end example
 
-@noindent which can be safely ignored.}
-on your system).
+Note that @code{make autoloads} is mandatory: it defines Org's version and
+Org's autoloaded functions, respectively in @file{org-version.el} and in
+@file{org-loaddefs.el}.
 
-@example
-make install-info
-@end example
+Remember to add the correct load-path as described in the method above.
 
-Do not forget to activate Org as described in the following section.
-@page
+You can also compile and install Org from this git repository: check
+@code{make help} to get the list of compilation/installation options.
+
+For more detailed explanations on Org's build system, please check the Org
+Build System page on @uref{http://orgmode.org/worg/dev/org-build-system.html, Worg}.
 
 @node Activation, Feedback, Installation, Introduction
 @section Activation
@@ -3384,13 +3335,16 @@ be the description@footnote{If the headline contains a timestamp, it will be
 removed from the link and result in a wrong link---you should avoid putting
 timestamp in the headline.}.
 
-@vindex org-link-to-org-use-id
+@vindex org-id-link-to-org-use-id
 @cindex property, CUSTOM_ID
 @cindex property, ID
 If the headline has a @code{CUSTOM_ID} property, a link to this custom ID
 will be stored.  In addition or alternatively (depending on the value of
-@code{org-link-to-org-use-id}), a globally unique @code{ID} property will be
-created and/or used to construct a link.  So using this command in Org
+@code{org-id-link-to-org-use-id}), a globally unique @code{ID} property will
+be created and/or used to construct a link@footnote{The library @code{org-id}
+must first be loaded, either through @code{org-customize} by enabling
+@code{id} in @code{org-modules} , or by adding @code{(require 'org-id)} in
+your @file{.emacs}.}. So using this command in Org
 buffers will potentially create two links: a human-readable from the custom
 ID, and one that is globally unique and works even if the entry is moved from
 file to file.  Later, when inserting the link, you need to decide which one

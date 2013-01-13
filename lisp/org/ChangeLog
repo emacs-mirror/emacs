@@ -1,23 +1,46 @@
+2013-01-13  Bastien Guerry  <bzg@gnu.org>
+
+	* org-compat.el (org-condition-case-unless-debug): Delete.
+
+	* org-odt.el (org-odt-cleanup-xml-buffers): Use
+	`condition-case' instead of `org-condition-case-unless-debug',
+	which is now deleted.
+
+	* org-capture.el (org-capture-templates-contexts):
+	* org-agenda.el (org-agenda-custom-commands-contexts):
+	Docstring fix.
+
+	* org.el (org-get-tags-at): Remove duplicate inherited tags.
+
+	* org-agenda.el (org-agenda-show-inherited-tags): Allow to be set
+	to 'always or to a list of agenda types.
+	(org-agenda-finalize): Rework conditions under which inherited
+	tags should be made available even when not displayed.
+	(org-search-view, org-agenda-get-todos)
+	(org-agenda-get-timestamps, org-agenda-get-sexps)
+	(org-agenda-get-progress, org-agenda-get-scheduled)
+	(org-agenda-get-blocks): Use new possible values of
+	`org-agenda-show-inherited-tags'.
+
+	* org.el (org-open-at-point): Fix opening all links at point.
+
+	* org-agenda.el (org-get-entries-from-diary): Turn off
+	`diary-file-name-prefix' instead of
+	`diary-file-name-prefix-function', the former is checked before
+	the latter.
+
+	* org.el (org-edit-special): Check for table.el before checking
+	for Org tables.
+
+2013-01-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ob-eval.el (org-babel-shell-command-on-region): Use
+	`executable-find' for local `shell-file-name'.
+
 2013-01-09  Achim Gratz  <Stromeko@Stromeko.de>
-
-	* org-compat.el (org-define-obsolete-function-alias)
-	(org-define-obsolete-variable-alias): Introduce new compatibility
-	macros to obsolete functions and variables.
-
-	* org-agenda.el, org-clock.el, org-id.el, org-lparse.el:
-	* org-protocol.el, org.el:
-	Use `org-define-obsolete-{function,variable}-alias' instead
-	of `define-obsolate{function,variable}-alias'.
 
 	* org-faces.el: Define face alias mode-line for XEmacs (it's
 	called modeline there).
-
-	* org-compat.el (org-condition-case-unless-debug): Do not use
-	defalias for special forms, the Emacs 22 byte-compiler does not
-	recognize them correctly when compiling macros.  Use a macro
-	instead and rely on macro expansion.  That however makes the
-	decision at compile time, which should be acceptable in this case
-	since it only affects debugging.
 
 	* org-compat.el (org-no-popups): New wrapper macro which let-binds
 	the correct variables to suppress popup windows depending on the
