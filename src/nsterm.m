@@ -4981,6 +4981,7 @@ not_in_argv (NSString *arg)
 
           emacs_event->code = code;
           EV_TRAILER (theEvent);
+          processingCompose = NO;
           return;
         }
     }
@@ -5171,6 +5172,7 @@ not_in_argv (NSString *arg)
   if (NS_KEYLOG)
     NSLog (@"doCommandBySelector: %@", NSStringFromSelector (aSelector));
 
+  processingCompose = NO;
   if (aSelector == @selector (deleteBackward:))
     {
       /* happens when user backspaces over an ongoing composition:

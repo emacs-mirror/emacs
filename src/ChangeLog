@@ -1,5 +1,9 @@
 2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (keyDown:): Set processingCompose to NO if an emacs key
+	event is generated.
+	(doCommandBySelector:): Set processingCompose to NO.
+
 	* nsfont.m (ns_findfonts): Add block/unblock_input calls.
 	Remove check for fkeys count > zero, block/unblock fixes the real bug.
 	(nsfont_list_family): Add block/unblock_input calls.
