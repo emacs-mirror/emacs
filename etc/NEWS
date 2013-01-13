@@ -58,6 +58,8 @@ entries of a file.  On GNU/Linux, the POSIX ACL interface is used via
 libacl.  On MS-Windows, the NT Security APIs are used to emulate the
 POSIX ACL interfaces.
 
+** New option `scroll-bar-adjust-thumb-portion'.
+
 * Editing Changes in Emacs 24.4
 
 ** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
