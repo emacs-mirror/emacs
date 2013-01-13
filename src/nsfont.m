@@ -546,6 +546,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
     NSSet *cFamilies;
     BOOL foundItal = NO;
 
+    block_input ();
     if (NSFONT_TRACE)
       {
 	fprintf (stderr, "nsfont: %s for fontspec:\n    ",
@@ -560,10 +561,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
     if (isMatch)
 	[fkeys removeObject: NSFontFamilyAttribute];
 
-    if ([fkeys count] > 0)
-      matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
-    else
-      matchingDescs = [NSMutableArray array];
+    matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
 
     if (NSFONT_TRACE)
 	NSLog(@"Got desc %@ and found %d matching fonts from it: ", fdesc,
@@ -597,6 +595,8 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 					 "synthItal"), list);
         [s1 release];
       }
+
+    unblock_input ();
 
     /* Return something if was a match and nothing found. */
     if (isMatch)
@@ -701,10 +701,12 @@ static Lisp_Object
 nsfont_list_family (Lisp_Object frame)
 {
   Lisp_Object list = Qnil;
-  NSEnumerator *families =
-    [[[NSFontManager sharedFontManager] availableFontFamilies]
-      objectEnumerator];
+  NSEnumerator *families;
   NSString *family;
+
+  block_input ();
+  families = [[[NSFontManager sharedFontManager] availableFontFamilies]
+               objectEnumerator];
   while ((family = [families nextObject]))
       list = Fcons (intern ([family UTF8String]), list);
   /* FIXME: escape the name? */
@@ -713,6 +715,7 @@ nsfont_list_family (Lisp_Object frame)
     fprintf (stderr, "nsfont: list families returning %"pI"d entries\n",
 	     XINT (Flength (list)));
 
+  unblock_input ();
   return list;
 }
 
@@ -734,6 +737,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   NSRect brect;
   Lisp_Object font_object;
   int fixLeopardBug;
+
+  block_input ();
 
   if (NSFONT_TRACE)
     {
@@ -794,12 +799,13 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
   font = (struct font *) font_info;
   if (!font)
-    return Qnil; /* FIXME: other terms do, but return Qnil causes segfault */
+    {
+      unblock_input ();
+      return Qnil; /* FIXME: other terms do, but return Qnil causes segfault */
+    }
 
   font_info->glyphs = xzalloc (0x100 * sizeof *font_info->glyphs);
   font_info->metrics = xzalloc (0x100 * sizeof *font_info->metrics);
-
-  block_input ();
 
   /* for metrics */
 #ifdef NS_IMPL_COCOA
@@ -1051,6 +1057,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   char isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
   int end = isComposite ? s->cmp_to : s->nchars;
 
+  block_input ();
   /* Select face based on input flags */
   switch (ns_tmp_flags)
     {
@@ -1273,6 +1280,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   /* Draw underline, overline, strike-through. */
   ns_draw_text_decoration (s, face, col, r.size.width, r.origin.x);
 
+  unblock_input ();
   return to-from;
 }
 

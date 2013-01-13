@@ -1,3 +1,12 @@
+2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (ns_findfonts): Add block/unblock_input calls.
+	Remove check for fkeys count > zero, block/unblock fixes the real bug.
+	(nsfont_list_family): Add block/unblock_input calls.
+	(nsfont_open): Move block_input earlier.  Add unblock_input before early
+	return.
+	(nsfont_draw): Add block/unblock_input calls.
+
 2013-01-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* indent.c (Fvertical_motion): Remove now-incorrect GCPROs
