@@ -83,7 +83,7 @@
   :tag "Org ID"
   :group 'org)
 
-(org-define-obsolete-variable-alias
+(define-obsolete-variable-alias
   'org-link-to-org-use-id 'org-id-link-to-org-use-id "24.3")
 (defcustom org-id-link-to-org-use-id nil
   "Non-nil means storing a link to an Org file will use entry IDs.

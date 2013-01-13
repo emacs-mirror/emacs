@@ -169,24 +169,6 @@ If DELETE is non-nil, delete all those overlays."
 	(set-buffer-modified-p modified-p))
     (decompose-region beg end)))
 
-(defmacro org-define-obsolete-function-alias (o-name c-name when &optional doc)
-  "Reconcile the two-argument form of
-`define-obsolete-function-alias' in XEmacs/Emacs 22 with the 3-4
-argument form in Emacs 23 and later."
-  (if (or (featurep 'xemacs)
-	  (< emacs-major-version 23))
-      `(define-obsolete-function-alias ,o-name ,c-name)
-    `(define-obsolete-function-alias ,o-name ,c-name ,when ,doc)))
-
-(defmacro org-define-obsolete-variable-alias (o-name c-name when &optional doc)
-  "Reconcile the two-argument form of
-`define-obsolete-variable-alias' in XEmacs/Emacs 22 with the 3-4
-argument form in Emacs 23 and later."
-  (if (or (featurep 'xemacs)
-	  (< emacs-major-version 23))
-      `(define-obsolete-variable-alias ,o-name ,c-name)
-    `(define-obsolete-variable-alias ,o-name ,c-name ,when ,doc)))
-
 ;; Miscellaneous functions
 
 (defun org-add-hook (hook function &optional append local)
@@ -462,16 +444,6 @@ With two arguments, return floor and remainder of their quotient."
       (funcall
        'pop-to-buffer-same-window buffer-or-name norecord)
     (funcall 'switch-to-buffer buffer-or-name norecord)))
-
-;; `condition-case-unless-debug' has been introduced in Emacs 24.1
-;; `condition-case-no-debug' has been introduced in Emacs 23.1
-(defmacro org-condition-case-unless-debug (var bodyform &rest handlers)
-  (declare (debug condition-case) (indent 2))
-  (or (and (fboundp 'condition-case-unless-debug)
-	   `(condition-case-unless-debug ,var ,bodyform ,@handlers))
-      (and (fboundp 'condition-case-no-debug)
-	   `(condition-case-no-debug ,var ,bodyform ,@handlers))
-      `(condition-case ,var ,bodyform ,@handlers)))
 
 ;; RECURSIVE has been introduced with Emacs 23.2.
 ;; This is copying and adapted from `tramp-compat-delete-directory'
