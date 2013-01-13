@@ -3,7 +3,7 @@
 	* nsfont.m (LCD_SMOOTHING_MARGIN): New define.
 	(nsfont_draw): Remove disabling of LCD smoothing.
 	(ns_glyph_metrics): Add LCD_SMOOTHING_MARGIN to bearings to fix
-	Bug#11484 with LCD smooting on.
+	Bug#11484 with LCD smoothing on.
 
 2013-01-11  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>  (tiny change)
 
