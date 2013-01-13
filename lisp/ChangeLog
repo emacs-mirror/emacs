@@ -1,3 +1,9 @@
+2013-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Avoid warnings about
+	scroll-bar-adjust-thumb-portion on platforms where it is not
+	defined.
+
 2013-01-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add scroll-bar-adjust-thumb-portion.

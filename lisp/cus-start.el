@@ -576,6 +576,9 @@ since it could result in memory overflow and make Emacs crash."
 			      (symbol-name symbol))
 		       ;; Any function from fontset.c will do.
 		       (fboundp 'new-fontset))
+		      ((equal "scroll-bar-adjust-thumb-portion"
+			      (symbol-name symbol))
+		       (featurep 'x))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
