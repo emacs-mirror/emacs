@@ -307,13 +307,13 @@ This function is called, by name, directly by the C code."
 	  ;; Run handler.
 	  ;; We do this after rescheduling so that the handler function
 	  ;; can cancel its own timer successfully with cancel-timer.
-	  (condition-case nil
+	  (condition-case-unless-debug err
               ;; Timer functions should not change the current buffer.
               ;; If they do, all kinds of nasty surprises can happen,
               ;; and it can be hellish to track down their source.
               (save-current-buffer
                 (apply (timer--function timer) (timer--args timer)))
-	    (error nil))
+	    (error (message "Error in timer: %S" err)))
 	  (if retrigger
 	      (setf (timer--triggered timer) nil)))
       (error "Bogus timer event"))))

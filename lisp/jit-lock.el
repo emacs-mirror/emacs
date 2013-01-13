@@ -257,6 +257,47 @@ the variable `jit-lock-stealth-nice'."
 	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
+(define-minor-mode jit-lock-debug-mode
+  "Minor mode to help debug code run from jit-lock.
+When this minor mode is enabled, jit-lock runs as little code as possible
+during redisplay and moves the rest to a timer, where things
+like `debug-on-error' and Edebug can be used."
+  :global t
+  (when jit-lock-defer-timer
+    (cancel-timer jit-lock-defer-timer)
+    (setq jit-lock-defer-timer nil))
+  (when jit-lock-debug-mode
+    (setq jit-lock-defer-timer
+          (run-with-idle-timer 0 t #'jit-lock--debug-fontify))))
+
+(defvar jit-lock--debug-fontifying nil)
+
+(defun jit-lock--debug-fontify ()
+  "Fontify what was deferred for debugging."
+  (when (and (not jit-lock--debug-fontifying)
+             jit-lock-defer-buffers (not memory-full))
+    (let ((jit-lock--debug-fontifying t)
+          (inhibit-debugger nil))       ;FIXME: Not sufficient!
+      ;; Mark the deferred regions back to `fontified = nil'
+      (dolist (buffer jit-lock-defer-buffers)
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer
+            ;; (message "Jit-Debug %s" (buffer-name))
+            (with-buffer-prepared-for-jit-lock
+                (let ((pos (point-min)))
+                  (while
+                      (progn
+                        (when (eq (get-text-property pos 'fontified) 'defer)
+                          (let ((beg pos)
+                                (end (setq pos (next-single-property-change
+                                                pos 'fontified
+                                                nil (point-max)))))
+                            (put-text-property beg end 'fontified nil)
+                            (jit-lock-fontify-now beg end)))
+                        (setq pos (next-single-property-change
+                                   pos 'fontified)))))))))
+      (setq jit-lock-defer-buffers nil))))
+
 (defun jit-lock-register (fun &optional contextual)
   "Register FUN as a fontification function to be called in this buffer.
 FUN will be called with two arguments START and END indicating the region
@@ -504,7 +545,8 @@ non-nil in a repeated invocation of this function."
 		      pos (setq pos (next-single-property-change
 				     pos 'fontified nil (point-max)))
 		      'fontified nil))
-		   (setq pos (next-single-property-change pos 'fontified)))))))))
+		   (setq pos (next-single-property-change
+                              pos 'fontified)))))))))
     (setq jit-lock-defer-buffers nil)
     ;; Force fontification of the visible parts.
     (let ((jit-lock-defer-timer nil))
