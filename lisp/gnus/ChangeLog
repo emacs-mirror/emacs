@@ -43,7 +43,6 @@
 	(mml-smime-epg-find-usable-secret-key): New helper function copied from
 	mml2015.el.
 
->>>>>>> MERGE-SOURCE
 2012-12-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-inews-insert-gcc): Don't insert Gcc headers if Gnus
