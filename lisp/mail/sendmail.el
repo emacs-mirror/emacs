@@ -1493,6 +1493,9 @@ just append to the file, in Babyl format if necessary."
            (insert "\nMail-Followup-To: "))))
 
 (defun mail-position-on-field (field &optional soft)
+  "Move to the start of the contents of header field FIELD.
+If there is none, insert one, unless SOFT is non-nil.
+If there are multiple FIELD fields, this goes to the first."
   (let (end
 	(case-fold-search t))
     (setq end (mail-header-end))
