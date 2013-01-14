@@ -1,3 +1,8 @@
+2013-01-14  Julien Danjou  <julien@danjou.info>
+
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups): Compare
+	addresses against addresses, not against the full From field.
+
 2013-01-13  Richard Stallman  <rms@gnu.org>
 
 	* message.el (message-forward-make-body-mime): New args BEG, END
@@ -7,10 +12,10 @@
 2013-01-11  Aaron S. Hawley  <Aaron.Hawley@vtinfo.com>
 
 	* gnus-start.el (gnus-check-new-newsgroups): Fix ambiguous doc string
-	 cross-reference(s).
+	cross-reference(s).
 
 	* gnus-sum.el (gnus-summary-newsgroup-prefix): Fix ambiguous doc string
-	 cross-reference(s).
+	cross-reference(s).
 
 2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
