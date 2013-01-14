@@ -1,3 +1,27 @@
+2013-01-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Make Lisp_Save_Value more versatile storage for up to four objects.
+	* lisp.h (toplevel): Enumeration to describe types of saved objects.
+	(struct Lisp_Save_Value): New layout.  Adjust comments.
+	(XSAVE_POINTER): New macro.
+	(XSAVE_INTEGER): Likewise.
+	(allocate_misc): Add prototype.
+	(free_misc): Likewise.
+	* alloc.c (allocate_misc): Now global.
+	(free_misc): Likewise.  Adjust comment.
+	(make_save_value): Use new Lisp_Save_Value layout.  Adjust comment.
+	(free_save_value): Likewise.
+	(mark_object): Likewise.
+	* editfns.c (save_excursion_save): Pack everything within
+	Lisp_Save_Value and so avoid xmalloc.
+	(save_excursion_restore): Adjust to match new layout.  Use free_misc
+	because we do not allocate extra memory any more.  Add eassert.
+	* print.c (print_object): New code to print Lisp_Save_Value.  Do not
+	rely on valid_lisp_object_p if !GC_MARK_STACK.  Adjust comments.
+	* dired.c, fileio.c, font.c, ftfont.c, gtkutil.c, keymap.c,
+	* lread.c, nsmenu.m, nsterm.h, xfns.c, xmenu.c, xselect.c:
+	Use XSAVE_POINTER and XSAVE_INTEGER where appropriate.
+
 2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (LCD_SMOOTHING_MARGIN): New define.

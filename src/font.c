@@ -1857,7 +1857,7 @@ otf_open (Lisp_Object file)
   OTF *otf;
 
   if (! NILP (val))
-    otf = XSAVE_VALUE (XCDR (val))->pointer;
+    otf = XSAVE_POINTER (XCDR (val));
   else
     {
       otf = STRINGP (file) ? OTF_open (SSDATA (file)) : NULL;

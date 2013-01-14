@@ -2027,8 +2027,9 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  PRINTCHAR ('>');
 	  break;
 
-      /* Remaining cases shouldn't happen in normal usage, but let's print
-	 them anyway for the benefit of the debugger.  */
+	  /* Remaining cases shouldn't happen in normal usage, but let's
+	     print them anyway for the benefit of the debugger.  */
+
 	case Lisp_Misc_Free:
 	  strout ("#<misc free cell>", -1, -1, printcharfun);
 	  break;
@@ -2039,20 +2040,28 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    struct Lisp_Save_Value *v = XSAVE_VALUE (obj);
 
 	    strout ("#<save-value ", -1, -1, printcharfun);
-	    if (v->dogc)
-	      {
-		int lim = min (v->integer, 8);
-		
-		/* Try to print up to 8 objects we have saved.  Although
-		   valid_lisp_object_p is slow, this shouldn't be a real
-		   bottleneck because such a saved values are quite rare.  */
 
-		i = sprintf (buf, "with %"pD"d objects", v->integer);
+	    if (v->area)
+	      {
+		ptrdiff_t amount = v->data[1].integer;
+
+#if GC_MARK_STACK
+
+		/* If GC_MARK_STACK, valid_lisp_object_p is quite reliable,
+		   and so we try to print up to 8 objects we have saved.
+		   Although valid_lisp_object_p is slow, this shouldn't be
+		   a real bottleneck because we do not use this code under
+		   normal circumstances.  */
+
+		int limit = min (amount, 8);
+		Lisp_Object *area = (Lisp_Object *) v->data[0].pointer;
+
+		i = sprintf (buf, "with %"pD"d objects", amount);
 		strout (buf, i, i, printcharfun);
 
-		for (i = 0; i < lim; i++)
+		for (i = 0; i < limit; i++)
 		  {
-		    Lisp_Object maybe = ((Lisp_Object *) v->pointer)[i];
+		    Lisp_Object maybe = area[i];
 
 		    if (valid_lisp_object_p (maybe) > 0)
 		      {
@@ -2062,13 +2071,49 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		    else
 		      strout (" <invalid>", -1, -1, printcharfun);
 		  }
-		if (i == lim && i < v->integer)
+		if (i == limit && i < amount)
 		  strout (" ...", 4, 4, printcharfun);
+
+#else /* not GC_MARK_STACK */
+
+		/* If !GC_MARK_STACK, we have no reliable way to find
+		   whether Lisp_Object pointers points to an initialized
+		   objects, and so we do not ever trying to print them.  */
+
+		i = sprintf (buf, "with %"pD"d objects", amount);
+		strout (buf, i, i, printcharfun);
+
+#endif /* GC_MARK_STACK */
 	      }
 	    else
 	      {
-		i = sprintf (buf, "ptr=%p int=%"pD"d", v->pointer, v->integer);
-		strout (buf, i, i, printcharfun);
+		/* Print each `data[N]' slot according to its type.  */
+
+#define PRINTX(index)							\
+  do {									\
+    i = 0;								\
+    if (v->type ## index == SAVE_UNUSED)				\
+      i = sprintf (buf, "<unused>");					\
+    else if (v->type ## index == SAVE_INTEGER)				\
+      i = sprintf (buf, "<integer %"pD"d>", v->data[index].integer);	\
+    else if (v->type ## index == SAVE_POINTER)				\
+      i = sprintf (buf, "<pointer %p>", v->data[index].pointer);	\
+    else /* SAVE_OBJECT */						\
+      print_object (v->data[index].object, printcharfun, escapeflag);	\
+    if (i)								\
+      strout (buf, i, i, printcharfun);					\
+  } while (0)
+
+		PRINTX (0);
+		PRINTCHAR (' ');
+		PRINTX (1);
+		PRINTCHAR (' ');
+		PRINTX (2);
+		PRINTCHAR (' ');
+		PRINTX (3);
+
+#undef PRINTX
+
 	      }
 	    PRINTCHAR ('>');
 	  }

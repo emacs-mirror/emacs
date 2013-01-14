@@ -5292,8 +5292,7 @@ file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 static Lisp_Object
 clean_up_file_dialog (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  Widget dialog = (Widget) p->pointer;
+  Widget dialog = (Widget) XSAVE_POINTER (arg);
 
   /* Clean up.  */
   block_input ();

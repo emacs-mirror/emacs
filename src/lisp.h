@@ -1378,20 +1378,48 @@ struct Lisp_Overlay
     Lisp_Object plist;
   };
 
-/* Hold a C pointer for later use.
-   This type of object is used in the arg to record_unwind_protect.  */
+/* Types of data which may be saved in a Lisp_Save_Value.  */
+
+enum
+  {
+    SAVE_UNUSED,
+    SAVE_INTEGER,
+    SAVE_POINTER,
+    SAVE_OBJECT
+  };
+
+/* Special object used to hold a different values for later use.  */
+
 struct Lisp_Save_Value
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 14;
-    /* If DOGC is set, POINTER is the address of a memory
-       area containing INTEGER potential Lisp_Objects.  */
-    unsigned int dogc : 1;
-    void *pointer;
-    ptrdiff_t integer;
+    int spacer : 6;
+    /* If `area' is nonzero, `data[0].pointer' is the address of a memory area
+       containing `data[1].integer' potential Lisp_Objects.  The rest of `data'
+       fields are unused.  */
+    unsigned area : 1;
+    /* If `area' is zero, `data[N]' may hold different objects which type is
+       encoded in `typeN' fields as described by the anonymous enum above.
+       E.g. if `type0' is SAVE_INTEGER, `data[0].integer' is in use.  */
+    unsigned type0 : 2;
+    unsigned type1 : 2;
+    unsigned type2 : 2;
+    unsigned type3 : 2;
+    union {
+      void *pointer;
+      ptrdiff_t integer;
+      Lisp_Object object;
+    } data[4];
   };
 
+/* Compatibility macro to set and extract saved pointer.  */
+
+#define XSAVE_POINTER(obj) XSAVE_VALUE (obj)->data[0].pointer
+
+/* Likewise for the saved ingeger.  */
+
+#define XSAVE_INTEGER(obj) XSAVE_VALUE (obj)->data[1].integer
 
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
@@ -2893,6 +2921,8 @@ extern void memory_warnings (void *, void (*warnfun) (const char *));
 
 /* Defined in alloc.c.  */
 extern void check_pure_size (void);
+extern Lisp_Object allocate_misc (enum Lisp_Misc_Type);
+extern void free_misc (Lisp_Object);
 extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
 extern void malloc_warning (const char *);
 extern _Noreturn void memory_full (size_t);
@@ -3695,7 +3725,7 @@ extern void *record_xmalloc (size_t);
 	Lisp_Object arg_;				       \
 	buf = xmalloc ((nelt) * word_size);		       \
 	arg_ = make_save_value (buf, nelt);		       \
-	XSAVE_VALUE (arg_)->dogc = 1;			       \
+	XSAVE_VALUE (arg_)->area = 1;			       \
 	sa_must_free = 1;				       \
 	record_unwind_protect (safe_alloca_unwind, arg_);      \
       }							       \

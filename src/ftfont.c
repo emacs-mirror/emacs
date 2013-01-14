@@ -393,16 +393,14 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
       cache_data = xmalloc (sizeof *cache_data);
       cache_data->ft_face = NULL;
       cache_data->fc_charset = NULL;
-      val = make_save_value (NULL, 0);
-      XSAVE_VALUE (val)->integer = 0;
-      XSAVE_VALUE (val)->pointer = cache_data;
+      val = make_save_value (cache_data, 0);
       cache = Fcons (Qnil, val);
       Fputhash (key, cache, ft_face_cache);
     }
   else
     {
       val = XCDR (cache);
-      cache_data = XSAVE_VALUE (val)->pointer;
+      cache_data = XSAVE_POINTER (val);
     }
 
   if (cache_for == FTFONT_CACHE_FOR_ENTITY)
@@ -468,7 +466,7 @@ ftfont_get_fc_charset (Lisp_Object entity)
 
   cache = ftfont_lookup_cache (entity, FTFONT_CACHE_FOR_CHARSET);
   val = XCDR (cache);
-  cache_data = XSAVE_VALUE (val)->pointer;
+  cache_data = XSAVE_POINTER (val);
   return cache_data->fc_charset;
 }
 
@@ -1200,9 +1198,9 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   filename = XCAR (val);
   idx = XCDR (val);
   val = XCDR (cache);
-  cache_data = XSAVE_VALUE (XCDR (cache))->pointer;
+  cache_data = XSAVE_POINTER (XCDR (cache));
   ft_face = cache_data->ft_face;
-  if (XSAVE_VALUE (val)->integer > 0)
+  if (XSAVE_INTEGER (val) > 0)
     {
       /* FT_Face in this cache is already used by the different size.  */
       if (FT_New_Size (ft_face, &ft_size) != 0)
@@ -1213,13 +1211,13 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	  return Qnil;
 	}
     }
-  XSAVE_VALUE (val)->integer++;
+  XSAVE_INTEGER (val)++;
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
   if (FT_Set_Pixel_Sizes (ft_face, size, size) != 0)
     {
-      if (XSAVE_VALUE (val)->integer == 0)
+      if (XSAVE_INTEGER (val) == 0)
 	FT_Done_Face (ft_face);
       return Qnil;
     }
@@ -1328,10 +1326,10 @@ ftfont_close (FRAME_PTR f, struct font *font)
   cache = ftfont_lookup_cache (val, FTFONT_CACHE_FOR_FACE);
   eassert (CONSP (cache));
   val = XCDR (cache);
-  (XSAVE_VALUE (val)->integer)--;
-  if (XSAVE_VALUE (val)->integer == 0)
+  (XSAVE_INTEGER (val))--;
+  if (XSAVE_INTEGER (val) == 0)
     {
-      struct ftfont_cache_data *cache_data = XSAVE_VALUE (val)->pointer;
+      struct ftfont_cache_data *cache_data = XSAVE_POINTER (val);
 
       FT_Done_Face (cache_data->ft_face);
 #ifdef HAVE_LIBOTF
