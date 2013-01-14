@@ -1931,7 +1931,10 @@ eval_sub (Lisp_Object form)
     return form;
 
   QUIT;
+
+  GCPRO1 (form);
   maybe_gc ();
+  UNGCPRO;
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {

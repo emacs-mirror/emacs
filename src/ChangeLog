@@ -1,5 +1,11 @@
 2013-01-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix compilation with GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
+	* eval.c (eval_sub): Protect `form' from being GCed before its
+	car and cdr becomes protected with the backtrace entry.
+
+2013-01-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Make Lisp_Save_Value more versatile storage for up to four objects.
 	* lisp.h (toplevel): Enumeration to describe types of saved objects.
 	(struct Lisp_Save_Value): New layout.  Adjust comments.
