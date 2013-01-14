@@ -1,3 +1,8 @@
+2013-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* automated/compile-tests.el (compile-tests--test-regexps-data):
+	Fix interpretation of gnu line.col1-col2 format.  (Bug#13335)
+
 2013-01-10  Wolfgang Jenkner  <wjenkner@inode.at>
 
 	* automated/man-tests.el: New file.

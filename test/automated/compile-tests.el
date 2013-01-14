@@ -176,8 +176,10 @@
     ("foo.c:8.23: note: message" 1 23 8 "foo.c")
     ("foo.c:8.23: info: message" 1 23 8 "foo.c")
     ("foo.c:8:23:information: message" 1 23 8 "foo.c")
-    ("foo.c:8.23-45: Informational: message" 1 (23 . nil) (8 . 45) "foo.c")
+    ("foo.c:8.23-45: Informational: message" 1 (23 . 46) (8 . nil) "foo.c")
     ("foo.c:8-23: message" 1 nil (8 . 23) "foo.c")
+    ;; The next one is not in the GNU standards AFAICS.
+    ;; Here we seem to interpret it as LINE1-LINE2.COL2.
     ("foo.c:8-45.3: message" 1 (nil . 4) (8 . 45) "foo.c")
     ("foo.c:8.23-9.1: message" 1 (23 . 2) (8 . 9) "foo.c")
     ("jade:dbcommon.dsl:133:17:E: missing argument for function call"
