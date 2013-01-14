@@ -1562,11 +1562,13 @@ line."
 (defun calendar-redraw ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
-  (if (get-buffer calendar-buffer)
-      (with-current-buffer calendar-buffer
-        (let ((cursor-date (calendar-cursor-to-nearest-date)))
-          (calendar-generate-window displayed-month displayed-year)
-          (calendar-cursor-to-visible-date cursor-date)))))
+  (when (get-buffer calendar-buffer)
+    (with-current-buffer calendar-buffer
+      (let ((cursor-date (calendar-cursor-to-nearest-date)))
+        (calendar-generate-window displayed-month displayed-year)
+        (calendar-cursor-to-visible-date cursor-date))
+      (when (window-live-p (get-buffer-window))
+        (set-window-point (get-buffer-window) (point))))))
 
 (defvar calendar-mode-map
   (let ((map (make-keymap)))

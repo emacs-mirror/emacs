@@ -1,3 +1,8 @@
+2013-01-14  Leo Liu  <sdl.web@gmail.com>
+
+	* calendar/calendar.el (calendar-redraw): Sync window-point and point.
+	(Bug#13420)
+
 2013-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
