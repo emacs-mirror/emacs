@@ -1,3 +1,33 @@
+2013-01-14  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Implement saving top priority items buffers,
+	improve implementation of item filtering commands and
+	infrastucture, and fix two bugs.
+	(todos-prefix-overlays): Use todos-top-priority face only in Todos
+	mode.
+	(todos-multiple-filter-files): Get file-truename of Todos file.
+	(todos-filter-items): Pass a list of files from the caller instead
+	of building it here, and move handling of cancelled file selection
+	dialog to callers.  Correct omission of file-wide default number
+	of top priorities.
+	(todos-filtered-buffer-name): Treat file-list argument only as a list.
+	(todos-find-item, todos-check-top-priorities)
+	(todos-top-priorities-filename)
+	(todos-save-top-priorities-buffer): New functions.
+	(todos-save): Use todos-save-top-priorities-buffer.
+	(todos-jump-to-item): Refactor and use todos-find-item.
+	(todos-top-priorities): Simplify semantics of prefix argument.
+	Check if top priorities file exists and if so, visit it, reporting
+	whether it is up to date.  Add optional argument and use it to
+	handle multiple files.
+	(todos-diary-items, todos-regexp-items): Add optional argument and
+	use it to handle multiple files.
+	(todos-top-priorities-multifile, todos-diary-items-multifile)
+	(todos-regexp-items-multifile): Refactor, using corresponding
+	non-multifile command.
+	(auto-mode-alist): Add pattern for top priorities files to visit
+	these in Todos Filtered Items mode.
+
 2013-01-08  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Fix tabular alignment in Todos Categories mode.
