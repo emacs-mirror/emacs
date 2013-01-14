@@ -1417,7 +1417,7 @@ struct Lisp_Save_Value
 
 #define XSAVE_POINTER(obj) XSAVE_VALUE (obj)->data[0].pointer
 
-/* Likewise for the saved ingeger.  */
+/* Likewise for the saved integer.  */
 
 #define XSAVE_INTEGER(obj) XSAVE_VALUE (obj)->data[1].integer
 
