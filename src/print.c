@@ -2054,7 +2054,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		   normal circumstances.  */
 
 		int limit = min (amount, 8);
-		Lisp_Object *area = (Lisp_Object *) v->data[0].pointer;
+		Lisp_Object *area = v->data[0].pointer;
 
 		i = sprintf (buf, "with %"pD"d objects", amount);
 		strout (buf, i, i, printcharfun);

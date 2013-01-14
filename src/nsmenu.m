@@ -1347,7 +1347,7 @@ struct Popdown_data
 static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
-  struct Popdown_data *unwind_data = (struct Popdown_data *) XSAVE_POINTER (arg);
+  struct Popdown_data *unwind_data = XSAVE_POINTER (arg);
 
   block_input ();
   if (popup_activated_flag)

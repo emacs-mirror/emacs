@@ -565,8 +565,7 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 {
   if (!NILP (val))
     {
-      map_keymap_function_t fun
-	= (map_keymap_function_t) XSAVE_POINTER (XCAR (args));
+      map_keymap_function_t fun = XSAVE_POINTER (XCAR (args));
       args = XCDR (args);
       /* If the key is a range, make a copy since map_char_table modifies
 	 it in place.  */

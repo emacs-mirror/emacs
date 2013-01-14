@@ -1,3 +1,18 @@
+2013-01-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid needless casts with XSAVE_POINTER.
+	* alloc.c (mark_object) [GC_MARK_STACK]:
+	* dired.c (directory_files_internal_unwind):
+	* fileio.c (do_auto_save_unwind):
+	* gtkutil.c (pop_down_dialog):
+	* keymap.c (map_keymap_char_table_item):
+	* lread.c (load_unwind):
+	* nsmenu.m (pop_down_menu):
+	* print.c (print_object) [GC_MARK_STACK]:
+	* xfns.c (clean_up_file_dialog):
+	* xmenu.c (cleanup_widget_value_tree):
+	Omit casts between XSAVE_POINTER and a pointer type.
+
 2013-01-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix compilation with GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.

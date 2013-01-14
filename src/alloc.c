@@ -5943,7 +5943,7 @@ mark_object (Lisp_Object arg)
 #if GC_MARK_STACK
 	    if (ptr->area)
 	      {
-		Lisp_Object *p = (Lisp_Object *) ptr->data[0].pointer;
+		Lisp_Object *p = ptr->data[0].pointer;
 		ptrdiff_t nelt;
 		for (nelt = ptr->data[1].integer; nelt > 0; nelt--, p++)
 		  mark_maybe_object (*p);

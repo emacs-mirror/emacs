@@ -1610,7 +1610,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 static Lisp_Object
 cleanup_widget_value_tree (Lisp_Object arg)
 {
-  free_menubar_widget_value_tree ((widget_value *) XSAVE_POINTER (arg));
+  free_menubar_widget_value_tree (XSAVE_POINTER (arg));
   return Qnil;
 }
 
