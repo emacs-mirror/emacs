@@ -1,6 +1,11 @@
+2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/which-func.el (which-function): Silence imenu errors
+	(bug#13433).
+
 2013-01-15  Michael R. Mauger  <mmaug@yahoo.com>
 
-	* progmodes/sql.el: (sql-imenu-generic-expression): 
+	* progmodes/sql.el: (sql-imenu-generic-expression):
 	(sql-mode-font-lock-object-name): Match schema qualified names.
 	(sql-connect): Use string keys.
 	(sql-product-interactive): Wait for interpreter prompt.
@@ -9,9 +14,8 @@
 2013-01-15  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el (sql-output-to-send): Remove, unused.
-	(sql-interactive-remove-continuation-prompt): 
-	(sql-send-magic-terminator, sql-interactive-mode): Remove
-	references.
+	(sql-interactive-remove-continuation-prompt):
+	(sql-send-magic-terminator, sql-interactive-mode): Remove references.
 
 2013-01-14  Leo Liu  <sdl.web@gmail.com>
 
@@ -25,22 +29,21 @@
 
 2013-01-13  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el (python-nav-end-of-statement): Fix
-	cornercase when handling multiline strings.
+	* progmodes/python.el (python-nav-end-of-statement):
+	Fix cornercase when handling multiline strings.
 
 2013-01-13  Richard Stallman  <rms@gnu.org>
 
 	* mail/sendmail.el (mail-position-on-field): Add doc string.
 
-	* mail/rmailmm.el (rmail-insert-mime-forwarded-message): Get
-	current message boundaries and pass them to
+	* mail/rmailmm.el (rmail-insert-mime-forwarded-message):
+	Get current message boundaries and pass them to
 	message-forward-make-body-mime.  Minor style changes.
 
 2013-01-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Avoid warnings about
-	scroll-bar-adjust-thumb-portion on platforms where it is not
-	defined.
+	scroll-bar-adjust-thumb-portion on platforms where it is not defined.
 
 2013-01-11  Jan Djärv  <jan.h.d@swipnet.se>
 
