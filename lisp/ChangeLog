@@ -1,5 +1,13 @@
 2013-01-15  Michael R. Mauger  <mmaug@yahoo.com>
 
+	* progmodes/sql.el: (sql-imenu-generic-expression): 
+	(sql-mode-font-lock-object-name): Match schema qualified names.
+	(sql-connect): Use string keys.
+	(sql-product-interactive): Wait for interpreter prompt.
+	(sql-comint-oracle): Set process coding based on NLS_LANG.
+
+2013-01-15  Michael R. Mauger  <mmaug@yahoo.com>
+
 	* progmodes/sql.el (sql-output-to-send): Remove, unused.
 	(sql-interactive-remove-continuation-prompt): 
 	(sql-send-magic-terminator, sql-interactive-mode): Remove

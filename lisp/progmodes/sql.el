@@ -723,15 +723,15 @@ this variable is nil, that buffer is shown using
 
 (defvar sql-imenu-generic-expression
   ;; Items are in reverse order because they are rendered in reverse.
-  '(("Rules/Defaults" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:rule\\|default\\)\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\s-+\\(\\w+\\)" 1)
-    ("Sequences" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*sequence\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Triggers" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*trigger\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Functions" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?function\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Procedures" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?proc\\(?:edure\\)?\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Packages" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*package\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Types" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*type\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Indexes" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*index\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Tables/Views" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:table\\|view\\)\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1))
+  '(("Rules/Defaults" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:rule\\|default\\)\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\s-+\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Sequences" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*sequence\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Triggers" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*trigger\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Functions" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?function\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Procedures" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?proc\\(?:edure\\)?\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Packages" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*package\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Types" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*type\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Indexes" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*index\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Tables/Views" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:table\\|view\\)\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1))
   "Define interesting points in the SQL buffer for `imenu'.
 
 This is used to set `imenu-generic-expression' when SQL mode is
@@ -1313,7 +1313,7 @@ Based on `comint-mode-map'.")
 		  "\\(?:table\\|view\\|\\(?:package\\|type\\)\\(?:\\s-+body\\)?\\|proc\\(?:edure\\)?"
 		  "\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+"
                   "\\(?:if\\s-+not\\s-+exists\\s-+\\)?" ;; IF NOT EXISTS
-		  "\\(\\w+\\)")
+		  "\\(\\w+\\(?:\\s-*[.]\\s-*\\w+\\)*\\)")
 	  1 'font-lock-function-name-face))
 
   "Pattern to match the names of top-level objects.
@@ -3924,7 +3924,7 @@ is specified in the connection settings."
       ;; Was one selected
       (when connection
         ;; Get connection settings
-        (let ((connect-set  (assoc connection sql-connection-alist)))
+        (let ((connect-set (assoc-string connection sql-connection-alist t)))
           ;; Settings are defined
           (if connect-set
               ;; Set the desired parameters
@@ -4128,9 +4128,17 @@ the call to \\[sql-product-interactive] with
                   (setq sql-buffer (buffer-name new-sqli-buffer))
                   (run-hooks 'sql-set-sqli-hook)))
 
+              ;; Make sure the connection is complete
+              ;; (Sometimes start up can be slow)
+              ;;  and call the login hook
+              (let ((proc (get-buffer-process new-sqli-buffer)))
+                (while (and (memq (process-status proc) '(open run))
+                            (accept-process-output proc 2.5)
+                            (progn (goto-char (point-max))
+                                   (not (looking-back sql-prompt-regexp))))))
+              (run-hooks 'sql-login-hook)
               ;; All done.
               (message "Login...done")
-              (run-hooks 'sql-login-hook)
               (pop-to-buffer new-sqli-buffer)))))
     (message "No default SQL product defined.  Set `sql-product'.")))
 
@@ -4196,7 +4204,7 @@ The default comes from `process-coding-system-alist' and
   ;; is meaningless; database without user/password is meaningless,
   ;; because "@param" will ask sqlplus to interpret the script
   ;; "param".
-  (let ((parameter nil))
+  (let (parameter nlslang coding)
     (if (not (string= "" sql-user))
 	(if (not (string= "" sql-password))
 	    (setq parameter (concat sql-user "/" sql-password))
@@ -4206,7 +4214,29 @@ The default comes from `process-coding-system-alist' and
     (if parameter
 	(setq parameter (nconc (list parameter) options))
       (setq parameter options))
-    (sql-comint product parameter)))
+    (sql-comint product parameter)
+    ;; Set process coding system to agree with the interpreter
+    (setq nlslang (or (getenv "NLS_LANG") "")
+          coding  (dolist (cs
+                           ;; Are we missing any common NLS character sets
+                           '(("US8PC437"  . cp437)
+                             ("EL8PC737"  . cp737)
+                             ("WE8PC850"  . cp850)
+                             ("EE8PC852"  . cp852)
+                             ("TR8PC857"  . cp857)
+                             ("WE8PC858"  . cp858)
+                             ("IS8PC861"  . cp861)
+                             ("IW8PC1507" . cp862)
+                             ("N8PC865"   . cp865)
+                             ("RU8PC866"  . cp866)
+                             ("US7ASCII"  . us-ascii)
+                             ("UTF8"      . utf-8)
+                             ("AL32UTF8"  . utf-8)
+                             ("AL16UTF16" . utf-16))
+                           (or coding 'utf-8))
+                    (when (string-match (format "\\.%s\\'" (car cs)) nlslang)
+                      (setq coding (cdr cs)))))
+    (set-buffer-process-coding-system coding coding)))
 
 (defun sql-oracle-save-settings (sqlbuf)
   "Save most SQL*Plus settings so they may be reset by \\[sql-redirect]."
