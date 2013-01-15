@@ -339,7 +339,8 @@ textual parts.")
 			  (nnimap-last-command-time nnimap-object)))
 			;; More than five minutes since the last command.
 			(* 5 60)))
-	    (nnimap-send-command "NOOP")))))))
+            (ignore-errors              ;E.g. "buffer foo has no process".
+              (nnimap-send-command "NOOP"))))))))
 
 (defun nnimap-open-connection (buffer)
   ;; Be backwards-compatible -- the earlier value of nnimap-stream was
@@ -367,7 +368,7 @@ textual parts.")
 (defun nnimap-open-connection-1 (buffer)
   (unless nnimap-keepalive-timer
     (setq nnimap-keepalive-timer (run-at-time (* 60 15) (* 60 15)
-					      'nnimap-keepalive)))
+					      #'nnimap-keepalive)))
   (with-current-buffer (nnimap-make-process-buffer buffer)
     (let* ((coding-system-for-read 'binary)
 	   (coding-system-for-write 'binary)

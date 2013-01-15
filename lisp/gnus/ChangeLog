@@ -1,7 +1,12 @@
+2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-keepalive): Don't throw an error if there's no more
+	imap process running.
+
 2013-01-14  Julien Danjou  <julien@danjou.info>
 
-	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups): Compare
-	addresses against addresses, not against the full From field.
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups):
+	Compare addresses against addresses, not against the full From field.
 
 2013-01-13  Richard Stallman  <rms@gnu.org>
 
@@ -178,8 +183,8 @@
 	the `face' property with a list whose car is the face specified in the
 	format string and whose cdr is (nil).
 	* lisp/gnus-util.el
-	(gnus-put-text-property-excluding-characters-with-faces): Change
-	accordingly.
+	(gnus-put-text-property-excluding-characters-with-faces):
+	Change accordingly.
 	(gnus-get-text-property-excluding-characters-with-faces): New function.
 	* lisp/gnus-sum.el (gnus-summary-highlight-line):
 	* lisp/gnus-salt.el (gnus-tree-highlight-node):
@@ -227,8 +232,8 @@
 
 2012-12-22  Philipp Haselwarter  <philipp@haselwarter.org>
 
-	* gnus-sync.el (gnus-sync-file-encrypt-to, gnus-sync-save): Set
-	epa-file-encrypt-to from variable to avoid querying.
+	* gnus-sync.el (gnus-sync-file-encrypt-to, gnus-sync-save):
+	Set epa-file-encrypt-to from variable to avoid querying.
 
 2012-12-14  Akinori MUSHA  <knu@iDaemons.org>  (tiny change)
 
