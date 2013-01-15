@@ -173,20 +173,21 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
     (let ((first (advice--car flist))
           (rest (advice--cdr flist))
           (props (advice--props flist)))
-      (or (funcall tweaker first rest props)
+      (let ((val (funcall tweaker first rest props)))
+        (if val (car val)
           (let ((nrest (advice--tweak rest tweaker)))
             (if (eq rest nrest) flist
               (advice--make-1 (aref flist 1) (aref flist 3)
-                              first nrest props)))))))
+                              first nrest props))))))))
 
 ;;;###autoload
 (defun advice--remove-function (flist function)
   (advice--tweak flist
                  (lambda (first rest props)
-                   (if (or (not first)
-                           (equal function first)
+                   (cond ((not first) rest)
+                         ((or (equal function first)
                            (equal function (cdr (assq 'name props))))
-                       rest))))
+                          (list rest))))))
 
 (defvar advice--buffer-local-function-sample nil)
 

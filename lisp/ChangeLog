@@ -1,5 +1,12 @@
 2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/nadvice.el (advice--tweak): Make it possible for `tweak'
+	to return an explicit nil.
+	(advice--remove-function): Change accordingly.
+
+	* emacs-lisp/advice.el (ad-preactivate-advice): Adjust the cleanup to
+	the use of nadvice.el.
+
 	* progmodes/which-func.el (which-function): Silence imenu errors
 	(bug#13433).
 

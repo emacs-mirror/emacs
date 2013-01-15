@@ -1,3 +1,7 @@
+2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el: Split up.  Add advice-test-preactivate.
+
 2013-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* automated/compile-tests.el (compile-tests--test-regexps-data):

@@ -2866,10 +2866,8 @@ advised definition from scratch."
 
 (defun ad-preactivate-advice (function advice class position)
   "Preactivate FUNCTION and returns the constructed cache."
-  (let* ((function-defined-p (fboundp function))
-	 (old-definition
-	  (if function-defined-p
-	      (symbol-function function)))
+  (let* ((advicefunname (ad-get-advice-info-field function 'advicefunname))
+         (old-advice (symbol-function advicefunname))
 	 (old-advice-info (ad-copy-advice-info function))
 	 (ad-advised-functions ad-advised-functions))
     (unwind-protect
@@ -2883,10 +2881,9 @@ advised definition from scratch."
 	      (list (ad-get-cache-definition function)
 		    (ad-get-cache-id function))))
       (ad-set-advice-info function old-advice-info)
-      ;; Don't `fset' function to nil if it was previously unbound:
-      (if function-defined-p
-	  (fset function old-definition)
-	(fmakunbound function)))))
+      (advice-remove function advicefunname)
+      (fset advicefunname old-advice)
+      (if old-advice (advice-add function :around advicefunname)))))
 
 
 ;; @@ Activation and definition handling:
