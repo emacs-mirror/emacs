@@ -1,3 +1,9 @@
+2013-01-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (write_globals): Make it a bit clearer (Bug#13448).
+	This pacifies GCC 4.7.2 when Emacs is configured with
+	--enable-link-time-optimization and --enable-gcc-warnings.
+
 2013-01-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (lisp1): Add macroexp.elc (bug#13320).

@@ -624,7 +624,7 @@ write_globals (void)
   qsort (globals, num_globals, sizeof (struct global), compare_globals);
   for (i = 0; i < num_globals; ++i)
     {
-      char const *type;
+      char const *type = 0;
 
       switch (globals[i].type)
 	{
@@ -649,7 +649,7 @@ write_globals (void)
 	  fatal ("not a recognized DEFVAR_", 0);
 	}
 
-      if (globals[i].type != FUNCTION)
+      if (type)
 	{
 	  fprintf (outfile, "  %s f_%s;\n", type, globals[i].name);
 	  fprintf (outfile, "#define %s globals.f_%s\n",
