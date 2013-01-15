@@ -209,6 +209,7 @@ Lisp_Object Qchar_table_extra_slots;
 
 static Lisp_Object Qpost_gc_hook;
 
+static void free_save_value (Lisp_Object);
 static void mark_terminals (void);
 static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
@@ -3417,7 +3418,7 @@ make_save_value (void *pointer, ptrdiff_t integer)
 /* Free a Lisp_Save_Value object.  Do not use this function
    if SAVE contains pointer other than returned by xmalloc.  */
 
-void
+static void
 free_save_value (Lisp_Object save)
 {
   xfree (XSAVE_POINTER (save, 0));

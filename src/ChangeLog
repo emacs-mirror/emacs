@@ -1,3 +1,7 @@
+2013-01-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (free_save_value): Now static.
+
 2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keymap.c (map_keymap_internal): Use format_save_value.
