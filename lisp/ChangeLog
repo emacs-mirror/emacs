@@ -1,3 +1,10 @@
+2013-01-15  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el (sql-output-to-send): Remove, unused.
+	(sql-interactive-remove-continuation-prompt): 
+	(sql-send-magic-terminator, sql-interactive-mode): Remove
+	references.
+
 2013-01-14  Leo Liu  <sdl.web@gmail.com>
 
 	* calendar/calendar.el (calendar-redraw): Sync window-point and point.
