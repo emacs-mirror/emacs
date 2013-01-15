@@ -833,31 +833,17 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  Lisp_Object save = allocate_misc (Lisp_Misc_Save_Value);
-  register struct Lisp_Save_Value *v = XSAVE_VALUE (save);
-
-  /* Do not allocate extra space and pack everything in SAVE.  */
-  v->area = 0;
-
-  v->type0 = SAVE_OBJECT;
-  v->data[0].object = Fpoint_marker ();
-
-  /* Do not copy the mark if it points to nowhere.  */
-  v->type1 = SAVE_OBJECT;
-  v->data[1].object = (XMARKER (BVAR (current_buffer, mark))->buffer
-		       ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
-		       : Qnil);
-
-  /* Selected window if current buffer is shown in it, nil otherwise.  */
-  v->type2 = SAVE_OBJECT;
-  v->data[2].object
-    = ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
-       ? selected_window : Qnil);
-
-  v->type3 = SAVE_OBJECT;
-  v->data[3].object = BVAR (current_buffer, mark_active);
-
-  return save;
+  return format_save_value
+    ("oooo",
+     Fpoint_marker (),
+     /* Do not copy the mark if it points to nowhere.  */
+     (XMARKER (BVAR (current_buffer, mark))->buffer
+      ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
+      : Qnil),
+     /* Selected window if current buffer is shown in it, nil otherwise.  */
+     ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+      ? selected_window : Qnil),
+     BVAR (current_buffer, mark_active));
 }
 
 /* Restore saved buffer before leaving `save-excursion' special form.  */
@@ -867,13 +853,8 @@ save_excursion_restore (Lisp_Object info)
 {
   Lisp_Object tem, tem1, omark, nmark;
   struct gcpro gcpro1, gcpro2, gcpro3;
-  register struct Lisp_Save_Value *v = XSAVE_VALUE (info);
 
-  /* Paranoid.  */
-  eassert (v->type0 == SAVE_OBJECT && v->type1 == SAVE_OBJECT
-	   && v->type2 == SAVE_OBJECT && v->type3 == SAVE_OBJECT);
-
-  tem = Fmarker_buffer (v->data[0].object);
+  tem = Fmarker_buffer (XSAVE_OBJECT (info, 0));
   /* If we're unwinding to top level, saved buffer may be deleted.  This
      means that all of its markers are unchained and so tem is nil.  */
   if (NILP (tem))
@@ -885,12 +866,12 @@ save_excursion_restore (Lisp_Object info)
   Fset_buffer (tem);
 
   /* Point marker.  */
-  tem = v->data[0].object;
+  tem = XSAVE_OBJECT (info, 0);
   Fgoto_char (tem);
   unchain_marker (XMARKER (tem));
 
   /* Mark marker.  */
-  tem = v->data[1].object;
+  tem = XSAVE_OBJECT (info, 1);
   omark = Fmarker_position (BVAR (current_buffer, mark));
   if (NILP (tem))
     unchain_marker (XMARKER (BVAR (current_buffer, mark)));
@@ -902,7 +883,7 @@ save_excursion_restore (Lisp_Object info)
     }
 
   /* Mark active.  */
-  tem = v->data[3].object;
+  tem = XSAVE_OBJECT (info, 3);
   tem1 = BVAR (current_buffer, mark_active);
   bset_mark_active (current_buffer, tem);
 
@@ -926,7 +907,7 @@ save_excursion_restore (Lisp_Object info)
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
      buffer, restore point in that window.  */
-  tem = v->data[2].object;
+  tem = XSAVE_OBJECT (info, 2);
   if (WINDOWP (tem)
       && !EQ (tem, selected_window)
       && (tem1 = XWINDOW (tem)->buffer,

@@ -3302,7 +3302,7 @@ static union Lisp_Misc *marker_free_list;
 
 /* Return a newly allocated Lisp_Misc object of specified TYPE.  */
 
-Lisp_Object
+static Lisp_Object
 allocate_misc (enum Lisp_Misc_Type type)
 {
   Lisp_Object val;
@@ -3350,6 +3350,59 @@ free_misc (Lisp_Object misc)
   total_free_markers++;
 }
 
+/* Return a Lisp_Save_Value object with the data saved according to
+   FMT.  Format specifiers are `i' for an integer, `p' for a pointer
+   and `o' for Lisp_Object.  Up to 4 objects can be specified.  */
+
+Lisp_Object
+format_save_value (const char *fmt, ...)
+{
+  va_list ap;
+  int len = strlen (fmt);
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+
+  eassert (0 < len && len < 5);
+  va_start (ap, fmt);
+
+#define INITX(index)                                           \
+  do {                                                         \
+    if (len <= index)                                          \
+      p->type ## index = SAVE_UNUSED;                          \
+    else                                                       \
+      {							       \
+        if (fmt[index] == 'i')                                 \
+         {                                                     \
+           p->type ## index = SAVE_INTEGER;                    \
+           p->data[index].integer = va_arg (ap, ptrdiff_t);    \
+         }                                                     \
+       else if (fmt[index] == 'p')                             \
+         {                                                     \
+           p->type ## index = SAVE_POINTER;                    \
+           p->data[index].pointer = va_arg (ap, void *);       \
+         }                                                     \
+       else if (fmt[index] == 'o')                             \
+         {                                                     \
+           p->type ## index = SAVE_OBJECT;                     \
+           p->data[index].object = va_arg (ap, Lisp_Object);   \
+         }                                                     \
+       else                                                    \
+         emacs_abort ();                                       \
+      }							       \
+  } while (0)
+
+  INITX (0);
+  INITX (1);
+  INITX (2);
+  INITX (3);
+
+#undef INITX
+
+  va_end (ap);
+  p->area = 0;
+  return val;
+}
+
 /* Return a Lisp_Save_Value object containing POINTER and INTEGER.
    Most code should use this to package C integers and pointers
    to call record_unwind_protect.  The unwind function can get the
@@ -3358,18 +3411,7 @@ free_misc (Lisp_Object misc)
 Lisp_Object
 make_save_value (void *pointer, ptrdiff_t integer)
 {
-  register Lisp_Object val;
-  register struct Lisp_Save_Value *p;
-
-  val = allocate_misc (Lisp_Misc_Save_Value);
-  p = XSAVE_VALUE (val);
-  p->type0 = SAVE_POINTER;
-  p->data[0].pointer = pointer;
-  p->type1 = SAVE_INTEGER;
-  p->data[1].integer = integer;
-  p->type2 = p->type3 = SAVE_UNUSED;
-  p->area = 0;
-  return val;
+  return format_save_value ("pi", pointer, integer);
 }
 
 /* Free a Lisp_Save_Value object.  Do not use this function

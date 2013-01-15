@@ -1,3 +1,16 @@
+2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Some convenient bits to deal with Lisp_Save_Values.
+	* lisp.h (XSAVE_OBJECT): New macro to extract saved objects.
+	(allocate_misc): Remove prototype.
+	(format_save_value): New prototype.
+	* alloc.c (allocate_misc): Revert back to static.
+	(format_save_value): New function to build Lisp_Save_Value
+	object with the specified internal structure.
+	(make_save_value): Reimplement using format_save_value.
+	* editfns.c (save_excursion_save): Use format_save_value.
+	(save_excursion_restore): Use XSAVE_OBJECT.
+
 2013-01-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid needless casts with XSAVE_POINTER.
