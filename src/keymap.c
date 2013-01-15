@@ -565,14 +565,13 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 {
   if (!NILP (val))
     {
-      map_keymap_function_t fun = XSAVE_POINTER (XCAR (args), 0);
-      args = XCDR (args);
+      map_keymap_function_t fun = XSAVE_POINTER (args, 0);
       /* If the key is a range, make a copy since map_char_table modifies
 	 it in place.  */
       if (CONSP (key))
 	key = Fcons (XCAR (key), XCDR (key));
-      map_keymap_item (fun, XCDR (args), key, val,
-		       XSAVE_POINTER (XCAR (args), 0));
+      map_keymap_item (fun, XSAVE_OBJECT (args, 2), key,
+		       val, XSAVE_POINTER (args, 1));
     }
 }
 
@@ -610,12 +609,8 @@ map_keymap_internal (Lisp_Object map,
 	    }
 	}
       else if (CHAR_TABLE_P (binding))
-	{
-	  map_char_table (map_keymap_char_table_item, Qnil, binding,
-			  Fcons (make_save_value ((void *) fun, 0),
-				 Fcons (make_save_value (data, 0),
-					args)));
-	}
+	map_char_table (map_keymap_char_table_item, Qnil, binding,
+			format_save_value ("ppo", fun, data, args));
     }
   UNGCPRO;
   return tail;

@@ -3408,30 +3408,22 @@ decide_coding_unwind (Lisp_Object unwind_data)
   return Qnil;
 }
 
-
-/* Used to pass values from insert-file-contents to read_non_regular.  */
-
-static int non_regular_fd;
-static ptrdiff_t non_regular_inserted;
-static int non_regular_nbytes;
-
-
-/* Read from a non-regular file.
-   Read non_regular_nbytes bytes max from non_regular_fd.
-   Non_regular_inserted specifies where to put the read bytes.
-   Value is the number of bytes read.  */
+/* Read from a non-regular file.  STATE is a Lisp_Save_Value
+   object where slot 0 is the file descriptor, slot 1 specifies
+   an offset to put the read bytes, and slot 2 is the maximum
+   amount of bytes to read.  Value is the number of bytes read.  */
 
 static Lisp_Object
-read_non_regular (Lisp_Object ignore)
+read_non_regular (Lisp_Object state)
 {
   int nbytes;
 
   immediate_quit = 1;
   QUIT;
-  nbytes = emacs_read (non_regular_fd,
+  nbytes = emacs_read (XSAVE_INTEGER (state, 0),
 		       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-			+ non_regular_inserted),
-		       non_regular_nbytes);
+			+ XSAVE_INTEGER (state, 1)),
+		       XSAVE_INTEGER (state, 2));
   immediate_quit = 0;
   return make_number (nbytes);
 }
@@ -4238,7 +4230,7 @@ by calling `format-decode', which see.  */)
     while (how_much < total)
       {
 	/* try is reserved in some compilers (Microsoft C) */
-	int trytry = min (total - how_much, READ_BUF_SIZE);
+	ptrdiff_t trytry = min (total - how_much, READ_BUF_SIZE);
 	ptrdiff_t this;
 
 	if (not_regular)
@@ -4255,12 +4247,11 @@ by calling `format-decode', which see.  */)
 	    /* Read from the file, capturing `quit'.  When an
 	       error occurs, end the loop, and arrange for a quit
 	       to be signaled after decoding the text we read.  */
-	    non_regular_fd = fd;
-	    non_regular_inserted = inserted;
-	    non_regular_nbytes = trytry;
-	    nbytes = internal_condition_case_1 (read_non_regular,
-						Qnil, Qerror,
-						read_non_regular_quit);
+	    nbytes = internal_condition_case_1
+	      (read_non_regular,
+	       format_save_value ("iii", (ptrdiff_t) fd, inserted, trytry),
+	       Qerror, read_non_regular_quit);
+
 	    if (NILP (nbytes))
 	      {
 		read_quit = 1;
