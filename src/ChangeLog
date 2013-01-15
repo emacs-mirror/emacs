@@ -1,5 +1,13 @@
 2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* lisp.h (XSAVE_POINTER, XSAVE_INTEGER): Change to allow
+	extraction from any Lisp_Save_Value slot.  Add type checking.
+	* alloc.c, dired.c, editfns.c, fileio.c, ftfont.c, gtkutil.c:
+	* keymap.c, lread.c, nsterm.h, nsmenu.c, xfns.c, xmenu.c:
+	* xselect.c: All users changed.
+
+2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Some convenient bits to deal with Lisp_Save_Values.
 	* lisp.h (XSAVE_OBJECT): New macro to extract saved objects.
 	(allocate_misc): Remove prototype.

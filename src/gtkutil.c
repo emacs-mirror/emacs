@@ -1650,7 +1650,7 @@ xg_dialog_response_cb (GtkDialog *w,
 static Lisp_Object
 pop_down_dialog (Lisp_Object arg)
 {
-  struct xg_dialog_data *dd = XSAVE_POINTER (arg);
+  struct xg_dialog_data *dd = XSAVE_POINTER (arg, 0);
 
   block_input ();
   if (dd->w) gtk_widget_destroy (dd->w);

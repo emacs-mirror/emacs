@@ -400,7 +400,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
   else
     {
       val = XCDR (cache);
-      cache_data = XSAVE_POINTER (val);
+      cache_data = XSAVE_POINTER (val, 0);
     }
 
   if (cache_for == FTFONT_CACHE_FOR_ENTITY)
@@ -466,7 +466,7 @@ ftfont_get_fc_charset (Lisp_Object entity)
 
   cache = ftfont_lookup_cache (entity, FTFONT_CACHE_FOR_CHARSET);
   val = XCDR (cache);
-  cache_data = XSAVE_POINTER (val);
+  cache_data = XSAVE_POINTER (val, 0);
   return cache_data->fc_charset;
 }
 
@@ -1198,9 +1198,9 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   filename = XCAR (val);
   idx = XCDR (val);
   val = XCDR (cache);
-  cache_data = XSAVE_POINTER (XCDR (cache));
+  cache_data = XSAVE_POINTER (XCDR (cache), 0);
   ft_face = cache_data->ft_face;
-  if (XSAVE_INTEGER (val) > 0)
+  if (XSAVE_INTEGER (val, 1) > 0)
     {
       /* FT_Face in this cache is already used by the different size.  */
       if (FT_New_Size (ft_face, &ft_size) != 0)
@@ -1211,13 +1211,13 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	  return Qnil;
 	}
     }
-  XSAVE_INTEGER (val)++;
+  XSAVE_INTEGER (val, 1)++;
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
   if (FT_Set_Pixel_Sizes (ft_face, size, size) != 0)
     {
-      if (XSAVE_INTEGER (val) == 0)
+      if (XSAVE_INTEGER (val, 1) == 0)
 	FT_Done_Face (ft_face);
       return Qnil;
     }
@@ -1326,10 +1326,10 @@ ftfont_close (FRAME_PTR f, struct font *font)
   cache = ftfont_lookup_cache (val, FTFONT_CACHE_FOR_FACE);
   eassert (CONSP (cache));
   val = XCDR (cache);
-  (XSAVE_INTEGER (val))--;
-  if (XSAVE_INTEGER (val) == 0)
+  XSAVE_INTEGER (val, 1)--;
+  if (XSAVE_INTEGER (val, 1) == 0)
     {
-      struct ftfont_cache_data *cache_data = XSAVE_POINTER (val);
+      struct ftfont_cache_data *cache_data = XSAVE_POINTER (val, 0);
 
       FT_Done_Face (cache_data->ft_face);
 #ifdef HAVE_LIBOTF

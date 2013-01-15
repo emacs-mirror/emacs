@@ -1,3 +1,8 @@
+2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/xsave.cocci: Semantic patch to adjust users of
+	XSAVE_POINTER and XSAVE_INTEGER macros.
+
 2013-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* check-doc-strings: Update for CVS->bzr, moved lispref/ directory.

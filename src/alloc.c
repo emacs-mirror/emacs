@@ -3420,7 +3420,7 @@ make_save_value (void *pointer, ptrdiff_t integer)
 void
 free_save_value (Lisp_Object save)
 {
-  xfree (XSAVE_POINTER (save));
+  xfree (XSAVE_POINTER (save, 0));
   free_misc (save);
 }
 

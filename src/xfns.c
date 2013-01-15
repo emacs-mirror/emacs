@@ -5292,7 +5292,7 @@ file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 static Lisp_Object
 clean_up_file_dialog (Lisp_Object arg)
 {
-  Widget dialog = XSAVE_POINTER (arg);
+  Widget dialog = XSAVE_POINTER (arg, 0);
 
   /* Clean up.  */
   block_input ();

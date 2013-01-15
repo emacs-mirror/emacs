@@ -1357,7 +1357,7 @@ Return t if the file exists and loads successfully.  */)
 static Lisp_Object
 load_unwind (Lisp_Object arg)  /* Used as unwind-protect function in load.  */
 {
-  FILE *stream = XSAVE_POINTER (arg);
+  FILE *stream = XSAVE_POINTER (arg, 0);
   if (stream != NULL)
     {
       block_input ();

@@ -78,7 +78,7 @@ directory_files_internal_w32_unwind (Lisp_Object arg)
 static Lisp_Object
 directory_files_internal_unwind (Lisp_Object dh)
 {
-  DIR *d = XSAVE_POINTER (dh);
+  DIR *d = XSAVE_POINTER (dh, 0);
   block_input ();
   closedir (d);
   unblock_input ();

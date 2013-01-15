@@ -1120,7 +1120,7 @@ unexpect_property_change (struct prop_location *location)
 static Lisp_Object
 wait_for_property_change_unwind (Lisp_Object loc)
 {
-  struct prop_location *location = XSAVE_POINTER (loc);
+  struct prop_location *location = XSAVE_POINTER (loc, 0);
 
   unexpect_property_change (location);
   if (location == property_change_reply_object)

@@ -4254,7 +4254,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    memcpy (buf, initial_buffer, used);
 	  }
 	else
-	  XSAVE_POINTER (buf_save_value) = buf = xrealloc (buf, bufsize);
+	  XSAVE_POINTER (buf_save_value, 0) = buf = xrealloc (buf, bufsize);
 
 	p = buf + used;
       }

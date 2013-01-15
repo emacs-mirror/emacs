@@ -1413,7 +1413,7 @@ pop_down_menu (Lisp_Object arg)
 {
   popup_activated_flag = 0;
   block_input ();
-  gtk_widget_destroy (GTK_WIDGET (XSAVE_POINTER (arg)));
+  gtk_widget_destroy (GTK_WIDGET (XSAVE_POINTER (arg, 0)));
   unblock_input ();
   return Qnil;
 }
@@ -1610,7 +1610,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 static Lisp_Object
 cleanup_widget_value_tree (Lisp_Object arg)
 {
-  free_menubar_widget_value_tree (XSAVE_POINTER (arg));
+  free_menubar_widget_value_tree (XSAVE_POINTER (arg, 0));
   return Qnil;
 }
 
@@ -2236,8 +2236,8 @@ menu_help_callback (char const *help_string, int pane, int item)
 static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
-  FRAME_PTR f = XSAVE_POINTER (Fcar (arg));
-  XMenu *menu = XSAVE_POINTER (Fcdr (arg));
+  FRAME_PTR f = XSAVE_POINTER (Fcar (arg), 0);
+  XMenu *menu = XSAVE_POINTER (Fcdr (arg), 0);
 
   block_input ();
 #ifndef MSDOS

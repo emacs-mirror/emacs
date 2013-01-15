@@ -5507,7 +5507,7 @@ static Lisp_Object
 do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
 
 {
-  FILE *stream = XSAVE_POINTER (arg);
+  FILE *stream = XSAVE_POINTER (arg, 0);
   auto_saving = 0;
   if (stream != NULL)
     {
