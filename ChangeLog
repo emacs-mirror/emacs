@@ -1,3 +1,8 @@
+2013-01-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Document that --enable-gcc-warnings emits errors.
+	(Bug#13448)
+
 2013-01-13  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Add options for xz compression and no compression.

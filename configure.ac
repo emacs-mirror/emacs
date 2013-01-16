@@ -627,7 +627,7 @@ fi
 
 AC_ARG_ENABLE([gcc-warnings],
   [AS_HELP_STRING([--enable-gcc-warnings],
-                  [turn on lots of GCC warnings. This is intended for
+                  [turn on lots of GCC warnings/errors. This is intended for
 		   developers, and may generate false alarms when used
 		   with older or non-GNU development tools.])],
   [case $enableval in
