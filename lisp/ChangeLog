@@ -1,5 +1,7 @@
 2013-01-16  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (lisp-indent-function): Doc fix.
+
 	* mail/rmailmm.el (rmail-insert-mime-forwarded-message):
 	Revert 2012-12-29 change.  Ref:
 	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00360.html>

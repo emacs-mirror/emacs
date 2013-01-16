@@ -1,3 +1,8 @@
+2013-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* macros.texi (Indenting Macros): Fix order of an indent
+	symbol's arguments.  (Bug#13450)
+
 2013-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* commands.texi (Interactive Codes):

@@ -606,12 +606,12 @@ calculate the indentation of a line within this expression.  The
 function receives two arguments:
 
 @table @asis
+@item @var{pos}
+The position at which the line being indented begins.
 @item @var{state}
 The value returned by @code{parse-partial-sexp} (a Lisp primitive for
 indentation and nesting computation) when it parses up to the
 beginning of this line.
-@item @var{pos}
-The position at which the line being indented begins.
 @end table
 
 @noindent
