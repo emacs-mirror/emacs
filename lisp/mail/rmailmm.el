@@ -1368,8 +1368,8 @@ This is the usual value of `rmail-insert-mime-forwarded-message-function'."
   (let ((message-buffer
 	 (with-current-buffer forward-buffer
 	   (if rmail-buffer-swapped
-	       rmail-view-buffer
-	     forward-buffer))))
+	       forward-buffer
+	     rmail-view-buffer))))
     (save-restriction
       (narrow-to-region (point) (point))
       (message-forward-make-body-mime message-buffer))))
