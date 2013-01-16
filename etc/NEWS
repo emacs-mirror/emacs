@@ -32,9 +32,9 @@ features (image support, etc.) that are normally enabled by default.
 
 ** New configure option `--enable-gcc-warnings' (for developing/debugging
 Emacs).  If building with GCC, this enables compile-time checks that
-warn about possibly-questionable C code.  On a recent GNU system there
-should be no warnings; on older and on non-GNU systems the generated
-warnings may be useful.
+warn/give errors about possibly-questionable C code.  On a recent GNU
+system there should be no warnings; on older and on non-GNU systems
+the results may be useful to developers.
 
 ** The configure option `--enable-use-lisp-union-type' has been
 renamed to `--enable-check-lisp-object-type', as the resulting
