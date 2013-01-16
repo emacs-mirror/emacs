@@ -2076,9 +2076,10 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-largefile     omit support for large files
-  --enable-gcc-warnings   turn on lots of GCC warnings. This is intended for
-                          developers, and may generate false alarms when used
-                          with older or non-GNU development tools.
+  --enable-gcc-warnings   turn on lots of GCC warnings/errors. This is
+                          intended for developers, and may generate false
+                          alarms when used with older or non-GNU development
+                          tools.
   --enable-link-time-optimization
                           build emacs with link-time optimization. This is
                           supported only for GCC since 4.5.0.
