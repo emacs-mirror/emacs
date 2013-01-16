@@ -534,6 +534,7 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	       tar -xvf - && cat > /dev/null) || exit 1; \
 	  [ "$${dir}" != "${srcdir}/etc" ] || rm -f $${dest}/DOC* ; \
 	  for subdir in `find $${dest} -type d -print` ; do \
+	    chmod a+rx $${subdir} ; \
 	    rm -f $${subdir}/.gitignore ; \
 	    rm -f $${subdir}/.arch-inventory ; \
 	    rm -f $${subdir}/.DS_Store ; \
@@ -568,7 +569,9 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	    done )
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 
-# The last chmod isn't needed at present.
+## The above chmods are needed because "umask 022; tar ..." is not
+## guaranteed to do the right thing; eg if we are root and tar is
+## preserving source permissions.
 
 ## We install only the relevant DOC file if possible
 ## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
