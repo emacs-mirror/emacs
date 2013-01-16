@@ -1,5 +1,7 @@
 2013-01-16  Glenn Morris  <rgm@gnu.org>
 
+	* trouble.texi (Crashing): Not all addr2line have -p.  (Bug#13445)
+
 	* custom.texi (Custom Themes): Fix typo.
 
 2013-01-05  Glenn Morris  <rgm@gnu.org>
