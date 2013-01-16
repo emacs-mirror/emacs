@@ -59,7 +59,10 @@
 
 (defcustom smiley-style
   (if (or (and (fboundp 'face-attribute)
-	       (>= (face-attribute 'default :height) 160))
+	       ;; In batch mode, attributes can be unspecified.
+	       (condition-case nil
+		   (>= (face-attribute 'default :height) 160)
+		 (error nil)))
 	  (and (fboundp 'face-height)
 	       (>= (face-height 'default) 14)))
       'medium

@@ -1,3 +1,7 @@
+2013-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* smiley.el (smiley-style): Make the file loadable in batch mode.
+
 2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnimap.el (nnimap-keepalive): Don't throw an error if there's no more
