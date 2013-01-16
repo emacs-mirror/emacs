@@ -39,7 +39,7 @@
    Ideally we should test __BIONIC__ here, but it is only defined after
    <sys/cdefs.h> has been included; hence test __ANDROID__ instead.  */
 #if defined __ANDROID__ \
-    && defined _SYS_TYPES_H_ && !defined _SSIZE_T_DEFINED_
+    && defined _SYS_TYPES_H_ && !defined __need_size_t
 # @INCLUDE_NEXT@ @NEXT_STDINT_H@
 #else
 
