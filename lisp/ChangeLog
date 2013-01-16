@@ -1,3 +1,8 @@
+2013-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/trace.el (trace--read-args): Use a closure and an honest
+	call to `eval' rather than a backquoted lambda.
+
 2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el (advice--tweak): Make it possible for `tweak'

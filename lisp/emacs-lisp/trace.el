@@ -256,9 +256,9 @@ be printed along with the arguments in the trace."
                (read-from-minibuffer "Context expression: "
                                      nil read-expression-map t
                                      'read-expression-history))))
-        `(lambda ()
-           (let ((print-circle t))
-             (concat " [" (prin1-to-string ,exp) "]"))))))))
+        (lambda ()
+          (let ((print-circle t))
+            (concat " [" (prin1-to-string (eval exp t)) "]"))))))))
 
 ;;;###autoload
 (defun trace-function-foreground (function &optional buffer context)
