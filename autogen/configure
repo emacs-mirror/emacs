@@ -6714,6 +6714,8 @@ rm -rf conftest*
   fi
 
 
+$as_echo "#define _DARWIN_USE_64_BIT_INODE 1" >>confdefs.h
+
 fi
 
    case $ac_cv_prog_cc_stdc in #(
