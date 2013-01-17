@@ -229,6 +229,7 @@ If N or M is nil, it means the end of the list."
   "Content of $PATH.
 It might be different from \(getenv \"PATH\"\), when
 `default-directory' points to a remote host.")
+(make-variable-buffer-local 'eshell-path-env)
 
 (defun eshell-parse-colon-path (path-env)
   "Split string with `parse-colon-path'.
