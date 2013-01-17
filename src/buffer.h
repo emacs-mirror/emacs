@@ -82,9 +82,6 @@ INLINE_HEADER_BEGIN
 /* Size of gap.  */
 #define GAP_SIZE (current_buffer->text->gap_size)
 
-/* Is the current buffer narrowed?  */
-#define NARROWED	((BEGV != BEG) || (ZV != Z))
-
 /* Modification count.  */
 #define MODIFF (current_buffer->text->modiff)
 
@@ -172,10 +169,6 @@ INLINE_HEADER_BEGIN
 
 /* Size of gap.  */
 #define BUF_GAP_SIZE(buf) ((buf)->text->gap_size)
-
-/* Is this buffer narrowed?  */
-#define BUF_NARROWED(buf) ((BUF_BEGV (buf) != BUF_BEG (buf)) \
-			   || (BUF_ZV (buf) != BUF_Z (buf)))
 
 /* Modification count.  */
 #define BUF_MODIFF(buf) ((buf)->text->modiff)
@@ -294,24 +287,24 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 /* Access a Lisp position value in POS,
    and store the charpos in CHARPOS and the bytepos in BYTEPOS.  */
 
-#define DECODE_POSITION(charpos, bytepos, pos)			\
-do								\
-  {								\
-    Lisp_Object __pos = (pos);					\
-    if (NUMBERP (__pos))					\
-      {								\
-	charpos = __pos;					\
-	bytepos = buf_charpos_to_bytepos (current_buffer, __pos);  \
-      }								\
-    else if (MARKERP (__pos))					\
-      {								\
-	charpos = marker_position (__pos);			\
-	bytepos = marker_byte_position (__pos);			\
-      }								\
-    else							\
-      wrong_type_argument (Qinteger_or_marker_p, __pos);	\
-  }								\
-while (0)
+#define DECODE_POSITION(charpos, bytepos, pos)				\
+  do									\
+    {									\
+      Lisp_Object __pos = (pos);					\
+      if (NUMBERP (__pos))						\
+	{								\
+	  charpos = __pos;						\
+	  bytepos = buf_charpos_to_bytepos (current_buffer, __pos);	\
+	}								\
+      else if (MARKERP (__pos))						\
+	{								\
+	  charpos = marker_position (__pos);				\
+	  bytepos = marker_byte_position (__pos);			\
+	}								\
+      else								\
+	wrong_type_argument (Qinteger_or_marker_p, __pos);		\
+    }									\
+  while (0)
 
 /* Maximum number of bytes in a buffer.
    A buffer cannot contain more bytes than a 1-origin fixnum can represent,
@@ -1009,15 +1002,15 @@ bset_width_table (struct buffer *b, Lisp_Object val)
 #define BUFFER_CHECK_INDIRECTION(b)			\
   do {							\
     if (BUFFER_LIVE_P (b))				\
-    {							\
-      if (b->base_buffer)				\
-	{						\
-	  eassert (b->indirections == -1);		\
-	  eassert (b->base_buffer->indirections > 0);	\
-	}						\
-      else						\
-	eassert (b->indirections >= 0);			\
-    }							\
+      {							\
+	if (b->base_buffer)				\
+	  {						\
+	    eassert (b->indirections == -1);		\
+	    eassert (b->base_buffer->indirections > 0);	\
+	  }						\
+	else						\
+	  eassert (b->indirections >= 0);		\
+      }							\
   } while (0)
 
 /* Chain of all buffers, including killed ones.  */

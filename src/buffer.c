@@ -372,9 +372,6 @@ bset_zv_marker (struct buffer *b, Lisp_Object val)
   b->INTERNAL_FIELD (zv_marker) = val;
 }
 
-/* For debugging; temporary.  See set_buffer_internal.  */
-/* Lisp_Object Qlisp_mode, Vcheck_symbol; */
-
 void
 nsberror (Lisp_Object spec)
 {
@@ -6002,10 +5999,6 @@ simple case that you moved off with C-b means scrolling just one line.
 1.0 means point goes at the bottom, so that in that simple case, the
 window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
-
-/*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
-    "Don't ask.");
-*/
 
   DEFVAR_LISP ("before-change-functions", Vbefore_change_functions,
 	       doc: /* List of functions to call before each text change.
