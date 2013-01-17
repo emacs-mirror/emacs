@@ -273,13 +273,12 @@ through Custom only."
   :type 'boolean
   :set (lambda (variable value)
 	 (set-default variable (and auto-revert-notify-enabled value))
-	 (if (symbol-value variable)
-	     (add-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch)
-	   (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch)
+	 (unless (symbol-value variable)
 	   (when auto-revert-notify-enabled
 	     (dolist (buf (buffer-list))
 	       (with-current-buffer buf
-		 (auto-revert-notify-rm-watch))))))
+		 (when (symbol-value 'auto-revert-notify-watch-descriptor)
+		   (auto-revert-notify-rm-watch)))))))
   :version "24.4")
 
 ;; Internal variables:
@@ -472,14 +471,15 @@ will use an up-to-date value of `auto-revert-interval'"
 		   'inotify-rm-watch 'w32notify-rm-watch)
 	       auto-revert-notify-watch-descriptor))
     (remhash auto-revert-notify-watch-descriptor
-	     auto-revert-notify-watch-descriptor-hash-list))
+	     auto-revert-notify-watch-descriptor-hash-list)
+    (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
   (setq auto-revert-notify-watch-descriptor nil
 	auto-revert-notify-modified-p nil))
 
 (defun auto-revert-notify-add-watch ()
   "Enable file watch for current buffer's associated file."
-  (when (and buffer-file-name auto-revert-use-notify)
-    (auto-revert-notify-rm-watch)
+  (when (and buffer-file-name auto-revert-use-notify
+	     (not auto-revert-notify-watch-descriptor))
     (let ((func (if (fboundp 'inotify-add-watch)
 		    'inotify-add-watch 'w32notify-add-watch))
 	  (aspect (if (fboundp 'inotify-add-watch)
@@ -489,9 +489,12 @@ will use an up-to-date value of `auto-revert-interval'"
 	      (funcall
 	       func buffer-file-name aspect 'auto-revert-notify-handler)))
       (if auto-revert-notify-watch-descriptor
-	  (puthash auto-revert-notify-watch-descriptor
-		   (current-buffer)
-		   auto-revert-notify-watch-descriptor-hash-list)
+	  (progn
+	    (puthash auto-revert-notify-watch-descriptor
+		     (current-buffer)
+		     auto-revert-notify-watch-descriptor-hash-list)
+	    (add-hook (make-local-variable 'kill-buffer-hook)
+		      'auto-revert-notify-rm-watch))
 	;; Fallback to file checks.
 	(set (make-local-variable 'auto-revert-use-notify) nil)))))
 
