@@ -1861,7 +1861,7 @@ otf_open (Lisp_Object file)
   else
     {
       otf = STRINGP (file) ? OTF_open (SSDATA (file)) : NULL;
-      val = make_save_value (otf, 0);
+      val = make_save_pointer (otf);
       otf_list = Fcons (Fcons (file, val), otf_list);
     }
   return otf;

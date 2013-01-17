@@ -610,7 +610,7 @@ map_keymap_internal (Lisp_Object map,
 	}
       else if (CHAR_TABLE_P (binding))
 	map_char_table (map_keymap_char_table_item, Qnil, binding,
-			format_save_value ("ppo", fun, data, args));
+			make_save_value ("ppo", fun, data, args));
     }
   UNGCPRO;
   return tail;

@@ -1141,7 +1141,7 @@ wait_for_property_change (struct prop_location *location)
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind,
-			 make_save_value (location, 0));
+			 make_save_pointer (location));
 
   XSETCAR (property_change_reply, Qnil);
   property_change_reply_object = location;

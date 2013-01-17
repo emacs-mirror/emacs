@@ -833,7 +833,7 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  return format_save_value
+  return make_save_value
     ("oooo",
      Fpoint_marker (),
      /* Do not copy the mark if it points to nowhere.  */
@@ -4249,7 +4249,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  {
 	    buf = xmalloc (bufsize);
 	    sa_must_free = 1;
-	    buf_save_value = make_save_value (buf, 0);
+	    buf_save_value = make_save_pointer (buf);
 	    record_unwind_protect (safe_alloca_unwind, buf_save_value);
 	    memcpy (buf, initial_buffer, used);
 	  }

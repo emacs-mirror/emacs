@@ -1477,7 +1477,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
 		  timestamp ? timestamp : gtk_get_current_event_time ());
 
-  record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
+  record_unwind_protect (pop_down_menu, make_save_pointer (menu));
 
   if (gtk_widget_get_mapped (menu))
     {
@@ -1826,7 +1826,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
   /* Make sure to free the widget_value objects we used to specify the
      contents even with longjmp.  */
   record_unwind_protect (cleanup_widget_value_tree,
-			 make_save_value (first_wv, 0));
+			 make_save_pointer (first_wv));
 
   /* Actually create and show the menu until popped down.  */
   create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp);
@@ -1925,7 +1925,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
   if (menu)
     {
       ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-      record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
+      record_unwind_protect (pop_down_menu, make_save_pointer (menu));
 
       /* Display the menu.  */
       gtk_widget_show_all (menu);
@@ -2136,7 +2136,7 @@ xdialog_show (FRAME_PTR f,
   /* Make sure to free the widget_value objects we used to specify the
      contents even with longjmp.  */
   record_unwind_protect (cleanup_widget_value_tree,
-			 make_save_value (first_wv, 0));
+			 make_save_pointer (first_wv));
 
   /* Actually create and show the dialog.  */
   create_and_show_dialog (f, first_wv);
@@ -2479,7 +2479,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 #endif
 
   record_unwind_protect (pop_down_menu,
-			 format_save_value ("pp", f, menu));
+			 make_save_value ("pp", f, menu));
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */

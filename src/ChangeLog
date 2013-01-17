@@ -1,5 +1,21 @@
 2013-01-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* lisp.h (toplevel): Add comment about using Lisp_Save_Value
+	objects, related functions and macros.
+	(make_save_value): Adjust prototype.
+	(make_save_pointer): New prototype.
+	(SAFE_NALLOCA): Fix indentation.  Use make_save_pointer.
+	(SAFE_ALLOCA_LISP): Adjust make_save_value usage.
+	* alloc.c (format_save_value): Rename to make_save_value.
+	(make_save_pointer): New function.
+	(record_xmalloc): Use make_save_pointer.
+	* dired.c, editfns.c, fileio.c, font.c, gtkutil.c, lread.c:
+	* nsmenu.m, nsterm.m, xfns.c, xmenu.c, xselect.c, keymap.c:
+	Change users of make_save_value to make_save_pointer.
+	Likewise for format_save_value and make_save_value.
+
+2013-01-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* buffer.h (NARROWED, BUF_NARROWED): Drop unused macros.
 	(DECODE_POSITION, BUFFER_CHECK_INDIRECTION): Fix indentation.
 	* buffer.c (toplevel, syms_of_buffer): Drop old commented-out

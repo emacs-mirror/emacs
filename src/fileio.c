@@ -4249,7 +4249,7 @@ by calling `format-decode', which see.  */)
 	       to be signaled after decoding the text we read.  */
 	    nbytes = internal_condition_case_1
 	      (read_non_regular,
-	       format_save_value ("iii", (ptrdiff_t) fd, inserted, trytry),
+	       make_save_value ("iii", (ptrdiff_t) fd, inserted, trytry),
 	       Qerror, read_non_regular_quit);
 
 	    if (NILP (nbytes))
@@ -5608,7 +5608,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
     }
 
   record_unwind_protect (do_auto_save_unwind,
-			 make_save_value (stream, 0));
+			 make_save_pointer (stream));
   record_unwind_protect (do_auto_save_unwind_1,
 			 make_number (minibuffer_auto_raise));
   minibuffer_auto_raise = 0;

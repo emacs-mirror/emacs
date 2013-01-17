@@ -1716,7 +1716,7 @@ xg_dialog_run (FRAME_PTR f, GtkWidget *w)
   g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
   gtk_widget_show (w);
 
-  record_unwind_protect (pop_down_dialog, make_save_value (&dd, 0));
+  record_unwind_protect (pop_down_dialog, make_save_pointer (&dd));
 
   (void) xg_maybe_add_timer (&dd);
   g_main_loop_run (dd.loop);

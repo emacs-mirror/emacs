@@ -393,7 +393,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
       cache_data = xmalloc (sizeof *cache_data);
       cache_data->ft_face = NULL;
       cache_data->fc_charset = NULL;
-      val = make_save_value (cache_data, 0);
+      val = make_save_value ("pi", cache_data, 0);
       cache = Fcons (Qnil, val);
       Fputhash (key, cache, ft_face_cache);
     }

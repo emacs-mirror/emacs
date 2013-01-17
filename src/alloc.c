@@ -845,7 +845,7 @@ void *
 record_xmalloc (size_t size)
 {
   void *p = xmalloc (size);
-  record_unwind_protect (safe_alloca_unwind, make_save_value (p, 0));
+  record_unwind_protect (safe_alloca_unwind, make_save_pointer (p));
   return p;
 }
 
@@ -3356,7 +3356,7 @@ free_misc (Lisp_Object misc)
    and `o' for Lisp_Object.  Up to 4 objects can be specified.  */
 
 Lisp_Object
-format_save_value (const char *fmt, ...)
+make_save_value (const char *fmt, ...)
 {
   va_list ap;
   int len = strlen (fmt);
@@ -3404,15 +3404,19 @@ format_save_value (const char *fmt, ...)
   return val;
 }
 
-/* Return a Lisp_Save_Value object containing POINTER and INTEGER.
-   Most code should use this to package C integers and pointers
-   to call record_unwind_protect.  The unwind function can get the
-   C values back using XSAVE_POINTER and XSAVE_INTEGER.  */
+/* The most common task it to save just one C pointer.  */
 
 Lisp_Object
-make_save_value (void *pointer, ptrdiff_t integer)
+make_save_pointer (void *pointer)
 {
-  return format_save_value ("pi", pointer, integer);
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+
+  p->area = 0;
+  p->type0 = SAVE_POINTER;
+  p->data[0].pointer = pointer;
+  p->type1 = p->type2 = p->type3 = SAVE_UNUSED;
+  return val;
 }
 
 /* Free a Lisp_Save_Value object.  Do not use this function

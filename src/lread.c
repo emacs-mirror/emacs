@@ -1298,7 +1298,7 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  record_unwind_protect (load_unwind, make_save_value (stream, 0));
+  record_unwind_protect (load_unwind, make_save_pointer (stream));
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);

@@ -152,7 +152,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
      file-attributes on filenames, both of which can throw, so we must
      do a proper unwind-protect.  */
   record_unwind_protect (directory_files_internal_unwind,
-			 make_save_value (d, 0));
+			 make_save_pointer (d));
 
 #ifdef WINDOWSNT
   if (attrs)
@@ -465,7 +465,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
   record_unwind_protect (directory_files_internal_unwind,
-			 make_save_value (d, 0));
+			 make_save_pointer (d));
 
   /* Loop reading blocks */
   /* (att3b compiler bug requires do a null comparison this way) */

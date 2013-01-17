@@ -5416,7 +5416,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       XmStringFree (default_xmstring);
     }
 
-  record_unwind_protect (clean_up_file_dialog, make_save_value (dialog, 0));
+  record_unwind_protect (clean_up_file_dialog, make_save_pointer (dialog));
 
   /* Process events until the user presses Cancel or OK.  */
   x_menu_set_in_use (1);

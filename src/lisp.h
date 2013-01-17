@@ -1388,7 +1388,50 @@ enum
     SAVE_OBJECT
   };
 
-/* Special object used to hold a different values for later use.  */
+/* Special object used to hold a different values for later use.
+
+   This is mostly used to package C integers and pointers to call
+   record_unwind_protect.  Typical task is to pass just one C pointer
+   to unwind function.  You should pack pointer with make_save_pointer
+   and then get it back with XSAVE_POINTER, e.g.:
+
+   ...
+     struct my_data *md = get_my_data ();
+     record_unwind_protect (my_unwind, make_save_pointer (md));
+   ...
+
+   Lisp_Object my_unwind (Lisp_Object arg)
+   {
+     struct my_data *md = XSAVE_POINTER (arg, 0);
+     ...
+   }
+
+   If yon need to pass more than just one C pointer, you should
+   use make_save_value.  This function allows you to pack up to
+   4 integers, pointers or Lisp_Objects and conveniently get them
+   back with XSAVE_POINTER, XSAVE_INTEGER and XSAVE_OBJECT macros:
+
+   ...
+     struct my_data *md = get_my_data ();
+     ptrdiff_t my_offset = get_my_offset ();
+     Lisp_Object my_object = get_my_object ();
+     record_unwind_protect
+       (my_unwind, make_save_value ("pio", md, my_offset, my_object));
+   ...
+
+   Lisp_Object my_unwind (Lisp_Object arg)
+   {
+     struct my_data *md = XSAVE_POINTER (arg, 0);
+     ptrdiff_t my_offset = XSAVE_INTEGER (arg, 1);
+     Lisp_Object my_object = XSAVE_OBJECT (arg, 2);
+     ...
+   }
+
+   If ENABLE_CHECKING is in effect, XSAVE_xxx macros do type checking of the
+   saved objects and raise eassert if type of the saved object doesn't match
+   the type which is extracted.  In the example above, XSAVE_INTEGER (arg, 2)
+   or XSAVE_OBJECT (arg, 1) are wrong because integer was saved in slot 1 and
+   Lisp_Object was saved in slot 2 of ARG.  */
 
 struct Lisp_Save_Value
   {
@@ -3018,8 +3061,8 @@ extern bool abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
-extern Lisp_Object format_save_value (const char *, ...);
-extern Lisp_Object make_save_value (void *, ptrdiff_t);
+extern Lisp_Object make_save_value (const char *, ...);
+extern Lisp_Object make_save_pointer (void *);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
@@ -3701,16 +3744,16 @@ extern void *record_xmalloc (size_t);
    NITEMS items, each of the same type as *BUF.  MULTIPLIER must
    positive.  The code is tuned for MULTIPLIER being a constant.  */
 
-#define SAFE_NALLOCA(buf, multiplier, nitems)			\
-  do {								\
-    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	\
-      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	\
-    else							\
+#define SAFE_NALLOCA(buf, multiplier, nitems)			 \
+  do {								 \
+    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	 \
+      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	 \
+    else							 \
       {								 \
 	(buf) = xnmalloc (nitems, sizeof *(buf) * (multiplier)); \
 	sa_must_free = 1;					 \
 	record_unwind_protect (safe_alloca_unwind,		 \
-			       make_save_value (buf, 0));	 \
+			       make_save_pointer (buf));	 \
       }								 \
   } while (0)
 
@@ -3735,7 +3778,7 @@ extern void *record_xmalloc (size_t);
       {							       \
 	Lisp_Object arg_;				       \
 	buf = xmalloc ((nelt) * word_size);		       \
-	arg_ = make_save_value (buf, nelt);		       \
+	arg_ = make_save_value ("pi", buf, nelt);	       \
 	XSAVE_VALUE (arg_)->area = 1;			       \
 	sa_must_free = 1;				       \
 	record_unwind_protect (safe_alloca_unwind, arg_);      \
