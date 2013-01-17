@@ -321,6 +321,28 @@
 
 
 (defmacro use-package (name &rest args)
+"Use a package with configuration options.
+
+For full documentation. please see commentary. 
+
+  (use-package package-name
+     :keyword option)
+ 
+:init Code to run when `use-package' form evals.
+:bind Perform key bindings, and define autoload for bound
+      commands.
+:commands Define autoloads for given commands.
+:mode Form to be added to `auto-mode-alist'.
+:interpreter Form to be added to `auto-interpreter-alist'.
+:defer Defer loading of package -- automatic
+       if :commands, :bind, :mode or :interpreter are used.
+:config Runs if and when package loads.
+:if Conditional loading.
+:disabled Ignore everything.
+:defines Define vars to silence byte-compiler.
+:load-path Add to `load-path' before loading.
+:diminish Support for diminish package (if it's installed).
+"
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
          (init-body (plist-get args :init))
