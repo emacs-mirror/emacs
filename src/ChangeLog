@@ -1,3 +1,7 @@
+2013-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* fns.c (Frandom): Doc fix.
+
 2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (LCD_SMOOTHING_MARGIN): New define.
