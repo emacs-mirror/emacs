@@ -369,12 +369,17 @@ For full documentation. please see commentary.
          (name-string (if (stringp name) name (symbol-name name)))
          (name-symbol (if (stringp name) (intern name) name)))
 
+    ;; force this immediately -- one off cost
     (unless (plist-get args :disabled)
-      
-      ;; force this immediately -- one off cost!
-      (if (plist-get args :ensure)
-          (use-package-ensure-elpa name))
-      
+      (let* ((ensure (plist-get args :ensure))
+             (package-name 
+              (or (and (eq ensure t)
+                       name)
+                  ensure)))
+      (when package-name 
+        (use-package-ensure-elpa package-name)))
+ 	  	
+
       (if diminish-var
           (setq config-body
                 `(progn
