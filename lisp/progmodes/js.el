@@ -3405,8 +3405,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; calls to syntax-propertize wherever it's really needed.
   (syntax-propertize (point-max)))
 
-;;;###autoload
-(defalias 'javascript-mode 'js-mode)
+;;;###autoload (defalias 'javascript-mode 'js-mode)
 
 (eval-after-load 'folding
   '(when (fboundp 'folding-add-to-marks-list)

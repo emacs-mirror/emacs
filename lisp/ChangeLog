@@ -1,3 +1,7 @@
+2013-01-18  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/js.el: Tweak autoload cookie for alias.
+
 2013-01-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-notify-watch-descriptor): Make it
