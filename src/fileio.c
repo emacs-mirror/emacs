@@ -3492,7 +3492,6 @@ by calling `format-decode', which see.  */)
   (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end, Lisp_Object replace)
 {
   struct stat st;
-  int file_status;
   EMACS_TIME mtime;
   int fd;
   ptrdiff_t inserted = 0;
@@ -3554,26 +3553,9 @@ by calling `format-decode', which see.  */)
   orig_filename = filename;
   filename = ENCODE_FILE (filename);
 
-  fd = -1;
-
-#ifdef WINDOWSNT
-  {
-    Lisp_Object tem = Vw32_get_true_file_attributes;
-
-    /* Tell stat to use expensive method to get accurate info.  */
-    Vw32_get_true_file_attributes = Qt;
-    file_status = stat (SSDATA (filename), &st);
-    Vw32_get_true_file_attributes = tem;
-  }
-#else
-  file_status = stat (SSDATA (filename), &st);
-#endif /* WINDOWSNT */
-
-  if (file_status == 0)
-    mtime = get_stat_mtime (&st);
-  else
+  fd = emacs_open (SSDATA (filename), O_RDONLY, 0);
+  if (fd < 0)
     {
-    badopen:
       save_errno = errno;
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
@@ -3584,6 +3566,17 @@ by calling `format-decode', which see.  */)
 	Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
       goto notfound;
     }
+
+  /* Replacement should preserve point as it preserves markers.  */
+  if (!NILP (replace))
+    record_unwind_protect (restore_point_unwind, Fpoint_marker ());
+
+  record_unwind_protect (close_file_unwind, make_number (fd));
+
+  if (fstat (fd, &st) != 0)
+    report_file_error ("Getting input file status",
+		       Fcons (orig_filename, Qnil));
+  mtime = get_stat_mtime (&st);
 
   /* This code will need to be changed in order to work on named
      pipes, and it's probably just not worth it.  So we should at
@@ -3599,17 +3592,6 @@ by calling `format-decode', which see.  */)
 	xsignal2 (Qfile_error,
 		  build_string ("not a regular file"), orig_filename);
     }
-
-  if (fd < 0)
-    if ((fd = emacs_open (SSDATA (filename), O_RDONLY, 0)) < 0)
-      goto badopen;
-
-  /* Replacement should preserve point as it preserves markers.  */
-  if (!NILP (replace))
-    record_unwind_protect (restore_point_unwind, Fpoint_marker ());
-
-  record_unwind_protect (close_file_unwind, make_number (fd));
-
 
   if (!NILP (visit))
     {
