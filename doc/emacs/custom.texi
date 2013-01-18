@@ -1305,7 +1305,7 @@ files in that subdirectory.
 @example
 ((nil . ((indent-tabs-mode . t)
          (fill-column . 80)))
- (c-mode . ((c-file-style . "BSD")))
+ (c-mode . ((c-file-style . "BSD")
             (subdirs . nil)))
  ("src/imported"
   . ((nil . ((change-log-default-name

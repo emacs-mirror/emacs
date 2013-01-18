@@ -1,3 +1,7 @@
+2013-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Directory Variables): Fix paren typo.
+
 2013-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Crashing): Not all addr2line have -p.  (Bug#13445)
