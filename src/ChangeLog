@@ -1,3 +1,17 @@
+2013-01-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix crash when inserting data from non-regular files.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00406.html
+	for the error description produced by valgrind.
+	* fileio.c (read_non_regular): Rename to read_contents.
+	Free Lisp_Save_Value object used to pass parameters.
+	(read_non_regular_quit): Rename to read_contents_quit.
+	(Finsert_file_contents): Redesign internal file reading loop to adjust
+	gap and end positions after each read and so help make_gap to work
+	properly.  Do not signal an I/O error too early and so do not leave
+	not yet decoded characters in a buffer, which was the reason of
+	redisplay crash.  Use list2 to build return value.  Adjust comments.
+
 2013-01-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Close a race when statting and reading files (Bug#13149).
