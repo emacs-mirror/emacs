@@ -4741,7 +4741,9 @@ This calls `write-region-annotate-functions' at the start, and
   (Lisp_Object start, Lisp_Object end, Lisp_Object filename, Lisp_Object append, Lisp_Object visit, Lisp_Object lockname, Lisp_Object mustbenew)
 {
   int desc;
-  off_t offset;
+  int open_flags;
+  int mode;
+  off_t offset IF_LINT (= 0);
   bool ok;
   int save_errno = 0;
   const char *fn;
@@ -4861,28 +4863,20 @@ This calls `write-region-annotate-functions' at the start, and
 #endif /* CLASH_DETECTION */
 
   encoded_filename = ENCODE_FILE (filename);
-
   fn = SSDATA (encoded_filename);
-  offset = 0;
-  desc = -1;
-  if (!NILP (append))
-    {
-      if (NUMBERP (append))
-	offset = file_offset (append);
-      desc = emacs_open (fn, O_WRONLY | O_BINARY, 0);
-    }
-
-  if (desc < 0 && (NILP (append) || errno == ENOENT))
+  open_flags = O_WRONLY | O_BINARY | O_CREAT;
+  open_flags |= EQ (mustbenew, Qexcl) ? O_EXCL : !NILP (append) ? 0 : O_TRUNC;
+  if (NUMBERP (append))
+    offset = file_offset (append);
+  else if (!NILP (append))
+    open_flags |= O_APPEND;
 #ifdef DOS_NT
-  desc = emacs_open (fn,
-		     O_WRONLY | O_CREAT | O_BINARY
-		     | (EQ (mustbenew, Qexcl) ? O_EXCL : O_TRUNC),
-		     S_IREAD | S_IWRITE);
-#else  /* not DOS_NT */
-  desc = emacs_open (fn, O_WRONLY | O_TRUNC | O_CREAT
-		     | (EQ (mustbenew, Qexcl) ? O_EXCL : 0),
-		     auto_saving ? auto_save_mode_bits : 0666);
-#endif /* not DOS_NT */
+  mode = S_IREAD | S_IWRITE;
+#else
+  mode = auto_saving ? auto_save_mode_bits : 0666;
+#endif
+
+  desc = emacs_open (fn, open_flags, mode);
 
   if (desc < 0)
     {
@@ -4897,9 +4891,9 @@ This calls `write-region-annotate-functions' at the start, and
 
   record_unwind_protect (close_file_unwind, make_number (desc));
 
-  if (!NILP (append))
+  if (NUMBERP (append))
     {
-      off_t ret = lseek (desc, offset, NUMBERP (append) ? SEEK_SET : SEEK_END);
+      off_t ret = lseek (desc, offset, SEEK_SET);
       if (ret < 0)
 	{
 #ifdef CLASH_DETECTION

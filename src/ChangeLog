@@ -1,5 +1,16 @@
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c: Use O_APPEND to append.
+	This corresponds better to the natural interpretation of "append",
+	and avoids the need to open the output file twice, or to invoke
+	lseek when APPEND is neither nil nor a number.
+	This relies on POSIX 1003.1-1988 or later, which is OK nowadays.
+	(Fwrite_region): Simplify.  Use O_APPEND instead of opening the
+	file possibly twice, and lseeking to its end; this avoids the
+	need to lseek on non-regular files.  Do not use O_EXCL and O_TRUNC
+	at the same time: the combination is never needed and apparently
+	it doesn't work with DOS_NT.
+
 	Fix size bug on DOS_NT introduced by CIFS workaround (Bug#13149).
 	* fileio.c (Fwrite_region): Use O_BINARY in checking code, too.
 
