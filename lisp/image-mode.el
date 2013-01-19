@@ -339,6 +339,8 @@ call."
     (define-key map (kbd "SPC")       'image-scroll-up)
     (define-key map (kbd "DEL")       'image-scroll-down)
     (define-key map (kbd "RET")       'image-toggle-animation)
+    (define-key map "n" 'image-next-file)
+    (define-key map "p" 'image-previous-file)
     (define-key map [remap forward-char] 'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
     (define-key map [remap right-char] 'image-forward-hscroll)
@@ -616,6 +618,52 @@ Otherwise it plays once, then stops."
 		 (setq index nil))
 	    (image-animate image index
 			   (if image-animate-loop t)))))))))
+
+
+;;; Switching to the next/previous image
+
+(defun image-next-file (&optional n)
+  "Visit the next image in the same directory as the current image file.
+With optional argument N, visit the Nth image file after the
+current one, in cyclic alphabetical order.
+
+This command visits the specified file via `find-alternate-file',
+replacing the current Image mode buffer."
+  (interactive "p")
+  (unless (derived-mode-p 'image-mode)
+    (error "The buffer is not in Image mode"))
+  (unless buffer-file-name
+    (error "The current image is not associated with a file"))
+  (let* ((file (file-name-nondirectory buffer-file-name))
+	 (images (image-mode--images-in-directory file))
+	 (idx 0))
+    (catch 'image-visit-next-file
+      (dolist (f images)
+	(if (string= f file)
+	    (throw 'image-visit-next-file (1+ idx)))
+	(setq idx (1+ idx))))
+    (setq idx (mod (+ idx (or n 1)) (length images)))
+    (find-alternate-file (nth idx images))))
+
+(defun image-previous-file (&optional n)
+  "Visit the preceding image in the same directory as the current file.
+With optional argument N, visit the Nth image file preceding the
+current one, in cyclic alphabetical order.
+
+This command visits the specified file via `find-alternate-file',
+replacing the current Image mode buffer."
+  (interactive "p")
+  (image-next-file (- n)))
+
+(defun image-mode--images-in-directory (file)
+  (let* ((dir (file-name-directory buffer-file-name))
+	 (files (directory-files dir nil
+				 (image-file-name-regexp) t)))
+    ;; Add the current file to the list of images if necessary, in
+    ;; case it does not match `image-file-name-regexp'.
+    (unless (member file files)
+      (push file files))
+    (sort files 'string-lessp)))
 
 
 ;;; Support for bookmark.el

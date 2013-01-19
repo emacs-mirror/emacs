@@ -1,3 +1,11 @@
+2013-01-19  Christian Wittern  <cwittern@gmail.com>  (tiny change)
+	    Chong Yidong  <cyd@gnu.org>
+
+	* image-mode.el (image-next-file, image-previous-file): New
+	commands (Bug#8453).
+	(image-mode-map): Bind them to n and p.
+	(image-mode--images-in-directory): New helper function.
+
 2013-01-19  Chong Yidong  <cyd@gnu.org>
 
 	* image-mode.el (image-mode-fit-frame): Add a frame argument.

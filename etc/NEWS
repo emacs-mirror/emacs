@@ -110,6 +110,11 @@ amounts of data into the ERC input.
 *** Removed icomplete-show-key-bindings.
 
 ** Image mode
+
+*** New commands `n' (`image-next-file') and `p' (`image-previous-file')
+visit the next image file and the previous image file in the same
+directory, respectively.
+
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.
