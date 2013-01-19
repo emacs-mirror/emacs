@@ -3574,8 +3574,7 @@ by calling `format-decode', which see.  */)
   record_unwind_protect (close_file_unwind, make_number (fd));
 
   if (fstat (fd, &st) != 0)
-    report_file_error ("Getting input file status",
-		       Fcons (orig_filename, Qnil));
+    report_file_error ("Input file status", Fcons (orig_filename, Qnil));
   mtime = get_stat_mtime (&st);
 
   /* This code will need to be changed in order to work on named
