@@ -1,3 +1,12 @@
+2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow floating-point file offsets.
+	Problem reported by Vitalie Spinu in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00411.html>.
+	* fileio.c (emacs_lseek): Remove.
+	(file_offset): New function.
+	(Finsert_file_contents, Fwrite_region): Use it.
+
 2013-01-19  Chong Yidong  <cyd@gnu.org>
 
 	* emacs.c (Fkill_emacs): Set waiting_for_input to 0 to avoid

@@ -3443,19 +3443,25 @@ read_contents_quit (Lisp_Object ignore)
   return Qnil;
 }
 
-/* Reposition FD to OFFSET, based on WHENCE.  This acts like lseek
-   except that it also tests for OFFSET being out of lseek's range.  */
+/* Return the file offset that VAL represents, checking for type
+   errors and overflow.  */
 static off_t
-emacs_lseek (int fd, EMACS_INT offset, int whence)
+file_offset (Lisp_Object val)
 {
-  /* Use "&" rather than "&&" to suppress a bogus GCC warning; see
-     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
-  if (! ((offset >= TYPE_MINIMUM (off_t)) & (offset <= TYPE_MAXIMUM (off_t))))
+  if (RANGED_INTEGERP (0, val, TYPE_MAXIMUM (off_t)))
+    return XINT (val);
+
+  if (FLOATP (val))
     {
-      errno = EINVAL;
-      return -1;
+      double v = XFLOAT_DATA (val);
+      if (0 <= v
+	  && (sizeof (off_t) < sizeof v
+	      ? v <= TYPE_MAXIMUM (off_t)
+	      : v < TYPE_MAXIMUM (off_t)))
+	return v;
     }
-  return lseek (fd, offset, whence);
+
+  wrong_type_argument (intern ("file-offset"), val);
 }
 
 /* Return a special time value indicating the error number ERRNUM.  */
@@ -3606,20 +3612,12 @@ by calling `format-decode', which see.  */)
     }
 
   if (!NILP (beg))
-    {
-      if (! RANGED_INTEGERP (0, beg, TYPE_MAXIMUM (off_t)))
-	wrong_type_argument (intern ("file-offset"), beg);
-      beg_offset = XFASTINT (beg);
-    }
+    beg_offset = file_offset (beg);
   else
     beg_offset = 0;
 
   if (!NILP (end))
-    {
-      if (! RANGED_INTEGERP (0, end, TYPE_MAXIMUM (off_t)))
-	wrong_type_argument (intern ("file-offset"), end);
-      end_offset = XFASTINT (end);
-    }
+    end_offset = file_offset (end);
   else
     {
       if (not_regular)
@@ -4714,7 +4712,7 @@ If START is a string, then output that string to the file
 instead of any buffer contents; END is ignored.
 
 Optional fourth argument APPEND if non-nil means
-  append to existing file contents (if any).  If it is an integer,
+  append to existing file contents (if any).  If it is a number,
   seek to that offset in the file before writing.
 Optional fifth argument VISIT, if t or a string, means
   set the last-save-file-modtime of buffer to this file's modtime
@@ -4743,6 +4741,7 @@ This calls `write-region-annotate-functions' at the start, and
   (Lisp_Object start, Lisp_Object end, Lisp_Object filename, Lisp_Object append, Lisp_Object visit, Lisp_Object lockname, Lisp_Object mustbenew)
 {
   int desc;
+  off_t offset;
   bool ok;
   int save_errno = 0;
   const char *fn;
@@ -4864,13 +4863,14 @@ This calls `write-region-annotate-functions' at the start, and
   encoded_filename = ENCODE_FILE (filename);
 
   fn = SSDATA (encoded_filename);
+  offset = 0;
   desc = -1;
   if (!NILP (append))
-#ifdef DOS_NT
-    desc = emacs_open (fn, O_WRONLY | O_BINARY, 0);
-#else  /* not DOS_NT */
-    desc = emacs_open (fn, O_WRONLY, 0);
-#endif /* not DOS_NT */
+    {
+      if (NUMBERP (append))
+	offset = file_offset (append);
+      desc = emacs_open (fn, O_WRONLY | O_BINARY, 0);
+    }
 
   if (desc < 0 && (NILP (append) || errno == ENOENT))
 #ifdef DOS_NT
@@ -4897,14 +4897,9 @@ This calls `write-region-annotate-functions' at the start, and
 
   record_unwind_protect (close_file_unwind, make_number (desc));
 
-  if (!NILP (append) && !NILP (Ffile_regular_p (filename)))
+  if (!NILP (append))
     {
-      off_t ret;
-
-      if (NUMBERP (append))
-	ret = emacs_lseek (desc, XINT (append), SEEK_CUR);
-      else
-	ret = lseek (desc, 0, SEEK_END);
+      off_t ret = lseek (desc, offset, NUMBERP (append) ? SEEK_SET : SEEK_END);
       if (ret < 0)
 	{
 #ifdef CLASH_DETECTION

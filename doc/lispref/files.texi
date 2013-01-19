@@ -533,9 +533,9 @@ is visiting the file @var{filename}: these include the buffer's visited
 file name and its last save file modtime.  This feature is used by
 @code{find-file-noselect} and you probably should not use it yourself.
 
-If @var{beg} and @var{end} are non-@code{nil}, they should be integers
-specifying the portion of the file to insert.  In this case, @var{visit}
-must be @code{nil}.  For example,
+If @var{beg} and @var{end} are non-@code{nil}, they should be numbers
+that are byte offsets specifying the portion of the file to insert.
+In this case, @var{visit} must be @code{nil}.  For example,
 
 @example
 (insert-file-contents filename nil 0 500)
@@ -605,8 +605,8 @@ that string, rather than text from the buffer.  @var{end} is ignored in
 this case.
 
 If @var{append} is non-@code{nil}, then the specified text is appended
-to the existing file contents (if any).  If @var{append} is an
-integer, @code{write-region} seeks to that byte offset from the start
+to the existing file contents (if any).  If @var{append} is a
+number, @code{write-region} seeks to that byte offset from the start
 of the file and writes the data from there.
 
 If @var{mustbenew} is non-@code{nil}, then @code{write-region} asks

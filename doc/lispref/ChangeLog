@@ -1,3 +1,9 @@
+2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow floating-point file offsets.
+	* files.texi (Reading from Files, Writing to Files):
+	Say that file offsets can be numbers, not just integers.
+
 2013-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* commands.texi (Interactive Codes):
