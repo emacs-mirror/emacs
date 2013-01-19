@@ -3711,12 +3711,11 @@ extern char *egetenv (const char *);
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name (void);
 
-/* We used to use `abs', but that clashes with system headers on some
-   platforms, and using a name reserved by Standard C is a bad idea
-   anyway.  */
-#if !defined (eabs)
+/* Return the absolute value of X.  X should be a signed integer
+   expression without side effects, and X's absolute value should not
+   exceed the maximum for its promoted type.  This is called 'eabs'
+   because 'abs' is reserved by the C standard.  */
 #define eabs(x)         ((x) < 0 ? -(x) : (x))
-#endif
 
 /* Return a fixnum or float, depending on whether VAL fits in a Lisp
    fixnum.  */

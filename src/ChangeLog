@@ -1,3 +1,9 @@
+2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (eabs): Define unconditionally (Bug#13419).
+	The old "#if !defined (eabs)" was an unnecessary revenant of back
+	when this macro was called "abs".  Document 'eabs' better.
+
 2013-01-19  Glenn Morris  <rgm@gnu.org>
 
 	* fns.c (Frandom): Doc fix.
