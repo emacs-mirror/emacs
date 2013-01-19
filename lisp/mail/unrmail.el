@@ -241,6 +241,7 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	    (when keywords
 	      (insert "X-RMAIL-KEYWORDS: " keywords "\n"))
 	    (goto-char (point-min))
+	    (forward-line 1)		; skip `From ' line
 	    ;; Convert From to >From, etc.
 	    (let ((case-fold-search nil)
 		  (fromline (if (eq 'mboxrd unrmail-mbox-format)
