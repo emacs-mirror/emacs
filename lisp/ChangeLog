@@ -1,3 +1,9 @@
+2013-01-19  Chong Yidong  <cyd@gnu.org>
+
+	* image-mode.el (image-mode-fit-frame): Add a frame argument.
+	Suggested by Drew Adams (Bug#7730).  Handle window decorations;
+	save and restore the old window configuration.
+
 2013-01-18  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/js.el: Tweak autoload cookie for alias.

@@ -278,28 +278,50 @@ stopping if the top or bottom edge of the image is reached."
 
 ;; Adjust frame and image size.
 
-(defun image-mode-fit-frame ()
-  "Toggle whether to fit the frame to the current image.
-This function assumes the current frame has only one window."
-  ;; FIXME: This does not take into account decorations like mode-line,
-  ;; minibuffer, header-line, ...
-  (interactive)
-  (let* ((saved (frame-parameter nil 'image-mode-saved-size))
+(defun image-mode-fit-frame (&optional frame toggle)
+  "Fit FRAME to the current image.
+If FRAME is omitted or nil, it defaults to the selected frame.
+All other windows on the frame are deleted.
+
+If called interactively, or if TOGGLE is non-nil, toggle between
+fitting FRAME to the current image and restoring the size and
+window configuration prior to the last `image-mode-fit-frame'
+call."
+  (interactive (list nil t))
+  (let* ((buffer (current-buffer))
          (display (image-get-display-property))
-         (size (image-display-size display)))
-    (if (and saved
-             (eq (caar saved) (frame-width))
-             (eq (cdar saved) (frame-height)))
-        (progn ;; Toggle back to previous non-fitted size.
-          (set-frame-parameter nil 'image-mode-saved-size nil)
-          (setq size (cdr saved)))
-      ;; Round up size, and save current size so we can toggle back to it.
-      (setcar size (ceiling (car size)))
-      (setcdr size (ceiling (cdr size)))
-      (set-frame-parameter nil 'image-mode-saved-size
-                           (cons size (cons (frame-width) (frame-height)))))
-    (set-frame-width  (selected-frame) (car size))
-    (set-frame-height (selected-frame) (cdr size))))
+         (size (image-display-size display))
+	 (saved (frame-parameter frame 'image-mode-saved-params))
+	 (window-configuration (current-window-configuration frame))
+	 (width  (frame-width  frame))
+	 (height (frame-height frame)))
+    (with-selected-frame (or frame (selected-frame))
+      (if (and toggle saved
+	       (= (caar saved) width)
+	       (= (cdar saved) height))
+	  (progn
+	    (set-frame-width  frame (car (nth 1 saved)))
+	    (set-frame-height frame (cdr (nth 1 saved)))
+	    (set-window-configuration (nth 2 saved))
+	    (set-frame-parameter frame 'image-mode-saved-params nil))
+	(delete-other-windows)
+	(switch-to-buffer buffer t t)
+	(let* ((edges (window-inside-edges))
+	       (inner-width  (- (nth 2 edges) (nth 0 edges)))
+	       (inner-height (- (nth 3 edges) (nth 1 edges))))
+	  (set-frame-width  frame (+ (ceiling (car size))
+				     width (- inner-width)))
+	  (set-frame-height frame (+ (ceiling (cdr size))
+				     height (- inner-height)))
+	  ;; The frame size after the above `set-frame-*' calls may
+	  ;; differ from what we specified, due to window manager
+	  ;; interference.  We have to call `frame-width' and
+	  ;; `frame-height' to get the actual results.
+	  (set-frame-parameter frame 'image-mode-saved-params
+			       (list (cons (frame-width)
+					   (frame-height))
+				     (cons width height)
+				     window-configuration)))))))
 
 ;;; Image Mode setup
 

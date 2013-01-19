@@ -109,6 +109,13 @@ amounts of data into the ERC input.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
 
+** Image mode
+---
+*** The command `image-mode-fit-frame' deletes other windows.
+When toggling, it restores the frame's previous window configuration.
+It also has an optional frame argument, which can be used by Lisp
+callers to fit the image to a frame other than the selected frame.
+
 ** Isearch
 
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
