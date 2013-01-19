@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;;
+;; See Info node `(elisp)Profiling'.
 
 ;;; Code:
 
