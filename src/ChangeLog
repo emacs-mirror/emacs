@@ -3,6 +3,7 @@
 	* w32.c (acl_set_file): Treat ERROR_ACCESS_DENIED from
 	set_file_security as failure due to insufficient privileges.
 	Reported by Fabrice Popineau <fabrice.popineau@supelec.fr>.
+	(fstat): Return owner and group like 'stat' and 'lstat' do.
 
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
