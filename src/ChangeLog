@@ -1,3 +1,13 @@
+2013-01-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (get_pos_property): Use SAFE_ALLOCA_LISP, to avoid
+	segfault when there are lots of overlays.
+
+	* buffer.c (sort_overlays): Use SAFE_NALLOCA, to avoid segfault
+	when there are lots of overlays.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00421.html
+	for the details and a way to reproduce.
+
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c: Use O_APPEND to append.

@@ -386,6 +386,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
       ptrdiff_t noverlays;
       Lisp_Object *overlay_vec, tem;
       struct buffer *obuf = current_buffer;
+      USE_SAFE_ALLOCA;
 
       set_buffer_temp (XBUFFER (object));
 
@@ -398,7 +399,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
 	 make enough space for all, and try again.  */
       if (noverlays > 40)
 	{
-	  overlay_vec = alloca (noverlays * sizeof *overlay_vec);
+	  SAFE_ALLOCA_LISP (overlay_vec, noverlays);
 	  noverlays = overlays_around (posn, overlay_vec, noverlays);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, NULL);
@@ -421,10 +422,12 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
 		; /* The overlay will not cover a char inserted at point.  */
 	      else
 		{
+		  SAFE_FREE ();
 		  return tem;
 		}
 	    }
 	}
+      SAFE_FREE ();
 
       { /* Now check the text properties.  */
 	int stickiness = text_property_stickiness (prop, position, object);

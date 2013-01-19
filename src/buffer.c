@@ -3151,7 +3151,10 @@ ptrdiff_t
 sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 {
   ptrdiff_t i, j;
-  struct sortvec *sortvec = alloca (noverlays * sizeof *sortvec);
+  USE_SAFE_ALLOCA;
+  struct sortvec *sortvec;
+
+  SAFE_NALLOCA (sortvec, 1, noverlays);
 
   /* Put the valid and relevant overlays into sortvec.  */
 
@@ -3197,6 +3200,8 @@ sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 
   for (i = 0; i < noverlays; i++)
     overlay_vec[i] = sortvec[i].overlay;
+
+  SAFE_FREE ();
   return (noverlays);
 }
 
