@@ -1,3 +1,8 @@
+2013-01-19  Chong Yidong  <cyd@gnu.org>
+
+	* emacs.c (Fkill_emacs): Set waiting_for_input to 0 to avoid
+	aborting on Fsignal (Bug#13289).
+
 2013-01-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (acl_set_file): Treat ERROR_ACCESS_DENIED from
