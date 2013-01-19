@@ -325,7 +325,8 @@ backtrace with source-code line numbers:
 
 @example
 sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
-  addr2line -C -f -i -e @var{bindir}/@var{emacs-binary}
+  addr2line -C -f -i -p -e @var{bindir}/@var{emacs-binary}
+# Omit '-p' for addrline 2.20 and earlier.
 @end example
 
 @noindent
