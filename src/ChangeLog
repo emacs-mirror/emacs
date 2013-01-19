@@ -1,5 +1,8 @@
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix size bug on DOS_NT introduced by CIFS workaround (Bug#13149).
+	* fileio.c (Fwrite_region): Use O_BINARY in checking code, too.
+
 	Allow floating-point file offsets.
 	Problem reported by Vitalie Spinu in
 	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00411.html>.

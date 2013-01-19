@@ -4989,7 +4989,7 @@ This calls `write-region-annotate-functions' at the start, and
   if (EMACS_TIME_VALID_P (modtime)
       && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
     {
-      int desc1 = emacs_open (fn, O_WRONLY, 0);
+      int desc1 = emacs_open (fn, O_WRONLY | O_BINARY, 0);
       if (0 <= desc1)
 	{
 	  struct stat st1;
