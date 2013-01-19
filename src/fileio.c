@@ -103,6 +103,11 @@ static mode_t auto_save_mode_bits;
 /* Set by auto_save_1 if an error occurred during the last auto-save.  */
 static bool auto_save_error_occurred;
 
+/* If VALID_TIMESTAMP_FILE_SYSTEM, then TIMESTAMP_FILE_SYSTEM is the device
+   number of a file system where time stamps were observed to to work.  */
+static bool valid_timestamp_file_system;
+static dev_t timestamp_file_system;
+
 /* The symbol bound to coding-system-for-read when
    insert-file-contents is called for recovering a file.  This is not
    an actual coding system name, but just an indicator to tell
@@ -4971,6 +4976,48 @@ This calls `write-region-annotate-functions' at the start, and
   /* Discard the unwind protect for close_file_unwind.  */
   specpdl_ptr = specpdl + count1;
 
+  /* Some file systems have a bug where st_mtime is not updated
+     properly after a write.  For example, CIFS might not see the
+     st_mtime change until after the file is opened again.
+
+     Attempt to detect this file system bug, and update MODTIME to the
+     newer st_mtime if the bug appears to be present.  This introduces
+     a race condition, so to avoid most instances of the race condition
+     on non-buggy file systems, skip this check if the most recently
+     encountered non-buggy file system was the current file system.
+
+     A race condition can occur if some other process modifies the
+     file between the fstat above and the fstat below, but the race is
+     unlikely and a similar race between the last write and the fstat
+     above cannot possibly be closed anyway.  */
+
+  if (EMACS_TIME_VALID_P (modtime)
+      && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
+    {
+      int desc1 = emacs_open (fn, O_WRONLY, 0);
+      if (0 <= desc1)
+	{
+	  struct stat st1;
+	  if (fstat (desc1, &st1) == 0
+	      && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
+	    {
+	      EMACS_TIME modtime1 = get_stat_mtime (&st1);
+	      if (EMACS_TIME_EQ (modtime, modtime1)
+		  && st.st_size == st1.st_size)
+		{
+		  timestamp_file_system = st.st_dev;
+		  valid_timestamp_file_system = 1;
+		}
+	      else
+		{
+		  st.st_size = st1.st_size;
+		  modtime = modtime1;
+		}
+	    }
+	  emacs_close (desc1);
+	}
+    }
+
   /* Call write-region-post-annotation-function. */
   while (CONSP (Vwrite_region_annotation_buffers))
     {
@@ -5767,6 +5814,12 @@ Fread_file_name (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filena
 }
 
 
+void
+init_fileio (void)
+{
+  valid_timestamp_file_system = 0;
+}
+
 void
 syms_of_fileio (void)
 {

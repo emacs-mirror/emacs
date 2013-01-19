@@ -1,5 +1,18 @@
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Work around bug in CIFS and vboxsf file systems (Bug#13149).
+	The bug was observed on Ubuntu operating inside a virtual machine,
+	editing files mounted via CIFS or vboxsf from the MS Windows 7 host.
+	The workaround introduces a race condition on non-buggy hosts,
+	but it's an unlikely race and anyway there's a nearly identical
+	nearby race that can't be fixed.
+	* fileio.c (valid_timestamp_file_system, timestamp_file_system):
+	New static vars.
+	(Fwrite_region): Test for file system time stamp bug.
+	(init_fileio): New function.
+	* lisp.h (init_fileio): Declare it.
+	* emacs.c (main): Call it.
+
 	* fileio.c (Finsert_file_contents): Simplify new diagnostic
 	and make it more consistent with other stat-failure diagnostics.
 
