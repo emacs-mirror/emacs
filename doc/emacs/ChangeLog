@@ -1,9 +1,10 @@
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* trouble.texi (Crashing): Suggest -p for recent addrline.  (Bug#13445)
-	Without it, I don't see function names.  Older addrlines will die
-	out sooner or later, so tailor the suggestion to recent addrline
-	and put in a comment about older ones.
+	* trouble.texi (Crashing): Suggest -p for newer addr2line.  (Bug#13445)
+	Without it, I don't see function names.  Older addr2line
+	implementations will die out sooner or later, so tailor the
+	first suggestion to recent addr2line, with a followup about
+	older ones.
 
 2013-01-19  Glenn Morris  <rgm@gnu.org>
 
