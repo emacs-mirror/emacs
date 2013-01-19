@@ -620,12 +620,14 @@ Optional third argument FILTER, if non-nil, is a function to select
 If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one marked file,
 return (t FILENAME) instead of (FILENAME).
 Don't use that together with FILTER."
-  (let* ((all-of-them
-	  (save-excursion
-	    (dired-map-over-marks
-	     (dired-get-filename localp 'no-error-if-not-filep)
-	     arg nil distinguish-one-marked)))
-	 result)
+  (let ((all-of-them
+	 (save-excursion
+	   (delq nil (dired-map-over-marks
+		      (dired-get-filename localp 'no-error-if-not-filep)
+		      arg nil distinguish-one-marked))))
+	result)
+    (when (equal all-of-them '(t))
+      (setq all-of-them nil))
     (if (not filter)
 	(if (and distinguish-one-marked (eq (car all-of-them) t))
 	    all-of-them

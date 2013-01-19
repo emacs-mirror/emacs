@@ -555,7 +555,7 @@ or disabled as a unit.  You can use Custom themes to switch easily
 between various collections of settings, and to transfer such
 collections from one computer to another.
 
-  A Custom theme is stored an Emacs Lisp source file.  If the name of
+  A Custom theme is stored as an Emacs Lisp source file.  If the name of
 the Custom theme is @var{name}, the theme file is named
 @file{@var{name}-theme.el}.  @xref{Creating Custom Themes}, for the
 format of a theme file and how to make one.
@@ -1305,7 +1305,7 @@ files in that subdirectory.
 @example
 ((nil . ((indent-tabs-mode . t)
          (fill-column . 80)))
- (c-mode . ((c-file-style . "BSD")))
+ (c-mode . ((c-file-style . "BSD")
             (subdirs . nil)))
  ("src/imported"
   . ((nil . ((change-log-default-name

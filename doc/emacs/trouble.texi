@@ -325,7 +325,7 @@ backtrace with source-code line numbers:
 
 @example
 sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
-  addr2line -Cfip -e @var{bindir}/@var{emacs-binary}
+  addr2line -C -f -i -e @var{bindir}/@var{emacs-binary}
 @end example
 
 @noindent
@@ -333,7 +333,9 @@ Here, @var{backtrace} is the name of a text file containing a copy of
 the backtrace, @var{bindir} is the name of the directory that
 contains the Emacs executable, and @var{emacs-binary} is the name of
 the Emacs executable file, normally @file{emacs} on GNU and Unix
-systems and @file{emacs.exe} on MS-Windows and MS-DOS.
+systems and @file{emacs.exe} on MS-Windows and MS-DOS.@footnote{You
+may wish to add the @option{-p} option, if your version of
+@command{addr2line} supports it.}
 
 @cindex core dump
   Optionally, Emacs can generate a @dfn{core dump} when it crashes, on

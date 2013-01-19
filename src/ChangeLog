@@ -1,3 +1,7 @@
+2013-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* fns.c (Frandom): Doc fix.
+
 2013-01-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (get_pos_property): Use SAFE_ALLOCA_LISP, to avoid

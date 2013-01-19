@@ -1,3 +1,8 @@
+2013-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Put back a chmod that was
+	removed 2012-05-19.  (Bug#13430)
+
 2013-01-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

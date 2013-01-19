@@ -1156,7 +1156,7 @@ is the buffer position of the start of the containing expression."
 The function `calculate-lisp-indent' calls this to determine
 if the arguments of a Lisp function call should be indented specially.
 
-INDENT-POINT is the position where the user typed TAB, or equivalent.
+INDENT-POINT is the position at which the line being indented begins.
 Point is located at the point to indent under (for default indentation);
 STATE is the `parse-partial-sexp' state for that position.
 

@@ -1,3 +1,15 @@
+2013-01-19  Leo Liu  <sdl.web@gmail.com>
+
+	* dired.el (dired-get-marked-files): Prune erroneous values due to
+	last change.  (Bug#13152)
+
+2013-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/etags.el (tags-table-check-computed-list):
+	Preserve point in tags buffer.  (Bug#13412)
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-function): Doc fix.
+
 2013-01-19  Christian Wittern  <cwittern@gmail.com>  (tiny change)
 	    Chong Yidong  <cyd@gnu.org>
 

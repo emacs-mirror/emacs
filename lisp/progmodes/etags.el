@@ -336,12 +336,15 @@ file the tag was in."
 		     (save-excursion
 		       (tags-verify-table (buffer-file-name table-buffer))))
 		(with-current-buffer table-buffer
-		  (if (tags-included-tables)
-		      ;; Insert the included tables into the list we
-		      ;; are processing.
-		      (setcdr tables (nconc (mapcar 'tags-expand-table-name
-						    (tags-included-tables))
-					    (cdr tables)))))
+                  ;; Needed so long as etags-tags-included-tables
+                  ;; does not save-excursion.
+                  (save-excursion
+                    (if (tags-included-tables)
+                        ;; Insert the included tables into the list we
+                        ;; are processing.
+                        (setcdr tables (nconc (mapcar 'tags-expand-table-name
+                                                      (tags-included-tables))
+                                              (cdr tables))))))
 	      ;; This table is not in core yet.  Insert a placeholder
 	      ;; saying we must read it into core to check for included
 	      ;; tables before searching the next table in the list.
@@ -1550,6 +1553,7 @@ hits the start of file."
                 files)))
     (nreverse files)))
 
+;; FIXME?  Should this save-excursion?
 (defun etags-tags-included-tables () ; Doc string?
   (let ((files nil)
 	beg)
