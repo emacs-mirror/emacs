@@ -5065,7 +5065,7 @@ This calls `write-region-annotate-functions' at the start, and
     }
 
   if (!auto_saving)
-    message_with_string ((INTEGERP (append)
+    message_with_string ((NUMBERP (append)
 			  ? "Updated %s"
 			  : ! NILP (append)
 			  ? "Added to %s"
