@@ -4875,7 +4875,8 @@ acl_set_file (const char *fname, acl_type_t type, acl_t acl)
       retval = 0;
       errno = e;
     }
-  else if (err == ERROR_INVALID_OWNER || err == ERROR_NOT_ALL_ASSIGNED)
+  else if (err == ERROR_INVALID_OWNER || err == ERROR_NOT_ALL_ASSIGNED
+	   || err == ERROR_ACCESS_DENIED)
     {
       /* Maybe the requested ACL and the one the file already has are
 	 identical, in which case we can silently ignore the

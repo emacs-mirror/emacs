@@ -1,3 +1,9 @@
+2013-01-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (acl_set_file): Treat ERROR_ACCESS_DENIED from
+	set_file_security as failure due to insufficient privileges.
+	Reported by Fabrice Popineau <fabrice.popineau@supelec.fr>.
+
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Work around bug in CIFS and vboxsf file systems (Bug#13149).
