@@ -200,11 +200,18 @@ function name of a function itself."
     (goto-char (point-min))
     (read (current-buffer))))
 
+(defun profiler-running-p (&optional mode)
+  "Return non-nil if the profiler is running.
+Optional argument MODE means only check for the specified mode (cpu or mem)."
+  (cond ((eq mode 'cpu) (and (fboundp 'profiler-cpu-running-p)
+                             (profiler-cpu-running-p)))
+        ((eq mode 'mem) (profiler-memory-running-p))
+        (t (or (profiler-running-p 'cpu)
+               (profiler-running-p 'mem)))))
+
 (defun profiler-cpu-profile ()
   "Return CPU profile."
-  (when (and (fboundp 'profiler-cpu-running-p)
-             (fboundp 'profiler-cpu-log)
-             (profiler-cpu-running-p))
+  (when (profiler-running-p 'cpu)
     (profiler-make-profile
      :type 'cpu
      :timestamp (current-time)
@@ -457,7 +464,12 @@ RET: expand or collapse"))
         ["Compare Profile..." profiler-report-compare-profile :active t
          :help "Compare current profile with another"]
         ["Write Profile..." profiler-report-write-profile :active t
-         :help "Write current profile to a file"]))
+         :help "Write current profile to a file"]
+        "--"
+        ["Stop Profiler" profiler-stop :active (profiler-running-p)
+         :help "Stop profiling"]
+        ["New Report" profiler-report :active (profiler-running-p)
+         :help "Make a new report"]))
       map)
   "Keymap for `profiler-report-mode'.")
 

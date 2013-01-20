@@ -1,3 +1,9 @@
+2013-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* profiler.el (profiler-running-p): New function.
+	(profiler-cpu-profile): Use profiler-running-p.
+	(profiler-report-mode-map): Add some more menu entries.
+
 2013-01-19  Glenn Morris  <rgm@gnu.org>
 
 	* mail/unrmail.el (unrmail): Do not mangle the mbox From line;
