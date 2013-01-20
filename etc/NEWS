@@ -59,6 +59,9 @@ libacl.  On MS-Windows, the NT Security APIs are used to emulate the
 POSIX ACL interfaces.
 
 ** New option `scroll-bar-adjust-thumb-portion'.
+Available only on X, this option allows to control over-scrolling
+using the scroll bar (i.e. dragging the thumb down even when the end
+of the buffer is visible).
 
 * Editing Changes in Emacs 24.4
 
