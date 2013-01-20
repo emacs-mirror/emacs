@@ -38,7 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      could include embedded null characters.
 
    . It signals an error if the length of the formatted string is about to
-     overflow MOST_POSITIVE_FIXNUM, to avoid producing strings longer than what
+     overflow ptrdiff_t or size_t, to avoid producing strings longer than what
      Emacs can handle.
 
    OTOH, this function supports only a small subset of the standard C formatted
