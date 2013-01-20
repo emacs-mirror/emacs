@@ -335,6 +335,22 @@ font-lock keywords will not be case sensitive."
     (bindings--define-key prof-map [prof-func]
       '(menu-item "Instrument Function..." elp-instrument-function
 		  :help "Instrument a function for profiling"))
+    ;; Maybe this should be in a separate submenu from the ELP stuff?
+    (bindings--define-key prof-map [sep-natprof] menu-bar-separator)
+    (bindings--define-key prof-map [prof-natprof-stop]
+      '(menu-item "Stop Native Profiler" profiler-stop
+		  :help "Stop recording profiling information"
+		  :enable (and (featurep 'profiler)
+			       (profiler-running-p))))
+    (bindings--define-key prof-map [prof-natprof-report]
+      '(menu-item "Show Profiler Report" profiler-report
+		  :help "Show the current profiler report"
+		  :enable (and (featurep 'profiler)
+			       (profiler-running-p))))
+    (bindings--define-key prof-map [prof-natprof-start]
+      '(menu-item "Start Native Profiler..." profiler-start
+		  :help "Start recording profiling information"))
+
     (bindings--define-key menu-map [lint] (cons "Linting" lint-map))
     (bindings--define-key lint-map [lint-di]
       '(menu-item "Lint Directory..." elint-directory
