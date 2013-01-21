@@ -1,3 +1,9 @@
+2013-01-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-read-group-1): Protect against not being
+	able to find the article, which can happen in debbugs groups,
+	apparently.
+
 2013-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* smiley.el (smiley-style): Make the file loadable in batch mode.

@@ -4058,9 +4058,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 gnus-auto-select-first)
 	    (progn
 	      (let ((art (gnus-summary-article-number)))
-		(unless (and (not gnus-plugged)
-			     (or (memq art gnus-newsgroup-undownloaded)
-				 (memq art gnus-newsgroup-downloadable)))
+		(when (and art
+			   gnus-plugged
+			   (not (memq art gnus-newsgroup-undownloaded))
+			   (not (memq art gnus-newsgroup-downloadable)))
 		  (gnus-summary-goto-article art))))
 	  ;; Don't select any articles.
 	  (gnus-summary-position-point)
