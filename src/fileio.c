@@ -3413,13 +3413,13 @@ decide_coding_unwind (Lisp_Object unwind_data)
   return Qnil;
 }
 
-/* Check quit and read from the file.  STATE is a Lisp_Save_Value
+/* Read from a non-regular file.  STATE is a Lisp_Save_Value
    object where slot 0 is the file descriptor, slot 1 specifies
    an offset to put the read bytes, and slot 2 is the maximum
    amount of bytes to read.  Value is the number of bytes read.  */
 
 static Lisp_Object
-read_contents (Lisp_Object state)
+read_non_regular (Lisp_Object state)
 {
   int nbytes;
 
@@ -3435,10 +3435,12 @@ read_contents (Lisp_Object state)
   return make_number (nbytes);
 }
 
-/* Condition-case handler used when reading files in insert-file-contents.  */
+
+/* Condition-case handler used when reading from non-regular files
+   in insert-file-contents.  */
 
 static Lisp_Object
-read_contents_quit (Lisp_Object ignore)
+read_non_regular_quit (Lisp_Object ignore)
 {
   return Qnil;
 }
@@ -3516,10 +3518,9 @@ by calling `format-decode', which see.  */)
   Lisp_Object p;
   ptrdiff_t total = 0;
   bool not_regular = 0;
-  int save_errno = 0, read_errno = 0;
+  int save_errno = 0;
   char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
-  char buffer[1 << 14];
   bool replace_handled = 0;
   bool set_coding_system = 0;
   Lisp_Object coding_system;
@@ -3822,7 +3823,7 @@ by calling `format-decode', which see.  */)
 	{
 	  int nread, bufpos;
 
-	  nread = emacs_read (fd, buffer, sizeof buffer);
+	  nread = emacs_read (fd, read_buf, sizeof read_buf);
 	  if (nread < 0)
 	    error ("IO error reading %s: %s",
 		   SSDATA (orig_filename), emacs_strerror (errno));
@@ -3831,7 +3832,7 @@ by calling `format-decode', which see.  */)
 
 	  if (CODING_REQUIRE_DETECTION (&coding))
 	    {
-	      coding_system = detect_coding_system ((unsigned char *) buffer,
+	      coding_system = detect_coding_system ((unsigned char *) read_buf,
 						    nread, nread, 1, 0,
 						    coding_system);
 	      setup_coding_system (coding_system, &coding);
@@ -3847,7 +3848,7 @@ by calling `format-decode', which see.  */)
 
 	  bufpos = 0;
 	  while (bufpos < nread && same_at_start < ZV_BYTE
-		 && FETCH_BYTE (same_at_start) == buffer[bufpos])
+		 && FETCH_BYTE (same_at_start) == read_buf[bufpos])
 	    same_at_start++, bufpos++;
 	  /* If we found a discrepancy, stop the scan.
 	     Otherwise loop around and scan the next bufferful.  */
@@ -3881,7 +3882,7 @@ by calling `format-decode', which see.  */)
 	  if (curpos == 0)
 	    break;
 	  /* How much can we scan in the next step?  */
-	  trial = min (curpos, sizeof buffer);
+	  trial = min (curpos, sizeof read_buf);
 	  if (lseek (fd, curpos - trial, SEEK_SET) < 0)
 	    report_file_error ("Setting file position",
 			       Fcons (orig_filename, Qnil));
@@ -3889,7 +3890,7 @@ by calling `format-decode', which see.  */)
 	  total_read = nread = 0;
 	  while (total_read < trial)
 	    {
-	      nread = emacs_read (fd, buffer + total_read, trial - total_read);
+	      nread = emacs_read (fd, read_buf + total_read, trial - total_read);
 	      if (nread < 0)
 		error ("IO error reading %s: %s",
 		       SDATA (orig_filename), emacs_strerror (errno));
@@ -3905,7 +3906,7 @@ by calling `format-decode', which see.  */)
 	  /* Compare with same_at_start to avoid counting some buffer text
 	     as matching both at the file's beginning and at the end.  */
 	  while (bufpos > 0 && same_at_end > same_at_start
-		 && FETCH_BYTE (same_at_end - 1) == buffer[bufpos - 1])
+		 && FETCH_BYTE (same_at_end - 1) == read_buf[bufpos - 1])
 	    same_at_end--, bufpos--;
 
 	  /* If we found a discrepancy, stop the scan.
@@ -4197,68 +4198,85 @@ by calling `format-decode', which see.  */)
 			   Fcons (orig_filename, Qnil));
     }
 
-  /* In the following loop, HOW_MUCH contains the total bytes read
-     so far for a regular file, and not changed for a special file.  */
+  /* In the following loop, HOW_MUCH contains the total bytes read so
+     far for a regular file, and not changed for a special file.  But,
+     before exiting the loop, it is set to a negative value if I/O
+     error occurs.  */
   how_much = 0;
 
   /* Total bytes inserted.  */
   inserted = 0;
 
-  /* Here we don't do code conversion in the loop.  It is done by
-     decode_coding_gap after all data are read into the buffer, or
-     reading loop is interrupted with quit or due to I/O error.  */
+  /* Here, we don't do code conversion in the loop.  It is done by
+     decode_coding_gap after all data are read into the buffer.  */
+  {
+    ptrdiff_t gap_size = GAP_SIZE;
 
-  while (how_much < total)
-    {
-      ptrdiff_t nread, maxread = min (total - how_much, READ_BUF_SIZE);
-      Lisp_Object result;
+    while (how_much < total)
+      {
+	/* try is reserved in some compilers (Microsoft C) */
+	ptrdiff_t trytry = min (total - how_much, READ_BUF_SIZE);
+	ptrdiff_t this;
 
-      /* For a special file, gap is enlarged as we read,
-	 so GAP_SIZE should be checked every time.  */
-      if (not_regular && (GAP_SIZE < maxread))
-	make_gap (maxread - GAP_SIZE);
+	if (not_regular)
+	  {
+	    Lisp_Object nbytes;
 
-      /* Read from the file, capturing `quit'.  */
-      result = internal_condition_case_1
-	(read_contents,
-	 make_save_value ("iii", (ptrdiff_t) fd, inserted, maxread),
-	 Qerror, read_contents_quit);
-      if (NILP (result))
-	{
-	  /* Quit is signaled.  End the loop and arrange
-	     real quit after decoding the text we read.  */
-	  read_quit = 1;
-	  break;
-	}
-      nread = XINT (result);
-      if (nread <= 0)
-	{
-	  /* End of file or I/O error.  End the loop and
-	     save error code in case of I/O error.  */
-	  if (nread < 0)
-	    read_errno = errno;
-	  break;
-	}
+	    /* Maybe make more room.  */
+	    if (gap_size < trytry)
+	      {
+		make_gap (trytry - gap_size);
+		gap_size = GAP_SIZE - inserted;
+	      }
 
-      /* Adjust gap and end positions.  */
-      GAP_SIZE -= nread;
-      GPT += nread;
-      ZV += nread;
-      Z += nread;
-      GPT_BYTE += nread;
-      ZV_BYTE += nread;
-      Z_BYTE += nread;
-      if (GAP_SIZE > 0)
-	*(GPT_ADDR) = 0;
+	    /* Read from the file, capturing `quit'.  When an
+	       error occurs, end the loop, and arrange for a quit
+	       to be signaled after decoding the text we read.  */
+	    nbytes = internal_condition_case_1
+	      (read_non_regular,
+	       make_save_value ("iii", (ptrdiff_t) fd, inserted, trytry),
+	       Qerror, read_non_regular_quit);
 
-      /* For a regular file, where TOTAL is the real size, count HOW_MUCH to
-	 compare with it.  For a special file, where TOTAL is just a buffer
-	 size, don't bother counting in HOW_MUCH, but always accumulate the
-	 number of bytes read in INSERTED.  */
-      if (!not_regular)
-	how_much += nread;
-      inserted += nread;
-    }
+	    if (NILP (nbytes))
+	      {
+		read_quit = 1;
+		break;
+	      }
+
+	    this = XINT (nbytes);
+	  }
+	else
+	  {
+	    /* Allow quitting out of the actual I/O.  We don't make text
+	       part of the buffer until all the reading is done, so a C-g
+	       here doesn't do any harm.  */
+	    immediate_quit = 1;
+	    QUIT;
+	    this = emacs_read (fd,
+			       ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+				+ inserted),
+			       trytry);
+	    immediate_quit = 0;
+	  }
+
+	if (this <= 0)
+	  {
+	    how_much = this;
+	    break;
+	  }
+
+	gap_size -= this;
+
+	/* For a regular file, where TOTAL is the real size,
+	   count HOW_MUCH to compare with it.
+	   For a special file, where TOTAL is just a buffer size,
+	   so don't bother counting in HOW_MUCH.
+	   (INSERTED is where we count the number of characters inserted.)  */
+	if (! not_regular)
+	  how_much += this;
+	inserted += this;
+      }
+  }
 
   /* Now we have either read all the file data into the gap,
      or stop reading on I/O error or quit.  If nothing was
@@ -4279,6 +4297,23 @@ by calling `format-decode', which see.  */)
 
   /* Discard the unwind protect for closing the file.  */
   specpdl_ptr--;
+
+  if (how_much < 0)
+    error ("IO error reading %s: %s",
+	   SDATA (orig_filename), emacs_strerror (errno));
+
+  /* Make the text read part of the buffer.  */
+  GAP_SIZE -= inserted;
+  GPT      += inserted;
+  GPT_BYTE += inserted;
+  ZV       += inserted;
+  ZV_BYTE  += inserted;
+  Z        += inserted;
+  Z_BYTE   += inserted;
+
+  if (GAP_SIZE > 0)
+    /* Put an anchor to ensure multi-byte form ends at gap.  */
+    *GPT_ADDR = 0;
 
  notfound:
 
@@ -4568,15 +4603,10 @@ by calling `format-decode', which see.  */)
       report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
     }
 
-  /* There was an error reading file.  */
-  if (read_errno)
-    error ("IO error reading %s: %s",
-	   SDATA (orig_filename), emacs_strerror (read_errno));
-
-  /* Quit was signaled.  */
   if (read_quit)
     Fsignal (Qquit, Qnil);
 
+  /* Retval needs to be dealt with in all cases consistently.  */
   if (NILP (val))
     val = list2 (orig_filename, make_number (inserted));
 

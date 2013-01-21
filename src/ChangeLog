@@ -1,3 +1,10 @@
+2013-01-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fileio.c (Finsert_file_contents): Revert code introduced at
+	2013-01-18 in favor of the simpler and generally better fix.
+	Save stack space by removing 'buffer' and reusing 'read_buf'
+	where appropriate.
+
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (eabs): Define unconditionally (Bug#13419).
