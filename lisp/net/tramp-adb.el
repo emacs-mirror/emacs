@@ -907,15 +907,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 				(cons program args) " "))))
 	  (tramp-process-connection-type
 	   (or (null program) tramp-process-connection-type))
-	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	  (name1 name)
 	  (i 0))
       (unwind-protect
 	  (save-excursion
 	    (save-restriction
-	      (unless buffer
-		;; BUFFER can be nil.  We use a temporary buffer.
-		(setq buffer (generate-new-buffer tramp-temp-buffer-name)))
 	      (while (get-process name1)
 		;; NAME must be unique as process name.
 		(setq i (1+ i)
@@ -923,35 +919,21 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	      (setq name name1)
 	      ;; Set the new process properties.
 	      (tramp-set-connection-property v "process-name" name)
-	      (tramp-set-connection-property v "process-buffer" buffer)
-	      ;; Activate narrowing in order to save BUFFER contents.
-	      ;; Clear also the modification time; otherwise we might
-	      ;; be interrupted by `verify-visited-file-modtime'.
-	      (with-current-buffer (tramp-get-connection-buffer v)
-		(let ((buffer-undo-list t))
-		  (clear-visited-file-modtime)
-		  (narrow-to-region (point-max) (point-max))
-		  (if command
-		      ;; Send the command.
-		      (tramp-adb-send-command v command)
-		    ;; Open the connection.
-		    (tramp-adb-maybe-open-connection v))))
-	      (let ((p (tramp-get-connection-process v)))
-		;; Set sentinel and query flag for this process.
-		(tramp-set-connection-property p "vector" v)
-		(set-process-sentinel p 'tramp-process-sentinel)
-		(tramp-compat-set-process-query-on-exit-flag p t)
-		;; Return process.
-		p)))
-	;; Save exit.
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (if (string-match tramp-temp-buffer-name (buffer-name))
-	      (progn
-		(set-process-buffer (tramp-get-connection-process v) nil)
-		(kill-buffer (current-buffer)))
-	    (set-buffer-modified-p bmp)))
-	(tramp-set-connection-property v "process-name" nil)
-	(tramp-set-connection-property v "process-buffer" nil)))))
+	      (when command
+		(let* ((host (tramp-file-name-host v))
+		       (devices (mapcar 'cadr (tramp-adb-parse-device-names nil)))
+		       (args (if (> (length host) 0)
+				 (list "-s" host "shell" command)
+			       (list "shell" command)))
+		       (p (apply 'start-process (tramp-get-connection-name v) buffer
+				 (tramp-adb-program) args)))
+		  ;; Set sentinel and query flag for this process.
+		  (tramp-set-connection-property p "vector" v)
+		  (set-process-sentinel p 'tramp-process-sentinel)
+		  (tramp-compat-set-process-query-on-exit-flag p t)
+		  ;; Return process.
+		  p))))
+	(tramp-set-connection-property v "process-name" nil)))))
 
 ;; Helper functions.
 

@@ -1,3 +1,9 @@
+2013-01-21  Jürgen Hötzel  <juergen@archlinux.org>
+
+	* net/tramp-adb.el (tramp-adb-handle-start-file-process): Complete
+	reimplementation using "adb shell command ..." instead of running
+	remote shell interactively.
+
 2013-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map):
