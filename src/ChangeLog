@@ -1,3 +1,9 @@
+2013-01-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (acl_set_file): Don't test for errors unless
+	set_file_security returns FALSE.  Avoids spurious errors when
+	saving files.
+
 2013-01-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fileio.c (Finsert_file_contents): Revert code introduced at
