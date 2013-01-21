@@ -1,3 +1,10 @@
+2013-01-21  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-hunspell-dictionary-equivs-alist):
+	New variable to map standard dict names to hunspell ones.
+	(ispell-set-spellchecker-params): Make sure specific dict names
+	are used for standard dicts with hunspell.
+
 2013-01-21  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-cite.el (reftex-format-citation): Add format
