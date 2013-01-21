@@ -1555,7 +1555,8 @@ be non-negative integers."
 	  (goto-char (point-max))
 	  (delete-blank-lines)
 	  (when (> (point-max) (point-min))
-	    (substring-no-properties (buffer-string))))))))
+	    (tramp-compat-funcall
+	     'substring-no-properties (buffer-string))))))))
 
 (defun tramp-sh-handle-set-file-acl (filename acl-string)
   "Like `set-file-acl' for Tramp files."

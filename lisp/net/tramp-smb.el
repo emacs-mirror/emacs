@@ -649,13 +649,14 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	     v (format "getfacl \"%s\"" (tramp-smb-get-localname v)))
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
-	  (while (looking-at-p "^#")
+	  (while (looking-at "^#")
 	    (forward-line)
 	    (delete-region (point-min) (point)))
 	  (goto-char (point-max))
 	  (delete-blank-lines)
 	  (when (> (point-max) (point-min))
-	    (substring-no-properties (buffer-string))))))))
+	    (tramp-compat-funcall
+	     'substring-no-properties (buffer-string))))))))
 
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

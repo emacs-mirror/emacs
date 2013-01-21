@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'tramp)
+(require 'time-date)
 
 (defvar dired-move-to-filename-regexp)
 
@@ -465,7 +466,7 @@ Emacs dired can't find files."
     (setq time-a (apply 'encode-time (parse-time-string (match-string 0 a))))
     (string-match tramp-adb-ls-date-regexp b)
     (setq time-b (apply 'encode-time (parse-time-string (match-string 0 b))))
-    (time-less-p time-b time-a)))
+    (tramp-time-less-p time-b time-a)))
 
 (defun tramp-adb-ls-output-name-less-p (a b)
   "Sort \"ls\" output by name, ascending."
@@ -638,7 +639,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	newname (expand-file-name newname))
 
   (if (file-directory-p filename)
-      (copy-directory filename newname keep-date t)
+      (tramp-file-name-handler 'copy-directory filename newname keep-date t)
     (with-tramp-progress-reporter
 	(tramp-dissect-file-name (if (file-remote-p filename) filename newname))
 	0 (format "Copying %s to %s" filename newname)
@@ -698,7 +699,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (tramp-flush-file-property v localname)
 	    ;; Short track.
 	    (tramp-adb-barf-unless-okay
-	     v (format "mv %s %s" (file-remote-p filename 'localname) localname)
+	     v (format
+		"mv %s %s"
+		(tramp-file-name-handler 'file-remote-p filename 'localname)
+		localname)
 	     "Error renaming %s to %s" filename newname))
 
 	;; Rename by copy.
@@ -1071,7 +1075,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-adb-wait-for-output p)
 	    (unless (eq 'run (process-status p))
 	      (tramp-error  vec 'file-error "Terminated!"))
-	    (set-process-query-on-exit-flag p nil)
+	    (tramp-compat-set-process-query-on-exit-flag p nil)
 
 	    ;; Check whether the properties have been changed.  If
 	    ;; yes, this is a strong indication that we must expire all
