@@ -1,3 +1,9 @@
+2013-01-21  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-cite.el (reftex-format-citation): Add format
+	chars for note (%N) and url (%U).
+	* textmodes/reftex-vars.el (reftex-cite-format): Document them.
+
 2013-01-21  Juri Linkov  <juri@jurta.org>
 
 	* frame.el: Bind `f10' in `esc-map' to `toggle-frame-maximized'

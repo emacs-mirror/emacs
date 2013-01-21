@@ -1043,6 +1043,7 @@ While entering the regexp, completion on knows citation keys is possible.
                ((= l ?k) (reftex-get-bib-field "key" entry))
                ((= l ?m) (reftex-get-bib-field "month" entry))
                ((= l ?n) (reftex-get-bib-field "number" entry))
+	       ((= l ?N) (reftex-get-bib-field "note" entry))
                ((= l ?o) (reftex-get-bib-field "organization" entry))
                ((= l ?p) (reftex-get-bib-field "pages" entry))
                ((= l ?P) (car (split-string
@@ -1050,6 +1051,7 @@ While entering the regexp, completion on knows citation keys is possible.
                                "[- .]+")))
                ((= l ?s) (reftex-get-bib-field "school" entry))
                ((= l ?u) (reftex-get-bib-field "publisher" entry))
+	       ((= l ?U) (reftex-get-bib-field "url" entry))
                ((= l ?r) (reftex-get-bib-field "address" entry))
                ((= l ?t) (reftex-get-bib-field "title" entry))
                ((= l ?T) (reftex-abbreviate-title

@@ -1125,12 +1125,12 @@ In the format, the following percent escapes will be expanded.
 %e   Works like %a, but on list of editor names. (%2e and %E work a well)
 
 It is also possible to access all other BibTeX database fields:
-%b booktitle     %c chapter        %d edition    %h howpublished
-%i institution   %j journal        %k key        %m month
-%n number        %o organization   %p pages      %P first page
-%r address       %s school         %u publisher  %t title
-%v volume        %y year
-%B booktitle, abbreviated          %T title, abbreviated
+%b booktitle     %c chapter   %d edition      %h howpublished
+%i institution   %j journal   %k key          %m month
+%n number        %N note      %o organization %p pages
+%P first page    %r address   %s school       %u publisher
+%U url           %t title     %v volume       %y year
+%B booktitle, abbreviated     %T title, abbreviated
 
 Usually, only %l is needed.  The other stuff is mainly for the echo area
 display, and for (setq reftex-comment-citations t).
