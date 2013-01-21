@@ -1,3 +1,9 @@
+2013-01-21  Juri Linkov  <juri@jurta.org>
+
+	* frame.el: Bind `f10' in `esc-map' to `toggle-frame-maximized'
+	in addition to existing separate binding `meta f10' in `global-map'.
+	(Bug#13484)
+
 2013-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	Improve XEmacs compatibility.

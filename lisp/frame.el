@@ -1707,6 +1707,7 @@ See also `toggle-frame-maximized'."
 (define-key ctl-x-5-map "o" 'other-frame)
 (define-key global-map [f11] 'toggle-frame-fullscreen)
 (define-key global-map [(meta f10)] 'toggle-frame-maximized)
+(define-key esc-map    [f10]        'toggle-frame-maximized)
 
 
 ;; Misc.
