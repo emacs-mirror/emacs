@@ -186,7 +186,7 @@ This includes password cache, file cache, connection cache, buffers."
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
-       "\
+       (propertize "\n" 'display "\
 Enter your bug report in this message, including as much detail
 as you possibly can about the problem, what you did to cause it
 and what the local and remote machines are.
@@ -209,7 +209,7 @@ contents of the *tramp/foo* buffer and the *debug tramp/foo*
 buffer in your bug report.
 
 --bug report follows this line--
-"))))
+")))))
 
 (defun tramp-reporter-dump-variable (varsym mailbuf)
   "Pretty-print the value of the variable in symbol VARSYM."
@@ -348,10 +348,10 @@ the debug buffer(s).")
 	      (kill-buffer nil)
 	      (switch-to-buffer curbuf)
 	      (goto-char (point-max))
-	      (insert "\n\
+	      (insert (propertize "\n" 'display "\n\
 This is a special notion of the `gnus/message' package.  If you
 use another mail agent (by copying the contents of this buffer)
-please ensure that the buffers are attached to your email.\n\n")
+please ensure that the buffers are attached to your email.\n\n"))
 	      (dolist (buffer buffer-list)
 		(tramp-compat-funcall
 		 'mml-insert-empty-tag 'part 'type "text/plain"

@@ -1,3 +1,8 @@
+2013-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-bug, tramp-append-tramp-buffers): Mark
+	descriptive parts with `display' property.
+
 2013-01-21  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-hunspell-dictionary-equivs-alist):
