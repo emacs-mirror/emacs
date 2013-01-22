@@ -1,3 +1,21 @@
+2013-01-22  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Revise handling of initial display and extend
+	to top priorities file.
+	(todos-display-categories-first): Remove, replacing by this:
+	(todos-show-first): New defcustom.
+	(todos-first-visit): Remove, replacing by this:
+	(todos-visited): New variable.
+	(todos-absolute-file-name): Extend possible values of optional
+	argument to take top priorities files into account.
+	(todos-modes-set-3, todos-mode): Remove use of todos-first-visit.
+	(todos-mode-external-set): Call find-file-noselect instead of
+	find-buffer-visiting, since the latter may fail.
+	(todos-show): Revise handling of initial display using
+	todos-show-first and todos-visited and extend to top priorities
+	file.
+	(todos-quit): Adapt to new handling of initial display.
+
 2013-01-14  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Implement saving top priority items buffers,

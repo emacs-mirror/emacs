@@ -142,9 +142,11 @@ displayed correctly."
   :type 'string
   :group 'todos)
 
-(defcustom todos-display-categories-first nil
-  "Non-nil to display category list on first visit to a Todos file."
-  :type 'boolean
+(defcustom todos-show-first 'first
+  "What action to take on first use of `todos-show' on a file."
+  :type '(choice (const :tag "Show first category" first)
+		 (const :tag "Show table of categories" table)
+		 (const :tag "Show top priorities" top))
   :group 'todos)
 
 (defcustom todos-completion-ignore-case nil
@@ -977,10 +979,6 @@ the Diary, of done items and of archived items.")
   "Variable holding the number of the current Todos category.
 Todos categories are numbered starting from 1.")
 
-(defvar todos-first-visit t
-  "Non-nil if first display of this file in the current session.
-See `todos-display-categories-first'.")
-
 (defvar todos-show-done-only nil
   "If non-nil display only done items in current category.
 Set by the command `todos-show-done-only' and used by
@@ -1015,6 +1013,11 @@ Added to `window-configuration-change-hook' in `todos-mode'."
 (defvar todos-archives (funcall todos-files-function t)
   "List of truenames of user's Todos archives.")
 
+(defvar todos-visited nil
+  "List of Todos files visited in this session by `todos-show'.
+Used to determine initial display according to the value of
+`todos-show-first'.")
+
 (defvar todos-file-buffers nil
   "List of file names of live Todos mode buffers.")
 
@@ -1044,15 +1047,17 @@ users option `todos-show-current-file' is non-nil).")
 (defvar todos-print-buffer "*Todos Print*"
   "Name of buffer containing printable Todos text.")
 
-(defun todos-absolute-file-name (name &optional archive)
+(defun todos-absolute-file-name (name &optional type)
   "Return the absolute file name of short Todos file NAME.
-With non-nil ARCHIVE return the absolute file name of the short
-Todos Archive name."
+With TYPE `archive' or `top' return the absolute file name of the
+short Todos Archive or Top Priorities file name, respectively."
   ;; NOP if there is no Todos file yet (i.e. don't concatenate nil).
   (when name
     (file-truename
      (concat todos-files-directory name
-	     (if archive ".toda" ".todo")))))
+	     (cond ((eq type 'archive) ".toda")
+		   ((eq type 'top) ".todt")
+		   (t ".todo"))))))
 
 (defun todos-check-format ()
   "Signal an error if the current Todos file is ill-formatted.
@@ -2144,6 +2149,7 @@ in Todos Filter Items mode."
 			  (regexp-quote todos-nondiary-end)) "?"
 			"\\(?4: \\[\\(?3:(archive) \\)?\\(?2:.*:\\)?"
 			"\\(?1:.*\\)\\]\\).*$") str)
+  ;; FIXME: use cat and file to find priorities
   (let ((cat (match-string 1 str))
 	(file (match-string 2 str))
 	(archive (string= (match-string 3 str) "(archive) "))
@@ -2162,6 +2168,7 @@ in Todos Filter Items mode."
       (goto-char (point-min))
       (re-search-forward
        (concat "^" (regexp-quote (concat todos-category-beg cat)) "$") nil t)
+      ;; FIXME: use todos-forward-item to find priority, and return it as well
       (setq found (search-forward str nil t)))
     (list found file cat)))
 
@@ -2860,7 +2867,6 @@ which is the value of the user option
   ""
   (set (make-local-variable 'todos-categories) (todos-set-categories))
   (set (make-local-variable 'todos-category-number) 1)
-  (set (make-local-variable 'todos-first-visit) t)
   (add-hook 'find-file-hook 'todos-display-as-todos-file nil t))
 
 (put 'todos-mode 'mode-class 'special)
@@ -2878,7 +2884,6 @@ which is the value of the user option
 		(funcall todos-files-function))
     (set (make-local-variable 'todos-current-todos-file)
   	 (file-truename (buffer-file-name))))
-  (set (make-local-variable 'todos-first-visit) t)
   (set (make-local-variable 'todos-show-done-only) nil)
   (set (make-local-variable 'todos-categories-with-marks) nil)
   (add-hook 'find-file-hook 'todos-add-to-buffer-list nil t)
@@ -2919,7 +2924,11 @@ which is the value of the user option
   (set (make-local-variable 'todos-current-todos-file)
        todos-global-current-todos-file)
   (let ((cats (with-current-buffer
-		  (find-buffer-visiting todos-current-todos-file)
+		  ;; Can't use find-buffer-visiting when
+		  ;; `todos-display-categories' is called on first
+		  ;; invocation of `todos-show', since there is then
+		  ;; no buffer visiting the current file.
+		  (find-file-noselect todos-current-todos-file 'nowarn)
 		todos-categories)))
     (set (make-local-variable 'todos-categories) cats)))
 
@@ -2955,23 +2964,25 @@ which is the value of the user option
 
 ;;;###autoload
 (defun todos-show (&optional solicit-file)
-  "Visit the current Todos file and display one of its categories.
+  "Visit a Todos file and display one of its categories.
 With non-nil prefix argument SOLICIT-FILE prompt for which todo
-file to visit.
+file to visit; otherwise visit `todos-default-todos-file'.
+Subsequent invocations from outside of Todos mode revisit this
+file or, with option `todos-show-current-file' non-nil (the
+default), whichever Todos file was last visited.
 
-Without a prefix argument, the first invocation of this command
-in a session visits `todos-default-todos-file' (creating it if it
-does not yet exist); subsequent invocations from outside of Todos
-mode revisit this file or, if the user option
-`todos-show-current-file' is non-nil, whichever Todos file
-\(either a todo or an archive file) was visited last.
+Calling this command before any Todos file exists prompts for a
+file name and an initial category (defaulting to
+`todos-initial-file' and `todos-initial-category'), creates both
+of these, visits the file and displays the category.
 
-The category displayed on initial invocation is the first member
-of `todos-categories' for the current Todos file, on subsequent
-invocations whichever category was displayed last.  If
-`todos-display-categories-first' is non-nil, then the first
-invocation of `todos-show' displays a clickable listing of the
-categories in the current Todos file.
+The first invocation of this command on an existing Todos file
+interacts with the option `todos-show-first': if `table', show
+the table of categories in the file; if `top', show the
+corresponding top priorities file, if any; if `first' (the
+default value), show the first category in the file.  Subsequent
+invocations always show the file's current (i.e., last displayed)
+category.
 
 In Todos mode just the category's unfinished todo items are shown
 by default.  The done items are hidden, but typing
@@ -2979,10 +2990,11 @@ by default.  The done items are hidden, but typing
 items.  With non-nil user option `todos-show-with-done' both todo
 and done items are always shown on visiting a category.
 
-If this command is invoked in Todos Archive mode, it visits the
+Invoking this command in Todos Archive mode visits the
 corresponding Todos file, displaying the corresponding category."
   (interactive "P")
   (let* ((cat)
+	 (show-first todos-show-first)
 	 (file (cond (solicit-file
 		      (if (funcall todos-files-function)
 			  (todos-read-file-name "Choose a Todos file to visit: "
@@ -3001,12 +3013,28 @@ corresponding Todos file, displaying the corresponding category."
 			       todos-global-current-todos-file)
 			  (todos-absolute-file-name todos-default-todos-file)
 			  (todos-add-file))))))
-    (if (and todos-first-visit todos-display-categories-first)
-	(todos-display-categories)
+    (unless (member file todos-visited)
+      ;; Can't setq t-c-t-f here, otherwise wrong file shown when
+      ;; called again from todos-display-categories.
+      (let ((todos-current-todos-file file))
+	(cond ((eq todos-show-first 'table)
+	       ;; FIXME: what if there are no categories yet?
+	       (todos-display-categories))
+	      ((eq todos-show-first 'top)
+	       (let* ((shortf (todos-short-file-name file))
+		      (tp-file (todos-absolute-file-name shortf 'top)))
+		 (if (file-exists-p tp-file)
+		     (set-window-buffer
+		      (selected-window)
+		      (set-buffer (find-file-noselect tp-file 'nowarn)))
+		   (message "There is no top priorities file for %s" shortf)
+		   (setq todos-show-first 'first)))))))
+    (when (or (member file todos-visited)
+	      (eq todos-show-first 'first))
       (set-window-buffer (selected-window)
 			 (set-buffer (find-file-noselect file 'nowarn)))
-      ;; If called from archive file, show corresponding category in Todos
-      ;; file, if it exists.
+      ;; If called from archive file, show corresponding
+      ;; category in Todos file, if it exists.
       (when (assoc cat todos-categories)
 	(setq todos-category-number (todos-category-number cat)))
       ;; If this is a new Todos file, add its first category.
@@ -3014,7 +3042,8 @@ corresponding Todos file, displaying the corresponding category."
 	(setq todos-category-number
 	      (todos-add-category todos-current-todos-file "")))
       (save-excursion (todos-category-select)))
-    (setq todos-first-visit nil)))
+    (setq todos-show-first show-first)
+    (add-to-list 'todos-visited file)))
 
 (defun todos-display-categories ()
   "Display a table of the current file's categories and item counts.
@@ -3147,9 +3176,16 @@ Depending on the specific mode, this either kills the buffer or
 buries it and restores state as needed."
   (interactive)
   (cond ((eq major-mode 'todos-categories-mode)
-	 (kill-buffer)
-	 (setq todos-descending-counts nil)
-	 (todos-show))
+	 ;; Postpone killing buffer till after calling todos-show, to
+	 ;; prevent killing todos-mode buffer.
+	 (let ((buf (current-buffer)))
+	   (setq todos-descending-counts nil)
+	   ;; Ensure todos-show calls todos-display-categories only on
+	   ;; first invocation per file.
+	   (when (eq todos-show-first 'table)
+	     (add-to-list 'todos-visited todos-current-todos-file))
+	   (todos-show)
+	   (kill-buffer buf)))
 	((eq major-mode 'todos-filtered-items-mode)
 	 (kill-buffer)
 	 (todos-show))
