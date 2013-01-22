@@ -1,5 +1,21 @@
 2013-01-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.h (struct window): Change window_end_valid member from
+	Lisp_Object to a bitfield.  Adjust comments.
+	(wset_window_end_valid): Remove.
+	* window.c (adjust_window_count): Clear window_end_valid.
+	(Fwindow_end): Adjust user.  Remove ancient #if 0 code.
+	(Fwindow_line_height, set_window_buffer, Frecenter)
+	(Fsplit_window_internal, Fdelete_other_windows_internal)
+	(Fset_window_fringes, Fset_window_scroll_bars): Adjust users.
+	* dispnew.c (adjust_glyph_matrix, clear_window_matrices): Likewise.
+	* xdisp.c (check_window_end, reconsider_clip_changes)
+	(redisplay_internal, mark_window_display_accurate_1, redisplay_window)
+	(try_window, try_window_reusing_current_matrix, note_mouse_highlight)
+	(find_first_unchanged_at_end_row, try_window_id): Likewise.
+
+2013-01-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xdisp.c (mark_window_display_accurate): Simplify the loop
 	assuming that the only one of vchild, hchild or buffer window
 	slots is non-nil.  Call mark_window_display_accurate_1 for

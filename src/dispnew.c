@@ -607,7 +607,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		 are invalidated below.  */
 	      if (INTEGERP (w->window_end_vpos)
 		  && XFASTINT (w->window_end_vpos) >= i)
-		wset_window_end_valid (w, Qnil);
+		w->window_end_valid = 0;
 
 	      while (i < matrix->nrows)
 		matrix->rows[i++].enabled_p = 0;
@@ -862,7 +862,7 @@ clear_window_matrices (struct window *w, bool desired_p)
 	  else
 	    {
 	      clear_glyph_matrix (w->current_matrix);
-	      wset_window_end_valid (w, Qnil);
+	      w->window_end_valid = 0;
 	    }
 	}
 

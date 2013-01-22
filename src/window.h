@@ -175,17 +175,13 @@ struct window
        no scroll bar.  A value of t means use frame value.  */
     Lisp_Object vertical_scroll_bar_type;
 
-    /* Z - the buffer position of the last glyph in the current matrix
-       of W.  Only valid if WINDOW_END_VALID is not nil.  */
+    /* Z - the buffer position of the last glyph in the current
+       matrix of W.  Only valid if window_end_valid is nonzero.  */
     Lisp_Object window_end_pos;
+
     /* Glyph matrix row of the last glyph in the current matrix
-       of W.  Only valid if WINDOW_END_VALID is not nil.  */
+       of W.  Only valid if window_end_valid is nonzero.  */
     Lisp_Object window_end_vpos;
-    /* t if window_end_pos is truly valid.
-       This is nil if nontrivial redisplay is preempted
-       since in that case the frame image that window_end_pos
-       did not get onto the frame.  */
-    Lisp_Object window_end_valid;
 
     /* Display-table to use for displaying chars in this window.
        Nil means use the buffer's own display-table.  */
@@ -339,12 +335,17 @@ struct window
        Otherwise draw them between margin areas and text.  */
     unsigned fringes_outside_margins : 1;
 
+    /* Nonzero if window_end_pos and window_end_vpos are truly valid.
+       This is zero if nontrivial redisplay is preempted since in that case
+       the frame image that window_end_pos did not get onto the frame.  */
+    unsigned window_end_valid : 1;
+
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
 
-    /* Z_BYTE - Buffer position of the last glyph in the current matrix of W.
-       Should be nonnegative, and only valid if window_end_valid is not nil.  */
+    /* Z_BYTE - buffer position of the last glyph in the current matrix of W.
+       Should be nonnegative, and only valid if window_end_valid is nonzero.  */
     ptrdiff_t window_end_bytepos;
 };
 
@@ -399,11 +400,6 @@ WINDOW_INLINE void
 wset_window_end_pos (struct window *w, Lisp_Object val)
 {
   w->window_end_pos = val;
-}
-WINDOW_INLINE void
-wset_window_end_valid (struct window *w, Lisp_Object val)
-{
-  w->window_end_valid = val;
 }
 WINDOW_INLINE void
 wset_window_end_vpos (struct window *w, Lisp_Object val)
