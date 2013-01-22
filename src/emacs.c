@@ -133,7 +133,8 @@ Lisp_Object Qfile_name_handler_alist;
 
 Lisp_Object Qrisky_local_variable;
 
-Lisp_Object Qkill_emacs, Qkill_emacs_hook;
+Lisp_Object Qkill_emacs;
+static Lisp_Object Qkill_emacs_hook;
 
 /* If true, Emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */

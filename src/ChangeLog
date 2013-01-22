@@ -1,5 +1,7 @@
 2013-01-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c (Qkill_emacs_hook): Now static.
+
 	* fileio.c (Finsert_file_contents): Simplify.
 	Remove unnecessary assignments and tests.
 
