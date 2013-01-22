@@ -1,3 +1,8 @@
+2013-01-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (allocate_heap) [!_WIN64]: Decrease the initial
+	request of memory reservation to 1.7GB.  (Bug#13065)
+
 2013-01-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* coding.c (detect_coding_iso_2022): Move back mis-reordered code

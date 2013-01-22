@@ -98,7 +98,11 @@ allocate_heap (void)
 #ifdef _WIN64
   size_t size = 0x4000000000i64; /* start by asking for 32GB */
 #else
-  size_t size = 0x80000000; /* start by asking for 2GB */
+  /* We used to start with 2GB here, but on Windows 7 that would leave
+     too little room in the address space for threads started by
+     Windows on our behalf, e.g. when we pop up the file selection
+     dialog.  */
+  size_t size = 0x68000000; /* start by asking for 1.7GB */
 #endif
   void *ptr = NULL;
 
