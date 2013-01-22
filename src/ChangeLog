@@ -1,3 +1,12 @@
+2013-01-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (mark_window_display_accurate): Simplify the loop
+	assuming that the only one of vchild, hchild or buffer window
+	slots is non-nil.  Call mark_window_display_accurate_1 for
+	the leaf windows only.
+	(mark_window_display_accurate_1): Always assume leaf window.
+	Adjust comment.
+
 2013-01-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c (Qkill_emacs_hook): Now static.

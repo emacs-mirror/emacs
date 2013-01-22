@@ -13722,49 +13722,42 @@ unwind_redisplay (Lisp_Object old_frame)
 }
 
 
-/* Mark the display of window W as accurate or inaccurate.  If
-   ACCURATE_P is non-zero mark display of W as accurate.  If
-   ACCURATE_P is zero, arrange for W to be redisplayed the next time
-   redisplay_internal is called.  */
+/* Mark the display of leaf window W as accurate or inaccurate.
+   If ACCURATE_P is non-zero mark display of W as accurate.  If
+   ACCURATE_P is zero, arrange for W to be redisplayed the next
+   time redisplay_internal is called.  */
 
 static void
 mark_window_display_accurate_1 (struct window *w, int accurate_p)
 {
-  if (BUFFERP (w->buffer))
-    {
-      struct buffer *b = XBUFFER (w->buffer);
+  struct buffer *b = XBUFFER (w->buffer);
 
-      w->last_modified = accurate_p ? BUF_MODIFF (b) : 0;
-      w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF (b) : 0;
-      w->last_had_star
-	= BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
-
-      if (accurate_p)
-	{
-	  b->clip_changed = 0;
-	  b->prevent_redisplay_optimizations_p = 0;
-
-	  BUF_UNCHANGED_MODIFIED (b) = BUF_MODIFF (b);
-	  BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
-	  BUF_BEG_UNCHANGED (b) = BUF_GPT (b) - BUF_BEG (b);
-	  BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
-
-	  w->current_matrix->buffer = b;
-	  w->current_matrix->begv = BUF_BEGV (b);
-	  w->current_matrix->zv = BUF_ZV (b);
-
-	  w->last_cursor = w->cursor;
-	  w->last_cursor_off_p = w->cursor_off_p;
-
-	  if (w == XWINDOW (selected_window))
-	    w->last_point = BUF_PT (b);
-	  else
-	    w->last_point = marker_position (w->pointm);
-	}
-    }
+  w->last_modified = accurate_p ? BUF_MODIFF (b) : 0;
+  w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF (b) : 0;
+  w->last_had_star = BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
 
   if (accurate_p)
     {
+      b->clip_changed = 0;
+      b->prevent_redisplay_optimizations_p = 0;
+
+      BUF_UNCHANGED_MODIFIED (b) = BUF_MODIFF (b);
+      BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
+      BUF_BEG_UNCHANGED (b) = BUF_GPT (b) - BUF_BEG (b);
+      BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
+
+      w->current_matrix->buffer = b;
+      w->current_matrix->begv = BUF_BEGV (b);
+      w->current_matrix->zv = BUF_ZV (b);
+
+      w->last_cursor = w->cursor;
+      w->last_cursor_off_p = w->cursor_off_p;
+
+      if (w == XWINDOW (selected_window))
+	w->last_point = BUF_PT (b);
+      else
+	w->last_point = marker_position (w->pointm);
+
       wset_window_end_valid (w, w->buffer);
       w->update_mode_line = 0;
     }
@@ -13784,25 +13777,21 @@ mark_window_display_accurate (Lisp_Object window, int accurate_p)
   for (; !NILP (window); window = w->next)
     {
       w = XWINDOW (window);
-      mark_window_display_accurate_1 (w, accurate_p);
-
       if (!NILP (w->vchild))
 	mark_window_display_accurate (w->vchild, accurate_p);
-      if (!NILP (w->hchild))
+      else if (!NILP (w->hchild))
 	mark_window_display_accurate (w->hchild, accurate_p);
+      else if (BUFFERP (w->buffer))
+	mark_window_display_accurate_1 (w, accurate_p);
     }
 
   if (accurate_p)
-    {
-      update_overlay_arrows (1);
-    }
+    update_overlay_arrows (1);
   else
-    {
-      /* Force a thorough redisplay the next time by setting
-	 last_arrow_position and last_arrow_string to t, which is
-	 unequal to any useful value of Voverlay_arrow_...  */
-      update_overlay_arrows (-1);
-    }
+    /* Force a thorough redisplay the next time by setting
+       last_arrow_position and last_arrow_string to t, which is
+       unequal to any useful value of Voverlay_arrow_...  */
+    update_overlay_arrows (-1);
 }
 
 
