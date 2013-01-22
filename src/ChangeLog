@@ -1,3 +1,8 @@
+2013-01-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Finsert_file_contents): Simplify.
+	Remove unnecessary assignments and tests.
+
 2013-01-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (acl_set_file): Don't test for errors unless

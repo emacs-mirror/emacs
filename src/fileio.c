@@ -3573,7 +3573,6 @@ by calling `format-decode', which see.  */)
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
       mtime = time_error_value (save_errno);
       st.st_size = -1;
-      how_much = 0;
       if (!NILP (Vcoding_system_for_read))
 	Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
       goto notfound;
@@ -4008,29 +4007,24 @@ by calling `format-decode', which see.  */)
 	report_file_error ("Setting file position",
 			   Fcons (orig_filename, Qnil));
 
-      total = st.st_size;	/* Total bytes in the file.  */
-      how_much = 0;		/* Bytes read from file so far.  */
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
 
       GCPRO1 (conversion_buffer);
-      while (how_much < total)
+      while (1)
 	{
-	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
-	     quitting while reading a huge while.  */
-	  /* `try'' is reserved in some compilers (Microsoft C).  */
-	  int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
+	  /* Read at most READ_BUF_SIZE bytes at a time, to allow
+	     quitting while reading a huge file.  */
 
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
 	  QUIT;
-	  this = emacs_read (fd, read_buf + unprocessed, trytry);
+	  this = emacs_read (fd, read_buf + unprocessed,
+			     READ_BUF_SIZE - unprocessed);
 	  immediate_quit = 0;
 
 	  if (this <= 0)
 	    break;
-
-	  how_much += this;
 
 	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
 			   BUF_Z (XBUFFER (conversion_buffer)));
@@ -4047,9 +4041,6 @@ by calling `format-decode', which see.  */)
 	 close_file_unwind, but other stuff has been added the stack,
 	 so defer the removal till we reach the `handled' label.  */
       deferred_remove_unwind_protect = 1;
-
-      /* At this point, HOW_MUCH should equal TOTAL, or should be <= 0
-	 if we couldn't read the file.  */
 
       if (this < 0)
 	error ("IO error reading %s: %s",
