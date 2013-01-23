@@ -1,3 +1,8 @@
+2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* insdel.c (prepare_to_modify_buffer): Force redisplay if
+	hidden buffer is prepared to modification (Bug#13164).
+
 2013-01-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Change window_end_valid member from

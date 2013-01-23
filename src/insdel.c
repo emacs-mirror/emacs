@@ -1804,9 +1804,12 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
     Fbarf_if_buffer_read_only ();
 
   /* If we're modifying the buffer other than shown in a selected window,
-     let redisplay consider other windows if this buffer is visible.  */
+     let redisplay consider other windows if this buffer is visible or
+     hidden (although hidden buffers have zero window counts, their state
+     may affect the display too, e.g. via mode lines of other buffers).  */
   if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer
-      && buffer_window_count (current_buffer))
+      && (buffer_window_count (current_buffer)
+	  || BUFFER_HIDDEN_P (current_buffer)))
     ++windows_or_buffers_changed;
 
   if (buffer_intervals (current_buffer))
