@@ -1,3 +1,7 @@
+2013-01-23  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-entity-or-char-ref-re): Fix regexp.
+
 2013-01-18  Leo Liu  <sdl.web@gmail.com>
 
 	* dired.el (dired-get-marked-files): Prune erroneous values due to
