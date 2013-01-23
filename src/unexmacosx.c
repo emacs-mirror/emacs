@@ -437,7 +437,7 @@ build_region_list (void)
 }
 
 
-#define MAX_UNEXEC_REGIONS 400
+#define MAX_UNEXEC_REGIONS 800
 
 static int num_unexec_regions;
 typedef struct {

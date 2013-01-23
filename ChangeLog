@@ -1,3 +1,8 @@
+2013-01-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-01-16 unistd: port to recent mingw
+
 2013-01-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Put back a chmod that was
