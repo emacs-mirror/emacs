@@ -1434,7 +1434,7 @@ being the list of messages originally from that folder."
           (beginning-of-line)
           (push (cons (buffer-substring-no-properties
                        (point) (mh-line-end-position))
-                      (set-marker (make-marker) (point)))
+                      (point-marker))
                 alist)))
       (setq imenu--index-alist (nreverse alist)))))
 

@@ -435,7 +435,7 @@ only work of Black's moves are explicitly numbered, for instance
                 gametree-half-ply-regexp)) limit))
           (goto-char (match-beginning 0))))
   (gametree-transpose-following-leaves)
-  (let* ((pt (set-marker (make-marker) (point)))
+  (let* ((pt (point-marker))
          (plys (gametree-current-branch-ply))
          (depth (gametree-current-branch-depth))
          (old-depth depth))

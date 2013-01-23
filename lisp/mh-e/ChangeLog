@@ -1,3 +1,9 @@
+2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* mh-acros.el (mh-do-at-event-location): Use point-marker.
+	* mh-search.el (mh-index-create-imenu-index): Likewise.
+	* mh-xface.el (mh-x-image-url-display): Likewise.
+
 2012-11-25  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.4.

@@ -233,7 +233,7 @@ preserved."
               (,original-window (selected-window))
               (,original-position (progn
                                    (set-buffer (window-buffer ,event-window))
-                                   (set-marker (make-marker) (point))))
+                                   (point-marker)))
               (,modified-flag (buffer-modified-p))
               (buffer-read-only nil))
          (unwind-protect (progn

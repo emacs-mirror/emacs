@@ -323,7 +323,7 @@ elements of the list are nil."
 If the URL isn't present in the cache then it is fetched with wget."
   (let* ((cache-filename (mh-x-image-url-cache-canonicalize url))
          (state (mh-x-image-get-download-state cache-filename))
-         (marker (set-marker (make-marker) (point))))
+         (marker (point-marker)))
     (set (make-local-variable 'mh-x-image-marker) marker)
     (cond ((not (mh-x-image-url-sane-p url)))
           ((eq state 'ok)
