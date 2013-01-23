@@ -675,9 +675,8 @@ echo_now (void)
     }
 
   echoing = 1;
-  message3_nolog (KVAR (current_kboard, echo_string),
-		  SBYTES (KVAR (current_kboard, echo_string)),
-		  STRING_MULTIBYTE (KVAR (current_kboard, echo_string)));
+  /* FIXME: Use call (Qmessage) so it can be advised (e.g. emacspeak).  */
+  message3_nolog (KVAR (current_kboard, echo_string));
   echoing = 0;
 
   /* Record in what buffer we echoed, and from which kboard.  */
@@ -1429,7 +1428,7 @@ command_loop_1 (void)
 	  sit_for (Vminibuffer_message_timeout, 0, 2);
 
 	  /* Clear the echo area.  */
-	  message2 (0, 0, 0);
+	  message1 (0);
 	  safe_run_hooks (Qecho_area_clear_hook);
 
 	  unbind_to (count, Qnil);
@@ -8434,12 +8433,6 @@ read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
   return Qnil ;
 }
 
-/* Buffer in use so far for the minibuf prompts for menu keymaps.
-   We make this bigger when necessary, and never free it.  */
-static char *read_char_minibuf_menu_text;
-/* Size of that buffer.  */
-static ptrdiff_t read_char_minibuf_menu_width;
-
 static Lisp_Object
 read_char_minibuf_menu_prompt (int commandflag,
 			       ptrdiff_t nmaps, Lisp_Object *maps)
@@ -8452,7 +8445,7 @@ read_char_minibuf_menu_prompt (int commandflag,
   ptrdiff_t idx = -1;
   bool nobindings = 1;
   Lisp_Object rest, vector;
-  char *menu;
+  Lisp_Object prompt_strings = Qnil;
 
   vector = Qnil;
   name = Qnil;
@@ -8472,24 +8465,13 @@ read_char_minibuf_menu_prompt (int commandflag,
   if (!STRINGP (name))
     return Qnil;
 
-  /* Make sure we have a big enough buffer for the menu text.  */
-  width = max (width, SBYTES (name));
-  if (STRING_BYTES_BOUND - 4 < width)
-    memory_full (SIZE_MAX);
-  if (width + 4 > read_char_minibuf_menu_width)
-    {
-      read_char_minibuf_menu_text
-	= xrealloc (read_char_minibuf_menu_text, width + 4);
-      read_char_minibuf_menu_width = width + 4;
-    }
-  menu = read_char_minibuf_menu_text;
-
+#define PUSH_C_STR(str, listvar) \
+  listvar = Fcons (make_unibyte_string (str, strlen (str)), listvar)
+  
   /* Prompt string always starts with map's prompt, and a space.  */
-  strcpy (menu, SSDATA (name));
-  nlength = SBYTES (name);
-  menu[nlength++] = ':';
-  menu[nlength++] = ' ';
-  menu[nlength] = 0;
+  prompt_strings = Fcons (name, prompt_strings);
+  PUSH_C_STR (": ", prompt_strings);
+  nlength = SCHARS (name) + 2;
 
   /* Start prompting at start of first map.  */
   mapno = 0;
@@ -8499,6 +8481,7 @@ read_char_minibuf_menu_prompt (int commandflag,
   while (1)
     {
       bool notfirst = 0;
+      Lisp_Object menu_strings = prompt_strings;
       ptrdiff_t i = nlength;
       Lisp_Object obj;
       Lisp_Object orig_defn_macro;
@@ -8507,6 +8490,8 @@ read_char_minibuf_menu_prompt (int commandflag,
       while (i < width)
 	{
 	  Lisp_Object elt;
+
+	  /* FIXME: Use map_keymap to handle new keymap formats.  */
 
 	  /* If reached end of map, start at beginning of next map.  */
 	  if (NILP (rest))
@@ -8603,7 +8588,7 @@ read_char_minibuf_menu_prompt (int commandflag,
 		      /* Punctuate between strings.  */
 		      if (notfirst)
 			{
-			  strcpy (menu + i, ", ");
+			  PUSH_C_STR (", ", menu_strings);
 			  i += 2;
 			}
 		      notfirst = 1;
@@ -8615,23 +8600,28 @@ read_char_minibuf_menu_prompt (int commandflag,
 			{
 			  /* Add as much of string as fits.  */
 			  thiswidth = min (SCHARS (desc), width - i);
-			  memcpy (menu + i, SDATA (desc), thiswidth);
+			  menu_strings
+			    = Fcons (Fsubstring (desc, make_number (0),
+						 make_number (thiswidth)),
+				     menu_strings);
 			  i += thiswidth;
-			  strcpy (menu + i, " = ");
+			  PUSH_C_STR (" = ", menu_strings);
 			  i += 3;
 			}
 
 		      /* Add as much of string as fits.  */
 		      thiswidth = min (SCHARS (s), width - i);
-		      memcpy (menu + i, SDATA (s), thiswidth);
+		      menu_strings
+			= Fcons (Fsubstring (s, make_number (0),
+					     make_number (thiswidth)),
+				 menu_strings);
 		      i += thiswidth;
-		      menu[i] = 0;
 		    }
 		  else
 		    {
 		      /* If this element does not fit, end the line now,
 			 and save the element for the next line.  */
-		      strcpy (menu + i, "...");
+		      PUSH_C_STR ("...", menu_strings);
 		      break;
 		    }
 		}
@@ -8648,13 +8638,11 @@ read_char_minibuf_menu_prompt (int commandflag,
 	}
 
       /* Prompt with that and read response.  */
-      message2_nolog (menu, strlen (menu),
-		      ! NILP (BVAR (current_buffer, enable_multibyte_characters)));
+      message3_nolog (apply1 (intern ("concat"), menu_strings));
 
-      /* Make believe its not a keyboard macro in case the help char
+      /* Make believe it's not a keyboard macro in case the help char
 	 is pressed.  Help characters are not recorded because menu prompting
-	 is not used on replay.
-	 */
+	 is not used on replay.  */
       orig_defn_macro = KVAR (current_kboard, defining_kbd_macro);
       kset_defining_kbd_macro (current_kboard, Qnil);
       do
@@ -8662,9 +8650,7 @@ read_char_minibuf_menu_prompt (int commandflag,
       while (BUFFERP (obj));
       kset_defining_kbd_macro (current_kboard, orig_defn_macro);
 
-      if (!INTEGERP (obj))
-	return obj;
-      else if (XINT (obj) == -2)
+      if (!INTEGERP (obj) || XINT (obj) == -2)
         return obj;
 
       if (! EQ (obj, menu_prompt_more_char)
@@ -8675,7 +8661,7 @@ read_char_minibuf_menu_prompt (int commandflag,
 	    store_kbd_macro_char (obj);
 	  return obj;
 	}
-      /* Help char - go round again */
+      /* Help char - go round again.  */
     }
 }
 
@@ -10091,7 +10077,7 @@ will read just one key sequence.  */)
     cancel_hourglass ();
 #endif
 
-  i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
+  i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0);
 

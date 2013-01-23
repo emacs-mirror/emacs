@@ -26,7 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>		/* For CHAR_BIT.  */
 
 #ifdef ENABLE_CHECKING
-#include <signal.h>		/* For SIGABRT. */
+#include <signal.h>		/* For SIGABRT.  */
 #endif
 
 #ifdef HAVE_PTHREAD
@@ -1684,7 +1684,7 @@ allocate_string_data (struct Lisp_String *s,
       b = lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
-      /* Back to a reasonable maximum of mmap'ed areas. */
+      /* Back to a reasonable maximum of mmap'ed areas.  */
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
@@ -1901,7 +1901,7 @@ compact_small_strings (void)
 
 #ifdef GC_CHECK_STRING_BYTES
 	  /* Check that the string size recorded in the string is the
-	     same as the one recorded in the sdata structure. */
+	     same as the one recorded in the sdata structure.  */
 	  if (s && string_bytes (s) != SDATA_NBYTES (from))
 	    emacs_abort ();
 #endif /* GC_CHECK_STRING_BYTES */
@@ -6564,7 +6564,7 @@ die (const char *msg, const char *file, int line)
 }
 #endif
 
-/* Initialization */
+/* Initialization.  */
 
 void
 init_alloc_once (void)
@@ -6579,9 +6579,9 @@ init_alloc_once (void)
 #endif
 
 #ifdef DOUG_LEA_MALLOC
-  mallopt (M_TRIM_THRESHOLD, 128*1024); /* trim threshold */
-  mallopt (M_MMAP_THRESHOLD, 64*1024); /* mmap threshold */
-  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS); /* max. number of mmap'ed areas */
+  mallopt (M_TRIM_THRESHOLD, 128 * 1024); /* Trim threshold.  */
+  mallopt (M_MMAP_THRESHOLD, 64 * 1024);  /* Mmap threshold.  */
+  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);   /* Max. number of mmap'ed areas.  */
 #endif
   init_strings ();
   init_vectors ();

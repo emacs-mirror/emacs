@@ -1,3 +1,32 @@
+2013-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (message2, message2_nolog): Remove functions.
+	(message3, message3_nolog): Extract nbytes and multibyteness directly
+	from the string.  Change all callers.
+	(message3_nolog): Don't set message_enable_multibyte since set_message
+	will reset it anyway.
+	(message1, message1_nolog): Use message3.
+	(vmessage): Use a stack allocated buffer rather than f->message_buf.
+	(with_echo_area_buffer): Remove last two arguments.  Update all callers.
+	(set_message): Drop all but the second arg, which has to be a string.
+	(set_message_1): Simplify now that we know that a1 is NULL and the
+	second arg is a string.
+	* frame.h (struct frame): Remove `message_buf' field.
+	Use glyphs_initialized_p instead.
+	(FRAME_MESSAGE_BUF): Remove macro.
+	* w16select.c (Fw16_set_clipboard_data): Prefer message3 to message2.
+	* lisp.h (message2, message2_nolog): Remove declarations.
+	(message3, message3_nolog): Update declarations.
+	* keyboard.c (read_char_minibuf_menu_text)
+	(read_char_minibuf_menu_width): Remove vars.
+	(read_char_minibuf_menu_prompt): Rewrite the menu's construction so as
+	to correctly handle multibyte strings.
+	* frame.c (delete_frame): Don't free message_buf any more.
+	* editfns.c (message_text, message_length): Remove vars.
+	(Fmessage_box): Don't copy the Lisp string's bytes any longer.
+	* fileio.c (auto_save_error): Use message3 instead of message2.
+	* dispnew.c (adjust_frame_message_buffer): Remove function.
+
 2013-01-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32fullscreen_hook): Account correctly for the screen

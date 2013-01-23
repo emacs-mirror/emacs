@@ -87,7 +87,6 @@ static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
                                                  struct window *);
 static void build_frame_matrix_from_leaf_window (struct glyph_matrix *,
                                                  struct window *);
-static void adjust_frame_message_buffer (struct frame *);
 static void adjust_decode_mode_spec_buffer (struct frame *);
 static void fill_up_glyph_row_with_spaces (struct glyph_row *);
 static void clear_window_matrices (struct window *, bool);
@@ -1857,9 +1856,7 @@ adjust_frame_glyphs (struct frame *f)
   else
     adjust_frame_glyphs_for_frame_redisplay (f);
 
-  /* Don't forget the message buffer and the buffer for
-     decode_mode_spec.  */
-  adjust_frame_message_buffer (f);
+  /* Don't forget the buffer for decode_mode_spec.  */
   adjust_decode_mode_spec_buffer (f);
 
   f->glyphs_initialized_p = 1;
@@ -2156,23 +2153,6 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     allocate_matrices_for_window_redisplay (w);
   }
 #endif
-}
-
-
-/* Adjust/ allocate message buffer of frame F.
-
-   Note that the message buffer is never freed.  Since I could not
-   find a free in 19.34, I assume that freeing it would be
-   problematic in some way and don't do it either.
-
-   (Implementation note: It should be checked if we can free it
-   eventually without causing trouble).  */
-
-static void
-adjust_frame_message_buffer (struct frame *f)
-{
-  FRAME_MESSAGE_BUF (f) = xrealloc (FRAME_MESSAGE_BUF (f),
-				    FRAME_MESSAGE_BUF_SIZE (f) + 1);
 }
 
 

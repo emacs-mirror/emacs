@@ -5444,10 +5444,8 @@ static Lisp_Object
 auto_save_error (Lisp_Object error_val)
 {
   Lisp_Object args[3], msg;
-  int i, nbytes;
+  int i;
   struct gcpro gcpro1;
-  char *msgbuf;
-  USE_SAFE_ALLOCA;
 
   auto_save_error_occurred = 1;
 
@@ -5458,20 +5456,16 @@ auto_save_error (Lisp_Object error_val)
   args[2] = Ferror_message_string (error_val);
   msg = Fformat (3, args);
   GCPRO1 (msg);
-  nbytes = SBYTES (msg);
-  msgbuf = SAFE_ALLOCA (nbytes);
-  memcpy (msgbuf, SDATA (msg), nbytes);
 
   for (i = 0; i < 3; ++i)
     {
       if (i == 0)
-	message2 (msgbuf, nbytes, STRING_MULTIBYTE (msg));
+	message3 (msg);
       else
-	message2_nolog (msgbuf, nbytes, STRING_MULTIBYTE (msg));
+	message3_nolog (msg);
       Fsleep_for (make_number (1), Qnil);
     }
 
-  SAFE_FREE ();
   UNGCPRO;
   return Qnil;
 }

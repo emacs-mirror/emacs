@@ -840,17 +840,17 @@ static void ensure_echo_area_buffers (void);
 static Lisp_Object unwind_with_echo_area_buffer (Lisp_Object);
 static Lisp_Object with_echo_area_buffer_unwind_data (struct window *);
 static int with_echo_area_buffer (struct window *, int,
-                                  int (*) (ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t),
-                                  ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t);
+                                  int (*) (ptrdiff_t, Lisp_Object),
+                                  ptrdiff_t, Lisp_Object);
 static void clear_garbaged_frames (void);
-static int current_message_1 (ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t);
+static int current_message_1 (ptrdiff_t, Lisp_Object);
 static void pop_message (void);
-static int truncate_message_1 (ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t);
-static void set_message (const char *, Lisp_Object, ptrdiff_t, int);
-static int set_message_1 (ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t);
+static int truncate_message_1 (ptrdiff_t, Lisp_Object);
+static void set_message (Lisp_Object);
+static int set_message_1 (ptrdiff_t, Lisp_Object);
 static int display_echo_area (struct window *);
-static int display_echo_area_1 (ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t);
-static int resize_mini_window_1 (ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t);
+static int display_echo_area_1 (ptrdiff_t, Lisp_Object);
+static int resize_mini_window_1 (ptrdiff_t, Lisp_Object);
 static Lisp_Object unwind_redisplay (Lisp_Object);
 static int string_char_and_length (const unsigned char *, int *);
 static struct text_pos display_prop_end (struct it *, Lisp_Object,
@@ -9567,7 +9567,7 @@ message_log_check_duplicate (ptrdiff_t prev_bol_byte, ptrdiff_t this_bol_byte)
 
   for (i = 0; i < len; i++)
     {
-      if (i >= 3 && p1[i-3] == '.' && p1[i-2] == '.' && p1[i-1] == '.')
+      if (i >= 3 && p1[i - 3] == '.' && p1[i - 2] == '.' && p1[i - 1] == '.')
 	seen_dots = 1;
       if (p1[i] != p2[i])
 	return seen_dots;
@@ -9580,86 +9580,11 @@ message_log_check_duplicate (ptrdiff_t prev_bol_byte, ptrdiff_t this_bol_byte)
       char *pend;
       intmax_t n = strtoimax ((char *) p1, &pend, 10);
       if (0 < n && n < INTMAX_MAX && strncmp (pend, " times]\n", 8) == 0)
-	return n+1;
+	return n + 1;
     }
   return 0;
 }
 
-
-/* Display an echo area message M with a specified length of NBYTES
-   bytes.  The string may include null characters.  If M is 0, clear
-   out any existing message, and let the mini-buffer text show
-   through.
-
-   This may GC, so the buffer M must NOT point to a Lisp string.  */
-
-void
-message2 (const char *m, ptrdiff_t nbytes, int multibyte)
-{
-  /* First flush out any partial line written with print.  */
-  message_log_maybe_newline ();
-  if (m)
-    message_dolog (m, nbytes, 1, multibyte);
-  message2_nolog (m, nbytes, multibyte);
-}
-
-
-/* The non-logging counterpart of message2.  */
-
-void
-message2_nolog (const char *m, ptrdiff_t nbytes, int multibyte)
-{
-  struct frame *sf = SELECTED_FRAME ();
-  message_enable_multibyte = multibyte;
-
-  if (FRAME_INITIAL_P (sf))
-    {
-      if (noninteractive_need_newline)
-	putc ('\n', stderr);
-      noninteractive_need_newline = 0;
-      if (m)
-	fwrite (m, nbytes, 1, stderr);
-      if (cursor_in_echo_area == 0)
-	fprintf (stderr, "\n");
-      fflush (stderr);
-    }
-  /* A null message buffer means that the frame hasn't really been
-     initialized yet.  Error messages get reported properly by
-     cmd_error, so this must be just an informative message; toss it.  */
-  else if (INTERACTIVE
-	   && sf->glyphs_initialized_p
-	   && FRAME_MESSAGE_BUF (sf))
-    {
-      Lisp_Object mini_window;
-      struct frame *f;
-
-      /* Get the frame containing the mini-buffer
-	 that the selected frame is using.  */
-      mini_window = FRAME_MINIBUF_WINDOW (sf);
-      f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
-
-      FRAME_SAMPLE_VISIBILITY (f);
-      if (FRAME_VISIBLE_P (sf)
-	  && ! FRAME_VISIBLE_P (f))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (mini_window)));
-
-      if (m)
-	{
-	  set_message (m, Qnil, nbytes, multibyte);
-	  if (minibuffer_auto_raise)
-	    Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
-	}
-      else
-	clear_message (1, 1);
-
-      do_pending_window_change (0);
-      echo_area_display (1);
-      do_pending_window_change (0);
-      if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
-	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
-    }
-}
-
 
 /* Display an echo area message M with a specified length of NBYTES
    bytes.  The string may include null characters.  If M is not a
@@ -9669,7 +9594,7 @@ message2_nolog (const char *m, ptrdiff_t nbytes, int multibyte)
    This function cancels echoing.  */
 
 void
-message3 (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
+message3 (Lisp_Object m)
 {
   struct gcpro gcpro1;
 
@@ -9681,13 +9606,15 @@ message3 (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
   message_log_maybe_newline ();
   if (STRINGP (m))
     {
+      ptrdiff_t nbytes = SBYTES (m);
+      int multibyte = STRING_MULTIBYTE (m);
       USE_SAFE_ALLOCA;
       char *buffer = SAFE_ALLOCA (nbytes);
       memcpy (buffer, SDATA (m), nbytes);
       message_dolog (buffer, nbytes, 1, multibyte);
       SAFE_FREE ();
     }
-  message3_nolog (m, nbytes, multibyte);
+  message3_nolog (m);
 
   UNGCPRO;
 }
@@ -9699,10 +9626,9 @@ message3 (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
    and make this cancel echoing.  */
 
 void
-message3_nolog (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
+message3_nolog (Lisp_Object m)
 {
   struct frame *sf = SELECTED_FRAME ();
-  message_enable_multibyte = multibyte;
 
   if (FRAME_INITIAL_P (sf))
     {
@@ -9710,27 +9636,22 @@ message3_nolog (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
 	putc ('\n', stderr);
       noninteractive_need_newline = 0;
       if (STRINGP (m))
-	fwrite (SDATA (m), nbytes, 1, stderr);
+	fwrite (SDATA (m), SBYTES (m), 1, stderr);
       if (cursor_in_echo_area == 0)
 	fprintf (stderr, "\n");
       fflush (stderr);
     }
-  /* A null message buffer means that the frame hasn't really been
-     initialized yet.  Error messages get reported properly by
-     cmd_error, so this must be just an informative message; toss it.  */
+  /* Error messages get reported properly by cmd_error, so this must be just an
+     informative message; if the frame hasn't really been initialized yet, just
+     toss it.  */
   else if (INTERACTIVE
-	   && sf->glyphs_initialized_p
-	   && FRAME_MESSAGE_BUF (sf))
+	   && sf->glyphs_initialized_p)
     {
-      Lisp_Object mini_window;
-      Lisp_Object frame;
-      struct frame *f;
-
       /* Get the frame containing the mini-buffer
 	 that the selected frame is using.  */
-      mini_window = FRAME_MINIBUF_WINDOW (sf);
-      frame = XWINDOW (mini_window)->frame;
-      f = XFRAME (frame);
+      Lisp_Object mini_window = FRAME_MINIBUF_WINDOW (sf);
+      Lisp_Object frame = XWINDOW (mini_window)->frame;
+      struct frame *f = XFRAME (frame);
 
       FRAME_SAMPLE_VISIBILITY (f);
       if (FRAME_VISIBLE_P (sf)
@@ -9739,7 +9660,7 @@ message3_nolog (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
 
       if (STRINGP (m) && SCHARS (m) > 0)
 	{
-	  set_message (NULL, m, nbytes, multibyte);
+	  set_message (m);
 	  if (minibuffer_auto_raise)
 	    Fraise_frame (frame);
 	  /* Assume we are not echoing.
@@ -9769,7 +9690,7 @@ message3_nolog (Lisp_Object m, ptrdiff_t nbytes, int multibyte)
 void
 message1 (const char *m)
 {
-  message2 (m, (m ? strlen (m) : 0), 0);
+  message3 (m ? make_unibyte_string (m, strlen (m)) : Qnil);
 }
 
 
@@ -9778,7 +9699,7 @@ message1 (const char *m)
 void
 message1_nolog (const char *m)
 {
-  message2_nolog (m, (m ? strlen (m) : 0), 0);
+  message3_nolog (m ? make_unibyte_string (m, strlen (m)) : Qnil);
 }
 
 /* Display a message M which contains a single %s
@@ -9815,10 +9736,10 @@ message_with_string (const char *m, Lisp_Object string, int log)
       mini_window = FRAME_MINIBUF_WINDOW (sf);
       f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
-      /* A null message buffer means that the frame hasn't really been
-	 initialized yet.  Error messages get reported properly by
-	 cmd_error, so this must be just an informative message; toss it.  */
-      if (FRAME_MESSAGE_BUF (f))
+      /* Error messages get reported properly by cmd_error, so this must be
+	 just an informative message; if the frame hasn't really been
+	 initialized yet, just toss it.  */
+      if (f->glyphs_initialized_p)
 	{
 	  Lisp_Object args[2], msg;
 	  struct gcpro gcpro1, gcpro2;
@@ -9831,9 +9752,9 @@ message_with_string (const char *m, Lisp_Object string, int log)
 	  msg = Fformat (2, args);
 
 	  if (log)
-	    message3 (msg, SBYTES (msg), STRING_MULTIBYTE (msg));
+	    message3 (msg);
 	  else
-	    message3_nolog (msg, SBYTES (msg), STRING_MULTIBYTE (msg));
+	    message3_nolog (msg);
 
 	  UNGCPRO;
 
@@ -9877,20 +9798,20 @@ vmessage (const char *m, va_list ap)
       mini_window = FRAME_MINIBUF_WINDOW (sf);
       f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
-      /* A null message buffer means that the frame hasn't really been
-	 initialized yet.  Error messages get reported properly by
-	 cmd_error, so this must be just an informative message; toss
-	 it.  */
-      if (FRAME_MESSAGE_BUF (f))
+      /* Error messages get reported properly by cmd_error, so this must be
+	 just an informative message; if the frame hasn't really been
+	 initialized yet, just toss it.  */
+      if (f->glyphs_initialized_p)
 	{
 	  if (m)
 	    {
 	      ptrdiff_t len;
+	      ptrdiff_t maxsize = FRAME_MESSAGE_BUF_SIZE (f);
+	      char *message_buf = alloca (maxsize + 1);
 
-	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);
+	      len = doprnt (message_buf, maxsize, m, (char *)0, ap);
 
-	      message2 (FRAME_MESSAGE_BUF (f), len, 1);
+	      message3 (make_string (message_buf, len));
 	    }
 	  else
 	    message1 (0);
@@ -9941,8 +9862,7 @@ update_echo_area (void)
     {
       Lisp_Object string;
       string = Fcurrent_message ();
-      message3 (string, SBYTES (string),
-		!NILP (BVAR (current_buffer, enable_multibyte_characters)));
+      message3 (string);
     }
 }
 
@@ -9978,7 +9898,7 @@ ensure_echo_area_buffers (void)
 }
 
 
-/* Call FN with args A1..A4 with either the current or last displayed
+/* Call FN with args A1..A2 with either the current or last displayed
    echo_area_buffer as current buffer.
 
    WHICH zero means use the current message buffer
@@ -9996,8 +9916,8 @@ ensure_echo_area_buffers (void)
 
 static int
 with_echo_area_buffer (struct window *w, int which,
-		       int (*fn) (ptrdiff_t, Lisp_Object, ptrdiff_t, ptrdiff_t),
-		       ptrdiff_t a1, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4)
+		       int (*fn) (ptrdiff_t, Lisp_Object),
+		       ptrdiff_t a1, Lisp_Object a2)
 {
   Lisp_Object buffer;
   int this_one, the_other, clear_buffer_p, rc;
@@ -10070,7 +9990,7 @@ with_echo_area_buffer (struct window *w, int which,
   eassert (BEGV >= BEG);
   eassert (ZV <= Z && ZV >= BEGV);
 
-  rc = fn (a1, a2, a3, a4);
+  rc = fn (a1, a2);
 
   eassert (BEGV >= BEG);
   eassert (ZV <= Z && ZV >= BEGV);
@@ -10249,7 +10169,7 @@ display_echo_area (struct window *w)
   window_height_changed_p
     = with_echo_area_buffer (w, display_last_displayed_message_p,
 			     display_echo_area_1,
-			     (intptr_t) w, Qnil, 0, 0);
+			     (intptr_t) w, Qnil);
 
   if (no_message_p)
     echo_area_buffer[i] = Qnil;
@@ -10266,7 +10186,7 @@ display_echo_area (struct window *w)
    Value is non-zero if height of W was changed.  */
 
 static int
-display_echo_area_1 (ptrdiff_t a1, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4)
+display_echo_area_1 (ptrdiff_t a1, Lisp_Object a2)
 {
   intptr_t i1 = a1;
   struct window *w = (struct window *) i1;
@@ -10311,8 +10231,7 @@ resize_echo_area_exactly (void)
 	resize_exactly = Qnil;
 
       resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
-					 (intptr_t) w, resize_exactly,
-					 0, 0);
+					 (intptr_t) w, resize_exactly);
       if (resized_p)
 	{
 	  ++windows_or_buffers_changed;
@@ -10330,7 +10249,7 @@ resize_echo_area_exactly (void)
    resize_mini_window returns.  */
 
 static int
-resize_mini_window_1 (ptrdiff_t a1, Lisp_Object exactly, ptrdiff_t a3, ptrdiff_t a4)
+resize_mini_window_1 (ptrdiff_t a1, Lisp_Object exactly)
 {
   intptr_t i1 = a1;
   return resize_mini_window ((struct window *) i1, !NILP (exactly));
@@ -10499,7 +10418,7 @@ current_message (void)
   else
     {
       with_echo_area_buffer (0, 0, current_message_1,
-			     (intptr_t) &msg, Qnil, 0, 0);
+			     (intptr_t) &msg, Qnil);
       if (NILP (msg))
 	echo_area_buffer[0] = Qnil;
     }
@@ -10509,7 +10428,7 @@ current_message (void)
 
 
 static int
-current_message_1 (ptrdiff_t a1, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4)
+current_message_1 (ptrdiff_t a1, Lisp_Object a2)
 {
   intptr_t i1 = a1;
   Lisp_Object *msg = (Lisp_Object *) i1;
@@ -10541,14 +10460,8 @@ push_message (void)
 void
 restore_message (void)
 {
-  Lisp_Object msg;
-
   eassert (CONSP (Vmessage_stack));
-  msg = XCAR (Vmessage_stack);
-  if (STRINGP (msg))
-    message3_nolog (msg, SBYTES (msg), STRING_MULTIBYTE (msg));
-  else
-    message3_nolog (msg, 0, 0);
+  message3_nolog (XCAR (Vmessage_stack));
 }
 
 
@@ -10591,16 +10504,16 @@ truncate_echo_area (ptrdiff_t nchars)
 {
   if (nchars == 0)
     echo_area_buffer[0] = Qnil;
-  /* A null message buffer means that the frame hasn't really been
-     initialized yet.  Error messages get reported properly by
-     cmd_error, so this must be just an informative message; toss it.  */
   else if (!noninteractive
 	   && INTERACTIVE
 	   && !NILP (echo_area_buffer[0]))
     {
       struct frame *sf = SELECTED_FRAME ();
-      if (FRAME_MESSAGE_BUF (sf))
-	with_echo_area_buffer (0, 0, truncate_message_1, nchars, Qnil, 0, 0);
+      /* Error messages get reported properly by cmd_error, so this must be
+	 just an informative message; if the frame hasn't really been
+	 initialized yet, just toss it.  */
+      if (sf->glyphs_initialized_p)
+	with_echo_area_buffer (0, 0, truncate_message_1, nchars, Qnil);
     }
 }
 
@@ -10609,7 +10522,7 @@ truncate_echo_area (ptrdiff_t nchars)
    message to at most NCHARS characters.  */
 
 static int
-truncate_message_1 (ptrdiff_t nchars, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4)
+truncate_message_1 (ptrdiff_t nchars, Lisp_Object a2)
 {
   if (BEG + nchars < Z)
     del_range (BEG + nchars, Z);
@@ -10618,30 +10531,16 @@ truncate_message_1 (ptrdiff_t nchars, Lisp_Object a2, ptrdiff_t a3, ptrdiff_t a4
   return 0;
 }
 
-/* Set the current message to a substring of S or STRING.
-
-   If STRING is a Lisp string, set the message to the first NBYTES
-   bytes from STRING.  NBYTES zero means use the whole string.  If
-   STRING is multibyte, the message will be displayed multibyte.
-
-   If S is not null, set the message to the first LEN bytes of S.  LEN
-   zero means use the whole string.  MULTIBYTE_P non-zero means S is
-   multibyte.  Display the message multibyte in that case.
-
-   Doesn't GC, as with_echo_area_buffer binds Qinhibit_modification_hooks
-   to t before calling set_message_1 (which calls insert).
-  */
+/* Set the current message to STRING.  */
 
 static void
-set_message (const char *s, Lisp_Object string,
-	     ptrdiff_t nbytes, int multibyte_p)
+set_message (Lisp_Object string)
 {
-  message_enable_multibyte
-    = ((s && multibyte_p)
-       || (STRINGP (string) && STRING_MULTIBYTE (string)));
+  eassert (STRINGP (string));
 
-  with_echo_area_buffer (0, -1, set_message_1,
-			 (intptr_t) s, string, nbytes, multibyte_p);
+  message_enable_multibyte = STRING_MULTIBYTE (string);
+
+  with_echo_area_buffer (0, -1, set_message_1, 0, string);
   message_buf_print = 0;
   help_echo_showing_p = 0;
 
@@ -10651,18 +10550,14 @@ set_message (const char *s, Lisp_Object string,
 }
 
 
-/* Helper function for set_message.  Arguments have the same meaning
-   as there, with A1 corresponding to S and A2 corresponding to STRING
-   This function is called with the echo area buffer being
-   current.  */
+/* Helper function for set_message.  First argument is ignored and second
+   argument has the same meaning as for set_message.
+   This function is called with the echo area buffer being current.  */
 
 static int
-set_message_1 (ptrdiff_t a1, Lisp_Object a2, ptrdiff_t nbytes, ptrdiff_t multibyte_p)
+set_message_1 (ptrdiff_t a1, Lisp_Object string)
 {
-  intptr_t i1 = a1;
-  const char *s = (const char *) i1;
-  const unsigned char *msg = (const unsigned char *) s;
-  Lisp_Object string = a2;
+  eassert (STRINGP (string));
 
   /* Change multibyteness of the echo buffer appropriately.  */
   if (message_enable_multibyte
@@ -10676,61 +10571,10 @@ set_message_1 (ptrdiff_t a1, Lisp_Object a2, ptrdiff_t nbytes, ptrdiff_t multiby
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
-  if (STRINGP (string))
-    {
-      ptrdiff_t nchars;
-
-      if (nbytes == 0)
-	nbytes = SBYTES (string);
-      nchars = string_byte_to_char (string, nbytes);
-
-      /* This function takes care of single/multibyte conversion.  We
-         just have to ensure that the echo area buffer has the right
-         setting of enable_multibyte_characters.  */
-      insert_from_string (string, 0, 0, nchars, nbytes, 1);
-    }
-  else if (s)
-    {
-      if (nbytes == 0)
-	nbytes = strlen (s);
-
-      if (multibyte_p && NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	{
-	  /* Convert from multi-byte to single-byte.  */
-	  ptrdiff_t i;
-	  int c, n;
-	  char work[1];
-
-	  /* Convert a multibyte string to single-byte.  */
-	  for (i = 0; i < nbytes; i += n)
-	    {
-	      c = string_char_and_length (msg + i, &n);
-	      work[0] = (ASCII_CHAR_P (c)
-			 ? c
-			 : multibyte_char_to_unibyte (c));
-	      insert_1_both (work, 1, 1, 1, 0, 0);
-	    }
-	}
-      else if (!multibyte_p
-	       && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	{
-	  /* Convert from single-byte to multi-byte.  */
-	  ptrdiff_t i;
-	  int c, n;
-	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-
-	  /* Convert a single-byte string to multibyte.  */
-	  for (i = 0; i < nbytes; i++)
-	    {
-	      c = msg[i];
-	      MAKE_CHAR_MULTIBYTE (c);
-	      n = CHAR_STRING (c, str);
-	      insert_1_both ((char *) str, 1, n, 1, 0, 0);
-	    }
-	}
-      else
-	insert_1 (s, nbytes, 1, 0, 0);
-    }
+  /* This function takes care of single/multibyte conversion.
+     We just have to ensure that the echo area buffer has the right
+     setting of enable_multibyte_characters.  */
+  insert_from_string (string, 0, 0, SCHARS (string), SBYTES (string), 1);
 
   return 0;
 }

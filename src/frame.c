@@ -1251,7 +1251,6 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   xfree (FRAME_DELETEN_COST (f));
   xfree (FRAME_INSERTN_COST (f));
   xfree (FRAME_DELETE_COST (f));
-  xfree (FRAME_MESSAGE_BUF (f));
 
   /* Since some events are handled at the interrupt level, we may get
      an event for f at any time; if we zero out the frame's terminal
@@ -1266,10 +1265,10 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   {
     struct terminal *terminal = FRAME_TERMINAL (f);
     f->output_data.nothing = 0;
-    f->terminal = 0;             /* Now the frame is dead. */
+    f->terminal = 0;             /* Now the frame is dead.  */
 
     /* If needed, delete the terminal that this frame was on.
-       (This must be done after the frame is killed.) */
+       (This must be done after the frame is killed.)  */
     terminal->reference_count--;
 #ifdef USE_GTK
     /* FIXME: Deleting the terminal crashes emacs because of a GTK

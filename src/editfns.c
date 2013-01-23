@@ -3429,12 +3429,6 @@ usage: (save-restriction &rest BODY)  */)
   return unbind_to (count, val);
 }
 
-/* Buffer for the most recent text displayed by Fmessage_box.  */
-static char *message_text;
-
-/* Allocated length of that buffer.  */
-static ptrdiff_t message_length;
-
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
        doc: /* Display a message at the bottom of the screen.
 The message also goes into the `*Messages*' buffer, if `message-log-max'
@@ -3465,7 +3459,7 @@ usage: (message FORMAT-STRING &rest ARGS)  */)
     {
       register Lisp_Object val;
       val = Fformat (nargs, args);
-      message3 (val, SBYTES (val), STRING_MULTIBYTE (val));
+      message3 (val);
       return val;
     }
 }
@@ -3489,8 +3483,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
     }
   else
     {
-      register Lisp_Object val;
-      val = Fformat (nargs, args);
+      Lisp_Object val = Fformat (nargs, args);
 #ifdef HAVE_MENUS
       /* The MS-DOS frames support popup menus even though they are
 	 not FRAME_WINDOW_P.  */
@@ -3507,16 +3500,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
 	return val;
       }
 #endif /* HAVE_MENUS */
-      /* Copy the data so that it won't move when we GC.  */
-      if (SBYTES (val) > message_length)
-	{
-	  ptrdiff_t new_length = SBYTES (val) + 80;
-	  message_text = xrealloc (message_text, new_length);
-	  message_length = new_length;
-	}
-      memcpy (message_text, SDATA (val), SBYTES (val));
-      message2 (message_text, SBYTES (val),
-		STRING_MULTIBYTE (val));
+      message3 (val);
       return val;
     }
 }

@@ -2745,7 +2745,7 @@ ARGS are passed as extra arguments to the function.
 usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  /* This function can GC. */
+  /* This function can GC.  */
   Lisp_Object newargs[3];
   struct gcpro gcpro1, gcpro2;
   Lisp_Object result;

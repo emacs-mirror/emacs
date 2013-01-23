@@ -497,47 +497,47 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
       switch (*tem)
 	{
-	case 'a':		/* Symbol defined as a function */
+	case 'a':		/* Symbol defined as a function.  */
 	  visargs[i] = Fcompleting_read (callint_message,
 					 Vobarray, Qfboundp, Qt,
 					 Qnil, Qnil, Qnil, Qnil);
-	  /* Passing args[i] directly stimulates compiler bug */
+	  /* Passing args[i] directly stimulates compiler bug.  */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
 	  break;
 
-	case 'b':   		/* Name of existing buffer */
+	case 'b':   		/* Name of existing buffer.  */
 	  args[i] = Fcurrent_buffer ();
 	  if (EQ (selected_window, minibuf_window))
 	    args[i] = Fother_buffer (args[i], Qnil, Qnil);
 	  args[i] = Fread_buffer (callint_message, args[i], Qt);
 	  break;
 
-	case 'B':		/* Name of buffer, possibly nonexistent */
+	case 'B':		/* Name of buffer, possibly nonexistent.  */
 	  args[i] = Fread_buffer (callint_message,
 				  Fother_buffer (Fcurrent_buffer (), Qnil, Qnil),
 				  Qnil);
 	  break;
 
-        case 'c':		/* Character */
+        case 'c':		/* Character.  */
 	  /* Prompt in `minibuffer-prompt' face.  */
 	  Fput_text_property (make_number (0),
 			      make_number (SCHARS (callint_message)),
 			      Qface, Qminibuffer_prompt, callint_message);
 	  args[i] = Fread_char (callint_message, Qnil, Qnil);
 	  message1_nolog ((char *) 0);
-	  /* Passing args[i] directly stimulates compiler bug */
+	  /* Passing args[i] directly stimulates compiler bug.  */
 	  teml = args[i];
 	  /* See bug#8479.  */
 	  if (! CHARACTERP (teml)) error ("Non-character input-event");
 	  visargs[i] = Fchar_to_string (teml);
 	  break;
 
-	case 'C':		/* Command: symbol with interactive function */
+	case 'C':	      /* Command: symbol with interactive function.  */
 	  visargs[i] = Fcompleting_read (callint_message,
 					 Vobarray, Qcommandp,
 					 Qt, Qnil, Qnil, Qnil, Qnil);
-	  /* Passing args[i] directly stimulates compiler bug */
+	  /* Passing args[i] directly stimulates compiler bug.  */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
 	  break;
@@ -549,33 +549,33 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  varies[i] = 1;
 	  break;
 
-	case 'D':		/* Directory name. */
+	case 'D':		/* Directory name.  */
 	  args[i] = Fread_file_name (callint_message, Qnil,
 				     BVAR (current_buffer, directory), Qlambda, Qnil,
 				     Qfile_directory_p);
 	  break;
 
-	case 'f':		/* Existing file name. */
+	case 'f':		/* Existing file name.  */
 	  args[i] = Fread_file_name (callint_message,
 				     Qnil, Qnil, Qlambda, Qnil, Qnil);
 	  break;
 
-	case 'F':		/* Possibly nonexistent file name. */
+	case 'F':		/* Possibly nonexistent file name.  */
 	  args[i] = Fread_file_name (callint_message,
 				     Qnil, Qnil, Qnil, Qnil, Qnil);
 	  break;
 
 	case 'G':		/* Possibly nonexistent file name,
-				   default to directory alone. */
+				   default to directory alone.  */
 	  args[i] = Fread_file_name (callint_message,
 				     Qnil, Qnil, Qnil, empty_unibyte_string, Qnil);
 	  break;
 
-	case 'i':		/* Ignore an argument -- Does not do I/O */
+	case 'i':		/* Ignore an argument -- Does not do I/O.  */
 	  varies[i] = -1;
 	  break;
 
-	case 'k':		/* Key sequence. */
+	case 'k':		/* Key sequence.  */
 	  {
 	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
@@ -607,7 +607,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  }
 	  break;
 
-	case 'K':		/* Key sequence to be defined. */
+	case 'K':		/* Key sequence to be defined.  */
 	  {
 	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
@@ -639,7 +639,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  }
 	  break;
 
-	case 'U':		/* Up event from last k or K */
+	case 'U':		/* Up event from last k or K.  */
 	  if (!NILP (up_event))
 	    {
 	      args[i] = Fmake_vector (make_number (1), up_event);
@@ -679,7 +679,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 				  Qnil, Qnil, Qnil, Qt);
 	  break;
 
-	case 'N':		/* Prefix arg as number, else number from minibuffer */
+	case 'N':     /* Prefix arg as number, else number from minibuffer.  */
 	  if (!NILP (prefix_arg))
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
@@ -714,14 +714,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  varies[i] = -1;
 	  break;
 
-	case 'p':		/* Prefix arg converted to number.  No I/O. */
+	case 'p':		/* Prefix arg converted to number.  No I/O.  */
 	have_prefix_arg:
 	  args[i] = Fprefix_numeric_value (prefix_arg);
 	  /* visargs[i] = Qnil; */
 	  varies[i] = -1;
 	  break;
 
-	case 'r':		/* Region, point and mark as 2 args. */
+	case 'r':		/* Region, point and mark as 2 args.  */
 	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
@@ -742,29 +742,29 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'S':		/* Any symbol.  */
 	  visargs[i] = Fread_string (callint_message,
 				     Qnil, Qnil, Qnil, Qnil);
-	  /* Passing args[i] directly stimulates compiler bug */
+	  /* Passing args[i] directly stimulates compiler bug.  */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
 	  break;
 
 	case 'v':		/* Variable name: symbol that is
-				   custom-variable-p. */
+				   custom-variable-p.  */
 	  args[i] = Fread_variable (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
-	case 'x':		/* Lisp expression read but not evaluated */
+	case 'x':		/* Lisp expression read but not evaluated.  */
 	  args[i] = Fread_minibuffer (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
-	case 'X':		/* Lisp expression read and evaluated */
+	case 'X':		/* Lisp expression read and evaluated.  */
 	  args[i] = Feval_minibuffer (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
 	case 'Z':		/* Coding-system symbol, or ignore the
-				   argument if no prefix */
+				   argument if no prefix.  */
 	  if (NILP (prefix_arg))
 	    {
 	      args[i] = Qnil;
@@ -778,7 +778,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    }
 	  break;
 
-	case 'z':		/* Coding-system symbol or nil */
+	case 'z':		/* Coding-system symbol or nil.  */
 	  args[i] = Fread_coding_system (callint_message, Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;

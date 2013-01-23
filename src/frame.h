@@ -18,7 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Don't multiply include: dispextern.h includes macterm.h which
    includes frame.h some emacs source includes both dispextern.h and
-   frame.h */
+   frame.h.  */
 
 #ifndef EMACS_FRAME_H
 #define EMACS_FRAME_H
@@ -33,7 +33,7 @@ INLINE_HEADER_BEGIN
 
 /* Miscellanea.  */
 
-/* Nonzero means there is at least one garbaged frame. */
+/* Nonzero means there is at least one garbaged frame.  */
 extern bool frame_garbaged;
 
 
@@ -200,7 +200,7 @@ struct frame
      string's pointer (`name', above) because it might get relocated.  */
   char *namebuf;
 
-  /* Glyph pool and matrix. */
+  /* Glyph pool and matrix.  */
   struct glyph_pool *current_pool;
   struct glyph_pool *desired_pool;
   struct glyph_matrix *desired_matrix;
@@ -443,9 +443,6 @@ struct frame
 
   /* Width of bar cursor (if we are using that) for blink-off state.  */
   int blink_off_cursor_width;
-
-  /* Storage for messages to this frame. */
-  char *message_buf;
 
   /* Nonnegative if current redisplay should not do scroll computation
      for lines beyond a certain vpos.  This is the vpos.  */
@@ -751,7 +748,6 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
-#define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
 
