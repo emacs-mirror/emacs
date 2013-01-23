@@ -114,6 +114,7 @@ lib/sys_stat.in-h
 lib/time.in-h
 lib/unistd.in-h
 lib/cxxdefs.h
+lib-src/blessmail
 lib-src/ctags
 lib-src/ctags.c
 lib-src/ebrowse

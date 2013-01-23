@@ -1,3 +1,7 @@
+2013-01-23  Giorgos Keramidas  <gkeramidas@gmail.com>  (tiny change)
+
+	* .bzrignore: add lib-src/blessmail.
+
 2013-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
