@@ -1,3 +1,12 @@
+2013-01-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (max_filename_mbslen): New function.
+	(normalize_filename, readdir): Use it to detect locales where ANSI
+	encoding of file names uses a double-byte character set (DBCS).
+	If a DBCS encoding is used, advance by characters using
+	CharNextExA, instead of incrementing a 'char *' pointer.  Use
+	_mbslwr instead of _strlwr.  (Bug#13515)
+
 2013-01-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (allocate_heap) [!_WIN64]: Decrease the initial
