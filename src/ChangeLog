@@ -1,3 +1,8 @@
+2013-01-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32fullscreen_hook): Account correctly for the screen
+	real estate used for the tool bar and the menu bar.
+
 2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* insdel.c (prepare_to_modify_buffer): Force redisplay if

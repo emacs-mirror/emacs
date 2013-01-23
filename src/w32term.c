@@ -5674,24 +5674,33 @@ w32fullscreen_hook (FRAME_PTR f)
 
       switch (f->want_fullscreen)
 	{
-	  /* No difference between these two when there is no WM */
 	case FULLSCREEN_MAXIMIZED:
-	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, 0xf030, 0);
+	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 	  break;
 	case FULLSCREEN_BOTH:
-	  height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height) - 2;
-	  width  = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width);
+	  height =
+	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
+	    - XINT (Ftool_bar_lines_needed (selected_frame))
+	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
+	  width  =
+	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
+	    - FRAME_SCROLL_BAR_COLS (f);
 	  left_pos = workarea_rect.left;
 	  top_pos = workarea_rect.top;
 	  break;
 	case FULLSCREEN_WIDTH:
-	  width  = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width);
+	  width  =
+	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
+	    - FRAME_SCROLL_BAR_COLS (f);
 	  if (normal_height > 0)
 	    height = normal_height;
 	  left_pos = workarea_rect.left;
 	  break;
 	case FULLSCREEN_HEIGHT:
-	  height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height) - 2;
+	  height =
+	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
+	    - XINT (Ftool_bar_lines_needed (selected_frame))
+	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
 	  if (normal_width > 0)
 	    width = normal_width;
 	  top_pos = workarea_rect.top;
