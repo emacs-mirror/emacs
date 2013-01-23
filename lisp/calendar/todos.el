@@ -2138,7 +2138,13 @@ in Todos Filter Items mode."
 				   " \"%s\"") buffer-type fnames))))
 
 (defun todos-find-item (str)
-  ""
+  "Search for saved top priority item STR in its Todos file.
+Return the list (FOUND FILE CAT), where CAT and FILE are the
+item's category and file, and FOUND is a cons cell if the search
+succeeds, whose car is the start of the item in FILE and whose
+cdr is `done' if the item is now a done item, `changed' if its
+priority has changed or its text was truncated or augmented, and
+`same' otherwise."
   (string-match (concat (if todos-filter-done-items
 			    (concat "\\(?:" todos-done-string-start "\\|"
 				    todos-date-string-start "\\)")
@@ -2149,12 +2155,16 @@ in Todos Filter Items mode."
 			  (regexp-quote todos-nondiary-end)) "?"
 			"\\(?4: \\[\\(?3:(archive) \\)?\\(?2:.*:\\)?"
 			"\\(?1:.*\\)\\]\\).*$") str)
-  ;; FIXME: use cat and file to find priorities
   (let ((cat (match-string 1 str))
 	(file (match-string 2 str))
 	(archive (string= (match-string 3 str) "(archive) "))
+	(filcat (match-string 4 str))
+	(tpriority 1)
 	found)
     (setq str (replace-match "" nil nil str 4))
+    (save-excursion
+      (while (search-backward filcat nil t)
+	  (setq tpriority (1+ tpriority))))
     (setq file (if file
 		   (concat todos-files-directory (substring file 0 -1)
 			   (if archive ".toda" ".todo"))
@@ -2166,20 +2176,61 @@ in Todos Filter Items mode."
     (with-current-buffer (find-buffer-visiting file)
       (widen)
       (goto-char (point-min))
-      (re-search-forward
-       (concat "^" (regexp-quote (concat todos-category-beg cat)) "$") nil t)
-      ;; FIXME: use todos-forward-item to find priority, and return it as well
-      (setq found (search-forward str nil t)))
-    (list found file cat)))
+      (let ((beg (re-search-forward
+		  (concat "^" (regexp-quote (concat todos-category-beg cat)) "$")
+		  nil t))
+	    (done (save-excursion
+		    (re-search-forward
+		     (concat "^" (regexp-quote todos-category-done)) nil t)))
+	    (end (save-excursion
+		   (or (re-search-forward
+			(concat "^" (regexp-quote todos-category-beg))
+			nil t)
+		       (point-max)))))
+	(setq found (when (search-forward str end t)
+		      (goto-char (match-beginning 0))))
+	(when found
+	   (setq found
+		 (cons found (if (> (point) done)
+				 'done
+			       (let ((cpriority 1))
+				 (save-excursion
+				   ;; Not top item in category.
+				   (while (> (point) (1+ beg))
+				     (let ((opoint (point)))
+				       (todos-backward-item)
+				       ;; Can't move backward beyond
+				       ;; first item in file.
+				       (unless (= (point) opoint)
+					 (setq cpriority (1+ cpriority))))))
+				 (if (and (= tpriority cpriority)
+					  ;; Proper substring is not the same.
+					  (string= (todos-item-string)
+						   str))
+				     'same
+				   'changed))))))))
+      (list found file cat)))
 
 (defun todos-check-top-priorities ()
-  "Return a message saying whether top priorities file is up-to-date."
-  (while (not (eobp))
-    (let ((item (todos-item-string)))
-      (unless (car (todos-find-item item))
-	(error "Top priorities file is not up to date")))
-    (todos-forward-item))
-  (message "Top priorities file is up to date."))
+  "Return a message saying whether top priorities file is up to date."
+  ;; (catch 'old
+  (let ((count 0))
+    (while (not (eobp))
+      (let* ((item (todos-item-string))
+	     (found (car (todos-find-item item))))
+	(unless (eq (cdr found) 'same)
+	  (save-excursion
+	    (overlay-put (make-overlay (todos-item-start) (todos-item-end))
+			 'face 'todos-search))
+	  (setq count (1+ count))))
+	  ;; (throw 'old (message "The marked item is not up to date.")))
+      (todos-forward-item))
+    (if (zerop count)
+	(message "Top priorities file is up to date.")
+      (message (concat "The highlighted item" (if (= count 1) " is " "s are ")
+		       "not up to date."
+		       ;; "\nType <return> on item for details."
+		       )))))
 
 (defun todos-top-priorities-filename ()	;FIXME: make part of t-s-t-p-b ?
   ""
@@ -3479,22 +3530,22 @@ CAT; this is used in Todos Categories mode."
   (let* ((str (todos-item-string))
 	 (buf (current-buffer))
 	 (res (todos-find-item str))
+	 (found (nth 0 res))
 	 (file (nth 1 res))
-	 (cat (nth 2 res))
-	 beg)
-    (if (not (car res))
-	(message "Item not found")
-      (setq beg (match-beginning 0))
+	 (cat (nth 2 res)))
+    (if (not found)
+	(message "Category %s does not contain this item." cat)
       (kill-buffer buf)
       (set-window-buffer (selected-window)
 			 (set-buffer (find-buffer-visiting file)))
       (setq todos-current-todos-file file)
       (setq todos-category-number (todos-category-number cat))
-      (let ((todos-show-with-done (if todos-filter-done-items
+      (let ((todos-show-with-done (if (or todos-filter-done-items
+					  (eq (cdr found) 'done))
 				      t
 				    todos-show-with-done)))
 	(todos-category-select))
-      (goto-char beg))))
+      (goto-char (car found)))))
 
 (defun todos-forward-item (&optional count)
   "Move point down to start of item with next lower priority.

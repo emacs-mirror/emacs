@@ -1,3 +1,13 @@
+2013-01-23  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Improve handling of saved top priorities items.
+	(todos-find-item): Find done items and items whose priority has
+	changed or whose text was truncated or augmented; add doc string.
+	(todos-check-top-priorities): Highlight each item that is not up
+	to date.
+	(todos-jump-to-item): Jump to items whose priority has changed or
+	whose text was truncated or augmented.
+
 2013-01-22  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Revise handling of initial display and extend
