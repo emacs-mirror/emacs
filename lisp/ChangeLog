@@ -1,3 +1,20 @@
+2013-01-23  Alan Mackenzie  <acm@muc.de>
+
+	Fix a bug in the state cache mechanism.  Refactor this a bit.
+
+	* progmodes/cc-engine.el (c-parse-state-get-strategy): Remove the
+	`cache-pos' element from the return value.
+	(c-append-lower-brace-pair-to-state-cache): "Narrow" to end of
+	buffer to enable proper searching from beyond HERE.  Amend the
+	test for detecting the sought brace pair.  Amend the value written
+	to the "brace desert cache" when the brace isn't found.
+	(c-remove-stale-state-cache): Rename `good-pos' to `start-point',
+	and several other variables analogously.
+	(c-remove-stale-state-cache-backwards): Change `cache-pos' from a
+	parameter to a locally calculated variable.
+	(c-parse-state-1): Change the calling conventions to the two
+	defuns involving `cache-pos'.
+
 2013-01-23  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml-entity-or-char-ref-re): Fix regexp.
