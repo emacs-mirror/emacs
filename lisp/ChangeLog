@@ -1,3 +1,9 @@
+2013-01-23  Bastien Guerry  <bzg@gnu.org>
+
+	* paren.el (show-paren-function): Make sure an overlay exists
+	before trying to delete it.  Also use `pos' as a position only
+	when it is an integer.
+
 2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* play/gametree.el (gametree-break-line-here): Use point-marker.

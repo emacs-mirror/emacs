@@ -243,23 +243,23 @@ matching parenthesis is highlighted in `show-paren-style' after
 	  ;;
 	  ;; Turn on highlighting for the matching paren, if found.
 	  ;; If it's an unmatched paren, turn off any such highlighting.
-	  (unless (integerp pos)
-	    (delete-overlay show-paren-overlay))
-	  (let ((to (if (or (eq show-paren-style 'expression)
-			    (and (eq show-paren-style 'mixed)
-				 (not (pos-visible-in-window-p pos))))
-			(point)
-		      pos))
-		(from (if (or (eq show-paren-style 'expression)
+	  (if (not (integerp pos))
+	      (when show-paren-overlay (delete-overlay show-paren-overlay))
+	    (let ((to (if (or (eq show-paren-style 'expression)
 			      (and (eq show-paren-style 'mixed)
 				   (not (pos-visible-in-window-p pos))))
-			  pos
-			(save-excursion
-			  (goto-char pos)
-			  (- (point) dir)))))
-	    (if show-paren-overlay
-		(move-overlay show-paren-overlay from to (current-buffer))
-	      (setq show-paren-overlay (make-overlay from to nil t))))
+			  (point)
+			pos))
+		  (from (if (or (eq show-paren-style 'expression)
+				(and (eq show-paren-style 'mixed)
+				     (not (pos-visible-in-window-p pos))))
+			    pos
+			  (save-excursion
+			    (goto-char pos)
+			    (- (point) dir)))))
+	      (if show-paren-overlay
+		  (move-overlay show-paren-overlay from to (current-buffer))
+		(setq show-paren-overlay (make-overlay from to nil t)))))
 	  ;;
 	  ;; Always set the overlay face, since it varies.
 	  (overlay-put show-paren-overlay 'priority show-paren-priority)
