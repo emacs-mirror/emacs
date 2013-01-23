@@ -683,8 +683,6 @@ The alternate method, which is the one most often used, is to call
 	   (goto-char (point-max))
 	   ;; Search for the function
 	   (while (funcall imenu-prev-index-position-function)
-             (when (= pos (point))
-               (error "Infinite loop at %s:%d: imenu-prev-index-position-function does not move point" (buffer-name) pos))
              (setq pos (point))
 	     (save-excursion
 	       (setq name (funcall imenu-extract-index-name-function)))

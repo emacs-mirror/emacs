@@ -1,3 +1,8 @@
+2013-01-23  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* imenu.el (imenu-default-create-index-function): Remove useless
+	infinite loop check.  (Bug#13438)
+
 2013-01-23  Alan Mackenzie  <acm@muc.de>
 
 	Fix a bug in the state cache mechanism.  Refactor this a bit.
