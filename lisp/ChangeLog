@@ -1,3 +1,8 @@
+2013-01-24  Aaron Ecay <aaronecay@gmail.com>  (tiny change)
+
+	* paren.el (show-paren-function): Make sure to set 'priority and
+	'face only if the overlay does exist.
+
 2013-01-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-tramp-file-p): Check, whether NAME is unibyte.
