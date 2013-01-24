@@ -1,3 +1,8 @@
+2013-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* insdel.c (prepare_to_modify_buffer): Revert last change as suggested
+	in http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00555.html.
+
 2013-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (message2, message2_nolog): Remove functions.

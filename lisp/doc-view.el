@@ -1265,6 +1265,8 @@ have the page we want to view."
                                            "[0-9]+")
                                    t)
                   'doc-view-sort))
+      (unless (eq (length prev-pages) (length doc-view-current-files))
+	(force-mode-line-update))
       (dolist (win (or (get-buffer-window-list buffer nil t)
 		       (list t)))
 	(let* ((page (doc-view-current-page win))
