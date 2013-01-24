@@ -2231,7 +2231,6 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf
     }
   else if (EQ (all_frames, Qvisible))
     {
-      FRAME_SAMPLE_VISIBILITY (f);
       candidate_p = FRAME_VISIBLE_P (f)
 	&& (FRAME_TERMINAL (XFRAME (w->frame))
 	    == FRAME_TERMINAL (XFRAME (selected_frame)));
@@ -2239,7 +2238,6 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf
     }
   else if (INTEGERP (all_frames) && XINT (all_frames) == 0)
     {
-      FRAME_SAMPLE_VISIBILITY (f);
       candidate_p = (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f)
 #ifdef HAVE_X_WINDOWS
 		     /* Yuck!!  If we've just created the frame and the

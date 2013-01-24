@@ -4319,24 +4319,25 @@ w32_read_socket (struct terminal *terminal,
 		  DebPrint (("clipped frame %p (%s) got WM_PAINT - ignored\n", f,
 			     SDATA (f->name)));
 		}
-	      else if (f->async_visible != 1)
+	      else if (FRAME_VISIBLE_P (f) != 1)
 		{
+		  bool iconified = FRAME_ICONIFIED_P (f);
+
 		  /* Definitely not obscured, so mark as visible.  */
-		  f->async_visible = 1;
-		  f->async_iconified = 0;
+		  SET_FRAME_VISIBLE (f, 1);
+		  SET_FRAME_ICONIFIED (f, 0);
 		  SET_FRAME_GARBAGED (f);
 		  DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
 			     SDATA (f->name)));
 
 		  /* WM_PAINT serves as MapNotify as well, so report
 		     visibility changes properly.  */
-		  if (f->iconified)
+		  if (iconified)
 		    {
 		      inev.kind = DEICONIFY_EVENT;
 		      XSETFRAME (inev.frame_or_window, f);
 		    }
-		  else if (! NILP (Vframe_list)
-			   && ! NILP (XCDR (Vframe_list)))
+		  else if (!NILP (Vframe_list) && !NILP (XCDR (Vframe_list)))
 		    /* Force a redisplay sooner or later to update the
 		       frame titles in case this is the second frame.  */
 		    record_asynch_buffer_change ();
@@ -4379,7 +4380,7 @@ w32_read_socket (struct terminal *terminal,
 	case WM_SYSKEYDOWN:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -4404,7 +4405,7 @@ w32_read_socket (struct terminal *terminal,
 	case WM_CHAR:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -4482,7 +4483,7 @@ w32_read_socket (struct terminal *terminal,
         case WM_APPCOMMAND:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -4722,7 +4723,7 @@ w32_read_socket (struct terminal *terminal,
 	case WM_MOVE:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->async_iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      int x, y;
 
@@ -4770,8 +4771,8 @@ w32_read_socket (struct terminal *terminal,
 	      switch (msg.msg.wParam)
 		{
 		case SIZE_MINIMIZED:
-		  f->async_visible = 0;
-		  f->async_iconified = 1;
+		  SET_FRAME_VISIBLE (f, 0);
+		  SET_FRAME_ICONIFIED (f, 1);
 
 		  inev.kind = ICONIFY_EVENT;
 		  XSETFRAME (inev.frame_or_window, f);
@@ -4779,40 +4780,44 @@ w32_read_socket (struct terminal *terminal,
 
 		case SIZE_MAXIMIZED:
 		case SIZE_RESTORED:
-		  f->async_visible = 1;
-		  f->async_iconified = 0;
+		  {
+		    bool iconified = FRAME_ICONIFIED_P (f);
 
-		  /* wait_reading_process_output will notice this and update
-		     the frame's display structures.  */
-		  SET_FRAME_GARBAGED (f);
+		    SET_FRAME_VISIBLE (f, 1);
+		    SET_FRAME_ICONIFIED (f, 0);
 
-		  if (f->iconified)
-		    {
-                      int x, y;
+		    /* wait_reading_process_output will notice this
+		       and update the frame's display structures.  */
+		    SET_FRAME_GARBAGED (f);
 
-                      /* Reset top and left positions of the Window
-                         here since Windows sends a WM_MOVE message
-                         BEFORE telling us the Window is minimized
-                         when the Window is iconified, with 3000,3000
-                         as the co-ords. */
-                      x_real_positions (f, &x, &y);
-                      f->left_pos = x;
-                      f->top_pos = y;
+		    if (iconified)
+		      {
+			int x, y;
 
-		      inev.kind = DEICONIFY_EVENT;
-		      XSETFRAME (inev.frame_or_window, f);
-		    }
-		  else if (! NILP (Vframe_list)
-			   && ! NILP (XCDR (Vframe_list)))
-		    /* Force a redisplay sooner or later
-		       to update the frame titles
-		       in case this is the second frame.  */
-		    record_asynch_buffer_change ();
+			/* Reset top and left positions of the Window
+			   here since Windows sends a WM_MOVE message
+			   BEFORE telling us the Window is minimized
+			   when the Window is iconified, with 3000,3000
+			   as the co-ords. */
+			x_real_positions (f, &x, &y);
+			f->left_pos = x;
+			f->top_pos = y;
+
+			inev.kind = DEICONIFY_EVENT;
+			XSETFRAME (inev.frame_or_window, f);
+		      }
+		    else if (! NILP (Vframe_list)
+			     && ! NILP (XCDR (Vframe_list)))
+		      /* Force a redisplay sooner or later
+			 to update the frame titles
+			 in case this is the second frame.  */
+		      record_asynch_buffer_change ();
+		  }
 		  break;
 		}
 	    }
 
-	  if (f && !f->async_iconified && msg.msg.wParam != SIZE_MINIMIZED)
+	  if (f && !FRAME_ICONIFIED_P (f) && msg.msg.wParam != SIZE_MINIMIZED)
 	    {
 	      RECT rect;
 	      int rows;
@@ -5040,12 +5045,13 @@ w32_read_socket (struct terminal *terminal,
 	  continue;
 
 	/* Check "visible" frames and mark each as obscured or not.
-	   Note that async_visible is nonzero for unobscured and
-	   obscured frames, but zero for hidden and iconified frames.  */
-	if (FRAME_W32_P (f) && f->async_visible)
+	   Note that visible is nonzero for unobscured and obscured
+	   frames, but zero for hidden and iconified frames.  */
+	if (FRAME_W32_P (f) && FRAME_VISIBLE_P (f))
 	  {
 	    RECT clipbox;
 	    HDC  hdc;
+	    bool obscured;
 
 	    enter_crit ();
 	    /* Query clipping rectangle for the entire window area
@@ -5059,31 +5065,28 @@ w32_read_socket (struct terminal *terminal,
 	    ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 	    leave_crit ();
 
-	    if (clipbox.right == clipbox.left
-		|| clipbox.bottom == clipbox.top)
-	      {
-		/* Frame has become completely obscured so mark as
-		   such (we do this by setting async_visible to 2 so
-		   that FRAME_VISIBLE_P is still true, but redisplay
-		   will skip it).  */
-		f->async_visible = 2;
+	    obscured = FRAME_OBSCURED_P (f);
 
-		if (!FRAME_OBSCURED_P (f))
-		  {
-		    DebPrint (("frame %p (%s) obscured\n", f,
-			       SDATA (f->name)));
-		  }
+	    if (clipbox.right == clipbox.left || clipbox.bottom == clipbox.top)
+	      {
+		/* Frame has become completely obscured so mark as such (we
+		   do this by setting visible to 2 so that FRAME_VISIBLE_P
+		   is still true, but redisplay will skip it).  */
+		SET_FRAME_VISIBLE (f, 2);
+
+		if (!obscured)
+		  DebPrint (("frame %p (%s) obscured\n", f, SDATA (f->name)));
 	      }
 	    else
 	      {
 		/* Frame is not obscured, so mark it as such.  */
-		f->async_visible = 1;
+		SET_FRAME_VISIBLE (f, 1);
 
-		if (FRAME_OBSCURED_P (f))
+		if (obscured)
 		  {
 		    SET_FRAME_GARBAGED (f);
-		    DebPrint (("obscured frame %p (%s) found to be visible\n", f,
-			       SDATA (f->name)));
+		    DebPrint (("obscured frame %p (%s) found to be visible\n",
+			       f, SDATA (f->name)));
 
 		    /* Force a redisplay sooner or later.  */
 		    record_asynch_buffer_change ();
@@ -5654,7 +5657,7 @@ w32fullscreen_hook (FRAME_PTR f)
 {
   static int normal_width, normal_height;
 
-  if (f->async_visible)
+  if (FRAME_VISIBLE_P (f))
     {
       int width, height, top_pos, left_pos, pixel_height, pixel_width;
       int cur_w = FRAME_COLS (f), cur_h = FRAME_LINES (f);
@@ -6023,11 +6026,11 @@ x_make_frame_visible (struct frame *f)
 	 causes unexpected behavior when unminimizing frames that were
 	 previously maximized.  But only SW_SHOWNORMAL works properly for
 	 frames that were truely hidden (using make-frame-invisible), so
-	 we need it to avoid Bug#5482.  It seems that async_iconified
-	 is only set for minimized windows that are still visible, so
-         use that to determine the appropriate flag to pass ShowWindow.  */
+	 we need it to avoid Bug#5482.  It seems that iconified is only
+	 set for minimized windows that are still visible, so use that to
+	 determine the appropriate flag to pass ShowWindow.  */
       my_show_window (f, FRAME_W32_WINDOW (f),
-                      f->async_iconified ? SW_RESTORE : SW_SHOWNORMAL);
+                      FRAME_ICONIFIED_P (f) ? SW_RESTORE : SW_SHOWNORMAL);
     }
 
   /* Synchronize to ensure Emacs knows the frame is visible
@@ -6066,7 +6069,6 @@ x_make_frame_visible (struct frame *f)
 	    poll_suppress_count = old_poll_suppress_count;
 	  }
       }
-    FRAME_SAMPLE_VISIBILITY (f);
   }
 }
 
@@ -6090,10 +6092,8 @@ x_make_frame_invisible (struct frame *f)
      So we can't win using the usual strategy of letting
      FRAME_SAMPLE_VISIBILITY set this.  So do it by hand,
      and synchronize with the server to make sure we agree.  */
-  f->visible = 0;
-  FRAME_ICONIFIED_P (f) = 0;
-  f->async_visible = 0;
-  f->async_iconified = 0;
+  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_ICONIFIED (f, 0);
 
   unblock_input ();
 }
@@ -6109,7 +6109,7 @@ x_iconify_frame (struct frame *f)
   if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
-  if (f->async_iconified)
+  if (FRAME_ICONIFIED_P (f))
     return;
 
   block_input ();

@@ -6102,16 +6102,15 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       last_user_time = event.xproperty.time;
       f = x_top_window_to_frame (dpyinfo, event.xproperty.window);
       if (f && event.xproperty.atom == dpyinfo->Xatom_net_wm_state)
-        if (x_handle_net_wm_state (f, &event.xproperty) && f->iconified
-            && f->output_data.x->net_wm_state_hidden_seen)
+        if (x_handle_net_wm_state (f, &event.xproperty)
+	    && FRAME_ICONIFIED_P (f)
+	    && f->output_data.x->net_wm_state_hidden_seen)
           {
-            /* Gnome shell does not iconify us when C-z is pressed.  It hides
-               the frame.  So if our state says we aren't hidden anymore,
-               treat it as deiconified.  */
-            if (! f->async_iconified)
-              SET_FRAME_GARBAGED (f);
-            f->async_visible = 1;
-            f->async_iconified = 0;
+            /* Gnome shell does not iconify us when C-z is pressed.
+	       It hides the frame.  So if our state says we aren't
+	       hidden anymore, treat it as deiconified.  */
+            SET_FRAME_VISIBLE (f, 1);
+            SET_FRAME_ICONIFIED (f, 0);
             f->output_data.x->has_been_visible = 1;
             f->output_data.x->net_wm_state_hidden_seen = 0;
             inev.ie.kind = DEICONIFY_EVENT;
@@ -6152,10 +6151,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                         event.xexpose.width, event.xexpose.height,
                         FALSE);
 #endif
-          if (f->async_visible == 0)
+          if (!FRAME_VISIBLE_P (f))
             {
-              f->async_visible = 1;
-              f->async_iconified = 0;
+              SET_FRAME_VISIBLE (f, 1);
+              SET_FRAME_ICONIFIED (f, 0);
               f->output_data.x->has_been_visible = 1;
               SET_FRAME_GARBAGED (f);
             }
@@ -6232,20 +6231,20 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       if (f)		/* F may no longer exist if
                            the frame was deleted.  */
         {
+	  bool visible = FRAME_VISIBLE_P (f);
           /* While a frame is unmapped, display generation is
              disabled; you don't want to spend time updating a
              display that won't ever be seen.  */
-          f->async_visible = 0;
+          SET_FRAME_VISIBLE (f, 0);
           /* We can't distinguish, from the event, whether the window
              has become iconified or invisible.  So assume, if it
              was previously visible, than now it is iconified.
              But x_make_frame_invisible clears both
              the visible flag and the iconified flag;
              and that way, we know the window is not iconified now.  */
-          if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
+          if (visible || FRAME_ICONIFIED_P (f))
             {
-              f->async_iconified = 1;
-
+              SET_FRAME_ICONIFIED (f, 1);
               inev.ie.kind = ICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
             }
@@ -6264,13 +6263,14 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       f = x_top_window_to_frame (dpyinfo, event.xmap.window);
       if (f)
         {
+	  bool iconified = FRAME_ICONIFIED_P (f);
           /* wait_reading_process_output will notice this and update
              the frame's display structures.
              If we where iconified, we should not set garbaged,
              because that stops redrawing on Expose events.  This looks
              bad if we are called from a recursive event loop
              (x_dispatch_event), for example when a dialog is up.  */
-          if (! f->async_iconified)
+          if (!iconified)
             SET_FRAME_GARBAGED (f);
 
           /* Check if fullscreen was specified before we where mapped the
@@ -6278,20 +6278,18 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           if (!f->output_data.x->has_been_visible)
             x_check_fullscreen (f);
 
-          f->async_visible = 1;
-          f->async_iconified = 0;
+          SET_FRAME_VISIBLE (f, 1);
+          SET_FRAME_ICONIFIED (f, 0);
           f->output_data.x->has_been_visible = 1;
 
-          if (f->iconified)
+          if (iconified)
             {
               inev.ie.kind = DEICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
             }
-          else if (! NILP (Vframe_list)
-                   && ! NILP (XCDR (Vframe_list)))
-            /* Force a redisplay sooner or later
-               to update the frame titles
-               in case this is the second frame.  */
+          else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
+            /* Force a redisplay sooner or later to update the
+	       frame titles in case this is the second frame.  */
             record_asynch_buffer_change ();
 
 #ifdef USE_GTK
@@ -8417,7 +8415,7 @@ get_current_wm_state (struct frame *f,
       if (tmp_data) XFree (tmp_data);
       x_uncatch_errors ();
       unblock_input ();
-      return ! f->iconified;
+      return !FRAME_ICONIFIED_P (f);
     }
 
   x_uncatch_errors ();
@@ -8529,7 +8527,7 @@ do_ewmh_fullscreen (struct frame *f)
 static void
 XTfullscreen_hook (FRAME_PTR f)
 {
-  if (f->async_visible)
+  if (FRAME_VISIBLE_P (f))
     {
       block_input ();
       x_check_fullscreen (f);
@@ -8793,7 +8791,7 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
   /* But the ConfigureNotify may in fact never arrive, and then this is
      not right if the frame is visible.  Instead wait (with timeout)
      for the ConfigureNotify.  */
-  if (f->async_visible)
+  if (FRAME_VISIBLE_P (f))
     x_wait_for_event (f, ConfigureNotify);
   else
     {
@@ -8905,9 +8903,8 @@ void
 x_raise_frame (struct frame *f)
 {
   block_input ();
-  if (f->async_visible)
+  if (FRAME_VISIBLE_P (f))
     XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
-
   XFlush (FRAME_X_DISPLAY (f));
   unblock_input ();
 }
@@ -8917,7 +8914,7 @@ x_raise_frame (struct frame *f)
 static void
 x_lower_frame (struct frame *f)
 {
-  if (f->async_visible)
+  if (FRAME_VISIBLE_P (f))
     {
       block_input ();
       XLowerWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
@@ -8933,7 +8930,7 @@ xembed_request_focus (FRAME_PTR f)
 {
   /* See XEmbed Protocol Specification at
      http://freedesktop.org/wiki/Specifications/xembed-spec  */
-  if (f->async_visible)
+  if (FRAME_VISIBLE_P (f))
     xembed_send_message (f, CurrentTime,
 			 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 }
@@ -8947,7 +8944,8 @@ x_ewmh_activate_frame (FRAME_PTR f)
      http://freedesktop.org/wiki/Specifications/wm-spec  */
 
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  if (f->async_visible && wm_supports (f, dpyinfo->Xatom_net_active_window))
+
+  if (FRAME_VISIBLE_P (f) && wm_supports (f, dpyinfo->Xatom_net_active_window))
     {
       Lisp_Object frame;
       XSETFRAME (frame, f);
@@ -9159,9 +9157,6 @@ x_make_frame_visible (struct frame *f)
 	    poll_for_input_1 ();
 	    poll_suppress_count = old_poll_suppress_count;
 	  }
-
-	/* See if a MapNotify event has been processed.  */
-	FRAME_SAMPLE_VISIBILITY (f);
       }
 
     /* 2000-09-28: In
@@ -9229,10 +9224,8 @@ x_make_frame_invisible (struct frame *f)
      So we can't win using the usual strategy of letting
      FRAME_SAMPLE_VISIBILITY set this.  So do it by hand,
      and synchronize with the server to make sure we agree.  */
-  f->visible = 0;
-  FRAME_ICONIFIED_P (f) = 0;
-  f->async_visible = 0;
-  f->async_iconified = 0;
+  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_ICONIFIED (f, 0);
 
   x_sync (f);
 
@@ -9253,12 +9246,10 @@ x_iconify_frame (struct frame *f)
   if (FRAME_X_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_X_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
-  if (f->async_iconified)
+  if (FRAME_ICONIFIED_P (f))
     return;
 
   block_input ();
-
-  FRAME_SAMPLE_VISIBILITY (f);
 
   type = x_icon_type (f);
   if (!NILP (type))
@@ -9271,10 +9262,8 @@ x_iconify_frame (struct frame *f)
         gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
 
       gtk_window_iconify (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
-      f->iconified = 1;
-      f->visible = 1;
-      f->async_iconified = 1;
-      f->async_visible = 0;
+      SET_FRAME_VISIBLE (f, 0);
+      SET_FRAME_ICONIFIED (f, 1);
       unblock_input ();
       return;
     }
@@ -9291,10 +9280,8 @@ x_iconify_frame (struct frame *f)
       /* The server won't give us any event to indicate
 	 that an invisible frame was changed to an icon,
 	 so we have to record it here.  */
-      f->iconified = 1;
-      f->visible = 1;
-      f->async_iconified = 1;
-      f->async_visible = 0;
+      SET_FRAME_VISIBLE (f, 0);
+      SET_FRAME_ICONIFIED (f, 1);
       unblock_input ();
       return;
     }
@@ -9307,9 +9294,8 @@ x_iconify_frame (struct frame *f)
   if (!result)
     error ("Can't notify window manager of iconification");
 
-  f->async_iconified = 1;
-  f->async_visible = 0;
-
+  SET_FRAME_ICONIFIED (f, 1);
+  SET_FRAME_VISIBLE (f, 0);
 
   block_input ();
   XFlush (FRAME_X_DISPLAY (f));
@@ -9358,8 +9344,8 @@ x_iconify_frame (struct frame *f)
       XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
     }
 
-  f->async_iconified = 1;
-  f->async_visible = 0;
+  SET_FRAME_ICONIFIED (f, 1);
+  SET_FRAME_VISIBLE (f, 0);
 
   XFlush (FRAME_X_DISPLAY (f));
   unblock_input ();

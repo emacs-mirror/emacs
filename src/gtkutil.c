@@ -983,7 +983,7 @@ xg_frame_set_char_size (FRAME_PTR f, int cols, int rows)
      size as fast as possible.
      For unmapped windows, we can set rows/cols.  When
      the frame is mapped again we will (hopefully) get the correct size.  */
-  if (f->async_visible)
+  if (FRAME_VISIBLE_P (f))
     {
       /* Must call this to flush out events */
       (void)gtk_events_pending ();

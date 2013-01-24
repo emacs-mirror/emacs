@@ -5943,7 +5943,7 @@ Text larger than the specified size is clipped.  */)
 		  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
     /* Let redisplay know that we have made the frame visible already.  */
-    f->async_visible = 1;
+    SET_FRAME_VISIBLE (f, 1);
 
     ShowWindow (FRAME_W32_WINDOW (f), SW_SHOWNOACTIVATE);
   }

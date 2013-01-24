@@ -1000,11 +1000,8 @@ ns_raise_frame (struct frame *f)
   NSView *view = FRAME_NS_VIEW (f);
   check_ns ();
   block_input ();
-  FRAME_SAMPLE_VISIBILITY (f);
   if (FRAME_VISIBLE_P (f))
-    {
-      [[view window] makeKeyAndOrderFront: NSApp];
-    }
+    [[view window] makeKeyAndOrderFront: NSApp];
   unblock_input ();
 }
 
@@ -1093,7 +1090,8 @@ x_make_frame_visible (struct frame *f)
   if (!FRAME_VISIBLE_P (f))
     {
       EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-      f->async_visible = 1;
+
+      SET_FRAME_VISIBLE (f, 1);
       ns_raise_frame (f);
 
 #ifdef NEW_STYLE_FS
@@ -1123,8 +1121,8 @@ x_make_frame_invisible (struct frame *f)
   NSTRACE (x_make_frame_invisible);
   check_ns ();
   [[view window] orderOut: NSApp];
-  f->async_visible = 0;
-  f->async_iconified = 0;
+  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_ICONIFIED (f, 0);
 }
 
 
@@ -1354,7 +1352,9 @@ ns_fullscreen_hook (FRAME_PTR f)
 {
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
 
-  if (! f->async_visible) return;
+  if (!FRAME_VISIBLE_P (f))
+    return;
+
 #ifndef NEW_STYLE_FS
   if (f->want_fullscreen == FULLSCREEN_BOTH)
     {
@@ -5824,13 +5824,14 @@ not_in_argv (NSString *arg)
   NSTRACE (windowDidDeminiaturize);
   if (!emacsframe->output_data.ns)
     return;
-  emacsframe->async_iconified = 0;
-  emacsframe->async_visible   = 1;
+
+  SET_FRAME_ICONIFIED (emacsframe, 0);
+  SET_FRAME_VISIBLE (emacsframe, 1);
   windows_or_buffers_changed++;
 
   if (emacs_event)
     {
-      emacs_event->kind = ICONIFY_EVENT;
+      emacs_event->kind = DEICONIFY_EVENT;
       EV_TRAILER ((id)nil);
     }
 }
@@ -5841,7 +5842,8 @@ not_in_argv (NSString *arg)
   NSTRACE (windowDidExpose);
   if (!emacsframe->output_data.ns)
     return;
-  emacsframe->async_visible = 1;
+
+  SET_FRAME_VISIBLE (emacsframe, 1);
   SET_FRAME_GARBAGED (emacsframe);
 
   if (send_appdefined)
@@ -5855,8 +5857,8 @@ not_in_argv (NSString *arg)
   if (!emacsframe->output_data.ns)
     return;
 
-  emacsframe->async_iconified = 1;
-  emacsframe->async_visible = 0;
+  SET_FRAME_ICONIFIED (emacsframe, 1);
+  SET_FRAME_VISIBLE (emacsframe, 0);
 
   if (emacs_event)
     {

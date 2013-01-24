@@ -500,8 +500,7 @@ make_initial_frame (void)
   tty_frame_count = 1;
   fset_name (f, build_pure_c_string ("F1"));
 
-  f->visible = 1;
-  f->async_visible = 1;
+  SET_FRAME_VISIBLE (f, 1);
 
   f->output_method = terminal->type;
   f->terminal = terminal;
@@ -540,8 +539,8 @@ make_terminal_frame (struct terminal *terminal)
 
   fset_name (f, make_formatted_string (name, "F%"pMd, ++tty_frame_count));
 
-  f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
-  f->async_visible = 1;		/* Don't let visible be cleared later. */
+  SET_FRAME_VISIBLE (f, 1);
+
   f->terminal = terminal;
   f->terminal->reference_count++;
 #ifdef MSDOS
@@ -565,7 +564,7 @@ make_terminal_frame (struct terminal *terminal)
   /* Set the top frame to the newly created frame. */
   if (FRAMEP (FRAME_TTY (f)->top_frame)
       && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
-    XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
+    SET_FRAME_VISIBLE (XFRAME (FRAME_TTY (f)->top_frame), 2); /* obscured */
 
   FRAME_TTY (f)->top_frame = frame;
 
@@ -806,8 +805,8 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
     {
       if (FRAMEP (FRAME_TTY (XFRAME (frame))->top_frame))
 	/* Mark previously displayed frame as now obscured.  */
-	XFRAME (FRAME_TTY (XFRAME (frame))->top_frame)->async_visible = 2;
-      XFRAME (frame)->async_visible = 1;
+	SET_FRAME_VISIBLE (XFRAME (FRAME_TTY (XFRAME (frame))->top_frame), 2);
+      SET_FRAME_VISIBLE (XFRAME (frame), 1);
       FRAME_TTY (XFRAME (frame))->top_frame = frame;
     }
 
@@ -914,7 +913,6 @@ candidate_frame (Lisp_Object candidate, Lisp_Object frame, Lisp_Object minibuf)
 	}
       else if (EQ (minibuf, Qvisible))
 	{
-	  FRAME_SAMPLE_VISIBILITY (c);
 	  if (FRAME_VISIBLE_P (c))
 	    return candidate;
 	}
@@ -928,7 +926,6 @@ candidate_frame (Lisp_Object candidate, Lisp_Object frame, Lisp_Object minibuf)
 	}
       else if (XFASTINT (minibuf) == 0)
 	{
-	  FRAME_SAMPLE_VISIBILITY (c);
 	  if (FRAME_VISIBLE_P (c) || FRAME_ICONIFIED_P (c))
 	    return candidate;
 	}
@@ -1052,10 +1049,7 @@ other_visible_frames (FRAME_PTR f)
 	 and note any recent change in visibility.  */
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (XFRAME (this)))
-	{
-	  x_sync (XFRAME (this));
-	  FRAME_SAMPLE_VISIBILITY (XFRAME (this));
-	}
+	x_sync (XFRAME (this));
 #endif
 
       if (FRAME_VISIBLE_P (XFRAME (this))
@@ -1231,7 +1225,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   fset_root_window (f, Qnil);
 
   Vframe_list = Fdelq (frame, Vframe_list);
-  FRAME_SET_VISIBLE (f, 0);
+  SET_FRAME_VISIBLE (f, 0);
 
   /* Allow the vector of menu bar contents to be freed in the next
      garbage collection.  The frame object itself may not be garbage
@@ -1579,10 +1573,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
-    {
-      FRAME_SAMPLE_VISIBILITY (f);
-      x_make_frame_visible (f);
-    }
+    x_make_frame_visible (f);
 #endif
 
   make_frame_visible_1 (f->root_window);
@@ -1704,8 +1695,6 @@ currently being displayed on the terminal.  */)
   (Lisp_Object frame)
 {
   CHECK_LIVE_FRAME (frame);
-
-  FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
 
   if (FRAME_VISIBLE_P (XFRAME (frame)))
     return Qt;
@@ -2891,7 +2880,6 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 		  make_formatted_string (buf, "%"pMu, w));
 #endif
   store_in_alist (alistptr, Qicon_name, f->icon_name);
-  FRAME_SAMPLE_VISIBILITY (f);
   store_in_alist (alistptr, Qvisibility,
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));

@@ -1,5 +1,26 @@
 2013-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Drop async_visible and async_iconified fields of struct frame.
+	This is possible because async input is gone; for details, see
+	http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00734.html.
+	* frame.h (struct frame): Remove async_visible and async_iconified
+	members, convert garbaged to unsigned bitfield.  Adjust comments.
+	(FRAME_SAMPLE_VISIBILITY): Remove.  Adjust all users.
+	(SET_FRAME_VISIBLE, SET_FRAME_ICONIFIED): New macros.
+	* frame.c, gtkutil.c, term.c, w32fns.c, window.c, xdisp.c:
+	Consistently use SET_FRAME_VISIBLE, SET_FRAME_ICONIFIED,
+	FRAME_VISIBLE_P and FRAME_ICONIFIED_P macros where appropriate.
+	* w32term.c: Ditto.
+	(w32_read_socket): Save iconified state to generate DEICONIFY_EVENT
+	properly.  Likewise for obscured.
+	* xterm.c: Ditto.
+	(handle_one_xevent): Save visible state go generate ICONIFY_EVENT
+	properly.
+	* nsterm.m: Ditto.
+	(windowDidDeminiaturize): Generate DEICONIFY_EVENT.
+
+2013-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* insdel.c (prepare_to_modify_buffer): Revert last change as suggested
 	in http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00555.html.
 
