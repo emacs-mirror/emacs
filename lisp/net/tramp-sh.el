@@ -1549,7 +1549,7 @@ be non-negative integers."
       (when (and (tramp-remote-acl-p v)
 		 (tramp-send-command-and-check
 		  v (format
-		     "getfacl -acs %s 2>/dev/null"
+		     "getfacl -ac %s 2>/dev/null"
 		     (tramp-shell-quote-argument localname))))
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-max))
@@ -1560,21 +1560,20 @@ be non-negative integers."
 
 (defun tramp-sh-handle-set-file-acl (filename acl-string)
   "Like `set-file-acl' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (when (tramp-remote-acl-p v)
-      (condition-case nil
-	  (when (stringp acl-string)
-	    (tramp-set-file-property v localname "file-acl" acl-string)
-	    (dolist (line (split-string acl-string nil t) t)
-	      (unless (tramp-send-command-and-check
-		       v (format
-			  "setfacl -m %s %s"
-			  line (tramp-shell-quote-argument localname)))
-		(error nil))))
-	;; In case of errors, we return `nil'.
-	(error
-	 (tramp-set-file-property v localname "file-acl" 'undef)
-	 nil)))))
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
+    (if (and (stringp acl-string) (tramp-remote-acl-p v)
+	     (progn
+	       (tramp-send-command
+		v (format "setfacl --set-file=- %s <<'EOF'\n%s\nEOF\n"
+			  (tramp-shell-quote-argument localname) acl-string))
+	       (tramp-send-command-and-check v nil)))
+	;; Success.
+	(progn
+	  (tramp-set-file-property v localname "file-acl" acl-string)
+	  t)
+      ;; In case of errors, we return `nil'.
+      (tramp-set-file-property v localname "file-acl-string" 'undef)
+      nil)))
 
 ;; Simple functions using the `test' command.
 

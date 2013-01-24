@@ -1,3 +1,11 @@
+2013-01-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-tramp-file-p): Check, whether NAME is unibyte.
+
+	* net/tramp-sh.el (tramp-sh-handle-set-file-acl): Do not suppress
+	basic attributes.
+	(tramp-sh-handle-set-file-acl): Improve error checking.
+
 2013-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* doc-view.el (doc-view-display): Force mode line update until all
