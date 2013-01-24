@@ -1,3 +1,7 @@
+2013-01-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename Syntax): Filenames must be unibyte strings.
+
 2013-01-13  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation): Simplify.
