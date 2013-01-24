@@ -75,10 +75,9 @@ static void ns_glyph_metrics (struct nsfont_info *font_info,
 static void
 ns_escape_name (char *name)
 {
-  int i =0, len =strlen (name);
-  for ( ; i<len; i++)
-    if (name[i] == ' ')
-      name[i] = '_';
+  for (; *name; name++)
+    if (*name == ' ')
+      *name = '_';
 }
 
 
@@ -86,10 +85,9 @@ ns_escape_name (char *name)
 static void
 ns_unescape_name (char *name)
 {
-  int i =0, len =strlen (name);
-  for ( ; i<len; i++)
-    if (name[i] == '_')
-      name[i] = ' ';
+  for (; *name; name++)
+    if (*name == '_')
+      *name = ' ';
 }
 
 
@@ -364,7 +362,7 @@ static NSString
     while CONSP (rts)
       {
         r = XCAR (XCAR (rts));
-        if (!strncmp(SSDATA(r), reg, strlen(SSDATA(r))))
+        if (!strncmp (SSDATA (r), reg, SBYTES (r)))
           {
             script = XCDR (XCAR (rts));
             return [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (script))];
