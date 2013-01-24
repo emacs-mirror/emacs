@@ -155,7 +155,10 @@
 ;; dabbrev.  If you have `dabbrev-mode' activated and
 ;; `python-skeleton-autoinsert' is set to t, then whenever you type
 ;; the name of any of those defined and hit SPC, they will be
-;; automatically expanded.
+;; automatically expanded.  As an alternative you can use the defined
+;; skeleton commands: `python-skeleton-class', `python-skeleton-def'
+;; `python-skeleton-for', `python-skeleton-if', `python-skeleton-try'
+;; and `python-skeleton-while'.
 
 ;; FFAP: You can find the filename for a given module when using ffap
 ;; out of the box.  This feature needs an inferior python shell

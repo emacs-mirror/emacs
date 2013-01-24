@@ -1,3 +1,8 @@
+2013-01-24  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to header documentation about
+	skeletons.  (Bug#5716)
+
 2013-01-23  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* imenu.el (imenu-default-create-index-function): Remove useless
