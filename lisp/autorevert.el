@@ -39,8 +39,11 @@
 ;; Auto-Revert Mode applies to all file buffers. (If the user option
 ;; `global-auto-revert-non-file-buffers' is non-nil, it also applies
 ;; to some non-file buffers.  This option is disabled by default.)
-;; Since checking a remote file is too slow, these modes do not check
-;; or revert remote files.
+;;
+;; Since checking a remote file is slow, these modes check or revert
+;; remote files only if the user option `auto-revert-remote-files' is
+;; non-nil.  It is recommended to disable version control for remote
+;; files.
 ;;
 ;; Both modes operate by checking the time stamp of all files at
 ;; intervals of `auto-revert-interval'.  The default is every five
@@ -48,10 +51,12 @@
 ;; Emacs.  You should never even notice that this package is active
 ;; (except that your buffers will be reverted, of course).
 ;;
-;; If Emacs is compiled with file watch support, notifications are
-;; used instead of checking the time stamp of the files.  You can
+;; If Emacs is compiled with file notification support, notifications
+;; are used instead of checking the time stamp of the files.  You can
 ;; disable this by setting the user option `auto-revert-use-notify' to
-;; nil.
+;; nil.  Alternatively, a regular expression of directories to be
+;; excluded from file notifications can be specified by
+;; `auto-revert-notify-exclude-dir-regexp'.
 ;;
 ;; After reverting a file buffer, Auto Revert Mode normally puts point
 ;; at the same position that a regular manual revert would.  However,
@@ -70,7 +75,6 @@
 ;; change by growing at the end.  It only appends the new output,
 ;; instead of reverting the entire buffer.  It does so even if the
 ;; buffer contains unsaved changes.  (Because they will not be lost.)
-;; Auto Revert Tail Mode works also for remote files.
 
 ;; Usage:
 ;;
@@ -260,15 +264,21 @@ buffers.  CPU usage depends on the version control system."
 This variable becomes buffer local when set in any fashion.")
 (make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
+(defcustom auto-revert-remote-files nil
+  "If non-nil remote files are also reverted."
+  :group 'auto-revert
+  :type 'boolean
+  :version "24.4")
+
 (defconst auto-revert-notify-enabled
   (or (featurep 'inotify) (featurep 'w32notify))
-  "Non-nil when Emacs has been compiled with file watch support.")
+  "Non-nil when Emacs has been compiled with file notification support.")
 
 (defcustom auto-revert-use-notify auto-revert-notify-enabled
-  "If non-nil Auto Revert Mode uses file watch functions.
-This requires Emacs being compiled with file watch support (see
-`auto-revert-notify-enabled').  You should set this variable
-through Custom only."
+  "If non-nil Auto Revert Mode uses file notification functions.
+This requires Emacs being compiled with file notification
+support (see `auto-revert-notify-enabled').  You should set this
+variable through Custom only."
   :group 'auto-revert
   :type 'boolean
   :set (lambda (variable value)
@@ -279,6 +289,17 @@ through Custom only."
 	       (with-current-buffer buf
 		 (when (symbol-value 'auto-revert-notify-watch-descriptor)
 		   (auto-revert-notify-rm-watch)))))))
+  :version "24.4")
+
+(defcustom auto-revert-notify-exclude-dir-regexp
+  (concat
+   ;; No mounted file systems.
+   "^" (regexp-opt '("/afs/" "/media/" "/mnt" "/net/" "/tmp_mnt/"))
+   ;; No remote files.
+   (unless auto-revert-remote-files "\\|^/[^/|:][^/|]+:"))
+  "Regular expression of directories to be excluded from file notifications."
+  :group 'auto-revert
+  :type 'regexp
   :version "24.4")
 
 ;; Internal variables:
@@ -306,7 +327,9 @@ the list of old buffers.")
 (defvar auto-revert-notify-watch-descriptor-hash-list
   (make-hash-table :test 'equal)
   "A hash table collecting all file watch descriptors.
-Hash key is a watch descriptor, hash value is the corresponding buffer.")
+Hash key is a watch descriptor, hash value is a list of buffers
+which are related to files being watched and carrying the same
+default directory.")
 
 (defvar auto-revert-notify-watch-descriptor nil
   "The file watch descriptor active for the current buffer.")
@@ -315,7 +338,7 @@ Hash key is a watch descriptor, hash value is the corresponding buffer.")
 
 (defvar auto-revert-notify-modified-p nil
   "Non-nil when file has been modified on the file system.
-This has been reported by a file watch event.")
+This has been reported by a file notification event.")
 (make-variable-buffer-local 'auto-revert-notify-modified-p)
 
 ;; Functions:
@@ -444,9 +467,9 @@ specifies in the mode line."
   (auto-revert-set-timer)
   (if global-auto-revert-mode
       (auto-revert-buffers)
-    (when auto-revert-use-notify
-      (dolist (buf (buffer-list))
-	(with-current-buffer buf
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+	(when auto-revert-use-notify
 	  (auto-revert-notify-rm-watch))))))
 
 (defun auto-revert-set-timer ()
@@ -465,85 +488,106 @@ will use an up-to-date value of `auto-revert-interval'"
 			    'auto-revert-buffers))))
 
 (defun auto-revert-notify-rm-watch ()
-  "Disable file watch for current buffer's associated file."
+  "Disable file notification for current buffer's associated file."
   (when auto-revert-notify-watch-descriptor
-    (ignore-errors
-      (funcall (if (fboundp 'inotify-rm-watch)
-		   'inotify-rm-watch 'w32notify-rm-watch)
-	       auto-revert-notify-watch-descriptor))
-    (remhash auto-revert-notify-watch-descriptor
-	     auto-revert-notify-watch-descriptor-hash-list)
+    (maphash
+     (lambda (key value)
+       (when (equal key auto-revert-notify-watch-descriptor)
+	 (setq value (delete (current-buffer) value))
+	 (if value
+	     (puthash key value auto-revert-notify-watch-descriptor-hash-list)
+	   (remhash key auto-revert-notify-watch-descriptor-hash-list)
+	   (ignore-errors
+	     (funcall (if (fboundp 'inotify-rm-watch)
+			  'inotify-rm-watch 'w32notify-rm-watch)
+		      auto-revert-notify-watch-descriptor)))))
+     auto-revert-notify-watch-descriptor-hash-list)
     (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
   (setq auto-revert-notify-watch-descriptor nil
 	auto-revert-notify-modified-p nil))
 
 (defun auto-revert-notify-add-watch ()
-  "Enable file watch for current buffer's associated file."
+  "Enable file notification for current buffer's associated file."
+  (when (string-match auto-revert-notify-exclude-dir-regexp
+		      (expand-file-name default-directory))
+    ;; Fallback to file checks.
+    (set (make-local-variable 'auto-revert-use-notify) nil))
+
   (when (and buffer-file-name auto-revert-use-notify
 	     (not auto-revert-notify-watch-descriptor))
     (let ((func (if (fboundp 'inotify-add-watch)
 		    'inotify-add-watch 'w32notify-add-watch))
 	  (aspect (if (fboundp 'inotify-add-watch)
-		      '(modify) '(size last-write-time))))
+		      '(create modify moved-to) '(size last-write-time))))
       (setq auto-revert-notify-watch-descriptor
 	    (ignore-errors
 	      (funcall
-	       func buffer-file-name aspect 'auto-revert-notify-handler)))
+	       func (directory-file-name (expand-file-name default-directory))
+	       aspect 'auto-revert-notify-handler)))
       (if auto-revert-notify-watch-descriptor
 	  (progn
-	    (puthash auto-revert-notify-watch-descriptor
-		     (current-buffer)
-		     auto-revert-notify-watch-descriptor-hash-list)
+	    (puthash
+	     auto-revert-notify-watch-descriptor
+	     (cons (current-buffer)
+		   (gethash auto-revert-notify-watch-descriptor
+			    auto-revert-notify-watch-descriptor-hash-list))
+	     auto-revert-notify-watch-descriptor-hash-list)
 	    (add-hook (make-local-variable 'kill-buffer-hook)
 		      'auto-revert-notify-rm-watch))
 	;; Fallback to file checks.
 	(set (make-local-variable 'auto-revert-use-notify) nil)))))
 
 (defun auto-revert-notify-event-p (event)
-  "Check that event is a file watch event."
+  "Check that event is a file notification event."
   (cond ((featurep 'inotify)
 	 (and (listp event) (= (length event) 4)))
 	((featurep 'w32notify)
 	 (and (listp event) (= (length event) 3) (stringp (nth 2 event))))))
 
 (defun auto-revert-notify-event-descriptor (event)
-  "Return watch descriptor of notification event, or nil."
+  "Return watch descriptor of file notification event, or nil."
   (and (auto-revert-notify-event-p event) (car event)))
 
 (defun auto-revert-notify-event-action (event)
-  "Return action of notification event, or nil."
+  "Return action of file notification event, or nil."
   (and (auto-revert-notify-event-p event) (nth 1 event)))
 
 (defun auto-revert-notify-event-file-name (event)
-  "Return file name of notification event, or nil."
+  "Return file name of file notification event, or nil."
   (and (auto-revert-notify-event-p event)
        (cond ((featurep 'inotify) (nth 3 event))
 	     ((featurep 'w32notify) (nth 2 event)))))
 
 (defun auto-revert-notify-handler (event)
-  "Handle an event returned from file watch."
+  "Handle an event returned from file notification."
   (when (auto-revert-notify-event-p event)
     (let* ((descriptor (auto-revert-notify-event-descriptor event))
 	   (action (auto-revert-notify-event-action event))
 	   (file (auto-revert-notify-event-file-name event))
-	   (buffer (gethash descriptor
-			    auto-revert-notify-watch-descriptor-hash-list)))
+	   (buffers (gethash descriptor
+			     auto-revert-notify-watch-descriptor-hash-list)))
       (ignore-errors
 	;; Check, that event is meant for us.
 	;; TODO: Filter events which stop watching, like `move' or `removed'.
 	(cl-assert descriptor)
-	(when (featurep 'inotify) (cl-assert (memq 'modify action)))
+	(when (featurep 'inotify)
+	  (cl-assert (or (memq 'create action)
+			 (memq 'modify action)
+			 (memq 'moved-to action))))
 	(when (featurep 'w32notify) (cl-assert (eq 'modified action)))
-	(cl-assert (bufferp buffer))
-	(with-current-buffer buffer
-	  (when (and (stringp file) (stringp buffer-file-name))
-	    ;; w32notify returns the basename of the file without its
-	    ;; leading directories; inotify returns its full absolute
-	    ;; file name.
-	    (cl-assert (file-equal-p file buffer-file-name)))
-
-	  ;; Mark buffer modified.
-	  (setq auto-revert-notify-modified-p t))))))
+	;; Since we watch a directory, a file name must be returned.
+	(cl-assert (stringp file))
+	(dolist (buffer buffers)
+	  (when (buffer-live-p buffer)
+	    (with-current-buffer buffer
+	      (when (and (stringp buffer-file-name)
+			 (string-equal
+			  (file-name-nondirectory file)
+			  (file-name-nondirectory buffer-file-name)))
+		;; Mark buffer modified.
+		(setq auto-revert-notify-modified-p t)
+		;; No need to check other buffers.
+		(cl-return)))))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active (in current buffer or globally)."
@@ -560,23 +604,29 @@ will use an up-to-date value of `auto-revert-interval'"
 This is an internal function used by Auto-Revert Mode."
   (when (or auto-revert-tail-mode (not (buffer-modified-p)))
     (let* ((buffer (current-buffer)) size
+	   ;; Tramp caches the file attributes.  Setting
+	   ;; `remote-file-name-inhibit-cache' forces Tramp to reread
+	   ;; the values.
+	   (remote-file-name-inhibit-cache t)
 	   (revert
 	    (or (and buffer-file-name
-		     (or (not auto-revert-use-notify)
-			 auto-revert-notify-modified-p)
+		     (or auto-revert-remote-files
+			 (not (file-remote-p buffer-file-name)))
 		     (if auto-revert-tail-mode
-			 ;; Tramp caches the file attributes.  Setting
-			 ;; `remote-file-name-inhibit-cache' forces Tramp
-			 ;; to reread the values.
-			 (let ((remote-file-name-inhibit-cache t))
-			   (and (file-readable-p buffer-file-name)
-				(/= auto-revert-tail-pos
-				    (setq size
-					  (nth 7 (file-attributes
-						  buffer-file-name))))))
-		       (and (not (file-remote-p buffer-file-name))
-			    (file-readable-p buffer-file-name)
-			    (not (verify-visited-file-modtime buffer)))))
+			 (and (or (not auto-revert-use-notify)
+				  auto-revert-notify-modified-p)
+			      (file-readable-p buffer-file-name)
+			      (/= auto-revert-tail-pos
+				  (setq size
+					(nth 7 (file-attributes
+						buffer-file-name)))))
+		       ;; When `auto-revert-use-notify' is set, we do
+		       ;; not apply further checks for performance
+		       ;; reasons.
+		       (if auto-revert-use-notify
+			   auto-revert-notify-modified-p
+			 (and (file-readable-p buffer-file-name)
+			      (not (verify-visited-file-modtime buffer))))))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)
 		     revert-buffer-function
@@ -692,10 +742,10 @@ the timer when no buffers need to be checked."
 		    (setq auto-revert-buffer-list
 			  (delq buf auto-revert-buffer-list)))
 		(when (auto-revert-active-p)
-		  ;; Enable file watches.
+		  ;; Enable file notification.
 		  (when (and auto-revert-use-notify buffer-file-name
-			     (not auto-revert-notify-watch-descriptor)
-		      (auto-revert-notify-add-watch)))
+			     (not auto-revert-notify-watch-descriptor))
+		    (auto-revert-notify-add-watch))
 		  (auto-revert-handler)))
 	    ;; Remove dead buffer from `auto-revert-buffer-list'.
 	    (setq auto-revert-buffer-list

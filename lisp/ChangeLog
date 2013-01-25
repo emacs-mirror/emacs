@@ -1,3 +1,27 @@
+2013-01-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-remote-files)
+	(auto-revert-notify-exclude-dir-regexp): New defcustoms.
+	(auto-revert-notify-enabled, auto-revert-use-notify)
+	(auto-revert-notify-watch-descriptor-hash-list)
+	(auto-revert-notify-modified-p, auto-revert-notify-event-p)
+	(auto-revert-notify-event-descriptor)
+	(auto-revert-notify-event-action)
+	(auto-revert-notify-event-file-name): Doc fix.
+	(global-auto-revert-mode): Reorder checks.
+	(auto-revert-notify-rm-watch): Respect changed values of
+	`auto-revert-notify-watch-descriptor-hash-list'.
+	(auto-revert-notify-add-watch): Check for
+	`auto-revert-notify-exclude-dir-regexp'.  Adapt filters for
+	`inotify-add-watch'.  Watch `default-directory' instead of
+	`buffer-file-name'.  `auto-revert-notify-watch-descriptor-hash-list'
+	has a changed meaning now.  (Bug#13540)
+	(auto-revert-notify-handler): Change implementation wrt events
+	returning from a directory.
+	(auto-revert-handler): Reorder implementation for checks of remote
+	files.
+	(auto-revert-buffers): Fix parentheses error.
+
 2013-01-25  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: Enhancements to header documentation about
