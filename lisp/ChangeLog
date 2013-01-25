@@ -1,3 +1,22 @@
+2013-01-25  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Improve definitions and use of some faces.
+	(todos-top-priority): Use current definition of font-lock-constant-face.
+	(todos-diary-expired): Make default value contrast more with
+	default value of todos-date face.
+	(todos-nondiary, todos-category-string): New faces.
+	(todos-nondiary-face, todos-category-string-face): Corresponding
+	new variables.
+	(todos-done, todos-comment): Switch default values to go better
+	with default value of todos-date face.
+	(todos-done-sep): Change default value.
+	(todos-category-string-matcher-1)
+	(todos-category-string-matcher-2): Improve doc string.
+	(todos-font-lock-keywords): Use todos-nondiary-face and
+	todos-category-string-face.
+	(todos-done-separator): Propertize string with todos-done-sep face.
+	(todos-filtered-items-mode): Fix typo.
+
 2013-01-23  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Improve handling of saved top priorities items.

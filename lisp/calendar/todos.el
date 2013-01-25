@@ -626,24 +626,17 @@ categories display according to priority."
   :group 'todos-faces)
 
 (defface todos-top-priority
-  ;; '((t :inherit font-lock-comment-face))
-  '((((class grayscale) (background light))
-     :foreground "DimGray" :weight bold :slant italic)
-    (((class grayscale) (background dark))
-     :foreground "LightGray" :weight bold :slant italic)
-    (((class color) (min-colors 88) (background light))
-     :foreground "Firebrick" :weight bold)
-    (((class color) (min-colors 88) (background dark))
-     :foreground "chocolate1" :weight bold)
-    (((class color) (min-colors 16) (background light))
-     :foreground "red" :weight bold)
-    (((class color) (min-colors 16) (background dark))
-     :foreground "red1" :weight bold)
-    (((class color) (min-colors 8) (background light))
-     :foreground "red" :weight bold)
-    (((class color) (min-colors 8) (background dark))
-     :foreground "yellow" :weight bold)
-    (t :weight bold :slant italic))
+  ;; bold font-lock-comment-face
+  '((default :weight bold)
+    (((class grayscale) (background light)) :foreground "DimGray" :slant italic)
+    (((class grayscale) (background dark)) :foreground "LightGray" :slant italic)
+    (((class color) (min-colors 88) (background light)) :foreground "Firebrick")
+    (((class color) (min-colors 88) (background dark)) :foreground "chocolate1")
+    (((class color) (min-colors 16) (background light)) :foreground "red")
+    (((class color) (min-colors 16) (background dark)) :foreground "red1")
+    (((class color) (min-colors 8) (background light)) :foreground "red")
+    (((class color) (min-colors 8) (background dark)) :foreground "yellow")
+    (t :slant italic))
   "Face for top priority Todos item numerical priority string.
 The item's priority number string has this face if the number is
 less than or equal the category's top priority setting."
@@ -744,14 +737,19 @@ less than or equal the category's top priority setting."
   :group 'todos-faces)
 
 (defface todos-diary-expired
-  ;; '((t :inherit font-lock-warning-face))
-  '((((class color)
-      (min-colors 16))
-     (:weight bold :foreground "DarkOrange"))
-    (((class color))
-     (:weight bold :foreground "yellow"))
-    (t
-     (:weight bold)))
+  ;; Doesn't contrast enough with todos-date (= diary) face.
+  ;; ;; '((t :inherit warning))
+  ;; '((default :weight bold)
+  ;;   (((class color) (min-colors 16)) :foreground "DarkOrange")
+  ;;   (((class color)) :foreground "yellow"))
+  ;; bold font-lock-function-name-face
+  '((default :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "Blue1")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 16) (background light)) :foreground "Blue")
+    (((class color) (min-colors 16) (background dark))  :foreground "LightSkyBlue")
+    (((class color) (min-colors 8)) :foreground "blue")
+    (t :inverse-video t))
   "Face for expired dates of diary items."
   :group 'todos-faces)
 (defvar todos-diary-expired-face 'todos-diary-expired)
@@ -768,7 +766,49 @@ less than or equal the category's top priority setting."
   :group 'todos-faces)
 (defvar todos-time-face 'todos-time)
 
+(defface todos-nondiary
+  ;; '((t :inherit font-lock-type-face))
+  '((((class grayscale) (background light)) :foreground "Gray90" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 88) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 16) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 16) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 8)) :foreground "green")
+    (t :weight bold :underline t))
+  "Face for non-diary markers around todo item date/time header."
+  :group 'todos-faces)
+(defvar todos-nondiary-face 'todos-nondiary)
+
+(defface todos-category-string
+    ;; '((t :inherit font-lock-type-face))
+  '((((class grayscale) (background light)) :foreground "Gray90" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 88) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 16) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 16) (background dark))  :foreground "PaleGreen")
+    (((class color) (min-colors 8)) :foreground "green")
+    (t :weight bold :underline t))
+  "Face for category file names in Todos Filtered Item."
+  :group 'todos-faces)
+(defvar todos-category-string-face 'todos-category-string)
+
 (defface todos-done
+  ;; '((t :inherit font-lock-keyword-face))
+  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
+    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
+    (((class color) (min-colors 88) (background light)) :foreground "Purple")
+    (((class color) (min-colors 88) (background dark))  :foreground "Cyan1")
+    (((class color) (min-colors 16) (background light)) :foreground "Purple")
+    (((class color) (min-colors 16) (background dark))  :foreground "Cyan")
+    (((class color) (min-colors 8)) :foreground "cyan" :weight bold)
+    (t :weight bold))
+  "Face for done Todos item header string."
+  :group 'todos-faces)
+(defvar todos-done-face 'todos-done)
+
+(defface todos-comment
   ;; '((t :inherit font-lock-comment-face))
   '((((class grayscale) (background light))
      :foreground "DimGray" :weight bold :slant italic)
@@ -779,7 +819,6 @@ less than or equal the category's top priority setting."
     (((class color) (min-colors 88) (background dark))
      :foreground "chocolate1")
     (((class color) (min-colors 16) (background light))
-     ;; FIXME: this is the same as todos-date with default value of diary face
      :foreground "red")
     (((class color) (min-colors 16) (background dark))
      :foreground "red1")
@@ -788,34 +827,20 @@ less than or equal the category's top priority setting."
     (((class color) (min-colors 8) (background dark))
      :foreground "yellow")
     (t :weight bold :slant italic))
-  "Face for done Todos item header string."
-  :group 'todos-faces)
-(defvar todos-done-face 'todos-done)
-
-(defface todos-comment
-  ;; '((t :inherit font-lock-keyword-face))
-  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
-    (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
-    (((class color) (min-colors 88) (background light)) :foreground "Purple")
-    (((class color) (min-colors 88) (background dark))  :foreground "Cyan1")
-    (((class color) (min-colors 16) (background light)) :foreground "Purple")
-    (((class color) (min-colors 16) (background dark))  :foreground "Cyan")
-    (((class color) (min-colors 8)) :foreground "cyan" :weight bold)
-    (t :weight bold))
   "Face for comments appended to done Todos items."
   :group 'todos-faces)
 (defvar todos-comment-face 'todos-comment)
 
 (defface todos-done-sep
-  ;; '((t :inherit font-lock-type-face))
-  '((((class grayscale) (background light)) :foreground "Gray90" :weight bold)
+  ;; '((t :inherit font-lock-builtin-face))
+  '((((class grayscale) (background light)) :foreground "LightGray" :weight bold)
     (((class grayscale) (background dark))  :foreground "DimGray" :weight bold)
-    (((class color) (min-colors 88) (background light)) :foreground "ForestGreen")
-    (((class color) (min-colors 88) (background dark))  :foreground "PaleGreen")
-    (((class color) (min-colors 16) (background light)) :foreground "ForestGreen")
-    (((class color) (min-colors 16) (background dark))  :foreground "PaleGreen")
-    (((class color) (min-colors 8)) :foreground "green")
-    (t :weight bold :underline t))
+    (((class color) (min-colors 88) (background light)) :foreground "dark slate blue")
+    (((class color) (min-colors 88) (background dark))  :foreground "LightSteelBlue")
+    (((class color) (min-colors 16) (background light)) :foreground "Orchid")
+    (((class color) (min-colors 16) (background dark)) :foreground "LightSteelBlue")
+    (((class color) (min-colors 8)) :foreground "blue" :weight bold)
+    (t :weight bold))
   "Face for separator string bewteen done and not done Todos items."
   :group 'todos-faces)
 (defvar todos-done-sep-face 'todos-done-sep)
@@ -880,8 +905,8 @@ less than or equal the category's top priority setting."
 
 (defun todos-category-string-matcher-1 (lim)
   "Search for Todos category name within LIM for font-locking.
-This is for fontifying category names appearing in Todos filter
-mode following done items."
+This is for fontifying category and file names appearing in Todos
+Filtered Items mode following done items."
   (if (eq major-mode 'todos-filtered-items-mode)
       (re-search-forward (concat todos-done-string-start todos-date-pattern
 				 "\\(?: " diary-time-regexp
@@ -893,8 +918,8 @@ mode following done items."
 
 (defun todos-category-string-matcher-2 (lim)
   "Search for Todos category name within LIM for font-locking.
-This is for fontifying category names appearing in Todos filter
-mode following todo (not done) items."
+This is for fontifying category and file names appearing in Todos
+Filtered Items mode following todo (not done) items."
   (if (eq major-mode 'todos-filtered-items-mode)
       (re-search-forward (concat todos-date-string-start todos-date-pattern
 				 "\\(?: " diary-time-regexp "\\)?\\(?:"
@@ -904,17 +929,16 @@ mode following todo (not done) items."
 
 (defvar todos-font-lock-keywords
   (list
-   '(todos-nondiary-marker-matcher 1 todos-done-sep-face t)
-   '(todos-nondiary-marker-matcher 2 todos-done-sep-face t)
-   ;; This is the face used by diary-lib.el.
+   '(todos-nondiary-marker-matcher 1 todos-nondiary-face t)
+   '(todos-nondiary-marker-matcher 2 todos-nondiary-face t)
+   ;; diary-lib.el uses font-lock-constant-face for diary-nonmarking-symbol.
    '(todos-diary-nonmarking-matcher 1 font-lock-constant-face t)
    '(todos-date-string-matcher 1 todos-date-face t)
    '(todos-time-string-matcher 1 todos-time-face t)
    '(todos-done-string-matcher 0 todos-done-face t)
    '(todos-comment-string-matcher 1 todos-comment-face t)
-   ;; '(todos-category-string-matcher 1 todos-done-sep-face t)
-   '(todos-category-string-matcher-1 1 todos-done-sep-face t t)
-   '(todos-category-string-matcher-2 1 todos-done-sep-face t t)
+   '(todos-category-string-matcher-1 1 todos-category-string-face t t)
+   '(todos-category-string-matcher-2 1 todos-category-string-face t t)
    '(todos-diary-expired-matcher 1 todos-diary-expired-face t)
    '(todos-diary-expired-matcher 2 todos-diary-expired-face t t)
    )
@@ -1127,9 +1151,10 @@ number as its value."
 (defun todos-done-separator ()
   "Return string used as value of variable `todos-done-separator'."
   (let ((sep todos-done-separator-string))
-    (if (= 1 (length sep))
-	(make-string (window-width) (string-to-char sep))
-      todos-done-separator-string)))
+    (propertize (if (= 1 (length sep))
+		    (make-string (window-width) (string-to-char sep))
+		  todos-done-separator-string)
+		'face 'todos-done-sep)))
 
 (defvar todos-done-separator (todos-done-separator)
   "String used to visually separate done from not done items.
@@ -2998,7 +3023,7 @@ which is the value of the user option
 \\{todos-categories-mode-map}"
   (todos-mode-external-set))
 
-(put 'todos-filter-mode 'mode-class 'special)
+(put 'todos-filtered-items-mode 'mode-class 'special)
 
 (define-derived-mode todos-filtered-items-mode special-mode "Todos-Fltr"
   "Mode for displaying and reprioritizing top priority Todos.
