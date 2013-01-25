@@ -1,3 +1,8 @@
+2013-01-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (num_fonts): Remove the leftover from old
+	debugging code.  Adjust comment style here and there.
+
 2013-01-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (max_filename_mbslen): New function.
@@ -36,7 +41,7 @@
 	(w32_read_socket): Save iconified state to generate DEICONIFY_EVENT
 	properly.  Likewise for obscured.
 	* xterm.c: Ditto.
-	(handle_one_xevent): Save visible state go generate ICONIFY_EVENT
+	(handle_one_xevent): Save visible state to generate ICONIFY_EVENT
 	properly.
 	* nsterm.m: Ditto.
 	(windowDidDeminiaturize): Generate DEICONIFY_EVENT.

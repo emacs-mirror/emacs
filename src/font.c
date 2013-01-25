@@ -717,7 +717,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 }
 
 
-/* Font name parser and unparser */
+/* Font name parser and unparser.  */
 
 static int parse_matrix (const char *);
 static int font_expand_wildcards (Lisp_Object *, int);
@@ -1746,7 +1746,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
 /* This part (through the next ^L) is still experimental and not
    tested much.  We may drastically change codes.  */
 
-/* OTF handler */
+/* OTF handler.  */
 
 #if 0
 
@@ -2035,7 +2035,7 @@ font_otf_Anchor (OTF_Anchor *anchor)
 #endif	/* 0 */
 
 
-/* Font sorting */
+/* Font sorting.  */
 
 static unsigned font_score (Lisp_Object, Lisp_Object *);
 static int font_compare (const void *, const void *);
@@ -2565,7 +2565,6 @@ font_get_cache (FRAME_PTR f, struct font_driver *driver)
   return val;
 }
 
-static int num_fonts;
 
 static void
 font_clear_cache (FRAME_PTR f, Lisp_Object cache, struct font_driver *driver)
@@ -2598,7 +2597,6 @@ font_clear_cache (FRAME_PTR f, Lisp_Object cache, struct font_driver *driver)
 			{
 			  eassert (font && driver == font->driver);
 			  driver->close (f, font);
-			  num_fonts--;
 			}
 		    }
 		  if (driver->free_entity)
@@ -2856,7 +2854,6 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
     return Qnil;
   ASET (entity, FONT_OBJLIST_INDEX,
 	Fcons (font_object, AREF (entity, FONT_OBJLIST_INDEX)));
-  num_fonts++;
 
   font = XFONT_OBJECT (font_object);
   min_width = (font->min_width ? font->min_width
@@ -2901,7 +2898,6 @@ font_close_object (FRAME_PTR f, Lisp_Object font_object)
   eassert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
   FRAME_X_DISPLAY_INFO (f)->n_fonts--;
 #endif
-  num_fonts--;
 }
 
 
@@ -3578,7 +3574,7 @@ font_filter_properties (Lisp_Object font,
   Lisp_Object it;
   int i;
 
-  /* Set boolean values to Qt or Qnil */
+  /* Set boolean values to Qt or Qnil.  */
   for (i = 0; boolean_properties[i] != NULL; ++i)
     for (it = alist; ! NILP (it); it = XCDR (it))
       {
@@ -3757,7 +3753,7 @@ font_range (ptrdiff_t pos, ptrdiff_t *limit, struct window *w, struct face *face
 #endif
 
 
-/* Lisp API */
+/* Lisp API.  */
 
 DEFUN ("fontp", Ffontp, Sfontp, 1, 2, 0,
        doc: /* Return t if OBJECT is a font-spec, font-entity, or font-object.
