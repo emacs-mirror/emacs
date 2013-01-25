@@ -658,17 +658,6 @@ insert_before_markers_and_inherit (const char *string,
     }
 }
 
-/* Subroutine used by the insert functions above.  */
-
-void
-insert_1 (const char *string, ptrdiff_t nbytes,
-	  bool inherit, bool prepare, bool before_markers)
-{
-  insert_1_both (string, chars_in_text ((unsigned char *) string, nbytes),
-		 nbytes, inherit, prepare, before_markers);
-}
-
-
 #ifdef BYTE_COMBINING_DEBUG
 
 /* See if the bytes before POS/POS_BYTE combine with bytes

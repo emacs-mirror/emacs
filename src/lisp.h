@@ -2874,7 +2874,6 @@ extern int count_combining_after (const unsigned char *,
 				  ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void insert (const char *, ptrdiff_t);
 extern void insert_and_inherit (const char *, ptrdiff_t);
-extern void insert_1 (const char *, ptrdiff_t, bool, bool, bool);
 extern void insert_1_both (const char *, ptrdiff_t, ptrdiff_t,
 			   bool, bool, bool);
 extern void insert_from_gap (ptrdiff_t, ptrdiff_t);

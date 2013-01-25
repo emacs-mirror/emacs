@@ -6,6 +6,9 @@
 
 	* font.c (num_fonts): Remove the leftover from old
 	debugging code.  Adjust comment style here and there.
+	* insdel.c (insert_1): Remove.
+	* lisp.h (insert_1): Remove prototype.
+	* xdisp.c (message_dolog): Adjust users to call insert_1_both.
 
 2013-01-25  Eli Zaretskii  <eliz@gnu.org>
 

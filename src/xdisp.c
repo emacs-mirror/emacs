@@ -9462,13 +9462,14 @@ message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
 	    }
 	}
       else if (nbytes)
-	insert_1 (m, nbytes, 1, 0, 0);
+	insert_1_both (m, chars_in_text (msg, nbytes), nbytes, 1, 0, 0);
 
       if (nlflag)
 	{
 	  ptrdiff_t this_bol, this_bol_byte, prev_bol, prev_bol_byte;
 	  printmax_t dups;
-	  insert_1 ("\n", 1, 1, 0, 0);
+
+	  insert_1_both ("\n", 1, 1, 1, 0, 0);
 
 	  scan_newline (Z, Z_BYTE, BEG, BEG_BYTE, -2, 0);
 	  this_bol = PT;
@@ -9497,7 +9498,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
 			 change message_log_check_duplicate.  */
 		      int duplen = sprintf (dupstr, " [%"pMd" times]", dups);
 		      TEMP_SET_PT_BOTH (Z - 1, Z_BYTE - 1);
-		      insert_1 (dupstr, duplen, 1, 0, 1);
+		      insert_1_both (dupstr, duplen, duplen, 1, 0, 1);
 		    }
 		}
 	    }
