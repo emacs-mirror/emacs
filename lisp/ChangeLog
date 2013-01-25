@@ -1,3 +1,10 @@
+2013-01-25  Alan Mackenzie  <acm@muc.de>
+
+	AWK Mode: Fix indentation bug at top level.  Bug #12274.
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Move CASE 5P to
+	just before CASE 5D.
+
 2013-01-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* net/socks.el (socks-nslookup-host): Use string-to-number.

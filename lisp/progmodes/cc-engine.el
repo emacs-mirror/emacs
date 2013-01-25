@@ -9842,6 +9842,18 @@ comment at the start of cc-engine.el for more info."
 	    ;; contains any class offset
 	    )))
 
+	 ;; CASE 5P: AWK pattern or function or continuation
+	 ;; thereof.
+	 ((c-major-mode-is 'awk-mode)
+	  (setq placeholder (point))
+	  (c-add-stmt-syntax
+	   (if (and (eq (c-beginning-of-statement-1) 'same)
+		    (/= (point) placeholder))
+	       'topmost-intro-cont
+	     'topmost-intro)
+	   nil nil
+	   containing-sexp paren-state))
+
 	 ;; CASE 5D: this could be a top-level initialization, a
 	 ;; member init list continuation, or a template argument
 	 ;; list continuation.
@@ -10000,18 +10012,6 @@ comment at the start of cc-engine.el for more info."
 	      ;; directive.
 	      (goto-char (point-min)))
 	  (c-add-syntax 'objc-method-intro (c-point 'boi)))
-
-	 ;; CASE 5P: AWK pattern or function or continuation
-	 ;; thereof.
-	 ((c-major-mode-is 'awk-mode)
-	  (setq placeholder (point))
-	  (c-add-stmt-syntax
-	   (if (and (eq (c-beginning-of-statement-1) 'same)
-		    (/= (point) placeholder))
-	       'topmost-intro-cont
-	     'topmost-intro)
-	   nil nil
-	   containing-sexp paren-state))
 
 	 ;; CASE 5N: At a variable declaration that follows a class
 	 ;; definition or some other block declaration that doesn't
