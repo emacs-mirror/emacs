@@ -1,3 +1,7 @@
+2013-01-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* net/socks.el (socks-nslookup-host): Use string-to-number.
+
 2013-01-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-remote-files)

@@ -648,7 +648,7 @@ version.")
 	      (progn
 		(setq res (buffer-substring (match-beginning 2)
 					    (match-end 2))
-		      res (mapcar 'string-to-int (split-string res "\\.")))))
+		      res (mapcar 'string-to-number (split-string res "\\.")))))
 	  (kill-buffer (current-buffer)))
 	res)
     host))
