@@ -442,8 +442,8 @@ DEFUN ("w32notify-add-watch", Fw32notify_add_watch,
 This arranges for filesystem events pertaining to FILE to be reported
 to Emacs.  Use `w32notify-rm-watch' to cancel the watch.
 
-Value is a descriptor for the added watch, or nil if the file
-cannot be watched.
+Value is a descriptor for the added watch.  If the file cannot be
+watched for some reason, this function signals a `file-error' error.
 
 FILTER is a list of conditions for reporting an event.  It can include
 the following symbols:
@@ -476,7 +476,13 @@ following:
   'renamed-from' -- a file was renamed whose old name was FILE
   'renamed-to'   -- a file was renamed and its new name is FILE
 
-FILE is the name of the file whose event is being reported.  */)
+FILE is the name of the file whose event is being reported.
+
+Note that some networked filesystems, such as Samba-mounted Unix
+volumes, might not send notifications about file changes.  In these
+cases, this function will return a valid descriptor, but notifications
+will never come in.  Volumes shared from remote Windows machines do
+generate notifications correctly, though.  */)
   (Lisp_Object file, Lisp_Object filter, Lisp_Object callback)
 {
   Lisp_Object encoded_file, watch_object, watch_descriptor;

@@ -1,3 +1,7 @@
+2013-01-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32notify.c (Fw32notify_add_watch): Doc fix.  (Bug#13540)
+
 2013-01-25  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (num_fonts): Remove the leftover from old
