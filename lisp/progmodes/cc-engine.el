@@ -2545,14 +2545,12 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; The return value is a list, one of the following:
   ;;
-  ;; o - ('forward CACHE-POS START-POINT) - scan forward from START-POINT,
-  ;;                                        which is not less than CACHE-POS.
-  ;; o - ('backward CACHE-POS nil) - scan backwards (from HERE).
-  ;; o - ('BOD nil START-POINT) - scan forwards from START-POINT, which is at the
+  ;; o - ('forward START-POINT) - scan forward from START-POINT,
+  ;;	 which is not less than the highest position in `c-state-cache' below here.
+  ;; o - ('backward nil) - scan backwards (from HERE).
+  ;; o - ('BOD START-POINT) - scan forwards from START-POINT, which is at the
   ;;   top level.
-  ;; o - ('IN-LIT nil nil) - point is inside the literal containing point-min.
-  ;; , where CACHE-POS is the highest position recorded in `c-state-cache' at
-  ;; or below HERE.
+  ;; o - ('IN-LIT nil) - point is inside the literal containing point-min.
   (let ((cache-pos (c-get-cache-scan-pos here))	; highest position below HERE in cache (or 1)
 	BOD-pos		    ; position of 2nd BOD before HERE.
 	strategy	    ; 'forward, 'backward, 'BOD, or 'IN-LIT.
@@ -2590,7 +2588,6 @@ comment at the start of cc-engine.el for more info."
 
     (list
      strategy
-     (and (memq strategy '(forward backward)) cache-pos)
      (and (memq strategy '(forward BOD)) start-point))))
 
 
@@ -2657,7 +2654,8 @@ comment at the start of cc-engine.el for more info."
   ;; reduce the time wasted in repeated fruitless searches in brace deserts.
   (save-excursion
     (save-restriction
-      (let* (new-cons
+      (let* ((here (point-max))
+	     new-cons
 	     (cache-pos (c-state-cache-top-lparen)) ; might be nil.
 	     (macro-start-or-from
 	      (progn (goto-char from)
@@ -2692,6 +2690,7 @@ comment at the start of cc-engine.el for more info."
 		;; search bound, even though the algorithm below would skip
 		;; over the new paren pair.
 		(cache-lim (and cache-pos (< cache-pos from) cache-pos)))
+	    (widen)
 	    (narrow-to-region
 		(cond
 		 ((and desert-lim cache-lim)
@@ -2711,16 +2710,18 @@ comment at the start of cc-engine.el for more info."
 		  (while
 		      (and (setq ce (scan-lists bra -1 -1)) ; back past )/]/}; might signal
 			   (setq bra (scan-lists ce -1 1)) ; back past (/[/{; might signal
-			   (or (> ce upper-lim)
-			       (not (eq (char-after bra) ?\{))
-			       (and (goto-char bra)
-				    (c-beginning-of-macro)
-				    (< (point) macro-start-or-from))))))
+			   (or (> bra here) ;(> ce here)
+			       (and
+				(< ce here)
+				(or (not (eq (char-after bra) ?\{))
+				    (and (goto-char bra)
+					 (c-beginning-of-macro)
+					 (< (point) macro-start-or-from))))))))
 		(and ce (< ce bra)))
 	    (setq bra ce))	; If we just backed over an unbalanced closing
 					; brace, ignore it.
 
-	  (if (and ce (< bra ce) (eq (char-after bra) ?\{))
+	  (if (and ce (< ce here) (< bra ce) (eq (char-after bra) ?\{))
 	      ;; We've found the desired brace-pair.
 	      (progn
 		(setq new-cons (cons bra (1+ ce)))
@@ -2734,7 +2735,11 @@ comment at the start of cc-engine.el for more info."
 		 (t (setq c-state-cache (cons new-cons c-state-cache)))))
 
 	    ;; We haven't found a brace pair.  Record this in the cache.
-	    (setq c-state-brace-pair-desert (cons cache-pos from))))))))
+	    (setq c-state-brace-pair-desert
+		  (cons (if (and ce (< bra ce) (> ce here)) ; {..} straddling HERE?
+			    bra
+			  (point-min))
+			(min here from)))))))))
 
 (defsubst c-state-push-any-brace-pair (bra+1 macro-start-or-here)
   ;; If BRA+1 is nil, do nothing.  Otherwise, BRA+1 is the buffer position
@@ -2852,19 +2857,19 @@ comment at the start of cc-engine.el for more info."
        (paren+1)
        (t from)))))
 
-(defun c-remove-stale-state-cache (good-pos pps-point)
+(defun c-remove-stale-state-cache (start-point pps-point)
   ;; Remove stale entries from the `c-cache-state', i.e. those which will
   ;; not be in it when it is amended for position (point-max).
   ;; Additionally, the "outermost" open-brace entry before (point-max)
   ;; will be converted to a cons if the matching close-brace is scanned.
   ;;
-  ;; GOOD-POS is a "maximal" "safe position" - there must be no open
-  ;; parens/braces/brackets between GOOD-POS and (point-max).
+  ;; START-POINT is a "maximal" "safe position" - there must be no open
+  ;; parens/braces/brackets between START-POINT and (point-max).
   ;;
   ;; As a second thing, calculate the result of parse-partial-sexp at
-  ;; PPS-POINT, w.r.t. GOOD-POS.  The motivation here is that
+  ;; PPS-POINT, w.r.t. START-POINT.  The motivation here is that
   ;; `c-state-cache-good-pos' may become PPS-POINT, but the caller may need to
-  ;; adjust it to get outside a string/comment.  (Sorry about this!  The code
+  ;; adjust it to get outside a string/comment.	 (Sorry about this!  The code
   ;; needs to be FAST).
   ;;
   ;; Return a list (GOOD-POS SCAN-BACK-POS PPS-STATE), where
@@ -2872,7 +2877,9 @@ comment at the start of cc-engine.el for more info."
   ;;   to be good (we aim for this to be as high as possible);
   ;; o - SCAN-BACK-POS, if not nil, indicates there may be a brace pair
   ;;   preceding POS which needs to be recorded in `c-state-cache'.  It is a
-  ;;   position to scan backwards from.
+  ;;   position to scan backwards from.  It is the position of the "{" of the
+  ;;   last element to be removed from `c-state-cache', when that elt is a
+  ;;   cons, otherwise nil.
   ;; o - PPS-STATE is the parse-partial-sexp state at PPS-POINT.
   (save-restriction
     (narrow-to-region 1 (point-max))
@@ -2882,21 +2889,21 @@ comment at the start of cc-engine.el for more info."
 		(goto-char (point-max))
 		(and (c-beginning-of-macro)
 		     (point))))
-	     (good-pos-actual-macro-start ; Start of macro containing good-pos
-					; or nil
-	      (and (< good-pos (point-max))
+	     (start-point-actual-macro-start ; Start of macro containing
+					     ; start-point or nil
+	      (and (< start-point (point-max))
 		   (save-excursion
-		     (goto-char good-pos)
+		     (goto-char start-point)
 		     (and (c-beginning-of-macro)
 			  (point)))))
-	     (good-pos-actual-macro-end	; End of this macro, (maybe
+	     (start-point-actual-macro-end ; End of this macro, (maybe
 					; (point-max)), or nil.
-	      (and good-pos-actual-macro-start
+	      (and start-point-actual-macro-start
 		   (save-excursion
-		     (goto-char good-pos-actual-macro-start)
+		     (goto-char start-point-actual-macro-start)
 		     (c-end-of-macro)
 		     (point))))
-	     pps-state 			; Will be 9 or 10 elements long.
+	     pps-state			; Will be 9 or 10 elements long.
 	     pos
 	     upper-lim	   ; ,beyond which `c-state-cache' entries are removed
 	     scan-back-pos
@@ -2926,15 +2933,15 @@ comment at the start of cc-engine.el for more info."
 	;; The next loop jumps forward out of a nested level of parens each
 	;; time round; the corresponding elements in `c-state-cache' are
 	;; removed.  `pos' is just after the brace-pair or the open paren at
-	;; (car c-state-cache).  There can be no open parens/braces/brackets
-	;; between `good-pos'/`good-pos-actual-macro-start' and (point-max),
+	;; (car c-state-cache).	 There can be no open parens/braces/brackets
+	;; between `start-point'/`start-point-actual-macro-start' and (point-max),
 	;; due to the interface spec to this function.
-	(setq pos (if (and good-pos-actual-macro-end
-			   (not (eq good-pos-actual-macro-start
+	(setq pos (if (and start-point-actual-macro-end
+			   (not (eq start-point-actual-macro-start
 				    in-macro-start)))
-		      (1+ good-pos-actual-macro-end) ; get outside the macro as
+		      (1+ start-point-actual-macro-end) ; get outside the macro as
 					; marked by a `category' text property.
-		    good-pos))
+		    start-point))
 	(goto-char pos)
 	(while (and c-state-cache
 		    (< (point) (point-max)))
@@ -2993,14 +3000,14 @@ comment at the start of cc-engine.el for more info."
 
 	(list pos scan-back-pos pps-state)))))
 
-(defun c-remove-stale-state-cache-backwards (here cache-pos)
+(defun c-remove-stale-state-cache-backwards (here)
   ;; Strip stale elements of `c-state-cache' by moving backwards through the
   ;; buffer, and inform the caller of the scenario detected.
   ;;
   ;; HERE is the position we're setting `c-state-cache' for.
-  ;; CACHE-POS is just after the latest recorded position in `c-state-cache'
-  ;;   before HERE, or a position at or near point-min which isn't in a
-  ;;   literal.
+  ;; CACHE-POS (a locally bound variable) is just after the latest recorded
+  ;;   position in `c-state-cache' before HERE, or a position at or near
+  ;;   point-min which isn't in a literal.
   ;;
   ;; This function must only be called only when (> `c-state-cache-good-pos'
   ;; HERE).  Usually the gap between CACHE-POS and HERE is large.  It is thus
@@ -3023,10 +3030,11 @@ comment at the start of cc-engine.el for more info."
   ;; The comments in this defun use "paren" to mean parenthesis or square
   ;; bracket (as contrasted with a brace), and "(" and ")" likewise.
   ;;
-  ;;    .   {..} (..) (..)  ( .. {   }  ) (...)    ( ....          .  ..)
-  ;;    |                   |       |   |     |                    |
-  ;;    CP                  E      here D     C                   good
-  (let ((pos c-state-cache-good-pos)
+  ;;	.   {..} (..) (..)  ( .. {   }	) (...)	   ( ....	   .  ..)
+  ;;	|		    |	    |	|     |			   |
+  ;;	CP		    E	   here D     C			  good
+  (let ((cache-pos (c-get-cache-scan-pos here))	; highest position below HERE in cache (or 1)
+	(pos c-state-cache-good-pos)
 	pa ren	       ; positions of "(" and ")"
 	dropped-cons ; whether the last element dropped from `c-state-cache'
 		     ; was a cons (representing a brace-pair)
@@ -3263,7 +3271,8 @@ comment at the start of cc-engine.el for more info."
 	 cache-pos	     ; highest position below HERE already existing in
 			     ; cache (or 1).
 	 good-pos
-	 start-point
+	 start-point ; (when scanning forward) a place below HERE where there
+		     ; are no open parens/braces between it and HERE.
 	 bopl-state
 	 res
 	 scan-backward-pos scan-forward-p) ; used for 'backward.
@@ -3274,8 +3283,7 @@ comment at the start of cc-engine.el for more info."
     ;; Strategy?
     (setq res (c-parse-state-get-strategy here c-state-cache-good-pos)
 	  strategy (car res)
-	  cache-pos (cadr res)
-	  start-point (nth 2 res))
+	  start-point (cadr res))
 
     (when (eq strategy 'BOD)
       (setq c-state-cache nil
@@ -3302,7 +3310,7 @@ comment at the start of cc-engine.el for more info."
 		good-pos)))
 
        ((eq strategy 'backward)
-	(setq res (c-remove-stale-state-cache-backwards here cache-pos)
+	(setq res (c-remove-stale-state-cache-backwards here)
 	      good-pos (car res)
 	      scan-backward-pos (cadr res)
 	      scan-forward-p (car (cddr res)))

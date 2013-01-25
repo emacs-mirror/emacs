@@ -200,7 +200,7 @@ See also `xml-get-attribute-or-nil'."
 ;; [68] EntityRef   ::= '&' Name ';'
 (defconst xml-entity-ref (concat "&" xml-name-re ";"))
 
-(defconst xml-entity-or-char-ref-re (concat "&\\(?:#\\(x\\)?\\([0-9]+\\)\\|\\("
+(defconst xml-entity-or-char-ref-re (concat "&\\(?:#\\(x\\)?\\([0-9a-fA-F]+\\)\\|\\("
 					    xml-name-re "\\)\\);"))
 
 ;; [69] PEReference ::= '%' Name ';'

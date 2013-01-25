@@ -1,3 +1,20 @@
+2013-01-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (max_filename_mbslen): New function.
+	(normalize_filename, readdir): Use it to detect locales where ANSI
+	encoding of file names uses a double-byte character set (DBCS).
+	If a DBCS encoding is used, advance by characters using
+	CharNextExA, instead of incrementing a 'char *' pointer.  Use
+	_mbslwr instead of _strlwr.  (Bug#13515)
+
+	* w32heap.c (allocate_heap) [!_WIN64]: Decrease the initial
+	request of memory reservation to 1.7GB.  (Bug#13065)
+
+2013-01-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.c (detect_coding_iso_2022): Move back mis-reordered code
+	at check_extra_latin label.  (Bug#13505)
+
 2013-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* nsfont.m (ns_escape_name, ns_unescape_name, ns_registry_to_script):

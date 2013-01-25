@@ -37,7 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* must include CRT headers *before* config.h */
 
 #include <config.h>
-#include <mbstring.h>	/* for _mbspbrk */
+#include <mbstring.h>	/* for _mbspbrk and _mbslwr */
 
 #undef access
 #undef chdir
@@ -1531,6 +1531,67 @@ srandom (int seed)
   srand (seed);
 }
 
+/* Current codepage for encoding file names.  */
+static int file_name_codepage;
+
+/* Return the maximum length in bytes of a multibyte character
+   sequence encoded in the current ANSI codepage.  This is required to
+   correctly walk the encoded file names one character at a time.  */
+static int
+max_filename_mbslen (void)
+{
+  /* A simple cache to avoid calling GetCPInfo every time we need to
+     normalize a file name.  The file-name encoding is not supposed to
+     be changed too frequently, if ever.  */
+  static Lisp_Object last_file_name_encoding;
+  static int last_max_mbslen;
+  Lisp_Object current_encoding;
+
+  current_encoding = Vfile_name_coding_system;
+  if (NILP (current_encoding))
+    current_encoding = Vdefault_file_name_coding_system;
+
+  if (!EQ (last_file_name_encoding, current_encoding))
+    {
+      CPINFO cp_info;
+
+      last_file_name_encoding = current_encoding;
+      /* Default to the current ANSI codepage.  */
+      file_name_codepage = w32_ansi_code_page;
+      if (!NILP (current_encoding))
+	{
+	  char *cpname = SDATA (SYMBOL_NAME (current_encoding));
+	  char *cp = NULL, *end;
+	  int cpnum;
+
+	  if (strncmp (cpname, "cp", 2) == 0)
+	    cp = cpname + 2;
+	  else if (strncmp (cpname, "windows-", 8) == 0)
+	    cp = cpname + 8;
+
+	  if (cp)
+	    {
+	      end = cp;
+	      cpnum = strtol (cp, &end, 10);
+	      if (cpnum && *end == '\0' && end - cp >= 2)
+		file_name_codepage = cpnum;
+	    }
+	}
+
+      if (!file_name_codepage)
+	file_name_codepage = CP_ACP; /* CP_ACP = 0, but let's not assume that */
+
+      if (!GetCPInfo (file_name_codepage, &cp_info))
+	{
+	  file_name_codepage = CP_ACP;
+	  if (!GetCPInfo (file_name_codepage, &cp_info))
+	    emacs_abort ();
+	}
+      last_max_mbslen = cp_info.MaxCharSize;
+    }
+
+  return last_max_mbslen;
+}
 
 /* Normalize filename by converting all path separators to
    the specified separator.  Also conditionally convert upper
@@ -1540,14 +1601,20 @@ static void
 normalize_filename (register char *fp, char path_sep)
 {
   char sep;
-  char *elem;
+  char *elem, *p2;
+  int dbcs_p = max_filename_mbslen () > 1;
 
   /* Always lower-case drive letters a-z, even if the filesystem
      preserves case in filenames.
      This is so filenames can be compared by string comparison
      functions that are case-sensitive.  Even case-preserving filesystems
      do not distinguish case in drive letters.  */
-  if (fp[1] == ':' && *fp >= 'A' && *fp <= 'Z')
+  if (dbcs_p)
+    p2 = CharNextExA (file_name_codepage, fp, 0);
+  else
+    p2 = fp + 1;
+
+  if (*p2 == ':' && *fp >= 'A' && *fp <= 'Z')
     {
       *fp += 'a' - 'A';
       fp += 2;
@@ -1559,7 +1626,10 @@ normalize_filename (register char *fp, char path_sep)
 	{
 	  if (*fp == '/' || *fp == '\\')
 	    *fp = path_sep;
-	  fp++;
+	  if (!dbcs_p)
+	    fp++;
+	  else
+	    fp = CharNextExA (file_name_codepage, fp, 0);
 	}
       return;
     }
@@ -1582,13 +1652,20 @@ normalize_filename (register char *fp, char path_sep)
 	if (elem && elem != fp)
 	  {
 	    *fp = 0;		/* temporary end of string */
-	    _strlwr (elem);	/* while we convert to lower case */
+	    _mbslwr (elem);	/* while we convert to lower case */
 	  }
 	*fp = sep;		/* convert (or restore) path separator */
 	elem = fp + 1;		/* next element starts after separator */
 	sep = path_sep;
       }
-  } while (*fp++);
+    if (*fp)
+      {
+	if (!dbcs_p)
+	  fp++;
+	else
+	  fp = CharNextExA (file_name_codepage, fp, 0);
+      }
+  } while (*fp);
 }
 
 /* Destructively turn backslashes into slashes.  */
@@ -2860,15 +2937,22 @@ readdir (DIR *dirp)
     strcpy (dir_static.d_name, dir_find_data.cFileName);
   dir_static.d_namlen = strlen (dir_static.d_name);
   if (dir_is_fat)
-    _strlwr (dir_static.d_name);
+    _mbslwr (dir_static.d_name);
   else if (downcase)
     {
       register char *p;
-      for (p = dir_static.d_name; *p; p++)
-	if (*p >= 'a' && *p <= 'z')
-	  break;
+      int dbcs_p = max_filename_mbslen () > 1;
+      for (p = dir_static.d_name; *p; )
+	{
+	  if (*p >= 'a' && *p <= 'z')
+	    break;
+	  if (dbcs_p)
+	    p = CharNextExA (file_name_codepage, p, 0);
+	  else
+	    p++;
+	}
       if (!*p)
-	_strlwr (dir_static.d_name);
+	_mbslwr (dir_static.d_name);
     }
 
   return &dir_static;
