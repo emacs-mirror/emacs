@@ -37,7 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* must include CRT headers *before* config.h */
 
 #include <config.h>
-#include <mbstring.h>	/* for _mbspbrk and _mbslwr */
+#include <mbstring.h>	/* for _mbspbrk, _mbslwr, _mbsrchr, ... */
 
 #undef access
 #undef chdir
@@ -1573,7 +1573,7 @@ w32_get_long_filename (char * name, char * buf, int size)
   while (p != NULL && *p)
     {
       q = p;
-      p = strchr (q, '\\');
+      p = _mbschr (q, '\\');
       if (p) *p = '\0';
       len = get_long_basename (full, o, size);
       if (len > 0)
@@ -1800,16 +1800,16 @@ init_environment (char ** argv)
 
       if (!GetModuleFileName (NULL, modname, MAX_PATH))
 	emacs_abort ();
-      if ((p = strrchr (modname, '\\')) == NULL)
+      if ((p = _mbsrchr (modname, '\\')) == NULL)
 	emacs_abort ();
       *p = 0;
 
-      if ((p = strrchr (modname, '\\')) && xstrcasecmp (p, "\\bin") == 0)
+      if ((p = _mbsrchr (modname, '\\')) && xstrcasecmp (p, "\\bin") == 0)
 	{
 	  char buf[SET_ENV_BUF_SIZE];
 
 	  *p = 0;
-	  for (p = modname; *p; p++)
+	  for (p = modname; *p; p = CharNext (p))
 	    if (*p == '\\') *p = '/';
 
 	  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
@@ -1824,17 +1824,17 @@ init_environment (char ** argv)
                      || xstrcasecmp (p, "\\AMD64") == 0))
 	{
 	  *p = 0;
-	  p = strrchr (modname, '\\');
+	  p = _mbsrchr (modname, '\\');
 	  if (p != NULL)
 	    {
 	      *p = 0;
-	      p = strrchr (modname, '\\');
+	      p = _mbsrchr (modname, '\\');
 	      if (p && xstrcasecmp (p, "\\src") == 0)
 		{
 		  char buf[SET_ENV_BUF_SIZE];
 
 		  *p = 0;
-		  for (p = modname; *p; p++)
+		  for (p = modname; *p; p = CharNext (p))
 		    if (*p == '\\') *p = '/';
 
 		  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
@@ -4340,18 +4340,34 @@ readlink (const char *name, char *buf, size_t buf_size)
 	  else
 	    {
 	      size_t size_to_copy = buf_size;
-	      BYTE *p = lname;
+	      BYTE *p = lname, *p2;
 	      BYTE *pend = p + lname_len;
+	      int dbcs_p = max_filename_mbslen () > 1;
 
 	      /* Normalize like dostounix_filename does, but we don't
 		 want to assume that lname is null-terminated.  */
-	      if (*p && p[1] == ':' && *p >= 'A' && *p <= 'Z')
-		*p += 'a' - 'A';
+	      if (dbcs_p)
+		p2 = CharNextExA (w32_ansi_code_page, p, 0);
+	      else
+		p2 = p + 1;
+	      if (*p && *p2 == ':' && *p >= 'A' && *p <= 'Z')
+		{
+		  *p += 'a' - 'A';
+		  p += 2;
+		}
 	      while (p <= pend)
 		{
 		  if (*p == '\\')
 		    *p = '/';
-		  ++p;
+		  if (dbcs_p)
+		    {
+		      p = CharNextExA (w32_ansi_code_page, p, 0);
+		      /* CharNextExA doesn't advance at null character.  */
+		      if (!*p)
+			break;
+		    }
+		  else
+		    ++p;
 		}
 	      /* Testing for null-terminated LNAME is paranoia:
 		 WideCharToMultiByte should always return a
