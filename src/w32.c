@@ -4305,6 +4305,8 @@ readlink (const char *name, char *buf, size_t buf_size)
 	  WCHAR *lwname_src =
 	    reparse_data->SymbolicLinkReparseBuffer.PathBuffer
 	    + reparse_data->SymbolicLinkReparseBuffer.PrintNameOffset/sizeof(WCHAR);
+	  /* This updates file_name_codepage which we need below.  */
+	  int dbcs_p = max_filename_mbslen () > 1;
 
 	  /* According to MSDN, PrintNameLength does not include the
 	     terminating null character.  */
@@ -4312,9 +4314,7 @@ readlink (const char *name, char *buf, size_t buf_size)
 	  memcpy (lwname, lwname_src, lwname_len);
 	  lwname[lwname_len/sizeof(WCHAR)] = 0; /* null-terminate */
 
-	  /* FIXME: Should we use the current file-name coding system
-	     instead of the fixed value of the ANSI codepage?  */
-	  lname_len = WideCharToMultiByte (w32_ansi_code_page, 0, lwname, -1,
+	  lname_len = WideCharToMultiByte (file_name_codepage, 0, lwname, -1,
 					   lname, MAX_PATH, NULL, NULL);
 	  if (!lname_len)
 	    {
@@ -4342,12 +4342,11 @@ readlink (const char *name, char *buf, size_t buf_size)
 	      size_t size_to_copy = buf_size;
 	      BYTE *p = lname, *p2;
 	      BYTE *pend = p + lname_len;
-	      int dbcs_p = max_filename_mbslen () > 1;
 
 	      /* Normalize like dostounix_filename does, but we don't
 		 want to assume that lname is null-terminated.  */
 	      if (dbcs_p)
-		p2 = CharNextExA (w32_ansi_code_page, p, 0);
+		p2 = CharNextExA (file_name_codepage, p, 0);
 	      else
 		p2 = p + 1;
 	      if (*p && *p2 == ':' && *p >= 'A' && *p <= 'Z')
@@ -4361,7 +4360,7 @@ readlink (const char *name, char *buf, size_t buf_size)
 		    *p = '/';
 		  if (dbcs_p)
 		    {
-		      p = CharNextExA (w32_ansi_code_page, p, 0);
+		      p = CharNextExA (file_name_codepage, p, 0);
 		      /* CharNextExA doesn't advance at null character.  */
 		      if (!*p)
 			break;

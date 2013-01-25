@@ -2,6 +2,8 @@
 
 	* w32.c (w32_get_long_filename, init_environment, readlink):
 	Support file names encoded in DBCS codepages.
+	(readlink): Use the current file-name-coding-system, not the ANSI
+	codepage, to decode and handle targets of symlinks.
 
 2013-01-23  Eli Zaretskii  <eliz@gnu.org>
 
