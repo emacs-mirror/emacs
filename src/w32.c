@@ -4639,34 +4639,18 @@ readlink (const char *name, char *buf, size_t buf_size)
 	  else
 	    {
 	      size_t size_to_copy = buf_size;
-	      BYTE *p = lname, *p2;
+	      BYTE *p = lname;
 	      BYTE *pend = p + lname_len;
-	      int dbcs_p = max_filename_mbslen () > 1;
 
 	      /* Normalize like dostounix_filename does, but we don't
 		 want to assume that lname is null-terminated.  */
-	      if (dbcs_p)
-		p2 = CharNextExA (file_name_codepage, p, 0);
-	      else
-		p2 = p + 1;
-	      if (*p && *p2 == ':' && *p >= 'A' && *p <= 'Z')
-		{
-		  *p += 'a' - 'A';
-		  p += 2;
-		}
+	      if (*p && p[1] == ':' && *p >= 'A' && *p <= 'Z')
+		*p += 'a' - 'A';
 	      while (p <= pend)
 		{
 		  if (*p == '\\')
 		    *p = '/';
-		  if (dbcs_p)
-		    {
-		      p = CharNextExA (file_name_codepage, p, 0);
-		      /* CharNextExA doesn't advance at null character.  */
-		      if (!*p)
-			break;
-		    }
-		  else
-		    ++p;
+		  ++p;
 		}
 	      /* Testing for null-terminated LNAME is paranoia:
 		 WideCharToMultiByte should always return a
