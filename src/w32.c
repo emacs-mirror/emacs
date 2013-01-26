@@ -1503,12 +1503,17 @@ parse_root (char * name, char ** pPath)
   else if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
     {
       int slashes = 2;
+      int dbcs_p = max_filename_mbslen () > 1;
+
       name += 2;
       do
         {
 	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
 	    break;
-	  name++;
+	  if (dbcs_p)
+	    name = CharNextExA (file_name_codepage, name, 0);
+	  else
+	    name++;
 	}
       while ( *name );
       if (IS_DIRECTORY_SEP (name[0]))
@@ -2369,12 +2374,23 @@ get_volume_info (const char * name, const char ** pPath)
     {
       char *str = temp;
       int slashes = 4;
+      int dbcs_p = max_filename_mbslen () > 1;
+
       rootname = temp;
       do
         {
 	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
 	    break;
-	  *str++ = *name++;
+	  if (!dbcs_p)
+	    *str++ = *name++;
+	  else
+	    {
+	      const char *p = name;
+
+	      name = CharNextExA (file_name_codepage, name, 0);
+	      memcpy (str, p, name - p);
+	      str += name - p;
+	    }
 	}
       while ( *name );
 
@@ -2610,11 +2626,23 @@ readdir (DIR *dirp)
     {
       char filename[MAXNAMLEN + 3];
       int ln;
+      int dbcs_p = max_filename_mbslen () > 1;
 
       strcpy (filename, dir_pathname);
       ln = strlen (filename) - 1;
-      if (!IS_DIRECTORY_SEP (filename[ln]))
-	strcat (filename, "\\");
+      if (!dbcs_p)
+	{
+	  if (!IS_DIRECTORY_SEP (filename[ln]))
+	    strcat (filename, "\\");
+	}
+      else
+	{
+	  char *end = filename + ln + 1;
+	  char *last_char = CharPrevExA (file_name_codepage, filename, end, 0);
+
+	  if (!IS_DIRECTORY_SEP (*last_char))
+	    strcat (filename, "\\");
+	}
       strcat (filename, "*");
 
       /* Note: No need to resolve symlinks in FILENAME, because
@@ -2719,6 +2747,7 @@ read_unc_volume (HANDLE henum, char *readbuf, int size)
   DWORD bufsize = 512;
   char *buffer;
   char *ptr;
+  int dbcs_p = max_filename_mbslen () > 1;
 
   count = 1;
   buffer = alloca (bufsize);
@@ -2729,7 +2758,13 @@ read_unc_volume (HANDLE henum, char *readbuf, int size)
   /* WNetEnumResource returns \\resource\share...skip forward to "share". */
   ptr = ((LPNETRESOURCE) buffer)->lpRemoteName;
   ptr += 2;
-  while (*ptr && !IS_DIRECTORY_SEP (*ptr)) ptr++;
+  if (!dbcs_p)
+    while (*ptr && !IS_DIRECTORY_SEP (*ptr)) ptr++;
+  else
+    {
+      while (*ptr && !IS_DIRECTORY_SEP (*ptr))
+	ptr = CharNextExA (file_name_codepage, ptr, 0);
+    }
   ptr++;
 
   strncpy (readbuf, ptr, size);
@@ -2766,9 +2801,11 @@ logon_network_drive (const char *path)
 {
   NETRESOURCE resource;
   char share[MAX_PATH];
-  int i, n_slashes;
+  int n_slashes;
   char drive[4];
   UINT drvtype;
+  char *p;
+  int dbcs_p;
 
   if (IS_DIRECTORY_SEP (path[0]) && IS_DIRECTORY_SEP (path[1]))
     drvtype = DRIVE_REMOTE;
@@ -2790,13 +2827,18 @@ logon_network_drive (const char *path)
   n_slashes = 2;
   strncpy (share, path, MAX_PATH);
   /* Truncate to just server and share name.  */
-  for (i = 2; i < MAX_PATH; i++)
+  dbcs_p = max_filename_mbslen () > 1;
+  for (p = share + 2; *p && p < share + MAX_PATH; )
     {
-      if (IS_DIRECTORY_SEP (share[i]) && ++n_slashes > 3)
+      if (IS_DIRECTORY_SEP (*p) && ++n_slashes > 3)
         {
-          share[i] = '\0';
+          *p = '\0';
           break;
         }
+      if (dbcs_p)
+	p = CharNextExA (file_name_codepage, p, 0);
+      else
+	p++;
     }
 
   resource.dwType = RESOURCETYPE_DISK;
@@ -3557,6 +3599,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
   DWORD access_rights = 0;
   DWORD fattrs = 0, serialnum = 0, fs_high = 0, fs_low = 0, nlinks = 1;
   FILETIME ctime, atime, wtime;
+  int dbcs_p;
 
   if (path == NULL || buf == NULL)
     {
@@ -3751,6 +3794,7 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	 did not ask for extra precision, resolving symlinks will fly
 	 in the face of that request, since the user then wants the
 	 lightweight version of the code.  */
+      dbcs_p = max_filename_mbslen () > 1;
       rootdir = (path >= save_name + len - 1
 		 && (IS_DIRECTORY_SEP (*path) || *path == 0));
 
@@ -3778,8 +3822,19 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else if (rootdir)
 	{
-	  if (!IS_DIRECTORY_SEP (name[len-1]))
-	    strcat (name, "\\");
+	  if (!dbcs_p)
+	    {
+	      if (!IS_DIRECTORY_SEP (name[len-1]))
+		strcat (name, "\\");
+	    }
+	  else
+	    {
+	      char *end = name + len;
+	      char *n = CharPrevExA (file_name_codepage, name, end, 0);
+
+	      if (!IS_DIRECTORY_SEP (*n))
+		strcat (name, "\\");
+	    }
 	  if (GetDriveType (name) < 2)
 	    {
 	      errno = ENOENT;
@@ -3791,15 +3846,37 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
 	}
       else
 	{
-	  if (IS_DIRECTORY_SEP (name[len-1]))
-	    name[len - 1] = 0;
+	  if (!dbcs_p)
+	    {
+	      if (IS_DIRECTORY_SEP (name[len-1]))
+		name[len - 1] = 0;
+	    }
+	  else
+	    {
+	      char *end = name + len;
+	      char *n = CharPrevExA (file_name_codepage, name, end, 0);
+
+	      if (IS_DIRECTORY_SEP (*n))
+		*n = 0;
+	    }
 
 	  /* (This is hacky, but helps when doing file completions on
 	     network drives.)  Optimize by using information available from
 	     active readdir if possible.  */
 	  len = strlen (dir_pathname);
-	  if (IS_DIRECTORY_SEP (dir_pathname[len-1]))
-	    len--;
+	  if (!dbcs_p)
+	    {
+	      if (IS_DIRECTORY_SEP (dir_pathname[len-1]))
+		len--;
+	    }
+	  else
+	    {
+	      char *end = dir_pathname + len;
+	      char *n = CharPrevExA (file_name_codepage, dir_pathname, end, 0);
+
+	      if (IS_DIRECTORY_SEP (*n))
+		len--;
+	    }
 	  if (dir_find_handle != INVALID_HANDLE_VALUE
 	      && !(is_a_symlink && follow_symlinks)
 	      && strnicmp (save_name, dir_pathname, len) == 0
@@ -4060,6 +4137,7 @@ symlink (char const *filename, char const *linkname)
   char linkfn[MAX_PATH], *tgtfn;
   DWORD flags = 0;
   int dir_access, filename_ends_in_slash;
+  int dbcs_p;
 
   /* Diagnostics follows Posix as much as possible.  */
   if (filename == NULL || linkname == NULL)
@@ -4085,6 +4163,8 @@ symlink (char const *filename, char const *linkname)
       return -1;
     }
 
+  dbcs_p = max_filename_mbslen () > 1;
+
   /* Note: since empty FILENAME was already rejected, we can safely
      refer to FILENAME[1].  */
   if (!(IS_DIRECTORY_SEP (filename[0]) || IS_DEVICE_SEP (filename[1])))
@@ -4099,8 +4179,21 @@ symlink (char const *filename, char const *linkname)
       char tem[MAX_PATH];
       char *p = linkfn + strlen (linkfn);
 
-      while (p > linkfn && !IS_ANY_SEP (p[-1]))
-	p--;
+      if (!dbcs_p)
+	{
+	  while (p > linkfn && !IS_ANY_SEP (p[-1]))
+	    p--;
+	}
+      else
+	{
+	  char *p1 = CharPrevExA (file_name_codepage, linkfn, p, 0);
+
+	  while (p > linkfn && !IS_ANY_SEP (*p1))
+	    {
+	      p = p1;
+	      p1 = CharPrevExA (file_name_codepage, linkfn, p1, 0);
+	    }
+	}
       if (p > linkfn)
 	strncpy (tem, linkfn, p - linkfn);
       tem[p - linkfn] = '\0';
@@ -4115,7 +4208,15 @@ symlink (char const *filename, char const *linkname)
      exist, but ends in a slash, we create a symlink to directory.  If
      FILENAME exists and is a directory, we always create a symlink to
      directory.  */
-  filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
+  if (!dbcs_p)
+    filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
+  else
+    {
+      const char *end = filename + strlen (filename);
+      const char *n = CharPrevExA (file_name_codepage, filename, end, 0);
+
+      filename_ends_in_slash = IS_DIRECTORY_SEP (*n);
+    }
   if (dir_access == 0 || filename_ends_in_slash)
     flags = SYMBOLIC_LINK_FLAG_DIRECTORY;
 
@@ -4440,6 +4541,7 @@ chase_symlinks (const char *file)
   char link[MAX_PATH];
   ssize_t res, link_len;
   int loop_count = 0;
+  int dbcs_p;
 
   if (is_windows_9x () == TRUE || !is_symlink (file))
     return (char *)file;
@@ -4447,13 +4549,27 @@ chase_symlinks (const char *file)
   if ((link_len = GetFullPathName (file, MAX_PATH, link, NULL)) == 0)
     return (char *)file;
 
+  dbcs_p = max_filename_mbslen () > 1;
   target[0] = '\0';
   do {
 
     /* Remove trailing slashes, as we want to resolve the last
        non-trivial part of the link name.  */
-    while (link_len > 3 && IS_DIRECTORY_SEP (link[link_len-1]))
-      link[link_len--] = '\0';
+    if (!dbcs_p)
+      {
+	while (link_len > 3 && IS_DIRECTORY_SEP (link[link_len-1]))
+	  link[link_len--] = '\0';
+      }
+    else if (link_len > 3)
+      {
+	char *n = CharPrevExA (file_name_codepage, link, link + link_len, 0);
+
+	while (n >= link + 2 && IS_DIRECTORY_SEP (*n))
+	  {
+	    n[1] = '\0';
+	    n = CharPrevExA (file_name_codepage, link, n, 0);
+	  }
+      }
 
     res = readlink (link, target, MAX_PATH);
     if (res > 0)
@@ -4466,8 +4582,21 @@ chase_symlinks (const char *file)
 	       the symlink, then copy the result back to target.  */
 	    char *p = link + link_len;
 
-	    while (p > link && !IS_ANY_SEP (p[-1]))
-	      p--;
+	    if (!dbcs_p)
+	      {
+		while (p > link && !IS_ANY_SEP (p[-1]))
+		  p--;
+	      }
+	    else
+	      {
+		char *p1 = CharPrevExA (file_name_codepage, link, p, 0);
+
+		while (p > link && !IS_ANY_SEP (*p1))
+		  {
+		    p = p1;
+		    p1 = CharPrevExA (file_name_codepage, link, p1, 0);
+		  }
+	      }
 	    strcpy (p, target);
 	    strcpy (target, link);
 	  }
