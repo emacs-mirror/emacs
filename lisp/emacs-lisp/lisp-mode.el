@@ -187,12 +187,14 @@ It has `lisp-mode-abbrev-table' as its parent."
               font-lock-string-face))))
     font-lock-comment-face))
 
-(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
+(defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
+				      bar-not-symbol)
   "Common initialization routine for lisp modes.
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 \(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
 score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
-font-lock keywords will not be case sensitive."
+font-lock keywords will not be case sensitive.  BAR-NOT-SYMBOL
+non-nil means that | is not a symbol character."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq-local paragraph-ignore-fill-prefix t)
@@ -226,7 +228,9 @@ font-lock keywords will not be case sensitive."
   (setq font-lock-defaults
 	`((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
-	  nil ,keywords-case-insensitive (("+-*/.<>=!?$%_&~^:@" . "w")) nil
+	  nil ,keywords-case-insensitive
+	  ((,(concat "+-*/.<>=!?$%_&~^:@" (if bar-not-symbol "" "|")) . "w"))
+	  nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function))))
@@ -549,7 +553,7 @@ or to switch back to an existing one.
 
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
-  (lisp-mode-variables nil t)
+  (lisp-mode-variables nil t t)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
 	      "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")

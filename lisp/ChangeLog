@@ -1,3 +1,9 @@
+2013-01-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add optional
+	parameter BAR-NOT-SYMBOL to control syntax of | for font-lock.
+	(lisp-mode): Pass t for it.  (Bug#13556)
+
 2013-01-25  Alan Mackenzie  <acm@muc.de>
 
 	AWK Mode: Fix indentation bug at top level.  Bug #12274.
