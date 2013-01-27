@@ -1,3 +1,8 @@
+2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-indent-spread-args-in-parens): New test.
+
 2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/advice-tests.el: Split up.  Add advice-test-preactivate.
