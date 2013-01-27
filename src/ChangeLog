@@ -1,3 +1,9 @@
+2013-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_open): Zero out the flags for the new file descriptor.
+	(sys_close): Zero out the flags for the file descriptor before
+	closing it.  (Bug#13546)
+
 2013-01-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (parse_root, get_volume_info, readdir, read_unc_volume)

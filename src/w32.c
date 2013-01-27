@@ -3124,9 +3124,12 @@ sys_open (const char * path, int oflag, int mode)
      and system files. Force all file handles to be
      non-inheritable. */
   int res = _open (mpath, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
-  if (res >= 0)
-    return res;
-  return _open (mpath, oflag | _O_NOINHERIT, mode);
+  if (res < 0)
+    res = _open (mpath, oflag | _O_NOINHERIT, mode);
+  if (res >= 0 && res < MAXDESC)
+    fd_info[res].flags = 0;
+
+  return res;
 }
 
 int
@@ -6135,14 +6138,14 @@ sys_close (int fd)
 	}
     }
 
+  if (fd >= 0 && fd < MAXDESC)
+    fd_info[fd].flags = 0;
+
   /* Note that sockets do not need special treatment here (at least on
      NT and Windows 95 using the standard tcp/ip stacks) - it appears that
      closesocket is equivalent to CloseHandle, which is to be expected
      because socket handles are fully fledged kernel handles. */
   rc = _close (fd);
-
-  if (rc == 0 && fd < MAXDESC)
-    fd_info[fd].flags = 0;
 
   return rc;
 }
