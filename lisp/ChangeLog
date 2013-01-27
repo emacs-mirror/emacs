@@ -1,3 +1,13 @@
+2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Remove some
+	checks made superfluous by the \_< operator.
+
+2013-01-27  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Use "\\_<"
+	instead of "\\b".
+
 2013-01-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-handler): Notifications which result
