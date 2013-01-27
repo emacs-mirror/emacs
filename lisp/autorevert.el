@@ -612,21 +612,16 @@ This is an internal function used by Auto-Revert Mode."
 	    (or (and buffer-file-name
 		     (or auto-revert-remote-files
 			 (not (file-remote-p buffer-file-name)))
+		     (or (not auto-revert-use-notify)
+			 auto-revert-notify-modified-p)
 		     (if auto-revert-tail-mode
-			 (and (or (not auto-revert-use-notify)
-				  auto-revert-notify-modified-p)
-			      (file-readable-p buffer-file-name)
+			 (and (file-readable-p buffer-file-name)
 			      (/= auto-revert-tail-pos
 				  (setq size
 					(nth 7 (file-attributes
 						buffer-file-name)))))
-		       ;; When `auto-revert-use-notify' is set, we do
-		       ;; not apply further checks for performance
-		       ;; reasons.
-		       (if auto-revert-use-notify
-			   auto-revert-notify-modified-p
-			 (and (file-readable-p buffer-file-name)
-			      (not (verify-visited-file-modtime buffer))))))
+		       (and (file-readable-p buffer-file-name)
+			    (not (verify-visited-file-modtime buffer)))))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)
 		     revert-buffer-function
@@ -634,8 +629,8 @@ This is an internal function used by Auto-Revert Mode."
 		     (functionp buffer-stale-function)
 		     (funcall buffer-stale-function t))))
 	   eob eoblist)
+      (setq auto-revert-notify-modified-p nil)
       (when revert
-	(setq auto-revert-notify-modified-p nil)
 	(when (and auto-revert-verbose
 		   (not (eq revert 'fast)))
 	  (message "Reverting buffer `%s'." (buffer-name)))
