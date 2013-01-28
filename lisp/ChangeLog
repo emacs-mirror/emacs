@@ -1,11 +1,16 @@
+2013-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hi-lock.el (hi-lock-unface-buffer): Don't assume `face' is a symbol
+	(bug#13297).
+
 2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Remove some
 	checks made superfluous by the \_< operator.
 	* progmodes/ruby-mode.el (ruby-move-to-block): Work with (maybe
 	temporarily) broken indentation.
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
-	nested constants, too.  \_< broke that.
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Highlight nested constants, too.  \_< broke that.
 
 2013-01-27  Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
@@ -117,8 +122,8 @@
 
 2013-01-22  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-cmds.el (tramp-bug, tramp-append-tramp-buffers): Mark
-	descriptive parts with `display' property.
+	* net/tramp-cmds.el (tramp-bug, tramp-append-tramp-buffers):
+	Mark descriptive parts with `display' property.
 
 2013-01-21  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
@@ -147,13 +152,13 @@
 
 	* net/tramp-adb.el (top): Require `time-date'.
 	(tramp-adb-ls-output-time-less-p): Use `tramp-time-less-p'.
-	(tramp-adb-handle-copy-file, tramp-adb-handle-rename-file): Use
-	`tramp-file-name-handler'.
-	(tramp-adb-maybe-open-connection): Use
-	`tramp-compat-set-process-query-on-exit-flag'.
+	(tramp-adb-handle-copy-file, tramp-adb-handle-rename-file):
+	Use `tramp-file-name-handler'.
+	(tramp-adb-maybe-open-connection):
+	Use `tramp-compat-set-process-query-on-exit-flag'.
 
-	* net/tramp-sh.el (tramp-sh-handle-file-acl): Use
-	`tramp-compat-funcall'.
+	* net/tramp-sh.el (tramp-sh-handle-file-acl):
+	Use `tramp-compat-funcall'.
 
 	* net/tramp-smb.el (tramp-smb-handle-file-acl): Use `looking-at' and
 	`tramp-compat-funcall'.
@@ -193,8 +198,8 @@
 2013-01-19  Christian Wittern  <cwittern@gmail.com>  (tiny change)
 	    Chong Yidong  <cyd@gnu.org>
 
-	* image-mode.el (image-next-file, image-previous-file): New
-	commands (Bug#8453).
+	* image-mode.el (image-next-file, image-previous-file):
+	New commands (Bug#8453).
 	(image-mode-map): Bind them to n and p.
 	(image-mode--images-in-directory): New helper function.
 
@@ -222,8 +227,8 @@
 
 	* autorevert.el (auto-revert-use-notify): In the :set function, do
 	not modify `kill-buffer-hook'.
-	(auto-revert-notify-rm-watch): Remove
-	`auto-revert-notify-rm-watch' from `kill-buffer-hook'.
+	(auto-revert-notify-rm-watch):
+	Remove `auto-revert-notify-rm-watch' from `kill-buffer-hook'.
 	(auto-revert-notify-add-watch): Do not call
 	`auto-revert-notify-rm-watch', but add it to a buffer local
 	`kill-buffer-hook'.
