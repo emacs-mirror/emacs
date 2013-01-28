@@ -323,11 +323,11 @@
 (defmacro use-package (name &rest args)
 "Use a package with configuration options.
 
-For full documentation. please see commentary. 
+For full documentation. please see commentary.
 
   (use-package package-name
      :keyword option)
- 
+
 :init Code to run when `use-package' form evals.
 :bind Perform key bindings, and define autoload for bound
       commands.
@@ -372,13 +372,13 @@ For full documentation. please see commentary.
     ;; force this immediately -- one off cost
     (unless (plist-get args :disabled)
       (let* ((ensure (plist-get args :ensure))
-             (package-name 
+             (package-name
               (or (and (eq ensure t)
                        name)
                   ensure)))
-      (when package-name 
+      (when package-name
         (use-package-ensure-elpa package-name)))
- 	  	
+
 
       (if diminish-var
           (setq config-body
