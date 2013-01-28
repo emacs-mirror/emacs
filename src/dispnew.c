@@ -107,12 +107,6 @@ static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 
-
-/* Redisplay preemption timers.  */
-
-static EMACS_TIME preemption_period;
-static EMACS_TIME preemption_next_check;
-
 /* True upon entry to redisplay means do not assume anything about
    current contents of actual terminal frame; clear and redraw it.  */
 
@@ -3080,21 +3074,10 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 
   if (redisplay_dont_pause)
     force_p = 1;
-  else if (NILP (Vredisplay_preemption_period))
-    force_p = 1;
-  else if (!force_p && NUMBERP (Vredisplay_preemption_period))
+  else if (!force_p && detect_input_pending_ignore_squeezables ())
     {
-      double p = XFLOATINT (Vredisplay_preemption_period);
-
-      if (detect_input_pending_ignore_squeezables ())
-	{
-	  paused_p = 1;
-	  goto do_pause;
-	}
-
-      preemption_period = EMACS_TIME_FROM_DOUBLE (p);
-      preemption_next_check = add_emacs_time (current_emacs_time (),
-					      preemption_period);
+      paused_p = 1;
+      goto do_pause;
     }
 
   if (FRAME_WINDOW_P (f))
@@ -3232,15 +3215,6 @@ update_single_window (struct window *w, bool force_p)
 
       if (redisplay_dont_pause)
 	force_p = 1;
-      else if (NILP (Vredisplay_preemption_period))
-	force_p = 1;
-      else if (!force_p && NUMBERP (Vredisplay_preemption_period))
-	{
-	  double p = XFLOATINT (Vredisplay_preemption_period);
-	  preemption_period = EMACS_TIME_FROM_DOUBLE (p);
-	  preemption_next_check = add_emacs_time (current_emacs_time (),
-						  preemption_period);
-	}
 
       /* Update W.  */
       update_begin (f);
@@ -3394,9 +3368,7 @@ update_window (struct window *w, bool force_p)
 {
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   bool paused_p;
-#if !PERIODIC_PREEMPTION_CHECKING
   int preempt_count = baud_rate / 2400 + 1;
-#endif
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #ifdef GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
@@ -3404,10 +3376,8 @@ update_window (struct window *w, bool force_p)
 #endif
 
   /* Check pending input the first time so that we can quickly return.  */
-#if !PERIODIC_PREEMPTION_CHECKING
   if (!force_p)
     detect_input_pending_ignore_squeezables ();
-#endif
 
   /* If forced to complete the update, or if no input is pending, do
      the update.  */
@@ -3418,9 +3388,7 @@ update_window (struct window *w, bool force_p)
       struct glyph_row *header_line_row;
       int yb;
       bool changed_p = 0, mouse_face_overwritten_p = 0;
-#if ! PERIODIC_PREEMPTION_CHECKING
       int n_updated = 0;
-#endif
 
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
@@ -3484,22 +3452,8 @@ update_window (struct window *w, bool force_p)
 	       detect_input_pending.  If it's done too often,
 	       scrolling large windows with repeated scroll-up
 	       commands will too quickly pause redisplay.  */
-#if PERIODIC_PREEMPTION_CHECKING
-	    if (!force_p)
-	      {
-		EMACS_TIME tm = current_emacs_time ();
-		if (EMACS_TIME_LT (preemption_next_check, tm))
-		  {
-		    preemption_next_check = add_emacs_time (tm,
-							    preemption_period);
-		    if (detect_input_pending_ignore_squeezables ())
-		      break;
-		  }
-	      }
-#else
 	    if (!force_p && ++n_updated % preempt_count == 0)
 	      detect_input_pending_ignore_squeezables ();
-#endif
 	    changed_p |= update_window_line (w, vpos,
 					     &mouse_face_overwritten_p);
 
@@ -4531,13 +4485,11 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
   if (preempt_count <= 0)
     preempt_count = 1;
 
-#if !PERIODIC_PREEMPTION_CHECKING
   if (!force_p && detect_input_pending_ignore_squeezables ())
     {
       pause_p = 1;
       goto do_pause;
     }
-#endif
 
   /* If we cannot insert/delete lines, it's no use trying it.  */
   if (!FRAME_LINE_INS_DEL_OK (f))
@@ -4578,21 +4530,8 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 		}
 	    }
 
-#if PERIODIC_PREEMPTION_CHECKING
-	  if (!force_p)
-	    {
-	      EMACS_TIME tm = current_emacs_time ();
-	      if (EMACS_TIME_LT (preemption_next_check, tm))
-		{
-		  preemption_next_check = add_emacs_time (tm, preemption_period);
-		  if (detect_input_pending_ignore_squeezables ())
-		    break;
-		}
-	    }
-#else
 	  if (!force_p && (i - 1) % preempt_count == 0)
 	    detect_input_pending_ignore_squeezables ();
-#endif
 
 	  update_frame_line (f, i);
 	}
@@ -4698,9 +4637,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	}
     }
 
-#if !PERIODIC_PREEMPTION_CHECKING
  do_pause:
-#endif
 
   clear_desired_matrices (f);
   return pause_p;
@@ -6409,15 +6346,6 @@ See `buffer-display-table' for more information.  */);
   DEFVAR_BOOL ("redisplay-dont-pause", redisplay_dont_pause,
 	       doc: /* Non-nil means display update isn't paused when input is detected.  */);
   redisplay_dont_pause = 1;
-
-#if PERIODIC_PREEMPTION_CHECKING
-  DEFVAR_LISP ("redisplay-preemption-period", Vredisplay_preemption_period,
-	       doc: /* Period in seconds between checking for input during redisplay.
-This has an effect only if `redisplay-dont-pause' is nil; in that
-case, arriving input preempts redisplay until the input is processed.
-If the value is nil, redisplay is never preempted.  */);
-  Vredisplay_preemption_period = make_float (0.10);
-#endif
 
 #ifdef CANNOT_DUMP
   if (noninteractive)
