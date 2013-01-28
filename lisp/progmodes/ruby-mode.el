@@ -905,7 +905,7 @@ current block, a sibling block, or an outer block.  Do that (abs N) times."
          ((and backward (looking-at "^=end\\>"))
           (re-search-backward "^=begin\\>"))
          (t
-          (setq pos (current-indentation))
+          (setq pos (ruby-calculate-indent))
           (cond
            ;; Deeper indentation, we found a block.
            ;; FIXME: We can't recognize empty blocks this way.

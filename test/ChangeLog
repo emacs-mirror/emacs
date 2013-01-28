@@ -2,6 +2,10 @@
 
 	* automated/ruby-mode-tests.el
 	(ruby-indent-spread-args-in-parens): New test.
+	* automated/ruby-mode-tests.el (ruby-block-test-example):
+	Break indentation of the do block opener and add a line inside it.
+	* automated/ruby-mode-tests.el (works-on-do, ok-with-three):
+	Adjust line numbers.
 
 2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 

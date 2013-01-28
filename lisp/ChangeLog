@@ -2,6 +2,8 @@
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Remove some
 	checks made superfluous by the \_< operator.
+	* progmodes/ruby-mode.el (ruby-move-to-block): Work with (maybe
+	temporarily) broken indentation.
 
 2013-01-27  Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
