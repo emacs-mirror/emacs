@@ -1613,7 +1613,7 @@ See `font-lock-syntax-table'.")
    '("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
    ;; constants
-   '("\\_<\\([A-Z]+\\(\\w\\|_\\)*\\)"
+   '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
      1 font-lock-type-face)
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; expression expansion

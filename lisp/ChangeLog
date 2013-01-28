@@ -4,6 +4,8 @@
 	checks made superfluous by the \_< operator.
 	* progmodes/ruby-mode.el (ruby-move-to-block): Work with (maybe
 	temporarily) broken indentation.
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
+	nested constants, too.  \_< broke that.
 
 2013-01-27  Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
