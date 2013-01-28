@@ -1654,7 +1654,11 @@ uniqueness for different types of configurations."
 
 (defun python-shell-parse-command ()
   "Calculate the string used to execute the inferior Python process."
-  (format "%s %s" python-shell-interpreter python-shell-interpreter-args))
+  (let ((process-environment (python-shell-calculate-process-environment))
+        (exec-path (python-shell-calculate-exec-path)))
+    (format "%s %s"
+            (executable-find python-shell-interpreter)
+            python-shell-interpreter-args)))
 
 (defun python-shell-calculate-process-environment ()
   "Calculate process environment given `python-shell-virtualenv-path'."

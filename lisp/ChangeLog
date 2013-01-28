@@ -1,3 +1,8 @@
+2013-01-28  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-parse-command): Find
+	python-shell-interpreter with modified environment.
+
 2013-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el (cl-set-getf): Add compatibility alias.
