@@ -1,3 +1,7 @@
+2013-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (opendir): Now accepts a 'const char *'.
+
 2013-01-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Remove obsolete redisplay code.  See the discussion at

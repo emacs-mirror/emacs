@@ -1,3 +1,7 @@
+2013-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/dirent.h (opendir): Update prototype.
+
 2013-01-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/unistd.h (O_IGNORE_CTTY): Define, as it is unconditionally

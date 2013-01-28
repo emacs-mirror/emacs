@@ -2809,7 +2809,7 @@ static char  *read_unc_volume (HANDLE, char *, int);
 static void   close_unc_volume (HANDLE);
 
 DIR *
-opendir (char *filename)
+opendir (const char *filename)
 {
   DIR *dirp;
 
