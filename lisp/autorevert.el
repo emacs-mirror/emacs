@@ -289,6 +289,7 @@ variable through Custom only."
 	       (with-current-buffer buf
 		 (when (symbol-value 'auto-revert-notify-watch-descriptor)
 		   (auto-revert-notify-rm-watch)))))))
+  :initialize 'custom-initialize-default
   :version "24.4")
 
 (defcustom auto-revert-notify-exclude-dir-regexp

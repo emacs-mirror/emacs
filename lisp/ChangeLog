@@ -1,5 +1,8 @@
 2013-01-29  Michael Albinus  <michael.albinus@gmx.de>
 
+	* autorevert.el (auto-revert-use-notify): Use
+	`custom-initialize-default' for initialization.  (Bug#13583)
+
 	* net/ange-ftp.el (ange-ftp-skip-msgs): Add another message.
 
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Catch
