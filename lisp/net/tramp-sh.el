@@ -2826,20 +2826,20 @@ the result will be a local, non-Tramp, filename."
 	(unwind-protect
 	    ;; We catch this event.  Otherwise, `start-process' could
 	    ;; be called on the local host.
-	    (catch 'suppress
-	      (save-excursion
-		(save-restriction
-		  ;; Activate narrowing in order to save BUFFER
-		  ;; contents.  Clear also the modification time;
-		  ;; otherwise we might be interrupted by
-		  ;; `verify-visited-file-modtime'.
-		  (let ((buffer-undo-list t)
-			(buffer-read-only nil)
-			(mark (point)))
-		    (clear-visited-file-modtime)
-		    (narrow-to-region (point-max) (point-max))
-		    ;; We call `tramp-maybe-open-connection', in order
-		    ;; to cleanup the prompt afterwards.
+	    (save-excursion
+	      (save-restriction
+		;; Activate narrowing in order to save BUFFER
+		;; contents.  Clear also the modification time;
+		;; otherwise we might be interrupted by
+		;; `verify-visited-file-modtime'.
+		(let ((buffer-undo-list t)
+		      (buffer-read-only nil)
+		      (mark (point)))
+		  (clear-visited-file-modtime)
+		  (narrow-to-region (point-max) (point-max))
+		  ;; We call `tramp-maybe-open-connection', in order
+		  ;; to cleanup the prompt afterwards.
+		  (catch 'suppress
 		    (tramp-maybe-open-connection v)
 		    (widen)
 		    (delete-region mark (point))
@@ -2864,7 +2864,7 @@ the result will be a local, non-Tramp, filename."
 
 	  ;; Save exit.
 	  (if (string-match tramp-temp-buffer-name (buffer-name))
-	      (progn
+	      (ignore-errors
 		(set-process-buffer (tramp-get-connection-process v) nil)
 		(kill-buffer (current-buffer)))
 	    (set-buffer-modified-p bmp))
@@ -4209,6 +4209,9 @@ Goes through the list `tramp-inline-compress-commands'."
 	(tramp-message
 	 vec 2 "Couldn't find an inline transfer compress command")))))
 
+(defvar tramp-gw-tunnel-method)
+(defvar tramp-gw-socks-method)
+
 (defun tramp-compute-multi-hops (vec)
   "Expands VEC according to `tramp-default-proxies-alist'.
 Gateway hops are already opened."
@@ -4269,10 +4272,11 @@ Gateway hops are already opened."
 	    (setq choices tramp-default-proxies-alist)))))
 
     ;; Handle gateways.
-    (when (string-match
-	   (format
-	    "^\\(%s\\|%s\\)$" tramp-gw-tunnel-method tramp-gw-socks-method)
-	   (tramp-file-name-method (car target-alist)))
+    (when (and tramp-gw-tunnel-method tramp-gw-socks-method
+	       (string-match
+		(format
+		 "^\\(%s\\|%s\\)$" tramp-gw-tunnel-method tramp-gw-socks-method)
+		(tramp-file-name-method (car target-alist))))
       (let ((gw (pop target-alist))
 	    (hop (pop target-alist)))
 	;; Is the method prepared for gateways?

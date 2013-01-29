@@ -5,6 +5,10 @@
 	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Catch
 	`suppress'.  Otherwise, `tramp-run-real-handler' might be called
 	in `tramp-file-name-handler'.
+	(tramp-gw-tunnel-method, tramp-gw-socks-method): Declare for
+	compatibility.
+	(tramp-compute-multi-hops): Check, whether
+	`tramp-gw-tunnel-method' and `tramp-gw-socks-method' are non-nil.
 
 2013-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
