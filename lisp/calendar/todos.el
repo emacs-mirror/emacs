@@ -193,7 +193,13 @@ todo-mode.el."
 
 (defcustom todos-prefix ""
   "String prefixed to todo items for visual distinction."
-  :type 'string
+  :type '(string :validate
+		 (lambda (widget)
+		   (when (string= (widget-value widget) todos-item-mark)
+		     (widget-put
+		      widget :error
+		      "Invalid value: must be distinct from `todos-item-mark'")
+		     widget)))
   :initialize 'custom-initialize-default
   :set 'todos-reset-prefix
   :group 'todos-mode-display)
@@ -224,6 +230,21 @@ These reflect the priorities of the items in each category."
 		(forward-line)))
 	    ;; Activate the new setting (save-restriction does not help).
 	    (save-excursion (todos-category-select))))))))
+
+(defcustom todos-item-mark "*"
+  "String used to mark items.
+To ensure item marking works, change the value of this option
+only when no items are marked."
+  :type '(string :validate
+		 (lambda (widget)
+		   (when (string= (widget-value widget) todos-prefix)
+		     (widget-put
+		      widget :error
+		      "Invalid value: must be distinct from `todos-prefix'")
+		     widget)))
+  :set (lambda (symbol value)
+	 (custom-set-default symbol (propertize value 'face 'todos-mark)))
+  :group 'todos-mode-display)
 
 (defcustom todos-done-separator-string "_"
   "String for generating `todos-done-separator'.
@@ -1547,26 +1568,34 @@ The final element is \"*\", indicating an unspecified month.")
     (todos-item-start)
     (looking-at todos-done-string-start)))
 
-(defvar todos-item-mark (propertize (if (equal todos-prefix "*") "@" "*")
-				    'face 'todos-mark)
-  "String used to mark items.")
+(defun todos-prefix-overlay ()
+  "Return this item's prefix overlay."
+  (let* ((lbp (line-beginning-position))
+	 (ovs (overlays-in lbp lbp)))
+    (car ovs)))
 
 (defun todos-marked-item-p ()
-  "If this item begins with `todos-item-mark', return mark overlay."
-  (let ((ovs (overlays-in (line-beginning-position) (line-beginning-position)))
-	(mark todos-item-mark)
-	ov marked)
-    (catch 'stop
-      (while ovs
-	(setq ov (pop ovs))
-	(and (equal (overlay-get ov 'before-string) mark)
-	     (throw 'stop (setq marked t)))))
+  "Non-nil if this item begins with `todos-item-mark'.
+ In that case, return the item's prefix overlay."
+  ;; If a todos-item-insert command is called on a Todos file before
+  ;; it is visited, it has no prefix overlays, so conditionalize:
+  (let* ((ov (todos-prefix-overlay))
+	 (pref (when ov (overlay-get ov 'before-string)))
+	 (marked (when pref
+		   (string-match (concat "^" (regexp-quote todos-item-mark))
+				 pref))))
     (when marked ov)))
 
 (defun todos-insert-with-overlays (item)
   "Insert ITEM at point and update prefix/priority number overlays."
   (todos-item-start)
-  (insert item "\n")
+  ;; Insertion pushes item down but not its prefix overlay.  When the
+  ;; overlay includes a mark, this would now mark the inserted ITEM,
+  ;; so move it to the pushed down item.
+  (let ((ov (todos-prefix-overlay))
+	(marked (todos-marked-item-p)))
+    (insert item "\n")
+    (when marked (move-overlay ov (point) (point))))
   (todos-backward-item)
   (todos-prefix-overlays))
 
@@ -1577,59 +1606,45 @@ The overlay's value is the string `todos-prefix' or with non-nil
 the number of todo or done items in the category indicating the
 item's priority.  Todo and done items are numbered independently
 of each other."
-  (when (or todos-number-priorities
-	    (not (string-match "^[[:space:]]*$" todos-prefix)))
-    (let ((prefix (propertize (concat todos-prefix " ")
-			      'face 'todos-prefix-string))
-	  (num 0)
-	  (cat-tp (or (cdr (assoc-string (todos-current-category)
-		       (nth 2 (assoc-string todos-current-todos-file
-					    todos-priorities-rules))))
-		      todos-show-priorities))
-	  done)
-      (save-excursion
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (when (or (todos-date-string-matcher (line-end-position))
-		    (todos-done-string-matcher (line-end-position)))
-	    (goto-char (match-beginning 0))
-	    (when todos-number-priorities
-	      (setq num (1+ num))
-	      ;; Reset number to 1 for first done item.
-	      (when (and (looking-at todos-done-string-start)
-			 (looking-back (concat "^"
-					       (regexp-quote todos-category-done)
-					       "\n")))
-		(setq num 1
-		      done t))
-	      (setq prefix (propertize (concat (number-to-string num) " ")
-				       'face
-				       ;; Numbers of top priorities have
-				       ;; a distinct face in Todos mode.
-				       (if (and (not done) (<= num cat-tp)
-						(eq major-mode 'todos-mode))
-				       	   'todos-top-priority
-					 'todos-prefix-string))))
-	    (let ((ovs (overlays-in (point) (point)))
-		  marked ov-pref)
-	      (if ovs
-		  (dolist (ov ovs)
-		    (let ((val (overlay-get ov 'before-string)))
-		      (if (equal val "*")
-			  (setq marked t)
-			(setq ov-pref val)))))
-	      ;; Omitting this condition doesn't appear to slow
-	      ;; redisplay down, while having it prevents updating
-	      ;; display after changing number of top priorities.
-	      ;; (unless (equal ov-pref prefix)
-		;; Why doesn't this work?
-		;; (remove-overlays (point) (point) 'before-string)
-	      (remove-overlays (point) (point))
-	      (overlay-put (make-overlay (point) (point))
-			   'before-string prefix)
-	      (and marked (overlay-put (make-overlay (point) (point))
-				       'before-string todos-item-mark))));)
-	  (forward-line))))))
+  (let ((prefix (propertize (concat todos-prefix " ")
+			    'face 'todos-prefix-string))
+	(num 0)
+	(cat-tp (or (cdr (assoc-string
+			  (todos-current-category)
+			  (nth 2 (assoc-string todos-current-todos-file
+					       todos-priorities-rules))))
+		    todos-show-priorities))
+	done)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+	(when (or (todos-date-string-matcher (line-end-position))
+		  (todos-done-string-matcher (line-end-position)))
+	  (goto-char (match-beginning 0))
+	  (when todos-number-priorities
+	    (setq num (1+ num))
+	    ;; Reset number to 1 for first done item.
+	    (when (and (looking-at todos-done-string-start)
+		       (looking-back (concat "^"
+					     (regexp-quote todos-category-done)
+					     "\n")))
+	      (setq num 1
+		    done t))
+	    (setq prefix (propertize (concat (number-to-string num) " ")
+				     'face
+				     ;; Numbers of top priorities have
+				     ;; a distinct face in Todos mode.
+				     (if (and (not done) (<= num cat-tp)
+					      (eq major-mode 'todos-mode))
+					 'todos-top-priority
+				       'todos-prefix-string))))
+	  (let ((ov (todos-prefix-overlay))
+		(marked (todos-marked-item-p)))
+	    (unless ov (setq ov (make-overlay (point) (point))))
+	    (overlay-put ov 'before-string (if marked
+					       (concat todos-item-mark prefix)
+					     prefix))))
+	(forward-line)))))
 
 ;; ---------------------------------------------------------------------------
 ;;; Helper functions for user input with prompting and completion
@@ -3779,57 +3794,64 @@ face."
 		(overlay-put ov 'display "")))
 	    (todos-forward-item)))))))
 
-(defun todos-mark-unmark-item (&optional n all)
-  "Mark item at point if unmarked, or unmark it if marked.
-
+(defun todos-mark-unmark-item (&optional n)
+  "Mark item with `todos-item-mark' if unmarked, otherwise unmark it.
 With a positive numerical prefix argument N, change the
-markedness of the next N items.  With non-nil argument ALL, mark
-all visible items in the category (depending on visibility, all
-todo and done items, or just todo or just done items).
-
-The mark is the character \"*\" inserted in front of the item's
-priority number or the `todos-prefix' string; if `todos-prefix'
-is \"*\", then the mark is \"@\"."
+marking of the next N items."
   (interactive "p")
-  (if all (goto-char (point-min)))
-  (unless (> n 0) (setq n 1))
-  (let ((i 0))
-    (while (or (and all (not (eobp)))
-	       (< i n))
-      (let* ((cat (todos-current-category))
-	     (ov (todos-marked-item-p))
-	     (marked (assoc cat todos-categories-with-marks)))
-	(if (and ov (not all))
-	    (progn
-	      (delete-overlay ov)
-	      (if (= (cdr marked) 1)	; Deleted last mark in this category.
-		  (setq todos-categories-with-marks
-			(assq-delete-all cat todos-categories-with-marks))
-		(setcdr marked (1- (cdr marked)))))
-	  (when (todos-item-start)
-	    (unless (and all (todos-marked-item-p))
-	      (setq ov (make-overlay (point) (point)))
-	      (overlay-put ov 'before-string todos-item-mark)
-	      (if marked
-		  (setcdr marked (1+ (cdr marked)))
-		(push (cons cat 1) todos-categories-with-marks))))))
-      (todos-forward-item)
-      (setq i (1+ i)))))
+  (unless (> n 1) (setq n 1))
+  (dotimes (i n)
+    (let* ((cat (todos-current-category))
+	   (marks (assoc cat todos-categories-with-marks))
+	   (ov (todos-prefix-overlay))
+	   (pref (overlay-get ov 'before-string)))
+      (if (todos-marked-item-p)
+	  (progn
+	    (overlay-put ov 'before-string (substring pref 1))
+	    (if (= (cdr marks) 1)	; Deleted last mark in this category.
+		(setq todos-categories-with-marks
+		      (assq-delete-all cat todos-categories-with-marks))
+	      (setcdr marks (1- (cdr marks)))))
+	(overlay-put ov 'before-string (concat todos-item-mark pref))
+	(if marks
+	    (setcdr marks (1+ (cdr marks)))
+	  (push (cons cat 1) todos-categories-with-marks))))
+    (todos-forward-item)))
 
 (defun todos-mark-category ()
-  "Put the \"*\" mark on all items in this category.
-\(If `todos-prefix' is \"*\", then the mark is \"@\".)"
+  "Mark all visiblw items in this category with `todos-item-mark'."
   (interactive)
-  (todos-mark-unmark-item 0 t))
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let* ((cat (todos-current-category))
+	     (marks (assoc cat todos-categories-with-marks))
+	     (ov (todos-prefix-overlay))
+	     (pref (overlay-get ov 'before-string)))
+	(unless (todos-marked-item-p)
+	  (overlay-put ov 'before-string (concat todos-item-mark pref))
+	  (if marks
+	      (setcdr marks (1+ (cdr marks)))
+	    (push (cons cat 1) todos-categories-with-marks))))
+      (todos-forward-item))))
 
 (defun todos-unmark-category ()
-  "Remove the \"*\" mark from all items in this category.
-\(If `todos-prefix' is \"*\", then the mark is \"@\".)"
+  "Remove `todos-item-mark' from all visible items in this category."
   (interactive)
-  (remove-overlays (point-min) (point-max) 'before-string todos-item-mark)
-  (setq todos-categories-with-marks
-	(delq (assoc (todos-current-category) todos-categories-with-marks)
-	      todos-categories-with-marks)))
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let* ((cat (todos-current-category))
+	     (marks (assoc cat todos-categories-with-marks))
+	     (ov (todos-prefix-overlay))
+	     (pref (overlay-get ov 'before-string)))
+	(when (todos-marked-item-p)
+	  (overlay-put ov 'before-string (substring pref 1))
+	  (setq todos-categories-with-marks
+		(delq (assoc (todos-current-category)
+			     todos-categories-with-marks)
+		      todos-categories-with-marks))))
+      (todos-forward-item))))
 
 ;; ---------------------------------------------------------------------------
 ;;; Item filtering commands
@@ -4720,7 +4742,6 @@ the item at point."
 				     (save-excursion (todos-item-end))))
 			   (overlay-put ov 'face 'todos-search)
 			   (y-or-n-p (concat "Permanently delete this item? ")))))
-	       (opoint (point))
 	       buffer-read-only)
 	  (when answer
 	    (and marked (goto-char (point-min)))
@@ -4741,11 +4762,8 @@ the item at point."
 			(throw 'done (setq item nil))))
 		  (todos-forward-item))))
 	    (when marked
-	      (remove-overlays (point-min) (point-max)
-			       'before-string todos-item-mark)
 	      (setq todos-categories-with-marks
-		    (assq-delete-all cat todos-categories-with-marks))
-	      (goto-char opoint))
+		    (assq-delete-all cat todos-categories-with-marks)))
 	    (todos-update-categories-sexp)
 	    (todos-prefix-overlays)))
       (if ov (delete-overlay ov)))))
@@ -5304,8 +5322,10 @@ meaning to raise or lower the item's priority by one."
 	  (todos-forward-item (1- priority))))
       (todos-insert-with-overlays item)
       ;; If item was marked, restore the mark.
-      (and marked (overlay-put (make-overlay (point) (point))
-			       'before-string todos-item-mark)))))
+      (and marked
+	   (let* ((ov (todos-prefix-overlay))
+		  (pref (overlay-get ov 'before-string)))
+	     (overlay-put ov 'before-string (concat todos-item-mark pref)))))))
 
 (defun todos-raise-item-priority ()
   "Raise priority of current item by moving it up by one item."
@@ -5447,9 +5467,6 @@ section in the category moved to."
 			  (if (todos-marked-item-p)
 			      (todos-remove-item)
 			    (todos-forward-item)))
-			;; FIXME: does this work?
-			(remove-overlays (point-min) (point-max)
-					 'before-string todos-item-mark)
 			(setq todos-categories-with-marks
 			      (assq-delete-all cat1 todos-categories-with-marks)))
 		    (if ov (delete-overlay ov))
@@ -5535,7 +5552,6 @@ relocated to the category's (by default hidden) done section."
 	(when marked
 	  ;; Chop off last newline of done item string.
 	  (setq done-item (substring done-item 0 -1))
-	  (remove-overlays (point-min) (point-max) 'before-string todos-item-mark)
 	  (setq todos-categories-with-marks
 		(assq-delete-all cat todos-categories-with-marks)))
 	(save-excursion
@@ -5628,8 +5644,6 @@ the restored item."
 	      (todos-forward-item))))
 	(if marked
 	    (progn
-	      ;; (remove-overlays (point-min) (point-max)
-	      ;; 		       'before-string todos-item-mark)
 	      (setq todos-categories-with-marks
 		    (assq-delete-all cat todos-categories-with-marks))
 	      ;; Insert undone items that were marked at end of todo item list.
@@ -5786,8 +5800,6 @@ this category does not exist in the archive, it is created."
 			 (todos-update-count 'done (- count))
 			 (todos-update-count 'archived count)))))
 	      (when marked
-		(remove-overlays (point-min) (point-max)
-				 'before-string todos-item-mark)
 		(setq todos-categories-with-marks
 		      (assq-delete-all cat todos-categories-with-marks)))
 	      (todos-update-categories-sexp)

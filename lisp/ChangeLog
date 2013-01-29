@@ -1,3 +1,27 @@
+2013-01-29  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Improve item marking and handling of marked items.
+	(todos-prefix): Add validator to ensure value differs from that of
+	todos-item-mark.
+	(todos-item-mark): New defcustom.
+	(todos-prefix-overlay): New function.
+	(todos-marked-item-p): Use it.  Adapt implementation to new
+	handling of marked items.
+	(todos-insert-with-overlays): When inserting pushes down a marked
+	item, move its prefix overlay.
+	(todos-prefix-overlays): Add overlay even when prefix is empty string,
+	otherwise item marking fails.  Improve handling of marked items.
+	(todos-mark-unmark-item): Adapt to new handling of marked items
+	and simplify by removing marking of all items in category.
+	(todos-mark-category): Adapt to new handling of marked items and
+	don't use todos-mark-unmark-item.
+	(todos-unmark-category): Adapt to new handling of marked items.
+	(todos-delete-item): Remove obsolete handling of marked items and
+	useless restoration of point.
+	(todos-set-item-priority): Use new handling of marked items.
+	(todos-move-item, todos-item-done, todos-item-undo)
+	(todos-archive-done-item): Remove obsolete handling of marked items.
+
 2013-01-25  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Improve definitions and use of some faces.
