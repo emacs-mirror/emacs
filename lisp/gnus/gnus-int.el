@@ -248,18 +248,20 @@ If it is down, start it up (again)."
       'denied))
 
 (defvar gnus-backend-trace nil)
+(defvar gnus-backend-trace-elapsed nil)
 
 (defun gnus-backend-trace (type form)
-  (with-current-buffer (get-buffer-create "*gnus trace*")
-    (buffer-disable-undo)
-    (goto-char (point-max))
-    (insert (format-time-string "%H:%M:%S")
-	    (format " %.2fs %s %S\n"
-		    (if (numberp gnus-backend-trace)
-			(- (float-time) gnus-backend-trace)
-		      0)
-		    type form))
-    (setq gnus-backend-trace (float-time))))
+  (when gnus-backend-trace
+    (with-current-buffer (get-buffer-create "*gnus trace*")
+      (buffer-disable-undo)
+      (goto-char (point-max))
+      (insert (format-time-string "%H:%M:%S")
+	      (format " %.2fs %s %S\n"
+		      (if (numberp gnus-backend-trace-elapsed)
+			  (- (float-time) gnus-backend-trace-elapsed)
+			0)
+		      type form))
+      (setq gnus-backend-trace-elapsed (float-time)))))
 
 (defun gnus-open-server (gnus-command-method)
   "Open a connection to GNUS-COMMAND-METHOD."
