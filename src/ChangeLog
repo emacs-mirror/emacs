@@ -1,3 +1,19 @@
+2013-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_open): Zero out the flags for the new file descriptor.
+	(sys_close): Zero out the flags for the file descriptor before
+	closing it.  (Bug#13546)
+
+	* w32.c (parse_root, get_volume_info, readdir, read_unc_volume)
+	(logon_network_drive, stat_worker, symlink, chase_symlinks): Use
+	CharNextExA and CharPrevExA to iterate over file names encoded in
+	DBCS.  (Bug#13553)
+
+	* w32.c (w32_get_long_filename, init_environment, readlink):
+	Support file names encoded in DBCS codepages.
+	(readlink): Use the current file-name-coding-system, not the ANSI
+	codepage, to decode and handle targets of symlinks.
+
 2013-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (opendir): Now accepts a 'const char *'.

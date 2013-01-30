@@ -4,7 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
-;; Version: 2.0
+;; Version: 2.1beta
 
 ;; This file is part of GNU Emacs.
 

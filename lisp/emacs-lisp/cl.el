@@ -689,6 +689,7 @@ You can replace this macro with `gv-letplace'."
   'cl--map-keymap-recursively "24.3")
 (define-obsolete-function-alias 'cl-map-intervals 'cl--map-intervals "24.3")
 (define-obsolete-function-alias 'cl-map-extents 'cl--map-overlays "24.3")
+(define-obsolete-function-alias 'cl-set-getf 'cl--set-getf "24.3")
 
 (defun cl-maclisp-member (item list)
   (declare (obsolete member "24.3"))
