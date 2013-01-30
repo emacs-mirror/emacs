@@ -1,3 +1,13 @@
+2013-01-30  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Fix done separator overlay bug.  Remove most
+	FIXME comments.
+	(todos-reset-and-enable-done-separator): Remove commented out
+	workaround for done separator overlay bug; fix doc string.
+	(todos-reset-done-separator): Delete old overlay after adding new
+	overlay to fix done separator overlay bug; improve implementation.
+	(todos-prefix-overlays): Improve first line of doc string.
+
 2013-01-29  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Improve item marking and handling of marked items.
