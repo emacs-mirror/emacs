@@ -73,12 +73,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sqlite3.h>
-#include <unistd.h> /* for getopt */
 #include <sys/stat.h>
+
+/* on Windows, we build SQLite locally from the amalgamated sources */
+#ifdef MPS_BUILD_MV
+#include "sqlite3.h"
+#else
+#include <sqlite3.h>
+#endif
 
 #define DATABASE_NAME_ENVAR   "MPS_TELEMETRY_DATABASE"
 #define DEFAULT_DATABASE_NAME "mpsevent.db"
+
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: getenv, sprintf.  See job001934. */
+#pragma warning( disable : 4996 )
+#define strtoll _strtoi64
+#endif
+
 
 typedef sqlite3_int64 int64;
 
@@ -110,7 +123,7 @@ static void vlog(unsigned int level, const char *format, va_list args)
   }
 }
 
-static void log(unsigned int level, const char *format, ...)
+static void evlog(unsigned int level, const char *format, ...)
 {
   va_list args;
   va_start(args, format);
@@ -131,11 +144,11 @@ static void error(const char *format, ...)
 static void sqlite_error(int res, sqlite3 *db, const char *format, ...)
 {
   va_list args;
-  log(LOG_ALWAYS, "Fatal SQL error %d", res);
+  evlog(LOG_ALWAYS, "Fatal SQL error %d", res);
   va_start(args, format);
   vlog(LOG_ALWAYS, format, args);
   va_end(args);
-  log(LOG_ALWAYS, "SQLite message: %s\n", sqlite3_errmsg(db));
+  evlog(LOG_ALWAYS, "SQLite message: %s\n", sqlite3_errmsg(db));
   exit(1);
 }
 
@@ -178,45 +191,64 @@ static void usageError(void)
 
 static void parseArgs(int argc, char *argv[])
 {
-  int ch;
+  int i = 1;
 
   if (argc >= 1)
     prog = argv[0];
   else
     prog = "unknown";
 
-  while((ch = getopt(argc, argv, "vrdfthpi:o:")) != -1) {
-    switch (ch) {
-    case 'v': /* verbosity */
-      ++ verbosity;
-      break;
-    case 'p': /* progress */
-      progress = TRUE;
-      break;
-    case 'r': /* rebuild */
-      rebuild = TRUE;
-      break;
-    case 'd': /* rebuild */
-      deleteDatabase = TRUE;
-      break;
-    case 'f': /* force */
-      force = TRUE;
-      break;
-    case 't': /* run tests */
-      runTests = TRUE;
-      break;
-    case 'i': /* input (log file) name */
-      logFileName = optarg;
-      break;
-    case 'o': /* output (database file) name */
-      databaseName = optarg;
-      break;
-    case '?': case 'h': /* help */
-      usage();
-      exit(EXIT_SUCCESS);
-    default:
+  while(i < argc) { /* consider argument i */
+    if (argv[i][0] == '-') { /* it's an option argument */
+      char *p = argv[i] + 1;
+      while(*p) {
+        switch (*p) {
+        case 'v': /* verbosity */
+          ++ verbosity;
+          break;
+        case 'p': /* progress */
+          progress = TRUE;
+          break;
+        case 'r': /* rebuild */
+          rebuild = TRUE;
+          break;
+        case 'd': /* rebuild */
+          deleteDatabase = TRUE;
+          break;
+        case 'f': /* force */
+          force = TRUE;
+          break;
+        case 't': /* run tests */
+          runTests = TRUE;
+          break;
+        case 'i': /* input (log file) name */
+          if (p[1] == '\0') { /* last character in this arg; name is next arg */
+            logFileName = argv[i+1];
+            ++ i;
+          } else { /* not last character in arg; name is rest of arg */
+            logFileName = p+1;
+          }
+          continue;
+        case 'o': /* output (database file) name */
+          if (p[1] == '\0') { /* last character in this arg; name is next arg */
+            databaseName = argv[i+1];
+            ++ i;
+          } else { /* not last character in arg; name is rest of arg */
+            databaseName = p+1;
+          }
+          continue;
+        case 'h':
+          usage();
+          exit(EXIT_SUCCESS);
+        default:
+          usageError();
+        }
+        ++ p;
+      }
+    } else { /* not an option argument */
       usageError();
     }
+    ++ i;
   }
   if (verbosity > LOG_ALWAYS)
     progress = TRUE;
@@ -239,9 +271,9 @@ static sqlite3 *openDatabase(void)
   if (deleteDatabase) {
     res = remove(databaseName);
     if (res)
-      log(LOG_ALWAYS, "Could not remove database file %s", databaseName);
+      evlog(LOG_ALWAYS, "Could not remove database file %s", databaseName);
     else
-      log(LOG_OFTEN, "Removed database file %s", databaseName);
+      evlog(LOG_OFTEN, "Removed database file %s", databaseName);
   }
           
   res = sqlite3_open_v2(databaseName,
@@ -252,7 +284,7 @@ static sqlite3 *openDatabase(void)
   if (res != SQLITE_OK)
     sqlite_error(res, db, "Opening %s failed", databaseName);
 
-  log(LOG_OFTEN, "Writing to %s.",databaseName);
+  evlog(LOG_OFTEN, "Writing to %s.",databaseName);
         
   return db;
 }
@@ -264,7 +296,7 @@ static void closeDatabase(sqlite3 *db)
   int res = sqlite3_close(db);
   if (res != SQLITE_OK)
     sqlite_error(res, db, "Closing database failed"); 
-  log(LOG_SOMETIMES, "Closed %s.", databaseName);
+  evlog(LOG_SOMETIMES, "Closed %s.", databaseName);
 }
 
 /* Utility functions for SQLite statements. */
@@ -274,7 +306,7 @@ static sqlite3_stmt *prepareStatement(sqlite3 *db,
 {
   int res;
   sqlite3_stmt *statement;
-  log(LOG_SELDOM, "Preparing statement %s", sql);
+  evlog(LOG_SELDOM, "Preparing statement %s", sql);
   res = sqlite3_prepare_v2(db, sql,
                            -1, /* prepare whole string as statement */
                            &statement,
@@ -298,7 +330,7 @@ static void runStatement(sqlite3 *db,
                          const char *description)
 {
   int res;
-  log(LOG_SELDOM, "%s: %s", description, sql);
+  evlog(LOG_SELDOM, "%s: %s", description, sql);
   res = sqlite3_exec(db,
                      sql,
                      NULL, /* No callback */
@@ -314,8 +346,8 @@ static void runStatement(sqlite3 *db,
 static int tableExists(sqlite3* db, const char *tableName)
 {
   int res;
-  int exists;
-  sqlite3_stmt *statement;
+  int exists = 0;
+  sqlite3_stmt *statement = NULL;
 
   statement = prepareStatement(db,
                                "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?");
@@ -357,16 +389,16 @@ static void testTableExists(sqlite3 *db)
     const char *name = tableTests[i].name;
     int exists = tableExists(db, name);
     if (exists)
-      log(LOG_OFTEN, "Table exists: %s", name);
+      evlog(LOG_OFTEN, "Table exists: %s", name);
     else 
-      log(LOG_OFTEN, "Table does not exist: %s", name);
+      evlog(LOG_OFTEN, "Table does not exist: %s", name);
     if (exists != tableTests[i].exists) {
-      log(LOG_ALWAYS, "tableExists test failed on table %s", name);
+      evlog(LOG_ALWAYS, "tableExists test failed on table %s", name);
       ++ defects;
     }
     ++ tests;
   }
-  log(LOG_ALWAYS, "%d tests, %d defects found.", tests, defects);
+  evlog(LOG_ALWAYS, "%d tests, %d defects found.", tests, defects);
 }
 
 /* Every time we put events from a log file into a database file, we
@@ -413,18 +445,18 @@ static void registerLogFile(sqlite3 *db,
     res = sqlite3_step(statement); 
     switch(res) {
     case SQLITE_DONE:
-      log(LOG_SOMETIMES, "No log file matching '%s' found in database.", filename);
+      evlog(LOG_SOMETIMES, "No log file matching '%s' found in database.", filename);
       break;
     case SQLITE_ROW:
       name = sqlite3_column_text(statement, 0);
       logSerial = sqlite3_column_int64(statement, 1);
       completed = sqlite3_column_int64(statement, 2);
-      log(force ? LOG_OFTEN : LOG_ALWAYS, "Log file matching '%s' already in event_log, named \"%s\" (serial %lu, completed %lu).",
-          filename, name, logSerial, completed);
+      evlog(force ? LOG_OFTEN : LOG_ALWAYS, "Log file matching '%s' already in event_log, named \"%s\" (serial %lu, completed %lu).",
+            filename, name, logSerial, completed);
       if (force) {
-        log(LOG_OFTEN, "Continuing anyway because -f specified.");
+        evlog(LOG_OFTEN, "Continuing anyway because -f specified.");
       } else {
-        log(LOG_ALWAYS, "Exiting.  Specify -f to force events into SQL anyway.");
+        evlog(LOG_ALWAYS, "Exiting.  Specify -f to force events into SQL anyway.");
         exit(0);
       }
       break;
@@ -453,8 +485,8 @@ static void registerLogFile(sqlite3 *db,
   if (res != SQLITE_DONE)
     sqlite_error(res, db, "insert into event_log failed.");
   logSerial = sqlite3_last_insert_rowid(db);
-  log(LOG_SOMETIMES, "Log file %s added to event_log with serial %lu",
-      filename, logSerial);
+  evlog(LOG_SOMETIMES, "Log file %s added to event_log with serial %lu",
+        filename, logSerial);
   finalizeStatement(db, statement);
 }
 
@@ -475,7 +507,7 @@ static void logFileCompleted(sqlite3 *db,
   res = sqlite3_step(statement); 
   if (res != SQLITE_DONE)
     sqlite_error(res, db, "insert into event_log failed.");
-  log(LOG_SOMETIMES, "Marked in event_log: %lu events", completed);
+  evlog(LOG_SOMETIMES, "Marked in event_log: %lu events", completed);
   finalizeStatement(db, statement);
 }
 
@@ -531,7 +563,7 @@ const char *createStatements[] = {
 static void makeTables(sqlite3 *db)
 {
   size_t i;
-  log(LOG_SOMETIMES, "Creating tables.");
+  evlog(LOG_SOMETIMES, "Creating tables.");
         
   for (i=0; i < (sizeof(createStatements)/sizeof(createStatements[0])); ++i) {
     runStatement(db, createStatements[i], "Table creation");
@@ -550,10 +582,10 @@ static void dropGlueTables(sqlite3 *db)
   int res;
   char sql[1024];
 
-  log(LOG_ALWAYS, "Dropping glue tables so they are rebuilt.");
+  evlog(LOG_ALWAYS, "Dropping glue tables so they are rebuilt.");
         
   for (i=0; i < (sizeof(glueTables)/sizeof(glueTables[0])); ++i) {
-    log(LOG_SOMETIMES, "Dropping table %s", glueTables[i]);
+    evlog(LOG_SOMETIMES, "Dropping table %s", glueTables[i]);
     sprintf(sql, "DROP TABLE %s", glueTables[i]);
     res = sqlite3_exec(db,
                        sql,
@@ -582,7 +614,7 @@ static void dropGlueTables(sqlite3 *db)
         if (res != SQLITE_DONE)                                         \
                 sqlite_error(res, db, "event_kind insert of name \"" #name "\" failed."); \
         if (sqlite3_changes(db) != 0)                                   \
-                log(LOG_SOMETIMES, "Insert of event_kind row for \"" #name "\" affected %d rows.", sqlite3_changes(db)); \
+                evlog(LOG_SOMETIMES, "Insert of event_kind row for \"" #name "\" affected %d rows.", sqlite3_changes(db)); \
         res = sqlite3_reset(statement);                                 \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "Couldn't reset event_kind insert statement.");
@@ -604,7 +636,7 @@ static void dropGlueTables(sqlite3 *db)
         if (res != SQLITE_DONE)                                         \
                 sqlite_error(res, db, "event_type insert of name \"" #name "\" failed."); \
         if (sqlite3_changes(db) != 0)                                   \
-                log(LOG_SOMETIMES, "Insert of event_type row for \"" #name "\" affected %d rows.", sqlite3_changes(db)); \
+                evlog(LOG_SOMETIMES, "Insert of event_type row for \"" #name "\" affected %d rows.", sqlite3_changes(db)); \
         res = sqlite3_reset(statement);                                 \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "Couldn't reset event_type insert statement.");
@@ -626,7 +658,7 @@ static void dropGlueTables(sqlite3 *db)
         if (res != SQLITE_DONE)                                         \
                 sqlite_error(res, db, "event_param insert of ident \"" #ident "\" for code %d failed.", code); \
         if (sqlite3_changes(db) != 0)                                   \
-                log(LOG_SOMETIMES, "Insert of event_param row for code %d,  ident \"" #ident "\" affected %d rows.", code, sqlite3_changes(db)); \
+                evlog(LOG_SOMETIMES, "Insert of event_param row for code %d,  ident \"" #ident "\" affected %d rows.", code, sqlite3_changes(db)); \
         res = sqlite3_reset(statement);                                 \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "Couldn't reset event_param insert statement.");
@@ -791,7 +823,7 @@ static int64 readLog(FILE *input,
     char *p;
     char *q;
     int last_index=0;
-    sqlite3_stmt *statement;
+    sqlite3_stmt *statement = NULL;
     int res;
     int64 clock;
     long code;
@@ -821,8 +853,8 @@ static int64 readLog(FILE *input,
     p = q;
     code = strtol(p, &q, 16);
     if (q == p)
-      error("event %llu code field %d not an integer: %s",
-            eventCount, index, p);
+      error("event %llu code field not an integer: %s",
+            eventCount, p);
     p = q;
 
     /* Write event to SQLite. */
@@ -853,7 +885,7 @@ static int64 readLog(FILE *input,
         if (((eventCount / SMALL_TICK) % BIG_TICK) == 0) {
           printf("\n");
           fflush(stdout);
-          log(LOG_SOMETIMES, "%lu events.", (unsigned long)eventCount);
+          evlog(LOG_SOMETIMES, "%lu events.", (unsigned long)eventCount);
         }
       }
     }
@@ -887,7 +919,7 @@ static FILE *openLog(sqlite3 *db)
       error("unable to open %s", logFileName);
   }
 
-  log(LOG_OFTEN, "Reading %s.", logFileName ? logFileName : "standard input");
+  evlog(LOG_OFTEN, "Reading %s.", logFileName ? logFileName : "standard input");
 
   return input;
 }
@@ -917,8 +949,8 @@ int main(int argc, char *argv[])
   makeTables(db);
   fillGlueTables(db);
   count = writeEventsToSQL(db);
-  log(LOG_ALWAYS, "Imported %llu events from %s to %s, serial %lu.",
-      count, logFileName, databaseName, logSerial);
+  evlog(LOG_ALWAYS, "Imported %llu events from %s to %s, serial %lu.",
+        count, logFileName, databaseName, logSerial);
 
   if (runTests) {
     /* TODO: more unit tests in here */

@@ -39,6 +39,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: strncpy, sscanf, fopen.  See job001934. */
+#pragma warning( disable : 4996 )
+#endif
+
 static char *prog; /* program name */
 static char *logFileName = NULL;
 
