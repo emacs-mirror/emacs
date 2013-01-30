@@ -18757,7 +18757,7 @@
 	* nxml/rng-xsd.el (rng-xsd-check-pattern): Use case-sensitive
 	matching (Bug#8516).
 
-2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+2011-05-22  Jari Aalto  <jari.aalto@cante.net>
 
 	* vc/vc-dir.el (vc-default-dir-printer): Give edited tag a
 	different face (Bug#8178).
