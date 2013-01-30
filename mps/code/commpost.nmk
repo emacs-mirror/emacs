@@ -19,7 +19,7 @@ all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe
      arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe zcoll.exe zmess.exe \
-     eventcnv.exe \
+     eventcnv.exe eventtxt.exe eventsql.exe \
      mps.lib
 
 
@@ -37,7 +37,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      walkt0.exe locbwcss.exe locusss.exe \
      exposet0.exe zcoll.exe zmess.exe \
-     replay.exe replaysw.exe eventcnv.exe \
+     replay.exe replaysw.exe eventcnv.exe eventtxt.exe eventsql.exe \
      mps.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
@@ -234,6 +234,12 @@ $(PFM)\$(VARIETY)\zmess.exe: $(PFM)\$(VARIETY)\zmess.obj \
 $(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\mps.lib
 
+$(PFM)\$(VARIETY)\eventtxt.exe: $(PFM)\$(VARIETY)\eventtxt.obj \
+	$(PFM)\$(VARIETY)\mps.lib
+
+$(PFM)\$(VARIETY)\eventsql.exe: $(PFM)\$(VARIETY)\eventsql.obj \
+	$(PFM)\$(VARIETY)\sqlite3.obj $(PFM)\$(VARIETY)\mps.lib
+
 $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
   $(PFM)\$(VARIETY)\eventrep.obj \
   $(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj \
@@ -269,6 +275,12 @@ $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
 	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$@ $<
+
+$(PFM)\$(VARIETY)\sqlite3.obj:
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+        cl /c $(CFLAGSSQL) /Fd$(PFM)\$(VARIETY)\ /Fo$@ sqlite3.c
 
 {}.asm{$(PFM)\$(VARIETY)}.obj:
 	$(ECHO) $@
