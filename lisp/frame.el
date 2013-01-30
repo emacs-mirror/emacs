@@ -1666,7 +1666,7 @@ so the frame will go to the right maximization state
 after disabling fullscreen mode.
 See also `toggle-frame-fullscreen'."
   (interactive)
-  (if (eq (frame-parameter nil 'fullscreen) 'fullscreen)
+  (if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
       (modify-frame-parameters
        nil
        `((maximized
@@ -1690,10 +1690,10 @@ See also `toggle-frame-maximized'."
   (modify-frame-parameters
    nil
    `((maximized
-      . ,(unless (eq (frame-parameter nil 'fullscreen) 'fullscreen)
+      . ,(unless (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
 	   (frame-parameter nil 'fullscreen)))
      (fullscreen
-      . ,(if (eq (frame-parameter nil 'fullscreen) 'fullscreen)
+      . ,(if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
 	     (if (eq (frame-parameter nil 'maximized) 'maximized)
 		 'maximized)
 	   'fullscreen)))))
