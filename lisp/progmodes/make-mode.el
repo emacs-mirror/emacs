@@ -1307,6 +1307,12 @@ definition and conveniently use this command."
 	(save-restriction
 	  (narrow-to-region beginning end)
 	  (makefile-backslash-region (point-min) (point-max) t)
+	  ;; Backslashed newlines are marked as puncutations, so when
+	  ;; fill-delete-newlines turns the LF into SPC, we end up with spaces
+	  ;; which back-to-indentation (called via fill-newline ->
+	  ;; fill-indent-to-left-margin -> indent-line-to) thinks are real code
+	  ;; (bug#13179).
+	  (remove-text-properties (point-min) (point-max) '(syntax-table))
 	  (let ((fill-paragraph-function nil)
                 ;; Adjust fill-column to allow space for the backslash.
                 (fill-column (- fill-column 1)))
