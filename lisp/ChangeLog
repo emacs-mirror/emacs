@@ -1,3 +1,8 @@
+2013-01-30  Leo Liu  <sdl.web@gmail.com>
+
+	* imenu.el (imenu--truncate-items): Fix subalist checking.
+	(Bug#13576)
+
 2013-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* mouse.el (mouse-drag-line): Avoid pushing same event onto

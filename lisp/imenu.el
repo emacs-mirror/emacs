@@ -555,16 +555,14 @@ NOT share structure with ALIST."
 
 (defun imenu--truncate-items (menulist)
   "Truncate all strings in MENULIST to `imenu-max-item-length'."
-  (mapcar (lambda (item)
-            (cond
-             ((consp (cdr item))
-              (imenu--truncate-items (cdr item)))
-             ;; truncate if necessary
-             ((and (numberp imenu-max-item-length)
-                   (> (length (car item)) imenu-max-item-length))
-              (setcar item (substring (car item) 0 imenu-max-item-length)))))
-	  menulist))
-
+  (mapc (lambda (item)
+	  ;; truncate if necessary
+	  (when (and (numberp imenu-max-item-length)
+		     (> (length (car item)) imenu-max-item-length))
+	    (setcar item (substring (car item) 0 imenu-max-item-length)))
+	  (when (imenu--subalist-p item)
+	    (imenu--truncate-items (cdr item))))
+	menulist))
 
 (defun imenu--make-index-alist (&optional noerror)
   "Create an index alist for the definitions in the current buffer.
