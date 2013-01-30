@@ -1,3 +1,11 @@
+2013-01-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-connection-type): Fix docstring.
+	(tramp-completion-reread-directory-timeout): Fix type.
+	(tramp-connection-min-time-diff): New defcustom.
+
+	* net/tramp-sh.el (tramp-maybe-open-connection): Use it.
+
 2013-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* imenu.el (imenu-default-create-index-function):

@@ -1018,10 +1018,24 @@ this variable to be set as well."
 ;; for an override of the system default.
 (defcustom tramp-process-connection-type t
   "Overrides `process-connection-type' for connections from Tramp.
-Tramp binds process-connection-type to the value given here before
+Tramp binds `process-connection-type' to the value given here before
 opening a connection to a remote host."
   :group 'tramp
   :type '(choice (const nil) (const t) (const pty)))
+
+(defcustom tramp-connection-min-time-diff 5
+  "Defines seconds between two consecutive connection attempts.
+This is necessary as self defense mechanism, in order to avoid
+yo-yo connection attempts when the remote host is unavailable.
+
+A value of 0 or `nil' suppresses this check.  This might be
+necessary, when several out-of-order copy operations are
+performed, or when several asynchronous processes will be started
+in a short time frame.  In those cases it is recommended to
+let-bind this variable."
+  :group 'tramp
+  :version "24.4"
+  :type '(choice (const nil) integer))
 
 (defcustom tramp-completion-reread-directory-timeout 10
   "Defines seconds since last remote command before rereading a directory.
@@ -1033,7 +1047,7 @@ have been gone since last remote command execution.  A value of `t'
 would require an immediate reread during filename completion, `nil'
 means to use always cached values for the directory contents."
   :group 'tramp
-  :type '(choice (const nil) integer))
+  :type '(choice (const nil) (const t) integer))
 
 ;;; Internal Variables:
 

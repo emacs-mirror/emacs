@@ -4357,7 +4357,7 @@ connection if a previous connection has died for some reason."
 			      (car tramp-current-connection)))
 		  (> (tramp-time-diff
 		      (current-time) (cdr tramp-current-connection))
-		     5))
+		     (or tramp-connection-min-time-diff 0)))
 	(throw 'suppress 'suppress))
 
       ;; If too much time has passed since last command was sent, look
