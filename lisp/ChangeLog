@@ -1,3 +1,9 @@
+2013-01-30  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el
+	(python-pdbtrack-comint-output-filter-function): Enhancements on
+	stacktrace detection.  (thanks @gnovak)
+
 2013-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* imenu.el (imenu-default-create-index-function):

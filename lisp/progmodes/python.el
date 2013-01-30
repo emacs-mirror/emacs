@@ -2317,15 +2317,17 @@ Argument OUTPUT is a string with the output from the comint process."
            (file-name
             (with-temp-buffer
               (insert full-output)
-              (goto-char (point-min))
-              ;; OK, this sucked but now it became a cool hack. The
-              ;; stacktrace information normally is on the first line
-              ;; but in some cases (like when doing a step-in) it is
-              ;; on the second.
-              (when (or (looking-at python-pdbtrack-stacktrace-info-regexp)
-                        (and
-                         (forward-line)
-                         (looking-at python-pdbtrack-stacktrace-info-regexp)))
+              ;; When the debugger encounters a pdb.set_trace()
+              ;; command, it prints a single stack frame.  Sometimes
+              ;; it prints a bit of extra information about the
+              ;; arguments of the present function.  When ipdb
+              ;; encounters an exception, it prints the _entire_ stack
+              ;; trace.  To handle all of these cases, we want to find
+              ;; the _last_ stack frame printed in the most recent
+              ;; batch of output, then jump to the corrsponding
+              ;; file/line number.
+              (goto-char (point-max))
+              (when (re-search-backward python-pdbtrack-stacktrace-info-regexp nil t)
                 (setq line-number (string-to-number
                                    (match-string-no-properties 2)))
                 (match-string-no-properties 1)))))
