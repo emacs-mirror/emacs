@@ -1,5 +1,7 @@
 2013-01-30  Christopher Schmidt  <christopher@ch.ristopher.com>
 
+	* mml.el (mml-insert-part): Insert closing tag.
+
 	* mm-decode.el (mm-save-part): Handle invalid read-file-name results.
 
 2013-01-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
