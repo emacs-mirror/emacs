@@ -1,3 +1,7 @@
+2013-01-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-use-notify): Fix docstring.
+
 2013-01-30  Leo Liu  <sdl.web@gmail.com>
 
 	* imenu.el (imenu--truncate-items): Fix subalist checking.

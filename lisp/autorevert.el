@@ -278,7 +278,7 @@ This variable becomes buffer local when set in any fashion.")
   "If non-nil Auto Revert Mode uses file notification functions.
 This requires Emacs being compiled with file notification
 support (see `auto-revert-notify-enabled').  You should set this
-variable through Custom only."
+variable through Custom."
   :group 'auto-revert
   :type 'boolean
   :set (lambda (variable value)
