@@ -1,3 +1,15 @@
+2013-01-30  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (mouse-drag-line): Avoid pushing same event onto
+	unread-command-events twice in some cases.  This tries to implement
+	the 2012-07-26 changes in a different way.  (Bug#13560)
+
+2013-01-30  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el
+	(python-pdbtrack-comint-output-filter-function): Enhancements on
+	stacktrace detection.  (thanks @gnovak)
+
 2013-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-stealth-chunk-start): Don't widen (bug#13542).
