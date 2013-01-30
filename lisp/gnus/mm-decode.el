@@ -1298,14 +1298,26 @@ PROMPT overrides the default one used to ask user for a file name."
     (when filename
       (setq filename (gnus-map-function mm-file-name-rewrite-functions
 					(file-name-nondirectory filename))))
-    (setq file
-          (read-file-name
-	   (or prompt
-	       (format "Save MIME part to (default %s): "
-		       (or filename "")))
-	   (or mm-default-directory default-directory)
-	   (expand-file-name (or filename "")
-			     (or mm-default-directory default-directory))))
+    (while
+	(progn
+	  (setq file
+		(read-file-name
+		 (or prompt
+		     (format "Save MIME part to (default %s): "
+			     (or filename "")))
+		 (or mm-default-directory default-directory)
+		 (expand-file-name (or filename "")
+				   (or mm-default-directory default-directory))))
+	  (cond ((or (not file) (equal file ""))
+		 (message "Please enter a file name")
+		 t)
+		((and (file-directory-p file)
+		      (not filename))
+		 (message "Please enter a non-directory file name")
+		 t)
+		(t nil)))
+      (sit-for 2)
+      (discard-input))
     (if (file-directory-p file)
 	(setq file (expand-file-name filename file))
       (setq file (expand-file-name
