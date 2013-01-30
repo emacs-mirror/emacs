@@ -1,3 +1,9 @@
+2013-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-backslash-region): Don't compute
+	column if we're just deleting the backslashes.
+	(makefile-fill-paragraph): Use eolp.
+
 2013-01-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-use-notify): Fix docstring.

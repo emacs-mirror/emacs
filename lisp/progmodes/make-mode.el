@@ -1213,26 +1213,23 @@ definition and conveniently use this command."
   (save-excursion
     (goto-char from)
     (let ((column makefile-backslash-column)
-          (endmark (make-marker)))
-      (move-marker endmark to)
+          (endmark (copy-marker to)))
       ;; Compute the smallest column number past the ends of all the lines.
-      (if makefile-backslash-align
-	  (progn
-	    (if (not delete-flag)
-		(while (< (point) to)
-		  (end-of-line)
-		  (if (= (preceding-char) ?\\)
-		      (progn (forward-char -1)
-			     (skip-chars-backward " \t")))
-		  (setq column (max column (1+ (current-column))))
-		  (forward-line 1)))
-	    ;; Adjust upward to a tab column, if that doesn't push
-	    ;; past the margin.
-	    (if (> (% column tab-width) 0)
-		(let ((adjusted (* (/ (+ column tab-width -1) tab-width)
-				   tab-width)))
-		  (if (< adjusted (window-width))
-		      (setq column adjusted))))))
+      (when (and makefile-backslash-align (not delete-flag))
+        (while (< (point) to)
+          (end-of-line)
+          (if (= (preceding-char) ?\\)
+              (progn (forward-char -1)
+                     (skip-chars-backward " \t")))
+          (setq column (max column (1+ (current-column))))
+	  (forward-line 1))
+        ;; Adjust upward to a tab column, if that doesn't push
+        ;; past the margin.
+        (if (> (% column tab-width) 0)
+            (let ((adjusted (* (/ (+ column tab-width -1) tab-width)
+                               tab-width)))
+              (if (< adjusted (window-width))
+		  (setq column adjusted)))))
       ;; Don't modify blank lines at start of region.
       (goto-char from)
       (while (and (< (point) endmark) (eolp))
@@ -1296,9 +1293,9 @@ Fill comments, backslashed lines, and variable definitions specially."
 	       (while (= (preceding-char) ?\\)
 		 (end-of-line 0))
 	       ;; Maybe we hit bobp, in which case we are not at EOL.
-	       (if (eq (point) (line-end-position))
-		   (forward-char))
-	       (point)))
+	       (if (eolp)
+		   (1+ (point))
+                 (point))))
 	    (end
 	     (save-excursion
 	       (while (= (preceding-char) ?\\)
