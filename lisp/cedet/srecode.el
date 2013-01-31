@@ -4,7 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
-;; Version: 1.0
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -41,7 +41,7 @@
 (require 'mode-local)
 (load "srecode/loaddefs" nil 'nomessage)
 
-(defvar srecode-version "1.0"
+(defvar srecode-version "1.2"
   "Current version of the Semantic Recoder.")
 
 ;;; Code:

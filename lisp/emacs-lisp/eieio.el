@@ -4,7 +4,7 @@
 ;; Copyright (C) 1995-1996, 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 1.3
+;; Version: 1.4
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.
@@ -46,7 +46,7 @@
 
 (eval-when-compile (require 'cl))       ;FIXME: Use cl-lib!
 
-(defvar eieio-version "1.3"
+(defvar eieio-version "1.4"
   "Current version of EIEIO.")
 
 (defun eieio-version ()
