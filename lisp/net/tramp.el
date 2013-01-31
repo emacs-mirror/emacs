@@ -1158,7 +1158,7 @@ If the `tramp-methods' entry does not exist, return nil."
 It checks also, whether NAME is unibyte encoded."
   (save-match-data
     (and (stringp name)
-	 (string-equal name (string-as-unibyte name))
+;	 (string-equal name (string-as-unibyte name))
 	 (string-match tramp-file-name-regexp name))))
 
 (defun tramp-find-method (method user host)

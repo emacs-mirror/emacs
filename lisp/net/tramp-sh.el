@@ -4272,7 +4272,7 @@ Gateway hops are already opened."
 	    (setq choices tramp-default-proxies-alist)))))
 
     ;; Handle gateways.
-    (when (and tramp-gw-tunnel-method tramp-gw-socks-method
+    (when (and (boundp 'tramp-gw-tunnel-method) (boundp 'tramp-gw-socks-method)
 	       (string-match
 		(format
 		 "^\\(%s\\|%s\\)$" tramp-gw-tunnel-method tramp-gw-socks-method)
