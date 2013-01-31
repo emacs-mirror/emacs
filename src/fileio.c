@@ -4881,10 +4881,9 @@ This calls `write-region-annotate-functions' at the start, and
      We used to make this choice before calling build_annotations, but that
      leads to problems when a write-annotate-function takes care of
      unsavable chars (as was the case with X-Symbol).  */
-  Vlast_coding_system_used = NILP (Vcoding_system_for_write) ?
+  Vlast_coding_system_used =
     Fchoose_write_coding_system (start, end, filename,
-                                append, visit, lockname) :
-    Vcoding_system_for_write;
+                                 append, visit, lockname);
 
   setup_coding_system (Vlast_coding_system_used, &coding);
 
