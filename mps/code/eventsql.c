@@ -736,7 +736,7 @@ static void fillGlueTables(sqlite3 *db)
                 EVENT_##name##_PARAMS(EVENT_PARAM_BIND, X) \
                 break;
 
-static char *bind_int(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, char *p)
+static char *bind_int(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int field, char *p)
 {
   char *q;
   long long val;
@@ -748,15 +748,15 @@ static char *bind_int(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, c
   val = strtoll(p, &q, 16);
   if (q == p)
     error("event %llu field %d not an integer: %s",
-          count, index, p);
+          count, field, p);
 
-  res = sqlite3_bind_int64(stmt, index, val);
+  res = sqlite3_bind_int64(stmt, field, val);
   if (res != SQLITE_OK)
-    sqlite_error(res, db, "event %llu field %d bind failed", count, index);
+    sqlite_error(res, db, "event %llu field %d bind failed", count, field);
   return q;
 }
 
-static char *bind_real(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, char *p)
+static char *bind_real(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int field, char *p)
 {
   char *q;
   double val;
@@ -768,15 +768,15 @@ static char *bind_real(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, 
   val = strtod(p, &q);
   if (q == p)
     error("event %llu field %d not a floating-point value: %s",
-          count, index, p);
+          count, field, p);
 
-  res = sqlite3_bind_double(stmt, index, val);
+  res = sqlite3_bind_double(stmt, field, val);
   if (res != SQLITE_OK)
-    sqlite_error(res, db, "event %llu field %d bind failed", count, index);
+    sqlite_error(res, db, "event %llu field %d bind failed", count, field);
   return q;
 }
 
-static char *bind_text(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, char *p)
+static char *bind_text(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int field, char *p)
 {
   char *q;
   int res;
@@ -790,11 +790,11 @@ static char *bind_text(sqlite3 *db, sqlite3_stmt *stmt, int64 count, int index, 
   }
   if ((q == p) || (q[-1] != '"'))
     error("event %llu string field %d has no closing quote mark.",
-          count, index);
+          count, field);
 
-  res = sqlite3_bind_text(stmt, index, p, (int)(q-p-1), SQLITE_STATIC);
+  res = sqlite3_bind_text(stmt, field, p, (int)(q-p-1), SQLITE_STATIC);
   if (res != SQLITE_OK)
-    sqlite_error(res, db, "event %llu field %d bind failed", count, index);
+    sqlite_error(res, db, "event %llu field %d bind failed", count, field);
   return q;
 }
 
@@ -825,7 +825,7 @@ static int64 readLog(FILE *input,
     int last_index=0;
     sqlite3_stmt *statement = NULL;
     int res;
-    int64 clock;
+    int64 clock_field;
     long code;
 
     p = fgets(line, MAX_LOG_LINE_LENGTH, input);
@@ -838,7 +838,7 @@ static int64 readLog(FILE *input,
 
     eventCount++;
 
-    clock = strtoll(p, &q, 16);
+    clock_field = strtoll(p, &q, 16);
 
     if (q == p)
       error("event %llu clock field not a hex integer: %s",
@@ -868,7 +868,7 @@ static int64 readLog(FILE *input,
     res = sqlite3_bind_int64(statement, last_index+1, logSerial);
     if (res != SQLITE_OK)
       sqlite_error(res, db, "Event %llu bind of log_serial failed.", eventCount);
-    res = sqlite3_bind_int64(statement, last_index+2, clock);
+    res = sqlite3_bind_int64(statement, last_index+2, clock_field);
     if (res != SQLITE_OK)
       sqlite_error(res, db, "Event %llu bind of clock failed.", eventCount);
     res = sqlite3_step(statement);
