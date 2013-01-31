@@ -138,6 +138,9 @@
     ;; find about the syntax of Pascal's comments said that (* ... } is
     ;; a valid comment, just as { ... *) or (* ... *) or { ... }.
     (modify-syntax-entry ?* ". 23" st)
+    ;; Allow //...\n comments as accepted by Free Pascal (bug#13585).
+    (modify-syntax-entry ?/ ". 12c" st)
+    (modify-syntax-entry ?\n "> c" st)
     (modify-syntax-entry ?{ "<"    st)
     (modify-syntax-entry ?} ">"    st)
     (modify-syntax-entry ?+ "."    st)
