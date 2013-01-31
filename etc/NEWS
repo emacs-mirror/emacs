@@ -71,6 +71,12 @@ bound to <f11> and M-<f10>, respectively.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** Delphi mode is now called OPascal mode.
+*** All delphi-* variables and functions have been renamed to opascal-*.
+*** `delphi-newline-always-indents' is not supported any more
+use `electric-indent-mode' instead.
+*** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
+
 ** jit-lock-debug-mode lets you use the debuggers on code run via jit-lock.
 
 ** completing-read-multiple's separator can now be a regexp.

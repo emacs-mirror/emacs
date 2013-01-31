@@ -1,5 +1,13 @@
 2013-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/opascal.el: Rename from delphi.el.  Use lexical-binding.
+	(opascal-newline-always-indents): Remove custom.
+	(opascal-tab, opascal-newline): Remove commands.
+	(opascal-new-comment-line): Insert "\n" instead of calling newline.
+	(opascal-mode-map): Keep default bindings for RET and TAB and DEL.
+	(opascal-save-match-data): Remove, use save-match-data instead.
+	(opascal-save-state): Use with-silent-modifications.
+
 	* progmodes/pascal.el (pascal-mode-syntax-table): Accept //..\n comments
 	(bug#13585).
 

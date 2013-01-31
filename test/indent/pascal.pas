@@ -25,6 +25,8 @@ by the GNU General Public License. }
 
 {$gnu-pascal,I+}
 
+// Free-pascal style comment.
+
 program CRTDemo;
 
 uses GPC, CRT;
