@@ -4656,7 +4656,7 @@ Before and after saving the buffer, this function runs
 ;; This returns a value (MODES EXTENDED-ATTRIBUTES BACKUPNAME), like
 ;; backup-buffer.
 (defun basic-save-buffer-2 ()
-  (let (tempsetmodes setmodes)
+  (let (tempsetmodes setmodes writecoding)
     (if (not (file-writable-p buffer-file-name))
 	(let ((dir (file-name-directory buffer-file-name)))
 	  (if (not (file-directory-p dir))
@@ -4672,6 +4672,14 @@ Before and after saving the buffer, this function runs
 		     buffer-file-name)))
 		  (setq tempsetmodes t)
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
+    ;; This may involve prompting, so do it now before backing up the file.
+    ;; Otherwise there can be a delay while the user answers the
+    ;; prompt during which the original file has been renamed.  (Bug#13522)
+    (setq writecoding
+	  ;; Args here should match write-region call below around
+	  ;; which we use writecoding.
+	  (choose-write-coding-system nil nil buffer-file-name nil t
+				      buffer-file-truename))
     (or buffer-backed-up
 	(setq setmodes (backup-buffer)))
     (let* ((dir (file-name-directory buffer-file-name))
@@ -4753,10 +4761,11 @@ Before and after saving the buffer, this function runs
 				 (logior (car setmodes) 128))))))
 	(let (success)
 	  (unwind-protect
-	      (progn
                 ;; Pass in nil&nil rather than point-min&max to indicate
                 ;; we're saving the buffer rather than just a region.
                 ;; write-region-annotate-functions may make us of it.
+	      (let ((coding-system-for-write writecoding)
+		    (coding-system-require-warning nil))
 		(write-region nil nil
 			      buffer-file-name nil t buffer-file-truename)
 		(setq success t))

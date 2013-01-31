@@ -1,3 +1,11 @@
+2013-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (choose_write_coding_system): Make it callable from Lisp.
+	(Fwrite_region): If coding-system-for-write is set, don't
+	call choose_write_coding_system.  Move the last piece of
+	choose_write_coding_system here.  (Bug#13522)
+	(syms_of_fileio): Add choose-write-coding-system.
+
 2013-01-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_open): Zero out the flags for the new file descriptor.

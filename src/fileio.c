@@ -249,6 +249,7 @@ static Lisp_Object Qfile_acl;
 static Lisp_Object Qset_file_acl;
 static Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
+Lisp_Object Qchoose_write_coding_system;
 Lisp_Object Qwrite_region;
 static Lisp_Object Qverify_visited_file_modtime;
 static Lisp_Object Qset_visited_file_modtime;
@@ -4615,13 +4616,23 @@ build_annotations_unwind (Lisp_Object arg)
 
 /* Decide the coding-system to encode the data with.  */
 
-static Lisp_Object
-choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
-			    Lisp_Object append, Lisp_Object visit, Lisp_Object lockname,
-			    struct coding_system *coding)
+DEFUN ("choose-write-coding-system", Fchoose_write_coding_system,
+       Schoose_write_coding_system, 3, 6, 0,
+       doc: /* Choose the coding system for writing a file.
+Arguments are as for `write-region'.
+This function is for internal use only.  It may prompt the user.  */ )
+  (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
+   Lisp_Object append, Lisp_Object visit, Lisp_Object lockname)
 {
   Lisp_Object val;
   Lisp_Object eol_parent = Qnil;
+
+  /* Mimic write-region behavior.  */
+  if (NILP (start))
+    {
+      XSETFASTINT (start, BEGV);
+      XSETFASTINT (end, ZV);
+    }
 
   if (auto_saving
       && NILP (Fstring_equal (BVAR (current_buffer, filename),
@@ -4715,10 +4726,6 @@ choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object file
     }
 
   val = coding_inherit_eol_type (val, eol_parent);
-  setup_coding_system (val, coding);
-
-  if (!STRINGP (start) && !NILP (BVAR (current_buffer, selective_display)))
-    coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
   return val;
 }
 
@@ -4874,9 +4881,15 @@ This calls `write-region-annotate-functions' at the start, and
      We used to make this choice before calling build_annotations, but that
      leads to problems when a write-annotate-function takes care of
      unsavable chars (as was the case with X-Symbol).  */
-  Vlast_coding_system_used
-    = choose_write_coding_system (start, end, filename,
-				  append, visit, lockname, &coding);
+  Vlast_coding_system_used = NILP (Vcoding_system_for_write) ?
+    Fchoose_write_coding_system (start, end, filename,
+                                append, visit, lockname) :
+    Vcoding_system_for_write;
+
+  setup_coding_system (Vlast_coding_system_used, &coding);
+
+  if (!STRINGP (start) && !NILP (BVAR (current_buffer, selective_display)))
+    coding.mode |= CODING_MODE_SELECTIVE_DISPLAY;
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
@@ -5861,6 +5874,7 @@ syms_of_fileio (void)
   DEFSYM (Qset_file_acl, "set-file-acl");
   DEFSYM (Qfile_newer_than_file_p, "file-newer-than-file-p");
   DEFSYM (Qinsert_file_contents, "insert-file-contents");
+  DEFSYM (Qchoose_write_coding_system, "choose-write-coding-system");
   DEFSYM (Qwrite_region, "write-region");
   DEFSYM (Qverify_visited_file_modtime, "verify-visited-file-modtime");
   DEFSYM (Qset_visited_file_modtime, "set-visited-file-modtime");
@@ -6085,6 +6099,7 @@ This includes interactive calls to `delete-file' and
   defsubr (&Sdefault_file_modes);
   defsubr (&Sfile_newer_than_file_p);
   defsubr (&Sinsert_file_contents);
+  defsubr (&Schoose_write_coding_system);
   defsubr (&Swrite_region);
   defsubr (&Scar_less_than_car);
   defsubr (&Sverify_visited_file_modtime);
