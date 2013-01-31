@@ -746,21 +746,76 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
   "Delete all spaces and tabs around point, leaving one space (or N spaces).
 If N is negative, delete newlines as well, leaving -N spaces."
   (interactive "*p")
-  (unless n (setq n 1))
-  (let ((orig-pos (point))
-        (skip-characters (if (< n 0) " \t\n\r" " \t"))
-        (n (abs n)))
-    (skip-chars-backward skip-characters)
+  (cycle-spacing n nil t))
+
+(defvar cycle-spacing--context nil
+  "Store context used in consecutive calls to `cycle-spacing' command.
+The first time this function is run, it saves the original point
+position and original spacing around the point in this
+variable.")
+
+(defun cycle-spacing (&optional n preserve-nl-back single-shot)
+  "Manipulate spaces around the point in a smart way.
+
+When run as an interactive command, the first time it's called
+in a sequence, deletes all spaces and tabs around point leaving
+one (or N spaces).  If this does not change content of the
+buffer, skips to the second step:
+
+When run for the second time in a sequence, deletes all the
+spaces it has previously inserted.
+
+When run for the third time, returns the whitespace and point in
+a state encountered when it had been run for the first time.
+
+For example, if buffer contains \"foo ^ bar\" with \"^\" denoting the
+point, calling `cycle-spacing' command will replace two spaces with
+a single space, calling it again immediately after, will remove all
+spaces, and calling it for the third time will bring two spaces back
+together.
+
+If N is negative, delete newlines as well.  However, if
+PRESERVE-NL-BACK is t new line characters prior to the point
+won't be removed.
+
+If SINGLE-SHOT is non-nil, will only perform the first step.  In
+other words, it will work just like `just-one-space' command."
+  (interactive "*p")
+  (let ((orig-pos	 (point))
+	(skip-characters (if (and n (< n 0)) " \t\n\r" " \t"))
+	(n		 (abs (or n 1))))
+    (skip-chars-backward (if preserve-nl-back " \t" skip-characters))
     (constrain-to-field nil orig-pos)
-    (dotimes (_ n)
-      (if (= (following-char) ?\s)
-	  (forward-char 1)
-	(insert ?\s)))
-    (delete-region
-     (point)
-     (progn
-       (skip-chars-forward skip-characters)
-       (constrain-to-field nil orig-pos t)))))
+    (cond
+     ;; Command run for the first time or single-shot is non-nil.
+     ((or single-shot
+	  (not (equal last-command this-command))
+	  (not cycle-spacing--context))
+      (let* ((start (point))
+	     (n	    (- n (skip-chars-forward " " (+ n (point)))))
+	     (mid   (point))
+	     (end   (progn
+		      (skip-chars-forward skip-characters)
+		      (constrain-to-field nil orig-pos t))))
+	(setq cycle-spacing--context  ;; Save for later.
+	      ;; Special handling for case where there was no space at all.
+	      (unless (= start end)
+		(cons orig-pos (buffer-substring start (point)))))
+	;; If this run causes no change in buffer content, delete all spaces,
+	;; otherwise delete all excees spaces.
+	(delete-region (if (and (not single-shot) (zerop n) (= mid end))
+			   start mid) end)
+        (insert (make-string ?\s n))))
+
+     ;; Command run for the second time.
+     ((not (equal orig-pos (point)))
+      (delete-region (point) orig-pos))
+
+     ;; Command run for the third time.
+     (t
+      (insert (cdr cycle-spacing--context))
+      (goto-char (car cycle-spacing--context))
+      (setq cycle-spacing--context nil)))))
 
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer.

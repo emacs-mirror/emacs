@@ -1,3 +1,8 @@
+2013-01-31  Michal Nazarewicz  <mina86@mina86.com>
+
+	* simple.el (cycle-spacing): New command.
+	(just-one-space): Use it.
+
 2013-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/opascal.el: Rename from delphi.el.  Use lexical-binding.

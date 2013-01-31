@@ -163,6 +163,11 @@ when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
 it works like the utility `uniq'.  Otherwise by default it deletes
 duplicate lines everywhere in the region without regard to adjacency.
 
+** New `cycle-spacing' command allows cycling between having just one
+space, no spaces, or reverting to the original spacing.  Like
+`just-one-space' command it can handle or ignore newlines and
+leave different number of spaces.
+
 ** Tramp
 +++
 *** New connection method "adb", which allows to access Android
