@@ -9,12 +9,13 @@ MPMPF = lockix.c thix.c pthrdext.c vmix.c \
         protix.c protsgix.c prmcan.c prmci3fr.c ssixi3.c span.c
 
 LIBS = -lm -pthread
+LINKFLAGS = -L/usr/local/lib
 
 include gc.gmk
 
 # FIXME: We pun types through the MPS interface, setting off this warning.
 # Can we avoid this?  The puns might indeed be dangerous.
-CFLAGSCOMPILER := $(CFLAGSCOMPILER) -Wno-strict-aliasing
+CFLAGSCOMPILER := $(CFLAGSCOMPILER) -Wno-strict-aliasing -I/usr/local/include
 
 CC = cc
 
