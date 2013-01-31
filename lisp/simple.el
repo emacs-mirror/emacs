@@ -805,7 +805,7 @@ other words, it will work just like `just-one-space' command."
 	;; otherwise delete all excees spaces.
 	(delete-region (if (and (not single-shot) (zerop n) (= mid end))
 			   start mid) end)
-        (insert (make-string ?\s n))))
+        (insert (make-string n ?\s))))
 
      ;; Command run for the second time.
      ((not (equal orig-pos (point)))
