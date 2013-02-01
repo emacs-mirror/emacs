@@ -1,3 +1,7 @@
+2013-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Only README files exist in lisp/ now, not README*.
+
 2013-01-23  Giorgos Keramidas  <gkeramidas@gmail.com>  (tiny change)
 
 	* .bzrignore: add lib-src/blessmail.

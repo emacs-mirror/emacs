@@ -314,7 +314,7 @@ done
 
 echo "Making links to \`lisp' and its subdirectories"
 files=`find lisp \( -name '*.el' -o -name '*.elc' -o -name 'ChangeLog*' \
- -o -name 'README*' \)`
+ -o -name 'README' \)`
 
 ### Don't distribute site-init.el, site-load.el, or default.el.
 for file in lisp/Makefile.in lisp/makefile.w32-in $files; do

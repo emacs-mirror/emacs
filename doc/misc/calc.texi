@@ -9910,7 +9910,8 @@ listed.
 @kindex h n
 The @kbd{h n} or @kbd{h C-n} (@code{calc-view-news}) command displays
 the ``news'' or change history of Emacs, and jumps to the most recent
-portion concerning Calc (if present).
+portion concerning Calc (if present).  For older history, see the file
+@file{etc/CALC-NEWS} in the Emacs distribution.
 
 @kindex h C-c
 @kindex h C-d
