@@ -52,9 +52,9 @@ char *careadlinkat (int fd, char const *filename,
                     ssize_t (*preadlinkat) (int, char const *,
                                             char *, size_t));
 
-/* Suitable values for careadlinkat's FD and PREADLINKAT arguments,
+/* Suitable value for careadlinkat's FD argument,
    when doing a plain readlink:
-   Pass FD = AT_FDCWD and PREADLINKAT = careadlinkatcwd.  */
+   Pass FD = AT_FDCWD.  */
 #if HAVE_READLINKAT
 /* AT_FDCWD is declared in <fcntl.h>.  */
 #else
@@ -66,7 +66,5 @@ char *careadlinkat (int fd, char const *filename,
 #  define AT_FDCWD (-3041965)
 # endif
 #endif
-ssize_t careadlinkatcwd (int fd, char const *filename,
-                         char *buffer, size_t buffer_size);
 
 #endif /* _GL_CAREADLINKAT_H */

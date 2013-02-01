@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <grp.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <dirent.h>
@@ -54,6 +55,7 @@ static Lisp_Object Qfile_attributes;
 static Lisp_Object Qfile_attributes_lessp;
 
 static ptrdiff_t scmp (const char *, const char *, ptrdiff_t);
+static Lisp_Object file_attributes (int, char const *, Lisp_Object);
 
 /* Return the number of bytes in DP's name.  */
 static ptrdiff_t
@@ -64,6 +66,44 @@ dirent_namelen (struct dirent *dp)
 #else
   return strlen (dp->d_name);
 #endif
+}
+
+static DIR *
+open_directory (char const *name, int *fdp)
+{
+  DIR *d;
+  int fd, opendir_errno;
+
+  block_input ();
+
+#ifdef DOS_NT
+  /* Directories cannot be opened.  The emulation assumes that any
+     file descriptor other than AT_FDCWD corresponds to the most
+     recently opened directory.  This hack is good enough for Emacs.  */
+  fd = 0;
+  d = opendir (name);
+  opendir_errno = errno;
+#else
+  fd = emacs_open (name, O_RDONLY | O_DIRECTORY, 0);
+  if (fd < 0)
+    {
+      opendir_errno = errno;
+      d = 0;
+    }
+  else
+    {
+      d = fdopendir (fd);
+      opendir_errno = errno;
+      if (! d)
+	close (fd);
+    }
+#endif
+
+  unblock_input ();
+
+  *fdp = fd;
+  errno = opendir_errno;
+  return d;
 }
 
 #ifdef WINDOWSNT
@@ -96,6 +136,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 			  Lisp_Object id_format)
 {
   DIR *d;
+  int fd;
   ptrdiff_t directory_nbytes;
   Lisp_Object list, dirfilename, encoded_directory;
   struct re_pattern_buffer *bufp = NULL;
@@ -142,9 +183,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   /* Now *bufp is the compiled form of MATCH; don't call anything
      which might compile a new regexp until we're done with the loop!  */
 
-  block_input ();
-  d = opendir (SSDATA (dirfilename));
-  unblock_input ();
+  d = open_directory (SSDATA (dirfilename), &fd);
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
 
@@ -259,20 +298,9 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
 	  if (attrs)
 	    {
-	      /* Construct an expanded filename for the directory entry.
-		 Use the decoded names for input to Ffile_attributes.  */
-	      Lisp_Object decoded_fullname, fileattrs;
-	      struct gcpro gcpro1, gcpro2;
-
-	      decoded_fullname = fileattrs = Qnil;
-	      GCPRO2 (decoded_fullname, fileattrs);
-
-	      /* Both Fexpand_file_name and Ffile_attributes can GC.  */
-	      decoded_fullname = Fexpand_file_name (name, directory);
-	      fileattrs = Ffile_attributes (decoded_fullname, id_format);
-
+	      Lisp_Object fileattrs
+		= file_attributes (fd, dp->d_name, id_format);
 	      list = Fcons (Fcons (finalname, fileattrs), list);
-	      UNGCPRO;
 	    }
 	  else
 	    list = Fcons (finalname, list);
@@ -413,8 +441,7 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   return file_name_completion (file, directory, 1, Qnil);
 }
 
-static int file_name_completion_stat (Lisp_Object dirname, struct dirent *dp,
-				      struct stat *st_addr);
+static int file_name_completion_stat (int, struct dirent *, struct stat *);
 static Lisp_Object Qdefault_directory;
 
 static Lisp_Object
@@ -422,6 +449,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 		      Lisp_Object predicate)
 {
   DIR *d;
+  int fd;
   ptrdiff_t bestmatchsize = 0;
   int matchcount = 0;
   /* If ALL_FLAG is 1, BESTMATCH is the list of all matches, decoded.
@@ -458,9 +486,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
   encoded_dir = ENCODE_FILE (dirname);
 
-  block_input ();
-  d = opendir (SSDATA (Fdirectory_file_name (encoded_dir)));
-  unblock_input ();
+  d = open_directory (SSDATA (Fdirectory_file_name (encoded_dir)), &fd);
   if (!d)
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
@@ -495,7 +521,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 			SCHARS (encoded_file)))
 	continue;
 
-      if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
+      if (file_name_completion_stat (fd, dp, &st) < 0)
 	continue;
 
       directoryp = S_ISDIR (st.st_mode) != 0;
@@ -772,14 +798,9 @@ scmp (const char *s1, const char *s2, ptrdiff_t len)
 }
 
 static int
-file_name_completion_stat (Lisp_Object dirname, struct dirent *dp,
-			   struct stat *st_addr)
+file_name_completion_stat (int fd, struct dirent *dp, struct stat *st_addr)
 {
-  ptrdiff_t len = dirent_namelen (dp);
-  ptrdiff_t pos = SCHARS (dirname);
   int value;
-  USE_SAFE_ALLOCA;
-  char *fullname = SAFE_ALLOCA (len + pos + 2);
 
 #ifdef MSDOS
   /* Some fields of struct stat are *very* expensive to compute on MS-DOS,
@@ -792,23 +813,15 @@ file_name_completion_stat (Lisp_Object dirname, struct dirent *dp,
   _djstat_flags = _STAT_INODE | _STAT_EXEC_MAGIC | _STAT_DIRSIZE;
 #endif /* MSDOS */
 
-  memcpy (fullname, SDATA (dirname), pos);
-  if (!IS_DIRECTORY_SEP (fullname[pos - 1]))
-    fullname[pos++] = DIRECTORY_SEP;
-
-  memcpy (fullname + pos, dp->d_name, len);
-  fullname[pos + len] = 0;
-
   /* We want to return success if a link points to a nonexistent file,
      but we want to return the status for what the link points to,
      in case it is a directory.  */
-  value = lstat (fullname, st_addr);
+  value = fstatat (fd, dp->d_name, st_addr, AT_SYMLINK_NOFOLLOW);
   if (value == 0 && S_ISLNK (st_addr->st_mode))
-    stat (fullname, st_addr);
+    fstatat (fd, dp->d_name, st_addr, 0);
 #ifdef MSDOS
   _djstat_flags = save_djstat_flags;
 #endif /* MSDOS */
-  SAFE_FREE ();
   return value;
 }
 
@@ -886,18 +899,8 @@ On some FAT-based filesystems, only the date of last access is recorded,
 so last access time will always be midnight of that day.  */)
   (Lisp_Object filename, Lisp_Object id_format)
 {
-  Lisp_Object values[12];
   Lisp_Object encoded;
-  struct stat s;
-  int lstat_result;
-
-  /* An array to hold the mode string generated by filemodestring,
-     including its terminating space and null byte.  */
-  char modes[sizeof "-rwxr-xr-x "];
-
   Lisp_Object handler;
-  struct gcpro gcpro1;
-  char *uname = NULL, *gname = NULL;
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -913,9 +916,22 @@ so last access time will always be midnight of that day.  */)
 	return call3 (handler, Qfile_attributes, filename, id_format);
     }
 
-  GCPRO1 (filename);
   encoded = ENCODE_FILE (filename);
-  UNGCPRO;
+  return file_attributes (AT_FDCWD, SSDATA (encoded), id_format);
+}
+
+static Lisp_Object
+file_attributes (int fd, char const *name, Lisp_Object id_format)
+{
+  Lisp_Object values[12];
+  struct stat s;
+  int lstat_result;
+
+  /* An array to hold the mode string generated by filemodestring,
+     including its terminating space and null byte.  */
+  char modes[sizeof "-rwxr-xr-x "];
+
+  char *uname = NULL, *gname = NULL;
 
 #ifdef WINDOWSNT
   /* We usually don't request accurate owner and group info, because
@@ -925,7 +941,7 @@ so last access time will always be midnight of that day.  */)
   w32_stat_get_owner_group = 1;
 #endif
 
-  lstat_result = lstat (SSDATA (encoded), &s);
+  lstat_result = fstatat (fd, name, &s, AT_SYMLINK_NOFOLLOW);
 
 #ifdef WINDOWSNT
   w32_stat_get_owner_group = 0;
@@ -934,7 +950,7 @@ so last access time will always be midnight of that day.  */)
   if (lstat_result < 0)
     return Qnil;
 
-  values[0] = (S_ISLNK (s.st_mode) ? Ffile_symlink_p (filename)
+  values[0] = (S_ISLNK (s.st_mode) ? emacs_readlinkat (fd, name)
 	       : S_ISDIR (s.st_mode) ? Qt : Qnil);
   values[1] = make_number (s.st_nlink);
 

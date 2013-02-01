@@ -110,6 +110,7 @@ _CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
 _CRTIMP int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
 _CRTIMP int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
 _CRTIMP int __cdecl __MINGW_NOTHROW	lstat (const char*, struct stat*);
+_CRTIMP int __cdecl __MINGW_NOTHROW	fstatat (int, char const *,
+						 struct stat *, int);
 
 #endif	/* INC_SYS_STAT_H_ */
-

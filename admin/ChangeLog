@@ -1,3 +1,10 @@
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* merge-gnulib (GNULIB_MODULES): Add fdopendir, fstatat, readlinkat.
+	(GNULIB_TOOL_FLAGS): Do not avoid at-internal, openat-h.
+	Avoid dup, open, opendir.
+
 2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coccinelle/xsave.cocci: Semantic patch to adjust users of

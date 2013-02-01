@@ -4274,6 +4274,30 @@ lstat (const char * path, struct stat * buf)
   return stat_worker (path, buf, 0);
 }
 
+int
+fstatat (int fd, char const *name, struct stat *st, int flags)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0.
+     This is good enough for the current usage in Emacs, but is fragile.
+
+     FIXME: Add proper support for fdopendir, fstatatat, readlinkat.
+     Gnulib does this and can serve as a model.  */
+  char fullname[MAX_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, name)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      name = fullname;
+    }
+
+  return stat_worker (name, st, ! (flags & AT_SYMLINK_NOFOLLOW));
+}
+
 /* Provide fstat and utime as well as stat for consistent handling of
    file timestamps. */
 int
@@ -4816,6 +4840,28 @@ readlink (const char *name, char *buf, size_t buf_size)
   return retval;
 }
 
+ssize_t
+readlinkat (int fd, char const *name, char *buffer,
+	    size_t buffer_size)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     as in fstatat.  FIXME: Add proper support for readlinkat.  */
+  char fullname[MAX_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, name)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      name = fullname;
+    }
+
+  return readlink (name, buffer, buffer_size);
+}
+
 /* If FILE is a symlink, return its target (stored in a static
    buffer); otherwise return FILE.
 
@@ -5168,12 +5214,6 @@ careadlinkat (int fd, char const *filename,
   char linkname[MAX_PATH];
   ssize_t link_size;
 
-  if (fd != AT_FDCWD)
-    {
-      errno = EINVAL;
-      return NULL;
-    }
-
   link_size = preadlinkat (fd, filename, linkname, sizeof(linkname));
 
   if (link_size > 0)
@@ -5189,14 +5229,6 @@ careadlinkat (int fd, char const *filename,
       return retval;
     }
   return NULL;
-}
-
-ssize_t
-careadlinkatcwd (int fd, char const *filename, char *buffer,
-                 size_t buffer_size)
-{
-  (void) fd;
-  return readlink (filename, buffer, buffer_size);
 }
 
 

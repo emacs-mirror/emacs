@@ -1,3 +1,34 @@
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* conf_post.h (GNULIB_SUPPORT_ONLY_AT_FDCWD): Remove.
+	* dired.c: Include <fcntl.h>.
+	(open_directory): New function, which uses open and fdopendir
+	rather than opendir.  DOS_NT platforms still use opendir, though.
+	(directory_files_internal, file_name_completion): Use it.
+	(file_attributes): New function, with most of the old Ffile_attributes.
+	(directory_files_internal, Ffile_attributes): Use it.
+	(file_attributes, file_name_completion_stat): First arg is now fd,
+	not dir name.  All uses changed.  Use fstatat rather than lstat +
+	stat.
+	(file_attributes): Use emacs_readlinkat rather than Ffile_symlink_p.
+	* fileio.c: Include <allocator.h>, <careadlinkat.h>.
+	(emacs_readlinkat): New function, with much of the old
+	Ffile_symlink_p, but with an fd argument for speed.
+	It uses readlinkat rather than careadlinkatcwd, so that it
+	need not assume the working directory.
+	(Ffile_symlink_p): Use it.
+	* filelock.c (current_lock_owner): Use emacs_readlinkat
+	rather than emacs_readlink.
+	* lisp.h (emacs_readlinkat): New decl.
+	(READLINK_BUFSIZE, emacs_readlink): Remove.
+	* sysdep.c: Do not include <allocator.h>, <careadlinkat.h>.
+	(emacs_norealloc_allocator, emacs_readlink): Remove.
+	This stuff is moved to fileio.c.
+	* w32.c (fstatat, readlinkat): New functions.
+	(careadlinkat): Don't check that fd == AT_FDCWD.
+	(careadlinkatcwd): Remove; no longer needed.
+
 2013-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (choose_write_coding_system): Make it callable from Lisp.

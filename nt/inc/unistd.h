@@ -12,6 +12,7 @@
    and whose prototypes are usually found in unistd.h on POSIX
    platforms.  */
 extern ssize_t readlink (const char *, char *, size_t);
+extern ssize_t readlinkat (int, const char *, char *, size_t);
 extern int symlink (char const *, char const *);
 extern int setpgid (pid_t, pid_t);
 extern pid_t getpgrp (void);

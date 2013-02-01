@@ -390,12 +390,14 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   lock_info_type local_owner;
   intmax_t n;
   char *at, *dot, *colon;
-  char readlink_buf[READLINK_BUFSIZE];
-  char *lfinfo = emacs_readlink (lfname, readlink_buf);
+  Lisp_Object lfinfo_object = emacs_readlinkat (AT_FDCWD, lfname);
+  char *lfinfo;
+  struct gcpro gcpro1;
 
   /* If nonexistent lock file, all is well; otherwise, got strange error. */
-  if (!lfinfo)
+  if (NILP (lfinfo_object))
     return errno == ENOENT ? 0 : -1;
+  lfinfo = SSDATA (lfinfo_object);
 
   /* Even if the caller doesn't want the owner info, we still have to
      read it to determine return value.  */
@@ -407,12 +409,9 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   at = strrchr (lfinfo, '@');
   dot = strrchr (lfinfo, '.');
   if (!at || !dot)
-    {
-      if (lfinfo != readlink_buf)
-	xfree (lfinfo);
-      return -1;
-    }
+    return -1;
   len = at - lfinfo;
+  GCPRO1 (lfinfo_object);
   owner->user = xmalloc (len + 1);
   memcpy (owner->user, lfinfo, len);
   owner->user[len] = 0;
@@ -445,8 +444,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   owner->host[len] = 0;
 
   /* We're done looking at the link info.  */
-  if (lfinfo != readlink_buf)
-    xfree (lfinfo);
+  UNGCPRO;
 
   /* On current host?  */
   if (STRINGP (Fsystem_name ())

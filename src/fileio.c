@@ -82,6 +82,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "systime.h"
+#include <allocator.h>
+#include <careadlinkat.h>
 #include <stat-time.h>
 
 #ifdef HPUX
@@ -2759,6 +2761,29 @@ If there is no error, returns nil.  */)
   return Qnil;
 }
 
+/* Relative to directory FD, return the symbolic link value of FILENAME.
+   On failure, return nil.  */
+Lisp_Object
+emacs_readlinkat (int fd, char const *filename)
+{
+  static struct allocator const emacs_norealloc_allocator =
+    { xmalloc, NULL, xfree, memory_full };
+  Lisp_Object val;
+  char readlink_buf[1024];
+  char *buf = careadlinkat (fd, filename, readlink_buf, sizeof readlink_buf,
+			    &emacs_norealloc_allocator, readlinkat);
+  if (!buf)
+    return Qnil;
+
+  val = build_string (buf);
+  if (buf[0] == '/' && strchr (buf, ':'))
+    val = concat2 (build_string ("/:"), val);
+  if (buf != readlink_buf)
+    xfree (buf);
+  val = DECODE_FILE (val);
+  return val;
+}
+
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
        doc: /* Return non-nil if file FILENAME is the name of a symbolic link.
 The value is the link target, as a string.
@@ -2769,9 +2794,6 @@ points to a nonexistent file.  */)
   (Lisp_Object filename)
 {
   Lisp_Object handler;
-  char *buf;
-  Lisp_Object val;
-  char readlink_buf[READLINK_BUFSIZE];
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -2784,17 +2806,7 @@ points to a nonexistent file.  */)
 
   filename = ENCODE_FILE (filename);
 
-  buf = emacs_readlink (SSDATA (filename), readlink_buf);
-  if (! buf)
-    return Qnil;
-
-  val = build_string (buf);
-  if (buf[0] == '/' && strchr (buf, ':'))
-    val = concat2 (build_string ("/:"), val);
-  if (buf != readlink_buf)
-    xfree (buf);
-  val = DECODE_FILE (val);
-  return val;
+  return emacs_readlinkat (AT_FDCWD, SSDATA (filename));
 }
 
 DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,

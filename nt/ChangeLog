@@ -1,3 +1,9 @@
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* inc/sys/stat.h (fstatat):
+	* inc/unistd.h (readlinkat): New decls.
+
 2013-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/dirent.h (opendir): Update prototype.

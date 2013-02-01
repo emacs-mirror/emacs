@@ -29,9 +29,9 @@ GNULIB_MODULES='
   alloca-opt c-ctype c-strcase
   careadlinkat close-stream crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
   dtoastr dtotimespec dup2 environ execinfo faccessat
-  fcntl-h filemode getloadavg getopt-gnu gettime gettimeofday
+  fcntl-h fdopendir filemode fstatat getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
-  manywarnings mktime pselect pthread_sigmask putenv readlink
+  manywarnings mktime pselect pthread_sigmask putenv readlink readlinkat
   sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
   sys_time time timer-time timespec-add timespec-sub unsetenv utimens
@@ -39,10 +39,10 @@ GNULIB_MODULES='
 '
 
 GNULIB_TOOL_FLAGS='
-  --avoid=at-internal
+  --avoid=dup
   --avoid=errno --avoid=fchdir --avoid=fcntl --avoid=fstat
   --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
-  --avoid=openat-die --avoid=openat-h
+  --avoid=open --avoid=openat-die --avoid=opendir
   --avoid=raise
   --avoid=save-cwd --avoid=select --avoid=sigprocmask --avoid=sys_types
   --avoid=threadlib

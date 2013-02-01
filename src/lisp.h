@@ -3294,6 +3294,7 @@ extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
 extern bool internal_delete_file (Lisp_Object);
+extern Lisp_Object emacs_readlinkat (int, const char *);
 extern bool file_directory_p (const char *);
 extern bool file_accessible_directory_p (const char *);
 extern void init_fileio (void);
@@ -3566,8 +3567,6 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern ptrdiff_t emacs_read (int, char *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, const char *, ptrdiff_t);
-enum { READLINK_BUFSIZE = 1024 };
-extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
 
 extern void unlock_all_files (void);
 extern void lock_file (Lisp_Object);

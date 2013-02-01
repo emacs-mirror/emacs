@@ -1,3 +1,23 @@
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	On my host, this speeds up directory-files-and-attributes by a
+	factor of 3, when applied to Emacs's src directory.
+	These functions are standardized by POSIX and are common these
+	days; fall back on a (slower) gnulib implementation if the host
+	is too old to supply them.
+	* .bzrignore: Add lib/dirent.h.
+	* lib/Makefile.am (libgnu_a_SOURCES): Add openat-die.c, save-cwd.c.
+	* lib/careadlinkat.c, lib/careadlinkat.h: Merge from gnulib,
+	incorporating: 2013-01-29 careadlinkat: do not provide careadlinkatcwd.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/dirent.in.h, lib/fdopendir.c, lib/fstatat.c, lib/openat-priv.h:
+	* lib/openat-proc.c, lib/openat.h, m4/dirent_h.m4, m4/fdopendir.m4:
+	* m4/fstatat.m4: New files, from gnulib.
+	* lib/openat-die.c, lib/save-cwd.c, lib/save-cwd.h: New files.
+	These last three are specific to Emacs and are not copied from gnulib.
+	They are simpler than the gnulib versions and are tuned for Emacs.
+
 2013-02-01  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Only README files exist in lisp/ now, not README*.

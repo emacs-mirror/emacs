@@ -182,10 +182,6 @@ extern void _DebPrint (const char *fmt, ...);
 #endif
 #endif
 
-/* Tell gnulib to omit support for openat-related functions having a
-   first argument other than AT_FDCWD.  */
-#define GNULIB_SUPPORT_ONLY_AT_FDCWD
-
 #include <string.h>
 #include <stdlib.h>
 
