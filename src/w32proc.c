@@ -1431,7 +1431,6 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   child_process *cp;
   int is_dos_app, is_cygnus_app, is_gui_app;
   int do_quoting = 0;
-  char escape_char;
   /* We pass our process ID to our children by setting up an environment
      variable in their environment.  */
   char ppid_env_var_buffer[64];
@@ -1444,6 +1443,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      Some extra whitespace characters need quoting in Cygwin programs,
      so this list is conditionally modified below.  */
   char *sepchars = " \t*?";
+  /* This is for native w32 apps; modified below for Cygwin apps.  */
+  char escape_char = '\\';
 
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)

@@ -1,3 +1,8 @@
+2013-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (sys_spawnve): Make sure escape_char is initialized,
+	even if w32-quote-process-args is nil.
+
 2013-01-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_open): Zero out the flags for the new file descriptor.
