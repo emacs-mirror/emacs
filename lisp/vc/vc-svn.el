@@ -123,7 +123,7 @@ If you want to force an empty list of arguments, use t."
 ;;;###autoload                           "_svn")
 ;;;###autoload                          (t ".svn"))))
 ;;;###autoload     (when (vc-find-root f admin-dir)
-;;;###autoload       (load "vc-svn")
+;;;###autoload       (load "vc-svn" nil t)
 ;;;###autoload       (vc-svn-registered f))))
 
 (defun vc-svn-registered (file)

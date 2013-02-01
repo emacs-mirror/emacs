@@ -291,7 +291,7 @@ in the repository root directory of FILE."
 ;;;###autoload (defun vc-bzr-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-bzr-admin-checkout-format-file)
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-bzr")
+;;;###autoload         (load "vc-bzr" nil t)
 ;;;###autoload         (vc-bzr-registered file))))
 
 (defun vc-bzr-registered (file)

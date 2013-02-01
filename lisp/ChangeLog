@@ -1,5 +1,14 @@
 2012-02-01  Christopher Schmidt  <christopher@ch.ristopher.com>
 
+	* vc/vc-arch.el (vc-arch-registered):
+	* vc/vc-bzr.el (vc-bzr-registered):
+	* vc/vc-cvs.el (vc-cvs-registered):
+	* vc/vc-git.el (vc-git-registered):
+	* vc/vc-hg.el (vc-hg-registered):
+	* vc/vc-mtn.el (vc-mtn-registered):
+	* vc/vc-svn.el (vc-svn-registered): Suppress load messages.
+	(Bug#13139)
+
 	* info.el (Info-next-reference, Info-prev-reference): Add numeric
 	prefix argument.  (Bug#11656)
 

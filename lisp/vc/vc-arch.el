@@ -101,7 +101,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;;###autoload (defun vc-arch-registered (file)
 ;;;###autoload   (if (vc-find-root file "{arch}/=tagging-method")
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-arch")
+;;;###autoload         (load "vc-arch" nil t)
 ;;;###autoload         (vc-arch-registered file))))
 
 (defun vc-arch-add-tagline ()

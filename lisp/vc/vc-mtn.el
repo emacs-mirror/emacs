@@ -72,7 +72,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;;###autoload (defun vc-mtn-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-mtn-admin-format)
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-mtn")
+;;;###autoload         (load "vc-mtn" nil t)
 ;;;###autoload         (vc-mtn-registered file))))
 
 (defun vc-mtn-revision-granularity () 'repository)

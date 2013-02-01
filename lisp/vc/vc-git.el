@@ -168,7 +168,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
 ;;;###autoload   "Return non-nil if FILE is registered with git."
 ;;;###autoload   (if (vc-find-root file ".git")       ; Short cut.
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-git")
+;;;###autoload         (load "vc-git" nil t)
 ;;;###autoload         (vc-git-registered file))))
 
 (defun vc-git-registered (file)
