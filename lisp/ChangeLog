@@ -1,3 +1,15 @@
+2013-02-01  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (perform-replace): Move let-bindings of isearch-*
+	variables deeper to the loop that searches for the next match.
+	Add bindings for `isearch-nonincremental' and `isearch-adjusted'.
+	Use `isearch-search-fun-default' instead of `isearch-search-fun'.
+	(Bug#13579)
+
+	* isearch.el (isearch-search-fun-default): Check for null
+	first element of isearch-cmds as a precaution when it's used
+	with inactive isearch.
+
 2013-02-01  Andrew W. Nosenko  <andrew.w.nosenko@gmail.com>  (tiny change)
 
 	* net/tramp.el (tramp-check-for-regexp): Avoid "Args out of range"
