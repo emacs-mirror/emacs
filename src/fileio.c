@@ -5036,7 +5036,11 @@ This calls `write-region-annotate-functions' at the start, and
 	      && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
 	    {
 	      EMACS_TIME modtime1 = get_stat_mtime (&st1);
-	      if (EMACS_TIME_EQ (modtime, modtime1)
+	      /* If neither O_EXCL nor O_TRUNC is used, and Emacs happened to
+		 write nothing to the file, the file's time stamp won't change
+		 so it should not be used in this heuristic.  */
+	      if ((open_flags & (O_EXCL | O_TRUNC)) != 0
+		  && EMACS_TIME_EQ (modtime, modtime1)
 		  && st.st_size == st1.st_size)
 		{
 		  timestamp_file_system = st.st_dev;

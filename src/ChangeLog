@@ -1,3 +1,12 @@
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix timestamp bug when write-region appends nothing (Bug#13149).
+	* fileio.c (Fwrite_region): When neither O_EXCL nor O_TRUNC is used,
+	the file's time stamp doesn't change if Emacs happens to write nothing
+	to the file, and on a buggy file system this could cause Emacs to
+	incorrectly infer that the file system doesn't have the bug.
+	Avoid this problem by inhibiting the inference in this case.
+
 2013-02-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Convert base_line_number, base_line_pos
