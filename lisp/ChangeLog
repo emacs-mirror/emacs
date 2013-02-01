@@ -1,5 +1,8 @@
 2013-02-01  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-hooks.el (vc-menu-map): Disable vc-rollback menu item
+	if the backend is known not to support it.
+
 	* imenu.el (imenu-default-create-index-function):
 	Tweak infinite loop test to check for forward motion as well as none.
 

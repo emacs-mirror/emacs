@@ -976,6 +976,10 @@ current, and kill the buffer that visits the link."
 "))
     (bindings--define-key map [undo]
       '(menu-item "Undo Last Check-In" vc-rollback
+                  :enable (let ((backend (if buffer-file-name
+                                             (vc-backend buffer-file-name))))
+                            (or (not backend)
+                                (vc-find-backend-function backend 'rollback)))
 		  :help "Remove the most recent changeset committed to the repository"))
     (bindings--define-key map [vc-revert]
       '(menu-item "Revert to Base Version" vc-revert
