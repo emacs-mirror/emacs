@@ -1,3 +1,22 @@
+2013-02-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (struct window): Convert base_line_number, base_line_pos
+	and column_number_displayed members from Lisp_Object to ptrdiff_t.
+	Convert region_showing member from Lisp_Object to bitfield.
+	Remove sequence_number member.  Adjust comments.
+	* window.c (sequence_number): Remove.
+	(make_window): Initialize column_number_displayed.
+	* print.c (print_object): Follow the printed representation of
+	frames and print window pointer to distinguish between windows.
+	(adjust_window_count): Invalidate base_line_pos.  Adjust comment.
+	* xdisp.c (wset_base_line_number, wset_base_line_pos)
+	(wset_column_number_displayed, wset_region_showing): Remove.
+	(window_buffer_changed, mode_line_update_needed, redisplay_internal)
+	(try_scrolling, try_cursor_movement, redisplay_window)
+	(try_window_reusing_current_matrix, try_window_id, display_line)
+	(display_mode_lines, decode_mode_spec): Adjust users.
+	* .gdbinit (pwinx): Do not print sequence_number.
+
 2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).

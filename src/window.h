@@ -192,23 +192,6 @@ struct window
        and Qt, so bitfield can't be used here.  */
     Lisp_Object dedicated;
 
-    /* Line number and position of a line somewhere above the top of the
-       screen.  If this field is nil, it means we don't have a base
-       line.  */
-    Lisp_Object base_line_number;
-    /* If this field is nil, it means we don't have a base line.
-       If it is a buffer, it means don't display the line number
-       as long as the window shows that buffer.  */
-    Lisp_Object base_line_pos;
-
-    /* If we have highlighted the region (or any part of it),
-       this is the mark position that we used, as an integer.  */
-    Lisp_Object region_showing;
-
-    /* The column number currently displayed in this window's mode line,
-       or nil if column numbers are not being displayed.  */
-    Lisp_Object column_number_displayed;
-
     /* If redisplay in this window goes beyond this buffer position,
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
@@ -238,9 +221,6 @@ struct window
     /* Number saying how recently window was selected.  */
     int use_time;
 
-    /* Unique number of window assigned when it was created.  */
-    int sequence_number;
-
     /* Number of columns display within the window is scrolled to the left.  */
     ptrdiff_t hscroll;
 
@@ -259,6 +239,19 @@ struct window
     /* Value of point at that time.  Since this is a position in a buffer,
        it should be positive.  */
     ptrdiff_t last_point;
+
+    /* Line number and position of a line somewhere above the top of the
+       screen.  If this field is zero, it means we don't have a base line.  */
+    ptrdiff_t base_line_number;
+
+    /* If this field is zero, it means we don't have a base line.
+       If it is -1, it means don't display the line number as long
+       as the window shows its buffer.  */
+    ptrdiff_t base_line_pos;
+
+    /* The column number currently displayed in this window's mode
+       line, or -1 if column numbers are not being displayed.  */
+    ptrdiff_t column_number_displayed;
 
     /* Scaling factor for the glyph_matrix size calculation in this window.
        Used if window contains many small images or uses proportional fonts,
@@ -339,6 +332,9 @@ struct window
        This is zero if nontrivial redisplay is preempted since in that case
        the frame image that window_end_pos did not get onto the frame.  */
     unsigned window_end_valid : 1;
+
+    /* Nonzero if we have highlighted the region (or any part of it).  */
+    unsigned region_showing : 1;
 
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */

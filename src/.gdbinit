@@ -358,7 +358,6 @@ end
 
 define pwinx
   set $w = $arg0
-  xgetint $w->sequence_number
   if ($w->mini_p != Qnil)
     printf "Mini "
   end

@@ -116,9 +116,6 @@ Lisp_Object minibuf_selected_window;
 /* Hook run at end of temp_output_buffer_show.  */
 static Lisp_Object Qtemp_buffer_show_hook;
 
-/* Incremented for each window created.  */
-static int sequence_number;
-
 /* Nonzero after init_window_once has finished.  */
 static int window_initialized;
 
@@ -286,8 +283,9 @@ adjust_window_count (struct window *w, int arg)
 	b = b->base_buffer;
       b->window_count += arg;
       eassert (b->window_count >= 0);
-      /* Catch redisplay's attention.  */
+      /* These should be recalculated by redisplay code.  */
       w->window_end_valid = 0;
+      w->base_line_pos = 0;
     }
 }
 
@@ -3429,8 +3427,6 @@ make_parent_window (Lisp_Object window, int horflag)
   adjust_window_count (p, 1);
   XSETWINDOW (parent, p);
 
-  p->sequence_number = ++sequence_number;
-
   replace_window (window, parent, 1);
 
   wset_next (o, Qnil);
@@ -3479,7 +3475,7 @@ make_window (void)
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
-  w->sequence_number = ++sequence_number;
+  w->column_number_displayed = -1;
 
   /* Reset window_list.  */
   Vwindow_list = Qnil;

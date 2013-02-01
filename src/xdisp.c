@@ -367,28 +367,6 @@ Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
 
-/* These setters are used only in this file, so they can be private.  */
-static void
-wset_base_line_number (struct window *w, Lisp_Object val)
-{
-  w->base_line_number = val;
-}
-static void
-wset_base_line_pos (struct window *w, Lisp_Object val)
-{
-  w->base_line_pos = val;
-}
-static void
-wset_column_number_displayed (struct window *w, Lisp_Object val)
-{
-  w->column_number_displayed = val;
-}
-static void
-wset_region_showing (struct window *w, Lisp_Object val)
-{
-  w->region_showing = val;
-}
-
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Test if overflow newline into fringe.  Called with iterator IT
@@ -10775,7 +10753,7 @@ window_buffer_changed (struct window *w)
 
   return (((BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)) != w->last_had_star)
 	  || ((!NILP (Vtransient_mark_mode) && !NILP (BVAR (b, mark_active)))
-	      != !NILP (w->region_showing)));
+	      != w->region_showing));
 }
 
 /* Nonzero if W has %c in its mode line and mode line should be updated.  */
@@ -10783,9 +10761,9 @@ window_buffer_changed (struct window *w)
 static int
 mode_line_update_needed (struct window *w)
 {
-  return (!NILP (w->column_number_displayed)
+  return (w->column_number_displayed != -1
 	  && !(PT == w->last_point && !window_outdated (w))
-	  && (XFASTINT (w->column_number_displayed) != current_column ()));
+	  && (w->column_number_displayed != current_column ()));
 }
 
 /***********************************************************************
@@ -13038,18 +13016,6 @@ redisplay_internal (void)
       clear_garbaged_frames ();
     }
 
-
-  /* If showing the region, and mark has changed, we must redisplay
-     the whole window.  The assignment to this_line_start_pos prevents
-     the optimization directly below this if-statement.  */
-  if (((!NILP (Vtransient_mark_mode)
-	&& !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
-       != !NILP (w->region_showing))
-      || (!NILP (w->region_showing)
-	  && !EQ (w->region_showing,
-		  Fmarker_position (BVAR (XBUFFER (w->buffer), mark)))))
-    CHARPOS (this_line_start_pos) = 0;
-
   /* Optimize the case that only the line containing the cursor in the
      selected window has changed.  Variables starting with this_ are
      set in display_line and record information about the line
@@ -13213,7 +13179,7 @@ redisplay_internal (void)
 	       && (EQ (selected_window,
 		       BVAR (current_buffer, last_selected_window))
 		   || highlight_nonselected_windows)
-	       && NILP (w->region_showing)
+	       && !w->region_showing
 	       && NILP (Vshow_trailing_whitespace)
 	       && !cursor_in_echo_area)
 	{
@@ -14710,7 +14676,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
       if (!just_this_one_p
 	  || current_buffer->clip_changed
 	  || BEG_UNCHANGED < CHARPOS (startp))
-	wset_base_line_number (w, Qnil);
+	w->base_line_number = 0;
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
@@ -14859,7 +14825,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
          region exists, cursor movement has to do more than just
          set the cursor.  */
       && markpos_of_region () < 0
-      && NILP (w->region_showing)
+      && !w->region_showing
       && NILP (Vshow_trailing_whitespace)
       /* This code is not used for mini-buffer for the sake of the case
 	 of redisplaying to replace an echo area message; since in
@@ -15425,7 +15391,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
       /* Forget any recorded base line for line number display.  */
       if (!buffer_unchanged_p)
-	wset_base_line_number (w, Qnil);
+	w->base_line_number = 0;
 
       /* Redisplay the mode line.  Select the buffer properly for that.
 	 Also, run the hook window-scroll-functions
@@ -15665,7 +15631,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      || current_buffer->clip_changed
 	      || BEG_UNCHANGED < CHARPOS (startp))
 	    /* Forget any recorded base line for line number display.  */
-	    wset_base_line_number (w, Qnil);
+	    w->base_line_number = 0;
 
 	  if (!cursor_row_fully_visible_p (w, 1, 0))
 	    {
@@ -15732,11 +15698,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   debug_method_add (w, "recenter");
 #endif
 
-  /* w->vscroll = 0; */
-
   /* Forget any previously recorded base line for line number display.  */
   if (!buffer_unchanged_p)
-    wset_base_line_number (w, Qnil);
+    w->base_line_number = 0;
 
   /* Determine the window start relative to point.  */
   init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
@@ -15956,10 +15920,10 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	   && !FRAME_WINDOW_P (f)
 	   && !WINDOW_FULL_WIDTH_P (w))
        /* Line number to display.  */
-       || INTEGERP (w->base_line_pos)
+       || w->base_line_pos > 0
        /* Column number is displayed and different from the one displayed.  */
-       || (!NILP (w->column_number_displayed)
-	   && (XFASTINT (w->column_number_displayed) != current_column ())))
+       || (w->column_number_displayed != -1
+	   && (w->column_number_displayed != current_column ())))
       /* This means that the window has a mode line.  */
       && (WINDOW_WANTS_MODELINE_P (w)
 	  || WINDOW_WANTS_HEADER_LINE_P (w)))
@@ -15990,11 +15954,10 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	goto need_larger_matrices;
     }
 
-  if (!line_number_displayed
-      && !BUFFERP (w->base_line_pos))
+  if (!line_number_displayed && w->base_line_pos != -1)
     {
-      wset_base_line_pos (w, Qnil);
-      wset_base_line_number (w, Qnil);
+      w->base_line_pos = 0;
+      w->base_line_number = 0;
     }
 
  finish_menu_bars:
@@ -16231,7 +16194,7 @@ try_window_reusing_current_matrix (struct window *w)
 
   /* Can't do this if region may have changed.  */
   if (0 <= markpos_of_region ()
-      || !NILP (w->region_showing)
+      || w->region_showing
       || !NILP (Vshow_trailing_whitespace))
     return 0;
 
@@ -17070,7 +17033,7 @@ try_window_id (struct window *w)
     GIVE_UP (11);
 
   /* Likewise if showing a region.  */
-  if (!NILP (w->region_showing))
+  if (w->region_showing)
     GIVE_UP (10);
 
   /* Can't use this if overlay arrow position and/or string have
@@ -19157,7 +19120,7 @@ display_line (struct it *it)
     }
 
   /* Is IT->w showing the region?  */
-  wset_region_showing (it->w, it->region_beg_charpos > 0 ? Qt : Qnil);
+  it->w->region_showing = it->region_beg_charpos > 0;
 
   /* Clear the result glyph row and enable it.  */
   prepare_desired_row (row);
@@ -20161,7 +20124,7 @@ display_mode_lines (struct window *w)
 
   /* These will be set while the mode line specs are processed.  */
   line_number_displayed = 0;
-  wset_column_number_displayed (w, Qnil);
+  w->column_number_displayed = -1;
 
   if (WINDOW_WANTS_MODELINE_P (w))
     {
@@ -21184,8 +21147,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
    returned with spaces to that value.  Return a Lisp string in
    *STRING if the resulting string is taken from that Lisp string.
 
-   Note we operate on the current buffer for most purposes,
-   the exception being w->base_line_pos.  */
+   Note we operate on the current buffer for most purposes.  */
 
 static char lots_of_dashes[] = "--------------------------------------------------------------------------------------------------------------------------------------------";
 
@@ -21296,7 +21258,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       else
 	{
 	  ptrdiff_t col = current_column ();
-	  wset_column_number_displayed (w, make_number (col));
+	  w->column_number_displayed = col;
 	  pint2str (decode_mode_spec_buf, width, col);
 	  return decode_mode_spec_buf;
 	}
@@ -21355,27 +21317,24 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 
 	/* If we decided that this buffer isn't suitable for line numbers,
 	   don't forget that too fast.  */
-	if (EQ (w->base_line_pos, w->buffer))
+	if (w->base_line_pos == -1)
 	  goto no_value;
-	/* But do forget it, if the window shows a different buffer now.  */
-	else if (BUFFERP (w->base_line_pos))
-	  wset_base_line_pos (w, Qnil);
 
 	/* If the buffer is very big, don't waste time.  */
 	if (INTEGERP (Vline_number_display_limit)
 	    && BUF_ZV (b) - BUF_BEGV (b) > XINT (Vline_number_display_limit))
 	  {
-	    wset_base_line_pos (w, Qnil);
-	    wset_base_line_number (w, Qnil);
+	    w->base_line_pos = 0;
+	    w->base_line_number = 0;
 	    goto no_value;
 	  }
 
-	if (INTEGERP (w->base_line_number)
-	    && INTEGERP (w->base_line_pos)
-	    && XFASTINT (w->base_line_pos) <= startpos)
+	if (w->base_line_number > 0
+	    && w->base_line_pos > 0
+	    && w->base_line_pos <= startpos)
 	  {
-	    line = XFASTINT (w->base_line_number);
-	    linepos = XFASTINT (w->base_line_pos);
+	    line = w->base_line_number;
+	    linepos = w->base_line_pos;
 	    linepos_byte = buf_charpos_to_bytepos (b, linepos);
 	  }
 	else
@@ -21398,8 +21357,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	   go back past it.  */
 	if (startpos == BUF_BEGV (b))
 	  {
-	    wset_base_line_number (w, make_number (topline));
-	    wset_base_line_pos (w, make_number (BUF_BEGV (b)));
+	    w->base_line_number = topline;
+	    w->base_line_pos = BUF_BEGV (b);
 	  }
 	else if (nlines < height + 25 || nlines > height * 3 + 50
 		 || linepos == BUF_BEGV (b))
@@ -21425,13 +21384,13 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	       give up on line numbers for this window.  */
 	    if (position == limit_byte && limit == startpos - distance)
 	      {
-		wset_base_line_pos (w, w->buffer);
-		wset_base_line_number (w, Qnil);
+		w->base_line_pos = -1;
+		w->base_line_number = 0;
 		goto no_value;
 	      }
 
-	    wset_base_line_number (w, make_number (topline - nlines));
-	    wset_base_line_pos (w, make_number (BYTE_TO_CHAR (position)));
+	    w->base_line_number = topline - nlines;
+	    w->base_line_pos = BYTE_TO_CHAR (position);
 	  }
 
 	/* Now count lines from the start pos to point.  */
