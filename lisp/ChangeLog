@@ -1,3 +1,7 @@
+2013-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (help-split-fundoc): Don't insert byte-compiled body.
+
 2013-02-01  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-hooks.el (vc-menu-map): Disable vc-rollback menu item
@@ -9,8 +13,8 @@
 2013-02-01  Alex Harsanyi  <AlexHarsanyi@gmail.com>
 
 	* net/soap-client.el (soap-invoke): Encode the string for
-	`url-request-data' as UTF-8.  Fixes
-	<http://code.google.com/p/emacs-soap-client/issues/detail?id=16>.
+	`url-request-data' as UTF-8.
+	Fixes <http://code.google.com/p/emacs-soap-client/issues/detail?id=16>.
 
 2013-02-01  Glenn Morris  <rgm@gnu.org>
 
@@ -69,8 +73,7 @@
 
 2013-01-30  Leo Liu  <sdl.web@gmail.com>
 
-	* imenu.el (imenu--truncate-items): Fix subalist checking.
-	(Bug#13576)
+	* imenu.el (imenu--truncate-items): Fix subalist checking (bug#13576).
 
 2013-01-30  Glenn Morris  <rgm@gnu.org>
 
@@ -127,16 +130,14 @@
 	are no longer included.
 	(c-awk-harmless-line-char-re, c-awk-harmless-line-string*-re):
 	What used to be these variables without "-line" in the name.
-	(c-awk-neutral-re): { is no longer neutral.  Escaped newlines now
-	are.
+	(c-awk-neutral-re): { is no longer neutral.  Escaped newlines now are.
 	(c-awk-non-arith-op-bra-re): Now also matches {.
 	(c-awk-pre-exp-alphanum-kwd-re): New regexp to match "print",
 	"return", and "case".
 	(c-awk-kwd-regexp-sign-re): New, to match "print", etc., followed
 	by /.
 	(c-awk-syntax-tablify-/): Check special cases "print /re/", etc.
-	(c-awk-set-syntax-table-properties): Extend FSM to handle
-	{,},(,),;.
+	(c-awk-set-syntax-table-properties): Extend FSM to handle {,},(,),;.
 
 2013-01-29  Michael Albinus  <michael.albinus@gmx.de>
 

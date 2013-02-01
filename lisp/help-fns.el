@@ -76,7 +76,7 @@ DEF is the function whose usage we're looking for in DOCSTRING."
   (when (and docstring (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring))
     (cons (format "(%s%s"
 		  ;; Replace `fn' with the actual function name.
-		  (if (consp def) "anonymous" def)
+		  (if (symbolp def) def "anonymous")
 		  (match-string 1 docstring))
 	  (unless (zerop (match-beginning 0))
             (substring docstring 0 (match-beginning 0))))))
