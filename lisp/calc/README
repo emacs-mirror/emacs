@@ -70,64 +70,7 @@ opinions.
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
-Emacs 24.4
-
-* The date forms use the Gregorian calendar for all dates.
-  (Previously they were a combination of Julian and Gregorian
-  dates.)  This can be configured with the customizable variable
-  `calc-gregorian-switch'.
-
-* Support for ISO 8601 dates added.
-Emacs 24.3
-
-* Algebraic simplification mode is now the default.
-  To restrict to the limited simplifications given by the former
-  default simplification mode, use `m I'.
-
-Emacs 24.1
-
-* Support for musical notes added.
-
-* Support for logarithmic units added.
-
-* Calc no longer uses the tex prefix for TeX specific unit 
-names when using TeX or LaTeX mode.
-
-* Added option to highlight selections using faces.
-
-* Gave `calc-histogram' the option of using a vector to determine the bins.
-
-* Added "O" option prefix.
-
-* Used "O" prefix to "d r" (`calc-radix') to turn on twos-complement mode.
-
-Emacs 23.2
-
-* Added twos-complement display.
-
-Emacs 23.1:
-
-* Gave `j *' (cal-sel-mult-both-sides) an option to expand the
-  denominator.
-
-* Use `calc-embedded-word-regexp' for finding words in
-  `calc-embedded-word' in place of delimiters.
-
-* Remove version numbering; use Emacs version for reference.
-
-* Added support for using registers.
-
-* Added support for Yacas, Maxima and Giac languages.
-
-* Added a menu.
-
-* Added logistic non-linear curves to curve-fitting.
-
-* Added option of plotting data points and curve when curve-fitting.
-
-* Made unit conversions exact when possible.
-
-* Lowered the precedence of negation.
+For changes in Emacs 23.1 and later, see the main Emacs NEWS file.
 
 Version 2.1:
 

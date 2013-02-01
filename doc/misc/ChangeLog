@@ -1,3 +1,7 @@
+2013-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Help Commands): Update calc-view-news description.
+
 2013-01-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename Syntax): Filenames must be unibyte strings.

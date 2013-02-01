@@ -107,6 +107,8 @@ Nil, the default value, means to always use the Gregorian calendar.
 The value (YEAR MONTH DAY) means to start using the Gregorian calendar
 on the given date.
 
+*** Support for ISO 8601 dates.
+
 ** ERC
 
 *** New option `erc-accidental-paste-threshold-seconds'.
@@ -718,6 +720,12 @@ see the `apropos' Custom group for details.
 
 *** Option `Buffer-menu-buffer+size-width' is now obsolete.
 Use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead.
+
+** Calc
+
+*** Algebraic simplification mode is now the default.
+To restrict to the limited simplifications given by the former
+default simplification mode, use `m I'.
 
 ** Calendar
 
@@ -1647,6 +1655,23 @@ Use the variable `bibtex-dialect' to select different BibTeX dialects.
 
 *** The default browser used by the package is now the "xdg-open" program,
 on platforms that support it.  This calls your desktop's preferred browser.
+
+** Calc
+
+*** Support for musical notes.
+
+*** Support for logarithmic units.
+
+*** No longer uses the tex prefix for TeX specific unit names when
+using TeX or LaTeX mode.
+
+*** New option to highlight selections using faces.
+
+*** `calc-histogram' has the option of using a vector to determine the bins.
+
+*** New "O" option prefix.
+
+*** Use the "O" prefix to "d r" (`calc-radix') to turn on twos-complement mode.
 
 ** Calendar, Diary, and Appt
 

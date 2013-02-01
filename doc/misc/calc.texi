@@ -9909,9 +9909,8 @@ listed.
 
 @kindex h n
 The @kbd{h n} or @kbd{h C-n} (@code{calc-view-news}) command displays
-the ``news'' or change history of Calc.  This is kept in the file
-@file{README}, which Calc looks for in the same directory as the Calc
-source files.
+the ``news'' or change history of Emacs, and jumps to the most recent
+portion concerning Calc (if present).
 
 @kindex h C-c
 @kindex h C-d

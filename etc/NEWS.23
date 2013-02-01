@@ -329,6 +329,8 @@ that file exists.
 user-emacs-directory; but the old location, ~/.calc.el, is used if
 that file exists.
 
+*** New twos-complement display.
+
 *** Graphing commands (`g f' etc.) now work on MS-Windows, if you have
 the native Windows port of Gnuplot version 3.8 or later installed.
 
@@ -1371,6 +1373,30 @@ identify cited keys in BibTeX entries, used by `bibtex-find-crossref'.
 *** bookmark.el saves bookmarks in a pre-Emacs-23-incompatible file format
 bookmark.el can read a .emacs.bmk file saved by an older Emacs, but an
 older Emacs cannot read one saved by Emacs 23.
+
+** Calc
+
+*** `j *' (cal-sel-mult-both-sides) has an option to expand the denominator.
+
+*** `calc-embedded-word-regexp' is used for finding words in
+`calc-embedded-word' in place of delimiters.
+
+*** The separate Calc version number has been removed; use the Emacs
+version for reference.
+
+*** Support for using registers.
+
+*** Support for Yacas, Maxima and Giac languages.
+
+*** Addition of a menu.
+
+*** Logistic non-linear curves have been added to curve-fitting.
+
+*** New option to plot data points and curve when curve-fitting.
+
+*** Unit conversions are now exact when possible.
+
+*** The precedence of negation has been lowered.
 
 ** Calendar and diary
 
