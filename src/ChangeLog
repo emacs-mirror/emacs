@@ -1,5 +1,10 @@
 2013-02-01  Eli Zaretskii  <eliz@gnu.org>
 
+	* callproc.c (Fcall_process): Make sure program name in PATH and
+	new_argv[0] is encoded, if needed.  Otherwise, un-encoded string
+	is passed to exec/spawnve, which fails unless the file-name
+	encoding is UTF-8.
+
 	* w32proc.c (sys_spawnve): Make sure escape_char is initialized,
 	even if w32-quote-process-args is nil.
 
