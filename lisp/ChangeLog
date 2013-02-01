@@ -1,3 +1,9 @@
+2013-02-01  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	* net/soap-client.el (soap-invoke): Encode the string for
+	`url-request-data' as UTF-8.  Fixes
+	<http://code.google.com/p/emacs-soap-client/issues/detail?id=16>.
+
 2013-02-01  Glenn Morris  <rgm@gnu.org>
 
 	* calc/calc-help.el (calc-view-news): Use view-emacs-news.
