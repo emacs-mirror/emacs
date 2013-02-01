@@ -1,3 +1,9 @@
+2013-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-track): Always deactivate the mark before
+	running the final event's command since that command is in charge of
+	activating the mark if needed (bug#13523).
+
 2013-02-01  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (perform-replace): Move let-bindings of isearch-*
