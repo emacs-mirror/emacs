@@ -1,3 +1,9 @@
+2013-02-01  Andrew W. Nosenko  <andrew.w.nosenko@gmail.com>  (tiny change)
+
+	* net/tramp.el (tramp-check-for-regexp): Avoid "Args out of range"
+	error when buffer in question is narrowed so position 1 is out of
+	visible part.
+
 2013-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/remember.el (remember-clipboard): Doc fix.
