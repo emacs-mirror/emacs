@@ -1,3 +1,8 @@
+2012-02-01  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* info.el (Info-next-reference, Info-prev-reference): Add numeric
+	prefix argument.  (Bug#11656)
+
 2013-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (help-split-fundoc): Don't insert byte-compiled body.

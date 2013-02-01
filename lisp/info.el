@@ -3063,48 +3063,62 @@ See `Info-scroll-down'."
 	(select-window (posn-window (event-start e))))
     (Info-scroll-down)))
 
-(defun Info-next-reference (&optional recur)
-  "Move cursor to the next cross-reference or menu item in the node."
-  (interactive)
-  (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
-	(old-pt (point))
-	(case-fold-search t))
-    (or (eobp) (forward-char 1))
-    (or (re-search-forward pat nil t)
-	(progn
-	  (goto-char (point-min))
-	  (or (re-search-forward pat nil t)
-	      (progn
-		(goto-char old-pt)
-		(user-error "No cross references in this node")))))
-    (goto-char (or (match-beginning 1) (match-beginning 0)))
-    (if (looking-at "\\* Menu:")
-	(if recur
-	    (user-error "No cross references in this node")
-	  (Info-next-reference t))
-      (if (looking-at "^\\* ")
-	  (forward-char 2)))))
+(defun Info-next-reference (&optional recur count)
+  "Move cursor to the next cross-reference or menu item in the node.
+If COUNT is non-nil (interactively with a prefix arg), jump over
+COUNT cross-references."
+  (interactive "i\np")
+  (unless count
+    (setq count 1))
+  (if (< count 0)
+      (Info-prev-reference recur (- count))
+    (while (unless (zerop count) (setq count (1- count)))
+      (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
+	    (old-pt (point))
+	    (case-fold-search t))
+	(or (eobp) (forward-char 1))
+	(or (re-search-forward pat nil t)
+	    (progn
+	      (goto-char (point-min))
+	      (or (re-search-forward pat nil t)
+		  (progn
+		    (goto-char old-pt)
+		    (user-error "No cross references in this node")))))
+	(goto-char (or (match-beginning 1) (match-beginning 0)))
+	(if (looking-at "\\* Menu:")
+	    (if recur
+		(user-error "No cross references in this node")
+	      (Info-next-reference t))
+	  (if (looking-at "^\\* ")
+	      (forward-char 2)))))))
 
-(defun Info-prev-reference (&optional recur)
-  "Move cursor to the previous cross-reference or menu item in the node."
-  (interactive)
-  (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
-	(old-pt (point))
-	(case-fold-search t))
-    (or (re-search-backward pat nil t)
-	(progn
-	  (goto-char (point-max))
-	  (or (re-search-backward pat nil t)
-	      (progn
-		(goto-char old-pt)
-		(user-error "No cross references in this node")))))
-    (goto-char (or (match-beginning 1) (match-beginning 0)))
-    (if (looking-at "\\* Menu:")
-	(if recur
-	    (user-error "No cross references in this node")
-	  (Info-prev-reference t))
-      (if (looking-at "^\\* ")
-	  (forward-char 2)))))
+(defun Info-prev-reference (&optional recur count)
+  "Move cursor to the previous cross-reference or menu item in the node.
+If COUNT is non-nil (interactively with a prefix arg), jump over
+COUNT cross-references."
+  (interactive "i\np")
+  (unless count
+    (setq count 1))
+  (if (< count 0)
+      (Info-next-reference recur (- count))
+    (while (unless (zerop count) (setq count (1- count)))
+      (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
+	    (old-pt (point))
+	    (case-fold-search t))
+	(or (re-search-backward pat nil t)
+	    (progn
+	      (goto-char (point-max))
+	      (or (re-search-backward pat nil t)
+		  (progn
+		    (goto-char old-pt)
+		    (user-error "No cross references in this node")))))
+	(goto-char (or (match-beginning 1) (match-beginning 0)))
+	(if (looking-at "\\* Menu:")
+	    (if recur
+		(user-error "No cross references in this node")
+	      (Info-prev-reference t))
+	  (if (looking-at "^\\* ")
+	      (forward-char 2)))))))
 
 (defun Info-index-nodes (&optional file)
   "Return a list of names of all index nodes in Info FILE.
