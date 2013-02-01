@@ -1,3 +1,8 @@
+2013-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* imenu.el (imenu-default-create-index-function):
+	Tweak infinite loop test to check for forward motion as well as none.
+
 2013-02-01  Alex Harsanyi  <AlexHarsanyi@gmail.com>
 
 	* net/soap-client.el (soap-invoke): Encode the string for

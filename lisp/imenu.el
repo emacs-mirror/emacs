@@ -676,12 +676,12 @@ The alternate method, which is the one most often used, is to call
   ;; in these major modes.  But save that change for later.
   (cond ((and imenu-prev-index-position-function
 	      imenu-extract-index-name-function)
-	 (let ((index-alist '()) (pos -1)
+	 (let ((index-alist '()) (pos (point-max))
 	       name)
-	   (goto-char (point-max))
+	   (goto-char pos)
 	   ;; Search for the function
 	   (while (funcall imenu-prev-index-position-function)
-             (when (= pos (point))
+             (unless (< (point) pos)
                (error "Infinite loop at %s:%d: imenu-prev-index-position-function does not move point" (buffer-name) pos))
              (setq pos (point))
 	     (save-excursion
