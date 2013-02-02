@@ -1,3 +1,8 @@
+2013-02-02  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist): Use variable grep-match-face
+	instead of hard-coded default face `match'.  (Bug#9438)
+
 2012-02-01  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* vc/vc-arch.el (vc-arch-registered):
