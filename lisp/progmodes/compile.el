@@ -48,12 +48,8 @@
 
 ;;;###autoload
 (defcustom compilation-start-hook nil
-  "List of hook functions run by `compilation-start' on the compilation process.
-\(See `run-hook-with-args').
-If you use \"omake -P\" and do not want \\[save-buffers-kill-terminal] to ask whether you want
-the compilation to be killed, you can use this hook:
-  (add-hook 'compilation-start-hook
-    (lambda (process) (set-process-query-on-exit-flag process nil)) nil t)"
+  "Hook run after starting a new compilation process.  The hook
+is run with one argument, the new process."
   :type 'hook
   :group 'compilation)
 
