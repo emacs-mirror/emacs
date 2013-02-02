@@ -4280,7 +4280,7 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
   /* Rely on a hack: an open directory is modeled as file descriptor 0.
      This is good enough for the current usage in Emacs, but is fragile.
 
-     FIXME: Add proper support for fdopendir, fstatatat, readlinkat.
+     FIXME: Add proper support for fdopendir, fstatat, readlinkat.
      Gnulib does this and can serve as a model.  */
   char fullname[MAX_PATH];
 

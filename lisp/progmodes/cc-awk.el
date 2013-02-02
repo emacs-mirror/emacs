@@ -142,7 +142,7 @@
 
 (defconst c-awk-harmless-line-char-re "[^_#/\"\\\\\n\r]")
 ;;   Matches any character but a _, #, /, ", \, or newline.  N.B. _" starts a
-;; localisation string in gawk 3.1
+;; localization string in gawk 3.1
 (defconst c-awk-harmless-line-string*-re
   (concat "\\(" c-awk-harmless-line-char-re "\\|" c-awk-esc-pair-re "\\|" c-awk-harmless-_ "\\)*"))
 ;;   Matches a (possibly empty) sequence of chars without unescaped /, ", \,
@@ -795,7 +795,8 @@
       (setq anchor (point))
       (search-forward-regexp c-awk-harmless-string*-here-re nil t)
       ;; We are now looking at either a " or a / or a brace/paren/semicolon.
-      ;; Do our thing on the string, regexp or divsion sign or update our state.
+      ;; Do our thing on the string, regexp or division sign or update
+      ;; our state.
       (setq anchor-state-/div
 	    (cond
 	     ((looking-at "_?\"")

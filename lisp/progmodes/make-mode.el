@@ -1304,7 +1304,7 @@ Fill comments, backslashed lines, and variable definitions specially."
 	(save-restriction
 	  (narrow-to-region beginning end)
 	  (makefile-backslash-region (point-min) (point-max) t)
-	  ;; Backslashed newlines are marked as puncutations, so when
+	  ;; Backslashed newlines are marked as punctuation, so when
 	  ;; fill-delete-newlines turns the LF into SPC, we end up with spaces
 	  ;; which back-to-indentation (called via fill-newline ->
 	  ;; fill-indent-to-left-margin -> indent-line-to) thinks are real code

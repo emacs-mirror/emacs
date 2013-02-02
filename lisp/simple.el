@@ -802,7 +802,7 @@ other words, it will work just like `just-one-space' command."
 	      (unless (= start end)
 		(cons orig-pos (buffer-substring start (point)))))
 	;; If this run causes no change in buffer content, delete all spaces,
-	;; otherwise delete all excees spaces.
+	;; otherwise delete all excess spaces.
 	(delete-region (if (and (not single-shot) (zerop n) (= mid end))
 			   start mid) end)
         (insert (make-string n ?\s))))

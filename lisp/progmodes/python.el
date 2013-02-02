@@ -2334,7 +2334,7 @@ Argument OUTPUT is a string with the output from the comint process."
               ;; encounters an exception, it prints the _entire_ stack
               ;; trace.  To handle all of these cases, we want to find
               ;; the _last_ stack frame printed in the most recent
-              ;; batch of output, then jump to the corrsponding
+              ;; batch of output, then jump to the corresponding
               ;; file/line number.
               (goto-char (point-max))
               (when (re-search-backward python-pdbtrack-stacktrace-info-regexp nil t)
