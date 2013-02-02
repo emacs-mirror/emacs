@@ -2152,7 +2152,7 @@ decode_env_path (const char *evarname, const char *defalt)
     {
       char *path_copy = alloca (strlen (path) + 1);
       strcpy (path_copy, path);
-      dostounix_filename (path_copy);
+      dostounix_filename (path_copy, 0);
       path = path_copy;
     }
 #endif

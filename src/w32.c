@@ -1598,11 +1598,16 @@ max_filename_mbslen (void)
    case path name components to lower case.  */
 
 static void
-normalize_filename (register char *fp, char path_sep)
+normalize_filename (register char *fp, char path_sep, int multibyte)
 {
   char sep;
   char *elem, *p2;
   int dbcs_p = max_filename_mbslen () > 1;
+
+  /* Multibyte file names are in the Emacs internal representation, so
+     we can traverse them by bytes with no problems.  */
+  if (multibyte)
+    dbcs_p = 0;
 
   /* Always lower-case drive letters a-z, even if the filesystem
      preserves case in filenames.
@@ -1620,7 +1625,7 @@ normalize_filename (register char *fp, char path_sep)
       fp += 2;
     }
 
-  if (NILP (Vw32_downcase_file_names))
+  if (multibyte || NILP (Vw32_downcase_file_names))
     {
       while (*fp)
 	{
@@ -1668,18 +1673,20 @@ normalize_filename (register char *fp, char path_sep)
   } while (*fp);
 }
 
-/* Destructively turn backslashes into slashes.  */
+/* Destructively turn backslashes into slashes.  MULTIBYTE non-zero
+   means the file name is a multibyte string in Emacs's internal
+   representation.  */
 void
-dostounix_filename (register char *p)
+dostounix_filename (register char *p, int multibyte)
 {
-  normalize_filename (p, '/');
+  normalize_filename (p, '/', multibyte);
 }
 
 /* Destructively turn slashes into backslashes.  */
 void
 unixtodos_filename (register char *p)
 {
-  normalize_filename (p, '\\');
+  normalize_filename (p, '\\', 0);
 }
 
 /* Remove all CR's that are followed by a LF.
@@ -2222,7 +2229,7 @@ emacs_root_dir (void)
     emacs_abort ();
   strcpy (root_dir, p);
   root_dir[parse_root (root_dir, NULL)] = '\0';
-  dostounix_filename (root_dir);
+  dostounix_filename (root_dir, 0);
   return root_dir;
 }
 

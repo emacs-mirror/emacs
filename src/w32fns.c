@@ -6254,7 +6254,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
             /* we get one of the two final 0 bytes for free. */
             1 + sizeof (wchar_t) * wcslen (filename_buf)));
 #else /* !NTGUI_UNICODE */
-        dostounix_filename (filename_buf);
+        dostounix_filename (filename_buf, 0);
         filename = DECODE_FILE (build_string (filename_buf));
 #endif /* NTGUI_UNICODE */
 

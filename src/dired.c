@@ -484,9 +484,9 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      on the encoded file name.  */
   encoded_file = STRING_MULTIBYTE (file) ? ENCODE_FILE (file) : file;
 
-  encoded_dir = ENCODE_FILE (dirname);
+  encoded_dir = ENCODE_FILE (Fdirectory_file_name (dirname));
 
-  d = open_directory (SSDATA (Fdirectory_file_name (encoded_dir)), &fd);
+  d = open_directory (SSDATA (encoded_dir), &fd);
   if (!d)
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
 

@@ -1,5 +1,49 @@
 2013-02-02  Eli Zaretskii  <eliz@gnu.org>
 
+	Avoid encoding file names on MS-Windows when they need to be run
+	through dostounix_filename.
+	* w32.c (normalize_filename): Accept an additional argument
+	MULTIBYTE; if non-zero, traverse the file name by bytes and don't
+	downcase it even if w32-downcase-file-names is non-nil.
+	(dostounix_filename): Accept an additional argument MULTIBYTE and
+	pass it to normalize_filename.
+	(emacs_root_dir): Adjust.
+
+	* msdos.h (dostounix_filename): Adjust prototype.
+
+	* w32.h (dostounix_filename): Adjust prototype.
+
+	* msdos.c (dostounix_filename): Accept an additional argument and
+	ignore it.
+	(init_environment): Adjust callers of dostounix_filename.
+
+	* fileio.c (Ffile_name_directory, file_name_as_directory)
+	(directory_file_name, Fexpand_file_name)
+	(Fsubstitute_in_file_name): [DOS_NT] Adjust call to
+	dostounix_filename.
+	[WINDOWSNT]: Downcase file names if w32-downcase-file-names is
+	non-nil.
+	(Fsubstitute_in_file_name): [DOS_NT] Don't downcase environment
+	variables, as egetenv is case-insensitive for DOS_NT.
+
+	* dired.c (file_name_completion): Don't call Fdirectory_file_name
+	with an encoded file name.
+
+	* w32proc.c (Fw32_short_file_name, Fw32_long_file_name): Adjust
+	calls to dostounix_filename.
+
+	* w32fns.c (Fx_file_dialog): Adjust call to dostounix_filename.
+
+	* unexw32.c (unexec): Adjust call to dostounix_filename.
+
+	* termcap.c (tgetent) [MSDOS]: Adjust call to dostounix_filename.
+
+	* emacs.c (decode_env_path) [DOS_NT]: Adjust call to
+	dostounix_filename.
+
+	* callproc.c (Fcall_process) [MSDOS]: Adjust call to
+	dostounix_filename.
+
 	* callproc.c (Fcall_process): Make sure program name in PATH and
 	new_argv[0] is encoded, if needed.  Otherwise, un-encoded string
 	is passed to exec/spawnve, which fails unless the file-name

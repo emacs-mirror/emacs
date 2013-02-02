@@ -29,7 +29,7 @@ void dos_set_window_size (int *, int *);
 
 int getdefdir (int, char*);
 void unixtodos_filename (char *);
-void dostounix_filename (char *);
+void dostounix_filename (char *, int);
 char *rootrelativepath (char *);
 void init_environment (int, char **, int);
 void internal_terminal_init (void);

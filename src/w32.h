@@ -180,7 +180,7 @@ extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
 extern void syms_of_ntterm (void);
-extern void dostounix_filename (register char *);
+extern void dostounix_filename (register char *, int);
 extern void unixtodos_filename (register char *);
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);

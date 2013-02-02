@@ -487,7 +487,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  tempfile = alloca (20);
 	  *tempfile = '\0';
 	}
-      dostounix_filename (tempfile);
+      dostounix_filename (tempfile, 0);
       if (*tempfile == '\0' || tempfile[strlen (tempfile) - 1] != '/')
 	strcat (tempfile, "/");
       strcat (tempfile, "detmp.XXX");

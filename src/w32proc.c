@@ -2558,8 +2558,9 @@ All path elements in FILENAME are converted to their short names.  */)
   if (GetShortPathName (SDATA (ENCODE_FILE (filename)), shortname, MAX_PATH) == 0)
     return Qnil;
 
-  dostounix_filename (shortname);
+  dostounix_filename (shortname, 0);
 
+  /* No need to DECODE_FILE, because 8.3 names are pure ASCII.   */
   return build_string (shortname);
 }
 
@@ -2586,7 +2587,7 @@ All path elements in FILENAME are converted to their long names.  */)
   if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname, MAX_PATH))
     return Qnil;
 
-  dostounix_filename (longname);
+  dostounix_filename (longname, 0);
 
   /* If we were passed only a drive, make sure that a slash is not appended
      for consistency with directories.  Allow for drive mapping via SUBST

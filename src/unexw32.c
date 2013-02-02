@@ -722,7 +722,7 @@ unexec (const char *new_name, const char *old_name)
   /* Ignore old_name, and get our actual location from the OS.  */
   if (!GetModuleFileName (NULL, in_filename, MAX_PATH))
     abort ();
-  dostounix_filename (in_filename);
+  dostounix_filename (in_filename, 0);
   strcpy (out_filename, in_filename);
 
   /* Change the base of the output filename to match the requested name.  */

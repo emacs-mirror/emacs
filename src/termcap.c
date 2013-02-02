@@ -393,7 +393,7 @@ tgetent (char *bp, const char *name)
   if (termcap_name && (*termcap_name == '\\'
 		       || *termcap_name == '/'
 		       || termcap_name[1] == ':'))
-    dostounix_filename (termcap_name);
+    dostounix_filename (termcap_name, 0);
 #endif
 
   filep = termcap_name && valid_filename_p (termcap_name);

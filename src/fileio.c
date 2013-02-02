@@ -383,11 +383,13 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
       if (getdefdir (c_toupper (*beg) - 'A' + 1, r))
 	{
-	  if (!IS_DIRECTORY_SEP (res[strlen (res) - 1]))
+	  size_t l = strlen (res);
+
+	  if (l > 3 || !IS_DIRECTORY_SEP (res[l - 1]))
 	    strcat (res, "/");
 	  beg = res;
 	  p = beg + strlen (beg);
-	  dostounix_filename (beg);
+	  dostounix_filename (beg, 0);
 	  tem_fn = make_specified_string (beg, -1, p - beg,
 					  STRING_MULTIBYTE (filename));
 	}
@@ -397,13 +399,16 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
     }
   else if (STRING_MULTIBYTE (filename))
     {
-      tem_fn = ENCODE_FILE (make_specified_string (beg, -1, p - beg, 1));
-      dostounix_filename (SSDATA (tem_fn));
-      tem_fn = DECODE_FILE (tem_fn);
+      tem_fn = make_specified_string (beg, -1, p - beg, 1);
+      dostounix_filename (SSDATA (tem_fn), 1);
+#ifdef WINDOWSNT
+      if (!NILP (Vw32_downcase_file_names))
+	tem_fn = Fdowncase (tem_fn);
+#endif
     }
   else
     {
-      dostounix_filename (beg);
+      dostounix_filename (beg, 0);
       tem_fn = make_specified_string (beg, -1, p - beg, 0);
     }
   return tem_fn;
@@ -507,17 +512,7 @@ file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen,
       srclen++;
     }
 #ifdef DOS_NT
-  if (multibyte)
-    {
-      Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
-
-      tem_fn = ENCODE_FILE (tem_fn);
-      dostounix_filename (SSDATA (tem_fn));
-      tem_fn = DECODE_FILE (tem_fn);
-      memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
-    }
-  else
-    dostounix_filename (dst);
+  dostounix_filename (dst, multibyte);
 #endif
   return srclen;
 }
@@ -552,6 +547,10 @@ For a Unix-syntax file name, just appends a slash.  */)
       error ("Invalid handler in `file-name-handler-alist'");
     }
 
+#ifdef WINDOWSNT
+  if (!NILP (Vw32_downcase_file_names))
+    file = Fdowncase (file);
+#endif
   buf = alloca (SBYTES (file) + 10);
   length = file_name_as_directory (buf, SSDATA (file), SBYTES (file),
 				   STRING_MULTIBYTE (file));
@@ -580,17 +579,7 @@ directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
       srclen--;
     }
 #ifdef DOS_NT
-  if (multibyte)
-    {
-      Lisp_Object tem_fn = make_specified_string (dst, -1, srclen, 1);
-
-      tem_fn = ENCODE_FILE (tem_fn);
-      dostounix_filename (SSDATA (tem_fn));
-      tem_fn = DECODE_FILE (tem_fn);
-      memcpy (dst, SSDATA (tem_fn), (srclen = SBYTES (tem_fn)) + 1);
-    }
-  else
-    dostounix_filename (dst);
+  dostounix_filename (dst, multibyte);
 #endif
   return srclen;
 }
@@ -625,6 +614,10 @@ In Unix-syntax, this function just removes the final slash.  */)
       error ("Invalid handler in `file-name-handler-alist'");
     }
 
+#ifdef WINDOWSNT
+  if (!NILP (Vw32_downcase_file_names))
+    directory = Fdowncase (directory);
+#endif
   buf = alloca (SBYTES (directory) + 20);
   length = directory_file_name (buf, SSDATA (directory), SBYTES (directory),
 				STRING_MULTIBYTE (directory));
@@ -925,6 +918,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	}
     }
 
+#ifdef WINDOWSNT
+  if (!NILP (Vw32_downcase_file_names))
+    default_directory = Fdowncase (default_directory);
+#endif
+
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below.  */
   nm = alloca (SBYTES (name) + 1);
   memcpy (nm, SSDATA (name), SBYTES (name) + 1);
@@ -1008,18 +1006,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef DOS_NT
 	  /* Make sure directories are all separated with /, but
 	     avoid allocation of a new string when not required. */
-	  if (multibyte)
-	    {
-	      Lisp_Object tem_name = make_specified_string (nm, -1, strlen (nm),
-							    multibyte);
-
-	      tem_name = ENCODE_FILE (tem_name);
-	      dostounix_filename (SSDATA (tem_name));
-	      tem_name = DECODE_FILE (tem_name);
-	      memcpy (nm, SSDATA (tem_name), SBYTES (tem_name) + 1);
-	    }
-	  else
-	    dostounix_filename (nm);
+	  dostounix_filename (nm, multibyte);
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
@@ -1037,6 +1024,10 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      temp[0] = DRIVE_LETTER (drive);
 	      name = concat2 (build_string (temp), name);
 	    }
+#ifdef WINDOWSNT
+	  if (!NILP (Vw32_downcase_file_names))
+	    name = Fdowncase (name);
+#endif
 	  return name;
 #else /* not DOS_NT */
 	  if (strcmp (nm, SSDATA (name)) == 0)
@@ -1400,14 +1391,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	target[1] = ':';
       }
     result = make_specified_string (target, -1, o - target, multibyte);
-    if (multibyte)
-      {
-	result = ENCODE_FILE (result);
-	dostounix_filename (SSDATA (result));
-	result = DECODE_FILE (result);
-      }
-    else
-      dostounix_filename (SSDATA (result));
+    dostounix_filename (SSDATA (result), multibyte);
+#ifdef WINDOWSNT
+    if (!NILP (Vw32_downcase_file_names))
+      result = Fdowncase (result);
+#endif
 #else  /* !DOS_NT */
     result = make_specified_string (target, -1, o - target, multibyte);
 #endif /* !DOS_NT */
@@ -1689,24 +1677,8 @@ those `/' is discarded.  */)
   memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
-  if (multibyte)
-    {
-      Lisp_Object encoded_filename = ENCODE_FILE (filename);
-      Lisp_Object tem_fn;
-
-      dostounix_filename (SDATA (encoded_filename));
-      tem_fn = DECODE_FILE (encoded_filename);
-      nm = alloca (SBYTES (tem_fn) + 1);
-      memcpy (nm, SDATA (tem_fn), SBYTES (tem_fn) + 1);
-      substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
-      if (substituted)
-	filename = tem_fn;
-    }
-  else
-    {
-      dostounix_filename (nm);
-      substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
-    }
+  dostounix_filename (nm, multibyte);
+  substituted = (memcmp (nm, SDATA (filename), SBYTES (filename)) != 0);
 #endif
   endp = nm + SBYTES (filename);
 
@@ -1780,7 +1752,13 @@ those `/' is discarded.  */)
       }
 
   if (!substituted)
-    return filename;
+    {
+#ifdef WINDOWSNT
+      if (!NILP (Vw32_downcase_file_names))
+	filename = Fdowncase (filename);
+#endif
+      return filename;
+    }
 
   /* If substitution required, recopy the string and do it.  */
   /* Make space in stack frame for the new copy.  */
@@ -1819,9 +1797,6 @@ those `/' is discarded.  */)
 	target = alloca (s - o + 1);
 	memcpy (target, o, s - o);
 	target[s - o] = 0;
-#ifdef DOS_NT
-	strupr (target); /* $home == $HOME etc.  */
-#endif /* DOS_NT */
 
 	/* Get variable value.  */
 	o = egetenv (target);
@@ -1858,6 +1833,16 @@ those `/' is discarded.  */)
        need to quote some $ to $$ first.  */
     xnm = p;
 
+#ifdef WINDOWSNT
+  if (!NILP (Vw32_downcase_file_names))
+    {
+      Lisp_Object xname = make_specified_string (xnm, -1, x - xnm, multibyte);
+
+      xname = Fdowncase (xname);
+      return xname;
+    }
+  else
+#endif
   return make_specified_string (xnm, -1, x - xnm, multibyte);
 
  badsubst:
