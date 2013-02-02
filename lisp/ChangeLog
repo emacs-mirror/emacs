@@ -1,3 +1,18 @@
+2013-02-02  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Several small fixes and improvements.
+	(todos-done-separator-string): Change default value.
+	(todos-update-categories-sexp): Remove unnecessary and misquided
+	setq of todos-default-todos-file.  Use delete-region instead of
+	kill-region to avoid polluting kill-ring.
+	(todos-unload-hook): Remove (was not used).
+	(todos-edit-multiline): Don't generate new edit buffer name on
+	each invocation---that can cause confusion due to indirect buffer.
+	(todos-edit-quit): Ensure lines in edit buffer that follow hard
+	newlines are indented in the file to conform to diary format.
+	(todos-set-item-priority): If done items in category are visible,
+	keep them visible.
+
 2013-01-30  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Fix done separator overlay bug.  Remove most
