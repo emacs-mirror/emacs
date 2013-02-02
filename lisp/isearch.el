@@ -2520,6 +2520,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
       ;; the user adds and removes characters in the search string
       ;; (or when using nonincremental word isearch)
       (let ((lax (not (or isearch-nonincremental
+			  (null (car isearch-cmds))
 			  (eq (length isearch-string)
 			      (length (isearch--state-string
                                        (car isearch-cmds))))))))

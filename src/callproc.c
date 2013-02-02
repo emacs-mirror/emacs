@@ -445,28 +445,34 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     path = Fsubstring (path, make_number (2), Qnil);
 
   new_argv = SAFE_ALLOCA ((nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
-  if (nargs > 4)
-    {
-      ptrdiff_t i;
-      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
-      GCPRO5 (infile, buffer, current_dir, path, error_file);
-      argument_coding.dst_multibyte = 0;
-      for (i = 4; i < nargs; i++)
-	{
-	  argument_coding.src_multibyte = STRING_MULTIBYTE (args[i]);
-	  if (CODING_REQUIRE_ENCODING (&argument_coding))
-	    /* We must encode this argument.  */
-	    args[i] = encode_coding_string (&argument_coding, args[i], 1);
-	}
-      UNGCPRO;
-      for (i = 4; i < nargs; i++)
-	new_argv[i - 3] = SSDATA (args[i]);
-      new_argv[i - 3] = 0;
-    }
-  else
-    new_argv[1] = 0;
-  new_argv[0] = SSDATA (path);
+  {
+    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+
+    GCPRO5 (infile, buffer, current_dir, path, error_file);
+    if (nargs > 4)
+      {
+	ptrdiff_t i;
+
+	argument_coding.dst_multibyte = 0;
+	for (i = 4; i < nargs; i++)
+	  {
+	    argument_coding.src_multibyte = STRING_MULTIBYTE (args[i]);
+	    if (CODING_REQUIRE_ENCODING (&argument_coding))
+	      /* We must encode this argument.  */
+	      args[i] = encode_coding_string (&argument_coding, args[i], 1);
+	  }
+	for (i = 4; i < nargs; i++)
+	  new_argv[i - 3] = SSDATA (args[i]);
+	new_argv[i - 3] = 0;
+      }
+    else
+      new_argv[1] = 0;
+    if (STRING_MULTIBYTE (path))
+      path = ENCODE_FILE (path);
+    new_argv[0] = SSDATA (path);
+    UNGCPRO;
+  }
 
 #ifdef MSDOS /* MW, July 1993 */
 

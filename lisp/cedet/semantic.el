@@ -4,7 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
-;; Version: 2.1beta
+;; Version: 2.2
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 (require 'semantic/tag)
 (require 'semantic/lex)
 
-(defvar semantic-version "2.1beta"
+(defvar semantic-version "2.2"
   "Current version of Semantic.")
 
 (declare-function inversion-test "inversion")

@@ -1,3 +1,36 @@
+2013-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-track): Always deactivate the mark before
+	running the final event's command since that command is in charge of
+	activating the mark if needed (bug#13523).
+
+2013-02-02  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (perform-replace): Move let-bindings of isearch-*
+	variables deeper to the loop that searches for the next match.
+	Add bindings for `isearch-nonincremental' and `isearch-adjusted'.
+	Use `isearch-search-fun-default' instead of `isearch-search-fun'.
+	(Bug#13579)
+
+	* isearch.el (isearch-search-fun-default): Check for null
+	first element of isearch-cmds as a precaution when it's used
+	with inactive isearch.
+
+2013-02-02  Andrew W. Nosenko  <andrew.w.nosenko@gmail.com>  (tiny change)
+
+	* net/tramp.el (tramp-check-for-regexp): Avoid "Args out of range"
+	error when buffer in question is narrowed so position 1 is out of
+	visible part.
+
+2013-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/remember.el (remember-clipboard): Doc fix.
+
+2013-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Reset syntax-table
+	properties (bug#13179).
+
 2013-02-02  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-regexp-alist): Use variable grep-match-face

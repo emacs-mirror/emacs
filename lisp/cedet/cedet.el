@@ -4,7 +4,7 @@
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
-;; Version: 1.1
+;; Version: 2.0
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.
@@ -35,7 +35,7 @@
 
 (declare-function inversion-find-version "inversion")
 
-(defconst cedet-version "1.1"
+(defconst cedet-version "2.0"
   "Current version of CEDET.")
 
 (defconst cedet-packages
@@ -43,12 +43,12 @@
     ;;PACKAGE   MIN-VERSION      INSTALLDIR  DOCDIR
     (cedet         ,cedet-version "common"   "common" 	        )
     (eieio         "1.4"           nil       "eieio"       )
-    (semantic      "2.1"           nil       "semantic/doc")
-    (srecode       "1.1"           nil       "srecode"     )
-    (ede           "1.1"           nil       "ede"         )
+    (semantic      "2.2"           nil       "semantic/doc")
+    (srecode       "1.2"           nil       "srecode"     )
+    (ede           "1.2"           nil       "ede"         )
     (speedbar      "1.0.4"         nil       "speedbar"    )
-    (cogre         "1.1"           nil       "cogre"       )
-    (cedet-contrib "1.1"           "contrib" nil           )
+    (cogre         "1.2"           nil       "cogre"       )
+    (cedet-contrib "1.2"           "contrib" nil           )
     )
   "Table of CEDET packages to install.")
 

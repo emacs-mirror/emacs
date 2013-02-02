@@ -3413,7 +3413,9 @@ Erase echoed commands if exists."
 		     0 (min tramp-echo-mark-marker-length (1- (point-max))))
 		    (tramp-compat-funcall
 		     'buffer-substring-no-properties
-		     1 (min (1+ tramp-echo-mark-marker-length) (point-max))))))
+		     (point-min)
+		     (min (+ (point-min) tramp-echo-mark-marker-length)
+			  (point-max))))))
       ;; No echo to be handled, now we can look for the regexp.
       ;; Sometimes, lines are much to long, and we run into a "Stack
       ;; overflow in regexp matcher".  For example, //DIRED// lines of
