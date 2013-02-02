@@ -42,20 +42,21 @@
 
 ;;;###autoload
 (defcustom compilation-mode-hook nil
-  "List of hook functions run by `compilation-mode' (see `run-mode-hooks')."
+  "List of hook functions run by `compilation-mode'."
   :type 'hook
   :group 'compilation)
 
 ;;;###autoload
 (defcustom compilation-start-hook nil
-  "Hook run after starting a new compilation process.  The hook
-is run with one argument, the new process."
+  "Hook run after starting a new compilation process.
+The hook is run with one argument, the new process."
   :type 'hook
   :group 'compilation)
 
 ;;;###autoload
 (defcustom compilation-window-height nil
-  "Number of lines in a compilation window.  If nil, use Emacs default."
+  "Number of lines in a compilation window.
+If nil, use Emacs default."
   :type '(choice (const :tag "Default" nil)
 		 integer)
   :group 'compilation)

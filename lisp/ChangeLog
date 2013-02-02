@@ -2,7 +2,8 @@
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Identify g++ template instantiation trace.  (Bug#12287)
-	(compilation-start-hook): Simplify docstring.  (Bug#13379)
+	(compilation-mode-hook, compilation-start-hook)
+	(compilation-window-height): Simplify docstrings.  (Bug#13379)
 
 2013-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
