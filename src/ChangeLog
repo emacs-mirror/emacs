@@ -1,3 +1,14 @@
+2013-02-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid file time stamp bug on MS-Windows (Bug#13149).
+	* fileio.c (Fwrite_region): Don't use the heuristic on empty files,
+	as FAT32 doesn't update time stamps when truncating them.
+	Also, check that a file time stamp is not a multiple of 100 ns;
+	this should catch all instances of the problem on MS-Windows,
+	as its native file system resolution is 100 ns or worse, and
+	checking for a non-multiple of 100 ns should impose only a small
+	overhead on systems with ns resolution.
+
 2013-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	Avoid encoding file names on MS-Windows when they need to be run

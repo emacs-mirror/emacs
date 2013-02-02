@@ -5020,11 +5020,22 @@ This calls `write-region-annotate-functions' at the start, and
 	  if (fstat (desc1, &st1) == 0
 	      && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
 	    {
+	      /* Use the heuristic if it appears to be valid.  With neither
+		 O_EXCL nor O_TRUNC, if Emacs happened to write nothing to the
+		 file, the time stamp won't change.  Also, some non-POSIX
+		 systems don't update an empty file's time stamp when
+		 truncating it.  Finally, file systems with 100 ns or worse
+		 resolution sometimes seem to have bugs: on a system with ns
+		 resolution, checking ns % 100 incorrectly avoids the heuristic
+		 1% of the time, but the problem should be temporary as we will
+		 try again on the next time stamp.  */
+	      bool use_heuristic
+		= ((open_flags & (O_EXCL | O_TRUNC)) != 0
+		   && st.st_size != 0
+		   && EMACS_NSECS (modtime) % 100 != 0);
+
 	      EMACS_TIME modtime1 = get_stat_mtime (&st1);
-	      /* If neither O_EXCL nor O_TRUNC is used, and Emacs happened to
-		 write nothing to the file, the file's time stamp won't change
-		 so it should not be used in this heuristic.  */
-	      if ((open_flags & (O_EXCL | O_TRUNC)) != 0
+	      if (use_heuristic
 		  && EMACS_TIME_EQ (modtime, modtime1)
 		  && st.st_size == st1.st_size)
 		{
