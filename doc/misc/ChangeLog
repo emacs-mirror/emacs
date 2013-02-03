@@ -1,3 +1,7 @@
+2013-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Equality Predicates): Fix eq/eql pedantry.
+
 2013-01-13  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation): Simplify.
