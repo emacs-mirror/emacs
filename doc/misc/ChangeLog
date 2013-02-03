@@ -1,3 +1,15 @@
+2013-02-03  Eric Ludlam  <zappo@gnu.org>
+
+	* doc/misc/ede.texi (Creating a project): Make ede-new doc less
+	specific, and only about items it supports, indicating that there
+	might be more.  Remove refs to simple project and direct automake
+	from ede new.
+	(Simple projects): Re-write to not talk about ede-simple-project
+	which is deprecated, and instead use the term to mean projects
+	that don't do much management, just project wrapping.  Add
+	ede-generic-project link.
+	(ede-generic-project): New node (bug#11441).
+
 2013-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Equality Predicates): Fix eq/eql pedantry.
