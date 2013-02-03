@@ -1,3 +1,8 @@
+2013-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal--called-interactively-p--get-frame): Avoid filling
+	current-load-list (bug#13366).
+
 2013-02-02  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):

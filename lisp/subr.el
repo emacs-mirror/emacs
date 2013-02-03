@@ -3976,12 +3976,14 @@ the number of frames to skip (minus 1).")
   ;; "static" variables.
   (let ((sym (make-symbol "base-index")))
     `(progn
-       (defvar ,sym
+       (defvar ,sym)
+       (unless (boundp ',sym)
          (let ((i 1))
+           (message "Computing base-index")
            (while (not (eq (indirect-function (nth 1 (backtrace-frame i)) t)
                            (indirect-function 'called-interactively-p)))
              (setq i (1+ i)))
-           i))
+           (setq ,sym i)))
        ;; (unless (eq (nth 1 (backtrace-frame ,sym)) 'called-interactively-p)
        ;;   (error "called-interactively-p: %s is out-of-sync!" ,sym))
        (backtrace-frame (+ ,sym ,n)))))
