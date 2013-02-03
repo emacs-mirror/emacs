@@ -1391,7 +1391,9 @@ ARGS to actually emit the message (if applicable)."
 		     (concat
 		      "^"
 		      (regexp-opt
-		       '("tramp-compat-funcall"
+		       '("tramp-backtrace"
+			 "tramp-compat-condition-case-unless-debug"
+			 "tramp-compat-funcall"
 			 "tramp-compat-with-temp-message"
 			 "tramp-debug-message"
 			 "tramp-error"
@@ -1504,6 +1506,11 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	     "Tramp failed to connect.  If this happens repeatedly, try"
 	     "`M-x tramp-cleanup-this-connection'"))
 	  (sit-for 30))))))
+
+(defsubst tramp-backtrace (vec-or-proc)
+  "Dump a backtrace into the debug buffer.
+This function is meant for debugging purposes."
+  (tramp-message vec-or-proc 10 "\n%s" (with-output-to-string (backtrace))))
 
 (defmacro with-parsed-tramp-file-name (filename var &rest body)
   "Parse a Tramp filename and make components available in the body.
@@ -3023,13 +3030,15 @@ User is always nil."
 		  (setq tramp-temp-buffer-file-name local-copy))
 
 		;; We must ensure that `file-coding-system-alist'
-		;; matches `local-copy'.
+		;; matches `local-copy'.  We must also use `visit',
+		;; otherwise there might be an error in the
+		;; `revert-buffer' function under XEmacs.
 		(let ((file-coding-system-alist
 		       (tramp-find-file-name-coding-system-alist
 			filename local-copy)))
 		  (setq result
 			(insert-file-contents
-			 local-copy nil nil nil replace)))))
+			 local-copy visit nil nil replace)))))
 
 	  ;; Save exit.
 	  (progn

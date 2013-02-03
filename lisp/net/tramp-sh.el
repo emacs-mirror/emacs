@@ -1330,7 +1330,8 @@ target of the symlink differ."
     (let ((f (buffer-file-name))
 	  coding-system-used)
       (with-parsed-tramp-file-name f nil
-	(let* ((attr (file-attributes f))
+	(let* ((remote-file-name-inhibit-cache t)
+	       (attr (file-attributes f))
 	       ;; '(-1 65535) means file doesn't exists yet.
 	       (modtime (or (nth 5 attr) '(-1 65535))))
 	  (when (boundp 'last-coding-system-used)

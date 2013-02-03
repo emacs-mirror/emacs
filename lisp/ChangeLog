@@ -1,3 +1,13 @@
+2013-02-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message): Extend function exclude list.
+	(tramp-backtrace): New defun.
+	(tramp-handle-insert-file-contents): Use `visit' when inserting
+	the local copy.
+
+	* net/tramp-sh.el (tramp-sh-handle-set-visited-file-modtime): Use
+	`remote-file-name-inhibit-cache'.
+
 2013-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (cperl-mode): Avoid byte-compile warning
