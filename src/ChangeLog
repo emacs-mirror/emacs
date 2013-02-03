@@ -1,3 +1,9 @@
+2013-02-03  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.c: Use execvp, not execv, when DAEMON_MUST_EXEC, so that
+	daemon mode works on cygw32 when Emacs is installed and not just
+	during development.
+
 2013-02-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid file time stamp bug on MS-Windows (Bug#13149).
