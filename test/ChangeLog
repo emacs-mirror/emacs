@@ -1,3 +1,8 @@
+2013-02-03  Chong Yidong  <cyd@gnu.org>
+
+	* automated/files.el (file-test--do-local-variables-test): Avoid
+	compilation warning message.
+
 2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el

@@ -23,9 +23,9 @@
 
 ;; Set to t if the local variable was set, `query' if the query was
 ;; triggered.
-(defvar files-test-result)
+(defvar files-test-result nil)
 
-(defvar files-test-safe-result)
+(defvar files-test-safe-result nil)
 (put 'files-test-safe-result 'safe-local-variable 'booleanp)
 
 (defun files-test-fun1 ()
@@ -123,11 +123,11 @@ form.")
 (defun file-test--do-local-variables-test (str test-settings)
   (with-temp-buffer
     (insert str)
+    (setq files-test-result nil
+	  files-test-safe-result nil)
     (let ((enable-local-variables (nth 0 test-settings))
 	  (enable-local-eval      (nth 1 test-settings))
-	  (files-test-result nil)
-	  (files-test-queried nil)
-	  (files-test-safe-result nil))
+	  (files-test-queried nil))
       (hack-local-variables)
       (eval (nth 2 test-settings)))))
 
