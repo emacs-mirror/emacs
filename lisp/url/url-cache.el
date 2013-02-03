@@ -149,7 +149,6 @@ The actual return value is the last modification time of the cache file."
 (defun url-cache-create-filename-using-md5 (url)
   "Create a cached filename using MD5.
 Very fast if you have an `md5' primitive function, suitably fast otherwise."
-  (require 'md5)
   (if url
       (let* ((checksum (md5 url))
 	     (urlobj (url-generic-parse-url url))
