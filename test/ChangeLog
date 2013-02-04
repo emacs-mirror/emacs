@@ -1,3 +1,7 @@
+2013-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* automated/thingatpt.el: New file.
+
 2013-02-03  Chong Yidong  <cyd@gnu.org>
 
 	* automated/files.el (file-test--do-local-variables-test): Avoid

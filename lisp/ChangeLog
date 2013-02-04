@@ -1,3 +1,34 @@
+2013-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* thingatpt.el: Rewrite the URL detection routines, absorbing some
+	code from ffap.el.
+	(thing-at-point-beginning-of-url-regexp): New var.
+	(thing-at-point-uri-schemes): Update list of URI schemes.
+	(thing-at-point-url-regexp): Variable deleted.
+	(thing-at-point-markedup-url-regexp): Disallow newlines.
+	(thing-at-point-newsgroup-regexp)
+	(thing-at-point-newsgroup-heads)
+	(thing-at-point-default-mail-uri-scheme): New variables.
+	(thing-at-point-bounds-of-url-at-point): Rewrite.  Use ffap's
+	method to find the possible bounds of the URI at point.  New
+	optional argument to find ill-formed URIs.
+	(thing-at-point-url-at-point): Rewrite.  New arguments for finding
+	ill-formed URIs.  Use thing-at-point-bounds-of-url-at-point, and
+	the scheme-adding heuristics from ffap-url-at-point.
+	(thing-at-point--bounds-of-well-formed-url): New function.  Do
+	parens matching to decide whether to include parens in the URI
+	(Bug#9153).
+
+	* ffap.el: Require thingatpt.
+	(ffap-url-at-point): Delegate URI detection to thing-at-point.
+	All URI-valid characters are now recognized (Bug#5673).
+	(ffap-string-at-point): Use use-region-p.
+	(ffap-url-regexp): Extra character is handled by thing-at-point.
+	(ffap-string-at-point-mode-alist): Allow parentheses.
+	(ffap-newsgroup-regexp, ffap-newsgroup-heads, ffap-newsgroup-p):
+	Convert to aliases; code moved to thingatpt.el.
+	(ffap-gnus-hook): Use setq-local.
+
 2013-02-04  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/ert.el (ert--explain-format-atom):

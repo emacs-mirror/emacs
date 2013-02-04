@@ -232,7 +232,7 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 (put 'defun 'end-op       'end-of-defun)
 (put 'defun 'forward-op   'end-of-defun)
 
-;;  Filenames and URLs  www.com/foo%32bar
+;;  Filenames
 
 (defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
   "Characters allowable in filenames.")
@@ -248,94 +248,224 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 	   (forward-char)
 	 (goto-char (point-min)))))
 
+;;  URIs
+
+(defvar thing-at-point-beginning-of-url-regexp nil
+  "Regexp matching the beginning of a well-formed URI.
+If nil, construct the regexp from `thing-at-point-uri-schemes'.")
+
 (defvar thing-at-point-url-path-regexp
   "[^]\t\n \"'<>[^`{}]*[^]\t\n \"'<>[^`{}.,;]+"
-  "A regular expression probably matching the host and filename or e-mail part of a URL.")
+  "Regexp matching the host and filename or e-mail part of a URL.")
 
 (defvar thing-at-point-short-url-regexp
   (concat "[-A-Za-z0-9]+\\.[-A-Za-z0-9.]+" thing-at-point-url-path-regexp)
-  "A regular expression probably matching a URL without an access scheme.
-Hostname matching is stricter in this case than for
-``thing-at-point-url-regexp''.")
+  "Regexp matching a URI without a scheme component.")
 
 (defvar thing-at-point-uri-schemes
   ;; Officials from http://www.iana.org/assignments/uri-schemes.html
-  '("ftp://" "http://" "gopher://" "mailto:" "news:" "nntp:"
-    "telnet://" "wais://" "file:/" "prospero:" "z39.50s:" "z39.50r:"
-    "cid:" "mid:" "vemmi:" "service:" "imap:" "nfs:" "acap:" "rtsp:"
-    "tip:" "pop:" "data:" "dav:" "opaquelocktoken:" "sip:" "tel:" "fax:"
-    "modem:" "ldap:" "https://" "soap.beep:" "soap.beeps:" "urn:" "go:"
-    "afs:" "tn3270:" "mailserver:"
-    "crid:" "dict:" "dns:" "dtn:" "h323:" "im:" "info:" "ipp:"
-    "iris.beep:" "mtqp:" "mupdate:" "pres:" "sips:" "snmp:" "tag:"
-    "tftp:" "xmlrpc.beep:" "xmlrpc.beeps:" "xmpp:"
-  ;; Compatibility
-    "snews:" "irc:" "mms://" "mmsh://")
-  "Uniform Resource Identifier (URI) Schemes.")
+  '("aaa://" "about:" "acap://" "apt:" "bzr://" "bzr+ssh://"
+    "attachment:/" "chrome://" "cid:" "content://" "crid://" "cvs://"
+    "data:" "dav:" "dict://" "doi:" "dns:" "dtn:" "feed:" "file:/"
+    "finger://" "fish://" "ftp://" "geo:" "git://" "go:" "gopher://"
+    "h323:" "http://" "https://" "im:" "imap://" "info:" "ipp:"
+    "irc://" "irc6://" "ircs://" "iris.beep:" "jar:" "ldap://"
+    "ldaps://" "mailto:" "mid:"  "mtqp://" "mupdate://" "news:"
+    "nfs://" "nntp://" "opaquelocktoken:" "pop://" "pres:"
+    "resource://" "rmi://" "rsync://" "rtsp://" "rtspu://" "service:"
+    "sftp://" "sip:" "sips:" "smb://" "sms:" "snmp://" "soap.beep://"
+    "soap.beeps://" "ssh://" "svn://" "svn+ssh://" "tag:" "tel:"
+    "telnet://" "tftp://" "tip://" "tn3270://" "udp://" "urn:"
+    "uuid:" "vemmi://"  "webcal://" "xri://" "xmlrpc.beep://"
+    "xmlrpc.beeps://" "z39.50r://" "z39.50s://" "xmpp:"
+    ;; Compatibility
+    "fax:" "mms://" "mmsh://" "modem:" "prospero:" "snews:"
+    "wais://")
+  "List of URI schemes recognized by `thing-at-point-url-at-point'.
+Each string in this list should correspond to the start of a
+URI's scheme component, up to and including the trailing // if
+the scheme calls for that to be present.")
 
-(defvar thing-at-point-url-regexp
-  (concat "\\<\\(" (mapconcat 'identity thing-at-point-uri-schemes "\\|") "\\)"
-          thing-at-point-url-path-regexp)
-  "A regular expression probably matching a complete URL.")
+(defvar thing-at-point-markedup-url-regexp "<URL:\\([^<>\n]+\\)>"
+  "Regexp matching a URL marked up per RFC1738.
+This kind of markup was formerly recommended as a way to indicate
+URIs, but as of RFC 3986 it is no longer recommended.
+Subexpression 1 should contain the delimited URL.")
 
-(defvar thing-at-point-markedup-url-regexp
-  "<URL:[^>]+>"
-  "A regular expression matching a URL marked up per RFC1738.
-This may contain whitespace (including newlines) .")
+(defvar thing-at-point-newsgroup-regexp
+  "\\`[[:lower:]]+\\.[-+[:lower:]_0-9.]+\\'"
+  "Regexp matching a newsgroup name.")
+
+(defvar thing-at-point-newsgroup-heads
+  '("alt" "comp" "gnu" "misc" "news" "sci" "soc" "talk")
+  "Used by `thing-at-point-newsgroup-p' if gnus is not running.")
+
+(defvar thing-at-point-default-mail-uri-scheme "mailto"
+  "Default scheme for ill-formed URIs that look like <foo@example.com>.
+If nil, do not give such URIs a scheme.")
 
 (put 'url 'bounds-of-thing-at-point 'thing-at-point-bounds-of-url-at-point)
-(defun thing-at-point-bounds-of-url-at-point ()
-  (let ((strip (thing-at-point-looking-at
-			 thing-at-point-markedup-url-regexp))) ;; (url "") short
-    (if (or strip
-	    (thing-at-point-looking-at thing-at-point-url-regexp)
-	    ;; Access scheme omitted?
-	    ;; (setq short (thing-at-point-looking-at
-	    ;;     	 thing-at-point-short-url-regexp))
-            )
-	(let ((beginning (match-beginning 0))
-	      (end (match-end 0)))
-	  (when strip
-            (setq beginning (+ beginning 5))
-            (setq end (- end 1)))
-	  (cons beginning end)))))
+
+(defun thing-at-point-bounds-of-url-at-point (&optional lax)
+  "Return a cons cell containing the start and end of the URI at point.
+Try to find a URI using `thing-at-point-markedup-url-regexp'.
+If that fails, try with `thing-at-point-beginning-of-url-regexp'.
+If that also fails, and optional argument LAX is non-nil, return
+the bounds of a possible ill-formed URI (one lacking a scheme)."
+  ;; Look for the old <URL:foo> markup.  If found, use it.
+  (or (thing-at-point--bounds-of-markedup-url)
+      ;; Otherwise, find the bounds within which a URI may exist.  The
+      ;; method is similar to `ffap-string-at-point'.  Note that URIs
+      ;; may contain parentheses but may not contain spaces (RFC3986).
+      (let* ((allowed-chars "--:=&?$+@-Z_[:alpha:]~#,%;*()!'")
+	     (skip-before "^[0-9a-zA-Z]")
+	     (skip-after  ":;.,!?")
+	     (pt (point))
+	     (beg (save-excursion
+		    (skip-chars-backward allowed-chars)
+		    (skip-chars-forward skip-before pt)
+		    (point)))
+	     (end (save-excursion
+		    (skip-chars-forward allowed-chars)
+		    (skip-chars-backward skip-after pt)
+		    (point))))
+	(or (thing-at-point--bounds-of-well-formed-url beg end pt)
+	    (if lax (cons beg end))))))
+
+(defun thing-at-point--bounds-of-markedup-url ()
+  (when thing-at-point-markedup-url-regexp
+    (let ((case-fold-search t)
+	  (pt (point))
+	  (beg (line-beginning-position))
+	  (end (line-end-position))
+	  found)
+      (save-excursion
+	(goto-char beg)
+	(while (and (not found)
+		    (<= (point) pt)
+		    (< (point) end))
+	  (and (re-search-forward thing-at-point-markedup-url-regexp
+				  end 1)
+	       (> (point) pt)
+	       (setq found t))))
+      (if found
+	  (cons (match-beginning 1) (match-end 1))))))
+
+(defun thing-at-point--bounds-of-well-formed-url (beg end pt)
+  (save-excursion
+    (goto-char beg)
+    (let (url-beg paren-end regexp)
+      (save-restriction
+	(narrow-to-region beg end)
+	;; The scheme component must either match at BEG, or have no
+	;; other alphanumerical ASCII characters before it.
+	(setq regexp (concat "\\(?:\\`\\|[^a-zA-Z0-9]\\)\\("
+			     (or thing-at-point-beginning-of-url-regexp
+				 (regexp-opt thing-at-point-uri-schemes))
+			     "\\)"))
+	(and (re-search-forward regexp end t)
+	     ;; URI must have non-empty contents.
+	     (< (point) end)
+	     (setq url-beg (match-beginning 1))))
+      (when url-beg
+	;; If there is an open paren before the URI, truncate to the
+	;; matching close paren.
+	(and (> url-beg (point-min))
+	     (eq (car-safe (syntax-after (1- url-beg))) 4)
+	     (save-restriction
+	       (narrow-to-region (1- url-beg) (min end (point-max)))
+	       (setq paren-end (ignore-errors
+				 (scan-lists (1- url-beg) 1 0))))
+	     (not (blink-matching-check-mismatch (1- url-beg) paren-end))
+	     (setq end (1- paren-end)))
+	(cons url-beg end)))))
 
 (put 'url 'thing-at-point 'thing-at-point-url-at-point)
-(defun thing-at-point-url-at-point ()
+
+(defun thing-at-point-url-at-point (&optional lax bounds)
   "Return the URL around or before point.
+If no URL is found, return nil.
 
-Search backwards for the start of a URL ending at or after point.  If
-no URL found, return nil.  The access scheme will be prepended if
-absent: \"mailto:\" if the string contains \"@\", \"ftp://\" if it
-starts with \"ftp\" and not \"ftp:/\", or \"http://\" by default."
+If optional argument LAX is non-nil, look for URLs that are not
+well-formed, such as foo@bar or <nobody>.
 
-  (let ((url "") short strip)
-    (if (or (setq strip (thing-at-point-looking-at
-			 thing-at-point-markedup-url-regexp))
-	    (thing-at-point-looking-at thing-at-point-url-regexp)
-	    ;; Access scheme omitted?
-	    (setq short (thing-at-point-looking-at
-			 thing-at-point-short-url-regexp)))
-	(progn
-	  (setq url (buffer-substring-no-properties (match-beginning 0)
-						    (match-end 0)))
-	  (and strip (setq url (substring url 5 -1))) ; Drop "<URL:" & ">"
-	  ;; strip whitespace
-	  (while (string-match "[ \t\n\r]+" url)
-	    (setq url (replace-match "" t t url)))
-	  (and short (setq url (concat (cond ((string-match "^[a-zA-Z]+:" url)
-					       ;; already has a URL scheme.
-					       "")
-					     ((string-match "@" url)
-                                              "mailto:")
-					     ;; e.g. ftp.swiss... or ftp-swiss...
-                                             ((string-match "^ftp" url)
-                                              "ftp://")
-                                             (t "http://"))
-                                       url)))
-	  (if (string-equal "" url)
-	      nil
-	    url)))))
+If optional arguments BOUNDS are non-nil, it should be a cons
+cell of the form (START . END), containing the beginning and end
+positions of the URI.  Otherwise, these positions are detected
+automatically from the text around point.
+
+If the scheme component is absent, either because a URI delimited
+with <url:...> lacks one, or because an ill-formed URI was found
+with LAX or BEG and END, try to add a scheme in the returned URI.
+The scheme is chosen heuristically: \"mailto:\" if the address
+looks like an email address, \"ftp://\" if it starts with
+\"ftp\", etc."
+  (unless bounds
+    (setq bounds (thing-at-point-bounds-of-url-at-point lax)))
+  (when (and bounds (< (car bounds) (cdr bounds)))
+    (let ((str (buffer-substring-no-properties (car bounds) (cdr bounds))))
+      ;; If there is no scheme component, try to add one.
+      (unless (string-match "\\`[a-zA-Z][-a-zA-Z0-9+.]*:" str)
+	(or
+	 ;; If the URI has the form <foo@bar>, treat it according to
+	 ;; `thing-at-point-default-mail-uri-scheme'.  If there are
+	 ;; no angle brackets, it must be mailto.
+	 (when (string-match "\\`[^:</>@]+@[-.0-9=&?$+A-Z_a-z~#,%;*]" str)
+	   (let ((scheme (if (and (eq (char-before (car bounds)) ?<)
+				  (eq (char-after  (cdr bounds)) ?>))
+			     thing-at-point-default-mail-uri-scheme
+			   "mailto")))
+	     (if scheme
+		 (setq str (concat scheme ":" str)))))
+	 ;; If the string is like <FOO>, where FOO is an existing user
+	 ;; name on the system, treat that as an email address.
+	 (and (string-match "\\`[[:alnum:]]+\\'" str)
+	      (eq (char-before (car bounds)) ?<)
+	      (eq (char-after  (cdr bounds)) ?>)
+	      (not (string-match "~" (expand-file-name (concat "~" str))))
+	      (setq str (concat "mailto:" str)))
+	 ;; If it looks like news.example.com, treat it as news.
+	 (if (thing-at-point-newsgroup-p str)
+	     (setq str (concat "news:" str)))
+	 ;; If it looks like ftp.example.com. treat it as ftp.
+	 (if (string-match "\\`ftp\\." str)
+	     (setq str (concat "ftp://" str)))
+	 ;; If it looks like www.example.com. treat it as http.
+	 (if (string-match "\\`www\\." str)
+	     (setq str (concat "http://" str)))
+	 ;; Otherwise, it just isn't a URI.
+	 (setq str nil)))
+      str)))
+
+(defun thing-at-point-newsgroup-p (string)
+  "Return STRING if it looks like a newsgroup name, else nil."
+  (and
+   (string-match thing-at-point-newsgroup-regexp string)
+   (let ((htbs '(gnus-active-hashtb gnus-newsrc-hashtb gnus-killed-hashtb))
+	 (heads thing-at-point-newsgroup-heads)
+	 htb ret)
+     (while htbs
+       (setq htb (car htbs) htbs (cdr htbs))
+       (condition-case nil
+	   (progn
+	     ;; errs: htb symbol may be unbound, or not a hash-table.
+	     ;; gnus-gethash is just a macro for intern-soft.
+	     (and (symbol-value htb)
+		  (intern-soft string (symbol-value htb))
+		  (setq ret string htbs nil))
+	     ;; If we made it this far, gnus is running, so ignore "heads":
+	     (setq heads nil))
+	 (error nil)))
+     (or ret (not heads)
+	 (let ((head (string-match "\\`\\([[:lower:]]+\\)\\." string)))
+	   (and head (setq head (substring string 0 (match-end 1)))
+		(member head heads)
+		(setq ret string))))
+     ret)))
+
+(put 'url 'end-op (lambda () (end-of-thing 'url)))
+
+(put 'url 'beginning-op (lambda () (end-of-thing 'url)))
 
 ;; The normal thingatpt mechanism doesn't work for complex regexps.
 ;; This should work for almost any regexp wherever we are in the
@@ -371,19 +501,6 @@ point."
 		    (setq match (point))))
 	(goto-char match)
 	(looking-at regexp)))))
-
-(put 'url 'end-op
-     (lambda ()
-       (let ((bounds (thing-at-point-bounds-of-url-at-point)))
-         (if bounds
-             (goto-char (cdr bounds))
-           (error "No URL here")))))
-(put 'url 'beginning-op
-     (lambda ()
-       (let ((bounds (thing-at-point-bounds-of-url-at-point)))
-         (if bounds
-             (goto-char (car bounds))
-           (error "No URL here")))))
 
 ;;   Email addresses
 (defvar thing-at-point-email-regexp
