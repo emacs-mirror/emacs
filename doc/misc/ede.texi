@@ -451,8 +451,8 @@ ede-new}, or click on the @samp{Create Project} item in the
 The @command{ede-new} command prompts for the type of project you
 would like to create.  Each project type has its own benefits or
 language specific enhancements.  Not all projects that @ede{} supports
-also supports creating a new project.  Projects such as @code{emacs}
-or @code{linux} are design to recognize existing projects only.
+also allow creating a new project.  Projects such as @code{emacs}
+or @code{linux} are designed to recognize existing projects only.
 Project types such as @samp{Make} and @samp{Automake} do support
 creating new project types with @command{ede-new}.
 
@@ -1041,7 +1041,7 @@ and has an optimized include file identification function.
 
 The @code{ede-generic-project} is a project system that makes it easy
 to wrap up different kinds of build systems as an EDE project.
-Projects such as @ref{ede-emacs} requires coding skills to create.
+Projects such as @ref{ede-emacs} require coding skills to create.
 Generic projects also require writing Emacs Lisp code, but the
 requirements are minimal.  You can then use
 @command{customize-project} to configure build commands, includes, and
@@ -1049,7 +1049,7 @@ other options for that project.  The configuration is saved in
 @file{EDEConfig.el}.
 
 Generic projects are disabled by default because they have the
-potential to interfere with other projects.  To enable the generic
+potential to interfere with other projects.  To use the generic
 project sytem to start detecting projects, you need to enable it.
 
 @deffn Command ede-enable-generic-projects
