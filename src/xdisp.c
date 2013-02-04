@@ -10753,7 +10753,7 @@ window_buffer_changed (struct window *w)
 
   return (((BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)) != w->last_had_star)
 	  || ((!NILP (Vtransient_mark_mode) && !NILP (BVAR (b, mark_active)))
-	      != w->region_showing));
+	      != (w->region_showing != 0)));
 }
 
 /* Nonzero if W has %c in its mode line and mode line should be updated.  */
@@ -13016,6 +13016,17 @@ redisplay_internal (void)
       clear_garbaged_frames ();
     }
 
+  /* If showing the region, and mark has changed, we must redisplay
+     the whole window.  The assignment to this_line_start_pos prevents
+     the optimization directly below this if-statement.  */
+  if (((!NILP (Vtransient_mark_mode)
+	&& !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
+       != (w->region_showing > 0))
+      || (w->region_showing
+	  && w->region_showing
+	  != XINT (Fmarker_position (BVAR (XBUFFER (w->buffer), mark)))))
+    CHARPOS (this_line_start_pos) = 0;
+
   /* Optimize the case that only the line containing the cursor in the
      selected window has changed.  Variables starting with this_ are
      set in display_line and record information about the line
@@ -13227,6 +13238,8 @@ redisplay_internal (void)
 #ifdef HAVE_WINDOW_SYSTEM
   ++clear_image_cache_count;
 #endif
+
+  w->region_showing = XINT (Fmarker_position (BVAR (XBUFFER (w->buffer), mark)));
 
   /* Build desired matrices, and update the display.  If
      consider_all_windows_p is non-zero, do it for all windows on all
@@ -19120,7 +19133,7 @@ display_line (struct it *it)
     }
 
   /* Is IT->w showing the region?  */
-  it->w->region_showing = it->region_beg_charpos > 0;
+  it->w->region_showing = it->region_beg_charpos > 0 ? -1 : 0;
 
   /* Clear the result glyph row and enable it.  */
   prepare_desired_row (row);

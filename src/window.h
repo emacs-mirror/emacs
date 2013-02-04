@@ -333,12 +333,14 @@ struct window
        the frame image that window_end_pos did not get onto the frame.  */
     unsigned window_end_valid : 1;
 
-    /* Nonzero if we have highlighted the region (or any part of it).  */
-    unsigned region_showing : 1;
-
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
+
+    /* If we have highlighted the region (or any part of it), the mark
+       position or -1 (the latter is used by the iterator for internal
+       purposes); otherwise zero.  */
+    ptrdiff_t region_showing;
 
     /* Z_BYTE - buffer position of the last glyph in the current matrix of W.
        Should be nonnegative, and only valid if window_end_valid is nonzero.  */
