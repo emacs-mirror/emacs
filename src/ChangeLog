@@ -1,3 +1,7 @@
+2013-02-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Qchoose_write_coding_system): Now static.
+
 2013-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (window_buffer_changed): region_showing can be negative,

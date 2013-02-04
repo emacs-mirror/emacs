@@ -251,7 +251,7 @@ static Lisp_Object Qfile_acl;
 static Lisp_Object Qset_file_acl;
 static Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
-Lisp_Object Qchoose_write_coding_system;
+static Lisp_Object Qchoose_write_coding_system;
 Lisp_Object Qwrite_region;
 static Lisp_Object Qverify_visited_file_modtime;
 static Lisp_Object Qset_visited_file_modtime;
