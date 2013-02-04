@@ -39,6 +39,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: strncpy, sscanf, fopen.  See job001934. */
+#pragma warning( disable : 4996 )
+#endif
+
 static char *prog; /* program name */
 static char *logFileName = NULL;
 
@@ -236,10 +242,10 @@ static void createTables(void)
     everror("Couldn't make label table.");
 }
 
-/* intern -- record an interned string in the table.   a copy of
+/* recordIntern -- record an interned string in the table.  a copy of
 * the string from the parsed buffer into a newly-allocated block. */
 
-static void intern(char *p)
+static void recordIntern(char *p)
 {
   ulongest_t stringId;
   char *string;
@@ -259,8 +265,8 @@ static void intern(char *p)
     everror("Couldn't create an intern mapping.");
 }
 
-/* label records a label (an associations between addresses and string
- * IDs).  Note that the event log may have been generated on a
+/* recordLabel records a label (an association between an address and
+ * a string ID).  Note that the event log may have been generated on a
  * platform with addresses larger than Word on the current platform.
  * If that happens then we are scuppered because our Table code uses
  * Word as the key type: there's nothing we can do except detect this
@@ -275,7 +281,7 @@ static void intern(char *p)
  * probably a bad idea and maybe doomed to failure.
  */
 
-static void label(char *p)
+static void recordLabel(char *p)
 {
   ulongest_t address;
   ulongest_t *stringIdP;
@@ -416,9 +422,9 @@ static void readLog(FILE *input)
 
     /* for a few particular codes, we do local processing. */
     if (code == EventInternCode) {
-      intern(q);
+      recordIntern(q);
     } else if (code == EventLabelCode) {
-      label(q);
+      recordLabel(q);
     } else if (code == EventEventInitCode) {
       ulongest_t major, median, minor, maxCode, maxNameLen, wordWidth, clocksPerSec;
       major = parseHex(&q);  /* EVENT_VERSION_MAJOR */

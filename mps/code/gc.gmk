@@ -8,13 +8,18 @@
 # common makefile fragment (<code/comm.gmk>) requires.
 
 CC = gcc
-CFLAGSCOMPILER := \
-	-ansi -pedantic -Wall -Werror -Wpointer-arith \
+CFLAGSDEBUG = -O -g3
+CFLAGSOPT = -O2 -g3
+CFLAGSCOMPILER :=  -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
 	-Wcast-qual -Wshadow -Wstrict-aliasing=2
-CFLAGSDEBUG = -O -g3
-CFLAGSOPT = -O2 -g3
+CFLAGSCOMPILERSTRICT := -ansi -pedantic -Wshadow
+
+# A different set of compiler flags for less strict compilation, for
+# instance when we need to #include a third-party header file that
+# won't fly with -ansi -pedantic.  Use sparingly!
+CFLAGSCOMPILERLAX :=
 
 # gcc -MM generates a dependency line of the form:
 #   thing.o : thing.c ...
