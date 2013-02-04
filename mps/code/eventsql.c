@@ -593,6 +593,7 @@ static void dropGlueTables(sqlite3 *db)
                        NULL, /* No callback closure */
                        NULL); /* error messages handled by sqlite_error */
     /* Don't check for errors. */
+    (void)res;
   }
 }
 
