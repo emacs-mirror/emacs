@@ -1,3 +1,8 @@
+2013-02-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* vc/vc.el (vc-next-action): Fix inf-loop (bug#13610).
+	(vc-update-change-log): Use dolist.
+
 2013-02-04  Chong Yidong  <cyd@gnu.org>
 
 	* thingatpt.el: Rewrite the URL detection routines, absorbing some
@@ -10,13 +15,13 @@
 	(thing-at-point-newsgroup-heads)
 	(thing-at-point-default-mail-uri-scheme): New variables.
 	(thing-at-point-bounds-of-url-at-point): Rewrite.  Use ffap's
-	method to find the possible bounds of the URI at point.  New
-	optional argument to find ill-formed URIs.
+	method to find the possible bounds of the URI at point.
+	New optional argument to find ill-formed URIs.
 	(thing-at-point-url-at-point): Rewrite.  New arguments for finding
 	ill-formed URIs.  Use thing-at-point-bounds-of-url-at-point, and
 	the scheme-adding heuristics from ffap-url-at-point.
-	(thing-at-point--bounds-of-well-formed-url): New function.  Do
-	parens matching to decide whether to include parens in the URI
+	(thing-at-point--bounds-of-well-formed-url): New function.
+	Do parens matching to decide whether to include parens in the URI
 	(Bug#9153).
 
 	* ffap.el: Require thingatpt.
@@ -41,8 +46,8 @@
 	(tramp-handle-insert-file-contents): Use `visit' when inserting
 	the local copy.
 
-	* net/tramp-sh.el (tramp-sh-handle-set-visited-file-modtime): Use
-	`remote-file-name-inhibit-cache'.
+	* net/tramp-sh.el (tramp-sh-handle-set-visited-file-modtime):
+	Use `remote-file-name-inhibit-cache'.
 
 2013-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 

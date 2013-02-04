@@ -1079,15 +1079,13 @@ For old-style locking-based version control systems, like RCS:
     ;; If a buffer has unsaved changes, a checkout would discard those
     ;; changes, so treat the buffer as having unlocked changes.
     (when (and (not (eq model 'implicit)) (eq state 'up-to-date))
-      (let ((files files))
-	(while files
-	  (let ((buffer (get-file-buffer (car files))))
-	    (and buffer
-		 (buffer-modified-p buffer)
-		 (setq state 'unlocked-changes
-		       files nil))))))
+      (dolist (file files)
+        (let ((buffer (get-file-buffer file)))
+          (and buffer
+               (buffer-modified-p buffer)
+               (setq state 'unlocked-changes)))))
 
-    ;; Do the right thing
+    ;; Do the right thing.
     (cond
      ((eq state 'missing)
       (error "Fileset files are missing, so cannot be operated on"))
@@ -2667,14 +2665,11 @@ log entries should be gathered."
    (cond ((consp current-prefix-arg)	;C-u
 	  (list buffer-file-name))
 	 (current-prefix-arg		;Numeric argument.
-	  (let ((files nil)
-		(buffers (buffer-list))
-		file)
-	    (while buffers
-	      (setq file (buffer-file-name (car buffers)))
-	      (and file (vc-backend file)
-		   (setq files (cons file files)))
-	      (setq buffers (cdr buffers)))
+	  (let ((files nil))
+            (dolist (buffer (buffer-list))
+	      (let ((file (buffer-file-name buffer)))
+                (and file (vc-backend file)
+                     (setq files (cons file files)))))
 	    files))
 	 (t
           ;; Don't supply any filenames to backend; this means
