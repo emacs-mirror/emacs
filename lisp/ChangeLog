@@ -1,3 +1,26 @@
+2013-02-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Bug fixes involving or displaying done items.
+	(todos-done-separator): Make length of long separator one less
+	than window-width, in order to avoid following empty line.
+	(todos-forward-item, todos-backward-item): Make empty line below
+	last todo item accessible only by invoking without a numerical
+	prefix argument and make the latter invocations move only to items.
+	(todos-insert-item): Set todos-current-todos-file after selecting
+	buffer, in order not to set global value.  If only done items are
+	shown when this command is invoked, toggle to show todo items to
+	avoid insertion into done items section.  When done items are
+	shown, protect from cancelling before setting item priority: this
+	also needs recentering to display all items.
+	(todos-set-item-priority): Only call on (not done) todo items.
+	Check that done items are visible not because file is widened.
+	Use only `any' argument of called-interactively-p.  Make sure that
+	giving an undone item lowest priority restores it to the todo
+	section.
+	(todos-item-done): If done items are visible on invoking this
+	command, keep them visible afterwards.  Stop looking for marked
+	items on reaching the empty line below the last todo item.
+
 2013-02-02  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Several small fixes and improvements.

@@ -1150,7 +1150,11 @@ number as its value."
   "Return string used as value of variable `todos-done-separator'."
   (let ((sep todos-done-separator-string))
     (propertize (if (= 1 (length sep))
-		    (make-string (window-width) (string-to-char sep))
+		    ;; If separator's length is window-width, an
+		    ;; indented empty line appears between the
+		    ;; separator and the first done item.
+		    ;; FIXME: should this be customizable?
+		    (make-string (1- (window-width)) (string-to-char sep))
 		  todos-done-separator-string)
 		'face 'todos-done-sep)))
 
@@ -1521,6 +1525,14 @@ The final element is \"*\", indicating an unspecified month.")
   (save-excursion
     (todos-item-start)
     (looking-at todos-done-string-start)))
+
+;; (defun todos-done-item-section-p ()
+;;   "Return non-nil if point is in category's done items section."
+;;   (save-excursion
+;;     (or (re-search-backward (concat "^" (regexp-quote todos-category-done))
+;; 			    nil t)
+;; 	(progn (goto-char (point-min))
+;; 	       (looking-at todos-done-string-start)))))
 
 (defun todos-prefix-overlay ()
   "Return this item's prefix overlay."
@@ -3522,7 +3534,17 @@ CAT; this is used in Todos Categories mode."
 (defun todos-forward-item (&optional count)
   "Move point down to start of item with next lower priority.
 With positive numerical prefix COUNT, move point COUNT items
-downward."
+downward.
+
+If the category's done items are hidden, this command also moves
+point to the empty line below the last todo item from any higher
+item in the category, i.e., when invoked with or without a prefix
+argument.  If the category's done items are visible, this command
+called with a prefix argument only moves point to a lower item,
+e.g., with point on the last todo item and called with prefix 1,
+it moves point to the first done item; but if called with point
+on the last todo item without a prefix argument, it moves point
+the the empty line above the done items separator."
   (interactive "P")
   ;; It's not worth the trouble to allow prefix arg value < 1, since we have
   ;; the corresponding command.
@@ -3538,9 +3560,9 @@ downward."
       ;; space above todos-done-separator, since that is a legitimate place to
       ;; insert an item.  But skip this space if count > 1, since that should
       ;; only stop on an item.
-      (when (and not-done (todos-done-item-p))
-	(if (or (not count) (= count 1))
-	    (re-search-backward "^$" start t))))))
+      (when (and not-done (todos-done-item-p) (not count))
+	;; (if (or (not count) (= count 1))
+	    (re-search-backward "^$" start t)))));)
     ;; FIXME: The preceding sexp is insufficient when buffer is not narrowed,
     ;; since there could be no done items in this category, so the search puts
     ;; us on first todo item of next category.  Does this ever happen?  If so:
@@ -3557,7 +3579,14 @@ downward."
 (defun todos-backward-item (&optional count)
   "Move point up to start of item with next higher priority.
 With positive numerical prefix COUNT, move point COUNT items
-upward."
+upward.
+
+If the category's done items are visible, this command called
+with a prefix argument only moves point to a higher item, e.g.,
+with point on the first done item and called with prefix 1, it
+moves to the last todo item; but if called with point on the
+first done item without a prefix argument, it moves point the the
+empty line above the done items separator."
   (interactive "P")
   ;; Avoid moving to bob if on the first item but not at bob.
   (when (> (line-number-at-pos) 1)
@@ -3575,7 +3604,8 @@ upward."
 	;; todos-done-separator, since that is a legitimate place to insert an
 	;; item.  But skip this space if count > 1, since that should only
 	;; stop on an item.
-	(when (and done (not (todos-done-item-p)) (or (not count) (= count 1))
+	(when (and done (not (todos-done-item-p)) (not count)
+					;(or (not count) (= count 1))
 		   (not (equal (buffer-name) todos-regexp-items-buffer)))
 	  (re-search-forward (concat "^" (regexp-quote todos-category-done))
 			     nil t)
@@ -4550,12 +4580,17 @@ the priority is not given by HERE but by prompting."
 				   (substring (current-time-string) 11 16)))))
 	(setq todos-date-from-calendar nil)
 	(find-file-noselect file 'nowarn)
-	(setq todos-current-todos-file file)
 	(set-window-buffer (selected-window)
 			   ;; If current category was nil till now, on
 			   ;; entering Todos mode here it will be set to
 			   ;; file's first category.
 			   (set-buffer (find-buffer-visiting file)))
+	(setq todos-current-todos-file file)
+	;; If only done items are displayed in category, toggle to
+	;; todo items.
+	(when (and (goto-char (point-min))
+		   (looking-at todos-done-string-start))
+	  (todos-show-done-only))
 	(unless todos-global-current-todos-file
 	  (setq todos-global-current-todos-file todos-current-todos-file))
 	;; These are not needed here, since they are called in
@@ -4595,10 +4630,17 @@ the priority is not given by HERE but by prompting."
 	    ;; 	(todos-insert-with-overlays new-item)
 	    ;;   )
 	    ;; (todos-set-item-priority new-item (todos-current-category) t))
-	    (todos-set-item-priority new-item cat t)
-	    ;; If item is inserted at end of category, make sure the
-	    ;; items above it are displayed in the window.
-	    (recenter))
+	    (unwind-protect
+		(todos-set-item-priority new-item cat t)
+	      ;; In (at least) two circumstances, point may be at eob
+	      ;; and eob at window-start, so that that the todo items
+	      ;; are out of view: (i) if item is inserted at end of
+	      ;; category, (ii) if only done items are shown, this is
+	      ;; (above) programmatically toggled to show todo items,
+	      ;; and user cancels before setting new item's
+	      ;; priority.  To make sure the todo items are displayed
+	      ;; in the window, force recentering.
+	      (recenter)))
 	  (todos-update-count 'todo 1)
 	  (if (or diary todos-include-in-diary) (todos-update-count 'diary 1))
 	  (todos-update-categories-sexp))))))
@@ -5152,115 +5194,125 @@ items in this category."
 (defun todos-set-item-priority (&optional item cat new arg)
   "Prompt for and set ITEM's priority in CATegory.
 
-Interactively, ITEM defaults to the item at point, CAT to the
-current category in Todos mode, and the priority is a number
-between 1 and the number of items in the category.
-Non-interactively, non-nil NEW means ITEM is a new item and the
-lowest priority is one more than the number of items in CAT.
+Interactively, ITEM is the todo item at point, CAT is the current
+category, and the priority is a number between 1 and the number
+of items in the category.  Non-interactively, non-nil NEW means
+ITEM is a new item and the lowest priority is one more than the
+number of items in CAT.
 
 The new priority is set either interactively by prompt or by a
 numerical prefix argument, or noninteractively by argument ARG,
 whose value can be either of the symbols `raise' or `lower',
 meaning to raise or lower the item's priority by one."
-  (interactive)				; Prefix arg?
-  (let* ((item (or item (todos-item-string)))
-	 (marked (todos-marked-item-p))
-	 (cat (or cat (cond ((eq major-mode 'todos-mode)
-			     (todos-current-category))
-			    ((eq major-mode 'todos-filtered-items-mode)
-			     (let* ((regexp1
-				     (concat todos-date-string-start
-					     todos-date-pattern
-					     "\\( " diary-time-regexp "\\)?"
-					     (regexp-quote todos-nondiary-end)
-					     "?\\(?1: \\[\\(.+:\\)?.+\\]\\)")))
-			       (save-excursion
-				 (re-search-forward regexp1 nil t)
-				 (match-string-no-properties 1)))))))
-	 curnum
-	 (todo (cond ((or (eq arg 'raise) (eq arg 'lower)
-			  (eq major-mode 'todos-filtered-items-mode))
-		      (save-excursion
-			(let ((curstart (todos-item-start))
-			      (count 0))
-			  (goto-char (point-min))
-			  (while (looking-at todos-item-start)
-			    (setq count (1+ count))
-			    (when (= (point) curstart) (setq curnum count))
-			    (todos-forward-item))
-			  count)))
-		     ((eq major-mode 'todos-mode)
-		      (todos-get-count 'todo cat))))
-	 (maxnum (if new (1+ todo) todo))
-	 (prompt (format "Set item priority (1-%d): " maxnum))
-	 (priority (cond ((numberp current-prefix-arg)
-			  current-prefix-arg)
-			 ((and (eq arg 'raise) (>= curnum 1))
-			  (1- curnum))
-			 ((and (eq arg 'lower) (<= curnum maxnum))
-			  (1+ curnum))))
-	 candidate
-	 buffer-read-only)
-    (unless (and priority
-		 (or (and (eq arg 'raise) (zerop priority))
-		     (and (eq arg 'lower) (> priority maxnum))))
-      ;; When moving item to another category, show the category before
-      ;; prompting for its priority.
-      (unless (or arg (called-interactively-p t))
-	(todos-category-number cat)
-	;; If done items in category are visible, keep them visible.
-	(let (done)
-	  (save-excursion
-	    (goto-char (point-min))
-	    (setq done (re-search-forward todos-done-string-start nil t)))
-	  (let ((todos-show-with-done done))
-	    (todos-category-select))))
-      ;; Prompt for priority only when the category has at least one todo item.
-      (when (> maxnum 1)
-	(while (not priority)
-	  (setq candidate (read-number prompt))
-	  (setq prompt (when (or (< candidate 1) (> candidate maxnum))
-			 (format "Priority must be an integer between 1 and %d.\n"
-				 maxnum)))
-	  (unless prompt (setq priority candidate))))
-      ;; In Top Priorities buffer, an item's priority can be changed
-      ;; wrt items in another category, but not wrt items in the same
-      ;; category.
-      (when (eq major-mode 'todos-filtered-items-mode)
-	(let* ((regexp2 (concat todos-date-string-start todos-date-pattern
-				"\\( " diary-time-regexp "\\)?"
-				(regexp-quote todos-nondiary-end)
-				"?\\(?1:" (regexp-quote cat) "\\)"))
-	       (end (cond ((< curnum priority)
-			   (save-excursion (todos-item-end)))
-			  ((> curnum priority)
-			   (save-excursion (todos-item-start)))))
-	       (match (save-excursion
-			(cond ((< curnum priority)
-			       (todos-forward-item (1+ (- priority curnum)))
-			       (when (re-search-backward regexp2 end t)
-				 (match-string-no-properties 1)))
-			      ((> curnum priority)
-			       (todos-backward-item (- curnum priority))
-			       (when (re-search-forward regexp2 end t)
-				 (match-string-no-properties 1)))))))
-	  (when match
-	    (error (concat "Cannot reprioritize items from the same "
-			   "category in this mode, only in Todos mode")))))
-      ;; Interactively or with non-nil ARG, relocate the item within its
-      ;; category.
-      (when (or arg (called-interactively-p))
-	(todos-remove-item))
-      (goto-char (point-min))
-      (when priority
-	(unless (= priority 1)
-	  (todos-forward-item (1- priority))))
-      (todos-insert-with-overlays item)
-      ;; If item was marked, restore the mark.
-      (and marked
-	   (let* ((ov (todos-prefix-overlay))
-		  (pref (overlay-get ov 'before-string)))
-	     (overlay-put ov 'before-string (concat todos-item-mark pref)))))))
+  (interactive)				;FIXME: Prefix arg?
+  (unless (and (called-interactively-p 'any)
+	       (or (todos-done-item-p) (looking-at "^$")))
+    (let* ((item (or item (todos-item-string)))
+	   (marked (todos-marked-item-p))
+	   (cat (or cat (cond ((eq major-mode 'todos-mode)
+			       (todos-current-category))
+			      ((eq major-mode 'todos-filtered-items-mode)
+			       (let* ((regexp1
+				       (concat todos-date-string-start
+					       todos-date-pattern
+					       "\\( " diary-time-regexp "\\)?"
+					       (regexp-quote todos-nondiary-end)
+					       "?\\(?1: \\[\\(.+:\\)?.+\\]\\)")))
+				 (save-excursion
+				   (re-search-forward regexp1 nil t)
+				   (match-string-no-properties 1)))))))
+	   curnum
+	   (todo (cond ((or (eq arg 'raise) (eq arg 'lower)
+			    (eq major-mode 'todos-filtered-items-mode))
+			(save-excursion
+			  (let ((curstart (todos-item-start))
+				(count 0))
+			    (goto-char (point-min))
+			    (while (looking-at todos-item-start)
+			      (setq count (1+ count))
+			      (when (= (point) curstart) (setq curnum count))
+			      (todos-forward-item))
+			    count)))
+		       ((eq major-mode 'todos-mode)
+			(todos-get-count 'todo cat))))
+	   (maxnum (if new (1+ todo) todo))
+	   (prompt (format "Set item priority (1-%d): " maxnum))
+	   (priority (cond ((numberp current-prefix-arg)
+			    current-prefix-arg)
+			   ((and (eq arg 'raise) (>= curnum 1))
+			    (1- curnum))
+			   ((and (eq arg 'lower) (<= curnum maxnum))
+			    (1+ curnum))))
+	   candidate
+	   buffer-read-only)
+      (unless (and priority
+		   (or (and (eq arg 'raise) (zerop priority))
+		       (and (eq arg 'lower) (> priority maxnum))))
+	;; When moving item to another category, show the category before
+	;; prompting for its priority.
+	(unless (or arg (called-interactively-p 'any))
+	  (todos-category-number cat)
+	  ;; If done items in category are visible, keep them visible.
+	  (let ((done todos-show-with-done))
+	    (when (> (buffer-size) (- (point-max) (point-min)))
+	      (save-excursion
+		(goto-char (point-min))
+		(setq done (re-search-forward todos-done-string-start nil t))))
+	    (let ((todos-show-with-done done))
+	      (todos-category-select)))))
+	;; Prompt for priority only when the category has at least one todo item.
+	(when (> maxnum 1)
+	  (while (not priority)
+	    (setq candidate (read-number prompt))
+	    (setq prompt (when (or (< candidate 1) (> candidate maxnum))
+			   (format "Priority must be an integer between 1 and %d.\n"
+				   maxnum)))
+	    (unless prompt (setq priority candidate))))
+	;; In Top Priorities buffer, an item's priority can be changed
+	;; wrt items in another category, but not wrt items in the same
+	;; category.
+	(when (eq major-mode 'todos-filtered-items-mode)
+	  (let* ((regexp2 (concat todos-date-string-start todos-date-pattern
+				  "\\( " diary-time-regexp "\\)?"
+				  (regexp-quote todos-nondiary-end)
+				  "?\\(?1:" (regexp-quote cat) "\\)"))
+		 (end (cond ((< curnum priority)
+			     (save-excursion (todos-item-end)))
+			    ((> curnum priority)
+			     (save-excursion (todos-item-start)))))
+		 (match (save-excursion
+			  (cond ((< curnum priority)
+				 (todos-forward-item (1+ (- priority curnum)))
+				 (when (re-search-backward regexp2 end t)
+				   (match-string-no-properties 1)))
+				((> curnum priority)
+				 (todos-backward-item (- curnum priority))
+				 (when (re-search-forward regexp2 end t)
+				   (match-string-no-properties 1)))))))
+	    (when match
+	      (error (concat "Cannot reprioritize items from the same "
+			     "category in this mode, only in Todos mode")))))
+	;; Interactively or with non-nil ARG, relocate the item within its
+	;; category.
+	(when (or arg (called-interactively-p 'any))
+	  (todos-remove-item))
+	(goto-char (point-min))
+	(when priority
+	  (unless (= priority 1)
+	    (todos-forward-item (1- priority))
+	    ;; When called from todos-item-undo and the highest priority
+	    ;; is chosen, this advances point to the first done item, so
+	    ;; move it up to the empty line above the done items
+	    ;; separator.
+	    (when (looking-back (concat "^"
+					(regexp-quote todos-category-done) "\n"))
+	      (todos-backward-item))))
+	(todos-insert-with-overlays item)
+	;; If item was marked, restore the mark.
+	(and marked
+	     (let* ((ov (todos-prefix-overlay))
+		    (pref (overlay-get ov 'before-string)))
+	       (overlay-put ov 'before-string (concat todos-item-mark pref))))))))
 
 (defun todos-raise-item-priority ()
   "Raise priority of current item by moving it up by one item."
@@ -5427,7 +5479,7 @@ section in the category moved to."
 	    (goto-char omark))))))))
 
 (defun todos-item-done (&optional arg)
-  "Tag at least one item in this category as done and hide it.
+  "Tag a todo item in this category as done and relocate it.
 
 With prefix argument ARG prompt for a comment and append it to
 the done item; this is only possible if there are no marked
@@ -5435,7 +5487,9 @@ items.  If there are marked items, tag all of these with
 `todos-done-string' plus the current date and, if
 `todos-always-add-time-string' is non-nil, the current time;
 otherwise, just tag the item at point.  Items tagged as done are
-relocated to the category's (by default hidden) done section."
+relocated to the category's (by default hidden) done section.  If
+done items are visible on invoking this command, they remain
+visible."
   (interactive "P")
   (let* ((cat (todos-current-category))
 	 (marked (assoc cat todos-categories-with-marks)))
@@ -5451,11 +5505,16 @@ relocated to the category's (by default hidden) done section."
 	     (comment (and arg (not marked) (read-string "Enter a comment: ")))
 	     (item-count 0)
 	     (diary-count 0)
+	     (show-done (save-excursion
+			  (goto-char (point-min))
+			  (re-search-forward todos-done-string-start nil t)))
 	     item done-item
 	     (buffer-read-only))
 	(and marked (goto-char (point-min)))
 	(catch 'done
-	  (while (not (eobp))
+	  ;; Stop looping when we hit the empty line below the last
+	  ;; todo item (this is eobp if only done items are hidden).
+	  (while (not (looking-at "^$")) ;(not (eobp))
 	    (if (or (not marked) (and marked (todos-marked-item-p)))
 		(progn
 		  (setq item (todos-item-string))
@@ -5488,7 +5547,8 @@ relocated to the category's (by default hidden) done section."
 	(todos-update-count 'done item-count)
 	(todos-update-count 'diary (- diary-count))
 	(todos-update-categories-sexp)
-	(save-excursion (todos-category-select))))))
+	(let ((todos-show-with-done show-done))
+	  (todos-category-select))))))
 
 (defun todos-done-item-add-edit-or-delete-comment (&optional arg)
   "Add a comment to this done item or edit an existing comment.
