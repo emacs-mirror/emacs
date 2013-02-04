@@ -1,3 +1,8 @@
+2013-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/ert.el (ert--explain-format-atom):
+	Don't try to print non-characters as characters.  (Bug#13543)
+
 2013-02-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-debug-message): Extend function exclude list.

@@ -568,7 +568,8 @@ failed."
 (defun ert--explain-format-atom (x)
   "Format the atom X for `ert--explain-equal'."
   (cl-typecase x
-    (fixnum (list x (format "#x%x" x) (format "?%c" x)))
+    (character (list x (format "#x%x" x) (format "?%c" x)))
+    (fixnum (list x (format "#x%x" x)))
     (t x)))
 
 (defun ert--explain-equal-rec (a b)
