@@ -37,6 +37,9 @@ CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
 CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
+EXTRA_TARGETS="eventcnv"
+AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS+=" eventsql"])
+
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
 BUILD_TARGET=build-via-make
@@ -82,11 +85,6 @@ case $host in
   *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
 esac
-
-EXTRA_TARGETS="eventcnv"
-AC_LANG_PUSH([C++])
-AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS+=" eventsql"])
-AC_LANG_POP([C++])
 
 AC_CHECK_PROGS([MAKE],[gnumake gmake make],[AC_MSG_ERROR([Unable to find a make program.])])
 if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
