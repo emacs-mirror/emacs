@@ -207,14 +207,14 @@
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 2D604B9B16514B1A003AAF46;
-			remoteInfo = eventtxt;
+			remoteInfo = mpseventtxt;
 		};
 		2D07B9781636FCBD00DB751B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 2D07B9701636FC9900DB751B;
-			remoteInfo = eventsql;
+			remoteInfo = mpseventsql;
 		};
 		3104AFC0156D35AE000A585A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -529,7 +529,7 @@
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 3114A6C5156E9815001E0AA3;
-			remoteInfo = eventcnv;
+			remoteInfo = mpseventcnv;
 		};
 		31A47BA9156C210D0039B1C2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -938,9 +938,9 @@
 
 /* Begin PBXFileReference section */
 		2D07B96C1636FC7200DB751B /* eventsql.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = eventsql.c; sourceTree = "<group>"; };
-		2D07B9711636FC9900DB751B /* eventsql */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = eventsql; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D07B9711636FC9900DB751B /* mpseventsql */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventsql; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D07B97B163705E400DB751B /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
-		2D604B9C16514B1A003AAF46 /* eventtxt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = eventtxt; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D604B9C16514B1A003AAF46 /* mpseventtxt */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventtxt; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D604BA416514C4F003AAF46 /* eventtxt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventtxt.c; sourceTree = "<group>"; };
 		3104AFA5156D27E7000A585A /* ssixi6.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ssixi6.c; sourceTree = "<group>"; };
 		3104AFB3156D357B000A585A /* apss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = apss; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -982,7 +982,7 @@
 		3114A69F156E9725001E0AA3 /* messtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = messtest.c; sourceTree = "<group>"; };
 		3114A6AC156E9759001E0AA3 /* walkt0 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = walkt0; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A6BA156E9768001E0AA3 /* walkt0.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = walkt0.c; sourceTree = "<group>"; };
-		3114A6C6156E9815001E0AA3 /* eventcnv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = eventcnv; sourceTree = BUILT_PRODUCTS_DIR; };
+		3114A6C6156E9815001E0AA3 /* mpseventcnv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventcnv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A6D0156E9829001E0AA3 /* eventcnv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventcnv.c; sourceTree = "<group>"; };
 		3114A6D9156E9950001E0AA3 /* eventpro.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventpro.c; sourceTree = "<group>"; };
 		3124CAB8156BE3EC00753214 /* awlut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlut; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1335,20 +1335,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		2D07B96A1636FC4C00DB751B /* eventsql */ = {
+		2D07B96A1636FC4C00DB751B /* mpseventsql */ = {
 			isa = PBXGroup;
 			children = (
 				2D07B96C1636FC7200DB751B /* eventsql.c */,
 			);
-			name = eventsql;
+			name = mpseventsql;
 			sourceTree = "<group>";
 		};
-		2D604B971651433C003AAF46 /* eventtxt */ = {
+		2D604B971651433C003AAF46 /* mpseventtxt */ = {
 			isa = PBXGroup;
 			children = (
 				2D604BA416514C4F003AAF46 /* eventtxt.c */,
 			);
-			name = eventtxt;
+			name = mpseventtxt;
 			sourceTree = "<group>";
 		};
 		3114A647156E956C001E0AA3 /* Mysterious */ = {
@@ -1363,20 +1363,20 @@
 		3114A6D6156E9846001E0AA3 /* Tools */ = {
 			isa = PBXGroup;
 			children = (
-				2D604B971651433C003AAF46 /* eventtxt */,
-				2D07B96A1636FC4C00DB751B /* eventsql */,
-				3114A6D8156E9942001E0AA3 /* eventcnv */,
+				2D604B971651433C003AAF46 /* mpseventtxt */,
+				2D07B96A1636FC4C00DB751B /* mpseventsql */,
+				3114A6D8156E9942001E0AA3 /* mpseventcnv */,
 			);
 			name = Tools;
 			sourceTree = "<group>";
 		};
-		3114A6D8156E9942001E0AA3 /* eventcnv */ = {
+		3114A6D8156E9942001E0AA3 /* mpseventcnv */ = {
 			isa = PBXGroup;
 			children = (
 				3114A6D9156E9950001E0AA3 /* eventpro.c */,
 				3114A6D0156E9829001E0AA3 /* eventcnv.c */,
 			);
-			name = eventcnv;
+			name = mpseventcnv;
 			sourceTree = "<group>";
 		};
 		3124CAB3156BE1B700753214 /* Tests */ = {
@@ -1493,9 +1493,9 @@
 				3114A67C156E9668001E0AA3 /* mv2test */,
 				3114A695156E971B001E0AA3 /* messtest */,
 				3114A6AC156E9759001E0AA3 /* walkt0 */,
-				3114A6C6156E9815001E0AA3 /* eventcnv */,
-				2D07B9711636FC9900DB751B /* eventsql */,
-				2D604B9C16514B1A003AAF46 /* eventtxt */,
+				3114A6C6156E9815001E0AA3 /* mpseventcnv */,
+				2D07B9711636FC9900DB751B /* mpseventsql */,
+				2D604B9C16514B1A003AAF46 /* mpseventtxt */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1595,9 +1595,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		2D07B9701636FC9900DB751B /* eventsql */ = {
+		2D07B9701636FC9900DB751B /* mpseventsql */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D07B9741636FC9900DB751B /* Build configuration list for PBXNativeTarget "eventsql" */;
+			buildConfigurationList = 2D07B9741636FC9900DB751B /* Build configuration list for PBXNativeTarget "mpseventsql" */;
 			buildPhases = (
 				2D07B96D1636FC9900DB751B /* Sources */,
 				2D07B96E1636FC9900DB751B /* Frameworks */,
@@ -1607,14 +1607,14 @@
 			);
 			dependencies = (
 			);
-			name = eventsql;
-			productName = eventsql;
-			productReference = 2D07B9711636FC9900DB751B /* eventsql */;
+			name = mpseventsql;
+			productName = mpseventsql;
+			productReference = 2D07B9711636FC9900DB751B /* mpseventsql */;
 			productType = "com.apple.product-type.tool";
 		};
-		2D604B9B16514B1A003AAF46 /* eventtxt */ = {
+		2D604B9B16514B1A003AAF46 /* mpseventtxt */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D604BA216514B59003AAF46 /* Build configuration list for PBXNativeTarget "eventtxt" */;
+			buildConfigurationList = 2D604BA216514B59003AAF46 /* Build configuration list for PBXNativeTarget "mpseventtxt" */;
 			buildPhases = (
 				2D604B9816514B1A003AAF46 /* Sources */,
 				2D604B9916514B1A003AAF46 /* Frameworks */,
@@ -1624,9 +1624,9 @@
 			);
 			dependencies = (
 			);
-			name = eventtxt;
-			productName = eventtxt;
-			productReference = 2D604B9C16514B1A003AAF46 /* eventtxt */;
+			name = mpseventtxt;
+			productName = mpseventtxt;
+			productReference = 2D604B9C16514B1A003AAF46 /* mpseventtxt */;
 			productType = "com.apple.product-type.tool";
 		};
 		3104AFB2156D357B000A585A /* apss */ = {
@@ -1971,9 +1971,9 @@
 			productReference = 3114A6AC156E9759001E0AA3 /* walkt0 */;
 			productType = "com.apple.product-type.tool";
 		};
-		3114A6C5156E9815001E0AA3 /* eventcnv */ = {
+		3114A6C5156E9815001E0AA3 /* mpseventcnv */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3114A6CD156E9815001E0AA3 /* Build configuration list for PBXNativeTarget "eventcnv" */;
+			buildConfigurationList = 3114A6CD156E9815001E0AA3 /* Build configuration list for PBXNativeTarget "mpseventcnv" */;
 			buildPhases = (
 				3114A6C2156E9815001E0AA3 /* Sources */,
 				3114A6C3156E9815001E0AA3 /* Frameworks */,
@@ -1984,9 +1984,9 @@
 			dependencies = (
 				3114A6D3156E9834001E0AA3 /* PBXTargetDependency */,
 			);
-			name = eventcnv;
-			productName = eventcnv;
-			productReference = 3114A6C6156E9815001E0AA3 /* eventcnv */;
+			name = mpseventcnv;
+			productName = mpseventcnv;
+			productReference = 3114A6C6156E9815001E0AA3 /* mpseventcnv */;
 			productType = "com.apple.product-type.tool";
 		};
 		3124CAB7156BE3EC00753214 /* awlut */ = {
@@ -2237,9 +2237,9 @@
 				3114A67B156E9668001E0AA3 /* mv2test */,
 				3114A694156E971B001E0AA3 /* messtest */,
 				3114A6AB156E9759001E0AA3 /* walkt0 */,
-				3114A6C5156E9815001E0AA3 /* eventcnv */,
-				2D07B9701636FC9900DB751B /* eventsql */,
-				2D604B9B16514B1A003AAF46 /* eventtxt */,
+				3114A6C5156E9815001E0AA3 /* mpseventcnv */,
+				2D07B9701636FC9900DB751B /* mpseventsql */,
+				2D604B9B16514B1A003AAF46 /* mpseventtxt */,
 			);
 		};
 /* End PBXProject section */
@@ -2595,12 +2595,12 @@
 /* Begin PBXTargetDependency section */
 		22E16A8916C141020090AD9F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2D604B9B16514B1A003AAF46 /* eventtxt */;
+			target = 2D604B9B16514B1A003AAF46 /* mpseventtxt */;
 			targetProxy = 22E16A8816C141020090AD9F /* PBXContainerItemProxy */;
 		};
 		2D07B9791636FCBD00DB751B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2D07B9701636FC9900DB751B /* eventsql */;
+			target = 2D07B9701636FC9900DB751B /* mpseventsql */;
 			targetProxy = 2D07B9781636FCBD00DB751B /* PBXContainerItemProxy */;
 		};
 		3104AFC1156D35AE000A585A /* PBXTargetDependency */ = {
@@ -2825,7 +2825,7 @@
 		};
 		3114A6D5156E9839001E0AA3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 3114A6C5156E9815001E0AA3 /* eventcnv */;
+			target = 3114A6C5156E9815001E0AA3 /* mpseventcnv */;
 			targetProxy = 3114A6D4156E9839001E0AA3 /* PBXContainerItemProxy */;
 		};
 		31A47BAA156C210D0039B1C2 /* PBXTargetDependency */ = {
@@ -3809,7 +3809,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2D07B9741636FC9900DB751B /* Build configuration list for PBXNativeTarget "eventsql" */ = {
+		2D07B9741636FC9900DB751B /* Build configuration list for PBXNativeTarget "mpseventsql" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D07B9751636FC9900DB751B /* Debug */,
@@ -3819,7 +3819,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2D604BA216514B59003AAF46 /* Build configuration list for PBXNativeTarget "eventtxt" */ = {
+		2D604BA216514B59003AAF46 /* Build configuration list for PBXNativeTarget "mpseventtxt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D604B9F16514B1A003AAF46 /* Debug */,
@@ -4029,7 +4029,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3114A6CD156E9815001E0AA3 /* Build configuration list for PBXNativeTarget "eventcnv" */ = {
+		3114A6CD156E9815001E0AA3 /* Build configuration list for PBXNativeTarget "mpseventcnv" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3114A6CE156E9815001E0AA3 /* Debug */,
