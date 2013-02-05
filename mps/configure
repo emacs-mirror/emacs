@@ -2922,7 +2922,7 @@ CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
 CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
-EXTRA_TARGETS="eventcnv"
+EXTRA_TARGETS="eventcnv eventtxt"
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
