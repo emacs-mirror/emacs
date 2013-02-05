@@ -1,3 +1,7 @@
+2013-02-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add ns-use-native-fullscreen.
+
 2013-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* profiler.el (profiler-report-mode-map): Add a restart menu entry.

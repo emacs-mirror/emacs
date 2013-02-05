@@ -69,11 +69,6 @@ int term_trace_num = 0;
 #define NSTRACE(x)
 #endif
 
-#if defined (NS_IMPL_COCOA) && \
-  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-#define NEW_STYLE_FS
-#endif
-
 extern NSString *NSMenuDidBeginTrackingNotification;
 
 /* ==========================================================================
@@ -224,6 +219,7 @@ static int n_emacs_events_pending = 0;
 static NSMutableArray *ns_pending_files, *ns_pending_service_names,
   *ns_pending_service_args;
 static BOOL ns_do_open_file = NO;
+static BOOL ns_last_use_native_fullscreen;
 
 static struct {
   struct input_event *q;
@@ -1094,13 +1090,12 @@ x_make_frame_visible (struct frame *f)
       SET_FRAME_VISIBLE (f, 1);
       ns_raise_frame (f);
 
-#ifdef NEW_STYLE_FS
       /* Making a new frame from a fullscreen frame will make the new frame
          fullscreen also.  So skip handleFS as this will print an error.  */
-      if (f->want_fullscreen == FULLSCREEN_BOTH
-          && ([[view window] styleMask] & NSFullScreenWindowMask) != 0)
+      if ([view fsIsNative] && f->want_fullscreen == FULLSCREEN_BOTH
+          && [view isFullscreen])
         return;
-#endif
+
       if (f->want_fullscreen != FULLSCREEN_NONE)
         {
           block_input ();
@@ -1292,7 +1287,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
   /* If we have a toolbar, take its height into account. */
-  if (tb)
+  if (tb && ! [view isFullscreen])
     /* NOTE: previously this would generate wrong result if toolbar not
              yet displayed and fixing toolbar_height=32 helped, but
              now (200903) seems no longer needed */
@@ -1303,8 +1298,10 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   wr.size.width = pixelwidth + f->border_width;
-  wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f)
-                  + FRAME_TOOLBAR_HEIGHT (f);
+  wr.size.height = pixelheight;
+  if (! [view isFullscreen])
+    wr.size.height += FRAME_NS_TITLEBAR_HEIGHT (f)
+      + FRAME_TOOLBAR_HEIGHT (f);
 
   /* Do not try to constrain to this screen.  We may have multiple
      screens, and want Emacs to span those.  Constraining to screen
@@ -1355,8 +1352,7 @@ ns_fullscreen_hook (FRAME_PTR f)
   if (!FRAME_VISIBLE_P (f))
     return;
 
-#ifndef NEW_STYLE_FS
-  if (f->want_fullscreen == FULLSCREEN_BOTH)
+   if (! [view fsIsNative] && f->want_fullscreen == FULLSCREEN_BOTH)
     {
       /* Old style fs don't initiate correctly if created from
          init/default-frame alist, so use a timer (not nice...).
@@ -1366,7 +1362,6 @@ ns_fullscreen_hook (FRAME_PTR f)
                                      userInfo: nil repeats: NO];
       return;
     }
-#endif
 
   block_input ();
   [view handleFS];
@@ -3369,6 +3364,30 @@ ns_send_appdefined (int value)
     }
 }
 
+#ifdef HAVE_NATIVE_FS
+static void
+check_native_fs ()
+{
+  Lisp_Object frame, tail;
+
+  if (ns_last_use_native_fullscreen == ns_use_native_fullscreen)
+    return;
+
+  ns_last_use_native_fullscreen = ns_use_native_fullscreen;
+
+  /* Clear the mouse-moved flag for every frame on this display.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_NS_P (f))
+        {
+          EmacsView *view = FRAME_NS_VIEW (f);
+          [view updateCollectionBehaviour];
+        }
+    }
+}
+#endif
+
 static int
 ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 /* --------------------------------------------------------------------------
@@ -3381,6 +3400,10 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   int nevents;
 
 /* NSTRACE (ns_read_socket); */
+
+#ifdef HAVE_NATIVE_FS
+  check_native_fs ();
+#endif
 
   if ([NSApp modalWindow] != nil)
     return -1;
@@ -3458,6 +3481,10 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   char c;
 
 /*  NSTRACE (ns_select); */
+
+#ifdef HAVE_NATIVE_FS
+  check_native_fs ();
+#endif
 
   if (hold_event_q.nr > 0)
     {
@@ -4238,11 +4265,9 @@ ns_term_init (Lisp_Object display_name)
                             NSColorPboardType,
                             NSFontPboardType, nil] retain];
 
-#ifndef NEW_STYLE_FS
   /* If fullscreen is in init/default-frame-alist, focus isn't set
      right for fullscreen windows, so set this.  */
   [NSApp activateIgnoringOtherApps:YES];
-#endif
 
   [NSApp run];
   ns_do_open_file = YES;
@@ -5391,10 +5416,10 @@ not_in_argv (NSString *arg)
 {
   NSWindow *window = [self window];
   NSRect wr = [window frame];
-#ifdef NS_IMPL_GNUSTEP
-  int extra = 3;
-#else
   int extra = 0;
+  int gsextra = 0;
+#ifdef NS_IMPL_GNUSTEP
+  gsextra = 3;
 #endif
 
   int oldc = cols, oldr = rows;
@@ -5402,23 +5427,24 @@ not_in_argv (NSString *arg)
     oldh = FRAME_PIXEL_HEIGHT (emacsframe);
   int neww, newh;
 
-  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, wr.size.width + extra);
+  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, wr.size.width + gsextra);
 
   if (cols < MINWIDTH)
     cols = MINWIDTH;
 
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES
-    (emacsframe, wr.size.height
-     - FRAME_NS_TITLEBAR_HEIGHT (emacsframe) + extra
-     - FRAME_TOOLBAR_HEIGHT (emacsframe));
+  if (! [self isFullscreen])
+    {
+      extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
+        + FRAME_TOOLBAR_HEIGHT (emacsframe) - gsextra;
+    }
+
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, wr.size.height - extra);
 
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
 
   neww = (int)wr.size.width - emacsframe->border_width;
-  newh = ((int)wr.size.height
-          - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-          - FRAME_TOOLBAR_HEIGHT (emacsframe));
+  newh = (int)wr.size.height - extra;
 
   if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
     {
@@ -5436,6 +5462,12 @@ not_in_argv (NSString *arg)
 - (NSSize)windowWillResize: (NSWindow *)sender toSize: (NSSize)frameSize
 /* normalize frame to gridded text size */
 {
+  int extra = 0;
+  int gsextra = 0;
+#ifdef NS_IMPL_GNUSTEP
+  gsextra = 3;
+#endif
+  
   NSTRACE (windowWillResize);
 /*fprintf (stderr,"Window will resize: %.0f x %.0f\n",frameSize.width,frameSize.height); */
 
@@ -5453,22 +5485,12 @@ not_in_argv (NSString *arg)
     maximized_width = maximized_height = -1;
 
   cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe,
-#ifdef NS_IMPL_GNUSTEP
-                                        frameSize.width + 3);
-#else
-                                        frameSize.width);
-#endif
+                                         frameSize.width + gsextra);
   if (cols < MINWIDTH)
     cols = MINWIDTH;
 
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, frameSize.height
-#ifdef NS_IMPL_GNUSTEP
-      - FRAME_NS_TITLEBAR_HEIGHT (emacsframe) + 3
-        - FRAME_TOOLBAR_HEIGHT (emacsframe));
-#else
-      - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        - FRAME_TOOLBAR_HEIGHT (emacsframe));
-#endif
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe,
+                                           frameSize.height - extra);
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
 #ifdef NS_IMPL_COCOA
@@ -5511,12 +5533,13 @@ not_in_argv (NSString *arg)
 
 - (void)windowDidResize: (NSNotification *)notification
 {
-
-#if !defined (NEW_STYLE_FS) && ! defined (NS_IMPL_GNUSTEP)
-  NSWindow *theWindow = [notification object];
-  /* We can get notification on the non-FS window when in fullscreen mode.  */
-  if ([self window] != theWindow) return;
-#endif
+  if (! [self fsIsNative]) 
+    {
+      NSWindow *theWindow = [notification object];
+      /* We can get notification on the non-FS window when in
+         fullscreen mode.  */
+      if ([self window] != theWindow) return;
+    }
 
 #ifdef NS_IMPL_GNUSTEP
   NSWindow *theWindow = [notification object];
@@ -5632,6 +5655,11 @@ not_in_argv (NSString *arg)
   scrollbarsNeedingUpdate = 0;
   fs_state = FULLSCREEN_NONE;
   fs_before_fs = next_maximized = -1;
+#ifdef HAVE_NATIVE_FS
+  fs_is_native = ns_use_native_fullscreen;
+#else
+  fs_is_native = NO;
+#endif
   maximized_width = maximized_height = -1;
   nonfs_window = nil;
 
@@ -5658,7 +5686,7 @@ not_in_argv (NSString *arg)
                         backing: NSBackingStoreBuffered
                           defer: YES];
 
-#ifdef NEW_STYLE_FS
+#ifdef HAVE_NATIVE_FS
     [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 #endif
 
@@ -5867,6 +5895,15 @@ not_in_argv (NSString *arg)
     }
 }
 
+#ifdef HAVE_NATIVE_FS
+- (NSApplicationPresentationOptions)window:(NSWindow *)window
+      willUseFullScreenPresentationOptions:
+  (NSApplicationPresentationOptions)proposedOptions
+{
+  return proposedOptions|NSApplicationPresentationAutoHideToolbar;
+}
+#endif
+
 - (void)windowWillEnterFullScreen:(NSNotification *)notification
 {
   fs_before_fs = fs_state;
@@ -5875,17 +5912,13 @@ not_in_argv (NSString *arg)
 - (void)windowDidEnterFullScreen:(NSNotification *)notification
 {
   [self setFSValue: FULLSCREEN_BOTH];
-#ifdef NEW_STYLE_FS
-  // Fix bad background.
-  if ([toolbar isVisible])
+  if (! [self fsIsNative])
     {
-      [toolbar setVisible:NO];
-      [toolbar setVisible:YES];
+      [self windowDidBecomeKey:notification];
+      [nonfs_window orderOut:self];
     }
-#else
-  [self windowDidBecomeKey:notification];
-  [nonfs_window orderOut:self];
-#endif
+  else if (! FRAME_EXTERNAL_TOOL_BAR (emacsframe))
+    [toolbar setVisible:NO];
 }
 
 - (void)windowWillExitFullScreen:(NSNotification *)notification
@@ -5898,24 +5931,76 @@ not_in_argv (NSString *arg)
 {
   [self setFSValue: fs_before_fs];
   fs_before_fs = -1;
+  [self updateCollectionBehaviour];
+  if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
+    {
+      [toolbar setVisible:YES];
+      update_frame_tool_bar (emacsframe);
+      [self updateFrameSize:YES];
+      [[self window] display];
+    }
+  else
+    [toolbar setVisible:NO];
+
   if (next_maximized != -1)
     [[self window] performZoom:self];
 }
 
+- (BOOL)fsIsNative
+{
+  return fs_is_native;
+}
+
+- (BOOL)isFullscreen
+{
+  if (! fs_is_native) return nonfs_window != nil;
+#ifdef HAVE_NATIVE_FS
+  return ([[self window] styleMask] & NSFullScreenWindowMask) != 0;
+#else
+  return NO;
+#endif
+}
+
+#ifdef HAVE_NATIVE_FS
+- (void)updateCollectionBehaviour
+{
+  if (! [self isFullscreen])
+    {
+      NSWindow *win = [self window];
+      NSWindowCollectionBehavior b = [win collectionBehavior];
+      if (ns_use_native_fullscreen)
+        b |= NSWindowCollectionBehaviorFullScreenPrimary;
+      else
+        b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
+
+      [win setCollectionBehavior: b];
+      fs_is_native = ns_use_native_fullscreen;
+    }
+}
+#endif
+ 
 - (void)toggleFullScreen: (id)sender
 {
-#ifdef NEW_STYLE_FS
-  [[self window] toggleFullScreen:sender];
-#else
-  NSWindow *w = [self window], *fw;
-  BOOL onFirstScreen = [[w screen]
-                         isEqual:[[NSScreen screens] objectAtIndex:0]];
-  struct frame *f = emacsframe;
+  NSWindow *w, *fw;
+  BOOL onFirstScreen;
+  struct frame *f;
   NSSize sz;
-  NSRect r, wr = [w frame];
-  NSColor *col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-                                          (FRAME_DEFAULT_FACE (f)),
-                                          f);
+  NSRect r, wr;
+  NSColor *col;
+
+  if (fs_is_native)
+    {
+      [[self window] toggleFullScreen:sender];
+      return;
+    }
+
+  w = [self window];
+  onFirstScreen = [[w screen] isEqual:[[NSScreen screens] objectAtIndex:0]];
+  f = emacsframe;
+  wr = [w frame];
+  col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
+                                 (FRAME_DEFAULT_FACE (f)),
+                                 f);
 
   sz.width = FRAME_COLUMN_WIDTH (f);
   sz.height = FRAME_LINE_HEIGHT (f);
@@ -5958,7 +6043,6 @@ not_in_argv (NSString *arg)
       FRAME_NS_TITLEBAR_HEIGHT (f) = 0;
       tobar_height = FRAME_TOOLBAR_HEIGHT (f);
       FRAME_TOOLBAR_HEIGHT (f) = 0;
-      FRAME_EXTERNAL_TOOL_BAR (f) = 0;
 
       nonfs_window = w;
 
@@ -5995,17 +6079,16 @@ not_in_argv (NSString *arg)
 
       f->border_width = bwidth;
       FRAME_NS_TITLEBAR_HEIGHT (f) = tibar_height;
-      FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
-      if (tobar_height)
-        FRAME_EXTERNAL_TOOL_BAR (f) = 1;
+      if (FRAME_EXTERNAL_TOOL_BAR (f))
+        FRAME_TOOLBAR_HEIGHT (f) = tobar_height;
 
       [self windowWillExitFullScreen:nil];
       [fw setFrame: [w frame] display:YES animate:YES];
       [fw close];
       [w makeKeyAndOrderFront:NSApp];
       [self windowDidExitFullScreen:nil];
+      [self updateFrameSize:YES];
     }
-#endif
 }
 
 - (void)handleFS
@@ -7158,6 +7241,18 @@ allowing it to be used at a lower level for accented character entry.");
                doc: /* Non-nil means that the menu bar is hidden, but appears when the mouse is near.
 Only works on OSX 10.6 or later.  */);
   ns_auto_hide_menu_bar = Qnil;
+
+  DEFVAR_BOOL ("ns-use-native-fullscreen", ns_use_native_fullscreen,
+     doc: /*Non-nil means to use native fullscreen on OSX >= 10.7.
+Nil means use fullscreen the old (< 10.7) way.  The old way works better with
+multiple monitors, but lacks tool bar.  This variable is ignored on OSX < 10.7.
+Default is t for OSX >= 10.7, nil otherwise. */);
+#ifdef HAVE_NATIVE_FS
+  ns_use_native_fullscreen = YES;
+#else
+  ns_use_native_fullscreen = NO;
+#endif
+  ns_last_use_native_fullscreen = ns_use_native_fullscreen;
 
   /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,

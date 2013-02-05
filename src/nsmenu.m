@@ -1110,6 +1110,8 @@ update_frame_tool_bar (FRAME_PTR f)
   FRAME_TOOLBAR_HEIGHT (f) =
     NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
     - FRAME_NS_TITLEBAR_HEIGHT (f);
+    if (FRAME_TOOLBAR_HEIGHT (f) < 0) // happens if frame is fullscreen.
+      FRAME_TOOLBAR_HEIGHT (f) = 0;
     unblock_input ();
 }
 

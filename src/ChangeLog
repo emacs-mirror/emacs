@@ -1,3 +1,38 @@
+2013-02-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (update_frame_tool_bar): Check for negative tool bar
+	height.
+
+	* nsterm.h (HAVE_NATIVE_FS): Define if OSX => 10.7.
+	(EmacsView): Add fs_is_native, fsIsNative, isFullscreen and
+	updateCollectionBehaviour.
+
+	* nsterm.m (NEW_STYLE_FS): Remove.
+	(ns_last_use_native_fullscreen): New variable.
+	(x_make_frame_visible): Replace NEW_STYLE_FS with isFullscreen.
+	(x_set_window_size): Do not take title bar and tool bar into account
+	if isFullscreen returns YES.
+	(ns_fullscreen_hook): Replace NEW_STYLE_FS with isFullscreen.
+	(check_native_fs): New function.
+	(ns_select, ns_read_socket): Call check_native_fs if HAVE_NATIVE_FS.
+	(ns_term_init): Remove NEW_STYLE_FS.
+	(updateFrameSize:, windowWillResize:toSize:): Only adjust for title bar
+	and tool bar if isFullscreen returns NO.
+	(windowDidResize:): Replace NEW_STYLE_FS with fsIsNative.
+	(initFrameFromEmacs:): Initialize fs_is_native.  Replace NEW_STYLE_FS
+	with HAVE_NATIVE_FS.
+	(window:willUseFullScreenPresentationOptions:): New method.
+	(windowDidEnterFullScreen:): Replace NEW_STYLE_FS with fsIsNative.
+	Hide toolbar if not enabled (Bug#13444).
+	(windowDidExitFullScreen:): Call updateCollectionBehaviour.
+	Restore tool bar if enabled, hide it otherwise (Bug#13444).
+	(fsIsNative, isFullscreen, updateCollectionBehaviour): New methods.
+	(toggleFullScreen:): If fs_is_native, call toggleFullScreen on
+	window.  Do no set FRAME_EXTERNAL_TOOL_BAR (f) to 0.
+	Check FRAME_EXTERNAL_TOOL_BAR (f) before restoring
+	FRAME_TOOLBAR_HEIGHT (f).  Call updateFrameSize when going non-fs.
+	(syms_of_nsterm): Add ns-use-native-fullscreen.
+
 2013-02-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Qchoose_write_coding_system): Now static.
