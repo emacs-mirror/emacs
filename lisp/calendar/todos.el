@@ -263,9 +263,14 @@ the value of `todos-done-separator'."
 	(files todos-file-buffers)
 	(sep todos-done-separator))
     (custom-set-default symbol value)
-    (setq todos-done-separator (todos-done-separator))
-    (when (= 1 (length value))
-      (todos-reset-done-separator sep))))
+    (when (not (equal value oldvalue))
+      (dolist (f files)
+	(with-current-buffer (find-file-noselect f)
+	  (let (buffer-read-only)
+	    (setq todos-done-separator (todos-done-separator))
+	    (when (= 1 (length value))
+	      (todos-reset-done-separator sep)))
+	  (todos-category-select))))))
 
 (defcustom todos-done-string "DONE "
   "Identifying string appended to the front of done todos items."
@@ -3706,11 +3711,21 @@ face."
   (interactive)
   (if (zerop (todos-get-count 'done (todos-current-category)))
       (message "There are no done items in this category.")
-    (save-excursion
+    (let ((opoint (point)))
       (goto-char (point-min))
-      (let ((todos-show-with-done (not (re-search-forward
-					todos-done-string-start nil t))))
-	(todos-category-select)))))
+      (let* ((shown (re-search-forward todos-done-string-start nil t))
+	     (todos-show-with-done (not shown)))
+	(todos-category-select)
+	(goto-char opoint)
+	;; If start of done items sections is below the bottom of the
+	;; window, make it visible.
+	(unless shown
+	  (setq shown (progn
+			(goto-char (point-min))
+			(re-search-forward todos-done-string-start nil t)))
+	  (if (not (pos-visible-in-window-p shown))
+	      (recenter)
+	    (goto-char opoint)))))))
 
 (defun todos-show-done-only ()
   "Switch between displaying only done or only todo items."
@@ -4494,12 +4509,13 @@ omit the current time string according as
 The argument REGION-OR-HERE determines the source and location of
 the new item:
 - If the REGION-OR-HERE is the symbol `here', prompt for the text
-  of the new item and insert it directly above the todo item at
+  of the new item and, if the command was invoked in the current
+  category, insert it directly above the todo item at
   point (hence lowering the priority of the remaining items), or
   if point is on the empty line below the last todo item, insert
-  the new item there.  An error is signalled if
-  `todos-insert-item' is invoked with `here' outside of the
-  current category.
+  the new item there.  If the command with `here' is invoked
+  outside of the current category, jump to the chosen category
+  and insert the new item as the first item in the category.
 - If REGION-OR-HERE is the symbol `region', use the region of the
   current buffer as the text of the new item, depending on the
   value of user option `todos-use-only-highlighted-region': if
@@ -4540,8 +4556,8 @@ the priority is not given by HERE but by prompting."
 	  (unless (and todos-use-only-highlighted-region (use-region-p))
 	    (error "There is no active region"))))
       (let* ((buf (current-buffer))
-	     ;; (ocat (todos-current-category))
-	     ;; (todos-mm (eq major-mode 'todos-mode))
+	     (ocat (todos-current-category))
+	     (todos-mm (eq major-mode 'todos-mode))
 	     (cat+file (cond ((equal arg '(4))
 			      (todos-read-category "Insert in category: "))
 			     ((equal arg '(16))
@@ -4588,9 +4604,10 @@ the priority is not given by HERE but by prompting."
 	(setq todos-current-todos-file file)
 	;; If only done items are displayed in category, toggle to
 	;; todo items.
-	(when (and (goto-char (point-min))
-		   (looking-at todos-done-string-start))
-	  (todos-show-done-only))
+	(save-excursion
+	  (when (and (goto-char (point-min))
+		     (looking-at todos-done-string-start))
+	    (todos-show-done-only)))
 	(unless todos-global-current-todos-file
 	  (setq todos-global-current-todos-file todos-current-todos-file))
 	;; These are not needed here, since they are called in
@@ -4616,20 +4633,12 @@ the priority is not given by HERE but by prompting."
 			  (concat "\n" (make-string todos-indent-to-here 32))
 			  new-item nil nil 1))
 	  (if here
-	      (cond ((not (eq major-mode 'todos-mode))
-	      	     (error "Cannot insert a todo item here outside of Todos mode"))
-	      	    ((not (eq buf (current-buffer)))
-	      	     (error "Cannot insert an item here after changing buffer"))
-	      	    ((or (todos-done-item-p)
-	      		 ;; Point on last blank line.
-	      		 (save-excursion (forward-line -1) (todos-done-item-p)))
-	      	     (error "Cannot insert a new item in the done item section"))
-	      	    (t
-	      	     (todos-insert-with-overlays new-item)))
-	    ;; (if (and todos-mm (equal cat ocat))
-	    ;; 	(todos-insert-with-overlays new-item)
-	    ;;   )
-	    ;; (todos-set-item-priority new-item (todos-current-category) t))
+	      (progn
+		(unless (and todos-mm (equal cat ocat))
+		  (todos-category-number cat)
+		  (todos-category-select)
+		  (goto-char (point-min)))
+		(todos-insert-with-overlays new-item))
 	    (unwind-protect
 		(todos-set-item-priority new-item cat t)
 	      ;; In (at least) two circumstances, point may be at eob
@@ -5312,7 +5321,7 @@ meaning to raise or lower the item's priority by one."
 	(and marked
 	     (let* ((ov (todos-prefix-overlay))
 		    (pref (overlay-get ov 'before-string)))
-	       (overlay-put ov 'before-string (concat todos-item-mark pref))))))))
+	       (overlay-put ov 'before-string (concat todos-item-mark pref)))))))
 
 (defun todos-raise-item-priority ()
   "Raise priority of current item by moving it up by one item."

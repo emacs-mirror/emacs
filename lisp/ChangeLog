@@ -1,3 +1,15 @@
+2013-02-05  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-reset-done-separator-string):
+	Complete the implementation.
+	(todos-hide-show-done-items): If start of done items sections is
+	below the bottom of the window, make it visible.
+	(todos-insert-item): Allow inserting item here to work outside of
+	the current category, but then at top of category.  After checking
+	whether only done items are shown, restore point to ensure
+	inserting item here works correctly.
+	(todos-set-item-priority): Delete leftover right paren at end.
+
 2013-02-04  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Bug fixes involving or displaying done items.
