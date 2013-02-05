@@ -173,7 +173,7 @@ Memory Management Glossary: C
 
         .. mps:specific::
 
-            An :term:`arena class` which gets its :term:`memory (2)`
+            An :term:`arena class` that gets its :term:`memory (2)`
             from the :term:`client program`. See
             :ref:`topic-arena-client`.
 
@@ -535,9 +535,8 @@ Memory Management Glossary: C
 
             A :term:`variety` in which most MPS functions
             :term:`assert <assertion>` that their data structures are
-            valid, even functions on the :term:`critical path`. Select
-            it by defining :c:macro:`CONFIG_VAR_COOL`. Compare
-            :term:`hot` and :term:`rash`.
+            valid, even functions on the :term:`critical path`. See
+            :ref:`guide-build`. Compare :term:`hot` and :term:`rash`.
 
     copy method
 

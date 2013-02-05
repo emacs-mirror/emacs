@@ -16,10 +16,11 @@ Memory Management Glossary: U
         comply with some :term:`alignment` constraint on it.
 
         For example, typically double precision floating point numbers
-        occupy 8 :term:`byte (1)` and have an alignment of
-        4 bytes; that is, their address must be a multiple of four. If
-        a program tries to access such a number using an address that
-        is not a multiple of four, a :term:`bus error` will result.
+        occupy 8 :term:`byte (1)` and have an alignment of 4 bytes;
+        that is, their address must be a multiple of four. If a
+        program tries to access such a number using an address that is
+        not a multiple of four, a :term:`bus error` may result,
+        depending on the processor architecture and instruction used.
 
         .. opposite:: :term:`aligned <alignment>`.
 

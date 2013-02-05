@@ -235,9 +235,8 @@ Memory Management Glossary: F
             *foreign code* is external code (not part of the client
             program, or the MPS), which is not aware of and does not
             co-operate with the MPS. The client program must take care
-            that foreign code is not passed the address of a block in
-            a :term:`moving <moving memory manager>` :term:`pools`, or
-            which contain references to blocks in moving pools.
+            when passing the address of a block in a :term:`moving
+            <moving memory manager>` :term:`pool` to foreign code.
 
             The :ref:`pool-lo` :term:`pool class` is designed for this
             use case: blocks allocated from this pool do not move and
@@ -436,7 +435,9 @@ Memory Management Glossary: F
         programming language does not guarantee that function and
         object pointers are the same size, or that a pointer of one
         type can be cast to a pointer of the the other type without
-        losing information.
+        losing information (but on every mainstream C implementation,
+        including all those supported by the MPS, they are in fact the
+        same).
 
         .. opposite:: :term:`object pointer`.
 
