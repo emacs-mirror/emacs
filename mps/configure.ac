@@ -37,7 +37,7 @@ CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
 CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
-EXTRA_TARGETS="eventcnv"
+EXTRA_TARGETS="eventcnv eventtxt"
 AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS+=" eventsql"])
 
 AC_CANONICAL_HOST
