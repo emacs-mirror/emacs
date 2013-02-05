@@ -466,6 +466,8 @@ RET: expand or collapse"))
         ["Write Profile..." profiler-report-write-profile :active t
          :help "Write current profile to a file"]
         "--"
+        ["Start Profiler" profiler-start :active (not (profiler-running-p))
+         :help "Start profiling"]
         ["Stop Profiler" profiler-stop :active (profiler-running-p)
          :help "Stop profiling"]
         ["New Report" profiler-report :active (profiler-running-p)
