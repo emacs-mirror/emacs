@@ -4074,8 +4074,7 @@ static mps_addr_t obj_skip(mps_addr_t base)
  *
  * The job of `obj_isfwd` is to detect whether an object has been replaced
  * by a forwarding object, and return the address of the new copy if it has,
- * otherwise NULL.  Note that this will return NULL for padding objects
- * because their `fwd` field is set to NULL. See topic/format.
+ * otherwise NULL.  See topic/format.
  */
 
 static mps_addr_t obj_isfwd(mps_addr_t addr)
