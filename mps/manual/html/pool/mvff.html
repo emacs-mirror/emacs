@@ -60,10 +60,20 @@
 variable-sized, unformatted objects. It uses the <a class="reference internal" href="../glossary/f.html#term-first-fit"><em class="xref std std-term">first fit</em></a>
 <a class="reference internal" href="../glossary/a.html#term-allocation-policy"><em class="xref std std-term">allocation policy</em></a> for blocks allocated via
 <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a>.</p>
-<p>It also supports buffered allocation (that is, allocation via
-<a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation points</em></a>), and in this case, the allocation policy is
-different: the buffers are filled according to the <a class="reference internal" href="../glossary/w.html#term-worst-fit"><em class="xref std std-term">worst fit</em></a>
-policy, and allocation always proceeds upwards from the base.</p>
+<p><a class="reference internal" href="../mmref/bib.html#johnstone97"><em>Johnstone (1997)</em></a> found that in his test cases:</p>
+<blockquote>
+<div>No version of <a class="reference internal" href="../glossary/b.html#term-best-fit"><em class="xref std std-term">best fit</em></a> had more than 5% actual
+<a class="reference internal" href="../glossary/e.html#term-external-fragmentation"><em class="xref std std-term">fragmentation</em></a>. This is also true
+for all versions of first fit that used an <a class="reference internal" href="../glossary/a.html#term-address-ordered-first-fit"><em class="xref std std-term">address-ordered
+free list</em></a>, and the two versions of
+first fit that used a <a class="reference internal" href="../glossary/f.html#term-fifo-ordered-first-fit"><em class="xref std std-term">FIFO free list</em></a>. This strongly suggests that the basic best-fit algorithm
+and the first-fit algorithm with an address-ordered free list are
+very robust algorithms.</div></blockquote>
+<p>The MVFF pool class also supports buffered allocation (that is,
+allocation via <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation points</em></a>), and in this case, the
+allocation policy is different: the buffers are filled according to
+the <a class="reference internal" href="../glossary/w.html#term-worst-fit"><em class="xref std std-term">worst fit</em></a> policy, and allocation always proceeds upwards
+from the base.</p>
 <p>Buffered and unbuffered allocation can be used at the same time, but
 the first allocation point must be created before any call to
 <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a>.</p>

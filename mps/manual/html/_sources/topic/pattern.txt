@@ -12,8 +12,7 @@ Allocation patterns
 
 An :dfn:`allocation pattern` is a hint to the MPS to expect a
 particular pattern of allocation on an :term:`allocation point`. The
-MPS may use this hint to schedule its decisions as to when and what to
-collect.
+MPS may use this hint to schedule more effective garbage collection.
 
 There are two allocation patterns, :c:func:`mps_alloc_pattern_ramp`
 and :c:func:`mps_alloc_pattern_ramp_collect_all`.
@@ -41,6 +40,12 @@ and :c:func:`mps_alloc_pattern_ramp_collect_all`.
     code` if the allocation pattern is not supported by the allocation
     point.
 
+    .. note::
+
+        It is harmless to call :c:func:`mps_ap_alloc_pattern_begin`
+        even if it isn't supported by the allocation point. The
+        pattern is simply ignored in that case.
+
     If :c:func:`mps_ap_alloc_pattern_begin` is used multiple times on
     the same allocation point without intervening calls to
     :c:func:`mps_ap_alloc_pattern_end`, the calls match in a
@@ -64,7 +69,13 @@ and :c:func:`mps_alloc_pattern_ramp_collect_all`.
 
     Returns :c:macro:`MPS_RES_OK` if the period of allocation was
     successfully ended, or :c:macro:`MPS_RES_FAIL` if there was no
-    corresponding call to :c:func:`mps_ap_alloc_pattern_begin`.
+    matching call to :c:func:`mps_ap_alloc_pattern_begin`. Calls match
+    in a stack-like way, outermost and innermost: that is, allocation
+    patterns may nest, but not otherwise overlap.
+
+    Some allocation patterns may additionally support overlap: if so,
+    the documentation for the individual pattern types will specify
+    this.
 
 
 .. c:function:: mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t ap)

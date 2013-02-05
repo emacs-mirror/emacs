@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme-advanced.c#22 $
+ * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme-advanced.c#23 $
  * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
@@ -2979,7 +2979,7 @@ static obj_t entry_integer_to_char(obj_t env, obj_t op_env, obj_t operator, obj_
     error("%s: first argument must be an integer", operator->operator.name);
   unless(0 <= arg->integer.integer)
     error("%s: first argument is out of range", operator->operator.name);
-  return make_character(arg->integer.integer);
+  return make_character((char)arg->integer.integer);
 }
 
 
@@ -3059,7 +3059,7 @@ static obj_t entry_vector_ref(obj_t env, obj_t op_env, obj_t operator, obj_t ope
     error("%s: first argument must be a vector", operator->operator.name);
   unless(TYPE(index) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
-  unless(0 <= index->integer.integer && index->integer.integer < vector->vector.length)
+  unless(0 <= index->integer.integer && (size_t)index->integer.integer < vector->vector.length)
     error("%s: index %ld out of bounds of vector length %ld",
           operator->operator.name, index->integer.integer, vector->vector.length);
   return vector->vector.vector[index->integer.integer];
@@ -3080,7 +3080,7 @@ static obj_t entry_vector_set(obj_t env, obj_t op_env, obj_t operator, obj_t ope
     error("%s: first argument must be a vector", operator->operator.name);
   unless(TYPE(index) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
-  unless(0 <= index->integer.integer && index->integer.integer < vector->vector.length)
+  unless(0 <= index->integer.integer && (size_t)index->integer.integer < vector->vector.length)
     error("%s: index %ld out of bounds of vector length %ld",
           operator->operator.name, index->integer.integer, vector->vector.length);
   vector->vector.vector[index->integer.integer] = obj;
@@ -3293,7 +3293,7 @@ static obj_t entry_string_ref(obj_t env, obj_t op_env, obj_t operator, obj_t ope
     error("%s: first argument must be a string", operator->operator.name);
   unless(TYPE(k) == TYPE_INTEGER)
     error("%s: second argument must be an integer", operator->operator.name);
-  unless(0 <= k->integer.integer && k->integer.integer < arg->string.length)
+  unless(0 <= k->integer.integer && (size_t)k->integer.integer < arg->string.length)
     error("%s: second argument is out of range", operator->operator.name);
   return make_character(arg->string.string[k->integer.integer]);
 }
@@ -3337,7 +3337,7 @@ static obj_t entry_substring(obj_t env, obj_t op_env, obj_t operator, obj_t oper
     error("%s: third argument must be an integer", operator->operator.name);
   unless(0 <= start->integer.integer
          && start->integer.integer <= end->integer.integer
-         && end->integer.integer <= arg->string.length)
+         && (size_t)end->integer.integer <= arg->string.length)
     error("%s: arguments out of range", operator->operator.name);
   length = end->integer.integer - start->integer.integer;
   obj = make_string(length, NULL);

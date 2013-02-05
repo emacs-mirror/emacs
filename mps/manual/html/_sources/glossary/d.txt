@@ -201,7 +201,7 @@ Memory Management Glossary: D
 
         .. opposite:: :term:`indirect method`.
 
-        .. bibref:: :ref:`Jones (1996) <JONES96>`.
+        .. bibref:: :ref:`Jones et al. (2012) <JONES12>`.
 
     dirty bit
 

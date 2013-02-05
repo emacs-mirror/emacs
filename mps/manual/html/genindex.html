@@ -82,7 +82,7 @@
   <td style="width: 33%" valign="top"><dl>
       
   <dt>
-    -d &lt;filename&gt;
+    -d
   </dt>
 
       <dd><dl>
@@ -124,16 +124,38 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt>
-    -l &lt;filename&gt;
+    -i &lt;filename&gt;
   </dt>
 
       <dd><dl>
         
-  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-l">mpseventsql command line option</a>
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-i">mpseventsql command line option</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt>
+    -o &lt;filename&gt;
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-o">mpseventsql command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    -p
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-p">mpseventsql command line option</a>
   </dt>
 
       </dl></dd>
@@ -1033,7 +1055,7 @@
   </dt>
 
       
-  <dt><a href="guide/debug.html#index-1">cool variety</a>, <a href="topic/error.html#index-4">[1]</a>
+  <dt><a href="topic/error.html#index-4">cool variety</a>, <a href="guide/debug.html#index-1">[1]</a>
   </dt>
 
       
@@ -1266,15 +1288,15 @@
 
       <dd><dl>
         
-  <dt><a href="topic/telemetry.html#envvar-MPS_EVENT_DATABASE">MPS_EVENT_DATABASE</a>, <a href="topic/telemetry.html#index-8">[1]</a>
+  <dt><a href="topic/telemetry.html#index-0">MPS_TELEMETRY_CONTROL</a>, <a href="topic/telemetry.html#envvar-MPS_TELEMETRY_CONTROL">[1]</a>, <a href="topic/plinth.html#index-4">[2]</a>, <a href="topic/plinth.html#index-5">[3]</a>
   </dt>
 
         
-  <dt><a href="topic/telemetry.html#index-1">MPS_TELEMETRY_CONTROL</a>, <a href="topic/telemetry.html#envvar-MPS_TELEMETRY_CONTROL">[1]</a>, <a href="topic/plinth.html#index-4">[2]</a>, <a href="topic/plinth.html#index-5">[3]</a>
+  <dt><a href="topic/telemetry.html#envvar-MPS_TELEMETRY_DATABASE">MPS_TELEMETRY_DATABASE</a>, <a href="topic/telemetry.html#index-8">[1]</a>
   </dt>
 
         
-  <dt><a href="topic/telemetry.html#index-2">MPS_TELEMETRY_FILENAME</a>, <a href="topic/telemetry.html#envvar-MPS_TELEMETRY_FILENAME">[1]</a>, <a href="topic/plinth.html#index-2">[2]</a>
+  <dt><a href="topic/telemetry.html#index-1">MPS_TELEMETRY_FILENAME</a>, <a href="topic/telemetry.html#envvar-MPS_TELEMETRY_FILENAME">[1]</a>, <a href="topic/plinth.html#index-2">[2]</a>
   </dt>
 
       </dl></dd>
@@ -1387,7 +1409,7 @@
   </dt>
 
         
-  <dt><a href="topic/message.html#index-1">message</a>, <a href="topic/finalization.html#index-4">[1]</a>
+  <dt><a href="topic/finalization.html#index-4">message</a>, <a href="topic/message.html#index-1">[1]</a>
   </dt>
 
         
@@ -2346,7 +2368,7 @@
   </dt>
 
         
-  <dt><a href="topic/message.html#index-1">finalization</a>, <a href="topic/finalization.html#index-4">[1]</a>
+  <dt><a href="topic/finalization.html#index-4">finalization</a>, <a href="topic/message.html#index-1">[1]</a>
   </dt>
 
         
@@ -2776,10 +2798,6 @@
   </dt>
 
       
-  <dt><a href="topic/telemetry.html#index-8">MPS_EVENT_DATABASE</a>
-  </dt>
-
-      
   <dt><a href="topic/finalization.html#mps_finalize">mps_finalize (C function)</a>
   </dt>
 
@@ -2847,8 +2865,6 @@
   <dt><a href="topic/format.html#mps_fmt_pad_t">mps_fmt_pad_t (C type)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/format.html#mps_fmt_scan_t">mps_fmt_scan_t (C type)</a>
   </dt>
@@ -2861,6 +2877,8 @@
   <dt><a href="topic/format.html#mps_fmt_t">mps_fmt_t (C type)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/format.html#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t (C type)</a>
   </dt>
@@ -2895,6 +2913,10 @@
 
       
   <dt><a href="topic/plinth.html#mps_io_write">mps_io_write (C function)</a>
+  </dt>
+
+      
+  <dt><a href="topic/interface.html#mps_label_t">mps_label_t (C type)</a>
   </dt>
 
       
@@ -3330,7 +3352,7 @@
   </dt>
 
       
-  <dt><a href="topic/telemetry.html#index-1">MPS_TELEMETRY_CONTROL</a>, <a href="topic/plinth.html#index-4">[1]</a>, <a href="topic/plinth.html#index-5">[2]</a>
+  <dt><a href="topic/telemetry.html#index-0">MPS_TELEMETRY_CONTROL</a>, <a href="topic/plinth.html#index-4">[1]</a>, <a href="topic/plinth.html#index-5">[2]</a>
   </dt>
 
       
@@ -3338,11 +3360,19 @@
   </dt>
 
       
-  <dt><a href="topic/telemetry.html#index-2">MPS_TELEMETRY_FILENAME</a>, <a href="topic/plinth.html#index-2">[1]</a>
+  <dt><a href="topic/telemetry.html#index-8">MPS_TELEMETRY_DATABASE</a>
+  </dt>
+
+      
+  <dt><a href="topic/telemetry.html#index-1">MPS_TELEMETRY_FILENAME</a>, <a href="topic/plinth.html#index-2">[1]</a>
   </dt>
 
       
   <dt><a href="topic/telemetry.html#mps_telemetry_flush">mps_telemetry_flush (C function)</a>
+  </dt>
+
+      
+  <dt><a href="topic/telemetry.html#mps_telemetry_get">mps_telemetry_get (C function)</a>
   </dt>
 
       
@@ -3351,6 +3381,14 @@
 
       
   <dt><a href="topic/telemetry.html#mps_telemetry_label">mps_telemetry_label (C function)</a>
+  </dt>
+
+      
+  <dt><a href="topic/telemetry.html#mps_telemetry_reset">mps_telemetry_reset (C function)</a>
+  </dt>
+
+      
+  <dt><a href="topic/telemetry.html#mps_telemetry_set">mps_telemetry_set (C function)</a>
   </dt>
 
       
@@ -3407,7 +3445,7 @@
 
       <dd><dl>
         
-  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-d">-d &lt;filename&gt;</a>
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-d">-d</a>
   </dt>
 
         
@@ -3415,7 +3453,15 @@
   </dt>
 
         
-  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-l">-l &lt;filename&gt;</a>
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-i">-i &lt;filename&gt;</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-o">-o &lt;filename&gt;</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#cmdoption-mpseventsql-p">-p</a>
   </dt>
 
         
@@ -3913,7 +3959,15 @@
   </dt>
 
         
-  <dt><a href="guide/lang.html#index-3">choosing</a>
+  <dt><a href="guide/lang.html#index-3">choosing</a>, <a href="pool/intro.html#index-0">[1]</a>
+  </dt>
+
+        
+  <dt><a href="pool/intro.html#index-1">table of properties</a>
+  </dt>
+
+        
+  <dt><a href="pool/intro.html#index-2">writing</a>
   </dt>
 
       </dl></dd>
@@ -4327,6 +4381,10 @@
   </dt>
 
         
+  <dt><a href="guide/advanced.html#index-3">global symbol table</a>
+  </dt>
+
+        
   <dt><a href="topic/message.html#index-2">interactive chatter</a>
   </dt>
 
@@ -4364,6 +4422,10 @@
 
         
   <dt><a href="topic/scanning.html#index-6">scanning</a>
+  </dt>
+
+        
+  <dt><a href="guide/advanced.html#index-4">segregation</a>
   </dt>
 
         
@@ -4817,15 +4879,15 @@
   </dt>
 
         
-  <dt><a href="topic/telemetry.html#index-0">introduction</a>
-  </dt>
-
-        
   <dt><a href="topic/telemetry.html#index-10">labels</a>
   </dt>
 
         
   <dt><a href="topic/telemetry.html#index-7">loading into SQLite</a>
+  </dt>
+
+        
+  <dt><a href="topic/telemetry.html#index-2">utilities</a>
   </dt>
 
       </dl></dd>
@@ -5100,7 +5162,7 @@
 
       <dd><dl>
         
-  <dt><a href="guide/debug.html#index-1">cool</a>, <a href="topic/error.html#index-4">[1]</a>
+  <dt><a href="topic/error.html#index-4">cool</a>, <a href="guide/debug.html#index-1">[1]</a>
   </dt>
 
         

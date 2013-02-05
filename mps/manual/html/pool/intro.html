@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="choosing-a-pool-class">
-<span id="pool-choose"></span><h1>1. Choosing a pool class<a class="headerlink" href="#choosing-a-pool-class" title="Permalink to this headline">¶</a></h1>
+<span id="pool-choose"></span><span id="index-0"></span><h1>1. Choosing a pool class<a class="headerlink" href="#choosing-a-pool-class" title="Permalink to this headline">¶</a></h1>
 <p>This section contains a simple procedure for choosing a <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool
 class</em></a> based on the properties of the data you plan to store in
 it. The MPS works well if you can segregate your data into a variety
@@ -65,7 +65,9 @@ of pools, choosing the most appropriate pool class for each.</p>
 <p class="last">Pool classes can differ in many ways not considered here: speed,
 vulnerability to fragmentation, control overhead, and so on. This
 procedure gives you a decent recommendation, but an expert in the
-MPS might be able to make a better one.</p>
+MPS might be able to make a better recommendation. And if no pool
+class in the open source MPS exactly matches your needs, then it
+is possible to develop new pool classes. See <a class="reference internal" href="#pool-writing"><em>Writing a new pool class</em></a>.</p>
 </div>
 <p>First, answer these questions about your data:</p>
 <ol class="arabic simple">
@@ -173,7 +175,7 @@ before freeing them.</td></tr>
 </div>
 </div>
 <div class="section" id="pool-class-properties">
-<span id="pool-properties"></span><h1>2. Pool class properties<a class="headerlink" href="#pool-class-properties" title="Permalink to this headline">¶</a></h1>
+<span id="pool-properties"></span><span id="index-1"></span><h1>2. Pool class properties<a class="headerlink" href="#pool-class-properties" title="Permalink to this headline">¶</a></h1>
 <p>This table summarizes the properties of each <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a>
 provided by the open source MPS. For &#8220;block&#8221; properties, &#8220;yes&#8221; means
 that the property holds for <em>all</em> blocks allocated from the pool. An
@@ -378,19 +380,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>no</td>
 </tr>
-<tr class="row-even"><td>Ambiguous references keep blocks alive?</td>
-<td>no</td>
-<td>no</td>
-<td>no</td>
-<td>no</td>
-<td>no</td>
-<td>&#8212;</td>
-<td>&#8212;</td>
-<td>&#8212;</td>
-<td>&#8212;</td>
-<td>no</td>
-</tr>
-<tr class="row-odd"><td>Blocks are automatically managed? <a class="footnote-reference" href="#id31" id="id17">[10]</a></td>
+<tr class="row-even"><td>Blocks are automatically managed? <a class="footnote-reference" href="#id31" id="id17">[10]</a></td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -402,7 +392,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>no</td>
 </tr>
-<tr class="row-even"><td>Blocks are manually managed? <a class="footnote-reference" href="#id31" id="id18">[10]</a></td>
+<tr class="row-odd"><td>Blocks are manually managed? <a class="footnote-reference" href="#id31" id="id18">[10]</a></td>
 <td>no</td>
 <td>no</td>
 <td>no</td>
@@ -414,7 +404,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr class="row-odd"><td>Blocks are scanned? <a class="footnote-reference" href="#id32" id="id19">[11]</a></td>
+<tr class="row-even"><td>Blocks are scanned? <a class="footnote-reference" href="#id32" id="id19">[11]</a></td>
 <td>yes</td>
 <td>no</td>
 <td>yes</td>
@@ -426,7 +416,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>yes</td>
 </tr>
-<tr class="row-even"><td>Blocks support base pointers only? <a class="footnote-reference" href="#id33" id="id20">[12]</a></td>
+<tr class="row-odd"><td>Blocks support base pointers only? <a class="footnote-reference" href="#id33" id="id20">[12]</a></td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -438,7 +428,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>yes</td>
 </tr>
-<tr class="row-odd"><td>Blocks support internal pointers? <a class="footnote-reference" href="#id33" id="id21">[12]</a></td>
+<tr class="row-even"><td>Blocks support internal pointers? <a class="footnote-reference" href="#id33" id="id21">[12]</a></td>
 <td>no</td>
 <td>no</td>
 <td>no</td>
@@ -450,7 +440,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>no</td>
 </tr>
-<tr class="row-even"><td>Blocks may be protected by barriers?</td>
+<tr class="row-odd"><td>Blocks may be protected by barriers?</td>
 <td>yes</td>
 <td>no</td>
 <td>yes</td>
@@ -462,7 +452,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>yes</td>
 </tr>
-<tr class="row-odd"><td>Blocks may move?</td>
+<tr class="row-even"><td>Blocks may move?</td>
 <td>yes</td>
 <td>yes</td>
 <td>no</td>
@@ -474,7 +464,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>no</td>
 </tr>
-<tr class="row-even"><td>Blocks may be finalized?</td>
+<tr class="row-odd"><td>Blocks may be finalized?</td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -486,7 +476,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>no</td>
 </tr>
-<tr class="row-odd"><td>Blocks must be formatted? <a class="footnote-reference" href="#id32" id="id22">[11]</a></td>
+<tr class="row-even"><td>Blocks must be formatted? <a class="footnote-reference" href="#id32" id="id22">[11]</a></td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -498,7 +488,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>yes</td>
 </tr>
-<tr class="row-even"><td>Blocks may belong to format auto-header?</td>
+<tr class="row-odd"><td>Blocks may belong to format auto-header?</td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -618,7 +608,7 @@ to the block.</td></tr>
 </div>
 </div>
 <div class="section" id="writing-a-new-pool-class">
-<h1>3. Writing a new pool class<a class="headerlink" href="#writing-a-new-pool-class" title="Permalink to this headline">¶</a></h1>
+<span id="pool-writing"></span><span id="index-2"></span><h1>3. Writing a new pool class<a class="headerlink" href="#writing-a-new-pool-class" title="Permalink to this headline">¶</a></h1>
 <p>If none of the pool classes supplied with the MPS are quite right for
 your application, don&#8217;t despair: the MPS is designed to be extensible
 with new pool classes, and designed so that the properties of pools

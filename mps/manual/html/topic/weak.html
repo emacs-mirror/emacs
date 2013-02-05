@@ -58,7 +58,7 @@
 <span id="topic-weak"></span><span id="index-0"></span><h1>19. Weak references<a class="headerlink" href="#weak-references" title="Permalink to this headline">¶</a></h1>
 <p>A <em class="dfn">weak reference</em> is a <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">reference</em></a> that does not keep the
 block it refers to <a class="reference internal" href="../glossary/l.html#term-live"><em class="xref std std-term">alive</em></a>.</p>
-<p>The MPS supports weak references only:</p>
+<p>The open source MPS supports weak references only:</p>
 <ol class="arabic simple">
 <li>in <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">roots</em></a> that are registered with <a class="reference internal" href="../glossary/r.html#term-rank"><em class="xref std std-term">rank</em></a>
 <a class="reference internal" href="root.html#mps_rank_weak" title="mps_rank_weak"><tt class="xref c c-func docutils literal"><span class="pre">mps_rank_weak()</span></tt></a>;</li>
@@ -66,6 +66,11 @@ block it refers to <a class="reference internal" href="../glossary/l.html#term-l
 class <a class="reference internal" href="../pool/awl.html#pool-awl"><em>AWL (Automatic Weak Linked)</em></a> that was created with <a class="reference internal" href="../glossary/r.html#term-rank"><em class="xref std std-term">rank</em></a>
 <a class="reference internal" href="root.html#mps_rank_weak" title="mps_rank_weak"><tt class="xref c c-func docutils literal"><span class="pre">mps_rank_weak()</span></tt></a>.</li>
 </ol>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">If you need more general handling of weak references,
+<a class="reference internal" href="../contact.html#contact"><em>contact us</em></a>.</p>
+</div>
 <p>When the MPS determines that a block is only kept alive by one or more
 weak references, it may choose to <a class="reference internal" href="../glossary/s.html#term-splat"><em class="xref std std-term">splat</em></a> those references by
 replacing them with null pointers when they are <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">fixed</em></a>. When

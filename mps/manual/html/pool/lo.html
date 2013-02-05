@@ -72,8 +72,9 @@ long as you ensure that the buffer remains alive until the thread
 has finished (for example, by keeping a reference to the buffer in
 a <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">root</em></a> or a <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scanned</em></a> object).</p>
 </div>
-<p>For leaf objects that can move and be protected, consider
-<a class="reference internal" href="amcz.html#pool-amcz"><em>AMCZ (Automatic Mostly-Copying Zero-rank)</em></a> instead.</p>
+<p>If LO is used to allocate large numbers of small objects, the garbage
+collection performance will degrade. For leaf objects that can move
+and be protected, it is better to use <a class="reference internal" href="amcz.html#pool-amcz"><em>AMCZ (Automatic Mostly-Copying Zero-rank)</em></a> instead.</p>
 <div class="section" id="lo-properties">
 <span id="index-1"></span><h2>8.1. LO properties<a class="headerlink" href="#lo-properties" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">

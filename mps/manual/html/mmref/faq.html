@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>6. Frequently Asked Questions &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>5. Frequently Asked Questions &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -29,7 +29,7 @@
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Introduction to memory management" href="index.html" />
     <link rel="next" title="Bibliography" href="bib.html" />
-    <link rel="prev" title="5. Memory management in various languages" href="lang.html" /> 
+    <link rel="prev" title="4. Memory management in various languages" href="lang.html" /> 
   </head>
   <body>
     <div class="related">
@@ -42,7 +42,7 @@
           <a href="bib.html" title="Bibliography"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="lang.html" title="5. Memory management in various languages"
+          <a href="lang.html" title="4. Memory management in various languages"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Introduction to memory management</a> &raquo;</li> 
@@ -55,16 +55,16 @@
           <div class="body">
             
   <div class="section" id="frequently-asked-questions">
-<span id="mmref-faq"></span><h1>6. Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h1>
+<span id="mmref-faq"></span><h1>5. Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h1>
 <p>This is a list of questions that represent the problems people often
 have with memory management. Some answers appear below, with links to
 helpful supporting material, such as the <a class="reference internal" href="../glossary/index.html#glossary"><em>Memory Management Glossary</em></a>, the
 <a class="reference internal" href="bib.html#bibliography"><em>Bibliography</em></a>, and external sites. For a full explanation of any
 terms used, see the glossary.</p>
 <div class="section" id="c-specific-questions">
-<h2>6.1. C-specific questions<a class="headerlink" href="#c-specific-questions" title="Permalink to this headline">¶</a></h2>
+<h2>5.1. C-specific questions<a class="headerlink" href="#c-specific-questions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="can-i-use-garbage-collection-in-c">
-<h3>6.1.1. Can I use garbage collection in C?<a class="headerlink" href="#can-i-use-garbage-collection-in-c" title="Permalink to this headline">¶</a></h3>
+<h3>5.1.1. Can I use garbage collection in C?<a class="headerlink" href="#can-i-use-garbage-collection-in-c" title="Permalink to this headline">¶</a></h3>
 <p>Yes. Various <a class="reference internal" href="../glossary/c.html#term-conservative-garbage-collection"><em class="xref std std-term">conservative garbage collectors</em></a> for <a class="reference internal" href="lang.html#term-c"><em class="xref std std-term">C</em></a> exist as add-on libraries.</p>
 <div class="admonition-related-link admonition">
 <p class="first admonition-title">Related link</p>
@@ -72,7 +72,7 @@ terms used, see the glossary.</p>
 </div>
 </div>
 <div class="section" id="why-do-i-need-to-test-the-return-value-from-malloc-surely-it-always-succeeds">
-<h3>6.1.2. Why do I need to test the return value from <tt class="docutils literal"><span class="pre">malloc</span></tt>?  Surely it always succeeds?<a class="headerlink" href="#why-do-i-need-to-test-the-return-value-from-malloc-surely-it-always-succeeds" title="Permalink to this headline">¶</a></h3>
+<h3>5.1.2. Why do I need to test the return value from <tt class="docutils literal"><span class="pre">malloc</span></tt>?  Surely it always succeeds?<a class="headerlink" href="#why-do-i-need-to-test-the-return-value-from-malloc-surely-it-always-succeeds" title="Permalink to this headline">¶</a></h3>
 <p>For small programs, and during light testing, it is true that
 <a class="reference internal" href="../glossary/m.html#term-malloc"><em class="xref std std-term">malloc</em></a> usually succeeds. Unfortunately, there are all sorts of
 unpredictable reasons why <a class="reference internal" href="../glossary/m.html#term-malloc"><em class="xref std std-term">malloc</em></a> might fail one day; for
@@ -114,7 +114,7 @@ when out of memory, wrap <a class="reference internal" href="../glossary/m.html#
 <p>Undefined behavior is worth eliminating even in small programs.</p>
 </div>
 <div class="section" id="what-s-the-point-of-having-a-garbage-collector-why-not-use-malloc-and-free">
-<h3>6.1.3. What&#8217;s the point of having a garbage collector? Why not use <tt class="docutils literal"><span class="pre">malloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt>?<a class="headerlink" href="#what-s-the-point-of-having-a-garbage-collector-why-not-use-malloc-and-free" title="Permalink to this headline">¶</a></h3>
+<h3>5.1.3. What&#8217;s the point of having a garbage collector? Why not use <tt class="docutils literal"><span class="pre">malloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt>?<a class="headerlink" href="#what-s-the-point-of-having-a-garbage-collector-why-not-use-malloc-and-free" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">Manual memory management</em></a>, such as <a class="reference internal" href="../glossary/m.html#term-malloc"><em class="xref std std-term">malloc</em></a> and
 <a class="reference internal" href="../glossary/f.html#term-free-2"><em class="xref std std-term">free<sup>(2)</sup></em></a>, forces the programmer to keep track of which memory
 is still required, and who is responsible for freeing it. This works
@@ -130,7 +130,7 @@ problem, rather than the tedious details of the implementation.</p>
 </div>
 </div>
 <div class="section" id="what-s-wrong-with-ansi-malloc-in-the-c-library">
-<h3>6.1.4. What&#8217;s wrong with ANSI <tt class="docutils literal"><span class="pre">malloc</span></tt> in the C library?<a class="headerlink" href="#what-s-wrong-with-ansi-malloc-in-the-c-library" title="Permalink to this headline">¶</a></h3>
+<h3>5.1.4. What&#8217;s wrong with ANSI <tt class="docutils literal"><span class="pre">malloc</span></tt> in the C library?<a class="headerlink" href="#what-s-wrong-with-ansi-malloc-in-the-c-library" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="../glossary/m.html#term-malloc"><em class="xref std std-term">Malloc</em></a> provides a very basic <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory management</em></a>
 service. However, it does not provide the following things, which may
 be desirable in your memory manager:</p>
@@ -151,9 +151,9 @@ performance.</p>
 </div>
 </div>
 <div class="section" id="id1">
-<h2>6.2. C++-specific questions<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>5.2. C++-specific questions<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="mmref-faq-c-gc">
-<span id="id2"></span><h3>6.2.1. Can I use garbage collection in C++?<a class="headerlink" href="#mmref-faq-c-gc" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>5.2.1. Can I use garbage collection in C++?<a class="headerlink" href="#mmref-faq-c-gc" title="Permalink to this headline">¶</a></h3>
 <p>Yes. The C++ specification has always permitted garbage collection.
 Bjarne Stroustrup (C++&#8217;s designer) has proposed that this be made
 explicit in the standard. There exist various conservative and
@@ -168,7 +168,7 @@ semi-conservative garbage collectors for C++.</p>
 </div>
 </div>
 <div class="section" id="why-is-delete-so-slow">
-<h3>6.2.2. Why is <tt class="docutils literal"><span class="pre">delete</span></tt> so slow?<a class="headerlink" href="#why-is-delete-so-slow" title="Permalink to this headline">¶</a></h3>
+<h3>5.2.2. Why is <tt class="docutils literal"><span class="pre">delete</span></tt> so slow?<a class="headerlink" href="#why-is-delete-so-slow" title="Permalink to this headline">¶</a></h3>
 <p>Often <tt class="docutils literal"><span class="pre">delete</span></tt> must perform a more complex task than simply freeing
 the memory associated with an object; this is known as
 <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a>. Finalization typically involves releasing any
@@ -185,7 +185,7 @@ address order (or sometimes reverse address order) can result in poor
 performance.</p>
 </div>
 <div class="section" id="what-happens-if-you-use-class-libraries-that-leak-memory">
-<h3>6.2.3. What happens if you use class libraries that leak memory?<a class="headerlink" href="#what-happens-if-you-use-class-libraries-that-leak-memory" title="Permalink to this headline">¶</a></h3>
+<h3>5.2.3. What happens if you use class libraries that leak memory?<a class="headerlink" href="#what-happens-if-you-use-class-libraries-that-leak-memory" title="Permalink to this headline">¶</a></h3>
 <p>In <a class="reference internal" href="lang.html#term-6"><em class="xref std std-term">C++</em></a>, it may be that class libraries expect you to call
 <tt class="docutils literal"><span class="pre">delete</span></tt> on objects they create, to invoke the <a class="reference internal" href="../glossary/d.html#term-destructor-2"><em class="xref std std-term">destructor<sup>(2)</sup></em></a>. Check the interface documentation.</p>
 <p>Failing this, if there is a genuine <a class="reference internal" href="../glossary/m.html#term-memory-leak"><em class="xref std std-term">memory leak</em></a> in a class
@@ -198,7 +198,7 @@ collector will work with C++.</p>
 </div>
 </div>
 <div class="section" id="can-t-i-get-all-the-benefits-of-garbage-collection-using-c-constructors-and-destructors">
-<h3>6.2.4. Can&#8217;t I get all the benefits of garbage collection using C++ constructors and destructors?<a class="headerlink" href="#can-t-i-get-all-the-benefits-of-garbage-collection-using-c-constructors-and-destructors" title="Permalink to this headline">¶</a></h3>
+<h3>5.2.4. Can&#8217;t I get all the benefits of garbage collection using C++ constructors and destructors?<a class="headerlink" href="#can-t-i-get-all-the-benefits-of-garbage-collection-using-c-constructors-and-destructors" title="Permalink to this headline">¶</a></h3>
 <p>Carefully designed <a class="reference internal" href="lang.html#term-6"><em class="xref std std-term">C++</em></a> <a class="reference internal" href="../glossary/c.html#term-constructor-2"><em class="xref std std-term">constructors<sup>(2)</sup></em></a> and
 <a class="reference internal" href="../glossary/d.html#term-destructor-2"><em class="xref std std-term">destructors<sup>(2)</sup></em></a> can go a long way towards easing the pain of
 <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory management</em></a>. Objects can know how to deallocate
@@ -224,13 +224,13 @@ will deal with all the problems of data sharing.</p>
 </div>
 </div>
 <div class="section" id="common-objections-to-garbage-collection">
-<h2>6.3. Common objections to garbage collection<a class="headerlink" href="#common-objections-to-garbage-collection" title="Permalink to this headline">¶</a></h2>
+<h2>5.3. Common objections to garbage collection<a class="headerlink" href="#common-objections-to-garbage-collection" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="what-languages-use-garbage-collection">
-<h3>6.3.1. What languages use garbage collection?<a class="headerlink" href="#what-languages-use-garbage-collection" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference internal" href="lang.html#term-java"><em class="xref std std-term">Java</em></a>, <a class="reference internal" href="lang.html#term-lisp"><em class="xref std std-term">Lisp</em></a>, <a class="reference internal" href="lang.html#term-smalltalk"><em class="xref std std-term">Smalltalk</em></a>, <a class="reference internal" href="lang.html#term-prolog"><em class="xref std std-term">Prolog</em></a>,
-<a class="reference internal" href="lang.html#term-ml"><em class="xref std std-term">ML</em></a>, … the list goes on. It surprises many to learn that many
-implementations of <a class="reference internal" href="lang.html#term-basic"><em class="xref std std-term">BASIC</em></a> use <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a> to
-manage character strings efficiently.</p>
+<h3>5.3.1. What languages use garbage collection?<a class="headerlink" href="#what-languages-use-garbage-collection" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="lang.html#term-java"><em class="xref std std-term">Java</em></a>, <a class="reference internal" href="lang.html#term-5"><em class="xref std std-term">C#</em></a>, <a class="reference internal" href="lang.html#term-python"><em class="xref std std-term">Python</em></a>, <a class="reference internal" href="lang.html#term-lisp"><em class="xref std std-term">Lisp</em></a>, <a class="reference internal" href="lang.html#term-ml"><em class="xref std std-term">ML</em></a>, …
+the list goes on. It surprises many to learn that many implementations
+of <a class="reference internal" href="lang.html#term-basic"><em class="xref std std-term">BASIC</em></a> use <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a> to manage character
+strings efficiently.</p>
 <p><a class="reference internal" href="lang.html#term-6"><em class="xref std std-term">C++</em></a> is sometimes characterized as the last holdout against
 garbage collection, but this is not accurate. See
 <a class="reference internal" href="#mmref-faq-c-gc"><em>Can I use garbage collection in C++?</em></a></p>
@@ -243,7 +243,7 @@ collection among tools of the modern programmer&#8212;either as part of a
 language or as an add-on component.</p>
 </div>
 <div class="section" id="what-s-the-advantage-of-garbage-collection">
-<h3>6.3.2. What&#8217;s the advantage of garbage collection?<a class="headerlink" href="#what-s-the-advantage-of-garbage-collection" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.2. What&#8217;s the advantage of garbage collection?<a class="headerlink" href="#what-s-the-advantage-of-garbage-collection" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">Garbage collection</em></a> frees you from having to keep track of
 which part of your program is responsible for the deallocation of
 which memory. This freedom from tedious and error-prone bookkeeping
@@ -259,7 +259,7 @@ often dominate interface complexity.  Additionally, garbage collection can reduc
 </div>
 </div>
 <div class="section" id="programs-with-gc-are-huge-and-bloated-gc-isn-t-suitable-for-small-programs-or-systems">
-<h3>6.3.3. Programs with GC are huge and bloated; GC isn&#8217;t suitable for small programs or systems<a class="headerlink" href="#programs-with-gc-are-huge-and-bloated-gc-isn-t-suitable-for-small-programs-or-systems" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.3. Programs with GC are huge and bloated; GC isn&#8217;t suitable for small programs or systems<a class="headerlink" href="#programs-with-gc-are-huge-and-bloated-gc-isn-t-suitable-for-small-programs-or-systems" title="Permalink to this headline">¶</a></h3>
 <p>While it is true that the major advantages of <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage
 collection</em></a> are only seen in complex systems, there is no reason for
 garbage collection to introduce any significant overhead at any scale.
@@ -278,7 +278,7 @@ environment.</p>
 </div>
 </div>
 <div class="section" id="i-can-t-use-gc-because-i-can-t-afford-to-have-my-program-pause">
-<h3>6.3.4. I can&#8217;t use GC because I can&#8217;t afford to have my program pause<a class="headerlink" href="#i-can-t-use-gc-because-i-can-t-afford-to-have-my-program-pause" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.4. I can&#8217;t use GC because I can&#8217;t afford to have my program pause<a class="headerlink" href="#i-can-t-use-gc-because-i-can-t-afford-to-have-my-program-pause" title="Permalink to this headline">¶</a></h3>
 <p>While early garbage collectors had to complete without interruption
 and hence would pause observably, many techniques are now available to
 ensure that modern collectors can be unobtrusive.</p>
@@ -288,7 +288,7 @@ ensure that modern collectors can be unobtrusive.</p>
 </div>
 </div>
 <div class="section" id="isn-t-it-much-cheaper-to-use-reference-counts-rather-than-garbage-collection">
-<h3>6.3.5. Isn&#8217;t it much cheaper to use reference counts rather than garbage collection?<a class="headerlink" href="#isn-t-it-much-cheaper-to-use-reference-counts-rather-than-garbage-collection" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.5. Isn&#8217;t it much cheaper to use reference counts rather than garbage collection?<a class="headerlink" href="#isn-t-it-much-cheaper-to-use-reference-counts-rather-than-garbage-collection" title="Permalink to this headline">¶</a></h3>
 <p>No, updating <a class="reference internal" href="../glossary/r.html#term-reference-counting"><em class="xref std std-term">reference counts</em></a> is quite
 expensive, and they have a couple of problems:</p>
 <ul class="simple">
@@ -310,7 +310,7 @@ except in the case where most reference counts are one.</p>
 </div>
 </div>
 <div class="section" id="isn-t-gc-unreliable-i-ve-heard-that-gcs-often-kill-the-program">
-<h3>6.3.6. Isn&#8217;t GC unreliable? I&#8217;ve heard that GCs often kill the program<a class="headerlink" href="#isn-t-gc-unreliable-i-ve-heard-that-gcs-often-kill-the-program" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.6. Isn&#8217;t GC unreliable? I&#8217;ve heard that GCs often kill the program<a class="headerlink" href="#isn-t-gc-unreliable-i-ve-heard-that-gcs-often-kill-the-program" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="../glossary/g.html#term-garbage-collector"><em class="xref std std-term">Garbage collectors</em></a> usually have to manipulate vulnerable data
 structures and must often use poorly-documented, low-level interfaces.
 Additionally, any garbage collection problems may not be detected
@@ -329,14 +329,14 @@ blamed because it found the corruption. This is a classic case of
 shooting the messenger.</p>
 </div>
 <div class="section" id="i-ve-heard-that-gc-uses-twice-as-much-memory">
-<h3>6.3.7. I&#8217;ve heard that GC uses twice as much memory<a class="headerlink" href="#i-ve-heard-that-gc-uses-twice-as-much-memory" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.7. I&#8217;ve heard that GC uses twice as much memory<a class="headerlink" href="#i-ve-heard-that-gc-uses-twice-as-much-memory" title="Permalink to this headline">¶</a></h3>
 <p>This may be true of primitive collectors (like the <a class="reference internal" href="../glossary/t.html#term-two-space-collector"><em class="xref std std-term">two-space
 collector</em></a>), but this is not generally true of garbage collection. The
 data structures used for garbage collection need be no larger than
 those for <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory management</em></a>.</p>
 </div>
 <div class="section" id="doesn-t-garbage-collection-make-programs-slow">
-<h3>6.3.8. Doesn&#8217;t garbage collection make programs slow?<a class="headerlink" href="#doesn-t-garbage-collection-make-programs-slow" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.8. Doesn&#8217;t garbage collection make programs slow?<a class="headerlink" href="#doesn-t-garbage-collection-make-programs-slow" title="Permalink to this headline">¶</a></h3>
 <p>No. <a class="reference internal" href="bib.html#zorn92"><em>Benjamin Zorn (1992)</em></a> found that:</p>
 <blockquote>
 <div>the CPU overhead of <a class="reference internal" href="../glossary/c.html#term-conservative-garbage-collection"><em class="xref std std-term">conservative garbage collection</em></a> is
@@ -349,7 +349,7 @@ paper is now rather old and the collector has been much improved since
 then.</p>
 </div>
 <div class="section" id="manual-memory-management-gives-me-control-it-doesn-t-pause">
-<h3>6.3.9. Manual memory management gives me control&#8212;it doesn&#8217;t pause<a class="headerlink" href="#manual-memory-management-gives-me-control-it-doesn-t-pause" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.9. Manual memory management gives me control&#8212;it doesn&#8217;t pause<a class="headerlink" href="#manual-memory-management-gives-me-control-it-doesn-t-pause" title="Permalink to this headline">¶</a></h3>
 <p>It is possible for <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory management</em></a> to pause for
 considerable periods, either on <a class="reference internal" href="../glossary/a.html#term-allocate"><em class="xref std std-term">allocation</em></a> or
 <a class="reference internal" href="../glossary/f.html#term-free-1"><em class="xref std std-term">deallocation</em></a>. It certainly gives no guarantees
@@ -364,9 +364,9 @@ pause times, and so on.</p>
 </div>
 </div>
 <div class="section" id="miscellaneous">
-<h2>6.4. Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
+<h2>5.4. Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="why-does-my-disk-rattle-so-much">
-<h3>6.4.1. Why does my disk rattle so much?<a class="headerlink" href="#why-does-my-disk-rattle-so-much" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.1. Why does my disk rattle so much?<a class="headerlink" href="#why-does-my-disk-rattle-so-much" title="Permalink to this headline">¶</a></h3>
 <p>When you are using a <a class="reference internal" href="../glossary/v.html#term-virtual-memory"><em class="xref std std-term">virtual memory</em></a> system, the computer may
 have to fetch <a class="reference internal" href="../glossary/p.html#term-page"><em class="xref std std-term">pages</em></a> of memory from disk before they can be
 accessed. If the total <a class="reference internal" href="../glossary/w.html#term-working-set"><em class="xref std std-term">working set</em></a> of your active programs
@@ -397,7 +397,7 @@ mitigate this problem.</p>
 </div>
 </div>
 <div class="section" id="where-can-i-find-out-more-about-garbage-collection">
-<h3>6.4.2. Where can I find out more about garbage collection?<a class="headerlink" href="#where-can-i-find-out-more-about-garbage-collection" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.2. Where can I find out more about garbage collection?<a class="headerlink" href="#where-can-i-find-out-more-about-garbage-collection" title="Permalink to this headline">¶</a></h3>
 <p>Many modern languages have <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a> built in, and
 the language documentation should give details. For some other
 languages, garbage collection can be added, for example via the
@@ -408,7 +408,7 @@ Boehm–Weiser collector.</p>
 </div>
 <div class="admonition-related-publication admonition">
 <p class="first admonition-title">Related publications</p>
-<p class="last"><a class="reference internal" href="bib.html#jones96"><em>Jones (1996)</em></a>, <a class="reference internal" href="bib.html#wil94"><em>Wilson (1994)</em></a>.</p>
+<p class="last"><a class="reference internal" href="bib.html#jones12"><em>Jones et al. (2012)</em></a>, <a class="reference internal" href="bib.html#wil94"><em>Wilson (1994)</em></a>.</p>
 </div>
 <div class="admonition-related-link admonition">
 <p class="first admonition-title">Related link</p>
@@ -417,7 +417,7 @@ Boehm–Weiser collector.</p>
 </div>
 </div>
 <div class="section" id="where-can-i-get-a-garbage-collector">
-<h3>6.4.3. Where can I get a garbage collector?<a class="headerlink" href="#where-can-i-get-a-garbage-collector" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.3. Where can I get a garbage collector?<a class="headerlink" href="#where-can-i-get-a-garbage-collector" title="Permalink to this headline">¶</a></h3>
 <p>The Boehm–Weiser collector is suitable for C or C++. The best way to
 get a garbage collector, however, is to program in a language that
 provides garbage collection.</p>
@@ -431,7 +431,7 @@ provides garbage collection.</p>
 </div>
 </div>
 <div class="section" id="why-does-my-program-use-so-much-memory">
-<h3>6.4.4. Why does my program use so much memory?<a class="headerlink" href="#why-does-my-program-use-so-much-memory" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.4. Why does my program use so much memory?<a class="headerlink" href="#why-does-my-program-use-so-much-memory" title="Permalink to this headline">¶</a></h3>
 <p>If you are using <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory management</em></a> (for example,
 <a class="reference internal" href="../glossary/m.html#term-malloc"><em class="xref std std-term">malloc</em></a> and <a class="reference internal" href="../glossary/f.html#term-free-2"><em class="xref std std-term">free<sup>(2)</sup></em></a> in <a class="reference internal" href="lang.html#term-c"><em class="xref std std-term">C</em></a>), it is likely that
 your program is failing to free memory blocks after it stops using
@@ -450,7 +450,7 @@ refer to large blocks or networks of blocks, when the data structure
 is no longer required.</p>
 </div>
 <div class="section" id="i-use-a-library-and-my-program-grows-every-time-i-call-it-why">
-<h3>6.4.5. I use a library, and my program grows every time I call it. Why?<a class="headerlink" href="#i-use-a-library-and-my-program-grows-every-time-i-call-it-why" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.5. I use a library, and my program grows every time I call it. Why?<a class="headerlink" href="#i-use-a-library-and-my-program-grows-every-time-i-call-it-why" title="Permalink to this headline">¶</a></h3>
 <p>If you are using <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory management</em></a>, it is likely that
 the library is allocating data structures on the heap every time it is
 used, but that they are not being freed. Check the interface
@@ -479,7 +479,7 @@ why.</p>
 <p>If your garbage collector is <a class="reference internal" href="../glossary/g.html#term-generational-garbage-collection"><em class="xref std std-term">generational</em></a>, it is possible that you are suffering from <a class="reference internal" href="../glossary/p.html#term-premature-tenuring"><em class="xref std std-term">premature tenuring</em></a>, which can often be solved by tuning the collector or using a separate memory area for the library.</p>
 </div>
 <div class="section" id="should-i-write-my-own-memory-allocator-to-make-my-program-fast">
-<h3>6.4.6. Should I write my own memory allocator to make my program fast?<a class="headerlink" href="#should-i-write-my-own-memory-allocator-to-make-my-program-fast" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.6. Should I write my own memory allocator to make my program fast?<a class="headerlink" href="#should-i-write-my-own-memory-allocator-to-make-my-program-fast" title="Permalink to this headline">¶</a></h3>
 <p>If you are sure that your program is spending a large proportion of
 its time in <a class="reference internal" href="../glossary/m.html#term-memory-management"><em class="xref std std-term">memory management</em></a>, and you know what you&#8217;re doing,
 then it is certainly possible to improve performance by writing a
@@ -504,7 +504,7 @@ implementations of storage management algorithms if the one they
 are using performs poorly.</div></blockquote>
 </div>
 <div class="section" id="why-can-t-i-just-use-local-data-on-the-stack-or-in-global-variables">
-<h3>6.4.7. Why can&#8217;t I just use local data on the stack or in global variables?<a class="headerlink" href="#why-can-t-i-just-use-local-data-on-the-stack-or-in-global-variables" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.7. Why can&#8217;t I just use local data on the stack or in global variables?<a class="headerlink" href="#why-can-t-i-just-use-local-data-on-the-stack-or-in-global-variables" title="Permalink to this headline">¶</a></h3>
 <p>Global, or static, data is fixed size; it cannot grow in response to
 the size or complexity of the data set received by a program.
 Stack-allocated data doesn&#8217;t exist once you leave the function (or
@@ -523,7 +523,7 @@ simplification will almost certainly cause trouble sooner or later.</p>
 </div>
 </div>
 <div class="section" id="why-should-i-worry-about-virtual-memory-can-t-i-just-use-as-much-memory-as-i-want">
-<h3>6.4.8. Why should I worry about virtual memory? Can&#8217;t I just use as much memory as I want?<a class="headerlink" href="#why-should-i-worry-about-virtual-memory-can-t-i-just-use-as-much-memory-as-i-want" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.8. Why should I worry about virtual memory? Can&#8217;t I just use as much memory as I want?<a class="headerlink" href="#why-should-i-worry-about-virtual-memory-can-t-i-just-use-as-much-memory-as-i-want" title="Permalink to this headline">¶</a></h3>
 <p>While <a class="reference internal" href="../glossary/v.html#term-virtual-memory"><em class="xref std std-term">virtual memory</em></a> can greatly increase your capacity to
 store data, there are three problems typically experienced with it:</p>
 <ul class="simple">
@@ -547,23 +547,6 @@ that poor <a class="reference internal" href="../glossary/l.html#term-locality-o
 <p class="last"><a class="reference internal" href="../glossary/t.html#term-thrash"><em class="xref std std-term">thrash</em></a>.</p>
 </div>
 </div>
-<div class="section" id="why-do-i-need-to-reset-my-x-server-every-week">
-<h3>6.4.9. Why do I need to reset my X server every week?<a class="headerlink" href="#why-do-i-need-to-reset-my-x-server-every-week" title="Permalink to this headline">¶</a></h3>
-<p>Some X servers are notorious for leaking memory. This is probably
-because the sheer complexity of the X library interface, together with
-those for toolkits such as Motif, makes <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory
-management</em></a> a nightmare for the programmer.</p>
-<p>There have been reports of successful use of the Boehm–Weiser
-collector with X servers.</p>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="../glossary/m.html#term-memory-leak"><em class="xref std std-term">memory leak</em></a></p>
-</div>
-<div class="admonition-related-link admonition">
-<p class="first admonition-title">Related link</p>
-<p class="last"><a class="reference external" href="http://www.hpl.hp.com/personal/Hans_Boehm/gc/">Boehm–Weiser collector</a>.</p>
-</div>
-</div>
 </div>
 </div>
 
@@ -578,43 +561,42 @@ collector with X servers.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">6. Frequently Asked Questions</a><ul>
-<li><a class="reference internal" href="#c-specific-questions">6.1. C-specific questions</a><ul>
-<li><a class="reference internal" href="#can-i-use-garbage-collection-in-c">6.1.1. Can I use garbage collection in C?</a></li>
-<li><a class="reference internal" href="#why-do-i-need-to-test-the-return-value-from-malloc-surely-it-always-succeeds">6.1.2. Why do I need to test the return value from <tt class="docutils literal"><span class="pre">malloc</span></tt>?  Surely it always succeeds?</a></li>
-<li><a class="reference internal" href="#what-s-the-point-of-having-a-garbage-collector-why-not-use-malloc-and-free">6.1.3. What&#8217;s the point of having a garbage collector? Why not use <tt class="docutils literal"><span class="pre">malloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt>?</a></li>
-<li><a class="reference internal" href="#what-s-wrong-with-ansi-malloc-in-the-c-library">6.1.4. What&#8217;s wrong with ANSI <tt class="docutils literal"><span class="pre">malloc</span></tt> in the C library?</a></li>
+<li><a class="reference internal" href="#">5. Frequently Asked Questions</a><ul>
+<li><a class="reference internal" href="#c-specific-questions">5.1. C-specific questions</a><ul>
+<li><a class="reference internal" href="#can-i-use-garbage-collection-in-c">5.1.1. Can I use garbage collection in C?</a></li>
+<li><a class="reference internal" href="#why-do-i-need-to-test-the-return-value-from-malloc-surely-it-always-succeeds">5.1.2. Why do I need to test the return value from <tt class="docutils literal"><span class="pre">malloc</span></tt>?  Surely it always succeeds?</a></li>
+<li><a class="reference internal" href="#what-s-the-point-of-having-a-garbage-collector-why-not-use-malloc-and-free">5.1.3. What&#8217;s the point of having a garbage collector? Why not use <tt class="docutils literal"><span class="pre">malloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt>?</a></li>
+<li><a class="reference internal" href="#what-s-wrong-with-ansi-malloc-in-the-c-library">5.1.4. What&#8217;s wrong with ANSI <tt class="docutils literal"><span class="pre">malloc</span></tt> in the C library?</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id1">6.2. C++-specific questions</a><ul>
-<li><a class="reference internal" href="#mmref-faq-c-gc">6.2.1. Can I use garbage collection in C++?</a></li>
-<li><a class="reference internal" href="#why-is-delete-so-slow">6.2.2. Why is <tt class="docutils literal"><span class="pre">delete</span></tt> so slow?</a></li>
-<li><a class="reference internal" href="#what-happens-if-you-use-class-libraries-that-leak-memory">6.2.3. What happens if you use class libraries that leak memory?</a></li>
-<li><a class="reference internal" href="#can-t-i-get-all-the-benefits-of-garbage-collection-using-c-constructors-and-destructors">6.2.4. Can&#8217;t I get all the benefits of garbage collection using C++ constructors and destructors?</a></li>
+<li><a class="reference internal" href="#id1">5.2. C++-specific questions</a><ul>
+<li><a class="reference internal" href="#mmref-faq-c-gc">5.2.1. Can I use garbage collection in C++?</a></li>
+<li><a class="reference internal" href="#why-is-delete-so-slow">5.2.2. Why is <tt class="docutils literal"><span class="pre">delete</span></tt> so slow?</a></li>
+<li><a class="reference internal" href="#what-happens-if-you-use-class-libraries-that-leak-memory">5.2.3. What happens if you use class libraries that leak memory?</a></li>
+<li><a class="reference internal" href="#can-t-i-get-all-the-benefits-of-garbage-collection-using-c-constructors-and-destructors">5.2.4. Can&#8217;t I get all the benefits of garbage collection using C++ constructors and destructors?</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#common-objections-to-garbage-collection">6.3. Common objections to garbage collection</a><ul>
-<li><a class="reference internal" href="#what-languages-use-garbage-collection">6.3.1. What languages use garbage collection?</a></li>
-<li><a class="reference internal" href="#what-s-the-advantage-of-garbage-collection">6.3.2. What&#8217;s the advantage of garbage collection?</a></li>
-<li><a class="reference internal" href="#programs-with-gc-are-huge-and-bloated-gc-isn-t-suitable-for-small-programs-or-systems">6.3.3. Programs with GC are huge and bloated; GC isn&#8217;t suitable for small programs or systems</a></li>
-<li><a class="reference internal" href="#i-can-t-use-gc-because-i-can-t-afford-to-have-my-program-pause">6.3.4. I can&#8217;t use GC because I can&#8217;t afford to have my program pause</a></li>
-<li><a class="reference internal" href="#isn-t-it-much-cheaper-to-use-reference-counts-rather-than-garbage-collection">6.3.5. Isn&#8217;t it much cheaper to use reference counts rather than garbage collection?</a></li>
-<li><a class="reference internal" href="#isn-t-gc-unreliable-i-ve-heard-that-gcs-often-kill-the-program">6.3.6. Isn&#8217;t GC unreliable? I&#8217;ve heard that GCs often kill the program</a></li>
-<li><a class="reference internal" href="#i-ve-heard-that-gc-uses-twice-as-much-memory">6.3.7. I&#8217;ve heard that GC uses twice as much memory</a></li>
-<li><a class="reference internal" href="#doesn-t-garbage-collection-make-programs-slow">6.3.8. Doesn&#8217;t garbage collection make programs slow?</a></li>
-<li><a class="reference internal" href="#manual-memory-management-gives-me-control-it-doesn-t-pause">6.3.9. Manual memory management gives me control&#8212;it doesn&#8217;t pause</a></li>
+<li><a class="reference internal" href="#common-objections-to-garbage-collection">5.3. Common objections to garbage collection</a><ul>
+<li><a class="reference internal" href="#what-languages-use-garbage-collection">5.3.1. What languages use garbage collection?</a></li>
+<li><a class="reference internal" href="#what-s-the-advantage-of-garbage-collection">5.3.2. What&#8217;s the advantage of garbage collection?</a></li>
+<li><a class="reference internal" href="#programs-with-gc-are-huge-and-bloated-gc-isn-t-suitable-for-small-programs-or-systems">5.3.3. Programs with GC are huge and bloated; GC isn&#8217;t suitable for small programs or systems</a></li>
+<li><a class="reference internal" href="#i-can-t-use-gc-because-i-can-t-afford-to-have-my-program-pause">5.3.4. I can&#8217;t use GC because I can&#8217;t afford to have my program pause</a></li>
+<li><a class="reference internal" href="#isn-t-it-much-cheaper-to-use-reference-counts-rather-than-garbage-collection">5.3.5. Isn&#8217;t it much cheaper to use reference counts rather than garbage collection?</a></li>
+<li><a class="reference internal" href="#isn-t-gc-unreliable-i-ve-heard-that-gcs-often-kill-the-program">5.3.6. Isn&#8217;t GC unreliable? I&#8217;ve heard that GCs often kill the program</a></li>
+<li><a class="reference internal" href="#i-ve-heard-that-gc-uses-twice-as-much-memory">5.3.7. I&#8217;ve heard that GC uses twice as much memory</a></li>
+<li><a class="reference internal" href="#doesn-t-garbage-collection-make-programs-slow">5.3.8. Doesn&#8217;t garbage collection make programs slow?</a></li>
+<li><a class="reference internal" href="#manual-memory-management-gives-me-control-it-doesn-t-pause">5.3.9. Manual memory management gives me control&#8212;it doesn&#8217;t pause</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#miscellaneous">6.4. Miscellaneous</a><ul>
-<li><a class="reference internal" href="#why-does-my-disk-rattle-so-much">6.4.1. Why does my disk rattle so much?</a></li>
-<li><a class="reference internal" href="#where-can-i-find-out-more-about-garbage-collection">6.4.2. Where can I find out more about garbage collection?</a></li>
-<li><a class="reference internal" href="#where-can-i-get-a-garbage-collector">6.4.3. Where can I get a garbage collector?</a></li>
-<li><a class="reference internal" href="#why-does-my-program-use-so-much-memory">6.4.4. Why does my program use so much memory?</a></li>
-<li><a class="reference internal" href="#i-use-a-library-and-my-program-grows-every-time-i-call-it-why">6.4.5. I use a library, and my program grows every time I call it. Why?</a></li>
-<li><a class="reference internal" href="#should-i-write-my-own-memory-allocator-to-make-my-program-fast">6.4.6. Should I write my own memory allocator to make my program fast?</a></li>
-<li><a class="reference internal" href="#why-can-t-i-just-use-local-data-on-the-stack-or-in-global-variables">6.4.7. Why can&#8217;t I just use local data on the stack or in global variables?</a></li>
-<li><a class="reference internal" href="#why-should-i-worry-about-virtual-memory-can-t-i-just-use-as-much-memory-as-i-want">6.4.8. Why should I worry about virtual memory? Can&#8217;t I just use as much memory as I want?</a></li>
-<li><a class="reference internal" href="#why-do-i-need-to-reset-my-x-server-every-week">6.4.9. Why do I need to reset my X server every week?</a></li>
+<li><a class="reference internal" href="#miscellaneous">5.4. Miscellaneous</a><ul>
+<li><a class="reference internal" href="#why-does-my-disk-rattle-so-much">5.4.1. Why does my disk rattle so much?</a></li>
+<li><a class="reference internal" href="#where-can-i-find-out-more-about-garbage-collection">5.4.2. Where can I find out more about garbage collection?</a></li>
+<li><a class="reference internal" href="#where-can-i-get-a-garbage-collector">5.4.3. Where can I get a garbage collector?</a></li>
+<li><a class="reference internal" href="#why-does-my-program-use-so-much-memory">5.4.4. Why does my program use so much memory?</a></li>
+<li><a class="reference internal" href="#i-use-a-library-and-my-program-grows-every-time-i-call-it-why">5.4.5. I use a library, and my program grows every time I call it. Why?</a></li>
+<li><a class="reference internal" href="#should-i-write-my-own-memory-allocator-to-make-my-program-fast">5.4.6. Should I write my own memory allocator to make my program fast?</a></li>
+<li><a class="reference internal" href="#why-can-t-i-just-use-local-data-on-the-stack-or-in-global-variables">5.4.7. Why can&#8217;t I just use local data on the stack or in global variables?</a></li>
+<li><a class="reference internal" href="#why-should-i-worry-about-virtual-memory-can-t-i-just-use-as-much-memory-as-i-want">5.4.8. Why should I worry about virtual memory? Can&#8217;t I just use as much memory as I want?</a></li>
 </ul>
 </li>
 </ul>
@@ -623,7 +605,7 @@ collector with X servers.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="lang.html"
-                        title="previous chapter">5. Memory management in various languages</a></p>
+                        title="previous chapter">4. Memory management in various languages</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="bib.html"
                         title="next chapter">Bibliography</a></p><h4>Contact us</h4>
@@ -643,7 +625,7 @@ collector with X servers.</p>
           <a href="bib.html" title="Bibliography"
              >next</a> |</li>
         <li class="right" >
-          <a href="lang.html" title="5. Memory management in various languages"
+          <a href="lang.html" title="4. Memory management in various languages"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Introduction to memory management</a> &raquo;</li> 

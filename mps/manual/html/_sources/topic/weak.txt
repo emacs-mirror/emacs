@@ -13,7 +13,7 @@ Weak references
 A :dfn:`weak reference` is a :term:`reference` that does not keep the
 block it refers to :term:`alive <live>`.
 
-The MPS supports weak references only:
+The open source MPS supports weak references only:
 
 1. in :term:`roots` that are registered with :term:`rank`
    :c:func:`mps_rank_weak`;
@@ -21,6 +21,11 @@ The MPS supports weak references only:
 2. in objects allocated on an :term:`allocation point` in a pool of
    class :ref:`pool-awl` that was created with :term:`rank`
    :c:func:`mps_rank_weak`.
+
+.. note::
+
+    If you need more general handling of weak references,
+    :ref:`contact us <contact>`.
 
 When the MPS determines that a block is only kept alive by one or more
 weak references, it may choose to :term:`splat` those references by

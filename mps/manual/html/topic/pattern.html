@@ -58,8 +58,7 @@
 <span id="topic-pattern"></span><span id="index-0"></span><h1>15. Allocation patterns<a class="headerlink" href="#allocation-patterns" title="Permalink to this headline">¶</a></h1>
 <p>An <em class="dfn">allocation pattern</em> is a hint to the MPS to expect a
 particular pattern of allocation on an <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a>. The
-MPS may use this hint to schedule its decisions as to when and what to
-collect.</p>
+MPS may use this hint to schedule more effective garbage collection.</p>
 <p>There are two allocation patterns, <a class="reference internal" href="#mps_alloc_pattern_ramp" title="mps_alloc_pattern_ramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc_pattern_ramp()</span></tt></a>
 and <a class="reference internal" href="#mps_alloc_pattern_ramp_collect_all" title="mps_alloc_pattern_ramp_collect_all"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc_pattern_ramp_collect_all()</span></tt></a>.</p>
 <dl class="type">
@@ -82,6 +81,12 @@ supported by this allocation point. At present this is always the
 case, but in future this function may return another <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result
 code</em></a> if the allocation pattern is not supported by the allocation
 point.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">It is harmless to call <a class="reference internal" href="#mps_ap_alloc_pattern_begin" title="mps_ap_alloc_pattern_begin"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_alloc_pattern_begin()</span></tt></a>
+even if it isn&#8217;t supported by the allocation point. The
+pattern is simply ignored in that case.</p>
+</div>
 <p>If <a class="reference internal" href="#mps_ap_alloc_pattern_begin" title="mps_ap_alloc_pattern_begin"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_alloc_pattern_begin()</span></tt></a> is used multiple times on
 the same allocation point without intervening calls to
 <a class="reference internal" href="#mps_ap_alloc_pattern_end" title="mps_ap_alloc_pattern_end"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_alloc_pattern_end()</span></tt></a>, the calls match in a
@@ -102,7 +107,12 @@ occurred.</p>
 <p><tt class="docutils literal"><span class="pre">alloc_pattern</span></tt> is the allocation pattern.</p>
 <p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if the period of allocation was
 successfully ended, or <a class="reference internal" href="error.html#MPS_RES_FAIL" title="MPS_RES_FAIL"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_FAIL</span></tt></a> if there was no
-corresponding call to <a class="reference internal" href="#mps_ap_alloc_pattern_begin" title="mps_ap_alloc_pattern_begin"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_alloc_pattern_begin()</span></tt></a>.</p>
+matching call to <a class="reference internal" href="#mps_ap_alloc_pattern_begin" title="mps_ap_alloc_pattern_begin"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_alloc_pattern_begin()</span></tt></a>. Calls match
+in a stack-like way, outermost and innermost: that is, allocation
+patterns may nest, but not otherwise overlap.</p>
+<p>Some allocation patterns may additionally support overlap: if so,
+the documentation for the individual pattern types will specify
+this.</p>
 </dd></dl>
 
 <dl class="function">

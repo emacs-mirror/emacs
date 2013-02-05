@@ -56,22 +56,48 @@
             
   <div class="section" id="debugging-pools">
 <span id="topic-debugging"></span><span id="index-0"></span><h1>17. Debugging pools<a class="headerlink" href="#debugging-pools" title="Permalink to this headline">¶</a></h1>
-<p>Several <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> have debugging counterparts that provide
-two features that are useful for debugging:</p>
+<p>Several <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> have debugging counterparts:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="64%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Pool class</th>
+<th class="head">Debugging counterpart</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference internal" href="../pool/ams.html#pool-ams"><em>AMS (Automatic Mark and Sweep)</em></a></td>
+<td><a class="reference internal" href="../pool/ams.html#mps_class_ams_debug" title="mps_class_ams_debug"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_ams_debug()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="../pool/mv.html#pool-mv"><em>MV (Manual Variable)</em></a></td>
+<td><a class="reference internal" href="../pool/mv.html#mps_class_mv_debug" title="mps_class_mv_debug"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mv_debug()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="../pool/mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a></td>
+<td><a class="reference internal" href="../pool/mvff.html#mps_class_mvff_debug" title="mps_class_mvff_debug"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff_debug()</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+<p>These debugging pool classes provide two features that are useful for
+debugging:</p>
 <ul>
 <li><p id="index-1"><em class="dfn">fenceposts</em> are patterns of data that are written before and
-after each allocated block. These patterns can be checked, for
-example when the block is deallocated, to see that they are
-unchanged. This helps detect underwriting and <a class="reference internal" href="../glossary/o.html#term-overwriting-error"><em class="xref std std-term">overwriting
-errors</em></a>.</p>
+after each allocated block. In <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manually managed</em></a> pools, fenceposts are checked when the block is
+deallocated, to see that they are unchanged. This helps detect
+underwriting and <a class="reference internal" href="../glossary/o.html#term-overwriting-error"><em class="xref std std-term">overwriting errors</em></a>. Fenceposts for all
+objects in a pool are checked when the pool is destroyed, and can be
+checked at any time by calling <a class="reference internal" href="#mps_pool_check_fenceposts" title="mps_pool_check_fenceposts"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_check_fenceposts()</span></tt></a>.</p>
 </li>
 <li><p id="index-2"><em class="dfn">free space splatting</em> overwrites recycled space with a pattern
 of data. If the pattern is designed so that it does not resemble a
 live object (and if code checks the consistency of its data
 structues), then this helps to detect <a class="reference internal" href="../glossary/d.html#term-dangling-pointer"><em class="xref std std-term">dangling pointer</em></a>
-dereferences. The pattern can also be checked, for example just
-before allocation, or when a block of memory is released from the
-pool to the arena, to see that it is unchanged.</p>
+dereferences. The pattern is checked just before allocation, and
+when a block of memory is released from the pool to the arena, to
+see that it is unchanged. All free space in a pool can be checked
+for the pattern at any time by calling
+<a class="reference internal" href="#mps_pool_check_free_space" title="mps_pool_check_free_space"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_check_free_space()</span></tt></a>.</p>
 </li>
 </ul>
 <p>The <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> specifies templates for both of these
@@ -141,7 +167,7 @@ non-debugging pools.</p>
 
 <dl class="function">
 <dt id="mps_pool_check_free_space">
-void <tt class="descname">mps_pool_check_free_space</tt><big>(</big><a class="reference internal" href="pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;mps_pool</em><big>)</big><a class="headerlink" href="#mps_pool_check_free_space" title="Permalink to this definition">¶</a></dt>
+void <tt class="descname">mps_pool_check_free_space</tt><big>(</big><a class="reference internal" href="pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;pool</em><big>)</big><a class="headerlink" href="#mps_pool_check_free_space" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check all the free space in a <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a> for <a class="reference internal" href="../glossary/o.html#term-overwriting-error"><em class="xref std std-term">overwriting
 errors</em></a>.</p>
 <p><tt class="docutils literal"><span class="pre">pool</span></tt> is the pool whose free space is to be checked.</p>

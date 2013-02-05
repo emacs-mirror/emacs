@@ -721,7 +721,7 @@ splat!
 </div>
 </div>
 <div class="section" id="global-symbol-table">
-<h2>6.4. Global symbol table<a class="headerlink" href="#global-symbol-table" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>6.4. Global symbol table<a class="headerlink" href="#global-symbol-table" title="Permalink to this headline">¶</a></h2>
 <p>In the original (non-MPS) version of the toy Scheme interpreter, the
 global symbol table was implemented as a key-only hash table, and each
 symbol stored its own name.</p>
@@ -809,6 +809,52 @@ splat!
 <p>Here, the symbols <tt class="docutils literal"><span class="pre">b</span></tt>, <tt class="docutils literal"><span class="pre">c</span></tt> and <tt class="docutils literal"><span class="pre">d</span></tt> died, but <tt class="docutils literal"><span class="pre">a</span></tt> was kept alive
 by the reference from the environment.</p>
 </div>
+<div class="section" id="segregation-of-objects">
+<span id="guide-advanced-segregation"></span><span id="index-4"></span><h2>6.5. Segregation of objects<a class="headerlink" href="#segregation-of-objects" title="Permalink to this headline">¶</a></h2>
+<p>When objects of different types have different properties (different
+sizes, lifetimes, references, layouts) it makes sense to segregate
+them into pools of appropriate classes.</p>
+<p>For example, the toy Scheme interpreter has a mixture of object types,
+some of which contain references to other objects (for example, pairs)
+that must be <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scanned</em></a>, and some of which do not (for
+example, strings). If the <a class="reference internal" href="../glossary/l.html#term-leaf-object"><em class="xref std std-term">leaf objects</em></a> are segregated into a
+pool of an appropriate class, the cost of scanning them can be
+avoided.</p>
+<p>Here the appropriate class is <a class="reference internal" href="../pool/amcz.html#pool-amcz"><em>AMCZ (Automatic Mostly-Copying Zero-rank)</em></a>, and the necessary code
+changes are straightforward. First, global variables for the new pool
+and its <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a>:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_pool_t</span> <span class="n">leaf_pool</span><span class="p">;</span>    <span class="cm">/* pool for leaf objects */</span>
+<span class="k">static</span> <span class="n">mps_ap_t</span> <span class="n">leaf_ap</span><span class="p">;</span>        <span class="cm">/* allocation point for leaf objects */</span>
+</pre></div>
+</div>
+<p>Second, the leaf objects must be allocated on <tt class="docutils literal"><span class="pre">leaf_ap</span></tt> instead of
+<tt class="docutils literal"><span class="pre">obj_ap</span></tt>. And third, the pool and its allocation point must be created:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="cm">/* Create an Automatic Mostly-Copying Zero-rank (AMCZ) pool to</span>
+<span class="cm">   manage the leaf objects. */</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">leaf_pool</span><span class="p">,</span>
+                      <span class="n">arena</span><span class="p">,</span>
+                      <span class="n">mps_class_amcz</span><span class="p">(),</span>
+                      <span class="n">obj_fmt</span><span class="p">,</span>
+                      <span class="n">obj_chain</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create leaf pool&quot;</span><span class="p">);</span>
+
+<span class="cm">/* Create allocation point for leaf objects. */</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">leaf_ap</span><span class="p">,</span> <span class="n">leaf_pool</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create leaf objects allocation point&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Note that the new pool shared a <a class="reference internal" href="../glossary/g.html#term-generation-chain"><em class="xref std std-term">generation chain</em></a> with the old
+pool. This is important, because the leaf objects live and die along
+with the non-leaf objects of similar ages.</p>
+<p>As an initial step in making this change, the new pool uses the same
+<a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>. However, we normally wouldn&#8217;t stop there: we&#8217;d
+take advantage of the segregation to simplify the scanning of the
+objects that have been left behind.</p>
+<div class="admonition-topic admonition">
+<p class="first admonition-title">Topic</p>
+<p class="last"><a class="reference internal" href="../pool/amcz.html#pool-amcz"><em>AMCZ (Automatic Mostly-Copying Zero-rank)</em></a>.</p>
+</div>
+</div>
 </div>
 
 
@@ -827,6 +873,7 @@ by the reference from the environment.</p>
 <li><a class="reference internal" href="#location-dependency">6.2. Location dependency</a></li>
 <li><a class="reference internal" href="#weak-hash-tables">6.3. Weak hash tables</a></li>
 <li><a class="reference internal" href="#global-symbol-table">6.4. Global symbol table</a></li>
+<li><a class="reference internal" href="#segregation-of-objects">6.5. Segregation of objects</a></li>
 </ul>
 </li>
 </ul>

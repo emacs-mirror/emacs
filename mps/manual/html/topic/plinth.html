@@ -205,19 +205,36 @@ event data.</p>
 <a class="reference internal" href="interface.html#mps_clock_t" title="mps_clock_t">mps_clock_t</a> <tt class="descname">mps_clock</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_clock" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the time since some epoch, in units given by
 <a class="reference internal" href="#mps_clocks_per_sec" title="mps_clocks_per_sec"><tt class="xref c c-func docutils literal"><span class="pre">mps_clocks_per_sec()</span></tt></a>.</p>
-<p>This should be a cheap, high-resolution processor timer. There is
-no requirement to be able to relate this time to wall clock time.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">The ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, calls <tt class="docutils literal"><span class="pre">clock</span></tt>.</p>
+</div>
+<p>The MPS calls this function to make scheduling decisions (see
+<a class="reference internal" href="collection.html#topic-collection-schedule"><em>Scheduling of collections</em></a>), and to calibrate the time
+stamps on events in the <a class="reference internal" href="../glossary/t.html#term-telemetry-stream"><em class="xref std std-term">telemetry stream</em></a>. If your platform
+has a low-resolution <tt class="docutils literal"><span class="pre">clock()</span></tt>, and there are higher-resolution
+clocks readily available, then using one of those will improve MPS
+scheduling decisions and the quality of telemetry output. For
+instance, with <tt class="docutils literal"><span class="pre">getrusage()</span></tt>:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="cp">#include &lt;sys/resource.h&gt;</span>
+
+<span class="n">mps_clock_t</span> <span class="nf">mps_clock</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">rusage</span> <span class="n">s</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">res</span> <span class="o">=</span> <span class="n">getrusage</span><span class="p">(</span><span class="n">RUSAGE_SELF</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="cm">/* handle error */</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">mps_clock_t</span><span class="p">)</span><span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">+</span> <span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_usec</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="mps_clocks_per_sec">
 <a class="reference internal" href="interface.html#mps_clock_t" title="mps_clock_t">mps_clock_t</a> <tt class="descname">mps_clocks_per_sec</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_clocks_per_sec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the number of clock units (as returned by
-<a class="reference internal" href="#mps_clock" title="mps_clock"><tt class="xref c c-func docutils literal"><span class="pre">mps_clock()</span></tt></a>) per second.</p>
+<dd><p>Return the number of clock units per second, as returned by
+<a class="reference internal" href="#mps_clock" title="mps_clock"><tt class="xref c c-func docutils literal"><span class="pre">mps_clock()</span></tt></a>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">The ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, returns
@@ -387,6 +404,11 @@ function <tt class="docutils literal"><span class="pre">memset</span></tt>.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">In the ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, this is a simple
 wrapper around <tt class="docutils literal"><span class="pre">memset</span></tt>.</p>
+</div>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The MPS does not use this at present, but it may be required
+in future.</p>
 </div>
 </dd></dl>
 

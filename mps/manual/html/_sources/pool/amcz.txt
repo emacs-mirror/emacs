@@ -20,7 +20,10 @@ It is otherwise indentical to :ref:`pool-amc`.
 AMCZ is intended for "simple" objects like numbers, characters, and
 strings. Segregating these objects into one or more AMCZ pools avoids
 the cost of scanning them that would be incurred if they were
-interleaved in a pool with objects containing references.
+interleaved in a pool with objects containing references. It may also
+simplify the scanning of the objects that are left behind.
+
+See :ref:`guide-advanced-segregation` for an example.
 
 
 .. index::

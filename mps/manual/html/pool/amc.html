@@ -56,10 +56,10 @@
             
   <div class="section" id="amc-automatic-mostly-copying">
 <span id="pool-amc"></span><span id="index-0"></span><h1>4. AMC (Automatic Mostly-Copying)<a class="headerlink" href="#amc-automatic-mostly-copying" title="Permalink to this headline">¶</a></h1>
-<p><strong>AMC</strong> is a general-purpose <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a> <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a>. This is the most &#8220;advanced&#8221;
-pool class in the MPS, intended for the majority of objects in the
-client program. Use this pool class unless you need a particular
-feature that it doesn&#8217;t provide.</p>
+<p><strong>AMC</strong> is a general-purpose <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a> <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a>. This is the most mature pool
+class in the MPS, intended for the majority of objects in the client
+program. Use this pool class unless you need a particular feature that
+it doesn&#8217;t provide.</p>
 <p>&#8220;Mostly Copying&#8221; means that it uses <a class="reference internal" href="../glossary/c.html#term-copying-garbage-collection"><em class="xref std std-term">copying garbage collection</em></a>
 except for blocks that are <a class="reference internal" href="../glossary/p.html#term-pinning"><em class="xref std std-term">pinned</em></a> by
 <a class="reference internal" href="../glossary/a.html#term-ambiguous-reference"><em class="xref std std-term">ambiguous references</em></a>.</p>
@@ -69,9 +69,7 @@ referred to as &#8220;the generational hypothesis&#8221;. In particular, the
 following tendencies will be efficiently exploited by an AMC pool:</p>
 <ul class="simple">
 <li>most objects die young;</li>
-<li>objects that don&#8217;t die young will live a long time;</li>
-<li>most references are &#8220;backwards in time&#8221; (from younger objects to
-older objects).</li>
+<li>objects that don&#8217;t die young will live a long time.</li>
 </ul>
 <p>In the pool&#8217;s <a class="reference internal" href="../glossary/g.html#term-generation-chain"><em class="xref std std-term">generation chain</em></a>, specify the capacity and
 mortality of generations 0 to <em>n</em>−1. Survivors from generation <em>n</em>−1
@@ -156,8 +154,6 @@ calling <a class="reference internal" href="#mps_amc_apply" title="mps_amc_apply
 distinguish, if necessary, between the two. It may also be called
 on <a class="reference internal" href="../glossary/d.html#term-dead"><em class="xref std std-term">dead</em></a> objects that the collector has not recycled or has
 been unable to recycle.</p>
-<p>The function <tt class="docutils literal"><span class="pre">f</span></tt> may not allocate memory or access any
-automatically-managed memory except within <tt class="docutils literal"><span class="pre">object</span></tt>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">There is no equivalent function for other pool classes, but

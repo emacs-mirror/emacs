@@ -113,17 +113,22 @@ is no longer required by the program, then the blocks can be
 recycled for reuse. There are two approaches to recycling memory:
 either the programmer must decide when memory can be reused (known
 as <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manual memory management</em></a>); or the memory manager must
-be able to work it out (known as :term`automatic memory
-management`). These are both described in more detail below.</div></blockquote>
+be able to work it out (known as <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatic memory
+management</em></a>). These are both described in more detail below.</div></blockquote>
 <p>An application memory manager must usually work to several
 constraints, such as:</p>
 <p><strong>CPU overhead</strong></p>
 <blockquote>
 <div>The additional time taken by the memory manager while the program
 is running.</div></blockquote>
-<p><strong>Interactive pause times</strong></p>
+<p><strong>Pause times</strong></p>
 <blockquote>
-<div>How much delay an interactive user observes.</div></blockquote>
+<div><p>The time it takes for the memory manager to complete an operation
+and return control to the program.</p>
+<p>This affects the program&#8217;s ability to respond promptly to
+interactive events, and also to any asynchronous event such as a
+network connection.</p>
+</div></blockquote>
 <p><strong>Memory overhead</strong></p>
 <blockquote>
 <div>How much space is wasted for administration, rounding (known as
@@ -268,8 +273,8 @@ please have a look at the <a class="reference internal" href="../glossary/index.
 are available on many specific techniques, and can be found via our
 <a class="reference internal" href="bib.html#bibliography"><em>Bibliography</em></a>; particularly recommended are: <a class="reference internal" href="bib.html#wil94"><em>Wilson (1994)</em></a>, which is survey of garbage collection techniques;
 <a class="reference internal" href="bib.html#wil95"><em>Wilson et al. (1995)</em></a>, which is a survey of allocation
-techniques; and <a class="reference internal" href="bib.html#jones96"><em>Jones (1996)</em></a>, which is the first book
-in English dedicated to garbage collection.</p>
+techniques; and <a class="reference internal" href="bib.html#jones12"><em>Jones et al. (2012)</em></a>, which is a
+handbook covering all aspects of garbage collection.</p>
 </div>
 </div>
 

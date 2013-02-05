@@ -62,7 +62,9 @@
 <p>AMCZ is intended for &#8220;simple&#8221; objects like numbers, characters, and
 strings. Segregating these objects into one or more AMCZ pools avoids
 the cost of scanning them that would be incurred if they were
-interleaved in a pool with objects containing references.</p>
+interleaved in a pool with objects containing references. It may also
+simplify the scanning of the objects that are left behind.</p>
+<p>See <a class="reference internal" href="../guide/advanced.html#guide-advanced-segregation"><em>Segregation of objects</em></a> for an example.</p>
 <div class="section" id="amcz-properties">
 <span id="index-1"></span><h2>5.1. AMCZ properties<a class="headerlink" href="#amcz-properties" title="Permalink to this headline">¶</a></h2>
 <p>AMCZ is indentical to <a class="reference internal" href="amc.html#pool-amc"><em>AMC (Automatic Mostly-Copying)</em></a>, except that:</p>
