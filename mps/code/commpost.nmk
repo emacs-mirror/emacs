@@ -19,7 +19,7 @@ all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe
      arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe zcoll.exe zmess.exe \
-     eventcnv.exe eventtxt.exe eventsql.exe \
+     mpseventcnv.exe mpseventtxt.exe \
      mps.lib
 
 
@@ -37,7 +37,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      walkt0.exe locbwcss.exe locusss.exe \
      exposet0.exe zcoll.exe zmess.exe \
-     replay.exe replaysw.exe eventcnv.exe eventtxt.exe eventsql.exe \
+     replay.exe replaysw.exe mpseventcnv.exe mpseventtxt.exe mpseventsql.exe \
      mps.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
@@ -231,13 +231,13 @@ $(PFM)\$(VARIETY)\zmess.exe: $(PFM)\$(VARIETY)\zmess.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
+$(PFM)\$(VARIETY)\mpseventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\mps.lib
 
-$(PFM)\$(VARIETY)\eventtxt.exe: $(PFM)\$(VARIETY)\eventtxt.obj \
+$(PFM)\$(VARIETY)\mpseventtxt.exe: $(PFM)\$(VARIETY)\eventtxt.obj \
 	$(PFM)\$(VARIETY)\mps.lib
 
-$(PFM)\$(VARIETY)\eventsql.exe: $(PFM)\$(VARIETY)\eventsql.obj \
+$(PFM)\$(VARIETY)\mpseventsql.exe: $(PFM)\$(VARIETY)\eventsql.obj \
 	$(PFM)\$(VARIETY)\sqlite3.obj $(PFM)\$(VARIETY)\mps.lib
 
 $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
