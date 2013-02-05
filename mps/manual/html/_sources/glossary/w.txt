@@ -12,7 +12,8 @@ Memory Management Glossary: W
 
         A hash table which has :term:`weak references (1)` to its
         keys. If the key dies, the value for that key is automatically
-        deleted from the table too.
+        deleted from the table too. It can be used to store extra
+        information about objects without keeping them alive.
 
         .. similar:: :term:`doubly weak hash table`, :term:`weak-value hash table`.
 
@@ -22,7 +23,8 @@ Memory Management Glossary: W
 
         A hash table which has :term:`weak references (1)` to its
         value. If the value dies, any keys that refer to that value
-        are automatically deleted from the table too.
+        are automatically deleted from the table too. It can be used
+        to index a set of objects without keeping them alive.
 
         .. similar:: :term:`doubly weak hash table`, :term:`weak-key hash table`.
 

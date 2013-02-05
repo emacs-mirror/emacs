@@ -193,10 +193,10 @@ Memory Management Glossary: R
 
             The :term:`client program` is free to represent references
             as it chooses (for example, with :term:`tags <tagged
-            reference>`), provided that it is able to decode a
-            reference from its representation into the MPS interface
-            representation and encode a reference from the MPS into
-            its representation.
+            reference>`), provided that during :term:`scanning <scan>`
+            it is able to decode a reference from its representation
+            into the MPS interface representation and encode a
+            reference from the MPS into its representation.
 
     reference counting
 

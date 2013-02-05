@@ -86,7 +86,8 @@
 <dt id="term-weak-key-hash-table">weak-key hash table</dt>
 <dd><p class="first">A hash table which has <a class="reference internal" href="#term-weak-reference-1"><em class="xref std std-term">weak references<sup>(1)</sup></em></a> to its
 keys. If the key dies, the value for that key is automatically
-deleted from the table too.</p>
+deleted from the table too. It can be used to store extra
+information about objects without keeping them alive.</p>
 <div class="admonition-similar-term admonition">
 <p class="first admonition-title">Similar terms</p>
 <p class="last"><a class="reference internal" href="d.html#term-doubly-weak-hash-table"><em class="xref std std-term">doubly weak hash table</em></a>, <a class="reference internal" href="#term-weak-value-hash-table"><em class="xref std std-term">weak-value hash table</em></a>.</p>
@@ -99,7 +100,8 @@ deleted from the table too.</p>
 <dt id="term-weak-value-hash-table">weak-value hash table</dt>
 <dd><p class="first">A hash table which has <a class="reference internal" href="#term-weak-reference-1"><em class="xref std std-term">weak references<sup>(1)</sup></em></a> to its
 value. If the value dies, any keys that refer to that value
-are automatically deleted from the table too.</p>
+are automatically deleted from the table too. It can be used
+to index a set of objects without keeping them alive.</p>
 <div class="admonition-similar-term admonition">
 <p class="first admonition-title">Similar terms</p>
 <p class="last"><a class="reference internal" href="d.html#term-doubly-weak-hash-table"><em class="xref std std-term">doubly weak hash table</em></a>, <a class="reference internal" href="#term-weak-key-hash-table"><em class="xref std std-term">weak-key hash table</em></a>.</p>

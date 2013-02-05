@@ -290,9 +290,7 @@ structure that spans multiple regions that are never
 <em>foreign code</em> is external code (not part of the client
 program, or the MPS), which is not aware of and does not
 co-operate with the MPS. The client program must take care
-that foreign code is not passed the address of a block in
-a <a class="reference internal" href="m.html#term-moving-memory-manager"><em class="xref std std-term">moving</em></a> <a class="reference internal" href="p.html#term-pool"><em class="xref std std-term">pools</em></a>, or
-which contain references to blocks in moving pools.</p>
+when passing the address of a block in a <a class="reference internal" href="m.html#term-moving-memory-manager"><em class="xref std std-term">moving</em></a> <a class="reference internal" href="p.html#term-pool"><em class="xref std std-term">pool</em></a> to foreign code.</p>
 <p class="last">The <a class="reference internal" href="../pool/lo.html#pool-lo"><em>LO (Leaf Object)</em></a> <a class="reference internal" href="p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> is designed for this
 use case: blocks allocated from this pool do not move and
 are never protected, and so may be passed safely to
@@ -507,7 +505,9 @@ function, as distinct from a <a class="reference internal" href="o.html#term-obj
 programming language does not guarantee that function and
 object pointers are the same size, or that a pointer of one
 type can be cast to a pointer of the the other type without
-losing information.</p>
+losing information (but on every mainstream C implementation,
+including all those supported by the MPS, they are in fact the
+same).</p>
 <div class="admonition-opposite-term last admonition">
 <p class="first admonition-title">Opposite term</p>
 <p class="last"><a class="reference internal" href="o.html#term-object-pointer"><em class="xref std std-term">object pointer</em></a>.</p>

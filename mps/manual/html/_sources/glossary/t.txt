@@ -86,6 +86,8 @@ Memory Management Glossary: T
         and keeping the tag in the least significant bits of the
         address.
 
+        .. mps:specific:: See :ref:`topic-scanning-tag`.
+
     TB (1)
 
         .. see:: :term:`terabyte`.
