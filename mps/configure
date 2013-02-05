@@ -2922,7 +2922,7 @@ CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
 CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
-EXTRA_TARGETS="eventcnv eventtxt"
+EXTRA_TARGETS="mpseventcnv mpseventtxt"
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -3323,7 +3323,7 @@ done
 
 ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
 if test "x$ac_cv_header_sqlite3_h" = xyes; then :
-  EXTRA_TARGETS+=" eventsql"
+  EXTRA_TARGETS+=" mpseventsql"
 fi
 
 

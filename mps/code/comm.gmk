@@ -71,10 +71,10 @@ endif
 
 # EXTRA TARGETS
 #
-# Don't build eventsql by default (might not have sqlite3 installed),
-# but do build eventcnv and eventtxt.
+# Don't build mpseventsql by default (might not have sqlite3 installed),
+# but do build mpseventcnv and mpseventtxt.
 
-EXTRA_TARGETS ?= eventcnv eventtxt
+EXTRA_TARGETS ?= mpseventcnv mpseventtxt
 
 
 #
@@ -433,13 +433,13 @@ $(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
 $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
+$(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/eventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
+$(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
   $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/eventsql: $(PFM)/$(VARIETY)/eventsql.o \
+$(PFM)/$(VARIETY)/mpseventsql: $(PFM)/$(VARIETY)/eventsql.o \
   $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
@@ -542,7 +542,7 @@ $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
 	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
-$(PFM)/$(VARIETY)/eventsql:
+$(PFM)/$(VARIETY)/mpseventsql:
 	$(ECHO) "$(PFM): $@"
 	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
 
