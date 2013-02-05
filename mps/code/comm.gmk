@@ -11,6 +11,7 @@
 # PARAMETERS
 #
 # Assumes the following variables and definitions:
+# EXTRA_TARGETS     a list of extra targets to build
 # CFLAGSCOMPILER    a list of flags for all compilations
 # CFLAGSSTRICT      a list of flags for almost all compilations
 # CFLAGSLAX         a list of flags for compilations which can't be as
@@ -66,6 +67,15 @@ endif
 ifndef CFLAGSOPT
 error "comm.gmk: CFLAGSOPT not defined"
 endif
+
+
+# EXTRA TARGETS
+#
+# Don't build eventsql by default (might not have sqlite3 installed),
+# but do build eventcnv and eventtxt.
+
+EXTRA_TARGETS ?= eventcnv eventtxt
+
 
 #
 # %%PART: When adding a new part, add checks for the parameter with the
@@ -212,7 +222,7 @@ all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      finalcv finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
      walkt0 zcoll zmess \
-     eventcnv eventtxt eventsql \
+     $(EXTRA_TARGETS) \
      mps.a mpsplan.a
 
 
@@ -241,7 +251,7 @@ mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   walkt0 \
   exposet0 \
   zcoll zmess \
-  eventcnv eventtxt eventsql replay replaysw \
+  $(EXTRA_TARGETS) replay replaysw \
   mps.a mpsplan.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
