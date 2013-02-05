@@ -1036,7 +1036,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
             argv[skip_args] = fdStr;
 
-            execv (argv[0], argv);
+            execvp (argv[0], argv);
             fprintf (stderr, "emacs daemon: exec failed: %d\n", errno);
             exit (1);
           }
