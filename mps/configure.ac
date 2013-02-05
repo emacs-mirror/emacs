@@ -83,6 +83,11 @@ case $host in
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
 esac
 
+EXTRA_TARGETS="eventcnv"
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS+=" eventsql"])
+AC_LANG_POP([C++])
+
 AC_CHECK_PROGS([MAKE],[gnumake gmake make],[AC_MSG_ERROR([Unable to find a make program.])])
 if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
   AC_MSG_ERROR([MPS requires GNU make to build from configure, but see manual/build.txt])
@@ -92,6 +97,7 @@ AC_SUBST(MPS_TARGET_NAME)
 AC_SUBST(BUILD_TARGET)
 AC_SUBST(CLEAN_TARGET)
 AC_SUBST(INSTALL_TARGET)
+AC_SUBST(EXTRA_TARGETS)
 AC_SUBST(CFLAGS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(CPPFLAGS)

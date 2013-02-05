@@ -13,9 +13,10 @@
 			buildPhases = (
 			);
 			dependencies = (
-				2D07B9791636FCBD00DB751B /* PBXTargetDependency */,
 				3104AFF6156D37BC000A585A /* PBXTargetDependency */,
 				3114A6D5156E9839001E0AA3 /* PBXTargetDependency */,
+				2D07B9791636FCBD00DB751B /* PBXTargetDependency */,
+				22E16A8916C141020090AD9F /* PBXTargetDependency */,
 				3114A6B9156E9763001E0AA3 /* PBXTargetDependency */,
 				3114A6A7156E9739001E0AA3 /* PBXTargetDependency */,
 				3114A68D156E9686001E0AA3 /* PBXTargetDependency */,
@@ -201,6 +202,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		22E16A8816C141020090AD9F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D604B9B16514B1A003AAF46;
+			remoteInfo = eventtxt;
+		};
 		2D07B9781636FCBD00DB751B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
@@ -2184,7 +2192,7 @@
 		31EEABDA156AAE9E00714D05 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0460;
 			};
 			buildConfigurationList = 31EEABDD156AAE9E00714D05 /* Build configuration list for PBXProject "mps" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -2585,6 +2593,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		22E16A8916C141020090AD9F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2D604B9B16514B1A003AAF46 /* eventtxt */;
+			targetProxy = 22E16A8816C141020090AD9F /* PBXContainerItemProxy */;
+		};
 		2D07B9791636FCBD00DB751B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2D07B9701636FC9900DB751B /* eventsql */;
@@ -2988,6 +3001,7 @@
 		3104AFF3156D37A0000A585A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -2996,6 +3010,7 @@
 		3104AFF4156D37A0000A585A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -3284,9 +3299,10 @@
 		318387EB15DC30CC008E4EA0 /* WE */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = ansi;
 				GCC_OPTIMIZATION_LEVEL = 2;
@@ -3337,6 +3353,7 @@
 		318387EC15DC30CC008E4EA0 /* WE */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				COMBINE_HIDPI_IMAGES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -3649,9 +3666,10 @@
 		31EEABDF156AAE9E00714D05 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = ansi;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -3703,9 +3721,10 @@
 		31EEABE0156AAE9E00714D05 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = ansi;
 				GCC_OPTIMIZATION_LEVEL = 2;
