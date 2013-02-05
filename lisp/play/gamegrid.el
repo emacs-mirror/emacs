@@ -509,10 +509,11 @@ FILE is created there."
 	   (unless (file-exists-p
 		    (directory-file-name gamegrid-user-score-file-directory))
 	     (make-directory gamegrid-user-score-file-directory t))
-	   (let ((f (expand-file-name file gamegrid-user-score-file-directory)))
-		 (unless (file-exists-p f)
+	   (let ((f (expand-file-name file
+				      gamegrid-user-score-file-directory)))
+	     (unless (file-exists-p f)
 	       (write-region "" nil f nil 'silent nil 'excl))
-	       (gamegrid-add-score-with-update-game-score-1 file f score))))))
+	     (gamegrid-add-score-with-update-game-score-1 file f score))))))
 
 (defun gamegrid-add-score-with-update-game-score-1 (file target score)
   (let ((default-directory "/")
