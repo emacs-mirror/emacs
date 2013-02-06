@@ -1,5 +1,8 @@
 2013-02-06  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-hooks.el (vc-find-file-hook): Don't ask about following links
+	if we can't get user input.  (Bug#6567)
+
 	* startup.el (command-line): If simple.el is missing,
 	test and warn about for some possible causes.
 

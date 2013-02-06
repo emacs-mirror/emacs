@@ -866,6 +866,13 @@ current, and kill the buffer that visits the link."
 		 (message
 		  "Warning: symbolic link to %s-controlled source file" link-type))
 		((or (not (eq vc-follow-symlinks 'ask))
+		     ;; Assume we cannot ask, default to yes.
+		     noninteractive
+		     ;; Copied from server-start.  Seems like there should
+		     ;; be a better way to ask "can we get user input?"...
+		     (and (daemonp)
+			  (null (cdr (frame-list)))
+			  (eq (selected-frame) terminal-frame))
 		     ;; If we already visited this file by following
 		     ;; the link, don't ask again if we try to visit
 		     ;; it again.  GUD does that, and repeated questions
