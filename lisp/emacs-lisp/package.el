@@ -1182,7 +1182,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
   (require 'lisp-mnt)
   (let ((package-name (symbol-name package))
 	(built-in (assq package package--builtins))
-	desc pkg-dir reqs version installable)
+	desc pkg-dir reqs version installable archive)
     (prin1 package)
     (princ " is ")
     (cond
@@ -1196,6 +1196,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
      ;; Available packages are in `package-archive-contents'.
      ((setq desc (cdr (assq package package-archive-contents)))
       (setq version (package-version-join (package-desc-vers desc))
+	    archive (aref desc (- (length desc) 1))
 	    installable t)
       (if built-in
 	  (insert "a built-in package.\n\n")
@@ -1224,8 +1225,10 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 	  (installable
 	   (if built-in
 	       (insert (propertize "Built-in." 'font-lock-face 'font-lock-builtin-face)
-		       "  Alternate version available -- ")
-	     (insert "Available -- "))
+		       "  Alternate version available")
+	     (insert "Available"))
+	   (insert " from " archive)
+	   (insert " -- ")
 	   (let ((button-text (if (display-graphic-p) "Install" "[Install]"))
 		 (button-face (if (display-graphic-p)
 				  '(:box (:line-width 2 :color "dark grey")
