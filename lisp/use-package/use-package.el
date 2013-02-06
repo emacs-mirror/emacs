@@ -276,6 +276,12 @@
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-minimum-reported-time 0.01
+  "Minimal load time that will be reported"
+  :type 'number
+  :group 'use-package
+  )
+
 (defmacro with-elapsed-timer (text &rest forms)
   `(let ((now ,(if use-package-verbose
                    '(current-time))))
@@ -286,7 +292,7 @@
        ,(when use-package-verbose
           `(let ((elapsed
                   (float-time (time-subtract (current-time) now))))
-             (if (> elapsed 0.01)
+             (if (> elapsed use-package-minimum-reported-time)
                  (message "%s...done (%.3fs)" ,text elapsed)
                (message "%s...done" ,text)))))))
 
