@@ -1,3 +1,7 @@
+2013-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Equality Predicates): Mention memql.
+
 2013-02-03  Eric Ludlam  <zappo@gnu.org>
 
 	* doc/misc/ede.texi (Creating a project): Make ede-new doc less
