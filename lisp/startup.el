@@ -770,11 +770,20 @@ Amongst another things, it parses the command-line arguments."
 	 (locate-file "simple" load-path (get-load-suffixes)))
 	lisp-dir)
     ;; Don't abort if simple.el cannot be found, but print a warning.
+    ;; Although in most usage we are going to cryptically abort a moment
+    ;; later anyway, due to missing required bidi data files (eg bug#13430).
     (if (null simple-file-name)
-	(progn
-	  (princ "Warning: Could not find simple.el nor simple.elc"
-		 'external-debugging-output)
-	  (terpri 'external-debugging-output))
+	(let ((standard-output 'external-debugging-output)
+	      (lispdir (expand-file-name "../lisp" data-directory)))
+	  (princ "Warning: Could not find simple.el or simple.elc")
+	  (terpri)
+	  (when (getenv "EMACSLOADPATH")
+	    (princ "The EMACSLOADPATH environment variable is set, \
+please check its value")
+	    (terpri))
+	  (unless (file-readable-p lispdir)
+	    (princ (format "Lisp directory %s not readable?" lispdir))
+	    (terpri)))
       (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
       (setq load-history
 	    (mapcar (lambda (elt)
