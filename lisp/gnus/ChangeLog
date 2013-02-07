@@ -1089,7 +1089,7 @@
 	(nnimap-request-move-article): Delete the message from the correct IMAP
 	server.
 
-2012-02-19  Vida Gábor  <vidagabor@gmail.com>  (tiny change)
+2012-02-19  Gábor Vida  <vidagabor@gmail.com>  (tiny change)
 
 	* gnus-demon.el (gnus-demon-init): Don't multiply time twice.
 	Reported by Peter Münster.
@@ -1299,7 +1299,7 @@
 	* shr.el (shr-browse-url): Fix the name of the `browse-url-mail'
 	function call.
 
-2012-01-27  Vida Gábor  <vidagabor@gmail.com>  (tiny change)
+2012-01-27  Gábor Vida  <vidagabor@gmail.com>  (tiny change)
 
 	* gnus-demon.el (gnus-demon-run-callback, gnus-demon-init): Convert to
 	seconds, and make the repeat clause with HH:MM specs work as
