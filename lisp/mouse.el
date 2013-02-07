@@ -865,6 +865,8 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 
       ;; Find its binding.
       (let* ((fun (key-binding (vector (car event))))
+	     ;; FIXME This doesn't make sense, because
+	     ;; event-click-count always returns something >= 1.
 	     (do-multi-click (and (> (event-click-count event) 0)
 				  (functionp fun)
 				  (not (memq fun '(mouse-set-point
