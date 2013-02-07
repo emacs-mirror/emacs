@@ -1399,7 +1399,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef USG_SUBTTY_WORKS
 
 /* Version number of package */
-#define VERSION "24.2.92"
+#define VERSION "24.2.93"
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wchar_t'. */
