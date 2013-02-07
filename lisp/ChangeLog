@@ -1,3 +1,8 @@
+2013-02-07  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-variables): Specify `no-conversion' for
+	`save-buffer-coding-system'.
+
 2013-02-07  Alan Mackenzie  <acm@muc.de>
 
 	Fix bug in state cache mechanism.  Remove 'BOD "strategy".  Refactor.

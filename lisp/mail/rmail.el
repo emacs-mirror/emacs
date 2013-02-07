@@ -1507,6 +1507,8 @@ If so restore the actual mbox message collection."
   (setq file-precious-flag t)
   (make-local-variable 'desktop-save-buffer)
   (setq desktop-save-buffer t)
+  (make-local-variable 'save-buffer-coding-system)
+  (setq save-buffer-coding-system 'no-conversion)
   (setq next-error-move-function 'rmail-next-error-move))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
