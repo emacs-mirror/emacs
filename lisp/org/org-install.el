@@ -1,10 +1,12 @@
 ;;; org-install.el --- backward compatibility file for obsolete configuration
 ;;
 ;;; Code:
-(warn "The file org-install is obsolete.
-It is provided here so that (require 'org-install) does not
-trigger an error for users with obsolete Emacs configuration.
-You can safely remove (require 'org-install) from your config.")
+;;
+;; The file org-install is obsolete.
+;;
+;; It is provided here so that (require 'org-install) does not
+;; trigger an error for users with obsolete Emacs configuration.
+;; You can safely remove (require 'org-install) from your config."
 
 (provide 'org-install)
 

@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 7.9.3d (GNU Emacs 24.3)
+@set VERSION 7.9.3e (GNU Emacs 24.3)
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -903,17 +903,20 @@ $ git clone git://orgmode.org/org-mode.git
 $ make autoloads
 @end example
 
-Note that @code{make autoloads} is mandatory: it defines Org's version and
-Org's autoloaded functions, respectively in @file{org-version.el} and in
+Note that in this case, @code{make autoloads} is mandatory: it defines Org's
+version in @file{org-version.el} and Org's autoloads in
 @file{org-loaddefs.el}.
 
 Remember to add the correct load-path as described in the method above.
 
-You can also compile and install Org from this git repository: check
-@code{make help} to get the list of compilation/installation options.
+You can also compile with @code{make}, generate the documentation with
+@code{make doc}, create a local configuration with @code{make config} and
+install Org with @code{make install}.  Please run @code{make help} to get
+the list of compilation/installation options.
 
 For more detailed explanations on Org's build system, please check the Org
-Build System page on @uref{http://orgmode.org/worg/dev/org-build-system.html, Worg}.
+Build System page on @uref{http://orgmode.org/worg/dev/org-build-system.html,
+Worg}.
 
 @node Activation, Feedback, Installation, Introduction
 @section Activation
@@ -2444,7 +2447,7 @@ $1..$3        @r{first three fields in the current row}
 $P..$Q        @r{range, using column names (see under Advanced)}
 $<<<..$>>     @r{start in third column, continue to the one but last}
 @@2$1..@@4$3    @r{6 fields between these two fields (same as @code{A2..C4})}
-@@-1$-2..@@-1   @r{3 numbers from the column to the left, 2 up to current row}
+@@-1$-2..@@-1   @r{in the first row up, 3 fields from 2 columns on the left}
 @@I..II        @r{between first and second hline, short for @code{@@I..@@II}}
 @end example
 
@@ -3023,9 +3026,9 @@ functions.
 
 Org-Plot can produce 2D and 3D graphs of information stored in org tables
 using @file{Gnuplot} @uref{http://www.gnuplot.info/} and @file{gnuplot-mode}
-@uref{http://cars9.uchicago.edu/~ravel/software/gnuplot-mode.html}.  To see
-this in action, ensure that you have both Gnuplot and Gnuplot mode installed
-on your system, then call @code{org-plot/gnuplot} on the following table.
+@uref{http://xafs.org/BruceRavel/GnuplotMode}.  To see this in action, ensure
+that you have both Gnuplot and Gnuplot mode installed on your system, then
+call @code{org-plot/gnuplot} on the following table.
 
 @example
 @group
@@ -4486,7 +4489,7 @@ off a box while there are unchecked boxes above it.
 @orgcmd{C-c C-c,org-toggle-checkbox}
 Toggle checkbox status or (with prefix arg) checkbox presence at point.
 With a single prefix argument, add an empty checkbox or remove the current
-one@footnote{`C-u C-c C-c' on the @emph{first} item of a list with no checkbox
+one@footnote{@kbd{C-u C-c C-c} on the @emph{first} item of a list with no checkbox
 will add checkboxes to the rest of the list.}.  With a double prefix argument, set it to @samp{[-]}, which is
 considered to be an intermediate state.
 @orgcmd{C-c C-x C-b,org-toggle-checkbox}
@@ -15987,7 +15990,7 @@ Here is a @LaTeX{} example.  Let's say that you have this in your
 \end@{comment@}
 @end example
 
-Pressing `C-c C-c' on @code{a new house} and will insert the converted
+Pressing @kbd{C-c C-c} on @code{a new house} and will insert the converted
 @LaTeX{} list between the two marker lines.
 
 @node Dynamic blocks, Special agenda views, Tables in arbitrary syntax, Hacking

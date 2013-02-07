@@ -530,7 +530,7 @@ This is a list of four items:
    the project is considered to be not stuck.  If you specify \"*\" as
    a tag, any tag will mark the project unstuck.  Note that this is about
    the explicit presence of a tag somewhere in the subtree, inherited
-   tags to not count here.  If inherited tags make a project not stuck,
+   tags do not count here.  If inherited tags make a project not stuck,
    use \"-TAG\" in the tags part of the matcher under (1.) above.
 4. An arbitrary regular expression matching non-stuck projects.
 
@@ -3728,19 +3728,18 @@ A good way to set it is through options in `org-agenda-custom-commands'.")
 Also moves point to the end of the skipped region, so that search can
 continue from there."
   (let ((p (point-at-bol)) to)
-    (when (org-in-src-block-p t) (throw :skip t))
-    (and org-agenda-skip-archived-trees (not org-agenda-archives-mode)
-	 (get-text-property p :org-archived)
-	 (org-end-of-subtree t)
-	 (throw :skip t))
-    (and org-agenda-skip-comment-trees
-	 (get-text-property p :org-comment)
-	 (org-end-of-subtree t)
-	 (throw :skip t))
-    (if (equal (char-after p) ?#) (throw :skip t))
-    (when (setq to (or (org-agenda-skip-eval org-agenda-skip-function-global)
-		       (org-agenda-skip-eval org-agenda-skip-function)))
-      (goto-char to)
+    (when (or
+	   (save-excursion (goto-char p) (looking-at comment-start-skip))
+	   (and org-agenda-skip-archived-trees (not org-agenda-archives-mode)
+		(get-text-property p :org-archived)
+		(org-end-of-subtree t))
+	   (and org-agenda-skip-comment-trees
+		(get-text-property p :org-comment)
+		(org-end-of-subtree t))
+	   (and (setq to (or (org-agenda-skip-eval org-agenda-skip-function-global)
+			     (org-agenda-skip-eval org-agenda-skip-function)))
+		(goto-char to))
+	   (org-in-src-block-p t))
       (throw :skip t))))
 
 (defun org-agenda-skip-eval (form)
@@ -4479,7 +4478,8 @@ in `org-agenda-text-search-extra-files'."
 			      category-pos (get-text-property (point) 'org-category-position)
 			      inherited-tags
 			      (or (eq org-agenda-show-inherited-tags 'always)
-				  (memq 'todo org-agenda-show-inherited-tags)
+				  (and (listp org-agenda-show-inherited-tags)
+				       (memq 'todo org-agenda-show-inherited-tags))
 				  (and (eq org-agenda-show-inherited-tags t)
 				       (or (eq org-agenda-use-tag-inheritance t)
 					   (memq 'todo org-agenda-use-tag-inheritance))))
@@ -5406,9 +5406,6 @@ Do we have a reason to ignore this TODO entry because it has a time stamp?
 
 \(fn &optional END)" nil nil)
 
-(defconst org-agenda-no-heading-message
-  "No heading for this item in buffer or region.")
-
 (defun org-agenda-get-timestamps (&optional deadline-results)
   "Return the date stamp information for agenda display."
   (let* ((props (list 'face 'org-agenda-calendar-event
@@ -5488,7 +5485,7 @@ Do we have a reason to ignore this TODO entry because it has a time stamp?
 	      category-pos (get-text-property b0 'org-category-position))
 	(save-excursion
 	  (if (not (re-search-backward org-outline-regexp-bol nil t))
-	      (setq txt org-agenda-no-heading-message)
+	      (throw :skip nil)
 	    (goto-char (match-beginning 0))
 	    (if (and (eq t org-agenda-skip-timestamp-if-deadline-is-shown)
 		     (assoc (point) deadline-position-alist))
@@ -5724,7 +5721,7 @@ please use `org-class' instead."
 		  (and (looking-at ".*\n[ \t]*-[ \t]+\\([^-\n \t].*?\\)[ \t]*$")
 		       (match-string 1)))))
 	  (if (not (re-search-backward org-outline-regexp-bol nil t))
-	      (setq txt org-agenda-no-heading-message)
+	      (throw :skip nil)
 	    (goto-char (match-beginning 0))
 	    (setq hdmarker (org-agenda-new-marker)
 		  inherited-tags
@@ -5892,7 +5889,7 @@ See also the user option `org-agenda-clock-consistency-checks'."
 	 (d1 (calendar-absolute-from-gregorian date))  ; DATE bound by calendar
 	 d2 diff dfrac wdays pos pos1 category category-pos
 	 tags suppress-prewarning ee txt head face s todo-state
-	 show-all upcomingp donep timestr warntime)
+	 show-all upcomingp donep timestr warntime inherited-tags)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (setq suppress-prewarning nil)
@@ -5941,11 +5938,18 @@ See also the user option `org-agenda-clock-consistency-checks'."
 		      warntime (get-text-property (point) 'org-appt-warntime)
 		      category-pos (get-text-property (point) 'org-category-position))
 		(if (not (re-search-backward "^\\*+[ \t]+" nil t))
-		    (setq txt org-agenda-no-heading-message)
+		    (throw :skip nil)
 		  (goto-char (match-end 0))
 		  (setq pos1 (match-beginning 0))
-		  (setq tags (org-get-tags-at pos1 t))
-		  (setq head (buffer-substring-no-properties
+		  (setq inherited-tags
+			(or (eq org-agenda-show-inherited-tags 'always)
+			    (and (listp org-agenda-show-inherited-tags)
+				 (memq 'agenda org-agenda-show-inherited-tags))
+			    (and (eq org-agenda-show-inherited-tags t)
+				 (or (eq org-agenda-use-tag-inheritance t)
+				     (memq 'agenda org-agenda-use-tag-inheritance))))
+			tags (org-get-tags-at pos1 (not inherited-tags)))
+		  (setq head (buffer-substring
 			      (point)
 			      (progn (skip-chars-forward "^\r\n")
 				     (point))))
@@ -6059,7 +6063,7 @@ FRACTION is what fraction of the head-warning time has passed."
 	      (setq category (org-get-category)
 		    category-pos (get-text-property (point) 'org-category-position))
 	      (if (not (re-search-backward "^\\*+[ \t]+" nil t))
-		  (setq txt org-agenda-no-heading-message)
+		  (throw :skip nil)
 		(goto-char (match-end 0))
 		(setq pos1 (match-beginning 0))
 		(if habitp
@@ -6082,7 +6086,7 @@ FRACTION is what fraction of the head-warning time has passed."
 			       (or (eq org-agenda-use-tag-inheritance t)
 				   (memq 'agenda org-agenda-use-tag-inheritance))))
 		      tags (org-get-tags-at nil (not inherited-tags)))
-		(setq head (buffer-substring-no-properties
+		(setq head (buffer-substring
 			    (point)
 			    (progn (skip-chars-forward "^\r\n") (point))))
 		(if (string-match " \\([012]?[0-9]:[0-9][0-9]\\)" s)
@@ -6160,7 +6164,7 @@ FRACTION is what fraction of the head-warning time has passed."
 		(setq category (org-get-category)
 		      category-pos (get-text-property (point) 'org-category-position))
 		(if (not (re-search-backward org-outline-regexp-bol nil t))
-		    (setq txt org-agenda-no-heading-message)
+		    (throw :skip nil)
 		  (goto-char (match-beginning 0))
 		  (setq hdmarker (org-agenda-new-marker (point))
 			inherited-tags
@@ -6892,7 +6896,10 @@ Allowed types are 'agenda 'timeline 'todo 'tags 'search."
   (interactive)
   (if (and (eq org-indirect-buffer-display 'other-window)
 	   org-last-indirect-buffer)
-      (delete-window (get-buffer-window org-last-indirect-buffer)))
+      (let ((org-last-indirect-window
+	     (get-buffer-window org-last-indirect-buffer)))
+	(if org-last-indirect-window
+	    (delete-window org-last-indirect-window))))
   (if org-agenda-columns-active
       (org-columns-quit)
     (if org-agenda-sticky
@@ -8012,32 +8019,34 @@ It also looks at the text of the entry itself."
   (let* ((marker (or (org-get-at-bol 'org-hd-marker)
 		     (org-get-at-bol 'org-marker)))
 	 (buffer (and marker (marker-buffer marker)))
-	 (prefix (buffer-substring
-		  (point-at-bol) (point-at-eol)))
+	 (prefix (buffer-substring (point-at-bol) (point-at-eol)))
 	 (lkall (org-offer-links-in-entry buffer marker arg prefix))
-	 (lk (car lkall))
+	 (lk0 (car lkall))
+	 (lk (if (stringp lk0) (list lk0) lk0))
 	 (lkend (cdr lkall))
 	 trg)
     (cond
-     ((and buffer (stringp lk))
-      (with-current-buffer buffer
-	(setq trg (and (string-match org-bracket-link-regexp lk)
-		       (match-string 1 lk)))
-	(if (or (not trg) (string-match org-any-link-re trg))
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(goto-char marker)
-		(when (search-forward lk nil lkend)
-		  (goto-char (match-beginning 0))
-		  (org-open-at-point))))
-	  ;; This is an internal link, widen the buffer
-	  (switch-to-buffer-other-window buffer)
-	  (widen)
-	  (goto-char marker)
-	  (when (search-forward lk nil lkend)
-	    (goto-char (match-beginning 0))
-	    (org-open-at-point)))))
+     ((and buffer lk)
+      (mapcar (lambda(l)
+		(with-current-buffer buffer
+		  (setq trg (and (string-match org-bracket-link-regexp l)
+				 (match-string 1 l)))
+		  (if (or (not trg) (string-match org-any-link-re trg))
+		      (save-excursion
+			(save-restriction
+			  (widen)
+			  (goto-char marker)
+			  (when (search-forward l nil lkend)
+			    (goto-char (match-beginning 0))
+			    (org-open-at-point))))
+		    ;; This is an internal link, widen the buffer
+		    (switch-to-buffer-other-window buffer)
+		    (widen)
+		    (goto-char marker)
+		    (when (search-forward l nil lkend)
+		      (goto-char (match-beginning 0))
+		      (org-open-at-point)))))
+	      lk))
      ((or (org-in-regexp (concat "\\(" org-bracket-link-regexp "\\)"))
 	  (save-excursion
 	    (beginning-of-line 1)
