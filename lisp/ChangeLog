@@ -1,3 +1,8 @@
+2013-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc/vc-hooks.el (vc-find-file-hook): `buffer-file-truename' can
+	be nil.  Handle this.  (Bug#13636)
+
 2013-02-07  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-variables): Specify `no-conversion' for

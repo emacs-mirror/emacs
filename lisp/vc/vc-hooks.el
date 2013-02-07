@@ -858,8 +858,10 @@ current, and kill the buffer that visits the link."
 	  (set (make-local-variable 'backup-inhibited) t))
 	;; Let the backend setup any buffer-local things he needs.
 	(vc-call-backend backend 'find-file-hook))
-       ((let* ((truename (expand-file-name buffer-file-truename))
-	       (link-type (and (not (equal buffer-file-name truename))
+       ((let* ((truename (and buffer-file-truename
+			      (expand-file-name buffer-file-truename)))
+	       (link-type (and truename
+			       (not (equal buffer-file-name truename))
 			       (vc-backend truename))))
 	  (cond ((not link-type) nil)	;Nothing to do.
 		((eq vc-follow-symlinks nil)
