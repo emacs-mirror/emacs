@@ -1,3 +1,8 @@
+2013-02-07  Gábor Vida  <gabor.v.vida@ericsson.com>  (tiny change)
+
+	* auth-source.el (auth-source-format-prompt): Don't get confused by
+	any "\" in replacement text.  (Bug#13637)
+
 2012-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-summary-resend-message): Don't bug out on
