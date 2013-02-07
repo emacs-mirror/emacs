@@ -44,7 +44,7 @@
 (defvar org-babel-default-header-args:python '())
 
 (defvar org-babel-python-command "python"
-  "Name of command for executing Python code.")
+  "Name of the command for executing Python code.")
 
 (defvar org-babel-python-mode (if (featurep 'xemacs) 'python-mode 'python)
   "Preferred python mode for use in running python interactively.
@@ -143,7 +143,9 @@ then create.  Return the initialized session."
       (cond
        ((and (eq 'python org-babel-python-mode)
 	     (fboundp 'run-python)) ; python.el
-	(run-python))
+	(if (version< "24.1" emacs-version)
+	    (run-python org-babel-python-command)
+	  (run-python)))
        ((and (eq 'python-mode org-babel-python-mode)
 	     (fboundp 'py-shell)) ; python-mode.el
 	;; Make sure that py-which-bufname is initialized, as otherwise

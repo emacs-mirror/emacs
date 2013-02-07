@@ -12189,7 +12189,7 @@
 	* server.el (server--on-display-p): New function.
 	(server--on-display-p): Use it.
 
-2012-04-04  Gabor Vida  <vidagabor@gmail.com>  (tiny change)
+2012-04-04  Gábor Vida  <vidagabor@gmail.com>  (tiny change)
 
 	* ido.el (ido-wide-find-dirs-or-files): Use file-name-absolute-p
 	(bug#11145).

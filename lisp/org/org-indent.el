@@ -159,69 +159,68 @@ properties, after each buffer modification, on the modified zone.
 
 The process is synchronous.  Though, initial indentation of
 buffer, which can take a few seconds on large buffers, is done
-during idle time." nil " Ind" nil
-(cond
- ((org-bound-and-true-p org-inhibit-startup)
-  (setq org-indent-mode nil))
- ((and org-indent-mode (featurep 'xemacs))
-  (message "org-indent-mode does not work in XEmacs - refusing to turn it on")
-  (setq org-indent-mode nil))
- ((and org-indent-mode
-       (not (org-version-check "23.1.50" "Org Indent mode" :predicate)))
-  (message "org-indent-mode can crash Emacs 23.1 - refusing to turn it on!")
-  (ding)
-  (sit-for 1)
-  (setq org-indent-mode nil))
- (org-indent-mode
-  ;; mode was turned on.
-  (org-set-local 'indent-tabs-mode nil)
-  (or org-indent-strings (org-indent-initialize))
-  (org-set-local 'org-indent-initial-marker (copy-marker 1))
-  (when org-indent-mode-turns-off-org-adapt-indentation
-    (org-set-local 'org-adapt-indentation nil))
-  (when org-indent-mode-turns-on-hiding-stars
-    (org-set-local 'org-hide-leading-stars-before-indent-mode
-		   org-hide-leading-stars)
-    (org-set-local 'org-hide-leading-stars t))
-  (make-local-variable 'filter-buffer-substring-functions)
-  (add-hook 'filter-buffer-substring-functions
-	    (lambda (fun start end delete)
-	      (org-indent-remove-properties-from-string
-	       (funcall fun start end delete))))
-  (org-add-hook 'after-change-functions 'org-indent-refresh-maybe nil 'local)
-  (org-add-hook 'before-change-functions
-		'org-indent-notify-modified-headline nil 'local)
-  (and font-lock-mode (org-restart-font-lock))
-  (org-indent-remove-properties (point-min) (point-max))
-  ;; Submit current buffer to initialize agent.  If it's the first
-  ;; buffer submitted, also start the agent.  Current buffer is
-  ;; pushed in both cases to avoid a race condition.
-  (if org-indent-agentized-buffers
+during idle time."
+  nil " Ind" nil
+  (cond
+   ((and org-indent-mode (featurep 'xemacs))
+    (message "org-indent-mode does not work in XEmacs - refusing to turn it on")
+    (setq org-indent-mode nil))
+   ((and org-indent-mode
+	 (not (org-version-check "23.1.50" "Org Indent mode" :predicate)))
+    (message "org-indent-mode can crash Emacs 23.1 - refusing to turn it on!")
+    (ding)
+    (sit-for 1)
+    (setq org-indent-mode nil))
+   (org-indent-mode
+    ;; mode was turned on.
+    (org-set-local 'indent-tabs-mode nil)
+    (or org-indent-strings (org-indent-initialize))
+    (org-set-local 'org-indent-initial-marker (copy-marker 1))
+    (when org-indent-mode-turns-off-org-adapt-indentation
+      (org-set-local 'org-adapt-indentation nil))
+    (when org-indent-mode-turns-on-hiding-stars
+      (org-set-local 'org-hide-leading-stars-before-indent-mode
+		     org-hide-leading-stars)
+      (org-set-local 'org-hide-leading-stars t))
+    (make-local-variable 'filter-buffer-substring-functions)
+    (add-hook 'filter-buffer-substring-functions
+	      (lambda (fun start end delete)
+		(org-indent-remove-properties-from-string
+		 (funcall fun start end delete))))
+    (org-add-hook 'after-change-functions 'org-indent-refresh-maybe nil 'local)
+    (org-add-hook 'before-change-functions
+		  'org-indent-notify-modified-headline nil 'local)
+    (and font-lock-mode (org-restart-font-lock))
+    (org-indent-remove-properties (point-min) (point-max))
+    ;; Submit current buffer to initialize agent.  If it's the first
+    ;; buffer submitted, also start the agent.  Current buffer is
+    ;; pushed in both cases to avoid a race condition.
+    (if org-indent-agentized-buffers
+	(push (current-buffer) org-indent-agentized-buffers)
       (push (current-buffer) org-indent-agentized-buffers)
-    (push (current-buffer) org-indent-agentized-buffers)
-    (setq org-indent-agent-timer
-	  (run-with-idle-timer 0.2 t #'org-indent-initialize-agent))))
- (t
-  ;; mode was turned off (or we refused to turn it on)
-  (kill-local-variable 'org-adapt-indentation)
-  (setq org-indent-agentized-buffers
-	(delq (current-buffer) org-indent-agentized-buffers))
-  (when (markerp org-indent-initial-marker)
-    (set-marker org-indent-initial-marker nil))
-  (when (boundp 'org-hide-leading-stars-before-indent-mode)
-    (org-set-local 'org-hide-leading-stars
-		   org-hide-leading-stars-before-indent-mode))
-  (remove-hook 'filter-buffer-substring-functions
-	       (lambda (fun start end delete)
-		 (org-indent-remove-properties-from-string
-		  (funcall fun start end delete))))
-  (remove-hook 'after-change-functions 'org-indent-refresh-maybe 'local)
-  (remove-hook 'before-change-functions
-	       'org-indent-notify-modified-headline 'local)
-  (org-with-wide-buffer
-   (org-indent-remove-properties (point-min) (point-max)))
-  (and font-lock-mode (org-restart-font-lock))
-  (redraw-display))))
+      (setq org-indent-agent-timer
+	    (run-with-idle-timer 0.2 t #'org-indent-initialize-agent))))
+   (t
+    ;; mode was turned off (or we refused to turn it on)
+    (kill-local-variable 'org-adapt-indentation)
+    (setq org-indent-agentized-buffers
+	  (delq (current-buffer) org-indent-agentized-buffers))
+    (when (markerp org-indent-initial-marker)
+      (set-marker org-indent-initial-marker nil))
+    (when (boundp 'org-hide-leading-stars-before-indent-mode)
+      (org-set-local 'org-hide-leading-stars
+		     org-hide-leading-stars-before-indent-mode))
+    (remove-hook 'filter-buffer-substring-functions
+		 (lambda (fun start end delete)
+		   (org-indent-remove-properties-from-string
+		    (funcall fun start end delete))))
+    (remove-hook 'after-change-functions 'org-indent-refresh-maybe 'local)
+    (remove-hook 'before-change-functions
+		 'org-indent-notify-modified-headline 'local)
+    (org-with-wide-buffer
+     (org-indent-remove-properties (point-min) (point-max)))
+    (and font-lock-mode (org-restart-font-lock))
+    (redraw-display))))
 
 (defun org-indent-indent-buffer ()
   "Add indentation properties to the accessible part of the buffer."

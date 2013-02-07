@@ -1,3 +1,10 @@
+2013-02-07  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (References): Clarify an example.
+	(Installation): Fix instructions.
+	(Org-Plot): Fix link.
+	(Checkboxes, Radio lists): Fix typos.
+
 2013-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Equality Predicates): Mention memql.

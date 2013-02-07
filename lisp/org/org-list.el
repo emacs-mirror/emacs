@@ -1802,7 +1802,9 @@ This function modifies STRUCT."
 	;; There are boxes checked after an unchecked one: fix that.
 	(when (member "[X]" after-unchecked)
 	  (let ((index (- (length struct) (length after-unchecked))))
-	    (mapc (lambda (e) (org-list-set-checkbox e struct "[ ]"))
+	    (mapc (lambda (e)
+		    (when (org-list-get-checkbox e struct)
+		      (org-list-set-checkbox e struct "[ ]")))
 		  (nthcdr index all-items))
 	    ;; Verify once again the structure, without ORDERED.
 	    (org-list-struct-fix-box struct parents prevs nil)

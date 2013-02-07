@@ -678,7 +678,7 @@ This function relies `org-search-view' to locate results."
         (org-agenda-search-view-always-boolean t))
     (org-search-view nil
 		     (format "%s +{:%s%s:}"
-			     string org-bibtex-prefix
+			     string (or org-bibtex-prefix "")
 			     org-bibtex-type-property-name))))
 
 (provide 'org-bibtex)

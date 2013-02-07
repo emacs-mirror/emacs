@@ -93,7 +93,7 @@ Also, do not record undo information."
   `(set-buffer-modified-p
     (prog1 (buffer-modified-p)
       (let ((buffer-undo-list t)
-	    before-change-functions after-change-functions)
+	    (inhibit-modification-hooks t))
 	,@body))))
 (def-edebug-spec org-unmodified (body))
 

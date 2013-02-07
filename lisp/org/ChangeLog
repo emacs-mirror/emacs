@@ -1,3 +1,120 @@
+2013-02-07  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-get-deadlines)
+	(org-agenda-get-scheduled): Fix bug: use text properties for the
+	headline text since we rely on properties to get e.g. the effort.
+
+	* org-exp.el (org-export-normalize-links): Don't match links
+	within tags.
+
+	* org-html.el (org-export-html-preamble-format)
+	(org-export-html-postamble-format): Mention that
+	org-export-html-preamble/postamble need to be `t' in order for
+	these variables to have any effect.
+
+	* org-html.el (org-html-handle-links): When the link description
+	is an image and the attribute is "width", pass the attribute to
+	the <img ...> tag.
+
+	* org.el (org-mode): Always honor `org-startup-indented', even
+	when `org-inhibit-startup' is non-nil.
+
+	* org-indent.el (org-indent-mode): Don't check
+	`org-inhibit-startup'.
+
+	* org.el (org-fontify-meta-lines-and-blocks-1): Don't try to add
+	text properties outside of the buffer.
+
+	* org.el (org-agenda-inhibit-startup): Rename from
+	`org-agenda-inhibit-startup-visibility-cycling'.
+	(org-agenda-prepare-buffers): Bind `org-inhibit-startup' to
+	`org-agenda-inhibit-startup'.
+
+	* org.el (org-mode): Don't initialize `org-beamer-mode' when
+	`org-inhibit-startup' is non-nil.
+
+	* org-footnote.el (org-footnote-create-definition): Prevent
+	`electric-indent-mode' from inserting the definition at the wrong
+	place.
+
+	* org-agenda.el (org-agenda-no-heading-message): Delete.
+	(org-agenda-get-timestamps, org-agenda-get-progress)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled)
+	(org-agenda-get-blocks): Don't use
+	`org-agenda-no-heading-message', skip the entry.
+
+	* org.el (org-agenda-inhibit-startup-visibility-cycling): New
+	option.
+	(org-agenda-prepare-buffers): Use it to speed up the agenda
+	generation.
+
+	* org-agenda.el (org-agenda-skip): Fix bug by correctly skipping
+	commented scheduled/deadline lines.
+
+	* org-clock.el (org-clock-in): Fix bug when fetching the effort
+	value.
+
+	* ob-python.el (org-babel-python-command): Fix docstring.
+	(org-babel-python-initiate-session-by-key): Fix bug: `run-python'
+	from Emacs >24.1 requires a python command as an argument.
+
+	* org-element.el (org-element-at-point): Fix typo in docstring.
+
+	* org-agenda.el (org-agenda-get-deadlines): Fix bug: use
+	`org-agenda-show-inherited-tags'.
+
+	* org-agenda.el (org-agenda-skip): Correctly handle commented out
+	scheduled/deadline lines.  Refactor.
+
+	* org-install.el: Do not warn users.
+
+	* org.el (org-adaptive-fill-function): In message-mode, don't
+	lines in the message header, nor table lines in the body.
+	Correctly fill lines starting with `org-outline-regexp' in the
+	body.
+
+	* org-agenda.el (org-agenda-open-link): Fix bug with opening all
+	links.
+
+2013-02-07  Francesco Pizzolante  <fpz-djc/iPCCuDYQheJpep6IedvLeJWuRmrY@public.gmane.org>  (tiny change)
+
+	* org-clock.el (org-clock-sum): Protect with `org-unmodified'.
+
+	* org-macs.el (org-unmodified): Inhibit modification hooks.
+
+2013-02-07  John K. Luebs  <jkluebs@luebsphoto.com>  (tiny change)
+
+	* org.el (org-get-wdays): Handle matching a lead time specified in
+	hours.
+
+2013-02-07  Muchenxuan Tong  <demon386@gmail.com>  (tiny change)
+
+	* org-agenda.el (org-agenda-quit): Delete indirect buffer's window
+	only when it exists.
+
+2013-02-07  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-element.el (org-element-macro-parser): Fix error when last
+	argument ends with a protected comma.
+
+	* org-element.el (org-element-parse-buffer, org-element-map)
+	(org-element-at-point, org-element-context): Be more verbose in
+	docstrings.  Also fix typos.
+
+	* org-list.el (org-list-struct-fix-box): When a checkbox has to be
+	resetted because of a non-nil ORDERED property value, make sure it
+	had a checkbox already.
+
+2013-02-07  Tokuya Kameshima  <kametoku@gmail.com>  (tiny change)
+
+	* org-agenda.el (org-search-view): Fix checking
+	`org-agenda-show-inherited-tags'.
+
+2013-02-07  racin  <racin@free.fr>  (tiny change)
+
+	* org-bibtex.el (org-bibtex-search): Don't throw an error when
+	`org-bibtex-prefix' is nil.
+
 2013-01-13  Bastien Guerry  <bzg@gnu.org>
 
 	* org-compat.el (org-condition-case-unless-debug): Delete.
