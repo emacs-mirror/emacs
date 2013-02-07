@@ -110,12 +110,14 @@
   WinZip is known to create some subtle and hard to debug problems,
   such as converting files to DOS CR-LF format, not creating empty
   directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
-  site.
+  site.  For modern formats, such as .tar.xz, we suggest bsdtar.exe
+  from the libarchive package; its precompiled Windows binaries are
+  available from this site:
 
-  In addition to this file, you should also read INSTALL.BZR in the
-  parent directory, and make sure that you have a version of
-  "touch.exe" in your path, and that it will create files that do not
-  yet exist.
+    http://sourceforge.net/projects/ezwinports/files/
+
+  In addition to this file, if you build a development snapshot, you
+  should also read INSTALL.BZR in the parent directory.
 
 * Supported development environments
 

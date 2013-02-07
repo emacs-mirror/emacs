@@ -1,3 +1,22 @@
+2013-02-07  Alan Mackenzie  <acm@muc.de>
+
+	Fix bug in state cache mechanism.  Remove 'BOD "strategy".  Refactor.
+	* progmodes/cc-engine.el (c-get-fallback-scan-pos): Remove.
+	(c-parse-state-get-strategy): Don't return 'BOD any more.
+	(c-append-lower-brace-pair-to-state-cache):
+	Extra parameter HERE instead of narrowing.
+	Widen to top of buffer before searching backwards for a brace pair.
+	(c-state-push-any-brace-pair): Add HERE parameter to function call.
+	(c-append-to-state-cache): Extra parameter HERE in place of narrowing.
+	Narrow to parameter HERE, in place of being called narrowed.
+	(c-remove-stale-state-cache): Extra parameter HERE in place of
+	narrowing.  Check there's an open brace in the cache before
+	searching for its match.
+	(c-invalidate-state-cache-1): Add HERE parameter to function call.
+	(c-parse-state-1): Don't narrow here for 'forward strategy,
+	instead passing extra parameter HERE to several functions.
+	Remove 'BOD strategy.
+
 2013-02-06  Nicolas Richard <theonewiththeevillook@yahoo.fr>  (tiny change)
 
 	* emacs-lisp/package.el (describe-package-1): Tell what archive is

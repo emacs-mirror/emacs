@@ -450,9 +450,11 @@ ede-new}, or click on the @samp{Create Project} item in the
 
 The @command{ede-new} command prompts for the type of project you
 would like to create.  Each project type has its own benefits or
-language specific enhancements.  @ede{} supports four different
-project types: @samp{Make}, @samp{Automake}, @samp{direct Automake},
-and @samp{Simple}.
+language specific enhancements.  Not all projects that @ede{} supports
+also allow creating a new project.  Projects such as @code{emacs}
+or @code{linux} are designed to recognize existing projects only.
+Project types such as @samp{Make} and @samp{Automake} do support
+creating new project types with @command{ede-new}.
 
 @itemize
 @item
@@ -468,21 +470,6 @@ Unlike a @samp{Make} project, this project autogenerates a
 @file{Makefile.am} file.  @ede{} handles the Automake bootstrapping
 routines, which import and maintain a @file{configure.am} script and
 other required files.
-
-@item
-For the @samp{direct Automake} project type, @ede{} reads directly
-from the Automake files.
-
-You cannot create direct Automake projects with the @command{ede-new}
-command.  Instead, when you visit a project with existing Automake
-files, @ede{} automatically detects them.
-
-@item
-The @samp{Simple} project type provides light-weight constructs for
-identifying a project root and looking up files.  If you already have
-a non-@ede{} project infrastructure, you can use a @samp{Simple}
-project to provide other Emacs packages, such as Semantic, with some
-information about the project.  @xref{Simple projects}.
 @end itemize
 
 A subproject is merely a project in a subdirectory of another project.
@@ -795,24 +782,19 @@ able to find your SDK and compile your programs.
 @node Simple projects
 @section Simple Projects
 
-There is a wide array of Simple projects.  The root for simple
-projects is the class @code{ede-simple-project}.  This handles the
-infrastructure of storing a .ede file if needed.
+There is a wide array of simple projects.  In this case a simple
+project is one that detects, or is directed to identify a directory as
+belonging to a project, but doesn't provide many features of a typical
+@ede{} project.  Having the project however allows tools such as
+@semantic{} to find sources and perform project level completions.
 
-The class @code{ede-simple-project} is designed to be subclassed.
-Then key @ede{} methods can be overridden to provide a quick wrapper
-over any project.
-
-A second project type is @code{ede-cpp-root}.  This project type is
-designed to be created for a directory hierarchy full of C/C++ code.
-It can be configured with minimal lisp knowledge to do header file
-lookup for @semantic{}, improving code completion performance.
 
 @menu
 * ede-cpp-root::                This project marks the root of a C/C++ code project.
 * ede-java-root::               This project marks the root of a Java project.
 * ede-emacs::                   A project for working with Emacs.
 * ede-linux::                   A project for working with Linux kernels.
+* ede-generic-project::         A project type for wrapping build systems with EDE.
 * Custom Locate::               Customizing how to locate files in a simple project
 @end menu
 
@@ -1045,7 +1027,7 @@ tree, and enables EDE project mode for it.
 It pre-populates the C Preprocessor symbol map for correct parsing,
 and has an optimized include file identification function.
 
-@node ede-linux, Custom Locate, ede-emacs, Simple projects
+@node ede-linux, ede-generic-project, ede-emacs, Simple projects
 @subsection ede-linux
 
 The @code{ede-linux} project will automatically identify a Linux
@@ -1054,15 +1036,66 @@ Kernel source tree, and enable EDE project mode for it.
 It pre-populates the C Preprocessor symbol map for reasonable parsing,
 and has an optimized include file identification function.
 
-@node Custom Locate,  , ede-linux, Simple projects
+@node ede-generic-project, Custom Locate, ede-linux, Simple projects
+@subsection ede-generic-project
+
+The @code{ede-generic-project} is a project system that makes it easy
+to wrap up different kinds of build systems as an EDE project.
+Projects such as @ref{ede-emacs} require coding skills to create.
+Generic projects also require writing Emacs Lisp code, but the
+requirements are minimal.  You can then use
+@command{customize-project} to configure build commands, includes, and
+other options for that project.  The configuration is saved in
+@file{EDEConfig.el}.
+
+Generic projects are disabled by default because they have the
+potential to interfere with other projects.  To use the generic
+project sytem to start detecting projects, you need to enable it.
+
+@deffn Command ede-enable-generic-projects
+Enable generic project loaders.
+
+This enables generic loaders for projects that are detected using
+either a @file{Makefile}, @file{SConstruct}, or @file{CMakeLists}.
+
+You do not need to use this command if you create your own generic
+project type.
+@end deffn
+
+If you want to create your own generic project loader, you need to
+define your own project and target classes, and create an autoloader.
+The example for Makefiles looks like this:
+
+@example
+;;; MAKEFILE
+
+(defclass ede-generic-makefile-project (ede-generic-project)
+  ((buildfile :initform "Makefile")
+   )
+  "Generic Project for makefiles.")
+
+(defmethod ede-generic-setup-configuration ((proj ede-generic-makefile-project) config)
+  "Setup a configuration for Make."
+  (oset config build-command "make -k")
+  (oset config debug-command "gdb ")
+  )
+
+(ede-generic-new-autoloader "generic-makefile" "Make"
+			    "Makefile" 'ede-generic-makefile-project)
+@end example
+
+This example project will detect any directory with the file
+@file{Makefile} in it as belonging to this project type.
+Customization of the project will allow you to make build and debug
+commands more precise.
+
+@node Custom Locate,  , ede-generic-project, Simple projects
 @subsection Custom Locate
 
 The various simple project styles all have one major drawback, which
 is that the files in the project are not completely known to EDE@.
 When the EDE API is used to try and file files by some reference name
 in the project, then that could fail.
-
-@@TODO - Add ID Utils and CScope examples
 
 @ede{} can therefore use some external locate commands, such as the unix
 ``locate'' command, or ``GNU Global''.
@@ -1092,6 +1125,11 @@ You can add your own locate tool but subclassing from
 @code{ede-locate-base}.  The subclass should also implement two
 methods.  See the code in @file{ede-locate.el} for GNU Global as a
 simple example.
+
+@@TODO - Add ID Utils and CScope examples
+
+More on idutils and cscope is in the CEDET manual, and they each have
+their own section.
 
 @node Extending EDE, GNU Free Documentation License, Miscellaneous commands, Top
 @chapter Extending @ede{}

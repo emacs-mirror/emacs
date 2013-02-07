@@ -913,7 +913,7 @@ while \(:host t) would find all host entries."
       (when (and c v)
         (setq prompt (replace-regexp-in-string (format "%%%c" c)
                                                (format "%s" v)
-                                               prompt)))))
+                                               prompt nil t)))))
   prompt)
 
 (defun auth-source-ensure-strings (values)

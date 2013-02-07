@@ -817,8 +817,9 @@ not compare strings against vectors of integers.
 Also note that the Common Lisp functions @code{member} and @code{assoc}
 use @code{eql} to compare elements, whereas Emacs Lisp follows the
 MacLisp tradition and uses @code{equal} for these two functions.
-In Emacs, use @code{memq} (or @code{cl-member}) and @code{assq} (or
-@code{cl-assoc}) to get functions which use @code{eql} for comparisons.
+The functions @code{cl-member} and @code{cl-assoc} use @code{eql},
+as in Common Lisp.  The standard Emacs Lisp functions @code{memq} and
+@code{assq} use @code{eq}, and the standard @code{memql} uses @code{eql}.
 
 @node Control Structure
 @chapter Control Structure

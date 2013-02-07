@@ -1,3 +1,8 @@
+2013-02-07  Gábor Vida  <gabor.v.vida@ericsson.com>  (tiny change)
+
+	* auth-source.el (auth-source-format-prompt): Don't get confused by
+	any "\" in replacement text.  (Bug#13637)
+
 2013-01-30  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* gnus-int.el (gnus-backend-trace-elapsed): New variable.
