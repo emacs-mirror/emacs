@@ -1094,9 +1094,11 @@ where the invalid formatting was found."
     (save-restriction
       (widen)
       (goto-char (point-min))
-      ;; Check for `todos-categories' sexp as the first line
-      (let ((cats (prin1-to-string todos-categories)))
-	(unless (looking-at (regexp-quote cats))
+      (let ((cats (prin1-to-string todos-categories))
+	    (sexp (buffer-substring-no-properties (line-beginning-position)
+						  (line-end-position))))
+	;; Check for `todos-categories' sexp as the first line
+	(unless (string= sexp cats)
 	  (error "Invalid or missing todos-categories sexp")))
       (forward-line)
       (let ((legit (concat "\\(^" (regexp-quote todos-category-beg) "\\)"
@@ -1400,7 +1402,11 @@ the file."
 (defun todos-repair-categories-sexp ()
   "Repair corrupt Todos categories sexp.
 This should only be needed as a consequence of careless manual
-editing or a bug in todos.el."
+editing or a bug in todos.el.
+
+*Warning*: Calling this command restores the category order to
+the list element order in the Todos categories sexp, so any order
+changes made in Todos Categories mode will have to be made again."
   (interactive)
   (let ((todos-categories (todos-make-categories-list t)))
     (todos-update-categories-sexp)))
@@ -1531,13 +1537,13 @@ The final element is \"*\", indicating an unspecified month.")
     (todos-item-start)
     (looking-at todos-done-string-start)))
 
-;; (defun todos-done-item-section-p ()
-;;   "Return non-nil if point is in category's done items section."
-;;   (save-excursion
-;;     (or (re-search-backward (concat "^" (regexp-quote todos-category-done))
-;; 			    nil t)
-;; 	(progn (goto-char (point-min))
-;; 	       (looking-at todos-done-string-start)))))
+(defun todos-done-item-section-p ()
+  "Return non-nil if point is in category's done items section."
+  (save-excursion
+    (or (re-search-backward (concat "^" (regexp-quote todos-category-done))
+			    nil t)
+	(progn (goto-char (point-min))
+	       (looking-at todos-done-string-start)))))
 
 (defun todos-prefix-overlay ()
   "Return this item's prefix overlay."
@@ -2970,7 +2976,15 @@ which is the value of the user option
 		  ;; invocation of `todos-show', since there is then
 		  ;; no buffer visiting the current file.
 		  (find-file-noselect todos-current-todos-file 'nowarn)
-		todos-categories)))
+		(or todos-categories
+		    ;; In Todos Edit mode todos-categories is now nil
+		    ;; since it uses same buffer as Todos mode but
+		    ;; doesn't have the latter's local variables.
+		    (save-excursion
+		      (goto-char (point-min))
+		      (read (buffer-substring-no-properties
+			     (line-beginning-position)
+			     (line-end-position))))))))
     (set (make-local-variable 'todos-categories) cats)))
 
 (define-derived-mode todos-edit-mode text-mode "Todos-Ed"
@@ -2978,7 +2992,8 @@ which is the value of the user option
 
 \\{todos-edit-mode-map}"
   (todos-modes-set-1)
-  (todos-mode-external-set))
+  (todos-mode-external-set)
+  (setq buffer-read-only nil))
 
 (put 'todos-categories-mode 'mode-class 'special)
 
@@ -4602,19 +4617,14 @@ the priority is not given by HERE but by prompting."
 			   ;; file's first category.
 			   (set-buffer (find-buffer-visiting file)))
 	(setq todos-current-todos-file file)
-	;; If only done items are displayed in category, toggle to
-	;; todo items.
-	(save-excursion
-	  (when (and (goto-char (point-min))
-		     (looking-at todos-done-string-start))
-	    (todos-show-done-only)))
 	(unless todos-global-current-todos-file
 	  (setq todos-global-current-todos-file todos-current-todos-file))
 	;; These are not needed here, since they are called in
 	;; todos-set-item-priority.
 	;; (todos-category-number cat)
 	;; (todos-category-select)
-	(let (buffer-read-only)
+	(let ((buffer-read-only nil)
+	      done-only item-added)
 	  (setq new-item
 		;; Add date, time and diary marking as required.
 		(concat (if (not (and diary (not todos-include-in-diary)))
@@ -4633,23 +4643,36 @@ the priority is not given by HERE but by prompting."
 			  (concat "\n" (make-string todos-indent-to-here 32))
 			  new-item nil nil 1))
 	  (if here
-	      (progn
+	      (if (or (todos-done-item-p) (todos-done-item-section-p))
+		  (error "Cannot insert item in done items section")
 		(unless (and todos-mm (equal cat ocat))
 		  (todos-category-number cat)
 		  (todos-category-select)
 		  (goto-char (point-min)))
 		(todos-insert-with-overlays new-item))
 	    (unwind-protect
-		(todos-set-item-priority new-item cat t)
-	      ;; In (at least) two circumstances, point may be at eob
-	      ;; and eob at window-start, so that that the todo items
-	      ;; are out of view: (i) if item is inserted at end of
-	      ;; category, (ii) if only done items are shown, this is
-	      ;; (above) programmatically toggled to show todo items,
-	      ;; and user cancels before setting new item's
-	      ;; priority.  To make sure the todo items are displayed
-	      ;; in the window, force recentering.
-	      (recenter)))
+		(progn
+		  ;; If only done items are displayed in category,
+		  ;; toggle to todo items.
+		  (when (and (goto-char (point-min))
+			       (looking-at todos-done-string-start))
+		    (setq done-only t)
+		    (todos-show-done-only))
+		  (todos-set-item-priority new-item cat t)
+		  (setq item-added t))
+	      ;; If user cancels before setting priority, restore
+	      ;; display.
+	      (unless item-added
+		(and done-only (todos-show-done-only)))
+	      ;; If todos section is not visible when insertion
+	      ;; command is called (either because only done items
+	      ;; were shown or because category was not in current
+	      ;; buffer), then if item is inserted at end of category,
+	      ;; point is at eob and eob at window-start, so that that
+	      ;; higher priority todo items are out of view.  So we
+	      ;; recenter to make sure the todo items are displayed in
+	      ;; the window.
+	      (when item-added (recenter))))
 	  (todos-update-count 'todo 1)
 	  (if (or diary todos-include-in-diary) (todos-update-count 'diary 1))
 	  (todos-update-categories-sexp))))))
@@ -4790,29 +4813,77 @@ minibuffer; otherwise, edit it in Todos Edit mode."
 	  (todos-insert-with-overlays new)
 	  (move-to-column item-beg))))))
 
+;; (defun todos-edit-multiline-item ()
+;;   "Edit current Todo item in Todos Edit mode.
+;; Use of newlines invokes `todos-indent' to insure compliance with
+;; the format of Diary entries."
+;;   (interactive)
+;;   (todos-edit-multiline t))
+
+;; (defun todos-edit-multiline (&optional item) ;FIXME: not item editing command
+;;   ""					;FIXME
+;;   (interactive)
+;;   (let ((buffer-name todos-edit-buffer))
+;;     (set-window-buffer
+;;      (selected-window)
+;;      (set-buffer (make-indirect-buffer
+;; 		  (file-name-nondirectory todos-current-todos-file)
+;; 		  buffer-name)))
+;;     (if item
+;; 	(narrow-to-region (todos-item-start) (todos-item-end))
+;;       (widen))
+;;     (todos-edit-mode)
+;;     (message "%s" (substitute-command-keys
+;; 		   (concat "Type \\[todos-edit-quit] to check file format "
+;; 			   "validity and return to Todos mode.\n")))))
+
+;; (defun todos-edit-quit ()
+;;   "Return from Todos Edit mode to Todos mode.
+;; If the item contains hard line breaks, make sure the following
+;; lines are indented by `todos-indent-to-here' to conform to diary
+;; format.
+
+;; If the whole file was in Todos Edit mode, check before returning
+;; whether the file is still a valid Todos file and if so, also
+;; recalculate the Todos categories sexp, in case changes were made
+;; in the number or names of categories."
+;;   (interactive)
+;;   (if (eq (buffer-size) (- (point-max) (point-min)))
+;;       (when (todos-check-format)
+;; 	(todos-repair-categories-sexp))
+;;     ;; Ensure lines following hard newlines are indented.
+;;     (let ((item (replace-regexp-in-string
+;; 		 "\\(\n\\)[^[:blank:]]"
+;; 		 (concat "\n" (make-string todos-indent-to-here 32))
+;; 		 (buffer-string) nil nil 1)))
+;;       (delete-region (point-min) (point-max))
+;;       (insert item)))
+;;   (kill-buffer)
+;;   ;; In case next buffer is not the one holding todos-current-todos-file.
+;;   (todos-show))
+
 (defun todos-edit-multiline-item ()
   "Edit current Todo item in Todos Edit mode.
 Use of newlines invokes `todos-indent' to insure compliance with
 the format of Diary entries."
   (interactive)
-  (todos-edit-multiline t))
+  (narrow-to-region (todos-item-start) (todos-item-end))
+  (rename-buffer todos-edit-buffer)
+  (todos-edit-mode)
+  (message "%s" (substitute-command-keys
+		 (concat "Type \\[todos-edit-quit] "
+			 "to return to Todos mode.\n"))))
 
-(defun todos-edit-multiline (&optional item)
-  ""
+(defun todos-edit-multiline (&optional item) ;FIXME: not item editing command
+  ""					;FIXME
   (interactive)
-  (let ((buffer-name todos-edit-buffer))
-    (set-window-buffer
-     (selected-window)
-     (set-buffer (make-indirect-buffer
-		  (file-name-nondirectory todos-current-todos-file)
-		  buffer-name)))
-    (if item
-	(narrow-to-region (todos-item-start) (todos-item-end))
-      (widen))
-    (todos-edit-mode)
-    (message "%s" (substitute-command-keys
-		   (concat "Type \\[todos-edit-quit] to check file format "
-			   "validity and return to Todos mode.\n")))))
+  (widen)
+  (rename-buffer todos-edit-buffer)
+  (todos-edit-mode)
+  (remove-overlays) ; nil nil 'before-string)
+  (message "%s" (substitute-command-keys
+		 (concat "Type \\[todos-edit-quit] to check file format "
+			 "validity and return to Todos mode.\n"))))
 
 (defun todos-edit-quit ()
   "Return from Todos Edit mode to Todos mode.
@@ -4827,17 +4898,28 @@ in the number or names of categories."
   (interactive)
   (if (eq (buffer-size) (- (point-max) (point-min)))
       (when (todos-check-format)
-	(todos-repair-categories-sexp))
+	;; FIXME: separate out sexp check?
+	;; If manual editing makes e.g. item counts change, have to
+	;; call this to update todos-categories, but it restores
+	;; category order to list order.
+	;; (todos-repair-categories-sexp)
+	;; Compare (todos-make-categories-list t) with sexp and if
+	;; different ask (todos-update-categories-sexp) ?
+	(todos-mode)
+	(todos-category-select))
     ;; Ensure lines following hard newlines are indented.
-    (let ((item (replace-regexp-in-string
+    (let ((beg (save-excursion (todos-item-start)))
+	  (item (replace-regexp-in-string
 		 "\\(\n\\)[^[:blank:]]"
 		 (concat "\n" (make-string todos-indent-to-here 32))
 		 (buffer-string) nil nil 1)))
       (delete-region (point-min) (point-max))
-      (insert item)))
-  (kill-buffer)
-  ;; In case next buffer is not the one holding todos-current-todos-file.
-  (todos-show))
+      (insert item)
+      (todos-mode)
+      (todos-category-select)
+      (goto-char (point-min))
+      (goto-char beg)
+      (recenter))))
 
 (defun todos-edit-item-header-1 (what &optional inc)
   "Function underlying commands to edit item date/time header.
@@ -5565,6 +5647,7 @@ With prefix ARG delete an existing comment."
   (interactive "P")
   (when (todos-done-item-p)
     (let ((item (todos-item-string))
+	  (opoint (point))
 	  (end (save-excursion (todos-item-end)))
 	  comment buffer-read-only)
       (save-excursion
@@ -5579,6 +5662,8 @@ With prefix ARG delete an existing comment."
 					 (cons (match-string 1) 1)))
 	      (replace-match comment nil nil nil 1))
 	  (setq comment (read-string "Enter a comment: "))
+	  ;; If user moved point during editing, make sure it moves back.
+	  (goto-char opoint)
 	  (todos-item-end)
 	  (insert " [" todos-comment-string ": " comment "]"))))))
 

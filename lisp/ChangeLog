@@ -1,3 +1,30 @@
+2013-02-07  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Bug fixes and improvements to item editing
+	and insertion.
+	(todos-check-format): Compare current value of todos-categories
+	with actual categories sexp.
+	(todos-repair-categories-sexp): Add warning to doc string about
+	category order getting restored to list element order.
+	(todos-mode-external-set): When todos-categories is nil, as in
+	Todos Edit mode, set it by reading actual categories sexp.
+	(todos-edit-mode): Make buffer writeable.
+	(todos-done-item-section-p): New function.
+	(todos-insert-item): Use it as part of preventing insertion here
+	in done items section.  Move check for display of done items only
+	to just before setting new item's priority, and if cancelled after
+	toggling to todo items, restore display of done items.
+	(todos-edit-multiline-item): Don't base on todos-edit-multiline
+	but just narrow and change mode.
+	(todos-edit-multiline): Don't make indirect buffer but just widen
+	and change mode; also remove overlays.
+	(todos-edit-quit): Restore Todos mode and category display; when
+	quitting multiline item editing, ensure items above edited item
+	are visible in window if possible.
+	(todos-done-item-add-edit-or-delete-comment): If user moved point
+	during editing, make sure it moves back to edited item before
+	returning.
+
 2013-02-05  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-reset-done-separator-string):
