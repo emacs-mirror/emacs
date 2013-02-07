@@ -1,3 +1,11 @@
+2013-02-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coding.c (Fdefine_coding_system_internal): Use AREF where
+	argument is known to be a vector.
+	* fns.c (Flocale_info): Likewise for ASET.
+	* xselect.c (selection_data_to_lisp_data): Likewise for ASET.
+	* w32fns.c (w32_parse_hot_key): Likewise for ASIZE and AREF.
+
 2013-02-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (update_frame_tool_bar): Check for negative tool bar

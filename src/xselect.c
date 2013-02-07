@@ -1673,8 +1673,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
 	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (int)),
 					make_number (0));
 	  for (i = 0; i < size / sizeof (int); i++)
-	    Faset (v, make_number (i),
-                   x_atom_to_symbol (display, (Atom) idata[i]));
+	    ASET (v, i, x_atom_to_symbol (display, (Atom) idata[i]));
 	  return v;
 	}
     }
@@ -1699,7 +1698,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
       for (i = 0; i < size / 2; i++)
 	{
 	  short j = ((short *) data) [i];
-	  Faset (v, make_number (i), make_number (j));
+	  ASET (v, i, make_number (j));
 	}
       return v;
     }
@@ -1711,7 +1710,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
       for (i = 0; i < size / X_LONG_SIZE; i++)
 	{
 	  int j = ((int *) data) [i];
-	  Faset (v, make_number (i), INTEGER_TO_CONS (j));
+	  ASET (v, i, INTEGER_TO_CONS (j));
 	}
       return v;
     }

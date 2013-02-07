@@ -6484,12 +6484,12 @@ w32_parse_hot_key (Lisp_Object key)
 
   CHECK_VECTOR (key);
 
-  if (XFASTINT (Flength (key)) != 1)
+  if (ASIZE (key) != 1)
     return Qnil;
 
   GCPRO1 (key);
 
-  c = Faref (key, make_number (0));
+  c = AREF (key, 0);
 
   if (CONSP (c) && lucid_event_type_list_p (c))
     c = Fevent_convert_list (c);

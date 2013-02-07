@@ -2807,9 +2807,8 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	  val = build_unibyte_string (str);
 	  /* Fixme: Is this coding system necessarily right, even if
 	     it is consistent with CODESET?  If not, what to do?  */
-	  Faset (v, make_number (i),
-		 code_convert_string_norecord (val, Vlocale_coding_system,
-					       0));
+	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
+						    0));
 	}
       UNGCPRO;
       return v;
@@ -2829,8 +2828,8 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	{
 	  str = nl_langinfo (months[i]);
 	  val = build_unibyte_string (str);
-	  Faset (v, make_number (i),
-		 code_convert_string_norecord (val, Vlocale_coding_system, 0));
+	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
+						    0));
 	}
       UNGCPRO;
       return v;

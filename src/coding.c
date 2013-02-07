@@ -9783,7 +9783,7 @@ usage: (define-coding-system-internal ...)  */)
       CHECK_VECTOR (initial);
       for (i = 0; i < 4; i++)
 	{
-	  val = Faref (initial, make_number (i));
+	  val = AREF (initial, i);
 	  if (! NILP (val))
 	    {
 	      struct charset *charset;
