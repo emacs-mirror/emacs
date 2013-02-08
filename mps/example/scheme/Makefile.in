@@ -2,7 +2,8 @@
 #
 # $Id$
 
-CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@ -std=c99
+# -fno-inline-functions is a temporary workaround for job003359.
+CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@ -std=c99 -fno-inline-functions
 
 MPS = ../../code
 
