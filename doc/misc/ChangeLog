@@ -1,3 +1,7 @@
+2013-02-08  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell.texi: Fill most of the missing sections.
+
 2013-02-07  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (References): Clarify an example.

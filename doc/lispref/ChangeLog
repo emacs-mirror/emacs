@@ -1,3 +1,8 @@
+2013-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Active Keymaps, Searching Keymaps):
+	Remove confusing mention of "symbolic prefix".  (Bug#13643)
+
 2013-01-19  Glenn Morris  <rgm@gnu.org>
 
 	* macros.texi (Indenting Macros): Fix order of an indent

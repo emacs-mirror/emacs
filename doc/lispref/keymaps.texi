@@ -634,8 +634,8 @@ keymap, and the global keymap, in that order.  Emacs searches for each
 input key sequence in all these keymaps.  @xref{Searching Keymaps},
 for more details of this procedure.
 
-  When the key sequence starts with a mouse event (optionally preceded
-by a symbolic prefix), the active keymaps are determined based on the
+  When the key sequence starts with a mouse event,
+the active keymaps are determined based on the
 position in that event.  If the event happened on a string embedded
 with a @code{display}, @code{before-string}, or @code{after-string}
 property (@pxref{Special Properties}), the non-@code{nil} map
@@ -766,8 +766,7 @@ them:
 @var{find-in} and @var{find-in-any} are pseudo functions that search
 in one keymap and in an alist of keymaps, respectively.  (Searching a
 single keymap for a binding is called @dfn{key lookup}; see @ref{Key
-Lookup}.)  If the key sequence starts with a mouse event, or a
-symbolic prefix event followed by a mouse event, that event's position
+Lookup}.)  If the key sequence starts with a mouse event, that event's position
 is used instead of point and the current buffer.  Mouse events on an
 embedded string use non-@code{nil} text properties from that string
 instead of the buffer.  @var{temp-map} is a pseudo variable that

@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/eshell
 @settitle Eshell: The Emacs Shell
+@defindex cm
 @synindex vr fn
 @c %**end of header
 
@@ -42,7 +43,7 @@ modify this GNU manual.''
 @c -release-
 @end ignore
 @sp 3
-@center John Wiegley
+@center John Wiegley & Aidan Gauland
 @c -date-
 
 @page
@@ -75,16 +76,15 @@ handling the sort of tasks accomplished by those tools.
 * What is Eshell?::             A brief introduction to the Emacs Shell.
 * Command basics::              The basics of command usage.
 * Commands::
-* Arguments::
+* Expansion::
 * Input/Output::
-* Process control::
 * Extension modules::
-* Extras and Goodies::
 * Bugs and ideas::              Known problems, and future ideas.
 * GNU Free Documentation License:: The license for this documentation.
 * Concept Index::
 * Function and Variable Index::
 * Key Index::
+* Command Index::
 @end menu
 
 @node What is Eshell?
@@ -278,47 +278,194 @@ on your mind.  Have fun!
 @node Commands
 @chapter Commands
 
+In a command shell, everything is done by invoking commands.  This
+chapter covers command invocations in Eshell, including the command
+history and invoking commands in a script file.
+
 @menu
 * Invocation::
-* Completion::
+* Arguments::
+* Variables::
+* Built-ins::
 * Aliases::
 * History::
+* Completion::
+* for loop::
 * Scripts::
-* Built-ins::
 @end menu
-
-Essentially, a command shell is all about invoking commands---and
-everything that entails.  So understanding how Eshell invokes commands
-is the key to comprehending how it all works.
 
 @node Invocation
 @section Invocation
-
 Unlike regular system shells, Eshell never invokes kernel functions
 directly, such as @code{exec(3)}.  Instead, it uses the Lisp functions
 available in the Emacs Lisp library.  It does this by transforming the
-command you specify into a callable Lisp form.@footnote{To see the Lisp
-form that will be invoked, type: @samp{eshell-parse-command "echo
-hello"}}
+input line into a callable Lisp form.@footnote{To see the Lisp form that will be invoked, type: @samp{eshell-parse-command "echo hello"}}
 
-This transformation, from the string of text typed at the command
-prompt, to the ultimate invocation of either a Lisp function or external
-command, follows these steps:
+The command can be either an Elisp function or an external command.
+Eshell looks first for an @ref{Aliases, alias} with the same name as the
+command, then a @ref{Built-ins, built-in command} or a function with the
+same name; if there is no match, it then tries to execute it as an
+external command.
 
-@enumerate
-@item Parse the command string into separate arguments.
-@item
-@end enumerate
+The semicolon (@code{;}) can be used to separate multiple command
+invocations on a single line.  A command invocation followed by an
+ampersand (@code{&}) will be run in the background.  Eshell has no job
+control, so you can not suspend or background the current process, or
+bring a background process into the foreground.  That said, background
+processes invoked from Eshell can be controlled the same way as any
+other background process in Emacs.
 
-@node Completion
-@section Completion
+@node Arguments
+@section Arguments
+Command arguments are passed to the functions as either strings or
+numbers, depending on what the parser thinks they look like.  If you
+need to use a function that takes some other data type, you will need to
+call it in an Elisp expression (which can also be used with
+@ref{Expansion, expansions}).  As with other shells, you can
+escape special characters and spaces with the backslash (@code{\}) and
+the single (@code{''}) and double (@code{""}) quotes.
 
-@node Aliases
-@section Aliases
+@node Built-ins
 
-@node History
-@section History
+@section Built-in commands
+Several commands are built-in in Eshell.  In order to call the
+external variant of a built-in command @code{foo}, you could call
+@code{*foo}.  Usually, this should not be necessary.  You can check
+what will be applied by the @code{which} command:
 
+@example
+~ $ which ls
+eshell/ls is a compiled Lisp function in `em-ls.el'
+~ $ which *ls
+/bin/ls
+@end example
+
+If you want to discard a given built-in command, you could declare an
+alias, @ref{Aliases}.  Example:
+
+@example
+~ $ which sudo
+eshell/sudo is a compiled Lisp function in `em-unix.el'
+~ $ alias sudo '*sudo $*'
+~ $ which sudo
+sudo is an alias, defined as "*sudo $*"
+@end example
+
+@vindex eshell-prefer-lisp-functions
+If you would prefer to use the built-in commands instead of the external
+commands, set @var{eshell-prefer-lisp-functions} to @code{t}.
+
+Some of the built-in commands have different behaviour from their
+external counterparts, and some have no external counterpart.  Most of
+these will print a usage message when given the @code{--help} option.
+
+@table @code
+
+@item addpath
+@cmindex addpath
+Adds a given path or set of paths to the PATH environment variable, or,
+with no arguments, prints the current paths in this variable.
+
+@item alias
+@cmindex alias
+Define an alias (@pxref{Aliases}).  This does not add it to the aliases
+file.
+
+@item date
+@cmindex date
+Similar to, but slightly different from, the GNU Coreutils
+@command{date} command.
+
+@item define
+@cmindex define
+Define a varalias.  @xref{Variable Aliases, , , elisp}.
+
+@item diff
+@cmindex diff
+Use Emacs's internal @code{diff} (not to be confused with
+@code{ediff}).  @xref{Comparing Files, , , elisp}.
+
+@item grep
+@cmindex grep
+@itemx agrep
+@cmindex agrep
+@itemx egrep
+@cmindex egrep
+@itemx fgrep
+@cmindex fgrep
+@itemx glimpse
+@cmindex glimpse
+The @command{grep} commands are compatible with GNU @command{grep}, but
+use Emacs's internal @code{grep} instead.
+
+@item info
+@cmindex info
+Same as the external @command{info} command, but uses Emacs's internal
+Info reader.
+
+@item jobs
+@cmindex jobs
+List subprocesses of the Emacs process, if any, using the function
+@code{list-processes}.
+
+@item kill
+@cmindex kill
+Kill processes.  Takes a PID or a process object and an optional
+signal specifier.
+
+@item listify
+@cmindex listify
+Eshell version of @code{list}.  Allows you to create a list using Eshell
+syntax, rather than Elisp syntax.  For example, @samp{listify foo bar}
+and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
+
+@item locate
+@cmindex locate
+Alias to Emacs's @code{locate} function, which simply runs the external
+@command{locate} command and parses the results.  @xref{Dired and `find', , , elisp}.
+
+@item make
+@cmindex make
+Run @command{make} through @code{compile}.  @xref{Running Compilations under Emacs, , , elisp}.
+
+@item occur
+@cmindex occur
+Alias to Emacs's @code{occur}.  @xref{Other Search-and-Loop Commands, , , elisp}.
+
+@item printnl
+@cmindex printnl
+Print the arguments separated by newlines.
+
+@item cd
+@cmindex cd
+This command changes the current working directory.  Usually, it is
+invoked as @samp{cd foo} where @file{foo} is the new working directory.
+But @command{cd} knows about a few special arguments:
+
+When it receives no argument at all, it changes to the home directory.
+
+Giving the command @samp{cd -} changes back to the previous working
+directory (this is the same as @samp{cd $-}).
+
+The command @samp{cd =} shows the directory stack.  Each line is
+numbered.
+
+With @samp{cd =foo}, Eshell searches the directory stack for a directory
+matching the regular expression @samp{foo} and changes to that
+directory.
+
+With @samp{cd -42}, you can access the directory stack by number.
+
+@item su
+@cmindex su
+@itemx sudo
+@cmindex sudo
+Uses TRAMP's @command{su} or @command{sudo} method to run a command via
+@command{su} or @command{sudo}.
+
+@end table
+
+@section Built-in variables
 Eshell knows a few built-in variables:
 
 @table @code
@@ -348,62 +495,28 @@ Lisp functions, based on successful completion).
 
 @end table
 
-@node Scripts
-@section Scripts
+@node Variables
+@section Variables
+Since Eshell is just an Emacs REPL@footnote{Read-Eval-Print Loop}, it
+does not have its own scope, and simply stores variables the same you
+would in an Elisp program.  Eshell provides a command version of
+@code{setq} for convenience.
 
+@node Aliases
+@section Aliases
 
-@node Built-ins
-@section Built-in commands
+Aliases are commands that expand to a longer input line.  For example,
+@command{ll} is a common alias for @code{ls -l}, and would be defined
+with the command invocation @samp{alias ll ls -l}; with this defined,
+running @samp{ll foo} in Eshell will actually run @samp{ls -l foo}.
+Aliases defined (or deleted) by the @command{alias} command are
+automatically written to the file named by @var{eshell-aliases-file},
+which you can also edit directly (although you will have to manually
+reload it).
 
-Several commands are built-in in Eshell.  In order to call the
-external variant of a built-in command @code{foo}, you could call
-@code{*foo}.  Usually, this should not be necessary.  You can check
-what will be applied by the @code{which} command:
-
-@example
-~ $ which ls
-eshell/ls is a compiled Lisp function in `em-ls.el'
-~ $ which *ls
-/bin/ls
-@end example
-
-If you want to discard a given built-in command, you could declare an
-alias, @ref{Aliases}.  Eample:
-
-@example
-~ $ which sudo
-eshell/sudo is a compiled Lisp function in `em-unix.el'
-~ $ alias sudo '*sudo $*'
-~ $ which sudo
-sudo is an alias, defined as "*sudo $*"
-@end example
-
-Some of the built-in commands have a special behavior in Eshell:
-
-@table @code
-
-@item cd
-@findex cd
-This command changes the current working directory.  Usually, it is
-invoked as @samp{cd foo} where @file{foo} is the new working
-directory.  But @code{cd} knows about a few special arguments:
-
-When it receives no argument at all, it changes to the home directory.
-
-Giving the command @samp{cd -} changes back to the previous working
-directory (this is the same as @samp{cd $-}).
-
-The command @samp{cd =} shows the directory stack.  Each line is
-numbered.
-
-With @samp{cd =foo}, Eshell searches the directory stack for a
-directory matching the regular expression @samp{foo} and changes to
-that directory.
-
-With @samp{cd -42}, you can access the directory stack by number.
-
-@item history
-@findex history
+@node History
+@section History
+@cmindex history
 The @samp{history} command shows all commands kept in the history ring
 as numbered list.  If the history ring contains
 @code{eshell-history-size} commands, those numbers change after every
@@ -419,70 +532,226 @@ of the history ring.
 argument of the last command beginning with @code{foo} is accessible
 by @code{!foo:n}.
 
-@item su
-@findex su
-@itemx sudo
-@findex sudo
-@code{su} and @code{sudo} work as expected: they apply the following
-commands (@code{su}), or the command being an argument (@code{sudo})
-under the permissions of somebody else.
+The history ring is loaded from a file at the start of every session,
+and written back to the file at the end of every session.  The file path
+is specified in @var{eshell-history-file-name}.  Unlike other shells,
+such as Bash, Eshell can not be configured to keep a history ring of a
+different size than that of the history file.
 
-This does not work only on
-the local host, but even on a remote one, when
-@code{default-directory} is a remote file name.  The necessary
-proxy configuration of Tramp is performed
-@ifinfo
-automatically, @ref{Multi-hops, , , tramp}.
-@end ifinfo
-@ifnotinfo
-automatically.
-@end ifnotinfo
-Example:
+Since the default buffer navigation and searching key-bindings are
+still present in the Eshell buffer, the commands for history
+navigation and searching are bound to different keys:
+
+@table @kbd
+@item M-r
+@itemx M-s
+History I-search.
+
+@item M-p
+@itemx M-n
+Previous and next history line.  If there is anything on the input
+line when you run these commands, they will instead jump to the
+precious or next line that begins with that string.
+@end table
+
+@node Completion
+@section Completion
+Eshell uses the pcomplete package for programmable completion, similar
+to that of other command shells.  Argument completion differs depending
+on the preceding command: for example, possible completions for
+@command{rmdir} are only directories, while @command{rm} completions can
+be directories @emph{and} files.  Eshell provides predefined completions
+for the built-in functions and some common external commands, and you
+can define your own for any command.
+
+Eshell completion also works for lisp forms and glob patterns. If the
+point is on a lisp form, then @key{TAB} will behave similarly to completion
+in @code{elisp-mode} and @code{lisp-interaction-mode}.  For glob
+patterns, If there are few enough possible completions of the patterns,
+they will be cycled when @key{TAB} is pressed, otherwise it will be removed
+from the input line and the possible completions will be listed.
+
+If you want to see the entire list of possible completions when it's
+below the cycling threshold, press @kbd{M-?}.
+
+@subsection pcomplete
+Pcomplete, short for programmable completion, is the completion
+library originally written for Eshell, but usable for command
+completion@footnote{Command completion as opposed to code completion,
+which is a beyond the scope of pcomplete.}  in other modes.
+
+Completions are defined as functions (with @code{defun}) named
+@code{pcomplete/COMMAND}, where @code{COMMAND} is the name of the
+command for which this function provides completions; you can also name
+the function @code{pcomplete/MAJOR-MODE/COMMAND} to define completions
+for a specific major mode.
+
+@node for loop
+@section @code{for} loop
+Because Eshell commands can not (easily) be combined with lisp forms,
+Eshell provides a command-oriented @command{for}-loop for convenience.
+The syntax is as follows:
 
 @example
-~ $ cd /ssh:otherhost:/etc
-/ssh:user@@otherhost:/etc $ sudo find-file shadow
+@code{for VAR in TOKENS @{ command invocation(s) @}}
 @end example
+
+where @samp{TOKENS} is a space-separated sequence of values of
+@var{VAR} for each iteration.  This can even be the output of a
+command if @samp{TOKENS} is replaced with @samp{@{ command invocation @}}.
+
+@node Scripts
+@section Scripts
+@cmindex source
+@fnindex eshell-source-file
+You can run Eshell scripts much like scripts for other shells; the main
+difference is that since Eshell is not a system command, you have to run
+it from within Emacs.  An Eshell script is simply a file containing a
+sequence of commands, as with almost any other shell script.  Scripts
+are invoked from Eshell with @command{source}, or from anywhere in Emacs
+with @code{eshell-source-file}.
+
+@cmindex .
+If you wish to load a script into your @emph{current} environment,
+rather than in a subshell, use the @code{.} command.
+
+@node Expansion
+@chapter Expansion
+Expansion in a command shell is somewhat like macro expansion in macro
+parsers (such as @command{cpp} and @command{m4}), but in a command
+shell, they are less often used for constants, and usually for using
+variables and string manipulation.@footnote{Eshell has no
+string-manipulation expansions because the Elisp library already
+provides many functions for this.}  For example, @code{$var} on a line
+expands to the value of the variable @code{var} when the line is
+executed.  Expansions are usually passed as arguments, but may also be
+used as commands.@footnote{e.g. Entering just @samp{$var} at the prompt
+is equivalent to entering the value of @code{var} at the prompt.}
+
+@menu
+* Dollars Expansion::
+* Globbing::
+@end menu
+
+@node Dollars Expansion
+@section Dollars Expansion
+Eshell has different @code{$} expansion syntax from other shells.  There
+are some similarities, but don't let these lull you into a false sense
+of familiarity.
+
+@table @code
+
+@item $var
+Expands to the value bound to @code{var}.  This is the main way to use
+variables in command invocations.
+
+@item $#var
+Expands to the length of the value bound to @code{var}.  Raises an error
+if the value is not a sequence (@pxref{Sequences Arrays and Vectors, Sequences, , elisp}).
+
+@item $(lisp)
+Expands to the result of evaluating the S-expression @code{(lisp)}.  On
+its own, this is identical to just @code{(lisp)}, but with the @code{$},
+it can be used in a string, such as @samp{/some/path/$(lisp).txt}.
+
+@item $@{command@}
+Returns the output of @command{command}, which can be any valid Eshell
+command invocation, and may even contain expansions.
+
+@item $var[i]
+Expands to the @code{i}th element of the value bound to @code{var}.  If
+the value is a string, it will be split at whitespace to make it a list.
+Again, raises an error if the value is not a sequence.
+
+@item $var[: i]
+As above, but now splitting occurs at the colon character.
+
+@item $var[: i j]
+As above, but instead of returning just a string, it now returns a list
+of two strings.  If the result is being interpolated into a larger
+string, this list will be flattened into one big string, with each
+element separated by a space.
+
+@item $var["\\\\" i]
+Separate on backslash characters.  Actually, the first argument -- if it
+doesn't have the form of a number, or a plain variable name -- can be
+any regular expression.  So to split on numbers, use @samp{$var["[0-9]+" 10 20]}.
+
+@item $var[hello]
+Calls @code{assoc} on @code{var} with @code{"hello"}, expecting it to be
+an alist (@pxref{Association List Type, Association Lists, , elisp}).
+
+@item $#var[hello]
+Returns the length of the cdr of the element of @code{var} who car is equal
+to @code{"hello"}.
 
 @end table
 
-
-@node Arguments
-@chapter Arguments
-
-@menu
-* The Parser::
-* Variables::
-* Substitution::
-* Globbing::
-* Predicates::
-@end menu
-
-@node The Parser
-@section The Parser
-
-@node Variables
-@section Variables
-
-@node Substitution
-@section Substitution
-
 @node Globbing
 @section Globbing
-
-@node Predicates
-@section Predicates
-
+Eshell's globbing syntax is very similar to that of Zsh.  Users coming
+from Bash can still use Bash-style globbing, as there are no
+incompatibilities.  Most globbing is pattern-based expansion, but there
+is also predicate-based expansion.  See @ref{Filename Generation, , , zsh}
+for full syntax.  To customize the syntax and behaviour of globbing in
+Eshell see the Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+groups ``eshell-glob'' and ``eshell-pred''.
 
 @node Input/Output
 @chapter Input/Output
+Since Eshell does not communicate with a terminal like most command
+shells, IO is a little different.  If you try to run programs from
+within Eshell that are not line-oriented, such as programs that use
+ncurses, you will just get garbage output, since the Eshell buffer is
+not a terminal emulator.  Eshell solves this problem by running
+specified commands in Emacs's terminal emulator; to let Eshell know
+which commands need to be run in a terminal, add them to the list
+@var{eshell-visual-commands}.
 
-@node Process control
-@chapter Process control
+Redirection is mostly the same in Eshell as it is in other command
+shells.  The output redirection operators @code{>} and @code{>>} as well
+as pipes are supported, but there is not yet any support for input
+redirection.  Output can also be redirected to Elisp functions, using
+virtual devices.
 
+@var{eshell-virtual-targets} is a list of mappings of virtual device
+names to functions.  Eshell comes with two virtual devices:
+@file{/dev/kill}, which sends the text to the kill ring, and
+@file{/dev/clip}, which sends text to the clipboard.
+
+You can, of course, define your own virtual targets.  They are defined
+by adding a list of the form @code{("/dev/name" function mode)} to
+@var{eshell-virtual-targets}.  The first element is the device name;
+@code{function} may be either a lambda or a function name.  If
+@code{mode} is nil, then the function is the output function; if it is
+non-nil, then the function is passed the redirection mode as a
+symbol--@code{overwrite}, @code{append}, or @code{insert}--and the
+function is expected to return the output function.
+
+The output function is called once on each line of output until
+@code{nil} is passed, indicating end of output.
 
 @node Extension modules
 @chapter Extension modules
+Eshell provides a facility for defining extension modules so that they
+can be disabled and enabled without having to unload and reload them,
+and to provide a common parent Customize group for the
+modules.@footnote{ERC provides a similar module facility.}  An Eshell
+module is defined the same as any other library but one requirement: the
+module must define a Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+group using @code{eshell-defgroup} (in place of @code{defgroup}) with
+@code{eshell-module} as the parent group.@footnote{If the module has
+no user-customizable options, then there is no need to define it as an
+Eshell module.}  You also need to load the following as shown:
+
+@example
+(eval-when-compile
+  (require 'cl)
+  (require 'esh-mode)
+  (require 'eshell))
+
+(require 'esh-util)
+@end example
 
 @menu
 * Writing a module::
@@ -491,7 +760,6 @@ Example:
 * Key rebinding::
 * Smart scrolling::
 * Terminal emulation::
-* Built-in UNIX commands::
 @end menu
 
 @node Writing a module
@@ -512,13 +780,6 @@ Example:
 @node Terminal emulation
 @section Terminal emulation
 
-@node Built-in UNIX commands
-@section Built-in UNIX commands
-
-
-@node Extras and Goodies
-@chapter Extras and Goodies
-
 @node Bugs and ideas
 @chapter Bugs and ideas
 @cindex reporting bugs and ideas
@@ -527,6 +788,8 @@ Example:
 @cindex email to the author
 @cindex FAQ
 @cindex problems, list of common
+@cindex known bugs
+@cindex bugs, known
 
 If you find a bug or misfeature, don't hesitate to let me know!  Send
 email to @email{johnw@@gnu.org}.  Feature requests should also be sent
@@ -537,16 +800,7 @@ If you have ideas for improvements, or if you have written some
 extensions to this package, I would like to hear from you.  I hope you
 find this package useful!
 
-@menu
-* Known problems::
-@end menu
-
-@node Known problems
-@section Known problems
-@cindex known bugs
-@cindex bugs, known
-
-Below is complete list of known problems with Eshell version 2.4.2,
+Below is a complete list of known problems with Eshell version 2.4.2,
 which is the version included with Emacs 22.
 
 @table @asis
@@ -554,7 +808,7 @@ which is the version included with Emacs 22.
 
 @item Differentiate between aliases and functions
 
-Allow for a bash-compatible syntax, such as:
+Allow for a Bash-compatible syntax, such as:
 
 @example
 alias arg=blah
@@ -838,7 +1092,7 @@ them; @code{min} would display the smallest figure, etc.
 It would provide syntax, abbrev, highlighting and indenting support like
 @code{emacs-lisp-mode} and @code{shell-mode}.
 
-@item In the history mechanism, finish the @command{bash}-style support
+@item In the history mechanism, finish the Bash-style support
 
 This means @samp{!n}, @samp{!#}, @samp{!:%}, and @samp{!:1-} as separate
 from @samp{!:1*}.
@@ -1007,6 +1261,11 @@ Since it keeps the cursor up where the command was invoked.
 @unnumbered Function and Variable Index
 
 @printindex fn
+
+@node Command Index
+@unnumbered Command Index
+
+@printindex cm
 
 @node Key Index
 @unnumbered Key Index
