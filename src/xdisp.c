@@ -21816,11 +21816,15 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 }
 
 
-/* Count up to COUNT lines starting from START_BYTE.
-   But don't go beyond LIMIT_BYTE.
-   Return the number of lines thus found (always nonnegative).
+/* Count up to COUNT lines starting from START_BYTE.  COUNT negative
+   means count lines back from START_BYTE.  But don't go beyond
+   LIMIT_BYTE.  Return the number of lines thus found (always
+   nonnegative).
 
-   Set *BYTE_POS_PTR to 1 if we found COUNT lines, 0 if we hit LIMIT.  */
+   Set *BYTE_POS_PTR to the byte position where we stopped.  This is
+   either the position COUNT lines after/before START_BYTE, if we
+   found COUNT lines, or LIMIT_BYTE if we hit the limit before finding
+   COUNT lines.  */
 
 static ptrdiff_t
 display_count_lines (ptrdiff_t start_byte,
