@@ -328,6 +328,7 @@ instead."
 (defvar numeric-uid-gid)
 (defvar reverse-list)
 (defvar show-all)
+(defvar show-almost-all)
 (defvar show-recursive)
 (defvar show-size)
 (defvar sort-method)
@@ -337,13 +338,15 @@ instead."
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."
   (funcall flush-func -1)
-  ;; process the command arguments, and begin listing files
+  ;; Process the command arguments, and begin listing files.
   (eshell-eval-using-options
    "ls" (if eshell-ls-initial-args
 	    (list eshell-ls-initial-args args)
 	  args)
    `((?a "all" nil show-all
-	 "show all files in directory")
+	 "do not ignore entries starting with .")
+     (?A "almost-all" nil show-almost-all
+	 "do not list implied . and ..")
      (?c nil by-ctime sort-method
 	 "sort by last status change time")
      (?d "directory" nil dir-literal
@@ -558,7 +561,17 @@ relative to that directory."
 				     ;; later when we are going to
 				     ;; display user and group names.
 				     (if numeric-uid-gid 'integer 'string))))
-	  (when (and (not show-all) eshell-ls-exclude-regexp)
+          (when (and show-almost-all
+                     (not show-all))
+            (setq entries
+                  (remove-if
+                   (lambda (entry)
+                     (let ((filename (caar entry)))
+                       (or (string= filename ".")
+                           (string= filename ".."))))
+                   entries)))
+	  (when (and (not show-all)
+                     eshell-ls-exclude-regexp)
 	    (while (and entries (string-match eshell-ls-exclude-regexp
 					      (caar entries)))
 	      (setq entries (cdr entries)))

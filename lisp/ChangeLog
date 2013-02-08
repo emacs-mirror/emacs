@@ -1,3 +1,10 @@
+2013-02-08  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell/esh-proc.el (eshell/kill): Rewrite.
+
+	* eshell/em-ls.el (show-almost-all): Declare.
+	(eshell-do-ls): Add support for -A argument.
+
 2013-02-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* icomplete.el (icomplete-forward-completions)
