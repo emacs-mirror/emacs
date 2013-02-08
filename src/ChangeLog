@@ -1,3 +1,22 @@
+2013-02-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (make_uninit_vector): New function.
+	* alloc.c (Fvector, Fmake_byte_code):
+	* ccl.c (Fregister_ccl_program):
+	* charset.c (Fdefine_charset_internal, define_charset_internal):
+	* coding.c (make_subsidiaries, Fdefine_coding_system_internal):
+	* composite.c (syms_of_composite):
+	* font.c (Fquery_font, Ffont_info, syms_of_font):
+	* fontset.c (FONT_DEF_NEW, Fset_fontset_font):
+	* ftfont.c (ftfont_shape_by_flt):
+	* indent.c (recompute_width_table):
+	* nsselect.m (clean_local_selection_data):
+	* syntax.c (init_syntax_once):
+	* w32unsubscribe.c (uniscribe_shape):
+	* window.c (Fcurrent_window_configuration):
+	* xfaces.c (Fx_family_fonts):
+	* xselect.c (selection_data_to_lisp_data): Use it.
+
 2013-02-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* coding.c (Fdefine_coding_system_internal): Use AREF where

@@ -1958,7 +1958,7 @@ syms_of_composite (void)
   }
 
   staticpro (&gstring_work_headers);
-  gstring_work_headers = Fmake_vector (make_number (8), Qnil);
+  gstring_work_headers = make_uninit_vector (8);
   for (i = 0; i < 8; i++)
     ASET (gstring_work_headers, i, Fmake_vector (make_number (i + 2), Qnil));
   staticpro (&gstring_work);

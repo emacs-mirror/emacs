@@ -435,8 +435,8 @@ uniscribe_shape (Lisp_Object lgstring)
 			 are zero.  */
 		      || (!attributes[j].fClusterStart && items[i].a.fRTL))
 		    {
-		      Lisp_Object vec;
-		      vec = Fmake_vector (make_number (3), Qnil);
+		      Lisp_Object vec = make_uninit_vector (3);
+
 		      if (items[i].a.fRTL)
 			{
 			  /* Empirically, it looks like Uniscribe

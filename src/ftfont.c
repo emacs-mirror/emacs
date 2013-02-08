@@ -2555,9 +2555,8 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       LGLYPH_SET_DESCENT (lglyph, g->descent >> 6);
       if (g->adjusted)
 	{
-	  Lisp_Object vec;
+	  Lisp_Object vec = make_uninit_vector (3);
 
-	  vec = Fmake_vector (make_number (3), Qnil);
 	  ASET (vec, 0, make_number (g->xoff >> 6));
 	  ASET (vec, 1, make_number (g->yoff >> 6));
 	  ASET (vec, 2, make_number (g->xadv >> 6));

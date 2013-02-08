@@ -2228,9 +2228,8 @@ Return index number of the registered CCL program.  */)
     Vccl_program_table = larger_vector (Vccl_program_table, 1, -1);
 
   {
-    Lisp_Object elt;
+    Lisp_Object elt = make_uninit_vector (4);
 
-    elt = Fmake_vector (make_number (4), Qnil);
     ASET (elt, 0, name);
     ASET (elt, 1, ccl_prog);
     ASET (elt, 2, resolved);

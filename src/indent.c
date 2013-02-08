@@ -138,7 +138,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   struct Lisp_Vector *widthtab;
 
   if (!VECTORP (BVAR (buf, width_table)))
-    bset_width_table (buf, Fmake_vector (make_number (256), make_number (0)));
+    bset_width_table (buf, make_uninit_vector (256));
   widthtab = XVECTOR (BVAR (buf, width_table));
   eassert (widthtab->header.size == 256);
 

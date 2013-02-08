@@ -1670,8 +1670,8 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
 	return x_atom_to_symbol (display, (Atom) idata[0]);
       else
 	{
-	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (int)),
-					make_number (0));
+	  Lisp_Object v = make_uninit_vector (size / sizeof (int));
+
 	  for (i = 0; i < size / sizeof (int); i++)
 	    ASET (v, i, x_atom_to_symbol (display, (Atom) idata[i]));
 	  return v;
@@ -1693,8 +1693,8 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
   else if (format == 16)
     {
       ptrdiff_t i;
-      Lisp_Object v;
-      v = Fmake_vector (make_number (size / 2), make_number (0));
+      Lisp_Object v = make_uninit_vector (size / 2);
+
       for (i = 0; i < size / 2; i++)
 	{
 	  short j = ((short *) data) [i];
@@ -1705,8 +1705,8 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
   else
     {
       ptrdiff_t i;
-      Lisp_Object v = Fmake_vector (make_number (size / X_LONG_SIZE),
-				    make_number (0));
+      Lisp_Object v = make_uninit_vector (size / X_LONG_SIZE);
+
       for (i = 0; i < size / X_LONG_SIZE; i++)
 	{
 	  int j = ((int *) data) [i];

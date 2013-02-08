@@ -3105,13 +3105,10 @@ Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  register Lisp_Object len, val;
   ptrdiff_t i;
-  register struct Lisp_Vector *p;
+  register Lisp_Object val = make_uninit_vector (nargs);
+  register struct Lisp_Vector *p = XVECTOR (val);
 
-  XSETFASTINT (len, nargs);
-  val = Fmake_vector (len, Qnil);
-  p = XVECTOR (val);
   for (i = 0; i < nargs; i++)
     p->contents[i] = args[i];
   return val;
@@ -3149,9 +3146,9 @@ stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  register Lisp_Object len, val;
   ptrdiff_t i;
-  register struct Lisp_Vector *p;
+  register Lisp_Object val = make_uninit_vector (nargs);
+  register struct Lisp_Vector *p = XVECTOR (val);
 
   /* We used to purecopy everything here, if purify-flag was set.  This worked
      OK for Emacs-23, but with Emacs-24's lexical binding code, it can be
@@ -3161,10 +3158,6 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
      just wasteful and other times plainly wrong (e.g. those free vars may want
      to be setcar'd).  */
 
-  XSETFASTINT (len, nargs);
-  val = Fmake_vector (len, Qnil);
-
-  p = XVECTOR (val);
   for (i = 0; i < nargs; i++)
     p->contents[i] = args[i];
   make_byte_code (p);

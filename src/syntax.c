@@ -3389,8 +3389,8 @@ init_syntax_once (void)
   Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   /* Create objects which can be shared among syntax tables.  */
-  Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
-  for (i = 0; i < ASIZE (Vsyntax_code_object); i++)
+  Vsyntax_code_object = make_uninit_vector (Smax);
+  for (i = 0; i < Smax; i++)
     ASET (Vsyntax_code_object, i, Fcons (make_number (i), Qnil));
 
   /* Now we are ready to set up this property, so we can

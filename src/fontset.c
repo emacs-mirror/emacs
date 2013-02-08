@@ -271,7 +271,8 @@ set_fontset_fallback (Lisp_Object fontset, Lisp_Object fallback)
 /* Macros for FONT-DEF and RFONT-DEF of fontset.  */
 #define FONT_DEF_NEW(font_def, font_spec, encoding, repertory)	\
   do {								\
-    (font_def) = Fmake_vector (make_number (3), (font_spec));	\
+    (font_def) = make_uninit_vector (3);			\
+    ASET ((font_def), 0, font_spec);				\
     ASET ((font_def), 1, encoding);				\
     ASET ((font_def), 2, repertory);				\
   } while (0)
@@ -1591,7 +1592,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
     {
       Lisp_Object arg;
 
-      arg = Fmake_vector (make_number (5), Qnil);
+      arg = make_uninit_vector (5);
       ASET (arg, 0, fontset);
       ASET (arg, 1, font_def);
       ASET (arg, 2, add);

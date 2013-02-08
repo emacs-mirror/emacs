@@ -1053,7 +1053,7 @@ usage: (define-charset-internal ...)  */)
       CHECK_NATNUM (parent_max_code);
       parent_code_offset = Fnth (make_number (3), val);
       CHECK_NUMBER (parent_code_offset);
-      val = Fmake_vector (make_number (4), Qnil);
+      val = make_uninit_vector (4);
       ASET (val, 0, make_number (parent_charset->id));
       ASET (val, 1, parent_min_code);
       ASET (val, 2, parent_max_code);
@@ -1259,7 +1259,7 @@ define_charset_internal (Lisp_Object name,
 
   args[charset_arg_name] = name;
   args[charset_arg_dimension] = make_number (dimension);
-  val = Fmake_vector (make_number (8), make_number (0));
+  val = make_uninit_vector (8);
   for (i = 0; i < 8; i++)
     ASET (val, i, make_number (code_space[i]));
   args[charset_arg_code_space] = val;
