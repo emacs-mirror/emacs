@@ -26,9 +26,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'eshell))
+(eval-when-compile (require 'eshell))
+(require 'cl-lib)
 (require 'esh-util)
 (require 'esh-opt)
 
@@ -564,11 +563,9 @@ relative to that directory."
           (when (and show-almost-all
                      (not show-all))
             (setq entries
-                  (remove-if
+                  (cl-remove-if
                    (lambda (entry)
-                     (let ((filename (caar entry)))
-                       (or (string= filename ".")
-                           (string= filename ".."))))
+                     (member (caar entry) '("." "..")))
                    entries)))
 	  (when (and (not show-all)
                      eshell-ls-exclude-regexp)
