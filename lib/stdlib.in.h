@@ -767,6 +767,22 @@ _GL_WARN_ON_USE (rpmatch, "rpmatch is unportable - "
 # endif
 #endif
 
+#if @GNULIB_SECURE_GETENV@
+/* Look up NAME in the environment, returning 0 in insecure situations.  */
+# if !@HAVE_SECURE_GETENV@
+_GL_FUNCDECL_SYS (secure_getenv, char *,
+                  (char const *name) _GL_ARG_NONNULL ((1)));
+# endif
+_GL_CXXALIAS_SYS (secure_getenv, int, (char const *name));
+_GL_CXXALIASWARN (secure_getenv);
+#elif defined GNULIB_POSIXCHECK
+# undef secure_getenv
+# if HAVE_RAW_DECL_SECURE_GETENV
+_GL_WARN_ON_USE (secure_getenv, "secure_getenv is unportable - "
+                 "use gnulib module secure_getenv for portability");
+# endif
+#endif
+
 #if @GNULIB_SETENV@
 /* Set NAME to VALUE in the environment.
    If REPLACE is nonzero, overwrite an existing value.  */

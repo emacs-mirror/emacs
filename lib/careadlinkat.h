@@ -52,15 +52,12 @@ char *careadlinkat (int fd, char const *filename,
                     ssize_t (*preadlinkat) (int, char const *,
                                             char *, size_t));
 
-/* Suitable value for careadlinkat's FD argument,
-   when doing a plain readlink:
-   Pass FD = AT_FDCWD.  */
+/* Suitable value for careadlinkat's FD argument.  */
 #if HAVE_READLINKAT
 /* AT_FDCWD is declared in <fcntl.h>.  */
 #else
 /* Define AT_FDCWD independently, so that the careadlinkat module does
-   not depend on the fcntl-h module.  The value does not matter, since
-   careadlinkatcwd ignores it, but we might as well use the same value
+   not depend on the fcntl-h module.  We might as well use the same value
    as fcntl-h.  */
 # ifndef AT_FDCWD
 #  define AT_FDCWD (-3041965)

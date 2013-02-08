@@ -1,3 +1,14 @@
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-02-08 careadlinkat: stop exporting careadlinkatcwd
+	The MS-Windows port can remove careadlinkatcwd at its convenience.
+	2013-02-08 extensions: port better to HP-UX
+	2013-02-06 extensions: port better to MINIX 3, HP-UX, autoheader 2.62
+	2013-02-06 unistd: avoid namespace pollution on non-glibc systems
+	2013-02-04 secure_getenv: new module [module not used by Emacs]
+	2013-01-30 sys_time: port to Solaris 2.6
+
 2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).

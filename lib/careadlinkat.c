@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
+#include <unistd.h>
 
 /* Define this independently so that stdint.h is not a prerequisite.  */
 #ifndef SIZE_MAX

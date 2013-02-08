@@ -110,6 +110,7 @@
 /* Get getopt(), optarg, optind, opterr, optopt.
    But avoid namespace pollution on glibc systems.  */
 #if @GNULIB_UNISTD_H_GETOPT@ && !defined __GLIBC__ && !defined _GL_SYSTEM_GETOPT
+# define __need_getopt
 # include <getopt.h>
 #endif
 
