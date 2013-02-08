@@ -167,8 +167,9 @@ Second entry becomes the first and can be selected with
   (interactive)
   (let* ((comps (completion-all-sorted-completions))
 	 (last (last comps)))
-    (setcdr last (cons (car comps) (cdr last)))
-    (completion--cache-all-sorted-completions (cdr comps))))
+    (when comps
+      (setcdr last (cons (car comps) (cdr last)))
+      (completion--cache-all-sorted-completions (cdr comps)))))
 
 (defun icomplete-backward-completions ()
   "Step backward completions by one entry.
@@ -178,7 +179,7 @@ Last entry becomes the first and can be selected with
   (let* ((comps (completion-all-sorted-completions))
 	 (last-but-one (last comps 2))
 	 (last (cdr last-but-one)))
-    (when last
+    (when (consp last)		      ; At least two elements in comps
       (setcdr last-but-one (cdr last))
       (push (car last) comps)
       (completion--cache-all-sorted-completions comps))))
