@@ -4867,12 +4867,14 @@ minibuffer; otherwise, edit it in Todos Edit mode."
 Use of newlines invokes `todos-indent' to insure compliance with
 the format of Diary entries."
   (interactive)
-  (narrow-to-region (todos-item-start) (todos-item-end))
-  (rename-buffer todos-edit-buffer)
-  (todos-edit-mode)
-  (message "%s" (substitute-command-keys
-		 (concat "Type \\[todos-edit-quit] "
-			 "to return to Todos mode.\n"))))
+  (let ((buf todos-edit-buffer))
+    (set-window-buffer (selected-window)
+		       (set-buffer (make-indirect-buffer (buffer-name) buf)))
+    (narrow-to-region (todos-item-start) (todos-item-end))
+    (todos-edit-mode)
+    (message "%s" (substitute-command-keys
+		   (concat "Type \\[todos-edit-quit] "
+			   "to return to Todos mode.\n")))))
 
 (defun todos-edit-multiline (&optional item) ;FIXME: not item editing command
   ""					;FIXME
@@ -4896,7 +4898,17 @@ whether the file is still a valid Todos file and if so, also
 recalculate the Todos categories sexp, in case changes were made
 in the number or names of categories."
   (interactive)
-  (if (eq (buffer-size) (- (point-max) (point-min)))
+  (if (> (buffer-size) (- (point-max) (point-min)))
+      (let ((item (buffer-string))
+	    (regex "\\(\n\\)[^[:blank:]]"))
+	;; Ensure lines following hard newlines are indented.
+	(when (string-match regex (buffer-string))
+	  (replace-regexp-in-string
+	   regex (concat "\n" (make-string todos-indent-to-here 32))
+	   nil nil 1)
+	  (delete-region (point-min) (point-max))
+	  (insert item))
+	(kill-buffer))
       (when (todos-check-format)
 	;; FIXME: separate out sexp check?
 	;; If manual editing makes e.g. item counts change, have to
@@ -4906,20 +4918,18 @@ in the number or names of categories."
 	;; Compare (todos-make-categories-list t) with sexp and if
 	;; different ask (todos-update-categories-sexp) ?
 	(todos-mode)
-	(todos-category-select))
-    ;; Ensure lines following hard newlines are indented.
-    (let ((beg (save-excursion (todos-item-start)))
-	  (item (replace-regexp-in-string
-		 "\\(\n\\)[^[:blank:]]"
-		 (concat "\n" (make-string todos-indent-to-here 32))
-		 (buffer-string) nil nil 1)))
-      (delete-region (point-min) (point-max))
-      (insert item)
-      (todos-mode)
-      (todos-category-select)
-      (goto-char (point-min))
-      (goto-char beg)
-      (recenter))))
+	(let* ((cat-beg (concat "^" (regexp-quote todos-category-beg)
+				"\\(.*\\)$"))
+	       (curline (buffer-substring-no-properties
+			 (line-beginning-position) (line-end-position)))
+	       (cat (cond ((string-match cat-beg curline)
+			   (match-string-no-properties 1 curline))
+			  ((or (re-search-backward cat-beg nil t)
+			       (re-search-forward cat-beg nil t))
+			   (match-string-no-properties 1)))))
+	  (todos-category-number cat)
+	  (todos-category-select)
+	  (recenter)))))
 
 (defun todos-edit-item-header-1 (what &optional inc)
   "Function underlying commands to edit item date/time header.

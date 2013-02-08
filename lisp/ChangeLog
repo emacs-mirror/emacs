@@ -1,3 +1,11 @@
+2013-02-08  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-edit-multiline-item): Revert to using
+	indirect buffer, which makes it easier to return to Todos mode.
+	(todos-edit-quit): Don't delete and reinsert items that don't need
+	indenting.  Revert to just killing buffer on quitting single item
+	editing.  On quitting file editing, select nearest category.
+
 2013-02-07  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Bug fixes and improvements to item editing
