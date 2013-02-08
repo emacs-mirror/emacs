@@ -1,5 +1,15 @@
 2013-02-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* search.c (scan_buffer): Calculate end byte position just once.
+	(scan_newline): Do not recalculate start_byte.
+	(search_command): Use eassert.
+	* syntax.c (struct lisp_parse_state): New member location_byte.
+	(scan_sexps_forward): Record from_byte and avoid redundant
+	character to byte position calculation ...
+	(Fparse_partial_sexp): ... here.  Break too long line.
+
+2013-02-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* lisp.h (make_uninit_vector): New function.
 	* alloc.c (Fvector, Fmake_byte_code):
 	* ccl.c (Fregister_ccl_program):

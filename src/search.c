@@ -644,18 +644,23 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
 	     ptrdiff_t count, ptrdiff_t *shortage, bool allow_quit)
 {
   struct region_cache *newline_cache;
+  ptrdiff_t end_byte = -1;
   int direction;
 
   if (count > 0)
     {
       direction = 1;
-      if (! end) end = ZV;
+      if (!end)
+	end = ZV, end_byte = ZV_BYTE;
     }
   else
     {
       direction = -1;
-      if (! end) end = BEGV;
+      if (!end) 
+	end = BEGV, end_byte = BEGV_BYTE;
     }
+  if (end_byte == -1)
+    end_byte = CHAR_TO_BYTE (end);
 
   newline_cache_on_off (current_buffer);
   newline_cache = current_buffer->newline_cache;
@@ -673,7 +678,7 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
            the position of the last character before the next such
            obstacle --- the last character the dumb search loop should
            examine.  */
-	ptrdiff_t ceiling_byte = CHAR_TO_BYTE (end) - 1;
+	ptrdiff_t ceiling_byte = end_byte - 1;
 	ptrdiff_t start_byte;
 	ptrdiff_t tem;
 
@@ -750,7 +755,7 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
     while (start > end)
       {
         /* The last character to check before the next obstacle.  */
-	ptrdiff_t ceiling_byte = CHAR_TO_BYTE (end);
+	ptrdiff_t ceiling_byte = end_byte;
 	ptrdiff_t start_byte;
 	ptrdiff_t tem;
 
@@ -860,8 +865,6 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 
   if (allow_quit)
     immediate_quit++;
-
-  start_byte = CHAR_TO_BYTE (start);
 
   if (count > 0)
     {
@@ -1016,8 +1019,7 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 
       if (!EQ (noerror, Qt))
 	{
-	  if (lim < BEGV || lim > ZV)
-	    emacs_abort ();
+	  eassert (BEGV <= lim && lim <= ZV);
 	  SET_PT_BOTH (lim, lim_byte);
 	  return Qnil;
 #if 0 /* This would be clean, but maybe programs depend on
@@ -1029,9 +1031,7 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 	return Qnil;
     }
 
-  if (np < BEGV || np > ZV)
-    emacs_abort ();
-
+  eassert (BEGV <= np && np <= ZV);
   SET_PT (np);
 
   return make_number (np);

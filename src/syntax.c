@@ -121,6 +121,7 @@ struct lisp_parse_state
     /* Char number of start of containing expression */
     ptrdiff_t prevlevelstart;
     ptrdiff_t location;	     /* Char number at which parsing stopped.  */
+    ptrdiff_t location_byte; /* Corresponding byte position.  */
     ptrdiff_t comstr_start;  /* Position of last comment/string starter.  */
     Lisp_Object levelstarts; /* Char numbers of starts-of-expression
 				of levels (starting from outermost).  */
@@ -3288,6 +3289,7 @@ do { prev_from = from;				\
   state.prevlevelstart
     = (curlevel == levelstart) ? -1 : (curlevel - 1)->last;
   state.location = from;
+  state.location_byte = from_byte;
   state.levelstarts = Qnil;
   while (curlevel > levelstart)
     state.levelstarts = Fcons (make_number ((--curlevel)->last),
@@ -3327,7 +3329,8 @@ Fifth arg OLDSTATE is a list like what this function returns.
 Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
  If it is symbol `syntax-table', stop after the start of a comment or a
  string, or after end of a comment or a string.  */)
-  (Lisp_Object from, Lisp_Object to, Lisp_Object targetdepth, Lisp_Object stopbefore, Lisp_Object oldstate, Lisp_Object commentstop)
+  (Lisp_Object from, Lisp_Object to, Lisp_Object targetdepth,
+   Lisp_Object stopbefore, Lisp_Object oldstate, Lisp_Object commentstop)
 {
   struct lisp_parse_state state;
   EMACS_INT target;
@@ -3347,7 +3350,7 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
 		      (NILP (commentstop)
 		       ? 0 : (EQ (commentstop, Qsyntax_table) ? -1 : 1)));
 
-  SET_PT (state.location);
+  SET_PT_BOTH (state.location, state.location_byte);
 
   return Fcons (make_number (state.depth),
 	   Fcons (state.prevlevelstart < 0
