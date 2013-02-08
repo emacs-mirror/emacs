@@ -1,3 +1,7 @@
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c (getenv): Remove decl (unused since 1994).
+
 2013-01-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-docfile.c (write_globals): Make it a bit clearer (Bug#13448).

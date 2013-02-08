@@ -665,7 +665,6 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
   register int i;
   int mbfi;
   FILE *mbf;
-  char *getenv (const char *);
   popserver server;
   int start, end, increment;
   char *user, *hostname;
