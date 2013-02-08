@@ -1,3 +1,9 @@
+2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (skip_dyn_bytes): New function (bug#12598).
+	(read1): Use it.  Use getc instead of READCHAR to read bytes.
+	(load_each_byte): Remove.  Update users.
+
 2013-02-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* search.c (scan_buffer): Calculate end byte position just once.

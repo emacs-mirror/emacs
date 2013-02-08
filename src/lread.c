@@ -96,11 +96,6 @@ static Lisp_Object Qload_in_progress;
    It must be set to nil before all top-level calls to read0.  */
 static Lisp_Object read_objects;
 
-/* True means READCHAR should read bytes one by one (not character)
-   when READCHARFUN is Qget_file_char or Qget_emacs_mule_file_char.
-   This is set by read1 temporarily while handling #@NUMBER.  */
-static bool load_each_byte;
-
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
 
@@ -328,7 +323,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       return c;
     }
   c = (*readbyte) (-1, readcharfun);
-  if (c < 0 || load_each_byte)
+  if (c < 0)
     return c;
   if (multibyte)
     *multibyte = 1;
@@ -351,6 +346,30 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       buf[i++] = c;
     }
   return STRING_CHAR (buf);
+}
+
+static void
+skip_dyn_bytes (Lisp_Object readcharfun, ptrdiff_t n)
+{
+  if (EQ (readcharfun, Qget_file_char)
+      || EQ (readcharfun, Qget_emacs_mule_file_char))
+    {
+      block_input ();		/* FIXME: Not sure if it's needed.  */
+      fseek (instream, n, SEEK_CUR);
+      unblock_input ();
+    }
+  else
+    { /* We're not reading directly from a file.  In that case, it's difficult
+	 to reliably count bytes, since these are usually meant for the file's
+	 encoding, whereas we're now typically in the internal encoding.
+	 But luckily, skip_dyn_bytes is used to skip over a single
+	 dynamic-docstring (or dynamic byte-code) which is always quoted such
+	 that \037 is the final char.  */
+      int c;
+      do {
+	c = READCHAR;
+      } while (c >= 0 && c != '\037');
+    }
 }
 
 /* Unread the character C in the way appropriate for the stream READCHARFUN.
@@ -407,14 +426,7 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (EQ (readcharfun, Qget_file_char)
 	   || EQ (readcharfun, Qget_emacs_mule_file_char))
     {
-      if (load_each_byte)
-	{
-	  block_input ();
-	  ungetc (c, instream);
-	  unblock_input ();
-	}
-      else
-	unread_char = c;
+      unread_char = c;
     }
   else
     call1 (readcharfun, make_number (c));
@@ -2388,7 +2400,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
   bool multibyte;
 
   *pch = 0;
-  load_each_byte = 0;
 
  retry:
 
@@ -2598,7 +2609,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  return tmp;
 	}
 
-      /* #@NUMBER is used to skip NUMBER following characters.
+      /* #@NUMBER is used to skip NUMBER following bytes.
 	 That's used in .elc files to skip over doc strings
 	 and function definitions.  */
       if (c == '@')
@@ -2606,7 +2617,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  enum { extra = 100 };
 	  ptrdiff_t i, nskip = 0;
 
-	  load_each_byte = 1;
 	  /* Read a decimal integer.  */
 	  while ((c = READCHAR) >= 0
 		 && c >= '0' && c <= '9')
@@ -2616,8 +2626,15 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      nskip *= 10;
 	      nskip += c - '0';
 	    }
-	  UNREAD (c);
-
+	  if (nskip > 0)
+	    /* We can't use UNREAD here, because in the code below we side-step
+               READCHAR.  Instead, assume the first char after #@NNN occupies
+               a single byte, which is the case normally since it's just
+               a space.  */
+	    nskip--;
+	  else
+	    UNREAD (c);
+	    
 	  if (load_force_doc_strings
 	      && (EQ (readcharfun, Qget_file_char)
 		  || EQ (readcharfun, Qget_emacs_mule_file_char)))
@@ -2659,19 +2676,17 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      saved_doc_string_position = file_tell (instream);
 
 	      /* Copy that many characters into saved_doc_string.  */
+	      block_input ();
 	      for (i = 0; i < nskip && c >= 0; i++)
-		saved_doc_string[i] = c = READCHAR;
+		saved_doc_string[i] = c = getc (instream);
+	      unblock_input ();
 
 	      saved_doc_string_length = i;
 	    }
 	  else
-	    {
-	      /* Skip that many characters.  */
-	      for (i = 0; i < nskip && c >= 0; i++)
-		c = READCHAR;
-	    }
+	    /* Skip that many bytes.  */
+	    skip_dyn_bytes (readcharfun, nskip);
 
-	  load_each_byte = 0;
 	  goto retry;
 	}
       if (c == '!')
