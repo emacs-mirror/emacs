@@ -584,6 +584,7 @@ MutatorFaultContext mps_exception_info = NULL;
 
 Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 {
+  static Count count = 0;       /* used to match up ArenaAccess events */
   Seg seg;
   Ring node, nextNode;
   Res res;
@@ -598,6 +599,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     Root root;
 
     ArenaEnter(arena);     /* <design/arena/#lock.arena> */
+    EVENT4(ArenaAccess, arena, ++count, addr, mode);
+
     /* @@@@ The code below assumes that Roots and Segs are disjoint. */
     /* It will fall over (in TraceSegAccess probably) if there is a */
     /* protected root on a segment. */
@@ -613,6 +616,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
         res = PoolAccess(SegPool(seg), seg, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       }
+      EVENT4(ArenaAccess, arena, count, addr, mode);
       ArenaLeave(arena);
       return TRUE;
     } else if (RootOfAddr(&root, arena, addr)) {
@@ -621,6 +625,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       mode &= RootPM(root);
       if (mode != AccessSetEMPTY)
         RootAccess(root, mode);
+      EVENT4(ArenaAccess, arena, count, addr, mode);
       ArenaLeave(arena);
       return TRUE;
     }
@@ -680,6 +685,9 @@ void ArenaPoll(Globals globals)
   arena = GlobalsArena(globals);
   start = ClockNow();
   quanta = 0;
+
+  EVENT3(ArenaPoll, arena, start, 0);
+
   while(globals->pollThreshold <= globals->fillMutatorSize) {
     tracedSize = TracePoll(globals);
 
@@ -704,6 +712,8 @@ void ArenaPoll(Globals globals)
   }
 
   AVER(globals->fillMutatorSize < globals->pollThreshold);
+
+  EVENT3(ArenaPoll, arena, start, quanta);
 
   globals->insidePoll = FALSE;
 }
@@ -1066,7 +1076,8 @@ void ArenaSetEmergency(Arena arena, Bool emergency)
 
   DIAG_SINGLEF(( "ArenaSetEmergency",
     "emergency: $U", (WriteFU)emergency, NULL ));
-  
+  EVENT2(ArenaSetEmergency, arena, emergency);
+
   arena->emergency = emergency;
 }
 

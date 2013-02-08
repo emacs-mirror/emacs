@@ -21,14 +21,13 @@
  * RB 2012-09-11
  */
 
-/* TODO: Clang supposedly provides a cross-platform builtin for a fast
-   timer, but it doesn't seem to be present on Mac OS X 10.8.  We should
-   use it if it ever appears.
+/* Clang provides a cross-platform builtin for a fast timer, but it
+   was not available on Mac OS X 10.8 until the release of XCode 4.6.
    <http://clang.llvm.org/docs/LanguageExtensions.html#builtins> */
 #if defined(MPS_BUILD_LL)
 
 #if __has_builtin(__builtin_readcyclecounter)
-#error "__builtin_readcyclecounter is available but not used"
+/* TODO: use this for EVENT_CLOCK. See job003411. */
 #endif /* __has_builtin(__builtin_readcyclecounter) */
 
 #endif
@@ -120,7 +119,7 @@ __extension__ typedef unsigned long long EventClock;
 #define EVENT_CLOCK_PRINT(stream, clock) \
   fprintf(stream, "%08lX%08lX", \
           (unsigned long)((clock) >> 32), \
-          (unsigned long)(clock))
+          (unsigned long)((clock) & 0xffffffff))
 
 #define EVENT_CLOCK_WRITE(stream, clock) \
   WriteF(stream, "$W$W", (WriteFW)((clock) >> 32), (WriteFW)clock, NULL)
