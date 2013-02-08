@@ -412,10 +412,10 @@ static void readLog(FILE *input)
     code = (int)parseHex(&p);
 
     if (eventName[code])
-      printf("%0*" PRIXLONGEST " %04x %-19s ", hexWordWidth, clock, code,
+      printf("%0*" PRIXLONGEST " %04X %-19s ", hexWordWidth, clock, code,
              eventName[code]);
     else 
-      printf("%0*" PRIXLONGEST " %04x %-19s ", hexWordWidth, clock, code,
+      printf("%0*" PRIXLONGEST " %04X %-19s ", hexWordWidth, clock, code,
              "[Unknown]");
 
     q = p;
