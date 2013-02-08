@@ -229,8 +229,8 @@ mpseventsql
 ...........
 
 The MPS Kit can build a command-line program ``mpseventsql`` that
-loads a diagnostic stream of events into a :ref:`SQLite3
-<http://www.sqlite.org/>` database for processing. In order to build
+loads a diagnostic stream of events into a `SQLite3
+<http://www.sqlite.org/>`_ database for processing. In order to build
 this program, you need to install the SQLite3 development resources.
 
 On Mac OS X, SQLite3 is pre-installed, so this tool builds by default.
@@ -241,8 +241,8 @@ On Linux, you need to install the ``libsqlite3-dev`` package::
 
 and then re-run ``./configure`` and ``make`` as described above.
 
-On Windows, you should visit the :ref:`SQLite Download Page
-<http://www.sqlite.org/download.html>` and download the
+On Windows, you should visit the `SQLite Download Page
+<http://www.sqlite.org/download.html>`_ and download the
 ``sqlite-amalgamation`` ZIP archive. (At time of writing this is the
 first download on the page.) When you unzip the archive, you'll find
 it contains files named ``sqlite3.c`` and ``sqlite3.h``. Copy these
