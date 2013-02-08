@@ -1,3 +1,8 @@
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
+	(HAVE_SECURE_GETENV, GNULIB_SECURE_GETENV): Edit to appropriate values.
+
 2012-12-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (TEMACS_LDFLAGS2): Remove editing.
