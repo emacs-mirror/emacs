@@ -1,5 +1,8 @@
 2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-run.el (eval-when-compile, eval-and-compile):
+	Eval body right away, now that we do eager macroexpansion (bug#13605).
+
 	* simple.el (end-of-buffer): Don't touch unrelated windows (bug#13466).
 	(fundamental-mode): Use run-mode-hooks.
 

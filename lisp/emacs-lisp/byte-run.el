@@ -392,15 +392,15 @@ If you think you need this, you're probably making a mistake somewhere."
 Thus, the result of the body appears to the compiler as a quoted constant.
 In interpreted code, this is entirely equivalent to `progn'."
   (declare (debug t) (indent 0))
-  ;; Not necessary because we have it in b-c-initial-macro-environment
-  ;; (list 'quote (eval (cons 'progn body)))
-  (cons 'progn body))
+  (list 'quote (eval (cons 'progn body) lexical-binding)))
 
 (defmacro eval-and-compile (&rest body)
   "Like `progn', but evaluates the body at compile time and at load time."
   (declare (debug t) (indent 0))
-  ;; Remember, it's magic.
-  (cons 'progn body))
+  ;; When the byte-compiler expands code, this macro is not used, so we're
+  ;; either about to run `body' (plain interpretation) or we're doing eager
+  ;; macroexpansion.
+  (list 'quote (eval (cons 'progn body) lexical-binding)))
 
 (put 'with-no-warnings 'lisp-indent-function 0)
 (defun with-no-warnings (&rest body)
