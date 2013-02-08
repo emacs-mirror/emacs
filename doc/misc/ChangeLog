@@ -1,3 +1,7 @@
+2013-02-08  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell.texi: Fill most of the missing sections.
+
 2013-02-07  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (References): Clarify an example.
@@ -17,8 +21,8 @@
 	from ede new.
 	(Simple projects): Re-write to not talk about ede-simple-project
 	which is deprecated, and instead use the term to mean projects
-	that don't do much management, just project wrapping.  Add
-	ede-generic-project link.
+	that don't do much management, just project wrapping.
+	Add ede-generic-project link.
 	(ede-generic-project): New node (bug#11441).
 
 2013-02-03  Glenn Morris  <rgm@gnu.org>
@@ -72,8 +76,7 @@
 	* ede.texi (Top): Rename from top, all uses changed.
 	* eshell.texi: Add missing argument to @sp.
 	* forms.texi (Top): Reorder menu to match structure.
-	* htmlfontify.texi (Customisation): Add missing @item in
-	@enumerate.
+	* htmlfontify.texi (Customisation): Add missing @item in @enumerate.
 	* org.texi (Advanced features): Add missing argument for @item.
 	(Property searches): Use @backslashchar{} in macro argument.
 	* pcl-cvs.texi: Add missing argument to @sp.
@@ -212,8 +215,8 @@
 	* org.texi (Summary, Code block specific header arguments)
 	(Code block specific header arguments)
 	(Header arguments in function calls, var, noweb)
-	(Results of evaluation, Code evaluation security): Small
-	reformatting: add a blank line before some example.
+	(Results of evaluation, Code evaluation security):
+	Small reformatting: add a blank line before some example.
 
 	* org.texi (System-wide header arguments)
 	(Header arguments in Org mode properties, Conflicts)
@@ -222,8 +225,7 @@
 
 	* org.texi (Comment lines): Fix description of the comment syntax.
 
-	* org.texi (Installation): Mention "make test" in the correct
-	section.
+	* org.texi (Installation): Mention "make test" in the correct section.
 
 2012-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -271,8 +273,8 @@
 
 2012-11-08  Chong Yidong  <cyd@gnu.org>
 
-	* url.texi (Introduction): Rename from Getting Started.  Rewrite
-	the introduction.
+	* url.texi (Introduction): Rename from Getting Started.
+	Rewrite the introduction.
 	(URI Parsing): Rewrite.  Omit the obsolete attributes slot.
 
 2012-11-07  Glenn Morris  <rgm@gnu.org>
@@ -372,14 +374,14 @@
 
 2012-10-26  Bastien Guerry  <bzg@gnu.org>
 
-	* org.texi (Installation): Update the link to Org's ELPA.  Also
-	don't mention org-install.el anymore as the replacement file
+	* org.texi (Installation): Update the link to Org's ELPA.
+	Also don't mention org-install.el anymore as the replacement file
 	org-loaddefs.el is now loaded by org.el.
 
 2012-10-25  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.texi (Frequently Asked Questions): Mention
-	`tramp-completion-reread-directory-timeout' for performance
+	* tramp.texi (Frequently Asked Questions):
+	Mention `tramp-completion-reread-directory-timeout' for performance
 	improvement.
 
 2012-10-25  Glenn Morris  <rgm@gnu.org>
@@ -483,8 +485,7 @@
 	(Imprint): Mention Wolfgang in list of contributors.
 	(Creating Citations): Give a hint about how to
 	auto-revert the BibTeX database file when using external editors.
-	(Referencing Labels): Simplify section about reference macro
-	cycling.
+	(Referencing Labels): Simplify section about reference macro cycling.
 	(Options (Referencing Labels)): Adapt to new structure of
 	`reftex-ref-style-alist'.
 	(Referencing Labels, Reference Styles): Document changes in the
@@ -502,8 +503,8 @@
 	(Referencing Labels): Update regarding reference styles.
 	(Citation Styles): Mention support for ConTeXt.
 	(Options (Defining Label Environments)): Fix typo.
-	(Options (Creating Citations)): Document
-	`reftex-cite-key-separator'.
+	(Options (Creating Citations)):
+	Document `reftex-cite-key-separator'.
 
 2012-09-30  Achim Gratz  <Stromeko@Stromeko.DE>
 
@@ -535,8 +536,8 @@
 
 2012-09-30  Bastien Guerry  <bzg@gnu.org>
 
-	* org.texi (Installation, Feedback, Batch execution): Use
-	(add-to-list 'load-path ... t) for the contrib dir.
+	* org.texi (Installation, Feedback, Batch execution):
+	Use (add-to-list 'load-path ... t) for the contrib dir.
 
 	* org.texi (results): Update documentation for ":results drawer"
 	and ":results org".
@@ -553,18 +554,16 @@
 
 	* org.texi (History and Acknowledgments): Fix typo.
 
-	* org.texi (History and Acknowledgments): Add my own
-	acknowledgments.
+	* org.texi (History and Acknowledgments): Add my own acknowledgments.
 
 	* org.texi (Agenda commands): Document the new command and the new
 	option.
 
 	* org.texi (Agenda commands): Delete `org-agenda-action' section.
-	(Agenda commands): Reorder.  Document `*' to toggle persistent
-	marks.
+	(Agenda commands): Reorder.  Document `*' to toggle persistent marks.
 
-	* org.texi (Agenda dispatcher): Mention
-	`org-toggle-agenda-sticky'.
+	* org.texi (Agenda dispatcher):
+	Mention `org-toggle-agenda-sticky'.
 	(Agenda commands, Exporting Agenda Views): Fix typo.
 
 	* org.texi (Templates in contexts, Setting Options): Update to
@@ -582,8 +581,7 @@
 	* org.texi (Formula syntax for Lisp): Reformat.
 
 	* org.texi (Special properties, Column attributes)
-	(Agenda column view): Document the new special property
-	CLOCKSUM_T.
+	(Agenda column view): Document the new special property CLOCKSUM_T.
 
 	* org.texi (Template expansion): Document the new %l template.
 
@@ -739,8 +737,8 @@
 	(Unsafe Simplifications):  Mention `m E'.
 	(Simplification of Units): Mention `m U'.
 	(Trigonometric/Hyperbolic Functions, Reducing and Mapping)
-	(Kinds of Declarations, Functions for Declarations):  Mention
-	"algebraic simplifications" instead of `a s'.
+	(Kinds of Declarations, Functions for Declarations):
+	Mention "algebraic simplifications" instead of `a s'.
 	(Algebraic Entry): Remove mention of default simplifications.
 
 2012-07-30  Jay Belanger  <jay.p.belanger@gmail.com>
@@ -772,8 +770,8 @@
 
 2012-07-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.texi (Multi-hops): Introduce
-	`tramp-restricted-shell-hosts-alist'.
+	* tramp.texi (Multi-hops):
+	Introduce `tramp-restricted-shell-hosts-alist'.
 
 2012-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -965,8 +963,8 @@
 	(Synchronous Methods): Remove obsolete dbus-call-method-non-blocking.
 	(Asynchronous Methods): Fix description of
 	dbus-call-method-asynchronously.
-	(Receiving Method Calls): Fix some minor errors.  Add
-	dbus-interface-emacs.
+	(Receiving Method Calls): Fix some minor errors.
+	Add dbus-interface-emacs.
 	(Signals): Describe unicast signals and the new match rules.
 	(Alternative Buses): Add the PRIVATE optional argument to
 	dbus-init-bus.  Describe its new return value.  Add dbus-setenv.
@@ -999,8 +997,8 @@
 
 2012-04-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add
-	emacs-gnutls.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean):
+	Add emacs-gnutls.
 	($(infodir)/emacs-gnutls, emacs-gnutls.dvi): New targets.
 
 2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
@@ -1098,12 +1096,11 @@
 2012-04-01  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (MobileOrg): Change the wording to reflect that the
-	Android Version is no longer just the little brother of the iOS
-	version.
+	Android Version is no longer just the little brother of the iOS version.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
 
-	* org.texi (Key bindings and useful functions): Updated babel key
+	* org.texi (Key bindings and useful functions): Update babel key
 	binding documentation in manual.
 
 2012-04-01  Eric Schulte  <eric.schulte@gmx.com>
@@ -1204,8 +1201,8 @@
 
 2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus.texi (Customizing the IMAP Connection): Mention
-	nnimap-record-commands.
+	* gnus.texi (Customizing the IMAP Connection):
+	Mention nnimap-record-commands.
 
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
@@ -1253,8 +1250,7 @@
 2012-01-03  Eric Schulte  <eric.schulte@gmx.com>
 
 	* org.texi (Noweb reference syntax): Adding documentation of
-	the `*org-babel-use-quick-and-dirty-noweb-expansion*'
-	variable.
+	the `*org-babel-use-quick-and-dirty-noweb-expansion*' variable.
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
@@ -1276,8 +1272,8 @@
 
 2012-01-03  Bernt Hansen  <bernt@norang.ca>
 
-	* org.texi (Agenda commands): Document
-	`org-clock-report-include-clocking-task'.
+	* org.texi (Agenda commands):
+	Document `org-clock-report-include-clocking-task'.
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
@@ -1327,8 +1323,7 @@
 
 2012-01-03  Thomas Dye  <dk@poto.local>
 
-	* org.texi: Changed DATA to NAME in Working With Source Code
-	section.
+	* org.texi: Changed DATA to NAME in Working With Source Code section.
 
 2012-01-03  Tom Dye  <tsd@tsdye.com>
 
@@ -1362,8 +1357,8 @@
 
 2012-01-03  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Buffer-wide header arguments): Update
-	documentation to reflect removal of #+PROPERTIES.
+	* org.texi (Buffer-wide header arguments):
+	Update documentation to reflect removal of #+PROPERTIES.
 
 2012-01-03  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -1382,8 +1377,7 @@
 
 2012-01-03  Tom Dye  <tsd@tsdye.com>
 
-	* org.texi: Added a line to specify that header arguments are
-	lowercase.
+	* org.texi: Added a line to specify that header arguments are lowercase.
 
 2012-01-03  Tom Dye  <tsd@tsdye.com>
 
@@ -1396,9 +1390,8 @@
 
 2012-01-03  David Maus  <dmaus@ictsoc.de>
 
-	* org.texi (Exporting Agenda Views, Extracting agenda
-	information): Fix command line syntax, quote symbol parameter
-	values.
+	* org.texi (Exporting Agenda Views, Extracting agenda information):
+	Fix command line syntax, quote symbol parameter values.
 
 2012-01-03  David Maus  <dmaus@ictsoc.de>
 
@@ -1524,7 +1517,7 @@
 
 	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.3.
-	(Preface): Updated support information.
+	(Preface): Update support information.
 	(From Bill Wohler): Reset text to original version.  As a
 	historical quote, the tense should be correct in the time that it
 	was written.
@@ -1564,8 +1557,7 @@
 
 2011-08-15  Bastien Guerry  <bzg@gnu.org>
 
-	* org.texi (Languages): Add Lilypond and Awk as supported
-	languages.
+	* org.texi (Languages): Add Lilypond and Awk as supported languages.
 
 2011-08-15  Achim Gratz  <stromeko@nexgo.de>
 
@@ -1583,8 +1575,7 @@
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
 	* org.texi (Results of evaluation): More explicit about the
-	mechanism through which interactive evaluation of code is
-	performed.
+	mechanism through which interactive evaluation of code is performed.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -1663,13 +1654,11 @@
 
 2011-08-15  Puneeth Chaganti  <punchagan@gmail.com>
 
-	* org.texi (Agenda commands): Doc for function option to bulk
-	action.
+	* org.texi (Agenda commands): Doc for function option to bulk action.
 
 2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.texi (Template expansion): Document new %<...> template
-	escape.
+	* org.texi (Template expansion): Document new %<...> template escape.
 
 2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -1689,8 +1678,7 @@
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (padline): Documentation of the new padline header
-	argument.
+	* org.texi (padline): Documentation of the new padline header argument.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -1711,8 +1699,7 @@
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (var): Clarification of indexing into tabular
-	variables.
+	* org.texi (var): Clarification of indexing into tabular variables.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -1726,8 +1713,8 @@
 
 2011-08-15  Bastien Guerry  <bzg@gnu.org>
 
-	* org.texi (Dynamic blocks, Structure editing): Mention
-	the function `org-narrow-to-block'.
+	* org.texi (Dynamic blocks, Structure editing):
+	Mention the function `org-narrow-to-block'.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -1754,15 +1741,15 @@
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Conflicts): Changed "yasnippets" to "yasnippet" and
+	* org.texi (Conflicts): Change "yasnippets" to "yasnippet" and
 	added extra whitespace around functions to be consistent with the
 	rest of the section.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Evaluating code blocks): Expanded discussion of
+	* org.texi (Evaluating code blocks): Expand discussion of
 	#+call: line syntax.
-	(Header arguments in function calls): Expanded discussion of
+	(Header arguments in function calls): Expand discussion of
 	#+call: line syntax.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
@@ -1792,17 +1779,16 @@
 
 2011-08-15  Tom Dye  <tsd@tsdye.com>
 
-	* org.texi (cache): Improved documentation of code block caches.
+	* org.texi (cache): Improve documentation of code block caches.
 
 2011-08-15  Tom Dye  <tsd@tsdye.com>
 
-	* org.texi (Code block specific header arguments): Documentation
-	of multi-line header arguments.
+	* org.texi (Code block specific header arguments):
+	Documentation of multi-line header arguments.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
-	* org.texi (Code evaluation security): Add example for using a
-	function.
+	* org.texi (Code evaluation security): Add example for using a function.
 
 2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -1827,8 +1813,7 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* widget.texi (Setting Up the Buffer): Remove mention of the
-	global keymap parent, which doesn't seem to be accurate
-	(bug#7045).
+	global keymap parent, which doesn't seem to be accurate (bug#7045).
 
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -1853,15 +1838,15 @@
 
 2011-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.texi (Cleanup remote connections): Add
-	`tramp-cleanup-this-connection'.
+	* tramp.texi (Cleanup remote connections):
+	Add `tramp-cleanup-this-connection'.
 
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Subscription Methods): Link to "Group Levels" to explain
 	zombies.
 	(Checking New Groups): Ditto (bug#8974).
-	(Checking New Groups): Moved the reference to the right place.
+	(Checking New Groups): Move the reference to the right place.
 
 2011-07-03  Dave Abrahams  <dave@boostpro.com>  (tiny change)
 
@@ -1888,8 +1873,8 @@
 
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus.texi (Summary Mail Commands): Document
-	`gnus-summary-reply-to-list-with-original'.
+	* gnus.texi (Summary Mail Commands):
+	Document `gnus-summary-reply-to-list-with-original'.
 
 2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1952,7 +1937,7 @@
 
 	* gnus.texi (nnmairix caveats, Setup, Registry Article Refer Method)
 	(Fancy splitting to parent, Store arbitrary data):
-	Updated gnus-registry docs.
+	Update gnus-registry docs.
 
 2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -2024,9 +2009,8 @@
 
 2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (Logarithmic Units): Rename calc-logunits-dblevel
-	and calc-logunits-nplevel to calc-dblevel and calc-nplevel,
-	respectively.
+	* calc.texi (Logarithmic Units): Rename calc-logunits-dblevel and
+	calc-logunits-nplevel to calc-dblevel and calc-nplevel, respectively.
 	(Musical Notes): New section.
 	(Customizing Calc): Mention the customizable variable
 	calc-note-threshold.
@@ -3069,8 +3053,8 @@
 
 	Sync with Tramp 2.1.19.
 
-	* tramp.texi (Inline methods, Default Method): Mention
-	`tramp-inline-compress-start-size'.  Remove "kludgy" phrase.
+	* tramp.texi (Inline methods, Default Method):
+	Mention `tramp-inline-compress-start-size'.  Remove "kludgy" phrase.
 	Remove remark about doubled "-t" argument.
 	(Auto-save and Backup): Remove reference to Emacs 21.
 	(Filename Syntax): Describe port numbers.
@@ -5724,7 +5708,7 @@
 2007-10-28  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus.texi (nntp-open-via-telnet-and-telnet): Fix grammar.
-	(Agent Parameters): Updated parameter names to match code.
+	(Agent Parameters): Update parameter names to match code.
 	(Group Agent Commands): Corrected 'gnus-agent-fetch-series' as
 	'gnus-agent-summary-fetch-series'.
 	(Agent and flags): New section providing a generalized discussion
@@ -6528,7 +6512,7 @@
 	(Tag searches): Document regular expression search for tags.
 	(Stuck projects): New section.
 	(In-buffer settings): New keywords.
-	(History and Acknowledgments): Updated description.
+	(History and Acknowledgments): Update description.
 
 2007-02-24  Alan Mackenzie  <acm@muc.de>
 
@@ -6760,7 +6744,7 @@
 	(Custom agenda views): Section completely rewritten.
 	(Summary): Compare with Planner.
 	(Feedback): More info about creating backtraces.
-	(Plain lists): Modified example.
+	(Plain lists): Modify example.
 	(Breaking down tasks): New section.
 	(Custom time format): New section.
 	(Time stamps): Document inactive timestamps.
