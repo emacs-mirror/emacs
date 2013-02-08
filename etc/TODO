@@ -274,9 +274,6 @@ from the emacsclient process.
 ** Remove the default toggling behavior of minor modes when called from elisp
 rather than interactively.  This a trivial one-liner in easy-mode.el.
 
-** Create a category of errors called `user-error' for errors which are
-typically due to pilot errors and should thus be in debug-ignored-errors.
-
 ** Give Tar mode all the features of Archive mode.
 
 ** Create a category of errors called `process-error'
