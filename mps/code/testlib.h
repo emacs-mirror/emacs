@@ -74,31 +74,41 @@
 
 /* ulongest_t -- longest unsigned integer type
  *
- * Define a longest unsigned integer type for testing and printing.  We'd
- * like to use C99's uintmax_t and PRIuMAX here, but the MPS is in C89
- * and C99 isn't supported by Microsoft.
+ * Define a longest unsigned integer type for testing, scanning, and
+ * printing.  We'd like to use C99's uintmax_t and PRIuMAX here, but
+ * the MPS is in C89 and C99 isn't supported by Microsoft.
  *
- * We avoid using the ones defined in mpstd.h because we want the tests to
- * root out any incompatible assumptions by breaking.
+ * We avoid using the types defined in mpstd.h because we want the
+ * tests to root out any incompatible assumptions by breaking.
  */
+
+#if defined(MPS_ARCH_I6)
+#define PRIwWORD "16"
+#elif defined(MPS_ARCH_I3)
+#define PRIwWORD "8"
+#else
+#error "How many beans make five?"
+#endif
 
 #ifdef MPS_PF_W3I6MV
 #define PRIuLONGEST "llu"
 #define SCNuLONGEST "llu"
+#define SCNXLONGEST "llX"
 #define PRIXLONGEST "llX"
-#define PRIwWORD "16"
 typedef unsigned long long ulongest_t;
 typedef long long longest_t;
 #define MPS_WORD_CONST(n) (n##ull)
 #else
 #define PRIuLONGEST "lu"
 #define SCNuLONGEST "lu"
+#define SCNXLONGEST "lX"
 #define PRIXLONGEST "lX"
-#define PRIwWORD "8"
 typedef unsigned long ulongest_t;
 typedef long longest_t;
 #define MPS_WORD_CONST(n) (n##ul)
 #endif
+
+
 #define PRIXPTR     "0"PRIwWORD PRIXLONGEST
 
 

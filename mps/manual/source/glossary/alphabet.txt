@@ -1,0 +1,29 @@
+
+.. rst-class:: glossary-alphabet
+
+:ref:`A <glossary-a>`
+| :ref:`B <glossary-b>`
+| :ref:`C <glossary-c>`
+| :ref:`D <glossary-d>`
+| :ref:`E <glossary-e>`
+| :ref:`F <glossary-f>`
+| :ref:`G <glossary-g>`
+| :ref:`H <glossary-h>`
+| :ref:`I <glossary-i>`
+| J
+| :ref:`K <glossary-k>`
+| :ref:`L <glossary-l>`
+| :ref:`M <glossary-m>`
+| :ref:`N <glossary-n>`
+| :ref:`O <glossary-o>`
+| :ref:`P <glossary-p>`
+| :ref:`Q <glossary-q>`
+| :ref:`R <glossary-r>`
+| :ref:`S <glossary-s>`
+| :ref:`T <glossary-t>`
+| :ref:`U <glossary-u>`
+| :ref:`V <glossary-v>`
+| :ref:`W <glossary-w>`
+| X
+| Y
+| :ref:`Z <glossary-z>`

@@ -2,7 +2,31 @@
 #
 # $Id$
 
-CFLAGS = @CFLAGS@
+# -fno-inline-functions is a temporary workaround for job003359.
+CFLAGS = @CFLAGS@ @CPPFLAGS@ @LDFLAGS@ -std=c99 -fno-inline-functions
 
-scheme: scheme.c
-	$(CC) $(CFLAGS) -o scheme -I ../../code scheme.c ../../code/mps.c
+MPS = ../../code
+
+TARGETS = scheme-malloc scheme scheme-advanced
+
+TESTS = r5rs mps
+
+all: $(TARGETS)
+
+$(TARGETS): %: %.c Makefile
+	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
+
+
+scheme-boehm: %: %.c Makefile
+	$(CC) $(CFLAGS) -o $@ $< -lgc
+
+clean:
+	rm -f $(TARGETS) scheme-boehm
+
+test: $(TARGETS)
+	@for TARGET in $(TARGETS); do \
+	   for TEST in $(TESTS); do \
+	     echo "$$TARGET $$TEST:"; \
+	     ./$$TARGET test-$$TEST.scm || exit; \
+	   done \
+	done

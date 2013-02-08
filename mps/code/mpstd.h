@@ -97,7 +97,6 @@
 #define MPS_ARCH_I6
 #define MPS_BUILD_MV
 #define MPS_T_WORD      unsigned __int64
-#define MPS_T_LONGEST   __int64
 #define MPS_T_ULONGEST  unsigned __int64
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6

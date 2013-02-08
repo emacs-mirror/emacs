@@ -36,6 +36,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <assert.h>
 
 
 int mps_lib_get_EOF(void)
@@ -92,15 +94,35 @@ int (mps_lib_memcmp)(const void *s1, const void *s2, size_t n)
 
 /* @@@@ Platform specific conversion? */
 /* See http://devworld.apple.com/dev/techsupport/insidemac/OSUtilities/OSUtilities-94.html#MARKER-9-32 */
+
+/* If your platform has a low-resolution clock(), and there are
+ * higher-resolution clocks readily available, then using one of those
+ * will improve MPS scheduling decisions and the quality of telemetry
+ * output.  For instance, with getrusage():
+ * 
+ *   #include <sys/resource.h>
+ *   struct rusage s;
+ *   int res = getrusage(RUSAGE_SELF, &s);
+ *   if (res != 0) {
+ *     ...
+ *   }
+ *   return ((mps_clock_t)s.ru_utime.tv_sec) * 1000000 + s.ru_utime.tv_usec;
+ */
+
 mps_clock_t mps_clock(void)
 {
-  return (unsigned long)clock();
+  /* The clock values need to fit in mps_clock_t.  If your platform
+     has a very wide clock type, trim or truncate it. */
+  assert(sizeof(mps_clock_t) >= sizeof(clock_t));
+
+  return (mps_clock_t)clock();
 }
 
 
 mps_clock_t mps_clocks_per_sec(void)
 {
-  return (unsigned long)CLOCKS_PER_SEC;
+  /* must correspond to whatever mps_clock() does */
+  return (mps_clock_t)CLOCKS_PER_SEC;
 }
 
 
@@ -111,6 +133,20 @@ mps_clock_t mps_clocks_per_sec(void)
 /* Objects to: getenv.  See job001934. */
 #pragma warning( disable : 4996 )
 #endif
+
+/* Simple case-insensitive string comparison */
+static int striequal(const char *s0, const char *s1)
+{
+  int c;
+  do {
+    c = *s0;
+    if (tolower(c) != tolower(*s1)) /* note: works for '\0' */
+      return 0;
+    ++s0;
+    ++s1;
+  } while (c != '\0');
+  return 1;
+}
 
 unsigned long mps_lib_telemetry_control(void)
 {
@@ -130,14 +166,20 @@ unsigned long mps_lib_telemetry_control(void)
   if (mask != 0)
     return mask;
 
-  /* Split the value at spaces and try to patch the words against the names
-     of event kinds, enabling them if there's a match. */
+  /* copy the envar to a buffer so we can mess with it. */
   strncpy(buf, s, sizeof(buf) - 1);
   buf[sizeof(buf) - 1] = '\0';
+  
+  /* Split the value at spaces and try to match the words against the names
+     of event kinds, enabling them if there's a match. */
   for (word = strtok(buf, sep); word != NULL; word = strtok(NULL, sep)) {
-#define TELEMATCH(X, rowName, rowDoc) \
-    if (strcmp(word, #rowName) == 0) \
-      mask |= (1ul << EventKind##rowName);
+    if (striequal(word, "all")) {
+      mask = (unsigned long)-1;
+      return mask;
+    }
+#define TELEMATCH(X, name, rowDoc) \
+    if (striequal(word, #name)) \
+      mask |= (1ul << EventKind##name);
     EventKindENUM(TELEMATCH, X)
   }
   

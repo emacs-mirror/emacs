@@ -18,32 +18,29 @@ garbage collections.  It also includes a library of memory pool classes
 implementing specialized memory management policies.
 
 The MPS has been in development since 1994 and deployed in successful
-commercial products since 1997.  Bugs are almost unknown in production. 
-It is under continuous development and support by
-[Ravenbrook](http://www.ravenbrook.com/).
+commercial products since 1997. Bugs are almost unknown in production.
+It is under continuous development and support by `Ravenbrook
+<http://www.ravenbrook.com>`_.
 
 The MPS is distributed under an open source license (see
-[license.txt](license.txt)). The license is designed to make it possible
-for you to use the MPS in your own projects, provided that you either
-don't distribute your product, or your product is open source too.
+`<license.txt>`_). The license is designed to make it possible for you
+to use the MPS in your own projects, provided that you either don't
+distribute your product, or your product is open source too.
 
 If the licensing terms aren't suitable for you (for example, you're
 developing a closed-source commercial product or a compiler run-time
 system) you can easily license the MPS under different terms from
-Ravenbrook.  Please write to us <mps-questions@ravenbrook.com> for more
-information.
-
-For more information about the status and progress of the MPS project,
-see the project home page <http://www.ravenbrook.com/project/mps/>.
+Ravenbrook. Please write to us at `mps-questions@ravenbrook.com
+<mailto:mps-questions@ravenbrook.com>`_ for more information.
 
 
 Getting started
 ---------------
 
-The MPS Kit is a complete set of sources and documentation to enable you
-to use, modify, and adapt the MPS: source code, manuals, procedures,
-design documentation, and so on.  See [index.html](index.html) for an
-index.
+The MPS Kit is a complete set of sources and documentation to enable
+you to use, modify, and adapt the MPS: source code, manuals,
+procedures, design documentation, and so on. See
+`<manual/index.html>`_ for an index.
 
 The MPS Kit is distributed in source form.  You need to build it before
 using it.  The basic case is straightforward on supported platforms
@@ -55,13 +52,13 @@ using it.  The basic case is straightforward on supported platforms
 
 This will produce an object file you can link with your project.  For
 details of how to configure the MPS, build libraries and tests, use
-IDEs, autoconf, etc. see [Building the MPS](manual/build.txt).
+IDEs, autoconf, etc. see `Building the MPS <manual/build.txt>`_.
 
-For an example of using the MPS, see the [scheme interpreter
-example](example/scheme/).
+For an example of using the MPS, see the `Scheme interpreter
+example <example/scheme/>`_.
 
 Then, to program and integrate the MPS you'll definitely need to read
-the [manual](manual/).
+the `manual <manual/index.html>`_.
 
 
 Supported target platforms
@@ -69,35 +66,36 @@ Supported target platforms
 
 The MPS is currently supported for deployment on:
 
-  - Windows XP or later, both 32- and 64-bit
-  
-  - Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV)
-  
-  - FreeBSD 7 or later on i386 and amd64
-  
-  - Mac OS X 10.4 or later on i386 and x86_64 (single threaded only)
+- Windows XP or later on IA-32 and x86-64, using Microsoft Visual C/C++;
+
+- Linux (Ubuntu 11 and RHEL 6.3 known good, otherwise YMMV) on IA-32 and x86-64, using GCC;
+
+- FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
+
+- Mac OS X 10.4 or later, on IA-32 and x86-64 (single threaded only), using Clang/LLVM.
 
 The MPS will *not* work in a multi-threaded 32-bit application on 64-bit
 Windows 7.  This is due to a serious fault in Microsoft's WOW64 emulator
 that we are powerless to correct.  It is due to be fixed in Windows 8.
-(See [WOW64 bug: GetThreadContext() may return stale contents](http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html).)
+(See `WOW64 bug: GetThreadContext() may return stale contents <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_.)
 
 The MPS is highly portable and has run on many other processors and
-operating systems in the past (see [Building the
-MPS](manual/build.txt)).  Most of the MPS is written in very pure ANSI C
-and compiles without warnings on anything.
+operating systems in the past (see `Building the MPS
+<manual/guide/build.html>`_). Most of the MPS is written in very pure
+ANSI C and compiles without warnings on anything.
 
 
 Getting help
 ------------
 
-You can obtain expert professional support for the MPS from Ravenbrook
-Limited <http://www.ravenbrook.com/>, the developers of the MPS, who
-have many years of experience in commercial memory management systems.
-Write to us <mps-questions@ravenbrook.com> for more information.
+You can obtain expert professional support for the MPS from
+`Ravenbrook Limited <http://www.ravenbrook.com/>`_, the developers of
+the MPS, who have many years of experience in commercial memory
+management systems. Write to us at `mps-questions@ravenbrook.com
+<mailto:mps-questions@ravenbrook.com>`_ for more information.
 
 You might also want to join the MPS discussion mailing list.  To join,
-visit <http://mailman.ravenbrook.com/mailman/listinfo/mps-discussion>.
+visit `<http://mailman.ravenbrook.com/mailman/listinfo/mps-discussion>`_.
 
 
 Document History
@@ -120,8 +118,7 @@ Document History
 - 2010-03-03  RHSK  Release 1.109.0
 - 2012-08-14  RB    Updating build instructions for new platforms.
 - 2012-09-05  RB    Considerably reduced ready for version 1.110.  Now
-  brought to you in glorious
-  [Markdown](http://daringfireball.net/projects/markdown/).
+  brought to you in glorious reStructuredText.
 
 
 Copyright and Licence
