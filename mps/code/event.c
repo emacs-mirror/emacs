@@ -46,6 +46,31 @@ char *EventLast[EventKindLIMIT];
 EventControlSet EventKindControl;       /* Bit set used to control output. */
 
 
+/* A single event structure output once per buffer flush. */
+EventEventClockSyncStruct eventClockSyncStruct;
+
+
+/* eventClockSync -- Populate and write the clock sync event. */
+
+static Res eventClockSync(void)
+{
+  Res res;
+  size_t size;
+
+  size= size_tAlignUp(sizeof(eventClockSyncStruct), MPS_PF_ALIGN);
+  eventClockSyncStruct.code = EventEventClockSyncCode;
+  eventClockSyncStruct.size = (EventSize)size;
+  EVENT_CLOCK(eventClockSyncStruct.clock);
+  eventClockSyncStruct.f0 = (Word)mps_clock();
+  res = (Res)mps_io_write(eventIO, (void *)&eventClockSyncStruct, size);
+  if (res != ResOK)
+    goto failWrite;
+  
+  res = ResOK;
+failWrite:
+  return res;
+}
+
 /* EventFlush -- flush event buffer to the event stream */
 
 Res EventFlush(EventKind kind)
@@ -78,7 +103,12 @@ Res EventFlush(EventKind kind)
         goto failCreate;
       eventIOInited = TRUE;
     }
-  
+
+    /* Send an EventClockSync event */
+    res = eventClockSync();
+    if (res != ResOK)
+      goto failClockSync;
+
     /* Writing might be faster if the size is aligned to a multiple of the
        C library or kernel's buffer size.  We could pad out the buffer with
        a marker for this purpose. */
@@ -88,9 +118,10 @@ Res EventFlush(EventKind kind)
       goto failWrite;
 
   }
-  
+
   res = ResOK;
 
+failClockSync:  
 failWrite:
 failCreate:
 
@@ -178,6 +209,11 @@ void EventInit(void)
     EventKindControl = (Word)mps_lib_telemetry_control();
     EventInternSerial = (Serial)1; /* 0 is reserved */
     (void)EventInternString(MPSVersion()); /* emit version */
+    EVENT7(EventInit, EVENT_VERSION_MAJOR, EVENT_VERSION_MEDIAN,
+           EVENT_VERSION_MINOR, EventCodeMAX, EventNameMAX, MPS_WORD_WIDTH,
+           mps_clocks_per_sec());
+    /* flush these initial events to get the first ClockSync out. */
+    EventSync();
   } else {
     ++eventUserCount;
   }

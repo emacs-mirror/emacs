@@ -1,6 +1,6 @@
 Building the Memory Pool System
 ===============================
-Richard Brooksby, Ravenbrook Limited, 2012-09-05
+
 
 Introduction
 ------------
@@ -23,41 +23,44 @@ The MPS also comes with Makefiles and IDE project files for building
 libraries, tools, and tests.  See "Building the MPS for development".
 
 
-### Compiling for production
+Compiling for production
+........................
 
-In the simplest case, you can compile the MPS to an object file with just:
+In the simplest case, you can compile the MPS to an object file with just::
 
     cc -c mps.c           (Unix/Mac OS X)
     cl /c mps.c           (Windows)
-  
+
 This will build a "hot" variety (for production) object file for use
-with "mps.h".  You can greatly improve performance by allowing global
-optimization, for example:
+with ``mps.h``.  You can greatly improve performance by allowing global
+optimization, for example::
 
     cc -O2 -c mps.c       (Unix/Mac OS X)
     cl /O2 /c mps.c       (Windows)
 
 
-### Compiling for debugging
+Compiling for debugging
+.......................
 
 You can get a "cool" variety MPS (with more internal checking, for
-debugging and development) with:
+debugging and development) with::
 
-    cc -g -DCONFIG_VAR_COOL -c mps.c
-    cl /Zi /DCONFIG_VAR_COOL /c mps.c
+    cc -g -DCONFIG_VAR_COOL -c mps.c    (Unix/Mac OS X)
+    cl /Zi /DCONFIG_VAR_COOL /c mps.c   (Windows)
 
 
-### Optimizing for your object format
+Optimizing for your object format
+.................................
 
-If you are using your own object format [ref?], you will also get
-improved performance by allowing the compiler to do global optimisations
+If you are using your own :term:`object format`, you will also get
+improved performance by allowing the compiler to do global optimizations
 between it and the MPS.  So if your format implementation is in, say,
-myformat.c, then you could make a file mymps.c containing
+``myformat.c``, then you could make a file ``mymps.c`` containing::
 
     #include "mps.c"
     #include "myformat.c"
 
-then
+then::
 
     cc -O2 -c mymps.c     (Unix/Mac OS X)
     cl /O2 /c mymps.c     (Windows)
@@ -65,17 +68,18 @@ then
 This will get your format code inlined with the MPS garbage collector.
 
 
-### Compiling without the C library
+Compiling without the C library
+...............................
 
 If you're building the MPS for an environment without the standard C
-library, you can exclude the "plinth" component of the MPS with
+library, you can exclude :ref:`the plinth <topic-plinth>` component of
+the MPS with::
 
     cc -DCONFIG_PLINTH_NONE -c mps.c
     cl /Gs /DCONFIG_PLINTH_NONE /c mps.c
 
-but you must then provide your own implementation of
-[mpslib.h](../code/mps.h).  You can base this on the ANSI plinth in
-[mpsliban.c](../code/mpsliban.c).
+but you must then provide your own implementation of ``mpslib.h``.
+You can base this on the ANSI plinth in ``mpsliban.c``.
 
 If you want to do anything beyond these simple cases, use the MPS build
 as described in the section "Building the MPS for development" below.
@@ -90,162 +94,160 @@ use the MPS build.  This uses makefiles or Xcode projects.  [Coming
 soon, Microsoft Visual Studio solutions.]
 
 
-### Prerequisites
+Prerequisites
+.............
 
 For Unix-like platforms you will need the GNU Make tool.  Some platforms
 (such as Linux) have GNU Make as their default make tool.  For others
 you will need to get and install it.  (It's available free from
-<ftp://ftp.gnu.org/gnu/make/>.)  On FreeBSD this can be done as root
-with `pkg_add -r gmake`.
+`<ftp://ftp.gnu.org/gnu/make/>`_.)  On FreeBSD this can be done as root
+with ``pkg_add -r gmake``.
 
 On Windows platforms the NMAKE tool is used. This comes with Microsoft
 Visual Studio C++ or the Microsoft Windows SDK.
 
 On Mac OS X the MPS is built using Xcode, either by opening
-[mps.xcodeproj](../code/mps.xcodeproj) with the Xcode app, or using the
-command-line "xcodebuild" tool, installed from Xcode -> Preferences ->
-Downloads -> Components -> Command Line Tools.
+``mps.xcodeproj`` with the Xcode app, or using the command-line
+"xcodebuild" tool, installed from Xcode → Preferences → Downloads →
+Components → Command Line Tools.
 
 
-### Platforms
+Platforms
+.........
 
-The MPS uses a six character platform code to express a combination of
-OS/CPU architecture/compiler toolchain.  Each 6 character code breaks
-down into three groups of two characters, like this:
+The MPS uses a six-character platform code to express a combination of
+operating system, CPU architecture, and compiler toolchain.  Each
+six-character code breaks down into three pairs of characters, like
+this::
 
-  OSARCT
+    OSARCT
 
-Where OS denotes the operating system, AR denotes the CPU architecture,
-and CT denotes compiler toolchain.  Here are the platforms that we
-have regular access to and on which the MPS works well.
+Where ``OS`` denotes the operating system, ``AR`` the CPU
+architecture, and ``CT`` the compiler toolchain.  Here are the
+platforms that we have regular access to and on which the MPS works
+well:
 
-    Makefile        OS          Architecture    Compiler
-  
-    fri3gc.gmk      FreeBSD     Intel i386      GCC
-    fri6gc.gmk      FreeBSD     Intel x86_64    GCC
-    lii3gc.gmk      Linux       Intel i386      GCC
-    lii6gc.gmk      Linux       Intel x86_64    GCC
-    mps.xcodeproj   Mac OS X    i386 + x86_64   Clang
-    xci3gc.gmk      Mac OS X    i386            GCC (legacy)
-    w3i3mv.nmk      Windows     Intel i386      Microsoft C
-    w3i6mv.nmk      Windows     Intel x86_64    Microsoft C
+==========   =========   =============   ============  =================
+Platform     OS          Architecture    Compiler      Makefile
+==========   =========   =============   ============  =================
+``fri3gc``   FreeBSD     IA-32           GCC           ``fri3gc.gmk``
+``fri6gc``   FreeBSD     x86_64          GCC           ``fri6gc.gmk``
+``lii3gc``   Linux       IA-32           GCC           ``lii3gc.gmk``
+``lii6gc``   Linux       x86_64          GCC           ``lii6gc.gmk``
+``xci3ll``   Mac OS X    IA-32           Clang         ``mps.xcodeproj``
+``xci6ll``   Mac OS X    x86_64          Clang         ``mps.xcodeproj``
+``xci3gc``   Mac OS X    IA-32           GCC (legacy)  ``xci3gc.gmk``
+``w3i3mv``   Windows     IA-32           Microsoft C   ``w3i3mv.nmk``
+``w3i6mv``   Windows     x86_64          Microsoft C   ``w3i6mv.nmk``
+==========   =========   =============   ============  =================
 
-Historically the MPS has worked on a much wider variety of platforms and
-still could: IRIX, OSF/1 (Tru64), Solaris, SunOS, Classic Mac OS; MIPS,
-PowerPC, ALPHA, SPARC v8, SPARC v9; Metrowerks Codewarrior, SunPro C,
-Digital C, EGCS.  If you are interested in support on any of these
-platforms or any new platforms, please contact Ravenbrook
-<mps-questions@ravenbrook.com>.
+Historically, the MPS worked on a much wider variety of platforms, and
+still could: IRIX, OSF/1 (Tru64), Solaris, SunOS, Classic Mac OS;
+MIPS, PowerPC, ALPHA, SPARC v8, SPARC v9; Metrowerks Codewarrior,
+SunPro C, Digital C, EGCS.  If you are interested in support on any of
+these platforms or any new platforms, please contact Ravenbrook at
+`mps-questions@ravenbrook.com <mailto:mps-questions@ravenbrook.com>`_.
 
 
-### Running make
+Running make
+............
 
-To build all MPS targets on Unix-like platforms, change to the "code"
-directory and type:
+To build all MPS targets on Unix-like platforms, change to the ``code``
+directory and run the command::
 
     make -f <makefile>
 
-where "make" is the command for GNU Make.  (Sometimes this will be
-"gmake" or "gnumake".)
+where ``make`` is the command for GNU Make.  (Sometimes this will be
+``gmake`` or ``gnumake``.)
 
-To build just one target, type:
+To build just one target, run::
 
     make -f <makefile> <target>
 
-To build a restricted set of targets for just one variety, type:
+To build a restricted set of targets for just one variety, run::
 
     make -f <makefile> 'VARIETY=<variety>' <target>
 
-For example, to build just the "cool" variety of the "amcss" test on
-FreeBSD:
+For example, to build just the "cool" variety of the ``amcss`` test on
+FreeBSD::
 
     gmake -f fri3gc.gmk VARIETY=cool amcss
 
 On Windows platforms you need to run the "Visual Studio Command Prompt"
-from the Start menu.  Then type:
+from the Start menu.  Then run one of these commands::
 
     nmake /f w3i3mv.nmk         (32-bit)
     nmake /f w3i6mv.nmk         (64-bit)
 
-You will need to switch your build environment between 32-bit and 64-bit
-using Microsoft's `setenv` command, e.g. `setenv /x86` or `setenv /x64`.
+You will need to switch your build environment between 32-bit and
+64-bit using Microsoft's ``setenv`` command, for example, ``setenv
+/x86`` or ``setenv /x64``.
 
-To build just one target, type:
+To build just one target, run the command::
 
     nmake /f w3i3mv.nmk <target>
 
-On Mac OS X, you can build from the command line with:
+On Mac OS X, you can build from the command line with::
 
     xcodebuild
 
 On most platforms, the output of the build goes to a directory named
-after the platform (e.g. `fri3gc`) so that you can share the source tree
-across platforms.  On Mac OS X the output goes in a directory called
-`xc`.  Building generates "mps.a" or "mps.lib" or equivalent, a
-library of object code which you can link with your application, subject
-to the MPS licensing conditions (see [license.txt](../license.txt).  It
-also generates a number of test programs, such as "amcss" (a stress test
-for the Automatic Mostly-Copying pool class) and tools such as
-"eventcnv" (for decoding telemetry logs).
+after the platform (e.g. ``fri3gc``) so that you can share the source
+tree across platforms.  On Mac OS X the output goes in a directory
+called ``xc``.  Building generates ``mps.a`` or ``mps.lib`` or
+equivalent, a library of object code which you can link with your
+application, subject to the :ref:`MPS licensing conditions <license>`.
+It also generates a number of test programs, such as ``amcss`` (a
+stress test for the Automatic Mostly-Copying pool class) and tools
+such as ``mpseventcnv`` (for decoding telemetry logs).
 
 
 Installing the Memory Pool System
 ---------------------------------
 
-There is currently no automatic way to "install" the MPS, such as a
-`make install` command.  You can do this by copying the libraries built
-by the make to, for example, `/usr/local/lib`, and all the headers
-beginning with "mps" to `/usr/local/include`.
+Unix-like platforms can use the GNU Autoconf ``configure`` script in the
+root directory of the MPS Kit to generate a Makefile that can build and
+install the MPS.  For example::
+
+    ./configure --prefix=/opt/mps
+    make install
+
+will install the MPS public headers in ``/opt/mps/include``, the
+libraries in ``/opt/mps/lib`` etc.
+    
+There is currently no automatic way to "install" the MPS on Windows.
+
+On any platform, you can install by copying the libraries built by the
+make to, for example, ``/usr/local/lib``, and all the headers beginning
+with ``mps`` to ``/usr/local/include``.
+
+Note, however, that you may get better performance by using the method
+described in the section "Optimizing for your object format" above.
 
 
-Document History
-----------------
+mpseventsql
+...........
 
-- 2012-09-05  RB    First draft ready for version 1.110, based partly on
-  the old readme, which had grown far too long.
+The MPS Kit can build a command-line program ``mpseventsql`` that
+loads a diagnostic stream of events into a `SQLite3
+<http://www.sqlite.org/>`_ database for processing. In order to build
+this program, you need to install the SQLite3 development resources.
 
-- 2012-09-19  RB    Tidying up a few points after feedback from GDR.
+On Mac OS X, SQLite3 is pre-installed, so this tool builds by default.
 
+On Linux, you need to install the ``libsqlite3-dev`` package::
 
-Copyright and Licence
----------------------
+    apt-get install libsqlite3-dev
 
-Copyright (C) 2001-2012 Ravenbrook Limited. All rights reserved. 
-<http://www.ravenbrook.com/>. This is an open source license. Contact
-Ravenbrook for commercial licensing options.
+and then re-run ``./configure`` and ``make`` as described above.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
+On Windows, you should visit the `SQLite Download Page
+<http://www.sqlite.org/download.html>`_ and download the
+``sqlite-amalgamation`` ZIP archive. (At time of writing this is the
+first download on the page.) When you unzip the archive, you'll find
+it contains files named ``sqlite3.c`` and ``sqlite3.h``. Copy these
+two files into the ``code`` directory in the MPS Kit. Then in the
+"Visual Studio Command Prompt", visit the ``code`` directory and run
+the command::
 
-1. Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-
-3. Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
+    nmake /f w3i3mv.nmk mpseventsql.exe

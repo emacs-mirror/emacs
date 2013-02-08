@@ -1,7 +1,7 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
@@ -1672,7 +1672,10 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
     return;
   }
   SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
-  SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
+  /* AMCZ segments don't contain references and so don't need to */
+  /* become grey */
+  if(SegRankSet(seg) != RankSetEMPTY)
+    SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
 }
 
 
@@ -1792,7 +1795,8 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
-        SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
+        if(SegRankSet(seg) != RankSetEMPTY) /* not for AMCZ */
+          SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
         SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
       }
       res = ResOK;
@@ -1826,7 +1830,9 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
       /* Since we're moving an object from one segment to another, */
       /* union the greyness and the summaries together. */
-      grey = TraceSetUnion(ss->traces, SegGrey(seg));
+      grey = SegGrey(seg);
+      if(SegRankSet(seg) != RankSetEMPTY) /* not for AMCZ */
+        grey = TraceSetUnion(grey, ss->traces);
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
       SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
 
@@ -1930,7 +1936,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       /* Segment only needs greying if there are new traces for */
       /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
-        SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
+        if(SegRankSet(seg) != RankSetEMPTY) /* not for AMCZ */
+          SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
         SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
       }
       res = ResOK;
@@ -1967,7 +1974,9 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
       /* Since we're moving an object from one segment to another, */
       /* union the greyness and the summaries together. */
-      grey = TraceSetUnion(ss->traces, SegGrey(seg));
+      grey = SegGrey(seg);
+      if(SegRankSet(seg) != RankSetEMPTY) /* not for AMCZ */
+        grey = TraceSetUnion(grey, ss->traces);
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
       SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
 
@@ -2429,7 +2438,7 @@ mps_class_t mps_class_amcz(void)
 */
 
 typedef struct mps_amc_apply_closure_s {
-  void (*f)(mps_addr_t object, void *p, size_t s);
+  mps_amc_apply_stepper_t f;
   void *p;
   size_t s;
 } mps_amc_apply_closure_s;
@@ -2449,7 +2458,7 @@ static void mps_amc_apply_iter(Addr addr, Format format, Pool pool,
 }
 
 void mps_amc_apply(mps_pool_t mps_pool,
-                   void (*f)(mps_addr_t object, void *p, size_t s),
+                   mps_amc_apply_stepper_t f,
                    void *p, size_t s)
 {
   Pool pool = (Pool)mps_pool;
@@ -2499,7 +2508,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

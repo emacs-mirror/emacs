@@ -2,40 +2,49 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts a binary format telemetry output
- * stream from the MPS into several textual formats.
+ * stream from the MPS into a more-portable textual format.
  *
- * The default MPS library will write a telemetry stream to a file called
- * "mpsio.log" when the environment variable MPS_TELEMETRY_CONTROL is set
- * to an integer whose bits select event kinds.  For example:
+ * eventcnv can only read binary-format files that come from an MPS
+ * compiled on the same platform, whereas the text-format files it
+ * produces can be processed on any platform.
+ *
+ * The default MPS library will write a telemetry stream to a file
+ * when the environment variable MPS_TELEMETRY_CONTROL is set to an
+ * integer whose bits select event kinds.  For example:
  *
  *   MPS_TELEMETRY_CONTROL=7 amcss
  *
- * will run the amcss test program and emit a file with event kinds 0, 1, 2.
- * The file can then be converted into text format with a command like:
+ * will run the amcss test program and emit a telemetry file with
+ * event kinds 0, 1, 2.  The file can then be converted into a sorted
+ * text format log with a command like:
  *
- *   eventcnv -v | sort
+ *   eventcnv | sort > mps-events.txt
  *
- * Note that the eventcnv program can only read streams that come from an
- * MPS compiled on the same platform.
- *
+ * These text-format files have one line per event, and can be
+ * manipulated by various programs systems in the usual Unix way.
+ * 
+ * The binary telemetry filename can be specified with a -f
+ * command-line argument (use -f - to specify standard input).  If no
+ * filename is specified on the command line, the environment variable
+ * MPS_TELEMETRY_FILENAME is consulted (this is the same environment
+ * variable used to specify the telemetry file to the MPS library).
+ * If the environment variable does not exist, the default filename of
+ * "mpsio.log" is used.
+ * 
  * $Id$
  */
 
 #include "config.h"
-
 #include "eventdef.h"
 #include "eventcom.h"
 #include "eventpro.h"
-#include "mpmtypes.h"
 #include "testlib.h" /* for ulongest_t and associated print formats */
 
 #include <stddef.h> /* for size_t */
 #include <stdio.h> /* for printf */
-#include <stdarg.h> /* for va_list */
 #include <stdlib.h> /* for EXIT_FAILURE */
 #include <assert.h> /* for assert */
 #include <string.h> /* for strcmp */
-#include <math.h> /* for sqrt */
 #include "mpstd.h"
 
 #ifdef MPS_BUILD_MV
@@ -44,47 +53,45 @@
 #pragma warning( disable : 4996 )
 #endif
 
-
-
-typedef unsigned int uint;
-typedef unsigned long ulong;
-
+#define DEFAULT_TELEMETRY_FILENAME "mpsio.log"
+#define TELEMETRY_FILENAME_ENVAR   "MPS_TELEMETRY_FILENAME"
 
 static EventClock eventTime; /* current event time */
-
-
-/* event counters */
-
-typedef unsigned long eventCountArray[EventCodeMAX+1];
-static unsigned long bucketEventCount[EventCodeMAX+1];
-static unsigned long totalEventCount[EventCodeMAX+1];
-
-
 static char *prog; /* program name */
 
+/* Errors and Warnings */
 
-/* command-line arguments */
+/* fevwarn -- flush stdout, write message to stderr */
 
-static Bool verbose = FALSE;
-/* style: '\0' for human-readable, 'L' for Lisp, 'C' for CDF. */
-static char style = '\0';
-static Bool reportStats = FALSE;
-static Bool eventEnabled[EventCodeMAX+1];
-static Word bucketSize = 0;
+static void fevwarn(const char *prefix, const char *format, va_list args)
+{
+  fflush(stdout); /* sync */
+  fprintf(stderr, "%s: %s @", prog, prefix);
+  EVENT_CLOCK_PRINT(stderr, eventTime);
+  fprintf(stderr, " ");
+  vfprintf(stderr, format, args);
+  fprintf(stderr, "\n");
+}
 
+/* evwarn -- flush stdout, warn to stderr */
 
-/* everror -- error signalling */
+static void evwarn(const char *format, ...)
+{
+  va_list args;
+
+  va_start(args, format);
+  fevwarn("Warning", format, args);
+  va_end(args);
+}
+
+/* everror -- flush stdout, mesage to stderr, exit */
 
 static void everror(const char *format, ...)
 {
   va_list args;
 
-  fflush(stdout); /* sync */
-  fprintf(stderr, "%s: @", prog);
-  EVENT_CLOCK_PRINT(stderr, eventTime);
   va_start(args, format);
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
+  fevwarn("Error", format, args);
   va_end(args);
   exit(EXIT_FAILURE);
 }
@@ -95,8 +102,8 @@ static void everror(const char *format, ...)
 static void usage(void)
 {
   fprintf(stderr,
-          "Usage: %s [-f logfile] [-p] [-v] [-e events] [-b size]"
-          " [-S[LC]] [-?]\nSee guide.mps.telemetry for instructions.\n",
+          "Usage: %s [-f logfile] [-h]\n"
+          "See \"Telemetry\" in the reference manual for instructions.\n",
           prog);
 }
 
@@ -110,41 +117,11 @@ static void usageError(void)
 }
 
 
-/* parseEventSpec -- parses an event spec
- *
- * The spec is of the form: <name>[(+|-)<name>]...
- * The first name can be 'all'.
- */
-
-static void parseEventSpec(const char *arg)
-{
-  size_t arglen;
-  EventCode i;
-  const char *end;
-  char name[EventNameMAX+1];
-  Bool enabled = TRUE;
-
-  end = arg + strlen(arg);
-  for(i = 0; i <= EventCodeMAX; ++i)
-    eventEnabled[i] = FALSE;
-  do {
-    arglen = strcspn(arg, "+-");
-    strncpy(name, arg, arglen); name[arglen] = '\0';
-    if (strcmp(name, "all") == 0) {
-      for(i = 0; i <= EventCodeMAX; ++i)
-        eventEnabled[i] = EventCodeIsValid(i);
-    } else
-      eventEnabled[EventName2Code(name)] = enabled;
-    enabled = (arg[arglen] == '+'); arg += arglen + 1;
-  } while (arg < end);
-}
-
-
 /* parseArgs -- parse command line arguments, return log file name */
 
 static char *parseArgs(int argc, char *argv[])
 {
-  char *name = "mpsio.log";
+  char *name = NULL;
   int i = 1;
 
   if (argc >= 1)
@@ -162,34 +139,9 @@ static char *parseArgs(int argc, char *argv[])
         else
           name = argv[i];
         break;
-      case 'v': /* verbosity */
-        verbose = TRUE;
-        break;
-      case 'e': { /* event statistics */
-        reportStats = TRUE;
-        ++ i;
-        if (i == argc)
-          usageError();
-        else
-          parseEventSpec(argv[i]);
-      } break;
-      case 'b': { /* bucket size */
-        ++ i;
-        if (i == argc)
-          usageError();
-        else {
-          int n;
-
-          n = sscanf(argv[i], "%lu", &bucketSize);
-          if (n != 1) usageError();
-        }
-      } break;
-      case 'S': /* style */
-        style = argv[i][2]; /* '\0' for human-readable, 'L' for Lisp, */
-        break;              /* 'C' for CDF. */
       case '?': case 'h': /* help */
         usage();
-        break;
+        exit(EXIT_SUCCESS);
       default:
         usageError();
       }
@@ -200,252 +152,41 @@ static char *parseArgs(int argc, char *argv[])
 }
 
 
-/* recordEvent -- record event
- *
- * This is the beginning of a system to model MPS state as events are read,
- * but for the moment it just records which strings have been interned
- * and which addresses have been labelled with them.
- *
- * NOTE: Since branch/2012-08-21/diagnostic-telemetry events are no longer
- * in order in the event stream, so eventcnv would need some serious
- * rethinking to model state.  It's questionable that it should attempt it
- * or event try to label addresses, but instead leave that to later stages of
- * processing.  RB 2012-09-07
- */
-
-static void recordEvent(EventProc proc, Event event, EventClock etime)
-{
-  Res res;
-
-  res = EventRecord(proc, event, etime);
-  if (res != ResOK)
-    everror("Can't record event: error %d.", res);
-  switch(event->any.code) {
-  default:
-    break;
-  }
-}
-
-
 /* Printing routines */
 
+static void printHex(ulongest_t val)
+{
+  printf(" %"PRIXLONGEST, (ulongest_t)val);
+}
+        
+#define printParamP(p) printHex((ulongest_t)p)
+#define printParamA(a) printHex((ulongest_t)a)
+#define printParamU(u) printHex((ulongest_t)u)
+#define printParamW(w) printHex((ulongest_t)w)
+#define printParamB(b) printHex((ulongest_t)b)
 
-/* printStr -- print an EventString */
+static void printParamD(double d)
+{
+  printf(" %.10G", d);
+}
 
-static void printStr(const char *str, Bool quotes)
+static void printParamS(const char *str)
 {
   size_t i;
-
-  if (quotes) putchar('"');
+  putchar(' ');
+  putchar('"');
   for (i = 0; str[i] != '\0'; ++i) {
     char c = str[i];
-    if (quotes && (c == '"' || c == '\\')) putchar('\\');
+    if (c == '"' || c == '\\') putchar('\\');
     putchar(c);
   }
-  if (quotes) putchar('"');
+  putchar('"');
 }
 
-
-/* printAddr -- print an Addr or its label */
-
-static void printAddr(EventProc proc, Addr addr)
-{
-  Word label;
-
-  label = AddrLabel(proc, addr);
-  if (label != 0 && addr != 0) {
-    /* We assume labelling zero is meant to record a point in time */
-    const char *sym = LabelText(proc, label);
-    if (sym != NULL) {
-      putchar(' ');
-      printStr(sym, (style == 'C'));
-    } else {
-      printf((style == '\0') ?
-             " sym%05"PRIXLONGEST :
-             " \"sym %"PRIXLONGEST"\"",
-             (ulongest_t)label);
-    }
-  } else
-    printf(style != 'C' ?
-           " %0"PRIwWORD PRIXLONGEST :
-           " %"PRIuLONGEST,
-           (ulongest_t)addr);
-}
-
-
-/* reportEventResults -- report event counts from a count array */
-
-static void reportEventResults(eventCountArray eventCounts)
-{
-  EventCode i;
-  unsigned long total = 0;
-
-  for(i = 0; i <= EventCodeMAX; ++i) {
-    total += eventCounts[i];
-    if (eventEnabled[i])
-      switch (style) {
-      case '\0':
-        printf(" %5lu", eventCounts[i]);
-        break;
-      case 'L':
-        printf(" %lX", eventCounts[i]);
-        break;
-      case 'C':
-        printf(", %lu", eventCounts[i]);
-        break;
-      }
-  }
-  switch (style) {
-  case '\0':
-    printf(" %5lu\n", total);
-    break;
-  case 'L':
-    printf(" %lX)\n", total);
-    break;
-  case 'C':
-    printf(", %lu\n", total);
-    break;
-  }
-}
-
-
-/* reportBucketResults -- report results of the current bucket */
-
-static void reportBucketResults(EventClock bucketLimit)
-{
-  switch (style) {
-  case '\0':
-    EVENT_CLOCK_PRINT(stdout, bucketLimit);
-    putchar(':');
-    break;
-  case 'L':
-    putchar('(');
-    EVENT_CLOCK_PRINT(stdout, bucketLimit);
-    break;
-  case 'C':
-    EVENT_CLOCK_PRINT(stdout, bucketLimit);
-    break;
-  }
-  if (reportStats) {
-    reportEventResults(bucketEventCount);
-  }
-}
-
-
-/* clearBucket -- clear bucket */
-
-static void clearBucket(void)
-{
-  EventCode i;
-
-  for(i = 0; i <= EventCodeMAX; ++i)
-    bucketEventCount[i] = 0;
-}
-
-
-/* printParam* -- printing functions for event parameter types */
-
-static void printParamA(EventProc proc, char *styleConv, Addr addr)
-{
-  if (style != 'L') {
-    if (style == 'C') putchar(',');
-    printAddr(proc, addr);
-  } else
-    printf(styleConv, (ulongest_t)addr);
-}
-
-static void printParamP(EventProc proc, char *styleConv, void *p)
-{
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)p);
-}
-
-static void printParamU(EventProc proc, char *styleConv, unsigned u)
-{
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)u);
-}
-
-static void printParamW(EventProc proc, char *styleConv, Word w)
-{
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)w);
-}
-
-static void printParamD(EventProc proc, char *styleConv, double d)
-{
-  UNUSED(proc);
-  UNUSED(styleConv);
-  switch (style) {
-  case '\0':
-    printf(" %#8.3g", d); break;
-  case 'C':
-    printf(", %.10G", d); break;
-  case 'L':
-    printf(" %#.10G", d); break;
-  }
-}
-
-static void printParamS(EventProc proc, char *styleConv, const char *s)
-{
-  UNUSED(proc);
-  UNUSED(styleConv);
-  if (style == 'C') putchar(',');
-  putchar(' ');
-  printStr(s, (style == 'C' || style == 'L'));
-}
-
-static void printParamB(EventProc proc, char *styleConv, Bool b)
-{
-  UNUSED(proc);
-  UNUSED(proc);
-  printf(styleConv, (ulongest_t)b);
-}
-
-
-/* readLog -- read and parse log
- *
- * This is the heart of eventcnv: It reads an event log using EventRead.
- * It updates the counters.  If verbose is true, it looks up the format,
- * parses the arguments, and prints a representation of the event.  Each
- * argument is printed using printArg (see RELATION, below), except for
- * some event types that are handled specially.
- */
+/* readLog -- read and parse log */
 
 static void readLog(EventProc proc)
 {
-  EventCode c;
-  Word bucketLimit = bucketSize;
-  char *styleConv = NULL; /* suppress uninit warning */
-
-  /* Print event count header. */
-  if (reportStats) {
-    if (style == '\0') {
-      printf("  bucket:");
-      for(c = 0; c <= EventCodeMAX; ++c)
-        if (eventEnabled[c])
-          printf("  %04X", (unsigned)c);
-      printf("   all\n");
-    }
-  }
-
-  /* Init event counts. */
-  for(c = 0; c <= EventCodeMAX; ++c)
-    totalEventCount[c] = 0;
-  clearBucket();
-
-  /* Init style. */
-  switch (style) {
-  case '\0':
-    styleConv = " %8"PRIXLONGEST; break;
-  case 'C':
-    styleConv = ", %"PRIuLONGEST; break;
-  case 'L':
-    styleConv = " %"PRIXLONGEST; break;
-  default:
-    everror("Unknown style code '%c'", style);
-  }
-
   while (TRUE) { /* loop for each event */
     Event event;
     EventCode code;
@@ -457,180 +198,55 @@ static void readLog(EventProc proc)
     if (res != ResOK) everror("Truncated log");
     eventTime = event->any.clock;
     code = event->any.code;
+    
+    /* Special handling for some events, prior to text output */
 
-    /* Output bucket, if necessary, and update counters */
-    if (bucketSize != 0 && eventTime >= bucketLimit) {
-      reportBucketResults(bucketLimit-1);
-      clearBucket();
-      do {
-        bucketLimit += bucketSize;
-      } while (eventTime >= bucketLimit);
+    switch(code) {
+    case EventEventInitCode:
+      if ((event->EventInit.f0 != EVENT_VERSION_MAJOR) ||
+          (event->EventInit.f1 != EVENT_VERSION_MEDIAN) ||
+          (event->EventInit.f2 != EVENT_VERSION_MINOR))
+        evwarn("Event log version does not match: %d.%d.%d vs %d.%d.%d",
+               event->EventInit.f0,
+               event->EventInit.f1,
+               event->EventInit.f2,
+               EVENT_VERSION_MAJOR,
+               EVENT_VERSION_MEDIAN,
+               EVENT_VERSION_MINOR);
+
+      if (event->EventInit.f3 > EventCodeMAX)
+        evwarn("Event log may contain unknown events with codes from %d to %d",
+               EventCodeMAX+1, event->EventInit.f3);
+
+      if (event->EventInit.f5 != MPS_WORD_WIDTH)
+        /* This probably can't happen; other things will break
+         * before we get here */
+        evwarn("Event log has incompatible word width: %d instead of %d",
+               event->EventInit.f5,
+               MPS_WORD_WIDTH);
+      break;
     }
-    if (reportStats) {
-      ++bucketEventCount[code];
-      ++totalEventCount[code];
+
+    EVENT_CLOCK_PRINT(stdout, eventTime);
+    printf(" %4X", (unsigned)code);
+
+    switch (code) {
+#define EVENT_PARAM_PRINT(name, index, sort, ident)     \
+      printParam##sort(event->name.f##index);
+#define EVENT_PRINT(X, name, code, always, kind)        \
+      case code:                                        \
+        EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name)  \
+        break;
+      EVENT_LIST(EVENT_PRINT, X)
+    default:
+      evwarn("Unknown event code %d", code);
     }
 
-    /* Output event. */
-    if (verbose) {
-      if (style == 'L') putchar('(');
-
-      switch (style) {
-      case '\0': case 'L':
-        EVENT_CLOCK_PRINT(stdout, eventTime);
-        putchar(' ');
-        break;
-      case 'C':
-        EVENT_CLOCK_PRINT(stdout, eventTime);
-        fputs(", ", stdout);
-        break;
-      }
-
-      switch (style) {
-      case '\0': case 'L': {
-        printf("%-19s ", EventCode2Name(code));
-      } break;
-      case 'C':
-        printf("%u", (unsigned)code);
-        break;
-      }
-
-     switch (code) {
-
-     case EventLabelCode:
-       switch (style) {
-       case '\0': case 'C':
-         {
-           const char *sym = LabelText(proc, event->Label.f1);
-           printf(style == '\0' ?
-                  " %08"PRIXLONGEST" " :
-                  ", %"PRIuLONGEST", ",
-                  (ulongest_t)event->Label.f0);
-           if (sym != NULL) {
-             printStr(sym, (style == 'C'));
-           } else {
-             printf(style == '\0' ?
-                    "sym %05"PRIXLONGEST :
-                    "sym %"PRIXLONGEST"\"",
-                    (ulongest_t)event->Label.f1);
-           }
-         }
-         break;
-       case 'L':
-         printf(" %"PRIXLONGEST" %"PRIXLONGEST,
-                (ulongest_t)event->Label.f0,
-                (ulongest_t)event->Label.f1);
-         break;
-       }
-       break;
-
-     case EventMeterValuesCode:
-       switch (style) {
-       case '\0':
-         if (event->MeterValues.f3 == 0) {
-           printf(" %08"PRIXLONGEST"        0      N/A      N/A      N/A      N/A",
-                  (ulongest_t)event->MeterValues.f0);
-         } else {
-           double mean = event->MeterValues.f1 / (double)event->MeterValues.f3;
-           /* .stddev: stddev = sqrt(meanSquared - mean^2), but see */
-           /* <code/meter.c#limitation.variance>. */
-           double stddev = sqrt(fabs(event->MeterValues.f2
-                                     - (mean * mean)));
-           printf(" %08"PRIXLONGEST" %8u %8u %8u %#8.3g %#8.3g",
-                  (ulongest_t)event->MeterValues.f0, (uint)event->MeterValues.f3,
-                  (uint)event->MeterValues.f4, (uint)event->MeterValues.f5,
-                  mean, stddev);
-         }
-         printAddr(proc, (Addr)event->MeterValues.f0);
-         break;
-
-       case 'C':
-         putchar(',');
-         printAddr(proc, (Addr)event->MeterValues.f0);
-         printf(", %.10G, %.10G, %u, %u, %u",
-                event->MeterValues.f1, event->MeterValues.f2,
-                (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
-                (uint)event->MeterValues.f5);
-         break;
-
-       case 'L':
-         printf(" %"PRIXLONGEST" %#.10G %#.10G %X %X %X",
-                (ulongest_t)event->MeterValues.f0,
-                event->MeterValues.f1, event->MeterValues.f2,
-                (uint)event->MeterValues.f3, (uint)event->MeterValues.f4,
-                (uint)event->MeterValues.f5);
-         break;
-       }
-       break;
-
-     case EventPoolInitCode: /* pool, arena, class */
-       printf(styleConv, (ulongest_t)event->PoolInit.f0);
-       printf(styleConv, (ulongest_t)event->PoolInit.f1);
-       /* class is a Pointer, but we label them, so call printAddr */
-       if (style != 'L') {
-         if (style == 'C') putchar(',');
-         printAddr(proc, (Addr)event->PoolInit.f2);
-       } else
-         printf(styleConv, (ulongest_t)event->PoolInit.f2);
-       break;
-
-     default:
-#define EVENT_PARAM_PRINT(name, index, sort, ident) \
-         printParam##sort(proc, styleConv, event->name.f##index);
-#define EVENT_PRINT(X, name, code, always, kind) \
-       case code: \
-         EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name) \
-         break;
-       switch (code) { EVENT_LIST(EVENT_PRINT, X) }
-     }
-
-      if (style == 'L') putchar(')');
-      putchar('\n');
-      fflush(stdout);
-    }
-    recordEvent(proc, event, eventTime);
+    putchar('\n');
+    fflush(stdout);
     EventDestroy(proc, event);
   } /* while(!feof(input)) */
-
-  /* report last bucket (partial) */
-  if (bucketSize != 0) {
-    reportBucketResults(eventTime);
-  }
-  if (reportStats) {
-    /* report totals */
-    switch (style) {
-    case '\0':
-      printf("\n     run:");
-      break;
-    case 'L':
-      printf("(t");
-      break;
-    case 'C':
-      {
-        /* FIXME: This attempted to print the event stats on a row that
-           resembled a kind of final event, but the event clock no longer runs
-           monotonically upwards. */
-        EventClock last = eventTime + 1;
-        EVENT_CLOCK_PRINT(stdout, last);
-      }
-      break;
-    }
-    reportEventResults(totalEventCount);
-
-    /* explain event codes */
-    if (style == '\0') {
-      printf("\n");
-      for(c = 0; c <= EventCodeMAX; ++c)
-        if (eventEnabled[c])
-          printf(" %04X %s\n", (unsigned)c, EventCode2Name(c));
-      if (bucketSize == 0)
-        printf("\nevent clock stopped at ");
-        EVENT_CLOCK_PRINT(stdout, eventTime);
-        printf("\n");
-    }
-  }
 }
-
 
 /* logReader -- reader function for a file log */
 
@@ -663,9 +279,13 @@ int main(int argc, char *argv[])
   assert(CHECKCONV(ulongest_t, Addr));
   assert(CHECKCONV(ulongest_t, void *));
   assert(CHECKCONV(ulongest_t, EventCode));
-  assert(CHECKCONV(Addr, void *)); /* for labelled pointers */
 
   filename = parseArgs(argc, argv);
+  if (!filename) {
+    filename = getenv(TELEMETRY_FILENAME_ENVAR);
+    if(!filename)
+      filename = DEFAULT_TELEMETRY_FILENAME;
+  }
 
   if (strcmp(filename, "-") == 0)
     input = stdin;
@@ -688,7 +308,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -49,7 +49,6 @@
 
 #include "mpm.h"
 #include "mps.h"
-#include "mpsavm.h" /* only for mps_space_create */
 #include "sac.h"
 #include "chain.h"
 
@@ -941,8 +940,9 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 
 /* mps_ap_fill -- called by mps_reserve when an AP hasn't enough arena
  *
- * .ap.fill.internal: Note that mps_ap_fill should never be "called"
- * directly by the client code.  It is invoked by the mps_reserve macro.  */
+ * .ap.fill.internal: mps_ap_fill is normally invoked by the
+ * mps_reserve macro, but may be "called" directly by the client code
+ * if necessary. See <manual/topic/allocation> */
 
 mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 {
@@ -1007,8 +1007,9 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap,
 
 /* mps_ap_trip -- called by mps_commit when an AP is tripped
  *
- * .ap.trip.internal: Note that mps_ap_trip should never be "called"
- * directly by the client code.  It is invoked by the mps_commit macro.  */
+ * .ap.trip.internal: mps_ap_trip is normally invoked by the
+ * mps_commit macro, but may be "called" directly by the client code
+ * if necessary. See <manual/topic/allocation> */
 
 mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
@@ -1687,19 +1688,35 @@ mps_res_t mps_alert_collection_set(mps_arena_t arena,
 
 /* Telemetry */
 
+/* TODO: need to consider locking. See job003387, job003388. */
+
 mps_word_t mps_telemetry_control(mps_word_t resetMask, mps_word_t flipMask)
 {
-  /* Doesn't require locking and isn't arena-specific. */
   return EventControl((Word)resetMask, (Word)flipMask);
 }
 
-mps_word_t mps_telemetry_intern(const char *label)
+void mps_telemetry_set(mps_word_t setMask)
 {
-  AVER(label != NULL);
-  return (mps_word_t)EventInternString(label);
+  EventControl((Word)setMask, (Word)setMask);
 }
 
-void mps_telemetry_label(mps_addr_t addr, mps_word_t intern_id)
+void mps_telemetry_reset(mps_word_t resetMask)
+{
+  EventControl((Word)resetMask, 0);
+}
+
+mps_word_t mps_telemetry_get(void)
+{
+  return EventControl(0, 0);
+}
+
+mps_label_t mps_telemetry_intern(const char *label)
+{
+  AVER(label != NULL);
+  return (mps_label_t)EventInternString(label);
+}
+
+void mps_telemetry_label(mps_addr_t addr, mps_label_t intern_id)
 {
   EventLabelAddr((Addr)addr, (Word)intern_id);
 }

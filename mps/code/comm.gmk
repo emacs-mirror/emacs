@@ -11,7 +11,12 @@
 # PARAMETERS
 #
 # Assumes the following variables and definitions:
+# EXTRA_TARGETS     a list of extra targets to build
 # CFLAGSCOMPILER    a list of flags for all compilations
+# CFLAGSSTRICT      a list of flags for almost all compilations
+# CFLAGSLAX         a list of flags for compilations which can't be as
+#                   strict (e.g. because they have to include a third-
+#                   party header file that isn't -ansi -pedantic).
 # CFLAGSDEBUG       a list of flags for compilations with maximum debug
 #                   information, and any optimization possible
 # CFLAGSOPT         a list of flags for compilations with maximum
@@ -63,6 +68,15 @@ ifndef CFLAGSOPT
 error "comm.gmk: CFLAGSOPT not defined"
 endif
 
+
+# EXTRA TARGETS
+#
+# Don't build mpseventsql by default (might not have sqlite3 installed),
+# but do build mpseventcnv and mpseventtxt.
+
+EXTRA_TARGETS ?= mpseventcnv mpseventtxt
+
+
 #
 # %%PART: When adding a new part, add checks for the parameter with the
 #         sources for the new part.
@@ -92,7 +106,8 @@ endif
 # These flags are included in all compilations.
 # Avoid using PFMDEFS in platform makefiles, as they prevent the MPS being
 # built with a simple command like "cc -c mps.c".
-CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER)
+CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERSTRICT)
+CFLAGSCOMMONLAX = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERLAX)
 
 # %%VARIETY: When adding a new variety, define a macro containing the set
 # of flags for the new variety.
@@ -108,15 +123,19 @@ CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
 # CFLAGS here.
 ifeq ($(VARIETY),rash)
 CFLAGS=$(CFLAGSCOMMON) $(CFRASH)
+CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFRASH)
 else
 ifeq ($(VARIETY),hot)
 CFLAGS=$(CFLAGSCOMMON) $(CFHOT)
+CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFHOT)
 else
 ifeq ($(VARIETY),diag)
 CFLAGS=$(CFLAGSCOMMON) $(CFDIAG)
+CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFDIAG)
 else
 ifeq ($(VARIETY),cool)
 CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
+CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFCOOL)
 else
 endif
 endif
@@ -203,7 +222,7 @@ all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      finalcv finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
      walkt0 zcoll zmess \
-     eventcnv \
+     $(EXTRA_TARGETS) \
      mps.a mpsplan.a
 
 
@@ -232,7 +251,7 @@ mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   walkt0 \
   exposet0 \
   zcoll zmess \
-  eventcnv replay replaysw \
+  $(EXTRA_TARGETS) replay replaysw \
   mps.a mpsplan.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
@@ -414,8 +433,14 @@ $(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
 $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
+$(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
+  $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mpseventsql: $(PFM)/$(VARIETY)/eventsql.o \
+  $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \
@@ -440,9 +465,19 @@ mkdir -p $(PFM)/$(VARIETY)
 $(CC) $(CFLAGS) -c -o $@ $<
 endef
 
+define run-cc-lax
+$(ECHO) "$(PFM): $@ - compiling with lax flags."
+mkdir -p $(PFM)
+mkdir -p $(PFM)/$(VARIETY)
+$(CC) $(CFLAGSLAX) -c -o $@ $<
+endef
+
 # .rule.c-to-o:
 $(PFM)/$(VARIETY)/%.o: %.c
 	$(run-cc)
+
+$(PFM)/$(VARIETY)/eventsql.o: eventsql.c
+	$(run-cc-lax)                              
 
 $(PFM)/$(VARIETY)/%.o: %.s
 	$(run-cc)
@@ -507,6 +542,9 @@ $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
 	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS)
 
+$(PFM)/$(VARIETY)/mpseventsql:
+	$(ECHO) "$(PFM): $@"
+	$(CC) $(CFLAGS) $(LINKFLAGS) -o $@ $^ $(LIBS) -lsqlite3
 
 # Special targets for development
 
