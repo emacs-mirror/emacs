@@ -53,19 +53,23 @@ demonstration of :term:`Lisp` in an appendix to his paper
 Telemetry utilities
 -------------------
 
-The telemetry system relies on two utility programs:
+The telemetry system relies on three utility programs:
 
-* :program:`mpseventcnv` decodes the machine-dependent binary event
-  stream into a portable text format. It must be compiled for the same
-  architecture as the MPS-linked program whose event stream it
-  decodes.
+* :ref:`mpseventcnv <telemetry-mpseventcnv>` decodes the
+  machine-dependent binary event stream into a portable text format.
+  It must be compiled for the same architecture as the MPS-linked
+  program whose event stream it decodes.
 
-* :program:`mpseventsql` takes the output of :program:`mpseventcnv`
-  and loads it into a SQLite database for further analysis.
+* :ref:`mpseventtxt <telemetry-mpseventtxt>` takes the output of
+  :ref:`mpseventcnv <telemetry-mpseventcnv>` and outputs it in a more
+  human-readable form.
+
+* :ref:`mpseventsql <telemetry-mpseventsql>` takes the output of
+  :ref:`mpseventcnv <telemetry-mpseventcnv>` and loads it into a
+  SQLite database for further analysis.
 
 You must build and install these programs as described in
-:ref:`guide-build`.
-
+:ref:`guide-build`. Thee programs are described in more detail below.
 
 
 .. index::
@@ -104,9 +108,10 @@ now we can just call it directly from the debugger::
     $1 = void
 
 The MPS writes the telemetry to the log in an encoded form for speed.
-It can be decoded using the :program:`mpseventcnv` program::
+It can be decoded using the :ref:`mpseventcnv <telemetry-mpseventcnv>`
+and :ref:`mpseventtxt <telemetry-mpseventtxt>` programs::
 
-    (gdb) shell mpseventcnv | sort > mpsio.txt
+    (gdb) shell mpseventcnv | mpseventtxt | sort > mpsio.txt
 
 The ``sort`` is useful because the events are not necessarily written
 to the telemetry file in time order, but each event starts with a
@@ -119,14 +124,14 @@ as the `Time Stamp Counter
 <http://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
 x86-64, if one is available. All numbers are given in hexadecimal. ::
 
-    000AE03973336E3C 2B 1003FC000 1003FD000 1003FE000
-    000AE0397333BC6D 2D 1003FC000 1003FD000 1003FE000
-    000AE0397334DF9F 1A 2 "Reservoir"
-    000AE0397334E0A0 1B 1078C85B8 2
-    000AE03973352375 15 1003FD328 1003FD000 1078C85B8
-    000AE039733592F9 2B 1003FE000 1003FF000 10992F000
-    000AE0397335C8B5 2D 1003FE000 1003FF000 107930000
-    000AE03973361D5A 5 1003FD000 2000000 2000000
+    000AE03973336E3C 002B VMCreate            vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
+    000AE0397333BC6D 002D VMMap               vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
+    000AE0397334DF9F 001A Intern              stringId:0000000000000002 string:"Reservoir" 
+    000AE0397334E0A0 001B Label               address:00000001078C85B8["Reservoir"] stringId:0000000000000002 
+    000AE03973352375 0015 PoolInit            pool:00000001003FD328 arena:00000001003FD000 poolClass:00000001078C85B8["Reservoir"] 
+    000AE039733592F9 002B VMCreate            vm:00000001003FE000 base:00000001003FF000 limit:000000010992F000 
+    000AE0397335C8B5 002D VMMap               vm:00000001003FE000 base:00000001003FF000 limit:0000000107930000 
+    000AE03973361D5A 0005 ArenaCreateVM       arena:00000001003FD000 userSize:0000000002000000 chunkSize:0000000002000000 
 
 You can search through the telemetry for events related to particular
 addresses of interest.
@@ -214,7 +219,7 @@ telemetry feature.
         MPS_TELEMETRY_FILENAME=$(mktemp -t mps)
 
 In addition, the following environment variable controls the behaviour
-of the :program:`mpseventsql` program.
+of the :ref:`mpseventsql <telemetry-mpseventsql>` program.
 
 .. envvar:: MPS_TELEMETRY_DATABASE
 
@@ -232,11 +237,16 @@ of the :program:`mpseventsql` program.
 Decoding the telemetry stream
 -----------------------------
 
-The MPS writes the telemetry stream in an encoded form for speed. It
-can be decoded using the :program:`mpseventcnv` program, which prints (to
-standard output) a representation of each event in the stream.
+The MPS writes the telemetry stream in a binary encoded format for
+speed. The encoding is specific to the platform the program was
+running on, and so the output needs to be decoded before it can be
+processed.
 
-:program:`mpseventcnv` takes the following arguments:
+The decoding takes place in two stages. First, the program
+:program:`mpseventcnv` converts the binary encoded format into a
+portable text format suitable for input to one of the second-stage
+tools (:ref:`mpseventtxt <telemetry-mpseventtxt>` and
+:ref:`mpseventsql <telemetry-mpseventsql>`).
 
 .. program:: mpseventcnv
 
@@ -254,16 +264,55 @@ standard output) a representation of each event in the stream.
     :program:`mpseventcnv` can only read telemetry streams that were
     written by an MPS compiled on the same platform.
 
-    The events are printed in the order that they were written by the
-    MPS, which is not the same as the order that they
-    occurred. However, each event is prefixed by a timestamp, so that
-    a time series of events can be obtained by sorting the output:
-    ``mpseventcnv | sort``.
+Here's some example output. The first column contains the timestamp of
+the event, the second column contains the event type, and remaining
+columns contain parameters related to the event. ::
 
-    The output is not intended for human consumption, but for input to
-    tools like :program:`mpseventsql`. Unlike the encoded telemetry
-    stream, the output is platform-independent, so that you can
-    generate a telemetry stream on one platform and analyze it on another.
+    000AE03973336E3C 2B 1003FC000 1003FD000 1003FE000
+    000AE0397333BC6D 2D 1003FC000 1003FD000 1003FE000
+    000AE0397334DF9F 1A 2 "Reservoir"
+    000AE0397334E0A0 1B 1078C85B8 2
+    000AE03973352375 15 1003FD328 1003FD000 1078C85B8
+    000AE039733592F9 2B 1003FE000 1003FF000 10992F000
+    000AE0397335C8B5 2D 1003FE000 1003FF000 107930000
+    000AE03973361D5A 5 1003FD000 2000000 2000000
+
+
+.. index::
+   single: telemetry; making event stream readable
+
+.. _telemetry-mpseventtxt:
+
+Making the telemetry stream readable
+------------------------------------
+
+The output of :ref:`mpseventcnv <telemetry-mpseventcnv>` can be made
+more readable by passing it through :program:`mpseventtxt`, which
+takes the following options:
+
+.. program:: mpseventtxt
+
+.. option:: -l <filename>
+
+    The name of a file containing telemetry events that have been
+    decoded by :ref:`mpseventcnv <telemetry-mpseventcnv>`. Defaults to
+    standard input.
+
+.. option:: -h
+
+    Help: print a usage message to standard output.
+
+For example, here's the result of passing the output shown above
+through :program:`mpseventtxt`::
+
+    000AE03973336E3C 002B VMCreate            vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
+    000AE0397333BC6D 002D VMMap               vm:00000001003FC000 base:00000001003FD000 limit:00000001003FE000 
+    000AE0397334DF9F 001A Intern              stringId:0000000000000002 string:"Reservoir" 
+    000AE0397334E0A0 001B Label               address:00000001078C85B8["Reservoir"] stringId:0000000000000002 
+    000AE03973352375 0015 PoolInit            pool:00000001003FD328 arena:00000001003FD000 poolClass:00000001078C85B8["Reservoir"] 
+    000AE039733592F9 002B VMCreate            vm:00000001003FE000 base:00000001003FF000 limit:000000010992F000 
+    000AE0397335C8B5 002D VMMap               vm:00000001003FE000 base:00000001003FF000 limit:0000000107930000 
+    000AE03973361D5A 0005 ArenaCreateVM       arena:00000001003FD000 userSize:0000000002000000 chunkSize:0000000002000000 
 
 
 .. index::
@@ -274,11 +323,11 @@ standard output) a representation of each event in the stream.
 Loading the telemetry stream into SQLite
 ----------------------------------------
 
-The decoded telemetry stream (as output by :program:`mpseventcnv`) can
-be loaded into a SQLite database for further analysis by running
-:program:`mpseventsql`.
+The decoded telemetry stream (as output by :ref:`mpseventcnv
+<telemetry-mpseventcnv>`) can be loaded into a SQLite database for
+further analysis by running :program:`mpseventsql`.
 
-:program:`mpseventsql` takes the following arguments:
+:program:`mpseventsql` takes the following options:
 
 .. program:: mpseventsql
 
@@ -443,10 +492,11 @@ filter` in order for telemetry labels to work. For example::
     mps_telemetry_label(symbol_pool, label);
 
 Labels are represented by the type :c:type:`mps_label_t`. These are
-unsigned integers. After processing by :program:`mpseventsql`, the
-association of addresses with labels appears in the ``EVENT_Label``
-table, and the association of labels with strings appears in the
-``EVENT_Intern`` table. These can then be used in queries, for example:
+unsigned integers. After processing by :ref:`mpseventsql
+<telemetry-mpseventsql>`, the association of addresses with labels
+appears in the ``EVENT_Label`` table, and the association of labels
+with strings appears in the ``EVENT_Intern`` table. These can then be
+used in queries, for example:
 
 .. code-block:: sql
 
