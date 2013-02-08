@@ -1,5 +1,8 @@
 2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (end-of-buffer): Don't touch unrelated windows (bug#13466).
+	(fundamental-mode): Use run-mode-hooks.
+
 	* eshell/esh-proc.el (eshell/kill): Fix last change.
 	* eshell/em-ls.el (eshell-ls-dir): Fix use of CL in last change.
 

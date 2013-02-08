@@ -349,8 +349,7 @@ buffer causes automatic display of the corresponding source code location."
 Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables)
-  (unless delay-mode-hooks
-    (run-hooks 'after-change-major-mode-hook)))
+  (run-mode-hooks))
 
 ;; Special major modes to view specially formatted data rather than files.
 
@@ -868,7 +867,8 @@ Don't use this command in Lisp programs!
   ;; If we went to a place in the middle of the buffer,
   ;; adjust it to the beginning of a line.
   (cond ((and arg (not (consp arg))) (forward-line 1))
-	((> (point) (window-end nil t))
+	((and (eq (current-buffer) (window-buffer))
+              (> (point) (window-end nil t)))
 	 ;; If the end of the buffer is not already on the screen,
 	 ;; then scroll specially to put it near, but not at, the bottom.
 	 (overlay-recenter (point))
