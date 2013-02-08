@@ -1,3 +1,7 @@
+2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Add greek superscripts.
+
 2012-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Avoid deprecated chars for \langle and \rangle.

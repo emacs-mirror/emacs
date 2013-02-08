@@ -248,14 +248,18 @@ system, including many technical ones.  Examples:
         (string (if (match-end 2) ?^ ?_) basechar))))
   "\\(.*\\)SU\\(?:B\\|\\(PER\\)\\)SCRIPT \\(.*\\)")
 
- ("^\\gamma" ?ˠ)
-
  ((lambda (name char)
-    (let* ((base (format "LATIN %s LETTER %s"
-                         (match-string 1 name) (match-string 2 name)))
-           (basechar (cdr (assoc base (ucs-names)))))
-      (when (latin-ltx--ascii-p basechar)
-        (string ?^ basechar))))
+    (let* ((basename (match-string 2 name))
+           (lbase (format "LATIN %s LETTER %s"
+                          (match-string 1 name) basename))
+           (gbase (format "GREEK %s LETTER %s"
+                          (match-string 1 name) basename))
+           tmp)
+      (cond
+       ((assoc gbase (ucs-names)) (concat "^\\" (downcase basename)))
+       ((latin-ltx--ascii-p (setq tmp (cdr (assoc lbase (ucs-names)))))
+        (string ?^ tmp))
+       (t (message "Unknown modifier letter %s" basename)))))
   "MODIFIER LETTER \\(SMALL\\|CAPITAL\\) \\(.*\\)")
  
  ;; ((lambda (name char) (format "^%s" (downcase (match-string 1 name))))
