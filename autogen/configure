@@ -902,6 +902,7 @@ HAVE_STRTOLL
 HAVE_STRTOD
 HAVE_DECL_SETENV
 HAVE_SETENV
+HAVE_SECURE_GETENV
 HAVE_RPMATCH
 HAVE_REALPATH
 HAVE_RANDOM_R
@@ -929,6 +930,7 @@ GNULIB_STRTOULL
 GNULIB_STRTOLL
 GNULIB_STRTOD
 GNULIB_SETENV
+GNULIB_SECURE_GETENV
 GNULIB_RPMATCH
 GNULIB_REALPATH
 GNULIB_REALLOC_POSIX
@@ -6469,8 +6471,6 @@ done
 
 
 
-
-
   ac_fn_c_check_header_mongrel "$LINENO" "minix/config.h" "ac_cv_header_minix_config_h" "$ac_includes_default"
 if test "x$ac_cv_header_minix_config_h" = x""yes; then :
   MINIX=yes
@@ -6489,15 +6489,10 @@ $as_echo "#define _POSIX_1_SOURCE 2" >>confdefs.h
 
 $as_echo "#define _MINIX 1" >>confdefs.h
 
+
+$as_echo "#define _NETBSD_SOURCE 1" >>confdefs.h
+
   fi
-
-        case "$host_os" in
-    hpux*)
-
-$as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
-
-      ;;
-  esac
 
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether it is safe to define __EXTENSIONS__" >&5
@@ -6539,6 +6534,54 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   $as_echo "#define _POSIX_PTHREAD_SEMANTICS 1" >>confdefs.h
 
   $as_echo "#define _TANDEM_SOURCE 1" >>confdefs.h
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether _XOPEN_SOURCE should be defined" >&5
+$as_echo_n "checking whether _XOPEN_SOURCE should be defined... " >&6; }
+if test "${ac_cv_should_define__xopen_source+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_should_define__xopen_source=no
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+          #include <wchar.h>
+          mbstate_t x;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+             #define _XOPEN_SOURCE 500
+             #include <wchar.h>
+             mbstate_t x;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_should_define__xopen_source=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_should_define__xopen_source" >&5
+$as_echo "$ac_cv_should_define__xopen_source" >&6; }
+  test $ac_cv_should_define__xopen_source = yes &&
+    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
 
 
 
@@ -17367,6 +17410,7 @@ _ACEOF
   GNULIB_REALLOC_POSIX=0;
   GNULIB_REALPATH=0;
   GNULIB_RPMATCH=0;
+  GNULIB_SECURE_GETENV=0;
   GNULIB_SETENV=0;
   GNULIB_STRTOD=0;
   GNULIB_STRTOLL=0;
@@ -17394,6 +17438,7 @@ _ACEOF
   HAVE_RANDOM_R=1;
   HAVE_REALPATH=1;
   HAVE_RPMATCH=1;
+  HAVE_SECURE_GETENV=1;
   HAVE_SETENV=1;
   HAVE_DECL_SETENV=1;
   HAVE_STRTOD=1;
