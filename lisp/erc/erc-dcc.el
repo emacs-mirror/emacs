@@ -942,7 +942,6 @@ filter and a process sentinel, and making the connection."
         (set-buffer-multibyte nil))
 
       (setq mode-line-process '(":%s")
-            buffer-file-type t
             buffer-read-only t)
       (setq erc-dcc-file-name file)
 

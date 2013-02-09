@@ -1795,8 +1795,6 @@ The value is non-nil if there were no errors, nil if errors."
 		     (kill-emacs-hook
 		      (cons (lambda () (ignore-errors (delete-file tempfile)))
 			    kill-emacs-hook)))
-		(if (memq system-type '(ms-dos 'windows-nt))
-		    (setq buffer-file-type t))
 		(write-region (point-min) (point-max) tempfile nil 1)
 		;; This has the intentional side effect that any
 		;; hard-links to target-file continue to

@@ -2150,11 +2150,6 @@ visible on screen; or @samp{Bottom} or @samp{All}.
 The status of the subprocess belonging to the current buffer, obtained with
 @code{process-status}.  @xref{Process Information}.
 
-@item %t
-Whether the visited file is a text file or a binary file.  This is a
-meaningful distinction only on certain operating systems (@pxref{MS-DOS
-File Types}).
-
 @item %z
 The mnemonics of keyboard, terminal, and buffer coding systems.
 

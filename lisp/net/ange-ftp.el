@@ -3297,7 +3297,6 @@ system TYPE.")
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
 		     (binary (ange-ftp-binary-file filename))
-		     (buffer-file-type buffer-file-type)
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     (coding-system-used last-coding-system-used)
 		     size)
@@ -3322,10 +3321,7 @@ system TYPE.")
 			   size
 			   (nth 1 (ange-ftp-real-insert-file-contents
 				   temp visit beg end replace))
-			   coding-system-used last-coding-system-used
-			   ;; override autodetection of buffer file type
-			   ;; to ensure buffer is saved in DOS format
-			   buffer-file-type binary)
+			   coding-system-used last-coding-system-used)
 			(signal 'ftp-error
 				(list
 				 "Opening input file:"

@@ -1209,8 +1209,6 @@ Coding Systems
                                     for a single file operation.
 * Explicit Encoding::       Encoding or decoding text without doing I/O.
 * Terminal I/O Encoding::   Use of encoding for terminal I/O.
-* MS-DOS File Types::       How DOS "text" and "binary" files
-                                relate to coding systems.
 
 Searching and Matching
 

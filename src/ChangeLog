@@ -1,5 +1,7 @@
 2013-02-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (decode_mode_spec): Remove handling of %t.
+
 	* msdos.c (careadlinkatcwd): Remove.
 
 2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>

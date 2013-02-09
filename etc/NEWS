@@ -280,6 +280,12 @@ and ACL entries.
 The backtrace is written to the 'emacs_backtrace.txt' file in the
 directory where Emacs was running.
 
++++
+** The variable `buffer-file-type' is no longer supported.
+Setting it has no effect, and %t in the mode-line format is ignored.
+Likewise, `file-name-buffer-file-type-alist' is now obsolete, and
+modifying it has no effect.
+
 
 * Installation Changes in Emacs 24.3
 

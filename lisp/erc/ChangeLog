@@ -1,3 +1,7 @@
+2013-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* erc-dcc.el (erc-dcc-get-file): Don't reference buffer-file-type.
+
 2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* erc-dcc.el (erc-dcc-send-file): Use point-min-marker.

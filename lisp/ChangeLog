@@ -1,3 +1,34 @@
+2013-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-insert-file-contents): Don't reference
+	buffer-file-type.
+
+	* mail/feedmail.el (feedmail-force-binary-write): Doc fix.
+	(feedmail-run-the-queue, feedmail-dump-message-to-queue)
+	(feedmail-send-it-immediately): Don't bind buffer-file-type, bind
+	coding-system-for-write instead.
+
+	* jka-compr.el (jka-compr-write-region): Don't bind
+	buffer-file-type.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Don't bind
+	buffer-file-type.
+
+	* files.el (file-name-buffer-file-type-alist): Remove defvar.
+	(insert-file-contents-literally): Remove reference to
+	file-name-buffer-file-type-alist.
+
+	* dos-w32.el (file-name-buffer-file-type-alist): Deprecate and
+	make-obsolete.
+	(find-buffer-file-type-match, find-buffer-file-type): Remove.
+	(find-buffer-file-type-coding-system): Remove references to
+	find-buffer-file-type-match, find-buffer-file-type, and
+	buffer-file-type.
+	Don't put find-buffer-file-type-coding-system into
+	file-coding-system-alist.
+	(find-file-binary, find-file-text): Bind coding-system-for-read
+	instead of file-name-buffer-file-type-alist.
+
 2013-02-09  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el: Use (and prefer) soffice as default ODF->PDF

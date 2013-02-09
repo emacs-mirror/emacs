@@ -855,8 +855,6 @@ documented here.
                                     for a single file operation.
 * Explicit Encoding::           Encoding or decoding text without doing I/O.
 * Terminal I/O Encoding::       Use of encoding for terminal I/O.
-* MS-DOS File Types::           How DOS "text" and "binary" files
-                                    relate to coding systems.
 @end menu
 
 @node Coding System Basics
@@ -1774,62 +1772,6 @@ for encoding terminal output from @var{terminal}.  If
 @var{terminal} is a frame, it means that frame's terminal; if it is
 @code{nil}, that means the currently selected frame's terminal.
 @end deffn
-
-@node MS-DOS File Types
-@subsection MS-DOS File Types
-@cindex DOS file types
-@cindex MS-DOS file types
-@cindex Windows file types
-@cindex file types on MS-DOS and Windows
-@cindex text files and binary files
-@cindex binary files and text files
-
-  On MS-DOS and Microsoft Windows, Emacs guesses the appropriate
-end-of-line conversion for a file by looking at the file's name.  This
-feature classifies files as @dfn{text files} and @dfn{binary files}.  By
-``binary file'' we mean a file of literal byte values that are not
-necessarily meant to be characters; Emacs does no end-of-line conversion
-and no character code conversion for them.  On the other hand, the bytes
-in a text file are intended to represent characters; when you create a
-new file whose name implies that it is a text file, Emacs uses DOS
-end-of-line conversion.
-
-@defvar buffer-file-type
-This variable, automatically buffer-local in each buffer, records the
-file type of the buffer's visited file.  When a buffer does not specify
-a coding system with @code{buffer-file-coding-system}, this variable is
-used to determine which coding system to use when writing the contents
-of the buffer.  It should be @code{nil} for text, @code{t} for binary.
-If it is @code{t}, the coding system is @code{no-conversion}.
-Otherwise, @code{undecided-dos} is used.
-
-Normally this variable is set by visiting a file; it is set to
-@code{nil} if the file was visited without any actual conversion.
-
-Its default value is used to decide how to handle files for which
-@code{file-name-buffer-file-type-alist} says nothing about the type:
-If the default value is non-@code{nil}, then these files are treated as
-binary: the coding system @code{no-conversion} is used.  Otherwise,
-nothing special is done for them---the coding system is deduced solely
-from the file contents, in the usual Emacs fashion.
-@end defvar
-
-@defopt file-name-buffer-file-type-alist
-This variable holds an alist for recognizing text and binary files.
-Each element has the form (@var{regexp} . @var{type}), where
-@var{regexp} is matched against the file name, and @var{type} may be
-@code{nil} for text, @code{t} for binary, or a function to call to
-compute which.  If it is a function, then it is called with a single
-argument (the file name) and should return @code{t} or @code{nil}.
-
-When running on MS-DOS or MS-Windows, Emacs checks this alist to decide
-which coding system to use when reading a file.  For a text file,
-@code{undecided-dos} is used.  For a binary file, @code{no-conversion}
-is used.
-
-If no element in this alist matches a given file name, then
-the default value of @code{buffer-file-type} says how to treat the file.
-@end defopt
 
 @node Input Methods
 @section Input Methods

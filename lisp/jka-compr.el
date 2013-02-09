@@ -332,8 +332,6 @@ There should be no more than seven characters after the final `/'."
 
 	  (with-current-buffer temp-buffer
 	    (let ((coding-system-for-write 'no-conversion))
-	      (if (memq system-type '(ms-dos windows-nt))
-		  (setq buffer-file-type t) )
 	      (jka-compr-run-real-handler 'write-region
 					  (list (point-min) (point-max)
 						filename

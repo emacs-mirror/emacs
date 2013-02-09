@@ -218,29 +218,6 @@ set conversion, only end-of-line conversion.  Essentially, it directs
 Emacs to create new files with the Unix-style convention of using
 newline at the end of a line.  @xref{Coding Systems}.
 
-@vindex file-name-buffer-file-type-alist
-@cindex binary files, on MS-DOS/MS-Windows
-  Some kinds of files should not be converted at all, because their
-contents are not really text.  Therefore, Emacs on MS-Windows distinguishes
-certain files as @dfn{binary files}.  (This distinction is not part of
-MS-Windows; it is made by Emacs only.)  Binary files include executable
-programs, compressed archives, etc.  Emacs uses the file name to decide
-whether to treat a file as binary: the variable
-@code{file-name-buffer-file-type-alist} defines the file-name patterns
-that indicate binary files.  If a file name matches one of the patterns
-for binary files (those whose associations are of the type
-@code{(@var{pattern} . t)}, Emacs reads and writes that file using the
-@code{no-conversion} coding system (@pxref{Coding Systems}) which turns
-off @emph{all} coding-system conversions, not only the EOL conversion.
-@code{file-name-buffer-file-type-alist} also includes file-name patterns
-for files which are known to be Windows-style text files with
-carriage-return linefeed EOL format, such as @file{CONFIG.SYS}; Emacs
-always writes those files with Windows-style EOLs.
-
-  If a file that belongs to an untranslated file system matches one of
-the file-name patterns in @code{file-name-buffer-file-type-alist}, the
-EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
-
 @node Windows Files
 @section File Names on MS-Windows
 @cindex file names on MS-Windows

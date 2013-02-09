@@ -1,3 +1,8 @@
+2013-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Text and Binary): Delete the description of
+	file-name-buffer-file-type-alist.
+
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* trouble.texi (Crashing): Suggest -p for newer addr2line.  (Bug#13445)

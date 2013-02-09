@@ -1,3 +1,9 @@
+2013-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (%-Constructs): Remove the description of %t.
+
+	* nonascii.texi (MS-DOS File Types): Delete node.
+
 2013-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* keymaps.texi (Active Keymaps, Searching Keymaps):

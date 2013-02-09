@@ -37,7 +37,7 @@
 ;; Set the null device (for compile.el).
 (setq null-device "NUL")
 
-;; For distinguishing file types based upon suffixes.
+;; For distinguishing file types based upon suffixes.  DEPRECATED, DO NOT USE!
 (defcustom file-name-buffer-file-type-alist
   '(("[:/].*config.sys$" . nil)		; config.sys text
     ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|bin\\|ico\\|pif\\|class\\)$" . t)
@@ -54,36 +54,18 @@
     ("\\.tp[ulpw]$" . t)		; borland Pascal stuff
     ("[:/]tags$" . nil)			; emacs TAGS file
     )
-  "Alist for distinguishing text files from binary files.
+  "Alist used in the past for distinguishing text files from binary files.
 Each element has the form (REGEXP . TYPE), where REGEXP is matched
-against the file name, and TYPE is nil for text, t for binary."
+against the file name, and TYPE is nil for text, t for binary.
+
+This variable is deprecated, not used anywhere, and will soon be deleted."
   :type '(repeat (cons regexp boolean))
   :group 'dos-fns
   :group 'w32)
 
-;; Return the pair matching filename on file-name-buffer-file-type-alist,
-;; or nil otherwise.
-(defun find-buffer-file-type-match (filename)
-  (let ((alist file-name-buffer-file-type-alist)
-	(found nil))
-    (let ((case-fold-search t))
-      (setq filename (file-name-sans-versions filename))
-      (while (and (not found) alist)
-	(if (string-match (car (car alist)) filename)
-	    (setq found (car alist)))
-	(setq alist (cdr alist)))
-      found)))
-
-;; Don't check for untranslated file systems here.
-(defun find-buffer-file-type (filename)
-  (let ((match (find-buffer-file-type-match filename))
-	(code))
-    (if (not match)
-	(default-value 'buffer-file-type)
-      (setq code (cdr match))
-      (cond ((memq code '(nil t)) code)
-	    ((and (symbolp code) (fboundp code))
-	     (funcall code filename))))))
+(make-obsolete-variable 'file-name-buffer-file-type-alist
+			'file-coding-system-alist
+			"24.4")
 
 (setq-default buffer-file-coding-system 'undecided-dos)
 
@@ -99,9 +81,6 @@ and whether the file exists:
   If it matches in `untranslated-filesystem-list':
     If the file exists:					`undecided'
     If the file does not exist:				`undecided-unix'
-  If it matches in `file-name-buffer-file-type-alist':
-    If the match is t (for binary):			`no-conversion'
-    If the match is nil (for dos-text):			`undecided-dos'
   Otherwise:
     If the file exists:					`undecided'
     If the file does not exist   default value of `buffer-file-coding-system'
@@ -110,25 +89,23 @@ Note that the CAR of arguments to `insert-file-contents' operation could
 be a cons cell of the form \(FILENAME . BUFFER\), where BUFFER is a buffer
 into which the file's contents were already read, but not yet decoded.
 
-If operation is `write-region', the coding system is chosen based upon
-the value of `buffer-file-coding-system' and `buffer-file-type'. If
-`buffer-file-coding-system' is non-nil, its value is used.  If it is
-nil and `buffer-file-type' is t, the coding system is `no-conversion'.
+If operation is `write-region', the coding system is chosen based
+upon the value of `buffer-file-coding-system'.  If
+`buffer-file-coding-system' is non-nil, its value is used.
 Otherwise, it is `undecided-dos'.
 
-The two most common situations are when DOS and Unix files are read
-and written, and their names do not match in
-`untranslated-filesystem-list' and `file-name-buffer-file-type-alist'.
-In these cases, the coding system initially will be `undecided'.  As
-the file is read in the DOS case, the coding system will be changed to
-`undecided-dos' as CR/LFs are detected.  As the file is read in the
-Unix case, the coding system will be changed to `undecided-unix' as
-LFs are detected.  In both cases, `buffer-file-coding-system' will be
-set to the appropriate coding system, and the value of
-`buffer-file-coding-system' will be used when writing the file."
+The most common situation is when DOS and Unix files are read and
+written, and their names do not match in `untranslated-filesystem-list'.
+In these cases, the coding system initially will be `undecided'.
+As the file is read in the DOS case, the coding system will be
+changed to `undecided-dos' as CR/LFs are detected.  As the file
+is read in the Unix case, the coding system will be changed to
+`undecided-unix' as LFs are detected.  In both cases,
+`buffer-file-coding-system' will be set to the appropriate coding
+system, and the value of `buffer-file-coding-system' will be used
+when writing the file."
 
   (let ((op (nth 0 command))
-	(binary nil) (text nil)
 	(undecided nil) (undecided-unix nil)
 	target target-buf)
     (cond ((eq op 'insert-file-contents)
@@ -144,15 +121,8 @@ set to the appropriate coding system, and the value of
 		   (and (bufferp (cdr target))
 			(buffer-name (cdr target))))
 	     (setq target (car target)))
-	   ;; First check for a file name that indicates
-	   ;; it is truly binary.
-	   (setq binary (find-buffer-file-type target))
-	   (cond (binary)
-		 ;; Next check for files that MUST use DOS eol conversion.
-		 ((find-buffer-file-type-match target)
-		  (setq text t))
-		 ;; For any other existing file, decide based on contents.
-		 ((or
+	   (cond ((or
+		   ;; For any existing file, decide based on contents.
 		   (file-exists-p target)
 		   ;; If TARGET does not exist as a file, replace its
 		   ;; base name with TARGET-BUF and try again.  This
@@ -167,9 +137,7 @@ set to the appropriate coding system, and the value of
 		 ;; Next check for a non-DOS file system.
 		 ((untranslated-file-p target)
 		  (setq undecided-unix t)))
-	   (cond (binary '(no-conversion . no-conversion))
-		 (text '(undecided-dos . undecided-dos))
-		 (undecided-unix '(undecided-unix . undecided-unix))
+	   (cond (undecided-unix '(undecided-unix . undecided-unix))
 		 (undecided '(undecided . undecided))
 		 (t (cons (default-value 'buffer-file-coding-system)
 			  (default-value 'buffer-file-coding-system)))))
@@ -180,22 +148,18 @@ set to the appropriate coding system, and the value of
 	     ;; Normally this is used only in a non-file-visiting
 	     ;; buffer, because normally buffer-file-coding-system is non-nil
 	     ;; in a file-visiting buffer.
-	     (if buffer-file-type
-		 '(no-conversion . no-conversion)
-	       '(undecided-dos . undecided-dos)))))))
-
-(modify-coding-system-alist 'file "" 'find-buffer-file-type-coding-system)
+	     '(undecided-dos . undecided-dos))))))
 
 (defun find-file-binary (filename)
   "Visit file FILENAME and treat it as binary."
   (interactive "FFind file binary: ")
-  (let ((file-name-buffer-file-type-alist '(("" . t))))
+  (let ((coding-system-for-read 'no-conversion))
     (find-file filename)))
 
 (defun find-file-text (filename)
   "Visit file FILENAME and treat it as a text file."
   (interactive "FFind file text: ")
-  (let ((file-name-buffer-file-type-alist '(("" . nil))))
+  (let ((coding-system-for-read 'undecided-dos))
     (find-file filename)))
 
 (defun find-file-not-found-set-buffer-file-coding-system ()
