@@ -1016,8 +1016,26 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   {
     USE_SAFE_ALLOCA;
     Lisp_Object pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
-    Lisp_Object encoded_tem = ENCODE_FILE (pattern);
-    char *tempfile = SAFE_ALLOCA (SBYTES (encoded_tem) + 1);
+    Lisp_Object encoded_tem;
+    char *tempfile;
+
+#ifdef WINDOWSNT
+    /* Cannot use the result of Fexpand_file_name, because it
+       downcases the XXXXXX part of the pattern, and mktemp then
+       doesn't recognize it.  */
+    if (!NILP (Vw32_downcase_file_names))
+      {
+	Lisp_Object dirname = Ffile_name_directory (pattern);
+
+	if (NILP (dirname))
+	  pattern = Vtemp_file_name_pattern;
+	else
+	  pattern = concat2 (dirname, Vtemp_file_name_pattern);
+      }
+#endif
+
+    encoded_tem = ENCODE_FILE (pattern);
+    tempfile = SAFE_ALLOCA (SBYTES (encoded_tem) + 1);
     memcpy (tempfile, SDATA (encoded_tem), SBYTES (encoded_tem) + 1);
     coding_systems = Qt;
 

@@ -1,5 +1,9 @@
 2013-02-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* callproc.c (Fcall_process_region): Make sure the XXXXXX part of
+	the temporary file pattern is not downcased even when
+	w32-downcase-file-names is non-nil.  (Bug#13661)
+
 	* xdisp.c (decode_mode_spec): Remove handling of %t.
 
 	* msdos.c (careadlinkatcwd): Remove.
