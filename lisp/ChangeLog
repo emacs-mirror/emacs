@@ -1,3 +1,8 @@
+2013-02-09  Chong Yidong  <cyd@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Change binding of
+	report-emacs-bug-insert-to-mailer to C-c M-i (Bug#13510).
+
 2013-02-02  Alan Mackenzie  <acm@muc.de>
 
 	Fix bug in the state cache mechanism.  Remove 'BOD "strategy".  Refactor.
