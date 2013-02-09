@@ -327,10 +327,12 @@ these characters to @code{nil}, and does not bind any other kind of
 event.  The argument @var{prompt} specifies a
 prompt string, as in @code{make-sparse-keymap}.
 
+@c This example seems kind of pointless, but I guess it serves
+@c to contrast the result with make-sparse-keymap above.
 @example
 @group
 (make-keymap)
-    @result{} (keymap #^[t nil nil nil @dots{} nil nil keymap])
+    @result{} (keymap #^[nil nil keymap nil nil nil @dots{}])
 @end group
 @end example
 
