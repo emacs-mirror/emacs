@@ -1344,13 +1344,20 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
   (rmail (dired-get-filename)))
 
 (defun dired-do-run-mail ()
-  "If `dired-bind-vm' is non-nil, call `dired-vm', else call `dired-rmail'."
+  "Visit the current file as a mailbox, using VM or RMAIL.
+Prompt for confirmation first; if the user says yes, call
+`dired-vm' if `dired-bind-vm' is non-nil, `dired-rmail'
+otherwise."
   (interactive)
-  (if dired-bind-vm
-      ;; Read mail folder using vm.
-      (dired-vm)
-    ;; Read mail folder using rmail.
-    (dired-rmail)))
+  (let ((file (dired-get-filename t)))
+    (if dired-bind-vm
+	(if (y-or-n-p (concat "Visit `" file
+			      "' as a mail folder with VM?"))
+	    (dired-vm))
+      ;; Read mail folder using rmail.
+      (if (y-or-n-p (concat "Visit `" file
+			    "' as a mailbox with RMAIL?"))
+	  (dired-rmail)))))
 
 
 ;;; MISCELLANEOUS INTERNAL FUNCTIONS.
