@@ -231,13 +231,36 @@ If this and `doc-view-dvipdfm-program' are set,
   :type 'file
   :group 'doc-view)
 
-(defcustom doc-view-unoconv-program "unoconv"
+(define-obsolete-variable-alias 'doc-view-unoconv-program
+                                'doc-view-odf->pdf-converter-program
+                                "24.4")
+
+(defcustom doc-view-odf->pdf-converter-program
+  (cond
+   ((executable-find "soffice") "soffice")
+   ((executable-find "unoconv") "unoconv")
+   (t "soffice"))
   "Program to convert any file type readable by OpenOffice.org to PDF.
 
 Needed for viewing OpenOffice.org (and MS Office) files."
-  :version "24.1"
+  :version "24.4"
   :type 'file
   :group 'doc-view)
+
+(defcustom doc-view-odf->pdf-converter-function
+  (cond
+   ((string-match "unoconv\\'" doc-view-odf->pdf-converter-program)
+    #'doc-view-odf->pdf-converter-unoconv)
+   ((string-match "soffice\\'" doc-view-odf->pdf-converter-program)
+    #'doc-view-odf->pdf-converter-soffice))
+  "Function to call to convert a ODF file into a PDF file."
+  :type '(radio
+          (function-item doc-view-odf->pdf-converter-unoconv
+                         :doc "Use unoconv")
+          (function-item doc-view-odf->pdf-converter-soffice
+                         :doc "Use LibreOffice")
+          function)
+  :version "24.4")
 
 (defcustom doc-view-ps2pdf-program "ps2pdf"
   "Program to convert PS files to PDF.
@@ -700,8 +723,8 @@ OpenDocument format)."
 	 (and doc-view-ghostscript-program
 	      (executable-find doc-view-ghostscript-program)))
 	((eq type 'odf)
-	 (and doc-view-unoconv-program
-	      (executable-find doc-view-unoconv-program)
+	 (and doc-view-odf->pdf-converter-program
+	      (executable-find doc-view-odf->pdf-converter-program)
 	      (doc-view-mode-p 'pdf)))
 	((eq type 'djvu)
 	 (executable-find "ddjvu"))
@@ -903,12 +926,21 @@ If PAGE is nil, convert the whole document."
      ,@(if page `(,(format "%d" page))))
    callback))
 
-(defun doc-view-odf->pdf (odf callback)
+(defun doc-view-odf->pdf-converter-unoconv (odf callback)
   "Convert ODF to PDF asynchronously and call CALLBACK when finished.
 The converted PDF is put into the current cache directory, and it
 is named like ODF with the extension turned to pdf."
-  (doc-view-start-process "odf->pdf" doc-view-unoconv-program
+  (doc-view-start-process "odf->pdf" doc-view-odf->pdf-converter-program
 			  (list "-f" "pdf" "-o" (doc-view-current-cache-dir) odf)
+			  callback))
+
+(defun doc-view-odf->pdf-converter-soffice (odf callback)
+  "Convert ODF to PDF asynchronously and call CALLBACK when finished.
+The converted PDF is put into the current cache directory, and it
+is named like ODF with the extension turned to pdf."
+  (doc-view-start-process "odf->pdf" doc-view-odf->pdf-converter-program
+			  (list "--headless" "--convert-to" "pdf"
+				"--outdir" (doc-view-current-cache-dir) odf)
 			  callback))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
@@ -1058,7 +1090,7 @@ Those files are saved in the directory given by the function
 	 ;; The unoconv tool only supports an output directory, but no
 	 ;; file name.  It's named like the input file with the
 	 ;; extension replaced by pdf.
-         (doc-view-odf->pdf doc-view-buffer-file-name
+         (funcall doc-view-odf->pdf-converter-function doc-view-buffer-file-name
                             (lambda ()
 			      ;; Rename to doc.pdf
 			      (rename-file opdf pdf)

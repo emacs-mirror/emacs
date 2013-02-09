@@ -1,3 +1,18 @@
+2013-02-09  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el: Use (and prefer) soffice as default ODF->PDF
+	converter (Bug#13622).  Patch provided by Jambunathan K
+	<kjambunathan@gmail.com>.
+	(doc-view-unoconv-program): Make obsolete variable.
+	(doc-view-odf->pdf-converter-program): New variable.
+	(doc-view-odf->pdf-converter-function): New variable.
+	(doc-view-mode-p): Use it.
+	(doc-view-odf->pdf-converter-unoconv): Rename from
+	`doc-view-odf->pdf-converter-unoconv'.
+	(doc-view-odf->pdf-converter-soffice): New function.
+	(doc-view-convert-current-doc): Use
+	`doc-view-odf->pdf-converter-function'.
+
 2013-02-09  Chong Yidong  <cyd@gnu.org>
 
 	* minibuffer.el (minibuffer-inactive-mode-map): Bind mouse-1 to
