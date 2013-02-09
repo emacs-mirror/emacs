@@ -412,7 +412,9 @@ With argument, display info only for the selected version."
 The number of messages retained in that buffer
 is specified by the variable `message-log-max'."
   (interactive)
-  (switch-to-buffer (get-buffer-create "*Messages*")))
+  (with-current-buffer (get-buffer-create "*Messages*")
+    (goto-char (point-max))
+    (display-buffer (current-buffer))))
 
 (defun view-order-manuals ()
   "Display the Emacs ORDERS file."

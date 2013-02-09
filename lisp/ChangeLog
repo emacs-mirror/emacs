@@ -1,5 +1,10 @@
 2013-02-09  Chong Yidong  <cyd@gnu.org>
 
+	* minibuffer.el (minibuffer-inactive-mode-map): Bind mouse-1 to
+	view-echo-area-messages (Bug#13340).
+
+	* help.el (view-echo-area-messages): Use display-buffer.
+
 	* dired-x.el (dired-do-run-mail): Prompt for confirmation
 	(Bug#13561).
 
