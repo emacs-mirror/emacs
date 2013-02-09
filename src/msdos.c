@@ -3957,14 +3957,6 @@ careadlinkat (int fd, char const *filename,
   return buffer;
 }
 
-ssize_t
-careadlinkatcwd (int fd, char const *filename, char *buffer,
-                 size_t buffer_size)
-{
-  (void) fd;
-  return readlink (filename, buffer, buffer_size);
-}
-
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 
