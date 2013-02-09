@@ -1,3 +1,15 @@
+2013-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor hashing refactoring.
+	* fns.c (SXHASH_REDUCE): Move to lisp.h.
+	(sxhash_float): Return EMACS_UINT, for consistency with the other
+	hash functions.
+	* lisp.h (INTMASK): Now a macro, since SXHASH_REDUCE is now a
+	non-static inline function and therefore can't use static vars.
+	(SXHASH_REDUCE): Move here from fns.c, and make it inline.
+	* profiler.c (hashfn_profiler): Use SXHASH_REDUCE, to be consistent
+	with the other hash functions.
+
 2013-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* callproc.c (Fcall_process_region) [WINDOWSNT]: Make sure the

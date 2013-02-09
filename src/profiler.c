@@ -560,7 +560,7 @@ hashfn_profiler (struct hash_table_test *ht, Lisp_Object bt)
 	       ? XHASH (XCDR (XCDR (f))) : XHASH (f));
 	  hash = sxhash_combine (hash, hash1);
 	}
-      return (hash & INTMASK);
+      return SXHASH_REDUCE (hash);
     }
   else
     return XHASH (bt);

@@ -227,7 +227,7 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
-static EMACS_INT const INTMASK = EMACS_INT_MAX >> (INTTYPEBITS - 1);
+#define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 #define LISP_INT_TAG_P(x) (((x) & ~Lisp_Int1) == 0)
 
@@ -1302,6 +1302,14 @@ LISP_INLINE EMACS_UINT
 sxhash_combine (EMACS_UINT x, EMACS_UINT y)
 {
   return (x << 4) + (x >> (BITS_PER_EMACS_INT - 4)) + y;
+}
+
+/* Hash X, returning a value that fits into a fixnum.  */
+
+LISP_INLINE EMACS_UINT
+SXHASH_REDUCE (EMACS_UINT x)
+{
+  return (x ^ x >> (BITS_PER_EMACS_INT - FIXNUM_BITS)) & INTMASK;
 }
 
 /* These structures are used for various misc types.  */

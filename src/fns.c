@@ -4045,10 +4045,6 @@ sweep_weak_hash_tables (void)
 
 #define SXHASH_MAX_LEN   7
 
-/* Hash X, returning a value that fits into a Lisp integer.  */
-#define SXHASH_REDUCE(X) \
-  ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)
-
 /* Return a hash for string PTR which has length LEN.  The hash value
    can be any EMACS_UINT value.  */
 
@@ -4081,7 +4077,7 @@ sxhash_string (char const *ptr, ptrdiff_t len)
 
 /* Return a hash for the floating point value VAL.  */
 
-static EMACS_INT
+static EMACS_UINT
 sxhash_float (double val)
 {
   EMACS_UINT hash = 0;
