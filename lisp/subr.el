@@ -1229,7 +1229,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'default-scroll-down-aggressively 'scroll-down-aggressively "23.2")
 (make-obsolete-variable 'default-fill-column 'fill-column "23.2")
 (make-obsolete-variable 'default-cursor-type 'cursor-type "23.2")
-(make-obsolete-variable 'default-buffer-file-type 'buffer-file-type "23.2")
 (make-obsolete-variable 'default-cursor-in-non-selected-windows 'cursor-in-non-selected-windows "23.2")
 (make-obsolete-variable 'default-buffer-file-coding-system 'buffer-file-coding-system "23.2")
 (make-obsolete-variable 'default-major-mode 'major-mode "23.2")
@@ -2621,15 +2620,6 @@ was displayed in is selected.")
 When the hook runs, the temporary buffer is current.
 This hook is normally set up with a function to put the buffer in Help
 mode.")
-
-(defvar-local buffer-file-type nil
-  "Non-nil if the visited file is a binary file.
-This variable is meaningful on MS-DOG and MS-Windows.
-On those systems, it is automatically local in every buffer.
-On other systems, this variable is normally always nil.
-
-WARNING: This variable is obsolete and will disappear Real Soon Now.
-Don't use it!")
 
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.

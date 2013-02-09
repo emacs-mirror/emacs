@@ -1,5 +1,7 @@
 2013-02-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* subr.el (buffer-file-type, default-buffer-file-type): Remove.
+
 	* net/ange-ftp.el (ange-ftp-insert-file-contents): Don't reference
 	buffer-file-type.
 
