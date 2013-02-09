@@ -437,17 +437,22 @@ If COMP or STD is non-nil, put that in the units table instead."
                  (list new-units (car default-units))
                  math-default-units-table))))))
 
+(defvar calc-allow-units-as-numbers)
+
 (defun calc-convert-units (&optional old-units new-units)
   (interactive)
   (calc-slow-wrapper
    (let ((expr (calc-top-n 1))
 	 (uoldname nil)
          (unitscancel nil)
+         (nouold nil)
 	 unew
          units
          defunits)
      (if (or (not (math-units-in-expr-p expr t))
-             (setq unitscancel (eq (math-get-standard-units expr) 1)))
+             (setq unitscancel (and
+                                calc-allow-units-as-numbers
+                                (eq (math-get-standard-units expr) 1))))
        (let ((uold (or old-units
 		       (progn
 			 (setq uoldname 
@@ -457,6 +462,7 @@ If COMP or STD is non-nil, put that in the units table instead."
                                  (read-string "Old units: ")))
 			 (if (equal uoldname "")
 			     (progn
+                               (setq nouold unitscancel)
 			       (setq uoldname "1")
 			       1)
 			   (if (string-match "\\` */" uoldname)
@@ -469,7 +475,7 @@ If COMP or STD is non-nil, put that in the units table instead."
      (unless new-units
        (setq new-units
              (read-string (concat
-                           (if uoldname
+                           (if (and uoldname (not nouold))
                                (concat "Old units: "
                                        uoldname
                                        ", new units")

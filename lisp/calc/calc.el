@@ -426,6 +426,14 @@ when converting units."
   :version "24.3"
   :type 'boolean)
 
+(defcustom calc-allow-units-as-numbers
+  t
+  "If non-nil, allow unit expressions to be treated like numbers 
+when converting units, if the expression can be simplified to be unitless."
+  :group 'calc
+  :version "24.4"
+  :type 'boolean)
+
 (defcustom calc-undo-length
   100
   "The number of undo steps that will be preserved when Calc is quit."
