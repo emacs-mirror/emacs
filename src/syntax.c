@@ -3278,6 +3278,7 @@ do { prev_from = from;				\
 
  stop:   /* Here if stopping before start of sexp. */
   from = prev_from;    /* We have just fetched the char that starts it; */
+  from_byte = prev_from_byte;
   goto done; /* but return the position before it. */
 
  endquoted:

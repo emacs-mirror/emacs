@@ -1,3 +1,8 @@
+2013-02-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* syntax.c (scan_sexps_forward): Fix byte position calculation
+	Bug#13664 (a.k.a Bug#13667) introduced with 2013-02-08 change.
+
 2013-02-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Fexpand_file_name): Omit confusing pointer comparison
