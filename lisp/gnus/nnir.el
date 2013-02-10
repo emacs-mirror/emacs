@@ -298,7 +298,7 @@ is `(valuefunc member)'."
 (defvoo nnir-address nil
   "The address of the nnir server.")
 
-(gnus-declare-backend "nnir" 'mail)
+(gnus-declare-backend "nnir" 'mail 'virtual)
 
 
 ;;; User Customizable Variables:
