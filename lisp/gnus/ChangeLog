@@ -1,7 +1,7 @@
 2013-02-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnir.el ("nnir"): Add 'virtual ability to nnir backend.  (This was
-	done in 2012-07-22 by Andrew Cohen, but I reverted it mistakenlly.)
+	done in 2012-07-22 by Andrew Cohen, but I reverted it mistakenly.)
 
 2013-02-07  Gábor Vida  <gabor.v.vida@ericsson.com>  (tiny change)
 
