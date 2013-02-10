@@ -323,7 +323,7 @@ usually do not have translators for other languages.\n\n")))
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'info-emacs-bug)
     (if can-insert-mail
-	(define-key (current-local-map) "\C-cm"
+	(define-key (current-local-map) "\C-c\M-i"
 	  'report-emacs-bug-insert-to-mailer))
     (setq report-emacs-bug-send-command (get mail-user-agent 'sendfunc)
 	  report-emacs-bug-send-hook (get mail-user-agent 'hookvar))

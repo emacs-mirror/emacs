@@ -399,14 +399,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   Check the assignments file for other packages which might go in and
   have been missed.
 
-** Possibly install python-mode in place of python.el, or combine the two.
-Someone needs to do the work of figuring out who all the non-trivial
-python-mode.el contributors are and getting assignments.
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02156.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02201.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02489.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
-
 ** Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
   multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
@@ -416,7 +408,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
   an example how to do part of this; see the XMenu* functions on msdos.c.
 
 ** Implement popular parts of the rest of the CL functions as compiler
-  macros in cl-macs.
+  macros in cl-macs.  [Is this still relevant now that cl-lib exists?]
 
 ** Make compiler warnings about functions that might be undefined at run time
  smarter, so that they know which files are required by the file being
@@ -457,7 +449,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 
 ** Allow unknown image types to be rendered via an external program
   converting them to, say, PBM (in the same way as PostScript?). [does
-  doc-view.el do this, or could it be extended to do this?]
+  doc-view.el do this, or could it be extended to do this?
+  Does ImageMagick obsolete this idea?]
 
 ** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry
@@ -613,6 +606,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
      There was a special trick to detect mouse press in the lower right
      corner and track mouse movements, but this did not work well, and was
      not scalable to the new Lion "resize on every window edge" behavior.
+     [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
 
 **** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
 up on top of all others
@@ -718,12 +712,6 @@ images with lower bit depth.
 
 *** Decide what to do with some uncommitted imagemagick support
 functions for image size etc.
-
-*** Test with more systems.
-Tested on Fedora 12, 14, and the libmagick that ships with it.
-I also tried using an ImageMagick compiled from their SVN, in
-parallel with the one packaged by Fedora, it worked well.
-Ubuntu 8.04 was tested, but it seems it ships a broken ImageMagick.
 
 ** nxml mode
 

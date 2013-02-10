@@ -1,8 +1,12 @@
+2013-02-10  Chong Yidong  <cyd@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Change binding of
+	report-emacs-bug-insert-to-mailer to C-c M-i (Bug#13510).
+
 2013-02-09  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-allow-units-as-numbers): New variable.
 	* calc/calc-units.el (calc-convert-units): Use new variable.
-
 
 2013-02-09  Eli Zaretskii  <eliz@gnu.org>
 

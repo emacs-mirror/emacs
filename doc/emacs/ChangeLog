@@ -1,3 +1,7 @@
+2013-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Update bug keybinding.
+
 2013-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Text and Binary): Delete the description of

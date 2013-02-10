@@ -436,6 +436,11 @@ The PCL-CVS commands are still available via the keyboard.
 ** Using "unibyte: t" in Lisp source files is obsolete.
 Use "coding: raw-text" instead.
 
+** In the buffer made by `M-x report-emacs-bug', the `C-c m' binding
+has been changed to `C-c M-i' (`report-emacs-bug-insert-to-mailer').
+The previous binding, introduced in Emacs 24.1, was a mistake, because
+`C-c LETTER' bindings are reserved for user customizations.
+
 ** Internationalization
 
 *** New language environment: Persian.
@@ -1262,9 +1267,10 @@ to use the old defaults relying on external mail facilities
 (`sendmail-send-it' on GNU/Linux and other Unix-like systems, and
 `mailclient-send-it' on Windows).
 
-*** Typing C-c m in the buffer made by M-x report-emacs-bug transfers
-the report to your desktop's preferred mail client, if there is one.
-This uses either the "xdg-email" utility, or Mac OS's "open" command.
+*** Typing `C-c m' in the buffer made by `M-x report-emacs-bug'
+transfers the report to your desktop's preferred mail client, if there
+is one.  This uses either the "xdg-email" utility, or Mac OS's "open"
+command.
 
 *** See Changes in Specialized Modes and Packages for SMTPmail changes
 and Mail mode changes
