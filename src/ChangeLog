@@ -1,3 +1,9 @@
+2013-02-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_vertically_backward, move_it_by_lines): When
+	text lines are longer than window's screen lines, don't move back
+	too far.  This speeds up some redisplay operations.  (Bug#13675)
+
 2013-02-10  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* syntax.c (scan_sexps_forward): Fix byte position calculation

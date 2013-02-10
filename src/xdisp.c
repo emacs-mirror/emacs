@@ -8992,6 +8992,9 @@ move_it_vertically_backward (struct it *it, int dy)
   struct it it2, it3;
   void *it2data = NULL, *it3data = NULL;
   ptrdiff_t start_pos;
+  int nchars_per_row
+    = (it->last_visible_x - it->first_visible_x) / FRAME_COLUMN_WIDTH (it->f);
+  ptrdiff_t pos_limit;
 
  move_further_back:
   eassert (dy >= 0);
@@ -9000,9 +9003,12 @@ move_it_vertically_backward (struct it *it, int dy)
 
   /* Estimate how many newlines we must move back.  */
   nlines = max (1, dy / FRAME_LINE_HEIGHT (it->f));
+  pos_limit = max (start_pos - nlines * nchars_per_row, BEGV);
 
-  /* Set the iterator's position that many lines back.  */
-  while (nlines-- && IT_CHARPOS (*it) > BEGV)
+  /* Set the iterator's position that many lines back.  But don't go
+     back more than NLINES full screen lines -- this wins a day with
+     buffers which have very long lines.  */
+  while (nlines-- && IT_CHARPOS (*it) > pos_limit)
     back_to_previous_visible_line_start (it);
 
   /* Reseat the iterator here.  When moving backward, we don't want
@@ -9233,6 +9239,9 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
       struct it it2;
       void *it2data = NULL;
       ptrdiff_t start_charpos, i;
+      int nchars_per_row
+	= (it->last_visible_x - it->first_visible_x) / FRAME_COLUMN_WIDTH (it->f);
+      ptrdiff_t pos_limit;
 
       /* Start at the beginning of the screen line containing IT's
 	 position.  This may actually move vertically backwards,
@@ -9241,9 +9250,11 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
       move_it_vertically_backward (it, 0);
       dvpos -= it->vpos;
 
-      /* Go back -DVPOS visible lines and reseat the iterator there.  */
+      /* Go back -DVPOS buffer lines, but no farther than -DVPOS full
+	 screen lines, and reseat the iterator there.  */
       start_charpos = IT_CHARPOS (*it);
-      for (i = -dvpos; i > 0 && IT_CHARPOS (*it) > BEGV; --i)
+      pos_limit = max (start_charpos + dvpos * nchars_per_row, BEGV);
+      for (i = -dvpos; i > 0 && IT_CHARPOS (*it) > pos_limit; --i)
 	back_to_previous_visible_line_start (it);
       reseat (it, it->current.pos, 1);
 
