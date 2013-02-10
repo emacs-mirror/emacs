@@ -1348,8 +1348,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef WINDOWSNT
 	    char *prev_o = o;
 #endif
-	    while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
-	      ;
+	    while (o != target && (--o, !IS_DIRECTORY_SEP (*o)))
+	      continue;
 #ifdef WINDOWSNT
 	    /* Don't go below server level in UNC filenames.  */
 	    if (o == target + 1 && IS_DIRECTORY_SEP (*o)

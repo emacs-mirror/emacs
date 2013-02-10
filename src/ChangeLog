@@ -1,3 +1,8 @@
+2013-02-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fexpand_file_name): Omit confusing pointer comparison
+	that was not needed.
+
 2013-02-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor hashing refactoring.
