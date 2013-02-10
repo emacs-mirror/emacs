@@ -1,3 +1,7 @@
+2013-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Update bug keybinding.
+
 2013-01-18  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Directory Variables): Fix paren typo.
