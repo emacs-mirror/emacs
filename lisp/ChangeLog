@@ -1,5 +1,8 @@
 2013-02-10  Chong Yidong  <cyd@gnu.org>
 
+	* files.el (basic-save-buffer-1): Do not set
+	buffer-file-coding-system-explicit (Bug#4533).
+
 	* mail/emacsbug.el (report-emacs-bug): Change binding of
 	report-emacs-bug-insert-to-mailer to C-c M-i (Bug#13510).
 

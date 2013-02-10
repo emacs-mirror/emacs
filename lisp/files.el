@@ -4646,9 +4646,7 @@ Before and after saving the buffer, this function runs
 	    (basic-save-buffer-2))
 	(basic-save-buffer-2))
     (if buffer-file-coding-system-explicit
-	(setcar buffer-file-coding-system-explicit last-coding-system-used)
-      (setq buffer-file-coding-system-explicit
-	    (cons last-coding-system-used nil)))))
+	(setcar buffer-file-coding-system-explicit last-coding-system-used))))
 
 ;; This returns a value (MODES EXTENDED-ATTRIBUTES BACKUPNAME), like
 ;; backup-buffer.

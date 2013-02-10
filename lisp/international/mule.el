@@ -1132,17 +1132,20 @@ FORM is a form to evaluate to define the coding-system."
       (put (intern name) 'coding-system-define-form form)
       (setq coding-system-alist (cons (list name) coding-system-alist)))))
 
-;; This variable is set in these three cases:
+;; This variable is set in these two cases:
 ;;   (1) A file is read by a coding system specified explicitly.
-;;       after-insert-file-set-coding sets the car of this value to
-;;       coding-system-for-read, and sets the cdr to nil.
-;;   (2) A buffer is saved.
-;;       After writing, basic-save-buffer-1 sets the car of this value
-;;       to last-coding-system-used.
-;;   (3) set-buffer-file-coding-system is called.
+;;       `after-insert-file-set-coding' sets the car of this value to
+;;       `coding-system-for-read', and sets the cdr to nil.
+;;   (2) `set-buffer-file-coding-system' is called.
 ;;       The cdr of this value is set to the specified coding system.
-;; This variable is used for decoding in revert-buffer and encoding in
-;; select-safe-coding-system.
+;; This variable is used for decoding in `revert-buffer' and encoding
+;; in `select-safe-coding-system'.
+;;
+;; When saving a buffer, if `buffer-file-coding-system-explicit' is
+;; already non-nil, `basic-save-buffer-1' sets its CAR to the value of
+;; `last-coding-system-used'.  (It used to set it unconditionally, but
+;; that seems unnecessary; see Bug#4533.)
+
 (defvar buffer-file-coding-system-explicit nil
   "The file coding system explicitly specified for the current buffer.
 The value is a cons of coding systems for reading (decoding) and
