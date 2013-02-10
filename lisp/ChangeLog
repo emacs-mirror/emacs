@@ -1,3 +1,8 @@
+2013-02-10  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* minibuf-eldef.el (minibuffer-default--in-prompt-regexps): Handle
+	"foo (bar, default: xxx): " prompts.
+
 2013-02-10  Chong Yidong  <cyd@gnu.org>
 
 	* files.el (basic-save-buffer-1): Do not set

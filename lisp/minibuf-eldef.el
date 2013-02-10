@@ -38,6 +38,7 @@
 (defun minibuffer-default--in-prompt-regexps ()
   `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
      1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
+    ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
     ("\\( \\[.*\\]\\):? *\\'" 1)))
 
 (defcustom minibuffer-eldef-shorten-default nil
