@@ -8355,10 +8355,6 @@ static Lisp_Object
 read_char_x_menu_prompt (Lisp_Object map,
 			 Lisp_Object prev_event, bool *used_mouse_menu)
 {
-#ifdef HAVE_MENUS
-  ptrdiff_t mapno;
-#endif
-
   if (used_mouse_menu)
     *used_mouse_menu = 0;
 
@@ -8444,7 +8440,7 @@ read_char_minibuf_menu_prompt (int commandflag,
 
 #define PUSH_C_STR(str, listvar) \
   listvar = Fcons (make_unibyte_string (str, strlen (str)), listvar)
-  
+
   /* Prompt string always starts with map's prompt, and a space.  */
   prompt_strings = Fcons (name, prompt_strings);
   PUSH_C_STR (": ", prompt_strings);
@@ -8829,7 +8825,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		   bool dont_downcase_last, bool can_return_switch_frame,
 		   bool fix_current_buffer)
 {
-  Lisp_Object from_string;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   /* How many keys there are in the current key sequence.  */
@@ -8931,8 +8926,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   keys_start = this_command_key_count;
   this_single_command_key_start = keys_start;
 
-  from_string = Qnil;
-
   /* We jump here when we need to reinitialize fkey and keytran; this
      happens if we switch keyboards between rescans.  */
  replay_entire_sequence:
@@ -8958,7 +8951,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
      click and we need to switch buffers, we jump back here to rebuild
      the initial keymaps from the current buffer.  */
   current_binding = active_maps (first_event);
-  
+
   /* Start from the beginning in keybuf.  */
   t = 0;
 
@@ -9240,16 +9233,11 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	 or when user programs play with this-command-keys.  */
       if (EVENT_HAS_PARAMETERS (key))
 	{
-	  Lisp_Object kind;
-	  Lisp_Object string;
-
-	  kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
+	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
 	  if (EQ (kind, Qmouse_click))
 	    {
-	      Lisp_Object window, posn;
-
-	      window = POSN_WINDOW (EVENT_START (key));
-	      posn   = POSN_POSN (EVENT_START (key));
+	      Lisp_Object window = POSN_WINDOW (EVENT_START (key));
+	      Lisp_Object posn = POSN_POSN (EVENT_START (key));
 
 	      if (CONSP (posn)
 		  || (!NILP (fake_prefixed_keys)

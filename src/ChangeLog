@@ -1,3 +1,9 @@
+2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean up read_key_sequence a tiny bit more.
+	* keyboard.c (read_char_x_menu_prompt) [HAVE_MENUS]:
+	(read_key_sequence): Remove unused locals.
+
 2013-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Clean up read_key_sequence a bit; reread active keymaps after first event.
