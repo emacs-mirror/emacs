@@ -114,6 +114,13 @@ specified in the variable `diff-switches' are passed to the diff command."
           tempfile))
     (file-local-copy file-or-buf)))
 
+(defvar diff-use-labels 'check
+  "Whether `diff-command' understands the \"--label\" option.
+Possible values are:
+  t     -- yes, it does
+  nil   -- no, it does not
+  check -- try to probe whether it does")
+
 (defun diff-no-select (old new &optional switches no-async buf)
   ;; Noninteractive helper for creating and reverting diff buffers
   (unless (bufferp new) (setq new (expand-file-name new)))
@@ -121,6 +128,11 @@ specified in the variable `diff-switches' are passed to the diff command."
   (or switches (setq switches diff-switches)) ; If not specified, use default.
   (unless (listp switches) (setq switches (list switches)))
   (or buf (setq buf (get-buffer-create "*Diff*")))
+  (when (eq 'check diff-use-labels)
+    (setq diff-use-labels
+	  (with-temp-buffer
+	    (when (ignore-errors (call-process diff-command nil t nil "--help"))
+	      (if (search-backward "--label" nil t) t)))))
   (let* ((old-alt (diff-file-local-copy old))
 	 (new-alt (diff-file-local-copy new))
 	 (command
@@ -130,11 +142,14 @@ specified in the variable `diff-switches' are passed to the diff command."
 		       ,@switches
                        ,@(mapcar #'shell-quote-argument
                                  (nconc
-                                  (when (or old-alt new-alt)
-                                    (list "-L" (if (stringp old)
-                                                   old (prin1-to-string old))
-                                          "-L" (if (stringp new)
-                                                   new (prin1-to-string new))))
+                                  (and (or old-alt new-alt)
+				       (eq diff-use-labels t)
+				       (list "--label"
+					     (if (stringp old) old
+					       (prin1-to-string old))
+					     "--label"
+					     (if (stringp new) new
+					       (prin1-to-string new))))
                                   (list (or old-alt old)
                                         (or new-alt new)))))
 		     " "))

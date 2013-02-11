@@ -1,5 +1,9 @@
 2013-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* vc/diff.el (diff-use-labels): New variable.
+	(diff-no-select): Use --label rather than -L, and first
+	check that it is supported.  (Bug#11067)
+
 	* files.el (enable-dir-local-variables): New variable.
 	(hack-dir-local-variables): Respect enable-dir-local-variables.
 	* tutorial.el (help-with-tutorial):
