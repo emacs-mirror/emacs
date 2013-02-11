@@ -50,14 +50,21 @@
   :type 'string
   :group 'vc-svn)
 
-(defcustom vc-svn-global-switches nil
-  "Global switches to pass to any SVN command."
+;; Might be nice if svn defaulted to non-interactive if stdin not tty.
+;; http://svn.haxx.se/dev/archive-2008-05/0762.shtml
+;; http://svn.haxx.se/dev/archive-2009-04/0094.shtml
+;; Maybe newer ones do?
+(defcustom vc-svn-global-switches (unless (eq system-type 'darwin) ; bug#13513
+                                    '("--non-interactive"))
+  "Global switches to pass to any SVN command.
+The option \"--non-interactive\" is often needed to prevent SVN
+hanging while prompting for authorization."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "22.1"
+  :version "24.4"
   :group 'vc-svn)
 
 (defcustom vc-svn-register-switches nil
@@ -600,19 +607,11 @@ NAME is assumed to be a URL."
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
-and that it passes \"--non-interactive\" and `vc-svn-global-switches' to
-it before FLAGS."
-  ;; Might be nice if svn defaulted to non-interactive if stdin not tty.
-  ;; http://svn.haxx.se/dev/archive-2008-05/0762.shtml
-  ;; http://svn.haxx.se/dev/archive-2009-04/0094.shtml
-  ;; Maybe newer ones do?
-  (or (member "--non-interactive"
-              (setq flags (if (stringp vc-svn-global-switches)
-             (cons vc-svn-global-switches flags)
-                            (append vc-svn-global-switches flags))))
-      (setq flags (cons "--non-interactive" flags)))
+and that it passes `vc-svn-global-switches' to it before FLAGS."
   (apply 'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
-         flags))
+         (if (stringp vc-svn-global-switches)
+             (cons vc-svn-global-switches flags)
+           (append vc-svn-global-switches flags))))
 
 (defun vc-svn-repository-hostname (dirname)
   (with-temp-buffer
