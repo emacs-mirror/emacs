@@ -1,3 +1,9 @@
+2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-02-11 unsetenv etc.: port to Solaris 11 + GNU Emacs
+	2013-02-09 secure_getenv: fix C++ declaration typo
+
 2013-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (emacs_config_options): Record some env vars.

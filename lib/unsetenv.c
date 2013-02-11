@@ -14,11 +14,11 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <config.h>
-
 /* Don't use __attribute__ __nonnull__ in this compilation unit.  Otherwise gcc
    optimizes away the name == NULL test below.  */
 #define _GL_ARG_NONNULL(params)
+
+#include <config.h>
 
 /* Specification.  */
 #include <stdlib.h>

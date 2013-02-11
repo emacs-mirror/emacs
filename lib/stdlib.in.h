@@ -773,7 +773,7 @@ _GL_WARN_ON_USE (rpmatch, "rpmatch is unportable - "
 _GL_FUNCDECL_SYS (secure_getenv, char *,
                   (char const *name) _GL_ARG_NONNULL ((1)));
 # endif
-_GL_CXXALIAS_SYS (secure_getenv, int, (char const *name));
+_GL_CXXALIAS_SYS (secure_getenv, char *, (char const *name));
 _GL_CXXALIASWARN (secure_getenv);
 #elif defined GNULIB_POSIXCHECK
 # undef secure_getenv
