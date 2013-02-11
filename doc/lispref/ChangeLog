@@ -1,5 +1,7 @@
 2013-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* objects.texi (Char-Table Type): Add cindex.
+
 	* keymaps.texi (Key Binding Commands): Trivial rephrasing.
 
 2013-02-09  Glenn Morris  <rgm@gnu.org>
