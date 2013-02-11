@@ -1,7 +1,7 @@
 2013-02-11  Elias Pipping  <pipping@lavabit.com>
 
 	* doc-view.el (doc-view-current-cache-dir): Beware % escapes
-	(bug#13679).
+	(bug#13689).
 
 2013-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 

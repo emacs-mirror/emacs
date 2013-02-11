@@ -447,16 +447,24 @@ Use this defun with `erc-insert-modify-hook'."
 			(nth 0 (erc-parse-user nickuserhost))))
 	 (old-pt (point))
 	 (nick-beg (and nickname
-			(re-search-forward (regexp-quote nickname)
+			(re-search-forward "\\(\\* \\)?"(regexp-quote nickname)
 					   (point-max) t)
 			(match-beginning 0)))
 	 (nick-end (when nick-beg
 		     (match-end 0)))
-	 (message (buffer-substring (if (and nick-end
-					     (<= (+ 2 nick-end) (point-max)))
-					(+ 2 nick-end)
-				      (point-min))
-				    (point-max))))
+	 (message (buffer-substring
+		   (if (and nick-end
+			    (<= (+ 2 nick-end) (point-max)))
+		       (+ nick-end
+			  ;; Message starts 2 characters after the nick except
+			  ;; for CTCP ACTION messages.
+			  (if (string= "* "
+				       (buffer-substring (- nick-beg 2)
+							 nick-beg))
+			      1
+			    2))
+		     (point-min))
+		   (point-max))))
     (when (and vector
 	       (not (and erc-match-exclude-server-buffer
 			 (erc-server-buffer-p))))
