@@ -1,3 +1,9 @@
+2013-02-11  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-edit-quit): On quitting file editing,
+	rename buffer back to current Todos file.  After selecting
+	category, put point at top instead of recentering.
+
 2013-02-08  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-edit-multiline-item): Revert to using

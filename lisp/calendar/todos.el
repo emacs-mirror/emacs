@@ -1547,6 +1547,8 @@ The final element is \"*\", indicating an unspecified month.")
 
 (defun todos-prefix-overlay ()
   "Return this item's prefix overlay."
+  ;; Why doesn't this work?
+  ;; (get-char-property-and-overlay lbp 'before-string)
   (let* ((lbp (line-beginning-position))
 	 (ovs (overlays-in lbp lbp)))
     (car ovs)))
@@ -4917,6 +4919,7 @@ in the number or names of categories."
 	;; (todos-repair-categories-sexp)
 	;; Compare (todos-make-categories-list t) with sexp and if
 	;; different ask (todos-update-categories-sexp) ?
+	(rename-buffer (file-name-nondirectory todos-current-todos-file))
 	(todos-mode)
 	(let* ((cat-beg (concat "^" (regexp-quote todos-category-beg)
 				"\\(.*\\)$"))
@@ -4929,7 +4932,7 @@ in the number or names of categories."
 			   (match-string-no-properties 1)))))
 	  (todos-category-number cat)
 	  (todos-category-select)
-	  (recenter)))))
+	  (goto-char (point-min))))))
 
 (defun todos-edit-item-header-1 (what &optional inc)
   "Function underlying commands to edit item date/time header.
@@ -5569,8 +5572,8 @@ section in the category moved to."
 	    (let ((todos-show-with-done (or done-items done-item)))
 	      (todos-category-select))
 	    (goto-char nmark)
-	    ;; If item is moved to end of category, make sure the
-	    ;; items above it are displayed in the window.
+	    ;; If item is moved to end of (just first?) category, make
+	    ;; sure the items above it are displayed in the window.
 	    (recenter))
 	   ;; User quit before setting priority of todo item(s), so
 	   ;; return to starting category.
