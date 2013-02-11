@@ -417,10 +417,9 @@ static void (*keyboard_init_hook) (void);
 
 static bool get_input_pending (int);
 static bool readable_events (int);
-static Lisp_Object read_char_x_menu_prompt (ptrdiff_t, Lisp_Object *,
+static Lisp_Object read_char_x_menu_prompt (Lisp_Object,
                                             Lisp_Object, bool *);
-static Lisp_Object read_char_minibuf_menu_prompt (int, ptrdiff_t,
-                                                  Lisp_Object *);
+static Lisp_Object read_char_minibuf_menu_prompt (int, Lisp_Object);
 static Lisp_Object make_lispy_event (struct input_event *);
 static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         enum scroll_bar_part,
@@ -2231,13 +2230,12 @@ do { if (! polling_stopped_here) stop_polling ();	\
 do { if (polling_stopped_here) start_polling ();	\
        polling_stopped_here = 0; } while (0)
 
-/* read a character from the keyboard; call the redisplay if needed */
+/* Read a character from the keyboard; call the redisplay if needed.  */
 /* commandflag 0 means do not autosave, but do redisplay.
    -1 means do not redisplay, but do autosave.
    1 means do both.  */
 
-/* The arguments MAPS and NMAPS are for menu prompting.
-   MAPS is an array of keymaps;  NMAPS is the length of MAPS.
+/* The arguments MAP is for menu prompting.  MAP is a keymap.
 
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence (or not reading a key sequence).
@@ -2259,7 +2257,7 @@ do { if (polling_stopped_here) start_polling ();	\
    Value is t if we showed a menu and the user rejected it.  */
 
 Lisp_Object
-read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
+read_char (int commandflag, Lisp_Object map,
 	   Lisp_Object prev_event,
 	   bool *used_mouse_menu, EMACS_TIME *end_time)
 {
@@ -2407,7 +2405,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       goto reread_first;
     }
 
-  /* if redisplay was requested */
+  /* If redisplay was requested.  */
   if (commandflag >= 0)
     {
       bool echo_current = EQ (echo_message_buffer, echo_area_buffer[0]);
@@ -2416,7 +2414,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	   user-visible, such as X selection_request events.  */
       if (input_pending
 	  || detect_input_pending_run_timers (0))
-	swallow_events (0);		/* may clear input_pending */
+	swallow_events (0);		/* May clear input_pending.  */
 
       /* Redisplay if no pending input.  */
       while (!input_pending)
@@ -2486,13 +2484,13 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
      menu prompting. If EVENT_HAS_PARAMETERS then we are reading
      after a mouse event so don't try a minibuf menu.  */
   c = Qnil;
-  if (nmaps > 0 && INTERACTIVE
+  if (KEYMAPP (map) && INTERACTIVE
       && !NILP (prev_event) && ! EVENT_HAS_PARAMETERS (prev_event)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
       && !detect_input_pending_run_timers (0))
     {
-      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
+      c = read_char_minibuf_menu_prompt (commandflag, map);
 
       if (INTEGERP (c) && XINT (c) == -2)
         return c;               /* wrong_kboard_jmpbuf */
@@ -2616,7 +2614,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
      because the recursive call of read_char in read_char_minibuf_menu_prompt
      does not pass on any keymaps.  */
 
-  if (nmaps > 0 && INTERACTIVE
+  if (KEYMAPP (map) && INTERACTIVE
       && !NILP (prev_event)
       && EVENT_HAS_PARAMETERS (prev_event)
       && !EQ (XCAR (prev_event), Qmenu_bar)
@@ -2624,7 +2622,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events))
     {
-      c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
+      c = read_char_x_menu_prompt (map, prev_event, used_mouse_menu);
 
       /* Now that we have read an event, Emacs is not idle.  */
       if (!end_time)
@@ -3002,7 +3000,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 
       /* If we are not reading a key sequence,
 	 never use the echo area.  */
-      if (maps == 0)
+      if (!KEYMAPP (map))
 	{
 	  specbind (Qinput_method_use_echo_area, Qt);
 	}
@@ -3095,7 +3093,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
   last_input_event = c;
   num_input_events++;
 
-  /* Process the help character specially if enabled */
+  /* Process the help character specially if enabled.  */
   if (!NILP (Vhelp_form) && help_char_p (c))
     {
       ptrdiff_t count = SPECPDL_INDEX ();
@@ -3109,13 +3107,13 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       cancel_echoing ();
       do
 	{
-	  c = read_char (0, 0, 0, Qnil, 0, NULL);
+	  c = read_char (0, Qnil, Qnil, 0, NULL);
 	  if (EVENT_HAS_PARAMETERS (c)
 	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_click))
 	    XSETCAR (help_form_saved_window_configs, Qnil);
 	}
       while (BUFFERP (c));
-      /* Remove the help from the frame */
+      /* Remove the help from the frame.  */
       unbind_to (count, Qnil);
 
       redisplay ();
@@ -3123,7 +3121,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	{
 	  cancel_echoing ();
 	  do
-	    c = read_char (0, 0, 0, Qnil, 0, NULL);
+	    c = read_char (0, Qnil, Qnil, 0, NULL);
 	  while (BUFFERP (c));
 	}
     }
@@ -8313,9 +8311,9 @@ init_tool_bar_items (Lisp_Object reuse)
 static void
 append_tool_bar_item (void)
 {
-  ptrdiff_t incr =
-    (ntool_bar_items
-     - (ASIZE (tool_bar_items_vector) - TOOL_BAR_ITEM_NSLOTS));
+  ptrdiff_t incr
+    = (ntool_bar_items
+       - (ASIZE (tool_bar_items_vector) - TOOL_BAR_ITEM_NSLOTS));
 
   /* Enlarge tool_bar_items_vector if necessary.  */
   if (0 < incr)
@@ -8333,8 +8331,8 @@ append_tool_bar_item (void)
 
 
 
-/* Read a character using menus based on maps in the array MAPS.
-   NMAPS is the length of MAPS.  Return nil if there are no menus in the maps.
+/* Read a character using menus based on the keymap MAP.
+   Return nil if there are no menus in the maps.
    Return t if we displayed a menu but the user rejected it.
 
    PREV_EVENT is the previous input event, or nil if we are reading
@@ -8354,7 +8352,7 @@ append_tool_bar_item (void)
    and do auto-saving in the inner call of read_char.  */
 
 static Lisp_Object
-read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
+read_char_x_menu_prompt (Lisp_Object map,
 			 Lisp_Object prev_event, bool *used_mouse_menu)
 {
 #ifdef HAVE_MENUS
@@ -8364,17 +8362,10 @@ read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
   if (used_mouse_menu)
     *used_mouse_menu = 0;
 
-  /* Use local over global Menu maps */
+  /* Use local over global Menu maps.  */
 
   if (! menu_prompting)
     return Qnil;
-
-  /* Optionally disregard all but the global map.  */
-  if (inhibit_local_menu_bar_menus)
-    {
-      maps += (nmaps - 1);
-      nmaps = 1;
-    }
 
 #ifdef HAVE_MENUS
   /* If we got to this point via a mouse click,
@@ -8384,16 +8375,9 @@ read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
       && !EQ (XCAR (prev_event), Qtool_bar))
     {
       /* Display the menu and get the selection.  */
-      Lisp_Object *realmaps = alloca (nmaps * sizeof *realmaps);
       Lisp_Object value;
-      ptrdiff_t nmaps1 = 0;
 
-      /* Use the maps that are not nil.  */
-      for (mapno = 0; mapno < nmaps; mapno++)
-	if (!NILP (maps[mapno]))
-	  realmaps[nmaps1++] = maps[mapno];
-
-      value = Fx_popup_menu (prev_event, Flist (nmaps1, realmaps));
+      value = Fx_popup_menu (prev_event, get_keymap (map, 0, 1));
       if (CONSP (value))
 	{
 	  Lisp_Object tem;
@@ -8435,9 +8419,8 @@ read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
 
 static Lisp_Object
 read_char_minibuf_menu_prompt (int commandflag,
-			       ptrdiff_t nmaps, Lisp_Object *maps)
+			       Lisp_Object map)
 {
-  ptrdiff_t mapno;
   register Lisp_Object name;
   ptrdiff_t nlength;
   /* FIXME: Use the minibuffer's frame width.  */
@@ -8448,18 +8431,12 @@ read_char_minibuf_menu_prompt (int commandflag,
   Lisp_Object prompt_strings = Qnil;
 
   vector = Qnil;
-  name = Qnil;
 
   if (! menu_prompting)
     return Qnil;
 
-  /* Get the menu name from the first map that has one (a prompt string).  */
-  for (mapno = 0; mapno < nmaps; mapno++)
-    {
-      name = Fkeymap_prompt (maps[mapno]);
-      if (!NILP (name))
-	break;
-    }
+  map = get_keymap (map, 0, 1);
+  name = Fkeymap_prompt (map);
 
   /* If we don't have any menus, just read a character normally.  */
   if (!STRINGP (name))
@@ -8473,9 +8450,7 @@ read_char_minibuf_menu_prompt (int commandflag,
   PUSH_C_STR (": ", prompt_strings);
   nlength = SCHARS (name) + 2;
 
-  /* Start prompting at start of first map.  */
-  mapno = 0;
-  rest = maps[mapno];
+  rest = map;
 
   /* Present the documented bindings, a line at a time.  */
   while (1)
@@ -8493,18 +8468,14 @@ read_char_minibuf_menu_prompt (int commandflag,
 
 	  /* FIXME: Use map_keymap to handle new keymap formats.  */
 
-	  /* If reached end of map, start at beginning of next map.  */
+	  /* At end of map, wrap around if just starting,
+	     or end this line if already have something on it.  */
 	  if (NILP (rest))
 	    {
-	      mapno++;
-	      /* At end of last map, wrap around to first map if just starting,
-		 or end this line if already have something on it.  */
-	      if (mapno == nmaps)
-		{
-		  mapno = 0;
-		  if (notfirst || nobindings) break;
-		}
-	      rest = maps[mapno];
+	      if (notfirst || nobindings)
+		break;
+	      else
+		rest = map;
 	    }
 
 	  /* Look at the next element of the map.  */
@@ -8638,7 +8609,7 @@ read_char_minibuf_menu_prompt (int commandflag,
 	}
 
       /* Prompt with that and read response.  */
-      message3_nolog (apply1 (intern ("concat"), menu_strings));
+      message3_nolog (apply1 (intern ("concat"), Fnreverse (menu_strings)));
 
       /* Make believe it's not a keyboard macro in case the help char
 	 is pressed.  Help characters are not recorded because menu prompting
@@ -8646,7 +8617,7 @@ read_char_minibuf_menu_prompt (int commandflag,
       orig_defn_macro = KVAR (current_kboard, defining_kbd_macro);
       kset_defining_kbd_macro (current_kboard, Qnil);
       do
-	obj = read_char (commandflag, 0, 0, Qt, 0, NULL);
+	obj = read_char (commandflag, Qnil, Qt, 0, NULL);
       while (BUFFERP (obj));
       kset_defining_kbd_macro (current_kboard, orig_defn_macro);
 
@@ -8667,46 +8638,18 @@ read_char_minibuf_menu_prompt (int commandflag,
 
 /* Reading key sequences.  */
 
-/* Follow KEY in the maps in CURRENT[0..NMAPS-1], placing its bindings
-   in DEFS[0..NMAPS-1].  Set NEXT[i] to DEFS[i] if DEFS[i] is a
-   keymap, or nil otherwise.  Return the index of the first keymap in
-   which KEY has any binding, or NMAPS if no map has a binding.
-
-   If KEY is a meta ASCII character, treat it like meta-prefix-char
-   followed by the corresponding non-meta character.  Keymaps in
-   CURRENT with non-prefix bindings for meta-prefix-char become nil in
-   NEXT.
-
-   If KEY has no bindings in any of the CURRENT maps, NEXT is left
-   unmodified.
-
-   NEXT may be the same array as CURRENT.  */
-
-static int
-follow_key (Lisp_Object key, ptrdiff_t nmaps, Lisp_Object *current,
-	    Lisp_Object *defs, Lisp_Object *next)
+static Lisp_Object
+follow_key (Lisp_Object keymap, Lisp_Object key)
 {
-  ptrdiff_t i, first_binding;
+  return access_keymap (get_keymap (keymap, 0, 1),
+			key, 1, 0, 1);
+}
 
-  first_binding = nmaps;
-  for (i = nmaps - 1; i >= 0; i--)
-    {
-      if (! NILP (current[i]))
-	{
-	  defs[i] = access_keymap (current[i], key, 1, 0, 1);
-	  if (! NILP (defs[i]))
-	    first_binding = i;
-	}
-      else
-	defs[i] = Qnil;
-    }
-
-  /* Given the set of bindings we've found, produce the next set of maps.  */
-  if (first_binding < nmaps)
-    for (i = 0; i < nmaps; i++)
-      next[i] = NILP (defs[i]) ? Qnil : get_keymap (defs[i], 0, 1);
-
-  return first_binding;
+static Lisp_Object
+active_maps (Lisp_Object first_event)
+{
+  Lisp_Object position = INTEGERP (first_event) ? Qnil : first_event;
+  return Fcons (Qkeymap, Fcurrent_active_maps (Qt, position));
 }
 
 /* Structure used to keep track of partial application of key remapping
@@ -8838,8 +8781,9 @@ keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
 static bool
 test_undefined (Lisp_Object binding)
 {
-  return (EQ (binding, Qundefined)
-	  || (!NILP (binding) && SYMBOLP (binding)
+  return (NILP (binding)
+	  || EQ (binding, Qundefined)
+	  || (SYMBOLP (binding)
 	      && EQ (Fcommand_remapping (binding, Qnil, Qnil), Qundefined)));
 }
 
@@ -8896,34 +8840,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   ptrdiff_t echo_start IF_LINT (= 0);
   ptrdiff_t keys_start;
 
-  /* The number of keymaps we're scanning right now, and the number of
-     keymaps we have allocated space for.  */
-  ptrdiff_t nmaps;
-  ptrdiff_t nmaps_allocated = 0;
+  Lisp_Object current_binding = Qnil;
+  Lisp_Object first_event = Qnil;
 
-  /* defs[0..nmaps-1] are the definitions of KEYBUF[0..t-1] in
-     the current keymaps.  */
-  Lisp_Object *defs = NULL;
-
-  /* submaps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
-     in the current keymaps, or nil where it is not a prefix.  */
-  Lisp_Object *submaps = NULL;
-
-  /* The local map to start out with at start of key sequence.  */
-  Lisp_Object orig_local_map;
-
-  /* The map from the `keymap' property to start out with at start of
-     key sequence.  */
-  Lisp_Object orig_keymap;
-
-  /* Positive if we have already considered switching to the local-map property
-     of the place where a mouse click occurred.  */
-  int localized_local_map = 0;
-
-  /* The index in submaps[] of the first keymap that has a binding for
-     this key sequence.  In other words, the lowest i such that
-     submaps[i] is non-nil.  */
-  ptrdiff_t first_binding;
   /* Index of the first key that has no binding.
      It is useless to try fkey.start larger than that.  */
   int first_unbound;
@@ -8966,11 +8885,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
      While we're reading, we keep the event here.  */
   Lisp_Object delayed_switch_frame;
 
-  /* See the comment below...  */
-#if defined (GOBBLE_FIRST_EVENT)
-  Lisp_Object first_event;
-#endif
-
   Lisp_Object original_uppercase IF_LINT (= Qnil);
   int original_uppercase_position = -1;
 
@@ -8981,10 +8895,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
   /* List of events for which a fake prefix key has been generated.  */
   Lisp_Object fake_prefixed_keys = Qnil;
-
-#if defined (GOBBLE_FIRST_EVENT)
-  int junk;
-#endif
 
   struct gcpro gcpro1;
 
@@ -9021,19 +8931,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   keys_start = this_command_key_count;
   this_single_command_key_start = keys_start;
 
-#if defined (GOBBLE_FIRST_EVENT)
-  /* This doesn't quite work, because some of the things that read_char
-     does cannot safely be bypassed.  It seems too risky to try to make
-     this work right.  */
-
-  /* Read the first char of the sequence specially, before setting
-     up any keymaps, in case a filter runs and switches buffers on us.  */
-  first_event = read_char (NILP (prompt), 0, submaps, last_nonmenu_event,
-			   &junk, NULL);
-#endif /* GOBBLE_FIRST_EVENT */
-
-  orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
-  orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
   from_string = Qnil;
 
   /* We jump here when we need to reinitialize fkey and keytran; this
@@ -9060,60 +8957,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
      keybuf with its symbol, or if the sequence starts with a mouse
      click and we need to switch buffers, we jump back here to rebuild
      the initial keymaps from the current buffer.  */
-  nmaps = 0;
-
-  if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
-    {
-      if (2 > nmaps_allocated)
-	{
-	  submaps = alloca (2 * sizeof *submaps);
-	  defs    = alloca (2 * sizeof *defs);
-	  nmaps_allocated = 2;
-	}
-      submaps[nmaps++] = KVAR (current_kboard, Voverriding_terminal_local_map);
-    }
-  else if (!NILP (Voverriding_local_map))
-    {
-      if (2 > nmaps_allocated)
-	{
-	  submaps = alloca (2 * sizeof *submaps);
-	  defs    = alloca (2 * sizeof *defs);
-	  nmaps_allocated = 2;
-	}
-      submaps[nmaps++] = Voverriding_local_map;
-    }
-  else
-    {
-      ptrdiff_t nminor;
-      ptrdiff_t total;
-      Lisp_Object *maps;
-
-      nminor = current_minor_maps (0, &maps);
-      total = nminor + (!NILP (orig_keymap) ? 3 : 2);
-
-      if (total > nmaps_allocated)
-	{
-	  submaps = alloca (total * sizeof *submaps);
-	  defs    = alloca (total * sizeof *defs);
-	  nmaps_allocated = total;
-	}
-
-      if (!NILP (orig_keymap))
-	submaps[nmaps++] = orig_keymap;
-
-      memcpy (submaps + nmaps, maps, nminor * sizeof (submaps[0]));
-
-      nmaps += nminor;
-
-      submaps[nmaps++] = orig_local_map;
-    }
-  submaps[nmaps++] = current_global_map;
-
-  /* Find an accurate initial value for first_binding.  */
-  for (first_binding = 0; first_binding < nmaps; first_binding++)
-    if (! NILP (submaps[first_binding]))
-      break;
-
+  current_binding = active_maps (first_event);
+  
   /* Start from the beginning in keybuf.  */
   t = 0;
 
@@ -9126,9 +8971,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   /* If the best binding for the current key sequence is a keymap, or
      we may be looking at a function key's escape sequence, keep on
      reading.  */
-  while (first_binding < nmaps
+  while (!NILP (current_binding)
 	 /* Keep reading as long as there's a prefix binding.  */
-	 ? !NILP (submaps[first_binding])
+	 ? KEYMAPP (current_binding)
 	 /* Don't return in the middle of a possible function key sequence,
 	    if the only bindings we found were via case conversion.
 	    Thus, if ESC O a has a function-key-map translation
@@ -9152,7 +8997,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	 just one key.  */
       ptrdiff_t echo_local_start IF_LINT (= 0);
       int keys_local_start;
-      ptrdiff_t local_first_binding;
+      Lisp_Object new_binding;
 
       eassert (indec.end == t || (indec.end > t && indec.end <= mock_input));
       eassert (indec.start <= indec.end);
@@ -9189,7 +9034,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
       if (INTERACTIVE)
 	echo_local_start = echo_length ();
       keys_local_start = this_command_key_count;
-      local_first_binding = first_binding;
 
     replay_key:
       /* These are no-ops, unless we throw away a keystroke below and
@@ -9199,7 +9043,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
       if (INTERACTIVE && t < mock_input)
 	echo_truncate (echo_local_start);
       this_command_key_count = keys_local_start;
-      first_binding = local_first_binding;
 
       /* By default, assume each event is "real".  */
       last_real_key_start = t;
@@ -9224,8 +9067,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  {
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    key = read_char (NILP (prompt), nmaps,
-			     (Lisp_Object *) submaps, last_nonmenu_event,
+	    key = read_char (NILP (prompt),
+			     current_binding, last_nonmenu_event,
 			     &used_mouse_menu, NULL);
 	    if ((INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 		/* When switching to a new tty (with a new keyboard),
@@ -9280,8 +9123,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 			      KVAR (interrupted_kboard, kbd_queue)));
 		  }
 		mock_input = 0;
-		orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
-		orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 		goto replay_entire_sequence;
 	      }
 	  }
@@ -9322,12 +9163,11 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		{
 		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 		    Fkill_emacs (Qnil);
-		  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+		  if (XBUFFER (XWINDOW (selected_window)->buffer)
+		      != current_buffer)
 		    Fset_buffer (XWINDOW (selected_window)->buffer);
 		}
 
-	      orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
-	      orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 	      goto replay_sequence;
 	    }
 
@@ -9344,8 +9184,6 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	      keybuf[t++] = key;
 	      mock_input = t;
 	      Vquit_flag = Qnil;
-	      orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
-	      orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 	      goto replay_sequence;
 	    }
 
@@ -9363,6 +9201,22 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		  delayed_switch_frame = key;
 		  goto replay_key;
 		}
+	    }
+
+	  if (NILP (first_event))
+	    {
+	      first_event = key;
+	      /* Even if first_event does not specify a particular
+		 window/position, it's important to recompute the maps here
+		 since a long time might have passed since we entered
+		 read_key_sequence, and a timer (or process-filter or
+		 special-event-map, ...) might have switched the current buffer
+		 or the selected window from under us in the mean time.  */
+	      if (fix_current_buffer
+		  && (XBUFFER (XWINDOW (selected_window)->buffer)
+		      != current_buffer))
+		Fset_buffer (XWINDOW (selected_window)->buffer);
+	      current_binding = active_maps (first_event);
 	    }
 
 	  GROW_RAW_KEYBUF;
@@ -9438,57 +9292,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 			Fkill_emacs (Qnil);
 		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
-		      orig_local_map = get_local_map (PT, current_buffer,
-						      Qlocal_map);
-		      orig_keymap = get_local_map (PT, current_buffer,
-						   Qkeymap);
 		      goto replay_sequence;
-		    }
-
-		  /* For a mouse click, get the local text-property keymap
-		     of the place clicked on, rather than point.  */
-		  if (CONSP (XCDR (key))
-		      && ! localized_local_map)
-		    {
-		      Lisp_Object map_here, start, pos;
-
-		      localized_local_map = 1;
-		      start = EVENT_START (key);
-
-		      if (CONSP (start) && POSN_INBUFFER_P (start))
-			{
-			  pos = POSN_BUFFER_POSN (start);
-			  if (INTEGERP (pos)
-			      && XINT (pos) >= BEGV
-			      && XINT (pos) <= ZV)
-			    {
-			      map_here = get_local_map (XINT (pos),
-							current_buffer,
-							Qlocal_map);
-			      if (!EQ (map_here, orig_local_map))
-				{
-				  orig_local_map = map_here;
-				  ++localized_local_map;
-				}
-
-			      map_here = get_local_map (XINT (pos),
-							current_buffer,
-							Qkeymap);
-			      if (!EQ (map_here, orig_keymap))
-				{
-				  orig_keymap = map_here;
-				  ++localized_local_map;
-				}
-
-			      if (localized_local_map > 1)
-				{
-				  keybuf[t] = key;
-				  mock_input = t + 1;
-
-				  goto replay_sequence;
-				}
-			    }
-			}
 		    }
 		}
 
@@ -9510,62 +9314,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		     prevent proper action when the event is pushed
 		     back into unread-command-events.  */
 		  fake_prefixed_keys = Fcons (key, fake_prefixed_keys);
-
-		  /* If on a mode line string with a local keymap,
-		     reconsider the key sequence with that keymap.  */
-		  if (string = POSN_STRING (EVENT_START (key)),
-		      (CONSP (string) && STRINGP (XCAR (string))))
-		    {
-		      Lisp_Object pos, map, map2;
-
-		      pos = XCDR (string);
-		      string = XCAR (string);
-                      if (XINT (pos) >= 0
-			  && XINT (pos) < SCHARS (string))
-                        {
-                          map = Fget_text_property (pos, Qlocal_map, string);
-                          if (!NILP (map))
-                            orig_local_map = map;
-                          map2 = Fget_text_property (pos, Qkeymap, string);
-                          if (!NILP (map2))
-                            orig_keymap = map2;
-                          if (!NILP (map) || !NILP (map2))
-                            goto replay_sequence;
-                        }
-		    }
-
 		  goto replay_key;
-		}
-	      else if (NILP (from_string)
-		       && (string = POSN_STRING (EVENT_START (key)),
-			   (CONSP (string) && STRINGP (XCAR (string)))))
-		{
-		  /* For a click on a string, i.e. overlay string or a
-		     string displayed via the `display' property,
-		     consider `local-map' and `keymap' properties of
-		     that string.  */
-		  Lisp_Object pos, map, map2;
-
-		  pos = XCDR (string);
-		  string = XCAR (string);
-		  if (XINT (pos) >= 0
-		      && XINT (pos) < SCHARS (string))
-		    {
-		      map = Fget_text_property (pos, Qlocal_map, string);
-		      if (!NILP (map))
-			orig_local_map = map;
-		      map2 = Fget_text_property (pos, Qkeymap, string);
-		      if (!NILP (map2))
-			orig_keymap = map2;
-
-		      if (!NILP (map) || !NILP (map2))
-			{
-			  from_string = string;
-			  keybuf[t++] = key;
-			  mock_input = t;
-			  goto replay_sequence;
-			}
-		    }
 		}
 	    }
 	  else if (CONSP (XCDR (key))
@@ -9582,7 +9331,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		  if (bufsize - t <= 1)
 		    error ("Key sequence too long");
 		  keybuf[t] = posn;
-		  keybuf[t+1] = key;
+		  keybuf[t + 1] = key;
 
 		  /* Zap the position in key, so we know that we've
 		     expanded it, and don't try to do so again.  */
@@ -9605,15 +9354,10 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
       /* We have finally decided that KEY is something we might want
 	 to look up.  */
-      first_binding = (follow_key (key,
-				   nmaps   - first_binding,
-				   submaps + first_binding,
-				   defs    + first_binding,
-				   submaps + first_binding)
-		       + first_binding);
+      new_binding = follow_key (current_binding, key);
 
       /* If KEY wasn't bound, we'll try some fallbacks.  */
-      if (first_binding < nmaps)
+      if (!NILP (new_binding))
 	/* This is needed for the following scenario:
 	   event 0: a down-event that gets dropped by calling replay_key.
 	   event 1: some normal prefix like C-h.
@@ -9750,20 +9494,13 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		      new_click
 			= Fcons (new_head, Fcons (EVENT_START (key), Qnil));
 
-		      /* Look for a binding for this new key.  follow_key
-			 promises that it didn't munge submaps the
-			 last time we called it, since key was unbound.  */
-		      first_binding
-			= (follow_key (new_click,
-				       nmaps   - local_first_binding,
-				       submaps + local_first_binding,
-				       defs    + local_first_binding,
-				       submaps + local_first_binding)
-			   + local_first_binding);
+		      /* Look for a binding for this new key.  */
+		      new_binding = follow_key (current_binding, new_click);
 
 		      /* If that click is bound, go for it.  */
-		      if (first_binding < nmaps)
+		      if (!NILP (new_binding))
 			{
+			  current_binding = new_binding;
 			  key = new_click;
 			  break;
 			}
@@ -9772,6 +9509,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		}
 	    }
 	}
+      current_binding = new_binding;
 
       keybuf[t++] = key;
       /* Normally, last_nonmenu_event gets the previous key we read.
@@ -9803,9 +9541,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	    }
 	}
 
-      if (first_binding < nmaps
-	  && NILP (submaps[first_binding])
-	  && !test_undefined (defs[first_binding])
+      if (!KEYMAPP (current_binding)
+	  && !test_undefined (current_binding)
 	  && indec.start >= t)
 	/* There is a binding and it's not a prefix.
 	   (and it doesn't have any input-decode-map translation pending).
@@ -9834,8 +9571,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 				     first_binding >= nmaps) we don't want
 				     to apply this function-key-mapping.  */
 				  fkey.end + 1 == t
-				  && (first_binding >= nmaps
-				      || test_undefined (defs[first_binding])),
+				  && (test_undefined (current_binding)),
 				  &diff, prompt);
 	    UNGCPRO;
 	    if (done)
@@ -9878,7 +9614,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	 and cannot be part of a function key or translation,
 	 and is an upper case letter
 	 use the corresponding lower-case letter instead.  */
-      if (first_binding >= nmaps
+      if (NILP (current_binding)
 	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
 	  && INTEGERP (key)
 	  && ((CHARACTERP (make_number (XINT (key) & ~CHAR_MODIFIER_MASK))
@@ -9909,7 +9645,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	 and cannot be part of a function key or translation,
 	 and is a shifted function key,
 	 use the corresponding unshifted function key instead.  */
-      if (first_binding >= nmaps
+      if (NILP (current_binding)
 	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t)
 	{
 	  Lisp_Object breakdown = parse_modifiers (key);
@@ -9950,9 +9686,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	}
     }
   if (!dummyflag)
-    read_key_sequence_cmd = (first_binding < nmaps
-			     ? defs[first_binding]
-			     : Qnil);
+    read_key_sequence_cmd = current_binding;
   read_key_sequence_remapped
     /* Remap command through active keymaps.
        Do the remapping here, before the unbind_to so it uses the keymaps
@@ -9966,7 +9700,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
   /* Don't downcase the last character if the caller says don't.
      Don't downcase it if the result is undefined, either.  */
-  if ((dont_downcase_last || first_binding >= nmaps)
+  if ((dont_downcase_last || NILP (current_binding))
       && t > 0
       && t - 1 == original_uppercase_position)
     {
@@ -10063,7 +9797,7 @@ will read just one key sequence.  */)
 
   memset (keybuf, 0, sizeof keybuf);
   GCPRO1 (keybuf[0]);
-  gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
+  gcpro1.nvars = (sizeof keybuf / sizeof (keybuf[0]));
 
   if (NILP (continue_echo))
     {
@@ -11668,10 +11402,6 @@ instead of pixels.
 This variable is also the threshold for motion of the mouse
 to count as a drag.  */);
   double_click_fuzz = 3;
-
-  DEFVAR_BOOL ("inhibit-local-menu-bar-menus", inhibit_local_menu_bar_menus,
-	       doc: /* Non-nil means inhibit local map menu bar menus.  */);
-  inhibit_local_menu_bar_menus = 0;
 
   DEFVAR_INT ("num-input-keys", num_input_keys,
 	      doc: /* Number of complete key sequences read as input so far.

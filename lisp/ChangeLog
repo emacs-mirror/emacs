@@ -1,3 +1,7 @@
+2013-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cus-start.el (all): Remove inhibit-local-menu-bar-menus.
+
 2013-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* vc/diff.el (diff-use-labels): New variable.
@@ -14,8 +18,8 @@
 
 2013-02-10  Christopher Schmidt  <christopher@ch.ristopher.com>
 
-	* minibuf-eldef.el (minibuffer-default--in-prompt-regexps): Handle
-	"foo (bar, default: xxx): " prompts.
+	* minibuf-eldef.el (minibuffer-default--in-prompt-regexps):
+	Handle "foo (bar, default: xxx): " prompts.
 
 2013-02-10  Chong Yidong  <cyd@gnu.org>
 

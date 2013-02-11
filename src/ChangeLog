@@ -1,7 +1,24 @@
+2013-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Clean up read_key_sequence a bit; reread active keymaps after first event.
+	* keyboard.c (read_char, read_char_x_menu_prompt)
+	(read_char_minibuf_menu_prompt):
+	Replace nmaps+maps with a single `map' arg.
+	(follow_key): Operate on a single map.
+	(active_maps): New function.
+	(test_undefined): Also return true for nil bindings.
+	(read_key_sequence): Use active_maps to replace the arrays of keymaps with
+	a single (composed) keymap.  Remember `first_event' to choose the right
+	set of active keymaps.  Recompute the set of keymaps after receiving
+	the first event.  Remove GOBBLE_FIRST_EVENT.
+	(syms_of_keyboard): Remove inhibit_local_menu_bar_menus.
+	* keyboard.h (read_char): Update declaration.
+	* lread.c (read_filtered_event): Adjust call to read_char.
+
 2013-02-11  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (move_it_vertically_backward, move_it_by_lines): Don't
-	use the limitation on backwards movement when lines are truncated
+	* xdisp.c (move_it_vertically_backward, move_it_by_lines):
+	Don't use the limitation on backwards movement when lines are truncated
 	in the window.  (Bug#13675)
 
 2013-02-11  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -17,8 +34,8 @@
 
 2013-02-10  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (move_it_vertically_backward, move_it_by_lines): When
-	text lines are longer than window's screen lines, don't move back
+	* xdisp.c (move_it_vertically_backward, move_it_by_lines):
+	When text lines are longer than window's screen lines, don't move back
 	too far.  This speeds up some redisplay operations.  (Bug#13675)
 
 2013-02-10  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -140,8 +157,8 @@
 	* xdisp.c (window_buffer_changed): region_showing can be negative,
 	which still means region is being displayed.
 	(redisplay_internal): Resurrect code that forced redisplay of the
-	whole window when showing region and the mark has changed.  Record
-	the new mark position to allow redisplay optimizations.
+	whole window when showing region and the mark has changed.
+	Record the new mark position to allow redisplay optimizations.
 	(display_line): If it->region_beg_charpos is non-zero, set the
 	window's region_showing member to -1.  (Bug#13623)  (Bug#13626)
 
@@ -196,8 +213,8 @@
 	* dired.c (file_name_completion): Don't call Fdirectory_file_name
 	with an encoded file name.
 
-	* w32proc.c (Fw32_short_file_name, Fw32_long_file_name): Adjust
-	calls to dostounix_filename.
+	* w32proc.c (Fw32_short_file_name, Fw32_long_file_name):
+	Adjust calls to dostounix_filename.
 
 	* w32fns.c (Fx_file_dialog): Adjust call to dostounix_filename.
 
@@ -292,8 +309,8 @@
 	closing it.  (Bug#13546)
 
 	* w32.c (parse_root, get_volume_info, readdir, read_unc_volume)
-	(logon_network_drive, stat_worker, symlink, chase_symlinks): Use
-	CharNextExA and CharPrevExA to iterate over file names encoded in
+	(logon_network_drive, stat_worker, symlink, chase_symlinks):
+	Use CharNextExA and CharPrevExA to iterate over file names encoded in
 	DBCS.  (Bug#13553)
 
 	* w32.c (w32_get_long_filename, init_environment, readlink):
@@ -333,8 +350,8 @@
 	(normalize_filename, readdir): Use it to detect locales where ANSI
 	encoding of file names uses a double-byte character set (DBCS).
 	If a DBCS encoding is used, advance by characters using
-	CharNextExA, instead of incrementing a 'char *' pointer.  Use
-	_mbslwr instead of _strlwr.  (Bug#13515)
+	CharNextExA, instead of incrementing a 'char *' pointer.
+	Use _mbslwr instead of _strlwr.  (Bug#13515)
 
 	* w32heap.c (allocate_heap) [!_WIN64]: Decrease the initial
 	request of memory reservation to 1.7GB.  (Bug#13065)
@@ -475,8 +492,8 @@
 	segfault when there are lots of overlays.
 
 	* buffer.c (sort_overlays): Use SAFE_NALLOCA, to avoid segfault
-	when there are lots of overlays.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00421.html
+	when there are lots of overlays.
+	See http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00421.html
 	for the details and a way to reproduce.
 
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
@@ -534,8 +551,8 @@
 
 2013-01-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	Fix crash when inserting data from non-regular files.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00406.html
+	Fix crash when inserting data from non-regular files.
+	See http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00406.html
 	for the error description produced by valgrind.
 	* fileio.c (read_non_regular): Rename to read_contents.
 	Free Lisp_Save_Value object used to pass parameters.
@@ -587,8 +604,8 @@
 	(map_keymap_char_table_item): Adjust accordingly.
 	* fileio.c (non_regular_fd, non_regular_inserted)
 	(non_regular_nbytes): Remove.
-	(Finsert_file_contents): Convert trytry to ptrdiff_t.  Use
-	format_save_value to pass parameters to read_non_regular.
+	(Finsert_file_contents): Convert trytry to ptrdiff_t.
+	Use format_save_value to pass parameters to read_non_regular.
 	(read_non_regular): Use XSAVE_ macros to extract parameters.
 	Adjust comment.
 	* xmenu.c (xmenu_show) [!USE_X_TOOLKIT && !USE_GTK]: Use
@@ -715,8 +732,8 @@
 
 2013-01-11  Aaron S. Hawley  <Aaron.Hawley@vtinfo.com>
 
-	* insdel.c (Fcombine_after_change_execute, syms_of_insdel): Fix
-	 ambiguous doc string cross-reference(s).
+	* insdel.c (Fcombine_after_change_execute, syms_of_insdel):
+	Fix ambiguous doc string cross-reference(s).
 
 	* keyboard.c (Fcommand_execute, syms_of_keyboard): Fix ambiguous
 	 doc string cross-reference(s).

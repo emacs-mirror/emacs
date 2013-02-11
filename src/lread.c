@@ -614,17 +614,17 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
       end_time = add_emacs_time (current_emacs_time (), wait_time);
     }
 
-/* Read until we get an acceptable event.  */
+  /* Read until we get an acceptable event.  */
  retry:
   do
-    val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
+    val = read_char (0, Qnil, (input_method ? Qnil : Qt), 0,
 		     NUMBERP (seconds) ? &end_time : NULL);
   while (INTEGERP (val) && XINT (val) == -2); /* wrong_kboard_jmpbuf */
 
   if (BUFFERP (val))
     goto retry;
 
-  /* switch-frame events are put off until after the next ASCII
+  /* `switch-frame' events are put off until after the next ASCII
      character.  This is better than signaling an error just because
      the last characters were typed to a separate minibuffer frame,
      for example.  Eventually, some code which can deal with

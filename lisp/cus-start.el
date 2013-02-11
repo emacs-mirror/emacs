@@ -286,7 +286,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
 	     (double-click-fuzz mouse integer "22.1")
-	     (inhibit-local-menu-bar-menus menu boolean)
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
 	     (menu-prompting menu boolean)
@@ -301,15 +300,15 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                      (const :tag "When sent SIGUSR2" sigusr2))
                              "24.1")
 
-;; This is not good news because it will use the wrong
-;; version-specific directories when you upgrade.  We need
-;; customization of the front of the list, maintaining the standard
-;; value intact at the back.
-;;; 	     (load-path environment
-;;; 			(repeat (choice :tag "[Current dir?]"
-;;; 					:format "%[Current dir?%] %v"
-;;; 					(const :tag " current dir" nil)
-;;;					(directory :format "%v"))))
+             ;; This is not good news because it will use the wrong
+             ;; version-specific directories when you upgrade.  We need
+             ;; customization of the front of the list, maintaining the
+             ;; standard value intact at the back.
+	     ;;(load-path environment
+	     ;;    	(repeat (choice :tag "[Current dir?]"
+	     ;;    			:format "%[Current dir?%] %v"
+	     ;;    			(const :tag " current dir" nil)
+	     ;;    			(directory :format "%v"))))
 	     ;; minibuf.c
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer

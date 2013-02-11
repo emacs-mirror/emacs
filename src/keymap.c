@@ -1244,7 +1244,7 @@ remapping in all currently active keymaps.  */)
   return INTEGERP (command) ? Qnil : command;
 }
 
-/* Value is number if KEY is too long; nil if valid but has no definition. */
+/* Value is number if KEY is too long; nil if valid but has no definition.  */
 /* GC is possible in this function.  */
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
@@ -1536,7 +1536,7 @@ DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
        doc: /* Return a list of the currently active keymaps.
 OLP if non-nil indicates that we should obey `overriding-local-map' and
 `overriding-terminal-local-map'.  POSITION can specify a click position
-like in the respective argument of `key-binding'. */)
+like in the respective argument of `key-binding'.  */)
   (Lisp_Object olp, Lisp_Object position)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -1545,7 +1545,7 @@ like in the respective argument of `key-binding'. */)
 
   /* If a mouse click position is given, our variables are based on
      the buffer clicked on, not the current buffer.  So we may have to
-     switch the buffer here. */
+     switch the buffer here.  */
 
   if (CONSP (position))
     {
