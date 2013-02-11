@@ -1,3 +1,16 @@
+2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve AIX port (Bug#13650).
+	This doesn't fix the bug, but it makes progress: Emacs builds now.
+	* unexaix.c: Include inttypes.h, stdarg.h.
+	(report_error, report_error_1): Mark as _Noreturn.
+	(report_error): Don't report the wrong errno.
+	(report_error_1): Now varargs.  All callers changed.
+	(make_hdr): Use uintptr_t, not unsigned, when converting pointers
+	to unsigned.  Don't use ADDR_CORRECT, as it no longer exists.
+	(write_ptr): Use %p to print address rather than %lx and a cast
+	to unsigned long.  Grow buffer a bit, to be safer.
+
 2013-02-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_resolve_neutral): After finding the next

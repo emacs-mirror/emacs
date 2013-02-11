@@ -51,6 +51,8 @@ what you give them.   Help stamp out software-hoarding!  */
 #include "getpagesize.h"
 
 #include <sys/types.h>
+#include <inttypes.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -92,23 +94,30 @@ static int pagemask;
 
 #include "lisp.h"
 
-static void
+static _Noreturn void
 report_error (const char *file, int fd)
 {
   if (fd)
-    close (fd);
+    {
+      int failed_errno = errno;
+      close (fd);
+      errno = failed_errno;
+    }
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
 
-#define ERROR0(msg) report_error_1 (new, msg, 0, 0); return -1
-#define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
-#define ERROR2(msg,x,y) report_error_1 (new, msg, x, y); return -1
+#define ERROR0(msg) report_error_1 (new, msg)
+#define ERROR1(msg,x) report_error_1 (new, msg, x)
+#define ERROR2(msg,x,y) report_error_1 (new, msg, x, y)
 
-static void
-report_error_1 (int fd, const char *msg, int a1, int a2)
+static _Noreturn void ATTRIBUTE_FORMAT_PRINTF (2, 3)
+report_error_1 (int fd, const char *msg, ...)
 {
+  va_list ap;
   close (fd);
-  error (msg, a1, a2);
+  va_start (ap, msg);
+  verror (msg, ap);
+  va_end (ap);
 }
 
 static int make_hdr (int, int, const char *, const char *);
@@ -163,8 +172,8 @@ make_hdr (int new, int a_out,
 	  const char *a_name, const char *new_name)
 {
   int scns;
-  unsigned int bss_start;
-  unsigned int data_start;
+  uintptr_t bss_start;
+  uintptr_t data_start;
 
   struct scnhdr section[MAX_SECTIONS];
   struct scnhdr * f_thdr;		/* Text section header */
@@ -179,17 +188,17 @@ make_hdr (int new, int a_out,
   pagemask = getpagesize () - 1;
 
   /* Adjust text/data boundary. */
-  data_start = (long) start_of_data ();
-  data_start = ADDR_CORRECT (data_start);
+  data_start = (uintptr_t) start_of_data ();
 
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
 
-  bss_start = ADDR_CORRECT (sbrk (0)) + pagemask;
+  bss_start = (uintptr_t) sbrk (0) + pagemask;
   bss_start &= ~ pagemask;
 
   if (data_start > bss_start)	/* Can't have negative data size. */
     {
-      ERROR2 ("unexec: data_start (%u) can't be greater than bss_start (%u)",
+      ERROR2 (("unexec: data_start (0x%"PRIxPTR
+	       ") can't be greater than bss_start (0x%"PRIxPTR")"),
 	      data_start, bss_start);
     }
 
@@ -393,7 +402,6 @@ static void
 write_segment (int new, char *ptr, char *end)
 {
   int i, nwrite, ret;
-  char buf[80];
   char zeros[UnexBlockSz];
 
   for (i = 0; ptr < end;)
@@ -414,9 +422,13 @@ write_segment (int new, char *ptr, char *end)
 	}
       else if (nwrite != ret)
 	{
+	  int write_errno = errno;
+	  char buf[1000];
+	  void *addr = ptr;
 	  sprintf (buf,
-		   "unexec write failure: addr 0x%lx, fileno %d, size 0x%x, wrote 0x%x, errno %d",
-		   (unsigned long)ptr, new, nwrite, ret, errno);
+		   "unexec write failure: addr %p, fileno %d, size 0x%x, wrote 0x%x, errno %d",
+		   addr, new, nwrite, ret, errno);
+	  errno = write_errno;
 	  PERROR (buf);
 	}
       i += nwrite;
