@@ -686,7 +686,8 @@ It's a subdirectory of `doc-view-cache-directory'."
     (setq doc-view-current-cache-dir
 	  (file-name-as-directory
 	   (expand-file-name
-	    (concat (file-name-nondirectory doc-view-buffer-file-name)
+	    (concat (subst-char-in-string ?% ?_ ;; bug#13679
+                     (file-name-nondirectory doc-view-buffer-file-name))
 		    "-"
 		    (let ((file doc-view-buffer-file-name))
 		      (with-temp-buffer
