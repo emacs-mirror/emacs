@@ -499,11 +499,29 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
     {
       register ptrdiff_t charpos, bytepos;
 
-      CHECK_NUMBER_COERCE_MARKER (position);
-      charpos = clip_to_bounds (restricted ? BUF_BEGV (b) : BUF_BEG (b),
-                               XINT (position),
-                               restricted ? BUF_ZV (b) : BUF_Z (b));
-      bytepos = buf_charpos_to_bytepos (b, charpos);
+      /* Do not use CHECK_NUMBER_COERCE_MARKER because we
+	 don't want to call buf_charpos_to_bytepos if POSTION
+	 is a marker and so we know the bytepos already.  */
+      if (INTEGERP (position))
+	charpos = XINT (position), bytepos = -1;
+      else if (MARKERP (position))
+	{
+	  charpos = XMARKER (position)->charpos;
+	  bytepos = XMARKER (position)->bytepos;
+	}
+      else
+	wrong_type_argument (Qinteger_or_marker_p, position);
+
+      charpos = clip_to_bounds
+	(restricted ? BUF_BEGV (b) : BUF_BEG (b), charpos,
+	 restricted ? BUF_ZV (b) : BUF_Z (b));
+      if (bytepos == -1)
+	bytepos = buf_charpos_to_bytepos (b, charpos);
+      else
+	bytepos = clip_to_bounds
+	  (restricted ? BUF_BEGV_BYTE (b) : BUF_BEG_BYTE (b),
+	   bytepos, restricted ? BUF_ZV_BYTE (b) : BUF_Z_BYTE (b));
+
       attach_marker (m, b, charpos, bytepos);
     }
   return marker;

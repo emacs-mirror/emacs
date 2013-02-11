@@ -1,3 +1,14 @@
+2013-02-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* marker.c (set_marker_internal): If desired position is passed
+	as a marker, avoid call to buf_charpos_to_bytepos.
+	* window.c (Fset_window_point): Omit redundant type checking.
+	(Fset_window_start): Likewise.  Format comment.
+	(window_scroll_pixel_based): Use set_marker_restricted_both
+	with character and byte positions obtained from an iterator.
+	(Fset_window_configuration): Use set_marker_restricted_both.
+	* xdisp.c (message_dolog): Likewise.
+
 2013-02-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward, move_it_by_lines): When
