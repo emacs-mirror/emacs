@@ -28,8 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termchar.h"
 #include "tparam.h"
 
-#define	BIG	9999		/* 9999 good on VAXen.  For 16 bit machines
-				   use about 2000.... */
+#define	BIG	9999		/* Good on 32-bit hosts.  */
 
 int cost;		/* sums up costs */
 

@@ -133,9 +133,6 @@ static Lisp_Object Qwrite_region_annotate_functions;
    is added here.  */
 static Lisp_Object Vwrite_region_annotation_buffers;
 
-#ifdef HAVE_FSYNC
-#endif
-
 static Lisp_Object Qdelete_by_moving_to_trash;
 
 /* Lisp function for moving files to trash.  */
@@ -4965,7 +4962,7 @@ This calls `write-region-annotate-functions' at the start, and
   immediate_quit = 0;
 
 #ifdef HAVE_FSYNC
-  /* Note fsync appears to change the modtime on BSD4.2 (both vax and sun).
+  /* fsync appears to change the modtime on BSD4.2.
      Disk full in NFS may be reported here.  */
   /* mib says that closing the file will try to write as fast as NFS can do
      it, and that means the fsync here is not crucial for autosave files.  */

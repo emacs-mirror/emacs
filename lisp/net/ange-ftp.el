@@ -5133,7 +5133,7 @@ Other orders of $ and _ seem to all work just fine.")
 	(forward-line 1))
       ;; Would like to look for a "Total" line, or a "Directory" line to
       ;; make sure that the listing isn't complete garbage before putting
-      ;; in "." and "..", but we can't even count on all VAX's giving us
+      ;; in "." and "..", but we can't count on VMS giving us
       ;; either of these.
       (puthash "." t tbl)
       (puthash ".." t tbl))

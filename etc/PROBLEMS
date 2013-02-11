@@ -3198,39 +3198,6 @@ floating point option: -fsoft.
 
 This seems to be due to a GCC bug; it is fixed in GCC 2.8.1.
 
-** Vax C compiler bugs affecting Emacs.
-
-You may get one of these problems compiling Emacs:
-
-   foo.c line nnn: compiler error: no table entry for op STASG
-   foo.c: fatal error in /lib/ccom
-
-These are due to bugs in the C compiler; the code is valid C.
-Unfortunately, the bugs are unpredictable: the same construct
-may compile properly or trigger one of these bugs, depending
-on what else is in the source file being compiled.  Even changes
-in header files that should not affect the file being compiled
-can affect whether the bug happens.  In addition, sometimes files
-that compile correctly on one machine get this bug on another machine.
-
-As a result, it is hard for me to make sure this bug will not affect
-you.  I have attempted to find and alter these constructs, but more
-can always appear.  However, I can tell you how to deal with it if it
-should happen.  The bug comes from having an indexed reference to an
-array of Lisp_Objects, as an argument in a function call:
-  Lisp_Object *args;
-  ...
-   ... foo (5, args[i], ...)...
-putting the argument into a temporary variable first, as in
-  Lisp_Object *args;
-  Lisp_Object tem;
-  ...
-   tem = args[i];
-   ... foo (r, tem, ...)...
-causes the problem to go away.
-The `contents' field of a Lisp vector is an array of Lisp_Objects,
-so you may see the problem happening with indexed references to that.
-
 
 This file is part of GNU Emacs.
 
