@@ -28,7 +28,10 @@ This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--without-acl'.
 
+
 * Startup Changes in Emacs 24.4
+
+
 * Changes in Emacs 24.4
 
 +++
@@ -63,13 +66,7 @@ Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
 
-** Nextstep (GNUstep / Mac OS X) port
-
-*** Improved fullscreen support.
-Both native (>= OSX 10.7) and "old style" fullscreen are supported.
-Customize ns-use-native-fullscreen to change style.  For >= 10.7
-native is the default.
-
+
 * Editing Changes in Emacs 24.4
 
 ** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
@@ -206,6 +203,7 @@ It is layered as:
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
 
+
 * Incompatible Lisp Changes in Emacs 24.4
 
 ** frame-local variables that affect redisplay do not work any more.
@@ -229,6 +227,7 @@ alist of extended attributes as returned by the new function
 `file-extended-attributes'.  The attributes can be applied to another
 file using `set-file-extended-attributes'.
 
+
 * Lisp changes in Emacs 24.4
 
 ** Support for filesystem notifications.
@@ -273,6 +272,7 @@ used in place of the 9th element of `file-attributes'.
 `preserve-extended-attributes' as it now handles both SELinux context
 and ACL entries.
 
+
 * Changes in Emacs 24.4 on non-free operating systems
 
 +++
@@ -285,6 +285,11 @@ directory where Emacs was running.
 Setting it has no effect, and %t in the mode-line format is ignored.
 Likewise, `file-name-buffer-file-type-alist' is now obsolete, and
 modifying it has no effect.
+
+** Improved fullscreen support on Mac OS X.
+Both native (>= OSX 10.7) and "old style" fullscreen are supported.
+Customize `ns-use-native-fullscreen' to change style.  For >= 10.7
+native is the default.
 
 
 * Installation Changes in Emacs 24.3
