@@ -690,7 +690,7 @@ are deprecated and will be removed eventually.
 *** `vc-checkout-carefully'
 
 
-* Lisp changes in Emacs 24.3
+* Lisp Changes in Emacs 24.3
 
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded; `push' and `pop' accept generalized variables.
@@ -863,7 +863,7 @@ takes precedence over most other maps for a short while (normally one key).
 *** `font-list-limit' (has had no effect since Emacs < 23)
 
 
-* Changes in Emacs 24.3 on non-free operating systems
+* Changes in Emacs 24.3 on Non-Free Operating Systems
 
 ** Cygwin builds can use the native MS Windows user interface.
 Pass `--with-w32' to configure.  The default remains the X11 interface.
@@ -1918,7 +1918,7 @@ assumes every inspected file is in your `load-path'.  It instead
 generates relative names according to the current `load-path'.
 
 
-* Lisp changes in Emacs 24.1
+* Lisp Changes in Emacs 24.1
 
 ** Code can now use lexical scoping by default instead of dynamic scoping.
 The `lexical-binding' variable enables lexical scoping for local
@@ -2305,7 +2305,7 @@ Use `post-command-hook' instead.
 *** `font-lock-maximum-size' is obsolete.
 
 
-* Changes in Emacs 24.1 on non-free operating systems
+* Changes in Emacs 24.1 on Non-Free Operating Systems
 
 ** On MS Windows, Emacs warns when using the obsolete init file _emacs,
 and also when HOME is set to C:\ by default.
