@@ -83,6 +83,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lstat:
   # Code from module manywarnings:
+  # Code from module memrchr:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -117,6 +118,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module string:
   # Code from module strtoimax:
   # Code from module strtoll:
   # Code from module strtoull:
@@ -242,6 +244,12 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_LSTAT
   fi
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
+  gl_FUNC_MEMRCHR
+  if test $ac_cv_func_memrchr = no; then
+    AC_LIBOBJ([memrchr])
+    gl_PREREQ_MEMRCHR
+  fi
+  gl_STRING_MODULE_INDICATOR([memrchr])
   gl_FUNC_MKTIME
   if test $REPLACE_MKTIME = 1; then
     AC_LIBOBJ([mktime])
@@ -294,6 +302,7 @@ AC_DEFUN([gl_INIT],
   gl_STDIO_H
   gl_STDLIB_H
   gl_FUNC_GNU_STRFTIME
+  gl_HEADER_STRING_H
   gl_FUNC_STRTOIMAX
   if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
     AC_LIBOBJ([strtoimax])
@@ -757,6 +766,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/lstat.c
   lib/md5.c
   lib/md5.h
+  lib/memrchr.c
   lib/mktime-internal.h
   lib/mktime.c
   lib/openat-priv.h
@@ -790,6 +800,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdlib.in.h
   lib/strftime.c
   lib/strftime.h
+  lib/string.in.h
   lib/strtoimax.c
   lib/strtol.c
   lib/strtoll.c
@@ -848,6 +859,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lstat.m4
   m4/manywarnings.m4
   m4/md5.m4
+  m4/memrchr.m4
   m4/mktime.m4
   m4/multiarch.m4
   m4/nocrash.m4
@@ -877,6 +889,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strftime.m4
+  m4/string_h.m4
   m4/strtoimax.m4
   m4/strtoll.m4
   m4/strtoull.m4

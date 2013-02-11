@@ -735,9 +735,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 	      /* This is the ONLY_IN_LINE case, check that NEW_POS and
 		 FIELD_BOUND are on the same line by seeing whether
 		 there's an intervening newline or not.  */
-	      || (scan_buffer ('\n',
-			       XFASTINT (new_pos), XFASTINT (field_bound),
-			       fwd ? -1 : 1, &shortage, 1),
+	      || (find_newline (XFASTINT (new_pos), XFASTINT (field_bound),
+				fwd ? -1 : 1, &shortage, 1),
 		  shortage != 0)))
 	/* Constrain NEW_POS to FIELD_BOUND.  */
 	new_pos = field_bound;

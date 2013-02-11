@@ -630,11 +630,10 @@ the same file name is found in the `doc-directory'.  */)
 	break;
 
       buf[filled] = 0;
-      p = buf;
       end = buf + (filled < 512 ? filled : filled - 128);
-      while (p != end && *p != '\037') p++;
+      p = memchr (buf, '\037', end - buf);
       /* p points to ^_Ffunctionname\n or ^_Vvarname\n or ^_Sfilename\n.  */
-      if (p != end)
+      if (p)
 	{
 	  end = strchr (p, '\n');
 

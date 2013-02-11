@@ -619,7 +619,7 @@ newline_cache_on_off (struct buffer *buf)
 }
 
 
-/* Search for COUNT instances of the character TARGET between START and END.
+/* Search for COUNT newlines between START and END.
 
    If COUNT is positive, search forwards; END must be >= START.
    If COUNT is negative, search backwards for the -COUNTth instance;
@@ -634,14 +634,14 @@ newline_cache_on_off (struct buffer *buf)
    this is not the same as the usual convention for Emacs motion commands.
 
    If we don't find COUNT instances before reaching END, set *SHORTAGE
-   to the number of TARGETs left unfound, and return END.
+   to the number of newlines left unfound, and return END.
 
    If ALLOW_QUIT, set immediate_quit.  That's good to do
    except when inside redisplay.  */
 
 ptrdiff_t
-scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
-	     ptrdiff_t count, ptrdiff_t *shortage, bool allow_quit)
+find_newline (ptrdiff_t start, ptrdiff_t end,
+	      ptrdiff_t count, ptrdiff_t *shortage, bool allow_quit)
 {
   struct region_cache *newline_cache;
   ptrdiff_t end_byte = -1;
@@ -656,7 +656,7 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
   else
     {
       direction = -1;
-      if (!end) 
+      if (!end)
 	end = BEGV, end_byte = BEGV_BYTE;
     }
   if (end_byte == -1)
@@ -684,7 +684,7 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
 
         /* If we're looking for a newline, consult the newline cache
            to see where we can avoid some scanning.  */
-        if (target == '\n' && newline_cache)
+        if (newline_cache)
           {
             ptrdiff_t next_change;
             immediate_quit = 0;
@@ -723,32 +723,32 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
 
           while (cursor < ceiling_addr)
             {
-              unsigned char *scan_start = cursor;
-
               /* The dumb loop.  */
-              while (*cursor != target && ++cursor < ceiling_addr)
-                ;
+	      unsigned char *nl = memchr (cursor, '\n', ceiling_addr - cursor);
 
               /* If we're looking for newlines, cache the fact that
                  the region from start to cursor is free of them. */
-              if (target == '\n' && newline_cache)
-                know_region_cache (current_buffer, newline_cache,
-                                   BYTE_TO_CHAR (start_byte + scan_start - base),
-                                   BYTE_TO_CHAR (start_byte + cursor - base));
+              if (newline_cache)
+		{
+		  unsigned char *low = cursor;
+		  unsigned char *lim = nl ? nl : ceiling_addr;
+		  know_region_cache (current_buffer, newline_cache,
+				     BYTE_TO_CHAR (low - base + start_byte),
+				     BYTE_TO_CHAR (lim - base + start_byte));
+		}
 
-              /* Did we find the target character?  */
-              if (cursor < ceiling_addr)
-                {
-                  if (--count == 0)
-                    {
-                      immediate_quit = 0;
-                      return BYTE_TO_CHAR (start_byte + cursor - base + 1);
-                    }
-                  cursor++;
-                }
+              if (! nl)
+		break;
+
+	      if (--count == 0)
+		{
+		  immediate_quit = 0;
+		  return BYTE_TO_CHAR (nl + 1 - base + start_byte);
+		}
+	      cursor = nl + 1;
             }
 
-          start = BYTE_TO_CHAR (start_byte + cursor - base);
+          start = BYTE_TO_CHAR (ceiling_addr - base + start_byte);
         }
       }
   else
@@ -760,7 +760,7 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
 	ptrdiff_t tem;
 
         /* Consult the newline cache, if appropriate.  */
-        if (target == '\n' && newline_cache)
+        if (newline_cache)
           {
             ptrdiff_t next_change;
             immediate_quit = 0;
@@ -794,31 +794,32 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
 
           while (cursor >= ceiling_addr)
             {
-              unsigned char *scan_start = cursor;
-
-              while (*cursor != target && --cursor >= ceiling_addr)
-                ;
+	      unsigned char *nl = memrchr (ceiling_addr, '\n',
+					   cursor + 1 - ceiling_addr);
 
               /* If we're looking for newlines, cache the fact that
                  the region from after the cursor to start is free of them.  */
-              if (target == '\n' && newline_cache)
-                know_region_cache (current_buffer, newline_cache,
-                                   BYTE_TO_CHAR (start_byte + cursor - base),
-                                   BYTE_TO_CHAR (start_byte + scan_start - base));
+              if (newline_cache)
+		{
+		  unsigned char *low = nl ? nl : ceiling_addr - 1;
+		  unsigned char *lim = cursor;
+		  know_region_cache (current_buffer, newline_cache,
+				     BYTE_TO_CHAR (low - base + start_byte),
+				     BYTE_TO_CHAR (lim - base + start_byte));
+		}
 
-              /* Did we find the target character?  */
-              if (cursor >= ceiling_addr)
-                {
-                  if (++count >= 0)
-                    {
-                      immediate_quit = 0;
-                      return BYTE_TO_CHAR (start_byte + cursor - base);
-                    }
-                  cursor--;
-                }
+              if (! nl)
+		break;
+
+	      if (++count >= 0)
+		{
+		  immediate_quit = 0;
+		  return BYTE_TO_CHAR (nl - base + start_byte);
+		}
+	      cursor = nl - 1;
             }
 
-	  start = BYTE_TO_CHAR (start_byte + cursor - base);
+	  start = BYTE_TO_CHAR (ceiling_addr - 1 - base + start_byte);
         }
       }
 
@@ -828,8 +829,7 @@ scan_buffer (int target, ptrdiff_t start, ptrdiff_t end,
   return start;
 }
 
-/* Search for COUNT instances of a line boundary, which means either a
-   newline or (if selective display enabled) a carriage return.
+/* Search for COUNT instances of a line boundary.
    Start at START.  If COUNT is negative, search backwards.
 
    We report the resulting position by calling TEMP_SET_PT_BOTH.
@@ -860,9 +860,6 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 
   bool old_immediate_quit = immediate_quit;
 
-  /* The code that follows is like scan_buffer
-     but checks for either newline or carriage return.  */
-
   if (allow_quit)
     immediate_quit++;
 
@@ -874,29 +871,25 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 	  ceiling = min (limit_byte - 1, ceiling);
 	  ceiling_addr = BYTE_POS_ADDR (ceiling) + 1;
 	  base = (cursor = BYTE_POS_ADDR (start_byte));
-	  while (1)
-	    {
-	      while (*cursor != '\n' && ++cursor != ceiling_addr)
-		;
 
-	      if (cursor != ceiling_addr)
-		{
-		  if (--count == 0)
-		    {
-		      immediate_quit = old_immediate_quit;
-		      start_byte = start_byte + cursor - base + 1;
-		      start = BYTE_TO_CHAR (start_byte);
-		      TEMP_SET_PT_BOTH (start, start_byte);
-		      return 0;
-		    }
-		  else
-		    if (++cursor == ceiling_addr)
-		      break;
-		}
-	      else
+	  do
+	    {
+	      unsigned char *nl = memchr (cursor, '\n', ceiling_addr - cursor);
+	      if (! nl)
 		break;
+	      if (--count == 0)
+		{
+		  immediate_quit = old_immediate_quit;
+		  start_byte += nl - base + 1;
+		  start = BYTE_TO_CHAR (start_byte);
+		  TEMP_SET_PT_BOTH (start, start_byte);
+		  return 0;
+		}
+	      cursor = nl + 1;
 	    }
-	  start_byte += cursor - base;
+	  while (cursor < ceiling_addr);
+
+	  start_byte += ceiling_addr - base;
 	}
     }
   else
@@ -905,31 +898,28 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 	{
 	  ceiling = BUFFER_FLOOR_OF (start_byte - 1);
 	  ceiling = max (limit_byte, ceiling);
-	  ceiling_addr = BYTE_POS_ADDR (ceiling) - 1;
+	  ceiling_addr = BYTE_POS_ADDR (ceiling);
 	  base = (cursor = BYTE_POS_ADDR (start_byte - 1) + 1);
 	  while (1)
 	    {
-	      while (--cursor != ceiling_addr && *cursor != '\n')
-		;
-
-	      if (cursor != ceiling_addr)
-		{
-		  if (++count == 0)
-		    {
-		      immediate_quit = old_immediate_quit;
-		      /* Return the position AFTER the match we found.  */
-		      start_byte = start_byte + cursor - base + 1;
-		      start = BYTE_TO_CHAR (start_byte);
-		      TEMP_SET_PT_BOTH (start, start_byte);
-		      return 0;
-		    }
-		}
-	      else
+	      unsigned char *nl = memrchr (ceiling_addr, '\n',
+					   cursor - ceiling_addr);
+	      if (! nl)
 		break;
+
+	      if (++count == 0)
+		{
+		  immediate_quit = old_immediate_quit;
+		  /* Return the position AFTER the match we found.  */
+		  start_byte += nl - base + 1;
+		  start = BYTE_TO_CHAR (start_byte);
+		  TEMP_SET_PT_BOTH (start, start_byte);
+		  return 0;
+		}
+
+	      cursor = nl;
 	    }
-	  /* Here we add 1 to compensate for the last decrement
-	     of CURSOR, which took it past the valid range.  */
-	  start_byte += cursor - base + 1;
+	  start_byte += ceiling_addr - base;
 	}
     }
 
@@ -942,7 +932,7 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 ptrdiff_t
 find_next_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt)
 {
-  return scan_buffer ('\n', from, 0, cnt, (ptrdiff_t *) 0, 0);
+  return find_newline (from, 0, cnt, (ptrdiff_t *) 0, 0);
 }
 
 /* Like find_next_newline, but returns position before the newline,
@@ -953,7 +943,7 @@ ptrdiff_t
 find_before_next_newline (ptrdiff_t from, ptrdiff_t to, ptrdiff_t cnt)
 {
   ptrdiff_t shortage;
-  ptrdiff_t pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
+  ptrdiff_t pos = find_newline (from, to, cnt, &shortage, 1);
 
   if (shortage == 0)
     pos--;

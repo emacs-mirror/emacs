@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    existing data structure, and disturb as little of the existing code
    as possible.
 
-   So here's the tack.  We add some caching to the scan_buffer
+   So here's the tack.  We add some caching to the find_newline
    function, so that when it searches for a newline, it notes that the
    region between the start and end of the search contained no
    newlines; then, the next time around, it consults this cache to see

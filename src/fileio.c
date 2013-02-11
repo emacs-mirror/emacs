@@ -1710,8 +1710,9 @@ those `/' is discarded.  */)
 	else if (*p == '{')
 	  {
 	    o = ++p;
-	    while (p != endp && *p != '}') p++;
-	    if (*p != '}') goto missingclose;
+	    p = memchr (p, '}', endp - p);
+	    if (! p)
+	      goto missingclose;
 	    s = p;
 	  }
 	else
@@ -1779,8 +1780,9 @@ those `/' is discarded.  */)
 	else if (*p == '{')
 	  {
 	    o = ++p;
-	    while (p != endp && *p != '}') p++;
-	    if (*p != '}') goto missingclose;
+	    p = memchr (p, '}', endp - p);
+	    if (! p)
+	      goto missingclose;
 	    s = p++;
 	  }
 	else

@@ -3346,8 +3346,8 @@ extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *,
 extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
-extern ptrdiff_t scan_buffer (int, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			      ptrdiff_t *, bool);
+extern ptrdiff_t find_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t,
+			       ptrdiff_t *, bool);
 extern EMACS_INT scan_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 			       EMACS_INT, bool);
 extern ptrdiff_t find_next_newline (ptrdiff_t, int);

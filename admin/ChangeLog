@@ -1,3 +1,8 @@
+2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Tune by using memchr and memrchr.
+	* merge-gnulib (GNULIB_MODULES): Add memrchr.
+
 2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).

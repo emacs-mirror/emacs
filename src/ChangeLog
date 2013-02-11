@@ -1,5 +1,14 @@
 2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Tune by using memchr and memrchr.
+	* doc.c (Fsnarf_documentation):
+	* fileio.c (Fsubstitute_in_file_name):
+	* search.c (find_newline, scan_newline):
+	* xdisp.c (pos_visible_p, display_count_lines):
+	Use memchr and memrchr rather than scanning byte-by-byte.
+	* search.c (find_newline): Rename from scan_buffer.
+	Omit first arg TARGET, as it's always '\n'.  All callers changed.
+
 	Clean up read_key_sequence a tiny bit more.
 	* keyboard.c (read_char_x_menu_prompt) [HAVE_MENUS]:
 	(read_key_sequence): Remove unused locals.

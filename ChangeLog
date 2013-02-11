@@ -1,5 +1,11 @@
 2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Tune by using memchr and memrchr.
+	* .bzrignore: Add string.h.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/memrchr.c, lib/string.in.h, m4/memrchr.m4, m4/string_h.m4:
+	New files, from gnulib.
+
 	Merge from gnulib, incorporating:
 	2013-02-11 unsetenv etc.: port to Solaris 11 + GNU Emacs
 	2013-02-09 secure_getenv: fix C++ declaration typo

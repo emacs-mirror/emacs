@@ -31,7 +31,8 @@ GNULIB_MODULES='
   dtoastr dtotimespec dup2 environ execinfo faccessat
   fcntl-h fdopendir filemode fstatat getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
-  manywarnings mktime pselect pthread_sigmask putenv readlink readlinkat
+  manywarnings memrchr mktime
+  pselect pthread_sigmask putenv readlink readlinkat
   sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
   sys_time time timer-time timespec-add timespec-sub unsetenv utimens

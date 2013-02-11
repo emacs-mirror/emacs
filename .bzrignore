@@ -97,6 +97,7 @@ lib/stdbool.h
 lib/stdio.h
 lib/stdint.h
 lib/stdlib.h
+lib/string.h
 lib/sys/
 lib/SYS
 lib/time.h
