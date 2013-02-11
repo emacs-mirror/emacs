@@ -507,6 +507,11 @@ and ignores this variable."
 		 (other :tag "Query" other))
   :group 'find-file)
 
+(defvar enable-dir-local-variables t
+  "Non-nil means enable use of directory-local variables.
+Some modes may wish to set this to nil to prevent directory-local
+settings being applied, but still respect file-local ones.")
+
 ;; This is an odd variable IMO.
 ;; You might wonder why it is needed, when we could just do:
 ;; (set (make-local-variable 'enable-local-variables) nil)
@@ -3659,8 +3664,12 @@ is found.  Returns the new class name."
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
 Store the directory-local variables in `dir-local-variables-alist'
-and `file-local-variables-alist', without applying them."
+and `file-local-variables-alist', without applying them.
+
+This does nothing if either `enable-local-variables' or
+`enable-dir-local-variables' are nil."
   (when (and enable-local-variables
+	     enable-dir-local-variables
 	     (or enable-remote-dir-locals
 		 (not (file-remote-p (or (buffer-file-name)
 					 default-directory)))))

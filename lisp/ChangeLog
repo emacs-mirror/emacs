@@ -1,5 +1,10 @@
 2013-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (enable-dir-local-variables): New variable.
+	(hack-dir-local-variables): Respect enable-dir-local-variables.
+	* tutorial.el (help-with-tutorial):
+	Ignore directory-local variables.  (Bug#11127)
+
 	* vc/vc-svn.el (vc-svn-command): Move --non-interactive from here...
 	(vc-svn-global-switches): ... to here.  (Bug#13513)
 

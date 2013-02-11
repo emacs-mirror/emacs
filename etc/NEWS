@@ -45,6 +45,10 @@ non-nil, they output the same results.
 ** `eval-defun' on an already defined defcustom calls the :set function,
 if there is one.
 
+** If the new variable `enable-dir-local-variables' is nil,
+directory local variables are ignored.  May be useful for some modes
+that want to ignore directory-locals while still respecting file-locals.
+
 ** The option `set-mark-default-inactive' has been deleted.
 This unfinished feature was introduced by accident in Emacs 23.1;
 simply disabling Transient Mark mode does the same thing.
@@ -228,7 +232,7 @@ alist of extended attributes as returned by the new function
 file using `set-file-extended-attributes'.
 
 
-* Lisp changes in Emacs 24.4
+* Lisp Changes in Emacs 24.4
 
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
@@ -273,7 +277,7 @@ used in place of the 9th element of `file-attributes'.
 and ACL entries.
 
 
-* Changes in Emacs 24.4 on non-free operating systems
+* Changes in Emacs 24.4 on Non-Free Operating Systems
 
 +++
 ** The "generate a backtrace on fatal error" feature now works on MS Windows.
