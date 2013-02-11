@@ -1784,7 +1784,7 @@ that uses @var{key} as a prefix---which would not be allowed if
 @end group
 @end smallexample
 
-This function is implemented simply using @code{define-key}:
+This function is equivalent to using @code{define-key} as follows:
 
 @smallexample
 @group
