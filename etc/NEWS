@@ -240,6 +240,20 @@ creation, modification, and deletion of files.  This requires the
 'inotify' API on GNU/Linux systems.  On MS-Windows systems, this is
 supported for Windows XP and newer versions.
 
+** Changes in autorevert.el
+
+---
+*** If Emacs is compiled with file notification support, notifications
+are used instead of checking the time stamp of the files.  You can
+disable this by setting the user option `auto-revert-use-notify' to
+nil.  Alternatively, a regular expression of directories to be
+excluded from file notifications can be specified by
+`auto-revert-notify-exclude-dir-regexp'.
+
+---
+*** The new user option `auto-revert-remote-files' enables reversion
+of remote files when set to non-nil.
+
 ** Face changes
 
 *** The `face-spec-set' is now analogous to `setq' for face specs.
