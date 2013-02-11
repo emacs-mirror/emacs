@@ -1,3 +1,9 @@
+2013-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_vertically_backward, move_it_by_lines): Don't
+	use the limitation on backwards movement when lines are truncated
+	in the window.  (Bug#13675)
+
 2013-02-11  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* marker.c (set_marker_internal): If desired position is passed
