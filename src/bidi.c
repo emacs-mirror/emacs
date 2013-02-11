@@ -1973,6 +1973,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		next_type = STRONG_R;
 		break;
 	      case WEAK_BN:
+	      case NEUTRAL_ON:	/* W6/Retaining */
 		if (!bidi_explicit_dir_char (bidi_it->ch))
 		  emacs_abort (); /* can't happen: BNs are skipped */
 		/* FALLTHROUGH */
@@ -2391,6 +2392,10 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
       next_level = bidi_peek_at_next_level (bidi_it);
       while (next_level != expected_next_level)
 	{
+	  /* If next_level is -1, it means we have an unresolved level
+	     in the cache, which at this point should not happen.  If
+	     it does, we will infloop.  */
+	  eassert (next_level >= 0);
 	  expected_next_level += incr;
 	  level_to_search += incr;
 	  bidi_find_other_level_edge (bidi_it, level_to_search, !ascending);

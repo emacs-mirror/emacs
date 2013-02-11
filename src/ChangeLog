@@ -1,3 +1,14 @@
+2013-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_neutral): After finding the next
+	non-neutral character, accept NEUTRAL_ON type as well, because
+	directional control characters, such as LRE and RLE, have their
+	type converted to that by bidi_resolve_weak.  This avoids aborts
+	when LRE/RLE follows a run of neutrals.
+	(bidi_move_to_visually_next): Assert that return value of
+	bidi_peek_at_next_level is non-negative.  Negative values will
+	cause an infloop.
+
 2013-02-05  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs.c: Use execvp, not execv, when DAEMON_MUST_EXEC, so that
