@@ -1,3 +1,9 @@
+2013-02-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* pre-crt0.c (data_start): Initialize to 1.
+	This ports to compilers that optimize the external declaration
+	'int x = 0;' as if it were 'int x;' to shrink the executable.
+
 2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve AIX port (Bug#13650).
