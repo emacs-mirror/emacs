@@ -1,5 +1,8 @@
 2013-02-12  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (basic-save-buffer):
+	Offer to create a non-existing directory.  (Bug#3016)
+
 	* calc/calc-graph.el (calc-graph-show-dumb):
 	* calendar/calendar.el (calendar-mode-map):
 	* cus-edit.el (custom-mode-map):
