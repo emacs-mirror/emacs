@@ -127,6 +127,25 @@
 ;; loaded, but wait until after I've opened a Haskell file before loading
 ;; "inf-haskell.el" and "hs-lint.el".
 ;;
+;; Another similar option to `:init' is `:idle'. Like `:init' this always run,
+;; however, it does so when Emacs is idle at some time in the future after
+;; load. This is particularly useful for convienience minor modes which can be
+;; slow to load. For instance, in this case, I want Emacs to always use
+;; `global-pabbrev-mode'. `:commands' creates an appropriate autoload; `:idle'
+;; will run this command at some point in the future. If you start Emacs and
+;; beginning typing straight-away, loading will happen eventually.
+;;
+;; (use-package pabbrev
+;;   :commands global-pabbrev-mode
+;;   :idle (global-pabbrev-mode))
+;;
+;; Idle functions are run in the order in which they are evaluated. If you
+;; have many, it may take sometime for all to run. `use-package' will always
+;; tell you if there is an error in the form which can otherwise be difficult
+;; to debug. It may tell you about functions being eval'd, depending on the
+;; value of `use-package-verbose'. Other good candidates for `:idle' are
+;; `yasnippet', `auto-complete' and `autopair'.
+;;
 ;; The `:bind' keyword takes either a cons or a list of conses:
 ;;
 ;;   (use-package hi-lock
@@ -320,6 +339,46 @@
                                     :url (match-string 1))))))))
     args))
 
+(defvar use-package-idle-timer nil)
+(defvar use-package-idle-forms nil)
+
+(defun use-package-start-idle-timer ()
+  "Ensure that the idle timer is running"
+  (unless use-package-idle-timer
+    (setq use-package-idle-timer
+          (run-with-idle-timer
+           3 t
+           'use-package-idle-eval))))
+
+(defun use-package-init-on-idle (form)
+  "Add a new form to the idle queue"
+  (use-package-start-idle-timer)
+  (if use-package-idle-forms
+      (add-to-list 'use-package-idle-forms
+                   form t)
+    (setq use-package-idle-forms (list form))
+    ))
+
+(defun use-package-idle-eval()
+  "Start to eval idle-commands from the idle queue"
+  (let ((next (pop use-package-idle-forms)))
+    (if next
+        (progn
+          (when use-package-verbose
+            (message "use-package idle:%s" next))
+
+          (condition-case e
+              (funcall next)
+            (error
+             (message
+              "Failure on use-package idle. Form: %s, Error: %s"
+              next e)))
+	  ;; recurse after a bit
+          (when (sit-for 3)
+	    (use-package-idle-eval)))
+      ;; finished (so far!)
+      (cancel-timer use-package-idle-timer)
+      (setq use-package-idle-timer nil))))
 
 (defun use-package-ensure-elpa (package)
   (when (not (package-installed-p package))
@@ -348,6 +407,7 @@ For full documentation. please see commentary.
 :defines Define vars to silence byte-compiler.
 :load-path Add to `load-path' before loading.
 :diminish Support for diminish package (if it's installed).
+:idle adds a form to run on an idle timer
 "
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
@@ -355,6 +415,7 @@ For full documentation. please see commentary.
          (config-body (plist-get args :config))
          (diminish-var (plist-get args :diminish))
          (defines (plist-get args :defines))
+         (idle-body (plist-get args :idle))
          (keybindings )
          (mode-alist )
          (interpreter-alist )
@@ -382,8 +443,9 @@ For full documentation. please see commentary.
               (or (and (eq ensure t)
                        name)
                   ensure)))
-      (when package-name
-        (use-package-ensure-elpa package-name)))
+
+        (when package-name
+          (use-package-ensure-elpa package-name)))
 
 
       (if diminish-var
@@ -404,6 +466,14 @@ For full documentation. please see commentary.
 
       (if (and commands (symbolp commands))
           (setq commands (list commands)))
+
+
+      (when idle-body
+        (setq init-body
+              `(progn
+                 (use-package-init-on-idle (lambda () ,idle-body))
+                   ,init-body)))
+
 
       (flet ((init-for-commands
               (func sym-or-list)
