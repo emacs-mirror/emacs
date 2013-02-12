@@ -292,6 +292,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't. */
 #undef HAVE_DECL_LOCALTIME_R
 
+/* Define to 1 if you have the declaration of `memrchr', and to 0 if you
+   don't. */
+#undef HAVE_DECL_MEMRCHR
+
 /* Define to 1 if you have the declaration of `strmode', and to 0 if you
    don't. */
 #undef HAVE_DECL_STRMODE
@@ -692,6 +696,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memrchr' function. */
+#undef HAVE_MEMRCHR
 
 /* Define to 1 if you have mouse menus. (This is automatic if you use X, but
    the option to specify it remains.) It is also defined with other window

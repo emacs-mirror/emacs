@@ -655,6 +655,8 @@ NEXT_TIME_H
 WINDOWS_64_BIT_ST_SIZE
 NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H
 NEXT_SYS_STAT_H
+NEXT_AS_FIRST_DIRECTIVE_STRING_H
+NEXT_STRING_H
 NEXT_AS_FIRST_DIRECTIVE_STDLIB_H
 NEXT_STDLIB_H
 NEXT_AS_FIRST_DIRECTIVE_STDIO_H
@@ -819,6 +821,79 @@ GNULIB_TIMEGM
 GNULIB_STRPTIME
 GNULIB_NANOSLEEP
 GNULIB_MKTIME
+UNDEFINE_STRTOK_R
+REPLACE_STRTOK_R
+REPLACE_STRSIGNAL
+REPLACE_STRNLEN
+REPLACE_STRNDUP
+REPLACE_STRNCAT
+REPLACE_STRERROR_R
+REPLACE_STRERROR
+REPLACE_STRCHRNUL
+REPLACE_STRCASESTR
+REPLACE_STRSTR
+REPLACE_STRDUP
+REPLACE_STPNCPY
+REPLACE_MEMMEM
+REPLACE_MEMCHR
+HAVE_STRVERSCMP
+HAVE_DECL_STRSIGNAL
+HAVE_DECL_STRERROR_R
+HAVE_DECL_STRTOK_R
+HAVE_STRCASESTR
+HAVE_STRSEP
+HAVE_STRPBRK
+HAVE_DECL_STRNLEN
+HAVE_DECL_STRNDUP
+HAVE_DECL_STRDUP
+HAVE_STRCHRNUL
+HAVE_STPNCPY
+HAVE_STPCPY
+HAVE_RAWMEMCHR
+HAVE_DECL_MEMRCHR
+HAVE_MEMPCPY
+HAVE_DECL_MEMMEM
+HAVE_MEMCHR
+HAVE_FFSLL
+HAVE_FFSL
+HAVE_MBSLEN
+GNULIB_STRVERSCMP
+GNULIB_STRSIGNAL
+GNULIB_STRERROR_R
+GNULIB_STRERROR
+GNULIB_MBSTOK_R
+GNULIB_MBSSEP
+GNULIB_MBSSPN
+GNULIB_MBSPBRK
+GNULIB_MBSCSPN
+GNULIB_MBSCASESTR
+GNULIB_MBSPCASECMP
+GNULIB_MBSNCASECMP
+GNULIB_MBSCASECMP
+GNULIB_MBSSTR
+GNULIB_MBSRCHR
+GNULIB_MBSCHR
+GNULIB_MBSNLEN
+GNULIB_MBSLEN
+GNULIB_STRTOK_R
+GNULIB_STRCASESTR
+GNULIB_STRSTR
+GNULIB_STRSEP
+GNULIB_STRPBRK
+GNULIB_STRNLEN
+GNULIB_STRNDUP
+GNULIB_STRNCAT
+GNULIB_STRDUP
+GNULIB_STRCHRNUL
+GNULIB_STPNCPY
+GNULIB_STPCPY
+GNULIB_RAWMEMCHR
+GNULIB_MEMRCHR
+GNULIB_MEMPCPY
+GNULIB_MEMMEM
+GNULIB_MEMCHR
+GNULIB_FFSLL
+GNULIB_FFSL
 NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H
 NEXT_INTTYPES_H
 UINT64_MAX_EQ_ULONG_MAX
@@ -7144,6 +7219,7 @@ esac
 
   # Code from module lstat:
   # Code from module manywarnings:
+  # Code from module memrchr:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -7176,6 +7252,7 @@ esac
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module string:
   # Code from module strtoimax:
   # Code from module strtoll:
   # Code from module strtoull:
@@ -19400,6 +19477,92 @@ $as_echo "$gl_cv_type_off_t_64" >&6; }
 
 
 
+  GNULIB_FFSL=0;
+  GNULIB_FFSLL=0;
+  GNULIB_MEMCHR=0;
+  GNULIB_MEMMEM=0;
+  GNULIB_MEMPCPY=0;
+  GNULIB_MEMRCHR=0;
+  GNULIB_RAWMEMCHR=0;
+  GNULIB_STPCPY=0;
+  GNULIB_STPNCPY=0;
+  GNULIB_STRCHRNUL=0;
+  GNULIB_STRDUP=0;
+  GNULIB_STRNCAT=0;
+  GNULIB_STRNDUP=0;
+  GNULIB_STRNLEN=0;
+  GNULIB_STRPBRK=0;
+  GNULIB_STRSEP=0;
+  GNULIB_STRSTR=0;
+  GNULIB_STRCASESTR=0;
+  GNULIB_STRTOK_R=0;
+  GNULIB_MBSLEN=0;
+  GNULIB_MBSNLEN=0;
+  GNULIB_MBSCHR=0;
+  GNULIB_MBSRCHR=0;
+  GNULIB_MBSSTR=0;
+  GNULIB_MBSCASECMP=0;
+  GNULIB_MBSNCASECMP=0;
+  GNULIB_MBSPCASECMP=0;
+  GNULIB_MBSCASESTR=0;
+  GNULIB_MBSCSPN=0;
+  GNULIB_MBSPBRK=0;
+  GNULIB_MBSSPN=0;
+  GNULIB_MBSSEP=0;
+  GNULIB_MBSTOK_R=0;
+  GNULIB_STRERROR=0;
+  GNULIB_STRERROR_R=0;
+  GNULIB_STRSIGNAL=0;
+  GNULIB_STRVERSCMP=0;
+  HAVE_MBSLEN=0;
+    HAVE_FFSL=1;
+  HAVE_FFSLL=1;
+  HAVE_MEMCHR=1;
+  HAVE_DECL_MEMMEM=1;
+  HAVE_MEMPCPY=1;
+  HAVE_DECL_MEMRCHR=1;
+  HAVE_RAWMEMCHR=1;
+  HAVE_STPCPY=1;
+  HAVE_STPNCPY=1;
+  HAVE_STRCHRNUL=1;
+  HAVE_DECL_STRDUP=1;
+  HAVE_DECL_STRNDUP=1;
+  HAVE_DECL_STRNLEN=1;
+  HAVE_STRPBRK=1;
+  HAVE_STRSEP=1;
+  HAVE_STRCASESTR=1;
+  HAVE_DECL_STRTOK_R=1;
+  HAVE_DECL_STRERROR_R=1;
+  HAVE_DECL_STRSIGNAL=1;
+  HAVE_STRVERSCMP=1;
+  REPLACE_MEMCHR=0;
+  REPLACE_MEMMEM=0;
+  REPLACE_STPNCPY=0;
+  REPLACE_STRDUP=0;
+  REPLACE_STRSTR=0;
+  REPLACE_STRCASESTR=0;
+  REPLACE_STRCHRNUL=0;
+  REPLACE_STRERROR=0;
+  REPLACE_STRERROR_R=0;
+  REPLACE_STRNCAT=0;
+  REPLACE_STRNDUP=0;
+  REPLACE_STRNLEN=0;
+  REPLACE_STRSIGNAL=0;
+  REPLACE_STRTOK_R=0;
+  UNDEFINE_STRTOK_R=0;
+
+ac_fn_c_check_decl "$LINENO" "memrchr" "ac_cv_have_decl_memrchr" "$ac_includes_default"
+if test "x$ac_cv_have_decl_memrchr" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MEMRCHR $ac_have_decl
+_ACEOF
+
+
   GNULIB_MKTIME=0;
   GNULIB_NANOSLEEP=0;
   GNULIB_STRPTIME=0;
@@ -20022,6 +20185,79 @@ if test "x$ac_cv_member_struct_tm_tm_gmtoff" = x""yes; then :
 $as_echo "#define HAVE_TM_GMTOFF 1" >>confdefs.h
 
 fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_string_h='<'string.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <string.h>" >&5
+$as_echo_n "checking absolute name of <string.h>... " >&6; }
+if test "${gl_cv_next_string_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <string.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='\/'
+                   ;;
+               esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
+
+               gl_header_literal_regex=`echo 'string.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
+                   s|^/[^/]|//&|
+                   p
+                   q
+                 }'
+                                                            gl_cv_next_string_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                      sed -n "$gl_absolute_header_sed"`'"'
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_string_h" >&5
+$as_echo "$gl_cv_next_string_h" >&6; }
+     fi
+     NEXT_STRING_H=$gl_cv_next_string_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'string.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_string_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_STRING_H=$gl_next_as_first_directive
+
+
+
+
+
 
 
 
@@ -22352,6 +22588,51 @@ done
 
 
 
+  if test $ac_cv_have_decl_memrchr = no; then
+    HAVE_DECL_MEMRCHR=0
+  fi
+
+  for ac_func in memrchr
+do :
+  ac_fn_c_check_func "$LINENO" "memrchr" "ac_cv_func_memrchr"
+if test "x$ac_cv_func_memrchr" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MEMRCHR 1
+_ACEOF
+
+fi
+done
+
+
+  if test $ac_cv_func_memrchr = no; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS memrchr.$ac_objext"
+
+    :
+  fi
+
+
+
+
+
+          GNULIB_MEMRCHR=1
+
+
+
+
+
+
+
+
+
+
 
   if test $APPLE_UNIVERSAL_BUILD = 1; then
     # A universal build on Apple Mac OS X platforms.
@@ -24201,6 +24482,9 @@ $as_echo "$gl_cv_next_stdlib_h" >&6; }
 
 
 $as_echo "#define my_strftime nstrftime" >>confdefs.h
+
+
+
 
 
 
