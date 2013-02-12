@@ -1085,6 +1085,7 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map "<"      'rmail-first-message)
     (define-key map ">"      'rmail-last-message)
     (define-key map " "      'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\177"   'scroll-down-command)
     (define-key map "?"      'describe-mode)
     (define-key map "\C-c\C-s\C-d" 'rmail-sort-by-date)
@@ -4751,7 +4752,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "341825201e892b8fc875c1ae49ffd560")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "119ce8b431f01e7f54bb6fa99603b3d9")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

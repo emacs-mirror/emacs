@@ -118,6 +118,7 @@ Setting this option to nil might speed up the generation of summaries."
     (define-key map "<"      'rmail-summary-first-message)
     (define-key map ">"      'rmail-summary-last-message)
     (define-key map " "      'rmail-summary-scroll-msg-up)
+    (define-key map [?\S-\ ] 'rmail-summary-scroll-msg-down)
     (define-key map "\177"   'rmail-summary-scroll-msg-down)
     (define-key map "?"      'describe-mode)
     (define-key map "\C-c\C-n" 'rmail-summary-next-same-subject)

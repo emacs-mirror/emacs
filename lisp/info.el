@@ -3874,6 +3874,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (suppress-keymap map)
     (define-key map "." 'beginning-of-buffer)
     (define-key map " " 'Info-scroll-up)
+    (define-key map [?\S-\ ] 'Info-scroll-down)
     (define-key map "\C-m" 'Info-follow-nearest-node)
     (define-key map "\t" 'Info-next-reference)
     (define-key map "\e\t" 'Info-prev-reference)

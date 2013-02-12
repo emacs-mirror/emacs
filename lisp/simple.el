@@ -358,6 +358,7 @@ Other major modes are defined by comparison with this one."
     (suppress-keymap map)
     (define-key map "q" 'quit-window)
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\C-?" 'scroll-down-command)
     (define-key map "?" 'describe-mode)
     (define-key map "h" 'describe-mode)

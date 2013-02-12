@@ -227,6 +227,7 @@ support."
                              (interactive "p")
                              (scroll-up arg)))
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map [delete] 'scroll-down-command)
     (define-key map "h" 'idlwave-help-find-header)
     (define-key map "H" 'idlwave-help-find-first-header)

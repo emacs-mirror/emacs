@@ -420,6 +420,7 @@ A prefix arg suppresses display of that buffer."
     (define-key map [ down-mouse-2 ] 'cpp-push-button)
     (define-key map [ mouse-2 ] 'ignore)
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\C-?" 'scroll-down-command)
     (define-key map [ delete ] 'scroll-down)
     (define-key map "\C-c\C-c" 'cpp-edit-apply)

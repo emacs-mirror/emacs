@@ -199,6 +199,7 @@ This is local in each buffer, once it is used.")
     (define-key map "\C-?" 'View-scroll-page-backward)
     ;; (define-key map "f" 'View-scroll-page-forward)
     (define-key map " " 'View-scroll-page-forward)
+    (define-key map [?\S-\ ]  'View-scroll-page-backward)
     (define-key map "o" 'View-scroll-to-buffer-end)
     (define-key map ">" 'end-of-buffer)
     (define-key map "<" 'beginning-of-buffer)
@@ -407,8 +408,8 @@ Digits	provide prefix arguments.
 \\[View-scroll-to-buffer-end]	scroll so that buffer end is at last line of window.
 SPC	scroll forward \"page size\" lines.
 	  With prefix scroll forward prefix lines.
-DEL	scroll backward \"page size\" lines.
-	  With prefix scroll backward prefix lines.
+DEL, S-SPC  scroll backward \"page size\" lines.
+	      With prefix scroll backward prefix lines.
 \\[View-scroll-page-forward-set-page-size]	like  \\[View-scroll-page-forward]  but with prefix sets \"page size\" to prefix.
 \\[View-scroll-page-backward-set-page-size]	like  \\[View-scroll-page-backward]  but with prefix sets \"page size\" to prefix.
 \\[View-scroll-half-page-forward]	scroll forward \"half page size\" lines.  With prefix, sets

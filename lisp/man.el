@@ -426,6 +426,7 @@ Otherwise, the value is whatever the function
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
 
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map " "    'scroll-up-command)
     (define-key map "\177" 'scroll-down-command)
     (define-key map "n"    'Man-next-section)

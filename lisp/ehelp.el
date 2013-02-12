@@ -80,6 +80,7 @@
     (define-key map (char-to-string help-char) 'electric-help-help)
     (define-key map "?" 'electric-help-help)
     (define-key map " " 'scroll-up)
+    (define-key map [?\S-\ ] 'scroll-down)
     (define-key map "\^?" 'scroll-down)
     (define-key map "." 'beginning-of-buffer)
     (define-key map "<" 'beginning-of-buffer)

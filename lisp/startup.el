@@ -1466,6 +1466,7 @@ Each element in the list should be a list of strings or pairs
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
     (define-key map "\C-?" 'scroll-down-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
     (define-key map "q" 'exit-splash-screen)
     map)

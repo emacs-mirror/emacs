@@ -76,6 +76,9 @@ of the buffer is visible).
 ** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
 
+** In keymaps where SPC scrolls, S-SPC now scrolls in the reverse direction.
+Eg View mode, etc.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 

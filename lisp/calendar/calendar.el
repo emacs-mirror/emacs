@@ -1635,6 +1635,7 @@ line."
     (define-key map "S"   'calendar-sunrise-sunset)
     (define-key map "M"   'calendar-lunar-phases)
     (define-key map " "   'scroll-other-window)
+    (define-key map [?\S-\ ] 'scroll-other-window-down)
     (define-key map "\d"  'scroll-other-window-down)
     (define-key map "\C-c\C-l" 'calendar-redraw)
     (define-key map "."   'calendar-goto-today)

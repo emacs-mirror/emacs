@@ -246,6 +246,7 @@ See `compilation-error-screen-columns'"
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map compilation-minor-mode-map)
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\^?" 'scroll-down-command)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
