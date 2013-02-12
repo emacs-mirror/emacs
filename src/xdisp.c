@@ -14604,14 +14604,24 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   else
     {
       struct text_pos scroll_margin_pos = startp;
+      int y_offset = 0;
 
       /* See if point is inside the scroll margin at the top of the
          window.  */
       if (this_scroll_margin)
 	{
+	  int y_start;
+
 	  start_display (&it, w, startp);
+	  y_start = it.current_y;
 	  move_it_vertically (&it, this_scroll_margin);
 	  scroll_margin_pos = it.current.pos;
+	  /* If we didn't move enough before hitting ZV, request
+	     additional amount of scroll, to move point out of the
+	     scroll margin.  */
+	  if (IT_CHARPOS (it) == ZV
+	      && it.current_y - y_start < this_scroll_margin)
+	    y_offset = this_scroll_margin - (it.current_y - y_start);
 	}
 
       if (PT < CHARPOS (scroll_margin_pos))
@@ -14637,6 +14647,9 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  if (dy > scroll_max
 	      || IT_CHARPOS (it) < CHARPOS (scroll_margin_pos))
 	    return SCROLLING_FAILED;
+
+	  /* Additional scroll for when ZV was too close to point.  */
+	  dy += y_offset;
 
 	  /* Compute new window start.  */
 	  start_display (&it, w, startp);

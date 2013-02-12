@@ -6,6 +6,9 @@
 	it->region_beg_charpos, not to -1.  This fixes redisplay
 	optimization when cursor is moved up after M->.  (Bug#13623)
 	(Bug#13626)
+	(try_scrolling): Scroll text up more if point is too close to ZV
+	and inside the scroll margin.  This makes sure point is moved
+	outside the scroll margin in these cases.
 
 	* window.h (struct window): region_showing can no longer be
 	negative.
