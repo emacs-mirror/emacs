@@ -34,6 +34,7 @@ GNULIBOBJS = $(BLD)/c-ctype.$(O) \
 	     $(BLD)/getopt.$(O)  \
 	     $(BLD)/getopt1.$(O) \
 	     $(BLD)/gettime.$(O) \
+	     $(BLD)/memrchr.$(O) \
 	     $(BLD)/strftime.$(O) \
 	     $(BLD)/time_r.$(O) \
 	     $(BLD)/timespec-add.$(O) \
@@ -200,6 +201,10 @@ $(BLD)/md5.$(O) : \
 	$(NT_INC)/stdint.h \
 	$(CONFIG_H) \
 	$(MD5_H)
+
+$(BLD)/memrchr.$(O) : \
+	$(GNU_LIB)/memrchr.c \
+	$(CONFIG_H)
 
 $(BLD)/sha1.$(O) : \
 	$(GNU_LIB)/sha1.c \

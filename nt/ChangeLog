@@ -1,3 +1,7 @@
+2013-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h: Add prototype for memrchr.
+
 2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).

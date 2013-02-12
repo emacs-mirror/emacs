@@ -394,6 +394,9 @@ extern int sys_putenv (char *);
 extern int getloadavg (double *, int);
 extern int getpagesize (void);
 
+extern void * memrchr (void const *, int, size_t);
+
+
 #if defined (__MINGW32__)
 
 /* Define to 1 if the system has the type `long long int'. */

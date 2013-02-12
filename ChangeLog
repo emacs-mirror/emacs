@@ -1,3 +1,8 @@
+2013-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/memrchr.$(O).
+	($(BLD)/memrchr.$(O)): New dependency.
+
 2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Tune by using memchr and memrchr.
