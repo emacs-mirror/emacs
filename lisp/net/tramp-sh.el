@@ -2856,10 +2856,12 @@ the result will be a local, non-Tramp, filename."
 			 v 'file-error
 			 "pty association is not supported for `%s'" name))))
 		  (let ((p (tramp-get-connection-process v)))
-		    ;; Set query flag for this process.  We ignore errors,
-		    ;; because the process could have finished already.
+		    ;; Set query flag and process marker for this
+		    ;; process.  We ignore errors, because the process
+		    ;; could have finished already.
 		    (ignore-errors
-		      (tramp-compat-set-process-query-on-exit-flag p t))
+		      (tramp-compat-set-process-query-on-exit-flag p t)
+		      (set-marker (process-mark p) (point)))
 		    ;; Return process.
 		    p))))
 

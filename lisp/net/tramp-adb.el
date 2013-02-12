@@ -902,42 +902,76 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-adb-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    ;; When PROGRAM is nil, we just provide a tty.
+    ;; When PROGRAM is nil, we should provide a tty.  This is not
+    ;; possible here.
+    (unless (stringp program)
+      (tramp-error v 'file-error "PROGRAM must be a string"))
+
     (let ((command
-	   (when (stringp program)
-	     (format "cd %s; %s"
-		     (tramp-shell-quote-argument localname)
-		     (mapconcat 'tramp-shell-quote-argument
-				(cons program args) " "))))
+	   (format "cd %s; %s"
+		   (tramp-shell-quote-argument localname)
+		   (mapconcat 'tramp-shell-quote-argument
+			      (cons program args) " ")))
 	  (tramp-process-connection-type
 	   (or (null program) tramp-process-connection-type))
+	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	  (name1 name)
 	  (i 0))
-      (unwind-protect
-	  (save-excursion
-	    (save-restriction
-	      (while (get-process name1)
-		;; NAME must be unique as process name.
-		(setq i (1+ i)
-		      name1 (format "%s<%d>" name i)))
-	      (setq name name1)
-	      ;; Set the new process properties.
-	      (tramp-set-connection-property v "process-name" name)
-	      (when command
-		(let* ((host (tramp-file-name-host v))
-		       (devices (mapcar 'cadr (tramp-adb-parse-device-names nil)))
-		       (args (if (> (length host) 0)
-				 (list "-s" host "shell" command)
-			       (list "shell" command)))
-		       (p (apply 'start-process (tramp-get-connection-name v) buffer
-				 (tramp-adb-program) args)))
-		  ;; Set sentinel and query flag for this process.
-		  (tramp-set-connection-property p "vector" v)
-		  (set-process-sentinel p 'tramp-process-sentinel)
-		  (tramp-compat-set-process-query-on-exit-flag p t)
-		  ;; Return process.
-		  p))))
-	(tramp-set-connection-property v "process-name" nil)))))
+
+      (unless buffer
+	;; BUFFER can be nil.  We use a temporary buffer.
+	(setq buffer (generate-new-buffer tramp-temp-buffer-name)))
+      (while (get-process name1)
+	;; NAME must be unique as process name.
+	(setq i (1+ i)
+	      name1 (format "%s<%d>" name i)))
+      (setq name name1)
+      ;; Set the new process properties.
+      (tramp-set-connection-property v "process-name" name)
+      (tramp-set-connection-property v "process-buffer" buffer)
+
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(unwind-protect
+	    ;; We catch this event.  Otherwise, `start-process' could
+	    ;; be called on the local host.
+	    (save-excursion
+	      (save-restriction
+		;; Activate narrowing in order to save BUFFER
+		;; contents.  Clear also the modification time;
+		;; otherwise we might be interrupted by
+		;; `verify-visited-file-modtime'.
+		(let ((buffer-undo-list t)
+		      (buffer-read-only nil)
+		      (mark (point)))
+		  (clear-visited-file-modtime)
+		  (narrow-to-region (point-max) (point-max))
+		  ;; We call `tramp-adb-maybe-open-connection', in
+		  ;; order to cleanup the prompt afterwards.
+		  (tramp-adb-maybe-open-connection v)
+		  (widen)
+		  (delete-region mark (point))
+		  (narrow-to-region (point-max) (point-max))
+		  ;; Send the command.
+		  (let ((tramp-adb-prompt (regexp-quote command)))
+		    (tramp-adb-send-command v command))
+		  (let ((p (tramp-get-connection-process v)))
+		    ;; Set query flag and process marker for this
+		    ;; process.  We ignore errors, because the process
+		    ;; could have finished already.
+		    (ignore-errors
+		      (tramp-compat-set-process-query-on-exit-flag p t)
+		      (set-marker (process-mark p) (point)))
+		    ;; Return process.
+		    p))))
+
+	  ;; Save exit.
+	  (if (string-match tramp-temp-buffer-name (buffer-name))
+	      (ignore-errors
+		(set-process-buffer (tramp-get-connection-process v) nil)
+		(kill-buffer (current-buffer)))
+	    (set-buffer-modified-p bmp))
+	  (tramp-set-connection-property v "process-name" nil)
+	  (tramp-set-connection-property v "process-buffer" nil))))))
 
 ;; Helper functions.
 
