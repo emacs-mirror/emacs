@@ -35,7 +35,7 @@ for var in CFLAGS CPPFLAGS LDFLAGS; do
     esac
     eval val="\$${var}"
     test x"$val" = x && continue
-    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=$val"
+    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=\"$val\""
 done
 
 AC_CONFIG_HEADER(src/config.h:src/config.in)
