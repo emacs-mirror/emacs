@@ -1,3 +1,9 @@
+2013-02-12  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el (doc-view-odf->pdf-converter-soffice): Use separate
+	UserInstallation when calling soffice to work around LibreOffice
+	bug 37531.
+
 2013-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (basic-save-buffer):

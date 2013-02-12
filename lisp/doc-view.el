@@ -940,8 +940,20 @@ is named like ODF with the extension turned to pdf."
 The converted PDF is put into the current cache directory, and it
 is named like ODF with the extension turned to pdf."
   (doc-view-start-process "odf->pdf" doc-view-odf->pdf-converter-program
-			  (list "--headless" "--convert-to" "pdf"
-				"--outdir" (doc-view-current-cache-dir) odf)
+			  (list
+			   ;; FIXME: soffice doesn't work when there's
+			   ;; another running LibreOffice instance, in
+			   ;; which case it returns success without
+			   ;; actually doing anything.  See
+			   ;; LibreOffice bug
+			   ;; https://bugs.freedesktop.org/show_bug.cgi?id=37531.
+			   ;; A workaround is to start soffice with a
+			   ;; separate UserInstallation directory.
+			   (concat "-env:UserInstallation=file://"
+				   (expand-file-name (format "libreoffice-docview%d" (user-uid))
+						     temporary-file-directory))
+			   "--headless" "--convert-to" "pdf"
+			   "--outdir" (doc-view-current-cache-dir) odf)
 			  callback))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
