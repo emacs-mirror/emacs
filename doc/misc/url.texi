@@ -890,7 +890,7 @@ containing the data cached for that URL.
 
 @c With a large cache of documents on the local disk, it can be very handy
 @c when traveling, or any other time the network connection is not active
-@c (a laptop with a dial-on-demand PPP connection, etc).  Emacs/W3 can rely
+@c (a laptop with a dial-on-demand PPP connection, etc.).  Emacs/W3 can rely
 @c solely on its cache, and avoid checking to see if the page has changed
 @c on the remote server.  In the case of a dial-on-demand PPP connection,
 @c this will keep the phone line free as long as possible, only bringing up

@@ -1909,7 +1909,7 @@ following line to your @file{.emacs}:
 where @var{syntactic-symbol} is the name Emacs shows in the minibuffer
 when you type @kbd{C-c C-o} at the beginning of the line, and
 @var{offset} is one of the indentation symbols listed above (@code{+},
-@code{/}, @code{0}, etc.) that you've chosen during the interactive
+@code{/}, @code{0}, etc.)@: that you've chosen during the interactive
 procedure.
 
 @item

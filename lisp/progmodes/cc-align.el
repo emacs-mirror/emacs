@@ -53,7 +53,7 @@
 (defun c-lineup-topmost-intro-cont (langelem)
   "Line up declaration continuation lines zero or one indentation step.
 For lines in the \"header\" of a definition, zero is used.  For other
-lines, `c-basic-offset' is added to the indentation.  E.g:
+lines, `c-basic-offset' is added to the indentation.  E.g.:
 
 int
 neg (int i)           <- c-lineup-topmost-intro-cont
@@ -165,7 +165,7 @@ Works with: topmost-intro-cont."
 As a special case, if the indented line is inside a brace block
 construct, the indentation is `c-basic-offset' only.  This is intended
 as a \"DWIM\" measure in cases like macros that contains statement
-blocks, e.g:
+blocks, e.g.:
 
 A_VERY_LONG_MACRO_NAME ({
         some (code, with + long, lines * in[it]);
@@ -340,7 +340,7 @@ Works with: arglist-cont, arglist-cont-nonempty."
 (defun c-lineup-close-paren (langelem)
   "Line up the closing paren under its corresponding open paren if the
 open paren is followed by code.  If the open paren ends its line, no
-indentation is added.  E.g:
+indentation is added.  E.g.:
 
 main (int,              main (
       char **               int, char **
@@ -394,7 +394,7 @@ Works with: stream-op."
 
 (defun c-lineup-multi-inher (langelem)
   "Line up the classes in C++ multiple inheritance clauses and member
-initializers under each other.  E.g:
+initializers under each other.  E.g.:
 
 class Foo:                Foo::Foo (int a, int b):
     public Cyphr,             Cyphr (a),
@@ -439,7 +439,7 @@ Works with: inher-cont, member-init-cont."
 If class names follow on the same line as the implements/extends
 keyword, they are lined up under each other.  Otherwise, they are
 indented by adding `c-basic-offset' to the column of the keyword.
-E.g:
+E.g.:
 
 class Foo             class Foo
     extends               extends Cyphr,
@@ -461,7 +461,7 @@ If exception names follow on the same line as the throws keyword,
 they are lined up under each other.  Otherwise, they are indented by
 adding `c-basic-offset' to the column of the throws keyword.  The
 throws keyword itself is also indented by `c-basic-offset' from the
-function declaration start if it doesn't hang.  E.g:
+function declaration start if it doesn't hang.  E.g.:
 
 int foo()           int foo() throws Cyphr,
     throws     <->                   Bar,    <- c-lineup-java-throws
@@ -485,7 +485,7 @@ Works with: func-decl-cont."
 
 (defun c-indent-one-line-block (langelem)
   "Indent a one line block `c-basic-offset' extra.
-E.g:
+E.g.:
 
 if (n > 0)                 if (n > 0)
     {m+=n; n=0;}    <->    {               <- c-indent-one-line-block
@@ -508,7 +508,7 @@ Work with: Almost all syntactic symbols, but most useful on *-open."
 
 (defun c-indent-multi-line-block (langelem)
   "Indent a multi line block `c-basic-offset' extra.
-E.g:
+E.g.:
 
 int *foo[] = {           int *foo[] = {
     NULL,                    NULL,
@@ -670,7 +670,7 @@ Works with: comment-intro."
 (defun c-lineup-knr-region-comment (langelem)
   "Line up a comment in the \"K&R region\" with the declaration.
 That is the region between the function or class header and the
-beginning of the block.  E.g:
+beginning of the block.  E.g.:
 
 int main()
 /* This is the main function. */  <- c-lineup-knr-region-comment
@@ -693,7 +693,7 @@ Works with: comment-intro."
 
 (defun c-lineup-runin-statements (langelem)
   "Line up statements when the first statement is on the same line as
-the block opening brace.  E.g:
+the block opening brace.  E.g.:
 
 int main()
 { puts (\"Hello world!\");
@@ -794,7 +794,7 @@ arglist-cont-nonempty."
   "Line up \"cascaded calls\" under each other.
 If the line begins with \"->\" or \".\" and the preceding line ends
 with one or more function calls preceded by the same token, then the
-arrow is lined up with the first of those tokens.  E.g:
+arrow is lined up with the first of those tokens.  E.g.:
 
 result = proc->add(17)->add(18)
              ->add(19) +           <- c-lineup-cascaded-calls
@@ -839,7 +839,7 @@ arglist-cont-nonempty."
 (defun c-lineup-string-cont (langelem)
   "Line up a continued string under the one it continues.
 A continued string in this sense is where a string literal follows
-directly after another one.  E.g:
+directly after another one.  E.g.:
 
 result = prefix + \"A message \"
                   \"string.\";      <- c-lineup-string-cont
@@ -921,7 +921,7 @@ Works with: objc-method-call-cont."
 				 ; no complete argument to indent yet
 				 (throw 'no-idea nil))))
 
-	     (extra (save-excursion 
+	     (extra (save-excursion
                       ; indent parameter to argument if needed
 		      (back-to-indentation)
 		      (c-backward-syntactic-ws (c-langelem-pos langelem))
@@ -1023,7 +1023,7 @@ Works with: inlambda, inexpr-statement, inexpr-class."
 (defun c-lineup-whitesmith-in-block (langelem)
   "Line up lines inside a block in Whitesmith style.
 It's done in a way that works both when the opening brace hangs and
-when it doesn't.  E.g:
+when it doesn't.  E.g.:
 
 something
     {                something {
@@ -1085,7 +1085,7 @@ arglist-cont."
 
 (defun c-lineup-cpp-define (langelem)
   "Line up macro continuation lines according to the indentation of
-the construct preceding the macro.  E.g:
+the construct preceding the macro.  E.g.:
 
 v beg of preceding constr      v beg of preceding constr
                              int dribble() {

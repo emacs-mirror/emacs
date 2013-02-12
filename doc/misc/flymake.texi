@@ -64,7 +64,7 @@ modify this GNU manual.''
 
 Flymake is a universal on-the-fly syntax checker implemented as an
 Emacs minor mode. Flymake runs the pre-configured syntax check tool
-(compiler for C++ files, @code{perl} for perl files, etc.) in the
+(compiler for C++ files, @code{perl} for perl files, etc.)@: in the
 background, passing it a temporary copy of the current buffer, and
 parses the output for known error/warning message patterns. Flymake
 then highlights erroneous lines (i.e., lines for which at least one
@@ -569,7 +569,7 @@ These modes are handled inside init/cleanup/getfname functions, see
 Flymake contains implementations of all functionality required to
 support different syntax check modes described above (making temporary
 copies, finding master files, etc.), as well as some tool-specific
-(routines for Make, Ant, etc.) code.
+(routines for Make, Ant, etc.)@: code.
 
 
 @node Making a temporary copy

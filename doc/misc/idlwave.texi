@@ -2182,8 +2182,8 @@ operators (outside of strings and comments, of course), try this in
 @end lisp
 
 Note that the modified assignment operators which begin with a word
-(@samp{AND=}, @samp{OR=}, @samp{NOT=}, etc.) require a leading space to
-be recognized (e.g @code{vAND=4} would be interpreted as a variable
+(@samp{AND=}, @samp{OR=}, @samp{NOT=}, etc.)@: require a leading space to
+be recognized (e.g., @code{vAND=4} would be interpreted as a variable
 @code{vAND}).  Also note that since, e.g., @code{>} and @code{>=} are
 both valid operators, it is impossible to surround both by blanks while
 they are being typed.  Similarly with @code{&} and @code{&&}.  For
@@ -2195,7 +2195,7 @@ repad everything if @code{idlwave-do-actions} is on).
 @defopt idlwave-surround-by-blank (@code{nil})
 Non-@code{nil} means enable @code{idlwave-surround}.  If non-@code{nil},
 @samp{=}, @samp{<}, @samp{>}, @samp{&}, @samp{,}, @samp{->}, and the
-modified assignment operators (@samp{AND=}, @samp{OR=}, etc.) are
+modified assignment operators (@samp{AND=}, @samp{OR=}, etc.)@: are
 surrounded with spaces by @code{idlwave-surround}.
 @end defopt
 

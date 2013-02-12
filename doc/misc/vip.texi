@@ -356,7 +356,7 @@ you can abort a partially formed command by typing @kbd{C-g}.@refill
 As in Vi, searching is done by @kbd{/} and @kbd{?}.  The string will be
 searched literally by default.  To invoke a regular expression search,
 first execute the search command @kbd{/} (or @kbd{?}) with empty search
-string.  (I.e, type @kbd{/} followed by @key{RET}.)
+string.  (I.e., type @kbd{/} followed by @key{RET}.)
 A search for empty string will toggle the search mode between vanilla
 search and regular expression search.  You cannot give an offset to the
 search string.  (It is a limitation.)  By default, search will wrap around

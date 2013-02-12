@@ -726,7 +726,7 @@ the display of the Emacs tool bar.  With Riccardo Murri he wrote
 Eric Ludlam wrote the Speedbar package; @file{checkdoc.el}, for checking
 doc strings in Emacs Lisp programs; @file{dframe.el}, providing
 dedicated frame support modes; @file{ezimage.el}, a generalized way to
-place images over text; @file{chart.el} for drawing bar charts etc; and
+place images over text; @file{chart.el} for drawing bar charts etc.; and
 the EIEIO (Enhanced Implementation of Emacs Interpreted Objects)
 package.  He was also the main author of the CEDET (Collection of Emacs
 Development Environment Tools) package.  Portions were also written by

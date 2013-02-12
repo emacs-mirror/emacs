@@ -179,7 +179,7 @@ is to be performed in, and it should return an integer that says how
 many days an article can be stored before it is considered \"old\".
 It can also return the values `never' and `immediate'.
 
-Eg.:
+E.g.:
 
 \(setq nnmail-expiry-wait-function
       (lambda (newsgroup)
@@ -291,7 +291,7 @@ directory.  This hook is called after the incoming mail box has been
 emptied, and can be used to call any mail box programs you have
 running (\"xwatch\", etc.)
 
-Eg.
+E.g.:
 
 \(add-hook 'nnmail-read-incoming-hook
 	  (lambda ()

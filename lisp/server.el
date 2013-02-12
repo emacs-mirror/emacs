@@ -154,7 +154,7 @@ long-lived shared key will decrease security (especially since
 the key is transmitted as plain-text).
 
 In some situations however, it can be difficult to share randomly
-generated passwords with remote hosts (eg. no shared directory),
+generated passwords with remote hosts (e.g., no shared directory),
 so you can set the key with this variable and then copy the
 server file to the remote host (with possible changes to IP
 address and/or port if that applies).

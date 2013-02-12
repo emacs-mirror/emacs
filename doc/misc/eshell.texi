@@ -625,7 +625,7 @@ string-manipulation expansions because the Elisp library already
 provides many functions for this.}  For example, @code{$var} on a line
 expands to the value of the variable @code{var} when the line is
 executed.  Expansions are usually passed as arguments, but may also be
-used as commands.@footnote{e.g. Entering just @samp{$var} at the prompt
+used as commands.@footnote{E.g., entering just @samp{$var} at the prompt
 is equivalent to entering the value of @code{var} at the prompt.}
 
 @menu
@@ -1158,7 +1158,7 @@ it).
 @item Make the shell spawning commands be visual
 
 That is, make (@command{su}, @command{bash}, @command{telnet},
-@command{rlogin}, @command{rsh}, etc.) be part of
+@command{rlogin}, @command{rsh}, etc.)@: be part of
 @code{eshell-visual-commands}.  The only exception is if the shell is
 being used to invoke a single command.  Then, the behavior should be
 based on what that command is.

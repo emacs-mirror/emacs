@@ -159,12 +159,12 @@ This is not used directly, but only via inheritance by other faces."
 
 (defface nxml-comment-delimiter
   '((t (:inherit font-lock-comment-delimiter-face)))
-  "Face used for the delimiters of comments, i.e <!-- and -->."
+  "Face used for the delimiters of comments, i.e., <!-- and -->."
   :group 'nxml-faces)
 
 (defface nxml-processing-instruction-delimiter
   '((t (:inherit nxml-delimiter)))
-  "Face used for the delimiters of processing instructions, i.e <? and ?>."
+  "Face used for the delimiters of processing instructions, i.e., <? and ?>."
   :group 'nxml-faces)
 
 (defface nxml-processing-instruction-target
@@ -179,7 +179,7 @@ This is not used directly, but only via inheritance by other faces."
 
 (defface nxml-cdata-section-delimiter
   '((t (:inherit nxml-delimiter)))
-  "Face used for the delimiters of CDATA sections, i.e <![, [, and ]]>."
+  "Face used for the delimiters of CDATA sections, i.e., <![, [, and ]]>."
   :group 'nxml-faces)
 
 (defface nxml-cdata-section-CDATA
@@ -200,7 +200,7 @@ This includes ths `x' in hex references."
 
 (defface nxml-char-ref-delimiter
   '((t (:inherit nxml-ref)))
-  "Face used for the delimiters of character references, i.e &# and ;."
+  "Face used for the delimiters of character references, i.e., &# and ;."
   :group 'nxml-faces)
 
 (defface nxml-entity-ref-name
@@ -210,7 +210,7 @@ This includes ths `x' in hex references."
 
 (defface nxml-entity-ref-delimiter
   '((t (:inherit nxml-ref)))
-  "Face used for the delimiters of entity references, i.e & and ;."
+  "Face used for the delimiters of entity references, i.e., & and ;."
   :group 'nxml-faces)
 
 (defface nxml-tag-delimiter

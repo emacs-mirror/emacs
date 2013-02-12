@@ -314,7 +314,7 @@ The first object spliced into the list (assuming it is a list from a
 non-terminal).
 
 @item '$1
-The first object matched, placed in a list.  i.e. @code{( $1 )}.
+The first object matched, placed in a list.  I.e., @code{( $1 )}.
 
 @item foo
 The symbol @code{foo} (exactly as displayed).

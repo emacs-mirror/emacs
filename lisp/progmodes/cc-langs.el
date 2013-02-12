@@ -2819,7 +2819,7 @@ undefined whether identifier syntax (see `c-identifier-syntax-table')
 is in effect or not.
 
 Note that it's used in cases like after \"foo (bar)\" so it should
-only match when it's certain that it's a declaration, e.g \"{\" but
+only match when it's certain that it's a declaration, e.g., \"{\" but
 not \",\" or \";\"."
   t "{"
   ;; If K&R style declarations should be recognized then one could

@@ -4959,7 +4959,7 @@ the declaration is an annotation.
 
 There are a few occasions where a statement block might be used inside
 an expression.  One is in C or C++ code using the gcc extension for
-this, e.g:
+this, e.g.:
 
 @example
  1: int res = (@{
@@ -5552,7 +5552,7 @@ parentheses and statements within brace blocks.
 @findex lineup-close-paren (c-)
 Line up the closing paren under its corresponding open paren if the
 open paren is followed by code.  If the open paren ends its line, no
-indentation is added.  E.g:
+indentation is added.  E.g.:
 
 @example
 @group
@@ -5606,7 +5606,7 @@ discussion of this ``DWIM'' measure.
 
 @defun c-indent-one-line-block
 @findex indent-one-line-block (c-)
-Indent a one line block @code{c-basic-offset} extra.  E.g:
+Indent a one line block @code{c-basic-offset} extra.  E.g.:
 
 @example
 @group
@@ -5640,7 +5640,7 @@ which makes the function usable in list expressions.
 
 @defun c-indent-multi-line-block
 @findex indent-multi-line-block (c-)
-Indent a multiline block @code{c-basic-offset} extra.  E.g:
+Indent a multiline block @code{c-basic-offset} extra.  E.g.:
 
 @example
 @group
@@ -5679,7 +5679,7 @@ block, which makes the function usable in list expressions.
 Line up statements for coding standards which place the first statement
 in a block on the same line as the block opening brace@footnote{Run-in
 style doesn't really work too well.  You might need to write your own
-custom line-up functions to better support this style.}.  E.g:
+custom line-up functions to better support this style.}.  E.g.:
 
 @example
 @group
@@ -5762,7 +5762,7 @@ indents relative to the surrounding block just like
 @defun c-lineup-whitesmith-in-block
 @findex lineup-whitesmith-in-block (c-)
 Line up lines inside a block in Whitesmith style.  It's done in a way
-that works both when the opening brace hangs and when it doesn't.  E.g:
+that works both when the opening brace hangs and when it doesn't.  E.g.:
 
 @example
 @group
@@ -5816,7 +5816,7 @@ Line up the current argument line under the first argument.
 As a special case, if an argument on the same line as the open
 parenthesis starts with a brace block opener, the indentation is
 @code{c-basic-offset} only.  This is intended as a ``DWIM'' measure in
-cases like macros that contain statement blocks, e.g:
+cases like macros that contain statement blocks, e.g.:
 
 @example
 @group
@@ -5852,7 +5852,7 @@ brace block.
 @defun c-lineup-multi-inher
 @findex lineup-multi-inher (c-)
 Line up the classes in C++ multiple inheritance clauses and member
-initializers under each other.  E.g:
+initializers under each other.  E.g.:
 
 @example
 @group
@@ -5895,7 +5895,7 @@ Line up Java implements and extends declarations.  If class names
 follow on the same line as the @samp{implements}/@samp{extends}
 keyword, they are lined up under each other.  Otherwise, they are
 indented by adding @code{c-basic-offset} to the column of the keyword.
-E.g:
+E.g.:
 
 @example
 @group
@@ -5929,7 +5929,7 @@ same line as the throws keyword, they are lined up under each other.
 Otherwise, they are indented by adding @code{c-basic-offset} to the
 column of the @samp{throws} keyword.  The @samp{throws} keyword itself
 is also indented by @code{c-basic-offset} from the function declaration
-start if it doesn't hang.  E.g:
+start if it doesn't hang.  E.g.:
 
 @example
 @group
@@ -6014,7 +6014,7 @@ line.
 
 @defun c-lineup-argcont
 @findex lineup-argcont (c-)
-Line up a continued argument.  E.g:
+Line up a continued argument.  E.g.:
 
 @example
 @group
@@ -6101,7 +6101,7 @@ function is the same as specifying a list @code{(c-lineup-assignments
 Line up ``cascaded calls'' under each other.  If the line begins with
 @code{->} or @code{.} and the preceding line ends with one or more
 function calls preceded by the same token, then the arrow is lined up
-with the first of those tokens.  E.g:
+with the first of those tokens.  E.g.:
 
 @example
 @group
@@ -6133,7 +6133,7 @@ Line up C++ stream operators (i.e., @samp{<<} and @samp{>>}).
 @findex lineup-string-cont (c-)
 Line up a continued string under the one it continues.  A continued
 string in this sense is where a string literal follows directly after
-another one.  E.g:
+another one.  E.g.:
 
 @example
 @group
@@ -6242,7 +6242,7 @@ is equivalent to @code{(@r{@var{value}} . -1000)}.
 @findex lineup-knr-region-comment (c-)
 Line up a comment in the ``K&R region'' with the declaration.  That is
 the region between the function or class header and the beginning of the
-block.  E.g:
+block.  E.g.:
 
 @example
 @group
@@ -6282,7 +6282,7 @@ already has; think of it as an identity function for lineups.
 @defun c-lineup-cpp-define
 @findex lineup-cpp-define (c-)
 Line up macro continuation lines according to the indentation of the
-construct preceding the macro.  E.g:
+construct preceding the macro.  E.g.:
 
 @example
 @group
@@ -6409,7 +6409,7 @@ that those lines could be analyzed as either topmost-intro-cont or
 statement-cont.  It's used for @code{topmost-intro-cont} by default, but
 you might consider using @code{+} instead.}.  For lines preceding a
 definition, zero is used.  For other lines, @code{c-basic-offset} is
-added to the indentation.  E.g:
+added to the indentation.  E.g.:
 
 @example
 @group
@@ -6507,7 +6507,7 @@ earlier.  Line-up functions are still passed this cons cell, so as to
 preserve compatibility with older configurations.  In the future, we
 may decide to convert to using the full list format---you can prepare
 your setup for this by using the access functions
-(@code{c-langelem-sym}, etc.)  described below.
+(@code{c-langelem-sym}, etc.)@: described below.
 
 @vindex c-syntactic-element
 @vindex syntactic-element (c-)

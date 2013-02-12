@@ -117,7 +117,7 @@ they make up a forms.
 
 The contents of the forms consist of the contents of the fields of the
 record (e.g., @samp{root}, @samp{0}, @samp{1}, @samp{Super User})
-interspersed with normal text (e.g @samp{User : }, @samp{Uid: }).
+interspersed with normal text (e.g., @samp{User : }, @samp{Uid: }).
 
 If you modify the contents of the fields, Forms mode will analyze your
 changes and update the file appropriately.  You cannot modify the

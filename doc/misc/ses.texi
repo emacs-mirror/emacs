@@ -842,7 +842,7 @@ Begins with an 014 character, followed by sets of cell-definition
 macros for each row, followed by column-widths, column-printers,
 default-printer, and header-row.  Then there's the global parameters
 (file-format ID, numrows, numcols) and the local variables (specifying
-SES mode for the buffer, etc.)
+SES mode for the buffer, etc.).
 
 When a SES file is loaded, first the numrows and numcols values are
 loaded, then the entire data area is @code{eval}ed, and finally the local

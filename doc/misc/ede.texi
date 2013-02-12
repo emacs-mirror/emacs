@@ -1050,7 +1050,7 @@ other options for that project.  The configuration is saved in
 
 Generic projects are disabled by default because they have the
 potential to interfere with other projects.  To use the generic
-project sytem to start detecting projects, you need to enable it.
+project system to start detecting projects, you need to enable it.
 
 @deffn Command ede-enable-generic-projects
 Enable generic project loaders.
@@ -1956,7 +1956,7 @@ Type: @code{list} @*
 Default Value: @code{(quote ("/include" "../include/"))}
 
 The default locate function expands filenames within a project.
-If a header file (.h, .hh, etc) name is expanded, and
+If a header file (.h, .hh, etc.)@: name is expanded, and
 the @code{:locate-fcn} slot is @code{nil}, then the include path is checked
 first, and other directories are ignored.  For very large
 projects, this optimization can save a lot of time.
