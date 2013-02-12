@@ -1975,9 +1975,6 @@ modes---minor modes first, then the major mode, then global bindings.
 If @var{prefix} is non-@code{nil}, it should be a prefix key; then the
 listing includes only keys that start with @var{prefix}.
 
-The listing describes meta characters as @key{ESC} followed by the
-corresponding non-meta character.
-
 When several characters with consecutive @acronym{ASCII} codes have the
 same definition, they are shown together, as
 @samp{@var{firstchar}..@var{lastchar}}.  In this instance, you need to

@@ -1,3 +1,8 @@
+2013-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Scanning Keymaps): Remove obsolete sentence about
+	meta characters; this changed in 22.1.  (Bug#13684)
+
 2013-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* objects.texi (Char-Table Type): Add cindex.
