@@ -1,3 +1,8 @@
+2013-02-12  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* erc-match.el (erc-match-message):
+	Don't truncate action messages.  (Bug#13689)
+
 2013-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* erc-dcc.el (erc-dcc-get-file): Don't reference buffer-file-type.
