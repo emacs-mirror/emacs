@@ -1,3 +1,15 @@
+2013-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_internal): Don't set w->region_showing to the
+	marker's position.
+	(display_line): Set w->region_showing to the value of
+	it->region_beg_charpos, not to -1.  This fixes redisplay
+	optimization when cursor is moved up after M->.  (Bug#13623)
+	(Bug#13626)
+
+	* window.h (struct window): region_showing can no longer be
+	negative.
+
 2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Tune by using memchr and memrchr.

@@ -338,8 +338,7 @@ struct window
     int vscroll;
 
     /* If we have highlighted the region (or any part of it), the mark
-       position or -1 (the latter is used by the iterator for internal
-       purposes); otherwise zero.  */
+       (region start) position; otherwise zero.  */
     ptrdiff_t region_showing;
 
     /* Z_BYTE - buffer position of the last glyph in the current matrix of W.

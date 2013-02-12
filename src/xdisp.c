@@ -13244,8 +13244,6 @@ redisplay_internal (void)
   ++clear_image_cache_count;
 #endif
 
-  w->region_showing = XINT (Fmarker_position (BVAR (XBUFFER (w->buffer), mark)));
-
   /* Build desired matrices, and update the display.  If
      consider_all_windows_p is non-zero, do it for all windows on all
      frames.  Otherwise do it for selected_window, only.  */
@@ -19138,7 +19136,7 @@ display_line (struct it *it)
     }
 
   /* Is IT->w showing the region?  */
-  it->w->region_showing = it->region_beg_charpos > 0 ? -1 : 0;
+  it->w->region_showing = it->region_beg_charpos > 0 ? it->region_beg_charpos : 0;
 
   /* Clear the result glyph row and enable it.  */
   prepare_desired_row (row);
