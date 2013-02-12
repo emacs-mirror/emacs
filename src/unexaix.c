@@ -61,10 +61,8 @@ what you give them.   Help stamp out software-hoarding!  */
 
 #include "mem-limits.h"
 
-char *start_of_text (void);		        /* Start of text */
-
-extern int _data;
-extern int _text;
+extern char _data[];
+extern char _text[];
 
 #include <filehdr.h>
 #include <aouthdr.h>
@@ -73,15 +71,15 @@ extern int _text;
 
 static struct filehdr f_hdr;		/* File header */
 static struct aouthdr f_ohdr;		/* Optional file header (a.out) */
-static long bias;			/* Bias to add for growth */
-static long lnnoptr;			/* Pointer to line-number info within file */
+static off_t bias;			/* Bias to add for growth */
+static off_t lnnoptr;			/* Pointer to line-number info within file */
 
-static long text_scnptr;
-static long data_scnptr;
+static off_t text_scnptr;
+static off_t data_scnptr;
 #define ALIGN(val, pwr) (((val) + ((1L<<(pwr))-1)) & ~((1L<<(pwr))-1))
-static long load_scnptr;
-static long orig_load_scnptr;
-static long orig_data_scnptr;
+static off_t load_scnptr;
+static off_t orig_load_scnptr;
+static off_t orig_data_scnptr;
 static int unrelocate_symbols (int, int, const char *, const char *);
 
 #ifndef MAX_SECTIONS
@@ -188,7 +186,7 @@ make_hdr (int new, int a_out,
   pagemask = getpagesize () - 1;
 
   /* Adjust text/data boundary. */
-  data_start = (uintptr_t) start_of_data ();
+  data_start = (uintptr_t) _data;
 
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
 
@@ -288,7 +286,7 @@ make_hdr (int new, int a_out,
 
   /* fix scnptr's */
   {
-    ulong ptr = section[0].s_scnptr;
+    off_t ptr = section[0].s_scnptr;
 
     bias = -1;
     for (scns = 0; scns < f_hdr.f_nscns; scns++)
@@ -384,12 +382,12 @@ copy_text_and_data (int new)
   char *end;
   char *ptr;
 
-  lseek (new, (long) text_scnptr, SEEK_SET);
-  ptr = start_of_text () + text_scnptr;
+  lseek (new, text_scnptr, SEEK_SET);
+  ptr = _text + text_scnptr;
   end = ptr + f_ohdr.tsize;
   write_segment (new, ptr, end);
 
-  lseek (new, (long) data_scnptr, SEEK_SET);
+  lseek (new, data_scnptr, SEEK_SET);
   ptr = (char *) f_ohdr.data_start;
   end = ptr + f_ohdr.dsize;
   write_segment (new, ptr, end);
@@ -549,13 +547,13 @@ unrelocate_symbols (int new, int a_out,
   int i;
   LDHDR ldhdr;
   LDREL ldrel;
-  ulong t_reloc = (ulong) &_text - f_ohdr.text_start;
+  off_t t_reloc = (intptr_t) _text - f_ohdr.text_start;
 #ifndef ALIGN_DATA_RELOC
-  ulong d_reloc = (ulong) &_data - f_ohdr.data_start;
+  off_t d_reloc = (intptr_t) _data - f_ohdr.data_start;
 #else
   /* This worked (and was needed) before AIX 4.2.
      I have no idea why. -- Mike */
-  ulong d_reloc = (ulong) &_data - ALIGN (f_ohdr.data_start, 2);
+  off_t d_reloc = (intptr_t) _data - ALIGN (f_ohdr.data_start, 2);
 #endif
   int * p;
 
@@ -639,17 +637,4 @@ unrelocate_symbols (int new, int a_out,
 	}
     }
   return 0;
-}
-
-/*
- *	Return the address of the start of the text segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- *	See crt0.c for further explanation and _start.
- *
- */
-
-char *
-start_of_text (void)
-{
-  return ((char *) 0x10000000);
 }
