@@ -928,7 +928,7 @@ nil, don't do anything special at the beginning of the buffer."
 (defcustom org-cycle-level-after-item/entry-creation t
   "Non-nil means cycle entry level or item indentation in new empty entries.
 
-When the cursor is at the end of an empty headline, i.e with only stars
+When the cursor is at the end of an empty headline, i.e., with only stars
 and maybe a TODO keyword, TAB will then switch the entry to become a child,
 and then all possible ancestor states, before returning to the original state.
 This makes data entry extremely fast:  M-RET to create a new headline,

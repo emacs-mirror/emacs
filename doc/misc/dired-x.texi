@@ -882,7 +882,7 @@ Dired buffers, is like @code{shell-command}, but it runs with
 
 @file{dired-x} provides a method of visiting or editing a file mentioned in
 the buffer you are viewing (e.g., a mail buffer, a news article, a
-@file{README} file, etc.) or to test if that file exists.  You can then modify
+@file{README} file, etc.)@: or to test if that file exists.  You can then modify
 this in the minibuffer after snatching the file name.
 
 When installed @file{dired-x} will substitute @code{dired-x-find-file} for

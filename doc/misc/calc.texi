@@ -14122,7 +14122,7 @@ conventions.  Like C mode, Pascal mode interprets array brackets and uses
 a different table of operators.  Hexadecimal numbers are entered and
 displayed with a preceding dollar sign.  (Thus the regular meaning of
 @kbd{$2} during algebraic entry does not work in Pascal mode, though
-@kbd{$} (and @kbd{$$}, etc.) not followed by digits works the same as
+@kbd{$} (and @kbd{$$}, etc.)@: not followed by digits works the same as
 always.)  No special provisions are made for other non-decimal numbers,
 vectors, and so on, since there is no universally accepted standard way
 of handling these in Pascal.

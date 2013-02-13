@@ -748,7 +748,7 @@ This function attempts to convert @var{object} to the specified
 @var{type}.  If @var{object} is already of that type as determined by
 @code{cl-typep}, it is simply returned.  Otherwise, certain types of
 conversions will be made:  If @var{type} is any sequence type
-(@code{string}, @code{list}, etc.) then @var{object} will be
+(@code{string}, @code{list}, etc.)@: then @var{object} will be
 converted to that type if possible.  If @var{type} is
 @code{character}, then strings of length one and symbols with
 one-character names can be coerced.  If @var{type} is @code{float},

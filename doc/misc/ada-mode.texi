@@ -72,7 +72,7 @@ existing code and facilitates writing new code.
 
 When the Gnu Ada compiler GNAT is used, the cross-reference
 information output by the compiler is used to provide powerful code
-navigation (jump to definition, find all uses, etc).
+navigation (jump to definition, find all uses, etc.).
 
 When you open a file with a file extension of @file{.ads} or
 @file{.adb}, Emacs will automatically load and activate Ada mode.
@@ -1267,7 +1267,7 @@ Non-@code{nil} means that the current line will also be re-indented
 before inserting a newline, when you press @key{RET}.
 @end table
 
-Most of the time, the indentation will be automatic, i.e when you
+Most of the time, the indentation will be automatic, i.e., when you
 press @key{RET}, the cursor will move to the correct column on the
 next line.
 

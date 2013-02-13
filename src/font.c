@@ -4831,7 +4831,7 @@ where
   OPENED-NAME is the name used for opening the font,
   FULL-NAME is the full name of the font,
   SIZE is the pixelsize of the font,
-  HEIGHT is the pixel-height of the font (i.e ascent + descent),
+  HEIGHT is the pixel-height of the font (i.e., ascent + descent),
   BASELINE-OFFSET is the upward offset pixels from ASCII baseline,
   RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling
     how to compose characters.

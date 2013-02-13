@@ -169,7 +169,7 @@ typing it into a buffer, or using the contents of the selected region,
 it will store that data---unindexed, uninterpreted---in a data pool.
 It will also try to remember as much context information as possible
 (any text properties that were set, where you copied it from, when,
-how, etc).  Later, you can walk through your accumulated set of data
+how, etc.).  Later, you can walk through your accumulated set of data
 (both organized, and unorganized) and easily begin moving things
 around, and making annotations that will express the full meaning of
 that data, as far as you know it.

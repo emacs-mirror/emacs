@@ -88,7 +88,7 @@ initializes @code{exec-path} when it starts up, based on the value of
 the environment variable @env{PATH}.  The standard file name
 constructs, @samp{~}, @samp{.}, and @samp{..}, are interpreted as
 usual in @code{exec-path}, but environment variable substitutions
-(@samp{$HOME}, etc.) are not recognized; use
+(@samp{$HOME}, etc.)@: are not recognized; use
 @code{substitute-in-file-name} to perform them (@pxref{File Name
 Expansion}).  @code{nil} in this list refers to
 @code{default-directory}.
@@ -557,7 +557,7 @@ from the process only while waiting for input or for a time delay.
 when creating the process, based on the value of the variable
 @code{process-connection-type} (see below).  Ptys are usually
 preferable for processes visible to the user, as in Shell mode,
-because they allow for job control (@kbd{C-c}, @kbd{C-z}, etc.)
+because they allow for job control (@kbd{C-c}, @kbd{C-z}, etc.)@:
 between the process and its children, whereas pipes do not.  For
 subprocesses used for internal purposes by programs, it is often
 better to use a pipe, because they are more efficient, and because
@@ -571,7 +571,7 @@ program @var{program} running in it.  It returns a process object that
 stands for the new subprocess in Lisp.  The argument @var{name}
 specifies the name for the process object; if a process with this name
 already exists, then @var{name} is modified (by appending @samp{<1>},
-etc.) to be unique.  The buffer @var{buffer-or-name} is the buffer to
+etc.)@: to be unique.  The buffer @var{buffer-or-name} is the buffer to
 associate with the process.
 
 If @var{program} is @code{nil}, Emacs opens a new pseudoterminal (pty)

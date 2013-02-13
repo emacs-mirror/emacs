@@ -1784,7 +1784,7 @@ that uses @var{key} as a prefix---which would not be allowed if
 @end group
 @end smallexample
 
-This function is implemented simply using @code{define-key}:
+This function is equivalent to using @code{define-key} as follows:
 
 @smallexample
 @group
@@ -1974,9 +1974,6 @@ modes---minor modes first, then the major mode, then global bindings.
 
 If @var{prefix} is non-@code{nil}, it should be a prefix key; then the
 listing includes only keys that start with @var{prefix}.
-
-The listing describes meta characters as @key{ESC} followed by the
-corresponding non-meta character.
 
 When several characters with consecutive @acronym{ASCII} codes have the
 same definition, they are shown together, as

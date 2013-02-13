@@ -1218,7 +1218,7 @@ from using them):
                 messages?
 * FAQ 5-3::     How to set stuff like From, Organization, Reply-To,
                 signature...?
-* FAQ 5-4::     Can I set things like From, Signature etc group based on
+* FAQ 5-4::     Can I set things like From, Signature etc. group based on
                 the group I post too?
 * FAQ 5-5::     Is there a spell-checker? Perhaps even on-the-fly
                 spell-checking?

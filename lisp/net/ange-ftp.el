@@ -4084,7 +4084,8 @@ directory, so that Emacs will know its current contents."
 	(or (file-exists-p parent)
 	    (ange-ftp-make-directory parent parents))))
   (if (file-exists-p dir)
-      (error "Cannot make directory %s: file already exists" dir)
+      (unless parents
+	(error "Cannot make directory %s: file already exists" dir))
     (let ((parsed (ange-ftp-ftp-name dir)))
       (if parsed
 	  (let* ((host (nth 0 parsed))

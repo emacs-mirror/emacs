@@ -291,7 +291,7 @@ DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
        doc: /* Return the horizontal position of point.  Beginning of line is column 0.
 This is calculated by adding together the widths of all the displayed
 representations of the character between the start of the previous line
-and point (eg. control characters will have a width of 2 or 4, tabs
+and point (e.g., control characters will have a width of 2 or 4, tabs
 will have a variable width).
 Ignores finite width of frame, which means that this function may return
 values greater than (frame-width).

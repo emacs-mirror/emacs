@@ -10712,7 +10712,7 @@ reading if you suppress escape sequence detection.
 
 The other way to read escape sequences in a file without decoding is
 to explicitly specify some coding system that doesn't use ISO-2022
-escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].  */);
+escape sequence (e.g., `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
 
   DEFVAR_BOOL ("inhibit-null-byte-detection",

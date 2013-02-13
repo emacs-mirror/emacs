@@ -904,7 +904,7 @@ for a man configuration file.  The default is
 
 @noindent
 [for GNU/Linux and Cygwin respectively.]  A trailing separator (@file{/}
-for UNIX etc.) on directories is optional and the filename matched if a
+for UNIX etc.)@: on directories is optional and the filename matched if a
 directory is specified is the first to match the regexp
 @code{man.*\.conf}.  If the environment variable @code{MANPATH} is not
 set but a configuration file is found then it is parsed instead (or as

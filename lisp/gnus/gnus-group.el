@@ -4377,7 +4377,7 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
 (defun gnus-group-browse-foreign-server (method)
   "Browse a foreign news server.
 If called interactively, this function will ask for a select method
- (nntp, nnspool, etc.) and a server address (eg. nntp.some.where).
+ (nntp, nnspool, etc.) and a server address (e.g., nntp.some.where).
 If not, METHOD should be a list where the first element is the method
 and the second element is the address."
   (interactive

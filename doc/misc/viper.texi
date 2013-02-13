@@ -3204,7 +3204,7 @@ and they don't look into the value of variable
 syntax tables in order to not thwart the various major modes that set these
 tables.
 
-The usual Emacs convention is used to indicate Control Characters, i.e
+The usual Emacs convention is used to indicate Control Characters, i.e.,
 C-h for Control-h.  @emph{Do not confuse this with a sequence of separate
 characters
 C, -, h!!!} The @kbd{^} is itself, never used to indicate a

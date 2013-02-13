@@ -2344,7 +2344,7 @@ Valid values include:
 @table @code
 @item nil
 Generate the buffer name in the Message way (e.g., *mail*, *news*, *mail
-to whom*, *news on group*, etc.) and continue editing in the existing
+to whom*, *news on group*, etc.)@: and continue editing in the existing
 buffer of that name.  If there is no such buffer, it will be newly
 created.
 

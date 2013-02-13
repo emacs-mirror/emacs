@@ -159,7 +159,7 @@ press RET on <new script> to create a new script.
 @end example
 
 One of the scripts are highlighted, and standard point navigation
-commands (@kbd{<up>}, @kbd{<down>} etc) can be used to navigate the
+commands (@kbd{<up>}, @kbd{<down>} etc.)@: can be used to navigate the
 list.
 
 The following commands are available in the Manage Sieve buffer:

@@ -4777,7 +4777,7 @@ primitive or interface named NAME."
 		))))))))))
 
 (defun verilog-get-expr()
-  "Grab expression at point, e.g, case ( a | b & (c ^d))."
+  "Grab expression at point, e.g., case ( a | b & (c ^d))."
   (let* ((b (progn
 	      (verilog-forward-syntactic-ws)
 	      (skip-chars-forward " \t")

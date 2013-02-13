@@ -2348,8 +2348,8 @@ Gnus considers groups from levels 1 to
 unsubscribed, @code{gnus-level-zombie} to be zombies (walking dead)
 (default 8) and @code{gnus-level-killed} to be killed (completely dead)
 (default 9).  Gnus treats subscribed and unsubscribed groups exactly the
-same, but zombie and killed groups have no information on what articles
-you have read, etc, stored.  This distinction between dead and living
+same, but zombie and killed groups store no information on what articles
+you have read, etc.  This distinction between dead and living
 groups isn't done because it is nice or clever, it is done purely for
 reasons of efficiency.
 
@@ -11140,7 +11140,7 @@ There will never be more than one dead summary buffer at any one time.
 
 @vindex gnus-use-cross-reference
 The data on the current group will be updated (which articles you have
-read, which articles you have replied to, etc.) when you exit the
+read, which articles you have replied to, etc.)@: when you exit the
 summary buffer.  If the @code{gnus-use-cross-reference} variable is
 @code{t} (which is the default), articles that are cross-referenced to
 this group and are marked as read, will also be marked as read in the
@@ -14022,7 +14022,7 @@ The address of the @acronym{NNTP} server.
 Port number to connect to the @acronym{NNTP} server.  The default is
 @samp{nntp}.  If you use @acronym{NNTP} over
 @acronym{TLS}/@acronym{SSL}, you may want to use integer ports rather
-than named ports (i.e, use @samp{563} instead of @samp{snews} or
+than named ports (i.e., use @samp{563} instead of @samp{snews} or
 @samp{nntps}), because external @acronym{TLS}/@acronym{SSL} tools may
 not work with named ports.
 
@@ -19019,7 +19019,7 @@ agent as unread.
 @subsection Agent and flags
 
 The Agent works with any Gnus back end including those, such as
-nnimap, that store flags (read, ticked, etc) on the server.  Sadly,
+nnimap, that store flags (read, ticked, etc.)@: on the server.  Sadly,
 the Agent does not actually know which backends keep their flags in
 the backend server rather than in @file{.newsrc}.  This means that the
 Agent, while unplugged or disconnected, will always record all changes
@@ -19995,7 +19995,7 @@ the article was posted from.  Time zones are such wholesome fun for the
 whole family, eh?)
 
 @item Head, Body, All
-These three match keys use the same match types as the @code{From} (etc)
+These three match keys use the same match types as the @code{From} (etc.)@:
 header uses.
 
 @item Followup
@@ -23816,7 +23816,7 @@ from Bulgarian IPs.
 
 This, unfortunately, is a great way to discard legitimate e-mail.  The
 risks of blocking a whole country (Bulgaria, Norway, Nigeria, China,
-etc.) or even a continent (Asia, Africa, Europe, etc.) from contacting
+etc.)@: or even a continent (Asia, Africa, Europe, etc.)@: from contacting
 you should be obvious, so don't do it if you have the choice.
 
 In another instance, the very informative and useful RISKS digest has
@@ -25869,7 +25869,7 @@ Fortunately, setting up the Gnus registry is pretty easy:
 
 This adds registry saves to Gnus newsrc saves (which happen on exit
 and when you press @kbd{s} from the @code{*Group*} buffer.  It also
-adds registry calls to article actions in Gnus (copy, move, etc.)  so
+adds registry calls to article actions in Gnus (copy, move, etc.)@: so
 it's not easy to undo the initialization.  See
 @code{gnus-registry-initialize} for the gory details.
 
@@ -27946,7 +27946,7 @@ consist of a little new content at the top with a long, untrimmed
 message cited below.
 
 @item
-Smileys (@samp{:-)}, @samp{;-)} etc) are now displayed graphically in
+Smileys (@samp{:-)}, @samp{;-)} etc.)@: are now displayed graphically in
 Emacs too.
 
 Put @code{(setq gnus-treat-display-smileys nil)} in @file{~/.gnus.el} to
@@ -28552,7 +28552,7 @@ A mail message or news article
 
 @item head
 @cindex head
-The top part of a message, where administrative information (etc.) is
+The top part of a message, where administrative information (etc.)@: is
 put.
 
 @item body
@@ -29501,7 +29501,7 @@ There should be no result data from this function.
 @item (nnchoke-request-set-mark GROUP ACTION &optional SERVER)
 
 Set/remove/add marks on articles.  Normally Gnus handles the article
-marks (such as read, ticked, expired etc) internally, and store them in
+marks (such as read, ticked, expired etc.)@: internally, and store them in
 @file{~/.newsrc.eld}.  Some back ends (such as @acronym{IMAP}) however carry
 all information about the articles on the server, so Gnus need to
 propagate the mark information to the server.

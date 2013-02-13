@@ -1426,7 +1426,7 @@ level).
 Move subtree down (swap with next subtree of same level).
 @orgcmd{M-h,org-mark-element}
 Mark the element at point.  Hitting repeatedly will mark subsequent elements
-of the one just marked.  E.g. hitting @key{M-h} on a paragraph will mark it,
+of the one just marked.  E.g., hitting @key{M-h} on a paragraph will mark it,
 hitting @key{M-h} immediately again will mark the next one.
 @orgcmd{C-c @@,org-mark-subtree}
 Mark the subtree at point.  Hitting repeatedly will mark subsequent subtrees
@@ -2439,7 +2439,7 @@ You may reference a rectangular range of fields by specifying two field
 references connected by two dots @samp{..}.  If both fields are in the
 current row, you may simply use @samp{$2..$7}, but if at least one field
 is in a different row, you need to use the general @code{@@row$column}
-format at least for the first field (i.e the reference must start with
+format at least for the first field (i.e., the reference must start with
 @samp{@@} in order to be interpreted correctly).  Examples:
 
 @example
@@ -11990,7 +11990,7 @@ resource or resource node which is known to TaskJuggler, such as
 @samp{efficiency}, @samp{journalentry}, @samp{rate} for resources or
 @samp{account}, @samp{start}, @samp{note}, @samp{duration}, @samp{end},
 @samp{journalentry}, @samp{milestone}, @samp{reference}, @samp{responsible},
-@samp{scheduling}, etc for tasks.
+@samp{scheduling}, etc.@: for tasks.
 
 @subsection Dependencies
 

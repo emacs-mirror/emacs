@@ -168,8 +168,8 @@ nil to get the default indentation.
 
 INDENT-TYPE is a symbol indicating what kind of indentation should be done.
 It can have the following values:
-  indent      the lines indentation should be increased, e.g. after THEN.
-  outdent     the lines indentation should be decreased, e.g a line with ENDIF.
+  indent      the indentation should be increased, e.g., after THEN.
+  outdent     the indentation should be decreased, e.g., a line with ENDIF.
   first-line  indentation for the first line in a buffer or SUBROUTINE.
 CUR-INDENT is the indentation of the preceding command line.
 EXTRA-INDENT is the default change in indentation for this line

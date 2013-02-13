@@ -993,7 +993,7 @@ Customization}).
 The charset to be used can be overridden by setting the @code{charset}
 @acronym{MML} tag (@pxref{MML Definition}) when composing the message.
 
-The encoding of characters (quoted-printable, 8bit etc) is orthogonal
+The encoding of characters (quoted-printable, 8bit, etc.)@: is orthogonal
 to the discussion here, and is controlled by the variables
 @code{mm-body-charset-encoding-alist} and
 @code{mm-content-transfer-encoding-defaults} (@pxref{Encoding

@@ -647,7 +647,7 @@ buffer.
 @vindex reftex-toc-max-level
 Change the maximum level of toc entries displayed in the @file{*toc*}
 buffer.  Without prefix arg, all levels will be included.  With prefix
-arg (e.g @kbd{3 t}), ignore all toc entries with level greater than
+arg (e.g., @kbd{3 t}), ignore all toc entries with level greater than
 @var{arg} (3 in this case).  Chapters are level 1, sections are level 2.
 The mode line @samp{T<>} indicator shows the current value.  The default
 depth can be configured with the variable
@@ -3501,7 +3501,7 @@ make use of this feature, try
 @item
 @b{@LaTeX{} commands}@*
 @cindex LaTeX commands, not found
-@code{\input}, @code{\include}, and @code{\section} (etc.) statements
+@code{\input}, @code{\include}, and @code{\section} (etc.)@: statements
 have to be first on a line (except for white space).
 
 @item

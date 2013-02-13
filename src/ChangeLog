@@ -1,3 +1,49 @@
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* keyboard.c (input-decode-map, key-translation-map): Doc fixes.
+
+2013-02-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve AIX port some more (Bug#13650).
+	With this, it should be as good as it was in 23.3, though it's
+	still pretty bad: the dumped emacs does not run.  See Mark Fleishman in
+	http://lists.gnu.org/archive/html/help-gnu-emacs/2011-04/msg00287.html
+	* unexaix.c (start_of_text): Remove.
+	(_data, _text): Declare as char[], not int, as AIX manual suggests.
+	(bias, lnnoptr, text_scnptr, data_scnptr, load_scnptr)
+	(orig_load_scnptr, orig_data_scnptr):
+	Now off_t, not long, since they are file offsets.
+	(make_hdr): Use _data, not start_of_data ().
+	This is the key part of the fix.
+	(make_hdr, unrelocate_symbols): Use off_t for file offsets.
+	(unrelocate_symbols): Cast pointers to intptr_t, not to ulong.
+
+	* pre-crt0.c (data_start): Initialize to 1.
+	This ports to compilers that optimize the external declaration
+	'int x = 0;' as if it were 'int x;' to shrink the executable.
+
+	Improve AIX port (Bug#13650).
+	This doesn't fix the bug, but it makes progress: Emacs builds now.
+	* unexaix.c: Include inttypes.h, stdarg.h.
+	(report_error, report_error_1): Mark as _Noreturn.
+	(report_error): Don't report the wrong errno.
+	(report_error_1): Now varargs.  All callers changed.
+	(make_hdr): Use uintptr_t, not unsigned, when converting pointers
+	to unsigned.  Don't use ADDR_CORRECT, as it no longer exists.
+	(write_ptr): Use %p to print address rather than %lx and a cast
+	to unsigned long.  Grow buffer a bit, to be safer.
+
+2013-02-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_neutral): After finding the next
+	non-neutral character, accept NEUTRAL_ON type as well, because
+	directional control characters, such as LRE and RLE, have their
+	type converted to that by bidi_resolve_weak.  This avoids aborts
+	when LRE/RLE follows a run of neutrals.
+	(bidi_move_to_visually_next): Assert that return value of
+	bidi_peek_at_next_level is non-negative.  Negative values will
+	cause an infloop.
+
 2013-02-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor getenv-related fixes.

@@ -1361,7 +1361,7 @@ follow them is to use the macro @code{define-minor-mode}.
 @cindex mode variable
 Define a variable whose name ends in @samp{-mode}.  We call this the
 @dfn{mode variable}.  The minor mode command should set this variable.
-The value will be @code{nil} is the mode is disabled, and non-@code{nil}
+The value will be @code{nil} if the mode is disabled, and non-@code{nil}
 if the mode is enabled.  The variable should be buffer-local if the
 minor mode is buffer-local.
 

@@ -259,9 +259,9 @@ if that value is non-nil.
 These buffers can be edited separately, for example with `fill-paragraph'.
 If you want to disable parallel scrolling temporarily, use  \\[2C-toggle-autoscroll] .
 
-If you include long lines, i.e which will span both columns (eg.
-source code), they should be in what will be the first column, with
-the associated buffer having empty lines next to them.
+If you include long lines that span both columns (e.g., source
+code), they should be in what will be the first column, with the
+associated buffer having empty lines next to them.
 
 Potential uses are writing bilingual texts, or editing the comments of a
 source code.  See the file lisp/two-column.el for detailed examples.

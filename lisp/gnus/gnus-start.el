@@ -121,7 +121,7 @@ This variable can be a list of select methods which Gnus will query with
 the `ask-server' method in addition to the primary, secondary, and archive
 servers.
 
-Eg.
+E.g.:
   (setq gnus-check-new-newsgroups
 	'((nntp \"some.server\") (nntp \"other.server\")))
 

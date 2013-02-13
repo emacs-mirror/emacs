@@ -1949,7 +1949,7 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
   "This is like `define-derived-mode' without the PARENT argument.
 The parent is always `compilation-mode' and the customizable `compilation-...'
 variables are also set from the name of the mode you have chosen,
-by replacing the first word, e.g `compilation-scroll-output' from
+by replacing the first word, e.g., `compilation-scroll-output' from
 `grep-scroll-output' if that variable exists."
   (let ((mode-name (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
     `(define-derived-mode ,mode compilation-mode ,name

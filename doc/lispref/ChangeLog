@@ -1,3 +1,16 @@
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Char-Table Type): Add footnote about #^^.
+
+	* modes.texi (Minor Mode Conventions): Fix typo.
+
+	* keymaps.texi (Scanning Keymaps): Remove obsolete sentence about
+	meta characters; this changed in 22.1.  (Bug#13684)
+
+	* objects.texi (Char-Table Type): Add cindex.
+
+	* keymaps.texi (Key Binding Commands): Trivial rephrasing.
+
 2013-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* keymaps.texi (Creating Keymaps): Update make-keymap result.

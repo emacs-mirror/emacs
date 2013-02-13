@@ -131,7 +131,7 @@ detailed description of these mouse commands.
 @cindex shift-selection
   Finally, you can set the mark by holding down the shift key while
 typing certain cursor motion commands (such as @kbd{S-@key{right}},
-@kbd{S-C-f}, @kbd{S-C-n}, etc.)  This is called @dfn{shift-selection}.
+@kbd{S-C-f}, @kbd{S-C-n}, etc.).  This is called @dfn{shift-selection}.
 It sets the mark at point before moving point, but only if there is no
 active mark set via shift-selection.  The mark set by mouse commands
 and by shift-selection behaves slightly differently from the usual
