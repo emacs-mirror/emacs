@@ -611,7 +611,7 @@ references."
 		   xml-validating-parser
 		   (error "XML: (Validity) Invalid character reference `%s'"
 			  (match-string 0)))
-	      (replace-match (or (string val) xml-undefined-entity) t t))
+	      (replace-match (if val (string val) xml-undefined-entity) t t))
 	  ;; For an entity reference, search again from the start of
 	  ;; the replaced text, since the replacement can contain
 	  ;; entity or character references, or markup.
@@ -620,7 +620,7 @@ references."
 	  (and (null val)
 	       xml-validating-parser
 	       (error "XML: (Validity) Undefined entity `%s'" ref))
-	  (replace-match (cdr val) t t)
+	  (replace-match (or (cdr val) xml-undefined-entity) t t)
 	  (goto-char (match-beginning 0)))
 	;; Check for XML bombs.
 	(and xml-entity-expansion-limit
