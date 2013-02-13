@@ -1,3 +1,11 @@
+2013-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el: Use lexical-binding and current-active-maps.
+	(tmm-menubar): Use map-keymap and pcase.
+	(tmm--completion-table): New function.
+	(tmm-prompt): Use it to fix the menu order.
+	(tmm-get-keybind): Use current-active-maps.
+
 2013-02-12  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	Add dired-hide-details-mode.  (Bug#6799)
