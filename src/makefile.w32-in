@@ -847,7 +847,9 @@ $(BLD)/fileio.$(O) : \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/allocator.h \
 	$(BUFFER_H) \
+	$(CAREADLINKAT_H) \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
@@ -1397,11 +1399,9 @@ $(BLD)/sysdep.$(O) : \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
-	$(GNU_LIB)/allocator.h \
 	$(GNU_LIB)/execinfo.h \
 	$(GNU_LIB)/ignore-value.h \
 	$(GNU_LIB)/utimens.h \
-	$(CAREADLINKAT_H) \
 	$(CONFIG_H) \
 	$(C_CTYPE_H) \
 	$(DISPEXTERN_H) \

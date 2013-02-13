@@ -1,3 +1,8 @@
+2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/filelock.$(O), $(BLD)/sysdep.$(O)):
+	Update dependencies.
+
 2013-02-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_internal): Don't set w->region_showing to the
