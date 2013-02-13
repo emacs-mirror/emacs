@@ -1591,7 +1591,7 @@ call will upgrade the package."
 	       (length upgrades)
 	       (if (= (length upgrades) 1) "" "s")))))
 
-(defun package-menu-execute ()
+(defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
 Packages marked for installation are downloaded and installed;
 packages marked for deletion are removed."
@@ -1614,16 +1614,20 @@ packages marked for deletion are removed."
 		 (push (car id) install-list))))
 	(forward-line)))
     (when install-list
-      (if (yes-or-no-p
+      (if (or
+           noquery
+           (yes-or-no-p
 	   (if (= (length install-list) 1)
 	       (format "Install package `%s'? " (car install-list))
 	     (format "Install these %d packages (%s)? "
 		     (length install-list)
-		     (mapconcat 'symbol-name install-list ", "))))
+                      (mapconcat 'symbol-name install-list ", ")))))
 	  (mapc 'package-install install-list)))
     ;; Delete packages, prompting if necessary.
     (when delete-list
-      (if (yes-or-no-p
+      (if (or
+           noquery
+           (yes-or-no-p
 	   (if (= (length delete-list) 1)
 	       (format "Delete package `%s-%s'? "
 		       (caar delete-list)
@@ -1633,7 +1637,7 @@ packages marked for deletion are removed."
 		     (mapconcat (lambda (elt)
 				  (concat (car elt) "-" (cdr elt)))
 				delete-list
-				", "))))
+                                 ", ")))))
 	  (dolist (elt delete-list)
 	    (condition-case-unless-debug err
 		(package-delete (car elt) (cdr elt))
