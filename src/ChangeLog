@@ -1,5 +1,9 @@
 2013-02-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32proc.c (new_child): If no vacant slots are found in
+	child_procs[], make another pass looking for slots whose process
+	has exited or died.  (Bug#13546)
+
 	* w32.c (sys_pipe): When failing due to file descriptors above
 	MAXDESC, set errno to EMFILE.
 	(_sys_read_ahead): Update cp->status when failing to read serial
