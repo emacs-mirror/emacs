@@ -1,3 +1,7 @@
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Minor Mode Conventions): Fix typo.
+
 2013-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* keymaps.texi (Scanning Keymaps): Remove obsolete sentence about
