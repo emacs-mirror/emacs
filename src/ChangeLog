@@ -1,3 +1,7 @@
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* keyboard.c (input-decode-map, key-translation-map): Doc fixes.
+
 2013-02-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve AIX port some more (Bug#13650).

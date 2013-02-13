@@ -11902,9 +11902,7 @@ If the binding is a function, it is called with one argument (the prompt)
 and its return value (a key sequence) is used.
 
 The events that come from bindings in `input-decode-map' are not
-themselves looked up in `input-decode-map'.
-
-This variable is keyboard-local.  */);
+themselves looked up in `input-decode-map'.  */);
 
   DEFVAR_LISP ("function-key-map", Vfunction_key_map,
                doc: /* The parent keymap of all `local-function-key-map' instances.
@@ -11917,8 +11915,7 @@ definition will take precedence.  */);
   DEFVAR_LISP ("key-translation-map", Vkey_translation_map,
                doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
-and its non-prefix bindings override ordinary bindings.
-Another difference is that it is global rather than keyboard-local.  */);
+and its non-prefix bindings override ordinary bindings.  */);
   Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("deferred-action-list", Vdeferred_action_list,
