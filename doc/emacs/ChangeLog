@@ -1,3 +1,7 @@
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Don't mention yow any more.
+
 2013-02-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* cmdargs.texi (General Variables):

@@ -1817,17 +1817,14 @@ a string nor @code{nil}, use the user name only.  However, it is highly
 unlikely that you should need to fiddle with this variable at all.
 @end table
 
-@findex yow
 @cindex Mime-Version
 In addition, you can enter conses into this list.  The @sc{car} of this cons
 should be a symbol.  This symbol's name is the name of the header, and
 the @sc{cdr} can either be a string to be entered verbatim as the value of
 this header, or it can be a function to be called.  This function should
-return a string to be inserted.  For instance, if you want to insert
-@code{Mime-Version: 1.0}, you should enter @code{(Mime-Version . "1.0")}
-into the list.  If you want to insert a funny quote, you could enter
-something like @code{(X-Yow . yow)} into the list.  The function
-@code{yow} will then be called without any arguments.
+take no arguments, and return a string to be inserted.  For
+instance, if you want to insert @code{Mime-Version: 1.0}, you should
+enter @code{(Mime-Version . "1.0")} into the list.
 
 If the list contains a cons where the @sc{car} of the cons is
 @code{optional}, the @sc{cdr} of this cons will only be inserted if it is

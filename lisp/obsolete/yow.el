@@ -5,6 +5,7 @@
 ;; Maintainer: FSF
 ;; Author: Richard Mlynarik
 ;; Keywords: games
+;; Obsolete-since: 24.4
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +25,8 @@
 ;;; Commentary:
 
 ;; Important pinheadery for GNU Emacs.
+;; This file is obsolete.  For similar functionality, see
+;; fortune.el and cookie1.el.
 
 ;;; Code:
 
