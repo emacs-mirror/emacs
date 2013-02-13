@@ -1,3 +1,11 @@
+2013-02-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_pipe): When failing due to file descriptors above
+	MAXDESC, set errno to EMFILE.
+	(_sys_read_ahead): Update cp->status when failing to read serial
+	communications input, so that the status doesn't stay at
+	STATUS_READ_IN_PROGRESS.  (Bug#13546)
+
 2013-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (input-decode-map, key-translation-map): Doc fixes.

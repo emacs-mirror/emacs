@@ -6209,6 +6209,7 @@ sys_pipe (int * phandles)
 	{
 	  _close (phandles[0]);
 	  _close (phandles[1]);
+	  errno = EMFILE;
 	  rc = -1;
 	}
       else
@@ -6281,19 +6282,31 @@ _sys_read_ahead (int fd)
 
       /* Configure timeouts for blocking read.  */
       if (!GetCommTimeouts (hnd, &ct))
-	return STATUS_READ_ERROR;
+	{
+	  cp->status = STATUS_READ_ERROR;
+	  return STATUS_READ_ERROR;
+	}
       ct.ReadIntervalTimeout		= 0;
       ct.ReadTotalTimeoutMultiplier	= 0;
       ct.ReadTotalTimeoutConstant	= 0;
       if (!SetCommTimeouts (hnd, &ct))
-	return STATUS_READ_ERROR;
+	{
+	  cp->status = STATUS_READ_ERROR;
+	  return STATUS_READ_ERROR;
+	}
 
       if (!ReadFile (hnd, &cp->chr, sizeof (char), (DWORD*) &rc, ovl))
 	{
 	  if (GetLastError () != ERROR_IO_PENDING)
-	    return STATUS_READ_ERROR;
+	    {
+	      cp->status = STATUS_READ_ERROR;
+	      return STATUS_READ_ERROR;
+	    }
 	  if (!GetOverlappedResult (hnd, ovl, (DWORD*) &rc, TRUE))
-	    return STATUS_READ_ERROR;
+	    {
+	      cp->status = STATUS_READ_ERROR;
+	      return STATUS_READ_ERROR;
+	    }
 	}
     }
   else if (fd_info[fd].flags & FILE_SOCKET)
