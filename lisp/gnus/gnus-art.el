@@ -4361,6 +4361,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
 (gnus-define-keys gnus-article-mode-map
   " " gnus-article-goto-next-page
+  [?\S-\ ] gnus-article-goto-prev-page
   "\177" gnus-article-goto-prev-page
   [delete] gnus-article-goto-prev-page
   [backspace] gnus-article-goto-prev-page

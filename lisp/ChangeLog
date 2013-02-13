@@ -1,3 +1,10 @@
+2013-02-13  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-mode-map):
+	* doc-view.el (doc-view-mode-map):
+	* vc/ediff-util.el (ediff-setup-keymap):
+	Make S-SPC scroll in the opposite sense to SPC.  (Bug#2145)
+
 2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-move-to-block): Improve

@@ -337,6 +337,7 @@ call."
     (set-keymap-parent map special-mode-map)
     (define-key map "\C-c\C-c" 'image-toggle-display)
     (define-key map (kbd "SPC")       'image-scroll-up)
+    (define-key map (kbd "S-SPC")     'image-scroll-down)
     (define-key map (kbd "DEL")       'image-scroll-down)
     (define-key map (kbd "RET")       'image-toggle-animation)
     (define-key map "n" 'image-next-file)

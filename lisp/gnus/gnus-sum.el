@@ -1819,6 +1819,7 @@ increase the score of each group you read."
 
 (gnus-define-keys gnus-summary-mode-map
   " " gnus-summary-next-page
+  [?\S-\ ] gnus-summary-prev-page
   "\177" gnus-summary-prev-page
   [delete] gnus-summary-prev-page
   [backspace] gnus-summary-prev-page
@@ -2058,6 +2059,7 @@ increase the score of each group you read."
 (gnus-define-keys (gnus-summary-article-map "A" gnus-summary-mode-map)
   " " gnus-summary-next-page
   "n" gnus-summary-next-page
+  [?\S-\ ] gnus-summary-prev-page
   "\177" gnus-summary-prev-page
   [delete] gnus-summary-prev-page
   "p" gnus-summary-prev-page
