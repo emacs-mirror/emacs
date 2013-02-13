@@ -1,3 +1,11 @@
+2013-02-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (font_range): Add pos_byte argument.  Adjust comment
+	and break long line.
+	* font.h (font_range): Adjust prototype.
+	* composite.c (autocmp_chars): Pass byte position to font_range.
+	Break long line.  Remove useless prototype and format comment.
+
 2013-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (input-decode-map, key-translation-map): Doc fixes.

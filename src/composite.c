@@ -642,13 +642,7 @@ compose_text (ptrdiff_t start, ptrdiff_t end, Lisp_Object components,
 		       Qcomposition, prop, string);
 }
 
-
-static Lisp_Object autocmp_chars (Lisp_Object, ptrdiff_t, ptrdiff_t,
-                                  ptrdiff_t, struct window *,
-                                  struct face *, Lisp_Object);
-
-
-/* Lisp glyph-string handlers */
+/* Lisp glyph-string handlers.  */
 
 /* Hash table for automatic composition.  The key is a header of a
    lgstring (Lispy glyph-string), and the value is a body of a
@@ -905,7 +899,9 @@ fill_gstring_body (Lisp_Object gstring)
    object.  Otherwise return nil.  */
 
 static Lisp_Object
-autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t limit, struct window *win, struct face *face, Lisp_Object string)
+autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
+	       ptrdiff_t limit, struct window *win, struct face *face,
+	       Lisp_Object string)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   FRAME_PTR f = XFRAME (win->frame);
@@ -935,7 +931,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      font_object = font_range (charpos, &to, win, face, string);
+      font_object = font_range (charpos, bytepos, &to, win, face, string);
       if (! FONT_OBJECT_P (font_object)
 	  || (! NILP (re)
 	      && to < limit

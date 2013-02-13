@@ -3689,11 +3689,11 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Check how many characters after POS (at most to *LIMIT) can be
-   displayed by the same font in the window W.  FACE, if non-NULL, is
-   the face selected for the character at POS.  If STRING is not nil,
-   it is the string to check instead of the current buffer.  In that
-   case, FACE must be not NULL.
+/* Check how many characters after character/byte position POS/POS_BYTE
+   (at most to *LIMIT) can be displayed by the same font in the window W.
+   FACE, if non-NULL, is the face selected for the character at POS.
+   If STRING is not nil, it is the string to check instead of the current
+   buffer.  In that case, FACE must be not NULL.
 
    The return value is the font-object for the character at POS.
    *LIMIT is set to the position where that font can't be used.
@@ -3701,15 +3701,15 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
    It is assured that the current buffer (or STRING) is multibyte.  */
 
 Lisp_Object
-font_range (ptrdiff_t pos, ptrdiff_t *limit, struct window *w, struct face *face, Lisp_Object string)
+font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
+	    struct window *w, struct face *face, Lisp_Object string)
 {
-  ptrdiff_t pos_byte, ignore;
+  ptrdiff_t ignore;
   int c;
   Lisp_Object font_object = Qnil;
 
   if (NILP (string))
     {
-      pos_byte = CHAR_TO_BYTE (pos);
       if (! face)
 	{
 	  int face_id;
@@ -3720,10 +3720,7 @@ font_range (ptrdiff_t pos, ptrdiff_t *limit, struct window *w, struct face *face
 	}
     }
   else
-    {
-      eassert (face);
-      pos_byte = string_char_to_byte (string, pos);
-    }
+    eassert (face);
 
   while (pos < *limit)
     {
