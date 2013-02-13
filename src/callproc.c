@@ -997,13 +997,11 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     tmpdir = Vtemporary_file_directory;
   else
     {
-#ifndef DOS_NT
-      if (getenv ("TMPDIR"))
-	tmpdir = build_string (getenv ("TMPDIR"));
-      else
-	tmpdir = build_string ("/tmp/");
-#else /* DOS_NT */
       char *outf;
+#ifndef DOS_NT
+      outf = getenv ("TMPDIR");
+      tmpdir = build_string (outf ? outf : "/tmp/");
+#else /* DOS_NT */
       if ((outf = egetenv ("TMPDIR"))
 	  || (outf = egetenv ("TMP"))
 	  || (outf = egetenv ("TEMP")))
@@ -1655,7 +1653,7 @@ init_callproc (void)
   if (! file_accessible_directory_p (SSDATA (tempdir)))
     dir_warning ("arch-independent data dir", Vdata_directory);
 
-  sh = (char *) getenv ("SHELL");
+  sh = getenv ("SHELL");
   Vshell_file_name = build_string (sh ? sh : "/bin/sh");
 
 #ifdef DOS_NT

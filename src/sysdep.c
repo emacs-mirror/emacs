@@ -527,10 +527,10 @@ sys_subshell (void)
 #ifdef DOS_NT    /* MW, Aug 1993 */
       getcwd (oldwd, sizeof oldwd);
       if (sh == 0)
-	sh = (char *) egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
+	sh = egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
 #endif
       if (sh == 0)
-	sh = (char *) egetenv ("SHELL");
+	sh = egetenv ("SHELL");
       if (sh == 0)
 	sh = "sh";
 
