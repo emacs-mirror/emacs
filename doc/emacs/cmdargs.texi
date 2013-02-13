@@ -567,10 +567,9 @@ terminal specified by @env{TERM}.  This defaults to
 These environment variables are used to initialize the variable
 @code{temporary-file-directory}, which specifies a directory in which
 to put temporary files (@pxref{Backup}).  Emacs tries to use
-@env{TMPDIR} first; if that is unset, it tries @env{TMP}, then
-@env{TEMP}, and finally @file{/tmp}.  But on MS-Windows and MS-DOS,
-Emacs tries @env{TEMP}, then @env{TMPDIR}, then @env{TMP}, and finally
-@file{c:/temp}.
+@env{TMPDIR} first.  If that is unset, Emacs normally falls back on
+@file{/tmp}, but on MS-Windows and MS-DOS it instead falls back on
+@env{TMP}, then @env{TEMP}, and finally @file{c:/temp}.
 
 @item TZ
 This specifies the current time zone and possibly also daylight

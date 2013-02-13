@@ -1,3 +1,8 @@
+2013-02-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* cmdargs.texi (General Variables):
+	Fix TMPDIR documentation to match the code's behavior.
+
 2013-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Checklist): Update bug keybinding.
