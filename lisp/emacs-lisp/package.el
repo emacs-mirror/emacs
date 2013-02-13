@@ -1594,7 +1594,8 @@ call will upgrade the package."
 (defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
 Packages marked for installation are downloaded and installed;
-packages marked for deletion are removed."
+packages marked for deletion are removed.
+Optional argument NOQUERY non-nil means do not ask the user to confirm."
   (interactive)
   (unless (derived-mode-p 'package-menu-mode)
     (error "The current buffer is not in Package Menu mode"))

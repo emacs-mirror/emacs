@@ -1,4 +1,8 @@
-2013-02-12  Yves Baumes  <ybaumes@gmail.com>  (tiny change)
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-menu-execute): Doc fix.
+
+2013-02-13  Yves Baumes  <ybaumes@gmail.com>  (tiny change)
 
 	* lisp/emacs-lisp/package.el (package-menu-execute):
 	Add optional noquery argument.  (Bug#13625)
