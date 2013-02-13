@@ -1,3 +1,8 @@
+2013-02-13  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-info-current-defun): Fix current
+	defun detection (Bug#13618).
+
 2013-02-13  Chong Yidong  <cyd@gnu.org>
 
 	* xml.el (xml-parse-string): Fix typo in handling of bad character
