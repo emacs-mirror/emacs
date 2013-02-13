@@ -1179,7 +1179,8 @@ a whole character set.
 
 @cindex @samp{#^} read syntax
   The printed representation of a char-table is like a vector
-except that there is an extra @samp{#^} at the beginning.
+except that there is an extra @samp{#^} at the beginning.@footnote{You
+may also encounter @samp{#^^}, used for ``sub-char-tables''.}
 
   @xref{Char-Tables}, for special functions to operate on char-tables.
 Uses of char-tables include:

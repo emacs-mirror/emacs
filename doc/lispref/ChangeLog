@@ -1,5 +1,7 @@
 2013-02-13  Glenn Morris  <rgm@gnu.org>
 
+	* objects.texi (Char-Table Type): Add footnote about #^^.
+
 	* modes.texi (Minor Mode Conventions): Fix typo.
 
 2013-02-12  Glenn Morris  <rgm@gnu.org>
