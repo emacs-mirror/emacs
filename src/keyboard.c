@@ -11630,8 +11630,8 @@ definition will take precedence.  */);
 
   DEFVAR_LISP ("key-translation-map", Vkey_translation_map,
                doc: /* Keymap of key translations that can override keymaps.
-This keymap works like `function-key-map', but comes after that,
-and its non-prefix bindings override ordinary bindings.  */);
+This keymap works like `input-decode-map', but comes after `function-key-map'.
+Another difference is that it is global rather than terminal-local.  */);
   Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("deferred-action-list", Vdeferred_action_list,
