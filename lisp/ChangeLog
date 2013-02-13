@@ -1,3 +1,10 @@
+2013-02-13  Jambunathan K  <kjambunathan@gmail.com>
+
+	* icomplete.el (icomplete-hide-common-prefix):  New user option.
+	(icomplete-first-match): New face.
+	(icomplete-completions): Correct handling of "complete but not
+	unique" (Bug#12638).
+
 2013-02-13  YE Qianchuan  <stool.ye@gmail.com>  (tiny change)
 
 	* descr-text.el (describe-char): Display the script (bug#13698).

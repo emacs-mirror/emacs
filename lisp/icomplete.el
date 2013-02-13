@@ -76,6 +76,18 @@
   :type 'string
   :version "24.4")
 
+(defcustom icomplete-hide-common-prefix t
+  "When non-nil, hide common prefix from completion candidates.
+When nil, show candidates in full."
+  :type 'boolean
+  :version "24.4"
+  :group 'icomplete)
+
+(defface icomplete-first-match  '((t :weight bold))
+  "Face used by icomplete for highlighting first match."
+  :version "24.4"
+  :group 'icomplete)
+
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height
   ;; 20 is an estimated common size for the prompt + minibuffer content, to
@@ -344,7 +356,8 @@ are exhibited within the square braces.)"
 				(t (concat "…" (substring most compare))))
 			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
-	     (prospects-len (+ (length determ)
+	     (prospects-len (+ (string-width
+				(or determ (concat open-bracket close-bracket)))
 			       (string-width icomplete-separator)
 			       3 ;; take {…} into account
 			       (string-width (buffer-string))))
@@ -355,6 +368,8 @@ are exhibited within the square braces.)"
                     ;; one line, increase the allowable space accordingly.
                     (/ prospects-len (window-width)))
                  (window-width)))
+	     (prefix (when icomplete-hide-common-prefix
+		       (try-completion "" comps)))
              (prefix-len
               ;; Find the common prefix among `comps'.
 	      ;; We can't use the optimization below because its assumptions
@@ -364,37 +379,55 @@ are exhibited within the square braces.)"
 	      ;;     ;; Common case.
 	      ;;     (length most)
 	      ;; Else, use try-completion.
-	      (let ((comps-prefix (try-completion "" comps)))
-		(and (stringp comps-prefix)
-		     (length comps-prefix)))) ;;)
-
-	     prospects most-is-exact comp limit)
+	      (and (stringp prefix) (length prefix))) ;;)
+	     prospects comp limit)
 	(if (eq most-try t) ;; (or (null (cdr comps))
 	    (setq prospects nil)
+	  (when (member name comps)
+	    ;; NAME is complete but not unique.  This scenario poses
+	    ;; following UI issues:
+	    ;;
+	    ;; - When `icomplete-hide-common-prefix' is non-nil, NAME
+	    ;;   is stripped empty.  This would make the entry
+	    ;;   inconspicuous.
+	    ;;
+	    ;; - Due to sorting of completions, NAME may not be the
+	    ;;   first of the prospects and could be hidden deep in
+	    ;;   the displayed string.
+	    ;;
+	    ;; - Because of `icomplete-prospects-height' , NAME may
+	    ;;   not even be displayed to the user.
+	    ;;
+	    ;; To circumvent all the above problems, provide a visual
+	    ;; cue to the user via an "empty string" in the try
+	    ;; completion field.
+	    (setq determ (concat open-bracket "" close-bracket)))
+	  ;; Compute prospects for display.
 	  (while (and comps (not limit))
 	    (setq comp
 		  (if prefix-len (substring (car comps) prefix-len) (car comps))
 		  comps (cdr comps))
-	    (cond ((string-equal comp "") (setq most-is-exact t))
-		  ((member comp prospects))
-		  (t (setq prospects-len
+	    (setq prospects-len
                            (+ (string-width comp)
 			      (string-width icomplete-separator)
 			      prospects-len))
 		     (if (< prospects-len prospects-max)
 			 (push comp prospects)
-		       (setq limit t))))))
+	      (setq limit t))))
+	(setq prospects (nreverse prospects))
+	;; Decorate first of the prospects.
+	(when prospects
+	  (let ((first (copy-sequence (pop prospects))))
+	    (put-text-property 0 (length first)
+			       'face 'icomplete-first-match first)
+	    (push first prospects)))
         ;; Restore the base-size info, since completion-all-sorted-completions
         ;; is cached.
         (if last (setcdr last base-size))
 	(if prospects
 	    (concat determ
 		    "{"
-		    (and most-is-exact
-                         (substring icomplete-separator
-                                    (string-match "[^ ]" icomplete-separator)))
-		    (mapconcat 'identity (nreverse prospects)
-                               icomplete-separator)
+		    (mapconcat 'identity prospects icomplete-separator)
 		    (and limit (concat icomplete-separator "…"))
 		    "}")
 	  (concat determ " [Matched]"))))))
