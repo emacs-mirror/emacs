@@ -280,15 +280,18 @@ started on the local host.  You should specify a remote host
 `localhost' or the name of the local host.  Another host name is
 useful only in combination with `tramp-default-proxies-alist'.")
 
-(defun tramp-detect-ssh-controlmaster ()
-  "Call ssh to detect whether it supports the ControlMaster argument.
-This function may return nil when the argument is supported, but
-shouldn't return t when it isn't."
-  (ignore-errors
-    (with-temp-buffer
-      (call-process "ssh" nil t nil "-o" "ControlMaster")
-      (goto-char (point-min))
-      (search-forward-regexp "Missing ControlMaster argument" nil t))))
+;;;###tramp-autoload
+(defvar tramp-ssh-controlmaster-template
+    (ignore-errors
+      (with-temp-buffer
+	(call-process "ssh" nil t nil "-o" "ControlMaster")
+	(goto-char (point-min))
+	(when (search-forward-regexp "Missing ControlMaster argument" nil t)
+	  '("-o" "ControlPath=%t.%%r@%%h:%%p"
+	    "-o" "ControlMaster=auto"
+	    "-o" "ControlPersist=no"))))
+    "Call ssh to detect whether it supports the ControlMaster argument.
+Return a template to be used in `tramp-methods'.")
 
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it performs
@@ -297,8 +300,9 @@ shouldn't return t when it isn't."
   ;; permanent password queries.  Either a password agent like
   ;; "ssh-agent" or "Pageant" shall run, or the optional
   ;; password-cache.el or auth-sources.el packages shall be active for
-  ;; password caching.  "scpc" is chosen if we detect that the user is
-  ;; running OpenSSH 4.0 or newer.
+  ;; password caching.  If we detect that the user is running OpenSSH
+  ;; 4.0 or newer, we could reuse the connection, which calls also for
+  ;; an external method.
   (cond
    ;; PuTTY is installed.  We don't take it, if it is installed on a
    ;; non-windows system, or pscp from the pssh (parallel ssh) package
@@ -314,16 +318,16 @@ shouldn't return t when it isn't."
       "plink"))
    ;; There is an ssh installation.
    ((executable-find "scp")
-    (cond
-     ((tramp-detect-ssh-controlmaster) "scpc")
-     ((or (fboundp 'password-read)
-	  (fboundp 'auth-source-user-or-password)
-	  (fboundp 'auth-source-search)
-	  ;; ssh-agent is running.
-	  (getenv "SSH_AUTH_SOCK")
-	  (getenv "SSH_AGENT_PID"))
-      "scp")
-     (t "ssh")))
+    (if	(or (fboundp 'password-read)
+	    (fboundp 'auth-source-user-or-password)
+	    (fboundp 'auth-source-search)
+	    ;; ssh-agent is running.
+	    (getenv "SSH_AUTH_SOCK")
+	    (getenv "SSH_AGENT_PID")
+	    ;; We could reuse the connection.
+	    tramp-ssh-controlmaster-template)
+	"scp"
+      "ssh"))
    ;; Fallback.
    (t "ftp"))
   "Default method to use for transferring files.

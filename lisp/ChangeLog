@@ -1,3 +1,20 @@
+2013-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	Use ControlMaster where applicable.  (Bug#13677)
+
+	* net/tramp.el (tramp-ssh-controlmaster-template): New defvar,
+	replacing `tramp-detect-ssh-controlmaster'.
+	(tramp-default-method): Use it.
+
+	* net/tramp-sh.el (tramp-methods) [scp, scp1, scp2, scpx, sftp]:
+	[rsync, ssh, ssh1, ssh2, sshx]: Add ControlPath and ControlMaster
+	arguments.
+	[scpc, rsyncc]: Remove methods.
+	(top): Remove completion functions for "scpc", "rsyncc", "ssh1_old"
+	and "ssh2_old".
+	(tramp-do-copy-or-rename-file-out-of-band):  Change trace level.
+	(tramp-maybe-open-connection): Reuse tmpfile for ControlPath.
+
 2013-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package--initialized): Move before first use.
