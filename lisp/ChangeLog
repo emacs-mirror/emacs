@@ -1,5 +1,11 @@
 2013-02-13  Juri Linkov  <juri@jurta.org>
 
+	* vc/ediff-util.el (ediff-recenter): Use `select-frame-set-input-focus'
+	to select `ediff-control-frame' and set input focus correctly on Xfce.
+	(Bug#12218)
+
+2013-02-13  Juri Linkov  <juri@jurta.org>
+
 	* image-mode.el (image-mode-map):
 	* doc-view.el (doc-view-mode-map):
 	* vc/ediff-util.el (ediff-setup-keymap):
