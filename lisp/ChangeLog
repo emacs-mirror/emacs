@@ -1,3 +1,27 @@
+2013-02-12  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	Add dired-hide-details-mode.  (Bug#6799)
+
+	* locate.el (locate-mode): Set parent mode property to dired-mode.
+
+	* find-dired.el (find-dired): Call dired-insert-set-properties on
+	initial information line.  Set process mark on end of buffer.
+	(find-dired-sentinel):
+	Call dired-insert-set-properties on summary.
+
+	* dired.el (dired-hide-details-hide-symlink-targets)
+	(dired-hide-details-hide-information-lines): New options.
+	(dired-insert-directory):
+	Set properties after final treatment of output.
+	(dired-insert-set-properties):
+	Set dired-hide-details-* properties.
+	(dired-mode-map): Bind dired-hide-details-mode.
+	(dired-mode): Set buffer-invisibility-spec to a list.
+	(dired-next-line): Skip hidden lines.
+	(dired-previous-line): Use dired-next-line.
+	(dired-hide-details-mode): New minor mode.
+	(dired-hide-details-update-invisibility-spec): New function.
+
 2013-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* play/yow.el: Move to obsolete/.  (Bug#9384)

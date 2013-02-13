@@ -120,6 +120,10 @@ on the given date.
 
 *** Support for ISO 8601 dates.
 
+** Dired
+
+*** New minor mode `dired-hide-details-mode' hides details.
+
 ** ERC
 
 *** New option `erc-accidental-paste-threshold-seconds'.

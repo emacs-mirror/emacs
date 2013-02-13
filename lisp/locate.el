@@ -496,6 +496,7 @@ do not work in subdirectories.
   (setq revert-buffer-function 'locate-update)
   (set (make-local-variable 'page-delimiter) "\n\n")
   (run-mode-hooks 'locate-mode-hook))
+(put 'locate-mode 'derived-mode-parent 'dired-mode)
 
 (defun locate-do-setup (search-string)
   (goto-char (point-min))

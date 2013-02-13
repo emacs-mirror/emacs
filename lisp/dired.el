@@ -230,6 +230,18 @@ new dired buffers."
   :version "22.1"
   :group 'dired)
 
+(defcustom dired-hide-details-hide-symlink-targets t
+  "If non-nil, `dired-hide-details-mode' hides symbolic link targets."
+  :type 'boolean
+  :version "24.4"
+  :group 'dired)
+
+(defcustom dired-hide-details-hide-information-lines t
+  "Non-nil means hide lines other than header and file/dir lines."
+  :type 'boolean
+  :version "24.4"
+  :group 'dired)
+
 ;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
@@ -1196,7 +1208,6 @@ see `dired-use-ls-dired' for more details.")
       ;; Note: adjust dired-build-subdir-alist if you change this.
       (setq dir (replace-regexp-in-string "\\\\" "\\\\" dir nil t)
             dir (replace-regexp-in-string "\n" "\\n" dir nil t)))
-    (dired-insert-set-properties opoint (point))
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
     (unless (save-excursion
@@ -1205,18 +1216,21 @@ see `dired-use-ls-dired' for more details.")
       (let ((indent-tabs-mode nil))
 	(indent-rigidly opoint (point) 2)))
     ;; Insert text at the beginning to standardize things.
-    (save-excursion
-      (goto-char opoint)
-      (if (and (or hdr wildcard)
-               (not (and (looking-at "^  \\(.*\\):$")
-                         (file-name-absolute-p (match-string 1)))))
+    (let ((content-point opoint))
+      (save-excursion
+	(goto-char opoint)
+	(when (and (or hdr wildcard)
+		   (not (and (looking-at "^  \\(.*\\):$")
+			     (file-name-absolute-p (match-string 1)))))
 	  ;; Note that dired-build-subdir-alist will replace the name
 	  ;; by its expansion, so it does not matter whether what we insert
 	  ;; here is fully expanded, but it should be absolute.
-	  (insert "  " (directory-file-name (file-name-directory dir)) ":\n"))
-      (when wildcard
-	;; Insert "wildcard" line where "total" line would be for a full dir.
-	(insert "  wildcard " (file-name-nondirectory dir) "\n")))))
+	  (insert "  " (directory-file-name (file-name-directory dir)) ":\n")
+	  (setq content-point (point)))
+	(when wildcard
+	  ;; Insert "wildcard" line where "total" line would be for a full dir.
+	  (insert "  wildcard " (file-name-nondirectory dir) "\n")))
+      (dired-insert-set-properties content-point (point)))))
 
 (defun dired-insert-set-properties (beg end)
   "Add various text properties to the lines in the region."
@@ -1224,15 +1238,24 @@ see `dired-use-ls-dired' for more details.")
     (goto-char beg)
     (while (< (point) end)
       (condition-case nil
-	  (if (dired-move-to-filename)
-	      (add-text-properties
-	       (point)
-	       (save-excursion
-		 (dired-move-to-end-of-filename)
-		 (point))
-	       '(mouse-face highlight
-		 dired-filename t
-		 help-echo "mouse-2: visit this file in other window")))
+	  (if (not (dired-move-to-filename))
+	      (put-text-property (line-beginning-position)
+				 (1+ (line-end-position))
+				 'invisible 'dired-hide-details-information)
+	    (put-text-property (+ (line-beginning-position) 1) (1- (point))
+			       'invisible 'dired-hide-details-detail)
+	    (add-text-properties
+	     (point)
+	     (progn
+	       (dired-move-to-end-of-filename)
+	       (point))
+	     '(mouse-face
+	       highlight
+	       dired-filename t
+	       help-echo "mouse-2: visit this file in other window"))
+	    (when (< (+ (point) 4) (line-end-position))
+	      (put-text-property (+ (point) 4) (line-end-position)
+				 'invisible 'dired-hide-details-link)))
 	(error nil))
       (forward-line 1))))
 
@@ -1496,6 +1519,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; hiding
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
+    (define-key map "(" 'dired-hide-details-mode)
     ;; isearch
     (define-key map (kbd "M-s a C-s")   'dired-do-isearch)
     (define-key map (kbd "M-s a M-C-s") 'dired-do-isearch-regexp)
@@ -1586,6 +1610,10 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '(menu-item "Toggle Image Thumbnails in This Buffer" image-dired-dired-toggle-marked-thumbs
                   :help "Add or remove image thumbnails in front of marked file names"))
 
+    (define-key map [menu-bar immediate hide-details]
+      '(menu-item "Hide Details" dired-hide-details-mode
+		  :help "Hide details in buffer"
+		  :button (:toggle . dired-hide-details-mode)))
     (define-key map [menu-bar immediate revert-buffer]
       '(menu-item "Refresh" revert-buffer
 		  :help "Update contents of shown directories"))
@@ -1914,6 +1942,9 @@ Keybindings:
 	selective-display t		; for subdirectory hiding
 	mode-line-buffer-identification
 	(propertized-buffer-identification "%17b"))
+  ;; Ignore dired-hide-details-* value of invisible text property by default.
+  (when (eq buffer-invisibility-spec t)
+    (setq buffer-invisibility-spec (list t)))
   (set (make-local-variable 'revert-buffer-function)
        (function dired-revert))
   (set (make-local-variable 'buffer-stale-function)
@@ -1978,15 +2009,20 @@ Otherwise, call `toggle-read-only'."
   "Move down lines then position at filename.
 Optional prefix ARG says how many lines to move; default is one line."
   (interactive "p")
-  (forward-line arg)
+  (let ((line-move-visual)
+	(goal-column))
+    (line-move arg t))
+  ;; We never want to move point into an invisible line.
+  (while (and (invisible-p (point))
+	      (not (if (and arg (< arg 0)) (bobp) (eobp))))
+    (forward-char (if (and arg (< arg 0)) -1 1)))
   (dired-move-to-filename))
 
 (defun dired-previous-line (arg)
   "Move up lines then position at filename.
 Optional prefix ARG says how many lines to move; default is one line."
   (interactive "p")
-  (forward-line (- arg))
-  (dired-move-to-filename))
+  (dired-next-line (- (or arg 1))))
 
 (defun dired-next-dirline (arg &optional opoint)
   "Goto ARG'th next directory file line."
@@ -2229,6 +2265,40 @@ unchanged."
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
     file))
+
+;;; Minor mode for hiding details
+;;;###autoload
+(define-minor-mode dired-hide-details-mode
+  "Hide details in `dired-mode'."
+  :group 'dired
+  (unless (derived-mode-p 'dired-mode)
+    (error "Not a Dired buffer"))
+  (dired-hide-details-update-invisibility-spec)
+  (if dired-hide-details-mode
+      (add-hook 'wdired-mode-hook
+		'dired-hide-details-update-invisibility-spec
+		nil
+		t)
+    (remove-hook 'wdired-mode-hook
+		 'dired-hide-details-update-invisibility-spec
+		 t)))
+
+(defun dired-hide-details-update-invisibility-spec ()
+  (funcall (if dired-hide-details-mode
+	       'add-to-invisibility-spec
+	     'remove-from-invisibility-spec)
+	   'dired-hide-details-detail)
+  (funcall (if (and dired-hide-details-mode
+		    dired-hide-details-hide-information-lines)
+	       'add-to-invisibility-spec
+	     'remove-from-invisibility-spec)
+	   'dired-hide-details-information)
+  (funcall (if (and dired-hide-details-mode
+		    dired-hide-details-hide-symlink-targets
+		    (not (derived-mode-p 'wdired-mode)))
+	       'add-to-invisibility-spec
+	     'remove-from-invisibility-spec)
+	   'dired-hide-details-link))
 
 ;;; Functions for finding the file name in a dired buffer line.
 
