@@ -519,6 +519,12 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                               (concat "[^\\]\\(\\\\\\\\\\)*" w))
                             end t)))
             (setq in-string (point))
+            (when (eq (char-syntax (string-to-char w)) ?\()
+              ;; The rest of the literal, when parsed separately, will
+              ;; have the depth of -1. So in the rare case when this
+              ;; number is used despite the in-string status, the
+              ;; depths will balance.
+              (setq depth (1+ depth)))
             (goto-char end)))
          (t
           (goto-char pnt))))
@@ -595,8 +601,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                (not (or (eq ?_ w)
                         (eq ?. w)))))
          (goto-char pnt)
-         (setq w (char-after (point)))
-         (not (eq ?! w))
+         (not (eq ?! (char-after (point))))
          (skip-chars-forward " \t")
          (goto-char (match-beginning 0))
          (or (not (looking-at ruby-modifier-re))
@@ -877,11 +882,15 @@ calculating indentation on the lines after it."
 (defun ruby-move-to-block (n)
   "Move to the beginning (N < 0) or the end (N > 0) of the
 current block, a sibling block, or an outer block.  Do that (abs N) times."
-  (let ((orig (point))
-        (start (ruby-calculate-indent))
-        (signum (if (> n 0) 1 -1))
+  (let ((signum (if (> n 0) 1 -1))
         (backward (< n 0))
-        down pos done)
+        (depth (or (nth 2 (ruby-parse-region (line-beginning-position)
+                                             (line-end-position)))
+                   0))
+        down done)
+    (when (< (* depth signum) 0)
+      ;; Moving end -> end or beginning -> beginning.
+      (setq depth 0))
     (dotimes (_ (abs n))
       (setq done nil)
       (setq down (save-excursion
@@ -905,17 +914,19 @@ current block, a sibling block, or an outer block.  Do that (abs N) times."
          ((and backward (looking-at "^=end\\>"))
           (re-search-backward "^=begin\\>"))
          (t
-          (setq pos (ruby-calculate-indent))
+          (incf depth (or (nth 2 (ruby-parse-region (point)
+                                                    (line-end-position)))
+                          0))
           (cond
            ;; Deeper indentation, we found a block.
            ;; FIXME: We can't recognize empty blocks this way.
-           ((< start pos)
+           ((> (* signum depth) 0)
             (setq down t))
            ;; Block found, and same indentation as when started, stop.
-           ((and down (= pos start))
+           ((and down (zerop depth))
             (setq done t))
            ;; Shallower indentation, means outer block, can stop now.
-           ((> start pos)
+           ((< (* signum depth) 0)
             (setq done t)))))
         (if done
             (save-excursion

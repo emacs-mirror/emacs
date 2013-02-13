@@ -1,3 +1,14 @@
+2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-move-to-block): Improve
+	performance.  Instead of recalculating indentation fully for each
+	line, sum up indentation depth based only on visited lines.
+	(ruby-parse-partial): Increase the depth after "do" even when END
+	is right after it.
+	(ruby-parse-partial): When END is in the middle of a percent
+	literal, increase the depth if the delimiter chars belong to the
+	paren syntax class.
+
 2013-02-13  Kirill A. Korinskiy  <catap@catap.ru>
 
 	* play/fortune.el (fortune-compile): Also make the compiled file

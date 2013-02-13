@@ -1,3 +1,8 @@
+2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-move-to-block-skips-percent-literal): New test.
+
 2013-02-04  Chong Yidong  <cyd@gnu.org>
 
 	* automated/thingatpt.el: New file.
