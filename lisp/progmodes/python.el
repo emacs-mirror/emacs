@@ -2936,40 +2936,61 @@ Optional argument INCLUDE-TYPE indicates to include the type of the defun.
 This function is compatible to be used as
 `add-log-current-defun-function' since it returns nil if point is
 not inside a defun."
-    (save-restriction
-      (widen)
-      (save-excursion
-        (end-of-line 1)
-        (let ((names)
-              (starting-indentation
-               (save-excursion
-                 (and
-                  (python-nav-beginning-of-defun 1)
-                  ;; This extra number is just for checking code
-                  ;; against indentation to work well on first run.
-                  (+ (current-indentation) 4))))
-              (starting-point (point)))
-          ;; Check point is inside a defun.
-          (when (and starting-indentation
-                     (< starting-point
+  (save-restriction
+    (widen)
+    (save-excursion
+      (end-of-line 1)
+      (let ((names)
+            (starting-indentation (current-indentation))
+            (starting-pos (point))
+            (first-run t)
+            (last-indent)
+            (type))
+        (catch 'exit
+          (while (python-nav-beginning-of-defun 1)
+            (when (and
+                   (or (not last-indent)
+                       (< (current-indentation) last-indent))
+                   (or
+                    (and first-run
                          (save-excursion
-                           (python-nav-end-of-defun)
-                           (point))))
-            (catch 'exit
-              (while (python-nav-beginning-of-defun 1)
-                (when (< (current-indentation) starting-indentation)
-                  (setq starting-indentation (current-indentation))
-                  (setq names
-                        (cons
-                         (if (not include-type)
-                             (match-string-no-properties 1)
-                           (mapconcat 'identity
-                                      (split-string
-                                       (match-string-no-properties 0)) " "))
-                         names)))
-                (and (= (current-indentation) 0) (throw 'exit t)))))
-          (and names
-               (mapconcat (lambda (string) string) names "."))))))
+                           ;; If this is the first run, we may add
+                           ;; the current defun at point.
+                           (setq first-run nil)
+                           (goto-char starting-pos)
+                           (python-nav-beginning-of-statement)
+                           (beginning-of-line 1)
+                           (looking-at-p
+                            python-nav-beginning-of-defun-regexp)))
+                    (< starting-pos
+                       (save-excursion
+                         (let ((min-indent
+                                (+ (current-indentation)
+                                   python-indent-offset)))
+                           (if (< starting-indentation  min-indent)
+                               ;; If the starting indentation is not
+                               ;; within the min defun indent make the
+                               ;; check fail.
+                               starting-pos
+                             ;; Else go to the end of defun and add
+                             ;; up the current indentation to the
+                             ;; ending position.
+                             (python-nav-end-of-defun)
+                             (+ (point)
+                                (if (>= (current-indentation) min-indent)
+                                    (1+ (current-indentation))
+                                  0))))))))
+              (setq last-indent (current-indentation))
+              (if (or (not include-type) type)
+                  (setq names (cons (match-string-no-properties 1) names))
+                (let ((match (split-string (match-string-no-properties 0))))
+                  (setq type (car match))
+                  (setq names (cons (cadr match) names)))))
+            ;; Stop searching ASAP.
+            (and (= (current-indentation) 0) (throw 'exit t))))
+        (and names
+             (concat (and type (format "%s " type))
+                     (mapconcat 'identity names ".")))))))
 
 (defun python-info-current-symbol (&optional replace-self)
   "Return current symbol using dotty syntax.
