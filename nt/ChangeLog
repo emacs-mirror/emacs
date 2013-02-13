@@ -1,3 +1,11 @@
+2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_STACK): Remove.
+	(GNULIB_FDOPENDIR, HAVE_DECL_FDOPENDIR, HAVE_DECL_MEMRCHR)
+	(HAVE_DIRENT_H, HAVE_FDOPENDIR, HAVE_FSTATAT, HAVE_MEMRCHR)
+	(HAVE_WORKING_FSTATAT_ZERO_FLAG, _NETBSD_SOURCE): New macros.
+
 2013-02-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h: Add prototype for memrchr.
