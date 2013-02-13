@@ -735,6 +735,8 @@ It will move point to somewhere in the headers."
     (package--with-work-buffer location file
       (package-unpack name version))))
 
+(defvar package--initialized nil)
+
 (defun package-installed-p (package &optional min-version)
   "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
 MIN-VERSION should be a version list."
@@ -895,8 +897,6 @@ using `package-compute-transaction'."
       (package-maybe-load-descriptor (symbol-name elt) v-string
 				     package-user-dir)
       (package-activate elt (version-to-list v-string)))))
-
-(defvar package--initialized nil)
 
 ;;;###autoload
 (defun package-install (name)

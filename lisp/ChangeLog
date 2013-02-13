@@ -1,3 +1,7 @@
+2013-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package--initialized): Move before first use.
+
 2013-02-13  Jambunathan K  <kjambunathan@gmail.com>
 
 	* icomplete.el (icomplete-hide-common-prefix):  New user option.
