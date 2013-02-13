@@ -1791,7 +1791,7 @@ statement spanning multiple lines; otherwise, return nil."
                                  (not (eq (char-before) ?\;)))
                             (and (>= pos (point-at-bol))
                                  (<= pos (point-at-eol)))))))
-          (condition-case err
+          (condition-case nil
               (backward-sexp)
             (scan-error (setq at-opening-bracket t))))
         (when (looking-at js--declaration-keyword-re)

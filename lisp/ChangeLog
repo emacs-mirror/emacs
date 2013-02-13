@@ -1,3 +1,8 @@
+2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/js.el (js--multi-line-declaration-indentation):
+	Silence byte-compiler warning.
+
 2013-02-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-handle-start-file-process): Rewrite.
