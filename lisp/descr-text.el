@@ -574,6 +574,9 @@ relevant to POS."
                         'help-echo
                         "mouse-2, RET: show this character in its character set")
                     str)))
+              ,@(let ((script (aref char-script-table char)))
+                  (if script
+                      (list (list "script" (symbol-name script)))))
               ("syntax"
                ,(let ((syntax (syntax-after pos)))
                   (with-temp-buffer
