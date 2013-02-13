@@ -1,3 +1,8 @@
+2013-02-13  Kirill A. Korinskiy  <catap@catap.ru>
+
+	* play/fortune.el (fortune-compile): Also make the compiled file
+	if it does not exist at all, not just if it is old.  (Bug#5338)
+
 2013-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-menu-execute): Doc fix.
