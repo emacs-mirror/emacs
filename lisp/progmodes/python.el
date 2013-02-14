@@ -54,8 +54,13 @@
 ;; `python-nav-beginning-of-statement', `python-nav-end-of-statement',
 ;; `python-nav-beginning-of-block' and `python-nav-end-of-block' are
 ;; included but no bound to any key.  At last but not least the
-;; specialized `python-nav-forward-sexp' allows easy
-;; navigation between code blocks.
+;; specialized `python-nav-forward-sexp' allows easy navigation
+;; between code blocks.  If you prefer `cc-mode'-like `forward-sexp'
+;; movement, setting `forward-sexp-function' to nil is enough, You can
+;; do that using the `python-mode-hook':
+
+;; (add-hook 'python-mode-hook
+;;           (lambda () (setq forward-sexp-function nil)))
 
 ;; Shell interaction: is provided and allows you to execute easily any
 ;; block of code of your current buffer in an inferior Python process.
@@ -1339,13 +1344,10 @@ backwards."
                            're-search-backward))
            (context-type (python-syntax-context-type)))
       (cond
-       ((eq context-type 'string)
+       ((memq context-type '(string comment))
         ;; Inside of a string, get out of it.
-        (while (and (funcall re-search-fn "[\"']" nil t)
-                    (python-syntax-context 'string))))
-       ((eq context-type 'comment)
-        ;; Inside of a comment, just move forward.
-        (python-util-forward-comment dir))
+        (let ((forward-sexp-function))
+          (forward-sexp dir)))
        ((or (eq context-type 'paren)
             (and forward-p (looking-at (python-rx open-paren)))
             (and (not forward-p)
@@ -1368,16 +1370,16 @@ backwards."
                 (save-excursion
                   (python-nav-lisp-forward-sexp-safe dir)
                   (point)))
-              (next-sexp-context
-               (save-excursion
-                 (goto-char next-sexp-pos)
-                 (cond
-                  ((python-info-beginning-of-block-p) 'block-start)
-                  ((python-info-end-of-block-p) 'block-end)
-                  ((python-info-beginning-of-statement-p) 'statement-start)
-                  ((python-info-end-of-statement-p) 'statement-end)
-                  ((python-info-statement-starts-block-p) 'starts-block)
-                  ((python-info-statement-ends-block-p) 'ends-block)))))
+               (next-sexp-context
+                (save-excursion
+                  (goto-char next-sexp-pos)
+                  (cond
+                   ((python-info-beginning-of-block-p) 'block-start)
+                   ((python-info-end-of-block-p) 'block-end)
+                   ((python-info-beginning-of-statement-p) 'statement-start)
+                   ((python-info-end-of-statement-p) 'statement-end)
+                   ((python-info-statement-starts-block-p) 'starts-block)
+                   ((python-info-statement-ends-block-p) 'ends-block)))))
           (if forward-p
               (cond ((and (not (eobp))
                           (python-info-current-line-empty-p))
@@ -1401,8 +1403,8 @@ backwards."
                     (t (goto-char next-sexp-pos)))
             (cond ((and (not (bobp))
                         (python-info-current-line-empty-p))
-                     (python-util-forward-comment dir)
-                     (python-nav--forward-sexp dir))
+                   (python-util-forward-comment dir)
+                   (python-nav--forward-sexp dir))
                   ((eq context 'block-end)
                    (python-nav-beginning-of-block))
                   ((eq context 'statement-end)

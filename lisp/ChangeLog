@@ -1,3 +1,10 @@
+2013-02-14  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Explain how to restore "cc-mode"-like
+	forward-sexp movement in header documentation (Bug#13642).
+	(python-nav--forward-sexp): Behave like emacs-lisp-mode in
+	comments and strings (GH bug 114).
+
 2013-02-13  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-info-current-defun): Fix current
