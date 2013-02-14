@@ -8644,7 +8644,8 @@ follow_key (Lisp_Object keymap, Lisp_Object key)
 static Lisp_Object
 active_maps (Lisp_Object first_event)
 {
-  Lisp_Object position = INTEGERP (first_event) ? Qnil : first_event;
+  Lisp_Object position
+    = CONSP (first_event) ? CAR_SAFE (XCDR (first_event)) : Qnil;
   return Fcons (Qkeymap, Fcurrent_active_maps (Qt, position));
 }
 
