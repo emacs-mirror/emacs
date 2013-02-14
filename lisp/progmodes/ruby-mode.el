@@ -519,12 +519,6 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
                               (concat "[^\\]\\(\\\\\\\\\\)*" w))
                             end t)))
             (setq in-string (point))
-            (when (eq (char-syntax (string-to-char w)) ?\()
-              ;; The rest of the literal, when parsed separately, will
-              ;; have the depth of -1. So in the rare case when this
-              ;; number is used despite the in-string status, the
-              ;; depths will balance.
-              (setq depth (1+ depth)))
             (goto-char end)))
          (t
           (goto-char pnt))))
@@ -913,10 +907,16 @@ current block, a sibling block, or an outer block.  Do that (abs N) times."
           (re-search-forward "^=end\\>"))
          ((and backward (looking-at "^=end\\>"))
           (re-search-backward "^=begin\\>"))
+         ;; Jump over a multiline literal.
+         ((ruby-in-ppss-context-p 'string)
+          (goto-char (nth 8 (syntax-ppss)))
+          (unless backward
+            (forward-sexp)
+            (when (bolp) (forward-char -1)))) ; After a heredoc.
          (t
-          (incf depth (or (nth 2 (ruby-parse-region (point)
-                                                    (line-end-position)))
-                          0))
+          (let ((state (ruby-parse-region (point) (line-end-position))))
+            (unless (car state) ; Line ends with unfinished string.
+              (setq depth (+ (nth 2 state) depth))))
           (cond
            ;; Deeper indentation, we found a block.
            ;; FIXME: We can't recognize empty blocks this way.

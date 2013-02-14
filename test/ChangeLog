@@ -1,3 +1,10 @@
+2013-02-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-move-to-block-skips-percent-literal): Add depth-affecting
+	bits inside the examples.
+	(ruby-move-to-block-skips-heredoc): New test.
+
 2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el
