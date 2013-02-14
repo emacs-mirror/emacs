@@ -1399,6 +1399,7 @@ ARGS to actually emit the message (if applicable)."
 			 "tramp-compat-condition-case-unless-debug"
 			 "tramp-compat-funcall"
 			 "tramp-compat-with-temp-message"
+			 "tramp-condition-case-unless-debug"
 			 "tramp-debug-message"
 			 "tramp-error"
 			 "tramp-error-with-buffer"
@@ -2011,6 +2012,15 @@ ARGS are the arguments OPERATION has been called with."
 		  res (cdr elt))))
 	res))))
 
+(defvar tramp-debug-on-error nil
+  "Like `debug-on-error' but used Tramp internal.")
+
+(defmacro tramp-condition-case-unless-debug
+  (var bodyform &rest handlers)
+  "Like `condition-case-unless-debug' but `tramp-debug-on-error'."
+  `(let ((debug-on-error tramp-debug-on-error))
+     (tramp-compat-condition-case-unless-debug ,var ,bodyform ,@handlers)))
+
 ;; Main function.
 ;;;###autoload
 (defun tramp-file-name-handler (operation &rest args)
@@ -2026,7 +2036,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	  (with-parsed-tramp-file-name filename nil
 	    ;; Call the backend function.
 	    (if foreign
-		(tramp-compat-condition-case-unless-debug err
+		(tramp-condition-case-unless-debug err
 		    (let ((sf (symbol-function foreign))
 			  result)
 		      ;; Some packages set the default directory to a
@@ -2079,7 +2089,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		  ;; in order to give the user a chance to correct the
 		  ;; file name in the minibuffer.
 		  ;; In order to get a full backtrace, one could apply
-		  ;;   (setq debug-on-error t debug-on-signal t)
+		  ;;   (setq tramp-debug-on-error t)
 		  (error
 		   (cond
 		    ((and completion (zerop (length localname))

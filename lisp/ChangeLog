@@ -1,3 +1,11 @@
+2013-02-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message): Add
+	`tramp-condition-case-unless-debug'.
+	(tramp-debug-on-error): New defvar.
+	(tramp-condition-case-unless-debug): New defun.
+	(tramp-file-name-handler): Use it.
+
 2013-02-14  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-isearch-filter): Treat non-nil values of
