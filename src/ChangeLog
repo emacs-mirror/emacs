@@ -1,5 +1,15 @@
 2013-02-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Backport GCPRO fix from trunk (Bug#13650).
+	The bug was reported for AIX before today's changes.
+	I reproduced the problem on Fedora 17 x86-64 when setting
+	GC_MARK_STACK by hand, and I presume it occurs with default
+	configurations on HP-UX and Unixware.
+	Trunk fix on 2013-01-14 by Dmitry Antipov <dmantipov@yandex.ru>:
+	Fix compilation with GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE.
+	* eval.c (eval_sub): Protect `form' from being GCed before its
+	car and cdr becomes protected with the backtrace entry.
+
 	Fix AIX port (Bug#13650).
 	* lisp.h (XPNTR) [!USE_LSB_TAG && DATA_SEG_BITS]:
 	Fix bug introduced in 2012-07-27 change.  DATA_SEG_BITS, if set,
