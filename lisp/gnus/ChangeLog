@@ -1,3 +1,8 @@
+2013-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-define-keys): Convert [?\S-\ ] to [(shift space)]
+	for XEmacs.
+
 2013-02-13  Juri Linkov  <juri@jurta.org>
 
 	* gnus-art.el (gnus-article-mode-map):

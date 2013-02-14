@@ -333,6 +333,13 @@ TIME defaults to the current time."
 
 (defmacro gnus-define-keys (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
+  ;; Convert the key [?\S-\ ] to [(shift space)] for XEmacs.
+  (when (featurep 'xemacs)
+    (let ((bindings plist))
+      (while bindings
+	(when (equal (car bindings) [?\S-\ ])
+	  (setcar bindings [(shift space)]))
+	(setq bindings (cddr bindings)))))
   `(gnus-define-keys-1 (quote ,keymap) (quote ,plist)))
 
 (defmacro gnus-define-keys-safe (keymap &rest plist)
