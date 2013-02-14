@@ -1,3 +1,9 @@
+2013-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/goto-addr.el (goto-address-fontify): Add start and end args.
+	(goto-address-fontify-region): Use them instead of narrowing, so
+	syntax-ppss has access to the whole buffer.
+
 2013-02-14  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el: Explain how to restore "cc-mode"-like
