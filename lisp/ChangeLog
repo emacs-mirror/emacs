@@ -1,3 +1,8 @@
+2013-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (find-lisp-object-file-name): Give special treatment
+	to all ~/.foo.elc files, not just ~/.emacs.  (Bug#9007)
+
 2013-02-14  David Biesack  <sasdjb@d72933.na.sas.com>  (tiny change)
 
 	* net/quickurl.el (quickurl-save-urls):

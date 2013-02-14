@@ -336,11 +336,15 @@ suitable file is found, return nil."
       ;; If we don't have a file-name string by now, we lost.
       nil)
      ;; Now, `file-name' should have become an absolute file name.
-     ;; For files loaded from ~/.emacs.elc, try ~/.emacs.
+     ;; For files loaded from ~/.foo.elc, try ~/.foo.
+     ;; This applies to config files like ~/.emacs,
+     ;; which people sometimes compile.
      ((let (fn)
-	(and (string-equal file-name
-			   (expand-file-name ".emacs.elc" "~"))
-	     (file-readable-p (setq fn (expand-file-name ".emacs" "~")))
+	(and (string-match "\\`\\..*\\.elc\\'"
+			   (file-name-nondirectory file-name))
+	     (string-equal (file-name-directory file-name)
+			   (file-name-as-directory (expand-file-name "~")))
+	     (file-readable-p (setq fn (file-name-sans-extension file-name)))
 	     fn)))
      ;; When the Elisp source file can be found in the install
      ;; directory, return the name of that file.
