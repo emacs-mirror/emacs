@@ -4,6 +4,9 @@
 	depth for unfinished percent literal.  Not using it in the caller.
 	(ruby-move-to-block): Jump over multiline literals of all types,
 	ignoring code-looking contents inside them.
+	(ruby-add-log-current-method): Improve performance at the expense
+	of accuracy.  `ruby-block-contains-point' is relatively slow, so
+	only use it for method and singleton class blocks.
 
 2013-02-13  Michael Albinus  <michael.albinus@gmx.de>
 

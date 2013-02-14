@@ -1073,29 +1073,33 @@ For example:
 See `add-log-current-defun-function'."
   (condition-case nil
       (save-excursion
-        (let ((indent 0) mname mlist
-              (start (point))
-              (definition-re
-                (concat "^[ \t]*" ruby-defun-beg-re "[ \t]+"
-                        "\\("
-                        ;; \\. and :: for class methods
-                        "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
-                        "+\\)")))
+        (let* ((indent 0) mname mlist
+               (start (point))
+               (make-definition-re
+                (lambda (re)
+                  (concat "^[ \t]*" re "[ \t]+"
+                          "\\("
+                          ;; \\. and :: for class methods
+                          "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
+                          "+\\)")))
+               (definition-re (funcall make-definition-re ruby-defun-beg-re))
+               (module-re (funcall make-definition-re "\\(class\\|module\\)")))
           ;; Get the current method definition (or class/module).
           (when (re-search-backward definition-re nil t)
             (goto-char (match-beginning 1))
-            (when (ruby-block-contains-point start)
-              ;; We're inside the method, class or module.
-              (setq mname (match-string 2))
-              (unless (string-equal "def" (match-string 1))
-                (setq mlist (list mname) mname nil)))
+            (if (not (string-equal "def" (match-string 1)))
+                (setq mlist (list (match-string 2)))
+              ;; We're inside the method. For classes and modules,
+              ;; this check is skipped for performance.
+              (when (ruby-block-contains-point start)
+                (setq mname (match-string 2))))
             (setq indent (current-column))
             (beginning-of-line))
           ;; Walk up the class/module nesting.
           (while (and (> indent 0)
-                      (re-search-backward definition-re nil t))
+                      (re-search-backward module-re nil t))
             (goto-char (match-beginning 1))
-            (when (ruby-block-contains-point start)
+            (when (< (current-column) indent)
               (setq mlist (cons (match-string 2) mlist))
               (setq indent (current-column))
               (beginning-of-line)))
@@ -1121,6 +1125,13 @@ See `add-log-current-defun-function'."
                 (let ((in-singleton-class
                        (when (re-search-forward ruby-singleton-class-re start t)
                          (goto-char (match-beginning 0))
+                         ;; FIXME: Optimize it out, too?
+                         ;; This can be slow in a large file, but
+                         ;; unlike class/module declaration
+                         ;; indentations, method definitions can be
+                         ;; intermixed with these, and may or may not
+                         ;; be additionally indented after visibility
+                         ;; keywords.
                          (ruby-block-contains-point start))))
                   (setq mname (concat
                                (if in-singleton-class "." "#")

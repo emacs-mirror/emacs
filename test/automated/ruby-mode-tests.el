@@ -390,11 +390,13 @@ VALUES-PLIST is a list with alternating index and value elements."
                           |  class C
                           |    class D
                           |    end
-                          |    _
+                          |    def foo
+                          |      _
+                          |    end
                           |  end
                           |end")
     (search-backward "_")
-    (should (string= (ruby-add-log-current-method) "M::C"))))
+    (should (string= (ruby-add-log-current-method) "M::C#foo"))))
 
 (defvar ruby-block-test-example
   (ruby-test-string

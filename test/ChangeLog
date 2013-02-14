@@ -4,6 +4,8 @@
 	(ruby-move-to-block-skips-percent-literal): Add depth-affecting
 	bits inside the examples.
 	(ruby-move-to-block-skips-heredoc): New test.
+	(ruby-add-log-current-method-after-inner-class): Lower
+	expectations: move point inside a method, initially.
 
 2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
 
