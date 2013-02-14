@@ -1,3 +1,9 @@
+2013-02-14  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-isearch-filter): Treat non-nil values of
+	`search-invisible' including its default value `open'
+	like the value `t' to match hidden text.  (Bug#13402)
+
 2013-02-14  Glenn Morris  <rgm@gnu.org>
 
 	* help-fns.el (find-lisp-object-file-name): Give special treatment
