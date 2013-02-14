@@ -186,10 +186,16 @@ space, no spaces, or reverting to the original spacing.  Like
 leave different number of spaces.
 
 ** Tramp
+
 +++
 *** New connection method "adb", which allows to access Android
 devices by the Android Debug Bridge.  The variable `tramp-adb-sdk-dir'
 must be set to the Android SDK installation directory.
+
+*** The connection methods "scpc" and "rsyncc" are discontinued.  The
+ssh option "ControlMaster=auto" is set automatically in all ssh-based
+methods, when possible.
+
 +++
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
 which support POSIX ACLs.

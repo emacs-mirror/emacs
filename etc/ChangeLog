@@ -1,3 +1,7 @@
+2013-02-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp methods "scpc" and "rsyncc" are discontinued.
+
 2013-02-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Add autorevert changes.
