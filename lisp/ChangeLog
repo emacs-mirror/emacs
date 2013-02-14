@@ -1,3 +1,8 @@
+2013-02-14  David Biesack  <sasdjb@d72933.na.sas.com>  (tiny change)
+
+	* net/quickurl.el (quickurl-save-urls):
+	Ensure quickurl-urls is not truncated on printing.  (Bug#9276)
+
 2013-02-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-parse-partial): Don't increase
