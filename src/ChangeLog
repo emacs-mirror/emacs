@@ -1,3 +1,8 @@
+2013-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (tb_size_cb): New function.
+	(xg_create_tool_bar): Connect size-allocate to tb_size_cb (Bug#13512).
+
 2013-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (active_maps): Fcurrent_active_maps expects a position, not
