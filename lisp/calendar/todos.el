@@ -4882,7 +4882,6 @@ the format of Diary entries."
   ""					;FIXME
   (interactive)
   (widen)
-  (rename-buffer todos-edit-buffer)
   (todos-edit-mode)
   (remove-overlays) ; nil nil 'before-string)
   (message "%s" (substitute-command-keys
@@ -4919,7 +4918,6 @@ in the number or names of categories."
 	;; (todos-repair-categories-sexp)
 	;; Compare (todos-make-categories-list t) with sexp and if
 	;; different ask (todos-update-categories-sexp) ?
-	(rename-buffer (file-name-nondirectory todos-current-todos-file))
 	(todos-mode)
 	(let* ((cat-beg (concat "^" (regexp-quote todos-category-beg)
 				"\\(.*\\)$"))
