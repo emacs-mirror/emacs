@@ -1,3 +1,16 @@
+2013-02-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix AIX port (Bug#13650).
+	* lisp.h (XPNTR) [!USE_LSB_TAG && DATA_SEG_BITS]:
+	Fix bug introduced in 2012-07-27 change.  DATA_SEG_BITS, if set,
+	was #undeffed earlier, so it cannot be used as a macro here.
+	Use the constant and not the macro.
+	* unexaix.c: Revert 2013-02-11 and 2013-02-12 changes to this
+	file.  They're almost surely OK but we're just before a release so
+	we should avoid changes unless they're clearly needed.  Instead,
+	make the following minor change:
+	(ADDR_CORRECT): New macro.
+
 2013-02-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (new_child): If no vacant slots are found in

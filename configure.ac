@@ -3764,6 +3764,11 @@ case $opsys in
     AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])
     ;;
 
+  aix*)
+    dnl This works with 32-bit executables; Emacs doesn't support 64-bit.
+    AC_DEFINE(DATA_START, [0x20000000])
+    AC_DEFINE(DATA_SEG_BITS, [0x20000000])
+    ;;
   hpux*)
     dnl The data segment on this machine always starts at address 0x40000000.
     AC_DEFINE(DATA_START, [0x40000000])
@@ -3827,7 +3832,7 @@ AH_TEMPLATE(GC_MARK_STACK, [Define to GC_USE_GCPROS_AS_BEFORE if
 
 
 case $opsys in
-  aix4-2 | hpux* | unixware)
+  hpux* | unixware)
     dnl Conservative garbage collection has not been tested, so for now
     dnl play it safe and stick with the old-fashioned way of marking.
     AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE])

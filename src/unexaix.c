@@ -51,8 +51,6 @@ what you give them.   Help stamp out software-hoarding!  */
 #include "getpagesize.h"
 
 #include <sys/types.h>
-#include <inttypes.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -61,8 +59,10 @@ what you give them.   Help stamp out software-hoarding!  */
 
 #include "mem-limits.h"
 
-extern char _data[];
-extern char _text[];
+char *start_of_text (void);		        /* Start of text */
+
+extern int _data;
+extern int _text;
 
 #include <filehdr.h>
 #include <aouthdr.h>
@@ -71,15 +71,15 @@ extern char _text[];
 
 static struct filehdr f_hdr;		/* File header */
 static struct aouthdr f_ohdr;		/* Optional file header (a.out) */
-static off_t bias;			/* Bias to add for growth */
-static off_t lnnoptr;			/* Pointer to line-number info within file */
+static long bias;			/* Bias to add for growth */
+static long lnnoptr;			/* Pointer to line-number info within file */
 
-static off_t text_scnptr;
-static off_t data_scnptr;
+static long text_scnptr;
+static long data_scnptr;
 #define ALIGN(val, pwr) (((val) + ((1L<<(pwr))-1)) & ~((1L<<(pwr))-1))
-static off_t load_scnptr;
-static off_t orig_load_scnptr;
-static off_t orig_data_scnptr;
+static long load_scnptr;
+static long orig_load_scnptr;
+static long orig_data_scnptr;
 static int unrelocate_symbols (int, int, const char *, const char *);
 
 #ifndef MAX_SECTIONS
@@ -92,30 +92,26 @@ static int pagemask;
 
 #include "lisp.h"
 
-static _Noreturn void
+static void
 report_error (const char *file, int fd)
 {
   if (fd)
-    {
-      int failed_errno = errno;
-      close (fd);
-      errno = failed_errno;
-    }
+    close (fd);
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
 
-#define ERROR0(msg) report_error_1 (new, msg)
-#define ERROR1(msg,x) report_error_1 (new, msg, x)
-#define ERROR2(msg,x,y) report_error_1 (new, msg, x, y)
+#define ERROR0(msg) report_error_1 (new, msg, 0, 0); return -1
+#define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
+#define ERROR2(msg,x,y) report_error_1 (new, msg, x, y); return -1
 
-static _Noreturn void ATTRIBUTE_FORMAT_PRINTF (2, 3)
-report_error_1 (int fd, const char *msg, ...)
+#undef ADDR_CORRECT
+#define ADDR_CORRECT(x) ((int)(x))
+
+static void
+report_error_1 (int fd, const char *msg, int a1, int a2)
 {
-  va_list ap;
   close (fd);
-  va_start (ap, msg);
-  verror (msg, ap);
-  va_end (ap);
+  error (msg, a1, a2);
 }
 
 static int make_hdr (int, int, const char *, const char *);
@@ -170,8 +166,8 @@ make_hdr (int new, int a_out,
 	  const char *a_name, const char *new_name)
 {
   int scns;
-  uintptr_t bss_start;
-  uintptr_t data_start;
+  unsigned int bss_start;
+  unsigned int data_start;
 
   struct scnhdr section[MAX_SECTIONS];
   struct scnhdr * f_thdr;		/* Text section header */
@@ -186,17 +182,17 @@ make_hdr (int new, int a_out,
   pagemask = getpagesize () - 1;
 
   /* Adjust text/data boundary. */
-  data_start = (uintptr_t) _data;
+  data_start = (long) start_of_data ();
+  data_start = ADDR_CORRECT (data_start);
 
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
 
-  bss_start = (uintptr_t) sbrk (0) + pagemask;
+  bss_start = ADDR_CORRECT (sbrk (0)) + pagemask;
   bss_start &= ~ pagemask;
 
   if (data_start > bss_start)	/* Can't have negative data size. */
     {
-      ERROR2 (("unexec: data_start (0x%"PRIxPTR
-	       ") can't be greater than bss_start (0x%"PRIxPTR")"),
+      ERROR2 ("unexec: data_start (%u) can't be greater than bss_start (%u)",
 	      data_start, bss_start);
     }
 
@@ -286,7 +282,7 @@ make_hdr (int new, int a_out,
 
   /* fix scnptr's */
   {
-    off_t ptr = section[0].s_scnptr;
+    ulong ptr = section[0].s_scnptr;
 
     bias = -1;
     for (scns = 0; scns < f_hdr.f_nscns; scns++)
@@ -382,12 +378,12 @@ copy_text_and_data (int new)
   char *end;
   char *ptr;
 
-  lseek (new, text_scnptr, SEEK_SET);
-  ptr = _text + text_scnptr;
+  lseek (new, (long) text_scnptr, SEEK_SET);
+  ptr = start_of_text () + text_scnptr;
   end = ptr + f_ohdr.tsize;
   write_segment (new, ptr, end);
 
-  lseek (new, data_scnptr, SEEK_SET);
+  lseek (new, (long) data_scnptr, SEEK_SET);
   ptr = (char *) f_ohdr.data_start;
   end = ptr + f_ohdr.dsize;
   write_segment (new, ptr, end);
@@ -400,6 +396,7 @@ static void
 write_segment (int new, char *ptr, char *end)
 {
   int i, nwrite, ret;
+  char buf[80];
   char zeros[UnexBlockSz];
 
   for (i = 0; ptr < end;)
@@ -420,13 +417,9 @@ write_segment (int new, char *ptr, char *end)
 	}
       else if (nwrite != ret)
 	{
-	  int write_errno = errno;
-	  char buf[1000];
-	  void *addr = ptr;
 	  sprintf (buf,
-		   "unexec write failure: addr %p, fileno %d, size 0x%x, wrote 0x%x, errno %d",
-		   addr, new, nwrite, ret, errno);
-	  errno = write_errno;
+		   "unexec write failure: addr 0x%lx, fileno %d, size 0x%x, wrote 0x%x, errno %d",
+		   (unsigned long)ptr, new, nwrite, ret, errno);
 	  PERROR (buf);
 	}
       i += nwrite;
@@ -547,13 +540,13 @@ unrelocate_symbols (int new, int a_out,
   int i;
   LDHDR ldhdr;
   LDREL ldrel;
-  off_t t_reloc = (intptr_t) _text - f_ohdr.text_start;
+  ulong t_reloc = (ulong) &_text - f_ohdr.text_start;
 #ifndef ALIGN_DATA_RELOC
-  off_t d_reloc = (intptr_t) _data - f_ohdr.data_start;
+  ulong d_reloc = (ulong) &_data - f_ohdr.data_start;
 #else
   /* This worked (and was needed) before AIX 4.2.
      I have no idea why. -- Mike */
-  off_t d_reloc = (intptr_t) _data - ALIGN (f_ohdr.data_start, 2);
+  ulong d_reloc = (ulong) &_data - ALIGN (f_ohdr.data_start, 2);
 #endif
   int * p;
 
@@ -637,4 +630,17 @@ unrelocate_symbols (int new, int a_out,
 	}
     }
   return 0;
+}
+
+/*
+ *	Return the address of the start of the text segment prior to
+ *	doing an unexec.  After unexec the return value is undefined.
+ *	See crt0.c for further explanation and _start.
+ *
+ */
+
+char *
+start_of_text (void)
+{
+  return ((char *) 0x10000000);
 }

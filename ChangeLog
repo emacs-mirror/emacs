@@ -1,3 +1,11 @@
+2013-02-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix AIX port (Bug#13650).
+	* configure.ac (DATA_START, DATA_SEG_BITS): Set to 0x20000000 on AIX.
+	(GC_MARK_STACK): Do not set to GC_USE_GCPROS_AS_BEFORE on AIX, as that
+	runs afoul of some other bug in Emacs, and the default value
+	GC_MAKE_GCPROS_NOOPS has been tested and works.
+
 2013-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Put back a chmod that was
