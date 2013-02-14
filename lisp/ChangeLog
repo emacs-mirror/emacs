@@ -1,3 +1,7 @@
+2013-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+
 2013-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/goto-addr.el (goto-address-fontify): Add start and end args.
