@@ -2657,9 +2657,10 @@ read_char (int commandflag, Lisp_Object map,
 	  && XINT (Vauto_save_timeout) > 0)
 	{
 	  Lisp_Object tem0;
-	  EMACS_INT timeout = (delay_level
-			       * min (XFASTINT (Vauto_save_timeout) / 4,
-				      MOST_POSITIVE_FIXNUM / delay_level));
+	  EMACS_INT timeout = XFASTINT (Vauto_save_timeout);
+
+	  timeout = min (timeout, MOST_POSITIVE_FIXNUM / delay_level * 4);
+	  timeout = delay_level * timeout / 4;
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
 	  tem0 = sit_for (make_number (timeout), 1, 1);

@@ -1,5 +1,8 @@
 2013-02-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* keyboard.c (read_char): Fix calculation of auto-save time out
+	when auto-save-timeout is less than 4.  (Bug#13720)
+
 	* w32proc.c (new_child): Free up to 2 slots of dead processes at a
 	time.  Improve diagnostics in DebPrint.
 	(reader_thread): If cp->char_avail is NULL, set the FILE_AT_EOF
