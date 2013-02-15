@@ -1,3 +1,7 @@
+2013-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* play/fortune.el (fortune-compile): Simplify and fix previous change.
+
 2013-02-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-debug-message): Add
