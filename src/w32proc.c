@@ -1017,17 +1017,6 @@ reader_thread (void *arg)
       if (cp->status == STATUS_READ_ERROR || !cp->char_avail)
 	break;
 
-      if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess && cp->fd >= 0)
-	{
-	  /* Somebody already called delete_child on this child, since
-	     only delete_child zeroes out cp->char_avail.  This means
-	     no one will read from cp->fd and will not set the
-	     FILE_AT_EOF flag, therefore preventing sys_select from
-	     noticing that the process died.  Set the flag here
-	     instead.  */
-	  fd_info[cp->fd].flags |= FILE_AT_EOF;
-	}
-
       /* The name char_avail is a misnomer - it really just means the
 	 read-ahead has completed, whether successfully or not. */
       if (!SetEvent (cp->char_avail))
@@ -1237,11 +1226,6 @@ reap_subprocess (child_process *cp)
      sys_read when the subprocess output is fully read.  */
   if (cp->fd < 0)
     delete_child (cp);
-  else
-    {
-      /* Reset the flag set by reader_thread.  */
-      fd_info[cp->fd].flags &= ~FILE_AT_EOF;
-    }
 }
 
 /* Wait for a child process specified by PID, or for any of our
@@ -2067,7 +2051,7 @@ count_children:
     /* Some child_procs might be sockets; ignore them.  Also some
        children may have died already, but we haven't finished reading
        the process output; ignore them too.  */
-    if ((CHILD_ACTIVE (cp) || cp->procinfo.hProcess)
+    if ((CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
 	&& (cp->fd < 0
 	    || (fd_info[cp->fd].flags & FILE_SEND_SIGCHLD) == 0
 	    || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
