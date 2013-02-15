@@ -800,7 +800,7 @@ new_child (void)
   if (child_proc_count == MAX_CHILDREN)
     {
       int i = 0;
-      child_process *dead_cp;
+      child_process *dead_cp = NULL;
 
       DebPrint (("new_child: No vacant slots, looking for dead processes\n"));
       for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
@@ -829,13 +829,15 @@ new_child (void)
 		if (i == 0)
 		  dead_cp = cp;
 		else
-		  {
-		    cp = dead_cp;
-		    goto Initialize;
-		  }
+		  break;
 		i++;
 	      }
 	  }
+      if (dead_cp)
+	{
+	  cp = dead_cp;
+	  goto Initialize;
+	}
     }
   if (child_proc_count == MAX_CHILDREN)
     return NULL;
