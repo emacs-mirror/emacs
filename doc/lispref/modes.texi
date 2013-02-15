@@ -905,9 +905,8 @@ modes derived from Special mode are given a @code{mode-class} property
 of @code{special} (@pxref{Major Mode Conventions}).
 
 Special mode sets the buffer to read-only.  Its keymap defines several
-common bindings, including @kbd{q} for @code{quit-window}, @kbd{z} for
-@code{kill-this-buffer}, and @kbd{g} for @code{revert-buffer}
-(@pxref{Reverting}).
+common bindings, including @kbd{q} for @code{quit-window} and @kbd{g}
+for @code{revert-buffer} (@pxref{Reverting}).
 
 An example of a major mode derived from Special mode is Buffer Menu
 mode, which is used by the @file{*Buffer List*} buffer.  @xref{List

@@ -1,3 +1,8 @@
+2013-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix AIX port (Bug#13650).
+	* configure.ac (DATA_START, DATA_SEG_BITS): Set to 0x20000000 on AIX.
+
 2013-02-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/memrchr.$(O).

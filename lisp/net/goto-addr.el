@@ -156,18 +156,19 @@ A value of t means there is no limit--fontify regardless of the size."
 
 (defvar goto-address-prog-mode)
 
-(defun goto-address-fontify ()
+(defun goto-address-fontify (&optional start end)
   "Fontify the URLs and e-mail addresses in the current buffer.
 This function implements `goto-address-highlight-p'
 and `goto-address-fontify-p'."
   ;; Clean up from any previous go.
-  (goto-address-unfontify (point-min) (point-max))
+  (goto-address-unfontify (or start (point-min)) (or end (point-max)))
   (save-excursion
     (let ((inhibit-point-motion-hooks t))
-      (goto-char (point-min))
+      (goto-char (or start (point-min)))
       (when (or (eq t goto-address-fontify-maximum-size)
-		(< (- (point-max) (point)) goto-address-fontify-maximum-size))
-	(while (re-search-forward goto-address-url-regexp nil t)
+		(< (- (or end (point-max)) (point))
+                   goto-address-fontify-maximum-size))
+	(while (re-search-forward goto-address-url-regexp end t)
 	  (let* ((s (match-beginning 0))
 		 (e (match-end 0))
 		 this-overlay)
@@ -187,8 +188,8 @@ and `goto-address-fontify-p'."
 	      (overlay-put this-overlay
 			   'keymap goto-address-highlight-keymap)
 	      (overlay-put this-overlay 'goto-address t))))
-	(goto-char (point-min))
-	(while (re-search-forward goto-address-mail-regexp nil t)
+	(goto-char (or start (point-min)))
+	(while (re-search-forward goto-address-mail-regexp end t)
 	  (let* ((s (match-beginning 0))
 		 (e (match-end 0))
 		 this-overlay)
@@ -212,11 +213,9 @@ and `goto-address-fontify-p'."
 (defun goto-address-fontify-region (start end)
   "Fontify URLs and e-mail addresses in the given region."
   (save-excursion
-    (save-restriction
-      (let ((beg-line (progn (goto-char start) (line-beginning-position)))
-	    (end-line (progn (goto-char end) (line-end-position))))
-	(narrow-to-region beg-line end-line)
-	(goto-address-fontify)))))
+    (let ((beg-line (progn (goto-char start) (line-beginning-position)))
+          (end-line (progn (goto-char end) (line-end-position))))
+      (goto-address-fontify beg-line end-line))))
 
 ;; code to find and goto addresses; much of this has been blatantly
 ;; snarfed from browse-url.el

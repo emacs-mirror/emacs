@@ -1,3 +1,30 @@
+2013-02-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+
+2013-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/goto-addr.el (goto-address-fontify): Add start and end args.
+	(goto-address-fontify-region): Use them instead of narrowing, so
+	syntax-ppss has access to the whole buffer.
+
+2013-02-15  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Explain how to restore "cc-mode"-like
+	forward-sexp movement in header documentation (Bug#13642).
+	(python-nav--forward-sexp): Behave like emacs-lisp-mode in
+	comments and strings (GH bug 114).
+
+2013-02-15  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-info-current-defun): Fix current
+	defun detection (Bug#13618).
+
+2013-02-15  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-parse-string): Fix typo in handling of bad character
+	references.
+
 2013-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* play/fortune.el (fortune-compile): Simplify and fix previous change.

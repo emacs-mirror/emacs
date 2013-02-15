@@ -505,13 +505,9 @@ static EMACS_INT const VALMASK
   (XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
 	+ ((intptr_t) (ptr) & VALMASK)))
 
-#if DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object.  */
 #define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK)) | DATA_SEG_BITS))
-#else
-#define XPNTR(a) ((uintptr_t) (XLI (a) & VALMASK))
-#endif
 
 #endif /* not USE_LSB_TAG */
 

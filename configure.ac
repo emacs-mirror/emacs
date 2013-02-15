@@ -3750,6 +3750,11 @@ case $opsys in
     AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])
     ;;
 
+  aix*)
+    dnl This works with 32-bit executables; Emacs doesn't support 64-bit.
+    AC_DEFINE(DATA_START, [0x20000000])
+    AC_DEFINE(DATA_SEG_BITS, [0x20000000])
+    ;;
   hpux*)
     dnl The data segment on this machine always starts at address 0x40000000.
     AC_DEFINE(DATA_START, [0x40000000])

@@ -803,6 +803,33 @@ new_child (void)
     if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
       goto Initialize;
   if (child_proc_count == MAX_CHILDREN)
+    {
+      DebPrint (("new_child: No vacant slots, looking for dead processes\n"));
+      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+	if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
+	  {
+	    DWORD status = 0;
+
+	    if (!GetExitCodeProcess (cp->procinfo.hProcess, &status))
+	      {
+		DebPrint (("new_child.GetExitCodeProcess: error %lu for PID %lu\n",
+			   GetLastError (), cp->procinfo.dwProcessId));
+		status = STILL_ACTIVE;
+	      }
+	    if (status != STILL_ACTIVE
+		|| WaitForSingleObject (cp->procinfo.hProcess, 0) == WAIT_OBJECT_0)
+	      {
+		DebPrint (("new_child: Freeing slot of dead process %d\n",
+			   cp->procinfo.dwProcessId));
+		CloseHandle (cp->procinfo.hProcess);
+		cp->procinfo.hProcess = NULL;
+		CloseHandle (cp->procinfo.hThread);
+		cp->procinfo.hThread = NULL;
+		goto Initialize;
+	      }
+	  }
+    }
+  if (child_proc_count == MAX_CHILDREN)
     return NULL;
   cp = &child_procs[child_proc_count++];
 
