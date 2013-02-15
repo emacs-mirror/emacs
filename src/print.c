@@ -102,7 +102,8 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    ptrdiff_t old_point_byte = -1, start_point_byte = -1;		\
    ptrdiff_t specpdl_count = SPECPDL_INDEX ();				\
    int free_print_buffer = 0;						\
-   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
+   bool multibyte							\
+     = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
    Lisp_Object original
 
 #define PRINTPREPARE							\
@@ -1396,7 +1397,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  /* 1 means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
 	  int need_nonhex = 0;
-	  int multibyte = STRING_MULTIBYTE (obj);
+	  bool multibyte = STRING_MULTIBYTE (obj);
 
 	  GCPRO1 (obj);
 

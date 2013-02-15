@@ -1,3 +1,17 @@
+2013-02-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* composite.c (fill_gstring_header): Remove useless prototype.
+	Break long line.
+	* lisp.h (message_dolog, compile_pattern): Adjust prototype.
+	* print.c (PRINTDECLARE, print_object):
+	* search.c (compile_pattern, fast_looking_at, search_buffer):
+	(simple_search, boyer_moore, Freplace_match):
+	* xdisp.c (c_string_pos, number_of_chars, message_dolog):
+	(get_overlay_arrow_glyph_row, display_mode_element):
+	(decode_mode_spec_coding, message3):
+	* xfaces.c (face_at_string_position): Use bool for booleans.
+	Adjust comments.
+
 2013-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix AIX port (Bug#13650).

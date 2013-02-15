@@ -698,10 +698,6 @@ composition_gstring_from_id (ptrdiff_t id)
   return HASH_VALUE (h, id);
 }
 
-static Lisp_Object fill_gstring_header (Lisp_Object, Lisp_Object,
-                                        Lisp_Object, Lisp_Object,
-                                        Lisp_Object);
-
 bool
 composition_gstring_p (Lisp_Object gstring)
 {
@@ -791,7 +787,8 @@ static Lisp_Object gstring_work;
 static Lisp_Object gstring_work_headers;
 
 static Lisp_Object
-fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lisp_Object font_object, Lisp_Object string)
+fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end,
+		     Lisp_Object font_object, Lisp_Object string)
 {
   ptrdiff_t from, to, from_byte;
   ptrdiff_t len, i;

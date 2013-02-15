@@ -209,7 +209,8 @@ clear_regexp_cache (void)
    for this pattern.  0 means backtrack only enough to get a valid match.  */
 
 struct re_pattern_buffer *
-compile_pattern (Lisp_Object pattern, struct re_registers *regp, Lisp_Object translate, int posix, int multibyte)
+compile_pattern (Lisp_Object pattern, struct re_registers *regp,
+		 Lisp_Object translate, int posix, bool multibyte)
 {
   struct regexp_cache *cp, **cpp;
 
@@ -534,9 +535,10 @@ fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
    data.  */
 
 ptrdiff_t
-fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t limit, ptrdiff_t limit_byte, Lisp_Object string)
+fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
+		 ptrdiff_t limit, ptrdiff_t limit_byte, Lisp_Object string)
 {
-  int multibyte;
+  bool multibyte;
   struct re_pattern_buffer *buf;
   unsigned char *p1, *p2;
   ptrdiff_t s1, s2;
@@ -1248,7 +1250,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       ptrdiff_t raw_pattern_size;
       ptrdiff_t raw_pattern_size_byte;
       unsigned char *patbuf;
-      int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+      bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
       unsigned char *base_pat;
       /* Set to positive if we find a non-ASCII char that need
 	 translation.  Otherwise set to zero later.  */
@@ -1461,8 +1463,8 @@ simple_search (EMACS_INT n, unsigned char *pat,
 	       ptrdiff_t pos, ptrdiff_t pos_byte,
 	       ptrdiff_t lim, ptrdiff_t lim_byte)
 {
-  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
-  int forward = n > 0;
+  bool multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool forward = n > 0;
   /* Number of buffer bytes matched.  Note that this may be different
      from len_byte in a multibyte buffer.  */
   ptrdiff_t match_byte = PTRDIFF_MIN;
@@ -1681,7 +1683,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
   register ptrdiff_t i;
   register int j;
   unsigned char *pat, *pat_end;
-  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   unsigned char simple_translate[0400];
   /* These are set to the preceding bytes of a byte to be translated
@@ -2507,8 +2509,8 @@ since only regular expressions have distinguished subexpressions.  */)
       ptrdiff_t length = SBYTES (newtext);
       unsigned char *substed;
       ptrdiff_t substed_alloc_size, substed_len;
-      int buf_multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
-      int str_multibyte = STRING_MULTIBYTE (newtext);
+      bool buf_multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+      bool str_multibyte = STRING_MULTIBYTE (newtext);
       int really_changed = 0;
 
       substed_alloc_size = ((STRING_BYTES_BOUND - 100) / 2 < length

@@ -910,8 +910,8 @@ static int forward_to_next_line_start (struct it *, int *, struct bidi_it *);
 static struct text_pos string_pos_nchars_ahead (struct text_pos,
                                                 Lisp_Object, ptrdiff_t);
 static struct text_pos string_pos (ptrdiff_t, Lisp_Object);
-static struct text_pos c_string_pos (ptrdiff_t, const char *, int);
-static ptrdiff_t number_of_chars (const char *, int);
+static struct text_pos c_string_pos (ptrdiff_t, const char *, bool);
+static ptrdiff_t number_of_chars (const char *, bool);
 static void compute_stop_pos (struct it *);
 static void compute_string_pos (struct text_pos *, struct text_pos,
                                 Lisp_Object);
@@ -1650,7 +1650,7 @@ string_pos (ptrdiff_t charpos, Lisp_Object string)
    means recognize multibyte characters.  */
 
 static struct text_pos
-c_string_pos (ptrdiff_t charpos, const char *s, int multibyte_p)
+c_string_pos (ptrdiff_t charpos, const char *s, bool multibyte_p)
 {
   struct text_pos pos;
 
@@ -1681,7 +1681,7 @@ c_string_pos (ptrdiff_t charpos, const char *s, int multibyte_p)
    non-zero means recognize multibyte characters.  */
 
 static ptrdiff_t
-number_of_chars (const char *s, int multibyte_p)
+number_of_chars (const char *s, bool multibyte_p)
 {
   ptrdiff_t nchars;
 
@@ -9357,8 +9357,8 @@ message_log_maybe_newline (void)
 
 
 /* Add a string M of length NBYTES to the message log, optionally
-   terminated with a newline when NLFLAG is non-zero.  MULTIBYTE, if
-   nonzero, means interpret the contents of M as multibyte.  This
+   terminated with a newline when NLFLAG is true.  MULTIBYTE, if
+   true, means interpret the contents of M as multibyte.  This
    function calls low-level routines in order to bypass text property
    hooks, etc. which might not be safe to run.
 
@@ -9366,7 +9366,7 @@ message_log_maybe_newline (void)
    so the buffer M must NOT point to a Lisp string.  */
 
 void
-message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
+message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 {
   const unsigned char *msg = (const unsigned char *) m;
 
@@ -9591,7 +9591,7 @@ message3 (Lisp_Object m)
   if (STRINGP (m))
     {
       ptrdiff_t nbytes = SBYTES (m);
-      int multibyte = STRING_MULTIBYTE (m);
+      bool multibyte = STRING_MULTIBYTE (m);
       USE_SAFE_ALLOCA;
       char *buffer = SAFE_ALLOCA (nbytes);
       memcpy (buffer, SDATA (m), nbytes);
@@ -18064,7 +18064,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
   const unsigned char *arrow_end = arrow_string + arrow_len;
   const unsigned char *p;
   struct it it;
-  int multibyte_p;
+  bool multibyte_p;
   int n_glyphs_before;
 
   set_buffer_temp (buffer);
@@ -20495,7 +20495,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 					     risky);
 		else if (c != 0)
 		  {
-		    int multibyte;
+		    bool multibyte;
 		    ptrdiff_t bytepos, charpos;
 		    const char *spec;
 		    Lisp_Object string;
@@ -21100,7 +21100,7 @@ static char *
 decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_flag)
 {
   Lisp_Object val;
-  int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   const unsigned char *eol_str;
   int eol_str_len;
   /* The EOL conversion we are using.  */
