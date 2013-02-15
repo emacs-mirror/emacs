@@ -1585,6 +1585,8 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-p" 'ido-toggle-prefix)
     (define-key map "\C-r" 'ido-prev-match)
     (define-key map "\C-s" 'ido-next-match)
+    (define-key map [?\C-.] 'ido-next-match)
+    (define-key map [?\C-,] 'ido-prev-match)
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
     (define-key map [(control ?\s)] 'ido-restrict-to-matches)
