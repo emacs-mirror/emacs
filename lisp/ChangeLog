@@ -1,3 +1,12 @@
+2013-02-15  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): When a
+	global minor mode has been enabled, call the minor mode function
+	for a new buffer once only, after the major mode hook, whilst
+	allowing that hook explicitly to disable the minor mode.
+	(MODE-disable-in-buffer): new (generated) function.
+	(disable-MODE): new (generated) buffer local variable.
+
 2013-02-15  Jambunathan K  <kjambunathan@gmail.com>
 
 	* iswitchb.el (iswitchb-read-buffer): Bind `C-.' and `C-,' to

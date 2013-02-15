@@ -341,9 +341,14 @@ If MODE's set-up depends on the major mode in effect when it was
 enabled, then disabling and reenabling MODE should make MODE work
 correctly with the current major mode.  This is important to
 prevent problems with derived modes, that is, major modes that
-call another major mode in their body."
+call another major mode in their body.
+
+When a major mode is initialized, MODE is actually turned on just
+after running the major mode's hook.  However, MODE is not turned
+on if the hook has explicitly disabled it."
   (declare (doc-string 2))
   (let* ((global-mode-name (symbol-name global-mode))
+	 (mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode))
 	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
 	 (group nil)
@@ -354,6 +359,10 @@ call another major mode in their body."
 	 (MODE-check-buffers
 	  (intern (concat global-mode-name "-check-buffers")))
 	 (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
+	 (MODE-disable-in-buffer
+	  (intern (concat global-mode-name "-disable-in-buffer")))
+	 (minor-MODE-hook (intern (concat mode-name "-hook")))
+	 (disable-MODE (intern (concat "disable-" mode-name)))
 	 (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
 	 keyw)
 
@@ -397,8 +406,6 @@ See `%s' for more information on %s."
 	     (progn
 	       (add-hook 'after-change-major-mode-hook
 			 ',MODE-enable-in-buffers)
-	       (add-hook 'change-major-mode-after-body-hook
-			 ',MODE-enable-in-buffers)
 	       (add-hook 'find-file-hook ',MODE-check-buffers)
 	       (add-hook 'change-major-mode-hook ',MODE-cmhh))
 	   (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
@@ -416,6 +423,10 @@ See `%s' for more information on %s."
        ;; up-to-here.
        :autoload-end
 
+       ;; A function which checks whether MODE has been disabled in the major
+       ;; mode hook which has just been run.
+       (add-hook ',minor-MODE-hook ',MODE-disable-in-buffer)
+
        ;; List of buffers left to process.
        (defvar ,MODE-buffers nil)
 
@@ -424,14 +435,15 @@ See `%s' for more information on %s."
 	 (dolist (buf ,MODE-buffers)
 	   (when (buffer-live-p buf)
 	     (with-current-buffer buf
-               (unless (eq ,MODE-major-mode major-mode)
-                 (if ,mode
-                     (progn
-                       (,mode -1)
-                       (,turn-on)
-                       (setq ,MODE-major-mode major-mode))
-                   (,turn-on)
-                   (setq ,MODE-major-mode major-mode)))))))
+               (if ,disable-MODE
+		   (if ,mode (,mode -1))
+		 (unless (eq ,MODE-major-mode major-mode)
+		   (if ,mode
+		       (progn
+			 (,mode -1)
+			 (,turn-on))
+		     (,turn-on))))
+	       (setq ,MODE-major-mode major-mode)))))
        (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
 
        (defun ,MODE-check-buffers ()
@@ -444,7 +456,14 @@ See `%s' for more information on %s."
        (defun ,MODE-cmhh ()
 	 (add-to-list ',MODE-buffers (current-buffer))
 	 (add-hook 'post-command-hook ',MODE-check-buffers))
-       (put ',MODE-cmhh 'definition-name ',global-mode))))
+       (put ',MODE-cmhh 'definition-name ',global-mode)
+       ;; disable-MODE is set in MODE-disable-in-buffer and cleared by
+       ;; kill-all-local-variables.
+       (defvar-local ,disable-MODE nil)
+       (defun ,MODE-disable-in-buffer ()
+	 (unless ,mode
+	   (setq ,disable-MODE t)))
+       (put ',MODE-disable-in-buffer 'definition-name ',global-mode))))
 
 ;;;
 ;;; easy-mmode-defmap
