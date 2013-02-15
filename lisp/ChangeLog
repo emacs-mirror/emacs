@@ -1,11 +1,15 @@
+2013-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (eval-expression): Let `exp' set the mark (bug#13724).
+
 2013-02-15  Alan Mackenzie  <acm@muc.de>
 
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): When a
 	global minor mode has been enabled, call the minor mode function
 	for a new buffer once only, after the major mode hook, whilst
 	allowing that hook explicitly to disable the minor mode.
-	(MODE-disable-in-buffer): new (generated) function.
-	(disable-MODE): new (generated) buffer local variable.
+	(MODE-disable-in-buffer): New (generated) function.
+	(disable-MODE): New (generated) buffer local variable.
 
 2013-02-15  Jambunathan K  <kjambunathan@gmail.com>
 
@@ -52,8 +56,8 @@
 
 2013-02-14  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-debug-message): Add
-	`tramp-condition-case-unless-debug'.
+	* net/tramp.el (tramp-debug-message):
+	Add `tramp-condition-case-unless-debug'.
 	(tramp-debug-on-error): New defvar.
 	(tramp-condition-case-unless-debug): New defun.
 	(tramp-file-name-handler): Use it.
@@ -207,8 +211,8 @@
 	* net/tramp-compat.el (top): Declare `remote-file-name-inhibit-cache'
 	only if it doesn't exist.
 
-	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Set
-	process marker.
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Set process marker.
 
 2013-02-12  Tassilo Horn  <tsdh@gnu.org>
 

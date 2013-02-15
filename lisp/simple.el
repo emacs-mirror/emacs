@@ -1293,13 +1293,12 @@ display the result of expression evaluation."
 
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-buffer.
-(defun eval-expression (eval-expression-arg
-			&optional eval-expression-insert-value)
-  "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
+(defun eval-expression (exp &optional insert-value)
+  "Evaluate EXP and print value in the echo area.
 When called interactively, read an Emacs Lisp expression and
 evaluate it.
 Value is also consed on to front of the variable `values'.
-Optional argument EVAL-EXPRESSION-INSERT-VALUE non-nil (interactively,
+Optional argument INSERT-VALUE non-nil (interactively,
 with prefix argument) means insert the result into the current buffer
 instead of printing it in the echo area.  Truncates long output
 according to the value of the variables `eval-expression-print-length'
@@ -1315,12 +1314,12 @@ this command arranges for all errors to enter the debugger."
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
-      (push (eval eval-expression-arg lexical-binding) values)
+      (push (eval exp lexical-binding) values)
     (let ((old-value (make-symbol "t")) new-value)
       ;; Bind debug-on-error to something unique so that we can
       ;; detect when evalled code changes it.
       (let ((debug-on-error old-value))
-	(push (eval eval-expression-arg lexical-binding) values)
+	(push (eval exp lexical-binding) values)
 	(setq new-value debug-on-error))
       ;; If evalled code has changed the value of debug-on-error,
       ;; propagate that change to the global binding.
@@ -1328,8 +1327,9 @@ this command arranges for all errors to enter the debugger."
 	(setq debug-on-error new-value))))
 
   (let ((print-length eval-expression-print-length)
-	(print-level eval-expression-print-level))
-    (if eval-expression-insert-value
+	(print-level eval-expression-print-level)
+        (deactivate-mark))
+    (if insert-value
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
 	   (prin1 (car values))))
