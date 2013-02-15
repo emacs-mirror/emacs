@@ -1,3 +1,27 @@
+2013-02-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (new_child): Free up to 2 slots of dead processes at a
+	time.  Improve diagnostics in DebPrint.
+	(reader_thread): If cp->char_avail is NULL, set the FILE_AT_EOF
+	flag, so that sys_select could have a chance of noticing that this
+	process is dead, and call a SIGCHLD handler for it.  Improve
+	diagnostics in DebPrint.
+	(reap_subprocess): Reset the FILE_AT_EOF flag set by
+	reader_thread.
+	(sys_select): Watch a process whose procinfo.hProcess is non-NULL
+	even if its char_avail is NULL.  Allows to reap subprocesses that
+	were forcibly deleted by delete-process.  (Bug#13546)
+
+	* w32.c (sys_socket, sys_bind, sys_connect, sys_gethostname)
+	(sys_gethostbyname, sys_getservbyname, sys_getpeername)
+	(sys_shutdown, sys_setsockopt, sys_listen, sys_getsockname)
+	(sys_accept, sys_recvfrom, sys_sendto, fcntl): In case of failure,
+	make sure errno is set to an appropriate value.  (Bug#13546)
+	(socket_to_fd): Add assertion against indexing fd_info[] with a
+	value that is out of bounds.
+	(sys_accept): If fd is negative, do not set up the child_process
+	structure for reading.
+
 2013-02-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* composite.c (fill_gstring_header): Remove useless prototype.

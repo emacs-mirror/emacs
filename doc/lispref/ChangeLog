@@ -1,4 +1,4 @@
-2013-02-14  Glenn Morris  <rgm@gnu.org>
+2013-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* modes.texi (Basic Major Modes): 'z' no longer bound in special-mode.
 
