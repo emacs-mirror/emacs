@@ -1,3 +1,15 @@
+2013-02-15  Jambunathan K  <kjambunathan@gmail.com>
+
+	* iswitchb.el (iswitchb-read-buffer): Bind `C-.' and `C-,' to
+	`iswitchb-next-match' and `iswitchb-prev-match' resply.
+
+	* ido.el (ido-init-completion-maps): Bind `C-.' and `C-,' to
+	`ido-next-match' and `ido-prev-match' resply.
+
+	* icomplete.el (icomplete-minibuffer-map): Unbind `C-s' and `C-r'.
+	Bind `C-.' and `C-,' to `icomplete-forward-completions' and
+	`icomplete-backward-completions' (Bug#13708).
+
 2013-02-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
