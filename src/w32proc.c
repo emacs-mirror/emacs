@@ -799,6 +799,9 @@ new_child (void)
       goto Initialize;
   if (child_proc_count == MAX_CHILDREN)
     {
+      int i = 0;
+      child_process *dead_cp;
+
       DebPrint (("new_child: No vacant slots, looking for dead processes\n"));
       for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
 	if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
@@ -814,13 +817,23 @@ new_child (void)
 	    if (status != STILL_ACTIVE
 		|| WaitForSingleObject (cp->procinfo.hProcess, 0) == WAIT_OBJECT_0)
 	      {
-		DebPrint (("new_child: Freeing slot of dead process %d\n",
-			   cp->procinfo.dwProcessId));
+		DebPrint (("new_child: Freeing slot of dead process %d, fd %d\n",
+			   cp->procinfo.dwProcessId, cp->fd));
 		CloseHandle (cp->procinfo.hProcess);
 		cp->procinfo.hProcess = NULL;
 		CloseHandle (cp->procinfo.hThread);
 		cp->procinfo.hThread = NULL;
-		goto Initialize;
+		/* Free up to 2 dead slots at a time, so that if we
+		   have a lot of them, they will eventually all be
+		   freed when the tornado ends.  */
+		if (i == 0)
+		  dead_cp = cp;
+		else
+		  {
+		    cp = dead_cp;
+		    goto Initialize;
+		  }
+		i++;
 	      }
 	  }
     }
@@ -975,12 +988,24 @@ reader_thread (void *arg)
       else
 	rc = _sys_read_ahead (cp->fd);
 
+      if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess && cp->fd >= 0)
+	{
+	  /* Somebody already called delete_child on this child, since
+	     only delete_child zeroes out cp->char_avail.  This means
+	     no one will read from cp->fd and will not set the
+	     FILE_AT_EOF flag, therefore preventing sys_select from
+	     noticing that the process died.  Set the flag here
+	     instead.  */
+	  fd_info[cp->fd].flags |= FILE_AT_EOF;
+	}
+
       /* The name char_avail is a misnomer - it really just means the
 	 read-ahead has completed, whether successfully or not. */
       if (!SetEvent (cp->char_avail))
         {
-	  DebPrint (("reader_thread.SetEvent failed with %lu for fd %ld\n",
-		     GetLastError (), cp->fd));
+	  DebPrint (("reader_thread.SetEvent(0x%x) failed with %lu for fd %ld (PID %d)\n",
+		     (DWORD_PTR)cp->char_avail, GetLastError (),
+		     cp->fd, cp->pid));
 	  return 1;
 	}
 
@@ -1141,6 +1166,11 @@ reap_subprocess (child_process *cp)
      register_child has not been called. */
   if (cp->fd == -1)
     delete_child (cp);
+  else
+    {
+      /* Reset the flag set by reader_thread.  */
+      fd_info[cp->fd].flags &= ~FILE_AT_EOF;
+    }
 }
 
 /* Wait for any of our existing child processes to die
@@ -1925,7 +1955,7 @@ count_children:
     /* Some child_procs might be sockets; ignore them.  Also some
        children may have died already, but we haven't finished reading
        the process output; ignore them too.  */
-    if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
+    if ((CHILD_ACTIVE (cp) || cp->procinfo.hProcess)
 	&& (cp->fd < 0
 	    || (fd_info[cp->fd].flags & FILE_SEND_SIGCHLD) == 0
 	    || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
