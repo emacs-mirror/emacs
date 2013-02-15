@@ -1,3 +1,7 @@
+2013-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (h_errno) [!HAVE_H_ERRNO]: Remove unused decl.
+
 2013-02-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (read_char): Fix calculation of auto-save time out

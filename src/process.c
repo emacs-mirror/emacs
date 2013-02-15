@@ -180,10 +180,6 @@ static Lisp_Object Qlast_nonmenu_event;
 #define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
 #define SERIALCONN1_P(p) (EQ (p->type, Qserial))
 
-#ifndef HAVE_H_ERRNO
-extern int h_errno;
-#endif
-
 /* Number of events of change of status of a process.  */
 static EMACS_INT process_tick;
 /* Number of events for which the user or sentinel has been notified.  */
@@ -5567,7 +5563,7 @@ Output from processes can arrive in between bunches.  */)
   if (XINT (start) < GPT && XINT (end) > GPT)
     move_gap_both (XINT (start), start_byte);
 
-  send_process (proc, (char *) BYTE_POS_ADDR (start_byte), 
+  send_process (proc, (char *) BYTE_POS_ADDR (start_byte),
 		end_byte - start_byte, Fcurrent_buffer ());
 
   return Qnil;
