@@ -1,3 +1,15 @@
+2013-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (set_errno): Reset h_errno and don't set it to any other
+	value.  Set errno instead.
+	(check_errno): Reset h_errno.
+	(sys_socket, socket_to_fd, sys_bind, sys_connect)
+	(sys_gethostname, sys_getservbyname, sys_getpeername)
+	(sys_shutdown, sys_setsockopt, sys_listen, sys_getsockname)
+	(sys_accept, sys_recvfrom, sys_sendto, fcntl, sys_read): Don't set
+	h_errno.
+	(sys_gethostbyname): Set h_errno only errors detected.
+
 2013-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (h_errno) [!HAVE_H_ERRNO]: Remove unused decl.

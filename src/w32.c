@@ -6092,35 +6092,39 @@ init_winsock (int load_now)
 
 int h_errno = 0;
 
-/* function to set h_errno for compatibility; map winsock error codes to
-   normal system codes where they overlap (non-overlapping definitions
-   are already in <sys/socket.h> */
+/* Function to map winsock error codes to errno codes for those errno
+   code defined in errno.h (errno values not defined by errno.h are
+   already in nt/inc/sys/socket.h).  */
 static void
 set_errno (void)
 {
-  if (winsock_lib == NULL)
-    h_errno = EINVAL;
-  else
-    h_errno = pfn_WSAGetLastError ();
+  int wsa_err;
 
-  switch (h_errno)
+  h_errno = 0;
+  if (winsock_lib == NULL)
+    wsa_err = EINVAL;
+  else
+    wsa_err = pfn_WSAGetLastError ();
+
+  switch (wsa_err)
     {
-    case WSAEACCES:		h_errno = EACCES; break;
-    case WSAEBADF: 		h_errno = EBADF; break;
-    case WSAEFAULT:		h_errno = EFAULT; break;
-    case WSAEINTR: 		h_errno = EINTR; break;
-    case WSAEINVAL:		h_errno = EINVAL; break;
-    case WSAEMFILE:		h_errno = EMFILE; break;
-    case WSAENAMETOOLONG: 	h_errno = ENAMETOOLONG; break;
-    case WSAENOTEMPTY:		h_errno = ENOTEMPTY; break;
+    case WSAEACCES:		errno = EACCES; break;
+    case WSAEBADF: 		errno = EBADF; break;
+    case WSAEFAULT:		errno = EFAULT; break;
+    case WSAEINTR: 		errno = EINTR; break;
+    case WSAEINVAL:		errno = EINVAL; break;
+    case WSAEMFILE:		errno = EMFILE; break;
+    case WSAENAMETOOLONG: 	errno = ENAMETOOLONG; break;
+    case WSAENOTEMPTY:		errno = ENOTEMPTY; break;
+    default:			errno = wsa_err; break;
     }
-  errno = h_errno;
 }
 
 static void
 check_errno (void)
 {
-  if (h_errno == 0 && winsock_lib != NULL)
+  h_errno = 0;
+  if (winsock_lib != NULL)
     pfn_WSASetLastError (0);
 }
 
@@ -6232,7 +6236,7 @@ sys_socket (int af, int type, int protocol)
 
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return INVALID_SOCKET;
     }
 
@@ -6242,13 +6246,7 @@ sys_socket (int af, int type, int protocol)
   s = pfn_socket (af, type, protocol);
 
   if (s != INVALID_SOCKET)
-    {
-      int retval = socket_to_fd (s);
-
-      if (retval == -1)
-	errno = h_errno;
-      return retval;
-    }
+    return socket_to_fd (s);
 
   set_errno ();
   return -1;
@@ -6344,8 +6342,9 @@ socket_to_fd (SOCKET s)
       /* clean up */
       _close (fd);
     }
+  else
   pfn_closesocket (s);
-  h_errno = EMFILE;
+  errno = EMFILE;
   return -1;
 }
 
@@ -6354,7 +6353,7 @@ sys_bind (int s, const struct sockaddr * addr, int namelen)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENOTSOCK;
+      errno = ENOTSOCK;
       return SOCKET_ERROR;
     }
 
@@ -6366,7 +6365,7 @@ sys_bind (int s, const struct sockaddr * addr, int namelen)
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6375,7 +6374,7 @@ sys_connect (int s, const struct sockaddr * name, int namelen)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENOTSOCK;
+      errno = ENOTSOCK;
       return SOCKET_ERROR;
     }
 
@@ -6387,7 +6386,7 @@ sys_connect (int s, const struct sockaddr * name, int namelen)
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6416,12 +6415,20 @@ int
 sys_gethostname (char * name, int namelen)
 {
   if (winsock_lib != NULL)
-    return pfn_gethostname (name, namelen);
+    {
+      int retval;
+
+      check_errno ();
+      retval = pfn_gethostname (name, namelen);
+      if (retval == SOCKET_ERROR)
+	set_errno ();
+      return retval;
+    }
 
   if (namelen > MAX_COMPUTERNAME_LENGTH)
     return !GetComputerName (name, (DWORD *)&namelen);
 
-  errno = h_errno = EFAULT;
+  errno = EFAULT;
   return SOCKET_ERROR;
 }
 
@@ -6429,17 +6436,24 @@ struct hostent *
 sys_gethostbyname (const char * name)
 {
   struct hostent * host;
+  int h_err = h_errno;
 
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      h_errno = NO_RECOVERY;
+      errno = ENETDOWN;
       return NULL;
     }
 
   check_errno ();
   host = pfn_gethostbyname (name);
   if (!host)
-    set_errno ();
+    {
+      set_errno ();
+      h_errno = errno;
+    }
+  else
+    h_errno = h_err;
   return host;
 }
 
@@ -6450,7 +6464,7 @@ sys_getservbyname (const char * name, const char * proto)
 
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return NULL;
     }
 
@@ -6466,7 +6480,7 @@ sys_getpeername (int s, struct sockaddr *addr, int * namelen)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return SOCKET_ERROR;
     }
 
@@ -6478,7 +6492,7 @@ sys_getpeername (int s, struct sockaddr *addr, int * namelen)
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6487,7 +6501,7 @@ sys_shutdown (int s, int how)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return SOCKET_ERROR;
     }
 
@@ -6499,7 +6513,7 @@ sys_shutdown (int s, int how)
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6508,7 +6522,7 @@ sys_setsockopt (int s, int level, int optname, const void * optval, int optlen)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return SOCKET_ERROR;
     }
 
@@ -6521,7 +6535,7 @@ sys_setsockopt (int s, int level, int optname, const void * optval, int optlen)
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6530,7 +6544,7 @@ sys_listen (int s, int backlog)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return SOCKET_ERROR;
     }
 
@@ -6544,7 +6558,7 @@ sys_listen (int s, int backlog)
 	fd_info[s].flags |= FILE_LISTEN;
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6553,7 +6567,7 @@ sys_getsockname (int s, struct sockaddr * name, int * namelen)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return SOCKET_ERROR;
     }
 
@@ -6565,7 +6579,7 @@ sys_getsockname (int s, struct sockaddr * name, int * namelen)
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6574,7 +6588,7 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return -1;
     }
 
@@ -6586,11 +6600,7 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
       if (t == INVALID_SOCKET)
 	set_errno ();
       else
-	{
-	  fd = socket_to_fd (t);
-	  if (fd < 0)
-	    errno = h_errno;	/* socket_to_fd sets h_errno */
-	}
+	fd = socket_to_fd (t);
 
       if (fd >= 0)
 	{
@@ -6599,7 +6609,7 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
 	}
       return fd;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return -1;
 }
 
@@ -6609,7 +6619,7 @@ sys_recvfrom (int s, char * buf, int len, int flags,
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return SOCKET_ERROR;
     }
 
@@ -6621,7 +6631,7 @@ sys_recvfrom (int s, char * buf, int len, int flags,
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6631,7 +6641,7 @@ sys_sendto (int s, const char * buf, int len, int flags,
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return SOCKET_ERROR;
     }
 
@@ -6643,7 +6653,7 @@ sys_sendto (int s, const char * buf, int len, int flags,
 	set_errno ();
       return rc;
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -6654,7 +6664,7 @@ fcntl (int s, int cmd, int options)
 {
   if (winsock_lib == NULL)
     {
-      errno = h_errno = ENETDOWN;
+      errno = ENETDOWN;
       return -1;
     }
 
@@ -6673,11 +6683,11 @@ fcntl (int s, int cmd, int options)
 	}
       else
 	{
-	  h_errno = EINVAL;
+	  errno = EINVAL;
 	  return SOCKET_ERROR;
 	}
     }
-  errno = h_errno = ENOTSOCK;
+  errno = ENOTSOCK;
   return SOCKET_ERROR;
 }
 
@@ -7108,7 +7118,7 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
 	      if (waiting == 0 && nchars == 0)
 	        {
-		  h_errno = errno = EWOULDBLOCK;
+		  errno = EWOULDBLOCK;
 		  return -1;
 		}
 
