@@ -1,3 +1,8 @@
+2013-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (__STDC__): Fiddle with value only for MSVC.
+	(Bug#9066)
+
 2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

@@ -265,8 +265,11 @@ struct timespec
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
 extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
+#ifdef _MSC_VER
 /* This is hacky, but is necessary to avoid warnings about macro
-   redefinitions using the SDK compilers.  */
+   redefinitions using the MSVC compilers, since, when __STDC__ is
+   undefined or zero, those compilers declare functions like fileno,
+   lseek, and chdir, for which we defined macros above.  */
 #ifndef __STDC__
 #define __STDC__ 1
 #define MUST_UNDEF__STDC__
@@ -278,6 +281,11 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #undef __STDC__
 #undef MUST_UNDEF__STDC__
 #endif
+#else  /* !_MSC_VER */
+#include <direct.h>
+#include <io.h>
+#include <stdio.h>
+#endif	/* !_MSC_VER */
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */

@@ -191,11 +191,7 @@ static Time last_mouse_movement_time;
 
 /* Incremented by w32_read_socket whenever it really tries to read
    events.  */
-#ifdef __STDC__
 static int volatile input_signal_count;
-#else
-static int input_signal_count;
-#endif
 
 #ifdef CYGWIN
 int w32_message_fd = -1;

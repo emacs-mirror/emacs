@@ -1,5 +1,8 @@
 2013-02-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32term.c <input_signal_count>: Declare 'volatile'
+	unconditionally.  (Bug#9066)
+
 	* w32.c (set_errno): Reset h_errno and don't set it to any other
 	value.  Set errno instead.
 	(check_errno): Reset h_errno.
