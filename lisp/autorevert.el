@@ -519,12 +519,13 @@ will use an up-to-date value of `auto-revert-interval'"
     (let ((func (if (fboundp 'inotify-add-watch)
 		    'inotify-add-watch 'w32notify-add-watch))
 	  (aspect (if (fboundp 'inotify-add-watch)
-		      '(create modify moved-to) '(size last-write-time))))
+		      '(create modify moved-to) '(size last-write-time)))
+	  (file (if (fboundp 'inotify-add-watch)
+		    (directory-file-name (expand-file-name default-directory))
+		  (buffer-file-name))))
       (setq auto-revert-notify-watch-descriptor
 	    (ignore-errors
-	      (funcall
-	       func (directory-file-name (expand-file-name default-directory))
-	       aspect 'auto-revert-notify-handler)))
+	      (funcall func file aspect 'auto-revert-notify-handler)))
       (if auto-revert-notify-watch-descriptor
 	  (progn
 	    (puthash

@@ -1,3 +1,9 @@
+2013-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* autorevert.el (auto-revert-notify-add-watch): With 'w32notify',
+	add watch for the file, not its parent directory, since w32notify
+	sets up the watch for the directory internally.  (Bug#13725)
+
 2013-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-default-frame-delay): New variable.
