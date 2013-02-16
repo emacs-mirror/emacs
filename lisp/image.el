@@ -660,6 +660,17 @@ number, play until that number of seconds has elapsed."
 (defvar-local image-current-frame nil
   "The frame index of the current animated image.")
 
+(defun image-nth-frame (image n &optional nocheck)
+  "Show frame N of IMAGE.
+Frames are indexed from 0.  Optional argument NOCHECK non-nil means
+do not check N is within the range of frames present in the image."
+  (unless nocheck
+    (if (< n 0) (setq n 0)
+      (setq n (min n (1- (car (image-animated-p image)))))))
+  (plist-put (cdr image) :index n)
+  (setq image-current-frame n)
+  (force-window-update))
+
 ;; FIXME? The delay may not be the same for different sub-images,
 ;; hence we need to call image-animated-p to return it.
 ;; But it also returns count, so why do we bother passing that as an
@@ -674,9 +685,7 @@ LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed.
 The minimum delay between successive frames is 0.01s."
-  (plist-put (cdr image) :index n)
-  (setq image-current-frame n)
-  (force-window-update)
+  (image-nth-frame image n t)
   (setq n (1+ n))
   (let* ((time (float-time))
 	 (animation (image-animated-p image))

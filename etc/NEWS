@@ -141,6 +141,10 @@ amounts of data into the ERC input.
 visit the next image file and the previous image file in the same
 directory, respectively.
 
+*** New commands to show specific frames of multi-frame images.
+`f' (`image-next-frame') and `b' (`image-previous-frame') visit the
+next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
+
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.

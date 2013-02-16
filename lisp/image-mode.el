@@ -340,6 +340,9 @@ call."
     (define-key map (kbd "S-SPC")     'image-scroll-down)
     (define-key map (kbd "DEL")       'image-scroll-down)
     (define-key map (kbd "RET")       'image-toggle-animation)
+    (define-key map "F" 'image-goto-frame)
+    (define-key map "f" 'image-next-frame)
+    (define-key map "b" 'image-previous-frame)
     (define-key map "n" 'image-next-file)
     (define-key map "p" 'image-previous-file)
     (define-key map [remap forward-char] 'image-forward-hscroll)
@@ -626,6 +629,37 @@ Otherwise it plays once, then stops."
 		 (setq index nil))
 	    (image-animate image index
 			   (if image-animate-loop t)))))))))
+
+(defun image-goto-frame (n &optional relative)
+  "Show frame N of a multi-frame image.
+Optional argument OFFSET non-nil means interpret N as relative to the
+current frame.  Frames are indexed from 1."
+  (interactive
+   (list (or current-prefix-arg
+	     (read-number "Show frame number: "))))
+  (let ((image (image-get-display-property))
+	animation)
+    (cond
+     ((null image)
+      (error "No image is present"))
+     ((null image-current-frame)
+      (message "No image animation."))
+     (t
+      (image-nth-frame image (if relative (+ n image-current-frame) (1- n)))))))
+
+(defun image-next-frame (&optional n)
+  "Switch to the next frame of a multi-frame image.
+With optional argument N, switch to the Nth frame after the current one.
+If N is negative, switch to the Nth frame before the current one."
+  (interactive "p")
+  (image-goto-frame n t))
+
+(defun image-previous-frame (&optional n)
+  "Switch to the previous frame of a multi-frame image.
+With optional argument N, switch to the Nth frame before the current one.
+If N is negative, switch to the Nth frame after the current one."
+  (interactive "p")
+  (image-next-frame (- n)))
 
 
 ;;; Switching to the next/previous image

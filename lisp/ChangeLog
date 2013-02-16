@@ -1,3 +1,11 @@
+2013-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (image-nth-frame): New, split from image-animate-timeout.
+	(image-animate-timeout): Use image-nth-frame.
+	* image-mode.el (image-goto-frame, image-next-frame)
+	(image-previous-frame): New commands.
+	(image-mode-map): Add new frame commands.
+
 2013-02-16  Jonas Bernoulli  <jonas@bernoul.li>
 
 	* emacs-lisp/tabulated-list.el (tabulated-list-print-col):
