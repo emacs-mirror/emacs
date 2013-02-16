@@ -1,3 +1,7 @@
+2013-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* image-mode.el (image-mode-map): Give it a menu.
+
 2013-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (tramp-connection-properties): New customer

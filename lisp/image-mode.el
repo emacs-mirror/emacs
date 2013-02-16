@@ -359,6 +359,53 @@ call."
     (define-key map [remap move-end-of-line] 'image-eol)
     (define-key map [remap beginning-of-buffer] 'image-bob)
     (define-key map [remap end-of-buffer] 'image-eob)
+    (easy-menu-define image-mode-menu map "Menu for Image mode."
+      '("Image"
+	["Show as Text" image-toggle-display :active t
+	 :help "Show image as text"]
+	"--"
+	["Fit Frame to Image" image-mode-fit-frame :active t
+	 :help "Resize frame to match image"]
+	["Fit to Window Height" image-transform-fit-to-height
+	 :visible (eq image-type 'imagemagick)
+	 :help "Resize image to match the window height"]
+	["Fit to Window Width" image-transform-fit-to-width
+	 :visible (eq image-type 'imagemagick)
+	 :help "Resize image to match the window width"]
+	["Rotate Image..." image-transform-set-rotation
+	 :visible (eq image-type 'imagemagick)
+	 :help "Rotate the image"]
+	"--"
+	["Next Image" image-next-file :active t
+         :help "Move to next image in this directory"]
+	["Previous Image" image-previous-file :active t
+         :help "Move to previous image in this directory"]
+	"--"
+	["Animate Image" image-toggle-animation :style toggle
+	 :selected (let ((image (image-get-display-property)))
+		     (and image (image-animate-timer image)))
+	 :active image-current-frame
+         :help "Toggle image animation"]
+	["Loop Animation"
+	 (lambda () (interactive)
+;;;	   (make-variable-buffer-local 'image-animate-loop)
+	   (setq image-animate-loop (not image-animate-loop))
+	   ;; FIXME this is a hacky way to make it affect a currently
+	   ;; animating image.
+	   (when (let ((image (image-get-display-property)))
+		   (and image (image-animate-timer image)))
+	     (image-toggle-animation)
+	     (image-toggle-animation)))
+	 :style toggle :selected image-animate-loop
+	 :active image-current-frame
+         :help "Animate images once, or forever?"]
+	["Next Frame" image-next-frame :active image-current-frame
+	 :help "Show the next frame of this image"]
+	["Previous Frame" image-previous-frame :active image-current-frame
+	 :help "Show the previous frame of this image"]
+	["Goto Frame..." image-goto-frame :active image-current-frame
+	 :help "Show a specific frame of this image"]
+	))
     map)
   "Mode keymap for `image-mode'.")
 
@@ -637,8 +684,7 @@ current frame.  Frames are indexed from 1."
   (interactive
    (list (or current-prefix-arg
 	     (read-number "Show frame number: "))))
-  (let ((image (image-get-display-property))
-	animation)
+  (let ((image (image-get-display-property)))
     (cond
      ((null image)
       (error "No image is present"))
