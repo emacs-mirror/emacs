@@ -2256,7 +2256,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		"method-combination\\|setf-expander\\|skeleton\\|widget\\|"
 		"function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
 		;; Variable declarations.
-		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\)\\|"
+		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\(?:-local\\)?\\)\\|"
 		;; Structure declarations.
 		"\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
 		"\\)\\)\\>"
