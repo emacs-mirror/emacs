@@ -1,5 +1,10 @@
 2013-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-default-frame-delay): New variable.
+	(image-animated-p): Use image-default-frame-delay.
+	(image-minimum-frame-delay): New constant.
+	(image-animate-timeout): Use image-minimum-frame-delay.
+
 	* image.el (image-nth-frame): New, split from image-animate-timeout.
 	(image-animate-timeout): Use image-nth-frame.
 	* image-mode.el (image-goto-frame, image-next-frame)

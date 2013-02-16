@@ -609,6 +609,10 @@ Example:
 (defconst image-animated-types '(gif)
   "List of supported animated image types.")
 
+(defvar image-default-frame-delay 0.1
+  "Default interval in seconds between frames of a multi-frame image.
+Only used if the image does not specify a value.")
+
 (defun image-animated-p (image)
   "Return non-nil if IMAGE can be animated.
 To be capable of being animated, an image must be of a type
@@ -623,7 +627,7 @@ seconds until the next sub-image should be displayed."
 	   (images (plist-get metadata 'count))
 	   (delay (plist-get metadata 'delay)))
       (when (and images (> images 1) (numberp delay))
-	(if (< delay 0) (setq delay 0.1))
+	(if (< delay 0) (setq delay image-default-frame-delay))
 	(cons images delay))))))
 
 ;; "Destructively"?
@@ -657,6 +661,9 @@ number, play until that number of seconds has elapsed."
 	(setq timer nil)))
     timer))
 
+(defconst image-minimum-frame-delay 0.01
+  "Minimum interval in seconds between frames of an animated image.")
+
 (defvar-local image-current-frame nil
   "The frame index of the current animated image.")
 
@@ -684,7 +691,7 @@ TIME-ELAPSED is the total time that has elapsed since
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed.
-The minimum delay between successive frames is 0.01s."
+The minimum delay between successive frames is `image-minimum-frame-delay'."
   (image-nth-frame image n t)
   (setq n (1+ n))
   (let* ((time (float-time))
@@ -692,7 +699,7 @@ The minimum delay between successive frames is 0.01s."
 	 ;; Subtract off the time we took to load the image from the
 	 ;; stated delay time.
 	 (delay (max (+ (cdr animation) time (- (float-time)))
-		     0.01))
+		     image-minimum-frame-delay))
 	 done)
     (if (>= n count)
 	(if limit
