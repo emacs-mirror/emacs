@@ -212,21 +212,14 @@ These reflect the priorities of the items in each category."
 (defun todos-reset-prefix (symbol value)
   "The :set function for `todos-prefix' and `todos-number-priorities'."
   (let ((oldvalue (symbol-value symbol))
-	(files (append todos-files todos-archives)))
+	(files todos-file-buffers))
     (custom-set-default symbol value)
     (when (not (equal value oldvalue))
       (dolist (f files)
 	(with-current-buffer (find-file-noselect f)
-	  (save-window-excursion
-	    (todos-show)
-	    (save-excursion
-	      (widen)
-	      (goto-char (point-min))
-	      (while (not (eobp))
-		(remove-overlays (point) (point)); 'before-string prefix)
-		(forward-line)))
-	    ;; Activate the new setting (save-restriction does not help).
-	    (save-excursion (todos-category-select))))))))
+	  (remove-overlays 1 (1+ (buffer-size)) 'todos 'prefix)
+	  ;; Activate the new setting in the current category.
+	  (save-excursion (todos-category-select)))))))
 
 (defcustom todos-item-mark "*"
   "String used to mark items.
@@ -1181,14 +1174,16 @@ done items are shown.  Its value is determined by user option
 	      (concat "\n\\(" (regexp-quote todos-category-done) "\\)") nil t)
 	(let* ((beg (match-beginning 1))
 	       (end (match-end 0))
-	       (ovs (overlays-at beg))
-	       (ov (when ovs (car ovs)))
+	       (ov (progn (goto-char beg)
+			  (todos-get-overlay 'separator)))
 	       (old-sep (when ov (overlay-get ov 'display)))
 	       new-ov)
-	  (when (string= old-sep sep)
-	    (setq new-ov (make-overlay beg end))
-	    (overlay-put new-ov 'display todos-done-separator)
-	    (delete-overlay ov)))))))
+	  (when old-sep
+	    (unless (string= old-sep sep)
+	      (setq new-ov (make-overlay beg end))
+	      (overlay-put new-ov 'todos 'separator)
+	      (overlay-put new-ov 'display todos-done-separator)
+	      (delete-overlay ov))))))))
 
 (defun todos-category-completions ()
   "Return a list of completions for `todos-read-category'.
@@ -1259,17 +1254,12 @@ Todos files named in `todos-category-completions-files'."
 	;; Make display overlay for done items separator string, unless there
 	;; already is one.
 	(let* ((done-sep todos-done-separator)
-	       (ovs (overlays-at done-sep-start))
-	       ;; ov-sep0 ov-sep1)
-	       ov-sep)
-	  ;; There should never be more than one overlay here, so car suffices.
-	  (unless (and ovs (string= (overlay-get (car ovs) 'display) done-sep))
-	    (setq ov-sep (make-overlay done-sep-start done-end))
-	    (overlay-put ov-sep 'display done-sep))))
-	    ;; (setq ov-sep0 (make-overlay done-sep-start done-end))
-	    ;; (setq ov-sep1 (make-overlay done-end done-end))
-	    ;; (overlay-put ov-sep0 'invisible t)
-	    ;; (overlay-put ov-sep1 'after-string done-sep)))
+	       (ov (progn (goto-char done-sep-start)
+			  (todos-get-overlay 'separator))))
+	  (unless ov
+	    (setq ov (make-overlay done-sep-start done-end))
+	    (overlay-put ov 'todos 'separator)
+	    (overlay-put ov 'display done-sep))))
       (narrow-to-region (point-min) done-start)
       ;; Loading this from todos-mode, or adding it to the mode hook, causes
       ;; Emacs to hang in todos-item-start, at (looking-at todos-item-start).
@@ -1517,11 +1507,10 @@ The final element is \"*\", indicating an unspecified month.")
 
 (defun todos-remove-item ()
   "Internal function called in editing, deleting or moving items."
-  (let* ((beg (todos-item-start))
-	 (end (progn (todos-item-end) (1+ (point))))
-	 (ovs (overlays-in beg beg)))
-    ;; There can be both prefix/number and mark overlays.
-    (while ovs (delete-overlay (car ovs)) (pop ovs))
+  (let* ((end (progn (todos-item-end) (1+ (point))))
+	 (beg (todos-item-start))
+	 (ov (todos-get-overlay 'prefix)))
+    (when ov (delete-overlay ov))
     (delete-region beg end)))
 
 (defun todos-diary-item-p ()
@@ -1545,20 +1534,24 @@ The final element is \"*\", indicating an unspecified month.")
 	(progn (goto-char (point-min))
 	       (looking-at todos-done-string-start)))))
 
-(defun todos-prefix-overlay ()
-  "Return this item's prefix overlay."
-  ;; Why doesn't this work?
-  ;; (get-char-property-and-overlay lbp 'before-string)
-  (let* ((lbp (line-beginning-position))
-	 (ovs (overlays-in lbp lbp)))
-    (car ovs)))
+(defun todos-get-overlay (val)
+  "Return the overlay at point whose `todos' property has value VAL."
+  ;; Use overlays-in to find prefix overlays and check over two
+  ;; positions to find done separator overlay.
+  (let ((ovs (overlays-in (point) (1+ (point))))
+  	ov)
+    (catch 'done
+      (while ovs
+  	(setq ov (pop ovs))
+  	(when (eq (overlay-get ov 'todos) val)
+  	  (throw 'done ov))))))
 
 (defun todos-marked-item-p ()
   "Non-nil if this item begins with `todos-item-mark'.
  In that case, return the item's prefix overlay."
   ;; If a todos-item-insert command is called on a Todos file before
   ;; it is visited, it has no prefix overlays, so conditionalize:
-  (let* ((ov (todos-prefix-overlay))
+  (let* ((ov (todos-get-overlay 'prefix))
 	 (pref (when ov (overlay-get ov 'before-string)))
 	 (marked (when pref
 		   (string-match (concat "^" (regexp-quote todos-item-mark))
@@ -1571,7 +1564,7 @@ The final element is \"*\", indicating an unspecified month.")
   ;; Insertion pushes item down but not its prefix overlay.  When the
   ;; overlay includes a mark, this would now mark the inserted ITEM,
   ;; so move it to the pushed down item.
-  (let ((ov (todos-prefix-overlay))
+  (let ((ov (todos-get-overlay 'prefix))
 	(marked (todos-marked-item-p)))
     (insert item "\n")
     (when marked (move-overlay ov (point) (point))))
@@ -1585,41 +1578,45 @@ The overlay's value is the string `todos-prefix' or with non-nil
 the number of todo or done items in the category indicating the
 item's priority.  Todo and done items are numbered independently
 of each other."
-  (let ((prefix (propertize (concat todos-prefix " ")
-			    'face 'todos-prefix-string))
-	(num 0)
+  (let ((num 0)
 	(cat-tp (or (cdr (assoc-string
 			  (todos-current-category)
 			  (nth 2 (assoc-string todos-current-todos-file
 					       todos-priorities-rules))))
 		    todos-show-priorities))
-	done)
+	done prefix)
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
 	(when (or (todos-date-string-matcher (line-end-position))
 		  (todos-done-string-matcher (line-end-position)))
 	  (goto-char (match-beginning 0))
-	  (when todos-number-priorities
-	    (setq num (1+ num))
-	    ;; Reset number to 1 for first done item.
-	    (when (and (looking-at todos-done-string-start)
-		       (looking-back (concat "^"
-					     (regexp-quote todos-category-done)
-					     "\n")))
-	      (setq num 1
-		    done t))
-	    (setq prefix (propertize (concat (number-to-string num) " ")
-				     'face
-				     ;; Numbers of top priorities have
-				     ;; a distinct face in Todos mode.
-				     (if (and (not done) (<= num cat-tp)
-					      (eq major-mode 'todos-mode))
-					 'todos-top-priority
-				       'todos-prefix-string))))
-	  (let ((ov (todos-prefix-overlay))
+	  (setq num (1+ num))
+	  ;; Reset number to 1 for first done item.
+	  (when (and (looking-at todos-done-string-start)
+		     (looking-back (concat "^"
+					   (regexp-quote todos-category-done)
+					   "\n")))
+	    (setq num 1
+		  done t))
+	  (setq prefix (concat (propertize
+				(if todos-number-priorities
+				    (number-to-string num)
+				  todos-prefix)
+				'face
+				;; Prefix of top priority items has a
+				;; distinct face in Todos mode.
+				(if (and (not done) (<= num cat-tp)
+					 (eq major-mode 'todos-mode))
+				    'todos-top-priority
+				  'todos-prefix-string))
+			       " "))
+	  (let ((ov (todos-get-overlay 'prefix))
 		(marked (todos-marked-item-p)))
+	    ;; Prefix overlay must be at a single position so its
+	    ;; bounds aren't changed when (re)moving an item.
 	    (unless ov (setq ov (make-overlay (point) (point))))
+	    (overlay-put ov 'todos 'prefix)
 	    (overlay-put ov 'before-string (if marked
 					       (concat todos-item-mark prefix)
 					     prefix))))
@@ -3764,26 +3761,21 @@ face."
   (save-excursion
     (save-restriction
       (goto-char (point-min))
-      (let ((ovs (overlays-in (point) (1+ (point))))
-	    ov hidden)
-	(while ovs
-	  (setq ov (pop ovs))
-	  (if (equal (overlay-get ov 'display) "")
-	      (setq ovs nil hidden t)))
+      (if (todos-get-overlay 'header)
+	  (remove-overlays 1 (1+ (buffer-size)) 'todos 'header)
 	(widen)
 	(goto-char (point-min))
-	(if hidden
-	    (remove-overlays (point-min) (point-max) 'display "")
-	  (while (not (eobp))
-	    (when (re-search-forward
-		   (concat todos-date-string-start todos-date-pattern
-			   "\\( " diary-time-regexp "\\)?"
-			   (regexp-quote todos-nondiary-end) "? ")
-		   nil t)
-	      (unless (save-match-data (todos-done-item-p))
-		(setq ov (make-overlay (match-beginning 0) (match-end 0) nil t))
-		(overlay-put ov 'display "")))
-	    (todos-forward-item)))))))
+	(while (not (eobp))
+	  (when (re-search-forward
+		 (concat todos-date-string-start todos-date-pattern
+			 "\\( " diary-time-regexp "\\)?"
+			 (regexp-quote todos-nondiary-end) "? ")
+		 nil t)
+	    (unless (save-match-data (todos-done-item-p))
+	      (setq ov (make-overlay (match-beginning 0) (match-end 0) nil t))
+	      (overlay-put ov 'todos 'header)
+	      (overlay-put ov 'display "")))
+	  (todos-forward-item))))))
 
 (defun todos-mark-unmark-item (&optional n)
   "Mark item with `todos-item-mark' if unmarked, otherwise unmark it.
@@ -3794,7 +3786,7 @@ marking of the next N items."
   (dotimes (i n)
     (let* ((cat (todos-current-category))
 	   (marks (assoc cat todos-categories-with-marks))
-	   (ov (todos-prefix-overlay))
+	   (ov (todos-get-overlay 'prefix))
 	   (pref (overlay-get ov 'before-string)))
       (if (todos-marked-item-p)
 	  (progn
@@ -3817,7 +3809,7 @@ marking of the next N items."
     (while (not (eobp))
       (let* ((cat (todos-current-category))
 	     (marks (assoc cat todos-categories-with-marks))
-	     (ov (todos-prefix-overlay))
+	     (ov (todos-get-overlay 'prefix))
 	     (pref (overlay-get ov 'before-string)))
 	(unless (todos-marked-item-p)
 	  (overlay-put ov 'before-string (concat todos-item-mark pref))
@@ -3834,7 +3826,7 @@ marking of the next N items."
     (while (not (eobp))
       (let* ((cat (todos-current-category))
 	     (marks (assoc cat todos-categories-with-marks))
-	     (ov (todos-prefix-overlay))
+	     (ov (todos-get-overlay 'prefix))
 	     (pref (overlay-get ov 'before-string)))
 	(when (todos-marked-item-p)
 	  (overlay-put ov 'before-string (substring pref 1))
@@ -4883,7 +4875,7 @@ the format of Diary entries."
   (interactive)
   (widen)
   (todos-edit-mode)
-  (remove-overlays) ; nil nil 'before-string)
+  (remove-overlays)
   (message "%s" (substitute-command-keys
 		 (concat "Type \\[todos-edit-quit] to check file format "
 			 "validity and return to Todos mode.\n"))))
@@ -5412,7 +5404,7 @@ meaning to raise or lower the item's priority by one."
 	(todos-insert-with-overlays item)
 	;; If item was marked, restore the mark.
 	(and marked
-	     (let* ((ov (todos-prefix-overlay))
+	     (let* ((ov (todos-get-overlay 'prefix))
 		    (pref (overlay-get ov 'before-string)))
 	       (overlay-put ov 'before-string (concat todos-item-mark pref)))))))
 

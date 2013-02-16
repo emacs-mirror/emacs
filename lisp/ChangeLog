@@ -1,3 +1,22 @@
+2013-02-16  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Improve handling of overlays.
+	(todos-get-overlay): New function.
+	(todos-prefix-overlay): Remove, since subsumed by
+	todos-get-overlay, and replace by the latter in callers.
+	(todos-reset-prefix): Apply only to buffer visiting Todos files.
+	Simplify implementation and use `todos' overlay property.
+	(todos-reset-done-separator): Use todos-get-overlay and `todos'
+	overlay property.  Fix logic.
+	(todos-category-select): Use todos-get-overlay and `todos' overlay
+	property.
+	(todos-remove-item): Use todos-get-overlay.  Correct obsolete code.
+	(todos-prefix-overlays): Use todos-top-priority face also for
+	non-numerical prefix of top priority items.  Add `todos' overlay
+	property.
+	(todos-hide-show-date-time): Simplify, using todos-get-overlay and
+	`todos' overlay property.
+
 2013-02-14  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-edit-multiline, todos-edit-quit):
