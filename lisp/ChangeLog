@@ -1,3 +1,8 @@
+2013-02-16  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (info-lookup-select-mode): If major-mode has no
+	info-lookup-alist entry then search up derived-mode-parent (bug#8660).
+
 2013-02-16  Jambunathan K  <kjambunathan@gmail.com>
 
 	* replace.el (read-regexp): Tighten the regexp that matches tag.
