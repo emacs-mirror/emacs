@@ -262,8 +262,9 @@ STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 	;; EHLO for SMTP.
 	(when (plist-get parameters :always-query-capabilities)
 	  (network-stream-command stream capability-command eo-capa)))
-      (when (string-match success-string
-			  (network-stream-command stream starttls-command eoc))
+      (when (let ((response
+		   (network-stream-command stream starttls-command eoc)))
+	      (and response (string-match success-string response)))
 	;; The server said it was OK to begin STARTTLS negotiations.
 	(if builtin-starttls
 	    (let ((cert (network-stream-certificate host service parameters)))

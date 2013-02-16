@@ -1,3 +1,8 @@
+2013-02-16  Didier Verna  <didier@didierverna.net>
+
+	* net/network-stream.el (network-stream-open-starttls):
+	Check that response to the starttls-command is non-nil.  (Bug#13706)
+
 2013-02-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
