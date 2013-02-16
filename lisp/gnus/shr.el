@@ -615,7 +615,8 @@ size, and full-buffer size."
 		  (overlay-put overlay 'face 'default)))
 	    (insert-image image (or alt "*")))
 	  (put-text-property start (point) 'image-size size)
-	  (when (image-animated-p image)
+	  ;; Only animate multi-frame things that specify a delay.  FIXME?
+	  (when (cdr (image-animated-p image))
 	    (image-animate image nil 60)))
 	image)
     (insert alt)))

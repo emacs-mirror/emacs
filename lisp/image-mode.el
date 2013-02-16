@@ -464,7 +464,7 @@ to toggle between display as an image and display as text."
 	  (cond
 	   ((null image)
 	    (message "%s" (concat msg1 "an image.")))
-	   ((setq animated (image-animated-p image))
+	   ((setq animated (image-multi-frame-p image))
 	    (setq image-current-frame (or (plist-get (cdr image) :index) 0)
 		  mode-line-process
 		  `(:eval (propertize (format " [%s/%s]"
@@ -472,9 +472,9 @@ to toggle between display as an image and display as text."
 					      ,(car animated))
 				      'help-echo "Frame number")))
 	    (message "%s"
-		     (concat msg1 "text, or "
-			     (substitute-command-keys
-			      "\\[image-toggle-animation] to animate."))))
+		     (concat msg1 "text.  This image has multiple frames.")))
+;;;			     (substitute-command-keys
+;;;			      "\\[image-toggle-animation] to animate."))))
 	   (t
 	    (message "%s" (concat msg1 "text."))))))
 
@@ -663,7 +663,7 @@ Otherwise it plays once, then stops."
     (cond
      ((null image)
       (error "No image is present"))
-     ((null (setq animation (image-animated-p image)))
+     ((null (setq animation (image-multi-frame-p image)))
       (message "No image animation."))
      (t
       (let ((timer (image-animate-timer image)))

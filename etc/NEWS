@@ -145,6 +145,8 @@ directory, respectively.
 `f' (`image-next-frame') and `b' (`image-previous-frame') visit the
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
 
+*** `image-animated-p' is now `image-multi-frame-p'.
+
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.

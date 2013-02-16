@@ -1,3 +1,8 @@
+2013-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* shr.el (shr-put-image): Only animate images that specify a delay.
+	This is consistent with the old image-animated-p behavior.
+
 2013-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-define-keys): Convert [?\S-\ ] to [(shift space)]

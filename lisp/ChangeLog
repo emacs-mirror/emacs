@@ -1,5 +1,15 @@
 2013-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-animated-types): Remove.
+	(image-multi-frame-p): Rename from image-animated-p, and generalize.
+	(image-animated-p): Make obsolete alias.
+	(image-animate, image-nth-frame, image-animate-timeout):
+	Use image-multi-frame-p.
+	(image-animate-timeout): If no delay, use image-default-frame-delay.
+	* image-mode.el (image-mode, image-toggle-animation):
+	Use image-multi-frame-p.  (Bug#763, bug#10739)
+	(image-mode): Adjust startup message for a multi-frame image.
+
 	* image-mode.el (image-mode-map): Give it a menu.
 
 2013-02-16  Michael Albinus  <michael.albinus@gmx.de>
