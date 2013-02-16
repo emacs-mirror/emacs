@@ -149,7 +149,6 @@ extern char *getenv ();
 #define chdir   sys_chdir
 #undef chmod
 #define chmod   sys_chmod
-#define chown   sys_chown
 #undef close
 #define close   sys_close
 #undef creat
@@ -222,7 +221,6 @@ typedef int pid_t;
 #define strtoll   _strtoi64
 #endif
 #define isatty    _isatty
-#define logb      _logb
 #define _longjmp  longjmp
 #define lseek     _lseek
 #define popen     _popen

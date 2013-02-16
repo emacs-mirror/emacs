@@ -1,5 +1,7 @@
 2013-02-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (sys_chown): Remove unused function.
+
 	* w32term.c <input_signal_count>: Declare 'volatile'
 	unconditionally.  (Bug#9066)
 

@@ -2,6 +2,7 @@
 
 	* inc/ms-w32.h (__STDC__): Fiddle with value only for MSVC.
 	(Bug#9066)
+	(chown, logb): Remove, unused.
 
 2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
 

@@ -3220,14 +3220,6 @@ sys_chmod (const char * path, int mode)
 }
 
 int
-sys_chown (const char *path, uid_t owner, gid_t group)
-{
-  if (sys_chmod (path, S_IREAD) == -1) /* check if file exists */
-    return -1;
-  return 0;
-}
-
-int
 sys_creat (const char * path, int mode)
 {
   return _creat (map_w32_filename (path, NULL), mode);
