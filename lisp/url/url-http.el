@@ -1040,7 +1040,9 @@ the end of the document."
 	  (setq end-of-headers t
 		url-http-end-of-headers 0
 		old-http t)
-	(when (re-search-forward "^\r*$" nil t)
+	;; Blank line at end of headers.
+	(when (re-search-forward "^\r?\n" nil t)
+	  (backward-char 1)
 	  ;; Saw the end of the headers
 	  (url-http-debug "Saw end of headers... (%s)" (buffer-name))
 	  (setq url-http-end-of-headers (set-marker (make-marker)

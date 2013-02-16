@@ -1,3 +1,9 @@
+2013-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Avoid prematurely finding the end of headers when they arrive
+	line-by-line.  (Bug#13598)
+
 2013-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-cache.el (url-cache-create-filename-using-md5): Don't waste your
