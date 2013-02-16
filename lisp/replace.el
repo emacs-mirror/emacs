@@ -585,27 +585,32 @@ of `history-length', which see.")
 When PROMPT doesn't end with a colon and space, it adds a final \": \".
 If DEFAULTS is non-nil, it displays the first default in the prompt.
 
-Non-nil optional arg DEFAULTS is a string or a list of strings that
-are prepended to a list of standard default values, which include the
-string at point, the last isearch regexp, the last isearch string, and
-the last replacement regexp.
+Optional arg DEFAULTS is a string or a list of strings that are
+prepended to a list of standard default values, which include the
+tag at point, the last isearch regexp, the last isearch string,
+and the last replacement regexp.
 
 Non-nil HISTORY is a symbol to use for the history list.
 If HISTORY is nil, `regexp-history' is used."
-  (let* ((default (if (consp defaults) (car defaults) defaults))
-	 (defaults
+  (let* ((defaults
 	   (append
 	    (if (listp defaults) defaults (list defaults))
-	    (list (regexp-quote
-		   (or (funcall (or find-tag-default-function
+	    (list
+	     ;; Regexp for tag at point.
+	     (let* ((tagf (or find-tag-default-function
 				    (get major-mode 'find-tag-default-function)
 				    'find-tag-default))
-		       ""))
+		    (tag (funcall tagf)))
+	       (cond ((not tag) "")
+		     ((eq tagf 'find-tag-default)
+		      (format "\\_<%s\\_>" (regexp-quote tag)))
+		     (t (regexp-quote tag))))
 		  (car regexp-search-ring)
 		  (regexp-quote (or (car search-ring) ""))
 		  (car (symbol-value
 			query-replace-from-history-variable)))))
 	 (defaults (delete-dups (delq nil (delete "" defaults))))
+	 (default (car defaults))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
 	 (input (read-from-minibuffer
