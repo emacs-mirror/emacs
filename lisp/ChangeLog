@@ -1,5 +1,10 @@
 2013-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-current-frame): New variable.
+	(image-animate-timeout): Set image-current-frame.
+	* image-mode.el (image-mode): For animated images,
+	display a frame counter via mode-line-process.
+
 	* font-lock.el (lisp-font-lock-keywords-1): Add defvar-local.
 
 2013-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>

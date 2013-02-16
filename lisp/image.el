@@ -657,6 +657,9 @@ number, play until that number of seconds has elapsed."
 	(setq timer nil)))
     timer))
 
+(defvar-local image-current-frame nil
+  "The frame index of the current animated image.")
+
 ;; FIXME? The delay may not be the same for different sub-images,
 ;; hence we need to call image-animated-p to return it.
 ;; But it also returns count, so why do we bother passing that as an
@@ -672,6 +675,7 @@ LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after LIMIT seconds have elapsed.
 The minimum delay between successive frames is 0.01s."
   (plist-put (cdr image) :index n)
+  (setq image-current-frame n)
   (force-window-update)
   (setq n (1+ n))
   (let* ((time (float-time))

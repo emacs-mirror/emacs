@@ -409,11 +409,18 @@ to toggle between display as an image and display as text."
 	(run-mode-hooks 'image-mode-hook)
 	(let ((image (image-get-display-property))
 	      (msg1 (substitute-command-keys
-		     "Type \\[image-toggle-display] to view the image as ")))
+		     "Type \\[image-toggle-display] to view the image as "))
+	      animated)
 	  (cond
 	   ((null image)
 	    (message "%s" (concat msg1 "an image.")))
-	   ((image-animated-p image)
+	   ((setq animated (image-animated-p image))
+	    (setq image-current-frame (or (plist-get (cdr image) :index) 0)
+		  mode-line-process
+		  `(:eval (propertize (format " [%s/%s]"
+					      (1+ image-current-frame)
+					      ,(car animated))
+				      'help-echo "Frame number")))
 	    (message "%s"
 		     (concat msg1 "text, or "
 			     (substitute-command-keys
