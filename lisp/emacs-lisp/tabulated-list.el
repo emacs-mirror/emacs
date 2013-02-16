@@ -379,7 +379,9 @@ Return the column number after insertion."
         (setq width (- width shift))
         (setq x (+ x shift))))
     (if (stringp col-desc)
-	(insert (propertize label 'help-echo help-echo))
+	(insert (if (get-text-property 0 'help-echo label)
+		    label
+		  (propertize label 'help-echo help-echo)))
       (apply 'insert-text-button label (cdr col-desc)))
     (let ((next-x (+ x pad-right width)))
       ;; No need to append any spaces if this is the last column.
