@@ -1,3 +1,13 @@
+2013-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Top, Configuration): Insert section `Android shell
+	setup' in menu.
+	(Android shell setup): New section.
+	(Connection types, Default Method)
+	(Frequently Asked Questions): Mention "scp" instead of "scpc".
+	(External methods): Remove "scpc" and "rsyncc" entries.
+	(Frequently Asked Questions): Remove entry about ControlPersist.
+
 2013-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* message.texi (News Headers): Don't mention yow any more.

@@ -188,8 +188,9 @@ Configuring @value{tramp} for use
 * Connection caching::          Reusing connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
-* Windows setup hints::         Issues with Cygwin ssh.
+* Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
+* Windows setup hints::         Issues with Cygwin ssh.
 
 Using @value{tramp}
 
@@ -515,6 +516,7 @@ Method}.
 * Connection caching::          Reusing connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
+* Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
 * Windows setup hints::         Issues with Cygwin ssh.
 @end menu
@@ -557,9 +559,10 @@ startup may drown out the improvement in file transfer times.
 External methods should be configured such a way that they don't
 require a password (with @command{ssh-agent}, or such alike).  Modern
 @command{scp} implementations offer options to reuse existing
-@command{ssh} connections, see method @command{scpc}.  If it isn't
-possible, you should consider @ref{Password handling}, otherwise you
-will be prompted for a password every copy action.
+@command{ssh} connections, which will be enabled by default if
+available.  If it isn't possible, you should consider @ref{Password
+handling}, otherwise you will be prompted for a password every copy
+action.
 
 
 @node Inline methods
@@ -863,51 +866,6 @@ This is also useful for Windows users where @command{ssh}, when
 invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
 to not print any shell prompt, which confuses @value{tramp} mightily.
-
-This method supports the @samp{-p} argument.
-
-
-@item @option{scpc}---@command{ssh} and @command{scp}
-@cindex method scpc
-@cindex scpc method
-@cindex scp (with scpc method)
-@cindex ssh (with scpc method)
-
-Newer versions of @option{ssh} (for example OpenSSH 4) offer an option
-@option{ControlMaster}.  This allows @option{scp} to reuse an existing
-@option{ssh} channel, which increases performance.
-
-Before you use this method, you should check whether your @option{ssh}
-implementation supports this option.  Try from the command line
-
-@example
-ssh localhost -o ControlMaster=yes /bin/true
-@end example
-
-If that command succeeds silently, then you can use @option{scpc}; but
-if it fails like
-
-@example
-command-line: line 0: Bad configuration option: ControlMaster
-@end example
-
-then you cannot use it.  Note, that the option
-@option{ControlPersist}, if it is supported by your @option{ssh}
-version, must be set to @option{no}.
-
-This method supports the @samp{-p} argument.
-
-
-@item @option{rsyncc}---@command{ssh} and @command{rsync}
-@cindex method rsyncc
-@cindex rsyncc method
-@cindex rsync (with rsyncc method)
-@cindex ssh (with rsyncc method)
-
-Like the @option{scpc} method, @option{rsyncc} improves the underlying
-@command{ssh} connection by the option @option{ControlMaster}.  This
-allows @command{rsync} to reuse an existing @command{ssh} channel,
-which increases performance.
 
 This method supports the @samp{-p} argument.
 
@@ -1240,7 +1198,7 @@ user, see the @option{su} or @option{sudo} methods.  They offer
 shortened syntax for the @samp{root} account, like
 @file{@trampfn{su, , , /etc/motd}}.
 
-People who edit large files may want to consider @option{scpc} instead
+People who edit large files may want to consider @option{scp} instead
 of @option{ssh}, or @option{pscp} instead of @option{plink}.  These
 external methods are faster than inline methods for large files.
 Note, however, that external methods suffer from some limitations.
@@ -1343,7 +1301,7 @@ Like with methods and users, you can also specify different default
 hosts for certain method/user combinations via the variable
 @code{tramp-default-host-alist}.  Usually, this isn't necessary,
 because @code{tramp-default-host} should be sufficient.  For some
-methods, like @code{adb}, that default value must be overwritten,
+methods, like @option{adb}, that default value must be overwritten,
 which is already the initial value of @code{tramp-default-host-alist}.
 
 @noindent
@@ -2045,6 +2003,50 @@ fi
 @end ifinfo
 
 @end table
+
+
+@node Android shell setup
+@section Android shell setup hints
+@cindex android shell setup
+
+Android devices use a restricted shell.  They can be accessed via the
+@option{adb} method.  However, this restricts the access to a USB
+connection, and it requires the installation of the Android SDK on the
+local machine.
+
+When an @command{sshd} process runs on the Android device, like
+provided by the @code{SSHDroid} app, any @option{ssh}-based method can
+be used.  However, this requires some special settings.
+
+The default shell @code{/bin/sh} does not exist.  Instead, you shall
+use just @code{sh}, which invokes the shell installed on the device.
+You can instruct @value{tramp} by this form:
+
+@lisp
+(add-to-list 'tramp-connection-properties
+	     (list (regexp-quote "192.168.0.26") "remote-shell" "sh"))
+@end lisp
+
+@noindent
+with @samp{192.168.0.26} being the IP address of your Android device.
+
+The user settings for the @code{$PATH} environment valiable must be
+preserved. Add this setting:
+
+@lisp
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+@end lisp
+
+If the Android device is not @samp{rooted}, you must give the shell a
+writable directory for temporary files.  You could use this setting:
+
+@lisp
+(add-to-list 'tramp-remote-process-environment "TMPDIR=$HOME")
+@end lisp
+
+Now you shall be able to open a remote connection with @kbd{C-x C-f
+@trampfn{ssh, , 192.168.0.26#2222, }}, given that @command{sshd}
+listens on port @samp{2222}.
 
 
 @node Auto-save and Backup
@@ -2942,7 +2944,7 @@ host as well as the time needed to perform the operations there count.
 In order to speed up @value{tramp}, one could either try to avoid some
 of the operations, or one could try to improve their performance.
 
-Use an external method, like @option{scpc}.
+Use an external method, like @option{scp}.
 
 Use caching.  This is already enabled by default.  Information about
 the remote host as well as the remote files are cached for reuse.  The
@@ -3064,20 +3066,6 @@ the job:
 @example
 Host *
      ServerAliveInterval 5
-@end example
-
-
-@item
-How can I use @samp{ControlPersist}?
-
-When @samp{ControlPersist} is set to @samp{yes}, the @option{scpc}
-method does not work.  You can use @option{scpx} instead with the
-following settings in @file{~/.ssh/config}:
-
-@example
-Host *
-     ControlMaster  auto
-     ControlPersist yes
 @end example
 
 
