@@ -512,6 +512,7 @@ as given in your `~/.profile'."
 		  (const :tag "Private Directories" tramp-own-remote-path)
 		  (string :tag "Directory"))))
 
+;;;###tramp-autoload
 (defcustom tramp-remote-process-environment
   `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_ALL=C"
     ,(format "TERM=%s" tramp-terminal-type)

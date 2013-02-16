@@ -1,3 +1,14 @@
+2013-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-connection-properties): New customer
+	option.
+	(tramp-get-connection-property): Use it.
+
+	* net/tramp-compat.el (top): Require 'trampver.
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Set
+	tramp-autoload cookie.
+
 2013-02-16  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (info-lookup-select-mode): If major-mode has no

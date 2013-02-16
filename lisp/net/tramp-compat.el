@@ -52,6 +52,7 @@
   (require 'format-spec)
   (require 'shell)
 
+  (require 'trampver)
   (require 'tramp-loaddefs)
 
   ;; As long as password.el is not part of (X)Emacs, it shouldn't be

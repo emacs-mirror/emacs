@@ -58,6 +58,19 @@
 (defvar tramp-cache-data (make-hash-table :test 'equal)
   "Hash table for remote files properties.")
 
+;;;###tramp-autoload
+(defcustom tramp-connection-properties nil
+  "List of static connection properties.
+Every entry has the form (REGEXP PROPERTY VALUE).  The regexp
+matches remote file names.  It can be nil.  PROPERTY is a string,
+and VALUE the corresponding value.  They are used, if there is no
+matching entry in for PROPERTY in `tramp-cache-data'."
+  :group 'tramp
+  :version "24.4"
+  :type '(repeat (list (choice :tag "File Name regexp" regexp (const nil))
+		       (choice :tag "        Property" string)
+		       (choice :tag "           Value" sexp))))
+
 (defcustom tramp-persistency-file-name
   (cond
    ;; GNU Emacs.
@@ -204,9 +217,27 @@ If the value is not set for the connection, returns DEFAULT."
     (setq key (copy-sequence key))
     (aset key 3 nil))
   (let* ((hash (gethash key tramp-cache-data))
-	 (value (if (hash-table-p hash)
-		    (gethash property hash default)
-		  default)))
+	 (value
+	  (catch 'result
+	    (or
+	     ;; Check for dynamic properties.
+	     (and
+	      (hash-table-p hash)
+	      (maphash
+	       (lambda (x y) (when (equal x property) (throw 'result y)))
+	       hash))
+	     ;; Check for static properties.
+	     (and
+	      (vectorp key)
+	      (dolist (elt tramp-connection-properties)
+		(when (and (string-match
+			    (or (nth 0 elt) "")
+			    (tramp-make-tramp-file-name
+			     (aref key 0) (aref key 1) (aref key 2) nil))
+			   (string-equal (or (nth 1 elt) "") (or property "")))
+		  (throw 'result (nth 2 elt)))))
+	     ;; The default value.
+	     default))))
     (tramp-message key 7 "%s %s" property value)
     value))
 
