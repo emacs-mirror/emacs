@@ -883,7 +883,7 @@ displayed."
 (defalias 'image-dired 'image-dired-show-all-from-dir)
 
 ;;;###autoload
-(defalias 'tumme 'image-dired-show-all-from-dir)
+(define-obsolete-function-alias 'tumme 'image-dired "24.4")
 
 (defun image-dired-sane-db-file ()
   "Check if `image-dired-db-file' exists.
