@@ -1,5 +1,17 @@
 2013-02-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32proc.c (new_child): Remove the loop that attempted to salvage
+	slots of dead processes.
+	(new_child, delete_child, find_child_pid): Don't insist on
+	procinfo.hProcess be NULL for a process slot to be considered
+	inactive, or be non-NULL to be considered active.
+	(reader_thread): Don't set the FILE_AT_EOF flag of a file
+	descriptor if the corresponding child was deleted and its
+	char_avail handle is NULL.
+	(reap_subprocess): Don't reset the FILE_AT_EOF flag.  (Bug#13546)
+	(sys_select): Don't pass a NULL process handle to
+	WaitForMultipleObjects.  (Bug#13735)
+
 	* xdisp.c (x_draw_vertical_border): For a window that is neither
 	the leftmost nor the rightmost, redraw both the left and the right
 	vertical borders.  (Bug#13723)

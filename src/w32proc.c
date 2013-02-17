@@ -795,50 +795,8 @@ new_child (void)
   DWORD id;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
+    if (!CHILD_ACTIVE (cp))
       goto Initialize;
-  if (child_proc_count == MAX_CHILDREN)
-    {
-      int i = 0;
-      child_process *dead_cp = NULL;
-
-      DebPrint (("new_child: No vacant slots, looking for dead processes\n"));
-      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-	if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
-	  {
-	    DWORD status = 0;
-
-	    if (!GetExitCodeProcess (cp->procinfo.hProcess, &status))
-	      {
-		DebPrint (("new_child.GetExitCodeProcess: error %lu for PID %lu\n",
-			   GetLastError (), cp->procinfo.dwProcessId));
-		status = STILL_ACTIVE;
-	      }
-	    if (status != STILL_ACTIVE
-		|| WaitForSingleObject (cp->procinfo.hProcess, 0) == WAIT_OBJECT_0)
-	      {
-		DebPrint (("new_child: Freeing slot of dead process %d, fd %d\n",
-			   cp->procinfo.dwProcessId, cp->fd));
-		CloseHandle (cp->procinfo.hProcess);
-		cp->procinfo.hProcess = NULL;
-		CloseHandle (cp->procinfo.hThread);
-		cp->procinfo.hThread = NULL;
-		/* Free up to 2 dead slots at a time, so that if we
-		   have a lot of them, they will eventually all be
-		   freed when the tornado ends.  */
-		if (i == 0)
-		  dead_cp = cp;
-		else
-		  break;
-		i++;
-	      }
-	  }
-      if (dead_cp)
-	{
-	  cp = dead_cp;
-	  goto Initialize;
-	}
-    }
   if (child_proc_count == MAX_CHILDREN)
     return NULL;
   cp = &child_procs[child_proc_count++];
@@ -894,7 +852,7 @@ delete_child (child_process *cp)
     if (fd_info[i].cp == cp)
       emacs_abort ();
 
-  if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
+  if (!CHILD_ACTIVE (cp))
     return;
 
   /* reap thread if necessary */
@@ -938,8 +896,7 @@ delete_child (child_process *cp)
   if (cp == child_procs + child_proc_count - 1)
     {
       for (i = child_proc_count-1; i >= 0; i--)
-	if (CHILD_ACTIVE (&child_procs[i])
-	    || child_procs[i].procinfo.hProcess != NULL)
+	if (CHILD_ACTIVE (&child_procs[i]))
 	  {
 	    child_proc_count = i + 1;
 	    break;
@@ -956,8 +913,7 @@ find_child_pid (DWORD pid)
   child_process *cp;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if ((CHILD_ACTIVE (cp) || cp->procinfo.hProcess != NULL)
-	&& pid == cp->pid)
+    if (CHILD_ACTIVE (cp) && pid == cp->pid)
       return cp;
   return NULL;
 }
@@ -989,17 +945,6 @@ reader_thread (void *arg)
 	rc = _sys_wait_accept (cp->fd);
       else
 	rc = _sys_read_ahead (cp->fd);
-
-      if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess && cp->fd >= 0)
-	{
-	  /* Somebody already called delete_child on this child, since
-	     only delete_child zeroes out cp->char_avail.  This means
-	     no one will read from cp->fd and will not set the
-	     FILE_AT_EOF flag, therefore preventing sys_select from
-	     noticing that the process died.  Set the flag here
-	     instead.  */
-	  fd_info[cp->fd].flags |= FILE_AT_EOF;
-	}
 
       /* The name char_avail is a misnomer - it really just means the
 	 read-ahead has completed, whether successfully or not. */
@@ -1168,11 +1113,6 @@ reap_subprocess (child_process *cp)
      register_child has not been called. */
   if (cp->fd == -1)
     delete_child (cp);
-  else
-    {
-      /* Reset the flag set by reader_thread.  */
-      fd_info[cp->fd].flags &= ~FILE_AT_EOF;
-    }
 }
 
 /* Wait for any of our existing child processes to die
@@ -1957,7 +1897,7 @@ count_children:
     /* Some child_procs might be sockets; ignore them.  Also some
        children may have died already, but we haven't finished reading
        the process output; ignore them too.  */
-    if ((CHILD_ACTIVE (cp) || cp->procinfo.hProcess)
+    if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
 	&& (cp->fd < 0
 	    || (fd_info[cp->fd].flags & FILE_SEND_SIGCHLD) == 0
 	    || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
