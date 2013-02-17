@@ -1,5 +1,7 @@
 2013-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* image-mode.el (image-mode-map): Add image-dired menu entry.
+
 	* image-dired.el (tumme): Make this alias obsolete.
 
 2013-02-16  Glenn Morris  <rgm@gnu.org>

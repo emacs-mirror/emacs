@@ -376,9 +376,15 @@ call."
 	 :visible (eq image-type 'imagemagick)
 	 :help "Rotate the image"]
 	"--"
-	["Next Image" image-next-file :active t
+	["Show Thumbnails"
+	 (lambda ()
+	   (interactive)
+	   (image-dired default-directory))
+	 :active default-directory
+	 :help "Show thumbnails for all images in this directory"]
+	["Next Image" image-next-file :active buffer-file-name
          :help "Move to next image in this directory"]
-	["Previous Image" image-previous-file :active t
+	["Previous Image" image-previous-file :active buffer-file-name
          :help "Move to previous image in this directory"]
 	"--"
 	["Animate Image" image-toggle-animation :style toggle
