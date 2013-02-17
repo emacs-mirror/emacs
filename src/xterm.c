@@ -10773,16 +10773,6 @@ With MS Windows or Nextstep, the value is t.  */);
   Vx_toolkit_scroll_bars = Qnil;
 #endif
 
-  DEFVAR_BOOL ("scroll-bar-adjust-thumb-portion",
-               scroll_bar_adjust_thumb_portion_p,
-               doc: /* Adjust thumb for overscrolling for Gtk+ and MOTIF.
-Non-nil means adjust the thumb in the scroll bar so it can be dragged downwards
-even if the end of the buffer is shown (i.e. overscrolling).
-Set to nil if you want the thumb to be at the bottom when the end of the buffer
-is shown.  Also, the thumb fills the whole scroll bar when the entire buffer
-is visible.  In this case you can not overscroll.  */);
-  scroll_bar_adjust_thumb_portion_p = 1;
-
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 

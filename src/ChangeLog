@@ -1,3 +1,9 @@
+2013-02-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (syms_of_xterm): Move scroll-bar-adjust-thumb-portion ...
+
+	* frame.c (syms_of_frame): ... to here.
+
 2013-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_chown): Remove unused function.
