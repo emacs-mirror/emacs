@@ -7,9 +7,24 @@ See the end of the file for license conditions.
 If you are ready to start working on any of these TODO items, we
 appreciate your help; please write to emacs-devel@gnu.org so we can be
 aware that the problem is being addressed, and talk with you how to do
-it best.  Since Emacs is an FSF-copyrighted package, please be
-prepared to sign legal papers to transfer the copyright on your work
-to the FSF.
+it best.  Also to check that it hasn't been done already, since we
+don't always remember to update this file!  It is best to consult
+the latest version of this file in the Emacs source code repository.
+
+Since Emacs is an FSF-copyrighted package, please be prepared to sign
+legal papers to transfer the copyright on your work to the FSF.
+For more details on this, see the section "Copyright Assignment"
+in etc/CONTRIBUTE.  That file also contains some more practical
+details about getting involved.
+
+As well as the issues listed here, there are bug reports at
+<http://debbugs.gnu.org>.  Bugs tagged "easy" ought to be suitable for
+beginners to work on, but unfortunately we are not very good at using
+this tag.  Bugs tagged "help" are ones where assistance is required,
+but may be difficult to fix.  Bugs with severity "important" or higher
+are the ones we consider more important, but these also may be
+difficult to fix.  Bugs with severity "minor" may be simpler, but this
+is not always true.
 
 * Tentative plan for Emacs-24
 
@@ -61,7 +76,7 @@ to use it.
 ** Convert all defvars with leading `*' in the doc-strings into defcustoms
 of appropriate :type and :group.
 
-** Remove any leading `*'s from defcustom doc-strings.
+** Remove any leading `*'s from defcustom doc-strings.  [done?]
 
 ** Remove unnecessary autoload cookies from defcustoms.
 This needs a bit of care, since often people have become used to
@@ -266,6 +281,9 @@ specified filters, specified timers, and specified hooks.
 
 ** Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
+
+** The GNUstep port needs some serious attention, ideally from someone
+familiar with GNUstep and Objective C.
 
 * Other features we would like:
 

@@ -1,3 +1,8 @@
+2013-02-17  Didier Verna  <didier@didierverna.net>
+
+	* net/network-stream.el (network-stream-open-starttls):
+	Check that response to the starttls-command is non-nil.  (Bug#13706)
+
 2013-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (lisp-font-lock-keywords-1, lisp-font-lock-keywords-2):

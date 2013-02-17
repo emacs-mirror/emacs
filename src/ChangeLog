@@ -1,3 +1,9 @@
+2013-02-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (x_draw_vertical_border): For a window that is neither
+	the leftmost nor the rightmost, redraw both the left and the right
+	vertical borders.  (Bug#13723)
+
 2013-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xml.c (init_libxml2_functions):

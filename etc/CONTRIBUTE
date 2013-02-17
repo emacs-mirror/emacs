@@ -22,7 +22,8 @@ inclusion in a future version of Emacs (see below).
 
 If you don't feel up to hacking Emacs, there are many other ways to
 help.  You can answer questions on the mailing lists, write
-documentation, find and report bugs, contribute to the Emacs web
+documentation, find and report bugs, check if existing bug reports
+are fixed in newer versions of Emacs, contribute to the Emacs web
 pages, or develop a package that works with Emacs.
 
 Here are some style and legal conventions for contributors to Emacs:
