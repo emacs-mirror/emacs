@@ -2259,10 +2259,10 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\(?:-local\\)?\\)\\|"
 		;; Structure declarations.
 		"\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
-		"\\)\\)\\>"
+		"\\)\\)\\_>"
 		;; Any whitespace and defined object.
 		"[ \t'\(]*"
-		"\\(setf[ \t]+\\sw+\\|\\sw+\\)?")
+		"\\(setf[ \t]+\\(?:\\sw\\|\\s_\\)+\\|\\(?:\\sw\\|\\s_\\)+\\)?")
        (1 font-lock-keyword-face)
        (9 (cond ((match-beginning 3) font-lock-function-name-face)
 		((match-beginning 6) font-lock-variable-name-face)
@@ -2299,7 +2299,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "with-silent-modifications" "with-syntax-table"
 		 "with-temp-buffer" "with-temp-file" "with-temp-message"
 		 "with-timeout" "with-timeout-handler" "with-wrapper-hook") t)
-	  "\\>")
+	  "\\_>")
 	  .  1)
        ;; Control structures.  Common Lisp forms.
        (,(concat
@@ -2320,23 +2320,25 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "with-open-stream" "with-output-to-string"
 		 "with-package-iterator" "with-simple-restart"
 		 "with-slots" "with-standard-io-syntax") t)
-	  "\\>")
+	  "\\_>")
 	  . 1)
        ;; Exit/Feature symbols as constants.
        (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\>"
-		 "[ \t']*\\(\\sw+\\)?")
+		 "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
 	(1 font-lock-keyword-face)
 	(2 font-lock-constant-face nil t))
        ;; Erroneous structures.
        ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
        ;; Words inside \\[] tend to be for `substitute-command-keys'.
-       ("\\\\\\\\\\[\\(\\sw+\\)\\]" 1 font-lock-constant-face prepend)
+       ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
+        (1 font-lock-constant-face prepend))
        ;; Words inside `' tend to be symbol names.
-       ("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
+       ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
+        (1 font-lock-constant-face prepend))
        ;; Constant values.
-       ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
+       ("\\<:\\(?:\\sw\\|\\s_\\)+\\>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
-       ("\\<\\&\\sw+\\>" . font-lock-type-face)
+       ("\\<\\&\\(?:\\sw\\|\\s_\\)+\\>" . font-lock-type-face)
        ;; ELisp regexp grouping constructs
        ((lambda (bound)
           (catch 'found
@@ -2353,11 +2355,11 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
                     (throw 'found t)))))))
         (1 'font-lock-regexp-grouping-backslash prepend)
         (3 'font-lock-regexp-grouping-construct prepend))
-;;;  This is too general -- rms.
-;;;  A user complained that he has functions whose names start with `do'
-;;;  and that they get the wrong color.
-;;;      ;; CL `with-' and `do-' constructs
-;;;      ("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       ;; This is too general -- rms.
+       ;; A user complained that he has functions whose names start with `do'
+       ;; and that they get the wrong color.
+       ;; ;; CL `with-' and `do-' constructs
+       ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
 

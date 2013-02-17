@@ -1,3 +1,11 @@
+2013-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (lisp-font-lock-keywords-1, lisp-font-lock-keywords-2):
+	Don't assume all identifier chars have syntax word.
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Remove bar-not-symbol.  Adjust callers.
+	(lisp-mode-variables): Don't set a font-lock-syntax-table.
+
 2013-02-17  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-keepalive): Fix invalid timer error.
@@ -32,8 +40,8 @@
 
 	* net/tramp-compat.el (top): Require 'trampver.
 
-	* net/tramp-sh.el (tramp-remote-process-environment): Set
-	tramp-autoload cookie.
+	* net/tramp-sh.el (tramp-remote-process-environment):
+	Set tramp-autoload cookie.
 
 2013-02-16  Kevin Ryde  <user42@zip.com.au>
 
