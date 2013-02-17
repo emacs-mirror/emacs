@@ -1,3 +1,14 @@
+2013-02-17  Daiki Ueno  <ueno@gnu.org>
+
+	* mml2015.el (epg-key-user-id-list, epg-user-id-string)
+	(epg-user-id-validity): Autoload.
+	(mml2015-epg-check-user-id): New function.
+	(mml2015-epg-check-sub-key): New function split from
+	mml2015-epg-find-usable-key.
+	(mml2015-epg-find-usable-key): Accept context, name, usage, and
+	optional name-is-key-id, to handle the case when user-id is unusable.
+	Reported by Łukasz Stelmach <stlman@poczta.fm>.
+
 2013-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* shr.el (shr-put-image): Use image-multi-frame-p if available.

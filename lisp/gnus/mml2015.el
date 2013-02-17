@@ -757,6 +757,9 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-sub-key-fingerprint "epg")
 (autoload 'epg-signature-key-id "epg")
 (autoload 'epg-signature-to-string "epg")
+(autoload 'epg-key-user-id-list "epg")
+(autoload 'epg-user-id-string "epg")
+(autoload 'epg-user-id-validity "epg")
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
@@ -786,21 +789,53 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	      (cons password-cache-key-id mml2015-epg-secret-key-id-list))
 	(copy-sequence passphrase)))))
 
-(defun mml2015-epg-find-usable-key (keys usage)
-  (catch 'found
+(defun mml2015-epg-check-user-id (key recipient)
+  (let ((pointer (epg-key-user-id-list key))
+	result)
+    (while pointer
+      (if (and (equal (car (mail-header-parse-address
+			    (epg-user-id-string (car pointer))))
+		      (car (mail-header-parse-address
+			    recipient)))
+	       (not (memq (epg-user-id-validity (car pointer))
+			  '(revoked expired))))
+	  (setq result t
+		pointer nil)
+	(setq pointer (cdr pointer))))
+    result))
+
+(defun mml2015-epg-check-sub-key (key usage)
+  (let ((pointer (epg-key-sub-key-list key))
+	result)
+    ;; The primary key will be marked as disabled, when the entire
+    ;; key is disabled (see 12 Field, Format of colon listings, in
+    ;; gnupg/doc/DETAILS)
+    (unless (memq 'disabled (epg-sub-key-capability (car pointer)))
+      (while pointer
+	(if (and (memq usage (epg-sub-key-capability (car pointer)))
+		 (not (memq (epg-sub-key-validity (car pointer))
+			    '(revoked expired))))
+	    (setq result t
+		  pointer nil)
+	  (setq pointer (cdr pointer)))))
+    result))
+
+(defun mml2015-epg-find-usable-key (context name usage
+					    &optional name-is-key-id)
+  (let ((keys (epg-list-keys context name))
+	key)
     (while keys
-      (let ((pointer (epg-key-sub-key-list (car keys))))
-	;; The primary key will be marked as disabled, when the entire
-	;; key is disabled (see 12 Field, Format of colon listings, in
-	;; gnupg/doc/DETAILS)
-	(unless (memq 'disabled (epg-sub-key-capability (car pointer)))
-	  (while pointer
-	    (if (and (memq usage (epg-sub-key-capability (car pointer)))
-		     (not (memq (epg-sub-key-validity (car pointer))
-				'(revoked expired))))
-		(throw 'found (car keys)))
-	    (setq pointer (cdr pointer)))))
-      (setq keys (cdr keys)))))
+      (if (and (or name-is-key-id
+		   ;; Non email user-id can be supplied through
+		   ;; mml2015-signers if mml2015-encrypt-to-self is set.
+		   ;; Treat it as valid, as it is user's intention.
+		   (not (string-match "\\`<" name))
+		   (mml2015-epg-check-user-id (car keys) name))
+	       (mml2015-epg-check-sub-key (car keys) usage))
+	  (setq key (car keys)
+		keys nil)
+	(setq keys (cdr keys))))
+    key))
 
 ;; XXX: since gpg --list-secret-keys does not return validity of each
 ;; key, `mml2015-epg-find-usable-key' defined above is not enough for
@@ -811,10 +846,12 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	secret-key)
     (while (and (not secret-key) secret-keys)
       (if (mml2015-epg-find-usable-key
-	   (epg-list-keys context (epg-sub-key-fingerprint
-				   (car (epg-key-sub-key-list
-					 (car secret-keys)))))
-	   usage)
+	   context
+	   (epg-sub-key-fingerprint
+	    (car (epg-key-sub-key-list
+		  (car secret-keys))))
+	   usage
+	   t)
 	  (setq secret-key (car secret-keys)
 		secret-keys nil)
 	(setq secret-keys (cdr secret-keys))))
@@ -1115,8 +1152,7 @@ If no one is selected, symmetric encryption will be performed.  "
 		    (mapcar
 		     (lambda (recipient)
 		       (setq recipient-key (mml2015-epg-find-usable-key
-					    (epg-list-keys context recipient)
-					    'encrypt))
+					    context recipient 'encrypt))
 		       (unless (or recipient-key
 				   (y-or-n-p
 				    (format "No public key for %s; skip it? "
