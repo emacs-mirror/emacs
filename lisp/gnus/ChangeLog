@@ -1,3 +1,7 @@
+2013-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* shr.el (shr-put-image): Use image-multi-frame-p if available.
+
 2013-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* shr.el (shr-put-image): Only animate images that specify a delay.
