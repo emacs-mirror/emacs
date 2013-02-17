@@ -1518,7 +1518,7 @@ mail status in mode line"))
                   :button (:toggle . (bound-and-true-p semantic-mode))))
 
     (bindings--define-key menu [ede]
-      '(menu-item "Project support (EDE)"
+      '(menu-item "Project Support (EDE)"
                   global-ede-mode
                   :help "Toggle the Emacs Development Environment (Global EDE mode)"
                   :button (:toggle . (bound-and-true-p global-ede-mode))))

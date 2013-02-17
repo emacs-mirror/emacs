@@ -1,5 +1,7 @@
 2013-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* menu-bar.el (menu-bar-tools-menu): Fix case of EDE entry.
+
 	* image-mode.el (image-mode-map): Add image-dired menu entry.
 
 	* image-dired.el (tumme): Make this alias obsolete.
