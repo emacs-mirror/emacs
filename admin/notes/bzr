@@ -267,3 +267,52 @@ For example, on RHEL6 I needed:
   yum --enablerepo=epel install python-simpletal
 
 Then point your web-browser to http://127.0.0.1:8080/ .
+
+* Bisecting
+
+This is a semi-automated way to find the revision that introduced a bug.
+
+First, get the bzr bisect plugin if you do not have it already:
+
+  cd ~/.bazaar/plugins
+  bzr branch lp:bzr-bisect bisect
+
+`bzr help bisect' should work now.
+
+It's probably simplest to make a new copy of the branch to work in
+from this point onwards.
+
+Identify the last known "good" revision where the relevant issue is
+NOT present (e.g. maybe Emacs 24.1).  Let's say this is revision 1000.
+
+  bzr bisect start
+  bzr bisect no -r 1000
+
+At this point, bzr will switch to the mid-point of revision 1000 and
+the current revision.  If you know that the issue was definitely
+present in some specific revision (say 2000), you can use:
+
+  bzr bisect yes -r 2000
+
+Now bzr switches to revision 1500.
+
+Now test whether the issue is present.  You might need to rebuild
+Emacs to do this, or if you know the problem is in a specific Lisp
+file, you might be able to get away with just loading that one file in
+current Emacs.
+
+If the issue is present, use
+
+  bzr bisect yes
+
+If it is not, use
+
+  bzr bisect no
+
+Repeat until you zero-in on the specific revision.
+
+When finished, use
+
+  bzr bisect reset
+
+or simply delete the entire branch if you created it just for this.
