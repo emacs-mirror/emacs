@@ -1,3 +1,9 @@
+2013-02-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (x_draw_vertical_border): For a window that is neither
+	the leftmost nor the rightmost, redraw both the left and the right
+	vertical borders.  (Bug#13723)
+
 2013-02-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (new_child): Free up to 2 slots of dead processes at a
