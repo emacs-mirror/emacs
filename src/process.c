@@ -4218,7 +4218,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   if (time_limit == 0 && nsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
       && !(CONSP (wait_proc->status)
 	   && EQ (XCAR (wait_proc->status), Qexit)))
-    message ("Blocking call to accept-process-output with quit inhibited!!");
+    message1 ("Blocking call to accept-process-output with quit inhibited!!");
 
   /* If wait_proc is a process to watch, set wait_channel accordingly.  */
   if (wait_proc != NULL)

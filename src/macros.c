@@ -78,7 +78,7 @@ macro before appending to it. */)
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
-      message ("Defining kbd macro...");
+      message1 ("Defining kbd macro...");
     }
   else
     {
@@ -125,7 +125,7 @@ macro before appending to it. */)
 	Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
 			    make_number (1), Qnil);
 
-      message ("Appending to kbd macro...");
+      message1 ("Appending to kbd macro...");
     }
   kset_defining_kbd_macro (current_kboard, Qt);
 
@@ -172,21 +172,21 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
     {
       end_kbd_macro ();
-      message ("Keyboard macro defined");
+      message1 ("Keyboard macro defined");
     }
 
   if (XFASTINT (repeat) == 0)
     Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
   else if (XINT (repeat) > 1)
     {
-      XSETINT (repeat, XINT (repeat)-1);
+      XSETINT (repeat, XINT (repeat) - 1);
       Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
 			  repeat, loopfunc);
     }
   return Qnil;
 }
 
-/* Store character c into kbd macro being defined */
+/* Store character c into kbd macro being defined.  */
 
 void
 store_kbd_macro_char (Lisp_Object c)

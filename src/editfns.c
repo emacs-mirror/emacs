@@ -3451,7 +3451,7 @@ usage: (message FORMAT-STRING &rest ARGS)  */)
       || (STRINGP (args[0])
 	  && SBYTES (args[0]) == 0))
     {
-      message (0);
+      message1 (0);
       return args[0];
     }
   else
@@ -3477,7 +3477,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
 {
   if (NILP (args[0]))
     {
-      message (0);
+      message1 (0);
       return Qnil;
     }
   else

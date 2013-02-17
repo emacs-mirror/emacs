@@ -334,7 +334,7 @@ sound_perror (const char *msg)
 static void
 sound_warning (const char *msg)
 {
-  message ("%s", msg);
+  message1 (msg);
 }
 
 

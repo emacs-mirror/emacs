@@ -690,7 +690,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		Lisp_Object str;
 		if (! first)
 		  {
-		    message ("Please enter a number.");
+		    message1 ("Please enter a number.");
 		    sit_for (make_number (1), 0, 0);
 		  }
 		first = 0;

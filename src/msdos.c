@@ -3281,10 +3281,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      erasing it works correctly...  */
   if (! NILP (saved_echo_area_message))
     message_with_string ("%s", saved_echo_area_message, 0);
-  message (0);
+  message1 (0);
   while (statecount--)
     xfree (state[statecount].screen_behind);
-  IT_display_cursor (1);	/* turn cursor back on */
+  IT_display_cursor (1);	/* Turn cursor back on.  */
   /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button

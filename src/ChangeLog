@@ -1,7 +1,19 @@
+2013-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xml.c (init_libxml2_functions):
+	* sound.c (sound_warning):
+	* sheap.c (report_sheap_usage):
+	* process.c (wait_reading_process_output):
+	* msdos.c (XMenuActivate):
+	* macros.c (Fstart_kbd_macro, Fend_kbd_macro):
+	* keyboard.c (top_level_1):
+	* editfns.c (Fmessage, Fmessage_box):
+	* callint.c (Fcall_interactively):
+	* fns.c (Fyes_or_no_p): Prefer `message1' over `message'.
+
 2013-02-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (syms_of_xterm): Move scroll-bar-adjust-thumb-portion ...
-
 	* frame.c (syms_of_frame): ... to here.
 
 2013-02-16  Eli Zaretskii  <eliz@gnu.org>

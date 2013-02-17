@@ -93,7 +93,7 @@ init_libxml2_functions (void)
 
       if (!(library = w32_delayed_load (Qlibxml2_dll)))
 	{
-	  message ("%s", "libxml2 library not found");
+	  message1 ("libxml2 library not found");
 	  return 0;
 	}
 

@@ -2485,7 +2485,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
 
       Fding (Qnil);
       Fdiscard_input ();
-      message ("Please answer yes or no.");
+      message1 ("Please answer yes or no.");
       Fsleep_for (make_number (2), Qnil);
     }
 }
