@@ -625,7 +625,8 @@ last ping."
                                            (rcirc-float-time))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
-    (cancel-timer rcirc-keepalive-timer)
+    (when (timerp rcirc-keepalive-timer)
+      (cancel-timer rcirc-keepalive-timer))
     (setq rcirc-keepalive-timer nil)))
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process target sender message)
