@@ -709,10 +709,16 @@ which commands need to be run in a terminal, add them to the list
 @var{eshell-visual-commands}.
 
 Redirection is mostly the same in Eshell as it is in other command
-shells.  The output redirection operators @code{>} and @code{>>} as well
-as pipes are supported, but there is not yet any support for input
-redirection.  Output can also be redirected to Elisp functions, using
+shells.  The output redirection operators @code{>} and @code{>>} as
+well as pipes are supported, but there is not yet any support for
+input redirection.  Output can also be redirected to buffers, using
+the @code{>>>} redirection operator, and Elisp functions, using
 virtual devices.
+
+The buffer redirection operator, @code{>>>}, expects a buffer object
+on the right-hand side, into which it inserts the output of the
+left-hand side.  e.g., @samp{echo hello >>> #<buffer *scratch*>}
+inserts the string @code{"hello"} into the @code{*scratch*} buffer.
 
 @var{eshell-virtual-targets} is a list of mappings of virtual device
 names to functions.  Eshell comes with two virtual devices:
@@ -725,8 +731,9 @@ by adding a list of the form @code{("/dev/name" function mode)} to
 @code{function} may be either a lambda or a function name.  If
 @code{mode} is nil, then the function is the output function; if it is
 non-nil, then the function is passed the redirection mode as a
-symbol--@code{overwrite}, @code{append}, or @code{insert}--and the
-function is expected to return the output function.
+symbol--@code{overwrite} for @code{>}, @code{append} for @code{>>}, or
+@code{insert} for @code{>>>}--and the function is expected to return
+the output function.
 
 The output function is called once on each line of output until
 @code{nil} is passed, indicating end of output.
