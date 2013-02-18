@@ -1,3 +1,8 @@
+2013-02-18  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument):
+	Use font-lock-keyword-face for macros and special forms (bug#8345).
+
 2013-02-17  Didier Verna  <didier@didierverna.net>
 
 	* net/network-stream.el (network-stream-open-starttls):

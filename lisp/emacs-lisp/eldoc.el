@@ -356,7 +356,8 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 	(setq doc (copy-sequence args))
 	(add-text-properties start end (list 'face argument-face) doc))
       (setq doc (eldoc-docstring-format-sym-doc
-		 sym doc 'font-lock-function-name-face))
+		 sym doc (if (functionp sym) 'font-lock-function-name-face
+                           'font-lock-keyword-face)))
       doc)))
 
 ;; Return a string containing a brief (one-line) documentation string for
