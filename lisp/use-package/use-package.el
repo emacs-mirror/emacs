@@ -76,7 +76,7 @@
 ;; would succeed either way.
 ;;
 ;; Similar to `:bind', you can use `:mode' and `:interpreter' to establish a
-;; deferred binding within `auto-mode-alist' and `auto-interpreter-alist'.
+;; deferred binding within `auto-mode-alist' and `interpreter-mode-alist'.
 ;; The specifier to either keyword can be a single cons or a list:
 ;;
 ;;   (use-package python-mode
@@ -398,7 +398,7 @@ For full documentation. please see commentary.
       commands.
 :commands Define autoloads for given commands.
 :mode Form to be added to `auto-mode-alist'.
-:interpreter Form to be added to `auto-interpreter-alist'.
+:interpreter Form to be added to `interpreter-mode-alist'.
 :defer Defer loading of package -- automatic
        if :commands, :bind, :mode or :interpreter are used.
 :config Runs if and when package loads.
