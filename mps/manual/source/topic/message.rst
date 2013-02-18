@@ -123,7 +123,7 @@ Here's how this looks in operation:
 
 .. note::
 
-    This kind of interative "chatter" may be useful when testing and
+    This kind of interactive "chatter" may be useful when testing and
     debugging memory management, but should not be used otherwise. The
     scheduling of garbage collections is not normally of interest even
     to programmers, and chatter of this sort may give the illusion

@@ -15,7 +15,7 @@ AMCZ (Automatic Mostly-Copying Zero-rank)
 memory management>` :term:`pool class` for :term:`leaf objects`
 ("zero-rank" objects that contain no references).
 
-It is otherwise indentical to :ref:`pool-amc`.
+It is otherwise identical to :ref:`pool-amc`.
 
 AMCZ is intended for "simple" objects like numbers, characters, and
 strings. Segregating these objects into one or more AMCZ pools avoids
@@ -32,7 +32,7 @@ See :ref:`guide-advanced-segregation` for an example.
 AMCZ properties
 ---------------
 
-AMCZ is indentical to :ref:`pool-amc`, except that:
+AMCZ is identical to :ref:`pool-amc`, except that:
 
 * Blocks may not contain :term:`references` to blocks in automatically
   managed pools.

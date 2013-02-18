@@ -39,7 +39,7 @@ facilities is included with the MPS, and this is good enough for most
 applications.
 
 There are many reasons why you might want to write your own plinth.
-You may be targetting a *freestanding environment* such as an embedded
+You may be targeting a *freestanding environment* such as an embedded
 system. You might need to write the telemetry stream to a system
 logging facility, or transmit it over a serial port or network
 connection. Or you might need to direct debugging output to a

@@ -38,7 +38,7 @@ known as :term:`finalization`.
 
 Any block in an :term:`automatically managed <automatic memory
 management>` :term:`pool` can be registered for finalization by calling
-:c:func:`mps_finalize`. In the toy Scheme interpeter, this can be done
+:c:func:`mps_finalize`. In the toy Scheme interpreter, this can be done
 in ``make_port``:
 
 .. code-block:: c
