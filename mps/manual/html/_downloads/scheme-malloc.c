@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * $Id: //info.ravenbrook.com/project/mps/branch/2012-10-09/user-guide/example/scheme/scheme-malloc.c#21 $
+ * $Id: //info.ravenbrook.com/project/mps/master/example/scheme/scheme-malloc.c#1 $
  * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  * 
  * TO DO

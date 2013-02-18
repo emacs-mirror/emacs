@@ -82,7 +82,7 @@ reliable mechanisms for releasing resources (like Scheme&#8217;s
 <tt class="docutils literal"><span class="pre">with-open-input-file</span></tt>) aren&#8217;t available.</p>
 </div>
 <p>Any block in an <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a> <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a> can be registered for finalization by calling
-<a class="reference internal" href="../topic/finalization.html#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a>. In the toy Scheme interpeter, this can be done
+<a class="reference internal" href="../topic/finalization.html#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a>. In the toy Scheme interpreter, this can be done
 in <tt class="docutils literal"><span class="pre">make_port</span></tt>:</p>
 <div class="highlight-c"><div class="highlight"><pre> <span class="k">static</span> <span class="n">obj_t</span> <span class="nf">make_port</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">name</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">stream</span><span class="p">)</span>
  <span class="p">{</span>

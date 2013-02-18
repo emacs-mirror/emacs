@@ -328,7 +328,7 @@ Root interface
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    The registered root destription persists until it is destroyed by
+    The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
 
@@ -348,7 +348,7 @@ Root interface
     Returns a :term:`result code`. If a fix function returns a value
     other than :c:macro:`MPS_RES_OK`, the scan method must return that
     value, and may return without fixing any further references.
-    Generally, itis better if it returns as soon as possible. If the
+    Generally, it is better if it returns as soon as possible. If the
     scanning is completed successfully, the function should return
     :c:macro:`MPS_RES_OK`.
 
@@ -380,7 +380,7 @@ Root interface
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    The registered root destription persists until it is destroyed by
+    The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
 .. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
@@ -410,7 +410,7 @@ Root interface
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    The registered root destription persists until it is destroyed by
+    The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
     .. note::
@@ -446,7 +446,7 @@ Root interface
     Returns a :term:`result code`. If a fix function returns a value
     other than :c:macro:`MPS_RES_OK`, the scan method must return that
     value, and may return without fixing any further references.
-    Generally, itis better if it returns as soon as possible. If the
+    Generally, it is better if it returns as soon as possible. If the
     scanning is completed successfully, the function should return
     :c:macro:`MPS_RES_OK`.
 
@@ -540,7 +540,7 @@ Root interface
     description could not be allocated, or another :term:`result code`
     if there was another error.
 
-    The registered root destription persists until it is destroyed by
+    The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
     For example::
@@ -592,7 +592,7 @@ Root introspection
     ``f`` is a function that will be called for each reference to an
     object in an :term:`automatically <automatic memory management>`
     managed :term:`pool class` that was found in a registered root
-    beloging to the arena. It takes four arguments: ``ref`` is the
+    belonging to the arena. It takes four arguments: ``ref`` is the
     address of a reference to an object in the arena, ``root`` is the
     root in which ``ref`` was found, and ``p`` and ``s`` are the
     corresponding arguments that were passed to

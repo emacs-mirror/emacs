@@ -71,7 +71,7 @@ downloaded and built the MPS (see the chapter <a class="reference internal" href
 <p>As a running example throughout this guide, I&#8217;ll be using a small
 interpreter for a subset of the <a class="reference internal" href="../mmref/lang.html#term-scheme"><em class="xref std std-term">Scheme</em></a> programming language.
 I&#8217;ll be quoting the relevant sections of code as needed, but you may
-find it helpful to experiment with this interpeter yourself, in either
+find it helpful to experiment with this interpreter yourself, in either
 of its versions:</p>
 <p><a class="reference download internal" href="../_downloads/scheme-malloc.c"><tt class="xref download docutils literal"><span class="pre">scheme-malloc.c</span></tt></a></p>
 <blockquote>
@@ -451,7 +451,7 @@ type field to distinguish it from other Scheme objects.</li>
 <li>It must contain a pointer to the new location of the object (a
 <a class="reference internal" href="../glossary/f.html#term-forwarding-pointer"><em class="xref std std-term">forwarding pointer</em></a>).</li>
 <li>The <a class="reference internal" href="#guide-lang-scan"><em>scan method</em></a> and the <a class="reference internal" href="#guide-lang-skip"><em>skip method</em></a> will both need to know the length of the
-forwarding object. This can be arbitarily long (in the case of
+forwarding object. This can be arbitrarily long (in the case of
 string objects, for example) so it must contain a length field.</li>
 </ol>
 <p>This poses a problem, because the above analysis suggests that
@@ -494,7 +494,7 @@ longer:</p>
 </div>
 <p>The argument <tt class="docutils literal"><span class="pre">old</span></tt> is the old address of the object, and <tt class="docutils literal"><span class="pre">new</span></tt> is
 the location to which it has been moved.</p>
-<p>The fowarding objects must be scannable and skippable, so the
+<p>The forwarding objects must be scannable and skippable, so the
 following code must be added to <tt class="docutils literal"><span class="pre">obj_scan</span></tt> and <tt class="docutils literal"><span class="pre">obj_skip</span></tt>:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">case</span> <span class="n">TYPE_FWD</span>:
     <span class="n">base</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">base</span> <span class="o">+</span> <span class="n">ALIGN_UP</span><span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">fwd</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
@@ -570,7 +570,7 @@ with a <a class="reference internal" href="../glossary/f.html#term-forwarding-ob
 size. However, padding objects might need to be as small as the
 alignment of the object format, which was specified to be a single
 word. As with forwarding objects, this can be solved by having two
-types of padding object. The first type is suitable for paddding
+types of padding object. The first type is suitable for padding
 objects of two words or longer:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">pad_s</span> <span class="p">{</span>
     <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_PAD */</span>

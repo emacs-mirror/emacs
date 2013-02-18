@@ -29,7 +29,7 @@ The Scheme interpreter
 As a running example throughout this guide, I'll be using a small
 interpreter for a subset of the :term:`Scheme` programming language.
 I'll be quoting the relevant sections of code as needed, but you may
-find it helpful to experiment with this interpeter yourself, in either
+find it helpful to experiment with this interpreter yourself, in either
 of its versions:
 
 :download:`scheme-malloc.c <../../../example/scheme/scheme-malloc.c>`
@@ -481,7 +481,7 @@ The forwarding object must satisfy these properties:
 
 3. The :ref:`scan method <guide-lang-scan>` and the :ref:`skip method
    <guide-lang-skip>` will both need to know the length of the
-   forwarding object. This can be arbitarily long (in the case of
+   forwarding object. This can be arbitrarily long (in the case of
    string objects, for example) so it must contain a length field.
 
 This poses a problem, because the above analysis suggests that
@@ -526,7 +526,7 @@ Here's the forward method for the toy Scheme interpreter::
 The argument ``old`` is the old address of the object, and ``new`` is
 the location to which it has been moved.
 
-The fowarding objects must be scannable and skippable, so the
+The forwarding objects must be scannable and skippable, so the
 following code must be added to ``obj_scan`` and ``obj_skip``::
 
     case TYPE_FWD:
@@ -622,7 +622,7 @@ with a :term:`forwarding object`. This means they need a type and a
 size. However, padding objects might need to be as small as the
 alignment of the object format, which was specified to be a single
 word. As with forwarding objects, this can be solved by having two
-types of padding object. The first type is suitable for paddding
+types of padding object. The first type is suitable for padding
 objects of two words or longer::
 
     typedef struct pad_s {

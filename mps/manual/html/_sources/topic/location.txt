@@ -285,7 +285,7 @@ Location dependency interface
 
 .. c:function:: mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
 
-    Determine if any of the depdencies in a :term:`location
+    Determine if any of the dependencies in a :term:`location
     dependency` are stale with respect to an :term:`arena`.
 
     ``ld`` is the location dependency.

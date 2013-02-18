@@ -316,7 +316,7 @@ example, an array and its size as parameters.</p>
 successfully, <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a> if the new root
 description could not be allocated, or another <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a>
 if there was another error.</p>
-<p>The registered root destription persists until it is destroyed by
+<p>The registered root description persists until it is destroyed by
 calling <a class="reference internal" href="#mps_root_destroy" title="mps_root_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_destroy()</span></tt></a>.</p>
 </dd></dl>
 
@@ -334,7 +334,7 @@ sequence of fix operations, and to the functions
 <p>Returns a <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a>. If a fix function returns a value
 other than <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a>, the scan method must return that
 value, and may return without fixing any further references.
-Generally, itis better if it returns as soon as possible. If the
+Generally, it is better if it returns as soon as possible. If the
 scanning is completed successfully, the function should return
 <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a>.</p>
 </dd></dl>
@@ -358,7 +358,7 @@ formatted objects.</p>
 successfully, <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a> if the new root
 description could not be allocated, or another <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a>
 if there was another error.</p>
-<p>The registered root destription persists until it is destroyed by
+<p>The registered root description persists until it is destroyed by
 calling <a class="reference internal" href="#mps_root_destroy" title="mps_root_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_destroy()</span></tt></a>.</p>
 </dd></dl>
 
@@ -381,7 +381,7 @@ example, an array and its size as parameters.</p>
 successfully, <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a> if the new root
 description could not be allocated, or another <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a>
 if there was another error.</p>
-<p>The registered root destription persists until it is destroyed by
+<p>The registered root description persists until it is destroyed by
 calling <a class="reference internal" href="#mps_root_destroy" title="mps_root_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_destroy()</span></tt></a>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
@@ -412,7 +412,7 @@ sequence of fix operations, and to the functions
 <p>Returns a <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a>. If a fix function returns a value
 other than <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a>, the scan method must return that
 value, and may return without fixing any further references.
-Generally, itis better if it returns as soon as possible. If the
+Generally, it is better if it returns as soon as possible. If the
 scanning is completed successfully, the function should return
 <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a>.</p>
 <p>A root scan method is called whenever the MPS needs to scan the
@@ -489,7 +489,7 @@ value in the vector with a non-zero tag is ignored.</p>
 successfully, <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a> if the new root
 description could not be allocated, or another <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a>
 if there was another error.</p>
-<p>The registered root destription persists until it is destroyed by
+<p>The registered root description persists until it is destroyed by
 calling <a class="reference internal" href="#mps_root_destroy" title="mps_root_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_destroy()</span></tt></a>.</p>
 <p>For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#define TAG_MASK 0x3            </span><span class="cm">/* bottom two bits */</span><span class="cp"></span>
@@ -538,7 +538,7 @@ achieve what you&#8217;re trying to do. <a class="reference internal" href="../c
 <p><tt class="docutils literal"><span class="pre">f</span></tt> is a function that will be called for each reference to an
 object in an <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically</em></a>
 managed <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> that was found in a registered root
-beloging to the arena. It takes four arguments: <tt class="docutils literal"><span class="pre">ref</span></tt> is the
+belonging to the arena. It takes four arguments: <tt class="docutils literal"><span class="pre">ref</span></tt> is the
 address of a reference to an object in the arena, <tt class="docutils literal"><span class="pre">root</span></tt> is the
 root in which <tt class="docutils literal"><span class="pre">ref</span></tt> was found, and <tt class="docutils literal"><span class="pre">p</span></tt> and <tt class="docutils literal"><span class="pre">s</span></tt> are the
 corresponding arguments that were passed to

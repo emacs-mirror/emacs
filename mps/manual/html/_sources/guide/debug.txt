@@ -103,7 +103,7 @@ Example: underscanning
 An easy mistake to make is to omit to :term:`fix` a :term:`reference`
 when :term:`scanning <scan>` a :term:`formatted object`. For example,
 in the Scheme interpreter's :ref:`scan method <guide-lang-scan>`, I
-might have forgetten to fix the first element of a pair:
+might have forgotten to fix the first element of a pair:
 
 .. code-block:: c
     :emphasize-lines: 2
@@ -167,7 +167,7 @@ What's going on? ::
     $1 = 0x1003faf30 "foo"
 
 The backtrace shows that the interpreter is in the middle of looking
-up the symbol ``foo`` in the environment. The Scheme intrepreter
+up the symbol ``foo`` in the environment. The Scheme interpreter
 implements the environment as a list of *frames*, each of which is a
 list of *bindings*, each binding being a pair of a symbol and its
 value, as shown here:

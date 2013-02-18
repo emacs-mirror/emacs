@@ -46,7 +46,6 @@ demonstration of :term:`Lisp` in an appendix to his paper
     thought we were victims of a practical joker.
 
 
-
 .. index::
    single: telemetry; utilities
 

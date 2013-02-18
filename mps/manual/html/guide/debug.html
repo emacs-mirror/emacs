@@ -123,7 +123,7 @@ handle SIGBUS pass nostop noprint
 <p>An easy mistake to make is to omit to <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">fix</em></a> a <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">reference</em></a>
 when <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scanning</em></a> a <a class="reference internal" href="../glossary/f.html#term-formatted-object"><em class="xref std std-term">formatted object</em></a>. For example,
 in the Scheme interpreter&#8217;s <a class="reference internal" href="lang.html#guide-lang-scan"><em>scan method</em></a>, I
-might have forgetten to fix the first element of a pair:</p>
+might have forgotten to fix the first element of a pair:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">case</span> <span class="n">TYPE_PAIR</span>:
 <span class="hll">  <span class="cm">/* oops, forgot: FIX(CAR(obj)); */</span>
 </span>  <span class="n">FIX</span><span class="p">(</span><span class="n">CDR</span><span class="p">(</span><span class="n">obj</span><span class="p">));</span>
@@ -183,7 +183,7 @@ $1 = 0x1003faf30 &quot;foo&quot;
 </pre></div>
 </div>
 <p>The backtrace shows that the interpreter is in the middle of looking
-up the symbol <tt class="docutils literal"><span class="pre">foo</span></tt> in the environment. The Scheme intrepreter
+up the symbol <tt class="docutils literal"><span class="pre">foo</span></tt> in the environment. The Scheme interpreter
 implements the environment as a list of <em>frames</em>, each of which is a
 list of <em>bindings</em>, each binding being a pair of a symbol and its
 value, as shown here:</p>
