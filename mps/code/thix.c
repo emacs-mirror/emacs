@@ -41,7 +41,7 @@
 SRCID(thix, "$Id$");
 
 
-/* ThreadStruct -- thread desriptor */
+/* ThreadStruct -- thread descriptor */
 
 typedef struct mps_thr_s {       /* PThreads thread structure */
   Sig sig;                       /* <design/sig/> */

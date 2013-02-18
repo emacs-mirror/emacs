@@ -81,7 +81,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 
     /* scan stack and register roots in other threads */
 
-    /* This dumps the relevent registers into the context */
+    /* This dumps the relevant registers into the context */
     /* .context.flags */
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
     /* .thread.handle.get-context */
@@ -109,8 +109,8 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 
     /* (.context.regroots)
      * This scans the root registers (.context.regroots).  It also
-     * unecessarily scans the rest of the context.  The optimisation
-     * to scan only relevent parts would be machine dependent.
+     * unnecessarily scans the rest of the context.  The optimisation
+     * to scan only relevant parts would be machine dependent.
      */
     res = TraceScanAreaTagged(ss, (Addr *)&context,
            (Addr *)((char *)&context + sizeof(CONTEXT)));

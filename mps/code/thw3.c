@@ -23,7 +23,7 @@
  *
  * Other errors are assumed to only happen in certain circumstances.
  * .error.resume: ResumeThread is assumed to succeed unless the thread
- * has been destroyed (in fact, perversely, it appears to succeeed even
+ * has been destroyed (in fact, perversely, it appears to succeed even
  * when the thread has been destroyed).
  * .error.suspend: SuspendThread is assumed to succeed unless the thread
  * has been destroyed.
