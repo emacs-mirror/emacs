@@ -473,7 +473,7 @@ Format methods
     Returns a :term:`result code`. If a fix function returns a value
     other than :c:macro:`MPS_RES_OK`, the scan method must return that
     value, and may return without fixing any further references.
-    Generally, itis better if it returns as soon as possible. If the
+    Generally, it is better if it returns as soon as possible. If the
     scanning is completed successfully, the function should return
     :c:macro:`MPS_RES_OK`.
 
