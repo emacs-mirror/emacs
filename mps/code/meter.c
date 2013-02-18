@@ -45,7 +45,7 @@ void MeterAccumulate(Meter meter, Size amount)
   double dcount = (double)count;
 
   /* .limitation.variance: This computation accumulates a running
-   * mean^2, minimizing overflow, but sacrificing numerical stablity
+   * mean^2, minimizing overflow, but sacrificing numerical stability
    * for small variances.  For more accuracy, the data set should be
    * emitted using a telemetry stream and analyzed off-line.
     .stddev: stddev = sqrt(meanSquared - mean^2).
@@ -93,7 +93,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
 }
 
 
-/* MeterEmit -- emit an evnet with the current data from the meter */
+/* MeterEmit -- emit an event with the current data from the meter */
 
 void MeterEmit(Meter meter)
 {
