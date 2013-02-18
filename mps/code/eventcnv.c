@@ -84,7 +84,7 @@ static void evwarn(const char *format, ...)
   va_end(args);
 }
 
-/* everror -- flush stdout, mesage to stderr, exit */
+/* everror -- flush stdout, message to stderr, exit */
 
 static void everror(const char *format, ...)
 {

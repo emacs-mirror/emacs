@@ -44,7 +44,7 @@
  * .assume.i3: Assume the following about the i386 environment:
  *   Steppable instructions (.assume.want) use the CS, DS & SS
  *   segment registers only (see .source.i486 Table 2-3).
- *   The procesor runs in 32 bit mode.
+ *   The processor runs in 32 bit mode.
  *   The CS, DS and SS segment registers all describe identical 32-
  *   bit flat address spaces.
  */

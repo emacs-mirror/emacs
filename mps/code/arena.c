@@ -46,7 +46,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 }
 
 
-/* AbstractArenaClass  -- The abstact arena class definition
+/* AbstractArenaClass  -- The abstract arena class definition
  *
  * .null: Most abstract class methods are set to NULL.  See
  * <design/arena/#class.abstract.null>.  */
