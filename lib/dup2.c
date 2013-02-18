@@ -1,6 +1,6 @@
 /* Duplicate an open file descriptor to a specified file descriptor.
 
-   Copyright (C) 1999, 2004-2007, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2004-2007, 2009-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -95,7 +95,10 @@ rpl_dup2 (int fd, int desired_fd)
 # ifdef F_GETFL
   /* On Linux kernels 2.6.26-2.6.29, dup2 (fd, fd) returns -EBADF.
      On Cygwin 1.5.x, dup2 (1, 1) returns 0.
+     On Cygwin 1.7.17, dup2 (1, -1) dumps core.
      On Haiku, dup2 (fd, fd) mistakenly clears FD_CLOEXEC.  */
+  if (desired_fd < 0)
+    fd = desired_fd;
   if (fd == desired_fd)
     return fcntl (fd, F_GETFL) == -1 ? -1 : fd;
 # endif

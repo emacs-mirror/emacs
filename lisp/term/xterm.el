@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm
 
-;; Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -36,7 +36,7 @@ If `check', try to check if it does.
 If a list, assume that the listed features are supported, without checking.
 
 The relevant features are:
-  modifyOtherKeys  -- if supported, more key bindings work (e.g, \"\\C-,\")
+  modifyOtherKeys  -- if supported, more key bindings work (e.g., \"\\C-,\")
   reportBackground -- if supported, Xterm reports its background color
 "
   :version "24.1"

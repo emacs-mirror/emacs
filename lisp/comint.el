@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2013 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -1521,7 +1521,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
 If there are no search errors, this function displays an overlay with
 the Isearch prompt which replaces the original comint prompt.
 Otherwise, it displays the standard Isearch message returned from
-`isearch-message'."
+the function `isearch-message'."
   (if (not (and isearch-success (not isearch-error)))
       ;; Use standard function `isearch-message' when not in comint prompt,
       ;; or search fails, or has an error (like incomplete regexp).
@@ -1847,9 +1847,9 @@ Similarly for Soar, Scheme, etc."
           (let ((echo-len (- comint-last-input-end
                              comint-last-input-start)))
             ;; Wait for all input to be echoed:
-            (while (and (accept-process-output proc)
-                        (> (+ comint-last-input-end echo-len)
+            (while (and (> (+ comint-last-input-end echo-len)
                            (point-max))
+                        (accept-process-output proc)
                         (zerop
                          (compare-buffer-substrings
                           nil comint-last-input-start
@@ -2120,19 +2120,31 @@ This function should be in the list `comint-output-filter-functions'."
 	 ((bound-and-true-p follow-mode)
 	  (follow-comint-scroll-to-bottom))
 	 (t
-	  (let ((selected (selected-window)))
-	    (dolist (w (get-buffer-window-list current nil t))
-	      (select-window w)
-	      (unwind-protect
-		  (progn
-		    (comint-adjust-point selected)
-		    ;; Optionally scroll to the bottom of the window.
-		    (and comint-scroll-show-maximum-output
-			 (eobp)
-			 (recenter (- -1 scroll-margin))))
-		(select-window selected))))))
+          (dolist (w (get-buffer-window-list current nil t))
+            (comint-adjust-window-point w process)
+            ;; Optionally scroll to the bottom of the window.
+            (and comint-scroll-show-maximum-output
+                 (eq (window-point w) (point-max))
+                 (with-selected-window w
+                   (recenter (- -1 scroll-margin)))))))
       (set-buffer current))))
 
+
+(defun comint-adjust-window-point (window process)
+  "Move point in WINDOW based on Comint settings.
+For point adjustment use the process-mark of PROCESS."
+  (and (< (window-point window) (process-mark process))
+       (or (memq comint-move-point-for-output '(t all))
+           ;; Maybe user wants point to jump to end.
+           (eq comint-move-point-for-output
+               (if (eq (selected-window) window) 'this 'others))
+           ;; If point was at the end, keep it at end.
+           (and (marker-position comint-last-output-start)
+                (>= (window-point window) comint-last-output-start)))
+       (set-window-point window (process-mark process))))
+
+
+;; this function is nowhere used
 (defun comint-adjust-point (selected)
   "Move point in the selected window based on Comint settings.
 SELECTED is the window that was originally selected."
@@ -3490,6 +3502,11 @@ This works by binding `inhibit-read-only' around the insertion.
 This is useful, for instance, for insertion into Help mode buffers.
 You probably want to set it locally to the output buffer.")
 
+(defvar comint-redirect-previous-input-string nil
+  "Last redirected line of text.
+Allows detection of the end of the redirection in case the
+completion string is split between two output segments.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3527,6 +3544,9 @@ and does not normally need to be invoked by the end user or programmer."
     (make-local-variable 'comint-redirect-completed)
     (setq comint-redirect-completed nil)
 
+    (make-local-variable 'comint-redirect-previous-input-string)
+    (setq comint-redirect-previous-input-string "")
+
     (setq mode-line-process
 	  (if mode-line-process
 	      (list (concat (elt mode-line-process 0) " Redirection"))
@@ -3535,6 +3555,8 @@ and does not normally need to be invoked by the end user or programmer."
 (defun comint-redirect-cleanup ()
   "End a Comint redirection.  See `comint-redirect-send-command'."
   (interactive)
+  ;; Release the last redirected string
+  (setq comint-redirect-previous-input-string nil)
   ;; Restore the process filter
   (set-process-filter (get-buffer-process (current-buffer))
 		      comint-redirect-original-filter-function)
@@ -3616,18 +3638,21 @@ This function does not need to be invoked by the end user."
 
     ;; Message
     (and comint-redirect-verbose
-	 (message "Redirected output to buffer(s) %s"
-		  (mapconcat 'identity output-buffer-list " ")))
+	 (message "Redirected output to buffer(s) %s" output-buffer-list))
 
     ;; If we see the prompt, tidy up
     ;; We'll look for the prompt in the original string, so nobody can
     ;; clobber it
-    (and (string-match comint-redirect-finished-regexp input-string)
+    (and (string-match comint-redirect-finished-regexp 
+                       (concat comint-redirect-previous-input-string 
+                               input-string))
 	 (progn
 	   (and comint-redirect-verbose
 		(message "Redirection completed"))
 	   (comint-redirect-cleanup)
 	   (run-hooks 'comint-redirect-hook)))
+    (setq comint-redirect-previous-input-string input-string)
+
     ;; Echo input?
     (if comint-redirect-echo-input
 	filtered-input-string

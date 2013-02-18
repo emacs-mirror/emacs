@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -659,6 +659,10 @@
 (eval-when-compile
   (require 'dired))
 
+(declare-function dired-get-filename "dired" (&optional localp noerror))
+(declare-function dired-move-to-filename "dired" (&optional err eol))
+(declare-function dired-marker-regexp "dired" ())
+
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
   (setq minor-mode-alist
 	(cons '(vc-parent-buffer vc-parent-buffer-name)
@@ -1072,7 +1076,16 @@ For old-style locking-based version control systems, like RCS:
          ;; among all the `files'.
 	 (model (nth 4 vc-fileset)))
 
-    ;; Do the right thing
+    ;; If a buffer has unsaved changes, a checkout would discard those
+    ;; changes, so treat the buffer as having unlocked changes.
+    (when (and (not (eq model 'implicit)) (eq state 'up-to-date))
+      (dolist (file files)
+        (let ((buffer (get-file-buffer file)))
+          (and buffer
+               (buffer-modified-p buffer)
+               (setq state 'unlocked-changes)))))
+
+    ;; Do the right thing.
     (cond
      ((eq state 'missing)
       (error "Fileset files are missing, so cannot be operated on"))
@@ -2652,14 +2665,11 @@ log entries should be gathered."
    (cond ((consp current-prefix-arg)	;C-u
 	  (list buffer-file-name))
 	 (current-prefix-arg		;Numeric argument.
-	  (let ((files nil)
-		(buffers (buffer-list))
-		file)
-	    (while buffers
-	      (setq file (buffer-file-name (car buffers)))
-	      (and file (vc-backend file)
-		   (setq files (cons file files)))
-	      (setq buffers (cdr buffers)))
+	  (let ((files nil))
+            (dolist (buffer (buffer-list))
+	      (let ((file (buffer-file-name buffer)))
+                (and file (vc-backend file)
+                     (setq files (cons file files)))))
 	    files))
 	 (t
           ;; Don't supply any filenames to backend; this means

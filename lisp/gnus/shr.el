@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -615,7 +615,12 @@ size, and full-buffer size."
 		  (overlay-put overlay 'face 'default)))
 	    (insert-image image (or alt "*")))
 	  (put-text-property start (point) 'image-size size)
-	  (when (image-animated-p image)
+	  (when (if (fboundp 'image-multi-frame-p)
+		    ;; Only animate multi-frame things that specify a
+		    ;; delay; eg animated gifs as opposed to
+		    ;; multi-page tiffs.  FIXME?
+		    (cdr (image-multi-frame-p image))
+		  (image-animated-p image))
 	    (image-animate image nil 60)))
 	image)
     (insert alt)))
@@ -894,7 +899,7 @@ ones, in case fg and bg are nil."
   (shr-fontize-cont cont 'italic))
 
 (defun shr-tag-em (cont)
-  (shr-fontize-cont cont 'bold))
+  (shr-fontize-cont cont 'italic))
 
 (defun shr-tag-strong (cont)
   (shr-fontize-cont cont 'bold))
@@ -931,7 +936,8 @@ ones, in case fg and bg are nil."
 	(start (point))
 	shr-start)
     (shr-generic cont)
-    (shr-urlify (or shr-start start) (shr-expand-url url) title)))
+    (when url
+      (shr-urlify (or shr-start start) (shr-expand-url url) title))))
 
 (defun shr-tag-object (cont)
   (let ((start (point))

@@ -1,7 +1,7 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp

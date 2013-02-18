@@ -1,6 +1,7 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992, 1997-1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997-1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF

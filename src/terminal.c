@@ -1,5 +1,5 @@
 /* Functions related to terminal devices.
-   Copyright (C) 2005-2012 Free Software Foundation, Inc.
+   Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -398,8 +398,6 @@ possible return values.  */)
       return Qw32;
     case output_msdos_raw:
       return Qpc;
-    case output_mac:
-      return Qmac;
     case output_ns:
       return Qns;
     default:

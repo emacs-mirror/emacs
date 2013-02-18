@@ -1,5 +1,6 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985-1988, 1993-1995, 1997-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1360,8 +1361,8 @@ compute_fringe_widths (struct frame *f, int redraw)
 
   if (left_fringe_width || right_fringe_width)
     {
-      int left_wid = left_fringe_width >= 0 ? left_fringe_width : -left_fringe_width;
-      int right_wid = right_fringe_width >= 0 ? right_fringe_width : -right_fringe_width;
+      int left_wid = eabs (left_fringe_width);
+      int right_wid = eabs (right_fringe_width);
       int conf_wid = left_wid + right_wid;
       int font_wid = FRAME_COLUMN_WIDTH (f);
       int cols = (left_wid + right_wid + font_wid-1) / font_wid;
@@ -1744,7 +1745,7 @@ Return nil if POS is not visible in WINDOW.  */)
   else if (w == XWINDOW (selected_window))
     textpos = PT;
   else
-    textpos = XMARKER (w->pointm)->charpos;
+    textpos = marker_position (w->pointm);
 
   row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   row = row_containing_pos (w, textpos, row, NULL, 0);

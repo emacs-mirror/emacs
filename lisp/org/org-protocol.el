@@ -1,6 +1,6 @@
 ;;; org-protocol.el --- Intercept calls from emacsclient to trigger custom actions.
 ;;
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg AT gnu DOT org>
 ;;       Daniel M German <dmg AT uvic DOT org>

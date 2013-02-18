@@ -1,6 +1,6 @@
 ;;; ido.el --- interactively do things with buffers and files
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -1585,6 +1585,8 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-p" 'ido-toggle-prefix)
     (define-key map "\C-r" 'ido-prev-match)
     (define-key map "\C-s" 'ido-next-match)
+    (define-key map [?\C-.] 'ido-next-match)
+    (define-key map [?\C-,] 'ido-prev-match)
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
     (define-key map [(control ?\s)] 'ido-restrict-to-matches)

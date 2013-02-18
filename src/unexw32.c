@@ -1,5 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -85,13 +85,6 @@ DWORD_PTR  extra_bss_size_static = 0;
 
 PIMAGE_SECTION_HEADER heap_section;
 
-#ifdef HAVE_NTGUI
-extern HINSTANCE hinst;
-HINSTANCE hprevinst = NULL;
-LPSTR lpCmdLine = "";
-int nCmdShow = 0;
-#endif /* HAVE_NTGUI */
-
 /* Startup code for running on NT.  When we are running as the dumped
    version, we need to bootstrap our heap and .bss section into our
    address space before we can actually hand off control to the startup
@@ -121,15 +114,6 @@ _start (void)
   /* Prevent Emacs from being locked up (eg. in batch mode) when
      accessing devices that aren't mounted (eg. removable media drives).  */
   SetErrorMode (SEM_FAILCRITICALERRORS);
-
-  /* Invoke the NT CRT startup routine now that our housecleaning
-     is finished.  */
-#ifdef HAVE_NTGUI
-  /* determine WinMain args like crt0.c does */
-  hinst = GetModuleHandle (NULL);
-  lpCmdLine = GetCommandLine ();
-  nCmdShow = SW_SHOWDEFAULT;
-#endif
   mainCRTStartup ();
 }
 
@@ -738,7 +722,7 @@ unexec (const char *new_name, const char *old_name)
   /* Ignore old_name, and get our actual location from the OS.  */
   if (!GetModuleFileName (NULL, in_filename, MAX_PATH))
     abort ();
-  dostounix_filename (in_filename);
+  dostounix_filename (in_filename, 0);
   strcpy (out_filename, in_filename);
 
   /* Change the base of the output filename to match the requested name.  */

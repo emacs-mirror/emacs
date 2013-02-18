@@ -1,6 +1,7 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-1994, 2001-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -209,6 +210,11 @@ enum event_kind
   , NS_TEXT_EVENT
   /* Non-key system events (e.g. application menu events) */
   , NS_NONKEY_EVENT
+#endif
+
+#if defined (HAVE_INOTIFY) || defined (HAVE_NTGUI)
+  /* File or directory was changed.  */
+  , FILE_NOTIFY_EVENT
 #endif
 
 };

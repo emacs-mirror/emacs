@@ -1,6 +1,6 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -43,6 +43,9 @@
       (if (fboundp 'set-face-doc-string)
 	  (set-face-doc-string new-face docstring)))))
 (put 'org-copy-face 'lisp-indent-function 2)
+
+(when (featurep 'xemacs)
+  (put 'mode-line 'face-alias 'modeline))
 
 (defgroup org-faces nil
   "Faces in Org-mode."

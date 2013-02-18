@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -406,8 +406,7 @@ will be killed."
   "The channel or user associated with this buffer.")
 
 (defvar rcirc-urls nil
-  "List of URLs seen in the current buffer and the position in
-the buffer where the URL starts.")
+  "List of URLs seen in the current buffer and their start positions.")
 (put 'rcirc-urls 'permanent-local t)
 
 (defvar rcirc-timeout-seconds 600
@@ -626,7 +625,8 @@ last ping."
                                            (rcirc-float-time))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
-    (cancel-timer rcirc-keepalive-timer)
+    (when (timerp rcirc-keepalive-timer)
+      (cancel-timer rcirc-keepalive-timer))
     (setq rcirc-keepalive-timer nil)))
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process target sender message)
@@ -2393,9 +2393,11 @@ keywords when no KEYWORD is given."
    "\\)")
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
+;; cf cl-remove-if-not
 (defun rcirc-condition-filter (condp lst)
-  "Given a condition and a list, returns the list with elements
-that do not satisfy the condition removed."
+  "Remove all items not satisfying condition CONDP in list LST.
+CONDP is a function that takes a list element as argument and returns
+non-nil if that element should be included.  Returns a new list."
   (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
 
 (defun rcirc-browse-url (&optional arg)

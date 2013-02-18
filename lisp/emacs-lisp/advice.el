@@ -1,6 +1,6 @@
 ;;; advice.el --- An overloading mechanism for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -589,13 +589,11 @@
 ;; Advice implements forward advice mainly via the following: 1) Separation
 ;; of advice definition and activation that makes it possible to accumulate
 ;; advice information without having the original function already defined,
-;; 2) special versions of the built-in functions `fset/defalias' which check
-;; for advice information whenever they define a function.  If advice
-;; information was found then the advice will immediately get activated when
-;; the function gets defined.
+;; 2) Use of the `defalias-fset-function' symbol property which lets
+;; us advise the function when it gets defined.
 
 ;; Automatic advice activation means, that whenever a function gets defined
-;; with either `defun', `defmacro', `fset' or by loading a byte-compiled
+;; with either `defun', `defmacro', `defalias' or by loading a byte-compiled
 ;; file, and the function has some advice-info stored with it then that
 ;; advice will get activated right away.
 
@@ -2868,10 +2866,8 @@ advised definition from scratch."
 
 (defun ad-preactivate-advice (function advice class position)
   "Preactivate FUNCTION and returns the constructed cache."
-  (let* ((function-defined-p (fboundp function))
-	 (old-definition
-	  (if function-defined-p
-	      (symbol-function function)))
+  (let* ((advicefunname (ad-get-advice-info-field function 'advicefunname))
+         (old-advice (symbol-function advicefunname))
 	 (old-advice-info (ad-copy-advice-info function))
 	 (ad-advised-functions ad-advised-functions))
     (unwind-protect
@@ -2885,10 +2881,9 @@ advised definition from scratch."
 	      (list (ad-get-cache-definition function)
 		    (ad-get-cache-id function))))
       (ad-set-advice-info function old-advice-info)
-      ;; Don't `fset' function to nil if it was previously unbound:
-      (if function-defined-p
-	  (fset function old-definition)
-	(fmakunbound function)))))
+      (advice-remove function advicefunname)
+      (fset advicefunname old-advice)
+      (if old-advice (advice-add function :around advicefunname)))))
 
 
 ;; @@ Activation and definition handling:
@@ -2917,13 +2912,18 @@ If COMPILE is nil then the result depends on the value of
   "Redefine FUNCTION with its advised definition from cache or scratch.
 The resulting FUNCTION will be compiled if `ad-should-compile' returns t.
 The current definition and its cache-id will be put into the cache."
-  (let ((verified-cached-definition
-	 (if (ad-verify-cache-id function)
-	     (ad-get-cache-definition function)))
-        (advicefunname (ad-get-advice-info-field function 'advicefunname)))
+  (let* ((verified-cached-definition
+          (if (ad-verify-cache-id function)
+              (ad-get-cache-definition function)))
+         (advicefunname (ad-get-advice-info-field function 'advicefunname))
+         (old-ispec (interactive-form advicefunname)))
     (fset advicefunname
           (or verified-cached-definition
               (ad-make-advised-definition function)))
+    (unless (equal (interactive-form advicefunname) old-ispec)
+      ;; If the interactive-spec of advicefunname has changed, force nadvice to
+      ;; refresh its copy.
+      (advice-remove function advicefunname))
     (advice-add function :around advicefunname)
     (if (ad-should-compile function compile)
 	(ad-compile-function function))

@@ -56,7 +56,7 @@
 @c (See comments for EDITION in emacs.texi)
 @set VERSION  3.1
 @include emacsver.texi
-@set DATE May 2012
+@set DATE January 2013
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
@@ -98,7 +98,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990-1996, 1998-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1996, 1998--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1209,8 +1209,6 @@ Coding Systems
                                     for a single file operation.
 * Explicit Encoding::       Encoding or decoding text without doing I/O.
 * Terminal I/O Encoding::   Use of encoding for terminal I/O.
-* MS-DOS File Types::       How DOS "text" and "binary" files
-                                relate to coding systems.
 
 Searching and Matching
 

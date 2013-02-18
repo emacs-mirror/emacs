@@ -1,6 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: raw-text -*-
 
-Copyright (C) 1993-1997, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3281,10 +3281,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      erasing it works correctly...  */
   if (! NILP (saved_echo_area_message))
     message_with_string ("%s", saved_echo_area_message, 0);
-  message (0);
+  message1 (0);
   while (statecount--)
     xfree (state[statecount].screen_behind);
-  IT_display_cursor (1);	/* turn cursor back on */
+  IT_display_cursor (1);	/* Turn cursor back on.  */
   /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button
@@ -3339,7 +3339,7 @@ void msdos_downcase_filename (unsigned char *);
 /* Destructively turn backslashes into slashes.  */
 
 void
-dostounix_filename (char *p)
+dostounix_filename (char *p, int ignore)
 {
   msdos_downcase_filename (p);
 
@@ -3603,7 +3603,7 @@ init_environment (int argc, char **argv, int skip_args)
   if (!s) s = "c:/command.com";
   t = alloca (strlen (s) + 1);
   strcpy (t, s);
-  dostounix_filename (t);
+  dostounix_filename (t, 0);
   setenv ("SHELL", t, 0);
 
   /* PATH is also downcased and backslashes mirrored.  */
@@ -3613,7 +3613,7 @@ init_environment (int argc, char **argv, int skip_args)
   /* Current directory is always considered part of MsDos's path but it is
      not normally mentioned.  Now it is.  */
   strcat (strcpy (t, ".;"), s);
-  dostounix_filename (t); /* Not a single file name, but this should work.  */
+  dostounix_filename (t, 0); /* Not a single file name, but this should work.  */
   setenv ("PATH", t, 1);
 
   /* In some sense all dos users have root privileges, so...  */
@@ -3955,14 +3955,6 @@ careadlinkat (int fd, char const *filename,
 	buffer[len + 1] = '\0';
     }
   return buffer;
-}
-
-ssize_t
-careadlinkatcwd (int fd, char const *filename, char *buffer,
-                 size_t buffer_size)
-{
-  (void) fd;
-  return readlink (filename, buffer, buffer_size);
 }
 
 

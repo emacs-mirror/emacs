@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
 @chapter Searching and Matching
@@ -1325,7 +1325,7 @@ This stands for a single @samp{\} in the replacement text.
 
 @item @samp{\?}
 This stands for itself (for compatibility with @code{replace-regexp}
-and related commands; @pxref{Regexp Replacement,,, emacs, The GNU
+and related commands; @pxref{Regexp Replace,,, emacs, The GNU
 Emacs Manual}).
 @end table
 

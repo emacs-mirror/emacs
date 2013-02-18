@@ -1,5 +1,6 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-1995, 1997, 1999-2012 Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997, 1999-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -1323,14 +1324,13 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 }
 
 /* Replace properties of text from START to END with new list of
-   properties PROPERTIES.  BUFFER is the buffer containing
+   properties PROPERTIES.  OBJECT is the buffer or string containing
    the text.  This does not obey any hooks.
-   You can provide the interval that START is located in as I,
-   or pass NULL for I and this function will find it.
+   You should provide the interval that START is located in as I.
    START and END can be in any order.  */
 
 void
-set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object buffer, INTERVAL i)
+set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object, INTERVAL i)
 {
   register INTERVAL prev_changed = NULL;
   register ptrdiff_t s, len;
@@ -1349,8 +1349,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   else
     return;
 
-  if (i == NULL)
-    i = find_interval (buffer_intervals (XBUFFER (buffer)), s);
+  eassert (i);
 
   if (i->position != s)
     {
@@ -1361,11 +1360,11 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
 	{
 	  copy_properties (unchanged, i);
 	  i = split_interval_left (i, len);
-	  set_properties (properties, i, buffer);
+	  set_properties (properties, i, object);
 	  return;
 	}
 
-      set_properties (properties, i, buffer);
+      set_properties (properties, i, object);
 
       if (LENGTH (i) == len)
 	return;
@@ -1388,7 +1387,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
 	  /* We have to call set_properties even if we are going to
 	     merge the intervals, so as to make the undo records
 	     and cause redisplay to happen.  */
-	  set_properties (properties, i, buffer);
+	  set_properties (properties, i, object);
 	  if (prev_changed)
 	    merge_interval_left (i);
 	  return;
@@ -1399,7 +1398,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
       /* We have to call set_properties even if we are going to
 	 merge the intervals, so as to make the undo records
 	 and cause redisplay to happen.  */
-      set_properties (properties, i, buffer);
+      set_properties (properties, i, object);
       if (!prev_changed)
 	prev_changed = i;
       else

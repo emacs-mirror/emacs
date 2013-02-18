@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5292,8 +5292,7 @@ file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 static Lisp_Object
 clean_up_file_dialog (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  Widget dialog = (Widget) p->pointer;
+  Widget dialog = XSAVE_POINTER (arg, 0);
 
   /* Clean up.  */
   block_input ();
@@ -5417,7 +5416,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       XmStringFree (default_xmstring);
     }
 
-  record_unwind_protect (clean_up_file_dialog, make_save_value (dialog, 0));
+  record_unwind_protect (clean_up_file_dialog, make_save_pointer (dialog));
 
   /* Process events until the user presses Cancel or OK.  */
   x_menu_set_in_use (1);

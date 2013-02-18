@@ -1,6 +1,6 @@
 ;;; org-colview.el --- Column View in Org-mode
 
-;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1243,7 +1243,7 @@ PARAMS is a property list of parameters:
 :skip-empty-rows
 	  When t, skip rows where all specifiers other than ITEM are empty.
 :format   When non-nil, specify the column view format to use."
-  (let ((pos (move-marker (make-marker) (point)))
+  (let ((pos (point-marker))
 	(hlines (plist-get params :hlines))
 	(vlines (plist-get params :vlines))
 	(maxlevel (plist-get params :maxlevel))

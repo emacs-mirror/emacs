@@ -1,5 +1,6 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985-1988, 1993-1995, 1998-2012 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1998-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -564,15 +565,13 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 {
   if (!NILP (val))
     {
-      map_keymap_function_t fun
-	= (map_keymap_function_t) XSAVE_VALUE (XCAR (args))->pointer;
-      args = XCDR (args);
+      map_keymap_function_t fun = XSAVE_POINTER (args, 0);
       /* If the key is a range, make a copy since map_char_table modifies
 	 it in place.  */
       if (CONSP (key))
 	key = Fcons (XCAR (key), XCDR (key));
-      map_keymap_item (fun, XCDR (args), key, val,
-		       XSAVE_VALUE (XCAR (args))->pointer);
+      map_keymap_item (fun, XSAVE_OBJECT (args, 2), key,
+		       val, XSAVE_POINTER (args, 1));
     }
 }
 
@@ -610,12 +609,8 @@ map_keymap_internal (Lisp_Object map,
 	    }
 	}
       else if (CHAR_TABLE_P (binding))
-	{
-	  map_char_table (map_keymap_char_table_item, Qnil, binding,
-			  Fcons (make_save_value ((void *) fun, 0),
-				 Fcons (make_save_value (data, 0),
-					args)));
-	}
+	map_char_table (map_keymap_char_table_item, Qnil, binding,
+			make_save_value ("ppo", fun, data, args));
     }
   UNGCPRO;
   return tail;
@@ -1249,7 +1244,7 @@ remapping in all currently active keymaps.  */)
   return INTEGERP (command) ? Qnil : command;
 }
 
-/* Value is number if KEY is too long; nil if valid but has no definition. */
+/* Value is number if KEY is too long; nil if valid but has no definition.  */
 /* GC is possible in this function.  */
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
@@ -1541,7 +1536,7 @@ DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
        doc: /* Return a list of the currently active keymaps.
 OLP if non-nil indicates that we should obey `overriding-local-map' and
 `overriding-terminal-local-map'.  POSITION can specify a click position
-like in the respective argument of `key-binding'. */)
+like in the respective argument of `key-binding'.  */)
   (Lisp_Object olp, Lisp_Object position)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -1550,7 +1545,7 @@ like in the respective argument of `key-binding'. */)
 
   /* If a mouse click position is given, our variables are based on
      the buffer clicked on, not the current buffer.  So we may have to
-     switch the buffer here. */
+     switch the buffer here.  */
 
   if (CONSP (position))
     {
@@ -2047,7 +2042,7 @@ DEFUN ("key-description", Fkey_description, Skey_description, 1, 2, 0,
 Optional arg PREFIX is the sequence of keys leading up to KEYS.
 For example, [?\C-x ?l] is converted into the string \"C-x l\".
 
-The `kbd' macro is an approximate inverse of this.  */)
+For an approximate inverse of this, see `kbd'.  */)
   (Lisp_Object keys, Lisp_Object prefix)
 {
   ptrdiff_t len = 0;

@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.
 
-Copyright (C) 1985-1987, 1989, 1993-2012 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
+#include <grp.h>
 #endif
 
 #include <unistd.h>
@@ -385,6 +386,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
       ptrdiff_t noverlays;
       Lisp_Object *overlay_vec, tem;
       struct buffer *obuf = current_buffer;
+      USE_SAFE_ALLOCA;
 
       set_buffer_temp (XBUFFER (object));
 
@@ -397,7 +399,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
 	 make enough space for all, and try again.  */
       if (noverlays > 40)
 	{
-	  overlay_vec = alloca (noverlays * sizeof *overlay_vec);
+	  SAFE_ALLOCA_LISP (overlay_vec, noverlays);
 	  noverlays = overlays_around (posn, overlay_vec, noverlays);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, NULL);
@@ -420,10 +422,12 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
 		; /* The overlay will not cover a char inserted at point.  */
 	      else
 		{
+		  SAFE_FREE ();
 		  return tem;
 		}
 	    }
 	}
+      SAFE_FREE ();
 
       { /* Now check the text properties.  */
 	int stickiness = text_property_stickiness (prop, position, object);
@@ -731,9 +735,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 	      /* This is the ONLY_IN_LINE case, check that NEW_POS and
 		 FIELD_BOUND are on the same line by seeing whether
 		 there's an intervening newline or not.  */
-	      || (scan_buffer ('\n',
-			       XFASTINT (new_pos), XFASTINT (field_bound),
-			       fwd ? -1 : 1, &shortage, 1),
+	      || (find_newline (XFASTINT (new_pos), XFASTINT (field_bound),
+				fwd ? -1 : 1, &shortage, 1),
 		  shortage != 0)))
 	/* Constrain NEW_POS to FIELD_BOUND.  */
 	new_pos = field_bound;
@@ -832,21 +835,17 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  Lisp_Object save, *data = xmalloc (word_size * 4);
-
-  data[0] = Fpoint_marker ();
-  /* Do not copy the mark if it points to nowhere.  */
-  data[1] = (XMARKER (BVAR (current_buffer, mark))->buffer
-	     ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
-	     : Qnil);
-  /* Selected window if current buffer is shown in it, nil otherwise.  */
-  data[2] = ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
-	     ? selected_window : Qnil);
-  data[3] = BVAR (current_buffer, mark_active);
-
-  save = make_save_value (data, 4);
-  XSAVE_VALUE (save)->dogc = 1;
-  return save;
+  return make_save_value
+    ("oooo",
+     Fpoint_marker (),
+     /* Do not copy the mark if it points to nowhere.  */
+     (XMARKER (BVAR (current_buffer, mark))->buffer
+      ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
+      : Qnil),
+     /* Selected window if current buffer is shown in it, nil otherwise.  */
+     ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+      ? selected_window : Qnil),
+     BVAR (current_buffer, mark_active));
 }
 
 /* Restore saved buffer before leaving `save-excursion' special form.  */
@@ -854,10 +853,10 @@ save_excursion_save (void)
 Lisp_Object
 save_excursion_restore (Lisp_Object info)
 {
-  Lisp_Object tem, tem1, omark, nmark, *data = XSAVE_VALUE (info)->pointer;
+  Lisp_Object tem, tem1, omark, nmark;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  tem = Fmarker_buffer (data[0]);
+  tem = Fmarker_buffer (XSAVE_OBJECT (info, 0));
   /* If we're unwinding to top level, saved buffer may be deleted.  This
      means that all of its markers are unchained and so tem is nil.  */
   if (NILP (tem))
@@ -869,12 +868,12 @@ save_excursion_restore (Lisp_Object info)
   Fset_buffer (tem);
 
   /* Point marker.  */
-  tem = data[0];
+  tem = XSAVE_OBJECT (info, 0);
   Fgoto_char (tem);
   unchain_marker (XMARKER (tem));
 
   /* Mark marker.  */
-  tem = data[1];
+  tem = XSAVE_OBJECT (info, 1);
   omark = Fmarker_position (BVAR (current_buffer, mark));
   if (NILP (tem))
     unchain_marker (XMARKER (BVAR (current_buffer, mark)));
@@ -886,7 +885,7 @@ save_excursion_restore (Lisp_Object info)
     }
 
   /* Mark active.  */
-  tem = data[3];
+  tem = XSAVE_OBJECT (info, 3);
   tem1 = BVAR (current_buffer, mark_active);
   bset_mark_active (current_buffer, tem);
 
@@ -910,7 +909,7 @@ save_excursion_restore (Lisp_Object info)
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
      buffer, restore point in that window.  */
-  tem = data[2];
+  tem = XSAVE_OBJECT (info, 2);
   if (WINDOWP (tem)
       && !EQ (tem, selected_window)
       && (tem1 = XWINDOW (tem)->buffer,
@@ -924,7 +923,7 @@ save_excursion_restore (Lisp_Object info)
 
  out:
 
-  free_save_value (info);
+  free_misc (info);
   return Qnil;
 }
 
@@ -967,7 +966,7 @@ usage: (save-current-buffer &rest BODY)  */)
   return unbind_to (count, Fprogn (args));
 }
 
-DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 1, 0,
+DEFUN ("buffer-size", Fbuffer_size, Sbuffer_size, 0, 1, 0,
        doc: /* Return the number of characters in the current buffer.
 If BUFFER, return the number of characters in that buffer instead.  */)
   (Lisp_Object buffer)
@@ -1270,6 +1269,24 @@ Value is an integer or a float, depending on the value.  */)
 {
   uid_t uid = getuid ();
   return make_fixnum_or_float (uid);
+}
+
+DEFUN ("group-gid", Fgroup_gid, Sgroup_gid, 0, 0, 0,
+       doc: /* Return the effective gid of Emacs.
+Value is an integer or a float, depending on the value.  */)
+  (void)
+{
+  gid_t egid = getegid ();
+  return make_fixnum_or_float (egid);
+}
+
+DEFUN ("group-real-gid", Fgroup_real_gid, Sgroup_real_gid, 0, 0, 0,
+       doc: /* Return the real gid of Emacs.
+Value is an integer or a float, depending on the value.  */)
+  (void)
+{
+  gid_t gid = getgid ();
+  return make_fixnum_or_float (gid);
 }
 
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
@@ -2169,6 +2186,7 @@ set_time_zone_rule (const char *tzstring)
       xputenv (set_time_zone_rule_tz[1]);
     }
   tzset ();
+  tzvalbuf_in_environ = 0;
 #endif
 
   if (!tzstring)
@@ -2342,10 +2360,9 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
-       "(list (or (read-char-by-name \"Insert character (Unicode name or hex): \")\
-	  (error \"You did not specify a valid character\"))\
-      (prefix-numeric-value current-prefix-arg)\
-      t))",
+       "(list (read-char-by-name \"Insert character (Unicode name or hex): \")\
+              (prefix-numeric-value current-prefix-arg)\
+              t))",
        doc: /* Insert COUNT copies of CHARACTER.
 Interactively, prompt for CHARACTER.  You can specify CHARACTER in one
 of these ways:
@@ -2482,7 +2499,7 @@ make_buffer_string_both (ptrdiff_t start, ptrdiff_t start_byte,
   Lisp_Object result, tem, tem1;
 
   if (start < GPT && GPT < end)
-    move_gap (start);
+    move_gap_both (start, start_byte);
 
   if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
     result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
@@ -2580,7 +2597,7 @@ If narrowing is in effect, this function returns only the visible part
 of the buffer.  */)
   (void)
 {
-  return make_buffer_string (BEGV, ZV, 1);
+  return make_buffer_string_both (BEGV, BEGV_BYTE, ZV, ZV_BYTE, 1);
 }
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
@@ -2635,10 +2652,10 @@ They default to the values of (point-min) and (point-max) in BUFFER.  */)
 DEFUN ("compare-buffer-substrings", Fcompare_buffer_substrings, Scompare_buffer_substrings,
        6, 6, 0,
        doc: /* Compare two substrings of two buffers; return result as number.
-the value is -N if first string is less after N-1 chars,
-+N if first string is greater after N-1 chars, or 0 if strings match.
-Each substring is represented as three arguments: BUFFER, START and END.
-That makes six args in all, three for each substring.
+Return -N if first string is less after N-1 chars, +N if first string is
+greater after N-1 chars, or 0 if strings match.  Each substring is
+represented as three arguments: BUFFER, START and END.  That makes six
+args in all, three for each substring.
 
 The value of `case-fold-search' in the current buffer
 determines whether case is significant or ignored.  */)
@@ -3411,12 +3428,6 @@ usage: (save-restriction &rest BODY)  */)
   return unbind_to (count, val);
 }
 
-/* Buffer for the most recent text displayed by Fmessage_box.  */
-static char *message_text;
-
-/* Allocated length of that buffer.  */
-static ptrdiff_t message_length;
-
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
        doc: /* Display a message at the bottom of the screen.
 The message also goes into the `*Messages*' buffer, if `message-log-max'
@@ -3440,14 +3451,14 @@ usage: (message FORMAT-STRING &rest ARGS)  */)
       || (STRINGP (args[0])
 	  && SBYTES (args[0]) == 0))
     {
-      message (0);
+      message1 (0);
       return args[0];
     }
   else
     {
       register Lisp_Object val;
       val = Fformat (nargs, args);
-      message3 (val, SBYTES (val), STRING_MULTIBYTE (val));
+      message3 (val);
       return val;
     }
 }
@@ -3466,13 +3477,12 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
 {
   if (NILP (args[0]))
     {
-      message (0);
+      message1 (0);
       return Qnil;
     }
   else
     {
-      register Lisp_Object val;
-      val = Fformat (nargs, args);
+      Lisp_Object val = Fformat (nargs, args);
 #ifdef HAVE_MENUS
       /* The MS-DOS frames support popup menus even though they are
 	 not FRAME_WINDOW_P.  */
@@ -3489,16 +3499,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
 	return val;
       }
 #endif /* HAVE_MENUS */
-      /* Copy the data so that it won't move when we GC.  */
-      if (SBYTES (val) > message_length)
-	{
-	  ptrdiff_t new_length = SBYTES (val) + 80;
-	  message_text = xrealloc (message_text, new_length);
-	  message_length = new_length;
-	}
-      memcpy (message_text, SDATA (val), SBYTES (val));
-      message2 (message_text, SBYTES (val),
-		STRING_MULTIBYTE (val));
+      message3 (val);
       return val;
     }
 }
@@ -4234,12 +4235,12 @@ usage: (format STRING &rest OBJECTS)  */)
 	  {
 	    buf = xmalloc (bufsize);
 	    sa_must_free = 1;
-	    buf_save_value = make_save_value (buf, 0);
+	    buf_save_value = make_save_pointer (buf);
 	    record_unwind_protect (safe_alloca_unwind, buf_save_value);
 	    memcpy (buf, initial_buffer, used);
 	  }
 	else
-	  XSAVE_VALUE (buf_save_value)->pointer = buf = xrealloc (buf, bufsize);
+	  XSAVE_POINTER (buf_save_value, 0) = buf = xrealloc (buf, bufsize);
 
 	p = buf + used;
       }
@@ -4504,7 +4505,7 @@ Transposing beyond buffer boundaries is an error.  */)
   (Lisp_Object startr1, Lisp_Object endr1, Lisp_Object startr2, Lisp_Object endr2, Lisp_Object leave_markers)
 {
   register ptrdiff_t start1, end1, start2, end2;
-  ptrdiff_t start1_byte, start2_byte, len1_byte, len2_byte;
+  ptrdiff_t start1_byte, start2_byte, len1_byte, len2_byte, end2_byte;
   ptrdiff_t gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
 
@@ -4565,20 +4566,22 @@ Transposing beyond buffer boundaries is an error.  */)
      the gap the minimum distance to get it out of the way, and then
      deal with an unbroken array.  */
 
+  start1_byte = CHAR_TO_BYTE (start1);
+  end2_byte = CHAR_TO_BYTE (end2);
+
   /* Make sure the gap won't interfere, by moving it out of the text
      we will operate on.  */
   if (start1 < gap && gap < end2)
     {
       if (gap - start1 < end2 - gap)
-	move_gap (start1);
+	move_gap_both (start1, start1_byte);
       else
-	move_gap (end2);
+	move_gap_both (end2, end2_byte);
     }
 
-  start1_byte = CHAR_TO_BYTE (start1);
   start2_byte = CHAR_TO_BYTE (start2);
   len1_byte = CHAR_TO_BYTE (end1) - start1_byte;
-  len2_byte = CHAR_TO_BYTE (end2) - start2_byte;
+  len2_byte = end2_byte - start2_byte;
 
 #ifdef BYTE_COMBINING_DEBUG
   if (end1 == start2)
@@ -4865,12 +4868,10 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sline_beginning_position);
   defsubr (&Sline_end_position);
 
-/*  defsubr (&Smark); */
-/*  defsubr (&Sset_mark); */
   defsubr (&Ssave_excursion);
   defsubr (&Ssave_current_buffer);
 
-  defsubr (&Sbufsize);
+  defsubr (&Sbuffer_size);
   defsubr (&Spoint_max);
   defsubr (&Spoint_min);
   defsubr (&Spoint_min_marker);
@@ -4899,6 +4900,8 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Suser_real_login_name);
   defsubr (&Suser_uid);
   defsubr (&Suser_real_uid);
+  defsubr (&Sgroup_gid);
+  defsubr (&Sgroup_real_gid);
   defsubr (&Suser_full_name);
   defsubr (&Semacs_pid);
   defsubr (&Scurrent_time);

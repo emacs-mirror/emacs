@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2012 Free Software Foundation, Inc.
+# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([gl_PROG_AR_RANLIB])
   # Code from module alloca-opt:
   # Code from module allocator:
+  # Code from module at-internal:
   # Code from module c-ctype:
   # Code from module c-strcase:
   # Code from module careadlinkat:
@@ -49,6 +50,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module crypto/sha1:
   # Code from module crypto/sha256:
   # Code from module crypto/sha512:
+  # Code from module dirent:
   # Code from module dosname:
   # Code from module dtoastr:
   # Code from module dtotimespec:
@@ -61,8 +63,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module extern-inline:
   # Code from module faccessat:
   # Code from module fcntl-h:
+  # Code from module fdopendir:
   # Code from module filemode:
   # Code from module fpending:
+  # Code from module fstatat:
   # Code from module getgroups:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -79,14 +83,17 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lstat:
   # Code from module manywarnings:
+  # Code from module memrchr:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
+  # Code from module openat-h:
   # Code from module pathmax:
   # Code from module pselect:
   # Code from module pthread_sigmask:
   # Code from module putenv:
   # Code from module readlink:
+  # Code from module readlinkat:
   # Code from module root-uid:
   # Code from module sig2str:
   # Code from module signal-h:
@@ -111,6 +118,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module string:
   # Code from module strtoimax:
   # Code from module strtoll:
   # Code from module strtoull:
@@ -159,6 +167,7 @@ AC_DEFUN([gl_INIT],
   gl_SHA1
   gl_SHA256
   gl_SHA512
+  gl_DIRENT_H
   AC_REQUIRE([gl_C99_STRTOLD])
   gl_FUNC_DUP2
   if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
@@ -178,12 +187,23 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([faccessat])
   gl_UNISTD_MODULE_INDICATOR([faccessat])
   gl_FCNTL_H
+  gl_FUNC_FDOPENDIR
+  if test $HAVE_FDOPENDIR = 0 || test $REPLACE_FDOPENDIR = 1; then
+    AC_LIBOBJ([fdopendir])
+  fi
+  gl_DIRENT_MODULE_INDICATOR([fdopendir])
+  gl_MODULE_INDICATOR([fdopendir])
   gl_FILEMODE
   gl_FUNC_FPENDING
   if test $ac_cv_func___fpending = no; then
     AC_LIBOBJ([fpending])
     gl_PREREQ_FPENDING
   fi
+  gl_FUNC_FSTATAT
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+    AC_LIBOBJ([fstatat])
+  fi
+  gl_SYS_STAT_MODULE_INDICATOR([fstatat])
   gl_GETLOADAVG
   if test $HAVE_GETLOADAVG = 0; then
     AC_LIBOBJ([getloadavg])
@@ -224,6 +244,12 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_LSTAT
   fi
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
+  gl_FUNC_MEMRCHR
+  if test $ac_cv_func_memrchr = no; then
+    AC_LIBOBJ([memrchr])
+    gl_PREREQ_MEMRCHR
+  fi
+  gl_STRING_MODULE_INDICATOR([memrchr])
   gl_FUNC_MKTIME
   if test $REPLACE_MKTIME = 1; then
     AC_LIBOBJ([mktime])
@@ -253,6 +279,11 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_READLINK
   fi
   gl_UNISTD_MODULE_INDICATOR([readlink])
+  gl_FUNC_READLINKAT
+  if test $HAVE_READLINKAT = 0; then
+    AC_LIBOBJ([readlinkat])
+  fi
+  gl_UNISTD_MODULE_INDICATOR([readlinkat])
   gl_FUNC_SIG2STR
   if test $ac_cv_func_sig2str = no; then
     AC_LIBOBJ([sig2str])
@@ -271,6 +302,7 @@ AC_DEFUN([gl_INIT],
   gl_STDIO_H
   gl_STDLIB_H
   gl_FUNC_GNU_STRFTIME
+  gl_HEADER_STRING_H
   gl_FUNC_STRTOIMAX
   if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
     AC_LIBOBJ([strtoimax])
@@ -311,11 +343,13 @@ AC_DEFUN([gl_INIT],
   fi
   gl_STDLIB_MODULE_INDICATOR([unsetenv])
   gl_UTIMENS
+  gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=false
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_euidaccess=false
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
+  gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
   gl_gnulib_enabled_stat=false
@@ -323,6 +357,13 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_strtoull=false
   gl_gnulib_enabled_verify=false
   gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec=false
+  func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
+  {
+    if ! $gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b; then
+      AC_LIBOBJ([openat-proc])
+      gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=true
+    fi
+  }
   func_gl_gnulib_m4code_dosname ()
   {
     if ! $gl_gnulib_enabled_dosname; then
@@ -383,6 +424,12 @@ AC_DEFUN([gl_INIT],
       if test $HAVE_GROUP_MEMBER = 0; then
         func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
       fi
+    fi
+  }
+  func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7 ()
+  {
+    if ! $gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7; then
+      gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=true
     fi
   }
   func_gl_gnulib_m4code_pathmax ()
@@ -456,10 +503,28 @@ AC_DEFUN([gl_INIT],
     fi
   }
   if test $HAVE_FACCESSAT = 0; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_FACCESSAT = 0; then
     func_gl_gnulib_m4code_dosname
   fi
   if test $HAVE_FACCESSAT = 0; then
     func_gl_gnulib_m4code_euidaccess
+  fi
+  if test $HAVE_FACCESSAT = 0; then
+    func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
+  fi
+  if test $HAVE_FDOPENDIR = 0; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+    func_gl_gnulib_m4code_dosname
+  fi
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+    func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
   fi
   if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
@@ -472,6 +537,15 @@ AC_DEFUN([gl_INIT],
   fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
+  fi
+  if test $HAVE_READLINKAT = 0; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_READLINKAT = 0; then
+    func_gl_gnulib_m4code_dosname
+  fi
+  if test $HAVE_READLINKAT = 0; then
+    func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
   fi
   if { test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
@@ -486,11 +560,13 @@ AC_DEFUN([gl_INIT],
     func_gl_gnulib_m4code_verify
   fi
   m4_pattern_allow([^gl_GNULIB_ENABLED_])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b], [$gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dosname], [$gl_gnulib_enabled_dosname])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_euidaccess], [$gl_gnulib_enabled_euidaccess])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getgroups], [$gl_gnulib_enabled_getgroups])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1], [$gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7], [$gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_pathmax], [$gl_gnulib_enabled_pathmax])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c], [$gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_stat], [$gl_gnulib_enabled_stat])
@@ -656,6 +732,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/careadlinkat.h
   lib/close-stream.c
   lib/close-stream.h
+  lib/dirent.in.h
   lib/dosname.h
   lib/dtoastr.c
   lib/dtotimespec.c
@@ -665,10 +742,12 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/execinfo.in.h
   lib/faccessat.c
   lib/fcntl.in.h
+  lib/fdopendir.c
   lib/filemode.c
   lib/filemode.h
   lib/fpending.c
   lib/fpending.h
+  lib/fstatat.c
   lib/ftoastr.c
   lib/ftoastr.h
   lib/getgroups.c
@@ -687,13 +766,18 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/lstat.c
   lib/md5.c
   lib/md5.h
+  lib/memrchr.c
   lib/mktime-internal.h
   lib/mktime.c
+  lib/openat-priv.h
+  lib/openat-proc.c
+  lib/openat.h
   lib/pathmax.h
   lib/pselect.c
   lib/pthread_sigmask.c
   lib/putenv.c
   lib/readlink.c
+  lib/readlinkat.c
   lib/root-uid.h
   lib/sha1.c
   lib/sha1.h
@@ -712,11 +796,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
-  lib/stdio.c
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/strftime.c
   lib/strftime.h
+  lib/string.in.h
   lib/strtoimax.c
   lib/strtol.c
   lib/strtoll.c
@@ -747,6 +831,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/c-strtod.m4
   m4/clock_time.m4
   m4/close-stream.m4
+  m4/dirent_h.m4
   m4/dup2.m4
   m4/environ.m4
   m4/euidaccess.m4
@@ -756,8 +841,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/faccessat.m4
   m4/fcntl-o.m4
   m4/fcntl_h.m4
+  m4/fdopendir.m4
   m4/filemode.m4
   m4/fpending.m4
+  m4/fstatat.m4
   m4/getgroups.m4
   m4/getloadavg.m4
   m4/getopt.m4
@@ -772,6 +859,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lstat.m4
   m4/manywarnings.m4
   m4/md5.m4
+  m4/memrchr.m4
   m4/mktime.m4
   m4/multiarch.m4
   m4/nocrash.m4
@@ -781,6 +869,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/pthread_sigmask.m4
   m4/putenv.m4
   m4/readlink.m4
+  m4/readlinkat.m4
   m4/setenv.m4
   m4/sha1.m4
   m4/sha256.m4
@@ -800,6 +889,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strftime.m4
+  m4/string_h.m4
   m4/strtoimax.m4
   m4/strtoll.m4
   m4/strtoull.m4

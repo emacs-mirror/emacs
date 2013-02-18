@@ -1,6 +1,6 @@
 ;;; ediff-hook.el --- setup for Ediff's menus and autoloads
 
-;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff

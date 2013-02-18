@@ -1,6 +1,6 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
@@ -723,15 +723,15 @@ this variable is nil, that buffer is shown using
 
 (defvar sql-imenu-generic-expression
   ;; Items are in reverse order because they are rendered in reverse.
-  '(("Rules/Defaults" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:rule\\|default\\)\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\s-+\\(\\w+\\)" 1)
-    ("Sequences" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*sequence\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Triggers" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*trigger\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Functions" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?function\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Procedures" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?proc\\(?:edure\\)?\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Packages" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*package\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Types" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*type\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Indexes" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*index\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1)
-    ("Tables/Views" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:table\\|view\\)\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\w+\\)" 1))
+  '(("Rules/Defaults" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:rule\\|default\\)\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\s-+\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Sequences" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*sequence\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Triggers" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*trigger\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Functions" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?function\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Procedures" "^\\s-*\\(?:create\\s-+\\(?:\\w+\\s-+\\)*\\)?proc\\(?:edure\\)?\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Packages" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*package\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Types" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*type\\s-+\\(?:body\\s-+\\)?\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Indexes" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*index\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1)
+    ("Tables/Views" "^\\s-*create\\s-+\\(?:\\w+\\s-+\\)*\\(?:table\\|view\\)\\s-+\\(?:if\\s-+not\\s-+exists\\s-+\\)?\\(\\(?:\\w+\\s-*[.]\\s-*\\)*\\w+\\)" 1))
   "Define interesting points in the SQL buffer for `imenu'.
 
 This is used to set `imenu-generic-expression' when SQL mode is
@@ -1313,7 +1313,7 @@ Based on `comint-mode-map'.")
 		  "\\(?:table\\|view\\|\\(?:package\\|type\\)\\(?:\\s-+body\\)?\\|proc\\(?:edure\\)?"
 		  "\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+"
                   "\\(?:if\\s-+not\\s-+exists\\s-+\\)?" ;; IF NOT EXISTS
-		  "\\(\\w+\\)")
+		  "\\(\\w+\\(?:\\s-*[.]\\s-*\\w+\\)*\\)")
 	  1 'font-lock-function-name-face))
 
   "Pattern to match the names of top-level objects.
@@ -1930,7 +1930,7 @@ to add functions and PL/SQL keywords.")
      ;; Postgres non-reserved words
      (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
 "abort" "absolute" "access" "action" "add" "admin" "after" "aggregate"
-"also" "alter" "always" "assertion" "assignment" "at" "backward"
+"also" "alter" "always" "assertion" "assignment" "at" "attribute" "backward"
 "before" "begin" "between" "by" "cache" "called" "cascade" "cascaded"
 "catalog" "chain" "characteristics" "checkpoint" "class" "close"
 "cluster" "coalesce" "comment" "comments" "commit" "committed"
@@ -1941,40 +1941,40 @@ to add functions and PL/SQL keywords.")
 "delimiters" "dictionary" "disable" "discard" "document" "domain"
 "drop" "each" "enable" "encoding" "encrypted" "enum" "escape"
 "exclude" "excluding" "exclusive" "execute" "exists" "explain"
-"external" "extract" "family" "first" "float" "following" "force"
+"extension" "external" "extract" "family" "first" "float" "following" "force"
 "forward" "function" "functions" "global" "granted" "greatest"
 "handler" "header" "hold" "hour" "identity" "if" "immediate"
 "immutable" "implicit" "including" "increment" "index" "indexes"
 "inherit" "inherits" "inline" "inout" "input" "insensitive" "insert"
-"instead" "invoker" "isolation" "key" "language" "large" "last"
-"lc_collate" "lc_ctype" "least" "level" "listen" "load" "local"
+"instead" "invoker" "isolation" "key" "label" "language" "large" "last"
+"lc_collate" "lc_ctype" "leakproof" "least" "level" "listen" "load" "local"
 "location" "lock" "login" "mapping" "match" "maxvalue" "minute"
-"minvalue" "mode" "month" "move" "name" "names" "national" "nchar"
+"minvalue" "mode" "month" "move" "names" "national" "nchar"
 "next" "no" "nocreatedb" "nocreaterole" "nocreateuser" "noinherit"
-"nologin" "none" "nosuperuser" "nothing" "notify" "nowait" "nullif"
-"nulls" "object" "of" "oids" "operator" "option" "options" "out"
-"overlay" "owned" "owner" "parser" "partial" "partition" "password"
-"plans" "position" "preceding" "prepare" "prepared" "preserve" "prior"
+"nologin" "none"  "noreplication" "nosuperuser" "nothing" "notify" "nowait" "nullif"
+"nulls" "object" "of" "off" "oids" "operator" "option" "options" "out"
+"overlay" "owned" "owner" "parser" "partial" "partition" "passing" "password"
+"plans" "position" "preceding" "precision" "prepare" "prepared" "preserve" "prior"
 "privileges" "procedural" "procedure" "quote" "range" "read"
-"reassign" "recheck" "recursive" "reindex" "relative" "release"
-"rename" "repeatable" "replace" "replica" "reset" "restart" "restrict"
+"reassign" "recheck" "recursive" "ref" "reindex" "relative" "release"
+"rename" "repeatable" "replace" "replica" "replication" "reset" "restart" "restrict"
 "returns" "revoke" "role" "rollback" "row" "rows" "rule" "savepoint"
-"schema" "scroll" "search" "second" "security" "sequence" "sequences"
+"schema" "scroll" "search" "second" "security" "sequence"
 "serializable" "server" "session" "set" "setof" "share" "show"
-"simple" "stable" "standalone" "start" "statement" "statistics"
+"simple" "snapshot" "stable" "standalone" "start" "statement" "statistics"
 "stdin" "stdout" "storage" "strict" "strip" "substring" "superuser"
 "sysid" "system" "tables" "tablespace" "temp" "template" "temporary"
-"transaction" "treat" "trigger" "trim" "truncate" "trusted" "type"
-"unbounded" "uncommitted" "unencrypted" "unknown" "unlisten" "until"
-"update" "vacuum" "valid" "validator" "value" "values" "version"
-"view" "volatile" "whitespace" "work" "wrapper" "write"
-"xmlattributes" "xmlconcat" "xmlelement" "xmlforest" "xmlparse"
-"xmlpi" "xmlroot" "xmlserialize" "year" "yes"
+"transaction" "treat" "trim" "truncate" "trusted" "type" "types"
+"unbounded" "uncommitted" "unencrypted" "unlisten" "unlogged" "until"
+"update" "vacuum" "valid" "validate" "validator" "value" "values" "varying" "version"
+"view" "volatile" "whitespace" "without" "work" "wrapper" "write"
+"xmlattributes" "xmlconcat" "xmlelement" "xmlexists" "xmlforest" "xmlparse"
+"xmlpi" "xmlroot" "xmlserialize" "year" "yes" "zone"
 )
 
      ;; Postgres Reserved
      (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
-"all" "analyse" "analyze" "and" "any" "array" "asc" "as" "asymmetric"
+"all" "analyse" "analyze" "and" "array" "asc" "as" "asymmetric"
 "authorization" "binary" "both" "case" "cast" "check" "collate"
 "column" "concurrently" "constraint" "create" "cross"
 "current_catalog" "current_date" "current_role" "current_schema"
@@ -1983,7 +1983,7 @@ to add functions and PL/SQL keywords.")
 "fetch" "foreign" "for" "freeze" "from" "full" "grant" "group"
 "having" "ilike" "initially" "inner" "in" "intersect" "into" "isnull"
 "is" "join" "leading" "left" "like" "limit" "localtime"
-"localtimestamp" "natural" "notnull" "not" "null" "off" "offset"
+"localtimestamp" "natural" "notnull" "not" "null" "offset"
 "only" "on" "order" "or" "outer" "overlaps" "over" "placing" "primary"
 "references" "returning" "right" "select" "session_user" "similar"
 "some" "symmetric" "table" "then" "to" "trailing" "true" "union"
@@ -1991,15 +1991,21 @@ to add functions and PL/SQL keywords.")
 "with"
 )
 
+     ;; Postgres PL/pgSQL
+     (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
+"assign" "if" "case" "loop" "while" "for" "foreach" "exit" "elsif" "return"
+"raise" "execsql" "dynexecute" "perform" "getdiag" "open" "fetch" "move" "close"
+)
+
      ;; Postgres Data Types
      (sql-font-lock-keywords-builder 'font-lock-type-face nil
 "bigint" "bigserial" "bit" "bool" "boolean" "box" "bytea" "char"
 "character" "cidr" "circle" "date" "decimal" "double" "float4"
 "float8" "inet" "int" "int2" "int4" "int8" "integer" "interval" "line"
-"lseg" "macaddr" "money" "numeric" "path" "point" "polygon"
-"precision" "real" "serial" "serial4" "serial8" "smallint" "text"
+"lseg" "macaddr" "money" "name" "numeric" "path" "point" "polygon"
+"precision" "real" "serial" "serial4" "serial8" "sequences" "smallint" "text"
 "time" "timestamp" "timestamptz" "timetz" "tsquery" "tsvector"
-"txid_snapshot" "uuid" "varbit" "varchar" "varying" "without"
+"txid_snapshot" "unknown" "uuid" "varbit" "varchar" "varying" "without"
 "xml" "zone"
 )))
 
@@ -3213,9 +3219,6 @@ Every newline in STRING will be preceded with a space and a backslash."
 
 Allows the suppression of continuation prompts.")
 
-(defvar sql-output-by-send nil
-  "Non-nil if the command in the input was generated by `sql-send-string'.")
-
 (defun sql-input-sender (proc string)
   "Send STRING to PROC after applying filters."
 
@@ -3282,8 +3285,7 @@ to avoid deleting non-prompt output."
 
           (if (= sql-output-newline-count 0)
               (setq sql-output-newline-count nil
-                    oline (concat "\n" oline)
-                    sql-output-by-send nil)
+                    oline (concat "\n" oline))
 
             (setq sql-preoutput-hold oline
                   oline ""))
@@ -3377,8 +3379,7 @@ to avoid deleting non-prompt output."
       (setq sql-output-newline-count
             (if sql-output-newline-count
                 (1+ sql-output-newline-count)
-              1)))
-    (setq sql-output-by-send t)))
+              1)))))
 
 (defun sql-remove-tabs-filter (str)
   "Replace tab characters with spaces."
@@ -3851,7 +3852,6 @@ you entered, right above the output it created.
        (sql-get-product-feature sql-product :prompt-cont-regexp))
   (make-local-variable 'sql-output-newline-count)
   (make-local-variable 'sql-preoutput-hold)
-  (make-local-variable 'sql-output-by-send)
   (add-hook 'comint-preoutput-filter-functions
             'sql-interactive-remove-continuation-prompt nil t)
   (make-local-variable 'sql-input-ring-separator)
@@ -3924,7 +3924,7 @@ is specified in the connection settings."
       ;; Was one selected
       (when connection
         ;; Get connection settings
-        (let ((connect-set  (assoc connection sql-connection-alist)))
+        (let ((connect-set (assoc-string connection sql-connection-alist t)))
           ;; Settings are defined
           (if connect-set
               ;; Set the desired parameters
@@ -4128,9 +4128,17 @@ the call to \\[sql-product-interactive] with
                   (setq sql-buffer (buffer-name new-sqli-buffer))
                   (run-hooks 'sql-set-sqli-hook)))
 
+              ;; Make sure the connection is complete
+              ;; (Sometimes start up can be slow)
+              ;;  and call the login hook
+              (let ((proc (get-buffer-process new-sqli-buffer)))
+                (while (and (memq (process-status proc) '(open run))
+                            (accept-process-output proc 2.5)
+                            (progn (goto-char (point-max))
+                                   (not (looking-back sql-prompt-regexp))))))
+              (run-hooks 'sql-login-hook)
               ;; All done.
               (message "Login...done")
-              (run-hooks 'sql-login-hook)
               (pop-to-buffer new-sqli-buffer)))))
     (message "No default SQL product defined.  Set `sql-product'.")))
 
@@ -4196,7 +4204,7 @@ The default comes from `process-coding-system-alist' and
   ;; is meaningless; database without user/password is meaningless,
   ;; because "@param" will ask sqlplus to interpret the script
   ;; "param".
-  (let ((parameter nil))
+  (let (parameter nlslang coding)
     (if (not (string= "" sql-user))
 	(if (not (string= "" sql-password))
 	    (setq parameter (concat sql-user "/" sql-password))
@@ -4206,7 +4214,29 @@ The default comes from `process-coding-system-alist' and
     (if parameter
 	(setq parameter (nconc (list parameter) options))
       (setq parameter options))
-    (sql-comint product parameter)))
+    (sql-comint product parameter)
+    ;; Set process coding system to agree with the interpreter
+    (setq nlslang (or (getenv "NLS_LANG") "")
+          coding  (dolist (cs
+                           ;; Are we missing any common NLS character sets
+                           '(("US8PC437"  . cp437)
+                             ("EL8PC737"  . cp737)
+                             ("WE8PC850"  . cp850)
+                             ("EE8PC852"  . cp852)
+                             ("TR8PC857"  . cp857)
+                             ("WE8PC858"  . cp858)
+                             ("IS8PC861"  . cp861)
+                             ("IW8PC1507" . cp862)
+                             ("N8PC865"   . cp865)
+                             ("RU8PC866"  . cp866)
+                             ("US7ASCII"  . us-ascii)
+                             ("UTF8"      . utf-8)
+                             ("AL32UTF8"  . utf-8)
+                             ("AL16UTF16" . utf-16))
+                           (or coding 'utf-8))
+                    (when (string-match (format "\\.%s\\'" (car cs)) nlslang)
+                      (setq coding (cdr cs)))))
+    (set-buffer-process-coding-system coding coding)))
 
 (defun sql-oracle-save-settings (sqlbuf)
   "Save most SQL*Plus settings so they may be reset by \\[sql-redirect]."

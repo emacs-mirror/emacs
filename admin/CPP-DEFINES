@@ -9,7 +9,6 @@ documented in config.in, and this file would not be necessary.
 
 AIX
 _AIX
-BSD4_2
 BSD_SYSTEM
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto

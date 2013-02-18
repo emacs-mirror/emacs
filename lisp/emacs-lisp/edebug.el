@@ -1,6 +1,7 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 1999-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -460,8 +461,8 @@ STREAM or the value of `standard-input' may be:
 
 This version, from Edebug, maybe instruments the expression.  But the
 STREAM must be the current buffer to do so.  Whether it instruments is
-also dependent on the values of `edebug-all-defs' and
-`edebug-all-forms'."
+also dependent on the values of the option `edebug-all-defs' and
+the option `edebug-all-forms'."
   (or stream (setq stream standard-input))
   (if (eq stream (current-buffer))
       (edebug-read-and-maybe-wrap-form)
@@ -483,8 +484,8 @@ similarly.  Reinitialize the face according to `defface' specification.
 
 With a prefix argument, instrument the code for Edebug.
 
-Setting `edebug-all-defs' to a non-nil value reverses the meaning of
-the prefix argument.  Code is then instrumented when this function is
+Setting option `edebug-all-defs' to a non-nil value reverses the meaning
+of the prefix argument.  Code is then instrumented when this function is
 invoked without a prefix argument
 
 If acting on a `defun' for FUNCTION, and the function was instrumented,
@@ -4258,12 +4259,13 @@ With prefix argument, make it a temporary breakpoint."
 ;;; Autoloading of Edebug accessories
 
 ;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
+(defun edebug--require-cl-read ()
+  (require 'edebug-cl-read))
+
 (if (featurep 'cl-read)
-    (add-hook 'edebug-setup-hook
-	      (function (lambda () (require 'edebug-cl-read))))
+    (add-hook 'edebug-setup-hook #'edebug--require-cl-read)
   ;; The following causes edebug-cl-read to be loaded when you load cl-read.el.
-  (add-hook 'cl-read-load-hooks
-	    (function (lambda () (require 'edebug-cl-read)))))
+  (add-hook 'cl-read-load-hooks #'edebug--require-cl-read))
 
 
 ;;; Finalize Loading
@@ -4288,6 +4290,21 @@ With prefix argument, make it a temporary breakpoint."
 
 ;; Install edebug read and eval functions.
 (edebug-install-read-eval-functions)
+
+(defun edebug-unload-function ()
+  "Unload the Edebug source level debugger."
+  (when edebug-active
+    (setq edebug-active nil)
+    (unwind-protect
+        (abort-recursive-edit)
+      ;; We still want to run unload-feature to completion
+      (run-with-idle-timer 0 nil #'(lambda () (unload-feature 'edebug)))))
+  (remove-hook 'called-interactively-p-functions
+               'edebug--called-interactively-skip)
+  (remove-hook 'cl-read-load-hooks 'edebug--require-cl-read)
+  (edebug-uninstall-read-eval-functions)
+  ;; continue standard unloading
+  nil)
 
 (provide 'edebug)
 

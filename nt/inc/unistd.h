@@ -12,6 +12,7 @@
    and whose prototypes are usually found in unistd.h on POSIX
    platforms.  */
 extern ssize_t readlink (const char *, char *, size_t);
+extern ssize_t readlinkat (int, const char *, char *, size_t);
 extern int symlink (char const *, char const *);
 extern int setpgid (pid_t, pid_t);
 extern pid_t getpgrp (void);
@@ -27,5 +28,9 @@ extern int faccessat (int, char const *, int, int);
 #define AT_SYMLINK_NOFOLLOW 4096
 
 #define O_NOCTTY 0
+#define O_IGNORE_CTTY 0
+
+/* This is normally on stdlib.h, but we don't override that header.  */
+extern int unsetenv (const char *);
 
 #endif	/* _UNISTD_H */

@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -110,7 +110,7 @@ ask the servers (primary, secondary, and archive servers) to list new
 groups since the last time it checked:
   1. This variable is `ask-server'.
   2. This variable is a list of select methods (see below).
-  3. `gnus-read-active-file' is nil or `some'.
+  3. Option `gnus-read-active-file' is nil or `some'.
   4. A prefix argument is given to `gnus-find-new-newsgroups' interactively.
 
 Thus, if this variable is `ask-server' or a list of select methods or
@@ -121,7 +121,7 @@ This variable can be a list of select methods which Gnus will query with
 the `ask-server' method in addition to the primary, secondary, and archive
 servers.
 
-Eg.
+E.g.:
   (setq gnus-check-new-newsgroups
 	'((nntp \"some.server\") (nntp \"other.server\")))
 
@@ -404,6 +404,7 @@ See also `gnus-before-resume-hook'."
   "A hook called before resuming Gnus after suspend.
 This hook is called as the first thing when Gnus is resumed after a suspend.
 See also `gnus-before-startup-hook'."
+  :version "24.4"
   :group 'gnus-start
   :type 'hook)
 

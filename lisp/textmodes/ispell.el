@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994-1995, 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2013 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -773,6 +773,41 @@ here just for backwards compatibility.")
 (make-obsolete-variable 'ispell-aspell-supports-utf8
                         'ispell-encoding8-command "23.1")
 
+(defvar ispell-hunspell-dictionary-equivs-alist
+  '(("american"      "en_US")
+    ("brasileiro"    "pt_BR")
+    ("british"       "en_GB")
+    ("castellano"    "es_ES")
+    ("castellano8"   "es_ES")
+    ("czech"         "cs_CZ")
+    ("dansk"         "da_DK")
+    ("deutsch"       "de_DE")
+    ("deutsch8"      "de_DE")
+    ("english"       "en_US")
+    ("esperanto"     "eo")
+    ("esperanto-tex" "eo")
+    ("finnish"       "fi_FI")
+    ("francais7"     "fr_FR")
+    ("francais"      "fr_FR")
+    ("francais-tex"  "fr_FR")
+    ("german"        "de_DE")
+    ("german8"       "de_DE")
+    ("italiano"      "it_IT")
+    ("nederlands"    "nl_NL")
+    ("nederlands8"   "nl_NL")
+    ("norsk"         "nn_NO")
+    ("norsk7-tex"    "nn_NO")
+    ("polish"        "pl_PL")
+    ("portugues"     "pt_PT")
+    ("russian"       "ru_RU")
+    ("russianw"      "ru_RU")
+    ("slovak"        "sk_SK")
+    ("slovenian"     "sl_SI")
+    ("svenska"       "sv_SE")
+    ("hebrew"        "he_IL"))
+  "Alist with matching hunspell dict names for standard dict names in
+  `ispell-dictionary-base-alist'.")
+
 (defvar ispell-emacs-alpha-regexp
   (if (string-match "^[[:alpha:]]+$" "abcde")
       "[[:alpha:]]"
@@ -1134,8 +1169,56 @@ aspell is used along with Emacs).")
 		    ispell-encoding8-command)
 	       ispell-aspell-dictionary-alist
 	     nil))
+	  (ispell-dictionary-base-alist ispell-dictionary-base-alist)
 	  ispell-base-dicts-override-alist ; Override only base-dicts-alist
 	  all-dicts-alist)
+
+      ;; While ispell and aspell (through aliases) use the traditional
+      ;; dict naming originally expected by ispell.el, hunspell
+      ;; uses locale based names with no alias.  We need to map
+      ;; standard names to locale based names to make default dict
+      ;; definitions available for hunspell.
+      (if ispell-really-hunspell
+	  (let (tmp-dicts-alist)
+	    (dolist (adict ispell-dictionary-base-alist)
+	      (let* ((dict-name (nth 0 adict))
+		     (dict-equiv
+		      (cadr (assoc dict-name
+				   ispell-hunspell-dictionary-equivs-alist)))
+		     (ispell-args (nth 5 adict))
+		     (ispell-args-has-d (member "-d" ispell-args))
+		     skip-dict)
+		;; Remove "-d" option from `ispell-args' if present
+		(if ispell-args-has-d
+		    (let ((ispell-args-after-d
+			   (cdr (cdr ispell-args-has-d)))
+			  (ispell-args-before-d
+			   (butlast ispell-args (length ispell-args-has-d))))
+		      (setq ispell-args
+			    (nconc ispell-args-before-d
+				   ispell-args-after-d))))
+		;; Unless default dict, re-add "-d" option with the mapped value
+		(if dict-name
+		    (if dict-equiv
+			(nconc ispell-args (list "-d" dict-equiv))
+		      (message
+		       "ispell-set-spellchecker-params: Missing hunspell equiv for \"%s\". Skipping."
+		       dict-name)
+		      (setq skip-dict t)))
+
+		(unless skip-dict
+		  (add-to-list 'tmp-dicts-alist
+			       (list
+				dict-name      ; dict name
+				(nth 1 adict)  ; casechars
+				(nth 2 adict)  ; not-casechars
+				(nth 3 adict)  ; otherchars
+				(nth 4 adict)  ; many-otherchars-p
+				ispell-args    ; ispell-args
+				(nth 6 adict)  ; extended-character-mode
+				(nth 7 adict)  ; dict encoding
+				))))
+	      (setq ispell-dictionary-base-alist tmp-dicts-alist))))
 
       (run-hooks 'ispell-initialize-spellchecker-hook)
 
@@ -1594,8 +1677,8 @@ You can set this variable in hooks in your init file -- eg:
 
 (defun ispell-accept-output (&optional timeout-secs timeout-msecs)
   "Wait for output from ispell process, or TIMEOUT-SECS and TIMEOUT-MSECS.
-If asynchronous subprocesses are not supported, call `ispell-filter' and
-pass it the output of the last ispell invocation."
+If asynchronous subprocesses are not supported, call function `ispell-filter'
+and pass it the output of the last ispell invocation."
   (if ispell-async-processp
       (accept-process-output ispell-process timeout-secs timeout-msecs)
     (if (null ispell-process)

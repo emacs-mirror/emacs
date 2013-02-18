@@ -1,7 +1,7 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -1085,6 +1085,7 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map "<"      'rmail-first-message)
     (define-key map ">"      'rmail-last-message)
     (define-key map " "      'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\177"   'scroll-down-command)
     (define-key map "?"      'describe-mode)
     (define-key map "\C-c\C-s\C-d" 'rmail-sort-by-date)
@@ -1507,6 +1508,8 @@ If so restore the actual mbox message collection."
   (setq file-precious-flag t)
   (make-local-variable 'desktop-save-buffer)
   (setq desktop-save-buffer t)
+  (make-local-variable 'save-buffer-coding-system)
+  (setq save-buffer-coding-system 'no-conversion)
   (setq next-error-move-function 'rmail-next-error-move))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
@@ -2173,20 +2176,35 @@ If MSGNUM is nil, use the current message."
 
 (defun rmail-set-header-1 (name value)
   "Subroutine of `rmail-set-header'.
-Narrow to header, set header NAME to VALUE, replacing existing if present.
-VALUE nil means to remove NAME altogether."
+Narrow to headers, set header NAME to VALUE, replacing existing if present.
+VALUE nil means to remove NAME altogether.
+
+Only changes the first instance of NAME.  If VALUE is multi-line,
+continuation lines should already be indented.  VALUE should not
+end in a newline."
   (if (search-forward "\n\n" nil t)
       (progn
 	(forward-char -1)
 	(narrow-to-region (point-min) (point))
+	;; cf mail-fetch-field.
 	(goto-char (point-min))
-	(if (re-search-forward (concat "^" (regexp-quote name) ":") nil 'move)
+	(if (let ((case-fold-search t))
+	      (re-search-forward (concat "^" (regexp-quote name) "[ \t]*:")
+				 nil 'move))
+	    (let ((start (point))
+		  end)
+	      (while (and (zerop (forward-line 1))
+			  (looking-at "[ \t]")))
+	      ;; Back up over newline.
+	      (forward-char -1)
+	      (setq end (point))
+	      (goto-char start)
             (if value
                 (progn
-                  (delete-region (point) (line-end-position))
+		    (delete-region start end)
                   (insert " " value))
-              (delete-region (line-beginning-position)
-                             (line-beginning-position 2)))
+		(delete-region (line-beginning-position) (1+ end))))
+	  ;; Not already present: insert at end of headers.
           (if value (insert name ": " value "\n"))))
     (rmail-error-bad-format)))
 
@@ -4224,29 +4242,25 @@ This has an effect only if a summary buffer exists."
 
 ;; Put the summary buffer back on the screen, if user wants that.
 (defun rmail-maybe-display-summary ()
-  (let ((selected (selected-window))
-	window)
-    ;; If requested, make sure the summary is displayed.
-    (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
-	 rmail-redisplay-summary
-	 (if (get-buffer-window rmail-summary-buffer 0)
-	     ;; It's already in some frame; show that one.
-	     (let ((frame (window-frame
-			   (get-buffer-window rmail-summary-buffer 0))))
-	       (make-frame-visible frame)
-	       (raise-frame frame))
-	   (display-buffer rmail-summary-buffer)))
-    ;; If requested, set the height of the summary window.
-    (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
-	 rmail-summary-window-size
-	 (setq window (get-buffer-window rmail-summary-buffer))
-	 ;; Don't try to change the size if just one window in frame.
-	 (not (eq window (frame-root-window (window-frame window))))
-	 (unwind-protect
-	     (progn
-	       (select-window window)
-	       (enlarge-window (- rmail-summary-window-size (window-height))))
-	   (select-window selected)))))
+  (cond
+   ((or (not rmail-summary-buffer)
+	(not (buffer-name rmail-summary-buffer))))
+   (rmail-redisplay-summary
+    ;; If `rmail-redisplay-summary' is non-nil, make sure the summary
+    ;; buffer is displayed.
+    (display-buffer
+     rmail-summary-buffer
+     `(nil
+       (reusable-frames . 0)
+       ,(when rmail-summary-window-size
+	  `(window-height . ,rmail-summary-window-size)))))
+   (rmail-summary-window-size
+    ;; If `rmail-summary-window-size' is non-nil and the summary buffer
+    ;; is displayed, make sure it gets resized.
+    (let ((window (get-buffer-window rmail-summary-buffer 0)))
+      (when window
+	(window-resize-no-error
+	 window (- rmail-summary-window-size (window-height window))))))))
 
 ;;;; *** Rmail Local Fontification ***
 
@@ -4581,7 +4595,7 @@ encoded string (and the same mask) will decode the string."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "791ea184628feb6335fe3e29f7234934")
+;;;;;;  "0b056146d4775080a1847b8ce7527bc5")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -4593,7 +4607,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "4ae5660d86d49e524f4a6bcbc6d9a984")
+;;;;;;  "rmailkwd.el" "b5337290fd35bbc11888afb25d767195")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4636,7 +4650,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "f1937f85a1258de8880a089fa5ae5621")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "93951f748e43e1015da1b485088970ca")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4663,7 +4677,7 @@ The arguments ARG and STATE have no effect in this case.
 ;;;***
 
 ;;;### (autoloads (set-rmail-inbox-list) "rmailmsc" "rmailmsc.el"
-;;;;;;  "e2212ea15561d60365ffa1f7a5902939")
+;;;;;;  "8a2466563b4a463710531d01766c07a3")
 ;;; Generated autoloads from rmailmsc.el
 
 (autoload 'set-rmail-inbox-list "rmailmsc" "\
@@ -4679,7 +4693,7 @@ This applies only to the current session.
 
 ;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
 ;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
-;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "38da5f17d4ed0dcd2b09c158642cef63")
+;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "3e3a30326fc95d7f17835906c2ccb19f")
 ;;; Generated autoloads from rmailsort.el
 
 (autoload 'rmail-sort-by-date "rmailsort" "\
@@ -4738,7 +4752,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "856fc6e337d5398b302c448ee7a2315e")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "119ce8b431f01e7f54bb6fa99603b3d9")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\
@@ -4786,7 +4800,7 @@ SENDERS is a string of regexps separated by commas.
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "9f270a2571bbbbfabc27498a8d4089c7")
+;;;;;;  "undigest" "undigest.el" "9b273a3e15b5496ab6121b585d8bd3b3")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

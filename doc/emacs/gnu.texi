@@ -1,5 +1,5 @@
-@c Copyright (C) 1985-1987, 1993, 1995, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993, 1995, 2001-2013 Free Software
+@c Foundation, Inc.
 @c
 @c Permission is granted to anyone to make or distribute verbatim copies
 @c of this document, in any medium, provided that the copyright notice and

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Variables
 @chapter Variables
@@ -1057,7 +1057,7 @@ variables}.  Every variable that has been defined with @code{defvar},
 (@pxref{Defining Variables}).  All other variables are subject to
 lexical binding.
 
-@defun special-variable-p SYMBOL
+@defun special-variable-p symbol
 This function returns non-@code{nil} if @var{symbol} is a special
 variable (i.e., it has a @code{defvar}, @code{defcustom}, or
 @code{defconst} variable definition).  Otherwise, the return value is

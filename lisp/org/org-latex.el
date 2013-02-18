@@ -1,6 +1,6 @@
 ;;; org-latex.el --- LaTeX exporter for org-mode
 ;;
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-latex.el
@@ -872,7 +872,7 @@ no LaTeX header.
 When BODY-ONLY is set, don't produce the file header and footer,
 simply return the content of \\begin{document}...\\end{document},
 without even the \\begin{document} and \\end{document} commands.
-when PUB-DIR is set, use this as the publishing directory."
+When PUB-DIR is set, use this as the publishing directory."
   (interactive "P")
   (when (and (not body-only) arg (listp arg)) (setq body-only t))
   (run-hooks 'org-export-first-hook)
@@ -2291,14 +2291,13 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		    (concat type ":" raw-path))
 		   ((equal type "file")
 		    (if (and (org-file-image-p
-			      (expand-file-name
-			       raw-path)
+			      (expand-file-name (org-link-unescape raw-path))
 			      org-export-latex-inline-image-extensions)
-			     (or (get-text-property 0 'org-no-description
-						    raw-path)
+			     (or (get-text-property 0 'org-no-description raw-path)
 				 (equal desc full-raw-path)))
 			(setq imgp t)
-		      (progn (when (string-match "\\(.+\\)::.+" raw-path)
+		      (progn (setq raw-path (org-link-unescape raw-path))
+			     (when (string-match "\\(.+\\)::.+" raw-path)
 			       (setq raw-path (match-string 1 raw-path)))
 			     (if (file-exists-p raw-path)
 				 (concat type "://" (expand-file-name raw-path))

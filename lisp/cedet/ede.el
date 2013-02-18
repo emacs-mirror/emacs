@@ -1,10 +1,10 @@
 ;;; ede.el --- Emacs Development Environment gloss
 
-;; Copyright (C) 1998-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
-;; Version: 1.0
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -60,7 +60,7 @@
 (declare-function ede-up-directory "ede/files")
 (declare-function semantic-lex-make-spp-table "semantic/lex-spp")
 
-(defconst ede-version "1.0"
+(defconst ede-version "1.2"
   "Current version of the Emacs EDE.")
 
 ;;; Code:

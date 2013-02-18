@@ -1,7 +1,7 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1411,11 +1411,9 @@ popup_selection_callback (GtkWidget *widget, gpointer client_data)
 static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-
   popup_activated_flag = 0;
   block_input ();
-  gtk_widget_destroy (GTK_WIDGET (p->pointer));
+  gtk_widget_destroy (GTK_WIDGET (XSAVE_POINTER (arg, 0)));
   unblock_input ();
   return Qnil;
 }
@@ -1479,7 +1477,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
 		  timestamp ? timestamp : gtk_get_current_event_time ());
 
-  record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
+  record_unwind_protect (pop_down_menu, make_save_pointer (menu));
 
   if (gtk_widget_get_mapped (menu))
     {
@@ -1612,11 +1610,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 static Lisp_Object
 cleanup_widget_value_tree (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  widget_value *wv = p->pointer;
-
-  free_menubar_widget_value_tree (wv);
-
+  free_menubar_widget_value_tree (XSAVE_POINTER (arg, 0));
   return Qnil;
 }
 
@@ -1832,7 +1826,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
   /* Make sure to free the widget_value objects we used to specify the
      contents even with longjmp.  */
   record_unwind_protect (cleanup_widget_value_tree,
-			 make_save_value (first_wv, 0));
+			 make_save_pointer (first_wv));
 
   /* Actually create and show the menu until popped down.  */
   create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp);
@@ -1931,7 +1925,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
   if (menu)
     {
       ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-      record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
+      record_unwind_protect (pop_down_menu, make_save_pointer (menu));
 
       /* Display the menu.  */
       gtk_widget_show_all (menu);
@@ -2142,7 +2136,7 @@ xdialog_show (FRAME_PTR f,
   /* Make sure to free the widget_value objects we used to specify the
      contents even with longjmp.  */
   record_unwind_protect (cleanup_widget_value_tree,
-			 make_save_value (first_wv, 0));
+			 make_save_pointer (first_wv));
 
   /* Actually create and show the dialog.  */
   create_and_show_dialog (f, first_wv);
@@ -2242,11 +2236,8 @@ menu_help_callback (char const *help_string, int pane, int item)
 static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
-  struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
-
-  FRAME_PTR f = p1->pointer;
-  XMenu *menu = p2->pointer;
+  FRAME_PTR f = XSAVE_POINTER (arg, 0);
+  XMenu *menu = XSAVE_POINTER (arg, 1);
 
   block_input ();
 #ifndef MSDOS
@@ -2488,8 +2479,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 #endif
 
   record_unwind_protect (pop_down_menu,
-                         Fcons (make_save_value (f, 0),
-                                make_save_value (menu, 0)));
+			 make_save_value ("pp", f, menu));
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */

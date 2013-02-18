@@ -1,6 +1,6 @@
 ;;; unrmail.el --- convert Rmail Babyl files to mbox files
 
-;; Copyright (C) 1992, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -240,7 +240,6 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	    (insert "X-RMAIL-ATTRIBUTES: " (apply 'string attrs) "\n")
 	    (when keywords
 	      (insert "X-RMAIL-KEYWORDS: " keywords "\n"))
-	    (goto-char (point-min))
 	    ;; Convert From to >From, etc.
 	    (let ((case-fold-search nil)
 		  (fromline (if (eq 'mboxrd unrmail-mbox-format)

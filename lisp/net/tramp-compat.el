@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -52,6 +52,7 @@
   (require 'format-spec)
   (require 'shell)
 
+  (require 'trampver)
   (require 'tramp-loaddefs)
 
   ;; As long as password.el is not part of (X)Emacs, it shouldn't be
@@ -96,7 +97,8 @@
   ;; `remote-file-name-inhibit-cache' has been introduced with Emacs 24.1.
   ;; Besides `t', `nil', and integer, we use also timestamps (as
   ;; returned by `current-time') internally.
-  (defvar remote-file-name-inhibit-cache nil)
+  (unless (boundp 'remote-file-name-inhibit-cache)
+    (defvar remote-file-name-inhibit-cache nil))
 
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
@@ -304,16 +306,17 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	(wrong-number-of-arguments (file-attributes filename))))))
 
 ;; PRESERVE-UID-GID does not exist in XEmacs.
-;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.1.
+;; PRESERVE-EXTENDED-ATTRIBUTES has been introduced with Emacs 24.1
+;; (as PRESERVE-SELINUX-CONTEXT), and renamed in Emacs 24.3.
 (defun tramp-compat-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-selinux-context)
+	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files (compat function)."
   (cond
-   (preserve-selinux-context
+   (preserve-extended-attributes
     (tramp-compat-funcall
      'copy-file filename newname ok-if-already-exists keep-date
-     preserve-uid-gid preserve-selinux-context))
+     preserve-uid-gid preserve-extended-attributes))
    (preserve-uid-gid
     (tramp-compat-funcall
      'copy-file filename newname ok-if-already-exists keep-date

@@ -1,7 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -1926,7 +1926,7 @@ This takes effect when first loading the library.")
     ("ul" . "Unordered list")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
-  "Value of `sgml-tag-help' for HTML mode.")
+  "Value of variable `sgml-tag-help' for HTML mode.")
 
 (defvar outline-regexp)
 (defvar outline-heading-end-regexp)

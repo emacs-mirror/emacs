@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs
 
-;; Copyright (C) 1985-1987, 1991-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2013 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -1551,7 +1551,7 @@ and POD directives (Disabled by default, see `cperl-electric-keywords'.)
 
 The user types the keyword immediately followed by a space, which
 causes the construct to be expanded, and the point is positioned where
-she is most likely to want to be.  eg. when the user types a space
+she is most likely to want to be.  E.g., when the user types a space
 following \"if\" the following appears in the buffer: if () { or if ()
 } { } and the cursor is between the parentheses.  The user can then
 type some boolean expression within the parens.  Having done that,
@@ -1839,7 +1839,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'cperl-syntax-state)
   (setq cperl-syntax-state nil)		; reset syntaxification cache
   (if cperl-use-syntax-table-text-property
-      (if (boundp 'syntax-propertize-function)
+      (if (eval-when-compile (fboundp 'syntax-propertize-rules))
           (progn
             ;; Reset syntaxification cache.
             (set (make-local-variable 'cperl-syntax-done-to) nil)
@@ -3120,8 +3120,10 @@ and closing parentheses and brackets."
 	 ((eq 'continuation (elt i 0))
 	  ;; [continuation statement-start char-after is-block is-brace]
 	  (goto-char (elt i 1))		; statement-start
-	  (+ (if (memq (elt i 2) (append "}])" nil)) ; char-after
-		 0			; Closing parenth
+	  (+ (if (or (memq (elt i 2) (append "}])" nil)) ; char-after
+                     (eq 'continuation ; do not stagger continuations
+                         (elt (cperl-sniff-for-indent parse-data) 0)))
+		 0 ; Closing parenth or continuation of a continuation
 	       cperl-continued-statement-offset)
 	     (if (or (elt i 3)		; is-block
 		     (not (elt i 4))		; is-brace

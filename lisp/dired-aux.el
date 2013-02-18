@@ -1,7 +1,7 @@
 ;;; dired-aux.el --- less commonly used parts of dired
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF

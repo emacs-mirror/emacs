@@ -1,6 +1,6 @@
 /* pselect - synchronous I/O multiplexing
 
-   Copyright 2011-2012 Free Software Foundation, Inc.
+   Copyright 2011-2013 Free Software Foundation, Inc.
 
    This file is part of gnulib.
 

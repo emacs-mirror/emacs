@@ -1,7 +1,7 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2012
-##   Free Software Foundation, Inc.
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013 Free Software
+## Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -128,6 +128,7 @@ image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
 indent.o: indent.c frame.h window.h indent.h buffer.h lisp.h $(config_h) \
    termchar.h termopts.h disptab.h region-cache.h character.h category.h \
    keyboard.h systime.h coding.h $(INTERVALS_H) globals.h
+inotify.o: inotify.c lisp.h coding.h process.h keyboard.h frame.h termhooks.h
 insdel.o: insdel.c window.h buffer.h $(INTERVALS_H) blockinput.h character.h \
    atimer.h systime.h region-cache.h lisp.h globals.h $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \

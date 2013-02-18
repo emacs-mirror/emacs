@@ -1,6 +1,6 @@
 ;;; rng-valid.el --- real-time validation of XML using RELAX NG
 
-;; Copyright (C) 2003, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG

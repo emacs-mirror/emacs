@@ -1,5 +1,6 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993, 2001-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -481,7 +482,7 @@ struct input_event;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
-extern Lisp_Object read_char (int, ptrdiff_t, Lisp_Object *, Lisp_Object,
+extern Lisp_Object read_char (int, Lisp_Object, Lisp_Object,
                               bool *, EMACS_TIME *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 

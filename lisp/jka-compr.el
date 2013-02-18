@@ -1,6 +1,7 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993-1995, 1997, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -331,8 +332,6 @@ There should be no more than seven characters after the final `/'."
 
 	  (with-current-buffer temp-buffer
 	    (let ((coding-system-for-write 'no-conversion))
-	      (if (memq system-type '(ms-dos windows-nt))
-		  (setq buffer-file-type t) )
 	      (jka-compr-run-real-handler 'write-region
 					  (list (point-min) (point-max)
 						filename

@@ -1,6 +1,6 @@
 ;;; fringe.el --- fringe setup and control  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: FSF

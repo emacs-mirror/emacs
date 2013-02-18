@@ -1,6 +1,7 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2012 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -226,7 +227,7 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
-static EMACS_INT const INTMASK = EMACS_INT_MAX >> (INTTYPEBITS - 1);
+#define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 #define LISP_INT_TAG_P(x) (((x) & ~Lisp_Int1) == 0)
 
@@ -325,6 +326,10 @@ enum Lisp_Fwd_Type
    members that are accessible only from C.  A Lisp_Misc object is a
    wrapper for a C struct that can contain anything you like.
 
+   Explicit freeing is discouraged for Lisp objects in general.  But if
+   you really need to exploit this, use Lisp_Misc (check free_misc in
+   alloc.c to see why).  There is no way to free a vectorlike object.
+
    To add a new pseudovector type, extend the pvec_type enumeration;
    to add a new Lisp_Misc, extend the Lisp_Misc_Type enumeration.
 
@@ -333,6 +338,10 @@ enum Lisp_Fwd_Type
    the others, starting with a 16-bit member of the Lisp_Misc_Type
    enumeration and a 1-bit GC markbit) and make sure the overall size
    of the union is not increased by your addition.
+
+   For a new pseudovector, it's highly desirable to limit the size
+   of your data type by VBLOCK_BYTES_MAX bytes (defined in alloc.c).
+   Otherwise you will need to change sweep_vectors (also in alloc.c).
 
    Then you will need to add switch branches in print.c (in
    print_object, to print your object, and possibly also in
@@ -496,13 +505,9 @@ static EMACS_INT const VALMASK
   (XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
 	+ ((intptr_t) (ptr) & VALMASK)))
 
-#if DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object.  */
 #define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK)) | DATA_SEG_BITS))
-#else
-#define XPNTR(a) ((uintptr_t) (XLI (a) & VALMASK))
-#endif
 
 #endif /* not USE_LSB_TAG */
 
@@ -1295,6 +1300,14 @@ sxhash_combine (EMACS_UINT x, EMACS_UINT y)
   return (x << 4) + (x >> (BITS_PER_EMACS_INT - 4)) + y;
 }
 
+/* Hash X, returning a value that fits into a fixnum.  */
+
+LISP_INLINE EMACS_UINT
+SXHASH_REDUCE (EMACS_UINT x)
+{
+  return (x ^ x >> (BITS_PER_EMACS_INT - FIXNUM_BITS)) & INTMASK;
+}
+
 /* These structures are used for various misc types.  */
 
 struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
@@ -1369,20 +1382,103 @@ struct Lisp_Overlay
     Lisp_Object plist;
   };
 
-/* Hold a C pointer for later use.
-   This type of object is used in the arg to record_unwind_protect.  */
+/* Types of data which may be saved in a Lisp_Save_Value.  */
+
+enum
+  {
+    SAVE_UNUSED,
+    SAVE_INTEGER,
+    SAVE_POINTER,
+    SAVE_OBJECT
+  };
+
+/* Special object used to hold a different values for later use.
+
+   This is mostly used to package C integers and pointers to call
+   record_unwind_protect.  Typical task is to pass just one C pointer
+   to unwind function.  You should pack pointer with make_save_pointer
+   and then get it back with XSAVE_POINTER, e.g.:
+
+   ...
+     struct my_data *md = get_my_data ();
+     record_unwind_protect (my_unwind, make_save_pointer (md));
+   ...
+
+   Lisp_Object my_unwind (Lisp_Object arg)
+   {
+     struct my_data *md = XSAVE_POINTER (arg, 0);
+     ...
+   }
+
+   If yon need to pass more than just one C pointer, you should
+   use make_save_value.  This function allows you to pack up to
+   4 integers, pointers or Lisp_Objects and conveniently get them
+   back with XSAVE_POINTER, XSAVE_INTEGER and XSAVE_OBJECT macros:
+
+   ...
+     struct my_data *md = get_my_data ();
+     ptrdiff_t my_offset = get_my_offset ();
+     Lisp_Object my_object = get_my_object ();
+     record_unwind_protect
+       (my_unwind, make_save_value ("pio", md, my_offset, my_object));
+   ...
+
+   Lisp_Object my_unwind (Lisp_Object arg)
+   {
+     struct my_data *md = XSAVE_POINTER (arg, 0);
+     ptrdiff_t my_offset = XSAVE_INTEGER (arg, 1);
+     Lisp_Object my_object = XSAVE_OBJECT (arg, 2);
+     ...
+   }
+
+   If ENABLE_CHECKING is in effect, XSAVE_xxx macros do type checking of the
+   saved objects and raise eassert if type of the saved object doesn't match
+   the type which is extracted.  In the example above, XSAVE_INTEGER (arg, 2)
+   or XSAVE_OBJECT (arg, 1) are wrong because integer was saved in slot 1 and
+   Lisp_Object was saved in slot 2 of ARG.  */
+
 struct Lisp_Save_Value
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 14;
-    /* If DOGC is set, POINTER is the address of a memory
-       area containing INTEGER potential Lisp_Objects.  */
-    unsigned int dogc : 1;
-    void *pointer;
-    ptrdiff_t integer;
+    int spacer : 6;
+    /* If `area' is nonzero, `data[0].pointer' is the address of a memory area
+       containing `data[1].integer' potential Lisp_Objects.  The rest of `data'
+       fields are unused.  */
+    unsigned area : 1;
+    /* If `area' is zero, `data[N]' may hold different objects which type is
+       encoded in `typeN' fields as described by the anonymous enum above.
+       E.g. if `type0' is SAVE_INTEGER, `data[0].integer' is in use.  */
+    unsigned type0 : 2;
+    unsigned type1 : 2;
+    unsigned type2 : 2;
+    unsigned type3 : 2;
+    union {
+      void *pointer;
+      ptrdiff_t integer;
+      Lisp_Object object;
+    } data[4];
   };
 
+/* Macro to set and extract Nth saved pointer.  Type
+   checking is ugly because it's used as an lvalue.  */
+
+#define XSAVE_POINTER(obj, n)					\
+  XSAVE_VALUE (obj)->data[(eassert (XSAVE_VALUE (obj)->type	\
+    ## n == SAVE_POINTER), n)].pointer
+
+/* Likewise for the saved integer.  */
+
+#define XSAVE_INTEGER(obj, n)					\
+  XSAVE_VALUE (obj)->data[(eassert (XSAVE_VALUE (obj)->type	\
+    ## n == SAVE_INTEGER), n)].integer
+
+/* Macro to extract Nth saved object.  This is never used as
+   an lvalue, so we can do more convenient type checking.  */
+
+#define XSAVE_OBJECT(obj, n)					\
+  (eassert (XSAVE_VALUE (obj)->type ## n == SAVE_OBJECT),	\
+   XSAVE_VALUE (obj)->data[n].object)
 
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
@@ -1441,7 +1537,8 @@ struct Lisp_Buffer_Objfwd
   {
     enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Buffer_Obj */
     int offset;
-    Lisp_Object slottype; /* Qnil, Lisp_Int, Lisp_Symbol, or Lisp_String.  */
+    /* One of Qnil, Qintegerp, Qsymbolp, Qstringp, Qfloatp or Qnumberp.  */
+    Lisp_Object predicate;
   };
 
 /* struct Lisp_Buffer_Local_Value is used in a symbol value cell when
@@ -2207,8 +2304,12 @@ struct gcpro
    2    Mark the stack, and check that everything GCPRO'd is
 	marked.
    3	Mark using GCPRO's, mark stack last, and count how many
-	dead objects are kept alive.  */
+	dead objects are kept alive.
 
+   Formerly, method 0 was used.  Currently, method 1 is used unless
+   otherwise specified by hand when building, e.g.,
+   "make CPPFLAGS='-DGC_MARK_STACK=GC_USE_GCPROS_AS_BEFORE'".
+   Methods 2 and 3 are present mainly to debug the transition from 0 to 1.  */
 
 #define GC_USE_GCPROS_AS_BEFORE		0
 #define GC_MAKE_GCPROS_NOOPS		1
@@ -2765,10 +2866,10 @@ extern void syms_of_image (void);
 
 /* Defined in insdel.c.  */
 extern Lisp_Object Qinhibit_modification_hooks;
-extern void move_gap (ptrdiff_t);
 extern void move_gap_both (ptrdiff_t, ptrdiff_t);
 extern _Noreturn void buffer_overflow (void);
 extern void make_gap (ptrdiff_t);
+extern void make_gap_1 (struct buffer *, ptrdiff_t);
 extern ptrdiff_t copy_text (const unsigned char *, unsigned char *,
 			    ptrdiff_t, bool, bool);
 extern int count_combining_before (const unsigned char *,
@@ -2777,7 +2878,6 @@ extern int count_combining_after (const unsigned char *,
 				  ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void insert (const char *, ptrdiff_t);
 extern void insert_and_inherit (const char *, ptrdiff_t);
-extern void insert_1 (const char *, ptrdiff_t, bool, bool, bool);
 extern void insert_1_both (const char *, ptrdiff_t, ptrdiff_t,
 			   bool, bool, bool);
 extern void insert_from_gap (ptrdiff_t, ptrdiff_t);
@@ -2851,11 +2951,9 @@ extern void clear_message (int, int);
 extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
-extern void message2 (const char *, ptrdiff_t, int);
-extern void message2_nolog (const char *, ptrdiff_t, int);
-extern void message3 (Lisp_Object, ptrdiff_t, int);
-extern void message3_nolog (Lisp_Object, ptrdiff_t, int);
-extern void message_dolog (const char *, ptrdiff_t, int, int);
+extern void message3 (Lisp_Object);
+extern void message3_nolog (Lisp_Object);
+extern void message_dolog (const char *, ptrdiff_t, bool, bool);
 extern void message_with_string (const char *, Lisp_Object, int);
 extern void message_log_maybe_newline (void);
 extern void update_echo_area (void);
@@ -2879,6 +2977,7 @@ extern void memory_warnings (void *, void (*warnfun) (const char *));
 
 /* Defined in alloc.c.  */
 extern void check_pure_size (void);
+extern void free_misc (Lisp_Object);
 extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
 extern void malloc_warning (const char *);
 extern _Noreturn void memory_full (size_t);
@@ -2948,6 +3047,27 @@ extern void make_byte_code (struct Lisp_Vector *);
 extern Lisp_Object Qautomatic_gc;
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector (EMACS_INT);
+
+/* Make an unitialized vector for SIZE objects.  NOTE: you must
+   be sure that GC cannot happen until the vector is completely
+   initialized.  E.g. the following code is likely to crash:
+
+   v = make_uninit_vector (3);
+   ASET (v, 0, obj0);
+   ASET (v, 1, Ffunction_can_gc ());
+   ASET (v, 2, obj1);  */
+
+LISP_INLINE Lisp_Object
+make_uninit_vector (ptrdiff_t size)
+{
+  Lisp_Object v;
+  struct Lisp_Vector *p;
+
+  p = allocate_vector (size);
+  XSETVECTOR (v, p);
+  return v;
+}
+
 extern struct Lisp_Vector *allocate_pseudovector (int, int, enum pvec_type);
 #define ALLOCATE_PSEUDOVECTOR(typ,field,tag)				\
   ((typ*)								\
@@ -2963,8 +3083,8 @@ extern bool abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
-extern Lisp_Object make_save_value (void *, ptrdiff_t);
-extern void free_save_value (Lisp_Object);
+extern Lisp_Object make_save_value (const char *, ...);
+extern Lisp_Object make_save_pointer (void *);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
@@ -3176,7 +3296,6 @@ extern void keys_of_buffer (void);
 extern ptrdiff_t marker_position (Lisp_Object);
 extern ptrdiff_t marker_byte_position (Lisp_Object);
 extern void clear_charpos_cache (struct buffer *);
-extern ptrdiff_t charpos_to_bytepos (ptrdiff_t);
 extern ptrdiff_t buf_charpos_to_bytepos (struct buffer *, ptrdiff_t);
 extern ptrdiff_t buf_bytepos_to_charpos (struct buffer *, ptrdiff_t);
 extern void unchain_marker (struct Lisp_Marker *marker);
@@ -3199,9 +3318,11 @@ EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
-extern void internal_delete_file (Lisp_Object);
+extern bool internal_delete_file (Lisp_Object);
+extern Lisp_Object emacs_readlinkat (int, const char *);
 extern bool file_directory_p (const char *);
 extern bool file_accessible_directory_p (const char *);
+extern void init_fileio (void);
 extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
@@ -3214,15 +3335,15 @@ extern void record_unwind_save_match_data (void);
 struct re_registers;
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
-						  Lisp_Object, int, int);
+						  Lisp_Object, int, bool);
 extern ptrdiff_t fast_string_match (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *,
 						  ptrdiff_t);
 extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
-extern ptrdiff_t scan_buffer (int, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			      ptrdiff_t *, bool);
+extern ptrdiff_t find_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t,
+			       ptrdiff_t *, bool);
 extern EMACS_INT scan_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 			       EMACS_INT, bool);
 extern ptrdiff_t find_next_newline (ptrdiff_t, int);
@@ -3452,6 +3573,8 @@ extern void init_sigio (int);
 extern void sys_subshell (void);
 extern void sys_suspend (void);
 extern void discard_tty_input (void);
+extern void block_tty_out_signal (void);
+extern void unblock_tty_out_signal (void);
 extern void init_sys_modes (struct tty_display_info *);
 extern void reset_sys_modes (struct tty_display_info *);
 extern void init_all_sys_modes (void);
@@ -3469,8 +3592,6 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern ptrdiff_t emacs_read (int, char *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, const char *, ptrdiff_t);
-enum { READLINK_BUFSIZE = 1024 };
-extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
 
 extern void unlock_all_files (void);
 extern void lock_file (Lisp_Object);
@@ -3514,6 +3635,16 @@ extern void syms_of_fontset (void);
 
 /* Defined in xfns.c, w32fns.c, or macfns.c.  */
 extern Lisp_Object Qfont_param;
+#endif
+
+#ifdef WINDOWSNT
+/* Defined on w32notify.c.  */
+extern void syms_of_w32notify (void);
+#endif
+
+/* Defined in inotify.c */
+#ifdef HAVE_INOTIFY
+extern void syms_of_inotify (void);
 #endif
 
 /* Defined in xfaces.c.  */
@@ -3601,12 +3732,11 @@ extern char *egetenv (const char *);
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name (void);
 
-/* We used to use `abs', but that clashes with system headers on some
-   platforms, and using a name reserved by Standard C is a bad idea
-   anyway.  */
-#if !defined (eabs)
+/* Return the absolute value of X.  X should be a signed integer
+   expression without side effects, and X's absolute value should not
+   exceed the maximum for its promoted type.  This is called 'eabs'
+   because 'abs' is reserved by the C standard.  */
 #define eabs(x)         ((x) < 0 ? -(x) : (x))
-#endif
 
 /* Return a fixnum or float, depending on whether VAL fits in a Lisp
    fixnum.  */
@@ -3635,16 +3765,16 @@ extern void *record_xmalloc (size_t);
    NITEMS items, each of the same type as *BUF.  MULTIPLIER must
    positive.  The code is tuned for MULTIPLIER being a constant.  */
 
-#define SAFE_NALLOCA(buf, multiplier, nitems)			\
-  do {								\
-    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	\
-      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	\
-    else							\
+#define SAFE_NALLOCA(buf, multiplier, nitems)			 \
+  do {								 \
+    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	 \
+      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	 \
+    else							 \
       {								 \
 	(buf) = xnmalloc (nitems, sizeof *(buf) * (multiplier)); \
 	sa_must_free = 1;					 \
 	record_unwind_protect (safe_alloca_unwind,		 \
-			       make_save_value (buf, 0));	 \
+			       make_save_pointer (buf));	 \
       }								 \
   } while (0)
 
@@ -3669,8 +3799,8 @@ extern void *record_xmalloc (size_t);
       {							       \
 	Lisp_Object arg_;				       \
 	buf = xmalloc ((nelt) * word_size);		       \
-	arg_ = make_save_value (buf, nelt);		       \
-	XSAVE_VALUE (arg_)->dogc = 1;			       \
+	arg_ = make_save_value ("pi", buf, nelt);	       \
+	XSAVE_VALUE (arg_)->area = 1;			       \
 	sa_must_free = 1;				       \
 	record_unwind_protect (safe_alloca_unwind, arg_);      \
       }							       \

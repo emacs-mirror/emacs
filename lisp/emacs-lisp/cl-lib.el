@@ -1,6 +1,6 @@
 ;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 1.0
@@ -112,12 +112,6 @@ printer proceeds to the next function on the list.
 
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
-
-(defun cl-unload-function ()
-  "Stop unloading of the Common Lisp extensions."
-  (message "Cannot unload the feature `cl'")
-  ;; Stop standard unloading!
-  t)
 
 ;;; Generalized variables.
 ;; These macros are defined here so that they
@@ -260,7 +254,7 @@ one value.
   "Like `cl-proclaim', but takes any number of unevaluated, unquoted arguments.
 Puts `(cl-eval-when (compile load eval) ...)' around the declarations
 so that they are registered at compile-time as well as run-time."
-  (let ((body (mapcar (lambda (x) `(cl-proclaim ',x) specs))))
+  (let ((body (mapcar (lambda (x) `(cl-proclaim ',x)) specs)))
     (if (cl--compiling-file) `(cl-eval-when (compile load eval) ,@body)
       `(progn ,@body))))           ; Avoid loading cl-macs.el for cl-eval-when.
 
@@ -745,8 +739,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (load "cl-loaddefs" nil 'quiet)
 
 (provide 'cl-lib)
-
-(run-hooks 'cl-load-hook)
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

@@ -1,6 +1,6 @@
 ;;; tabulated-list.el --- generic major mode for tabulated lists -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords: extensions, lisp
@@ -379,7 +379,9 @@ Return the column number after insertion."
         (setq width (- width shift))
         (setq x (+ x shift))))
     (if (stringp col-desc)
-	(insert (propertize label 'help-echo help-echo))
+	(insert (if (get-text-property 0 'help-echo label)
+		    label
+		  (propertize label 'help-echo help-echo)))
       (apply 'insert-text-button label (cdr col-desc)))
     (let ((next-x (+ x pad-right width)))
       ;; No need to append any spaces if this is the last column.

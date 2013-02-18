@@ -1,10 +1,11 @@
 ;;; yow.el --- quote random zippyisms
 
-;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Richard Mlynarik
 ;; Keywords: games
+;; Obsolete-since: 24.4
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +25,8 @@
 ;;; Commentary:
 
 ;; Important pinheadery for GNU Emacs.
+;; This file is obsolete.  For similar functionality, see
+;; fortune.el and cookie1.el.
 
 ;;; Code:
 

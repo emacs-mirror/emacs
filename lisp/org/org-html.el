@@ -1,6 +1,6 @@
 ;;; org-html.el --- HTML export for Org-mode
 
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -104,7 +104,7 @@ not be modified."
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
 
-Copyright (C) 2012  Free Software Foundation, Inc.
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU
@@ -328,7 +328,7 @@ You can also customize this for each buffer, using something like
  * @licstart  The following is the entire license notice for the
  *  JavaScript code in %PATH.
  *
- * Copyright (C) 2012  MathJax
+ * Copyright (C) 2012-2013  MathJax
  *
  * Licensed under the Apache License, Version 2.0 (the \"License\");
  * you may not use this file except in compliance with the License.
@@ -351,7 +351,7 @@ You can also customize this for each buffer, using something like
 @licstart  The following is the entire license notice for the
 JavaScript code below.
 
-Copyright (C) 2012  Free Software Foundation, Inc.
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 The JavaScript code below is free software: you can
 redistribute it and/or modify it under the terms of the GNU
@@ -464,6 +464,9 @@ precedence over this variable."
 (defcustom org-export-html-preamble-format '(("en" ""))
   "Alist of languages and format strings for the HTML preamble.
 
+To enable the HTML exporter to use these formats, you need to set
+`org-export-html-preamble' to `t'.
+
 The first element of each list is the language code, as used for
 the #+LANGUAGE keyword.
 
@@ -509,6 +512,9 @@ precedence over this variable."
 <p class=\"xhtml-validation\">%v</p>
 "))
   "Alist of languages and format strings for the HTML postamble.
+
+To enable the HTML exporter to use these formats, you need to set
+`org-export-html-postamble' to `t'.
 
 The first element of each list is the language code, as used for
 the #+LANGUAGE keyword.
@@ -793,7 +799,7 @@ If there is an active region, export only the region.
 The prefix ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will become bulleted lists."
   (interactive "P")
-  (org-export-as-html arg 'hidden)
+  (org-export-as-html arg)
   (org-open-file buffer-file-name)
   (when org-export-kill-product-buffer-when-displayed
     (kill-buffer (current-buffer))))
@@ -806,14 +812,14 @@ emacs   --batch
         --load=$HOME/lib/emacs/org.el
         --eval \"(setq org-export-headline-levels 2)\"
         --visit=MyFile --funcall org-export-as-html-batch"
-  (org-export-as-html org-export-headline-levels 'hidden))
+  (org-export-as-html org-export-headline-levels))
 
 ;;;###autoload
 (defun org-export-as-html-to-buffer (arg)
   "Call `org-export-as-html` with output to a temporary buffer.
 No file is created.  The prefix ARG is passed through to `org-export-as-html'."
   (interactive "P")
-  (org-export-as-html arg nil nil "*Org HTML Export*")
+  (org-export-as-html arg nil "*Org HTML Export*")
   (when org-export-show-temporary-export-buffer
     (switch-to-buffer-other-window "*Org HTML Export*")))
 
@@ -865,9 +871,7 @@ in a window.  A non-interactive call will only return the buffer."
     (goto-char end)
     (set-mark (point)) ;; to activate the region
     (goto-char beg)
-    (setq rtn (org-export-as-html
-	       nil nil ext-plist
-	       buffer body-only))
+    (setq rtn (org-export-as-html nil ext-plist buffer body-only))
     (if (fboundp 'deactivate-mark) (deactivate-mark))
     (if (and (org-called-interactively-p 'any) (bufferp rtn))
 	(switch-to-buffer-other-window rtn)
@@ -1032,7 +1036,10 @@ OPT-PLIST is the export options list."
 	  (if (string-match "^file:" desc)
 	      (setq desc (substring desc (match-end 0)))))
 	(setq desc (org-add-props
-		       (concat "<img src=\"" desc "\" alt=\""
+		       (concat "<img src=\"" desc "\" "
+			       (when (save-match-data (string-match "width=" attr))
+				 (prog1 (concat attr " ") (setq attr "")))
+			       "alt=\""
 			       (file-name-nondirectory desc) "\"/>")
 		       '(org-protected t))))
       (cond
@@ -1171,14 +1178,12 @@ OPT-PLIST is the export options list."
 (defvar org-heading-keyword-regexp-format) ; defined in org.el
 
 ;;;###autoload
-(defun org-export-as-html (arg &optional hidden ext-plist
-			       to-buffer body-only pub-dir)
+(defun org-export-as-html (arg &optional ext-plist to-buffer body-only pub-dir)
   "Export the outline as a pretty HTML file.
 If there is an active region, export only the region.  The prefix
 ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will become bulleted
-lists.  HIDDEN is obsolete and does nothing.
-EXT-PLIST is a property list with external parameters overriding
+lists.  EXT-PLIST is a property list with external parameters overriding
 org-mode's default settings, but still inferior to file-local
 settings.  When TO-BUFFER is non-nil, create a buffer with that
 name and export to that buffer.  If TO-BUFFER is the symbol

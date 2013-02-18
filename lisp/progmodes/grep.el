@@ -1,7 +1,7 @@
 ;;; grep.el --- run `grep' and display the results
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -246,6 +246,7 @@ See `compilation-error-screen-columns'"
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map compilation-minor-mode-map)
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\^?" 'scroll-down-command)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
@@ -359,7 +360,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 	(when grep-highlight-matches
 	  (let* ((beg (match-end 0))
 		 (end (save-excursion (goto-char beg) (line-end-position)))
-		 (mbeg (text-property-any beg end 'font-lock-face 'match)))
+		 (mbeg (text-property-any beg end 'font-lock-face grep-match-face)))
 	    (when mbeg
 	      (- mbeg beg)))))
       .
@@ -367,7 +368,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 	(when grep-highlight-matches
 	  (let* ((beg (match-end 0))
 		 (end (save-excursion (goto-char beg) (line-end-position)))
-		 (mbeg (text-property-any beg end 'font-lock-face 'match))
+		 (mbeg (text-property-any beg end 'font-lock-face grep-match-face))
 		 (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end))))
 	    (when mend
 	      (- mend beg)))))))
@@ -992,14 +993,17 @@ to specify a command to run."
 	    (compilation-start regexp 'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
       (require 'find-dired)		; for `find-name-arg'
+      ;; In Tramp, there could be problems if the command line is too
+      ;; long.  We escape it, therefore.
       (let ((command (grep-expand-template
 		      grep-find-template
 		      regexp
 		      (concat (shell-quote-argument "(")
 			      " " find-name-arg " "
-			      (mapconcat #'shell-quote-argument
-					 (split-string files)
-					 (concat " -o " find-name-arg " "))
+			      (mapconcat
+			       #'shell-quote-argument
+			       (split-string files)
+			       (concat "\\\n" " -o " find-name-arg " "))
 			      " "
 			      (shell-quote-argument ")"))
 		      dir
@@ -1020,7 +1024,7 @@ to specify a command to run."
 						      (concat "*/"
 							      (cdr ignore)))))))
 				     grep-find-ignored-directories
-				     " -o -path ")
+				     "\\\n -o -path ")
 				    " "
 				    (shell-quote-argument ")")
 				    " -prune -o "))
@@ -1038,7 +1042,7 @@ to specify a command to run."
 						     (shell-quote-argument
 						      (cdr ignore))))))
 				     grep-find-ignored-files
-				     " -o -name ")
+				     "\\\n -o -name ")
 				    " "
 				    (shell-quote-argument ")")
 				    " -prune -o "))))))

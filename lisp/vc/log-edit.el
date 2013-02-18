@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -319,7 +319,9 @@ automatically."
   "AList of known headers and the face to use to highlight them.")
 
 (defconst log-edit-header-contents-regexp
-  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?")
+  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?"
+  "Regular expression matching a header field.
+The first subexpression is the actual text of the field.")
 
 (defun log-edit-match-to-eoh (_limit)
   ;; FIXME: copied from message-match-to-eoh.
@@ -951,13 +953,14 @@ line of MSG."
         (while (re-search-forward (concat "^" (car header)
                                           ":" log-edit-header-contents-regexp)
                                   nil t)
-          (if (eq t (cdr header))
-              (setq summary (match-string 1))
-            (if (functionp (cdr header))
-                (setq res (nconc res (funcall (cdr header) (match-string 1))))
-              (push (match-string 1) res)
-              (push (or (cdr header) (car header)) res)))
-          (replace-match "" t t)))
+          (let ((txt (match-string 1)))
+            (replace-match "" t t)
+            (if (eq t (cdr header))
+                (setq summary txt)
+              (if (functionp (cdr header))
+                  (setq res (nconc res (funcall (cdr header) txt)))
+                (push txt res)
+                (push (or (cdr header) (car header)) res))))))
       ;; Remove header separator if the header is empty.
       (widen)
       (goto-char (point-min))

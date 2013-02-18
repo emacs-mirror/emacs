@@ -524,7 +524,7 @@ als je het bestand opslaat, zorgt Emacs ervoor dat het originele
 bestand onder een gewijzigde naam nog steeds beschikbaar is, voor het
 geval je later besluit dat de veranderingen toch niet zo goed waren.
 
-Bij de onderkant van het scherm zie je een regel die begint 
+Bij de onderkant van het scherm zie je een regel die begint
 met streepjes, met aan het begin "-:--  TUTORIAL.nl" of iets
 dergelijks.  Dit deel van het scherm laat normaal de naam van het
 bestand zien dat je op dat moment bezoekt.  Op dit moment bezoek je
@@ -1209,7 +1209,8 @@ Deze versie van de inleiding is onderdeel van GNU Emacs.  Het valt
 onder copyright.  Je mag deze inleiding verspreiden onder bepaalde
 voorwaarden:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1985, 1996, 1998, 2001-2013 Free Software Foundation,
+  Inc.
 
   Dit bestand is onderdeel van GNU Emacs.
 
@@ -1238,7 +1239,7 @@ Engels origineel van de copyrightmelding en condities:
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1985, 1996, 1998, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -4,7 +4,7 @@
    that make environ an initialized variable.  However, we do
    need to make sure the label data_start exists anyway.  */
 
-/* Create a label to appear at the beginning of data space.  */
+/* Create a label to appear at the beginning of data space.
+   Its value is nonzero so that it cannot be put into bss.  */
 
-int data_start = 0;
-
+int data_start = 1;

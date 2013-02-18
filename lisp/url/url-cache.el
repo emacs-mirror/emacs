@@ -1,6 +1,6 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996-1999, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2013 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -149,7 +149,6 @@ The actual return value is the last modification time of the cache file."
 (defun url-cache-create-filename-using-md5 (url)
   "Create a cached filename using MD5.
 Very fast if you have an `md5' primitive function, suitably fast otherwise."
-  (require 'md5)
   (if url
       (let* ((checksum (md5 url))
 	     (urlobj (url-generic-parse-url url))

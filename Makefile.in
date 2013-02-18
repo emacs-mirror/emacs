@@ -2,7 +2,7 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992-2012 Free Software Foundation, Inc.
+# Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -445,7 +445,7 @@ install-arch-dep: src install-arch-indep install-doc
 	    INSTALL_STRIP=${INSTALL_STRIP}
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
-	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
+	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) || true; \
 	  if test "x${NO_BIN_LINK}" = x; then \
 	    rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
 	    cd $(DESTDIR)${bindir} && $(LN_S) $(EMACSFULL) $(EMACS); \
@@ -534,6 +534,7 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	       tar -xvf - && cat > /dev/null) || exit 1; \
 	  [ "$${dir}" != "${srcdir}/etc" ] || rm -f $${dest}/DOC* ; \
 	  for subdir in `find $${dest} -type d -print` ; do \
+	    chmod a+rx $${subdir} ; \
 	    rm -f $${subdir}/.gitignore ; \
 	    rm -f $${subdir}/.arch-inventory ; \
 	    rm -f $${subdir}/.DS_Store ; \
@@ -568,7 +569,9 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	    done )
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 
-# The last chmod isn't needed at present.
+## The above chmods are needed because "umask 022; tar ..." is not
+## guaranteed to do the right thing; eg if we are root and tar is
+## preserving source permissions.
 
 ## We install only the relevant DOC file if possible
 ## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
@@ -603,7 +606,7 @@ install-info: info
 	   [ -f dir ] || \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ; \
-	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
+	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} -s echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
@@ -690,7 +693,7 @@ uninstall:
 	done
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	thisdir=`/bin/pwd`; \
-	(info_misc=`cd doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
+	(info_misc=`cd doc/misc; ${MAKE} -s echo-info`; \
 	 if cd $(DESTDIR)${infodir}; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd $${thisdir}; \

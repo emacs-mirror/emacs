@@ -11,7 +11,7 @@
 @documentencoding UTF-8
 
 @copying
-Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,8 +22,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -1297,7 +1296,7 @@ subscribing these groups.
 variable defaults to @code{gnus-subscribe-alphabetically}.
 
 The ``options -n'' format is very simplistic.  The syntax above is all
-that is supports -- you can force-subscribe hierarchies, or you can
+that is supports: you can force-subscribe hierarchies, or you can
 deny hierarchies, and that's it.
 
 @vindex gnus-options-not-subscribe
@@ -2144,14 +2143,14 @@ In groups in some news servers, there might be a big gap between a few
 very old articles that will never be expired and the recent ones.  In
 such a case, the server will return the data like @code{(1 . 30000000)}
 for the @code{LIST ACTIVE group} command, for example.  Even if there
-are actually only the articles 1-10 and 29999900-30000000, Gnus doesn't
+are actually only the articles 1--10 and 29999900--30000000, Gnus doesn't
 know it at first and prepares for getting 30000000 articles.  However,
 it will consume hundreds megabytes of memories and might make Emacs get
 stuck as the case may be.  If you use such news servers, set the
 variable @code{gnus-newsgroup-maximum-articles} to a positive number.
 The value means that Gnus ignores articles other than this number of the
 latest ones in every group.  For instance, the value 10000 makes Gnus
-get only the articles 29990001-30000000 (if the latest article number is
+get only the articles 29990001--30000000 (if the latest article number is
 30000000 in a group).  Note that setting this variable to a number might
 prevent you from reading very old articles.  The default value of the
 variable @code{gnus-newsgroup-maximum-articles} is @code{nil}, which
@@ -2349,8 +2348,8 @@ Gnus considers groups from levels 1 to
 unsubscribed, @code{gnus-level-zombie} to be zombies (walking dead)
 (default 8) and @code{gnus-level-killed} to be killed (completely dead)
 (default 9).  Gnus treats subscribed and unsubscribed groups exactly the
-same, but zombie and killed groups have no information on what articles
-you have read, etc, stored.  This distinction between dead and living
+same, but zombie and killed groups store no information on what articles
+you have read, etc.  This distinction between dead and living
 groups isn't done because it is nice or clever, it is done purely for
 reasons of efficiency.
 
@@ -3646,6 +3645,15 @@ Describe the current group (@code{gnus-browse-describe-group}).
 @findex gnus-browse-describe-briefly
 Describe browse mode briefly (well, there's not much to describe, is
 there) (@code{gnus-browse-describe-briefly}).
+
+@item DEL
+@kindex DEL (Browse)
+@findex gnus-browse-delete-group
+This function will delete the current group
+(@code{gnus-browse-delete-group}).  If given a prefix, this function
+will actually delete all the articles in the group, and forcibly
+remove the group itself from the face of the Earth.  Use a prefix only
+if you are absolutely sure of what you are doing.
 @end table
 
 
@@ -3824,7 +3832,7 @@ So, to move a topic to the beginning of the list of topics, just hit
 @kbd{C-k} on it.  This is like the ``cut'' part of cut and paste.  Then,
 move the cursor to the beginning of the buffer (just below the ``Gnus''
 topic) and hit @kbd{C-y}.  This is like the ``paste'' part of cut and
-paste.  Like I said -- E-Z.
+paste.  Like I said---E-Z.
 
 You can use @kbd{C-k} and @kbd{C-y} on groups as well as on topics.  So
 you can move topics around as well as groups.
@@ -11132,7 +11140,7 @@ There will never be more than one dead summary buffer at any one time.
 
 @vindex gnus-use-cross-reference
 The data on the current group will be updated (which articles you have
-read, which articles you have replied to, etc.) when you exit the
+read, which articles you have replied to, etc.)@: when you exit the
 summary buffer.  If the @code{gnus-use-cross-reference} variable is
 @code{t} (which is the default), articles that are cross-referenced to
 this group and are marked as read, will also be marked as read in the
@@ -13666,7 +13674,7 @@ server.  The default value of this variable is @code{("XOVER"
 @vindex nntp-nov-gap
 @code{nntp} normally sends just one big request for @acronym{NOV} lines to
 the server.  The server responds with one huge list of lines.  However,
-if you have read articles 2-5000 in the group, and only want to read
+if you have read articles 2--5000 in the group, and only want to read
 article 1 and 5001, that means that @code{nntp} will fetch 4999 @acronym{NOV}
 lines that you will not need.  This variable says how
 big a gap between two consecutive articles is allowed to be before the
@@ -14014,7 +14022,7 @@ The address of the @acronym{NNTP} server.
 Port number to connect to the @acronym{NNTP} server.  The default is
 @samp{nntp}.  If you use @acronym{NNTP} over
 @acronym{TLS}/@acronym{SSL}, you may want to use integer ports rather
-than named ports (i.e, use @samp{563} instead of @samp{snews} or
+than named ports (i.e., use @samp{563} instead of @samp{snews} or
 @samp{nntps}), because external @acronym{TLS}/@acronym{SSL} tools may
 not work with named ports.
 
@@ -14200,7 +14208,11 @@ what you need.
 
 @item nnimap-authenticator
 Some @acronym{IMAP} servers allow anonymous logins.  In that case,
-this should be set to @code{anonymous}.
+this should be set to @code{anonymous}.  If this variable isn't set,
+the normal login methods will be used.  If you wish to specify a
+specific login method to be used, you can set this variable to either
+@code{login} (the traditional @acronym{IMAP} login method),
+@code{plain} or @code{cram-md5}.
 
 @item nnimap-expunge
 If non-@code{nil}, expunge articles after deleting them.  This is always done
@@ -15962,7 +15974,7 @@ Decode Quoted Readable encoding.
 If you are a member of a couple of mailing lists, you will sometimes
 receive two copies of the same mail.  This can be quite annoying, so
 @code{nnmail} checks for and treats any duplicates it might find.  To do
-this, it keeps a cache of old @code{Message-ID}s---
+this, it keeps a cache of old @code{Message-ID}s:
 @code{nnmail-message-id-cache-file}, which is @file{~/.nnmail-cache} by
 default.  The approximate maximum number of @code{Message-ID}s stored
 there is controlled by the @code{nnmail-message-id-cache-length}
@@ -16626,8 +16638,8 @@ future.  Here are some high and low points on each:
 @table @code
 @item nnmbox
 
-UNIX systems have historically had a single, very common, and well-
-defined format.  All messages arrive in a single @dfn{spool file}, and
+UNIX systems have historically had a single, very common, and well-defined
+format.  All messages arrive in a single @dfn{spool file}, and
 they are delineated by a line whose regular expression matches
 @samp{^From_}.  (My notational use of @samp{_} is to indicate a space,
 to make it clear in this instance that this is not the RFC-specified
@@ -19007,7 +19019,7 @@ agent as unread.
 @subsection Agent and flags
 
 The Agent works with any Gnus back end including those, such as
-nnimap, that store flags (read, ticked, etc) on the server.  Sadly,
+nnimap, that store flags (read, ticked, etc.)@: on the server.  Sadly,
 the Agent does not actually know which backends keep their flags in
 the backend server rather than in @file{.newsrc}.  This means that the
 Agent, while unplugged or disconnected, will always record all changes
@@ -19983,7 +19995,7 @@ the article was posted from.  Time zones are such wholesome fun for the
 whole family, eh?)
 
 @item Head, Body, All
-These three match keys use the same match types as the @code{From} (etc)
+These three match keys use the same match types as the @code{From} (etc.)@:
 header uses.
 
 @item Followup
@@ -21174,7 +21186,7 @@ features (inspired by the Google search input language):
 AND, OR, and NOT are supported, and parentheses can be used to control
 operator precedence, e.g., (emacs OR xemacs) AND linux. Note that
 operators must be written with all capital letters to be
-recognized. Also preceding a term with a - sign is equivalent to NOT
+recognized. Also preceding a term with a @minus{} sign is equivalent to NOT
 term.
 
 @item Automatic AND queries
@@ -21222,7 +21234,8 @@ Note that operators must be written with all capital letters to be
 recognized.
 
 @item Required and excluded terms
-+ and - can be used to require or exclude terms, e.g., football -american
++ and @minus{} can be used to require or exclude terms, e.g., football
+@minus{}american
 
 @item Unicode handling
 The search engine converts all text to utf-8, so searching should work
@@ -21359,7 +21372,7 @@ This engine is obsolete.
 @table @code
 
 @item nnir-method-default-engines
-Alist of server backend - search engine pairs. The default associations
+Alist of pairs of server backends and search engines. The default associations
 are
 @example
 (nnimap . imap)
@@ -22574,7 +22587,7 @@ configuration function will use @code{group} as the key.  A full list of
 possible names is listed below.
 
 The @dfn{value} (i.e., the @dfn{split}) says how much space each buffer
-should occupy.  To take the @code{article} split as an example -
+should occupy.  To take the @code{article} split as an example:
 
 @lisp
 (article (vertical 1.0 (summary 0.25 point)
@@ -23803,7 +23816,7 @@ from Bulgarian IPs.
 
 This, unfortunately, is a great way to discard legitimate e-mail.  The
 risks of blocking a whole country (Bulgaria, Norway, Nigeria, China,
-etc.) or even a continent (Asia, Africa, Europe, etc.) from contacting
+etc.)@: or even a continent (Asia, Africa, Europe, etc.)@: from contacting
 you should be obvious, so don't do it if you have the choice.
 
 In another instance, the very informative and useful RISKS digest has
@@ -25856,7 +25869,7 @@ Fortunately, setting up the Gnus registry is pretty easy:
 
 This adds registry saves to Gnus newsrc saves (which happen on exit
 and when you press @kbd{s} from the @code{*Group*} buffer.  It also
-adds registry calls to article actions in Gnus (copy, move, etc.)  so
+adds registry calls to article actions in Gnus (copy, move, etc.)@: so
 it's not easy to undo the initialization.  See
 @code{gnus-registry-initialize} for the gory details.
 
@@ -26351,9 +26364,9 @@ with the information when possible).
 
 On the January 31th 2012, Ma Gnus was begun.
 
-If you happen upon a version of Gnus that has a prefixed name --
-``(ding) Gnus'', ``September Gnus'', ``Red Gnus'', ``Quassia Gnus'',
-``Pterodactyl Gnus'', ``Oort Gnus'', ``No Gnus'', ``Ma Gnus'' -- don't
+If you happen upon a version of Gnus that has a prefixed name---``(ding)
+Gnus'', ``September Gnus'', ``Red Gnus'', ``Quassia Gnus'',
+``Pterodactyl Gnus'', ``Oort Gnus'', ``No Gnus'', ``Ma Gnus''---don't
 panic.  Don't let it know that you're frightened.  Back away.  Slowly.
 Whatever you do, don't run.  Walk away, calmly, until you're out of
 its reach.  Find a proper released version of Gnus and snuggle up to
@@ -26500,14 +26513,14 @@ on Son-of-RFC 1036.  They have produced a number of drafts proposing
 various changes to the format of news articles.  The Gnus towers will
 look into implementing the changes when the draft is accepted as an RFC.
 
-@item MIME - RFC 2045-2049 etc
+@item MIME---RFC 2045--2049 etc
 @cindex @acronym{MIME}
 All the various @acronym{MIME} RFCs are supported.
 
-@item Disposition Notifications - RFC 2298
+@item Disposition Notifications---RFC 2298
 Message Mode is able to request notifications from the receiver.
 
-@item PGP - RFC 1991 and RFC 2440
+@item PGP---RFC 1991 and RFC 2440
 @cindex RFC 1991
 @cindex RFC 2440
 RFC 1991 is the original @acronym{PGP} message specification,
@@ -26517,15 +26530,15 @@ non-@acronym{MIME} aware @acronym{PGP} format.  Gnus supports both
 encoding (signing and encryption) and decoding (verification and
 decryption).
 
-@item PGP/MIME - RFC 2015/3156
+@item PGP/MIME---RFC 2015/3156
 RFC 2015 (superseded by 3156 which references RFC 2440 instead of RFC
 1991) describes the @acronym{MIME}-wrapping around the RFC 1991/2440 format.
 Gnus supports both encoding and decoding.
 
-@item S/MIME - RFC 2633
+@item S/MIME---RFC 2633
 RFC 2633 describes the @acronym{S/MIME} format.
 
-@item IMAP - RFC 1730/2060, RFC 2195, RFC 2086, RFC 2359, RFC 2595, RFC 1731
+@item IMAP---RFC 1730/2060, RFC 2195, RFC 2086, RFC 2359, RFC 2595, RFC 1731
 RFC 1730 is @acronym{IMAP} version 4, updated somewhat by RFC 2060
 (@acronym{IMAP} 4 revision 1).  RFC 2195 describes CRAM-MD5
 authentication for @acronym{IMAP}.  RFC 2086 describes access control
@@ -26580,7 +26593,7 @@ circles) @dfn{snapshots}.  During this phase, Gnus is assumed to be
 unstable and should not be used by casual users.  Gnus alpha releases
 have names like ``Oort Gnus'' and ``No Gnus''.  @xref{Gnus Versions}.
 
-After futzing around for 10-100 alpha releases, Gnus is declared
+After futzing around for 10--100 alpha releases, Gnus is declared
 @dfn{frozen}, and only bug fixes are applied.  Gnus loses the prefix,
 and is called things like ``Gnus 5.10.1'' instead.  Normal people are
 supposed to be able to use these, and these are mostly discussed on the
@@ -27933,7 +27946,7 @@ consist of a little new content at the top with a long, untrimmed
 message cited below.
 
 @item
-Smileys (@samp{:-)}, @samp{;-)} etc) are now displayed graphically in
+Smileys (@samp{:-)}, @samp{;-)} etc.)@: are now displayed graphically in
 Emacs too.
 
 Put @code{(setq gnus-treat-display-smileys nil)} in @file{~/.gnus.el} to
@@ -28167,7 +28180,7 @@ The behavior can be changed by customizing @code{message-insert-canlock}.
 
 @item
 Gnus supports @acronym{PGP} (RFC 1991/2440), @acronym{PGP/MIME} (RFC
-2015/3156) and @acronym{S/MIME} (RFC 2630-2633).
+2015/3156) and @acronym{S/MIME} (RFC 2630--2633).
 
 It needs an external @acronym{S/MIME} and OpenPGP implementation, but no
 additional Lisp libraries.  This add several menu items to the
@@ -28539,7 +28552,7 @@ A mail message or news article
 
 @item head
 @cindex head
-The top part of a message, where administrative information (etc.) is
+The top part of a message, where administrative information (etc.)@: is
 put.
 
 @item body
@@ -28586,10 +28599,10 @@ know that the server makes wrong @acronym{NOV} data.
 
 @item level
 @cindex levels
-Each group is subscribed at some @dfn{level} or other (1-9).  The ones
+Each group is subscribed at some @dfn{level} or other (1--9).  The ones
 that have a lower level are ``more'' subscribed than the groups with a
-higher level.  In fact, groups on levels 1-5 are considered
-@dfn{subscribed}; 6-7 are @dfn{unsubscribed}; 8 are @dfn{zombies}; and 9
+higher level.  In fact, groups on levels 1--5 are considered
+@dfn{subscribed}; 6--7 are @dfn{unsubscribed}; 8 are @dfn{zombies}; and 9
 are @dfn{killed}.  Commands for listing groups and scanning for new
 articles will all use the numeric prefix as @dfn{working level}.
 
@@ -29165,8 +29178,8 @@ return value.
 
 Some back ends could be said to be @dfn{server-forming} back ends, and
 some might be said not to be.  The latter are back ends that generally
-only operate on one group at a time, and have no concept of ``server''
----they have a group, and they deliver info on that group and nothing
+only operate on one group at a time, and have no concept of ``server'';
+they have a group, and they deliver info on that group and nothing
 more.
 
 Gnus identifies each message by way of group name and article number.  A
@@ -29488,7 +29501,7 @@ There should be no result data from this function.
 @item (nnchoke-request-set-mark GROUP ACTION &optional SERVER)
 
 Set/remove/add marks on articles.  Normally Gnus handles the article
-marks (such as read, ticked, expired etc) internally, and store them in
+marks (such as read, ticked, expired etc.)@: internally, and store them in
 @file{~/.newsrc.eld}.  Some back ends (such as @acronym{IMAP}) however carry
 all information about the articles on the server, so Gnus need to
 propagate the mark information to the server.

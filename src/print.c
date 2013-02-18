@@ -1,7 +1,7 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -102,7 +102,8 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    ptrdiff_t old_point_byte = -1, start_point_byte = -1;		\
    ptrdiff_t specpdl_count = SPECPDL_INDEX ();				\
    int free_print_buffer = 0;						\
-   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
+   bool multibyte							\
+     = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
    Lisp_Object original
 
 #define PRINTPREPARE							\
@@ -1396,7 +1397,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  /* 1 means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
 	  int need_nonhex = 0;
-	  int multibyte = STRING_MULTIBYTE (obj);
+	  bool multibyte = STRING_MULTIBYTE (obj);
 
 	  GCPRO1 (obj);
 
@@ -1766,7 +1767,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	{
 	  int len;
 	  strout ("#<window ", -1, -1, printcharfun);
-	  len = sprintf (buf, "%d", XWINDOW (obj)->sequence_number);
+	  len = sprintf (buf, "%p", XWINDOW (obj));
 	  strout (buf, len, len, printcharfun);
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
@@ -2027,21 +2028,96 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  PRINTCHAR ('>');
 	  break;
 
-      /* Remaining cases shouldn't happen in normal usage, but let's print
-	 them anyway for the benefit of the debugger.  */
+	  /* Remaining cases shouldn't happen in normal usage, but let's
+	     print them anyway for the benefit of the debugger.  */
+
 	case Lisp_Misc_Free:
 	  strout ("#<misc free cell>", -1, -1, printcharfun);
 	  break;
 
 	case Lisp_Misc_Save_Value:
-	  strout ("#<save_value ", -1, -1, printcharfun);
 	  {
-	    int len = sprintf (buf, "ptr=%p int=%"pD"d",
-			       XSAVE_VALUE (obj)->pointer,
-			       XSAVE_VALUE (obj)->integer);
-	    strout (buf, len, len, printcharfun);
+	    int i;
+	    struct Lisp_Save_Value *v = XSAVE_VALUE (obj);
+
+	    strout ("#<save-value ", -1, -1, printcharfun);
+
+	    if (v->area)
+	      {
+		ptrdiff_t amount = v->data[1].integer;
+
+#if GC_MARK_STACK
+
+		/* If GC_MARK_STACK, valid_lisp_object_p is quite reliable,
+		   and so we try to print up to 8 objects we have saved.
+		   Although valid_lisp_object_p is slow, this shouldn't be
+		   a real bottleneck because we do not use this code under
+		   normal circumstances.  */
+
+		int limit = min (amount, 8);
+		Lisp_Object *area = v->data[0].pointer;
+
+		i = sprintf (buf, "with %"pD"d objects", amount);
+		strout (buf, i, i, printcharfun);
+
+		for (i = 0; i < limit; i++)
+		  {
+		    Lisp_Object maybe = area[i];
+
+		    if (valid_lisp_object_p (maybe) > 0)
+		      {
+			PRINTCHAR (' ');
+			print_object (maybe, printcharfun, escapeflag);
+		      }
+		    else
+		      strout (" <invalid>", -1, -1, printcharfun);
+		  }
+		if (i == limit && i < amount)
+		  strout (" ...", 4, 4, printcharfun);
+
+#else /* not GC_MARK_STACK */
+
+		/* If !GC_MARK_STACK, we have no reliable way to find
+		   whether Lisp_Object pointers points to an initialized
+		   objects, and so we do not ever trying to print them.  */
+
+		i = sprintf (buf, "with %"pD"d objects", amount);
+		strout (buf, i, i, printcharfun);
+
+#endif /* GC_MARK_STACK */
+	      }
+	    else
+	      {
+		/* Print each `data[N]' slot according to its type.  */
+
+#define PRINTX(index)							\
+  do {									\
+    i = 0;								\
+    if (v->type ## index == SAVE_UNUSED)				\
+      i = sprintf (buf, "<unused>");					\
+    else if (v->type ## index == SAVE_INTEGER)				\
+      i = sprintf (buf, "<integer %"pD"d>", v->data[index].integer);	\
+    else if (v->type ## index == SAVE_POINTER)				\
+      i = sprintf (buf, "<pointer %p>", v->data[index].pointer);	\
+    else /* SAVE_OBJECT */						\
+      print_object (v->data[index].object, printcharfun, escapeflag);	\
+    if (i)								\
+      strout (buf, i, i, printcharfun);					\
+  } while (0)
+
+		PRINTX (0);
+		PRINTCHAR (' ');
+		PRINTX (1);
+		PRINTCHAR (' ');
+		PRINTX (2);
+		PRINTCHAR (' ');
+		PRINTX (3);
+
+#undef PRINTX
+
+	      }
+	    PRINTCHAR ('>');
 	  }
-	  PRINTCHAR ('>');
 	  break;
 
 	default:

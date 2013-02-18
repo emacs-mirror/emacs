@@ -1,6 +1,6 @@
 /* Profiler implementation.
 
-Copyright (C) 2012 Free Software Foundation, Inc.
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -560,7 +560,7 @@ hashfn_profiler (struct hash_table_test *ht, Lisp_Object bt)
 	       ? XHASH (XCDR (XCDR (f))) : XHASH (f));
 	  hash = sxhash_combine (hash, hash1);
 	}
-      return (hash & INTMASK);
+      return SXHASH_REDUCE (hash);
     }
   else
     return XHASH (bt);

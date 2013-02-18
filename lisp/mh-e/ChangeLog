@@ -1,3 +1,9 @@
+2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* mh-acros.el (mh-do-at-event-location): Use point-marker.
+	* mh-search.el (mh-index-create-imenu-index): Likewise.
+	* mh-xface.el (mh-x-image-url-display): Likewise.
+
 2012-12-10  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-folder.el (mh-inc-folder): Revert SF #2321115, SF bugs/250
@@ -3597,7 +3603,7 @@
 	* ChangeLog.1: New file.  Contains old ChangeLog.
 
 
-	Copyright (C) 2005-2012  Free Software Foundation, Inc.
+	Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,7 +1,7 @@
 /* Output like sprintf to a buffer of specified size.
    Also takes args differently: pass one pointer to the end
    of the format string in addition to the format string itself.
-   Copyright (C) 1985, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      could include embedded null characters.
 
    . It signals an error if the length of the formatted string is about to
-     overflow MOST_POSITIVE_FIXNUM, to avoid producing strings longer than what
+     overflow ptrdiff_t or size_t, to avoid producing strings longer than what
      Emacs can handle.
 
    OTOH, this function supports only a small subset of the standard C formatted

@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -179,10 +179,6 @@ static Lisp_Object Qlast_nonmenu_event;
 #define NETCONN1_P(p) (EQ (p->type, Qnetwork))
 #define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
 #define SERIALCONN1_P(p) (EQ (p->type, Qserial))
-
-#ifndef HAVE_H_ERRNO
-extern int h_errno;
-#endif
 
 /* Number of events of change of status of a process.  */
 static EMACS_INT process_tick;
@@ -4222,7 +4218,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   if (time_limit == 0 && nsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
       && !(CONSP (wait_proc->status)
 	   && EQ (XCAR (wait_proc->status), Qexit)))
-    message ("Blocking call to accept-process-output with quit inhibited!!");
+    message1 ("Blocking call to accept-process-output with quit inhibited!!");
 
   /* If wait_proc is a process to watch, set wait_channel accordingly.  */
   if (wait_proc != NULL)
@@ -4773,11 +4769,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 Therefore, if we get an error reading and errno =
 		 EIO, just continue, because the child process has
 		 exited and should clean itself up soon (e.g. when we
-		 get a SIGCHLD).
-
-		 However, it has been known to happen that the SIGCHLD
-		 got lost.  So raise the signal again just in case.
-		 It can't hurt.  */
+		 get a SIGCHLD).  */
 	      else if (nread == -1 && errno == EIO)
 		{
 		  struct Lisp_Process *p = XPROCESS (proc);
@@ -4795,8 +4787,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		      p->tick = ++process_tick;
 		      pset_status (p, Qfailed);
 		    }
-                  else
-		    handle_child_signal (SIGCHLD);
 		}
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the
@@ -5562,19 +5552,19 @@ it is sent in several bunches.  This may happen even for shorter regions.
 Output from processes can arrive in between bunches.  */)
   (Lisp_Object process, Lisp_Object start, Lisp_Object end)
 {
-  Lisp_Object proc;
-  ptrdiff_t start1, end1;
+  Lisp_Object proc = get_process (process);
+  ptrdiff_t start_byte, end_byte;
 
-  proc = get_process (process);
   validate_region (&start, &end);
 
-  if (XINT (start) < GPT && XINT (end) > GPT)
-    move_gap (XINT (start));
+  start_byte = CHAR_TO_BYTE (XINT (start));
+  end_byte = CHAR_TO_BYTE (XINT (end));
 
-  start1 = CHAR_TO_BYTE (XINT (start));
-  end1 = CHAR_TO_BYTE (XINT (end));
-  send_process (proc, (char *) BYTE_POS_ADDR (start1), end1 - start1,
-		Fcurrent_buffer ());
+  if (XINT (start) < GPT && XINT (end) > GPT)
+    move_gap_both (XINT (start), start_byte);
+
+  send_process (proc, (char *) BYTE_POS_ADDR (start_byte),
+		end_byte - start_byte, Fcurrent_buffer ());
 
   return Qnil;
 }

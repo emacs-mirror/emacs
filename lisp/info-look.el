@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility -*- lexical-binding: t -*-
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995-1999, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -298,6 +298,21 @@ If optional argument QUERY is non-nil, query for the help mode."
 	(when (string-match (caar file-name-alist) file-name)
 	  (setq info-lookup-mode (cdar file-name-alist)))
 	(setq file-name-alist (cdr file-name-alist)))))
+
+  ;; If major-mode has no setups in info-lookup-alist, under any topic, then
+  ;; search up through derived-mode-parent to find a parent mode which does
+  ;; have some setups.  This means that a `define-derived-mode' with no
+  ;; setups of its own will select its parent mode for lookups, if one of
+  ;; its parents has some setups.  Good for example on `makefile-gmake-mode'
+  ;; and similar derivatives of `makefile-mode'.
+  ;;
+  (let ((mode major-mode)) ;; Look for `mode' with some setups.
+    (while (and mode (not info-lookup-mode))
+      (dolist (topic-cell info-lookup-alist) ;; Usually only two topics here.
+        (if (info-lookup->mode-value (car topic-cell) mode)
+            (setq info-lookup-mode mode)))
+      (setq mode (get mode 'derived-mode-parent))))
+
   (or info-lookup-mode (setq info-lookup-mode major-mode)))
 
 (defun info-lookup-change-mode (topic)

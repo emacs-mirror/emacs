@@ -1,6 +1,6 @@
 ;;; quickurl.el --- insert a URL based on text at point in buffer
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -272,7 +272,8 @@ It also restores point after the `read'."
 (defun quickurl-save-urls ()
   "Save the contents of `quickurl-urls' to `quickurl-url-file'."
   (with-temp-buffer
-    (let ((standard-output (current-buffer)))
+    (let ((standard-output (current-buffer))
+          (print-length nil))
       (princ quickurl-prefix)
       (pp quickurl-urls)
       (princ quickurl-postfix)

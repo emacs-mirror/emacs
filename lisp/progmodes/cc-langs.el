@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -2819,7 +2819,7 @@ undefined whether identifier syntax (see `c-identifier-syntax-table')
 is in effect or not.
 
 Note that it's used in cases like after \"foo (bar)\" so it should
-only match when it's certain that it's a declaration, e.g \"{\" but
+only match when it's certain that it's a declaration, e.g., \"{\" but
 not \",\" or \";\"."
   t "{"
   ;; If K&R style declarations should be recognized then one could

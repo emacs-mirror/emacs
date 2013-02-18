@@ -1,6 +1,6 @@
 /* Merge parameters into a termcap entry string.
-   Copyright (C) 1985, 1987, 1993, 1995, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013 Free Software
+   Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -13,9 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>

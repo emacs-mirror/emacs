@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
 @chapter Commands for Human Languages
@@ -1917,7 +1917,7 @@ used as a cheap preview (@code{sgml-tags-invisible}).
   The major mode for editing XML documents is called nXML mode.  This
 is a powerful major mode that can recognize many existing XML schema
 and use them to provide completion of XML elements via
-@kbd{C-@key{RET}} or @kbd{M-@key{TAB}}, as well as ``on-the-fly'' XML
+@kbd{M-@key{TAB}}, as well as ``on-the-fly'' XML
 validation with error highlighting.  To enable nXML mode in an
 existing buffer, type @kbd{M-x nxml-mode}, or, equivalently, @kbd{M-x
 xml-mode}.  Emacs uses nXML mode for files which have the extension

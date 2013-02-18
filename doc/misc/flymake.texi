@@ -11,8 +11,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -23,8 +22,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -66,7 +64,7 @@ developing GNU and promoting software freedom.''
 
 Flymake is a universal on-the-fly syntax checker implemented as an
 Emacs minor mode. Flymake runs the pre-configured syntax check tool
-(compiler for C++ files, @code{perl} for perl files, etc.) in the
+(compiler for C++ files, @code{perl} for perl files, etc.)@: in the
 background, passing it a temporary copy of the current buffer, and
 parses the output for known error/warning message patterns. Flymake
 then highlights erroneous lines (i.e., lines for which at least one
@@ -291,9 +289,11 @@ A list of @code{(filename-regexp, init-function, cleanup-function
 getfname-function)} for configuring syntax check tools. @xref{Adding
 support for a new syntax check tool}.
 
+@ignore
 @item flymake-buildfile-dirs
 A list of directories (relative paths) for searching a
 buildfile. @xref{Locating the buildfile}.
+@end ignore
 
 @item flymake-master-file-dirs
 A list of directories for searching a master file. @xref{Locating a
@@ -355,8 +355,8 @@ Which fringe (if any) should show the warning/error bitmaps.
 @cindex Adding support for a new syntax check tool
 
 @menu
-* Example -- Configuring a tool called directly::
-* Example -- Configuring a tool called via make::
+* Example---Configuring a tool called directly::
+* Example---Configuring a tool called via make::
 @end menu
 
 Syntax check tools are configured using the
@@ -406,8 +406,8 @@ the @code{flymake-err-line-patterns} list.
 The following sections contain some examples of configuring Flymake
 support for various syntax check tools.
 
-@node Example -- Configuring a tool called directly
-@subsection Example -- Configuring a tool called directly
+@node Example---Configuring a tool called directly
+@subsection Example---Configuring a tool called directly
 @cindex Adding support for perl
 
 In this example, we will add support for @code{perl} as a syntax check
@@ -455,8 +455,8 @@ Finally, we add an entry to @code{flymake-err-line-patterns}:
             flymake-err-line-patterns))
 @end lisp
 
-@node Example -- Configuring a tool called via make
-@subsection Example -- Configuring a tool called via make
+@node Example---Configuring a tool called via make
+@subsection Example---Configuring a tool called via make
 @cindex Adding support for C (gcc+make)
 
 In this example we will add support for C files syntax checked by
@@ -528,7 +528,7 @@ check-syntax:
 Syntax check is started by calling @code{flymake-start-syntax-check-for-current-buffer}.
 Flymake first determines whether it is able to do syntax
 check. It then saves a copy of the buffer in a temporary file in the
-buffer's directory (or in the system temp directory -- for java
+buffer's directory (or in the system temp directory, for java
 files), creates a syntax check command and launches a process with
 this command. The output is parsed using a list of error message patterns,
 and error information (file name, line number, type and text) is
@@ -569,7 +569,7 @@ These modes are handled inside init/cleanup/getfname functions, see
 Flymake contains implementations of all functionality required to
 support different syntax check modes described above (making temporary
 copies, finding master files, etc.), as well as some tool-specific
-(routines for Make, Ant, etc.) code.
+(routines for Make, Ant, etc.)@: code.
 
 
 @node Making a temporary copy
@@ -675,10 +675,13 @@ buildfile to reference the 'project configuration' file.
 
 Special function, @code{flymake-find-buildfile} is provided for locating buildfiles.
 Searching for a buildfile is done in a manner similar to that of searching
-for possible master files. A customizable variable
+for possible master files.
+@ignore
+A customizable variable
 @code{flymake-buildfile-dirs} holds a list of relative paths to the
-buildfile. They are checked sequentially until a buildfile is found. In case
-there's no build file, syntax check is aborted.
+buildfile. They are checked sequentially until a buildfile is found.
+@end ignore
+In case there's no build file, syntax check is aborted.
 
 Buildfile values are also cached.
 

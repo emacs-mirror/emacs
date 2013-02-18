@@ -1,6 +1,6 @@
 ;;; mh-search  ---  MH-Search mode
 
-;; Copyright (C) 1993, 1995, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1434,7 +1434,7 @@ being the list of messages originally from that folder."
           (beginning-of-line)
           (push (cons (buffer-substring-no-properties
                        (point) (mh-line-end-position))
-                      (set-marker (make-marker) (point)))
+                      (point-marker))
                 alist)))
       (setq imenu--index-alist (nreverse alist)))))
 

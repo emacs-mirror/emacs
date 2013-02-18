@@ -1,3 +1,89 @@
+2013-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (__STDC__): Fiddle with value only for MSVC.
+	(Bug#9066)
+	(chown, logb): Remove, unused.
+
+2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_STACK): Remove.
+	(GNULIB_FDOPENDIR, HAVE_DECL_FDOPENDIR, HAVE_DECL_MEMRCHR)
+	(HAVE_DIRENT_H, HAVE_FDOPENDIR, HAVE_FSTATAT, HAVE_MEMRCHR)
+	(HAVE_WORKING_FSTATAT_ZERO_FLAG, _NETBSD_SOURCE): New macros.
+
+2013-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h: Add prototype for memrchr.
+
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* inc/sys/stat.h (fstatat):
+	* inc/unistd.h (readlinkat): New decls.
+
+2013-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/dirent.h (opendir): Update prototype.
+
+2013-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (O_IGNORE_CTTY): Define, as it is unconditionally
+	used in term.c.  (Bug#13387)
+
+2013-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_GTK_HANDLE_BOX_NEW, HAVE_GTK_TEAROFF_MENU_ITEM_NEW): New macros.
+
+2012-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_ISMPX): Define to zero, to accommodate changes
+	in lib/filemode.c that broke the MS-Windows build.
+	Suggested by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2012-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD4_2): Remove.
+
+2012-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/acl.h: New file.
+
+	* inc/ms-w32.h (ENOTSUP): Define if undefined.
+
+	* config.nt (HAVE_POSIX_ACL): Define.
+
+2012-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (sys_unlink): Provide prototype.
+
+2012-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h: Declare w32_stat_get_owner_group.
+
+2012-12-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_INOTIFY, HAVE_SYS_INOTIFY_H): New macros.
+
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_DECL_UNSETENV, HAVE_SIG2STR, VOID_UNSETENV): New macros.
+	(ULIMIT_BREAK_VALUE): Remove.
+
+2012-12-10  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.rc: Use forward slashes in relative paths in order to
+	avoid complaints from Cygwin.  (Forward slashes work perfectly
+	well in the NT build.)
+
+2012-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (unsetenv): Provide a prototype.
+
 2012-12-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (putenv): Redirect to sys_putenv.
@@ -2867,7 +2953,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-  Copyright (C) 1995-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

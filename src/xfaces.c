@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1585,7 +1585,7 @@ the face font sort order.  */)
   for (i = nfonts - 1; i >= 0; --i)
     {
       Lisp_Object font = AREF (vec, i);
-      Lisp_Object v = Fmake_vector (make_number (8), Qnil);
+      Lisp_Object v = make_uninit_vector (8);
       int point;
       Lisp_Object spacing;
 
@@ -4877,6 +4877,8 @@ tty_supports_face_attributes_p (struct frame *f,
     {
       if (STRINGP (val))
 	return 0;		/* ttys can't use colored underlines */
+      else if (EQ (CAR_SAFE (val), QCstyle) && EQ (CAR_SAFE (CDR_SAFE (val)), Qwave))
+	return 0;		/* ttys can't use wave underlines */
       else if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
 	return 0;		/* same as default */
       else
@@ -6150,7 +6152,7 @@ face_at_string_position (struct window *w, Lisp_Object string,
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   struct face *base_face;
-  int multibyte_p = STRING_MULTIBYTE (string);
+  bool multibyte_p = STRING_MULTIBYTE (string);
   Lisp_Object prop_name = mouse_p ? Qmouse_face : Qface;
 
   /* Get the value of the face property at the current position within

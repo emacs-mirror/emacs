@@ -4,7 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2012 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2013 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -23,6 +23,21 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
+
+dnl This is the documented way to record the args passed to configure,
+dnl rather than $ac_configure_args.
+emacs_config_options="$@"
+## Add some environment variables, if they were passed via the environment
+## rather than on the command-line.
+for var in CFLAGS CPPFLAGS LDFLAGS; do
+    case "$emacs_config_options" in
+      *$var=*) continue ;;
+    esac
+    eval val="\$${var}"
+    test x"$val" = x && continue
+    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=\"$val\""
+done
+
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 AC_CONFIG_AUX_DIR(build-aux)
@@ -130,7 +145,7 @@ OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
-dnl added later on when we find the path of X, and it's best to
+dnl added later on when we find the file name of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
  [use an X toolkit (KIT one of: yes or gtk, gtk2, gtk3, lucid or athena, motif, no)])],
@@ -184,7 +199,9 @@ OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
+OPTION_DEFAULT_ON([acl],[don't compile with ACL support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
+OPTION_DEFAULT_ON([inotify],[don't compile with inotify (file-watch) support])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -205,8 +222,8 @@ fi
 AC_SUBST(GZIP_INFO)
 
 AC_ARG_WITH([pkg-config-prog],dnl
-[AS_HELP_STRING([--with-pkg-config-prog=PATH],
-                  [path to pkg-config for finding GTK and librsvg])])
+[AS_HELP_STRING([--with-pkg-config-prog=FILENAME],
+                  [file name of pkg-config for finding GTK and librsvg])])
 if test "X${with_pkg_config_prog}" != X; then
    if test "${with_pkg_config_prog}" != yes; then
       PKG_CONFIG="${with_pkg_config_prog}"
@@ -226,7 +243,8 @@ test "X${with_gameuser}" != X && test "${with_gameuser}" != yes \
 test "X$gameuser" = X && gameuser=games
 
 AC_ARG_WITH([gnustep-conf],dnl
-[AS_HELP_STRING([--with-gnustep-conf=PATH],[path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
+[AS_HELP_STRING([--with-gnustep-conf=FILENAME],
+   [name of GNUstep.conf; default $GNUSTEP_CONFIG_FILE, or /etc/GNUstep/GNUstep.conf])])
 test "X${with_gnustep_conf}" != X && test "${with_gnustep_conf}" != yes && \
   GNUSTEP_CONFIG_FILE="${with_gnustep_conf}"
 test "X$GNUSTEP_CONFIG_FILE" = "X" && \
@@ -353,8 +371,13 @@ AC_ARG_ENABLE(autodepend,
  		 found])],
 [ac_enable_autodepend="${enableval}"],[ac_enable_autodepend=yes])
 
+AC_ARG_ENABLE(gtk-deprecation-warnings,
+[AS_HELP_STRING([--enable-gtk-deprecation-warnings],
+		[Show Gtk+/Gdk deprecation warnings for Gtk+ >= 3.0])],
+[ac_enable_gtk_deprecation_warnings="${enableval}"],[])
+
 #### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the path through pwd unnecessarily, since pwd can
+#### avoid running the file name through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
 #### so Emacs can find its files when run uninstalled.
 ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
@@ -364,17 +387,17 @@ case "${srcdir}" in
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
-    ## Note: we used to use ${PWD} at the end instead of `pwd`,
+    ## Note: we used to use $PWD at the end instead of `pwd`,
     ## but that tested only for a well-formed and valid PWD,
     ## it did not object when PWD was well-formed and valid but just wrong.
-    if test ".${PWD}" != "." && test ".`(cd ${PWD} ; sh -c pwd)`" = ".`pwd`"  ;
+    if test ".$PWD" != "." && test ".`(cd "$PWD" ; sh -c pwd)`" = ".`pwd`"  ;
     then
       srcdir="$PWD"
     else
-      srcdir="`(cd ${srcdir}; pwd)`"
+      srcdir=`(cd "$srcdir"; pwd)`
     fi
   ;;
-  *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
+  *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
 esac
 
 ### Canonicalize the configuration name.
@@ -616,7 +639,7 @@ fi
 
 AC_ARG_ENABLE([gcc-warnings],
   [AS_HELP_STRING([--enable-gcc-warnings],
-                  [turn on lots of GCC warnings. This is intended for
+                  [turn on lots of GCC warnings/errors. This is intended for
 		   developers, and may generate false alarms when used
 		   with older or non-GNU development tools.])],
   [case $enableval in
@@ -724,22 +747,11 @@ else
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
   nw="$nw -Wshadow"
 
+  # Emacs's use of alloca inhibits protecting the stack.
+  nw="$nw -Wstack-protector"
+
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
-
-  AC_MSG_CHECKING([whether to use -Wstack-protector])
-  AC_PREPROC_IFELSE(
-    [AC_LANG_PROGRAM(
-       [[#if (1 <= __LONG_MAX__ >> 31 >> 31 \
-           && 4 < __GNUC__ + (7 < __GNUC_MINOR__ + (2 <= __GNUC_PATCHLEVEL__)))
-	   /* OK */
-         #else
-	   #error "Not GCC, or GCC before 4.7.2, or 'long int' has < 64 bits."
-	 #endif
-       ]])],
-    [AC_MSG_RESULT(yes)],
-    [AC_MSG_RESULT(no)
-     nw="$nw -Wstack-protector"])
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
@@ -810,9 +822,13 @@ fi
 AC_PATH_PROG(MAKEINFO, makeinfo, no)
 dnl By this stage, configure has already checked for egrep and set EGREP,
 dnl or exited with an error if no egrep was found.
-if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'`" = x; then
-   MAKEINFO=no
+if test "$MAKEINFO" != "no"; then
+  case `
+    $MAKEINFO --version 2> /dev/null |
+    $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[7-9]]|4\.[[1-6]][[0-9]]+)'
+  ` in
+    '') MAKEINFO=no;;
+  esac
 fi
 
 ## Makeinfo is unusual.  For a released Emacs, the manuals are
@@ -830,7 +846,7 @@ if test "$MAKEINFO" = "no"; then
   MAKEINFO=makeinfo
   if test "x${with_makeinfo}" = "xno"; then
     HAVE_MAKEINFO=no
-  elif test ! -e $srcdir/info/emacs && test ! -e $srcdir/info/emacs.info; then
+  elif test ! -e "$srcdir/info/emacs" && test ! -e "$srcdir/info/emacs.info"; then
     AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.7, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
 Either install a suitable version of makeinfo, or re-run configure
@@ -1186,15 +1202,15 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 
   if test "$PKG_CONFIG" = "no" ; then
      ifelse([$4], , [AC_MSG_ERROR([
-      *** The pkg-config script could not be found. Make sure it is in your path, or give the full path to pkg-config with the PKG_CONFIG environment variable or --with-pkg-config-prog.  Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config.])], [$4])
+      *** The pkg-config script could not be found. Make sure it is in your path, or give the full name of pkg-config with the PKG_CONFIG environment variable or --with-pkg-config-prog.  Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config.])], [$4])
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         AC_MSG_CHECKING(for $2)
 
-        if $PKG_CONFIG --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
-	   $1_CFLAGS=`$PKG_CONFIG --cflags "$2" 2>&AS_MESSAGE_LOG_FD` &&
-	   $1_LIBS=`$PKG_CONFIG --libs "$2" 2>&AS_MESSAGE_LOG_FD`; then
+        if "$PKG_CONFIG" --exists "$2" 2>&AS_MESSAGE_LOG_FD &&
+	   $1_CFLAGS=`"$PKG_CONFIG" --cflags "$2" 2>&AS_MESSAGE_LOG_FD` &&
+	   $1_LIBS=`"$PKG_CONFIG" --libs "$2" 2>&AS_MESSAGE_LOG_FD`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -1212,7 +1228,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    $1_PKG_ERRORS=`($PKG_CONFIG --print-errors "$2") 2>&1`
+	    $1_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$2") 2>&1`
 	    ifelse([$4], ,echo "$$1_PKG_ERRORS",)
         fi
 
@@ -1476,8 +1492,8 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS}"
 GNU_OBJC_CFLAGS=
+LIBS_GNUSTEP=
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -1504,9 +1520,9 @@ if test "${with_ns}" != no; then
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
+     LIBS_GNUSTEP="-lgnustep-gui -lgnustep-base -lobjc -lpthread"
      LIB_STANDARD=
      START_FILES=
-     TEMACS_LDFLAGS2=
      dnl GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS to 0 or 1.
      dnl If they had chosen to either define it or not, we could have
      dnl just used AC_CHECK_DECL here.
@@ -1557,7 +1573,7 @@ fail;
   fi
 fi
 
-AC_SUBST(TEMACS_LDFLAGS2)
+AC_SUBST(LIBS_GNUSTEP)
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
 ns_self_contained=no
@@ -1600,6 +1616,8 @@ AC_SUBST(LIB_STANDARD)
 HAVE_W32=no
 W32_OBJ=
 W32_LIBS=
+W32_RES=
+W32_RES_LINK=
 if test "${with_w32}" != no; then
   if test "${opsys}" != "cygwin"; then
     AC_MSG_ERROR([Using w32 with an autotools build is only supported for Cygwin.])
@@ -1608,13 +1626,21 @@ if test "${with_w32}" != no; then
                   [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
                   cannot be found.])])
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
+  AC_CHECK_TOOL(WINDRES, [windres],
+                [AC_MSG_ERROR([No resource compiler found.])])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
   W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
   W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
+  W32_RES="emacs.res"
+  # Tell the linker that emacs.res is an object (which we compile from
+  # the rc file), not a linker script.
+  W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
 fi
 AC_SUBST(W32_OBJ)
 AC_SUBST(W32_LIBS)
+AC_SUBST(W32_RES)
+AC_SUBST(W32_RES_LINK)
 
 if test "${HAVE_W32}" = "yes"; then
   window_system=w32
@@ -1987,6 +2013,9 @@ if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOO
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
      USE_GTK_TOOLKIT="GTK3"
+     if test "x$ac_enable_gtk_deprecation_warnings" = x; then
+         GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
+     fi
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -2027,7 +2056,7 @@ if test x"$pkg_check_gtk" = xyes; then
     AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
     GTK_OBJ="gtkutil.o $GTK_OBJ"
     USE_X_TOOLKIT=none
-    if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
+    if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
       :
     else
       AC_MSG_WARN([[Your version of Gtk+ will have problems with
@@ -2062,6 +2091,23 @@ if test "${HAVE_GTK}" = "yes"; then
     AC_CHECK_FUNCS(gtk_file_selection_new)
   fi
 
+  dnl Same as above for gtk_handle_box.
+  HAVE_GTK_HANDLE_BOX=no
+  AC_CHECK_DECL(GTK_TYPE_HANDLE_BOX, HAVE_GTK_HANDLE_BOX=yes,
+                   HAVE_GTK_HANDLE_BOX=no, [AC_INCLUDES_DEFAULT
+#include <gtk/gtk.h>])
+  if test "$HAVE_GTK_HANDLE_BOX" = yes; then
+    AC_CHECK_FUNCS(gtk_handle_box_new)
+  fi
+
+  dnl Same as above for gtk_tearoff_menu_item.
+  HAVE_GTK_TEAROFF_MENU_ITEM=no
+  AC_CHECK_DECL(GTK_TYPE_TEAROFF_MENU_ITEM, HAVE_GTK_TEAROFF_MENU_ITEM=yes,
+                   HAVE_GTK_TEAROFF_MENU_ITEM=no, [AC_INCLUDES_DEFAULT
+#include <gtk/gtk.h>])
+  if test "$HAVE_GTK_TEAROFF_MENU_ITEM" = yes; then
+    AC_CHECK_FUNCS(gtk_tearoff_menu_item_new)
+  fi
 
   dnl Check for functions introduced in 2.14 and later.
   AC_CHECK_FUNCS(gtk_widget_get_window gtk_widget_set_has_window \
@@ -2169,6 +2215,34 @@ fi
 
 AC_SUBST(LIBGNUTLS_LIBS)
 AC_SUBST(LIBGNUTLS_CFLAGS)
+
+dnl inotify is only available on GNU/Linux.
+if test "${with_inotify}" = "yes"; then
+   AC_CHECK_HEADERS(sys/inotify.h)
+   if test "$ac_cv_header_sys_inotify_h" = yes ; then
+     AC_CHECK_FUNC(inotify_init1)
+   fi
+fi
+if test "$ac_cv_func_inotify_init1" = yes; then
+  AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
+fi
+
+dnl POSIX ACL support: provided by libacl on GNU/Linux, by libc on FreeBSD.
+HAVE_POSIX_ACL=no
+LIBACL_LIBS=
+if test "${with_acl}" = "yes"; then
+  AC_CHECK_LIB([acl], [acl_set_file], HAVE_POSIX_ACL=yes, HAVE_POSIX_ACL=no)
+  if test "$HAVE_POSIX_ACL" = yes; then
+    AC_DEFINE(HAVE_POSIX_ACL, 1, [Define to 1 if using POSIX ACL support.])
+    LIBACL_LIBS=-lacl
+  else
+    AC_CHECK_FUNC(acl_set_file, HAVE_POSIX_ACL=yes, HAVE_POSIX_ACL=no)
+    if test "$HAVE_POSIX_ACL" = yes; then
+      AC_DEFINE(HAVE_POSIX_ACL, 1, [Define to 1 if using POSIX ACL support.])
+    fi
+ fi
+fi
+AC_SUBST(LIBACL_LIBS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
@@ -3639,7 +3713,7 @@ AH_TEMPLATE(SIGNALS_VIA_CHARACTERS, [Make process_send_signal work by
 case $opsys in
   dnl Perry Smith <pedz@ddivt1.austin.ibm.com> says this is correct for AIX.
   dnl thomas@mathematik.uni-bremen.de says this is needed for IRIX.
-  aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd )
+  aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd | darwin )
     AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
     ;;
 
@@ -3676,6 +3750,11 @@ case $opsys in
     AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])
     ;;
 
+  aix*)
+    dnl This works with 32-bit executables; Emacs doesn't support 64-bit.
+    AC_DEFINE(DATA_START, [0x20000000])
+    AC_DEFINE(DATA_SEG_BITS, [0x20000000])
+    ;;
   hpux*)
     dnl The data segment on this machine always starts at address 0x40000000.
     AC_DEFINE(DATA_START, [0x40000000])
@@ -3715,22 +3794,13 @@ case $opsys in
 esac
 
 
-dnl These won't be used automatically yet.  We also need to know, at least,
+dnl This won't be used automatically yet.  We also need to know, at least,
 dnl that the stack is continuous.
 AH_TEMPLATE(GC_SETJMP_WORKS, [Define if setjmp is known to save all
   registers relevant for conservative garbage collection in the jmp_buf.])
 
-AH_TEMPLATE(GC_MARK_STACK, [Define to GC_USE_GCPROS_AS_BEFORE if
-  conservative garbage collection is not known to work.])
-
 
 case $opsys in
-  aix4-2 | hpux* | unixware)
-    dnl Conservative garbage collection has not been tested, so for now
-    dnl play it safe and stick with the old-fashioned way of marking.
-    AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE])
-    ;;
-
   dnl Not all the architectures are tested, but there are Debian packages
   dnl for SCM and/or Guile on them, so the technique must work.  See also
   dnl comments in alloc.c concerning setjmp and gcc.
@@ -3745,8 +3815,7 @@ case $opsys in
 #else
 # error "setjmp not known to work on this arch"
 #endif
-    ]], [[]])], AC_DEFINE(GC_SETJMP_WORKS, 1),
-      AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE]) )
+    ]], [[]])], AC_DEFINE(GC_SETJMP_WORKS, 1))
     ;;
 esac
 
@@ -3814,7 +3883,6 @@ esac
 
 dnl Define symbols to identify the version of Unix this is.
 dnl Define all the symbols that apply correctly.
-AH_TEMPLATE(BSD4_2, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(BSD_SYSTEM, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(DOS_NT, [Define if the system is MS DOS or MS Windows.])
 AH_TEMPLATE(MSDOS, [Define if the system is MS DOS.])
@@ -3840,7 +3908,6 @@ case $opsys in
 
   darwin)
     dnl BSD4_3 and BSD4_4 are already defined in sys/param.h.
-    AC_DEFINE(BSD4_2, [])
     AC_DEFINE(BSD_SYSTEM, [])
     dnl More specific than the above two.  We cannot use __APPLE__ as this
     dnl may not be defined on non-OSX Darwin, and we cannot define DARWIN
@@ -3850,7 +3917,6 @@ case $opsys in
     ;;
 
   freebsd)
-    AC_DEFINE(BSD4_2, [])
     dnl Hack to avoid calling AC_PREPROC_IFELSE multiple times.
     dnl Would not be needed with autoconf >= 2.67, where the
     dnl preprocessed output is accessible in "conftest.i".
@@ -3858,7 +3924,6 @@ case $opsys in
     ;;
 
   gnu | netbsd | openbsd )
-    AC_DEFINE(BSD4_2, [])
     AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
 #ifndef BSD_SYSTEM
 # error "BSD_SYSTEM not defined"
@@ -3983,7 +4048,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2012 Free Software Foundation, Inc."
+copyright="Copyright (C) 2013 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST(copyright)
@@ -4038,7 +4103,9 @@ fi
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
-AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}",
+dnl Replace any embedded " characters (bug#13274).
+emacs_config_options=`echo "$emacs_config_options " | sed -e 's/--no-create //' -e 's/--no-recursion //' -e 's/ *$//' -e "s/\"/'/g"`
+AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${emacs_config_options}",
 		   [Define to the options passed to configure.])
 AH_TEMPLATE(config_opsysfile, [Some platforms that do not use configure
   define this to include extra configuration information.])
@@ -4252,10 +4319,6 @@ case "$opsys" in
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
 
-if test "$NS_IMPL_GNUSTEP" = "yes"; then
-  LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
-fi
-
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
 
@@ -4350,7 +4413,7 @@ AC_SUBST(WINDOW_SYSTEM_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2012
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2013
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4508,7 +4571,7 @@ AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
 dnl test/ is not present in release tarfiles.
 opt_makefile=test/automated/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   dnl Again, it's best not to use a variable.  Though you can add
   dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
@@ -4519,7 +4582,7 @@ fi
 dnl admin/ may or may not be present.
 opt_makefile=admin/unidata/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   AC_CONFIG_FILES([admin/unidata/Makefile])
 fi
@@ -4550,9 +4613,9 @@ ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS"])
 
 AC_CONFIG_COMMANDS([gdbinit], [
-if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
+if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
   echo creating src/.gdbinit
-  echo source $srcdir/src/.gdbinit > src/.gdbinit
+  echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
 ])
 

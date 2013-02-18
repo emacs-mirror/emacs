@@ -1,6 +1,6 @@
 ;;; gnus-async.el --- asynchronous support for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -254,7 +254,7 @@ that was fetched."
 	 gnus-async-article-alist
 	 (cons (list (intern (format "%s-%d" group article)
 			     gnus-async-hashtb)
-		     mark (set-marker (make-marker) (point-max))
+		     mark (point-max-marker)
 		     group article)
 	       gnus-async-article-alist))))
     (if (not (gnus-buffer-live-p summary))

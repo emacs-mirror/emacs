@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2012 Free Software Foundation, Inc.
+   Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,28 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef _@GUARD_PREFIX@_UNISTD_H
+
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
 #endif
 @PRAGMA_COLUMNS@
-
-/* Special invocation convention:
-   - On mingw, several headers, including <winsock2.h>, include <unistd.h>,
-     but we need to ensure that both the system <unistd.h> and <winsock2.h>
-     are completely included before we replace gethostname.  */
-#if @GNULIB_GETHOSTNAME@ && @UNISTD_H_HAVE_WINSOCK2_H@ \
-  && !defined _GL_WINSOCK2_H_WITNESS && defined _WINSOCK2_H
-/* <unistd.h> is being indirectly included for the first time from
-   <winsock2.h>; avoid declaring any overrides.  */
-# if @HAVE_UNISTD_H@
-#  @INCLUDE_NEXT@ @NEXT_UNISTD_H@
-# else
-#  error unexpected; report this to bug-gnulib@gnu.org
-# endif
-# define _GL_WINSOCK2_H_WITNESS
-
-/* Normal invocation.  */
-#elif !defined _@GUARD_PREFIX@_UNISTD_H
 
 /* The include_next requires a split double-inclusion guard.  */
 #if @HAVE_UNISTD_H@
@@ -79,7 +63,9 @@
 /* Solaris declares getcwd not only in <unistd.h> but also in <stdlib.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
 #ifndef __GLIBC__
+# define __need_system_stdlib_h
 # include <stdlib.h>
+# undef __need_system_stdlib_h
 #endif
 
 /* Native Windows platforms declare chdir, getcwd, rmdir in
@@ -124,6 +110,7 @@
 /* Get getopt(), optarg, optind, opterr, optopt.
    But avoid namespace pollution on glibc systems.  */
 #if @GNULIB_UNISTD_H_GETOPT@ && !defined __GLIBC__ && !defined _GL_SYSTEM_GETOPT
+# define __need_getopt
 # include <getopt.h>
 #endif
 

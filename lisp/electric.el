@@ -1,6 +1,7 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985-1986, 1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF

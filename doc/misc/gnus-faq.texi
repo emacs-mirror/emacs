@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 @c
 @setfilename gnus-faq.info
 @settitle Frequently Asked Questions
@@ -80,7 +80,7 @@ want.
 
 This FAQ was maintained by Justin Sheehy until March 2002. He
 would like to thank Steve Baur and Per Abrahamsen for doing a wonderful
-job with this FAQ before him. We would like to do the same - thanks,
+job with this FAQ before him. We would like to do the same: thanks,
 Justin!
 
 This version is much nicer than the unofficial hypertext
@@ -1038,7 +1038,7 @@ mail groups. Is this a bug?
 
 No, that's a matter of design of Gnus, fixing this would
 mean reimplementation of major parts of Gnus'
-back ends. Gnus thinks "highest-article-number -
+back ends. Gnus thinks "highest-article-number @minus{}
 lowest-article-number = total-number-of-articles". This
 works OK for Usenet groups, but if you delete and move
 many messages in mail groups, this fails. To cure the
@@ -1218,7 +1218,7 @@ from using them):
                 messages?
 * FAQ 5-3::     How to set stuff like From, Organization, Reply-To,
                 signature...?
-* FAQ 5-4::     Can I set things like From, Signature etc group based on
+* FAQ 5-4::     Can I set things like From, Signature etc. group based on
                 the group I post too?
 * FAQ 5-5::     Is there a spell-checker? Perhaps even on-the-fly
                 spell-checking?

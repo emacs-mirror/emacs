@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: FSF
@@ -574,6 +574,9 @@ relevant to POS."
                         'help-echo
                         "mouse-2, RET: show this character in its character set")
                     str)))
+              ,@(let ((script (aref char-script-table char)))
+                  (if script
+                      (list (list "script" (symbol-name script)))))
               ("syntax"
                ,(let ((syntax (syntax-after pos)))
                   (with-temp-buffer

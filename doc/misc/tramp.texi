@@ -37,7 +37,7 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -48,8 +48,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to
-copy and modify this GNU manual.  Buying copies from the FSF
-supports it in developing GNU and promoting software freedom.''
+copy and modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -189,8 +188,9 @@ Configuring @value{tramp} for use
 * Connection caching::          Reusing connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
-* Windows setup hints::         Issues with Cygwin ssh.
+* Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
+* Windows setup hints::         Issues with Cygwin ssh.
 
 Using @value{tramp}
 
@@ -375,7 +375,7 @@ This release includes the full documentation and code for
 @value{tramp}, suitable for installation.  But Emacs (22 or later)
 includes @value{tramp} already, and there is a @value{tramp} package
 for XEmacs, as well.  So maybe it is easier to just use those.  But if
-you want the bleeding edge, read on@dots{...}
+you want the bleeding edge, read on@dots{}
 
 For the especially brave, @value{tramp} is available from Git.  The Git
 version is the latest version of the code and may contain incomplete
@@ -516,8 +516,9 @@ Method}.
 * Connection caching::          Reusing connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
-* Windows setup hints::         Issues with Cygwin ssh.
+* Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
+* Windows setup hints::         Issues with Cygwin ssh.
 @end menu
 
 
@@ -558,9 +559,10 @@ startup may drown out the improvement in file transfer times.
 External methods should be configured such a way that they don't
 require a password (with @command{ssh-agent}, or such alike).  Modern
 @command{scp} implementations offer options to reuse existing
-@command{ssh} connections, see method @command{scpc}.  If it isn't
-possible, you should consider @ref{Password handling}, otherwise you
-will be prompted for a password every copy action.
+@command{ssh} connections, which will be enabled by default if
+available.  If it isn't possible, you should consider @ref{Password
+handling}, otherwise you will be prompted for a password every copy
+action.
 
 
 @node Inline methods
@@ -742,16 +744,6 @@ expects PuTTY session names, calling @samp{plink -load @var{session}
 hasn't defined a user name.  Different port numbers must be defined in
 the session.
 
-
-@item @option{adb}
-@cindex method adb
-@cindex adb method
-
-This special method uses the Android Debug Bridge for connecting
-Android devices.  The Android Debug Bridge, part of the Android SDK,
-must be installed locally.  The variable @var{tramp-adb-sdk-dir} must
-be set to its installation directory.
-
 @end table
 
 
@@ -773,7 +765,7 @@ transferred with the corresponding inline method.  It should provide a
 fair trade-off between both approaches.
 
 @table @asis
-@item @option{rcp}  ---  @command{rsh} and @command{rcp}
+@item @option{rcp}---@command{rsh} and @command{rcp}
 @cindex method rcp
 @cindex rcp method
 @cindex rcp (with rcp method)
@@ -788,7 +780,7 @@ The alternative method @option{remcp} uses the @command{remsh} and
 @command{remsh} is used instead of @command{rsh}.
 
 
-@item @option{scp}  ---  @command{ssh} and @command{scp}
+@item @option{scp}---@command{ssh} and @command{scp}
 @cindex method scp
 @cindex scp method
 @cindex scp (with scp method)
@@ -818,7 +810,7 @@ specify @samp{-p 42} in the argument list for @command{ssh}, and to
 specify @samp{-P 42} in the argument list for @command{scp}.
 
 
-@item @option{sftp}  ---  @command{ssh} and @command{sftp}
+@item @option{sftp}---@command{ssh} and @command{sftp}
 @cindex method sftp
 @cindex sftp method
 @cindex sftp (with sftp method)
@@ -834,7 +826,7 @@ within this session.  Instead of, @command{ssh} is used for login.
 This method supports the @samp{-p} argument.
 
 
-@item @option{rsync}  ---  @command{ssh} and @command{rsync}
+@item @option{rsync}---@command{ssh} and @command{rsync}
 @cindex method rsync
 @cindex rsync method
 @cindex rsync (with rsync method)
@@ -855,7 +847,7 @@ the corresponding buffer, visiting this file, is alive.
 This method supports the @samp{-p} argument.
 
 
-@item @option{scpx} --- @command{ssh} and @command{scp}
+@item @option{scpx}---@command{ssh} and @command{scp}
 @cindex method scpx
 @cindex scpx method
 @cindex scp (with scpx method)
@@ -878,52 +870,7 @@ to not print any shell prompt, which confuses @value{tramp} mightily.
 This method supports the @samp{-p} argument.
 
 
-@item @option{scpc} --- @command{ssh} and @command{scp}
-@cindex method scpc
-@cindex scpc method
-@cindex scp (with scpc method)
-@cindex ssh (with scpc method)
-
-Newer versions of @option{ssh} (for example OpenSSH 4) offer an option
-@option{ControlMaster}.  This allows @option{scp} to reuse an existing
-@option{ssh} channel, which increases performance.
-
-Before you use this method, you should check whether your @option{ssh}
-implementation supports this option.  Try from the command line
-
-@example
-ssh localhost -o ControlMaster=yes /bin/true
-@end example
-
-If that command succeeds silently, then you can use @option{scpc}; but
-if it fails like
-
-@example
-command-line: line 0: Bad configuration option: ControlMaster
-@end example
-
-then you cannot use it.  Note, that the option
-@option{ControlPersist}, if it is supported by your @option{ssh}
-version, must be set to @option{no}.
-
-This method supports the @samp{-p} argument.
-
-
-@item @option{rsyncc}  ---  @command{ssh} and @command{rsync}
-@cindex method rsyncc
-@cindex rsyncc method
-@cindex rsync (with rsyncc method)
-@cindex ssh (with rsyncc method)
-
-Like the @option{scpc} method, @option{rsyncc} improves the underlying
-@command{ssh} connection by the option @option{ControlMaster}.  This
-allows @command{rsync} to reuse an existing @command{ssh} channel,
-which increases performance.
-
-This method supports the @samp{-p} argument.
-
-
-@item @option{pscp} --- @command{plink} and @command{pscp}
+@item @option{pscp}---@command{plink} and @command{pscp}
 @cindex method pscp
 @cindex pscp method
 @cindex pscp (with pscp method)
@@ -938,7 +885,7 @@ of PuTTY, an SSH implementation for Windows.
 This method supports the @samp{-P} argument.
 
 
-@item @option{psftp} --- @command{plink} and @command{psftp}
+@item @option{psftp}---@command{plink} and @command{psftp}
 @cindex method psftp
 @cindex psftp method
 @cindex psftp (with psftp method)
@@ -953,7 +900,7 @@ part of PuTTY, an SSH implementation for Windows.
 This method supports the @samp{-P} argument.
 
 
-@item @option{fcp} --- @command{fsh} and @command{fcp}
+@item @option{fcp}---@command{fsh} and @command{fcp}
 @cindex method fcp
 @cindex fcp method
 @cindex fsh (with fcp method)
@@ -992,7 +939,7 @@ This works only for unified filenames, see @ref{Issues}.
 @end ifset
 
 
-@item @option{smb} --- @command{smbclient}
+@item @option{smb}---@command{smbclient}
 @cindex method smb
 @cindex smb method
 
@@ -1041,6 +988,17 @@ Windows, this method isn't available.  Instead, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
+
+
+@item @option{adb}
+@cindex method adb
+@cindex adb method
+
+This special method uses the Android Debug Bridge for connecting
+Android devices.  The Android Debug Bridge, part of the Android SDK,
+must be installed locally.  The variable @var{tramp-adb-sdk-dir} must
+be set to its installation directory.
+
 @end table
 
 
@@ -1089,6 +1047,7 @@ phones.  For the time being, @value{tramp} only supports OBEX over Bluetooth.
 The @option{synce} method allows communication with Windows Mobile
 devices.  Beside GVFS for mounting remote files and directories via
 FUSE, it also needs the SYNCE-GVFS plugin.
+
 @end table
 
 @defopt tramp-gvfs-methods
@@ -1239,7 +1198,7 @@ user, see the @option{su} or @option{sudo} methods.  They offer
 shortened syntax for the @samp{root} account, like
 @file{@trampfn{su, , , /etc/motd}}.
 
-People who edit large files may want to consider @option{scpc} instead
+People who edit large files may want to consider @option{scp} instead
 of @option{ssh}, or @option{pscp} instead of @option{plink}.  These
 external methods are faster than inline methods for large files.
 Note, however, that external methods suffer from some limitations.
@@ -1278,8 +1237,8 @@ example, if you always have to use the user @samp{john} in the domain
 @end lisp
 
 @noindent
-See the documentation for the variable
-@code{tramp-default-user-alist} for more details.
+See the documentation for the variable @code{tramp-default-user-alist}
+for more details.
 
 One trap to fall in must be known.  If @value{tramp} finds a default
 user, this user will be passed always to the connection command as
@@ -1336,6 +1295,18 @@ to John's home directory on target.
 Note, however, that the most simplification @samp{/::} won't work,
 because @samp{/:} is the prefix for quoted file names.
 @end ifset
+
+@vindex tramp-default-host-alist
+Like with methods and users, you can also specify different default
+hosts for certain method/user combinations via the variable
+@code{tramp-default-host-alist}.  Usually, this isn't necessary,
+because @code{tramp-default-host} should be sufficient.  For some
+methods, like @option{adb}, that default value must be overwritten,
+which is already the initial value of @code{tramp-default-host-alist}.
+
+@noindent
+See the documentation for the variable @code{tramp-default-host-alist}
+for more details.
 
 
 @node Multi-hops
@@ -1596,6 +1567,7 @@ can return user names only.
 
 Finally, a function which parses @file{~/.netrc} like files.  This
 includes also @file{~/.authinfo}-style files.
+
 @end table
 
 If you want to keep your own data in a file, with your own structure,
@@ -1863,7 +1835,7 @@ but it is not at the end of the buffer.
 This regular expression is used by @value{tramp} in the same way as
 @code{shell-prompt-pattern}, to match prompts from the remote shell.
 This second variable exists because the prompt from the remote shell
-might be different from the prompt from a local shell --- after all,
+might be different from the prompt from a local shell---after all,
 the whole point of @value{tramp} is to log in to remote hosts as a
 different user.  The default value of
 @code{tramp-shell-prompt-pattern} is the same as the default value of
@@ -1897,7 +1869,7 @@ of your (local or remote) host, you might need to adapt this. Example:
           "passwort" "Passwort"
           ;; Fran@,{c}ais
           "mot de passe" "Mot de passe") t)
-      ".*: ? *"))
+      ".*:\0? *"))
 @end lisp
 
 In parallel, it might also be necessary to adapt
@@ -2031,6 +2003,50 @@ fi
 @end ifinfo
 
 @end table
+
+
+@node Android shell setup
+@section Android shell setup hints
+@cindex android shell setup
+
+Android devices use a restricted shell.  They can be accessed via the
+@option{adb} method.  However, this restricts the access to a USB
+connection, and it requires the installation of the Android SDK on the
+local machine.
+
+When an @command{sshd} process runs on the Android device, like
+provided by the @code{SSHDroid} app, any @option{ssh}-based method can
+be used.  However, this requires some special settings.
+
+The default shell @code{/bin/sh} does not exist.  Instead, you shall
+use just @code{sh}, which invokes the shell installed on the device.
+You can instruct @value{tramp} by this form:
+
+@lisp
+(add-to-list 'tramp-connection-properties
+	     (list (regexp-quote "192.168.0.26") "remote-shell" "sh"))
+@end lisp
+
+@noindent
+with @samp{192.168.0.26} being the IP address of your Android device.
+
+The user settings for the @code{$PATH} environment valiable must be
+preserved. Add this setting:
+
+@lisp
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+@end lisp
+
+If the Android device is not @samp{rooted}, you must give the shell a
+writable directory for temporary files.  You could use this setting:
+
+@lisp
+(add-to-list 'tramp-remote-process-environment "TMPDIR=$HOME")
+@end lisp
+
+Now you shall be able to open a remote connection with @kbd{C-x C-f
+@trampfn{ssh, , 192.168.0.26#2222, }}, given that @command{sshd}
+listens on port @samp{2222}.
 
 
 @node Auto-save and Backup
@@ -2289,7 +2305,7 @@ This edits the same file, using the fully qualified domain name of
 the machine.
 
 @item @trampfn{, , melancholia, ~/.emacs}
-This also edits the same file --- the @file{~} is expanded to your
+This also edits the same file; the @file{~} is expanded to your
 home directory on the remote machine, just like it is locally.
 
 @item @trampfn{, , melancholia, ~daniel/.emacs}
@@ -2348,6 +2364,8 @@ number than the default one, given by the method.  This is specified
 by adding @file{#<port>} to the host name, like in @file{@trampfn{ssh,
 daniel, melancholia#42, .emacs}}.
 
+Note that @value{tramp} supports only filenames encoded in unibyte.
+
 
 @node Alternative Syntax
 @section URL-like filename syntax
@@ -2378,13 +2396,13 @@ For the time being, @code{tramp-syntax} can have the following values:
 
 @itemize @w{}
 @ifset emacs
-@item @code{ftp} -- That is the default syntax
-@item @code{url} -- URL-like syntax
+@item @code{ftp}---That is the default syntax
+@item @code{url}---URL-like syntax
 @end ifset
 @ifset xemacs
-@item @code{sep} -- That is the default syntax
-@item @code{url} -- URL-like syntax
-@item @code{ftp} -- EFS-like syntax
+@item @code{sep}---That is the default syntax
+@item @code{url}---URL-like syntax
+@item @code{ftp}---EFS-like syntax
 @end ifset
 @end itemize
 
@@ -2926,7 +2944,7 @@ host as well as the time needed to perform the operations there count.
 In order to speed up @value{tramp}, one could either try to avoid some
 of the operations, or one could try to improve their performance.
 
-Use an external method, like @option{scpc}.
+Use an external method, like @option{scp}.
 
 Use caching.  This is already enabled by default.  Information about
 the remote host as well as the remote files are cached for reuse.  The
@@ -3048,20 +3066,6 @@ the job:
 @example
 Host *
      ServerAliveInterval 5
-@end example
-
-
-@item
-How can I use @samp{ControlPersist}?
-
-When @samp{ControlPersist} is set to @samp{yes}, the @option{scpc}
-method does not work.  You can use @option{scpx} instead with the
-following settings in @file{~/.ssh/config}:
-
-@example
-Host *
-     ControlMaster  auto
-     ControlPersist yes
 @end example
 
 

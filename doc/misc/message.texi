@@ -10,7 +10,7 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright @copyright{} 1996-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1996--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -21,8 +21,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -477,7 +476,7 @@ You can use one or more of the above variables.  All their values are
 Now you are all set.  Just start composing a message as you normally do.
 And just send it; as always.  Just before the message is sent out, Gnus'
 MFT generation thingy kicks in and checks if the message already has a
-MFT field.  If there is one, it is left alone.  (Except if it's empty -
+MFT field.  If there is one, it is left alone.  (Except if it's empty;
 in that case, the field is removed and is not replaced with an
 automatically generated one.  This lets you disable MFT generation on a
 per-message basis.)  If there is none, then the list of recipient
@@ -1818,17 +1817,14 @@ a string nor @code{nil}, use the user name only.  However, it is highly
 unlikely that you should need to fiddle with this variable at all.
 @end table
 
-@findex yow
 @cindex Mime-Version
 In addition, you can enter conses into this list.  The @sc{car} of this cons
 should be a symbol.  This symbol's name is the name of the header, and
 the @sc{cdr} can either be a string to be entered verbatim as the value of
 this header, or it can be a function to be called.  This function should
-return a string to be inserted.  For instance, if you want to insert
-@code{Mime-Version: 1.0}, you should enter @code{(Mime-Version . "1.0")}
-into the list.  If you want to insert a funny quote, you could enter
-something like @code{(X-Yow . yow)} into the list.  The function
-@code{yow} will then be called without any arguments.
+take no arguments, and return a string to be inserted.  For
+instance, if you want to insert @code{Mime-Version: 1.0}, you should
+enter @code{(Mime-Version . "1.0")} into the list.
 
 If the list contains a cons where the @sc{car} of the cons is
 @code{optional}, the @sc{cdr} of this cons will only be inserted if it is
@@ -2207,12 +2203,12 @@ This function won't add the header if the header is already present.
 
 @item message-send-mail-hook
 @vindex message-send-mail-hook
-Hook run before sending mail messages.  This hook is run very late --
+Hook run before sending mail messages.  This hook is run very late:
 just before the message is actually sent as mail.
 
 @item message-send-news-hook
 @vindex message-send-news-hook
-Hook run before sending news messages.  This hook is run very late --
+Hook run before sending news messages.  This hook is run very late:
 just before the message is actually sent as news.
 
 @item message-sent-hook
@@ -2345,7 +2341,7 @@ Valid values include:
 @table @code
 @item nil
 Generate the buffer name in the Message way (e.g., *mail*, *news*, *mail
-to whom*, *news on group*, etc.) and continue editing in the existing
+to whom*, *news on group*, etc.)@: and continue editing in the existing
 buffer of that name.  If there is no such buffer, it will be newly
 created.
 

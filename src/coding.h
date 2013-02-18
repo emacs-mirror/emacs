@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -767,7 +767,7 @@ extern Lisp_Object Qcoding_system_p;
 extern Lisp_Object Qraw_text, Qemacs_mule, Qno_conversion, Qundecided;
 extern Lisp_Object Qbuffer_file_coding_system;
 
-extern Lisp_Object Qunix, Qdos, Qmac;
+extern Lisp_Object Qunix, Qdos;
 
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;

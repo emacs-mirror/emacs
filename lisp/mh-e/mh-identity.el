@@ -1,6 +1,6 @@
 ;;; mh-identity.el --- multiple identify support for MH-E
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

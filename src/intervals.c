@@ -1,5 +1,6 @@
 /* Code for doing intervals.
-   Copyright (C) 1993-1995, 1997-1998, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997-1998, 2001-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1624,7 +1625,8 @@ graft_intervals_into_buffer (INTERVAL source, ptrdiff_t position,
 	  XSETBUFFER (buf, buffer);
 	  set_text_properties_1 (make_number (position),
 				 make_number (position + length),
-				 Qnil, buf, 0);
+				 Qnil, buf,
+				 find_interval (tree, position));
 	}
       /* Shouldn't be necessary.  --Stef  */
       buffer_balance_intervals (buffer);

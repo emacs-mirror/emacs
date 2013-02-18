@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Numbers
 @chapter Numbers
@@ -43,7 +43,7 @@ minimum range is @minus{}536870912 to 536870911 (30 bits; i.e.,
 @end tex
 to
 @ifnottex
-2**29 - 1),
+2**29 @minus{} 1),
 @end ifnottex
 @tex
 @math{2^{29}-1}),

@@ -1,7 +1,7 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
 ;; Keywords: emulations
@@ -183,6 +183,7 @@ If nil then it is bound to `delete-backward-char'."
     (define-key map "\C-z" 'vip-change-mode-to-emacs)
     (define-key map "\e" 'vip-ESC)
 
+    (define-key map [?\S-\ ] 'vip-scroll-back)
     (define-key map " " 'vip-scroll)
     (define-key map "!" 'vip-command-argument)
     (define-key map "\"" 'vip-command-argument)

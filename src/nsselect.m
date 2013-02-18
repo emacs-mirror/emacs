@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / MacOSX Cocoa selection processing for emacs.
-   Copyright (C) 1993-1994, 2005-2006, 2008-2012
-     Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2005-2006, 2008-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -117,7 +117,7 @@ clean_local_selection_data (Lisp_Object obj)
 
       if (size == 1)
         return clean_local_selection_data (AREF (obj, 0));
-      copy = Fmake_vector (make_number (size), Qnil);
+      copy = make_uninit_vector (size);
       for (i = 0; i < size; i++)
         ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;

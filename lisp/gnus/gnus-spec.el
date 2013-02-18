@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -265,7 +265,14 @@ Return a list of updated types."
 (defun gnus-face-face-function (form type)
   `(gnus-add-text-properties
     (point) (progn ,@form (point))
-    '(gnus-face t face ,(symbol-value (intern (format "gnus-face-%d" type))))))
+    (cons 'face
+	  (cons
+	   ;; Delay consing the value of the `face' property until
+	   ;; `gnus-add-text-properties' runs, since it will be modified
+	   ;; by `gnus-put-text-property-excluding-characters-with-faces'.
+	   (list ',(symbol-value (intern (format "gnus-face-%d" type))) 'default)
+	   ;; Redundant now, but still convenient.
+	   '(gnus-face t)))))
 
 (defun gnus-balloon-face-function (form type)
   `(gnus-put-text-property

@@ -1,5 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1987, 1993-1995, 1999-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1995, 1999-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1930,7 +1931,10 @@ eval_sub (Lisp_Object form)
     return form;
 
   QUIT;
+
+  GCPRO1 (form);
   maybe_gc ();
+  UNGCPRO;
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {

@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -1298,7 +1298,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
                           (re-search-forward diff-context-mid-hunk-header-re
                                              nil t)))))
           (when (and ;; Don't try to fixup changes in the hunk header.
-                 (> (car diff-unhandled-changes) start)
+                 (>= (car diff-unhandled-changes) start)
                  ;; Don't try to fixup changes in the mid-hunk header either.
                  (or (not mid)
                      (< (cdr diff-unhandled-changes) (match-beginning 0))

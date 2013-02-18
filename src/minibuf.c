@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1398,12 +1398,7 @@ is used to further constrain the set of candidates.  */)
 				      eltstring, zero,
 				      make_number (compare),
 				      completion_ignore_case ? Qt : Qnil);
-	      if (EQ (tem, Qt))
-		matchsize = compare;
-	      else if (XINT (tem) < 0)
-		matchsize = - XINT (tem) - 1;
-	      else
-		matchsize = XINT (tem) - 1;
+	      matchsize = EQ (tem, Qt) ? compare : eabs (XINT (tem)) - 1;
 
 	      if (completion_ignore_case)
 		{

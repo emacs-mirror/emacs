@@ -1,7 +1,7 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal

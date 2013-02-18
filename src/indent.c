@@ -1,6 +1,6 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -138,7 +138,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   struct Lisp_Vector *widthtab;
 
   if (!VECTORP (BVAR (buf, width_table)))
-    bset_width_table (buf, Fmake_vector (make_number (256), make_number (0)));
+    bset_width_table (buf, make_uninit_vector (256));
   widthtab = XVECTOR (BVAR (buf, width_table));
   eassert (widthtab->header.size == 256);
 
@@ -291,7 +291,7 @@ DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
        doc: /* Return the horizontal position of point.  Beginning of line is column 0.
 This is calculated by adding together the widths of all the displayed
 representations of the character between the start of the previous line
-and point (eg. control characters will have a width of 2 or 4, tabs
+and point (e.g., control characters will have a width of 2 or 4, tabs
 will have a variable width).
 Ignores finite width of frame, which means that this function may return
 values greater than (frame-width).
@@ -571,7 +571,8 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
 	    col += width;
 	    if (endp > scan) /* Avoid infinite loops with 0-width overlays.  */
 	      {
-		scan = endp; scan_byte = charpos_to_bytepos (scan);
+		scan = endp;
+		scan_byte = CHAR_TO_BYTE (scan);
 		continue;
 	      }
 	  }
@@ -1969,7 +1970,7 @@ whether or not it is currently displayed in some window.  */)
   struct window *w;
   Lisp_Object old_buffer;
   EMACS_INT old_charpos IF_LINT (= 0), old_bytepos IF_LINT (= 0);
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  struct gcpro gcpro1;
   Lisp_Object lcols = Qnil;
   double cols IF_LINT (= 0);
   void *itdata = NULL;
@@ -1986,13 +1987,13 @@ whether or not it is currently displayed in some window.  */)
   w = decode_live_window (window);
 
   old_buffer = Qnil;
-  GCPRO3 (old_buffer, old_charpos, old_bytepos);
+  GCPRO1 (old_buffer);
   if (XBUFFER (w->buffer) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
       old_buffer = w->buffer;
-      old_charpos = XMARKER (w->pointm)->charpos;
-      old_bytepos = XMARKER (w->pointm)->bytepos;
+      old_charpos = marker_position (w->pointm);
+      old_bytepos = marker_byte_position (w->pointm);
       wset_buffer (w, Fcurrent_buffer ());
       set_marker_both (w->pointm, w->buffer,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
@@ -2025,7 +2026,11 @@ whether or not it is currently displayed in some window.  */)
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
 
-	  disp_string_at_start_p = it.string_from_display_prop_p;
+	  /* If it.area is anything but TEXT_AREA, we need not bother
+	     about the display string, as it doesn't affect cursor
+	     positioning.  */
+	  disp_string_at_start_p =
+	    it.string_from_display_prop_p && it.area == TEXT_AREA;
 	  while (s < e)
 	    {
 	      if (*s++ == '\n')

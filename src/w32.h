@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -68,17 +68,47 @@ enum {
    a socket, the process handle in pi is NULL. */
 typedef struct _child_process
 {
-  int                   fd;
-  int                   pid;
-  HANDLE                char_avail;
-  HANDLE                char_consumed;
-  HANDLE                thrd;
-  HWND                  hwnd;
-  PROCESS_INFORMATION   procinfo;
-  volatile int          status;
-  char                  chr;
-  OVERLAPPED            ovl_read;
-  OVERLAPPED            ovl_write;
+  /* File descriptor for sockets and serial port connections, and for
+     reading output from async subprocesses; otherwise -1.  */
+  int                 fd;
+  /* PID for subprocess, either async or not; otherwise -1.  */
+  int                 pid;
+  /* Handle to an event object that is signaled when a read operation
+     is completed, either successfully (in which case there're indeed
+     "characters available") or not.  Used by sys_select to wait for
+     output from subprocesses or socket/serial connections.  */
+  HANDLE              char_avail;
+  /* Handle to an event that is signaled to wake up the reader thread
+     and tell it to try reading more output from a subprocess.  */
+  HANDLE              char_consumed;
+  /* Handle to the reader thread to read output from a subprocess or a
+     socket or a comm port.  */
+  HANDLE              thrd;
+  /* Handle to the console window of a subprocess.  Used to forcibly
+     terminate it by sys_kill.  */
+  HWND                hwnd;
+  /* Information about subprocess returned by CreateProcess.  Includes
+     handles to the subprocess and its primary thread, and the
+     corresponding process ID and thread ID numbers.  The PID is
+     mirrored by the 'pid' member above.  The process handle is used
+     to wait on it.  */
+  PROCESS_INFORMATION procinfo;
+  /* Status of subprocess/connection and of reading its output.  For
+     values, see the enumeration above.  */
+  volatile int        status;
+  /* Holds a single character read by _sys_read_ahead, when a
+     subprocess has some output ready.  */
+  char                chr;
+  /* Used for async read operations on serial comm ports.  */
+  OVERLAPPED          ovl_read;
+  /* Used for async write operations on serial comm ports.  */
+  OVERLAPPED          ovl_write;
+  /* Input file, if any, for this subprocess.  Should only be non-NULL
+     for async subprocesses.  */
+  char               *input_file;
+  /* If non-zero, the subprocess input file is temporary and should be
+     deleted when the subprocess exits.  */
+  int                 pending_deletion;
 } child_process;
 
 #define MAXDESC FD_SETSIZE
@@ -150,7 +180,7 @@ extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
 extern void syms_of_ntterm (void);
-extern void dostounix_filename (register char *);
+extern void dostounix_filename (register char *, int);
 extern void unixtodos_filename (register char *);
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);
@@ -160,7 +190,9 @@ extern int sys_pipe (int *);
 
 extern void set_process_dir (char *);
 extern int sys_spawnve (int, char *, char **, char **);
-extern void register_child (int, int);
+extern void register_child (pid_t, int);
+extern void record_infile (pid_t, char *);
+extern void record_pending_deletion (char *);
 
 extern void sys_sleep (int);
 extern int sys_link (const char *, const char *);

@@ -1,7 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1229,7 +1229,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'default-scroll-down-aggressively 'scroll-down-aggressively "23.2")
 (make-obsolete-variable 'default-fill-column 'fill-column "23.2")
 (make-obsolete-variable 'default-cursor-type 'cursor-type "23.2")
-(make-obsolete-variable 'default-buffer-file-type 'buffer-file-type "23.2")
 (make-obsolete-variable 'default-cursor-in-non-selected-windows 'cursor-in-non-selected-windows "23.2")
 (make-obsolete-variable 'default-buffer-file-coding-system 'buffer-file-coding-system "23.2")
 (make-obsolete-variable 'default-major-mode 'major-mode "23.2")
@@ -1867,7 +1866,7 @@ This function makes or adds to an entry on `after-load-alist'."
 		 ,form)))
       ;; Add FORM to the element unless it's already there.
       (unless (member form (cdr elt))
-	(nconc elt (purecopy (list form)))))))
+	(nconc elt (list form))))))
 
 (defvar after-load-functions nil
   "Special hook run after loading a file.
@@ -2622,15 +2621,6 @@ When the hook runs, the temporary buffer is current.
 This hook is normally set up with a function to put the buffer in Help
 mode.")
 
-(defvar-local buffer-file-type nil
-  "Non-nil if the visited file is a binary file.
-This variable is meaningful on MS-DOG and MS-Windows.
-On those systems, it is automatically local in every buffer.
-On other systems, this variable is normally always nil.
-
-WARNING: This variable is obsolete and will disappear Real Soon Now.
-Don't use it!")
-
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.
 (put 'cl-assertion-failed 'error-conditions '(error))
@@ -2805,7 +2795,7 @@ Otherwise, return nil."
 (defun special-form-p (object)
   "Non-nil if and only if OBJECT is a special form."
   (if (and (symbolp object) (fboundp object))
-      (setq object (indirect-function object)))
+      (setq object (indirect-function object t)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun field-at-pos (pos)
@@ -3367,16 +3357,17 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
 	       (progn ,@body)))))))
 
 (defmacro condition-case-unless-debug (var bodyform &rest handlers)
-  "Like `condition-case' except that it does not catch anything when debugging.
-More specifically if `debug-on-error' is set, then it does not catch any signal."
+  "Like `condition-case' except that it does not prevent debugging.
+More specifically if `debug-on-error' is set then the debugger will be invoked
+even if this catches the signal."
   (declare (debug condition-case) (indent 2))
-  (let ((bodysym (make-symbol "body")))
-    `(let ((,bodysym (lambda () ,bodyform)))
-       (if debug-on-error
-           (funcall ,bodysym)
-         (condition-case ,var
-             (funcall ,bodysym)
-           ,@handlers)))))
+  `(condition-case ,var
+       ,bodyform
+     ,@(mapcar (lambda (handler)
+                 `((debug ,@(if (listp (car handler)) (car handler)
+                              (list (car handler))))
+                   ,@(cdr handler)))
+               handlers)))
 
 (define-obsolete-function-alias 'condition-case-no-debug
   'condition-case-unless-debug "24.1")
@@ -3975,12 +3966,13 @@ the number of frames to skip (minus 1).")
   ;; "static" variables.
   (let ((sym (make-symbol "base-index")))
     `(progn
-       (defvar ,sym
+       (defvar ,sym)
+       (unless (boundp ',sym)
          (let ((i 1))
-           (while (not (eq (nth 1 (backtrace-frame i))
-                           'called-interactively-p))
+           (while (not (eq (indirect-function (nth 1 (backtrace-frame i)) t)
+                           (indirect-function 'called-interactively-p)))
              (setq i (1+ i)))
-           i))
+           (setq ,sym i)))
        ;; (unless (eq (nth 1 (backtrace-frame ,sym)) 'called-interactively-p)
        ;;   (error "called-interactively-p: %s is out-of-sync!" ,sym))
        (backtrace-frame (+ ,sym ,n)))))
@@ -4321,6 +4313,36 @@ convenience wrapper around `make-progress-reporter' and friends.
 				   (setq ,(car spec) (1+ ,(car spec)))))
        (progress-reporter-done ,temp2)
        nil ,@(cdr (cdr spec)))))
+
+
+;;;; Support for watching filesystem events.
+
+(defun inotify-event-p (event)
+  "Check if EVENT is an inotify event."
+  (and (listp event)
+       (>= (length event) 3)
+       (eq (car event) 'file-inotify)))
+
+;;;###autoload
+(defun inotify-handle-event (event)
+  "Handle inotify file system monitoring event.
+If EVENT is an inotify filewatch event, call its callback.
+Otherwise, signal a `filewatch-error'."
+  (interactive "e")
+  (unless (inotify-event-p event)
+    (signal 'filewatch-error (cons "Not a valid inotify event" event)))
+  (funcall (nth 2 event) (nth 1 event)))
+
+(defun w32notify-handle-event (event)
+  "Handle MS-Windows file system monitoring event.
+If EVENT is an MS-Windows filewatch event, call its callback.
+Otherwise, signal a `filewatch-error'."
+  (interactive "e")
+  (if (and (eq (car event) 'file-w32notify)
+	   (= (length event) 3))
+      (funcall (nth 2 event) (nth 1 event))
+    (signal 'filewatch-error
+	    (cons "Not a valid MS-Windows file-notify event" event))))
 
 
 ;;;; Comparing version strings.

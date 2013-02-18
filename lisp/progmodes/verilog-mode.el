@@ -1,6 +1,6 @@
 ;; verilog-mode.el --- major mode for editing verilog source in Emacs
 
-;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara (mac@verilog.com),
 ;;    Wilson Snyder (wsnyder@wsnyder.org)
@@ -4777,7 +4777,7 @@ primitive or interface named NAME."
 		))))))))))
 
 (defun verilog-get-expr()
-  "Grab expression at point, e.g, case ( a | b & (c ^d))."
+  "Grab expression at point, e.g., case ( a | b & (c ^d))."
   (let* ((b (progn
 	      (verilog-forward-syntactic-ws)
 	      (skip-chars-forward " \t")

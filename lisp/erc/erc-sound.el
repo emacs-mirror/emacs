@@ -1,6 +1,6 @@
 ;;; erc-sound.el --- CTCP SOUND support for ERC
 
-;; Copyright (C) 2002-2003, 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2006-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 

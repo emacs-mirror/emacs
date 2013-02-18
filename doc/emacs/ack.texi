@@ -1,6 +1,6 @@
 @c -*- coding: iso-latin-1 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1994-1997, 1999-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1994-1997, 1999-2013 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @node Acknowledgments
@@ -726,7 +726,7 @@ the display of the Emacs tool bar.  With Riccardo Murri he wrote
 Eric Ludlam wrote the Speedbar package; @file{checkdoc.el}, for checking
 doc strings in Emacs Lisp programs; @file{dframe.el}, providing
 dedicated frame support modes; @file{ezimage.el}, a generalized way to
-place images over text; @file{chart.el} for drawing bar charts etc; and
+place images over text; @file{chart.el} for drawing bar charts etc.; and
 the EIEIO (Enhanced Implementation of Emacs Interpreted Objects)
 package.  He was also the main author of the CEDET (Collection of Emacs
 Development Environment Tools) package.  Portions were also written by
@@ -811,9 +811,8 @@ Richard Mlynarik wrote @file{cl-indent.el}, a package for indenting
 Common Lisp code; @file{ebuff-menu.el}, an ``electric'' browser for
 buffer listings; @file{ehelp.el}, bindings for browsing help screens;
 @file{rfc822.el}, a parser for E-mail addresses in the RFC-822 format,
-used in mail messages and news articles; @file{terminal.el}, a
-terminal emulator for Emacs subprocesses; and @file{yow.el}, an
-essential utility.
+used in mail messages and news articles; and @file{terminal.el}, a
+terminal emulator for Emacs subprocesses.
 
 @item
 Gerd Moellmann was the Emacs maintainer from the beginning of Emacs 21

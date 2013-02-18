@@ -1,3 +1,26 @@
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c (getenv): Remove decl (unused since 1994).
+
+2013-01-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (write_globals): Make it a bit clearer (Bug#13448).
+	This pacifies GCC 4.7.2 when Emacs is configured with
+	--enable-link-time-optimization and --enable-gcc-warnings.
+
+2013-01-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (lisp1): Add macroexp.elc (bug#13320).
+
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SYSWAIT_H): Update dependencies.
+
+2012-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add w32notify.o.  Add missing X and Unix
+	sources.
+
 2012-12-02  Kevin Ryde  <user42@zip.com.au>
 
 	* etags.c (Lisp_functions): Skip (defvar foo) declarations unless
@@ -8470,7 +8493,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1988-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1988-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

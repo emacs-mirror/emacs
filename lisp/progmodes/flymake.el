@@ -1,6 +1,6 @@
 ;;; flymake.el -- a universal on-the-fly syntax checker
 
-;; Copyright (C) 2003-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Pavel Kobyakov <pk_at_work@yahoo.com>
@@ -844,13 +844,21 @@ Return t if it has at least one flymake overlay, nil if no overlay."
     has-flymake-overlays))
 
 (defface flymake-errline
-  '((t :inherit error))
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "Red1"))
+    (t
+     :inherit error))
   "Face used for marking error lines."
+  :version "24.4"
   :group 'flymake)
 
 (defface flymake-warnline
-  '((t :inherit warning))
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "DarkOrange"))
+    (t
+     :inherit warning))
   "Face used for marking warning lines."
+  :version "24.4"
   :group 'flymake)
 
 (defun flymake-highlight-line (line-no line-err-info-list)

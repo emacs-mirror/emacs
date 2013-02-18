@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -195,6 +195,7 @@ See `tramp-actions-before-shell' for more info.")
     (dired-uncache . tramp-handle-dired-uncache)
     (expand-file-name . tramp-smb-handle-expand-file-name)
     (file-accessible-directory-p . tramp-smb-handle-file-directory-p)
+    (file-acl . tramp-smb-handle-file-acl)
     (file-attributes . tramp-smb-handle-file-attributes)
     (file-directory-p .  tramp-smb-handle-file-directory-p)
     (file-executable-p . tramp-handle-file-exists-p)
@@ -227,8 +228,9 @@ See `tramp-actions-before-shell' for more info.")
     (make-symbolic-link . tramp-smb-handle-make-symbolic-link)
     (process-file . tramp-smb-handle-process-file)
     (rename-file . tramp-smb-handle-rename-file)
+    (set-file-acl . ignore)
     (set-file-modes . tramp-smb-handle-set-file-modes)
-    ;; `set-file-selinux-context' performed by default handler.
+    (set-file-selinux-context . ignore)
     (set-file-times . ignore)
     (set-visited-file-modtime . ignore)
     (shell-command . tramp-handle-shell-command)
@@ -265,6 +267,8 @@ This can be used to disable echo etc."
   :type 'string
   :version "24.3")
 
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-smb-file-name-p (filename)
   "Check if it's a filename for SMB servers."
@@ -485,10 +489,10 @@ pass to the OPERATION."
 
 (defun tramp-smb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-selinux-context)
+	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files.
 KEEP-DATE has no effect in case NEWNAME resides on an SMB server.
-PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
+PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
   (with-tramp-progress-reporter
@@ -636,6 +640,23 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
       (tramp-make-tramp-file-name
        method user host
        (tramp-run-real-handler 'expand-file-name (list localname))))))
+
+(defun tramp-smb-handle-file-acl (filename)
+  "Like `file-acl' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (with-tramp-file-property v localname "file-acl"
+      (when (tramp-smb-send-command
+	     v (format "getfacl \"%s\"" (tramp-smb-get-localname v)))
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (goto-char (point-min))
+	  (while (looking-at "^#")
+	    (forward-line)
+	    (delete-region (point-min) (point)))
+	  (goto-char (point-max))
+	  (delete-blank-lines)
+	  (when (> (point-max) (point-min))
+	    (tramp-compat-funcall
+	     'substring-no-properties (buffer-string))))))))
 
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

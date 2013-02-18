@@ -1,6 +1,6 @@
 /* Header for xg_select.
 
-Copyright (C) 2009-2012  Free Software Foundation, Inc.
+Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

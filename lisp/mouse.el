@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -425,7 +425,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 				   (frame-parameters frame)))
 			'right)))
 	 (draggable t)
-	 finished event position growth dragged)
+	 event position growth dragged)
     (cond
      ((eq line 'header)
       ;; Check whether header-line can be dragged at all.
@@ -456,39 +456,33 @@ must be one of the symbols `header', `mode', or `vertical'."
 
     ;; Start tracking.
     (track-mouse
-      ;; Loop reading events and sampling the position of the mouse.
-      (while (not finished)
-	(setq event (read-event))
+      ;; Loop reading events and sampling the position of the mouse,
+      ;; until there is a non-mouse-movement event.  Also,
+      ;; scroll-bar-movement events are the same as mouse movement for
+      ;; our purposes.  (Why? -- cyd)
+      ;; If you change this, check that all of the following still work:
+      ;; Resizing windows by dragging mode-lines and header lines,
+      ;; and vertical lines (in windows without scroll bars).
+      ;;   Doing this should not select another window, even if
+      ;;   mouse-autoselect-window is non-nil.
+      ;; Mouse-1 clicks in Info header lines should advance position
+      ;; by one node at a time if mouse-1-click-follows-link is non-nil,
+      ;; otherwise they should just select the window.
+      (while (progn
+	       (setq event (read-event))
+	       (memq (car-safe event)
+                     '(mouse-movement scroll-bar-movement
+                                      switch-frame select-window)))
 	(setq position (mouse-position))
 	;; Do nothing if
 	;;   - there is a switch-frame event.
 	;;   - the mouse isn't in the frame that we started in
 	;;   - the mouse isn't in any Emacs frame
-	;; Drag if
-	;;   - there is a mouse-movement event
-	;;   - there is a scroll-bar-movement event (Why? -- cyd)
-	;;     (same as mouse movement for our purposes)
-	;; Quit if
-	;;   - there is a keyboard event or some other unknown event.
 	(cond
-	 ((not (consp event))
-	  (setq finished t))
 	 ((memq (car event) '(switch-frame select-window))
 	  nil)
-	 ((not (memq (car event) '(mouse-movement scroll-bar-movement)))
-	  (when (consp event)
-	    ;; Do not unread a drag-mouse-1 event to avoid selecting
-	    ;; some other window.  For vertical line dragging do not
-	    ;; unread mouse-1 events either (but only if we dragged at
-	    ;; least once to allow mouse-1 clicks get through).
-	    (unless (and dragged
-			 (if (eq line 'vertical)
-			     (memq (car event) '(drag-mouse-1 mouse-1))
-			   (eq (car event) 'drag-mouse-1)))
-	      (push event unread-command-events)))
-	  (setq finished t))
-	 ((not (and (eq (car position) frame)
-		    (cadr position)))
+ 	 ((not (and (eq (car position) frame)
+ 		    (cadr position)))
 	  nil)
 	 ((eq line 'vertical)
 	  ;; Drag vertical divider.
@@ -512,12 +506,13 @@ must be one of the symbols `header', `mode', or `vertical'."
 						  growth
 						(- growth)))))))
     ;; Process the terminating event.
-    (when (and (mouse-event-p event) on-link (not dragged)
-	       (mouse--remap-link-click-p start-event event))
-      ;; If mouse-2 has never been done by the user, it doesn't have
-      ;; the necessary property to be interpreted correctly.
-      (put 'mouse-2 'event-kind 'mouse-click)
-      (setcar event 'mouse-2)
+    (unless dragged
+      (when (and (mouse-event-p event) on-link
+                 (mouse--remap-link-click-p start-event event))
+        ;; If mouse-2 has never been done by the user, it doesn't have
+        ;; the necessary property to be interpreted correctly.
+        (put 'mouse-2 'event-kind 'mouse-click)
+        (setcar event 'mouse-2))
       (push event unread-command-events))))
 
 (defun mouse-drag-mode-line (start-event)
@@ -870,6 +865,8 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 
       ;; Find its binding.
       (let* ((fun (key-binding (vector (car event))))
+	     ;; FIXME This doesn't make sense, because
+	     ;; event-click-count always returns something >= 1.
 	     (do-multi-click (and (> (event-click-count event) 0)
 				  (functionp fun)
 				  (not (memq fun '(mouse-set-point
@@ -885,9 +882,9 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		     (copy-region-as-kill (mark) (point)))))
 
 	  ;; Otherwise, run binding of terminating up-event.
+          (deactivate-mark)
 	  (if do-multi-click
 	      (goto-char start-point)
-	    (deactivate-mark)
 	    (unless moved-off-start
 	      (pop-mark)))
 

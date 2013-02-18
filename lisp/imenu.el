@@ -1,6 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -447,6 +447,8 @@ Don't move point."
 Simple elements in the alist look like (INDEX-NAME . POSITION).
 POSITION is the buffer position of the item; to go to the item
 is simply to move point to that position.
+POSITION is passed to `imenu-default-goto-function', so it can be a non-number
+if that variable has been changed (e.g. Semantic uses overlays for POSITIONs).
 
 Special elements look like (INDEX-NAME POSITION FUNCTION ARGUMENTS...).
 To \"go to\" a special element means applying FUNCTION
@@ -553,16 +555,14 @@ NOT share structure with ALIST."
 
 (defun imenu--truncate-items (menulist)
   "Truncate all strings in MENULIST to `imenu-max-item-length'."
-  (mapcar (lambda (item)
-            (cond
-             ((consp (cdr item))
-              (imenu--truncate-items (cdr item)))
-             ;; truncate if necessary
-             ((and (numberp imenu-max-item-length)
-                   (> (length (car item)) imenu-max-item-length))
-              (setcar item (substring (car item) 0 imenu-max-item-length)))))
-	  menulist))
-
+  (mapc (lambda (item)
+	  ;; truncate if necessary
+	  (when (and (numberp imenu-max-item-length)
+		     (> (length (car item)) imenu-max-item-length))
+	    (setcar item (substring (car item) 0 imenu-max-item-length)))
+	  (when (imenu--subalist-p item)
+	    (imenu--truncate-items (cdr item))))
+	menulist))
 
 (defun imenu--make-index-alist (&optional noerror)
   "Create an index alist for the definitions in the current buffer.
@@ -676,12 +676,12 @@ The alternate method, which is the one most often used, is to call
   ;; in these major modes.  But save that change for later.
   (cond ((and imenu-prev-index-position-function
 	      imenu-extract-index-name-function)
-	 (let ((index-alist '()) (pos (point))
+	 (let ((index-alist '()) (pos (point-max))
 	       name)
-	   (goto-char (point-max))
+	   (goto-char pos)
 	   ;; Search for the function
 	   (while (funcall imenu-prev-index-position-function)
-             (when (= pos (point))
+             (unless (< (point) pos)
                (error "Infinite loop at %s:%d: imenu-prev-index-position-function does not move point" (buffer-name) pos))
              (setq pos (point))
 	     (save-excursion

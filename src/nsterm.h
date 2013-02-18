@@ -1,5 +1,6 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2012 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2005, 2008-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,6 +42,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MAC_OS_X_VERSION_10_8
 #define MAC_OS_X_VERSION_10_8 1080
 #endif
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+#define HAVE_NATIVE_FS
+#endif
+
 #endif /* NS_IMPL_COCOA */
 
 #ifdef __OBJC__
@@ -87,6 +93,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    int tibar_height, tobar_height, bwidth;
    int maximized_width, maximized_height;
    NSWindow *nonfs_window;
+   BOOL fs_is_native;
 @public
    struct frame *emacsframe;
    int rows, cols;
@@ -114,6 +121,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void) handleFS;
 - (void) setFSValue: (int)value;
 - (void) toggleFullScreen: (id) sender;
+- (BOOL) fsIsNative;
+- (BOOL) isFullscreen;
+#ifdef HAVE_NATIVE_FS
+- (void) updateCollectionBehaviour;
+#endif
 
 #ifdef NS_IMPL_GNUSTEP
 /* Not declared, but useful. */
@@ -674,9 +686,9 @@ struct x_output
 #define FRAME_FONT(f) ((f)->output_data.ns->font)
 
 #ifdef __OBJC__
-#define XNS_SCROLL_BAR(vec) ((id) XSAVE_VALUE (vec)->pointer)
+#define XNS_SCROLL_BAR(vec) ((id) XSAVE_POINTER (vec, 0))
 #else
-#define XNS_SCROLL_BAR(vec) XSAVE_VALUE (vec)->pointer
+#define XNS_SCROLL_BAR(vec) XSAVE_POINTER (vec, 0)
 #endif
 
 /* Compute pixel size for vertical scroll bars */

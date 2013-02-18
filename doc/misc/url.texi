@@ -20,7 +20,8 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993-1999, 2002, 2004-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1993--1999, 2002, 2004--2013 Free Software
+Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -31,8 +32,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -890,7 +890,7 @@ containing the data cached for that URL.
 
 @c With a large cache of documents on the local disk, it can be very handy
 @c when traveling, or any other time the network connection is not active
-@c (a laptop with a dial-on-demand PPP connection, etc).  Emacs/W3 can rely
+@c (a laptop with a dial-on-demand PPP connection, etc.).  Emacs/W3 can rely
 @c solely on its cache, and avoid checking to see if the page has changed
 @c on the remote server.  In the case of a dial-on-demand PPP connection,
 @c this will keep the phone line free as long as possible, only bringing up

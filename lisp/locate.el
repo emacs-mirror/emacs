@@ -1,6 +1,6 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -496,6 +496,7 @@ do not work in subdirectories.
   (setq revert-buffer-function 'locate-update)
   (set (make-local-variable 'page-delimiter) "\n\n")
   (run-mode-hooks 'locate-mode-hook))
+(put 'locate-mode 'derived-mode-parent 'dired-mode)
 
 (defun locate-do-setup (search-string)
   (goto-char (point-min))

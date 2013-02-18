@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point
 
-;; Copyright (C) 1995-1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: FSF
@@ -106,6 +106,7 @@
 ;;; Code:
 
 (require 'url-parse)
+(require 'thingatpt)
 
 (define-obsolete-variable-alias 'ffap-version 'emacs-version "23.2")
 
@@ -178,16 +179,14 @@ Note this name may be omitted if it equals the default
   :group 'ffap)
 
 (defvar ffap-url-regexp
-  ;; Could just use `url-nonrelative-link' of w3, if loaded.
-  ;; This regexp is not exhaustive, it just matches common cases.
   (concat
    "\\("
    "news\\(post\\)?:\\|mailto:\\|file:" ; no host ok
    "\\|"
    "\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://" ; needs host
-   "\\)."				; require one more character
-   )
-   "Regexp matching URLs.  Use nil to disable URL features in ffap.")
+   "\\)")
+  "Regexp matching the beginning of a URI, for FFAP.
+If the value is nil, disable URL-matching features in ffap.")
 
 (defcustom ffap-foo-at-bar-prefix "mailto"
   "Presumed URL prefix type of strings like \"<foo.9z@bar>\".
@@ -321,7 +320,7 @@ disable FFAP most of the time."
   "Last value returned by `ffap-next-guess'.")
 
 (defvar ffap-string-at-point-region '(1 1)
-  "List (BEG END), last region returned by `ffap-string-at-point'.")
+  "List (BEG END), last region returned by the function `ffap-string-at-point'.")
 
 (defun ffap-next-guess (&optional back lim)
   "Move point to next file or URL, and return it as a string.
@@ -346,7 +345,7 @@ Optional argument BACK says to search backwards.
 Optional argument WRAP says to try wrapping around if necessary.
 Interactively: use a single prefix to search backwards,
 double prefix to wrap forward, triple to wrap backwards.
-Actual search is done by `ffap-next-guess'."
+Actual search is done by the function `ffap-next-guess'."
   (interactive
    (cdr (assq (prefix-numeric-value current-prefix-arg)
 	      '((1) (4 t) (16 nil t) (64 t t)))))
@@ -571,38 +570,9 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
    (ffap-ftp-regexp (ffap-host-to-filename mach))
    ))
 
-(defvar ffap-newsgroup-regexp "^[[:lower:]]+\\.[-+[:lower:]_0-9.]+$"
-  "Strings not matching this fail `ffap-newsgroup-p'.")
-(defvar ffap-newsgroup-heads		; entirely inadequate
-  '("alt" "comp" "gnu" "misc" "news" "sci" "soc" "talk")
-  "Used by `ffap-newsgroup-p' if gnus is not running.")
-
-(defun ffap-newsgroup-p (string)
-  "Return STRING if it looks like a newsgroup name, else nil."
-  (and
-   (string-match ffap-newsgroup-regexp string)
-   (let ((htbs '(gnus-active-hashtb gnus-newsrc-hashtb gnus-killed-hashtb))
-	 (heads ffap-newsgroup-heads)
-	 htb ret)
-     (while htbs
-       (setq htb (car htbs) htbs (cdr htbs))
-       (condition-case nil
-	   (progn
-	     ;; errs: htb symbol may be unbound, or not a hash-table.
-	     ;; gnus-gethash is just a macro for intern-soft.
-	     (and (symbol-value htb)
-		  (intern-soft string (symbol-value htb))
-		  (setq ret string htbs nil))
-	     ;; If we made it this far, gnus is running, so ignore "heads":
-	     (setq heads nil))
-	 (error nil)))
-     (or ret (not heads)
-	 (let ((head (string-match "\\`\\([[:lower:]]+\\)\\." string)))
-	   (and head (setq head (substring string 0 (match-end 1)))
-		(member head heads)
-		(setq ret string))))
-     ;; Is there ever a need to modify string as a newsgroup name?
-     ret)))
+(defvaralias 'ffap-newsgroup-regexp 'thing-at-point-newsgroup-regexp)
+(defvaralias 'ffap-newsgroup-heads  'thing-at-point-newsgroup-heads)
+(defalias 'ffap-newsgroup-p 'thing-at-point-newsgroup-p)
 
 (defsubst ffap-url-p (string)
   "If STRING looks like an URL, return it (maybe improved), else nil."
@@ -1017,7 +987,7 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     ;; * no commas (good for latex)
     (file "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
-    (url "--:=&?$+@-Z_[:alpha:]~#,%;*" "^[:alnum:]" ":;.,!?")
+    (url "--:=&?$+@-Z_[:alpha:]~#,%;*()!'" "^[0-9a-zA-Z]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
     (nocolon "--9$+<>@-Z_[:alpha:]~" "<@" "@>;.,!?")
     ;; A machine:
@@ -1028,14 +998,14 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
   "Alist of \(MODE CHARS BEG END\), where MODE is a symbol,
 possibly a major-mode name, or one of the symbol
 `file', `url', `machine', and `nocolon'.
-`ffap-string-at-point' uses the data fields as follows:
+Function `ffap-string-at-point' uses the data fields as follows:
 1. find a maximal string of CHARS around point,
 2. strip BEG chars before point from the beginning,
-3. Strip END chars after point from the end.")
+3. strip END chars after point from the end.")
 
 (defvar ffap-string-at-point nil
   ;; Added at suggestion of RHOGEE (for ff-paths), 7/24/95.
-  "Last string returned by `ffap-string-at-point'.")
+  "Last string returned by the function `ffap-string-at-point'.")
 
 (defun ffap-string-at-point (&optional mode)
   "Return a string of characters from around point.
@@ -1043,32 +1013,34 @@ MODE (defaults to value of `major-mode') is a symbol used to look up string
 syntax parameters in `ffap-string-at-point-mode-alist'.
 If MODE is not found, we use `file' instead of MODE.
 If the region is active, return a string from the region.
-Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
+Sets the variable `ffap-string-at-point' and the variable
+`ffap-string-at-point-region'."
   (let* ((args
 	  (cdr
 	   (or (assq (or mode major-mode) ffap-string-at-point-mode-alist)
 	       (assq 'file ffap-string-at-point-mode-alist))))
 	 (pt (point))
-	 (str
-	  (if (and transient-mark-mode mark-active)
-	      (buffer-substring
-	       (setcar ffap-string-at-point-region (region-beginning))
-	       (setcar (cdr ffap-string-at-point-region) (region-end)))
-	    (buffer-substring
-	     (save-excursion
-	       (skip-chars-backward (car args))
-	       (skip-chars-forward (nth 1 args) pt)
-	       (setcar ffap-string-at-point-region (point)))
-	     (save-excursion
-	       (skip-chars-forward (car args))
-	       (skip-chars-backward (nth 2 args) pt)
-	       (setcar (cdr ffap-string-at-point-region) (point)))))))
-    (set-text-properties 0 (length str) nil str)
-    (setq ffap-string-at-point str)))
+	 (beg (if (use-region-p)
+		  (region-beginning)
+		(save-excursion
+		  (skip-chars-backward (car args))
+		  (skip-chars-forward (nth 1 args) pt)
+		  (point))))
+	 (end (if (use-region-p)
+		  (region-end)
+		(save-excursion
+		  (skip-chars-forward (car args))
+		  (skip-chars-backward (nth 2 args) pt)
+		  (point)))))
+    (setq ffap-string-at-point
+	  (buffer-substring-no-properties
+	   (setcar ffap-string-at-point-region beg)
+	   (setcar (cdr ffap-string-at-point-region) end)))))
 
 (defun ffap-string-around ()
   ;; Sometimes useful to decide how to treat a string.
-  "Return string of two chars around last `ffap-string-at-point'.
+  "Return string of two chars around last result of function
+`ffap-string-at-point'.
 Assumes the buffer has not changed."
   (save-excursion
     (format "%c%c"
@@ -1082,7 +1054,7 @@ Assumes the buffer has not changed."
 
 (defun ffap-copy-string-as-kill (&optional mode)
   ;; Requested by MCOOK.  Useful?
-  "Call `ffap-string-at-point', and copy result to `kill-ring'."
+  "Call function `ffap-string-at-point', and copy result to `kill-ring'."
   (interactive)
   (let ((str (ffap-string-at-point mode)))
     (if (equal "" str)
@@ -1096,35 +1068,15 @@ Assumes the buffer has not changed."
 
 (defun ffap-url-at-point ()
   "Return URL from around point if it exists, or nil."
-  ;; Could use w3's url-get-url-at-point instead.  Both handle "URL:",
-  ;; ignore non-relative links, trim punctuation.  The other will
-  ;; actually look back if point is in whitespace, but I would rather
-  ;; ffap be less aggressive in such situations.
   (when ffap-url-regexp
     (or (and (eq major-mode 'w3-mode) ; In a w3 buffer button?
 	     (w3-view-this-url t))
-	;; Is there a reason not to strip trailing colon?
-	(let ((name (ffap-string-at-point 'url)))
-	  (cond
-	   ((string-match "^url:" name) (setq name (substring name 4)))
-	   ((and (string-match "\\`[^:</>@]+@[^:</>@]+[[:alnum:]]\\'" name)
-		 ;; "foo@bar": could be "mailto" or "news" (a Message-ID).
-		 ;; Without "<>" it must be "mailto".  Otherwise could be
-		 ;; either, so consult `ffap-foo-at-bar-prefix'.
-		 (let ((prefix (if (and (equal (ffap-string-around) "<>")
-					;; Expect some odd characters:
-					(string-match "[$.0-9].*[$.0-9].*@" name))
-				   ;; Could be news:
-				   ffap-foo-at-bar-prefix
-				 "mailto")))
-		   (and prefix (setq name (concat prefix ":" name))))))
-	   ((ffap-newsgroup-p name) (setq name (concat "news:" name)))
-	   ((and (string-match "\\`[[:alnum:]]+\\'" name) ; <mic> <root> <nobody>
-		 (equal (ffap-string-around) "<>")
-		 ;;	(ffap-user-p name):
-		 (not (string-match "~" (expand-file-name (concat "~" name)))))
-	    (setq name (concat "mailto:" name)))
-	   ((ffap-url-p name)))))))
+	(let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
+	      (thing-at-point-default-mail-scheme ffap-foo-at-bar-prefix))
+	  (thing-at-point-url-at-point t
+				       (if (use-region-p)
+					   (cons (region-beginning)
+						 (region-end))))))))
 
 (defvar ffap-gopher-regexp
   "^.*\\<\\(Type\\|Name\\|Path\\|Host\\|Port\\) *= *\\(.*\\) *$"
@@ -1364,7 +1316,7 @@ which may actually result in an URL rather than a filename."
   :version "22.1")
 
 (defvar ffap-highlight-overlay nil
-  "Overlay used by `ffap-highlight'.")
+  "Overlay used by function `ffap-highlight'.")
 
 (defun ffap-highlight (&optional remove)
   "If `ffap-highlight' is set, highlight the guess in this buffer.
@@ -1734,7 +1686,7 @@ Only intended for interactive use."
     (call-interactively 'ffap)))
 
 (defun ffap-literally ()
-  "Like `ffap' and `find-file-literally'.
+  "Like `ffap' and command `find-file-literally'.
 Only intended for interactive use."
   (interactive)
   (let ((ffap-file-finder 'find-file-literally))
@@ -1761,7 +1713,8 @@ Only intended for interactive use."
 
 (defun ffap-gnus-hook ()
   "Bind `ffap-gnus-next' and `ffap-gnus-menu' to M-l and M-m, resp."
-  (set (make-local-variable 'ffap-foo-at-bar-prefix) "news") ; message-id's
+  ;; message-id's
+  (setq-local thing-at-point-default-mail-uri-scheme "news")
   ;; Note "l", "L", "m", "M" are taken:
   (local-set-key "\M-l" 'ffap-gnus-next)
   (local-set-key "\M-m" 'ffap-gnus-menu))

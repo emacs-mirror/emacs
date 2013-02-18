@@ -1,6 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -38,6 +38,7 @@
 (defun minibuffer-default--in-prompt-regexps ()
   `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
      1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
+    ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
     ("\\( \\[.*\\]\\):? *\\'" 1)))
 
 (defcustom minibuffer-eldef-shorten-default nil

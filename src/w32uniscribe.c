@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008-2012 Free Software Foundation, Inc.
+   Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -435,8 +435,8 @@ uniscribe_shape (Lisp_Object lgstring)
 			 are zero.  */
 		      || (!attributes[j].fClusterStart && items[i].a.fRTL))
 		    {
-		      Lisp_Object vec;
-		      vec = Fmake_vector (make_number (3), Qnil);
+		      Lisp_Object vec = make_uninit_vector (3);
+
 		      if (items[i].a.fRTL)
 			{
 			  /* Empirically, it looks like Uniscribe

@@ -1,4 +1,4 @@
-Copyright (C) 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 2001-2013 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -23,10 +23,6 @@ Instructions to create pretest or release tarballs, announcements, etc.
 ** admin.el
 
 Utilities for setting version numbers and alike.
-
-** make-announcement, make-changelog-diff
-
-Scripts used to prepare release announcements.
 
 
 * Scripts that can be used to build and test Emacs.

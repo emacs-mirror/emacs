@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996-1997, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -443,6 +443,7 @@
     (define-key map [remap self-insert-command] 'Custom-no-edit)
     (define-key map "\^m" 'Custom-newline)
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\177" 'scroll-down-command)
     (define-key map "\C-c\C-c" 'Custom-set)
     (define-key map "\C-x\C-s" 'Custom-save)

@@ -1,7 +1,7 @@
 ;;; texinfo.el --- major mode for editing Texinfo files -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Date:   [See date below for texinfo-version]
@@ -678,7 +678,8 @@ Puts point on a blank line between them."
 	 (not (match-end 1)))))
 
 (defvar texinfo-enable-quote-macros "@\\(code\\|samp\\|kbd\\)\\>")
-(defvar texinfo-enable-quote-envs '("example\\>" "lisp\\>"))
+(defvar texinfo-enable-quote-envs
+  '("example\\>" "smallexample\\>" "lisp\\>"))
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for Texinfo.
 Usually inserts the value of `texinfo-open-quote' (normally ``) or

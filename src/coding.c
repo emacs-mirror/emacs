@@ -1,5 +1,5 @@
 /* Coding system handler (conversion, detection, etc).
-   Copyright (C) 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -302,6 +302,7 @@ Lisp_Object Vcoding_system_hash_table;
 static Lisp_Object Qcoding_system, Qeol_type;
 static Lisp_Object Qcoding_aliases;
 Lisp_Object Qunix, Qdos;
+static Lisp_Object Qmac;
 Lisp_Object Qbuffer_file_coding_system;
 static Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 static Lisp_Object Qdefault_char;
@@ -1048,14 +1049,7 @@ coding_alloc_by_making_gap (struct coding_system *coding,
       GPT -= gap_head_used, GPT_BYTE -= gap_head_used;
     }
   else
-    {
-      Lisp_Object this_buffer;
-
-      this_buffer = Fcurrent_buffer ();
-      set_buffer_internal (XBUFFER (coding->dst_object));
-      make_gap (bytes);
-      set_buffer_internal (XBUFFER (this_buffer));
-    }
+    make_gap_1 (XBUFFER (coding->dst_object), bytes);
 }
 
 
@@ -3063,20 +3057,7 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	    }
 	  if (single_shifting)
 	    break;
-	check_extra_latin:
-	  if (! VECTORP (Vlatin_extra_code_table)
-	      || NILP (AREF (Vlatin_extra_code_table, c)))
-	    {
-	      rejected = CATEGORY_MASK_ISO;
-	      break;
-	    }
-	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
-	      & CODING_ISO_FLAG_LATIN_EXTRA)
-	    found |= CATEGORY_MASK_ISO_8_1;
-	  else
-	    rejected |= CATEGORY_MASK_ISO_8_1;
-	  rejected |= CATEGORY_MASK_ISO_8_2;
-	  break;
+	  goto check_extra_latin;
 
 	default:
 	  if (c < 0)
@@ -3127,6 +3108,20 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		}
 	      break;
 	    }
+	check_extra_latin:
+	  if (! VECTORP (Vlatin_extra_code_table)
+	      || NILP (AREF (Vlatin_extra_code_table, c)))
+	    {
+	      rejected = CATEGORY_MASK_ISO;
+	      break;
+	    }
+	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
+	      & CODING_ISO_FLAG_LATIN_EXTRA)
+	    found |= CATEGORY_MASK_ISO_8_1;
+	  else
+	    rejected |= CATEGORY_MASK_ISO_8_1;
+	  rejected |= CATEGORY_MASK_ISO_8_2;
+	  break;
 	}
     }
   detect_info->rejected |= CATEGORY_MASK_ISO;
@@ -8426,9 +8421,6 @@ highest priority.  */)
   ptrdiff_t from, to;
   ptrdiff_t from_byte, to_byte;
 
-  CHECK_NUMBER_COERCE_MARKER (start);
-  CHECK_NUMBER_COERCE_MARKER (end);
-
   validate_region (&start, &end);
   from = XINT (start), to = XINT (end);
   from_byte = CHAR_TO_BYTE (from);
@@ -8872,8 +8864,6 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
   ptrdiff_t from, from_byte, to, to_byte;
   Lisp_Object src_object;
 
-  CHECK_NUMBER_COERCE_MARKER (start);
-  CHECK_NUMBER_COERCE_MARKER (end);
   if (NILP (coding_system))
     coding_system = Qno_conversion;
   else
@@ -9493,7 +9483,7 @@ make_subsidiaries (Lisp_Object base)
   int i;
 
   memcpy (buf, SDATA (SYMBOL_NAME (base)), base_name_len);
-  subsidiaries = Fmake_vector (make_number (3), Qnil);
+  subsidiaries = make_uninit_vector (3);
   for (i = 0; i < 3; i++)
     {
       strcpy (buf + base_name_len, suffixes[i]);
@@ -9793,7 +9783,7 @@ usage: (define-coding-system-internal ...)  */)
       CHECK_VECTOR (initial);
       for (i = 0; i < 4; i++)
 	{
-	  val = Faref (initial, make_number (i));
+	  val = AREF (initial, i);
 	  if (! NILP (val))
 	    {
 	      struct charset *charset;
@@ -9998,7 +9988,8 @@ usage: (define-coding-system-internal ...)  */)
 	  this_name = AREF (eol_type, i);
 	  this_aliases = Fcons (this_name, Qnil);
 	  this_eol_type = (i == 0 ? Qunix : i == 1 ? Qdos : Qmac);
-	  this_spec = Fmake_vector (make_number (3), attrs);
+	  this_spec = make_uninit_vector (3);
+	  ASET (this_spec, 0, attrs);
 	  ASET (this_spec, 1, this_aliases);
 	  ASET (this_spec, 2, this_eol_type);
 	  Fputhash (this_name, this_spec, Vcoding_system_hash_table);
@@ -10011,7 +10002,8 @@ usage: (define-coding-system-internal ...)  */)
 	}
     }
 
-  spec_vec = Fmake_vector (make_number (3), attrs);
+  spec_vec = make_uninit_vector (3);
+  ASET (spec_vec, 0, attrs);
   ASET (spec_vec, 1, aliases);
   ASET (spec_vec, 2, eol_type);
 
@@ -10308,6 +10300,7 @@ syms_of_coding (void)
   DEFSYM (Qeol_type, "eol-type");
   DEFSYM (Qunix, "unix");
   DEFSYM (Qdos, "dos");
+  DEFSYM (Qmac, "mac");
 
   DEFSYM (Qbuffer_file_coding_system, "buffer-file-coding-system");
   DEFSYM (Qpost_read_conversion, "post-read-conversion");
@@ -10719,7 +10712,7 @@ reading if you suppress escape sequence detection.
 
 The other way to read escape sequences in a file without decoding is
 to explicitly specify some coding system that doesn't use ISO-2022
-escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].  */);
+escape sequence (e.g., `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
 
   DEFVAR_BOOL ("inhibit-null-byte-detection",

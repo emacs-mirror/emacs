@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -1558,6 +1558,14 @@ If an overlay has a @code{help-echo} property, then when you move the
 mouse onto the text in the overlay, Emacs displays a help string in the
 echo area, or in the tooltip window.  For details see @ref{Text
 help-echo}.
+
+@item field
+@kindex field @r{(overlay property)}
+@c Copied from Special Properties.
+Consecutive characters with the same @code{field} property constitute a
+@emph{field}.  Some motion functions including @code{forward-word} and
+@code{beginning-of-line} stop moving at a field boundary.
+@xref{Fields}.
 
 @item modification-hooks
 @kindex modification-hooks @r{(overlay property)}

@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985-1987, 1993-1995, 1997-2012
-		 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -66,7 +66,10 @@ and `most-positive-fixnum', inclusive, are equally likely.
 
 With positive integer LIMIT, return random number in interval [0,LIMIT).
 With argument t, set the random number seed from the current time and pid.
-Other values of LIMIT are ignored.  */)
+With a string argument, set the seed based on the string's contents.
+Other values of LIMIT are ignored.
+
+See Info node `(elisp)Random Numbers' for more details.  */)
   (Lisp_Object limit)
 {
   EMACS_INT val;
@@ -86,7 +89,7 @@ Other values of LIMIT are ignored.  */)
    before it's time to do a QUIT.  This must be a power of 2.  */
 enum { QUIT_COUNT_HEURISTIC = 1 << 16 };
 
-/* Random data-structure functions */
+/* Random data-structure functions.  */
 
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
@@ -211,12 +214,18 @@ Symbols are also allowed; their print names are used instead.  */)
 
 DEFUN ("compare-strings", Fcompare_strings, Scompare_strings, 6, 7, 0,
        doc: /* Compare the contents of two strings, converting to multibyte if needed.
-In string STR1, skip the first START1 characters and stop at END1.
-In string STR2, skip the first START2 characters and stop at END2.
-END1 and END2 default to the full lengths of the respective strings.
+The arguments START1, END1, START2, and END2, if non-nil, are
+positions specifying which parts of STR1 or STR2 to compare.  In
+string STR1, compare the part between START1 (inclusive) and END1
+\(exclusive).  If START1 is nil, it defaults to 0, the beginning of
+the string; if END1 is nil, it defaults to the length of the string.
+Likewise, in string STR2, compare the part between START2 and END2.
 
-Case is significant in this comparison if IGNORE-CASE is nil.
-Unibyte strings are converted to multibyte for comparison.
+The strings are compared by the numeric values of their characters.
+For instance, STR1 is "less than" STR2 if its first differing
+character has a smaller numeric value.  If IGNORE-CASE is non-nil,
+characters are converted to lower-case before comparing them.  Unibyte
+strings are converted to multibyte for comparison.
 
 The value is t if the strings (or specified portions) match.
 If string STR1 is less, the value is a negative number N;
@@ -2476,7 +2485,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
 
       Fding (Qnil);
       Fdiscard_input ();
-      message ("Please answer yes or no.");
+      message1 ("Please answer yes or no.");
       Fsleep_for (make_number (2), Qnil);
     }
 }
@@ -2736,7 +2745,7 @@ ARGS are passed as extra arguments to the function.
 usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  /* This function can GC. */
+  /* This function can GC.  */
   Lisp_Object newargs[3];
   struct gcpro gcpro1, gcpro2;
   Lisp_Object result;
@@ -2798,9 +2807,8 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	  val = build_unibyte_string (str);
 	  /* Fixme: Is this coding system necessarily right, even if
 	     it is consistent with CODESET?  If not, what to do?  */
-	  Faset (v, make_number (i),
-		 code_convert_string_norecord (val, Vlocale_coding_system,
-					       0));
+	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
+						    0));
 	}
       UNGCPRO;
       return v;
@@ -2820,8 +2828,8 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	{
 	  str = nl_langinfo (months[i]);
 	  val = build_unibyte_string (str);
-	  Faset (v, make_number (i),
-		 code_convert_string_norecord (val, Vlocale_coding_system, 0));
+	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
+						    0));
 	}
       UNGCPRO;
       return v;
@@ -4037,10 +4045,6 @@ sweep_weak_hash_tables (void)
 
 #define SXHASH_MAX_LEN   7
 
-/* Hash X, returning a value that fits into a Lisp integer.  */
-#define SXHASH_REDUCE(X) \
-  ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)
-
 /* Return a hash for string PTR which has length LEN.  The hash value
    can be any EMACS_UINT value.  */
 
@@ -4073,7 +4077,7 @@ sxhash_string (char const *ptr, ptrdiff_t len)
 
 /* Return a hash for the floating point value VAL.  */
 
-static EMACS_INT
+static EMACS_UINT
 sxhash_float (double val)
 {
   EMACS_UINT hash = 0;

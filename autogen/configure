@@ -625,6 +625,8 @@ gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_FALSE
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_TRUE
 gl_GNULIB_ENABLED_pathmax_FALSE
 gl_GNULIB_ENABLED_pathmax_TRUE
+gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_FALSE
+gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_TRUE
 gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_FALSE
 gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_TRUE
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_FALSE
@@ -635,6 +637,8 @@ gl_GNULIB_ENABLED_euidaccess_FALSE
 gl_GNULIB_ENABLED_euidaccess_TRUE
 gl_GNULIB_ENABLED_dosname_FALSE
 gl_GNULIB_ENABLED_dosname_TRUE
+gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_FALSE
+gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_TRUE
 LTLIBINTL
 LIBINTL
 LIB_EACCESS
@@ -651,6 +655,8 @@ NEXT_TIME_H
 WINDOWS_64_BIT_ST_SIZE
 NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H
 NEXT_SYS_STAT_H
+NEXT_AS_FIRST_DIRECTIVE_STRING_H
+NEXT_STRING_H
 NEXT_AS_FIRST_DIRECTIVE_STDLIB_H
 NEXT_STDLIB_H
 NEXT_AS_FIRST_DIRECTIVE_STDIO_H
@@ -815,39 +821,79 @@ GNULIB_TIMEGM
 GNULIB_STRPTIME
 GNULIB_NANOSLEEP
 GNULIB_MKTIME
-REPLACE_UTIMENSAT
-REPLACE_STAT
-REPLACE_MKNOD
-REPLACE_MKFIFO
-REPLACE_MKDIR
-REPLACE_LSTAT
-REPLACE_FUTIMENS
-REPLACE_FSTATAT
-REPLACE_FSTAT
-HAVE_UTIMENSAT
-HAVE_MKNODAT
-HAVE_MKNOD
-HAVE_MKFIFOAT
-HAVE_MKFIFO
-HAVE_MKDIRAT
-HAVE_LSTAT
-HAVE_LCHMOD
-HAVE_FUTIMENS
-HAVE_FSTATAT
-HAVE_FCHMODAT
-GNULIB_UTIMENSAT
-GNULIB_STAT
-GNULIB_MKNODAT
-GNULIB_MKNOD
-GNULIB_MKFIFOAT
-GNULIB_MKFIFO
-GNULIB_MKDIRAT
-GNULIB_LSTAT
-GNULIB_LCHMOD
-GNULIB_FUTIMENS
-GNULIB_FSTATAT
-GNULIB_FSTAT
-GNULIB_FCHMODAT
+UNDEFINE_STRTOK_R
+REPLACE_STRTOK_R
+REPLACE_STRSIGNAL
+REPLACE_STRNLEN
+REPLACE_STRNDUP
+REPLACE_STRNCAT
+REPLACE_STRERROR_R
+REPLACE_STRERROR
+REPLACE_STRCHRNUL
+REPLACE_STRCASESTR
+REPLACE_STRSTR
+REPLACE_STRDUP
+REPLACE_STPNCPY
+REPLACE_MEMMEM
+REPLACE_MEMCHR
+HAVE_STRVERSCMP
+HAVE_DECL_STRSIGNAL
+HAVE_DECL_STRERROR_R
+HAVE_DECL_STRTOK_R
+HAVE_STRCASESTR
+HAVE_STRSEP
+HAVE_STRPBRK
+HAVE_DECL_STRNLEN
+HAVE_DECL_STRNDUP
+HAVE_DECL_STRDUP
+HAVE_STRCHRNUL
+HAVE_STPNCPY
+HAVE_STPCPY
+HAVE_RAWMEMCHR
+HAVE_DECL_MEMRCHR
+HAVE_MEMPCPY
+HAVE_DECL_MEMMEM
+HAVE_MEMCHR
+HAVE_FFSLL
+HAVE_FFSL
+HAVE_MBSLEN
+GNULIB_STRVERSCMP
+GNULIB_STRSIGNAL
+GNULIB_STRERROR_R
+GNULIB_STRERROR
+GNULIB_MBSTOK_R
+GNULIB_MBSSEP
+GNULIB_MBSSPN
+GNULIB_MBSPBRK
+GNULIB_MBSCSPN
+GNULIB_MBSCASESTR
+GNULIB_MBSPCASECMP
+GNULIB_MBSNCASECMP
+GNULIB_MBSCASECMP
+GNULIB_MBSSTR
+GNULIB_MBSRCHR
+GNULIB_MBSCHR
+GNULIB_MBSNLEN
+GNULIB_MBSLEN
+GNULIB_STRTOK_R
+GNULIB_STRCASESTR
+GNULIB_STRSTR
+GNULIB_STRSEP
+GNULIB_STRPBRK
+GNULIB_STRNLEN
+GNULIB_STRNDUP
+GNULIB_STRNCAT
+GNULIB_STRDUP
+GNULIB_STRCHRNUL
+GNULIB_STPNCPY
+GNULIB_STPCPY
+GNULIB_RAWMEMCHR
+GNULIB_MEMRCHR
+GNULIB_MEMPCPY
+GNULIB_MEMMEM
+GNULIB_MEMCHR
+GNULIB_FFSLL
+GNULIB_FFSL
 NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H
 NEXT_INTTYPES_H
 UINT64_MAX_EQ_ULONG_MAX
@@ -931,6 +977,7 @@ HAVE_STRTOLL
 HAVE_STRTOD
 HAVE_DECL_SETENV
 HAVE_SETENV
+HAVE_SECURE_GETENV
 HAVE_RPMATCH
 HAVE_REALPATH
 HAVE_RANDOM_R
@@ -958,6 +1005,7 @@ GNULIB_STRTOULL
 GNULIB_STRTOLL
 GNULIB_STRTOD
 GNULIB_SETENV
+GNULIB_SECURE_GETENV
 GNULIB_RPMATCH
 GNULIB_REALPATH
 GNULIB_REALLOC_POSIX
@@ -981,12 +1029,41 @@ GNULIB_CANONICALIZE_FILE_NAME
 GNULIB_CALLOC_POSIX
 GNULIB_ATOLL
 GNULIB__EXIT
+REPLACE_UTIMENSAT
+REPLACE_STAT
+REPLACE_MKNOD
+REPLACE_MKFIFO
+REPLACE_MKDIR
+REPLACE_LSTAT
+REPLACE_FUTIMENS
+REPLACE_FSTATAT
+REPLACE_FSTAT
+HAVE_UTIMENSAT
+HAVE_MKNODAT
+HAVE_MKNOD
+HAVE_MKFIFOAT
+HAVE_MKFIFO
+HAVE_MKDIRAT
+HAVE_LSTAT
+HAVE_LCHMOD
+HAVE_FUTIMENS
+HAVE_FSTATAT
+HAVE_FCHMODAT
+GNULIB_UTIMENSAT
+GNULIB_STAT
+GNULIB_MKNODAT
+GNULIB_MKNOD
+GNULIB_MKFIFOAT
+GNULIB_MKFIFO
+GNULIB_MKDIRAT
+GNULIB_LSTAT
+GNULIB_LCHMOD
+GNULIB_FUTIMENS
+GNULIB_FSTATAT
+GNULIB_FSTAT
+GNULIB_FCHMODAT
 NEXT_AS_FIRST_DIRECTIVE_FCNTL_H
 NEXT_FCNTL_H
-PRAGMA_COLUMNS
-PRAGMA_SYSTEM_HEADER
-INCLUDE_NEXT_AS_FIRST_DIRECTIVE
-INCLUDE_NEXT
 REPLACE_OPENAT
 REPLACE_OPEN
 REPLACE_FCNTL
@@ -1000,6 +1077,34 @@ GL_GENERATE_EXECINFO_H_FALSE
 GL_GENERATE_EXECINFO_H_TRUE
 LIB_EXECINFO
 EXECINFO_H
+HAVE_DIRENT_H
+NEXT_AS_FIRST_DIRECTIVE_DIRENT_H
+NEXT_DIRENT_H
+PRAGMA_COLUMNS
+PRAGMA_SYSTEM_HEADER
+INCLUDE_NEXT_AS_FIRST_DIRECTIVE
+INCLUDE_NEXT
+REPLACE_FDOPENDIR
+REPLACE_DIRFD
+REPLACE_CLOSEDIR
+REPLACE_OPENDIR
+HAVE_ALPHASORT
+HAVE_SCANDIR
+HAVE_FDOPENDIR
+HAVE_DECL_FDOPENDIR
+HAVE_DECL_DIRFD
+HAVE_CLOSEDIR
+HAVE_REWINDDIR
+HAVE_READDIR
+HAVE_OPENDIR
+GNULIB_ALPHASORT
+GNULIB_SCANDIR
+GNULIB_FDOPENDIR
+GNULIB_DIRFD
+GNULIB_CLOSEDIR
+GNULIB_REWINDDIR
+GNULIB_READDIR
+GNULIB_OPENDIR
 UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS
 UNISTD_H_HAVE_WINSOCK2_H
 REPLACE_WRITE
@@ -1201,6 +1306,7 @@ FONTCONFIG_LIBS
 FONTCONFIG_CFLAGS
 LIBXMU
 LIBXTR6
+LIBACL_LIBS
 LIBGNUTLS_LIBS
 LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
@@ -1226,14 +1332,17 @@ LIB_PTHREAD
 VMLIMIT_OBJ
 GMALLOC_OBJ
 HAVE_XSERVER
+W32_RES_LINK
+W32_RES
 W32_LIBS
 W32_OBJ
+WINDRES
 LIB_STANDARD
 NS_OBJC_OBJ
 NS_OBJ
 ns_self_contained
 INSTALL_ARCH_INDEP_EXTRA
-TEMACS_LDFLAGS2
+LIBS_GNUSTEP
 LD_SWITCH_X_SITE_RPATH
 XMKMF
 DEPFLAGS
@@ -1392,7 +1501,9 @@ with_dbus
 with_gconf
 with_gsettings
 with_selinux
+with_acl
 with_gnutls
+with_inotify
 with_makeinfo
 with_compress_info
 with_pkg_config_prog
@@ -1405,6 +1516,7 @@ enable_checking
 enable_check_lisp_object_type
 enable_profiling
 enable_autodepend
+enable_gtk_deprecation_warnings
 enable_dependency_tracking
 enable_largefile
 enable_gcc_warnings
@@ -2064,12 +2176,15 @@ Optional Features:
   --enable-autodepend     automatically generate dependencies to .h-files.
                           Requires GNU Make and Gcc. Enabled if GNU Make and
                           Gcc is found
+  --enable-gtk-deprecation-warnings
+                          Show Gtk+/Gdk deprecation warnings for Gtk+ >= 3.0
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-largefile     omit support for large files
-  --enable-gcc-warnings   turn on lots of GCC warnings. This is intended for
-                          developers, and may generate false alarms when used
-                          with older or non-GNU development tools.
+  --enable-gcc-warnings   turn on lots of GCC warnings/errors. This is
+                          intended for developers, and may generate false
+                          alarms when used with older or non-GNU development
+                          tools.
   --enable-link-time-optimization
                           build emacs with link-time optimization. This is
                           supported only for GCC since 4.5.0.
@@ -2114,16 +2229,18 @@ Optional Packages:
   --without-gconf         don't compile with GConf support
   --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
+  --without-acl           don't compile with ACL support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
+  --without-inotify       don't compile with inotify (file-watch) support
   --without-makeinfo      don't require makeinfo for building manuals
   --without-compress-info don't compress the installed Info pages
-  --with-pkg-config-prog=PATH
-                          path to pkg-config for finding GTK and librsvg
+  --with-pkg-config-prog=FILENAME
+                          file name of pkg-config for finding GTK and librsvg
   --with-crt-dir=DIR      directory containing crtn.o etc. The default is
                           /usr/lib, or /usr/lib64 on some platforms.
   --with-gameuser=USER    user for shared game score files
-  --with-gnustep-conf=PATH
-                          path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
+  --with-gnustep-conf=FILENAME
+                          name of GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
                           or /etc/GNUstep/GNUstep.conf
   --with-x                use the X Window System
 
@@ -3225,10 +3342,13 @@ as_fn_append ac_header_list " maillock.h"
 as_fn_append ac_header_list " sys/un.h"
 as_fn_append ac_func_list " tzset"
 as_fn_append ac_func_list " readlinkat"
+as_fn_append ac_header_list " dirent.h"
 as_fn_append ac_header_list " execinfo.h"
 as_fn_append ac_func_list " faccessat"
+as_fn_append ac_func_list " fdopendir"
 as_fn_append ac_header_list " stdio_ext.h"
 as_fn_append ac_func_list " __fpending"
+as_fn_append ac_func_list " fstatat"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " gettimeofday"
@@ -3321,6 +3441,19 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+
+
+emacs_config_options="$@"
+## Add some environment variables, if they were passed via the environment
+## rather than on the command-line.
+for var in CFLAGS CPPFLAGS LDFLAGS; do
+    case "$emacs_config_options" in
+      *$var=*) continue ;;
+    esac
+    eval val="\$${var}"
+    test x"$val" = x && continue
+    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=\"$val\""
+done
 
 ac_config_headers="$ac_config_headers src/config.h:src/config.in"
 
@@ -3675,7 +3808,6 @@ fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
 $as_echo "$MKDIR_P" >&6; }
-
 
 mkdir_p="$MKDIR_P"
 case $mkdir_p in
@@ -4169,11 +4301,27 @@ else
 fi
 
 
+# Check whether --with-acl was given.
+if test "${with_acl+set}" = set; then :
+  withval=$with_acl;
+else
+     with_acl=$with_features
+fi
+
+
 # Check whether --with-gnutls was given.
 if test "${with_gnutls+set}" = set; then :
   withval=$with_gnutls;
 else
      with_gnutls=$with_features
+fi
+
+
+# Check whether --with-inotify was given.
+if test "${with_inotify+set}" = set; then :
+  withval=$with_inotify;
+else
+     with_inotify=$with_features
 fi
 
 
@@ -4372,8 +4520,14 @@ else
 fi
 
 
+# Check whether --enable-gtk-deprecation-warnings was given.
+if test "${enable_gtk_deprecation_warnings+set}" = set; then :
+  enableval=$enable_gtk_deprecation_warnings; ac_enable_gtk_deprecation_warnings="${enableval}"
+fi
+
+
 #### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the path through pwd unnecessarily, since pwd can
+#### avoid running the file name through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
 #### so Emacs can find its files when run uninstalled.
 ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
@@ -4383,17 +4537,17 @@ case "${srcdir}" in
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
-    ## Note: we used to use ${PWD} at the end instead of `pwd`,
+    ## Note: we used to use $PWD at the end instead of `pwd`,
     ## but that tested only for a well-formed and valid PWD,
     ## it did not object when PWD was well-formed and valid but just wrong.
-    if test ".${PWD}" != "." && test ".`(cd ${PWD} ; sh -c pwd)`" = ".`pwd`"  ;
+    if test ".$PWD" != "." && test ".`(cd "$PWD" ; sh -c pwd)`" = ".`pwd`"  ;
     then
       srcdir="$PWD"
     else
-      srcdir="`(cd ${srcdir}; pwd)`"
+      srcdir=`(cd "$srcdir"; pwd)`
     fi
   ;;
-  *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
+  *  ) srcdir=`(cd "$srcdir"; pwd)` ;;
 esac
 
 ### Canonicalize the configuration name.
@@ -6404,8 +6558,6 @@ done
 
 
 
-
-
   ac_fn_c_check_header_mongrel "$LINENO" "minix/config.h" "ac_cv_header_minix_config_h" "$ac_includes_default"
 if test "x$ac_cv_header_minix_config_h" = x""yes; then :
   MINIX=yes
@@ -6424,15 +6576,10 @@ $as_echo "#define _POSIX_1_SOURCE 2" >>confdefs.h
 
 $as_echo "#define _MINIX 1" >>confdefs.h
 
+
+$as_echo "#define _NETBSD_SOURCE 1" >>confdefs.h
+
   fi
-
-        case "$host_os" in
-    hpux*)
-
-$as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
-
-      ;;
-  esac
 
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether it is safe to define __EXTENSIONS__" >&5
@@ -6474,6 +6621,54 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   $as_echo "#define _POSIX_PTHREAD_SEMANTICS 1" >>confdefs.h
 
   $as_echo "#define _TANDEM_SOURCE 1" >>confdefs.h
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether _XOPEN_SOURCE should be defined" >&5
+$as_echo_n "checking whether _XOPEN_SOURCE should be defined... " >&6; }
+if test "${ac_cv_should_define__xopen_source+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_should_define__xopen_source=no
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+          #include <wchar.h>
+          mbstate_t x;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+             #define _XOPEN_SOURCE 500
+             #include <wchar.h>
+             mbstate_t x;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_should_define__xopen_source=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_should_define__xopen_source" >&5
+$as_echo "$ac_cv_should_define__xopen_source" >&6; }
+  test $ac_cv_should_define__xopen_source = yes &&
+    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
 
 
 
@@ -6679,6 +6874,8 @@ esac
 rm -rf conftest*
   fi
 
+
+$as_echo "#define _DARWIN_USE_64_BIT_INODE 1" >>confdefs.h
 
 fi
 
@@ -6979,6 +7176,7 @@ esac
 
   # Code from module alloca-opt:
   # Code from module allocator:
+  # Code from module at-internal:
   # Code from module c-ctype:
   # Code from module c-strcase:
   # Code from module careadlinkat:
@@ -6988,6 +7186,7 @@ esac
   # Code from module crypto/sha1:
   # Code from module crypto/sha256:
   # Code from module crypto/sha512:
+  # Code from module dirent:
   # Code from module dosname:
   # Code from module dtoastr:
   # Code from module dtotimespec:
@@ -7000,8 +7199,10 @@ esac
   # Code from module extern-inline:
   # Code from module faccessat:
   # Code from module fcntl-h:
+  # Code from module fdopendir:
   # Code from module filemode:
   # Code from module fpending:
+  # Code from module fstatat:
   # Code from module getgroups:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -7018,13 +7219,17 @@ esac
 
   # Code from module lstat:
   # Code from module manywarnings:
+  # Code from module memrchr:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
+  # Code from module openat-h:
   # Code from module pathmax:
   # Code from module pselect:
   # Code from module pthread_sigmask:
+  # Code from module putenv:
   # Code from module readlink:
+  # Code from module readlinkat:
   # Code from module root-uid:
   # Code from module sig2str:
   # Code from module signal-h:
@@ -7047,6 +7252,7 @@ esac
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module string:
   # Code from module strtoimax:
   # Code from module strtoll:
   # Code from module strtoull:
@@ -7063,6 +7269,7 @@ esac
   # Code from module timespec-sub:
   # Code from module u64:
   # Code from module unistd:
+  # Code from module unsetenv:
   # Code from module utimens:
   # Code from module verify:
   # Code from module warnings:
@@ -7267,37 +7474,11 @@ fi
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
   nw="$nw -Wshadow"
 
+  # Emacs's use of alloca inhibits protecting the stack.
+  nw="$nw -Wstack-protector"
+
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use -Wstack-protector" >&5
-$as_echo_n "checking whether to use -Wstack-protector... " >&6; }
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#if (1 <= __LONG_MAX__ >> 31 >> 31 \
-           && 4 < __GNUC__ + (7 < __GNUC_MINOR__ + (2 <= __GNUC_PATCHLEVEL__)))
-	   /* OK */
-         #else
-	   #error "Not GCC, or GCC before 4.7.2, or 'long int' has < 64 bits."
-	 #endif
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_cpp "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-     nw="$nw -Wstack-protector"
-fi
-rm -f conftest.err conftest.$ac_ext
 
 
 
@@ -8146,9 +8327,13 @@ $as_echo "no" >&6; }
 fi
 
 
-if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[^0-9]*([1-4][0-9]+|[5-9]|4\.[7-9]|4\.[1-6][0-9]+)'`" = x; then
-   MAKEINFO=no
+if test "$MAKEINFO" != "no"; then
+  case `
+    $MAKEINFO --version 2> /dev/null |
+    $EGREP 'texinfo[^0-9]*([1-4][0-9]+|[5-9]|4\.[7-9]|4\.[1-6][0-9]+)'
+  ` in
+    '') MAKEINFO=no;;
+  esac
 fi
 
 ## Makeinfo is unusual.  For a released Emacs, the manuals are
@@ -8166,7 +8351,7 @@ if test "$MAKEINFO" = "no"; then
   MAKEINFO=makeinfo
   if test "x${with_makeinfo}" = "xno"; then
     HAVE_MAKEINFO=no
-  elif test ! -e $srcdir/info/emacs && test ! -e $srcdir/info/emacs.info; then
+  elif test ! -e "$srcdir/info/emacs" && test ! -e "$srcdir/info/emacs.info"; then
     as_fn_error "You do not seem to have makeinfo >= 4.7, and your
 source tree does not seem to have pre-built manuals in the \`info' directory.
 Either install a suitable version of makeinfo, or re-run configure
@@ -8657,13 +8842,13 @@ fi
      HAVE_ALSA=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ALSA_MODULES" >&5
 $as_echo_n "checking for $ALSA_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$ALSA_MODULES" 2>&5 &&
-	   ALSA_CFLAGS=`$PKG_CONFIG --cflags "$ALSA_MODULES" 2>&5` &&
-	   ALSA_LIBS=`$PKG_CONFIG --libs "$ALSA_MODULES" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$ALSA_MODULES" 2>&5 &&
+	   ALSA_CFLAGS=`"$PKG_CONFIG" --cflags "$ALSA_MODULES" 2>&5` &&
+	   ALSA_LIBS=`"$PKG_CONFIG" --libs "$ALSA_MODULES" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -8683,7 +8868,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    ALSA_PKG_ERRORS=`($PKG_CONFIG --print-errors "$ALSA_MODULES") 2>&1`
+	    ALSA_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$ALSA_MODULES") 2>&1`
 
         fi
 
@@ -9507,8 +9692,8 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS}"
 GNU_OBJC_CFLAGS=
+LIBS_GNUSTEP=
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -9533,9 +9718,9 @@ if test "${with_ns}" != no; then
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
+     LIBS_GNUSTEP="-lgnustep-gui -lgnustep-base -lobjc -lpthread"
      LIB_STANDARD=
      START_FILES=
-     TEMACS_LDFLAGS2=
                     { $as_echo "$as_me:${as_lineno-$LINENO}: checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS" >&5
 $as_echo_n "checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS... " >&6; }
 if test "${emacs_cv_objc_exceptions+set}" = set; then :
@@ -9677,6 +9862,8 @@ CPPFLAGS="$tmp_CPPFLAGS"
 HAVE_W32=no
 W32_OBJ=
 W32_LIBS=
+W32_RES=
+W32_RES_LINK=
 if test "${with_w32}" != no; then
   if test "${opsys}" != "cygwin"; then
     as_fn_error "Using w32 with an autotools build is only supported for Cygwin." "$LINENO" 5
@@ -9693,11 +9880,109 @@ fi
 
 $as_echo "#define HAVE_NTGUI 1" >>confdefs.h
 
+  if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}windres", so it can be a program name with args.
+set dummy ${ac_tool_prefix}windres; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_WINDRES+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$WINDRES"; then
+  ac_cv_prog_WINDRES="$WINDRES" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_WINDRES="${ac_tool_prefix}windres"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+WINDRES=$ac_cv_prog_WINDRES
+if test -n "$WINDRES"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WINDRES" >&5
+$as_echo "$WINDRES" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_prog_WINDRES"; then
+  ac_ct_WINDRES=$WINDRES
+  # Extract the first word of "windres", so it can be a program name with args.
+set dummy windres; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_ac_ct_WINDRES+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_WINDRES"; then
+  ac_cv_prog_ac_ct_WINDRES="$ac_ct_WINDRES" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_ac_ct_WINDRES="windres"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_WINDRES=$ac_cv_prog_ac_ct_WINDRES
+if test -n "$ac_ct_WINDRES"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_WINDRES" >&5
+$as_echo "$ac_ct_WINDRES" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_ct_WINDRES" = x; then
+    WINDRES="as_fn_error "No resource compiler found." "$LINENO" 5"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    WINDRES=$ac_ct_WINDRES
+  fi
+else
+  WINDRES="$ac_cv_prog_WINDRES"
+fi
+
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
   W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
   W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
+  W32_RES="emacs.res"
+  # Tell the linker that emacs.res is an object (which we compile from
+  # the rc file), not a linker script.
+  W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
 fi
+
+
 
 
 
@@ -10538,13 +10823,13 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
      :
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $RSVG_MODULE" >&5
 $as_echo_n "checking for $RSVG_MODULE... " >&6; }
 
-        if $PKG_CONFIG --exists "$RSVG_MODULE" 2>&5 &&
-	   RSVG_CFLAGS=`$PKG_CONFIG --cflags "$RSVG_MODULE" 2>&5` &&
-	   RSVG_LIBS=`$PKG_CONFIG --libs "$RSVG_MODULE" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$RSVG_MODULE" 2>&5 &&
+	   RSVG_CFLAGS=`"$PKG_CONFIG" --cflags "$RSVG_MODULE" 2>&5` &&
+	   RSVG_LIBS=`"$PKG_CONFIG" --libs "$RSVG_MODULE" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10564,7 +10849,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    RSVG_PKG_ERRORS=`($PKG_CONFIG --print-errors "$RSVG_MODULE") 2>&1`
+	    RSVG_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$RSVG_MODULE") 2>&1`
 
         fi
 
@@ -10609,13 +10894,13 @@ if test "${HAVE_X11}" = "yes"; then
      :
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $IMAGEMAGICK_MODULE" >&5
 $as_echo_n "checking for $IMAGEMAGICK_MODULE... " >&6; }
 
-        if $PKG_CONFIG --exists "$IMAGEMAGICK_MODULE" 2>&5 &&
-	   IMAGEMAGICK_CFLAGS=`$PKG_CONFIG --cflags "$IMAGEMAGICK_MODULE" 2>&5` &&
-	   IMAGEMAGICK_LIBS=`$PKG_CONFIG --libs "$IMAGEMAGICK_MODULE" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$IMAGEMAGICK_MODULE" 2>&5 &&
+	   IMAGEMAGICK_CFLAGS=`"$PKG_CONFIG" --cflags "$IMAGEMAGICK_MODULE" 2>&5` &&
+	   IMAGEMAGICK_LIBS=`"$PKG_CONFIG" --libs "$IMAGEMAGICK_MODULE" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10635,7 +10920,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    IMAGEMAGICK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$IMAGEMAGICK_MODULE") 2>&1`
+	    IMAGEMAGICK_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$IMAGEMAGICK_MODULE") 2>&1`
 
         fi
 
@@ -10696,13 +10981,13 @@ if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOO
      pkg_check_gtk=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
 $as_echo_n "checking for $GTK_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
-	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
-	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$GTK_MODULES" 2>&5 &&
+	   GTK_CFLAGS=`"$PKG_CONFIG" --cflags "$GTK_MODULES" 2>&5` &&
+	   GTK_LIBS=`"$PKG_CONFIG" --libs "$GTK_MODULES" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10722,7 +11007,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
+	    GTK_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10750,6 +11035,9 @@ $as_echo "#define HAVE_GTK3 1" >>confdefs.h
      GTK_OBJ=emacsgtkfixed.o
      term_header=gtkutil.h
      USE_GTK_TOOLKIT="GTK3"
+     if test "x$ac_enable_gtk_deprecation_warnings" = x; then
+         GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
+     fi
   else
      check_gtk2=yes
      gtk3_pkg_errors="$GTK_PKG_ERRORS "
@@ -10768,13 +11056,13 @@ if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
      pkg_check_gtk=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
 $as_echo_n "checking for $GTK_MODULES... " >&6; }
 
-        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5 &&
-	   GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES" 2>&5` &&
-	   GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES" 2>&5`; then
+        if "$PKG_CONFIG" --exists "$GTK_MODULES" 2>&5 &&
+	   GTK_CFLAGS=`"$PKG_CONFIG" --cflags "$GTK_MODULES" 2>&5` &&
+	   GTK_LIBS=`"$PKG_CONFIG" --libs "$GTK_MODULES" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10794,7 +11082,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GTK_PKG_ERRORS=`($PKG_CONFIG --print-errors "$GTK_MODULES") 2>&1`
+	    GTK_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$GTK_MODULES") 2>&1`
 
         fi
 
@@ -10850,7 +11138,7 @@ $as_echo "#define USE_GTK 1" >>confdefs.h
 
     GTK_OBJ="gtkutil.o $GTK_OBJ"
     USE_X_TOOLKIT=none
-    if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
+    if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
       :
     else
       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Your version of Gtk+ will have problems with
@@ -10899,6 +11187,53 @@ done
 
   fi
 
+    HAVE_GTK_HANDLE_BOX=no
+  ac_fn_c_check_decl "$LINENO" "GTK_TYPE_HANDLE_BOX" "ac_cv_have_decl_GTK_TYPE_HANDLE_BOX" "$ac_includes_default
+#include <gtk/gtk.h>
+"
+if test "x$ac_cv_have_decl_GTK_TYPE_HANDLE_BOX" = x""yes; then :
+  HAVE_GTK_HANDLE_BOX=yes
+else
+  HAVE_GTK_HANDLE_BOX=no
+fi
+
+  if test "$HAVE_GTK_HANDLE_BOX" = yes; then
+    for ac_func in gtk_handle_box_new
+do :
+  ac_fn_c_check_func "$LINENO" "gtk_handle_box_new" "ac_cv_func_gtk_handle_box_new"
+if test "x$ac_cv_func_gtk_handle_box_new" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GTK_HANDLE_BOX_NEW 1
+_ACEOF
+
+fi
+done
+
+  fi
+
+    HAVE_GTK_TEAROFF_MENU_ITEM=no
+  ac_fn_c_check_decl "$LINENO" "GTK_TYPE_TEAROFF_MENU_ITEM" "ac_cv_have_decl_GTK_TYPE_TEAROFF_MENU_ITEM" "$ac_includes_default
+#include <gtk/gtk.h>
+"
+if test "x$ac_cv_have_decl_GTK_TYPE_TEAROFF_MENU_ITEM" = x""yes; then :
+  HAVE_GTK_TEAROFF_MENU_ITEM=yes
+else
+  HAVE_GTK_TEAROFF_MENU_ITEM=no
+fi
+
+  if test "$HAVE_GTK_TEAROFF_MENU_ITEM" = yes; then
+    for ac_func in gtk_tearoff_menu_item_new
+do :
+  ac_fn_c_check_func "$LINENO" "gtk_tearoff_menu_item_new" "ac_cv_func_gtk_tearoff_menu_item_new"
+if test "x$ac_cv_func_gtk_tearoff_menu_item_new" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GTK_TEAROFF_MENU_ITEM_NEW 1
+_ACEOF
+
+fi
+done
+
+  fi
 
     for ac_func in gtk_widget_get_window gtk_widget_set_has_window \
                  gtk_dialog_get_action_area gtk_widget_get_sensitive \
@@ -10931,13 +11266,13 @@ if test "${with_dbus}" = "yes"; then
      HAVE_DBUS=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dbus-1 >= 1.0" >&5
 $as_echo_n "checking for dbus-1 >= 1.0... " >&6; }
 
-        if $PKG_CONFIG --exists "dbus-1 >= 1.0" 2>&5 &&
-	   DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1 >= 1.0" 2>&5` &&
-	   DBUS_LIBS=`$PKG_CONFIG --libs "dbus-1 >= 1.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "dbus-1 >= 1.0" 2>&5 &&
+	   DBUS_CFLAGS=`"$PKG_CONFIG" --cflags "dbus-1 >= 1.0" 2>&5` &&
+	   DBUS_LIBS=`"$PKG_CONFIG" --libs "dbus-1 >= 1.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -10957,7 +11292,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    DBUS_PKG_ERRORS=`($PKG_CONFIG --print-errors "dbus-1 >= 1.0") 2>&1`
+	    DBUS_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "dbus-1 >= 1.0") 2>&1`
 
         fi
 
@@ -11012,13 +11347,13 @@ if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
      HAVE_GSETTINGS=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gio-2.0 >= 2.26" >&5
 $as_echo_n "checking for gio-2.0 >= 2.26... " >&6; }
 
-        if $PKG_CONFIG --exists "gio-2.0 >= 2.26" 2>&5 &&
-	   GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "gio-2.0 >= 2.26" 2>&5` &&
-	   GSETTINGS_LIBS=`$PKG_CONFIG --libs "gio-2.0 >= 2.26" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gio-2.0 >= 2.26" 2>&5 &&
+	   GSETTINGS_CFLAGS=`"$PKG_CONFIG" --cflags "gio-2.0 >= 2.26" 2>&5` &&
+	   GSETTINGS_LIBS=`"$PKG_CONFIG" --libs "gio-2.0 >= 2.26" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11038,7 +11373,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GSETTINGS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gio-2.0 >= 2.26") 2>&1`
+	    GSETTINGS_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gio-2.0 >= 2.26") 2>&1`
 
         fi
 
@@ -11074,13 +11409,13 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
      HAVE_GCONF=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gconf-2.0 >= 2.13" >&5
 $as_echo_n "checking for gconf-2.0 >= 2.13... " >&6; }
 
-        if $PKG_CONFIG --exists "gconf-2.0 >= 2.13" 2>&5 &&
-	   GCONF_CFLAGS=`$PKG_CONFIG --cflags "gconf-2.0 >= 2.13" 2>&5` &&
-	   GCONF_LIBS=`$PKG_CONFIG --libs "gconf-2.0 >= 2.13" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gconf-2.0 >= 2.13" 2>&5 &&
+	   GCONF_CFLAGS=`"$PKG_CONFIG" --cflags "gconf-2.0 >= 2.13" 2>&5` &&
+	   GCONF_LIBS=`"$PKG_CONFIG" --libs "gconf-2.0 >= 2.13" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11100,7 +11435,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GCONF_PKG_ERRORS=`($PKG_CONFIG --print-errors "gconf-2.0 >= 2.13") 2>&1`
+	    GCONF_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gconf-2.0 >= 2.13") 2>&1`
 
         fi
 
@@ -11135,13 +11470,13 @@ if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
      HAVE_GOBJECT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gobject-2.0 >= 2.0" >&5
 $as_echo_n "checking for gobject-2.0 >= 2.0... " >&6; }
 
-        if $PKG_CONFIG --exists "gobject-2.0 >= 2.0" 2>&5 &&
-	   GOBJECT_CFLAGS=`$PKG_CONFIG --cflags "gobject-2.0 >= 2.0" 2>&5` &&
-	   GOBJECT_LIBS=`$PKG_CONFIG --libs "gobject-2.0 >= 2.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gobject-2.0 >= 2.0" 2>&5 &&
+	   GOBJECT_CFLAGS=`"$PKG_CONFIG" --cflags "gobject-2.0 >= 2.0" 2>&5` &&
+	   GOBJECT_LIBS=`"$PKG_CONFIG" --libs "gobject-2.0 >= 2.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11161,7 +11496,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    GOBJECT_PKG_ERRORS=`($PKG_CONFIG --print-errors "gobject-2.0 >= 2.0") 2>&1`
+	    GOBJECT_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gobject-2.0 >= 2.0") 2>&1`
 
         fi
 
@@ -11269,13 +11604,13 @@ if test "${with_gnutls}" = "yes" ; then
      HAVE_GNUTLS=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.6.6" >&5
 $as_echo_n "checking for gnutls >= 2.6.6... " >&6; }
 
-        if $PKG_CONFIG --exists "gnutls >= 2.6.6" 2>&5 &&
-	   LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls >= 2.6.6" 2>&5` &&
-	   LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls >= 2.6.6" 2>&5`; then
+        if "$PKG_CONFIG" --exists "gnutls >= 2.6.6" 2>&5 &&
+	   LIBGNUTLS_CFLAGS=`"$PKG_CONFIG" --cflags "gnutls >= 2.6.6" 2>&5` &&
+	   LIBGNUTLS_LIBS=`"$PKG_CONFIG" --libs "gnutls >= 2.6.6" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11295,7 +11630,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    LIBGNUTLS_PKG_ERRORS=`($PKG_CONFIG --print-errors "gnutls >= 2.6.6") 2>&1`
+	    LIBGNUTLS_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gnutls >= 2.6.6") 2>&1`
 
         fi
 
@@ -11341,6 +11676,100 @@ $as_echo "#define HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY 1" >>confdefs.h
 fi
 
 
+
+
+if test "${with_inotify}" = "yes"; then
+   for ac_header in sys/inotify.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/inotify.h" "ac_cv_header_sys_inotify_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_inotify_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_INOTIFY_H 1
+_ACEOF
+
+fi
+
+done
+
+   if test "$ac_cv_header_sys_inotify_h" = yes ; then
+     ac_fn_c_check_func "$LINENO" "inotify_init1" "ac_cv_func_inotify_init1"
+if test "x$ac_cv_func_inotify_init1" = x""yes; then :
+
+fi
+
+   fi
+fi
+if test "$ac_cv_func_inotify_init1" = yes; then
+
+$as_echo "#define HAVE_INOTIFY 1" >>confdefs.h
+
+fi
+
+HAVE_POSIX_ACL=no
+LIBACL_LIBS=
+if test "${with_acl}" = "yes"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for acl_set_file in -lacl" >&5
+$as_echo_n "checking for acl_set_file in -lacl... " >&6; }
+if test "${ac_cv_lib_acl_acl_set_file+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lacl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char acl_set_file ();
+int
+main ()
+{
+return acl_set_file ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_acl_acl_set_file=yes
+else
+  ac_cv_lib_acl_acl_set_file=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_acl_acl_set_file" >&5
+$as_echo "$ac_cv_lib_acl_acl_set_file" >&6; }
+if test "x$ac_cv_lib_acl_acl_set_file" = x""yes; then :
+  HAVE_POSIX_ACL=yes
+else
+  HAVE_POSIX_ACL=no
+fi
+
+  if test "$HAVE_POSIX_ACL" = yes; then
+
+$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
+
+    LIBACL_LIBS=-lacl
+  else
+    ac_fn_c_check_func "$LINENO" "acl_set_file" "ac_cv_func_acl_set_file"
+if test "x$ac_cv_func_acl_set_file" = x""yes; then :
+  HAVE_POSIX_ACL=yes
+else
+  HAVE_POSIX_ACL=no
+fi
+
+    if test "$HAVE_POSIX_ACL" = yes; then
+
+$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
+
+    fi
+ fi
+fi
 
 
 HAVE_XAW3D=no
@@ -11903,13 +12332,13 @@ if test "${HAVE_X11}" = "yes"; then
      HAVE_FC=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fontconfig >= 2.2.0" >&5
 $as_echo_n "checking for fontconfig >= 2.2.0... " >&6; }
 
-        if $PKG_CONFIG --exists "fontconfig >= 2.2.0" 2>&5 &&
-	   FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig >= 2.2.0" 2>&5` &&
-	   FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig >= 2.2.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "fontconfig >= 2.2.0" 2>&5 &&
+	   FONTCONFIG_CFLAGS=`"$PKG_CONFIG" --cflags "fontconfig >= 2.2.0" 2>&5` &&
+	   FONTCONFIG_LIBS=`"$PKG_CONFIG" --libs "fontconfig >= 2.2.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11929,7 +12358,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    FONTCONFIG_PKG_ERRORS=`($PKG_CONFIG --print-errors "fontconfig >= 2.2.0") 2>&1`
+	    FONTCONFIG_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "fontconfig >= 2.2.0") 2>&1`
 
         fi
 
@@ -11962,13 +12391,13 @@ $as_echo "no" >&6; }
      HAVE_XFT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xft >= 0.13.0" >&5
 $as_echo_n "checking for xft >= 0.13.0... " >&6; }
 
-        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5 &&
-	   XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0" 2>&5` &&
-	   XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0" 2>&5`; then
+        if "$PKG_CONFIG" --exists "xft >= 0.13.0" 2>&5 &&
+	   XFT_CFLAGS=`"$PKG_CONFIG" --cflags "xft >= 0.13.0" 2>&5` &&
+	   XFT_LIBS=`"$PKG_CONFIG" --libs "xft >= 0.13.0" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -11988,7 +12417,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    XFT_PKG_ERRORS=`($PKG_CONFIG --print-errors "xft >= 0.13.0") 2>&1`
+	    XFT_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "xft >= 0.13.0") 2>&1`
 
         fi
 
@@ -12130,13 +12559,13 @@ $as_echo "#define HAVE_XFT 1" >>confdefs.h
      HAVE_FREETYPE=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype2" >&5
 $as_echo_n "checking for freetype2... " >&6; }
 
-        if $PKG_CONFIG --exists "freetype2" 2>&5 &&
-	   FREETYPE_CFLAGS=`$PKG_CONFIG --cflags "freetype2" 2>&5` &&
-	   FREETYPE_LIBS=`$PKG_CONFIG --libs "freetype2" 2>&5`; then
+        if "$PKG_CONFIG" --exists "freetype2" 2>&5 &&
+	   FREETYPE_CFLAGS=`"$PKG_CONFIG" --cflags "freetype2" 2>&5` &&
+	   FREETYPE_LIBS=`"$PKG_CONFIG" --libs "freetype2" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -12156,7 +12585,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    FREETYPE_PKG_ERRORS=`($PKG_CONFIG --print-errors "freetype2") 2>&1`
+	    FREETYPE_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "freetype2") 2>&1`
 
         fi
 
@@ -12191,13 +12620,13 @@ $as_echo "#define HAVE_FREETYPE 1" >>confdefs.h
      HAVE_LIBOTF=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libotf" >&5
 $as_echo_n "checking for libotf... " >&6; }
 
-        if $PKG_CONFIG --exists "libotf" 2>&5 &&
-	   LIBOTF_CFLAGS=`$PKG_CONFIG --cflags "libotf" 2>&5` &&
-	   LIBOTF_LIBS=`$PKG_CONFIG --libs "libotf" 2>&5`; then
+        if "$PKG_CONFIG" --exists "libotf" 2>&5 &&
+	   LIBOTF_CFLAGS=`"$PKG_CONFIG" --cflags "libotf" 2>&5` &&
+	   LIBOTF_LIBS=`"$PKG_CONFIG" --libs "libotf" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -12217,7 +12646,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    LIBOTF_PKG_ERRORS=`($PKG_CONFIG --print-errors "libotf") 2>&1`
+	    LIBOTF_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "libotf") 2>&1`
 
         fi
 
@@ -12300,13 +12729,13 @@ $as_echo "#define HAVE_OTF_GET_VARIATION_GLYPHS 1" >>confdefs.h
      HAVE_M17N_FLT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for m17n-flt" >&5
 $as_echo_n "checking for m17n-flt... " >&6; }
 
-        if $PKG_CONFIG --exists "m17n-flt" 2>&5 &&
-	   M17N_FLT_CFLAGS=`$PKG_CONFIG --cflags "m17n-flt" 2>&5` &&
-	   M17N_FLT_LIBS=`$PKG_CONFIG --libs "m17n-flt" 2>&5`; then
+        if "$PKG_CONFIG" --exists "m17n-flt" 2>&5 &&
+	   M17N_FLT_CFLAGS=`"$PKG_CONFIG" --cflags "m17n-flt" 2>&5` &&
+	   M17N_FLT_LIBS=`"$PKG_CONFIG" --libs "m17n-flt" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -12326,7 +12755,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    M17N_FLT_PKG_ERRORS=`($PKG_CONFIG --print-errors "m17n-flt") 2>&1`
+	    M17N_FLT_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "m17n-flt") 2>&1`
 
         fi
 
@@ -13088,13 +13517,13 @@ if test "${with_xml2}" != "no"; then
      HAVE_LIBXML2=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 > 2.6.17" >&5
 $as_echo_n "checking for libxml-2.0 > 2.6.17... " >&6; }
 
-        if $PKG_CONFIG --exists "libxml-2.0 > 2.6.17" 2>&5 &&
-	   LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.6.17" 2>&5` &&
-	   LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.6.17" 2>&5`; then
+        if "$PKG_CONFIG" --exists "libxml-2.0 > 2.6.17" 2>&5 &&
+	   LIBXML2_CFLAGS=`"$PKG_CONFIG" --cflags "libxml-2.0 > 2.6.17" 2>&5` &&
+	   LIBXML2_LIBS=`"$PKG_CONFIG" --libs "libxml-2.0 > 2.6.17" 2>&5`; then
 	    edit_cflags="
 	      s,///*,/,g
 	      s/^/ /
@@ -13114,7 +13543,7 @@ $as_echo "no" >&6; }
             ## If we have a custom action on failure, don't print errors, but
 	    ## do set a variable so people can do so.  Do it in a subshell
 	    ## to capture any diagnostics in invoking pkg-config.
-	    LIBXML2_PKG_ERRORS=`($PKG_CONFIG --print-errors "libxml-2.0 > 2.6.17") 2>&1`
+	    LIBXML2_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "libxml-2.0 > 2.6.17") 2>&1`
 
         fi
 
@@ -15337,7 +15766,7 @@ esac
 
 
 case $opsys in
-      aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd )
+      aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd | darwin )
     $as_echo "#define SIGNALS_VIA_CHARACTERS 1" >>confdefs.h
 
     ;;
@@ -15386,6 +15815,12 @@ case $opsys in
 
     ;;
 
+  aix*)
+        $as_echo "#define DATA_START 0x20000000" >>confdefs.h
+
+    $as_echo "#define DATA_SEG_BITS 0x20000000" >>confdefs.h
+
+    ;;
   hpux*)
         $as_echo "#define DATA_START 0x40000000" >>confdefs.h
 
@@ -15450,14 +15885,7 @@ esac
 
 
 
-
-
 case $opsys in
-  aix4-2 | hpux* | unixware)
-            $as_echo "#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE" >>confdefs.h
-
-    ;;
-
           gnu-linux | gnu-kfreebsd )
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -15481,9 +15909,6 @@ main ()
 _ACEOF
 if ac_fn_c_try_cpp "$LINENO"; then :
   $as_echo "#define GC_SETJMP_WORKS 1" >>confdefs.h
-
-else
-  $as_echo "#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE" >>confdefs.h
 
 fi
 rm -f conftest.err conftest.$ac_ext
@@ -15597,7 +16022,6 @@ esac
 
 
 
-
 case $opsys in
   aix4-2)
     $as_echo "#define USG /**/" >>confdefs.h
@@ -15636,9 +16060,7 @@ $as_echo "#define CYGWIN 1" >>confdefs.h
     ;;
 
   darwin)
-        $as_echo "#define BSD4_2 /**/" >>confdefs.h
-
-    $as_echo "#define BSD_SYSTEM /**/" >>confdefs.h
+        $as_echo "#define BSD_SYSTEM /**/" >>confdefs.h
 
 
 $as_echo "#define DARWIN_OS /**/" >>confdefs.h
@@ -15646,16 +16068,12 @@ $as_echo "#define DARWIN_OS /**/" >>confdefs.h
     ;;
 
   freebsd)
-    $as_echo "#define BSD4_2 /**/" >>confdefs.h
-
 
 $as_echo "#define BSD_SYSTEM_AHB 1" >>confdefs.h
 
     ;;
 
   gnu | netbsd | openbsd )
-    $as_echo "#define BSD4_2 /**/" >>confdefs.h
-
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -15852,7 +16270,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2012 Free Software Foundation, Inc."
+copyright="Copyright (C) 2013 Free Software Foundation, Inc."
 
 cat >>confdefs.h <<_ACEOF
 #define COPYRIGHT "$copyright"
@@ -15916,9 +16334,10 @@ cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
 
+emacs_config_options=`echo "$emacs_config_options " | sed -e 's/--no-create //' -e 's/--no-recursion //' -e 's/ *$//' -e "s/\"/'/g"`
 
 cat >>confdefs.h <<_ACEOF
-#define EMACS_CONFIG_OPTIONS "${ac_configure_args}"
+#define EMACS_CONFIG_OPTIONS "${emacs_config_options}"
 _ACEOF
 
 
@@ -16524,50 +16943,6 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether strtold conforms to C99" >&5
-$as_echo_n "checking whether strtold conforms to C99... " >&6; }
-if test "${gl_cv_func_c99_strtold+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-/* On HP-UX before 11.23, strtold returns a struct instead of
-                long double.  Reject implementations like that, by requiring
-                compatibility with the C99 prototype.  */
-             #include <stdlib.h>
-             static long double (*p) (char const *, char **) = strtold;
-             static long double
-             test (char const *nptr, char **endptr)
-             {
-               long double r;
-               r = strtold (nptr, endptr);
-               return r;
-             }
-int
-main ()
-{
-return test ("1.0", NULL) != 1 || p ("1.0", NULL) != 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  gl_cv_func_c99_strtold=yes
-else
-  gl_cv_func_c99_strtold=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_c99_strtold" >&5
-$as_echo "$gl_cv_func_c99_strtold" >&6; }
-  if test $gl_cv_func_c99_strtold = yes; then
-
-$as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
-
-  fi
-
-
   GNULIB_CHDIR=0;
   GNULIB_CHOWN=0;
   GNULIB_CLOSE=0;
@@ -16691,74 +17066,27 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
 
 
 
-
-
-
-
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if environ is properly declared" >&5
-$as_echo_n "checking if environ is properly declared... " >&6; }
-  if test "${gt_cv_var_environ_declaration+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#if HAVE_UNISTD_H
-     #include <unistd.h>
-     #endif
-     /* mingw, BeOS, Haiku declare environ in <stdlib.h>, not in <unistd.h>.  */
-     #include <stdlib.h>
-
-           extern struct { int foo; } environ;
-int
-main ()
-{
-environ.foo = 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  gt_cv_var_environ_declaration=no
-else
-  gt_cv_var_environ_declaration=yes
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gt_cv_var_environ_declaration" >&5
-$as_echo "$gt_cv_var_environ_declaration" >&6; }
-  if test $gt_cv_var_environ_declaration = yes; then
-
-$as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
-
-  fi
-
-
-  if test $gt_cv_var_environ_declaration != yes; then
-    HAVE_DECL_ENVIRON=0
-  fi
-
-
-
-
-
-
-
-
-
-  GNULIB_FCNTL=0;
-  GNULIB_NONBLOCKING=0;
-  GNULIB_OPEN=0;
-  GNULIB_OPENAT=0;
-    HAVE_FCNTL=1;
-  HAVE_OPENAT=1;
-  REPLACE_FCNTL=0;
-  REPLACE_OPEN=0;
-  REPLACE_OPENAT=0;
-
+     GNULIB_OPENDIR=0;
+  GNULIB_READDIR=0;
+  GNULIB_REWINDDIR=0;
+  GNULIB_CLOSEDIR=0;
+  GNULIB_DIRFD=0;
+  GNULIB_FDOPENDIR=0;
+  GNULIB_SCANDIR=0;
+  GNULIB_ALPHASORT=0;
+    HAVE_OPENDIR=1;
+  HAVE_READDIR=1;
+  HAVE_REWINDDIR=1;
+  HAVE_CLOSEDIR=1;
+  HAVE_DECL_DIRFD=1;
+  HAVE_DECL_FDOPENDIR=1;
+  HAVE_FDOPENDIR=1;
+  HAVE_SCANDIR=1;
+  HAVE_ALPHASORT=1;
+  REPLACE_OPENDIR=0;
+  REPLACE_CLOSEDIR=0;
+  REPLACE_DIRFD=0;
+  REPLACE_FDOPENDIR=0;
 
 
 
@@ -16874,6 +17202,122 @@ $as_echo "$gl_cv_pragma_columns" >&6; }
   fi
 
 
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether strtold conforms to C99" >&5
+$as_echo_n "checking whether strtold conforms to C99... " >&6; }
+if test "${gl_cv_func_c99_strtold+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* On HP-UX before 11.23, strtold returns a struct instead of
+                long double.  Reject implementations like that, by requiring
+                compatibility with the C99 prototype.  */
+             #include <stdlib.h>
+             static long double (*p) (char const *, char **) = strtold;
+             static long double
+             test (char const *nptr, char **endptr)
+             {
+               long double r;
+               r = strtold (nptr, endptr);
+               return r;
+             }
+int
+main ()
+{
+return test ("1.0", NULL) != 1 || p ("1.0", NULL) != 1;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  gl_cv_func_c99_strtold=yes
+else
+  gl_cv_func_c99_strtold=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_c99_strtold" >&5
+$as_echo "$gl_cv_func_c99_strtold" >&6; }
+  if test $gl_cv_func_c99_strtold = yes; then
+
+$as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
+
+  fi
+
+
+
+
+
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if environ is properly declared" >&5
+$as_echo_n "checking if environ is properly declared... " >&6; }
+  if test "${gt_cv_var_environ_declaration+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#if HAVE_UNISTD_H
+     #include <unistd.h>
+     #endif
+     /* mingw, BeOS, Haiku declare environ in <stdlib.h>, not in <unistd.h>.  */
+     #include <stdlib.h>
+
+           extern struct { int foo; } environ;
+int
+main ()
+{
+environ.foo = 1;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gt_cv_var_environ_declaration=no
+else
+  gt_cv_var_environ_declaration=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gt_cv_var_environ_declaration" >&5
+$as_echo "$gt_cv_var_environ_declaration" >&6; }
+  if test $gt_cv_var_environ_declaration = yes; then
+
+$as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
+
+  fi
+
+
+  if test $gt_cv_var_environ_declaration != yes; then
+    HAVE_DECL_ENVIRON=0
+  fi
+
+
+
+
+
+
+
+
+
+  GNULIB_FCNTL=0;
+  GNULIB_NONBLOCKING=0;
+  GNULIB_OPEN=0;
+  GNULIB_OPENAT=0;
+    HAVE_FCNTL=1;
+  HAVE_OPENAT=1;
+  REPLACE_FCNTL=0;
+  REPLACE_OPEN=0;
+  REPLACE_OPENAT=0;
+
+
 ac_fn_c_check_type "$LINENO" "mode_t" "ac_cv_type_mode_t" "$ac_includes_default"
 if test "x$ac_cv_type_mode_t" = x""yes; then :
 
@@ -16884,6 +17328,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 fi
+
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
 $as_echo_n "checking for st_dm_mode in struct stat... " >&6; }
@@ -16936,6 +17382,106 @@ _ACEOF
 
 
 
+     GNULIB_FCHMODAT=0;
+  GNULIB_FSTAT=0;
+  GNULIB_FSTATAT=0;
+  GNULIB_FUTIMENS=0;
+  GNULIB_LCHMOD=0;
+  GNULIB_LSTAT=0;
+  GNULIB_MKDIRAT=0;
+  GNULIB_MKFIFO=0;
+  GNULIB_MKFIFOAT=0;
+  GNULIB_MKNOD=0;
+  GNULIB_MKNODAT=0;
+  GNULIB_STAT=0;
+  GNULIB_UTIMENSAT=0;
+    HAVE_FCHMODAT=1;
+  HAVE_FSTATAT=1;
+  HAVE_FUTIMENS=1;
+  HAVE_LCHMOD=1;
+  HAVE_LSTAT=1;
+  HAVE_MKDIRAT=1;
+  HAVE_MKFIFO=1;
+  HAVE_MKFIFOAT=1;
+  HAVE_MKNOD=1;
+  HAVE_MKNODAT=1;
+  HAVE_UTIMENSAT=1;
+  REPLACE_FSTAT=0;
+  REPLACE_FSTATAT=0;
+  REPLACE_FUTIMENS=0;
+  REPLACE_LSTAT=0;
+  REPLACE_MKDIR=0;
+  REPLACE_MKFIFO=0;
+  REPLACE_MKNOD=0;
+  REPLACE_STAT=0;
+  REPLACE_UTIMENSAT=0;
+
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether lstat correctly handles trailing slash" >&5
+$as_echo_n "checking whether lstat correctly handles trailing slash... " >&6; }
+if test "${gl_cv_func_lstat_dereferences_slashed_symlink+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  rm -f conftest.sym conftest.file
+     echo >conftest.file
+     if test "$as_ln_s" = "ln -s" && ln -s conftest.file conftest.sym; then
+       if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_lstat_dereferences_slashed_symlink="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_lstat_dereferences_slashed_symlink="guessing no" ;;
+          esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+struct stat sbuf;
+              /* Linux will dereference the symlink and fail, as required by
+                 POSIX.  That is better in the sense that it means we will not
+                 have to compile and use the lstat wrapper.  */
+              return lstat ("conftest.sym/", &sbuf) == 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_lstat_dereferences_slashed_symlink=yes
+else
+  gl_cv_func_lstat_dereferences_slashed_symlink=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+     else
+       # If the 'ln -s' command failed, then we probably don't even
+       # have an lstat function.
+       gl_cv_func_lstat_dereferences_slashed_symlink="guessing no"
+     fi
+     rm -f conftest.sym conftest.file
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_lstat_dereferences_slashed_symlink" >&5
+$as_echo "$gl_cv_func_lstat_dereferences_slashed_symlink" >&6; }
+  case "$gl_cv_func_lstat_dereferences_slashed_symlink" in
+    *yes)
+
+cat >>confdefs.h <<_ACEOF
+#define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
+_ACEOF
+
+      ;;
+  esac
+
+
+
+
   GNULIB__EXIT=0;
   GNULIB_ATOLL=0;
   GNULIB_CALLOC_POSIX=0;
@@ -16959,6 +17505,7 @@ _ACEOF
   GNULIB_REALLOC_POSIX=0;
   GNULIB_REALPATH=0;
   GNULIB_RPMATCH=0;
+  GNULIB_SECURE_GETENV=0;
   GNULIB_SETENV=0;
   GNULIB_STRTOD=0;
   GNULIB_STRTOLL=0;
@@ -16986,6 +17533,7 @@ _ACEOF
   HAVE_RANDOM_R=1;
   HAVE_REALPATH=1;
   HAVE_RPMATCH=1;
+  HAVE_SECURE_GETENV=1;
   HAVE_SETENV=1;
   HAVE_DECL_SETENV=1;
   HAVE_STRTOD=1;
@@ -18933,104 +19481,92 @@ $as_echo "$gl_cv_type_off_t_64" >&6; }
   esac
 
 
-     GNULIB_FCHMODAT=0;
-  GNULIB_FSTAT=0;
-  GNULIB_FSTATAT=0;
-  GNULIB_FUTIMENS=0;
-  GNULIB_LCHMOD=0;
-  GNULIB_LSTAT=0;
-  GNULIB_MKDIRAT=0;
-  GNULIB_MKFIFO=0;
-  GNULIB_MKFIFOAT=0;
-  GNULIB_MKNOD=0;
-  GNULIB_MKNODAT=0;
-  GNULIB_STAT=0;
-  GNULIB_UTIMENSAT=0;
-    HAVE_FCHMODAT=1;
-  HAVE_FSTATAT=1;
-  HAVE_FUTIMENS=1;
-  HAVE_LCHMOD=1;
-  HAVE_LSTAT=1;
-  HAVE_MKDIRAT=1;
-  HAVE_MKFIFO=1;
-  HAVE_MKFIFOAT=1;
-  HAVE_MKNOD=1;
-  HAVE_MKNODAT=1;
-  HAVE_UTIMENSAT=1;
-  REPLACE_FSTAT=0;
-  REPLACE_FSTATAT=0;
-  REPLACE_FUTIMENS=0;
-  REPLACE_LSTAT=0;
-  REPLACE_MKDIR=0;
-  REPLACE_MKFIFO=0;
-  REPLACE_MKNOD=0;
-  REPLACE_STAT=0;
-  REPLACE_UTIMENSAT=0;
 
 
+  GNULIB_FFSL=0;
+  GNULIB_FFSLL=0;
+  GNULIB_MEMCHR=0;
+  GNULIB_MEMMEM=0;
+  GNULIB_MEMPCPY=0;
+  GNULIB_MEMRCHR=0;
+  GNULIB_RAWMEMCHR=0;
+  GNULIB_STPCPY=0;
+  GNULIB_STPNCPY=0;
+  GNULIB_STRCHRNUL=0;
+  GNULIB_STRDUP=0;
+  GNULIB_STRNCAT=0;
+  GNULIB_STRNDUP=0;
+  GNULIB_STRNLEN=0;
+  GNULIB_STRPBRK=0;
+  GNULIB_STRSEP=0;
+  GNULIB_STRSTR=0;
+  GNULIB_STRCASESTR=0;
+  GNULIB_STRTOK_R=0;
+  GNULIB_MBSLEN=0;
+  GNULIB_MBSNLEN=0;
+  GNULIB_MBSCHR=0;
+  GNULIB_MBSRCHR=0;
+  GNULIB_MBSSTR=0;
+  GNULIB_MBSCASECMP=0;
+  GNULIB_MBSNCASECMP=0;
+  GNULIB_MBSPCASECMP=0;
+  GNULIB_MBSCASESTR=0;
+  GNULIB_MBSCSPN=0;
+  GNULIB_MBSPBRK=0;
+  GNULIB_MBSSPN=0;
+  GNULIB_MBSSEP=0;
+  GNULIB_MBSTOK_R=0;
+  GNULIB_STRERROR=0;
+  GNULIB_STRERROR_R=0;
+  GNULIB_STRSIGNAL=0;
+  GNULIB_STRVERSCMP=0;
+  HAVE_MBSLEN=0;
+    HAVE_FFSL=1;
+  HAVE_FFSLL=1;
+  HAVE_MEMCHR=1;
+  HAVE_DECL_MEMMEM=1;
+  HAVE_MEMPCPY=1;
+  HAVE_DECL_MEMRCHR=1;
+  HAVE_RAWMEMCHR=1;
+  HAVE_STPCPY=1;
+  HAVE_STPNCPY=1;
+  HAVE_STRCHRNUL=1;
+  HAVE_DECL_STRDUP=1;
+  HAVE_DECL_STRNDUP=1;
+  HAVE_DECL_STRNLEN=1;
+  HAVE_STRPBRK=1;
+  HAVE_STRSEP=1;
+  HAVE_STRCASESTR=1;
+  HAVE_DECL_STRTOK_R=1;
+  HAVE_DECL_STRERROR_R=1;
+  HAVE_DECL_STRSIGNAL=1;
+  HAVE_STRVERSCMP=1;
+  REPLACE_MEMCHR=0;
+  REPLACE_MEMMEM=0;
+  REPLACE_STPNCPY=0;
+  REPLACE_STRDUP=0;
+  REPLACE_STRSTR=0;
+  REPLACE_STRCASESTR=0;
+  REPLACE_STRCHRNUL=0;
+  REPLACE_STRERROR=0;
+  REPLACE_STRERROR_R=0;
+  REPLACE_STRNCAT=0;
+  REPLACE_STRNDUP=0;
+  REPLACE_STRNLEN=0;
+  REPLACE_STRSIGNAL=0;
+  REPLACE_STRTOK_R=0;
+  UNDEFINE_STRTOK_R=0;
 
-
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether lstat correctly handles trailing slash" >&5
-$as_echo_n "checking whether lstat correctly handles trailing slash... " >&6; }
-if test "${gl_cv_func_lstat_dereferences_slashed_symlink+set}" = set; then :
-  $as_echo_n "(cached) " >&6
+ac_fn_c_check_decl "$LINENO" "memrchr" "ac_cv_have_decl_memrchr" "$ac_includes_default"
+if test "x$ac_cv_have_decl_memrchr" = x""yes; then :
+  ac_have_decl=1
 else
-  rm -f conftest.sym conftest.file
-     echo >conftest.file
-     if test "$as_ln_s" = "ln -s" && ln -s conftest.file conftest.sym; then
-       if test "$cross_compiling" = yes; then :
-  case "$host_os" in
-                    # Guess yes on glibc systems.
-            *-gnu*) gl_cv_func_lstat_dereferences_slashed_symlink="guessing yes" ;;
-                    # If we don't know, assume the worst.
-            *)      gl_cv_func_lstat_dereferences_slashed_symlink="guessing no" ;;
-          esac
-
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$ac_includes_default
-int
-main ()
-{
-struct stat sbuf;
-              /* Linux will dereference the symlink and fail, as required by
-                 POSIX.  That is better in the sense that it means we will not
-                 have to compile and use the lstat wrapper.  */
-              return lstat ("conftest.sym/", &sbuf) == 0;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  gl_cv_func_lstat_dereferences_slashed_symlink=yes
-else
-  gl_cv_func_lstat_dereferences_slashed_symlink=no
+  ac_have_decl=0
 fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-     else
-       # If the 'ln -s' command failed, then we probably don't even
-       # have an lstat function.
-       gl_cv_func_lstat_dereferences_slashed_symlink="guessing no"
-     fi
-     rm -f conftest.sym conftest.file
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_lstat_dereferences_slashed_symlink" >&5
-$as_echo "$gl_cv_func_lstat_dereferences_slashed_symlink" >&6; }
-  case "$gl_cv_func_lstat_dereferences_slashed_symlink" in
-    *yes)
 
 cat >>confdefs.h <<_ACEOF
-#define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
+#define HAVE_DECL_MEMRCHR $ac_have_decl
 _ACEOF
-
-      ;;
-  esac
 
 
   GNULIB_MKTIME=0;
@@ -19659,6 +20195,79 @@ fi
 
 
 
+
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_string_h='<'string.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <string.h>" >&5
+$as_echo_n "checking absolute name of <string.h>... " >&6; }
+if test "${gl_cv_next_string_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <string.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='\/'
+                   ;;
+               esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
+
+               gl_header_literal_regex=`echo 'string.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
+                   s|^/[^/]|//&|
+                   p
+                   q
+                 }'
+                                                            gl_cv_next_string_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                      sed -n "$gl_absolute_header_sed"`'"'
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_string_h" >&5
+$as_echo "$gl_cv_next_string_h" >&6; }
+     fi
+     NEXT_STRING_H=$gl_cv_next_string_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'string.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_string_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_STRING_H=$gl_next_as_first_directive
+
+
+
+
+
+
+
+
+
 ac_fn_c_check_decl "$LINENO" "strtoimax" "ac_cv_have_decl_strtoimax" "$ac_includes_default"
 if test "x$ac_cv_have_decl_strtoimax" = x""yes; then :
   ac_have_decl=1
@@ -19907,6 +20516,17 @@ $as_echo "$gl_cv_next_time_h" >&6; }
 
 
 
+
+ac_fn_c_check_decl "$LINENO" "unsetenv" "ac_cv_have_decl_unsetenv" "$ac_includes_default"
+if test "x$ac_cv_have_decl_unsetenv" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_UNSETENV $ac_have_decl
+_ACEOF
 
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the utimes function works" >&5
@@ -20357,6 +20977,92 @@ _ACEOF
 
 
 
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_dirent_h='<'dirent.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <dirent.h>" >&5
+$as_echo_n "checking absolute name of <dirent.h>... " >&6; }
+if test "${gl_cv_next_dirent_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+             if test $ac_cv_header_dirent_h = yes; then
+
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <dirent.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='\/'
+                   ;;
+               esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
+
+               gl_header_literal_regex=`echo 'dirent.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
+                   s|^/[^/]|//&|
+                   p
+                   q
+                 }'
+                                                            gl_cv_next_dirent_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                      sed -n "$gl_absolute_header_sed"`'"'
+          else
+               gl_cv_next_dirent_h='<'dirent.h'>'
+             fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_dirent_h" >&5
+$as_echo "$gl_cv_next_dirent_h" >&6; }
+     fi
+     NEXT_DIRENT_H=$gl_cv_next_dirent_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'dirent.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_dirent_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_DIRENT_H=$gl_next_as_first_directive
+
+
+
+
+  if test $ac_cv_header_dirent_h = yes; then
+    HAVE_DIRENT_H=1
+  else
+    HAVE_DIRENT_H=0
+  fi
+
+
+
+
+
+
+
+
+
+
 $as_echo "#define HAVE_DUP2 1" >>confdefs.h
 
 
@@ -20408,6 +21114,9 @@ int result = 0;
             /* Many gnulib modules require POSIX conformance of EBADF.  */
             if (dup2 (2, 1000000) == -1 && errno != EBADF)
               result |= 16;
+            /* Flush out a cygwin core dump.  */
+            if (dup2 (2, -1) != -1 || errno != EBADF)
+              result |= 32;
             return result;
 
   ;
@@ -20702,6 +21411,125 @@ $as_echo "$gl_cv_next_fcntl_h" >&6; }
 
 
 
+    ac_fn_c_check_decl "$LINENO" "fdopendir" "ac_cv_have_decl_fdopendir" "
+#include <dirent.h>
+
+"
+if test "x$ac_cv_have_decl_fdopendir" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_FDOPENDIR $ac_have_decl
+_ACEOF
+if test $ac_have_decl = 1; then :
+
+else
+  HAVE_DECL_FDOPENDIR=0
+fi
+
+
+  if test $ac_cv_func_fdopendir = no; then
+    HAVE_FDOPENDIR=0
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether fdopendir works" >&5
+$as_echo_n "checking whether fdopendir works... " >&6; }
+if test "${gl_cv_func_fdopendir_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_fdopendir_works="guessing yes" ;;
+                    # If we don't know, assume the worst.
+            *)      gl_cv_func_fdopendir_works="guessing no" ;;
+          esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <dirent.h>
+#include <fcntl.h>
+#include <unistd.h>
+#if !HAVE_DECL_FDOPENDIR
+extern
+# ifdef __cplusplus
+"C"
+# endif
+DIR *fdopendir (int);
+#endif
+
+int
+main ()
+{
+int result = 0;
+     int fd = open ("conftest.c", O_RDONLY);
+     if (fd < 0) result |= 1;
+     if (fdopendir (fd)) result |= 2;
+     if (close (fd)) result |= 4;
+     return result;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_fdopendir_works=yes
+else
+  gl_cv_func_fdopendir_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_fdopendir_works" >&5
+$as_echo "$gl_cv_func_fdopendir_works" >&6; }
+    case "$gl_cv_func_fdopendir_works" in
+      *yes) ;;
+      *)
+        REPLACE_FDOPENDIR=1
+        ;;
+    esac
+  fi
+
+  if test $HAVE_FDOPENDIR = 0 || test $REPLACE_FDOPENDIR = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fdopendir.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_FDOPENDIR=1
+
+
+
+
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNULIB_FDOPENDIR 1
+_ACEOF
+
+
+
+
+
+
+
 
 
   fp_headers='
@@ -20815,6 +21643,91 @@ _ACEOF
 
 
   fi
+
+
+
+
+
+
+  if test $ac_cv_func_fstatat = no; then
+    HAVE_FSTATAT=0
+  else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether fstatat (..., 0) works" >&5
+$as_echo_n "checking whether fstatat (..., 0) works... " >&6; }
+if test "${gl_cv_func_fstatat_zero_flag+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+            aix*) gl_cv_func_fstatat_zero_flag="guessing no";;
+            *)    gl_cv_func_fstatat_zero_flag="guessing yes";;
+          esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+              #include <fcntl.h>
+              #include <sys/stat.h>
+              int
+              main (void)
+              {
+                struct stat a;
+                return fstatat (AT_FDCWD, ".", &a, 0) != 0;
+              }
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_fstatat_zero_flag=yes
+else
+  gl_cv_func_fstatat_zero_flag=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_fstatat_zero_flag" >&5
+$as_echo "$gl_cv_func_fstatat_zero_flag" >&6; }
+
+    case $gl_cv_func_fstatat_zero_flag+$gl_cv_func_lstat_dereferences_slashed_symlink in
+    *yes+*yes) ;;
+    *) REPLACE_FSTATAT=1
+       case $gl_cv_func_fstatat_zero_flag in
+       *yes)
+
+$as_echo "#define HAVE_WORKING_FSTATAT_ZERO_FLAG 1" >>confdefs.h
+
+         ;;
+       esac
+       ;;
+    esac
+  fi
+
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fstatat.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_FSTATAT=1
+
+
+
+
+
 
 
 # Persuade glibc <stdlib.h> to declare getloadavg().
@@ -21681,6 +22594,51 @@ done
 
 
 
+  if test $ac_cv_have_decl_memrchr = no; then
+    HAVE_DECL_MEMRCHR=0
+  fi
+
+  for ac_func in memrchr
+do :
+  ac_fn_c_check_func "$LINENO" "memrchr" "ac_cv_func_memrchr"
+if test "x$ac_cv_func_memrchr" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MEMRCHR 1
+_ACEOF
+
+fi
+done
+
+
+  if test $ac_cv_func_memrchr = no; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS memrchr.$ac_objext"
+
+    :
+  fi
+
+
+
+
+
+          GNULIB_MEMRCHR=1
+
+
+
+
+
+
+
+
+
+
 
   if test $APPLE_UNIVERSAL_BUILD = 1; then
     # A universal build on Apple Mac OS X platforms.
@@ -22354,6 +23312,90 @@ $as_echo "#define HAVE_PTHREAD_SIGMASK 1" >>confdefs.h
 
 
 
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for putenv compatible with GNU and SVID" >&5
+$as_echo_n "checking for putenv compatible with GNU and SVID... " >&6; }
+if test "${gl_cv_func_svid_putenv+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+               case "$host_os" in
+                        # Guess yes on glibc systems.
+                *-gnu*) gl_cv_func_svid_putenv="guessing yes" ;;
+                        # If we don't know, assume the worst.
+                *)      gl_cv_func_svid_putenv="guessing no" ;;
+              esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+
+    /* Put it in env.  */
+    if (putenv ("CONFTEST_putenv=val"))
+      return 1;
+
+    /* Try to remove it.  */
+    if (putenv ("CONFTEST_putenv"))
+      return 2;
+
+    /* Make sure it was deleted.  */
+    if (getenv ("CONFTEST_putenv") != 0)
+      return 3;
+
+    return 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_svid_putenv=yes
+else
+  gl_cv_func_svid_putenv=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_svid_putenv" >&5
+$as_echo "$gl_cv_func_svid_putenv" >&6; }
+  case "$gl_cv_func_svid_putenv" in
+    *yes) ;;
+    *)
+      REPLACE_PUTENV=1
+      ;;
+  esac
+
+  if test $REPLACE_PUTENV = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS putenv.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_PUTENV=1
+
+
+
+
+
+
+
 
   if test $ac_cv_func_readlink = no; then
     HAVE_READLINK=0
@@ -22464,6 +23506,37 @@ $as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
 
 
           GNULIB_READLINK=1
+
+
+
+
+
+
+
+
+
+  if test $ac_cv_func_readlinkat = no; then
+    HAVE_READLINKAT=0
+  fi
+
+  if test $HAVE_READLINKAT = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS readlinkat.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_READLINKAT=1
 
 
 
@@ -23423,6 +24496,9 @@ $as_echo "#define my_strftime nstrftime" >>confdefs.h
 
 
 
+
+
+
   if test "$ac_cv_have_decl_strtoimax" != yes; then
     HAVE_DECL_STRTOIMAX=0
   fi
@@ -24261,6 +25337,160 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
 
 
 
+  if test $ac_cv_have_decl_unsetenv = no; then
+    HAVE_DECL_UNSETENV=0
+  fi
+  for ac_func in unsetenv
+do :
+  ac_fn_c_check_func "$LINENO" "unsetenv" "ac_cv_func_unsetenv"
+if test "x$ac_cv_func_unsetenv" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_UNSETENV 1
+_ACEOF
+
+fi
+done
+
+  if test $ac_cv_func_unsetenv = no; then
+    HAVE_UNSETENV=0
+  else
+    HAVE_UNSETENV=1
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for unsetenv() return type" >&5
+$as_echo_n "checking for unsetenv() return type... " >&6; }
+if test "${gt_cv_func_unsetenv_ret+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#undef _BSD
+#define _BSD 1 /* unhide unsetenv declaration in OSF/1 5.1 <stdlib.h> */
+#include <stdlib.h>
+extern
+#ifdef __cplusplus
+"C"
+#endif
+int unsetenv (const char *name);
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gt_cv_func_unsetenv_ret='int'
+else
+  gt_cv_func_unsetenv_ret='void'
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gt_cv_func_unsetenv_ret" >&5
+$as_echo "$gt_cv_func_unsetenv_ret" >&6; }
+    if test $gt_cv_func_unsetenv_ret = 'void'; then
+
+$as_echo "#define VOID_UNSETENV 1" >>confdefs.h
+
+      REPLACE_UNSETENV=1
+    fi
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether unsetenv obeys POSIX" >&5
+$as_echo_n "checking whether unsetenv obeys POSIX... " >&6; }
+if test "${gl_cv_func_unsetenv_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+                 # Guess yes on glibc systems.
+         *-gnu*) gl_cv_func_unsetenv_works="guessing yes" ;;
+                 # If we don't know, assume the worst.
+         *)      gl_cv_func_unsetenv_works="guessing no" ;;
+       esac
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+       #include <stdlib.h>
+       #include <errno.h>
+       extern char **environ;
+
+int
+main ()
+{
+
+       char entry1[] = "a=1";
+       char entry2[] = "b=2";
+       char *env[] = { entry1, entry2, NULL };
+       if (putenv ((char *) "a=1")) return 1;
+       if (putenv (entry2)) return 2;
+       entry2[0] = 'a';
+       unsetenv ("a");
+       if (getenv ("a")) return 3;
+       if (!unsetenv ("") || errno != EINVAL) return 4;
+       entry2[0] = 'b';
+       environ = env;
+       if (!getenv ("a")) return 5;
+       entry2[0] = 'a';
+       unsetenv ("a");
+       if (getenv ("a")) return 6;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_unsetenv_works=yes
+else
+  gl_cv_func_unsetenv_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_unsetenv_works" >&5
+$as_echo "$gl_cv_func_unsetenv_works" >&6; }
+    case "$gl_cv_func_unsetenv_works" in
+      *yes) ;;
+      *)
+        REPLACE_UNSETENV=1
+        ;;
+    esac
+  fi
+
+  if test $HAVE_UNSETENV = 0 || test $REPLACE_UNSETENV = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS unsetenv.$ac_objext"
+
+
+
+
+
+  fi
+
+
+
+
+
+          GNULIB_UNSETENV=1
+
+
+
+
+
+
+
+
 
 
 
@@ -24321,11 +25551,13 @@ $as_echo "#define FUTIMESAT_NULL_BUG 1" >>confdefs.h
     esac
   fi
 
+  gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=false
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_euidaccess=false
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
+  gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
   gl_gnulib_enabled_stat=false
@@ -24333,6 +25565,22 @@ $as_echo "#define FUTIMESAT_NULL_BUG 1" >>confdefs.h
   gl_gnulib_enabled_strtoull=false
   gl_gnulib_enabled_verify=false
   gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec=false
+  func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
+  {
+    if ! $gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS openat-proc.$ac_objext"
+
+      gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=true
+    fi
+  }
   func_gl_gnulib_m4code_dosname ()
   {
     if ! $gl_gnulib_enabled_dosname; then
@@ -24858,6 +26106,12 @@ fi
       fi
     fi
   }
+  func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7 ()
+  {
+    if ! $gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7; then
+      gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=true
+    fi
+  }
   func_gl_gnulib_m4code_pathmax ()
   {
     if ! $gl_gnulib_enabled_pathmax; then
@@ -25133,10 +26387,28 @@ done
     fi
   }
   if test $HAVE_FACCESSAT = 0; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_FACCESSAT = 0; then
     func_gl_gnulib_m4code_dosname
   fi
   if test $HAVE_FACCESSAT = 0; then
     func_gl_gnulib_m4code_euidaccess
+  fi
+  if test $HAVE_FACCESSAT = 0; then
+    func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
+  fi
+  if test $HAVE_FDOPENDIR = 0; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+    func_gl_gnulib_m4code_dosname
+  fi
+  if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
+    func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
   fi
   if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
@@ -25150,6 +26422,15 @@ done
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
+  if test $HAVE_READLINKAT = 0; then
+    func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
+  fi
+  if test $HAVE_READLINKAT = 0; then
+    func_gl_gnulib_m4code_dosname
+  fi
+  if test $HAVE_READLINKAT = 0; then
+    func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
+  fi
   if { test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
@@ -25162,6 +26443,14 @@ done
   if test $ac_cv_func_strtoumax = no; then
     func_gl_gnulib_m4code_verify
   fi
+
+   if $gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b; then
+  gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_TRUE=
+  gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_FALSE='#'
+else
+  gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_TRUE='#'
+  gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_FALSE=
+fi
 
    if $gl_gnulib_enabled_dosname; then
   gl_GNULIB_ENABLED_dosname_TRUE=
@@ -25201,6 +26490,14 @@ fi
 else
   gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_TRUE='#'
   gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_FALSE=
+fi
+
+   if $gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7; then
+  gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_TRUE=
+  gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_FALSE='#'
+else
+  gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_TRUE='#'
+  gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_FALSE=
 fi
 
    if $gl_gnulib_enabled_pathmax; then
@@ -25344,10 +26641,6 @@ case "$opsys" in
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
-
-if test "$NS_IMPL_GNUSTEP" = "yes"; then
-  LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
-fi
 
 
 
@@ -25557,7 +26850,7 @@ ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMen
 
 opt_makefile=test/automated/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
       ac_config_files="$ac_config_files test/automated/Makefile"
 
@@ -25566,7 +26859,7 @@ fi
 
 opt_makefile=admin/unidata/Makefile
 
-if test -f $srcdir/${opt_makefile}.in; then
+if test -f "$srcdir/$opt_makefile.in"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
   ac_config_files="$ac_config_files admin/unidata/Makefile"
 
@@ -25732,6 +27025,10 @@ if test -z "${GL_GENERATE_STDDEF_H_TRUE}" && test -z "${GL_GENERATE_STDDEF_H_FAL
   as_fn_error "conditional \"GL_GENERATE_STDDEF_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_TRUE}" && test -z "${gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${gl_GNULIB_ENABLED_dosname_TRUE}" && test -z "${gl_GNULIB_ENABLED_dosname_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_dosname\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -25750,6 +27047,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_TRUE}" && test -z "${gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_TRUE}" && test -z "${gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_pathmax_TRUE}" && test -z "${gl_GNULIB_ENABLED_pathmax_FALSE}"; then
@@ -27162,9 +28463,9 @@ echo creating src/epaths.h
 ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
  ;;
     "gdbinit":C)
-if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
+if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
   echo creating src/.gdbinit
-  echo source $srcdir/src/.gdbinit > src/.gdbinit
+  echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
  ;;
 

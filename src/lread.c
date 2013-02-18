@@ -1,6 +1,7 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -94,11 +95,6 @@ static Lisp_Object Qload_in_progress;
    look up the object for the corresponding #n# construct.
    It must be set to nil before all top-level calls to read0.  */
 static Lisp_Object read_objects;
-
-/* True means READCHAR should read bytes one by one (not character)
-   when READCHARFUN is Qget_file_char or Qget_emacs_mule_file_char.
-   This is set by read1 temporarily while handling #@NUMBER.  */
-static bool load_each_byte;
 
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
@@ -327,7 +323,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       return c;
     }
   c = (*readbyte) (-1, readcharfun);
-  if (c < 0 || load_each_byte)
+  if (c < 0)
     return c;
   if (multibyte)
     *multibyte = 1;
@@ -350,6 +346,30 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
       buf[i++] = c;
     }
   return STRING_CHAR (buf);
+}
+
+static void
+skip_dyn_bytes (Lisp_Object readcharfun, ptrdiff_t n)
+{
+  if (EQ (readcharfun, Qget_file_char)
+      || EQ (readcharfun, Qget_emacs_mule_file_char))
+    {
+      block_input ();		/* FIXME: Not sure if it's needed.  */
+      fseek (instream, n, SEEK_CUR);
+      unblock_input ();
+    }
+  else
+    { /* We're not reading directly from a file.  In that case, it's difficult
+	 to reliably count bytes, since these are usually meant for the file's
+	 encoding, whereas we're now typically in the internal encoding.
+	 But luckily, skip_dyn_bytes is used to skip over a single
+	 dynamic-docstring (or dynamic byte-code) which is always quoted such
+	 that \037 is the final char.  */
+      int c;
+      do {
+	c = READCHAR;
+      } while (c >= 0 && c != '\037');
+    }
 }
 
 /* Unread the character C in the way appropriate for the stream READCHARFUN.
@@ -406,14 +426,7 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (EQ (readcharfun, Qget_file_char)
 	   || EQ (readcharfun, Qget_emacs_mule_file_char))
     {
-      if (load_each_byte)
-	{
-	  block_input ();
-	  ungetc (c, instream);
-	  unblock_input ();
-	}
-      else
-	unread_char = c;
+      unread_char = c;
     }
   else
     call1 (readcharfun, make_number (c));
@@ -601,17 +614,17 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
       end_time = add_emacs_time (current_emacs_time (), wait_time);
     }
 
-/* Read until we get an acceptable event.  */
+  /* Read until we get an acceptable event.  */
  retry:
   do
-    val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
+    val = read_char (0, Qnil, (input_method ? Qnil : Qt), 0,
 		     NUMBERP (seconds) ? &end_time : NULL);
   while (INTEGERP (val) && XINT (val) == -2); /* wrong_kboard_jmpbuf */
 
   if (BUFFERP (val))
     goto retry;
 
-  /* switch-frame events are put off until after the next ASCII
+  /* `switch-frame' events are put off until after the next ASCII
      character.  This is better than signaling an error just because
      the last characters were typed to a separate minibuffer frame,
      for example.  Eventually, some code which can deal with
@@ -1297,7 +1310,7 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  record_unwind_protect (load_unwind, make_save_value (stream, 0));
+  record_unwind_protect (load_unwind, make_save_pointer (stream));
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
@@ -1356,7 +1369,7 @@ Return t if the file exists and loads successfully.  */)
 static Lisp_Object
 load_unwind (Lisp_Object arg)  /* Used as unwind-protect function in load.  */
 {
-  FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
+  FILE *stream = XSAVE_POINTER (arg, 0);
   if (stream != NULL)
     {
       block_input ();
@@ -2387,7 +2400,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
   bool multibyte;
 
   *pch = 0;
-  load_each_byte = 0;
 
  retry:
 
@@ -2597,7 +2609,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  return tmp;
 	}
 
-      /* #@NUMBER is used to skip NUMBER following characters.
+      /* #@NUMBER is used to skip NUMBER following bytes.
 	 That's used in .elc files to skip over doc strings
 	 and function definitions.  */
       if (c == '@')
@@ -2605,7 +2617,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  enum { extra = 100 };
 	  ptrdiff_t i, nskip = 0;
 
-	  load_each_byte = 1;
 	  /* Read a decimal integer.  */
 	  while ((c = READCHAR) >= 0
 		 && c >= '0' && c <= '9')
@@ -2615,8 +2626,15 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      nskip *= 10;
 	      nskip += c - '0';
 	    }
-	  UNREAD (c);
-
+	  if (nskip > 0)
+	    /* We can't use UNREAD here, because in the code below we side-step
+               READCHAR.  Instead, assume the first char after #@NNN occupies
+               a single byte, which is the case normally since it's just
+               a space.  */
+	    nskip--;
+	  else
+	    UNREAD (c);
+	    
 	  if (load_force_doc_strings
 	      && (EQ (readcharfun, Qget_file_char)
 		  || EQ (readcharfun, Qget_emacs_mule_file_char)))
@@ -2658,19 +2676,17 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      saved_doc_string_position = file_tell (instream);
 
 	      /* Copy that many characters into saved_doc_string.  */
+	      block_input ();
 	      for (i = 0; i < nskip && c >= 0; i++)
-		saved_doc_string[i] = c = READCHAR;
+		saved_doc_string[i] = c = getc (instream);
+	      unblock_input ();
 
 	      saved_doc_string_length = i;
 	    }
 	  else
-	    {
-	      /* Skip that many characters.  */
-	      for (i = 0; i < nskip && c >= 0; i++)
-		c = READCHAR;
-	    }
+	    /* Skip that many bytes.  */
+	    skip_dyn_bytes (readcharfun, nskip);
 
-	  load_each_byte = 0;
 	  goto retry;
 	}
       if (c == '!')
@@ -3569,9 +3585,8 @@ read_list (bool flag, Lisp_Object readcharfun)
 			 doc string, caller must make it
 			 multibyte.  */
 
-		      EMACS_INT pos = XINT (XCDR (val));
 		      /* Position is negative for user variables.  */
-		      if (pos < 0) pos = -pos;
+		      EMACS_INT pos = eabs (XINT (XCDR (val)));
 		      if (pos >= saved_doc_string_position
 			  && pos < (saved_doc_string_position
 				    + saved_doc_string_length))
@@ -4525,12 +4540,16 @@ The default is nil, which means use the function `read'.  */);
   Vload_read_function = Qnil;
 
   DEFVAR_LISP ("load-source-file-function", Vload_source_file_function,
-	       doc: /* Function called in `load' for loading an Emacs Lisp source file.
-This function is for doing code conversion before reading the source file.
-If nil, loading is done without any code conversion.
-Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where
- FULLNAME is the full name of FILE.
-See `load' for the meaning of the remaining arguments.  */);
+	       doc: /* Function called in `load' to load an Emacs Lisp source file.
+The value should be a function for doing code conversion before
+reading a source file.  It can also be nil, in which case loading is
+done without any code conversion.
+
+If the value is a function, it is called with four arguments,
+FULLNAME, FILE, NOERROR, NOMESSAGE.  FULLNAME is the absolute name of
+the file to load, FILE is the non-absolute name (for messages etc.),
+and NOERROR and NOMESSAGE are the corresponding arguments passed to
+`load'.  The function should return t if the file was loaded.  */);
   Vload_source_file_function = Qnil;
 
   DEFVAR_BOOL ("load-force-doc-strings", load_force_doc_strings,

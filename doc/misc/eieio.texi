@@ -11,7 +11,7 @@
 @copying
 This manual documents EIEIO, an object framework for Emacs Lisp.
 
-Copyright @copyright{} 2007-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,8 +22,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -77,6 +76,7 @@ Emacs.
 * Naming Conventions::    Name your objects in an Emacs friendly way.
 * CLOS compatibility::    What are the differences?
 * Wish List::             Things about EIEIO that could be improved.
+* GNU Free Documentation License::  The license for this documentation.
 * Function Index::
 @end menu
 
@@ -446,7 +446,7 @@ that default value with @code{oset-default}.  @ref{Accessing Slots}.
 
 @item :type
 An unquoted type specifier used to validate data set into this slot.
-@xref{(cl)Type Predicates}.
+@xref{Type Predicates,,,cl,Common Lisp Extensions}.
 Here are some examples:
  @table @code
  @item symbol
@@ -1571,7 +1571,7 @@ all these classes, subsection headings, and indexes.
 
 Each class will be indexed using the texinfo labeled index
 @var{indexstring} which is a two letter description.
-@xref{(texinfo) New Indices}.
+@xref{New Indices,,,texinfo,Texinfo manual}.
 
 To use this command, the texinfo macro
 
@@ -1874,8 +1874,9 @@ instead pre-builds a method that gets the slot's value.
 
 @item :type
 Specifier uses the @code{typep} function from the @file{cl}
-package.  @xref{(cl)Type Predicates}.  It therefore has the same issues as
-that package.  Extensions include the ability to provide object names.
+package.  @xref{Type Predicates,,,cl,Common Lisp Extensions}.
+It therefore has the same issues as that package.  Extensions include
+the ability to provide object names.
 @end table
 
 Defclass also supports class options, but does not currently use values
@@ -1949,6 +1950,10 @@ buffers.
 @item
 Allow method overloading of method-like functions in Emacs.
 @end enumerate
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @node Function Index
 @unnumbered Function Index

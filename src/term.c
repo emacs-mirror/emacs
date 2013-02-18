@@ -1,6 +1,6 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -953,8 +953,8 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
   const char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
   const char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
 
-  register int i = n > 0 ? n : -n;
-  register char *buf;
+  int i = eabs (n);
+  char *buf;
 
   /* If the lines below the insertion are being pushed
      into the end of the window, this is the same as clearing;
@@ -2374,7 +2374,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       t->display_info.tty->output = 0;
 
       if (FRAMEP (t->display_info.tty->top_frame))
-        FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
+        SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
 
     }
 
@@ -2423,7 +2423,7 @@ frame's terminal). */)
       if (fd == -1)
         error ("Can not reopen tty device %s: %s", t->display_info.tty->name, strerror (errno));
 
-      if (strcmp (t->display_info.tty->name, DEV_TTY))
+      if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
         dissociate_if_controlling_tty (fd);
 
       t->display_info.tty->output = fdopen (fd, "w+");
@@ -2444,7 +2444,7 @@ frame's terminal). */)
 	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
 	  if (width != old_width || height != old_height)
 	    change_frame_size (f, height, width, 0, 0, 0);
-	  FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
+	  SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 	}
 
       set_tty_hooks (t);
@@ -2903,13 +2903,23 @@ set_tty_hooks (struct terminal *terminal)
   terminal->delete_terminal_hook = &delete_tty;
 }
 
-/* Drop the controlling terminal if fd is the same device. */
+/* If FD is the controlling terminal, drop it.  */
 static void
 dissociate_if_controlling_tty (int fd)
 {
-  pid_t pgid = tcgetpgrp (fd); /* If tcgetpgrp succeeds, fd is the ctty. */
-  if (0 <= pgid)
-    setsid ();
+  /* If tcgetpgrp succeeds, fd is the controlling terminal,
+     so dissociate it by invoking setsid.  */
+  if (0 <= tcgetpgrp (fd) && setsid () < 0)
+    {
+#ifdef TIOCNOTTY
+      /* setsid failed, presumably because Emacs is already a process
+	 group leader.  Fall back on the obsolescent way to dissociate
+	 a controlling tty.  */
+      block_tty_out_signal ();
+      ioctl (fd, TIOCNOTTY, 0);
+      unblock_tty_out_signal ();
+#endif
+    }
 }
 
 /* Create a termcap display on the tty device with the given name and
@@ -3030,14 +3040,9 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
 
   /* On some systems, tgetent tries to access the controlling
      terminal. */
-  {
-    sigset_t blocked;
-    sigemptyset (&blocked);
-    sigaddset (&blocked, SIGTTOU);
-    pthread_sigmask (SIG_BLOCK, &blocked, 0);
-    status = tgetent (tty->termcap_term_buffer, terminal_type);
-    pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-  }
+  block_tty_out_signal ();
+  status = tgetent (tty->termcap_term_buffer, terminal_type);
+  unblock_tty_out_signal ();
 
   if (status < 0)
     {

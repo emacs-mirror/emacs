@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: FSF
@@ -176,7 +176,7 @@ highlighting the Log View buffer."
 ;;;###autoload   "Return non-nil if FILE is registered with hg."
 ;;;###autoload   (if (vc-find-root file ".hg")       ; short cut
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-hg")
+;;;###autoload         (load "vc-hg" nil t)
 ;;;###autoload         (vc-hg-registered file))))
 
 ;; Modeled after the similar function in vc-bzr.el

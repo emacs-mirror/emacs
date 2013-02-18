@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1821,7 +1821,6 @@ static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 static BOOL
 w32_init_class (HINSTANCE hinst)
 {
-
   if (w32_unicode_gui)
     {
       WNDCLASSW  uwc;
@@ -3957,6 +3956,9 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	return retval;
       }
+    case WM_EMACS_FILENOTIFY:
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 1;
 
     default:
       /* Check for messages registered at runtime. */
@@ -5941,7 +5943,7 @@ Text larger than the specified size is clipped.  */)
 		  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
     /* Let redisplay know that we have made the frame visible already.  */
-    f->async_visible = 1;
+    SET_FRAME_VISIBLE (f, 1);
 
     ShowWindow (FRAME_W32_WINDOW (f), SW_SHOWNOACTIVATE);
   }
@@ -6252,7 +6254,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
             /* we get one of the two final 0 bytes for free. */
             1 + sizeof (wchar_t) * wcslen (filename_buf)));
 #else /* !NTGUI_UNICODE */
-        dostounix_filename (filename_buf);
+        dostounix_filename (filename_buf, 0);
         filename = DECODE_FILE (build_string (filename_buf));
 #endif /* NTGUI_UNICODE */
 
@@ -6482,12 +6484,12 @@ w32_parse_hot_key (Lisp_Object key)
 
   CHECK_VECTOR (key);
 
-  if (XFASTINT (Flength (key)) != 1)
+  if (ASIZE (key) != 1)
     return Qnil;
 
   GCPRO1 (key);
 
-  c = Faref (key, make_number (0));
+  c = AREF (key, 0);
 
   if (CONSP (c) && lucid_event_type_list_p (c))
     c = Fevent_convert_list (c);
@@ -7024,6 +7026,9 @@ cache_system_info (void)
       DWORD data;
     } version;
 
+  /* Cache the module handle of Emacs itself.  */
+  hinst = GetModuleHandle (NULL);
+
   /* Cache the version of the operating system.  */
   version.data = GetVersion ();
   w32_major_version = version.info.major;
@@ -7036,7 +7041,7 @@ cache_system_info (void)
 
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);
-  syspage_mask = sysinfo_cache.dwPageSize - 1;
+  syspage_mask = (DWORD_PTR)sysinfo_cache.dwPageSize - 1;
 
   /* Cache os info.  */
   osinfo_cache.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);

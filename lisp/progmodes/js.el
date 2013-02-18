@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -1680,11 +1680,14 @@ This performs fontification according to `js--class-styles'."
      "each"))
   "Regexp matching keywords optionally followed by an opening brace.")
 
+(defconst js--declaration-keyword-re
+  (regexp-opt '("var" "let" "const") 'words)
+  "Regular expression matching variable declaration keywords.")
+
 (defconst js--indent-operator-re
   (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|"
           (js--regexp-opt-symbol '("in" "instanceof")))
   "Regexp matching operators that affect indentation of continued expressions.")
-
 
 (defun js--looking-at-operator-p ()
   "Return non-nil if point is on a JavaScript operator, other than a comma."
@@ -1764,6 +1767,37 @@ nil."
          (list (cons 'c js-comment-lineup-func))))
     (c-get-syntactic-indentation (list (cons symbol anchor)))))
 
+(defun js--multi-line-declaration-indentation ()
+  "Helper function for `js--proper-indentation'.
+Return the proper indentation of the current line if it belongs to a declaration
+statement spanning multiple lines; otherwise, return nil."
+  (let (at-opening-bracket)
+    (save-excursion
+      (back-to-indentation)
+      (when (not (looking-at js--declaration-keyword-re))
+        (when (looking-at js--indent-operator-re)
+          (goto-char (match-end 0)))
+        (while (and (not at-opening-bracket)
+                    (not (bobp))
+                    (let ((pos (point)))
+                      (save-excursion
+                        (js--backward-syntactic-ws)
+                        (or (eq (char-before) ?,)
+                            (and (not (eq (char-before) ?\;))
+                                 (prog2
+                                     (skip-chars-backward "[[:punct:]]")
+                                     (looking-at js--indent-operator-re)
+                                   (js--backward-syntactic-ws))
+                                 (not (eq (char-before) ?\;)))
+                            (and (>= pos (point-at-bol))
+                                 (<= pos (point-at-eol)))))))
+          (condition-case nil
+              (backward-sexp)
+            (scan-error (setq at-opening-bracket t))))
+        (when (looking-at js--declaration-keyword-re)
+          (goto-char (match-end 0))
+          (1+ (current-column)))))))
+
 (defun js--proper-indentation (parse-status)
   "Return the proper indentation for the current line."
   (save-excursion
@@ -1772,6 +1806,7 @@ nil."
            (js--get-c-offset 'c (nth 8 parse-status)))
           ((nth 8 parse-status) 0) ; inside string
           ((js--ctrl-statement-indentation))
+          ((js--multi-line-declaration-indentation))
           ((eq (char-after) ?#) 0)
           ((save-excursion (js--beginning-of-macro)) 4)
           ((nth 1 parse-status)
@@ -3370,8 +3405,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; calls to syntax-propertize wherever it's really needed.
   (syntax-propertize (point-max)))
 
-;;;###autoload
-(defalias 'javascript-mode 'js-mode)
+;;;###autoload (defalias 'javascript-mode 'js-mode)
 
 (eval-after-load 'folding
   '(when (fboundp 'folding-add-to-marks-list)

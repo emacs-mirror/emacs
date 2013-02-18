@@ -1,6 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1999-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,9 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <unistd.h>
 
-#include <allocator.h>
 #include <c-ctype.h>
-#include <careadlinkat.h>
 #include <ignore-value.h>
 #include <utimens.h>
 
@@ -529,10 +527,10 @@ sys_subshell (void)
 #ifdef DOS_NT    /* MW, Aug 1993 */
       getcwd (oldwd, sizeof oldwd);
       if (sh == 0)
-	sh = (char *) egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
+	sh = egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
 #endif
       if (sh == 0)
-	sh = (char *) egetenv ("SHELL");
+	sh = egetenv ("SHELL");
       if (sh == 0)
 	sh = "sh";
 
@@ -714,6 +712,27 @@ init_foreground_group (void)
   inherited_pgroup = getpid () == pgrp ? 0 : pgrp;
 }
 
+/* Block and unblock SIGTTOU.  */
+
+void
+block_tty_out_signal (void)
+{
+#ifdef SIGTTOU
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGTTOU);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
+#endif
+}
+
+void
+unblock_tty_out_signal (void)
+{
+#ifdef SIGTTOU
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+#endif
+}
+
 /* Safely set a controlling terminal FD's process group to PGID.
    If we are not in the foreground already, POSIX requires tcsetpgrp
    to deliver a SIGTTOU signal, which would stop us.  This is an
@@ -725,11 +744,10 @@ static void
 tcsetpgrp_without_stopping (int fd, pid_t pgid)
 {
 #ifdef SIGTTOU
-  signal_handler_t handler;
   block_input ();
-  handler = signal (SIGTTOU, SIG_IGN);
+  block_tty_out_signal ();
   tcsetpgrp (fd, pgid);
-  signal (SIGTTOU, handler);
+  unblock_tty_out_signal ();
   unblock_input ();
 #endif
 }
@@ -1658,6 +1676,25 @@ deliver_arith_signal (int sig)
   deliver_thread_signal (sig, handle_arith_signal);
 }
 
+#ifdef SIGDANGER
+
+/* Handler for SIGDANGER.  */
+static void
+handle_danger_signal (int sig)
+{
+  malloc_warning ("Operating system warns that virtual memory is running low.\n");
+
+  /* It might be unsafe to call do_auto_save now.  */
+  force_auto_save_soon ();
+}
+
+static void
+deliver_danger_signal (int sig)
+{
+  deliver_process_signal (sig, handle_danger_signal);
+}
+#endif
+
 /* Treat SIG as a terminating signal, unless it is already ignored and
    we are in --batch mode.  Among other things, this makes nohup work.  */
 static void
@@ -2110,7 +2147,7 @@ emacs_backtrace (int backtrace_limit)
 void
 emacs_abort (void)
 {
-  terminate_due_to_signal (SIGABRT, 10);
+  terminate_due_to_signal (SIGABRT, 40);
 }
 #endif
 
@@ -2207,22 +2244,6 @@ emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
     }
 
   return (bytes_written);
-}
-
-static struct allocator const emacs_norealloc_allocator =
-  { xmalloc, NULL, xfree, memory_full };
-
-/* Get the symbolic link value of FILENAME.  Return a pointer to a
-   NUL-terminated string.  If readlink fails, return NULL and set
-   errno.  If the value fits in INITIAL_BUF, return INITIAL_BUF.
-   Otherwise, allocate memory and return a pointer to that memory.  If
-   memory allocation fails, diagnose and fail without returning.  If
-   successful, store the length of the symbolic link into *LINKLEN.  */
-char *
-emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
-{
-  return careadlinkat (AT_FDCWD, filename, initial_buf, READLINK_BUFSIZE,
-		       &emacs_norealloc_allocator, careadlinkatcwd);
 }
 
 /* Return a struct timeval that is roughly equivalent to T.

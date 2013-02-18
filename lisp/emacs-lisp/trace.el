@@ -1,6 +1,6 @@
 ;;; trace.el --- tracing facility for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -38,11 +38,6 @@
 ;; generation of trace output won't interfere with what you are currently
 ;; doing.
 
-;; Requirement:
-;; ============
-;; trace.el needs advice.el version 2.0 or later which you can get from the
-;; same place from where you got trace.el.
-
 ;; Restrictions:
 ;; =============
 ;; - Traced subrs when called interactively will always show nil as the
@@ -54,17 +49,6 @@
 ;;     with them (e.g., car, cdr, ...)
 ;;   + Macros that were expanded during compilation
 ;; - All the restrictions that apply to advice.el
-
-;; Installation:
-;; =============
-;; Put this file together with advice.el (version 2.0 or later) somewhere
-;; into your Emacs `load-path', byte-compile it/them for efficiency, and
-;; put the following autoload declarations into your .emacs
-;;
-;;    (autoload 'trace-function "trace" "Trace a function" t)
-;;    (autoload 'trace-function-background "trace" "Trace a function" t)
-;;
-;; or explicitly load it with (require 'trace) or (load "trace").
 
 ;; Usage:
 ;; ======
@@ -183,6 +167,8 @@ some global variables)."
             (mapconcat 'char-to-string (make-string (1- level) ?|) " ")
             (if (> level 1) " " "")
             level
+            ;; FIXME: Make it so we can click the function name to jump to its
+            ;; definition and/or untrace it.
             (cons function args)
             context)))
 
@@ -270,9 +256,9 @@ be printed along with the arguments in the trace."
                (read-from-minibuffer "Context expression: "
                                      nil read-expression-map t
                                      'read-expression-history))))
-        `(lambda ()
-           (let ((print-circle t))
-             (concat " [" (prin1-to-string ,exp) "]"))))))))
+        (lambda ()
+          (let ((print-circle t))
+            (concat " [" (prin1-to-string (eval exp t)) "]"))))))))
 
 ;;;###autoload
 (defun trace-function-foreground (function &optional buffer context)
@@ -282,21 +268,17 @@ and return values will be inserted into BUFFER.  This function generates the
 trace advice for FUNCTION and activates it together with any other advice
 there might be!!  The trace BUFFER will popup whenever FUNCTION is called.
 Do not use this to trace functions that switch buffers or do any other
-display oriented stuff, use `trace-function-background' instead."
+display oriented stuff, use `trace-function-background' instead.
+
+To untrace a function, use `untrace-function' or `untrace-all'."
   (interactive (trace--read-args "Trace function: "))
   (trace-function-internal function buffer nil context))
 
 ;;;###autoload
 (defun trace-function-background (function &optional buffer context)
   "Traces FUNCTION with trace output going quietly to BUFFER.
-When this tracing is enabled, every call to FUNCTION writes
-a Lisp-style trace message (showing the arguments and return value)
-into BUFFER.  This function generates advice to trace FUNCTION
-and activates it together with any other advice there might be.
-The trace output goes to BUFFER quietly, without changing
-the window or buffer configuration.
-
-BUFFER defaults to `trace-buffer'."
+Like `trace-function-foreground' but without popping up the trace BUFFER or
+changing the window configuration."
   (interactive (trace--read-args "Trace function in background: "))
   (trace-function-internal function buffer t context))
 

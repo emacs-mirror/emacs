@@ -1,7 +1,7 @@
 /* sys/stat.h supplied with MSVCRT uses too narrow data types for
    inode and user/group id, so we replace them with our own.
 
-Copyright (C) 2008-2012  Free Software Foundation, Inc.
+Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -74,6 +74,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define S_ISDOOR(m)    0
 #define S_ISMPB(m)     0
 #define S_ISMPC(m)     0
+#define S_ISMPX(m)     0
 #define S_ISNWK(m)     0
 #define S_ISPORT(m)    0
 #define S_ISWHT(m)     0
@@ -98,6 +99,10 @@ struct stat {
   char		   st_gname[260];
 };
 
+/* Internal variable for asking 'stat'/'lstat' to produce accurate
+   info about owner and group of files. */
+extern int w32_stat_get_owner_group;
+
 /* Prevent redefinition by other headers, e.g. wchar.h.  */
 #define _STAT_DEFINED
 
@@ -105,6 +110,7 @@ _CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
 _CRTIMP int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
 _CRTIMP int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
 _CRTIMP int __cdecl __MINGW_NOTHROW	lstat (const char*, struct stat*);
+_CRTIMP int __cdecl __MINGW_NOTHROW	fstatat (int, char const *,
+						 struct stat *, int);
 
 #endif	/* INC_SYS_STAT_H_ */
-

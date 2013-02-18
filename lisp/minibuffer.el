@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -2045,10 +2045,7 @@ with `minibuffer-local-must-match-map'.")
     (define-key map "i" 'info)
     (define-key map "m" 'mail)
     (define-key map "n" 'make-frame)
-    (define-key map [mouse-1] (lambda () (interactive)
-				(with-current-buffer "*Messages*"
-				  (goto-char (point-max))
-				  (display-buffer (current-buffer)))))
+    (define-key map [mouse-1] 'view-echo-area-messages)
     ;; So the global down-mouse-1 binding doesn't clutter the execution of the
     ;; above mouse-1 binding.
     (define-key map [down-mouse-1] #'ignore)

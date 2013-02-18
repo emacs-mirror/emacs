@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -149,7 +149,6 @@ extern char *getenv ();
 #define chdir   sys_chdir
 #undef chmod
 #define chmod   sys_chmod
-#define chown   sys_chown
 #undef close
 #define close   sys_close
 #undef creat
@@ -178,6 +177,10 @@ extern char *getenv ();
 #define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
+/* This prototype is needed because some files include config.h
+   _after_ the standard headers, so sys_unlink gets no prototype from
+   stdio.h or io.h.  */
+extern int sys_unlink (const char *);
 #undef write
 #define write   sys_write
 
@@ -218,7 +221,6 @@ typedef int pid_t;
 #define strtoll   _strtoi64
 #endif
 #define isatty    _isatty
-#define logb      _logb
 #define _longjmp  longjmp
 #define lseek     _lseek
 #define popen     _popen
@@ -261,8 +263,11 @@ struct timespec
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
 extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
+#ifdef _MSC_VER
 /* This is hacky, but is necessary to avoid warnings about macro
-   redefinitions using the SDK compilers.  */
+   redefinitions using the MSVC compilers, since, when __STDC__ is
+   undefined or zero, those compilers declare functions like fileno,
+   lseek, and chdir, for which we defined macros above.  */
 #ifndef __STDC__
 #define __STDC__ 1
 #define MUST_UNDEF__STDC__
@@ -274,6 +279,11 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #undef __STDC__
 #undef MUST_UNDEF__STDC__
 #endif
+#else  /* !_MSC_VER */
+#include <direct.h>
+#include <io.h>
+#include <stdio.h>
+#endif	/* !_MSC_VER */
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */
@@ -287,6 +297,10 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
 #ifndef NSIG
 #define NSIG 23
+#endif
+
+#ifndef ENOTSUP
+#define ENOTSUP ENOSYS
 #endif
 
 #ifdef _MSC_VER
@@ -385,6 +399,9 @@ extern int sys_putenv (char *);
 
 extern int getloadavg (double *, int);
 extern int getpagesize (void);
+
+extern void * memrchr (void const *, int, size_t);
+
 
 #if defined (__MINGW32__)
 

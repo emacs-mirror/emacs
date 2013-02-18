@@ -1,6 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1167,7 +1167,7 @@ using `gnus-ignored-from-addresses'."
 
 (defcustom gnus-summary-newsgroup-prefix "=> "
   "*String prefixed to the Newsgroup field in the summary
-line when using `gnus-ignored-from-addresses'."
+line when using the option `gnus-ignored-from-addresses'."
   :version "22.1"
   :group 'gnus-summary
   :type 'string)
@@ -1819,6 +1819,7 @@ increase the score of each group you read."
 
 (gnus-define-keys gnus-summary-mode-map
   " " gnus-summary-next-page
+  [?\S-\ ] gnus-summary-prev-page
   "\177" gnus-summary-prev-page
   [delete] gnus-summary-prev-page
   [backspace] gnus-summary-prev-page
@@ -2058,6 +2059,7 @@ increase the score of each group you read."
 (gnus-define-keys (gnus-summary-article-map "A" gnus-summary-mode-map)
   " " gnus-summary-next-page
   "n" gnus-summary-next-page
+  [?\S-\ ] gnus-summary-prev-page
   "\177" gnus-summary-prev-page
   [delete] gnus-summary-prev-page
   "p" gnus-summary-prev-page
@@ -3493,8 +3495,8 @@ If the setup was successful, non-nil is returned."
 	  (set-buffer buffer)
 	  (setq gnus-summary-buffer (current-buffer))
 	  (not gnus-newsgroup-prepared))
-      ;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>
-      (setq gnus-summary-buffer (set-buffer (gnus-get-buffer-create buffer)))
+      (set-buffer (gnus-get-buffer-create buffer))
+      (setq gnus-summary-buffer (current-buffer))
       (gnus-summary-mode group)
       (when (gnus-group-quit-config group)
 	(set (make-local-variable 'gnus-single-article-buffer) nil))
@@ -3552,11 +3554,7 @@ buffer that was in action when the last article was fetched."
 	    (if (consp (car locals))
 		(set (caar locals) (pop vlist))
 	      (set (car locals) (pop vlist)))
-	    (setq locals (cdr locals))))
-	;; The article buffer also has local variables.
-	(when (gnus-buffer-live-p gnus-article-buffer)
-	  (set-buffer gnus-article-buffer)
-	  (setq gnus-summary-buffer summary))))))
+	    (setq locals (cdr locals))))))))
 
 (defun gnus-summary-article-unread-p (article)
   "Say whether ARTICLE is unread or not."
@@ -3655,17 +3653,18 @@ buffer that was in action when the last article was fetched."
   (or (car (funcall gnus-extract-address-components from))
       from))
 
-(defun gnus-summary-from-or-to-or-newsgroups (header gnus-tmp-from)
+(defun gnus-summary-from-or-to-or-newsgroups (header from)
   (let ((mail-parse-charset gnus-newsgroup-charset)
-	(ignored-from-addresses (gnus-ignored-from-addresses))
-	; Is it really necessary to do this next part for each summary line?
-	; Luckily, doesn't seem to slow things down much.
-	(mail-parse-ignored-charsets
-	 (with-current-buffer gnus-summary-buffer
-	   gnus-newsgroup-ignored-charsets)))
+        (ignored-from-addresses (gnus-ignored-from-addresses))
+        ;; Is it really necessary to do this next part for each summary line?
+        ;; Luckily, doesn't seem to slow things down much.
+        (mail-parse-ignored-charsets
+         (with-current-buffer gnus-summary-buffer
+           gnus-newsgroup-ignored-charsets))
+        (address (cadr (gnus-extract-address-components from))))
     (or
      (and ignored-from-addresses
-	  (string-match ignored-from-addresses gnus-tmp-from)
+	  (string-match ignored-from-addresses address)
 	  (let ((extra-headers (mail-header-extra header))
 		to
 		newsgroups)
@@ -3684,9 +3683,7 @@ buffer that was in action when the last article was fetched."
                                 gnus-newsgroup-name)) 'nntp)
 		      (gnus-group-real-name gnus-newsgroup-name))))
 	      (concat gnus-summary-newsgroup-prefix newsgroups)))))
-     (gnus-string-mark-left-to-right
-      (inline
-       (gnus-summary-extract-address-component gnus-tmp-from))))))
+     (gnus-string-mark-left-to-right (gnus-summary-extract-address-component from)))))
 
 (defun gnus-summary-insert-line (gnus-tmp-header
 				 gnus-tmp-level gnus-tmp-current
@@ -4063,9 +4060,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 gnus-auto-select-first)
 	    (progn
 	      (let ((art (gnus-summary-article-number)))
-		(unless (and (not gnus-plugged)
-			     (or (memq art gnus-newsgroup-undownloaded)
-				 (memq art gnus-newsgroup-downloadable)))
+		(when (and art
+			   gnus-plugged
+			   (not (memq art gnus-newsgroup-undownloaded))
+			   (not (memq art gnus-newsgroup-downloadable)))
 		  (gnus-summary-goto-article art))))
 	  ;; Don't select any articles.
 	  (gnus-summary-position-point)
@@ -7874,7 +7872,6 @@ If STOP is non-nil, just stop when reaching the end of the message.
 
 Also see the variable `gnus-article-skip-boring'."
   (interactive "P")
-  (setq gnus-summary-buffer (current-buffer))
   (gnus-set-global-variables)
   (let ((article (gnus-summary-article-number))
 	(article-window (get-buffer-window gnus-article-buffer t))
@@ -10127,17 +10124,20 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
 (defun gnus-summary-push-marks-to-backend (article)
   (let ((set nil)
+	(del nil)
 	(marks gnus-article-mark-lists))
     (unless (memq article gnus-newsgroup-unreads)
       (push 'read set))
     (while marks
-      (when (and (eq (gnus-article-mark-to-type (cdar marks)) 'list)
-		 (memq article (symbol-value
-				(intern (format "gnus-newsgroup-%s"
-						(caar marks))))))
-	(push (cdar marks) set))
+      (if (and (eq (gnus-article-mark-to-type (cdar marks)) 'list)
+	       (memq article (symbol-value
+			      (intern (format "gnus-newsgroup-%s"
+					      (caar marks))))))
+	  (push (cdar marks) set)
+	(push (cdar marks) del))
       (pop marks))
-    (gnus-request-set-mark gnus-newsgroup-name `(((,article) set ,set)))))
+    (gnus-request-set-mark gnus-newsgroup-name `(((,article) set ,set)
+						 ((,article) del ,del)))))
 
 (defun gnus-summary-copy-article (&optional n to-newsgroup select-method)
   "Copy the current article to some other group.
@@ -11647,10 +11647,10 @@ If PREDICATE is supplied, threads that satisfy this predicate
 will not be hidden.
 Returns nil if no threads were there to be hidden."
   (interactive)
+  (beginning-of-line)
   (let ((start (point))
 	(starteol (line-end-position))
 	(article (gnus-summary-article-number)))
-    (goto-char start)
     ;; Go forward until either the buffer ends or the subthread ends.
     (when (and (not (eobp))
 	       (or (zerop (gnus-summary-next-thread 1 t))
@@ -12521,7 +12521,7 @@ If REVERSE, save parts that do not match TYPE."
                         (memq article gnus-newsgroup-undownloaded)
                         (not (memq article gnus-newsgroup-cached)))))
     (let ((face (funcall (gnus-summary-highlight-line-0))))
-      (unless (eq face (get-text-property beg 'face))
+      (unless (eq face (gnus-get-text-property-excluding-characters-with-faces beg 'face))
 	(gnus-put-text-property-excluding-characters-with-faces
 	 beg (point-at-eol) 'face
 	 (setq face (if (boundp face) (symbol-value face) face)))

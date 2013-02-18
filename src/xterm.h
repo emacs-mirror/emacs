@@ -1,5 +1,6 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2012 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993-1994, 1998-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -473,12 +474,13 @@ struct x_output
   GtkWidget *menubar_widget;
   /* The tool bar in this frame  */
   GtkWidget *toolbar_widget;
-  /* The handle box that makes the tool bar detachable.  */
+#ifdef HAVE_GTK_HANDLE_BOX_NEW
+/* The handle box that makes the tool bar detachable.  */
   GtkWidget *handlebox_widget;
-  /* Non-zero if the tool bar is detached.  */
-  int toolbar_detached;
+#endif
   /* Non-zero if tool bar is packed into the hbox widget (i.e. vertical).  */
-  int toolbar_in_hbox;
+  bool toolbar_in_hbox;
+  bool toolbar_is_packed;
 
   /* The last size hints set.  */
   GdkGeometry size_hints;

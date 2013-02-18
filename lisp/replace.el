@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2013 Free
+;; Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -585,27 +585,32 @@ of `history-length', which see.")
 When PROMPT doesn't end with a colon and space, it adds a final \": \".
 If DEFAULTS is non-nil, it displays the first default in the prompt.
 
-Non-nil optional arg DEFAULTS is a string or a list of strings that
-are prepended to a list of standard default values, which include the
-string at point, the last isearch regexp, the last isearch string, and
-the last replacement regexp.
+Optional arg DEFAULTS is a string or a list of strings that are
+prepended to a list of standard default values, which include the
+tag at point, the last isearch regexp, the last isearch string,
+and the last replacement regexp.
 
 Non-nil HISTORY is a symbol to use for the history list.
 If HISTORY is nil, `regexp-history' is used."
-  (let* ((default (if (consp defaults) (car defaults) defaults))
-	 (defaults
+  (let* ((defaults
 	   (append
 	    (if (listp defaults) defaults (list defaults))
-	    (list (regexp-quote
-		   (or (funcall (or find-tag-default-function
+	    (list
+	     ;; Regexp for tag at point.
+	     (let* ((tagf (or find-tag-default-function
 				    (get major-mode 'find-tag-default-function)
 				    'find-tag-default))
-		       ""))
+		    (tag (funcall tagf)))
+	       (cond ((not tag) "")
+		     ((eq tagf 'find-tag-default)
+		      (format "\\_<%s\\_>" (regexp-quote tag)))
+		     (t (regexp-quote tag))))
 		  (car regexp-search-ring)
 		  (regexp-quote (or (car search-ring) ""))
 		  (car (symbol-value
 			query-replace-from-history-variable)))))
 	 (defaults (delete-dups (delq nil (delete "" defaults))))
+	 (default (car defaults))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
 	 (input (read-from-minibuffer
@@ -1819,19 +1824,6 @@ make, or the user didn't cancel the call."
 	    case-fold-search))
          (nocasify (not (and case-replace case-fold-search)))
          (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
-         (search-function
-	  (or (if regexp-flag
-		  replace-re-search-function
-		replace-search-function)
-	      (let ((isearch-regexp regexp-flag)
-		    (isearch-word delimited-flag)
-		    (isearch-lax-whitespace
-		     replace-lax-whitespace)
-		    (isearch-regexp-lax-whitespace
-		     replace-regexp-lax-whitespace)
-		    (isearch-case-fold-search case-fold-search)
-		    (isearch-forward t))
-		(isearch-search-fun))))
          (search-string from-string)
          (real-match-data nil)       ; The match data for the current match.
          (next-replacement nil)
@@ -1894,39 +1886,62 @@ make, or the user didn't cancel the call."
 	;; Loop finding occurrences that perhaps should be replaced.
 	(while (and keep-going
 		    (not (or (eobp) (and limit (>= (point) limit))))
-		    ;; Use the next match if it is already known;
-		    ;; otherwise, search for a match after moving forward
-		    ;; one char if progress is required.
-		    (setq real-match-data
-			  (cond ((consp match-again)
-				 (goto-char (nth 1 match-again))
-				 (replace-match-data
-				  t real-match-data match-again))
-				;; MATCH-AGAIN non-nil means accept an
-				;; adjacent match.
-				(match-again
-				 (and
-				  (funcall search-function search-string
-					   limit t)
-				  ;; For speed, use only integers and
-				  ;; reuse the list used last time.
-				  (replace-match-data t real-match-data)))
-				((and (< (1+ (point)) (point-max))
-				      (or (null limit)
-					  (< (1+ (point)) limit)))
-				 ;; If not accepting adjacent matches,
-				 ;; move one char to the right before
-				 ;; searching again.  Undo the motion
-				 ;; if the search fails.
-				 (let ((opoint (point)))
-				   (forward-char 1)
-				   (if (funcall
-					search-function search-string
-					limit t)
-				       (replace-match-data
-					t real-match-data)
-				     (goto-char opoint)
-				     nil))))))
+		    ;; Let-bind global isearch-* variables to values used
+		    ;; to search the next replacement.  These let-bindings
+		    ;; should be effective both at the time of calling
+		    ;; `isearch-search-fun-default' and also at the
+		    ;; time of funcalling `search-function'.
+		    ;; These isearch-* bindings can't be placed higher
+		    ;; outside of this loop because then another I-search
+		    ;; used after `recursive-edit' might override them.
+		    (let* ((isearch-regexp regexp-flag)
+			   (isearch-word delimited-flag)
+			   (isearch-lax-whitespace
+			    replace-lax-whitespace)
+			   (isearch-regexp-lax-whitespace
+			    replace-regexp-lax-whitespace)
+			   (isearch-case-fold-search case-fold-search)
+			   (isearch-adjusted nil)
+			   (isearch-nonincremental t) ; don't use lax word mode
+			   (isearch-forward t)
+			   (search-function
+			    (or (if regexp-flag
+				    replace-re-search-function
+				  replace-search-function)
+				(isearch-search-fun-default))))
+		      ;; Use the next match if it is already known;
+		      ;; otherwise, search for a match after moving forward
+		      ;; one char if progress is required.
+		      (setq real-match-data
+			    (cond ((consp match-again)
+				   (goto-char (nth 1 match-again))
+				   (replace-match-data
+				    t real-match-data match-again))
+				  ;; MATCH-AGAIN non-nil means accept an
+				  ;; adjacent match.
+				  (match-again
+				   (and
+				    (funcall search-function search-string
+					     limit t)
+				    ;; For speed, use only integers and
+				    ;; reuse the list used last time.
+				    (replace-match-data t real-match-data)))
+				  ((and (< (1+ (point)) (point-max))
+					(or (null limit)
+					    (< (1+ (point)) limit)))
+				   ;; If not accepting adjacent matches,
+				   ;; move one char to the right before
+				   ;; searching again.  Undo the motion
+				   ;; if the search fails.
+				   (let ((opoint (point)))
+				     (forward-char 1)
+				     (if (funcall
+					  search-function search-string
+					  limit t)
+					 (replace-match-data
+					  t real-match-data)
+				       (goto-char opoint)
+				       nil)))))))
 
 	  ;; Record whether the match is nonempty, to avoid an infinite loop
 	  ;; repeatedly matching the same empty string.

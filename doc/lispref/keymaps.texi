@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -94,9 +94,6 @@ Manual}.
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
-
-This macro is not meant for use with arguments that vary---only
-with string constants.
 @end defun
 
 @node Keymap Basics
@@ -330,10 +327,12 @@ these characters to @code{nil}, and does not bind any other kind of
 event.  The argument @var{prompt} specifies a
 prompt string, as in @code{make-sparse-keymap}.
 
+@c This example seems kind of pointless, but I guess it serves
+@c to contrast the result with make-sparse-keymap above.
 @example
 @group
 (make-keymap)
-    @result{} (keymap #^[t nil nil nil @dots{} nil nil keymap])
+    @result{} (keymap #^[nil nil keymap nil nil nil @dots{}])
 @end group
 @end example
 
@@ -637,8 +636,8 @@ keymap, and the global keymap, in that order.  Emacs searches for each
 input key sequence in all these keymaps.  @xref{Searching Keymaps},
 for more details of this procedure.
 
-  When the key sequence starts with a mouse event (optionally preceded
-by a symbolic prefix), the active keymaps are determined based on the
+  When the key sequence starts with a mouse event,
+the active keymaps are determined based on the
 position in that event.  If the event happened on a string embedded
 with a @code{display}, @code{before-string}, or @code{after-string}
 property (@pxref{Special Properties}), the non-@code{nil} map
@@ -769,8 +768,7 @@ them:
 @var{find-in} and @var{find-in-any} are pseudo functions that search
 in one keymap and in an alist of keymaps, respectively.  (Searching a
 single keymap for a binding is called @dfn{key lookup}; see @ref{Key
-Lookup}.)  If the key sequence starts with a mouse event, or a
-symbolic prefix event followed by a mouse event, that event's position
+Lookup}.)  If the key sequence starts with a mouse event, that event's position
 is used instead of point and the current buffer.  Mouse events on an
 embedded string use non-@code{nil} text properties from that string
 instead of the buffer.  @var{temp-map} is a pseudo variable that
@@ -1786,7 +1784,7 @@ that uses @var{key} as a prefix---which would not be allowed if
 @end group
 @end smallexample
 
-This function is implemented simply using @code{define-key}:
+This function is equivalent to using @code{define-key} as follows:
 
 @smallexample
 @group
@@ -1976,9 +1974,6 @@ modes---minor modes first, then the major mode, then global bindings.
 
 If @var{prefix} is non-@code{nil}, it should be a prefix key; then the
 listing includes only keys that start with @var{prefix}.
-
-The listing describes meta characters as @key{ESC} followed by the
-corresponding non-meta character.
 
 When several characters with consecutive @acronym{ASCII} codes have the
 same definition, they are shown together, as

@@ -2,15 +2,15 @@
 
 @include gnus-overrides.texi
 
+@set VERSION 0.3
+
 @setfilename ../../info/auth
 @settitle Emacs auth-source Library @value{VERSION}
-
-@set VERSION 0.3
 
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -18,17 +18,10 @@ under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
 and with the Back-Cover Texts as in (a) below.  A copy of the license
-is included in the section entitled ``GNU Free Documentation License''
-in the Emacs manual.
+is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -68,6 +61,7 @@ It is a way for multiple applications to share a single configuration
 * Secret Service API::
 * Help for developers::
 * GnuPG and EasyPG Assistant Configuration::
+* GNU Free Documentation License::  The license for this documentation.
 * Index::
 * Function Index::
 * Variable Index::
@@ -160,7 +154,8 @@ and simplest configuration is:
 (setq auth-sources '((:source "~/.authinfo.gpg")))
 ;;; even shorter and the @emph{default}:
 (setq auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc"))
-;;; use the Secrets API @var{Login} collection (@pxref{Secret Service API})
+;;; use the Secrets API @var{Login} collection
+;;; (@pxref{Secret Service API})
 (setq auth-sources '("secrets:Login"))
 @end lisp
 
@@ -173,7 +168,8 @@ have unusual setups and the remaining 10% are @emph{really} unusual).
 Here's a mixed example using two sources:
 
 @lisp
-(setq auth-sources '((:source (:secrets default) :host "myserver" :user "joe")
+(setq auth-sources '((:source (:secrets default)
+                      :host "myserver" :user "joe")
                      "~/.authinfo.gpg"))
 @end lisp
 
@@ -522,16 +518,20 @@ To set up gpg-agent, follow the instruction in GnuPG manual
 To set up elisp passphrase cache, set
 @code{epa-file-cache-passphrase-for-symmetric-encryption}.
 
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
 @node Index
-@chapter Index
+@unnumbered Index
 @printindex cp
 
 @node Function Index
-@chapter Function Index
+@unnumbered Function Index
 @printindex fn
 
 @node Variable Index
-@chapter Variable Index
+@unnumbered Variable Index
 @printindex vr
 
 @bye

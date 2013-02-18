@@ -6,7 +6,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -17,8 +17,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -749,7 +748,7 @@ This function attempts to convert @var{object} to the specified
 @var{type}.  If @var{object} is already of that type as determined by
 @code{cl-typep}, it is simply returned.  Otherwise, certain types of
 conversions will be made:  If @var{type} is any sequence type
-(@code{string}, @code{list}, etc.) then @var{object} will be
+(@code{string}, @code{list}, etc.)@: then @var{object} will be
 converted to that type if possible.  If @var{type} is
 @code{character}, then strings of length one and symbols with
 one-character names can be coerced.  If @var{type} is @code{float},
@@ -818,8 +817,9 @@ not compare strings against vectors of integers.
 Also note that the Common Lisp functions @code{member} and @code{assoc}
 use @code{eql} to compare elements, whereas Emacs Lisp follows the
 MacLisp tradition and uses @code{equal} for these two functions.
-In Emacs, use @code{memq} (or @code{cl-member}) and @code{assq} (or
-@code{cl-assoc}) to get functions which use @code{eql} for comparisons.
+The functions @code{cl-member} and @code{cl-assoc} use @code{eql},
+as in Common Lisp.  The standard Emacs Lisp functions @code{memq} and
+@code{assq} use @code{eq}, and the standard @code{memql} uses @code{eql}.
 
 @node Control Structure
 @chapter Control Structure
@@ -1200,9 +1200,6 @@ The only exceptions are plain variables and calls to
 bound on entry, it is simply made unbound by @code{makunbound} or
 @code{fmakunbound} on exit.
 @end ignore
-
-Note that the @file{cl.el} version of this macro behaves slightly
-differently.  @xref{Obsolete Macros}.
 @end defmac
 
 @defmac cl-letf* (bindings@dots{}) forms@dots{}
@@ -4886,13 +4883,6 @@ does not behave in precisely the same way.
 This version of @code{labels} uses the obsolete @code{lexical-let}
 form (@pxref{Obsolete Lexical Binding}), rather than the true
 lexical binding that @code{cl-labels} uses.
-@end defmac
-
-@defmac letf (bindings@dots{}) forms@dots{}
-This macro is almost exactly the same as @code{cl-letf}, which
-replaces it (@pxref{Modify Macros}).  The only difference is in
-details that relate to some deprecated usage of @code{symbol-function}
-in place forms.
 @end defmac
 
 @node Obsolete Setf Customization

@@ -1,6 +1,6 @@
 ;;; ob-picolisp.el --- org-babel functions for picolisp evaluation
 
-;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Authors: Thorsten Jolitz
 ;;	 Eric Schulte

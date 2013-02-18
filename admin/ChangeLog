@@ -1,3 +1,32 @@
+2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Tune by using memchr and memrchr.
+	* merge-gnulib (GNULIB_MODULES): Add memrchr.
+
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* merge-gnulib (GNULIB_MODULES): Add fdopendir, fstatat, readlinkat.
+	(GNULIB_TOOL_FLAGS): Do not avoid at-internal, openat-h.
+	Avoid dup, open, opendir.
+
+2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/xsave.cocci: Semantic patch to adjust users of
+	XSAVE_POINTER and XSAVE_INTEGER macros.
+
+2013-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* check-doc-strings: Update for CVS->bzr, moved lispref/ directory.
+
+	* emacs-pretesters, make-announcement, make-changelog-diff:
+	Remove files.
+
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* CPP-DEFINES (BSD4_2): Remove.
+
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
@@ -120,15 +149,14 @@
 
 	* grammars/bovine-grammar.el (bovine--grammar-newstyle-unquote):
 	Remove.
-        (bovine-grammar-expand-form): Test for emacs-major-version.
+	(bovine-grammar-expand-form): Test for emacs-major-version.
 
 	* grammars/c.by: Add EXPLICIT to keyword tokens.
+	Add %provide token.
 
-        * grammars/f90.by: Add %provide token.
-
-        * grammar/grammar.wy (semantic-grammar-lexer): Remove, since it
+	* grammars/grammar.wy (semantic-grammar-lexer): Remove, since it
 	was copied to grammar.el.  New %provide token to generate prefix
-	which conforms with Emacs conventions.  Remove lexer definition,
+	which conforms with Emacs conventions.	Remove lexer definition,
 	which is now in grammar.el.
 
 2012-09-27  Glenn Morris  <rgm@gnu.org>
@@ -172,7 +200,7 @@
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify SIGIO usage (Bug#12408).
-	* CPP_DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	* CPP-DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
 	(BROKEN_SIGPTY, NO_TERMIO): Remove.
 
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1660,7 +1688,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
