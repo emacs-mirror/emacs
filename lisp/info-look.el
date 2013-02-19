@@ -27,6 +27,14 @@
 ;; Really cool code to lookup info indexes.
 ;; Try especially info-lookup-symbol (aka C-h S).
 
+;; Some additional sources of (Tex)info files for non-GNU packages:
+;;
+;; Scheme: <URL:http://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz>
+;; LaTeX:
+;;  <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/latex2e.texi>
+;;  (or CTAN mirrors)
+;; Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/> (or CPAN mirrors)
+
 ;;; Code:
 
 (require 'info)

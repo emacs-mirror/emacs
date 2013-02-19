@@ -41,9 +41,6 @@ a web search is often the best way to find results.
   The Emacs Wiki has an area for storing elisp files
   <URL:http://www.emacswiki.org/cgi-bin/wiki/ElispArea>.
 
-* WikEmacs
-  <URL:http://wikemacs.org> is an alternative wiki for Emacs.
-
 * Emacs slides and tutorials can be found here:
    <URL:http://web.psung.name/emacs/>
 
@@ -55,15 +52,7 @@ so you will find the latest version in Emacs.
 
  * Ada-mode: <URL:http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html>
 
- * Battery and Info Look: <URL:http://ralph-schleicher.de/emacs.html>
-
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
-
- * CPerl: <URL:http://math.berkeley.edu/~ilya/software/emacs/>
-
- * Ediff and Viper: <URL:http://www.cs.sunysb.edu/~kifer/emacs.html>
-
- * ERC: <URL:http://savannah.gnu.org/projects/erc/>
 
  * Gnus: <URL:http://www.gnus.org/>
 
@@ -73,24 +62,10 @@ so you will find the latest version in Emacs.
 
  * Org mode: <URL:http://orgmode.org/>
 
- * RefTeX: <URL:http://www.gnu.org/software/auctex/reftex.html>
-
- * Remember: <URL:https://gna.org/p/remember-el>
-
  * CEDET: <URL:http://cedet.sourceforge.net/>
 
  * Tramp: Remote file access via rsh/ssh
    <URL:http://savannah.gnu.org/projects/tramp/>
-
-* Auxiliary files
-
- * (Tex)info files for use with Info-look that don't come from GNU
-   packages:
-   * Scheme: <URL:http://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz>
-   * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
-       latex2e.texi> (or CTAN mirrors)
-   * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/>
-       (or CPAN mirrors)
 
 * GNU Zile: <URL:http://www.gnu.org/software/zile/>
   A lightweight Emacs clone, for when you don't have room for Emacs proper.
@@ -108,6 +83,7 @@ packages that you can install.
  * AUCTeX: <URL:http://www.gnu.org/software/auctex/>
    An extensible package that supports writing and formatting TeX
    files (including AMS-TeX, LaTeX, Texinfo, ConTeXt, and docTeX).
+   Includes Preview LaTeX: embed preview LaTeX images in source buffer.
    Available from GNU ELPA.
 
  * BBDB: personal Info Rolodex integrated with mail/news:
@@ -134,6 +110,7 @@ packages that you can install.
 
  * Emacs Muse: <URL:http://mwolson.org/projects/EmacsMuse.html>
    An authoring and publishing environment for Emacs.
+   Available from GNU ELPA.
 
  * Emacs speaks statistics (ESS): statistical programming within Emacs
    <URL:http://ess.r-project.org>
@@ -169,9 +146,6 @@ packages that you can install.
 
  * Planner Mode: <URL:http://www.wjsullivan.net/PlannerMode.html>
    Planner is an organizer and day planner for Emacs.
-
- * Preview LaTeX: embed preview LaTeX images in source buffer.
-   <URL:http://www.gnu.org/software/auctex/preview-latex.html>
 
  * Quack: <URL:http://www.neilvandyke.org/quack/>
    Quack enhances Emacs support for Scheme.
