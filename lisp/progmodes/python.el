@@ -2976,7 +2976,10 @@ not inside a defun."
                              ;; Else go to the end of defun and add
                              ;; up the current indentation to the
                              ;; ending position.
-                             (python-nav-end-of-defun)
+                             (save-match-data
+                               ;; FIXME: avoid cluttering match-data
+                               ;; where's not wanted.
+                               (python-nav-end-of-defun))
                              (+ (point)
                                 (if (>= (current-indentation) min-indent)
                                     (1+ (current-indentation))

@@ -1,5 +1,10 @@
 2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
 
+	* progmodes/python.el (python-info-current-defun): Fix failed
+	defun name retrieval because of unwanted match-data cluttering.
+
+2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	* progmodes/python.el (python-indent-context): Fix
 	python-info-line-ends-backslash-p call.
 	(python-info-line-ends-backslash-p)
