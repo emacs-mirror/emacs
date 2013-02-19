@@ -45,7 +45,7 @@ variable `eieio-default-superclass'."
 						nil t)))
 		 nil))
   (if (not root-class) (setq root-class 'eieio-default-superclass))
-  (if (not (class-p root-class)) (signal 'wrong-type-argument (list 'class-p root-class)))
+  (eieio--check-type class-p root-class)
   (display-buffer (get-buffer-create "*EIEIO OBJECT BROWSE*") t)
   (with-current-buffer (get-buffer "*EIEIO OBJECT BROWSE*")
     (erase-buffer)
@@ -58,9 +58,9 @@ variable `eieio-default-superclass'."
 Argument THIS-ROOT is the local root of the tree.
 Argument PREFIX is the character prefix to use.
 Argument CH-PREFIX is another character prefix to display."
-  (if (not (class-p (eval this-root))) (signal 'wrong-type-argument (list 'class-p this-root)))
+  (eieio--check-type class-p this-root)
   (let ((myname (symbol-name this-root))
-	(chl (aref (class-v this-root) class-children))
+	(chl (eieio--class-children (class-v this-root)))
 	(fprefix (concat ch-prefix "  +--"))
 	(mprefix (concat ch-prefix "  |  "))
 	(lprefix (concat ch-prefix "     ")))
@@ -99,7 +99,7 @@ Optional HEADERFCN should be called to insert a few bits of info first."
       (princ "'"))
     (terpri)
     ;; Inheritance tree information
-    (let ((pl (class-parents class)))
+    (let ((pl (eieio-class-parents class)))
       (when pl
 	(princ " Inherits from ")
 	(while pl
@@ -107,7 +107,7 @@ Optional HEADERFCN should be called to insert a few bits of info first."
 	  (setq pl (cdr pl))
 	  (if pl (princ ", ")))
 	(terpri)))
-    (let ((ch (class-children class)))
+    (let ((ch (eieio-class-children class)))
       (when ch
 	(princ " Children ")
 	(while ch
@@ -177,13 +177,13 @@ Optional HEADERFCN should be called to insert a few bits of info first."
   "Describe the slots in CLASS.
 Outputs to the standard output."
   (let* ((cv (class-v class))
-	 (docs   (aref cv class-public-doc))
-	 (names  (aref cv class-public-a))
-	 (deflt  (aref cv class-public-d))
-	 (types  (aref cv class-public-type))
-	 (publp (aref cv class-public-printer))
+	 (docs   (eieio--class-public-doc cv))
+	 (names  (eieio--class-public-a cv))
+	 (deflt  (eieio--class-public-d cv))
+	 (types  (eieio--class-public-type cv))
+	 (publp (eieio--class-public-printer cv))
 	 (i      0)
-	 (prot   (aref cv class-protection))
+	 (prot   (eieio--class-protection cv))
 	 )
     (princ "Instance Allocated Slots:")
     (terpri)
@@ -213,11 +213,11 @@ Outputs to the standard output."
 	    publp (cdr publp)
 	    prot (cdr prot)
 	    i (1+ i)))
-    (setq docs  (aref cv class-class-allocation-doc)
-	  names (aref cv class-class-allocation-a)
-	  types (aref cv class-class-allocation-type)
+    (setq docs  (eieio--class-class-allocation-doc cv)
+	  names (eieio--class-class-allocation-a cv)
+	  types (eieio--class-class-allocation-type cv)
 	  i     0
-	  prot  (aref cv class-class-allocation-protection))
+	  prot  (eieio--class-class-allocation-protection cv))
     (when names
 	(terpri)
 	(princ "Class Allocated Slots:"))
@@ -281,7 +281,7 @@ Uses `eieio-describe-class' to describe the class being constructed."
 	     (mapcar
 	      (lambda (c)
 		(append (list c) (eieio-build-class-list c)))
-	      (class-children-fast class)))
+	      (eieio-class-children-fast class)))
     (list class)))
 
 (defun eieio-build-class-alist (&optional class instantiable-only buildlist)
@@ -291,7 +291,7 @@ If INSTANTIABLE-ONLY is non nil, only allow names of classes which
 are not abstract, otherwise allow all classes.
 Optional argument BUILDLIST is more list to attach and is used internally."
   (let* ((cc (or class eieio-default-superclass))
-	 (sublst (aref (class-v cc) class-children)))
+	 (sublst (eieio--class-children (class-v cc))))
     (unless (assoc (symbol-name cc) buildlist)
       (when (or (not instantiable-only) (not (class-abstract-p cc)))
 	(setq buildlist (cons (cons (symbol-name cc) 1) buildlist))))
@@ -335,8 +335,7 @@ are not abstract."
   "Describe the generic function GENERIC.
 Also extracts information about all methods specific to this generic."
   (interactive (list (eieio-read-generic "Generic Method: ")))
-  (if (not (generic-p generic))
-      (signal 'wrong-type-argument '(generic-p generic)))
+  (eieio--check-type generic-p generic)
   (with-output-to-temp-buffer (help-buffer) ; "*Help*"
     (help-setup-xref (list #'eieio-describe-generic generic)
 		     (called-interactively-p 'interactive))
@@ -757,9 +756,8 @@ current expansion depth."
 
 (defun eieio-class-button (class depth)
   "Draw a speedbar button at the current point for CLASS at DEPTH."
-  (if (not (class-p class))
-      (signal 'wrong-type-argument (list 'class-p class)))
-  (let ((subclasses (aref (class-v class) class-children)))
+  (eieio--check-type class-p class)
+  (let ((subclasses (eieio--class-children (class-v class))))
     (if subclasses
 	(speedbar-make-tag-line 'angle ?+
 				'eieio-sb-expand
@@ -784,7 +782,7 @@ Argument INDENT is the depth of indentation."
 	 (speedbar-with-writable
 	   (save-excursion
 	     (end-of-line) (forward-char 1)
-	     (let ((subclasses (aref (class-v class) class-children)))
+	     (let ((subclasses (eieio--class-children (class-v class))))
 	       (while subclasses
 		 (eieio-class-button (car subclasses) (1+ indent))
 		 (setq subclasses (cdr subclasses)))))))

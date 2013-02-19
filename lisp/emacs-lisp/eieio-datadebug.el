@@ -58,9 +58,9 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 	(end nil)
 	(str (object-print object))
 	(tip (format "Object %s\nClass: %S\nParent(s): %S\n%d slots"
-		     (object-name-string object)
-		     (object-class object)
-		     (class-parents (object-class object))
+		     (eieio-object-name-string object)
+		     (eieio-object-class object)
+		     (eieio-class-parents (eieio-object-class object))
 		     (length (object-slots object))
 		     ))
 	)
@@ -82,16 +82,16 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 (defmethod data-debug/eieio-insert-slots ((obj eieio-default-superclass)
 						prefix)
   "Insert the slots of OBJ into the current DDEBUG buffer."
-  (data-debug-insert-thing (object-name-string obj)
+  (data-debug-insert-thing (eieio-object-name-string obj)
 				prefix
 				"Name: ")
-  (let* ((cl (object-class obj))
+  (let* ((cl (eieio-object-class obj))
 	 (cv (class-v cl)))
     (data-debug-insert-thing (class-constructor cl)
 				  prefix
 				  "Class: ")
     ;; Loop over all the public slots
-    (let ((publa (aref cv class-public-a))
+    (let ((publa (eieio--class-public-a cv))
 	  )
       (while publa
 	(if (slot-boundp obj (car publa))
@@ -123,7 +123,7 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 ;;
 (defmethod data-debug-show ((obj eieio-default-superclass))
   "Run ddebug against any EIEIO object OBJ."
-  (data-debug-new-buffer (format "*%s DDEBUG*" (object-name obj)))
+  (data-debug-new-buffer (format "*%s DDEBUG*" (eieio-object-name obj)))
   (data-debug-insert-object-slots obj "]"))
 
 ;;; DEBUG FUNCTIONS

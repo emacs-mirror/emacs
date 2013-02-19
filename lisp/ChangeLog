@@ -1,3 +1,34 @@
+2013-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Cleanup some of EIEIO's namespace.
+	* emacs-lisp/eieio.el (eieio--define-field-accessors): New macro.
+	Use it to define all the class-* and object-* field accessors (renamed
+	to eieio--class-* and eieio--object-*).  Update all uses.
+	(eieio--class-num-slots, eieio--object-num-slots): Rename from
+	class-num-slots and object-num-slots.
+	(eieio--check-type): New macro.
+	(eieio-defclass, eieio-oref, eieio-oref-default, same-class-p)
+	(object-of-class-p, child-of-class-p, object-slots, class-slot-initarg)
+	(eieio-oset, eieio-oset-default, object-assoc, object-assoc-list)
+	(object-assoc-list-safe): Use it.
+	(eieio-defclass): Tighten regexp.
+	(eieio--defmethod): Use `memq'.  Signal an error for unknown method kind.
+	Remove unreachable code.
+	(object-class-fast): Declare obsolete.
+	(eieio-class-name, eieio-object-name, eieio-object-set-name-string)
+	(eieio-object-class, eieio-object-class-name, eieio-class-parents)
+	(eieio-class-children, eieio-class-precedence-list, eieio-class-parent):
+	Rename from class-name, object-name, object-set-name-string,
+	object-class, object-class-name, class-parents, class-children,
+	class-precedence-list, class-parent; with obsolete alias.
+	(class-of, class-direct-superclasses, class-direct-subclasses):
+	Declare obsolete.
+	(eieio-defmethod): Use `memq'; remove unreachable code.
+	* emacs-lisp/eieio-base.el (eieio-persistent-read):
+	* emacs-lisp/eieio-opt.el (eieio-class-button, eieio-describe-generic)
+	(eieio-browse-tree, eieio-browse): Use eieio--check-type.
+
+
 2013-02-18  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument):
