@@ -1,3 +1,15 @@
+2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-indent-context): Fix
+	python-info-line-ends-backslash-p call.
+	(python-info-line-ends-backslash-p)
+	(python-info-beginning-of-backslash): Respect line-number
+	argument.
+	(python-info-current-line-comment-p): Fix behavior when not at
+	beginning-of-line.
+	(python-util-position): Remove function.
+	(python-util-goto-line): New function.
+
 2013-02-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/em-unix.el (eshell/su): Require tramp.
