@@ -1,3 +1,15 @@
+2013-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-get-hash-table): New defun.
+	(tramp-get-file-property, tramp-set-file-property)
+	(tramp-get-connection-property, tramp-set-connection-property): Use it.
+	(tramp-flush-file-property, tramp-flush-directory-property):
+	Rename argument to KEY.
+	(tramp-flush-connection-property): Simplify a little bit.
+	(tramp-connection-property-p): New defun.
+	(top): Reapply saved values only if there isn't a corresponding
+	entry in `tramp-connection-properties'.
+
 2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-indent-context):
