@@ -1,3 +1,8 @@
+2013-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp.el (tramp-get-debug-buffer): Ensure outline.el is not
+	loaded while outline-regexp is let bound.  (Bug#9584)
+
 2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-info-current-defun): Fix failed

@@ -1299,6 +1299,8 @@ The outline level is equal to the verbosity of the Tramp message."
       (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
       (setq buffer-undo-list t)
+      ;; So it does not get loaded while outline-regexp is let-bound.
+      (require 'outline)
       ;; Activate `outline-mode'.  This runs `text-mode-hook' and
       ;; `outline-mode-hook'.  We must prevent that local processes
       ;; die.  Yes: I've seen `flyspell-mode', which starts "ispell".
