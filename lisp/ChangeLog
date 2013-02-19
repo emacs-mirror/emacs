@@ -1,3 +1,16 @@
+2013-02-19  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Item insertion and done/undo fixes.
+	(todos-insert-item): Maybe set the insertion file to
+	todos-global-current-todos-file.  When inserting into a file that
+	was not being visited on invoking this command, ensure chosen
+	category is properly selected.  Make item inserted "here" the
+	first todo item if the command was invoked with point in done
+	items section or outside of the current category.
+	(todos-item-done): When done items are shown, put cursor on first
+	just done item.
+	(todos-item-undo): Put cursor on undone item.
+
 2013-02-16  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Improve handling of overlays.

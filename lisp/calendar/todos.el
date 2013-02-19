@@ -1150,11 +1150,14 @@ number as its value."
   "Return string used as value of variable `todos-done-separator'."
   (let ((sep todos-done-separator-string))
     (propertize (if (= 1 (length sep))
-		    ;; If separator's length is window-width, an
-		    ;; indented empty line appears between the
-		    ;; separator and the first done item.
-		    ;; FIXME: should this be customizable?
+		    ;; If separator's length is window-width, then
+		    ;; with non-nil todos-wrap-lines and
+		    ;; todos-wrap-and-indent as value of
+		    ;; todos-line-wrapping-function, an indented empty
+		    ;; line appears between the separator and the
+		    ;; first done item.
 		    (make-string (1- (window-width)) (string-to-char sep))
+		    ;; (make-string (window-width) (string-to-char sep))
 		  todos-done-separator-string)
 		'face 'todos-done-sep)))
 
@@ -4522,7 +4525,9 @@ the new item:
   category, insert it directly above the todo item at
   point (hence lowering the priority of the remaining items), or
   if point is on the empty line below the last todo item, insert
-  the new item there.  If the command with `here' is invoked
+  the new item there.  If point is in the done items section of
+  the category, insert the new item as the first todo item in the
+  category.  Likewise, if the command with `here' is invoked
   outside of the current category, jump to the chosen category
   and insert the new item as the first item in the category.
 - If REGION-OR-HERE is the symbol `region', use the region of the
@@ -4575,6 +4580,8 @@ the priority is not given by HERE but by prompting."
 			     (t
 			      (cons (todos-current-category)
 				    (or todos-current-todos-file
+					(and todos-show-current-file
+					     todos-global-current-todos-file)
 					(todos-absolute-file-name
 					 todos-default-todos-file))))))
 	     (cat (car cat+file))
@@ -4613,10 +4620,11 @@ the priority is not given by HERE but by prompting."
 	(setq todos-current-todos-file file)
 	(unless todos-global-current-todos-file
 	  (setq todos-global-current-todos-file todos-current-todos-file))
-	;; These are not needed here, since they are called in
-	;; todos-set-item-priority.
-	;; (todos-category-number cat)
-	;; (todos-category-select)
+	;; When inserting into a file that was not being visited on
+	;; invoking this command, point is at bof.
+	(when (= (point) 1)
+	  (todos-category-number cat)
+	  (todos-category-select))
 	(let ((buffer-read-only nil)
 	      done-only item-added)
 	  (setq new-item
@@ -4636,37 +4644,36 @@ the priority is not given by HERE but by prompting."
 			  "\\(\n\\)[^[:blank:]]"
 			  (concat "\n" (make-string todos-indent-to-here 32))
 			  new-item nil nil 1))
-	  (if here
-	      (if (or (todos-done-item-p) (todos-done-item-section-p))
-		  (error "Cannot insert item in done items section")
-		(unless (and todos-mm (equal cat ocat))
-		  (todos-category-number cat)
-		  (todos-category-select)
-		  (goto-char (point-min)))
-		(todos-insert-with-overlays new-item))
-	    (unwind-protect
-		(progn
-		  ;; If only done items are displayed in category,
-		  ;; toggle to todo items.
-		  (when (and (goto-char (point-min))
-			       (looking-at todos-done-string-start))
-		    (setq done-only t)
-		    (todos-show-done-only))
-		  (todos-set-item-priority new-item cat t)
-		  (setq item-added t))
-	      ;; If user cancels before setting priority, restore
-	      ;; display.
-	      (unless item-added
-		(and done-only (todos-show-done-only)))
-	      ;; If todos section is not visible when insertion
-	      ;; command is called (either because only done items
-	      ;; were shown or because category was not in current
-	      ;; buffer), then if item is inserted at end of category,
-	      ;; point is at eob and eob at window-start, so that that
-	      ;; higher priority todo items are out of view.  So we
-	      ;; recenter to make sure the todo items are displayed in
-	      ;; the window.
-	      (when item-added (recenter))))
+	  (unwind-protect
+	      (progn
+		;; If only done items are displayed in category,
+		;; toggle to todo items.
+		(when (save-excursion
+			(goto-char (point-min))
+			(looking-at todos-done-string-start))
+		  (setq done-only t)
+		  (todos-show-done-only))
+		(if here
+		    (progn
+		      (unless (and todos-mm (equal cat ocat)
+				   (not (todos-done-item-section-p)))
+			(goto-char (point-min)))
+		      (todos-insert-with-overlays new-item))
+		  (todos-set-item-priority new-item cat t))
+		(setq item-added t))
+	    ;; If user cancels before setting priority, restore
+	    ;; display.
+	    (unless item-added
+	      (and done-only (todos-show-done-only)))
+	    ;; If todos section is not visible when insertion
+	    ;; command is called (either because only done items
+	    ;; were shown or because category was not in current
+	    ;; buffer), then if item is inserted at end of category,
+	    ;; point is at eob and eob at window-start, so that that
+	    ;; higher priority todo items are out of view.  So we
+	    ;; recenter to make sure the todo items are displayed in
+	    ;; the window.
+	    (when item-added (recenter)))
 	  (todos-update-count 'todo 1)
 	  (if (or diary todos-include-in-diary) (todos-update-count 'diary 1))
 	  (todos-update-categories-sexp))))))
@@ -4806,55 +4813,6 @@ minibuffer; otherwise, edit it in Todos Edit mode."
 	  (todos-remove-item)
 	  (todos-insert-with-overlays new)
 	  (move-to-column item-beg))))))
-
-;; (defun todos-edit-multiline-item ()
-;;   "Edit current Todo item in Todos Edit mode.
-;; Use of newlines invokes `todos-indent' to insure compliance with
-;; the format of Diary entries."
-;;   (interactive)
-;;   (todos-edit-multiline t))
-
-;; (defun todos-edit-multiline (&optional item) ;FIXME: not item editing command
-;;   ""					;FIXME
-;;   (interactive)
-;;   (let ((buffer-name todos-edit-buffer))
-;;     (set-window-buffer
-;;      (selected-window)
-;;      (set-buffer (make-indirect-buffer
-;; 		  (file-name-nondirectory todos-current-todos-file)
-;; 		  buffer-name)))
-;;     (if item
-;; 	(narrow-to-region (todos-item-start) (todos-item-end))
-;;       (widen))
-;;     (todos-edit-mode)
-;;     (message "%s" (substitute-command-keys
-;; 		   (concat "Type \\[todos-edit-quit] to check file format "
-;; 			   "validity and return to Todos mode.\n")))))
-
-;; (defun todos-edit-quit ()
-;;   "Return from Todos Edit mode to Todos mode.
-;; If the item contains hard line breaks, make sure the following
-;; lines are indented by `todos-indent-to-here' to conform to diary
-;; format.
-
-;; If the whole file was in Todos Edit mode, check before returning
-;; whether the file is still a valid Todos file and if so, also
-;; recalculate the Todos categories sexp, in case changes were made
-;; in the number or names of categories."
-;;   (interactive)
-;;   (if (eq (buffer-size) (- (point-max) (point-min)))
-;;       (when (todos-check-format)
-;; 	(todos-repair-categories-sexp))
-;;     ;; Ensure lines following hard newlines are indented.
-;;     (let ((item (replace-regexp-in-string
-;; 		 "\\(\n\\)[^[:blank:]]"
-;; 		 (concat "\n" (make-string todos-indent-to-here 32))
-;; 		 (buffer-string) nil nil 1)))
-;;       (delete-region (point-min) (point-max))
-;;       (insert item)))
-;;   (kill-buffer)
-;;   ;; In case next buffer is not the one holding todos-current-todos-file.
-;;   (todos-show))
 
 (defun todos-edit-multiline-item ()
   "Edit current Todo item in Todos Edit mode.
@@ -5602,8 +5560,8 @@ visible."
 	     (show-done (save-excursion
 			  (goto-char (point-min))
 			  (re-search-forward todos-done-string-start nil t)))
-	     item done-item
-	     (buffer-read-only))
+	     (buffer-read-only nil)
+	     item done-item opoint)
 	(and marked (goto-char (point-min)))
 	(catch 'done
 	  ;; Stop looping when we hit the empty line below the last
@@ -5636,13 +5594,16 @@ visible."
 	  (re-search-forward
 	   (concat "^" (regexp-quote todos-category-done)) nil t)
 	  (forward-char)
+	  (when show-done (setq opoint (point)))
 	  (insert done-item "\n"))
 	(todos-update-count 'todo (- item-count))
 	(todos-update-count 'done item-count)
 	(todos-update-count 'diary (- diary-count))
 	(todos-update-categories-sexp)
 	(let ((todos-show-with-done show-done))
-	  (todos-category-select))))))
+	  (todos-category-select)
+	  ;; When done items are shown, put cursor on first just done item.
+	  (when opoint (goto-char opoint)))))))
 
 (defun todos-done-item-add-edit-or-delete-comment (&optional arg)
   "Add a comment to this done item or edit an existing comment.
@@ -5745,13 +5706,16 @@ the restored item."
 	  (unwind-protect
 	      (progn
 		(todos-set-item-priority item (todos-current-category) t)
-		(setq undone t)
+		(setq undone t
+		      opoint (point))
 		(todos-update-count 'todo 1)
 		(todos-update-count 'done -1)
 		(and (todos-diary-item-p) (todos-update-count 'diary 1))
 		(todos-update-categories-sexp)
 		(let ((todos-show-with-done (> (todos-get-count 'done) 0)))
-		  (todos-category-select)))
+		  (todos-category-select)
+		  ;; Put the cursor on the undone item.
+		  (goto-char opoint)))
 	    (unless undone
 	      (let ((todos-show-with-done t))
 		(widen)
