@@ -28244,7 +28244,7 @@ x_draw_vertical_border (struct window *w)
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (w->frame)))
     return;
 
-  /* Note: It is necessary to redraw bot the left and the right
+  /* Note: It is necessary to redraw both the left and the right
      borders, for when only this single window W is being
      redisplayed.  */
   if (!WINDOW_RIGHTMOST_P (w)

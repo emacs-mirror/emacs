@@ -1,3 +1,23 @@
+2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-indent-context):
+	Fix python-info-line-ends-backslash-p call.
+	(python-info-line-ends-backslash-p)
+	(python-info-beginning-of-backslash): Respect line-number argument.
+	(python-info-current-line-comment-p):
+	Fix behavior when not at beginning-of-line.
+	(python-util-position): Remove function.
+	(python-util-goto-line): New function.
+
+2013-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/em-unix.el (eshell/su): Require tramp.
+	(eshell/sudo): Require tramp.  Remove now unnecessary check.
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Let-bind
+	`tramp-current-connection' in order to avoid an error when several
+	commands are invoked in a short time in eshell and friends.
+
 2013-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Cleanup some of EIEIO's namespace.

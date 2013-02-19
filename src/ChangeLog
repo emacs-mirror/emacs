@@ -1,3 +1,8 @@
+2013-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (new_child): Avoid leaking handles if the subprocess
+	resources were not orderly released.
+
 2013-02-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (x_draw_vertical_border): For a window that is neither

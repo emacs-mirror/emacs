@@ -2784,7 +2784,11 @@ the result will be a local, non-Tramp, filename."
 	   (or (null program) tramp-process-connection-type))
 	  (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	  (name1 name)
-	  (i 0))
+	  (i 0)
+	  ;; We do not want to raise an error when
+	  ;; `start-file-process' has been started several time in
+	  ;; `eshell' and friends.
+	  (tramp-current-connection nil))
 
       (unless buffer
 	;; BUFFER can be nil.  We use a temporary buffer.

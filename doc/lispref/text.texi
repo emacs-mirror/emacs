@@ -4344,7 +4344,7 @@ This variable holds a list of functions to call after any buffer
 modification.  Each function receives three arguments: the beginning
 and end of the region just changed, and the length of the text that
 existed before the change.  All three arguments are integers.  The
-buffer has been changed is always the current buffer.
+buffer that has been changed is always the current buffer.
 
 The length of the old text is the difference between the buffer
 positions before and after that text as it was before the change.  As

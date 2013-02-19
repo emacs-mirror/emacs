@@ -708,10 +708,9 @@ START is the buffer position where the sexp starts."
         ;; After backslash
         ((setq start (when (not (or (python-syntax-context 'string ppss)
                                     (python-syntax-context 'comment ppss)))
-                       (let ((line-beg-pos (line-beginning-position)))
-                         (when (python-info-line-ends-backslash-p
-                                (1- line-beg-pos))
-                           (- line-beg-pos 2)))))
+                       (let ((line-beg-pos (line-number-at-pos)))
+                         (python-info-line-ends-backslash-p
+                          (1- line-beg-pos)))))
          'after-backslash)
         ;; After beginning of block
         ((setq start (save-excursion
@@ -3115,7 +3114,7 @@ With optional argument LINE-NUMBER, check that line instead."
     (save-restriction
       (widen)
       (when line-number
-        (goto-char line-number))
+        (python-util-goto-line line-number))
       (while (and (not (eobp))
                   (goto-char (line-end-position))
                   (python-syntax-context 'paren)
@@ -3131,7 +3130,7 @@ Optional argument LINE-NUMBER forces the line number to check against."
     (save-restriction
       (widen)
       (when line-number
-        (goto-char line-number))
+        (python-util-goto-line line-number))
       (when (python-info-line-ends-backslash-p)
         (while (save-excursion
                  (goto-char (line-beginning-position))
@@ -3210,7 +3209,9 @@ operator."
 
 (defun python-info-current-line-comment-p ()
   "Check if current line is a comment line."
-  (char-equal (or (char-after (+ (point) (current-indentation))) ?_) ?#))
+  (char-equal
+   (or (char-after (+ (line-beginning-position) (current-indentation))) ?_)
+   ?#))
 
 (defun python-info-current-line-empty-p ()
   "Check if current line is empty, ignoring whitespace."
@@ -3225,12 +3226,10 @@ operator."
 
 ;;; Utility functions
 
-(defun python-util-position (item seq)
-  "Find the first occurrence of ITEM in SEQ.
-Return the index of the matching item, or nil if not found."
-  (let ((member-result (member item seq)))
-    (when member-result
-      (- (length seq) (length member-result)))))
+(defun python-util-goto-line (line-number)
+  "Move point to LINE-NUMBER."
+  (goto-char (point-min))
+  (forward-line (1- line-number)))
 
 ;; Stolen from org-mode
 (defun python-util-clone-local-variables (from-buffer &optional regexp)

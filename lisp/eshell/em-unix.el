@@ -1040,6 +1040,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (defun eshell/su (&rest args)
   "Alias \"su\" to call Tramp."
+  (require 'tramp)
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
   (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
@@ -1077,6 +1078,7 @@ Become another USER during a login session.")
 
 (defun eshell/sudo (&rest args)
   "Alias \"sudo\" to call Tramp."
+  (require 'tramp)
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
   (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
@@ -1111,8 +1113,6 @@ Execute a COMMAND as the superuser or another USER.")
 			  (format "%s|sudo:%s@%s:%s"
 				  (substring prefix 0 -1) user host dir)
 			(format "/sudo:%s@%s:%s" user host dir))))
-		;; Ensure, that Tramp has connected to that construct already.
-		(ignore (file-exists-p default-directory))
 		(eshell-named-command (car orig-args) (cdr orig-args))))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)

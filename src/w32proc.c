@@ -849,6 +849,12 @@ new_child (void)
   cp = &child_procs[child_proc_count++];
 
  Initialize:
+  /* Last opportunity to avoid leaking handles before we forget them
+     for good.  */
+  if (cp->procinfo.hProcess)
+    CloseHandle (cp->procinfo.hProcess);
+  if (cp->procinfo.hThread)
+    CloseHandle (cp->procinfo.hThread);
   memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
