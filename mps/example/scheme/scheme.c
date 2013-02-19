@@ -1543,7 +1543,7 @@ static obj_t load(obj_t env, obj_t op_env, obj_t filename) {
 
 /* eval_list -- evaluate list of expressions giving list of results
  *
- * eval_list evaluates a list of expresions and yields a list of their
+ * eval_list evaluates a list of expressions and yields a list of their
  * results, in order.  If the list is badly formed, an error is thrown
  * using the message given.
  */
