@@ -19171,7 +19171,7 @@
 	* coding.c (code_convert_region_unwind):
 	Set Vlast_coding_system_used to the argument.
 	(code_convert_region): If post-read-conversion function changed
-	the value of last-coding-sytem, keep the new value in
+	the value of last-coding-system, keep the new value in
 	coding->symbol so that it won't be overridden.
 	(run_pre_post_conversion_on_str): Likewise.
 	(coding_system_accept_latin_extra_p): New function.

@@ -3048,7 +3048,7 @@ extern Lisp_Object Qautomatic_gc;
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector (EMACS_INT);
 
-/* Make an unitialized vector for SIZE objects.  NOTE: you must
+/* Make an uninitialized vector for SIZE objects.  NOTE: you must
    be sure that GC cannot happen until the vector is completely
    initialized.  E.g. the following code is likely to crash:
 

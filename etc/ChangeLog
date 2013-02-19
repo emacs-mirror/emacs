@@ -1519,7 +1519,7 @@
 
 2009-01-27  Kenichi Handa  <handa@m17n.org>
 
-	* NEWS: New function `coding-sytem-from-name'.
+	* NEWS: New function `coding-system-from-name'.
 
 2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
 

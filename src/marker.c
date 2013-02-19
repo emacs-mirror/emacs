@@ -500,7 +500,7 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
       register ptrdiff_t charpos, bytepos;
 
       /* Do not use CHECK_NUMBER_COERCE_MARKER because we
-	 don't want to call buf_charpos_to_bytepos if POSTION
+	 don't want to call buf_charpos_to_bytepos if POSITION
 	 is a marker and so we know the bytepos already.  */
       if (INTEGERP (position))
 	charpos = XINT (position), bytepos = -1;

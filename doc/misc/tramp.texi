@@ -2030,8 +2030,8 @@ You can instruct @value{tramp} by this form:
 @noindent
 with @samp{192.168.0.26} being the IP address of your Android device.
 
-The user settings for the @code{$PATH} environment valiable must be
-preserved. Add this setting:
+The user settings for the @code{$PATH} environment variable must be
+preserved.  Add this setting:
 
 @lisp
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
