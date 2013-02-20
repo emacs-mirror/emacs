@@ -1,3 +1,8 @@
+2013-02-20  Bastien Guerry  <bzg@gnu.org>
+
+	* outline.el (outline-regexp, outline-heading-end-regexp): Make
+	variables, not options (bug#13731).
+
 2013-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-current-frame): Change from variable to function.
