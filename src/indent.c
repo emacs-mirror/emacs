@@ -1328,8 +1328,7 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
                  TO (we need to go back below).  */
 	      if (pos <= to)
 		{
-		  pos = find_before_next_newline (pos, to, 1);
-		  pos_byte = CHAR_TO_BYTE (pos);
+		  pos = find_before_next_newline (pos, to, 1, &pos_byte);
 		  hpos = width;
 		  /* If we just skipped next_boundary,
 		     loop around in the main while
@@ -1583,10 +1582,9 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
 			  /* Skip any number of invisible lines all at once */
 			  do
 			    {
-			      pos = find_before_next_newline (pos, to, 1);
+			      pos = find_before_next_newline (pos, to, 1, &pos_byte);
 			      if (pos < to)
-				pos++;
-			      pos_byte = CHAR_TO_BYTE (pos);
+				INC_BOTH (pos, pos_byte);
 			    }
 			  while (pos < to
 				 && indented_beyond_p (pos, pos_byte,
@@ -1622,10 +1620,7 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos,
 		     everything from a ^M to the end of the line is invisible.
 		     Stop *before* the real newline.  */
 		  if (pos < to)
-		    {
-		      pos = find_before_next_newline (pos, to, 1);
-		      pos_byte = CHAR_TO_BYTE (pos);
-		    }
+		    pos = find_before_next_newline (pos, to, 1, &pos_byte);
 		  /* If we just skipped next_boundary,
 		     loop around in the main while
 		     and handle it.  */
@@ -1845,21 +1840,20 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 
       while ((vpos > vtarget || first) && from > BEGV)
 	{
+	  ptrdiff_t bytepos;
 	  Lisp_Object propval;
 
-	  prevline = find_next_newline_no_quit (from - 1, -1);
+	  prevline = find_next_newline_no_quit (from - 1, -1, &bytepos);
 	  while (prevline > BEGV
 		 && ((selective > 0
-		      && indented_beyond_p (prevline,
-					    CHAR_TO_BYTE (prevline),
-					    selective))
+		      && indented_beyond_p (prevline, bytepos, selective))
 		     /* Watch out for newlines with `invisible' property.
 			When moving upward, check the newline before.  */
 		     || (propval = Fget_char_property (make_number (prevline - 1),
 						       Qinvisible,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
-	    prevline = find_next_newline_no_quit (prevline - 1, -1);
+	    prevline = find_next_newline_no_quit (prevline - 1, -1, &bytepos);
 	  pos = *compute_motion (prevline, 0,
 				 lmargin,
 				 0,
@@ -1897,21 +1891,20 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
   from_byte = CHAR_TO_BYTE (from);
   if (from > BEGV && FETCH_BYTE (from_byte - 1) != '\n')
     {
+      ptrdiff_t bytepos;
       Lisp_Object propval;
 
-      prevline = find_next_newline_no_quit (from, -1);
+      prevline = find_next_newline_no_quit (from, -1, &bytepos);
       while (prevline > BEGV
 	     && ((selective > 0
-		  && indented_beyond_p (prevline,
-					CHAR_TO_BYTE (prevline),
-					selective))
+		  && indented_beyond_p (prevline, bytepos, selective))
 		 /* Watch out for newlines with `invisible' property.
 		    When moving downward, check the newline after.  */
 		 || (propval = Fget_char_property (make_number (prevline),
 						   Qinvisible,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
-	prevline = find_next_newline_no_quit (prevline - 1, -1);
+	prevline = find_next_newline_no_quit (prevline - 1, -1, &bytepos);
       pos = *compute_motion (prevline, 0,
 			     lmargin,
 			     0,
