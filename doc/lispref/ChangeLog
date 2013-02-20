@@ -1,3 +1,11 @@
+2013-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (GIF Images, TIFF Images): Delete these nodes.
+	(ImageMagick Images): For :index, use an xref rather than duplicating.
+	(Other Image Types): Add GIF, adjust formatting.
+	(Multi-Frame Images): Rename from Animated Images.  Expand section.
+	* elisp.texi (Top): Update menu for these changes.
+
 2013-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Change Hooks): Fix typo.

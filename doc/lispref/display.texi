@@ -4199,14 +4199,12 @@ displayed (@pxref{Display Feature Testing}).
 * Image Descriptors::   How to specify an image for use in @code{:display}.
 * XBM Images::          Special features for XBM format.
 * XPM Images::          Special features for XPM format.
-* GIF Images::          Special features for GIF format.
-* TIFF Images::         Special features for TIFF format.
 * PostScript Images::   Special features for PostScript format.
 * ImageMagick Images::  Special features available through ImageMagick.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
-* Animated Images::     Some image formats can be animated.
+* Multi-Frame Images::  Some images contain more than one frame.
 * Image Cache::         Internal mechanisms of image display.
 @end menu
 
@@ -4541,35 +4539,6 @@ the name of a color as it appears in the image file, and @var{color}
 specifies the actual color to use for displaying that name.
 @end table
 
-@node GIF Images
-@subsection GIF Images
-@cindex GIF
-
-  For GIF images, specify image type @code{gif}.
-
-@table @code
-@item :index @var{index}
-You can use @code{:index} to specify image number @var{index} from a
-GIF file that contains more than one image.  If the GIF file doesn't
-contain an image with the specified index, the image displays as a
-hollow box.  GIF files with more than one image can be animated,
-@pxref{Animated Images}.
-@end table
-
-@node TIFF Images
-@subsection TIFF Images
-@cindex TIFF
-
-  For TIFF images, specify image type @code{tiff}.
-
-@table @code
-@item :index @var{index}
-You can use @code{:index} to specify image number @var{index} from a
-TIFF file that contains more than one image.  If the TIFF file doesn't
-contain an image with the specified index, the image displays as a
-hollow box.
-@end table
-
 @node PostScript Images
 @subsection PostScript Images
 @cindex postscript images
@@ -4653,10 +4622,7 @@ Specifies a rotation angle in degrees.
 
 @item :index
 @c Doesn't work: http://debbugs.gnu.org/7978
-This has the same meaning as it does for GIF images (@pxref{GIF Images}),
-i.e., it specifies which image to view inside an image bundle file format
-such as DJVM@.  You can use the @code{image-metadata} function to
-retrieve the total number of images in an image bundle.
+@xref{Multi-Frame Images}.
 @end table
 
 @node Other Image Types
@@ -4681,13 +4647,27 @@ used for each pixel in the PBM that is 0.  The default is the frame's
 background color.
 @end table
 
-  For JPEG images, specify image type @code{jpeg}.
+@noindent
+The remaining image types that Emacs can support are:
 
-  For TIFF images, specify image type @code{tiff}.
+@table @asis
+@item GIF
+Image type @code{gif}.
+Supports the @code{:index} property.  @xref{Multi-Frame Images}.
 
-  For PNG images, specify image type @code{png}.
+@item JPEG
+Image type @code{jpeg}.
 
-  For SVG images, specify image type @code{svg}.
+@item PNG
+Image type @code{png}.
+
+@item SVG
+Image type @code{svg}.
+
+@item TIFF
+Image type @code{tiff}.
+Supports the @code{:index} property.  @xref{Multi-Frame Images}.
+@end table
 
 @node Defining Images
 @subsection Defining Images
@@ -4923,20 +4903,45 @@ cache, it can always be displayed, even if the value of
 @var{max-image-size} is subsequently changed (@pxref{Image Cache}).
 @end defvar
 
-@node Animated Images
-@subsection Animated Images
+@node Multi-Frame Images
+@subsection Multi-Frame Images
 
 @cindex animation
 @cindex image animation
-Some image files can contain more than one image.  This can be used to
-create animation.  Currently, Emacs only supports animated GIF files.
-The following functions related to animated images are available.
+@cindex image frames
+Some image files can contain more than one image.  We say that there
+are multiple ``frames'' in the image.  At present, Emacs supports
+multiple frames for GIF, TIFF, and certain ImageMagick formats such as
+DJVM@.
 
-@defun image-animated-p image
-This function returns non-@code{nil} if @var{image} can be animated.
-The actual return value is a cons @code{(@var{nimages} . @var{delay})},
-where @var{nimages} is the number of frames and @var{delay} is the
-delay in seconds between them.
+The frames can be used either to represent multiple ``pages'' (this is
+usually the case with multi-frame TIFF files, for example), or to
+create animation (usually the case with multi-frame GIF files).
+
+A multi-frame image has a property @code{:index}, whose value is an
+integer (counting from 0) that specifies which frame is being displayed.
+
+@defun image-multi-frame-p image
+This function returns non-@code{nil} if @var{image} contains more than
+one frame.  The actual return value is a cons @code{(@var{nimages}
+. @var{delay})}, where @var{nimages} is the number of frames and
+@var{delay} is the delay in seconds between them, if the image itself
+specifies a delay.  Images that are intended to be animated usually
+specify a frame delay, whereas ones that are intended to be treated as
+multiple pages do not.
+@end defun
+
+@defun image-current-frame image
+This function returns the index of the current frame number for
+@var{image}, counting from 0.
+@end defun
+
+@defun image-show-frame image n &optional nocheck
+This function switches @var{image} to frame number @var{n}.  It
+replaces a frame number outside the valid range with that of the end
+of the range, unless @var{nocheck} is non-@code{nil}.  If @var{image}
+does not contain a frame with the specified number, the image displays
+as a hollow box.
 @end defun
 
 @defun image-animate image &optional index limit
@@ -4948,7 +4953,9 @@ forever; if a number animation stops after that many seconds.
 @end defun
 
 @noindent Animation operates by means of a timer.  Note that Emacs imposes a
-minimum frame delay of 0.01 seconds.
+minimum frame delay of 0.01 (@code{image-minimum-frame-delay}) seconds.
+If the image itself does not specify a delay, Emacs uses
+@code{image-default-frame-delay}.
 
 @defun image-animate-timer image
 This function returns the timer responsible for animating @var{image},
