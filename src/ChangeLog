@@ -1,5 +1,7 @@
 2013-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* sheap.c (report_sheap_usage): Prefer message1_nolog.
+
 	* keyboard.c (Qcommand_execute): New var.
 	(command_loop_1, read_char): Use it.
 	(Fcommand_execute): Remove, replace by an Elisp implementation.
