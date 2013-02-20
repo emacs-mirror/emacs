@@ -329,6 +329,9 @@ call."
   "The image type for the current Image mode buffer.")
 (make-variable-buffer-local 'image-type)
 
+(defvar-local image-multi-frame nil
+  "Non-nil if image for the current Image mode buffer has multiple frames.")
+
 (defvar image-mode-previous-major-mode nil
   "Internal variable to keep the previous non-image major mode.")
 
@@ -390,7 +393,7 @@ call."
 	["Animate Image" image-toggle-animation :style toggle
 	 :selected (let ((image (image-get-display-property)))
 		     (and image (image-animate-timer image)))
-	 :active image-current-frame
+	 :active image-multi-frame
          :help "Toggle image animation"]
 	["Loop Animation"
 	 (lambda () (interactive)
@@ -403,13 +406,13 @@ call."
 	     (image-toggle-animation)
 	     (image-toggle-animation)))
 	 :style toggle :selected image-animate-loop
-	 :active image-current-frame
+	 :active image-multi-frame
          :help "Animate images once, or forever?"]
-	["Next Frame" image-next-frame :active image-current-frame
+	["Next Frame" image-next-frame :active image-multi-frame
 	 :help "Show the next frame of this image"]
-	["Previous Frame" image-previous-frame :active image-current-frame
+	["Previous Frame" image-previous-frame :active image-multi-frame
 	 :help "Show the previous frame of this image"]
-	["Goto Frame..." image-goto-frame :active image-current-frame
+	["Goto Frame..." image-goto-frame :active image-multi-frame
 	 :help "Show a specific frame of this image"]
 	))
     map)
@@ -471,12 +474,13 @@ to toggle between display as an image and display as text."
 	   ((null image)
 	    (message "%s" (concat msg1 "an image.")))
 	   ((setq animated (image-multi-frame-p image))
-	    (setq image-current-frame (or (plist-get (cdr image) :index) 0)
+	    (setq image-multi-frame t
 		  mode-line-process
-		  `(:eval (propertize (format " [%s/%s]"
-					      (1+ image-current-frame)
-					      ,(car animated))
-				      'help-echo "Frame number")))
+		  `(:eval (propertize
+			   (format " [%s/%s]"
+				   (1+ (image-current-frame ',image))
+				   ,(car animated))
+			   'help-echo "Frame number")))
 	    (message "%s"
 		     (concat msg1 "text.  This image has multiple frames.")))
 ;;;			     (substitute-command-keys
@@ -694,10 +698,13 @@ current frame.  Frames are indexed from 1."
     (cond
      ((null image)
       (error "No image is present"))
-     ((null image-current-frame)
+     ((null image-multi-frame)
       (message "No image animation."))
      (t
-      (image-nth-frame image (if relative (+ n image-current-frame) (1- n)))))))
+      (image-show-frame image
+			(if relative
+			    (+ n (image-current-frame image))
+			  (1- n)))))))
 
 (defun image-next-frame (&optional n)
   "Switch to the next frame of a multi-frame image.

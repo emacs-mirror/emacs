@@ -1,5 +1,13 @@
 2013-02-20  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-current-frame): Change from variable to function.
+	(image-show-frame): Rename from image-nth-frame.  Update callers.
+	* image-mode.el (image-multi-frame): New variable.
+	(image-mode-map, image-mode, image-goto-frame):
+	Use image-multi-frame rather than image-current-frame.
+	(image-mode, image-goto-frame): Use image-current-frame as
+	function rather than as variable.
+
 	* emacs-lisp/cl-lib.el (cl-floatp-safe): Make it an alias for floatp.
 	* emacs-lisp/cl-macs.el (cl--make-type-test)
 	(cl--compiler-macro-assoc): Use floatp rather than cl-floatp-safe.

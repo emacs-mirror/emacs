@@ -660,10 +660,11 @@ number, play until that number of seconds has elapsed."
 (defconst image-minimum-frame-delay 0.01
   "Minimum interval in seconds between frames of an animated image.")
 
-(defvar-local image-current-frame nil
-  "The frame index of the current animated image.")
+(defun image-current-frame (image)
+  "The current frame number of IMAGE, indexed from 0."
+  (or (plist-get (cdr image) :index) 0))
 
-(defun image-nth-frame (image n &optional nocheck)
+(defun image-show-frame (image n &optional nocheck)
   "Show frame N of IMAGE.
 Frames are indexed from 0.  Optional argument NOCHECK non-nil means
 do not check N is within the range of frames present in the image."
@@ -671,7 +672,6 @@ do not check N is within the range of frames present in the image."
     (if (< n 0) (setq n 0)
       (setq n (min n (1- (car (image-multi-frame-p image)))))))
   (plist-put (cdr image) :index n)
-  (setq image-current-frame n)
   (force-window-update))
 
 ;; FIXME? The delay may not be the same for different sub-images,
@@ -688,7 +688,7 @@ LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed.
 The minimum delay between successive frames is `image-minimum-frame-delay'."
-  (image-nth-frame image n t)
+  (image-show-frame image n t)
   (setq n (1+ n))
   (let* ((time (float-time))
 	 (animation (image-multi-frame-p image))
