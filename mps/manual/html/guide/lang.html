@@ -934,53 +934,6 @@ position within the stack. As long as you don&#8217;t exit from this
 function while the MPS is running, your program&#8217;s active local
 variables will always be higher up on the stack than <tt class="docutils literal"><span class="pre">marker</span></tt>, and
 so will be scanned for references by the MPS.</p>
-<p>The condition &#8220;don&#8217;t exit from this function while the MPS is running&#8221;
-will always be satisfied, because you must run your program via the
-<em>MPS trampoline</em> (see the documentation for <a class="reference internal" href="../topic/thread.html#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a> for
-the reason). That is, if your program was previously organized like
-this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="cm">/* ... your program here ... */</span>
-    <span class="k">return</span> <span class="n">EXIT_CODE</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>it now must be organized like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">tramp_s</span> <span class="p">{</span>
-    <span class="kt">int</span> <span class="n">argc</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">exit_code</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">tramp_s</span><span class="p">;</span>
-
-<span class="k">static</span> <span class="kt">void</span> <span class="o">*</span><span class="nf">start</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">s</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">tramp_s</span> <span class="o">*</span><span class="n">tramp</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">argc</span> <span class="o">=</span> <span class="n">tramp</span><span class="o">-&gt;</span><span class="n">argc</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span> <span class="o">=</span> <span class="n">tramp</span><span class="o">-&gt;</span><span class="n">argv</span><span class="p">;</span>
-
-    <span class="cm">/* ... your program here ... */</span>
-
-    <span class="n">tramp</span><span class="o">-&gt;</span><span class="n">exit_code</span> <span class="o">=</span> <span class="n">EXIT_CODE</span><span class="p">;</span>
-    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
-<span class="p">{</span>
-    <span class="cm">/* ... set up the MPS ... */</span>
-
-    <span class="n">tramp_s</span> <span class="n">tramp</span><span class="p">;</span>
-    <span class="n">tramp</span><span class="p">.</span><span class="n">argc</span> <span class="o">=</span> <span class="n">argc</span><span class="p">;</span>
-    <span class="n">tramp</span><span class="p">.</span><span class="n">argv</span> <span class="o">=</span> <span class="n">argv</span><span class="p">;</span>
-    <span class="kt">void</span> <span class="o">*</span><span class="n">dummy</span><span class="p">;</span>
-    <span class="n">mps_tramp</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dummy</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tramp</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-
-    <span class="cm">/* ... tear down the MPS ... */</span>
-
-    <span class="k">return</span> <span class="n">tramp</span><span class="p">.</span><span class="n">exit_code</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <div class="admonition-topic admonition">
 <p class="first admonition-title">Topic</p>
 <p class="last"><a class="reference internal" href="../topic/thread.html#topic-thread"><em>Threads</em></a>.</p>

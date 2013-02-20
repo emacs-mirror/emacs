@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * $Id: //info.ravenbrook.com/project/mps/master/example/scheme/scheme.c#7 $
+ * $Id: //info.ravenbrook.com/project/mps/master/example/scheme/scheme.c#8 $
  * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
@@ -1543,7 +1543,7 @@ static obj_t load(obj_t env, obj_t op_env, obj_t filename) {
 
 /* eval_list -- evaluate list of expressions giving list of results
  *
- * eval_list evaluates a list of expresions and yields a list of their
+ * eval_list evaluates a list of expressions and yields a list of their
  * results, in order.  If the list is badly formed, an error is thrown
  * using the message given.
  */
@@ -4240,21 +4240,11 @@ static void mps_chat(void)
 /* start -- the main program                                    %%MPS
  *
  * This is the main body of the Scheme interpreter program, invoked by
- * `mps_tramp` so that its stack and exception handling can be managed
- * by the MPS. See topic/thread.
+ * `main` so that its stack can be managed by the MPS. See topic/thread.
  */
 
-typedef struct tramp_s {
-  int argc;
-  char **argv;
-  int exit_code;
-} tramp_s, *tramp_t;
-
-static void *start(void *p, size_t s)
+static int start(int argc, char *argv[])
 {
-  tramp_t tramp = p;
-  int argc = tramp->argc;
-  char **argv = tramp->argv;
   FILE *input = stdin;
   size_t i;
   volatile obj_t env, op_env, obj;
@@ -4262,6 +4252,7 @@ static void *start(void *p, size_t s)
   mps_addr_t ref;
   mps_res_t res;
   mps_root_t globals_root;
+  int exit_code;
 
   total = (size_t)0;
   
@@ -4321,10 +4312,10 @@ static void *start(void *p, size_t s)
     /* Non-interactive file execution */
     if(setjmp(*error_handler) != 0) {
       fprintf(stderr, "%s\n", error_message);
-      tramp->exit_code = EXIT_FAILURE;
+      exit_code = EXIT_FAILURE;
     } else {
       load(env, op_env, make_string(strlen(argv[1]), argv[1]));
-      tramp->exit_code = EXIT_SUCCESS;
+      exit_code = EXIT_SUCCESS;
     }
   } else {
     /* Ask the MPS to tell us when it's garbage collecting so that we can
@@ -4354,13 +4345,13 @@ static void *start(void *p, size_t s)
       }
     }
     puts("Bye.");
-    tramp->exit_code = EXIT_SUCCESS;
+    exit_code = EXIT_SUCCESS;
   }
 
   /* See comment at the end of `main` about cleaning up. */
   mps_root_destroy(symtab_root);
   mps_root_destroy(globals_root);
-  return NULL;
+  return exit_code;
 }
 
 
@@ -4391,13 +4382,12 @@ static mps_gen_param_s obj_gen_params[] = {
 
 int main(int argc, char *argv[])
 {
-  tramp_s tramp = {argc, argv};
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt;
   mps_thr_t thread;
   mps_root_t reg_root;
-  void *r;
+  int exit_code;
   void *marker = &marker;
   
   /* Create an MPS arena.  There is usually only one of these in a process.
@@ -4458,11 +4448,9 @@ int main(int argc, char *argv[])
   /* Make sure we can pick up finalization messages. */
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  /* Trampoline into the main program.  The MPS trampoline is unfortunately
-     required to mark the top of the stack of the main thread, and on some
-     platforms it must also catch exceptions in order to implement hardware
-     memory barriers. See topic/thread. */
-  mps_tramp(&r, start, &tramp, 0);
+  /* Call the main program.  This call is required to mark the top of the
+     stack of the main thread. See topic/thread. */
+  exit_code = start(argc, argv);
   
   /* Cleaning up the MPS object with destroy methods will allow the MPS to
      check final consistency and warn you about bugs.  It also allows the
@@ -4476,7 +4464,7 @@ int main(int argc, char *argv[])
   mps_fmt_destroy(obj_fmt);
   mps_arena_destroy(arena);
 
-  return tramp.exit_code;
+  return exit_code;
 }
 
 

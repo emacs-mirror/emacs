@@ -104,24 +104,6 @@ needs to co-operate with the MPS.</p>
 <p>The MPS uses <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barriers<sup>(1)</sup></em></a> to <a class="reference internal" href="../glossary/p.html#term-protection"><em class="xref std std-term">protect</em></a>
 memory from the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> and handles the signals that
 result from barrier hits.</p>
-<p>On some operating systems, barrier hits generate exceptions that have
-to be caught by a handler that is on the stack. On these operating
-systems, any code that uses memory managed by the MPS must be called
-from inside such an exception handler, that is, inside a call to
-<a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>.</p>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p>In fact, it&#8217;s only Windows that requires the structured exception
-handler to be on the stack. On other operating systems you can get
-away without calling the trampoline. Nonetheless, for portability
-and forwards compatibility we recommend that each thread that runs
-code that accesses memory managed by the MPS should run it inside
-a call to <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>.</p>
-<p class="last">On Windows, the requirement to call the trampoline extends to your
-structured exception handlers as well as your threads: any
-structured exception handler that accesses memory managed by the
-MPS must perform the access inside a call to <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>.</p>
-</div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p>The use of barriers has the consequence that a program that
@@ -190,7 +172,11 @@ are just about to exit.</p>
 <dl class="function">
 <dt id="mps_tramp">
 void <tt class="descname">mps_tramp</tt><big>(</big>void<em>&nbsp;**r_o</em>, <a class="reference internal" href="#mps_tramp_t" title="mps_tramp_t">mps_tramp_t</a><em>&nbsp;f</em>, void<em>&nbsp;*p</em>, size_t<em>&nbsp;s</em><big>)</big><a class="headerlink" href="#mps_tramp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call a function via the MPS trampoline.</p>
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p class="last">starting with version 1.111.</p>
+</div>
+<p>Call a function via the MPS trampoline.</p>
 <p><tt class="docutils literal"><span class="pre">r_o</span></tt> points to a location that will store the result of calling
 <tt class="docutils literal"><span class="pre">f</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">f</span></tt> is the function to call.</p>
@@ -207,12 +193,18 @@ such an exception handler, that is, inside a call to
 <p>If you have multiple threads that run code that uses memory
 managed by the MPS, each thread must execute such code inside a
 call to <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>.</p>
+<p>Since version 1.111, this is not required on any of operating
+systems supported by the MPS.</p>
 </dd></dl>
 
 <span class="target" id="index-5"></span><dl class="type">
 <dt id="mps_tramp_t">
 void *<tt class="descname">(*mps_tramp_t)</tt><big>(</big>void<em>&nbsp;*p</em>, size_t<em>&nbsp;s</em><big>)</big><a class="headerlink" href="#mps_tramp_t" title="Permalink to this definition">¶</a></dt>
-<dd><p>The type of a function called by <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>.</p>
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p class="last">starting with version 1.111.</p>
+</div>
+<p>The type of a function called by <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>.</p>
 <p><tt class="docutils literal"><span class="pre">p</span></tt> and <tt class="docutils literal"><span class="pre">s</span></tt> are the corresponding arguments that were passed
 to <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>.</p>
 </dd></dl>

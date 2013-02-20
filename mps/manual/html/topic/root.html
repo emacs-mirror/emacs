@@ -160,19 +160,18 @@ scanner for the registers and the stack: it depends on the operating
 system, the processor architecture, and in some cases on the compiler.
 For this reason, the MPS provides <a class="reference internal" href="#mps_stack_scan_ambig" title="mps_stack_scan_ambig"><tt class="xref c c-func docutils literal"><span class="pre">mps_stack_scan_ambig()</span></tt></a> (and
 in fact, this is the only supported stack scanner).</p>
-<p>A stack scanner needs to know how to find the bottom of the part of
-the stack to scan. Now, every thread that runs code that uses memory
-managed by the MPS must execute such code inside the MPS trampoline by
-calling <a class="reference internal" href="thread.html#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a>. This means that the bottom of the
-relevant part of stack can be found by taking the address of a local
-variable in the function that calls <a class="reference internal" href="thread.html#mps_tramp" title="mps_tramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_tramp()</span></tt></a> (the variable
-<tt class="docutils literal"><span class="pre">marker</span></tt> in the example below).</p>
+<p>A stack scanner needs to know how to find the bottom of the part of the
+stack to scan. The bottom of the relevant part of stack can be found by
+taking the address of a local variable in the function that calls the
+main work function of your thread. You should take care to ensure that
+the work function is not inlined so that the address is definitely in
+the stack frame below any potential roots.</p>
 <p id="index-4">For example, here&#8217;s the code from the toy Scheme interpreter that
-registers a thread root and then trampolines into the program:</p>
+registers a thread root and then calls the program:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
 <span class="n">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">exit_code</span><span class="p">;</span>
 <span class="kt">void</span> <span class="o">*</span><span class="n">marker</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">marker</span><span class="p">;</span>
-<span class="kt">void</span> <span class="o">*</span><span class="n">r</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_thread_reg</span><span class="p">(</span><span class="o">&amp;</span><span class="kr">thread</span><span class="p">,</span> <span class="n">arena</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t register thread&quot;</span><span class="p">);</span>
@@ -187,7 +186,7 @@ registers a thread root and then trampolines into the program:</p>
                           <span class="mi">0</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create root&quot;</span><span class="p">);</span>
 
-<span class="n">mps_tramp</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<span class="n">exit_code</span> <span class="o">=</span> <span class="n">start</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>

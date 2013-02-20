@@ -80,26 +80,6 @@ The MPS uses :term:`barriers (1)` to :term:`protect <protection>`
 memory from the :term:`client program` and handles the signals that
 result from barrier hits.
 
-On some operating systems, barrier hits generate exceptions that have
-to be caught by a handler that is on the stack. On these operating
-systems, any code that uses memory managed by the MPS must be called
-from inside such an exception handler, that is, inside a call to
-:c:func:`mps_tramp`.
-
-.. note::
-
-    In fact, it's only Windows that requires the structured exception
-    handler to be on the stack. On other operating systems you can get
-    away without calling the trampoline. Nonetheless, for portability
-    and forwards compatibility we recommend that each thread that runs
-    code that accesses memory managed by the MPS should run it inside
-    a call to :c:func:`mps_tramp`.
-
-    On Windows, the requirement to call the trampoline extends to your
-    structured exception handlers as well as your threads: any
-    structured exception handler that accesses memory managed by the
-    MPS must perform the access inside a call to :c:func:`mps_tramp`.
-
 .. warning::
 
     The use of barriers has the consequence that a program that
@@ -179,6 +159,8 @@ Thread interface
 
 .. c:function:: void mps_tramp(void **r_o, mps_tramp_t f, void *p, size_t s)
 
+    .. deprecated:: starting with version 1.111.
+
     Call a function via the MPS trampoline.
 
     ``r_o`` points to a location that will store the result of calling
@@ -201,12 +183,17 @@ Thread interface
     If you have multiple threads that run code that uses memory
     managed by the MPS, each thread must execute such code inside a
     call to :c:func:`mps_tramp`.
+    
+    Since version 1.111, this is not required on any of operating
+    systems supported by the MPS.
 
 
 .. index::
    single: trampoline
 
 .. c:type:: void *(*mps_tramp_t)(void *p, size_t s)
+
+    .. deprecated:: starting with version 1.111.
 
     The type of a function called by :c:func:`mps_tramp`.
 

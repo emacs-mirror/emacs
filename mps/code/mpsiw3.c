@@ -14,7 +14,7 @@ SRCID(mpsiw3, "$Id$");
 
 
 /* This is defined in protw3.c */
-extern LONG ProtSEHfilter(LPEXCEPTION_POINTERS info);
+extern LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info);
 
 LONG mps_SEH_filter(LPEXCEPTION_POINTERS info,
                     void **hp_o, size_t *hs_o)
