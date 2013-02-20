@@ -2016,7 +2016,7 @@ local machine.
 
 When an @command{sshd} process runs on the Android device, like
 provided by the @code{SSHDroid} app, any @option{ssh}-based method can
-be used.  However, this requires some special settings.
+be used.  This requires some special settings.
 
 The default shell @code{/bin/sh} does not exist.  Instead, you shall
 use just @code{sh}, which invokes the shell installed on the device.
@@ -2031,22 +2031,49 @@ You can instruct @value{tramp} by this form:
 with @samp{192.168.0.26} being the IP address of your Android device.
 
 The user settings for the @code{$PATH} environment variable must be
-preserved.  Add this setting:
+preserved.  It has also been reported, that the commands in
+@file{/system/xbin} are better suited than the ones in
+@file{/system/bin}.  Add these setting:
 
 @lisp
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+(add-to-list 'tramp-remote-path "/system/xbin")
 @end lisp
 
+@noindent
 If the Android device is not @samp{rooted}, you must give the shell a
-writable directory for temporary files.  You could use this setting:
+writable directory for temporary files:
 
 @lisp
 (add-to-list 'tramp-remote-process-environment "TMPDIR=$HOME")
 @end lisp
 
+@noindent
 Now you shall be able to open a remote connection with @kbd{C-x C-f
 @trampfn{ssh, , 192.168.0.26#2222, }}, given that @command{sshd}
 listens on port @samp{2222}.
+
+It is also recommended to add a corresponding entry to your
+@file{~/.ssh/config} for that connection, like
+
+@example
+Host android
+     HostName 192.168.0.26
+     User root
+     Port 2222
+@end example
+
+@noindent
+In this case, you must change the setting for the remote shell to
+
+@lisp
+(add-to-list 'tramp-connection-properties
+	     (list (regexp-quote "android") "remote-shell" "sh"))
+@end lisp
+
+@noindent
+You would open the connection with @kbd{C-x C-f @trampfn{ssh, ,
+android, }} then.
 
 
 @node Auto-save and Backup

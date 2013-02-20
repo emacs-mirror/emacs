@@ -1,3 +1,8 @@
+2013-02-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Android shell setup): Improve.  Reported by Thierry
+	Volpiatto <thierry.volpiatto@gmail.com>.
+
 2013-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Top, Configuration): Insert section `Android shell
