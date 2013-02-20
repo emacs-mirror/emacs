@@ -1,7 +1,13 @@
+2013-02-20  Ulrich Müller  <ulm@gentoo.org>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list)
+	(jka-compr-mode-alist-additions): Handle .txz suffix for
+	XZ-compressed tar archives (bug#13770).
+
 2013-02-20  Bastien Guerry  <bzg@gnu.org>
 
-	* outline.el (outline-regexp, outline-heading-end-regexp): Make
-	variables, not options (bug#13731).
+	* outline.el (outline-regexp, outline-heading-end-regexp):
+	Make variables, not options (bug#13731).
 
 2013-02-20  Glenn Morris  <rgm@gnu.org>
 

@@ -234,6 +234,10 @@ options through Custom does this automatically."
      "XZ compressing"     "xz"           ("-c" "-q")
      "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
      t t "\3757zXZ\0"]
+    ["\\.txz\\'"
+     "XZ compressing"     "xz"           ("-c" "-q")
+     "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
+     t nil "\3757zXZ\0"]
     ;; dzip is gzip with random access.  Its compression program can't
     ;; read/write stdin/out, so .dz files can only be viewed without
     ;; saving, having their contents decompressed with gzip.
@@ -302,7 +306,9 @@ variables.  Setting this through Custom does that automatically."
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions
-  (list (cons (purecopy "\\.tgz\\'") 'tar-mode) (cons (purecopy "\\.tbz2?\\'") 'tar-mode))
+  (purecopy '(("\\.tgz\\'" . tar-mode)
+              ("\\.tbz2?\\'" . tar-mode)
+              ("\\.txz\\'" . 'tar-mode)))
   "List of pairs added to `auto-mode-alist' when installing jka-compr.
 Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
 installing added.
@@ -315,7 +321,7 @@ variables.  Setting this through Custom does that automatically."
   :set 'jka-compr-set
   :group 'jka-compr)
 
-(defcustom jka-compr-load-suffixes (list (purecopy ".gz"))
+(defcustom jka-compr-load-suffixes (purecopy '(".gz"))
   "List of compression related suffixes to try when loading files.
 Enabling Auto Compression mode appends this list to `load-file-rep-suffixes',
 which see.  Disabling Auto Compression mode removes all suffixes
