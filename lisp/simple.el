@@ -1400,6 +1400,8 @@ to get different commands to edit and resubmit."
 	  (error "Argument %d is beyond length of command history" arg)
 	(error "There are no previous complex commands to repeat")))))
 
+(defvar extended-command-history nil)
+
 (defun read-extended-command ()
   "Read command name to invoke in `execute-extended-command'."
   (minibuffer-with-setup-hook
@@ -1489,6 +1491,53 @@ give to the command you invoke, if it asks for an argument."
             (sit-for (if (numberp suggest-key-bindings)
                          suggest-key-bindings
                        2))))))))
+
+(defun command-execute (cmd &optional record-flag keys special)
+  ;; BEWARE: Called directly from the C code.
+  "Execute CMD as an editor command.
+CMD must be a symbol that satisfies the `commandp' predicate.
+Optional second arg RECORD-FLAG non-nil
+means unconditionally put this command in the variable `command-history'.
+Otherwise, that is done only if an arg is read using the minibuffer.
+The argument KEYS specifies the value to use instead of (this-command-keys)
+when reading the arguments; if it is nil, (this-command-keys) is used.
+The argument SPECIAL, if non-nil, means that this command is executing
+a special event, so ignore the prefix argument and don't clear it."
+  (setq debug-on-next-call nil)
+  (let ((prefixarg (unless special
+                     (prog1 prefix-arg
+                       (setq current-prefix-arg prefix-arg)
+                       (setq prefix-arg nil)))))
+    (and (symbolp cmd)
+         (get cmd 'disabled)
+         ;; FIXME: Weird calling convention!
+         (run-hooks 'disabled-command-function))
+    (let ((final cmd))
+      (while
+          (progn
+            (setq final (indirect-function final))
+            (if (autoloadp final)
+                (setq final (autoload-do-load final cmd)))))
+      (cond
+       ((arrayp final)
+        ;; If requested, place the macro in the command history.  For
+        ;; other sorts of commands, call-interactively takes care of this.
+        (when record-flag
+          (push `(execute-kbd-macro ,final ,prefixarg) command-history)
+          ;; Don't keep command history around forever.
+          (when (and (numberp history-length) (> history-length 0))
+            (let ((cell (nthcdr history-length command-history)))
+              (if (consp cell) (setcdr cell nil)))))
+        (execute-kbd-macro final prefixarg))
+       (t
+        ;; Pass `cmd' rather than `final', for the backtrace's sake.
+        (prog1 (call-interactively cmd record-flag keys)
+          (when (and (symbolp cmd)
+                     (get cmd 'byte-obsolete-info)
+                     (not (get cmd 'command-execute-obsolete-warned)))
+            (put cmd 'command-execute-obsolete-warned t)
+            (message "%s" (macroexp--obsolete-warning
+                           cmd (get cmd 'byte-obsolete-info) "command")))))))))
 
 (defvar minibuffer-history nil
   "Default minibuffer history list.

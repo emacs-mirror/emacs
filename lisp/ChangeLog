@@ -1,3 +1,8 @@
+2013-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (command-execute): Move from C.  Add obsolete check.
+	(extended-command-history): Move from C.
+
 2013-02-20  Ulrich Müller  <ulm@gentoo.org>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list)

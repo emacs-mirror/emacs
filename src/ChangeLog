@@ -1,12 +1,21 @@
+2013-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Qcommand_execute): New var.
+	(command_loop_1, read_char): Use it.
+	(Fcommand_execute): Remove, replace by an Elisp implementation.
+	(syms_of_keyboard): Adjust accordingly.
+
 2013-02-19  Daniel Colascione <dancol@dancol.org>
+
 	* sheap.c (report_sheap_usage): Use message, not message1, so
 	that we don't try to create a buffer while we're in the middle
 	of dumping Emacs.  Explain why.
+
 2013-02-20  Dmitry Antipov  <dmantipov@yandex.ru>
 	* search.c (find_newline): Return byte position in bytepos.
 	Adjust comment.
-	(find_next_newline_no_quit, find_before_next_newline): Add
-	bytepos argument.
+	(find_next_newline_no_quit, find_before_next_newline):
+	Add bytepos argument.
 	* lisp.h (find_newline, find_next_newline_no_quit)
 	(find_before_next_newline): Adjust prototypes.
 	* bidi.c (bidi_find_paragraph_start):
