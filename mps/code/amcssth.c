@@ -10,6 +10,7 @@
 #define _POSIX_C_SOURCE 199309L
 
 #include "fmtdy.h"
+#include "fmtdytst.h"
 #include "testlib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
@@ -45,13 +46,6 @@ static mps_pool_t pool;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
-mps_arena_t arena;
-mps_fmt_t format;
-mps_chain_t chain;
-mps_root_t exactRoot, ambigRoot;
-unsigned long objs = 0;
-
-
 /* report - report statistics from any terminated GCs */
 
 static void report(mps_arena_t arena)
@@ -80,6 +74,13 @@ static void report(mps_arena_t arena)
       die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   }
 }
+
+
+mps_arena_t arena;
+mps_fmt_t format;
+mps_chain_t chain;
+mps_root_t exactRoot, ambigRoot;
+unsigned long objs = 0;
 
 
 /* make -- create one new object */
@@ -257,6 +258,8 @@ static void *test(void *arg, size_t s)
     }
 
     churn(ap);
+
+    r = (size_t)rnd();
 
     if (r % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
