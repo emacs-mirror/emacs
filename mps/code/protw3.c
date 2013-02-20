@@ -21,12 +21,6 @@
 SRCID(protw3, "$Id$");
 
 
-void ProtSetup(void)
-{
-  return;
-}
-
-
 void ProtSet(Addr base, Addr limit, AccessSet mode)
 {
   DWORD newProtect;
@@ -47,7 +41,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 }
 
 
-LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
+LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
 {
   LPEXCEPTION_RECORD er;
   ULONG_PTR iswrite;
@@ -105,6 +99,18 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 }
 
 
+/* ProtSetup -- set up the protection system */
+
+void ProtSetup(void)
+{
+  /* See "AddVectoredExceptionHandler function (Windows)"
+     <http://msdn.microsoft.com/en-us/library/windows/desktop/ms679274%28v=vs.85%29.aspx> */
+  /* ProtSetup is called only once per process, not once per arena, so
+     this exception handler is only installed once. */
+  AddVectoredExceptionHandler(1uL, ProtSEHfilter);
+}
+
+
 /* ProtSync -- synchronize protection settings with hardware
  *
  * This does nothing under Win32.  See protan.c.
@@ -117,22 +123,21 @@ void ProtSync(Arena arena)
 }
 
 
+/* ProtTramp -- wrap a mutator thread in a Structured Exception Handler filter
+ *
+ * This was the method by which we installed an exception handler on Windows
+ * prior to MPS 1.111.  Not we are using Vectored Exception Handlers, so this
+ * is deprecated and just calls through to the mutator function.
+ */
+
 void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
                void *p, size_t s)
 {
-  void *result = NULL; /* stop warnings about uninitialized result */
-
   AVER(resultReturn != NULL);
   AVER(FUNCHECK(f));
   /* Can't check p and s as they are interpreted by the client */
 
-  __try {
-    result = f(p, s);
-  } __except(ProtSEHfilter(GetExceptionInformation())) {
-    NOTREACHED;
-  }
-
-  *resultReturn = result;
+  *resultReturn = f(p, s);
 }
 
 

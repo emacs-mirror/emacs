@@ -156,9 +156,8 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pol,
 
 /* test -- the body of the test */
 
-static void *test(void *arg, size_t s)
+static void test(mps_arena_t arena)
 {
-  mps_arena_t arena;
   mps_fmt_t format;
   mps_chain_t chain;
   mps_root_t exactRoot, ambigRoot;
@@ -168,9 +167,6 @@ static void *test(void *arg, size_t s)
   int ramping;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
-
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
 
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -317,15 +313,12 @@ static void *test(void *arg, size_t s)
   mps_pool_destroy(pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
-
-  return NULL;
 }
 
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
-  void *r;
 
   randomize(argc, argv);
 
@@ -336,7 +329,7 @@ int main(int argc, char **argv)
   mps_alert_collection_set(arena, &alertfn);
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  mps_tramp(&r, test, arena, 0);
+  test(arena);
   mps_thread_dereg(thread);
   report(arena);
   mps_arena_destroy(arena);

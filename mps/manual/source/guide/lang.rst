@@ -1030,53 +1030,6 @@ function while the MPS is running, your program's active local
 variables will always be higher up on the stack than ``marker``, and
 so will be scanned for references by the MPS.
 
-The condition "don't exit from this function while the MPS is running"
-will always be satisfied, because you must run your program via the
-*MPS trampoline* (see the documentation for :c:func:`mps_tramp` for
-the reason). That is, if your program was previously organized like
-this::
-
-    int main(int argc, char **argv)
-    {
-        /* ... your program here ... */
-        return EXIT_CODE;
-    }
-
-it now must be organized like this::
-
-    typedef struct tramp_s {
-        int argc;
-        char **argv;
-        int exit_code;
-    } tramp_s;
-
-    static void *start(void *p, size_t s)
-    {
-        tramp_s *tramp = p;
-        int argc = tramp->argc;
-        char **argv = tramp->argv;
-
-        /* ... your program here ... */
-
-        tramp->exit_code = EXIT_CODE;
-        return NULL;
-    }
-
-    int main(int argc, char *argv[])
-    {
-        /* ... set up the MPS ... */
-
-        tramp_s tramp;
-        tramp.argc = argc;
-        tramp.argv = argv;
-        void *dummy;
-        mps_tramp(&dummy, start, &tramp, 0);
-
-        /* ... tear down the MPS ... */
-
-        return tramp.exit_code;
-    }
-
 .. topics::
 
     :ref:`topic-thread`.
