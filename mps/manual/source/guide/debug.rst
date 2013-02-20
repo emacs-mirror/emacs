@@ -158,8 +158,7 @@ What's going on? ::
     #5  0x000000010000341f in eval (env=0x1003fb130, op_env=0x1003fb148, exp=0x1003faf20) at scheme.c:1135
     #6  0x000000010000261b in start (p=0x0, s=0) at scheme.c:3204
     #7  0x0000000100011ded in ProtTramp (resultReturn=0x7fff5fbff7d0, f=0x100002130 <start>, p=0x0, s=0) at protix.c:132
-    #8  0x0000000100011d34 in mps_tramp (r_o=0x7fff5fbff7d0, f=0x100002130 <start>, p=0x0, s=0) at mpsi.c:1346
-    #9  0x0000000100001ef7 in main (argc=1, argv=0x7fff5fbff830) at scheme.c:3314
+    #8  0x0000000100001ef7 in main (argc=1, argv=0x7fff5fbff830) at scheme.c:3314
     (gdb) frame 4
     #4  0x0000000100003ea6 in lookup (env=0x1003fb130, symbol=0x1003faf20) at scheme.c:1087
     1086            binding = lookup_in_frame(CAR(env), symbol);
@@ -292,8 +291,7 @@ And here's how it shows up in the debugger:
     #18 0x0000000100002fe4 in eval (env=0x1003cb958, op_env=0x1003cb970, exp=0x1003f9878) at scheme.c:1159
     #19 0x000000010000206b in start (p=0x0, s=0) at scheme.c:3213
     #20 0x000000010001287d in ProtTramp (resultReturn=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at protix.c:132
-    #21 0x00000001000127c4 in mps_tramp (r_o=0x7fff5fbff7a0, f=0x100001b80 <start>, p=0x0, s=0) at mpsi.c:1346
-    #22 0x0000000100001947 in main (argc=1, argv=0x7fff5fbff808) at scheme.c:3314
+    #21 0x0000000100001947 in main (argc=1, argv=0x7fff5fbff808) at scheme.c:3314
     (gdb) frame 3
     #3  0x00000001000014e3 in obj_skip (base=0x1003f9b88) at scheme.c:2940
     2940            assert(0);
