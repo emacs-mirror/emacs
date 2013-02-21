@@ -1,3 +1,8 @@
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* informat.el (Info-tagify):
+	Handle buffers not visiting files.  (Bug#13763)
+
 2013-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calc/calc-graph.el (calc-graph-show-dumb): Fix typo.
