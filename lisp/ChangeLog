@@ -1,5 +1,8 @@
 2013-02-21  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/tramp.el (tramp-ssh-controlmaster-template): Make it a
+	defconst.  Apply independent check for ControlPersist.
+
 	* net/tramp-sh.el (tramp-sh-handle-set-file-times): Set $UTC only
 	temporarily, via "env".
 
