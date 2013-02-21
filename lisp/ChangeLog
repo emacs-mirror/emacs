@@ -1,3 +1,16 @@
+2013-02-21  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop):
+	Set `isearch-lazy-highlight-start' and `isearch-lazy-highlight-end'
+	to `isearch-other-end' if it is not nil.  (Bug#13402)
+
+	* replace.el (replace-highlight): Let-bind `isearch-other-end'
+	to `match-beg'.
+
+	* textmodes/ispell.el (ispell-highlight-spelling-error-overlay):
+	Let-bind `isearch-other-end' to `start', `isearch-forward' to t
+	and `isearch-error' to nil.
+
 2013-02-20  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-info-current-defun): Enhance
