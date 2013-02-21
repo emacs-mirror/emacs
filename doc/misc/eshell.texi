@@ -83,8 +83,8 @@ handling the sort of tasks accomplished by those tools.
 * GNU Free Documentation License:: The license for this documentation.
 * Concept Index::
 * Function and Variable Index::
-* Key Index::
 * Command Index::
+* Key Index::
 @end menu
 
 @node What is Eshell?
@@ -285,8 +285,8 @@ history and invoking commands in a script file.
 @menu
 * Invocation::
 * Arguments::
-* Variables::
 * Built-ins::
+* Variables::
 * Aliases::
 * History::
 * Completion::
@@ -465,7 +465,7 @@ Uses TRAMP's @command{su} or @command{sudo} method to run a command via
 
 @end table
 
-@section Built-in variables
+@subsection Built-in variables
 Eshell knows a few built-in variables:
 
 @table @code
