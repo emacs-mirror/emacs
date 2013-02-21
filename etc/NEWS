@@ -218,6 +218,10 @@ are obsolete.  Customize the `woman-* faces instead.
 +++
 *** yow.el is obsolete; use fortune.el or cookie1.el instead.
 
+---
+*** The Info-edit command is obsolete.  Editing Info nodes by hand
+has not been relevant for some time.
+
 
 * New Modes and Packages in Emacs 24.4
 ** New nadvice.el package offering lighter-weight advice facilities.

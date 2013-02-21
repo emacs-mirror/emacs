@@ -1,5 +1,10 @@
 2013-02-21  Glenn Morris  <rgm@gnu.org>
 
+	* info.el (Info-enable-edit): Remove.
+	(Info-edit): Disable it rather than using Info-enable.
+	(Info-edit-mode-hook, Info-edit-map, Info-edit-mode, Info-edit)
+	(Info-cease-edit): Make editing of Info files obsolete.
+
 	* informat.el (Info-tagify):
 	Handle buffers not visiting files.  (Bug#13763)
 
