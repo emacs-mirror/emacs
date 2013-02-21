@@ -1,3 +1,7 @@
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Multi-Frame Images): Minor rephrasing.
+
 2013-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (GIF Images, TIFF Images): Delete these nodes.

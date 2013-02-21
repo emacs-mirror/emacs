@@ -4925,10 +4925,10 @@ integer (counting from 0) that specifies which frame is being displayed.
 This function returns non-@code{nil} if @var{image} contains more than
 one frame.  The actual return value is a cons @code{(@var{nimages}
 . @var{delay})}, where @var{nimages} is the number of frames and
-@var{delay} is the delay in seconds between them, if the image itself
-specifies a delay.  Images that are intended to be animated usually
-specify a frame delay, whereas ones that are intended to be treated as
-multiple pages do not.
+@var{delay} is the delay in seconds between them, or @code{nil}
+if the image does not specify a delay.  Images that are intended to be
+animated usually specify a frame delay, whereas ones that are intended
+to be treated as multiple pages do not.
 @end defun
 
 @defun image-current-frame image

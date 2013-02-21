@@ -1,3 +1,7 @@
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Conveniences): Not just GIFs can be animated.
+
 2013-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Don't mention yow any more.

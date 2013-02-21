@@ -1937,8 +1937,7 @@ or taller than the frame, the usual point motion keys (@kbd{C-f},
 displayed.  If the image can be animated, the command @kbd{RET}
 (@code{image-toggle-animation}) starts or stops the animation.
 Animation plays once, unless the option @code{image-animate-loop} is
-non-@code{nil}.  Currently, Emacs only supports animation in GIF
-files.
+non-@code{nil}.
 
 @cindex ImageMagick support
 @vindex imagemagick-enabled-types

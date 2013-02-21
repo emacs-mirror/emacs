@@ -145,8 +145,6 @@ directory, respectively.
 `f' (`image-next-frame') and `b' (`image-previous-frame') visit the
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
 
-*** `image-animated-p' is now `image-multi-frame-p'.
-
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.
@@ -290,6 +288,21 @@ rather than inheriting from it (as do face specs set via Customize).
 
 *** New face characteristic (supports :underline (:style wave))
 specifies whether or not the terminal can display a wavy line.
+
+** Image API
+
++++
+*** `image-animated-p' is now `image-multi-frame-p'.
+It returns non-nil for any image that contains multiple frames,
+whether or not it specifies a frame delay.
+
++++
+*** When animating images that do not specify a frame delay,
+Emacs uses `image-default-frame-delay'.
+
++++
+*** New functions `image-current-frame' and `image-show-frame' for getting
+and setting the current frame of a multi-frame image.
 
 ** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
