@@ -1,3 +1,18 @@
+2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-info-current-defun): Enhance
+	match-data cluttering prevention.
+
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp.el (tramp-get-debug-buffer): Ensure outline.el is not
+	loaded while outline-regexp is let bound.  (Bug#9584)
+
+2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-info-current-defun): Fix failed
+	defun name retrieval because of unwanted match-data cluttering.
+
 2013-02-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-ssh-controlmaster-template): Make it a

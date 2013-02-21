@@ -1,3 +1,7 @@
+2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* automated/python-tests.el: New file.
+
 2013-02-14  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el

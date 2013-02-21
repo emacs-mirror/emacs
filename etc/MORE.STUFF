@@ -179,9 +179,6 @@ packages that you can install.
    WhizzyTeX provides a minor mode for Emacs or XEmacs, a (bash)
    shell-script daemon and some LaTeX macros.
 
- * X-Symbol: <URL:http://x-symbol.sourceforge.net/>
-   Quasi-WYSIWYG editing of TeX & al.
-
 Local Variables:
 mode: text
 eval: (view-mode 1)
