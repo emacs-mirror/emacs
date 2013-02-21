@@ -62,7 +62,10 @@ doc/**/*.tp
 doc/**/*.tps
 doc/**/*.vr
 doc/**/*.vrs
+doc/**/*.dvi
+doc/**/*.html
 doc/**/*.pdf
+doc/**/*.ps
 !doc/lispintro/cons-*.pdf
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf

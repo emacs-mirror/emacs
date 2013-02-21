@@ -54,6 +54,9 @@
 # make bootstrap
 #      Removes all the compiled files to force a new bootstrap from a
 #      clean slate, and then build in the normal way.
+#
+# make docs
+#      Make Emacs documentation files from their sources; requires makeinfo.
 
 SHELL = /bin/sh
 
@@ -859,13 +862,25 @@ check:
 dist:
 	cd ${srcdir}; ./make-dist
 
+DVIS  = lispref-dvi  lispintro-dvi  emacs-dvi  misc-dvi
+HTMLS = lispref-html lispintro-html emacs-html misc-html
+INFOS = lispref-info lispintro-info emacs-info misc-info
+PDFS  = lispref-pdf  lispintro-pdf  emacs-pdf  misc-pdf
+PSS   = lispref-ps   lispintro-ps   emacs-ps # no misc-ps
+
+DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
+$(DOCS):
+	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $(MFLAGS) $$2
+
+.PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist check html info-real force-info check-info-dir
 
-info-real:
-	(cd doc/emacs; $(MAKE) $(MFLAGS) info)
-	(cd doc/misc; $(MAKE) $(MFLAGS) info)
-	(cd doc/lispref; $(MAKE) $(MFLAGS) info)
-	(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
+docs: $(DOCS)
+dvi: $(DVIS)
+html: $(HTMLS)
+info-real: $(INFOS)
+pdf: $(PDFS)
+ps: $(PSS)
 
 force-info:
 # Note that man/Makefile knows how to put the info files in $(srcdir),
@@ -903,12 +918,6 @@ check-info-dir: info
 	  exit 1 ; \
 	fi ; \
 	echo "info/dir is OK"
-
-dvi:
-	(cd doc/emacs; $(MAKE) $(MFLAGS) dvi)
-	(cd doc/misc; $(MAKE) $(MFLAGS) dvi)
-	(cd doc/lispref; $(MAKE) $(MFLAGS) elisp.dvi)
-	(cd doc/lispintro; $(MAKE) $(MFLAGS) emacs-lisp-intro.dvi)
 
 #### Bootstrapping.
 

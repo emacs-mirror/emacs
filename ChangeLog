@@ -1,3 +1,15 @@
+2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Parallelize documentation builds.
+	This speeds up building of documentation on multiprocessor
+	platforms, and is motivated by Texinfo 5.0, which is much slower.
+	Add a toplevel rule 'make docs' to make all the documentation.
+	* .bzrignore: Add .dvi, .html, .ps.
+	* Makefile.in (DVIS, HTMLS, INFOS, PSS, DOCS): New macros.
+	($(DOCS), docs, vi, html, pdf, ps): New rules.
+	(info-real): Depend on $(INFOS) rather than doing it sequentially.
+	(dvi): Depend on $(DVIS) rather than doing it sequentially.
+
 2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* doc/misc/eshell.texi: Added documentation for Eshell insert

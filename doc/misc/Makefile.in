@@ -192,6 +192,8 @@ webhack: clean
 
 dvi: $(DVI_TARGETS)
 
+html: $(HTML_TARGETS)
+
 pdf: $(PDF_TARGETS)
 
 # Note that all the Info targets build the Info files in srcdir.

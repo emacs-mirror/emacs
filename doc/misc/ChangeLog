@@ -1,3 +1,7 @@
+2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (html): New rule.
+
 2013-02-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Android shell setup): Improve.  Reported by Thierry
