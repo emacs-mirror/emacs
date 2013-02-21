@@ -1,3 +1,8 @@
+2013-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-set-file-times): Set $UTC only
+	temporarily, via "env".
+
 2013-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* info.el (Info-enable-edit): Remove.

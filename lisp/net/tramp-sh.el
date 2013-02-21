@@ -1410,7 +1410,7 @@ of."
 	      (utc (not (featurep 'xemacs))))
 	  (tramp-send-command-and-check
 	   v (format "%s touch -t %s %s"
-		     (if utc "TZ=UTC; export TZ;" "")
+		     (if utc "env TZ=UTC" "")
 		     (if utc
 			 (format-time-string "%Y%m%d%H%M.%S" time t)
 		       (format-time-string "%Y%m%d%H%M.%S" time))
