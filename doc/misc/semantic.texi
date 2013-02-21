@@ -520,7 +520,7 @@ Regression tests from the older Semantic 1.x API.
 @node Glossary
 @appendix Glossary
 
-@table @keyword
+@table @asis
 @item BNF
 In semantic 1.4, a BNF file represented ``Bovine Normal Form'', the
 grammar file used for the 1.4 parser generator.  This was a play on

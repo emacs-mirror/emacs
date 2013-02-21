@@ -144,9 +144,6 @@ For the end user:
 * Usage::                       An overview of the operation of @value{tramp}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
-* Function Index::              @value{tramp} functions.
-* Variable Index::              User options and variables.
-* Concept Index::               An item for each concept.
 
 For the developer:
 
@@ -155,6 +152,9 @@ For the developer:
 * Issues::                      Debatable Issues and What Was Decided.
 
 * GNU Free Documentation License:: The license for this documentation.
+* Function Index::              @value{tramp} functions.
+* Variable Index::              User options and variables.
+* Concept Index::               An item for each concept.
 
 @detailmenu
  --- The Detailed Node Listing ---

@@ -3,8 +3,8 @@
 @c %**start of header
 @c Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 @c
-@setfilename gnus-faq.info
-@settitle Frequently Asked Questions
+@c @setfilename gnus-faq.info
+@c @settitle Frequently Asked Questions
 @c %**end of header
 @c
 
@@ -41,7 +41,7 @@ Please submit features and suggestions to the
 @email{ding@@gnus.org, ding list}.
 
 @node FAQ - Changes
-@subheading Changes
+@subsection Changes
 
 
 
@@ -57,7 +57,7 @@ reference to discontinued service.
 @end itemize
 
 @node FAQ - Introduction
-@subheading Introduction
+@subsection Introduction
 
 This is the Gnus Frequently Asked Questions list.
 
