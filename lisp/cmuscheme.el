@@ -447,7 +447,7 @@ in the next one.")
 					    "\"\)\n")))
 
 
-(defvar scheme-buffer nil "*The current scheme process buffer.
+(defvar scheme-buffer nil "The current scheme process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================

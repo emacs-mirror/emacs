@@ -1,3 +1,7 @@
+2013-02-21  Bastien Guerry  <bzg@gnu.org>
+
+	* cmuscheme.el (scheme-buffer): Fix docstring.  (Bug#13778)
+
 2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-info-current-defun): Enhance
