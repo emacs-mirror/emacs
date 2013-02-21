@@ -1,3 +1,7 @@
+2013-02-21  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (report_sheap_usage): Fix arguments of message1_no_log.
+
 2013-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sheap.c (report_sheap_usage): Prefer message1_nolog.
