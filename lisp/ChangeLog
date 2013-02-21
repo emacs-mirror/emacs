@@ -1,3 +1,8 @@
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (basic-save-buffer): Move check for existing parent
+	directory after hooks.  (Bug#13773)
+
 2013-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (command-execute): Move from C.  Add obsolete check.
