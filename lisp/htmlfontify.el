@@ -717,7 +717,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
 --> </script>
   </head>
   <body onload=\"stripe('index'); return true;\">\n"
-          file style))
+          (mapconcat 'hfy-html-quote (mapcar 'char-to-string file) "") style))
 
 (defun hfy-default-footer (_file)
   "Default value for `hfy-page-footer'.

@@ -1,3 +1,7 @@
+2013-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* htmlfontify.el (hfy-default-header): Encode title string.  (Bug#7457)
+
 2013-02-21  Bastien Guerry  <bzg@gnu.org>
 
 	* cmuscheme.el (scheme-buffer): Fix docstring.  (Bug#13778)
