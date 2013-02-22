@@ -2606,10 +2606,13 @@ This is like `dired-recursive-delete-directory' for Tramp files."
        (if full-directory-p "yes" "no"))
       ;; If `full-directory-p', we just say `ls -l FILENAME'.
       ;; Else we chdir to the parent directory, then say `ls -ld BASENAME'.
+      ;; "--dired" returns byte positions.  Therefore, the file names
+      ;; must be encoded, which is guaranteed by "LC_ALL=en_US.UTF8
+      ;; LC_CTYPE=''".
       (if full-directory-p
 	  (tramp-send-command
 	   v
-	   (format "%s %s %s 2>/dev/null"
+	   (format "env LC_ALL=en_US.UTF8 LC_CTYPE='' %s %s %s 2>/dev/null"
 		   (tramp-get-ls-command v)
 		   switches
 		   (if wildcard
@@ -2625,7 +2628,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	  (tramp-run-real-handler 'file-name-directory (list localname))))
 	(tramp-send-command
 	 v
-	 (format "%s %s %s"
+	 (format "env LC_ALL=en_US.UTF8 LC_CTYPE='' %s %s %s"
 		 (tramp-get-ls-command v)
 		 switches
 		 (if (or wildcard
@@ -2670,6 +2673,11 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	  (goto-char beg)
 	  (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
 	    (replace-match "")))
+
+	;; Decode the output, it could be multibyte.
+	(decode-coding-region
+	 beg (point-max)
+	 (or file-name-coding-system default-file-name-coding-system))
 
 	;; The inserted file could be from somewhere else.
 	(when (and (not wildcard) (not full-directory-p))

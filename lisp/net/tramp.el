@@ -1166,11 +1166,9 @@ If the `tramp-methods' entry does not exist, return nil."
 
 ;;;###tramp-autoload
 (defun tramp-tramp-file-p (name)
-  "Return t if NAME is a string with Tramp file name syntax.
-It checks also, whether NAME is unibyte encoded."
+  "Return t if NAME is a string with Tramp file name syntax."
   (save-match-data
     (and (stringp name)
-;	 (string-equal name (string-as-unibyte name))
 	 (string-match tramp-file-name-regexp name))))
 
 (defun tramp-find-method (method user host)
@@ -1354,7 +1352,7 @@ The outline level is equal to the verbosity of the Tramp message."
       (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
       (setq buffer-undo-list t)
-      ;; So it does not get loaded while outline-regexp is let-bound.
+      ;; So it does not get loaded while `outline-regexp' is let-bound.
       (require 'outline)
       ;; Activate `outline-mode'.  This runs `text-mode-hook' and
       ;; `outline-mode-hook'.  We must prevent that local processes
