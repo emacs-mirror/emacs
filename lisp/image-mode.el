@@ -476,11 +476,22 @@ to toggle between display as an image and display as text."
 	   ((setq animated (image-multi-frame-p image))
 	    (setq image-multi-frame t
 		  mode-line-process
-		  `(:eval (propertize
-			   (format " [%s/%s]"
-				   (1+ (image-current-frame ',image))
-				   ,(car animated))
-			   'help-echo "Frame number")))
+		  `(:eval
+		    (concat " "
+			    (propertize
+			     (format "[%s/%s]"
+				     (1+ (image-current-frame ',image))
+				     ,(car animated))
+			     'help-echo "Frames
+mouse-1: Next frame
+mouse-3: Previous frame"
+			     'mouse-face 'mode-line-highlight
+			     'local-map
+			     '(keymap
+			       (mode-line
+				keymap
+				(down-mouse-1 . image-next-frame)
+				(down-mouse-3 . image-previous-frame)))))))
 	    (message "%s"
 		     (concat msg1 "text.  This image has multiple frames.")))
 ;;;			     (substitute-command-keys
