@@ -1,3 +1,10 @@
+2013-02-22  David Engster  <deng@randomsample.de>
+
+	* gnus-registry.el (gnus-registry-save): Provide class name when
+	calling `eieio-persistent-read' to avoid "unsafe call" warning.  Use
+	`condition-case' to stay compatible with older EIEIO versions which
+	only accept one argument.
+
 2013-02-17  Daiki Ueno  <ueno@gnu.org>
 
 	* mml2015.el (epg-key-user-id-list, epg-user-id-string)

@@ -296,8 +296,14 @@ This is not required after changing `gnus-registry-cache-file'."
     (condition-case nil
         (progn
           (gnus-message 5 "Reading Gnus registry from %s..." file)
-          (setq gnus-registry-db (gnus-registry-fixup-registry
-                                  (eieio-persistent-read file)))
+          (setq gnus-registry-db
+		(gnus-registry-fixup-registry
+		 (condition-case nil
+		     (with-no-warnings
+		       (eieio-persistent-read file 'registry-db))
+		   ;; Older EIEIO versions do not check the class name.
+		   ('wrong-number-of-arguments
+		    (eieio-persistent-read file)))))
           (gnus-message 5 "Reading Gnus registry from %s...done" file))
       (error
        (gnus-message
