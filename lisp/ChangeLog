@@ -1,5 +1,9 @@
 2013-02-22  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/sgml-mode.el (sgml-xml-mode): Move before use.
+	(sgml-transformation-function): Give it a :set function.
+	(sgml-tag): Doc fix.
+
 	* cmuscheme.el (scheme-buffer):
 	* progmodes/inf-lisp.el (inferior-lisp-buffer):
 	* progmodes/tcl.el (inferior-tcl-buffer):

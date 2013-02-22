@@ -46,9 +46,26 @@
   :type 'integer
   :group 'sgml)
 
+(defcustom sgml-xml-mode nil
+  "When non-nil, tag insertion functions will be XML-compliant.
+It is set to be buffer-local when the file has
+a DOCTYPE or an XML declaration."
+  :type 'boolean
+  :version "22.1"
+  :group 'sgml)
+
 (defcustom sgml-transformation-function 'identity
   "Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (mapc (lambda (buff)
+                 (with-current-buffer buff
+                   (and (eq major-mode 'sgml-mode)
+                        (not sgml-xml-mode)
+                        (setq skeleton-transformation-function val))))
+               (buffer-list)))
   :group 'sgml)
 
 (put 'sgml-transformation-function 'variable-interactive
@@ -364,14 +381,6 @@ an optional alist of possible values."
 		       (string :tag "Description")))
   :group 'sgml)
 
-(defcustom sgml-xml-mode nil
-  "When non-nil, tag insertion functions will be XML-compliant.
-It is set to be buffer-local when the file has
-a DOCTYPE or an XML declaration."
-  :type 'boolean
-  :version "22.1"
-  :group 'sgml)
-
 (defvar sgml-empty-tags nil
   "List of tags whose !ELEMENT definition says EMPTY.")
 
@@ -635,10 +644,8 @@ This only works for Latin-1 input."
 (define-skeleton sgml-tag
   "Prompt for a tag and insert it, optionally with attributes.
 Completion and configuration are done according to `sgml-tag-alist'.
-If you like tags and attributes in uppercase do \\[set-variable]
-`skeleton-transformation-function' RET `upcase' RET, or put this
-in your `.emacs':
-  (setq sgml-transformation-function 'upcase)"
+If you like tags and attributes in uppercase, customize
+`sgml-transformation-function' to 'upcase."
   (funcall (or skeleton-transformation-function 'identity)
            (setq sgml-tag-last
 		 (completing-read
