@@ -1,3 +1,7 @@
+2013-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Syntax check statuses): Fix multitable continued rows.
+
 2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (html): New rule.

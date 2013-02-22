@@ -202,7 +202,7 @@ Andrew Choi and Yamamoto Mitsuharu wrote the Carbon support, used
 prior to Emacs 23 for Mac OS.
 
 @item
-Chong Yidong was the Emacs co-maintainer from Emacs 23 onwards.  He made many
+Chong Yidong was the Emacs co-maintainer from Emacs 23 to 24.3.  He made many
 improvements to the Emacs display engine.  He also wrote
 @file{tabulated-list.el}, a generic major mode for lists of data;
 and improved support for themes and packages.
@@ -825,7 +825,7 @@ facility.  He also wrote @code{ebrowse}, the C@t{++} browser;
 and @file{rx.el}, a regular expression constructor.
 
 @item
-Stefan Monnier was the Emacs co-maintainer from Emacs 23 onwards.  He added
+Stefan Monnier was the Emacs (co-)maintainer from Emacs 23 onwards.  He added
 support for Arch and Subversion to VC, re-wrote much of the Emacs server
 to use the built-in networking primitives, and re-wrote the abbrev and
 minibuffer completion code for Emacs 23.  He also wrote @code{PCL-CVS},

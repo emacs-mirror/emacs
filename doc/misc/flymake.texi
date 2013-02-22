@@ -210,14 +210,14 @@ The following statuses are defined.
 @multitable @columnfractions 0.25 0.75
 @item Flymake* or Flymake:E/W*
 @tab  Flymake is currently running. For the second case, E/W contains the
-      error and warning count for the previous run.
+error and warning count for the previous run.
 
 @item Flymake
 @tab  Syntax check is not running. Usually this means syntax check was
-      successfully passed (no errors, no warnings). Other possibilities are:
-      syntax check was killed as a result of executing
-      @code{flymake-compile}, or syntax check cannot start as compilation
-      is currently in progress.
+successfully passed (no errors, no warnings). Other possibilities are:
+syntax check was killed as a result of executing
+@code{flymake-compile}, or syntax check cannot start as compilation
+is currently in progress.
 
 @item Flymake:E/W
 @tab  Number of errors/warnings found by the syntax check process.
@@ -232,9 +232,9 @@ OFF for the buffer.
 @multitable @columnfractions 0.25 0.75
 @item CFGERR
 @tab  Syntax check process returned nonzero exit code, but no
-      errors/warnings were reported. This indicates a possible configuration
-      error (for example, no suitable error message patterns for the
-      syntax check tool).
+errors/warnings were reported. This indicates a possible configuration
+error (for example, no suitable error message patterns for the
+syntax check tool).
 
 @item NOMASTER
 @tab  Flymake was unable to find master file for the current buffer.

@@ -2203,6 +2203,7 @@ make, or the user didn't cancel the call."
 	     replace-regexp-lax-whitespace)
 	    (isearch-case-fold-search case-fold-search)
 	    (isearch-forward t)
+	    (isearch-other-end match-beg)
 	    (isearch-error nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 

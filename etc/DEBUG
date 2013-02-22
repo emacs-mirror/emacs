@@ -8,17 +8,28 @@ See the end of the file for license conditions.
 read the Windows-specific section near the end of this document.]
 
 ** When you debug Emacs with GDB, you should start it in the directory
-where the executable was made.  That directory has a .gdbinit file
-that defines various "user-defined" commands for debugging Emacs.
-(These commands are described below under "Examining Lisp object
-values" and "Debugging Emacs Redisplay problems".)
+where the executable was made (the 'src' directory in the Emacs source
+tree).  That directory has a .gdbinit file that defines various
+"user-defined" commands for debugging Emacs.  (These commands are
+described below under "Examining Lisp object values" and "Debugging
+Emacs Redisplay problems".)
 
-** When you are trying to analyze failed assertions, it will be
-essential to compile Emacs either completely without optimizations or
-at least (when using GCC) with the -fno-crossjumping option.  Failure
-to do so may make the compiler recycle the same abort call for all
-assertions in a given function, rendering the stack backtrace useless
-for identifying the specific failed assertion.
+Some GDB versions by default do not automatically load .gdbinit files
+in the directory where you invoke GDB.  With those versions of GDB,
+you will see a warning when GDB starts, like this:
+
+  warning: File ".../src/.gdbinit" auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load".
+
+There are several ways to overcome that difficulty, they are all
+described in the node "Auto-loading safe path" in the GDB user manual.
+
+** When you are trying to analyze failed assertions or backtraces, it
+will be essential to compile Emacs either completely without
+optimizations (set CFLAGS to "-O0 -g3") or at least (when using GCC)
+with the -fno-crossjumping option in CFLAGS.  Failure to do so may
+make the compiler recycle the same abort call for all assertions in a
+given function, rendering the stack backtrace useless for identifying
+the specific failed assertion.
 
 ** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able
