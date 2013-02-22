@@ -1,3 +1,8 @@
+2013-02-22  Claudio Bley  <claudio.bley@gmail.com>
+
+	* w32.c (emacs_gnutls_pull): Don't call 'select', and don't loop.
+	This avoids warning messages reported as part of Bug#13546.
+
 2013-02-21  Ken Brown  <kbrown@cornell.edu>
 
 	* sheap.c (report_sheap_usage): Fix arguments of message1_no_log.

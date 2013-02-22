@@ -7822,47 +7822,26 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
 ssize_t
 emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
-  int n, sc, err;
+  int n, err;
   SELECT_TYPE fdset;
   EMACS_TIME timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 
-  for (;;)
-    {
-      n = sys_read (fd, (char*)buf, sz);
+  n = sys_read (fd, (char*)buf, sz);
 
-      if (n >= 0)
-        return n;
+  if (n >= 0)
+    return n;
 
-      err = errno;
+  err = errno;
 
-      if (err == EWOULDBLOCK)
-        {
-          /* Set a small timeout.  */
-	  timeout = make_emacs_time (1, 0);
-          FD_ZERO (&fdset);
-          FD_SET ((int)fd, &fdset);
+  /* Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN. */
+  if (err == EWOULDBLOCK)
+    err = EAGAIN;
 
-          /* Use select with the timeout to poll the selector.  */
-          sc = select (fd + 1, &fdset, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-                       &timeout, NULL);
+  emacs_gnutls_transport_set_errno (process->gnutls_state, err);
 
-          if (sc > 0)
-            continue;  /* Try again.  */
-
-          /* Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.
-             Also accept select return 0 as an indicator to EAGAIN.  */
-          if (sc == 0 || errno == EWOULDBLOCK)
-            err = EAGAIN;
-          else
-            err = errno; /* Other errors are just passed on.  */
-        }
-
-      emacs_gnutls_transport_set_errno (process->gnutls_state, err);
-
-      return -1;
-    }
+  return -1;
 }
 
 ssize_t
