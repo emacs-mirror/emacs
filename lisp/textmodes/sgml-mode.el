@@ -62,7 +62,7 @@ a DOCTYPE or an XML declaration."
          (set-default sym val)
          (mapc (lambda (buff)
                  (with-current-buffer buff
-                   (and (eq major-mode 'sgml-mode)
+                   (and (derived-mode-p 'sgml-mode)
                         (not sgml-xml-mode)
                         (setq skeleton-transformation-function val))))
                (buffer-list)))
