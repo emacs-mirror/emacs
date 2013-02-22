@@ -478,8 +478,8 @@ This process selection is performed by function `scheme-proc'.
 
 Whenever \\[run-scheme] fires up a new process, it resets `scheme-buffer'
 to be the new process's buffer.  If you only run one process, this will
-do the right thing.  If you run multiple processes, you can change
-`scheme-buffer' to another process buffer with \\[set-variable].
+do the right thing.  If you run multiple processes, you might need to
+set `scheme-buffer' to whichever process buffer you want to use.
 
 More sophisticated approaches are, of course, possible.  If you find yourself
 needing to switch back and forth between multiple processes frequently,

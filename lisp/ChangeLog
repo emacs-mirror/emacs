@@ -1,5 +1,10 @@
 2013-02-22  Glenn Morris  <rgm@gnu.org>
 
+	* cmuscheme.el (scheme-buffer):
+	* progmodes/inf-lisp.el (inferior-lisp-buffer):
+	* progmodes/tcl.el (inferior-tcl-buffer):
+	* textmodes/tex-mode.el (tex-command): Doc fixes.
+
 	* image-mode.el (image-mode): Add mouse bindings for mode-line-process.
 
 	* htmlfontify.el (hfy-default-header): Encode title string.  (Bug#7457)
