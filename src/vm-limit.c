@@ -31,14 +31,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 enum warnlevel { not_warned, warned_75, warned_85, warned_95 };
 static enum warnlevel warnlevel;
 
-typedef void *POINTER;
-
 /* Function to call to issue a warning;
    0 means don't issue them.  */
 static void (*warn_function) (const char *);
 
 /* Start of data space; can be changed by calling malloc_init.  */
-static POINTER data_space_start;
+static void *data_space_start;
 
 /* Number of bytes of writable memory we can expect to be able to get.  */
 static size_t lim_data;
@@ -123,11 +121,11 @@ static void
 check_memory_limits (void)
 {
 #ifdef REL_ALLOC
-  extern POINTER (*real_morecore) (ptrdiff_t);
+  extern void *(*real_morecore) (ptrdiff_t);
 #endif
-  extern POINTER (*__morecore) (ptrdiff_t);
+  extern void *(*__morecore) (ptrdiff_t);
 
-  register POINTER cp;
+  void *cp;
   size_t five_percent;
   size_t data_size;
   enum warnlevel new_warnlevel;
@@ -215,9 +213,9 @@ start_of_data (void)
 {
 #ifdef BSD_SYSTEM
   extern char etext;
-  return (POINTER)(&etext);
+  return (void *) &etext;
 #elif defined DATA_START
-  return ((POINTER) DATA_START);
+  return (void *) DATA_START;
 #elif defined ORDINARY_LINK
   /*
    * This is a hack.  Since we're not linking crt0.c or pre_crt0.c,
@@ -225,10 +223,10 @@ start_of_data (void)
    * is known to live at or near the start of the system crt0.c, and
    * we don't sweat the handful of bytes that might lose.
    */
-  return ((POINTER) &environ);
+  return (void *) &environ;
 #else
   extern int data_start;
-  return ((POINTER) &data_start);
+  return (void *) &data_start;
 #endif
 }
 #endif /* (not CANNOT_DUMP or not SYSTEM_MALLOC) */
@@ -238,7 +236,7 @@ start_of_data (void)
    WARNFUN specifies the function to call to issue a warning.  */
 
 void
-memory_warnings (POINTER start, void (*warnfun) (const char *))
+memory_warnings (void *start, void (*warnfun) (const char *))
 {
   extern void (* __after_morecore_hook) (void);     /* From gmalloc.c */
 

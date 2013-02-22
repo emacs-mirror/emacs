@@ -1,3 +1,11 @@
+2013-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or better.
+	* ralloc.c (SIZE, POINTER, NIL):
+	* vm-limit.c (POINTER):
+	Remove, replacing all uses with C89 equivalents.  These old
+	symbols were present only for porting to pre-C89 platforms.
+
 2013-02-22  Claudio Bley  <claudio.bley@gmail.com>
 
 	* w32.c (emacs_gnutls_pull): Don't call 'select', and don't loop.
