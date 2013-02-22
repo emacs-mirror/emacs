@@ -1375,7 +1375,7 @@ Engster, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick
 Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Karl Fogel, Gary
 Foster, Eric S. Fraga, Romain Francoise, Noah Friedman, Andreas
 Fuchs, Shigeru Fukaya, Hallvard Furuseth, Keith Gabryelski, Peter S.
-Galbraith, Kevin Gallagher, Kevin Gallo, Juan León Lahoz García,
+Galbraith, Kevin Gallagher, Fabián E. Gallina, Kevin Gallo, Juan León Lahoz García,
 Howard Gayle, Daniel German, Stephen Gildea, Julien Gilles, David
 Gillespie, Bob Glickstein, Deepak Goel, David De La Harpe Golden, Boris
 Goldowsky, David Goodger, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
