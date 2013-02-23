@@ -1,3 +1,7 @@
+2013-02-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Magic File Names): Improve wording and indexing.
+
 2013-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* text.texi (Change Hooks): Fix typo.
