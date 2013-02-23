@@ -109,17 +109,15 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-copy-keep-date       t)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("scp"
+  '("scp"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r")
-				 ,tramp-ssh-controlmaster-template))
+    (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r") ("%c")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -128,17 +126,16 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-default-port         22)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("scp1"
+  '("scp1"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-1") ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-1") ("-P" "%p") ("-p" "%k") ("-q") ("-r")
-				 ,tramp-ssh-controlmaster-template))
+    (tramp-copy-args            (("-1") ("-P" "%p") ("-p" "%k")
+				 ("-q") ("-r") ("%c")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -147,17 +144,16 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-default-port         22)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("scp2"
+  '("scp2"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-2") ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-2") ("-P" "%p") ("-p" "%k") ("-q") ("-r")
-				 ,tramp-ssh-controlmaster-template))
+    (tramp-copy-args            (("-2") ("-P" "%p") ("-p" "%k")
+				 ("-q") ("-r") ("%c")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -166,17 +162,16 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-default-port         22)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("scpx"
+  '("scpx"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-e" "none") ("-t" "-t") ("%h") ("/bin/sh")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r")
-				 ,tramp-ssh-controlmaster-template))
+    (tramp-copy-args            (("-P" "%p") ("-p" "%k")
+				 ("-q") ("-r") ("%c")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -185,34 +180,27 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-default-port         22)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("sftp"
+  '("sftp"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "sftp")
-    (tramp-copy-args            ,tramp-ssh-controlmaster-template)))
+    (tramp-copy-args            ("%c"))))
  ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("rsync"
+  '("rsync"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
     (tramp-remote-shell-args    ("-c"))
     (tramp-copy-program         "rsync")
     (tramp-copy-args            (("-t" "%k") ("-r")))
-    (tramp-copy-env             (("RSYNC_RSH")
-				 (,(mapconcat
-				    'identity
-				    (append
-				     '("ssh") tramp-ssh-controlmaster-template)
-				    " "))))
+    (tramp-copy-env             (("RSYNC_RSH") ("ssh" "%c")))
     (tramp-copy-keep-date       t)
     (tramp-copy-keep-tmpfile    t)
     (tramp-copy-recursive       t)))
@@ -232,10 +220,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-remote-shell-args    ("-c"))))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("ssh"
+  '("ssh"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
@@ -246,10 +233,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-default-port         22)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("ssh1"
+  '("ssh1"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-1") ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
@@ -260,10 +246,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-default-port         22)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("ssh2"
+  '("ssh2"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-2") ("-e" "none") ("%h")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
@@ -274,10 +259,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-default-port         22)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
-  `("sshx"
+  '("sshx"
     (tramp-login-program        "ssh")
-    (tramp-login-args           (("-l" "%u") ("-p" "%p")
-				 ,tramp-ssh-controlmaster-template
+    (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				 ("-e" "none") ("-t" "-t") ("%h") ("/bin/sh")))
     (tramp-async-args           (("-q")))
     (tramp-remote-shell         "/bin/sh")
@@ -2274,7 +2258,7 @@ The method used must be an out-of-band method."
 	 (t2 (tramp-tramp-file-p newname))
 	 (orig-vec (tramp-dissect-file-name (if t1 filename newname)))
 	 copy-program copy-args copy-env copy-keep-date port spec
-	 source target)
+	 options source target)
 
     (with-parsed-tramp-file-name (if t1 filename newname) nil
       (if (and t1 t2)
@@ -2342,9 +2326,11 @@ The method used must be an out-of-band method."
 	      user (or user "")
 	      port (or port "")
 	      spec (format-spec-make
-		    ?h host ?u user ?p port
 		    ?t (tramp-get-connection-property
-			(tramp-get-connection-process v) "temp-file" "")
+			(tramp-get-connection-process v) "temp-file" ""))
+	      options (format-spec tramp-ssh-controlmaster-options spec)
+	      spec (format-spec-make
+		    ?h host ?u user ?p port ?c options
 		    ?k (if keep-date " " ""))
 	      copy-program (tramp-get-method-parameter
 			    method 'tramp-copy-program)
@@ -4404,6 +4390,9 @@ connection if a previous connection has died for some reason."
 	      (setenv "PROMPT_COMMAND")
 	      (setenv "PS1" tramp-initial-end-of-output)
 	      (let* ((target-alist (tramp-compute-multi-hops vec))
+		     ;; We will apply `tramp-ssh-controlmaster-options'
+		     ;; only for the first hop.
+		     (options tramp-ssh-controlmaster-options)
 		     (process-connection-type tramp-process-connection-type)
 		     (process-adaptive-read-buffering nil)
 		     (coding-system-for-read nil)
@@ -4508,8 +4497,10 @@ connection if a previous connection has died for some reason."
 		     l-host (or l-host "")
 		     l-user (or l-user "")
 		     l-port (or l-port "")
+		     spec (format-spec-make ?t tmpfile)
+		     options (format-spec options spec)
 		     spec (format-spec-make
-			   ?h l-host ?u l-user ?p l-port ?t tmpfile)
+			   ?h l-host ?u l-user ?p l-port ?c options)
 		     command
 		     (concat
 		      ;; We do not want to see the trailing local
@@ -4536,7 +4527,8 @@ connection if a previous connection has died for some reason."
 		    (tramp-message
 		     vec 3 "Found remote shell prompt on `%s'" l-host))
 		  ;; Next hop.
-		  (setq target-alist (cdr target-alist)))
+		  (setq options ""
+			target-alist (cdr target-alist)))
 
 		;; Make initial shell settings.
 		(tramp-open-connection-setup-interactive-shell p vec))))

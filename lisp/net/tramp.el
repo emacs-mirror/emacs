@@ -220,7 +220,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     argument.  By this, arguments like (\"-l\" \"%u\") are optional.
     \"%t\" is replaced by the temporary file name produced with
     `tramp-make-tramp-temp-file'.  \"%k\" indicates the keep-date
-    parameter of a program, if exists.
+    parameter of a program, if exists.  \"%c\" adds additional
+    `tramp-ssh-controlmaster-options' options for the first hop.
   * `tramp-async-args'
     When an asynchronous process is started, we know already that
     the connection works.  Therefore, we can pass additional
@@ -281,25 +282,23 @@ started on the local host.  You should specify a remote host
 useful only in combination with `tramp-default-proxies-alist'.")
 
 ;;;###tramp-autoload
-(defconst tramp-ssh-controlmaster-template
-  (let (result)
+(defconst tramp-ssh-controlmaster-options
+  (let ((result ""))
     (ignore-errors
       (with-temp-buffer
 	(call-process "ssh" nil t nil "-o" "ControlMaster")
 	(goto-char (point-min))
 	(when (search-forward-regexp "Missing ControlMaster argument" nil t)
-	  (setq result
-		'("-o" "ControlPath=%t.%%r@%%h:%%p"
-		  "-o" "ControlMaster=auto"))))
+	  (setq result "-o ControlPath=%t.%%r@%%h:%%p -o ControlMaster=auto")))
       (when result
 	(with-temp-buffer
 	  (call-process "ssh" nil t nil "-o" "ControlPersist")
 	  (goto-char (point-min))
 	  (when (search-forward-regexp "Missing ControlPersist argument" nil t)
-	    (setq result (append result '("-o" "ControlPersist=no")))))))
+	    (setq result (concat result " -o ControlPersist=no"))))))
     result)
     "Call ssh to detect whether it supports the Control* arguments.
-Return a template to be used in `tramp-methods'.")
+Return a string to be used in `tramp-methods'.")
 
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it performs
@@ -333,7 +332,7 @@ Return a template to be used in `tramp-methods'.")
 	    (getenv "SSH_AUTH_SOCK")
 	    (getenv "SSH_AGENT_PID")
 	    ;; We could reuse the connection.
-	    tramp-ssh-controlmaster-template)
+	    (> (length tramp-ssh-controlmaster-options) 0))
 	"scp"
       "ssh"))
    ;; Fallback.
