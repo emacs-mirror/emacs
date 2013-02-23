@@ -36,7 +36,8 @@
 ;;; Code:
 
 (defconst ps-mode-version "1.1h, 16 Jun 2005")
-(defconst ps-mode-maintainer-address "Peter Kleiweg <p.c.j.kleiweg@rug.nl>")
+(defconst ps-mode-maintainer-address
+  "Peter Kleiweg <p.c.j.kleiweg@rug.nl>, bug-gnu-emacs@gnu.org")
 
 (require 'comint)
 (require 'easymenu)

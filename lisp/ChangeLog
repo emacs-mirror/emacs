@@ -1,5 +1,13 @@
 2013-02-23  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/viper-cmd.el (viper-submit-report):
+	* progmodes/ps-mode.el (ps-mode-maintainer-address):
+	* progmodes/vera-mode.el (vera-mode-help-address):
+	* textmodes/artist.el (artist-maintainer-address):
+	* textmodes/reftex.el (reftex-report-bug):
+	* vc/ediff-util.el (ediff-submit-report):
+	Add bug-gnu-emacs to bug report address.
+
 	* progmodes/simula.el (simula-mode-menu, simula-mode-map):
 	Remove bug report entries.
 	(simula-mode-help-address, simula-submit-bug-report): Make obsolete.
