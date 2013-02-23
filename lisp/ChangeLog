@@ -1,5 +1,9 @@
 2013-02-23  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/simula.el (simula-mode-menu, simula-mode-map):
+	Remove bug report entries.
+	(simula-mode-help-address, simula-submit-bug-report): Make obsolete.
+
 	* emacs-lisp/bytecomp.el (byte-compile-level): New.
 	(byte-compile-file, byte-compile-from-buffer):
 	Use separate input/output buffers for each level of recursive
