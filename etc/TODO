@@ -107,8 +107,6 @@ for users to customize.
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
 
-** buffer-offer-save should be a permanent local.
-
 ** revert-buffer should eliminate overlays and the mark.
    For related problems consult the thread starting with
    http://lists.gnu.org/archive/html/emacs-devel/2005-11/msg01346.html
