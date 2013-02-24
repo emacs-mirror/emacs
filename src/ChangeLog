@@ -1,3 +1,12 @@
+2013-02-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix regression introduced by July 10 filelock.c patch.
+	* filelock.c (fill_in_lock_file_name): Fix crash caused by the
+	2012-07-10 patch to this file.  Reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00533.html>
+	and diagnosed by Andreas Schwab in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00534.html>.
+
 2013-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (new_child): Avoid leaking handles if the subprocess

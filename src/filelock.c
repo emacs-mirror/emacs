@@ -316,7 +316,7 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
   p[1] = '.';
   p[2] = '#';
 
-  p = p + length + 2;
+  p = lockfile + length + 2;
 
   while (lstat (lockfile, &st) == 0 && !S_ISLNK (st.st_mode))
     {
