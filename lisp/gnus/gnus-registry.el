@@ -87,6 +87,12 @@
 (require 'easymenu)
 (require 'registry)
 
+;; Silence XEmacs byte compiler, which will otherwise complain about
+;; call to `eieio-persistent-read'.
+(when (featurep 'xemacs)
+   (byte-compiler-options
+     (warnings (- callargs))))
+
 (defvar gnus-adaptive-word-syntax-table)
 
 (defvar gnus-registry-dirty t
