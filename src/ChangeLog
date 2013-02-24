@@ -1,3 +1,8 @@
+2013-02-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xdisp.c (set_message): Only check for debug-on-message if STRING
+	is a string.  (Bug#13797)
+
 2013-02-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix regression introduced by July 10 filelock.c patch.
