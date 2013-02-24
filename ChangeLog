@@ -1,3 +1,8 @@
+2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* lisp/eshell/em-cmpl.el: Corrected "context-related help"
+	keybinding in commentary.
+
 2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Parallelize documentation builds.
