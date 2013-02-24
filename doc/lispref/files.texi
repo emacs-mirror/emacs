@@ -2681,7 +2681,7 @@ no prefix argument is given, and @code{nil} otherwise.
 
   You can implement special handling for certain file names.  This is
 called making those names @dfn{magic}.  The principal use for this
-feature is in implementing remote file names (@pxref{Remote Files,,
+feature is in implementing access to remote files (@pxref{Remote Files,,
 Remote Files, emacs, The GNU Emacs Manual}).
 
   To define a kind of magic file name, you must supply a regular
@@ -2689,6 +2689,7 @@ expression to define the class of names (all those that match the
 regular expression), plus a handler that implements all the primitive
 Emacs file operations for file names that match.
 
+@cindex file handler
 @vindex file-name-handler-alist
   The variable @code{file-name-handler-alist} holds a list of handlers,
 together with regular expressions that determine when to apply each

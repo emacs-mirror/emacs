@@ -1,3 +1,10 @@
+2013-02-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	Port Tramp documentation to Texinfo 5.0.
+	* tramp.texi (top) [xxx, yyy, trampfn]: Remove superfluous @c.
+	(Filename Syntax): Do not use @trampfn{} in @item.
+	(Filename completion): Use @columnfractions in @multitable.
+
 2013-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* flymake.texi (Syntax check statuses): Fix multitable continued rows.

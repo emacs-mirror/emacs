@@ -20,20 +20,23 @@
 @c xxx and yyy are auxiliary macros in order to omit leading and
 @c trailing whitespace.  Not very elegant, but I don't know it better.
 
-@macro xxx {one}@c
-@set \one\@c
+@macro xxx {one}
+@set \one\
 @end macro
 
-@macro yyy {one, two}@c
+@macro yyy {one, two}
 @xxx{x\one\}@c
-@ifclear x@c
+@ifclear x
 \one\@w{}\two\@c
 @end ifclear
-@clear x\one\@c
+@clear x\one\
 @end macro
 
-@macro trampfn {method, user, host, localname}@c
-@value{prefix}@yyy{\method\,@value{postfixhop}}@yyy{\user\,@@}\host\@value{postfix}\localname\@c
+@macro trampfn {method, user, host, localname}
+@value{prefix}@c
+@yyy{\method\,@value{postfixhop}}@c
+@yyy{\user\,@@}@c
+\host\@value{postfix}\localname\
 @end macro
 
 @copying
@@ -2323,25 +2326,25 @@ using the default method.  @xref{Default Method}.
 Some examples of @value{tramp} filenames are shown below.
 
 @table @file
-@item @trampfn{, , melancholia, .emacs}
+@item @value{prefix}melancholia@value{postfix}.emacs
 Edit the file @file{.emacs} in your home directory on the machine
 @code{melancholia}.
 
-@item @trampfn{, , melancholia.danann.net, .emacs}
+@item @value{prefix}melancholia.danann.net@value{postfix}.emacs
 This edits the same file, using the fully qualified domain name of
 the machine.
 
-@item @trampfn{, , melancholia, ~/.emacs}
+@item @value{prefix}melancholia@value{postfix}~/.emacs
 This also edits the same file; the @file{~} is expanded to your
 home directory on the remote machine, just like it is locally.
 
-@item @trampfn{, , melancholia, ~daniel/.emacs}
+@item @value{prefix}melancholia@value{postfix}~daniel/.emacs
 This edits the file @file{.emacs} in the home directory of the user
 @code{daniel} on the machine @code{melancholia}.  The @file{~<user>}
 construct is expanded to the home directory of that user on the remote
 machine.
 
-@item @trampfn{, , melancholia, /etc/squid.conf}
+@item @value{prefix}melancholia@value{postfix}/etc/squid.conf
 This edits the file @file{/etc/squid.conf} on the machine
 @code{melancholia}.
 
@@ -2453,7 +2456,8 @@ If you, for example, type @kbd{C-x C-f @value{prefix}t
 @key{TAB}}, @value{tramp} might give you as result the choice for
 
 @example
-@multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
+@c @multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
+@multitable @columnfractions .5 .5
 @ifset emacs
 @item @value{prefixhop}telnet@value{postfixhop} @tab tmp/
 @item @value{prefixhop}toto@value{postfix} @tab
@@ -2480,7 +2484,8 @@ Next @kbd{@key{TAB}} brings you all machine names @value{tramp} detects in
 your @file{/etc/hosts} file, let's say
 
 @example
-@multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
+@multitable @columnfractions .5 .5
+@c @multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
 @item @trampfn{telnet, , 127.0.0.1,} @tab @trampfn{telnet, , 192.168.0.1,}
 @item @trampfn{telnet, , @value{ipv6prefix}::1@value{ipv6postfix},} @tab @trampfn{telnet, , localhost,}
 @item @trampfn{telnet, , melancholia.danann.net,} @tab @trampfn{telnet, , melancholia,}

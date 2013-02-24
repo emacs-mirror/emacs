@@ -10525,6 +10525,7 @@ set_message (Lisp_Object string)
   help_echo_showing_p = 0;
 
   if (STRINGP (Vdebug_on_message)
+      && STRINGP (string)
       && fast_string_match (Vdebug_on_message, string) >= 0)
     call_debugger (list2 (Qerror, string));
 }
