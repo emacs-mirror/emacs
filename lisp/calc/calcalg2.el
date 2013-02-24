@@ -401,18 +401,18 @@
 
 (put 'calcFunc-sin\' 'math-derivative-1
      (function (lambda (u) (math-to-radians-2 (math-normalize
-					       (list 'calcFunc-cos u))))))
+					       (list 'calcFunc-cos u)) t))))
 
 (put 'calcFunc-cos\' 'math-derivative-1
      (function (lambda (u) (math-neg (math-to-radians-2
 				      (math-normalize
-				       (list 'calcFunc-sin u)))))))
+				       (list 'calcFunc-sin u)) t)))))
 
 (put 'calcFunc-tan\' 'math-derivative-1
      (function (lambda (u) (math-to-radians-2
 			    (math-sqr
                              (math-normalize
-                              (list 'calcFunc-sec u)))))))
+                              (list 'calcFunc-sec u))) t))))
 
 (put 'calcFunc-sec\' 'math-derivative-1
      (function (lambda (u) (math-to-radians-2
@@ -420,7 +420,7 @@
                              (math-normalize
                               (list 'calcFunc-sec u))
                              (math-normalize
-                              (list 'calcFunc-tan u)))))))
+                              (list 'calcFunc-tan u))) t))))
 
 (put 'calcFunc-csc\' 'math-derivative-1
      (function (lambda (u) (math-neg
@@ -429,32 +429,32 @@
                               (math-normalize
                                (list 'calcFunc-csc u))
                               (math-normalize
-                               (list 'calcFunc-cot u))))))))
+                               (list 'calcFunc-cot u))) t)))))
 
 (put 'calcFunc-cot\' 'math-derivative-1
      (function (lambda (u) (math-neg
                             (math-to-radians-2
                              (math-sqr
                               (math-normalize
-                               (list 'calcFunc-csc u))))))))
+                               (list 'calcFunc-csc u))) t)))))
 
 (put 'calcFunc-arcsin\' 'math-derivative-1
      (function (lambda (u)
 		 (math-from-radians-2
 		  (math-div 1 (math-normalize
 			       (list 'calcFunc-sqrt
-				     (math-sub 1 (math-sqr u)))))))))
+				     (math-sub 1 (math-sqr u))))) t))))
 
 (put 'calcFunc-arccos\' 'math-derivative-1
      (function (lambda (u)
 		 (math-from-radians-2
 		  (math-div -1 (math-normalize
 				(list 'calcFunc-sqrt
-				      (math-sub 1 (math-sqr u)))))))))
+				      (math-sub 1 (math-sqr u))))) t))))
 
 (put 'calcFunc-arctan\' 'math-derivative-1
      (function (lambda (u) (math-from-radians-2
-			    (math-div 1 (math-add 1 (math-sqr u)))))))
+			    (math-div 1 (math-add 1 (math-sqr u))) t))))
 
 (put 'calcFunc-sinh\' 'math-derivative-1
      (function (lambda (u) (math-normalize (list 'calcFunc-cosh u)))))
