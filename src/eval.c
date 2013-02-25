@@ -1898,7 +1898,7 @@ If LEXICAL is t, evaluate using lexical scoping.  */)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
-	    NILP (lexical) ? Qnil : Fcons (Qt, Qnil));
+	    CONSP (lexical) || NILP (lexical) ? lexical : Fcons (Qt, Qnil));
   return unbind_to (count, eval_sub (form));
 }
 

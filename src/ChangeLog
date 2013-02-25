@@ -1,3 +1,9 @@
+2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (Fcall_interactively): Use the right lexical environment
+	for `interactive' specs (bug#13811).
+	* eval.c (Feval): Accept a lexical environment.
+
 2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify data_start configuration (Bug#13783).
