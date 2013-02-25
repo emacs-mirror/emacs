@@ -2623,6 +2623,7 @@ which is the value of the user option
    (replace-regexp-in-string
     "-+" "-"
     (concat "todos-item-insert-"
+    ;; (concat "todos-insert-item-"
 	    (mapconcat (lambda (e) (if e (symbol-name e))) arglist "-")))))
 
 (defvar todos-insertion-commands-names
@@ -2675,6 +2676,7 @@ which is the value of the user option
 		    (setq key (concat key key1)))))
 	    todos-insertion-commands-arg-key-list)
       (if (string-match (concat (regexp-quote "todos-item-insert") "\\_>") cname)
+      ;; (if (string-match (concat (regexp-quote "todos-insert-item") "\\_>") cname)
 	  (setq key (concat key "i")))
       (define-key map key c))))
 
@@ -2720,6 +2722,7 @@ which is the value of the user option
     ;;               navigation		        
     ("f"	     . todos-forward-category)
     ("b"	     . todos-backward-category)
+    ("t"             . todos-show)
     ("j"	     . todos-jump-to-category)
     ("n"	     . todos-forward-item)
     ("p"	     . todos-backward-item)
@@ -3023,11 +3026,14 @@ which is the value of the user option
 ;;;###autoload
 (defun todos-show (&optional solicit-file)
   "Visit a Todos file and display one of its categories.
-With non-nil prefix argument SOLICIT-FILE prompt for which todo
-file to visit; otherwise visit `todos-default-todos-file'.
-Subsequent invocations from outside of Todos mode revisit this
-file or, with option `todos-show-current-file' non-nil (the
-default), whichever Todos file was last visited.
+
+When invoked in Todos mode, prompt for which todo file to visit.
+When invoked outside of Todos mode with non-nil prefix argument
+SOLICIT-FILE prompt for which todo file to visit; otherwise visit
+`todos-default-todos-file'.  Subsequent invocations from outside
+of Todos mode revisit this file or, with option
+`todos-show-current-file' non-nil (the default), whichever Todos
+file was last visited.
 
 Calling this command before any Todos file exists prompts for a
 file name and an initial category (defaulting to
@@ -3053,7 +3059,8 @@ corresponding Todos file, displaying the corresponding category."
   (interactive "P")
   (let* ((cat)
 	 (show-first todos-show-first)
-	 (file (cond (solicit-file
+	 (file (cond ((or (eq major-mode 'todos-mode)
+			  solicit-file)
 		      (if (funcall todos-files-function)
 			  (todos-read-file-name "Choose a Todos file to visit: "
 						nil t)

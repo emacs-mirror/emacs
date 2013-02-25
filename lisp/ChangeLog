@@ -1,3 +1,9 @@
+2013-02-25  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-key-bindings): Add binding for `todos-show'.
+	(todos-show): Prompt for which todo file to visit when invoked
+	from Todos mode.
+
 2013-02-19  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Item insertion and done/undo fixes.
