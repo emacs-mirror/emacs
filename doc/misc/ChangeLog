@@ -1,3 +1,8 @@
+2013-02-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (top) [xxx, yyy, trampfn]: Provide two versions of
+	the macros, for Texinfo 4.13 and 5.0.
+
 2013-02-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	Port documentation to Texinfo 5.0.
