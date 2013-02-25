@@ -1,3 +1,8 @@
+2013-02-25  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* mml2015-el (mml2015-epg-key-image): Wrap epg-gpg-program in
+	shell-quote-argument.
+
 2013-02-22  David Engster  <deng@randomsample.de>
 
 	* gnus-registry.el (gnus-registry-save): Provide class name when
