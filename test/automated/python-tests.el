@@ -24,7 +24,7 @@
 (require 'python)
 
 (defmacro python-tests-with-temp-buffer (contents &rest body)
-  "Create a `python-mode' enabeld temp buffer with CONTENTS.
+  "Create a `python-mode' enabled temp buffer with CONTENTS.
 BODY is code to be executed within the temp buffer.  Point is
 always located at the beginning of buffer."
   (declare (indent 1) (debug t))
@@ -37,7 +37,7 @@ always located at the beginning of buffer."
 (defun python-tests-look-at (string &optional num restore-point)
   "Move point at beginning of STRING in the current buffer.
 Optional argument NUM defaults to 1 and is an integer indicating
-how many ocurrences must be found, when positive the search is
+how many occurrences must be found, when positive the search is
 done forwards, otherwise backwards.  When RESTORE-POINT is
 non-nil the point is not moved but the position found is still
 returned.  When searching forward and point is already looking at
