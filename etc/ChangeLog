@@ -1,6 +1,7 @@
 2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify data_start configuration (Bug#13783).
+	* NEWS: Document removal of --with-crt-dir.
 	* PROBLEMS (LIBS_SYSTEM, LIBS_MACHINE, LIBS_STANDARD): Remove.
 	Remove legacy-systems section, as this stuff is no longer
 	applicable with current linking strategies.

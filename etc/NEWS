@@ -28,6 +28,9 @@ This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--without-acl'.
 
+** The configure option --with-crt-dir has been removed.
+It is no longer needed, as the crt*.o files are no longer linked specially.
+
 
 * Startup Changes in Emacs 24.4
 
