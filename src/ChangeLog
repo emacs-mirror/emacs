@@ -1,3 +1,12 @@
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* textprop.c (Fadd_text_properties, Fremove_text_properties)
+	(Fremove_list_of_text_properties): Skip all of the intervals in
+	the region between START and END that already have resp. don't
+	have the requested properties, not just the first one.  Add
+	assertions that the loop afterwards always modifies the
+	properties.  (Bug#13743)
+
 2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* callint.c (Fcall_interactively): Use the right lexical environment

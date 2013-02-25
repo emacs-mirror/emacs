@@ -1133,6 +1133,7 @@ Return t if any property value actually changed, nil otherwise.  */)
   register ptrdiff_t s, len;
   register int modified = 0;
   struct gcpro gcpro1;
+  ptrdiff_t got;
 
   properties = validate_plist (properties);
   if (NILP (properties))
@@ -1152,26 +1153,25 @@ Return t if any property value actually changed, nil otherwise.  */)
      and live buffers are always protected.  */
   GCPRO1 (properties);
 
-  /* If we're not starting on an interval boundary, we have to
-    split this interval.  */
-  if (i->position != s)
+  /* If this interval already has the properties, we can skip it.  */
+  if (interval_has_all_properties (properties, i))
     {
-      /* If this interval already has the properties, we can
-         skip it.  */
-      if (interval_has_all_properties (properties, i))
-	{
-	  ptrdiff_t got = (LENGTH (i) - (s - i->position));
-	  if (got >= len)
-	    RETURN_UNGCPRO (Qnil);
-	  len -= got;
-	  i = next_interval (i);
-	}
-      else
-	{
-	  unchanged = i;
-	  i = split_interval_right (unchanged, s - unchanged->position);
-	  copy_properties (unchanged, i);
-	}
+      got = LENGTH (i) - (s - i->position);
+      do {
+	if (got >= len)
+	  RETURN_UNGCPRO (Qnil);
+	len -= got;
+	i = next_interval (i);
+	got = LENGTH (i);
+      } while (interval_has_all_properties (properties, i));
+    }
+  else if (i->position != s)
+    {
+      /* If we're not starting on an interval boundary, we have to
+	 split this interval.  */
+      unchanged = i;
+      i = split_interval_right (unchanged, s - unchanged->position);
+      copy_properties (unchanged, i);
     }
 
   if (BUFFERP (object))
@@ -1195,7 +1195,8 @@ Return t if any property value actually changed, nil otherwise.  */)
 		signal_after_change (XINT (start), XINT (end) - XINT (start),
 				     XINT (end) - XINT (start));
 
-	      return modified ? Qt : Qnil;
+	      eassert (modified);
+	      return Qt;
 	    }
 
 	  if (LENGTH (i) == len)
@@ -1426,6 +1427,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
   register INTERVAL i, unchanged;
   register ptrdiff_t s, len;
   register int modified = 0;
+  ptrdiff_t got;
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
@@ -1437,26 +1439,25 @@ Use `set-text-properties' if you want to remove all text properties.  */)
   s = XINT (start);
   len = XINT (end) - s;
 
-  if (i->position != s)
+  /* If there are no properties on this entire interval, return.  */
+  if (! interval_has_some_properties (properties, i))
     {
-      /* No properties on this first interval -- return if
-         it covers the entire region.  */
-      if (! interval_has_some_properties (properties, i))
-	{
-	  ptrdiff_t got = (LENGTH (i) - (s - i->position));
-	  if (got >= len)
-	    return Qnil;
-	  len -= got;
-	  i = next_interval (i);
-	}
-      /* Split away the beginning of this interval; what we don't
-	 want to modify.  */
-      else
-	{
-	  unchanged = i;
-	  i = split_interval_right (unchanged, s - unchanged->position);
-	  copy_properties (unchanged, i);
-	}
+      got = (LENGTH (i) - (s - i->position));
+      do {
+	if (got >= len)
+	  return Qnil;
+	len -= got;
+	i = next_interval (i);
+	got = LENGTH (i);
+      } while (! interval_has_some_properties (properties, i));
+    }
+  /* Split away the beginning of this interval; what we don't
+     want to modify.  */
+  else if (i->position != s)
+    {
+      unchanged = i;
+      i = split_interval_right (unchanged, s - unchanged->position);
+      copy_properties (unchanged, i);
     }
 
   if (BUFFERP (object))
@@ -1470,7 +1471,13 @@ Use `set-text-properties' if you want to remove all text properties.  */)
       if (LENGTH (i) >= len)
 	{
 	  if (! interval_has_some_properties (properties, i))
-	    return modified ? Qt : Qnil;
+	    {
+	      eassert (modified);
+	      if (BUFFERP (object))
+		signal_after_change (XINT (start), XINT (end) - XINT (start),
+				     XINT (end) - XINT (start));
+	      return Qt;
+	    }
 
 	  if (LENGTH (i) == len)
 	    {
@@ -1512,6 +1519,7 @@ Return t if any property was actually removed, nil otherwise.  */)
   register ptrdiff_t s, len;
   register int modified = 0;
   Lisp_Object properties;
+  ptrdiff_t got;
   properties = list_of_properties;
 
   if (NILP (object))
@@ -1524,26 +1532,25 @@ Return t if any property was actually removed, nil otherwise.  */)
   s = XINT (start);
   len = XINT (end) - s;
 
-  if (i->position != s)
+  /* If there are no properties on the interval, return.  */
+  if (! interval_has_some_properties_list (properties, i))
     {
-      /* No properties on this first interval -- return if
-         it covers the entire region.  */
-      if (! interval_has_some_properties_list (properties, i))
-	{
-	  ptrdiff_t got = (LENGTH (i) - (s - i->position));
-	  if (got >= len)
-	    return Qnil;
-	  len -= got;
-	  i = next_interval (i);
-	}
-      /* Split away the beginning of this interval; what we don't
-	 want to modify.  */
-      else
-	{
-	  unchanged = i;
-	  i = split_interval_right (unchanged, s - unchanged->position);
-	  copy_properties (unchanged, i);
-	}
+      got = (LENGTH (i) - (s - i->position));
+      do {
+	if (got >= len)
+	  return Qnil;
+	len -= got;
+	i = next_interval (i);
+	got = LENGTH (i);
+      } while (! interval_has_some_properties_list (properties, i));
+    }
+  /* Split away the beginning of this interval; what we don't
+     want to modify.  */
+  else if (i->position != s)
+    {
+      unchanged = i;
+      i = split_interval_right (unchanged, s - unchanged->position);
+      copy_properties (unchanged, i);
     }
 
   /* We are at the beginning of an interval, with len to scan.
