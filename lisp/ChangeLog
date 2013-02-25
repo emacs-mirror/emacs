@@ -1,3 +1,7 @@
+2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Use let.
+
 2013-02-25  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (read-regexp): Let-bind `default' to the first
@@ -57,8 +61,8 @@
 	(tramp-default-method): Adapt check for
 	`tramp-ssh-controlmaster-options'.
 
-	* net/tramp-sh.el (tramp-methods): Replace
-	`tramp-ssh-controlmaster-template' by "%c".
+	* net/tramp-sh.el (tramp-methods):
+	Replace `tramp-ssh-controlmaster-template' by "%c".
 	(tramp-do-copy-or-rename-file-out-of-band)
 	(tramp-maybe-open-connection): Use it in format spec.  Ensure,
 	that it is applied for the first hop only.
@@ -80,8 +84,8 @@
 
 	* net/tramp.el (tramp-tramp-file-p): Fix docstring.
 
-	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Handle
-	multibyte file names.
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory):
+	Handle multibyte file names.
 
 2013-02-22  Glenn Morris  <rgm@gnu.org>
 
@@ -104,8 +108,8 @@
 
 2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el (python-info-current-defun): Enhance
-	match-data cluttering prevention.
+	* progmodes/python.el (python-info-current-defun):
+	Enhance match-data cluttering prevention.
 
 2013-02-21  Glenn Morris  <rgm@gnu.org>
 

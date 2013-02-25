@@ -1781,15 +1781,13 @@ The value is non-nil if there were no errors, nil if errors."
       (when byte-compile-verbose
 	(message "Compiling %s..." filename))
       (setq byte-compiler-error-flag nil)
-      (setq byte-compile-level (1+ byte-compile-level))
       ;; It is important that input-buffer not be current at this call,
       ;; so that the value of point set in input-buffer
       ;; within byte-compile-from-buffer lingers in that buffer.
       (setq output-buffer
 	    (save-current-buffer
-	      (unwind-protect
-		  (byte-compile-from-buffer input-buffer)
-		(setq byte-compile-level (1- byte-compile-level)))))
+	      (let ((byte-compile-level (1+ byte-compile-level)))
+                (byte-compile-from-buffer input-buffer))))
       (if byte-compiler-error-flag
 	  nil
 	(when byte-compile-verbose
