@@ -1594,7 +1594,9 @@ that already has a `.elc' file."
                    (setq directories (nconc directories (list source))))
                ;; It is an ordinary file.  Decide whether to compile it.
                (if (and (string-match emacs-lisp-file-regexp source)
+			;; The next 2 tests avoid compiling lock files
                         (file-readable-p source)
+			(not (string-match "\\`\\.#" file))
                         (not (auto-save-file-name-p source))
                         (not (string-equal dir-locals-file
                                            (file-name-nondirectory source))))

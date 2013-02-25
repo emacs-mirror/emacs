@@ -734,10 +734,10 @@ file.
 @cindex locking files
   When you make the first modification in an Emacs buffer that is
 visiting a file, Emacs records that the file is @dfn{locked} by you.
-(It does this by creating a specially-named symbolic link in the same
-directory.)  Emacs removes the lock when you save the changes.  The
-idea is that the file is locked whenever an Emacs buffer visiting it
-has unsaved changes.
+(It does this by creating a specially-named symbolic link or regular
+file with special contents in the same directory.)  Emacs removes the
+lock when you save the changes.  The idea is that the file is locked
+whenever an Emacs buffer visiting it has unsaved changes.
 
 @vindex create-lockfiles
   You can prevent the creation of lock files by setting the variable
@@ -774,14 +774,14 @@ multiple names, Emacs does not prevent two users from editing it
 simultaneously under different names.
 
   A lock file cannot be written in some circumstances, e.g., if Emacs
-lacks the system permissions or the system does not support symbolic
-links.  In these cases, Emacs can still detect the collision when you
-try to save a file, by checking the file's last-modification date.  If
-the file has changed since the last time Emacs visited or saved it,
-that implies that changes have been made in some other way, and will
-be lost if Emacs proceeds with saving.  Emacs then displays a warning
-message and asks for confirmation before saving; answer @kbd{yes} to
-save, and @kbd{no} or @kbd{C-g} cancel the save.
+lacks the system permissions or cannot create lock files for some
+other reason.  In these cases, Emacs can still detect the collision
+when you try to save a file, by checking the file's last-modification
+date.  If the file has changed since the last time Emacs visited or
+saved it, that implies that changes have been made in some other way,
+and will be lost if Emacs proceeds with saving.  Emacs then displays a
+warning message and asks for confirmation before saving; answer
+@kbd{yes} to save, and @kbd{no} or @kbd{C-g} cancel the save.
 
   If you are notified that simultaneous editing has already taken
 place, one way to compare the buffer to its file is the @kbd{M-x

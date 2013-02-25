@@ -43,6 +43,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "coding.h"
 #include "systime.h"
+#ifdef WINDOWSNT
+#include "w32.h"	/* for dostounix_filename */
+#endif
 
 #ifdef CLASH_DETECTION
 
@@ -288,13 +291,22 @@ typedef struct
 #define FREE_LOCK_INFO(i) do { xfree ((i).user); xfree ((i).host); } while (0)
 
 
-/* Write the name of the lock file for FN into LFNAME.  Length will be
-   that of FN plus two more for the leading `.#' plus 1 for the
-   trailing period plus one for the digit after it plus one for the
-   null.  */
-#define MAKE_LOCK_NAME(lock, file) \
-  (lock = alloca (SBYTES (file) + 2 + 1 + 1 + 1), \
-   fill_in_lock_file_name (lock, (file)))
+/* Write the name of the lock file for FNAME into LOCKNAME.  Length
+   will be that of FN plus two more for the leading `.#' plus 1 for
+   the trailing period plus one for the digit after it plus one for
+   the null.  */
+#define MAKE_LOCK_NAME(LOCKNAME, FNAME) \
+  (LOCKNAME = alloca (SBYTES (FNAME) + 2 + 1 + 1 + 1), \
+   fill_in_lock_file_name (LOCKNAME, (FNAME)))
+
+#ifdef WINDOWSNT
+/* 256 chars for user, 1024 chars for host, 10 digits for each of 2 int's.  */
+#define MAX_LFINFO (256 + 1024 + 10 + 10 + 2)
+                                                    /* min size: .@PID */
+#define IS_LOCK_FILE(ST) (MAX_LFINFO >= (ST).st_size && (ST).st_size >= 3)
+#else
+#define IS_LOCK_FILE(ST) S_ISLNK ((ST).st_mode)
+#endif
 
 static void
 fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
@@ -318,7 +330,7 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 
   p = lockfile + length + 2;
 
-  while (lstat (lockfile, &st) == 0 && !S_ISLNK (st.st_mode))
+  while (lstat (lockfile, &st) == 0 && !IS_LOCK_FILE (st))
     {
       if (count > 9)
 	{
@@ -327,6 +339,49 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 	}
       sprintf (p, ".%d", count++);
     }
+}
+
+static int
+create_lock_file (char *lfname, char *lock_info_str, bool force)
+{
+  int err;
+
+#ifdef WINDOWSNT
+  /* Symlinks are supported only by latest versions of Windows, and
+     creating them is a privileged operation that often triggers UAC
+     elevation prompts.  Therefore, instead of using symlinks, we
+     create a regular file with the lock info written as its
+     contents.  */
+  {
+    int fd = emacs_open (lfname, O_WRONLY | O_BINARY | O_CREAT | O_EXCL,
+			 S_IREAD | S_IWRITE);
+
+    if (fd < 0 && errno == EEXIST && force)
+      fd = emacs_open (lfname, O_WRONLY | O_BINARY | O_TRUNC,
+		       S_IREAD | S_IWRITE);
+    if (fd >= 0)
+      {
+	ssize_t lock_info_len = strlen (lock_info_str);
+
+	err = 0;
+	if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len)
+	  err = -1;
+	if (emacs_close (fd))
+	  err = -1;
+      }
+    else
+      err = -1;
+  }
+#else
+  err = symlink (lock_info_str, lfname);
+  if (errno == EEXIST && force)
+    {
+      unlink (lfname);
+      err = symlink (lock_info_str, lfname);
+    }
+#endif
+
+  return err;
 }
 
 /* Lock the lock file named LFNAME.
@@ -355,13 +410,7 @@ lock_file_1 (char *lfname, bool force)
 
   esprintf (lock_info_str, boot ? "%s@%s.%"pMd":%"pMd : "%s@%s.%"pMd,
 	    user_name, host_name, pid, boot);
-
-  err = symlink (lock_info_str, lfname);
-  if (errno == EEXIST && force)
-    {
-      unlink (lfname);
-      err = symlink (lock_info_str, lfname);
-    }
+  err = create_lock_file (lfname, lock_info_str, force);
 
   symlink_errno = errno;
   SAFE_FREE ();
@@ -377,6 +426,32 @@ within_one_second (time_t a, time_t b)
   return (a - b >= -1 && a - b <= 1);
 }
 
+static Lisp_Object
+read_lock_data (char *lfname)
+{
+#ifndef WINDOWSNT
+  return emacs_readlinkat (AT_FDCWD, lfname);
+#else
+  int fd = emacs_open (lfname, O_RDONLY | O_BINARY, S_IREAD);
+  ssize_t nbytes;
+  char lfinfo[MAX_LFINFO + 1];
+
+  if (fd < 0)
+    return Qnil;
+
+  nbytes = emacs_read (fd, lfinfo, MAX_LFINFO);
+  emacs_close (fd);
+
+  if (nbytes > 0)
+    {
+      lfinfo[nbytes] = '\0';
+      return build_string (lfinfo);
+    }
+  else
+    return Qnil;
+#endif
+}
+
 /* Return 0 if nobody owns the lock file LFNAME or the lock is obsolete,
    1 if another process owns it (and set OWNER (if non-null) to info),
    2 if the current process owns it,
@@ -390,7 +465,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   lock_info_type local_owner;
   intmax_t n;
   char *at, *dot, *colon;
-  Lisp_Object lfinfo_object = emacs_readlinkat (AT_FDCWD, lfname);
+  Lisp_Object lfinfo_object = read_lock_data (lfname);
   char *lfinfo;
   struct gcpro gcpro1;
 
@@ -552,6 +627,12 @@ lock_file (Lisp_Object fn)
   orig_fn = fn;
   GCPRO1 (fn);
   fn = Fexpand_file_name (fn, Qnil);
+#ifdef WINDOWSNT
+  /* Ensure we have only '/' separators, to avoid problems with
+     looking (inside fill_in_lock_file_name) for backslashes in file
+     names encoded by some DBCS codepage.  */
+  dostounix_filename (SSDATA (fn), 1);
+#endif
   encoded_fn = ENCODE_FILE (fn);
 
   /* Create the name of the lock-file for file fn */

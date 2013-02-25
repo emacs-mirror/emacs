@@ -3402,10 +3402,13 @@ int
 sys_open (const char * path, int oflag, int mode)
 {
   const char* mpath = map_w32_filename (path, NULL);
-  /* Try to open file without _O_CREAT, to be able to write to hidden
-     and system files. Force all file handles to be
-     non-inheritable. */
-  int res = _open (mpath, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
+  int res = -1;
+
+  /* If possible, try to open file without _O_CREAT, to be able to
+     write to existing hidden and system files.  Force all file
+     handles to be non-inheritable. */
+  if ((oflag & (_O_CREAT | _O_EXCL)) != (_O_CREAT | _O_EXCL))
+    res = _open (mpath, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
   if (res < 0)
     res = _open (mpath, oflag | _O_NOINHERIT, mode);
   if (res >= 0 && res < MAXDESC)

@@ -1,3 +1,9 @@
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory): Reject files
+	that match "\`\.#", to avoid compiling lock files, even if they
+	are readable (as they are on MS-Windows).
+
 2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (basic-save-buffer): Remove redundant directory-creation.

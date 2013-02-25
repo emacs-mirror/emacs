@@ -1,5 +1,33 @@
 2013-02-25  Eli Zaretskii  <eliz@gnu.org>
 
+	Implement CLASH_DETECTION for MS-Windows.
+
+	* filelock.c [WINDOWSNT]: Include w32.h.
+	(MAKE_LOCK_NAME): Don't use 'lock', it clashes with MS runtime
+	function of that name.  Up-case the macro arguments.
+	(IS_LOCK_FILE): New macro.
+	(fill_in_lock_file_name): Use IS_LOCK_FILE instead of S_ISLNK.
+	(create_lock_file): New function, with body extracted from
+	lock_file_1.
+	[WINDOWSNT]: Implement lock files by writing a regular file with
+	the lock information as its contents.
+	(read_lock_data): New function, on Posix platforms just calls
+	emacs_readlinkat.
+	[WINDOWSNT]: Read the lock info from the file.
+	(current_lock_owner): Call read_lock_data instead of calling
+	emacs_readlinkat directly.
+	(lock_file) [WINDOWSNT]: Run the file name through
+	dostounix_filename.
+
+	* w32proc.c (sys_kill): Support the case of SIG = 0, in which case
+	just check if the process by that PID exists.
+
+	* w32.c (sys_open): Don't reset the _O_CREAT flag if _O_EXCL is
+	also present, as doing so will fail to error out if the file
+	already exists.
+
+	* makefile.w32-in ($(BLD)/filelock.$(O)): Depend on src/w32.h.
+
 	* textprop.c (Fadd_text_properties, Fremove_text_properties)
 	(Fremove_list_of_text_properties): Skip all of the intervals in
 	the region between START and END that already have resp. don't

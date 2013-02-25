@@ -1,3 +1,8 @@
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Interlocking): Don't refer to symlinks as the
+	exclusive means of locking files.
+
 2013-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):

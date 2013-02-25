@@ -864,6 +864,7 @@ $(BLD)/fileio.$(O) : \
 
 $(BLD)/filelock.$(O) : \
 	$(SRC)/filelock.c \
+	$(SRC)/w32.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \

@@ -348,6 +348,13 @@ Setting it has no effect, and %t in the mode-line format is ignored.
 Likewise, `file-name-buffer-file-type-alist' is now obsolete, and
 modifying it has no effect.
 
+---
+** Lock files now work on MS-Windows.
+This allows to avoid losing your edits if the same file is being
+edited in another Emacs session or by another user.  See the node
+"Interlocking" in the Emacs User Manual for the details.  To disable
+file locking, customize `create-lockfiles' to nil.
+
 ** Improved fullscreen support on Mac OS X.
 Both native (>= OSX 10.7) and "old style" fullscreen are supported.
 Customize `ns-use-native-fullscreen' to change style.  For >= 10.7
