@@ -1,3 +1,11 @@
+2013-02-25  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (read-regexp): Let-bind `default' to the first
+	element of `defaults' if it's a list, otherwise it should be
+	a string or nil.  Let-bind `suggestions' to `defaults' if it's
+	a list, otherwise make a list with the string value.  Doc fix.
+	(Bug#13805)
+
 2013-02-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory): Reject files

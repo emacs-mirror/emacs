@@ -583,34 +583,39 @@ of `history-length', which see.")
 (defun read-regexp (prompt &optional defaults history)
   "Read and return a regular expression as a string.
 When PROMPT doesn't end with a colon and space, it adds a final \": \".
-If DEFAULTS is non-nil, it displays the first default in the prompt.
+If the first element of DEFAULTS is non-nil, it's added to the prompt.
 
-Optional arg DEFAULTS is a string or a list of strings that are
-prepended to a list of standard default values, which include the
-tag at point, the last isearch regexp, the last isearch string,
+Optional arg DEFAULTS has the form (DEFAULT . SUGGESTIONS)
+or simply DEFAULT where DEFAULT, if non-nil, should be a string that
+is returned as the default value when the user enters empty input.
+SUGGESTIONS is a list of strings that can be inserted into
+the minibuffer using \\<minibuffer-local-map>\\[next-history-element].  \
+The values supplied in SUGGESTIONS
+are prepended to the list of standard suggestions that include
+the tag at point, the last isearch regexp, the last isearch string,
 and the last replacement regexp.
 
-Non-nil HISTORY is a symbol to use for the history list.
+Optional arg HISTORY is a symbol to use for the history list.
 If HISTORY is nil, `regexp-history' is used."
-  (let* ((defaults
-	   (append
-	    (if (listp defaults) defaults (list defaults))
-	    (list
-	     ;; Regexp for tag at point.
-	     (let* ((tagf (or find-tag-default-function
-				    (get major-mode 'find-tag-default-function)
-				    'find-tag-default))
-		    (tag (funcall tagf)))
-	       (cond ((not tag) "")
-		     ((eq tagf 'find-tag-default)
-		      (format "\\_<%s\\_>" (regexp-quote tag)))
-		     (t (regexp-quote tag))))
-		  (car regexp-search-ring)
-		  (regexp-quote (or (car search-ring) ""))
-		  (car (symbol-value
-			query-replace-from-history-variable)))))
-	 (defaults (delete-dups (delq nil (delete "" defaults))))
-	 (default (car defaults))
+  (let* ((default     (if (consp defaults) (car defaults) defaults))
+	 (suggestions (if (listp defaults) defaults (list defaults)))
+	 (suggestions
+	  (append
+	   suggestions
+	   (list
+	    ;; Regexp for tag at point.
+	    (let* ((tagf (or find-tag-default-function
+			     (get major-mode 'find-tag-default-function)
+			     'find-tag-default))
+		   (tag (funcall tagf)))
+	      (cond ((not tag) "")
+		    ((eq tagf 'find-tag-default)
+		     (format "\\_<%s\\_>" (regexp-quote tag)))
+		    (t (regexp-quote tag))))
+	    (car regexp-search-ring)
+	    (regexp-quote (or (car search-ring) ""))
+	    (car (symbol-value query-replace-from-history-variable)))))
+	 (suggestions (delete-dups (delq nil (delete "" suggestions))))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
 	 (input (read-from-minibuffer
@@ -621,9 +626,11 @@ If HISTORY is nil, `regexp-history' is used."
 				 (query-replace-descr default)))
 		       (t
 			(format "%s: " prompt)))
-		 nil nil nil (or history 'regexp-history) defaults t)))
+		 nil nil nil (or history 'regexp-history) suggestions t)))
     (if (equal input "")
+	;; Return the default value when the user enters empty input.
 	(or default input)
+      ;; Otherwise, add non-empty input to the history and return input.
       (prog1 input
 	(add-to-history (or history 'regexp-history) input)))))
 
