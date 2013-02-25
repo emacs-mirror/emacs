@@ -144,7 +144,7 @@ macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h msdos.h \
    dispextern.h lisp.h globals.h $(config_h) systime.h coding.h composite.h
 gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c lisp.h $(config_h)
-vm-limit.o: vm-limit.c mem-limits.h lisp.h globals.h $(config_h)
+vm-limit.o: vm-limit.c lisp.h globals.h $(config_h)
 marker.o: marker.c buffer.h character.h lisp.h globals.h $(config_h)
 minibuf.o: minibuf.c syntax.h frame.h window.h keyboard.h systime.h \
    buffer.h commands.h character.h msdos.h $(INTERVALS_H) keymap.h \

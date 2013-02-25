@@ -19,7 +19,37 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <unistd.h> /* for 'environ', on AIX */
 #include "lisp.h"
-#include "mem-limits.h"
+
+#ifdef MSDOS
+#include <dpmi.h>
+extern int etext;
+#endif
+
+/* Some systems need this before <sys/resource.h>.  */
+#include <sys/types.h>
+
+#ifdef HAVE_SYS_RESOURCE_H
+# include <sys/time.h>
+# include <sys/resource.h>
+#else
+# if HAVE_SYS_VLIMIT_H
+#  include <sys/vlimit.h>	/* Obsolete, says glibc */
+# endif
+#endif
+
+/* Start of data.  It is OK if this is approximate; it's used only as
+   a heuristic.  */
+#ifdef DATA_START
+# define data_start ((char *) DATA_START)
+#else
+extern char data_start[];
+# ifndef HAVE_DATA_START
+/* Initialize to nonzero, so that it's put into data and not bss.
+   Link this file's object code first, so that this symbol is near the
+   start of data.  */
+char data_start[1] = { 1 };
+# endif
+#endif
 
 /*
   Level number of warnings already issued.
@@ -35,12 +65,20 @@ static enum warnlevel warnlevel;
    0 means don't issue them.  */
 static void (*warn_function) (const char *);
 
-/* Start of data space; can be changed by calling malloc_init.  */
-static void *data_space_start;
+/* Start of data space; can be changed by calling memory_warnings.  */
+static char *data_space_start;
 
 /* Number of bytes of writable memory we can expect to be able to get.  */
 static size_t lim_data;
 
+/* Return true if PTR cannot be represented as an Emacs Lisp object.  */
+static bool
+exceeds_lisp_ptr (void *ptr)
+{
+  return (! USE_LSB_TAG
+	  && VAL_MAX < UINTPTR_MAX
+	  && ((uintptr_t) ptr & ~DATA_SEG_BITS) >> VALBITS != 0);
+}
 
 #ifdef HAVE_GETRLIMIT
 
@@ -122,10 +160,12 @@ check_memory_limits (void)
 {
 #ifdef REL_ALLOC
   extern void *(*real_morecore) (ptrdiff_t);
+#else
+  void *(*real_morecore) (ptrdiff_t) = 0;
 #endif
   extern void *(*__morecore) (ptrdiff_t);
 
-  void *cp;
+  char *cp;
   size_t five_percent;
   size_t data_size;
   enum warnlevel new_warnlevel;
@@ -135,13 +175,8 @@ check_memory_limits (void)
   five_percent = lim_data / 20;
 
   /* Find current end of memory and issue warning if getting near max */
-#ifdef REL_ALLOC
-  if (real_morecore)
-    cp = (char *) (*real_morecore) (0);
-  else
-#endif
-  cp = (char *) (*__morecore) (0);
-  data_size = (char *) cp - (char *) data_space_start;
+  cp = (real_morecore ? real_morecore : __morecore) (0);
+  data_size = cp - data_space_start;
 
   if (!warn_function)
     return;
@@ -188,48 +223,9 @@ check_memory_limits (void)
 	warnlevel = warned_85;
     }
 
-  if (EXCEEDS_LISP_PTR (cp))
+  if (exceeds_lisp_ptr (cp))
     (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
 }
-
-#if !defined (CANNOT_DUMP) || !defined (SYSTEM_MALLOC)
-/* Some systems that cannot dump also cannot implement these.  */
-
-/*
- *	Return the address of the start of the data segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- *	See crt0.c for further information and definition of data_start.
- *
- *	Apparently, on BSD systems this is etext at startup.  On
- *	USG systems (swapping) this is highly mmu dependent and
- *	is also dependent on whether or not the program is running
- *	with shared text.  Generally there is a (possibly large)
- *	gap between end of text and start of data with shared text.
- *
- */
-
-char *
-start_of_data (void)
-{
-#ifdef BSD_SYSTEM
-  extern char etext;
-  return (void *) &etext;
-#elif defined DATA_START
-  return (void *) DATA_START;
-#elif defined ORDINARY_LINK
-  /*
-   * This is a hack.  Since we're not linking crt0.c or pre_crt0.c,
-   * data_start isn't defined.  We take the address of environ, which
-   * is known to live at or near the start of the system crt0.c, and
-   * we don't sweat the handful of bytes that might lose.
-   */
-  return (void *) &environ;
-#else
-  extern int data_start;
-  return (void *) &data_start;
-#endif
-}
-#endif /* (not CANNOT_DUMP or not SYSTEM_MALLOC) */
 
 /* Enable memory usage warnings.
    START says where the end of pure storage is.
@@ -240,10 +236,7 @@ memory_warnings (void *start, void (*warnfun) (const char *))
 {
   extern void (* __after_morecore_hook) (void);     /* From gmalloc.c */
 
-  if (start)
-    data_space_start = start;
-  else
-    data_space_start = start_of_data ();
+  data_space_start = start ? start : data_start;
 
   warn_function = warnfun;
   __after_morecore_hook = check_memory_limits;

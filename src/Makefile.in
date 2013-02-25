@@ -36,7 +36,6 @@ WINDRES = @WINDRES@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-LD_FIRSTFLAG=@LD_FIRSTFLAG@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -102,10 +101,8 @@ LD_SWITCH_X_SITE_RPATH=@LD_SWITCH_X_SITE_RPATH@
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
 
-## This holds any special options for linking temacs only (ie, not
-## used by configure).  Not used elsewhere because it sometimes
-## contains options that have to do with using Emacs's crt0,
-## which are only good with temacs.
+## This holds any special options for linking temacs only (i.e., not
+## used by configure).
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 
 ## Flags to pass to ld only for temacs.
@@ -119,14 +116,6 @@ PAXCTL = @PAXCTL@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
-
-## Where to find libgcc.a, if using gcc and necessary.
-LIB_GCC=@LIB_GCC@
-
-CRT_DIR=@CRT_DIR@
-## May use $CRT_DIR.
-LIB_STANDARD=@LIB_STANDARD@
-START_FILES = @START_FILES@
 
 ## -lm, or empty.
 LIB_MATH=@LIB_MATH@
@@ -389,17 +378,16 @@ POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 ## List of object files that make-docfile should not be told about.
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
-  $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
+## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
+ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 ## Configure inserts the file lisp.mk at this point, defining $lisp.
 @lisp_frag@
 
 
 ## Construct full set of libraries to be linked.
-## Note that SunOS needs -lm to come before -lc; otherwise, you get
-## duplicated symbols.  If the standard libraries were compiled
-## with GCC, we might need LIB_GCC again after them.
 LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) \
@@ -409,7 +397,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBACL_LIBS) $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
-   $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
+   $(LIB_MATH)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
@@ -456,7 +444,7 @@ $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
-	echo "#define BUILDOBJ \"$(obj) $(otherobj) " "\"" > buildobj.h
+	echo "#define BUILDOBJ \"$(ALLOBJS) " "\"" >$@
 
 globals.h: gl-stamp; @true
 
@@ -468,15 +456,15 @@ gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
 	echo timestamp > $@
 
-$(obj) $(otherobj): globals.h
+$(ALLOBJS): globals.h
 
 $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
-temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) \
+temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
 	         $(lib)/libgnu.a $(W32_RES)
-	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES) \
+	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(LIBES) \
 	  $(W32_RES_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)

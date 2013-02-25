@@ -59,8 +59,6 @@ what you give them.   Help stamp out software-hoarding!  */
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "mem-limits.h"
-
 extern char _data[];
 extern char _text[];
 

@@ -1,3 +1,36 @@
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	This is a followon simplification to the fix for Bug#13650.
+	* Makefile.in (LD_FIRSTFLAG, LIB_GCC, CRT_DIR, LIB_STANDARD)
+	(START_FILES): Remove.  All uses removed.
+	(otherobj): Remove $(VMLIMIT_OBJ), as it's now first.
+	(ALLOBJS): Move here from autodeps.mk, and with VMLIMITS_OBJ first.
+	(buildobj.h): Use it.
+	($(ALLOBJS)): Depend on globals.h.
+	(temacs$(EXEEXT)): Use $(ALLOBJS).
+	* autodeps.mk (ALLOBJS): Move to Makefile.in.
+	* deps.mk (vm-limit.o):
+	* makefile.w32-in ($(BLD)/vm-limit.$(O)):
+	Do not depend on mem-limits.h.
+	* emacs.c (__do_global_ctors, __do_global_ctors_aux)
+	(__do_global_dtors, __CTOR_LIST__, __DTOR_LIST__)
+	[__GNUC__ && !ORDINARY_LINK]: Remove.
+	* mem-limits.h, pre-crt0.c: Remove.
+	* unexaix.c, unexcoff.c: Don't include mem-limits.h.
+	* unexcoff.c (etext): New decl.
+	(make_hdr): Use DATA_START instead of start_of_data.
+	* vm-limit.c: Move most of mem-limits.h's contents here.
+	(data_start): New decl.  It's OK if this is approximate,
+	so simplify-away some unnecessary exactness.
+	(POINTER): Remove; all uses removed.
+	(data_space_start): Now char *, to avoid casts.
+	(exceeds_lisp_ptr): New function, replacing the old
+	EXCEEDS_LISP_PTR macro.  All uses changed.
+	(check_memory_limits): Simplify and remove casts.
+	(start_of_data) [!CANNOT_DUMP || !SYSTEM_MALLOC]: Remove.
+	(memory_warnings): Use data_start instead of start_of_data.
+
 2013-02-24  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xdisp.c (set_message): Only check for debug-on-message if STRING

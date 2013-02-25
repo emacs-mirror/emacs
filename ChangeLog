@@ -1,3 +1,12 @@
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	* configure.ac (CRT_DIR, LIB_STANDARD, START_FILES, DATA_START)
+	(LD_FIRSTFLAG, ORDINARY_LINK, LIB_GCC): Remove.
+	(AC_CHECK_HEADERS_ONCE): Remove sys/resource.h, as it's
+	not always needed.
+	(HAVE_DATA_START): New macro.
+
 2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* lisp/eshell/em-cmpl.el: Corrected "context-related help"
