@@ -605,8 +605,6 @@ LTLIBOBJS
 LIBOBJS
 SUBDIR_MAKEFILES_IN
 WINDOW_SYSTEM_OBJ
-LIB_GCC
-LD_FIRSTFLAG
 LD_SWITCH_SYSTEM_TEMACS
 LIBGNU_LTLIBDEPS
 LIBGNU_LIBDEPS
@@ -1337,7 +1335,6 @@ W32_RES
 W32_LIBS
 W32_OBJ
 WINDRES
-LIB_STANDARD
 NS_OBJC_OBJ
 NS_OBJ
 ns_self_contained
@@ -1352,8 +1349,6 @@ ALSA_LIBS
 ALSA_CFLAGS
 LIBSOUND
 PKG_CONFIG
-CRT_DIR
-START_FILES
 LIB_MATH
 LIBS_SYSTEM
 C_SWITCH_SYSTEM
@@ -1507,7 +1502,6 @@ with_inotify
 with_makeinfo
 with_compress_info
 with_pkg_config_prog
-with_crt_dir
 with_gameuser
 with_gnustep_conf
 enable_ns_self_contained
@@ -2236,8 +2230,6 @@ Optional Packages:
   --without-compress-info don't compress the installed Info pages
   --with-pkg-config-prog=FILENAME
                           file name of pkg-config for finding GTK and librsvg
-  --with-crt-dir=DIR      directory containing crtn.o etc. The default is
-                          /usr/lib, or /usr/lib64 on some platforms.
   --with-gameuser=USER    user for shared game score files
   --with-gnustep-conf=FILENAME
                           name of GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
@@ -3326,7 +3318,6 @@ as_fn_append ac_header_list " linux/version.h"
 as_fn_append ac_header_list " sys/systeminfo.h"
 as_fn_append ac_header_list " coff.h"
 as_fn_append ac_header_list " pty.h"
-as_fn_append ac_header_list " sys/vlimit.h"
 as_fn_append ac_header_list " sys/resource.h"
 as_fn_append ac_header_list " sys/utsname.h"
 as_fn_append ac_header_list " pwd.h"
@@ -4367,15 +4358,6 @@ if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
    fi
 fi
-
-CRT_DIR=
-
-# Check whether --with-crt-dir was given.
-if test "${with_crt_dir+set}" = set; then :
-  withval=$with_crt_dir;
-fi
-
-CRT_DIR="${with_crt_dir}"
 
 
 # Check whether --with-gameuser was given.
@@ -8571,36 +8553,24 @@ fi
 
 
 LIB_MATH=-lm
-LIB_STANDARD=
-START_FILES=
 SYSTEM_TYPE=`echo $opsys | sed -e 's/[0-9].*//' -e 's|-|/|'`
 
 case $opsys in
   cygwin )
     LIB_MATH=
-    START_FILES='pre-crt0.o'
     ;;
   darwin )
     ## Adding -lm confuses the dynamic linker, so omit it.
     LIB_MATH=
-    START_FILES='pre-crt0.o'
     ;;
   freebsd )
-    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
     SYSTEM_TYPE=berkeley-unix
     ;;
   gnu-linux | gnu-kfreebsd )
-    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
     ;;
   hpux10-20 | hpux11 )
-    LIB_STANDARD=-lc
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
     netbsd | openbsd )
-    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
     SYSTEM_TYPE=berkeley-unix
     ;;
 
@@ -8612,116 +8582,10 @@ esac
 
 
 
-
 cat >>confdefs.h <<_ACEOF
 #define SYSTEM_TYPE "$SYSTEM_TYPE"
 _ACEOF
 
-
-crt_files=
-
-for file in x $LIB_STANDARD $START_FILES; do
-  case "$file" in
-    *CRT_DIR*) crt_files="$crt_files `echo $file | sed -e 's|.*/||'`" ;;
-  esac
-done
-
-if test "x$crt_files" != x; then
-
-  ## If user specified a crt-dir, use that unconditionally.
-  crt_gcc=no
-
-  if test "X$CRT_DIR" = "X"; then
-
-    CRT_DIR=/usr/lib            # default
-
-    case "$canonical" in
-      x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
-      ## On x86-64 and s390x GNU/Linux distributions, the standard library
-      ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
-      ## For anything else (eg /usr/lib32), it is up the user to specify
-      ## the location (bug#5655).
-      ## Test for crtn.o, not just the directory, because sometimes the
-      ## directory exists but does not have the relevant files (bug#1287).
-      ## FIXME better to test for binary compatibility somehow.
-      test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
-      ;;
-
-      powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
-    esac
-
-    case "$opsys" in
-      hpux10-20) CRT_DIR=/lib ;;
-    esac
-
-    test "x${GCC}" = xyes && crt_gcc=yes
-
-  fi                            # CRT_DIR = ""
-
-  crt_missing=
-
-  for file in $crt_files; do
-
-    ## If we're using gcc, try to determine it automatically by asking
-    ## gcc.  [If this doesn't work, CRT_DIR will remain at the
-    ## system-dependent default from above.]
-    if test $crt_gcc = yes && test ! -e $CRT_DIR/$file; then
-
-       crt_file=`$CC --print-file-name=$file 2>/dev/null`
-       case "$crt_file" in
-         */*)
-           CRT_DIR=`$as_dirname -- "$crt_file" ||
-$as_expr X"$crt_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X"$crt_file" : 'X\(//\)[^/]' \| \
-	 X"$crt_file" : 'X\(//\)$' \| \
-	 X"$crt_file" : 'X\(/\)' \| . 2>/dev/null ||
-$as_echo X"$crt_file" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)[^/].*/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\).*/{
-	    s//\1/
-	    q
-	  }
-	  s/.*/./; q'`
-           ;;
-       esac
-    fi
-
-            crt_gcc=no
-
-    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"
-  done                          # $crt_files
-
-  test "x$crt_missing" = x || \
-    as_fn_error "Required file(s) not found:$crt_missing
-Try using the --with-crt-dir option." "$LINENO" 5
-
-fi                              # crt_files != ""
-
-
-
-case $opsys in
-  netbsd | openbsd )
-    if test -f $CRT_DIR/crti.o; then
-
-        test -f $CRT_DIR/crtn.o || \
-          as_fn_error "Required file not found: crtn.o" "$LINENO" 5
-
-        LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
-        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
-    fi
-    ;;
-esac
 
 
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
@@ -8971,8 +8835,6 @@ _ACEOF
 fi
 
 done
-
-
 
 
 
@@ -9719,8 +9581,6 @@ if test "${with_ns}" != no; then
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIBS_GNUSTEP="-lgnustep-gui -lgnustep-base -lobjc -lpthread"
-     LIB_STANDARD=
-     START_FILES=
                     { $as_echo "$as_me:${as_lineno-$LINENO}: checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS" >&5
 $as_echo_n "checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS... " >&6; }
 if test "${emacs_cv_objc_exceptions+set}" = set; then :
@@ -9853,7 +9713,6 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
-
 
 
 
@@ -10149,6 +10008,50 @@ $as_echo "#define SYSTEM_MALLOC 1" >>confdefs.h
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
+
+  for ac_header in sys/vlimit.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/vlimit.h" "ac_cv_header_sys_vlimit_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_vlimit_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_VLIMIT_H 1
+_ACEOF
+
+fi
+
+done
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for data_start" >&5
+$as_echo_n "checking for data_start... " >&6; }
+if test "${emacs_cv_data_start+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+extern char data_start[]; char ch;
+int
+main ()
+{
+return data_start == &ch;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_data_start=yes
+else
+  emacs_cv_data_start=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_data_start" >&5
+$as_echo "$emacs_cv_data_start" >&6; }
+  if test $emacs_cv_data_start = yes; then
+
+$as_echo "#define HAVE_DATA_START 1" >>confdefs.h
+
+  fi
 fi
 
 
@@ -15808,28 +15711,16 @@ esac
 
 
 
-
 case $opsys in
-  gnu)
-        $as_echo "#define DATA_START ({ extern int data_start; (char *) &data_start; })" >>confdefs.h
-
-    ;;
-
   aix*)
-        $as_echo "#define DATA_START 0x20000000" >>confdefs.h
-
-    $as_echo "#define DATA_SEG_BITS 0x20000000" >>confdefs.h
+        $as_echo "#define DATA_SEG_BITS 0x20000000" >>confdefs.h
 
     ;;
   hpux*)
-        $as_echo "#define DATA_START 0x40000000" >>confdefs.h
-
-    $as_echo "#define DATA_SEG_BITS 0x40000000" >>confdefs.h
+        $as_echo "#define DATA_SEG_BITS 0x40000000" >>confdefs.h
 
     ;;
   irix6-5)
-    $as_echo "#define DATA_START 0x10000000" >>confdefs.h
-
     $as_echo "#define DATA_SEG_BITS 0x10000000" >>confdefs.h
 
     ;;
@@ -26643,89 +26534,6 @@ case "$opsys" in
 esac
 
 
-
-
-LD_FIRSTFLAG=
-ORDINARY_LINK=
-case "$opsys" in
-  ## gnu: GNU needs its own crt0.
-  aix4-2|cygwin|darwin|gnu|hpux*|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
-
-  ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
-  ## library search parth, i.e. it won't search /usr/lib for libc and
-  ## friends.  Using -nostartfiles instead avoids this problem, and
-  ## will also work on earlier NetBSD releases.
-  netbsd|openbsd) LD_FIRSTFLAG="-nostartfiles" ;;
-
-  ## powerpc*: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
-  ##   MkLinux/LinuxPPC needs this.
-  ## s390x-* only supports opsys = gnu-linux so it can be added here.
-  gnu-*)
-    case "$canonical" in
-      powerpc*|s390x-*) LD_FIRSTFLAG="-nostdlib" ;;
-    esac
-    ;;
-esac
-
-
-if test "x$ORDINARY_LINK" = "xyes"; then
-
-  LD_FIRSTFLAG=""
-
-$as_echo "#define ORDINARY_LINK 1" >>confdefs.h
-
-
-## The system files defining neither ORDINARY_LINK nor LD_FIRSTFLAG are:
-## freebsd, gnu-* not on powerpc*|s390x*.
-elif test "x$GCC" = "xyes" && test "x$LD_FIRSTFLAG" = "x"; then
-
-  ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
-  ## places that are difficult to figure out at make time.  Fortunately,
-  ## these same versions allow you to pass arbitrary flags on to the
-  ## linker, so there is no reason not to use it as a linker.
-  ##
-  ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
-  ## searching for libraries in its internal directories, so we have to
-  ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
-  LD_FIRSTFLAG="-nostdlib"
-fi
-
-## FIXME? What setting of EDIT_LDFLAGS should this have?
-test "$NS_IMPL_GNUSTEP" = "yes" && LD_FIRSTFLAG="-rdynamic"
-
-
-
-
-## FIXME? The logic here is not precisely the same as that above.
-## There is no check here for a pre-defined LD_FIRSTFLAG.
-## Should we only be setting LIB_GCC if LD ~ -nostdlib?
-LIB_GCC=
-if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
-
-  case "$opsys" in
-    freebsd|netbsd|openbsd) LIB_GCC= ;;
-
-    gnu-*)
-      ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
-      ## build on ARM EABI under GNU/Linux.  (Bug#5518)
-      case $host_cpu in
-      arm*)
-        LIB_GCC="-lgcc_s"
-	;;
-      *)
-        ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
-        ## immediately undefine it again and redefine it to empty.
-        ## Was the C_SWITCH_X_SITE part really necessary?
-##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
-        LIB_GCC=
-	;;
-      esac
-      ;;
-
-    ## Ask GCC where to find libgcc.a.
-    *) LIB_GCC=`$CC -print-libgcc-file-name 2> /dev/null` ;;
-  esac
-fi
 
 ## Common for all window systems
 if test "$window_system" != "none"; then

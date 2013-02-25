@@ -93,9 +93,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Extra bits to be or'd in with any pointers stored in a Lisp_Object. */
 #undef DATA_SEG_BITS
 
-/* Address of the start of the data segment. */
-#undef DATA_START
-
 /* Name of the default sound device. */
 #undef DEFAULT_SOUND_DEVICE
 
@@ -258,6 +255,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `copysign' function. */
 #undef HAVE_COPYSIGN
+
+/* Define to 1 if data_start is the address of the start of the main data
+   segment. */
+#undef HAVE_DATA_START
 
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
@@ -1226,9 +1227,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the nlist n_name member is a pointer */
 #undef N_NAME_POINTER
-
-/* Define if the C compiler is the linker. */
-#undef ORDINARY_LINK
 
 /* Name of package */
 #undef PACKAGE
