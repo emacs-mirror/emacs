@@ -5173,7 +5173,7 @@ displayed_window_lines (struct window *w)
 
 DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
        doc: /* Center point in selected window and maybe redisplay frame.
-With prefix argument ARG, recenter putting point on screen line ARG
+With a numeric prefix argument ARG, recenter putting point on screen line ARG
 relative to the selected window.  If ARG is negative, it counts up from the
 bottom of the window.  (ARG should be less than the height of the window.)
 
