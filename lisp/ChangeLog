@@ -1,3 +1,10 @@
+2013-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Add
+	"2>/dev/null" to the ls command, in case "en_US.utf8" is not
+	defined.  POSIX environments fall back to the "C" locale then and
+	emit a warning, which shall be suppressed.
+
 2013-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Tweak logic.
