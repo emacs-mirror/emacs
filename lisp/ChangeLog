@@ -1,3 +1,8 @@
+2013-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Tweak logic.
+	(easy-mmode-set-keymap-parents): Use make-composed-keymap.
+
 2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file): Use let.
