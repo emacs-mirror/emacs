@@ -293,7 +293,7 @@ extern void set_text_properties_1 (Lisp_Object, Lisp_Object,
 
 Lisp_Object text_property_list (Lisp_Object, Lisp_Object, Lisp_Object,
                                 Lisp_Object);
-int add_text_properties_from_list (Lisp_Object, Lisp_Object, Lisp_Object);
+void add_text_properties_from_list (Lisp_Object, Lisp_Object, Lisp_Object);
 Lisp_Object extend_property_ranges (Lisp_Object, Lisp_Object);
 Lisp_Object get_char_property_and_overlay (Lisp_Object, Lisp_Object,
                                            Lisp_Object, Lisp_Object*);

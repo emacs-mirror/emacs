@@ -1,3 +1,20 @@
+2013-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor textprop integer cleanup.
+	* intervals.h, textprop.c (add_text_properties_from_list):
+	Return void, not int, since nobody uses the return value.
+	* textprop.c (validate_plist, add_properties, remove_properties)
+	(Fadd_text_properties):
+	Don't assume list length fits in int.
+	(interval_has_all_properties, interval_has_some_properties)
+	(interval_has_some_properties_list, add_properties, remove_properties)
+	(Fadd_text_properties, Fremove_text_properties)
+	(Fremove_list_of_text_properties, text_property_stickiness):
+	Use bool for booleans.
+	(Fadd_text_properties, Fremove_text_properties):
+	(Fremove_list_of_text_properties):
+	Reindent do-while as per GNU style.
+
 2013-02-25  Eli Zaretskii  <eliz@gnu.org>
 
 	Implement CLASH_DETECTION for MS-Windows.
