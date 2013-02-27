@@ -1,3 +1,10 @@
+2013-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* filelock.c (create_lock_file) [WINDOWSNT]: Use _sopen with
+	_SH_DENYRW flag, instead of emacs_open, to deny any other process
+	access to the lock file until it is written and closed.
+	(Bug#13807)
+
 2013-02-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* callint.c (Qcall_interactively):

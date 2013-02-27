@@ -44,6 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "systime.h"
 #ifdef WINDOWSNT
+#include <share.h>
 #include "w32.h"	/* for dostounix_filename */
 #endif
 
@@ -353,12 +354,17 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
      create a regular file with the lock info written as its
      contents.  */
   {
-    int fd = emacs_open (lfname, O_WRONLY | O_BINARY | O_CREAT | O_EXCL,
-			 S_IREAD | S_IWRITE);
+    /* Deny everybody else any kind of access to the file until we are
+       done writing it and close the handle.  This makes the entire
+       open/write/close operation atomic, as far as other processes
+       are concerned.  */
+    int fd = _sopen (lfname,
+		     _O_WRONLY | _O_BINARY | _O_CREAT | _O_EXCL | _O_NOINHERIT,
+		     _SH_DENYRW, S_IREAD | S_IWRITE);
 
     if (fd < 0 && errno == EEXIST && force)
-      fd = emacs_open (lfname, O_WRONLY | O_BINARY | O_TRUNC,
-		       S_IREAD | S_IWRITE);
+      fd = _sopen (lfname, _O_WRONLY | _O_BINARY | _O_TRUNC |_O_NOINHERIT,
+		   _SH_DENYRW, S_IREAD | S_IWRITE);
     if (fd >= 0)
       {
 	ssize_t lock_info_len = strlen (lock_info_str);
