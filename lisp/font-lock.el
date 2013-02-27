@@ -2336,9 +2336,9 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
        ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
         (1 font-lock-constant-face prepend))
        ;; Constant values.
-       ("\\<:\\(?:\\sw\\|\\s_\\)+\\>" 0 font-lock-builtin-face)
+       ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
-       ("\\<\\&\\(?:\\sw\\|\\s_\\)+\\>" . font-lock-type-face)
+       ("\\_<\\&\\(?:\\sw\\|\\s_\\)+\\_>" . font-lock-type-face)
        ;; ELisp regexp grouping constructs
        ((lambda (bound)
           (catch 'found

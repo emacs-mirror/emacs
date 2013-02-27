@@ -1,3 +1,8 @@
+2013-02-27  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Fix highlighting of
+	&optional (bug#13819).
+
 2013-02-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-parse-device-names)
@@ -5,8 +10,8 @@
 
 2013-02-26  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Add
-	"2>/dev/null" to the ls command, in case "en_US.utf8" is not
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory):
+	Add "2>/dev/null" to the ls command, in case "en_US.utf8" is not
 	defined.  POSIX environments fall back to the "C" locale then and
 	emit a warning, which shall be suppressed.
 
