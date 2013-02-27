@@ -157,13 +157,14 @@ pass to the OPERATION."
 ;;;###tramp-autoload
 (defun tramp-adb-parse-device-names (ignore)
   "Return a list of (nil host) tuples allowed to access."
-  (with-temp-buffer
-    (when (zerop (call-process (tramp-adb-program) nil t nil "devices"))
-      (let (result)
-	(goto-char (point-min))
-	(while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
-	  (add-to-list 'result (list nil (match-string 1))))
-	result))))
+  (with-timeout (10)
+    (with-temp-buffer
+      (when (zerop (call-process (tramp-adb-program) nil t nil "devices"))
+	(let (result)
+	  (goto-char (point-min))
+	  (while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
+	    (add-to-list 'result (list nil (match-string 1))))
+	  result)))))
 
 (defun tramp-adb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
@@ -1106,7 +1107,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-message
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 	    ;; Wait for initial prompt.
-	    (tramp-adb-wait-for-output p)
+	    (tramp-adb-wait-for-output p 30)
 	    (unless (eq 'run (process-status p))
 	      (tramp-error  vec 'file-error "Terminated!"))
 	    (tramp-compat-set-process-query-on-exit-flag p nil)

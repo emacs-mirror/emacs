@@ -1,3 +1,8 @@
+2013-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-parse-device-names)
+	(tramp-adb-maybe-open-connection): Add timeouts.  (Bug#13299)
+
 2013-02-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Add
