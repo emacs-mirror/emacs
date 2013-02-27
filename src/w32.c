@@ -3126,8 +3126,6 @@ sys_open (const char * path, int oflag, int mode)
   int res = _open (mpath, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
   if (res < 0)
     res = _open (mpath, oflag | _O_NOINHERIT, mode);
-  if (res >= 0 && res < MAXDESC)
-    fd_info[res].flags = 0;
 
   return res;
 }
