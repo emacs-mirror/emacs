@@ -3366,7 +3366,7 @@ extern void syms_of_minibuf (void);
 
 extern Lisp_Object Qminus, Qplus;
 extern Lisp_Object Qwhen;
-extern Lisp_Object Qcall_interactively, Qmouse_leave_buffer_hook;
+extern Lisp_Object Qmouse_leave_buffer_hook;
 extern void syms_of_callint (void);
 
 /* Defined in casefiddle.c.  */
@@ -3527,7 +3527,6 @@ extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, ptrdiff_t, Lisp_Object *);
 
 /* Defined in macros.c.  */
-extern Lisp_Object Qexecute_kbd_macro;
 extern void init_macros (void);
 extern void syms_of_macros (void);
 

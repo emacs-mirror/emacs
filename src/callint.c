@@ -29,7 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 Lisp_Object Qminus, Qplus;
-Lisp_Object Qcall_interactively;
+static Lisp_Object Qcall_interactively;
 static Lisp_Object Qcommand_debug_status;
 static Lisp_Object Qenable_recursive_minibuffers;
 
