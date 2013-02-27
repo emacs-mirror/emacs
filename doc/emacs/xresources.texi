@@ -507,7 +507,7 @@ those are governed by normal X resources (@pxref{Resources}).
 
   The following sections describe how to customize GTK+ resources for
 Emacs.  For details about GTK+ resources, see the GTK+ API document at
-@uref{http://developer.gnome.org/doc/API/2.0/gtk/gtk-Resource-Files.html}.
+@uref{http://developer.gnome.org/gtk2/stable/gtk2-Resource-Files.html}.
 
   In GTK+ version 3, GTK+ resources have been replaced by a completely
 different system.  The appearance of GTK+ widgets is now determined by

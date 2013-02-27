@@ -1,3 +1,7 @@
+2013-02-27  Bastien Guerry  <bzg@gnu.org>
+
+	* xresources.texi (GTK resources): Fix broken link.
+
 2013-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
