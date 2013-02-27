@@ -514,6 +514,48 @@ and the `attributes' slot is always nil.
 The `url-retrieve' function now uses this to encode its URL argument,
 in case that is not properly encoded.
 
+** CEDET
+
+*** The major modes from the parser generators "Bovine" and "Wisent"
+are now properly integrated within Emacs.  The file suffixes ".by" and
+".wy" are registered in `auto-mode-alist', and the corresponding
+manuals are now included.
+
+*** EDE
+
+**** Menu support for the "Configuration" feature.  Allows users to choose the
+active configuration (such as debug or install) from the menu.
+**** `ede-set':  New command to interactively set project-local variables.
+**** Support for compiling, debugging, and running in "generic" projects.
+**** Autoconf editing support for M4 macros with complex arguments.
+**** Support compilation for "linux" project type.
+**** "simple" projects were removed;  use "generic" projects instead.
+
+*** Semantic
+
+**** (C/C++) Support for parsing #include statements inside a namespace.
+**** (C/C++) Improved support for 'extern "C"' declarations.
+**** (C/C++) Support to ignore more common special preprocessor symbols, such as
+'__nonnull' and '__asm'.  Add '__cplusplus' macro when parsing C++.  If
+available, include cdefs.h as an additional source of preprocessor symbols.
+**** (C/C++) Improved function pointer parsing.
+**** (Python) Support for converting imports to include file names.
+**** (Python) Ability to dynamically determine the load path.
+**** (Python) Support for 'WITH' and 'AT' keywords.
+**** Improved tooltip completion.
+
+*** SRecode
+
+**** The SRecode manual is now included.
+**** Tag generation supports constructor/destructor settings and system include
+differentiation.
+**** Added a 'Framework' support: Frameworks are specified when a particular
+kind of library (such as Android) is needed in a common language mode (like
+Java).
+**** Support nested templates and let variables override based on priority.
+**** Support merging tables from multiple related modes, such as
+default -> c++ -> arduino.
+
 ** notifications.el supports now version 1.2 of the Notifications API.
 The function `notifications-get-capabilities' returns the supported
 server properties.
@@ -829,6 +871,21 @@ log, log10, sqrt, and mod.
 *** `defun' and `defmacro' are now macros rather than special forms.
 
 *** `kbd' is now a function rather than a macro.
+
+** EIEIO
+
+*** Security was improved when handling persistent objects:
+**** `eieio-persistent-read' now features optional arguments for specifying the
+class to load, as well as a flag whether subclasses are allowed; if provided,
+other classes will be rejected by the reader.  For staying compatible with
+existing code, only a warning will be issued if the class is omitted.
+**** New specialized reader for pulling in classes and signaling errors without
+evaluation of suspicious code.
+**** All slots that contain objects must have a :type.  Slots with lists of
+objects must use a new type predicate for a list of an object type.
+
+*** Added filename support to generated symbols to support find-function and
+similar utilities.
 
 ** Miscellaneous new functions
 

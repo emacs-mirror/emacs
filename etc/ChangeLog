@@ -1,3 +1,7 @@
+2013-02-27  David Engster  <deng@randomsample.de>
+
+	* NEWS: Add paragraphs for CEDET and EIEIO.
+
 2012-10-26  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* refcards/orgcard.tex: Fix keybindings about
