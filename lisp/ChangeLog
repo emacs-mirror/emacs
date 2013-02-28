@@ -1,3 +1,8 @@
+2013-02-28  Sam Steingold  <sds@gnu.org>
+
+	* vc/diff-mode.el (diff-hunk-file-names): Handle filenames with spaces.
+	See <http://stackoverflow.com/questions/14720205>.
+
 2013-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* net/net-utils.el (net-utils--revert-function): New fun (bug#13831).

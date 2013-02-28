@@ -821,9 +821,11 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 		       (progn (diff-hunk-prev) (point))
 		     (error (point-min)))))
 	  (header-files
-	   (if (looking-at "[-*][-*][-*] \\(\\S-+\\)\\(\\s-.*\\)?\n[-+][-+][-+] \\(\\S-+\\)")
-	       (list (if old (match-string 1) (match-string 3))
-		     (if old (match-string 3) (match-string 1)))
+           ;; handle filenames with spaces;
+           ;; cf. diff-font-lock-keywords / diff-file-header-face
+	   (if (looking-at "[-*][-*][-*] \\([^\t]+\\)\t.*\n[-+][-+][-+] \\([^\t]+\\)")
+	       (list (if old (match-string 1) (match-string 2))
+		     (if old (match-string 2) (match-string 1)))
 	     (forward-line 1) nil)))
       (delq nil
 	    (append
@@ -832,6 +834,7 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 			  (re-search-backward "^Index: \\(.+\\)" limit t)))
 	       (list (match-string 1)))
 	     header-files
+             ;; this assumes that there are no spaces in filenames
 	     (when (re-search-backward
 		    "^diff \\(-\\S-+ +\\)*\\(\\S-+\\)\\( +\\(\\S-+\\)\\)?"
 		    nil t)
