@@ -1,3 +1,7 @@
+2013-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el: Comment nitpicks.
+
 2013-02-28  Sam Steingold  <sds@gnu.org>
 
 	* vc/diff-mode.el (diff-hunk-file-names): Handle filenames with spaces.
