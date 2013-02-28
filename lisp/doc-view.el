@@ -485,8 +485,7 @@ Typically \"page-%s.png\".")
 (defun doc-view-goto-page (page)
   "View the page given by PAGE."
   (interactive "nPage: ")
-  (let ((len (doc-view-last-page-number))
-	(hscroll (window-hscroll)))
+  (let ((len (doc-view-last-page-number)))
     (if (< page 1)
 	(setq page 1)
       (when (and (> page len)
@@ -520,7 +519,6 @@ Typically \"page-%s.png\".")
                  (format doc-view--image-file-pattern page)
                  (doc-view-current-cache-dir))))
       (doc-view-insert-image file :pointer 'arrow)
-      (set-window-hscroll (selected-window) hscroll)
       (when (and (not (file-exists-p file))
                  doc-view-current-converter-processes)
         ;; The PNG file hasn't been generated yet.
@@ -1381,8 +1379,6 @@ For now these keys are useful:
       (progn
 	(doc-view-kill-proc)
 	(setq buffer-read-only nil)
-	(remove-overlays (point-min) (point-max) 'doc-view t)
-	(setq-local image-mode-winprops-alist t)
 	;; Switch to the previously used major mode or fall back to
 	;; normal mode.
 	(doc-view-fallback-mode)
@@ -1725,6 +1721,7 @@ toggle between displaying the document or editing it as text.
                   (mapcar (lambda (var) (cons var (symbol-value var)))
                           '(doc-view-resolution
                             image-mode-winprops-alist)))))
+    (remove-overlays (point-min) (point-max) 'doc-view t)
     (if doc-view-previous-major-mode
         (funcall doc-view-previous-major-mode)
       (let ((auto-mode-alist

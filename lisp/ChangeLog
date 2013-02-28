@@ -1,3 +1,11 @@
+2013-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el: Preserve h&v scroll across C-c C-c C-c C-c.
+	(doc-view-fallback-mode): Remove overlays here.
+	(doc-view-toggle-display): Instead of here.  Don't throw away
+	image-mode-winprops-alist.
+	(doc-view-goto-page): Don't mess with hscroll.
+
 2013-02-27  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Fix highlighting of
