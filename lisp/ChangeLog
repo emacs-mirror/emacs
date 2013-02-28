@@ -1,3 +1,25 @@
+2013-02-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	Initial support for hunspell dictionaries auto-detection (Bug#13639)
+
+	* textmodes/ispell.el (ispell-find-hunspell-dictionaries):
+	Ask hunspell about available and default dictionaries.
+	(ispell-parse-hunspell-affix-file): Extract relevant info from
+	hunspell affix file.
+	(ispell-hunspell-fill-dictionary-entry): Fill non-initialized
+	`ispell-dictionary-alist' entry for given dictionary after info
+	provided by `ispell-parse-hunspell-affix-file'.
+	(ispell-hunspell-dict-paths-alist): New defvar to contain an alist
+	of parsed hunspell dicts and associated affix files.
+	(ispell-hunspell-dictionary-alist): New defvar to contain an alist
+	of parsed hunspell dicts and associated parameters.
+	(ispell-set-spellchecker-params):
+	Call `ispell-find-hunspell-dictionaries' if hunspell and not
+	previously done.
+	(ispell-start-process):
+	Call `ispell-hunspell-fill-dictionary-entry' for current
+	dictionary if it is not initialized.
+
 2013-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* imenu.el: Comment nitpicks.

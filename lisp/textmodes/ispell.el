@@ -1129,6 +1129,170 @@ Return the new dictionary alist."
 	      (push (cons aliasname (cdr realdict)) alist))))))
     alist))
 
+;; Make ispell.el work better with hunspell.
+
+(defvar ispell-hunspell-dict-paths-alist nil
+      "Alist of parsed hunspell dicts and associated affix files.
+Will be used to parse corresponding .aff file and create associated
+parameters to be inserted into `ispell-hunspell-dictionary-alist'.
+Internal use.")
+
+(defvar ispell-hunspell-dictionary-alist nil
+      "Alist of parsed hunspell dicts and associated parameters.
+This alist will initially contain names of found dicts.  Associated
+parameters will be added when dict is used for the first time.
+Internal use.")
+
+(defun ispell-hunspell-fill-dictionary-entry (dict)
+  "Fill `ispell-dictionary-alist' uninitialized entries for `DICT' and aliases.
+Value will be extracted from hunspell affix file and used for
+all uninitialized dicts using that affix file."
+  (if (cadr (assoc dict ispell-dictionary-alist))
+      (message "ispell-hfde: Non void entry for %s. Skipping.\n" dict)
+    (let ((dict-alias (cadr (assoc dict ispell-hunspell-dictionary-equivs-alist)))
+	  (use-for-dicts (list dict))
+	  (dict-args-cdr (cdr (ispell-parse-hunspell-affix-file dict)))
+	  newlist)
+      ;; Get a list of unitialized dicts using the same affix file.
+      (dolist (dict-equiv-alist-entry ispell-hunspell-dictionary-equivs-alist)
+	(let ((dict-equiv-key (car dict-equiv-alist-entry))
+	      (dict-equiv-value (cadr dict-equiv-alist-entry)))
+	  (if (or (member dict dict-equiv-alist-entry)
+		  (member dict-alias dict-equiv-alist-entry))
+	      (dolist ( tmp-dict (list dict-equiv-key dict-equiv-value))
+		(if (cadr (assoc tmp-dict ispell-dictionary-alist))
+		    (ispell-print-if-debug (format "ispell-hfde: %s already expanded. Skipping.\n" tmp-dict))
+		  (add-to-list 'use-for-dicts tmp-dict))))))
+      (ispell-print-if-debug (format "ispell-hfde: Filling %s entry. Use for %s.\n" dict use-for-dicts))
+      ;; The final loop
+      (dolist (entry ispell-dictionary-alist)
+	(if (member (car entry) use-for-dicts)
+	    (add-to-list 'newlist
+			 (append (list (car entry)) dict-args-cdr))
+	  (add-to-list 'newlist entry)))
+      (setq ispell-dictionary-alist newlist))))
+
+(defun ispell-parse-hunspell-affix-file (dict-key)
+  "Parse hunspell affix file to extract parameters for `DICT-KEY'.
+Return a list in `ispell-dictionary-alist' format."
+  (let ((affix-file (cadr (assoc dict-key ispell-hunspell-dict-paths-alist))))
+    (unless affix-file
+      (error "ispell-phaf: No matching entry for %s.\n" dict-name))
+    (if (file-exists-p affix-file)
+	(let ((dict-name (file-name-sans-extension (file-name-nondirectory affix-file)))
+	      otherchars-string otherchars-list)
+	  (with-temp-buffer
+	    (insert-file-contents affix-file)
+	    (setq otherchars-string
+		  (save-excursion
+		    (beginning-of-buffer)
+		    (if (search-forward-regexp "^WORDCHARS +" nil t )
+			(buffer-substring (point)
+					  (progn (end-of-line) (point))))))
+	    ;; Remove trailing whitespace and extra stuff. Make list if non-nil.
+	    (setq otherchars-list
+		  (if otherchars-string
+		      (split-string
+		       (if (string-match " +.*$" otherchars-string)
+			   (replace-match "" nil nil otherchars-string)
+			 otherchars-string)
+		       "" t)))
+
+	    ;; Fill dict entry
+	    (list dict-key
+		  "[[:alpha:]]"
+		  "[^[:alpha:]]"
+		  (if otherchars-list
+		      (regexp-opt otherchars-list)
+		    "")
+		  t                      ;; many-otherchars-p: We can't tell, set to t
+		  (list "-d" dict-name)
+		  nil                    ;; extended-char-mode: not supported by hunspell
+		  'utf-8)))
+      (error "ispell-phaf: File \"%s\" not found.\n" affix-file))))
+
+(defun ispell-find-hunspell-dictionaries ()
+  "Look for installed hunspell dictionaries.
+Will initialize `ispell-hunspell-dictionary-alist' and
+`ispell-hunspell-dictionary-alist' after values found
+and remove `ispell-hunspell-dictionary-equivs-alist'
+entries if a specific dict was found."
+  (let ((hunspell-found-dicts
+	 (split-string
+	  (with-temp-buffer
+	    (ispell-call-process ispell-program-name
+				 null-device
+				 t
+				 nil
+				 "-D")
+	    (buffer-string))
+	  "[\n\r]+"
+	  t))
+	hunspell-default-dict
+	hunspell-default-dict-entry)
+    (dolist (dict hunspell-found-dicts)
+      (let* ((full-name (file-name-nondirectory dict))
+	     (basename  (file-name-sans-extension full-name))
+	     (affix-file (concat dict ".aff")))
+	(if (string-match "\\.aff$" dict)
+	    ;; Found default dictionary
+	    (if hunspell-default-dict
+		(error "ispell-fhd: Default dict already defined as %s. Not using %s.\n"
+		       hunspell-default-dict dict)
+	      (setq affix-file dict)
+	      (setq hunspell-default-dict (list basename affix-file)))
+	  (if (and (not (assoc basename ispell-hunspell-dict-paths-alist))
+		   (file-exists-p affix-file))
+	      ;; Entry has an associated .aff file and no previous value.
+	      (progn
+		(ispell-print-if-debug
+		 (format "++ ispell-fhd: dict-entry:%s name:%s basename:%s affix-file:%s\n"
+			 dict full-name basename affix-file))
+		(add-to-list 'ispell-hunspell-dict-paths-alist
+			     (list basename affix-file)))
+	    (ispell-print-if-debug
+	     (format "-- ispell-fhd: Skipping entry: %s\n" dict))))))
+    ;; Remove entry from aliases alist if explicit dict was found.
+    (let (newlist)
+      (dolist (dict ispell-hunspell-dictionary-equivs-alist)
+	(if (assoc (car dict) ispell-hunspell-dict-paths-alist)
+	    (ispell-print-if-debug
+	     (format "-- ispell-fhd: Excluding %s alias. Standalone dict found.\n"
+		     (car dict)))
+	  (add-to-list 'newlist dict)))
+      (setq ispell-hunspell-dictionary-equivs-alist newlist))
+    ;; Add known hunspell aliases
+    (dolist (dict-equiv ispell-hunspell-dictionary-equivs-alist)
+      (let ((dict-equiv-key (car dict-equiv))
+	    (dict-equiv-value (cadr dict-equiv))
+	    (exclude-aliases (list   ;; Exclude TeX aliases
+			      "esperanto-tex"
+			      "francais7"
+			      "francais-tex"
+			      "norsk7-tex")))
+	(if (and (assoc dict-equiv-value ispell-hunspell-dict-paths-alist)
+		 (not (assoc dict-equiv-key ispell-hunspell-dict-paths-alist))
+		 (not (member dict-equiv-key exclude-aliases)))
+	    (let ((affix-file (cadr (assoc dict-equiv-value ispell-hunspell-dict-paths-alist))))
+	      (ispell-print-if-debug (format "++ ispell-fhd: Adding alias %s -> %s.\n"
+					     dict-equiv-key affix-file))
+	      (add-to-list
+	       'ispell-hunspell-dict-paths-alist
+	       (list dict-equiv-key affix-file))))))
+    ;; Parse and set values for default dictionary.
+    (setq hunspell-default-dict (car hunspell-default-dict))
+    (setq hunspell-default-dict-entry
+	  (ispell-parse-hunspell-affix-file hunspell-default-dict))
+    ;; Create an alist of found dicts with only names, except for default dict.
+    (setq ispell-hunspell-dictionary-alist
+	  (list (append (list nil) (cdr hunspell-default-dict-entry))))
+    (dolist (dict (mapcar 'car ispell-hunspell-dict-paths-alist))
+      (if (string= dict hunspell-default-dict)
+	  (add-to-list 'ispell-hunspell-dictionary-alist
+		       hunspell-default-dict-entry)
+	(add-to-list 'ispell-hunspell-dictionary-alist
+		     (list dict))))))
+
 ;; Set params according to the selected spellchecker
 
 (defvar ispell-last-program-name nil
@@ -1154,20 +1318,30 @@ aspell is used along with Emacs).")
 		   (setq ispell-library-directory (ispell-check-version))
 		   t)
 	       (error nil))
-	     ispell-really-aspell
 	     ispell-encoding8-command
 	     ispell-emacs-alpha-regexp)
-	(unless ispell-aspell-dictionary-alist
-	  (ispell-find-aspell-dictionaries)))
+	;; auto-detection will only be used if spellchecker is not
+	;; ispell, supports a way  to set communication to UTF-8 and
+	;; Emacs flavor supports [:alpha:]
+	(if ispell-really-aspell
+	    (or ispell-aspell-dictionary-alist
+		(ispell-find-aspell-dictionaries))
+	  (if ispell-really-hunspell
+	      (or ispell-hunspell-dictionary-alist
+		  (ispell-find-hunspell-dictionaries)))))
 
-    ;; Substitute ispell-dictionary-alist with the list of dictionaries
-    ;; corresponding to the given spellchecker. If a recent aspell, use
-    ;; the list of really installed dictionaries and add to it elements
-    ;; of the original list that are not present there. Allow distro info.
+    ;; Substitute ispell-dictionary-alist with the list of
+    ;; dictionaries corresponding to the given spellchecker.
+    ;; If a recent aspell or hunspell, use the list of really
+    ;; installed dictionaries and add to it elements of the original
+    ;; list that are not present there. Allow distro info.
     (let ((found-dicts-alist
-	   (if (and ispell-really-aspell
-		    ispell-encoding8-command)
-	       ispell-aspell-dictionary-alist
+	   (if (and ispell-encoding8-command
+		    ispell-emacs-alpha-regexp)
+	       (if ispell-really-aspell
+		   ispell-aspell-dictionary-alist
+		 (if ispell-really-hunspell
+		     ispell-hunspell-dictionary-alist))
 	     nil))
 	  (ispell-dictionary-base-alist ispell-dictionary-base-alist)
 	  ispell-base-dicts-override-alist ; Override only base-dicts-alist
@@ -1237,19 +1411,21 @@ aspell is used along with Emacs).")
     (if ispell-emacs-alpha-regexp
      	(let (tmp-dicts-alist)
     	  (dolist (adict ispell-dictionary-alist)
-  	    (add-to-list 'tmp-dicts-alist
-   			 (list
-   			  (nth 0 adict)  ; dict name
-    			  "[[:alpha:]]"  ; casechars
-    			  "[^[:alpha:]]" ; not-casechars
-   			  (nth 3 adict)  ; otherchars
-    			  (nth 4 adict)  ; many-otherchars-p
-   			  (nth 5 adict)  ; ispell-args
-   			  (nth 6 adict)  ; extended-character-mode
-			  (if ispell-encoding8-command
-			      'utf-8
-			    (nth 7 adict)))))
-    	  (setq ispell-dictionary-alist tmp-dicts-alist)))))
+	    (if (cadr adict) ;; Do not touch hunspell uninitialized entries
+		(add-to-list 'tmp-dicts-alist
+			     (list
+			      (nth 0 adict)  ; dict name
+			      "[[:alpha:]]"  ; casechars
+			      "[^[:alpha:]]" ; not-casechars
+			      (nth 3 adict)  ; otherchars
+			      (nth 4 adict)  ; many-otherchars-p
+			      (nth 5 adict)  ; ispell-args
+			      (nth 6 adict)  ; extended-character-mode
+			      (if ispell-encoding8-command
+				  'utf-8
+				(nth 7 adict))))
+	      (add-to-list 'tmp-dicts-alist adict)))
+	  (setq ispell-dictionary-alist tmp-dicts-alist)))))
 
 (defun ispell-valid-dictionary-list ()
   "Return a list of valid dictionaries.
@@ -2737,6 +2913,12 @@ When asynchronous processes are not supported, `run' is always returned."
 Keeps argument list for future Ispell invocations for no async support."
   ;; `ispell-current-dictionary' and `ispell-current-personal-dictionary'
   ;; are properly set in `ispell-internal-change-dictionary'.
+
+  ;; Parse hunspell affix file if using hunspell and entry is uninitialized.
+  (if ispell-really-hunspell
+      (or (cadr (assoc ispell-current-dictionary ispell-dictionary-alist))
+	  (ispell-hunspell-fill-dictionary-entry ispell-current-dictionary)))
+
   (let* ((default-directory
            (if (and (file-directory-p default-directory)
                     (file-readable-p default-directory))
