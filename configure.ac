@@ -1648,7 +1648,7 @@ else
     [AC_LINK_IFELSE(
        [AC_LANG_PROGRAM(
 	 [[extern char data_start[]; char ch;]],
-	 [[return data_start == &ch;]])],
+	 [[return data_start < &ch;]])],
        [emacs_cv_data_start=yes],
        [emacs_cv_data_start=no])])
   if test $emacs_cv_data_start = yes; then

@@ -1,3 +1,7 @@
+2013-02-28  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (HAVE_DATA_START): Fix test.  (Bug#13818)
+
 2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify data_start configuration (Bug#13783).
