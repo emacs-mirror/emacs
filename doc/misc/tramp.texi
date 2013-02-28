@@ -1023,9 +1023,11 @@ name.
 @cindex adb method
 
 This special method uses the Android Debug Bridge for connecting
-Android devices.  The Android Debug Bridge, part of the Android SDK,
-must be installed locally.  The variable @var{tramp-adb-sdk-dir} must
-be set to its installation directory.
+Android devices.  The Android Debug Bridge must be installed locally.
+Some GNU/Linux distributions offer it for installation, otherwise it
+can be installed as part of the Android SDK.  If @command{adb} is not
+found via the @code{$PATH} environment variable, the variable
+@var{tramp-adb-program} must point to its absolute path.
 
 @end table
 
