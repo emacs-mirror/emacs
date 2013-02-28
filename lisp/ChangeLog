@@ -1,3 +1,7 @@
+2013-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/paragraphs.el (mark-paragraph): Doc fix.
+
 2013-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el: Preserve h&v scroll across C-c C-c C-c C-c.

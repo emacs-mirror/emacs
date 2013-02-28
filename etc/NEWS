@@ -829,6 +829,63 @@ See the variable `calendar-month-header'.
 *** The calendars produced by cal-html include holidays.
 Customize `cal-html-holidays' to change this.
 
+** CEDET
+
+*** The major modes from the parser generators "Bovine" and "Wisent"
+are now properly integrated in Emacs.  The file suffixes ".by" and ".wy"
+are in `auto-mode-alist', and the corresponding manuals are included.
+
+*** EDE
+
+**** Menu support for the "Configuration" feature.  This allows users to
+choose the active configuration (such as debug or install) from the menu.
+
+**** New command `ede-set' to interactively set project-local variables.
+
+**** Support for compiling, debugging, and running in "generic" projects.
+
+**** Autoconf editing support for M4 macros with complex arguments.
+
+**** Compilation support for the "linux" project type.
+
+**** "simple" projects have been removed; use "generic" projects instead.
+
+*** Semantic
+
+**** Support for parsing #include statements inside a namespace in C/C++.
+
+**** Improved support for 'extern "C"' declarations in C/C++.
+
+**** The ability to ignore more common special C/C++ preprocessor symbols,
+such as '__nonnull' and '__asm'.  Add '__cplusplus' macro when parsing C++.
+If available, include cdefs.h as an additional source of preprocessor symbols.
+
+**** Improved C/C++ function pointer parsing.
+
+**** In Python, support for converting imports to include file names.
+
+**** Ability to dynamically determine the Python load path.
+
+**** Support for the Python 'WITH' and 'AT' keywords.
+
+**** Improved tooltip completion.
+
+*** SRecode
+
+**** The SRecode manual is now included.
+
+**** Tag generation supports constructor/destructor settings and system
+include differentiation.
+
+**** Addition of 'Framework' support: Frameworks are specified when a
+particular kind of library (such as Android) is needed in a common language
+mode (like Java).
+
+**** Support for nested templates and let variables override based on priority.
+
+**** Support for merging tables from multiple related modes, such as
+default -> c++ -> arduino.
+
 ** Compile has a new option `compilation-always-kill'.
 
 ** Customize
@@ -1167,6 +1224,25 @@ accessed via the new `timer--psecs' accessor.
 
 *** Last-modified time stamps in undo lists now are of the form
 (t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
+
+** EIEIO
+
+*** Improved security when handling persistent objects:
+
+**** `eieio-persistent-read' now features optional arguments for specifying
+the class to load, as well as a flag stating whether subclasses are allowed;
+if provided, other classes will be rejected by the reader.  For
+compatibility with existing code, if the class is omitted only a
+warning is issued.
+
+**** New specialized reader for pulling in classes and signaling errors
+without evaluation of suspicious code.
+
+**** All slots that contain objects must have a :type.  Slots with lists
+of objects must use a new type predicate for a list of an object type.
+
+*** Support for `find-function' and similar utilities, through the addition
+of filename support to generated symbols.
 
 ** Floating point functions now always return special values like NaN,
 instead of signaling errors, if given invalid args; e.g., (log -1.0).

@@ -20,6 +20,11 @@
 @c xxx and yyy are auxiliary macros in order to omit leading and
 @c trailing whitespace.  Not very elegant, but I don't know it better.
 
+@c There are subtle differences between texinfo 4.13 and 5.0.  We must
+@c declare two versions of the macro.  This will be improved, hopefully.
+
+@c Texinfo 5.0.
+@ifset txicommandconditionals
 @macro xxx {one}
 @set \one\
 @end macro
@@ -38,6 +43,26 @@
 @yyy{\user\,@@}@c
 \host\@value{postfix}\localname\
 @end macro
+@end ifset
+
+@c Texinfo 4.13.
+@ifclear txicommandconditionals
+@macro xxx {one}@c
+@set \one\@c
+@end macro
+
+@macro yyy {one, two}@c
+@xxx{x\one\}@c
+@ifclear x@c
+\one\@w{}\two\@c
+@end ifclear
+@clear x\one\@c
+@end macro
+
+@macro trampfn {method, user, host, localname}@c
+@value{prefix}@yyy{\method\,@value{postfixhop}}@yyy{\user\,@@}\host\@value{postfix}\localname\@c
+@end macro
+@end ifclear
 
 @copying
 Copyright @copyright{} 1999--2013 Free Software Foundation, Inc.
@@ -3892,3 +3917,4 @@ for @value{emacsothername}.
 @c * Use `filename' resp. `file name' consistently.
 @c * Use `host' resp. `machine' consistently.
 @c * Consistent small or capitalized words especially in menus.
+@c * Make a unique declaration of @trampfn.

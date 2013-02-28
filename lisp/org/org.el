@@ -114,7 +114,6 @@ Stars are put in group 1 and the trimmed body in group 2.")
 (declare-function org-inlinetask-outline-regexp "org-inlinetask" ())
 (declare-function org-inlinetask-toggle-visibility "org-inlinetask" ())
 (declare-function org-pop-to-buffer-same-window "org-compat" (&optional buffer-or-name norecord label))
-(declare-function org-at-clock-log-p "org-clock" ())
 (declare-function org-clock-timestamps-up "org-clock" ())
 (declare-function org-clock-timestamps-down "org-clock" ())
 (declare-function org-clock-sum-current-item "org-clock" (&optional tstart))
@@ -467,7 +466,11 @@ the following lines anywhere in the buffer:
    #+STARTUP: fold              (or `overview', this is equivalent)
    #+STARTUP: nofold            (or `showall', this is equivalent)
    #+STARTUP: content
-   #+STARTUP: showeverything"
+   #+STARTUP: showeverything
+
+By default, this option is ignored when Org opens agenda files
+for the first time.  If you want the agenda to honor the startup
+option, set `org-agenda-inhibit-startup' to nil."
   :group 'org-startup
   :type '(choice
 	  (const :tag "nofold: show all" nil)
@@ -3913,6 +3916,7 @@ If TABLE-TYPE is non-nil, also check for table.el-type tables."
        (save-excursion
 	 (goto-char (org-table-begin 'any))
 	 (looking-at org-table1-hline-regexp))))
+
 (defun org-table-recognize-table.el ()
   "If there is a table.el table nearby, recognize it and move into it."
   (if org-table-tab-recognizes-table.el
@@ -3948,7 +3952,6 @@ If TABLE-TYPE is non-nil, also check for table.el-type tables."
     nil))
 
 (defvar org-table-clean-did-remove-column nil)
-
 (defun org-table-map-tables (function &optional quietly)
   "Apply FUNCTION to the start of all tables in the buffer."
   (save-excursion
@@ -4969,7 +4972,8 @@ The following commands are available:
       (org-add-hook 'isearch-mode-end-hook 'org-isearch-end 'append 'local)
     ;; Emacs 22 deals with this through a special variable
     (org-set-local 'outline-isearch-open-invisible-function
-		   (lambda (&rest ignore) (org-show-context 'isearch))))
+		   (lambda (&rest ignore) (org-show-context 'isearch)))
+    (org-add-hook 'isearch-mode-end-hook 'org-fix-ellipsis-at-bol 'append 'local))
 
   ;; Setup the pcomplete hooks
   (set (make-local-variable 'pcomplete-command-completion-function)
@@ -5008,6 +5012,8 @@ The following commands are available:
 
 (put 'org-mode 'flyspell-mode-predicate 'org-mode-flyspell-verify)
 
+(defsubst org-fix-ellipsis-at-bol ()
+  (save-excursion (goto-char (window-start)) (recenter 0)))
 
 (defun org-find-invisible-foreground ()
   (let ((candidates (remove
@@ -5205,8 +5211,9 @@ on a string that terminates immediately after the date.")
 (defconst org-tsr-regexp (concat org-ts-regexp "\\(--?-?"
 				 org-ts-regexp "\\)?")
   "Regular expression matching a time stamp or time stamp range.")
-(defconst org-tsr-regexp-both (concat org-ts-regexp-both "\\(--?-?"
-				      org-ts-regexp-both "\\)?")
+(defconst org-tsr-regexp-both
+  (concat org-ts-regexp-both "\\(--?-?"
+	  org-ts-regexp-both "\\)?")
   "Regular expression matching a time stamp or time stamp range.
 The time stamps may be either active or inactive.")
 
@@ -5298,21 +5305,20 @@ will be prompted for."
 
 (defun org-activate-plain-links (limit)
   "Run through the buffer and add overlays to links."
-  (catch 'exit
-    (let (f)
-      (when (and (re-search-forward (concat org-plain-link-re) limit t)
-		 (not (org-in-src-block-p)))
-	(org-remove-flyspell-overlays-in (match-beginning 0) (match-end 0))
-	(setq f (get-text-property (match-beginning 0) 'face))
-	(unless (or (org-in-src-block-p)
-		    (eq f 'org-tag)
-		    (and (listp f) (memq 'org-tag f)))
-	  (add-text-properties (match-beginning 0) (match-end 0)
-			       (list 'mouse-face 'highlight
-				     'face 'org-link
-				     'keymap org-mouse-map))
-	  (org-rear-nonsticky-at (match-end 0)))
-	t))))
+  (let (f)
+    (when (and (re-search-forward (concat org-plain-link-re) limit t)
+	       (not (org-in-src-block-p)))
+      (org-remove-flyspell-overlays-in (match-beginning 0) (match-end 0))
+      (setq f (get-text-property (match-beginning 0) 'face))
+      (unless (or (org-in-src-block-p)
+		  (eq f 'org-tag)
+		  (and (listp f) (memq 'org-tag f)))
+	(add-text-properties (match-beginning 0) (match-end 0)
+			     (list 'mouse-face 'highlight
+				   'face 'org-link
+				   'keymap org-mouse-map))
+	(org-rear-nonsticky-at (match-end 0)))
+      t)))
 
 (defun org-activate-code (limit)
   (if (re-search-forward "^[ \t]*\\(:\\(?: .*\\|$\\)\n?\\)" limit t)
@@ -5510,7 +5516,8 @@ by a #."
 
 (defun org-activate-dates (limit)
   "Run through the buffer and add overlays to dates."
-  (if (re-search-forward org-tsr-regexp-both limit t)
+  (if (and (re-search-forward org-tsr-regexp-both limit t)
+	   (not (equal (char-before (match-beginning 0)) 91)))
       (progn
 	(org-remove-flyspell-overlays-in (match-beginning 0) (match-end 0))
 	(add-text-properties (match-beginning 0) (match-end 0)
@@ -6431,13 +6438,16 @@ of the first headline in the buffer.  This is important, because if the
 first headline is not level one, then (hide-sublevels 1) gives confusing
 results."
   (interactive)
-  (let ((level (save-excursion
+  (let ((l (org-current-line))
+	(level (save-excursion
 		 (goto-char (point-min))
 		 (if (re-search-forward (concat "^" outline-regexp) nil t)
 		     (progn
 		       (goto-char (match-beginning 0))
 		       (funcall outline-level))))))
-    (and level (hide-sublevels level))))
+    (and level (hide-sublevels level))
+    (recenter '(4))
+    (org-goto-line l)))
 
 (defun org-content (&optional arg)
   "Show all headlines in the buffer, like a table of contents.
@@ -7231,12 +7241,14 @@ This is a list with the following elements:
   (org-move-subtree-down)
   (end-of-line 1))
 
-(defun org-insert-heading-respect-content ()
-  (interactive)
+(defun org-insert-heading-respect-content (invisible-ok)
+  "Insert heading with `org-insert-heading-respect-content' set to t."
+  (interactive "P")
   (let ((org-insert-heading-respect-content t))
-    (org-insert-heading t)))
+    (org-insert-heading t invisible-ok)))
 
 (defun org-insert-todo-heading-respect-content (&optional force-state)
+  "Insert TODO heading with `org-insert-heading-respect-content' set to t."
   (interactive "P")
   (let ((org-insert-heading-respect-content t))
     (org-insert-todo-heading force-state t)))
@@ -12835,27 +12847,27 @@ How much context is shown depends upon the variables
 	(following-p (org-get-alist-option org-show-following-heading key))
 	(entry-p     (org-get-alist-option org-show-entry-below key))
 	(siblings-p  (org-get-alist-option org-show-siblings key)))
-    (catch 'exit
-      ;; Show heading or entry text
-      (if (and heading-p (not entry-p))
-	  (org-flag-heading nil)    ; only show the heading
-	(and (or entry-p (outline-invisible-p) (org-invisible-p2))
-	     (org-show-hidden-entry)))    ; show entire entry
-      (when following-p
-	;; Show next sibling, or heading below text
-	(save-excursion
-	  (and (if heading-p (org-goto-sibling) (outline-next-heading))
-	       (org-flag-heading nil))))
-      (when siblings-p (org-show-siblings))
-      (when hierarchy-p
-	;; show all higher headings, possibly with siblings
-	(save-excursion
-	  (while (and (condition-case nil
-			  (progn (org-up-heading-all 1) t)
-			(error nil))
-		      (not (bobp)))
-	    (org-flag-heading nil)
-	    (when siblings-p (org-show-siblings))))))))
+    ;; Show heading or entry text
+    (if (and heading-p (not entry-p))
+	(org-flag-heading nil)    ; only show the heading
+      (and (or entry-p (outline-invisible-p) (org-invisible-p2))
+	   (org-show-hidden-entry)))    ; show entire entry
+    (when following-p
+      ;; Show next sibling, or heading below text
+      (save-excursion
+	(and (if heading-p (org-goto-sibling) (outline-next-heading))
+	     (org-flag-heading nil))))
+    (when siblings-p (org-show-siblings))
+    (when hierarchy-p
+      ;; show all higher headings, possibly with siblings
+      (save-excursion
+	(while (and (condition-case nil
+			(progn (org-up-heading-all 1) t)
+		      (error nil))
+		    (not (bobp)))
+	  (org-flag-heading nil)
+	  (when siblings-p (org-show-siblings)))))
+    (org-fix-ellipsis-at-bol)))
 
 (defvar org-reveal-start-hook nil
   "Hook run before revealing a location.")
@@ -13597,7 +13609,9 @@ If ONOFF is `on' or `off', don't toggle but set to this state."
   (if (or (org-at-heading-p) (and arg (org-before-first-heading-p)))
       (org-set-tags arg just-align)
     (save-excursion
-      (org-back-to-heading t)
+      (unless (and (org-region-active-p)
+		   org-loop-over-headlines-in-active-region)
+	(org-back-to-heading t))
       (org-set-tags arg just-align))))
 
 (defun org-set-tags-to (data)
@@ -14101,13 +14115,13 @@ agenda-with-archives
 The remaining args are treated as settings for the skipping facilities of
 the scanner.  The following items can be given here:
 
-  archive    skip trees with the archive tag.
+  archive    skip trees with the archive tag
   comment    skip trees with the COMMENT keyword
   function or Emacs Lisp form:
-             will be used as value for `org-agenda-skip-function', so whenever
-             the function returns t, FUNC will not be called for that
-             entry and search will continue from the point where the
-             function leaves it.
+             will be used as value for `org-agenda-skip-function', so
+             whenever the function returns a position, FUNC will not be
+             called for that entry and search will continue from the
+             position returned
 
 If your function needs to retrieve the tags including inherited tags
 at the *current* entry, you can use the value of the variable
@@ -16400,6 +16414,12 @@ With prefix ARG, change that many days."
 			 t t)))
       (message "Timestamp is now %sactive"
 	       (if (equal (char-after beg) ?<) "" "in")))))
+
+(defun org-at-clock-log-p nil
+  "Is the cursor on the clock log line?"
+  (save-excursion
+    (move-beginning-of-line 1)
+    (looking-at "^[ \t]*CLOCK:")))
 
 (defvar org-clock-history)                     ; defined in org-clock.el
 (defvar org-clock-adjust-closest nil)          ; defined in org-clock.el
@@ -18737,8 +18757,7 @@ this function returns t, nil otherwise."
 		(throw 'exit t))))
 	nil))))
 
-(autoload 'org-element-at-point "org-element")
-(autoload 'org-element-type "org-element")
+(org-autoload "org-element" '(org-element-at-point org-element-type))
 
 (declare-function org-element-at-point "org-element" (&optional keep-trail))
 (declare-function org-element-type "org-element" (element))
@@ -19840,7 +19859,7 @@ See the individual commands for more information."
     ("Refresh/Reload"
      ["Refresh setup current buffer" org-mode-restart t]
      ["Reload Org (after update)" org-reload t]
-     ["Reload Org uncompiled" (org-reload t) :active t :keys "C-u C-c C-x r"])
+     ["Reload Org uncompiled" (org-reload t) :active t :keys "C-u C-c C-x !"])
     ))
 
 (defun org-info (&optional node)
@@ -20970,7 +20989,8 @@ hierarchy of headlines by UP levels before marking the subtree."
      (org-uniquify
       (append fill-nobreak-predicate
 	      '(org-fill-paragraph-separate-nobreak-p
-		org-fill-line-break-nobreak-p)))))
+		org-fill-line-break-nobreak-p
+		org-fill-paragraph-with-timestamp-nobreak-p)))))
   (org-set-local 'fill-paragraph-function 'org-fill-paragraph)
   (org-set-local 'auto-fill-inhibit-regexp nil)
   (org-set-local 'adaptive-fill-function 'org-adaptive-fill-function)
@@ -20988,6 +21008,11 @@ hierarchy of headlines by UP levels before marking the subtree."
     (skip-chars-backward "[ \t]")
     (skip-chars-backward "\\\\")
     (looking-at "\\\\\\\\\\($\\|[^\\\\]\\)")))
+
+(defun org-fill-paragraph-with-timestamp-nobreak-p ()
+  "Non-nil when a line break at point would insert a new item."
+  (and (org-at-timestamp-p t)
+       (not (looking-at org-ts-regexp-both))))
 
 (declare-function message-in-body-p "message" ())
 (defvar org-element--affiliated-re) ; From org-element.el
@@ -22159,7 +22184,8 @@ Show the heading too, if it is currently invisible."
 		   isearch-mode-end-hook-quit)
 	;; Only when the isearch was not quitted.
 	(org-add-hook 'post-command-hook 'org-isearch-post-command
-		      'append 'local)))))
+		      'append 'local)))
+    (org-fix-ellipsis-at-bol)))
 
 (defun org-isearch-post-command ()
   "Remove self from hook, and show context."
@@ -22190,7 +22216,7 @@ Show the heading too, if it is currently invisible."
 	 (re (concat "^" (org-get-limited-outline-regexp)))
 	 (subs (make-vector (1+ n) nil))
 	 (last-level 0)
-	 m level head)
+	 m level head0 head)
     (save-excursion
       (save-restriction
 	(widen)
@@ -22198,9 +22224,9 @@ Show the heading too, if it is currently invisible."
 	(while (re-search-backward re nil t)
 	  (setq level (org-reduced-level (funcall outline-level)))
 	  (when (and (<= level n)
-		     (looking-at org-complex-heading-regexp))
-	    (setq head (org-link-display-format
-			(org-match-string-no-properties 4))
+		     (looking-at org-complex-heading-regexp)
+		     (setq head0 (org-match-string-no-properties 4)))
+	    (setq head (org-link-display-format head0)
 		  m (org-imenu-new-marker))
 	    (org-add-props head nil 'org-imenu-marker m 'org-imenu t)
 	    (if (>= level last-level)

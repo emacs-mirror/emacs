@@ -1934,11 +1934,6 @@ When nil, `q' will kill the single agenda buffer."
 	   (message "Sticky agenda was %s"
 		    (if org-agenda-sticky "enabled" "disabled"))))))
 
-(autoload 'org-toggle-sticky-agenda "org-agenda" "\
-Toggle `org-agenda-sticky'.
-
-\(fn &optional ARG)" t nil)
-
 (defvar org-agenda-buffer nil
   "Agenda buffer currently being generated.")
 
@@ -1971,7 +1966,6 @@ Toggle `org-agenda-sticky'.
     org-agenda-last-search-view-search-was-boolean
     org-agenda-filtered-by-category
     org-agenda-filter-form
-    org-agenda-show-window
     org-agenda-cycle-counter
     org-agenda-last-prefix-arg)
   "Variables that must be local in agenda buffers to allow multiple buffers.")
@@ -2615,43 +2609,6 @@ Pressing `<' twice means to restrict to the current subtree or region
        ((equal org-keys "!") (customize-variable 'org-stuck-projects))
        (t (error "Invalid agenda key"))))))
 
-(autoload 'org-agenda "org-agenda" "\
-Dispatch agenda commands to collect entries to the agenda buffer.
-Prompts for a command to execute.  Any prefix arg will be passed
-on to the selected command.  The default selections are:
-
-a     Call `org-agenda-list' to display the agenda for current day or week.
-t     Call `org-todo-list' to display the global todo list.
-T     Call `org-todo-list' to display the global todo list, select only
-      entries with a specific TODO keyword (the user gets a prompt).
-m     Call `org-tags-view' to display headlines with tags matching
-      a condition  (the user is prompted for the condition).
-M     Like `m', but select only TODO entries, no ordinary headlines.
-L     Create a timeline for the current buffer.
-e     Export views to associated files.
-s     Search entries for keywords.
-S     Search entries for keywords, only with TODO keywords.
-/     Multi occur across all agenda files and also files listed
-      in `org-agenda-text-search-extra-files'.
-<     Restrict agenda commands to buffer, subtree, or region.
-      Press several times to get the desired effect.
->     Remove a previous restriction.
-#     List \"stuck\" projects.
-!     Configure what \"stuck\" means.
-C     Configure custom agenda commands.
-
-More commands can be added by configuring the variable
-`org-agenda-custom-commands'.  In particular, specific tags and TODO keyword
-searches can be pre-defined in this way.
-
-If the current buffer is in Org-mode and visiting a file, you can also
-first press `<' once to indicate that the agenda should be temporarily
-\(until the next use of \\[org-agenda]) restricted to the current file.
-Pressing `<' twice means to restrict to the current subtree or region
-\(if active).
-
-\(fn &optional ARG ORG-KEYS RESTRICTION)" t nil)
-
 (defun org-agenda-append-agenda ()
   "Append another agenda view to the current one.
 This function allows interactive building of block agendas.
@@ -2947,17 +2904,6 @@ before running the agenda command."
   (set-buffer org-agenda-buffer-name)
   (princ (buffer-string)))
 
-(autoload 'org-batch-agenda "org-agenda" "\
-Run an agenda command in batch mode and send the result to STDOUT.
-If CMD-KEY is a string of length 1, it is used as a key in
-`org-agenda-custom-commands' and triggers this command.  If it is a
-longer string it is used as a tags/todo match string.
-Parameters are alternating variable names and values that will be bound
-before running the agenda command.
-
-\(fn CMD-KEY &rest PARAMETERS)" nil t)
-(def-edebug-spec org-batch-agenda (form &rest sexp))
-
 (defvar org-agenda-info nil)
 
 ;;;###autoload
@@ -3015,44 +2961,6 @@ agenda-day   The day in the agenda where this is listed"
 		    ","))
 	(princ "\n")))))
 
-(autoload 'org-batch-agenda-csv "org-agenda" "\
-Run an agenda command in batch mode and send the result to STDOUT.
-If CMD-KEY is a string of length 1, it is used as a key in
-`org-agenda-custom-commands' and triggers this command.  If it is a
-longer string it is used as a tags/todo match string.
-Parameters are alternating variable names and values that will be bound
-before running the agenda command.
-
-The output gives a line for each selected agenda item.  Each
-item is a list of comma-separated values, like this:
-
-category,head,type,todo,tags,date,time,extra,priority-l,priority-n
-
-category     The category of the item
-head         The headline, without TODO kwd, TAGS and PRIORITY
-type         The type of the agenda entry, can be
-                todo               selected in TODO match
-                tagsmatch          selected in tags match
-                diary              imported from diary
-                deadline           a deadline on given date
-                scheduled          scheduled on given date
-                timestamp          entry has timestamp on given date
-                closed             entry was closed on given date
-                upcoming-deadline  warning about deadline
-                past-scheduled     forwarded scheduled item
-                block              entry has date block including g. date
-todo         The todo keyword, if any
-tags         All tags including inherited ones, separated by colons
-date         The relevant date, like 2007-2-14
-time         The time, like 15:00-16:50
-extra        Sting with extra planning info
-priority-l   The priority letter if any was given
-priority-n   The computed numerical priority
-agenda-day   The day in the agenda where this is listed
-
-\(fn CMD-KEY &rest PARAMETERS)" nil t)
-(def-edebug-spec org-batch-agenda-csv (form &rest sexp))
-
 (defun org-fix-agenda-info (props)
   "Make sure all properties on an agenda item have a canonical form.
 This ensures the export commands can easily use it."
@@ -3100,11 +3008,6 @@ This ensures the export commands can easily use it."
   (interactive)
   (eval (list 'org-batch-store-agenda-views)))
 
-(autoload 'org-store-agenda-views "org-agenda" "\
-
-
-\(fn &rest PARAMETERS)" t nil)
-
 ;;;###autoload
 (defmacro org-batch-store-agenda-views (&rest parameters)
   "Run all custom agenda commands that have a file argument."
@@ -3139,12 +3042,6 @@ This ensures the export commands can easily use it."
 	      (org-agenda-write (expand-file-name (pop files) dir) nil t bufname)))
 	  (and (get-buffer bufname)
 	       (kill-buffer bufname)))))))
-
-(autoload 'org-batch-store-agenda-views "org-agenda" "\
-Run all custom agenda commands that have a file argument.
-
-\(fn &rest PARAMETERS)" nil t)
-(def-edebug-spec org-batch-store-agenda-views (&rest sexp))
 
 (defvar org-agenda-current-span nil
   "The current span used in the agenda view.") ; local variable in the agenda buffer
@@ -4204,20 +4101,6 @@ given in `org-agenda-start-on-weekday'."
       (setq buffer-read-only t)
       (message ""))))
 
-(autoload 'org-agenda-list "org-agenda" "\
-Produce a daily/weekly view from all files in variable `org-agenda-files'.
-The view will be for the current day or week, but from the overview buffer
-you will be able to go to other days/weeks.
-
-With a numeric prefix argument in an interactive call, the agenda will
-span ARG days.  Lisp programs should instead specify SPAN to change
-the number of days.  SPAN defaults to `org-agenda-span'.
-
-START-DAY defaults to TODAY, or to the most recent match for the weekday
-given in `org-agenda-start-on-weekday'.
-
-\(fn &optional ARG START-DAY SPAN)" t nil)
-
 (defun org-agenda-ndays-to-span (n)
   "Return a span symbol for a span of N days, or N if none matches."
   (cond ((symbolp n) n)
@@ -4527,52 +4410,6 @@ in `org-agenda-text-search-extra-files'."
       (org-agenda-finalize)
       (setq buffer-read-only t))))
 
-(autoload 'org-search-view "org-agenda" "\
-Show all entries that contain a phrase or words or regular expressions.
-
-With optional prefix argument TODO-ONLY, only consider entries that are
-TODO entries.  The argument STRING can be used to pass a default search
-string into this function.  If EDIT-AT is non-nil, it means that the
-user should get a chance to edit this string, with cursor at position
-EDIT-AT.
-
-The search string can be viewed either as a phrase that should be found as
-is, or it can be broken into a number of snippets, each of which must match
-in a Boolean way to select an entry.  The default depends on the variable
-`org-agenda-search-view-always-boolean'.
-Even if this is turned off (the default) you can always switch to
-Boolean search dynamically by preceding the first word with  \"+\" or \"-\".
-
-The default is a direct search of the whole phrase, where each space in
-the search string can expand to an arbitrary amount of whitespace,
-including newlines.
-
-If using a Boolean search, the search string is split on whitespace and
-each snippet is searched separately, with logical AND to select an entry.
-Words prefixed with a minus must *not* occur in the entry.  Words without
-a prefix or prefixed with a plus must occur in the entry.  Matching is
-case-insensitive.  Words are enclosed by word delimiters (i.e. they must
-match whole words, not parts of a word) if
-`org-agenda-search-view-force-full-words' is set (default is nil).
-
-Boolean search snippets enclosed by curly braces are interpreted as
-regular expressions that must or (when preceded with \"-\") must not
-match in the entry.  Snippets enclosed into double quotes will be taken
-as a whole, to include whitespace.
-
-- If the search string starts with an asterisk, search only in headlines.
-- If (possibly after the leading star) the search string starts with an
-  exclamation mark, this also means to look at TODO entries only, an effect
-  that can also be achieved with a prefix argument.
-- If (possibly after star and exclamation mark) the search string starts
-  with a colon, this will mean that the (non-regexp) snippets of the
-  Boolean search must match as full words.
-
-This command searches the agenda files, and in addition the files listed
-in `org-agenda-text-search-extra-files'.
-
-\(fn &optional TODO-ONLY STRING EDIT-AT)" t nil)
-
 ;;; Agenda TODO list
 
 (defvar org-select-this-todo-keyword nil)
@@ -4663,15 +4500,6 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
       (org-agenda-finalize)
       (setq buffer-read-only t))))
 
-(autoload 'org-todo-list "org-agenda" "\
-Show all (not done) TODO entries from all agenda file in a single list.
-The prefix arg can be used to select a specific TODO keyword and limit
-the list to these.  When using \\[universal-argument], you will be prompted
-for a keyword.  A numeric prefix directly selects the Nth keyword in
-`org-todo-keywords-1'.
-
-\(fn &optional ARG)" t nil)
-
 ;;; Agenda tags match
 
 ;;;###autoload
@@ -4756,12 +4584,6 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
 					     org-series-cmd ,org-cmd))
       (org-agenda-finalize)
       (setq buffer-read-only t))))
-
-(autoload 'org-tags-view "org-agenda" "\
-Show all headlines for all `org-agenda-files' matching a TAGS criterion.
-The prefix arg TODO-ONLY limits the search to TODO entries.
-
-\(fn &optional TODO-ONLY MATCH)" t nil)
 
 ;;; Agenda Finding stuck projects
 
@@ -4991,14 +4813,6 @@ of what a project is and how to check if it stuck, customize the variable
       (setq org-agenda-redo-command
 	    `(org-agenda-list-stuck-projects ,current-prefix-arg)))))
 
-(autoload 'org-agenda-list-stuck-projects "org-agenda" "\
-Create agenda view for projects that are stuck.
-Stuck projects are project that have no next actions.  For the definitions
-of what a project is and how to check if it stuck, customize the variable
-`org-stuck-projects'.
-
-\(fn &rest IGNORE)" t nil)
-
 ;;; Diary integration
 
 (defvar org-disable-agenda-to-diary nil)          ;Dynamically-scoped param.
@@ -5176,35 +4990,6 @@ function from a program - use `org-agenda-get-day-entries' instead."
       (setq results (append results rtn)))
     (if results
 	(concat (org-agenda-finalize-entries results) "\n"))))
-
-(autoload 'org-diary "org-agenda" "\
-Return diary information from org files.
-This function can be used in a \"sexp\" diary entry in the Emacs calendar.
-It accesses org files and extracts information from those files to be
-listed in the diary.  The function accepts arguments specifying what
-items should be listed.  For a list of arguments allowed here, see the
-variable `org-agenda-entry-types'.
-
-The call in the diary file should look like this:
-
-   &%%(org-diary) ~/path/to/some/orgfile.org
-
-Use a separate line for each org file to check.  Or, if you omit the file name,
-all files listed in `org-agenda-files' will be checked automatically:
-
-   &%%(org-diary)
-
-If you don't give any arguments (as in the example above), the default
-arguments (:deadline :scheduled :timestamp :sexp) are used.
-So the example above may also be written as
-
-   &%%(org-diary :deadline :timestamp :sexp :scheduled)
-
-The function expects the lisp variables `entry' and `date' to be provided
-by the caller, because this is how the calendar works.  Don't use this
-function from a program - use `org-agenda-get-day-entries' instead.
-
-\(fn &rest ARGS)" nil nil)
 
 ;;; Agenda entry finders
 
@@ -5400,11 +5185,6 @@ This function is invoked if `org-agenda-todo-ignore-deadlines',
 		       (org-agenda-todo-custom-ignore-p
 			(match-string 1) org-agenda-todo-ignore-timestamp))
 		      (t))))))))))
-
-(autoload 'org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item "org-agenda" "\
-Do we have a reason to ignore this TODO entry because it has a time stamp?
-
-\(fn &optional END)" nil nil)
 
 (defun org-agenda-get-timestamps (&optional deadline-results)
   "Return the date stamp information for agenda display."
@@ -8686,9 +8466,8 @@ Called with a universal prefix arg, show the priority instead of setting it."
 (defun org-agenda-show-new-time (marker stamp &optional prefix)
   "Show new date stamp via text properties."
   ;; We use text properties to make this undoable
-  (let ((inhibit-read-only t)
-	(buffer-invisibility-spec))
-    (setq stamp (concat " " prefix " => " stamp))
+  (let ((inhibit-read-only t))
+    (setq stamp (concat prefix " => " stamp " "))
     (save-excursion
       (goto-char (point-max))
       (while (not (bobp))
@@ -8750,7 +8529,7 @@ ARG is passed through to `org-schedule'."
 	(widen)
 	(goto-char pos)
 	(setq ts (org-schedule arg time)))
-      (org-agenda-show-new-time marker ts "S"))
+      (org-agenda-show-new-time marker ts " S"))
     (message "%s" ts)))
 
 (defun org-agenda-deadline (arg &optional time)
@@ -8770,7 +8549,7 @@ ARG is passed through to `org-deadline'."
 	(widen)
 	(goto-char pos)
 	(setq ts (org-deadline arg time)))
-      (org-agenda-show-new-time marker ts "D"))
+      (org-agenda-show-new-time marker ts " D"))
     (message "%s" ts)))
 
 (defun org-agenda-clock-in (&optional arg)
@@ -9130,12 +8909,6 @@ This is a command that has to be installed in `calendar-mode-map'."
   (org-agenda-list nil (calendar-absolute-from-gregorian
 			(calendar-cursor-to-date))
 		   nil))
-
-(autoload 'org-calendar-goto-agenda "org-agenda" "\
-Compute the Org-mode agenda for the calendar date displayed at the cursor.
-This is a command that has to be installed in `calendar-mode-map'.
-
-\(fn)" t nil)
 
 (defun org-agenda-convert-date ()
   (interactive)
@@ -9519,7 +9292,7 @@ By default `org-agenda-to-appt' will use :deadline, :scheduled
 and :timestamp entries.  See the docstring of `org-diary' for
 details and examples.
 
-If an entry as a APPT_WARNTIME property, its value will be used
+If an entry has a APPT_WARNTIME property, its value will be used
 to override `appt-message-warning-time'."
   (interactive "P")
   (if refresh (setq appt-time-msg-list nil))
@@ -9578,40 +9351,6 @@ to override `appt-message-warning-time'."
     (if (eq cnt 0)
 	(message "No event to add")
       (message "Added %d event%s for today" cnt (if (> cnt 1) "s" "")))))
-
-(autoload 'org-agenda-to-appt "org-agenda" "\
-Activate appointments found in `org-agenda-files'.
-With a \\[universal-argument] prefix, refresh the list of
-appointments.
-
-If FILTER is t, interactively prompt the user for a regular
-expression, and filter out entries that don't match it.
-
-If FILTER is a string, use this string as a regular expression
-for filtering entries out.
-
-If FILTER is a function, filter out entries against which
-calling the function returns nil.  This function takes one
-argument: an entry from `org-agenda-get-day-entries'.
-
-FILTER can also be an alist with the car of each cell being
-either 'headline or 'category.  For example:
-
-  '((headline \"IMPORTANT\")
-    (category \"Work\"))
-
-will only add headlines containing IMPORTANT or headlines
-belonging to the \"Work\" category.
-
-ARGS are symbols indicating what kind of entries to consider.
-By default `org-agenda-to-appt' will use :deadline, :scheduled
-and :timestamp entries.  See the docstring of `org-diary' for
-details and examples.
-
-If an entry as a APPT_WARNTIME property, its value will be used
-to override `appt-message-warning-time'.
-
-\(fn &optional REFRESH FILTER &rest ARGS)" t nil)
 
 (defun org-agenda-todayp (date)
   "Does DATE mean today, when considering `org-extend-today-until'?"

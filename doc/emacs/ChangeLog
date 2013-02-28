@@ -1,3 +1,7 @@
+2013-02-28  Bastien Guerry  <bzg@gnu.org>
+
+	* xresources.texi (GTK resources): Fix broken link.
+
 2013-02-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.texi (Interlocking): Don't refer to symlinks as the

@@ -1,3 +1,73 @@
+2013-02-28  Achim Gratz  <Stromeko@Stromeko.DE>
+
+	* org.el (org-org-menu): Use correct key "C-u C-c C-x !" to do
+	org-reload uncompiled in the menu.
+
+2013-02-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-indent.el (org-indent-add-properties): Bugfix: prevent
+	negative value for `added-ind-per-lvl'.
+
+	* org.el (org-mode): Add `org-fix-ellipsis-at-bol' to
+	`isearch-mode-end-hook' so that any isearch fixes the problem with
+	ellipsis on the first line.
+	(org-fix-ellipsis-at-bol): New defsubst.
+	(org-show-context, org-isearch-end): Use it.
+
+	* org.el (org-show-context): Remove useless catch.
+	Make sure the top of the window is a visible headline.
+	(org-activate-plain-links): Remove unused catch.
+
+	* org-macs.el (org-get-alist-option): Return nil, not (nil),
+	so that `org-show-context' DTRT.
+
+	* org.el (org-imenu-get-tree): Fix bug when matching against empty
+	headlines.
+
+	* org.el (org-overview): Stay on current line.
+	(org-map-entries): Fix docstring.
+	(org-at-clock-log-p): Delete.
+	* org-clock.el (org-at-clock-log-p): Move here.
+
+	* org.el (org-tsr-regexp-both): Don't activate dates in links.
+	(org-activate-dates): Change match boundaries according to the new
+	value of `org-tsr-regexp-both'.
+
+	* org-agenda.el (org-agenda-to-appt): Fix typos.
+
+	* org-agenda.el (org-agenda-local-vars): Don't include
+	`org-agenda-show-window' as it needs to be checked outside of the
+	agenda window.
+
+	* org.el (org-set-tags-command): Fix bug when setting tags for
+	multiple headlines in an active region.
+
+	* org-mobile.el (org-mobile-edit): DTRT when inserting a heading
+	in an invisible region.
+
+	* org.el (org-insert-heading-respect-content): Add docstring.
+	New `invisible-ok' parameter.
+	(org-insert-todo-heading-respect-content): Add docstring.
+
+	* ob-tangle.el (org-babel-tangle-collect-blocks):
+	Bugfix: remove code references from blocks.
+
+	* org-agenda.el (org-agenda-schedule, org-agenda-deadline):
+	Cosmetic changes.
+	(org-agenda-show-new-time): Fix bug when displaying a temporary
+	overlay with the scheduled/deadline information.
+
+	* org.el (org-fill-paragraph-with-timestamp-nobreak-p): New function.
+	(org-setup-filling): Use it to prevent breaking a timestamp when
+	filling a paragraph.
+
+	* org-id.el (org-id-get-with-outline-path-completion): Fix docstring.
+
+2013-02-28  Tim Burt  <tcburt@rochester.rr.com>  (tiny change)
+
+	* org-datetree.el (org-datetree-find-year-create):
+	Match headlines with tags.
+
 2013-02-07  Bastien Guerry  <bzg@gnu.org>
 
 	* org-agenda.el (org-agenda-get-deadlines)

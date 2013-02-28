@@ -328,7 +328,7 @@ stopped."
      ;;    inline task or not.
      (let* ((case-fold-search t)
 	    (limited-re (org-get-limited-outline-regexp))
-	    (added-ind-per-lvl (1- org-indent-indentation-per-level))
+	    (added-ind-per-lvl (abs (1- org-indent-indentation-per-level)))
 	    (pf (save-excursion
 		  (and (ignore-errors (let ((outline-regexp limited-re))
 					(org-back-to-heading t)))

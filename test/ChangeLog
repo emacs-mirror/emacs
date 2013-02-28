@@ -1,3 +1,22 @@
+2013-02-28  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* automated/python-tests.el (python-tests-with-temp-buffer): Doc fix.
+	(python-tests-with-temp-file): New macro.
+	(python-tests-shell-interpreter): New var.
+	(python-shell-get-process-name-1)
+	(python-shell-internal-get-process-name-1)
+	(python-shell-parse-command-1)
+	(python-shell-calculate-process-environment-1)
+	(python-shell-calculate-process-environment-2)
+	(python-shell-calculate-process-environment-3)
+	(python-shell-calculate-exec-path-1)
+	(python-shell-calculate-exec-path-2)
+	(python-shell-make-comint-1)
+	(python-shell-make-comint-2)
+	(python-shell-get-process-1)
+	(python-shell-get-or-create-process-1)
+	(python-shell-internal-get-or-create-process-1): New tests.
+
 2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* automated/python-tests.el: New file.

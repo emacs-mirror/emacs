@@ -34,6 +34,21 @@ always located at the beginning of buffer."
      (goto-char (point-min))
      ,@body))
 
+(defmacro python-tests-with-temp-file (contents &rest body)
+  "Create a `python-mode' enabled file with CONTENTS.
+BODY is code to be executed within the temp buffer.  Point is
+always located at the beginning of buffer."
+  (declare (indent 1) (debug t))
+  `(let* ((temp-file (concat (make-temp-file "python-tests") ".py"))
+          (buffer (find-file-noselect temp-file)))
+     (unwind-protect
+         (with-current-buffer buffer
+           (python-mode)
+           (insert ,contents)
+           (goto-char (point-min))
+           ,@body)
+       (and buffer (kill-buffer buffer)))))
+
 (defun python-tests-look-at (string &optional num restore-point)
   "Move point at beginning of STRING in the current buffer.
 Optional argument NUM defaults to 1 and is an integer indicating
@@ -1160,6 +1175,260 @@ def f():
 
 
 ;;; Shell integration
+
+(defvar python-tests-shell-interpreter "python")
+
+(ert-deftest python-shell-get-process-name-1 ()
+  "Check process name calculation on different scenarios."
+  (python-tests-with-temp-buffer
+      ""
+    (should (string= (python-shell-get-process-name nil)
+                     python-shell-buffer-name))
+    ;; When the `current-buffer' doesn't have `buffer-file-name', even
+    ;; if dedicated flag is non-nil should not include its name.
+    (should (string= (python-shell-get-process-name t)
+                     python-shell-buffer-name)))
+  (python-tests-with-temp-file
+      ""
+    ;; `buffer-file-name' is non-nil but the dedicated flag is nil and
+    ;; should be respected.
+    (should (string= (python-shell-get-process-name nil)
+                     python-shell-buffer-name))
+    (should (string=
+             (python-shell-get-process-name t)
+             (format "%s[%s]" python-shell-buffer-name buffer-file-name)))))
+
+(ert-deftest python-shell-internal-get-process-name-1 ()
+  "Check the internal process name is config-unique."
+  (let* ((python-shell-interpreter python-tests-shell-interpreter)
+         (python-shell-interpreter-args "")
+         (python-shell-prompt-regexp ">>> ")
+         (python-shell-prompt-block-regexp "[.][.][.] ")
+         (python-shell-setup-codes "")
+         (python-shell-process-environment "")
+         (python-shell-extra-pythonpaths "")
+         (python-shell-exec-path "")
+         (python-shell-virtualenv-path "")
+         (expected (python-tests-with-temp-buffer
+                       "" (python-shell-internal-get-process-name))))
+    ;; Same configurations should match.
+    (should
+     (string= expected
+              (python-tests-with-temp-buffer
+                  "" (python-shell-internal-get-process-name))))
+    (let ((python-shell-interpreter-args "-B"))
+      ;; A minimal change should generate different names.
+      (should
+       (not (string=
+             expected
+             (python-tests-with-temp-buffer
+                 "" (python-shell-internal-get-process-name))))))))
+
+(ert-deftest python-shell-parse-command-1 ()
+  "Check the command to execute is calculated correctly.
+Using `python-shell-interpreter' and
+`python-shell-interpreter-args'."
+  :expected-result (if (executable-find python-tests-shell-interpreter)
+                       :passed
+                     :failed)
+  (let ((python-shell-interpreter (executable-find
+                                   python-tests-shell-interpreter))
+        (python-shell-interpreter-args "-B"))
+    (should (string=
+             (format "%s %s"
+                     python-shell-interpreter
+                     python-shell-interpreter-args)
+             (python-shell-parse-command)))))
+
+(ert-deftest python-shell-calculate-process-environment-1 ()
+  "Test `python-shell-process-environment' modification."
+  (let* ((original-process-environment process-environment)
+         (python-shell-process-environment
+          '("TESTVAR1=value1" "TESTVAR2=value2"))
+         (process-environment
+          (python-shell-calculate-process-environment)))
+    (should (equal (getenv "TESTVAR1") "value1"))
+    (should (equal (getenv "TESTVAR2") "value2"))))
+
+(ert-deftest python-shell-calculate-process-environment-2 ()
+  "Test `python-shell-extra-pythonpaths' modification."
+  (let* ((original-process-environment process-environment)
+         (original-pythonpath (getenv "PYTHONPATH"))
+         (paths '("path1" "path2"))
+         (python-shell-extra-pythonpaths paths)
+         (process-environment
+          (python-shell-calculate-process-environment)))
+    (should (equal (getenv "PYTHONPATH")
+                   (concat
+                    (mapconcat 'identity paths path-separator)
+                    path-separator original-pythonpath)))))
+
+(ert-deftest python-shell-calculate-process-environment-3 ()
+  "Test `python-shell-virtualenv-path' modification."
+  (let* ((original-process-environment process-environment)
+         (original-path (or (getenv "PATH") ""))
+         (python-shell-virtualenv-path
+          (directory-file-name user-emacs-directory))
+         (process-environment
+          (python-shell-calculate-process-environment)))
+    (should (not (getenv "PYTHONHOME")))
+    (should (string= (getenv "VIRTUAL_ENV") python-shell-virtualenv-path))
+    (should (equal (getenv "PATH")
+                   (format "%s/bin%s%s"
+                           python-shell-virtualenv-path
+                           path-separator original-path)))))
+
+(ert-deftest python-shell-calculate-exec-path-1 ()
+  "Test `python-shell-exec-path' modification."
+  (let* ((original-exec-path exec-path)
+         (python-shell-exec-path '("path1" "path2"))
+         (exec-path (python-shell-calculate-exec-path)))
+    (should (equal
+             exec-path
+             (append python-shell-exec-path
+                     original-exec-path)))))
+
+(ert-deftest python-shell-calculate-exec-path-2 ()
+  "Test `python-shell-exec-path' modification."
+  (let* ((original-exec-path exec-path)
+         (python-shell-virtualenv-path
+          (directory-file-name user-emacs-directory))
+         (exec-path (python-shell-calculate-exec-path)))
+    (should (equal
+             exec-path
+             (append (cons
+                      (format "%s/bin" python-shell-virtualenv-path)
+                      original-exec-path))))))
+
+(ert-deftest python-shell-make-comint-1 ()
+  "Check comint creation for global shell buffer."
+  :expected-result (if (executable-find python-tests-shell-interpreter)
+                       :passed
+                     :failed)
+  (let* ((python-shell-interpreter
+          (executable-find python-tests-shell-interpreter))
+         (proc-name (python-shell-get-process-name nil))
+         (shell-buffer
+          (python-tests-with-temp-buffer
+              "" (python-shell-make-comint
+                  (python-shell-parse-command) proc-name)))
+         (process (get-buffer-process shell-buffer)))
+    (unwind-protect
+        (progn
+          (set-process-query-on-exit-flag process nil)
+          (should (process-live-p process))
+          (with-current-buffer shell-buffer
+            (should (eq major-mode 'inferior-python-mode))
+            (should (string= (buffer-name) (format "*%s*" proc-name)))))
+      (kill-buffer shell-buffer))))
+
+(ert-deftest python-shell-make-comint-2 ()
+  "Check comint creation for internal shell buffer."
+  :expected-result (if (executable-find python-tests-shell-interpreter)
+                       :passed
+                     :failed)
+  (let* ((python-shell-interpreter
+          (executable-find python-tests-shell-interpreter))
+         (proc-name (python-shell-internal-get-process-name))
+         (shell-buffer
+          (python-tests-with-temp-buffer
+              "" (python-shell-make-comint
+                  (python-shell-parse-command) proc-name nil t)))
+         (process (get-buffer-process shell-buffer)))
+    (unwind-protect
+        (progn
+          (set-process-query-on-exit-flag process nil)
+          (should (process-live-p process))
+          (with-current-buffer shell-buffer
+            (should (eq major-mode 'inferior-python-mode))
+            (should (string= (buffer-name) (format " *%s*" proc-name)))))
+      (kill-buffer shell-buffer))))
+
+(ert-deftest python-shell-get-process-1 ()
+  "Check dedicated shell process preference over global."
+  :expected-result (if (executable-find python-tests-shell-interpreter)
+                       :passed
+                     :failed)
+  (python-tests-with-temp-file
+      ""
+    (let* ((python-shell-interpreter
+            (executable-find python-tests-shell-interpreter))
+           (global-proc-name (python-shell-get-process-name nil))
+           (dedicated-proc-name (python-shell-get-process-name t))
+           (global-shell-buffer
+            (python-shell-make-comint
+             (python-shell-parse-command) global-proc-name))
+           (dedicated-shell-buffer
+            (python-shell-make-comint
+             (python-shell-parse-command) dedicated-proc-name))
+           (global-process (get-buffer-process global-shell-buffer))
+           (dedicated-process (get-buffer-process dedicated-shell-buffer)))
+      (unwind-protect
+          (progn
+            (set-process-query-on-exit-flag global-process nil)
+            (set-process-query-on-exit-flag dedicated-process nil)
+            ;; Prefer dedicated if global also exists.
+            (should (equal (python-shell-get-process) dedicated-process))
+            (kill-buffer dedicated-shell-buffer)
+            ;; If there's only global, use it.
+            (should (equal (python-shell-get-process) global-process))
+            (kill-buffer global-shell-buffer)
+            ;; No buffer available.
+            (should (not (python-shell-get-process))))
+        (ignore-errors (kill-buffer global-shell-buffer))
+        (ignore-errors (kill-buffer dedicated-shell-buffer))))))
+
+(ert-deftest python-shell-get-or-create-process-1 ()
+  "Check shell process creation fallback."
+  :expected-result :failed
+  (python-tests-with-temp-file
+      ""
+    ;; XXX: Break early until we can skip stuff.  We need to mimic
+    ;; user interaction because `python-shell-get-or-create-process'
+    ;; asks for all arguments interactively when a shell process
+    ;; doesn't exist.
+    (should nil)
+    (let* ((python-shell-interpreter
+            (executable-find python-tests-shell-interpreter))
+           (use-dialog-box)
+           (dedicated-process-name (python-shell-get-process-name t))
+           (dedicated-process (python-shell-get-or-create-process))
+           (dedicated-shell-buffer (process-buffer dedicated-process)))
+      (unwind-protect
+          (progn
+            (set-process-query-on-exit-flag dedicated-process nil)
+            ;; Prefer dedicated if not buffer exist.
+            (should (equal (process-name dedicated-process)
+                           dedicated-process-name))
+            (kill-buffer dedicated-shell-buffer)
+            ;; No buffer available.
+            (should (not (python-shell-get-process))))
+        (ignore-errors (kill-buffer dedicated-shell-buffer))))))
+
+(ert-deftest python-shell-internal-get-or-create-process-1 ()
+  "Check internal shell process creation fallback."
+  :expected-result (if (executable-find python-tests-shell-interpreter)
+                       :passed
+                     :failed)
+  (python-tests-with-temp-file
+      ""
+    (should (not (process-live-p (python-shell-internal-get-process-name))))
+    (let* ((python-shell-interpreter
+            (executable-find python-tests-shell-interpreter))
+           (internal-process-name (python-shell-internal-get-process-name))
+           (internal-process (python-shell-internal-get-or-create-process))
+           (internal-shell-buffer (process-buffer internal-process)))
+      (unwind-protect
+          (progn
+            (set-process-query-on-exit-flag internal-process nil)
+            (should (equal (process-name internal-process)
+                           internal-process-name))
+            (should (equal internal-process
+                           (python-shell-internal-get-or-create-process)))
+            ;; No user buffer available.
+            (should (not (python-shell-get-process)))
+            (kill-buffer internal-shell-buffer))
+        (ignore-errors (kill-buffer internal-shell-buffer))))))
 
 
 ;;; Shell completion

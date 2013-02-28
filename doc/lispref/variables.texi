@@ -1556,7 +1556,7 @@ an ordinary evaluated argument.
 
   A file can specify local variable values; Emacs uses these to create
 buffer-local bindings for those variables in the buffer visiting that
-file.  @xref{File variables, , Local Variables in Files, emacs, The
+file.  @xref{File Variables, , Local Variables in Files, emacs, The
 GNU Emacs Manual}, for basic information about file-local variables.
 This section describes the functions and variables that affect how
 file-local variables are processed.
