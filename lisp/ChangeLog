@@ -1,3 +1,8 @@
+2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-sdk-dir): Remove.  Replaced by ...
+	(tramp-adb-program): New defcustom.  Remove function.  Adapt calls.
+
 2013-02-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	Initial support for hunspell dictionaries auto-detection (Bug#13639)

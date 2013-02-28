@@ -23,10 +23,11 @@
 
 ;;; Commentary:
 
-;; The Android Debug Bridge must be installed on your local machine.
-;; Add the following form into your .emacs:
+;; The Android Debug Bridge "adb" must be installed on your local
+;; machine.  If it is not in your $PATH, add the following form into
+;; your .emacs:
 ;;
-;;   (setq tramp-adb-sdk-dir "/path/to/android/sdk")
+;;   (setq tramp-adb-program "/path/to/adb")
 ;;
 ;; Due to security it is not possible to access non-root devices.
 
@@ -37,11 +38,11 @@
 
 (defvar dired-move-to-filename-regexp)
 
-(defcustom tramp-adb-sdk-dir "~/Android/sdk"
-  "Set to the directory containing the Android SDK."
-  :type 'string
+(defcustom tramp-adb-program "adb"
+  "Name of the Android Debug Bridge program."
+  :group 'tramp
   :version "24.4"
-  :group 'tramp)
+  :type 'string)
 
 ;;;###tramp-autoload
 (defconst tramp-adb-method "adb"
@@ -149,17 +150,12 @@ pass to the OPERATION."
 	(save-match-data (apply (cdr fn) args))
       (tramp-run-real-handler operation args))))
 
-;; This cannot be a constant, because `tramp-adb-sdk-dir' is customizable.
-(defun tramp-adb-program ()
-  "The Android Debug Bridge."
-  (expand-file-name "platform-tools/adb" tramp-adb-sdk-dir))
-
 ;;;###tramp-autoload
 (defun tramp-adb-parse-device-names (ignore)
   "Return a list of (nil host) tuples allowed to access."
   (with-timeout (10)
     (with-temp-buffer
-      (when (zerop (call-process (tramp-adb-program) nil t nil "devices"))
+      (when (zerop (call-process tramp-adb-program nil t nil "devices"))
 	(let (result)
 	  (goto-char (point-min))
 	  (while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
@@ -982,11 +978,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (setq args (append (list "-s" (tramp-file-name-host vec)) args)))
   (with-temp-buffer
     (prog1
-	(unless (zerop (apply 'call-process (tramp-adb-program) nil t nil args))
+	(unless (zerop (apply 'call-process tramp-adb-program nil t nil args))
 	  (buffer-string))
       (tramp-message
        vec 6 "%s %s\n%s"
-       (tramp-adb-program) (mapconcat 'identity args " ") (buffer-string)))))
+       tramp-adb-program (mapconcat 'identity args " ") (buffer-string)))))
 
 (defun tramp-adb-find-test-command (vec)
   "Checks, whether the ash has a builtin \"test\" command.
@@ -1103,7 +1099,7 @@ connection if a previous connection has died for some reason."
 		 (p (let ((default-directory
 			    (tramp-compat-temporary-file-directory)))
 		      (apply 'start-process (tramp-get-connection-name vec) buf
-			     (tramp-adb-program) args))))
+			     tramp-adb-program args))))
 	    (tramp-message
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 	    ;; Wait for initial prompt.
