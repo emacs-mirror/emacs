@@ -1,3 +1,11 @@
+2013-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* net/net-utils.el (net-utils--revert-function): New fun (bug#13831).
+	(net-utils-mode): Use it.
+	(net-utils--revert-cmd): New var.
+	(net-utils-run-simple): Set it, and remove bogus interactive spec.
+	(traceroute): Use net-utils-run-simple.
+
 2013-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/paragraphs.el (mark-paragraph): Doc fix.

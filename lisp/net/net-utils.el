@@ -285,7 +285,8 @@ This variable is only used if the variable
 (define-derived-mode net-utils-mode special-mode "NetworkUtil"
   "Major mode for interacting with an external network utility."
   (set (make-local-variable 'font-lock-defaults)
-       '((net-utils-font-lock-keywords))))
+       '((net-utils-font-lock-keywords)))
+  (setq-local revert-buffer-function #'net-utils--revert-function))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
@@ -354,20 +355,38 @@ This variable is only used if the variable
 ;; General network utilities (diagnostic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun net-utils-run-simple (buffer-name program-name args)
+;; Todo: This data could be saved in a bookmark.
+(defvar net-utils--revert-cmd nil)
+
+(defun net-utils-run-simple (buffer program-name args)
   "Run a network utility for diagnostic output only."
-  (interactive)
-  (when (get-buffer buffer-name)
-    (kill-buffer buffer-name))
-  (get-buffer-create buffer-name)
-  (with-current-buffer buffer-name
+  (with-current-buffer (if (stringp buffer) (get-buffer-create buffer) buffer)
+    (let ((proc (get-buffer-process (current-buffer))))
+      (when proc
+        (set-process-filter proc nil)
+        (delete-process proc)))
+    (let ((inhibit-read-only t))
+      (erase-buffer))
     (net-utils-mode)
+    (setq-local net-utils--revert-cmd
+                `(net-utils-run-simple ,(current-buffer) ,program-name ,args))
     (set-process-filter
-     (apply 'start-process (format "%s" program-name)
-	    buffer-name program-name args)
-     'net-utils-remove-ctrl-m-filter)
-    (goto-char (point-min)))
-  (display-buffer buffer-name))
+         (apply 'start-process program-name
+                (current-buffer) program-name args)
+         'net-utils-remove-ctrl-m-filter)
+    (goto-char (point-min))
+    (display-buffer (current-buffer))))
+
+(defun net-utils--revert-function (&optional ignore-auto noconfirm)
+  (message "Reverting `%s'..." (buffer-name))
+  (apply (car net-utils--revert-cmd) (cdr net-utils--revert-cmd))
+  (let ((proc (get-buffer-process (current-buffer))))
+    (when proc
+      (set-process-sentinel
+       proc
+       (lambda (process event)
+         (when (string= event "finished\n")
+           (message "Reverting `%s' done" (process-buffer process))))))))
 
 ;;;###autoload
 (defun ifconfig ()
@@ -428,9 +447,8 @@ This variable is only used if the variable
 	 (if traceroute-program-options
 	     (append traceroute-program-options (list target))
 	   (list target))))
-    (net-utils-run-program
+    (net-utils-run-simple
      (concat "Traceroute" " " target)
-     (concat "** Traceroute ** " traceroute-program " ** " target)
      traceroute-program
      options)))
 
