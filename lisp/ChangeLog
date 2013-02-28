@@ -1,3 +1,9 @@
+2013-02-28  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-diff): If file at point is a backup file,
+	use its original as the default value, and reverse the order
+	of arguments to the `diff' call.  Doc fix.  (Bug#13772)
+
 2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-sdk-dir): Remove.  Replaced by ...
