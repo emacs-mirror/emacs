@@ -10032,7 +10032,7 @@ extern char data_start[]; char ch;
 int
 main ()
 {
-return data_start == &ch;
+return data_start < &ch;
   ;
   return 0;
 }
