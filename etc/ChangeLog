@@ -1,3 +1,7 @@
+2013-02-28  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* NEWS: Add entries for ruby-mode.
+
 2013-02-27  David Engster  <deng@randomsample.de>
 
 	* NEWS: Add paragraphs for CEDET and EIEIO.

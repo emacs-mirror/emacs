@@ -358,6 +358,29 @@ and python-shell-switch-to-shell
 **** python-switch-to-python -> python-shell-switch-to-shell
 **** python-describe-symbol -> python-eldoc-at-point
 
+** Ruby mode
+
+*** Support for percent literals and recognition of regular expressions
+in method calls without parentheses with more methods, including Cucumber
+steps definitions.
+
+*** Better syntax highlighting and indentation in many edge cases.
+
+*** Some keybindings removed, using standard commands with adjusted
+behavior where possible.
+
+**** `ruby-electric-brace' was removed in favor of `electric-indent-mode'.
+
+**** `ruby-{beginning,end}-of-defun bindings were replaced with setting
+respective `{beginning,end}-of-defun-function' variables.
+
+**** `ruby-mark-defun' was removed in favor of `mark-defun'.
+
+**** Non-standard keybindings for `backward-kill-word', `comment-region',
+`reindent-then-newline-and-indent' and `newline' were simply removed.
+
+*** New command `ruby-toggle-block', bound to `C-c {'.
+
 ** D-Bus
 
 *** New variables `dbus-compiled-version' and `dbus-runtime-version'.
