@@ -263,7 +263,8 @@ in `org-rm-props'."
   (cond ((eq key t) t)
 	((eq option t) t)
 	((assoc key option) (cdr (assoc key option)))
-	(t (cdr (assq 'default option)))))
+	(t (let ((r (cdr (assq 'default option))))
+	     (if (listp r) (delq nil r) r)))))
 
 (defsubst org-check-external-command (cmd &optional use no-error)
   "Check if external program CMD for USE exists, error if not.
