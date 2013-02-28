@@ -95,11 +95,11 @@ moose deer::alces::createMoose()
 
   doLatinStuff(MooseVariableName);
 
-  tmp = this.f// -1-
+  tmp = this->f// -1-
     // #1# ( "fAlcesBool" "fIsValid" "fLatin" )
     ;
 
-  itmp = this.f// -2-
+  itmp = this->f// -2-
     // #2# ( "fAlcesInt" "fGreek" "fIsProtectedInt" )
     ;
 
