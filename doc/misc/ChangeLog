@@ -2,7 +2,8 @@
 
 	* tramp.texi (Inline methods): Remove "ssh1", "ssh2", "plink1"
 	and "plink2" entries.  "plink2" is obsolete for a long time.
-	(External methods): Remove "scp1" and "scp2" entries.
+	(External methods): Remove "scp1" and "scp2" entries.  Explain
+	user name and host name specification for "adb".
 
 2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
