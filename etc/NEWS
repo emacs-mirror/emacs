@@ -196,12 +196,13 @@ leave different number of spaces.
 
 +++
 *** New connection method "adb", which allows to access Android
-devices by the Android Debug Bridge.  The variable `tramp-adb-sdk-dir'
-must be set to the Android SDK installation directory.
+devices by the Android Debug Bridge.  The variable `tramp-adb-program'
+can be used to adapt the path of the "adb" program, if needed.
 
-*** The connection methods "scpc" and "rsyncc" are discontinued.  The
-ssh option "ControlMaster=auto" is set automatically in all ssh-based
-methods, when possible.
+*** The connection methods "plink1", "ssh1", "ssh2", "scp1", "scp2",
+"scpc" and "rsyncc" are discontinued.  The ssh option
+"ControlMaster=auto" is set automatically in all ssh-based methods,
+when possible.
 
 +++
 *** Handlers for `file-acl' and `set-file-acl' for remote machines

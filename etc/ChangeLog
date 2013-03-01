@@ -1,3 +1,8 @@
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Fix Tramp "adb" entry.  Extend list of discontinued Tramp
+	methods.
+
 2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify data_start configuration (Bug#13783).
