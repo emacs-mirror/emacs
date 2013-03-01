@@ -312,8 +312,8 @@ Any terminating `>' or `/' is not matched.")
 
 (defconst sgml-syntax-propertize-function
   (syntax-propertize-rules
-  ;; Use the `b' style of comments to avoid interference with the -- ... --
-  ;; comments recognized when `sgml-specials' includes ?-.
+   ;; Use the `b' style of comments to avoid interference with the -- ... --
+   ;; comments recognized when `sgml-specials' includes ?-.
   ;; FIXME: beware of <!--> blabla <!--> !!
    ("\\(<\\)!--" (1 "< b"))
     ("--[ \t\n]*\\(>\\)" (1 "> b"))
@@ -322,7 +322,7 @@ Any terminating `>' or `/' is not matched.")
     ;; going to change, so as not to need to flush the data we just computed.
     ("\"" (0 (if (prog1 (zerop (car (syntax-ppss (match-beginning 0))))
                    (goto-char (match-end 0)))
-                 "."))))
+           (string-to-syntax ".")))))
   "Syntactic keywords for `sgml-mode'.")
 
 ;; internal

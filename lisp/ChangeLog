@@ -1,3 +1,9 @@
+2013-02-28  Dale Sedivec  <dale@codefu.org>
+
+	* textmodes/sgml-mode.el (sgml-syntax-propertize-function):
+	Return valid syntax-table property value when converting
+	quotes within text from string syntax to punctuation syntax (bug#13844).
+
 2013-02-28  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-diff): If file at point is a backup file,
