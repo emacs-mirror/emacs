@@ -959,6 +959,7 @@ See `ispell-buffer-with-debug' for an example of use."
   "Print STRING to `ispell-debug-buffer' buffer if enabled."
   (if (boundp 'ispell-debug-buffer)
       (with-current-buffer ispell-debug-buffer
+	(end-of-buffer)
 	(insert string))))
 
 
@@ -1244,7 +1245,7 @@ entries if a specific dict was found."
 	  (if (and (not (assoc basename ispell-hunspell-dict-paths-alist))
 		   (file-exists-p affix-file))
 	      ;; Entry has an associated .aff file and no previous value.
-	      (progn
+	      (let ((affix-file (expand-file-name affix-file)))
 		(ispell-print-if-debug
 		 (format "++ ispell-fhd: dict-entry:%s name:%s basename:%s affix-file:%s\n"
 			 dict full-name basename affix-file))

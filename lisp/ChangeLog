@@ -1,3 +1,11 @@
+2013-03-01  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+       * textmodes/ispell.el (ispell-find-hunspell-dictionaries):
+	Always expand affix-file before storing to protect against changed
+	`default-directory'.
+	(ispell-print-if-debug): Make sure message is printed at the end
+	of the debug buffer.
+
 2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-obsolete-methods): New defconst.
