@@ -18,13 +18,16 @@ AC_DEFUN([gl_EXTERN_INLINE],
    _GL_INLINE_HEADER_END contains useful stuff to put
      in the same include file, after uses of _GL_INLINE.
 
+   Suppress extern inline with HP-UX cc, as it appears to be broken; see
+   <http://lists.gnu.org/archive/html/bug-texinfo/2013-02/msg00030.html>.
+
    Suppress the use of extern inline on Apple's platforms,
    as Libc-825.25 (2012-09-19) is incompatible with it; see
    <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
    Perhaps Apple will fix this some day.  */
 #if ((__GNUC__ \
       ? defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__ \
-      : 199901L <= __STDC_VERSION__) \
+      : 199901L <= __STDC_VERSION__ && !defined __HP_cc) \
      && !defined __APPLE__)
 # define _GL_INLINE inline
 # define _GL_EXTERN_INLINE extern inline

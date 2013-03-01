@@ -48,3 +48,9 @@ AC_DEFUN([gl_FUNC_PUTENV],
       ;;
   esac
 ])
+
+# Prerequisites of lib/putenv.c.
+AC_DEFUN([gl_PREREQ_PUTENV],
+[
+  AC_CHECK_FUNCS([_putenv])
+])
