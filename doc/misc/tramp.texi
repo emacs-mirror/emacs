@@ -649,13 +649,6 @@ Connect to the remote host with @command{ssh}.  This is identical to
 the previous option except that the @command{ssh} package is used,
 making the connection more secure.
 
-There are also two variants, @option{ssh1} and @option{ssh2}, that
-call @samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
-explicitly select whether you want to use the SSH protocol version 1
-or 2 to connect to the remote host.  (You can also specify in
-@file{~/.ssh/config}, the SSH configuration file, which protocol
-should be used, and use the regular @option{ssh} method.)
-
 All the methods based on @command{ssh} have an additional feature: you
 can specify a host name which looks like @file{host#42} (the real host
 name, then a hash sign, then a port number).  This means to connect to
@@ -751,16 +744,6 @@ remote host.
 
 This supports the @samp{-P} argument.
 
-Additionally, the methods @option{plink1} and @option{plink2} are
-provided, which call @samp{plink -1 -ssh} or @samp{plink -2 -ssh} in
-order to use SSH protocol version 1 or 2 explicitly.
-
-CCC: Do we have to connect to the remote host once from the command
-line to accept the SSH key?  Maybe this can be made automatic?
-
-CCC: Say something about the first shell command failing.  This might
-be due to a wrong setting of @code{tramp-rsh-end-of-line}.
-
 
 @item @option{plinkx}
 @cindex method plinkx
@@ -823,13 +806,6 @@ the inline methods when you often open and close small files however.
 The cost of the cryptographic handshake at the start of an @command{scp}
 session can begin to absorb the advantage that the lack of encoding and
 decoding presents.
-
-There are also two variants, @option{scp1} and @option{scp2}, that
-call @samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
-explicitly select whether you want to use the SSH protocol version 1
-or 2 to connect to the remote host.  (You can also specify in
-@file{~/.ssh/config}, the SSH configuration file, which protocol
-should be used, and use the regular @option{scp} method.)
 
 All the @command{ssh} based methods support the @samp{-p} feature
 where you can specify a port number to connect to in the host name.
