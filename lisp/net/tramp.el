@@ -1170,21 +1170,45 @@ If the `tramp-methods' entry does not exist, return nil."
     (and (stringp name)
 	 (string-match tramp-file-name-regexp name))))
 
+;; Obsoleted with Tramp 2.2.7.
+(defconst tramp-obsolete-methods
+  '("ssh1" "ssh2" "scp1" "scp2" "scpc" "rsyncc" "plink1")
+  "Obsolete methods.")
+
+(defvar tramp-warned-obsolete-methods nil
+  "Which methods the user has been warned to be obsolete.")
+
 (defun tramp-find-method (method user host)
   "Return the right method string to use.
 This is METHOD, if non-nil. Otherwise, do a lookup in
-`tramp-default-method-alist'."
-  (or method
-      (let ((choices tramp-default-method-alist)
-	    lmethod item)
-	(while choices
-	  (setq item (pop choices))
-	  (when (and (string-match (or (nth 0 item) "") (or host ""))
-		     (string-match (or (nth 1 item) "") (or user "")))
-	    (setq lmethod (nth 2 item))
-	    (setq choices nil)))
-	lmethod)
-      tramp-default-method))
+`tramp-default-method-alist'.  It maps also obsolete methods to
+their replacement."
+  (let ((result
+	 (or method
+	     (let ((choices tramp-default-method-alist)
+		   lmethod item)
+	       (while choices
+		 (setq item (pop choices))
+		 (when (and (string-match (or (nth 0 item) "") (or host ""))
+			    (string-match (or (nth 1 item) "") (or user "")))
+		   (setq lmethod (nth 2 item))
+		   (setq choices nil)))
+	       lmethod)
+	     tramp-default-method)))
+    ;; This is needed for a transition period only.
+    (when (member result tramp-obsolete-methods)
+      (unless (member result tramp-warned-obsolete-methods)
+	(if noninteractive
+	    (warn "Method %s is obsolete, using %s"
+		  result (substring result 0 -1))
+	  (unless (y-or-n-p (format "Method %s is obsolete, use %s? "
+				    result (substring result 0 -1)))
+	    (error 'file-error "Method \"%s\" not supported" result)))
+	(add-to-list 'tramp-warned-obsolete-methods result))
+      ;; This works with the current set of `tramp-obsolete-methods'.
+      ;; Must be improved, if their are more sophisticated replacements.
+      (setq result (substring result 0 -1)))
+    result))
 
 (defun tramp-find-user (method user host)
   "Return the right user string to use.
