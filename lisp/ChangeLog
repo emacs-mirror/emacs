@@ -1,3 +1,10 @@
+2013-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el: Fix nitpicks and byte-compiler warnings.
+	(ispell-print-if-debug): Build `format' in.  Avoid end-of-buffer.
+	(ispell-parse-hunspell-affix-file): Avoid beginning-of-buffer.
+	Use dict-key rather than dict-name for the error message.
+
 2013-03-01  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* net/net-utils.el (net-utils-run-simple): Don't display-buffer
