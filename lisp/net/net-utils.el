@@ -358,7 +358,7 @@ This variable is only used if the variable
 ;; Todo: This data could be saved in a bookmark.
 (defvar net-utils--revert-cmd nil)
 
-(defun net-utils-run-simple (buffer program-name args)
+(defun net-utils-run-simple (buffer program-name args &optional nodisplay)
   "Run a network utility for diagnostic output only."
   (with-current-buffer (if (stringp buffer) (get-buffer-create buffer) buffer)
     (let ((proc (get-buffer-process (current-buffer))))
@@ -369,13 +369,14 @@ This variable is only used if the variable
       (erase-buffer))
     (net-utils-mode)
     (setq-local net-utils--revert-cmd
-                `(net-utils-run-simple ,(current-buffer) ,program-name ,args))
+                `(net-utils-run-simple ,(current-buffer)
+                                       ,program-name ,args nodisplay))
     (set-process-filter
          (apply 'start-process program-name
                 (current-buffer) program-name args)
          'net-utils-remove-ctrl-m-filter)
     (goto-char (point-min))
-    (display-buffer (current-buffer))))
+    (unless nodisplay (display-buffer (current-buffer)))))
 
 (defun net-utils--revert-function (&optional ignore-auto noconfirm)
   (message "Reverting `%s'..." (buffer-name))

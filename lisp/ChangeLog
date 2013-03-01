@@ -1,6 +1,11 @@
+2013-03-01  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* net/net-utils.el (net-utils-run-simple): Don't display-buffer
+	when reverting (bug#13831).
+
 2013-03-01  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-       * textmodes/ispell.el (ispell-find-hunspell-dictionaries):
+	* textmodes/ispell.el (ispell-find-hunspell-dictionaries):
 	Always expand affix-file before storing to protect against changed
 	`default-directory'.
 	(ispell-print-if-debug): Make sure message is printed at the end
