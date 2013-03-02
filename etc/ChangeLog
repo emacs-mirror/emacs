@@ -1,3 +1,7 @@
+2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: The lock for FILE is now .#FILE or .#-FILE (Bug#13807).
+
 2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Fix Tramp "adb" entry.  Extend list of discontinued Tramp
