@@ -1,3 +1,7 @@
+2013-03-02  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (XPNTR) [!USE_LSB_TAG]: Remove extra paren.  (Bug#13734)
+
 2013-02-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_open): Don't reset the flags for FD in fd_info[].
