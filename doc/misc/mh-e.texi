@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.4
+@set VERSION 8.5
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2012-11-25
-@set UPDATE-MONTH November, 2012
+@set UPDATED 2013-03-02
+@set UPDATE-MONTH March, 2013
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -236,7 +236,7 @@ read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
 @ref{top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
 @end ifinfo
 @ifhtml
-@uref{http://www.gnu.org/software/emacs/manual/html_node/,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/,
 @cite{GNU Emacs Manual}},
 @end ifhtml
 from the Free Software Foundation.
@@ -255,9 +255,9 @@ version is distributed with Emacs and can be accessed with the
 @command{info} command (@samp{info mh-e}) or within Emacs (@kbd{C-h i
 m mh-e @key{RET}}). The online version is available at
 @uref{http://mh-e.sourceforge.net/manual/, SourceForge}. Another great
-online resource is the book @uref{http://www.ics.uci.edu/~mh/book/,
-@cite{MH & nmh: Email for Users & Programmers}} (also known as
-@dfn{the MH book}).
+online resource is the book
+@uref{http://rand-mh.sourceforge.net/book/, @cite{MH & nmh: Email for
+Users & Programmers}} (also known as @dfn{the MH book}).
 
 I hope you enjoy this manual! If you have any comments, or suggestions
 for this document, please let me know.
@@ -384,7 +384,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Easy-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html,
 Easy Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 @xref{Options}.
@@ -404,7 +404,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Face-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Face-Customization.html,
 Face Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -422,7 +422,7 @@ Emacs Manual}
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Hooks.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html,
 Hooks} in @cite{The GNU Emacs Manual}
 @end ifhtml
 for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
@@ -473,7 +473,7 @@ point.
 @end ifnothtml
 @ifhtml
 See the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 Note that @key{SPC} cannot be used for completing filenames and
@@ -550,12 +550,12 @@ to install MH or tell MH-E where to find MH.
 @cindex GNU mailutils MH
 
 If you don't have MH on your system already, you must install a
-variant of MH@. The Debian mh-e package does this for you automatically
-(@pxref{Getting MH-E}). Most people use
+variant of MH@. The Debian mh-e package does this for you
+automatically (@pxref{Getting MH-E}). Most people use
 @uref{http://www.nongnu.org/nmh/, nmh}, but you may be interested in
-trying out @uref{http://www.gnu.org/software/mailutils/, GNU mailutils
-MH}, which supports IMAP@. Your GNU/Linux distribution probably has
-packages for both of these.
+trying out @uref{http://mailutils.org/, GNU mailutils MH}, which
+supports IMAP@. Your GNU/Linux distribution probably has packages for
+both of these.
 
 @cindex @command{install-mh}
 @cindex MH commands, @command{install-mh}
@@ -1121,27 +1121,27 @@ exist,
 @footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
 online in the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
-can also order a printed manual, which has the desirable side-effect
-of helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
+@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/}.
+You can also order a printed manual, which has the desirable
+side-effect of helping to support the Free Software Foundation which
+made all this great software available. You can find an order form by
+running @kbd{C-h C-d}, or you can request an order form from @i{gnu at
 gnu.org}.}
 @end iftex
 @ifinfo
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
 Emacs Lisp Reference Manual}, which may be available online in the
 Info system. It is also available online at
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
-can also order a printed manual, which has the desirable side-effect
-of helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
+@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/}.
+You can also order a printed manual, which has the desirable
+side-effect of helping to support the Free Software Foundation which
+made all this great software available. You can find an order form by
+running @kbd{C-h C-d}, or you can request an order form from @i{gnu at
 gnu.org}.}
 @end ifinfo
 @ifhtml
 @footnote{The
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/,
+@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/,
 The GNU Emacs Lisp Reference Manual} may also be available online in
 the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}. You can
 also order a printed manual, which has the desirable side-effect of
@@ -1311,7 +1311,7 @@ When you choose a folder in MH-E via a command such as @kbd{o}
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}).
 @end ifhtml
 In addition, MH-E has several ways of choosing a suitable default so
@@ -2089,8 +2089,7 @@ expressions are not allowed. Unique fields should have a @samp{:}
 suffix; otherwise, the element can be used to render invisible an
 entire class of fields that start with the same prefix. If you think a
 header field should be generally ignored, please update
-@uref{https://sourceforge.net/tracker/index.php?func=detail&aid=1916032&group_id=13357&atid=113357,
-SF #1916032}.
+@uref{https://sourceforge.net/p/mh-e/bugs/245/, SF #245}.
 
 @cindex header field, @samp{Face:}
 @cindex header field, @samp{X-Face:}
@@ -2142,12 +2141,12 @@ Finally, MH-E will display images referenced by the
 @samp{X-Face:} fields are present@footnote{The display of the images
 requires the @uref{http://www.gnu.org/software/wget/wget.html,
 @command{wget} program} to fetch the image and the @command{convert}
-program from the @uref{http://www.imagemagick.org/, ImageMagick
-suite}.}. Of the three header fields this is the most efficient in
-terms of network usage since the image doesn't need to be transmitted
-with every single mail. The option @code{mh-fetch-x-image-url}
-controls the fetching of the @samp{X-Image-URL:} header field image
-with the following values:
+program from the @uref{http://www.imagemagick.org/script/index.php,
+ImageMagick suite}.}. Of the three header fields this is the most
+efficient in terms of network usage since the image doesn't need to be
+transmitted with every single mail. The option
+@code{mh-fetch-x-image-url} controls the fetching of the
+@samp{X-Image-URL:} header field image with the following values:
 
 @table @samp
 @item Ask Before Fetching
@@ -6025,7 +6024,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6175,7 +6174,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6283,7 +6282,7 @@ You can also use the speedbar
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Speedbar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Speedbar.html,
 Speedbar Frames} in @cite{The GNU Emacs Manual})
 @end ifhtml
 to view your folders. To bring up the speedbar, run @kbd{M-x speedbar
@@ -6415,7 +6414,7 @@ For a description of the menu bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Menu-Bar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Menu-Bar.html,
 The Menu Bar} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6437,7 +6436,7 @@ tool bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Tool-Bars.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Tool-Bars.html,
 Tool Bars} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -8219,7 +8218,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -8712,12 +8711,11 @@ I also point out some additional sources of information.
 @kindex M-x mh-version
 
 Bug reports should be filed at
-@uref{https://sourceforge.net/tracker/?group_id=13357&atid=113357,
-SourceForge}. You need to be a SourceForge user to submit bug reports,
-but this is easy enough to do that it shouldn't be a restriction for
-you. Please include the output of @kbd{M-x mh-version}
-(@pxref{Miscellaneous}) in any bug report you send unless you're 110%
-positive we won't ask for it.
+@uref{https://sourceforge.net/p/mh-e/bugs/, SourceForge}. You need to
+be a SourceForge user to submit bug reports, but this is easy enough
+to do that it shouldn't be a restriction for you. Please include the
+output of @kbd{M-x mh-version} (@pxref{Miscellaneous}) in any bug
+report you send unless you're 110% positive we won't ask for it.
 
 @node Mailing Lists, MH FAQ and Support, Bug Reports, Odds and Ends
 @appendixsec MH-E Mailing Lists
@@ -8728,7 +8726,7 @@ positive we won't ask for it.
 There are several mailing lists for MH-E@. They are @i{mh-e-users at
 lists.sourceforge.net}, @i{mh-e-announce at lists.sourceforge.net},
 and @i{mh-e-devel at lists.sourceforge.net}. You can subscribe or view
-the archives at @uref{https://sourceforge.net/mail/?group_id=13357,
+the archives at @uref{https://sourceforge.net/p/mh-e/mailman/,
 SourceForge}. Do not report bugs on these lists; please submit them
 via SourceForge (@pxref{Bug Reports}).
 
@@ -8746,11 +8744,10 @@ itself which you will find useful.
 
 @cindex support
 
-You can find FAQs on MH-E at the
-@uref{https://sourceforge.net/tracker/?group_id=13357&atid=213357,
-Support Requests} page on SourceForge. If you don't find the answer to
-your question, file a support request and your question will become a
-new FAQ!
+You can find FAQs on MH-E by searching for @i{labels:support} on the
+@uref{https://sourceforge.net/p/mh-e/bugs/search/?q=labels%3Asupport,
+Tickets} page on SourceForge. If you don't find the answer to your
+question, file a ticket and your question will become a new FAQ!
 
 @node Getting MH-E,  , MH FAQ and Support, Odds and Ends
 @appendixsec Getting MH-E
@@ -8768,13 +8765,13 @@ distribution in @file{miscellany/mh-e}.
 @cindex release notes
 
 New MH-E releases are always available for downloading at
-@uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
-SourceForge} before they appear in an Emacs release. You can read the
-release notes on that page to determine if the given release of MH-E
-is already installed in your version of Emacs. You can also read the
-change log to see if you are interested in what the given release of
-MH-E has to offer (although we have no doubt that you will be
-extremely interested in all new releases).
+@uref{https://sourceforge.net/projects/mh-e/files/, SourceForge}
+before they appear in an Emacs release. You can read the release notes
+on that page to determine if the given release of MH-E is already
+installed in your version of Emacs. You can also read the change log
+to see if you are interested in what the given release of MH-E has to
+offer (although we have no doubt that you will be extremely interested
+in all new releases).
 
 @cindex Debian
 
@@ -8802,10 +8799,10 @@ MH-E@. Check that you're running the new version with the command
 @cindex documentation
 
 In addition to the mh-e package, the
-@uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
-SourceForge} site also contains doc and contrib packages. The former
-is the latest release of this manual, and the latter contains a few
-contributed packages you might find useful.
+@uref{https://sourceforge.net/projects/mh-e/files/, SourceForge} site
+also contains doc and contrib packages. The former is the latest
+release of this manual, and the latter contains a few contributed
+packages you might find useful.
 
 @node History, GFDL, Odds and Ends, Top
 @appendix History of MH-E

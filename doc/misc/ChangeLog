@@ -1,3 +1,16 @@
+2013-03-02  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.5.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.5.
+
+	* mh-e.texi (Preface, Conventions, Getting Started)
+	(Using This Manual, Folder Selection, Viewing, Aliases)
+	(Identities, Speedbar, Menu Bar, Tool Bar, Scan Line Formats)
+	(Bug Reports, Mailing Lists, MH FAQ and Support, Getting MH-E):
+	Update URLs.
+
 2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Inline methods): Remove "ssh1", "ssh2", "plink1"
