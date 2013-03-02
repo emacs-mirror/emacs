@@ -1,7 +1,3 @@
-2013-03-02  Eli Zaretskii  <eliz@gnu.org>
-
-	* lisp.h (XPNTR) [!USE_LSB_TAG]: Fix parentheses nesting.  (Bug#13734)
-
 2013-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_open): Don't reset the flags for FD in fd_info[].
