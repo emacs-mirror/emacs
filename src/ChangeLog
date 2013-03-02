@@ -1,3 +1,7 @@
+2013-03-02  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (XPNTR) [!USE_LSB_TAG]: Remove extra paren.  (Bug#13734)
+
 2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* textprop.c: Use bool for booleans.

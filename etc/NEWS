@@ -780,6 +780,29 @@ Sphinx support has been improved.
 
 *** The constant `rst-version' describes the rst.el package version.
 
+** Ruby mode
+
+*** Support for percent literals and recognition of regular expressions
+in method calls without parentheses with more methods, including Cucumber
+steps definitions.
+
+*** Improved syntax highlighting and indentation.
+
+*** New command `ruby-toggle-block', bound to `C-c {'.
+
+*** Some non-standard keybindings/commands have been removed:
+
+**** `ruby-electric-brace'; use `electric-indent-mode' instead.
+
+**** `ruby-mark-defun'; use `mark-defun'.
+
+**** `ruby-beginning-of-defun' and `ruby-end-of-defun' are replaced by
+appropriate settings for the variables `beginning-of-defun-function'
+and `end-of-defun-function'.
+
+**** Non-standard keybindings for `backward-kill-word', `comment-region',
+`reindent-then-newline-and-indent' and `newline' have been removed.
+
 ** Shell Script mode
 
 *** Pairing of parens/quotes uses `electric-pair-mode' instead of skeleton-pair.
