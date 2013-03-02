@@ -23,7 +23,7 @@
 
 ;; This package lets you add behavior (which we call "piece of advice") to
 ;; existing functions, like the old `advice.el' package, but with much fewer
-;; bells ans whistles.  It comes in 2 parts:
+;; bells and whistles.  It comes in 2 parts:
 ;;
 ;; - The first part lets you add/remove functions, similarly to
 ;;   add/remove-hook, from any "place" (i.e. as accepted by `setf') that
