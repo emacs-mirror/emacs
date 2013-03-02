@@ -1,3 +1,9 @@
+2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* textprop.c: Use bool for booleans.
+	(validate_interval_range, Fadd_text_properties)
+	(Fremove_text_properties): Prefer bool to int when either works.
+
 2013-03-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* textprop.c (Fadd_text_properties, Fremove_text_properties): If

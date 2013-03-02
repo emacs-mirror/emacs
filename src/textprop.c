@@ -125,9 +125,10 @@ modify_region (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
 #define hard 1
 
 INTERVAL
-validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *end, int force)
+validate_interval_range (Lisp_Object object, Lisp_Object *begin,
+			 Lisp_Object *end, bool force)
 {
-  register INTERVAL i;
+  INTERVAL i;
   ptrdiff_t searchpos;
 
   CHECK_STRING_OR_BUFFER (object);
@@ -1131,7 +1132,7 @@ Return t if any property value actually changed, nil otherwise.  */)
   ptrdiff_t s, len;
   bool modified = 0;
   struct gcpro gcpro1;
-  int first_time = 1;
+  bool first_time = 1;
 
   properties = validate_plist (properties);
   if (NILP (properties))
@@ -1446,7 +1447,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
   INTERVAL i, unchanged;
   ptrdiff_t s, len;
   bool modified = 0;
-  int first_time = 1;
+  bool first_time = 1;
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
