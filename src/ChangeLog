@@ -1,3 +1,10 @@
+2013-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* textprop.c (Fadd_text_properties, Fremove_text_properties): If
+	the interval tree changes as a side effect of calling
+	modify_region, re-do processing starting from the call to
+	validate_interval_range.  (Bug#13743)
+
 2013-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_open): Don't reset the flags for FD in fd_info[].
