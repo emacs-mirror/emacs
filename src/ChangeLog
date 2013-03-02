@@ -27,6 +27,7 @@
 	that's not portable.
 	(lock_file): Document that this function can return if lock
 	creation fails.
+	(lock_file): Don't access freed storage.
 
 2013-03-02  Andreas Schwab  <schwab@linux-m68k.org>
 

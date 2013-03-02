@@ -597,11 +597,9 @@ lock_if_free (lock_info_type *clasher, register char *lfname)
 void
 lock_file (Lisp_Object fn)
 {
-  register Lisp_Object attack, orig_fn, encoded_fn;
-  register char *lfname, *locker;
-  ptrdiff_t locker_size;
+  Lisp_Object orig_fn, encoded_fn;
+  char *lfname;
   lock_info_type lock_info;
-  printmax_t pid;
   struct gcpro gcpro1;
   USE_SAFE_ALLOCA;
 
@@ -642,32 +640,29 @@ lock_file (Lisp_Object fn)
       call1 (intern ("ask-user-about-supersession-threat"), fn);
 
   }
-  UNGCPRO;
 
-  /* Try to lock the lock. */
-  if (lock_if_free (&lock_info, lfname) <= 0)
-    /* Return now if we have locked it, or if lock creation failed */
-    return;
-
-  /* Else consider breaking the lock */
-  locker_size = (strlen (lock_info.user) + strlen (lock_info.host)
-		 + INT_STRLEN_BOUND (printmax_t)
-		 + sizeof "@ (pid )");
-  locker = SAFE_ALLOCA (locker_size);
-  pid = lock_info.pid;
-  esprintf (locker, "%s@%s (pid %"pMd")",
-	    lock_info.user, lock_info.host, pid);
-  FREE_LOCK_INFO (lock_info);
-
-  attack = call2 (intern ("ask-user-about-lock"), fn, build_string (locker));
-  SAFE_FREE ();
-  if (!NILP (attack))
-    /* User says take the lock */
+  /* Try to lock the lock.  */
+  if (0 < lock_if_free (&lock_info, lfname))
     {
-      lock_file_1 (lfname, 1);
-      return;
+      /* Someone else has the lock.  Consider breaking it.  */
+      ptrdiff_t locker_size = (strlen (lock_info.user) + strlen (lock_info.host)
+			       + INT_STRLEN_BOUND (printmax_t)
+			       + sizeof "@ (pid )");
+      char *locker = SAFE_ALLOCA (locker_size);
+      printmax_t pid = lock_info.pid;
+      Lisp_Object attack;
+      esprintf (locker, "%s@%s (pid %"pMd")",
+		lock_info.user, lock_info.host, pid);
+      FREE_LOCK_INFO (lock_info);
+
+      attack = call2 (intern ("ask-user-about-lock"), fn, build_string (locker));
+      /* Take the lock if the user said so.  */
+      if (!NILP (attack))
+	lock_file_1 (lfname, 1);
     }
-  /* User says ignore the lock */
+
+  UNGCPRO;
+  SAFE_FREE ();
 }
 
 void
