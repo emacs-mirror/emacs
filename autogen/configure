@@ -23273,6 +23273,19 @@ $as_echo "$gl_cv_func_svid_putenv" >&6; }
 
   gl_LIBOBJS="$gl_LIBOBJS putenv.$ac_objext"
 
+
+  for ac_func in _putenv
+do :
+  ac_fn_c_check_func "$LINENO" "_putenv" "ac_cv_func__putenv"
+if test "x$ac_cv_func__putenv" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE__PUTENV 1
+_ACEOF
+
+fi
+done
+
+
   fi
 
 
