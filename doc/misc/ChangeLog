@@ -1,3 +1,46 @@
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove "ssh1", "ssh2", "plink1"
+	and "plink2" entries.  "plink2" is obsolete for a long time.
+	(External methods): Remove "scp1" and "scp2" entries.  Explain
+	user name and host name specification for "adb".
+
+2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Mention `tramp-adb-program'.
+
+2013-02-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Visibility cycling): Suggest to set
+	`org-agenda-inhibit-startup' to nil if user wants the startup
+	visibility settings to be honored in any circumstances.
+	(Progress logging, Checkboxes): Fix typos.
+
+2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (top) [xxx, yyy, trampfn]: Provide two versions of
+	the macros, for Texinfo 4.13 and 5.0.
+
+2013-02-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	Port Tramp documentation to Texinfo 5.0.
+	* tramp.texi (top) [xxx, yyy, trampfn]: Remove superfluous @c.
+	(Filename Syntax): Do not use @trampfn{} in @item.
+	(Filename completion): Use @columnfractions in @multitable.
+
+2013-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Syntax check statuses): Fix multitable continued rows.
+
+2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (html): New rule.
+
+2013-02-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Android shell setup): Improve.  Reported by Thierry
+	Volpiatto <thierry.volpiatto@gmail.com>.
+
 2013-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Top, Configuration): Insert section `Android shell

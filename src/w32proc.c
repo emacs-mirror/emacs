@@ -849,6 +849,12 @@ new_child (void)
   cp = &child_procs[child_proc_count++];
 
  Initialize:
+  /* Last opportunity to avoid leaking handles before we forget them
+     for good.  */
+  if (cp->procinfo.hProcess)
+    CloseHandle (cp->procinfo.hProcess);
+  if (cp->procinfo.hThread)
+    CloseHandle (cp->procinfo.hThread);
   memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
@@ -2257,10 +2263,40 @@ sys_kill (pid_t pid, int sig)
     pid = -pid;
 
   /* Only handle signals that will result in the process dying */
-  if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
+  if (sig != 0
+      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
     {
       errno = EINVAL;
       return -1;
+    }
+
+  if (sig == 0)
+    {
+      /* It will take _some_ time before PID 4 or less on Windows will
+	 be Emacs...  */
+      if (pid <= 4)
+	{
+	  errno = EPERM;
+	  return -1;
+	}
+      proc_hand = OpenProcess (PROCESS_QUERY_INFORMATION, 0, pid);
+      if (proc_hand == NULL)
+        {
+	  DWORD err = GetLastError ();
+
+	  switch (err)
+	    {
+	    case ERROR_ACCESS_DENIED: /* existing process, but access denied */
+	      errno = EPERM;
+	      return -1;
+	    case ERROR_INVALID_PARAMETER: /* process PID does not exist */
+	      errno = ESRCH;
+	      return -1;
+	    }
+	}
+      else
+	CloseHandle (proc_hand);
+      return 0;
     }
 
   cp = find_child_pid (pid);

@@ -1064,7 +1064,7 @@ be returned that indicates what went wrong."
       (if (org-on-heading-p) ; if false we are in top-level of file
 	  (progn
 	    (end-of-line 1)
-	    (org-insert-heading-respect-content)
+	    (org-insert-heading-respect-content t)
 	    (org-demote))
 	(beginning-of-line)
 	(insert "* "))

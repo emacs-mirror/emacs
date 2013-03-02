@@ -271,11 +271,7 @@ so that they are registered at compile-time as well as run-time."
 
 ;;; Numbers.
 
-(defun cl-floatp-safe (object)
-  "Return t if OBJECT is a floating point number.
-On Emacs versions that lack floating-point support, this function
-always returns nil."
-  (and (numberp object) (not (integerp object))))
+(define-obsolete-function-alias 'cl-floatp-safe 'floatp "24.4")
 
 (defsubst cl-plusp (number)
   "Return t if NUMBER is positive."

@@ -14541,6 +14541,7 @@ maildir, for instance.
 
 @menu
 * Mail Source Specifiers::      How to specify what a mail source is.
+* Mail Source Functions::
 * Mail Source Customization::   Some variables that influence things.
 * Fetching Mail::               Using the mail source specifiers.
 @end menu
@@ -15000,6 +15001,7 @@ useful when you use local mail and news.
 @end table
 @end table
 
+@node Mail Source Functions
 @subsubsection Function Interface
 
 Some of the above keywords specify a Lisp function to be executed.
@@ -16068,6 +16070,10 @@ Spool}).
 * Mail Spool::                  Store your mail in a private spool?
 * MH Spool::                    An mhspool-like back end.
 * Maildir::                     Another one-file-per-message format.
+* nnmaildir Group Parameters::
+* Article Identification::
+* NOV Data::
+* Article Marks::
 * Mail Folders::                Having one file for each group.
 * Comparing Mail Back Ends::    An in-depth looks at pros and cons.
 @end menu
@@ -16375,6 +16381,7 @@ different in the future.  If your split rules create new groups,
 remember to supply a @code{create-directory} server parameter.
 @end table
 
+@node nnmaildir Group Parameters
 @subsubsection Group parameters
 
 @code{nnmaildir} uses several group parameters.  It's safe to ignore
@@ -16485,6 +16492,7 @@ that are either marked with @code{tick} or not marked with
 @code{read}, plus a little extra.
 @end table
 
+@node Article Identification
 @subsubsection Article identification
 Articles are stored in the @file{cur/} subdirectory of each maildir.
 Each article file is named like @code{uniq:info}, where @code{uniq}
@@ -16497,6 +16505,7 @@ about the corresponding article.  The full pathname of an article is
 available in the variable @code{nnmaildir-article-file-name} after you
 request the article in the summary buffer.
 
+@node NOV Data
 @subsubsection NOV data
 An article identified by @code{uniq} has its @acronym{NOV} data (used
 to generate lines in the summary buffer) stored in
@@ -16510,6 +16519,7 @@ file, but @emph{beware}: this will also cause @code{nnmaildir} to
 assign a new article number for this article, which may cause trouble
 with @code{seen} marks, the Agent, and the cache.
 
+@node Article Marks
 @subsubsection Article marks
 An article identified by @code{uniq} is considered to have the mark
 @code{flag} when the file @file{.nnmaildir/marks/flag/uniq} exists.
@@ -25850,8 +25860,8 @@ of all messages matching a particular set of criteria.
 
 @menu
 * Gnus Registry Setup::
-* Fancy splitting to parent::
 * Registry Article Refer Method::
+* Fancy splitting to parent::
 * Store custom flags and keywords::
 * Store arbitrary data::
 @end menu

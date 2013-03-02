@@ -5905,8 +5905,9 @@ pop_it (struct it *it)
 static void
 back_to_previous_line_start (struct it *it)
 {
-  IT_CHARPOS (*it) = find_next_newline_no_quit (IT_CHARPOS (*it) - 1, -1);
-  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
+  IT_CHARPOS (*it)
+    = find_next_newline_no_quit (IT_CHARPOS (*it) - 1,
+				 -1, &IT_BYTEPOS (*it));
 }
 
 
@@ -5977,8 +5978,8 @@ forward_to_next_line_start (struct it *it, int *skipped_p,
      short-cut.  */
   if (!newline_found_p)
     {
-      ptrdiff_t start = IT_CHARPOS (*it);
-      ptrdiff_t limit = find_next_newline_no_quit (start, 1);
+      ptrdiff_t bytepos, start = IT_CHARPOS (*it);
+      ptrdiff_t limit = find_next_newline_no_quit (start, 1, &bytepos);
       Lisp_Object pos;
 
       eassert (!STRINGP (it->string));
@@ -5996,7 +5997,7 @@ forward_to_next_line_start (struct it *it, int *skipped_p,
 	  if (!it->bidi_p)
 	    {
 	      IT_CHARPOS (*it) = limit;
-	      IT_BYTEPOS (*it) = CHAR_TO_BYTE (limit);
+	      IT_BYTEPOS (*it) = bytepos;
 	    }
 	  else
 	    {
@@ -7432,11 +7433,9 @@ get_visually_first_element (struct it *it)
       if (string_p)
 	it->bidi_it.charpos = it->bidi_it.bytepos = 0;
       else
-	{
-	  it->bidi_it.charpos = find_next_newline_no_quit (IT_CHARPOS (*it),
-							   -1);
-	  it->bidi_it.bytepos = CHAR_TO_BYTE (it->bidi_it.charpos);
-	}
+	it->bidi_it.charpos
+	  = find_next_newline_no_quit (IT_CHARPOS (*it), -1,
+				       &it->bidi_it.bytepos);
       bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
       do
 	{
@@ -9071,7 +9070,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
 	{
 	  ptrdiff_t nl_pos =
-	    find_next_newline_no_quit (IT_CHARPOS (*it) - 1, -1);
+	    find_next_newline_no_quit (IT_CHARPOS (*it) - 1, -1, NULL);
 
 	  move_it_to (it, nl_pos, -1, -1, -1, MOVE_TO_POS);
 	}
@@ -10526,6 +10525,7 @@ set_message (Lisp_Object string)
   help_echo_showing_p = 0;
 
   if (STRINGP (Vdebug_on_message)
+      && STRINGP (string)
       && fast_string_match (Vdebug_on_message, string) >= 0)
     call_debugger (list2 (Qerror, string));
 }
@@ -28244,7 +28244,7 @@ x_draw_vertical_border (struct window *w)
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (w->frame)))
     return;
 
-  /* Note: It is necessary to redraw bot the left and the right
+  /* Note: It is necessary to redraw both the left and the right
      borders, for when only this single window W is being
      redisplayed.  */
   if (!WINDOW_RIGHTMOST_P (w)

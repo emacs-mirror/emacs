@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/org
 @settitle The Org Manual
-@set VERSION 7.9.3e (GNU Emacs 24.3)
+@set VERSION 7.9.3f (GNU Emacs 24.3)
 
 @c Use proper quote and backtick for code sections in PDF output
 @c Cf. Texinfo manual 14.2
@@ -1296,6 +1296,7 @@ Copy the @i{visible} text in the region into the kill ring.
 @end table
 
 @vindex org-startup-folded
+@vindex org-agenda-inhibit-startup
 @cindex @code{overview}, STARTUP keyword
 @cindex @code{content}, STARTUP keyword
 @cindex @code{showall}, STARTUP keyword
@@ -1313,6 +1314,10 @@ buffer:
 #+STARTUP: showall
 #+STARTUP: showeverything
 @end example
+
+The startup visibility options are ignored when the file is open for the
+first time during the agenda generation: if you want the agenda to honor
+the startup visibility, set @code{org-agenda-inhibit-startup} to nil.
 
 @cindex property, VISIBILITY
 @noindent
@@ -2439,7 +2444,7 @@ You may reference a rectangular range of fields by specifying two field
 references connected by two dots @samp{..}.  If both fields are in the
 current row, you may simply use @samp{$2..$7}, but if at least one field
 is in a different row, you need to use the general @code{@@row$column}
-format at least for the first field (i.e., the reference must start with
+format at least for the first field (i.e the reference must start with
 @samp{@@} in order to be interpreted correctly).  Examples:
 
 @example
@@ -4075,7 +4080,7 @@ module @file{org-depend.el}.
 
 Org mode can automatically record a timestamp and possibly a note when
 you mark a TODO item as DONE, or even each time you change the state of
-a TODO item.  This system is highly configurable, settings can be on a
+a TODO item.  This system is highly configurable; settings can be on a
 per-keyword basis and can be localized to a file or even a subtree.  For
 information on how to clock working time for a task, see @ref{Clocking
 work time}.
@@ -4431,7 +4436,7 @@ lists.  But you can allow it by modifying @code{org-list-automatic-rules}
 accordingly.} (@pxref{Plain lists}) can be made into a checkbox by starting
 it with the string @samp{[ ]}.  This feature is similar to TODO items
 (@pxref{TODO Items}), but is more lightweight.  Checkboxes are not included
-into the global TODO list, so they are often great to split a task into a
+in the global TODO list, so they are often great to split a task into a
 number of simple steps.  Or you can use them in a shopping list.  To toggle a
 checkbox, use @kbd{C-c C-c}, or use the mouse (thanks to Piotr Zielinski's
 @file{org-mouse.el}).

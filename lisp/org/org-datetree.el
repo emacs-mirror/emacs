@@ -72,7 +72,7 @@ tree can be found."
       (goto-char (prog1 (point) (widen))))))
 
 (defun org-datetree-find-year-create (year)
-  (let ((re "^\\*+[ \t]+\\([12][0-9][0-9][0-9]\\)\\s-*$")
+  (let ((re "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(.*?\\([ \t]:[[:alnum:]:_@#%]+:\\)?\\s-*$\\)")
 	match)
     (goto-char (point-min))
     (while (and (setq match (re-search-forward re nil t))

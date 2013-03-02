@@ -46,9 +46,26 @@
   :type 'integer
   :group 'sgml)
 
+(defcustom sgml-xml-mode nil
+  "When non-nil, tag insertion functions will be XML-compliant.
+It is set to be buffer-local when the file has
+a DOCTYPE or an XML declaration."
+  :type 'boolean
+  :version "22.1"
+  :group 'sgml)
+
 (defcustom sgml-transformation-function 'identity
   "Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (mapc (lambda (buff)
+                 (with-current-buffer buff
+                   (and (derived-mode-p 'sgml-mode)
+                        (not sgml-xml-mode)
+                        (setq skeleton-transformation-function val))))
+               (buffer-list)))
   :group 'sgml)
 
 (put 'sgml-transformation-function 'variable-interactive
@@ -295,8 +312,8 @@ Any terminating `>' or `/' is not matched.")
 
 (defconst sgml-syntax-propertize-function
   (syntax-propertize-rules
-  ;; Use the `b' style of comments to avoid interference with the -- ... --
-  ;; comments recognized when `sgml-specials' includes ?-.
+   ;; Use the `b' style of comments to avoid interference with the -- ... --
+   ;; comments recognized when `sgml-specials' includes ?-.
   ;; FIXME: beware of <!--> blabla <!--> !!
    ("\\(<\\)!--" (1 "< b"))
     ("--[ \t\n]*\\(>\\)" (1 "> b"))
@@ -305,7 +322,7 @@ Any terminating `>' or `/' is not matched.")
     ;; going to change, so as not to need to flush the data we just computed.
     ("\"" (0 (if (prog1 (zerop (car (syntax-ppss (match-beginning 0))))
                    (goto-char (match-end 0)))
-                 "."))))
+           (string-to-syntax ".")))))
   "Syntactic keywords for `sgml-mode'.")
 
 ;; internal
@@ -362,14 +379,6 @@ an optional alist of possible values."
   "Alist of tag name and short description."
   :type '(repeat (cons (string :tag "Tag Name")
 		       (string :tag "Description")))
-  :group 'sgml)
-
-(defcustom sgml-xml-mode nil
-  "When non-nil, tag insertion functions will be XML-compliant.
-It is set to be buffer-local when the file has
-a DOCTYPE or an XML declaration."
-  :type 'boolean
-  :version "22.1"
   :group 'sgml)
 
 (defvar sgml-empty-tags nil
@@ -635,10 +644,8 @@ This only works for Latin-1 input."
 (define-skeleton sgml-tag
   "Prompt for a tag and insert it, optionally with attributes.
 Completion and configuration are done according to `sgml-tag-alist'.
-If you like tags and attributes in uppercase do \\[set-variable]
-`skeleton-transformation-function' RET `upcase' RET, or put this
-in your `.emacs':
-  (setq sgml-transformation-function 'upcase)"
+If you like tags and attributes in uppercase, customize
+`sgml-transformation-function' to 'upcase."
   (funcall (or skeleton-transformation-function 'identity)
            (setq sgml-tag-last
 		 (completing-read

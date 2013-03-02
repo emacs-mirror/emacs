@@ -23,10 +23,11 @@
 
 ;;; Commentary:
 
-;; The Android Debug Bridge must be installed on your local machine.
-;; Add the following form into your .emacs:
+;; The Android Debug Bridge "adb" must be installed on your local
+;; machine.  If it is not in your $PATH, add the following form into
+;; your .emacs:
 ;;
-;;   (setq tramp-adb-sdk-dir "/path/to/android/sdk")
+;;   (setq tramp-adb-program "/path/to/adb")
 ;;
 ;; Due to security it is not possible to access non-root devices.
 
@@ -37,18 +38,18 @@
 
 (defvar dired-move-to-filename-regexp)
 
-(defcustom tramp-adb-sdk-dir "~/Android/sdk"
-  "Set to the directory containing the Android SDK."
-  :type 'string
+(defcustom tramp-adb-program "adb"
+  "Name of the Android Debug Bridge program."
+  :group 'tramp
   :version "24.4"
-  :group 'tramp)
+  :type 'string)
 
 ;;;###tramp-autoload
 (defconst tramp-adb-method "adb"
   "*When this method name is used, forward all calls to Android Debug Bridge.")
 
 (defcustom tramp-adb-prompt
-  "^\\(?:[[:alnum:]]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
+  "^\\(?:[[:digit:]]*|?\\)?\\(?:[[:alnum:]]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
   "Regexp used as prompt in almquist shell."
   :type 'string
   :version "24.4"
@@ -149,21 +150,17 @@ pass to the OPERATION."
 	(save-match-data (apply (cdr fn) args))
       (tramp-run-real-handler operation args))))
 
-;; This cannot be a constant, because `tramp-adb-sdk-dir' is customizable.
-(defun tramp-adb-program ()
-  "The Android Debug Bridge."
-  (expand-file-name "platform-tools/adb" tramp-adb-sdk-dir))
-
 ;;;###tramp-autoload
 (defun tramp-adb-parse-device-names (ignore)
   "Return a list of (nil host) tuples allowed to access."
-  (with-temp-buffer
-    (when (zerop (call-process (tramp-adb-program) nil t nil "devices"))
-      (let (result)
-	(goto-char (point-min))
-	(while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
-	  (add-to-list 'result (list nil (match-string 1))))
-	result))))
+  (with-timeout (10)
+    (with-temp-buffer
+      (when (zerop (call-process tramp-adb-program nil t nil "devices"))
+	(let (result)
+	  (goto-char (point-min))
+	  (while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
+	    (add-to-list 'result (list nil (match-string 1))))
+	  result)))))
 
 (defun tramp-adb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
@@ -778,13 +775,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; directory.
       (condition-case nil
 	  (progn
-	    (setq ret 0
-		  ret
-		  (tramp-adb-barf-unless-okay
-		   v (format "(cd %s; %s)"
-			     (tramp-shell-quote-argument localname)
-			     command)
-		   ""))
+	    (setq ret 0)
+	    (tramp-adb-barf-unless-okay
+	     v (format "(cd %s; %s)"
+		       (tramp-shell-quote-argument localname) command)
+	     "")
 	    ;; We should show the output anyway.
 	    (when outbuf
 	      (with-current-buffer outbuf
@@ -981,11 +976,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (setq args (append (list "-s" (tramp-file-name-host vec)) args)))
   (with-temp-buffer
     (prog1
-	(unless (zerop (apply 'call-process (tramp-adb-program) nil t nil args))
+	(unless (zerop (apply 'call-process tramp-adb-program nil t nil args))
 	  (buffer-string))
       (tramp-message
        vec 6 "%s %s\n%s"
-       (tramp-adb-program) (mapconcat 'identity args " ") (buffer-string)))))
+       tramp-adb-program (mapconcat 'identity args " ") (buffer-string)))))
 
 (defun tramp-adb-find-test-command (vec)
   "Checks, whether the ash has a builtin \"test\" command.
@@ -1014,34 +1009,31 @@ This happens for Android >= 4.0."
       (while (re-search-forward "\r+$" nil t)
 	(replace-match "" nil nil)))))
 
-(defun tramp-adb-barf-unless-okay (vec command fmt &rest args)
-  "Run COMMAND, check exit status, throw error if exit status not okay.
-FMT and ARGS are passed to `error'."
-  (tramp-adb-send-command vec (format "%s; echo tramp_exit_status $?" command))
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (goto-char (point-max))
-    (unless (re-search-backward "tramp_exit_status [0-9]+" nil t)
-      (tramp-error
-       vec 'file-error "Couldn't find exit status of `%s'" command))
-    (skip-chars-forward "^ ")
-    (unless (zerop (read (current-buffer)))
-      (apply 'tramp-error vec 'file-error fmt args))
-    (let (buffer-read-only)
-      (delete-region (match-beginning 0) (point-max)))))
-
 (defun tramp-adb-command-exit-status
   (vec command)
   "Run COMMAND and return its exit status.
 Sends `echo $?' along with the COMMAND for checking the exit status.  If
 COMMAND is nil, just sends `echo $?'.  Returns the exit status found."
-  (tramp-adb-send-command vec (format "%s; echo tramp_exit_status $?" command))
+  (tramp-adb-send-command
+   vec (if command
+	   (format "%s; echo tramp_exit_status $?" command)
+	 "echo tramp_exit_status $?"))
   (with-current-buffer (tramp-get-connection-buffer vec)
     (goto-char (point-max))
     (unless (re-search-backward "tramp_exit_status [0-9]+" nil t)
       (tramp-error
        vec 'file-error "Couldn't find exit status of `%s'" command))
     (skip-chars-forward "^ ")
-    (read (current-buffer))))
+    (prog1
+	(read (current-buffer))
+      (let (buffer-read-only)
+	(delete-region (match-beginning 0) (point-max))))))
+
+(defun tramp-adb-barf-unless-okay (vec command fmt &rest args)
+  "Run COMMAND, check exit status, throw error if exit status not okay.
+FMT and ARGS are passed to `error'."
+  (unless (zerop (tramp-adb-command-exit-status vec command))
+    (apply 'tramp-error vec 'file-error fmt args)))
 
 (defun tramp-adb-wait-for-output (proc &optional timeout)
   "Wait for output from remote command."
@@ -1080,6 +1072,7 @@ connection if a previous connection has died for some reason."
   (let* ((buf (tramp-get-connection-buffer vec))
 	 (p (get-buffer-process buf))
 	 (host (tramp-file-name-host vec))
+	 (user (tramp-file-name-user vec))
 	 (devices (mapcar 'cadr (tramp-adb-parse-device-names nil))))
     (unless
 	(and p (processp p) (memq (process-status p) '(run open)))
@@ -1102,11 +1095,11 @@ connection if a previous connection has died for some reason."
 		 (p (let ((default-directory
 			    (tramp-compat-temporary-file-directory)))
 		      (apply 'start-process (tramp-get-connection-name vec) buf
-			     (tramp-adb-program) args))))
+			     tramp-adb-program args))))
 	    (tramp-message
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 	    ;; Wait for initial prompt.
-	    (tramp-adb-wait-for-output p)
+	    (tramp-adb-wait-for-output p 30)
 	    (unless (eq 'run (process-status p))
 	      (tramp-error  vec 'file-error "Terminated!"))
 	    (tramp-compat-set-process-query-on-exit-flag p nil)
@@ -1134,6 +1127,13 @@ connection if a previous connection has died for some reason."
 		 "Connection reset, because remote host changed from `%s' to `%s'"
 		 old-getprop new-getprop)
 		(tramp-adb-maybe-open-connection vec)))
+
+	    ;; Change user if indicated.
+	    (when user
+	      (tramp-adb-send-command vec (format "su %s" user))
+	      (unless (zerop (tramp-adb-command-exit-status vec nil))
+		(delete-process p)
+		(tramp-error vec 'file-error "Cannot switch to user %s" user)))
 
 	    ;; Set "remote-path" connection property.  This is needed
 	    ;; for eshell.

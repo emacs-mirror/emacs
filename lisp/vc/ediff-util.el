@@ -4024,7 +4024,7 @@ Mail anyway? (y or n) ")
 	      (set-buffer ctl-buf))
 	  (setq buffer-name (buffer-name))
 	  (require 'reporter)
-	  (reporter-submit-bug-report "kifer@cs.stonybrook.edu"
+	  (reporter-submit-bug-report "kifer@cs.stonybrook.edu, bug-gnu-emacs@gnu.org"
 				      (ediff-version)
 				      varlist
 				      nil

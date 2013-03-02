@@ -5,7 +5,7 @@
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Maintainer: Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1h
+;; Version:    1.1i
 ;; Keywords:   PostScript, languages
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
@@ -35,8 +35,9 @@
 
 ;;; Code:
 
-(defconst ps-mode-version "1.1h, 16 Jun 2005")
-(defconst ps-mode-maintainer-address "Peter Kleiweg <p.c.j.kleiweg@rug.nl>")
+(defconst ps-mode-version "1.1i, 17 May 2008")
+(defconst ps-mode-maintainer-address
+  "Peter Kleiweg <p.c.j.kleiweg@rug.nl>, bug-gnu-emacs@gnu.org")
 
 (require 'comint)
 (require 'easymenu)
@@ -805,7 +806,7 @@ Only one `%' is removed, and it has to be in the first column."
         (while (re-search-forward "[\200-\377]" (marker-position endm) t)
           (setq i (1+ i))
           (backward-char)
-          (insert (format "\\%03o" (string-to-char (buffer-substring (point) (1+ (point))))))
+          (insert (format "\\%03o" (string-to-char (string-make-unibyte (buffer-substring (point) (1+ (point)))))))
           (delete-char 1))
         (message "%d change%s made" i (if (= i 1) "" "s"))
         (set-marker endm nil)))))

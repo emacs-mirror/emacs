@@ -5085,12 +5085,12 @@ Mail anyway (y or n)? ")
 	  (require 'reporter)
 	  (set-window-configuration window-config)
 
-	  (reporter-submit-bug-report "kifer@cs.stonybrook.edu"
-				      (viper-version)
-				      varlist
-				      nil 'delete-other-windows
-				      salutation)
-	  ))
+	  (reporter-submit-bug-report
+	   "kifer@cs.stonybrook.edu, bug-gnu-emacs@gnu.org"
+	   (viper-version)
+	   varlist
+	   nil 'delete-other-windows
+	   salutation)))
 
 
 

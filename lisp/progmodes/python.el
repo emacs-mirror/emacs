@@ -708,10 +708,9 @@ START is the buffer position where the sexp starts."
         ;; After backslash
         ((setq start (when (not (or (python-syntax-context 'string ppss)
                                     (python-syntax-context 'comment ppss)))
-                       (let ((line-beg-pos (line-beginning-position)))
-                         (when (python-info-line-ends-backslash-p
-                                (1- line-beg-pos))
-                           (- line-beg-pos 2)))))
+                       (let ((line-beg-pos (line-number-at-pos)))
+                         (python-info-line-ends-backslash-p
+                          (1- line-beg-pos)))))
          'after-backslash)
         ;; After beginning of block
         ((setq start (save-excursion
@@ -2960,39 +2959,40 @@ not inside a defun."
             (type))
         (catch 'exit
           (while (python-nav-beginning-of-defun 1)
-            (when (and
-                   (or (not last-indent)
-                       (< (current-indentation) last-indent))
-                   (or
-                    (and first-run
+            (when (save-match-data
+                    (and
+                     (or (not last-indent)
+                         (< (current-indentation) last-indent))
+                     (or
+                      (and first-run
+                           (save-excursion
+                             ;; If this is the first run, we may add
+                             ;; the current defun at point.
+                             (setq first-run nil)
+                             (goto-char starting-pos)
+                             (python-nav-beginning-of-statement)
+                             (beginning-of-line 1)
+                             (looking-at-p
+                              python-nav-beginning-of-defun-regexp)))
+                      (< starting-pos
                          (save-excursion
-                           ;; If this is the first run, we may add
-                           ;; the current defun at point.
-                           (setq first-run nil)
-                           (goto-char starting-pos)
-                           (python-nav-beginning-of-statement)
-                           (beginning-of-line 1)
-                           (looking-at-p
-                            python-nav-beginning-of-defun-regexp)))
-                    (< starting-pos
-                       (save-excursion
-                         (let ((min-indent
-                                (+ (current-indentation)
-                                   python-indent-offset)))
-                           (if (< starting-indentation  min-indent)
-                               ;; If the starting indentation is not
-                               ;; within the min defun indent make the
-                               ;; check fail.
-                               starting-pos
-                             ;; Else go to the end of defun and add
-                             ;; up the current indentation to the
-                             ;; ending position.
-                             (python-nav-end-of-defun)
-                             (+ (point)
-                                (if (>= (current-indentation) min-indent)
-                                    (1+ (current-indentation))
-                                  0))))))))
-              (setq last-indent (current-indentation))
+                           (let ((min-indent
+                                  (+ (current-indentation)
+                                     python-indent-offset)))
+                             (if (< starting-indentation  min-indent)
+                                 ;; If the starting indentation is not
+                                 ;; within the min defun indent make the
+                                 ;; check fail.
+                                 starting-pos
+                               ;; Else go to the end of defun and add
+                               ;; up the current indentation to the
+                               ;; ending position.
+                               (python-nav-end-of-defun)
+                               (+ (point)
+                                  (if (>= (current-indentation) min-indent)
+                                      (1+ (current-indentation))
+                                    0)))))))))
+              (save-match-data (setq last-indent (current-indentation)))
               (if (or (not include-type) type)
                   (setq names (cons (match-string-no-properties 1) names))
                 (let ((match (split-string (match-string-no-properties 0))))
@@ -3115,7 +3115,7 @@ With optional argument LINE-NUMBER, check that line instead."
     (save-restriction
       (widen)
       (when line-number
-        (goto-char line-number))
+        (python-util-goto-line line-number))
       (while (and (not (eobp))
                   (goto-char (line-end-position))
                   (python-syntax-context 'paren)
@@ -3131,7 +3131,7 @@ Optional argument LINE-NUMBER forces the line number to check against."
     (save-restriction
       (widen)
       (when line-number
-        (goto-char line-number))
+        (python-util-goto-line line-number))
       (when (python-info-line-ends-backslash-p)
         (while (save-excursion
                  (goto-char (line-beginning-position))
@@ -3210,7 +3210,9 @@ operator."
 
 (defun python-info-current-line-comment-p ()
   "Check if current line is a comment line."
-  (char-equal (or (char-after (+ (point) (current-indentation))) ?_) ?#))
+  (char-equal
+   (or (char-after (+ (line-beginning-position) (current-indentation))) ?_)
+   ?#))
 
 (defun python-info-current-line-empty-p ()
   "Check if current line is empty, ignoring whitespace."
@@ -3225,12 +3227,10 @@ operator."
 
 ;;; Utility functions
 
-(defun python-util-position (item seq)
-  "Find the first occurrence of ITEM in SEQ.
-Return the index of the matching item, or nil if not found."
-  (let ((member-result (member item seq)))
-    (when member-result
-      (- (length seq) (length member-result)))))
+(defun python-util-goto-line (line-number)
+  "Move point to LINE-NUMBER."
+  (goto-char (point-min))
+  (forward-line (1- line-number)))
 
 ;; Stolen from org-mode
 (defun python-util-clone-local-variables (from-buffer &optional regexp)

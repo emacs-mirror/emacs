@@ -28,6 +28,9 @@ This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--without-acl'.
 
+** The configure option --with-crt-dir has been removed.
+It is no longer needed, as the crt*.o files are no longer linked specially.
+
 
 * Startup Changes in Emacs 24.4
 
@@ -145,8 +148,6 @@ directory, respectively.
 `f' (`image-next-frame') and `b' (`image-previous-frame') visit the
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
 
-*** `image-animated-p' is now `image-multi-frame-p'.
-
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.
@@ -195,12 +196,13 @@ leave different number of spaces.
 
 +++
 *** New connection method "adb", which allows to access Android
-devices by the Android Debug Bridge.  The variable `tramp-adb-sdk-dir'
-must be set to the Android SDK installation directory.
+devices by the Android Debug Bridge.  The variable `tramp-adb-program'
+can be used to adapt the path of the "adb" program, if needed.
 
-*** The connection methods "scpc" and "rsyncc" are discontinued.  The
-ssh option "ControlMaster=auto" is set automatically in all ssh-based
-methods, when possible.
+*** The connection methods "plink1", "ssh1", "ssh2", "scp1", "scp2",
+"scpc" and "rsyncc" are discontinued.  The ssh option
+"ControlMaster=auto" is set automatically in all ssh-based methods,
+when possible.
 
 +++
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
@@ -219,6 +221,10 @@ are obsolete.  Customize the `woman-* faces instead.
 
 +++
 *** yow.el is obsolete; use fortune.el or cookie1.el instead.
+
+---
+*** The Info-edit command is obsolete.  Editing Info nodes by hand
+has not been relevant for some time.
 
 
 * New Modes and Packages in Emacs 24.4
@@ -291,6 +297,21 @@ rather than inheriting from it (as do face specs set via Customize).
 *** New face characteristic (supports :underline (:style wave))
 specifies whether or not the terminal can display a wavy line.
 
+** Image API
+
++++
+*** `image-animated-p' is now `image-multi-frame-p'.
+It returns non-nil for any image that contains multiple frames,
+whether or not it specifies a frame delay.
+
++++
+*** When animating images that do not specify a frame delay,
+Emacs uses `image-default-frame-delay'.
+
++++
+*** New functions `image-current-frame' and `image-show-frame' for getting
+and setting the current frame of a multi-frame image.
+
 ** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
@@ -298,6 +319,18 @@ text-property on the first char.
 
 ** The `defalias-fset-function' property lets you catch calls to defalias
 and redirect them to your own function instead of `fset'.
+
+** The lock for 'DIR/FILE' is now 'DIR/.#FILE' or 'DIR/.#-FILE'.
+When you edit DIR/FILE, Emacs normally creates a symbolic link
+DIR/.#FILE as a lock that warns other instances of Emacs that DIR/FILE
+is being edited.  Formerly, if there was already a non-symlink file
+named DIR/.#FILE, Emacs fell back on the lock names DIR/.#FILE.0
+through DIR/.#FILE.9.  These fallbacks have been removed, so that
+Emacs now no longer locks DIR/FILE in that case.
+
+On MS-Windows the lock is a regular file DIR/.#-FILE, not a symlink.
+MS-Windows and non-MS-Windows implementations of Emacs ignore each
+other's locks.
 
 ** The 9th element returned by `file-attributes' is now unspecified.
 Formerly, it was t if the file's gid would change if file were deleted
@@ -327,6 +360,13 @@ directory where Emacs was running.
 Setting it has no effect, and %t in the mode-line format is ignored.
 Likewise, `file-name-buffer-file-type-alist' is now obsolete, and
 modifying it has no effect.
+
+---
+** Lock files now work on MS-Windows.
+This allows to avoid losing your edits if the same file is being
+edited in another Emacs session or by another user.  See the node
+"Interlocking" in the Emacs User Manual for the details.  To disable
+file locking, customize `create-lockfiles' to nil.
 
 ** Improved fullscreen support on Mac OS X.
 Both native (>= OSX 10.7) and "old style" fullscreen are supported.
@@ -752,6 +792,29 @@ Sphinx support has been improved.
 
 *** The constant `rst-version' describes the rst.el package version.
 
+** Ruby mode
+
+*** Support for percent literals and recognition of regular expressions
+in method calls without parentheses with more methods, including Cucumber
+steps definitions.
+
+*** Improved syntax highlighting and indentation.
+
+*** New command `ruby-toggle-block', bound to `C-c {'.
+
+*** Some non-standard keybindings/commands have been removed:
+
+**** `ruby-electric-brace'; use `electric-indent-mode' instead.
+
+**** `ruby-mark-defun'; use `mark-defun'.
+
+**** `ruby-beginning-of-defun' and `ruby-end-of-defun' are replaced by
+appropriate settings for the variables `beginning-of-defun-function'
+and `end-of-defun-function'.
+
+**** Non-standard keybindings for `backward-kill-word', `comment-region',
+`reindent-then-newline-and-indent' and `newline' have been removed.
+
 ** Shell Script mode
 
 *** Pairing of parens/quotes uses `electric-pair-mode' instead of skeleton-pair.
@@ -801,6 +864,63 @@ See the variable `calendar-month-header'.
 
 *** The calendars produced by cal-html include holidays.
 Customize `cal-html-holidays' to change this.
+
+** CEDET
+
+*** The major modes from the parser generators "Bovine" and "Wisent"
+are now properly integrated in Emacs.  The file suffixes ".by" and ".wy"
+are in `auto-mode-alist', and the corresponding manuals are included.
+
+*** EDE
+
+**** Menu support for the "Configuration" feature.  This allows users to
+choose the active configuration (such as debug or install) from the menu.
+
+**** New command `ede-set' to interactively set project-local variables.
+
+**** Support for compiling, debugging, and running in "generic" projects.
+
+**** Autoconf editing support for M4 macros with complex arguments.
+
+**** Compilation support for the "linux" project type.
+
+**** "simple" projects have been removed; use "generic" projects instead.
+
+*** Semantic
+
+**** Support for parsing #include statements inside a namespace in C/C++.
+
+**** Improved support for 'extern "C"' declarations in C/C++.
+
+**** The ability to ignore more common special C/C++ preprocessor symbols,
+such as '__nonnull' and '__asm'.  Add '__cplusplus' macro when parsing C++.
+If available, include cdefs.h as an additional source of preprocessor symbols.
+
+**** Improved C/C++ function pointer parsing.
+
+**** In Python, support for converting imports to include file names.
+
+**** Ability to dynamically determine the Python load path.
+
+**** Support for the Python 'WITH' and 'AT' keywords.
+
+**** Improved tooltip completion.
+
+*** SRecode
+
+**** The SRecode manual is now included.
+
+**** Tag generation supports constructor/destructor settings and system
+include differentiation.
+
+**** Addition of 'Framework' support: Frameworks are specified when a
+particular kind of library (such as Android) is needed in a common language
+mode (like Java).
+
+**** Support for nested templates and let variables override based on priority.
+
+**** Support for merging tables from multiple related modes, such as
+default -> c++ -> arduino.
 
 ** Compile has a new option `compilation-always-kill'.
 
@@ -1140,6 +1260,25 @@ accessed via the new `timer--psecs' accessor.
 
 *** Last-modified time stamps in undo lists now are of the form
 (t HI-SECS LO-SECS USECS PSECS) instead of (t HI-SECS . LO-SECS).
+
+** EIEIO
+
+*** Improved security when handling persistent objects:
+
+**** `eieio-persistent-read' now features optional arguments for specifying
+the class to load, as well as a flag stating whether subclasses are allowed;
+if provided, other classes will be rejected by the reader.  For
+compatibility with existing code, if the class is omitted only a
+warning is issued.
+
+**** New specialized reader for pulling in classes and signaling errors
+without evaluation of suspicious code.
+
+**** All slots that contain objects must have a :type.  Slots with lists
+of objects must use a new type predicate for a list of an object type.
+
+*** Support for `find-function' and similar utilities, through the addition
+of filename support to generated symbols.
 
 ** Floating point functions now always return special values like NaN,
 instead of signaling errors, if given invalid args; e.g., (log -1.0).

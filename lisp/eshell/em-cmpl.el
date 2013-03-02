@@ -63,7 +63,7 @@
 ;; The list of possible completions can be viewed at any point by
 ;; pressing <M-?>.
 ;;
-;; Finally, context-related help can be accessed by pressing <C-c i>.
+;; Finally, context-related help can be accessed by pressing <C-c M-h>.
 ;; This only works well if the completion function has provided Eshell
 ;; with sufficient pointers to locate the relevant help text.
 

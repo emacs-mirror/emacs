@@ -1,3 +1,231 @@
+2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	The lock for FILE is now .#FILE or .#-FILE (Bug#13807).
+	The old approach, which fell back on DIR/.#FILE.0 through
+	DIR/.#FILE.9, had race conditions that could not be easily fixed.
+	If DIR/.#FILE is a non-symlink file, Emacs now does not create a
+	lock file for DIR/FILE; that is, DIR/FILE is no longer partly
+	protected by a lock if DIR/.#FILE is a non-symlink file ("partly"
+	because the locking mechanism was never reliable in that case).
+	This patch fixes this and other bugs discovered by a code
+	inspection that was prompted by
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00531.html>.
+	Also, this patch switches to .#-FILE (not .#FILE) on MS-Windows,
+	to avoid interoperability problems between the MS-Windows and
+	non-MS-Windows implementations.  MS-Windows and non-MS-Windows
+	instances of Emacs now ignore each others' locks.
+	* filelock.c (defined_WINDOWSNT): New constant.
+	(MAKE_LOCK_NAME, fill_in_lock_file_name):
+	Don't create DIR/.#FILE.0 through DIR/.#FILE.9.  Instead, create
+	DIR/.#FILE symlinks on non-MS-Windows hosts, and DIR/.#-FILE
+	regular files on MS-Windows hosts.
+	(MAKE_LOCK_NAME, unlock_file, Ffile_locked_p):
+	Use SAFE_ALLOCA to avoid problems with long file names.
+	(MAX_LFINFO): Now a local constant, not a global macro.
+	(IS_LOCK_FILE): Remove.
+	(lock_file_1): Don't inspect errno if symlink call succeeds;
+	that's not portable.
+	(lock_file): Document that this function can return if lock
+	creation fails.
+	(lock_file): Don't access freed storage.
+
+2013-03-02  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (XPNTR) [!USE_LSB_TAG]: Remove extra paren.  (Bug#13734)
+
+2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* textprop.c: Use bool for booleans.
+	(validate_interval_range, Fadd_text_properties)
+	(Fremove_text_properties): Prefer bool to int when either works.
+
+2013-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* textprop.c (Fadd_text_properties, Fremove_text_properties): If
+	the interval tree changes as a side effect of calling
+	modify_region, re-do processing starting from the call to
+	validate_interval_range.  (Bug#13743)
+
+2013-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_open): Don't reset the flags for FD in fd_info[].
+	(Bug#13546).
+
+2013-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* filelock.c (create_lock_file) [WINDOWSNT]: Use _sopen with
+	_SH_DENYRW flag, instead of emacs_open, to deny any other process
+	access to the lock file until it is written and closed.
+	(Bug#13807)
+
+2013-02-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callint.c (Qcall_interactively):
+	* macros.c (Qexecute_kbd_macro):
+	Now static.
+
+2013-02-26  Bastien Guerry  <bzg@gnu.org>
+
+	* window.c (Frecenter): Tiny docstring enhancement.
+
+2013-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor textprop integer cleanup.
+	* intervals.h, textprop.c (add_text_properties_from_list):
+	Return void, not int, since nobody uses the return value.
+	* textprop.c (validate_plist, add_properties, remove_properties)
+	(Fadd_text_properties):
+	Don't assume list length fits in int.
+	(interval_has_all_properties, interval_has_some_properties)
+	(interval_has_some_properties_list, add_properties, remove_properties)
+	(Fadd_text_properties, Fremove_text_properties)
+	(Fremove_list_of_text_properties, text_property_stickiness):
+	Use bool for booleans.
+	(Fadd_text_properties, Fremove_text_properties):
+	(Fremove_list_of_text_properties):
+	Reindent do-while as per GNU style.
+
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement CLASH_DETECTION for MS-Windows.
+
+	* filelock.c [WINDOWSNT]: Include w32.h.
+	(MAKE_LOCK_NAME): Don't use 'lock', it clashes with MS runtime
+	function of that name.  Up-case the macro arguments.
+	(IS_LOCK_FILE): New macro.
+	(fill_in_lock_file_name): Use IS_LOCK_FILE instead of S_ISLNK.
+	(create_lock_file): New function, with body extracted from
+	lock_file_1.
+	[WINDOWSNT]: Implement lock files by writing a regular file with
+	the lock information as its contents.
+	(read_lock_data): New function, on Posix platforms just calls
+	emacs_readlinkat.
+	[WINDOWSNT]: Read the lock info from the file.
+	(current_lock_owner): Call read_lock_data instead of calling
+	emacs_readlinkat directly.
+	(lock_file) [WINDOWSNT]: Run the file name through
+	dostounix_filename.
+
+	* w32proc.c (sys_kill): Support the case of SIG = 0, in which case
+	just check if the process by that PID exists.
+
+	* w32.c (sys_open): Don't reset the _O_CREAT flag if _O_EXCL is
+	also present, as doing so will fail to error out if the file
+	already exists.
+
+	* makefile.w32-in ($(BLD)/filelock.$(O)): Depend on src/w32.h.
+
+	* textprop.c (Fadd_text_properties, Fremove_text_properties)
+	(Fremove_list_of_text_properties): Skip all of the intervals in
+	the region between START and END that already have resp. don't
+	have the requested properties, not just the first one.  Add
+	assertions that the loop afterwards always modifies the
+	properties.  (Bug#13743)
+
+2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (Fcall_interactively): Use the right lexical environment
+	for `interactive' specs (bug#13811).
+	* eval.c (Feval): Accept a lexical environment.
+
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	This is a followon simplification to the fix for Bug#13650.
+	* Makefile.in (LD_FIRSTFLAG, LIB_GCC, CRT_DIR, LIB_STANDARD)
+	(START_FILES): Remove.  All uses removed.
+	(otherobj): Remove $(VMLIMIT_OBJ), as it's now first.
+	(ALLOBJS): Move here from autodeps.mk, and with VMLIMITS_OBJ first.
+	(buildobj.h): Use it.
+	($(ALLOBJS)): Depend on globals.h.
+	(temacs$(EXEEXT)): Use $(ALLOBJS).
+	* autodeps.mk (ALLOBJS): Move to Makefile.in.
+	* deps.mk (vm-limit.o):
+	* makefile.w32-in ($(BLD)/vm-limit.$(O)):
+	Do not depend on mem-limits.h.
+	* emacs.c (__do_global_ctors, __do_global_ctors_aux)
+	(__do_global_dtors, __CTOR_LIST__, __DTOR_LIST__)
+	[__GNUC__ && !ORDINARY_LINK]: Remove.
+	* mem-limits.h, pre-crt0.c: Remove.
+	* unexaix.c, unexcoff.c: Don't include mem-limits.h.
+	* unexcoff.c (etext): New decl.
+	(make_hdr): Use DATA_START instead of start_of_data.
+	* vm-limit.c: Move most of mem-limits.h's contents here.
+	(data_start): New decl.  It's OK if this is approximate,
+	so simplify-away some unnecessary exactness.
+	(POINTER): Remove; all uses removed.
+	(data_space_start): Now char *, to avoid casts.
+	(exceeds_lisp_ptr): New function, replacing the old
+	EXCEEDS_LISP_PTR macro.  All uses changed.
+	(check_memory_limits): Simplify and remove casts.
+	(start_of_data) [!CANNOT_DUMP || !SYSTEM_MALLOC]: Remove.
+	(memory_warnings): Use data_start instead of start_of_data.
+
+2013-02-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xdisp.c (set_message): Only check for debug-on-message if STRING
+	is a string.  (Bug#13797)
+
+2013-02-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix regression introduced by July 10 filelock.c patch.
+	* filelock.c (fill_in_lock_file_name): Fix crash caused by the
+	2012-07-10 patch to this file.  Reported by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00533.html>
+	and diagnosed by Andreas Schwab in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00534.html>.
+
+2013-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C89 or better.
+	* ralloc.c (SIZE, POINTER, NIL):
+	* vm-limit.c (POINTER):
+	Remove, replacing all uses with C89 equivalents.  These old
+	symbols were present only for porting to pre-C89 platforms.
+
+2013-02-22  Claudio Bley  <claudio.bley@gmail.com>
+
+	* w32.c (emacs_gnutls_pull): Don't call 'select', and don't loop.
+	This avoids warning messages reported as part of Bug#13546.
+
+2013-02-21  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (report_sheap_usage): Fix arguments of message1_no_log.
+
+2013-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sheap.c (report_sheap_usage): Prefer message1_nolog.
+
+	* keyboard.c (Qcommand_execute): New var.
+	(command_loop_1, read_char): Use it.
+	(Fcommand_execute): Remove, replace by an Elisp implementation.
+	(syms_of_keyboard): Adjust accordingly.
+
+2013-02-19  Daniel Colascione <dancol@dancol.org>
+
+	* sheap.c (report_sheap_usage): Use message, not message1, so
+	that we don't try to create a buffer while we're in the middle
+	of dumping Emacs.  Explain why.
+
+2013-02-20  Dmitry Antipov  <dmantipov@yandex.ru>
+	* search.c (find_newline): Return byte position in bytepos.
+	Adjust comment.
+	(find_next_newline_no_quit, find_before_next_newline):
+	Add bytepos argument.
+	* lisp.h (find_newline, find_next_newline_no_quit)
+	(find_before_next_newline): Adjust prototypes.
+	* bidi.c (bidi_find_paragraph_start):
+	* editfns.c (Fconstrain_to_field, Fline_end_position):
+	* indent.c (compute_motion, vmotion):
+	* xdisp.c (back_to_previous_line_start, forward_to_next_line_start):
+	(get_visually_first_element, move_it_vertically_backward):
+	Adjust users and avoid calls to CHAR_TO_BYTE where appropriate.
+
+2013-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (new_child): Avoid leaking handles if the subprocess
+	resources were not orderly released.
+
 2013-02-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (x_draw_vertical_border): For a window that is neither

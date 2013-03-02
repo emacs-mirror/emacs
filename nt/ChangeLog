@@ -1,3 +1,9 @@
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (BOOT_TIME_FILE): Define.
+
+	* config.nt (CLASH_DETECTION): Define to 1.
+
 2013-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (__STDC__): Fiddle with value only for MSVC.

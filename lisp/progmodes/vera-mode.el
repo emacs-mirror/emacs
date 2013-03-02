@@ -1423,7 +1423,8 @@ If `vera-intelligent-tab' is nil, always indent line."
 ;;; Bug reports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconst vera-mode-help-address "Reto Zimmermann <reto@gnu.org>"
+(defconst vera-mode-help-address
+  "Reto Zimmermann <reto@gnu.org>, bug-gnu-emacs@gnu.org"
   "Address for Vera Mode bug reports.")
 
 ;; get reporter-submit-bug-report when byte-compiling

@@ -259,7 +259,7 @@ extern Lisp_Object get_local_map (ptrdiff_t, struct buffer *, Lisp_Object);
 extern INTERVAL update_interval (INTERVAL, ptrdiff_t);
 extern void set_intervals_multibyte (bool);
 extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
-                                         Lisp_Object *, int);
+                                         Lisp_Object *, bool);
 extern INTERVAL interval_of (ptrdiff_t, Lisp_Object);
 
 /* Defined in xdisp.c.  */
@@ -293,7 +293,7 @@ extern void set_text_properties_1 (Lisp_Object, Lisp_Object,
 
 Lisp_Object text_property_list (Lisp_Object, Lisp_Object, Lisp_Object,
                                 Lisp_Object);
-int add_text_properties_from_list (Lisp_Object, Lisp_Object, Lisp_Object);
+void add_text_properties_from_list (Lisp_Object, Lisp_Object, Lisp_Object);
 Lisp_Object extend_property_ranges (Lisp_Object, Lisp_Object);
 Lisp_Object get_char_property_and_overlay (Lisp_Object, Lisp_Object,
                                            Lisp_Object, Lisp_Object*);

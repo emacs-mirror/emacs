@@ -736,7 +736,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 		 FIELD_BOUND are on the same line by seeing whether
 		 there's an intervening newline or not.  */
 	      || (find_newline (XFASTINT (new_pos), XFASTINT (field_bound),
-				fwd ? -1 : 1, &shortage, 1),
+				fwd ? -1 : 1, &shortage, NULL, 1),
 		  shortage != 0)))
 	/* Constrain NEW_POS to FIELD_BOUND.  */
 	new_pos = field_bound;
@@ -821,7 +821,8 @@ This function does not move point.  */)
     CHECK_NUMBER (n);
 
   clipped_n = clip_to_bounds (PTRDIFF_MIN + 1, XINT (n), PTRDIFF_MAX);
-  end_pos = find_before_next_newline (orig, 0, clipped_n - (clipped_n <= 0));
+  end_pos = find_before_next_newline (orig, 0, clipped_n - (clipped_n <= 0),
+				      NULL);
 
   /* Return END_POS constrained to the current input field.  */
   return Fconstrain_to_field (make_number (end_pos), make_number (orig),

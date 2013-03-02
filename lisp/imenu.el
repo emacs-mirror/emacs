@@ -405,11 +405,11 @@ Don't move point."
 ;; Regular expression to find C functions
 (defvar imenu-example--function-name-regexp-c
   (concat
-   "^[a-zA-Z0-9]+[ \t]?"		; type specs; there can be no
+   "^[a-zA-Z0-9]+[ \t]?"		; Type specs; there can be no
    "\\([a-zA-Z0-9_*]+[ \t]+\\)?"	; more than 3 tokens, right?
    "\\([a-zA-Z0-9_*]+[ \t]+\\)?"
-   "\\([*&]+[ \t]*\\)?"			; pointer
-   "\\([a-zA-Z0-9_*]+\\)[ \t]*("	; name
+   "\\([*&]+[ \t]*\\)?"			; Pointer.
+   "\\([a-zA-Z0-9_*]+\\)[ \t]*("	; Name.
    ))
 
 (defun imenu-example--create-c-index (&optional regexp)
@@ -556,7 +556,7 @@ NOT share structure with ALIST."
 (defun imenu--truncate-items (menulist)
   "Truncate all strings in MENULIST to `imenu-max-item-length'."
   (mapc (lambda (item)
-	  ;; truncate if necessary
+	  ;; Truncate if necessary.
 	  (when (and (numberp imenu-max-item-length)
 		     (> (length (car item)) imenu-max-item-length))
 	    (setcar item (substring (car item) 0 imenu-max-item-length)))
@@ -575,7 +575,7 @@ See `imenu--index-alist' for the format of the index alist."
 	   (or (not imenu-auto-rescan)
 	       (and imenu-auto-rescan
 		    (> (buffer-size)  imenu-auto-rescan-maxout))))
-      ;; Get the index; truncate if necessary
+      ;; Get the index; truncate if necessary.
       (progn
 	(setq imenu--index-alist
 	      (save-excursion
@@ -687,8 +687,9 @@ The alternate method, which is the one most often used, is to call
 	     (save-excursion
 	       (setq name (funcall imenu-extract-index-name-function)))
 	     (and (stringp name)
- 		  ;; [ydi] updated for imenu-use-markers
-		  (push (cons name (if imenu-use-markers (point-marker) (point)))
+ 		  ;; [ydi] Updated for imenu-use-markers.
+		  (push (cons name
+                              (if imenu-use-markers (point-marker) (point)))
 			index-alist)))
 	   index-alist))
 	;; Use generic expression if possible.
@@ -741,12 +742,12 @@ depending on PATTERNS."
                 (modify-syntax-entry c (cdr syn) table))
               (car syn))))
     (goto-char (point-max))
-    (unwind-protect			; for syntax table
+    (unwind-protect			; For syntax table.
 	(save-match-data
 	  (set-syntax-table table)
 
-	  ;; map over the elements of imenu-generic-expression
-	  ;; (typically functions, variables ...)
+	  ;; Map over the elements of imenu-generic-expression
+	  ;; (typically functions, variables ...).
 	  (dolist (pat patterns)
 	    (let ((menu-title (car pat))
 		  (regexp (nth 1 pat))
@@ -1002,7 +1003,7 @@ The ignored args just make this function have the same interface as a
 function placed in a special index-item."
   (if (or (< position (point-min))
 	  (> position (point-max)))
-      ;; widen if outside narrowing
+      ;; Widen if outside narrowing.
       (widen))
   (goto-char position))
 

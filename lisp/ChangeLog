@@ -1,3 +1,376 @@
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-prompt): Extend regexp.
+	(tramp-adb-handle-process-file): Remove superfluous setting.
+	(tramp-adb-command-exit-status): Handle case that COMMAND is nil.
+	(tramp-adb-barf-unless-okay): Use `tramp-adb-command-exit-status'.
+	(tramp-adb-maybe-open-connection): Apply "su" if user is defined.
+
+2013-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el: Fix nitpicks and byte-compiler warnings.
+	(ispell-print-if-debug): Build `format' in.  Avoid end-of-buffer.
+	(ispell-parse-hunspell-affix-file): Avoid beginning-of-buffer.
+	Use dict-key rather than dict-name for the error message.
+
+2013-03-01  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* net/net-utils.el (net-utils-run-simple): Don't display-buffer
+	when reverting (bug#13831).
+
+2013-03-01  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-find-hunspell-dictionaries):
+	Always expand affix-file before storing to protect against changed
+	`default-directory'.
+	(ispell-print-if-debug): Make sure message is printed at the end
+	of the debug buffer.
+
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-obsolete-methods): New defconst.
+	(tramp-warned-obsolete-methods): New defvar.
+	(tramp-find-method): Check for obsolete methods.  Map them to a
+	replacement method if appropriate.
+
+	* net/tramp-sh.el (tramp-methods) [scp1, scp2, ssh1, ssh2, plink1]:
+	Remove methods.
+	(top): Remove completion functions for "scp1", "scp2", "ssh1",
+	"ssh2" and "plink1".
+
+2013-02-28  Dale Sedivec  <dale@codefu.org>
+
+	* textmodes/sgml-mode.el (sgml-syntax-propertize-function):
+	Return valid syntax-table property value when converting
+	quotes within text from string syntax to punctuation syntax (bug#13844).
+
+2013-02-28  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-diff): If file at point is a backup file,
+	use its original as the default value, and reverse the order
+	of arguments to the `diff' call.  Doc fix.  (Bug#13772)
+
+2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-sdk-dir): Remove.  Replaced by ...
+	(tramp-adb-program): New defcustom.  Remove function.  Adapt calls.
+
+2013-02-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	Initial support for hunspell dictionaries auto-detection (Bug#13639)
+
+	* textmodes/ispell.el (ispell-find-hunspell-dictionaries):
+	Ask hunspell about available and default dictionaries.
+	(ispell-parse-hunspell-affix-file): Extract relevant info from
+	hunspell affix file.
+	(ispell-hunspell-fill-dictionary-entry): Fill non-initialized
+	`ispell-dictionary-alist' entry for given dictionary after info
+	provided by `ispell-parse-hunspell-affix-file'.
+	(ispell-hunspell-dict-paths-alist): New defvar to contain an alist
+	of parsed hunspell dicts and associated affix files.
+	(ispell-hunspell-dictionary-alist): New defvar to contain an alist
+	of parsed hunspell dicts and associated parameters.
+	(ispell-set-spellchecker-params):
+	Call `ispell-find-hunspell-dictionaries' if hunspell and not
+	previously done.
+	(ispell-start-process):
+	Call `ispell-hunspell-fill-dictionary-entry' for current
+	dictionary if it is not initialized.
+
+2013-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el: Comment nitpicks.
+
+2013-02-28  Sam Steingold  <sds@gnu.org>
+
+	* vc/diff-mode.el (diff-hunk-file-names): Handle filenames with spaces.
+	See <http://stackoverflow.com/questions/14720205>.
+
+2013-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* net/net-utils.el (net-utils--revert-function): New fun (bug#13831).
+	(net-utils-mode): Use it.
+	(net-utils--revert-cmd): New var.
+	(net-utils-run-simple): Set it, and remove bogus interactive spec.
+	(traceroute): Use net-utils-run-simple.
+
+2013-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/paragraphs.el (mark-paragraph): Doc fix.
+
+2013-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el: Preserve h&v scroll across C-c C-c C-c C-c.
+	(doc-view-fallback-mode): Remove overlays here.
+	(doc-view-toggle-display): Instead of here.  Don't throw away
+	image-mode-winprops-alist.
+	(doc-view-goto-page): Don't mess with hscroll.
+
+2013-02-27  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Fix highlighting of
+	&optional (bug#13819).
+
+2013-02-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-parse-device-names)
+	(tramp-adb-maybe-open-connection): Add timeouts.  (Bug#13299)
+
+2013-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory):
+	Add "2>/dev/null" to the ls command, in case "en_US.utf8" is not
+	defined.  POSIX environments fall back to the "C" locale then and
+	emit a warning, which shall be suppressed.
+
+2013-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Tweak logic.
+	(easy-mmode-set-keymap-parents): Use make-composed-keymap.
+
+2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Use let.
+
+2013-02-25  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (read-regexp): Let-bind `default' to the first
+	element of `defaults' if it's a list, otherwise it should be
+	a string or nil.  Let-bind `suggestions' to `defaults' if it's
+	a list, otherwise make a list with the string value.  Doc fix.
+	(Bug#13805)
+
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory): Reject files
+	that match "\`\.#", to avoid compiling lock files, even if they
+	are readable (as they are on MS-Windows).
+
+2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (basic-save-buffer): Remove redundant directory-creation.
+
+2013-02-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (math-to-radians-2, math-from-radians-2):
+	Add option to force `pi' to remain symbolic.
+	* calc/calcalg2.el (calcFunc-sin, calcFunc-cos, calcFunc-tan)
+	(calcFunc-cot, calcFunc-csc, calcFunc-sec, calcFunc-arcsin)
+	(calcFunc-arccos, calcFunc-arctan): Use symbolic `pi' in the
+	derivatives, when necessary.
+
+2013-02-23  Peter Kleiweg  <p.c.j.kleiweg@rug.nl>
+
+	* progmodes/ps-mode.el (ps-mode-version): Bump to 1.1i.
+	(ps-mode-octal-region): Use string-make-unibyte.
+
+2013-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/viper-cmd.el (viper-submit-report):
+	* progmodes/ps-mode.el (ps-mode-maintainer-address):
+	* progmodes/vera-mode.el (vera-mode-help-address):
+	* textmodes/artist.el (artist-maintainer-address):
+	* textmodes/reftex.el (reftex-report-bug):
+	* vc/ediff-util.el (ediff-submit-report):
+	Add bug-gnu-emacs to bug report address.
+
+	* progmodes/simula.el (simula-mode-menu, simula-mode-map):
+	Remove bug report entries.
+	(simula-mode-help-address, simula-submit-bug-report): Make obsolete.
+
+	* emacs-lisp/bytecomp.el (byte-compile-level): New.
+	(byte-compile-file, byte-compile-from-buffer):
+	Use separate input/output buffers for each level of recursive
+	byte-compile-file calls.  (Bug#13787)
+
+2013-02-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Fix docstring.
+	(tramp-ssh-controlmaster-options): Rename it from
+	`tramp-ssh-controlmaster-template'.  Return a string.
+	(tramp-default-method): Adapt check for
+	`tramp-ssh-controlmaster-options'.
+
+	* net/tramp-sh.el (tramp-methods):
+	Replace `tramp-ssh-controlmaster-template' by "%c".
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use it in format spec.  Ensure,
+	that it is applied for the first hop only.
+
+2013-02-22  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop):
+	Set `isearch-lazy-highlight-start' and `isearch-lazy-highlight-end'
+	to `isearch-other-end' if it is not nil.  (Bug#13402)
+
+	* replace.el (replace-highlight): Let-bind `isearch-other-end'
+	to `match-beg'.
+
+	* textmodes/ispell.el (ispell-highlight-spelling-error-overlay):
+	Let-bind `isearch-other-end' to `start', `isearch-forward' to t
+	and `isearch-error' to nil.
+
+2013-02-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-tramp-file-p): Fix docstring.
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory):
+	Handle multibyte file names.
+
+2013-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/sgml-mode.el (sgml-xml-mode): Move before use.
+	(sgml-transformation-function): Give it a :set function.
+	(sgml-tag): Doc fix.
+
+	* cmuscheme.el (scheme-buffer):
+	* progmodes/inf-lisp.el (inferior-lisp-buffer):
+	* progmodes/tcl.el (inferior-tcl-buffer):
+	* textmodes/tex-mode.el (tex-command): Doc fixes.
+
+	* image-mode.el (image-mode): Add mouse bindings for mode-line-process.
+
+	* htmlfontify.el (hfy-default-header): Encode title string.  (Bug#7457)
+
+2013-02-21  Bastien Guerry  <bzg@gnu.org>
+
+	* cmuscheme.el (scheme-buffer): Fix docstring.  (Bug#13778)
+
+2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-info-current-defun):
+	Enhance match-data cluttering prevention.
+
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp.el (tramp-get-debug-buffer): Ensure outline.el is not
+	loaded while outline-regexp is let bound.  (Bug#9584)
+
+2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-info-current-defun): Fix failed
+	defun name retrieval because of unwanted match-data cluttering.
+
+2013-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-ssh-controlmaster-template): Make it a
+	defconst.  Apply independent check for ControlPersist.
+
+	* net/tramp-sh.el (tramp-sh-handle-set-file-times): Set $UTC only
+	temporarily, via "env".
+
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (Info-enable-edit): Remove.
+	(Info-edit): Disable it rather than using Info-enable.
+	(Info-edit-mode-hook, Info-edit-map, Info-edit-mode, Info-edit)
+	(Info-cease-edit): Make editing of Info files obsolete.
+
+	* informat.el (Info-tagify):
+	Handle buffers not visiting files.  (Bug#13763)
+
+2013-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calc/calc-graph.el (calc-graph-show-dumb): Fix typo.
+
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (basic-save-buffer): Move check for existing parent
+	directory after hooks.  (Bug#13773)
+
+2013-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (command-execute): Move from C.  Add obsolete check.
+	(extended-command-history): Move from C.
+
+2013-02-20  Ulrich Müller  <ulm@gentoo.org>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list)
+	(jka-compr-mode-alist-additions): Handle .txz suffix for
+	XZ-compressed tar archives (bug#13770).
+
+2013-02-20  Bastien Guerry  <bzg@gnu.org>
+
+	* outline.el (outline-regexp, outline-heading-end-regexp):
+	Make variables, not options (bug#13731).
+
+2013-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (image-current-frame): Change from variable to function.
+	(image-show-frame): Rename from image-nth-frame.  Update callers.
+	* image-mode.el (image-multi-frame): New variable.
+	(image-mode-map, image-mode, image-goto-frame):
+	Use image-multi-frame rather than image-current-frame.
+	(image-mode, image-goto-frame): Use image-current-frame as
+	function rather than as variable.
+
+	* emacs-lisp/cl-lib.el (cl-floatp-safe): Make it an alias for floatp.
+	* emacs-lisp/cl-macs.el (cl--make-type-test)
+	(cl--compiler-macro-assoc): Use floatp rather than cl-floatp-safe.
+
+2013-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-get-hash-table): New defun.
+	(tramp-get-file-property, tramp-set-file-property)
+	(tramp-get-connection-property, tramp-set-connection-property): Use it.
+	(tramp-flush-file-property, tramp-flush-directory-property):
+	Rename argument to KEY.
+	(tramp-flush-connection-property): Simplify a little bit.
+	(tramp-connection-property-p): New defun.
+	(top): Reapply saved values only if there isn't a corresponding
+	entry in `tramp-connection-properties'.
+
+2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-indent-context):
+	Fix python-info-line-ends-backslash-p call.
+	(python-info-line-ends-backslash-p)
+	(python-info-beginning-of-backslash): Respect line-number argument.
+	(python-info-current-line-comment-p):
+	Fix behavior when not at beginning-of-line.
+	(python-util-position): Remove function.
+	(python-util-goto-line): New function.
+
+2013-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/em-unix.el (eshell/su): Require tramp.
+	(eshell/sudo): Require tramp.  Remove now unnecessary check.
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Let-bind
+	`tramp-current-connection' in order to avoid an error when several
+	commands are invoked in a short time in eshell and friends.
+
+2013-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Cleanup some of EIEIO's namespace.
+	* emacs-lisp/eieio.el (eieio--define-field-accessors): New macro.
+	Use it to define all the class-* and object-* field accessors (renamed
+	to eieio--class-* and eieio--object-*).  Update all uses.
+	(eieio--class-num-slots, eieio--object-num-slots): Rename from
+	class-num-slots and object-num-slots.
+	(eieio--check-type): New macro.
+	(eieio-defclass, eieio-oref, eieio-oref-default, same-class-p)
+	(object-of-class-p, child-of-class-p, object-slots, class-slot-initarg)
+	(eieio-oset, eieio-oset-default, object-assoc, object-assoc-list)
+	(object-assoc-list-safe): Use it.
+	(eieio-defclass): Tighten regexp.
+	(eieio--defmethod): Use `memq'.  Signal an error for unknown method kind.
+	Remove unreachable code.
+	(object-class-fast): Declare obsolete.
+	(eieio-class-name, eieio-object-name, eieio-object-set-name-string)
+	(eieio-object-class, eieio-object-class-name, eieio-class-parents)
+	(eieio-class-children, eieio-class-precedence-list, eieio-class-parent):
+	Rename from class-name, object-name, object-set-name-string,
+	object-class, object-class-name, class-parents, class-children,
+	class-precedence-list, class-parent; with obsolete alias.
+	(class-of, class-direct-superclasses, class-direct-subclasses):
+	Declare obsolete.
+	(eieio-defmethod): Use `memq'; remove unreachable code.
+	* emacs-lisp/eieio-base.el (eieio-persistent-read):
+	* emacs-lisp/eieio-opt.el (eieio-class-button, eieio-describe-generic)
+	(eieio-browse-tree, eieio-browse): Use eieio--check-type.
+
+
 2013-02-18  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument):

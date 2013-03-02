@@ -198,7 +198,7 @@
 ;; Variables
 
 (defconst artist-version "1.2.6")
-(defconst artist-maintainer-address "tab@lysator.liu.se")
+(defconst artist-maintainer-address "tab@lysator.liu.se, bug-gnu-emacs@gnu.org")
 
 (defvar x-pointer-crosshair)
 

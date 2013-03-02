@@ -367,7 +367,7 @@ Lisp_Object Qmenu_bar;
 
 static Lisp_Object recursive_edit_unwind (Lisp_Object buffer);
 static Lisp_Object command_loop (void);
-static Lisp_Object Qextended_command_history;
+static Lisp_Object Qcommand_execute;
 EMACS_TIME timer_check (void);
 
 static void echo_now (void);
@@ -1583,11 +1583,11 @@ command_loop_1 (void)
 		  = (EQ (undo, BVAR (current_buffer, undo_list))
 		     ? Qnil : BVAR (current_buffer, undo_list));
 	      }
-            Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
+            call1 (Qcommand_execute, Vthis_command);
 
 #ifdef HAVE_WINDOW_SYSTEM
 	  /* Do not check display_hourglass_p here, because
-	     Fcommand_execute could change it, but we should cancel
+	     `command-execute' could change it, but we should cancel
 	     hourglass cursor anyway.
 	     But don't cancel the hourglass within a macro
 	     just because a command in the macro finishes.  */
@@ -2842,7 +2842,7 @@ read_char (int commandflag, Lisp_Object map,
     {
       struct buffer *prev_buffer = current_buffer;
       last_input_event = c;
-      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_event), Qt);
+      call4 (Qcommand_execute, tem, Qnil, Fvector (1, &last_input_event), Qt);
 
       if (CONSP (c) && EQ (XCAR (c), Qselect_window) && !end_time)
 	/* We stopped being idle for this event; undo that.  This
@@ -9876,95 +9876,6 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
   return unbind_to (count, Fvector (i, keybuf));
 }
 
-DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 4, 0,
-       doc: /* Execute CMD as an editor command.
-CMD must be a symbol that satisfies the `commandp' predicate.
-Optional second arg RECORD-FLAG non-nil
-means unconditionally put this command in the variable `command-history'.
-Otherwise, that is done only if an arg is read using the minibuffer.
-The argument KEYS specifies the value to use instead of (this-command-keys)
-when reading the arguments; if it is nil, (this-command-keys) is used.
-The argument SPECIAL, if non-nil, means that this command is executing
-a special event, so ignore the prefix argument and don't clear it.  */)
-  (Lisp_Object cmd, Lisp_Object record_flag, Lisp_Object keys, Lisp_Object special)
-{
-  register Lisp_Object final;
-  register Lisp_Object tem;
-  Lisp_Object prefixarg;
-
-  debug_on_next_call = 0;
-
-  if (NILP (special))
-    {
-      prefixarg = KVAR (current_kboard, Vprefix_arg);
-      Vcurrent_prefix_arg = prefixarg;
-      kset_prefix_arg (current_kboard, Qnil);
-    }
-  else
-    prefixarg = Qnil;
-
-  if (SYMBOLP (cmd))
-    {
-      tem = Fget (cmd, Qdisabled);
-      if (!NILP (tem))
-	{
-	  tem = Fsymbol_value (Qdisabled_command_function);
-	  if (!NILP (tem))
-	    return Frun_hooks (1, &Qdisabled_command_function);
-	}
-    }
-
-  while (1)
-    {
-      final = Findirect_function (cmd, Qnil);
-
-      if (CONSP (final) && (tem = Fcar (final), EQ (tem, Qautoload)))
-	{
-	  struct gcpro gcpro1, gcpro2;
-
-	  GCPRO2 (cmd, prefixarg);
-	  Fautoload_do_load (final, cmd, Qnil);
-	  UNGCPRO;
-	}
-      else
-	break;
-    }
-
-  if (STRINGP (final) || VECTORP (final))
-    {
-      /* If requested, place the macro in the command history.  For
-	 other sorts of commands, call-interactively takes care of
-	 this.  */
-      if (!NILP (record_flag))
-	{
-	  Vcommand_history
-	    = Fcons (Fcons (Qexecute_kbd_macro,
-			    Fcons (final, Fcons (prefixarg, Qnil))),
-		     Vcommand_history);
-
-	  /* Don't keep command history around forever.  */
-	  if (NUMBERP (Vhistory_length) && XINT (Vhistory_length) > 0)
-	    {
-	      tem = Fnthcdr (Vhistory_length, Vcommand_history);
-	      if (CONSP (tem))
-		XSETCDR (tem, Qnil);
-	    }
-	}
-
-      return Fexecute_kbd_macro (final, prefixarg, Qnil);
-    }
-
-  if (CONSP (final) || SUBRP (final) || COMPILEDP (final))
-    /* Don't call Fcall_interactively directly because we want to make
-       sure the backtrace has an entry for `call-interactively'.
-       For the same reason, pass `cmd' rather than `final'.  */
-      return call3 (Qcall_interactively, cmd, record_flag, keys);
-
-  return Qnil;
-}
-
-
-
 /* Return true if input events are pending.  */
 
 bool
@@ -11195,8 +11106,7 @@ syms_of_keyboard (void)
   raw_keybuf = Fmake_vector (make_number (30), Qnil);
   staticpro (&raw_keybuf);
 
-  DEFSYM (Qextended_command_history, "extended-command-history");
-  Fset (Qextended_command_history, Qnil);
+  DEFSYM (Qcommand_execute, "command-execute");
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);
@@ -11235,7 +11145,6 @@ syms_of_keyboard (void)
   defsubr (&Srecursive_edit);
   defsubr (&Strack_mouse);
   defsubr (&Sinput_pending_p);
-  defsubr (&Scommand_execute);
   defsubr (&Srecent_keys);
   defsubr (&Sthis_command_keys);
   defsubr (&Sthis_command_keys_vector);

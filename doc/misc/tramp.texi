@@ -20,6 +20,33 @@
 @c xxx and yyy are auxiliary macros in order to omit leading and
 @c trailing whitespace.  Not very elegant, but I don't know it better.
 
+@c There are subtle differences between texinfo 4.13 and 5.0.  We must
+@c declare two versions of the macro.  This will be improved, hopefully.
+
+@c Texinfo 5.0.
+@ifset txicommandconditionals
+@macro xxx {one}
+@set \one\
+@end macro
+
+@macro yyy {one, two}
+@xxx{x\one\}@c
+@ifclear x
+\one\@w{}\two\@c
+@end ifclear
+@clear x\one\
+@end macro
+
+@macro trampfn {method, user, host, localname}
+@value{prefix}@c
+@yyy{\method\,@value{postfixhop}}@c
+@yyy{\user\,@@}@c
+\host\@value{postfix}\localname\
+@end macro
+@end ifset
+
+@c Texinfo 4.13.
+@ifclear txicommandconditionals
 @macro xxx {one}@c
 @set \one\@c
 @end macro
@@ -35,6 +62,7 @@
 @macro trampfn {method, user, host, localname}@c
 @value{prefix}@yyy{\method\,@value{postfixhop}}@yyy{\user\,@@}\host\@value{postfix}\localname\@c
 @end macro
+@end ifclear
 
 @copying
 Copyright @copyright{} 1999--2013 Free Software Foundation, Inc.
@@ -144,9 +172,6 @@ For the end user:
 * Usage::                       An overview of the operation of @value{tramp}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
-* Function Index::              @value{tramp} functions.
-* Variable Index::              User options and variables.
-* Concept Index::               An item for each concept.
 
 For the developer:
 
@@ -155,6 +180,9 @@ For the developer:
 * Issues::                      Debatable Issues and What Was Decided.
 
 * GNU Free Documentation License:: The license for this documentation.
+* Function Index::              @value{tramp} functions.
+* Variable Index::              User options and variables.
+* Concept Index::               An item for each concept.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -621,13 +649,6 @@ Connect to the remote host with @command{ssh}.  This is identical to
 the previous option except that the @command{ssh} package is used,
 making the connection more secure.
 
-There are also two variants, @option{ssh1} and @option{ssh2}, that
-call @samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
-explicitly select whether you want to use the SSH protocol version 1
-or 2 to connect to the remote host.  (You can also specify in
-@file{~/.ssh/config}, the SSH configuration file, which protocol
-should be used, and use the regular @option{ssh} method.)
-
 All the methods based on @command{ssh} have an additional feature: you
 can specify a host name which looks like @file{host#42} (the real host
 name, then a hash sign, then a port number).  This means to connect to
@@ -723,16 +744,6 @@ remote host.
 
 This supports the @samp{-P} argument.
 
-Additionally, the methods @option{plink1} and @option{plink2} are
-provided, which call @samp{plink -1 -ssh} or @samp{plink -2 -ssh} in
-order to use SSH protocol version 1 or 2 explicitly.
-
-CCC: Do we have to connect to the remote host once from the command
-line to accept the SSH key?  Maybe this can be made automatic?
-
-CCC: Say something about the first shell command failing.  This might
-be due to a wrong setting of @code{tramp-rsh-end-of-line}.
-
 
 @item @option{plinkx}
 @cindex method plinkx
@@ -795,13 +806,6 @@ the inline methods when you often open and close small files however.
 The cost of the cryptographic handshake at the start of an @command{scp}
 session can begin to absorb the advantage that the lack of encoding and
 decoding presents.
-
-There are also two variants, @option{scp1} and @option{scp2}, that
-call @samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
-explicitly select whether you want to use the SSH protocol version 1
-or 2 to connect to the remote host.  (You can also specify in
-@file{~/.ssh/config}, the SSH configuration file, which protocol
-should be used, and use the regular @option{scp} method.)
 
 All the @command{ssh} based methods support the @samp{-p} feature
 where you can specify a port number to connect to in the host name.
@@ -995,9 +999,23 @@ name.
 @cindex adb method
 
 This special method uses the Android Debug Bridge for connecting
-Android devices.  The Android Debug Bridge, part of the Android SDK,
-must be installed locally.  The variable @var{tramp-adb-sdk-dir} must
-be set to its installation directory.
+Android devices.  The Android Debug Bridge must be installed locally.
+Some GNU/Linux distributions offer it for installation, otherwise it
+can be installed as part of the Android SDK.  If @command{adb} is not
+found via the @code{$PATH} environment variable, the variable
+@var{tramp-adb-program} must point to its absolute path.
+
+Usually, the @command{adb} method does not need any user name.  It
+runs under the permissions of the @command{adbd} process on the
+Android device.  If a user name is specified, @value{tramp} applies an
+@command{su} on the device.  This does not work with all Android
+devices, especially with nonrooted ones.  In that case, an error
+message is displayed.
+
+If there is exactly one Android device connected to the local machine,
+a host name is not needed.  The shortest @value{tramp} name to be used
+is @file{@trampfn{adb, , ,}} therefore.  Otherwise, one could find
+potential host names with the shell command @command{adb devices}.
 
 @end table
 
@@ -2016,7 +2034,7 @@ local machine.
 
 When an @command{sshd} process runs on the Android device, like
 provided by the @code{SSHDroid} app, any @option{ssh}-based method can
-be used.  However, this requires some special settings.
+be used.  This requires some special settings.
 
 The default shell @code{/bin/sh} does not exist.  Instead, you shall
 use just @code{sh}, which invokes the shell installed on the device.
@@ -2030,23 +2048,50 @@ You can instruct @value{tramp} by this form:
 @noindent
 with @samp{192.168.0.26} being the IP address of your Android device.
 
-The user settings for the @code{$PATH} environment valiable must be
-preserved. Add this setting:
+The user settings for the @code{$PATH} environment variable must be
+preserved.  It has also been reported, that the commands in
+@file{/system/xbin} are better suited than the ones in
+@file{/system/bin}.  Add these setting:
 
 @lisp
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+(add-to-list 'tramp-remote-path "/system/xbin")
 @end lisp
 
+@noindent
 If the Android device is not @samp{rooted}, you must give the shell a
-writable directory for temporary files.  You could use this setting:
+writable directory for temporary files:
 
 @lisp
 (add-to-list 'tramp-remote-process-environment "TMPDIR=$HOME")
 @end lisp
 
+@noindent
 Now you shall be able to open a remote connection with @kbd{C-x C-f
 @trampfn{ssh, , 192.168.0.26#2222, }}, given that @command{sshd}
 listens on port @samp{2222}.
+
+It is also recommended to add a corresponding entry to your
+@file{~/.ssh/config} for that connection, like
+
+@example
+Host android
+     HostName 192.168.0.26
+     User root
+     Port 2222
+@end example
+
+@noindent
+In this case, you must change the setting for the remote shell to
+
+@lisp
+(add-to-list 'tramp-connection-properties
+	     (list (regexp-quote "android") "remote-shell" "sh"))
+@end lisp
+
+@noindent
+You would open the connection with @kbd{C-x C-f @trampfn{ssh, ,
+android, }} then.
 
 
 @node Auto-save and Backup
@@ -2296,25 +2341,25 @@ using the default method.  @xref{Default Method}.
 Some examples of @value{tramp} filenames are shown below.
 
 @table @file
-@item @trampfn{, , melancholia, .emacs}
+@item @value{prefix}melancholia@value{postfix}.emacs
 Edit the file @file{.emacs} in your home directory on the machine
 @code{melancholia}.
 
-@item @trampfn{, , melancholia.danann.net, .emacs}
+@item @value{prefix}melancholia.danann.net@value{postfix}.emacs
 This edits the same file, using the fully qualified domain name of
 the machine.
 
-@item @trampfn{, , melancholia, ~/.emacs}
+@item @value{prefix}melancholia@value{postfix}~/.emacs
 This also edits the same file; the @file{~} is expanded to your
 home directory on the remote machine, just like it is locally.
 
-@item @trampfn{, , melancholia, ~daniel/.emacs}
+@item @value{prefix}melancholia@value{postfix}~daniel/.emacs
 This edits the file @file{.emacs} in the home directory of the user
 @code{daniel} on the machine @code{melancholia}.  The @file{~<user>}
 construct is expanded to the home directory of that user on the remote
 machine.
 
-@item @trampfn{, , melancholia, /etc/squid.conf}
+@item @value{prefix}melancholia@value{postfix}/etc/squid.conf
 This edits the file @file{/etc/squid.conf} on the machine
 @code{melancholia}.
 
@@ -2426,7 +2471,8 @@ If you, for example, type @kbd{C-x C-f @value{prefix}t
 @key{TAB}}, @value{tramp} might give you as result the choice for
 
 @example
-@multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
+@c @multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
+@multitable @columnfractions .5 .5
 @ifset emacs
 @item @value{prefixhop}telnet@value{postfixhop} @tab tmp/
 @item @value{prefixhop}toto@value{postfix} @tab
@@ -2453,7 +2499,8 @@ Next @kbd{@key{TAB}} brings you all machine names @value{tramp} detects in
 your @file{/etc/hosts} file, let's say
 
 @example
-@multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
+@multitable @columnfractions .5 .5
+@c @multitable {@trampfn{telnet, , melancholia.danann.net,}} {@trampfn{telnet, , 192.168.0.1,}}
 @item @trampfn{telnet, , 127.0.0.1,} @tab @trampfn{telnet, , 192.168.0.1,}
 @item @trampfn{telnet, , @value{ipv6prefix}::1@value{ipv6postfix},} @tab @trampfn{telnet, , localhost,}
 @item @trampfn{telnet, , melancholia.danann.net,} @tab @trampfn{telnet, , melancholia,}
@@ -3860,3 +3907,4 @@ for @value{emacsothername}.
 @c * Use `filename' resp. `file name' consistently.
 @c * Use `host' resp. `machine' consistently.
 @c * Consistent small or capitalized words especially in menus.
+@c * Make a unique declaration of @trampfn.

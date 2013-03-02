@@ -29,7 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 Lisp_Object Qminus, Qplus;
-Lisp_Object Qcall_interactively;
+static Lisp_Object Qcall_interactively;
 static Lisp_Object Qcommand_debug_status;
 static Lisp_Object Qenable_recursive_minibuffers;
 
@@ -342,8 +342,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
       specs = Feval (specs,
-		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
-		     ? Qt : Qnil);
+ 		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
+		     ? CAR_SAFE (XCDR (funval)) : Qnil);
       UNGCPRO;
       if (events != num_input_events || !NILP (record_flag))
 	{

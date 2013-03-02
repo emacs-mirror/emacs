@@ -703,14 +703,6 @@ The type symbol @code{real} is a synonym for @code{number}, and
 The type symbols @code{character} and @code{string-char} match
 integers in the range from 0 to 255.
 
-@c No longer relevant, so covered by first item above (float -> floatp).
-@ignore
-@item
-The type symbol @code{float} uses the @code{cl-floatp-safe} predicate
-defined by this package rather than @code{floatp}, so it will work
-correctly even in Emacs versions without floating-point support.
-@end ignore
-
 @item
 The type list @code{(integer @var{low} @var{high})} represents all
 integers between @var{low} and @var{high}, inclusive.  Either bound
@@ -2920,14 +2912,6 @@ error if the argument is not an integer.
 This predicate tests whether @var{integer} is even.  It is an
 error if the argument is not an integer.
 @end defun
-
-@ignore
-@defun cl-floatp-safe object
-This predicate tests whether @var{object} is a floating-point
-number.  On systems that support floating-point, this is equivalent
-to @code{floatp}.  On other systems, this always returns @code{nil}.
-@end defun
-@end ignore
 
 @node Numerical Functions
 @section Numerical Functions

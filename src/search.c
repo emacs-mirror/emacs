@@ -638,15 +638,18 @@ newline_cache_on_off (struct buffer *buf)
    If we don't find COUNT instances before reaching END, set *SHORTAGE
    to the number of newlines left unfound, and return END.
 
+   If BYTEPOS is not NULL, set *BYTEPOS to the byte position corresponding
+   to the returned character position.
+
    If ALLOW_QUIT, set immediate_quit.  That's good to do
    except when inside redisplay.  */
 
 ptrdiff_t
-find_newline (ptrdiff_t start, ptrdiff_t end,
-	      ptrdiff_t count, ptrdiff_t *shortage, bool allow_quit)
+find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
+	      ptrdiff_t *shortage, ptrdiff_t *bytepos, bool allow_quit)
 {
   struct region_cache *newline_cache;
-  ptrdiff_t end_byte = -1;
+  ptrdiff_t start_byte = -1, end_byte = -1;
   int direction;
 
   if (count > 0)
@@ -680,9 +683,7 @@ find_newline (ptrdiff_t start, ptrdiff_t end,
            the position of the last character before the next such
            obstacle --- the last character the dumb search loop should
            examine.  */
-	ptrdiff_t ceiling_byte = end_byte - 1;
-	ptrdiff_t start_byte;
-	ptrdiff_t tem;
+	ptrdiff_t tem, ceiling_byte = end_byte - 1;
 
         /* If we're looking for a newline, consult the newline cache
            to see where we can avoid some scanning.  */
@@ -745,21 +746,22 @@ find_newline (ptrdiff_t start, ptrdiff_t end,
 	      if (--count == 0)
 		{
 		  immediate_quit = 0;
+		  if (bytepos)
+		    *bytepos = nl + 1 - base + start_byte;
 		  return BYTE_TO_CHAR (nl + 1 - base + start_byte);
 		}
 	      cursor = nl + 1;
             }
 
-          start = BYTE_TO_CHAR (ceiling_addr - base + start_byte);
+	  start_byte += ceiling_addr - base;
+	  start = BYTE_TO_CHAR (start_byte);
         }
       }
   else
     while (start > end)
       {
         /* The last character to check before the next obstacle.  */
-	ptrdiff_t ceiling_byte = end_byte;
-	ptrdiff_t start_byte;
-	ptrdiff_t tem;
+	ptrdiff_t tem, ceiling_byte = end_byte;
 
         /* Consult the newline cache, if appropriate.  */
         if (newline_cache)
@@ -816,18 +818,26 @@ find_newline (ptrdiff_t start, ptrdiff_t end,
 	      if (++count >= 0)
 		{
 		  immediate_quit = 0;
+		  if (bytepos)
+		    *bytepos = nl - base + start_byte;
 		  return BYTE_TO_CHAR (nl - base + start_byte);
 		}
 	      cursor = nl - 1;
             }
 
-	  start = BYTE_TO_CHAR (ceiling_addr - 1 - base + start_byte);
+	  start_byte += ceiling_addr - 1 - base;
+	  start = BYTE_TO_CHAR (start_byte);
         }
       }
 
   immediate_quit = 0;
-  if (shortage != 0)
+  if (shortage)
     *shortage = count * direction;
+  if (bytepos)
+    {
+      *bytepos = start_byte == -1 ? CHAR_TO_BYTE (start) : start_byte;
+      eassert (*bytepos == CHAR_TO_BYTE (start));
+    }
   return start;
 }
 
@@ -932,9 +942,9 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 }
 
 ptrdiff_t
-find_next_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt)
+find_next_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
-  return find_newline (from, 0, cnt, (ptrdiff_t *) 0, 0);
+  return find_newline (from, 0, cnt, NULL, bytepos, 0);
 }
 
 /* Like find_next_newline, but returns position before the newline,
@@ -942,14 +952,19 @@ find_next_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt)
    find_next_newline (...)-1, because you might hit TO.  */
 
 ptrdiff_t
-find_before_next_newline (ptrdiff_t from, ptrdiff_t to, ptrdiff_t cnt)
+find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
+			  ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
   ptrdiff_t shortage;
-  ptrdiff_t pos = find_newline (from, to, cnt, &shortage, 1);
+  ptrdiff_t pos = find_newline (from, to, cnt, &shortage, bytepos, 1);
 
   if (shortage == 0)
-    pos--;
-
+    {
+      if (bytepos)
+	DEC_BOTH (pos, *bytepos);
+      else
+	pos--;
+    }
   return pos;
 }
 

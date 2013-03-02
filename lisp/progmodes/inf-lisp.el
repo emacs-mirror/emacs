@@ -201,8 +201,8 @@ This process selection is performed by function `inferior-lisp-proc'.
 Whenever \\[inferior-lisp] fires up a new process, it resets
 `inferior-lisp-buffer' to be the new process's buffer.  If you only run
 one process, this does the right thing.  If you run multiple
-processes, you can change `inferior-lisp-buffer' to another process
-buffer with \\[set-variable].")
+processes, you might need to change `inferior-lisp-buffer' to
+whichever process buffer you want to use.")
 
 (defvar inferior-lisp-mode-hook '()
   "Hook for customizing Inferior Lisp mode.")

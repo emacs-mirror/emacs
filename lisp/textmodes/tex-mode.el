@@ -271,9 +271,7 @@ otherwise the value of `tex-start-options', the \(shell-quoted\)
 value of `tex-start-commands', and the file name are added at the end
 with blanks as separators.
 
-In TeX, LaTeX, and SliTeX Mode this variable becomes buffer local.
-In these modes, use \\[set-variable] if you want to change it for the
-current buffer.")
+In TeX, LaTeX, and SliTeX Mode this variable becomes buffer local.")
 
 (defvar tex-trailer nil
   "String appended after the end of a region sent to TeX by \\[tex-region].")

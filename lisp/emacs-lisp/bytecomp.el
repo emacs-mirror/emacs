@@ -1594,7 +1594,9 @@ that already has a `.elc' file."
                    (setq directories (nconc directories (list source))))
                ;; It is an ordinary file.  Decide whether to compile it.
                (if (and (string-match emacs-lisp-file-regexp source)
+			;; The next 2 tests avoid compiling lock files
                         (file-readable-p source)
+			(not (string-match "\\`\\.#" file))
                         (not (auto-save-file-name-p source))
                         (not (string-equal dir-locals-file
                                            (file-name-nondirectory source))))
@@ -1675,6 +1677,9 @@ If compilation is needed, this functions returns the result of
 	(load (if (file-exists-p dest) dest filename)))
       'no-byte-compile)))
 
+(defvar byte-compile-level 0		; bug#13787
+  "Depth of a recursive byte compilation.")
+
 ;;;###autoload
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
@@ -1717,7 +1722,13 @@ The value is non-nil if there were no errors, nil if errors."
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
     (with-current-buffer
-        (setq input-buffer (get-buffer-create " *Compiler Input*"))
+	;; It would be cleaner to use a temp buffer, but if there was
+	;; an error, we leave this buffer around for diagnostics.
+	;; Its name is documented in the lispref.
+	(setq input-buffer (get-buffer-create
+			    (concat " *Compiler Input*"
+				    (if (zerop byte-compile-level) ""
+				      (format "-%s" byte-compile-level)))))
       (erase-buffer)
       (setq buffer-file-coding-system nil)
       ;; Always compile an Emacs Lisp file as multibyte
@@ -1775,7 +1786,8 @@ The value is non-nil if there were no errors, nil if errors."
       ;; within byte-compile-from-buffer lingers in that buffer.
       (setq output-buffer
 	    (save-current-buffer
-	      (byte-compile-from-buffer input-buffer)))
+	      (let ((byte-compile-level (1+ byte-compile-level)))
+                (byte-compile-from-buffer input-buffer))))
       (if byte-compiler-error-flag
 	  nil
 	(when byte-compile-verbose
@@ -1881,7 +1893,10 @@ With argument ARG, insert value in current buffer after the form."
     (byte-compile-close-variables
      (with-current-buffer
          (setq byte-compile--outbuffer
-               (get-buffer-create " *Compiler Output*"))
+               (get-buffer-create
+                (concat " *Compiler Output*"
+                        (if (<= byte-compile-level 1) ""
+                          (format "-%s" (1- byte-compile-level))))))
        (set-buffer-multibyte t)
        (erase-buffer)
        ;;	 (emacs-lisp-mode)

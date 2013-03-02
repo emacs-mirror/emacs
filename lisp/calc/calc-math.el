@@ -777,18 +777,18 @@ If this can't be done, return NIL."
 	 (math-to-hms a 'rad))
 	(t a)))
 
-(defun math-to-radians-2 (a)   ; [N N]
+(defun math-to-radians-2 (a &optional force-symbolic)   ; [N N]
   (cond ((eq (car-safe a) 'hms)
 	 (math-from-hms a 'rad))
 	((memq calc-angle-mode '(deg hms))
-	 (if calc-symbolic-mode
+	 (if (or calc-symbolic-mode force-symbolic)
 	     (math-div (math-mul a '(var pi var-pi)) 180)
 	   (math-mul a (math-pi-over-180))))
 	(t a)))
 
-(defun math-from-radians-2 (a)   ; [N N]
+(defun math-from-radians-2 (a &optional force-symbolic)   ; [N N]
   (cond ((memq calc-angle-mode '(deg hms))
-	 (if calc-symbolic-mode
+	 (if (or calc-symbolic-mode force-symbolic)
 	     (math-div (math-mul 180 a) '(var pi var-pi))
 	   (math-div a (math-pi-over-180))))
 	(t a)))

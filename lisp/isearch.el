@@ -2961,8 +2961,15 @@ by other Emacs features."
     (setq isearch-lazy-highlight-window       (selected-window)
 	  isearch-lazy-highlight-window-start (window-start)
 	  isearch-lazy-highlight-window-end   (window-end)
-	  isearch-lazy-highlight-start        (point)
-	  isearch-lazy-highlight-end          (point)
+	  ;; Start lazy-highlighting at the beginning of the found
+	  ;; match (`isearch-other-end').  If no match, use point.
+	  ;; One of the next two variables (depending on search direction)
+	  ;; is used to define the starting position of lazy-highlighting
+	  ;; and also to remember the current position of point between
+	  ;; calls of `isearch-lazy-highlight-update', and another variable
+	  ;; is used to define where the wrapped search must stop.
+	  isearch-lazy-highlight-start        (or isearch-other-end (point))
+	  isearch-lazy-highlight-end          (or isearch-other-end (point))
 	  isearch-lazy-highlight-wrapped      nil
 	  isearch-lazy-highlight-last-string  isearch-string
 	  isearch-lazy-highlight-case-fold-search isearch-case-fold-search
@@ -3060,6 +3067,9 @@ Attempt to do the search exactly the way the pending Isearch would."
 			  (overlay-put ov 'priority 1000)
 			  (overlay-put ov 'face lazy-highlight-face)
 			  (overlay-put ov 'window (selected-window))))
+		      ;; Remember the current position of point for
+		      ;; the next call of `isearch-lazy-highlight-update'
+		      ;; when `lazy-highlight-max-at-a-time' is too small.
 		      (if isearch-lazy-highlight-forward
 			  (setq isearch-lazy-highlight-end (point))
 			(setq isearch-lazy-highlight-start (point)))))

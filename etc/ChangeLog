@@ -1,3 +1,20 @@
+2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: The lock for FILE is now .#FILE or .#-FILE (Bug#13807).
+
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Fix Tramp "adb" entry.  Extend list of discontinued Tramp
+	methods.
+
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	* NEWS: Document removal of --with-crt-dir.
+	* PROBLEMS (LIBS_SYSTEM, LIBS_MACHINE, LIBS_STANDARD): Remove.
+	Remove legacy-systems section, as this stuff is no longer
+	applicable with current linking strategies.
+
 2013-02-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Tramp methods "scpc" and "rsyncc" are discontinued.
@@ -1519,7 +1536,7 @@
 
 2009-01-27  Kenichi Handa  <handa@m17n.org>
 
-	* NEWS: New function `coding-sytem-from-name'.
+	* NEWS: New function `coding-system-from-name'.
 
 2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
 

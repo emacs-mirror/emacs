@@ -223,7 +223,7 @@ Text in speedbar consists of four different types of data.  Knowing how
 to read these textual elements will make it easier to navigate by
 identifying the types of data available.
 
-@subsubsection Groups
+@subsection Groups
 @cindex groups
 
 Groups summarize information in a single line, and provide a high level

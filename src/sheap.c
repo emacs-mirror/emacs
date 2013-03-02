@@ -91,5 +91,7 @@ report_sheap_usage (int die_if_pure_storage_exceeded)
   char buf[200];
   sprintf (buf, "Static heap usage: %d of %d bytes",
 	   bss_sbrk_ptr - bss_sbrk_buffer, STATIC_HEAP_SIZE);
-  message1 (buf);
+  /* Don't log messages, cause at this point, we're not allowed to create
+     buffers.  */
+  message1_nolog (buf);
 }

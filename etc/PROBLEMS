@@ -432,21 +432,7 @@ The fix is to install an unshared library that corresponds to what you
 installed in the shared library, and then relink Emacs.
 
 If you have already installed the name resolver in the file libresolv.a,
-then you need to compile Emacs to use that library.  The easiest way to
-do this is to add to config.h a definition of LIBS_SYSTEM, LIBS_MACHINE
-or LIB_STANDARD which uses -lresolv.  Watch out!  If you redefine a macro
-that is already in use in your configuration to supply some other libraries,
-be careful not to lose the others.
-
-Thus, you could start by adding this to config.h:
-
-#define LIBS_SYSTEM -lresolv
-
-Then if this gives you an error for redefining a macro, and you see that
-config.h already defines LIBS_SYSTEM as -lfoo -lbar at some other point
-(possibly in an included file) you could change it to say this:
-
-#define LIBS_SYSTEM -lresolv -lfoo -lbar
+then you need to compile Emacs to use that library.
 
 *** Emacs does not know your host's fully-qualified domain name.
 
@@ -3179,25 +3165,6 @@ as a concentrator.
 
 This problem seems to be a matter of configuring the DECserver to use
 7 bit characters rather than 8 bit characters.
-
-* Build problems on legacy systems
-
-** SunOS: Emacs gets error message from linker on Sun.
-
-If the error message says that a symbol such as `f68881_used' or
-`ffpa_used' or `start_float' is undefined, this probably indicates
-that you have compiled some libraries, such as the X libraries,
-with a floating point option other than the default.
-
-It's not terribly hard to make this work with small changes in
-crt0.c together with linking with Fcrt1.o, Wcrt1.o or Mcrt1.o.
-However, the easiest approach is to build Xlib with the default
-floating point option: -fsoft.
-
-** HPUX 10.20: Emacs crashes during dumping on the HPPA machine.
-
-This seems to be due to a GCC bug; it is fixed in GCC 2.8.1.
-
 
 This file is part of GNU Emacs.
 

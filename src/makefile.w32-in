@@ -864,6 +864,7 @@ $(BLD)/fileio.$(O) : \
 
 $(BLD)/filelock.$(O) : \
 	$(SRC)/filelock.c \
+	$(SRC)/w32.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
@@ -1492,7 +1493,6 @@ $(BLD)/unexw32.$(O) : \
 
 $(BLD)/vm-limit.$(O) : \
 	$(SRC)/vm-limit.c \
-	$(SRC)/mem-limits.h \
 	$(SRC)/w32heap.h \
 	$(NT_INC)/unistd.h \
 	$(CONFIG_H) \

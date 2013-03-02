@@ -43,14 +43,17 @@
   ;; save-restrictions would not work
   ;; because it records the old max relative to the end.
   ;; We record it relative to the beginning.
-  (if input-buffer-name
-      (message "Tagifying region in %s ..." input-buffer-name)
-      (message
-       "Tagifying %s ..."  (file-name-nondirectory (buffer-file-name))))
   (let ((omin (point-min))
 	(omax (point-max))
 	(nomax (= (point-max) (1+ (buffer-size))))
-	(opoint (point)))
+	(opoint (point))
+	(msg (format "Tagifying %s..."
+		     (cond (input-buffer-name
+			    (format "region in %s" input-buffer-name))
+			   (buffer-file-name
+			    (file-name-nondirectory (buffer-file-name)))
+			   (t "buffer")))))
+    (message "%s" msg)
     (unwind-protect
     (progn
       (widen)
@@ -148,11 +151,8 @@
 		(insert "\^_\nEnd tag table\n")))))
       (goto-char opoint)
       (narrow-to-region omin (if nomax (1+ (buffer-size))
-			       (min omax (point-max))))))
-  (if input-buffer-name
-      (message "Tagifying region in %s done" input-buffer-name)
-      (message
-       "Tagifying %s done"  (file-name-nondirectory (buffer-file-name)))))
+			       (min omax (point-max)))))
+    (message "%sdone" msg)))
 
 
 ;;;###autoload

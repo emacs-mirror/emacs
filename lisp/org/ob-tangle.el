@@ -371,6 +371,10 @@ code blocks by language."
           (unless (and language (not (string= language src-lang)))
 	    (let* ((info (org-babel-get-src-block-info))
 		   (params (nth 2 info))
+		   (extra (nth 3 info))
+		   (cref-fmt (or (and (string-match "-l \"\\(.+\\)\"" extra)
+				      (match-string 1 extra))
+				 org-coderef-label-format))
 		   (link ((lambda (link)
 			    (and (string-match org-bracket-link-regexp link)
 				 (match-string 1 link)))
@@ -388,6 +392,11 @@ code blocks by language."
 		    ((lambda (body) ;; run the tangle-body-hook
 		       (with-temp-buffer
 			 (insert body)
+			 (when (string-match "-r" extra)
+			   (goto-char (point-min))
+			   (while (re-search-forward
+				   (replace-regexp-in-string "%s" ".+" cref-fmt) nil t)
+			     (replace-match "")))
 			 (run-hooks 'org-babel-tangle-body-hook)
 			 (buffer-string)))
 		     ((lambda (body) ;; expand the body in language specific manner

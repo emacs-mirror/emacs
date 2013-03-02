@@ -2464,7 +2464,7 @@ information about your RefTeX version and configuration."
   (require 'reporter)
   (let ((reporter-prompt-for-summary-p "Bug report subject: "))
     (reporter-submit-bug-report
-     "bug-auctex@gnu.org"
+     "bug-auctex@gnu.org, bug-gnu-emacs@gnu.org"
      reftex-version
      (list 'window-system
 	   'reftex-plug-into-AUCTeX)

@@ -75,7 +75,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you want lock files to be written, so that Emacs can tell
    instantly when you try to modify a file that someone else has modified in
    his/her Emacs. */
-#undef CLASH_DETECTION
+#define CLASH_DETECTION 1
 
 /* Short copyright string for this version of Emacs. */
 #define COPYRIGHT "Copyright (C) 2013 Free Software Foundation, Inc."

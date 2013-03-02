@@ -4583,7 +4583,7 @@ argument to the value returned by its second argument.
 @item buffer-name
 Without an argument, return the name of the buffer, as a string.
 
-@itemx buffer-file-name
+@item buffer-file-name
 Without an argument, return the name of the file the buffer is
 visiting.
 

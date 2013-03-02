@@ -244,8 +244,7 @@ for SIMULA mode to function correctly."
 ; it determines the flavor of the Emacs running
 
 (defvar simula-mode-menu
-  '(["Report Bug"	      simula-submit-bug-report t]
-    ["Indent Line"	      simula-indent-line t]
+  '(["Indent Line"	      simula-indent-line t]
     ["Backward Statement"     simula-previous-statement t]
     ["Forward Statement"      simula-next-statement t]
     ["Backward Up Level"      simula-backward-up-level t]
@@ -286,10 +285,6 @@ for SIMULA mode to function correctly."
     ;; Emacs 19 defines menus in the mode map
     (define-key map [menu-bar simula]
       (cons "SIMULA" (make-sparse-keymap "SIMULA")))
-    (define-key map [menu-bar simula bug-report]
-      '("Submit Bug Report" . simula-submit-bug-report))
-    (define-key map [menu-bar simula separator-indent]
-      '("--"))
     (define-key map [menu-bar simula indent-exp]
       '("Indent Expression" . simula-indent-exp))
     (define-key map [menu-bar simula indent-line]
@@ -1622,28 +1617,11 @@ If not nil and not t, move to limit of search and return nil."
 (defconst simula-mode-help-address "bug-gnu-emacs@gnu.org"
   "Address accepting submission of `simula-mode' bug reports.")
 
-(defun simula-submit-bug-report ()
-  "Submit via mail a bug report on `simula-mode'."
-  (interactive)
-  (and
-   (y-or-n-p "Do you want to submit a report on simula-mode? ")
-   (reporter-submit-bug-report
-    simula-mode-help-address
-    (concat "simula-mode from Emacs " emacs-version)
-    (list
-     ;; report only the vars that affect indentation
-     'simula-indent-level
-     'simula-substatement-offset
-     'simula-continued-statement-offset
-     'simula-label-offset
-     'simula-if-indent
-     'simula-inspect-indent
-     'simula-electric-indent
-     'simula-abbrev-keyword
-     'simula-abbrev-stdproc
-     'simula-abbrev-file
-     'simula-tab-always-indent
-     ))))
+(make-obsolete-variable 'simula-mode-help-address 'report-emacs-bug-address
+			"24.4")
+
+(define-obsolete-function-alias 'simula-submit-bug-report
+  'report-emacs-bug "24.4")
 
 (provide 'simula)
 

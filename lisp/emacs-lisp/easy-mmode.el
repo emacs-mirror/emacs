@@ -359,10 +359,8 @@ on if the hook has explicitly disabled it."
 	 (MODE-check-buffers
 	  (intern (concat global-mode-name "-check-buffers")))
 	 (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
-	 (MODE-disable-in-buffer
-	  (intern (concat global-mode-name "-disable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
-	 (disable-MODE (intern (concat "disable-" mode-name)))
+	 (MODE-set-explicitly (intern (concat mode-name "-set-explicitly")))
 	 (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
 	 keyw)
 
@@ -409,8 +407,6 @@ See `%s' for more information on %s."
 	       (add-hook 'find-file-hook ',MODE-check-buffers)
 	       (add-hook 'change-major-mode-hook ',MODE-cmhh))
 	   (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
-	   (remove-hook 'change-major-mode-after-body-hook
-			',MODE-enable-in-buffers)
 	   (remove-hook 'find-file-hook ',MODE-check-buffers)
 	   (remove-hook 'change-major-mode-hook ',MODE-cmhh))
 
@@ -425,7 +421,7 @@ See `%s' for more information on %s."
 
        ;; A function which checks whether MODE has been disabled in the major
        ;; mode hook which has just been run.
-       (add-hook ',minor-MODE-hook ',MODE-disable-in-buffer)
+       (add-hook ',minor-MODE-hook ',MODE-set-explicitly)
 
        ;; List of buffers left to process.
        (defvar ,MODE-buffers nil)
@@ -435,8 +431,7 @@ See `%s' for more information on %s."
 	 (dolist (buf ,MODE-buffers)
 	   (when (buffer-live-p buf)
 	     (with-current-buffer buf
-               (if ,disable-MODE
-		   (if ,mode (,mode -1))
+               (unless ,MODE-set-explicitly
 		 (unless (eq ,MODE-major-mode major-mode)
 		   (if ,mode
 		       (progn
@@ -457,30 +452,20 @@ See `%s' for more information on %s."
 	 (add-to-list ',MODE-buffers (current-buffer))
 	 (add-hook 'post-command-hook ',MODE-check-buffers))
        (put ',MODE-cmhh 'definition-name ',global-mode)
-       ;; disable-MODE is set in MODE-disable-in-buffer and cleared by
+       ;; MODE-set-explicitly is set in MODE-set-explicitly and cleared by
        ;; kill-all-local-variables.
-       (defvar-local ,disable-MODE nil)
-       (defun ,MODE-disable-in-buffer ()
-	 (unless ,mode
-	   (setq ,disable-MODE t)))
-       (put ',MODE-disable-in-buffer 'definition-name ',global-mode))))
+       (defvar-local ,MODE-set-explicitly nil)
+       (defun ,MODE-set-explicitly ()
+         (setq ,MODE-set-explicitly t))
+       (put ',MODE-set-explicitly 'definition-name ',global-mode))))
 
 ;;;
 ;;; easy-mmode-defmap
 ;;;
 
-(eval-and-compile
-  (if (fboundp 'set-keymap-parents)
-      (defalias 'easy-mmode-set-keymap-parents 'set-keymap-parents)
-    (defun easy-mmode-set-keymap-parents (m parents)
-      (set-keymap-parent
-       m
-       (cond
-        ((not (consp parents)) parents)
-        ((not (cdr parents)) (car parents))
-        (t (let ((m (copy-keymap (pop parents))))
-             (easy-mmode-set-keymap-parents m parents)
-             m)))))))
+(defun easy-mmode-set-keymap-parents (m parents)
+  (set-keymap-parent
+   m (if (cdr parents) (make-composed-keymap parents) (car parents))))
 
 ;;;###autoload
 (defun easy-mmode-define-keymap (bs &optional name m args)

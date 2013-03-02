@@ -220,7 +220,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     argument.  By this, arguments like (\"-l\" \"%u\") are optional.
     \"%t\" is replaced by the temporary file name produced with
     `tramp-make-tramp-temp-file'.  \"%k\" indicates the keep-date
-    parameter of a program, if exists.
+    parameter of a program, if exists.  \"%c\" adds additional
+    `tramp-ssh-controlmaster-options' options for the first hop.
   * `tramp-async-args'
     When an asynchronous process is started, we know already that
     the connection works.  Therefore, we can pass additional
@@ -281,17 +282,23 @@ started on the local host.  You should specify a remote host
 useful only in combination with `tramp-default-proxies-alist'.")
 
 ;;;###tramp-autoload
-(defvar tramp-ssh-controlmaster-template
+(defconst tramp-ssh-controlmaster-options
+  (let ((result ""))
     (ignore-errors
       (with-temp-buffer
 	(call-process "ssh" nil t nil "-o" "ControlMaster")
 	(goto-char (point-min))
 	(when (search-forward-regexp "Missing ControlMaster argument" nil t)
-	  '("-o" "ControlPath=%t.%%r@%%h:%%p"
-	    "-o" "ControlMaster=auto"
-	    "-o" "ControlPersist=no"))))
-    "Call ssh to detect whether it supports the ControlMaster argument.
-Return a template to be used in `tramp-methods'.")
+	  (setq result "-o ControlPath=%t.%%r@%%h:%%p -o ControlMaster=auto")))
+      (when result
+	(with-temp-buffer
+	  (call-process "ssh" nil t nil "-o" "ControlPersist")
+	  (goto-char (point-min))
+	  (when (search-forward-regexp "Missing ControlPersist argument" nil t)
+	    (setq result (concat result " -o ControlPersist=no"))))))
+    result)
+    "Call ssh to detect whether it supports the Control* arguments.
+Return a string to be used in `tramp-methods'.")
 
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it performs
@@ -325,7 +332,7 @@ Return a template to be used in `tramp-methods'.")
 	    (getenv "SSH_AUTH_SOCK")
 	    (getenv "SSH_AGENT_PID")
 	    ;; We could reuse the connection.
-	    tramp-ssh-controlmaster-template)
+	    (> (length tramp-ssh-controlmaster-options) 0))
 	"scp"
       "ssh"))
    ;; Fallback.
@@ -1158,28 +1165,50 @@ If the `tramp-methods' entry does not exist, return nil."
 
 ;;;###tramp-autoload
 (defun tramp-tramp-file-p (name)
-  "Return t if NAME is a string with Tramp file name syntax.
-It checks also, whether NAME is unibyte encoded."
+  "Return t if NAME is a string with Tramp file name syntax."
   (save-match-data
     (and (stringp name)
-;	 (string-equal name (string-as-unibyte name))
 	 (string-match tramp-file-name-regexp name))))
+
+;; Obsoleted with Tramp 2.2.7.
+(defconst tramp-obsolete-methods
+  '("ssh1" "ssh2" "scp1" "scp2" "scpc" "rsyncc" "plink1")
+  "Obsolete methods.")
+
+(defvar tramp-warned-obsolete-methods nil
+  "Which methods the user has been warned to be obsolete.")
 
 (defun tramp-find-method (method user host)
   "Return the right method string to use.
 This is METHOD, if non-nil. Otherwise, do a lookup in
-`tramp-default-method-alist'."
-  (or method
-      (let ((choices tramp-default-method-alist)
-	    lmethod item)
-	(while choices
-	  (setq item (pop choices))
-	  (when (and (string-match (or (nth 0 item) "") (or host ""))
-		     (string-match (or (nth 1 item) "") (or user "")))
-	    (setq lmethod (nth 2 item))
-	    (setq choices nil)))
-	lmethod)
-      tramp-default-method))
+`tramp-default-method-alist'.  It maps also obsolete methods to
+their replacement."
+  (let ((result
+	 (or method
+	     (let ((choices tramp-default-method-alist)
+		   lmethod item)
+	       (while choices
+		 (setq item (pop choices))
+		 (when (and (string-match (or (nth 0 item) "") (or host ""))
+			    (string-match (or (nth 1 item) "") (or user "")))
+		   (setq lmethod (nth 2 item))
+		   (setq choices nil)))
+	       lmethod)
+	     tramp-default-method)))
+    ;; This is needed for a transition period only.
+    (when (member result tramp-obsolete-methods)
+      (unless (member result tramp-warned-obsolete-methods)
+	(if noninteractive
+	    (warn "Method %s is obsolete, using %s"
+		  result (substring result 0 -1))
+	  (unless (y-or-n-p (format "Method %s is obsolete, use %s? "
+				    result (substring result 0 -1)))
+	    (error 'file-error "Method \"%s\" not supported" result)))
+	(add-to-list 'tramp-warned-obsolete-methods result))
+      ;; This works with the current set of `tramp-obsolete-methods'.
+      ;; Must be improved, if their are more sophisticated replacements.
+      (setq result (substring result 0 -1)))
+    result))
 
 (defun tramp-find-user (method user host)
   "Return the right user string to use.
@@ -1346,6 +1375,8 @@ The outline level is equal to the verbosity of the Tramp message."
       (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
       (setq buffer-undo-list t)
+      ;; So it does not get loaded while `outline-regexp' is let-bound.
+      (require 'outline)
       ;; Activate `outline-mode'.  This runs `text-mode-hook' and
       ;; `outline-mode-hook'.  We must prevent that local processes
       ;; die.  Yes: I've seen `flyspell-mode', which starts "ispell".

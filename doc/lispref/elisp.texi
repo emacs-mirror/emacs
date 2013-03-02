@@ -1417,15 +1417,13 @@ Images
 * Image Descriptors::       How to specify an image for use in @code{:display}.
 * XBM Images::              Special features for XBM format.
 * XPM Images::              Special features for XPM format.
-* GIF Images::              Special features for GIF format.
-* TIFF Images::             Special features for TIFF format.
 * PostScript Images::       Special features for PostScript format.
 * ImageMagick Images::      Special features available through ImageMagick.
 * Other Image Types::       Various other formats are supported.
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once
                               it is defined.
-* Animated Images::         Some image formats can be animated.
+* Multi-Frame Images::      Some images contain more than one frame.
 * Image Cache::             Internal mechanisms of image display.
 
 Buttons

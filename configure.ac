@@ -230,12 +230,6 @@ if test "X${with_pkg_config_prog}" != X; then
    fi
 fi
 
-CRT_DIR=
-AC_ARG_WITH([crt-dir],dnl
-[AS_HELP_STRING([--with-crt-dir=DIR],[directory containing crtn.o etc.
-The default is /usr/lib, or /usr/lib64 on some platforms.])])
-CRT_DIR="${with_crt_dir}"
-
 AC_ARG_WITH(gameuser,dnl
 [AS_HELP_STRING([--with-gameuser=USER],[user for shared game score files])])
 test "X${with_gameuser}" != X && test "${with_gameuser}" != yes \
@@ -1051,42 +1045,29 @@ AC_DEFUN([AC_TYPE_UID_T])
 
 
 LIB_MATH=-lm
-LIB_STANDARD=
-START_FILES=
 dnl Current possibilities handled by sed (aix4-2 -> aix,
 dnl gnu-linux -> gnu/linux, etc.):
 dnl gnu, gnu/linux, gnu/kfreebsd, aix, cygwin, darwin, hpux, irix.
 dnl And special cases: berkeley-unix, usg-unix-v, ms-dos, windows-nt.
 SYSTEM_TYPE=`echo $opsys | sed -e 's/[[0-9]].*//' -e 's|-|/|'`
 
-dnl NB do not use CRT_DIR unquoted here, since it might not be set yet.
 case $opsys in
   cygwin )
     LIB_MATH=
-    START_FILES='pre-crt0.o'
     ;;
   darwin )
     ## Adding -lm confuses the dynamic linker, so omit it.
     LIB_MATH=
-    START_FILES='pre-crt0.o'
     ;;
   freebsd )
-    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
     SYSTEM_TYPE=berkeley-unix
     ;;
   gnu-linux | gnu-kfreebsd )
-    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
     ;;
   hpux10-20 | hpux11 )
-    LIB_STANDARD=-lc
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
   dnl NB this may be adjusted below.
   netbsd | openbsd )
-    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
-    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
     SYSTEM_TYPE=berkeley-unix
     ;;
 
@@ -1097,95 +1078,8 @@ case $opsys in
 esac
 
 AC_SUBST(LIB_MATH)
-AC_SUBST(START_FILES)
 AC_DEFINE_UNQUOTED(SYSTEM_TYPE, "$SYSTEM_TYPE",
   [The type of system you are compiling for; sets `system-type'.])
-
-dnl Not all platforms use crtn.o files.  Check if the current one does.
-crt_files=
-
-for file in x $LIB_STANDARD $START_FILES; do
-  case "$file" in
-    *CRT_DIR*) crt_files="$crt_files `echo $file | sed -e 's|.*/||'`" ;;
-  esac
-done
-
-if test "x$crt_files" != x; then
-
-  ## If user specified a crt-dir, use that unconditionally.
-  crt_gcc=no
-
-  if test "X$CRT_DIR" = "X"; then
-
-    CRT_DIR=/usr/lib            # default
-
-    case "$canonical" in
-      x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
-      ## On x86-64 and s390x GNU/Linux distributions, the standard library
-      ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
-      ## For anything else (eg /usr/lib32), it is up the user to specify
-      ## the location (bug#5655).
-      ## Test for crtn.o, not just the directory, because sometimes the
-      ## directory exists but does not have the relevant files (bug#1287).
-      ## FIXME better to test for binary compatibility somehow.
-      test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
-      ;;
-
-      powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
-    esac
-
-    case "$opsys" in
-      hpux10-20) CRT_DIR=/lib ;;
-    esac
-
-    test "x${GCC}" = xyes && crt_gcc=yes
-
-  fi                            # CRT_DIR = ""
-
-  crt_missing=
-
-  for file in $crt_files; do
-
-    ## If we're using gcc, try to determine it automatically by asking
-    ## gcc.  [If this doesn't work, CRT_DIR will remain at the
-    ## system-dependent default from above.]
-    if test $crt_gcc = yes && test ! -e $CRT_DIR/$file; then
-
-       crt_file=`$CC --print-file-name=$file 2>/dev/null`
-       case "$crt_file" in
-         */*)
-           CRT_DIR=`AS_DIRNAME(["$crt_file"])`
-           ;;
-       esac
-    fi
-
-    dnl We expect all the files to be in a single directory, so after the
-    dnl first there is no point asking gcc.
-    crt_gcc=no
-
-    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"
-  done                          # $crt_files
-
-  test "x$crt_missing" = x || \
-    AC_MSG_ERROR([Required file(s) not found:$crt_missing
-Try using the --with-crt-dir option.])
-
-fi                              # crt_files != ""
-
-AC_SUBST(CRT_DIR)
-
-case $opsys in
-  netbsd | openbsd )
-    if test -f $CRT_DIR/crti.o; then
-
-        test -f $CRT_DIR/crtn.o || \
-          AC_MSG_ERROR([Required file not found: crtn.o])
-
-        LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
-        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
-    fi
-    ;;
-esac
 
 
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
@@ -1304,7 +1198,7 @@ dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
   linux/version.h sys/systeminfo.h
   coff.h pty.h
-  sys/vlimit.h sys/resource.h
+  sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
@@ -1521,8 +1415,6 @@ if test "${with_ns}" != no; then
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIBS_GNUSTEP="-lgnustep-gui -lgnustep-base -lobjc -lpthread"
-     LIB_STANDARD=
-     START_FILES=
      dnl GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS to 0 or 1.
      dnl If they had chosen to either define it or not, we could have
      dnl just used AC_CHECK_DECL here.
@@ -1611,7 +1503,6 @@ AC_SUBST(INSTALL_ARCH_INDEP_EXTRA)
 AC_SUBST(ns_self_contained)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
-AC_SUBST(LIB_STANDARD)
 
 HAVE_W32=no
 W32_OBJ=
@@ -1751,6 +1642,20 @@ if test "${system_malloc}" = "yes"; then
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
+
+  AC_CHECK_HEADERS([sys/vlimit.h])
+  AC_CACHE_CHECK([for data_start], [emacs_cv_data_start],
+    [AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM(
+	 [[extern char data_start[]; char ch;]],
+	 [[return data_start < &ch;]])],
+       [emacs_cv_data_start=yes],
+       [emacs_cv_data_start=no])])
+  if test $emacs_cv_data_start = yes; then
+    AC_DEFINE([HAVE_DATA_START], 1,
+      [Define to 1 if data_start is the address of the start
+       of the main data segment.])
+  fi
 fi
 AC_SUBST(GMALLOC_OBJ)
 AC_SUBST(VMLIMIT_OBJ)
@@ -3735,9 +3640,7 @@ case $opsys in
 esac
 
 
-dnl Used in vm-limit.c
-AH_TEMPLATE(DATA_START, [Address of the start of the data segment.])
-dnl Used in lisp.h, emacs.c, mem-limits.h
+dnl Used in lisp.h, emacs.c, vm-limit.c
 dnl NEWS.18 describes this as "a number which contains
 dnl the high bits to be inclusive or'ed with pointers that are unpacked."
 AH_TEMPLATE(DATA_SEG_BITS, [Extra bits to be or'd in with any pointers
@@ -3745,23 +3648,15 @@ stored in a Lisp_Object.])
 dnl if Emacs uses fewer than 32 bits for the value field of a LISP_OBJECT.
 
 case $opsys in
-  gnu)
-    dnl libc defines data_start.
-    AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])
-    ;;
-
   aix*)
     dnl This works with 32-bit executables; Emacs doesn't support 64-bit.
-    AC_DEFINE(DATA_START, [0x20000000])
     AC_DEFINE(DATA_SEG_BITS, [0x20000000])
     ;;
   hpux*)
     dnl The data segment on this machine always starts at address 0x40000000.
-    AC_DEFINE(DATA_START, [0x40000000])
     AC_DEFINE(DATA_SEG_BITS, [0x40000000])
     ;;
   irix6-5)
-    AC_DEFINE(DATA_START, [0x10000000])
     AC_DEFINE(DATA_SEG_BITS, [0x10000000])
     ;;
 esac
@@ -4320,88 +4215,6 @@ case "$opsys" in
 esac
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
-
-
-LD_FIRSTFLAG=
-ORDINARY_LINK=
-case "$opsys" in
-  ## gnu: GNU needs its own crt0.
-  aix4-2|cygwin|darwin|gnu|hpux*|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
-
-  ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
-  ## library search parth, i.e. it won't search /usr/lib for libc and
-  ## friends.  Using -nostartfiles instead avoids this problem, and
-  ## will also work on earlier NetBSD releases.
-  netbsd|openbsd) LD_FIRSTFLAG="-nostartfiles" ;;
-
-  ## powerpc*: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
-  ##   MkLinux/LinuxPPC needs this.
-  ## s390x-* only supports opsys = gnu-linux so it can be added here.
-  gnu-*)
-    case "$canonical" in
-      powerpc*|s390x-*) LD_FIRSTFLAG="-nostdlib" ;;
-    esac
-    ;;
-esac
-
-
-if test "x$ORDINARY_LINK" = "xyes"; then
-
-  LD_FIRSTFLAG=""
-  AC_DEFINE(ORDINARY_LINK, 1, [Define if the C compiler is the linker.])
-
-## The system files defining neither ORDINARY_LINK nor LD_FIRSTFLAG are:
-## freebsd, gnu-* not on powerpc*|s390x*.
-elif test "x$GCC" = "xyes" && test "x$LD_FIRSTFLAG" = "x"; then
-
-  ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
-  ## places that are difficult to figure out at make time.  Fortunately,
-  ## these same versions allow you to pass arbitrary flags on to the
-  ## linker, so there is no reason not to use it as a linker.
-  ##
-  ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
-  ## searching for libraries in its internal directories, so we have to
-  ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
-  LD_FIRSTFLAG="-nostdlib"
-fi
-
-## FIXME? What setting of EDIT_LDFLAGS should this have?
-test "$NS_IMPL_GNUSTEP" = "yes" && LD_FIRSTFLAG="-rdynamic"
-
-AC_SUBST(LD_FIRSTFLAG)
-
-
-## FIXME? The logic here is not precisely the same as that above.
-## There is no check here for a pre-defined LD_FIRSTFLAG.
-## Should we only be setting LIB_GCC if LD ~ -nostdlib?
-LIB_GCC=
-if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
-
-  case "$opsys" in
-    freebsd|netbsd|openbsd) LIB_GCC= ;;
-
-    gnu-*)
-      ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
-      ## build on ARM EABI under GNU/Linux.  (Bug#5518)
-      case $host_cpu in
-      arm*)
-        LIB_GCC="-lgcc_s"
-	;;
-      *)
-        ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
-        ## immediately undefine it again and redefine it to empty.
-        ## Was the C_SWITCH_X_SITE part really necessary?
-##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
-        LIB_GCC=
-	;;
-      esac
-      ;;
-
-    ## Ask GCC where to find libgcc.a.
-    *) LIB_GCC=`$CC -print-libgcc-file-name 2> /dev/null` ;;
-  esac
-fi                              dnl if $GCC
-AC_SUBST(LIB_GCC)
 
 ## Common for all window systems
 if test "$window_system" != "none"; then

@@ -2520,7 +2520,7 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 	    ((memq type '(nil t)) type)
 	    ((eq type 'null) `(null ,val))
 	    ((eq type 'atom) `(atom ,val))
-	    ((eq type 'float) `(cl-floatp-safe ,val))
+	    ((eq type 'float) `(floatp ,val))
 	    ((eq type 'real) `(numberp ,val))
 	    ((eq type 'fixnum) `(integerp ,val))
 	    ;; FIXME: Should `character' accept things like ?\C-\M-a ?  --Stef
@@ -2739,7 +2739,7 @@ surrounded by (cl-block NAME ...).
     (cond ((eq test 'eq) `(assq ,a ,list))
 	  ((eq test 'equal) `(assoc ,a ,list))
 	  ((and (macroexp-const-p a) (or (null keys) (eq test 'eql)))
-	   (if (cl-floatp-safe (cl--const-expr-val a))
+	   (if (floatp (cl--const-expr-val a))
 	       `(assoc ,a ,list) `(assq ,a ,list)))
 	  (t form))))
 
@@ -2776,7 +2776,7 @@ surrounded by (cl-block NAME ...).
   (put y 'side-effect-free t))
 
 ;;; Things that are inline.
-(cl-proclaim '(inline cl-floatp-safe cl-acons cl-map cl-concatenate cl-notany
+(cl-proclaim '(inline cl-acons cl-map cl-concatenate cl-notany
                cl-notevery cl--set-elt cl-revappend cl-nreconc gethash))
 
 ;;; Things that are side-effect-free.
@@ -2787,7 +2787,7 @@ surrounded by (cl-block NAME ...).
 
 ;;; Things that are side-effect-and-error-free.
 (mapc (lambda (x) (put x 'side-effect-free 'error-free))
-      '(eql cl-floatp-safe cl-list* cl-subst cl-acons cl-equalp
+      '(eql cl-list* cl-subst cl-acons cl-equalp
         cl-random-state-p copy-tree cl-sublis))
 
 

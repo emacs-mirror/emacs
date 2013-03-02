@@ -105,49 +105,67 @@ default setting for optimization purposes.")
 
 ;; This is a bootstrap for eieio-default-superclass so it has a value
 ;; while it is being built itself.
-(defvar eieio-default-superclass nil)
+(defvar eieio-default-superclass nil))
 
-;; FIXME: The constants below should have an `eieio-' prefix added!!
-(defconst class-symbol 1 "Class's symbol (self-referencing.).")
-(defconst class-parent 2 "Class parent slot.")
-(defconst class-children 3 "Class children class slot.")
-(defconst class-symbol-obarray 4 "Obarray permitting fast access to variable position indexes.")
-;; @todo
-;; the word "public" here is leftovers from the very first version.
-;; Get rid of it!
-(defconst class-public-a 5 "Class attribute index.")
-(defconst class-public-d 6 "Class attribute defaults index.")
-(defconst class-public-doc 7 "Class documentation strings for attributes.")
-(defconst class-public-type 8 "Class type for a slot.")
-(defconst class-public-custom 9 "Class custom type for a slot.")
-(defconst class-public-custom-label 10 "Class custom group for a slot.")
-(defconst class-public-custom-group 11 "Class custom group for a slot.")
-(defconst class-public-printer 12 "Printer for a slot.")
-(defconst class-protection 13 "Class protection for a slot.")
-(defconst class-initarg-tuples 14 "Class initarg tuples list.")
-(defconst class-class-allocation-a 15 "Class allocated attributes.")
-(defconst class-class-allocation-doc 16 "Class allocated documentation.")
-(defconst class-class-allocation-type 17 "Class allocated value type.")
-(defconst class-class-allocation-custom 18 "Class allocated custom descriptor.")
-(defconst class-class-allocation-custom-label 19 "Class allocated custom descriptor.")
-(defconst class-class-allocation-custom-group 20 "Class allocated custom group.")
-(defconst class-class-allocation-printer 21 "Class allocated printer for a slot.")
-(defconst class-class-allocation-protection 22 "Class allocated protection list.")
-(defconst class-class-allocation-values 23 "Class allocated value vector.")
-(defconst class-default-object-cache 24
-  "Cache index of what a newly created object would look like.
+(defmacro eieio--define-field-accessors (prefix fields)
+  (declare (indent 1))
+  (let ((index 0)
+        (defs '()))
+    (dolist (field fields)
+      (let ((doc (if (listp field)
+                     (prog1 (cadr field) (setq field (car field))))))
+        (push `(defmacro ,(intern (format "eieio--%s-%s" prefix field)) (x)
+                 ,@(if doc (list (format (if (string-match "\n" doc)
+                                             "Return %s" "Return %s of a %s.")
+                                         doc prefix)))
+                 (list 'aref x ,index))
+              defs)
+        (setq index (1+ index))))
+    `(eval-and-compile
+       ,@(nreverse defs)
+       (defconst ,(intern (format "eieio--%s-num-slots" prefix)) ,index))))
+
+(eieio--define-field-accessors class
+  (-unused-0 ;;FIXME: not sure, but at least there was no accessor!
+   (symbol "symbol (self-referencing)")
+   parent children
+   (symbol-obarray "obarray permitting fast access to variable position indexes")
+   ;; @todo
+   ;; the word "public" here is leftovers from the very first version.
+   ;; Get rid of it!
+   (public-a "class attribute index")
+   (public-d "class attribute defaults index")
+   (public-doc "class documentation strings for attributes")
+   (public-type "class type for a slot")
+   (public-custom "class custom type for a slot")
+   (public-custom-label "class custom group for a slot")
+   (public-custom-group "class custom group for a slot")
+   (public-printer "printer for a slot")
+   (protection "protection for a slot")
+   (initarg-tuples "initarg tuples list")
+   (class-allocation-a "class allocated attributes")
+   (class-allocation-doc "class allocated documentation")
+   (class-allocation-type "class allocated value type")
+   (class-allocation-custom "class allocated custom descriptor")
+   (class-allocation-custom-label "class allocated custom descriptor")
+   (class-allocation-custom-group "class allocated custom group")
+   (class-allocation-printer "class allocated printer for a slot")
+   (class-allocation-protection "class allocated protection list")
+   (class-allocation-values "class allocated value vector")
+   (default-object-cache "what a newly created object would look like.
 This will speed up instantiation time as only a `copy-sequence' will
 be needed, instead of looping over all the values and setting them
 from the default.")
-(defconst class-options 25
-  "Storage location of tagged class options.
-Stored outright without modifications or stripping.")
+   (options "storage location of tagged class options.
+Stored outright without modifications or stripping.")))
 
-(defconst class-num-slots 26
-  "Number of slots in the class definition object.")
+(eieio--define-field-accessors object
+  (-unused-0 ;;FIXME: not sure, but at least there was no accessor!
+   (class "class struct defining OBJ")
+   name))
 
-(defconst object-class 1 "Index in an object vector where the class is stored.")
-(defconst object-name 2 "Index in an object where the name is stored.")
+(eval-and-compile
+;; FIXME: The constants below should have an `eieio-' prefix added!!
 
 (defconst method-static 0 "Index into :static tag on a method.")
 (defconst method-before 1 "Index into :before tag on a method.")
@@ -188,13 +206,13 @@ CLASS is a symbol."
   `(condition-case nil
        (let ((tobj ,obj))
 	 (and (eq (aref tobj 0) 'object)
-	      (class-p (aref tobj object-class))))
+	      (class-p (eieio--object-class tobj))))
      (error nil)))
 (defalias 'object-p 'eieio-object-p)
 
 (defmacro class-constructor (class)
   "Return the symbol representing the constructor of CLASS."
-  `(aref (class-v ,class) class-symbol))
+  `(eieio--class-symbol (class-v ,class)))
 
 (defmacro generic-p (method)
   "Return t if symbol METHOD is a generic function.
@@ -241,7 +259,7 @@ Methods with only primary implementations are executed in an optimized way."
 (defmacro class-option (class option)
   "Return the value stored for CLASS' OPTION.
 Return nil if that option doesn't exist."
-  `(class-option-assoc (aref (class-v ,class) class-options) ',option))
+  `(class-option-assoc (eieio--class-options (class-v ,class)) ',option))
 
 (defmacro class-abstract-p (class)
   "Return non-nil if CLASS is abstract.
@@ -334,14 +352,14 @@ It creates an autoload function for CNAME's constructor."
   ;; Assume we've already debugged inputs.
 
   (let* ((oldc (when (class-p cname) (class-v cname)))
-	 (newc (make-vector class-num-slots nil))
+	 (newc (make-vector eieio--class-num-slots nil))
 	 )
     (if oldc
 	nil ;; Do nothing if we already have this class.
 
       ;; Create the class in NEWC, but don't fill anything else in.
       (aset newc 0 'defclass)
-      (aset newc class-symbol cname)
+      (setf (eieio--class-symbol newc) cname)
 
       (let ((clear-parent nil))
 	;; No parents?
@@ -371,12 +389,12 @@ It creates an autoload function for CNAME's constructor."
 		)
 
 	    ;; We have a parent, save the child in there.
-	    (when (not (member cname (aref (class-v SC) class-children)))
-	      (aset (class-v SC) class-children
-		    (cons cname (aref (class-v SC) class-children)))))
+	    (when (not (member cname (eieio--class-children (class-v SC))))
+	      (setf (eieio--class-children (class-v SC))
+		    (cons cname (eieio--class-children (class-v SC))))))
 
 	  ;; save parent in child
-	  (aset newc class-parent (cons SC (aref newc class-parent)))
+	  (setf (eieio--class-parent newc) (cons SC (eieio--class-parent newc)))
 	  )
 
 	;; turn this into a usable self-pointing symbol
@@ -389,7 +407,7 @@ It creates an autoload function for CNAME's constructor."
 	(put cname 'eieio-class-definition newc)
 
 	;; Clear the parent
-	(if clear-parent (aset newc class-parent nil))
+	(if clear-parent (setf (eieio--class-parent newc) nil))
 
 	;; Create an autoload on top of our constructor function.
 	(autoload cname filename doc nil nil)
@@ -404,6 +422,15 @@ It creates an autoload function for CNAME's constructor."
   (when (eq (car-safe (symbol-function cname)) 'autoload)
     (load-library (car (cdr (symbol-function cname))))))
 
+(defmacro eieio--check-type (type obj)
+  (unless (symbolp obj)
+    (error "eieio--check-type wants OBJ to be a variable"))
+  `(if (not ,(cond
+              ((eq 'or (car-safe type))
+               `(or ,@(mapcar (lambda (type) `(,type ,obj)) (cdr type))))
+              (t `(,type ,obj))))
+       (signal 'wrong-type-argument (list ',type ,obj))))
+
 (defun eieio-defclass (cname superclasses slots options-and-doc)
   ;; FIXME: Most of this should be moved to the `defclass' macro.
   "Define CNAME as a new subclass of SUPERCLASSES.
@@ -416,18 +443,17 @@ See `defclass' for more information."
   (run-hooks 'eieio-hook)
   (setq eieio-hook nil)
 
-  (if (not (listp superclasses))
-      (signal 'wrong-type-argument '(listp superclasses)))
+  (eieio--check-type listp superclasses)
 
   (let* ((pname superclasses)
-	 (newc (make-vector class-num-slots nil))
+	 (newc (make-vector eieio--class-num-slots nil))
 	 (oldc (when (class-p cname) (class-v cname)))
 	 (groups nil) ;; list of groups id'd from slots
 	 (options nil)
 	 (clearparent nil))
 
     (aset newc 0 'defclass)
-    (aset newc class-symbol cname)
+    (setf (eieio--class-symbol newc) cname)
 
     ;; If this class already existed, and we are updating its structure,
     ;; make sure we keep the old child list.  This can cause bugs, but
@@ -435,13 +461,13 @@ See `defclass' for more information."
     ;; method table breakage, particularly when the users is only
     ;; byte compiling an EIEIO file.
     (if oldc
-	(aset newc class-children (aref oldc class-children))
+	(setf (eieio--class-children newc) (eieio--class-children oldc))
       ;; If the old class did not exist, but did exist in the autoload map, then adopt those children.
       ;; This is like the above, but deals with autoloads nicely.
       (let ((sym (intern-soft (symbol-name cname) eieio-defclass-autoload-map)))
 	(when sym
 	  (condition-case nil
-	      (aset newc class-children (symbol-value sym))
+	      (setf (eieio--class-children newc) (symbol-value sym))
 	    (error nil))
 	  (unintern (symbol-name cname) eieio-defclass-autoload-map)
 	  ))
@@ -469,30 +495,30 @@ See `defclass' for more information."
 		    (error "Given parent class %s is not a class" (car pname))
 		  ;; good parent class...
 		  ;; save new child in parent
-		  (when (not (member cname (aref (class-v (car pname)) class-children)))
-		    (aset (class-v (car pname)) class-children
-			  (cons cname (aref (class-v (car pname)) class-children))))
+		  (when (not (member cname (eieio--class-children (class-v (car pname)))))
+		    (setf (eieio--class-children (class-v (car pname)))
+			  (cons cname (eieio--class-children (class-v (car pname))))))
 		  ;; Get custom groups, and store them into our local copy.
 		  (mapc (lambda (g) (add-to-list 'groups g))
 			(class-option (car pname) :custom-groups))
 		  ;; save parent in child
-		  (aset newc class-parent (cons (car pname) (aref newc class-parent))))
+		  (setf (eieio--class-parent newc) (cons (car pname) (eieio--class-parent newc))))
 	      (error "Invalid parent class %s" pname))
 	    (setq pname (cdr pname)))
 	  ;; Reverse the list of our parents so that they are prioritized in
 	  ;; the same order as specified in the code.
-	  (aset newc class-parent (nreverse (aref newc class-parent))) )
+	  (setf (eieio--class-parent newc) (nreverse (eieio--class-parent newc))) )
       ;; If there is nothing to loop over, then inherit from the
       ;; default superclass.
       (unless (eq cname 'eieio-default-superclass)
 	;; adopt the default parent here, but clear it later...
 	(setq clearparent t)
 	;; save new child in parent
-	(if (not (member cname (aref (class-v 'eieio-default-superclass) class-children)))
-	    (aset (class-v 'eieio-default-superclass) class-children
-		  (cons cname (aref (class-v 'eieio-default-superclass) class-children))))
+	(if (not (member cname (eieio--class-children (class-v 'eieio-default-superclass))))
+	    (setf (eieio--class-children (class-v 'eieio-default-superclass))
+		  (cons cname (eieio--class-children (class-v 'eieio-default-superclass)))))
 	;; save parent in child
-	(aset newc class-parent (list eieio-default-superclass))))
+	(setf (eieio--class-parent newc) (list eieio-default-superclass))))
 
     ;; turn this into a usable self-pointing symbol
     (set cname cname)
@@ -714,26 +740,26 @@ See `defclass' for more information."
 
     ;; Now that everything has been loaded up, all our lists are backwards!
     ;; Fix that up now.
-    (aset newc class-public-a (nreverse (aref newc class-public-a)))
-    (aset newc class-public-d (nreverse (aref newc class-public-d)))
-    (aset newc class-public-doc (nreverse (aref newc class-public-doc)))
-    (aset newc class-public-type
-	  (apply 'vector (nreverse (aref newc class-public-type))))
-    (aset newc class-public-custom (nreverse (aref newc class-public-custom)))
-    (aset newc class-public-custom-label (nreverse (aref newc class-public-custom-label)))
-    (aset newc class-public-custom-group (nreverse (aref newc class-public-custom-group)))
-    (aset newc class-public-printer (nreverse (aref newc class-public-printer)))
-    (aset newc class-protection (nreverse (aref newc class-protection)))
-    (aset newc class-initarg-tuples (nreverse (aref newc class-initarg-tuples)))
+    (setf (eieio--class-public-a newc) (nreverse (eieio--class-public-a newc)))
+    (setf (eieio--class-public-d newc) (nreverse (eieio--class-public-d newc)))
+    (setf (eieio--class-public-doc newc) (nreverse (eieio--class-public-doc newc)))
+    (setf (eieio--class-public-type newc)
+	  (apply 'vector (nreverse (eieio--class-public-type newc))))
+    (setf (eieio--class-public-custom newc) (nreverse (eieio--class-public-custom newc)))
+    (setf (eieio--class-public-custom-label newc) (nreverse (eieio--class-public-custom-label newc)))
+    (setf (eieio--class-public-custom-group newc) (nreverse (eieio--class-public-custom-group newc)))
+    (setf (eieio--class-public-printer newc) (nreverse (eieio--class-public-printer newc)))
+    (setf (eieio--class-protection newc) (nreverse (eieio--class-protection newc)))
+    (setf (eieio--class-initarg-tuples newc) (nreverse (eieio--class-initarg-tuples newc)))
 
     ;; The storage for class-class-allocation-type needs to be turned into
     ;; a vector now.
-    (aset newc class-class-allocation-type
-	  (apply 'vector (aref newc class-class-allocation-type)))
+    (setf (eieio--class-class-allocation-type newc)
+	  (apply 'vector (eieio--class-class-allocation-type newc)))
 
     ;; Also, take class allocated values, and vectorize them for speed.
-    (aset newc class-class-allocation-values
-	  (apply 'vector (aref newc class-class-allocation-values)))
+    (setf (eieio--class-class-allocation-values newc)
+	  (apply 'vector (eieio--class-class-allocation-values newc)))
 
     ;; Attach slot symbols into an obarray, and store the index of
     ;; this slot as the variable slot in this new symbol.  We need to
@@ -741,8 +767,8 @@ See `defclass' for more information."
     ;; prime number length, and we also need to make our vector small
     ;; to save space, and also optimal for the number of items we have.
     (let* ((cnt 0)
-	   (pubsyms (aref newc class-public-a))
-	   (prots (aref newc class-protection))
+	   (pubsyms (eieio--class-public-a newc))
+	   (prots (eieio--class-protection newc))
 	   (l (length pubsyms))
 	   (vl (let ((primes '( 3 5 7 11 13 17 19 23 29 31 37 41 43 47
 				  53 59 61 67 71 73 79 83 89 97 101 )))
@@ -758,7 +784,7 @@ See `defclass' for more information."
 	(if (car prots) (put newsym 'protection (car prots)))
 	(setq pubsyms (cdr pubsyms)
 	      prots (cdr prots)))
-      (aset newc class-symbol-obarray oa)
+      (setf (eieio--class-symbol-obarray newc) oa)
       )
 
     ;; Create the constructor function
@@ -790,7 +816,7 @@ See `defclass' for more information."
 		   buffer-file-name))
 	  loc)
       (when fname
-	(when (string-match "\\.elc$" fname)
+	(when (string-match "\\.elc\\'" fname)
 	  (setq fname (substring fname 0 (1- (length fname)))))
 	(put cname 'class-location fname)))
 
@@ -802,23 +828,23 @@ See `defclass' for more information."
 	(setq options (cons :custom-groups (cons g options)))))
 
     ;; Set up the options we have collected.
-    (aset newc class-options options)
+    (setf (eieio--class-options newc) options)
 
     ;; if this is a superclass, clear out parent (which was set to the
     ;; default superclass eieio-default-superclass)
-    (if clearparent (aset newc class-parent nil))
+    (if clearparent (setf (eieio--class-parent newc) nil))
 
     ;; Create the cached default object.
-    (let ((cache (make-vector (+ (length (aref newc class-public-a))
-				 3) nil)))
+    (let ((cache (make-vector (+ (length (eieio--class-public-a newc)) 3)
+                              nil)))
       (aset cache 0 'object)
-      (aset cache object-class cname)
-      (aset cache object-name 'default-cache-object)
+      (setf (eieio--object-class cache) cname)
+      (setf (eieio--object-name cache) 'default-cache-object)
       (let ((eieio-skip-typecheck t))
 	;; All type-checking has been done to our satisfaction
 	;; before this call.  Don't waste our time in this call..
 	(eieio-set-defaults cache t))
-      (aset newc class-default-object-cache cache))
+      (setf (eieio--class-default-object-cache newc) cache))
 
     ;; Return our new class object
     ;; newc
@@ -855,7 +881,7 @@ if default value is nil."
 
   ;; To prevent override information w/out specification of storage,
   ;; we need to do this little hack.
-  (if (member a (aref newc class-class-allocation-a)) (setq alloc ':class))
+  (if (member a (eieio--class-class-allocation-a newc)) (setq alloc ':class))
 
   (if (or (not alloc) (and (symbolp alloc) (eq alloc ':instance)))
       ;; In this case, we modify the INSTANCE version of a given slot.
@@ -863,31 +889,31 @@ if default value is nil."
       (progn
 
 	;; Only add this element if it is so-far unique
-	(if (not (member a (aref newc class-public-a)))
+	(if (not (member a (eieio--class-public-a newc)))
 	    (progn
 	      (eieio-perform-slot-validation-for-default a type d skipnil)
-	      (aset newc class-public-a (cons a (aref newc class-public-a)))
-	      (aset newc class-public-d (cons d (aref newc class-public-d)))
-	      (aset newc class-public-doc (cons doc (aref newc class-public-doc)))
-	      (aset newc class-public-type (cons type (aref newc class-public-type)))
-	      (aset newc class-public-custom (cons cust (aref newc class-public-custom)))
-	      (aset newc class-public-custom-label (cons label (aref newc class-public-custom-label)))
-	      (aset newc class-public-custom-group (cons custg (aref newc class-public-custom-group)))
-	      (aset newc class-public-printer (cons print (aref newc class-public-printer)))
-	      (aset newc class-protection (cons prot (aref newc class-protection)))
-	      (aset newc class-initarg-tuples (cons (cons init a) (aref newc class-initarg-tuples)))
+	      (setf (eieio--class-public-a newc) (cons a (eieio--class-public-a newc)))
+	      (setf (eieio--class-public-d newc) (cons d (eieio--class-public-d newc)))
+	      (setf (eieio--class-public-doc newc) (cons doc (eieio--class-public-doc newc)))
+	      (setf (eieio--class-public-type newc) (cons type (eieio--class-public-type newc)))
+	      (setf (eieio--class-public-custom newc) (cons cust (eieio--class-public-custom newc)))
+	      (setf (eieio--class-public-custom-label newc) (cons label (eieio--class-public-custom-label newc)))
+	      (setf (eieio--class-public-custom-group newc) (cons custg (eieio--class-public-custom-group newc)))
+	      (setf (eieio--class-public-printer newc) (cons print (eieio--class-public-printer newc)))
+	      (setf (eieio--class-protection newc) (cons prot (eieio--class-protection newc)))
+	      (setf (eieio--class-initarg-tuples newc) (cons (cons init a) (eieio--class-initarg-tuples newc)))
 	      )
 	  ;; When defaultoverride is true, we are usually adding new local
 	  ;; attributes which must override the default value of any slot
 	  ;; passed in by one of the parent classes.
 	  (when defaultoverride
 	    ;; There is a match, and we must override the old value.
-	    (let* ((ca (aref newc class-public-a))
+	    (let* ((ca (eieio--class-public-a newc))
 		   (np (member a ca))
 		   (num (- (length ca) (length np)))
-		   (dp (if np (nthcdr num (aref newc class-public-d))
+		   (dp (if np (nthcdr num (eieio--class-public-d newc))
 			 nil))
-		   (tp (if np (nth num (aref newc class-public-type))))
+		   (tp (if np (nth num (eieio--class-public-type newc))))
 		   )
 	      (if (not np)
 		  (error "EIEIO internal error overriding default value for %s"
@@ -904,7 +930,7 @@ if default value is nil."
 		  (setcar dp d))
 		;; If we have a new initarg, check for it.
 		(when init
-		  (let* ((inits (aref newc class-initarg-tuples))
+		  (let* ((inits (eieio--class-initarg-tuples newc))
 			 (inita (rassq a inits)))
 		    ;; Replace the CAR of the associate INITA.
 		    ;;(message "Initarg: %S replace %s" inita init)
@@ -920,7 +946,7 @@ if default value is nil."
 		;; EML - We used to have (if prot... here,
 		;;       but a prot of 'nil means public.
 		;;
-		(let ((super-prot (nth num (aref newc class-protection)))
+		(let ((super-prot (nth num (eieio--class-protection newc)))
 		      )
 		  (if (not (eq prot super-prot))
 		      (error "Child slot protection `%s' does not match inherited protection `%s' for `%s'"
@@ -932,7 +958,7 @@ if default value is nil."
 		;; groups and new ones.
 		(when custg
 		  (let* ((groups
-			  (nthcdr num (aref newc class-public-custom-group)))
+			  (nthcdr num (eieio--class-public-custom-group newc)))
 			 (list1 (car groups))
 			 (list2 (if (listp custg) custg (list custg))))
 		    (if (< (length list1) (length list2))
@@ -947,20 +973,20 @@ if default value is nil."
 		;;  set, simply replaces the old one.
 		(when cust
 		  ;; (message "Custom type redefined to %s" cust)
-		  (setcar (nthcdr num (aref newc class-public-custom)) cust))
+		  (setcar (nthcdr num (eieio--class-public-custom newc)) cust))
 
 		;; If a new label is specified, it simply replaces
 		;; the old one.
 		(when label
 		  ;; (message "Custom label redefined to %s" label)
-		  (setcar (nthcdr num (aref newc class-public-custom-label)) label))
+		  (setcar (nthcdr num (eieio--class-public-custom-label newc)) label))
 		;;  End PLN
 
 		;; PLN Sat Jun 30 17:24:42 2007 : when a new
 		;; doc is specified, simply replaces the old one.
 		(when doc
 		  ;;(message "Documentation redefined to %s" doc)
-		  (setcar (nthcdr num (aref newc class-public-doc))
+		  (setcar (nthcdr num (eieio--class-public-doc newc))
 			  doc))
 		;; End PLN
 
@@ -968,38 +994,38 @@ if default value is nil."
 		;; the old one.
 		(when print
 		  ;; (message "printer redefined to %s" print)
-		  (setcar (nthcdr num (aref newc class-public-printer)) print))
+		  (setcar (nthcdr num (eieio--class-public-printer newc)) print))
 
 		)))
 	  ))
 
     ;; CLASS ALLOCATED SLOTS
     (let ((value (eieio-default-eval-maybe d)))
-      (if (not (member a (aref newc class-class-allocation-a)))
+      (if (not (member a (eieio--class-class-allocation-a newc)))
 	  (progn
 	    (eieio-perform-slot-validation-for-default a type value skipnil)
 	    ;; Here we have found a :class version of a slot.  This
 	    ;; requires a very different approach.
-	    (aset newc class-class-allocation-a (cons a (aref newc class-class-allocation-a)))
-	    (aset newc class-class-allocation-doc (cons doc (aref newc class-class-allocation-doc)))
-	    (aset newc class-class-allocation-type (cons type (aref newc class-class-allocation-type)))
-	    (aset newc class-class-allocation-custom (cons cust (aref newc class-class-allocation-custom)))
-	    (aset newc class-class-allocation-custom-label (cons label (aref newc class-class-allocation-custom-label)))
-	    (aset newc class-class-allocation-custom-group (cons custg (aref newc class-class-allocation-custom-group)))
-	    (aset newc class-class-allocation-protection (cons prot (aref newc class-class-allocation-protection)))
+	    (setf (eieio--class-class-allocation-a newc) (cons a (eieio--class-class-allocation-a newc)))
+	    (setf (eieio--class-class-allocation-doc newc) (cons doc (eieio--class-class-allocation-doc newc)))
+	    (setf (eieio--class-class-allocation-type newc) (cons type (eieio--class-class-allocation-type newc)))
+	    (setf (eieio--class-class-allocation-custom newc) (cons cust (eieio--class-class-allocation-custom newc)))
+	    (setf (eieio--class-class-allocation-custom-label newc) (cons label (eieio--class-class-allocation-custom-label newc)))
+	    (setf (eieio--class-class-allocation-custom-group newc) (cons custg (eieio--class-class-allocation-custom-group newc)))
+	    (setf (eieio--class-class-allocation-protection newc) (cons prot (eieio--class-class-allocation-protection newc)))
 	    ;; Default value is stored in the 'values section, since new objects
 	    ;; can't initialize from this element.
-	    (aset newc class-class-allocation-values (cons value (aref newc class-class-allocation-values))))
+	    (setf (eieio--class-class-allocation-values newc) (cons value (eieio--class-class-allocation-values newc))))
 	(when defaultoverride
 	  ;; There is a match, and we must override the old value.
-	  (let* ((ca (aref newc class-class-allocation-a))
+	  (let* ((ca (eieio--class-class-allocation-a newc))
 		 (np (member a ca))
 		 (num (- (length ca) (length np)))
 		 (dp (if np
 			 (nthcdr num
-				 (aref newc class-class-allocation-values))
+				 (eieio--class-class-allocation-values newc))
 		       nil))
-		 (tp (if np (nth num (aref newc class-class-allocation-type))
+		 (tp (if np (nth num (eieio--class-class-allocation-type newc))
 		       nil)))
 	    (if (not np)
 		(error "EIEIO internal error overriding default value for %s"
@@ -1023,7 +1049,7 @@ if default value is nil."
 	    ;; I wonder if a more flexible schedule might be
 	    ;; implemented.
 	    (let ((super-prot
-		   (car (nthcdr num (aref newc class-class-allocation-protection)))))
+		   (car (nthcdr num (eieio--class-class-allocation-protection newc)))))
 	      (if (not (eq prot super-prot))
 		  (error "Child slot protection `%s' does not match inherited protection `%s' for `%s'"
 			 prot super-prot a)))
@@ -1031,7 +1057,7 @@ if default value is nil."
 	    ;; and new ones.
 	    (when custg
 	      (let* ((groups
-		      (nthcdr num (aref newc class-class-allocation-custom-group)))
+		      (nthcdr num (eieio--class-class-allocation-custom-group newc)))
 		     (list1 (car groups))
 		     (list2 (if (listp custg) custg (list custg))))
 		(if (< (length list1) (length list2))
@@ -1045,7 +1071,7 @@ if default value is nil."
 	    ;; doc is specified, simply replaces the old one.
 	    (when doc
 	      ;;(message "Documentation redefined to %s" doc)
-	      (setcar (nthcdr num (aref newc class-class-allocation-doc))
+	      (setcar (nthcdr num (eieio--class-class-allocation-doc newc))
 		      doc))
 	    ;; End PLN
 
@@ -1053,7 +1079,7 @@ if default value is nil."
 	    ;; the old one.
 	    (when print
 	      ;; (message "printer redefined to %s" print)
-	      (setcar (nthcdr num (aref newc class-class-allocation-printer)) print))
+	      (setcar (nthcdr num (eieio--class-class-allocation-printer newc)) print))
 
 	    ))
 	))
@@ -1063,22 +1089,22 @@ if default value is nil."
   "Copy into NEWC the slots of PARENTS.
 Follow the rules of not overwriting early parents when applying to
 the new child class."
-  (let ((ps (aref newc class-parent))
-	(sn (class-option-assoc (aref newc class-options)
+  (let ((ps (eieio--class-parent newc))
+	(sn (class-option-assoc (eieio--class-options newc)
 				':allow-nil-initform)))
     (while ps
       ;; First, duplicate all the slots of the parent.
       (let ((pcv (class-v (car ps))))
-	(let ((pa (aref pcv class-public-a))
-	      (pd (aref pcv class-public-d))
-	      (pdoc (aref pcv class-public-doc))
-	      (ptype (aref pcv class-public-type))
-	      (pcust (aref pcv class-public-custom))
-	      (plabel (aref pcv class-public-custom-label))
-	      (pcustg (aref pcv class-public-custom-group))
-	      (printer (aref pcv class-public-printer))
-	      (pprot (aref pcv class-protection))
-	      (pinit (aref pcv class-initarg-tuples))
+	(let ((pa (eieio--class-public-a pcv))
+	      (pd (eieio--class-public-d pcv))
+	      (pdoc (eieio--class-public-doc pcv))
+	      (ptype (eieio--class-public-type pcv))
+	      (pcust (eieio--class-public-custom pcv))
+	      (plabel (eieio--class-public-custom-label pcv))
+	      (pcustg (eieio--class-public-custom-group pcv))
+	      (printer (eieio--class-public-printer pcv))
+	      (pprot (eieio--class-protection pcv))
+	      (pinit (eieio--class-initarg-tuples pcv))
 	      (i 0))
 	  (while pa
 	    (eieio-add-new-slot newc
@@ -1099,15 +1125,15 @@ the new child class."
 		  pinit (cdr pinit))
 	    )) ;; while/let
 	;; Now duplicate all the class alloc slots.
-	(let ((pa (aref pcv class-class-allocation-a))
-	      (pdoc (aref pcv class-class-allocation-doc))
-	      (ptype (aref pcv class-class-allocation-type))
-	      (pcust (aref pcv class-class-allocation-custom))
-	      (plabel (aref pcv class-class-allocation-custom-label))
-	      (pcustg (aref pcv class-class-allocation-custom-group))
-	      (printer (aref pcv class-class-allocation-printer))
-	      (pprot (aref pcv class-class-allocation-protection))
-	      (pval (aref pcv class-class-allocation-values))
+	(let ((pa (eieio--class-class-allocation-a pcv))
+	      (pdoc (eieio--class-class-allocation-doc pcv))
+	      (ptype (eieio--class-class-allocation-type pcv))
+	      (pcust (eieio--class-class-allocation-custom pcv))
+	      (plabel (eieio--class-class-allocation-custom-label pcv))
+	      (pcustg (eieio--class-class-allocation-custom-group pcv))
+	      (printer (eieio--class-class-allocation-printer pcv))
+	      (pprot (eieio--class-class-allocation-protection pcv))
+	      (pval (eieio--class-class-allocation-values pcv))
 	      (i 0))
 	  (while pa
 	    (eieio-add-new-slot newc
@@ -1252,7 +1278,7 @@ IMPL is the symbol holding the method implementation."
 	  ;; We do have an object.  Make sure it is the right type.
 	  (if ,(if (eq class eieio-default-superclass)
 		   nil  ; default superclass means just an obj.  Already asked.
-		 `(not (child-of-class-p (aref (car local-args) object-class)
+		 `(not (child-of-class-p (eieio--object-class (car local-args))
 					 ',class)))
 
 	      ;; If not the right kind of object, call no applicable
@@ -1335,27 +1361,20 @@ Summary:
 (defun eieio--defmethod (method kind argclass code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
   (let ((key
-         ;; find optional keys
-         (cond ((or (eq ':BEFORE kind)
-                    (eq ':before kind))
-                method-before)
-               ((or (eq ':AFTER kind)
-                    (eq ':after kind))
-                method-after)
-               ((or (eq ':PRIMARY kind)
-                    (eq ':primary kind))
-                method-primary)
-               ((or (eq ':STATIC kind)
-                    (eq ':static kind))
-                method-static)
-               ;; Primary key
-               (t method-primary))))
+         ;; Find optional keys.
+         (cond ((memq kind '(:BEFORE :before)) method-before)
+               ((memq kind '(:AFTER :after)) method-after)
+               ((memq kind '(:STATIC :static)) method-static)
+               ((memq kind '(:PRIMARY :primary nil)) method-primary)
+               ;; Primary key.
+               ;; (t method-primary)
+               (t (error "Unknown method kind %S" kind)))))
     ;; Make sure there is a generic (when called from defclass).
     (eieio--defalias
      method (eieio--defgeneric-init-form
              method (or (documentation code)
                         (format "Generically created method `%s'." method))))
-    ;; create symbol for property to bind to.  If the first arg is of
+    ;; Create symbol for property to bind to.  If the first arg is of
     ;; the form (varname vartype) and `vartype' is a class, then
     ;; that class will be the type symbol.  If not, then it will fall
     ;; under the type `primary' which is a non-specific calling of the
@@ -1364,11 +1383,9 @@ Summary:
         (if (not (class-p argclass))
             (error "Unknown class type %s in method parameters"
                    argclass))
-      (if (= key -1)
-	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
-      ;; generics are higher
+      ;; Generics are higher.
       (setq key (eieio-specialized-key-to-generic-key key)))
-    ;; Put this lambda into the symbol so we can find it
+    ;; Put this lambda into the symbol so we can find it.
     (eieiomt-add method code key argclass)
     )
 
@@ -1449,7 +1466,7 @@ an error."
       nil
     ;; Trim off object IDX junk added in for the object index.
     (setq slot-idx (- slot-idx 3))
-    (let ((st (aref (aref (class-v class) class-public-type) slot-idx)))
+    (let ((st (aref (eieio--class-public-type (class-v class)) slot-idx)))
       (if (not (eieio-perform-slot-validation st value))
 	  (signal 'invalid-slot-type (list class slot st value))))))
 
@@ -1460,7 +1477,7 @@ SLOT is the slot that is being checked, and is only used when throwing
 an error."
   (if eieio-skip-typecheck
       nil
-    (let ((st (aref (aref (class-v class) class-class-allocation-type)
+    (let ((st (aref (eieio--class-class-allocation-type (class-v class))
 		    slot-idx)))
       (if (not (eieio-perform-slot-validation st value))
 	  (signal 'invalid-slot-type (list class slot st value))))))
@@ -1471,7 +1488,7 @@ INSTANCE is the object being referenced.  SLOTNAME is the offending
 slot.  If the slot is ok, return VALUE.
 Argument FN is the function calling this verifier."
   (if (and (eq value eieio-unbound) (not eieio-skip-typecheck))
-      (slot-unbound instance (object-class instance) slotname fn)
+      (slot-unbound instance (eieio-object-class instance) slotname fn)
     value))
 
 ;;; Get/Set slots in an object.
@@ -1484,27 +1501,24 @@ created by the :initarg tag."
 
 (defun eieio-oref (obj slot)
   "Return the value in OBJ at SLOT in the object vector."
-  (if (not (or (eieio-object-p obj) (class-p obj)))
-      (signal 'wrong-type-argument (list '(or eieio-object-p class-p) obj)))
-  (if (not (symbolp slot))
-      (signal 'wrong-type-argument (list 'symbolp slot)))
+  (eieio--check-type (or eieio-object-p class-p) obj)
+  (eieio--check-type symbolp slot)
   (if (class-p obj) (eieio-class-un-autoload obj))
-  (let* ((class (if (class-p obj) obj (aref obj object-class)))
+  (let* ((class (if (class-p obj) obj (eieio--object-class obj)))
 	 (c (eieio-slot-name-index class obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
 	;; Let's check that info out.
 	(if (setq c (eieio-class-slot-name-index class slot))
 	    ;; Oref that slot.
-	    (aref (aref (class-v class) class-class-allocation-values) c)
+	    (aref (eieio--class-class-allocation-values (class-v class)) c)
 	  ;; The slot-missing method is a cool way of allowing an object author
 	  ;; to intercept missing slot definitions.  Since it is also the LAST
 	  ;; thing called in this fn, its return value would be retrieved.
 	  (slot-missing obj slot 'oref)
-	  ;;(signal 'invalid-slot-name (list (object-name obj) slot))
+	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
 	  )
-      (if (not (eieio-object-p obj))
-	  (signal 'wrong-type-argument (list 'eieio-object-p obj)))
+      (eieio--check-type eieio-object-p obj)
       (eieio-barf-if-slot-unbound (aref obj c) obj slot 'oref))))
 
 (defalias 'slot-value 'eieio-oref)
@@ -1520,9 +1534,9 @@ tag in the `defclass' call."
 (defun eieio-oref-default (obj slot)
   "Do the work for the macro `oref-default' with similar parameters.
 Fills in OBJ's SLOT with its default value."
-  (if (not (or (eieio-object-p obj) (class-p obj))) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
-  (let* ((cl (if (eieio-object-p obj) (aref obj object-class) obj))
+  (eieio--check-type (or eieio-object-p class-p) obj)
+  (eieio--check-type symbolp slot)
+  (let* ((cl (if (eieio-object-p obj) (eieio--object-class obj) obj))
 	 (c (eieio-slot-name-index cl obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
@@ -1530,13 +1544,13 @@ Fills in OBJ's SLOT with its default value."
 	(if (setq c
 		  (eieio-class-slot-name-index cl slot))
 	    ;; Oref that slot.
-	    (aref (aref (class-v cl) class-class-allocation-values)
+	    (aref (eieio--class-class-allocation-values (class-v cl))
 		  c)
 	  (slot-missing obj slot 'oref-default)
 	  ;;(signal 'invalid-slot-name (list (class-name cl) slot))
 	  )
       (eieio-barf-if-slot-unbound
-       (let ((val (nth (- c 3) (aref (class-v cl) class-public-d))))
+       (let ((val (nth (- c 3) (eieio--class-public-d (class-v cl)))))
 	 (eieio-default-eval-maybe val))
        obj cl 'oref-default))))
 
@@ -1590,62 +1604,78 @@ variable name of the same name as the slot."
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.
 ;;
-(defmacro object-class-fast (obj) "Return the class struct defining OBJ with no check."
-  `(aref ,obj object-class))
+(define-obsolete-function-alias
+  'object-class-fast #'eieio--object-class "24.4")
 
-(defun class-name (class) "Return a Lisp like symbol name for CLASS."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
+(defun eieio-class-name (class) "Return a Lisp like symbol name for CLASS."
+  (eieio--check-type class-p class)
   ;; I think this is supposed to return a symbol, but to me CLASS is a symbol,
   ;; and I wanted a string.  Arg!
   (format "#<class %s>" (symbol-name class)))
+(define-obsolete-function-alias 'class-name #'eieio-class-name "24.4")
 
-(defun object-name (obj &optional extra)
+(defun eieio-object-name (obj &optional extra)
   "Return a Lisp like symbol string for object OBJ.
 If EXTRA, include that in the string returned to represent the symbol."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (format "#<%s %s%s>" (symbol-name (object-class-fast obj))
-	  (aref obj object-name) (or extra "")))
+  (eieio--check-type eieio-object-p obj)
+  (format "#<%s %s%s>" (symbol-name (eieio--object-class obj))
+	  (eieio--object-name obj) (or extra "")))
+(define-obsolete-function-alias 'object-name #'eieio-object-name "24.4")
 
-(defun object-name-string (obj) "Return a string which is OBJ's name."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (aref obj object-name))
+(defun eieio-object-name-string (obj) "Return a string which is OBJ's name."
+  (eieio--check-type eieio-object-p obj)
+  (eieio--object-name obj))
+(define-obsolete-function-alias
+  'object-name-string #'eieio-object-name-string "24.4")
 
-(defun object-set-name-string (obj name) "Set the string which is OBJ's NAME."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (if (not (stringp name)) (signal 'wrong-type-argument (list 'stringp name)))
-  (aset obj object-name name))
+(defun eieio-object-set-name-string (obj name)
+  "Set the string which is OBJ's NAME."
+  (eieio--check-type eieio-object-p obj)
+  (eieio--check-type stringp name)
+  (setf (eieio--object-name obj) name))
+(define-obsolete-function-alias
+  'object-set-name-string 'eieio-object-set-name-string "24.4")
 
-(defun object-class (obj) "Return the class struct defining OBJ."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (object-class-fast obj))
-(defalias 'class-of 'object-class)
+(defun eieio-object-class (obj) "Return the class struct defining OBJ."
+  (eieio--check-type eieio-object-p obj)
+  (eieio--object-class obj))
+(define-obsolete-function-alias 'object-class #'eieio-object-class "24.4")
+;; CLOS name, maybe?
+(define-obsolete-function-alias 'class-of #'eieio-object-class "24.4")
 
-(defun object-class-name (obj) "Return a Lisp like symbol name for OBJ's class."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (class-name (object-class-fast obj)))
+(defun eieio-object-class-name (obj)
+  "Return a Lisp like symbol name for OBJ's class."
+  (eieio--check-type eieio-object-p obj)
+  (eieio-class-name (eieio--object-class obj)))
+(define-obsolete-function-alias
+  'object-class-name 'eieio-object-class-name "24.4")
 
-(defmacro class-parents-fast (class) "Return parent classes to CLASS with no check."
-  `(aref (class-v ,class) class-parent))
+(defmacro eieio-class-parents-fast (class)
+  "Return parent classes to CLASS with no check."
+  `(eieio--class-parent (class-v ,class)))
 
-(defun class-parents (class)
+(defun eieio-class-parents (class)
   "Return parent classes to CLASS.  (overload of variable).
 
 The CLOS function `class-direct-superclasses' is aliased to this function."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
-  (class-parents-fast class))
+  (eieio--check-type class-p class)
+  (eieio-class-parents-fast class))
+(define-obsolete-function-alias 'class-parents #'eieio-class-parents "24.4")
 
-(defmacro class-children-fast (class) "Return child classes to CLASS with no check."
-  `(aref (class-v ,class) class-children))
+(defmacro eieio-class-children-fast (class) "Return child classes to CLASS with no check."
+  `(eieio--class-children (class-v ,class)))
 
-(defun class-children (class)
-"Return child classes to CLASS.
+(defun eieio-class-children (class)
+  "Return child classes to CLASS.
 
 The CLOS function `class-direct-subclasses' is aliased to this function."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
-  (class-children-fast class))
+  (eieio--check-type class-p class)
+  (eieio-class-children-fast class))
+(define-obsolete-function-alias
+  'class-children #'eieio-class-children "24.4")
 
 (defun eieio-c3-candidate (class remaining-inputs)
-  "Returns CLASS if it can go in the result now, otherwise nil"
+  "Return CLASS if it can go in the result now, otherwise nil"
   ;; Ensure CLASS is not in any position but the first in any of the
   ;; element lists of REMAINING-INPUTS.
   (and (not (let ((found nil))
@@ -1691,7 +1721,7 @@ If a consistent order does not exist, signal an error."
 
 (defun eieio-class-precedence-dfs (class)
   "Return all parents of CLASS in depth-first order."
-  (let* ((parents (class-parents-fast class))
+  (let* ((parents (eieio-class-parents-fast class))
 	 (classes (copy-sequence
 		   (apply #'append
 			  (list class)
@@ -1712,21 +1742,21 @@ If a consistent order does not exist, signal an error."
 (defun eieio-class-precedence-bfs (class)
   "Return all parents of CLASS in breadth-first order."
   (let ((result)
-	(queue (or (class-parents-fast class)
+	(queue (or (eieio-class-parents-fast class)
 		   '(eieio-default-superclass))))
     (while queue
       (let ((head (pop queue)))
 	(unless (member head result)
 	  (push head result)
 	  (unless (eq head 'eieio-default-superclass)
-	    (setq queue (append queue (or (class-parents-fast head)
+	    (setq queue (append queue (or (eieio-class-parents-fast head)
 					  '(eieio-default-superclass))))))))
     (cons class (nreverse result)))
   )
 
 (defun eieio-class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
-  (let ((parents (class-parents-fast class)))
+  (let ((parents (eieio-class-parents-fast class)))
     (eieio-c3-merge-lists
      (list class)
      (append
@@ -1739,7 +1769,7 @@ If a consistent order does not exist, signal an error."
       (list parents))))
   )
 
-(defun class-precedence-list (class)
+(defun eieio-class-precedence-list (class)
   "Return (transitively closed) list of parents of CLASS.
 The order, in which the parents are returned depends on the
 method invocation orders of the involved classes."
@@ -1753,52 +1783,56 @@ method invocation orders of the involved classes."
       (:c3
        (eieio-class-precedence-c3 class))))
   )
+(define-obsolete-function-alias
+  'class-precedence-list 'eieio-class-precedence-list "24.4")
 
 ;; Official CLOS functions.
-(defalias 'class-direct-superclasses 'class-parents)
-(defalias 'class-direct-subclasses 'class-children)
+(define-obsolete-function-alias
+  'class-direct-superclasses #'eieio-class-parents "24.4")
+(define-obsolete-function-alias
+  'class-direct-subclasses #'eieio-class-children "24.4")
 
-(defmacro class-parent-fast (class) "Return first parent class to CLASS with no check."
-  `(car (class-parents-fast ,class)))
+(defmacro eieio-class-parent (class)
+  "Return first parent class to CLASS.  (overload of variable)."
+  `(car (eieio-class-parents ,class)))
+(define-obsolete-function-alias 'class-parent #'eieio-class-parent "24.4")
 
-(defmacro class-parent (class) "Return first parent class to CLASS.  (overload of variable)."
-  `(car (class-parents ,class)))
-
-(defmacro same-class-fast-p (obj class) "Return t if OBJ is of class-type CLASS with no error checking."
-  `(eq (aref ,obj object-class) ,class))
+(defmacro same-class-fast-p (obj class)
+  "Return t if OBJ is of class-type CLASS with no error checking."
+  `(eq (eieio--object-class ,obj) ,class))
 
 (defun same-class-p (obj class) "Return t if OBJ is of class-type CLASS."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
+  (eieio--check-type class-p class)
+  (eieio--check-type eieio-object-p obj)
   (same-class-fast-p obj class))
 
 (defun object-of-class-p (obj class)
   "Return non-nil if OBJ is an instance of CLASS or CLASS' subclasses."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
+  (eieio--check-type eieio-object-p obj)
   ;; class will be checked one layer down
-  (child-of-class-p (aref obj object-class) class))
+  (child-of-class-p (eieio--object-class obj) class))
 ;; Backwards compatibility
 (defalias 'obj-of-class-p 'object-of-class-p)
 
 (defun child-of-class-p (child class)
   "Return non-nil if CHILD class is a subclass of CLASS."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
-  (if (not (class-p child)) (signal 'wrong-type-argument (list 'class-p child)))
+  (eieio--check-type class-p class)
+  (eieio--check-type class-p child)
   (let ((p nil))
     (while (and child (not (eq child class)))
-      (setq p (append p (aref (class-v child) class-parent))
+      (setq p (append p (eieio--class-parent (class-v child)))
 	    child (car p)
 	    p (cdr p)))
     (if child t)))
 
 (defun object-slots (obj)
   "Return list of slots available in OBJ."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (aref (class-v (object-class-fast obj)) class-public-a))
+  (eieio--check-type eieio-object-p obj)
+  (eieio--class-public-a (class-v (eieio--object-class obj))))
 
 (defun class-slot-initarg (class slot) "Fetch from CLASS, SLOT's :initarg."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
-  (let ((ia (aref (class-v class) class-initarg-tuples))
+  (eieio--check-type class-p class)
+  (let ((ia (eieio--class-initarg-tuples (class-v class)))
 	(f nil))
     (while (and ia (not f))
       (if (eq (cdr (car ia)) slot)
@@ -1817,25 +1851,24 @@ with in the :initarg slot.  VALUE can be any Lisp object."
 (defun eieio-oset (obj slot value)
   "Do the work for the macro `oset'.
 Fills in OBJ's SLOT with VALUE."
-  (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
-  (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
-  (let ((c (eieio-slot-name-index (object-class-fast obj) obj slot)))
+  (eieio--check-type eieio-object-p obj)
+  (eieio--check-type symbolp slot)
+  (let ((c (eieio-slot-name-index (eieio--object-class obj) obj slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
 	;; Let's check that info out.
 	(if (setq c
-		  (eieio-class-slot-name-index (aref obj object-class) slot))
+		  (eieio-class-slot-name-index (eieio--object-class obj) slot))
 	    ;; Oset that slot.
 	    (progn
-	      (eieio-validate-class-slot-value (object-class-fast obj) c value slot)
-	      (aset (aref (class-v (aref obj object-class))
-			  class-class-allocation-values)
+	      (eieio-validate-class-slot-value (eieio--object-class obj) c value slot)
+	      (aset (eieio--class-class-allocation-values (class-v (eieio--object-class obj)))
 		    c value))
 	  ;; See oref for comment on `slot-missing'
 	  (slot-missing obj slot 'oset value)
-	  ;;(signal 'invalid-slot-name (list (object-name obj) slot))
+	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
 	  )
-      (eieio-validate-slot-value (object-class-fast obj) c value slot)
+      (eieio-validate-slot-value (eieio--object-class obj) c value slot)
       (aset obj c value))))
 
 (defmacro oset-default (class slot value)
@@ -1848,8 +1881,8 @@ after they are created."
 (defun eieio-oset-default (class slot value)
   "Do the work for the macro `oset-default'.
 Fills in the default value in CLASS' in SLOT with VALUE."
-  (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
-  (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
+  (eieio--check-type class-p class)
+  (eieio--check-type symbolp slot)
   (let* ((scoped-class class)
 	 (c (eieio-slot-name-index class nil slot)))
     (if (not c)
@@ -1859,15 +1892,15 @@ Fills in the default value in CLASS' in SLOT with VALUE."
 	    (progn
 	      ;; Oref that slot.
 	      (eieio-validate-class-slot-value class c value slot)
-	      (aset (aref (class-v class) class-class-allocation-values) c
+	      (aset (eieio--class-class-allocation-values (class-v class)) c
 		    value))
-	  (signal 'invalid-slot-name (list (class-name class) slot)))
+	  (signal 'invalid-slot-name (list (eieio-class-name class) slot)))
       (eieio-validate-slot-value class c value slot)
       ;; Set this into the storage for defaults.
-      (setcar (nthcdr (- c 3) (aref (class-v class) class-public-d))
+      (setcar (nthcdr (- c 3) (eieio--class-public-d (class-v class)))
 	      value)
       ;; Take the value, and put it into our cache object.
-      (eieio-oset (aref (class-v class) class-default-object-cache)
+      (eieio-oset (eieio--class-default-object-cache (class-v class))
 		  slot value)
       )))
 
@@ -1894,12 +1927,12 @@ OBJECT can be an instance or a class."
 (defun slot-exists-p (object-or-class slot)
   "Return non-nil if OBJECT-OR-CLASS has SLOT."
   (let ((cv (class-v (cond ((eieio-object-p object-or-class)
-			    (object-class object-or-class))
+			    (eieio-object-class object-or-class))
 			   ((class-p object-or-class)
 			    object-or-class))
 		     )))
-    (or (memq slot (aref cv class-public-a))
-	(memq slot (aref cv class-class-allocation-a)))
+    (or (memq slot (eieio--class-public-a cv))
+	(memq slot (eieio--class-class-allocation-a cv)))
     ))
 
 (defun find-class (symbol &optional errorp)
@@ -1919,7 +1952,7 @@ LIST is a list of objects whose slots are searched.
 Objects in LIST do not need to have a slot named SLOT, nor does
 SLOT need to be bound.  If these errors occur, those objects will
 be ignored."
-  (if (not (listp list)) (signal 'wrong-type-argument (list 'listp list)))
+  (eieio--check-type listp list)
   (while (and list (not (condition-case nil
 			    ;; This prevents errors for missing slots.
 			    (equal key (eieio-oref (car list) slot))
@@ -1931,7 +1964,7 @@ be ignored."
   "Return an association list with the contents of SLOT as the key element.
 LIST must be a list of objects with SLOT in it.
 This is useful when you need to do completing read on an object group."
-  (if (not (listp list)) (signal 'wrong-type-argument (list 'listp list)))
+  (eieio--check-type listp list)
   (let ((assoclist nil))
     (while list
       (setq assoclist (cons (cons (eieio-oref (car list) slot)
@@ -1945,7 +1978,7 @@ This is useful when you need to do completing read on an object group."
 LIST must be a list of objects, but those objects do not need to have
 SLOT in it.  If it does not, then that element is left out of the association
 list."
-  (if (not (listp list)) (signal 'wrong-type-argument (list 'listp list)))
+  (eieio--check-type listp list)
   (let ((assoclist nil))
     (while list
       (if (slot-exists-p (car list) slot)
@@ -1993,14 +2026,13 @@ If SLOT is unbound, do nothing."
   "Return non-nil if START-CLASS is the first class to define SLOT.
 This is for testing if `scoped-class' is the class that defines SLOT
 so that we can protect private slots."
-  (let ((par (class-parents start-class))
+  (let ((par (eieio-class-parents start-class))
 	(ret t))
     (if (not par)
 	t
       (while (and par ret)
 	(if (intern-soft (symbol-name slot)
-			 (aref (class-v (car par))
-			       class-symbol-obarray))
+			 (eieio--class-symbol-obarray (class-v (car par))))
 	    (setq ret nil))
 	(setq par (cdr par)))
       ret)))
@@ -2015,8 +2047,7 @@ If SLOT is the value created with :initarg instead,
 reverse-lookup that name, and recurse with the associated slot value."
   ;; Removed checks to outside this call
   (let* ((fsym (intern-soft (symbol-name slot)
-			    (aref (class-v class)
-				  class-symbol-obarray)))
+			    (eieio--class-symbol-obarray (class-v class))))
 	 (fsi (if (symbolp fsym) (symbol-value fsym) nil)))
     (if (integerp fsi)
 	(cond
@@ -2026,7 +2057,7 @@ reverse-lookup that name, and recurse with the associated slot value."
 	       (bound-and-true-p scoped-class)
 	       (or (child-of-class-p class scoped-class)
 		   (and (eieio-object-p obj)
-			(child-of-class-p class (object-class obj)))))
+			(child-of-class-p class (eieio-object-class obj)))))
 	  (+ 3 fsi))
 	 ((and (eq (get fsym 'protection) 'private)
 	       (or (and (bound-and-true-p scoped-class)
@@ -2044,7 +2075,7 @@ call.  If SLOT is the value created with :initarg instead,
 reverse-lookup that name, and recurse with the associated slot value."
   ;; This will happen less often, and with fewer slots.  Do this the
   ;; storage cheap way.
-  (let* ((a (aref (class-v class) class-class-allocation-a))
+  (let* ((a (eieio--class-class-allocation-a (class-v class)))
 	 (l1 (length a))
 	 (af (memq slot a))
 	 (l2 (length af)))
@@ -2099,7 +2130,7 @@ This should only be called from a generic function."
 	(load (nth 1 (symbol-function firstarg))))
     ;; Determine the class to use.
     (cond ((eieio-object-p firstarg)
-	   (setq mclass (object-class-fast firstarg)))
+	   (setq mclass (eieio--object-class firstarg)))
 	  ((class-p firstarg)
 	   (setq mclass firstarg))
 	  )
@@ -2236,7 +2267,7 @@ for this common case to improve performance."
 
     ;; Determine the class to use.
     (cond ((eieio-object-p firstarg)
-	   (setq mclass (object-class-fast firstarg)))
+	   (setq mclass (eieio--object-class firstarg)))
 	  ((not firstarg)
 	   (error "Method %s called on nil" method))
 	  ((not (eieio-object-p firstarg))
@@ -2303,7 +2334,7 @@ If CLASS is nil, then an empty list of methods should be returned."
   ;; Collect lambda expressions stored for the class and its parent
   ;; classes.
   (let (lambdas)
-    (dolist (ancestor (class-precedence-list class))
+    (dolist (ancestor (eieio-class-precedence-list class))
       ;; Lookup the form to use for the PRIMARY object for the next level
       (let ((tmpl (eieio-generic-form method key ancestor)))
 	(when (and tmpl
@@ -2447,7 +2478,7 @@ This is different from function `class-parent' as class parent returns
 nil for superclasses.  This function performs no type checking!"
   ;; No type-checking because all calls are made from functions which
   ;; are safe and do checking for us.
-  (or (class-parents-fast class)
+  (or (eieio-class-parents-fast class)
       (if (eq class 'eieio-default-superclass)
 	  nil
 	'(eieio-default-superclass))))
@@ -2460,7 +2491,7 @@ nil for superclasses.  This function performs no type checking!"
   ;; we replace the nil from above.
   (let ((external-symbol (intern-soft (symbol-name s))))
     (catch 'done
-      (dolist (ancestor (rest (class-precedence-list external-symbol)))
+      (dolist (ancestor (rest (eieio-class-precedence-list external-symbol)))
 	(let ((ov (intern-soft (symbol-name ancestor)
 			       eieiomt-optimizing-obarray)))
 	  (when (fboundp ov)
@@ -2489,7 +2520,7 @@ is memorized for faster future use."
 		 (eieiomt-sym-optimize cs))))
 	 ;; 3) If it's bound return this one.
 	 (if (fboundp  cs)
-	     (cons cs (aref (class-v class) class-symbol))
+	     (cons cs (eieio--class-symbol (class-v class)))
 	   ;; 4) If it's not bound then this variable knows something
 	   (if (symbol-value cs)
 	       (progn
@@ -2499,8 +2530,7 @@ is memorized for faster future use."
 		 ;; 4.2) The optimizer should always have chosen a
 		 ;;      function-symbol
 		 ;;(if (fboundp cs)
-		 (cons cs (aref (class-v (intern (symbol-name class)))
-				class-symbol))
+		 (cons cs (eieio--class-symbol (class-v (intern (symbol-name class)))))
 		   ;;(error "EIEIO optimizer: erratic data loss!"))
 		 )
 	       ;; There never will be a funcall...
@@ -2523,9 +2553,9 @@ is memorized for faster future use."
 If SET-ALL is non-nil, then when a default is nil, that value is
 reset.  If SET-ALL is nil, the slots are only reset if the default is
 not nil."
-  (let ((scoped-class (aref obj object-class))
+  (let ((scoped-class (eieio--object-class obj))
 	(eieio-initializing-object t)
-	(pub (aref (class-v (aref obj object-class)) class-public-a)))
+	(pub (eieio--class-public-a (class-v (eieio--object-class obj)))))
     (while pub
       (let ((df (eieio-oref-default obj (car pub))))
 	(if (or df set-all)
@@ -2536,7 +2566,7 @@ not nil."
   "For CLASS, convert INITARG to the actual attribute name.
 If there is no translation, pass it in directly (so we can cheat if
 need be... May remove that later...)"
-  (let ((tuple (assoc initarg (aref (class-v class) class-initarg-tuples))))
+  (let ((tuple (assoc initarg (eieio--class-initarg-tuples (class-v class)))))
     (if tuple
 	(cdr tuple)
       nil)))
@@ -2544,7 +2574,7 @@ need be... May remove that later...)"
 (defun eieio-attribute-to-initarg (class attribute)
   "In CLASS, convert the ATTRIBUTE into the corresponding init argument tag.
 This is usually a symbol that starts with `:'."
-  (let ((tuple (rassoc attribute (aref (class-v class) class-initarg-tuples))))
+  (let ((tuple (rassoc attribute (eieio--class-initarg-tuples (class-v class)))))
     (if tuple
 	(car tuple)
       nil)))
@@ -2632,10 +2662,9 @@ SLOTS are the initialization slots used by `shared-initialize'.
 This static method is called when an object is constructed.
 It allocates the vector used to represent an EIEIO object, and then
 calls `shared-initialize' on that object."
-  (let* ((new-object (copy-sequence (aref (class-v class)
-					  class-default-object-cache))))
+  (let* ((new-object (copy-sequence (eieio--class-default-object-cache (class-v class)))))
     ;; Update the name for the newly created object.
-    (aset new-object object-name newname)
+    (setf (eieio--object-name new-object) newname)
     ;; Call the initialize method on the new object with the slots
     ;; that were passed down to us.
     (initialize-instance new-object slots)
@@ -2649,9 +2678,9 @@ Called from the constructor routine.")
 (defmethod shared-initialize ((obj eieio-default-superclass) slots)
   "Set slots of OBJ with SLOTS which is a list of name/value pairs.
 Called from the constructor routine."
-  (let ((scoped-class (aref obj object-class)))
+  (let ((scoped-class (eieio--object-class obj)))
     (while slots
-      (let ((rn (eieio-initarg-to-attribute (object-class-fast obj)
+      (let ((rn (eieio-initarg-to-attribute (eieio--object-class obj)
 					    (car slots))))
 	(if (not rn)
 	    (slot-missing obj (car slots) 'oset (car (cdr slots)))
@@ -2673,9 +2702,9 @@ not taken, then new objects of your class will not have their values
 dynamically set from SLOTS."
     ;; First, see if any of our defaults are `lambda', and
     ;; re-evaluate them and apply the value to our slots.
-    (let* ((scoped-class (class-v (aref this object-class)))
-	   (slot (aref scoped-class class-public-a))
-	   (defaults (aref scoped-class class-public-d)))
+    (let* ((scoped-class (class-v (eieio--object-class this)))
+	   (slot (eieio--class-public-a scoped-class))
+	   (defaults (eieio--class-public-d scoped-class)))
       (while slot
 	;; For each slot, see if we need to evaluate it.
 	;;
@@ -2705,7 +2734,7 @@ to be set.
 
 This method is called from `oref', `oset', and other functions which
 directly reference slots in EIEIO objects."
-  (signal 'invalid-slot-name (list (object-name object)
+  (signal 'invalid-slot-name (list (eieio-object-name object)
 				   slot-name)))
 
 (defgeneric slot-unbound (object class slot-name fn)
@@ -2723,7 +2752,7 @@ Use `slot-boundp' to determine if a slot is bound or not.
 
 In CLOS, the argument list is (CLASS OBJECT SLOT-NAME), but
 EIEIO can only dispatch on the first argument, so the first two are swapped."
-  (signal 'unbound-slot (list (class-name class) (object-name object)
+  (signal 'unbound-slot (list (eieio-class-name class) (eieio-object-name object)
 			      slot-name fn)))
 
 (defgeneric no-applicable-method (object method &rest args)
@@ -2737,7 +2766,7 @@ ARGS are the arguments that were passed to METHOD.
 
 Implement this for a class to block this signal.  The return
 value becomes the return value of the original method call."
-  (signal 'no-method-definition (list method (object-name object)))
+  (signal 'no-method-definition (list method (eieio-object-name object)))
   )
 
 (defgeneric no-next-method (object &rest args)
@@ -2751,7 +2780,7 @@ ARGS are the arguments it is called by.
 This method signals `no-next-method' by default.  Override this
 method to not throw an error, and its return value becomes the
 return value of `call-next-method'."
-  (signal 'no-next-method (list (object-name object) args))
+  (signal 'no-next-method (list (eieio-object-name object) args))
   )
 
 (defgeneric clone (obj &rest params)
@@ -2764,7 +2793,7 @@ first and modify the returned object.")
 (defmethod clone ((obj eieio-default-superclass) &rest params)
   "Make a copy of OBJ, and then apply PARAMS."
   (let ((nobj (copy-sequence obj))
-	(nm (aref obj object-name))
+	(nm (eieio--object-name obj))
 	(passname (and params (stringp (car params))))
 	(num 1))
     (if params (shared-initialize nobj (if passname (cdr params) params)))
@@ -2773,8 +2802,8 @@ first and modify the returned object.")
 	  (if (string-match "-\\([0-9]+\\)" nm)
 	      (setq num (1+ (string-to-number (match-string 1 nm)))
 		    nm (substring nm 0 (match-beginning 0))))
-	  (aset nobj object-name (concat nm "-" (int-to-string num))))
-      (aset nobj object-name (car params)))
+	  (setf (eieio--object-name nobj) (concat nm "-" (int-to-string num))))
+      (setf (eieio--object-name nobj) (car params)))
     nobj))
 
 (defgeneric destructor (this &rest params)
@@ -2806,7 +2835,7 @@ Implement this function and specify STRINGS in a call to
 `call-next-method' to provide additional summary information.
 When passing in extra strings from child classes, always remember
 to prepend a space."
-  (object-name this (apply 'concat strings)))
+  (eieio-object-name this (apply 'concat strings)))
 
 (defvar eieio-print-depth 0
   "When printing, keep track of the current indentation depth.")
@@ -2823,11 +2852,11 @@ object are discouraged from being written.
 this object."
   (when comment
     (princ ";; Object ")
-    (princ (object-name-string this))
+    (princ (eieio-object-name-string this))
     (princ "\n")
     (princ comment)
     (princ "\n"))
-  (let* ((cl (object-class this))
+  (let* ((cl (eieio-object-class this))
 	 (cv (class-v cl)))
     ;; Now output readable lisp to recreate this object
     ;; It should look like this:
@@ -2835,14 +2864,14 @@ this object."
     ;; Each slot's slot is writen using its :writer.
     (princ (make-string (* eieio-print-depth 2) ? ))
     (princ "(")
-    (princ (symbol-name (class-constructor (object-class this))))
+    (princ (symbol-name (class-constructor (eieio-object-class this))))
     (princ " ")
-    (prin1 (object-name-string this))
+    (prin1 (eieio-object-name-string this))
     (princ "\n")
     ;; Loop over all the public slots
-    (let ((publa (aref cv class-public-a))
-	  (publd (aref cv class-public-d))
-	  (publp (aref cv class-public-printer))
+    (let ((publa (eieio--class-public-a cv))
+	  (publd (eieio--class-public-d cv))
+	  (publp (eieio--class-public-printer cv))
 	  (eieio-print-depth (1+ eieio-print-depth)))
       (while publa
 	(when (slot-boundp this (car publa))
@@ -2877,7 +2906,7 @@ this object."
 	((consp thing)
 	 (eieio-list-prin1 thing))
 	((class-p thing)
-	 (princ (class-name thing)))
+	 (princ (eieio-class-name thing)))
 	((or (keywordp thing) (booleanp thing))
 	 (prin1 thing))
 	((symbolp thing)
@@ -2921,34 +2950,30 @@ of `eq'."
   (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
     ;; find optional keys
     (setq key
-	  (cond ((or (eq ':BEFORE (car args))
-		     (eq ':before (car args)))
+	  (cond ((memq (car args) '(:BEFORE :before))
 		 (setq args (cdr args))
 		 method-before)
-		((or (eq ':AFTER (car args))
-		     (eq ':after (car args)))
+		((memq (car args) '(:AFTER :after))
 		 (setq args (cdr args))
 		 method-after)
-		((or (eq ':PRIMARY (car args))
-		     (eq ':primary (car args)))
-		 (setq args (cdr args))
-		 method-primary)
-		((or (eq ':STATIC (car args))
-		     (eq ':static (car args)))
+		((memq (car args) '(:STATIC :static))
 		 (setq args (cdr args))
 		 method-static)
-		;; Primary key
+		((memq (car args) '(:PRIMARY :primary))
+		 (setq args (cdr args))
+		 method-primary)
+		;; Primary key.
 		(t method-primary)))
-    ;; get body, and fix contents of args to be the arguments of the fn.
+    ;; Get body, and fix contents of args to be the arguments of the fn.
     (setq body (cdr args)
 	  args (car args))
     (setq loopa args)
-    ;; Create a fixed version of the arguments
+    ;; Create a fixed version of the arguments.
     (while loopa
       (setq argfix (cons (if (listp (car loopa)) (car (car loopa)) (car loopa))
 			 argfix))
       (setq loopa (cdr loopa)))
-    ;; make sure there is a generic
+    ;; Make sure there is a generic.
     (eieio-defgeneric
      method
      (if (stringp (car body))
@@ -2965,11 +2990,9 @@ of `eq'."
 	  (if (not (class-p argclass))
 	      (error "Unknown class type %s in method parameters"
 		     (nth 1 firstarg))))
-      (if (= key -1)
-	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
-      ;; generics are higher
+      ;; Generics are higher.
       (setq key (eieio-specialized-key-to-generic-key key)))
-    ;; Put this lambda into the symbol so we can find it
+    ;; Put this lambda into the symbol so we can find it.
     (if (byte-code-function-p (car-safe body))
 	(eieiomt-add method (car-safe body) key argclass)
       (eieiomt-add method (append (list 'lambda (reverse argfix)) body)
@@ -3019,7 +3042,7 @@ of `eq'."
   "Display EIEIO OBJECT in fancy format.
 Overrides the edebug default.
 Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
-  (cond ((class-p object) (class-name object))
+  (cond ((class-p object) (eieio-class-name object))
 	((eieio-object-p object) (object-print object))
 	((and (listp object) (or (class-p (car object))
 				 (eieio-object-p (car object))))
