@@ -1,3 +1,19 @@
+2013-03-02  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.5.
+
+	* mh-e.el (Version, mh-version): Update for release 8.5.
+
+2012-12-10  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-folder.el (mh-inc-folder): Revert SF #2321115, SF #250
+	which processed pending deletes and refiles.  Call to
+	mh-process-or-undo-commands to insure that pending changes are
+	properly tagged after including new mail (closes SF #271).
+
+	* mh-comp.el: Insure that mail-header-separator is set before
+	invoking any mml functions (closes SF #270).
+
 2013-01-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* mh-acros.el (mh-do-at-event-location): Use point-marker.

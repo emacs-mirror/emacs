@@ -774,7 +774,7 @@ the message."
     return-value))
 
 ;;;###mh-autoload
-(defun mh-inc-folder (&optional file folder dont-exec-pending)
+(defun mh-inc-folder (&optional file folder)
   "Incorporate new mail into a folder.
 
 You can incorporate mail from any file into the current folder by
@@ -785,10 +785,7 @@ The hook `mh-inc-folder-hook' is run after incorporating new
 mail.
 
 Do not call this function from outside MH-E; use \\[mh-rmail]
-instead.
-
-In a program, the processing of outstanding commands is not performed
-if DONT-EXEC-PENDING is non-nil."
+instead."
   (interactive (list (if current-prefix-arg
                          (expand-file-name
                           (read-file-name "inc mail from file: "
@@ -797,8 +794,6 @@ if DONT-EXEC-PENDING is non-nil."
                          (mh-prompt-for-folder "inc mail into" mh-inbox t))))
   (if (not folder)
       (setq folder mh-inbox))
-  (unless dont-exec-pending
-    (mh-process-or-undo-commands folder))
   (let ((threading-needed-flag nil))
     (let ((config (current-window-configuration)))
       (when (and mh-show-buffer (get-buffer mh-show-buffer))
@@ -820,6 +815,8 @@ if DONT-EXEC-PENDING is non-nil."
                           nil))))
       (mh-toggle-threads))
     (beginning-of-line)
+    (when (mh-outstanding-commands-p)
+      (mh-notate-deleted-and-refiled))
     (if (and mh-showing-mode (looking-at mh-scan-valid-regexp)) (mh-show))
     (run-hooks 'mh-inc-folder-hook)))
 
