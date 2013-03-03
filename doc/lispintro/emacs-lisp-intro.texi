@@ -16992,7 +16992,7 @@ For example, the customizable user option variable
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
   :options '(turn-on-auto-fill flyspell-mode)
-  :group 'data)
+  :group 'wp)
 @end group
 @end smallexample
 
