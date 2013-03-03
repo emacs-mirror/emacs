@@ -1,3 +1,7 @@
+2013-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove lzma (it's replaced by xz).
+
 2013-03-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
