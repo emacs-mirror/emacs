@@ -17811,7 +17811,7 @@ emacs -q --no-site-file -eval '(blink-cursor-mode nil)'
 
 @exdent Or nowadays, using an even more sophisticated set of options,
 
-emacs -Q - D
+emacs -Q -D
 @end smallexample
 }:
 
