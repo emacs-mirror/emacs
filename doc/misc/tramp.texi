@@ -998,12 +998,19 @@ name.
 @cindex method adb
 @cindex adb method
 
-This special method uses the Android Debug Bridge for connecting
+This special method uses the Android Debug Bridge for accessing
 Android devices.  The Android Debug Bridge must be installed locally.
 Some GNU/Linux distributions offer it for installation, otherwise it
-can be installed as part of the Android SDK.  If @command{adb} is not
-found via the @code{$PATH} environment variable, the variable
-@var{tramp-adb-program} must point to its absolute path.
+can be installed as part of the Android SDK.  If the @command{adb}
+program is not found via the @code{$PATH} environment variable, the
+variable @var{tramp-adb-program} must point to its absolute path.
+
+Tramp does not connect Android devices to @command{adb}.  This must be
+performed outside @value{emacsname}.  If there is exactly one Android
+device connected to @command{adb}, a host name is not needed in the
+remote file name.  The default @value{tramp} name to be used is
+@file{@trampfn{adb, , ,}} therefore.  Otherwise, one could find
+potential host names with the command @command{adb devices}.
 
 Usually, the @command{adb} method does not need any user name.  It
 runs under the permissions of the @command{adbd} process on the
@@ -1011,11 +1018,6 @@ Android device.  If a user name is specified, @value{tramp} applies an
 @command{su} on the device.  This does not work with all Android
 devices, especially with unrooted ones.  In that case, an error
 message is displayed.
-
-If there is exactly one Android device connected to the local machine,
-a host name is not needed.  The shortest @value{tramp} name to be used
-is @file{@trampfn{adb, , ,}} therefore.  Otherwise, one could find
-potential host names with the shell command @command{adb devices}.
 
 @end table
 
