@@ -565,8 +565,8 @@ Lisp, upper case and lower case letters are distinct.
 @end quotation
 
   Here are several examples of symbol names.  Note that the @samp{+} in
-the fifth example is escaped to prevent it from being read as a number.
-This is not necessary in the fourth example because the rest of the name
+the fourth example is escaped to prevent it from being read as a number.
+This is not necessary in the sixth example because the rest of the name
 makes it invalid as a number.
 
 @example
