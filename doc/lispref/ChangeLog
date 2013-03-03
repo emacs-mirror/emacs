@@ -1,3 +1,7 @@
+2013-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Symbol Type): Fix typo.
+
 2013-02-28  Bastien Guerry  <bzg@gnu.org>
 
 	* variables.texi (File Local Variables): Fix reference.

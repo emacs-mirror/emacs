@@ -9116,8 +9116,8 @@ Lisp; it is written in C and is one of the primitives of the GNU Emacs
 system.  Since it is very simple, I will digress briefly from Lisp and
 describe it here.
 
-@c GNU Emacs 22  in /usr/local/src/emacs/src/editfns.c
-@c the DEFUN for  buffer-substring-no-properties
+@c GNU Emacs 24  in src/editfns.c
+@c the DEFUN for  delete-and-extract-region
 
 @need 1500
 Like many of the other Emacs primitives,
@@ -9127,22 +9127,15 @@ like this:
 
 @smallexample
 @group
-DEFUN ("buffer-substring-no-properties", Fbuffer_substring_no_properties,
-       Sbuffer_substring_no_properties, 2, 2, 0,
-       doc: /* Return the characters of part of the buffer,
-without the text properties.
-The two arguments START and END are character positions;
-they can be in either order.  */)
-     (start, end)
-     Lisp_Object start, end;
+DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
+       Sdelete_and_extract_region, 2, 2, 0,
+       doc: /* Delete the text between START and END and return it.  */)
+       (Lisp_Object start, Lisp_Object end)
 @{
-  register int b, e;
-
   validate_region (&start, &end);
-  b = XINT (start);
-  e = XINT (end);
-
-  return make_buffer_string (b, e, 0);
+  if (XINT (start) == XINT (end))
+    return empty_unibyte_string;
+  return del_range_1 (XINT (start), XINT (end), 1, 1);
 @}
 @end group
 @end smallexample
@@ -9192,20 +9185,9 @@ and provides a prompt.
 
 @item
 The seventh part is a documentation string, just like the one for a
-function written in Emacs Lisp, except that every newline must be
-written explicitly as @samp{\n} followed by a backslash and carriage
-return.
-
-@need 1000
-Thus, the first two lines of documentation for  @code{goto-char} are
-written like this:
-
-@smallexample
-@group
-  "Set point to POSITION, a number or marker.\n\
-Beginning of buffer is position (point-min), end is (point-max)."
-@end group
-@end smallexample
+function written in Emacs Lisp.  This is written as a C comment.  (When
+you build Emacs, the program @command{lib-src/make-docfile} extracts
+these comments and uses them to make the ``real'' documentation.)
 @end itemize
 
 @need 1200
@@ -9218,15 +9200,15 @@ consists of the following four lines:
 @group
 validate_region (&start, &end);
 if (XINT (start) == XINT (end))
-  return build_string ("");
+  return empty_unibyte_string;
 return del_range_1 (XINT (start), XINT (end), 1, 1);
 @end group
 @end smallexample
 
-The   @code{validate_region} function checks whether the values
+The @code{validate_region} function checks whether the values
 passed as the beginning and end of the region are the proper type and
 are within range.  If the beginning and end positions are the same,
-then return and empty string.
+then return an empty string.
 
 The @code{del_range_1} function actually deletes the text.  It is a
 complex function we will not look into.  It updates the buffer and
@@ -17010,7 +16992,7 @@ For example, the customizable user option variable
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
   :options '(turn-on-auto-fill flyspell-mode)
-  :group 'data)
+  :group 'wp)
 @end group
 @end smallexample
 
