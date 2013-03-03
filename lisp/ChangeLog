@@ -1,3 +1,8 @@
+2013-03-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-maybe-open-connection): Cache,
+	whether the "su" command is available on the device.
+
 2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-prompt): Extend regexp.

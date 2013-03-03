@@ -1074,6 +1074,13 @@ connection if a previous connection has died for some reason."
 	 (host (tramp-file-name-host vec))
 	 (user (tramp-file-name-user vec))
 	 (devices (mapcar 'cadr (tramp-adb-parse-device-names nil))))
+
+    ;; Maybe we know already that "su" is not supported.  We cannot
+    ;; use a connection property, because we have not checked yet
+    ;; whether it is still the same device.
+    (when (and user (not (tramp-get-file-property vec "" "su-command-p" t)))
+      (tramp-error vec 'file-error "Cannot switch to user `%s'" user))
+
     (unless
 	(and p (processp p) (memq (process-status p) '(run open)))
       (save-match-data
@@ -1133,7 +1140,9 @@ connection if a previous connection has died for some reason."
 	      (tramp-adb-send-command vec (format "su %s" user))
 	      (unless (zerop (tramp-adb-command-exit-status vec nil))
 		(delete-process p)
-		(tramp-error vec 'file-error "Cannot switch to user %s" user)))
+		(tramp-set-file-property vec "" "su-command-p" nil)
+		(tramp-error
+		 vec 'file-error "Cannot switch to user `%s'" user)))
 
 	    ;; Set "remote-path" connection property.  This is needed
 	    ;; for eshell.
