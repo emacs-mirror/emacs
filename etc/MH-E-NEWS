@@ -3,6 +3,25 @@
 Copyright (C) 2001-2013 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+* Changes in MH-E 8.5
+
+Version 8.5 fixes bugs when incorporating or forwarding mail.
+
+** Bug Fixes in MH-E 8.5
+
+*** mh-rmail doesn't switch to +inbox
+
+The function `mh-rmail' now switches to `+inbox' as expected (closes
+SF #271).
+
+*** Problem forwarding a messsage
+
+Forwarding messages resulted in the error: `(wrong-type-argument
+number-or-marker-p nil).' This has been fixed by setting the mail
+separator (closes SF #270).
+
+
+
 * Changes in MH-E 8.4
 
 Version 8.4 postpones junk processing and merges in your components

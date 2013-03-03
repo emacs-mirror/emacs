@@ -1,3 +1,9 @@
+2013-03-02  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.5.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.5.
+
 2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: The lock for FILE is now .#FILE or .#-FILE (Bug#13807).

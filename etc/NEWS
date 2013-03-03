@@ -159,7 +159,7 @@ callers to fit the image to a frame other than the selected frame.
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
 
-** MH-E has been updated to MH-E version 8.4.
+** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.
 
 ---
