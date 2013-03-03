@@ -320,7 +320,7 @@ Does not make other difference."
                   ;; bzrmerge-add-metadata does not work when there
                   ;; are conflicts.
                   (display-warning 'bzrmerge "Resolve conflicts manually.
-¡BEWARE!  Important metadata is kept in this Emacs session!
+BEWARE!  Important metadata is kept in this Emacs session!
 Do not commit without re-running `M-x bzrmerge' first!"
                                    :warning bzrmerge-warning-buffer))
               (error "Resolve conflicts manually")))))

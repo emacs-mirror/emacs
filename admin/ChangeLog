@@ -1,3 +1,8 @@
+2013-03-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bzrmerge.el (bzrmerge-apply): Omit Latin-1 char from diagnostic.
+	If there were a real need, it should be UTF-8 anyway.
+
 2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify data_start configuration (Bug#13783).
