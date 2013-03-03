@@ -4,7 +4,7 @@
 
 	* mh-e.el (Version, mh-version): Update for release 8.5.
 
-2012-12-10  Jeffrey C Honig  <jch@honig.net>
+2013-03-02  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-folder.el (mh-inc-folder): Revert SF #2321115, SF #250
 	which processed pending deletes and refiles.  Call to
