@@ -1009,7 +1009,7 @@ Usually, the @command{adb} method does not need any user name.  It
 runs under the permissions of the @command{adbd} process on the
 Android device.  If a user name is specified, @value{tramp} applies an
 @command{su} on the device.  This does not work with all Android
-devices, especially with nonrooted ones.  In that case, an error
+devices, especially with unrooted ones.  In that case, an error
 message is displayed.
 
 If there is exactly one Android device connected to the local machine,

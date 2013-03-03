@@ -1157,7 +1157,7 @@ all uninitialized dicts using that affix file."
 	  (use-for-dicts (list dict))
 	  (dict-args-cdr (cdr (ispell-parse-hunspell-affix-file dict)))
 	  newlist)
-      ;; Get a list of unitialized dicts using the same affix file.
+      ;; Get a list of uninitialized dicts using the same affix file.
       (dolist (dict-equiv-alist-entry ispell-hunspell-dictionary-equivs-alist)
 	(let ((dict-equiv-key (car dict-equiv-alist-entry))
 	      (dict-equiv-value (cadr dict-equiv-alist-entry)))
