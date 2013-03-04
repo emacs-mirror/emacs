@@ -46,8 +46,8 @@
            \\_         _/
             (     `o  `      (European ;-) Bison
              \\      ` /
-             (   D  ,¨       for Emacs!
-              ` ~ ,¨
+             (   D  ,\"       for Emacs!
+              ` ~ ,\"
                `\"\""
   :group 'semantic)
 

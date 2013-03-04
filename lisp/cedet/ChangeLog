@@ -1,5 +1,7 @@
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* semantic/wisent/wisent.el (wisent): Stick to ASCII in the ASCII art.
+
 	* semantic/wisent/javat-wy.el: Regenerate.
 
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
