@@ -376,6 +376,13 @@ to it is returned.  This function does not modify the point or the mark."
       `(int-to-char ,integer)
     integer))
 
+(defmacro c-last-command-char ()
+  ;; The last character just typed.  Note that `last-command-event' exists in
+  ;; both Emacs and XEmacs, but with confusingly different meanings.
+  (if (featurep 'xemacs)
+      'last-command-char
+    'last-command-event))
+
 (defmacro c-sentence-end ()
   ;; Get the regular expression `sentence-end'.
   (if (cc-bytecomp-fboundp 'sentence-end)

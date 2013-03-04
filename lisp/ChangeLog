@@ -1,3 +1,16 @@
+2013-03-04  Alan Mackenzie  <acm@muc.de>
+
+	Replace `last-command-event' by `last-command-char' in XEmacs.
+	* progmodes/cc-defs.el (c-last-command-char): New macro.
+	* progmodes/cc-align.el (c-semi&comma-inside-parenlist)
+	(c-semi&comma-no-newlines-before-nonblanks)
+	(c-semi&comma-no-newlines-for-oneline-inliners): Use the new macro
+	in place of `last-command-event'.
+	* progmodes/cc-cmds.el (c-electric-pound, c-electric-brace)
+	(c-electric-slash, c-electric-semi&comma, c-electric-lt-gt)
+	(c-electric-paren, c-electric-continued-statement): Use the new
+	macro in place of `last-command-event'.
+
 2013-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (inhibit-local-variables-regexps):
