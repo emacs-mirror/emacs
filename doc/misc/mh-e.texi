@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*- mode: texinfo; coding: utf-8; -*-
 @c
 @c Note: This document requires makeinfo version 4.6 or greater to build.
 @c
@@ -4968,7 +4968,7 @@ Michael W Thelen <thelenm@@stop.mail-abuse.org> wrote:
 The attribution consists of the sender's name and email address
 followed by the content of the option
 @code{mh-extract-from-attribution-verb}. This option can be set to
-@samp{wrote:}, @samp{a écrit:}, and @samp{schrieb:}. You can also use
+@samp{wrote:}, @samp{a Ã©crit:}, and @samp{schrieb:}. You can also use
 the @samp{Custom String} menu item to enter your own verb.
 
 @vindex mail-citation-hook

@@ -1,4 +1,4 @@
-\input texinfo  @c -*- coding: iso-latin-1 -*-
+\input texinfo  @c -*- coding: utf-8 -*-
 
 @setfilename ../../info/emacs
 @settitle GNU Emacs Manual
@@ -44,7 +44,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 
 @dircategory Emacs
 @direntry
@@ -1351,35 +1351,35 @@ USA
 
 Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
 Abrahamsson, Jay K. Adams, Alon Albert, Michael Albinus, Nagy
-Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil Åström,
+Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil Ã…strÃ¶m,
 Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
 Baumann, Steven L. Baur, Jay Belanger, Alexander L. Belikoff,
 Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Karl
 Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
-Bockgård, Jan Böcker, Joel Boehland, Lennart Borgman, Per Bothner,
+BockgÃ¥rd, Jan BÃ¶cker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Stefan Bruda,
 Georges Brun-Cottan, Joe Buehler, Scott Byer, W@l{}odek Bzyl,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
 Clark, Mike Clarkson, Glynn Clements, Andrew Cohen, Daniel Colascione,
-Edward O'Connor, Christoph Conrad, Ludovic Courtès, Andrew Csillag,
+Edward O'Connor, Christoph Conrad, Ludovic CourtÃ¨s, Andrew Csillag,
 Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki
 Das, Vivek Dasmohapatra, Dan Davison, Michael DeCorte, Gary Delp, Nachum
 Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eri
-Ding, Jan Djärv, Lawrence R. Dodd, Carsten Dominik, Scott Draves,
+Ding, Jan DjÃ¤rv, Lawrence R. Dodd, Carsten Dominik, Scott Draves,
 Benjamin Drieu, Viktor Dukhovni, Jacques Duthen, Dmitry Dzhus, John
 Eaton, Rolf Ebert, Carl Edman, David Edmondson, Paul Eggert, Stephen
-Eglen, Christian Egli, Torbjörn Einarsson, Tsugutomo Enami, David
+Eglen, Christian Egli, TorbjÃ¶rn Einarsson, Tsugutomo Enami, David
 Engster, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick
 Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Karl Fogel, Gary
 Foster, Eric S. Fraga, Romain Francoise, Noah Friedman, Andreas
 Fuchs, Shigeru Fukaya, Hallvard Furuseth, Keith Gabryelski, Peter S.
-Galbraith, Kevin Gallagher, Fabián E. Gallina, Kevin Gallo, Juan León Lahoz García,
+Galbraith, Kevin Gallagher, FabiÃ¡n E. Gallina, Kevin Gallo, Juan LeÃ³n Lahoz GarcÃ­a,
 Howard Gayle, Daniel German, Stephen Gildea, Julien Gilles, David
 Gillespie, Bob Glickstein, Deepak Goel, David De La Harpe Golden, Boris
 Goldowsky, David Goodger, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
-Gripenstam, Kai Großjohann, Michael Gschwind, Bastien Guerry, Henry
+Gripenstam, Kai GroÃŸjohann, Michael Gschwind, Bastien Guerry, Henry
 Guillaume, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, Chris
 Hanson, Jesper Harder, Alexandru Harsanyi, K. Shane Hartman, John
 Heidemann, Jon K. Hellan, Magnus Henoch, Markus Heritsch, Dirk
@@ -1388,19 +1388,19 @@ Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Tom Houlder, Joakim
 Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
 Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
 Thorsten Jolitz, Michael K. Johnson, Kyle Jones, Terry Jones, Simon
-Josefsson, Alexandre Julliard, Arne Jørgensen, Tomoji Kagatani,
+Josefsson, Alexandre Julliard, Arne JÃ¸rgensen, Tomoji Kagatani,
 Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Ivan Kanis, David
 Kastrup, David Kaufman, Henry Kautz, Taichi Kawabata, Taro Kawagishi,
 Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg, Karel
-Klí@v{c}, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
+KlÃ­@v{c}, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
 M. Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian Kremer,
-Ryszard Kubiak, Igor Kuzmin, David Kågedal, Daniel LaLiberte, Karl
+Ryszard Kubiak, Igor Kuzmin, David KÃ¥gedal, Daniel LaLiberte, Karl
 Landstrom, Mario Lang, Aaron Larson, James R. Larus, Vinicius Jose
 Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Christian
 Limpach, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
 Juri Linkov, Francis Litterio, Sergey Litvinov, Emilio C. Lopes,
-Martin Lorentzon, Dave Love, Eric Ludlam, Károly L@H{o}rentey, Sascha
-Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
+Martin Lorentzon, Dave Love, Eric Ludlam, KÃ¡roly L@H{o}rentey, Sascha
+LÃ¼decke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
 Christopher J. Madsen, Neil M. Mager, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
 Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
@@ -1415,7 +1415,7 @@ Kenichi Okada, Alexandre Oliva, Bob Olson, Michael Olson, Takaaki Ota,
 Pieter E. J. Pareit, Ross Patterson, David Pearson, Juan Pechiar,
 Jeff Peck, Damon Anton Permezel, Tom Perrine, William M. Perry, Per
 Persson, Jens Petersen, Daniel Pfeiffer, Justus Piater, Richard L.
-Pieri, Fred Pierresteguy, François Pinard, Daniel Pittman, Christian
+Pieri, Fred Pierresteguy, FranÃ§ois Pinard, Daniel Pittman, Christian
 Plaunt, Alexander Pohoyda, David Ponce, Francesco A. Potorti,
 Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
 Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, David

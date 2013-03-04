@@ -1,4 +1,4 @@
-@c This is part of the Emacs manual.  -*- coding: iso-latin-1 -*-
+@c This is part of the Emacs manual.  -*- coding: utf-8 -*-
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
@@ -522,7 +522,7 @@ holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
-major Bah·'Ì, Chinese, Christian, Islamic, and Jewish holidays; also the
+major Bah√°'√≠, Chinese, Christian, Islamic, and Jewish holidays; also the
 solstices and equinoxes.
 
 @findex list-holidays
@@ -760,8 +760,8 @@ days are named by combining one of ten ``celestial stems'' with one of
 twelve ``terrestrial branches'' for a total of sixty names that are
 repeated in a cycle of sixty.
 
-@cindex Bah·'Ì calendar
-  The Bah·'Ì calendar system is based on a solar cycle of 19 months with
+@cindex Bah√°'√≠ calendar
+  The Bah√°'√≠ calendar system is based on a solar cycle of 19 months with
 19 days each.  The four remaining ``intercalary'' days are placed
 between the 18th and 19th months.
 
@@ -801,7 +801,7 @@ Display French Revolutionary date for selected day
 (@code{calendar-french-print-date}).
 @findex calendar-bahai-print-date
 @item p b
-Display Bah·'Ì date for selected day
+Display Bah√°'√≠ date for selected day
 (@code{calendar-bahai-print-date}).
 @findex calendar-chinese-print-date
 @item p C
@@ -869,7 +869,7 @@ Move to a date specified in the Julian calendar
 Move to a date specified with an astronomical (Julian) day number
 (@code{calendar-astro-goto-day-number}).
 @item g b
-Move to a date specified in the Bah·'Ì calendar
+Move to a date specified in the Bah√°'√≠ calendar
 (@code{calendar-bahai-goto-date}).
 @item g h
 Move to a date specified in the Hebrew calendar

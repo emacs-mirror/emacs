@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*- mode: texinfo; coding: utf-8; -*-
 @c %**start of header
 @setfilename ../../info/ses
 @settitle @acronym{SES}: Simple Emacs Spreadsheet
@@ -1022,9 +1022,9 @@ Yusong Li @email{lyusong@@hotmail.com}@*
 Juri Linkov @email{juri@@jurta.org}@*
 Harald Maier @email{maierh@@myself.com}@*
 Alan Nash @email{anash@@san.rr.com}@*
-François Pinard @email{pinard@@iro.umontreal.ca}@*
+FranÃ§ois Pinard @email{pinard@@iro.umontreal.ca}@*
 Pedro Pinto @email{ppinto@@cs.cmu.edu}@*
-Stefan Reichör @email{xsteve@@riic.at}@*
+Stefan ReichÃ¶r @email{xsteve@@riic.at}@*
 Oliver Scholz @email{epameinondas@@gmx.de}@*
 Richard M. Stallman @email{rms@@gnu.org}@*
 Luc Teirlinck @email{teirllm@@dms.auburn.edu}@*

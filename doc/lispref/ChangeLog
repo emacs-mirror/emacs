@@ -1,3 +1,7 @@
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* elisp.texi, intro.texi: Switch from Latin-1 to UTF-8.
+
 2013-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* objects.texi (Symbol Type): Fix typo.

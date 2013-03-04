@@ -3,7 +3,7 @@
 @setfilename ../../info/mairix-el
 @settitle Emacs Interface for Mairix
 
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 
 @copying
 Copyright @copyright{} 2008--2013 Free Software Foundation, Inc.

@@ -1,3 +1,11 @@
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer UTF-8 for documentation.
+	With GNU Texinfo 5.0, this generates nicer-looking info files,
+	since they can use curly quotes.  With older Texinfo it doesn't matter.
+	* ack.texi, cal-xtra.texi, calendar.texi, emacs-xtra.texi, emacs.texi:
+	Switch from Latin-1 to UTF-8.
+
 2013-02-28  Bastien Guerry  <bzg@gnu.org>
 
 	* xresources.texi (GTK resources): Fix broken link.

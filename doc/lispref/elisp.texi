@@ -115,7 +115,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 
 @dircategory GNU Emacs Lisp
 @direntry

@@ -123,8 +123,8 @@ reproduces the look of the current Emacs buffer as closely as possible.
 entities, so you should even be able to do html-within-html fontified
 display.
 
-You should, however, note that random control or eight-bit characters
-such as ^L (\x0c) or ¤ (\xa4) won't get mapped yet.
+You should, however, note that random control or non-ASCII characters
+such as ^L (\x0c) or Â¤ (\xa4) won't get mapped yet.
 
 If the @var{srcdir} and @var{file} arguments are set, lookup etags
 derived entries in the @ref{hfy-tags-cache} and add html anchors

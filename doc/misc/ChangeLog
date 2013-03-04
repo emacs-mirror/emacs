@@ -1,3 +1,8 @@
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-mime.texi, htmlfontify.texi, mairix-el.texi, mh-e.texi:
+	* ses.texi: Switch from Latin-1 to UTF-8.
+
 2013-03-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (External methods): Tramp does not connect Android
