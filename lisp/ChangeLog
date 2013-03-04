@@ -1,3 +1,8 @@
+2013-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (inhibit-local-variables-regexps):
+	Add .diff and .patch.  (Bug#13862)
+
 2013-03-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-maybe-open-connection): Cache,

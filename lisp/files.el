@@ -2498,6 +2498,7 @@ See also `auto-mode-alist'.")
 		      "\\.zoo\\'" "\\.[jew]ar\\'" "\\.xpi\\'" "\\.rar\\'"
 		      "\\.7z\\'"
 		      "\\.sx[dmicw]\\'" "\\.odt\\'"
+		      "\\.diff\\'" "\\.patch\\'"
 		      "\\.tiff?\\'" "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'"))
   "List of regexps matching file names in which to ignore local variables.
 This includes `-*-' lines as well as trailing \"Local Variables\" sections.
