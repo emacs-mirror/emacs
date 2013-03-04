@@ -1,3 +1,9 @@
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix misuse of ImageMagick that caused core dump (Bug#13846).
+	* image.c (imagemagick_load_image): Calculate height and width
+	after flattening the image, not before.
+
 2013-03-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* font.c (Ffont_get_glyphs): Use convenient LGLYPH_NEW.

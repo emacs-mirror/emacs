@@ -7792,11 +7792,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
         }
     }
 
-  /* Finally we are done manipulating the image.  Figure out the
-     resulting width/height and transfer ownership to Emacs.  */
-  height = MagickGetImageHeight (image_wand);
-  width = MagickGetImageWidth (image_wand);
-
   /* Set the canvas background color to the frame or specified
      background, and flatten the image.  Note: as of ImageMagick
      6.6.0, SVG image transparency is not handled properly
@@ -7812,6 +7807,11 @@ imagemagick_load_image (struct frame *f, struct image *img,
     DestroyMagickWand (image_wand);
     image_wand = new_wand;
   }
+
+  /* Finally we are done manipulating the image.  Figure out the
+     resulting width/height and transfer ownership to Emacs.  */
+  height = MagickGetImageHeight (image_wand);
+  width = MagickGetImageWidth (image_wand);
 
   if (! (width <= INT_MAX && height <= INT_MAX
 	 && check_image_size (f, width, height)))
