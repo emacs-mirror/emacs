@@ -1,3 +1,9 @@
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* grammars/java-tags.wy (CHAR): Remove "('\u0000' to '\uffff')"
+	from summary, as this causes javat-wy.el to contain both a null byte
+	and a byte sequence that is not valid UTF-8, which is inconvenient.
+
 2013-03-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bzrmerge.el (bzrmerge-apply): Omit Latin-1 char from diagnostic.

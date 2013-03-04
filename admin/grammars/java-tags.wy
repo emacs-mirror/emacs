@@ -154,7 +154,7 @@
 
 %keyword CHAR         "char"
 %put     CHAR summary
-"Integral primitive type ('\u0000' to '\uffff') (0 to 65535)"
+"Integral primitive type (0 to 65535)"
 
 %keyword CLASS        "class"
 %put     CLASS summary
@@ -312,7 +312,7 @@
 %keyword WHILE        "while"
 %put     WHILE summary
 "while (<expr>) <stmt> | do <stmt> while (<expr>);"
-  
+
 ;; --------------------------
 ;; Official javadoc line tags
 ;; --------------------------
@@ -340,27 +340,27 @@
 %keyword _AUTHOR      "@author"
 %put     _AUTHOR      javadoc (seq 1 usage (type))
 %keyword _VERSION     "@version"
-%put     _VERSION     javadoc (seq 2 usage (type)) 
+%put     _VERSION     javadoc (seq 2 usage (type))
 %keyword _PARAM       "@param"
-%put     _PARAM       javadoc (seq 3 usage (function) with-name t) 
+%put     _PARAM       javadoc (seq 3 usage (function) with-name t)
 %keyword _RETURN      "@return"
-%put     _RETURN      javadoc (seq 4 usage (function)) 
+%put     _RETURN      javadoc (seq 4 usage (function))
 %keyword _EXCEPTION   "@exception"
-%put     _EXCEPTION   javadoc (seq 5 usage (function) with-name t) 
+%put     _EXCEPTION   javadoc (seq 5 usage (function) with-name t)
 %keyword _THROWS      "@throws"
-%put     _THROWS      javadoc (seq 6 usage (function) with-name t) 
+%put     _THROWS      javadoc (seq 6 usage (function) with-name t)
 %keyword _SEE         "@see"
-%put     _SEE         javadoc (seq 7 usage (type function variable) opt t with-ref t) 
+%put     _SEE         javadoc (seq 7 usage (type function variable) opt t with-ref t)
 %keyword _SINCE       "@since"
-%put     _SINCE       javadoc (seq 8 usage (type function variable) opt t) 
+%put     _SINCE       javadoc (seq 8 usage (type function variable) opt t)
 %keyword _SERIAL      "@serial"
-%put     _SERIAL      javadoc (seq 9 usage (variable) opt t) 
+%put     _SERIAL      javadoc (seq 9 usage (variable) opt t)
 %keyword _SERIALDATA  "@serialData"
-%put     _SERIALDATA  javadoc (seq 10 usage (function) opt t) 
+%put     _SERIALDATA  javadoc (seq 10 usage (function) opt t)
 %keyword _SERIALFIELD "@serialField"
-%put     _SERIALFIELD javadoc (seq 11 usage (variable) opt t) 
+%put     _SERIALFIELD javadoc (seq 11 usage (variable) opt t)
 %keyword _DEPRECATED  "@deprecated"
-%put     _DEPRECATED  javadoc (seq 12 usage (type function variable) opt t) 
+%put     _DEPRECATED  javadoc (seq 12 usage (type function variable) opt t)
 
 %%
 
@@ -387,7 +387,7 @@ package_declaration
   ;
 
 ;;; Include file token
-;; ("FILE" include SYSTEM "DOCSTRING") 
+;; ("FILE" include SYSTEM "DOCSTRING")
 import_declaration
   : IMPORT qualified_name SEMICOLON
     (INCLUDE-TAG $2 nil)
@@ -476,7 +476,7 @@ static_initializer
   ;
 
 ;;; Function token
-;; ("NAME" function "TYPE" ( ARG-LIST ) EXTRA-SPEC "DOCSTRING") 
+;; ("NAME" function "TYPE" ( ARG-LIST ) EXTRA-SPEC "DOCSTRING")
 constructor_declaration
   : modifiers_opt constructor_declarator throwsc_opt constructor_body
     (FUNCTION-TAG (car $2) nil (cdr $2)
@@ -491,11 +491,11 @@ constructor_declarator
   ;
 
 constructor_body
-  : block 
+  : block
   ;
 
 ;;; Function token
-;; ("NAME" function "TYPE" ( ARG-LIST ) EXTRA-SPEC "DOCSTRING") 
+;; ("NAME" function "TYPE" ( ARG-LIST ) EXTRA-SPEC "DOCSTRING")
 method_declaration
   : modifiers_opt VOID method_declarator throwsc_opt method_body
     (FUNCTION-TAG (car $3) $2 (cdr $3) :typemodifiers $1 :throws $4)

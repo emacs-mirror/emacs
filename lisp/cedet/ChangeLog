@@ -1,3 +1,7 @@
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* semantic/wisent/javat-wy.el: Regenerate.
+
 2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* semantic/fw.el (semantic-make-local-hook, semantic-mode-line-update):
