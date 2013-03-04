@@ -97,9 +97,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Extra bits to be or'd in with any pointers stored in a Lisp_Object. */
 #undef DATA_SEG_BITS
 
-/* Address of the start of the data segment. */
-#undef DATA_START
-
 /* Name of the default sound device. */
 #undef DEFAULT_SOUND_DEVICE
 
@@ -264,6 +261,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `copysign' function. */
 #undef HAVE_COPYSIGN
+
+/* Define to 1 if data_start is the address of the start of the main data
+   segment. */
+#undef HAVE_DATA_START
 
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
@@ -1136,6 +1137,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `_ftime' function. */
 #undef HAVE__FTIME
 
+/* Define to 1 if you have the `_putenv' function. */
+#undef HAVE__PUTENV
+
 /* Define to 1 if _setjmp and _longjmp work. */
 #define HAVE__SETJMP 1
 
@@ -1233,9 +1237,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the nlist n_name member is a pointer */
 #undef N_NAME_POINTER
-
-/* Define if the C compiler is the linker. */
-#define ORDINARY_LINK 1
 
 /* Name of package */
 #define PACKAGE "emacs"
@@ -1578,13 +1579,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    _GL_INLINE_HEADER_END contains useful stuff to put
      in the same include file, after uses of _GL_INLINE.
 
+   Suppress extern inline with HP-UX cc, as it appears to be broken; see
+   <http://lists.gnu.org/archive/html/bug-texinfo/2013-02/msg00030.html>.
+
    Suppress the use of extern inline on Apple's platforms,
    as Libc-825.25 (2012-09-19) is incompatible with it; see
    <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
    Perhaps Apple will fix this some day.  */
 #if ((__GNUC__ \
       ? defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__ \
-      : 199901L <= __STDC_VERSION__) \
+      : 199901L <= __STDC_VERSION__ && !defined __HP_cc) \
      && !defined __APPLE__)
 # define _GL_INLINE inline
 # define _GL_EXTERN_INLINE extern inline

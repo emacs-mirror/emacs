@@ -1,3 +1,9 @@
+2013-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DATA_START, ORDINARY_LINK): Remove.
+	(HAVE_DATA_START, HAVE__PUTENV): New macros.
+
 2013-02-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (BOOT_TIME_FILE): Define.
