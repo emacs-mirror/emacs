@@ -1,3 +1,8 @@
+2013-03-03  Ted Phelps  <phelps@gnusto.com>
+
+	* shr.el: Make all the overlays set the `evaporate' property so that
+	they're removed properly.
+
 2013-02-25  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* mml2015-el (mml2015-epg-key-image): Wrap epg-gpg-program in

@@ -520,6 +520,11 @@ size, and full-buffer size."
     (dolist (type types)
       (shr-add-font (or shr-start (point)) (point) type))))
 
+(defun shr-make-overlay (beg end &optional buffer front-advance rear-advance)
+  (let ((overlay (make-overlay beg end buffer front-advance rear-advance)))
+    (overlay-put overlay 'evaporate t)
+    overlay))
+
 ;; Add an overlay in the region, but avoid putting the font properties
 ;; on blank text at the start of the line, and the newline at the end,
 ;; to avoid ugliness.
@@ -529,7 +534,7 @@ size, and full-buffer size."
     (while (< (point) end)
       (when (bolp)
 	(skip-chars-forward " "))
-      (let ((overlay (make-overlay (point) (min (line-end-position) end))))
+      (let ((overlay (shr-make-overlay (point) (min (line-end-position) end))))
 	(overlay-put overlay 'face type))
       (if (< (line-end-position) end)
 	  (forward-line 1)
@@ -790,7 +795,7 @@ ones, in case fg and bg are nil."
 	(when (and (< (setq column (current-column)) width)
 		   (< (setq column (shr-previous-newline-padding-width column))
 		      width))
-	  (let ((overlay (make-overlay (point) (1+ (point)))))
+	  (let ((overlay (shr-make-overlay (point) (1+ (point)))))
 	    (overlay-put overlay 'before-string
 			 (concat
 			  (mapconcat
@@ -1238,8 +1243,8 @@ ones, in case fg and bg are nil."
 	    (end-of-line)
 	    (insert line shr-table-vertical-line)
 	    (dolist (overlay overlay-line)
-	      (let ((o (make-overlay (- (point) (nth 0 overlay) 1)
-				     (- (point) (nth 1 overlay) 1)))
+	      (let ((o (shr-make-overlay (- (point) (nth 0 overlay) 1)
+					 (- (point) (nth 1 overlay) 1)))
 		    (properties (nth 2 overlay)))
 		(while properties
 		  (overlay-put o (pop properties) (pop properties)))))
@@ -1340,8 +1345,8 @@ ones, in case fg and bg are nil."
 	      (let ((end (length (car cache))))
 		(dolist (overlay (cadr cache))
 		  (let ((new-overlay
-			 (make-overlay (1+ (- end (nth 0 overlay)))
-				       (1+ (- end (nth 1 overlay)))))
+			 (shr-make-overlay (1+ (- end (nth 0 overlay)))
+					   (1+ (- end (nth 1 overlay)))))
 			(properties (nth 2 overlay)))
 		    (while properties
 		      (overlay-put new-overlay
