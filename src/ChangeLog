@@ -1,3 +1,9 @@
+2013-03-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* font.c (Ffont_get_glyphs): Use convenient LGLYPH_NEW.
+	* ftfont.c (ftfont_shape_by_flt): Likewise.
+	* w32uniscribe.c (uniscribe_shape): Likewise.
+
 2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	The lock for FILE is now .#FILE or .#-FILE (Bug#13807).
@@ -208,6 +214,7 @@
 	of dumping Emacs.  Explain why.
 
 2013-02-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* search.c (find_newline): Return byte position in bytepos.
 	Adjust comment.
 	(find_next_newline_no_quit, find_before_next_newline):

@@ -4716,7 +4716,7 @@ the corresponding element is nil.  */)
       code = font->driver->encode_char (font, c);
       if (code == FONT_INVALID_CODE)
 	continue;
-      g = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+      g = LGLYPH_NEW ();
       LGLYPH_SET_FROM (g, i);
       LGLYPH_SET_TO (g, i);
       LGLYPH_SET_CHAR (g, c);

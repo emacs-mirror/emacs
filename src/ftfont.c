@@ -2541,7 +2541,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 
       if (NILP (lglyph))
 	{
-	  lglyph = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+	  lglyph = LGLYPH_NEW ();
 	  LGSTRING_SET_GLYPH (lgstring, i, lglyph);
 	}
       LGLYPH_SET_FROM (lglyph, g->from);
