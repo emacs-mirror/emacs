@@ -98,6 +98,62 @@ regard to completeness.
  * Old auto-save files, and similar files, such as Gnus drafts,
    containing non-ASCII characters probably won't be re-read correctly.
 
+
+Source file encoding
+--------------------
+
+Most Emacs source files are encoded in UTF-8 (or in ASCII, which is a
+subset), but there are a few exceptions, listed below.  Perhaps
+someday these files will be converted to UTF-8, for convenience when
+using tools like 'grep -r', but this might need nontrivial changes to
+the build process.
+
+ * chinese-big5
+
+	leim/CXTERM-DIC/4Corner.tit
+	leim/CXTERM-DIC/ARRAY30.tit
+	leim/CXTERM-DIC/ECDICT.tit
+	leim/CXTERM-DIC/ETZY.tit
+	leim/CXTERM-DIC/PY-b5.tit
+	leim/CXTERM-DIC/Punct-b5.tit
+	leim/CXTERM-DIC/QJ-b5.tit
+	leim/CXTERM-DIC/ZOZY.tit
+	leim/MISC-DIC/CTLau-b5.html
+	leim/MISC-DIC/cangjie-table.b5
+
+ * chinese-iso-8bit
+
+	leim/CXTERM-DIC/CCDOSPY.tit
+	leim/CXTERM-DIC/Punct.tit
+	leim/CXTERM-DIC/QJ.tit
+	leim/CXTERM-DIC/SW.tit
+	leim/CXTERM-DIC/TONEPY.tit
+	leim/MISC-DIC/pinyin.map
+	leim/MISC-DIC/CTLau.html
+	leim/MISC-DIC/ziranma.cin
+
+ * iso-latin-2
+
+	etc/refcards/cs-refcard.tex
+	etc/refcards/sk-survival.tex
+	etc/refcards/cs-survival.tex
+	etc/refcards/cs-dired-ref.tex
+	etc/refcards/sk-dired-ref.tex
+	etc/refcards/sk-refcard.tex
+
+ * japanese-iso-8bit
+
+	leim/SKK-DIC/SKK-JISYO.L
+	leim/ja-dic/ja-dic.el
+
+ * japanese-shift-jis
+
+	admin/charsets/mapfiles/cns2ucsdkw.txt
+
+ * no-conversion
+
+	lib-src/testfile
+
 
 This file is part of GNU Emacs.
 
