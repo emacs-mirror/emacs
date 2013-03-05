@@ -1,3 +1,7 @@
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* indent/octave.m: Fix encoding error in comment.  Add coding tag.
+
 2013-02-28  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* automated/python-tests.el (python-tests-with-temp-buffer): Doc fix.
