@@ -56,6 +56,8 @@ and changed nsterm.m nsfns.m nsfont.m nsterm.h Makefile.in nsmenu.m
 
 Agustín Martín: changed ispell.el flyspell.el fixit.texi
 
+Aidan Gauland: changed eshell.texi
+
 Aidan Kehoe: changed ipa.el lread.c mm-util.el erc-log.el erc.el
   gnus-sum.el gnus-util.el latin-ltx.el nnfolder.el ob-tangle.el
   objects.texi
@@ -325,9 +327,9 @@ Bastien Guerry: wrote gnus-bookmark.el org-latex.el
 and co-wrote org-bibtex.el org-list.el org-protocol.el org-src.el
 and changed org.el org-agenda.el org.texi org-clock.el org-html.el
   org-capture.el org-table.el org-exp.el ob.el org-publish.el
-  org-timer.el org-mobile.el org-colview.el org-compat.el org-odt.el
-  org-archive.el org-ascii.el org-faces.el org-id.el org-pcomplete.el
-  org-export-latex.el and 85 other files
+  org-mobile.el org-timer.el org-colview.el org-compat.el org-id.el
+  org-odt.el org-archive.el org-ascii.el org-faces.el org-macs.el
+  org-pcomplete.el and 87 other files
 
 Ben A. Mesander: co-wrote erc-dcc.el
 
@@ -988,7 +990,7 @@ and changed nntp.el message.el gnus-group.el gnus-sum.el gnus-msg.el
   gnus.texi gnus-art.el gnus-srvr.el gnus-start.el gnus-topic.el
   gnus-xmas.el gnus-picon.el gnus-salt.el cus-edit.el gnus-int.el
   gnus-util.el message.texi nnmail.el rect.el cl-indent.el gmm-utils.el
-  and 8 other files
+  and 9 other files
 
 Dieter Schuster: changed etags.c
 
@@ -1087,8 +1089,8 @@ Eli Zaretskii: wrote [bidirectional display in xdisp.c] bidi.c rxvt.el
   tty-colors.el
 and changed makefile.w32-in xdisp.c msdos.c Makefile.in files.el w32.c
   fileio.c sed1v2.inp config.bat simple.el msdos.h w32fns.c mainmake.v2
-  rmail.el display.texi info.el process.c dispnew.c pc-win.el emacs.c
-  startup.el and 738 other files
+  rmail.el display.texi info.el process.c dispnew.c w32proc.c pc-win.el
+  emacs.c and 738 other files
 
 Elias Oltmanns: changed tls.el gnus-agent.el gnus-cite.el gnus-int.el
   gnus-srvr.el gnus.el
@@ -1233,7 +1235,8 @@ Fabian Ezequiel Gallina: changed progmodes/python.el
 
 Fabián E. Gallina: wrote progmodes/python.el
 
-Fabián Ezequiel Gallina: changed progmodes/python.el imenu.el
+Fabián Ezequiel Gallina: changed progmodes/python.el python-tests.el
+  imenu.el
 
 Fabrice Bauzac: changed dired-aux.el
 
@@ -1415,8 +1418,8 @@ Giuseppe Scrivano: changed browse-url.el buffer.c configure.ac sysdep.c
 Glenn Morris: wrote automated/f90.el automated/vc-bzr.el check-declare.el
 and changed Makefile.in configure.ac calendar.el diary-lib.el rmail.el
   files.el progmodes/f90.el cal-menu.el emacs.texi makefile.w32-in
-  appt.el bytecomp.el cal-hebrew.el make-dist holidays.el fortran.el
-  ack.texi calendar.texi cal-tex.el simple.el sed1v2.inp
+  appt.el bytecomp.el cal-hebrew.el make-dist holidays.el ack.texi
+  fortran.el calendar.texi cal-tex.el simple.el sed1v2.inp
   and 1360 other files
 
 Glynn Clements: wrote gamegrid.el snake.el tetris.el
@@ -2667,10 +2670,10 @@ Michael Albinus: wrote dbus.el secrets.el tramp-cmds.el tramp-compat.el
   tramp-ftp.el tramp-gvfs.el tramp-gw.el tramp-smb.el xesam.el
   zeroconf.el
 and co-wrote tramp-cache.el tramp-sh.el tramp.el
-and changed tramp.texi dbusbind.c trampver.texi trampver.el ange-ftp.el
+and changed tramp.texi dbusbind.c trampver.texi ange-ftp.el trampver.el
   dbus.texi tramp-fish.el files.el files.texi tramp-imap.el Makefile.in
-  notifications.el tramp-vc.el tramp-util.el tramp-uu.el configure.ac
-  em-unix.el simple.el auth-source.el dired-aux.el keyboard.c
+  notifications.el tramp-vc.el em-unix.el tramp-util.el tramp-uu.el
+  configure.ac simple.el auth-source.el dired-aux.el keyboard.c
   and 82 other files
 
 Michael Ben-Gershon: changed acorn.h configure.ac riscix1-1.h riscix1-2.h
@@ -3027,10 +3030,10 @@ and changed imenu.el make-mode.el
 
 Paul Eggert: wrote rcs2log
 and co-wrote cal-dst.el
-and changed lisp.h Makefile.in alloc.c configure.ac editfns.c xdisp.c
-  sysdep.c process.c keyboard.c fileio.c image.c emacs.c xterm.c data.c
+and changed lisp.h Makefile.in alloc.c configure.ac editfns.c sysdep.c
+  xdisp.c process.c keyboard.c fileio.c image.c emacs.c xterm.c data.c
   dispextern.h fns.c lread.c eval.c buffer.c xfns.c xfaces.c
-  and 712 other files
+  and 713 other files
 
 Paul Fisher: changed fns.c
 
@@ -3868,6 +3871,8 @@ Tiago Saboga: changed files.el
 Tibor Šimko: co-wrote language/slovak.el quail/slovak.el
 
 Tijs van Bakel: changed erc.el
+
+Tim Burt: changed org-datetree.el
 
 Tim Cross: changed keymaps.texi
 
