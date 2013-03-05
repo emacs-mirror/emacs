@@ -3416,7 +3416,13 @@ sys_open (const char * path, int oflag, int mode)
 }
 
 int
-sys_rename (const char * oldname, const char * newname)
+fchmod (int fd, mode_t mode)
+{
+  return 0;
+}
+
+int
+sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 {
   BOOL result;
   char temp[MAX_PATH];
@@ -3472,7 +3478,7 @@ sys_rename (const char * oldname, const char * newname)
 	return -1;
     }
 
-  /* Emulate Unix behavior - newname is deleted if it already exists
+  /* If FORCE, emulate Unix behavior - newname is deleted if it already exists
      (at least if it is a file; don't do this for directories).
 
      Since we mustn't do this if we are just changing the case of the
@@ -3490,7 +3496,7 @@ sys_rename (const char * oldname, const char * newname)
 
   result = rename (temp, newname);
 
-  if (result < 0)
+  if (result < 0 && force)
     {
       DWORD w32err = GetLastError ();
 
@@ -3527,6 +3533,12 @@ sys_rename (const char * oldname, const char * newname)
     }
 
   return result;
+}
+
+int
+sys_rename (char const *old, char const *new)
+{
+  return sys_rename_replace (old, new, TRUE);
 }
 
 int

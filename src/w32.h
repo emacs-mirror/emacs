@@ -186,6 +186,8 @@ extern BOOL init_winsock (int load_now);
 extern void srandom (int);
 extern int random (void);
 
+extern int fchmod (int, mode_t);
+extern int sys_rename_replace (char const *, char const *, BOOL);
 extern int sys_pipe (int *);
 
 extern void set_process_dir (char *);

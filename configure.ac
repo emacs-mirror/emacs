@@ -594,7 +594,8 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-# Avoid gnulib's tests for O_NOATIME and O_NOFOLLOW, as we don't use them.
+# Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
+# as we don't use them.
 AC_DEFUN([gl_FCNTL_O_FLAGS])
 # Avoid gnulib's threadlib module, as we do threads our own way.
 AC_DEFUN([gl_THREADLIB])

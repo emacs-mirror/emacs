@@ -1,3 +1,8 @@
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
+	* inc/unistd.h (O_NOFOLLOW): New macro.
+
 2013-03-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

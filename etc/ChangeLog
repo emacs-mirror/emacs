@@ -1,3 +1,8 @@
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
+	* NEWS: Document this.
+
 2013-03-02  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.5.

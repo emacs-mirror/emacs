@@ -320,7 +320,7 @@ text-property on the first char.
 ** The `defalias-fset-function' property lets you catch calls to defalias
 and redirect them to your own function instead of `fset'.
 
-** The lock for 'DIR/FILE' is now 'DIR/.#FILE' or 'DIR/.#-FILE'.
+** The lock for 'DIR/FILE' is now 'DIR/.#FILE' and may be a regular file.
 When you edit DIR/FILE, Emacs normally creates a symbolic link
 DIR/.#FILE as a lock that warns other instances of Emacs that DIR/FILE
 is being edited.  Formerly, if there was already a non-symlink file
@@ -328,9 +328,8 @@ named DIR/.#FILE, Emacs fell back on the lock names DIR/.#FILE.0
 through DIR/.#FILE.9.  These fallbacks have been removed, so that
 Emacs now no longer locks DIR/FILE in that case.
 
-On MS-Windows the lock is a regular file DIR/.#-FILE, not a symlink.
-MS-Windows and non-MS-Windows implementations of Emacs ignore each
-other's locks.
+On file systems that do not support symbolic links, the lock is now a
+regular file with contents being what would have been in the symlink.
 
 ** The 9th element returned by `file-attributes' is now unspecified.
 Formerly, it was t if the file's gid would change if file were deleted
