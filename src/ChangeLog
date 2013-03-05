@@ -1,3 +1,10 @@
+2013-03-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_explicit_1): Don't call CHAR_TO_BYTE or
+	bidi_count_bytes, as the callers now arrange for bidi_it->charpos
+	to be in sync with bidi_it->bytepos.  Suggested by Dmitry Antipov
+	<dmantipov@yandex.ru>.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a build failure on OpenBSD 4.x and MirBSD.

@@ -1353,15 +1353,19 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	       : bidi_it->string.s);
 
 	  if (bidi_it->charpos < 0)
-	    bidi_it->charpos = 0;
-	  bidi_it->bytepos = bidi_count_bytes (p, 0, 0, bidi_it->charpos,
-					       bidi_it->string.unibyte);
+	    bidi_it->charpos = bidi_it->bytepos = 0;
+	  eassert (bidi_it->bytepos == bidi_count_bytes (p, 0, 0,
+							 bidi_it->charpos,
+							 bidi_it->string.unibyte));
 	}
       else
 	{
 	  if (bidi_it->charpos < BEGV)
-	    bidi_it->charpos = BEGV;
-	  bidi_it->bytepos = CHAR_TO_BYTE (bidi_it->charpos);
+	    {
+	      bidi_it->charpos = BEGV;
+	      bidi_it->bytepos = BEGV_BYTE;
+	    }
+	  eassert (bidi_it->bytepos == CHAR_TO_BYTE (bidi_it->charpos));
 	}
     }
   /* Don't move at end of buffer/string.  */
