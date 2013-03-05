@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
-;; Author: Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+;; Author: Kai Gro√üjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions
 
 ;; This file is part of GNU Emacs.
@@ -186,7 +186,7 @@ Checking delayed messages is skipped if optional arg NO-CHECK is non-nil."
 (provide 'gnus-delay)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-delay.el ends here

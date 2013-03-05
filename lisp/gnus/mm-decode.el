@@ -1803,7 +1803,7 @@ If RECURSIVE, search recursively."
 	     (replace-match (char-to-string char))))
 	 ;; Remove "soft hyphens".
 	 (goto-char (point-min))
-	 (while (search-forward "­" nil t)
+	 (while (search-forward "Â­" nil t)
 	   (replace-match "" t t))
 	 (libxml-parse-html-region (point-min) (point-max))))
       (unless (bobp)
@@ -1825,7 +1825,7 @@ If RECURSIVE, search recursively."
 (provide 'mm-decode)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; mm-decode.el ends here

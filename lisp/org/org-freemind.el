@@ -275,7 +275,7 @@ will also unescape &#nn;."
 			 )))
 		   org-str))))
 
-;; (let* ((str1 "a quote: \", an amp: &, lt: <; over 256: öåäÖÅÄ")
+;; (let* ((str1 "a quote: \", an amp: &, lt: <; over 256: Ã¶Ã¥Ã¤Ã–Ã…Ã„")
 ;;        (str2 (org-freemind-escape-str-from-org str1))
 ;;        (str3 (org-freemind-unescape-str-to-org str2)))
 ;;     (unless (string= str1 str3)
@@ -1221,6 +1221,7 @@ PATH should be a list of steps, where each step has the form
 
 ;; Local variables:
 ;; generated-autoload-file: "org-loaddefs.el"
+;; coding: utf-8
 ;; End:
 
 ;;; org-freemind.el ends here

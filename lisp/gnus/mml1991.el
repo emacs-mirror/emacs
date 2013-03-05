@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
-;; Author: Sascha Lüdecke <sascha@meta-x.de>,
+;; Author: Sascha LÃ¼decke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)
 ;; Keywords: PGP
 
@@ -480,7 +480,7 @@ If no one is selected, default secret key is used.  "
 (provide 'mml1991)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; mml1991.el ends here

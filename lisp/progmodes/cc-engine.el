@@ -1,4 +1,4 @@
-;;; cc-engine.el --- core syntax guessing engine for CC mode
+;;; cc-engine.el --- core syntax guessing engine for CC mode -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
@@ -2280,25 +2280,25 @@ comment at the start of cc-engine.el for more info."
 	(while (and c (> (car c) c-state-semi-nonlit-pos-cache-limit))
 	  (setq c (cdr c)))
 	(setq c-state-semi-nonlit-pos-cache c)
-	
+
 	(while (and c (> (car c) here))
 	  (setq high-pos (car c))
 	  (setq c (cdr c)))
 	(setq pos (or (car c) (point-min)))
-	
+
 	(unless high-pos
 	  (while
 	      ;; Add an element to `c-state-semi-nonlit-pos-cache' each iteration.
 	      (and
 	       (<= (setq npos (+ pos c-state-nonlit-pos-interval)) here)
-	       
+
 	       ;; Test for being in a literal.  If so, go to after it.
 	       (progn
 		 (setq lit (car (cddr (c-state-pp-to-literal pos npos))))
 		 (or (null lit)
 		     (prog1 (<= (cdr lit) here)
 		       (setq npos (cdr lit))))))
-	       
+
 	    (setq pos npos)
 	    (setq c-state-semi-nonlit-pos-cache
 		  (cons pos c-state-semi-nonlit-pos-cache))))
@@ -2606,11 +2606,11 @@ comment at the start of cc-engine.el for more info."
   ;; OLD:   {                       (.)    {...........}
   ;;                                       ^             ^
   ;;                                     FROM          HERE
-  ;;                                     
+  ;;
   ;; NEW:   {             {....}    (.)    {.........
   ;;                         ^           ^           ^
   ;;                LOWER BRACE PAIR   HERE   or   HERE
-  ;;                                       
+  ;;
   ;; This routine should be fast.  Since it can get called a LOT, we maintain
   ;; `c-state-brace-pair-desert', a small cache of "failures", such that we
   ;; reduce the time wasted in repeated fruitless searches in brace deserts.
@@ -2907,7 +2907,7 @@ comment at the start of cc-engine.el for more info."
 		    start-point))
 	(goto-char pos)
 	(while (and c-state-cache
-		    (or (numberp (car c-state-cache)) ; Have we a { at all? 
+		    (or (numberp (car c-state-cache)) ; Have we a { at all?
 			(cdr c-state-cache))
 		    (< (point) here))
 	  (cond
@@ -4610,7 +4610,7 @@ comment at the start of cc-engine.el for more info."
 		     s			; state
 		     'syntax-table)))	; stop-comment
 	(setq pos (point)))
-    
+
       ;; Now try and find enough non-literal characters recorded on the stack.
       ;; Go back one recorded literal each time round this loop.
       (while (and (< count how-far-back)
@@ -8516,8 +8516,8 @@ comment at the start of cc-engine.el for more info."
    ))
 
 (defun c-looking-at-special-brace-list (&optional lim)
-  ;; If we're looking at the start of a pike-style list, ie `({ })',
-  ;; `([ ])', `(< >)' etc, a cons of a cons of its starting and ending
+  ;; If we're looking at the start of a pike-style list, i.e., `({Â })',
+  ;; `([Â ])', `(<Â >)', etc., a cons of a cons of its starting and ending
   ;; positions and its entry in c-special-brace-lists is returned, nil
   ;; otherwise.  The ending position is nil if the list is still open.
   ;; LIM is the limit for forward search.  The point may either be at
@@ -8762,7 +8762,7 @@ comment at the start of cc-engine.el for more info."
        (c-simple-skip-symbol-backward)
        (looking-at c-macro-with-semi-re)
        (goto-char pos)
-       (not (c-in-literal))))))		; The most expensive check last. 
+       (not (c-in-literal))))))		; The most expensive check last.
 
 (defun c-macro-vsemi-status-unknown-p () t) ; See cc-defs.el.
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
-;; Author: Juan León Lahoz García <juanleon1@gmail.com>
+;; Author: Juan LeÃ³n Lahoz GarcÃ­a <juanleon1@gmail.com>
 ;; Version: 2.0
 ;; Keywords: dired, environment, files, renaming
 
@@ -851,7 +851,7 @@ Like original function but it skips read-only words."
 (provide 'wdired)
 
 ;; Local Variables:
-;; coding: latin-1
+;; coding: utf-8
 ;; byte-compile-dynamic: t
 ;; End:
 

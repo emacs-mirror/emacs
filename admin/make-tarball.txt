@@ -1,5 +1,5 @@
-Instructions to create pretest or release tarballs.
--- originally written by Gerd Moellmann, amended by Francesco Potortì
+Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
+-- originally written by Gerd Moellmann, amended by Francesco PotortÃ¬
    with the initial help of Eli Zaretskii
 
 

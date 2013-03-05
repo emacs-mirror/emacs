@@ -1,4 +1,4 @@
-;;; battery.el --- display battery status information  -*- coding: iso-8859-1 -*-
+;;; battery.el --- display battery status information  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
 
@@ -116,7 +116,7 @@ string are substituted as defined by the current value of the variable
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
-	 "[%b%p%%,%d°C]")
+	 "[%b%p%%,%dÂ°C]")
 	(battery-status-function
 	 "[%b%p%%]"))
   "Control string formatting the string to display in the mode line.

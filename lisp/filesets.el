@@ -1,4 +1,4 @@
-;;; filesets.el --- handle group of files
+;;; filesets.el --- handle group of files -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
@@ -805,8 +805,8 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:match-number 2)
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master file load-path))))))
-    ("^\\([A-ZÄÖÜ][a-zäöüß]+\\([A-ZÄÖÜ][a-zäöüß]+\\)+\\)$" t
-     (((:pattern "\\<\\([A-ZÄÖÜ][a-zäöüß]+\\([A-ZÄÖÜ][a-zäöüß]+\\)+\\)\\>")
+    ("^\\([A-ZÃ„Ã–Ãœ][a-zÃ¤Ã¶Ã¼ÃŸ]+\\([A-ZÃ„Ã–Ãœ][a-zÃ¤Ã¶Ã¼ÃŸ]+\\)+\\)$" t
+     (((:pattern "\\<\\([A-ZÃ„Ã–Ãœ][a-zÃ¤Ã¶Ã¼ÃŸ]+\\([A-ZÃ„Ã–Ãœ][a-zÃ¤Ã¶Ã¼ÃŸ]+\\)+\\)\\>")
        (:scan-depth 5)
        (:stubp (lambda (a b) (not (filesets-files-in-same-directory-p a b))))
        (:case-sensitive t)

@@ -1743,7 +1743,7 @@ no, only reply back to the author."
 				   (file-error))
 				 (mm-coding-system-p 'utf-8)
 				 (executable-find idna-program)
-				 (string= (idna-to-ascii "räksmörgås")
+				 (string= (idna-to-ascii "rÃ¤ksmÃ¶rgÃ¥s")
 					  "xn--rksmrgs-5wao1o")
 				 t)
   "Whether to encode non-ASCII in domain names into ASCII according to IDNA.
@@ -8421,7 +8421,7 @@ Used in `message-simplify-recipients'."
 (run-hooks 'message-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; message.el ends here

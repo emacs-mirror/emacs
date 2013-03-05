@@ -1,8 +1,8 @@
-;;; po.el --- basic support of PO translation files -*- coding: latin-1; -*-
+;;; po.el --- basic support of PO translation files -*- coding: utf-8; -*-
 
 ;; Copyright (C) 1995-1998, 2000-2013 Free Software Foundation, Inc.
 
-;; Authors: François Pinard <pinard@iro.umontreal.ca>,
+;; Authors: FranÃ§ois Pinard <pinard@iro.umontreal.ca>,
 ;;          Greg McGary <gkm@magilla.cichlid.com>,
 ;;          Bruno Haible <bruno@clisp.org>.
 ;; Keywords: i18n, files

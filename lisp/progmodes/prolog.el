@@ -1,9 +1,9 @@
-;;; prolog.el --- major mode for editing and running Prolog (and Mercury) code
+;;; prolog.el --- major mode for Prolog (and Mercury) -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2013 Free
 ;; Software Foundation, Inc.
 
-;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
+;; Authors: Emil Ã…strÃ¶m <emil_astrom(at)hotmail(dot)com>
 ;;          Milan Zamazal <pdm(at)freesoft(dot)cz>
 ;;          Stefan Bruda <stefan(at)bruda(dot)ca>
 ;;          * See below for more details
@@ -31,7 +31,7 @@
 ;; Original author: Masanobu UMEDA <umerin(at)mse(dot)kyutech(dot)ac(dot)jp>
 ;; Parts of this file was taken from a modified version of the original
 ;; by Johan Andersson, Peter Olin, Mats Carlsson, Johan Bevemyr, Stefan
-;; Andersson, and Per Danielsson (all SICS people), and Henrik Båkman
+;; Andersson, and Per Danielsson (all SICS people), and Henrik BÃ¥kman
 ;; at Uppsala University, Sweden.
 ;;
 ;; Some ideas and also a few lines of code have been borrowed (not stolen ;-)

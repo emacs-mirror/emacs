@@ -451,7 +451,7 @@ current article is unread."
   :group 'gnus-summary-maneuvering
   :type 'boolean)
 
-(defcustom gnus-auto-center-summary 
+(defcustom gnus-auto-center-summary
   (max (or (bound-and-true-p scroll-margin) 0) 2)
   "*If non-nil, always center the current summary buffer.
 In particular, if `vertical' do only vertical recentering.  If non-nil
@@ -9788,7 +9788,7 @@ installed for this command to work."
 	    (when (message-goto-body)
 	      (gnus-narrow-to-body))
 	    (goto-char (point-min))
-	    (while (search-forward "·" (point-max) t)
+	    (while (search-forward "Â·" (point-max) t)
 	      (replace-match "."))
 	    (unmorse-region (point-min) (point-max))
 	    (widen)
@@ -12978,7 +12978,7 @@ BOOKMARK is a bookmark name or a bookmark record."
 (run-hooks 'gnus-sum-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-sum.el ends here

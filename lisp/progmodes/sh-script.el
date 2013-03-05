@@ -1842,7 +1842,7 @@ May return nil if the line should not be treated as continued."
 ;; (defconst sh-smie-csh-grammar
 ;;   (smie-prec2->grammar
 ;;    (smie-bnf->prec2
-;;     '((exp)                   ;A constant, or a $var, or a sequence of them…
+;;     '((exp)              ;A constant, or a $var, or a sequence of them...
 ;;       (elseifcmd (cmd)
 ;;                  (cmd "else" "else-if" exp "then" elseifcmd))
 ;;       (cmd ("switch" branches "endsw")

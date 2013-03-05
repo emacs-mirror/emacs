@@ -1,4 +1,4 @@
-;;; romanian.el --- support for Romanian -*- coding: iso-latin-2 -*-
+;;; romanian.el --- support for Romanian -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
 
@@ -34,7 +34,7 @@
 	      (input-method . "latin-2-postfix")
 	      (unibyte-display . iso-8859-2)
 	      (tutorial . "TUTORIAL.ro")
-	      (sample-text . "Bunã ziua, bine aþi venit!")
+	      (sample-text . "BunÄƒ ziua, bine aÅ£i venit!")
 	      (documentation . "Romanian environment using Latin-2 encoding.
 An environment for generic Latin-10 encoding is also available."))
  '("European"))

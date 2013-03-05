@@ -270,7 +270,7 @@
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-attrib-verb-regexp
-  "wrote\\|writes\\|says\\|schrieb\\|schreibt\\|meinte\\|skrev\\|a écrit\\|schreef\\|escribió"
+  "wrote\\|writes\\|says\\|schrieb\\|schreibt\\|meinte\\|skrev\\|a Ã©crit\\|schreef\\|escribiÃ³"
   "Regular expression matching the verb used in an attribution line."
   :version "22.1"
   :type 'string
@@ -472,7 +472,7 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
 (provide 'deuglify)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; deuglify.el ends here

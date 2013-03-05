@@ -418,7 +418,7 @@ characters when given a pad value."
   ;; them will have the balloon-help text property.
   (let ((case-fold-search nil))
     (if (string-match
-	 "\\`\\(.*\\)%[0-9]?[{(«]\\(.*\\)%[0-9]?[»})]\\(.*\n?\\)\\'\\|%[-0-9]*=\\|%[-0-9]*\\*"
+	 "\\`\\(.*\\)%[0-9]?[{(Â«]\\(.*\\)%[0-9]?[Â»})]\\(.*\n?\\)\\'\\|%[-0-9]*=\\|%[-0-9]*\\*"
 	 format)
 	(gnus-parse-complex-format format spec-alist)
       ;; This is a simple format.
@@ -435,13 +435,13 @@ characters when given a pad value."
       (goto-char (point-min))
       (insert "(\"")
       ;; Convert all font specs into font spec lists.
-      (while (re-search-forward "%\\([0-9]+\\)?\\([«»{}()]\\)" nil t)
+      (while (re-search-forward "%\\([0-9]+\\)?\\([Â«Â»{}()]\\)" nil t)
 	(let ((number (if (match-beginning 1)
 			  (match-string 1) "0"))
 	      (delim (aref (match-string 2) 0)))
 	  (if (or (= delim ?\()
 		  (= delim ?\{)
-		  (= delim ?\«))
+		  (= delim ?\Â«))
 	      (replace-match (concat "\"("
 				     (cond ((= delim ?\() "mouse")
 					   ((= delim ?\{) "face")
@@ -733,7 +733,7 @@ If PROPS, insert the result."
 (provide 'gnus-spec)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-spec.el ends here

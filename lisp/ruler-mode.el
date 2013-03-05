@@ -137,8 +137,8 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                     (format "Invalid character value: %S" value))
         widget))))
 
-(defcustom ruler-mode-fill-column-char (if (char-displayable-p ?¶)
-                                           ?\¶
+(defcustom ruler-mode-fill-column-char (if (char-displayable-p ?Â¶)
+                                           ?\Â¶
                                          ?\|)
   "Character used at the `fill-column' location."
   :group 'ruler-mode
@@ -163,8 +163,8 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
           (integer :tag "Integer char value"
                    :validate ruler-mode-character-validate)))
 
-(defcustom ruler-mode-current-column-char (if (char-displayable-p ?¦)
-                                              ?\¦
+(defcustom ruler-mode-current-column-char (if (char-displayable-p ?Â¦)
+                                              ?\Â¦
                                             ?\@)
   "Character used at the `current-column' location."
   :group 'ruler-mode
@@ -774,7 +774,7 @@ Optional argument PROPS specifies other text properties to apply."
 (provide 'ruler-mode)
 
 ;; Local Variables:
-;; coding: iso-latin-1
+;; coding: utf-8
 ;; End:
 
 ;;; ruler-mode.el ends here

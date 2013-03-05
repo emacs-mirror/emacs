@@ -1,9 +1,9 @@
-;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
+;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: Pavel Janík <Pavel@Janik.cz>
+;; Maintainer: Pavel JanÃ­k <Pavel@Janik.cz>
 ;; Keywords: comm
 ;; Package: eudc
 

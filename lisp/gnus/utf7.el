@@ -1,4 +1,4 @@
-;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*-coding: iso-8859-1;-*-
+;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*-coding: utf-8;-*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -52,10 +52,10 @@
 ;; necessary coding system.  The code below doesn't seem to DTRT
 ;; generally.  E.g.:
 ;;
-;; (utf7-encode "a+£")
+;; (utf7-encode "a+Â£")
 ;;   => "a+ACsAow-"
 ;;
-;; $ echo "a+£"|iconv -f iso-8859-1 -t utf-7
+;; $ echo "a+Â£"|iconv -f utf-8 -t utf-7
 ;; a+-+AKM
 ;;
 ;;  -- fx

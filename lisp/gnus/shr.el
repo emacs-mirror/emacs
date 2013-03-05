@@ -347,11 +347,11 @@ size, and full-buffer size."
    ((eq shr-folding-mode 'none)
     (insert text))
    (t
-    (when (and (string-match "\\`[ \t\n ]" text)
+    (when (and (string-match "\\`[ \t\nÂ ]" text)
 	       (not (bolp))
 	       (not (eq (char-after (1- (point))) ? )))
       (insert " "))
-    (dolist (elem (split-string text "[ \f\t\n\r\v ]+" t))
+    (dolist (elem (split-string text "[ \f\t\n\r\vÂ ]+" t))
       (when (and (bolp)
 		 (> shr-indentation 0))
 	(shr-indent))
@@ -391,7 +391,7 @@ size, and full-buffer size."
 	    (shr-indent))
 	  (end-of-line))
 	(insert " ")))
-    (unless (string-match "[ \t\r\n ]\\'" text)
+    (unless (string-match "[ \t\r\nÂ ]\\'" text)
       (delete-char -1)))))
 
 (defun shr-find-fill-point ()
@@ -1476,7 +1476,7 @@ ones, in case fg and bg are nil."
 (provide 'shr)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; shr.el ends here

@@ -1,9 +1,9 @@
-;;; eudc-export.el --- functions to export EUDC query results
+;;; eudc-export.el --- functions to export EUDC query results -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
-;; Maintainer: Pavel Janík <Pavel@Janik.cz>
+;; Maintainer: Pavel JanÃ­k <Pavel@Janik.cz>
 ;; Keywords: comm
 ;; Package: eudc
 

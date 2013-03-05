@@ -1,8 +1,8 @@
-;;; quail/croatian.el -- Quail package for inputting Croatian  -*-coding: iso-8859-2;-*-
+;;; quail/croatian.el -- Quail package for inputting Croatian  -*-coding: utf-8;-*-
 
 ;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
-;; Author: Hrvoje Nik¹iæ <hniksic@xemacs.org>
+;; Author: Hrvoje NikÅ¡iÄ‡ <hniksic@xemacs.org>
 ;; Keywords: i18n
 
 ;; This file is part of GNU Emacs.
@@ -44,16 +44,16 @@
  ("_" ??)
  ("=" ?+)
  ("+" ?*)
- ("[" ?¹)
- ("{" ?©)
- ("]" ?ğ)
- ("}" ?Ğ)
- (";" ?è)
- (":" ?È)
- ("'" ?æ)
- ("\"" ?Æ)
- ("\\" ?¾)
- ("|" ?®)
+ ("[" ?Å¡)
+ ("{" ?Å )
+ ("]" ?Ä‘)
+ ("}" ?Ä)
+ (";" ?Ä)
+ (":" ?ÄŒ)
+ ("'" ?Ä‡)
+ ("\"" ?Ä†)
+ ("\\" ?Å¾)
+ ("|" ?Å½)
  ("<" ?\;)
  (">" ?:)
  ("/" ?-)
@@ -79,16 +79,16 @@
  ("_" ??)
  ("=" ?+)
  ("+" ?*)
- ("[" ?¹)
- ("{" ?©)
- ("]" ?ğ)
- ("}" ?Ğ)
- (";" ?è)
- (":" ?È)
- ("'" ?æ)
- ("\"" ?Æ)
- ("\\" ?¾)
- ("|" ?®)
+ ("[" ?Å¡)
+ ("{" ?Å )
+ ("]" ?Ä‘)
+ ("}" ?Ä)
+ (";" ?Ä)
+ (":" ?ÄŒ)
+ ("'" ?Ä‡)
+ ("\"" ?Ä†)
+ ("\\" ?Å¾)
+ ("|" ?Å½)
  ("<" ?\;)
  (">" ?:)
  ("/" ?-)
@@ -98,102 +98,102 @@
  "croatian-prefix" "Croatian" "HR" nil
  "Croatian input method, postfix.
 
-\"c -> è
-'c -> æ
-\"s -> ¹
-\"z -> ¾
-/d -> ğ"
+\"c -> Ä
+'c -> Ä‡
+\"s -> Å¡
+\"z -> Å¾
+/d -> Ä‘"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("\"c" ?è)
- ("\"C" ?È)
- ("'c" ?æ)
- ("'C" ?Æ)
- ("\"s" ?¹)
- ("\"S" ?©)
- ("\"z" ?¾)
- ("\"Z" ?®)
- ("/d" ?ğ)
- ("/D" ?Ğ))
+ ("\"c" ?Ä)
+ ("\"C" ?ÄŒ)
+ ("'c" ?Ä‡)
+ ("'C" ?Ä†)
+ ("\"s" ?Å¡)
+ ("\"S" ?Å )
+ ("\"z" ?Å¾)
+ ("\"Z" ?Å½)
+ ("/d" ?Ä‘)
+ ("/D" ?Ä))
 
 (quail-define-package
  "croatian-postfix" "Croatian" "HR" nil
  "Croatian input method, postfix.
 
-c\" -> è
-c' -> æ
-s\" -> ¹
-z\" -> ¾
-d/ -> ğ"
+c\" -> Ä
+c' -> Ä‡
+s\" -> Å¡
+z\" -> Å¾
+d/ -> Ä‘"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("c\"" ?è)
- ("C\"" ?È)
- ("c'" ?æ)
- ("C'" ?Æ)
- ("s\"" ?¹)
- ("S\"" ?©)
- ("z\"" ?¾)
- ("Z\"" ?®)
- ("d/" ?ğ)
- ("D/" ?Ğ))
+ ("c\"" ?Ä)
+ ("C\"" ?ÄŒ)
+ ("c'" ?Ä‡)
+ ("C'" ?Ä†)
+ ("s\"" ?Å¡)
+ ("S\"" ?Å )
+ ("z\"" ?Å¾)
+ ("Z\"" ?Å½)
+ ("d/" ?Ä‘)
+ ("D/" ?Ä))
 
 (quail-define-package
  "croatian-xy" "Croatian" "HR" nil
  "An alternative Croatian input method.
 
-cx -> è
-cy -> æ
-sx -> ¹
-zx -> ¾
-dy -> ğ"
+cx -> Ä
+cy -> Ä‡
+sx -> Å¡
+zx -> Å¾
+dy -> Ä‘"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("cx" ?è)
- ("CX" ?È)
- ("Cx" ?È)
- ("cy" ?æ)
- ("CY" ?Æ)
- ("Cy" ?Æ)
- ("sx" ?¹)
- ("SX" ?©)
- ("Sx" ?©)
- ("zx" ?¾)
- ("ZX" ?®)
- ("Zx" ?®)
- ("dy" ?ğ)
- ("DY" ?Ğ)
- ("Dy" ?Ğ))
+ ("cx" ?Ä)
+ ("CX" ?ÄŒ)
+ ("Cx" ?ÄŒ)
+ ("cy" ?Ä‡)
+ ("CY" ?Ä†)
+ ("Cy" ?Ä†)
+ ("sx" ?Å¡)
+ ("SX" ?Å )
+ ("Sx" ?Å )
+ ("zx" ?Å¾)
+ ("ZX" ?Å½)
+ ("Zx" ?Å½)
+ ("dy" ?Ä‘)
+ ("DY" ?Ä)
+ ("Dy" ?Ä))
 
 (quail-define-package
  "croatian-cc" "Croatian" "HR" nil
  "Another alternative Croatian input method.
 
-cc -> è
-ch -> æ
-ss -> ¹
-zz -> ¾
-dd -> ğ"
+cc -> Ä
+ch -> Ä‡
+ss -> Å¡
+zz -> Å¾
+dd -> Ä‘"
  nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("cc" ?è)
- ("CC" ?È)
- ("Cc" ?È)
- ("ch" ?æ)
- ("CH" ?Æ)
- ("Ch" ?Æ)
- ("ss" ?¹)
- ("SS" ?©)
- ("Ss" ?©)
- ("zz" ?¾)
- ("ZZ" ?®)
- ("Zz" ?®)
- ("dd" ?ğ)
- ("DD" ?Ğ)
- ("Dd" ?Ğ))
+ ("cc" ?Ä)
+ ("CC" ?ÄŒ)
+ ("Cc" ?ÄŒ)
+ ("ch" ?Ä‡)
+ ("CH" ?Ä†)
+ ("Ch" ?Ä†)
+ ("ss" ?Å¡)
+ ("SS" ?Å )
+ ("Ss" ?Å )
+ ("zz" ?Å¾)
+ ("ZZ" ?Å½)
+ ("Zz" ?Å½)
+ ("dd" ?Ä‘)
+ ("DD" ?Ä)
+ ("Dd" ?Ä))
 
 ;;; croatian.el ends here

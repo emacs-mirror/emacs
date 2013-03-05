@@ -1,4 +1,4 @@
-;;; html2text.el --- a simple html to plain text converter
+;;; html2text.el --- a simple html to plain text converter -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
@@ -65,14 +65,14 @@
     ("&ndash;" . "-")
     ("&permil;" . "%%")
     ("&plusmn;" . "+-")
-    ("&pound;" . "£")
+    ("&pound;" . "Â£")
     ("&quot;" . "\"")
     ("&raquo;" . ">>")
     ("&rdquo" . "\"")
     ("&reg;" . "(R)")
     ("&rsaquo;" . ")")
     ("&rsquo;" . "'")
-    ("&sect;" . "§")
+    ("&sect;" . "Â§")
     ("&sup1;" . "^1")
     ("&sup2;" . "^2")
     ("&sup3;" . "^3")

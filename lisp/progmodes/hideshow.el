@@ -1,4 +1,4 @@
-;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
+;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
 
@@ -207,7 +207,7 @@
 ;;  Dean Andrews, Alf-Ivar Holm, Holger Bauer, Christoph Conrad, Dave Love,
 ;;  Dirk Herrmann, Gael Marziou, Jan Djarv, Guillaume Leray, Moody Ahmad,
 ;;  Preston F. Crow, Lars Lindberg, Reto Zimmermann, Keith Sheffield,
-;;  Chew Meng Kuan, Tony Lam, Pete Ware, François Pinard, Stefan Monnier,
+;;  Chew Meng Kuan, Tony Lam, Pete Ware, FranÃ§ois Pinard, Stefan Monnier,
 ;;  Joseph Eydelnant, Michael Ernst, Peter Heslin
 ;;
 ;; Special thanks go to Dan Nicolaescu, who reimplemented hideshow using

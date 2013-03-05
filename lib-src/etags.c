@@ -1,4 +1,4 @@
-/* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
+/* Tags file maker to go with GNU Emacs           -*- coding: utf-8 -*-
 
 Copyright (C) 1984 The Regents of the University of California
 
@@ -64,12 +64,12 @@ University of California, as described above. */
  * 1985 Emacs TAGS format by Richard Stallman.
  * 1989 Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
- * 1993 Francesco PotortÏ reorganized C and C++.
+ * 1993 Francesco Potort√¨ reorganized C and C++.
  * 1994 Line-by-line regexp tags by Tom Tromey.
- * 2001 Nested classes by Francesco PotortÏ (concept by Mykola Dzyuba).
- * 2002 #line directives by Francesco PotortÏ.
+ * 2001 Nested classes by Francesco Potort√¨ (concept by Mykola Dzyuba).
+ * 2002 #line directives by Francesco Potort√¨.
  *
- * Francesco PotortÏ <pot@gnu.org> has maintained and improved it since 1993.
+ * Francesco Potort√¨ <pot@gnu.org> has maintained and improved it since 1993.
  */
 
 /*
@@ -4275,7 +4275,7 @@ Asm_labels (FILE *inf)
  * Perl variable names: /^(my|local).../
  * Original code by Bart Robinson <lomew@cs.utah.edu> (1995)
  * Additions by Michael Ernst <mernst@alum.mit.edu> (1997)
- * Ideas by Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE> (2001)
+ * Ideas by Kai Gro√üjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE> (2001)
  */
 static void
 Perl_functions (FILE *inf)
@@ -5105,7 +5105,7 @@ Texinfo_nodes (FILE *inf)
  * Contents of <title>, <h1>, <h2>, <h3> are tags.
  * Contents of <a name=xxx> are tags with name xxx.
  *
- * Francesco PotortÏ, 2002.
+ * Francesco Potort√¨, 2002.
  */
 static void
 HTML_labels (FILE *inf)
