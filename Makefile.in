@@ -624,6 +624,12 @@ install-info: info
 	      ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	   done)
 
+## "gzip || true" is because some gzips exit with non-zero status
+## if compression would not reduce the file size.  Eg, the gzip in
+## OpenBSD 4.9 seems to do this (2013/03).  In Emacs, this can
+## only happen with the tiny ctags.1 manpage.  We don't really care if
+## ctags.1 is compressed or not.  "gzip -f" is another option here,
+## but not sure if portable.
 install-man:
 	umask 022; ${MKDIR_P} $(DESTDIR)${man1dir}
 	thisdir=`/bin/pwd`; \
@@ -634,7 +640,7 @@ install-man:
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${dest}); \
 	  ( [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ] ) || continue ; \
 	  rm -f $(DESTDIR)${man1dir}/$${dest}.gz; \
-	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${dest}; \
+	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${dest} || true; \
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
