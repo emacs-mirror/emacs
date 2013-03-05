@@ -1458,9 +1458,11 @@ It also eliminates runs of equal strings."
                                    'mouse-face 'highlight)
               (put-text-property (point) (progn (insert (car str)) (point))
                                  'mouse-face 'highlight)
-              (add-text-properties (point) (progn (insert (cadr str)) (point))
-                                   '(mouse-face nil
-                                     face completions-annotations)))
+              (let ((beg (point))
+                    (end (progn (insert (cadr str)) (point))))
+                (put-text-property beg end 'mouse-face nil)
+                (font-lock-prepend-text-property beg end 'face
+                                                 'completions-annotations)))
 	    (cond
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format
@@ -1487,12 +1489,11 @@ See also `display-completion-list'.")
 
 (defface completions-first-difference
   '((t (:inherit bold)))
-  "Face put on the first uncommon character in completions in *Completions* buffer."
+  "Face added on the first uncommon character in completions in *Completions* buffer."
   :group 'completion)
 
-(defface completions-common-part
-  '((t (:inherit default)))
-  "Face put on the common prefix substring in completions in *Completions* buffer.
+(defface completions-common-part '((t nil))
+  "Face added on the common prefix substring in completions in *Completions* buffer.
 The idea of `completions-common-part' is that you can use it to
 make the common parts less visible than normal, so that the rest
 of the differing parts is, by contrast, slightly highlighted."
@@ -1513,17 +1514,18 @@ of the differing parts is, by contrast, slightly highlighted."
                      (car (setq elem (cons (copy-sequence (car elem))
                                            (cdr elem))))
                    (setq elem (copy-sequence elem)))))
-            (put-text-property 0
-			       ;; If completion-boundaries returns incorrect
-			       ;; values, all-completions may return strings
-			       ;; that don't contain the prefix.
-			       (min com-str-len (length str))
-                               'font-lock-face 'completions-common-part
-                               str)
+            (font-lock-prepend-text-property
+             0
+             ;; If completion-boundaries returns incorrect
+             ;; values, all-completions may return strings
+             ;; that don't contain the prefix.
+             (min com-str-len (length str))
+             'face 'completions-common-part str)
             (if (> (length str) com-str-len)
-                (put-text-property com-str-len (1+ com-str-len)
-                                   'font-lock-face 'completions-first-difference
-                                   str)))
+                (font-lock-prepend-text-property com-str-len (1+ com-str-len)
+                                                 'face
+                                                 'completions-first-difference
+                                                 str)))
           elem)
         completions)
        base-size))))

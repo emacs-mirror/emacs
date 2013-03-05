@@ -1,3 +1,17 @@
+2013-03-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Keep pre-existing highlighting in completion candidates (Bug#13250).
+	* minibuffer.el (completions-first-difference): State that the
+	face is "added" in the docstring.
+	(completions-common-part): Same.  And don't inherit from default.
+	(completion-hilit-commonality): Prepend 'completions-common-part
+	and 'completion-first-difference faces to the 'face property,
+	instead of replacing the value(s).
+	(completion--insert-strings): Same with 'completions-annotations face.
+	(completion-hilit-commonality): Use 'face instead of
+	'font-lock-face, because it gets priority if the completion
+	strings already have 'face set.
+
 2013-03-04  Alan Mackenzie  <acm@muc.de>
 
 	Replace `last-command-event' by `last-command-char' in XEmacs.
