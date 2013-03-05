@@ -1108,7 +1108,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
        display string?  And what if a display string covering some
        of the text over which we scan back includes
        paragraph_start_re?  */
-    pos = find_next_newline_no_quit (pos - 1, -1, &pos_byte);
+    pos = find_next_newline (pos - 1, -1, &pos_byte);
   if (n >= MAX_PARAGRAPH_SEARCH)
     pos_byte = BEGV_BYTE;
   return pos_byte;

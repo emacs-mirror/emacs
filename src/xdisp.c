@@ -5906,8 +5906,7 @@ static void
 back_to_previous_line_start (struct it *it)
 {
   IT_CHARPOS (*it)
-    = find_next_newline_no_quit (IT_CHARPOS (*it) - 1,
-				 -1, &IT_BYTEPOS (*it));
+    = find_next_newline (IT_CHARPOS (*it) - 1, -1, &IT_BYTEPOS (*it));
 }
 
 
@@ -5979,7 +5978,7 @@ forward_to_next_line_start (struct it *it, int *skipped_p,
   if (!newline_found_p)
     {
       ptrdiff_t bytepos, start = IT_CHARPOS (*it);
-      ptrdiff_t limit = find_next_newline_no_quit (start, 1, &bytepos);
+      ptrdiff_t limit = find_next_newline (start, 1, &bytepos);
       Lisp_Object pos;
 
       eassert (!STRINGP (it->string));
@@ -7434,8 +7433,7 @@ get_visually_first_element (struct it *it)
 	it->bidi_it.charpos = it->bidi_it.bytepos = 0;
       else
 	it->bidi_it.charpos
-	  = find_next_newline_no_quit (IT_CHARPOS (*it), -1,
-				       &it->bidi_it.bytepos);
+	  = find_next_newline (IT_CHARPOS (*it), -1, &it->bidi_it.bytepos);
       bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
       do
 	{
@@ -9070,7 +9068,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
 	{
 	  ptrdiff_t nl_pos =
-	    find_next_newline_no_quit (IT_CHARPOS (*it) - 1, -1, NULL);
+	    find_next_newline (IT_CHARPOS (*it) - 1, -1, NULL);
 
 	  move_it_to (it, nl_pos, -1, -1, -1, MOVE_TO_POS);
 	}

@@ -942,7 +942,7 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 }
 
 ptrdiff_t
-find_next_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt, ptrdiff_t *bytepos)
+find_next_newline (ptrdiff_t from, ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
   return find_newline (from, 0, cnt, NULL, bytepos, 0);
 }
