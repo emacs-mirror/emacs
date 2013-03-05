@@ -1,3 +1,10 @@
+2013-03-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* composite.c (get_composition_id, fill_gstring_header):
+	Use make_uninit_vector where appropriate.
+	* font.c (Ffont_get_glyphs, build_style_table): Likewise.
+	* xselect.c (clean_local_selection_data): Likewise.
+
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix misuse of ImageMagick that caused core dump (Bug#13846).

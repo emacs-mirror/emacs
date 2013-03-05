@@ -4705,7 +4705,7 @@ the corresponding element is nil.  */)
       chars = aref_addr (object, XFASTINT (from));
     }
 
-  vec = Fmake_vector (make_number (len), Qnil);
+  vec = make_uninit_vector (len);
   for (i = 0; i < len; i++)
     {
       Lisp_Object g;
@@ -4715,7 +4715,10 @@ the corresponding element is nil.  */)
 
       code = font->driver->encode_char (font, c);
       if (code == FONT_INVALID_CODE)
-	continue;
+	{
+	  ASET (vec, i, Qnil);
+	  continue;
+	}
       g = LGLYPH_NEW ();
       LGLYPH_SET_FROM (g, i);
       LGLYPH_SET_TO (g, i);
@@ -4898,7 +4901,7 @@ build_style_table (const struct table_entry *entry, int nelement)
   int i, j;
   Lisp_Object table, elt;
 
-  table = Fmake_vector (make_number (nelement), Qnil);
+  table = make_uninit_vector (nelement);
   for (i = 0; i < nelement; i++)
     {
       for (j = 0; entry[i].names[j]; j++);

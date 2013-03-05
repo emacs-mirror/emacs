@@ -234,7 +234,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     key = components;
   else if (NILP (components))
     {
-      key = Fmake_vector (make_number (nchars), Qnil);
+      key = make_uninit_vector (nchars);
       if (STRINGP (string))
 	for (i = 0; i < nchars; i++)
 	  {
@@ -828,7 +828,7 @@ fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end,
       if (len <= 8)
 	header = AREF (gstring_work_headers, len - 1);
       else
-	header = Fmake_vector (make_number (len + 1), Qnil);
+	header = make_uninit_vector (len + 1);
     }
 
   ASET (header, 0, font_object);
