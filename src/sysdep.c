@@ -2650,8 +2650,9 @@ list_system_processes (void)
 #elif defined BSD_SYSTEM
 
 /* OpenBSD 4.9 and earlier do not have KERN_PROC.  Approximate it with
-   KERN_PROC2.  */
-# ifndef KERN_PROC
+   KERN_PROC2.  MirBSD's KERN_PROC seems to be busted.  */
+# if !defined KERN_PROC || defined __MirBSD__
+#  undef KERN_PROC
 #  define KERN_PROC KERN_PROC2
 #  define kinfo_proc kinfo_proc2
 # endif

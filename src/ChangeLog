@@ -1,8 +1,9 @@
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix a build failure on OpenBSD 4.x.
-	* sysdep.c (KERN_PROC, kinfo_proc) [BSD_SYSTEM && !KERN_PROC]:
-	Define to KERN_PROC2 and kinfo_proc2, for OpenBSD 4.9.
+	Fix a build failure on OpenBSD 4.x and MirBSD.
+	* sysdep.c (KERN_PROC, kinfo_proc)
+	[BSD_SYSTEM && (!KERN_PROC || __MirBSD__)]:
+	Define to KERN_PROC2 and kinfo_proc2, for OpenBSD 4.9 and MirBSD.
 	list-system-processes still returns nil, but at least it doesn't crash.
 	Problem reported by Nelson H. F. Beebe in
 	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00021.html>.
