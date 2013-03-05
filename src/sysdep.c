@@ -2647,20 +2647,12 @@ list_system_processes (void)
   return proclist;
 }
 
-#elif defined BSD_SYSTEM
-
-/* OpenBSD 4.9 and earlier do not have KERN_PROC.  Approximate it with
-   KERN_PROC2.  MirBSD's KERN_PROC seems to be busted.  */
-# if !defined KERN_PROC || defined __MirBSD__
-#  undef KERN_PROC
-#  define KERN_PROC KERN_PROC2
-#  define kinfo_proc kinfo_proc2
-# endif
+#elif defined BSD_SYSTEM && !defined __OpenBSD__ && !defined __MirBSD__
 
 Lisp_Object
 list_system_processes (void)
 {
-#if defined DARWIN_OS || defined __NetBSD__ || defined __OpenBSD__
+#if defined DARWIN_OS || defined __NetBSD__
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
 #else
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
@@ -2688,8 +2680,6 @@ list_system_processes (void)
     {
 #if defined DARWIN_OS || defined __NetBSD__
       proclist = Fcons (make_fixnum_or_float (procs[i].kp_proc.p_pid), proclist);
-#elif defined __OpenBSD__
-      proclist = Fcons (make_fixnum_or_float (procs[i].p_pid), proclist);
 #else
       proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
 #endif
