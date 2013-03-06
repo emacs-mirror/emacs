@@ -346,8 +346,7 @@ are generated if and only if they are also in `message-draft-headers'.")
    nnmh-retrieve-headers
    nnmh-request-group
    nnmh-close-group
-   nnmh-request-list
-   nnmh-request-newsgroups))
+   nnmh-request-list))
 
 (provide 'nndraft)
 

@@ -1,3 +1,11 @@
+2013-03-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndir.el (nndir-request-list): Remove 2nd argument passed to
+	nnml-request-list.  (Bug#13873)
+	(nndir-request-newsgroups): Remove, unused.
+
+	* nndraft.el (nndraft-request-newsgroups): Remove, unused.
+
 2013-03-03  Ted Phelps  <phelps@gnusto.com>
 
 	* shr.el: Make all the overlays set the `evaporate' property so that
