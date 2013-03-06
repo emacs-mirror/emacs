@@ -5896,7 +5896,8 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-# Avoid gnulib's tests for O_NOATIME and O_NOFOLLOW, as we don't use them.
+# Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
+# as we don't use them.
 
 # Avoid gnulib's threadlib module, as we do threads our own way.
 
@@ -9886,14 +9887,6 @@ case "${window_system}" in
     term_header=w32term.h
   ;;
 esac
-
-if test -n "${term_header}"; then
-
-cat >>confdefs.h <<_ACEOF
-#define TERM_HEADER "${term_header}"
-_ACEOF
-
-fi
 
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
    # Extract the first word of "X", so it can be a program name with args.
