@@ -1,3 +1,8 @@
+2013-03-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c: Change encoding to cp850.  (Bug#13879)
+	(fr_keyboard, it_keyboard, dk_keyboard): Update keyboard layouts.
+
 2013-03-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Coding system support cleanup and minor refactoring.
