@@ -1,3 +1,8 @@
+2013-03-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Only
+	propertize regexp when not inside a string (Bug#13885).
+
 2013-03-06  Alan Mackenzie  <acm@muc.de>
 
 	Correct the position of point in some line-up functions.

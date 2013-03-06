@@ -1276,8 +1276,10 @@ It will be properly highlighted even when the call omits parens."))
             "\\)\\s *"
             ;; The regular expression itself.
             "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)")
-           (2 (string-to-syntax "\"/"))
-           (3 (string-to-syntax "\"/")))
+           (3 (unless (nth 3 (syntax-ppss (match-beginning 2)))
+                (put-text-property (match-beginning 2) (match-end 2)
+                                   'syntax-table (string-to-syntax "\"/"))
+                (string-to-syntax "\"/"))))
           ("^=en\\(d\\)\\_>" (1 "!"))
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.

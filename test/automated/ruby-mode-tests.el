@@ -47,17 +47,16 @@ The whitespace before and including \"|\" on each line is removed."
 (defun ruby-test-string (s &rest args)
   (apply 'format (replace-regexp-in-string "^[ \t]*|" "" s) args))
 
-(defun ruby-assert-state (content &rest values-plist)
+(defun ruby-assert-state (content index value &optional point)
   "Assert syntax state values at the end of CONTENT.
 
 VALUES-PLIST is a list with alternating index and value elements."
   (ruby-with-temp-buffer content
+    (when point (goto-char point))
     (syntax-propertize (point))
-    (while values-plist
-      (should (eq (nth (car values-plist)
-                       (parse-partial-sexp (point-min) (point)))
-                  (cadr values-plist)))
-      (setq values-plist (cddr values-plist)))))
+    (should (eq (nth index
+                     (parse-partial-sexp (point-min) (point)))
+                value))))
 
 (defun ruby-assert-face (content pos face)
   (ruby-with-temp-buffer content
@@ -103,6 +102,12 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-should-indent "a = \"abc\nif\"\n  " 0)
   (ruby-should-indent "a = %w[abc\n       def]\n  " 0)
   (ruby-should-indent "a = \"abc\n      def\"\n  " 0))
+
+(ert-deftest ruby-regexp-doest-start-in-string ()
+  (ruby-assert-state "'(/', /\d+/" 3 nil))
+
+(ert-deftest ruby-regexp-starts-after-string ()
+  (ruby-assert-state "'(/', /\d+/" 3 ?/ 8))
 
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
