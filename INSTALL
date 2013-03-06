@@ -656,13 +656,17 @@ Here is a complete list of the variables you may want to set.
 	path variables - `bindir' and `libexecdir'.
 
 The above variables serve analogous purposes in the makefiles for all
-GNU software; the following variable is specific to Emacs.
+GNU software; the following variables are specific to Emacs.
 
 `archlibdir' indicates where Emacs installs and expects the executable
 	files and other architecture-dependent data it uses while
 	running.  Its default value, based on `libexecdir' (which
 	see), is `/usr/local/libexec/emacs/VERSION/CONFIGURATION-NAME'
 	(where VERSION and CONFIGURATION-NAME are as described above).
+
+`GZIP_PROG' is the name of the executable that compresses installed info,
+	manual, and .el files.  It defaults to gzip.  Setting it to
+	the empty string suppresses compression.
 
 Remember that you must specify any variable values you need each time
 you run `make' in the top directory.  If you run `make' once to build
