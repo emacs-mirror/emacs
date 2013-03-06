@@ -1,9 +1,10 @@
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a build failure on OpenBSD 4.x and MirBSD (Bug#13881).
-	* sysdep.c (list_system_processes) [__OpenBSD__ || __MirBSD__]:
+	* sysdep.c (list_system_processes)
+	[BSD_SYSTEM && !DARWIN_OS && !__FreeBSD__]:
 	Make it a stub in this case; otherwise the build might fail,
-	and even if the build worked the function would just return nil anyway.
+	and this code hasn't been tested on such hosts anyway.
 	Problem reported by Nelson H. F. Beebe in
 	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00021.html>
 	and analyzed by Jérémie Courrèges-Anglas in

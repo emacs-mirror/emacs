@@ -2647,12 +2647,12 @@ list_system_processes (void)
   return proclist;
 }
 
-#elif defined BSD_SYSTEM && !defined __OpenBSD__ && !defined __MirBSD__
+#elif defined DARWIN_OS || defined __FreeBSD__
 
 Lisp_Object
 list_system_processes (void)
 {
-#if defined DARWIN_OS || defined __NetBSD__
+#ifdef DARWIN_OS
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
 #else
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
@@ -2678,7 +2678,7 @@ list_system_processes (void)
   len /= sizeof (struct kinfo_proc);
   for (i = 0; i < len; i++)
     {
-#if defined DARWIN_OS || defined __NetBSD__
+#ifdef DARWIN_OS
       proclist = Fcons (make_fixnum_or_float (procs[i].kp_proc.p_pid), proclist);
 #else
       proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
