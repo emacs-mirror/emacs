@@ -6475,13 +6475,14 @@ think is generally useful, you're very welcome to contribute it;
 please contact @email{bug-cc-mode@@gnu.org}.
 
    Line-up functions are passed a single argument, the syntactic
-element (see below).  The return value is a @code{c-offsets-alist}
-offset specification: for example, an integer, a symbol such as
-@code{+}, a vector, @code{nil}@footnote{Returning @code{nil} is useful
-when the offset specification for a syntactic element is a list
-containing the line-up function (@pxref{c-offsets-alist}).}, or even
-another line-up function.  Full details of these are in
-@ref{c-offsets-alist}.
+element (see below).  At the time of the call, point will be somewhere
+on the line being indented.  The return value is a
+@code{c-offsets-alist} offset specification: for example, an integer,
+a symbol such as @code{+}, a vector, @code{nil}@footnote{Returning
+@code{nil} is useful when the offset specification for a syntactic
+element is a list containing the line-up function
+(@pxref{c-offsets-alist}).}, or even another line-up function.  Full
+details of these are in @ref{c-offsets-alist}.
 
 Line-up functions must not move point or change the content of the
 buffer (except temporarily).  They are however allowed to do

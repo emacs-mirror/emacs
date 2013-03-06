@@ -1,3 +1,8 @@
+2013-03-06  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Custom Line-Up): Clarify position of point on
+	calling a line-up function.
+
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs-mime.texi, htmlfontify.texi, mairix-el.texi, mh-e.texi:
