@@ -1,3 +1,15 @@
+2013-03-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a build failure on OpenBSD 4.x and MirBSD (Bug#13881).
+	* sysdep.c (list_system_processes)
+	[BSD_SYSTEM && !DARWIN_OS && !__FreeBSD__]:
+	Make it a stub in this case; otherwise the build might fail,
+	and this code hasn't been tested on such hosts anyway.
+	Problem reported by Nelson H. F. Beebe in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00021.html>
+	and analyzed by Jérémie Courrèges-Anglas in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00062.html>.
+
 2013-03-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lisp.h (find_next_newline_no_quit): Rename to find_next_newline.
@@ -64,16 +76,6 @@
 	bidi_count_bytes, as the callers now arrange for bidi_it->charpos
 	to be in sync with bidi_it->bytepos.  Suggested by Dmitry Antipov
 	<dmantipov@yandex.ru>.
-
-2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
-
-	Fix a build failure on OpenBSD 4.x and MirBSD.
-	* sysdep.c (KERN_PROC, kinfo_proc)
-	[BSD_SYSTEM && (!KERN_PROC || __MirBSD__)]:
-	Define to KERN_PROC2 and kinfo_proc2, for OpenBSD 4.9 and MirBSD.
-	list-system-processes still returns nil, but at least it doesn't crash.
-	Problem reported by Nelson H. F. Beebe in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00021.html>.
 
 2013-03-05  Dmitry Antipov  <dmantipov@yandex.ru>
 

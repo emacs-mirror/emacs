@@ -1580,11 +1580,6 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
   ;;
 esac
 
-if test -n "${term_header}"; then
-    AC_DEFINE_UNQUOTED(TERM_HEADER, "${term_header}",
-        [Define to the header for the built-in window system.])
-fi
-
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
    AC_CHECK_PROG(HAVE_XSERVER, X, true, false)
    if test "$HAVE_XSERVER" = true ||

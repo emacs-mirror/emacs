@@ -1,3 +1,8 @@
+2013-03-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (TERM_HEADER): Remove duplicate definition (Bug#13872).
+	It can mess up 'configure' runs.
+
 2013-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-man): Ignore gzip exit status.
