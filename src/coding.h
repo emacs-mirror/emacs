@@ -272,37 +272,31 @@ enum coding_result_code
     CODING_RESULT_SUCCESS,
     CODING_RESULT_INSUFFICIENT_SRC,
     CODING_RESULT_INSUFFICIENT_DST,
-    CODING_RESULT_INCONSISTENT_EOL,
     CODING_RESULT_INVALID_SRC,
-    CODING_RESULT_INTERRUPT,
-    CODING_RESULT_INSUFFICIENT_MEM
+    CODING_RESULT_INTERRUPT
   };
 
 
 /* Macros used for the member `mode' of the struct coding_system.  */
 
-/* If set, recover the original CR or LF of the already decoded text
-   when the decoding routine encounters an inconsistent eol format.  */
-#define CODING_MODE_INHIBIT_INCONSISTENT_EOL	0x01
-
 /* If set, the decoding/encoding routines treat the current data as
    the last block of the whole text to be converted, and do the
    appropriate finishing job.  */
-#define CODING_MODE_LAST_BLOCK			0x02
+#define CODING_MODE_LAST_BLOCK			0x01
 
 /* If set, it means that the current source text is in a buffer which
    enables selective display.  */
-#define CODING_MODE_SELECTIVE_DISPLAY		0x04
+#define CODING_MODE_SELECTIVE_DISPLAY		0x02
 
 /* This flag is used by the decoding/encoding routines on the fly.  If
    set, it means that right-to-left text is being processed.  */
-#define CODING_MODE_DIRECTION			0x08
+#define CODING_MODE_DIRECTION			0x04
 
-#define CODING_MODE_FIXED_DESTINATION		0x10
+#define CODING_MODE_FIXED_DESTINATION		0x08
 
 /* If set, it means that the encoding routines produces some safe
    ASCII characters (usually '?') for unsupported characters.  */
-#define CODING_MODE_SAFE_ENCODING		0x20
+#define CODING_MODE_SAFE_ENCODING		0x10
 
   /* For handling composition sequence.  */
 #include "composite.h"
@@ -724,22 +718,6 @@ extern Lisp_Object from_unicode (Lisp_Object str);
 #endif /* WINDOWSNT || CYGWIN */
 
 /* Macros for backward compatibility.  */
-
-#define decode_coding_region(coding, from, to)		\
-  decode_coding_object (coding, Fcurrent_buffer (),	\
-			from, CHAR_TO_BYTE (from),	\
-			to, CHAR_TO_BYTE (to), Fcurrent_buffer ())
-
-
-#define encode_coding_region(coding, from, to)		\
-  encode_coding_object (coding, Fcurrent_buffer (),	\
-			from, CHAR_TO_BYTE (from),	\
-			to, CHAR_TO_BYTE (to), Fcurrent_buffer ())
-
-
-#define decode_coding_string(coding, string, nocopy)			\
-  decode_coding_object (coding, string, 0, 0, SCHARS (string),		\
-			SBYTES (string), Qt)
 
 #define encode_coding_string(coding, string, nocopy)			\
   (STRING_MULTIBYTE(string) ?						\

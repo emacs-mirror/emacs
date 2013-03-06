@@ -1,3 +1,22 @@
+2013-03-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Coding system support cleanup and minor refactoring.
+	* coding.h (enum coding_result_code): Remove
+	CODING_RESULT_INCONSISTENT_EOL and CODING_RESULT_INSUFFICIENT_MEM.
+	(toplevel): Remove unused CODING_MODE_INHIBIT_INCONSISTENT_EOL.
+	(CODING_MODE_LAST_BLOCK, CODING_MODE_SELECTIVE_DISPLAY)
+	(CODING_MODE_DIRECTION, CODING_MODE_FIXED_DESTINATION)
+	(CODING_MODE_SAFE_ENCODING): Rearrange bit values.
+	(decode_coding_region, encode_coding_region, decode_coding_string):
+	Remove unused compatibility macros.
+	* coding.c (Qinconsistent_eol, Qinsufficient_memory): Remove.
+	(record_conversion_result): Adjust user.
+	(syms_of_coding): Likewise.
+	(ALLOC_CONVERSION_WORK_AREA): Use SAFE_ALLOCA.
+	(decode_coding, encode_coding): Add USE_SAFE_ALLOCA and SAFE_FREE.
+	(decode_coding_object): Simplify since xrealloc never returns NULL.
+	Add eassert.
+
 2013-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a build failure on OpenBSD 4.x and MirBSD (Bug#13881).
