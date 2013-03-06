@@ -1843,7 +1843,7 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 	  ptrdiff_t bytepos;
 	  Lisp_Object propval;
 
-	  prevline = find_next_newline (from - 1, -1, &bytepos);
+	  prevline = find_newline_no_quit (from - 1, -1, &bytepos);
 	  while (prevline > BEGV
 		 && ((selective > 0
 		      && indented_beyond_p (prevline, bytepos, selective))
@@ -1853,7 +1853,7 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 						       Qinvisible,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
-	    prevline = find_next_newline (prevline - 1, -1, &bytepos);
+	    prevline = find_newline_no_quit (prevline - 1, -1, &bytepos);
 	  pos = *compute_motion (prevline, 0,
 				 lmargin,
 				 0,
@@ -1894,7 +1894,7 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
       ptrdiff_t bytepos;
       Lisp_Object propval;
 
-      prevline = find_next_newline (from, -1, &bytepos);
+      prevline = find_newline_no_quit (from, -1, &bytepos);
       while (prevline > BEGV
 	     && ((selective > 0
 		  && indented_beyond_p (prevline, bytepos, selective))
@@ -1904,7 +1904,7 @@ vmotion (register ptrdiff_t from, register EMACS_INT vtarget, struct window *w)
 						   Qinvisible,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
-	prevline = find_next_newline (prevline - 1, -1, &bytepos);
+	prevline = find_newline_no_quit (prevline - 1, -1, &bytepos);
       pos = *compute_motion (prevline, 0,
 			     lmargin,
 			     0,

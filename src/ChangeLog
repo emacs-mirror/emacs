@@ -1,5 +1,17 @@
 2013-03-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* search.c (find_newline_no_quit): Rename from find_next_newline.
+	Add commentary.
+
+	* lisp.h (find_newline_no_quit): Rename prototype.
+
+	* xdisp.c (back_to_previous_line_start)
+	(forward_to_next_line_start, get_visually_first_element)
+	(move_it_vertically_backward): Callers of find_newline_no_quit changed.
+	* indent.c (vmotion): Callers of find_newline_no_quit changed.
+	* bidi.c (bidi_find_paragraph_start): Callers of
+	find_newline_no_quit changed.
+
 	* msdos.c: Change encoding to cp850.  (Bug#13879)
 	(fr_keyboard, it_keyboard, dk_keyboard): Update keyboard layouts.
 

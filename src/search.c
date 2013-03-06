@@ -941,15 +941,17 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
   return count * direction;
 }
 
+/* Like find_newline, but doesn't allow QUITting and doesn't return
+   SHORTAGE.  */
 ptrdiff_t
-find_next_newline (ptrdiff_t from, ptrdiff_t cnt, ptrdiff_t *bytepos)
+find_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
   return find_newline (from, 0, cnt, NULL, bytepos, 0);
 }
 
-/* Like find_next_newline, but returns position before the newline,
-   not after, and only search up to TO.  This isn't just
-   find_next_newline (...)-1, because you might hit TO.  */
+/* Like find_newline, but returns position before the newline, not
+   after, and only search up to TO.
+   This isn't just find_newline_no_quit (...)-1, because you might hit TO.  */
 
 ptrdiff_t
 find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
