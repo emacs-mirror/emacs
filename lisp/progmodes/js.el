@@ -1785,7 +1785,7 @@ statement spanning multiple lines; otherwise, return nil."
                         (or (eq (char-before) ?,)
                             (and (not (eq (char-before) ?\;))
                                  (prog2
-                                     (skip-chars-backward "[[:punct:]]")
+                                     (skip-syntax-backward ".")
                                      (looking-at js--indent-operator-re)
                                    (js--backward-syntactic-ws))
                                  (not (eq (char-before) ?\;)))

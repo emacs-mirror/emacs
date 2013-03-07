@@ -1,3 +1,8 @@
+2013-03-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/js.el (js--multi-line-declaration-indentation): Merge
+	from js2-mode (https://github.com/mooz/js2-mode/issues/89).
+
 2013-03-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Only
