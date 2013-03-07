@@ -244,6 +244,7 @@ int main(int argc, char *argv[])
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+  testlib_unused(argc);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");

@@ -35,6 +35,7 @@ static void testit(ArenaClass class, ...)
 
 int main(int argc, char *argv[])
 {
+  testlib_unused(argc);
   testit((ArenaClass)mps_arena_class_vm(), (Size)600000);
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

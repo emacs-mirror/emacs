@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 {
   Lock a = malloc(LockSize());
   Lock b = malloc(LockSize());
+  testlib_unused(argc);
 
   Insist(a != NULL);
   Insist(b != NULL);
