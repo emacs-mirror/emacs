@@ -1,3 +1,7 @@
+2013-03-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-faq.texi (FAQ 3-11): Now Gnus supports POP3 UIDL.
+
 2013-03-06  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi (Custom Line-Up): Clarify position of point on
