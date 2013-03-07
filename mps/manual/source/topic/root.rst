@@ -182,7 +182,10 @@ registers a thread root and then calls the program::
                               0);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
-    exit_code = start(arg, argv);
+    exit_code = start(argc, argv);
+
+    mps_root_destroy(reg_root);
+    mps_thread_dereg(thread);
 
 
 .. index::
