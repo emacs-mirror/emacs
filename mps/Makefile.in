@@ -17,14 +17,15 @@ MPS_TARGET_NAME=@MPS_TARGET_NAME@
 EXTRA_TARGETS=@EXTRA_TARGETS@
 export EXTRA_TARGETS
 prefix=$(DESTDIR)@prefix@
+MAKE_FOR_TARGET=$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk
 
 all: @BUILD_TARGET@
 
 build-via-make:
-	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk
+	$(MAKE_FOR_TARGET)
 
 clean-make-build:
-	$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk clean
+	$(MAKE_FOR_TARGET) clean
 
 install-make-build: make-install-dirs build-via-make
 	$(INSTALL_DATA) code/mps*.h $(prefix)/include/
@@ -67,5 +68,5 @@ make-install-dirs:
 install: @INSTALL_TARGET@
 
 test: @BUILD_TARGET@
-	$(MAKE) -C code VARIETY=cool testrun
-	$(MAKE) -C code VARIETY=hot testrun
+	$(MAKE_FOR_TARGET) VARIETY=cool testrun
+	$(MAKE_FOR_TARGET) VARIETY=hot  testrun
