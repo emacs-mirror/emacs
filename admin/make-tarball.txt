@@ -77,7 +77,8 @@ General steps (for each step, check for possible errors):
     compile-NEW.log and compare it against an old one.  The easiest way
     to do that is to visit the old log in Emacs, change the version
     number of the old Emacs to __, do the same with the new log and do
-    M-x ediff.  Especially check that Info files aren't built.
+    M-x ediff.  Especially check that Info files aren't built, and that
+    no autotools (autoconf etc) run.
 
 9.  cd EMACS_ROOT_DIR && bzr tag TAG
     TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.
