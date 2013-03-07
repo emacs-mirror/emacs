@@ -6225,9 +6225,7 @@ parse_modifiers (Lisp_Object symbol)
   Lisp_Object elements;
 
   if (INTEGERP (symbol))
-    return (Fcons (make_number (KEY_TO_CHAR (symbol)),
-		   Fcons (make_number (XINT (symbol) & CHAR_MODIFIER_MASK),
-			  Qnil)));
+    return list2i (KEY_TO_CHAR (symbol), XINT (symbol) & CHAR_MODIFIER_MASK);
   else if (!SYMBOLP (symbol))
     return Qnil;
 

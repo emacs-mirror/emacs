@@ -1649,9 +1649,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
           The last number is where we distinguish between the Apple
           and GNUstep implementations ("distributor-specific release
           number") and give int'ized versions of major.minor. */
-  return Fcons (make_number (10),
-		Fcons (make_number (3),
-		       Fcons (make_number (ns_appkit_version_int()), Qnil)));
+  return list3i (10, 3, ns_appkit_version_int ());
 }
 
 
@@ -2296,9 +2294,8 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
   [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
-  return list3 (make_number (lrint (red*65280)),
-		make_number (lrint (green*65280)),
-		make_number (lrint (blue*65280)));
+  return list3i (lrint (red * 65280), lrint (green * 65280),
+		 lrint (blue * 65280));
 }
 
 
@@ -2385,11 +2382,10 @@ that stands for the selected frame's display. */)
 
   /* NS coordinate system is upside-down.
      Transform to screen-specific coordinates. */
-  return list4 (make_number ((int) vScreen.origin.x),
-		make_number ((int) [screen frame].size.height
-			     - vScreen.size.height - vScreen.origin.y),
-                make_number ((int) vScreen.size.width),
-                make_number ((int) vScreen.size.height));
+  return list4i (vScreen.origin.x,
+		 [screen frame].size.height
+		 - vScreen.size.height - vScreen.origin.y,
+		 vScreen.size.width, vScreen.size.height);
 }
 
 

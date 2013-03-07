@@ -3001,6 +3001,28 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 			  Lisp_Object);
 enum constype {CONSTYPE_HEAP, CONSTYPE_PURE};
 extern Lisp_Object listn (enum constype, ptrdiff_t, Lisp_Object, ...);
+
+/* Build a frequently used 2/3/4-integer lists.  */
+
+LISP_INLINE Lisp_Object
+list2i (EMACS_INT x, EMACS_INT y)
+{
+  return list2 (make_number (x), make_number (y));
+}
+
+LISP_INLINE Lisp_Object
+list3i (EMACS_INT x, EMACS_INT y, EMACS_INT w)
+{
+  return list3 (make_number (x), make_number (y), make_number (w));
+}
+
+LISP_INLINE Lisp_Object
+list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
+{
+  return list4 (make_number (x), make_number (y),
+		make_number (w), make_number (h));
+}
+
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)

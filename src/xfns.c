@@ -3539,9 +3539,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (x_defined_color (f, SSDATA (color), &foo, 0))
-    return list3 (make_number (foo.red),
-		  make_number (foo.green),
-		  make_number (foo.blue));
+    return list3i (foo.red, foo.green, foo.blue);
   else
     return Qnil;
 }
@@ -3703,9 +3701,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Display *dpy = dpyinfo->display;
 
-  return Fcons (make_number (ProtocolVersion (dpy)),
-		Fcons (make_number (ProtocolRevision (dpy)),
-		       Fcons (make_number (VendorRelease (dpy)), Qnil)));
+  return list3i (ProtocolVersion (dpy), ProtocolRevision (dpy),
+		 VendorRelease (dpy));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,

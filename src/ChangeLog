@@ -1,3 +1,19 @@
+2013-03-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (list2i, list3i): New functions.
+	(list4i): Move from window.c and make LISP_INLINE.
+	* editfns.c (make_lisp_time):
+	* fns.c (Flocale_info):
+	* keyboard.c (parse_modifiers):
+	* xterm.c (x_ewmh_activate_frame): Use list2i.
+	* instel.c (signal_after_change):
+	* nsfns.m (Fx_server_version, Fxw_color_values):
+	* w32fns.c (Fxw_color_values, Fx_server_version):
+	* xfns.c (Fxw_color_values, Fx_server_version): Use list3i.
+	* fileio.c (Fvisited_file_modtime):
+	* nsfns.m (Fns_display_usable_bounds):
+	* w32.c (ltime): Use list4i.
+
 2013-03-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (find_newline_no_quit): Rename from find_next_newline.

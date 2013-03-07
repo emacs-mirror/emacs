@@ -1484,9 +1484,7 @@ Lisp_Object
 make_lisp_time (EMACS_TIME t)
 {
   int ns = EMACS_NSECS (t);
-  return make_time_tail (EMACS_SECS (t),
-			 list2 (make_number (ns / 1000),
-				make_number (ns % 1000 * 1000)));
+  return make_time_tail (EMACS_SECS (t), list2i (ns / 1000, ns % 1000 * 1000));
 }
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.

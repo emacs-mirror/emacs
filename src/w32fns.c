@@ -4587,12 +4587,9 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (w32_defined_color (f, SDATA (color), &foo, 0))
-    return list3 (make_number ((GetRValue (foo.pixel) << 8)
-			       | GetRValue (foo.pixel)),
-		  make_number ((GetGValue (foo.pixel) << 8)
-			       | GetGValue (foo.pixel)),
-		  make_number ((GetBValue (foo.pixel) << 8)
-			       | GetBValue (foo.pixel)));
+    return list3i ((GetRValue (foo.pixel) << 8) | GetRValue (foo.pixel),
+		   (GetGValue (foo.pixel) << 8) | GetGValue (foo.pixel),
+		   (GetBValue (foo.pixel) << 8) | GetBValue (foo.pixel));
   else
     return Qnil;
 }
@@ -4718,9 +4715,7 @@ DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
-  return Fcons (make_number (w32_major_version),
-		Fcons (make_number (w32_minor_version),
-		       Fcons (make_number (w32_build_number), Qnil)));
+  return list3i (w32_major_version, w32_minor_version, w32_build_number);
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,

@@ -5580,10 +5580,8 @@ ltime (ULONGLONG time_100ns)
 {
   ULONGLONG time_sec = time_100ns / 10000000;
   int subsec = time_100ns % 10000000;
-  return list4 (make_number (time_sec >> 16),
-		make_number (time_sec & 0xffff),
-		make_number (subsec / 10),
-		make_number (subsec % 10 * 100000));
+  return list4i (time_sec >> 16, time_sec & 0xffff,
+		 subsec / 10, subsec % 10 * 100000);
 }
 
 #define U64_TO_LISP_TIME(time) ltime (time)

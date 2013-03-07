@@ -5413,8 +5413,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
       if (EMACS_NSECS (current_buffer->modtime) == NONEXISTENT_MODTIME_NSECS)
 	{
 	  /* make_lisp_time won't work here if time_t is unsigned.  */
-	  return list4 (make_number (-1), make_number (65535),
-			make_number (0), make_number (0));
+	  return list4i (-1, 65535, 0, 0);
 	}
       return make_number (0);
     }

@@ -300,15 +300,6 @@ wset_buffer (struct window *w, Lisp_Object val)
   adjust_window_count (w, 1);
 }
 
-/* Build a frequently used 4-integer (X Y W H) list.  */
-
-static Lisp_Object
-list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
-{
-  return list4 (make_number (x), make_number (y),
-		make_number (w), make_number (h));
-}
-
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
        doc: /* Return t if OBJECT is a window and nil otherwise.  */)
   (Lisp_Object object)
