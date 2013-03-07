@@ -1,7 +1,7 @@
 /* cbstest.c: COALESCING BLOCK STRUCTURE TEST
  *
  *  $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "cbs.h"
@@ -649,14 +649,14 @@ extern int main(int argc, char *argv[])
   printf("Number of deleted large blocks: %ld\n", NDeleteBlocks);
   printf("Number of grown large blocks: %ld\n", NGrowBlocks);
   printf("Number of shrunk large blocks: %ld\n", NShrinkBlocks);
-  printf("\nNo problems detected.\n");
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

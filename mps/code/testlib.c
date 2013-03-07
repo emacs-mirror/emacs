@@ -1,7 +1,7 @@
 /* testlib.c: TEST LIBRARY
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -252,7 +252,7 @@ mps_addr_t rnd_addr(void)
  *    (New from 2010-03-22, changelist 170093)
  */
 
-void randomize(int argc, char **argv)
+void randomize(int argc, char *argv[])
 {
   int i;
   int n;
@@ -262,7 +262,8 @@ void randomize(int argc, char **argv)
   if (argc > 1) {
     n = sscanf(argv[1], "%lu", &seed0);
     Insist(n == 1);
-    printf("randomize(): resetting initial state (v3) to: %lu.\n", seed0);
+    printf("%s: randomize(): resetting initial state (v3) to: %lu.\n", 
+           argv[0], seed0);
     rnd_state_set(seed0);
   } else {
     /* time_t uses an arbitrary encoding, but hopefully the low order */
@@ -288,7 +289,8 @@ void randomize(int argc, char **argv)
     }
 
     seed0 = rnd_state();
-    printf("randomize(): choosing initial state (v3): %lu.\n", seed0);
+    printf("%s: randomize(): choosing initial state (v3): %lu.\n",
+           argv[0], seed0);
     rnd_state_set(seed0);
   }
 }
@@ -386,7 +388,7 @@ void cdie(int res, const char *s)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

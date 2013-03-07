@@ -1,7 +1,7 @@
 /* locv.c: LEAF OBJECT POOL CLASS COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * This is (not much of) a coverage test for the Leaf Object
  * pool (PoolClassLO).
@@ -39,7 +39,7 @@ static mps_fmt_A_s locv_fmt =
 static mps_addr_t roots[4];
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_pool_t pool;
@@ -92,8 +92,7 @@ int main(void)
   mps_root_destroy(root);
   mps_arena_destroy(arena);
 
-  fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
@@ -168,7 +167,7 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

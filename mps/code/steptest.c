@@ -1,7 +1,7 @@
 /* steptest.c: TEST FOR ARENA STEPPING
  *
  * $Id$
- * Copyright (C) 1998 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 1998-2013 Ravenbrook Limited.  See end of file for license.
  *
  * Loosely based on <code/amcss.c>.
  */
@@ -485,7 +485,7 @@ static void *test(void *arg, size_t s)
     return NULL;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     prepare_clock();
 
@@ -507,15 +507,14 @@ int main(int argc, char **argv)
         ++ test_number;
     }
 
-    fflush(stdout); /* synchronize */
-    fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+    printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
     return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

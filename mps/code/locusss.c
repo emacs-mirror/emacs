@@ -1,7 +1,7 @@
 /* locusss.c: LOCUS STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpscmvff.h"
@@ -229,7 +229,7 @@ static void runArenaTest(size_t size,
 }
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 
   randomize(argc, argv);
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

@@ -1,7 +1,7 @@
 /* amcssth.c: POOL CLASS AMC STRESS TEST WITH TWO THREADS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .posix: This is Posix only.
@@ -310,7 +310,7 @@ static void *fooey(void* childIsFinishedReturn)
 }
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
   mps_thr_t thread;
   pthread_t pthread1;
@@ -337,15 +337,14 @@ int main(int argc, char **argv)
   report(arena);
   mps_arena_destroy(arena);
 
-  fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

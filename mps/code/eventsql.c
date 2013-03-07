@@ -134,7 +134,7 @@ static void evlog(unsigned int level, const char *format, ...)
 static void error(const char *format, ...)
 {
   va_list args;
-  fprintf(stderr, "Fatal error:  ");
+  fprintf(stderr, "Fatal error: ");
   va_start(args, format);
   vlog(LOG_ALWAYS, format, args);
   va_end(args);
@@ -964,7 +964,7 @@ int main(int argc, char *argv[])
 
 /* COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2012-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
