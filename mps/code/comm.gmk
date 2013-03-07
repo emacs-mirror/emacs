@@ -232,7 +232,7 @@ all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
 #   mv2test cannot be run because MV2 is broken
 # %%TARGET: When adding a new target, if target is suitable for the
 # overnight tests, then add it here.
-TESTCASES=abqtest amcss amcsshe amsss amssshe apss arenacv awlut \
+TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv awlut \
           awluthe btcv cbstest finalcv finaltest lockcov locv \
           messtest mpmss mpsicv poolncv qs sacss segsmss steptest \
           walkt0
