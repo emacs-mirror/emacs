@@ -387,5 +387,5 @@ changed.
 
 @c Local Variables:
 @c mode: texinfo
-@c coding: iso-8859-1
+@c coding: utf-8
 @c End:

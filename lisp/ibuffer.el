@@ -3030,7 +3030,7 @@ defaults to one.
 (run-hooks 'ibuffer-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; ibuffer.el ends here
