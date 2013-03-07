@@ -19,17 +19,15 @@
 void libcbt_assert_fail(const char *);
 mps_clock_t libcbt_clock(void);
 
-int main(void)
+int main(int argc, char *argv[])
 {
   int res;
-  int defects = 0;
   mps_arena_t arena;
 
   res = mps_lib_callback_register("not a callback", (void(*)(void))0);
   if(MPS_RES_OK == res) {
-    printf("mps_lib_callback_register claims to successfully register\n"
-      "an interface that does not exist.\n");
-    ++ defects;
+    error("mps_lib_callback_register claims to successfully register\n"
+          "an interface that does not exist.\n");
   }
   die(mps_lib_callback_register("mps_lib_assert_fail",
     (void(*)(void))libcbt_assert_fail),
@@ -44,11 +42,8 @@ int main(void)
     "register clock");
   die(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)1000*1000),
     "mps_arena_create");
-  if(defects) {
-    printf("Conclusion: Defects detected.\n");
-  } else {
-    printf("Conclusion: Failed to find any defects.\n");
-  }
+
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
@@ -71,7 +66,7 @@ mps_clock_t libcbt_clock(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2005-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

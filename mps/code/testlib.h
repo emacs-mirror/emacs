@@ -1,7 +1,7 @@
 /* testlib.h: TEST LIBRARY INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -212,7 +212,7 @@ extern mps_addr_t rnd_addr(void);
  * line argument) and initializes the generator to the same state.
  */
 
-extern void randomize(int argc, char **argv);
+extern void randomize(int argc, char *argv[]);
 
 
 #endif /* testlib_h */

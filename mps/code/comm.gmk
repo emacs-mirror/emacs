@@ -232,10 +232,17 @@ all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
 #   mv2test cannot be run because MV2 is broken
 # %%TARGET: When adding a new target, if target is suitable for the
 # overnight tests, then add it here.
-testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
-         mpsicv lockcov poolncv locv qs finalcv finaltest arenacv \
-         abqtest cbstest btcv messtest steptest walkt0
-	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
+TESTCASES=abqtest amcss amcsshe amsss amssshe apss arenacv awlut \
+          awluthe btcv cbstest finalcv finaltest lockcov locv \
+          messtest mpmss mpsicv poolncv qs sacss segsmss steptest \
+          walkt0
+testrun: $(TESTCASES)
+	OUTPUT=$$(mktemp /tmp/mps-XXXXXX.log); \
+	echo "Logging test output to $$OUTPUT"; \
+	$(^:%=(TESTCASE=$(PFM)/$(VARIETY)/%; \
+              echo "\n\n-- Running $$TESTCASE at $$(date) --" >> $$OUTPUT && \
+              echo "Running $$TESTCASE" && \
+              $$TESTCASE >> $$OUTPUT) &&) true
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).

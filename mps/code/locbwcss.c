@@ -1,7 +1,7 @@
 /* locbwcss.c: LOCUS BACKWARDS COMPATIBILITY STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpscmvff.h"
@@ -176,9 +176,9 @@ static void testInArena(mps_arena_t arena)
   reportResults(histat, "the high MVFF pool");
 
   if (lostat->max > histat->min) {
-    printf("\nFOUND PROBLEM - low range overlaps high\n");
+    error("\nFOUND PROBLEM - low range overlaps high\n");
   } else if (lostat->ncCount != 0 || histat->ncCount != 0) {
-    printf("\nFOUND POSSIBLE PROBLEM - some non-contiguous allocations\n");
+    error("\nFOUND POSSIBLE PROBLEM - some non-contiguous allocations\n");
   } else {
     printf("\nNo problems detected.\n");
   }
@@ -188,7 +188,7 @@ static void testInArena(mps_arena_t arena)
 }
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
   mps_arena_t arena;
 
@@ -201,13 +201,14 @@ int main(int argc, char **argv)
 
   mps_arena_destroy(arena);
 
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

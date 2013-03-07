@@ -1,7 +1,7 @@
 /* arenacv.c: ARENA COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .coverage: At the moment, we're only trying to cover the new code
  * (partial mapping of the page table and vm overflow).
@@ -402,7 +402,7 @@ static void testSize(Size size)
 #define TEST_ARENA_SIZE              ((Size)16<<22)
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
   void *block;
 
@@ -416,15 +416,14 @@ int main(void)
 
   testSize(TEST_ARENA_SIZE);
 
-  fflush(stdout); /* synchronize */
-  fprintf(stderr, "Conclusion:  Failed to find any defects.\n");
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
