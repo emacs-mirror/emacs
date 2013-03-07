@@ -88,7 +88,7 @@ void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
-  return (Addr)mfc->ucontext->uc_stack.ss_sp;
+  return (Addr)mfc->ucontext->uc_mcontext.gregs[REG_RSP];
 }
 
 
