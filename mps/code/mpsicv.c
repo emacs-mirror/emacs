@@ -334,13 +334,13 @@ static void arena_commit_test(mps_arena_t arena)
   void *p;
   mps_res_t res;
 
-  committed = mps_arena_committed(arena);
-  reserved = mps_arena_reserved(arena);
-  cdie(reserved >= committed, "reserved < committed");
   die(mps_pool_create(&pool, arena, mps_class_mv(),
       (size_t)0x1000, (size_t)1024, (size_t)16384),
       "commit pool create");
   limit = mps_arena_commit_limit(arena);
+  committed = mps_arena_committed(arena);
+  reserved = mps_arena_reserved(arena);
+  cdie(reserved >= committed, "reserved < committed");
   die(mps_arena_commit_limit_set(arena, committed), "commit_limit_set before");
   do {
     res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
