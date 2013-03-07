@@ -10,9 +10,8 @@
 #include "testlib.h"
 
 
-static Bool testit(ArenaClass class, ...)
+static void testit(ArenaClass class, ...)
 {
-  Bool eflag = FALSE;
   Arena arena;
   Pool pool;
   Res res;
@@ -26,32 +25,25 @@ static Bool testit(ArenaClass class, ...)
   die(PoolCreate(&pool, arena, PoolClassN()), "PoolNCreate");
   res = PoolAlloc(&p, pool, 1, /* withReservoirPermit */ FALSE);
   if (res == ResOK) {
-    fprintf(stderr,
-            "Error:  Unexpectedly succeeded in"
-            "allocating block from PoolN\n");
-    eflag = TRUE;
+    error("Error: Unexpectedly succeeded in"
+          "allocating block from PoolN\n");
   }
   PoolDestroy(pool);
   ArenaDestroy(arena);
-
-  return eflag;
 }
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
-  if (testit((ArenaClass)mps_arena_class_vm(), (Size)600000)) {
-    fprintf(stderr, "Conclusion:  Defects found.\n");
-  } else {
-    fprintf(stderr, "Conclusion:  Failed to find any defects.\n");
-  }
+  testit((ArenaClass)mps_arena_class_vm(), (Size)600000);
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* mpsicv.c: MPSI COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  */
 
@@ -572,7 +572,7 @@ static void *test(void *arg, size_t s)
 #define TEST_ARENA_SIZE              ((size_t)16<<20)
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_thr_t thread;
@@ -598,15 +598,14 @@ int main(int argc, char **argv)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
-  fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

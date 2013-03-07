@@ -1,7 +1,7 @@
 /* mv2test.c: POOLMVT STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #include <stdio.h>
@@ -315,18 +315,19 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
 }
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
   stress_with_arena_class(mps_arena_class_vm());
   stress_with_arena_class(mps_arena_class_vmnz());
 
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

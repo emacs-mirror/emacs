@@ -1,7 +1,7 @@
 /* lockutw3.c: LOCK UTILIZATION TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -64,7 +64,7 @@ DWORD WINAPI thread0(void *p)
 }
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
   DWORD id;
   HANDLE t[10];
@@ -87,15 +87,14 @@ int main(void)
 
   LockFinish(lock);
 
-  fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
