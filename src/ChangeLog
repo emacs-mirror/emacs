@@ -1,3 +1,13 @@
+2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* bidi.c (bidi_fetch_char): Swap first and second arguments
+	to match other functions accepting character and byte positions.
+	Adjust comment.
+	(bidi_resolve_explicit_1, bidi_level_of_next_char): Adjust users.
+	(bidi_paragraph_init): Likewise.  Use DEC_BOTH which is faster
+	when you need just to move to the previous buffer position.
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Use DEC_BOTH.
+
 2013-03-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (prowlims): Display the enabled_p flag of the row.

@@ -19910,10 +19910,7 @@ See also `bidi-paragraph-direction'.  */)
 	 to make sure we are within that paragraph.  To that end, find
 	 the previous non-empty line.  */
       if (pos >= ZV && pos > BEGV)
-	{
-	  pos--;
-	  bytepos = CHAR_TO_BYTE (pos);
-	}
+	DEC_BOTH (pos, bytepos);
       if (fast_looking_at (build_string ("[\f\t ]*\n"),
 			   pos, bytepos, ZV, ZV_BYTE, Qnil) > 0)
 	{
