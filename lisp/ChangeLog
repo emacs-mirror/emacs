@@ -1,3 +1,22 @@
+2013-03-07  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Display the bookmark list header similarly to the
+	buffer list header (see `list-buffers'), where the default is now
+	an immovable/immutable header line.  Patch by Matthias Meulien
+	<orontee {_AT_} gmail.com> with a few tweaks by me.
+
+	(bookmark-bmenu-use-header-line): New variable.
+	(bookmark-bmenu-inline-header-height): New name for
+	`bookmark-bmenu-header-height', to avoid confusion with the code
+	for the new immovable header.  All references changed.
+	(bookmark-bmenu-set-header): New function.
+	(bookmark-bmenu-list, bookmark-bmenu-toggle-filenames):
+	Conditionalize header construction accordingly.
+	(bookmark-bmenu-ensure-position): Conditionalize the skipping of
+	the inline header height.
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames):
+	Conditionalize the skipping of the inline header height.
+
 2013-03-07  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/js.el (js--multi-line-declaration-indentation): Merge
