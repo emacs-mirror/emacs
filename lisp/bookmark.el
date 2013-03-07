@@ -156,6 +156,10 @@ A non-nil value may result in truncated bookmark names."
   :type 'boolean
   :group 'bookmark)
 
+(defface bookmark-menu-bookmark
+  '((t (:weight bold)))
+  "Face used to highlight bookmark names in bookmark menu buffers."
+  :group 'bookmark)
 
 (defcustom bookmark-menu-length 70
   "Maximum length of a bookmark name displayed on a popup menu."
@@ -1182,18 +1186,7 @@ Optional second arg NO-HISTORY means don't record this in the
 minibuffer history list `bookmark-history'."
   (interactive (list (bookmark-completing-read "Insert bookmark location")))
   (or no-history (bookmark-maybe-historicize-string bookmark-name))
-  (let ((start (point)))
-    (prog1
-	(insert (bookmark-location bookmark-name))
-      (if (display-mouse-p)
-	  (add-text-properties
-	   start
-	   (save-excursion (re-search-backward
-			    "[^ \t]")
-                           (1+ (point)))
-	   '(mouse-face highlight
-	     follow-link t
-	     help-echo "mouse-2: go to this bookmark in other window"))))))
+  (insert (bookmark-location bookmark-name)))
 
 ;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
@@ -1578,7 +1571,8 @@ deletion, or > if it is flagged for displaying."
         (when (display-mouse-p)
           (add-text-properties
            (+ bookmark-bmenu-marks-width start) end
-           '(mouse-face highlight
+           '(font-lock-face bookmark-menu-bookmark
+	     mouse-face highlight
              follow-link t
              help-echo "mouse-2: go to this bookmark in other window")))
         (insert "\n")))
@@ -1726,8 +1720,9 @@ mainly for debugging, and should not be necessary in normal use."
              (if (display-mouse-p)
                  (add-text-properties
                   start (point)
-                  '(mouse-face
-                    highlight follow-link t help-echo
+                  '(font-lock-face bookmark-menu-bookmark
+		    mouse-face highlight
+		    follow-link t help-echo
                     "mouse-2: go to this bookmark in other window"))))
            (forward-line 1)))))))
 

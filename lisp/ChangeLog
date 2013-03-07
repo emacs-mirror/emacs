@@ -1,5 +1,18 @@
 2013-03-07  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el: Define a face to highlight bookmark names in
+	bookmark menu buffers, where the default is a bold face similarly
+	to buffer names in buffer menu buffers.  Patch by Matthias Meulien
+	<orontee {_AT_} gmail.com>.
+
+	(bookmark-menu-bookmark): New face to highlight bookmark names.
+	(bookmark-insert-location): Remove duplicated text property to
+	conform to buffer list (see `list-buffers').
+	(bookmark-bmenu-list, bookmark-bmenu-hide-filenames): Apply face
+	`bookmark-menu-bookmark' to bookmark names.
+
+2013-03-07  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el: Display the bookmark list header similarly to the
 	buffer list header (see `list-buffers'), where the default is now
 	an immovable/immutable header line.  Patch by Matthias Meulien
