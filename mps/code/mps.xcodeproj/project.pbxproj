@@ -14,38 +14,39 @@
 			);
 			dependencies = (
 				3104AFF6156D37BC000A585A /* PBXTargetDependency */,
+				3114A644156E94FB001E0AA3 /* PBXTargetDependency */,
+				3104AFF8156D37BE000A585A /* PBXTargetDependency */,
+				3104B004156D37CD000A585A /* PBXTargetDependency */,
+				22FA177916E8DB0C0098B23F /* PBXTargetDependency */,
+				3104B01D156D398B000A585A /* PBXTargetDependency */,
+				3104B02D156D39DF000A585A /* PBXTargetDependency */,
+				3104AFFA156D37C1000A585A /* PBXTargetDependency */,
+				3114A600156E940A001E0AA3 /* PBXTargetDependency */,
+				3104AFFC156D37C3000A585A /* PBXTargetDependency */,
+				31D60022156D3CF200337B26 /* PBXTargetDependency */,
+				3114A677156E961C001E0AA3 /* PBXTargetDependency */,
+				3114A612156E943B001E0AA3 /* PBXTargetDependency */,
+				3114A65B156E95B4001E0AA3 /* PBXTargetDependency */,
+				3114A5CC156E932C001E0AA3 /* PBXTargetDependency */,
+				3114A5EA156E93C4001E0AA3 /* PBXTargetDependency */,
+				31D60034156D3D5A00337B26 /* PBXTargetDependency */,
+				3114A5A0156E915A001E0AA3 /* PBXTargetDependency */,
+				3114A6A7156E9739001E0AA3 /* PBXTargetDependency */,
+				3104AFFE156D37C6000A585A /* PBXTargetDependency */,
+				3104B000156D37C8000A585A /* PBXTargetDependency */,
+				3114A68D156E9686001E0AA3 /* PBXTargetDependency */,
+				31D6004F156D3EF700337B26 /* PBXTargetDependency */,
+				3114A5B6156E92DC001E0AA3 /* PBXTargetDependency */,
+				3104B002156D37CB000A585A /* PBXTargetDependency */,
+				3104B04A156D3AE4000A585A /* PBXTargetDependency */,
+				31D6009D156D404B00337B26 /* PBXTargetDependency */,
+				3114A62E156E94AA001E0AA3 /* PBXTargetDependency */,
+				3114A6B9156E9763001E0AA3 /* PBXTargetDependency */,
+				31D60063156D3F5C00337B26 /* PBXTargetDependency */,
+				31D60087156D3FE600337B26 /* PBXTargetDependency */,
 				3114A6D5156E9839001E0AA3 /* PBXTargetDependency */,
 				2D07B9791636FCBD00DB751B /* PBXTargetDependency */,
 				2275798916C5422900B662B0 /* PBXTargetDependency */,
-				3114A6B9156E9763001E0AA3 /* PBXTargetDependency */,
-				3114A6A7156E9739001E0AA3 /* PBXTargetDependency */,
-				3114A68D156E9686001E0AA3 /* PBXTargetDependency */,
-				3114A677156E961C001E0AA3 /* PBXTargetDependency */,
-				3114A65B156E95B4001E0AA3 /* PBXTargetDependency */,
-				3114A644156E94FB001E0AA3 /* PBXTargetDependency */,
-				3114A62E156E94AA001E0AA3 /* PBXTargetDependency */,
-				3114A612156E943B001E0AA3 /* PBXTargetDependency */,
-				3114A600156E940A001E0AA3 /* PBXTargetDependency */,
-				3114A5EA156E93C4001E0AA3 /* PBXTargetDependency */,
-				3114A5CC156E932C001E0AA3 /* PBXTargetDependency */,
-				3114A5B6156E92DC001E0AA3 /* PBXTargetDependency */,
-				3114A5A0156E915A001E0AA3 /* PBXTargetDependency */,
-				31D6009D156D404B00337B26 /* PBXTargetDependency */,
-				31D60087156D3FE600337B26 /* PBXTargetDependency */,
-				31D60063156D3F5C00337B26 /* PBXTargetDependency */,
-				31D6004F156D3EF700337B26 /* PBXTargetDependency */,
-				3104B04A156D3AE4000A585A /* PBXTargetDependency */,
-				3104B02D156D39DF000A585A /* PBXTargetDependency */,
-				3104B01D156D398B000A585A /* PBXTargetDependency */,
-				3104B004156D37CD000A585A /* PBXTargetDependency */,
-				3104B002156D37CB000A585A /* PBXTargetDependency */,
-				3104B000156D37C8000A585A /* PBXTargetDependency */,
-				3104AFFE156D37C6000A585A /* PBXTargetDependency */,
-				3104AFFC156D37C3000A585A /* PBXTargetDependency */,
-				3104AFFA156D37C1000A585A /* PBXTargetDependency */,
-				3104AFF8156D37BE000A585A /* PBXTargetDependency */,
-				31D60022156D3CF200337B26 /* PBXTargetDependency */,
-				31D60034156D3D5A00337B26 /* PBXTargetDependency */,
 			);
 			name = all;
 			productName = all;
@@ -53,6 +54,13 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		22FA176916E8D6FC0098B23F /* fmtdy.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC6156BE48D00753214 /* fmtdy.c */; };
+		22FA176A16E8D6FC0098B23F /* fmtdytst.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC7156BE48D00753214 /* fmtdytst.c */; };
+		22FA176B16E8D6FC0098B23F /* fmthe.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAE4156BE6D500753214 /* fmthe.c */; };
+		22FA176C16E8D6FC0098B23F /* fmtno.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CACC156BE4C200753214 /* fmtno.c */; };
+		22FA176D16E8D6FC0098B23F /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
+		22FA176F16E8D6FC0098B23F /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		22FA177716E8D7A80098B23F /* amcssth.c in Sources */ = {isa = PBXBuildFile; fileRef = 22FA177616E8D7A80098B23F /* amcssth.c */; };
 		2D07B97A1636FCCE00DB751B /* eventsql.c in Sources */ = {isa = PBXBuildFile; fileRef = 2D07B96C1636FC7200DB751B /* eventsql.c */; };
 		2D07B97C163705E400DB751B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D07B97B163705E400DB751B /* libsqlite3.dylib */; };
 		2D53F2E716515A63009A1829 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -208,6 +216,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 2D604B9B16514B1A003AAF46;
 			remoteInfo = mpseventtxt;
+		};
+		22FA176616E8D6FC0098B23F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 31EEABFA156AAF9D00714D05;
+			remoteInfo = mps;
+		};
+		22FA177816E8DB0C0098B23F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 22FA176416E8D6FC0098B23F;
+			remoteInfo = amcssth;
 		};
 		2D07B9781636FCBD00DB751B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -646,6 +668,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		22FA177016E8D6FC0098B23F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		2D07B96F1636FC9900DB751B /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -937,6 +968,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		22FA177516E8D6FC0098B23F /* amcssth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcssth; sourceTree = BUILT_PRODUCTS_DIR; };
+		22FA177616E8D7A80098B23F /* amcssth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcssth.c; sourceTree = "<group>"; };
 		2D07B96C1636FC7200DB751B /* eventsql.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = eventsql.c; sourceTree = "<group>"; };
 		2D07B9711636FC9900DB751B /* mpseventsql */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventsql; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D07B97B163705E400DB751B /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
@@ -1069,6 +1102,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		22FA176E16E8D6FC0098B23F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22FA176F16E8D6FC0098B23F /* libmps.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2D07B96E1636FC9900DB751B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1385,6 +1426,7 @@
 				3114A63D156E94EA001E0AA3 /* abqtest.c */,
 				3124CAF5156BE81100753214 /* amcss.c */,
 				3104AFEB156D36A5000A585A /* amcsshe.c */,
+				22FA177616E8D7A80098B23F /* amcssth.c */,
 				3104B015156D390B000A585A /* amsss.c */,
 				3104B02F156D39F2000A585A /* amssshe.c */,
 				3104AFBE156D3591000A585A /* apss.c */,
@@ -1496,6 +1538,7 @@
 				3114A6C6156E9815001E0AA3 /* mpseventcnv */,
 				2D07B9711636FC9900DB751B /* mpseventsql */,
 				2D604B9C16514B1A003AAF46 /* mpseventtxt */,
+				22FA177516E8D6FC0098B23F /* amcssth */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1595,6 +1638,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		22FA176416E8D6FC0098B23F /* amcssth */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 22FA177116E8D6FC0098B23F /* Build configuration list for PBXNativeTarget "amcssth" */;
+			buildPhases = (
+				22FA176716E8D6FC0098B23F /* Sources */,
+				22FA176E16E8D6FC0098B23F /* Frameworks */,
+				22FA177016E8D6FC0098B23F /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				22FA176516E8D6FC0098B23F /* PBXTargetDependency */,
+			);
+			name = amcssth;
+			productName = amcssth;
+			productReference = 22FA177516E8D6FC0098B23F /* amcssth */;
+			productType = "com.apple.product-type.tool";
+		};
 		2D07B9701636FC9900DB751B /* mpseventsql */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2D07B9741636FC9900DB751B /* Build configuration list for PBXNativeTarget "mpseventsql" */;
@@ -2208,35 +2269,36 @@
 			targets = (
 				3104AFF1156D37A0000A585A /* all */,
 				31EEABFA156AAF9D00714D05 /* mps */,
+				3114A632156E94DB001E0AA3 /* abqtest */,
 				3124CAEA156BE7F300753214 /* amcss */,
-				3104AFB2156D357B000A585A /* apss */,
-				3124CAB7156BE3EC00753214 /* awlut */,
-				31EEAC64156AB52600714D05 /* mpmss */,
-				3124CAD3156BE64A00753214 /* mpsicv */,
-				3104AFC7156D35E2000A585A /* sacss */,
 				3104AFDC156D3681000A585A /* amcsshe */,
+				22FA176416E8D6FC0098B23F /* amcssth */,
 				3104B008156D38F3000A585A /* amsss */,
 				3104B021156D39D4000A585A /* amssshe */,
-				3104B03C156D3AD7000A585A /* segsmss */,
+				3104AFB2156D357B000A585A /* apss */,
+				3114A5EE156E93E7001E0AA3 /* arenacv */,
+				3124CAB7156BE3EC00753214 /* awlut */,
 				31D6000C156D3CB200337B26 /* awluthe */,
-				31D60026156D3D3E00337B26 /* lockcov */,
-				31D6003D156D3EC700337B26 /* poolncv */,
-				31D60053156D3F3500337B26 /* zcoll */,
-				31D60070156D3FBC00337B26 /* zmess */,
-				31D6008B156D402900337B26 /* steptest */,
-				3114A58F156E913C001E0AA3 /* locv */,
-				3114A5A6156E92C0001E0AA3 /* qs */,
+				3114A661156E95D9001E0AA3 /* btcv */,
+				3114A604156E9430001E0AA3 /* bttest */,
+				3114A64B156E9596001E0AA3 /* cbstest */,
 				3114A5BC156E9315001E0AA3 /* finalcv */,
 				3114A5D5156E93A0001E0AA3 /* finaltest */,
-				3114A5EE156E93E7001E0AA3 /* arenacv */,
-				3114A604156E9430001E0AA3 /* bttest */,
-				3114A61B156E9485001E0AA3 /* teletest */,
-				3114A632156E94DB001E0AA3 /* abqtest */,
-				3114A64B156E9596001E0AA3 /* cbstest */,
-				3114A661156E95D9001E0AA3 /* btcv */,
-				3114A67B156E9668001E0AA3 /* mv2test */,
+				31D60026156D3D3E00337B26 /* lockcov */,
+				3114A58F156E913C001E0AA3 /* locv */,
 				3114A694156E971B001E0AA3 /* messtest */,
+				31EEAC64156AB52600714D05 /* mpmss */,
+				3124CAD3156BE64A00753214 /* mpsicv */,
+				3114A67B156E9668001E0AA3 /* mv2test */,
+				31D6003D156D3EC700337B26 /* poolncv */,
+				3114A5A6156E92C0001E0AA3 /* qs */,
+				3104AFC7156D35E2000A585A /* sacss */,
+				3104B03C156D3AD7000A585A /* segsmss */,
+				31D6008B156D402900337B26 /* steptest */,
+				3114A61B156E9485001E0AA3 /* teletest */,
 				3114A6AB156E9759001E0AA3 /* walkt0 */,
+				31D60053156D3F3500337B26 /* zcoll */,
+				31D60070156D3FBC00337B26 /* zmess */,
 				3114A6C5156E9815001E0AA3 /* mpseventcnv */,
 				2D07B9701636FC9900DB751B /* mpseventsql */,
 				2D604B9B16514B1A003AAF46 /* mpseventtxt */,
@@ -2245,6 +2307,19 @@
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		22FA176716E8D6FC0098B23F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22FA177716E8D7A80098B23F /* amcssth.c in Sources */,
+				22FA176916E8D6FC0098B23F /* fmtdy.c in Sources */,
+				22FA176A16E8D6FC0098B23F /* fmtdytst.c in Sources */,
+				22FA176B16E8D6FC0098B23F /* fmthe.c in Sources */,
+				22FA176C16E8D6FC0098B23F /* fmtno.c in Sources */,
+				22FA176D16E8D6FC0098B23F /* testlib.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2D07B96D1636FC9900DB751B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2598,6 +2673,16 @@
 			target = 2D604B9B16514B1A003AAF46 /* mpseventtxt */;
 			targetProxy = 2275798816C5422900B662B0 /* PBXContainerItemProxy */;
 		};
+		22FA176516E8D6FC0098B23F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 31EEABFA156AAF9D00714D05 /* mps */;
+			targetProxy = 22FA176616E8D6FC0098B23F /* PBXContainerItemProxy */;
+		};
+		22FA177916E8DB0C0098B23F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 22FA176416E8D6FC0098B23F /* amcssth */;
+			targetProxy = 22FA177816E8DB0C0098B23F /* PBXContainerItemProxy */;
+		};
 		2D07B9791636FCBD00DB751B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2D07B9701636FC9900DB751B /* mpseventsql */;
@@ -2911,6 +2996,27 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		22FA177216E8D6FC0098B23F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = amcssth;
+			};
+			name = Debug;
+		};
+		22FA177316E8D6FC0098B23F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = amcssth;
+			};
+			name = Release;
+		};
+		22FA177416E8D6FC0098B23F /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = amcssth;
+			};
+			name = WE;
+		};
 		2D07B9751636FC9900DB751B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3803,6 +3909,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		22FA177116E8D6FC0098B23F /* Build configuration list for PBXNativeTarget "amcssth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22FA177216E8D6FC0098B23F /* Debug */,
+				22FA177316E8D6FC0098B23F /* Release */,
+				22FA177416E8D6FC0098B23F /* WE */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2D07B9741636FC9900DB751B /* Build configuration list for PBXNativeTarget "mpseventsql" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
