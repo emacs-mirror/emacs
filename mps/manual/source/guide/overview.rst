@@ -53,7 +53,7 @@ The MPS is currently supported for deployment on:
 
 - FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
 
-- Mac OS X 10.4 or later, on IA-32 and x86-64 (single threaded only), using Clang/LLVM.
+- OS X 10.4 or later, on IA-32 and x86-64 (single threaded only), using Clang/LLVM.
 
 The MPS will *not* work in a multi-threaded 32-bit application on 64-bit
 Windows 7.  This is due to a serious fault in Microsoft's WOW64 emulator
