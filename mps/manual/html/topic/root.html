@@ -186,7 +186,10 @@ registers a thread root and then calls the program:</p>
                           <span class="mi">0</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create root&quot;</span><span class="p">);</span>
 
-<span class="n">exit_code</span> <span class="o">=</span> <span class="n">start</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+<span class="n">exit_code</span> <span class="o">=</span> <span class="n">start</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+
+<span class="n">mps_root_destroy</span><span class="p">(</span><span class="n">reg_root</span><span class="p">);</span>
+<span class="n">mps_thread_dereg</span><span class="p">(</span><span class="kr">thread</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>

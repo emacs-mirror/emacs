@@ -108,13 +108,17 @@ available for inspection.</p>
 <p>You may need to make sure that the debugger isn&#8217;t entered on
 <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barrier<sup>(1)</sup></em></a> hits (because the MPS uses barriers to protect
 parts of memory, and barrier hits are common and expected).</p>
-<p>In particular, if you are using GDB on Mac OS X, you will need to
-run these commands:</p>
+<p>If you are using GDB on OS X, run these commands:</p>
 <div class="highlight-none"><div class="highlight"><pre>set dont-handle-bad-access 1
 handle SIGBUS pass nostop noprint
 </pre></div>
 </div>
-<p>Add them to your <tt class="docutils literal"><span class="pre">.gdbinit</span></tt> if appropriate.</p>
+<p>If you are using GDB on Linux, run this command:</p>
+<div class="highlight-none"><div class="highlight"><pre>handle SIGXFSZ pass nostop noprint
+</pre></div>
+</div>
+<p>(On either operating system, you can add these commands to your
+<tt class="docutils literal"><span class="pre">.gdbinit</span></tt> if you always want them to be run.)</p>
 </li>
 </ol>
 </div>

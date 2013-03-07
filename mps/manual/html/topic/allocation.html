@@ -419,7 +419,7 @@ choosing. See <a class="reference internal" href="debugging.html#topic-debugging
     <span class="k">struct</span> <span class="n">link_s</span> <span class="o">*</span><span class="n">prev</span><span class="p">;</span>
     <span class="k">struct</span> <span class="n">link_s</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
     <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">link_s</span><span class="p">,</span> <span class="n">link_t</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">link_s</span><span class="p">,</span> <span class="o">*</span><span class="n">link_t</span><span class="p">;</span>
 
 <span class="cm">/* insert &#39;obj&#39; into the doubly-linked list after &#39;head&#39; */</span>
 <span class="n">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="n">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">obj</span><span class="p">)</span>
@@ -449,7 +449,7 @@ the reserved block.</li>
 <li>Making an exact reference to the reserved block (here,
 <tt class="docutils literal"><span class="pre">head-&gt;next</span></tt> becomes an exact reference to <tt class="docutils literal"><span class="pre">link</span></tt>). This must
 be deferred until after a successful commit.</li>
-<li>This line makes mistakes (1) and (2).</li>
+<li>This line makes both mistakes made by lines (1) and (2).</li>
 <li>The <tt class="docutils literal"><span class="pre">obj</span></tt> slot contains an exact reference that gets fixed by the
 scan method, so it must be initialized before the call to commit.</li>
 </ol>

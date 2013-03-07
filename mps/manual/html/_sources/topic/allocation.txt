@@ -445,7 +445,7 @@ This example contains several mistakes. See the highlighted lines:
         struct link_s *prev;
         struct link_s *next;
         obj_t obj;
-    } link_s, link_t;
+    } link_s, *link_t;
 
     /* insert 'obj' into the doubly-linked list after 'head' */
     link_t insert_link(link_t head, obj_t obj)
@@ -476,7 +476,7 @@ The mistakes are:
    ``head->next`` becomes an exact reference to ``link``). This must
    be deferred until after a successful commit.
 
-3. This line makes mistakes (1) and (2).
+3. This line makes both mistakes made by lines (1) and (2).
 
 4. The ``obj`` slot contains an exact reference that gets fixed by the
    scan method, so it must be initialized before the call to commit.
