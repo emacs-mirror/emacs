@@ -405,6 +405,7 @@ static void testSize(Size size)
 int main(int argc, char *argv[])
 {
   void *block;
+  testlib_unused(argc);
 
   testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
   testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE);

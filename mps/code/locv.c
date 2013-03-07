@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
   mps_ap_t ap;
   mps_addr_t p;
   mps_root_t root;
+  testlib_unused(argc);
 
   locv_fmt.align = sizeof(void *);  /* .fmt.align.delayed */
 
