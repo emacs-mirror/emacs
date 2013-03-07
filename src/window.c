@@ -2743,7 +2743,7 @@ window-start value is reasonable when this function is called.  */)
   struct window *w, *r, *s;
   struct frame *f;
   Lisp_Object sibling, pwindow, swindow IF_LINT (= Qnil), delta;
-  ptrdiff_t startpos IF_LINT (= 0);
+  ptrdiff_t startpos IF_LINT (= 0), startbyte IF_LINT (= 0);
   int top IF_LINT (= 0), new_top, resize_failed;
 
   w = decode_valid_window (window);
@@ -2782,6 +2782,7 @@ window-start value is reasonable when this function is called.  */)
   if (!NILP (w->buffer))
     {
       startpos = marker_position (w->start);
+      startbyte = marker_byte_position (w->start);
       top = WINDOW_TOP_EDGE_LINE (w)
 	- FRAME_TOP_MARGIN (XFRAME (WINDOW_FRAME (w)));
       /* Make sure WINDOW is the frame's selected window.  */
@@ -2951,7 +2952,7 @@ window-start value is reasonable when this function is called.  */)
 	  Fset_buffer (w->buffer);
 	  /* This computation used to temporarily move point, but that
 	     can have unwanted side effects due to text properties.  */
-	  pos = *vmotion (startpos, -top, w);
+	  pos = *vmotion (startpos, startbyte, -top, w);
 
 	  set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
 	  w->window_end_valid = 0;
@@ -4748,15 +4749,14 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
   register Lisp_Object tem;
   int lose;
   Lisp_Object bolp;
-  ptrdiff_t startpos;
+  ptrdiff_t startpos = marker_position (w->start);
+  ptrdiff_t startbyte = marker_byte_position (w->start);
   Lisp_Object original_pos = Qnil;
 
   /* If scrolling screen-fulls, compute the number of lines to
      scroll from the window's height.  */
   if (whole)
     n *= max (1, ht - next_screen_context_lines);
-
-  startpos = marker_position (w->start);
 
   if (!NILP (Vscroll_preserve_screen_position))
     {
@@ -4765,10 +4765,8 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 	  || NILP (Fget (KVAR (current_kboard, Vlast_command), Qscroll_command)))
 	{
 	  struct position posit
-	    = *compute_motion (startpos, 0, 0, 0,
-			       PT, ht, 0,
-			       -1, w->hscroll,
-			       0, w);
+	    = *compute_motion (startpos, startbyte, 0, 0, 0,
+			       PT, ht, 0, -1, w->hscroll, 0, w);
 	  window_scroll_preserve_vpos = posit.vpos;
 	  window_scroll_preserve_hpos = posit.hpos + w->hscroll;
 	}
@@ -4784,9 +4782,10 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
     {
       Fvertical_motion (make_number (- (ht / 2)), window);
       startpos = PT;
+      startbyte = PT_BYTE;
     }
 
-  SET_PT (startpos);
+  SET_PT_BOTH (startpos, startbyte);
   lose = n < 0 && PT == BEGV;
   Fvertical_motion (make_number (n), window);
   pos = PT;
@@ -5321,7 +5320,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
 	  iarg = max (iarg, this_scroll_margin);
 
-	  pos = *vmotion (PT, -iarg, w);
+	  pos = *vmotion (PT, PT_BYTE, -iarg, w);
 	  charpos = pos.bufpos;
 	  bytepos = pos.bytepos;
 	}
@@ -5340,7 +5339,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
       iarg = clip_to_bounds (this_scroll_margin, iarg,
 			     ht - this_scroll_margin - 1);
 
-      pos = *vmotion (PT, - iarg, w);
+      pos = *vmotion (PT, PT_BYTE, - iarg, w);
       charpos = pos.bufpos;
       bytepos = pos.bytepos;
     }

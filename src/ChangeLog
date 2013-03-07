@@ -1,5 +1,22 @@
 2013-03-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Avoid character to byte conversions in motion subroutines.
+	* indent.h (compute_motion, vmotion): Add byte position argument.
+	* indent.c (compute_motion): Use it and avoid CHAR_TO_BYTE.
+	Add eassert.
+	(Fcompute_motion): Break long line.  Adjust call to compute_motion.
+	Use list5 for return value.
+	(vmotion): Use byte position argument and avoid call to CHAR_TO_BYTE.
+	Adjust comments, style and calls to compute_motion.
+	(Fvertical_motion): Adjust call to vmotion.
+	* window.c (Fdelete_other_windows_internal): Record window start
+	byte position and adjust call to vmotion.
+	(window_scroll_line_based): Likewise with call to compute_motion.
+	Use SET_PT_BOTH.
+	(Frecenter): Adjust calls to vmotion.
+
+2013-03-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* lisp.h (list2i, list3i): New functions.
 	(list4i): Move from window.c and make LISP_INLINE.
 	* editfns.c (make_lisp_time):
