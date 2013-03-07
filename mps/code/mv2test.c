@@ -317,6 +317,8 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
 
 int main(int argc, char *argv[])
 {
+  testlib_unused(argc);
+
   stress_with_arena_class(mps_arena_class_vm());
   stress_with_arena_class(mps_arena_class_vmnz());
 
