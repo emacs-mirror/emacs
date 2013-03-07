@@ -1,3 +1,7 @@
+2013-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (prowlims): Display the enabled_p flag of the row.
+
 2013-03-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Avoid character to byte conversions in motion subroutines.
