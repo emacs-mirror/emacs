@@ -13,7 +13,7 @@
 #include "mpscmvt.h"
 #include "mps.h"
 
-typedef MPS_T_WORD mps_count_t;  /* machine word (target dep.) */
+typedef mps_word_t mps_count_t;  /* machine word (target dep.) */
 
 #include "mpslib.h"
 #include "mpsavm.h"
