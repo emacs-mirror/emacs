@@ -84,7 +84,7 @@ static ptrdiff_t print_number_index;
 static void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
-int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
+bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 
 /* Low level output routines for characters and strings.  */
@@ -101,7 +101,7 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    ptrdiff_t old_point = -1, start_point = -1;				\
    ptrdiff_t old_point_byte = -1, start_point_byte = -1;		\
    ptrdiff_t specpdl_count = SPECPDL_INDEX ();				\
-   int free_print_buffer = 0;						\
+   bool free_print_buffer = 0;						\
    bool multibyte							\
      = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
    Lisp_Object original
@@ -241,7 +241,7 @@ printchar (unsigned int ch, Lisp_Object fun)
 	}
       else
 	{
-	  int multibyte_p
+	  bool multibyte_p
 	    = !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
 	  setup_echo_area_for_printing (multibyte_p);
@@ -290,7 +290,7 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	 here, that's the reason we don't call printchar to do the
 	 job.  */
       int i;
-      int multibyte_p
+      bool multibyte_p
 	= !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
       setup_echo_area_for_printing (multibyte_p);
@@ -508,10 +508,10 @@ temp_output_buffer_setup (const char *bufname)
   specbind (Qstandard_output, buf);
 }
 
-static void print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag);
-static void print_preprocess (Lisp_Object obj);
-static void print_preprocess_string (INTERVAL interval, Lisp_Object arg);
-static void print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag);
+static void print (Lisp_Object, Lisp_Object, bool);
+static void print_preprocess (Lisp_Object);
+static void print_preprocess_string (INTERVAL, Lisp_Object);
+static void print_object (Lisp_Object, Lisp_Object, bool);
 
 DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
        doc: /* Output a newline to stream PRINTCHARFUN.
@@ -727,9 +727,9 @@ to make it write to the debugging output.  */)
 /* This function is never called.  Its purpose is to prevent
    print_output_debug_flag from being optimized away.  */
 
-extern void debug_output_compilation_hack (int) EXTERNALLY_VISIBLE;
+extern void debug_output_compilation_hack (bool) EXTERNALLY_VISIBLE;
 void
-debug_output_compilation_hack (int x)
+debug_output_compilation_hack (bool x)
 {
   print_output_debug_flag = x;
 }
@@ -967,7 +967,7 @@ float_to_string (char *buf, double data)
       static char const NaN_string[] = "0.0e+NaN";
       int i;
       union { double d; char c[sizeof (double)]; } u_data, u_minus_zero;
-      int negative = 0;
+      bool negative = 0;
       u_data.d = data;
       u_minus_zero.d = - 0.0;
       for (i = 0; i < sizeof (double); i++)
@@ -1064,7 +1064,7 @@ float_to_string (char *buf, double data)
 
 
 static void
-print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
+print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 {
   new_backquote_output = 0;
 
@@ -1314,7 +1314,7 @@ print_prune_string_charset (Lisp_Object string)
 }
 
 static void
-print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
+print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 {
   char buf[max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
 		max (sizeof " . #" + INT_STRLEN_BOUND (printmax_t),
@@ -1396,7 +1396,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  ptrdiff_t size_byte;
 	  /* 1 means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
-	  int need_nonhex = 0;
+	  bool need_nonhex = 0;
 	  bool multibyte = STRING_MULTIBYTE (obj);
 
 	  GCPRO1 (obj);
@@ -1508,10 +1508,10 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
     case Lisp_Symbol:
       {
-	register int confusing;
-	register unsigned char *p = SDATA (SYMBOL_NAME (obj));
-	register unsigned char *end = p + SBYTES (SYMBOL_NAME (obj));
-	register int c;
+	bool confusing;
+	unsigned char *p = SDATA (SYMBOL_NAME (obj));
+	unsigned char *end = p + SBYTES (SYMBOL_NAME (obj));
+	int c;
 	ptrdiff_t i, i_byte;
 	ptrdiff_t size_byte;
 	Lisp_Object name;

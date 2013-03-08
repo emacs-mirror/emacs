@@ -1,3 +1,21 @@
+2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	print.c, process.c: Use bool for booleans.
+	* lisp.h (wait_reading_process_output):
+	* print.c (print_output_debug_flag, PRINTDECLARE, printchar)
+	(strout, debug_output_compilation_hack, float_to_string, print)
+	(print_object):
+	* process.c (kbd_is_on_hold, inhibit_sentinels, process_output_skip)
+	(decode_status, status_message, create_process, create_pty)
+	(Fmake_network_process, Fnetwork_interface_info)
+	(wait_reading_process_output, read_process_output)
+	(write_queue_push, write_queue_pop, process_send_signal)
+	(handle_child_signal, keyboard_bit_set, kbd_on_hold_p):
+	* process.h (struct Lisp_Process, inhibit_sentinels, kbd_on_hold_p):
+	Use bool for booleans.
+	* process.c (Fnetwork_interface_list): Remove unused local.
+	(connect_counter): Now EMACS_INT, not int.
+
 2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* bidi.c (bidi_fetch_char): Swap first and second arguments
