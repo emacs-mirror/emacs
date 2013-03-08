@@ -485,10 +485,10 @@ Weak hash tables
 ----------------
 
 A :term:`weak-key hash table` has :term:`weak references (1)` to its
-keys. If the key dies, the value corresponding that key is automatically
-deleted from the table too. Similarly, a :term:`weak-value hash table`
-has weak references to its values, and a :term:`doubly weak hash table`
-has weak references to both.
+keys. If the key dies, the value corresponding to that key is
+automatically deleted from the table too. Similarly, a
+:term:`weak-value hash table` has weak references to its values, and a
+:term:`doubly weak hash table` has weak references to both.
 
 In this section, I'll describe how to add all three types of weak hash
 table to the toy Scheme interpreter. This requires a few far-reaching
