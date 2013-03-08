@@ -40,11 +40,13 @@
 
 <h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-<p> This is the procedure for building a generic release of the Memory Pool System (an "mps-kit") from the version sources. </p>
+<p> This is the procedure for building a generic release of the Memory
+Pool System (an “MPS Kit”) from the version sources. </p>
 
-<p> The intended readership of this document is Ravenbrook development staff.
-	(If you are a user of the MPS, and want to build object code from
-	an mps-kit, please see the readme.txt file in the kit). </p>
+<p> The intended readership of this document is Ravenbrook development
+staff. (If you are a user of the MPS, and want to build object code
+from an MPS Kit, please see the <code>readme.txt</code> file in the
+kit.) </p>
 
 <p> This document is not confidential. </p>
 
@@ -54,42 +56,67 @@
 
 <h2><a id="section-2" name="section-2">2. Procedure</a></h2>
 
-
 <h3><a id="section-2.1" name="section-2.1">2.1. Setting up for release</a></h3>
 
 <ol>
 
-<li><p> Choose a RELEASE name of the form "VERSION.N" (for example,
-0.3.0). VERSION is the number of the version you're releasing.  N is the
-first unused release number (starting at zero).  Look in the index of
-releases (release/index.html) for existing release numbers for your
-version. </p></li>
+<li><p> Choose a <i>RELEASE</i> name of the form <i>VERSION.N</i> (for
+example, 0.3.0), where <i>VERSION</i> is the number of the version
+you’re releasing, and <i>N</i> is the first unused release number
+(starting at zero). Look in the index of releases
+(<code>release/index.html</code>) for existing release numbers for
+your version. </p> <blockquote> <code> VERSION=<i>VERSION</i> <br>
+RELEASE=$VERSION.<i>N</i> </code> </blockquote> </li>
 
-<li><p> Ensure that <code>version/<i>VERSION</i>/readme.txt</code>
+<li><p> Ensure that <code>version/$VERSION/readme.txt</code>
 contains an up-to-date description of the release you intend to build
 and the correct release name. </p> </li>
 
-<li><p> In
-    <code>version/<i>VERSION</i>/code/version.c</code>,
-    set
-    <code>MPS_RELEASE</code>
-    to the correct value (see the rules in the comments),
-    and check strings that contain copyright dates, etc.
-</p> </li>
+<li><p> In <code>version/$VERSION/code/version.c</code>,
+set <code>MPS_RELEASE</code> to the correct value (see the rules in
+the comments), and check strings that contain copyright dates,
+etc. </p> </li>
 
 <li><p> <strong>Submit <code>readme.txt</code>,
-<code>version.c</code>, and other changed files
-to Perforce before you continue.</strong> </p></li>
+<code>version.c</code>, and other changed files to Perforce before you
+continue.</strong> </p></li>
 
-<li><p> Determine the CHANGELEVEL at which you're going to make the
-release.  This will usually be the latest submitted changelevel on the
-version branch; to get it, use p4 changes with a max of 1 (one):</p> <blockquote> <code>p4 changes -m 1
-version/VERSION/...</code> </blockquote> </li>
+<li><p> Determine the <i>CHANGELEVEL</i> at which you’re going to make
+the release. This will usually be the latest submitted changelevel on
+the version branch; to get it, use <code>p4 changes</code> with a max
+of 1 (one):</p> <blockquote> <code>CHANGELEVEL=$(p4 changes -m 1
+version/$VERSION/... | cut -d' ' -f2)</code> </blockquote> </li>
 
 </ol>
 
 
-<h3><a id="section-2.2" name="section-2.2">2.2. MPS Kit Tarball and Zip file</a></h3>
+<h3><a id="section-2.2" name="section-2.2">2.2. Pre-release testing</a></h3>
+
+<ol>
+
+<li>
+
+  <p> Sync the version sources to precisely the <i>CHANGELEVEL</i> you
+  determined in step 2.1.1, with no extraneous files, by using the
+  following procedure: </p>
+
+  <blockquote> <code>
+    # (you may wish to check for opened files first)<br />
+    p4 revert version/$VERSION/...<br />
+    rm -rf version/$VERSION <br />
+    p4 sync -f version/$VERSION/...@$CHANGELEVEL
+  </code> </blockquote>
+
+  <p> Note: <code>revert</code> and <code>sync -f</code> are required, otherwise p4-opened or forced-writeable files may remain or be omitted; see [<a href="#ref-1">1</a>]. </p>
+
+</li>
+
+<li><p> Run the test suite: </p> <blockquote> <code> (cd version/$VERSION && ./configure && make test) </code> </blockquote> <p> Check that the test suite passes. </li>
+
+</ol>
+
+
+<h3><a id="section-2.3" name="section-2.3">2.3. MPS Kit Tarball and Zip file</a></h3>
 
 <p> On a Unix box: </p>
 
@@ -97,79 +124,78 @@ version/VERSION/...</code> </blockquote> </li>
 
 <li>
 
-  <p> Sync the version sources to precisely the CHANGELEVEL you determined in step 2.1, with no extraneous files, by using the following procedure: </p>
+  <p> Sync the version sources to <i>CHANGELEVEL</i> by repeating the
+  procedure from step 2.2.1: </p>
 
   <blockquote> <code>
-    # (you may wish to check for opened files first)<br />
-    p4 revert version/VERSION/...<br />
-    rm -rf version/VERSION <br />
-    p4 sync -f version/VERSION/...@CHANGELEVEL
+    p4 revert version/$VERSION/...<br />
+    rm -rf version/$VERSION <br />
+    p4 sync -f version/$VERSION/...@$CHANGELEVEL
   </code> </blockquote>
-
-  <p> <em>(Note: "revert" and "sync -f" are required: otherwise p4-opened or forced-writeable files may remain or be omitted; see [<a href="#ref-1">1</a>].)</em> </p>
 
 </li>
 
 <li>
 
-  <p> Create a tarball and a zip file containing the MPS sources, and open it for add: </p>
+  <p> Create a tarball and a zip file containing the MPS sources, and
+  open it for add: </p>
 
   <blockquote><code>
-    cp -R version/VERSION mps-kit-RELEASE <br />
-    mkdir -p release/RELEASE<br />
-    tar cf - mps-kit-RELEASE | gzip -c &gt; release/RELEASE/mps-kit-RELEASE.tar.gz <br />
-    zip -r release/RELEASE/mps-kit-RELEASE.zip mps-cet-kit-RELEASE
-    rm -r mps-kit-RELEASE<br />
-    p4 add release/RELEASE/mps-kit-RELEASE.tar.gz
-    p4 add release/RELEASE/mps-kit-RELEASE.zip
+    KIT=mps-kit-$RELEASE <br />
+    cp -R version/$VERSION $KIT <br />
+    mkdir -p release/$RELEASE<br />
+    tar cf - $KIT | gzip -c &gt; release/$RELEASE/$KIT.tar.gz <br />
+    zip -r release/$RELEASE/$KIT.zip $KIT <br/>
+    rm -r $KIT <br />
+    p4 add release/$RELEASE/$KIT.tar.gz <br/>
+    p4 add release/$RELEASE/$KIT.zip
   </code></blockquote>
 
 </li>
 
-<li> <p> Submit the release files to Perforce with
-the comment "MPS: adding the MPS Kit tarball and zip file for
-release RELEASE." </p> </li>
+<li> <p> Submit the release files to Perforce with the comment “MPS:
+adding the MPS Kit tarball and zip file for
+release <i>RELEASE</i>.” </p> </li>
 
 </ol>
 
 
-<h3><a id="section-2.4" name="section-2.4">2.3. Registering the release</a></h3>
+<h3><a id="section-2.4" name="section-2.4">2.4. Registering the release</a></h3>
 
 <ol>
 
-<li><p> Edit the index of releases (<code>release/index.html</code>) and
-add the release to the table, in a manner consistent with previous
+<li><p> Edit the index of releases (<code>release/index.html</code>)
+and add the release to the table, in a manner consistent with previous
 releases. </p></li>
 
-<li><p> Edit the index of versions (<code>version/index.html</code>) and
-add the release to the list of releases for VERSION, in a manner
-consistent with previous releases. </p></li>
+<li><p> Edit the index of versions (<code>version/index.html</code>)
+and add the release to the list of releases for <i>VERSION</i>, in a
+manner consistent with previous releases. </p></li>
 
-<li><p> Submit these changes with the comment "MPS: registered release
-RELEASE."  </p></li>
+<li><p> Submit these changes with the comment “MPS: registered release
+<i>RELEASE</i>.” </p></li>
 
 <li>
   <p>
-    Edit the main MPS Project index page at
-    <code>//info.ravenbrook.com/project/mps/index.html</code>,
+    Edit the main MPS Project index page (<code>index.html</code>),
     to refer to the new release:
   </p>
   <ul>
-    <li> update links to 'the latest release' or
-      'download' (important);
+    <li> update links to “the latest release” or “download” (important);
     </li>
-    <li> consider updating the 'project status' section. </li>
+    <li> consider updating the “project status” section. </li>
   </ul>
 </li>
 
-<li><p> Visit the <a href="http://info.ravenbrook.com/infosys/cgi/data_update.cgi">project updater</a>, select "mps" from the dropdown, and hit "Find releases". </p></li>
+<li><p> Visit
+the <a href="http://info.ravenbrook.com/infosys/cgi/data_update.cgi">project
+updater</a>, select “mps” from the dropdown, and hit “Find
+releases”. </p></li>
 
-<li><p>
-  Inform the project manager and staff by e-mail to <a
-  href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>.
-  Consider announcing the new release by e-mail to
-  <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com</a>.
-</p></li>
+<li><p> Inform the project manager and staff by e-mail
+to <a href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>.
+Consider announcing the new release by e-mail
+to <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com</a>. </p></li>
 
 </ol>
 
@@ -183,7 +209,7 @@ RELEASE."  </p></li>
   <td>[<a id="ref-1" name="ref-1" href="http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt">1</a>]</td>
 
   <td>
-    "revert ; rm ; sync -f";
+    “revert ; rm ; sync -f”;
     RHSK;
     &lt;URL: <a href="http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt">http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt</a>&gt;;
     2008-10-16.
@@ -200,7 +226,7 @@ RELEASE."  </p></li>
   <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
 
   <td>
-    "#REF_TITLE#";
+    “#REF_TITLE#”;
     #REF_AUTHOR#;
     &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
     #REF_DATE#.
@@ -247,17 +273,17 @@ RELEASE."  </p></li>
 
 <tr valign="top">
 
-  <td>2005-10-06..31</td>
+  <td>2005-10-06</td>
 
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
 
-  <td>Clarify this procedure is for general mps-kit releases; correct cp -r to -R.  Add: check version.c.</td>
+  <td>Clarify this procedure is for general MPS Kit releases; correct <code>cp -r</code> to <code>-R</code>.  Add: check <code>version.c</code>.</td>
 
 </tr>
 
 <tr valign="top">
 
-  <td>2006-01-19..30</td>
+  <td>2006-01-19</td>
 
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
 
@@ -274,13 +300,13 @@ RELEASE."  </p></li>
 <tr valign="top">
   <td>2007-07-05</td>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-  <td>Releasename now also in w3build.bat.</td>
+  <td>Releasename now also in <code>w3build.bat</code>.</td>
 </tr>
 
 <tr valign="top">
   <td>2008-01-07</td>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
-  <td>Release changelevel was in issue.cgi, now in data.py.</td>
+  <td>Release changelevel was in <code>issue.cgi</code>, now in <code>data.py</code>.</td>
 </tr>
 
 <tr valign="top">
@@ -299,12 +325,17 @@ RELEASE."  </p></li>
 
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
 
-  <td>
-    <ul>
-      <li> Don't copy the readme.txt to the release directory, since it no longer has that dual role. </li>
-      <li> Make the zip file on a Unix box with the zip utility, since compatibility has improved. </li>
-    </ul>
-  </td>
+  <td> Don’t copy the readme.txt to the release directory, since it no longer has that dual role; make the zip file on a Unix box with the zip utility, since compatibility has improved. </td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2013-03-08</td>
+
+  <td><a href="mailto:gdr@ravenbrook.com">GDR</a></td>
+
+  <td>Add testing step (§2.2).</td>
 
 </tr>
 
@@ -313,7 +344,7 @@ RELEASE."  </p></li>
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2002, 2005-2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2002–2013 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
@@ -327,7 +358,7 @@ RELEASE."  </p></li>
 
 </ol>
 
-<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+<p> <strong> This software is provided by the copyright holders and contributors “as is” and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
 
 
 <hr />
