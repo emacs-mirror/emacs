@@ -788,9 +788,13 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   if (arenaShouldCollectWorld(arena, interval, multiplier,
                               start, clocks_per_sec))
   {
-    ArenaStartCollect(globals, TraceStartWhyOPPORTUNISM);
-    arena->lastWorldCollect = start;
-    stepped = TRUE;
+    Res res;
+    Trace trace;
+    res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
+    if (res == ResOK) {
+      arena->lastWorldCollect = start;
+      stepped = TRUE;
+    }
   }
 
   /* loop while there is work to do and time on the clock. */

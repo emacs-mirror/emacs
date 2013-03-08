@@ -9,6 +9,7 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "testlib.h"
+#include "mpm.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
@@ -278,6 +279,7 @@ static void test_step(mps_arena_t arena, double multiplier)
     mps_bool_t res;
     double t1 = my_clock();
     res = mps_arena_step(arena, 0.1, multiplier);
+    cdie(ArenaGlobals(arena)->clamped, "arena was unclamped");
     t1 = time_since(t1);
     if (res) {
         if (t1 > max_step_time)
@@ -500,6 +502,7 @@ int main(int argc, char *argv[])
         die(mps_arena_create(&arena, mps_arena_class_vm(),
                              testArenaSIZE),
             "arena_create");
+        mps_arena_clamp(arena);
         die(mps_thread_reg(&thread, arena), "thread_reg");
         mps_tramp(&r, test, arena, 0);
         mps_thread_dereg(thread);
