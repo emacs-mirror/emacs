@@ -1,3 +1,9 @@
+2013-03-08  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp.el (org-export-normalize-links): Fix critical bug: do
+	not rely on `org-context' to guess where to prevent links
+	normalization.
+
 2013-02-28  Achim Gratz  <Stromeko@Stromeko.DE>
 
 	* org.el (org-org-menu): Use correct key "C-u C-c C-x !" to do
