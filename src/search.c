@@ -621,7 +621,7 @@ newline_cache_on_off (struct buffer *buf)
 }
 
 
-/* Search for COUNT newlines between START and END.
+/* Search for COUNT newlines between START/START_BYTE and END/END_BYTE.
 
    If COUNT is positive, search forwards; END must be >= START.
    If COUNT is negative, search backwards for the -COUNTth instance;
@@ -645,11 +645,11 @@ newline_cache_on_off (struct buffer *buf)
    except when inside redisplay.  */
 
 ptrdiff_t
-find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
-	      ptrdiff_t *shortage, ptrdiff_t *bytepos, bool allow_quit)
+find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
+	      ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *shortage,
+	      ptrdiff_t *bytepos, bool allow_quit)
 {
   struct region_cache *newline_cache;
-  ptrdiff_t start_byte = -1, end_byte = -1;
   int direction;
 
   if (count > 0)
@@ -706,7 +706,7 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
                next_change is the position of the next known region. */
             ceiling_byte = min (CHAR_TO_BYTE (next_change) - 1, ceiling_byte);
           }
-	else
+	else if (start_byte == -1)
 	  start_byte = CHAR_TO_BYTE (start);
 
         /* The dumb loop can only scan text stored in contiguous
@@ -783,7 +783,7 @@ find_newline (ptrdiff_t start, ptrdiff_t end, ptrdiff_t count,
                next_change is the position of the next known region. */
             ceiling_byte = max (CHAR_TO_BYTE (next_change), ceiling_byte);
           }
-	else
+	else if (start_byte == -1)
 	  start_byte = CHAR_TO_BYTE (start);
 
         /* Stop scanning before the gap.  */
@@ -944,9 +944,10 @@ scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 /* Like find_newline, but doesn't allow QUITting and doesn't return
    SHORTAGE.  */
 ptrdiff_t
-find_newline_no_quit (ptrdiff_t from, ptrdiff_t cnt, ptrdiff_t *bytepos)
+find_newline_no_quit (ptrdiff_t from, ptrdiff_t frombyte,
+		      ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
-  return find_newline (from, 0, cnt, NULL, bytepos, 0);
+  return find_newline (from, frombyte, 0, -1, cnt, NULL, bytepos, 0);
 }
 
 /* Like find_newline, but returns position before the newline, not
@@ -958,7 +959,7 @@ find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
 			  ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
   ptrdiff_t shortage;
-  ptrdiff_t pos = find_newline (from, to, cnt, &shortage, bytepos, 1);
+  ptrdiff_t pos = find_newline (from, -1, to, -1, cnt, &shortage, bytepos, 1);
 
   if (shortage == 0)
     {

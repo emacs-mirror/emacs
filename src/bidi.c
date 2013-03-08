@@ -1104,11 +1104,14 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   while (pos_byte > BEGV_BYTE
 	 && n++ < MAX_PARAGRAPH_SEARCH
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
-    /* FIXME: What if the paragraph beginning is covered by a
-       display string?  And what if a display string covering some
-       of the text over which we scan back includes
-       paragraph_start_re?  */
-    pos = find_newline_no_quit (pos - 1, -1, &pos_byte);
+    {
+      /* FIXME: What if the paragraph beginning is covered by a
+	 display string?  And what if a display string covering some
+	 of the text over which we scan back includes
+	 paragraph_start_re?  */
+      DEC_BOTH (pos, pos_byte);
+      pos = find_newline_no_quit (pos, pos_byte, -1, &pos_byte);
+    }
   if (n >= MAX_PARAGRAPH_SEARCH)
     pos_byte = BEGV_BYTE;
   return pos_byte;

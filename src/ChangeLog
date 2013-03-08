@@ -1,3 +1,20 @@
+2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* search.c (find_newline): Accept start and end byte positions
+	as arguments and allow -1 if not known.
+	(find_newline_no_quit): Likewise for start position.
+	* lisp.h (find_newline, find_newline_no_quit): Adjust prototype.
+	* bidi.c (bidi_find_paragraph_start): Pass byte position to
+	find_newline_no_quit, thus eliminating CHAR_TO_BYTE.
+	* editfns.c (Fconstrain_to_field): Break long line.  Adjust
+	call to find_newline.
+	* indent.c (vmotion): Adjust calls to find_newline_no_quit.
+	Use DEC_BOTH to start next search from the previous buffer
+	position, where appropriate.
+	* xdisp.c (back_to_previous_line_start, forward_to_next_line_start)
+	(get_visually_first_element, move_it_vertically_backward): Likewise.
+	Obtain byte position from the display iterator, where appropriate.
+
 2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	print.c, process.c: Use bool for booleans.

@@ -1840,10 +1840,13 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 
       while ((vpos > vtarget || first) && from > BEGV)
 	{
-	  ptrdiff_t bytepos;
+	  ptrdiff_t bytepos = from_byte;
 	  Lisp_Object propval;
 
-	  prevline = find_newline_no_quit (from - 1, -1, &bytepos);
+	  prevline = from;
+	  DEC_BOTH (prevline, bytepos);
+	  prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
+
 	  while (prevline > BEGV
 		 && ((selective > 0
 		      && indented_beyond_p (prevline, bytepos, selective))
@@ -1853,7 +1856,10 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 						       Qinvisible,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
-	    prevline = find_newline_no_quit (prevline - 1, -1, &bytepos);
+	    {
+	      DEC_BOTH (prevline, bytepos);
+	      prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
+	    }
 	  pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,
 				 /* Don't care for VPOS...  */
 				 1 << (BITS_PER_SHORT - 1),
@@ -1890,7 +1896,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
       ptrdiff_t bytepos;
       Lisp_Object propval;
 
-      prevline = find_newline_no_quit (from, -1, &bytepos);
+      prevline = find_newline_no_quit (from, from_byte, -1, &bytepos);
       while (prevline > BEGV
 	     && ((selective > 0
 		  && indented_beyond_p (prevline, bytepos, selective))
@@ -1900,7 +1906,10 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 						   Qinvisible,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
-	prevline = find_newline_no_quit (prevline - 1, -1, &bytepos);
+	{
+	  DEC_BOTH (prevline, bytepos);
+	  prevline = find_newline_no_quit (prevline, bytepos, -1, &bytepos);
+	}
       pos = *compute_motion (prevline, bytepos, 0, lmargin, 0, from,
 			     /* Don't care for VPOS...  */
 			     1 << (BITS_PER_SHORT - 1),
