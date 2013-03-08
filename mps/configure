@@ -625,6 +625,7 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 EXTRA_TARGETS
+TEST_TARGET
 INSTALL_TARGET
 CLEAN_TARGET
 BUILD_TARGET
@@ -3404,6 +3405,7 @@ $as_echo_n "checking target platform... " >&6; }
 BUILD_TARGET=build-via-make
 CLEAN_TARGET=clean-make-build
 INSTALL_TARGET=install-make-build
+TEST_TARGET=test-make-build
 case $host in
   i*86-*-linux*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86" >&5
@@ -3424,6 +3426,7 @@ $as_echo "Mac OS X x86" >&6; }
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
       CFLAGS="$CFLAGS_LL"
     ;;
   x86_64-apple-darwin*)
@@ -3433,6 +3436,7 @@ $as_echo "Mac OS X x86_64" >&6; }
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
       CFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-freebsd*)
@@ -3497,6 +3501,7 @@ test -n "$MAKE" || MAKE="as_fn_error $? "Unable to find a make program." "$LINEN
 if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
   as_fn_error $? "MPS requires GNU make to build from configure, but see manual/build.txt" "$LINENO" 5
 fi
+
 
 
 

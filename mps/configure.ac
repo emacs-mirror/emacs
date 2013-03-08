@@ -45,6 +45,7 @@ AC_MSG_CHECKING([target platform])
 BUILD_TARGET=build-via-make
 CLEAN_TARGET=clean-make-build
 INSTALL_TARGET=install-make-build
+TEST_TARGET=test-make-build
 case $host in
   i*86-*-linux*)
       AC_MSG_RESULT([Linux x86])
@@ -62,6 +63,7 @@ case $host in
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
       CFLAGS="$CFLAGS_LL"
     ;;
   x86_64-apple-darwin*)
@@ -70,6 +72,7 @@ case $host in
       BUILD_TARGET=build-via-xcode
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
       CFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-freebsd*)
@@ -95,6 +98,7 @@ AC_SUBST(MPS_TARGET_NAME)
 AC_SUBST(BUILD_TARGET)
 AC_SUBST(CLEAN_TARGET)
 AC_SUBST(INSTALL_TARGET)
+AC_SUBST(TEST_TARGET)
 AC_SUBST(EXTRA_TARGETS)
 AC_SUBST(CFLAGS)
 AC_SUBST(LDFLAGS)

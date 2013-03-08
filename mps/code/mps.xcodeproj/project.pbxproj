@@ -7,6 +7,18 @@
 	objects = {
 
 /* Begin PBXAggregateTarget section */
+		22CDE8EF16E9E97D00366D0A /* testrun */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 22CDE8F016E9E97E00366D0A /* Build configuration list for PBXAggregateTarget "testrun" */;
+			buildPhases = (
+				22CDE8F416E9E9D400366D0A /* ShellScript */,
+			);
+			dependencies = (
+				22CDE92E16E9EB9300366D0A /* PBXTargetDependency */,
+			);
+			name = testrun;
+			productName = testrun;
+		};
 		3104AFF1156D37A0000A585A /* all */ = {
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 3104AFF2156D37A0000A585A /* Build configuration list for PBXAggregateTarget "all" */;
@@ -216,6 +228,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 2D604B9B16514B1A003AAF46;
 			remoteInfo = mpseventtxt;
+		};
+		22CDE92D16E9EB9300366D0A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3104AFF1156D37A0000A585A;
+			remoteInfo = all;
 		};
 		22FA176616E8D6FC0098B23F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2253,7 +2272,7 @@
 		31EEABDA156AAE9E00714D05 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0460;
 			};
 			buildConfigurationList = 31EEABDD156AAE9E00714D05 /* Build configuration list for PBXProject "mps" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -2302,9 +2321,27 @@
 				3114A6C5156E9815001E0AA3 /* mpseventcnv */,
 				2D07B9701636FC9900DB751B /* mpseventsql */,
 				2D604B9B16514B1A003AAF46 /* mpseventtxt */,
+				22CDE8EF16E9E97D00366D0A /* testrun */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		22CDE8F416E9E9D400366D0A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#   bttest & teletest cannot be run unattended\n#   mv2test cannot be run because MV2 is broken\n#   amcssth doesn't work on OS X (job001621)\nTESTCASES=\"abqtest amcss amcsshe amsss amssshe apss arenacv awlut \\\n           awluthe btcv cbstest finalcv finaltest lockcov locv \\\n           messtest mpmss mpsicv poolncv qs sacss segsmss steptest \\\n           walkt0\"\nOUTPUT=$(mktemp /tmp/mps.log.XXXXXX)\necho \"Logging test output to $OUTPUT\"\nfor TEST in $TESTCASES; do\n    TESTCASE=$TARGET_BUILD_DIR/$TEST\n    printf \"\\n\\n-- Running $TESTCASE at $(date) --\\n\" >> $OUTPUT\n    echo \"Running $TESTCASE\"\n    $TESTCASE >> $OUTPUT || exit 1\ndone";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		22FA176716E8D6FC0098B23F /* Sources */ = {
@@ -2673,6 +2710,11 @@
 			target = 2D604B9B16514B1A003AAF46 /* mpseventtxt */;
 			targetProxy = 2275798816C5422900B662B0 /* PBXContainerItemProxy */;
 		};
+		22CDE92E16E9EB9300366D0A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3104AFF1156D37A0000A585A /* all */;
+			targetProxy = 22CDE92D16E9EB9300366D0A /* PBXContainerItemProxy */;
+		};
 		22FA176516E8D6FC0098B23F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 31EEABFA156AAF9D00714D05 /* mps */;
@@ -2996,6 +3038,27 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		22CDE8F116E9E97E00366D0A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		22CDE8F216E9E97E00366D0A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		22CDE8F316E9E97E00366D0A /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
 		22FA177216E8D6FC0098B23F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3406,6 +3469,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = ansi;
 				GCC_OPTIMIZATION_LEVEL = 2;
@@ -3771,6 +3835,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = ansi;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -3825,6 +3890,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = ansi;
 				GCC_OPTIMIZATION_LEVEL = 2;
@@ -3909,6 +3975,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		22CDE8F016E9E97E00366D0A /* Build configuration list for PBXAggregateTarget "testrun" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22CDE8F116E9E97E00366D0A /* Debug */,
+				22CDE8F216E9E97E00366D0A /* Release */,
+				22CDE8F316E9E97E00366D0A /* WE */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		22FA177116E8D6FC0098B23F /* Build configuration list for PBXNativeTarget "amcssth" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
