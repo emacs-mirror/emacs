@@ -27918,8 +27918,8 @@ simplified so that it doesn't contain any units, like @samp{ft/in} can
 be simplified to 12, then @kbd{u c} will still prompt for both old
 units and new units. You can ignore the prompt for old units with
 @key{RET}, or turn off the prompt by setting the customizable variable
-@code{calc-allow-units-as-numbers} to @code{nil}. 
-@pxref{Customizing Calc})  Assuming the old and new units you give are
+@code{calc-allow-units-as-numbers} to @code{nil};
+@pxref{Customizing Calc}.)  Assuming the old and new units you give are
 consistent with each other, the result also will not contain any
 units.  For example, @kbd{@w{u c} cm @key{RET} in @key{RET}} converts
 the number 2 on the stack to 5.08.

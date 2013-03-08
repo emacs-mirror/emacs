@@ -1,3 +1,8 @@
+2013-03-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (calc-convert-units): Fix the way that default
+	new units are stored.
+
 2013-03-07  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Define a face to highlight bookmark names in
