@@ -36,13 +36,11 @@
  * Then Microsoft made unsigned long shorter than a pointer on Win64.  Ugh.
  */
 
-#ifndef MPS_T_WORD
 #if defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64)
-#define MPS_T_WORD      unsigned __int64
+typedef unsigned __int64 mps_word_t;
 #else
-#define MPS_T_WORD      unsigned long       /* won't be true on W3I6MV */
+typedef unsigned long mps_word_t;
 #endif
-#endif /* MPS_T_WORD */
 
 
 /* Abstract Types */
@@ -67,7 +65,6 @@ typedef struct mps_frame_s
 
 /* Concrete Types */
 
-typedef MPS_T_WORD mps_word_t;  /* pointer-sized word */
 typedef int mps_bool_t;         /* boolean (int) */
 typedef int mps_res_t;          /* result code (int) */
 typedef void *mps_addr_t;       /* managed address (void *) */
