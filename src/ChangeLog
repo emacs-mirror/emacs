@@ -1,3 +1,16 @@
+2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	region-cache.c, scroll.c, search.c: Use bool for booleans.
+	* lisp.h (compile_pattern):
+	* scroll.c (do_scrolling, do_direct_scrolling):
+	* search.c (struct regexp_cache, compile_pattern_1)
+	(compile_pattern, string_match_1, search_command)
+	(trivial_regexp_p, search_buffer, Freplace_match, match_limit)
+	(search_regs_saved, Fregexp_quote):
+	Use bool for boolean.
+	* region-cache.c (region_cache_forward, region_cache_backward):
+	Fix comments to match code: these functions return int, not boolean.
+
 2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* search.c (find_newline): Accept start and end byte positions
