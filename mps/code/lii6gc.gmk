@@ -1,3 +1,5 @@
+# -*- makefile -*-
+#
 # lii6gc.gmk: BUILD FOR LINUX/x64/GCC PLATFORM
 #
 # $Id$

@@ -1,3 +1,5 @@
+# -*- makefile -*-
+#
 # fri6gc.gmk: BUILD FOR FreeBSD/amd64/GCC PLATFORM
 #
 # $Id$

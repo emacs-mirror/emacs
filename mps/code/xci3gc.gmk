@@ -1,3 +1,5 @@
+# -*- makefile -*-
+#
 # xci3gc.gmk: BUILD FOR MACOS X (CARBON)/INTEL IA32/GCC PLATFORM
 #
 # $Id$

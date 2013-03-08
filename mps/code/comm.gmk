@@ -1,3 +1,5 @@
+# -*- makefile -*-
+#
 # comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
