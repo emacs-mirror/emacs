@@ -169,7 +169,7 @@ Cache interface
     the functions :c:func:`mps_alloc` and :c:func:`mps_free`.
 
     The size classes are described by an array of element type
-    :c:func:`mps_sac_class_s`. This array is used to initialize the
+    :c:type:`mps_sac_class_s`. This array is used to initialize the
     segregated allocation cache, and is not needed
     after:c:func:`mps_sac_create` returns. The following constraints
     apply to the array:
