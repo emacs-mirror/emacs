@@ -58,7 +58,8 @@
  *    the last two messages (note: no "."), to test that 
  *    mps_arena_destroy copes with ungot messages.
  *
- * Each script runs in a newly created arena.
+ * Each script runs in a newly created arena. The arena is clamped so
+ * that collections only happen when the script requests them.
  *
  *
  * CODE OVERVIEW
@@ -408,6 +409,7 @@ static void testscriptA(const char *script)
   /* arena */
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
+  mps_arena_clamp(arena);
 
   /* thr: used to stop/restart multiple threads */
   die(mps_thread_reg(&thr, arena), "thread");

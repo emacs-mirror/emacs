@@ -552,6 +552,7 @@ static void *test(void *arg, size_t s)
   alignmentTest(arena);
 
   die(mps_arena_collect(arena), "collect");
+  mps_arena_release(arena);
 
   mps_free(mv, alloced_obj, 32);
   alloc_v_test(mv);
