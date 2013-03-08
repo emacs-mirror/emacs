@@ -2701,7 +2701,7 @@ If there is no plausible default, return nil."
   "Return regexp that matches the default tag at point.
 If there is no tag at point, return nil.
 
-When in a major mode that does not provide it's own
+When in a major mode that does not provide its own
 `find-tag-default-function', return a regexp that matches the
 symbol at point exactly."
   (let* ((tagf (or find-tag-default-function
