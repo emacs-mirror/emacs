@@ -157,14 +157,14 @@ all_admonitions = [
     AkaDirective,
     BibrefDirective,
     DeprecatedDirective,
-    HistoricalDirective, 
+    HistoricalDirective,
     LinkDirective,
     NoteDirective,
     OppositeDirective,
     RelevanceDirective,
     SeeDirective,
     SimilarDirective,
-    SpecificDirective, 
+    SpecificDirective,
     TopicsDirective]
 
 class GlossaryTransform(transforms.Transform):
@@ -248,7 +248,7 @@ class GlossaryTransform(transforms.Transform):
             if m:
                 old_fullname = m.group(1)
                 sense = ' ' + m.group(2)
-            else: 
+            else:
                 old_fullname = fullname
                 sense = ''
             if any(old_fullname.endswith(e) for _, e in endings):
@@ -257,7 +257,9 @@ class GlossaryTransform(transforms.Transform):
                 if not old_fullname.endswith(old_ending):
                     continue
                 new_fullname = '{}{}{}'.format(old_fullname[:len(old_fullname) - len(old_ending)], new_ending, sense)
-                objects[(name, new_fullname)] = value
+                new_key = name, new_fullname
+                if new_key not in objects:
+                    objects[new_key] = value
 
 def warn_indirect_terms(app, exception):
     if not exception:
