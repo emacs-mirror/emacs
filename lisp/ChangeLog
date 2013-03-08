@@ -1,3 +1,14 @@
+2013-03-08  Jambunathan K  <kjambunathan@gmail.com>
+
+	* hi-lock.el (hi-lock-read-regexp-defaults-function): New var.
+	(hi-lock-read-regexp-defaults):	 New defun.
+	(hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-face-phrase-buffer): Propagate above change.  Update
+	docstring (bug#13892).
+
+	* subr.el (find-tag-default-as-regexp): New defun.
+	* replace.el (read-regexp): Propagate above change.
+
 2013-03-08  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (calc-convert-units): Fix the way that default
