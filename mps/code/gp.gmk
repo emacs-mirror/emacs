@@ -1,3 +1,5 @@
+# -*- makefile -*-
+#
 # gp.gmk: GNUMAKEFILE FRAGMENT FOR GNU CC/GPROF
 #
 # $Id$
