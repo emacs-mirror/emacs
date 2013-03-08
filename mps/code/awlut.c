@@ -192,7 +192,11 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     mps_word_t *string;
-    if (rnd() % 2 == 0) {
+    /* Ensure that the last entry in the table is preserved, so that
+     * we don't get a false positive due to the local variable
+     * 'string' keeping this entry alive (see job003436).
+     */
+    if (rnd() % 2 == 0 || i + 1 == TABLE_SLOTS) {
       string = alloc_string("iamalive", leafap);
       preserve[i] = string;
     } else {
