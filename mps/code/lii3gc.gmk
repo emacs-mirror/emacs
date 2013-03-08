@@ -1,3 +1,5 @@
+# -*- makefile -*-
+#
 # lii3gc.gmk: BUILD FOR LINUX/INTEL/GCC PLATFORM
 #
 # $Id$
