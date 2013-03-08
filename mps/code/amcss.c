@@ -41,7 +41,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define objNULL           ((mps_addr_t)MPS_WORD_CONST(0xDECEA5ED))
 
 
-static mps_pool_t pool;
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
@@ -145,10 +144,10 @@ static mps_addr_t make(void)
 
 /* test_stepper -- stepping function for walk */
 
-static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pol,
+static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
                          void *p, size_t s)
 {
-  testlib_unused(object); testlib_unused(fmt); testlib_unused(pol);
+  testlib_unused(object); testlib_unused(fmt); testlib_unused(pool);
   testlib_unused(s);
   (*(unsigned long *)p)++;
 }
@@ -167,6 +166,7 @@ static void test(mps_arena_t arena)
   int ramping;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
+  mps_pool_t pool;
 
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
