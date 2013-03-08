@@ -142,22 +142,22 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
 /* Segregated-fit Allocation Caches */
 /* .sac: Keep in sync with <code/sac.h>. */
 
-typedef struct mps_sac_s *mps_sac_t;
+typedef struct _mps_sac_s *mps_sac_t;
 
 #define MPS_SAC_CLASS_LIMIT ((size_t)8)
 
-typedef struct mps_sac_freelist_block_s {
+typedef struct _mps_sac_freelist_block_s {
   size_t _size;
   size_t _count;
   size_t _count_max;
   mps_addr_t _blocks;
-} mps_sac_freelist_block_s;
+} _mps_sac_freelist_block_s;
 
-typedef struct mps_sac_s {
+typedef struct _mps_sac_s {
   size_t _middle;
   mps_bool_t _trapped;
-  mps_sac_freelist_block_s _freelists[2 * MPS_SAC_CLASS_LIMIT];
-} mps_sac_s;
+  _mps_sac_freelist_block_s _freelists[2 * MPS_SAC_CLASS_LIMIT];
+} _mps_sac_s;
 
 /* .sacc: Keep in sync with <code/sac.h>. */
 typedef struct mps_sac_class_s {

@@ -10,7 +10,7 @@
 SRCID(sac, "$Id$");
 
 
-typedef mps_sac_freelist_block_s *SACFreeListBlock;
+typedef _mps_sac_freelist_block_s *SACFreeListBlock;
 
 
 /* SACCheck -- check function for SACs */

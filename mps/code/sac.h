@@ -25,7 +25,7 @@ typedef struct SACStruct {
   Pool pool;
   Count classesCount;  /* number of classes */
   Index middleIndex;   /* index of the middle */
-  mps_sac_s esac_s;     /* variable length, must be last */
+  _mps_sac_s esac_s;   /* variable length, must be last */
 } SACStruct;
 
 #define SACOfExternalSAC(esac) PARENT(SACStruct, esac_s, esac)
