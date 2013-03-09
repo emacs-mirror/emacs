@@ -28,6 +28,10 @@
 
 (defvar add-log-time-format)		; in add-log
 
+;; Does this information need to be in every ChangeLog, as opposed to
+;; just the top-level one?  Only if you allow changes the same
+;; day as the release.
+;; http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00161.html
 (defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Root must be the root of an Emacs source tree.
