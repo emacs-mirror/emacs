@@ -1,3 +1,7 @@
+2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-track): Remove left-over debugging code.
+
 2013-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	Major rewrite due to changed D-Bus interface of GVFS 1.14.
@@ -6,9 +10,9 @@
 	(tramp-gvfs-methods-mounttracker, tramp-gvfs-listmounts)
 	(tramp-gvfs-mountlocation, tramp-gvfs-mountlocation-signature):
 	New defconst.
-	(tramp-gvfs-file-name-handler-alist) [directory-files]:
-	[directory-files-and-attributes, file-exists-p, file-modes]: Use
-	Tramp default handler.
+	(tramp-gvfs-file-name-handler-alist) [directory-files]
+	[directory-files-and-attributes, file-exists-p, file-modes]:
+	Use Tramp default handler.
 	[file-acl, file-selinux-context, process-file, set-file-acl]:
 	[set-file-modes, set-file-selinux-context, shell-command]:
 	[start-file-process ]: Remove handler.
