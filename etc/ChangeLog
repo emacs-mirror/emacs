@@ -1,3 +1,7 @@
+2013-03-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* refcards/calccard.tex: Remove incorrect entry.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
