@@ -1,3 +1,8 @@
+2013-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-release-logs): Provide interactive defaults.
+	Allow specification of the release date.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* notes/unicode: Add notes about Emacs source file encoding.

@@ -28,25 +28,32 @@
 
 (defvar add-log-time-format)		; in add-log
 
-(defun add-release-logs (root version)
+(defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
-Root must be the root of an Emacs source tree."
-  (interactive "DEmacs root directory: \nNVersion number: ")
+Root must be the root of an Emacs source tree.
+Optional argument DATE is the release date, default today."
+  (interactive (list (read-directory-name "Emacs root directory: ")
+		     (read-string "Version number: "
+				  (format "%s.%s" emacs-major-version
+					  emacs-minor-version))
+		     (read-string "Release date: "
+				  (progn (require 'add-log)
+					 (funcall add-log-time-format)))))
   (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (error "%s doesn't seem to be the root of an Emacs source tree" root))
   (require 'add-log)
+  (or date (setq date (funcall add-log-time-format)))
   (let* ((logs (process-lines "find" root "-name" "ChangeLog"))
 	 (entry (format "%s  %s  <%s>\n\n\t* Version %s released.\n\n"
-			(funcall add-log-time-format)
+			date
 			(or add-log-full-name (user-full-name))
 			(or add-log-mailing-address user-mail-address)
 			version)))
     (dolist (log logs)
-      (unless (string-match "/gnus/" log)
-	(find-file log)
-	(goto-char (point-min))
-	(insert entry)))))
+      (find-file log)
+      (goto-char (point-min))
+      (insert entry))))
 
 (defun set-version-in-file (root file version rx)
   (find-file (expand-file-name file root))
