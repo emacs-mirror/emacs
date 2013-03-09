@@ -788,25 +788,6 @@ existence, and file readability.  Input shall be read via
 here-document, otherwise the command could exceed maximum length
 of command line.")
 
-(defconst tramp-file-mode-type-map
-  '((0  . "-")  ; Normal file (SVID-v2 and XPG2)
-    (1  . "p")  ; fifo
-    (2  . "c")  ; character device
-    (3  . "m")  ; multiplexed character device (v7)
-    (4  . "d")  ; directory
-    (5  . "?")  ; Named special file (XENIX)
-    (6  . "b")  ; block device
-    (7  . "?")  ; multiplexed block device (v7)
-    (8  . "-")  ; regular file
-    (9  . "n")  ; network special file (HP-UX)
-    (10 . "l")  ; symlink
-    (11 . "?")  ; ACL shadow inode (Solaris, not userspace)
-    (12 . "s")  ; socket
-    (13 . "D")  ; door special (Solaris)
-    (14 . "w")) ; whiteout (BSD)
-  "A list of file types returned from the `stat' system call.
-This is used to map a mode number to a permission string.")
-
 ;; New handlers should be added here.  The following operations can be
 ;; handled using the normal primitives: file-name-sans-versions,
 ;; get-file-buffer.
@@ -4654,76 +4635,6 @@ Return ATTR."
             (tramp-get-device vec))
     attr))
 
-(defun tramp-check-cached-permissions (vec access)
-  "Check `file-attributes' caches for VEC.
-Return t if according to the cache access type ACCESS is known to
-be granted."
-  (let ((result nil)
-        (offset (cond
-                 ((eq ?r access) 1)
-                 ((eq ?w access) 2)
-                 ((eq ?x access) 3))))
-    (dolist (suffix '("string" "integer") result)
-      (setq
-       result
-       (or
-        result
-        (let ((file-attr
-               (tramp-get-file-property
-                vec (tramp-file-name-localname vec)
-                (concat "file-attributes-" suffix) nil))
-              (remote-uid
-               (tramp-get-connection-property
-                vec (concat "uid-" suffix) nil))
-              (remote-gid
-               (tramp-get-connection-property
-                vec (concat "gid-" suffix) nil)))
-          (and
-           file-attr
-           (or
-            ;; Not a symlink
-            (eq t (car file-attr))
-            (null (car file-attr)))
-           (or
-            ;; World accessible.
-            (eq access (aref (nth 8 file-attr) (+ offset 6)))
-            ;; User accessible and owned by user.
-            (and
-             (eq access (aref (nth 8 file-attr) offset))
-             (equal remote-uid (nth 2 file-attr)))
-            ;; Group accessible and owned by user's
-            ;; principal group.
-            (and
-             (eq access (aref (nth 8 file-attr) (+ offset 3)))
-             (equal remote-gid (nth 3 file-attr)))))))))))
-
-(defun tramp-file-mode-from-int (mode)
-  "Turn an integer representing a file mode into an ls(1)-like string."
-  (let ((type	(cdr
-		 (assoc (logand (lsh mode -12) 15) tramp-file-mode-type-map)))
-	(user	(logand (lsh mode -6) 7))
-	(group	(logand (lsh mode -3) 7))
-	(other	(logand (lsh mode -0) 7))
-	(suid	(> (logand (lsh mode -9) 4) 0))
-	(sgid	(> (logand (lsh mode -9) 2) 0))
-	(sticky	(> (logand (lsh mode -9) 1) 0)))
-    (setq user  (tramp-file-mode-permissions user  suid "s"))
-    (setq group (tramp-file-mode-permissions group sgid "s"))
-    (setq other (tramp-file-mode-permissions other sticky "t"))
-    (concat type user group other)))
-
-(defun tramp-file-mode-permissions (perm suid suid-text)
-  "Convert a permission bitset into a string.
-This is used internally by `tramp-file-mode-from-int'."
-  (let ((r (> (logand perm 4) 0))
-	(w (> (logand perm 2) 0))
-	(x (> (logand perm 1) 0)))
-    (concat (or (and r "r") "-")
-	    (or (and w "w") "-")
-	    (or (and suid x suid-text)	; suid, execute
-		(and suid (upcase suid-text)) ; suid, !execute
-		(and x "x") "-"))))	; !suid
-
 (defun tramp-shell-case-fold (string)
   "Converts STRING to shell glob pattern which ignores case."
   (mapconcat
@@ -4991,14 +4902,6 @@ This is used internally by `tramp-file-mode-from-int'."
 			    "" "| sed -e s/^/\\\"/ -e s/\$/\\\"/")))))
       ;; The command might not always return a number.
       (if (and (equal id-format 'integer) (not (integerp res))) -1 res))))
-
-(defun tramp-get-local-uid (id-format)
-  (if (equal id-format 'integer) (user-uid) (user-login-name)))
-
-(defun tramp-get-local-gid (id-format)
-  (if (and (fboundp 'group-gid) (equal id-format 'integer))
-      (tramp-compat-funcall 'group-gid)
-    (nth 3 (tramp-compat-file-attributes "~/" id-format))))
 
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)

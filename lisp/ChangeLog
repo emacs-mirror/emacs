@@ -1,3 +1,72 @@
+2013-03-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	Major rewrite due to changed D-Bus interface of GVFS 1.14.
+
+	* net/tramp-gvfs.el (top): Extend check for gvfs availability.
+	(tramp-gvfs-methods-mounttracker, tramp-gvfs-listmounts)
+	(tramp-gvfs-mountlocation, tramp-gvfs-mountlocation-signature):
+	New defconst.
+	(tramp-gvfs-file-name-handler-alist) [directory-files]:
+	[directory-files-and-attributes, file-exists-p, file-modes]: Use
+	Tramp default handler.
+	[file-acl, file-selinux-context, process-file, set-file-acl]:
+	[set-file-modes, set-file-selinux-context, shell-command]:
+	[start-file-process ]: Remove handler.
+	[verify-visited-file-modtime]: New handler.
+	(tramp-gvfs-dbus-string-to-byte-array)
+	(tramp-gvfs-dbus-byte-array-to-string): New defuns.  Replace all
+	calls of `dbus-string-to-byte-array' and
+	`tramp-gvfs-dbus-byte-array-to-string'.
+	(tramp-gvfs-handle-copy-file)
+	(tramp-gvfs-handle-delete-directory)
+	(tramp-gvfs-handle-delete-file, tramp-gvfs-handle-file-attributes)
+	(tramp-gvfs-handle-file-directory-p)
+	(tramp-gvfs-handle-file-executable-p)
+	(tramp-gvfs-handle-file-name-all-completions)
+	(tramp-gvfs-handle-file-readable-p)
+	(tramp-gvfs-handle-file-writable-p)
+	(tramp-gvfs-handle-insert-directory)
+	(tramp-gvfs-handle-insert-file-contents)
+	(tramp-gvfs-handle-make-directory, tramp-gvfs-handle-rename-file)
+	(tramp-gvfs-handle-set-visited-file-modtime)
+	(tramp-gvfs-handle-write-region): Rewrite.
+	(tramp-gvfs-handle-file-acl)
+	(tramp-gvfs-handle-file-selinux-context)
+	(tramp-gvfs-handle-process-file, tramp-gvfs-handle-set-file-acl)
+	(tramp-gvfs-handle-set-file-modes)
+	(tramp-gvfs-handle-set-file-selinux-context)
+	(tramp-gvfs-handle-shell-command)
+	(tramp-gvfs-handle-start-file-process)
+	(tramp-gvfs-handle-verify-visited-file-modtime): Remove defuns.
+	(tramp-gvfs-url-file-name): Do not use `file-truename', we work
+	over the symlinks.  Fix user handling.
+	(top, tramp-gvfs-handler-mounted-unmounted): Handle different names
+	of the D-Bus signals.
+	(tramp-gvfs-connection-mounted-p): Handle different names of the
+	D-Bus methods.
+	(tramp-gvfs-mount-spec-entry): New defun.
+	(tramp-gvfs-mount-spec): Use it.
+	(tramp-gvfs-maybe-open-connection): Check, that in case of "smb"
+	there is a share name.  Handle different names of the D-Bus
+	signals and methods.
+	(tramp-gvfs-maybe-open-connection): Set connection properties
+	needed for `tramp-check-cached-permissions'.
+	(tramp-gvfs-send-command): Apply `tramp-gvfs-maybe-open-connection'.
+	Return t or nil.
+
+	* net/tramp.el (tramp-backtrace): Move up.
+	(tramp-error): Apply a backtrace into the debug buffer when
+	`tramp-verbose > 9.
+	(tramp-file-mode-type-map, tramp-file-mode-from-int)
+	(tramp-file-mode-permissions, tramp-get-local-uid)
+	(tramp-get-local-gid, tramp-check-cached-permissions): Move from
+	tramp-sh.el.
+
+	* net/tramp-sh.el (tramp-file-mode-type-map)
+	(tramp-check-cached-permissions, tramp-file-mode-from-int)
+	(tramp-file-mode-permissions, tramp-get-local-uid)
+	(tramp-get-local-gid): Move to tramp.el.
+
 2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Separate mouse-1-click-follows-link from mouse-drag-region.
