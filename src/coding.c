@@ -7970,7 +7970,7 @@ wchar_t *
 to_unicode (Lisp_Object str, Lisp_Object *buf)
 {
   *buf = code_convert_string_norecord (str, Qutf_16le, 1);
-  /* We need to make a another copy (in addition to the one made by
+  /* We need to make another copy (in addition to the one made by
      code_convert_string_norecord) to ensure that the final string is
      _doubly_ zero terminated --- that is, that the string is
      terminated by two zero bytes and one utf-16le null character.
