@@ -1,3 +1,12 @@
+2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.h (EVENT_START, EVENT_END, POSN_WINDOW, POSN_POSN)
+	(POSN_WINDOW_POSN, POSN_TIMESTAMP): Be careful since events may come
+	from Elisp via unread-command-events.
+
+	* keyboard.c (access_keymap_keyremap): Accept nil return value from
+	functions to mean "no change".
+
 2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	region-cache.c, scroll.c, search.c: Use bool for booleans.
@@ -19,8 +28,8 @@
 	* lisp.h (find_newline, find_newline_no_quit): Adjust prototype.
 	* bidi.c (bidi_find_paragraph_start): Pass byte position to
 	find_newline_no_quit, thus eliminating CHAR_TO_BYTE.
-	* editfns.c (Fconstrain_to_field): Break long line.  Adjust
-	call to find_newline.
+	* editfns.c (Fconstrain_to_field): Break long line.
+	Adjust call to find_newline.
 	* indent.c (vmotion): Adjust calls to find_newline_no_quit.
 	Use DEC_BOTH to start next search from the previous buffer
 	position, where appropriate.
@@ -270,8 +279,8 @@
 
 2013-03-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* textprop.c (Fadd_text_properties, Fremove_text_properties): If
-	the interval tree changes as a side effect of calling
+	* textprop.c (Fadd_text_properties, Fremove_text_properties):
+	If the interval tree changes as a side effect of calling
 	modify_region, re-do processing starting from the call to
 	validate_interval_range.  (Bug#13743)
 
@@ -347,8 +356,8 @@
 	* textprop.c (Fadd_text_properties, Fremove_text_properties)
 	(Fremove_list_of_text_properties): Skip all of the intervals in
 	the region between START and END that already have resp. don't
-	have the requested properties, not just the first one.  Add
-	assertions that the loop afterwards always modifies the
+	have the requested properties, not just the first one.
+	Add assertions that the loop afterwards always modifies the
 	properties.  (Bug#13743)
 
 2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>

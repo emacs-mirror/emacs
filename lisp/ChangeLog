@@ -1,10 +1,19 @@
+2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Separate mouse-1-click-follows-link from mouse-drag-region.
+	* mouse.el (mouse--down-1-maybe-follows-link): New function.
+	(key-translation-map): Use it to implement mouse-1-click-follows-link.
+	(mouse-drag-line, mouse-drag-track):
+	Remove mouse-1-click-follows-link code.
+	(mouse--remap-link-click-p): Remove.
+
 2013-03-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* hi-lock.el (hi-lock-read-regexp-defaults-function): New var.
 	(hi-lock-read-regexp-defaults):	 New defun.
 	(hi-lock-line-face-buffer, hi-lock-face-buffer)
-	(hi-lock-face-phrase-buffer): Propagate above change.  Update
-	docstring (bug#13892).
+	(hi-lock-face-phrase-buffer): Propagate above change.
+	Update docstring (bug#13892).
 
 	* subr.el (find-tag-default-as-regexp): New defun.
 	* replace.el (read-regexp): Propagate above change.
@@ -45,13 +54,13 @@
 
 2013-03-07  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/js.el (js--multi-line-declaration-indentation): Merge
-	from js2-mode (https://github.com/mooz/js2-mode/issues/89).
+	* progmodes/js.el (js--multi-line-declaration-indentation):
+	Merge from js2-mode (https://github.com/mooz/js2-mode/issues/89).
 
 2013-03-06  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Only
-	propertize regexp when not inside a string (Bug#13885).
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Only propertize regexp when not inside a string (Bug#13885).
 
 2013-03-06  Alan Mackenzie  <acm@muc.de>
 
@@ -62,8 +71,8 @@
 
 2013-03-05  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-compat.el (tramp-compat-delete-directory): Implement
-	TRASH argument.
+	* net/tramp-compat.el (tramp-compat-delete-directory):
+	Implement TRASH argument.
 
 2013-03-05  Dmitry Gutov  <dgutov@yandex.ru>
 
