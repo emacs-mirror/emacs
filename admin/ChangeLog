@@ -1,3 +1,7 @@
+2013-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-release-logs): Use UTC for release date.
+
 2013-03-09  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (add-release-logs): Provide interactive defaults.
