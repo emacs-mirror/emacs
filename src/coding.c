@@ -6349,7 +6349,12 @@ detect_coding (struct coding_system *coding)
       coding_systems
 	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_bom);
       detect_info.found = detect_info.rejected = 0;
-      coding->head_ascii = 0;
+      for (src = coding->source; src < src_end; src++)
+	{
+	  if (*src & 0x80)
+	    break;
+	}
+      coding->head_ascii = src - coding->source;
       if (CONSP (coding_systems)
 	  && detect_coding_utf_8 (coding, &detect_info))
 	{
@@ -7487,8 +7492,6 @@ decode_coding_gap (struct coding_system *coding,
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object attrs;
 
-  code_conversion_save (0, 0);
-
   coding->src_object = Fcurrent_buffer ();
   coding->src_chars = chars;
   coding->src_bytes = bytes;
@@ -7502,13 +7505,45 @@ decode_coding_gap (struct coding_system *coding,
 
   if (CODING_REQUIRE_DETECTION (coding))
     detect_coding (coding);
+  attrs = CODING_ID_ATTRS (coding->id);
+#ifndef CODING_DISABLE_ASCII_OPTIMIZATION
+  if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
+      && NILP (CODING_ATTR_POST_READ (attrs))
+      && NILP (get_translation_table (attrs, 0, NULL)))
+    {
+      /* We can skip the conversion if all source bytes are ASCII.  */
+      if (coding->head_ascii < 0)
+	{
+	  /* We have not yet counted the number of ASCII bytes at the
+	     head of the source.  Do it now.  */
+	  const unsigned char *src, *src_end;
+
+	  coding_set_source (coding);
+	  src_end = coding->source + coding->src_bytes;
+	  for (src = coding->source; src < src_end; src++)
+	    {
+	      if (*src & 0x80)
+		break;
+	    }
+	  coding->head_ascii = src - coding->source;
+	}
+      if (coding->src_bytes == coding->head_ascii)
+	{
+	  /* No need of conversion.  Use the data in the gap as is.  */
+	  coding->produced_char = chars;
+	  coding->produced = bytes;
+	  adjust_after_replace (PT, PT_BYTE, Qnil, chars, bytes, 1);
+	  return;
+	}
+    }
+#endif	/* not CODING_DISABLE_ASCII_OPTIMIZATION */
+  code_conversion_save (0, 0);
 
   coding->mode |= CODING_MODE_LAST_BLOCK;
   current_buffer->text->inhibit_shrinking = 1;
   decode_coding (coding);
   current_buffer->text->inhibit_shrinking = 0;
 
-  attrs = CODING_ID_ATTRS (coding->id);
   if (! NILP (CODING_ATTR_POST_READ (attrs)))
     {
       ptrdiff_t prev_Z = Z, prev_Z_BYTE = Z_BYTE;
