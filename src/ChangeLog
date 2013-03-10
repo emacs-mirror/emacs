@@ -1,5 +1,10 @@
 2013-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lread.c: Minor cleanup.
+	(FROM_FILE_P): New macro.
+	(skip_dyn_bytes, unreadchar, read1): Use it.
+	(read_list): Consolidate duplicated code.
+
 	* bytecode.c (struct byte_stack): Remove `constants' when unused.
 
 2013-03-10  Eli Zaretskii  <eliz@gnu.org>
