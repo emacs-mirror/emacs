@@ -1,5 +1,8 @@
 2013-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* whitespace.el (whitespace-enable-predicate): New variable.
+	(whitespace-enable-predicate): Use it.
+
 	* comint.el (comint-send-input, comint-snapshot-last-prompt)
 	(comint-output-filter, comint-update-fence):
 	Use with-silent-modifications.

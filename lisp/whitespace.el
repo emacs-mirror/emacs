@@ -1145,29 +1145,31 @@ See also `whitespace-style', `whitespace-newline' and
 	(unless whitespace-mode
 	  (whitespace-turn-off)))))))
 
+(defvar whitespace-enable-predicate
+  (lambda ()
+    (and (cond
+          ((eq whitespace-global-modes t))
+          ((listp whitespace-global-modes)
+           (if (eq (car-safe whitespace-global-modes) 'not)
+               (not (memq major-mode (cdr whitespace-global-modes)))
+             (memq major-mode whitespace-global-modes)))
+          (t nil))
+         ;; ...we have a display (we're running a batch job)
+         (not noninteractive)
+         ;; ...the buffer is not internal (name starts with a space)
+         (not (eq (aref (buffer-name) 0) ?\ ))
+         ;; ...the buffer is not special (name starts with *)
+         (or (not (eq (aref (buffer-name) 0) ?*))
+             ;; except the scratch buffer.
+             (string= (buffer-name) "*scratch*"))))
+  "Predicate to decide which buffers obey `global-whitespace-mode'.
+This function is called with no argument and should return non-nil
+if the current buffer should obey `global-whitespace-mode'.
+This variable is normally modified via `add-function'.")
 
 (defun whitespace-turn-on-if-enabled ()
-  (when (cond
-	 ((eq whitespace-global-modes t))
-	 ((listp whitespace-global-modes)
-	  (if (eq (car-safe whitespace-global-modes) 'not)
-	      (not (memq major-mode (cdr whitespace-global-modes)))
-	    (memq major-mode whitespace-global-modes)))
-	 (t nil))
-    (let (inhibit-quit)
-      ;; Don't turn on whitespace mode if...
-      (or
-       ;; ...we don't have a display (we're running a batch job)
-       noninteractive
-       ;; ...or if the buffer is invisible (name starts with a space)
-       (eq (aref (buffer-name) 0) ?\ )
-       ;; ...or if the buffer is temporary (name starts with *)
-       (and (eq (aref (buffer-name) 0) ?*)
-	    ;; except the scratch buffer.
-	    (not (string= (buffer-name) "*scratch*")))
-       ;; Otherwise, turn on whitespace mode.
-       (whitespace-turn-on)))))
-
+  (when (funcall whitespace-enable-predicate)
+    (whitespace-turn-on)))
 
 ;;;###autoload
 (define-minor-mode global-whitespace-newline-mode
