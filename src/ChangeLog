@@ -1,3 +1,24 @@
+2013-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_tool_bar_line, redisplay_tool_bar)
+	(redisplay_internal, set_cursor_from_row, try_window)
+	(try_window_id, dump_glyph_row, extend_face_to_end_of_line)
+	(display_line, notice_overwritten_cursor)
+	(mouse_face_from_buffer_pos, note_mouse_highlight): Use
+	MATRIX_ROW_DISPLAYS_TEXT_P.
+	(note_mouse_highlight): Use MATRIX_ROW_GLYPH_START.
+	(mouse_face_from_string_pos, fast_find_string_pos): Use
+	MATRIX_ROW_VPOS.
+
+	* xfns.c (Fx_show_tip): Use MATRIX_ROW_DISPLAYS_TEXT_P.
+
+	* w32fns.c (Fx_show_tip): Use MATRIX_ROW_DISPLAYS_TEXT_P.
+
+	* xdisp.c (try_cursor_movement): Use MATRIX_ROW and
+	MATRIX_MODE_LINE_ROW.
+
+	* dispnew.c (update_window): Use MATRIX_ROW and MATRIX_MODE_LINE_ROW.
+
 2013-03-10  handa  <handa@gnu.org>
 
 	* lisp.h (adjust_after_replace): Extern it.
