@@ -1,3 +1,9 @@
+2013-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-send-input, comint-snapshot-last-prompt)
+	(comint-output-filter, comint-update-fence):
+	Use with-silent-modifications.
+
 2013-03-10  Jambunathan K  <kjambunathan@gmail.com>
 
 	* replace.el (occur-read-regexp-defaults-function): New var.
@@ -21,7 +27,7 @@
 	Use Tramp default handler.
 	[file-acl, file-selinux-context, process-file, set-file-acl]:
 	[set-file-modes, set-file-selinux-context, shell-command]:
-	[start-file-process ]: Remove handler.
+	[start-file-process]: Remove handler.
 	[verify-visited-file-modtime]: New handler.
 	(tramp-gvfs-dbus-string-to-byte-array)
 	(tramp-gvfs-dbus-byte-array-to-string): New defuns.  Replace all

@@ -1805,28 +1805,28 @@ Similarly for Soar, Scheme, etc."
                               (concat input "\n")))
 
         (let ((beg (marker-position pmark))
-              (end (if no-newline (point) (1- (point))))
-              (inhibit-modification-hooks t))
-          (when (> end beg)
-            (add-text-properties beg end
-                                 '(front-sticky t
-                                   font-lock-face comint-highlight-input))
-            (unless comint-use-prompt-regexp
-              ;; Give old user input a field property of `input', to
-              ;; distinguish it from both process output and unsent
-              ;; input.  The terminating newline is put into a special
-              ;; `boundary' field to make cursor movement between input
-              ;; and output fields smoother.
-              (add-text-properties
-               beg end
-               '(mouse-face highlight
-                 help-echo "mouse-2: insert after prompt as new input"))))
-          (unless (or no-newline comint-use-prompt-regexp)
-            ;; Cover the terminating newline
-            (add-text-properties end (1+ end)
-                                 '(rear-nonsticky t
-                                   field boundary
-                                   inhibit-line-move-field-capture t))))
+              (end (if no-newline (point) (1- (point)))))
+          (with-silent-modifications
+            (when (> end beg)
+              (add-text-properties beg end
+                                   '(front-sticky t
+                                     font-lock-face comint-highlight-input))
+              (unless comint-use-prompt-regexp
+                ;; Give old user input a field property of `input', to
+                ;; distinguish it from both process output and unsent
+                ;; input.  The terminating newline is put into a special
+                ;; `boundary' field to make cursor movement between input
+                ;; and output fields smoother.
+                (add-text-properties
+                 beg end
+                 '(mouse-face highlight
+                   help-echo "mouse-2: insert after prompt as new input"))))
+            (unless (or no-newline comint-use-prompt-regexp)
+              ;; Cover the terminating newline
+              (add-text-properties end (1+ end)
+                                   '(rear-nonsticky t
+                                     field boundary
+                                     inhibit-line-move-field-capture t)))))
 
         (comint-snapshot-last-prompt)
 
@@ -1909,11 +1909,12 @@ See `comint-carriage-motion' for details.")
 Freeze its attributes in place, even when more input comes along
 and moves the prompt overlay."
   (when comint-last-prompt-overlay
-    (let ((inhibit-read-only t)
-	  (inhibit-modification-hooks t))
-      (add-text-properties (overlay-start comint-last-prompt-overlay)
-			   (overlay-end comint-last-prompt-overlay)
-			   (overlay-properties comint-last-prompt-overlay)))))
+    (let ((inhibit-read-only t))
+      (with-silent-modifications
+        (add-text-properties
+         (overlay-start comint-last-prompt-overlay)
+         (overlay-end comint-last-prompt-overlay)
+         (overlay-properties comint-last-prompt-overlay))))))
 
 (defun comint-carriage-motion (start end)
   "Interpret carriage control characters in the region from START to END.
@@ -2036,11 +2037,10 @@ Make backspaces delete the previous character."
 	    (run-hook-with-args 'comint-output-filter-functions string)
 	    (set-marker saved-point (point))
 
-	    (goto-char (process-mark process)) ; in case a filter moved it
+	    (goto-char (process-mark process)) ; In case a filter moved it.
 
 	    (unless comint-use-prompt-regexp
-              (let ((inhibit-read-only t)
-		    (inhibit-modification-hooks t))
+              (with-silent-modifications
                 (add-text-properties comint-last-output-start (point)
                                      '(front-sticky
 				       (field inhibit-line-move-field-capture)
@@ -2051,16 +2051,16 @@ Make backspaces delete the previous character."
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
 	    (let ((prompt-start (save-excursion (forward-line 0) (point)))
-		  (inhibit-read-only t)
-		  (inhibit-modification-hooks t))
+		  (inhibit-read-only t))
 	      (when comint-prompt-read-only
-		(or (= (point-min) prompt-start)
-		    (get-text-property (1- prompt-start) 'read-only)
-		    (put-text-property
-		     (1- prompt-start) prompt-start 'read-only 'fence))
-		(add-text-properties
-		 prompt-start (point)
-		 '(read-only t rear-nonsticky t front-sticky (read-only))))
+                (with-silent-modifications
+                  (or (= (point-min) prompt-start)
+                      (get-text-property (1- prompt-start) 'read-only)
+                      (put-text-property
+                       (1- prompt-start) prompt-start 'read-only 'fence))
+                  (add-text-properties
+                   prompt-start (point)
+                   '(read-only t rear-nonsticky t front-sticky (read-only)))))
 	      (unless (and (bolp) (null comint-last-prompt-overlay))
 		;; Need to create or move the prompt overlay (in the case
 		;; where there is no prompt ((bolp) == t), we still do
@@ -2655,16 +2655,16 @@ read-only property of `fence', unless it already is read-only.
 If the character after point does not have a front-sticky
 read-only property, any read-only property of `fence' on the
 preceding newline is removed."
-  (let* ((pt (point)) (lst (get-text-property pt 'front-sticky))
-	 (inhibit-modification-hooks t))
+  (let* ((pt (point)) (lst (get-text-property pt 'front-sticky)))
     (and (bolp)
 	 (not (bobp))
-	 (if (and (get-text-property pt 'read-only)
-		  (if (listp lst) (memq 'read-only lst) t))
-	     (unless (get-text-property (1- pt) 'read-only)
-	       (put-text-property (1- pt) pt 'read-only 'fence))
-	   (when (eq (get-text-property (1- pt) 'read-only) 'fence)
-	     (remove-list-of-text-properties (1- pt) pt '(read-only)))))))
+         (with-silent-modifications
+           (if (and (get-text-property pt 'read-only)
+                    (if (listp lst) (memq 'read-only lst) t))
+               (unless (get-text-property (1- pt) 'read-only)
+                 (put-text-property (1- pt) pt 'read-only 'fence))
+             (when (eq (get-text-property (1- pt) 'read-only) 'fence)
+               (remove-list-of-text-properties (1- pt) pt '(read-only))))))))
 
 (defun comint-kill-whole-line (&optional count)
   "Kill current line, ignoring read-only and field properties.
