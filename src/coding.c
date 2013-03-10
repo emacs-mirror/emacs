@@ -7509,7 +7509,9 @@ decode_coding_gap (struct coding_system *coding,
 #ifndef CODING_DISABLE_ASCII_OPTIMIZATION
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
       && NILP (CODING_ATTR_POST_READ (attrs))
-      && NILP (get_translation_table (attrs, 0, NULL)))
+      && NILP (get_translation_table (attrs, 0, NULL))
+      && (inhibit_eol_conversion
+	  || EQ (CODING_ID_EOL_TYPE (coding->id), Qunix)))
     {
       /* We can skip the conversion if all source bytes are ASCII.  */
       if (coding->head_ascii < 0)
