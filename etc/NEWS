@@ -264,6 +264,8 @@ file using `set-file-extended-attributes'.
 
 * Lisp Changes in Emacs 24.4
 
+** `dont-compile' is declared obsolete.
+
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the
