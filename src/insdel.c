@@ -1162,14 +1162,16 @@ insert_from_buffer_1 (struct buffer *buf,
 
 /* Record undo information and adjust markers and position keepers for
    a replacement of a text PREV_TEXT at FROM to a new text of LEN
-   chars (LEN_BYTE bytes) which resides in the gap just after
-   GPT_ADDR.
+   chars (LEN_BYTE bytes).  If TEXT_AT_GAP_TAIL is zero, the new text
+   resides in the gap just after GPT_BYTE.  Otherwise, the text
+   resides at the gap tail; i.e. at (GAP_END_ADDR - LEN_BNYTE).
 
    PREV_TEXT nil means the new text was just inserted.  */
 
-static void
+void
 adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
-		      Lisp_Object prev_text, ptrdiff_t len, ptrdiff_t len_byte)
+		      Lisp_Object prev_text, ptrdiff_t len, ptrdiff_t len_byte,
+		      int text_at_gap_tail)
 {
   ptrdiff_t nchars_del = 0, nbytes_del = 0;
 
@@ -1189,8 +1191,11 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
   GAP_SIZE -= len_byte;
   ZV += len; Z+= len;
   ZV_BYTE += len_byte; Z_BYTE += len_byte;
-  GPT += len; GPT_BYTE += len_byte;
-  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
+  if (! text_at_gap_tail)
+    {
+      GPT += len; GPT_BYTE += len_byte;
+      if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
+    }
 
   if (nchars_del > 0)
     adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
@@ -1245,7 +1250,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
   GPT -= len; GPT_BYTE -= len_byte;
   ZV -= len; ZV_BYTE -= len_byte;
   Z -= len; Z_BYTE -= len_byte;
-  adjust_after_replace (from, from_byte, Qnil, newlen, len_byte);
+  adjust_after_replace (from, from_byte, Qnil, newlen, len_byte, 0);
 }
 
 /* Replace the text from character positions FROM to TO with NEW,

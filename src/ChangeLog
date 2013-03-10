@@ -1,3 +1,17 @@
+2013-03-10  handa  <handa@gnu.org>
+
+	* lisp.h (adjust_after_replace): Extern it.
+
+	* coding.c (detect_coding): Cound the heading ASCII bytes in the
+	case of detection for coding_category_utf_8_auto.
+	(decode_coding_gap) [not CODING_DISABLE_ASCII_OPTIMIZATION]: Skip
+	decoding if all bytes are ASCII.
+
+	* insdel.c (adjust_after_replace): Make it public.  New arg
+	text_at_gap_tail.
+	(adjust_after_insert): Call adjust_after_replace with the new arg
+	value 0.
+
 2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.h (EVENT_START, EVENT_END, POSN_WINDOW, POSN_POSN)
