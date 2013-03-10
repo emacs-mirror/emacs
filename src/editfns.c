@@ -669,7 +669,8 @@ If the optional argument INHIBIT-CAPTURE-PROPERTY is non-nil, and OLD-POS has
 a non-nil property of that name, then any field boundaries are ignored.
 
 Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
-  (Lisp_Object new_pos, Lisp_Object old_pos, Lisp_Object escape_from_edge, Lisp_Object only_in_line, Lisp_Object inhibit_capture_property)
+  (Lisp_Object new_pos, Lisp_Object old_pos, Lisp_Object escape_from_edge,
+   Lisp_Object only_in_line, Lisp_Object inhibit_capture_property)
 {
   /* If non-zero, then the original point, before re-positioning.  */
   ptrdiff_t orig_point = 0;
@@ -735,7 +736,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 	      /* This is the ONLY_IN_LINE case, check that NEW_POS and
 		 FIELD_BOUND are on the same line by seeing whether
 		 there's an intervening newline or not.  */
-	      || (find_newline (XFASTINT (new_pos), XFASTINT (field_bound),
+	      || (find_newline (XFASTINT (new_pos), -1,
+				XFASTINT (field_bound), -1,
 				fwd ? -1 : 1, &shortage, NULL, 1),
 		  shortage != 0)))
 	/* Constrain NEW_POS to FIELD_BOUND.  */

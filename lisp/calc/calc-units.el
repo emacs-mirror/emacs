@@ -503,11 +503,13 @@ If COMP or STD is non-nil, put that in the units table instead."
            (comp (eq (car-safe units) '+)))
        (unless (or unew std)
          (error "No units specified"))
-       (let ((res
-              (if std
-                  (math-simplify-units (math-to-standard-units expr (nth 1 std)))
-                (math-convert-units expr units (and uoldname (not (equal uoldname "1")))))))
-         (math-put-default-units res (if comp units))
+       (let* ((noold (and uoldname (not (equal uoldname "1"))))
+              (res
+               (if std
+                   (math-simplify-units (math-to-standard-units expr (nth 1 std)))
+                 (math-convert-units expr units noold))))
+         (unless std
+           (math-put-default-units (if noold units res) (if comp units)))
          (calc-enter-result 1 "cvun" res))))))
 
 (defun calc-autorange-units (arg)

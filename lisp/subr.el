@@ -2697,6 +2697,22 @@ If there is no plausible default, return nil."
 		     (setq to (point)))))
       (buffer-substring-no-properties from to))))
 
+(defun find-tag-default-as-regexp ()
+  "Return regexp that matches the default tag at point.
+If there is no tag at point, return nil.
+
+When in a major mode that does not provide its own
+`find-tag-default-function', return a regexp that matches the
+symbol at point exactly."
+  (let* ((tagf (or find-tag-default-function
+		   (get major-mode 'find-tag-default-function)
+		   'find-tag-default))
+	 (tag (funcall tagf)))
+    (cond ((not tag))
+	  ((eq tagf 'find-tag-default)
+	   (format "\\_<%s\\_>" (regexp-quote tag)))
+	  (t (regexp-quote tag)))))
+
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
 The following keywords are recognized:

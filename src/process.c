@@ -146,13 +146,13 @@ Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
 Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
 Lisp_Object QCname, QCtype;
 
-/* Non-zero if keyboard input is on hold, zero otherwise.  */
+/* True if keyboard input is on hold, zero otherwise.  */
 
-static int kbd_is_on_hold;
+static bool kbd_is_on_hold;
 
 /* Nonzero means don't run process sentinels.  This is used
    when exiting.  */
-int inhibit_sentinels;
+bool inhibit_sentinels;
 
 #ifdef subprocesses
 
@@ -234,9 +234,9 @@ static EMACS_INT update_tick;
 
 static int process_output_delay_count;
 
-/* Non-zero if any process has non-nil read_output_skip.  */
+/* True if any process has non-nil read_output_skip.  */
 
-static int process_output_skip;
+static bool process_output_skip;
 
 #else
 #define process_output_delay_count 0
@@ -244,7 +244,7 @@ static int process_output_skip;
 
 static void create_process (Lisp_Object, char **, Lisp_Object);
 #ifdef USABLE_SIGIO
-static int keyboard_bit_set (SELECT_TYPE *);
+static bool keyboard_bit_set (SELECT_TYPE *);
 #endif
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
@@ -527,7 +527,7 @@ status_convert (int w)
    and store them individually through the three pointers.  */
 
 static void
-decode_status (Lisp_Object l, Lisp_Object *symbol, int *code, int *coredump)
+decode_status (Lisp_Object l, Lisp_Object *symbol, int *code, bool *coredump)
 {
   Lisp_Object tem;
 
@@ -554,7 +554,8 @@ status_message (struct Lisp_Process *p)
 {
   Lisp_Object status = p->status;
   Lisp_Object symbol;
-  int code, coredump;
+  int code;
+  bool coredump;
   Lisp_Object string, string2;
 
   decode_status (status, &symbol, &code, &coredump);
@@ -1579,7 +1580,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   sigset_t blocked;
   /* Use volatile to protect variables from being clobbered by vfork.  */
   volatile int forkin, forkout;
-  volatile int pty_flag = 0;
+  volatile bool pty_flag = 0;
   volatile Lisp_Object lisp_pty_name = Qnil;
   volatile Lisp_Object encoded_current_dir;
 
@@ -1871,7 +1872,7 @@ void
 create_pty (Lisp_Object process)
 {
   int inchannel, outchannel;
-  int pty_flag = 0;
+  bool pty_flag = 0;
 
   inchannel = outchannel = -1;
 
@@ -2819,8 +2820,9 @@ usage: (make-network-process &rest ARGS)  */)
   Lisp_Object tem;
   Lisp_Object name, buffer, host, service, address;
   Lisp_Object filter, sentinel;
-  int is_non_blocking_client = 0;
-  int is_server = 0, backlog = 5;
+  bool is_non_blocking_client = 0;
+  bool is_server = 0;
+  int backlog = 5;
   int socktype;
   int family = -1;
 
@@ -3497,7 +3499,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   struct ifreq *ifreq;
   void *buf = NULL;
   ptrdiff_t buf_size = 512;
-  int s, i;
+  int s;
   Lisp_Object res;
 
   s = socket (AF_INET, SOCK_STREAM, 0);
@@ -3535,7 +3537,6 @@ format; see the description of ADDRESS in `make-network-process'.  */)
       int len = sizeof (*ifreq);
 #endif
       char namebuf[sizeof (ifq->ifr_name) + 1];
-      i += len;
       ifreq = (struct ifreq *) ((char *) ifreq + len);
 
       if (ifq->ifr_addr.sa_family != AF_INET)
@@ -3645,7 +3646,7 @@ FLAGS is the current flags of the interface.  */)
   Lisp_Object res = Qnil;
   Lisp_Object elt;
   int s;
-  int any = 0;
+  bool any = 0;
 #if (! (defined SIOCGIFHWADDR && defined HAVE_STRUCT_IFREQ_IFR_HWADDR)	\
      && defined HAVE_GETIFADDRS && defined LLADDR)
   struct ifaddrs *ifap;
@@ -3931,7 +3932,7 @@ Return non-nil if we received any output before the timeout expired.  */)
 
 /* Accept a connection for server process SERVER on CHANNEL.  */
 
-static int connect_counter = 0;
+static EMACS_INT connect_counter = 0;
 
 static void
 server_accept_connection (Lisp_Object server, int channel)
@@ -4186,7 +4187,7 @@ wait_reading_process_output_1 (void)
      process.  The return value is true if we read some input from
      that process.
 
-   If JUST_WAIT_PROC is non-nil, handle only output from WAIT_PROC
+   If JUST_WAIT_PROC is nonzero, handle only output from WAIT_PROC
      (suspending output from other processes).  A negative value
      means don't run any timers either.
 
@@ -4194,22 +4195,23 @@ wait_reading_process_output_1 (void)
      received input from that process before the timeout elapsed.
    Otherwise, return true if we received input from any process.  */
 
-int
+bool
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     bool do_display,
 			     Lisp_Object wait_for_cell,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
-  register int channel, nfds;
+  int channel, nfds;
   SELECT_TYPE Available;
   SELECT_TYPE Writeok;
-  int check_write;
-  int check_delay, no_avail;
+  bool check_write;
+  int check_delay;
+  bool no_avail;
   int xerrno;
   Lisp_Object proc;
   EMACS_TIME timeout, end_time;
   int wait_channel = -1;
-  int got_some_input = 0;
+  bool got_some_input = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   FD_ZERO (&Available);
@@ -4246,7 +4248,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   while (1)
     {
-      int timeout_reduced_for_timers = 0;
+      bool timeout_reduced_for_timers = 0;
 
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
@@ -4624,7 +4626,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  unsigned old_timers_run = timers_run;
 	  struct buffer *old_buffer = current_buffer;
 	  Lisp_Object old_window = selected_window;
-	  int leave = 0;
+	  bool leave = 0;
 
 	  if (detect_input_pending_run_timers (do_display))
 	    {
@@ -4945,7 +4947,7 @@ read_process_output (Lisp_Object proc, register int channel)
   else
 #endif
     {
-      int buffered = 0 <= proc_buffered_char[channel];
+      bool buffered = 0 <= proc_buffered_char[channel];
       if (buffered)
 	{
 	  chars[carryover] = proc_buffered_char[channel];
@@ -5261,7 +5263,7 @@ read_process_output (Lisp_Object proc, register int channel)
 
 static void
 write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
-                  const char *buf, ptrdiff_t len, int front)
+                  const char *buf, ptrdiff_t len, bool front)
 {
   ptrdiff_t offset;
   Lisp_Object entry, obj;
@@ -5286,10 +5288,10 @@ write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
 }
 
 /* Remove the first element in the write_queue of process P, put its
-   contents in OBJ, BUF and LEN, and return non-zero.  If the
-   write_queue is empty, return zero.  */
+   contents in OBJ, BUF and LEN, and return true.  If the
+   write_queue is empty, return false.  */
 
-static int
+static bool
 write_queue_pop (struct Lisp_Process *p, Lisp_Object *obj,
 		 const char **buf, ptrdiff_t *len)
 {
@@ -5650,7 +5652,7 @@ return t unconditionally.  */)
    If CURRENT_GROUP is lambda, that means send to the process group
    that currently owns the terminal, but only if it is NOT the shell itself.
 
-   If NOMSG is zero, insert signal-announcements into process's buffers
+   If NOMSG is false, insert signal-announcements into process's buffers
    right away.
 
    If we can, we try to signal PROCESS by sending control characters
@@ -5659,12 +5661,12 @@ return t unconditionally.  */)
 
 static void
 process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
-		     int nomsg)
+		     bool nomsg)
 {
   Lisp_Object proc;
-  register struct Lisp_Process *p;
+  struct Lisp_Process *p;
   pid_t gid;
-  int no_pgrp = 0;
+  bool no_pgrp = 0;
 
   proc = get_process (process);
   p = XPROCESS (proc);
@@ -6161,7 +6163,7 @@ handle_child_signal (int sig)
 	  /* If process has terminated, stop waiting for its output.  */
 	  if (WIFSIGNALED (status) || WIFEXITED (status))
 	    {
-	      int clear_desc_flag = 0;
+	      bool clear_desc_flag = 0;
 	      p->alive = 0;
 	      if (p->infd >= 0)
 		clear_desc_flag = 1;
@@ -6504,10 +6506,10 @@ delete_gpm_wait_descriptor (int desc)
 
 # ifdef USABLE_SIGIO
 
-/* Return nonzero if *MASK has a bit set
+/* Return true if *MASK has a bit set
    that corresponds to one of the keyboard input descriptors.  */
 
-static int
+static bool
 keyboard_bit_set (fd_set *mask)
 {
   int fd;
@@ -6557,7 +6559,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 
    Return true if we received input from any process.  */
 
-int
+bool
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     bool do_display,
 			     Lisp_Object wait_for_cell,
@@ -6589,7 +6591,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   while (1)
     {
-      int timeout_reduced_for_timers = 0;
+      bool timeout_reduced_for_timers = 0;
       SELECT_TYPE waitchannels;
       int xerrno;
 
@@ -6940,9 +6942,9 @@ unhold_keyboard_input (void)
   kbd_is_on_hold = 0;
 }
 
-/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+/* Return true if keyboard input is on hold, zero otherwise.  */
 
-int
+bool
 kbd_on_hold_p (void)
 {
   return kbd_is_on_hold;

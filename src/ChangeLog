@@ -1,3 +1,70 @@
+2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.h (EVENT_START, EVENT_END, POSN_WINDOW, POSN_POSN)
+	(POSN_WINDOW_POSN, POSN_TIMESTAMP): Be careful since events may come
+	from Elisp via unread-command-events.
+
+	* keyboard.c (access_keymap_keyremap): Accept nil return value from
+	functions to mean "no change".
+
+2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	region-cache.c, scroll.c, search.c: Use bool for booleans.
+	* lisp.h (compile_pattern):
+	* scroll.c (do_scrolling, do_direct_scrolling):
+	* search.c (struct regexp_cache, compile_pattern_1)
+	(compile_pattern, string_match_1, search_command)
+	(trivial_regexp_p, search_buffer, Freplace_match, match_limit)
+	(search_regs_saved, Fregexp_quote):
+	Use bool for boolean.
+	* region-cache.c (region_cache_forward, region_cache_backward):
+	Fix comments to match code: these functions return int, not boolean.
+
+2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* search.c (find_newline): Accept start and end byte positions
+	as arguments and allow -1 if not known.
+	(find_newline_no_quit): Likewise for start position.
+	* lisp.h (find_newline, find_newline_no_quit): Adjust prototype.
+	* bidi.c (bidi_find_paragraph_start): Pass byte position to
+	find_newline_no_quit, thus eliminating CHAR_TO_BYTE.
+	* editfns.c (Fconstrain_to_field): Break long line.
+	Adjust call to find_newline.
+	* indent.c (vmotion): Adjust calls to find_newline_no_quit.
+	Use DEC_BOTH to start next search from the previous buffer
+	position, where appropriate.
+	* xdisp.c (back_to_previous_line_start, forward_to_next_line_start)
+	(get_visually_first_element, move_it_vertically_backward): Likewise.
+	Obtain byte position from the display iterator, where appropriate.
+
+2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	print.c, process.c: Use bool for booleans.
+	* lisp.h (wait_reading_process_output):
+	* print.c (print_output_debug_flag, PRINTDECLARE, printchar)
+	(strout, debug_output_compilation_hack, float_to_string, print)
+	(print_object):
+	* process.c (kbd_is_on_hold, inhibit_sentinels, process_output_skip)
+	(decode_status, status_message, create_process, create_pty)
+	(Fmake_network_process, Fnetwork_interface_info)
+	(wait_reading_process_output, read_process_output)
+	(write_queue_push, write_queue_pop, process_send_signal)
+	(handle_child_signal, keyboard_bit_set, kbd_on_hold_p):
+	* process.h (struct Lisp_Process, inhibit_sentinels, kbd_on_hold_p):
+	Use bool for booleans.
+	* process.c (Fnetwork_interface_list): Remove unused local.
+	(connect_counter): Now EMACS_INT, not int.
+
+2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* bidi.c (bidi_fetch_char): Swap first and second arguments
+	to match other functions accepting character and byte positions.
+	Adjust comment.
+	(bidi_resolve_explicit_1, bidi_level_of_next_char): Adjust users.
+	(bidi_paragraph_init): Likewise.  Use DEC_BOTH which is faster
+	when you need just to move to the previous buffer position.
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Use DEC_BOTH.
+
 2013-03-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (prowlims): Display the enabled_p flag of the row.
@@ -212,8 +279,8 @@
 
 2013-03-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* textprop.c (Fadd_text_properties, Fremove_text_properties): If
-	the interval tree changes as a side effect of calling
+	* textprop.c (Fadd_text_properties, Fremove_text_properties):
+	If the interval tree changes as a side effect of calling
 	modify_region, re-do processing starting from the call to
 	validate_interval_range.  (Bug#13743)
 
@@ -289,8 +356,8 @@
 	* textprop.c (Fadd_text_properties, Fremove_text_properties)
 	(Fremove_list_of_text_properties): Skip all of the intervals in
 	the region between START and END that already have resp. don't
-	have the requested properties, not just the first one.  Add
-	assertions that the loop afterwards always modifies the
+	have the requested properties, not just the first one.
+	Add assertions that the loop afterwards always modifies the
 	properties.  (Bug#13743)
 
 2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>

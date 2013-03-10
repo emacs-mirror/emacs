@@ -910,7 +910,7 @@ bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, bool unibyte)
   return STRING_CHAR (s);
 }
 
-/* Fetch and return the character at BYTEPOS/CHARPOS.  If that
+/* Fetch and return the character at CHARPOS/BYTEPOS.  If that
    character is covered by a display string, treat the entire run of
    covered characters as a single character, either u+2029 or u+FFFC,
    and return their combined length in CH_LEN and NCHARS.  DISP_POS
@@ -925,7 +925,7 @@ bidi_char_at_pos (ptrdiff_t bytepos, const unsigned char *s, bool unibyte)
    string to iterate, or NULL if iterating over a buffer or a Lisp
    string; in the latter case, STRING->lstring is the Lisp string.  */
 static int
-bidi_fetch_char (ptrdiff_t bytepos, ptrdiff_t charpos, ptrdiff_t *disp_pos,
+bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 		 int *disp_prop, struct bidi_string_data *string,
 		 bool frame_window_p, ptrdiff_t *ch_len, ptrdiff_t *nchars)
 {
@@ -1104,11 +1104,14 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   while (pos_byte > BEGV_BYTE
 	 && n++ < MAX_PARAGRAPH_SEARCH
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
-    /* FIXME: What if the paragraph beginning is covered by a
-       display string?  And what if a display string covering some
-       of the text over which we scan back includes
-       paragraph_start_re?  */
-    pos = find_newline_no_quit (pos - 1, -1, &pos_byte);
+    {
+      /* FIXME: What if the paragraph beginning is covered by a
+	 display string?  And what if a display string covering some
+	 of the text over which we scan back includes
+	 paragraph_start_re?  */
+      DEC_BOTH (pos, pos_byte);
+      pos = find_newline_no_quit (pos, pos_byte, -1, &pos_byte);
+    }
   if (n >= MAX_PARAGRAPH_SEARCH)
     pos_byte = BEGV_BYTE;
   return pos_byte;
@@ -1220,7 +1223,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 	bytepos = pstartbyte;
 	if (!string_p)
 	  pos = BYTE_TO_CHAR (bytepos);
-	ch = bidi_fetch_char (bytepos, pos, &disp_pos, &disp_prop,
+	ch = bidi_fetch_char (pos, bytepos, &disp_pos, &disp_prop,
 			      &bidi_it->string,
 			      bidi_it->frame_window_p, &ch_len, &nchars);
 	type = bidi_get_type (ch, NEUTRAL_DIR);
@@ -1248,7 +1251,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 		&& bidi_at_paragraph_end (pos, bytepos) >= -1)
 	      break;
 	    /* Fetch next character and advance to get past it.  */
-	    ch = bidi_fetch_char (bytepos, pos, &disp_pos,
+	    ch = bidi_fetch_char (pos, bytepos, &disp_pos,
 				  &disp_prop, &bidi_it->string,
 				  bidi_it->frame_window_p, &ch_len, &nchars);
 	    pos += nchars;
@@ -1279,8 +1282,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 		    /* FXIME: What if p is covered by a display
 		       string?  See also a FIXME inside
 		       bidi_find_paragraph_start.  */
-		    p--;
-		    pbyte = CHAR_TO_BYTE (p);
+		    DEC_BOTH (p, pbyte);
 		    prevpbyte = bidi_find_paragraph_start (p, pbyte);
 		  }
 		pstartbyte = prevpbyte;
@@ -1398,7 +1400,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       /* Fetch the character at BYTEPOS.  If it is covered by a
 	 display string, treat the entire run of covered characters as
 	 a single character u+FFFC.  */
-      curchar = bidi_fetch_char (bidi_it->bytepos, bidi_it->charpos,
+      curchar = bidi_fetch_char (bidi_it->charpos, bidi_it->bytepos,
 				 &bidi_it->disp_pos, &bidi_it->disp_prop,
 				 &bidi_it->string, bidi_it->frame_window_p,
 				 &bidi_it->ch_len, &bidi_it->nchars);
@@ -2191,7 +2193,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       if (bidi_it->nchars <= 0)
 	emacs_abort ();
       do {
-	ch = bidi_fetch_char (bpos += clen, cpos += nc, &disp_pos, &dpp, &bs,
+	ch = bidi_fetch_char (cpos += nc, bpos += clen, &disp_pos, &dpp, &bs,
 			      fwp, &clen, &nc);
 	if (ch == '\n' || ch == BIDI_EOB)
 	  chtype = NEUTRAL_B;

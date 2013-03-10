@@ -159,7 +159,7 @@ struct Lisp_Process
     gnutls_anon_client_credentials_t gnutls_anon_cred;
     int gnutls_log_level;
     int gnutls_handshakes_tried;
-    int gnutls_p;
+    unsigned int gnutls_p : 1;
 #endif
 };
 
@@ -185,9 +185,9 @@ pset_gnutls_cred_type (struct Lisp_Process *p, Lisp_Object val)
 }
 #endif
 
-/* Nonzero means don't run process sentinels.  This is used
+/* True means don't run process sentinels.  This is used
    when exiting.  */
-extern int inhibit_sentinels;
+extern bool inhibit_sentinels;
 
 extern Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname;
 extern Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime;
@@ -209,7 +209,7 @@ extern Lisp_Object system_process_attributes (Lisp_Object);
 
 extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
-extern int kbd_on_hold_p (void);
+extern bool kbd_on_hold_p (void);
 
 typedef void (*fd_callback) (int fd, void *data);
 

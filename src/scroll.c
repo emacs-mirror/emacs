@@ -246,9 +246,8 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
   struct matrix_elt *p;
   int i, j, k;
 
-  /* Set to 1 if we have set a terminal window with
-     set_terminal_window.  It's unsigned to work around GCC bug 48228.  */
-  unsigned int terminal_window_p = 0;
+  /* True if we have set a terminal window with set_terminal_window.  */
+  bool terminal_window_p = 0;
 
   /* A queue for line insertions to be done.  */
   struct queue { int count, pos; };
@@ -657,18 +656,16 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
     alloca (window_size * sizeof *queue_start);
   struct alt_queue *queue = queue_start;
 
-  /* Set to 1 if a terminal window has been set with
-     set_terminal_window: */
-  int terminal_window_p = 0;
+  /* True if a terminal window has been set with set_terminal_window.  */
+  bool terminal_window_p = 0;
 
-  /* A nonzero value of write_follows indicates that a write has been
-     selected, allowing either an insert or a delete to be selected
-     next.  When write_follows is zero, a delete cannot be selected
+  /* If true, a write has been selected, allowing either an insert or a
+     delete to be selected next.  If false, a delete cannot be selected
      unless j < i, and an insert cannot be selected unless i < j.
      This corresponds to a similar restriction (with the ordering
      reversed) in calculate_direct_scrolling, which is intended to
      ensure that lines marked as inserted will be blank. */
-  int write_follows_p = 1;
+  bool write_follows_p = 1;
 
   /* For each row in the new matrix what row of the old matrix it is.  */
   int *copy_from = alloca (window_size * sizeof *copy_from);

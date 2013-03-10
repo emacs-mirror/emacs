@@ -603,15 +603,7 @@ If HISTORY is nil, `regexp-history' is used."
 	  (append
 	   suggestions
 	   (list
-	    ;; Regexp for tag at point.
-	    (let* ((tagf (or find-tag-default-function
-			     (get major-mode 'find-tag-default-function)
-			     'find-tag-default))
-		   (tag (funcall tagf)))
-	      (cond ((not tag) "")
-		    ((eq tagf 'find-tag-default)
-		     (format "\\_<%s\\_>" (regexp-quote tag)))
-		    (t (regexp-quote tag))))
+	    (find-tag-default-as-regexp)
 	    (car regexp-search-ring)
 	    (regexp-quote (or (car search-ring) ""))
 	    (car (symbol-value query-replace-from-history-variable)))))
