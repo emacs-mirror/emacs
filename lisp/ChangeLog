@@ -1,3 +1,9 @@
+2013-03-10  Jambunathan K  <kjambunathan@gmail.com>
+
+	* replace.el (occur-read-regexp-defaults-function): New var.
+	(occur-read-regexp-defaults): New defun.
+	(occur-read-primary-args): Propagate above change (bug#13892).
+
 2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-drag-track): Remove left-over debugging code.
