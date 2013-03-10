@@ -55,7 +55,7 @@ General steps (for each step, check for possible errors):
     from now when you intend to make the release.  Use M-x add-release-logs
     to add the ChangeLog entries for that date to the tar file (but
     not yet to the repository).  Name the tar file as
-    emacs-XX-Y-rc1.tar.  If all goes well in the following week, you
+    emacs-XX.Y-rc1.tar.  If all goes well in the following week, you
     can simply rename the file and use it for the actual release.
 
 5.   autoreconf -i -I m4 --force
