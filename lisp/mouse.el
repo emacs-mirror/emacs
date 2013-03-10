@@ -850,7 +850,6 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
     (track-mouse
       (while (progn
 	       (setq event (read-event))
-               (trace-values event)
 	       (or (mouse-movement-p event)
 		   (memq (car-safe event) '(switch-frame select-window))))
 	(unless (memq (car-safe event) '(switch-frame select-window))

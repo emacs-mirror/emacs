@@ -27859,7 +27859,8 @@ while typing @kbd{u c au/yr @key{RET}} produces
 
 If the units you request are inconsistent with the original units, the
 number will be converted into your units times whatever ``remainder''
-units are left over.  For example, converting @samp{55 mph} into acres
+units are left over.  (This can be disabled; @pxref{Customizing Calc}.)
+For example, converting @samp{55 mph} into acres
 produces @samp{6.08e-3 acre / m s}.  (Recall that multiplication binds
 more strongly than division in Calc formulas, so the units here are
 acres per meter-second.)  Remainder units are expressed in terms of
@@ -27874,12 +27875,6 @@ given the input @samp{980 cm/s^2}, the command @kbd{u c ms} will
 change the @samp{s} to @samp{ms} to get @samp{9.8e-4 cm/ms^2}.
 The ``remainder unit'' @samp{cm} is left alone rather than being
 changed to the base unit @samp{m}.
-
-If you want to disallow using inconsistent units, you can set the
-customizable variable @code{calc-ensure-consistent-units} to @code{t}
-(@pxref{Customizing Calc}).  In this case, if you request units which
-are inconsistent with the original units, you will be warned about it
-and no conversion will occur.
 
 You can use explicit unit conversion instead of the @kbd{u s} command
 to gain more control over the units of the result of an expression.
@@ -27916,13 +27911,11 @@ prompt first for the old units which this value should be considered
 to have, then for the new units.  (If the value on the stack can be
 simplified so that it doesn't contain any units, like @samp{ft/in} can
 be simplified to 12, then @kbd{u c} will still prompt for both old
-units and new units. You can ignore the prompt for old units with
-@key{RET}, or turn off the prompt by setting the customizable variable
-@code{calc-allow-units-as-numbers} to @code{nil};
-@pxref{Customizing Calc}.)  Assuming the old and new units you give are
-consistent with each other, the result also will not contain any
-units.  For example, @kbd{@w{u c} cm @key{RET} in @key{RET}} converts
-the number 2 on the stack to 5.08.
+units and new units. This can be disabled; @pxref{Customizing Calc}.)  
+Assuming the old and new units you give are consistent with each
+other, the result also will not contain any units.  For example,
+@kbd{@w{u c} cm @key{RET} in @key{RET}} converts the number 2 on the
+stack to 5.08.
 
 @kindex u b
 @pindex calc-base-units

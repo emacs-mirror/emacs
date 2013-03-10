@@ -1135,12 +1135,32 @@ which means to discard all text properties."
   :group 'matching
   :version "22.1")
 
+(defvar occur-read-regexp-defaults-function
+  'occur-read-regexp-defaults
+  "Function that provides default regexp(s) for occur commands.
+This function should take no arguments and return one of nil, a
+regexp or a list of regexps for use with occur commands -
+`occur', `multi-occur' and `multi-occur-in-matching-buffers'.
+The return value of this function is used as DEFAULTS param of
+`read-regexp' while executing the occur command.  This function
+is called only during interactive use.
+
+For example, to check for occurrence of symbol at point use
+
+    \(setq occur-read-regexp-defaults-function
+	  'find-tag-default-as-regexp\).")
+
+(defun occur-read-regexp-defaults ()
+  "Return the latest regexp from `regexp-history'.
+See `occur-read-regexp-defaults-function' for details."
+  (car regexp-history))
+
 (defun occur-read-primary-args ()
   (let* ((perform-collect (consp current-prefix-arg))
          (regexp (read-regexp (if perform-collect
                                   "Collect strings matching regexp"
                                 "List lines matching regexp")
-                              (car regexp-history))))
+                              (funcall occur-read-regexp-defaults-function))))
     (list regexp
 	  (if perform-collect
 	      ;; Perform collect operation
