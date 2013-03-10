@@ -3161,7 +3161,7 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
   HDROP hdrop;
   POINT p;
   WORD num_files;
-  char *name;
+  guichar_t *name;
   int i, len;
 
   result->kind = DRAG_N_DROP_EVENT;
@@ -3186,12 +3186,17 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
 
   for (i = 0; i < num_files; i++)
     {
-      len = DragQueryFile (hdrop, i, NULL, 0);
+      len = GUI_FN (DragQueryFile) (hdrop, i, NULL, 0);
       if (len <= 0)
 	continue;
-      name = alloca (len + 1);
-      DragQueryFile (hdrop, i, name, len + 1);
+
+      name = alloca ((len + 1) * sizeof (*name));
+      GUI_FN (DragQueryFile) (hdrop, i, name, len + 1);
+#ifdef NTGUI_UNICODE
+      files = Fcons (from_unicode_buffer (name), files);
+#else
       files = Fcons (DECODE_FILE (build_string (name)), files);
+#endif /* NTGUI_UNICODE */
     }
 
   DragFinish (hdrop);

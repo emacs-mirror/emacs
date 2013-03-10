@@ -286,6 +286,10 @@ encode_coding_XXX (struct coding_system *coding)
 #include <config.h>
 #include <stdio.h>
 
+#ifdef HAVE_WCHAR_H
+#include <wchar.h>
+#endif /* HAVE_WCHAR_H */
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -8001,6 +8005,16 @@ from_unicode (Lisp_Object str)
     }
 
   return code_convert_string_norecord (str, Qutf_16le, 0);
+}
+
+Lisp_Object
+from_unicode_buffer (const wchar_t* wstr)
+{
+    return from_unicode (
+        make_unibyte_string (
+            (char*) wstr,
+            /* we get one of the two final 0 bytes for free. */
+            1 + sizeof (wchar_t) * wcslen (wstr)));
 }
 
 wchar_t *

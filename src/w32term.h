@@ -761,6 +761,23 @@ extern const char*
 w32_name_of_message (UINT msg);
 #endif /* EMACSDEBUG */
 
+#ifdef NTGUI_UNICODE
+extern Lisp_Object ntgui_encode_system (Lisp_Object str);
+#define GUISTR(x) (L ## x)
+#define GUI_ENCODE_FILE GUI_ENCODE_SYSTEM
+#define GUI_ENCODE_SYSTEM(x) ntgui_encode_system (x)
+#define GUI_FN(fn) fn ## W
+typedef wchar_t guichar_t;
+#else /* !NTGUI_UNICODE */
+#define GUISTR(x) x
+#define GUI_ENCODE_FILE ENCODE_FILE
+#define GUI_ENCODE_SYSTEM ENCODE_SYSTEM
+#define GUI_FN(fn) fn
+typedef char guichar_t;
+#endif /* NTGUI_UNICODE */
+
+#define GUI_SDATA(x) ((guichar_t*) SDATA (x))
+
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);
 extern void syms_of_w32fns (void);

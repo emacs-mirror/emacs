@@ -1,3 +1,28 @@
+2013-03-10  Daniel Colascione  <dancol@dancol.org>
+
+	* w32term.h (GUISTR, GUI_ENCODE_FILE, GUI_ENCODE_SYSTEM, GUI_FN)
+	(GUI_SDATA, guichar_t): Macros to abstract out differences between
+	NTGUI_UNICODE and !NTGUI_UNICODE builds, some moved out of
+	w32fns.c.
+
+	* w32term.c (construct_drag_n_drop): Use the above macros to make
+	drag-and-drop work for non-ASCII filenames in cygw32 builds.
+
+	* w32fns.c (x_set_name, x_set_title): Use the above macros to
+	properly display non-ASCII frame titles in cygw32 builds.
+
+	* w32fns.c (Fw32_shell_execute): Use the above macros to properly
+	call ShellExecute in cygw32 builds.
+
+	* w32fn.c (Fx_file_dialog): Use the above macros to simplify the
+	common file dialog code.
+
+	* w32fns.c (Ffile_system_info): Remove from cygw32 builds, which
+	can just use du like other systems.
+
+	* coding.c (from_unicode_buffer): Declare.
+	* coding.c (from_unicode_buffer): Implement.
+
 2013-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c: Minor cleanup.
