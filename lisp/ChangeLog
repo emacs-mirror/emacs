@@ -1,5 +1,12 @@
 2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/xterm.el (xterm--report-background-handler): Don't burp
+	upon timeout.
+	(xterm--version-handler): Extract from terminal-init-xterm.
+	(xterm--query): Don't mishandle timeout.  Remove debugging messages.
+	Allow multiple handlers.
+	(terminal-init-xterm): Handle OSX's Terminal.app's incorrect answer.
+
 	* term/xterm.el: Don't discard input (bug#6758).  Use lexical-binding.
 	(xterm--report-background-handler, xterm--query): New functions.
 	(terminal-init-xterm): Use them.
