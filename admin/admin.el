@@ -211,17 +211,33 @@ Root must be the root of an Emacs source tree."
       (manual-pdf texi (expand-file-name "elisp.pdf" dest))
       (manual-dvi texi (expand-file-name "elisp.dvi" dvi-dir)
 		  (expand-file-name "elisp.ps" ps-dir)))
+    (let ((texi (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root))
+	  (dest (expand-file-name "emacs-lisp-intro" dest))
+	  dest2 dest3)
+      ;; Mimic the atypical directory layout used for emacs-lisp-intro.
+      (make-directory dest)
+      (make-directory (setq dest2 (expand-file-name "html_node" dest)))
+      (manual-html-node texi dest2)
+      (make-directory (setq dest2 (expand-file-name "html_mono" dest)))
+      (manual-html-mono texi (expand-file-name "emacs-lisp-intro.html" dest2))
+      (make-directory (setq dest2 (expand-file-name "txt" dest)))
+      (manual-txt texi (expand-file-name "emacs-lisp-intro.txt" dest2))
+      (manual-pdf texi (expand-file-name "emacs-lisp-intro.pdf" dest))
+      (make-directory (setq dest2 (expand-file-name "dvi" dest)))
+      (make-directory (setq dest3 (expand-file-name "ps" dest)))
+      (manual-dvi texi (expand-file-name "emacs-lisp-intro.dvi" dest2)
+		  (expand-file-name "emacs-lisp-intro.ps" dest3)))
     ;; Misc manuals
-    (let ((manuals '("ada-mode" "auth" "autotype" "calc" "cc-mode"
+    (let ((manuals '("ada-mode" "auth" "autotype" "bovine" "calc" "cc-mode"
 		     "cl" "dbus" "dired-x" "ebrowse" "ede" "ediff"
-		     "edt" "eieio" "emacs-mime" "epa" "erc" "ert"
+		     "edt" "eieio" "emacs-gnutls" "emacs-mime" "epa" "erc" "ert"
 		     "eshell" "eudc" "faq" "flymake" "forms"
-		     "gnus" "emacs-gnutls" "idlwave" "info"
+		     "gnus" "htmlfontify" "idlwave" "info"
 		     "mairix-el" "message" "mh-e" "newsticker"
 		     "nxml-mode" "org" "pcl-cvs" "pgg" "rcirc"
-		     "remember" "reftex" "sasl" "sc" "semantic"
-		     "ses" "sieve" "smtpmail" "speedbar" "tramp"
-		     "url" "vip" "viper" "widget" "woman")))
+		     "reftex" "remember" "sasl" "sc" "semantic"
+		     "ses" "sieve" "smtpmail" "speedbar" "srecode" "tramp"
+		     "url" "vip" "viper" "widget" "wisent" "woman")))
       (dolist (manual manuals)
 	(manual-misc-html manual root html-node-dir html-mono-dir)))
     (message "Manuals created in %s" dest)))
@@ -252,6 +268,10 @@ This function also edits the HTML files so that they validate as
 HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
   (call-process "makeinfo" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
 		"--html" "--no-split" texi-file "-o" dest)
   (with-temp-buffer
     (insert-file-contents dest)
@@ -273,6 +293,10 @@ the @import directive."
   (unless (file-exists-p texi-file)
     (error "Manual file %s not found" texi-file))
   (call-process "makeinfo" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
 		"--html" texi-file "-o" dir)
   ;; Loop through the node files, fixing them up.
   (dolist (f (directory-files dir nil "\\.html\\'"))
@@ -304,6 +328,10 @@ the @import directive."
 (defun manual-txt (texi-file dest)
   "Run Makeinfo on TEXI-FILE, emitting plaintext output to DEST."
   (call-process "makeinfo" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
 		"--plaintext" "--no-split" texi-file "-o" dest)
   (shell-command (concat "gzip -c " dest " > " (concat dest ".gz"))))
 

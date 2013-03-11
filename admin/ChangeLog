@@ -1,5 +1,12 @@
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
+	* admin.el (make-manuals): Add emacs-lisp-intro and some more
+	doc/misc manuals.
+	(manual-html-mono, manual-html-node, manual-txt):
+	Pass -I to makeinfo.
+
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
 	* Version 24.3 released.
 
 2012-10-12  Kenichi Handa  <handa@gnu.org>
