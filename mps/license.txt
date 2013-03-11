@@ -25,7 +25,7 @@ a manner similar to MySQL.
 License
 -------
 
-Copyright © 2001–2012 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
+Copyright © 2001–2013 `Ravenbrook Limited <http://www.ravenbrook.com/>`_.
 All rights reserved.  This is the open source license for the Memory
 Pool System, but it is not the only one.  Contact Ravenbrook at
 `<mps-questions@ravenbrook.com>`_ if you would like a different
