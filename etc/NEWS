@@ -85,6 +85,8 @@ Eg View mode, etc.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** Recentf looks for ~/.emacs.d/recentf additionally to ~/.recentf.
+
 ** Delphi mode is now called OPascal mode.
 *** All delphi-* variables and functions have been renamed to opascal-*.
 *** `delphi-newline-always-indents' is not supported any more
