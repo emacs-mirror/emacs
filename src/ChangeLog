@@ -1,3 +1,11 @@
+2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c: Move keyboard decoding to read_key_sequence.
+	(decode_keyboard_code): Remove.
+	(tty_read_avail_input): Don't try to decode input.
+	(read_decoded_char): New function.
+	(read_key_sequence): Use it.
+
 2013-03-10  Daniel Colascione  <dancol@dancol.org>
 
 	* w32term.h (GUISTR, GUI_ENCODE_FILE, GUI_ENCODE_SYSTEM, GUI_FN)

@@ -6815,48 +6815,6 @@ gobble_input (void)
   return nread;
 }
 
-static void
-decode_keyboard_code (struct tty_display_info *tty,
-		      struct coding_system *coding,
-		      unsigned char *buf, int nbytes)
-{
-  unsigned char *src = buf;
-  const unsigned char *p;
-  int i;
-
-  if (nbytes == 0)
-    return;
-  if (tty->meta_key != 2)
-    for (i = 0; i < nbytes; i++)
-      buf[i] &= ~0x80;
-  if (coding->carryover_bytes > 0)
-    {
-      src = alloca (coding->carryover_bytes + nbytes);
-      memcpy (src, coding->carryover, coding->carryover_bytes);
-      memcpy (src + coding->carryover_bytes, buf, nbytes);
-      nbytes += coding->carryover_bytes;
-    }
-  coding->destination = alloca (nbytes * 4);
-  coding->dst_bytes = nbytes * 4;
-  decode_coding_c_string (coding, src, nbytes, Qnil);
-  if (coding->produced_char == 0)
-    return;
-  for (i = 0, p = coding->destination; i < coding->produced_char; i++)
-    {
-      struct input_event event_buf;
-
-      EVENT_INIT (event_buf);
-      event_buf.code = STRING_CHAR_ADVANCE (p);
-      event_buf.kind =
-	(ASCII_CHAR_P (event_buf.code)
-	 ? ASCII_KEYSTROKE_EVENT : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-      /* See the comment in tty_read_avail_input.  */
-      event_buf.frame_or_window = tty->top_frame;
-      event_buf.arg = Qnil;
-      kbd_buffer_store_event (&event_buf);
-    }
-}
-
 /* This is the tty way of reading available input.
 
    Note that each terminal device has its own `struct terminal' object,
@@ -7013,36 +6971,6 @@ tty_read_avail_input (struct terminal *terminal,
 
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
-
-  if (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
-      & CODING_REQUIRE_DECODING_MASK)
-    {
-      struct coding_system *coding = TERMINAL_KEYBOARD_CODING (terminal);
-      int from;
-
-      /* Decode the key sequence except for those with meta
-	 modifiers.  */
-      for (i = from = 0; ; i++)
-	if (i == nread || (tty->meta_key == 1 && (cbuf[i] & 0x80)))
-	  {
-	    struct input_event buf;
-
-	    decode_keyboard_code (tty, coding, cbuf + from, i - from);
-	    if (i == nread)
-	      break;
-
-	    EVENT_INIT (buf);
-	    buf.kind = ASCII_KEYSTROKE_EVENT;
-	    buf.modifiers = meta_modifier;
-	    buf.code = cbuf[i] & ~0x80;
-	    /* See the comment below.  */
-	    buf.frame_or_window = tty->top_frame;
-	    buf.arg = Qnil;
-	    kbd_buffer_store_event (&buf);
-	    from = i + 1;
-	  }
-      return nread;
-    }
 
   for (i = 0; i < nread; i++)
     {
@@ -8783,6 +8711,71 @@ test_undefined (Lisp_Object binding)
 	      && EQ (Fcommand_remapping (binding, Qnil, Qnil), Qundefined)));
 }
 
+/* Like `read_char' but applies keyboard-coding-system to tty input.  */
+static Lisp_Object
+read_decoded_char (int commandflag, Lisp_Object map,
+		   Lisp_Object prev_event, bool *used_mouse_menu)
+{
+#define MAX_ENCODED_BYTES 16
+  Lisp_Object events[MAX_ENCODED_BYTES];
+  int n = 0;
+  while (true)
+    {
+      Lisp_Object nextevt
+	= read_char (commandflag, map, prev_event, used_mouse_menu, NULL);
+      struct frame *frame = XFRAME (selected_frame);
+      struct terminal *terminal = frame->terminal;
+      if (!((FRAME_TERMCAP_P (frame) || FRAME_MSDOS_P (frame))
+	    && (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
+		& CODING_REQUIRE_DECODING_MASK)))
+	return nextevt;		/* No decoding needed.  */
+      else
+	{
+	  int meta_key = terminal->display_info.tty->meta_key;
+	  eassert (n < MAX_ENCODED_BYTES);
+	  events[n++] = nextevt;
+	  if (NATNUMP (nextevt)
+	      && XINT (nextevt) < (meta_key == 1 ? 0x80 : 0x100))
+	    { /* An encoded byte sequence, let's try to decode it.  */
+	      struct coding_system *coding
+		= TERMINAL_KEYBOARD_CODING (terminal);
+	      unsigned char *src = alloca (n);
+	      int i;
+	      for (i = 0; i < n; i++)
+		src[i] = XINT (events[i]);
+	      if (meta_key != 2)
+		for (i = 0; i < n; i++)
+		  src[i] &= ~0x80;
+	      coding->destination = alloca (n * 4);
+	      coding->dst_bytes = n * 4;
+	      decode_coding_c_string (coding, src, n, Qnil);
+	      eassert (coding->produced_char <= n);
+	      if (coding->produced_char == 0)
+		{ /* The encoded sequence is incomplete.  */
+		  if (n < MAX_ENCODED_BYTES) /* Avoid buffer overflow.  */
+		    continue;		     /* Read on!  */
+		}
+	      else
+		{
+		  const unsigned char *p = coding->destination;
+		  eassert (coding->carryover_bytes == 0);
+		  n = 0;
+		  while (n < coding->produced_char)
+		    events[n++] = make_number (STRING_CHAR_ADVANCE (p));
+		}
+	    }
+	  /* Now `events' should hold decoded events.
+	     Normally, n should be equal to 1, but better not rely on it.
+	     We can only return one event here, so return the first we
+	     had and keep the others (if any) for later.  */
+	  while (n > 1)
+	    Vunread_command_events
+	      = Fcons (events[--n], Vunread_command_events);
+	  return events[0];
+	}
+    }
+}
+
 /* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size BUFSIZE.
    Prompt with PROMPT.
@@ -9060,9 +9053,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  {
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    key = read_char (NILP (prompt),
-			     current_binding, last_nonmenu_event,
-			     &used_mouse_menu, NULL);
+	    key = read_decoded_char (NILP (prompt),
+				     current_binding, last_nonmenu_event,
+				     &used_mouse_menu);
 	    if ((INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 		/* When switching to a new tty (with a new keyboard),
 		   read_char returns the new buffer, rather than -2
@@ -10553,7 +10546,7 @@ See also `current-input-mode'.  */)
   if (tty->flow_control != !NILP (flow))
     {
 #ifndef DOS_NT
-      /* this causes startup screen to be restored and messes with the mouse */
+      /* This causes startup screen to be restored and messes with the mouse.  */
       reset_sys_modes (tty);
 #endif
 
