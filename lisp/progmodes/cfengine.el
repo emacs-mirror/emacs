@@ -5,7 +5,7 @@
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: languages
-;; Version: 1.1
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -94,7 +94,7 @@ This includes those for cfservd as well as cfagent.")
     (regexp-opt cfengine3-defuns t)
     "Regex to match the CFEngine 3.x defuns.")
 
-  (defconst cfengine3-class-selector-regex "\\([[:alnum:]_().&|!]+\\)::")
+  (defconst cfengine3-class-selector-regex "\\([[:alnum:]_().&|!:]+\\)::")
 
   (defconst cfengine3-category-regex "\\([[:alnum:]_]+\\):")
 
@@ -127,7 +127,7 @@ This includes those for cfservd as well as cfagent.")
     ;; patterns.
     (,(concat "\\<" cfengine3-defuns-regex "\\>"
               "[ \t]+\\<\\([[:alnum:]_]+\\)\\>"
-              "[ \t]+\\<\\([[:alnum:]_]+\\)"
+              "[ \t]+\\<\\([[:alnum:]_:]+\\)"
               ;; Optional parentheses with variable names inside.
               "\\(?:(\\([^)]*\\))\\)?")
      (1 font-lock-builtin-face)
@@ -144,8 +144,8 @@ This includes those for cfservd as well as cfagent.")
      1 font-lock-builtin-face)
 
     ;; Variables, including scope, e.g. module.var
-    ("[@$](\\([[:alnum:]_.]+\\))" 1 font-lock-variable-name-face)
-    ("[@$]{\\([[:alnum:]_.]+\\)}" 1 font-lock-variable-name-face)
+    ("[@$](\\([[:alnum:]_.:]+\\))" 1 font-lock-variable-name-face)
+    ("[@$]{\\([[:alnum:]_.:]+\\)}" 1 font-lock-variable-name-face)
 
     ;; Variable definitions.
     ("\\<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1 font-lock-variable-name-face)
@@ -317,6 +317,8 @@ Intended as the value of `indent-line-function'."
             (indent-line-to (save-excursion
                               (forward-char)
                               (backward-sexp)
+                              (move-beginning-of-line nil)
+                              (skip-chars-forward " \t")
                               (current-column)))
           (error nil)))
        ;; Inside a string and it starts before this line.
@@ -436,7 +438,8 @@ Intended as the value of `indent-line-function'."
   ;; The syntax defaults seem OK to give reasonable word movement.
   (modify-syntax-entry ?# "<" table)
   (modify-syntax-entry ?\n ">#" table)
-  (modify-syntax-entry ?\" "\"" table)
+  (modify-syntax-entry ?\" "\"" table)  ; "string"
+  (modify-syntax-entry ?\' "\"" table)  ; 'string'
   ;; Variable substitution.
   (modify-syntax-entry ?$ "." table)
   ;; Doze path separators.
@@ -475,7 +478,6 @@ to the action header."
   ;; Shell commands can be quoted by single, double or back quotes.
   ;; It's debatable whether we should define string syntax, but it
   ;; should avoid potential confusion in some cases.
-  (modify-syntax-entry ?\' "\"" cfengine2-mode-syntax-table)
   (modify-syntax-entry ?\` "\"" cfengine2-mode-syntax-table)
 
   (set (make-local-variable 'indent-line-function) #'cfengine2-indent-line)
@@ -505,7 +507,7 @@ on the buffer contents"
         (forward-line)))
     (if v3 (cfengine3-mode) (cfengine2-mode))))
 
-(defalias 'cfengine-mode 'cfengine-auto-mode)
+(defalias 'cfengine-mode 'cfengine3-mode)
 
 (provide 'cfengine3)
 (provide 'cfengine)
