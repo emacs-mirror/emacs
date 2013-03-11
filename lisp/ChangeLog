@@ -1,3 +1,23 @@
+2013-03-11  Michael R. Mauger  <michael@mauger.com>
+
+	* progmodes/sql.el Version 3.2
+	Please note that my address changed to <michael@mauger.com>;
+	the <mmaug@yahoo.com> address remains active.
+	(sql-connection-alist): Updates documentation to fix bug#13715.
+	(sql-connect): Handle missing `sql-connection-alist' correctly.
+	(sql-mode-oracle-font-lock-keywords): Add missing keywords.
+	(sql-magic-go, sql-magic-semicolon): Mark with `delete-selection'
+	property.
+	(sql-default-value): New function.
+	(sql-get-login-ext, sql-get-login): Fixes bug where buffer-local
+	values were not used.
+	(sql-rename-buffer): Make sure alternate buffer name has no text
+	properties.
+	(sql-input-sender, sql-execute-feature): Fetch variable with
+	`buffer-local-value' rather than `with-current-buffer'.
+	(sql-*): Use #' function syntax consistently.
+	(sql-*): Use message/error/user-error consistently.
+
 2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xt-mouse.el (xterm-mouse-event-read): Remove.
