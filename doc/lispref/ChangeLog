@@ -1,3 +1,7 @@
+2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* control.texi (Pattern matching case statement): Fix typo.
+
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* elisp.texi, intro.texi: Switch from Latin-1 to UTF-8.
