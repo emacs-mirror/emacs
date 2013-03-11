@@ -1,3 +1,9 @@
+2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el: Don't discard input (bug#6758).  Use lexical-binding.
+	(xterm--report-background-handler, xterm--query): New functions.
+	(terminal-init-xterm): Use them.
+
 2013-03-11  Michael R. Mauger  <michael@mauger.com>
 
 	* progmodes/sql.el Version 3.2

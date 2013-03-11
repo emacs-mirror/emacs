@@ -1,4 +1,4 @@
-;;; xterm.el --- define function key sequences and standard colors for xterm
+;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 
@@ -37,8 +37,7 @@ If a list, assume that the listed features are supported, without checking.
 
 The relevant features are:
   modifyOtherKeys  -- if supported, more key bindings work (e.g., \"\\C-,\")
-  reportBackground -- if supported, Xterm reports its background color
-"
+  reportBackground -- if supported, Xterm reports its background color"
   :version "24.1"
   :group 'xterm
   :type '(choice (const :tag "No" nil)
@@ -467,6 +466,58 @@ The relevant features are:
 ;; List of terminals for which modify-other-keys has been turned on.
 (defvar xterm-modify-other-keys-terminal-list nil)
 
+(defun xterm--report-background-handler ()
+  (let ((str "")
+        chr)
+    ;; The reply should be: \e ] 11 ; rgb: NUMBER1 / NUMBER2 / NUMBER3 \e \\
+    (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
+      (setq str (concat str (string chr))))
+    (when (string-match
+           "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
+      (let ((recompute-faces
+             (xterm-maybe-set-dark-background-mode
+              (string-to-number (match-string 1 str) 16)
+              (string-to-number (match-string 2 str) 16)
+              (string-to-number (match-string 3 str) 16))))
+
+        ;; Recompute faces here in case the background mode was
+        ;; set to dark.  We used to call
+        ;; `tty-set-up-initial-frame-faces' only once, but that
+        ;; caused the light background faces to be computed
+        ;; incorrectly.  See:
+        ;; http://permalink.gmane.org/gmane.emacs.devel/119627
+        (when recompute-faces
+          (tty-set-up-initial-frame-faces))))))
+
+(defun xterm--query (query reply-prefix handler)
+  ;; We used to query synchronously, but the need to use `discard-input' is
+  ;; rather annoying (bug#6758).  Maybe we could always use the asynchronous
+  ;; approach, but it's less tested.
+  ;; FIXME: Merge the two branches.
+  (if (input-pending-p)
+      (progn
+        (message "Doing %S asynchronously" query)
+        (define-key input-decode-map reply-prefix
+          (lambda (&optional _prompt)
+            ;; Unregister the handler, since we don't expect further answers.
+            (define-key input-decode-map reply-prefix nil)
+            (funcall handler)
+            []))
+        (send-string-to-terminal query))
+    ;; Pending input can be mistakenly returned by the calls to
+    ;; read-event below.  Discard it.
+    (message "Doing %S synchronously" query)
+    (send-string-to-terminal query)
+    (let ((i 0))
+      (while (and (< i (length reply-prefix))
+                  (eq (read-event nil nil 2) (aref reply-prefix i)))
+        (setq i (1+ i)))
+      (if (= i (length reply-prefix))
+          (funcall handler)
+        (push last-input-event unread-command-events)
+        (while (> i 0)
+          (push (aref reply-prefix (setq i (1- i))) unread-command-events))))))
+
 (defun terminal-init-xterm ()
   "Terminal initialization function for xterm."
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
@@ -491,92 +542,45 @@ The relevant features are:
   (xterm-register-default-colors)
   (tty-set-up-initial-frame-faces)
 
-  ;; Try to turn on the modifyOtherKeys feature on modern xterms.
-  ;; When it is turned on many more key bindings work: things like
-  ;; C-. C-, etc.
-  ;; To do that we need to find out if the current terminal supports
-  ;; modifyOtherKeys.  At this time only xterm does.
-  (when xterm-extra-capabilities
-    (let ((coding-system-for-read 'binary)
-          (chr nil)
-          (str "")
-          (recompute-faces nil)
-          ;; If `xterm-extra-capabilities' is 'check, we don't know
-          ;; the capabilities.  We need to check for those defined
-          ;; as `xterm-extra-capabilities' set options.  Otherwise,
-          ;; we don't need to check for any capabilities because
-          ;; they are given by setting `xterm-extra-capabilities' to
-          ;; a list (which could be empty).
-          (tocheck-capabilities (if (eq 'check xterm-extra-capabilities)
-                                    '(modifyOtherKeys reportBackground)))
-          ;; The given capabilities are either the contents of
-          ;; `xterm-extra-capabilities', if it's a list, or an empty list.
-          (given-capabilities (if (consp xterm-extra-capabilities)
-                                  xterm-extra-capabilities))
-          version)
-      ;; 1. Set `version'
-
-      ;; Pending input can be mistakenly returned by the calls to
-      ;; read-event below.  Discard it.
-      (discard-input)
+  (if (eq xterm-extra-capabilities 'check)
       ;; Try to find out the type of terminal by sending a "Secondary
       ;; Device Attributes (DA)" query.
-      (send-string-to-terminal "\e[>0c")
+      (xterm--query
+       "\e[>0c" "\e[>"
+       (lambda ()
+         (let ((str "")
+               chr)
+           ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
+           ;; If the timeout is completely removed for read-event, this
+           ;; might hang for terminals that pretend to be xterm, but don't
+           ;; respond to this escape sequence.  RMS' opinion was to remove
+           ;; it completely.  That might be right, but let's first try to
+           ;; see if by using a longer timeout we get rid of most issues.
+           (while (not (equal (setq chr (read-event nil nil 2)) ?c))
+             (setq str (concat str (string chr))))
+           (when (string-match "0;\\([0-9]+\\);0" str)
+             (let ((version (string-to-number (match-string 1 str))))
+               ;; If version is 242 or higher, assume the xterm supports
+               ;; reporting the background color (TODO: maybe earlier
+               ;; versions do too...)
+               (when (>= version 242)
+                 (xterm--query "\e]11;?\e\\" "\e]11;"
+                               #'xterm--report-background-handler))
 
-      ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
-      ;; If the timeout is completely removed for read-event, this
-      ;; might hang for terminals that pretend to be xterm, but don't
-      ;; respond to this escape sequence.  RMS' opinion was to remove
-      ;; it completely.  That might be right, but let's first try to
-      ;; see if by using a longer timeout we get rid of most issues.
-      (when (and (equal (read-event nil nil 2) ?\e)
-                 (equal (read-event nil nil 2) ?\[))
-        (while (not (equal (setq chr (read-event nil nil 2)) ?c))
-          (setq str (concat str (string chr))))
-        (if (string-match ">0;\\([0-9]+\\);0" str)
-            (setq version (string-to-number (match-string 1 str)))))
-      ;; 2. If reportBackground is known to be supported, or the
-      ;; version is 242 or higher, assume the xterm supports
-      ;; reporting the background color (TODO: maybe earlier
-      ;; versions do too...)
-      (when (or (memq 'reportBackground given-capabilities)
-                (and (memq 'reportBackground tocheck-capabilities)
-                     version
-                     (>= version 242)))
-	(discard-input)
-        (send-string-to-terminal "\e]11;?\e\\")
-        (when (and (equal (read-event nil nil 2) ?\e)
-                   (equal (read-event nil nil 2) ?\]))
-          (setq str "")
-          (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
-            (setq str (concat str (string chr))))
-          (if (string-match
-               "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
-              (setq recompute-faces
-                    (xterm-maybe-set-dark-background-mode
-                     (string-to-number (match-string 1 str) 16)
-                     (string-to-number (match-string 2 str) 16)
-                     (string-to-number (match-string 3 str) 16))))))
+               ;; If version is 216 (the version when modifyOtherKeys was
+               ;; introduced) or higher, initialize the
+               ;; modifyOtherKeys support.
+               (when (>= version 216)
+                 (terminal-init-xterm-modify-other-keys)))))))
 
-      ;; 3. If modifyOtherKeys is known to be supported or the
-      ;; version is 216 (the version when modifyOtherKeys was
-      ;; introduced) or higher, initialize the modifyOtherKeys support.
-      (if (or (memq 'modifyOtherKeys given-capabilities)
-              (and (memq 'modifyOtherKeys tocheck-capabilities)
-                   version
-                   (>= version 216)))
-          (terminal-init-xterm-modify-other-keys))
+    (when (memq 'reportBackground xterm-extra-capabilities)
+      (xterm--query "\e]11;?\e\\" "\e]11;"
+                    #'xterm--report-background-handler))
 
-      ;; Recompute faces here in case the background mode was
-      ;; set to dark.  We used to call
-      ;; `tty-set-up-initial-frame-faces' only once, but that
-      ;; caused the light background faces to be computed
-      ;; incorrectly.  See:
-      ;; http://permalink.gmane.org/gmane.emacs.devel/119627
-      (when recompute-faces
-        (tty-set-up-initial-frame-faces))))
+    (when (memq 'modifyOtherKeys xterm-extra-capabilities)
+      (terminal-init-xterm-modify-other-keys)))
 
-    (run-hooks 'terminal-init-xterm-hook))
+  (run-hooks 'terminal-init-xterm-hook))
 
 (defun terminal-init-xterm-modify-other-keys ()
   "Terminal initialization for xterm's modifyOtherKeys support."
