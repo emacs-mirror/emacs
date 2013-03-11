@@ -1,3 +1,7 @@
+2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* insdel.c (adjust_after_replace): Use bool for boolean.
+
 2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c: Move keyboard decoding to read_key_sequence.

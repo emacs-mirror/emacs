@@ -1162,16 +1162,16 @@ insert_from_buffer_1 (struct buffer *buf,
 
 /* Record undo information and adjust markers and position keepers for
    a replacement of a text PREV_TEXT at FROM to a new text of LEN
-   chars (LEN_BYTE bytes).  If TEXT_AT_GAP_TAIL is zero, the new text
-   resides in the gap just after GPT_BYTE.  Otherwise, the text
-   resides at the gap tail; i.e. at (GAP_END_ADDR - LEN_BNYTE).
+   chars (LEN_BYTE bytes).  If TEXT_AT_GAP_TAIL, the new text
+   resides at the gap tail; i.e. at (GAP_END_ADDR - LEN_BNYTE)
+   Otherwise, the text resides in the gap just after GPT_BYTE.
 
    PREV_TEXT nil means the new text was just inserted.  */
 
 void
 adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 		      Lisp_Object prev_text, ptrdiff_t len, ptrdiff_t len_byte,
-		      int text_at_gap_tail)
+		      bool text_at_gap_tail)
 {
   ptrdiff_t nchars_del = 0, nbytes_del = 0;
 

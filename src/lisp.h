@@ -2900,10 +2900,8 @@ extern Lisp_Object del_range_2 (ptrdiff_t, ptrdiff_t,
 extern void modify_region_1 (ptrdiff_t, ptrdiff_t, bool);
 extern void prepare_to_modify_buffer (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
 extern void signal_after_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
-extern void adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
-				  Lisp_Object prev_text,
-				  ptrdiff_t len, ptrdiff_t len_byte,
-				  int text_at_gap_tail);
+extern void adjust_after_replace (ptrdiff_t, ptrdiff_t, Lisp_Object,
+				  ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				 ptrdiff_t, ptrdiff_t);
 extern void adjust_markers_for_delete (ptrdiff_t, ptrdiff_t,
