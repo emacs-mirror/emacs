@@ -1,3 +1,7 @@
+2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/unicode: Improve notes about Emacs source file encoding.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (make-manuals): Add emacs-lisp-intro and some more
