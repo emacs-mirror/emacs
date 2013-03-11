@@ -1,3 +1,8 @@
+2013-03-11  Per Starbäck  <starback@stp.lingfil.uu.se>
+
+	* international/characters.el (glyphless-set-char-table-range): New fun.
+	(update-glyphless-char-display): Use it (bug#13744).
+
 2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el: Update for CFEngine 3.4.2 and higher:
