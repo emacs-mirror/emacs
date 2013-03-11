@@ -238,6 +238,11 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** `read-event' does not return decoded chars in ttys any more.
+Just as was the case in Emacs-22 and before, decoding of tty input according to
+keyboard-coding-system is not performed in read-event any more.  But contrary
+to that past, it is still done before input-decode-map/function-key-map/...
+
 ** Removed inhibit-local-menu-bar-menus.
 
 ** frame-local variables that affect redisplay do not work any more.
@@ -263,6 +268,8 @@ file using `set-file-extended-attributes'.
 
 
 * Lisp Changes in Emacs 24.4
+
+** `dont-compile' is declared obsolete.
 
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as

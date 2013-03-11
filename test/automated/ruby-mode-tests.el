@@ -103,7 +103,7 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-should-indent "a = %w[abc\n       def]\n  " 0)
   (ruby-should-indent "a = \"abc\n      def\"\n  " 0))
 
-(ert-deftest ruby-regexp-doest-start-in-string ()
+(ert-deftest ruby-regexp-doesnt-start-in-string ()
   (ruby-assert-state "'(/', /\d+/" 3 nil))
 
 (ert-deftest ruby-regexp-starts-after-string ()

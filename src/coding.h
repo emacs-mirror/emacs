@@ -715,6 +715,9 @@ extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
    failure modes.  STR itself is not modified.  */
 extern Lisp_Object from_unicode (Lisp_Object str);
 
+/* Convert WSTR to an Emacs string.  */
+extern Lisp_Object from_unicode_buffer (const wchar_t* wstr);
+
 #endif /* WINDOWSNT || CYGWIN */
 
 /* Macros for backward compatibility.  */

@@ -280,7 +280,7 @@ delete_terminal (struct terminal *terminal)
   xfree (terminal->name);
   terminal->name = NULL;
 
-  /* Check for live frames that are still on this terminal. */
+  /* Check for live frames that are still on this terminal.  */
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);

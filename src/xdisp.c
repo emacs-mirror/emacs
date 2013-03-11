@@ -11711,7 +11711,8 @@ display_tool_bar_line (struct it *it, int height)
      no additional border below the possibly empty tool-bar lines.
      So to make the extra empty lines look "normal", we have to
      use the tool-bar face for the border too.  */
-  if (!row->displays_text_p && !EQ (Vauto_resize_tool_bars, Qgrow_only))
+  if (!MATRIX_ROW_DISPLAYS_TEXT_P (row)
+      && !EQ (Vauto_resize_tool_bars, Qgrow_only))
     it->face_id = DEFAULT_FACE_ID;
 
   extend_face_to_end_of_line (it);
@@ -11732,7 +11733,7 @@ display_tool_bar_line (struct it *it, int height)
   compute_line_metrics (it);
 
   /* If line is empty, make it occupy the rest of the tool-bar.  */
-  if (!row->displays_text_p)
+  if (!MATRIX_ROW_DISPLAYS_TEXT_P (row))
     {
       row->height = row->phys_height = it->last_visible_y - row->y;
       row->visible_height = row->height;
@@ -11947,13 +11948,13 @@ redisplay_tool_bar (struct frame *f)
       /* If there are blank lines at the end, except for a partially
 	 visible blank line at the end that is smaller than
 	 FRAME_LINE_HEIGHT, change the tool-bar's height.  */
-      if (!row->displays_text_p
+      if (!MATRIX_ROW_DISPLAYS_TEXT_P (row)
 	  && row->height >= FRAME_LINE_HEIGHT (f))
 	change_height_p = 1;
 
       /* If row displays tool-bar items, but is partially visible,
 	 change the tool-bar's height.  */
-      if (row->displays_text_p
+      if (MATRIX_ROW_DISPLAYS_TEXT_P (row)
 	  && MATRIX_ROW_BOTTOM_Y (row) > it.last_visible_y
 	  && MATRIX_ROW_BOTTOM_Y (row) < max_tool_bar_height)
 	change_height_p = 1;
@@ -13144,7 +13145,7 @@ redisplay_internal (void)
 	      /* If this row displays text now but previously didn't,
 		 or vice versa, w->window_end_vpos may have to be
 		 adjusted.  */
-	      if ((it.glyph_row - 1)->displays_text_p)
+	      if (MATRIX_ROW_DISPLAYS_TEXT_P (it.glyph_row - 1))
 		{
 		  if (XFASTINT (w->window_end_vpos) < this_line_vpos)
 		    wset_window_end_vpos (w, make_number (this_line_vpos));
@@ -13754,7 +13755,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
   /* Skip over glyphs not having an object at the start and the end of
      the row.  These are special glyphs like truncation marks on
      terminal frames.  */
-  if (row->displays_text_p)
+  if (MATRIX_ROW_DISPLAYS_TEXT_P (row))
     {
       if (!row->reversed_p)
 	{
@@ -14931,8 +14932,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		 we would rather display cursor in the next line.  */
 	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
 		     && MATRIX_ROW_END_CHARPOS (row) == PT
-		     && row < w->current_matrix->rows
-				+ w->current_matrix->nrows - 1
+		     && row < MATRIX_MODE_LINE_ROW (w->current_matrix)
 		     && MATRIX_ROW_START_CHARPOS (row+1) == PT
 		     && !cursor_row_p (row))
 		++row;
@@ -16171,8 +16171,8 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
       wset_window_end_vpos
 	(w, make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix)));
       eassert
-	(MATRIX_ROW (w->desired_matrix,
-		     XFASTINT (w->window_end_vpos))->displays_text_p);
+	(MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->desired_matrix,
+						 XFASTINT (w->window_end_vpos))));
     }
   else
     {
@@ -17581,7 +17581,7 @@ try_window_id (struct window *w)
       struct glyph_row *last_row = MATRIX_ROW (current_matrix, last_vpos);
 
       /* If last_row is the window end line, it should display text.  */
-      eassert (last_row->displays_text_p);
+      eassert (MATRIX_ROW_DISPLAYS_TEXT_P (last_row));
 
       /* If window end line was partially visible before, begin
 	 displaying at that line.  Otherwise begin displaying with the
@@ -17628,7 +17628,7 @@ try_window_id (struct window *w)
 	 matrix.  Set row to the last row displaying text in current
 	 matrix starting at first_unchanged_at_end_row, after
 	 scrolling.  */
-      eassert (first_unchanged_at_end_row->displays_text_p);
+      eassert (MATRIX_ROW_DISPLAYS_TEXT_P (first_unchanged_at_end_row));
       row = find_last_row_displaying_text (w->current_matrix, &it,
 					   first_unchanged_at_end_row);
       eassert (row && MATRIX_ROW_DISPLAYS_TEXT_P (row));
@@ -17682,10 +17682,10 @@ try_window_id (struct window *w)
 	{
 	  if (desired_row->enabled_p)
 	    {
-	      if (desired_row->displays_text_p)
+	      if (MATRIX_ROW_DISPLAYS_TEXT_P (desired_row))
 		row = desired_row;
 	    }
-	  else if (current_row->displays_text_p)
+	  else if (MATRIX_ROW_DISPLAYS_TEXT_P (current_row))
 	    row  = current_row;
 	}
 
@@ -17865,7 +17865,7 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 	       row->truncated_on_right_p,
 	       row->continued_p,
 	       MATRIX_ROW_CONTINUATION_LINE_P (row),
-	       row->displays_text_p,
+	       MATRIX_ROW_DISPLAYS_TEXT_P (row),
 	       row->ends_at_zv_p,
 	       row->fill_line_p,
 	       row->ends_in_middle_of_char_p,
@@ -18501,7 +18501,7 @@ extend_face_to_end_of_line (struct it *it)
     face = FACE_FROM_ID (f, it->face_id);
 
   if (FRAME_WINDOW_P (f)
-      && it->glyph_row->displays_text_p
+      && MATRIX_ROW_DISPLAYS_TEXT_P (it->glyph_row)
       && face->box == FACE_NO_BOX
       && face->background == FRAME_BACKGROUND_PIXEL (f)
       && !face->stipple
@@ -19761,7 +19761,7 @@ display_line (struct it *it)
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
      better to let it be displayed like cursors under X.  */
-  if ((row->displays_text_p || !overlay_arrow_seen)
+  if ((MATRIX_ROW_DISPLAYS_TEXT_P (row) || !overlay_arrow_seen)
       && (overlay_arrow_string = overlay_arrow_at_row (it, row),
 	  !NILP (overlay_arrow_string)))
     {
@@ -19861,7 +19861,7 @@ display_line (struct it *it)
   if (it->glyph_row < MATRIX_BOTTOM_TEXT_ROW (it->w->desired_matrix, it->w))
     it->glyph_row->reversed_p = row->reversed_p;
   it->start = row->end;
-  return row->displays_text_p;
+  return MATRIX_ROW_DISPLAYS_TEXT_P (row);
 
 #undef RECORD_MAX_MIN_POS
 }
@@ -25660,7 +25660,7 @@ notice_overwritten_cursor (struct window *w, enum glyph_row_area area,
   if (w->phys_cursor.vpos < 0
       || w->phys_cursor.vpos >= w->current_matrix->nrows
       || (row = w->current_matrix->rows + w->phys_cursor.vpos,
-	  !(row->enabled_p && row->displays_text_p)))
+	  !(row->enabled_p && MATRIX_ROW_DISPLAYS_TEXT_P (row))))
     return;
 
   if (row->cursor_in_fringe_p)
@@ -26595,7 +26595,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       x = r1->x;
 
       /* Skip truncation glyphs at the start of the glyph row.  */
-      if (r1->displays_text_p)
+      if (MATRIX_ROW_DISPLAYS_TEXT_P (r1))
 	for (; glyph < end
 	       && INTEGERP (glyph->object)
 	       && glyph->charpos < 0;
@@ -26646,7 +26646,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       glyph = end + r1->used[TEXT_AREA];
 
       /* Skip truncation glyphs at the start of the glyph row.  */
-      if (r1->displays_text_p)
+      if (MATRIX_ROW_DISPLAYS_TEXT_P (r1))
 	for (; glyph > end
 	       && INTEGERP (glyph->object)
 	       && glyph->charpos < 0;
@@ -26897,7 +26897,7 @@ fast_find_string_pos (struct window *w, ptrdiff_t pos, Lisp_Object object,
 	}
 
       *y = best_row->y;
-      *vpos = best_row - w->current_matrix->rows;
+      *vpos = MATRIX_ROW_VPOS (best_row, w->current_matrix);
     }
 
   return best_glyph != NULL;
@@ -26935,7 +26935,8 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
 	    if (EQ (g->object, object)
 		&& startpos <= g->charpos && g->charpos <= endpos)
 	      {
-		hlinfo->mouse_face_beg_row = r - w->current_matrix->rows;
+		hlinfo->mouse_face_beg_row
+		  = MATRIX_ROW_VPOS (r, w->current_matrix);
 		hlinfo->mouse_face_beg_y = r->y;
 		hlinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
 		hlinfo->mouse_face_beg_x = gx;
@@ -26953,7 +26954,8 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
 	    if (EQ ((g-1)->object, object)
 		&& startpos <= (g-1)->charpos && (g-1)->charpos <= endpos)
 	      {
-		hlinfo->mouse_face_beg_row = r - w->current_matrix->rows;
+		hlinfo->mouse_face_beg_row
+		  = MATRIX_ROW_VPOS (r, w->current_matrix);
 		hlinfo->mouse_face_beg_y = r->y;
 		hlinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
 		for (gx = r->x, g1 = r->glyphs[TEXT_AREA]; g1 < g; ++g1)
@@ -26992,7 +26994,7 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
   r--;
 
   /* Set the end row and its vertical pixel coordinate.  */
-  hlinfo->mouse_face_end_row = r - w->current_matrix->rows;
+  hlinfo->mouse_face_end_row = MATRIX_ROW_VPOS (r, w->current_matrix);
   hlinfo->mouse_face_end_y = r->y;
 
   /* Compute and set the end column and the end column's horizontal
@@ -27676,7 +27678,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       /* Clear mouse face if X/Y not over text.  */
       if (glyph == NULL
 	  || area != TEXT_AREA
-	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p
+	  || !MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->current_matrix, vpos))
 	  /* Glyph's OBJECT is an integer for glyphs inserted by the
 	     display engine for its internal purposes, like truncation
 	     and continuation glyphs and blanks beyond the end of
@@ -27688,7 +27690,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	     all beyond the end of text.  Treat such stretch glyphs
 	     like we do with NULL glyphs in L2R rows.  */
 	  || (MATRIX_ROW (w->current_matrix, vpos)->reversed_p
-	      && glyph == MATRIX_ROW (w->current_matrix, vpos)->glyphs[TEXT_AREA]
+	      && glyph == MATRIX_ROW_GLYPH_START (w->current_matrix, vpos)
 	      && glyph->type == STRETCH_GLYPH
 	      && glyph->avoid_cursor_p))
 	{

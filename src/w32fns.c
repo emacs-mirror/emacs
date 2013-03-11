@@ -1721,11 +1721,9 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
 
   if (FRAME_W32_WINDOW (f))
     {
-      if (STRING_MULTIBYTE (name))
-	name = ENCODE_SYSTEM (name);
-
       block_input ();
-      SetWindowText (FRAME_W32_WINDOW (f), SDATA (name));
+      GUI_FN (SetWindowText) (FRAME_W32_WINDOW (f),
+                              GUI_SDATA (GUI_ENCODE_SYSTEM (name)));
       unblock_input ();
     }
 }
@@ -1767,11 +1765,9 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   if (FRAME_W32_WINDOW (f))
     {
-      if (STRING_MULTIBYTE (name))
-	name = ENCODE_SYSTEM (name);
-
       block_input ();
-      SetWindowText (FRAME_W32_WINDOW (f), SDATA (name));
+      GUI_FN (SetWindowText) (FRAME_W32_WINDOW (f),
+                              GUI_SDATA (GUI_ENCODE_SYSTEM (name)));
       unblock_input ();
     }
 }
@@ -5824,7 +5820,7 @@ Text larger than the specified size is clipped.  */)
       int row_width;
 
       /* Stop at the first empty row at the end.  */
-      if (!row->enabled_p || !row->displays_text_p)
+      if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	break;
 
       /* Let the row go over the full width of the frame.  */
@@ -5885,7 +5881,7 @@ Text larger than the specified size is clipped.  */)
 	  struct glyph *last;
 	  int row_width;
 
-	  if (!row->enabled_p || !row->displays_text_p)
+	  if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	    break;
 	  row->full_width_p = 1;
 	  row_width = row->pixel_width;
@@ -6005,14 +6001,6 @@ Value is t if tooltip was open, nil otherwise.  */)
 #define FILE_NAME_TEXT_FIELD edt1
 #define FILE_NAME_COMBO_BOX cmb13
 #define FILE_NAME_LIST lst1
-
-#ifdef NTGUI_UNICODE
-#define GUISTR(x) (L ## x)
-typedef wchar_t guichar_t;
-#else /* !NTGUI_UNICODE */
-#define GUISTR(x) x
-typedef char guichar_t;
-#endif /* NTGUI_UNICODE */
 
 /* Callback for altering the behavior of the Open File dialog.
    Makes the Filename text field contain "Current Directory" and be
@@ -6230,11 +6218,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       block_input ();
       file_details->lpfnHook = file_dialog_callback;
 
-#ifdef NTGUI_UNICODE
-      file_opened = GetOpenFileNameW (file_details);
-#else /* !NTGUI_UNICODE */
-      file_opened = GetOpenFileNameA (file_details);
-#endif /* NTGUI_UNICODE */
+      file_opened = GUI_FN (GetOpenFileName) (file_details);
       unblock_input ();
       unbind_to (count, Qnil);
     }
@@ -6243,11 +6227,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       {
         /* Get an Emacs string from the value Windows gave us.  */
 #ifdef NTGUI_UNICODE
-        filename = from_unicode (
-          make_unibyte_string (
-            (char*) filename_buf,
-            /* we get one of the two final 0 bytes for free. */
-            1 + sizeof (wchar_t) * wcslen (filename_buf)));
+        filename = from_unicode_buffer (filename_buf);
 #else /* !NTGUI_UNICODE */
         dostounix_filename (filename_buf, 0);
         filename = DECODE_FILE (build_string (filename_buf));
@@ -6421,20 +6401,29 @@ an integer representing a ShowWindow flag:
   CHECK_STRING (document);
 
   /* Encode filename, current directory and parameters.  */
-  current_dir = ENCODE_FILE (BVAR (current_buffer, directory));
-  document = ENCODE_FILE (document);
-  if (STRINGP (parameters))
-    parameters = ENCODE_SYSTEM (parameters);
+  current_dir = BVAR (current_buffer, directory);
 
-  if ((int) ShellExecute (NULL,
-			  (STRINGP (operation) ?
-			   SDATA (operation) : NULL),
-			  SDATA (document),
-			  (STRINGP (parameters) ?
-			   SDATA (parameters) : NULL),
-			  SDATA (current_dir),
-			  (INTEGERP (show_flag) ?
-			   XINT (show_flag) : SW_SHOWDEFAULT))
+#ifdef CYGWIN
+  current_dir = Fcygwin_convert_file_name_to_windows (current_dir, Qt);
+  if (STRINGP (document))
+    document = Fcygwin_convert_file_name_to_windows (document, Qt);
+#endif /* CYGWIN */
+
+  current_dir = GUI_ENCODE_FILE (current_dir);
+  if (STRINGP (document))
+    document = GUI_ENCODE_FILE (document);
+  if (STRINGP (parameters))
+    parameters = GUI_ENCODE_SYSTEM (parameters);
+
+  if ((int) GUI_FN (ShellExecute) (NULL,
+                                   (STRINGP (operation) ?
+                                    GUI_SDATA (operation) : NULL),
+                                   GUI_SDATA (document),
+                                   (STRINGP (parameters) ?
+                                    GUI_SDATA (parameters) : NULL),
+                                   GUI_SDATA (current_dir),
+                                   (INTEGERP (show_flag) ?
+                                    XINT (show_flag) : SW_SHOWDEFAULT))
       > 32)
     return Qt;
   errstr = w32_strerror (0);
@@ -6803,6 +6792,7 @@ The following %-sequences are provided:
 }
 
 
+#ifdef WINDOWSNT
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
        doc: /* Return storage information about the file system FILENAME is on.
 Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
@@ -6898,6 +6888,8 @@ If the underlying system call fails, value is nil.  */)
 
   return value;
 }
+#endif /* WINDOWSNT */
+
 
 DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
        0, 0, 0, doc: /* Return the name of Windows default printer device.  */)
@@ -7624,7 +7616,10 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_battery_status);
 
+#ifdef WINDOWSNT
   defsubr (&Sfile_system_info);
+#endif
+
   defsubr (&Sdefault_printer_name);
   defsubr (&Sset_message_beep);
 
@@ -7805,3 +7800,15 @@ emacs_abort (void)
       }
     }
 }
+
+#ifdef NTGUI_UNICODE
+
+Lisp_Object
+ntgui_encode_system (Lisp_Object str)
+{
+  Lisp_Object encoded;
+  to_unicode (str, &encoded);
+  return encoded;
+}
+
+#endif /* NTGUI_UNICODE */

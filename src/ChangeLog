@@ -1,11 +1,78 @@
+2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* insdel.c (adjust_after_replace): Use bool for boolean.
+
+2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c: Move keyboard decoding to read_key_sequence.
+	(decode_keyboard_code): Remove.
+	(tty_read_avail_input): Don't try to decode input.
+	(read_decoded_char): New function.
+	(read_key_sequence): Use it.
+
+2013-03-10  Daniel Colascione  <dancol@dancol.org>
+
+	* w32term.h (GUISTR, GUI_ENCODE_FILE, GUI_ENCODE_SYSTEM, GUI_FN)
+	(GUI_SDATA, guichar_t): Macros to abstract out differences between
+	NTGUI_UNICODE and !NTGUI_UNICODE builds, some moved out of
+	w32fns.c.
+
+	* w32term.c (construct_drag_n_drop): Use the above macros to make
+	drag-and-drop work for non-ASCII filenames in cygw32 builds.
+
+	* w32fns.c (x_set_name, x_set_title): Use the above macros to
+	properly display non-ASCII frame titles in cygw32 builds.
+
+	* w32fns.c (Fw32_shell_execute): Use the above macros to properly
+	call ShellExecute in cygw32 builds.
+
+	* w32fn.c (Fx_file_dialog): Use the above macros to simplify the
+	common file dialog code.
+
+	* w32fns.c (Ffile_system_info): Remove from cygw32 builds, which
+	can just use du like other systems.
+
+	* coding.c (from_unicode_buffer): Declare.
+	* coding.c (from_unicode_buffer): Implement.
+
+2013-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c: Minor cleanup.
+	(FROM_FILE_P): New macro.
+	(skip_dyn_bytes, unreadchar, read1): Use it.
+	(read_list): Consolidate duplicated code.
+
+	* bytecode.c (struct byte_stack): Remove `constants' when unused.
+
+2013-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_tool_bar_line, redisplay_tool_bar)
+	(redisplay_internal, set_cursor_from_row, try_window)
+	(try_window_id, dump_glyph_row, extend_face_to_end_of_line)
+	(display_line, notice_overwritten_cursor)
+	(mouse_face_from_buffer_pos, note_mouse_highlight):
+	Use MATRIX_ROW_DISPLAYS_TEXT_P.
+	(note_mouse_highlight): Use MATRIX_ROW_GLYPH_START.
+	(mouse_face_from_string_pos, fast_find_string_pos):
+	Use MATRIX_ROW_VPOS.
+
+	* xfns.c (Fx_show_tip): Use MATRIX_ROW_DISPLAYS_TEXT_P.
+
+	* w32fns.c (Fx_show_tip): Use MATRIX_ROW_DISPLAYS_TEXT_P.
+
+	* xdisp.c (try_cursor_movement): Use MATRIX_ROW and
+	MATRIX_MODE_LINE_ROW.
+
+	* dispnew.c (update_window): Use MATRIX_ROW and MATRIX_MODE_LINE_ROW.
+
 2013-03-10  handa  <handa@gnu.org>
 
 	* lisp.h (adjust_after_replace): Extern it.
 
 	* coding.c (detect_coding): Cound the heading ASCII bytes in the
 	case of detection for coding_category_utf_8_auto.
-	(decode_coding_gap) [not CODING_DISABLE_ASCII_OPTIMIZATION]: Skip
-	decoding if all bytes are ASCII.
+	(decode_coding_gap) [not CODING_DISABLE_ASCII_OPTIMIZATION]:
+	Skip decoding if all bytes are ASCII.
 
 	* insdel.c (adjust_after_replace): Make it public.  New arg
 	text_at_gap_tail.

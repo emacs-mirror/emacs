@@ -1,3 +1,50 @@
+2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el: Don't discard input (bug#6758).  Use lexical-binding.
+	(xterm--report-background-handler, xterm--query): New functions.
+	(terminal-init-xterm): Use them.
+
+2013-03-11  Michael R. Mauger  <michael@mauger.com>
+
+	* progmodes/sql.el Version 3.2
+	Please note that my address changed to <michael@mauger.com>;
+	the <mmaug@yahoo.com> address remains active.
+	(sql-connection-alist): Updates documentation to fix bug#13715.
+	(sql-connect): Handle missing `sql-connection-alist' correctly.
+	(sql-mode-oracle-font-lock-keywords): Add missing keywords.
+	(sql-magic-go, sql-magic-semicolon): Mark with `delete-selection'
+	property.
+	(sql-default-value): New function.
+	(sql-get-login-ext, sql-get-login): Fixes bug where buffer-local
+	values were not used.
+	(sql-rename-buffer): Make sure alternate buffer name has no text
+	properties.
+	(sql-input-sender, sql-execute-feature): Fetch variable with
+	`buffer-local-value' rather than `with-current-buffer'.
+	(sql-*): Use #' function syntax consistently.
+	(sql-*): Use message/error/user-error consistently.
+
+2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xt-mouse.el (xterm-mouse-event-read): Remove.
+	(xterm-mouse--read-event-sequence-1000)
+	(xterm-mouse--read-event-sequence-1006): Use read-event instead.
+
+2013-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (xterm-function-map): Support format used with
+	formatOtherKeys=1 (bug#13839).
+
+	* emacs-lisp/byte-run.el (dont-compile): Declare obsolete.
+	(with-no-warnings): Use `declare'.
+
+	* whitespace.el (whitespace-enable-predicate): New variable.
+	(whitespace-enable-predicate): Use it.
+
+	* comint.el (comint-send-input, comint-snapshot-last-prompt)
+	(comint-output-filter, comint-update-fence):
+	Use with-silent-modifications.
+
 2013-03-10  Jambunathan K  <kjambunathan@gmail.com>
 
 	* replace.el (occur-read-regexp-defaults-function): New var.
@@ -21,7 +68,7 @@
 	Use Tramp default handler.
 	[file-acl, file-selinux-context, process-file, set-file-acl]:
 	[set-file-modes, set-file-selinux-context, shell-command]:
-	[start-file-process ]: Remove handler.
+	[start-file-process]: Remove handler.
 	[verify-visited-file-modtime]: New handler.
 	(tramp-gvfs-dbus-string-to-byte-array)
 	(tramp-gvfs-dbus-byte-array-to-string): New defuns.  Replace all
