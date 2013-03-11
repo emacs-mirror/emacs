@@ -12,7 +12,7 @@ Memory Pool System
     topic/index
     pool/index
     topic/internals
-
+    design/index
 
 
 Memory Management Reference

@@ -28,6 +28,11 @@ a.reference.internal:hover {
     border-bottom: 1px solid {{ theme_underlinecolor }};
 }
 
+a.mpslabel:hover {
+    background-color: {{ theme_headlinkcolor }};
+    color: {{ theme_bgcolor }};
+}
+
 img.logo {
     width: 100%;
 }
@@ -68,7 +73,7 @@ dl.glossary dt, dl.type dt, dl.function dt, dl.macro dt {
     font-size: 120%;
 }
 
-pre, tt, code {
+pre, tt, code, a.mpslabel {
     font-family: 'SCP', monospaced;
     font-size: 100%;
 }
