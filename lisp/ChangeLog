@@ -1,3 +1,10 @@
+2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Update for CFEngine 3.4.2 and higher:
+	namespaces in the syntax, indent closer for hanging brace
+	correctly, allow single-quote delimited 'strings', and make
+	`cfengine3-mode' the default.
+
 2013-03-11  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
 	* progmodes/gdb-mi.el: Speed up initialization (bug#10580).
