@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-modules): Add "notifications".  Tweak "hecomplete" doc.

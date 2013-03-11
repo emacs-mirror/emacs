@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2013-02-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnir.el ("nnir"): Add 'virtual ability to nnir backend.  (This was

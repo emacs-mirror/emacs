@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2013-03-08  Bastien Guerry  <bzg@gnu.org>
 
 	* org-exp.el (org-export-normalize-links): Fix critical bug: do

@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Revert recent change for Bug#8855; see ../src/ChangeLog.

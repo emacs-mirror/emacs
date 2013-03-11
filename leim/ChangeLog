@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-09-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* quail/hebrew.el ("yiddish-royal"): Fix several bogus entries.

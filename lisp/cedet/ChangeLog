@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-11-14  David Engster  <deng@randomsample.de>
 
 	* semantic/symref/list.el (semantic-symref-symbol): Use

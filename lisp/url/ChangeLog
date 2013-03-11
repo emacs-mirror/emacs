@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-10-13  Liam Stitt  <stittl@cuug.ab.ca>  (tiny change)
 
 	* url-vars.el (url-uncompressor-alist):

@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-10-06  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (AR, ARFLAGS): Get values from configure.

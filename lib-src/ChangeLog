@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-10-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (uninstall): No INSTALLABLES live in archlibdir.

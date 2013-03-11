@@ -1,3 +1,7 @@
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-letter.el (mh-yank-hooks): Use make-obsolete-variable.
