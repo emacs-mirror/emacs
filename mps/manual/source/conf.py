@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Memory Pool System'
-copyright = u'2012, Ravenbrook Limited'
+copyright = u'2013, Ravenbrook Limited'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
