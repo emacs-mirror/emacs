@@ -104,7 +104,7 @@ Source file encoding
 
 Most Emacs source files are encoded in UTF-8 (or in ASCII, which is a
 subset), but there are a few exceptions, listed below.  Perhaps
-someday many of the these files will be converted to UTF-8, for
+someday many of these files will be converted to UTF-8, for
 convenience when using tools like 'grep -r', but this might need
 nontrivial changes to the build process.
 
