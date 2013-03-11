@@ -1163,7 +1163,7 @@ insert_from_buffer_1 (struct buffer *buf,
 /* Record undo information and adjust markers and position keepers for
    a replacement of a text PREV_TEXT at FROM to a new text of LEN
    chars (LEN_BYTE bytes).  If TEXT_AT_GAP_TAIL, the new text
-   resides at the gap tail; i.e. at (GAP_END_ADDR - LEN_BNYTE)
+   resides at the gap tail; i.e. at (GAP_END_ADDR - LEN_BYTE)
    Otherwise, the text resides in the gap just after GPT_BYTE.
 
    PREV_TEXT nil means the new text was just inserted.  */
