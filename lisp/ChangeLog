@@ -1,3 +1,26 @@
+2013-03-11  Jean-Philippe Gravel  <jpgravel@gmail.com>
+
+	* progmodes/gdb-mi.el: Speed up initialization (bug#10580).
+	Use lexical-binding.  Fix up docstring according to conventions.
+	(gdbmi-debug-mode): New var.
+	(gdbmi-start-with, gdbmi-same-start, gdbmi-is-number, gdbmi-bnf-init)
+	(gdbmi-bnf-output, gdbmi-bnf-skip-unrecognized, gdbmi-bnf-gdb-prompt)
+	(gdbmi-bnf-result-record, gdbmi-bnf-out-of-band-record)
+	(gdbmi-bnf-async-record, gdbmi-bnf-stream-record)
+	(gdbmi-bnf-console-stream-output, gdbmi-bnf-target-stream-output)
+	(gdbmi-bnf-log-stream-output, gdbmi-bnf-result-and-async-record-impl)
+	(gdbmi-bnf-incomplete-record-result): New functions.
+	(gdb-car<): Remove function.
+	(gdbmi-record-list): Remove variable.
+	(gdbmi-bnf-state, gdbmi-bnf-offset): New vars.
+	(gdbmi-bnf-result-state-configs): New const.
+	(gud-gdbmi-marker-filter): Rewrite.
+	(gdb-ignored-notification, gdb-thread-created, gdb-thread-exited)
+	(gdb-thread-selected, gdb-running, gdb-starting, gdb-stopped):
+	Add `token' argument.
+	(gdb-done, gdb-error): New functions.
+	(gdb-done-or-error): Add `is-complete' argument.  Change arg order.
+
 2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el (xterm--report-background-handler): Don't burp
