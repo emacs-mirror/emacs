@@ -192,6 +192,11 @@ nontrivial changes to the build process.
 
  * iso-2022-7bit
 
+     This file contains significant charset information, which is not
+     encoded in UTF-8.
+
+	etc/HELLO
+
      These files contain characters that cannot be encoded in UTF-8.
 
 	leim/quail/tibetan.el
