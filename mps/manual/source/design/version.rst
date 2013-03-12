@@ -11,18 +11,15 @@ Software versions
 Introduction
 ------------
 
-.. mps:label:: intro
-
-This is the design of the support in the MPS for describing and
-inspecting versions.
+:mps:tag:`intro` This is the design of the support in the MPS for
+describing and inspecting versions.
 
 
 Overview
 --------
 
-.. mps:label:: overview
-
-There are three different sorts of version under consideration:
+:mps:tag:`overview` There are three different sorts of version under
+consideration:
 
 1. versions of the (MPS) library used (linked with);
 
@@ -34,9 +31,7 @@ There are three different sorts of version under consideration:
 
 There are issues of programmatic and human access to these versions.
 
-.. mps:label:: overview.split
-
-The design is split accordingly. See
-:mps:label:`design.mps.version-library` for the design of a system for
+:mps:tag:`overview.split` The design is split accordingly. See
+:mps:ref:`design.mps.version-library` for the design of a system for
 determining the version of the library one is using. And other
 non-existent documents for the others.
