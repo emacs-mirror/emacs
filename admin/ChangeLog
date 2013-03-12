@@ -1,3 +1,7 @@
+2013-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-html-mono, manual-html-node): Add -DWWW_GNU_ORG.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (make-manuals): Add emacs-lisp-intro and some more

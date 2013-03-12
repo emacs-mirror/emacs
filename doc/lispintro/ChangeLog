@@ -1,3 +1,7 @@
+2013-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Add some stuff specific to www.gnu.org.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.

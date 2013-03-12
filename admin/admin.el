@@ -268,6 +268,7 @@ This function also edits the HTML files so that they validate as
 HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
   (call-process "makeinfo" nil nil nil
+		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
 				       (file-name-directory texi-file))
 		"-I" (expand-file-name "../misc"
@@ -293,6 +294,7 @@ the @import directive."
   (unless (file-exists-p texi-file)
     (error "Manual file %s not found" texi-file))
   (call-process "makeinfo" nil nil nil
+		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
 				       (file-name-directory texi-file))
 		"-I" (expand-file-name "../misc"
