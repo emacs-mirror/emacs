@@ -247,10 +247,6 @@ void TracePostStartMessage(Trace trace)
 
   /* We have consumed the pre-allocated message */
   AVER(!arena->tsMessage[ti]);
-
-  if(arena->alertCollection) {
-    (*arena->alertCollection)(MPS_ALERT_COLLECTION_BEGIN, trace->why);
-  }
 }
 
 
@@ -418,10 +414,6 @@ void TracePostMessage(Trace trace)
   
   /* We have consumed the pre-allocated message */
   AVER(!arena->tMessage[ti]);
-
-  if(arena->alertCollection) {
-    (*arena->alertCollection)(MPS_ALERT_COLLECTION_END, trace->why);
-  }
 }
 
 
