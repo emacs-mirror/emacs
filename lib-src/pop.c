@@ -1198,7 +1198,7 @@ socket_connection (char *host, int flags)
 	    }
 #elif defined HAVE_KRB5_ERROR_E_TEXT
 	  if (err_ret && err_ret->e_text && **err_ret->e_text)
-	    snprintf (pop_error + pop_error_len, ERRMAX - pop_error_len,
+	    snprintf (pop_error + pop_error_len, ERROR_MAX - pop_error_len,
 		      " [server says '%s']", *err_ret->e_text);
 #endif
 	  if (err_ret)

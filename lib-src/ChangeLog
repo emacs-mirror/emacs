@@ -1,3 +1,9 @@
+2013-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* pop.c: Fix ERRMAX typo (Bug#13925).
+	(socket_connection) [!HAVE_KRB5_ERROR_TEXT && HAVE_KRB5_ERROR_E_TEXT]:
+	Use ERROR_MAX, not ERRMAX.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.
