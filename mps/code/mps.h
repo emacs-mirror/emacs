@@ -560,24 +560,6 @@ extern mps_res_t mps_finalize(mps_arena_t, mps_addr_t *);
 extern mps_res_t mps_definalize(mps_arena_t, mps_addr_t *);
 
 
-/* Alert */
-
-/* Alert codes. */
-enum {
-  MPS_ALERT_COLLECTION_BEGIN,
-  MPS_ALERT_COLLECTION_END
-};
-typedef void (*mps_alert_collection_fn_t)(int, int);
-extern mps_res_t mps_alert_collection_set(mps_arena_t, 
-                                          mps_alert_collection_fn_t);
-/* The following _START and _STOP identifiers are obsolete and 
- * deprecated: use _BEGIN and _END instead. */
-enum {
-  MPS_ALERT_COLLECTION_START = MPS_ALERT_COLLECTION_BEGIN,
-  MPS_ALERT_COLLECTION_STOP = MPS_ALERT_COLLECTION_END
-};
-
-
 /* Telemetry */
 
 extern mps_word_t mps_telemetry_control(mps_word_t, mps_word_t);

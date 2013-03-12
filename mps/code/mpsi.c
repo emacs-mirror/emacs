@@ -1674,18 +1674,6 @@ const char *mps_message_gc_start_why(mps_arena_t arena,
 }
 
 
-/* Alert */
-
-mps_res_t mps_alert_collection_set(mps_arena_t arena, 
-                                   mps_alert_collection_fn_t fn)
-{
-  ArenaEnter(arena);
-  arena->alertCollection = fn;
-  ArenaLeave(arena);
-  return MPS_RES_OK;  
-}
-
-
 /* Telemetry */
 
 /* TODO: need to consider locking. See job003387, job003388. */
