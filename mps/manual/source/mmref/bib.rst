@@ -203,6 +203,10 @@ Bibliography
 
   Hans-J. Boehm. 2002. "`Destructors, Finalizers, and Synchronization <http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_". HP Labs technical report HPL-2002-335.
 
+* .. _BM77:
+
+  Robert S. Boyer and J. Strother Moore. 1977. "`A Fast String Searching Algorithm <http://www.cs.utexas.edu/~moore/publications/fstrpos.pdf>`_". *Communications of the ACM* 20(10):762--772.
+
 * .. _BL72:
 
   P. Branquart, J. Lewi. 1972. "A scheme of storage allocation and garbage collection for ALGOL 68". Elsevier/North-Holland. ALGOL 68 Implementation -- Proceedings of the IFIP Working Conference on ALGOL 68 Implementation, July 1970.
