@@ -380,7 +380,7 @@ Subject: %s\n\n"
 
 ;; Remembering to plain files
 
-(defcustom remember-data-file (convert-standard-filename "~/.notes")
+(defcustom remember-data-file (locate-user-emacs-file "notes" ".notes")
   "The file in which to store unprocessed data."
   :type 'file
   :group 'remember)

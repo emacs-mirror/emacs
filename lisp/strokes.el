@@ -260,7 +260,7 @@ WARNING: Changing the value of this variable will gravely affect the
   :type 'integer
   :group 'strokes)
 
-(defcustom strokes-file (convert-standard-filename "~/.strokes")
+(defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
   "File containing saved strokes for Strokes mode (default is ~/.strokes)."
   :type 'file
   :group 'strokes)

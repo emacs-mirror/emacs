@@ -313,7 +313,7 @@
 (require 'viper-keym)
 
 ;; better be defined before Viper custom group.
-(defvar viper-custom-file-name (convert-standard-filename "~/.viper")
+(defvar viper-custom-file-name (locate-user-emacs-file "viper" ".viper")
   "Viper customization file.
 If set by the user, this must be done _before_ Viper is loaded in `~/.emacs'.")
 

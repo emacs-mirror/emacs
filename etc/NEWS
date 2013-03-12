@@ -85,7 +85,25 @@ Eg View mode, etc.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
-** Recentf looks for ~/.emacs.d/recentf additionally to ~/.recentf.
+** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
+Affected files:
+~/.emacs.d/timelog	replaces  ~/.timelog
+~/.emacs.d/todo-do	replaces  ~/.todo-do
+~/.emacs.d/todo-done	replaces  ~/.todo-done
+~/.emacs.d/todo-top	replaces  ~/.todo-top
+~/.emacs.d/vip		replaces  ~/.vip
+~/.emacs.d/viper	replaces  ~/.viper
+~/.emacs.d/ido.last	replaces  ~/.ido.last
+~/.emacs.d/kkcrc	replaces  ~/.kkcrc
+~/.emacs.d/quickurls	replaces  ~/.quickurls
+~/.emacs.d/idlwave	replaces  ~/.idlwave
+~/.emacs.d/bdfcache.el	replaces  ~/.bdfcache.el
+~/.emacs.d/places	replaces  ~/.emacs-places
+~/.emacs.d/shadows	replaces  ~/.shadows
+~/.emacs.d/shadow_todo	replaces  ~/.shadow_todo
+~/.emacs.d/strokes	replaces  ~/.strokes
+~/.emacs.d/notes	replaces  ~/.notes
+~/.emacs.d/type-break	replaces  ~/.type-break
 
 ** Delphi mode is now called OPascal mode.
 *** All delphi-* variables and functions have been renamed to opascal-*.

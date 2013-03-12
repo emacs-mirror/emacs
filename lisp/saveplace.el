@@ -68,7 +68,7 @@ following code in your init file:
 
 (make-variable-buffer-local 'save-place)
 
-(defcustom save-place-file (convert-standard-filename "~/.emacs-places")
+(defcustom save-place-file (locate-user-emacs-file "places" ".emacs-places")
   "Name of the file that records `save-place-alist' value."
   :type 'file
   :group 'save-place)

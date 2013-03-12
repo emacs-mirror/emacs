@@ -1,3 +1,20 @@
+2013-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* type-break.el (type-break-file-name):
+	* textmodes/remember.el (remember-data-file):
+	* strokes.el (strokes-file):
+	* shadowfile.el (shadow-initialize):
+	* saveplace.el (save-place-file):
+	* ps-bdf.el (bdf-cache-file):
+	* progmodes/idlwave.el (idlwave-config-directory):
+	* net/quickurl.el (quickurl-url-file):
+	* international/kkc.el (kkc-init-file-name):
+	* ido.el (ido-save-directory-list-file):
+	* emulation/viper.el (viper-custom-file-name):
+	* emulation/vip.el (vip-startup-file):
+	* calendar/todo-mode.el (todo-file-do, todo-file-done, todo-file-top):
+	* calendar/timeclock.el (timeclock-file): Use locate-user-emacs-file.
+
 2013-03-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Switch encodings of tutorials, thai-word to UTF-8 (Bug#13880).

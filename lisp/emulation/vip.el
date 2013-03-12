@@ -159,7 +159,7 @@ If nil then it is bound to `delete-backward-char'."
 
 (defvar vip-inhibit-startup-message nil)
 
-(defvar vip-startup-file (convert-standard-filename "~/.vip")
+(defvar vip-startup-file (locate-user-emacs-file "vip" ".vip")
   "Filename used as startup file for vip.")
 
 ;; key bindings
