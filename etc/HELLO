@@ -93,4 +93,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 ;;; Local Variables:
 ;;; tab-width: 32
 ;;; bidi-display-reordering: t
+;;; coding: iso-2022-7bit
 ;;; End:
