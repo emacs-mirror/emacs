@@ -35,6 +35,7 @@ SRCID(global, "$Id$");
 /* <design/arena/#static.ring.init> */
 static Bool arenaRingInit = FALSE;
 static RingStruct arenaRing;       /* <design/arena/#static.ring> */
+static Serial arenaSerial;         /* <design/arena/#static.serial> */
 
 /* forward declarations */
 void arenaEnterLock(Arena, int);
@@ -117,6 +118,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
 
   CHECKS(Globals, arenaGlobals);
   arena = GlobalsArena(arenaGlobals);
+  CHECKL(arena->serial < arenaSerial); 
   CHECKL(RingCheck(&arenaGlobals->globalRing));
 
   CHECKL(MPSVersion() == arenaGlobals->mpsVersionString);
@@ -240,11 +242,15 @@ Res GlobalsInit(Globals arenaGlobals)
     /* <design/arena/#static.init> */
     arenaRingInit = TRUE;
     RingInit(&arenaRing);
+    arenaSerial = (Serial)0;
     ProtSetup();
   }
-  arenaReleaseRingLock();
-
   arena = GlobalsArena(arenaGlobals);
+  /* Ensure updates to arenaSerial do not race by doing the update
+   * while the ring lock is claimed. */
+  arena->serial = arenaSerial;
+  ++ arenaSerial;
+  arenaReleaseRingLock();
 
   RingInit(&arenaGlobals->globalRing);
 
