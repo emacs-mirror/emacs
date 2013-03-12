@@ -11,9 +11,7 @@ General MPS types
 Introduction
 ------------
 
-.. mps:label:: intro
-
-See :mps:label:`impl.h.mpmtypes`.
+:mps:tag:`intro` See :mps:ref:`impl.h.mpmtypes`.
 
 
 Rationale
@@ -32,64 +30,51 @@ Concrete types
 
 .. c:type:: Bool
 
-.. mps:label:: bool
+:mps:tag:`bool` The ``Bool`` type is mostly defined so that the
+intention of code is clearer. In C, Boolean expressions evaluate to
+``int``, so ``Bool`` is in fact an alias for ``int``.
 
-The ``Bool`` type is mostly defined so that the intention of code is
-clearer. In C, Boolean expressions evaluate to ``int``, so ``Bool`` is
-in fact an alias for ``int``.
+:mps:tag:`bool.value` ``Bool`` has two values, ``TRUE`` and ``FALSE``.
+These are defined to be ``1`` and ``0`` respectively, for
+compatibility with C Boolean expressions (so one may set a ``Bool`` to
+the result of a C Boolean expression).
 
-.. mps:label:: bool.value
+:mps:tag:`bool.use` ``Bool`` is a type which should be used when a
+Boolean value is intended, for example, as the result of a function.
+Using a Boolean type in C is a tricky thing. Non-zero values are
+"true" (when used as control conditions) but are not all equal to
+``TRUE``. Use with care.
 
-``Bool`` has two values, ``TRUE`` and ``FALSE``. These are defined to
-be ``1`` and ``0`` respectively, for compatibility with C Boolean
-expressions (so one may set a ``Bool`` to the result of a C Boolean
-expression).
+:mps:tag:`bool.check` :c:func:`BoolCheck` simply checks whether the
+argument is ``TRUE`` (``1``) or ``FALSE`` (``0``).
 
-.. mps:label:: bool.use
+:mps:tag:`bool.check.inline` The inline macro version of
+:c:func:`BoolCheck` casts the ``in``t to ``unsigned`` and checks that
+it is ``<= 1``. This is safe, well-defined, uses the argument exactly
+once, and generates reasonable code.
 
-``Bool`` is a type which should be used when a Boolean value is
-intended, for example, as the result of a function. Using a Boolean
-type in C is a tricky thing. Non-zero values are "true" (when used as
-control conditions) but are not all equal to ``TRUE``. Use with care.
+:mps:tag:`bool.check.inline.smaller` In fact we can expect that the
+"inline" version of :c:func:`BoolCheck` to be smaller than the
+equivalent function call. On IA-32 for example, a function call will
+be 3 instructions (total 9 bytes), the inline code for
+:c:func:`BoolCheck` will be 1 instruction (total 3 bytes) (both
+sequences not including the test which is the same length in either
+case).
 
-.. mps:label:: bool.check
-
-:c:func:`BoolCheck` simply checks whether the argument is ``TRUE``
-(``1``) or ``FALSE`` (``0``).
-
-.. mps:label:: bool.check.inline
-
-The inline macro version of :c:func:`BoolCheck` casts the ``in``t to
-``unsigned`` and checks that it is ``<= 1``. This is safe,
-well-defined, uses the argument exactly once, and generates reasonable
-code.
-
-.. mps:label:: bool.check.inline.smaller
-
-In fact we can expect that the "inline" version of :c:func:`BoolCheck`
-to be smaller than the equivalent function call. On IA-32 for example,
-a function call will be 3 instructions (total 9 bytes), the inline
-code for :c:func:`BoolCheck` will be 1 instruction (total 3 bytes)
-(both sequences not including the test which is the same length in
-either case).
-
-.. mps:label:: bool.check.inline.why
-
-As well as being smaller (see :mps:label:`.bool.check.inline.smaller`)
-it is faster. On 1998-11-16 drj compared ``w3i3mv\hi\amcss.exe``
-running with and without the macro for :c:func:`BoolCheck` on the PC
-Aaron. "With" ran in 97.7% of the time (averaged over 3 runs).
+:mps:tag:`bool.check.inline.why` As well as being smaller (see
+:mps:ref:`.bool.check.inline.smaller`) it is faster. On 1998-11-16
+drj compared ``w3i3mv\hi\amcss.exe`` running with and without the
+macro for :c:func:`BoolCheck` on the PC Aaron. "With" ran in 97.7% of
+the time (averaged over 3 runs).
 
 
 .. c:type:: Res
 
-.. mps:label:: res
-
-``Res`` is the type of result codes. A result code indicates the
-success or failure of an operation, along with the reason for failure.
-Like Unix error codes, the meaning of the code depends on the call
-that returned it. These codes are just broad categories with mnemonic
-names for various sorts of problems.
+:mps:tag:`res` ``Res`` is the type of result codes. A result code
+indicates the success or failure of an operation, along with the
+reason for failure. Like Unix error codes, the meaning of the code
+depends on the call that returned it. These codes are just broad
+categories with mnemonic names for various sorts of problems.
 
 ===================  =======================================================
 Result code          Description
@@ -113,8 +98,8 @@ Result code          Description
                      maximum number of somethings was reached.  We should
                      avoid returning this by not including static
                      limitations in our code, as far as possible. (See
-                     :mps:label:`rule.impl.constrain` and
-                     :mps:label:`rule.impl.limits`.)
+                     :mps:ref:`rule.impl.constrain` and
+                     :mps:ref:`rule.impl.limits`.)
 -------------------  -------------------------------------------------------
 ``ResUNIMPL``        The operation, or some vital part of it, is
                      unimplemented. This might be returned by functions
@@ -132,105 +117,81 @@ Result code          Description
                      parameters passed from the client.
 ===================  =======================================================
 
-.. mps:label:: res.use
-
-``Res`` should be returned from any function which might fail. Any
-other results of the function should be passed back in "return"
-parameters (pointers to locations to fill in with the results).
+:mps:tag:`res.use` ``Res`` should be returned from any function which
+might fail. Any other results of the function should be passed back in
+"return" parameters (pointers to locations to fill in with the
+results).
 
 .. note:: This is documented elsewhere, I think -- richard
 
-.. mps:label:: res.use.spec
-
-The most specific code should be returned.
+:mps:tag:`res.use.spec` The most specific code should be returned.
 
 
 .. c:type:: Fun
 
-.. mps:label:: fun
+:mps:tag:`fun` ``Fun`` is the type of a pointer to a function about
+which nothing more is known.
 
-``Fun`` is the type of a pointer to a function about which nothing
-more is known.
-
-.. mps:label:: fun.use
-
-``Fun`` should be used where it's necessary to handle a function in a
-polymorphic way without calling it. For example, if you need to write
-a function ``g`` which passes another function ``f`` through to a
-third function ``h``, where ``h`` knows the real type of ``f`` but
-``g`` doesn't.
+:mps:tag:`fun.use` ``Fun`` should be used where it's necessary to
+handle a function in a polymorphic way without calling it. For
+example, if you need to write a function ``g`` which passes another
+function ``f`` through to a third function ``h``, where ``h`` knows
+the real type of ``f`` but ``g`` doesn't.
 
 
 .. c:type:: Word
 
-.. mps:label:: word
+:mps:tag:`word` ``Word`` is an unsigned integral type which matches
+the size of the machine word, that is, the natural size of the machine
+registers and addresses.
 
-``Word`` is an unsigned integral type which matches the size of the
-machine word, that is, the natural size of the machine registers and
-addresses.
+:mps:tag:`word.use` ``Word`` should be used where an unsigned integer
+is required that might range as large as the machine word.
 
-.. mps:label:: word.use
+:mps:tag:`word.source` ``Word`` is derived from the macro
+``MPS_T_WORD`` which is declared in :mps:ref:`impl.h.mpstd`
+according to the target platform.
 
-``Word`` should be used where an unsigned integer is required that
-might range as large as the machine word.
-
-.. mps:label:: word.source
-
-``Word`` is derived from the macro ``MPS_T_WORD`` which is declared in
-:mps:label:`impl.h.mpstd` according to the target platform.
-
-.. mps:label:: word.conv.c
-
-``Word`` is converted to :c:type:`mps_word_t` in the MPS C Interface.
+:mps:tag:`word.conv.c` ``Word`` is converted to :c:type:`mps_word_t`
+in the MPS C Interface.
 
 
 .. c:type:: Byte
 
-.. mps:label:: byte
+:mps:tag:`byte` ``Byte`` is an unsigned integral type corresponding to
+the unit in which most sizes are measured, and also the units of
+:c:func:`sizeof`.
 
-``Byte`` is an unsigned integral type corresponding to the unit in
-which most sizes are measured, and also the units of :c:func:`sizeof`.
+:mps:tag:`byte.use` ``Byte`` should be used in preference to ``char``
+or ``unsigned char`` wherever it is necessary to deal with bytes
+directly.
 
-.. mps:label:: byte.use
-
-``Byte`` should be used in preference to ``char`` or ``unsigned char``
-wherever it is necessary to deal with bytes directly.
-
-.. mps:label:: byte.source
-
-``Byte`` is a just pedagogic version of ``unsigned char``, since
-``char`` is the unit of :c:func:`sizeof`.
+:mps:tag:`byte.source` ``Byte`` is a just pedagogic version of
+``unsigned char``, since ``char`` is the unit of :c:func:`sizeof`.
 
 
 .. c:type:: Index
 
-.. mps:label:: index
+:mps:tag:`index` ``Index`` is an unsigned integral type which is large
+enough to hold any array index.
 
-``Index`` is an unsigned integral type which is large enough to hold
-any array index.
-
-.. mps:label:: index.use
-
-``Index`` should be used where the maximum size of the array cannot be
-statically determined. If the maximum size can be determined then the
-smallest unsigned integer with a large enough range may be used
-instead.
+:mps:tag:`index.use` ``Index`` should be used where the maximum size
+of the array cannot be statically determined. If the maximum size can
+be determined then the smallest unsigned integer with a large enough
+range may be used instead.
 
 
 .. c:type: Count
 
-.. mps:label:: count
+:mps:tag:`count` ``Count`` is an unsigned integral type which is large
+enough to hold the size of any collection of objects in the MPS.
 
-``Count`` is an unsigned integral type which is large enough to hold
-the size of any collection of objects in the MPS.
-
-.. mps:label:: count.use
-
-``Count`` should be used for a number of objects (control or managed)
-where the maximum number of objects cannot be statically determined.
-If the maximum number can be statically determined then the smallest
-unsigned integer with a large enough range may be used instead
-(although ``Count`` may be preferable for clarity).
+:mps:tag:`count.use` ``Count`` should be used for a number of objects
+(control or managed) where the maximum number of objects cannot be
+statically determined. If the maximum number can be statically
+determined then the smallest unsigned integer with a large enough
+range may be used instead (although ``Count`` may be preferable for
+clarity).
 
 .. note::
 
@@ -246,183 +207,140 @@ unsigned integer with a large enough range may be used instead
 
 .. c:type:: Accumulation
 
-.. mps:label:: accumulation
+:mps:tag:`accumulation` ``Accumulation`` is an arithmetic type which
+is large enough to hold accumulated totals of objects of bytes (for
+example, total number of objects allocated, total number of bytes
+allocated).
 
-``Accumulation`` is an arithmetic type which is large enough to hold
-accumulated totals of objects of bytes (for example, total number of
-objects allocated, total number of bytes allocated).
+:mps:tag:`accumulation.type` Currently it is ``double``, but the
+reason for the interface is so that we can more easily change it if we
+want to (if we decide we need more accuracy for example).
 
-.. mps:label:: accumulation.type
+:mps:tag:`accumulation.use` Currently the only way to use an
+``Accumulation`` is to reset it (by calling
+:c:func:`AccumulatorReset`) and accumulate amounts into it (by calling
+:c:func:`Accumulate`). There is no way to read it at the moment, but
+that's okay, because no one seems to want to.
 
-Currently it is ``double``, but the reason for the interface is so
-that we can more easily change it if we want to (if we decide we need
-more accuracy for example).
-
-.. mps:label:: accumulation.use
-
-Currently the only way to use an ``Accumulation`` is to reset it (by
-calling :c:func:`AccumulatorReset`) and accumulate amounts into it (by
-calling :c:func:`Accumulate`). There is no way to read it at the
-moment, but that's okay, because no one seems to want to.
-
-.. mps:label:: accumulation.future
-
-Probably we should have methods which return the accumulation into an
-``unsigned long``, and also a ``double``; these functions should
-return :c:type:`Bool` to indicate whether the accumulation can fit in
-the requested type. Possibly we could have functions which returned
-scaled accumulations. For example, ``AccumulatorScale(a, d)`` would
-divide the ``Accumulation a`` by ``double d`` and return the
-``double`` result if it fitted into a ``double``.
+:mps:tag:`accumulation.future` Probably we should have methods which
+return the accumulation into an ``unsigned long``, and also a
+``double``; these functions should return :c:type:`Bool` to indicate
+whether the accumulation can fit in the requested type. Possibly we
+could have functions which returned scaled accumulations. For example,
+``AccumulatorScale(a, d)`` would divide the ``Accumulation a`` by
+``double d`` and return the ``double`` result if it fitted into a
+``double``.
 
 
 .. c:type:: Addr
 
-.. mps:label:: addr
+:mps:tag:`addr` ``Addr`` is the type used for "managed addresses",
+that is, addresses of objects managed by the MPS.
 
-``Addr`` is the type used for "managed addresses", that is, addresses
-of objects managed by the MPS.
+:mps:tag:`addr.def` ``Addr`` is defined as ``struct AddrStruct *``,
+but ``AddrStruct`` is never defined. This means that ``Addr`` is
+always an incomplete type, which prevents accidental dereferencing,
+arithmetic, or assignment to other pointer types.
 
-.. mps:label:: addr.def
-
-``Addr`` is defined as ``struct AddrStruct *``, but ``AddrStruct`` is
-never defined. This means that ``Addr`` is always an incomplete type,
-which prevents accidental dereferencing, arithmetic, or assignment to
-other pointer types.
-
-.. mps:label:: addr.use
-
-``Addr`` should be used whenever the code needs to deal with
-addresses. It should not be used for the addresses of memory manager
-data structures themselves, so that the memory manager remains
+:mps:tag:`addr.use` ``Addr`` should be used whenever the code needs to
+deal with addresses. It should not be used for the addresses of memory
+manager data structures themselves, so that the memory manager remains
 amenable to working in a separate address space. Be careful not to
 confuse ``Addr`` with ``void *``.
 
-.. mps:label:: addr.ops
+:mps:tag:`addr.ops` Limited arithmetic is allowed on addresses using
+:c:func:`AddrAdd` and :c:func:`AddrOffset` (:mps:ref:`impl.c.mpm`).
+Addresses may also be compared using the relational operators ``==``,
+``!=``, ``<``, ``<=``, ``>``, and ``>=``.
 
-Limited arithmetic is allowed on addresses using :c:func:`AddrAdd` and
-:c:func:`AddrOffset` (:mps:label:`impl.c.mpm`). Addresses may also be
-compared using the relational operators ``==``, ``!=``, ``<``, ``<=``,
-``>``, and ``>=``.
-
-.. mps:label:: addr.ops.mem
-
-We need efficient operators similar to :c:func:`memset`,
-:c:func:`memcpy`, and :c:func:`memcmp` on ``Addr``; these are called
-:c:func:`AddrSet`, :c:func:`AddrCopy`, and :c:func:`AddrComp`. When
-``Addr`` is compatible with ``void *``, these are implemented through
-the functions :c:func:`mps_lib_memset`, :c:func:`mps_lib_memcpy`, and
-:c:func:`mps_lib_memcmp` functions in the plinth
-(:mps:label:`impl.h.mpm`).
+:mps:tag:`addr.ops.mem` We need efficient operators similar to
+:c:func:`memset`, :c:func:`memcpy`, and :c:func:`memcmp` on ``Addr``;
+these are called :c:func:`AddrSet`, :c:func:`AddrCopy`, and
+:c:func:`AddrComp`. When ``Addr`` is compatible with ``void *``, these
+are implemented through the functions :c:func:`mps_lib_memset`,
+:c:func:`mps_lib_memcpy`, and :c:func:`mps_lib_memcmp` functions in
+the plinth (:mps:ref:`impl.h.mpm`).
 
 .. note::
 
-    Np other implementation exists at present. pekka 1998-09-07
+    No other implementation exists at present. pekka 1998-09-07
 
-.. mps:label:: addr.conv.c
-
-``Addr`` is converted to :c:type:`mps_addr_t` in the MPS C Interface.
-:c:type:`mps_addr_t` is defined to be the same as ``void *``, so using
-the MPS C Interface confines the memory manager to the same address
-space as the client data.
+:mps:tag:`addr.conv.c` ``Addr`` is converted to :c:type:`mps_addr_t`
+in the MPS C Interface. :c:type:`mps_addr_t` is defined to be the same
+as ``void *``, so using the MPS C Interface confines the memory
+manager to the same address space as the client data.
 
 
 .. c:type:: Size
 
-.. mps:label:: size
+:mps:tag:`size` ``Size`` is an unsigned integral type large enough to
+hold the size of any object which the MPS might manage.
 
-``Size`` is an unsigned integral type large enough to hold the size of
-any object which the MPS might manage.
-
-.. mps:label:: size.byte
-
-``Size`` should hold a size calculated in bytes.
+:mps:tag:`size.byte` ``Size`` should hold a size calculated in bytes.
 
 .. warning:: This may not be true for all existing code.
 
-.. mps:label:: size.use
+:mps:tag:`size.use` ``Size`` should be used whenever the code needs to
+deal with the size of managed memory or client objects. It should not
+be used for the sizes of the memory manager's own data structures, so
+that the memory manager is amenable to working in a separate address
+space. Be careful not to confuse it with ``size_t``.
 
-``Size`` should be used whenever the code needs to deal with the size
-of managed memory or client objects. It should not be used for the
-sizes of the memory manager's own data structures, so that the memory
-manager is amenable to working in a separate address space. Be careful
-not to confuse it with ``size_t``.
+:mps:tag:`size.ops` [Size operations?]
 
-.. mps:label:: size.ops
-
-[Size operations?]
-
-.. mps:label:: size.conv.c
-
-``Size`` is converted to :c:type:`size_t` in the MPS C Interface. This
-constrains the memory manager to the same address space as the client
-data.
+:mps:tag:`size.conv.c` ``Size`` is converted to :c:type:`size_t` in
+the MPS C Interface. This constrains the memory manager to the same
+address space as the client data.
 
 
 .. c:type:: Align
 
-.. mps:label:: align
+:mps:tag:`align` ``Align`` is an unsigned integral type which is used
+to represent the alignment of managed addresses. All alignments are
+positive powers of two. ``Align`` is large enough to hold the maximum
+possible alignment.
 
-``Align`` is an unsigned integral type which is used to represent the
-alignment of managed addresses. All alignments are positive powers of
-two. ``Align`` is large enough to hold the maximum possible alignment.
+:mps:tag:`align.use` ``Align`` should be used whenever the code needs
+to deal with the alignment of a managed address.
 
-.. mps:label:: align.use
-
-``Align`` should be used whenever the code needs to deal with the
-alignment of a managed address.
-
-.. mps:label:: align.conv.c
-
-``Align`` is converted to :c:type:`mps_align_t` in the MPS C
-Interface.
+:mps:tag:`align.conv.c` ``Align`` is converted to
+:c:type:`mps_align_t` in the MPS C Interface.
 
 
 .. c:type:: Shift
 
-.. mps:label:: shift
+:mps:tag:`shift` ``Shift`` is an unsigned integral type which can hold
+the amount by which a :c:type:`Word` can be shifted. It is therefore
+large enough to hold the word width (in bits).
 
-``Shift`` is an unsigned integral type which can hold the amount by
-which a :c:type:`Word` can be shifted. It is therefore large enough to
-hold the word width (in bits).
+:mps:tag:`shift.use` ``Shift`` should be used whenever a shift value
+(the right-hand operand of the ``<<`` or ``>>`` operators) is
+intended, to make the code clear. It should also be used for structure
+fields which have this use.
 
-.. mps:label:: shift.use
-
-``Shift`` should be used whenever a shift value (the right-hand
-operand of the ``<<`` or ``>>`` operators) is intended, to make the
-code clear. It should also be used for structure fields which have
-this use.
-
-.. mps:label:: shift.conv.c
-
-``Shift`` is converted to :c:type:`mps_shift_t` in the MPS C
-Interface.
+:mps:tag:`shift.conv.c` ``Shift`` is converted to
+:c:type:`mps_shift_t` in the MPS C Interface.
 
 
 .. c:type:: Ref
 
-.. mps:label:: ref
-
-``Ref`` is a reference to a managed object (as opposed to any old managed 
-address).  ``Ref`` should be used where a reference is intended.
+:mps:tag:`ref` ``Ref`` is a reference to a managed object (as opposed
+to any old managed address). ``Ref`` should be used where a reference
+is intended.
 
 .. note:: This isn't too clear -- richard
 
 
 .. c:type:: RefSet
 
-.. mps:label:: refset
-
-``RefSet`` is a conservative approximation to a set of references. See
-:mps:label:`design.mps.refset`.
+:mps:tag:`refset` ``RefSet`` is a conservative approximation to a set
+of references. See :mps:ref:`design.mps.refset`.
 
 
 .. c:type:: Rank
 
-.. mps:label:: rank
-
-``Rank`` is an enumeration which represents the rank of a reference.
-The ranks are:
+:mps:tag:`rank` ``Rank`` is an enumeration which represents the rank
+of a reference. The ranks are:
 
 =============  =====  =====================================================
 Rank           Index  Description
@@ -460,11 +378,9 @@ their integer values.
 
 .. c:type:: Epoch
 
-.. mps:label:: epoch
-
-An ``Epoch`` is a count of the number of flips that the mutator have
-occurred. [Is it more general than that?] It is used in the
-implementation of location dependencies.
+:mps:tag:`epoch` An ``Epoch`` is a count of the number of flips that
+the mutator have occurred. [Is it more general than that?] It is used
+in the implementation of location dependencies.
 
 ``Epoch`` is converted to :c:type:`mps_word_t` in the MPS C Interface,
 as a field of :c:type:`mps_ld_s`.
@@ -472,19 +388,16 @@ as a field of :c:type:`mps_ld_s`.
 
 .. c:type:: TraceId
 
-.. mps:label:: traceid
-
-A ``TraceId`` is an unsigned integer which is less than ``TRACE_MAX``.
-Each running trace has a different ``TraceId`` which is used to index
-into tables and bitfields used to remember the state of that trace.
+:mps:tag:`traceid` A ``TraceId`` is an unsigned integer which is less
+than ``TRACE_MAX``. Each running trace has a different ``TraceId``
+which is used to index into tables and bitfields used to remember the
+state of that trace.
 
 
 .. c:type:: TraceSet
 
-.. mps:label:: traceset
-
-A ``TraceSet`` is a bitset of :c:type:`TraceId`, represented in the
-obvious way::
+:mps:tag:`traceset` A ``TraceSet`` is a bitset of :c:type:`TraceId`,
+represented in the obvious way::
 
     member(ti, ts) ⇔ ((1<<ti) & ts) != 0
 
@@ -495,18 +408,15 @@ obvious way::
 
 .. c:type:: AccessSet
 
-.. mps:label:: access-set
-
-An ``AccessSet`` is a bitset of :c:type:`Access` modes, which are
-``AccessREAD`` and ``AccessWRITE``. ``AccessNONE`` is the empty
-``AccessSet``.
+:mps:tag:`access-set` An ``AccessSet`` is a bitset of :c:type:`Access`
+modes, which are ``AccessREAD`` and ``AccessWRITE``. ``AccessNONE`` is
+the empty ``AccessSet``.
 
 
 .. c:type:: Attr
 
-.. mps:label:: attr
-
-Pool attributes. A bitset of pool or pool class attributes, which are:
+:mps:tag:`attr` Pool attributes. A bitset of pool or pool class
+attributes, which are:
 
 ===================  ===========================================================
 Attribute            Description
@@ -548,21 +458,17 @@ used for consistency checking at the moment.
 
 .. c:type:: RootVar
 
-.. mps:label:: rootvar
-
-The type ``RootVar`` is the type of the discriminator for the union
-within ``RootStruct``.
+:mps:tag:`rootvar` The type ``RootVar`` is the type of the
+discriminator for the union within ``RootStruct``.
 
 
 .. c:type:: Serial
 
-.. mps:label:: serial
-
-A ``Serial`` is a number which is assigned to a structure when it is
-initialized. The serial number is taken from a field in the parent
-structure, which is incremented. Thus, every instance of a structure
-has a unique "name" which is a path of structures from the global
-root. For example::
+:mps:tag:`serial` A ``Serial`` is a number which is assigned to a
+structure when it is initialized. The serial number is taken from a
+field in the parent structure, which is incremented. Thus, every
+instance of a structure has a unique "name" which is a path of
+structures from the global root. For example::
 
     space[3].pool[5].buffer[2]
 
@@ -571,9 +477,8 @@ Why? Consistency checking, debugging, and logging. Not well thought out.
 
 .. c:type:: Compare
 
-.. mps:label:: compare
-
-``Compare`` is the type of tri-state comparison values.  
+:mps:tag:`compare` ``Compare`` is the type of tri-state comparison
+values.
 
 ==================  ===========================================
 Value               Description
@@ -588,22 +493,19 @@ Value               Description
 
 .. c:type:: ULongest
 
-.. mps:label:: ulongest
-
-``ULongest`` is the longest unsigned integer on the platform. (We used
-to use ``unsigned long`` but this assumption is violated by 64-bit
-Windows.) This type should be used for calculations where any integer
-might be passed. Notably, it is used in ``WriteF`` to print any integer.
+:mps:tag:`ulongest` ``ULongest`` is the longest unsigned integer on
+the platform. (We used to use ``unsigned long`` but this assumption is
+violated by 64-bit Windows.) This type should be used for calculations
+where any integer might be passed. Notably, it is used in ``WriteF``
+to print any integer.
 
 
 Abstract types
 --------------
 
-.. mps:label:: adts
-
-The following types are abstract data types, implemented as pointers
-to structures. For example, :c:type:`Ring` is a pointer to a
-:c:type:`RingStruct`. They are described elsewhere
+:mps:tag:`adts` The following types are abstract data types,
+implemented as pointers to structures. For example, :c:type:`Ring` is
+a pointer to a :c:type:`RingStruct`. They are described elsewhere
 
 .. note:: where?
 
@@ -616,8 +518,5 @@ to structures. For example, :c:type:`Ring` is a pointer to a
 
 .. c:type:: Pointer
 
-.. mps:label:: pointer
-
-The type ``Pointer`` is the same as ``void *``, and exists to sanctify
-functions such as :c:func:`PointerAdd`.
-
+:mps:tag:`pointer` The type ``Pointer`` is the same as ``void *``, and
+exists to sanctify functions such as :c:func:`PointerAdd`.

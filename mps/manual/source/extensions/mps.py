@@ -42,77 +42,43 @@ class MpsPrefixDirective(MpsDirective):
 
     def run(self):
         targetid = self.content[0]
-        self.state.document.mps_label_prefix = targetid
+        self.state.document.mps_tag_prefix = targetid
         targetnode = nodes.target('', '', ids=[targetid])
         return [targetnode]
 
-def mps_label_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+def mps_tag_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+
+    try:
+        targetid = '.'.join([inliner.document.mps_tag_prefix, text])
+    except AttributeError:
+        return [], [inliner.document.reporter.warning
+                ('mps:tag without mps:prefix', line=lineno)]
+    if len(text) == 0:
+        return [], [inliner.document.reporter.error
+                ('missing argument for mps:tag', line=lineno)]
+    targetnode = nodes.target('', '', ids=[targetid])
+    tag = '.{}:'.format(text)
+    refnode = nodes.reference('', '', refid=targetid, classes=['mpstag'],
+                              *[nodes.Text(tag)])
+    return [targetnode, refnode], []
+
+def mps_ref_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     textnode = nodes.Text(text)
     if text.startswith('.'):
-        # Label is relative to current prefix and so points elsewhere
+        # Tag is relative to current prefix and so points elsewhere
         # in this document, so create reference node.
         try:
-            targetid = inliner.document.mps_label_prefix + text
+            targetid = inliner.document.mps_tag_prefix + text
             refnode = nodes.reference('', '', refid=targetid, *[textnode])
         except AttributeError:
             return [textnode], [inliner.document.reporter.warning
-                                (':mps:label without mps:prefix', line=lineno)]
+                                (':mps:ref without mps:prefix', line=lineno)]
     else:
-        # Label is absolute: need to create pending_xref node.
+        # Tag is absolute: need to create pending_xref node.
         refnode = addnodes.pending_xref('', refdomain='std', reftarget=text,
                                         reftype='view')
         refnode += textnode
     return [refnode], []
-
-class mpslabel(nodes.reference):
-    pass
-
-def visit_mpslabel_node(self, node):
-    self.visit_reference(node)
-
-def depart_mpslabel_node(self, node):
-    self.depart_reference(node)
-
-class MpsLabelDirective(MpsDirective):
-    nodecls = mpslabel
-    domain = 'mps'
-    name = 'label'
-    has_content = True
-    visit = visit_mpslabel_node, depart_mpslabel_node
-
-    def run(self):
-        try:
-            targetid = '.'.join([self.state.document.mps_label_prefix, 
-                                 self.content[0]])
-        except AttributeError:
-            return [self.state.document.reporter.warning
-                    ('mps:label without mps:prefix', line=self.lineno)]
-        if len(self.content) == 0:
-            return [self.state.document.reporter.error
-                    ('missing argument for mps:label', line=self.lineno)]
-        if 1 < len(self.content):
-            return [self.state.document.reporter.error
-                    ('too many arguments for mps:label', line=self.lineno)]
-        targetnode = nodes.target('', '', ids=[targetid])
-        label = '.{}:'.format(self.content[0])
-        refnode = self.nodecls('', '', refid=targetid, classes=['mpslabel'],
-                               *[nodes.Text(label)])
-        return [targetnode, refnode]
-
-class LabelTransform(transforms.Transform):
-    """
-    Transform a document, moving mpslabel elements into the start of
-    the subsequent paragraph.
-    """
-    default_priority = 999
-
-    def apply(self):
-        for target in self.document.traverse(mpslabel):
-            n = target.parent.index(target)
-            # TODO: handle errors
-            para = target.parent[n + 1]
-            del target.parent[n]
-            para[:0] = [target, nodes.Text(' ')]
 
 class Admonition(nodes.Admonition, nodes.Element):
     pass
@@ -364,8 +330,8 @@ class GlossaryTransform(transforms.Transform):
 
 def setup(app):
     app.add_domain(MpsDomain)
-    app.add_role_to_domain('mps', 'label', mps_label_role)
-    app.add_transform(LabelTransform)
+    app.add_role_to_domain('mps', 'tag', mps_tag_role)
+    app.add_role_to_domain('mps', 'ref', mps_ref_role)
     app.add_transform(GlossaryTransform)
     app.connect('build-finished', GlossaryTransform.warn_indirect_terms)
     for g in globals().itervalues():
