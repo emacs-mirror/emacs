@@ -1,3 +1,10 @@
+2013-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine-parameters-indent): New variable
+	for CFEngine 3-specific indentation.
+	(cfengine3-indent-line): Use it.  Fix up category regex.
+	(cfengine3-font-lock-keywords): Add bundle and namespace characters.
+
 2013-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* type-break.el (type-break-file-name):
