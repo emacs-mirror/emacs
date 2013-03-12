@@ -201,10 +201,6 @@ nontrivial changes to the build process.
 	lisp/language/tibet-util.el
 	lisp/language/ind-util.el
 
-     Converting this file to UTF-8 loses non-character information.
-
-	leim/quail/hanja3.el
-
 
 This file is part of GNU Emacs.
 
