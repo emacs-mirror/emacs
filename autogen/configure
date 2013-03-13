@@ -3349,7 +3349,6 @@ as_fn_append ac_header_list " wchar.h"
 as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_header_list " inttypes.h"
 as_fn_append ac_func_list " lstat"
-as_fn_append ac_func_list " alarm"
 as_fn_append ac_header_list " sys/select.h"
 as_fn_append ac_func_list " pselect"
 as_fn_append ac_func_list " pthread_sigmask"
@@ -19467,7 +19466,16 @@ _ACEOF
   REPLACE_NANOSLEEP=GNULIB_PORTCHECK;
   REPLACE_TIMEGM=GNULIB_PORTCHECK;
 
+ac_fn_c_check_decl "$LINENO" "alarm" "ac_cv_have_decl_alarm" "$ac_includes_default"
+if test "x$ac_cv_have_decl_alarm" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
 
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_ALARM $ac_have_decl
+_ACEOF
 
 
   GNULIB_PSELECT=0;
@@ -22549,8 +22557,8 @@ else
 # include <unistd.h>
 #endif
 
-#ifndef HAVE_ALARM
-# define alarm(X) /* empty */
+#if HAVE_DECL_ALARM
+# include <signal.h>
 #endif
 
 /* Work around redefinition to rpl_putenv by other config tests.  */
@@ -22686,10 +22694,13 @@ main ()
   int time_t_signed_magnitude = (time_t) ~ (time_t) 0 < (time_t) -1;
   int time_t_signed = ! ((time_t) 0 < (time_t) -1);
 
+#if HAVE_DECL_ALARM
   /* This test makes some buggy mktime implementations loop.
      Give up after 60 seconds; a mktime slower than that
      isn't worth using anyway.  */
+  signal (SIGALRM, SIG_DFL);
   alarm (60);
+#endif
 
   time_t_max = (! time_t_signed
                 ? (time_t) -1
@@ -23267,16 +23278,16 @@ $as_echo "$gl_cv_func_svid_putenv" >&6; }
   gl_LIBOBJS="$gl_LIBOBJS putenv.$ac_objext"
 
 
-  for ac_func in _putenv
-do :
-  ac_fn_c_check_func "$LINENO" "_putenv" "ac_cv_func__putenv"
-if test "x$ac_cv_func__putenv" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE__PUTENV 1
-_ACEOF
-
+  ac_fn_c_check_decl "$LINENO" "_putenv" "ac_cv_have_decl__putenv" "$ac_includes_default"
+if test "x$ac_cv_have_decl__putenv" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
 fi
-done
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL__PUTENV $ac_have_decl
+_ACEOF
 
 
   fi
