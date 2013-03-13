@@ -236,6 +236,7 @@ static void my_set_focus (struct frame *, HWND);
 #endif
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
+static void w32fullscreen_hook (FRAME_PTR);
 
 #ifdef GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
@@ -4717,7 +4718,16 @@ w32_read_socket (struct terminal *terminal,
 	case WM_ACTIVATEAPP:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
-	    x_check_fullscreen (f);
+	    {
+	      /* If we are being activated, run the full-screen hook
+		 function, to actually install the required size in
+		 effect.  This is because when the hook is run from
+		 x_set_fullscreen, the frame might not yet be visible,
+		 if that call is a result of make-frame.  */
+	      if (msg.msg.wParam)
+		w32fullscreen_hook (f);
+	      x_check_fullscreen (f);
+	    }
 	  check_visibility = 1;
 	  break;
 
