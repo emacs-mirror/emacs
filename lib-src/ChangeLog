@@ -1,3 +1,8 @@
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c (main): Call umask on all systems.
+	This is OK since Emacs already assumes umask elsewhere.
+
 2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* movemail.c (getenv): Remove decl (unused since 1994).

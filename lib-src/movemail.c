@@ -380,13 +380,9 @@ main (int argc, char **argv)
       if (indesc < 0)
 	pfatal_with_name (inname);
 
-#ifdef BSD_SYSTEM
       /* In case movemail is setuid to root, make sure the user can
 	 read the output file.  */
-      /* This is desirable for all systems
-	 but I don't want to assume all have the umask system call */
       umask (umask (0) & 0333);
-#endif /* BSD_SYSTEM */
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
