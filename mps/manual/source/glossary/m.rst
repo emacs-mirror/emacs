@@ -30,8 +30,8 @@ Memory Management Glossary: M
         but faster and more expensive than :term:`backing store`.
 
         It is common to refer only to the main memory of a computer;
-        for example, "This box has 16 MB of memory" and "Word for
-        Windows requires 32 MB".
+        for example, "This server has 128 GB of memory" and "OS X 10.8
+        requires at least 2 GB of memory".
 
         .. historical::
 
@@ -419,11 +419,9 @@ Memory Management Glossary: M
 
         .. historical::
 
-            File mapping is available on most modern Unix systems, and
-            also on recent versions of the Windows operating system
-            such as Windows 95 and Windows NT. However, it has a much
-            longer history. In Multics, it was the primary way of
-            accessing files.
+            File mapping is available on most modern Unix and Windows
+            systems. However, it has a much longer history. In
+            Multics, it was the primary way of accessing files.
 
         .. seealso:: :term:`mapped`.
 
@@ -520,7 +518,6 @@ Memory Management Glossary: M
         .. seealso:: :term:`virtual memory`, :term:`page fault`, :term:`segmentation violation`.
 
     mostly-copying garbage collection
-    mostly copying garbage collection
 
         A type of :term:`semi-conservative <semi-conservative garbage
         collection>` :term:`tracing garbage collection` which permits
