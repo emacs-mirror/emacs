@@ -380,9 +380,9 @@ main (int argc, char **argv)
       if (indesc < 0)
 	pfatal_with_name (inname);
 
-      /* In case movemail is setuid to root, make sure the user can
-	 read the output file.  */
-      umask (umask (0) & 0333);
+      /* Make sure the user can read the output file.  */
+      umask (umask (0) & 0377);
+
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);

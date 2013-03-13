@@ -2,6 +2,10 @@
 
 	* movemail.c (main): Call umask on all systems.
 	This is OK since Emacs already assumes umask elsewhere.
+	Don't grant more read permissions than necessary.
+	The old 0333 dates back to before we called setuid,
+	so it was needed back then to ensure user-readability,
+	but 0377 should suffice now.
 
 2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
 
