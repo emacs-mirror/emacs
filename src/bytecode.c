@@ -755,7 +755,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      {
 		BEFORE_POTENTIAL_GC ();
 		wrong_type_argument (Qlistp, v1);
-		AFTER_POTENTIAL_GC ();
 	      }
 	    NEXT;
 	  }
@@ -790,7 +789,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      {
 		BEFORE_POTENTIAL_GC ();
 		wrong_type_argument (Qlistp, v1);
-		AFTER_POTENTIAL_GC ();
 	      }
 	    NEXT;
 	  }

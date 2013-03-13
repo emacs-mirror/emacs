@@ -1850,9 +1850,6 @@ those `/' is discarded.  */)
   error ("Missing \"}\" in environment-variable substitution");
  badvar:
   error ("Substituting nonexistent environment variable \"%s\"", target);
-
-  /* NOTREACHED */
-  return Qnil;
 }
 
 /* A slightly faster and more convenient way to get
@@ -3305,7 +3302,6 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
           return Qnil;
 #endif
         report_file_error ("Setting file times", Fcons (absname, Qnil));
-        return Qnil;
       }
   }
 

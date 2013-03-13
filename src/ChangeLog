@@ -1,5 +1,20 @@
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Static checking by Sun C 5.12.
+	* alloc.c (buffer_memory_full) [REL_ALLOC]:
+	* bytecode.c (exec_byte_code):
+	* dispnew.c (init_display):
+	* eval.c (error):
+	* fileio.c (Fsubstitute_in_file_name):
+	* keyboard.c (Fevent_convert_list):
+	* keymap.c (Fsingle_key_description):
+	* term.c (maybe_fatal, fatal):
+	* xfns.c (Fx_display_backing_store, Fx_display_visual_class):
+	* xsmfns.c (Fhandle_save_session):
+	Omit unreachable code.
+	* keymap.c (map_keymap_char_table_item): Cast void * to
+	a function pointer type; the C Standard requires this.
+
 	* sysdep.c: Remove a use of BSD_SYSTEM, which I'm trying to phase out.
 	Include <sys/param.h> unconditionally, as that works elsewhere and
 	is simpler here.  Include <sys/sysctl.h> if DARWIN_OS ||

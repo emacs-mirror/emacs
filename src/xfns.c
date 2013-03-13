@@ -3769,7 +3769,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
     default:
       error ("Strange value for BackingStore parameter of screen");
-      result = Qnil;
     }
 
   return result;
@@ -3811,7 +3810,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
       break;
     default:
       error ("Display has an unknown visual class");
-      result = Qnil;
     }
 
   return result;

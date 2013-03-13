@@ -3426,9 +3426,6 @@ maybe_fatal (int must_succeed, struct terminal *terminal,
     vfatal (str2, ap);
   else
     verror (str1, ap);
-
-  va_end (ap);
-  emacs_abort ();
 }
 
 void
@@ -3437,7 +3434,6 @@ fatal (const char *str, ...)
   va_list ap;
   va_start (ap, str);
   vfatal (str, ap);
-  va_end (ap);
 }
 
 

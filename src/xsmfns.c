@@ -514,9 +514,11 @@ Do not call this function yourself. */)
          prevent.  Fix this in next version.  */
       Fkill_emacs (Qnil);
 
+#if 0
       /* This will not be reached, but we want kill-emacs-hook to be run.  */
       SmcCloseConnection (smc_conn, 0, 0);
       ice_connection_closed ();
+#endif
     }
 
   return Qnil;

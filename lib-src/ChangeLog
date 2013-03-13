@@ -1,5 +1,8 @@
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Static checking by Sun C 5.12.
+	* etags.c (analyse_regex): Omit unreachable code.
+
 	* movemail.c (main): Call umask on all systems.
 	This is OK since Emacs already assumes umask elsewhere.
 	Don't grant more read permissions than necessary.

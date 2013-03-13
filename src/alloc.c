@@ -422,11 +422,11 @@ buffer_memory_full (ptrdiff_t nbytes)
 
 #ifndef REL_ALLOC
   memory_full (nbytes);
-#endif
-
+#else
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
   xsignal (Qnil, Vmemory_signal_data);
+#endif
 }
 
 /* A common multiple of the positive integers A and B.  Ideally this

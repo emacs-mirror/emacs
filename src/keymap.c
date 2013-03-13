@@ -565,7 +565,8 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 {
   if (!NILP (val))
     {
-      map_keymap_function_t fun = XSAVE_POINTER (args, 0);
+      map_keymap_function_t fun
+	= (map_keymap_function_t) XSAVE_POINTER (args, 0);
       /* If the key is a range, make a copy since map_char_table modifies
 	 it in place.  */
       if (CONSP (key))
@@ -2310,7 +2311,6 @@ around function keys and event symbols.  */)
     return Fcopy_sequence (key);
   else
     error ("KEY must be an integer, cons, symbol, or string");
-  return Qnil;
 }
 
 static char *

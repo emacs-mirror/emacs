@@ -6100,10 +6100,7 @@ init_display (void)
 
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (0))
-    {
-      fatal ("standard input is not a tty");
-      exit (1);
-    }
+    fatal ("standard input is not a tty");
 
 #ifdef WINDOWSNT
   terminal_type = "w32console";

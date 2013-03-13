@@ -5628,10 +5628,7 @@ analyse_regex (char *regex_arg)
 	/* regexfile is a file containing regexps, one per line. */
 	regexfp = fopen (regexfile, "r");
 	if (regexfp == NULL)
-	  {
-	    pfatal (regexfile);
-	    return;
-	  }
+	  pfatal (regexfile);
 	linebuffer_init (&regexbuf);
 	while (readline_internal (&regexbuf, regexfp) > 0)
 	  analyse_regex (regexbuf.buffer);
