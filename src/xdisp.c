@@ -2550,7 +2550,7 @@ markpos_of_region (void)
    at character position CHARPOS.  CHARPOS < 0 means that no buffer
    position is specified which is useful when the iterator is assigned
    a position later.  BYTEPOS is the byte position corresponding to
-   CHARPOS.  BYTEPOS < 0 means compute it from CHARPOS.
+   CHARPOS.
 
    If ROW is not null, calls to produce_glyphs with IT as parameter
    will produce glyphs in that row.
@@ -2828,17 +2828,13 @@ init_iterator (struct it *it, struct window *w,
   if (charpos >= BUF_BEG (current_buffer))
     {
       it->end_charpos = ZV;
+      eassert (charpos == BYTE_TO_CHAR (bytepos));
       IT_CHARPOS (*it) = charpos;
+      IT_BYTEPOS (*it) = bytepos;
 
       /* We will rely on `reseat' to set this up properly, via
 	 handle_face_prop.  */
       it->face_id = it->base_face_id;
-
-      /* Compute byte position if not specified.  */
-      if (bytepos < charpos)
-	IT_BYTEPOS (*it) = CHAR_TO_BYTE (charpos);
-      else
-	IT_BYTEPOS (*it) = bytepos;
 
       it->start = it->current;
       /* Do we need to reorder bidirectional text?  Not if this is a

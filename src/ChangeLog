@@ -1,3 +1,8 @@
+2013-03-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (init_iterator): Simplify because both character and byte
+	positions are either specified or -1.  Add eassert.  Adjust comment.
+
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Static checking by Sun C 5.12.
