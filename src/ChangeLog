@@ -2,6 +2,8 @@
 
 	* xdisp.c (init_iterator): Simplify because both character and byte
 	positions are either specified or -1.  Add eassert.  Adjust comment.
+	* window.c (Fscroll_other_window): Use SET_PT_BOTH because both
+	character and byte positions can be obtained from marker.
 
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
