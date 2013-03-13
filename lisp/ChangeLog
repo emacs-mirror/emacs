@@ -1,3 +1,8 @@
+2013-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule.el (find-auto-coding): Include file name in
+	obsolescence warning (bug#13922).
+
 2013-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el (cfengine-parameters-indent): New variable
