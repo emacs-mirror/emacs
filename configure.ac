@@ -2872,7 +2872,7 @@ select getpagesize setlocale \
 utimes getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkstemp getline getdelim fsync sync \
+gai_strerror mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
@@ -3774,7 +3774,6 @@ esac
 
 dnl Define symbols to identify the version of Unix this is.
 dnl Define all the symbols that apply correctly.
-AH_TEMPLATE(BSD_SYSTEM, [Define if the system is compatible with BSD 4.2.])
 AH_TEMPLATE(DOS_NT, [Define if the system is MS DOS or MS Windows.])
 AH_TEMPLATE(MSDOS, [Define if the system is MS DOS.])
 AH_TEMPLATE(USG, [Define if the system is compatible with System III.])
@@ -3798,28 +3797,10 @@ case $opsys in
     ;;
 
   darwin)
-    dnl BSD4_3 and BSD4_4 are already defined in sys/param.h.
-    AC_DEFINE(BSD_SYSTEM, [])
-    dnl More specific than the above two.  We cannot use __APPLE__ as this
-    dnl may not be defined on non-OSX Darwin, and we cannot define DARWIN
-    dnl here because Panther and lower CoreFoundation.h uses DARWIN to
+    dnl Not __APPLE__, as this may not be defined on non-OSX Darwin.
+    dnl Not DARWIN, because Panther and lower CoreFoundation.h use DARWIN to
     dnl distinguish OS X from pure Darwin.
     AC_DEFINE(DARWIN_OS, [], [Define if the system is Darwin.])
-    ;;
-
-  freebsd)
-    dnl Hack to avoid calling AC_PREPROC_IFELSE multiple times.
-    dnl Would not be needed with autoconf >= 2.67, where the
-    dnl preprocessed output is accessible in "conftest.i".
-    AC_DEFINE(BSD_SYSTEM_AHB, 1, [Define if AH_BOTTOM should change BSD_SYSTEM.])
-    ;;
-
-  gnu | netbsd | openbsd )
-    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
-#ifndef BSD_SYSTEM
-# error "BSD_SYSTEM not defined"
-#endif
-    ]], [[]])], [], AC_DEFINE(BSD_SYSTEM, 43) )
     ;;
 
   gnu-linux | gnu-kfreebsd )
@@ -4185,15 +4166,8 @@ case "$opsys" in
    LD_SWITCH_SYSTEM_TEMACS="-fno-pie -prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
 
    ## This is here because src/Makefile.in did some extra fiddling around
-   ## with LD_SWITCH_SYSTEM.  The cpp logic was:
-   ##   #ifndef LD_SWITCH_SYSTEM
-   ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
-   ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-   ## not using gcc, darwin.
-   ## Because this was done in src/Makefile.in, the resulting part of
-   ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
-   ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
-   ## rather than LD_SWITCH_SYSTEM.
+   ## with LD_SWITCH_SYSTEM.  It seems cleaner to put this in
+   ## LD_SWITCH_SYSTEM_TEMACS instead,
    test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
      LD_SWITCH_SYSTEM_TEMACS="-X $LD_SWITCH_SYSTEM_TEMACS"
    ;;

@@ -1,5 +1,14 @@
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	File synchronization fixes (Bug#13944).
+	* Makefile.in (LIB_FDATASYNC): New macro.
+	(emacsclient${EXEEXT}): Use it.
+	* emacsclient.c (main): Use fdatasync, not fsync, since we don't
+	care about metadata.  Keep trying if interrupted.
+	* movemail.c (main, popmail): Don't worry about BSD_SYSTEM, since
+	fsync is available everywhere (or there is a substitute).  Don't
+	report an error if fsync returns EINVAL.
+
 	Static checking by Sun C 5.12.
 	* etags.c (analyse_regex): Omit unreachable code.
 

@@ -1,3 +1,9 @@
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* CPP-DEFINES (BSD_SYSTEM, HAVE_FSYNC): Remove.
+	* merge-gnulib (GNULIB_MODULES): Add fsync, fdatasync.
+
 2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* notes/unicode: Improve notes about Emacs source file encoding.

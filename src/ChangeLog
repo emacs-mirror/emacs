@@ -1,3 +1,14 @@
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* Makefile.in (LIB_FDATASYNC): New macro.
+	(LIBES): Use it.
+	* conf_post.h (BSD_SYSTEM, BSD_SYSTEM_AHB): Remove; no longer needed.
+	* fileio.c (Fwrite_region, write_region_inhibit_fsync):
+	Don't worry about HAVE_FSYNC, since a substitute fsync is
+	available if the system lacks one.
+	(Fwrite_regin): Retry fsync if interrupted.
+
 2013-03-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32_read_socket): If we Emacs frame is being

@@ -466,10 +466,8 @@ main (int argc, char **argv)
 	  }
       }
 
-#ifdef BSD_SYSTEM
-      if (fsync (outdesc) < 0)
+      if (fsync (outdesc) != 0 && errno != EINVAL)
 	pfatal_and_delete (outname);
-#endif
 
       /* Prevent symlink attacks truncating other users' mailboxes */
       if (setregid (-1, real_gid) < 0)
@@ -750,21 +748,14 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
 	}
     }
 
-  /* On AFS, a call to write only modifies the file in the local
-   *     workstation's AFS cache.  The changes are not written to the server
-   *      until a call to fsync or close is made.  Users with AFS home
-   *      directories have lost mail when over quota because these checks were
-   *      not made in previous versions of movemail. */
-
-#ifdef BSD_SYSTEM
-  if (fsync (mbfi) < 0)
+  if (fsync (mbfi) != 0 && errno != EINVAL)
     {
       error ("Error in fsync: %s", strerror (errno), 0);
+      close (mbfi);
       return EXIT_FAILURE;
     }
-#endif
 
-  if (close (mbfi) == -1)
+  if (close (mbfi) != 0)
     {
       error ("Error in close: %s", strerror (errno), 0);
       return EXIT_FAILURE;

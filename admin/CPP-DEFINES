@@ -9,7 +9,6 @@ documented in config.in, and this file would not be necessary.
 
 AIX
 _AIX
-BSD_SYSTEM
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
 GNU_LINUX
@@ -149,7 +148,6 @@ HAVE_FORK
 HAVE_FREEIFADDRS
 HAVE_FREETYPE
 HAVE_FSEEKO
-HAVE_FSYNC
 HAVE_FUTIMENS
 HAVE_FUTIMES
 HAVE_FUTIMESAT

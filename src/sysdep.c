@@ -1289,10 +1289,9 @@ reset_sys_modes (struct tty_display_info *tty_out)
   if (tty_out->terminal->reset_terminal_modes_hook)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
 
-#ifdef BSD_SYSTEM
   /* Avoid possible loss of output when changing terminal modes.  */
-  fsync (fileno (tty_out->output));
-#endif
+  while (fdatasync (fileno (tty_out->output)) != 0 && errno == EINTR)
+    continue;
 
 #ifndef DOS_NT
 #ifdef F_SETOWN

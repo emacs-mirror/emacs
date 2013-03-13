@@ -1,5 +1,12 @@
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	File synchronization fixes (Bug#13944).
+	* configure.ac (BSD_SYSTEM, BSD_SYSTEM_AHB): Remove; no longer needed.
+	(fsync): Remove check; now done by gnulib.
+	* lib/fdatasync.c, lib/fsync.c, m4/fdatasync.m4, m4/fsync.m4:
+	New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 	Merge from gnulib, incorporating:
 	2013-03-13 putenv: port to Solaris 10
 	2013-03-12 mktime: fix configure typo
