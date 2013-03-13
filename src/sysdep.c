@@ -38,9 +38,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 #include "blockinput.h"
 
-#ifdef BSD_SYSTEM
-#include <sys/param.h>
-#include <sys/sysctl.h>
+#if defined DARWIN_OS || defined __FreeBSD__
+# include <sys/sysctl.h>
 #endif
 
 #ifdef __FreeBSD__
@@ -69,9 +68,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
 #include "msdos.h"
-#include <sys/param.h>
 #endif
 
+#include <sys/param.h>
 #include <sys/file.h>
 #include <fcntl.h>
 

@@ -1,3 +1,11 @@
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c: Remove a use of BSD_SYSTEM, which I'm trying to phase out.
+	Include <sys/param.h> unconditionally, as that works elsewhere and
+	is simpler here.  Include <sys/sysctl.h> if DARWIN_OS ||
+	__FreeBSD__, not if BSD_SYSTEM, since it's needed only for Darwin
+	and FreeBSD now.
+
 2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* insdel.c (adjust_after_replace): Use bool for boolean.
