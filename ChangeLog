@@ -1,6 +1,7 @@
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
+	2013-03-13 putenv: port to Solaris 10
 	2013-03-12 mktime: fix configure typo
 	2013-03-11 regex: port to mingw's recent addition of undeclared alarm
 	2013-03-11 putenv: avoid compilation warning on mingw

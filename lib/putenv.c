@@ -62,7 +62,7 @@ static int
 _unsetenv (const char *name)
 {
   size_t len;
-#if !HAVE__PUTENV
+#if !HAVE_DECL__PUTENV
   char **ep;
 #endif
 
@@ -74,7 +74,7 @@ _unsetenv (const char *name)
 
   len = strlen (name);
 
-#if HAVE__PUTENV
+#if HAVE_DECL__PUTENV
   {
     int putenv_result, putenv_errno;
     char *name_ = malloc (len + 2);
@@ -127,9 +127,9 @@ putenv (char *string)
       return _unsetenv (string);
     }
 
-#if HAVE__PUTENV
+#if HAVE_DECL__PUTENV
   /* Rely on _putenv to allocate the new environment.  If other
-     parts of the application use _putenv, the !HAVE__PUTENV code
+     parts of the application use _putenv, the !HAVE_DECL__PUTENV code
      would fight over who owns the environ vector, causing a crash.  */
   if (name_end[1])
     return _putenv (string);
@@ -188,7 +188,7 @@ putenv (char *string)
       last_environ = new_environ;
       environ = new_environ;
     }
-#endif
 
   return 0;
+#endif
 }
