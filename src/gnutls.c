@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2012  Free Software Foundation, Inc.
+   Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -359,12 +359,7 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
 
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
     {
-#ifdef EWOULDBLOCK
-      errno = EWOULDBLOCK;
-#endif
-#ifdef EAGAIN
       errno = EAGAIN;
-#endif
       return 0;
     }
 
@@ -384,14 +379,7 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
 		 appropriately so that send_process retries the
 		 correct way instead of erroring out. */
 	      if (rtnval == GNUTLS_E_AGAIN)
-		{
-#ifdef EWOULDBLOCK
-		  errno = EWOULDBLOCK;
-#endif
-#ifdef EAGAIN
-		  errno = EAGAIN;
-#endif
-		}
+		errno = EAGAIN;
 	      break;
 	    }
 	}

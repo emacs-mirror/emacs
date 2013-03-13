@@ -1,6 +1,6 @@
 ;;; org-beamer.el --- Beamer-specific LaTeX export for org-mode
 ;;
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
@@ -228,7 +228,7 @@ the tag does not have any semantic meaning."
 	(org-entry-put nil "BEAMER_env" (match-string 1 tags)))
        (t (org-entry-delete nil "BEAMER_env"))))))
 
-
+;;;###autoload
 (defun org-beamer-sectioning (level text)
   "Return the sectioning entry for the current headline.
 LEVEL is the reduced level of the headline.
@@ -370,6 +370,7 @@ org-beamer-extra are all scoped into this function dynamically."
   "The keymap for `org-beamer-mode'.")
 (define-key org-beamer-mode-map "\C-c\C-b" 'org-beamer-select-environment)
 
+;;;###autoload
 (define-minor-mode org-beamer-mode
   "Special support for editing Org-mode files made to export to beamer."
   nil " Bm" nil)

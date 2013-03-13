@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -81,7 +81,7 @@
 
 ;;; User Variables:
 
-(defcustom timeclock-file (convert-standard-filename "~/.timelog")
+(defcustom timeclock-file (locate-user-emacs-file "timelog" ".timelog")
   "The file used to store timeclock data in."
   :type 'file
   :group 'timeclock)

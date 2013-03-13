@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -51,6 +51,9 @@
 
 ;;; Todo:
 
+;; - Make *Completions* readable even if some of the completion
+;;   entries have LF chars or spaces in them (including at
+;;   beginning/end) or are very long.
 ;; - for M-x, cycle-sort commands that have no key binding first.
 ;; - Make things like icomplete-mode or lightning-completion work with
 ;;   completion-in-region-mode.
@@ -74,6 +77,9 @@
 ;;   - whether the user wants completion to pay attention to case.
 ;;   e.g. we may want to make it possible for the user to say "first try
 ;;   completion case-sensitively, and if that fails, try to ignore case".
+;;   Maybe the trick is that we should distinguish completion-ignore-case in
+;;   try/all-completions (obey user's preference) from its use in
+;;   test-completion (obey the underlying object's semantics).
 
 ;; - add support for ** to pcm.
 ;; - Add vc-file-name-completion-table to read-file-name-internal.
@@ -378,6 +384,8 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
   ;; that `concat' and `unquote' commute (which tends to be the case).
   ;; And we ask `requote' to do the work of mapping from unquoted positions
   ;; back to quoted positions.
+  ;; FIXME: For some forms of "quoting" such as the truncation behavior of
+  ;; substitute-in-file-name, it would be desirable not to requote completely.
   "Return a new completion table operating on quoted text.
 TABLE operates on the unquoted text.
 UNQUOTE is a function that takes a string and returns a new unquoted string.
@@ -527,10 +535,12 @@ for use at QPOS."
          (`(,qfullpos . ,qfun)
           (funcall requote (+ boundary (length prefix)) string))
          (qfullprefix (substring string 0 qfullpos))
-         (_ (cl-assert (completion--string-equal-p
-                        (funcall unquote qfullprefix)
-                        (concat (substring ustring 0 boundary) prefix))
-                       t))
+	 ;; FIXME: This assertion can be wrong, e.g. in Cygwin, where
+	 ;; (unquote "c:\bin") => "/usr/bin" but (unquote "c:\") => "/".
+         ;;(cl-assert (completion--string-equal-p
+         ;;            (funcall unquote qfullprefix)
+         ;;            (concat (substring ustring 0 boundary) prefix))
+         ;;           t))
          (qboundary (car (funcall requote boundary string)))
          (_ (cl-assert (<= qboundary qfullpos)))
          ;; FIXME: this split/quote/concat business messes up the carefully
@@ -559,14 +569,16 @@ for use at QPOS."
                  (let* ((new (substring completion (length prefix)))
                         (qnew (funcall qfun new))
                         (qcompletion (concat qprefix qnew)))
-                   (cl-assert
-                    (completion--string-equal-p
-		     (funcall unquote
-			      (concat (substring string 0 qboundary)
-				      qcompletion))
-		     (concat (substring ustring 0 boundary)
-			     completion))
-		    t)
+		   ;; FIXME: Similarly here, Cygwin's mapping trips this
+		   ;; assertion.
+                   ;;(cl-assert
+                   ;; (completion--string-equal-p
+		   ;;  (funcall unquote
+		   ;;           (concat (substring string 0 qboundary)
+		   ;;                   qcompletion))
+		   ;;  (concat (substring ustring 0 boundary)
+		   ;;          completion))
+		   ;; t)
                    qcompletion))
                completions)
        qboundary))))
@@ -743,6 +755,7 @@ completing buffer and file names, respectively."
 				  (const buffer)
                                   (const file)
                                   (const unicode-name)
+				  (const bookmark)
                                   symbol)
           :value-type
           (set :tag "Properties to override"
@@ -1093,6 +1106,13 @@ scroll the window of possible completions."
              (sort-fun (completion-metadata-get all-md 'cycle-sort-function)))
         (when last
           (setcdr last nil)
+
+          ;; Delete duplicates: do it after setting last's cdr to nil (so
+          ;; it's a proper list), and be careful to reset `last' since it
+          ;; may be a different cons-cell.
+          (setq all (delete-dups all))
+          (setq last (last all))
+
           (setq all (if sort-fun (funcall sort-fun all)
                       ;; Prefer shorter completions, by default.
                       (sort all (lambda (c1 c2) (< (length c1) (length c2))))))
@@ -1106,6 +1126,15 @@ scroll the window of possible completions."
           ;; repeated calls to minibuffer-force-complete can cycle through
           ;; all possibilities.
           (completion--cache-all-sorted-completions (nconc all base-size))))))
+
+(defun minibuffer-force-complete-and-exit ()
+  "Complete the minibuffer with first of the matches and exit."
+  (interactive)
+  (minibuffer-force-complete)
+  (minibuffer--complete-and-exit
+   ;; If the previous completion completed to an element which fails
+   ;; test-completion, then we shouldn't exit, but that should be rare.
+   (lambda () (minibuffer-message "Incomplete"))))
 
 (defun minibuffer-force-complete ()
   "Complete the minibuffer to an exact match.
@@ -1179,6 +1208,22 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
  `minibuffer-confirm-exit-commands', and accept the input
  otherwise."
   (interactive)
+  (minibuffer--complete-and-exit
+   (lambda ()
+     (pcase (condition-case nil
+                (completion--do-completion nil 'expect-exact)
+              (error 1))
+       ((or #b001 #b011) (exit-minibuffer))
+       (#b111 (if (not minibuffer-completion-confirm)
+                  (exit-minibuffer)
+                (minibuffer-message "Confirm")
+                nil))
+       (_ nil)))))
+
+(defun minibuffer--complete-and-exit (completion-function)
+  "Exit from `require-match' minibuffer.
+COMPLETION-FUNCTION is called if the current buffer's content does not
+appear to be a match."
   (let ((beg (field-beginning))
         (end (field-end)))
     (cond
@@ -1226,15 +1271,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
 
      (t
       ;; Call do-completion, but ignore errors.
-      (pcase (condition-case nil
-                (completion--do-completion nil 'expect-exact)
-              (error 1))
-        ((or #b001 #b011) (exit-minibuffer))
-        (#b111 (if (not minibuffer-completion-confirm)
-                   (exit-minibuffer)
-                 (minibuffer-message "Confirm")
-                 nil))
-        (_ nil))))))
+      (funcall completion-function)))))
 
 (defun completion--try-word-completion (string table predicate point md)
   (let ((comp (completion-try-completion string table predicate point md)))
@@ -1421,9 +1458,11 @@ It also eliminates runs of equal strings."
                                    'mouse-face 'highlight)
               (put-text-property (point) (progn (insert (car str)) (point))
                                  'mouse-face 'highlight)
-              (add-text-properties (point) (progn (insert (cadr str)) (point))
-                                   '(mouse-face nil
-                                     face completions-annotations)))
+              (let ((beg (point))
+                    (end (progn (insert (cadr str)) (point))))
+                (put-text-property beg end 'mouse-face nil)
+                (font-lock-prepend-text-property beg end 'face
+                                                 'completions-annotations)))
 	    (cond
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format
@@ -1450,12 +1489,11 @@ See also `display-completion-list'.")
 
 (defface completions-first-difference
   '((t (:inherit bold)))
-  "Face put on the first uncommon character in completions in *Completions* buffer."
+  "Face added on the first uncommon character in completions in *Completions* buffer."
   :group 'completion)
 
-(defface completions-common-part
-  '((t (:inherit default)))
-  "Face put on the common prefix substring in completions in *Completions* buffer.
+(defface completions-common-part '((t nil))
+  "Face added on the common prefix substring in completions in *Completions* buffer.
 The idea of `completions-common-part' is that you can use it to
 make the common parts less visible than normal, so that the rest
 of the differing parts is, by contrast, slightly highlighted."
@@ -1476,17 +1514,18 @@ of the differing parts is, by contrast, slightly highlighted."
                      (car (setq elem (cons (copy-sequence (car elem))
                                            (cdr elem))))
                    (setq elem (copy-sequence elem)))))
-            (put-text-property 0
-			       ;; If completion-boundaries returns incorrect
-			       ;; values, all-completions may return strings
-			       ;; that don't contain the prefix.
-			       (min com-str-len (length str))
-                               'font-lock-face 'completions-common-part
-                               str)
+            (font-lock-prepend-text-property
+             0
+             ;; If completion-boundaries returns incorrect
+             ;; values, all-completions may return strings
+             ;; that don't contain the prefix.
+             (min com-str-len (length str))
+             'face 'completions-common-part str)
             (if (> (length str) com-str-len)
-                (put-text-property com-str-len (1+ com-str-len)
-                                   'font-lock-face 'completions-first-difference
-                                   str)))
+                (font-lock-prepend-text-property com-str-len (1+ com-str-len)
+                                                 'face
+                                                 'completions-first-difference
+                                                 str)))
           elem)
         completions)
        base-size))))
@@ -2008,10 +2047,7 @@ with `minibuffer-local-must-match-map'.")
     (define-key map "i" 'info)
     (define-key map "m" 'mail)
     (define-key map "n" 'make-frame)
-    (define-key map [mouse-1] (lambda () (interactive)
-				(with-current-buffer "*Messages*"
-				  (goto-char (point-max))
-				  (display-buffer (current-buffer)))))
+    (define-key map [mouse-1] 'view-echo-area-messages)
     ;; So the global down-mouse-1 binding doesn't clutter the execution of the
     ;; above mouse-1 binding.
     (define-key map [down-mouse-1] #'ignore)
@@ -2041,6 +2077,8 @@ This is only used when the minibuffer area has no active minibuffer.")
           process-environment))
 
 (defconst completion--embedded-envvar-re
+  ;; We can't reuse env--substitute-vars-regexp because we need to match only
+  ;; potentially-unfinished envvars at end of string.
   (concat "\\(?:^\\|[^$]\\(?:\\$\\$\\)*\\)"
           "$\\([[:alnum:]_]*\\|{\\([^}]*\\)\\)\\'"))
 
@@ -2160,53 +2198,49 @@ same as `substitute-in-file-name'."
                         "use the regular PRED argument" "23.2")
 
 (defun completion--sifn-requote (upos qstr)
-  ;; We're looking for `qupos' such that:
+  ;; We're looking for `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
-  ;;        (substitute-in-file-name (substring qstr 0 qupos)))
+  ;;        (substitute-in-file-name (substring qstr 0 qpos)))
   ;; Big problem here: we have to reverse engineer substitute-in-file-name to
   ;; find the position corresponding to UPOS in QSTR, but
   ;; substitute-in-file-name can do anything, depending on file-name-handlers.
+  ;; substitute-in-file-name does the following kind of things:
+  ;; - expand env-var references.
+  ;; - turn backslashes into slashes.
+  ;; - truncate some prefix of the input.
+  ;; - rewrite some prefix.
+  ;; Some of these operations are written in external libraries and we'd rather
+  ;; not hard code any assumptions here about what they actually do.  IOW, we
+  ;; want to treat substitute-in-file-name as a black box, as much as possible.
   ;; Kind of like in rfn-eshadow-update-overlay, only worse.
-  ;; FIXME: example of thing we do not handle: Tramp's makes
-  ;; (substitute-in-file-name "/foo:~/bar//baz") -> "/scpc:foo:/baz".
-  ;; FIXME: One way to try and handle "all" cases is to require
-  ;; substitute-in-file-name to preserve text-properties, so we could
-  ;; apply text-properties to the input string and then look for them in
-  ;; the output to understand what comes from where.
-  (let ((qpos 0))
-    ;; Handle substitute-in-file-name's truncation behavior.
-    (let (tpos)
-      (while (and (string-match "[\\/][~/\\]" qstr qpos)
-                  ;; Hopefully our regexp covers all truncation cases.
-                  ;; Also let's make sure sifn indeed truncates here.
+  ;; Example of things we need to handle:
+  ;; - Tramp (substitute-in-file-name "/foo:~/bar//baz") => "/scpc:foo:/baz".
+  ;; - Cygwin (substitute-in-file-name "C:\bin") => "/usr/bin"
+  ;;          (substitute-in-file-name "C:\") => "/"
+  ;;          (substitute-in-file-name "C:\bi") => "/bi"
+  (let* ((ustr (substitute-in-file-name qstr))
+         (uprefix (substring ustr 0 upos))
+         qprefix)
+    ;; Main assumption: nothing after qpos should affect the text before upos,
+    ;; so we can work our way backward from the end of qstr, one character
+    ;; at a time.
+    ;; Second assumptions: If qpos is far from the end this can be a bit slow,
+    ;; so we speed it up by doing a first loop that skips a word at a time.
+    ;; This word-sized loop is careful not to cut in the middle of env-vars.
+    (while (let ((boundary (string-match "\\(\\$+{?\\)?\\w+\\W*\\'" qstr)))
+             (and boundary
                   (progn
-                    (setq tpos (1+ (match-beginning 0)))
-                    (equal (substitute-in-file-name qstr)
-                           (substitute-in-file-name (substring qstr tpos)))))
-        (setq qpos tpos)))
-    ;; `upos' is relative to the position corresponding to `qpos' in
-    ;; (substitute-in-file-name qstr), so as qpos moves forward, upos
-    ;; gets smaller.
-    (while (and (> upos 0)
-                (string-match "\\$\\(\\$\\|\\([[:alnum:]_]+\\|{[^}]*}\\)\\)?"
-                              qstr qpos))
-      (cond
-       ((>= (- (match-beginning 0) qpos) upos) ; UPOS is before current match.
-        (setq qpos (+ qpos upos))
-        (setq upos 0))
-       ((not (match-end 1))             ;A sole $: probably an error.
-        (setq upos (- upos (- (match-end 0) qpos)))
-        (setq qpos (match-end 0)))
-       (t
-        (setq upos (- upos (- (match-beginning 0) qpos)))
-        (setq qpos (match-end 0))
-        (setq upos (- upos (length (substitute-in-file-name
-                                    (match-string 0 qstr))))))))
-    ;; If `upos' is negative, it's because it's within the expansion of an
-    ;; envvar, i.e. there is no exactly matching qpos, so we just use the next
-    ;; available qpos right after the envvar.
-    (cons (if (>= upos 0) (+ qpos upos) qpos)
-	  #'minibuffer--double-dollars)))
+                    (setq qprefix (substring qstr 0 boundary))
+                    (string-prefix-p uprefix
+                                   (substitute-in-file-name qprefix)))))
+      (setq qstr qprefix))
+    (let ((qpos (length qstr)))
+      (while (and (> qpos 0)
+                  (string-prefix-p uprefix
+                                   (substitute-in-file-name
+                                    (substring qstr 0 (1- qpos)))))
+        (setq qpos (1- qpos)))
+      (cons qpos #'minibuffer--double-dollars))))
 
 (defalias 'completion--file-name-table
   (completion-table-with-quoting #'completion-file-name-table

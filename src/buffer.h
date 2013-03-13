@@ -1,7 +1,7 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2012
-                 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-1995, 1997-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,9 +81,6 @@ INLINE_HEADER_BEGIN
 
 /* Size of gap.  */
 #define GAP_SIZE (current_buffer->text->gap_size)
-
-/* Is the current buffer narrowed?  */
-#define NARROWED	((BEGV != BEG) || (ZV != Z))
 
 /* Modification count.  */
 #define MODIFF (current_buffer->text->modiff)
@@ -173,10 +170,6 @@ INLINE_HEADER_BEGIN
 /* Size of gap.  */
 #define BUF_GAP_SIZE(buf) ((buf)->text->gap_size)
 
-/* Is this buffer narrowed?  */
-#define BUF_NARROWED(buf) ((BUF_BEGV (buf) != BUF_BEG (buf)) \
-			   || (BUF_ZV (buf) != BUF_Z (buf)))
-
 /* Modification count.  */
 #define BUF_MODIFF(buf) ((buf)->text->modiff)
 
@@ -192,6 +185,9 @@ INLINE_HEADER_BEGIN
 /* Modification count as of last auto-save.  */
 /* FIXME: should we move this into ->text->auto_save_modiff?  */
 #define BUF_AUTOSAVE_MODIFF(buf) ((buf)->auto_save_modified)
+
+/* Compaction count.  */
+#define BUF_COMPACT(buf) ((buf)->text->compact)
 
 /* Marker chain of buffer.  */
 #define BUF_MARKERS(buf) ((buf)->text->markers)
@@ -291,24 +287,24 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 /* Access a Lisp position value in POS,
    and store the charpos in CHARPOS and the bytepos in BYTEPOS.  */
 
-#define DECODE_POSITION(charpos, bytepos, pos)			\
-do								\
-  {								\
-    Lisp_Object __pos = (pos);					\
-    if (NUMBERP (__pos))					\
-      {								\
-	charpos = __pos;					\
-	bytepos = buf_charpos_to_bytepos (current_buffer, __pos);  \
-      }								\
-    else if (MARKERP (__pos))					\
-      {								\
-	charpos = marker_position (__pos);			\
-	bytepos = marker_byte_position (__pos);			\
-      }								\
-    else							\
-      wrong_type_argument (Qinteger_or_marker_p, __pos);	\
-  }								\
-while (0)
+#define DECODE_POSITION(charpos, bytepos, pos)				\
+  do									\
+    {									\
+      Lisp_Object __pos = (pos);					\
+      if (NUMBERP (__pos))						\
+	{								\
+	  charpos = __pos;						\
+	  bytepos = buf_charpos_to_bytepos (current_buffer, __pos);	\
+	}								\
+      else if (MARKERP (__pos))						\
+	{								\
+	  charpos = marker_position (__pos);				\
+	  bytepos = marker_byte_position (__pos);			\
+	}								\
+      else								\
+	wrong_type_argument (Qinteger_or_marker_p, __pos);		\
+    }									\
+  while (0)
 
 /* Maximum number of bytes in a buffer.
    A buffer cannot contain more bytes than a 1-origin fixnum can represent,
@@ -316,6 +312,16 @@ while (0)
    The ptrdiff_t cast ensures that this is signed, not unsigned.  */
 #define BUF_BYTES_MAX \
   (ptrdiff_t) min (MOST_POSITIVE_FIXNUM - 1, min (SIZE_MAX, PTRDIFF_MAX))
+
+/* Maximum gap size after compact_buffer, in bytes.  Also
+   used in make_gap_larger to get some extra reserved space.  */
+
+#define GAP_BYTES_DFL 2000
+
+/* Minimum gap size after compact_buffer, in bytes.  Also
+   used in make_gap_smaller to avoid too small gap size.  */
+
+#define GAP_BYTES_MIN 20
 
 /* Return the address of byte position N in current buffer.  */
 
@@ -482,11 +488,6 @@ struct buffer_text
 
 struct buffer
 {
-  /* HEADER.NEXT is the next buffer, in chain of all buffers, including killed
-     buffers.  This chain, starting from all_buffers, is used only for garbage
-     collection, in order to collect killed buffers properly.  Note that large
-     vectors and large pseudo-vector objects are all on another chain starting
-     from large_vectors.  */
   struct vectorlike_header header;
 
   /* The name of this buffer.  */
@@ -750,6 +751,9 @@ struct buffer
      In an indirect buffer, this is the own_text field of another buffer.  */
   struct buffer_text *text;
 
+  /* Next buffer, in chain of all buffers, including killed ones.  */
+  struct buffer *next;
+
   /* Char position of point in buffer.  */
   ptrdiff_t pt;
 
@@ -772,10 +776,14 @@ struct buffer
      In an ordinary buffer, it is 0.  */
   struct buffer *base_buffer;
 
-  /* In an indirect buffer, this is -1. In an ordinary buffer,
+  /* In an indirect buffer, this is -1.  In an ordinary buffer,
      it's the number of indirect buffers that share our text;
      zero means that we're the only owner of this text.  */
   int indirections;
+
+  /* Number of windows showing this buffer.  Always -1 for
+     an indirect buffer since it counts as its base buffer.  */
+  int window_count;
 
   /* A non-zero value in slot IDX means that per-buffer variable
      with index IDX has a local value in this buffer.  The index IDX
@@ -959,24 +967,50 @@ bset_width_table (struct buffer *b, Lisp_Object val)
   b->INTERNAL_FIELD (width_table) = val;
 }
 
+/* Number of Lisp_Objects at the beginning of struct buffer.
+   If you add, remove, or reorder Lisp_Objects within buffer
+   structure, make sure that this is still correct.  */
+
+#define BUFFER_LISP_SIZE						\
+  ((offsetof (struct buffer, own_text) - header_size) / word_size)
+
+/* Size of the struct buffer part beyond leading Lisp_Objects, in word_size
+   units.  Rounding is needed for --with-wide-int configuration.  */
+
+#define BUFFER_REST_SIZE						\
+  ((((sizeof (struct buffer) - offsetof (struct buffer, own_text))	\
+     + (word_size - 1)) & ~(word_size - 1)) / word_size)
+
+/* Initialize the pseudovector header of buffer object.  BUFFER_LISP_SIZE
+   is required for GC, but BUFFER_REST_SIZE is set up just to be consistent
+   with other pseudovectors.  */
+
+#define BUFFER_PVEC_INIT(b)                                    \
+  XSETPVECTYPESIZE (b, PVEC_BUFFER, BUFFER_LISP_SIZE, BUFFER_REST_SIZE)
+
 /* Convenient check whether buffer B is live.  */
 
 #define BUFFER_LIVE_P(b) (!NILP (BVAR (b, name)))
+
+/* Convenient check whether buffer B is hidden (i.e. its name
+   starts with a space).  Caller must ensure that B is live.  */
+
+#define BUFFER_HIDDEN_P(b) (SREF (BVAR (b, name), 0) == ' ')
 
 /* Verify indirection counters.  */
 
 #define BUFFER_CHECK_INDIRECTION(b)			\
   do {							\
     if (BUFFER_LIVE_P (b))				\
-    {							\
-      if (b->base_buffer)				\
-	{						\
-	  eassert (b->indirections == -1);		\
-	  eassert (b->base_buffer->indirections > 0);	\
-	}						\
-      else						\
-	eassert (b->indirections >= 0);			\
-    }							\
+      {							\
+	if (b->base_buffer)				\
+	  {						\
+	    eassert (b->indirections == -1);		\
+	    eassert (b->base_buffer->indirections > 0);	\
+	  }						\
+	else						\
+	  eassert (b->indirections >= 0);		\
+      }							\
   } while (0)
 
 /* Chain of all buffers, including killed ones.  */
@@ -986,7 +1020,7 @@ extern struct buffer *all_buffers;
 /* Used to iterate over the chain above.  */
 
 #define FOR_EACH_BUFFER(b) \
-  for ((b) = all_buffers; (b); (b) = (b)->header.next.buffer)
+  for ((b) = all_buffers; (b); (b) = (b)->next)
 
 /* This points to the current buffer.  */
 
@@ -1037,7 +1071,6 @@ extern void set_buffer_internal_1 (struct buffer *);
 extern void set_buffer_temp (struct buffer *);
 extern Lisp_Object buffer_local_value_1 (Lisp_Object, Lisp_Object);
 extern void record_buffer (Lisp_Object);
-extern _Noreturn void buffer_slot_type_mismatch (Lisp_Object, int);
 extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void mmap_set_vars (bool);
 
@@ -1149,7 +1182,18 @@ BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
        + pos + BUF_BEG_ADDR (buf) - BEG_BYTE);
   return STRING_CHAR (p);
 }
-
+
+/* Return number of windows showing B.  */
+
+BUFFER_INLINE int
+buffer_window_count (struct buffer *b)
+{
+  if (b->base_buffer)
+    b = b->base_buffer;
+  eassert (b->window_count >= 0);
+  return b->window_count;
+}
+
 /* Overlays */
 
 /* Return the marker that stands for where OV starts in the buffer.  */

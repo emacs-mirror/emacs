@@ -1,6 +1,6 @@
 ;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
-;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -30,7 +30,7 @@
 ;; If you use SPP in your language, be sure to specify this in your
 ;; semantic language setup function:
 ;;
-;; (add-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook nil t)
+;; (add-hook 'semantic-lex-reset-functions 'semantic-lex-spp-reset-hook nil t)
 ;;
 ;;
 ;; Special Lexical Tokens:
@@ -947,8 +947,8 @@ and variable state from the current buffer."
 	    (setq semantic-new-buffer-fcn-was-run t)
 	    (semantic-lex-init)
 	    (semantic-clear-toplevel-cache)
-	    (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-			 t)
+	    (remove-hook 'semantic-lex-reset-functions
+			 'semantic-lex-spp-reset-hook t)
 	    ))
 
 	;; Second Cheat: copy key variables regarding macro state from the

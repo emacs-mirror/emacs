@@ -1,6 +1,6 @@
 GNUS NEWS -- history of user-visible changes.
 
-Copyright (C) 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1999-2013 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Gnus bug reports to bugs@gnus.org.
@@ -8,6 +8,9 @@ For older news, see Gnus info node "New Features".
 
 
 * New features
+
+** New package `gnus-notifications.el' can send notifications when you
+   receive new messages.
 
 ** If you have the "tnef" program installed, Gnus will display ms-tnef
    files, aka "winmail.dat".

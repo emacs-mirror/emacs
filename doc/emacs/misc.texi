@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -53,7 +53,7 @@ commands.  The three most commonly-used Gnus buffers are the
 @dfn{group buffer}, the @dfn{summary buffer} and the @dfn{article
 buffer}.
 
-  The @dfn{group buffer} contains a list of article sources (e.g.@:
+  The @dfn{group buffer} contains a list of article sources (e.g.,
 newsgroups and email inboxes), which are collectively referred to as
 @dfn{groups}.  This is the first buffer Gnus displays when it starts
 up.  It normally displays only the groups to which you subscribe and
@@ -166,7 +166,7 @@ List zombie groups.
 @cindex unsubscribe groups
 @item u
 Toggle the subscription status of the group on the current line
-(i.e.@: turn a subscribed group into an unsubscribed group, or vice
+(i.e., turn a subscribed group into an unsubscribed group, or vice
 versa).  Invoking this on a killed or zombie group turns it into an
 unsubscribed group.
 
@@ -518,7 +518,7 @@ output is long).
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
 creates the file @file{foo} and produces no terminal output.
 
-  A numeric argument to @code{shell-command}, e.g.@: @kbd{M-1 M-!},
+  A numeric argument to @code{shell-command}, e.g., @kbd{M-1 M-!},
 causes it to insert terminal output into the current buffer instead of
 a separate buffer.  It puts point before the output, and sets the mark
 after the output.  For instance, @kbd{M-1 M-! gunzip < foo.gz
@@ -542,10 +542,18 @@ which is impossible to ignore.
 You can also type @kbd{M-&} (@code{async-shell-command}) to execute a
 shell command asynchronously; this is exactly like calling @kbd{M-!}
 with a trailing @samp{&}, except that you do not need the @samp{&}.
-The output buffer for asynchronous shell commands is named
+The default output buffer for asynchronous shell commands is named
 @samp{*Async Shell Command*}.  Emacs inserts the output into this
 buffer as it comes in, whether or not the buffer is visible in a
 window.
+
+@vindex async-shell-command-buffer
+  If you want to run more than one asynchronous shell command at the
+same time, they could end up competing for the output buffer.  The
+option @code{async-shell-command-buffer} specifies what to do about
+this; e.g., whether to rename the pre-existing output buffer, or to
+use a different buffer for the new command.  Consult the variable's
+documentation for more possibilities.
 
 @kindex M-|
 @findex shell-command-on-region
@@ -591,7 +599,7 @@ the buffer and type the input, terminated by @key{RET}.
   While the subshell is waiting or running a command, you can switch
 windows or buffers and perform other editing in Emacs.  Emacs inserts
 the output from the subshell into the Shell buffer whenever it has
-time to process it (e.g.@: while waiting for keyboard input).
+time to process it (e.g., while waiting for keyboard input).
 
 @cindex @code{comint-highlight-input} face
 @cindex @code{comint-highlight-prompt} face
@@ -602,7 +610,7 @@ easier to distinguish input lines from the shell output.
 @xref{Faces}.
 
   To make multiple subshells, invoke @kbd{M-x shell} with a prefix
-argument (e.g. @kbd{C-u M-x shell}).  Then the command will read a
+argument (e.g., @kbd{C-u M-x shell}).  Then the command will read a
 buffer name, and create (or reuse) a subshell in that buffer.  You can
 also rename the @file{*shell*} buffer using @kbd{M-x rename-uniquely},
 then create a new @file{*shell*} buffer using plain @kbd{M-x shell}.
@@ -637,7 +645,7 @@ Coding}.
 @cindex @env{EMACS} environment variable
   Emacs sets the environment variable @env{INSIDE_EMACS} in the
 subshell to @samp{@var{version},comint}, where @var{version} is the
-Emacs version (e.g.@: @samp{24.1}).  Programs can check this variable
+Emacs version (e.g., @samp{24.1}).  Programs can check this variable
 to determine whether they are running inside an Emacs subshell.  (It
 also sets the @env{EMACS} environment variable to @code{t}, if that
 environment variable is not already defined.  However, this
@@ -1186,30 +1194,39 @@ underlying shell, of course.
 @subsection Emacs Terminal Emulator
 @findex term
 
-  To run a subshell in a terminal emulator, use @kbd{M-x term}.  This
-creates (or reuses) a buffer named @file{*terminal*}, and runs a
+  To run a subshell in a text terminal emulator, use @kbd{M-x term}.
+This creates (or reuses) a buffer named @file{*terminal*}, and runs a
 subshell with input coming from your keyboard, and output going to
 that buffer.
 
+@cindex line mode @r{(terminal emulator)}
+@cindex char mode @r{(terminal emulator)}
   The terminal emulator uses Term mode, which has two input modes.  In
-line mode, Term basically acts like Shell mode (@pxref{Shell Mode}).
-
-  In char mode, each character is sent directly to the subshell, as
-``terminal input''.  Any ``echoing'' of your input is the
-responsibility of the subshell.  The sole exception is the terminal
-escape character, which by default is @kbd{C-c} (@pxref{Term Mode}).
-Any ``terminal output'' from the subshell goes into the buffer,
-advancing point.
+@dfn{line mode}, Term basically acts like Shell mode (@pxref{Shell
+Mode}).  In @dfn{char mode}, each character is sent directly to the
+subshell, as terminal input; the sole exception is the terminal escape
+character, which by default is @kbd{C-c} (@pxref{Term Mode}).  Any
+echoing of your input is the responsibility of the subshell; any
+terminal output from the subshell goes into the buffer, advancing
+point.
 
   Some programs (such as Emacs itself) need to control the appearance
-on the terminal screen in detail.  They do this by sending special
-control codes.  The exact control codes needed vary from terminal to
-terminal, but nowadays most terminals and terminal emulators
-(including @code{xterm}) understand the ANSI-standard (VT100-style)
-escape sequences.  Term mode recognizes these escape sequences, and
-handles each one appropriately, changing the buffer so that the
-appearance of the window matches what it would be on a real terminal.
-You can actually run Emacs inside an Emacs Term window.
+of the terminal screen in detail.  They do this by emitting special
+control codes.  Term mode recognizes and handles ANSI-standard
+VT100-style escape sequences, which are accepted by most modern
+terminals, including @command{xterm}.  (Hence, you can actually run
+Emacs inside an Emacs Term window.)
+
+  The @code{term} face specifies the default appearance of text
+in the terminal emulator (the default is the same appearance as the
+@code{default} face).  When terminal control codes are used to change
+the appearance of text, these are represented in the terminal emulator
+by the faces @code{term-color-black}, @code{term-color-red},
+@code{term-color-green}, @code{term-color-yellow}
+@code{term-color-blue}, @code{term-color-magenta},
+@code{term-color-cyan}, @code{term-color-white},
+@code{term-color-underline}, and @code{term-color-bold}.
+@xref{Faces}.
 
   You can also Term mode to communicate with a device connected to a
 serial port.  @xref{Serial Terminal}.
@@ -1223,6 +1240,9 @@ rename-uniquely}, just as with Shell mode.
 examining your input.  But some shells can tell Term what the current
 directory is.  This is done automatically by @code{bash} version 1.15
 and later.
+
+
+
 
 @node Term Mode
 @subsection Term Mode
@@ -1287,7 +1307,7 @@ mode-line.  Type @key{SPC} to display the next screenful of output, or
 @cindex Rlogin
 
   You can login to a remote computer, using whatever commands you
-would from a regular terminal (e.g.@: using the @code{telnet} or
+would from a regular terminal (e.g., using the @code{telnet} or
 @code{rlogin} commands), from a Term window.
 
   A program that asks you for a password will normally suppress
@@ -1511,7 +1531,7 @@ precedence.
 Create a new graphical @dfn{client frame}, instead of using an
 existing Emacs frame.  See below for the special behavior of @kbd{C-x
 C-c} in a client frame.  If Emacs cannot create a new graphical frame
-(e.g.@: if it cannot connect to the X server), it tries to create a
+(e.g., if it cannot connect to the X server), it tries to create a
 text terminal client frame, as though you had supplied the @samp{-t}
 option instead.
 
@@ -1610,7 +1630,7 @@ frame.  If you type @kbd{C-x C-c} (@code{save-buffers-kill-terminal})
 in a client frame, that command does not kill the Emacs session as it
 normally does (@pxref{Exiting}).  Instead, Emacs deletes the client
 frame; furthermore, if the client frame has an @command{emacsclient}
-waiting to regain control (i.e.@: if you did not supply the @samp{-n}
+waiting to regain control (i.e., if you did not supply the @samp{-n}
 option), Emacs deletes all other frames of the same client, and marks
 the client's server buffers as finished, as though you had typed
 @kbd{C-x #} in all of them.  If it so happens that there are no
@@ -1669,7 +1689,7 @@ for printing by calling the @command{lpr} program.  To change the
 printer program, customize the variable @code{lpr-command}.  To
 specify extra switches to give the printer program, customize the list
 variable @code{lpr-switches}.  Its value should be a list of option
-strings, each of which should start with @samp{-} (e.g.@: the option
+strings, each of which should start with @samp{-} (e.g., the option
 string @code{"-w80"} specifies a line width of 80 columns).  The
 default is the empty list, @code{nil}.
 
@@ -2160,7 +2180,7 @@ commands to perform arbitrary editing while in the middle of another
 Emacs command.  For example, when you type @kbd{C-r} inside of a
 @code{query-replace}, you enter a recursive edit in which you can change
 the current buffer.  On exiting from the recursive edit, you go back to
-the @code{query-replace}.
+the @code{query-replace}.  @xref{Query Replace}.
 
 @kindex C-M-c
 @findex exit-recursive-edit
@@ -2384,7 +2404,7 @@ done by calling @code{browse-url} as a subroutine
 
   It can be useful to add @code{goto-address-mode} to mode hooks and
 hooks for displaying an incoming message
-(e.g.@: @code{rmail-show-message-hook} for Rmail, and
+(e.g., @code{rmail-show-message-hook} for Rmail, and
 @code{mh-show-mode-hook} for MH-E).  This is not needed for Gnus,
 which has a similar feature of its own.
 
@@ -2467,7 +2487,7 @@ find the one you select (@code{ffap-menu}).
 
 @findex animate-birthday-present
 @cindex animate
-  The @code{animate} package makes text dance (e.g.  @kbd{M-x
+  The @code{animate} package makes text dance (e.g., @kbd{M-x
 animate-birthday-present}).
 
 @findex blackbox

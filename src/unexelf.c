@@ -1,5 +1,5 @@
-/* Copyright (C) 1985-1988, 1990, 1992, 1999-2012
-                 Free Software Foundation, Inc.
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -461,7 +461,7 @@ typedef struct {
 /*
  * NetBSD does not have normal-looking user-land ELF support.
  */
-# if defined __alpha__ || defined __sparc_v9__
+# if defined __alpha__ || defined __sparc_v9__ || defined _LP64
 #  define ELFSIZE	64
 # else
 #  define ELFSIZE	32

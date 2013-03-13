@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF

@@ -1,7 +1,7 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
@@ -54,9 +54,7 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile
-  (require 'cl)
-  (require 'pcomplete))
+(eval-when-compile (require 'pcomplete))
 
 ;;;###autoload (autoload 'erc-dcc-mode "erc-dcc")
 (define-erc-module dcc nil
@@ -277,7 +275,7 @@ Argument IP is the address as a string.  The result is also a string."
                    (* (nth 1 ips) 65536.0)
                    (* (nth 2 ips) 256.0)
                    (nth 3 ips))))
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
           (message "%s is %.0f" ip res)
         (format "%.0f" res)))))
 
@@ -380,8 +378,8 @@ created subprocess, or nil."
                 (with-no-warnings       ; obsolete since 23.1
                   (set-process-filter-multibyte process nil)))))
         (file-error
-         (unless (and (string= "Cannot bind server socket" (cadr err))
-                      (string= "address already in use" (caddr err)))
+         (unless (and (string= "Cannot bind server socket" (nth 1 err))
+                      (string= "address already in use" (nth 2 err)))
            (signal (car err) (cdr err)))
          (setq port (1+ port))
          (unless (< port upper)
@@ -434,38 +432,38 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
   (pcomplete-here (append '("chat" "close" "get" "list")
                           (when (fboundp 'make-network-process) '("send"))))
   (pcomplete-here
-   (case (intern (downcase (pcomplete-arg 1)))
-     (chat (mapcar (lambda (elt) (plist-get elt :nick))
-                   (erc-remove-if-not
-                    #'(lambda (elt)
-                        (eq (plist-get elt :type) 'CHAT))
-                    erc-dcc-list)))
-     (close (erc-delete-dups
-             (mapcar (lambda (elt) (symbol-name (plist-get elt :type)))
-                     erc-dcc-list)))
-     (get (mapcar #'erc-dcc-nick
-                  (erc-remove-if-not
-                   #'(lambda (elt)
-                       (eq (plist-get elt :type) 'GET))
-                   erc-dcc-list)))
-     (send (pcomplete-erc-all-nicks))))
-  (pcomplete-here
-   (case (intern (downcase (pcomplete-arg 2)))
-     (get (mapcar (lambda (elt) (plist-get elt :file))
-                  (erc-remove-if-not
-                   #'(lambda (elt)
-                       (and (eq (plist-get elt :type) 'GET)
-                            (erc-nick-equal-p (erc-extract-nick
-                                               (plist-get elt :nick))
-                                              (pcomplete-arg 1))))
-                   erc-dcc-list)))
-     (close (mapcar #'erc-dcc-nick
+   (pcase (intern (downcase (pcomplete-arg 1)))
+     (`chat (mapcar (lambda (elt) (plist-get elt :nick))
                     (erc-remove-if-not
                      #'(lambda (elt)
-                         (eq (plist-get elt :type)
-                             (intern (upcase (pcomplete-arg 1)))))
+                         (eq (plist-get elt :type) 'CHAT))
                      erc-dcc-list)))
-     (send (pcomplete-entries)))))
+     (`close (erc-delete-dups
+              (mapcar (lambda (elt) (symbol-name (plist-get elt :type)))
+                      erc-dcc-list)))
+     (`get (mapcar #'erc-dcc-nick
+                   (erc-remove-if-not
+                    #'(lambda (elt)
+                        (eq (plist-get elt :type) 'GET))
+                    erc-dcc-list)))
+     (`send (pcomplete-erc-all-nicks))))
+  (pcomplete-here
+   (pcase (intern (downcase (pcomplete-arg 2)))
+     (`get (mapcar (lambda (elt) (plist-get elt :file))
+                   (erc-remove-if-not
+                    #'(lambda (elt)
+                        (and (eq (plist-get elt :type) 'GET)
+                             (erc-nick-equal-p (erc-extract-nick
+                                                (plist-get elt :nick))
+                                               (pcomplete-arg 1))))
+                    erc-dcc-list)))
+     (`close (mapcar #'erc-dcc-nick
+                     (erc-remove-if-not
+                      #'(lambda (elt)
+                          (eq (plist-get elt :type)
+                              (intern (upcase (pcomplete-arg 1)))))
+                      erc-dcc-list)))
+     (`send (pcomplete-entries)))))
 
 (defun erc-dcc-do-CHAT-command (proc &optional nick)
   (when nick
@@ -899,7 +897,7 @@ other client."
       (let* ((buffer (erc-dcc-find-file file))
              (size (buffer-size buffer))
              (start (with-current-buffer buffer
-                      (set-marker (make-marker) (point-min))))
+                      (point-min-marker)))
              (sproc (erc-dcc-server "dcc-send"
                                     'erc-dcc-send-filter
                                     'erc-dcc-send-sentinel))
@@ -944,7 +942,6 @@ filter and a process sentinel, and making the connection."
         (set-buffer-multibyte nil))
 
       (setq mode-line-process '(":%s")
-            buffer-file-type t
             buffer-read-only t)
       (setq erc-dcc-file-name file)
 
@@ -1168,7 +1165,7 @@ other client."
     (setq erc-dcc-from nick)
     (setq erc-dcc-entry-data entry)
     (setq erc-dcc-unprocessed-output "")
-    (setq erc-insert-marker (set-marker (make-marker) (point-max)))
+    (setq erc-insert-marker (point-max-marker))
     (setq erc-input-marker (make-marker))
     (erc-display-prompt buffer (point-max))
     (set-process-buffer proc buffer)
@@ -1248,7 +1245,7 @@ other client."
 
 (defun erc-dcc-no-such-nick (proc parsed)
   "Detect and handle no-such-nick replies from the IRC server."
-  (let* ((elt (erc-dcc-member :nick (second (erc-response.command-args parsed))
+  (let* ((elt (erc-dcc-member :nick (nth 1 (erc-response.command-args parsed))
                               :parent proc))
          (peer (plist-get elt :peer)))
     (when (or (and (processp peer) (not (eq (process-status peer) 'open)))

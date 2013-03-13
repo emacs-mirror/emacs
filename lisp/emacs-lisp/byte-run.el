@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -79,10 +79,17 @@ The return value of this function is not used."
                    (list 'quote f) (list 'quote arglist) (list 'quote when))))
    (list 'obsolete
          #'(lambda (f _args new-name when)
-             `(make-obsolete ',f ',new-name ,when)))
+             (list 'make-obsolete
+                   (list 'quote f) (list 'quote new-name) (list 'quote when))))
    (list 'compiler-macro
-         #'(lambda (f _args compiler-function)
-             `(put ',f 'compiler-macro #',compiler-function)))
+         #'(lambda (f args compiler-function)
+             ;; FIXME: Make it possible to just reuse `args'.
+             `(eval-and-compile
+                (put ',f 'compiler-macro
+                     ,(if (eq (car-safe compiler-function) 'lambda)
+                          `(lambda ,(append (cadr compiler-function) args)
+                             ,@(cddr compiler-function))
+                        `#',compiler-function)))))
    (list 'doc-string
          #'(lambda (f _args pos)
              (list 'put (list 'quote f) ''doc-string-elt (list 'quote pos))))
@@ -115,7 +122,7 @@ and the VALUES and should return the code to use to set this property.")
 (defalias 'defmacro
   (cons
    'macro
-   #'(lambda (name arglist &optional docstring decl &rest body)
+   #'(lambda (name arglist &optional docstring &rest body)
        "Define NAME as a macro.
 When the macro is called, as in (NAME ARGS...),
 the function (lambda ARGLIST BODY...) is applied to
@@ -124,32 +131,38 @@ and the result should be a form to be evaluated instead of the original.
 DECL is a declaration, optional, of the form (declare DECLS...) where
 DECLS is a list of elements of the form (PROP . VALUES).  These are
 interpreted according to `macro-declarations-alist'.
-The return value is undefined."
-       (if (stringp docstring) nil
-         (if decl (setq body (cons decl body)))
-         (setq decl docstring)
-         (setq docstring nil))
-       (if (or (null decl) (eq 'declare (car-safe decl))) nil
-         (setq body (cons decl body))
-         (setq decl nil))
-       (if (null body) (setq body '(nil)))
-       (if docstring (setq body (cons docstring body)))
-       ;; Can't use backquote because it's not defined yet!
-       (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
-              (def (list 'defalias
-                         (list 'quote name)
-                         (list 'cons ''macro fun)))
-              (declarations
-               (mapcar
-                #'(lambda (x)
-                    (let ((f (cdr (assq (car x) macro-declarations-alist))))
-                      (if f (apply (car f) name arglist (cdr x))
-                        (message "Warning: Unknown macro property %S in %S"
-                                 (car x) name))))
-                (cdr decl))))
-         (if declarations
-             (cons 'prog1 (cons def declarations))
-           def)))))
+The return value is undefined.
+
+\(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
+       ;; We can't just have `decl' as an &optional argument, because we need
+       ;; to distinguish
+       ;;    (defmacro foo (arg) (bar) nil)
+       ;; from
+       ;;    (defmacro foo (arg) (bar)).
+       (let ((decls (cond
+		     ((eq (car-safe docstring) 'declare)
+		      (prog1 (cdr docstring) (setq docstring nil)))
+		     ((and (stringp docstring)
+			   (eq (car-safe (car body)) 'declare))
+		      (prog1 (cdr (car body)) (setq body (cdr body)))))))
+	 (if docstring (setq body (cons docstring body))
+	   (if (null body) (setq body '(nil))))
+	 ;; Can't use backquote because it's not defined yet!
+	 (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
+		(def (list 'defalias
+			   (list 'quote name)
+			   (list 'cons ''macro fun)))
+		(declarations
+		 (mapcar
+		  #'(lambda (x)
+		      (let ((f (cdr (assq (car x) macro-declarations-alist))))
+			(if f (apply (car f) name arglist (cdr x))
+			  (message "Warning: Unknown macro property %S in %S"
+				   (car x) name))))
+		  decls)))
+	   (if declarations
+	       (cons 'prog1 (cons def declarations))
+	     def))))))
 
 ;; Now that we defined defmacro we can use it!
 (defmacro defun (name arglist &optional docstring &rest body)
@@ -171,7 +184,8 @@ The return value is undefined.
   (let ((decls (cond
                 ((eq (car-safe docstring) 'declare)
                  (prog1 (cdr docstring) (setq docstring nil)))
-                ((eq (car-safe (car body)) 'declare)
+                ((and (stringp docstring)
+		      (eq (car-safe (car body)) 'declare))
                  (prog1 (cdr (car body)) (setq body (cdr body)))))))
     (if docstring (setq body (cons docstring body))
       (if (null body) (setq body '(nil))))
@@ -186,7 +200,13 @@ The return value is undefined.
                          (memq (car x)  ;C.f. cl-do-proclaim.
                                '(special inline notinline optimize warn)))
                     (push (list 'declare x)
-                          (if (stringp docstring) (cdr body) body))
+                          (if (stringp docstring)
+                              (if (eq (car-safe (cadr body)) 'interactive)
+                                  (cddr body)
+                                (cdr body))
+                            (if (eq (car-safe (car body)) 'interactive)
+                                (cdr body)
+                              body)))
                     nil)
                    (t (message "Warning: Unknown defun property `%S' in %S"
                                (car x) name)))))
@@ -359,7 +379,7 @@ obsolete."
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
-  (declare (debug t) (indent 0))
+  (declare (debug t) (indent 0) (obsolete nil "24.4"))
   (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body)))))
 
 
@@ -373,19 +393,19 @@ If you think you need this, you're probably making a mistake somewhere."
 Thus, the result of the body appears to the compiler as a quoted constant.
 In interpreted code, this is entirely equivalent to `progn'."
   (declare (debug t) (indent 0))
-  ;; Not necessary because we have it in b-c-initial-macro-environment
-  ;; (list 'quote (eval (cons 'progn body)))
-  (cons 'progn body))
+  (list 'quote (eval (cons 'progn body) lexical-binding)))
 
 (defmacro eval-and-compile (&rest body)
   "Like `progn', but evaluates the body at compile time and at load time."
   (declare (debug t) (indent 0))
-  ;; Remember, it's magic.
-  (cons 'progn body))
+  ;; When the byte-compiler expands code, this macro is not used, so we're
+  ;; either about to run `body' (plain interpretation) or we're doing eager
+  ;; macroexpansion.
+  (list 'quote (eval (cons 'progn body) lexical-binding)))
 
-(put 'with-no-warnings 'lisp-indent-function 0)
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."
+  (declare (indent 0))
   ;; The implementation for the interpreter is basically trivial.
   (car (last body)))
 

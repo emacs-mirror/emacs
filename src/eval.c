@@ -1,5 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1987, 1993-1995, 1999-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1995, 1999-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -114,7 +115,6 @@ Lisp_Object Vsignaling_function;
 Lisp_Object inhibit_lisp_code;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static bool interactive_p (void);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
 /* Functions to set Lisp_Object slots of struct specbinding.  */
@@ -489,102 +489,6 @@ usage: (function ARG)  */)
 }
 
 
-DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
-       doc: /* Return t if the containing function was run directly by user input.
-This means that the function was called with `call-interactively'
-\(which includes being called as the binding of a key)
-and input is currently coming from the keyboard (not a keyboard macro),
-and Emacs is not running in batch mode (`noninteractive' is nil).
-
-The only known proper use of `interactive-p' is in deciding whether to
-display a helpful message, or how to display it.  If you're thinking
-of using it for any other purpose, it is quite likely that you're
-making a mistake.  Think: what do you want to do when the command is
-called from a keyboard macro?
-
-To test whether your function was called with `call-interactively',
-either (i) add an extra optional argument and give it an `interactive'
-spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
-use `called-interactively-p'.  */)
-  (void)
-{
-  return interactive_p () ? Qt : Qnil;
-}
-
-
-DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 1, 0,
-       doc: /* Return t if the containing function was called by `call-interactively'.
-If KIND is `interactive', then only return t if the call was made
-interactively by the user, i.e. not in `noninteractive' mode nor
-when `executing-kbd-macro'.
-If KIND is `any', on the other hand, it will return t for any kind of
-interactive call, including being called as the binding of a key, or
-from a keyboard macro, or in `noninteractive' mode.
-
-The only known proper use of `interactive' for KIND is in deciding
-whether to display a helpful message, or how to display it.  If you're
-thinking of using it for any other purpose, it is quite likely that
-you're making a mistake.  Think: what do you want to do when the
-command is called from a keyboard macro?
-
-Instead of using this function, it is sometimes cleaner to give your
-function an extra optional argument whose `interactive' spec specifies
-non-nil unconditionally (\"p\" is a good way to do this), or via
-\(not (or executing-kbd-macro noninteractive)).  */)
-  (Lisp_Object kind)
-{
-  return (((INTERACTIVE || !EQ (kind, intern ("interactive")))
-	   && interactive_p ())
-	  ? Qt : Qnil);
-}
-
-
-/* Return true if function in which this appears was called using
-   call-interactively and is not a built-in.  */
-
-static bool
-interactive_p (void)
-{
-  struct backtrace *btp;
-  Lisp_Object fun;
-
-  btp = backtrace_list;
-
-  /* If this isn't a byte-compiled function, there may be a frame at
-     the top for Finteractive_p.  If so, skip it.  */
-  fun = Findirect_function (btp->function, Qnil);
-  if (SUBRP (fun) && (XSUBR (fun) == &Sinteractive_p
-		      || XSUBR (fun) == &Scalled_interactively_p))
-    btp = btp->next;
-
-  /* If we're running an Emacs 18-style byte-compiled function, there
-     may be a frame for Fbytecode at the top level.  In any version of
-     Emacs there can be Fbytecode frames for subexpressions evaluated
-     inside catch and condition-case.  Skip past them.
-
-     If this isn't a byte-compiled function, then we may now be
-     looking at several frames for special forms.  Skip past them.  */
-  while (btp
-	 && (EQ (btp->function, Qbytecode)
-	     || btp->nargs == UNEVALLED))
-    btp = btp->next;
-
-  /* `btp' now points at the frame of the innermost function that isn't
-     a special form, ignoring frames for Finteractive_p and/or
-     Fbytecode at the top.  If this frame is for a built-in function
-     (such as load or eval-region) return false.  */
-  fun = Findirect_function (btp->function, Qnil);
-  if (SUBRP (fun))
-    return 0;
-
-  /* `btp' points to the frame of a Lisp function that called interactive-p.
-     Return t if that function was called interactively.  */
-  if (btp && btp->next && EQ (btp->next->function, Qcall_interactively))
-    return 1;
-  return 0;
-}
-
-
 DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make NEW-ALIAS a variable alias for symbol BASE-VARIABLE.
 Aliased variables always have the same value; setting one sets the other.
@@ -696,8 +600,9 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 	      if (EQ ((--pdl)->symbol, sym) && !pdl->func
 		  && EQ (pdl->old_value, Qunbound))
 		{
-		  message_with_string ("Warning: defvar ignored because %s is let-bound",
-				       SYMBOL_NAME (sym), 1);
+		  message_with_string
+		    ("Warning: defvar ignored because %s is let-bound",
+		     SYMBOL_NAME (sym), 1);
 		  break;
 		}
 	    }
@@ -717,8 +622,8 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
     /* A simple (defvar foo) with lexical scoping does "nothing" except
        declare that var to be dynamically scoped *locally* (i.e. within
        the current file or let-block).  */
-    Vinternal_interpreter_environment =
-      Fcons (sym, Vinternal_interpreter_environment);
+    Vinternal_interpreter_environment
+      = Fcons (sym, Vinternal_interpreter_environment);
   else
     {
       /* Simple (defvar <var>) should not count as a definition at all.
@@ -971,7 +876,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  if (NILP (tem))
 	    {
 	      def = XSYMBOL (sym)->function;
-	      if (!EQ (def, Qunbound))
+	      if (!NILP (def))
 		continue;
 	    }
 	  break;
@@ -986,7 +891,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  GCPRO1 (form);
 	  def = Fautoload_do_load (def, sym, Qmacro);
 	  UNGCPRO;
-	  if (EQ (def, Qunbound) || !CONSP (def))
+	  if (!CONSP (def))
 	    /* Not defined or definition not suitable.  */
 	    break;
 	  if (!EQ (XCAR (def), Qmacro))
@@ -1785,7 +1690,6 @@ error (const char *m, ...)
   va_list ap;
   va_start (ap, m);
   verror (m, ap);
-  va_end (ap);
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 2, 0,
@@ -1811,12 +1715,12 @@ then strings and vectors are not accepted.  */)
 
   fun = function;
 
-  fun = indirect_function (fun); /* Check cycles. */
-  if (NILP (fun) || EQ (fun, Qunbound))
+  fun = indirect_function (fun); /* Check cycles.  */
+  if (NILP (fun))
     return Qnil;
 
   /* Check an `interactive-form' property if present, analogous to the
-     function-documentation property. */
+     function-documentation property.  */
   fun = function;
   while (SYMBOLP (fun))
     {
@@ -1876,26 +1780,19 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if ((CONSP (XSYMBOL (function)->function)
-       && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
-    /* Remember that the function was already an autoload.  */
-    LOADHIST_ATTACH (Fcons (Qt, function));
-  else if (!EQ (XSYMBOL (function)->function, Qunbound))
+  if (!NILP (XSYMBOL (function)->function)
+      && !AUTOLOADP (XSYMBOL (function)->function))
     return Qnil;
 
-  if (NILP (Vpurify_flag))
-    /* Only add entries after dumping, because the ones before are
-       not useful and else we get loads of them from the loaddefs.el.  */
-    LOADHIST_ATTACH (Fcons (Qautoload, function));
-  else if (EQ (docstring, make_number (0)))
+  if (!NILP (Vpurify_flag) && EQ (docstring, make_number (0)))
     /* `read1' in lread.c has found the docstring starting with "\
        and assumed the docstring will be provided by Snarf-documentation, so it
        passed us 0 instead.  But that leads to accidental sharing in purecopy's
        hash-consing, so we use a (hopefully) unique integer instead.  */
-    docstring = make_number (XUNTAG (function, Lisp_Symbol));
-  return Ffset (function,
-		Fpurecopy (list5 (Qautoload, file, docstring,
-				  interactive, type)));
+    docstring = make_number (XHASH (function));
+  return Fdefalias (function,
+		    list5 (Qautoload, file, docstring, interactive, type),
+		    Qnil);
 }
 
 Lisp_Object
@@ -2000,7 +1897,7 @@ If LEXICAL is t, evaluate using lexical scoping.  */)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
-	    NILP (lexical) ? Qnil : Fcons (Qt, Qnil));
+	    CONSP (lexical) || NILP (lexical) ? lexical : Fcons (Qt, Qnil));
   return unbind_to (count, eval_sub (form));
 }
 
@@ -2033,7 +1930,10 @@ eval_sub (Lisp_Object form)
     return form;
 
   QUIT;
+
+  GCPRO1 (form);
   maybe_gc ();
+  UNGCPRO;
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2062,7 +1962,7 @@ eval_sub (Lisp_Object form)
 
   /* Optimize for no indirection.  */
   fun = original_fun;
-  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+  if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
@@ -2184,7 +2084,7 @@ eval_sub (Lisp_Object form)
     val = apply_lambda (fun, original_args);
   else
     {
-      if (EQ (fun, Qunbound))
+      if (NILP (fun))
 	xsignal1 (Qvoid_function, original_fun);
       if (!CONSP (fun))
 	xsignal1 (Qinvalid_function, original_fun);
@@ -2258,10 +2158,10 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   numargs += nargs - 2;
 
   /* Optimize for no indirection.  */
-  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+  if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
-  if (EQ (fun, Qunbound))
+  if (NILP (fun))
     {
       /* Let funcall get the error.  */
       fun = args[0];
@@ -2735,7 +2635,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
   /* Optimize for no indirection.  */
   fun = original_fun;
-  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+  if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
@@ -2823,7 +2723,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
-      if (EQ (fun, Qunbound))
+      if (NILP (fun))
 	xsignal1 (Qvoid_function, original_fun);
       if (!CONSP (fun))
 	xsignal1 (Qinvalid_function, original_fun);
@@ -3376,7 +3276,7 @@ mark_backtrace (void)
 
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {
-      mark_object (*backlist->function);
+      mark_object (backlist->function);
 
       if (backlist->nargs == UNEVALLED
 	  || backlist->nargs == MANY) /* FIXME: Can this happen?  */
@@ -3558,8 +3458,6 @@ alist of active lexical bindings.  */);
   defsubr (&Sunwind_protect);
   defsubr (&Scondition_case);
   defsubr (&Ssignal);
-  defsubr (&Sinteractive_p);
-  defsubr (&Scalled_interactively_p);
   defsubr (&Scommandp);
   defsubr (&Sautoload);
   defsubr (&Sautoload_do_load);

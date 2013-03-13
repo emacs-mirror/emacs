@@ -3,7 +3,7 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
@@ -313,7 +313,7 @@
 (require 'viper-keym)
 
 ;; better be defined before Viper custom group.
-(defvar viper-custom-file-name (convert-standard-filename "~/.viper")
+(defvar viper-custom-file-name (locate-user-emacs-file "viper" ".viper")
   "Viper customization file.
 If set by the user, this must be done _before_ Viper is loaded in `~/.emacs'.")
 

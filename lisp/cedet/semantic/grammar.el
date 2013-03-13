@@ -1,6 +1,6 @@
 ;;; semantic/grammar.el --- Major mode framework for Semantic grammars
 
-;; Copyright (C) 2002-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -1333,8 +1333,8 @@ the change bounds to encompass the whole nonterminal tag."
   (add-hook 'before-change-functions
             'semantic--grammar-clear-macros-regexp-2 nil t)
   ;; Handle safe re-parse of grammar rules.
-  (semantic-make-local-hook 'semantic-edits-new-change-hooks)
-  (add-hook 'semantic-edits-new-change-hooks
+  (semantic-make-local-hook 'semantic-edits-new-change-functions)
+  (add-hook 'semantic-edits-new-change-functions
             'semantic-grammar-edits-new-change-hook-fcn
             nil t)
   (semantic-run-mode-hooks 'semantic-grammar-mode-hook))

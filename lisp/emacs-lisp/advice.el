@@ -1,6 +1,6 @@
-;;; advice.el --- An overloading mechanism for Emacs Lisp functions
+;;; advice.el --- An overloading mechanism for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -47,14 +47,12 @@
 ;; @ Highlights:
 ;; =============
 ;; - Clean definition of multiple, named before/around/after advices
-;;   for functions, macros, subrs and special forms
+;;   for functions and macros.
 ;; - Full control over the arguments an advised function will receive,
 ;;   the binding environment in which it will be executed, as well as the
 ;;   value it will return.
-;; - Allows re/definition of interactive behavior for functions and subrs
-;; - Every piece of advice can have its documentation string which will be
-;;   combined with the original documentation of the advised function at
-;;   call-time of `documentation' for proper command-key substitution.
+;; - Allows re/definition of interactive behavior for commands.
+;; - Every piece of advice can have its documentation string.
 ;; - The execution of every piece of advice can be protected against error
 ;;   and non-local exits in preceding code or advices.
 ;; - Simple argument access either by name, or, more portable but as
@@ -63,7 +61,7 @@
 ;;   version of a function.
 ;; - Advised functions can be byte-compiled either at file-compile time
 ;;   (see preactivation) or activation time.
-;; - Separation of advice definition and activation
+;; - Separation of advice definition and activation.
 ;; - Forward advice is possible, that is
 ;;   as yet undefined or autoload functions can be advised without having to
 ;;   preload the file in which they are defined.
@@ -77,7 +75,7 @@
 ;; - En/disablement mechanism allows the use of  different "views" of advised
 ;;   functions depending on what pieces of advice are currently en/disabled
 ;; - Provides manipulation mechanisms for sets of advised functions via
-;;   regular expressions that match advice names
+;;   regular expressions that match advice names.
 
 ;; @ Overview, or how to read this file:
 ;; =====================================
@@ -113,23 +111,12 @@
 ;; others come from the various Lisp advice mechanisms I've come across
 ;; so far, and a few are simply mine.
 
-;; @ Comments, suggestions, bug reports:
-;; =====================================
-;; If you find any bugs, have suggestions for new advice features, find the
-;; documentation wrong, confusing, incomplete, or otherwise unsatisfactory,
-;; have any questions about Advice, or have otherwise enlightening
-;; comments feel free to send me email at <hans@cs.buffalo.edu>.
-
 ;; @ Safety Rules and Emergency Exits:
 ;; ===================================
 ;; Before we begin: CAUTION!!
 ;; Advice provides you with a lot of rope to hang yourself on very
 ;; easily accessible trees, so, here are a few important things you
-;; should know: Once Advice has been started with `ad-start-advice'
-;; (which happens automatically when you load this file), it
-;; generates an advised definition of the `documentation' function, and
-;; it will enable automatic advice activation when functions get defined.
-;; All of this can be undone at any time with `M-x ad-stop-advice'.
+;; should know:
 ;;
 ;; If you experience any strange behavior/errors etc. that you attribute to
 ;; Advice or to some ill-advised function do one of the following:
@@ -137,45 +124,37 @@
 ;; - M-x ad-deactivate FUNCTION (if you have a definite suspicion what
 ;;                               function gives you problems)
 ;; - M-x ad-deactivate-all      (if you don't have a clue what's going wrong)
-;; - M-x ad-stop-advice         (if you think the problem is related to the
-;;                               advised functions used by Advice itself)
 ;; - M-x ad-recover-normality   (for real emergencies)
 ;; - If none of the above solves your Advice-related problem go to another
 ;;   terminal, kill your Emacs process and send me some hate mail.
 
-;; The first three measures have restarts, i.e., once you've figured out
+;; The first two measures have restarts, i.e., once you've figured out
 ;; the problem you can reactivate advised functions with either `ad-activate',
-;; `ad-activate-all', or `ad-start-advice'. `ad-recover-normality' unadvises
+;; or `ad-activate-all'.  `ad-recover-normality' unadvises
 ;; everything so you won't be able to reactivate any advised functions, you'll
 ;; have to stick with their standard incarnations for the rest of the session.
 
-;; IMPORTANT: With Advice loaded always do `M-x ad-deactivate-all' before
-;; you byte-compile a file, because advised special forms and macros can lead
-;; to unwanted compilation results. When you are done compiling use
-;; `M-x ad-activate-all' to go back to the advised state of all your
-;; advised functions.
-
 ;; RELAX: Advice is pretty safe even if you are oblivious to the above.
 ;; I use it extensively and haven't run into any serious trouble in a long
-;; time. Just wanted you to be warned.
+;; time.  Just wanted you to be warned.
 
 ;; @ Customization:
 ;; ================
 
 ;; Look at the documentation of `ad-redefinition-action' for possible values
-;; of this variable. Its default value is `warn' which will print a warning
+;; of this variable.  Its default value is `warn' which will print a warning
 ;; message when an already defined advised function gets redefined with a
 ;; new original definition and de/activated.
 
 ;; Look at the documentation of `ad-default-compilation-action' for possible
-;; values of this variable. Its default value is `maybe' which will compile
+;; values of this variable.  Its default value is `maybe' which will compile
 ;; advised definitions during activation in case the byte-compiler is already
-;; loaded. Otherwise, it will leave them uncompiled.
+;; loaded.  Otherwise, it will leave them uncompiled.
 
 ;; @ Motivation:
 ;; =============
 ;; Before I go on explaining how advice works, here are four simple examples
-;; how this package can be used. The first three are very useful, the last one
+;; how this package can be used.  The first three are very useful, the last one
 ;; is just a joke:
 
 ;;(defadvice switch-to-buffer (before existing-buffers-only activate)
@@ -206,13 +185,12 @@
 
 ;; @ Advice documentation:
 ;; =======================
-;; Below is general documentation of the various features of advice. For more
+;; Below is general documentation of the various features of advice.  For more
 ;; concrete examples check the corresponding sections in the tutorial part.
 
 ;; @@ Terminology:
 ;; ===============
 ;; - Emacs: Emacs as released by the GNU Project
-;; - jwz: Jamie Zawinski - creator of the byte-compiler used in v19s.
 ;; - Advice: The name of this package.
 ;; - advices: Short for "pieces of advice".
 
@@ -236,22 +214,22 @@
 ;; <name> is the name of the advice which has to be a non-nil symbol.
 ;; Names uniquely identify a piece of advice in a certain advice class,
 ;; hence, advices can be redefined by defining an advice with the same class
-;; and name. Advice names are global symbols, hence, the same name space
+;; and name.  Advice names are global symbols, hence, the same name space
 ;; conventions used for function names should be applied.
 
 ;; An optional <position> specifies where in the current list of advices of
-;; the specified <class> this new advice will be placed. <position> has to
+;; the specified <class> this new advice will be placed.  <position> has to
 ;; be either `first', `last' or a number that specifies a zero-based
-;; position (`first' is equivalent to 0). If no position is specified
-;; `first' will be used as a default. If this call to `defadvice' redefines
+;; position (`first' is equivalent to 0).  If no position is specified
+;; `first' will be used as a default.  If this call to `defadvice' redefines
 ;; an already existing advice (see above) then the position argument will
 ;; be ignored and the position of the already existing advice will be used.
 
 ;; An optional <arglist> which has to be a list can be used to define the
-;; argument list of the advised function. This argument list should of
+;; argument list of the advised function.  This argument list should of
 ;; course be compatible with the argument list of the original function,
 ;; otherwise functions that call the advised function with the original
-;; argument list in mind will break. If more than one advice specify an
+;; argument list in mind will break.  If more than one advice specify an
 ;; argument list then the first one (the one with the smallest position)
 ;; found in the list of before/around/after advices will be used.
 
@@ -267,10 +245,10 @@
 ;;   `disable': Specifies that the defined advice should be disabled, hence,
 ;;              it will not be used in an activation until somebody enables it.
 ;;   `preactivate': Specifies that the advised function should get preactivated
-;;              at macro-expansion/compile time of this `defadvice'. This
+;;              at macro-expansion/compile time of this `defadvice'.  This
 ;;              generates a compiled advised definition according to the
 ;;              current advice state which will be used during activation
-;;              if appropriate. Only use this if the `defadvice' gets
+;;              if appropriate.  Only use this if the `defadvice' gets
 ;;              actually compiled.
 
 ;; An optional <documentation-string> can be supplied to document the advice.
@@ -278,20 +256,20 @@
 ;; documentation strings of the original function and other advices.
 
 ;; An optional <interactive-form> form can be supplied to change/add
-;; interactive behavior of the original function. If more than one advice
+;; interactive behavior of the original function.  If more than one advice
 ;; has an `(interactive ...)' specification then the first one (the one
 ;; with the smallest position) found in the list of before/around/after
 ;; advices will be used.
 
 ;; A possibly empty list of <body-forms> specifies the body of the advice in
-;; an implicit progn. The body of an advice can access/change arguments,
+;; an implicit progn.  The body of an advice can access/change arguments,
 ;; the return value, the binding environment, and can have all sorts of
 ;; other side effects.
 
 ;; @@ Assembling advised definitions:
 ;; ==================================
 ;; Suppose a function/macro/subr/special-form has N pieces of before advice,
-;; M pieces of around advice and K pieces of after advice. Assuming none of
+;; M pieces of around advice and K pieces of after advice.  Assuming none of
 ;; the advices is protected, its advised definition will look like this
 ;; (body-form indices correspond to the position of the respective advice in
 ;; that advice class):
@@ -330,11 +308,11 @@
 ;; be expanded into a proper documentation string upon call of `documentation'.
 
 ;; (interactive ...) is an optional interactive form either taken from the
-;; original function or from a before/around/after advice. For advised
+;; original function or from a before/around/after advice.  For advised
 ;; interactive subrs that do not have an interactive form specified in any
 ;; advice we have to use (interactive) and then call the subr interactively
 ;; if the advised function was called interactively, because the
-;; interactive specification of subrs is not accessible. This is the only
+;; interactive specification of subrs is not accessible.  This is the only
 ;; case where changing the values of arguments will not have an affect
 ;; because they will be reset by the interactive specification of the subr.
 ;; If this is a problem one can always specify an interactive form in a
@@ -343,45 +321,44 @@
 ;;
 ;; Then the body forms of the various advices in the various classes of advice
 ;; are assembled in order.  The forms of around advice L are normally part of
-;; one of the forms of around advice L-1. An around advice can specify where
+;; one of the forms of around advice L-1.  An around advice can specify where
 ;; the forms of the wrapped or surrounded forms should go with the special
-;; keyword `ad-do-it', which will be substituted with a `progn' containing the
-;; forms of the surrounded code.
+;; keyword `ad-do-it', which will run the forms of the surrounded code.
 
 ;; The innermost part of the around advice onion is
 ;;      <apply original definition to <arglist>>
-;; whose form depends on the type of the original function. The variable
-;; `ad-return-value' will be set to its result. This variable is visible to
+;; whose form depends on the type of the original function.  The variable
+;; `ad-return-value' will be set to its result.  This variable is visible to
 ;; all pieces of advice which can access and modify it before it gets returned.
 ;;
 ;; The semantic structure of advised functions that contain protected pieces
-;; of advice is the same. The only difference is that `unwind-protect' forms
+;; of advice is the same.  The only difference is that `unwind-protect' forms
 ;; make sure that the protected advice gets executed even if some previous
-;; piece of advice had an error or a non-local exit. If any around advice is
+;; piece of advice had an error or a non-local exit.  If any around advice is
 ;; protected then the whole around advice onion will be protected.
 
 ;; @@ Argument access in advised functions:
 ;; ========================================
 ;; As already mentioned, the simplest way to access the arguments of an
-;; advised function in the body of an advice is to refer to them by name. To
-;; do that, the advice programmer needs to know either the names of the
+;; advised function in the body of an advice is to refer to them by name.
+;; To do that, the advice programmer needs to know either the names of the
 ;; argument variables of the original function, or the names used in the
-;; argument list redefinition given in a piece of advice. While this simple
+;; argument list redefinition given in a piece of advice.  While this simple
 ;; method might be sufficient in many cases, it has the disadvantage that it
 ;; is not very portable because it hardcodes the argument names into the
 ;; advice. If the definition of the original function changes the advice
-;; might break even though the code might still be correct. Situations like
+;; might break even though the code might still be correct.  Situations like
 ;; that arise, for example, if one advises a subr like `eval-region' which
 ;; gets redefined in a non-advice style into a function by the edebug
-;; package. If the advice assumes `eval-region' to be a subr it might break
-;; once edebug is loaded. Similar situations arise when one wants to use the
+;; package.  If the advice assumes `eval-region' to be a subr it might break
+;; once edebug is loaded.  Similar situations arise when one wants to use the
 ;; same piece of advice across different versions of Emacs.
 
 ;; As a solution to that advice provides argument list access macros that get
 ;; translated into the proper access forms at activation time, i.e., when the
-;; advised definition gets constructed. Access macros access actual arguments
+;; advised definition gets constructed.  Access macros access actual arguments
 ;; by position regardless of how these actual argument get distributed onto
-;; the argument variables of a function. The rational behind this is that in
+;; the argument variables of a function.  The rational behind this is that in
 ;; Emacs Lisp the semantics of an argument is strictly determined by its
 ;; position (there are no keyword arguments).
 
@@ -393,9 +370,9 @@
 ;;
 ;;    (foo 0 1 2 3 4 5 6)
 
-;; which means that X=0, Y=1, Z=2 and R=(3 4 5 6). The assumption is that
-;; the semantics of an actual argument is determined by its position. It is
-;; this semantics that has to be known by the advice programmer. Then s/he
+;; which means that X=0, Y=1, Z=2 and R=(3 4 5 6).  The assumption is that
+;; the semantics of an actual argument is determined by its position.  It is
+;; this semantics that has to be known by the advice programmer.  Then s/he
 ;; can access these arguments in a piece of advice with some of the
 ;; following macros (the arrows indicate what value they will return):
 
@@ -408,17 +385,17 @@
 
 ;; `(ad-get-arg <position>)' will return the actual argument that was supplied
 ;; at <position>, `(ad-get-args <position>)' will return the list of actual
-;; arguments supplied starting at <position>. Note that these macros can be
+;; arguments supplied starting at <position>.  Note that these macros can be
 ;; used without any knowledge about the form of the actual argument list of
 ;; the original function.
 
 ;; Similarly, `(ad-set-arg <position> <value-form>)' can be used to set the
-;; value of the actual argument at <position> to <value-form>. For example,
+;; value of the actual argument at <position> to <value-form>.  For example,
 ;;
 ;;   (ad-set-arg 5 "five")
 ;;
 ;; will have the effect that R=(3 4 "five" 6) once the original function is
-;; called. `(ad-set-args <position> <value-list-form>)' can be used to set
+;; called.  `(ad-set-args <position> <value-list-form>)' can be used to set
 ;; the list of actual arguments starting at <position> to <value-list-form>.
 ;; For example,
 ;;
@@ -427,7 +404,7 @@
 ;; will have the effect that X=5, Y=4, Z=3 and R=(2 1 0) once the original
 ;; function is called.
 
-;; All these access macros are text macros rather than real Lisp macros. When
+;; All these access macros are text macros rather than real Lisp macros.  When
 ;; the advised definition gets constructed they get replaced with actual access
 ;; forms depending on the argument list of the advised function, i.e., after
 ;; that argument access is in most cases as efficient as using the argument
@@ -437,7 +414,7 @@
 ;; =======================================================
 ;; Some functions (such as `trace-function' defined in trace.el) need a
 ;; method of accessing the names and bindings of the arguments of an
-;; arbitrary advised function. To do that within an advice one can use the
+;; arbitrary advised function.  To do that within an advice one can use the
 ;; special keyword `ad-arg-bindings' which is a text macro that will be
 ;; substituted with a form that will evaluate to a list of binding
 ;; specifications, one for every argument variable.  These binding
@@ -463,7 +440,7 @@
 ;; ==========================
 ;; Because `defadvice' allows the specification of the argument list
 ;; of the advised function we need a mapping mechanism that maps this
-;; argument list onto that of the original function. Hence SYM and
+;; argument list onto that of the original function.  Hence SYM and
 ;; NEWDEF have to be properly mapped onto the &rest variable when the
 ;; original definition is called. Advice automatically takes care of
 ;; that mapping, hence, the advice programmer can specify an argument
@@ -474,11 +451,10 @@
 ;; @@ Activation and deactivation:
 ;; ===============================
 ;; The definition of an advised function does not change until all its advice
-;; gets actually activated. Activation can either happen with the `activate'
+;; gets actually activated.  Activation can either happen with the `activate'
 ;; flag specified in the `defadvice', with an explicit call or interactive
-;; invocation of `ad-activate', or if forward advice is enabled (i.e., the
-;; value of `ad-activate-on-definition' is t) at the time an already advised
-;; function gets defined.
+;; invocation of `ad-activate', or at the time an already advised function
+;; gets defined.
 
 ;; When a function gets first activated its original definition gets saved,
 ;; all defined and enabled pieces of advice will get combined with the
@@ -496,7 +472,7 @@
 ;; the file that contained the `defadvice' with the `preactivate' flag.
 
 ;; `ad-deactivate' can be used to back-define an advised function to its
-;; original definition. It can be called interactively or directly. Because
+;; original definition.  It can be called interactively or directly.  Because
 ;; `ad-activate' caches the advised definition the function can be
 ;; reactivated via `ad-activate' with only minor overhead (it is checked
 ;; whether the current advice state is consistent with the cached
@@ -504,12 +480,12 @@
 
 ;; `ad-activate-regexp' and `ad-deactivate-regexp' can be used to de/activate
 ;; all currently advised function that have a piece of advice with a name that
-;; contains a match for a regular expression. These functions can be used to
+;; contains a match for a regular expression.  These functions can be used to
 ;; de/activate sets of functions depending on certain advice naming
 ;; conventions.
 
 ;; Finally, `ad-activate-all' and `ad-deactivate-all' can be used to
-;; de/activate all currently advised functions. These are useful to
+;; de/activate all currently advised functions.  These are useful to
 ;; (temporarily) return to an un/advised state.
 
 ;; @@@ Reasons for the separation of advice definition and activation:
@@ -521,26 +497,26 @@
 
 ;; The advantage of this is that various pieces of advice can be defined
 ;; before they get combined into an advised definition which avoids
-;; unnecessary constructions of intermediate advised definitions. The more
+;; unnecessary constructions of intermediate advised definitions.  The more
 ;; important advantage is that it allows the implementation of forward advice.
 ;; Advice information for a certain function accumulates as the value of the
-;; `advice-info' property of the function symbol. This accumulation is
+;; `advice-info' property of the function symbol.  This accumulation is
 ;; completely independent of the fact that that function might not yet be
-;; defined. The special forms `defun' and `defmacro' have been advised to
-;; check whether the function/macro they defined had advice information
-;; associated with it. If so and forward advice is enabled, the original
+;; defined.  The macros `defun' and `defmacro' check whether the
+;; function/macro they defined had advice information
+;; associated with it.  If so and forward advice is enabled, the original
 ;; definition will be saved, and then the advice will be activated.
 
 ;; @@ Enabling/disabling pieces or sets of advice:
 ;; ===============================================
 ;; A major motivation for the development of this advice package was to bring
 ;; a little bit more structure into the function overloading chaos in Emacs
-;; Lisp. Many packages achieve some of their functionality by adding a little
+;; Lisp.  Many packages achieve some of their functionality by adding a little
 ;; bit (or a lot) to the standard functionality of some Emacs Lisp function.
-;; ange-ftp is a very popular package that achieves its magic by overloading
-;; most Emacs Lisp functions that deal with files. A popular function that's
-;; overloaded by many packages is `expand-file-name'. The situation that one
-;; function is multiply overloaded can arise easily.
+;; ange-ftp is a very popular package that used to achieve its magic by
+;; overloading most Emacs Lisp functions that deal with files.  A popular
+;; function that's overloaded by many packages is `expand-file-name'.
+;; The situation that one function is multiply overloaded can arise easily.
 
 ;; Once in a while it would be desirable to be able to disable some/all
 ;; overloads of a particular package while keeping all the rest.  Ideally -
@@ -548,7 +524,7 @@
 ;; I know I am dreaming right now... In that ideal case the enable/disable
 ;; mechanism of advice could be used to achieve just that.
 
-;; Every piece of advice is associated with an enablement flag. When the
+;; Every piece of advice is associated with an enablement flag.  When the
 ;; advised definition of a particular function gets constructed (e.g., during
 ;; activation) only the currently enabled pieces of advice will be considered.
 ;; This mechanism allows one to have different "views" of an advised function
@@ -556,17 +532,15 @@
 
 ;; Another motivation for this mechanism is that it allows one to define a
 ;; piece of advice for some function yet keep it dormant until a certain
-;; condition is met. Until then activation of the function will not make use
-;; of that piece of advice. Once the condition is met the advice can be
+;; condition is met.  Until then activation of the function will not make use
+;; of that piece of advice.  Once the condition is met the advice can be
 ;; enabled and a reactivation of the function will add its functionality as
-;; part of the new advised definition. For example, the advices of `defun'
-;; etc. used by advice itself will stay disabled until `ad-start-advice' is
-;; called and some variables have the proper values.  Hence, if somebody
+;; part of the new advised definition.  Hence, if somebody
 ;; else advised these functions too and activates them the advices defined
 ;; by advice will get used only if they are intended to be used.
 
 ;; The main interface to this mechanism are the interactive functions
-;; `ad-enable-advice' and `ad-disable-advice'. For example, the following
+;; `ad-enable-advice' and `ad-disable-advice'.  For example, the following
 ;; would disable a particular advice of the function `foo':
 ;;
 ;;    (ad-disable-advice 'foo 'before 'my-advice)
@@ -576,28 +550,28 @@
 ;;
 ;;    (ad-activate 'foo)
 ;;
-;; or interactively. To disable whole sets of advices one can use a regular
-;; expression mechanism. For example, let us assume that ange-ftp actually
+;; or interactively.  To disable whole sets of advices one can use a regular
+;; expression mechanism.  For example, let us assume that ange-ftp actually
 ;; used advice to overload all its functions, and that it used the
 ;; "ange-ftp-" prefix for all its advice names, then we could temporarily
 ;; disable all its advices with
 ;;
-;;    (ad-disable-regexp "^ange-ftp-")
+;;    (ad-disable-regexp "\\`ange-ftp-")
 ;;
 ;; and the following call would put that actually into effect:
 ;;
-;;    (ad-activate-regexp "^ange-ftp-")
+;;    (ad-activate-regexp "\\`ange-ftp-")
 ;;
 ;; A safer way would have been to use
 ;;
-;;    (ad-update-regexp "^ange-ftp-")
+;;    (ad-update-regexp "\\`ange-ftp-")
 ;;
 ;; instead which would have only reactivated currently actively advised
-;; functions, but not functions that were currently inactive. All these
+;; functions, but not functions that were currently inactive.  All these
 ;; functions can also be called interactively.
 
 ;; A certain piece of advice is considered a match if its name contains a
-;; match for the regular expression. To enable ange-ftp again we would use
+;; match for the regular expression.  To enable ange-ftp again we would use
 ;; `ad-enable-regexp' and then activate or update again.
 
 ;; @@ Forward advice, automatic advice activation:
@@ -615,26 +589,19 @@
 ;; Advice implements forward advice mainly via the following: 1) Separation
 ;; of advice definition and activation that makes it possible to accumulate
 ;; advice information without having the original function already defined,
-;; 2) special versions of the built-in functions `fset/defalias' which check
-;; for advice information whenever they define a function. If advice
-;; information was found then the advice will immediately get activated when
-;; the function gets defined.
+;; 2) Use of the `defalias-fset-function' symbol property which lets
+;; us advise the function when it gets defined.
 
 ;; Automatic advice activation means, that whenever a function gets defined
-;; with either `defun', `defmacro', `fset' or by loading a byte-compiled
+;; with either `defun', `defmacro', `defalias' or by loading a byte-compiled
 ;; file, and the function has some advice-info stored with it then that
 ;; advice will get activated right away.
-
-;; @@@ Enabling automatic advice activation:
-;; =========================================
-;; Automatic advice activation is enabled by default. It can be disabled with
-;; `M-x ad-stop-advice' and enabled again with `M-x ad-start-advice'.
 
 ;; @@ Caching of advised definitions:
 ;; ==================================
 ;; After an advised definition got constructed it gets cached as part of the
 ;; advised function's advice-info so it can be reused, for example, after an
-;; intermediate deactivation. Because the advice-info of a function might
+;; intermediate deactivation.  Because the advice-info of a function might
 ;; change between the time of caching and reuse a cached definition gets
 ;; a cache-id associated with it so it can be verified whether the cached
 ;; definition is still valid (the main application of this is preactivation
@@ -642,19 +609,19 @@
 
 ;; When an advised function gets activated and a verifiable cached definition
 ;; is available, then that definition will be used instead of creating a new
-;; advised definition from scratch. If you want to make sure that a new
+;; advised definition from scratch.  If you want to make sure that a new
 ;; definition gets constructed then you should use `ad-clear-cache' before you
 ;; activate the advised function.
 
 ;; @@ Preactivation:
 ;; =================
-;; Constructing an advised definition is moderately expensive. In a situation
+;; Constructing an advised definition is moderately expensive.  In a situation
 ;; where one package defines a lot of advised functions it might be
 ;; prohibitively expensive to do all the advised definition construction at
-;; runtime. Preactivation is a mechanism that allows compile-time construction
+;; runtime.  Preactivation is a mechanism that allows compile-time construction
 ;; of compiled advised definitions that can be activated cheaply during
-;; runtime. Preactivation uses the caching mechanism to do that. Here's how it
-;; works:
+;; runtime.  Preactivation uses the caching mechanism to do that.  Here's how
+;; it works:
 
 ;; When the byte-compiler compiles a `defadvice' that has the `preactivate'
 ;; flag specified, it uses the current original definition of the advised
@@ -665,27 +632,27 @@
 ;; byte-compiler.
 ;; When the file with the compiled, preactivating `defadvice' gets loaded the
 ;; precompiled advised definition will be cached on the advised function's
-;; advice-info. When it gets activated (can be immediately on execution of the
+;; advice-info.  When it gets activated (can be immediately on execution of the
 ;; `defadvice' or any time later) the cache-id gets checked against the
 ;; current state of advice and if it is verified the precompiled definition
-;; will be used directly (the verification is pretty cheap). If it couldn't get
-;; verified a new advised definition for that function will be built from
-;; scratch, hence, the efficiency added by the preactivation mechanism does
-;; not at all impair the flexibility of the advice mechanism.
+;; will be used directly (the verification is pretty cheap).  If it couldn't
+;; get verified a new advised definition for that function will be built from
+;; scratch, hence, the efficiency added by the preactivation mechanism does not
+;; at all impair the flexibility of the advice mechanism.
 
 ;; MORAL: In order get all the efficiency out of preactivation the advice
 ;;        state of an advised function at the time the file with the
 ;;        preactivating `defadvice' gets byte-compiled should be exactly
 ;;        the same as it will be when the advice of that function gets
-;;        actually activated. If it is not there is a high chance that the
+;;        actually activated.  If it is not there is a high chance that the
 ;;        cache-id will not match and hence a new advised definition will
 ;;        have to be constructed at runtime.
 
-;; Preactivation and forward advice do not contradict each other. It is
+;; Preactivation and forward advice do not contradict each other.  It is
 ;; perfectly ok to load a file with a preactivating `defadvice' before the
-;; original definition of the advised function is available. The constructed
+;; original definition of the advised function is available.  The constructed
 ;; advised definition will be used once the original function gets defined and
-;; its advice gets activated. The only constraint is that at the time the
+;; its advice gets activated.  The only constraint is that at the time the
 ;; file with the preactivating `defadvice' got compiled the original function
 ;; definition was available.
 
@@ -697,18 +664,18 @@
 ;;       - `byte-compile' is part of the `features' variable even though you
 ;;         did not use the byte-compiler
 ;;       Right now advice does not provide an elegant way to find out whether
-;;       and why a preactivation failed. What you can do is to trace the
+;;       and why a preactivation failed.  What you can do is to trace the
 ;;       function `ad-cache-id-verification-code' (with the function
 ;;       `trace-function-background' defined in my trace.el package) before
-;;       any of your advised functions get activated. After they got
+;;       any of your advised functions get activated.  After they got
 ;;       activated check whether all calls to `ad-cache-id-verification-code'
-;;       returned `verified' as a result. Other values indicate why the
+;;       returned `verified' as a result.  Other values indicate why the
 ;;       verification failed which should give you enough information to
 ;;       fix your preactivation/compile/load/activation sequence.
 
 ;; IMPORTANT: There is one case (that I am aware of) that can make
 ;; preactivation fail, i.e., a preconstructed advised definition that does
-;; NOT match the current state of advice gets used nevertheless. That case
+;; NOT match the current state of advice gets used nevertheless.  That case
 ;; arises if one package defines a certain piece of advice which gets used
 ;; during preactivation, and another package incompatibly redefines that
 ;; very advice (i.e., same function/class/name), and it is the second advice
@@ -720,30 +687,20 @@
 ;; MORAL-II: Redefining somebody else's advice is BAAAAD (to speak with
 ;; George Walker Bush), and why would you redefine your own advice anyway?
 ;; Advice is a mechanism to facilitate function redefinition, not advice
-;; redefinition (wait until I write Meta-Advice :-). If you really have
-;; to undo somebody else's advice try to write a "neutralizing" advice.
+;; redefinition (wait until I write Meta-Advice :-).  If you really have
+;; to undo somebody else's advice, try to write a "neutralizing" advice.
 
-;; @@ Advising macros and special forms and other dangerous things:
-;; ================================================================
+;; @@ Advising macros and other dangerous things:
+;; ==============================================
 ;; Look at the corresponding tutorial sections for more information on
-;; these topics. Here it suffices to point out that the special treatment
-;; of macros and special forms by the byte-compiler can lead to problems
-;; when they get advised. Macros can create problems because they get
-;; expanded at compile time, hence, they might not have all the necessary
-;; runtime support and such advice cannot be de/activated or changed as
-;; it is possible for functions. Special forms create problems because they
-;; have to be advised "into" macros, i.e., an advised special form is a
-;; implemented as a macro, hence, in most cases the byte-compiler will
-;; not recognize it as a special form anymore which can lead to very strange
-;; results.
+;; these topics.  Here it suffices to point out that the special treatment
+;; of macros can lead to problems when they get advised.  Macros can create
+;; problems because they get expanded at compile or load time, hence, they
+;; might not have all the necessary runtime support and such advice cannot be
+;; de/activated or changed as it is possible for functions.
+;; Special forms cannot be advised.
 ;;
-;; MORAL: - Only advise macros or special forms when you are absolutely sure
-;;          what you are doing.
-;;        - As a safety measure, always do `ad-deactivate-all' before you
-;;          byte-compile a file to make sure that even if some inconsiderate
-;;          person advised some special forms you'll get proper compilation
-;;          results. After compilation do `ad-activate-all' to get back to
-;;          the previous state.
+;; MORAL: - Only advise macros when you are absolutely sure what you are doing.
 
 ;; @@ Adding a piece of advice with `ad-add-advice':
 ;; =================================================
@@ -754,10 +711,10 @@
 ;; @@ Activation/deactivation advices, file load hooks:
 ;; ====================================================
 ;; There are two special classes of advice called `activation' and
-;; `deactivation'. The body forms of these advices are not included into the
+;; `deactivation'.  The body forms of these advices are not included into the
 ;; advised definition of a function, rather they are assembled into a hook
 ;; form which will be evaluated whenever the advice-info of the advised
-;; function gets activated or deactivated. One application of this mechanism
+;; function gets activated or deactivated.  One application of this mechanism
 ;; is to define file load hooks for files that do not provide such hooks.
 ;; For example, suppose you want to print a message whenever `file-x' gets
 ;; loaded, and suppose the last function defined in `file-x' is
@@ -769,7 +726,7 @@
 ;;
 ;; This will constitute a forward advice for function `file-x-last-fn' which
 ;; will get activated when `file-x' is loaded (only if forward advice is
-;; enabled of course). Because there are no "real" pieces of advice
+;; enabled of course).  Because there are no "real" pieces of advice
 ;; available for it, its definition will not be changed, but the activation
 ;; advice will be run during its activation which is equivalent to having a
 ;; file load hook for `file-x'.
@@ -784,14 +741,14 @@
 ;;     enabled advices are considered during construction of an advised
 ;;     definition.
 ;; - Activation:
-;;     Redefine an advised function with its advised definition. Constructs
+;;     Redefine an advised function with its advised definition.  Constructs
 ;;     an advised definition from scratch if no verifiable cached advised
 ;;     definition is available and caches it.
 ;; - Deactivation:
 ;;     Back-define an advised function to its original definition.
 ;; - Update:
 ;;     Reactivate an advised function but only if its advice is currently
-;;     active. This can be used to bring all currently advised function up
+;;     active.  This can be used to bring all currently advised function up
 ;;     to date with the current state of advice without also activating
 ;;     currently inactive functions.
 ;; - Caching:
@@ -800,7 +757,7 @@
 ;; - Preactivation:
 ;;     Is the construction of an advised definition according to the current
 ;;     state of advice during byte-compilation of a file with a preactivating
-;;     `defadvice'. That advised definition can then rather cheaply be used
+;;     `defadvice'.  That advised definition can then rather cheaply be used
 ;;     during activation without having to construct an advised definition
 ;;     from scratch at runtime.
 
@@ -860,12 +817,8 @@
 
 ;; @ Foo games: An advice tutorial
 ;; ===============================
-;; The following tutorial was created in Emacs 18.59. Left-justified
+;; The following tutorial was created in Emacs 18.59.  Left-justified
 ;; s-expressions are input forms followed by one or more result forms.
-;; First we have to start the advice magic:
-;;
-;; (ad-start-advice)
-;; nil
 ;;
 ;; We start by defining an innocent looking function `foo' that simply
 ;; adds 1 to its argument X:
@@ -988,19 +941,6 @@
 ;; (call-interactively 'foo)
 ;; 6
 ;;
-;; Let's have a look at what the definition of `foo' looks like now
-;; (indentation added by hand for legibility):
-;;
-;; (symbol-function 'foo)
-;; (lambda (x)
-;;   "$ad-doc: foo$"
-;;   (interactive (list 5))
-;;   (let (ad-return-value)
-;;     (setq x (1- x))
-;;     (setq x (1+ x))
-;;     (setq ad-return-value (ad-Orig-foo x))
-;;     ad-return-value))
-;;
 ;; @@ Around advices:
 ;; ==================
 ;; Now we'll try some `around' advices. An around advice is a wrapper around
@@ -1038,20 +978,6 @@
 ;; (foo 3)
 ;; 8
 ;;
-;; Again, let's see what the definition of `foo' looks like so far:
-;;
-;; (symbol-function 'foo)
-;; (lambda (x)
-;;   "$ad-doc: foo$"
-;;   (interactive (list 5))
-;;   (let (ad-return-value)
-;;     (setq x (1- x))
-;;     (setq x (1+ x))
-;;     (let ((x (* x 2)))
-;;       (let ((x (1+ x)))
-;;         (setq ad-return-value (ad-Orig-foo x))))
-;;     ad-return-value))
-;;
 ;; @@ Controlling advice activation:
 ;; =================================
 ;; In every `defadvice' so far we have used the flag `activate' to activate
@@ -1071,9 +997,9 @@
 ;; 8
 ;;
 ;; Now we define another advice and activate which will also activate the
-;; previous advice `fg-times-x'. Note the use of the special variable
+;; previous advice `fg-times-x'.  Note the use of the special variable
 ;; `ad-return-value' in the body of the advice which is set to the result of
-;; the original function. If we change its value then the value returned by
+;; the original function.  If we change its value then the value returned by
 ;; the advised function will be changed accordingly:
 ;;
 ;; (defadvice foo (after fg-times-x-again act)
@@ -1121,24 +1047,6 @@
 ;; "Let's clean up now!"
 ;; error-in-foo
 ;;
-;; Again, let's see what `foo' looks like:
-;;
-;; (symbol-function 'foo)
-;; (lambda (x)
-;;   "$ad-doc: foo$"
-;;   (interactive (list 5))
-;;   (let (ad-return-value)
-;;     (unwind-protect
-;;         (progn (setq x (1- x))
-;;                (setq x (1+ x))
-;;                (let ((x (* x 2)))
-;;                  (let ((x (1+ x)))
-;;                    (setq ad-return-value (ad-Orig-foo x))))
-;;                (setq ad-return-value (* ad-return-value x))
-;;                (setq ad-return-value (* ad-return-value x)))
-;;       (print "Let's clean up now!"))
-;;     ad-return-value))
-;;
 ;; @@ Compilation of advised definitions:
 ;; ======================================
 ;; Finally, we can specify the `compile' keyword in a `defadvice' to say
@@ -1150,13 +1058,10 @@
 ;;   (print "Let's clean up now!"))
 ;; foo
 ;;
-;; Now `foo' is byte-compiled:
+;; Now `foo's advice is byte-compiled:
 ;;
-;; (symbol-function 'foo)
-;; (lambda (x)
-;;   "$ad-doc: foo$"
-;;   (interactive (byte-code "....." [5] 1))
-;;   (byte-code "....." [ad-return-value x nil ((byte-code "....." [print "Let's clean up now!"] 2)) * 2 ad-Orig-foo] 6))
+;; (byte-code-function-p 'ad-Advice-foo)
+;; t
 ;;
 ;; (foo 3)
 ;; "Let's clean up now!"
@@ -1262,7 +1167,7 @@
 ;; deactivate functions that have a piece of advice defined by a certain
 ;; package (we save the old definition to check out caching):
 ;;
-;; (setq old-definition (symbol-function 'foo))
+;; (setq old-definition (symbol-function 'ad-Advice-foo))
 ;; (lambda (x) ....)
 ;;
 ;; (ad-deactivate-regexp "^fg-")
@@ -1274,7 +1179,7 @@
 ;; (ad-activate-regexp "^fg-")
 ;; nil
 ;;
-;; (eq old-definition (symbol-function 'foo))
+;; (eq old-definition (symbol-function 'ad-Advice-foo))
 ;; t
 ;;
 ;; (foo 3)
@@ -1283,14 +1188,6 @@
 ;;
 ;; @@ Forward advice:
 ;; ==================
-;; To enable automatic activation of forward advice we first have to set
-;; `ad-activate-on-definition' to t and restart advice:
-;;
-;; (setq ad-activate-on-definition t)
-;; t
-;;
-;; (ad-start-advice)
-;; (ad-activate-defined-function)
 ;;
 ;; Let's define a piece of advice for an undefined function:
 ;;
@@ -1303,9 +1200,7 @@
 ;; (fboundp 'bar)
 ;; nil
 ;;
-;; Now we define it and the forward advice will get activated (only because
-;; `ad-activate-on-definition' was t when we started advice above with
-;; `ad-start-advice'):
+;; Now we define it and the forward advice will get activated:
 ;;
 ;; (defun bar (x)
 ;;   "Subtract 1 from X."
@@ -1357,7 +1252,7 @@
 ;; (ad-activate 'fie)
 ;; fie
 ;;
-;; (eq cached-definition (symbol-function 'fie))
+;; (eq cached-definition (symbol-function 'ad-Advice-fie))
 ;; t
 ;;
 ;; (fie 2)
@@ -1365,7 +1260,7 @@
 ;;
 ;; If you put a preactivating `defadvice' into a Lisp file that gets byte-
 ;; compiled then the constructed advised definition will get compiled by
-;; the byte-compiler. For that to occur in a v18 Emacs you had to put the
+;; the byte-compiler.  For that to occur in a v18 Emacs you had to put the
 ;; `defadvice' inside a `defun' because the v18 compiler did not compile
 ;; top-level forms other than `defun' or `defmacro', for example,
 ;;
@@ -1407,18 +1302,16 @@
 ;; constructed during preactivation was used, even though we did not specify
 ;; the `compile' flag:
 ;;
-;; (symbol-function 'fum)
-;; (lambda (x)
-;;   "$ad-doc: fum$"
-;;   (byte-code "....." [ad-return-value x nil * 2 ad-Orig-fum] 4))
+;; (byte-code-function-p 'ad-Advice-fum)
+;; t
 ;;
 ;; (fum 2)
 ;; 8
 ;;
 ;; A preactivated definition will only be used if it matches the current
-;; function definition and advice information. If it does not match it
+;; function definition and advice information.  If it does not match it
 ;; will simply be discarded and a new advised definition will be constructed
-;; from scratch. For example, let's first remove all advice-info for `fum':
+;; from scratch.  For example, let's first remove all advice-info for `fum':
 ;;
 ;; (ad-unadvise 'fum)
 ;; (("fie") ("bar") ("foo") ...)
@@ -1431,7 +1324,7 @@
 ;; fum
 ;;
 ;; When we now try to use a preactivation it will not be used because the
-;; current advice state is different from the one at preactivation time. This
+;; current advice state is different from the one at preactivation time.  This
 ;; is no tragedy, everything will work as expected just not as efficient,
 ;; because a new advised definition has to be constructed from scratch:
 ;;
@@ -1440,7 +1333,7 @@
 ;;
 ;; A new uncompiled advised definition got constructed:
 ;;
-;; (ad-compiled-p (symbol-function 'fum))
+;; (byte-code-function-p 'ad-Advice-fum)
 ;; nil
 ;;
 ;; (fum 2)
@@ -1448,7 +1341,7 @@
 ;;
 ;; MORAL: To get all the efficiency out of preactivation the function
 ;; definition and advice state at preactivation time must be the same as the
-;; state at activation time. Preactivation does work with forward advice, all
+;; state at activation time.  Preactivation does work with forward advice, all
 ;; that's necessary is that the definition of the forward advised function is
 ;; available when the `defadvice' with the preactivation gets compiled.
 ;;
@@ -1702,13 +1595,8 @@
 ;; @@ Compilation idiosyncrasies:
 ;; ==============================
 
-;; `defadvice' expansion needs quite a few advice functions and variables,
-;; hence, I need to preload the file before it can be compiled.  To avoid
-;; interference of bogus compiled files I always preload the source file:
-(provide 'advice-preload)
-;; During a normal load this is a noop:
-(require 'advice-preload "advice.el")
 (require 'macroexp)
+;; At run-time also, since ad-do-advised-functions returns code that uses it.
 (eval-when-compile (require 'cl-lib))
 
 ;; @@ Variable definitions:
@@ -1775,36 +1663,6 @@ generates a copy of TREE."
          (funcall fUnCtIoN tReE))
         (t tReE)))
 
-;; @@ Save real definitions of subrs used by Advice:
-;; =================================================
-;; Advice depends on the real, unmodified functionality of various subrs,
-;; we save them here so advised versions will not interfere (eventually,
-;; we will save all subrs used in code generated by Advice):
-
-(defmacro ad-save-real-definition (function)
-  (let ((saved-function (intern (format "ad-real-%s" function))))
-    ;; Make sure the compiler is loaded during macro expansion:
-    (require 'byte-compile "bytecomp")
-    `(if (not (fboundp ',saved-function))
-      (progn (fset ',saved-function (symbol-function ',function))
-             ;; Copy byte-compiler properties:
-             ,@(if (get function 'byte-compile)
-                   `((put ',saved-function 'byte-compile
-                      ',(get function 'byte-compile))))
-             ,@(if (get function 'byte-opcode)
-                   `((put ',saved-function 'byte-opcode
-                      ',(get function 'byte-opcode))))))))
-
-(defun ad-save-real-definitions ()
-  ;; Macro expansion will hardcode the values of the various byte-compiler
-  ;; properties into the compiled version of this function such that the
-  ;; proper values will be available at runtime without loading the compiler:
-  (ad-save-real-definition fset)
-  (ad-save-real-definition documentation))
-
-(ad-save-real-definitions)
-
-
 ;; @@ Advice info access fns:
 ;; ==========================
 
@@ -1818,7 +1676,7 @@ generates a copy of TREE."
 ;;       (after  adv1 adv2 ...)
 ;;       (activation  adv1 adv2 ...)
 ;;       (deactivation  adv1 adv2 ...)
-;;       (origname . <symbol fbound to origdef>)
+;;       (advicefunname . <symbol fbound to assembled advice function>)
 ;;       (cache . (<advised-definition> . <id>)))
 
 ;; List of currently advised though not necessarily activated functions
@@ -1839,15 +1697,13 @@ generates a copy of TREE."
      ad-advised-functions)))
 
 (defmacro ad-do-advised-functions (varform &rest body)
-  "`dolist'-style iterator that maps over `ad-advised-functions'.
-\(ad-do-advised-functions (VAR [RESULT-FORM])
+  "`dolist'-style iterator that maps over advised functions.
+\(ad-do-advised-functions (VAR)
    BODY-FORM...)
 On each iteration VAR will be bound to the name of an advised function
 \(a symbol)."
   (declare (indent 1))
-  `(cl-dolist (,(car varform)
-               ad-advised-functions
-               ,(car (cdr varform)))
+  `(dolist (,(car varform) ad-advised-functions)
      (setq ,(car varform) (intern (car ,(car varform))))
      ,@body))
 
@@ -1857,8 +1713,15 @@ On each iteration VAR will be bound to the name of an advised function
 (defmacro ad-get-advice-info-macro (function)
   `(get ,function 'ad-advice-info))
 
-(defmacro ad-set-advice-info (function advice-info)
-  `(put ,function 'ad-advice-info ,advice-info))
+(defsubst ad-set-advice-info (function advice-info)
+  (cond
+   (advice-info
+    (add-function :around (get function 'defalias-fset-function)
+                  #'ad--defalias-fset))
+   ((get function 'defalias-fset-function)
+    (remove-function (get function 'defalias-fset-function)
+                     #'ad--defalias-fset)))
+  (put function 'ad-advice-info advice-info))
 
 (defmacro ad-copy-advice-info (function)
   `(copy-tree (get ,function 'ad-advice-info)))
@@ -1866,7 +1729,7 @@ On each iteration VAR will be bound to the name of an advised function
 (defmacro ad-is-advised (function)
   "Return non-nil if FUNCTION has any advice info associated with it.
 This does not mean that the advice is also active."
-  (list 'ad-get-advice-info-macro function))
+  `(ad-get-advice-info-macro ,function))
 
 (defun ad-initialize-advice-info (function)
   "Initialize the advice info for FUNCTION.
@@ -1906,17 +1769,16 @@ either t or nil, and DEFINITION should be a list of the form
 
 ;; ad-find-advice uses the alist structure directly ->
 ;; change if this data structure changes!!
-(defmacro ad-advice-name (advice)
-  (list 'car advice))
-(defmacro ad-advice-protected (advice)
-  (list 'nth 1 advice))
-(defmacro ad-advice-enabled (advice)
-  (list 'nth 2 advice))
-(defmacro ad-advice-definition (advice)
-  (list 'nth 3 advice))
+(defsubst ad-advice-name (advice) (car advice))
+(defsubst ad-advice-protected (advice) (nth 1 advice))
+(defsubst ad-advice-enabled (advice) (nth 2 advice))
+(defsubst ad-advice-definition (advice) (nth 3 advice))
 
 (defun ad-advice-set-enabled (advice flag)
   (rplaca (cdr (cdr advice)) flag))
+
+(defvar ad-advice-classes '(before around after activation deactivation)
+  "List of defined advice classes.")
 
 (defun ad-class-p (thing)
   (memq thing ad-advice-classes))
@@ -1929,9 +1791,6 @@ either t or nil, and DEFINITION should be a list of the form
 
 ;; @@ Advice access functions:
 ;; ===========================
-
-;; List of defined advice classes:
-(defvar ad-advice-classes '(before around after activation deactivation))
 
 (defun ad-has-enabled-advice (function class)
   "True if at least one of FUNCTION's advices in CLASS is enabled."
@@ -1949,7 +1808,7 @@ Redefining advices affect the construction of an advised definition."
 (defun ad-has-any-advice (function)
   "True if the advice info of FUNCTION defines at least one advice."
   (and (ad-is-advised function)
-       (cl-dolist (class ad-advice-classes nil)
+       (cl-dolist (class ad-advice-classes)
 	 (if (ad-get-advice-info-field function class)
 	     (cl-return t)))))
 
@@ -1965,76 +1824,30 @@ Redefining advices affect the construction of an advised definition."
 ;; @@ Dealing with automatic advice activation via `fset/defalias':
 ;; ================================================================
 
-;; Since Emacs 19.26 the built-in versions of `fset' and `defalias'
-;; take care of automatic advice activation, hence, we don't have to
-;; hack it anymore by advising `fset/defun/defmacro/byte-code/etc'.
+;; Automatic activation happens when a function gets defined via `defalias',
+;; which calls the `defalias-fset-function' (which we set to
+;; `ad--defalias-fset') instead of `fset', if non-nil.
 
-;; The functionality of the new `fset' is as follows:
-;;
-;;     fset(sym,newdef)
-;;       assign NEWDEF to SYM
-;;       if (get SYM 'ad-advice-info)
-;;          ad-activate-internal(SYM, nil)
-;;       return (symbol-function SYM)
-;;
 ;; Whether advised definitions created by automatic activations will be
 ;; compiled depends on the value of `ad-default-compilation-action'.
 
-;; Since calling `ad-activate-internal' in the built-in definition of `fset' can
-;; create major disasters we have to be a bit careful. One precaution is
-;; to provide a dummy definition for `ad-activate-internal' which can be used to
-;; turn off automatic advice activation (e.g., when `ad-stop-advice' or
-;; `ad-recover-normality' are called). Another is to avoid recursive calls
-;; to `ad-activate' by using `ad-with-auto-activation-disabled' where
-;; appropriate, especially in a safe version of `fset'.
+(defalias 'ad-activate-internal 'ad-activate)
 
-;; For now define `ad-activate-internal' to the dummy definition:
-(defun ad-activate-internal (function &optional compile)
-  "Automatic advice activation is disabled. `ad-start-advice' enables it."
-  nil)
+(defun ad-make-advicefunname (function)
+  "Make name to be used to call the assembled advice function."
+  (intern (format "ad-Advice-%s" function)))
 
-;; This is just a copy of the above:
-(defun ad-activate-internal-off (function &optional compile)
-  "Automatic advice activation is disabled. `ad-start-advice' enables it."
-  nil)
+(defun ad-get-orig-definition (function) ;FIXME: Rename to "-unadvised-".
+  (if (symbolp function)
+      (setq function (if (fboundp function)
+                         (advice--strip-macro (symbol-function function)))))
+  (while (advice--p function) (setq function (advice--cdr function)))
+  function)
 
-;; This will be t for top-level calls to `ad-activate-internal-on':
-(defvar ad-activate-on-top-level t)
-
-(defmacro ad-with-auto-activation-disabled (&rest body)
-  `(let ((ad-activate-on-top-level nil))
-    ,@body))
-
-(defun ad-safe-fset (symbol definition)
-  "A safe `fset' which will never call `ad-activate-internal' recursively."
-  (ad-with-auto-activation-disabled
-   (ad-real-fset symbol definition)))
-
-
-;; @@ Access functions for original definitions:
-;; ============================================
-;; The advice-info of an advised function contains its `origname' which is
-;; a symbol that is fbound to the original definition available at the first
-;; proper activation of the function after a valid re/definition.  If the
-;; original was defined via fcell indirection then `origname' will be defined
-;; just so.  Hence, to get hold of the actual original definition of a function
-;; we need to use `ad-real-orig-definition'.
-
-(defun ad-make-origname (function)
-  "Make name to be used to call the original FUNCTION."
-  (intern (format "ad-Orig-%s" function)))
-
-(defmacro ad-get-orig-definition (function)
-  `(let ((origname (ad-get-advice-info-field ,function 'origname)))
-    (if (fboundp origname)
-        (symbol-function origname))))
-
-(defmacro ad-set-orig-definition (function definition)
-  `(ad-safe-fset
-    (ad-get-advice-info-field ,function 'origname) ,definition))
-
-(defmacro ad-clear-orig-definition (function)
-  `(fmakunbound (ad-get-advice-info-field ,function 'origname)))
+(defun ad-clear-advicefunname-definition (function)
+  (let ((advicefunname (ad-get-advice-info-field function 'advicefunname)))
+    (advice-remove function advicefunname)
+    (fmakunbound advicefunname)))
 
 
 ;; @@ Interactive input functions:
@@ -2052,7 +1865,7 @@ function at point for which PREDICATE returns non-nil)."
       (error "ad-read-advised-function: There are no advised functions"))
   (setq default
 	(or default
-	    ;; Prefer func name at point, if it's in ad-advised-functions etc.
+	    ;; Prefer func name at point, if it's an advised function etc.
 	    (let ((function (progn
 			      (require 'help)
 			      (function-called-at-point))))
@@ -2061,24 +1874,20 @@ function at point for which PREDICATE returns non-nil)."
 		   (or (null predicate)
 		       (funcall predicate function))
 		   function))
-	    (ad-do-advised-functions (function)
-	      (if (or (null predicate)
-		      (funcall predicate function))
-		  (cl-return function)))
+            (cl-block nil
+              (ad-do-advised-functions (function)
+                (if (or (null predicate)
+                        (funcall predicate function))
+                    (cl-return function))))
 	    (error "ad-read-advised-function: %s"
 		   "There are no qualifying advised functions")))
-  (let* ((ad-pReDiCaTe predicate)
-	 (function
+  (let* ((function
 	  (completing-read
 	   (format "%s (default %s): " (or prompt "Function") default)
 	   ad-advised-functions
 	   (if predicate
-	       (function
-		(lambda (function)
-		  ;; Oops, no closures - the joys of dynamic scoping:
-		  ;; `predicate' clashed with the `predicate' argument
-		  ;; of `completing-read'.....
-		  (funcall ad-pReDiCaTe (intern (car function))))))
+               (lambda (function)
+                 (funcall predicate (intern (car function)))))
 	   t)))
     (if (equal function "")
 	(if (ad-is-advised default)
@@ -2298,7 +2107,7 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   (cond ((not (ad-is-advised function))
          (ad-initialize-advice-info function)
 	 (ad-set-advice-info-field
-	  function 'origname (ad-make-origname function))))
+	  function 'advicefunname (ad-make-advicefunname function))))
   (let* ((previous-position
 	  (ad-advice-position function class (ad-advice-name advice)))
 	 (advices (ad-get-advice-info-field function class))
@@ -2330,12 +2139,6 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
 (defmacro ad-lambdafy (definition)
   "Take a macro function DEFINITION and make a lambda out of it."
   `(cdr ,definition))
-
-(defun ad-special-form-p (definition)
-  "Non-nil if and only if DEFINITION is a special form."
-  (if (and (symbolp definition) (fboundp definition))
-      (setq definition (indirect-function definition)))
-  (and (subrp definition) (eq (cdr (subr-arity definition)) 'unevalled)))
 
 (defmacro ad-subr-p (definition)
   ;;"non-nil if DEFINITION is a subr."
@@ -2376,10 +2179,8 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
 	 (cdr definition))
 	(t nil)))
 
-(defun ad-arglist (definition &optional name)
-  "Return the argument list of DEFINITION.
-If DEFINITION could be from a subr then its NAME should be
-supplied to make subr arglist lookup more efficient."
+(defun ad-arglist (definition)
+  "Return the argument list of DEFINITION."
   (require 'help-fns)
   (help-function-arglist
    (if (or (ad-macro-p definition) (ad-advice-p definition))
@@ -2391,7 +2192,7 @@ supplied to make subr arglist lookup more efficient."
   "Return the unexpanded docstring of DEFINITION."
   (let ((docstring
 	 (if (ad-compiled-p definition)
-	     (ad-real-documentation definition t)
+	     (documentation definition t)
 	   (car (cdr (cdr (ad-lambda-expression definition)))))))
     (if (or (stringp docstring)
 	    (natnump docstring))
@@ -2414,13 +2215,16 @@ Like `interactive-form', but also works on pieces of advice."
 		    (if (ad-interactive-form definition) 1 0))
 		 (cdr (cdr (ad-lambda-expression definition)))))))
 
-(defun ad-make-advised-definition-docstring (function)
+(defun ad-make-advised-definition-docstring (_function)
   "Make an identifying docstring for the advised definition of FUNCTION.
 Put function name into the documentation string so we can infer
 the name of the advised function from the docstring.  This is needed
 to generate a proper advised docstring even if we are just given a
 definition (see the code for `documentation')."
-  (propertize "Advice doc string" 'ad-advice-info function))
+  (eval-when-compile
+    (propertize "Advice function assembled by advice.el."
+                'dynamic-docstring-function
+                #'ad--make-advised-docstring)))
 
 (defun ad-advised-definition-p (definition)
   "Return non-nil if DEFINITION was generated from advice information."
@@ -2429,20 +2233,19 @@ definition (see the code for `documentation')."
 	  (ad-compiled-p definition))
       (let ((docstring (ad-docstring definition)))
 	(and (stringp docstring)
-	     (get-text-property 0 'ad-advice-info docstring)))))
+	     (get-text-property 0 'dynamic-docstring-function docstring)))))
 
 (defun ad-definition-type (definition)
   "Return symbol that describes the type of DEFINITION."
+  ;; These symbols are only ever used to check a cache entry's validity.
+  ;; The suffix `2' reflects the fact that we're using version 2 of advice
+  ;; representations, so cache entries preactivated with version
+  ;; 1 can't be used.
   (cond
-   ((ad-macro-p definition) 'macro)
-   ((ad-subr-p definition)
-    (if (ad-special-form-p definition)
-        'special-form
-      'subr))
-   ((or (ad-lambda-p definition)
-        (ad-compiled-p definition))
-    'function)
-   ((ad-advice-p definition) 'advice)))
+   ((ad-macro-p definition) 'macro2)
+   ((ad-subr-p definition) 'subr2)
+   ((or (ad-lambda-p definition) (ad-compiled-p definition)) 'fun2)
+   ((ad-advice-p definition) 'advice2))) ;; FIXME: Can this ever happen?
 
 (defun ad-has-proper-definition (function)
   "True if FUNCTION is a symbol with a proper definition.
@@ -2462,9 +2265,9 @@ For that it has to be fbound with a non-autoload definition."
 	  definition))))
 
 (defun ad-real-orig-definition (function)
-  "Find FUNCTION's real original definition starting from its `origname'."
-  (if (ad-is-advised function)
-      (ad-real-definition (ad-get-advice-info-field function 'origname))))
+  (let* ((fun1 (ad-get-orig-definition function))
+         (fun2 (indirect-function fun1)))
+    (unless (autoloadp fun2) fun2)))
 
 (defun ad-is-compilable (function)
   "True if FUNCTION has an interpreted definition that can be compiled."
@@ -2473,25 +2276,17 @@ For that it has to be fbound with a non-autoload definition."
 	   (ad-macro-p (symbol-function function)))
        (not (ad-compiled-p (symbol-function function)))))
 
+(defvar warning-suppress-types)         ;From warnings.el.
 (defun ad-compile-function (function)
-  "Byte-compiles FUNCTION (or macro) if it is not yet compiled."
-  (interactive "aByte-compile function: ")
-  (if (ad-is-compilable function)
-      ;; Need to turn off auto-activation
-      ;; because `byte-compile' uses `fset':
-      (ad-with-auto-activation-disabled
-       (require 'bytecomp)
-       (require 'warnings)              ;To define warning-suppress-types
-                                        ;before we let-bind it.
-       (let ((symbol (make-symbol "advice-compilation"))
-	     (byte-compile-warnings byte-compile-warnings)
-             ;; Don't pop up windows showing byte-compiler warnings.
-             (warning-suppress-types '((bytecomp))))
-	 (if (featurep 'cl)
-	     (byte-compile-disable-warning 'cl-functions))
-	 (fset symbol (symbol-function function))
-	 (byte-compile symbol)
-	 (fset function (symbol-function symbol))))))
+  "Byte-compile the assembled advice function."
+  (require 'bytecomp)
+  (require 'warnings)  ;To define warning-suppress-types before we let-bind it.
+  (let ((byte-compile-warnings byte-compile-warnings)
+        ;; Don't pop up windows showing byte-compiler warnings.
+        (warning-suppress-types '((bytecomp))))
+    (if (featurep 'cl)
+        (byte-compile-disable-warning 'cl-functions))
+    (byte-compile (ad-get-advice-info-field function 'advicefunname))))
 
 ;; @@@ Accessing argument lists:
 ;; =============================
@@ -2603,24 +2398,20 @@ The assignment starts at position INDEX."
   (let ((values-index 0)
 	argument-access set-forms)
     (while (setq argument-access (ad-access-argument arglist index))
-      (if (symbolp argument-access)
-	  (setq set-forms
-		(cons (ad-set-argument
-		       arglist index
-		       (ad-element-access values-index 'ad-vAlUeS))
-		      set-forms))
-          (setq set-forms
-                (cons (if (= (car argument-access) 0)
-                          (list 'setq
-                                (car (cdr argument-access))
-                                (ad-list-access values-index 'ad-vAlUeS))
-                          (list 'setcdr
-                                (ad-list-access (1- (car argument-access))
-                                                (car (cdr argument-access)))
-                                (ad-list-access values-index 'ad-vAlUeS)))
-                      set-forms))
-          ;; terminate loop
-          (setq arglist nil))
+      (push (if (symbolp argument-access)
+                (ad-set-argument
+                 arglist index
+                 (ad-element-access values-index 'ad-vAlUeS))
+              (setq arglist nil) ;; Terminate loop.
+              (if (= (car argument-access) 0)
+                  `(setq
+                    ,(car (cdr argument-access))
+                    ,(ad-list-access values-index 'ad-vAlUeS))
+                `(setcdr
+                  ,(ad-list-access (1- (car argument-access))
+                                   (car (cdr argument-access)))
+                  ,(ad-list-access values-index 'ad-vAlUeS))))
+            set-forms)
       (setq index (1+ index))
       (setq values-index (1+ values-index)))
     (if (null set-forms)
@@ -2629,8 +2420,8 @@ The assignment starts at position INDEX."
         (if (= (length set-forms) 1)
             ;; For exactly one set-form we can use values-form directly,...
             (ad-substitute-tree
-             (function (lambda (form) (eq form 'ad-vAlUeS)))
-             (function (lambda (form) values-form))
+             (lambda (form) (eq form 'ad-vAlUeS))
+             (lambda (_form) values-form)
              (car set-forms))
             ;; ...if we have more we have to bind it to a variable:
             `(let ((ad-vAlUeS ,values-form))
@@ -2682,7 +2473,7 @@ Excess source arguments will be neglected, missing source arguments will be
 supplied as nil.  Returns a `funcall' or `apply' form with the second element
 being `function' which has to be replaced by an actual function argument.
 Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
-         `(funcall function a (car args) (car (cdr args)) (nth 2 args))'."
+         `(funcall ad--addoit-function a (car args) (car (cdr args)) (nth 2 args))'."
   (let* ((parsed-source-arglist (ad-parse-arglist source-arglist))
 	 (source-reqopt-args (append (nth 0 parsed-source-arglist)
 				     (nth 1 parsed-source-arglist)))
@@ -2696,15 +2487,14 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
     ;; This produces ``error-proof'' target function calls with the exception
     ;; of a case like (&rest a) mapped onto (x &rest y) where the actual args
     ;; supplied to A might not be enough to supply the required target arg X
-    (append (list (if need-apply 'apply 'funcall) 'function)
+    (append (list (if need-apply 'apply 'funcall) 'ad--addoit-function)
 	    (cond (need-apply
 		   ;; `apply' can take care of that directly:
 		   (append source-reqopt-args (list source-rest-arg)))
-		  (t (mapcar (function
-			      (lambda (arg)
-				(setq target-arg-index (1+ target-arg-index))
-				(ad-get-argument
-				 source-arglist target-arg-index)))
+		  (t (mapcar (lambda (_arg)
+                               (setq target-arg-index (1+ target-arg-index))
+                               (ad-get-argument
+                                source-arglist target-arg-index))
 			     (append target-reqopt-args
 				     (and target-rest-arg
 					  ;; If we have a rest arg gobble up
@@ -2712,13 +2502,6 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 					  (nthcdr (length target-reqopt-args)
 						  source-reqopt-args)))))))))
 
-(defun ad-make-mapped-call (source-arglist target-arglist target-function)
-  "Make form to call TARGET-FUNCTION with args from SOURCE-ARGLIST."
-  (let ((mapped-form (ad-map-arglists source-arglist target-arglist)))
-    (if (eq (car mapped-form) 'funcall)
-	(cons target-function (cdr (cdr mapped-form)))
-      (prog1 mapped-form
-	(setcar (cdr mapped-form) (list 'quote target-function))))))
 
 ;; @@@ Making an advised documentation string:
 ;; ===========================================
@@ -2735,11 +2518,6 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
   (let ((advice-docstring (ad-docstring (ad-advice-definition advice))))
     (cond ((eq style 'plain)
 	   advice-docstring)
-	  ((eq style 'freeze)
-	   (format "Permanent %s-advice `%s':%s%s"
-		   class (ad-advice-name advice)
-		   (if advice-docstring "\n" "")
-		   (or advice-docstring "")))
 	  (t (if advice-docstring
 		 (format "%s-advice `%s':\n%s"
 			 (capitalize (symbol-name class))
@@ -2751,25 +2529,22 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 
 (require 'help-fns)	    ;For help-split-fundoc and help-add-fundoc-usage.
 
-(defun ad-make-advised-docstring (function &optional style)
+(defun ad--make-advised-docstring (origdoc function &optional style)
   "Construct a documentation string for the advised FUNCTION.
 It concatenates the original documentation with the documentation
 strings of the individual pieces of advice which will be formatted
-according to STYLE.  STYLE can be `plain' or `freeze', everything else
+according to STYLE.  STYLE can be `plain', everything else
 will be interpreted as `default'.  The order of the advice documentation
 strings corresponds to before/around/after and the individual ordering
 in any of these classes."
-  (let* ((origdef (ad-real-orig-definition function))
-	 (origtype (symbol-name (ad-definition-type origdef)))
-	 (origdoc
-	  ;; Retrieve raw doc, key substitution will be taken care of later:
-	  (ad-real-documentation origdef t))
-	 (usage (help-split-fundoc origdoc function))
-	 paragraphs advice-docstring ad-usage)
+  (if (and (symbolp function)
+           (string-match "\\`ad-+Advice-" (symbol-name function)))
+      (setq function
+            (intern (substring (symbol-name function) (match-end 0)))))
+  (let* ((usage (help-split-fundoc origdoc function))
+	 paragraphs advice-docstring)
     (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
-    (unless (eq style 'plain)
-      (push (concat "This " origtype " is advised.") paragraphs))
     (dolist (class ad-advice-classes)
       (dolist (advice (ad-get-enabled-advices function class))
 	(setq advice-docstring
@@ -2780,13 +2555,11 @@ in any of these classes."
 		      (propertize
 		       ;; separate paragraphs with blank lines:
 		       (mapconcat 'identity (nreverse paragraphs) "\n\n")
-		       'ad-advice-info function)))
+                       ;; FIXME: what is this for?
+		       'dynamic-docstring-function
+                       #'ad--make-advised-docstring)))
     (help-add-fundoc-usage origdoc usage)))
 
-(defun ad-make-plain-docstring (function)
-  (ad-make-advised-docstring function 'plain))
-(defun ad-make-freeze-docstring (function)
-  (ad-make-advised-docstring function 'freeze))
 
 ;; @@@ Accessing overriding arglists and interactive forms:
 ;; ========================================================
@@ -2820,64 +2593,18 @@ in any of these classes."
   (if (and (ad-is-advised function)
 	   (ad-has-redefining-advice function))
       (let* ((origdef (ad-real-orig-definition function))
-	     (origname (ad-get-advice-info-field function 'origname))
-	     (orig-interactive-p (commandp origdef))
-	     (orig-subr-p (ad-subr-p origdef))
-	     (orig-special-form-p (ad-special-form-p origdef))
-	     (orig-macro-p (ad-macro-p origdef))
 	     ;; Construct the individual pieces that we need for assembly:
-	     (orig-arglist (ad-arglist origdef function))
+	     (orig-arglist (let ((args (ad-arglist origdef)))
+                             ;; The arglist may still be unknown.
+                             (if (listp args) args '(&rest args))))
 	     (advised-arglist (or (ad-advised-arglist function)
 				  orig-arglist))
-	     (advised-interactive-form (ad-advised-interactive-form function))
-	     (interactive-form
-	      (cond (orig-macro-p nil)
-		    (advised-interactive-form)
-		    ((interactive-form origdef)
-		     (interactive-form
-                      (if (and (symbolp function) (get function 'elp-info))
-                          (aref (get function 'elp-info) 2)
-                        origdef)))))
+	     (interactive-form (ad-advised-interactive-form function))
 	     (orig-form
-	      (cond ((or orig-special-form-p orig-macro-p)
-		     ;; Special forms and macros will be advised into macros.
-                     ;; The trick is to construct an expansion for the advised
-		     ;; macro that does the correct thing when it gets eval'ed.
-		     ;; For macros we'll just use the expansion of the original
-		     ;; macro and return that. This way compiled advised macros
-		     ;; will be expanded into something useful. Note that after
-		     ;; advices have full control over whether they want to
-		     ;; evaluate the expansion (the value of `ad-return-value')
-		     ;; at macro expansion time or not. For special forms there
-		     ;; is no solution that interacts reasonably with the
-		     ;; compiler, hence we just evaluate the original at macro
-		     ;; expansion time and return the result. The moral of that
-		     ;; is that one should always deactivate advised special
-		     ;; forms before one byte-compiles a file.
-		     `(,(if orig-macro-p 'macroexpand 'eval)
-		       (cons ',origname
-			     ,(ad-get-arguments advised-arglist 0))))
-		    ((and orig-subr-p
-			  orig-interactive-p
-			  (not interactive-form)
-			  (not advised-interactive-form))
-		     ;; Check whether we were called interactively
-		     ;; in order to do proper prompting:
-		     `(if (called-interactively-p 'any)
-			  (call-interactively ',origname)
-			,(ad-make-mapped-call advised-arglist
-					      orig-arglist
-					      origname)))
-		    ;; And now for normal functions and non-interactive subrs
-	            ;; (or subrs whose interactive behavior was advised):
-		    (t (ad-make-mapped-call
-			advised-arglist orig-arglist origname)))))
+              (ad-map-arglists advised-arglist orig-arglist)))
 
 	;; Finally, build the sucker:
 	(ad-assemble-advised-definition
-	 (cond (orig-macro-p 'macro)
-	       (orig-special-form-p 'special-form)
-	       (t 'function))
 	 advised-arglist
          (ad-make-advised-definition-docstring function)
 	 interactive-form
@@ -2887,18 +2614,19 @@ in any of these classes."
 	 (ad-get-enabled-advices function 'after)))))
 
 (defun ad-assemble-advised-definition
-    (type args docstring interactive orig &optional befores arounds afters)
-
-  "Assembles an original and its advices into an advised function.
-It constructs a function or macro definition according to TYPE which has to
-be either `macro', `function' or `special-form'.  ARGS is the argument list
-that has to be used, DOCSTRING if non-nil defines the documentation of the
-definition, INTERACTIVE if non-nil is the interactive form to be used,
+    (args docstring interactive orig &optional befores arounds afters)
+  "Assemble the advices into an overall advice function.
+ARGS is the argument list that has to be used,
+DOCSTRING if non-nil defines the documentation of the definition,
+INTERACTIVE if non-nil is the interactive form to be used,
 ORIG is a form that calls the body of the original unadvised function,
 and BEFORES, AROUNDS and AFTERS are the lists of advices with which ORIG
 should be modified.  The assembled function will be returned."
-
-  (let (before-forms around-form around-form-protected after-forms definition)
+  ;; The ad-do-it call should always have the right number of arguments,
+  ;; but the compiler might signal a bogus warning because it checks the call
+  ;; against the advertised calling convention.
+  (let ((around-form `(setq ad-return-value (with-no-warnings ,orig)))
+        before-forms around-form-protected after-forms definition)
     (dolist (advice befores)
       (cond ((and (ad-advice-protected advice)
                   before-forms)
@@ -2911,7 +2639,6 @@ should be modified.  The assembled function will be returned."
                      (append before-forms
                              (ad-body-forms (ad-advice-definition advice)))))))
 
-    (setq around-form `(setq ad-return-value ,orig))
     (dolist (advice (reverse arounds))
       ;; If any of the around advices is protected then we
       ;; protect the complete around advice onion:
@@ -2919,8 +2646,8 @@ should be modified.  The assembled function will be returned."
           (setq around-form-protected t))
       (setq around-form
             (ad-substitute-tree
-             (function (lambda (form) (eq form 'ad-do-it)))
-             (function (lambda (form) around-form))
+             (lambda (form) (eq form 'ad-do-it))
+             (lambda (_form) around-form)
              (macroexp-progn (ad-body-forms (ad-advice-definition advice))))))
 
     (setq after-forms
@@ -2942,16 +2669,12 @@ should be modified.  The assembled function will be returned."
                              (ad-body-forms (ad-advice-definition advice)))))))
 
     (setq definition
-	  `(,@(if (memq type '(macro special-form)) '(macro))
-            lambda
-            ,args
+	  `(lambda (ad--addoit-function ,@args)
             ,@(if docstring (list docstring))
             ,@(if interactive (list interactive))
             (let (ad-return-value)
               ,@after-forms
-              ,(if (eq type 'special-form)
-                   '(list 'quote ad-return-value)
-                   'ad-return-value))))
+              ad-return-value)))
 
     (ad-insert-argument-access-forms definition args)))
 
@@ -3048,17 +2771,17 @@ advised definition from scratch."
   "Generate an identifying image of the current advices of FUNCTION."
   (let ((original-definition (ad-real-orig-definition function))
 	(cached-definition (ad-get-cache-definition function)))
-    (list (mapcar (function (lambda (advice) (ad-advice-name advice)))
+    (list (mapcar #'ad-advice-name
 		  (ad-get-enabled-advices function 'before))
-	  (mapcar (function (lambda (advice) (ad-advice-name advice)))
+	  (mapcar #'ad-advice-name
 		  (ad-get-enabled-advices function 'around))
-	  (mapcar (function (lambda (advice) (ad-advice-name advice)))
+	  (mapcar #'ad-advice-name
 		  (ad-get-enabled-advices function 'after))
 	  (ad-definition-type original-definition)
-	  (if (equal (ad-arglist original-definition function)
+	  (if (equal (ad-arglist original-definition)
 		     (ad-arglist cached-definition))
 	      t
-	    (ad-arglist original-definition function))
+	    (ad-arglist original-definition))
 	  (if (eq (ad-definition-type original-definition) 'function)
 	      (equal (interactive-form original-definition)
 		     (interactive-form cached-definition))))))
@@ -3103,7 +2826,7 @@ advised definition from scratch."
 	   (and (eq (nth 3 cache-id) (ad-definition-type original-definition))
 		(setq code 'arglist-mismatch)
 		(equal (if (eq (nth 4 cache-id) t)
-			   (ad-arglist original-definition function)
+			   (ad-arglist original-definition)
 			 (nth 4 cache-id) )
 		       (ad-arglist cached-definition))
 		(setq code 'interactive-form-mismatch)
@@ -3143,10 +2866,8 @@ advised definition from scratch."
 
 (defun ad-preactivate-advice (function advice class position)
   "Preactivate FUNCTION and returns the constructed cache."
-  (let* ((function-defined-p (fboundp function))
-	 (old-definition
-	  (if function-defined-p
-	      (symbol-function function)))
+  (let* ((advicefunname (ad-get-advice-info-field function 'advicefunname))
+         (old-advice (symbol-function advicefunname))
 	 (old-advice-info (ad-copy-advice-info function))
 	 (ad-advised-functions ad-advised-functions))
     (unwind-protect
@@ -3160,94 +2881,9 @@ advised definition from scratch."
 	      (list (ad-get-cache-definition function)
 		    (ad-get-cache-id function))))
       (ad-set-advice-info function old-advice-info)
-      ;; Don't `fset' function to nil if it was previously unbound:
-      (if function-defined-p
-	  (ad-safe-fset function old-definition)
-	(fmakunbound function)))))
-
-
-;; @@ Freezing:
-;; ============
-;; Freezing transforms a `defadvice' into a redefining `defun/defmacro'
-;; for the advised function without keeping any advice information. This
-;; feature was jwz's idea: It generates a dumpable function definition
-;; whose documentation can be written to the DOC file, and the generated
-;; code does not need any Advice runtime support. Of course, frozen advices
-;; cannot be undone.
-
-;; Freezing only considers the advice of the particular `defadvice', other
-;; already existing advices for the same function will be ignored. To ensure
-;; proper interaction when an already advised function gets redefined with
-;; a frozen advice, frozen advices always use the actual original definition
-;; of the function, i.e., they are always at the core of the onion. E.g., if
-;; an already advised function gets redefined with a frozen advice and then
-;; unadvised, the frozen advice remains as the new definition of the function.
-
-;; While multiple freeze advices for a single function or freeze-advising
-;; of an already advised function are possible, they are better avoided,
-;; because definition/compile/load ordering is relevant, and it becomes
-;; incomprehensible pretty quickly.
-
-(defun ad-make-freeze-definition (function advice class position)
-  (if (not (ad-has-proper-definition function))
-      (error
-       "ad-make-freeze-definition: `%s' is not yet defined"
-       function))
-  (let* ((name (ad-advice-name advice))
-	 ;; With a unique origname we can have multiple freeze advices
-	 ;; for the same function, each overloading the previous one:
-	 (unique-origname
-	  (intern (format "%s-%s-%s" (ad-make-origname function) class name)))
-	 (orig-definition
-	  ;; If FUNCTION is already advised, we'll use its current origdef
-	  ;; as the original definition of the frozen advice:
-	  (or (ad-get-orig-definition function)
-	      (symbol-function function)))
-	 (old-advice-info
-	  (if (ad-is-advised function)
-	      (ad-copy-advice-info function)))
-	 (real-docstring-fn
-	  (symbol-function 'ad-make-advised-definition-docstring))
-	 (real-origname-fn
-	  (symbol-function 'ad-make-origname))
-	 (frozen-definition
-	  (unwind-protect
-               (progn
-                 ;; Make sure we construct a proper docstring:
-                 (ad-safe-fset 'ad-make-advised-definition-docstring
-                               'ad-make-freeze-docstring)
-                 ;; Make sure `unique-origname' is used as the origname:
-                 (ad-safe-fset 'ad-make-origname (lambda (x) unique-origname))
-                 ;; No we reset all current advice information to nil and
-                 ;; generate an advised definition that's solely determined
-                 ;; by ADVICE and the current origdef of FUNCTION:
-                 (ad-set-advice-info function nil)
-                 (ad-add-advice function advice class position)
-                 ;; The following will provide proper real docstrings as
-                 ;; well as a definition that will make the compiler happy:
-                 (ad-set-orig-definition function orig-definition)
-                 (ad-make-advised-definition function))
-	    ;; Restore the old advice state:
-	    (ad-set-advice-info function old-advice-info)
-	    ;; Restore functions:
-	    (ad-safe-fset
-	     'ad-make-advised-definition-docstring real-docstring-fn)
-	    (ad-safe-fset 'ad-make-origname real-origname-fn))))
-    (if frozen-definition
-	(let* ((macro-p (ad-macro-p frozen-definition))
-	       (body (cdr (if macro-p
-			      (ad-lambdafy frozen-definition)
-                              frozen-definition))))
-	  `(progn
-            (if (not (fboundp ',unique-origname))
-                (fset ',unique-origname
-                      ;; avoid infinite recursion in case the function
-                      ;; we want to freeze is already advised:
-                      (or (ad-get-orig-definition ',function)
-                          (symbol-function ',function))))
-            (,(if macro-p 'defmacro 'defun)
-             ,function
-             ,@body))))))
+      (advice-remove function advicefunname)
+      (fset advicefunname old-advice)
+      (if old-advice (advice-add function :around advicefunname)))))
 
 
 ;; @@ Activation and definition handling:
@@ -3259,45 +2895,56 @@ If COMPILE is non-nil and not a negative number then it returns t.
 If COMPILE is a negative number then it returns nil.
 If COMPILE is nil then the result depends on the value of
 `ad-default-compilation-action' (which see)."
-  (if (integerp compile)
-      (>= compile 0)
-    (if compile
-	compile
-      (cond ((eq ad-default-compilation-action 'never)
-	     nil)
-	    ((eq ad-default-compilation-action 'always)
-	     t)
-	    ((eq ad-default-compilation-action 'like-original)
-	     (or (ad-subr-p (ad-get-orig-definition function))
-		 (ad-compiled-p (ad-get-orig-definition function))))
-	    ;; everything else means `maybe':
-	    (t (featurep 'byte-compile))))))
+  (cond
+   ;; Don't compile until the real function definition is known (bug#12965).
+   ((not (ad-real-orig-definition function)) nil)
+   ((integerp compile) (>= compile 0))
+   (compile)
+   ((eq ad-default-compilation-action 'never) nil)
+   ((eq ad-default-compilation-action 'always) t)
+   ((eq ad-default-compilation-action 'like-original)
+    (or (ad-subr-p (ad-get-orig-definition function))
+        (ad-compiled-p (ad-get-orig-definition function))))
+   ;; everything else means `maybe':
+   (t (featurep 'byte-compile))))
 
 (defun ad-activate-advised-definition (function compile)
   "Redefine FUNCTION with its advised definition from cache or scratch.
 The resulting FUNCTION will be compiled if `ad-should-compile' returns t.
 The current definition and its cache-id will be put into the cache."
-  (let ((verified-cached-definition
-	 (if (ad-verify-cache-id function)
-	     (ad-get-cache-definition function))))
-    (ad-safe-fset function
-		  (or verified-cached-definition
-		      (ad-make-advised-definition function)))
+  (let* ((verified-cached-definition
+          (if (ad-verify-cache-id function)
+              (ad-get-cache-definition function)))
+         (advicefunname (ad-get-advice-info-field function 'advicefunname))
+         (old-ispec (interactive-form advicefunname)))
+    (fset advicefunname
+          (or verified-cached-definition
+              (ad-make-advised-definition function)))
+    (unless (equal (interactive-form advicefunname) old-ispec)
+      ;; If the interactive-spec of advicefunname has changed, force nadvice to
+      ;; refresh its copy.
+      (advice-remove function advicefunname))
+    (advice-add function :around advicefunname)
     (if (ad-should-compile function compile)
 	(ad-compile-function function))
     (if verified-cached-definition
-	(if (not (eq verified-cached-definition (symbol-function function)))
+	(if (not (eq verified-cached-definition
+                     (symbol-function advicefunname)))
 	    ;; we must have compiled, cache the compiled definition:
-	    (ad-set-cache
-	     function (symbol-function function) (ad-get-cache-id function)))
+	    (ad-set-cache function (symbol-function advicefunname)
+                          (ad-get-cache-id function)))
       ;; We created a new advised definition, cache it with a proper id:
       (ad-clear-cache function)
       ;; ad-make-cache-id needs the new cached definition:
-      (ad-set-cache function (symbol-function function) nil)
+      (ad-set-cache function (symbol-function advicefunname) nil)
       (ad-set-cache
-       function (symbol-function function) (ad-make-cache-id function)))))
+       function (symbol-function advicefunname) (ad-make-cache-id function)))))
 
-(defun ad-handle-definition (function)
+(defun ad--defalias-fset (fsetfun function newdef)
+  ;; Besides ad-redefinition-action we use this defalias-fset-function hook
+  ;; for two other reasons:
+  ;; - for `activation/deactivation' advices.
+  ;; - to rebuild the ad-Advice-* function with the right argument names.
   "Handle re/definition of an advised FUNCTION during de/activation.
 If FUNCTION does not have an original definition associated with it and
 the current definition is usable, then it will be stored as FUNCTION's
@@ -3309,33 +2956,27 @@ associated with it but got redefined with a new definition and then
 de/activated.  If you do not like the current redefinition action change
 the value of `ad-redefinition-action' and de/activate again."
   (let ((original-definition (ad-get-orig-definition function))
-	(current-definition (if (ad-real-definition function)
-				(symbol-function function))))
+	(current-definition (ad-get-orig-definition newdef)))
     (if original-definition
 	(if current-definition
-	    (if (and (not (eq current-definition original-definition))
-		     ;; Redefinition with an advised definition from a
-		     ;; different function won't count as such:
-		     (not (ad-advised-definition-p current-definition)))
-		;; we have a redefinition:
+	    (if (not (eq current-definition original-definition))
+		;; We have a redefinition:
 		(if (not (memq ad-redefinition-action '(accept discard warn)))
-		    (error "ad-handle-definition (see its doc): `%s' %s"
+		    (error "ad-redefinition-action: `%s' %s"
 			   function "invalidly redefined")
 		  (if (eq ad-redefinition-action 'discard)
-		      (ad-safe-fset function original-definition)
-		    (ad-set-orig-definition function current-definition)
+		      nil ;; Just drop it!
+		    (funcall (or fsetfun #'fset) function newdef)
+                    (ad-activate-internal function)
 		    (if (eq ad-redefinition-action 'warn)
 			(message "ad-handle-definition: `%s' got redefined"
 				 function))))
 	      ;; either advised def or correct original is in place:
 	      nil)
-	  ;; we have an undefinition, ignore it:
-	  nil)
-      (if current-definition
-	  ;; we have a first definition, save it as original:
-	  (ad-set-orig-definition function current-definition)
-	;; we don't have anything noteworthy:
-	nil))))
+	  ;; We have an undefinition, ignore it:
+          (funcall (or fsetfun #'fset) function newdef))
+      (funcall (or fsetfun #'fset) function newdef)
+      (when current-definition (ad-activate-internal function)))))
 
 
 ;; @@ The top-level advice interface:
@@ -3361,24 +3002,20 @@ definition will always be cached for later usage."
   (interactive
    (list (ad-read-advised-function "Activate advice of")
 	 current-prefix-arg))
-  (if ad-activate-on-top-level
-      ;; avoid recursive calls to `ad-activate':
-      (ad-with-auto-activation-disabled
-	(if (not (ad-is-advised function))
-	    (error "ad-activate: `%s' is not advised" function)
-	  (ad-handle-definition function)
-	  ;; Just return for forward advised and not yet defined functions:
-	  (if (ad-get-orig-definition function)
-	      (if (not (ad-has-any-advice function))
-		  (ad-unadvise function)
-		;; Otherwise activate the advice:
-		(cond ((ad-has-redefining-advice function)
-		       (ad-activate-advised-definition function compile)
-		       (ad-set-advice-info-field function 'active t)
-		       (eval (ad-make-hook-form function 'activation))
-		       function)
-		      ;; Here we are if we have all disabled advices:
-		      (t (ad-deactivate function)))))))))
+  (cond
+   ((not (ad-is-advised function))
+    (error "ad-activate: `%s' is not advised" function))
+   ;; Just return for forward advised and not yet defined functions:
+   ((not (ad-get-orig-definition function)) nil)
+   ((not (ad-has-any-advice function)) (ad-unadvise function))
+   ;; Otherwise activate the advice:
+   ((ad-has-redefining-advice function)
+    (ad-activate-advised-definition function compile)
+    (ad-set-advice-info-field function 'active t)
+    (eval (ad-make-hook-form function 'activation))
+    function)
+   ;; Here we are if we have all disabled advices:
+   (t (ad-deactivate function))))
 
 (defalias 'ad-activate-on 'ad-activate)
 
@@ -3393,11 +3030,10 @@ a call to `ad-activate'."
   (if (not (ad-is-advised function))
       (error "ad-deactivate: `%s' is not advised" function)
     (cond ((ad-is-active function)
-	   (ad-handle-definition function)
 	   (if (not (ad-get-orig-definition function))
 	       (error "ad-deactivate: `%s' has no original definition"
 		      function)
-	     (ad-safe-fset function (ad-get-orig-definition function))
+             (ad-clear-advicefunname-definition function)
 	     (ad-set-advice-info-field function 'active nil)
 	     (eval (ad-make-hook-form function 'deactivation))
 	     function)))))
@@ -3419,7 +3055,7 @@ If FUNCTION was not advised this will be a noop."
   (cond ((ad-is-advised function)
 	 (if (ad-is-active function)
 	     (ad-deactivate function))
-	 (ad-clear-orig-definition function)
+	 (ad-clear-advicefunname-definition function)
 	 (ad-set-advice-info function nil)
 	 (ad-pop-advised-function function))))
 
@@ -3434,9 +3070,7 @@ Use in emergencies."
    (list (intern
 	  (completing-read "Recover advised function: " obarray nil t))))
   (cond ((ad-is-advised function)
-	 (cond ((ad-get-orig-definition function)
-	        (ad-safe-fset function (ad-get-orig-definition function))
-		(ad-clear-orig-definition function)))
+         (ad-clear-advicefunname-definition function)
 	 (ad-set-advice-info function nil)
 	 (ad-pop-advised-function function))))
 
@@ -3516,7 +3150,7 @@ deactivation, which might run hooks and get into other trouble."
 ;; Completion alist of valid `defadvice' flags
 (defvar ad-defadvice-flags
   '(("protect") ("disable") ("activate")
-    ("compile") ("preactivate") ("freeze")))
+    ("compile") ("preactivate")))
 
 ;;;###autoload
 (defmacro defadvice (function args &rest body)
@@ -3535,7 +3169,7 @@ POSITION ::= `first' | `last' | NUMBER. Optional, defaults to `first',
 ARGLIST ::= An optional argument list to be used for the advised function
     instead of the argument list of the original.  The first one found in
     before/around/after-advices will be used.
-FLAG ::= `protect'|`disable'|`activate'|`compile'|`preactivate'|`freeze'.
+FLAG ::= `protect'|`disable'|`activate'|`compile'|`preactivate'.
     All flags can be specified with unambiguous initial substrings.
 DOCSTRING ::= Optional documentation for this piece of advice.
 INTERACTIVE-FORM ::= Optional interactive form to be used for the advised
@@ -3560,13 +3194,6 @@ during activation until somebody enables it.
 time.  This generates a compiled advised definition according to the current
 advice state that will be used during activation if appropriate.  Only use
 this if the `defadvice' gets actually compiled.
-
-`freeze': Expands the `defadvice' into a redefining `defun/defmacro' according
-to this particular single advice.  No other advice information will be saved.
-Frozen advices cannot be undone, they behave like a hard redefinition of
-the advised function.  `freeze' implies `activate' and `preactivate'.  The
-documentation of the advised function can be dumped onto the `DOC' file
-during preloading.
 
 See Info node `(elisp)Advising Functions' for comprehensive documentation.
 usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
@@ -3617,29 +3244,24 @@ usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
 			    (ad-preactivate-advice
 			     function advice class position))))
     ;; Now for the things to be done at evaluation time:
-    (if (memq 'freeze flags)
-	;; jwz's idea: Freeze the advised definition into a dumpable
-	;; defun/defmacro whose docs can be written to the DOC file:
-	(ad-make-freeze-definition function advice class position)
-        ;; the normal case:
-        `(progn
-          (ad-add-advice ',function ',advice ',class ',position)
-          ,@(if preactivation
-                `((ad-set-cache
-                   ',function
-                   ;; the function will get compiled:
-                   ,(cond ((ad-macro-p (car preactivation))
-                           `(ad-macrofy
-                             (function
-                              ,(ad-lambdafy
-                                (car preactivation)))))
-                          (t `(function
-                               ,(car preactivation))))
-                   ',(car (cdr preactivation)))))
-          ,@(if (memq 'activate flags)
-                `((ad-activate ',function
-                   ,(if (memq 'compile flags) t))))
-          ',function))))
+    `(progn
+       (ad-add-advice ',function ',advice ',class ',position)
+       ,@(if preactivation
+             `((ad-set-cache
+                ',function
+                ;; the function will get compiled:
+                ,(cond ((ad-macro-p (car preactivation))
+                        `(ad-macrofy
+                          (function
+                           ,(ad-lambdafy
+                             (car preactivation)))))
+                       (t `(function
+                            ,(car preactivation))))
+                ',(car (cdr preactivation)))))
+       ,@(if (memq 'activate flags)
+             `((ad-activate ',function
+                            ,(if (memq 'compile flags) t))))
+       ',function)))
 
 
 ;; @@ Tools:
@@ -3667,59 +3289,35 @@ undone on exit of this macro."
                 ;; Make forms to redefine functions to their
                 ;; original definitions if they are advised:
                 (setq index -1)
-                (mapcar
-                 (function
-                  (lambda (function)
-                   (setq index (1+ index))
-                   `(ad-safe-fset
-                     ',function
-                     (or (ad-get-orig-definition ',function)
-                      ,(car (nth index current-bindings))))))
-                 functions))
+                (mapcar (lambda (function)
+                          (setq index (1+ index))
+                           `(fset ',function
+                            (or (ad-get-orig-definition ',function)
+                                ,(car (nth index current-bindings)))))
+                        functions))
              ,@body)
         ,@(progn
            ;; Make forms to back-define functions to the definitions
            ;; they had outside this macro call:
            (setq index -1)
-           (mapcar
-            (function
-             (lambda (function)
-              (setq index (1+ index))
-              `(ad-safe-fset
-                ',function
-                ,(car (nth index current-bindings)))))
-            functions))))))
+           (mapcar (lambda (function)
+                     (setq index (1+ index))
+                       `(fset ',function
+                       ,(car (nth index current-bindings))))
+                   functions))))))
 
 
 ;; @@ Starting, stopping and recovering from the advice package magic:
 ;; ===================================================================
 
-(defun ad-start-advice ()
-  "Start the automatic advice handling magic."
-  (interactive)
-  ;; Advising `ad-activate-internal' means death!!
-  (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-safe-fset 'ad-activate-internal 'ad-activate))
-
-(defun ad-stop-advice ()
-  "Stop the automatic advice handling magic.
-You should only need this in case of Advice-related emergencies."
-  (interactive)
-  ;; Advising `ad-activate-internal' means death!!
-  (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off))
-
 (defun ad-recover-normality ()
   "Undo all advice related redefinitions and unadvises everything.
 Use only in REAL emergencies."
   (interactive)
-  ;; Advising `ad-activate-internal' means death!!
-  (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off)
   (ad-recover-all)
-  (setq ad-advised-functions nil))
-
-(ad-start-advice)
+  (ad-do-advised-functions (function)
+    (message "Oops! Left over advised function %S" function)
+    (ad-pop-advised-function function)))
 
 (provide 'advice)
 

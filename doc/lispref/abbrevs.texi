@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1999, 2001-2013 Free Software Foundation,
+@c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Abbrevs
 @chapter Abbrevs and Abbrev Expansion
@@ -132,7 +133,7 @@ abbrev in an abbrev table.
   When a major mode defines a system abbrev, it should call
 @code{define-abbrev} and specify @code{t} for the @code{:system}
 property.  Be aware that any saved non-``system'' abbrevs are restored
-at startup, i.e. before some major modes are loaded.  Therefore, major
+at startup, i.e., before some major modes are loaded.  Therefore, major
 modes should not assume that their abbrev tables are empty when they
 are first loaded.
 

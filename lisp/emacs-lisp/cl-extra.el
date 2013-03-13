@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -51,7 +51,8 @@ TYPE is a Common Lisp type specifier.
 	((eq type 'string) (if (stringp x) x (concat x)))
 	((eq type 'array) (if (arrayp x) x (vconcat x)))
 	((and (eq type 'character) (stringp x) (= (length x) 1)) (aref x 0))
-	((and (eq type 'character) (symbolp x)) (cl-coerce (symbol-name x) type))
+	((and (eq type 'character) (symbolp x))
+         (cl-coerce (symbol-name x) type))
 	((eq type 'float) (float x))
 	((cl-typep x type) x)
 	(t (error "Can't coerce %s to type %s" x type))))
@@ -69,7 +70,7 @@ strings case-insensitively."
 	((stringp x)
 	 (and (stringp y) (= (length x) (length y))
 	      (or (string-equal x y)
-		  (string-equal (downcase x) (downcase y)))))   ; lazy but simple!
+		  (string-equal (downcase x) (downcase y))))) ;Lazy but simple!
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)
@@ -131,7 +132,7 @@ TYPE is the sequence type to return.
 ;;;###autoload
 (defun cl-maplist (cl-func cl-list &rest cl-rest)
   "Map FUNCTION to each sublist of LIST or LISTs.
-Like `mapcar', except applies to lists and their cdr's rather than to
+Like `cl-mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 \n(fn FUNCTION LIST...)"
   (if cl-rest
@@ -149,8 +150,9 @@ the elements themselves.
 	(setq cl-list (cdr cl-list)))
       (nreverse cl-res))))
 
+;;;###autoload
 (defun cl-mapc (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but does not accumulate values returned by the function.
+  "Like `cl-mapcar', but does not accumulate values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
   (if cl-rest
       (progn (apply 'cl-map nil cl-func cl-seq cl-rest)
@@ -169,7 +171,7 @@ the elements themselves.
 
 ;;;###autoload
 (defun cl-mapcan (cl-func cl-seq &rest cl-rest)
-  "Like `mapcar', but nconc's together the values returned by the function.
+  "Like `cl-mapcar', but nconc's together the values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
   (apply 'nconc (apply 'cl-mapcar cl-func cl-seq cl-rest)))
 
@@ -438,14 +440,14 @@ Optional second arg STATE is a random-state object."
 If STATE is t, return a new state object seeded from the time of day."
   (cond ((null state) (cl-make-random-state cl--random-state))
 	((vectorp state) (copy-tree state t))
-	((integerp state) (vector 'cl-random-state-tag -1 30 state))
-	(t (cl-make-random-state (cl-random-time)))))
+	((integerp state) (vector 'cl--random-state-tag -1 30 state))
+	(t (cl-make-random-state (cl--random-time)))))
 
 ;;;###autoload
 (defun cl-random-state-p (object)
   "Return t if OBJECT is a random-state object."
   (and (vectorp object) (= (length object) 4)
-       (eq (aref object 0) 'cl-random-state-tag)))
+       (eq (aref object 0) 'cl--random-state-tag)))
 
 
 ;; Implementation limits.
@@ -674,6 +676,9 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 
 ;;;###autoload
 (defun cl-prettyexpand (form &optional full)
+  "Expand macros in FORM and insert the pretty-printed result.
+Optional argument FULL non-nil means to expand all macros,
+including `cl-block' and `cl-eval-when'."
   (message "Expanding...")
   (let ((cl--compiling-file full)
 	(byte-compile-macro-environment nil))

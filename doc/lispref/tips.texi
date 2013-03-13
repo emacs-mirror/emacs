@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
 @appendix Tips and Conventions
@@ -460,18 +460,8 @@ Lisp programs.
 
 @itemize @bullet
 @item
-@cindex profiling
-@cindex timing programs
-@cindex @file{elp.el}
-Profile your program with the @file{elp} library.  See the file
-@file{elp.el} for instructions.
-
-@item
-@cindex @file{benchmark.el}
-@cindex benchmarking
-Check the speed of individual Emacs Lisp forms using the
-@file{benchmark} library.  See the functions @code{benchmark-run} and
-@code{benchmark-run-compiled} in @file{benchmark.el}.
+Profile your program, to find out where the time is being spent.
+@xref{Profiling}.
 
 @item
 Use iteration rather than recursion whenever possible.
@@ -768,7 +758,7 @@ describe the most important commands in your major mode, and then use
 @item
 For consistency, phrase the verb in the first sentence of a function's
 documentation string as an imperative---for instance, use ``Return the
-cons of A and B.'' in preference to ``Returns the cons of A and B@.''
+cons of A and B.@:'' in preference to ``Returns the cons of A and B@.''
 Usually it looks good to do likewise for the rest of the first
 paragraph.  Subsequent paragraphs usually look better if each sentence
 is indicative and has a proper subject.
@@ -795,7 +785,7 @@ defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
 @item
 Write documentation strings in the active voice, not the passive, and in
 the present tense, not the future.  For instance, use ``Return a list
-containing A and B.'' instead of ``A list containing A and B will be
+containing A and B.@:'' instead of ``A list containing A and B will be
 returned.''
 
 @item
@@ -944,7 +934,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 2010-2012 Your Name
+;; Copyright (C) 2010-2013 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>
@@ -952,6 +942,7 @@ explains these conventions, starting with an example:
 ;; Created: 14 Jul 2010
 @group
 ;; Keywords: languages
+;; Homepage: http://example.com/foo
 
 ;; This file is not part of GNU Emacs.
 
@@ -990,8 +981,7 @@ the conventional possibilities for @var{header-name}:
 @item Author
 This line states the name and email address of at least the principal
 author of the library.  If there are multiple authors, list them on
-continuation lines led by @code{;;} and whitespace (this is easier
-for tools to parse than having more than one author on one line).
+continuation lines led by @code{;;} and a tab or at least two spaces.
 We recommend including a contact email address, of the form
 @samp{<@dots{}>}.  For example:
 
@@ -1038,6 +1028,9 @@ The name of this field is unfortunate, since people often assume it is
 the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
 
+@item Homepage
+This line states the homepage of the library.
+
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then
 a package can define @samp{Package-Version}; it will be used instead.
@@ -1073,6 +1066,7 @@ names---they have no standard meanings, so they can't do any harm.
 library file.  These should be separated from anything else by blank
 lines.  Here is a table of them:
 
+@cindex commentary, in a Lisp library
 @table @samp
 @item ;;; Commentary:
 This begins introductory comments that explain how the library works.

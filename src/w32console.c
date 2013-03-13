@@ -1,5 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1999, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -745,6 +745,9 @@ initialize_w32_display (struct terminal *term)
     w32_console_unicode_input = 1;
   else
     w32_console_unicode_input = 0;
+
+  /* This is needed by w32notify.c:send_notifications.  */
+  dwMainThreadId = GetCurrentThreadId ();
 
   /* Setup w32_display_info structure for this frame. */
 

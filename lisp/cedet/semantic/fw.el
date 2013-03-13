@@ -1,6 +1,6 @@
 ;;; semantic/fw.el --- Framework for Semantic
 
-;;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -122,15 +122,13 @@
     )
 
 
-  (if (and (not (featurep 'xemacs))
-	   (>= emacs-major-version 21))
-      (defalias 'semantic-make-local-hook 'identity)
-    (defalias 'semantic-make-local-hook 'make-local-hook)
-    )
+  (defalias 'semantic-make-local-hook
+    (if (and (not (featurep 'xemacs))
+             (>= emacs-major-version 21))
+        #'identity  #'make-local-hook))
 
-  (if (featurep 'xemacs)
-      (defalias 'semantic-mode-line-update 'redraw-modeline)
-    (defalias 'semantic-mode-line-update 'force-mode-line-update))
+  (defalias 'semantic-mode-line-update
+    (if (featurep 'xemacs) #'redraw-modeline #'force-mode-line-update))
 
   ;; Since Emacs 22 major mode functions should use `run-mode-hooks' to
   ;; run major mode hooks.
@@ -421,14 +419,7 @@ into `mode-local-init-hook'." file filename)
 	 ;; Don't prompt to insert a template if we visit an empty file
 	 (auto-insert nil)
 	 ;; We don't want emacs to query about unsafe local variables
-	 (enable-local-variables
-	  (if (featurep 'xemacs)
-	      ;; XEmacs only has nil as an option?
-	      nil
-	    ;; Emacs 23 has the spiffy :safe option, nil otherwise.
-	    (if (>= emacs-major-version 22)
-		nil
-	      :safe)))
+	 (enable-local-variables :safe)
 	 ;; ... or eval variables
 	 (enable-local-eval nil)
 	 )

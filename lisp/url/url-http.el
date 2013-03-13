@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -890,8 +890,11 @@ should be shown to the user."
 		 (url-http-activate-callback)
 	       ;; Call `url-http' again if our connection expired.
 	       (erase-buffer)
-	       (url-http url-current-object url-callback-function
-			 url-callback-arguments (current-buffer))))
+               (let ((url-request-method url-http-method)
+                     (url-request-extra-headers url-http-extra-headers)
+                     (url-request-data url-http-data))
+                 (url-http url-current-object url-callback-function
+                           url-callback-arguments (current-buffer)))))
 	    ((url-http-parse-headers)
 	     (url-http-activate-callback))))))
 
@@ -1037,7 +1040,9 @@ the end of the document."
 	  (setq end-of-headers t
 		url-http-end-of-headers 0
 		old-http t)
-	(when (re-search-forward "^\r*$" nil t)
+	;; Blank line at end of headers.
+	(when (re-search-forward "^\r?\n" nil t)
+	  (backward-char 1)
 	  ;; Saw the end of the headers
 	  (url-http-debug "Saw end of headers... (%s)" (buffer-name))
 	  (setq url-http-end-of-headers (set-marker (make-marker)

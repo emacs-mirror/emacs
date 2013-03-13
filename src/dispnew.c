@@ -1,6 +1,7 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2012 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -53,9 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include <errno.h>
 
-#ifdef DISPNEW_NEEDS_STDIO_EXT
-#include <stdio_ext.h>
-#endif
+#include <fpending.h>
 
 #if defined (HAVE_TERM_H) && defined (GNU_LINUX)
 #include <term.h>		/* for tgetent */
@@ -88,7 +87,6 @@ static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
                                                  struct window *);
 static void build_frame_matrix_from_leaf_window (struct glyph_matrix *,
                                                  struct window *);
-static void adjust_frame_message_buffer (struct frame *);
 static void adjust_decode_mode_spec_buffer (struct frame *);
 static void fill_up_glyph_row_with_spaces (struct glyph_row *);
 static void clear_window_matrices (struct window *, bool);
@@ -108,12 +106,6 @@ static bool scrolling (struct frame *);
 static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
-
-
-/* Redisplay preemption timers.  */
-
-static EMACS_TIME preemption_period;
-static EMACS_TIME preemption_next_check;
 
 /* True upon entry to redisplay means do not assume anything about
    current contents of actual terminal frame; clear and redraw it.  */
@@ -142,10 +134,6 @@ struct frame *last_nonminibuf_frame;
 /* True means SIGWINCH happened when not safe.  */
 
 static bool delayed_size_change;
-
-/* 1 means glyph initialization has been completed at startup.  */
-
-static bool glyphs_initialized_initially_p;
 
 /* Updated window if != 0.  Set by update_window.  */
 
@@ -612,7 +600,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		 are invalidated below.  */
 	      if (INTEGERP (w->window_end_vpos)
 		  && XFASTINT (w->window_end_vpos) >= i)
-		wset_window_end_valid (w, Qnil);
+		w->window_end_valid = 0;
 
 	      while (i < matrix->nrows)
 		matrix->rows[i++].enabled_p = 0;
@@ -867,7 +855,7 @@ clear_window_matrices (struct window *w, bool desired_p)
 	  else
 	    {
 	      clear_glyph_matrix (w->current_matrix);
-	      wset_window_end_valid (w, Qnil);
+	      w->window_end_valid = 0;
 	    }
 	}
 
@@ -1852,43 +1840,6 @@ adjust_glyphs (struct frame *f)
   unblock_input ();
 }
 
-
-/* Adjust frame glyphs when Emacs is initialized.
-
-   To be called from init_display.
-
-   We need a glyph matrix because redraw will happen soon.
-   Unfortunately, window sizes on selected_frame are not yet set to
-   meaningful values.  I believe we can assume that there are only two
-   windows on the frame---the mini-buffer and the root window.  Frame
-   height and width seem to be correct so far.  So, set the sizes of
-   windows to estimated values.  */
-
-static void
-adjust_frame_glyphs_initially (void)
-{
-  struct frame *sf = SELECTED_FRAME ();
-  struct window *root = XWINDOW (sf->root_window);
-  struct window *mini = XWINDOW (root->next);
-  int frame_lines = FRAME_LINES (sf);
-  int frame_cols = FRAME_COLS (sf);
-  int top_margin = FRAME_TOP_MARGIN (sf);
-
-  /* Do it for the root window.  */
-  wset_top_line (root, make_number (top_margin));
-  wset_total_lines (root, make_number (frame_lines - 1 - top_margin));
-  wset_total_cols (root, make_number (frame_cols));
-
-  /* Do it for the mini-buffer window.  */
-  wset_top_line (mini, make_number (frame_lines - 1));
-  wset_total_lines (mini, make_number (1));
-  wset_total_cols (mini, make_number (frame_cols));
-
-  adjust_frame_glyphs (sf);
-  glyphs_initialized_initially_p = 1;
-}
-
-
 /* Allocate/reallocate glyph matrices of a single frame F.  */
 
 static void
@@ -1899,9 +1850,7 @@ adjust_frame_glyphs (struct frame *f)
   else
     adjust_frame_glyphs_for_frame_redisplay (f);
 
-  /* Don't forget the message buffer and the buffer for
-     decode_mode_spec.  */
-  adjust_frame_message_buffer (f);
+  /* Don't forget the buffer for decode_mode_spec.  */
   adjust_decode_mode_spec_buffer (f);
 
   f->glyphs_initialized_p = 1;
@@ -2198,23 +2147,6 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     allocate_matrices_for_window_redisplay (w);
   }
 #endif
-}
-
-
-/* Adjust/ allocate message buffer of frame F.
-
-   Note that the message buffer is never freed.  Since I could not
-   find a free in 19.34, I assume that freeing it would be
-   problematic in some way and don't do it either.
-
-   (Implementation note: It should be checked if we can free it
-   eventually without causing trouble).  */
-
-static void
-adjust_frame_message_buffer (struct frame *f)
-{
-  FRAME_MESSAGE_BUF (f) = xrealloc (FRAME_MESSAGE_BUF (f),
-				    FRAME_MESSAGE_BUF_SIZE (f) + 1);
 }
 
 
@@ -3073,21 +3005,13 @@ window_to_frame_hpos (struct window *w, int hpos)
 			    Redrawing Frames
  **********************************************************************/
 
-DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
-       doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
-  (Lisp_Object frame)
+/* Redraw frame F.  */
+
+void
+redraw_frame (struct frame *f)
 {
-  struct frame *f;
-
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
-
-  /* Ignore redraw requests, if frame has no glyphs yet.
-     (Implementation note: It still has to be checked why we are
-     called so early here).  */
-  if (!glyphs_initialized_initially_p)
-    return Qnil;
-
+  /* Error if F has no glyphs.  */
+  eassert (f->glyphs_initialized_p);
   update_begin (f);
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
@@ -3104,21 +3028,16 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
   set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), 1);
   f->garbaged = 0;
+}
+
+DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 0, 1, 0,
+       doc: /* Clear frame FRAME and output again what is supposed to appear on it.
+If FRAME is omitted or nil, the selected frame is used.  */)
+  (Lisp_Object frame)
+{
+  redraw_frame (decode_live_frame (frame));
   return Qnil;
 }
-
-
-/* Redraw frame F.  This is nothing more than a call to the Lisp
-   function redraw-frame.  */
-
-void
-redraw_frame (struct frame *f)
-{
-  Lisp_Object frame;
-  XSETFRAME (frame, f);
-  Fredraw_frame (frame);
-}
-
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
        doc: /* Clear and redisplay all visible frames.  */)
@@ -3128,7 +3047,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
 
   FOR_EACH_FRAME (tail, frame)
     if (FRAME_VISIBLE_P (XFRAME (frame)))
-      Fredraw_frame (frame);
+      redraw_frame (XFRAME (frame));
 
   return Qnil;
 }
@@ -3155,21 +3074,10 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 
   if (redisplay_dont_pause)
     force_p = 1;
-  else if (NILP (Vredisplay_preemption_period))
-    force_p = 1;
-  else if (!force_p && NUMBERP (Vredisplay_preemption_period))
+  else if (!force_p && detect_input_pending_ignore_squeezables ())
     {
-      double p = XFLOATINT (Vredisplay_preemption_period);
-
-      if (detect_input_pending_ignore_squeezables ())
-	{
-	  paused_p = 1;
-	  goto do_pause;
-	}
-
-      preemption_period = EMACS_TIME_FROM_DOUBLE (p);
-      preemption_next_check = add_emacs_time (current_emacs_time (),
-					      preemption_period);
+      paused_p = 1;
+      goto do_pause;
     }
 
   if (FRAME_WINDOW_P (f))
@@ -3307,15 +3215,6 @@ update_single_window (struct window *w, bool force_p)
 
       if (redisplay_dont_pause)
 	force_p = 1;
-      else if (NILP (Vredisplay_preemption_period))
-	force_p = 1;
-      else if (!force_p && NUMBERP (Vredisplay_preemption_period))
-	{
-	  double p = XFLOATINT (Vredisplay_preemption_period);
-	  preemption_period = EMACS_TIME_FROM_DOUBLE (p);
-	  preemption_next_check = add_emacs_time (current_emacs_time (),
-						  preemption_period);
-	}
 
       /* Update W.  */
       update_begin (f);
@@ -3469,9 +3368,7 @@ update_window (struct window *w, bool force_p)
 {
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   bool paused_p;
-#if !PERIODIC_PREEMPTION_CHECKING
   int preempt_count = baud_rate / 2400 + 1;
-#endif
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #ifdef GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
@@ -3479,10 +3376,8 @@ update_window (struct window *w, bool force_p)
 #endif
 
   /* Check pending input the first time so that we can quickly return.  */
-#if !PERIODIC_PREEMPTION_CHECKING
   if (!force_p)
     detect_input_pending_ignore_squeezables ();
-#endif
 
   /* If forced to complete the update, or if no input is pending, do
      the update.  */
@@ -3493,14 +3388,12 @@ update_window (struct window *w, bool force_p)
       struct glyph_row *header_line_row;
       int yb;
       bool changed_p = 0, mouse_face_overwritten_p = 0;
-#if ! PERIODIC_PREEMPTION_CHECKING
       int n_updated = 0;
-#endif
 
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
-      row = desired_matrix->rows;
-      end = row + desired_matrix->nrows - 1;
+      row = MATRIX_ROW (desired_matrix, 0);
+      end = MATRIX_MODE_LINE_ROW (desired_matrix);
 
       /* Take note of the header line, if there is one.  We will
 	 update it below, after updating all of the window's lines.  */
@@ -3559,22 +3452,8 @@ update_window (struct window *w, bool force_p)
 	       detect_input_pending.  If it's done too often,
 	       scrolling large windows with repeated scroll-up
 	       commands will too quickly pause redisplay.  */
-#if PERIODIC_PREEMPTION_CHECKING
-	    if (!force_p)
-	      {
-		EMACS_TIME tm = current_emacs_time ();
-		if (EMACS_TIME_LT (preemption_next_check, tm))
-		  {
-		    preemption_next_check = add_emacs_time (tm,
-							    preemption_period);
-		    if (detect_input_pending_ignore_squeezables ())
-		      break;
-		  }
-	      }
-#else
 	    if (!force_p && ++n_updated % preempt_count == 0)
 	      detect_input_pending_ignore_squeezables ();
-#endif
 	    changed_p |= update_window_line (w, vpos,
 					     &mouse_face_overwritten_p);
 
@@ -4072,11 +3951,10 @@ set_window_cursor_after_update (struct window *w)
       vpos = w->cursor.vpos;
     }
 
-  /* Window cursor can be out of sync for horizontally split windows.  */
-  hpos = max (-1, hpos); /* -1 is for when cursor is on the left fringe */
-  hpos = min (w->current_matrix->matrix_w - 1, hpos);
-  vpos = max (0, vpos);
-  vpos = min (w->current_matrix->nrows - 1, vpos);
+  /* Window cursor can be out of sync for horizontally split windows.
+     Horizontal position is -1 when cursor is on the left fringe.   */
+  hpos = clip_to_bounds (-1, hpos, w->current_matrix->matrix_w - 1);
+  vpos = clip_to_bounds (0, vpos, w->current_matrix->nrows - 1);
   rif->cursor_to (vpos, hpos, cy, cx);
 }
 
@@ -4607,13 +4485,11 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
   if (preempt_count <= 0)
     preempt_count = 1;
 
-#if !PERIODIC_PREEMPTION_CHECKING
   if (!force_p && detect_input_pending_ignore_squeezables ())
     {
       pause_p = 1;
       goto do_pause;
     }
-#endif
 
   /* If we cannot insert/delete lines, it's no use trying it.  */
   if (!FRAME_LINE_INS_DEL_OK (f))
@@ -4647,42 +4523,15 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	      FILE *display_output = FRAME_TTY (f)->output;
 	      if (display_output)
 		{
-		  int outq = PENDING_OUTPUT_COUNT (display_output);
+		  ptrdiff_t outq = __fpending (display_output);
 		  if (outq > 900
 		      || (outq > 20 && ((i - 1) % preempt_count == 0)))
-		    {
-		      fflush (display_output);
-		      if (preempt_count == 1)
-			{
-#ifdef EMACS_OUTQSIZE
-			  if (EMACS_OUTQSIZE (0, &outq) < 0)
-			    /* Probably not a tty.  Ignore the error and reset
-			       the outq count.  */
-			    outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
-#endif
-			  outq *= 10;
-			  if (baud_rate <= outq && baud_rate > 0)
-			    sleep (outq / baud_rate);
-			}
-		    }
+		    fflush (display_output);
 		}
 	    }
 
-#if PERIODIC_PREEMPTION_CHECKING
-	  if (!force_p)
-	    {
-	      EMACS_TIME tm = current_emacs_time ();
-	      if (EMACS_TIME_LT (preemption_next_check, tm))
-		{
-		  preemption_next_check = add_emacs_time (tm, preemption_period);
-		  if (detect_input_pending_ignore_squeezables ())
-		    break;
-		}
-	    }
-#else
 	  if (!force_p && (i - 1) % preempt_count == 0)
 	    detect_input_pending_ignore_squeezables ();
-#endif
 
 	  update_frame_line (f, i);
 	}
@@ -4788,9 +4637,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	}
     }
 
-#if !PERIODIC_PREEMPTION_CHECKING
  do_pause:
-#endif
 
   clear_desired_matrices (f);
   return pause_p;
@@ -6167,7 +6014,6 @@ init_display (void)
 
   inverse_video = 0;
   cursor_in_echo_area = 0;
-  terminal_type = (char *) 0;
 
   /* Now is the time to initialize this; it's used by init_sys_modes
      during startup.  */
@@ -6226,7 +6072,6 @@ init_display (void)
 	 So call tgetent.  */
       { char b[2044]; tgetent (b, "xterm");}
 #endif
-      adjust_frame_glyphs_initially ();
       return;
     }
 #endif /* HAVE_X_WINDOWS */
@@ -6236,7 +6081,6 @@ init_display (void)
     {
       Vinitial_window_system = Qw32;
       Vwindow_system_version = make_number (1);
-      adjust_frame_glyphs_initially ();
       return;
     }
 #endif /* HAVE_NTGUI */
@@ -6250,23 +6094,18 @@ init_display (void)
     {
       Vinitial_window_system = Qns;
       Vwindow_system_version = make_number (10);
-      adjust_frame_glyphs_initially ();
       return;
     }
 #endif
 
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (0))
-    {
-      fatal ("standard input is not a tty");
-      exit (1);
-    }
+    fatal ("standard input is not a tty");
 
 #ifdef WINDOWSNT
   terminal_type = "w32console";
 #else
-  /* Look at the TERM variable.  */
-  terminal_type = (char *) getenv ("TERM");
+  terminal_type = getenv ("TERM");
 #endif
   if (!terminal_type)
     {
@@ -6282,6 +6121,8 @@ init_display (void)
   {
     struct terminal *t;
     struct frame *f = XFRAME (selected_frame);
+
+    init_foreground_group ();
 
     /* Open a display on the controlling tty. */
     t = init_tty (0, terminal_type, 1); /* Errors are fatal. */
@@ -6338,7 +6179,6 @@ init_display (void)
       fatal ("screen size %dx%d too big", width, height);
   }
 
-  adjust_frame_glyphs_initially ();
   calculate_costs (XFRAME (selected_frame));
 
   /* Set up faces of the initial terminal frame of a dumped Emacs.  */
@@ -6373,15 +6213,7 @@ don't show a cursor.  */)
   /* Don't change cursor state while redisplaying.  This could confuse
      output routines.  */
   if (!redisplaying_p)
-    {
-      if (NILP (window))
-	window = selected_window;
-      else
-	CHECK_WINDOW (window);
-
-      XWINDOW (window)->cursor_off_p = NILP (show);
-    }
-
+    decode_any_window (window)->cursor_off_p = NILP (show);
   return Qnil;
 }
 
@@ -6392,15 +6224,7 @@ DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
 WINDOW nil or omitted means report on the selected window.  */)
   (Lisp_Object window)
 {
-  struct window *w;
-
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_WINDOW (window);
-
-  w = XWINDOW (window);
-  return w->cursor_off_p ? Qnil : Qt;
+  return decode_any_window (window)->cursor_off_p ? Qnil : Qt;
 }
 
 DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
@@ -6517,15 +6341,6 @@ See `buffer-display-table' for more information.  */);
   DEFVAR_BOOL ("redisplay-dont-pause", redisplay_dont_pause,
 	       doc: /* Non-nil means display update isn't paused when input is detected.  */);
   redisplay_dont_pause = 1;
-
-#if PERIODIC_PREEMPTION_CHECKING
-  DEFVAR_LISP ("redisplay-preemption-period", Vredisplay_preemption_period,
-	       doc: /* Period in seconds between checking for input during redisplay.
-This has an effect only if `redisplay-dont-pause' is nil; in that
-case, arriving input preempts redisplay until the input is processed.
-If the value is nil, redisplay is never preempted.  */);
-  Vredisplay_preemption_period = make_float (0.10);
-#endif
 
 #ifdef CANNOT_DUMP
   if (noninteractive)

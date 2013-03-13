@@ -1,5 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft Windows API.
-# Copyright (C) 2000-2012 Free Software Foundation, Inc.
+# Copyright (C) 2000-2013 Free Software Foundation, Inc.
 #
 # Top level makefile for building GNU Emacs on Windows NT
 #
@@ -22,7 +22,7 @@
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
 
-VERSION		= 24.2.50
+VERSION		= 24.3.50
 
 TMP_DIST_DIR 	= emacs-$(VERSION)
 

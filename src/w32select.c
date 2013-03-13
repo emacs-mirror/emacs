@@ -1,6 +1,6 @@
 /* Selection processing for Emacs on the Microsoft Windows API.
 
-Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -74,8 +74,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "lisp.h"
-#include "w32term.h"	/* for all of the w32 includes */
 #include "w32common.h"	/* os_subtype */
+#include "w32term.h"	/* for all of the w32 includes */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "charset.h"

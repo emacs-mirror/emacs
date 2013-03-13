@@ -1,7 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -46,9 +46,26 @@
   :type 'integer
   :group 'sgml)
 
+(defcustom sgml-xml-mode nil
+  "When non-nil, tag insertion functions will be XML-compliant.
+It is set to be buffer-local when the file has
+a DOCTYPE or an XML declaration."
+  :type 'boolean
+  :version "22.1"
+  :group 'sgml)
+
 (defcustom sgml-transformation-function 'identity
   "Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (mapc (lambda (buff)
+                 (with-current-buffer buff
+                   (and (derived-mode-p 'sgml-mode)
+                        (not sgml-xml-mode)
+                        (setq skeleton-transformation-function val))))
+               (buffer-list)))
   :group 'sgml)
 
 (put 'sgml-transformation-function 'variable-interactive
@@ -295,8 +312,8 @@ Any terminating `>' or `/' is not matched.")
 
 (defconst sgml-syntax-propertize-function
   (syntax-propertize-rules
-  ;; Use the `b' style of comments to avoid interference with the -- ... --
-  ;; comments recognized when `sgml-specials' includes ?-.
+   ;; Use the `b' style of comments to avoid interference with the -- ... --
+   ;; comments recognized when `sgml-specials' includes ?-.
   ;; FIXME: beware of <!--> blabla <!--> !!
    ("\\(<\\)!--" (1 "< b"))
     ("--[ \t\n]*\\(>\\)" (1 "> b"))
@@ -305,7 +322,7 @@ Any terminating `>' or `/' is not matched.")
     ;; going to change, so as not to need to flush the data we just computed.
     ("\"" (0 (if (prog1 (zerop (car (syntax-ppss (match-beginning 0))))
                    (goto-char (match-end 0)))
-                 "."))))
+           (string-to-syntax ".")))))
   "Syntactic keywords for `sgml-mode'.")
 
 ;; internal
@@ -362,14 +379,6 @@ an optional alist of possible values."
   "Alist of tag name and short description."
   :type '(repeat (cons (string :tag "Tag Name")
 		       (string :tag "Description")))
-  :group 'sgml)
-
-(defcustom sgml-xml-mode nil
-  "When non-nil, tag insertion functions will be XML-compliant.
-It is set to be buffer-local when the file has
-a DOCTYPE or an XML declaration."
-  :type 'boolean
-  :version "22.1"
   :group 'sgml)
 
 (defvar sgml-empty-tags nil
@@ -463,47 +472,39 @@ Do \\[describe-key] on the following bindings to discover what they do.
   ;; A start or end tag by itself on a line separates a paragraph.
   ;; This is desirable because SGML discards a newline that appears
   ;; immediately after a start tag or immediately before an end tag.
-  (set (make-local-variable 'paragraph-start) (concat "[ \t]*$\\|\
+  (setq-local paragraph-start (concat "[ \t]*$\\|\
 \[ \t]*</?\\(" sgml-name-re sgml-attrs-re "\\)?>"))
-  (set (make-local-variable 'paragraph-separate)
-       (concat paragraph-start "$"))
-  (set (make-local-variable 'adaptive-fill-regexp) "[ \t]*")
+  (setq-local paragraph-separate (concat paragraph-start "$"))
+  (setq-local adaptive-fill-regexp "[ \t]*")
   (add-hook 'fill-nobreak-predicate 'sgml-fill-nobreak nil t)
-  (set (make-local-variable 'indent-line-function) 'sgml-indent-line)
-  (set (make-local-variable 'comment-start) "<!-- ")
-  (set (make-local-variable 'comment-end) " -->")
-  (set (make-local-variable 'comment-indent-function) 'sgml-comment-indent)
-  (set (make-local-variable 'comment-line-break-function)
-       'sgml-comment-indent-new-line)
-  (set (make-local-variable 'skeleton-further-elements)
-       '((completion-ignore-case t)))
-  (set (make-local-variable 'skeleton-end-hook)
-       (lambda ()
-         (or (eolp)
-             (not (or (eq v2 '\n) (eq (car-safe v2) '\n)))
-             (newline-and-indent))))
-  (set (make-local-variable 'font-lock-defaults)
-       '((sgml-font-lock-keywords
-          sgml-font-lock-keywords-1
-          sgml-font-lock-keywords-2)
-         nil t))
-  (set (make-local-variable 'syntax-propertize-function)
-       sgml-syntax-propertize-function)
-  (set (make-local-variable 'facemenu-add-face-function)
-       'sgml-mode-facemenu-add-face-function)
-  (set (make-local-variable 'sgml-xml-mode) (sgml-xml-guess))
-  (if sgml-xml-mode
-      ()
-    (set (make-local-variable 'skeleton-transformation-function)
-         sgml-transformation-function))
+  (setq-local indent-line-function 'sgml-indent-line)
+  (setq-local comment-start "<!-- ")
+  (setq-local comment-end " -->")
+  (setq-local comment-indent-function 'sgml-comment-indent)
+  (setq-local comment-line-break-function 'sgml-comment-indent-new-line)
+  (setq-local skeleton-further-elements '((completion-ignore-case t)))
+  (setq-local skeleton-end-hook
+	      (lambda ()
+		(or (eolp)
+		    (not (or (eq v2 '\n) (eq (car-safe v2) '\n)))
+		    (newline-and-indent))))
+  (setq font-lock-defaults '((sgml-font-lock-keywords
+			      sgml-font-lock-keywords-1
+			      sgml-font-lock-keywords-2)
+			     nil t))
+  (setq-local syntax-propertize-function sgml-syntax-propertize-function)
+  (setq-local facemenu-add-face-function 'sgml-mode-facemenu-add-face-function)
+  (setq-local sgml-xml-mode (sgml-xml-guess))
+  (unless sgml-xml-mode
+    (setq-local skeleton-transformation-function sgml-transformation-function))
   ;; This will allow existing comments within declarations to be
   ;; recognized.
   ;; I can't find a clear description of SGML/XML comments, but it seems that
   ;; the only reliable ones are <!-- ... --> although it's not clear what
   ;; "..." can contain.  It used to accept -- ... -- as well, but that was
   ;; apparently a mistake.
-  (set (make-local-variable 'comment-start-skip) "<!--[ \t]*")
-  (set (make-local-variable 'comment-end-skip) "[ \t]*--[ \t\n]*>")
+  (setq-local comment-start-skip "<!--[ \t]*")
+  (setq-local comment-end-skip "[ \t]*--[ \t\n]*>")
   ;; This definition has an HTML leaning but probably fits well for other modes.
   (setq imenu-generic-expression
 	`((nil
@@ -643,10 +644,8 @@ This only works for Latin-1 input."
 (define-skeleton sgml-tag
   "Prompt for a tag and insert it, optionally with attributes.
 Completion and configuration are done according to `sgml-tag-alist'.
-If you like tags and attributes in uppercase do \\[set-variable]
-`skeleton-transformation-function' RET `upcase' RET, or put this
-in your `.emacs':
-  (setq sgml-transformation-function 'upcase)"
+If you like tags and attributes in uppercase, customize
+`sgml-transformation-function' to 'upcase."
   (funcall (or skeleton-transformation-function 'identity)
            (setq sgml-tag-last
 		 (completing-read
@@ -671,13 +670,13 @@ in your `.emacs':
       (if (eq v2 t) (setq v2 nil))
       ;; We use `identity' to prevent skeleton from passing
       ;; `str' through `skeleton-transformation-function' a second time.
-      '(("") v2 _ v2 "</" (identity ',str) ?>))
+      '(("") v2 _ v2 "</" (identity ',str) ?> >))
      ((eq (car v2) t)
       (cons '("") (cdr v2)))
      (t
       (append '(("") (car v2))
 	      (cdr v2)
-	      '(resume: (car v2) _ "</" (identity ',str) ?>))))))
+	      '(resume: (car v2) _ "</" (identity ',str) ?> >))))))
 
 (autoload 'skeleton-read "skeleton")
 
@@ -982,10 +981,10 @@ With prefix argument ARG, repeat this ARG times."
     (unwind-protect
 	(save-excursion
 	  (goto-char (point-min))
-	  (if (set (make-local-variable 'sgml-tags-invisible)
-		   (if arg
-		       (>= (prefix-numeric-value arg) 0)
-		     (not sgml-tags-invisible)))
+	  (if (setq-local sgml-tags-invisible
+			  (if arg
+			      (>= (prefix-numeric-value arg) 0)
+			    (not sgml-tags-invisible)))
 	      (while (re-search-forward sgml-tag-name-re nil t)
 		(setq string
 		      (cdr (assq (intern-soft (downcase (match-string 1)))
@@ -1564,8 +1563,7 @@ Add this to `sgml-mode-hook' for convenience."
     (goto-char (point-min))
     (if (re-search-forward "^\\([ \t]+\\)<" 500 'noerror)
         (progn
-          (set (make-local-variable 'sgml-basic-offset)
-               (1- (current-column)))
+          (setq-local sgml-basic-offset (1- (current-column)))
           (message "Guessed sgml-basic-offset = %d"
                    sgml-basic-offset)
           ))))
@@ -1935,11 +1933,24 @@ This takes effect when first loading the library.")
     ("ul" . "Unordered list")
     ("var" . "Math variable face")
     ("wbr" . "Enable <br> within <nobr>"))
-  "Value of `sgml-tag-help' for HTML mode.")
+  "Value of variable `sgml-tag-help' for HTML mode.")
 
 (defvar outline-regexp)
 (defvar outline-heading-end-regexp)
 (defvar outline-level)
+
+(defun html-current-defun-name ()
+  "Return the name of the last HTML title or heading, or nil."
+  (save-excursion
+    (if (re-search-backward
+	 (concat
+	  "<[ \t\r\n]*"
+	  "\\(?:[hH][0-6]\\|title\\|TITLE\\|Title\\)"
+	  "[^>]*>"
+	  "[ \t\r\n]*"
+	  "\\([^<\r\n]*[^ <\t\r\n]+\\)")
+	 nil t)
+	(match-string-no-properties 1))))
 
 
 ;;;###autoload
@@ -1979,33 +1990,29 @@ To work around that, do:
    (eval-after-load \"sgml-mode\" '(aset sgml-char-names ?' nil))
 
 \\{html-mode-map}"
-  (set (make-local-variable 'sgml-display-text) html-display-text)
-  (set (make-local-variable 'sgml-tag-face-alist) html-tag-face-alist)
-  (make-local-variable 'sgml-tag-alist)
-  (make-local-variable 'sgml-face-tag-alist)
-  (make-local-variable 'sgml-tag-help)
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-heading-end-regexp)
-  (make-local-variable 'outline-level)
-  (make-local-variable 'sentence-end-base)
-  (setq sentence-end-base "[.?!][]\"'”)}]*\\(<[^>]*>\\)*"
-	sgml-tag-alist html-tag-alist
-	sgml-face-tag-alist html-face-tag-alist
-	sgml-tag-help html-tag-help
-	outline-regexp "^.*<[Hh][1-6]\\>"
-	outline-heading-end-regexp "</[Hh][1-6]>"
-	outline-level (lambda ()
-			(char-before (match-end 0))))
+  (setq-local sgml-display-text html-display-text)
+  (setq-local sgml-tag-face-alist html-tag-face-alist)
+  (setq-local sgml-tag-alist html-tag-alist)
+  (setq-local sgml-face-tag-alist html-face-tag-alist)
+  (setq-local sgml-tag-help html-tag-help)
+  (setq-local outline-regexp "^.*<[Hh][1-6]\\>")
+  (setq-local outline-heading-end-regexp "</[Hh][1-6]>")
+  (setq-local outline-level
+	      (lambda () (char-before (match-end 0))))
+  (setq-local add-log-current-defun-function #'html-current-defun-name)
+  (setq-local sentence-end-base "[.?!][]\"'”)}]*\\(<[^>]*>\\)*")
+
   (setq imenu-create-index-function 'html-imenu-index)
-  (set (make-local-variable 'sgml-empty-tags)
-       ;; From HTML-4.01's loose.dtd, parsed with `sgml-parse-dtd',
-       ;; plus manual addition of "wbr".
-       '("area" "base" "basefont" "br" "col" "frame" "hr" "img" "input"
-	 "isindex" "link" "meta" "param" "wbr"))
-  (set (make-local-variable 'sgml-unclosed-tags)
-       ;; From HTML-4.01's loose.dtd, parsed with `sgml-parse-dtd'.
-       '("body" "colgroup" "dd" "dt" "head" "html" "li" "option"
-	 "p" "tbody" "td" "tfoot" "th" "thead" "tr"))
+
+  (setq-local sgml-empty-tags
+	      ;; From HTML-4.01's loose.dtd, parsed with
+	      ;; `sgml-parse-dtd', plus manual addition of "wbr".
+	      '("area" "base" "basefont" "br" "col" "frame" "hr" "img" "input"
+		"isindex" "link" "meta" "param" "wbr"))
+  (setq-local sgml-unclosed-tags
+	      ;; From HTML-4.01's loose.dtd, parsed with `sgml-parse-dtd'.
+	      '("body" "colgroup" "dd" "dt" "head" "html" "li" "option"
+		"p" "tbody" "td" "tfoot" "th" "thead" "tr"))
   ;; It's for the user to decide if it defeats it or not  -stef
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose

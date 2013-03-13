@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998, 2001-2013 Free Software Foundation,
+@c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Macros
 @chapter Macros
@@ -35,7 +36,7 @@ instead.  @xref{Inline Functions}.
 @section A Simple Example of a Macro
 
   Suppose we would like to define a Lisp construct to increment a
-variable value, much like the @code{++} operator in C.  We would like to
+variable value, much like the @code{++} operator in C@.  We would like to
 write @code{(inc x)} and have the effect of @code{(setq x (1+ x))}.
 Here's a macro definition that does the job:
 
@@ -85,6 +86,10 @@ macro.
   Since the expansion is evaluated in the normal manner, it may contain
 calls to other macros.  It may even be a call to the same macro, though
 this is unusual.
+
+  Note that Emacs tries to expand macros when loading an uncompiled
+Lisp file.  This is not always possible, but if it is, it speeds up
+subsequent execution.  @xref{How Programs Do Loading}.
 
   You can see the expansion of a given macro call by calling
 @code{macroexpand}.
@@ -601,12 +606,12 @@ calculate the indentation of a line within this expression.  The
 function receives two arguments:
 
 @table @asis
+@item @var{pos}
+The position at which the line being indented begins.
 @item @var{state}
 The value returned by @code{parse-partial-sexp} (a Lisp primitive for
 indentation and nesting computation) when it parses up to the
 beginning of this line.
-@item @var{pos}
-The position at which the line being indented begins.
 @end table
 
 @noindent

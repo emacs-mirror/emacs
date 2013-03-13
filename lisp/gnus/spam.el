@@ -1,6 +1,6 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -2092,22 +2092,24 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 (declare-function gnus-extract-address-components "gnus-util" (from))
 
 (eval-and-compile
-  (when (condition-case nil
-            (progn
-              (require 'bbdb)
-              (require 'bbdb-com))
-          (file-error
-           ;; `bbdb-records' should not be bound as an autoload function
-           ;; before loading bbdb because of `bbdb-hashtable-size'.
-           (defalias 'bbdb-buffer 'ignore)
-           (defalias 'bbdb-create-internal 'ignore)
-           (defalias 'bbdb-records 'ignore)
-           (defalias 'spam-BBDB-register-routine 'ignore)
-           (defalias 'spam-enter-ham-BBDB 'ignore)
-           (defalias 'spam-exists-in-BBDB-p 'ignore)
-           (defalias 'bbdb-gethash 'ignore)
-           nil))
+  (condition-case nil
+      (progn
+	(require 'bbdb)
+	(require 'bbdb-com))
+    (file-error
+     ;; `bbdb-records' should not be bound as an autoload function
+     ;; before loading bbdb because of `bbdb-hashtable-size'.
+     (defalias 'bbdb-buffer 'ignore)
+     (defalias 'bbdb-create-internal 'ignore)
+     (defalias 'bbdb-records 'ignore)
+     (defalias 'spam-BBDB-register-routine 'ignore)
+     (defalias 'spam-enter-ham-BBDB 'ignore)
+     (defalias 'spam-exists-in-BBDB-p 'ignore)
+     (defalias 'bbdb-gethash 'ignore)
+     nil)))
 
+(eval-and-compile
+  (when (featurep 'bbdb-com)
     ;; when the BBDB changes, we want to clear out our cache
     (defun spam-clear-cache-BBDB (&rest immaterial)
       (spam-clear-cache 'spam-use-BBDB))

@@ -1,5 +1,5 @@
 /* Common functions for Microsoft Windows builds of Emacs
-   Copyright (C) 2012 Free Software Foundation, Inc.
+   Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,7 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 extern SYSTEM_INFO    sysinfo_cache;
 extern OSVERSIONINFO  osinfo_cache;
-extern unsigned long  syspage_mask;
+extern DWORD_PTR      syspage_mask;
 
 extern int    	      w32_major_version;
 extern int    	      w32_minor_version;

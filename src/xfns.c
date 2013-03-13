@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -164,12 +164,8 @@ have_menus_p (void)
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
-  FRAME_PTR f;
+  struct frame *f = decode_live_frame (frame);
 
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
   if (! FRAME_X_P (f))
     error ("Non-X frame used");
   return f;
@@ -228,13 +224,11 @@ x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -274,18 +268,16 @@ struct frame *
 x_any_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 {
   Lisp_Object tail, frame;
-  struct frame *f, *found;
+  struct frame *f, *found = NULL;
   struct x_output *x;
 
-  if (wdesc == None) return NULL;
+  if (wdesc == None)
+    return NULL;
 
-  found = NULL;
-  for (tail = Vframe_list; CONSP (tail) && !found; tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-
+      if (found)
+        break;
       f = XFRAME (frame);
       if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
@@ -329,13 +321,11 @@ x_menubar_window_to_frame (struct x_display_info *dpyinfo, XEvent *event)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -363,13 +353,11 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   struct frame *f;
   struct x_output *x;
 
-  if (wdesc == None) return 0;
+  if (wdesc == None)
+    return NULL;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -3000,16 +2988,14 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 DEFUN ("x-wm-set-size-hint", Fx_wm_set_size_hint, Sx_wm_set_size_hint,
        0, 1, 0,
        doc: /* Send the size hints for frame FRAME to the window manager.
-If FRAME is nil, use the selected frame.  */)
+If FRAME is omitted or nil, use the selected frame.
+Signal error if FRAME is not an X frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
-  if (NILP (frame))
-    frame = selected_frame;
-  f = XFRAME (frame);
+  struct frame *f = check_x_frame (frame);
+
   block_input ();
-  if (FRAME_X_P (f))
-    x_wm_set_size_hint (f, 0, 0);
+  x_wm_set_size_hint (f, 0, 0);
   unblock_input ();
   return Qnil;
 }
@@ -3110,9 +3096,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f = make_frame (1);
 
   XSETFRAME (frame, f);
-
-  /* Note that X Windows does support scroll bars.  */
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   f->terminal = dpyinfo->terminal;
 
@@ -3556,9 +3539,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (x_defined_color (f, SSDATA (color), &foo, 0))
-    return list3 (make_number (foo.red),
-		  make_number (foo.green),
-		  make_number (foo.blue));
+    return list3i (foo.red, foo.green, foo.blue);
   else
     return Qnil;
 }
@@ -3720,9 +3701,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Display *dpy = dpyinfo->display;
 
-  return Fcons (make_number (ProtocolVersion (dpy)),
-		Fcons (make_number (ProtocolRevision (dpy)),
-		       Fcons (make_number (VendorRelease (dpy)), Qnil)));
+  return list3i (ProtocolVersion (dpy), ProtocolRevision (dpy),
+		 VendorRelease (dpy));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
@@ -3789,7 +3769,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
     default:
       error ("Strange value for BackingStore parameter of screen");
-      result = Qnil;
     }
 
   return result;
@@ -3831,7 +3810,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
       break;
     default:
       error ("Display has an unknown visual class");
-      result = Qnil;
     }
 
   return result;
@@ -3865,20 +3843,6 @@ x_pixel_height (register struct frame *f)
   return FRAME_PIXEL_HEIGHT (f);
 }
 
-int
-x_char_width (register struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-int
-x_char_height (register struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-
-
 /************************************************************************
 			      X Displays
  ************************************************************************/
@@ -4596,7 +4560,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   f->terminal = dpyinfo->terminal;
@@ -5102,7 +5065,7 @@ Text larger than the specified size is clipped.  */)
       int row_width;
 
       /* Stop at the first empty row at the end.  */
-      if (!row->enabled_p || !row->displays_text_p)
+      if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	break;
 
       /* Let the row go over the full width of the frame.  */
@@ -5161,7 +5124,7 @@ Text larger than the specified size is clipped.  */)
 	  struct glyph *last;
 	  int row_width;
 
-	  if (!row->enabled_p || !row->displays_text_p)
+	  if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	    break;
 	  row->full_width_p = 1;
 	  row_width = row->pixel_width;
@@ -5324,8 +5287,7 @@ file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 static Lisp_Object
 clean_up_file_dialog (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  Widget dialog = (Widget) p->pointer;
+  Widget dialog = XSAVE_POINTER (arg, 0);
 
   /* Clean up.  */
   block_input ();
@@ -5449,7 +5411,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       XmStringFree (default_xmstring);
     }
 
-  record_unwind_protect (clean_up_file_dialog, make_save_value (dialog, 0));
+  record_unwind_protect (clean_up_file_dialog, make_save_pointer (dialog));
 
   /* Process events until the user presses Cancel or OK.  */
   x_menu_set_in_use (1);

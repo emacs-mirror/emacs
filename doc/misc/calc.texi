@@ -94,7 +94,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990-1991, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1991, 2001--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -106,8 +106,7 @@ Texts as in (a) below.  A copy of the license is included in the section
 entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -293,7 +292,7 @@ experience with GNU Emacs in order to get the most out of Calc,
 this manual ought to be readable even if you don't know or use Emacs
 regularly.
 
-This manual is divided into three major parts:@: the ``Getting
+This manual is divided into three major parts: the ``Getting
 Started'' chapter you are reading now, the Calc tutorial, and the Calc
 reference manual.
 @c [when-split]
@@ -1186,7 +1185,7 @@ since the large integer arithmetic was there anyway it seemed only
 fair to give the user direct access to it, which in turn made it
 practical to support fractions as well as floats. All these features
 inspired me to look around for other data types that might be worth
-having. 
+having.
 
 Around this time, my friend Rick Koshi showed me his nifty new HP-28
 calculator.  It allowed the user to manipulate formulas as well as
@@ -4461,7 +4460,7 @@ date by one or several months.  @xref{Date Arithmetic}, for more.
 Friday the 13th?  @xref{Types Answer 5, 5}. (@bullet{})
 
 (@bullet{}) @strong{Exercise 6.}  How many leap years will there be
-between now and the year 10001 A.D.?  @xref{Types Answer 6, 6}. (@bullet{})
+between now and the year 10001 AD@?  @xref{Types Answer 6, 6}. (@bullet{})
 
 @cindex Slope and angle of a line
 @cindex Angle and slope of a line
@@ -5693,7 +5692,7 @@ on the stack, we want to be able to type @kbd{*} and get the result
 rearranged.  (This one is rather tricky; the solution at the end of
 this chapter uses 6 rewrite rules.  Hint:  The @samp{constant(x)}
 condition tests whether @samp{x} is a number.)  @xref{Rewrites Answer
-6, 6}. (@bullet{}) 
+6, 6}. (@bullet{})
 
 Just for kicks, try adding the rule @code{2+3 := 6} to @code{EvalRules}.
 What happens?  (Be sure to remove this rule afterward, or you might get
@@ -8697,7 +8696,7 @@ Multiplying by the conjugate helps because @expr{(a+b) (a-b) = a^2 - b^2}.
 @smallexample
 @group
      ___
-1:  V 2 
+1:  V 2
     .
 
   a r a*(b+c) := a*b + a*c
@@ -8897,7 +8896,7 @@ Note that this rule does not mention @samp{O} at all, so it will
 apply to any product-of-sum it encounters---this rule may surprise
 you if you put it into @code{EvalRules}!
 
-In the second rule, the sum of two O's is changed to the smaller O.
+In the second rule, the sum of two O's is changed to the smaller O@.
 The optional constant coefficients are there mostly so that
 @samp{O(x^2) - O(x^3)} and @samp{O(x^3) - O(x^2)} are handled
 as well as @samp{O(x^2) + O(x^3)}.
@@ -9910,9 +9909,9 @@ listed.
 
 @kindex h n
 The @kbd{h n} or @kbd{h C-n} (@code{calc-view-news}) command displays
-the ``news'' or change history of Calc.  This is kept in the file
-@file{README}, which Calc looks for in the same directory as the Calc
-source files.
+the ``news'' or change history of Emacs, and jumps to the most recent
+portion concerning Calc (if present).  For older history, see the file
+@file{etc/CALC-NEWS} in the Emacs distribution.
 
 @kindex h C-c
 @kindex h C-d
@@ -10518,7 +10517,7 @@ Integers, fractions, and floats are various ways of describing real
 numbers.  HMS forms also for many purposes act as real numbers.  These
 types can be combined to form complex numbers, modulo forms, error forms,
 or interval forms.  (But these last four types cannot be combined
-arbitrarily:@: error forms may not contain modulo forms, for example.)
+arbitrarily: error forms may not contain modulo forms, for example.)
 Finally, all these types of numbers may be combined into vectors,
 matrices, or algebraic formulas.
 
@@ -10987,10 +10986,10 @@ Input is flexible; date forms can be entered in any of the usual
 notations for dates and times.  @xref{Date Formats}.
 
 Date forms are stored internally as numbers, specifically the number
-of days since midnight on the morning of January 1 of the year 1 AD.
+of days since midnight on the morning of December 31 of the year 1 BC@.
 If the internal number is an integer, the form represents a date only;
 if the internal number is a fraction or float, the form represents
-a date and time.  For example, @samp{<6:00am Wed Jan 9, 1991>}
+a date and time.  For example, @samp{<6:00am Thu Jan 10, 1991>}
 is represented by the number 726842.25.  The standard precision of
 12 decimal digits is enough to ensure that a (reasonable) date and
 time can be stored without roundoff error.
@@ -11010,58 +11009,70 @@ You can use the @kbd{v p} (@code{calc-pack}) and @kbd{v u}
 of a date form.  @xref{Packing and Unpacking}.
 
 Date forms can go arbitrarily far into the future or past.  Negative
-year numbers represent years BC.  Calc uses a combination of the
-Gregorian and Julian calendars, following the history of Great
-Britain and the British colonies.  This is the same calendar that
-is used by the @code{cal} program in most Unix implementations.
+year numbers represent years BC@.  There is no ``year 0''; the day
+before @samp{<Mon Jan 1, +1>} is @samp{<Sun Dec 31, -1>}.  These are
+days 1 and 0 respectively in Calc's internal numbering scheme.  The
+Gregorian calendar is used for all dates, including dates before the
+Gregorian calendar was invented (although that can be configured; see
+below).  Thus Calc's use of the day number @mathit{-10000} to
+represent August 15, 28 BC should be taken with a grain of salt.
 
 @cindex Julian calendar
 @cindex Gregorian calendar
 Some historical background:  The Julian calendar was created by
-Julius Caesar in the year 46 BC as an attempt to fix the gradual
-drift caused by the lack of leap years in the calendar used
-until that time.  The Julian calendar introduced an extra day in
-all years divisible by four.  After some initial confusion, the
-calendar was adopted around the year we call 8 AD.  Some centuries
-later it became apparent that the Julian year of 365.25 days was
-itself not quite right.  In 1582 Pope Gregory XIII introduced the
-Gregorian calendar, which added the new rule that years divisible
-by 100, but not by 400, were not to be considered leap years
-despite being divisible by four.  Many countries delayed adoption
-of the Gregorian calendar because of religious differences;
-in Britain it was put off until the year 1752, by which time
-the Julian calendar had fallen eleven days behind the true
-seasons.  So the switch to the Gregorian calendar in early
-September 1752 introduced a discontinuity:  The day after
-Sep 2, 1752 is Sep 14, 1752.  Calc follows this convention.
-To take another example, Russia waited until 1918 before
-adopting the new calendar, and thus needed to remove thirteen
-days (between Feb 1, 1918 and Feb 14, 1918).  This means that
-Calc's reckoning will be inconsistent with Russian history between
-1752 and 1918, and similarly for various other countries.
+Julius Caesar in the year 46 BC as an attempt to fix the confusion
+caused by the irregular Roman calendar that was used before that time.
+The Julian calendar introduced an extra day in all years divisible by
+four.  After some initial confusion, the calendar was adopted around
+the year we call 8 AD@.  Some centuries later it became
+apparent that the Julian year of 365.25 days was itself not quite
+right.  In 1582 Pope Gregory XIII introduced the Gregorian calendar,
+which added the new rule that years divisible by 100, but not by 400,
+were not to be considered leap years despite being divisible by four.
+Many countries delayed adoption of the Gregorian calendar
+because of religious differences.  For example, Great Britain and the
+British colonies switched to the Gregorian calendar in September
+1752, when the Julian calendar was eleven days behind the
+Gregorian calendar.  That year in Britain, the day after September 2
+was September 14.  To take another example, Russia did not adopt the
+Gregorian calendar until 1918, and that year in Russia the day after
+January 31 was February 14.  Calc's reckoning therefore matches English
+practice starting in 1752 and Russian practice starting in 1918, but
+disagrees with earlier dates in both countries.
 
-Today's timekeepers introduce an occasional ``leap second'' as
-well, but Calc does not take these minor effects into account.
-(If it did, it would have to report a non-integer number of days
-between, say, @samp{<12:00am Mon Jan 1, 1900>} and
+When the Julian calendar was introduced, it had January 1 as the first
+day of the year.  By the Middle Ages, many European countries
+had changed the beginning of a new year to a different date, often to
+a religious festival.  Almost all countries reverted to using January 1
+as the beginning of the year by the time they adopted the Gregorian
+calendar.
+
+Some calendars attempt to mimic the historical situation by using the
+Gregorian calendar for recent dates and the Julian calendar for older
+dates. The @code{cal} program in most Unix implementations does this,
+for example. While January 1 wasn't always the beginning of a calendar
+year, these hybrid calendars still use January 1 as the beginning of
+the year even for older dates.   The customizable variable
+@code{calc-gregorian-switch} (@pxref{Customizing Calc}) can be set to
+have Calc's date forms switch from the Julian to Gregorian calendar at
+any specified date.
+
+Today's timekeepers introduce an occasional ``leap second''.
+These do not occur regularly and Calc does not take these minor
+effects into account.  (If it did, it would have to report a
+non-integer number of days between, say,
+@samp{<12:00am Mon Jan 1, 1900>} and
 @samp{<12:00am Sat Jan 1, 2000>}.)
-
-Calc uses the Julian calendar for all dates before the year 1752,
-including dates BC when the Julian calendar technically had not
-yet been invented.  Thus the claim that day number @mathit{-10000} is
-called ``August 16, 28 BC'' should be taken with a grain of salt.
-
-Please note that there is no ``year 0''; the day before
-@samp{<Sat Jan 1, +1>} is @samp{<Fri Dec 31, -1>}.  These are
-days 0 and @mathit{-1} respectively in Calc's internal numbering scheme.
 
 @cindex Julian day counting
 Another day counting system in common use is, confusingly, also called
-``Julian.''  The Julian day number is the numbers of days since
-12:00 noon (GMT) on Jan 1, 4713 BC, which in Calc's scheme (in GMT)
-is @mathit{-1721423.5} (recall that Calc starts at midnight instead
-of noon).  Thus to convert a Calc date code obtained by unpacking a
-date form into a Julian day number, simply add 1721423.5 after
+``Julian.''  Julian days go from noon to noon.  The Julian day number
+is the numbers of days since 12:00 noon (GMT) on November 24, 4714 BC
+in the Gregorian calendar (i.e., January 1, 4713 BC in the Julian
+calendar).  In Calc's scheme (in GMT) the Julian day origin is
+@mathit{-1721422.5}, because Calc starts at midnight instead of noon.
+Thus to convert a Calc date code obtained by unpacking a
+date form into a Julian day number, simply add 1721422.5 after
 compensating for the time zone difference.  The built-in @kbd{t J}
 command performs this conversion for you.
 
@@ -11093,7 +11104,7 @@ the Julian cycle as an astronomical dating system; this idea was taken
 up by other astronomers.  (At the time, noon was the start of the
 astronomical day.  Herschel originally suggested counting the days
 since Jan 1, 4713 BC at noon Alexandria time; this was later amended to
-noon GMT.)  Julian day numbering is largely used in astronomy.
+noon GMT@.)  Julian day numbering is largely used in astronomy.
 
 @cindex Unix time format
 The Unix operating system measures time as an integer number of
@@ -12641,7 +12652,7 @@ are simplified with their unit definitions in mind.
 A common technique is to set the simplification mode down to the lowest
 amount of simplification you will allow to be applied automatically, then
 use manual commands like @kbd{a s} and @kbd{c c} (@code{calc-clean}) to
-perform higher types of simplifications on demand.  
+perform higher types of simplifications on demand.
 @node Declarations, Display Modes, Simplification Modes, Mode Settings
 @section Declarations
 
@@ -12992,7 +13003,7 @@ The @code{dneg} function checks for negative reals.  The @code{dnonneg}
 function checks for nonnegative reals, i.e., reals greater than or
 equal to zero.  Note that Calc's algebraic simplifications, which are
 effectively applied to all conditions in rewrite rules, can simplify
-an expression like @expr{x > 0} to 1 or 0 using @code{dpos}.  
+an expression like @expr{x > 0} to 1 or 0 using @code{dpos}.
 So the actual functions @code{dpos}, @code{dneg}, and @code{dnonneg}
 are rarely necessary.
 
@@ -13405,12 +13416,91 @@ dates.  @xref{Specifying Operators}.  To avoid confusion with nameless
 functions, your date formats should avoid using the @samp{#} character.
 
 @menu
+* ISO 8601::
 * Date Formatting Codes::
 * Free-Form Dates::
 * Standard Date Formats::
 @end menu
 
-@node Date Formatting Codes, Free-Form Dates, Date Formats, Date Formats
+@node ISO 8601, Date Formatting Codes, Date Formats, Date Formats
+@subsubsection ISO 8601
+
+@noindent
+@cindex ISO 8601
+The same date can be written down in different formats and Calc tries
+to allow you to choose your preferred format.  Some common formats are
+ambiguous, however; for example, 10/11/2012 means October 11,
+2012 in the United States but it means November 10, 2012 in
+Europe.  To help avoid such ambiguities, the International Organization
+for Standardization (ISO) provides the ISO 8601 standard, which
+provides three different but easily distinguishable and unambiguous
+ways to represent a date.
+
+The ISO 8601 calendar date representation is
+
+@example
+   @var{YYYY}-@var{MM}-@var{DD}
+@end example
+
+@noindent
+where @var{YYYY} is the four digit year, @var{MM} is the two-digit month
+number (01 for January to 12 for December), and @var{DD} is the
+two-digit day of the month (01 to 31).  (Note that @var{YYYY} does not
+correspond to Calc's date formatting code, which will be introduced
+later.)  The year, which should be padded with zeros to ensure it has at
+least four digits, is the Gregorian year, except that the year before
+0001 (1 AD) is the year 0000 (1 BC).  The date October 11, 2012 is
+written 2012-10-11 in this representation and November 10, 2012 is
+written 2012-11-10.
+
+The ISO 8601 ordinal date representation is
+
+@example
+  @var{YYYY}-@var{DDD}
+@end example
+
+@noindent
+where @var{YYYY} is the year, as above, and @var{DDD} is the day of the year.
+The date December 31, 2011 is written 2011-365 in this representation
+and January 1, 2012 is written 2012-001.
+
+The ISO 8601 week date representation is
+
+@example
+ @var{YYYY}-W@var{ww}-@var{D}
+@end example
+
+@noindent
+where @var{YYYY} is the ISO week-numbering year, @var{ww} is the two
+digit week number (preceded by a literal ``W''), and @var{D} is the day
+of the week (1 for Monday through 7 for Sunday).  The ISO week-numbering
+year is based on the Gregorian year but can differ slightly.  The first
+week of an ISO week-numbering year is the week with the Gregorian year's
+first Thursday in it (equivalently, the week containing January 4);
+any day of that week (Monday through Sunday) is part of the same ISO
+week-numbering year, any day from the previous week is part of the
+previous year.  For example, January 4, 2013 is on a Friday, and so
+the first week for the ISO week-numbering year 2013 starts  on
+Monday, December 31, 2012.  The day December 31, 2012 is then part of the
+Gregorian year 2012 but ISO week-numbering year 2013.  In the week
+date representation, this week goes from 2013-W01-1 (December 31,
+2012) to 2013-W01-7 (January 6, 2013).
+
+All three ISO 8601 representations arrange the numbers from most
+significant to least significant; as well as being unambiguous
+representations, they are easy to sort since chronological order in
+this formats corresponds to lexicographical order. The hyphens are
+sometimes omitted.
+
+The ISO 8601 standard uses a 24 hour clock; a particular time is
+represented by @var{hh}:@var{mm}:@var{ss} where @var{hh} is the
+two-digit hour (from 00 to 24), @var{mm} is the two-digit minute (from
+00 to 59) and @var{ss} is the two-digit second.  The seconds or minutes
+and seconds can be omitted, and decimals can be added.  If a date with a
+time is represented, they should be separated by a literal ``T'', so noon
+on December 13, 2012 can be represented as 2012-12-13T12:00.
+
+@node Date Formatting Codes, Free-Form Dates, ISO 8601, Date Formats
 @subsubsection Date Formatting Codes
 
 @noindent
@@ -13427,7 +13517,7 @@ the time part.  The punctuation characters (including spaces) must
 match exactly; letter fields must correspond to suitable text in
 the input.  If this doesn't work, Calc checks if the input is a
 simple number; if so, the number is interpreted as a number of days
-since Jan 1, 1 AD.  Otherwise, Calc tries a much more relaxed and
+since Dec 31, 1 BC@.  Otherwise, Calc tries a much more relaxed and
 flexible algorithm which is described in the next section.
 
 Weekday names are ignored during reading.
@@ -13451,6 +13541,10 @@ Year:  ``91'' for 1991, `` 7'' for 2007, ``+23'' for 23 AD.
 Year:  ``1991'' for 1991, ``23'' for 23 AD.
 @item YYYY
 Year:  ``1991'' for 1991, ``+23'' for 23 AD.
+@item ZYYY
+Year:  ``1991'' for 1991, ``0023'' for 23 AD, ``0000'' for 1 BC.
+@item IYYY
+Year:  ISO 8601 week-numbering year.
 @item aa
 Year:  ``ad'' or blank.
 @item AA
@@ -13460,7 +13554,7 @@ Year:  ``ad '' or blank.  (Note trailing space.)
 @item AAA
 Year:  ``AD '' or blank.
 @item aaaa
-Year:  ``a.d.'' or blank.
+Year:  ``a.d.@:'' or blank.
 @item AAAA
 Year:  ``A.D.'' or blank.
 @item bb
@@ -13472,7 +13566,7 @@ Year:  `` bc'' or blank.  (Note leading space.)
 @item BBB
 Year:  `` BC'' or blank.
 @item bbbb
-Year:  ``b.c.'' or blank.
+Year:  ``b.c.@:'' or blank.
 @item BBBB
 Year:  ``B.C.'' or blank.
 @item M
@@ -13499,6 +13593,8 @@ Day:  ``07'' for 7th day of month.
 Day:  `` 7'' for 7th day of month.
 @item W
 Weekday:  ``0'' for Sunday, ``6'' for Saturday.
+@item w
+Weekday:  ``1'' for Monday, ``7'' for Sunday.
 @item WWW
 Weekday:  ``SUN'' for Sunday.
 @item Www
@@ -13509,12 +13605,16 @@ Weekday:  ``sun'' for Sunday.
 Weekday:  ``SUNDAY'' for Sunday.
 @item Wwww
 Weekday:  ``Sunday'' for Sunday.
+@item Iww
+Week number:  ISO 8601 week number, ``W01'' for week 1.
 @item d
 Day of year:  ``34'' for Feb. 3.
 @item ddd
 Day of year:  ``034'' for Feb. 3.
 @item bdd
 Day of year:  `` 34'' for Feb. 3.
+@item T
+Letter:  Literal ``T''.
 @item h
 Hour:  ``5'' for 5 AM; ``17'' for 5 PM.
 @item hh
@@ -13536,7 +13636,7 @@ AM/PM:  ``am'' or ``pm''.
 @item PP
 AM/PM:  ``AM'' or ``PM''.
 @item pppp
-AM/PM:  ``a.m.'' or ``p.m.''.
+AM/PM:  ``a.m.@:'' or ``p.m.''.
 @item PPPP
 AM/PM:  ``A.M.'' or ``P.M.''.
 @item m
@@ -13617,15 +13717,21 @@ abbreviated to one letter, and the alternate forms @samp{a.m.},
 @samp{p.m.}, and @samp{mid} are also understood.  Obviously
 @samp{noon} and @samp{midnight} are allowed only on 12:00:00.
 The words @samp{noon}, @samp{mid}, and @samp{midnight} are also
-recognized with no number attached.
+recognized with no number attached.  Midnight will represent the
+beginning of a day.
 
 If there is no AM/PM indicator, the time is interpreted in 24-hour
 format.
 
-To read the date portion, all words and numbers are isolated
-from the string; other characters are ignored.  All words must
-be either month names or day-of-week names (the latter of which
-are ignored).  Names can be written in full or as three-letter
+When reading the date portion, Calc first checks to see if it is an
+ISO 8601 week-numbering date; if the string contains an integer
+representing the year, a ``W'' followed by two digits for the week
+number, and an integer from 1 to 7 representing the weekday (in that
+order), then all other characters are ignored and this information
+determines the date.  Otherwise, all words and numbers are isolated
+from the string; other characters are ignored.  All words must be
+either month names or day-of-week names (the latter of which are
+ignored). Names can be written in full or as three-letter
 abbreviations.
 
 Large numbers, or numbers with @samp{+} or @samp{-} signs,
@@ -13688,6 +13794,10 @@ command (@pxref{Mode Settings}).
 @samp{j<, h:mm:ss>}  (Julian day plus time)
 @item 9
 @samp{YYddd< hh:mm:ss>}  (Year-day format)
+@item 10
+@samp{ZYYY-MM-DD Www< hh:mm>} (Org mode format)
+@item 11
+@samp{IYYY-Iww-w<Thh:mm:ss>} (ISO 8601 week numbering format)
 @end table
 
 @node Truncating the Stack, Justification, Date Formats, Display Modes
@@ -14012,7 +14122,7 @@ conventions.  Like C mode, Pascal mode interprets array brackets and uses
 a different table of operators.  Hexadecimal numbers are entered and
 displayed with a preceding dollar sign.  (Thus the regular meaning of
 @kbd{$2} during algebraic entry does not work in Pascal mode, though
-@kbd{$} (and @kbd{$$}, etc.) not followed by digits works the same as
+@kbd{$} (and @kbd{$$}, etc.)@: not followed by digits works the same as
 always.)  No special provisions are made for other non-decimal numbers,
 vectors, and so on, since there is no universally accepted standard way
 of handling these in Pascal.
@@ -14656,7 +14766,7 @@ Subscripts use double square brackets: @samp{a[[i]]}.
 The @kbd{d W} (@code{calc-maple-language}) command selects the
 conventions of Maple.
 
-Maple's language is much like C.  Underscores are allowed in symbol
+Maple's language is much like C@.  Underscores are allowed in symbol
 names; square brackets are used for subscripts; explicit @samp{*}s for
 multiplications are required.  Use either @samp{^} or @samp{**} to
 denote powers.
@@ -16717,7 +16827,7 @@ number (i.e., pervasively).
 If the simplification mode is set below basic simplification, it is raised
 for the purposes of this command.  Thus, @kbd{c c} applies the basic
 simplifications even if their automatic application is disabled.
-@xref{Simplification Modes}. 
+@xref{Simplification Modes}.
 
 @cindex Roundoff errors, correcting
 A numeric prefix argument to @kbd{c c} sets the floating-point precision
@@ -16794,7 +16904,7 @@ additional argument from the top of the stack.
 @pindex calc-date
 @tindex date
 The @kbd{t D} (@code{calc-date}) [@code{date}] command converts a
-date form into a number, measured in days since Jan 1, 1 AD.  The
+date form into a number, measured in days since Jan 1, 1 AD@.  The
 result will be an integer if @var{date} is a pure date form, or a
 fraction or float if @var{date} is a date/time form.  Or, if its
 argument is a number, it converts this number into a date form.
@@ -16832,7 +16942,7 @@ The last two arguments default to zero if omitted.
 @cindex Julian day counts, conversions
 The @kbd{t J} (@code{calc-julian}) [@code{julian}] command converts
 a date form into a Julian day count, which is the number of days
-since noon (GMT) on Jan 1, 4713 BC.  A pure date is converted to an
+since noon (GMT) on Jan 1, 4713 BC@.  A pure date is converted to an
 integer Julian count representing noon of that day.  A date/time form
 is converted to an exact floating-point Julian count, adjusted to
 interpret the date form in the current time zone but the Julian
@@ -16985,7 +17095,7 @@ this formula will return the Wednesday one week in the future.  An
 exercise for the reader is to modify this formula to yield the same day
 if the input is already a Wednesday.  Another interesting exercise is
 to preserve the time-of-day portion of the input (@code{newweek} resets
-the time to midnight; hint:@: how can @code{newweek} be defined in terms
+the time to midnight; hint: how can @code{newweek} be defined in terms
 of the @code{weekday} function?).
 
 @ignore
@@ -17331,7 +17441,7 @@ daylight saving computations.  This is an internal version of
 the user-level @code{pwday} function described in the previous
 section. It takes four arguments:  The floating-point date value,
 the corresponding six-element date list, the day-of-month number,
-and the weekday number (0-6).
+and the weekday number (0--6).
 
 The default daylight saving hook ignores the time zone name, but a
 more sophisticated hook could use different algorithms for different
@@ -18978,7 +19088,7 @@ modulo operation as numbers 39 and below.)  If @var{m} is a power of
 ten, however, the numbers should be completely unbiased.
 
 The Gaussian random numbers generated by @samp{random(0.0)} use the
-``polar'' method described in Knuth section 3.4.1C.  This method
+``polar'' method described in Knuth section 3.4.1C@.  This method
 generates a pair of Gaussian random numbers at a time, so only every
 other call to @samp{random(0.0)} will require significant calculations.
 
@@ -22178,7 +22288,7 @@ Use @kbd{a v} if you want the variables to ignore their stored values.
 If you give a numeric prefix argument of 2 to @kbd{a v}, it simplifies
 using Calc's algebraic simplifications; @pxref{Simplifying Formulas}.
 If you give a numeric prefix of 3 or more, it uses Extended
-Simplification mode (@kbd{a e}). 
+Simplification mode (@kbd{a e}).
 
 If you give a negative prefix argument @mathit{-1}, @mathit{-2}, or @mathit{-3},
 it simplifies in the corresponding mode but only works on the top-level
@@ -22251,7 +22361,7 @@ If inequalities with opposite direction (e.g., @samp{<} and @samp{>})
 are mapped, the direction of the second inequality is reversed to
 match the first:  Using @kbd{a M +} on @samp{a < b} and @samp{a > 2}
 reverses the latter to get @samp{2 < a}, which then allows the
-combination @samp{a + 2 < b + a}, which the algebraic simplifications 
+combination @samp{a + 2 < b + a}, which the algebraic simplifications
 can reduce to @samp{2 < b}.
 
 Using @kbd{a M *}, @kbd{a M /}, @kbd{a M n}, or @kbd{a M &} to negate
@@ -22398,7 +22508,7 @@ common special case of regular arithmetic commands like @kbd{+} and
 @kbd{Q} [@code{sqrt}], the arguments are simply popped from the stack
 and collected into a suitable function call, which is then simplified
 (the arguments being simplified first as part of the process, as
-described above). 
+described above).
 
 Even the basic set of simplifications are too numerous to describe
 completely here, but this section will describe the ones that apply to the
@@ -22704,7 +22814,7 @@ the algebraic simplification mode, which is the default simplification
 mode.  If you have switched to a different simplification mode, you can
 switch back with the @kbd{m A} command. Even in other simplification
 modes, the @kbd{a s} command will use these algebraic simplifications to
-simplify the formula. 
+simplify the formula.
 
 There is a variable, @code{AlgSimpRules}, in which you can put rewrites
 to be applied. Its use is analogous to @code{EvalRules},
@@ -22741,7 +22851,7 @@ This allows easier comparison of products; for example, the basic
 simplifications will not change @expr{x y + y x} to @expr{2 x y},
 but the algebraic simplifications; it first rewrites the sum to
 @expr{x y + x y} which can then be recognized as a sum of identical
-terms. 
+terms.
 
 The canonical ordering used to sort terms of products has the
 property that real-valued numbers, interval forms and infinities
@@ -22784,10 +22894,10 @@ factor in the numerator and denominator, it is canceled out;
 for example, @expr{(4 x + 6) / 8 x} simplifies to @expr{(2 x + 3) / 4 x}.
 
 Non-constant common factors are not found even by algebraic
-simplifications.  To cancel the factor @expr{a} in 
+simplifications.  To cancel the factor @expr{a} in
 @expr{(a x + a) / a^2} you could first use @kbd{j M} on the product
 @expr{a x} to Merge the numerator to @expr{a (1+x)}, which can then be
-simplified successfully. 
+simplified successfully.
 
 @tex
 \bigskip
@@ -22940,7 +23050,7 @@ as is @expr{x^2 >= 0} if @expr{x} is known to be real.
 @tindex esimplify
 Calc is capable of performing some simplifications which may sometimes
 be desired but which are not ``safe'' in all cases.  The @kbd{a e}
-(@code{calc-simplify-extended}) [@code{esimplify}] command 
+(@code{calc-simplify-extended}) [@code{esimplify}] command
 applies the algebraic simplifications as well as these extended, or
 ``unsafe'', simplifications.  Use this only if you know the values in
 your formula lie in the restricted ranges for which these
@@ -23584,10 +23694,10 @@ forever!)
 @vindex IntegSimpRules
 Another set of rules, stored in @code{IntegSimpRules}, are applied
 every time the integrator uses algebraic simplifications to simplify an
-intermediate result.  For example, putting the rule 
+intermediate result.  For example, putting the rule
 @samp{twice(x) := 2 x} into  @code{IntegSimpRules} would tell Calc to
 convert the @code{twice} function into a form it knows whenever
-integration is attempted. 
+integration is attempted.
 
 One more way to influence the integrator is to define a function with
 the @kbd{Z F} command (@pxref{Algebraic Definitions}).  Calc's
@@ -26752,7 +26862,7 @@ meta-variable @expr{v}.  As usual, if this meta-variable has already
 been matched to something else the two values must be equal; if the
 meta-variable is new then it is bound to the result of the expression.
 This variable can then appear in later conditions, and on the righthand
-side of the rule. 
+side of the rule.
 In fact, @expr{v} may be any pattern in which case the result of
 evaluating @expr{x} is matched to that pattern, binding any
 meta-variables that appear in that pattern.  Note that @code{let}
@@ -27506,7 +27616,7 @@ but only when algebraic simplifications are used to simplify the
 formula.  The variable @code{AlgSimpRules} holds rules for this purpose.
 The @kbd{a s} command will apply @code{EvalRules} and
 @code{AlgSimpRules} to the formula, as well as all of its built-in
-simplifications. 
+simplifications.
 
 Most of the special limitations for @code{EvalRules} don't apply to
 @code{AlgSimpRules}.  Calc simply does an @kbd{a r AlgSimpRules}
@@ -27514,7 +27624,7 @@ command with an infinite repeat count as the first step of algebraic
 simplifications. It then applies its own built-in simplifications
 throughout the formula, and then repeats these two steps (along with
 applying the default simplifications) until no further changes are
-possible. 
+possible.
 
 @cindex @code{ExtSimpRules} variable
 @cindex @code{UnitSimpRules} variable
@@ -27749,17 +27859,13 @@ while typing @kbd{u c au/yr @key{RET}} produces
 
 If the units you request are inconsistent with the original units, the
 number will be converted into your units times whatever ``remainder''
-units are left over.  For example, converting @samp{55 mph} into acres
+units are left over.  (This can be disabled; @pxref{Customizing Calc}.)
+For example, converting @samp{55 mph} into acres
 produces @samp{6.08e-3 acre / m s}.  (Recall that multiplication binds
 more strongly than division in Calc formulas, so the units here are
 acres per meter-second.)  Remainder units are expressed in terms of
 ``fundamental'' units like @samp{m} and @samp{s}, regardless of the
 input units.
-
-If you want to disallow using inconsistent units, you can set the customizable variable
-@code{calc-ensure-consistent-units} to @code{t} (@pxref{Customizing Calc}).  In this case,
-if you request units which are inconsistent with the original units, you will be warned about
-it and no conversion will occur.
 
 One special exception is that if you specify a single unit name, and
 a compatible unit appears somewhere in the units expression, then
@@ -27802,10 +27908,14 @@ Composite units are expanded as if by @kbd{a x}, so that
 
 If the value on the stack does not contain any units, @kbd{u c} will
 prompt first for the old units which this value should be considered
-to have, then for the new units.  Assuming the old and new units you
-give are consistent with each other, the result also will not contain
-any units.  For example, @kbd{@w{u c} cm @key{RET} in @key{RET}}
-converts the number 2 on the stack to 5.08.
+to have, then for the new units.  (If the value on the stack can be
+simplified so that it doesn't contain any units, like @samp{ft/in} can
+be simplified to 12, then @kbd{u c} will still prompt for both old
+units and new units. This can be disabled; @pxref{Customizing Calc}.)  
+Assuming the old and new units you give are consistent with each
+other, the result also will not contain any units.  For example,
+@kbd{@w{u c} cm @key{RET} in @key{RET}} converts the number 2 on the
+stack to 5.08.
 
 @kindex u b
 @pindex calc-base-units
@@ -28949,9 +29059,9 @@ to select the lefthand side, execute your commands, then type
 All current modes apply when an @samp{=>} operator is computed,
 including the current simplification mode.  Recall that the
 formula @samp{arcsin(sin(x))} will not be handled by Calc's algebraic
-simplifications, but Calc's unsafe simplifications will reduce it to 
+simplifications, but Calc's unsafe simplifications will reduce it to
 @samp{x}.   If you enter @samp{arcsin(sin(x)) =>} normally, the result
-will be @samp{arcsin(sin(x)) => arcsin(sin(x))}.  If you change to 
+will be @samp{arcsin(sin(x)) => arcsin(sin(x))}.  If you change to
 Extended Simplification mode, the result will be
 @samp{arcsin(sin(x)) => x}.  However, just pressing @kbd{a e}
 once will have no effect on @samp{arcsin(sin(x)) => arcsin(sin(x))},
@@ -29569,7 +29679,7 @@ plot on any text-only printer.
 @kindex g O
 @pindex calc-graph-output
 The @kbd{g O} (@code{calc-graph-output}) command sets the name of the
-output file used by GNUPLOT.  For some devices, notably @code{x11} and
+output file used by GNUPLOT@.  For some devices, notably @code{x11} and
 @code{windows}, there is no output file and this information is not
 used.  Many other ``devices'' are really file formats like
 @code{postscript}; in these cases the output in the desired format
@@ -29641,7 +29751,7 @@ window in the upper-left corner of the screen.  This command has no
 effect if the current device is @code{windows}.
 
 The buffer called @samp{*Gnuplot Trail*} holds a transcript of the
-session with GNUPLOT.  This shows the commands Calc has ``typed'' to
+session with GNUPLOT@.  This shows the commands Calc has ``typed'' to
 GNUPLOT and the responses it has received.  Calc tries to notice when an
 error message has appeared here and display the buffer for you when
 this happens.  You can check this buffer yourself if you suspect
@@ -33252,7 +33362,7 @@ in the range @samp{[0 ..@: 60)}.
 
 Date forms are stored as @samp{(date @var{n})}, where @var{n} is
 a real number that counts days since midnight on the morning of
-January 1, 1 AD.  If @var{n} is an integer, this is a pure date
+January 1, 1 AD@.  If @var{n} is an integer, this is a pure date
 form.  If @var{n} is a fraction or float, this is a date/time form.
 
 Modulo forms are stored as @samp{(mod @var{n} @var{m})}, where @var{m} is a
@@ -33760,7 +33870,7 @@ objects into a definite, consistent order.  The @code{beforep}
 function is used by the @kbd{V S} vector-sorting command, and also
 by Calc's algebraic simplifications to put the terms of a product into
 canonical order: This allows @samp{x y + y x} to be simplified easily to
-@samp{2 x y}. 
+@samp{2 x y}.
 @end defun
 
 @defun equal x y
@@ -34443,7 +34553,7 @@ traversed in this way, it is compared with the original formula (from
 before the call to @code{normalize}) and, if it has changed,
 the entire procedure is repeated (starting with @code{normalize})
 until no further changes occur.  Usually only two iterations are
-needed:@: one to simplify the formula, and another to verify that no
+needed: one to simplify the formula, and another to verify that no
 further simplifications were possible.
 @end defun
 
@@ -35584,6 +35694,17 @@ have different dimensions. The default value of @code{calc-ensure-consistent-uni
 is @code{nil}.
 @end defvar
 
+@defvar calc-allow-units-as-numbers
+When converting units, the variable @code{calc-allow-units-as-numbers}
+determines whether or not values which can be simplified so that
+they don't contain units (such as @samp{ft/in} can be simplified to 12)
+can be regarded as not containing units.  If 
+@code{calc-allow-units-as-numbers} is non-@code{nil}, then @kbd{u c}
+will prompt for both old units and new units when converting an expression
+like @samp{ft/in}, otherwise @kbd{u c} will only prompt for the new units.
+The default value of @code{calc-allow-units-as-numbers} is @code{t}.
+@end defvar
+
 @defvar calc-undo-length
 The variable @code{calc-undo-length} determines the number of undo
 steps that Calc will keep track of when @code{calc-quit} is called.
@@ -35591,6 +35712,20 @@ If @code{calc-undo-length} is a non-negative integer, then this is the
 number of undo steps that will be preserved; if
 @code{calc-undo-length} has any other value, then all undo steps will
 be preserved.  The default value of @code{calc-undo-length} is @expr{100}.
+@end defvar
+
+@defvar calc-gregorian-switch
+See @ref{Date Forms}.@*
+The variable @code{calc-gregorian-switch} is either a list of integers
+@code{(@var{YEAR} @var{MONTH} @var{DAY})} or @code{nil}.
+If it is @code{nil}, then Calc's date forms always represent Gregorian dates.
+Otherwise, @code{calc-gregorian-switch} represents the date that the
+calendar switches from Julian dates to Gregorian dates;
+@code{(@var{YEAR} @var{MONTH} @var{DAY})} will be the first Gregorian
+date.  The customization buffer will offer several standard dates to
+choose from, or the user can enter their own date.
+
+The default value of @code{calc-gregorian-switch} is @code{nil}.
 @end defvar
 
 @node Reporting Bugs, Summary, Customizing Calc, Top
@@ -36630,7 +36765,7 @@ time zone number or name from the top of the stack.  @xref{Time Zones}.
 
 @c 17
 @item
-A prefix argument specifies a day number (0-6, 0-31, or 0-366).
+A prefix argument specifies a day number (0--6, 0--31, or 0--366).
 
 @c 18
 @item

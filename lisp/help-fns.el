@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -76,7 +76,7 @@ DEF is the function whose usage we're looking for in DOCSTRING."
   (when (and docstring (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring))
     (cons (format "(%s%s"
 		  ;; Replace `fn' with the actual function name.
-		  (if (consp def) "anonymous" def)
+		  (if (symbolp def) def "anonymous")
 		  (match-string 1 docstring))
 	  (unless (zerop (match-beginning 0))
             (substring docstring 0 (match-beginning 0))))))
@@ -336,11 +336,15 @@ suitable file is found, return nil."
       ;; If we don't have a file-name string by now, we lost.
       nil)
      ;; Now, `file-name' should have become an absolute file name.
-     ;; For files loaded from ~/.emacs.elc, try ~/.emacs.
+     ;; For files loaded from ~/.foo.elc, try ~/.foo.
+     ;; This applies to config files like ~/.emacs,
+     ;; which people sometimes compile.
      ((let (fn)
-	(and (string-equal file-name
-			   (expand-file-name ".emacs.elc" "~"))
-	     (file-readable-p (setq fn (expand-file-name ".emacs" "~")))
+	(and (string-match "\\`\\..*\\.elc\\'"
+			   (file-name-nondirectory file-name))
+	     (string-equal (file-name-directory file-name)
+			   (file-name-as-directory (expand-file-name "~")))
+	     (file-readable-p (setq fn (file-name-sans-extension file-name)))
 	     fn)))
      ;; When the Elisp source file can be found in the install
      ;; directory, return the name of that file.
@@ -789,7 +793,7 @@ it is displayed along with the global value."
 	      (cond
                ((bufferp locus)
                 (princ (format "Local in buffer %s; "
-                               (buffer-name))))
+                               (buffer-name buffer))))
                ((framep locus)
                 (princ (format "It is a frame-local variable; ")))
                ((terminal-live-p locus)

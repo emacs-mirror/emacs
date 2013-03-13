@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -198,7 +198,7 @@
 ;; Variables
 
 (defconst artist-version "1.2.6")
-(defconst artist-maintainer-address "tab@lysator.liu.se")
+(defconst artist-maintainer-address "tab@lysator.liu.se, bug-gnu-emacs@gnu.org")
 
 (defvar x-pointer-crosshair)
 

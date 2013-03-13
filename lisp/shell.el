@@ -1,6 +1,7 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1997, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -561,10 +562,8 @@ buffer."
   ;; very inefficient in Shell buffers (e.g. Bug#10835).  We use a
   ;; custom `ansi-color-apply-face-function' to convert color escape
   ;; sequences into `font-lock-face' properties.
-  (set (make-local-variable 'ansi-color-apply-face-function)
-       (lambda (beg end face)
-	 (when face
-	   (put-text-property beg end 'font-lock-face face))))
+  (setq-local ansi-color-apply-face-function #'shell-apply-ansi-color)
+  (shell-reapply-ansi-color)
 
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
@@ -602,6 +601,27 @@ buffer."
         (add-hook 'comint-preoutput-filter-functions
                   'shell-filter-ctrl-a-ctrl-b nil t)))
     (comint-read-input-ring t)))
+
+(defun shell-apply-ansi-color (beg end face)
+  "Apply FACE as the ansi-color face for the text between BEG and END."
+  (when face
+    (put-text-property beg end 'ansi-color-face face)
+    (put-text-property beg end 'font-lock-face face)))
+
+(defun shell-reapply-ansi-color ()
+  "Reapply ansi-color faces to the existing contents of the buffer."
+  (save-restriction
+    (widen)
+    (let* ((pos (point-min))
+	   (end (or (next-single-property-change pos 'ansi-color-face)
+		    (point-max)))
+	   face)
+      (while end
+	(if (setq face (get-text-property pos 'ansi-color-face))
+	    (put-text-property pos (or end (point-max))
+			       'font-lock-face face))
+	(setq pos end
+	      end (next-single-property-change pos 'ansi-color-face))))))
 
 (defun shell-filter-ctrl-a-ctrl-b (string)
   "Remove `^A' and `^B' characters from comint output.
@@ -671,7 +691,12 @@ Otherwise, one argument `-i' is passed to the shell.
     (and current-prefix-arg
 	 (prog1
 	     (read-buffer "Shell buffer: "
-			  (generate-new-buffer-name "*shell*"))
+			  ;; If the current buffer is an inactive
+			  ;; shell buffer, use it as the default.
+			  (if (and (eq major-mode 'shell-mode)
+				   (null (get-buffer-process (current-buffer))))
+			      (buffer-name)
+			    (generate-new-buffer-name "*shell*")))
 	   (if (file-remote-p default-directory)
 	       ;; It must be possible to declare a local default-directory.
                ;; FIXME: This can't be right: it changes the default-directory

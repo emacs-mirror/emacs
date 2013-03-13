@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t; coding: utf-8 -*-
 ;;
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -124,7 +124,10 @@ and also to avoid outputting the warning during normal execution."
          (macroexp--funcall-if-compiled ',when-compiled)
          ,form))
      (t
-      (message "%s" msg)
+      (message "%s%s" (if (stringp load-file-name)
+                          (concat (file-relative-name load-file-name) ": ")
+                        "")
+               msg)
       form))))
 
 (defun macroexp--obsolete-warning (fun obsolescence-data type)
@@ -154,11 +157,16 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (if (and (not (eq form new-form)) ;It was a macro call.
                      (car-safe form)
                      (symbolp (car form))
-                     (get (car form) 'byte-obsolete-info))
+                     (get (car form) 'byte-obsolete-info)
+                     (or (not (fboundp 'byte-compile-warning-enabled-p))
+                         (byte-compile-warning-enabled-p 'obsolete)))
                 (let* ((fun (car form))
                        (obsolete (get fun 'byte-obsolete-info)))
                   (macroexp--warn-and-return
-                   (macroexp--obsolete-warning fun obsolete "macro")
+                   (macroexp--obsolete-warning
+                    fun obsolete
+                    (if (symbolp (symbol-function fun))
+                        "alias" "macro"))
                    new-form))
               new-form)))
     (pcase form

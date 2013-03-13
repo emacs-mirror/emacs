@@ -1,6 +1,6 @@
 ;;; srecode/srt-mode.el --- Major mode for writing screcode macros
 
-;; Copyright (C) 2005, 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -189,8 +189,8 @@ we can tell font lock about them.")
 ;;;###autoload
 (define-derived-mode srecode-template-mode fundamental-mode "SRecorder"
   "Major-mode for writing SRecode macros."
-  (setq comment-start ";;"
-	comment-end "")
+  (set (make-local-variable 'comment-start) ";;")
+  (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start-skip)
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")

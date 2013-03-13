@@ -1,3 +1,224 @@
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer UTF-8 for documentation.
+	With GNU Texinfo 5.0, this generates nicer-looking info files,
+	since they can use curly quotes.  With older Texinfo it doesn't matter.
+	* ack.texi, cal-xtra.texi, calendar.texi, emacs-xtra.texi, emacs.texi:
+	Switch from Latin-1 to UTF-8.
+
+2013-02-28  Bastien Guerry  <bzg@gnu.org>
+
+	* xresources.texi (GTK resources): Fix broken link.
+
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Interlocking): Don't refer to symlinks as the
+	exclusive means of locking files.
+
+2013-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Small updates.
+
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Conveniences): Not just GIFs can be animated.
+
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Don't mention yow any more.
+
+2013-02-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* cmdargs.texi (General Variables):
+	Fix TMPDIR documentation to match the code's behavior.
+
+2013-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Checklist): Update bug keybinding.
+
+2013-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Text and Binary): Delete the description of
+	file-name-buffer-file-type-alist.
+
+2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* trouble.texi (Crashing): Suggest -p for newer addr2line.  (Bug#13445)
+	Without it, I don't see function names.  Older addr2line
+	implementations will die out sooner or later, so tailor the
+	first suggestion to recent addr2line, with a followup about
+	older ones.
+
+2013-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Directory Variables): Fix paren typo.
+
+	* trouble.texi (Crashing): Not all addr2line have -p.  (Bug#13445)
+
+	* custom.texi (Custom Themes): Fix typo.
+
+2013-01-07  Bastien Guerry  <bzg@gnu.org>
+
+	* help.texi (Apropos): Document `apropos-user-option' and update
+	the doc for `apropos-variable'.
+
+2013-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (HTML Mode): Remove deleted nxml C-RET binding.
+
+2012-12-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-xtra.texi (copying): The FSF does not sell copies of this.
+	Simply include doclicense.
+
+2012-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Mouse Commands): Fix description of the effect of
+	mouse dragging (Bug#13049).
+
+2012-12-15  Juri Linkov  <juri@jurta.org>
+
+	* misc.texi (Recursive Edit): Add a link to "Query Replace".
+	(Bug#13181)
+
+2012-12-10  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* killing.texi (Deletion): Doc fix (Bug#12748).
+
+2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-12-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc1-xtra.texi (General VC Options): Remove obsolete reference
+	to `vc-path'.
+
+2012-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Init Rebinding): kbd is now a function (Bug#13052).
+
+2012-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* maintaining.texi (Tag Syntax): Mention (defvar foo) handling.
+
+2012-12-01  Kevin Ryde  <user42@zip.com.au>
+
+	* maintaining.texi (Tag Syntax): Mention Perl's "use constant".
+
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-11-21  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* display.texi (Auto Scrolling): Fix some inaccuracies, plus
+	clarifications (Bug#12865).
+	(Horizontal Scrolling): Clarifications.
+
+2012-11-18  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* mark.texi (Disabled Transient Mark): Doc fixes (Bug#12746).
+
+2012-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* trouble.texi (Crashing): Add information about MS-Windows and
+	the emacs_backtrace.txt file.  (Bug#12908)
+
+2012-11-13  Chong Yidong  <cyd@gnu.org>
+
+	* building.texi (Multithreaded Debugging): gdb-stopped-hooks is
+	actually named gdb-stopped-functions.
+
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Single Shell): Mention async-shell-command-buffer.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Terminal emulator): Rename `term-face' to `term'.
+
+	* emacs.texi (Acknowledgments): Add profiler author.
+	* ack.texi (Acknowledgments): Add some recent contributions.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Diff Mode): Doc fixes for
+	diff-delete-trailing-whitespace (Bug#12831).
+
+	* trouble.texi (Crashing): Copyedits.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Diff Mode): Trailing whitespace updates.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* misc.texi (Terminal emulator): Document Term mode faces.
+
+	* mini.texi (Basic Minibuffer): New node.  Document
+	minibuffer-electric-default-mode.
+
+	* display.texi (Visual Line Mode): Fix index entry.
+
+	* buffers.texi (Several Buffers): List Buffer Menu command anmes,
+	and index the keybindings.  Document tabulated-list-sort.
+	(Kill Buffer): Capitalize Buffer Menu.
+
+	* trouble.texi (Memory Full): Capitalize Buffer Menu.
+
+2012-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): Clarify that scroll-step is
+	ignored when scroll-conservatively is set to a non-zero value.
+	(Bug#12801)
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Dired Updating): Doc fix (Bug#11744).
+
+2012-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trouble.texi (Known Problems): Mention command `debbugs-gnu-usertags'.
+
+2012-10-29  Chong Yidong  <cyd@gnu.org>
+
+	* dired.texi (Shell Commands in Dired): Document changes to the
+	dired-do-async-shell-command.
+
+2012-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Mention gv.el.
+
+2012-10-27  Bastien Guerry  <bzg@gnu.org>
+
+	* screen.texi (Menu Bar): Fix typo.
+
+2012-10-27  Chong Yidong  <cyd@gnu.org>
+
+	* frames.texi (Mouse Avoidance): Mention new variable
+	mouse-avoidance-banish-position.
+
+	* programs.texi (Which Function): Which Function mode now works in
+	all major modes by default.
+
+	* mule.texi (Recognize Coding): Remove an unreferenced vindex.
+
+	* files.texi (Misc File Ops): Symbolic links on Windows only work
+	on Vista and later.
+
+	* building.texi (Compilation): Document compilation-always-kill.
+
+	* search.texi (Symbol Search): New node.
+
+	* package.texi (Package Menu): Document the "new" status.
+
+	* windows.texi (Window Choice): Don't refer to the obsolete
+	special-display feature.
+
 2012-10-24  Chong Yidong  <cyd@gnu.org>
 
 	* mule.texi (Text Coding): set-buffer-file-coding-system can now
@@ -9561,7 +9782,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

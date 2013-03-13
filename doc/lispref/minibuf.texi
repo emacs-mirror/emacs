@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
 @chapter Minibuffers
@@ -772,7 +772,7 @@ too short).  Both of those begin with the string @samp{foobar}.
 This function returns a list of all possible completions of
 @var{string}.  The arguments to this function
 @c (aside from @var{nospace})
-are the same as those of @code{try-completion}, and it 
+are the same as those of @code{try-completion}, and it
 uses @code{completion-regexp-list} in the same way that
 @code{try-completion} does.
 
@@ -885,6 +885,26 @@ Here is an example:
 (defvar foo (lazy-completion-table foo make-my-alist))
 @end smallexample
 @end defmac
+
+@c FIXME?  completion-table-with-context?
+@findex completion-table-case-fold
+@findex completion-table-in-turn
+@findex completion-table-subvert
+@findex completion-table-with-quoting
+@findex completion-table-with-predicate
+@findex completion-table-with-terminator
+@cindex completion table, modifying
+@cindex completion tables, combining
+There are several functions that take an existing completion table and
+return a modified version.  @code{completion-table-case-fold} returns
+a case-insensitive table.  @code{completion-table-in-turn} combines
+multiple input tables.  @code{completion-table-subvert} alters a table
+to use a different initial prefix.  @code{completion-table-with-quoting}
+returns a table suitable for operating on quoted text.
+@code{completion-table-with-predicate} filters a table with a
+predicate function.  @code{completion-table-with-terminator} adds a
+terminating string.
+
 
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
@@ -1218,11 +1238,9 @@ Buffer name (default foo): @point{}
 @end defun
 
 @defopt read-buffer-function
-This variable specifies how to read buffer names.  The function is
-called with the arguments passed to @code{read-buffer}.  For example,
-if you set this variable to @code{iswitchb-read-buffer}, all Emacs
-commands that call @code{read-buffer} to read a buffer name will
-actually use the @code{iswitchb} package to read it.
+This variable, if non-@code{nil}, specifies a function for reading
+buffer names.  @code{read-buffer} calls this function instead of doing
+its usual work, with the same arguments passed to @code{read-buffer}.
 @end defopt
 
 @defopt read-buffer-completion-ignore-case
@@ -1581,7 +1599,7 @@ and @var{predicate} arguments have the same meanings as in
 @code{try-completion} (@pxref{Basic Completion}), and the @var{point}
 argument is the position of point within @var{string}.  Each function
 should return a non-@code{nil} value if it performed its job, and
-@code{nil} if it did not (e.g.@: if there is no way to complete
+@code{nil} if it did not (e.g., if there is no way to complete
 @var{string} according to the completion style).
 
 When the user calls a completion command like
@@ -1712,8 +1730,9 @@ string, and @var{end} is the position of the end boundary in
 
 @item metadata
 This specifies a request for information about the state of the
-current completion.  The function should return an alist, as described
-below.  The alist may contain any number of elements.
+current completion.  The return value should have the form
+@code{(metadata . @var{alist})}, where @var{alist} is an alist whose
+elements are described below.
 @end table
 
 @noindent

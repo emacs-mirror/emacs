@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -178,7 +178,7 @@ when editing big diffs)."
     ["Unified -> Context"	diff-unified->context
      :help "Convert unified diffs to context diffs"]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
-    ["Remove trailing whitespace" diff-remove-trailing-whitespace
+    ["Remove trailing whitespace" diff-delete-trailing-whitespace
      :help "Remove trailing whitespace problems introduced by the diff"]
     ["Show trailing whitespace" whitespace-mode
      :style toggle :selected (bound-and-true-p whitespace-mode)
@@ -478,11 +478,13 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
         (let* ((nold (string-to-number (or (match-string 2) "1")))
                (nnew (string-to-number (or (match-string 4) "1")))
                (endold
-        (save-excursion
-          (re-search-forward (if diff-valid-unified-empty-line
-                                 "^[- \n]" "^[- ]")
+                (save-excursion
+                  (re-search-forward (if diff-valid-unified-empty-line
+                                         "^[- \n]" "^[- ]")
                                      nil t nold)
-                  (line-beginning-position 2)))
+                  (line-beginning-position
+                   ;; Skip potential "\ No newline at end of file".
+                   (if (looking-at ".*\n\\\\") 3 2))))
                (endnew
                 ;; The hunk may end with a bunch of "+" lines, so the `end' is
                 ;; then further than computed above.
@@ -490,7 +492,9 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
                   (re-search-forward (if diff-valid-unified-empty-line
                                          "^[+ \n]" "^[+ ]")
                                      nil t nnew)
-                  (line-beginning-position 2))))
+                  (line-beginning-position
+                   ;; Skip potential "\ No newline at end of file".
+                   (if (looking-at ".*\n\\\\") 3 2)))))
           (setq end (max endold endnew)))))
     ;; We may have a first evaluation of `end' thanks to the hunk header.
     (unless end
@@ -571,19 +575,21 @@ next hunk if TRY-HARDER is non-nil; otherwise signal an error."
 (easy-mmode-define-navigation
  diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
  (when diff-auto-refine-mode
-   (setq diff--auto-refine-data (cons (current-buffer) (point-marker)))
-   (run-at-time 0.0 nil
-                (lambda ()
-                  (when diff--auto-refine-data
-                    (let ((buffer (car diff--auto-refine-data))
-                          (point (cdr diff--auto-refine-data)))
-                      (setq diff--auto-refine-data nil)
-                      (with-local-quit
-                        (when (buffer-live-p buffer)
-                          (with-current-buffer buffer
-                            (save-excursion
-                              (goto-char point)
-                              (diff-refine-hunk)))))))))))
+   (unless (prog1 diff--auto-refine-data
+             (setq diff--auto-refine-data
+                   (cons (current-buffer) (point-marker))))
+     (run-at-time 0.0 nil
+                  (lambda ()
+                    (when diff--auto-refine-data
+                      (let ((buffer (car diff--auto-refine-data))
+                            (point (cdr diff--auto-refine-data)))
+                        (setq diff--auto-refine-data nil)
+                        (with-local-quit
+                          (when (buffer-live-p buffer)
+                            (with-current-buffer buffer
+                              (save-excursion
+                                (goto-char point)
+                                (diff-refine-hunk))))))))))))
 
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-file)
@@ -815,9 +821,11 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 		       (progn (diff-hunk-prev) (point))
 		     (error (point-min)))))
 	  (header-files
-	   (if (looking-at "[-*][-*][-*] \\(\\S-+\\)\\(\\s-.*\\)?\n[-+][-+][-+] \\(\\S-+\\)")
-	       (list (if old (match-string 1) (match-string 3))
-		     (if old (match-string 3) (match-string 1)))
+           ;; handle filenames with spaces;
+           ;; cf. diff-font-lock-keywords / diff-file-header-face
+	   (if (looking-at "[-*][-*][-*] \\([^\t]+\\)\t.*\n[-+][-+][-+] \\([^\t]+\\)")
+	       (list (if old (match-string 1) (match-string 2))
+		     (if old (match-string 2) (match-string 1)))
 	     (forward-line 1) nil)))
       (delq nil
 	    (append
@@ -826,6 +834,7 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 			  (re-search-backward "^Index: \\(.+\\)" limit t)))
 	       (list (match-string 1)))
 	     header-files
+             ;; this assumes that there are no spaces in filenames
 	     (when (re-search-backward
 		    "^diff \\(-\\S-+ +\\)*\\(\\S-+\\)\\( +\\(\\S-+\\)\\)?"
 		    nil t)
@@ -907,7 +916,7 @@ PREFIX is only used internally: don't use it."
   "Convert unified diffs to context diffs.
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole buffer."
-  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+  (interactive (if (or current-prefix-arg (use-region-p))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (unless (markerp end) (setq end (copy-marker end t)))
@@ -1031,7 +1040,7 @@ else cover the whole buffer."
 START and END are either taken from the region
 \(when it is highlighted) or else cover the whole buffer.
 With a prefix argument, convert unified format to context format."
-  (interactive (if (and transient-mark-mode mark-active)
+  (interactive (if (use-region-p)
 		   (list (region-beginning) (region-end) current-prefix-arg)
 		 (list (point-min) (point-max) current-prefix-arg)))
   (if to-context
@@ -1041,7 +1050,7 @@ With a prefix argument, convert unified format to context format."
           (inhibit-read-only t))
       (save-excursion
         (goto-char start)
-        (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)$" nil t)
+        (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)\\(?: \\(.*\\)\\|$\\)" nil t)
                     (< (point) end))
           (combine-after-change-calls
             (if (match-beginning 2)
@@ -1057,7 +1066,9 @@ With a prefix argument, convert unified format to context format."
                     ;; Variables to use the special undo function.
                     (old-undo buffer-undo-list)
                     (old-end (marker-position end))
-                    (reversible t))
+                    ;; We currently throw away the comment that can follow
+                    ;; the hunk header.  FIXME: Preserve it instead!
+                    (reversible (not (match-end 6))))
                 (replace-match "")
                 (unless (re-search-forward
                          diff-context-mid-hunk-header-re nil t)
@@ -1127,7 +1138,7 @@ With a prefix argument, convert unified format to context format."
   "Reverse the direction of the diffs.
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole buffer."
-  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+  (interactive (if (or current-prefix-arg (use-region-p))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (unless (markerp end) (setq end (copy-marker end t)))
@@ -1193,7 +1204,7 @@ else cover the whole buffer."
   "Fixup the hunk headers (in case the buffer was modified).
 START and END are either taken from the region (if a prefix arg is given) or
 else cover the whole buffer."
-  (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
+  (interactive (if (or current-prefix-arg (use-region-p))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
   (let ((inhibit-read-only t))
@@ -1290,7 +1301,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
                           (re-search-forward diff-context-mid-hunk-header-re
                                              nil t)))))
           (when (and ;; Don't try to fixup changes in the hunk header.
-                 (> (car diff-unhandled-changes) start)
+                 (>= (car diff-unhandled-changes) start)
                  ;; Don't try to fixup changes in the mid-hunk header either.
                  (or (not mid)
                      (< (cdr diff-unhandled-changes) (match-beginning 0))
@@ -1972,8 +1983,13 @@ For use in `add-log-current-defun-function'."
       (goto-char beg)
       (pcase style
         (`unified
-         (while (re-search-forward "^\\(?:-.*\n\\)+\\(\\)\\(?:\\+.*\n\\)+"
-                                   end t)
+         (while (re-search-forward
+                 (eval-when-compile
+                   (let ((no-LF-at-eol-re "\\(?:\\\\.*\n\\)?"))
+                     (concat "^\\(?:-.*\n\\)+" no-LF-at-eol-re
+                             "\\(\\)"
+                             "\\(?:\\+.*\n\\)+" no-LF-at-eol-re)))
+                 end t)
            (smerge-refine-subst (match-beginning 0) (match-end 1)
                                 (match-end 1) (match-end 0)
                                 nil 'diff-refine-preproc props-r props-a)))
@@ -2037,35 +2053,71 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
       ;; When there's no more hunks, diff-hunk-next signals an error.
       (error nil))))
 
-(defun diff-remove-trailing-whitespace ()
-  "When on a buffer that contains a diff, inspects the
-differences and removes trailing whitespace (spaces, tabs) from
-the lines modified or introduced by this diff. Shows a message
-with the name of the altered buffers, which are unsaved.  If a
-file referenced on the diff has no buffer and needs to be fixed,
-a buffer visiting that file is created."
-  (interactive)
-  ;; We assume that the diff header has no trailing whitespace.
-  (let ((modified-buffers nil))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward "^[+!>].*[ \t]+$" (point-max) t)
-        (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,_switched)
-                     (diff-find-source-location t t)))
-          (when line-offset
-            (with-current-buffer buf
-              (save-excursion
-                (goto-char (+ (car pos) (cdr src)))
-                (beginning-of-line)
-                (when (re-search-forward "\\([ \t]+\\)$" (line-end-position) t)
-                  (unless (memq buf modified-buffers)
-                    (push buf modified-buffers))
-                  (replace-match ""))))))))
-    (if modified-buffers
-        (message "Deleted new trailing whitespace from: %s"
-                 (mapconcat (lambda (buf) (concat "`" (buffer-name buf) "'"))
-                            modified-buffers " "))
-      (message "No trailing whitespace fixes needed."))))
+(defun diff-delete-trailing-whitespace (&optional other-file)
+  "Remove trailing whitespace from lines modified in this diff.
+This edits both the current Diff mode buffer and the patched
+source file(s).  If `diff-jump-to-old-file' is non-nil, edit the
+original (unpatched) source file instead.  With a prefix argument
+OTHER-FILE, flip the choice of which source file to edit.
+
+If a file referenced in the diff has no buffer and needs to be
+fixed, visit it in a buffer."
+  (interactive "P")
+  (save-excursion
+    (goto-char (point-min))
+    (let* ((other (diff-xor other-file diff-jump-to-old-file))
+  	   (modified-buffers nil)
+  	   (style (save-excursion
+  	   	    (when (re-search-forward diff-hunk-header-re nil t)
+  	   	      (goto-char (match-beginning 0))
+  	   	      (diff-hunk-style))))
+  	   (regexp (concat "^[" (if other "-<" "+>") "!]"
+  	   		   (if (eq style 'context) " " "")
+  	   		   ".*?\\([ \t]+\\)$"))
+	   (inhibit-read-only t)
+	   (end-marker (make-marker))
+	   hunk-end)
+      ;; Move to the first hunk.
+      (re-search-forward diff-hunk-header-re nil 1)
+      (while (progn (save-excursion
+		      (re-search-forward diff-hunk-header-re nil 1)
+		      (setq hunk-end (point)))
+		    (< (point) hunk-end))
+	;; For context diffs, search only in the appropriate half of
+	;; the hunk.  For other diffs, search within the entire hunk.
+  	(if (not (eq style 'context))
+  	    (set-marker end-marker hunk-end)
+  	  (let ((mid-hunk
+  		 (save-excursion
+  		   (re-search-forward diff-context-mid-hunk-header-re hunk-end)
+  		   (point))))
+  	    (if other
+  		(set-marker end-marker mid-hunk)
+  	      (goto-char mid-hunk)
+  	      (set-marker end-marker hunk-end))))
+	(while (re-search-forward regexp end-marker t)
+	  (let ((match-data (match-data)))
+	    (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,_switched)
+			 (diff-find-source-location other-file)))
+	      (when line-offset
+		;; Remove the whitespace in the Diff mode buffer.
+		(set-match-data match-data)
+		(replace-match "" t t nil 1)
+		;; Remove the whitespace in the source buffer.
+		(with-current-buffer buf
+		  (save-excursion
+		    (goto-char (+ (car pos) (cdr src)))
+		    (beginning-of-line)
+		    (when (re-search-forward "\\([ \t]+\\)$" (line-end-position) t)
+		      (unless (memq buf modified-buffers)
+			(push buf modified-buffers))
+		      (replace-match ""))))))))
+	(goto-char hunk-end))
+      (if modified-buffers
+	  (message "Deleted trailing whitespace from %s."
+		   (mapconcat (lambda (buf) (concat "`" (buffer-name buf) "'"))
+			      modified-buffers ", "))
+	(message "No trailing whitespace to delete.")))))
 
 ;; provide the package
 (provide 'diff-mode)

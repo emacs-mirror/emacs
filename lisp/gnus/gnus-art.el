@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1121,8 +1121,8 @@ parts.  When nil, redisplay article."
 	   (const :tag "Header" head)))
 
 (defvar gnus-article-treat-types '("text/plain" "text/x-verbatim"
-				   "text/x-patch")
-  "Parts to treat.")
+				   "text/x-patch" "text/html")
+  "Part types eligible for treatment.")
 
 (defvar gnus-inhibit-treatment nil
   "Whether to inhibit treatment.")
@@ -2718,7 +2718,7 @@ If READ-CHARSET, ask for a coding system."
       (while (re-search-forward
 	      "\\(\\(https?\\|ftp\\)://\\S-+\\) *\n\\(\\S-+\\)" nil t)
 	(replace-match "\\1\\3" t)))
-    (when (interactive-p)
+    (when (gmm-called-interactively-p 'any)
       (gnus-treat-article nil))))
 
 (defun article-wash-html ()
@@ -2877,21 +2877,23 @@ message header will be added to the bodies of the \"text/html\" parts."
 	     ;; Add a meta html tag to specify charset and a header.
 	     (cond
 	      (header
-	       (let (title eheader body hcharset coding force-charset)
+	       (let (title eheader body hcharset coding)
 		 (with-temp-buffer
 		   (mm-enable-multibyte)
 		   (setq case-fold-search t)
 		   (insert header "\n")
 		   (setq title (message-fetch-field "subject"))
 		   (goto-char (point-min))
-		   (while (re-search-forward "\\(<\\)\\|\\(>\\)\\|&" nil t)
+		   (while (re-search-forward "\\(<\\)\\|\\(>\\)\\|\\(&\\)\\|\n"
+					     nil t)
 		     (replace-match (cond ((match-beginning 1) "&lt;")
 					  ((match-beginning 2) "&gt;")
-					  (t "&amp;"))))
+					  ((match-beginning 3) "&amp;")
+					  (t "<br>\n"))))
 		   (goto-char (point-min))
-		   (insert "<pre>\n")
+		   (insert "<div align=\"left\">\n")
 		   (goto-char (point-max))
-		   (insert "</pre>\n<hr>\n")
+		   (insert "</div>\n<hr>\n")
 		   ;; We have to examine charset one by one since
 		   ;; charset specified in parts might be different.
 		   (if (eq charset 'gnus-decoded)
@@ -2900,8 +2902,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 							      charset)
 			     title (when title
 				     (mm-encode-coding-string title charset))
-			     body (mm-encode-coding-string content charset)
-			     force-charset t)
+			     body (mm-encode-coding-string content charset))
 		     (setq hcharset (mm-find-mime-charset-region (point-min)
 								 (point-max)))
 		     (cond ((= (length hcharset) 1)
@@ -2932,8 +2933,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 				       body (mm-encode-coding-string
 					     (mm-decode-coding-string
 					      content body)
-					     charset)
-				       force-charset t)))
+					     charset))))
 			   (setq charset hcharset
 				 eheader (mm-encode-coding-string
 					  (buffer-string) coding)
@@ -2947,7 +2947,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 		   (mm-disable-multibyte)
 		   (insert body)
 		   (when charset
-		     (mm-add-meta-html-tag handle charset force-charset))
+		     (mm-add-meta-html-tag handle charset t))
 		   (when title
 		     (goto-char (point-min))
 		     (unless (search-forward "<title>" nil t)
@@ -4361,6 +4361,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
 (gnus-define-keys gnus-article-mode-map
   " " gnus-article-goto-next-page
+  [?\S-\ ] gnus-article-goto-prev-page
   "\177" gnus-article-goto-prev-page
   [delete] gnus-article-goto-prev-page
   [backspace] gnus-article-goto-prev-page
@@ -4539,18 +4540,17 @@ commands:
 	    (gnus-article-mode))
 	  (setq truncate-lines gnus-article-truncate-lines)
 	  (current-buffer))
-      (with-current-buffer (gnus-get-buffer-create name)
-	(gnus-article-mode)
-	(setq truncate-lines gnus-article-truncate-lines)
-	(make-local-variable 'gnus-summary-buffer)
-	(setq gnus-summary-buffer
-	      (gnus-summary-buffer-name gnus-newsgroup-name))
-	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(when article-lapsed-timer
-	  (gnus-stop-date-timer))
-	(when gnus-article-update-date-headers
-	  (gnus-start-date-timer gnus-article-update-date-headers))
-	(current-buffer)))))
+      (let ((summary gnus-summary-buffer))
+	(with-current-buffer (gnus-get-buffer-create name)
+	  (gnus-article-mode)
+	  (setq truncate-lines gnus-article-truncate-lines)
+	  (set (make-local-variable 'gnus-summary-buffer) summary)
+	  (gnus-summary-set-local-parameters gnus-newsgroup-name)
+	  (when article-lapsed-timer
+	    (gnus-stop-date-timer))
+	  (when gnus-article-update-date-headers
+	    (gnus-start-date-timer gnus-article-update-date-headers))
+	  (current-buffer))))))
 
 (defun gnus-article-stop-animations ()
   (dolist (timer (and (boundp 'timer-list)
@@ -8689,9 +8689,7 @@ For example:
 	     gnus-mime-security-button-end-line-format))
 	(gnus-insert-mime-security-button handle)))
     (mm-set-handle-multipart-parameter
-     handle 'gnus-region
-     (cons (set-marker (make-marker) (point-min))
-	   (set-marker (make-marker) (point-max))))
+     handle 'gnus-region (cons (point-min-marker) (point-max-marker)))
     (goto-char (point-max))))
 
 (defun gnus-mime-security-run-function (function)

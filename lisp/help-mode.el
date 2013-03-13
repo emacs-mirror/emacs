@@ -1,7 +1,7 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -322,7 +322,7 @@ Commands:
 
 (defconst help-xref-symbol-regexp
   (purecopy (concat "\\(\\<\\(\\(variable\\|option\\)\\|"  ; Link to var
- 		    "\\(function\\|command\\)\\|"          ; Link to function
+ 		    "\\(function\\|command\\|call\\)\\|"   ; Link to function
  		    "\\(face\\)\\|"			   ; Link to face
  		    "\\(symbol\\|program\\|property\\)\\|" ; Don't link
 		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
@@ -677,7 +677,8 @@ help buffer."
 		    " is also a " "face." "\n\n" facedoc))
 	  ;; Don't record the `describe-function' item in the stack.
 	  (setq help-xref-stack-item nil)
-	  (help-setup-xref (list #'help-xref-interned symbol) nil)))))))
+	  (help-setup-xref (list #'help-xref-interned symbol) nil))))
+      (goto-char (point-min)))))
 
 
 ;; Navigation/hyperlinking with xrefs

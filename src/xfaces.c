@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -314,16 +314,10 @@ static Lisp_Object QCfontset;
 Lisp_Object Qnormal;
 Lisp_Object Qbold;
 static Lisp_Object Qline, Qwave;
-static Lisp_Object Qultra_light, Qreverse_oblique, Qreverse_italic;
 Lisp_Object Qextra_light, Qlight;
 Lisp_Object Qsemi_light, Qsemi_bold, Qextra_bold, Qultra_bold;
 Lisp_Object Qoblique;
 Lisp_Object Qitalic;
-static Lisp_Object Qultra_condensed, Qextra_condensed;
-Lisp_Object Qcondensed;
-static Lisp_Object Qsemi_condensed, Qsemi_expanded, Qextra_expanded;
-Lisp_Object Qexpanded;
-static Lisp_Object Qultra_expanded;
 static Lisp_Object Qreleased_button, Qpressed_button;
 static Lisp_Object QCstyle, QCcolor, QCline_width;
 Lisp_Object Qunspecified;	/* used in dosfns.c */
@@ -669,23 +663,6 @@ x_free_gc (struct frame *f, GC gc)
 }
 #endif  /* HAVE_NS */
 
-/* If FRAME is nil, return a pointer to the selected frame.
-   Otherwise, check that FRAME is a live frame, and return a pointer
-   to it.  NPARAM is the parameter number of FRAME, for
-   CHECK_LIVE_FRAME.  This is here because it's a frequent pattern in
-   Lisp function definitions.  */
-
-static struct frame *
-frame_or_selected_frame (Lisp_Object frame, int nparam)
-{
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_LIVE_FRAME (frame);
-  return XFRAME (frame);
-}
-
-
 /***********************************************************************
 			   Frames and faces
  ***********************************************************************/
@@ -1204,15 +1181,9 @@ FRAME specifies the frame and thus the display for interpreting COLOR.
 If FRAME is nil or omitted, use the selected frame.  */)
   (Lisp_Object color, Lisp_Object frame)
 {
-  struct frame *f;
-
   CHECK_STRING (color);
-  if (NILP (frame))
-    frame = selected_frame;
-  else
-    CHECK_FRAME (frame);
-  f = XFRAME (frame);
-  return face_color_gray_p (f, SSDATA (color)) ? Qt : Qnil;
+  return (face_color_gray_p (decode_any_frame (frame), SSDATA (color))
+	  ? Qt : Qnil);
 }
 
 
@@ -1225,17 +1196,10 @@ If FRAME is nil or omitted, use the selected frame.
 COLOR must be a valid color name.  */)
   (Lisp_Object color, Lisp_Object frame, Lisp_Object background_p)
 {
-  struct frame *f;
-
   CHECK_STRING (color);
-  if (NILP (frame))
-    frame = selected_frame;
-  else
-    CHECK_FRAME (frame);
-  f = XFRAME (frame);
-  if (face_color_supported_p (f, SSDATA (color), !NILP (background_p)))
-    return Qt;
-  return Qnil;
+  return (face_color_supported_p (decode_any_frame (frame),
+				  SSDATA (color), !NILP (background_p))
+	  ? Qt : Qnil);
 }
 
 
@@ -1621,7 +1585,7 @@ the face font sort order.  */)
   for (i = nfonts - 1; i >= 0; --i)
     {
       Lisp_Object font = AREF (vec, i);
-      Lisp_Object v = Fmake_vector (make_number (8), Qnil);
+      Lisp_Object v = make_uninit_vector (8);
       int point;
       Lisp_Object spacing;
 
@@ -1683,9 +1647,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
   /* We can't simply call check_x_frame because this function may be
      called before any frame is created.  */
-  if (NILP (frame))
-    frame = selected_frame;
-  f = frame_or_selected_frame (frame, 2);
+  f = decode_live_frame (frame);
   if (! FRAME_WINDOW_P (f))
     {
       /* Perhaps we have not yet created any frame.  */
@@ -1693,6 +1655,8 @@ the WIDTH times as wide as FACE on FRAME.  */)
       frame = Qnil;
       face = Qnil;
     }
+  else
+    XSETFRAME (frame, f);
 
   /* Determine the width standard for comparison with the fonts we find.  */
 
@@ -2906,6 +2870,12 @@ FRAME 0 means change the face on all frames, and change the default
           Lisp_Object key, val, list;
 
           list = value;
+          /* FIXME?  This errs on the side of acceptance.  Eg it accepts:
+               (defface foo '((t :underline 'foo) "doc")
+             Maybe this is intentional, maybe it isn't.
+             Non-nil symbols other than t are not documented as being valid.
+             Eg compare with inverse-video, which explicitly rejects them.
+          */
           valid_p = 1;
 
           while (!NILP (CAR_SAFE(list)))
@@ -3679,20 +3649,11 @@ frame.  If FRAME is t, report on the defaults for face SYMBOL (for new
 frames).  If FRAME is omitted or nil, use the selected frame.  */)
   (Lisp_Object symbol, Lisp_Object keyword, Lisp_Object frame)
 {
-  Lisp_Object lface, value = Qnil;
+  struct frame *f = EQ (frame, Qt) ? NULL : decode_live_frame (frame);
+  Lisp_Object lface = lface_from_face_name (f, symbol, 1), value = Qnil;
 
   CHECK_SYMBOL (symbol);
   CHECK_SYMBOL (keyword);
-
-  if (EQ (frame, Qt))
-    lface = lface_from_face_name (NULL, symbol, 1);
-  else
-    {
-      if (NILP (frame))
-	frame = selected_frame;
-      CHECK_LIVE_FRAME (frame);
-      lface = lface_from_face_name (XFRAME (frame), symbol, 1);
-    }
 
   if (EQ (keyword, QCfamily))
     value = LFACE_FAMILY (lface);
@@ -3876,7 +3837,7 @@ return the font name used for CHARACTER.  */)
     }
   else
     {
-      struct frame *f = frame_or_selected_frame (frame, 1);
+      struct frame *f = decode_live_frame (frame);
       int face_id = lookup_named_face (f, face, 1);
       struct face *fface = FACE_FROM_ID (f, face_id);
 
@@ -3963,14 +3924,11 @@ If FRAME is omitted or nil, use the selected frame.  */)
   struct frame *f;
   Lisp_Object lface1, lface2;
 
-  if (EQ (frame, Qt))
-    f = NULL;
-  else
-    /* Don't use check_x_frame here because this function is called
-       before X frames exist.  At that time, if FRAME is nil,
-       selected_frame will be used which is the frame dumped with
-       Emacs.  That frame is not an X frame.  */
-    f = frame_or_selected_frame (frame, 2);
+  /* Don't use check_x_frame here because this function is called
+     before X frames exist.  At that time, if FRAME is nil,
+     selected_frame will be used which is the frame dumped with
+     Emacs.  That frame is not an X frame.  */
+  f = EQ (frame, Qt) ? NULL : decode_live_frame (frame);
 
   lface1 = lface_from_face_name (f, face1, 1);
   lface2 = lface_from_face_name (f, face2, 1);
@@ -3988,19 +3946,9 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.  */)
   (Lisp_Object face, Lisp_Object frame)
 {
-  struct frame *f;
-  Lisp_Object lface;
+  struct frame *f = EQ (frame, Qt) ? NULL : decode_live_frame (frame);
+  Lisp_Object lface = lface_from_face_name (f, face, 1);
   int i;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
-
-  if (EQ (frame, Qt))
-    lface = lface_from_face_name (NULL, face, 1);
-  else
-    lface = lface_from_face_name (f, face, 1);
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (!UNSPECIFIEDP (AREF (lface, i)))
@@ -4016,8 +3964,7 @@ DEFUN ("frame-face-alist", Fframe_face_alist, Sframe_face_alist,
 For internal use only.  */)
   (Lisp_Object frame)
 {
-  struct frame *f = frame_or_selected_frame (frame, 0);
-  return f->face_alist;
+  return decode_live_frame (frame)->face_alist;
 }
 
 
@@ -4205,13 +4152,8 @@ or lists of the form (RED GREEN BLUE).
 If FRAME is unspecified or nil, the current frame is used.  */)
   (Lisp_Object color1, Lisp_Object color2, Lisp_Object frame)
 {
-  struct frame *f;
+  struct frame *f = decode_live_frame (frame);
   XColor cdef1, cdef2;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
 
   if (!(CONSP (color1) && parse_rgb_list (color1, &cdef1))
       && !(STRINGP (color1) && defined_color (f, SSDATA (color1), &cdef1, 0)))
@@ -4935,6 +4877,8 @@ tty_supports_face_attributes_p (struct frame *f,
     {
       if (STRINGP (val))
 	return 0;		/* ttys can't use colored underlines */
+      else if (EQ (CAR_SAFE (val), QCstyle) && EQ (CAR_SAFE (CDR_SAFE (val)), Qwave))
+	return 0;		/* ttys can't use wave underlines */
       else if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
 	return 0;		/* same as default */
       else
@@ -5076,17 +5020,14 @@ face for italic.  */)
   else
     {
       /* Find any frame on DISPLAY.  */
-      Lisp_Object fl_tail;
+      Lisp_Object tail;
 
       frame = Qnil;
-      for (fl_tail = Vframe_list; CONSP (fl_tail); fl_tail = XCDR (fl_tail))
-	{
-	  frame = XCAR (fl_tail);
-	  if (!NILP (Fequal (Fcdr (Fassq (Qdisplay,
-					  XFRAME (frame)->param_alist)),
-			     display)))
-	    break;
-	}
+      FOR_EACH_FRAME (tail, frame)
+	if (!NILP (Fequal (Fcdr (Fassq (Qdisplay,
+					XFRAME (frame)->param_alist)),
+			   display)))
+	  break;
     }
 
   CHECK_LIVE_FRAME (frame);
@@ -5727,6 +5668,8 @@ realize_x_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE])
       face->underline_defaulted_p = 1;
       face->underline_type = FACE_UNDER_LINE;
 
+      /* FIXME?  This is also not robust about checking the precise form.
+         See comments in Finternal_set_lisp_face_attribute.  */
       while (CONSP (underline))
         {
           Lisp_Object keyword, value;
@@ -6209,7 +6152,7 @@ face_at_string_position (struct window *w, Lisp_Object string,
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   struct face *base_face;
-  int multibyte_p = STRING_MULTIBYTE (string);
+  bool multibyte_p = STRING_MULTIBYTE (string);
   Lisp_Object prop_name = mouse_p ? Qmouse_face : Qface;
 
   /* Get the value of the face property at the current position within
@@ -6509,7 +6452,6 @@ syms_of_xfaces (void)
   DEFSYM (Qreleased_button, "released-button");
   DEFSYM (Qpressed_button, "pressed-button");
   DEFSYM (Qnormal, "normal");
-  DEFSYM (Qultra_light, "ultra-light");
   DEFSYM (Qextra_light, "extra-light");
   DEFSYM (Qlight, "light");
   DEFSYM (Qsemi_light, "semi-light");
@@ -6519,16 +6461,6 @@ syms_of_xfaces (void)
   DEFSYM (Qultra_bold, "ultra-bold");
   DEFSYM (Qoblique, "oblique");
   DEFSYM (Qitalic, "italic");
-  DEFSYM (Qreverse_oblique, "reverse-oblique");
-  DEFSYM (Qreverse_italic, "reverse-italic");
-  DEFSYM (Qultra_condensed, "ultra-condensed");
-  DEFSYM (Qextra_condensed, "extra-condensed");
-  DEFSYM (Qcondensed, "condensed");
-  DEFSYM (Qsemi_condensed, "semi-condensed");
-  DEFSYM (Qsemi_expanded, "semi-expanded");
-  DEFSYM (Qexpanded, "expanded");
-  DEFSYM (Qextra_expanded, "extra-expanded");
-  DEFSYM (Qultra_expanded, "ultra-expanded");
   DEFSYM (Qbackground_color, "background-color");
   DEFSYM (Qforeground_color, "foreground-color");
   DEFSYM (Qunspecified, "unspecified");

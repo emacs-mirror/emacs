@@ -1,6 +1,6 @@
 ;;; semantic/symref/list.el --- Symref Output List UI.
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -69,7 +69,7 @@ current project to find references to the input SYM.  The
 references are organized by file and the name of the function
 they are used in.
 Display the references in `semantic-symref-results-mode'."
-  (interactive (list (semantic-tag-name (semantic-complete-read-tag-buffer-deep
+  (interactive (list (semantic-tag-name (semantic-complete-read-tag-project
 					 "Symrefs for: "))))
   (semantic-fetch-tags)
   (let ((res nil)

@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: FSF
@@ -354,7 +354,8 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; Return a string of CH with composition for padding on both sides.
 ;; It is displayed without overlapping with the left/right columns.
 (defsubst describe-char-padded-string (ch)
-  (if (internal-char-font nil ch)
+  (if (and (display-multi-font-p)
+	   (internal-char-font nil ch))
       (compose-string (string ch) 0 1 (format "\t%c\t" ch))
     (string ch)))
 
@@ -373,6 +374,8 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 			     c)))
 		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
+
+(declare-function quail-find-key "quail" (char))
 
 ;;;###autoload
 (defun describe-char (pos &optional buffer)
@@ -571,6 +574,9 @@ relevant to POS."
                         'help-echo
                         "mouse-2, RET: show this character in its character set")
                     str)))
+              ,@(let ((script (aref char-script-table char)))
+                  (if script
+                      (list (list "script" (symbol-name script)))))
               ("syntax"
                ,(let ((syntax (syntax-after pos)))
                   (with-temp-buffer

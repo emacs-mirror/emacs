@@ -1,6 +1,6 @@
 ;;; gnus-score.el --- scoring code for Gnus
 
-;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -33,6 +33,7 @@
 (require 'gnus-win)
 (require 'message)
 (require 'score-mode)
+(require 'gmm-utils)
 
 (defcustom gnus-global-score-files nil
   "List of global score files and directories.
@@ -1718,33 +1719,37 @@ score in `gnus-newsgroup-scored' by SCORE."
   nil)
 
 (defun gnus-score-decode-text-parts ()
-  (labels ((mm-text-parts (handle)
-                        (cond ((stringp (car handle))
-                               (let ((parts (mapcan #'mm-text-parts (cdr handle))))
-                                 (if (equal "multipart/alternative" (car handle))
-                                     ;; pick the first supported alternative
-                                     (list (car parts))
-                                   parts)))
+  (gmm-labels
+      ((mm-text-parts
+	(handle)
+	(cond ((stringp (car handle))
+	       (let ((parts (apply #'append
+				   (mapcar #'mm-text-parts (cdr handle)))))
+		 (if (equal "multipart/alternative" (car handle))
+		     ;; pick the first supported alternative
+		     (list (car parts))
+		   parts)))
 
-                              ((bufferp (car handle))
-                               (when (string-match "^text/" (mm-handle-media-type handle))
-                                 (list handle)))
+	      ((bufferp (car handle))
+	       (when (string-match "^text/" (mm-handle-media-type handle))
+		 (list handle)))
 
-                              (t (mapcan #'mm-text-parts handle))))
-           (my-mm-display-part (handle)
-                               (when handle
-                                 (save-restriction
-                                   (narrow-to-region (point) (point))
-                                   (mm-display-inline handle)
-                                   (goto-char (point-max))))))
+	      (t (apply #'append (mapcar #'mm-text-parts handle)))))
+       (my-mm-display-part
+	(handle)
+	(when handle
+	  (save-restriction
+	    (narrow-to-region (point) (point))
+	    (mm-display-inline handle)
+	    (goto-char (point-max))))))
 
     (let (;(mm-text-html-renderer 'w3m-standalone)
-          (handles (mm-dissect-buffer t)))
+	  (handles (mm-dissect-buffer t)))
       (save-excursion
-        (article-goto-body)
-        (delete-region (point) (point-max))
-        (mapc #'my-mm-display-part (mm-text-parts handles))
-        handles))))
+	(article-goto-body)
+	(delete-region (point) (point-max))
+	(mapc #'my-mm-display-part (mm-text-parts handles))
+	handles))))
 
 (defun gnus-score-body (scores header now expire &optional trace)
     (if gnus-agent-fetching
@@ -1762,21 +1767,22 @@ score in `gnus-newsgroup-scored' by SCORE."
                 (all-scores scores)
                 (request-func (cond ((string= "head" header)
                                      'gnus-request-head)
-                                    ;; We need to peek at the headers to detect
-                                    ;; the content encoding
                                     ((string= "body" header)
-                                     'gnus-request-article)
+                                     'gnus-request-body)
                                     (t 'gnus-request-article)))
                 entries alist ofunc article last)
            (when articles
              (setq last (mail-header-number (caar (last articles))))
              ;; Not all backends support partial fetching.  In that case,
              ;; we just fetch the entire article.
-             (unless (gnus-check-backend-function
-                      (and (string-match "^gnus-" (symbol-name request-func))
-                           (intern (substring (symbol-name request-func)
-                                              (match-end 0))))
-                      gnus-newsgroup-name)
+             ;; When scoring by body, we need to peek at the headers to detect
+             ;; the content encoding
+             (unless (or (gnus-check-backend-function
+                          (and (string-match "^gnus-" (symbol-name request-func))
+                               (intern (substring (symbol-name request-func)
+                                                  (match-end 0))))
+                          gnus-newsgroup-name)
+                         (string= "body" header))
                (setq ofunc request-func)
                (setq request-func 'gnus-request-article))
              (while articles

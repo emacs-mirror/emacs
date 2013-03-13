@@ -1,6 +1,6 @@
 ;;; semantic/mru-bookmark.el --- Automatic bookmark tracking
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -292,13 +292,13 @@ minor mode is enabled."
             (setq semantic-mru-bookmark-mode nil)
             (error "Buffer %s was not set up for parsing"
                    (buffer-name)))
-        (semantic-make-local-hook 'semantic-edits-new-change-hooks)
-        (add-hook 'semantic-edits-new-change-hooks
+        (semantic-make-local-hook 'semantic-edits-new-change-functions)
+        (add-hook 'semantic-edits-new-change-functions
                   'semantic-mru-bookmark-change-hook-fcn nil t)
         (add-hook 'semantic-edits-move-change-hooks
                   'semantic-mru-bookmark-change-hook-fcn nil t))
     ;; Remove hooks
-    (remove-hook 'semantic-edits-new-change-hooks
+    (remove-hook 'semantic-edits-new-change-functions
 		 'semantic-mru-bookmark-change-hook-fcn t)
     (remove-hook 'semantic-edits-move-change-hooks
 		 'semantic-mru-bookmark-change-hook-fcn t)))

@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -471,6 +471,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     }
 
   /* Choose the minibuffer window and frame, and take action on them.  */
+
+  /* Prepare for restoring the current buffer since choose_minibuf_frame
+     calling Fset_frame_selected_window may change it (Bug#12766).  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
   choose_minibuf_frame ();
 
@@ -1394,12 +1398,7 @@ is used to further constrain the set of candidates.  */)
 				      eltstring, zero,
 				      make_number (compare),
 				      completion_ignore_case ? Qt : Qnil);
-	      if (EQ (tem, Qt))
-		matchsize = compare;
-	      else if (XINT (tem) < 0)
-		matchsize = - XINT (tem) - 1;
-	      else
-		matchsize = XINT (tem) - 1;
+	      matchsize = EQ (tem, Qt) ? compare : eabs (XINT (tem)) - 1;
 
 	      if (completion_ignore_case)
 		{

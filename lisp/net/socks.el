@@ -1,6 +1,7 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 
-;; Copyright (C) 1996-2000, 2002, 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2000, 2002, 2007-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
 ;;         Dave Love <fx@gnu.org>
@@ -647,7 +648,7 @@ version.")
 	      (progn
 		(setq res (buffer-substring (match-beginning 2)
 					    (match-end 2))
-		      res (mapcar 'string-to-int (split-string res "\\.")))))
+		      res (mapcar 'string-to-number (split-string res "\\.")))))
 	  (kill-buffer (current-buffer)))
 	res)
     host))

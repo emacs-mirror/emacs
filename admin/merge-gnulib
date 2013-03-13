@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012 Free Software Foundation, Inc.
+# Copyright 2012-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -27,21 +27,26 @@ GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
 
 GNULIB_MODULES='
   alloca-opt c-ctype c-strcase
-  careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
-  dtoastr dtotimespec dup2 environ execinfo
-  filemode getloadavg getopt-gnu gettime gettimeofday
+  careadlinkat close-stream crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
+  dtoastr dtotimespec dup2 environ execinfo faccessat
+  fcntl-h fdatasync fdopendir filemode fstatat fsync
+  getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
-  manywarnings mktime pselect pthread_sigmask readlink
-  socklen stat-time stdalign stdarg stdbool stdio
+  manywarnings memrchr mktime
+  pselect pthread_sigmask putenv readlink readlinkat
+  sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
-  sys_time time timer-time timespec-add timespec-sub utimens
+  sys_time time timer-time timespec-add timespec-sub unsetenv utimens
   warnings
 '
 
 GNULIB_TOOL_FLAGS='
-  --avoid=errno --avoid=fcntl --avoid=fcntl-h --avoid=fstat
-  --avoid=msvc-inval --avoid=msvc-nothrow
-  --avoid=raise --avoid=select --avoid=sigprocmask --avoid=sys_types
+  --avoid=dup
+  --avoid=errno --avoid=fchdir --avoid=fcntl --avoid=fstat
+  --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
+  --avoid=open --avoid=openat-die --avoid=opendir
+  --avoid=raise
+  --avoid=save-cwd --avoid=select --avoid=sigprocmask --avoid=sys_types
   --avoid=threadlib
   --conditional-dependencies --import --no-changelog --no-vc-files
   --makefile-name=gnulib.mk
@@ -85,7 +90,7 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 }
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS $GNULIB_MODULES &&
-rm -- "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
+rm -- "$src"m4/fcntl-o.m4 "$src"m4/gnulib-cache.m4 "$src"m4/warn-on-use.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/move-if-change "$src"build-aux &&
 autoreconf -i -I m4 -- ${src:+"$src"}

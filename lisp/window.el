@@ -1,7 +1,7 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992-1994, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1992-1994, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -142,42 +142,46 @@ to `display-buffer'."
 	;; Return the window.
 	window))))
 
+;; Doc is very similar to with-output-to-temp-buffer.
 (defmacro with-temp-buffer-window (buffer-or-name action quit-function &rest body)
-  "Evaluate BODY and display buffer specified by BUFFER-OR-NAME.
-BUFFER-OR-NAME must specify either a live buffer or the name of a
-buffer.  If no buffer with such a name exists, create one.
+  "Bind `standard-output' to BUFFER-OR-NAME, eval BODY, show the buffer.
+BUFFER-OR-NAME must specify either a live buffer, or the name of a
+buffer (if it does not exist, this macro creates it).
 
-Make sure the specified buffer is empty before evaluating BODY.
-Do not make that buffer current for BODY.  Instead, bind
-`standard-output' to that buffer, so that output generated with
-`prin1' and similar functions in BODY goes into that buffer.
+This construct makes buffer BUFFER-OR-NAME empty before running BODY.
+It does not make the buffer current for BODY.
+Instead it binds `standard-output' to that buffer, so that output
+generated with `prin1' and similar functions in BODY goes into
+the buffer.
 
-After evaluating BODY, mark the specified buffer unmodified and
-read-only, and display it in a window via `display-buffer'.  Pass
-ACTION as action argument to `display-buffer'.  Automatically
-shrink the window used if `temp-buffer-resize-mode' is enabled.
+At the end of BODY, this marks the specified buffer unmodified and
+read-only, and displays it in a window (but does not select it, or make
+the buffer current).  The display happens by calling `display-buffer'
+with the ACTION argument.  If `temp-buffer-resize-mode' is enabled,
+the relevant window shrinks automatically.
 
-Return the value returned by BODY unless QUIT-FUNCTION specifies
-a function.  In that case, run the function with two arguments -
+This returns the value returned by BODY, unless QUIT-FUNCTION specifies
+a function.  In that case, it runs the function with two arguments -
 the window showing the specified buffer and the value returned by
-BODY - and return the value returned by that function.
+BODY - and returns the value returned by that function.
 
 If the buffer is displayed on a new frame, the window manager may
 decide to select that frame.  In that case, it's usually a good
-strategy if the function specified by QUIT-FUNCTION selects the
-window showing the buffer before reading a value from the
-minibuffer, for example, when asking a `yes-or-no-p' question.
+strategy if QUIT-FUNCTION selects the window showing the buffer
+before reading any value from the minibuffer; for example, when
+asking a `yes-or-no-p' question.
 
-This construct is similar to `with-output-to-temp-buffer' but
-does neither put the buffer in help mode nor does it call
-`temp-buffer-show-function'.  It also runs different hooks,
-namely `temp-buffer-window-setup-hook' (with the specified buffer
-current) and `temp-buffer-window-show-hook' (with the specified
-buffer current and the window showing it selected).
+This runs the hook `temp-buffer-window-setup-hook' before BODY,
+with the specified buffer temporarily current.  It runs the
+hook `temp-buffer-window-show-hook' after displaying the buffer,
+with that buffer temporarily current, and the window that was used to
+display it temporarily selected.
 
-Since this macro calls `display-buffer', the window displaying
-the buffer is usually not selected and the specified buffer
-usually not made current.  QUIT-FUNCTION can override that."
+This construct is similar to `with-output-to-temp-buffer', but
+runs different hooks.  In particular, it does not run
+`temp-buffer-setup-hook', which usually puts the buffer in Help mode.
+Also, it does not call `temp-buffer-show-function' (the ACTION
+argument replaces this)."
   (declare (debug t))
   (let ((buffer (make-symbol "buffer"))
 	(window (make-symbol "window"))
@@ -1336,7 +1340,7 @@ violate size restrictions of WINDOW or its child windows."
 	 delta))
    (t 0)))
 
-(defun window--resizable-p (window delta &optional horizontal ignore trail noup nodown)
+(defun window-resizable-p (window delta &optional horizontal ignore trail noup nodown)
   "Return t if WINDOW can be resized vertically by DELTA lines.
 WINDOW must be a valid window and defaults to the selected one.
 For the meaning of the arguments of this function see the
@@ -1939,7 +1943,7 @@ instead."
       ;; nil or the minibuffer window is active, resize the minibuffer
       ;; window.
       (window--resize-mini-window minibuffer-window (- delta)))
-     ((window--resizable-p window delta horizontal ignore)
+     ((window-resizable-p window delta horizontal ignore)
       (window--resize-reset frame horizontal)
       (window--resize-this-window window delta horizontal ignore t)
       (if (and (not window-combination-resize)
@@ -1964,6 +1968,14 @@ instead."
       (window-resize-apply frame horizontal))
      (t
       (error "Cannot resize window %s" window)))))
+
+(defun window-resize-no-error (window delta &optional horizontal ignore)
+  "Resize WINDOW vertically if it is resizable by DELTA lines.
+This function is like `window-resize' but does not signal an
+error when WINDOW cannot be resized.  For the meaning of the
+optional arguments see the documentation of `window-resize'."
+  (when (window-resizable-p window delta horizontal ignore)
+    (window-resize window delta horizontal ignore)))
 
 (defun window--resize-child-windows-skip-p (window)
   "Return non-nil if WINDOW shall be skipped by resizing routines."
@@ -2572,8 +2584,7 @@ move it as far as possible in the desired direction."
 Interactively, if no argument is given, make the selected window
 one line taller.  If optional argument HORIZONTAL is non-nil,
 make selected window wider by DELTA columns.  If DELTA is
-negative, shrink selected window by -DELTA lines or columns.
-Return nil."
+negative, shrink selected window by -DELTA lines or columns."
   (interactive "p")
   (let ((minibuffer-window (minibuffer-window)))
     (cond
@@ -2591,7 +2602,7 @@ Return nil."
       ;; If the selected window is full height and `resize-mini-windows'
       ;; is nil, resize the minibuffer window.
       (window--resize-mini-window minibuffer-window (- delta)))
-     ((window--resizable-p nil delta horizontal)
+     ((window-resizable-p nil delta horizontal)
       (window-resize nil delta horizontal))
      (t
       (window-resize
@@ -2606,8 +2617,7 @@ Interactively, if no argument is given, make the selected window
 one line smaller.  If optional argument HORIZONTAL is non-nil,
 make selected window narrower by DELTA columns.  If DELTA is
 negative, enlarge selected window by -DELTA lines or columns.
-Also see the `window-min-height' variable.
-Return nil."
+Also see the `window-min-height' variable."
   (interactive "p")
   (let ((minibuffer-window (minibuffer-window)))
     (cond
@@ -2625,7 +2635,7 @@ Return nil."
       ;; If the selected window is full height and `resize-mini-windows'
       ;; is nil, resize the minibuffer window.
       (window--resize-mini-window minibuffer-window delta))
-     ((window--resizable-p nil (- delta) horizontal)
+     ((window-resizable-p nil (- delta) horizontal)
       (window-resize nil (- delta) horizontal))
      (t
       (window-resize
@@ -2899,7 +2909,7 @@ that is its frame's root window."
 	  (set-window-new-normal
 	   sibling (+ (window-normal-size sibling horizontal)
 		      (window-normal-size window horizontal))))
-	 ((window--resizable-p window (- size) horizontal nil nil nil t)
+	 ((window-resizable-p window (- size) horizontal nil nil nil t)
 	  ;; Can do without resizing fixed-size windows.
 	  (window--resize-siblings window (- size) horizontal))
 	 (t
@@ -3050,8 +3060,10 @@ WINDOW must be a live window and defaults to the selected one."
 				(set-marker (nth 2 entry) point))
 			;; Make new markers.
 			(list (copy-marker start)
-			      (copy-marker point)))))
-
+			      (copy-marker
+			       ;; Preserve window-point-insertion-type
+			       ;; (Bug#12588).
+			       point window-point-insertion-type)))))
 	  (set-window-prev-buffers
 	   window (cons entry (window-prev-buffers window))))))))
 
@@ -3091,10 +3103,11 @@ before was current this also makes BUFFER the current buffer."
   "If non-nil, allow switching to an already visible buffer.
 If this variable is non-nil, `switch-to-prev-buffer' and
 `switch-to-next-buffer' may switch to an already visible buffer
-provided the buffer was shown in the argument window before.  If
-this variable is nil, `switch-to-prev-buffer' and
-`switch-to-next-buffer' always try to avoid switching to a buffer
-that is already visible in another window on the same frame."
+provided the buffer was shown before in the window specified as
+argument to those functions.  If this variable is nil,
+`switch-to-prev-buffer' and `switch-to-next-buffer' always try to
+avoid switching to a buffer that is already visible in another
+window on the same frame."
   :type 'boolean
   :version "24.1"
   :group 'windows)
@@ -3556,7 +3569,12 @@ the buffer of WINDOW.  The following values are handled:
 	 quad entry)
     (cond
      ((and (not prev-buffer)
-	   (memq (nth 1 quit-restore) '(window frame))
+	   (or (eq (nth 1 quit-restore) 'frame)
+	       (and (eq (nth 1 quit-restore) 'window)
+		    ;; If the window has been created on an existing
+		    ;; frame and ended up as the sole window on that
+		    ;; frame, do not delete it (Bug#12764).
+		    (not (eq window (frame-root-window window)))))
 	   (eq (nth 3 quit-restore) buffer)
 	   ;; Delete WINDOW if possible.
 	   (window--delete window nil (eq bury-or-kill 'kill)))
@@ -4430,13 +4448,13 @@ value can be also stored on disk and read back in a new session."
 	      (let ((delta (- (cdr (assq 'total-height item))
 			      (window-total-height window)))
 		    window-size-fixed)
-		(when (window--resizable-p window delta)
+		(when (window-resizable-p window delta)
 		  (window-resize window delta)))
 	    ;; Else check whether the window is not high enough.
 	    (let* ((min-size (window-min-size window nil ignore))
 		   (delta (- min-size (window-total-size window))))
 	      (when (and (> delta 0)
-			 (window--resizable-p window delta nil ignore))
+			 (window-resizable-p window delta nil ignore))
 		(window-resize window delta nil ignore))))
 	  ;; Adjust horizontally.
 	  (if (memq window-size-fixed '(t width))
@@ -4444,13 +4462,13 @@ value can be also stored on disk and read back in a new session."
 	      (let ((delta (- (cdr (assq 'total-width item))
 			      (window-total-width window)))
 		    window-size-fixed)
-		(when (window--resizable-p window delta)
+		(when (window-resizable-p window delta)
 		  (window-resize window delta)))
 	    ;; Else check whether the window is not wide enough.
 	    (let* ((min-size (window-min-size window t ignore))
 		   (delta (- min-size (window-total-size window t))))
 	      (when (and (> delta 0)
-			 (window--resizable-p window delta t ignore))
+			 (window-resizable-p window delta t ignore))
 		(window-resize window delta t ignore))))
 	  ;; Set dedicated status.
 	  (set-window-dedicated-p window (cdr (assq 'dedicated state)))
@@ -4550,13 +4568,17 @@ element is BUFFER."
 	  ;; If WINDOW has a quit-restore parameter, reset its car.
 	  (setcar (window-parameter window 'quit-restore) 'same))
       ;; WINDOW shows another buffer.
-      (set-window-parameter
-       window 'quit-restore
-       (list 'other
-	     ;; A quadruple of WINDOW's buffer, start, point and height.
-	     (list (window-buffer window) (window-start window)
-		   (window-point window) (window-total-size window))
-	     (selected-window) buffer))))
+      (with-current-buffer (window-buffer window)
+	(set-window-parameter
+	 window 'quit-restore
+	 (list 'other
+	       ;; A quadruple of WINDOW's buffer, start, point and height.
+	       (list (current-buffer) (window-start window)
+		     ;; Preserve window-point-insertion-type (Bug#12588).
+		     (copy-marker
+		      (window-point window) window-point-insertion-type)
+		     (window-total-size window))
+	       (selected-window) buffer)))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.
     (set-window-parameter
@@ -5165,11 +5187,12 @@ is higher than WINDOW."
       (error nil))))
 
 (defun window--display-buffer (buffer window type &optional alist dedicated)
-  "Display BUFFER in WINDOW and make its frame visible.
+  "Display BUFFER in WINDOW.
 TYPE must be one of the symbols `reuse', `window' or `frame' and
-is passed unaltered to `display-buffer-record-window'. Set
-`window-dedicated-p' to DEDICATED if non-nil.  Return WINDOW if
-BUFFER and WINDOW are live."
+is passed unaltered to `display-buffer-record-window'.  ALIST is
+the alist argument of `display-buffer'.  Set `window-dedicated-p'
+to DEDICATED if non-nil.  Return WINDOW if BUFFER and WINDOW are
+live."
   (when (and (buffer-live-p buffer) (window-live-p window))
     (display-buffer-record-window type window buffer)
     (unless (eq buffer (window-buffer window))
@@ -5182,10 +5205,10 @@ BUFFER and WINDOW are live."
     (let ((parameter (window-parameter window 'quit-restore))
 	  (height (cdr (assq 'window-height alist)))
 	  (width (cdr (assq 'window-width alist))))
-      (when (or (memq type '(window frame))
+      (when (or (eq type 'window)
 		(and (eq (car parameter) 'same)
-		     (memq (nth 1 parameter) '(window frame))))
-	;; Adjust height of new window or frame.
+		     (eq (nth 1 parameter) 'window)))
+	;; Adjust height of window if asked for.
 	(cond
 	 ((not height))
 	 ((numberp height)
@@ -5196,19 +5219,12 @@ BUFFER and WINDOW are live."
 		     (* (window-total-size (frame-root-window window))
 			height))))
 		 (delta (- new-height (window-total-size window))))
-	    (cond
-	     ((and (window--resizable-p window delta nil 'safe)
-		   (window-combined-p window))
-	      (window-resize window delta nil 'safe))
-	     ((or (eq type 'frame)
-		  (and (eq (car parameter) 'same)
-		       (eq (nth 1 parameter) 'frame)))
-	      (set-frame-height
-	       (window-frame window)
-	       (+ (frame-height (window-frame window)) delta))))))
+	    (when (and (window-resizable-p window delta nil 'safe)
+		       (window-combined-p window))
+	      (window-resize window delta nil 'safe))))
 	 ((functionp height)
 	  (ignore-errors (funcall height window))))
-	;; Adjust width of a window or frame.
+	;; Adjust width of window if asked for.
 	(cond
 	 ((not width))
 	 ((numberp width)
@@ -5219,18 +5235,12 @@ BUFFER and WINDOW are live."
 		     (* (window-total-size (frame-root-window window) t)
 			width))))
 		 (delta (- new-width (window-total-size window t))))
-	    (cond
-	     ((and (window--resizable-p window delta t 'safe)
-		   (window-combined-p window t))
-	      (window-resize window delta t 'safe))
-	     ((or (eq type 'frame)
-		  (and (eq (car parameter) 'same)
-		       (eq (nth 1 parameter) 'frame)))
-	      (set-frame-width
-	       (window-frame window)
-	       (+ (frame-width (window-frame window)) delta))))))
+	    (when (and (window-resizable-p window delta t 'safe)
+		       (window-combined-p window t))
+	      (window-resize window delta t 'safe))))
 	 ((functionp width)
 	  (ignore-errors (funcall width window))))))
+
     window))
 
 (defun window--maybe-raise-frame (frame)
@@ -5290,13 +5300,19 @@ See `display-buffer' for details.")
   "Alist of conditional actions for `display-buffer'.
 This is a list of elements (CONDITION . ACTION), where:
 
- CONDITION is either a regexp matching buffer names, or a function
-  that takes a buffer and returns a boolean.
+ CONDITION is either a regexp matching buffer names, or a
+  function that takes two arguments - a buffer name and the
+  ACTION argument of `display-buffer' - and returns a boolean.
 
  ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is a
   function or a list of functions.  Each such function should
   accept two arguments: a buffer to display and an alist of the
-  same form as ALIST.  See `display-buffer' for details."
+  same form as ALIST.  See `display-buffer' for details.
+
+`display-buffer' scans this alist until it either finds a
+matching regular expression or the function specified by a
+condition returns non-nil.  In any of these cases, it adds the
+associated action to the list of actions it will try."
   :type `(alist :key-type
 		(choice :tag "Condition"
 			regexp
@@ -5330,15 +5346,16 @@ specified, e.g. by the user options `display-buffer-alist' or
 `display-buffer-base-action'.  See `display-buffer'.")
 (put 'display-buffer-fallback-action 'risky-local-variable t)
 
-(defun display-buffer-assq-regexp (buffer-name alist)
-  "Retrieve ALIST entry corresponding to BUFFER-NAME."
+(defun display-buffer-assq-regexp (buffer-name alist action)
+  "Retrieve ALIST entry corresponding to BUFFER-NAME.
+ACTION is the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
       (let ((key (car entry)))
 	(when (or (and (stringp key)
 		       (string-match-p key buffer-name))
-		  (and (symbolp key) (functionp key)
-		       (funcall key buffer-name alist)))
+		  (and (functionp key)
+		       (funcall key buffer-name action)))
 	  (throw 'match (cdr entry)))))))
 
 (defvar display-buffer--same-window-action
@@ -5414,6 +5431,22 @@ Recognized alist entries include:
                               parameters to give a new frame, if
                               one is created.
 
+ `window-height' -- Value specifies either an integer (the number
+    of lines of a new window), a floating point number (the
+    fraction of a new window with respect to the height of the
+    frame's root window) or a function to be called with one
+    argument - a new window.  The function is supposed to adjust
+    the height of the window; its return value is ignored.
+    Suitable functions are `shrink-window-if-larger-than-buffer'
+    and `fit-window-to-buffer'.
+
+ `window-width' -- Value specifies either an integer (the number
+    of columns of a new window), a floating point number (the
+    fraction of a new window with respect to the width of the
+    frame's root window) or a function to be called with one
+    argument - a new window.  The function is supposed to adjust
+    the width of the window; its return value is ignored.
+
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
 other than the selected one, even if it is already displayed in
@@ -5432,8 +5465,8 @@ argument, ACTION is t."
 	(funcall display-buffer-function buffer inhibit-same-window)
       ;; Otherwise, use the defined actions.
       (let* ((user-action
-	      (display-buffer-assq-regexp (buffer-name buffer)
-					  display-buffer-alist))
+	      (display-buffer-assq-regexp
+	       (buffer-name buffer) display-buffer-alist action))
              (special-action (display-buffer--special-action buffer))
 	     ;; Extra actions from the arguments to this function:
 	     (extra-action
@@ -5834,8 +5867,8 @@ window on any visible or iconified frame.  If this is t, it
 unconditionally tries to display the buffer at its previous
 position in the selected window.
 
-This variable is ignored if the the buffer is already displayed
-in the selected window or never appeared in it before, or if
+This variable is ignored if the buffer is already displayed in
+the selected window or never appeared in it before, or if
 `switch-to-buffer' calls `pop-to-buffer' to display the buffer."
   :type '(choice
 	  (const :tag "Never" nil)
@@ -5845,7 +5878,12 @@ in the selected window or never appeared in it before, or if
   :version "24.3")
 
 (defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
-  "Switch to buffer BUFFER-OR-NAME in the selected window.
+  "Display buffer BUFFER-OR-NAME in the selected window.
+
+WARNING: This is NOT the way to work on another buffer temporarily
+within a Lisp program!  Use `set-buffer' instead.  That avoids
+messing with the window-buffer correspondences.
+
 If the selected window cannot display the specified
 buffer (e.g. if it is a minibuffer window or strongly dedicated
 to another buffer), call `pop-to-buffer' to select the buffer in
@@ -6043,26 +6081,30 @@ A frame can be resized if and only if its root window is a live
 window.  The height of the root window is subject to the values
 of `fit-frame-to-buffer-max-height' and `window-min-height'."
   :type 'boolean
-  :version "24.2"
+  :version "24.3"
   :group 'help)
 
 (defcustom fit-frame-to-buffer-bottom-margin 4
-  "Bottom margin for `fit-frame-to-buffer'.
-This is the number of lines `fit-frame-to-buffer' leaves free at the
-bottom of the display in order to not obscure the system task bar."
+  "Bottom margin for the command `fit-frame-to-buffer'.
+This is the number of lines that function leaves free at the bottom of
+the display, in order to not obscure any system task bar or panel.
+If you do not have one (or if it is vertical) you might want to
+reduce this.  If it is thicker, you might want to increase this."
+  ;; If you set this too small, fit-frame-to-buffer can shift the
+  ;; frame up to avoid the panel.
   :type 'integer
-  :version "24.2"
+  :version "24.3"
   :group 'windows)
 
 (defun fit-frame-to-buffer (&optional frame max-height min-height)
-  "Adjust height of FRAME to display its buffer's contents exactly.
+  "Adjust height of FRAME to display its buffer contents exactly.
 FRAME can be any live frame and defaults to the selected one.
 
-Optional argument MAX-HEIGHT specifies the maximum height of
-FRAME and defaults to the height of the display below the current
-top line of FRAME minus FIT-FRAME-TO-BUFFER-BOTTOM-MARGIN.
-Optional argument MIN-HEIGHT specifies the minimum height of
-FRAME."
+Optional argument MAX-HEIGHT specifies the maximum height of FRAME.
+It defaults to the height of the display below the current
+top line of FRAME, minus `fit-frame-to-buffer-bottom-margin'.
+Optional argument MIN-HEIGHT specifies the minimum height of FRAME.
+The default corresponds to `window-min-height'."
   (interactive)
   (setq frame (window-normalize-frame frame))
   (let* ((root (frame-root-window frame))
@@ -6138,6 +6180,10 @@ argument MIN-HEIGHT specifies the minimum height of WINDOW and
 defaults to `window-min-height'.  Both MAX-HEIGHT and MIN-HEIGHT
 are specified in lines and include the mode line and header line,
 if any.
+
+If WINDOW is a full height window, then if the option
+`fit-frame-to-buffer' is non-nil, this calls the function
+`fit-frame-to-buffer' to adjust the frame height.
 
 Return the number of lines by which WINDOW was enlarged or
 shrunk.  If an error occurs during resizing, return nil but don't

@@ -1,6 +1,6 @@
 ;;; jit-lock.el --- just-in-time fontification
 
-;; Copyright (C) 1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
@@ -132,20 +132,16 @@ If nil, fontification is not deferred."
 
 ;;; Variables that are not customizable.
 
-(defvar jit-lock-mode nil
+(defvar-local jit-lock-mode nil
   "Non-nil means Just-in-time Lock mode is active.")
-(make-variable-buffer-local 'jit-lock-mode)
 
-(defvar jit-lock-functions nil
+(defvar-local jit-lock-functions nil
   "Functions to do the actual fontification.
 They are called with two arguments: the START and END of the region to fontify.")
-(make-variable-buffer-local 'jit-lock-functions)
 
-(defvar jit-lock-context-unfontify-pos nil
+(defvar-local jit-lock-context-unfontify-pos nil
   "Consider text after this position as contextually unfontified.
 If nil, contextual fontification is disabled.")
-(make-variable-buffer-local 'jit-lock-context-unfontify-pos)
-
 
 (defvar jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
@@ -257,6 +253,47 @@ the variable `jit-lock-stealth-nice'."
 	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
+(define-minor-mode jit-lock-debug-mode
+  "Minor mode to help debug code run from jit-lock.
+When this minor mode is enabled, jit-lock runs as little code as possible
+during redisplay and moves the rest to a timer, where things
+like `debug-on-error' and Edebug can be used."
+  :global t
+  (when jit-lock-defer-timer
+    (cancel-timer jit-lock-defer-timer)
+    (setq jit-lock-defer-timer nil))
+  (when jit-lock-debug-mode
+    (setq jit-lock-defer-timer
+          (run-with-idle-timer 0 t #'jit-lock--debug-fontify))))
+
+(defvar jit-lock--debug-fontifying nil)
+
+(defun jit-lock--debug-fontify ()
+  "Fontify what was deferred for debugging."
+  (when (and (not jit-lock--debug-fontifying)
+             jit-lock-defer-buffers (not memory-full))
+    (let ((jit-lock--debug-fontifying t)
+          (inhibit-debugger nil))       ;FIXME: Not sufficient!
+      ;; Mark the deferred regions back to `fontified = nil'
+      (dolist (buffer jit-lock-defer-buffers)
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer
+            ;; (message "Jit-Debug %s" (buffer-name))
+            (with-buffer-prepared-for-jit-lock
+                (let ((pos (point-min)))
+                  (while
+                      (progn
+                        (when (eq (get-text-property pos 'fontified) 'defer)
+                          (let ((beg pos)
+                                (end (setq pos (next-single-property-change
+                                                pos 'fontified
+                                                nil (point-max)))))
+                            (put-text-property beg end 'fontified nil)
+                            (jit-lock-fontify-now beg end)))
+                        (setq pos (next-single-property-change
+                                   pos 'fontified)))))))))
+      (setq jit-lock-defer-buffers nil))))
+
 (defun jit-lock-register (fun &optional contextual)
   "Register FUN as a fontification function to be called in this buffer.
 FUN will be called with two arguments START and END indicating the region
@@ -264,7 +301,7 @@ that needs to be (re)fontified.
 If non-nil, CONTEXTUAL means that a contextual fontification would be useful."
   (add-hook 'jit-lock-functions fun nil t)
   (when (and contextual jit-lock-contextually)
-    (set (make-local-variable 'jit-lock-contextually) t))
+    (setq-local jit-lock-contextually t))
   (jit-lock-mode t))
 
 (defun jit-lock-unregister (fun)
@@ -398,41 +435,39 @@ Defaults to the whole buffer.  END can be out of bounds."
 Value is nil if there is nothing more to fontify."
   (if (zerop (buffer-size))
       nil
-    (save-restriction
-      (widen)
-      (let* ((next (text-property-not-all around (point-max) 'fontified t))
-	     (prev (previous-single-property-change around 'fontified))
-	     (prop (get-text-property (max (point-min) (1- around))
-				      'fontified))
-	     (start (cond
-		     ((null prev)
-		      ;; There is no property change between AROUND
-		      ;; and the start of the buffer.  If PROP is
-		      ;; non-nil, everything in front of AROUND is
-		      ;; fontified, otherwise nothing is fontified.
-		      (if (eq prop t)
-			  nil
-			(max (point-min)
-			     (- around (/ jit-lock-chunk-size 2)))))
-		     ((eq prop t)
-		      ;; PREV is the start of a region of fontified
-		      ;; text containing AROUND.  Start fontifying a
-		      ;; chunk size before the end of the unfontified
-		      ;; region in front of that.
-		      (max (or (previous-single-property-change prev 'fontified)
-			       (point-min))
-			   (- prev jit-lock-chunk-size)))
-		     (t
-		      ;; PREV is the start of a region of unfontified
-		      ;; text containing AROUND.  Start at PREV or
-		      ;; chunk size in front of AROUND, whichever is
-		      ;; nearer.
-		      (max prev (- around jit-lock-chunk-size)))))
-	     (result (cond ((null start) next)
-			   ((null next) start)
-			   ((< (- around start) (- next around)) start)
-			   (t next))))
-	result))))
+    (let* ((next (text-property-not-all around (point-max) 'fontified t))
+           (prev (previous-single-property-change around 'fontified))
+           (prop (get-text-property (max (point-min) (1- around))
+                                    'fontified))
+           (start (cond
+                   ((null prev)
+                    ;; There is no property change between AROUND
+                    ;; and the start of the buffer.  If PROP is
+                    ;; non-nil, everything in front of AROUND is
+                    ;; fontified, otherwise nothing is fontified.
+                    (if (eq prop t)
+                        nil
+                      (max (point-min)
+                           (- around (/ jit-lock-chunk-size 2)))))
+                   ((eq prop t)
+                    ;; PREV is the start of a region of fontified
+                    ;; text containing AROUND.  Start fontifying a
+                    ;; chunk size before the end of the unfontified
+                    ;; region in front of that.
+                    (max (or (previous-single-property-change prev 'fontified)
+                             (point-min))
+                         (- prev jit-lock-chunk-size)))
+                   (t
+                    ;; PREV is the start of a region of unfontified
+                    ;; text containing AROUND.  Start at PREV or
+                    ;; chunk size in front of AROUND, whichever is
+                    ;; nearer.
+                    (max prev (- around jit-lock-chunk-size)))))
+           (result (cond ((null start) next)
+                         ((null next) start)
+                         ((< (- around start) (- next around)) start)
+                         (t next))))
+      result)))
 
 (defun jit-lock-stealth-fontify (&optional repeat)
   "Fontify buffers stealthily.
@@ -504,7 +539,8 @@ non-nil in a repeated invocation of this function."
 		      pos (setq pos (next-single-property-change
 				     pos 'fontified nil (point-max)))
 		      'fontified nil))
-		   (setq pos (next-single-property-change pos 'fontified)))))))))
+		   (setq pos (next-single-property-change
+                              pos 'fontified)))))))))
     (setq jit-lock-defer-buffers nil)
     ;; Force fontification of the visible parts.
     (let ((jit-lock-defer-timer nil))
@@ -522,7 +558,9 @@ non-nil in a repeated invocation of this function."
 	(when jit-lock-context-unfontify-pos
 	  ;; (message "Jit-Context %s" (buffer-name))
 	  (save-restriction
-	    (widen)
+            ;; Don't be blindsided by narrowing that starts in the middle
+            ;; of a jit-lock-defer-multiline.
+	    (widen) 
 	    (when (and (>= jit-lock-context-unfontify-pos (point-min))
 		       (< jit-lock-context-unfontify-pos (point-max)))
 	      ;; If we're in text that matches a complex multi-line

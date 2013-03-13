@@ -1,4 +1,5 @@
-/* Copyright (C) 1985-1988, 1992-1994, 2001-2012  Free Software Foundation, Inc.
+/* Copyright (C) 1985-1988, 1992-1994, 2001-2013 Free Software
+ * Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -98,7 +99,7 @@ struct aouthdr
 
 #include <sys/file.h>
 
-#include "mem-limits.h"
+extern int etext;
 
 static long block_copy_start;		/* Old executable start point */
 static struct filehdr f_hdr;		/* File header */
@@ -167,7 +168,7 @@ make_hdr (int new, int a_out,
   pagemask = getpagesize () - 1;
 
   /* Adjust text/data boundary. */
-  data_start = (int) start_of_data ();
+  data_start = (int) DATA_START;
   data_start = ADDR_CORRECT (data_start);
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
 
@@ -332,11 +333,7 @@ write_segment (int new, const char *ptr, const char *end)
 	 a gap between the old text segment and the old data segment.
 	 This gap has probably been remapped into part of the text segment.
 	 So write zeros for it.  */
-      if (ret == -1
-#ifdef EFAULT
-	  && errno == EFAULT
-#endif
-	  )
+      if (ret == -1 && errno == EFAULT)
 	{
 	  /* Write only a page of zeros at once,
 	     so that we don't overshoot the start

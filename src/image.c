@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
 
-Copyright (C) 1989, 1992-2012 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3731,10 +3731,10 @@ xpm_make_color_table_h (void (**put_func) (Lisp_Object,
 {
   *put_func = xpm_put_color_table_h;
   *get_func = xpm_get_color_table_h;
-  return make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+  return make_hash_table (hashtest_equal, make_number (DEFAULT_HASH_SIZE),
 			  make_float (DEFAULT_REHASH_SIZE),
 			  make_float (DEFAULT_REHASH_THRESHOLD),
-			  Qnil, Qnil, Qnil);
+			  Qnil);
 }
 
 static void
@@ -7792,11 +7792,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
         }
     }
 
-  /* Finally we are done manipulating the image.  Figure out the
-     resulting width/height and transfer ownership to Emacs.  */
-  height = MagickGetImageHeight (image_wand);
-  width = MagickGetImageWidth (image_wand);
-
   /* Set the canvas background color to the frame or specified
      background, and flatten the image.  Note: as of ImageMagick
      6.6.0, SVG image transparency is not handled properly
@@ -7812,6 +7807,11 @@ imagemagick_load_image (struct frame *f, struct image *img,
     DestroyMagickWand (image_wand);
     image_wand = new_wand;
   }
+
+  /* Finally we are done manipulating the image.  Figure out the
+     resulting width/height and transfer ownership to Emacs.  */
+  height = MagickGetImageHeight (image_wand);
+  width = MagickGetImageWidth (image_wand);
 
   if (! (width <= INT_MAX && height <= INT_MAX
 	 && check_image_size (f, width, height)))

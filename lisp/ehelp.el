@@ -1,6 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1995, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik
 ;; (according to ack.texi and authors.el)
@@ -80,6 +80,7 @@
     (define-key map (char-to-string help-char) 'electric-help-help)
     (define-key map "?" 'electric-help-help)
     (define-key map " " 'scroll-up)
+    (define-key map [?\S-\ ] 'scroll-down)
     (define-key map "\^?" 'scroll-down)
     (define-key map "." 'beginning-of-buffer)
     (define-key map "<" 'beginning-of-buffer)

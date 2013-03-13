@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993-1997, 2000-2012 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1120,7 +1120,7 @@ unexpect_property_change (struct prop_location *location)
 static Lisp_Object
 wait_for_property_change_unwind (Lisp_Object loc)
 {
-  struct prop_location *location = XSAVE_VALUE (loc)->pointer;
+  struct prop_location *location = XSAVE_POINTER (loc, 0);
 
   unexpect_property_change (location);
   if (location == property_change_reply_object)
@@ -1141,7 +1141,7 @@ wait_for_property_change (struct prop_location *location)
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind,
-			 make_save_value (location, 0));
+			 make_save_pointer (location));
 
   XSETCAR (property_change_reply, Qnil);
   property_change_reply_object = location;
@@ -1670,11 +1670,10 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
 	return x_atom_to_symbol (display, (Atom) idata[0]);
       else
 	{
-	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (int)),
-					make_number (0));
+	  Lisp_Object v = make_uninit_vector (size / sizeof (int));
+
 	  for (i = 0; i < size / sizeof (int); i++)
-	    Faset (v, make_number (i),
-                   x_atom_to_symbol (display, (Atom) idata[i]));
+	    ASET (v, i, x_atom_to_symbol (display, (Atom) idata[i]));
 	  return v;
 	}
     }
@@ -1694,24 +1693,24 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
   else if (format == 16)
     {
       ptrdiff_t i;
-      Lisp_Object v;
-      v = Fmake_vector (make_number (size / 2), make_number (0));
+      Lisp_Object v = make_uninit_vector (size / 2);
+
       for (i = 0; i < size / 2; i++)
 	{
 	  short j = ((short *) data) [i];
-	  Faset (v, make_number (i), make_number (j));
+	  ASET (v, i, make_number (j));
 	}
       return v;
     }
   else
     {
       ptrdiff_t i;
-      Lisp_Object v = Fmake_vector (make_number (size / X_LONG_SIZE),
-				    make_number (0));
+      Lisp_Object v = make_uninit_vector (size / X_LONG_SIZE);
+
       for (i = 0; i < size / X_LONG_SIZE; i++)
 	{
 	  int j = ((int *) data) [i];
-	  Faset (v, make_number (i), INTEGER_TO_CONS (j));
+	  ASET (v, i, INTEGER_TO_CONS (j));
 	}
       return v;
     }
@@ -1904,7 +1903,7 @@ clean_local_selection_data (Lisp_Object obj)
       Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (AREF (obj, 0));
-      copy = Fmake_vector (make_number (size), Qnil);
+      copy = make_uninit_vector (size);
       for (i = 0; i < size; i++)
 	ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;
@@ -1940,7 +1939,7 @@ x_handle_selection_notify (XSelectionEvent *event)
 static struct frame *
 frame_for_x_selection (Lisp_Object object)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
   struct frame *f;
 
   if (NILP (object))
@@ -1949,9 +1948,9 @@ frame_for_x_selection (Lisp_Object object)
       if (FRAME_X_P (f) && FRAME_LIVE_P (f))
 	return f;
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+      FOR_EACH_FRAME (tail, frame)
 	{
-	  f = XFRAME (XCAR (tail));
+	  f = XFRAME (frame);
 	  if (FRAME_X_P (f) && FRAME_LIVE_P (f))
 	    return f;
 	}
@@ -1959,15 +1958,14 @@ frame_for_x_selection (Lisp_Object object)
   else if (TERMINALP (object))
     {
       struct terminal *t = get_terminal (object, 1);
+
       if (t->type == output_x_window)
-	{
-	  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-	    {
-	      f = XFRAME (XCAR (tail));
-	      if (FRAME_LIVE_P (f) && f->terminal == t)
-		return f;
-	    }
-	}
+	FOR_EACH_FRAME (tail, frame)
+	  {
+	    f = XFRAME (frame);
+	    if (FRAME_LIVE_P (f) && f->terminal == t)
+	      return f;
+	  }
     }
   else if (FRAMEP (object))
     {

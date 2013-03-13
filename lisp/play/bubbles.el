@@ -1,6 +1,6 @@
-;;; bubbles.el --- Puzzle game for Emacs
+;;; bubbles.el --- Puzzle game for Emacs -*- coding: utf-8 -*-
 
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -198,7 +198,7 @@ types are present."
   :group 'bubbles)
 
 (defcustom bubbles-chars
-  '(?+ ?O ?# ?X ?. ?* ?& ?ง)
+  '(?+ ?O ?# ?X ?. ?* ?& ?ยง)
   "Characters used for bubbles.
 Note that the actual number of different bubbles is determined by
 the number of colors, see `bubbles-colors'."

@@ -1,6 +1,6 @@
 ;;; vera-mode.el --- major mode for editing Vera files
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
@@ -1423,7 +1423,8 @@ If `vera-intelligent-tab' is nil, always indent line."
 ;;; Bug reports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconst vera-mode-help-address "Reto Zimmermann <reto@gnu.org>"
+(defconst vera-mode-help-address
+  "Reto Zimmermann <reto@gnu.org>, bug-gnu-emacs@gnu.org"
   "Address for Vera Mode bug reports.")
 
 ;; get reporter-submit-bug-report when byte-compiling

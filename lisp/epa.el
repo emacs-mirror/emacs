@@ -1,6 +1,6 @@
 ;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -169,6 +169,7 @@ You should bind this variable with `let', but do not set it globally.")
     (define-key keymap "n" 'next-line)
     (define-key keymap "p" 'previous-line)
     (define-key keymap " " 'scroll-up-command)
+    (define-key keymap [?\S-\ ] 'scroll-down-command)
     (define-key keymap [delete] 'scroll-down-command)
     (define-key keymap "q" 'epa-exit-buffer)
     (define-key keymap [menu-bar epa-key-list-mode] (cons "Keys" menu-map))

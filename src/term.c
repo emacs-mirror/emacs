@@ -1,6 +1,6 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,8 +20,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* New redisplay, TTY faces by Gerd Moellmann <gerd@gnu.org>.  */
 
 #include <config.h>
-#include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <sys/file.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -53,14 +54,6 @@ static int been_here = -1;
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
-#endif
-
-#ifndef O_RDWR
-#define O_RDWR 2
-#endif
-
-#ifndef O_NOCTTY
-#define O_NOCTTY 0
 #endif
 
 /* The name of the default console device.  */
@@ -132,10 +125,6 @@ enum no_color_bit
 /* The largest frame width in any call to calculate_costs.  */
 
 static int max_frame_cols;
-
-/* Non-zero if we have dropped our controlling tty and therefore
-   should not open a frame on stdout. */
-static int no_controlling_tty;
 
 
 
@@ -964,8 +953,8 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
   const char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
   const char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
 
-  register int i = n > 0 ? n : -n;
-  register char *buf;
+  int i = eabs (n);
+  char *buf;
 
   /* If the lines below the insertion are being pushed
      into the end of the window, this is the same as clearing;
@@ -1332,7 +1321,7 @@ term_get_fkeys_1 (void)
   if (!KEYMAPP (KVAR (kboard, Vinput_decode_map)))
     kset_input_decode_map (kboard, Fmake_sparse_keymap (Qnil));
 
-  for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
+  for (i = 0; i < (sizeof (keys) / sizeof (keys[0])); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
@@ -2385,7 +2374,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       t->display_info.tty->output = 0;
 
       if (FRAMEP (t->display_info.tty->top_frame))
-        FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
+        SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
 
     }
 
@@ -2434,7 +2423,7 @@ frame's terminal). */)
       if (fd == -1)
         error ("Can not reopen tty device %s: %s", t->display_info.tty->name, strerror (errno));
 
-      if (strcmp (t->display_info.tty->name, DEV_TTY))
+      if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
         dissociate_if_controlling_tty (fd);
 
       t->display_info.tty->output = fdopen (fd, "w+");
@@ -2455,7 +2444,7 @@ frame's terminal). */)
 	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
 	  if (width != old_width || height != old_height)
 	    change_frame_size (f, height, width, 0, 0, 0);
-	  FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
+	  SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 	}
 
       set_tty_hooks (t);
@@ -2914,40 +2903,23 @@ set_tty_hooks (struct terminal *terminal)
   terminal->delete_terminal_hook = &delete_tty;
 }
 
-/* Drop the controlling terminal if fd is the same device. */
+/* If FD is the controlling terminal, drop it.  */
 static void
 dissociate_if_controlling_tty (int fd)
 {
-#ifndef DOS_NT
-  pid_t pgid = tcgetpgrp (fd); /* If tcgetpgrp succeeds, fd is the ctty. */
-  if (pgid != -1)
+  /* If tcgetpgrp succeeds, fd is the controlling terminal,
+     so dissociate it by invoking setsid.  */
+  if (0 <= tcgetpgrp (fd) && setsid () < 0)
     {
-#if defined (USG5)
-      setpgrp ();
-      no_controlling_tty = 1;
-#elif defined (CYGWIN)
-      setsid ();
-      no_controlling_tty = 1;
-#else
-#ifdef TIOCNOTTY                /* Try BSD ioctls. */
-      sigset_t blocked;
-      sigemptyset (&blocked);
-      sigaddset (&blocked, SIGTTOU);
-      pthread_sigmask (SIG_BLOCK, &blocked, 0);
-      fd = emacs_open (DEV_TTY, O_RDWR, 0);
-      if (fd != -1 && ioctl (fd, TIOCNOTTY, 0) != -1)
-        {
-          no_controlling_tty = 1;
-        }
-      if (fd != -1)
-        emacs_close (fd);
-      pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-#else
-# error "Unknown system."
-#endif  /* ! TIOCNOTTY */
-#endif  /* ! USG */
+#ifdef TIOCNOTTY
+      /* setsid failed, presumably because Emacs is already a process
+	 group leader.  Fall back on the obsolescent way to dissociate
+	 a controlling tty.  */
+      block_tty_out_signal ();
+      ioctl (fd, TIOCNOTTY, 0);
+      unblock_tty_out_signal ();
+#endif
     }
-#endif	/* !DOS_NT */
 }
 
 /* Create a termcap display on the tty device with the given name and
@@ -3020,22 +2992,18 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   set_tty_hooks (terminal);
 
   {
-    int fd;
+    /* Open the terminal device.  */
     FILE *file;
 
-#ifdef O_IGNORE_CTTY
-    if (!ctty)
-      /* Open the terminal device.  Don't recognize it as our
-         controlling terminal, and don't make it the controlling tty
-         if we don't have one at the moment.  */
-      fd = emacs_open (name, O_RDWR | O_IGNORE_CTTY | O_NOCTTY, 0);
-    else
-#endif /* O_IGNORE_CTTY */
-      /* Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
-         defined on Hurd.  On other systems, we need to explicitly
-         dissociate ourselves from the controlling tty when we want to
-         open a frame on the same terminal.  */
-      fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
+    /* If !ctty, don't recognize it as our controlling terminal, and
+       don't make it the controlling tty if we don't have one now.
+
+       Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
+       defined on Hurd.  On other systems, we need to explicitly
+       dissociate ourselves from the controlling tty when we want to
+       open a frame on the same terminal.  */
+    int flags = O_RDWR | O_NOCTTY | (ctty ? 0 : O_IGNORE_CTTY);
+    int fd = emacs_open (name, flags, 0);
 
     tty->name = xstrdup (name);
     terminal->name = xstrdup (name);
@@ -3054,10 +3022,8 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
                      name);
       }
 
-#ifndef O_IGNORE_CTTY
-    if (!ctty)
+    if (!O_IGNORE_CTTY && !ctty)
       dissociate_if_controlling_tty (fd);
-#endif
 
     file = fdopen (fd, "w+");
     tty->input = file;
@@ -3074,14 +3040,9 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
 
   /* On some systems, tgetent tries to access the controlling
      terminal. */
-  {
-    sigset_t blocked;
-    sigemptyset (&blocked);
-    sigaddset (&blocked, SIGTTOU);
-    pthread_sigmask (SIG_BLOCK, &blocked, 0);
-    status = tgetent (tty->termcap_term_buffer, terminal_type);
-    pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
-  }
+  block_tty_out_signal ();
+  status = tgetent (tty->termcap_term_buffer, terminal_type);
+  unblock_tty_out_signal ();
 
   if (status < 0)
     {
@@ -3235,7 +3196,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     FrameCols (tty) = FRAME_COLS (f);
     tty->specified_window = FRAME_LINES (f);
 
-    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
     terminal->char_ins_del_ok = 1;
     baud_rate = 19200;
@@ -3407,10 +3367,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     = tty->TS_delete_mode && tty->TS_insert_mode
     && !strcmp (tty->TS_delete_mode, tty->TS_insert_mode);
 
-  tty->se_is_so = (tty->TS_standout_mode
-              && tty->TS_end_standout_mode
-              && !strcmp (tty->TS_standout_mode, tty->TS_end_standout_mode));
-
   UseTabs (tty) = tabs_safe_p (fileno (tty->input)) && TabWidth (tty) == 8;
 
   terminal->scroll_region_ok
@@ -3470,9 +3426,6 @@ maybe_fatal (int must_succeed, struct terminal *terminal,
     vfatal (str2, ap);
   else
     verror (str1, ap);
-
-  va_end (ap);
-  emacs_abort ();
 }
 
 void
@@ -3481,7 +3434,6 @@ fatal (const char *str, ...)
   va_list ap;
   va_start (ap, str);
   vfatal (str, ap);
-  va_end (ap);
 }
 
 

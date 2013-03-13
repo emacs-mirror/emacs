@@ -1,6 +1,7 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988-1995, 1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -1561,11 +1562,13 @@ line."
 (defun calendar-redraw ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
-  (if (get-buffer calendar-buffer)
-      (with-current-buffer calendar-buffer
-        (let ((cursor-date (calendar-cursor-to-nearest-date)))
-          (calendar-generate-window displayed-month displayed-year)
-          (calendar-cursor-to-visible-date cursor-date)))))
+  (when (get-buffer calendar-buffer)
+    (with-current-buffer calendar-buffer
+      (let ((cursor-date (calendar-cursor-to-nearest-date)))
+        (calendar-generate-window displayed-month displayed-year)
+        (calendar-cursor-to-visible-date cursor-date))
+      (when (window-live-p (get-buffer-window))
+        (set-window-point (get-buffer-window) (point))))))
 
 (defvar calendar-mode-map
   (let ((map (make-keymap)))
@@ -1632,6 +1635,7 @@ line."
     (define-key map "S"   'calendar-sunrise-sunset)
     (define-key map "M"   'calendar-lunar-phases)
     (define-key map " "   'scroll-other-window)
+    (define-key map [?\S-\ ] 'scroll-other-window-down)
     (define-key map "\d"  'scroll-other-window-down)
     (define-key map "\C-c\C-l" 'calendar-redraw)
     (define-key map "."   'calendar-goto-today)

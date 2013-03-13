@@ -1,6 +1,7 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993-1996, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993-1996, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -117,6 +118,7 @@ Setting this option to nil might speed up the generation of summaries."
     (define-key map "<"      'rmail-summary-first-message)
     (define-key map ">"      'rmail-summary-last-message)
     (define-key map " "      'rmail-summary-scroll-msg-up)
+    (define-key map [?\S-\ ] 'rmail-summary-scroll-msg-down)
     (define-key map "\177"   'rmail-summary-scroll-msg-down)
     (define-key map "?"      'describe-mode)
     (define-key map "\C-c\C-n" 'rmail-summary-next-same-subject)
@@ -428,7 +430,7 @@ nil for FUNCTION means all messages."
       ;; This is how rmail makes the summary buffer reappear.
       ;; We do this here to make the window the proper size.
       (rmail-select-summary nil)
-      (set-buffer rmail-summary-buffer))
+      (set-buffer sumbuf))
     (rmail-summary-goto-msg mesg t t)
     (rmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))

@@ -1,6 +1,6 @@
 ;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -83,6 +83,12 @@
 ;;           (delete-region (1- (point)) (point)))
 ;;         (save-buffer)))))
 
+(defun cl-unload-function ()
+  "Stop unloading of the Common Lisp extensions."
+  (message "Cannot unload the feature `cl'")
+  ;; Stop standard unloading!
+  t)
+
 ;;; Aliases to cl-lib's features.
 
 (dolist (var '(
@@ -106,14 +112,6 @@
                ;; custom-print-functions
                ))
   (defvaralias var (intern (format "cl-%s" var))))
-
-;; Before overwriting subr.el's `dotimes' and `dolist', let's remember
-;; them under a different name, so we can use them in our implementation
-;; of `dotimes' and `dolist'.
-(unless (fboundp 'cl--dotimes)
-  (defalias 'cl--dotimes (symbol-function 'dotimes) "The non-CL `dotimes'."))
-(unless (fboundp 'cl--dolist)
-  (defalias 'cl--dolist (symbol-function 'dolist) "The non-CL `dolist'."))
 
 (dolist (fun '(
                (get* . cl-get)
@@ -222,13 +220,12 @@
                callf2
                callf
                letf*
-               ;; letf
+               letf
                rotatef
                shiftf
                remf
                psetf
                (define-setf-method . define-setf-expander)
-               declare
                the
                locally
                multiple-value-setq
@@ -239,8 +236,6 @@
                psetq
                do-all-symbols
                do-symbols
-               dotimes
-               dolist
                do*
                do
                loop
@@ -321,6 +316,15 @@
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))
     (defalias fun new)))
+
+(defun cl--wrap-in-nil-block (fun &rest args)
+  `(cl-block nil ,(apply fun args)))
+(advice-add 'dolist :around #'cl--wrap-in-nil-block)
+(advice-add 'dotimes :around #'cl--wrap-in-nil-block)
+
+(defun cl--pass-args-to-cl-declare (&rest specs)
+   (macroexpand `(cl-declare ,@specs)))
+(advice-add 'declare :after #'cl--pass-args-to-cl-declare)
 
 ;;; Features provided a bit differently in Elisp.
 
@@ -500,25 +504,6 @@ rather than relying on `lexical-binding'."
 ;; not 100% compatible: not worth the trouble to add them to cl-lib.el, but we
 ;; still need to support old users of cl.el.
 
-(defmacro cl--symbol-function (symbol)
-  "Like `symbol-function' but return `cl--unbound' if not bound."
-  ;; (declare (gv-setter (lambda (store)
-  ;;                       `(if (eq ,store 'cl--unbound)
-  ;;                            (fmakunbound ,symbol) (fset ,symbol ,store)))))
-  `(if (fboundp ,symbol) (symbol-function ,symbol) 'cl--unbound))
-(gv-define-setter cl--symbol-function (store symbol)
-  `(if (eq ,store 'cl--unbound) (fmakunbound ,symbol) (fset ,symbol ,store)))
-
-(defmacro letf (bindings &rest body)
-  "Dynamically scoped let-style bindings for places.
-Like `cl-letf', but with some extra backward compatibility."
-  ;; Like cl-letf, but with special handling of symbol-function.
-  `(cl-letf ,(mapcar (lambda (x) (if (eq (car-safe (car x)) 'symbol-function)
-                                `((cl--symbol-function ,@(cdar x)) ,@(cdr x))
-                              x))
-                     bindings)
-            ,@body))
-
 (defun cl--gv-adapt (cl-gv do)
   ;; This function is used by all .elc files that use define-setf-expander and
   ;; were compiled with Emacs>=24.3.
@@ -544,13 +529,15 @@ Like `cl-letf', but with some extra backward compatibility."
 
 (defmacro define-setf-expander (name arglist &rest body)
   "Define a `setf' method.
-This method shows how to handle `setf's to places of the form (NAME ARGS...).
-The argument forms ARGS are bound according to ARGLIST, as if NAME were
-going to be expanded as a macro, then the BODY forms are executed and must
-return a list of five elements: a temporary-variables list, a value-forms
-list, a store-variables list (of length one), a store-form, and an access-
-form.  See `gv-define-expander', `gv-define-setter', and `gv-define-expander'
-for a better and simpler ways to define setf-methods."
+This method shows how to handle `setf's to places of the form
+\(NAME ARGS...).  The argument forms ARGS are bound according to
+ARGLIST, as if NAME were going to be expanded as a macro, then
+the BODY forms are executed and must return a list of five elements:
+a temporary-variables list, a value-forms list, a store-variables list
+\(of length one), a store-form, and an access- form.
+
+See `gv-define-expander', and `gv-define-setter' for better and
+simpler ways to define setf-methods."
   (declare (debug
             (&define name cl-lambda-list cl-declarations-or-string def-body)))
   `(progn
@@ -563,22 +550,30 @@ for a better and simpler ways to define setf-methods."
 
 (defmacro defsetf (name arg1 &rest args)
   "Define a `setf' method.
-This macro is an easy-to-use substitute for `define-setf-expander' that works
-well for simple place forms.  In the simple `defsetf' form, `setf's of
-the form (setf (NAME ARGS...) VAL) are transformed to function or macro
-calls of the form (FUNC ARGS... VAL).  Example:
+This macro is an easy-to-use substitute for `define-setf-expander'
+that works well for simple place forms.
 
-  (cl-defsetf aref aset)
+In the simple `defsetf' form, `setf's of the form (setf (NAME
+ARGS...) VAL) are transformed to function or macro calls of the
+form (FUNC ARGS... VAL).  For example:
 
-Alternate form: (cl-defsetf NAME ARGLIST (STORE) BODY...).
-Here, the above `setf' call is expanded by binding the argument forms ARGS
-according to ARGLIST, binding the value form VAL to STORE, then executing
-BODY, which must return a Lisp form that does the necessary `setf' operation.
-Actually, ARGLIST and STORE may be bound to temporary variables which are
-introduced automatically to preserve proper execution order of the arguments.
-Example:
+  (defsetf aref aset)
 
-  (cl-defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
+You can replace this form with `gv-define-simple-setter'.
+
+Alternate form: (defsetf NAME ARGLIST (STORE) BODY...).
+
+Here, the above `setf' call is expanded by binding the argument
+forms ARGS according to ARGLIST, binding the value form VAL to
+STORE, then executing BODY, which must return a Lisp form that
+does the necessary `setf' operation.  Actually, ARGLIST and STORE
+may be bound to temporary variables which are introduced
+automatically to preserve proper execution order of the arguments.
+For example:
+
+  (defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
+
+You can replace this form with `gv-define-setter'.
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
   (declare (debug
@@ -594,7 +589,7 @@ Example:
                           (cl-function
                            (lambda (,@(car args) ,@arg1) ,@(cdr args)))
 			  do args)))
-    `(gv-define-simple-setter ,name ,arg1)))
+    `(gv-define-simple-setter ,name ,arg1 ,(car args))))
 
 ;; FIXME: CL used to provide a setf method for `apply', but I haven't been able
 ;; to find a case where it worked.  The code below tries to handle it as well.
@@ -636,8 +631,12 @@ Example:
 
 (defmacro define-modify-macro (name arglist func &optional doc)
   "Define a `setf'-like modify macro.
-If NAME is called, it combines its PLACE argument with the other arguments
-from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
+If NAME is called, it combines its PLACE argument with the other
+arguments from ARGLIST using FUNC.  For example:
+
+  (define-modify-macro incf (&optional (n 1)) +)
+
+You can replace this macro with `gv-letplace'."
   (declare (debug
             (&define name cl-lambda-list ;; should exclude &key
                      symbolp &optional stringp)))
@@ -690,6 +689,7 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
   'cl--map-keymap-recursively "24.3")
 (define-obsolete-function-alias 'cl-map-intervals 'cl--map-intervals "24.3")
 (define-obsolete-function-alias 'cl-map-extents 'cl--map-overlays "24.3")
+(define-obsolete-function-alias 'cl-set-getf 'cl--set-getf "24.3")
 
 (defun cl-maclisp-member (item list)
   (declare (obsolete member "24.3"))
@@ -720,4 +720,7 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
 	  (list accessor temp))))
 
 (provide 'cl)
+
+(run-hooks 'cl-load-hook)
+
 ;;; cl.el ends here

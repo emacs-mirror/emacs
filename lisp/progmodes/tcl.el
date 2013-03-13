@@ -1,6 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -332,8 +332,8 @@ This process selection is performed by function `inferior-tcl-proc'.
 Whenever \\[inferior-tcl] fires up a new process, it resets
 `inferior-tcl-buffer' to be the new process's buffer.  If you only run
 one process, this does the right thing.  If you run multiple
-processes, you can change `inferior-tcl-buffer' to another process
-buffer with \\[set-variable].")
+processes, you might need to set `inferior-tcl-buffer' to
+whichever process buffer you want to use.")
 
 ;;
 ;; Hooks and other customization.

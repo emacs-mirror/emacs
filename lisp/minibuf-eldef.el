@@ -1,6 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -33,13 +33,26 @@
 
 ;;; Code:
 
-(defvar minibuffer-eldef-shorten-default nil
-  "If non-nil, shorten \"(default ...)\" to \"[...]\" in minibuffer prompts.")
+(defvar minibuffer-eldef-shorten-default)
 
-(defvar minibuffer-default-in-prompt-regexps
+(defun minibuffer-default--in-prompt-regexps ()
   `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
      1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
-    ("\\( \\[.*\\]\\):? *\\'" 1))
+    ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
+    ("\\( \\[.*\\]\\):? *\\'" 1)))
+
+(defcustom minibuffer-eldef-shorten-default nil
+  "If non-nil, shorten \"(default ...)\" to \"[...]\" in minibuffer prompts."
+  :set (lambda (symbol value)
+         (set-default symbol value)
+	 (setq-default minibuffer-default-in-prompt-regexps
+		       (minibuffer-default--in-prompt-regexps)))
+  :type 'boolean
+  :group 'minibuffer
+  :version "24.3")
+
+(defvar minibuffer-default-in-prompt-regexps
+  (minibuffer-default--in-prompt-regexps)
   "A list of regexps matching the parts of minibuffer prompts showing defaults.
 When `minibuffer-electric-default-mode' is active, these regexps are
 used to identify the portions of prompts to elide.
@@ -140,15 +153,11 @@ been set up by `minibuf-eldef-setup-minibuffer'."
 	      (and (= (point-max) minibuf-eldef-initial-buffer-length)
 		   (string-equal (minibuffer-contents-no-properties)
 				 minibuf-eldef-initial-input)))
-    ;; swap state
+    ;; Swap state.
     (setq minibuf-eldef-showing-default-in-prompt
 	  (not minibuf-eldef-showing-default-in-prompt))
-    (cond (minibuf-eldef-showing-default-in-prompt
-	   (overlay-put minibuf-eldef-overlay 'invisible nil)
-	   (overlay-put minibuf-eldef-overlay 'intangible nil))
-	  (t
-	   (overlay-put minibuf-eldef-overlay 'invisible t)
-	   (overlay-put minibuf-eldef-overlay 'intangible t)))))
+    (overlay-put minibuf-eldef-overlay 'invisible
+                 (not minibuf-eldef-showing-default-in-prompt))))
 
 
 ;;;###autoload

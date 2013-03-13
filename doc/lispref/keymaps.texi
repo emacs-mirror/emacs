@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -75,8 +75,8 @@ the vector @code{[?\C-x ?l]} represents the key sequence @kbd{C-x l}.
   For examples of key sequences written in string and vector
 representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
 
-@defmac kbd keyseq-text
-This macro converts the text @var{keyseq-text} (a string constant)
+@defun kbd keyseq-text
+This function converts the text @var{keyseq-text} (a string constant)
 into a key sequence (a string or vector constant).  The contents of
 @var{keyseq-text} should use the same syntax as in the buffer invoked
 by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
@@ -94,10 +94,7 @@ Manual}.
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
-
-This macro is not meant for use with arguments that vary---only
-with string constants.
-@end defmac
+@end defun
 
 @node Keymap Basics
 @section Keymap Basics
@@ -210,6 +207,11 @@ Aside from elements that specify bindings for keys, a keymap can also
 have a string as an element.  This is called the @dfn{overall prompt
 string} and makes it possible to use the keymap as a menu.
 @xref{Defining Menus}.
+
+@item (keymap @dots{})
+If an element of a keymap is itself a keymap, it counts as if this inner keymap
+were inlined in the outer keymap.  This is used for multiple-inheritance, such
+as in @code{make-composed-keymap}.
 @end table
 
 When the binding is @code{nil}, it doesn't constitute a definition
@@ -325,10 +327,12 @@ these characters to @code{nil}, and does not bind any other kind of
 event.  The argument @var{prompt} specifies a
 prompt string, as in @code{make-sparse-keymap}.
 
+@c This example seems kind of pointless, but I guess it serves
+@c to contrast the result with make-sparse-keymap above.
 @example
 @group
 (make-keymap)
-    @result{} (keymap #^[t nil nil nil @dots{} nil nil keymap])
+    @result{} (keymap #^[nil nil keymap nil nil nil @dots{}])
 @end group
 @end example
 
@@ -632,8 +636,8 @@ keymap, and the global keymap, in that order.  Emacs searches for each
 input key sequence in all these keymaps.  @xref{Searching Keymaps},
 for more details of this procedure.
 
-  When the key sequence starts with a mouse event (optionally preceded
-by a symbolic prefix), the active keymaps are determined based on the
+  When the key sequence starts with a mouse event,
+the active keymaps are determined based on the
 position in that event.  If the event happened on a string embedded
 with a @code{display}, @code{before-string}, or @code{after-string}
 property (@pxref{Special Properties}), the non-@code{nil} map
@@ -659,7 +663,9 @@ additional active keymaps through the variable
 
   The highest precedence normal keymap comes from the @code{keymap}
 text or overlay property.  If that is non-@code{nil}, it is the first
-keymap to be processed, in normal circumstances.
+keymap to be processed, in normal circumstances.  Next comes
+any keymap added by the function @code{set-temporary-overlay-map}.
+@xref{Controlling Active Maps}.
 
   However, there are also special ways for programs to substitute
 other keymaps for some of those.  The variable
@@ -748,12 +754,13 @@ them:
      (overriding-local-map
       (@var{find-in} overriding-local-map))
      ((or (@var{find-in} (get-char-property (point) 'keymap))
-	  (@var{find-in-any} emulation-mode-map-alists)
-	  (@var{find-in-any} minor-mode-overriding-map-alist)
-	  (@var{find-in-any} minor-mode-map-alist)
-	  (if (get-text-property (point) 'local-map)
-	      (@var{find-in} (get-char-property (point) 'local-map))
-	    (@var{find-in} (current-local-map))))))
+          (@var{find-in} @var{temp-map})
+          (@var{find-in-any} emulation-mode-map-alists)
+          (@var{find-in-any} minor-mode-overriding-map-alist)
+          (@var{find-in-any} minor-mode-map-alist)
+          (if (get-text-property (point) 'local-map)
+              (@var{find-in} (get-char-property (point) 'local-map))
+            (@var{find-in} (current-local-map))))))
     (@var{find-in} (current-global-map)))
 @end lisp
 
@@ -761,11 +768,11 @@ them:
 @var{find-in} and @var{find-in-any} are pseudo functions that search
 in one keymap and in an alist of keymaps, respectively.  (Searching a
 single keymap for a binding is called @dfn{key lookup}; see @ref{Key
-Lookup}.)  If the key sequence starts with a mouse event, or a
-symbolic prefix event followed by a mouse event, that event's position
+Lookup}.)  If the key sequence starts with a mouse event, that event's position
 is used instead of point and the current buffer.  Mouse events on an
 embedded string use non-@code{nil} text properties from that string
-instead of the buffer.
+instead of the buffer.  @var{temp-map} is a pseudo variable that
+represents the effect of a @code{set-temporary-overlay-map} call.
 
   When a match is found (@pxref{Key Lookup}), if the binding in the
 keymap is a function, the search is over.  However if the keymap entry
@@ -830,7 +837,7 @@ keymap.
 @end defun
 
 @code{current-local-map} returns a reference to the local keymap, not
-a copy of it; if you use @code{define-key} or other functions on it 
+a copy of it; if you use @code{define-key} or other functions on it
 you will alter local bindings.
 
 @defun current-minor-mode-maps
@@ -944,6 +951,21 @@ binding which is such an alist.  The ``active'' keymaps in each alist
 are used before @code{minor-mode-map-alist} and
 @code{minor-mode-overriding-map-alist}.
 @end defvar
+
+@defun set-temporary-overlay-map keymap &optional keep
+This function adds @var{keymap} as a temporary keymap that takes
+precedence over most other keymaps.  It does not take precedence over
+the ``overriding'' maps (see above); and unlike them, if no match for
+a key is found in @var{keymap}, the search continues.
+
+Normally, @var{keymap} is used only once.  If the optional argument
+@var{pred} is @code{t}, the map stays active if a key from @var{keymap}
+is used.  @var{pred} can also be a function of no arguments: if it returns
+non-@code{nil} then @var{keymap} stays active.
+
+For a pseudo-Lisp description of exactly how and when this keymap applies,
+@pxref{Searching Keymaps}.
+@end defun
 
 @node Key Lookup
 @section Key Lookup
@@ -1270,8 +1292,8 @@ numeric codes for the modifier bits don't appear in compiled files.
   The functions below signal an error if @var{keymap} is not a keymap,
 or if @var{key} is not a string or vector representing a key sequence.
 You can use event types (symbols) as shorthand for events that are
-lists.  The @code{kbd} macro (@pxref{Key Sequences}) is a convenient
-way to specify the key sequence.
+lists.  The @code{kbd} function (@pxref{Key Sequences}) is a
+convenient way to specify the key sequence.
 
 @defun define-key keymap key binding
 This function sets the binding for @var{key} in @var{keymap}.  (If
@@ -1506,7 +1528,7 @@ Instead, if an ordinary key binding specifies @code{kill-line}, it is
 remapped to @code{my-kill-line}; if an ordinary binding specifies
 @code{my-kill-line}, it is remapped to @code{my-other-kill-line}.
 
-To undo the remapping of a command, remap it to @code{nil}; e.g.
+To undo the remapping of a command, remap it to @code{nil}; e.g.,
 
 @smallexample
 (define-key my-mode-map [remap kill-line] nil)
@@ -1535,14 +1557,11 @@ sequence, to translate certain event sequences into others.
 being read, as it is read, against @code{input-decode-map}, then
 @code{local-function-key-map}, and then against @code{key-translation-map}.
 
-@defvar input-decode-map
-This variable holds a keymap that describes the character sequences sent
-by function keys on an ordinary character terminal.  This keymap has the
-same structure as other keymaps, but is used differently: it specifies
-translations to make while reading key sequences, rather than bindings
-for key sequences.
+These keymaps have the same structure as other keymaps, but they are used
+differently: they specify translations to make while reading key sequences,
+rather than bindings for key sequences.
 
-If @code{input-decode-map} ``binds'' a key sequence @var{k} to a vector
+If one of these keymaps ``binds'' a key sequence @var{k} to a vector
 @var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
 key sequence, it is replaced with the events in @var{v}.
 
@@ -1556,6 +1575,10 @@ Thus, typing @kbd{C-c @key{PF1}} sends the character sequence @kbd{C-c
 @key{ESC} O P}; later the function @code{read-key-sequence} translates
 this back into @kbd{C-c @key{PF1}}, which it returns as the vector
 @code{[?\C-c pf1]}.
+
+@defvar input-decode-map
+This variable holds a keymap that describes the character sequences sent
+by function keys on an ordinary character terminal.
 
 The value of @code{input-decode-map} is usually set up automatically
 according to the terminal's Terminfo or Termcap entry, but sometimes
@@ -1572,7 +1595,7 @@ alternative interpretations that are usually preferred.  It applies
 after @code{input-decode-map} and before @code{key-translation-map}.
 
 Entries in @code{local-function-key-map} are ignored if they conflict
-with bindings made in the minor mode, local, or global keymaps.  I.e.
+with bindings made in the minor mode, local, or global keymaps.  I.e.,
 the remapping only applies if the original key sequence would
 otherwise not have any binding.
 
@@ -1631,8 +1654,6 @@ to turn the character that follows into a Hyper character:
   (let ((symbol (if (symbolp e) e (car e))))
     (setq symbol (intern (concat string
                                  (symbol-name symbol))))
-@end group
-@group
     (if (symbolp e)
         symbol
       (cons symbol (cdr e)))))
@@ -1642,10 +1663,30 @@ to turn the character that follows into a Hyper character:
 @end example
 
   If you have enabled keyboard character set decoding using
-@code{set-keyboard-coding-system}, decoding is done after the
-translations listed above.  @xref{Terminal I/O Encoding}.  However, in
-future Emacs versions, character set decoding may be done at an
-earlier stage.
+@code{set-keyboard-coding-system}, decoding is done before the
+translations listed above.  @xref{Terminal I/O Encoding}.
+
+@subsection Interaction with normal keymaps
+
+The end of a key sequence is detected when that key sequence either is bound
+to a command, or when Emacs determines that no additional event can lead
+to a sequence that is bound to a command.
+
+This means that, while @code{input-decode-map} and @code{key-translation-map}
+apply regardless of whether the original key sequence would have a binding, the
+presence of such a binding can still prevent translation from taking place.
+For example, let us return to our VT100 example above and add a binding for
+@kbd{C-c @key{ESC}} to the global map; now when the user hits @kbd{C-c
+@key{PF1}} Emacs will fail to decode @kbd{C-c @key{ESC} O P} into @kbd{C-c
+@key{PF1}} because it will stop reading keys right after @kbd{C-x @key{ESC}},
+leaving @kbd{O P} for later.  This is in case the user really hit @kbd{C-c
+@key{ESC}}, in which case Emacs should not sit there waiting for the next key
+to decide whether the user really pressed @kbd{@key{ESC}} or @kbd{@key{PF1}}.
+
+For that reason, it is better to avoid binding commands to key sequences where
+the end of the key sequence is a prefix of a key translation.  The main such
+problematic suffixes/prefixes are @kbd{@key{ESC}}, @kbd{M-O} (which is really
+@kbd{@key{ESC} O}) and @kbd{M-[} (which is really @kbd{@key{ESC} [}).
 
 @node Key Binding Commands
 @section Commands for Binding Keys
@@ -1743,7 +1784,7 @@ that uses @var{key} as a prefix---which would not be allowed if
 @end group
 @end smallexample
 
-This function is implemented simply using @code{define-key}:
+This function is equivalent to using @code{define-key} as follows:
 
 @smallexample
 @group
@@ -1934,9 +1975,6 @@ modes---minor modes first, then the major mode, then global bindings.
 If @var{prefix} is non-@code{nil}, it should be a prefix key; then the
 listing includes only keys that start with @var{prefix}.
 
-The listing describes meta characters as @key{ESC} followed by the
-corresponding non-meta character.
-
 When several characters with consecutive @acronym{ASCII} codes have the
 same definition, they are shown together, as
 @samp{@var{firstchar}..@var{lastchar}}.  In this instance, you need to
@@ -1986,7 +2024,7 @@ which is a string that appears as an element of the keymap.
 the menu's commands.  Emacs displays the overall prompt string as the
 menu title in some cases, depending on the toolkit (if any) used for
 displaying menus.@footnote{It is required for menus which do not use a
-toolkit, e.g.@: under MS-DOS.}  Keyboard menus also display the
+toolkit, e.g., under MS-DOS.}  Keyboard menus also display the
 overall prompt string.
 
 The easiest way to construct a keymap with a prompt string is to
@@ -2265,9 +2303,9 @@ the following word.  Thus, @code{"--:singleLine"}, is equivalent to
 and @code{:visible} for a menu separator:
 
 @code{(menu-item @var{separator-type} nil . @var{item-property-list})}
-  
+
 For example:
-  
+
 @example
 (menu-item "--" nil :visible (boundp 'foo))
 @end example
@@ -2624,8 +2662,8 @@ By default, the global map binds @code{[tool-bar]} as follows:
 
 @example
 (global-set-key [tool-bar]
-		`(menu-item ,(purecopy "tool bar") ignore
-			    :filter tool-bar-make-keymap))
+                `(menu-item ,(purecopy "tool bar") ignore
+                            :filter tool-bar-make-keymap))
 @end example
 
 @noindent

@@ -1,7 +1,7 @@
 /* simulate `sbrk' with an array in .bss, for `unexec' support for Cygwin;
    complete rewrite of xemacs Cygwin `unexec' code
 
-   Copyright (C) 2004-2012 Free Software Foundation, Inc.
+   Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -91,5 +91,7 @@ report_sheap_usage (int die_if_pure_storage_exceeded)
   char buf[200];
   sprintf (buf, "Static heap usage: %d of %d bytes",
 	   bss_sbrk_ptr - bss_sbrk_buffer, STATIC_HEAP_SIZE);
-  message ("%s", buf);
+  /* Don't log messages, cause at this point, we're not allowed to create
+     buffers.  */
+  message1_nolog (buf);
 }

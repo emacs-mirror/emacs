@@ -1,6 +1,6 @@
 ;;; semantic/symref.el --- Symbol Reference API
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -356,7 +356,7 @@ already."
 	  (lambda (hit)
 	    (let* ((line (car hit))
 		   (file (cdr hit))
-		   (buff (get-file-buffer file))
+		   (buff (find-buffer-visiting file))
 		   (tag nil)
 		   )
 	      (cond

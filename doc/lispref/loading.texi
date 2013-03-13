@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Loading
 @chapter Loading
@@ -112,6 +112,25 @@ Compilation}.
 When loading a source file (not compiled), @code{load} performs
 character set translation just as Emacs would do when visiting the file.
 @xref{Coding Systems}.
+
+@c This is referred to from the Macros chapter.
+@c Not sure if it should be the other way round.
+@cindex eager macro expansion
+When loading an uncompiled file, Emacs tries to expand any macros
+that the file contains (@pxref{Macros}).  We refer to this as
+@dfn{eager macro expansion}.  Doing this (rather than deferring
+the expansion until the relevant code runs) can significantly speed
+up the execution of uncompiled code.  Sometimes, this macro expansion
+cannot be done, owing to a cyclic dependency.  In the simplest
+example of this, the file you are loading refers to a macro defined
+in another file, and that file in turn requires the file you are
+loading.  This is generally harmless.  Emacs prints a warning
+(@samp{Eager macro-expansion skipped due to cycle@dots{}})
+giving details of the problem, but it still loads the file, just
+leaving the macro unexpanded for now.  You may wish to restructure
+your code so that this does not happen.  Loading a compiled file does
+not cause macroexpansion, because this should already have happened
+during compilation.  @xref{Compiling Macros}.
 
 Messages like @samp{Loading foo...} and @samp{Loading foo...done} appear
 in the echo area during loading unless @var{nomessage} is
@@ -408,9 +427,9 @@ to load automatically from @var{filename}.  The string @var{filename}
 specifies the file to load to get the real definition of @var{function}.
 
 If @var{filename} does not contain either a directory name, or the
-suffix @code{.el} or @code{.elc}, then @code{autoload} insists on adding
-one of these suffixes, and it will not load from a file whose name is
-just @var{filename} with no added suffix.  (The variable
+suffix @code{.el} or @code{.elc}, this function insists on adding one
+of these suffixes, and it will not load from a file whose name is just
+@var{filename} with no added suffix.  (The variable
 @code{load-suffixes} specifies the exact required suffixes.)
 
 The argument @var{docstring} is the documentation string for the
@@ -442,10 +461,11 @@ and calls @code{define-key}; not even if the variable name is the same
 symbol @var{function}.
 
 @cindex function cell in autoload
-If @var{function} already has a non-void function definition that is not
-an autoload object, @code{autoload} does nothing and returns @code{nil}.
-If the function cell of @var{function} is void, or is already an autoload
-object, then it is defined as an autoload object like this:
+if @var{function} already has non-void function definition that is not
+an autoload object, this function does nothing and returns @code{nil}.
+Otherwise, it constructs an autoload object (@pxref{Autoload Type}),
+and stores it as the function definition for @var{function}.  The
+autoload object has this form:
 
 @example
 (autoload @var{filename} @var{docstring} @var{interactive} @var{type})
@@ -466,6 +486,16 @@ refers to the documentation string in the
 @file{emacs/etc/DOC-@var{version}} file (@pxref{Documentation Basics}),
 @code{t} means the function is interactive, and @code{nil} that it is
 not a macro or a keymap.
+@end defun
+
+@defun autoloadp object
+This function returns non-@code{nil} if @var{object} is an autoload
+object.  For example, to check if @code{run-prolog} is defined as an
+autoloaded function, evaluate
+
+@smallexample
+(autoloadp (symbol-function 'run-prolog))
+@end smallexample
 @end defun
 
 @cindex autoload errors
@@ -503,15 +533,15 @@ autoloads for all files in the current directory.
   The same magic comment can copy any kind of form into
 @file{loaddefs.el}.  The form following the magic comment is copied
 verbatim, @emph{except} if it is one of the forms which the autoload
-facility handles specially (e.g.@: by conversion into an
+facility handles specially (e.g., by conversion into an
 @code{autoload} call).  The forms which are not copied verbatim are
 the following:
 
 @table @asis
 @item Definitions for function or function-like objects:
-@code{defun} and @code{defmacro}; also @code{defun*} and
-@code{defmacro*} (@pxref{Argument Lists,,,cl,CL Manual}), and
-@code{define-overloadable-function} (see the commentary in
+@code{defun} and @code{defmacro}; also @code{cl-defun} and
+@code{cl-defmacro} (@pxref{Argument Lists,,,cl,Common Lisp Extensions}),
+and @code{define-overloadable-function} (see the commentary in
 @file{mode-local.el}).
 
 @item Definitions for major or minor modes:
@@ -598,6 +628,19 @@ override that, e.g., in the ``Local Variables'' section of a
 @file{.el} file (@pxref{File Local Variables}).  The autoload file is
 assumed to contain a trailer starting with a formfeed character.
 @end defvar
+
+  The following function may be used to explicitly load the library
+specified by an autoload object:
+
+@defun autoload-do-load autoload &optional name macro-only
+This function performs the loading specified by @var{autoload}, which
+should be an autoload object.  The optional argument @var{name}, if
+non-@code{nil}, should be a symbol whose function value is
+@var{autoload}; in that case, the return value of this function is the
+symbol's new function value.  If the value of the optional argument
+@var{macro-only} is @code{macro}, this function avoids loading a
+function, only a macro.
+@end defun
 
 @node Repeated Loading
 @section Repeated Loading
@@ -686,7 +729,7 @@ file should call @code{provide} at the top level to add the feature to
 (defun idlwave-complete-filename ()
   "Use the comint stuff to complete a file name."
    (require 'comint)
-   (let* ((comint-file-name-chars "~/A-Za-z0-9+@:_.$#%=@{@}\\-")
+   (let* ((comint-file-name-chars "~/A-Za-z0-9+@@:_.$#%=@{@}\\-")
           (comint-completion-addsuffix nil)
           ...)
        (comint-dynamic-complete-filename)))
@@ -806,10 +849,10 @@ was not provided}.
 
 @defun featurep feature &optional subfeature
 This function returns @code{t} if @var{feature} has been provided in
-the current Emacs session (i.e.@:, if @var{feature} is a member of
+the current Emacs session (i.e., if @var{feature} is a member of
 @code{features}.)  If @var{subfeature} is non-@code{nil}, then the
 function returns @code{t} only if that subfeature is provided as well
-(i.e.@: if @var{subfeature} is a member of the @code{subfeature}
+(i.e., if @var{subfeature} is a member of the @code{subfeature}
 property of the @var{feature} symbol.)
 @end defun
 
@@ -974,7 +1017,7 @@ example, @file{my_inst.elc} or @file{my_inst.elc.gz} in some directory
 (eval-after-load "foo/bar/my_inst.elc" @dots{})
 @end example
 
-@var{library} can also be a feature (i.e.@: a symbol), in which case
+@var{library} can also be a feature (i.e., a symbol), in which case
 @var{form} is evaluated at the end of any file where
 @code{(provide @var{library})} is called.
 

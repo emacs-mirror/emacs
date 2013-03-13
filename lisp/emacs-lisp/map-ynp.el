@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- general-purpose boolean question-asker
 
-;; Copyright (C) 1991-1995, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF

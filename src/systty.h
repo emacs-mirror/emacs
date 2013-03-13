@@ -1,5 +1,5 @@
 /* systty.h - System-dependent definitions for terminals.
-   Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,27 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CDISABLE 255
 #endif /* not CDEL */
 #endif /* not _POSIX_VDISABLE */
-
-/* Get the number of characters queued for output.  */
-
-/* EMACS_OUTQSIZE(FD, int *SIZE) stores the number of characters
-   queued for output to the terminal FD in *SIZE, if FD is a tty.
-   Returns -1 if there was an error (i.e. FD is not a tty), 0
-   otherwise.  */
-#ifdef TIOCOUTQ
-#define EMACS_OUTQSIZE(fd, size) (ioctl ((fd), TIOCOUTQ, (size)))
-#endif
-
-
-/* Manipulate a terminal's current process group.  */
-
-/* EMACS_GETPGRP (arg) returns the process group of the process.  */
-
-#if defined (GETPGRP_VOID)
-#  define EMACS_GETPGRP(x) getpgrp()
-#else /* !GETPGRP_VOID */
-#  define EMACS_GETPGRP(x) getpgrp(x)
-#endif /* !GETPGRP_VOID */
 
 /* Manipulate a TTY's input/output processing parameters.  */
 

@@ -1,10 +1,10 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
-;; Version: 2.0
+;; Version: 2.2
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 (require 'semantic/tag)
 (require 'semantic/lex)
 
-(defvar semantic-version "2.1beta"
+(defvar semantic-version "2.2"
   "Current version of Semantic.")
 
 (declare-function inversion-test "inversion")

@@ -228,7 +228,8 @@ people who are not programmers.
 @sp 1
 Edition @value{edition-number}, @value{update-date}
 @sp 1
-Copyright @copyright{} 1990-1995, 1997, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1995, 1997, 2001--2013 Free Software
+Foundation, Inc.
 @sp 1
 
 @iftex
@@ -1053,7 +1054,7 @@ of Emacs Lisp, I am referring to GNU Emacs Lisp in particular.
 
 My thanks to all who helped me with this book.  My especial thanks to
 @r{Jim Blandy}, @r{Noah Friedman}, @w{Jim Kingdon}, @r{Roland
-McGrath}, @w{Frank Ritter}, @w{Randy Smith}, @w{Richard M.@:
+McGrath}, @w{Frank Ritter}, @w{Randy Smith}, @w{Richard M.
 Stallman}, and @w{Melissa Weisshaus}.  My thanks also go to both
 @w{Philip Johnson} and @w{David Stampe} for their patient
 encouragement.  My mistakes are my own.
@@ -1085,7 +1086,7 @@ Robert J. Chassell
 @c   has been already used, duplicate ignored
 @c I guess that is harmless (what happens if a later part of the text
 @c makes a link to something in the first 4 pages though?).
-@c Note that eg the Emacs manual has a preface, but does not bother
+@c E.g., note that the Emacs manual has a preface, but does not bother
 @c resetting the page numbers back to 1 after that.
 @iftex
 @headings off
@@ -3072,7 +3073,7 @@ All functions are defined in terms of other functions, except for a few
 language.  When you write functions' definitions, you will write them in
 Emacs Lisp and use other functions as your building blocks.  Some of the
 functions you will use will themselves be written in Emacs Lisp (perhaps
-by you) and some will be primitives written in C.  The primitive
+by you) and some will be primitives written in C@.  The primitive
 functions are used exactly like those written in Emacs Lisp and behave
 like them.  They are written in C so we can easily run GNU Emacs on any
 computer that has sufficient power and can run C.
@@ -4582,7 +4583,7 @@ argument to the value returned by its second argument.
 @item buffer-name
 Without an argument, return the name of the buffer, as a string.
 
-@itemx buffer-file-name
+@item buffer-file-name
 Without an argument, return the name of the file the buffer is
 visiting.
 
@@ -6281,7 +6282,7 @@ the arithmetic, a conversion is necessary, and
 @findex / @r{(division)}
 @cindex Division
 The second argument is @code{(/ size 10)}.  This expression divides
-the numeric value by ten --- the numeric value of the size of the
+the numeric value by ten---the numeric value of the size of the
 accessible portion of the buffer.  This produces a number that tells
 how many characters make up one tenth of the buffer size.  (In Lisp,
 @code{/} is used for division, just as @code{*} is used for
@@ -9029,7 +9030,7 @@ The last expression in the @code{kill-new} function adds the newly
 copied string to whatever facility exists for copying and pasting
 among different programs running in a windowing system.  In the X
 Windowing system, for example, the @code{x-select-text} function takes
-the string and stores it in memory operated by X.  You can paste the
+the string and stores it in memory operated by X@.  You can paste the
 string in another program, such as an Xterm.
 
 @need 1200
@@ -9115,8 +9116,8 @@ Lisp; it is written in C and is one of the primitives of the GNU Emacs
 system.  Since it is very simple, I will digress briefly from Lisp and
 describe it here.
 
-@c GNU Emacs 22  in /usr/local/src/emacs/src/editfns.c
-@c the DEFUN for  buffer-substring-no-properties
+@c GNU Emacs 24  in src/editfns.c
+@c the DEFUN for  delete-and-extract-region
 
 @need 1500
 Like many of the other Emacs primitives,
@@ -9126,22 +9127,15 @@ like this:
 
 @smallexample
 @group
-DEFUN ("buffer-substring-no-properties", Fbuffer_substring_no_properties,
-       Sbuffer_substring_no_properties, 2, 2, 0,
-       doc: /* Return the characters of part of the buffer,
-without the text properties.
-The two arguments START and END are character positions;
-they can be in either order.  */)
-     (start, end)
-     Lisp_Object start, end;
+DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
+       Sdelete_and_extract_region, 2, 2, 0,
+       doc: /* Delete the text between START and END and return it.  */)
+       (Lisp_Object start, Lisp_Object end)
 @{
-  register int b, e;
-
   validate_region (&start, &end);
-  b = XINT (start);
-  e = XINT (end);
-
-  return make_buffer_string (b, e, 0);
+  if (XINT (start) == XINT (end))
+    return empty_unibyte_string;
+  return del_range_1 (XINT (start), XINT (end), 1, 1);
 @}
 @end group
 @end smallexample
@@ -9191,20 +9185,9 @@ and provides a prompt.
 
 @item
 The seventh part is a documentation string, just like the one for a
-function written in Emacs Lisp, except that every newline must be
-written explicitly as @samp{\n} followed by a backslash and carriage
-return.
-
-@need 1000
-Thus, the first two lines of documentation for  @code{goto-char} are
-written like this:
-
-@smallexample
-@group
-  "Set point to POSITION, a number or marker.\n\
-Beginning of buffer is position (point-min), end is (point-max)."
-@end group
-@end smallexample
+function written in Emacs Lisp.  This is written as a C comment.  (When
+you build Emacs, the program @command{lib-src/make-docfile} extracts
+these comments and uses them to make the ``real'' documentation.)
 @end itemize
 
 @need 1200
@@ -9217,15 +9200,15 @@ consists of the following four lines:
 @group
 validate_region (&start, &end);
 if (XINT (start) == XINT (end))
-  return build_string ("");
+  return empty_unibyte_string;
 return del_range_1 (XINT (start), XINT (end), 1, 1);
 @end group
 @end smallexample
 
-The   @code{validate_region} function checks whether the values
+The @code{validate_region} function checks whether the values
 passed as the beginning and end of the region are the proper type and
 are within range.  If the beginning and end positions are the same,
-then return and empty string.
+then return an empty string.
 
 The @code{del_range_1} function actually deletes the text.  It is a
 complex function we will not look into.  It updates the buffer and
@@ -9402,7 +9385,7 @@ either by setting it manually or by using @code{customize}.
 
 For me, the major use of the @code{set-variable} command is to suggest
 variables that I might want to set in my @file{.emacs} file.  There
-are now more than 700 such variables --- far too many to remember
+are now more than 700 such variables, far too many to remember
 readily.  Fortunately, you can press @key{TAB} after calling the
 @code{M-x set-variable} command to see the list of variables.
 (@xref{Examining, , Examining and Setting Variables, emacs,
@@ -9657,7 +9640,7 @@ This sounds more complicated than it is and is easier seen in a diagram:
 @noindent
 In the diagram, each box represents a word of computer memory that
 holds a Lisp object, usually in the form of a memory address.  The boxes,
-i.e.@: the addresses, are in pairs.  Each arrow points to what the address
+i.e., the addresses, are in pairs.  Each arrow points to what the address
 is the address of, either an atom or another pair of addresses.  The
 first box is the electronic address of @samp{rose} and the arrow points
 to @samp{rose}; the second box is the address of the next pair of boxes,
@@ -11195,8 +11178,8 @@ The @code{dolist} expression does very much the same as the
 of the work you have to do when writing a @code{while} expression.
 
 Like a @code{while} loop, a @code{dolist} loops.  What is different is
-that it automatically shortens the list each time it loops --- it
-`@sc{cdr}s down the list' on its own --- and it automatically binds
+that it automatically shortens the list each time it loops---it
+`@sc{cdr}s down the list' on its own---and it automatically binds
 the @sc{car} of each shorter version of the list to the first of its
 arguments.
 
@@ -13300,8 +13283,8 @@ We can see that this is a decrementing counter @code{while} loop,
 using the expression @code{(setq arg (1- arg))} as the decrementer.
 That expression is not far from the @code{while}, but is hidden in
 another Lisp macro, an @code{unless} macro.  Unless we are at the end
-of the buffer --- that is what the @code{eobp} function determines; it
-is an abbreviation of @samp{End Of Buffer P} --- we decrease the value
+of the buffer---that is what the @code{eobp} function determines; it
+is an abbreviation of @samp{End Of Buffer P}---we decrease the value
 of @code{arg} by one.
 
 (If we are at the end of the buffer, we cannot go forward any more and
@@ -15657,7 +15640,7 @@ as a list that looks like this (but with more elements):
 The @code{directory-files-and-attributes} function returns a list of
 lists.  Each of the lists within the main list consists of 13
 elements.  The first element is a string that contains the name of the
-file -- which, in GNU/Linux, may be a `directory file', that is to
+file---which, in GNU/Linux, may be a `directory file', that is to
 say, a file with the special attributes of a directory.  The second
 element of the list is @code{t} for a directory, a string
 for symbolic link (the string is the name linked to), or @code{nil}.
@@ -15687,7 +15670,7 @@ nil
 "-rw-r--r--"
 @end group
 @group
-nil
+t
 2971624
 773)
 @end group
@@ -16850,7 +16833,7 @@ Write a line graph version of the graph printing functions.
 @cindex Customizing your @file{.emacs} file
 @cindex Initialization file
 
-``You don't have to like Emacs to like it'' -- this seemingly
+``You don't have to like Emacs to like it''---this seemingly
 paradoxical statement is the secret of GNU Emacs.  The plain, `out of
 the box' Emacs is a generic tool.  Most people who use it, customize
 it to suit themselves.
@@ -17009,7 +16992,7 @@ For example, the customizable user option variable
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
   :options '(turn-on-auto-fill flyspell-mode)
-  :group 'data)
+  :group 'wp)
 @end group
 @end smallexample
 
@@ -17612,7 +17595,7 @@ For example:
 (load "~/emacs/slowsplit")
 @end smallexample
 
-This evaluates, i.e.@: loads, the @file{slowsplit.el} file or if it
+This evaluates, i.e., loads, the @file{slowsplit.el} file or if it
 exists, the faster, byte compiled @file{slowsplit.elc} file from the
 @file{emacs} sub-directory of your home directory.  The file contains
 the function @code{split-window-quietly}, which John Robinson wrote in
@@ -17828,7 +17811,7 @@ emacs -q --no-site-file -eval '(blink-cursor-mode nil)'
 
 @exdent Or nowadays, using an even more sophisticated set of options,
 
-emacs -Q - D
+emacs -Q -D
 @end smallexample
 }:
 
@@ -18282,7 +18265,7 @@ or `All'.  (A lower case @samp{p} tell you the percentage above the
 @emph{top} of the window.)  @samp{%-} inserts enough dashes to fill
 out the line.
 
-Remember, ``You don't have to like Emacs to like it'' --- your own
+Remember, ``You don't have to like Emacs to like it''---your own
 Emacs can have different colors, different commands, and different
 keys than a default Emacs.
 
@@ -18781,7 +18764,7 @@ completes without problems.
 
 @item
 While running Edebug, type @kbd{?} to see a list of all the Edebug commands.
-(The @code{global-edebug-prefix} is usually @kbd{C-x X}, i.e.@:
+(The @code{global-edebug-prefix} is usually @kbd{C-x X}, i.e.,
 @kbd{@key{CTRL}-x} followed by an upper case @kbd{X}; use this prefix
 for commands made outside of the Edebug debugging buffer.)
 
@@ -21946,7 +21929,7 @@ Here is the graph:
 @sp 2
 
 @noindent
-The largest group of functions contain 10 -- 19 words and symbols each.
+The largest group of functions contain 10--19 words and symbols each.
 
 @node Free Software and Free Manuals
 @appendix Free Software and Free Manuals

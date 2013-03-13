@@ -1,6 +1,6 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
@@ -309,16 +309,13 @@ be determined."
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
   (let (type first)
-    (or
-     (catch 'found
-       (dolist (elem image-type-file-name-regexps)
-	 (when (string-match-p (car elem) file)
-	   (setq type (cdr elem))
-	   (or first (setq first type))
-	   (if (image-type-available-p type)
-	       (throw 'found type)))))
-     ;; If nothing seems to be supported, return the first type that matched.
-     first)))
+    (catch 'found
+      (dolist (elem image-type-file-name-regexps first)
+	(when (string-match-p (car elem) file)
+	  (if (image-type-available-p (setq type (cdr elem)))
+	      (throw 'found type)
+	    ;; If nothing seems to be supported, return first type that matched.
+	    (or first (setq first type))))))))
 
 ;;;###autoload
 (defun image-type (source &optional type data-p)
@@ -432,7 +429,7 @@ means display it in the right marginal area."
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
 with a `display' property whose value is the image.  STRING
-defaults to the empty string if you omit it.
+defaults to a single space if you omit it.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
@@ -470,8 +467,8 @@ height of the image; integer values are taken as pixel values."
 (defun insert-sliced-image (image &optional string area rows cols)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.  STRING is
-defaulted if you omit it.
+with a `display' property whose value is the image.  The default
+STRING is a single space.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
@@ -609,25 +606,25 @@ Example:
 
 ;;; Animated image API
 
-(defconst image-animated-types '(gif)
-  "List of supported animated image types.")
+(defvar image-default-frame-delay 0.1
+  "Default interval in seconds between frames of a multi-frame image.
+Only used if the image does not specify a value.")
 
-(defun image-animated-p (image)
-  "Return non-nil if IMAGE can be animated.
-To be capable of being animated, an image must be of a type
-listed in `image-animated-types', and contain more than one
-sub-image, with a specified animation delay.  The actual return
-value is a cons (NIMAGES . DELAY), where NIMAGES is the number
-of sub-images in the animated image and DELAY is the delay in
-seconds until the next sub-image should be displayed."
-  (cond
-   ((memq (plist-get (cdr image) :type) image-animated-types)
-    (let* ((metadata (image-metadata image))
-	   (images (plist-get metadata 'count))
-	   (delay (plist-get metadata 'delay)))
-      (when (and images (> images 1) (numberp delay))
-	(if (< delay 0) (setq delay 0.1))
-	(cons images delay))))))
+(defun image-multi-frame-p (image)
+  "Return non-nil if IMAGE contains more than one frame.
+The actual return value is a cons (NIMAGES . DELAY), where NIMAGES is
+the number of frames (or sub-images) in the image and DELAY is the delay
+in seconds that the image specifies between each frame.  DELAY may be nil,
+in which case you might want to use `image-default-frame-delay'."
+  (let* ((metadata (image-metadata image))
+	 (images (plist-get metadata 'count))
+	 (delay (plist-get metadata 'delay)))
+    (when (and images (> images 1))
+      (if (or (not (numberp delay)) (< delay 0))
+	  (setq delay image-default-frame-delay))
+      (cons images delay))))
+
+(define-obsolete-function-alias 'image-animated-p 'image-multi-frame-p "24.4")
 
 ;; "Destructively"?
 (defun image-animate (image &optional index limit)
@@ -638,7 +635,7 @@ With optional INDEX, begin animating from that animation frame.
 LIMIT specifies how long to animate the image.  If omitted or
 nil, play the animation until the end.  If t, loop forever.  If a
 number, play until that number of seconds has elapsed."
-  (let ((animation (image-animated-p image))
+  (let ((animation (image-multi-frame-p image))
 	timer)
     (when animation
       (if (setq timer (image-animate-timer image))
@@ -660,8 +657,25 @@ number, play until that number of seconds has elapsed."
 	(setq timer nil)))
     timer))
 
+(defconst image-minimum-frame-delay 0.01
+  "Minimum interval in seconds between frames of an animated image.")
+
+(defun image-current-frame (image)
+  "The current frame number of IMAGE, indexed from 0."
+  (or (plist-get (cdr image) :index) 0))
+
+(defun image-show-frame (image n &optional nocheck)
+  "Show frame N of IMAGE.
+Frames are indexed from 0.  Optional argument NOCHECK non-nil means
+do not check N is within the range of frames present in the image."
+  (unless nocheck
+    (if (< n 0) (setq n 0)
+      (setq n (min n (1- (car (image-multi-frame-p image)))))))
+  (plist-put (cdr image) :index n)
+  (force-window-update))
+
 ;; FIXME? The delay may not be the same for different sub-images,
-;; hence we need to call image-animated-p to return it.
+;; hence we need to call image-multi-frame-p to return it.
 ;; But it also returns count, so why do we bother passing that as an
 ;; argument?
 (defun image-animate-timeout (image n count time-elapsed limit)
@@ -673,16 +687,16 @@ TIME-ELAPSED is the total time that has elapsed since
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed.
-The minimum delay between successive frames is 0.01s."
-  (plist-put (cdr image) :index n)
-  (force-window-update)
+The minimum delay between successive frames is `image-minimum-frame-delay'."
+  (image-show-frame image n t)
   (setq n (1+ n))
   (let* ((time (float-time))
-	 (animation (image-animated-p image))
+	 (animation (image-multi-frame-p image))
 	 ;; Subtract off the time we took to load the image from the
 	 ;; stated delay time.
-	 (delay (max (+ (cdr animation) time (- (float-time)))
-		     0.01))
+	 (delay (max (+ (or (cdr animation) image-default-frame-delay)
+			time (- (float-time)))
+		     image-minimum-frame-delay))
 	 done)
     (if (>= n count)
 	(if limit

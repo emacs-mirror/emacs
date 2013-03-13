@@ -1,6 +1,6 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion
 
-;; Copyright (C) 1992, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Last change: 3 March 1998
@@ -199,6 +199,8 @@
 
 (defvar he-search-window ())
 
+;;; Autoloaded for historical reasons (bug#12982)
+;;;###autoload
 (defcustom hippie-expand-try-functions-list
   '(try-complete-file-name-partially
     try-complete-file-name

@@ -1,3 +1,242 @@
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* inc/ms-w32.h (fdatasync): New macro, suggested by Eli Zaretskii.
+
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
+	* inc/unistd.h (O_NOFOLLOW): New macro.
+
+2013-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DATA_START, ORDINARY_LINK): Remove.
+	(HAVE_DATA_START, HAVE__PUTENV): New macros.
+
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (BOOT_TIME_FILE): Define.
+
+	* config.nt (CLASH_DETECTION): Define to 1.
+
+2013-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (__STDC__): Fiddle with value only for MSVC.
+	(Bug#9066)
+	(chown, logb): Remove, unused.
+
+2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_STACK): Remove.
+	(GNULIB_FDOPENDIR, HAVE_DECL_FDOPENDIR, HAVE_DECL_MEMRCHR)
+	(HAVE_DIRENT_H, HAVE_FDOPENDIR, HAVE_FSTATAT, HAVE_MEMRCHR)
+	(HAVE_WORKING_FSTATAT_ZERO_FLAG, _NETBSD_SOURCE): New macros.
+
+2013-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h: Add prototype for memrchr.
+
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* inc/sys/stat.h (fstatat):
+	* inc/unistd.h (readlinkat): New decls.
+
+2013-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/dirent.h (opendir): Update prototype.
+
+2013-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (O_IGNORE_CTTY): Define, as it is unconditionally
+	used in term.c.  (Bug#13387)
+
+2013-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_GTK_HANDLE_BOX_NEW, HAVE_GTK_TEAROFF_MENU_ITEM_NEW): New macros.
+
+2012-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_ISMPX): Define to zero, to accommodate changes
+	in lib/filemode.c that broke the MS-Windows build.
+	Suggested by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2012-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD4_2): Remove.
+
+2012-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/acl.h: New file.
+
+	* inc/ms-w32.h (ENOTSUP): Define if undefined.
+
+	* config.nt (HAVE_POSIX_ACL): Define.
+
+2012-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (sys_unlink): Provide prototype.
+
+2012-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h: Declare w32_stat_get_owner_group.
+
+2012-12-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_INOTIFY, HAVE_SYS_INOTIFY_H): New macros.
+
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_DECL_UNSETENV, HAVE_SIG2STR, VOID_UNSETENV): New macros.
+	(ULIMIT_BREAK_VALUE): Remove.
+
+2012-12-10  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.rc: Use forward slashes in relative paths in order to
+	avoid complaints from Cygwin.  (Forward slashes work perfectly
+	well in the NT build.)
+
+2012-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (unsetenv): Provide a prototype.
+
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (putenv): Redirect to sys_putenv.
+	(sys_putenv): Add prototype.
+
+	* config.nt (HAVE_UNSETENV): Define to 1.
+
+2012-12-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* config.nt (HAVE_MOUSE): Remove.
+
+2012-11-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_GETWD, HAVE_CLOSEDIR, HAVE_DIRENT_H, HAVE_FCNTL_H, HAVE_GETWD):
+	Remove.
+
+2012-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (SWITCHCHAR): Define to // under MSYS, / otherwise.
+	(Bug#12955)
+
+	* nmake.defs (SWITCHCHAR): Define to /.
+
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* inc/dirent.h: Rename from ../src/ndir.h, with these changes:
+	(struct dirent): Rename from struct direct.  All uses changed.
+	* inc/sys/dir.h: Remove.
+
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* config.nt (HAVE_GETCWD): Remove.
+
+2012-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs: Use !if, not !ifdef.  For the details, see
+	http://lists.gnu.org/archive/html/help-emacs-windows/2012-11/msg00027.html
+
+	* inc/stdint.h (INTPTR_MIN):
+	(PTRDIFF_MIN) [!__GNUC__]: Define for MSVC.
+
+2012-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h: Don't include fcntl.h and don't define O_RDWR.
+
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_FPATHCONF): Remove.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* inc/sys/socket.h (O_NONBLOCK): Rename from O_NDELAY, since the
+	POSIX name for this flag is O_NONBLOCK.  All uses changed.
+	* inc/unistd.h (O_RDWR, O_NOCTTY): New macros.  Like AT_FDCWD etc.
+	these really should be moved to a replacement <fcntl.h> if and
+	when that gets implemented.  In the meantime, include <fcntl.h>
+	to make sure we don't override its definitions.
+
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/wait.h: New file, with prototype of waitpid and
+	definitions of macros it needs.
+
+	* inc/ms-w32.h (wait): Don't define, 'wait' is not used anymore.
+	(sys_wait): Remove prototype.
+
+	* config.nt (HAVE_SYS_WAIT_H): Define to 1.
+
+2012-11-17  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* zipdist.bat (ZIP_CHECK): Remove unused label.  When invoking 7z
+	to check if it's installed, redirect standard output and standard
+	error to the null device.
+	(ZIP_DIST): Don't build the "barebin" distribution.
+
+2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GETGROUPS_T, GETGROUPS_ZERO_BUG, GNULIB_FACCESSAT, HAVE_ACCESS)
+	(HAVE_EACCESS, HAVE_FACCESSAT, HAVE_GETGROUPS, HAVE_LIBGEN_H):
+	New macros.
+
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (faccessat): Add prototype.
+	(AT_FDCWD, AT_EACCESS, AT_SYMLINK_NOFOLLOW): New macros; the first
+	2 moved from ms-w32.h.
+
+	* inc/ms-w32.h (AT_FDCWD, AT_EACCESS, faccessat): Remove macros.
+
+2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	* inc/ms-w32.h (AT_FDCWD, AT_EACCESS): New symbols.
+	(access): Remove.
+	(faccessat): New macro.
+
+2012-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (tcgetpgrp, setsid): Provide prototypes.
+
+2012-11-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DISPNEW_NEEDS_STDIO_EXT, GETPGRP_VOID, HAVE_SETPGID, HAVE_SETSID)
+	(PENDING_OUTPUT_COUNT, SETPGRP_RELEASES_CTTY): Remove.
+
+2012-11-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GNULIB_CLOSE_STREAM, HAVE_DECL___FPENDING): New macros.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (PENDING_OUTPUT_N_BYTES): Define.
+
+2012-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (setpgid, getpgrp): Provide prototypes.  (Bug#12776)
+
+	* config.nt (GETPGRP_VOID): Define to 1.
+
 2012-10-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
@@ -2736,7 +2975,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-  Copyright (C) 1995-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

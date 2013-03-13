@@ -1,6 +1,6 @@
 /* sound.c -- sound support.
 
-Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
+Copyright (C) 1998-1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -334,7 +334,7 @@ sound_perror (const char *msg)
 static void
 sound_warning (const char *msg)
 {
-  message ("%s", msg);
+  message1 (msg);
 }
 
 

@@ -1,6 +1,6 @@
 /* Work around a bug of lstat on some systems
 
-   Copyright (C) 1997-2006, 2008-2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-2006, 2008-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ typedef int dummy;
 # include <sys/stat.h>
 # undef __need_system_sys_stat_h
 
-static inline int
+static int
 orig_lstat (const char *filename, struct stat *buf)
 {
   return lstat (filename, buf);

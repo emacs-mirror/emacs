@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -59,10 +59,6 @@
   :type 'boolean)
 
 ;; User options end here.
-
-(defvar report-emacs-bug-tracker-url "http://debbugs.gnu.org/cgi/"
-  "Base URL of the GNU bugtracker.
-Used for querying duplicates and linking to existing bugs.")
 
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of the bug report.")
@@ -160,11 +156,6 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     (when (string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
       (setq topic (concat (match-string 1 emacs-version) "; " topic))))
   (let ((from-buffer (current-buffer))
-        ;; Put these properties on semantically-void text.
-        ;; report-emacs-bug-hook deletes these regions before sending.
-        (prompt-properties '(field emacsbug-prompt
-                             intangible but-helpful
-                             rear-nonsticky t))
 	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
 			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
@@ -194,7 +185,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	  (insert (format "The report will be sent to %s.\n\n"
 			  report-emacs-bug-address))
 	(insert "This bug report will be sent to the ")
-	(insert-button
+	(insert-text-button
 	 "Bug-GNU-Emacs"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
@@ -202,7 +193,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 		   (browse-url "http://lists.gnu.org/archive/html/bug-gnu-emacs/"))
 	 'follow-link t)
 	(insert " mailing list\nand the GNU bug tracker at ")
-	(insert-button
+	(insert-text-button
 	 "debbugs.gnu.org"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
@@ -220,11 +211,10 @@ usually do not have translators for other languages.\n\n")))
     (insert "Please describe exactly what actions triggered the bug, and\n"
 	    "the precise symptoms of the bug.  If you can, give a recipe\n"
 	    "starting from `emacs -Q':\n\n")
-    (add-text-properties (save-excursion
-                           (rfc822-goto-eoh)
-                           (line-beginning-position 2))
-                         (point)
-                         prompt-properties)
+    (let ((txt (delete-and-extract-region
+                (save-excursion (rfc822-goto-eoh) (line-beginning-position 2))
+                (point))))
+      (insert (propertize "\n" 'display txt)))
     (setq user-point (point))
     (insert "\n\n")
 
@@ -236,7 +226,8 @@ usually do not have translators for other languages.\n\n")))
       (if (file-readable-p debug-file)
 	  (insert "For information about debugging Emacs, please read the file\n"
 		  debug-file ".\n")))
-    (add-text-properties (1+ user-point) (point) prompt-properties)
+    (let ((txt (delete-and-extract-region (1+ user-point) (point))))
+      (insert (propertize "\n" 'display txt)))
 
     (insert "\n\nIn " (emacs-version) "\n")
     (if (stringp emacs-bzr-version)
@@ -332,7 +323,7 @@ usually do not have translators for other languages.\n\n")))
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'info-emacs-bug)
     (if can-insert-mail
-	(define-key (current-local-map) "\C-cm"
+	(define-key (current-local-map) "\C-c\M-i"
 	  'report-emacs-bug-insert-to-mailer))
     (setq report-emacs-bug-send-command (get mail-user-agent 'sendfunc)
 	  report-emacs-bug-send-hook (get mail-user-agent 'hookvar))
@@ -434,99 +425,8 @@ and send the mail again%s."
 				 from))
 	       (not (yes-or-no-p
 		     (format "Is `%s' really your email address? " from)))
-	       (error "Please edit the From address and try again"))))
-    ;; Delete the uninteresting text that was just to help fill out the report.
-    (rfc822-goto-eoh)
-    (forward-line 1)
-    (let ((pos (1- (point))))
-      (while (setq pos (text-property-any pos (point-max)
-                                          'field 'emacsbug-prompt))
-        (delete-region pos (field-end (1+ pos)))))))
+	       (error "Please edit the From address and try again"))))))
 
-
-;; Querying the bug database
-
-(defvar report-emacs-bug-bug-alist nil)
-(make-variable-buffer-local 'report-emacs-bug-bug-alist)
-(defvar report-emacs-bug-choice-widget nil)
-(make-variable-buffer-local 'report-emacs-bug-choice-widget)
-
-(defun report-emacs-bug-create-existing-bugs-buffer (bugs keywords)
-  (switch-to-buffer (get-buffer-create "*Existing Emacs Bugs*"))
-  (setq buffer-read-only t)
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (setq report-emacs-bug-bug-alist bugs)
-    (widget-insert (propertize (concat "Already known bugs ("
-				       keywords "):\n\n")
-			       'face 'bold))
-    (if bugs
-	(setq report-emacs-bug-choice-widget
-	      (apply 'widget-create 'radio-button-choice
-		     :value (caar bugs)
-		     (let (items)
-		       (dolist (bug bugs)
-			 (push (list
-				'url-link
-				:format (concat "Bug#" (number-to-string (nth 2 bug))
-						": " (cadr bug) "\n    %[%v%]\n")
-				;; FIXME: Why is only the link of the
-				;; active item clickable?
-				(car bug))
-			       items))
-		       (nreverse items))))
-      (widget-insert "No bugs matching your keywords found.\n"))
-    (widget-insert "\n")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     ;; TODO: Do something!
-			     (message "Reporting new bug!"))
-		   "Report new bug")
-    (when bugs
-      (widget-insert " ")
-      (widget-create 'push-button
-		     :notify (lambda (&rest ignore)
-			       (let ((val (widget-value report-emacs-bug-choice-widget)))
-				 ;; TODO: Do something!
-				 (message "Appending to bug %s!"
-					  (nth 2 (assoc val report-emacs-bug-bug-alist)))))
-		     "Append to chosen bug"))
-    (widget-insert " ")
-    (widget-create 'push-button
-		   :notify (lambda (&rest ignore)
-			     (kill-buffer))
-		   "Quit reporting bug")
-    (widget-insert "\n"))
-  (use-local-map widget-keymap)
-  (widget-setup)
-  (goto-char (point-min)))
-
-(defun report-emacs-bug-parse-query-results (status keywords)
-  (goto-char (point-min))
-  (let (buglist)
-    (while (re-search-forward "<a href=\"bugreport\\.cgi\\?bug=\\([[:digit:]]+\\)\">\\([^<]+\\)</a>" nil t)
-      (let ((number (match-string 1))
-	    (subject (match-string 2)))
-	(when (not (string-match "^#" subject))
-	  (push (list
-		 ;; first the bug URL
-		 (concat report-emacs-bug-tracker-url
-			 "bugreport.cgi?bug=" number)
-		 ;; then the subject and number
-		 subject (string-to-number number))
-		buglist))))
-    (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
-
-;;;###autoload
-(defun report-emacs-bug-query-existing-bugs (keywords)
-  "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
-The result is an alist with items of the form (URL SUBJECT NO)."
-  (interactive "sBug keywords (comma separated): ")
-  (url-retrieve (concat report-emacs-bug-tracker-url
-			"pkgreport.cgi?include=subject%3A"
-			(replace-regexp-in-string "[[:space:]]+" "+" keywords)
-			";package=emacs")
-		'report-emacs-bug-parse-query-results (list keywords)))
 
 (provide 'emacsbug)
 

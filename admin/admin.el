@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,25 +28,38 @@
 
 (defvar add-log-time-format)		; in add-log
 
-(defun add-release-logs (root version)
+;; Does this information need to be in every ChangeLog, as opposed to
+;; just the top-level one?  Only if you allow changes the same
+;; day as the release.
+;; http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00161.html
+(defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
-Root must be the root of an Emacs source tree."
-  (interactive "DEmacs root directory: \nNVersion number: ")
+Root must be the root of an Emacs source tree.
+Optional argument DATE is the release date, default today."
+  (interactive (list (read-directory-name "Emacs root directory: ")
+		     (read-string "Version number: "
+				  (format "%s.%s" emacs-major-version
+					  emacs-minor-version))
+		     (read-string "Release date: "
+				  (progn (require 'add-log)
+					 (let ((add-log-time-zone-rule t))
+					   (funcall add-log-time-format))))))
   (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (error "%s doesn't seem to be the root of an Emacs source tree" root))
   (require 'add-log)
+  (or date (setq date (let ((add-log-time-zone-rule t))
+			(funcall add-log-time-format))))
   (let* ((logs (process-lines "find" root "-name" "ChangeLog"))
 	 (entry (format "%s  %s  <%s>\n\n\t* Version %s released.\n\n"
-			(funcall add-log-time-format)
+			date
 			(or add-log-full-name (user-full-name))
 			(or add-log-mailing-address user-mail-address)
 			version)))
     (dolist (log logs)
-      (unless (string-match "/gnus/" log)
-	(find-file log)
-	(goto-char (point-min))
-	(insert entry)))))
+      (find-file log)
+      (goto-char (point-min))
+      (insert entry))))
 
 (defun set-version-in-file (root file version rx)
   (find-file (expand-file-name file root))
@@ -158,6 +171,10 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "configure.ac" copyright
 		       (rx (and bol "copyright" (0+ (not (in ?\")))
         			?\" (submatch (1+ (not (in ?\")))) ?\")))
+  (set-version-in-file root "msdos/sed2v2.inp" copyright
+		       (rx (and bol "/^#undef " (1+ not-newline)
+				"define COPYRIGHT" (1+ space)
+				?\" (submatch (1+ (not (in ?\")))) ?\")))
   (set-version-in-file root "nt/config.nt" copyright
 		       (rx (and bol "#" (0+ blank) "define" (1+ blank)
 				"COPYRIGHT" (1+ blank)
@@ -211,17 +228,33 @@ Root must be the root of an Emacs source tree."
       (manual-pdf texi (expand-file-name "elisp.pdf" dest))
       (manual-dvi texi (expand-file-name "elisp.dvi" dvi-dir)
 		  (expand-file-name "elisp.ps" ps-dir)))
+    (let ((texi (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root))
+	  (dest (expand-file-name "emacs-lisp-intro" dest))
+	  dest2 dest3)
+      ;; Mimic the atypical directory layout used for emacs-lisp-intro.
+      (make-directory dest)
+      (make-directory (setq dest2 (expand-file-name "html_node" dest)))
+      (manual-html-node texi dest2)
+      (make-directory (setq dest2 (expand-file-name "html_mono" dest)))
+      (manual-html-mono texi (expand-file-name "emacs-lisp-intro.html" dest2))
+      (make-directory (setq dest2 (expand-file-name "txt" dest)))
+      (manual-txt texi (expand-file-name "emacs-lisp-intro.txt" dest2))
+      (manual-pdf texi (expand-file-name "emacs-lisp-intro.pdf" dest))
+      (make-directory (setq dest2 (expand-file-name "dvi" dest)))
+      (make-directory (setq dest3 (expand-file-name "ps" dest)))
+      (manual-dvi texi (expand-file-name "emacs-lisp-intro.dvi" dest2)
+		  (expand-file-name "emacs-lisp-intro.ps" dest3)))
     ;; Misc manuals
-    (let ((manuals '("ada-mode" "auth" "autotype" "calc" "cc-mode"
+    (let ((manuals '("ada-mode" "auth" "autotype" "bovine" "calc" "cc-mode"
 		     "cl" "dbus" "dired-x" "ebrowse" "ede" "ediff"
-		     "edt" "eieio" "emacs-mime" "epa" "erc" "ert"
+		     "edt" "eieio" "emacs-gnutls" "emacs-mime" "epa" "erc" "ert"
 		     "eshell" "eudc" "faq" "flymake" "forms"
-		     "gnus" "emacs-gnutls" "idlwave" "info"
+		     "gnus" "htmlfontify" "idlwave" "info"
 		     "mairix-el" "message" "mh-e" "newsticker"
 		     "nxml-mode" "org" "pcl-cvs" "pgg" "rcirc"
-		     "remember" "reftex" "sasl" "sc" "semantic"
-		     "ses" "sieve" "smtpmail" "speedbar" "tramp"
-		     "url" "vip" "viper" "widget" "woman")))
+		     "reftex" "remember" "sasl" "sc" "semantic"
+		     "ses" "sieve" "smtpmail" "speedbar" "srecode" "tramp"
+		     "url" "vip" "viper" "widget" "wisent" "woman")))
       (dolist (manual manuals)
 	(manual-misc-html manual root html-node-dir html-mono-dir)))
     (message "Manuals created in %s" dest)))
@@ -252,6 +285,10 @@ This function also edits the HTML files so that they validate as
 HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
   (call-process "makeinfo" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
 		"--html" "--no-split" texi-file "-o" dest)
   (with-temp-buffer
     (insert-file-contents dest)
@@ -273,6 +310,10 @@ the @import directive."
   (unless (file-exists-p texi-file)
     (error "Manual file %s not found" texi-file))
   (call-process "makeinfo" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
 		"--html" texi-file "-o" dir)
   ;; Loop through the node files, fixing them up.
   (dolist (f (directory-files dir nil "\\.html\\'"))
@@ -304,6 +345,10 @@ the @import directive."
 (defun manual-txt (texi-file dest)
   "Run Makeinfo on TEXI-FILE, emitting plaintext output to DEST."
   (call-process "makeinfo" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
 		"--plaintext" "--no-split" texi-file "-o" dest)
   (shell-command (concat "gzip -c " dest " > " (concat dest ".gz"))))
 

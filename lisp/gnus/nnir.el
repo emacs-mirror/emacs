@@ -1,8 +1,8 @@
-;;; nnir.el --- search mail with various search engines -*- coding: iso-8859-1 -*-
+;;; nnir.el --- search mail with various search engines -*- coding: utf-8 -*-
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
-;; Author: Kai Groﬂjohann <grossjohann@ls6.cs.uni-dortmund.de>
+;; Author: Kai Gro√üjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
 ;;   Christoph Conrad <christoph.conrad@gmx.de>.
 ;; IMAP backend by: Simon Josefsson <jas@pdc.kth.se>.
@@ -298,7 +298,7 @@ is `(valuefunc member)'."
 (defvoo nnir-address nil
   "The address of the nnir server.")
 
-(gnus-declare-backend "nnir" 'mail)
+(gnus-declare-backend "nnir" 'mail 'virtual)
 
 
 ;;; User Customizable Variables:

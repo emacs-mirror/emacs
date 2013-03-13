@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
 @chapter Command Loop
@@ -65,7 +66,7 @@ use the minibuffer, so if you call @code{find-file} as a function from
 Lisp code, you must supply the file name string as an ordinary Lisp
 function argument.
 
-  If the command is a keyboard macro (i.e.@: a string or vector),
+  If the command is a keyboard macro (i.e., a string or vector),
 Emacs executes it using @code{execute-kbd-macro} (@pxref{Keyboard
 Macros}).
 
@@ -141,10 +142,10 @@ A command may be called from Lisp programs like any other function, but
 then the caller supplies the arguments and @var{arg-descriptor} has no
 effect.
 
-@cindex @code{interactive-form}, function property
+@cindex @code{interactive-form}, symbol property
 The @code{interactive} form must be located at top-level in the
 function body, or in the function symbol's @code{interactive-form}
-property (@pxref{Symbol Plists}).  It has its effect because the
+property (@pxref{Symbol Properties}).  It has its effect because the
 command loop looks for it before calling the function
 (@pxref{Interactive Call}).  Once the function is called, all its body
 forms are executed; at this time, if the @code{interactive} form
@@ -186,7 +187,6 @@ buffer: } prompts the user with @samp{Frobnicate buffer: } to enter
 the name of an existing buffer, which becomes the second and final
 argument.
 
-@c Emacs 19 feature
 The prompt string can use @samp{%} to include previous argument values
 (starting with the first argument) in the prompt.  This is done using
 @code{format} (@pxref{Formatting Strings}).  For example, here is how
@@ -205,7 +205,6 @@ If @samp{*} appears at the beginning of the string, then an error is
 signaled if the buffer is read-only.
 
 @cindex @samp{@@} in @code{interactive}
-@c Emacs 19 feature
 If @samp{@@} appears at the beginning of the string, and if the key
 sequence used to invoke the command includes any mouse events, then
 the window associated with the first of those events is selected
@@ -472,10 +471,10 @@ Arbitrary text, read in the minibuffer and returned as a string
 these characters in the input.)  Prompt.
 
 @item S
-An interned symbol whose name is read in the minibuffer.  Any whitespace
-character terminates the input.  (Use @kbd{C-q} to include whitespace in
-the string.)  Other characters that normally terminate a symbol (e.g.,
-parentheses and brackets) do not do so here.  Prompt.
+An interned symbol whose name is read in the minibuffer.  Terminate
+the input with either @kbd{C-j} or @key{RET}.  Other characters that
+normally terminate a symbol (e.g., whitespace, parentheses and
+brackets) do not do so here.  Prompt.
 
 @item U
 A key sequence or @code{nil}.  Can be used after a @samp{k} or
@@ -910,7 +909,6 @@ up a menu.  It is also used internally by @code{y-or-n-p}
 @end defvar
 
 @defvar last-command-event
-@defvarx last-command-char
 This variable is set to the last input event that was read by the
 command loop as part of a command.  The principal use of this variable
 is in @code{self-insert-command}, which uses it to decide which
@@ -926,11 +924,8 @@ last-command-event
 
 @noindent
 The value is 5 because that is the @acronym{ASCII} code for @kbd{C-e}.
-
-The alias @code{last-command-char} is obsolete.
 @end defvar
 
-@c Emacs 19 feature
 @defvar last-event-frame
 This variable records which frame the last input event was directed to.
 Usually this is the frame that was selected when the event was
@@ -2386,7 +2381,6 @@ mouse on the window's mode line, you get two events, like this:
 @end example
 
 @defvar num-input-keys
-@c Emacs 19 feature
 This variable's value is the number of key sequences processed so far in
 this Emacs session.  This includes key sequences read from the terminal
 and key sequences read from keyboard macros being executed.
@@ -2458,7 +2452,7 @@ right-arrow function key:
 
 @defun read-char &optional prompt inherit-input-method seconds
 This function reads and returns a character of command input.  If the
-user generates an event which is not a character (i.e. a mouse click or
+user generates an event which is not a character (i.e., a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
 work as in @code{read-event}.
 
@@ -2539,7 +2533,6 @@ then continues to wait for a valid input character, or keyboard-quit.
 @code{keyboard-translate-table} (if applicable), before returning it
 from @code{read-event}.
 
-@c Emacs 19 feature
 @defvar extra-keyboard-modifiers
 This variable lets Lisp programs ``press'' the modifier keys on the
 keyboard.  The value is a character.  Only the modifiers of the
@@ -2668,7 +2661,7 @@ The command @code{quoted-insert} uses this function.
 @cindex control characters, reading
 @cindex nonprinting characters, reading
 This function is like @code{read-char}, except that if the first
-character read is an octal digit (0-7), it reads any number of octal
+character read is an octal digit (0--7), it reads any number of octal
 digits (but stopping if a non-octal digit is found), and returns the
 character represented by that numeric character code.  If the
 character that terminates the sequence of octal digits is @key{RET},
@@ -2735,7 +2728,7 @@ Normally you add events to the front of this list, so that the events
 most recently unread will be reread first.
 
 Events read from this list are not normally added to the current
-command's key sequence (as returned by e.g. @code{this-command-keys}),
+command's key sequence (as returned by, e.g., @code{this-command-keys}),
 as the events will already have been added once as they were read for
 the first time.  An element of the form @code{(@code{t} . @var{event})}
 forces @var{event} to be added to the current command's key sequence.
@@ -2755,7 +2748,6 @@ may return @code{t} when no input is available.
 @end defun
 
 @defvar last-input-event
-@defvarx last-input-char
 This variable records the last terminal input event read, whether
 as part of a command or explicitly by a Lisp program.
 
@@ -2774,8 +2766,6 @@ this expression) remains the value of @code{last-command-event}.
      @result{} 49
 @end group
 @end example
-
-The alias @code{last-input-char} is obsolete.
 @end defvar
 
 @defmac while-no-input body@dots{}
@@ -2874,7 +2864,7 @@ Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 
 The expression @code{(sit-for 0)} is equivalent to @code{(redisplay)},
-i.e. it requests a redisplay, without any delay, if there is no pending input.
+i.e., it requests a redisplay, without any delay, if there is no pending input.
 @xref{Forcing Redisplay}.
 
 If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not

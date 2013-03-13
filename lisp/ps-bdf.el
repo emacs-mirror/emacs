@@ -1,6 +1,6 @@
 ;;; ps-bdf.el --- BDF font file handler for ps-print
 
-;; Copyright (C) 1998-1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -70,20 +70,15 @@ for BDFNAME."
 
 (defsubst bdf-file-mod-time (filename)
   "Return modification time of FILENAME.
-The value is a list of two integers, the first integer has high-order
-16 bits, the second has low 16 bits."
+The value is a list of integers in the same format as `current-time'."
   (nth 5 (file-attributes filename)))
 
 (defun bdf-file-newer-than-time (filename mod-time)
   "Return non-nil if and only if FILENAME is newer than MOD-TIME.
-MOD-TIME is a modification time as a list of two integers, the first
-integer has high-order 16 bits, the second has low 16 bits."
-  (let* ((new-mod-time (bdf-file-mod-time filename))
-	 (new-time (car new-mod-time))
-	 (time (car mod-time)))
-    (or (> new-time time)
-	(and (= new-time time)
-	     (> (nth 1 new-mod-time) (nth 1 mod-time))))))
+MOD-TIME is a modification time as a list of integers in the same
+format as `current-time'."
+  (let ((new-mod-time (bdf-file-mod-time filename)))
+    (time-less-p mod-time new-mod-time)))
 
 (defun bdf-find-file (bdfname)
   "Return a buffer visiting a bdf file BDFNAME.
@@ -96,12 +91,7 @@ If BDFNAME doesn't exist, return nil."
 	   (insert-file-contents bdfname)
 	   buf))))
 
-(defvar bdf-cache-file (if (eq system-type 'ms-dos)
-			   ;; convert-standard-filename doesn't
-			   ;; guarantee that the .el extension will be
-			   ;; preserved.
-			   "~/_bdfcache.el"
-			 (convert-standard-filename "~/.bdfcache.el"))
+(defvar bdf-cache-file (locate-user-emacs-file "bdfcache.el" ".bdfcache.el")
   "Name of cache file which contains information of `BDF' font files.")
 
 (defvar bdf-cache nil
@@ -178,8 +168,8 @@ FONT-INFO is a list of the following format:
     (BDFFILE MOD-TIME FONT-BOUNDING-BOX
      RELATIVE-COMPOSE BASELINE-OFFSET CODE-RANGE MAXLEN OFFSET-VECTOR)
 
-MOD-TIME is last modification time as a list of two integers, the
-first integer has high-order 16 bits, the second has low 16 bits.
+MOD-TIME is last modification time as a list of integers in the
+same format as `current-time'.
 
 SIZE is a size of the font on 72 dpi device.  This value is got
 from SIZE record of the font.

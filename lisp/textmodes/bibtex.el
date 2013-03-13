@@ -1,6 +1,7 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994-1999, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>

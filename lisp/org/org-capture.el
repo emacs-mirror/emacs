@@ -1,6 +1,6 @@
 ;;; org-capture.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -434,9 +434,10 @@ Turning on this mode runs the normal hook `org-capture-mode-hook'."
 
 ;;; The main commands
 
-;;;###autoload
 (defvar org-capture-initial nil)
 (defvar org-capture-entry nil)
+
+;;;###autoload
 (defun org-capture-string (string &optional keys)
   (interactive "sInitial text: \n")
   (let ((org-capture-initial string)
@@ -450,7 +451,7 @@ For example, if you have a capture template \"c\" and you want
 this template to be accessible only from `message-mode' buffers,
 use this:
 
-   '((\"c\" (in-mode . \"message-mode\")))
+   '((\"c\" ((in-mode . \"message-mode\"))))
 
 Here are the available contexts definitions:
 
@@ -466,11 +467,11 @@ accessible if there is at least one valid check.
 You can also bind a key to another agenda custom command
 depending on contextual rules.
 
-    '((\"c\" \"d\" (in-mode . \"message-mode\")))
+    '((\"c\" \"d\" ((in-mode . \"message-mode\"))))
 
-Here it means: in `message-mode buffers', use \"d\" as the
+Here it means: in `message-mode buffers', use \"c\" as the
 key for the capture template otherwise associated with \"d\".
-\(The template originally associated with \"q\" is not displayed
+\(The template originally associated with \"d\" is not displayed
 to avoid duplicates.)"
   :version "24.3"
   :group 'org-capture
@@ -978,7 +979,7 @@ it.  When it is a variable, retrieve the value.  Return whatever we get."
   (show-all)
   (goto-char (org-capture-get :pos))
   (org-set-local 'org-capture-target-marker
-		 (move-marker (make-marker) (point)))
+		 (point-marker))
   (org-set-local 'outline-level 'org-outline-level)
   (let* ((template (org-capture-get :template))
 	 (type (org-capture-get :type)))
@@ -1249,7 +1250,8 @@ Of course, if exact position has been required, just put it there."
 	(save-restriction
 	  (widen)
 	  (goto-char pos)
-	  (bookmark-set "org-capture-last-stored")
+	  (with-demoted-errors
+	    (bookmark-set "org-capture-last-stored"))
 	  (move-marker org-capture-last-stored-marker (point)))))))
 
 (defun org-capture-narrow (beg end)
@@ -1280,7 +1282,7 @@ Point will remain at the first line after the inserted text."
     (goto-char pos)))
 
 (defvar org-clock-marker) ; Defined in org.el
-;;;###autoload
+
 (defun org-capture-insert-template-here ()
   (let* ((template (org-capture-get :template))
 	 (type  (org-capture-get :type))

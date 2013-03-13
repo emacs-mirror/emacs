@@ -1,5 +1,5 @@
 /* Process support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1995, 1999-2012  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -230,10 +230,28 @@ sigismember (const sigset_t *set, int signo)
   return (*set & (1U << signo)) != 0;
 }
 
+pid_t
+getpgrp (void)
+{
+  return getpid ();
+}
+
+pid_t
+tcgetpgrp (int fd)
+{
+  return getpid ();
+}
+
 int
-setpgrp (int pid, int gid)
+setpgid (pid_t pid, pid_t pgid)
 {
   return 0;
+}
+
+pid_t
+setsid (void)
+{
+  return getpid ();
 }
 
 /* Emulations of interval timers.
@@ -244,28 +262,92 @@ setpgrp (int pid, int gid)
    the thread calls the appropriate signal handler when the timer
    expires, after stopping the thread which installed the timer.  */
 
-/* FIXME: clock_t counts overflow after 49 days, need to handle the
-   wrap-around.  */
 struct itimer_data {
-  clock_t expire;
-  clock_t reload;
-  int terminate;
+  volatile ULONGLONG expire;
+  volatile ULONGLONG reload;
+  volatile int terminate;
   int type;
   HANDLE caller_thread;
   HANDLE timer_thread;
 };
 
-static clock_t ticks_now;
+static ULONGLONG ticks_now;
 static struct itimer_data real_itimer, prof_itimer;
-static clock_t clocks_min;
+static ULONGLONG clocks_min;
 /* If non-zero, itimers are disabled.  Used during shutdown, when we
    delete the critical sections used by the timer threads.  */
 static int disable_itimers;
 
 static CRITICAL_SECTION crit_real, crit_prof;
 
-#define MAX_SINGLE_SLEEP 30
+/* GetThreadTimes is not available on Windows 9X and possibly also on 2K.  */
+typedef BOOL (WINAPI *GetThreadTimes_Proc) (
+  HANDLE hThread,
+  LPFILETIME lpCreationTime,
+  LPFILETIME lpExitTime,
+  LPFILETIME lpKernelTime,
+  LPFILETIME lpUserTime);
 
+static GetThreadTimes_Proc s_pfn_Get_Thread_Times;
+
+#define MAX_SINGLE_SLEEP    30
+#define TIMER_TICKS_PER_SEC 1000
+
+/* Return a suitable time value, in 1-ms units, for THREAD, a handle
+   to a thread.  If THREAD is NULL or an invalid handle, return the
+   current wall-clock time since January 1, 1601 (UTC).  Otherwise,
+   return the sum of kernel and user times used by THREAD since it was
+   created, plus its creation time.  */
+static ULONGLONG
+w32_get_timer_time (HANDLE thread)
+{
+  ULONGLONG retval;
+  int use_system_time = 1;
+  /* The functions below return times in 100-ns units.  */
+  const int tscale = 10 * TIMER_TICKS_PER_SEC;
+
+  if (thread && thread != INVALID_HANDLE_VALUE
+      && s_pfn_Get_Thread_Times != NULL)
+    {
+      FILETIME creation_ftime, exit_ftime, kernel_ftime, user_ftime;
+      ULARGE_INTEGER temp_creation, temp_kernel, temp_user;
+
+      if (s_pfn_Get_Thread_Times (thread, &creation_ftime, &exit_ftime,
+				  &kernel_ftime, &user_ftime))
+	{
+	  use_system_time = 0;
+	  temp_creation.LowPart = creation_ftime.dwLowDateTime;
+	  temp_creation.HighPart = creation_ftime.dwHighDateTime;
+	  temp_kernel.LowPart = kernel_ftime.dwLowDateTime;
+	  temp_kernel.HighPart = kernel_ftime.dwHighDateTime;
+	  temp_user.LowPart = user_ftime.dwLowDateTime;
+	  temp_user.HighPart = user_ftime.dwHighDateTime;
+	  retval =
+	    temp_creation.QuadPart / tscale + temp_kernel.QuadPart / tscale
+	    + temp_user.QuadPart / tscale;
+	}
+      else
+	DebPrint (("GetThreadTimes failed with error code %lu\n",
+		   GetLastError ()));
+    }
+
+  if (use_system_time)
+    {
+      FILETIME current_ftime;
+      ULARGE_INTEGER temp;
+
+      GetSystemTimeAsFileTime (&current_ftime);
+
+      temp.LowPart = current_ftime.dwLowDateTime;
+      temp.HighPart = current_ftime.dwHighDateTime;
+
+      retval = temp.QuadPart / tscale;
+    }
+
+  return retval;
+}
+
+/* Thread function for a timer thread.  */
 static DWORD WINAPI
 timer_loop (LPVOID arg)
 {
@@ -273,14 +355,14 @@ timer_loop (LPVOID arg)
   int which = itimer->type;
   int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
   CRITICAL_SECTION *crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
-  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / CLOCKS_PER_SEC;
-  int new_count = 0;
+  const DWORD max_sleep = MAX_SINGLE_SLEEP * 1000 / TIMER_TICKS_PER_SEC;
+  HANDLE hth = (which == ITIMER_REAL) ? NULL : itimer->caller_thread;
 
   while (1)
     {
       DWORD sleep_time;
       signal_handler handler;
-      clock_t now, expire, reload;
+      ULONGLONG now, expire, reload;
 
       /* Load new values if requested by setitimer.  */
       EnterCriticalSection (crit);
@@ -290,15 +372,14 @@ timer_loop (LPVOID arg)
       if (itimer->terminate)
 	return 0;
 
-      if (itimer->expire == 0)
+      if (expire == 0)
 	{
 	  /* We are idle.  */
 	  Sleep (max_sleep);
 	  continue;
 	}
 
-      expire = itimer->expire;
-      if (expire > (now = clock ()))
+      if (expire > (now = w32_get_timer_time (hth)))
 	sleep_time = expire - now;
       else
 	sleep_time = 0;
@@ -309,24 +390,30 @@ timer_loop (LPVOID arg)
 	  if (itimer->terminate)
 	    return 0;
 	  Sleep (max_sleep);
+	  EnterCriticalSection (crit);
 	  expire = itimer->expire;
-	  sleep_time = (expire > (now = clock ())) ? expire - now : 0;
+	  LeaveCriticalSection (crit);
+	  sleep_time =
+	    (expire > (now = w32_get_timer_time (hth))) ? expire - now : 0;
 	}
       if (itimer->terminate)
 	return 0;
       if (sleep_time > 0)
 	{
-	  Sleep (sleep_time * 1000 / CLOCKS_PER_SEC);
+	  Sleep (sleep_time * 1000 / TIMER_TICKS_PER_SEC);
 	  /* Always sleep past the expiration time, to make sure we
 	     never call the handler _before_ the expiration time,
 	     always slightly after it.  Sleep(5) makes sure we don't
-	     hog the CPU by calling 'clock' with high frequency, and
-	     also let other threads work.  */
-	  while (clock () < expire)
+	     hog the CPU by calling 'w32_get_timer_time' with high
+	     frequency, and also let other threads work.  */
+	  while (w32_get_timer_time (hth) < expire)
 	    Sleep (5);
 	}
 
-      if (itimer->expire == 0)
+      EnterCriticalSection (crit);
+      expire = itimer->expire;
+      LeaveCriticalSection (crit);
+      if (expire == 0)
 	continue;
 
       /* Time's up.  */
@@ -344,28 +431,31 @@ timer_loop (LPVOID arg)
 	  /* Simulate a signal delivered to the thread which installed
 	     the timer, by suspending that thread while the handler
 	     runs.  */
-	  DWORD result = SuspendThread (itimer->caller_thread);
+	  HANDLE th = itimer->caller_thread;
+	  DWORD result = SuspendThread (th);
 
 	  if (result == (DWORD)-1)
 	    return 2;
 
 	  handler (sig);
-	  ResumeThread (itimer->caller_thread);
+	  ResumeThread (th);
 	}
-
-      if (itimer->expire == 0)
-	continue;
 
       /* Update expiration time and loop.  */
       EnterCriticalSection (crit);
       expire = itimer->expire;
+      if (expire == 0)
+	{
+	  LeaveCriticalSection (crit);
+	  continue;
+	}
       reload = itimer->reload;
       if (reload > 0)
 	{
-	  now = clock ();
+	  now = w32_get_timer_time (hth);
 	  if (expire <= now)
 	    {
-	      clock_t lag = now - expire;
+	      ULONGLONG lag = now - expire;
 
 	      /* If we missed some opportunities (presumably while
 		 sleeping or while the signal handler ran), skip
@@ -448,6 +538,15 @@ term_timers (void)
 void
 init_timers (void)
 {
+  /* GetThreadTimes is not available on all versions of Windows, so
+     need to probe for its availability dynamically, and call it
+     through a pointer.  */
+  s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */
+  if (os_subtype != OS_9X)
+    s_pfn_Get_Thread_Times =
+      (GetThreadTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+					   "GetThreadTimes");
+
   /* Make sure we start with zeroed out itimer structures, since
      dumping may have left there traces of threads long dead.  */
   memset (&real_itimer, 0, sizeof real_itimer);
@@ -464,6 +563,7 @@ static int
 start_timer_thread (int which)
 {
   DWORD exit_code;
+  HANDLE th;
   struct itimer_data *itimer =
     (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
 
@@ -472,17 +572,29 @@ start_timer_thread (int which)
       && exit_code == STILL_ACTIVE)
     return 0;
 
+  /* Clean up after possibly exited thread.  */
+  if (itimer->timer_thread)
+    {
+      CloseHandle (itimer->timer_thread);
+      itimer->timer_thread = NULL;
+    }
+  if (itimer->caller_thread)
+    {
+      CloseHandle (itimer->caller_thread);
+      itimer->caller_thread = NULL;
+    }
+
   /* Start a new thread.  */
   if (!DuplicateHandle (GetCurrentProcess (), GetCurrentThread (),
-			GetCurrentProcess (), &itimer->caller_thread, 0,
-			FALSE, DUPLICATE_SAME_ACCESS))
+			GetCurrentProcess (), &th, 0, FALSE,
+			DUPLICATE_SAME_ACCESS))
     {
       errno = ESRCH;
       return -1;
     }
-
   itimer->terminate = 0;
   itimer->type = which;
+  itimer->caller_thread = th;
   /* Request that no more than 64KB of stack be reserved for this
      thread, to avoid reserving too much memory, which would get in
      the way of threads we start to wait for subprocesses.  See also
@@ -501,7 +613,7 @@ start_timer_thread (int which)
   /* This is needed to make sure that the timer thread running for
      profiling gets CPU as soon as the Sleep call terminates. */
   if (which == ITIMER_PROF)
-    SetThreadPriority (itimer->caller_thread, THREAD_PRIORITY_TIME_CRITICAL);
+    SetThreadPriority (itimer->timer_thread, THREAD_PRIORITY_TIME_CRITICAL);
 
   return 0;
 }
@@ -512,16 +624,15 @@ start_timer_thread (int which)
 int
 getitimer (int which, struct itimerval *value)
 {
-  volatile clock_t *t_expire;
-  volatile clock_t *t_reload;
-  clock_t expire, reload;
+  volatile ULONGLONG *t_expire;
+  volatile ULONGLONG *t_reload;
+  ULONGLONG expire, reload;
   __int64 usecs;
   CRITICAL_SECTION *crit;
+  struct itimer_data *itimer;
 
   if (disable_itimers)
     return -1;
-
-  ticks_now = clock ();
 
   if (!value)
     {
@@ -535,8 +646,14 @@ getitimer (int which, struct itimerval *value)
       return -1;
     }
 
-  t_expire = (which == ITIMER_REAL) ? &real_itimer.expire: &prof_itimer.expire;
-  t_reload = (which == ITIMER_REAL) ? &real_itimer.reload: &prof_itimer.reload;
+  itimer = (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
+
+  ticks_now = w32_get_timer_time ((which == ITIMER_REAL)
+				  ? NULL
+				  : GetCurrentThread ());
+
+  t_expire = &itimer->expire;
+  t_reload = &itimer->reload;
   crit = (which == ITIMER_REAL) ? &crit_real : &crit_prof;
 
   EnterCriticalSection (crit);
@@ -547,11 +664,13 @@ getitimer (int which, struct itimerval *value)
   if (expire)
     expire -= ticks_now;
 
-  value->it_value.tv_sec    = expire / CLOCKS_PER_SEC;
-  usecs = (expire % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_value.tv_sec    = expire / TIMER_TICKS_PER_SEC;
+  usecs =
+    (expire % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
   value->it_value.tv_usec   = usecs;
-  value->it_interval.tv_sec = reload / CLOCKS_PER_SEC;
-  usecs = (reload % CLOCKS_PER_SEC) * (__int64)1000000 / CLOCKS_PER_SEC;
+  value->it_interval.tv_sec = reload / TIMER_TICKS_PER_SEC;
+  usecs =
+    (reload % TIMER_TICKS_PER_SEC) * (__int64)1000000 / TIMER_TICKS_PER_SEC;
   value->it_interval.tv_usec= usecs;
 
   return 0;
@@ -560,10 +679,11 @@ getitimer (int which, struct itimerval *value)
 int
 setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
 {
-  volatile clock_t *t_expire, *t_reload;
-  clock_t expire, reload, expire_old, reload_old;
+  volatile ULONGLONG *t_expire, *t_reload;
+  ULONGLONG expire, reload, expire_old, reload_old;
   __int64 usecs;
   CRITICAL_SECTION *crit;
+  struct itimerval tem, *ptem;
 
   if (disable_itimers)
     return -1;
@@ -573,26 +693,21 @@ setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
      time we are called, measure the clock tick resolution.  */
   if (!clocks_min)
     {
-      clock_t t1, t2;
+      ULONGLONG t1, t2;
 
-      for (t1 = clock (); (t2 = clock ()) == t1; )
+      for (t1 = w32_get_timer_time (NULL);
+	   (t2 = w32_get_timer_time (NULL)) == t1; )
 	;
       clocks_min = t2 - t1;
     }
 
   if (ovalue)
-    {
-      if (getitimer (which, ovalue)) /* also sets ticks_now */
-	return -1;		     /* errno already set */
-    }
+    ptem = ovalue;
   else
-    ticks_now = clock ();
+    ptem = &tem;
 
-  if (which != ITIMER_REAL && which != ITIMER_PROF)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+  if (getitimer (which, ptem)) /* also sets ticks_now */
+    return -1;		       /* errno already set */
 
   t_expire =
     (which == ITIMER_REAL) ? &real_itimer.expire : &prof_itimer.expire;
@@ -612,26 +727,26 @@ setitimer(int which, struct itimerval *value, struct itimerval *ovalue)
       return 0;
     }
 
-  reload = value->it_interval.tv_sec * CLOCKS_PER_SEC;
+  reload = value->it_interval.tv_sec * TIMER_TICKS_PER_SEC;
 
   usecs = value->it_interval.tv_usec;
   if (value->it_interval.tv_sec == 0
-      && usecs && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+      && usecs && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
     reload = clocks_min;
   else
     {
-      usecs *= CLOCKS_PER_SEC;
+      usecs *= TIMER_TICKS_PER_SEC;
       reload += usecs / 1000000;
     }
 
-  expire = value->it_value.tv_sec * CLOCKS_PER_SEC;
+  expire = value->it_value.tv_sec * TIMER_TICKS_PER_SEC;
   usecs = value->it_value.tv_usec;
   if (value->it_value.tv_sec == 0
-      && usecs * CLOCKS_PER_SEC < clocks_min * 1000000)
+      && usecs * TIMER_TICKS_PER_SEC < clocks_min * 1000000)
     expire = clocks_min;
   else
     {
-      usecs *= CLOCKS_PER_SEC;
+      usecs *= TIMER_TICKS_PER_SEC;
       expire += usecs / 1000000;
     }
 
@@ -674,7 +789,6 @@ alarm (int seconds)
 /* Child process management list.  */
 int child_proc_count = 0;
 child_process child_procs[ MAX_CHILDREN ];
-child_process *dead_child = NULL;
 
 static DWORD WINAPI reader_thread (void *arg);
 
@@ -686,18 +800,68 @@ new_child (void)
   DWORD id;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (!CHILD_ACTIVE (cp))
+    if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
       goto Initialize;
+  if (child_proc_count == MAX_CHILDREN)
+    {
+      int i = 0;
+      child_process *dead_cp = NULL;
+
+      DebPrint (("new_child: No vacant slots, looking for dead processes\n"));
+      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+	if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
+	  {
+	    DWORD status = 0;
+
+	    if (!GetExitCodeProcess (cp->procinfo.hProcess, &status))
+	      {
+		DebPrint (("new_child.GetExitCodeProcess: error %lu for PID %lu\n",
+			   GetLastError (), cp->procinfo.dwProcessId));
+		status = STILL_ACTIVE;
+	      }
+	    if (status != STILL_ACTIVE
+		|| WaitForSingleObject (cp->procinfo.hProcess, 0) == WAIT_OBJECT_0)
+	      {
+		DebPrint (("new_child: Freeing slot of dead process %d, fd %d\n",
+			   cp->procinfo.dwProcessId, cp->fd));
+		CloseHandle (cp->procinfo.hProcess);
+		cp->procinfo.hProcess = NULL;
+		CloseHandle (cp->procinfo.hThread);
+		cp->procinfo.hThread = NULL;
+		/* Free up to 2 dead slots at a time, so that if we
+		   have a lot of them, they will eventually all be
+		   freed when the tornado ends.  */
+		if (i == 0)
+		  dead_cp = cp;
+		else
+		  break;
+		i++;
+	      }
+	  }
+      if (dead_cp)
+	{
+	  cp = dead_cp;
+	  goto Initialize;
+	}
+    }
   if (child_proc_count == MAX_CHILDREN)
     return NULL;
   cp = &child_procs[child_proc_count++];
 
  Initialize:
+  /* Last opportunity to avoid leaking handles before we forget them
+     for good.  */
+  if (cp->procinfo.hProcess)
+    CloseHandle (cp->procinfo.hProcess);
+  if (cp->procinfo.hThread)
+    CloseHandle (cp->procinfo.hThread);
   memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
   cp->procinfo.hProcess = NULL;
   cp->status = STATUS_READ_ERROR;
+  cp->input_file = NULL;
+  cp->pending_deletion = 0;
 
   /* use manual reset event so that select() will function properly */
   cp->char_avail = CreateEvent (NULL, TRUE, FALSE, NULL);
@@ -743,8 +907,23 @@ delete_child (child_process *cp)
     if (fd_info[i].cp == cp)
       emacs_abort ();
 
-  if (!CHILD_ACTIVE (cp))
+  if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
     return;
+
+  /* Delete the child's temporary input file, if any, that is pending
+     deletion.  */
+  if (cp->input_file)
+    {
+      if (cp->pending_deletion)
+	{
+	  if (unlink (cp->input_file))
+	    DebPrint (("delete_child.unlink (%s) failed, errno: %d\n",
+		       cp->input_file, errno));
+	  cp->pending_deletion = 0;
+	}
+      xfree (cp->input_file);
+      cp->input_file = NULL;
+    }
 
   /* reap thread if necessary */
   if (cp->thrd)
@@ -787,7 +966,8 @@ delete_child (child_process *cp)
   if (cp == child_procs + child_proc_count - 1)
     {
       for (i = child_proc_count-1; i >= 0; i--)
-	if (CHILD_ACTIVE (&child_procs[i]))
+	if (CHILD_ACTIVE (&child_procs[i])
+	    || child_procs[i].procinfo.hProcess != NULL)
 	  {
 	    child_proc_count = i + 1;
 	    break;
@@ -804,7 +984,8 @@ find_child_pid (DWORD pid)
   child_process *cp;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (CHILD_ACTIVE (cp) && pid == cp->pid)
+    if ((CHILD_ACTIVE (cp) || cp->procinfo.hProcess != NULL)
+	&& pid == cp->pid)
       return cp;
   return NULL;
 }
@@ -832,17 +1013,23 @@ reader_thread (void *arg)
     {
       int rc;
 
-      if (fd_info[cp->fd].flags & FILE_LISTEN)
+      if (cp->fd >= 0 && fd_info[cp->fd].flags & FILE_LISTEN)
 	rc = _sys_wait_accept (cp->fd);
       else
 	rc = _sys_read_ahead (cp->fd);
+
+      /* Don't bother waiting for the event if we already have been
+	 told to exit by delete_child.  */
+      if (cp->status == STATUS_READ_ERROR || !cp->char_avail)
+	break;
 
       /* The name char_avail is a misnomer - it really just means the
 	 read-ahead has completed, whether successfully or not. */
       if (!SetEvent (cp->char_avail))
         {
-	  DebPrint (("reader_thread.SetEvent failed with %lu for fd %ld\n",
-		     GetLastError (), cp->fd));
+	  DebPrint (("reader_thread.SetEvent(0x%x) failed with %lu for fd %ld (PID %d)\n",
+		     (DWORD_PTR)cp->char_avail, GetLastError (),
+		     cp->fd, cp->pid));
 	  return 1;
 	}
 
@@ -853,6 +1040,11 @@ reader_thread (void *arg)
       if (rc == STATUS_READ_FAILED)
 	break;
 
+      /* Don't bother waiting for the acknowledge if we already have
+	 been told to exit by delete_child.  */
+      if (cp->status == STATUS_READ_ERROR || !cp->char_consumed)
+	break;
+
       /* Wait until our input is acknowledged before reading again */
       if (WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
         {
@@ -860,6 +1052,10 @@ reader_thread (void *arg)
 		     "%lu for fd %ld\n", GetLastError (), cp->fd));
 	  break;
         }
+      /* delete_child sets status to STATUS_READ_ERROR when it wants
+	 us to exit.  */
+      if (cp->status == STATUS_READ_ERROR)
+	break;
     }
   return 0;
 }
@@ -927,9 +1123,6 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   if (cp->pid < 0)
     cp->pid = -cp->pid;
 
-  /* pid must fit in a Lisp_Int */
-  cp->pid = cp->pid & INTMASK;
-
   *pPid = cp->pid;
 
   return TRUE;
@@ -945,11 +1138,11 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
    This way the select emulator knows how to match file handles with
    entries in child_procs.  */
 void
-register_child (int pid, int fd)
+register_child (pid_t pid, int fd)
 {
   child_process *cp;
 
-  cp = find_child_pid (pid);
+  cp = find_child_pid ((DWORD)pid);
   if (cp == NULL)
     {
       DebPrint (("register_child unable to find pid %lu\n", pid));
@@ -976,10 +1169,46 @@ register_child (int pid, int fd)
   fd_info[fd].cp = cp;
 }
 
-/* When a process dies its pipe will break so the reader thread will
-   signal failure to the select emulator.
-   The select emulator then calls this routine to clean up.
-   Since the thread signaled failure we can assume it is exiting.  */
+/* Record INFILE as an input file for process PID.  */
+void
+record_infile (pid_t pid, char *infile)
+{
+  child_process *cp;
+
+  /* INFILE should never be NULL, since xstrdup would have signaled
+     memory full condition in that case, see callproc.c where this
+     function is called.  */
+  eassert (infile);
+
+  cp = find_child_pid ((DWORD)pid);
+  if (cp == NULL)
+    {
+      DebPrint (("record_infile is unable to find pid %lu\n", pid));
+      return;
+    }
+
+  cp->input_file = infile;
+}
+
+/* Mark the input file INFILE of the corresponding subprocess as
+   temporary, to be deleted when the subprocess exits.  */
+void
+record_pending_deletion (char *infile)
+{
+  child_process *cp;
+
+  eassert (infile);
+
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+    if (CHILD_ACTIVE (cp)
+	&& cp->input_file && xstrcasecmp (cp->input_file, infile) == 0)
+      {
+	cp->pending_deletion = 1;
+	break;
+      }
+}
+
+/* Called from waitpid when a process exits.  */
 static void
 reap_subprocess (child_process *cp)
 {
@@ -989,7 +1218,7 @@ reap_subprocess (child_process *cp)
 #ifdef FULL_DEBUG
       /* Process should have already died before we are called.  */
       if (WaitForSingleObject (cp->procinfo.hProcess, 0) != WAIT_OBJECT_0)
-	DebPrint (("reap_subprocess: child fpr fd %d has not died yet!", cp->fd));
+	DebPrint (("reap_subprocess: child for fd %d has not died yet!", cp->fd));
 #endif
       CloseHandle (cp->procinfo.hProcess);
       cp->procinfo.hProcess = NULL;
@@ -997,69 +1226,133 @@ reap_subprocess (child_process *cp)
       cp->procinfo.hThread = NULL;
     }
 
-  /* For asynchronous children, the child_proc resources will be freed
-     when the last pipe read descriptor is closed; for synchronous
-     children, we must explicitly free the resources now because
-     register_child has not been called. */
-  if (cp->fd == -1)
+  /* If cp->fd was not closed yet, we might be still reading the
+     process output, so don't free its resources just yet.  The call
+     to delete_child on behalf of this subprocess will be made by
+     sys_read when the subprocess output is fully read.  */
+  if (cp->fd < 0)
     delete_child (cp);
 }
 
-/* Wait for any of our existing child processes to die
-   When it does, close its handle
-   Return the pid and fill in the status if non-NULL.  */
+/* Wait for a child process specified by PID, or for any of our
+   existing child processes (if PID is nonpositive) to die.  When it
+   does, close its handle.  Return the pid of the process that died
+   and fill in STATUS if non-NULL.  */
 
-int
-sys_wait (int *status)
+pid_t
+waitpid (pid_t pid, int *status, int options)
 {
   DWORD active, retval;
   int nh;
-  int pid;
   child_process *cp, *cps[MAX_CHILDREN];
   HANDLE wait_hnd[MAX_CHILDREN];
+  DWORD timeout_ms;
+  int dont_wait = (options & WNOHANG) != 0;
 
   nh = 0;
-  if (dead_child != NULL)
+  /* According to Posix:
+
+     PID = -1 means status is requested for any child process.
+
+     PID > 0 means status is requested for a single child process
+     whose pid is PID.
+
+     PID = 0 means status is requested for any child process whose
+     process group ID is equal to that of the calling process.  But
+     since Windows has only a limited support for process groups (only
+     for console processes and only for the purposes of passing
+     Ctrl-BREAK signal to them), and since we have no documented way
+     of determining whether a given process belongs to our group, we
+     treat 0 as -1.
+
+     PID < -1 means status is requested for any child process whose
+     process group ID is equal to the absolute value of PID.  Again,
+     since we don't support process groups, we treat that as -1.  */
+  if (pid > 0)
     {
-      /* We want to wait for a specific child */
-      wait_hnd[nh] = dead_child->procinfo.hProcess;
-      cps[nh] = dead_child;
-      if (!wait_hnd[nh]) emacs_abort ();
-      nh++;
-      active = 0;
-      goto get_result;
+      int our_child = 0;
+
+      /* We are requested to wait for a specific child.  */
+      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+	{
+	  /* Some child_procs might be sockets; ignore them.  Also
+	     ignore subprocesses whose output is not yet completely
+	     read.  */
+	  if (CHILD_ACTIVE (cp)
+	      && cp->procinfo.hProcess
+	      && cp->pid == pid)
+	    {
+	      our_child = 1;
+	      break;
+	    }
+	}
+      if (our_child)
+	{
+	  if (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
+	    {
+	      wait_hnd[nh] = cp->procinfo.hProcess;
+	      cps[nh] = cp;
+	      nh++;
+	    }
+	  else if (dont_wait)
+	    {
+	      /* PID specifies our subprocess, but its status is not
+		 yet available.  */
+	      return 0;
+	    }
+	}
+      if (nh == 0)
+	{
+	  /* No such child process, or nothing to wait for, so fail.  */
+	  errno = ECHILD;
+	  return -1;
+	}
     }
   else
     {
       for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-	/* some child_procs might be sockets; ignore them */
-	if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
-	    && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
-	  {
-	    wait_hnd[nh] = cp->procinfo.hProcess;
-	    cps[nh] = cp;
-	    nh++;
-	  }
+	{
+	  if (CHILD_ACTIVE (cp)
+	      && cp->procinfo.hProcess
+	      && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
+	    {
+	      wait_hnd[nh] = cp->procinfo.hProcess;
+	      cps[nh] = cp;
+	      nh++;
+	    }
+	}
+      if (nh == 0)
+	{
+	  /* Nothing to wait on, so fail.  */
+	  errno = ECHILD;
+	  return -1;
+	}
     }
 
-  if (nh == 0)
-    {
-      /* Nothing to wait on, so fail */
-      errno = ECHILD;
-      return -1;
-    }
+  if (dont_wait)
+    timeout_ms = 0;
+  else
+    timeout_ms = 1000;	/* check for quit about once a second. */
 
   do
     {
-      /* Check for quit about once a second. */
       QUIT;
-      active = WaitForMultipleObjects (nh, wait_hnd, FALSE, 1000);
-    } while (active == WAIT_TIMEOUT);
+      active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
+    } while (active == WAIT_TIMEOUT && !dont_wait);
 
   if (active == WAIT_FAILED)
     {
       errno = EBADF;
       return -1;
+    }
+  else if (active == WAIT_TIMEOUT && dont_wait)
+    {
+      /* PID specifies our subprocess, but it didn't exit yet, so its
+	 status is not yet available.  */
+#ifdef FULL_DEBUG
+      DebPrint (("Wait: PID %d not reap yet\n", cp->pid));
+#endif
+      return 0;
     }
   else if (active >= WAIT_OBJECT_0
 	   && active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
@@ -1074,7 +1367,6 @@ sys_wait (int *status)
   else
     emacs_abort ();
 
-get_result:
   if (!GetExitCodeProcess (wait_hnd[active], &retval))
     {
       DebPrint (("Wait.GetExitCodeProcess failed with %lu\n",
@@ -1083,8 +1375,10 @@ get_result:
     }
   if (retval == STILL_ACTIVE)
     {
-      /* Should never happen */
+      /* Should never happen.  */
       DebPrint (("Wait.WaitForMultipleObjects returned an active process\n"));
+      if (pid > 0 && dont_wait)
+	return 0;
       errno = EINVAL;
       return -1;
     }
@@ -1098,6 +1392,8 @@ get_result:
   else
     retval <<= 8;
 
+  if (pid > 0 && active != 0)
+    emacs_abort ();
   cp = cps[active];
   pid = cp->pid;
 #ifdef FULL_DEBUG
@@ -1105,33 +1401,7 @@ get_result:
 #endif
 
   if (status)
-    {
-      *status = retval;
-    }
-  else if (synch_process_alive)
-    {
-      synch_process_alive = 0;
-
-      /* Report the status of the synchronous process.  */
-      if (WIFEXITED (retval))
-	synch_process_retcode = WEXITSTATUS (retval);
-      else if (WIFSIGNALED (retval))
-	{
-	  int code = WTERMSIG (retval);
-	  const char *signame;
-
-	  synchronize_system_messages_locale ();
-	  signame = strsignal (code);
-
-	  if (signame == 0)
-	    signame = "unknown";
-
-	  synch_process_death = signame;
-	}
-
-      reap_subprocess (cp);
-    }
-
+    *status = retval;
   reap_subprocess (cp);
 
   return pid;
@@ -1316,11 +1586,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   Lisp_Object program, full;
   char *cmdline, *env, *parg, **targ;
   int arglen, numenv;
-  int pid;
+  pid_t pid;
   child_process *cp;
   int is_dos_app, is_cygnus_app, is_gui_app;
   int do_quoting = 0;
-  char escape_char;
   /* We pass our process ID to our children by setting up an environment
      variable in their environment.  */
   char ppid_env_var_buffer[64];
@@ -1333,6 +1602,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      Some extra whitespace characters need quoting in Cygwin programs,
      so this list is conditionally modified below.  */
   char *sepchars = " \t*?";
+  /* This is for native w32 apps; modified below for Cygwin apps.  */
+  char escape_char = '\\';
 
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)
@@ -1577,7 +1848,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       numenv++;
     }
   /* extra env vars... */
-  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%d",
+  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%lu",
 	   GetCurrentProcessId ());
   arglen += strlen (ppid_env_var_buffer) + 1;
   numenv++;
@@ -1705,7 +1976,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	  }
 	else
 	  {
-	    /* Child process and socket input */
+	    /* Child process and socket/comm port input.  */
 	    cp = fd_info[i].cp;
 	    if (cp)
 	      {
@@ -1718,7 +1989,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		    /* Wake up the reader thread for this process */
 		    cp->status = STATUS_READ_READY;
 		    if (!SetEvent (cp->char_consumed))
-		      DebPrint (("nt_select.SetEvent failed with "
+		      DebPrint (("sys_select.SetEvent failed with "
 				 "%lu for fd %ld\n", GetLastError (), i));
 		  }
 
@@ -1786,7 +2057,7 @@ count_children:
     /* Some child_procs might be sockets; ignore them.  Also some
        children may have died already, but we haven't finished reading
        the process output; ignore them too.  */
-    if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
+    if ((CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
 	&& (cp->fd < 0
 	    || (fd_info[cp->fd].flags & FILE_SEND_SIGCHLD) == 0
 	    || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
@@ -1866,7 +2137,24 @@ count_children:
 	     (*) Note that MsgWaitForMultipleObjects above is an
 	     internal dispatch point for messages that are sent to
 	     windows created by this thread.  */
-	  drain_message_queue ();
+	  if (drain_message_queue ()
+	      /* If drain_message_queue returns non-zero, that means
+		 we received a WM_EMACS_FILENOTIFY message.  If this
+		 is a TTY frame, we must signal the caller that keyboard
+		 input is available, so that w32_console_read_socket
+		 will be called to pick up the notifications.  If we
+		 don't do that, file notifications will only work when
+		 the Emacs TTY frame has focus.  */
+	      && FRAME_TERMCAP_P (SELECTED_FRAME ())
+	      /* they asked for stdin reads */
+	      && FD_ISSET (0, &orfds)
+	      /* the stdin handle is valid */
+	      && keyboard_handle)
+	    {
+	      FD_SET (0, rfds);
+	      if (nr == 0)
+		nr = 1;
+	    }
 	}
       else if (active >= nh)
 	{
@@ -1886,9 +2174,7 @@ count_children:
 	      DebPrint (("select calling SIGCHLD handler for pid %d\n",
 			 cp->pid));
 #endif
-	      dead_child = cp;
 	      sig_handlers[SIGCHLD] (SIGCHLD);
-	      dead_child = NULL;
 	    }
 	}
       else if (fdindex[active] == -1)
@@ -1965,18 +2251,52 @@ find_child_console (HWND hwnd, LPARAM arg)
 
 /* Emulate 'kill', but only for other processes.  */
 int
-sys_kill (int pid, int sig)
+sys_kill (pid_t pid, int sig)
 {
   child_process *cp;
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
 
+  /* Each process is in its own process group.  */
+  if (pid < 0)
+    pid = -pid;
+
   /* Only handle signals that will result in the process dying */
-  if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
+  if (sig != 0
+      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
     {
       errno = EINVAL;
       return -1;
+    }
+
+  if (sig == 0)
+    {
+      /* It will take _some_ time before PID 4 or less on Windows will
+	 be Emacs...  */
+      if (pid <= 4)
+	{
+	  errno = EPERM;
+	  return -1;
+	}
+      proc_hand = OpenProcess (PROCESS_QUERY_INFORMATION, 0, pid);
+      if (proc_hand == NULL)
+        {
+	  DWORD err = GetLastError ();
+
+	  switch (err)
+	    {
+	    case ERROR_ACCESS_DENIED: /* existing process, but access denied */
+	      errno = EPERM;
+	      return -1;
+	    case ERROR_INVALID_PARAMETER: /* process PID does not exist */
+	      errno = ESRCH;
+	      return -1;
+	    }
+	}
+      else
+	CloseHandle (proc_hand);
+      return 0;
     }
 
   cp = find_child_pid (pid);
@@ -2317,8 +2637,9 @@ All path elements in FILENAME are converted to their short names.  */)
   if (GetShortPathName (SDATA (ENCODE_FILE (filename)), shortname, MAX_PATH) == 0)
     return Qnil;
 
-  dostounix_filename (shortname);
+  dostounix_filename (shortname, 0);
 
+  /* No need to DECODE_FILE, because 8.3 names are pure ASCII.   */
   return build_string (shortname);
 }
 
@@ -2345,7 +2666,7 @@ All path elements in FILENAME are converted to their long names.  */)
   if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname, MAX_PATH))
     return Qnil;
 
-  dostounix_filename (longname);
+  dostounix_filename (longname, 0);
 
   /* If we were passed only a drive, make sure that a slash is not appended
      for consistency with directories.  Allow for drive mapping via SUBST

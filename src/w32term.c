@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft Windows API.
 
-Copyright (C) 1989, 1993-2012 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -191,11 +191,7 @@ static Time last_mouse_movement_time;
 
 /* Incremented by w32_read_socket whenever it really tries to read
    events.  */
-#ifdef __STDC__
 static int volatile input_signal_count;
-#else
-static int input_signal_count;
-#endif
 
 #ifdef CYGWIN
 int w32_message_fd = -1;
@@ -240,12 +236,15 @@ static void my_set_focus (struct frame *, HWND);
 #endif
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
+static void w32fullscreen_hook (FRAME_PTR);
 
 #ifdef GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
 #endif
 
 static Lisp_Object Qvendor_specific_keysyms;
+static Lisp_Object Qadded, Qremoved, Qmodified;
+static Lisp_Object Qrenamed_from, Qrenamed_to;
 
 
 /***********************************************************************
@@ -356,7 +355,7 @@ w32_restore_glyph_string_clip (struct glyph_string *s)
 void
 w32_draw_underwave (struct glyph_string *s, COLORREF color)
 {
-  int wave_height = 2, wave_length = 3;
+  int wave_height = 3, wave_length = 2;
   int dx, dy, x0, y0, width, x1, y1, x2, y2, odd, xmax;
   XRectangle wave_clip, string_clip, final_clip;
   RECT w32_final_clip, w32_string_clip;
@@ -365,7 +364,7 @@ w32_draw_underwave (struct glyph_string *s, COLORREF color)
   dx = wave_length;
   dy = wave_height - 1;
   x0 = s->x;
-  y0 = s->ybase + 1;
+  y0 = s->ybase - wave_height + 3;
   width = s->width;
   xmax = x0 + width;
 
@@ -723,21 +722,7 @@ static void
 w32_frame_up_to_date (struct frame *f)
 {
   if (FRAME_W32_P (f))
-    {
-      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-
-      if (hlinfo->mouse_face_deferred_gc
-	  || f == hlinfo->mouse_face_mouse_frame)
-	{
-	  block_input ();
-	  if (hlinfo->mouse_face_mouse_frame)
-	    note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
-				  hlinfo->mouse_face_mouse_x,
-				  hlinfo->mouse_face_mouse_y);
-	  hlinfo->mouse_face_deferred_gc = 0;
-	  unblock_input ();
-	}
-    }
+    FRAME_MOUSE_UPDATE (f);
 }
 
 
@@ -1752,8 +1737,8 @@ w32_draw_relief_rect (struct frame *f,
   if (left_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
-		     left_x + i, top_y + i, 1,
-		     bottom_y - top_y - 2 * i + 1);
+		     left_x + i, top_y + (i + 1) * top_p, 1,
+		     bottom_y - top_y - (i + 1) * (bot_p + top_p) + 1);
 
   if (raised_p)
     gc.foreground = f->output_data.w32->black_relief.gc->foreground;
@@ -1771,8 +1756,8 @@ w32_draw_relief_rect (struct frame *f,
   if (right_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
-		     right_x - i, top_y + i + 1, 1,
-		     bottom_y - top_y - 2 * i - 1);
+		     right_x - i, top_y + (i + 1) * top_p, 1,
+		     bottom_y - top_y - (i + 1) * (bot_p + top_p) + 1);
 
   w32_set_clip_rectangle (hdc, NULL);
 
@@ -1966,7 +1951,7 @@ x_draw_image_foreground (struct glyph_string *s)
 static void
 x_draw_image_relief (struct glyph_string *s)
 {
-  int x0, y0, x1, y1, thick, raised_p;
+  int x1, y1, thick, raised_p, top_p, bot_p, left_p, right_p;
   RECT r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -1998,19 +1983,23 @@ x_draw_image_relief (struct glyph_string *s)
       raised_p = s->img->relief > 0;
     }
 
-  x0 = x - thick;
-  y0 = y - thick;
-  x1 = x + s->slice.width + thick - 1;
-  y1 = y + s->slice.height + thick - 1;
+  x1 = x + s->slice.width - 1;
+  y1 = y + s->slice.height - 1;
+  top_p = bot_p = left_p = right_p = 0;
+
+  if (s->slice.x == 0)
+    x -= thick, left_p = 1;
+  if (s->slice.y == 0)
+    y -= thick, top_p = 1;
+  if (s->slice.x + s->slice.width == s->img->width)
+    x1 += thick, right_p = 1;
+  if (s->slice.y + s->slice.height == s->img->height)
+    y1 += thick, bot_p = 1;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
-  w32_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p,
-			s->slice.y == 0,
-			s->slice.y + s->slice.height == s->img->height,
-			s->slice.x == 0,
-			s->slice.x + s->slice.width == s->img->width,
-			&r);
+  w32_draw_relief_rect (s->f, x, y, x1, y1, thick, raised_p,
+			top_p, bot_p, left_p, right_p, &r);
 }
 
 
@@ -2464,7 +2453,8 @@ x_draw_glyph_string (struct glyph_string *s)
               unsigned long thickness, position;
               int y;
 
-              if (s->prev && s->prev->face->underline_p)
+              if (s->prev && s->prev->face->underline_p
+		  && s->prev->face->underline_type == FACE_UNDER_LINE)
                 {
                   /* We use the same underline style as the previous one.  */
                   thickness = s->prev->underline_thickness;
@@ -3172,7 +3162,7 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
   HDROP hdrop;
   POINT p;
   WORD num_files;
-  char *name;
+  guichar_t *name;
   int i, len;
 
   result->kind = DRAG_N_DROP_EVENT;
@@ -3197,12 +3187,17 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
 
   for (i = 0; i < num_files; i++)
     {
-      len = DragQueryFile (hdrop, i, NULL, 0);
+      len = GUI_FN (DragQueryFile) (hdrop, i, NULL, 0);
       if (len <= 0)
 	continue;
-      name = alloca (len + 1);
-      DragQueryFile (hdrop, i, name, len + 1);
+
+      name = alloca ((len + 1) * sizeof (*name));
+      GUI_FN (DragQueryFile) (hdrop, i, name, len + 1);
+#ifdef NTGUI_UNICODE
+      files = Fcons (from_unicode_buffer (name), files);
+#else
       files = Fcons (DECODE_FILE (build_string (name)), files);
+#endif /* NTGUI_UNICODE */
     }
 
   DragFinish (hdrop);
@@ -3212,6 +3207,124 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
   result->arg = files;
   return Qnil;
 }
+
+
+/* File event notifications (see w32notify.c).  */
+
+Lisp_Object
+lispy_file_action (DWORD action)
+{
+  static char unknown_fmt[] = "unknown-action(%d)";
+  Lisp_Object retval;
+
+  switch (action)
+    {
+    case FILE_ACTION_ADDED:
+      retval = Qadded;
+      break;
+    case FILE_ACTION_REMOVED:
+      retval = Qremoved;
+      break;
+    case FILE_ACTION_MODIFIED:
+      retval = Qmodified;
+      break;
+    case FILE_ACTION_RENAMED_OLD_NAME:
+      retval = Qrenamed_from;
+      break;
+    case FILE_ACTION_RENAMED_NEW_NAME:
+      retval = Qrenamed_to;
+      break;
+    default:
+      {
+	char buf[sizeof(unknown_fmt) - 1 + INT_STRLEN_BOUND (DWORD)];
+
+	sprintf (buf, unknown_fmt, action);
+	retval = intern (buf);
+      }
+      break;
+    }
+
+  return retval;
+}
+
+#ifdef WINDOWSNT
+/* Put file notifications into the Emacs input event queue.  This
+   function runs when the WM_EMACS_FILENOTIFY message arrives from a
+   watcher thread.  */
+static void
+queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
+		     int *evcount)
+{
+  BYTE *p = file_notifications;
+  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
+  const DWORD min_size
+    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
+  Lisp_Object frame;
+
+  /* We cannot process notification before Emacs is fully initialized,
+     since we need the UTF-16LE coding-system to be set up.  */
+  if (!initialized)
+    {
+      notification_buffer_in_use = 0;
+      return;
+    }
+
+  XSETFRAME (frame, f);
+
+  enter_crit ();
+  if (notification_buffer_in_use)
+    {
+      DWORD info_size = notifications_size;
+      Lisp_Object cs = intern ("utf-16le");
+      Lisp_Object obj = w32_get_watch_object (notifications_desc);
+
+      /* notifications_size could be zero when the buffer of
+	 notifications overflowed on the OS level, or when the
+	 directory being watched was itself deleted.  Do nothing in
+	 that case.  */
+      if (info_size
+	  && !NILP (obj) && CONSP (obj))
+	{
+	  Lisp_Object callback = XCDR (obj);
+
+	  while (info_size >= min_size)
+	    {
+	      Lisp_Object utf_16_fn
+		= make_unibyte_string ((char *)fni->FileName,
+				       fni->FileNameLength);
+	      /* Note: mule-conf is preloaded, so utf-16le must
+		 already be defined at this point.  */
+	      Lisp_Object fname
+		= code_convert_string_norecord (utf_16_fn, cs, 0);
+	      Lisp_Object action = lispy_file_action (fni->Action);
+
+	      event->kind = FILE_NOTIFY_EVENT;
+	      event->code
+		= (ptrdiff_t)XINT (XIL ((EMACS_INT)notifications_desc));
+	      event->timestamp = msg->msg.time;
+	      event->modifiers = 0;
+	      event->frame_or_window = callback;
+	      event->arg = Fcons (action, fname);
+	      kbd_buffer_store_event (event);
+	      (*evcount)++;
+
+	      if (!fni->NextEntryOffset)
+		break;
+	      p += fni->NextEntryOffset;
+	      fni = (PFILE_NOTIFY_INFORMATION)p;
+	      info_size -= fni->NextEntryOffset;
+	    }
+	}
+      notification_buffer_in_use = 0;
+    }
+  else
+    DebPrint (("We were promised notifications, but in-use flag is zero!\n"));
+  leave_crit ();
+
+  /* We've stuffed all the events ourselves, so w32_read_socket shouldn't.  */
+  event->kind = NO_EVENT;
+}
+#endif
 
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -3437,16 +3550,11 @@ w32_handle_tool_bar_click (struct frame *f, struct input_event *button_event)
 static struct scroll_bar *
 x_window_to_scroll_bar (Window window_id)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, frame;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      Lisp_Object frame, bar, condemned;
-
-      frame = XCAR (tail);
-      /* All elements of Vframe_list should be frames.  */
-      if (! FRAMEP (frame))
-	emacs_abort ();
+      Lisp_Object bar, condemned;
 
       /* Scan this frame's scroll bar list for a scroll bar with the
 	 right window ID.  */
@@ -3626,7 +3734,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   HWND hwnd;
   SCROLLINFO si;
   struct scroll_bar *bar
-    = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
+    = XSCROLL_BAR (Fmake_vector (make_number (VECSIZE (struct scroll_bar)), Qnil));
   Lisp_Object barobj;
 
   block_input ();
@@ -4213,24 +4321,25 @@ w32_read_socket (struct terminal *terminal,
 		  DebPrint (("clipped frame %p (%s) got WM_PAINT - ignored\n", f,
 			     SDATA (f->name)));
 		}
-	      else if (f->async_visible != 1)
+	      else if (FRAME_VISIBLE_P (f) != 1)
 		{
+		  bool iconified = FRAME_ICONIFIED_P (f);
+
 		  /* Definitely not obscured, so mark as visible.  */
-		  f->async_visible = 1;
-		  f->async_iconified = 0;
+		  SET_FRAME_VISIBLE (f, 1);
+		  SET_FRAME_ICONIFIED (f, 0);
 		  SET_FRAME_GARBAGED (f);
 		  DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
 			     SDATA (f->name)));
 
 		  /* WM_PAINT serves as MapNotify as well, so report
 		     visibility changes properly.  */
-		  if (f->iconified)
+		  if (iconified)
 		    {
 		      inev.kind = DEICONIFY_EVENT;
 		      XSETFRAME (inev.frame_or_window, f);
 		    }
-		  else if (! NILP (Vframe_list)
-			   && ! NILP (XCDR (Vframe_list)))
+		  else if (!NILP (Vframe_list) && !NILP (XCDR (Vframe_list)))
 		    /* Force a redisplay sooner or later to update the
 		       frame titles in case this is the second frame.  */
 		    record_asynch_buffer_change ();
@@ -4273,7 +4382,7 @@ w32_read_socket (struct terminal *terminal,
 	case WM_SYSKEYDOWN:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -4298,7 +4407,7 @@ w32_read_socket (struct terminal *terminal,
 	case WM_CHAR:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -4376,7 +4485,7 @@ w32_read_socket (struct terminal *terminal,
         case WM_APPCOMMAND:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -4609,14 +4718,23 @@ w32_read_socket (struct terminal *terminal,
 	case WM_ACTIVATEAPP:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
-	    x_check_fullscreen (f);
+	    {
+	      /* If we are being activated, run the full-screen hook
+		 function, to actually install the required size in
+		 effect.  This is because when the hook is run from
+		 x_set_fullscreen, the frame might not yet be visible,
+		 if that call is a result of make-frame.  */
+	      if (msg.msg.wParam)
+		w32fullscreen_hook (f);
+	      x_check_fullscreen (f);
+	    }
 	  check_visibility = 1;
 	  break;
 
 	case WM_MOVE:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
-	  if (f && !f->async_iconified)
+	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
 	      int x, y;
 
@@ -4664,8 +4782,8 @@ w32_read_socket (struct terminal *terminal,
 	      switch (msg.msg.wParam)
 		{
 		case SIZE_MINIMIZED:
-		  f->async_visible = 0;
-		  f->async_iconified = 1;
+		  SET_FRAME_VISIBLE (f, 0);
+		  SET_FRAME_ICONIFIED (f, 1);
 
 		  inev.kind = ICONIFY_EVENT;
 		  XSETFRAME (inev.frame_or_window, f);
@@ -4673,40 +4791,44 @@ w32_read_socket (struct terminal *terminal,
 
 		case SIZE_MAXIMIZED:
 		case SIZE_RESTORED:
-		  f->async_visible = 1;
-		  f->async_iconified = 0;
+		  {
+		    bool iconified = FRAME_ICONIFIED_P (f);
 
-		  /* wait_reading_process_output will notice this and update
-		     the frame's display structures.  */
-		  SET_FRAME_GARBAGED (f);
+		    SET_FRAME_VISIBLE (f, 1);
+		    SET_FRAME_ICONIFIED (f, 0);
 
-		  if (f->iconified)
-		    {
-                      int x, y;
+		    /* wait_reading_process_output will notice this
+		       and update the frame's display structures.  */
+		    SET_FRAME_GARBAGED (f);
 
-                      /* Reset top and left positions of the Window
-                         here since Windows sends a WM_MOVE message
-                         BEFORE telling us the Window is minimized
-                         when the Window is iconified, with 3000,3000
-                         as the co-ords. */
-                      x_real_positions (f, &x, &y);
-                      f->left_pos = x;
-                      f->top_pos = y;
+		    if (iconified)
+		      {
+			int x, y;
 
-		      inev.kind = DEICONIFY_EVENT;
-		      XSETFRAME (inev.frame_or_window, f);
-		    }
-		  else if (! NILP (Vframe_list)
-			   && ! NILP (XCDR (Vframe_list)))
-		    /* Force a redisplay sooner or later
-		       to update the frame titles
-		       in case this is the second frame.  */
-		    record_asynch_buffer_change ();
+			/* Reset top and left positions of the Window
+			   here since Windows sends a WM_MOVE message
+			   BEFORE telling us the Window is minimized
+			   when the Window is iconified, with 3000,3000
+			   as the co-ords. */
+			x_real_positions (f, &x, &y);
+			f->left_pos = x;
+			f->top_pos = y;
+
+			inev.kind = DEICONIFY_EVENT;
+			XSETFRAME (inev.frame_or_window, f);
+		      }
+		    else if (! NILP (Vframe_list)
+			     && ! NILP (XCDR (Vframe_list)))
+		      /* Force a redisplay sooner or later
+			 to update the frame titles
+			 in case this is the second frame.  */
+		      record_asynch_buffer_change ();
+		  }
 		  break;
 		}
 	    }
 
-	  if (f && !f->async_iconified && msg.msg.wParam != SIZE_MINIMIZED)
+	  if (f && !FRAME_ICONIFIED_P (f) && msg.msg.wParam != SIZE_MINIMIZED)
 	    {
 	      RECT rect;
 	      int rows;
@@ -4851,6 +4973,14 @@ w32_read_socket (struct terminal *terminal,
 	  check_visibility = 1;
 	  break;
 
+#ifdef WINDOWSNT
+	case WM_EMACS_FILENOTIFY:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  if (f)
+	    queue_notifications (&inev, &msg, f, &count);
+	  break;
+#endif
+
 	default:
 	  /* Check for messages registered at runtime.  */
 	  if (msg.msg.message == msh_mousewheel)
@@ -4926,12 +5056,13 @@ w32_read_socket (struct terminal *terminal,
 	  continue;
 
 	/* Check "visible" frames and mark each as obscured or not.
-	   Note that async_visible is nonzero for unobscured and
-	   obscured frames, but zero for hidden and iconified frames.  */
-	if (FRAME_W32_P (f) && f->async_visible)
+	   Note that visible is nonzero for unobscured and obscured
+	   frames, but zero for hidden and iconified frames.  */
+	if (FRAME_W32_P (f) && FRAME_VISIBLE_P (f))
 	  {
 	    RECT clipbox;
 	    HDC  hdc;
+	    bool obscured;
 
 	    enter_crit ();
 	    /* Query clipping rectangle for the entire window area
@@ -4945,31 +5076,28 @@ w32_read_socket (struct terminal *terminal,
 	    ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 	    leave_crit ();
 
-	    if (clipbox.right == clipbox.left
-		|| clipbox.bottom == clipbox.top)
-	      {
-		/* Frame has become completely obscured so mark as
-		   such (we do this by setting async_visible to 2 so
-		   that FRAME_VISIBLE_P is still true, but redisplay
-		   will skip it).  */
-		f->async_visible = 2;
+	    obscured = FRAME_OBSCURED_P (f);
 
-		if (!FRAME_OBSCURED_P (f))
-		  {
-		    DebPrint (("frame %p (%s) obscured\n", f,
-			       SDATA (f->name)));
-		  }
+	    if (clipbox.right == clipbox.left || clipbox.bottom == clipbox.top)
+	      {
+		/* Frame has become completely obscured so mark as such (we
+		   do this by setting visible to 2 so that FRAME_VISIBLE_P
+		   is still true, but redisplay will skip it).  */
+		SET_FRAME_VISIBLE (f, 2);
+
+		if (!obscured)
+		  DebPrint (("frame %p (%s) obscured\n", f, SDATA (f->name)));
 	      }
 	    else
 	      {
 		/* Frame is not obscured, so mark it as such.  */
-		f->async_visible = 1;
+		SET_FRAME_VISIBLE (f, 1);
 
-		if (FRAME_OBSCURED_P (f))
+		if (obscured)
 		  {
 		    SET_FRAME_GARBAGED (f);
-		    DebPrint (("obscured frame %p (%s) found to be visible\n", f,
-			       SDATA (f->name)));
+		    DebPrint (("obscured frame %p (%s) found to be visible\n",
+			       f, SDATA (f->name)));
 
 		    /* Force a redisplay sooner or later.  */
 		    record_asynch_buffer_change ();
@@ -5363,7 +5491,6 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_SPACE_WIDTH (f) = font->space_width;
   FRAME_LINE_HEIGHT (f) = font->height;
 
   compute_fringe_widths (f, 1);
@@ -5533,6 +5660,86 @@ x_check_fullscreen (struct frame *f)
           /* Wait for the change of frame size to occur.  */
           f->want_fullscreen |= FULLSCREEN_WAIT;
         }
+    }
+}
+
+static void
+w32fullscreen_hook (FRAME_PTR f)
+{
+  static int normal_width, normal_height;
+
+  if (FRAME_VISIBLE_P (f))
+    {
+      int width, height, top_pos, left_pos, pixel_height, pixel_width;
+      int cur_w = FRAME_COLS (f), cur_h = FRAME_LINES (f);
+      RECT workarea_rect;
+
+      block_input ();
+      if (normal_height <= 0)
+	normal_height = cur_h;
+      if (normal_width <= 0)
+	normal_width = cur_w;
+      x_real_positions (f, &f->left_pos, &f->top_pos);
+      x_fullscreen_adjust (f, &width, &height, &top_pos, &left_pos);
+
+      SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
+      pixel_height = workarea_rect.bottom - workarea_rect.top;
+      pixel_width  = workarea_rect.right  - workarea_rect.left;
+
+      switch (f->want_fullscreen)
+	{
+	case FULLSCREEN_MAXIMIZED:
+	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+	  break;
+	case FULLSCREEN_BOTH:
+	  height =
+	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
+	    - XINT (Ftool_bar_lines_needed (selected_frame))
+	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
+	  width  =
+	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
+	    - FRAME_SCROLL_BAR_COLS (f);
+	  left_pos = workarea_rect.left;
+	  top_pos = workarea_rect.top;
+	  break;
+	case FULLSCREEN_WIDTH:
+	  width  =
+	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
+	    - FRAME_SCROLL_BAR_COLS (f);
+	  if (normal_height > 0)
+	    height = normal_height;
+	  left_pos = workarea_rect.left;
+	  break;
+	case FULLSCREEN_HEIGHT:
+	  height =
+	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
+	    - XINT (Ftool_bar_lines_needed (selected_frame))
+	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
+	  if (normal_width > 0)
+	    width = normal_width;
+	  top_pos = workarea_rect.top;
+	  break;
+	case FULLSCREEN_NONE:
+	  if (normal_height > 0)
+	    height = normal_height;
+	  else
+	    normal_height = height;
+	  if (normal_width > 0)
+	    width = normal_width;
+	  else
+	    normal_width = width;
+	  /* FIXME: Should restore the original position of the frame.  */
+	  top_pos = left_pos = 0;
+	  break;
+	}
+
+      if (cur_w != width || cur_h != height)
+	{
+	  x_set_offset (f, left_pos, top_pos, 1);
+	  x_set_window_size (f, 1, width, height);
+	  do_pending_window_change (0);
+	}
+      unblock_input ();
     }
 }
 
@@ -5830,11 +6037,11 @@ x_make_frame_visible (struct frame *f)
 	 causes unexpected behavior when unminimizing frames that were
 	 previously maximized.  But only SW_SHOWNORMAL works properly for
 	 frames that were truely hidden (using make-frame-invisible), so
-	 we need it to avoid Bug#5482.  It seems that async_iconified
-	 is only set for minimized windows that are still visible, so
-         use that to determine the appropriate flag to pass ShowWindow.  */
+	 we need it to avoid Bug#5482.  It seems that iconified is only
+	 set for minimized windows that are still visible, so use that to
+	 determine the appropriate flag to pass ShowWindow.  */
       my_show_window (f, FRAME_W32_WINDOW (f),
-                      f->async_iconified ? SW_RESTORE : SW_SHOWNORMAL);
+                      FRAME_ICONIFIED_P (f) ? SW_RESTORE : SW_SHOWNORMAL);
     }
 
   /* Synchronize to ensure Emacs knows the frame is visible
@@ -5873,7 +6080,6 @@ x_make_frame_visible (struct frame *f)
 	    poll_suppress_count = old_poll_suppress_count;
 	  }
       }
-    FRAME_SAMPLE_VISIBILITY (f);
   }
 }
 
@@ -5897,10 +6103,8 @@ x_make_frame_invisible (struct frame *f)
      So we can't win using the usual strategy of letting
      FRAME_SAMPLE_VISIBILITY set this.  So do it by hand,
      and synchronize with the server to make sure we agree.  */
-  f->visible = 0;
-  FRAME_ICONIFIED_P (f) = 0;
-  f->async_visible = 0;
-  f->async_iconified = 0;
+  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_ICONIFIED (f, 0);
 
   unblock_input ();
 }
@@ -5916,7 +6120,7 @@ x_iconify_frame (struct frame *f)
   if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
-  if (f->async_iconified)
+  if (FRAME_ICONIFIED_P (f))
     return;
 
   block_input ();
@@ -5984,7 +6188,6 @@ x_free_frame_resources (struct frame *f)
       hlinfo->mouse_face_end_row
 	= hlinfo->mouse_face_end_col = -1;
       hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_deferred_gc = 0;
       hlinfo->mouse_face_mouse_frame = 0;
     }
 
@@ -6227,7 +6430,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->mouse_position_hook = w32_mouse_position;
   terminal->frame_rehighlight_hook = w32_frame_rehighlight;
   terminal->frame_raise_lower_hook = w32_frame_raise_lower;
-  /* terminal->fullscreen_hook = XTfullscreen_hook; */
+  terminal->fullscreen_hook = w32fullscreen_hook;
   terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;
@@ -6519,6 +6722,12 @@ syms_of_w32term (void)
   last_mouse_scroll_bar = Qnil;
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
+
+  DEFSYM (Qadded, "added");
+  DEFSYM (Qremoved, "removed");
+  DEFSYM (Qmodified, "modified");
+  DEFSYM (Qrenamed_from, "renamed-from");
+  DEFSYM (Qrenamed_to, "renamed-to");
 
   DEFVAR_INT ("w32-num-mouse-buttons",
 	      w32_num_mouse_buttons,

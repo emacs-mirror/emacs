@@ -1,5 +1,5 @@
-# stdlib_h.m4 serial 41
-dnl Copyright (C) 2007-2012 Free Software Foundation, Inc.
+# stdlib_h.m4 serial 42
+dnl Copyright (C) 2007-2013 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -22,7 +22,7 @@ AC_DEFUN([gl_STDLIB_H],
     ]], [_Exit atoll canonicalize_file_name getloadavg getsubopt grantpt
     initstate initstate_r mkdtemp mkostemp mkostemps mkstemp mkstemps
     posix_openpt ptsname ptsname_r random random_r realpath rpmatch
-    setenv setstate setstate_r srandom srandom_r
+    secure_getenv setenv setstate setstate_r srandom srandom_r
     strtod strtoll strtoull unlockpt unsetenv])
 ])
 
@@ -60,6 +60,7 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   GNULIB_REALLOC_POSIX=0; AC_SUBST([GNULIB_REALLOC_POSIX])
   GNULIB_REALPATH=0;      AC_SUBST([GNULIB_REALPATH])
   GNULIB_RPMATCH=0;       AC_SUBST([GNULIB_RPMATCH])
+  GNULIB_SECURE_GETENV=0; AC_SUBST([GNULIB_SECURE_GETENV])
   GNULIB_SETENV=0;        AC_SUBST([GNULIB_SETENV])
   GNULIB_STRTOD=0;        AC_SUBST([GNULIB_STRTOD])
   GNULIB_STRTOLL=0;       AC_SUBST([GNULIB_STRTOLL])
@@ -88,6 +89,7 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   HAVE_RANDOM_R=1;           AC_SUBST([HAVE_RANDOM_R])
   HAVE_REALPATH=1;           AC_SUBST([HAVE_REALPATH])
   HAVE_RPMATCH=1;            AC_SUBST([HAVE_RPMATCH])
+  HAVE_SECURE_GETENV=1;      AC_SUBST([HAVE_SECURE_GETENV])
   HAVE_SETENV=1;             AC_SUBST([HAVE_SETENV])
   HAVE_DECL_SETENV=1;        AC_SUBST([HAVE_DECL_SETENV])
   HAVE_STRTOD=1;             AC_SUBST([HAVE_STRTOD])

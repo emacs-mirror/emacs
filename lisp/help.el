@@ -1,6 +1,7 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -411,7 +412,9 @@ With argument, display info only for the selected version."
 The number of messages retained in that buffer
 is specified by the variable `message-log-max'."
   (interactive)
-  (switch-to-buffer (get-buffer-create "*Messages*")))
+  (with-current-buffer (get-buffer-create "*Messages*")
+    (goto-char (point-max))
+    (display-buffer (current-buffer))))
 
 (defun view-order-manuals ()
   "Display the Emacs ORDERS file."
@@ -979,7 +982,7 @@ buffer, and should return a positive integer.  At the time the
 function is called, the window to be resized is selected."
   :type '(choice integer function)
   :group 'help
-  :version "24.2")
+  :version "24.3")
 
 (define-minor-mode temp-buffer-resize-mode
   "Toggle auto-resizing temporary buffer windows (Temp Buffer Resize Mode).
@@ -1012,8 +1015,8 @@ WINDOW can be any live window and defaults to the selected one.
 
 Do not make WINDOW higher than `temp-buffer-max-height' nor
 smaller than `window-min-height'.  Do nothing if WINDOW is not
-vertically combined or some of its contents are scrolled out of
-view."
+vertically combined, some of its contents are scrolled out of
+view, or WINDOW was not created by `display-buffer'."
   (setq window (window-normalize-window window t))
   (let ((buffer-name (buffer-name (window-buffer window))))
     (let ((height (if (functionp temp-buffer-max-height)
@@ -1022,11 +1025,12 @@ view."
 		    temp-buffer-max-height))
 	  (quit-cadr (cadr (window-parameter window 'quit-restore))))
       (cond
-       ;; Don't resize WINDOW if it showed another buffer before.
+       ;; Resize WINDOW iff it was split off by `display-buffer'.
        ((and (eq quit-cadr 'window)
 	     (pos-visible-in-window-p (point-min) window)
 	     (window-combined-p window))
 	(fit-window-to-buffer window height))
+       ;; Resize FRAME iff it was created by `display-buffer'.
        ((and fit-frame-to-buffer
 	     (eq quit-cadr 'frame)
 	     (eq window (frame-root-window window)))

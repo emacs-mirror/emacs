@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2012 Free Software Foundation, Inc.
+   Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -299,8 +299,8 @@ xd_symbol_to_dbus_type (Lisp_Object object)
       }									\
   } while (0)
 
-#if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH \
-     || XD_DBUS_VALIDATE_OBJECT || HAVE_DBUS_VALIDATE_MEMBER)
+#if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH		\
+     || HAVE_DBUS_VALIDATE_INTERFACE || HAVE_DBUS_VALIDATE_MEMBER)
 #define XD_DBUS_VALIDATE_OBJECT(object, func)				\
   do {									\
     if (!NILP (object))							\
@@ -1203,7 +1203,7 @@ this connection to those buses.  */)
       xd_registered_buses = Fcons (Fcons (bus, val), xd_registered_buses);
 
       /* We do not want to abort.  */
-      putenv ((char *) "DBUS_FATAL_WARNINGS=0");
+      xputenv ("DBUS_FATAL_WARNINGS=0");
 
       /* Cleanup.  */
       dbus_error_free (&derror);

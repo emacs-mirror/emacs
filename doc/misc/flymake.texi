@@ -11,8 +11,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -23,8 +22,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -47,7 +45,7 @@ developing GNU and promoting software freedom.''
 @ifnottex
 @node Top
 @top GNU Flymake
-@insertcopying 
+@insertcopying
 @end ifnottex
 
 @menu
@@ -66,10 +64,10 @@ developing GNU and promoting software freedom.''
 
 Flymake is a universal on-the-fly syntax checker implemented as an
 Emacs minor mode. Flymake runs the pre-configured syntax check tool
-(compiler for C++ files, @code{perl} for perl files, etc.) in the
+(compiler for C++ files, @code{perl} for perl files, etc.)@: in the
 background, passing it a temporary copy of the current buffer, and
 parses the output for known error/warning message patterns. Flymake
-then highlights erroneous lines (i.e. lines for which at least one
+then highlights erroneous lines (i.e., lines for which at least one
 error or warning has been reported by the syntax check tool), and
 displays an overall buffer status in the mode line. Status information
 displayed by Flymake contains total number of errors and warnings
@@ -212,14 +210,14 @@ The following statuses are defined.
 @multitable @columnfractions 0.25 0.75
 @item Flymake* or Flymake:E/W*
 @tab  Flymake is currently running. For the second case, E/W contains the
-      error and warning count for the previous run.
+error and warning count for the previous run.
 
 @item Flymake
 @tab  Syntax check is not running. Usually this means syntax check was
-      successfully passed (no errors, no warnings). Other possibilities are:
-      syntax check was killed as a result of executing
-      @code{flymake-compile}, or syntax check cannot start as compilation
-      is currently in progress.
+successfully passed (no errors, no warnings). Other possibilities are:
+syntax check was killed as a result of executing
+@code{flymake-compile}, or syntax check cannot start as compilation
+is currently in progress.
 
 @item Flymake:E/W
 @tab  Number of errors/warnings found by the syntax check process.
@@ -234,9 +232,9 @@ OFF for the buffer.
 @multitable @columnfractions 0.25 0.75
 @item CFGERR
 @tab  Syntax check process returned nonzero exit code, but no
-      errors/warnings were reported. This indicates a possible configuration
-      error (for example, no suitable error message patterns for the
-      syntax check tool).
+errors/warnings were reported. This indicates a possible configuration
+error (for example, no suitable error message patterns for the
+syntax check tool).
 
 @item NOMASTER
 @tab  Flymake was unable to find master file for the current buffer.
@@ -291,9 +289,11 @@ A list of @code{(filename-regexp, init-function, cleanup-function
 getfname-function)} for configuring syntax check tools. @xref{Adding
 support for a new syntax check tool}.
 
+@ignore
 @item flymake-buildfile-dirs
 A list of directories (relative paths) for searching a
 buildfile. @xref{Locating the buildfile}.
+@end ignore
 
 @item flymake-master-file-dirs
 A list of directories for searching a master file. @xref{Locating a
@@ -337,6 +337,17 @@ been reported.
 A custom face for highlighting lines for which at least one warning
 and no errors have been reported.
 
+@item flymake-error-bitmap
+A bitmap used in the fringe to mark lines for which an error has
+been reported.
+
+@item flymake-warning-bitmap
+A bitmap used in the fringe to mark lines for which a warning has
+been reported.
+
+@item flymake-fringe-indicator-position
+Which fringe (if any) should show the warning/error bitmaps.
+
 @end table
 
 @node Adding support for a new syntax check tool
@@ -344,8 +355,8 @@ and no errors have been reported.
 @cindex Adding support for a new syntax check tool
 
 @menu
-* Example -- Configuring a tool called directly::
-* Example -- Configuring a tool called via make::
+* Example---Configuring a tool called directly::
+* Example---Configuring a tool called via make::
 @end menu
 
 Syntax check tools are configured using the
@@ -395,8 +406,8 @@ the @code{flymake-err-line-patterns} list.
 The following sections contain some examples of configuring Flymake
 support for various syntax check tools.
 
-@node Example -- Configuring a tool called directly
-@subsection Example -- Configuring a tool called directly
+@node Example---Configuring a tool called directly
+@subsection Example---Configuring a tool called directly
 @cindex Adding support for perl
 
 In this example, we will add support for @code{perl} as a syntax check
@@ -444,8 +455,8 @@ Finally, we add an entry to @code{flymake-err-line-patterns}:
             flymake-err-line-patterns))
 @end lisp
 
-@node Example -- Configuring a tool called via make
-@subsection Example -- Configuring a tool called via make
+@node Example---Configuring a tool called via make
+@subsection Example---Configuring a tool called via make
 @cindex Adding support for C (gcc+make)
 
 In this example we will add support for C files syntax checked by
@@ -517,7 +528,7 @@ check-syntax:
 Syntax check is started by calling @code{flymake-start-syntax-check-for-current-buffer}.
 Flymake first determines whether it is able to do syntax
 check. It then saves a copy of the buffer in a temporary file in the
-buffer's directory (or in the system temp directory -- for java
+buffer's directory (or in the system temp directory, for java
 files), creates a syntax check command and launches a process with
 this command. The output is parsed using a list of error message patterns,
 and error information (file name, line number, type and text) is
@@ -558,7 +569,7 @@ These modes are handled inside init/cleanup/getfname functions, see
 Flymake contains implementations of all functionality required to
 support different syntax check modes described above (making temporary
 copies, finding master files, etc.), as well as some tool-specific
-(routines for Make, Ant, etc.) code.
+(routines for Make, Ant, etc.)@: code.
 
 
 @node Making a temporary copy
@@ -664,10 +675,13 @@ buildfile to reference the 'project configuration' file.
 
 Special function, @code{flymake-find-buildfile} is provided for locating buildfiles.
 Searching for a buildfile is done in a manner similar to that of searching
-for possible master files. A customizable variable
+for possible master files.
+@ignore
+A customizable variable
 @code{flymake-buildfile-dirs} holds a list of relative paths to the
-buildfile. They are checked sequentially until a buildfile is found. In case
-there's no build file, syntax check is aborted.
+buildfile. They are checked sequentially until a buildfile is found.
+@end ignore
+In case there's no build file, syntax check is aborted.
 
 Buildfile values are also cached.
 
@@ -717,6 +731,15 @@ sentinel, after calling the cleanup function. Two customizable faces
 are used: @code{flymake-errline} and
 @code{flymake-warnline}.  Errors belonging outside the current
 buffer are considered to belong to line 1 of the current buffer.
+
+@c This manual does not use vindex.
+@c @vindex flymake-fringe-indicator-position
+@c @vindex flymake-error-bitmap
+@c @vindex flymake-warning-bitmap
+If the option @code{flymake-fringe-indicator-position} is non-@code{nil},
+errors and warnings are also highlighted in the left or right fringe,
+using the bitmaps specified by @code{flymake-error-bitmap}
+and @code{flymake-warning-bitmap}.
 
 @node Interaction with other modes
 @section Interaction with other modes

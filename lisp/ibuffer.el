@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -632,10 +632,13 @@ directory, like `default-directory'."
       '(menu-item "Disable all filtering" ibuffer-filter-disable
         :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by major mode..." ibuffer-filter-by-mode))
-    (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by major mode in use..."
+      '(menu-item "Add filter by any major mode..." ibuffer-filter-by-mode))
+    (define-key-after map [menu-bar view filter filter-by-used-mode]
+      '(menu-item "Add filter by a major mode in use..."
         ibuffer-filter-by-used-mode))
+    (define-key-after map [menu-bar view filter filter-by-derived-mode]
+      '(menu-item "Add filter by derived mode..."
+                  ibuffer-filter-by-derived-mode))
     (define-key-after map [menu-bar view filter filter-by-name]
       '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name))
     (define-key-after map [menu-bar view filter filter-by-filename]
@@ -1359,24 +1362,27 @@ group."
 (defun ibuffer-mark-forward (arg)
   "Mark the buffer on this line, and move forward ARG lines.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
-  (ibuffer-mark-interactive arg ibuffer-marked-char 1))
+  (interactive "p")
+  (ibuffer-mark-interactive arg ibuffer-marked-char))
 
 (defun ibuffer-unmark-forward (arg)
   "Unmark the buffer on this line, and move forward ARG lines.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
-  (ibuffer-mark-interactive arg ?\s 1))
+  (interactive "p")
+  (ibuffer-mark-interactive arg ?\s))
 
 (defun ibuffer-unmark-backward (arg)
   "Unmark the buffer on this line, and move backward ARG lines.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
-  (ibuffer-mark-interactive arg ?\s -1))
+  (interactive "p")
+  (ibuffer-unmark-forward (- arg)))
 
-(defun ibuffer-mark-interactive (arg mark movement)
+(defun ibuffer-mark-interactive (arg mark &optional movement)
   (ibuffer-assert-ibuffer-mode)
   (or arg (setq arg 1))
+  ;; deprecated movement argument
+  (when (and movement (< movement 0))
+    (setq arg (- arg)))
   (ibuffer-forward-line 0)
   (ibuffer-aif (get-text-property (point) 'ibuffer-filter-group-name)
       (progn
@@ -1386,8 +1392,12 @@ If point is on a group name, this function operates on that group."
     (let ((inhibit-read-only t))
       (while (> arg 0)
 	(ibuffer-set-mark mark)
-	(ibuffer-forward-line movement t)
-	(setq arg (1- arg))))))
+	(ibuffer-forward-line 1 t)
+	(setq arg (1- arg)))
+      (while (< arg 0)
+	(ibuffer-forward-line -1 t)
+	(ibuffer-set-mark mark)
+	(setq arg (1+ arg))))))
 
 (defun ibuffer-set-mark (mark)
   (ibuffer-assert-ibuffer-mode)
@@ -2438,8 +2448,9 @@ Marking commands:
 
 Filtering commands:
 
-  '\\[ibuffer-filter-by-mode]' - Add a filter by major mode.
-  '\\[ibuffer-filter-by-used-mode]' - Add a filter by major mode now in use.
+  '\\[ibuffer-filter-by-mode]' - Add a filter by any major mode.
+  '\\[ibuffer-filter-by-used-mode]' - Add a filter by a major mode now in use.
+  '\\[ibuffer-filter-by-derived-mode]' - Add a filter by derived mode.
   '\\[ibuffer-filter-by-name]' - Add a filter by buffer name.
   '\\[ibuffer-filter-by-content]' - Add a filter by buffer content.
   '\\[ibuffer-filter-by-filename]' - Add a filter by filename.
@@ -2641,7 +2652,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "f03bae226325c7320d41ddb78896665a")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "9950bdf995e4b5e962a17d754a35f2c6")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
@@ -3019,7 +3030,7 @@ defaults to one.
 (run-hooks 'ibuffer-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; ibuffer.el ends here

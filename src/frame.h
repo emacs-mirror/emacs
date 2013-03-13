@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2012 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Don't multiply include: dispextern.h includes macterm.h which
    includes frame.h some emacs source includes both dispextern.h and
-   frame.h */
+   frame.h.  */
 
 #ifndef EMACS_FRAME_H
 #define EMACS_FRAME_H
@@ -33,7 +33,7 @@ INLINE_HEADER_BEGIN
 
 /* Miscellanea.  */
 
-/* Nonzero means there is at least one garbaged frame. */
+/* Nonzero means there is at least one garbaged frame.  */
 extern bool frame_garbaged;
 
 
@@ -46,7 +46,6 @@ enum output_method
   output_x_window,
   output_msdos_raw,
   output_w32,
-  output_mac,
   output_ns
 };
 
@@ -201,7 +200,7 @@ struct frame
      string's pointer (`name', above) because it might get relocated.  */
   char *namebuf;
 
-  /* Glyph pool and matrix. */
+  /* Glyph pool and matrix.  */
   struct glyph_pool *current_pool;
   struct glyph_pool *desired_pool;
   struct glyph_matrix *desired_matrix;
@@ -237,7 +236,7 @@ struct frame
 
 #if defined (USE_GTK) || defined (HAVE_NS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
-  int external_tool_bar;
+  unsigned external_tool_bar : 1;
 #endif
 
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
@@ -301,9 +300,6 @@ struct frame
   /* Canonical X unit.  Width of default font, in pixels.  */
   int column_width;
 
-  /* Width of space glyph of default font, in pixels.  */
-  int space_width;
-
   /* Canonical Y unit.  Height of a line, in pixels.  */
   int line_height;
 
@@ -357,49 +353,30 @@ struct frame
   unsigned int external_menu_bar : 1;
 #endif
 
-  /* Nonzero if last attempt at redisplay on this frame was preempted.  */
-  unsigned display_preempted : 1;
+  /* Next two bitfields are mutually exclusive.  They might both be
+     zero if the frame has been made invisible without an icon.  */
 
-  /* visible is nonzero if the frame is currently displayed; we check
+  /* Nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
-     DON'T SET IT DIRECTLY; instead, use FRAME_SET_VISIBLE.
 
      Note that, since invisible frames aren't updated, whenever a
-     frame becomes visible again, it must be marked as garbaged.  The
-     FRAME_SAMPLE_VISIBILITY macro takes care of this.
+     frame becomes visible again, it must be marked as garbaged.
 
      On ttys and on Windows NT/9X, to avoid wasting effort updating
      visible frames that are actually completely obscured by other
      windows on the display, we bend the meaning of visible slightly:
-     if greater than 1, then the frame is obscured - we still consider
+     if equal to 2, then the frame is obscured - we still consider
      it to be "visible" as seen from lisp, but we don't bother
      updating it.  We must take care to garbage the frame when it
-     ceases to be obscured though.
-
-     iconified is nonzero if the frame is currently iconified.
-
-     Asynchronous input handlers should NOT change these directly;
-     instead, they should change async_visible or async_iconified, and
-     let the FRAME_SAMPLE_VISIBILITY macro set visible and iconified
-     at the next redisplay.
-
-     These should probably be considered read-only by everyone except
-     FRAME_SAMPLE_VISIBILITY.
-
-     These two are mutually exclusive.  They might both be zero, if the
-     frame has been made invisible without an icon.  */
+     ceases to be obscured though.  See SET_FRAME_VISIBLE below.  */
   unsigned visible : 2;
+
+  /* Nonzero if the frame is currently iconified.  Do not
+     set this directly, use SET_FRAME_ICONIFIED instead.  */
   unsigned iconified : 1;
 
-  /* Let's not use bitfields for volatile variables.  */
-
-  /* Asynchronous input handlers change these, and
-     FRAME_SAMPLE_VISIBILITY copies them into visible and iconified.
-     See FRAME_SAMPLE_VISIBILITY, below.  */
-  volatile char async_visible, async_iconified;
-
   /* Nonzero if this frame should be redrawn.  */
-  volatile char garbaged;
+  unsigned garbaged : 1;
 
   /* True if frame actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this frame.  */
@@ -408,10 +385,6 @@ struct frame
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
   unsigned wants_modeline : 1;
-
-  /* Non-zero if the hardware device this frame is displaying on can
-     support scroll bars.  */
-  char can_have_scroll_bars;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   unsigned auto_raise : 1;
@@ -438,8 +411,7 @@ struct frame
   /* Nonzero means that the pointer is invisible. */
   unsigned pointer_invisible :1;
 
-  /* If can_have_scroll_bars is non-zero, this is non-zero if we should
-     actually display them on this frame.  */
+  /* Nonzero if we should actually display the scroll bars on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
 
   /* What kind of text cursor should we draw in the future?
@@ -455,9 +427,6 @@ struct frame
 
   /* Width of bar cursor (if we are using that) for blink-off state.  */
   int blink_off_cursor_width;
-
-  /* Storage for messages to this frame. */
-  char *message_buf;
 
   /* Nonnegative if current redisplay should not do scroll computation
      for lines beyond a certain vpos.  This is the vpos.  */
@@ -726,7 +695,7 @@ typedef struct frame *FRAME_PTR;
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0
 #endif
-#define FRAME_VISIBLE_P(f) ((f)->visible != 0)
+#define FRAME_VISIBLE_P(f) (f)->visible
 
 /* Nonzero if frame F is currently visible but hidden.  */
 #define FRAME_OBSCURED_P(f) ((f)->visible > 1)
@@ -734,9 +703,10 @@ typedef struct frame *FRAME_PTR;
 /* Nonzero if frame F is currently iconified.  */
 #define FRAME_ICONIFIED_P(f) (f)->iconified
 
-#define FRAME_SET_VISIBLE(f,p) \
-  ((f)->async_visible = (p), FRAME_SAMPLE_VISIBILITY (f))
+/* Mark frame F as currently garbaged.  */
 #define SET_FRAME_GARBAGED(f) (frame_garbaged = 1, f->garbaged = 1)
+
+/* Nonzero if frame F is currently garbaged.  */
 #define FRAME_GARBAGED_P(f) (f)->garbaged
 
 /* Nonzero means do not allow splitting this frame's window.  */
@@ -763,14 +733,8 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
-#define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
-
-/* Nonzero if frame F supports scroll bars.
-   If this is zero, then it is impossible to enable scroll bars
-   on frame F.  */
-#define FRAME_CAN_HAVE_SCROLL_BARS(f) ((f)->can_have_scroll_bars)
 
 /* This frame slot says whether scroll bars are currently enabled for frame F,
    and which side they are on.  */
@@ -887,39 +851,6 @@ typedef struct frame *FRAME_PTR;
 
 #define FRAME_MESSAGE_BUF_SIZE(f) (((int) FRAME_COLS (f)) * 4)
 
-/* Emacs's redisplay code could become confused if a frame's
-   visibility changes at arbitrary times.  For example, if a frame is
-   visible while the desired glyphs are being built, but becomes
-   invisible before they are updated, then some rows of the
-   desired_glyphs will be left marked as enabled after redisplay is
-   complete, which should never happen.  The next time the frame
-   becomes visible, redisplay will probably barf.
-
-   Currently, there are no similar situations involving iconified, but
-   the principle is the same.
-
-   So instead of having asynchronous input handlers directly set and
-   clear the frame's visibility and iconification flags, they just set
-   the async_visible and async_iconified flags; the redisplay code
-   calls the FRAME_SAMPLE_VISIBILITY macro before doing any redisplay,
-   which sets visible and iconified from their asynchronous
-   counterparts.
-
-   Synchronous code must use the FRAME_SET_VISIBLE macro.
-
-   Also, if a frame used to be invisible, but has just become visible,
-   it must be marked as garbaged, since redisplay hasn't been keeping
-   up its contents.
-
-   Note that a tty frame is visible if and only if it is the topmost
-   frame. */
-
-#define FRAME_SAMPLE_VISIBILITY(f) \
-  (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
-   SET_FRAME_GARBAGED (f) : 0, \
-   (f)->visible = (f)->async_visible, \
-   (f)->iconified = (f)->async_iconified)
-
 #define CHECK_FRAME(x) \
   CHECK_TYPE (FRAMEP (x), Qframep, x)
 
@@ -943,6 +874,33 @@ typedef struct frame *FRAME_PTR;
 	&& (frame_var = XCAR (list_var), 1));	\
        list_var = XCDR (list_var))
 
+/* Reflect mouse movement when a complete frame update is performed.  */
+
+#define FRAME_MOUSE_UPDATE(frame)				\
+  do {								\
+    Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (frame);		\
+    if (frame == hlinfo->mouse_face_mouse_frame)		\
+      {								\
+	block_input ();						\
+	if (hlinfo->mouse_face_mouse_frame)			\
+	  note_mouse_highlight (hlinfo->mouse_face_mouse_frame,	\
+				hlinfo->mouse_face_mouse_x,	\
+				hlinfo->mouse_face_mouse_y);	\
+	unblock_input ();					\
+      }								\
+  } while (0)
+
+/* Set visibility of frame F, marking F as garbaged if needed.  */
+
+#define SET_FRAME_VISIBLE(f, v)				\
+  (((f)->visible == 0 || ((f)->visible == 2))		\
+   && ((v) == 1) ? SET_FRAME_GARBAGED (f) : 0,		\
+   (f)->visible = (eassert (0 <= (v) && (v) <= 2), (v)))
+
+/* Set iconify of frame F.  */
+
+#define SET_FRAME_ICONIFIED(f, i)			\
+  (f)->iconified = (eassert (0 <= (i) && (i) <= 1), (i))
 
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
@@ -953,6 +911,8 @@ extern Lisp_Object Qnoelisp;
 extern struct frame *last_nonminibuf_frame;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern struct frame *decode_live_frame (Lisp_Object);
+extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
 extern struct frame *make_frame (int);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -995,11 +955,6 @@ extern Lisp_Object selected_frame;
    This value currently equals the average width of the default font of F.  */
 
 #define FRAME_COLUMN_WIDTH(F) ((F)->column_width)
-
-/* Space glyph width of the default font of frame F.  */
-
-#define FRAME_SPACE_WIDTH(F) ((F)->space_width)
-
 
 /* Pixel width of areas used to display truncation marks, continuation
    marks, overlay arrows.  This is 0 for terminal frames.  */
@@ -1182,7 +1137,7 @@ extern Lisp_Object Qalpha;
 extern Lisp_Object Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
 extern Lisp_Object Qminibuffer, Qmodeline;
-extern Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
+extern Lisp_Object Qx, Qw32, Qpc, Qns;
 extern Lisp_Object Qvisible;
 extern Lisp_Object Qdisplay_type;
 
@@ -1259,8 +1214,6 @@ extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_char_width (struct frame *f);
-extern int x_char_height (struct frame *f);
 extern int x_pixel_width (struct frame *f);
 extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);

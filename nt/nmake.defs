@@ -1,5 +1,5 @@
 #  -*- Makefile -*- definition file for building GNU Emacs on Windows NT.
-# Copyright (C) 2000-2012 Free Software Foundation, Inc.
+# Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -22,6 +22,7 @@ all:
 
 THE_SHELL = $(COMSPEC)
 SHELLTYPE=CMD
+SWITCHCHAR=/
 
 MAKETYPE=nmake
 
@@ -116,7 +117,7 @@ RC_INCLUDE	= -i
 
 USE_CRT_DLL	= 1
 
-!ifdef USE_CRT_DLL
+!if USE_CRT_DLL
 libc		= msvcrt$(D).lib
 EMACS_EXTRA_C_FLAGS= -D_DLL -D_MT -DUSE_CRT_DLL=1
 !else

@@ -1,7 +1,7 @@
 # src/Makefile for GNU Emacs.
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2012
-#   Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013 Free Software
+# Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -28,13 +28,14 @@ SHELL = /bin/sh
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
+ntsource = $(srcdir)/../nt
 abs_builddir = @abs_builddir@
 VPATH = $(srcdir)
 CC = @CC@
+WINDRES = @WINDRES@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-LD_FIRSTFLAG=@LD_FIRSTFLAG@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -100,17 +101,12 @@ LD_SWITCH_X_SITE_RPATH=@LD_SWITCH_X_SITE_RPATH@
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
 
-## This holds any special options for linking temacs only (ie, not
-## used by configure).  Not used elsewhere because it sometimes
-## contains options that have to do with using Emacs's crt0,
-## which are only good with temacs.
+## This holds any special options for linking temacs only (i.e., not
+## used by configure).
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
-
-## $LDFLAGS or empty if NS_IMPL_GNUSTEP (for some reason).
-TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
 
 ## If available, the full path to the paxctl program.
 ## On grsecurity/PaX systems, unexec will fail due to a gap between
@@ -120,14 +116,6 @@ PAXCTL = @PAXCTL@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
-
-## Where to find libgcc.a, if using gcc and necessary.
-LIB_GCC=@LIB_GCC@
-
-CRT_DIR=@CRT_DIR@
-## May use $CRT_DIR.
-LIB_STANDARD=@LIB_STANDARD@
-START_FILES = @START_FILES@
 
 ## -lm, or empty.
 LIB_MATH=@LIB_MATH@
@@ -150,6 +138,8 @@ M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
 M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
 LIB_CLOCK_GETTIME=@LIB_CLOCK_GETTIME@
+LIB_EACCESS=@LIB_EACCESS@
+LIB_FDATASYNC=@LIB_FDATASYNC@
 LIB_TIMER_TIME=@LIB_TIMER_TIME@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
@@ -227,6 +217,9 @@ LIBX_OTHER=@LIBX_OTHER@
 ## configure, which should set it to nil in non-X builds.
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 
+## Only used for GNUstep
+LIBS_GNUSTEP=@LIBS_GNUSTEP@
+
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
 
@@ -266,6 +259,13 @@ W32_OBJ=@W32_OBJ@
 ## --lwinspool if HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
 
+## emacs.res if HAVE_W32
+W32_RES=@W32_RES@
+## If HAVE_W32, compiler arguments for including
+## the resource file in the binary.
+## XXX -Wl,-b -Wl,pe-i386 -Wl,emacs.res
+W32_RES_LINK=@W32_RES_LINK@
+
 ## Empty if !HAVE_X_WINDOWS
 ## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
 ## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
@@ -281,6 +281,8 @@ LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 LIBGNUTLS_LIBS = @LIBGNUTLS_LIBS@
 LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
+
+LIBACL_LIBS = @LIBACL_LIBS@
 
 LIB_PTHREAD_SIGMASK = @LIB_PTHREAD_SIGMASK@
 
@@ -328,7 +330,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 	@$(MKDEPDIR)
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
-
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
 base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
@@ -343,7 +344,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o \
+	doprnt.o intervals.o textprop.o composite.o xml.o inotify.o \
 	profiler.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ)
@@ -357,7 +358,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
-  w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
+  w32.o w32console.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o
@@ -378,27 +379,26 @@ POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 ## List of object files that make-docfile should not be told about.
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
-  $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
+## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
+ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 ## Configure inserts the file lisp.mk at this point, defining $lisp.
 @lisp_frag@
 
 
 ## Construct full set of libraries to be linked.
-## Note that SunOS needs -lm to come before -lc; otherwise, you get
-## duplicated symbols.  If the standard libraries were compiled
-## with GCC, we might need LIB_GCC again after them.
-LIBES = $(LIBS) $(W32_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) \
-   $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+   $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
    $(LIB_EXECINFO) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
-   $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
+   $(LIBACL_LIBS) $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
+   $(LIB_MATH)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
@@ -445,7 +445,7 @@ $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
-	echo "#define BUILDOBJ \"$(obj) $(otherobj) " "\"" > buildobj.h
+	echo "#define BUILDOBJ \"$(ALLOBJS) " "\"" >$@
 
 globals.h: gl-stamp; @true
 
@@ -457,14 +457,16 @@ gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
 	echo timestamp > $@
 
-$(obj) $(otherobj): globals.h
+$(ALLOBJS): globals.h
 
 $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
-temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
-	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
-	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
+temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
+	         $(lib)/libgnu.a $(W32_RES)
+	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(LIBES) \
+	  $(W32_RES_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 
@@ -505,10 +507,13 @@ $(OLDXMENU): $(OLDXMENU_TARGET)
 
 doc.o: buildobj.h
 
+emacs.res: $(ntsource)/emacs.rc \
+	   $(ntsource)/icons/emacs.ico \
+	   $(ntsource)/emacs-x86.manifest
+	$(WINDRES) -O COFF -o $@ $(ntsource)/emacs.rc
 
 ns-app: emacs$(EXEEXT)
 	cd ../nextstep && $(MAKE) $(MFLAGS) all
-
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 .PHONY: versionclean extraclean frc

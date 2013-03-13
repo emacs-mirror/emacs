@@ -1,5 +1,5 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006-2012 Free Software Foundation, Inc.
+   Copyright (C) 2006-2013 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -369,7 +369,7 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   ASET (font_object, FONT_FORMAT_INDEX,
 	ftfont_font_format (xftfont->pattern, filename));
   font = XFONT_OBJECT (font_object);
-  font->pixel_size = pixel_size;
+  font->pixel_size = size;
   font->driver = &xftfont_driver;
   font->encoding_charset = font->repertory_charset = -1;
 
@@ -387,8 +387,6 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
       xftfont_info->matrix.xy = 0x10000L * matrix->xy;
       xftfont_info->matrix.yx = 0x10000L * matrix->yx;
     }
-  font->pixel_size = size;
-  font->driver = &xftfont_driver;
   if (INTEGERP (AREF (entity, FONT_SPACING_INDEX)))
     spacing = XINT (AREF (entity, FONT_SPACING_INDEX));
   else

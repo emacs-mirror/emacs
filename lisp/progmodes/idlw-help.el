@@ -1,6 +1,6 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 ;;
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -227,6 +227,7 @@ support."
                              (interactive "p")
                              (scroll-up arg)))
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map [delete] 'scroll-down-command)
     (define-key map "h" 'idlwave-help-find-header)
     (define-key map "H" 'idlwave-help-find-first-header)

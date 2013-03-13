@@ -1,6 +1,6 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -1009,9 +1009,9 @@ as a Meta key and any number of multiple escapes are allowed."
 	(inhibit-quit t))
     (if (viper-ESC-event-p event)
 	(progn
-	  ;; Some versions of Emacs (eg., 22.50.8 have a bug, which makes even
-	  ;; a single ESC into ;; a fast keyseq. To guard against this, we
-	  ;; added a check if there are other events as well. Keep the next
+	  ;; Some versions of Emacs (eg., 22.50.8 (?)) have a bug, which makes
+          ;; even a single ESC into a fast keyseq. To guard against this, we
+	  ;; added a check if there are other events as well.  Keep the next
 	  ;; line for the next time the bug reappears, so that will remember to
 	  ;; report it.
 	  ;;(if (and (viper-fast-keysequence-p) unread-command-events)
@@ -5085,12 +5085,12 @@ Mail anyway (y or n)? ")
 	  (require 'reporter)
 	  (set-window-configuration window-config)
 
-	  (reporter-submit-bug-report "kifer@cs.stonybrook.edu"
-				      (viper-version)
-				      varlist
-				      nil 'delete-other-windows
-				      salutation)
-	  ))
+	  (reporter-submit-bug-report
+	   "kifer@cs.stonybrook.edu, bug-gnu-emacs@gnu.org"
+	   (viper-version)
+	   varlist
+	   nil 'delete-other-windows
+	   salutation)))
 
 
 

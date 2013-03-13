@@ -1,6 +1,7 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-1994, 2001-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -211,6 +212,11 @@ enum event_kind
   , NS_NONKEY_EVENT
 #endif
 
+#if defined (HAVE_INOTIFY) || defined (HAVE_NTGUI)
+  /* File or directory was changed.  */
+  , FILE_NOTIFY_EVENT
+#endif
+
 };
 
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
@@ -242,16 +248,8 @@ struct input_event
   Lisp_Object x, y;
   Time timestamp;
 
-  /* This is padding just to put the frame_or_window field
-     past the size of struct selection_input_event.  */
-  int *padding[2];
-
-  /* This field is copied into a vector while the event is in the queue,
-     so that garbage collections won't kill it.  */
-  /* In a menu_bar_event, this is a cons cell whose car is the frame
-     and whose cdr is the Lisp object that is the event's value.  */
-  /* This field is last so that struct selection_input_event
-     does not overlap with it.  */
+  /* This field is copied into a vector while the event is in
+     the queue, so that garbage collections won't kill it.  */
   Lisp_Object frame_or_window;
 
   /* Additional event argument.  This is used for TOOL_BAR_EVENTs and
@@ -384,7 +382,7 @@ struct terminal
   struct image_cache *image_cache;
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  /* Device-type dependent data shared amongst all frames on this terminal. */
+  /* Device-type dependent data shared amongst all frames on this terminal.  */
   union display_info
   {
     struct tty_display_info *tty;     /* termchar.h */
@@ -405,31 +403,23 @@ struct terminal
      the function `set-keyboard-coding-system'.  */
   struct coding_system *keyboard_coding;
 
-  /* Terminal characteristics. */
-  /* XXX Are these really used on non-termcap displays? */
+  /* Terminal characteristics.  */
+  /* XXX Are these really used on non-termcap displays?  */
 
   int must_write_spaces;	/* Nonzero means spaces in the text must
 				   actually be output; can't just skip over
 				   some columns to leave them blank.  */
-  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string */
+  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string.  */
 
-  int line_ins_del_ok;          /* Terminal can insert and delete lines */
-  int char_ins_del_ok;          /* Terminal can insert and delete chars */
+  int line_ins_del_ok;          /* Terminal can insert and delete lines.  */
+  int char_ins_del_ok;          /* Terminal can insert and delete chars.  */
   int scroll_region_ok;         /* Terminal supports setting the scroll
-                                   window */
+                                   window.  */
   int scroll_region_cost;	/* Cost of setting the scroll window,
-                                   measured in characters. */
+                                   measured in characters.  */
   int memory_below_frame;	/* Terminal remembers lines scrolled
-                                   off bottom */
+                                   off bottom.  */
 
-#if 0  /* These are not used anywhere. */
-  /* EMACS_INT baud_rate; */	/* Output speed in baud */
-  int min_padding_speed;	/* Speed below which no padding necessary. */
-  int dont_calculate_costs;     /* Nonzero means don't bother computing
-                                   various cost tables; we won't use them. */
-#endif
-
-
   /* Window-based redisplay interface for this device (0 for tty
      devices). */
   struct redisplay_interface *rif;
@@ -477,21 +467,13 @@ struct terminal
      Otherwise, set *bar_window to Qnil, and *x and *y to the column and
      row of the character cell the mouse is over.
 
-     Set *time to the time the mouse was at the returned position.
-
-     This should clear mouse_moved until the next motion
-     event arrives.  */
+     Set *time to the time the mouse was at the returned position.  */
   void (*mouse_position_hook) (struct frame **f, int,
                                Lisp_Object *bar_window,
                                enum scroll_bar_part *part,
                                Lisp_Object *x,
                                Lisp_Object *y,
                                Time *);
-
-  /* The window system handling code should set this if the mouse has
-     moved since the last call to the mouse_position_hook.  Calling that
-     hook should clear this.  */
-  int mouse_moved;
 
   /* When a frame's focus redirection is changed, this hook tells the
      window system code to re-decide where to put the highlight.  Under
@@ -635,7 +617,7 @@ tset_selection_alist (struct terminal *t, Lisp_Object val)
   t->Vselection_alist = val;
 }
 
-/* Chain of all terminal devices currently in use. */
+/* Chain of all terminal devices currently in use.  */
 extern struct terminal *terminal_list;
 
 #define FRAME_MUST_WRITE_SPACES(f) ((f)->terminal->must_write_spaces)
@@ -656,14 +638,16 @@ extern struct terminal *terminal_list;
 
 #define FRAME_TERMINAL(f) ((f)->terminal)
 
-/* Return true if the terminal device is not suspended. */
-#define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
+/* Return true if the terminal device is not suspended.  */
+#define TERMINAL_ACTIVE_P(d)						\
+  (((d)->type != output_termcap && (d)->type != output_msdos_raw)	\
+   || (d)->display_info.tty->input)
 
 extern struct terminal *get_terminal (Lisp_Object terminal, int);
 extern struct terminal *create_terminal (void);
 extern void delete_terminal (struct terminal *);
 
-/* The initial terminal device, created by initial_term_init. */
+/* The initial terminal device, created by initial_term_init.  */
 extern struct terminal *initial_terminal;
 
 extern unsigned char *encode_terminal_code (struct glyph *, int,

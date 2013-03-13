@@ -1,6 +1,6 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,6 +81,7 @@ Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 static Lisp_Object Qdefun;
 
 Lisp_Object Qinteractive_form;
+static Lisp_Object Qdefalias_fset_function;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
 
@@ -444,7 +445,7 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
 }
 
 
-/* Extract and set components of lists */
+/* Extract and set components of lists.  */
 
 DEFUN ("car", Fcar, Scar, 1, 1, 0,
        doc: /* Return the car of LIST.  If arg is nil, return nil.
@@ -505,7 +506,9 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
 /* Extract and set components of symbols.  */
 
 DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
-       doc: /* Return t if SYMBOL's value is not void.  */)
+       doc: /* Return t if SYMBOL's value is not void.
+Note that if `lexical-binding' is in effect, this refers to the
+global value outside of any lexical scope.  */)
   (register Lisp_Object symbol)
 {
   Lisp_Object valcontents;
@@ -542,12 +545,13 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
 
+/* FIXME: Make it an alias for function-symbol!  */
 DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
        doc: /* Return t if SYMBOL's function definition is not void.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  return EQ (XSYMBOL (symbol)->function, Qunbound) ? Qnil : Qt;
+  return NILP (XSYMBOL (symbol)->function) ? Qnil : Qt;
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
@@ -563,14 +567,14 @@ Return SYMBOL.  */)
 }
 
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's function definition be void.
+       doc: /* Make SYMBOL's function definition be nil.
 Return SYMBOL.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
     xsignal1 (Qsetting_constant, symbol);
-  set_symbol_function (symbol, Qunbound);
+  set_symbol_function (symbol, Qnil);
   return symbol;
 }
 
@@ -579,9 +583,7 @@ DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  if (!EQ (XSYMBOL (symbol)->function, Qunbound))
-    return XSYMBOL (symbol)->function;
-  xsignal1 (Qvoid_function, symbol);
+  return XSYMBOL (symbol)->function;
 }
 
 DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
@@ -608,27 +610,18 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   (register Lisp_Object symbol, Lisp_Object definition)
 {
   register Lisp_Object function;
-
   CHECK_SYMBOL (symbol);
-  if (NILP (symbol) || EQ (symbol, Qt))
-    xsignal1 (Qsetting_constant, symbol);
 
   function = XSYMBOL (symbol)->function;
 
-  if (!NILP (Vautoload_queue) && !EQ (function, Qunbound))
+  if (!NILP (Vautoload_queue) && !NILP (function))
     Vautoload_queue = Fcons (Fcons (symbol, function), Vautoload_queue);
 
-  if (CONSP (function) && EQ (XCAR (function), Qautoload))
+  if (AUTOLOADP (function))
     Fput (symbol, Qautoload, XCDR (function));
 
   set_symbol_function (symbol, definition);
-  /* Handle automatic advice activation.  */
-  if (CONSP (XSYMBOL (symbol)->plist)
-      && !NILP (Fget (symbol, Qad_advice_info)))
-    {
-      call2 (Qad_activate_internal, symbol, Qnil);
-      definition = XSYMBOL (symbol)->function;
-    }
+
   return definition;
 }
 
@@ -642,15 +635,32 @@ The return value is undefined.  */)
   (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {
   CHECK_SYMBOL (symbol);
-  if (CONSP (XSYMBOL (symbol)->function)
-      && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
-    LOADHIST_ATTACH (Fcons (Qt, symbol));
   if (!NILP (Vpurify_flag)
       /* If `definition' is a keymap, immutable (and copying) is wrong.  */
       && !KEYMAPP (definition))
     definition = Fpurecopy (definition);
-  definition = Ffset (symbol, definition);
-  LOADHIST_ATTACH (Fcons (Qdefun, symbol));
+
+  {
+    bool autoload = AUTOLOADP (definition);
+    if (NILP (Vpurify_flag) || !autoload)
+      { /* Only add autoload entries after dumping, because the ones before are
+	   not useful and else we get loads of them from the loaddefs.el.  */
+
+	if (AUTOLOADP (XSYMBOL (symbol)->function))
+	  /* Remember that the function was already an autoload.  */
+	  LOADHIST_ATTACH (Fcons (Qt, symbol));
+	LOADHIST_ATTACH (Fcons (autoload ? Qautoload : Qdefun, symbol));
+      }
+  }
+
+  { /* Handle automatic advice activation.  */
+    Lisp_Object hook = Fget (symbol, Qdefalias_fset_function);
+    if (!NILP (hook))
+      call2 (hook, symbol, definition);
+    else
+      Ffset (symbol, definition);
+  }
+
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
   /* We used to return `definition', but now that `defun' and `defmacro' expand
@@ -680,12 +690,10 @@ function with `&rest' args, or `unevalled' for a special form.  */)
   CHECK_SUBR (subr);
   minargs = XSUBR (subr)->min_args;
   maxargs = XSUBR (subr)->max_args;
-  if (maxargs == MANY)
-    return Fcons (make_number (minargs), Qmany);
-  else if (maxargs == UNEVALLED)
-    return Fcons (make_number (minargs), Qunevalled);
-  else
-    return Fcons (make_number (minargs), make_number (maxargs));
+  return Fcons (make_number (minargs),
+		maxargs == MANY ?        Qmany
+		: maxargs == UNEVALLED ? Qunevalled
+		:                        make_number (maxargs));
 }
 
 DEFUN ("subr-name", Fsubr_name, Ssubr_name, 1, 1, 0,
@@ -707,11 +715,11 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 {
   Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
 
-  if (NILP (fun) || EQ (fun, Qunbound))
+  if (NILP (fun))
     return Qnil;
 
   /* Use an `interactive-form' property if present, analogous to the
-     function-documentation property. */
+     function-documentation property.  */
   fun = cmd;
   while (SYMBOLP (fun))
     {
@@ -735,6 +743,8 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE)
 	return list2 (Qinteractive, AREF (fun, COMPILED_INTERACTIVE));
     }
+  else if (AUTOLOADP (fun))
+    return Finteractive_form (Fautoload_do_load (fun, cmd, Qnil));
   else if (CONSP (fun))
     {
       Lisp_Object funcar = XCAR (fun);
@@ -742,14 +752,6 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 	return Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun))));
       else if (EQ (funcar, Qlambda))
 	return Fassq (Qinteractive, Fcdr (XCDR (fun)));
-      else if (EQ (funcar, Qautoload))
-	{
-	  struct gcpro gcpro1;
-	  GCPRO1 (cmd);
-	  Fautoload_do_load (fun, cmd, Qnil);
-	  UNGCPRO;
-	  return Finteractive_form (cmd);
-	}
     }
   return Qnil;
 }
@@ -912,13 +914,11 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
     case Lisp_Fwd_Buffer_Obj:
       {
 	int offset = XBUFFER_OBJFWD (valcontents)->offset;
-	Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
+	Lisp_Object predicate = XBUFFER_OBJFWD (valcontents)->predicate;
 
-	if (!(NILP (type) || NILP (newval)
-	      || (XINT (type) == Lisp_Int0
-		  ? INTEGERP (newval)
-		  : XTYPE (newval) == XINT (type))))
-	  buffer_slot_type_mismatch (newval, XINT (type));
+	if (!NILP (predicate) && !NILP (newval)
+	    && NILP (call1 (predicate, newval)))
+	  wrong_type_argument (predicate, newval);
 
 	if (buf == NULL)
 	  buf = current_buffer;
@@ -1047,7 +1047,9 @@ find_symbol_value (Lisp_Object symbol)
 }
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
-       doc: /* Return SYMBOL's value.  Error if that is void.  */)
+       doc: /* Return SYMBOL's value.  Error if that is void.
+Note that if `lexical-binding' is in effect, this returns the
+global value outside of any lexical scope.  */)
   (Lisp_Object symbol)
 {
   Lisp_Object val;
@@ -2007,10 +2009,10 @@ indirect_function (register Lisp_Object object)
 
   for (;;)
     {
-      if (!SYMBOLP (hare) || EQ (hare, Qunbound))
+      if (!SYMBOLP (hare) || NILP (hare))
 	break;
       hare = XSYMBOL (hare)->function;
-      if (!SYMBOLP (hare) || EQ (hare, Qunbound))
+      if (!SYMBOLP (hare) || NILP (hare))
 	break;
       hare = XSYMBOL (hare)->function;
 
@@ -2037,10 +2039,10 @@ function chain of symbols.  */)
 
   /* Optimize for no indirection.  */
   result = object;
-  if (SYMBOLP (result) && !EQ (result, Qunbound)
+  if (SYMBOLP (result) && !NILP (result)
       && (result = XSYMBOL (result)->function, SYMBOLP (result)))
     result = indirect_function (result);
-  if (!EQ (result, Qunbound))
+  if (!NILP (result))
     return result;
 
   if (NILP (noerror))
@@ -2695,10 +2697,10 @@ usage: (* &rest NUMBERS-OR-MARKERS)  */)
   return arith_driver (Amult, nargs, args);
 }
 
-DEFUN ("/", Fquo, Squo, 2, MANY, 0,
+DEFUN ("/", Fquo, Squo, 1, MANY, 0,
        doc: /* Return first argument divided by all the remaining arguments.
 The arguments must be numbers or markers.
-usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
+usage: (/ DIVIDEND &rest DIVISORS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t argnum;
@@ -3063,6 +3065,7 @@ syms_of_data (void)
   DEFSYM (Qfont_object, "font-object");
 
   DEFSYM (Qinteractive_form, "interactive-form");
+  DEFSYM (Qdefalias_fset_function, "defalias-fset-function");
 
   defsubr (&Sindirect_variable);
   defsubr (&Sinteractive_form);

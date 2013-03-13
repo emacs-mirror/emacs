@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -406,7 +406,7 @@ will be killed."
   "The channel or user associated with this buffer.")
 
 (defvar rcirc-urls nil
-  "List of urls seen in the current buffer.")
+  "List of URLs seen in the current buffer and their start positions.")
 (put 'rcirc-urls 'permanent-local t)
 
 (defvar rcirc-timeout-seconds 600
@@ -625,7 +625,8 @@ last ping."
                                            (rcirc-float-time))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
-    (cancel-timer rcirc-keepalive-timer)
+    (when (timerp rcirc-keepalive-timer)
+      (cancel-timer rcirc-keepalive-timer))
     (setq rcirc-keepalive-timer nil)))
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process target sender message)
@@ -2392,12 +2393,25 @@ keywords when no KEYWORD is given."
    "\\)")
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
+;; cf cl-remove-if-not
+(defun rcirc-condition-filter (condp lst)
+  "Remove all items not satisfying condition CONDP in list LST.
+CONDP is a function that takes a list element as argument and returns
+non-nil if that element should be included.  Returns a new list."
+  (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+
 (defun rcirc-browse-url (&optional arg)
-  "Prompt for URL to browse based on URLs in buffer."
+  "Prompt for URL to browse based on URLs in buffer before point.
+
+If ARG is given, opens the URL in a new browser window."
   (interactive "P")
-  (let ((completions (mapcar (lambda (x) (cons x nil)) rcirc-urls))
-        (initial-input (car rcirc-urls))
-        (history (cdr rcirc-urls)))
+  (let* ((point (point))
+         (filtered (rcirc-condition-filter
+                    (lambda (x) (>= point (cdr x)))
+                    rcirc-urls))
+         (completions (mapcar (lambda (x) (car x)) filtered))
+         (initial-input (caar filtered))
+         (history (mapcar (lambda (x) (car x)) (cdr filtered))))
     (browse-url (completing-read "rcirc browse-url: "
                                  completions nil nil initial-input 'history)
                 arg)))
@@ -2441,17 +2455,19 @@ keywords when no KEYWORD is given."
 (defun rcirc-markup-urls (sender response)
   (while (and rcirc-url-regexp ;; nil means disable URL catching
               (re-search-forward rcirc-url-regexp nil t))
-    (let ((start (match-beginning 0))
-	  (end (match-end 0))
-	  (url (match-string-no-properties 0)))
+    (let* ((start (match-beginning 0))
+           (end (match-end 0))
+           (url (match-string-no-properties 0))
+           (link-text (buffer-substring-no-properties start end)))
       (make-button start end
 		   'face 'rcirc-url
 		   'follow-link t
 		   'rcirc-url url
 		   'action (lambda (button)
 			     (browse-url (button-get button 'rcirc-url))))
-      ;; record the url
-      (push url rcirc-urls))))
+      ;; record the url if it is not already the latest stored url
+      (when (not (string= link-text (caar rcirc-urls)))
+        (push (cons link-text start) rcirc-urls)))))
 
 (defun rcirc-markup-keywords (sender response)
   (when (and (string= response "PRIVMSG")

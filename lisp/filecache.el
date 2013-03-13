@@ -1,6 +1,6 @@
 ;;; filecache.el --- find files using a pre-loaded cache
 
-;; Copyright (C) 1996, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
@@ -139,9 +139,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'find-lisp))
-
 (defgroup file-cache nil
   "Find files using a pre-loaded cache."
   :group 'files
@@ -270,42 +267,63 @@ files of names DIRNAME1/FILENAME, DIRNAME2/FILENAME, ...")
 ;; Functions to add files to the cache
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun file-cache--read-list (file op-prompt)
+  (let* ((fun (if file 'read-file-name 'read-directory-name))
+	 (type (if file "file" "directory"))
+	 (prompt-1 (concat op-prompt " " type ": "))
+	 (prompt-2 (concat op-prompt " another " type "?"))
+	 (continue t)
+	 result)
+    (while continue
+      (push (funcall fun prompt-1 nil nil t) result)
+      (setq continue (y-or-n-p prompt-2)))
+    (nreverse result)))
+
 ;;;###autoload
 (defun file-cache-add-directory (directory &optional regexp)
-  "Add DIRECTORY to the file cache.
-If the optional REGEXP argument is non-nil, only files which match it will
-be added to the cache."
-  (interactive "DAdd files from directory: ")
+  "Add all files in DIRECTORY to the file cache.
+If called from Lisp with a non-nil REGEXP argument is non-nil,
+only add files whose names match REGEXP."
+  (interactive (list (read-directory-name "Add files from directory: "
+					  nil nil t)
+		     nil))
   ;; Not an error, because otherwise we can't use load-paths that
   ;; contain non-existent directories.
-  (if (not (file-accessible-directory-p directory))
-      (message "Directory %s does not exist" directory)
+  (when (file-accessible-directory-p directory)
     (let* ((dir       (expand-file-name directory))
 	   (dir-files (directory-files dir t regexp)))
       ;; Filter out files we don't want to see
       (dolist (file dir-files)
-        (if (file-directory-p file)
-            (setq dir-files (delq file dir-files))
-          (dolist (regexp file-cache-filter-regexps)
-            (if (string-match regexp file)
-                (setq dir-files (delq file dir-files))))))
+	(if (file-directory-p file)
+	    (setq dir-files (delq file dir-files))
+	  (dolist (regexp file-cache-filter-regexps)
+	    (if (string-match regexp file)
+		(setq dir-files (delq file dir-files))))))
       (file-cache-add-file-list dir-files))))
 
 ;;;###autoload
-(defun file-cache-add-directory-list (directory-list &optional regexp)
-  "Add DIRECTORY-LIST (a list of directory names) to the file cache.
+(defun file-cache-add-directory-list (directories &optional regexp)
+  "Add DIRECTORIES (a list of directory names) to the file cache.
+If called interactively, read the directory names one by one.
 If the optional REGEXP argument is non-nil, only files which match it
 will be added to the cache.  Note that the REGEXP is applied to the
 files in each directory, not to the directory list itself."
-  (interactive "XAdd files from directory list: ")
-  (mapcar
-   (lambda (dir) (file-cache-add-directory dir regexp))
-   directory-list))
+  (interactive (list (file-cache--read-list nil "Add")))
+  (dolist (dir directories)
+    (file-cache-add-directory dir regexp))
+  (let ((n (length directories)))
+    (message "Filecache: cached file names from %d director%s."
+	     n (if (= n 1) "y" "ies"))))
 
-(defun file-cache-add-file-list  (file-list)
-  "Add FILE-LIST (a list of files names) to the file cache."
-  (interactive "XFile List: ")
-  (mapcar 'file-cache-add-file file-list))
+(defun file-cache-add-file-list (files)
+  "Add FILES (a list of file names) to the file cache.
+If called interactively, read the file names one by one."
+  (interactive (list (file-cache--read-list t "Add")))
+  (dolist (f files)
+    (file-cache-add-file f))
+  (let ((n (length files)))
+    (message "Filecache: cached %d file name%s."
+	     n (if (= n 1) "" "s"))))
 
 ;; Workhorse function
 
@@ -313,23 +331,25 @@ files in each directory, not to the directory list itself."
 (defun file-cache-add-file (file)
   "Add FILE to the file cache."
   (interactive "fAdd File: ")
-  (if (not (file-exists-p file))
-      (message "Filecache: file %s does not exist" file)
-    (let* ((file-name (file-name-nondirectory file))
-	   (dir-name  (file-name-directory    file))
-	   (the-entry (assoc-string
-		       file-name file-cache-alist
-		       file-cache-ignore-case)))
-      ;; Does the entry exist already?
-      (if the-entry
-	  (if (or (and (stringp (cdr the-entry))
-		       (string= dir-name (cdr the-entry)))
-		  (and (listp (cdr the-entry))
-		       (member dir-name (cdr the-entry))))
-	      nil
-	    (setcdr the-entry (cons dir-name (cdr the-entry))))
-	;; If not, add it to the cache
-	(push (list file-name dir-name) file-cache-alist)))))
+  (setq file (file-truename file))
+  (unless (file-exists-p file)
+    (error "Filecache: file %s does not exist" file))
+  (let* ((file-name (file-name-nondirectory file))
+	 (dir-name  (file-name-directory file))
+	 (the-entry (assoc-string file-name file-cache-alist
+				  file-cache-ignore-case)))
+    (cond ((null the-entry)
+	   ;; If the entry wasn't in the cache, add it.
+	   (push (list file-name dir-name) file-cache-alist)
+	   (if (called-interactively-p 'interactive)
+	       (message "Filecache: cached file name %s." file)))
+	  ((not (member dir-name (cdr the-entry)))
+	   (setcdr the-entry (cons dir-name (cdr the-entry)))
+	   (if (called-interactively-p 'interactive)
+	       (message "Filecache: cached file name %s." file)))
+	  (t
+	   (if (called-interactively-p 'interactive)
+	       (message "Filecache: %s is already cached." file))))))
 
 ;;;###autoload
 (defun file-cache-add-directory-using-find (directory)
@@ -366,6 +386,8 @@ STRING is passed as an argument to the locate command."
 		string)
   (file-cache-add-from-file-cache-buffer))
 
+(autoload 'find-lisp-find-files "find-lisp")
+
 ;;;###autoload
 (defun file-cache-add-directory-recursively  (dir &optional regexp)
   "Adds DIR and any subdirectories to the file-cache.
@@ -374,18 +396,16 @@ If the optional REGEXP argument is non-nil, only files which match it
 will be added to the cache.  Note that the REGEXP is applied to the
 files in each directory, not to the directory list itself."
   (interactive "DAdd directory: ")
-  (require 'find-lisp)
   (mapcar
-   (function
-    (lambda (file)
-      (or (file-directory-p file)
-	  (let (filtered)
-	    (dolist (regexp file-cache-filter-regexps)
-              (and (string-match regexp file)
-                   (setq filtered t)))
-            filtered)
-	  (file-cache-add-file file))))
-   (find-lisp-find-files dir (if regexp regexp "^"))))
+   (lambda (file)
+     (or (file-directory-p file)
+         (let (filtered)
+           (dolist (regexp file-cache-filter-regexps)
+             (and (string-match regexp file)
+                  (setq filtered t)))
+           filtered)
+         (file-cache-add-file file)))
+   (find-lisp-find-files dir (or regexp "^"))))
 
 (defun file-cache-add-from-file-cache-buffer (&optional regexp)
   "Add any entries found in the file cache buffer.
@@ -415,17 +435,26 @@ or the optional REGEXP argument."
 
 ;; This clears *all* files with the given name
 (defun file-cache-delete-file (file)
-  "Delete FILE from the file cache."
+  "Delete FILE (a relative file name) from the file cache.
+Return nil if FILE was not in the file cache, non-nil otherwise."
   (interactive
    (list (completing-read "Delete file from cache: " file-cache-alist)))
-  (setq file-cache-alist
-	(delq (assoc-string file file-cache-alist file-cache-ignore-case)
-	      file-cache-alist)))
+  (let ((elt (assoc-string file file-cache-alist file-cache-ignore-case)))
+    (setq file-cache-alist (delq elt file-cache-alist))
+    elt))
 
-(defun file-cache-delete-file-list (file-list)
-  "Delete FILE-LIST (a list of files) from the file cache."
-  (interactive "XFile List: ")
-  (mapcar 'file-cache-delete-file file-list))
+(defun file-cache-delete-file-list (files &optional message)
+  "Delete FILES (a list of files) from the file cache.
+If called interactively, read the file names one by one.
+If MESSAGE is non-nil, or if called interactively, print a
+message reporting the number of file names deleted."
+  (interactive (list (file-cache--read-list t "Uncache") t))
+  (let ((n 0))
+    (dolist (f files)
+      (if (file-cache-delete-file f)
+	  (setq n (1+ n))))
+    (message "Filecache: uncached %d file name%s."
+	     n (if (= n 1) "" "s"))))
 
 (defun file-cache-delete-file-regexp (regexp)
   "Delete files matching REGEXP from the file cache."
@@ -434,21 +463,18 @@ or the optional REGEXP argument."
     (dolist (elt file-cache-alist)
       (and (string-match regexp (car elt))
            (push (car elt) delete-list)))
-    (file-cache-delete-file-list delete-list)
-    (message "Filecache: deleted %d files from file cache"
-             (length delete-list))))
+    (file-cache-delete-file-list delete-list)))
 
 (defun file-cache-delete-directory (directory)
   "Delete DIRECTORY from the file cache."
   (interactive "DDelete directory from file cache: ")
   (let ((dir (expand-file-name directory))
-	(result 0))
+	(n 0))
     (dolist (entry file-cache-alist)
       (if (file-cache-do-delete-directory dir entry)
-          (setq result (1+ result))))
-    (if (zerop result)
-	(error "Filecache: no entries containing %s found in cache" directory)
-      (message "Filecache: deleted %d entries" result))))
+          (setq n (1+ n))))
+    (message "Filecache: uncached %d file name%s."
+	     n (if (= n 1) "" "s"))))
 
 (defun file-cache-do-delete-directory (dir entry)
   (let ((directory-list (cdr entry))
@@ -459,10 +485,12 @@ or the optional REGEXP argument."
 		   (delq entry file-cache-alist))
 	   (setcdr entry (delete directory directory-list))))))
 
-(defun file-cache-delete-directory-list (directory-list)
-  "Delete DIRECTORY-LIST (a list of directories) from the file cache."
-  (interactive "XDirectory List: ")
-  (mapcar 'file-cache-delete-directory directory-list))
+(defun file-cache-delete-directory-list (directories)
+  "Delete DIRECTORIES (a list of directory names) from the file cache.
+If called interactively, read the directory names one by one."
+  (interactive (list (file-cache--read-list nil "Uncache")))
+  (dolist (d directories)
+    (file-cache-delete-directory d)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions

@@ -1,6 +1,7 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2012 Free Software Foundation, Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -371,9 +372,6 @@ bset_zv_marker (struct buffer *b, Lisp_Object val)
   b->INTERNAL_FIELD (zv_marker) = val;
 }
 
-/* For debugging; temporary.  See set_buffer_internal.  */
-/* Lisp_Object Qlisp_mode, Vcheck_symbol; */
-
 void
 nsberror (Lisp_Object spec)
 {
@@ -406,7 +404,6 @@ followed by the rest of the buffers.  */)
       Lisp_Object framelist, prevlist, tail;
       Lisp_Object args[3];
 
-      CHECK_FRAME (frame);
       framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
       prevlist = Fnreverse (Fcopy_sequence
 			    (XFRAME (frame)->buried_buffer_list));
@@ -548,6 +545,8 @@ even if it is dead.  The return value is never nil.  */)
   b->base_buffer = NULL;
   /* No one shares the text with us now.  */
   b->indirections = 0;
+  /* No one shows us now.  */
+  b->window_count = 0;
 
   BUF_GAP_SIZE (b) = 20;
   block_input ();
@@ -574,6 +573,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
+  BUF_COMPACT (b) = 1;
   set_buffer_intervals (b, NULL);
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
@@ -795,6 +795,8 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   b->indirections = -1;
   /* Notify base buffer that we share the text now.  */
   b->base_buffer->indirections++;
+  /* Always -1 for an indirect buffer.  */
+  b->window_count = -1;
 
   b->pt = b->base_buffer->pt;
   b->begv = b->base_buffer->begv;
@@ -1337,7 +1339,7 @@ DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
 A non-nil FLAG means mark the buffer modified.  */)
   (Lisp_Object flag)
 {
-  Lisp_Object fn, buffer, window;
+  Lisp_Object fn;
 
 #ifdef CLASH_DETECTION
   /* If buffer becoming modified, lock the file.
@@ -1390,9 +1392,7 @@ A non-nil FLAG means mark the buffer modified.  */)
      Ideally, I think there should be another mechanism for fontifying
      buffers without "modifying" buffers, or redisplay should be
      smarter about updating the `*' in mode lines.  --gerd  */
-  XSETBUFFER (buffer, current_buffer);
-  window = Fget_buffer_window (buffer, Qt);
-  if (WINDOWP (window))
+  if (buffer_window_count (current_buffer))
     {
       ++update_mode_lines;
       current_buffer->prevent_redisplay_optimizations_p = 1;
@@ -1530,6 +1530,16 @@ This does not change the name of the visited file (if any).  */)
   return BVAR (current_buffer, name);
 }
 
+/* True if B can be used as 'other-than-BUFFER' buffer.  */
+
+static bool
+candidate_buffer (Lisp_Object b, Lisp_Object buffer)
+{
+  return (BUFFERP (b) && !EQ (b, buffer)
+	  && BUFFER_LIVE_P (XBUFFER (b))
+	  && !BUFFER_HIDDEN_P (XBUFFER (b)));
+}
+	  
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
        doc: /* Return most recently selected buffer other than BUFFER.
 Buffers not visible in windows are preferred to visible buffers, unless
@@ -1543,23 +1553,15 @@ list first, followed by the list of all buffers.  If no other buffer
 exists, return the buffer `*scratch*' (creating it if necessary).  */)
   (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
-  Lisp_Object tail, buf, pred;
-  Lisp_Object notsogood = Qnil;
+  struct frame *f = decode_any_frame (frame);
+  Lisp_Object tail = f->buffer_list, pred = f->buffer_predicate;
+  Lisp_Object buf, notsogood = Qnil;
 
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_FRAME (frame);
-
-  pred = frame_buffer_predicate (frame);
   /* Consider buffers that have been seen in the frame first.  */
-  tail = XFRAME (frame)->buffer_list;
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = XCAR (tail);
-      if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && BUFFER_LIVE_P (XBUFFER (buf))
-	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' ')
+      if (candidate_buffer (buf, buffer)
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
 	  && (NILP (pred) || !NILP (call1 (pred, buf))))
@@ -1577,9 +1579,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = Fcdr (XCAR (tail));
-      if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && BUFFER_LIVE_P (XBUFFER (buf))
-	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' ')
+      if (candidate_buffer (buf, buffer)
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
 	  && (NILP (pred) || !NILP (call1 (pred, buf))))
@@ -1615,13 +1615,10 @@ other_buffer_safely (Lisp_Object buffer)
 {
   Lisp_Object tail, buf;
 
-  tail = Vbuffer_alist;
-  for (; CONSP (tail); tail = XCDR (tail))
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
       buf = Fcdr (XCAR (tail));
-      if (BUFFERP (buf) && !EQ (buf, buffer)
-	  && BUFFER_LIVE_P (XBUFFER (buf))
-	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' '))
+      if (candidate_buffer (buf, buffer))
 	return buf;
     }
 
@@ -1669,7 +1666,7 @@ compact_buffer (struct buffer *buffer)
      which aren't changed since last compaction.  */
   if (BUFFER_LIVE_P (buffer)
       && (buffer->base_buffer == NULL)
-      && (buffer->text->compact != buffer->text->modiff))
+      && (BUF_COMPACT (buffer) != BUF_MODIFF (buffer)))
     {
       /* If a buffer's undo list is Qt, that means that undo is
 	 turned off in that buffer.  Calling truncate_undo_list on
@@ -1682,19 +1679,15 @@ compact_buffer (struct buffer *buffer)
       if (!buffer->text->inhibit_shrinking)
 	{
 	  /* If a buffer's gap size is more than 10% of the buffer
-	     size, or larger than 2000 bytes, then shrink it
-	     accordingly.  Keep a minimum size of 20 bytes.  */
-	  int size = min (2000, max (20, (buffer->text->z_byte / 10)));
-
-	  if (buffer->text->gap_size > size)
-	    {
-	      struct buffer *save_current = current_buffer;
-	      current_buffer = buffer;
-	      make_gap (-(buffer->text->gap_size - size));
-	      current_buffer = save_current;
-	    }
+	     size, or larger than GAP_BYTES_DFL bytes, then shrink it
+	     accordingly.  Keep a minimum size of GAP_BYTES_MIN bytes.  */
+	  ptrdiff_t size = clip_to_bounds (GAP_BYTES_MIN,
+					   BUF_Z_BYTE (buffer) / 10,
+					   GAP_BYTES_DFL);
+	  if (BUF_GAP_SIZE (buffer) > size)
+	    make_gap_1 (buffer, -(BUF_GAP_SIZE (buffer) - size));
 	}
-      buffer->text->compact = buffer->text->modiff;
+      BUF_COMPACT (buffer) = BUF_MODIFF (buffer);
     }
 }
 
@@ -1933,10 +1926,16 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       eassert (b->indirections == -1);
       b->base_buffer->indirections--;
       eassert (b->base_buffer->indirections >= 0);
+      /* Make sure that we wasn't confused.  */
+      eassert (b->window_count == -1);
     }
   else
-    /* No one shares our buffer text, can free it.  */
-    free_buffer_text (b);
+    {
+      /* Make sure that no one shows us.  */
+      eassert (b->window_count == 0);
+      /* No one shares our buffer text, can free it.  */
+      free_buffer_text (b);
+    }
 
   if (b->newline_cache)
     {
@@ -2043,7 +2042,7 @@ DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
 DEFUN ("set-buffer-major-mode", Fset_buffer_major_mode, Sset_buffer_major_mode, 1, 1, 0,
        doc: /* Set an appropriate major mode for BUFFER.
 For the *scratch* buffer, use `initial-major-mode', otherwise choose a mode
-according to `default-major-mode'.
+according to the default value of `major-mode'.
 Use this function before selecting the buffer, since it may need to inspect
 the current buffer's major mode.  */)
   (Lisp_Object buffer)
@@ -2109,7 +2108,7 @@ set_buffer_internal_1 (register struct buffer *b)
     return;
 
   BUFFER_CHECK_INDIRECTION (b);
-  
+
   old_buf = current_buffer;
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
@@ -2685,10 +2684,11 @@ current buffer is cleared.  */)
 
   UNGCPRO;
 
-  /* Changing the multibyteness of a buffer means that all windows
-     showing that buffer must be updated thoroughly.  */
   current_buffer->prevent_redisplay_optimizations_p = 1;
-  ++windows_or_buffers_changed;
+
+  /* If buffer is shown in a window, let redisplay consider other windows.  */
+  if (buffer_window_count (current_buffer))
+    ++windows_or_buffers_changed;
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
@@ -3139,8 +3139,8 @@ compare_overlays (const void *v1, const void *v2)
      between "equal" overlays.  The result can still change between
      invocations of Emacs, but it won't change in the middle of
      `find_field' (bug#6830).  */
-  if (XHASH (s1->overlay) != XHASH (s2->overlay))
-    return XHASH (s1->overlay) < XHASH (s2->overlay) ? -1 : 1;
+  if (!EQ (s1->overlay, s2->overlay))
+    return XLI (s1->overlay) < XLI (s2->overlay) ? -1 : 1;
   return 0;
 }
 
@@ -3151,7 +3151,10 @@ ptrdiff_t
 sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 {
   ptrdiff_t i, j;
-  struct sortvec *sortvec = alloca (noverlays * sizeof *sortvec);
+  USE_SAFE_ALLOCA;
+  struct sortvec *sortvec;
+
+  SAFE_NALLOCA (sortvec, 1, noverlays);
 
   /* Put the valid and relevant overlays into sortvec.  */
 
@@ -3197,6 +3200,8 @@ sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 
   for (i = 0; i < noverlays; i++)
     overlay_vec[i] = sortvec[i].overlay;
+
+  SAFE_FREE ();
   return (noverlays);
 }
 
@@ -3884,17 +3889,17 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
   BUF_COMPUTE_UNCHANGED (buf, start, end);
 
-  /* If this is a buffer not in the selected window,
-     we must do other windows.  */
-  if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
-    windows_or_buffers_changed = 1;
-  /* If multiple windows show this buffer, we must do other windows.  */
-  else if (buffer_shared > 1)
-    windows_or_buffers_changed = 1;
-  /* If we modify an overlay at the end of the buffer, we cannot
-     be sure that window end is still valid.  */
-  else if (end >= ZV && start <= ZV)
-    windows_or_buffers_changed = 1;
+  /* If BUF is visible, consider updating the display if ...  */
+  if (buffer_window_count (buf) > 0)
+    {
+      /* ... it's visible in other window than selected,  */
+      if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
+	windows_or_buffers_changed = 1;
+      /* ... or if we modify an overlay at the end of the buffer
+	 and so we cannot be sure that window end is still valid.  */
+      else if (end >= ZV && start <= ZV)
+	windows_or_buffers_changed = 1;
+    }
 
   ++BUF_OVERLAY_MODIFF (buf);
 }
@@ -4573,27 +4578,7 @@ evaporate_overlays (ptrdiff_t pos)
   for (; CONSP (hit_list); hit_list = XCDR (hit_list))
     Fdelete_overlay (XCAR (hit_list));
 }
-
-/* Somebody has tried to store a value with an unacceptable type
-   in the slot with offset OFFSET.  */
 
-void
-buffer_slot_type_mismatch (Lisp_Object newval, int type)
-{
-  Lisp_Object predicate;
-
-  switch (type)
-    {
-    case_Lisp_Int:    predicate = Qintegerp; break;
-    case Lisp_String: predicate = Qstringp;  break;
-    case Lisp_Symbol: predicate = Qsymbolp;  break;
-    default: emacs_abort ();
-    }
-
-  wrong_type_argument (predicate, newval);
-}
-
-
 /***********************************************************************
 			 Allocation with mmap
  ***********************************************************************/
@@ -5112,11 +5097,6 @@ void
 init_buffer_once (void)
 {
   int idx;
-  /* If you add, remove, or reorder Lisp_Objects in a struct buffer, make
-     sure that this is still correct.  Otherwise, mark_vectorlike may not
-     trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
-  const int pvecsize
-    = (offsetof (struct buffer, own_text) - header_size) / word_size;
 
   memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
@@ -5134,13 +5114,16 @@ init_buffer_once (void)
   /* No one will share the text with these buffers, but let's play it safe.  */
   buffer_defaults.indirections = 0;
   buffer_local_symbols.indirections = 0;
+  /* Likewise no one will display them.  */
+  buffer_defaults.window_count = 0;
+  buffer_local_symbols.window_count = 0;
   set_buffer_intervals (&buffer_defaults, NULL);
   set_buffer_intervals (&buffer_local_symbols, NULL);
   /* This is not strictly necessary, but let's make them initialized.  */
   bset_name (&buffer_defaults, build_pure_c_string (" *buffer-defaults*"));
   bset_name (&buffer_local_symbols, build_pure_c_string (" *buffer-local-symbols*"));
-  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
-  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);
+  BUFFER_PVEC_INIT (&buffer_defaults);
+  BUFFER_PVEC_INIT (&buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
   /* Must do these before making the first buffer! */
@@ -5369,25 +5352,23 @@ init_buffer (void)
   free (pwd);
 }
 
-/* Similar to defvar_lisp but define a variable whose value is the Lisp
-   Object stored in the current buffer.  address is the address of the slot
-   in the buffer that is current now. */
+/* Similar to defvar_lisp but define a variable whose value is the
+   Lisp_Object stored in the current buffer.  LNAME is the Lisp-level
+   variable name.  VNAME is the name of the buffer slot.  PREDICATE
+   is nil for a general Lisp variable.  If PREDICATE is non-nil, then
+   only Lisp values that satisfies the PREDICATE are allowed (except
+   that nil is allowed too).  DOC is a dummy where you write the doc
+   string as a comment.  */
 
-/* TYPE is nil for a general Lisp variable.
-   An integer specifies a type; then only Lisp values
-   with that type code are allowed (except that nil is allowed too).
-   LNAME is the Lisp-level variable name.
-   VNAME is the name of the buffer slot.
-   DOC is a dummy where you write the doc string as a comment.  */
-#define DEFVAR_PER_BUFFER(lname, vname, type, doc)			\
-  do {									\
-    static struct Lisp_Buffer_Objfwd bo_fwd;				\
-    defvar_per_buffer (&bo_fwd, lname, vname, type);			\
+#define DEFVAR_PER_BUFFER(lname, vname, predicate, doc)		\
+  do {								\
+    static struct Lisp_Buffer_Objfwd bo_fwd;			\
+    defvar_per_buffer (&bo_fwd, lname, vname, predicate);	\
   } while (0)
 
 static void
 defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
-		   Lisp_Object *address, Lisp_Object type)
+		   Lisp_Object *address, Lisp_Object predicate)
 {
   struct Lisp_Symbol *sym;
   int offset;
@@ -5397,7 +5378,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 
   bo_fwd->type = Lisp_Fwd_Buffer_Obj;
   bo_fwd->offset = offset;
-  bo_fwd->slottype = type;
+  bo_fwd->predicate = predicate;
   sym->declared_special = 1;
   sym->redirect = SYMBOL_FORWARDED;
   {
@@ -5660,7 +5641,7 @@ Decimal digits after the % specify field width to which to pad.  */);
 			  doc: /* Value of `major-mode' for new buffers.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &BVAR (current_buffer, major_mode),
-		     make_number (Lisp_Symbol),
+		     Qsymbolp,
 		     doc: /* Symbol for current buffer's major mode.
 The default value (normally `fundamental-mode') affects new buffers.
 A value of nil means to use the current buffer's major mode, provided
@@ -5691,17 +5672,17 @@ Use the command `abbrev-mode' to change this variable.  */);
 		     doc: /* Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &BVAR (current_buffer, fill_column),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &BVAR (current_buffer, left_margin),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Distance between tab stops (for display of tab characters), in columns.
 This should be an integer greater than zero.  */);
 
@@ -5786,7 +5767,7 @@ visual lines rather than logical lines.  See the documentation of
 `visual-line-mode'.  */);
 
   DEFVAR_PER_BUFFER ("default-directory", &BVAR (current_buffer, directory),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Name of default directory of current buffer.  Should end with slash.
 To interactively change the default directory, use command `cd'.  */);
 
@@ -5799,18 +5780,18 @@ NOTE: This variable is not a hook;
 its value may not be a list of functions.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-name", &BVAR (current_buffer, filename),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Name of file visited in current buffer, or nil if not visiting a file.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-truename", &BVAR (current_buffer, file_truename),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Abbreviated truename of file visited in current buffer, or nil if none.
 The truename of a file is calculated by `file-truename'
 and then abbreviated with `abbreviate-file-name'.  */);
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
 		     &BVAR (current_buffer, auto_save_file_name),
-		     make_number (Lisp_String),
+		     Qstringp,
 		     doc: /* Name of file for auto-saving current buffer.
 If it is nil, that means don't auto-save this buffer.  */);
 
@@ -5822,7 +5803,7 @@ If it is nil, that means don't auto-save this buffer.  */);
 Backing up is done before the first time the file is saved.  */);
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &BVAR (current_buffer, save_length),
-		     make_number (Lisp_Int0),
+		     Qintegerp,
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
 0 initially.
 -1 means auto-saving turned off until next real save.
@@ -5892,23 +5873,23 @@ In addition, a char-table has six extra slots to control the display of:
 See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 
   DEFVAR_PER_BUFFER ("left-margin-width", &BVAR (current_buffer, left_margin_cols),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of left marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
   DEFVAR_PER_BUFFER ("right-margin-width", &BVAR (current_buffer, right_margin_cols),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of right marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
   DEFVAR_PER_BUFFER ("left-fringe-width", &BVAR (current_buffer, left_fringe_width),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of this buffer's left fringe (in pixels).
 A value of 0 means no left fringe is shown in this buffer's window.
 A value of nil means to use the left fringe width from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("right-fringe-width", &BVAR (current_buffer, right_fringe_width),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of this buffer's right fringe (in pixels).
 A value of 0 means no right fringe is shown in this buffer's window.
 A value of nil means to use the right fringe width from the window's frame.  */);
@@ -5919,7 +5900,7 @@ A value of nil means to use the right fringe width from the window's frame.  */)
 A value of nil means to display fringes between margins and buffer text.  */);
 
   DEFVAR_PER_BUFFER ("scroll-bar-width", &BVAR (current_buffer, scroll_bar_width),
-		     Qnil,
+		     Qintegerp,
 		     doc: /* Width of this buffer's scroll bars in pixels.
 A value of nil means to use the scroll bar width from the window's frame.  */);
 
@@ -5999,7 +5980,7 @@ BITMAP is the corresponding fringe bitmap shown for the logical
 cursor type.  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
-		     &BVAR (current_buffer, scroll_up_aggressively), Qnil,
+		     &BVAR (current_buffer, scroll_up_aggressively), Qfloatp,
 		     doc: /* How far to scroll windows upward.
 If you move point off the bottom, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
@@ -6012,7 +5993,7 @@ window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
-		     &BVAR (current_buffer, scroll_down_aggressively), Qnil,
+		     &BVAR (current_buffer, scroll_down_aggressively), Qfloatp,
 		     doc: /* How far to scroll windows downward.
 If you move point off the top, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
@@ -6023,10 +6004,6 @@ simple case that you moved off with C-b means scrolling just one line.
 1.0 means point goes at the bottom, so that in that simple case, the
 window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
-
-/*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
-    "Don't ask.");
-*/
 
   DEFVAR_LISP ("before-change-functions", Vbefore_change_functions,
 	       doc: /* List of functions to call before each text change.
@@ -6166,7 +6143,7 @@ then characters with property value PROP are invisible,
 and they have an ellipsis as well if ELLIPSIS is non-nil.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-count",
-		     &BVAR (current_buffer, display_count), Qnil,
+		     &BVAR (current_buffer, display_count), Qintegerp,
 		     doc: /* A number incremented each time this buffer is displayed in a window.
 The function `set-window-buffer' increments it.  */);
 
@@ -6210,22 +6187,22 @@ is a member of the list.  */);
 		     doc: /* Cursor to use when this buffer is in the selected window.
 Values are interpreted as follows:
 
-  t 		  use the cursor specified for the frame
-  nil		  don't display a cursor
-  box		  display a filled box cursor
-  hollow	  display a hollow box cursor
-  bar		  display a vertical bar cursor with default width
-  (bar . WIDTH)	  display a vertical bar cursor with width WIDTH
-  hbar		  display a horizontal bar cursor with default height
+  t               use the cursor specified for the frame
+  nil             don't display a cursor
+  box             display a filled box cursor
+  hollow          display a hollow box cursor
+  bar             display a vertical bar cursor with default width
+  (bar . WIDTH)   display a vertical bar cursor with width WIDTH
+  hbar            display a horizontal bar cursor with default height
   (hbar . HEIGHT) display a horizontal bar cursor with height HEIGHT
-  ANYTHING ELSE	  display a hollow box cursor
+  ANYTHING ELSE   display a hollow box cursor
 
 When the buffer is displayed in a non-selected window, the
 cursor's appearance is instead controlled by the variable
 `cursor-in-non-selected-windows'.  */);
 
   DEFVAR_PER_BUFFER ("line-spacing",
-		     &BVAR (current_buffer, extra_line_spacing), Qnil,
+		     &BVAR (current_buffer, extra_line_spacing), Qnumberp,
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on graphic displays,
 see `display-graphic-p'.

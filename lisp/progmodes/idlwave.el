@@ -1,6 +1,6 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; IDLWAVE enables feature-rich development and interaction with IDL,
-;; the Interactive Data Language. It provides a compelling,
+;; the Interactive Data Language.  It provides a compelling,
 ;; full-featured alternative to the IDLDE development environment
 ;; bundled with IDL.
 
@@ -447,7 +447,7 @@ value of `!DIR'.  See also `idlwave-library-path'."
 
 ;; Configuration files
 (defcustom idlwave-config-directory
-  (convert-standard-filename "~/.idlwave")
+  (locate-user-emacs-file "idlwave" ".idlwave")
   "Directory for configuration files and user-library catalog."
   :group 'idlwave-routine-info
   :type 'file)

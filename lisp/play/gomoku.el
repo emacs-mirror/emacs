@@ -1,6 +1,7 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -1054,16 +1055,18 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-display-statistics ()
   "Obnoxiously display some statistics about previous games in mode line."
-  ;; We store this string in the mode-line-process local variable.
-  ;; This is certainly not the cleanest way out ...
-  (setq mode-line-process
-	(format ": Won %d, lost %d%s"
-		gomoku-number-of-human-wins
-		gomoku-number-of-emacs-wins
-		(if (zerop gomoku-number-of-draws)
-		    ""
-		  (format ", drew %d" gomoku-number-of-draws))))
-  (force-mode-line-update))
+  ;; Update mode line only if Gomoku buffer is current (Bug#12771).
+  (when (string-equal (buffer-name) gomoku-buffer-name)
+    ;; We store this string in the mode-line-process local variable.
+    ;; This is certainly not the cleanest way out ...
+    (setq mode-line-process
+	  (format ": won %d, lost %d%s"
+		  gomoku-number-of-human-wins
+		  gomoku-number-of-emacs-wins
+		  (if (zerop gomoku-number-of-draws)
+		      ""
+		    (format ", drew %d" gomoku-number-of-draws))))
+    (force-mode-line-update)))
 
 (defun gomoku-switch-to-window ()
   "Find or create the Gomoku buffer, and display it."

@@ -1,6 +1,7 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1992-1994, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This file can also be used by an independent Edebug User
@@ -1116,7 +1117,7 @@ definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
 the @code{declare} form.
 
-@c See eg http://debbugs.gnu.org/10577
+@c See, e.g., http://debbugs.gnu.org/10577
 @c FIXME  Maybe there should be an Edebug option to get it to
 @c automatically load the entire source file containing the function
 @c being instrumented.  That would avoid this.
@@ -1211,9 +1212,7 @@ A single unevaluated Lisp object, which is not instrumented.
 A single evaluated expression, which is instrumented.
 
 @item place
-@c I can't see that this index entry is useful without any explanation.
-@c @findex edebug-unwrap
-A place to store a value, as in the Common Lisp @code{setf} construct.
+A generalized variable.  @xref{Generalized Variables}.
 
 @item body
 Short for @code{&rest form}.  See @code{&rest} below.

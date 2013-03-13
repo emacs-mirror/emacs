@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,6 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <errno.h>
 #include <math.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -80,7 +82,6 @@ void syms_of_w32fns (void);
 void globals_of_w32fns (void);
 
 extern void free_frame_menubar (struct frame *);
-extern double atof (const char *);
 extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
@@ -221,7 +222,7 @@ SYSTEM_INFO sysinfo_cache;
 /* This gives us version, build, and platform identification.  */
 OSVERSIONINFO osinfo_cache;
 
-unsigned long syspage_mask = 0;
+DWORD_PTR syspage_mask = 0;
 
 /* The major and minor versions of NT.  */
 int w32_major_version;
@@ -262,12 +263,8 @@ have_menus_p (void)
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
-  FRAME_PTR f;
+  struct frame *f = decode_live_frame (frame);
 
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
   if (! FRAME_W32_P (f))
     error ("Non-W32 frame used");
   return f;
@@ -306,19 +303,14 @@ check_x_display_info (Lisp_Object frame)
 /* Return the Emacs frame-object corresponding to an w32 window.
    It could be the frame's main window or an icon window.  */
 
-/* This function can be called during GC, so use GC_xxx type test macros.  */
-
 struct frame *
 x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
 {
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_FRAME (tail, frame)
     {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
@@ -1729,11 +1721,9 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
 
   if (FRAME_W32_WINDOW (f))
     {
-      if (STRING_MULTIBYTE (name))
-	name = ENCODE_SYSTEM (name);
-
       block_input ();
-      SetWindowText (FRAME_W32_WINDOW (f), SDATA (name));
+      GUI_FN (SetWindowText) (FRAME_W32_WINDOW (f),
+                              GUI_SDATA (GUI_ENCODE_SYSTEM (name)));
       unblock_input ();
     }
 }
@@ -1775,11 +1765,9 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   if (FRAME_W32_WINDOW (f))
     {
-      if (STRING_MULTIBYTE (name))
-	name = ENCODE_SYSTEM (name);
-
       block_input ();
-      SetWindowText (FRAME_W32_WINDOW (f), SDATA (name));
+      GUI_FN (SetWindowText) (FRAME_W32_WINDOW (f),
+                              GUI_SDATA (GUI_ENCODE_SYSTEM (name)));
       unblock_input ();
     }
 }
@@ -1829,7 +1817,6 @@ static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 static BOOL
 w32_init_class (HINSTANCE hinst)
 {
-
   if (w32_unicode_gui)
     {
       WNDCLASSW  uwc;
@@ -2087,8 +2074,35 @@ sync_modifiers (void)
 static int
 modifier_set (int vkey)
 {
-  if (vkey == VK_CAPITAL || vkey == VK_SCROLL)
-    return (GetKeyState (vkey) & 0x1);
+  /* Warning: The fact that VK_NUMLOCK is not treated as the other 2
+     toggle keys is not an omission!  If you want to add it, you will
+     have to make changes in the default sub-case of the WM_KEYDOWN
+     switch, because if the NUMLOCK modifier is set, the code there
+     will directly convert any key that looks like an ASCII letter,
+     and also downcase those that look like upper-case ASCII.  */
+  if (vkey == VK_CAPITAL)
+    {
+      if (NILP (Vw32_enable_caps_lock))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+  if (vkey == VK_SCROLL)
+    {
+      if (NILP (Vw32_scroll_lock_modifier)
+	  /* w32-scroll-lock-modifier can be any non-nil value that is
+	     not one of the modifiers, in which case it shall be ignored.  */
+	  || !(   EQ (Vw32_scroll_lock_modifier, Qhyper)
+	       || EQ (Vw32_scroll_lock_modifier, Qsuper)
+	       || EQ (Vw32_scroll_lock_modifier, Qmeta)
+	       || EQ (Vw32_scroll_lock_modifier, Qalt)
+	       || EQ (Vw32_scroll_lock_modifier, Qcontrol)
+	       || EQ (Vw32_scroll_lock_modifier, Qshift)))
+	return 0;
+      else
+	return (GetKeyState (vkey) & 0x1);
+    }
+
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
 
@@ -3331,7 +3345,19 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	 versions, there is no way of telling when the mouse leaves the
 	 frame, so we just have to put up with help-echo and mouse
 	 highlighting remaining while the frame is not active.  */
-      if (track_mouse_event_fn && !track_mouse_window)
+      if (track_mouse_event_fn && !track_mouse_window
+	  /* If the menu bar is active, turning on tracking of mouse
+	     movement events might send these events to the tooltip
+	     frame, if the user happens to move the mouse pointer over
+	     the tooltip.  But since we don't process events for
+	     tooltip frames, this causes Windows to present a
+	     hourglass cursor, which is ugly and unexpected.  So don't
+	     enable tracking mouse events in this case; they will be
+	     restarted when the menu pops down.  (Confusingly, the
+	     menubar_active member of f->output_data.w32, tested
+	     above, is only set when a menu was popped up _not_ from
+	     the frame's menu bar, but via x-popup-menu.)  */
+	  && !menubar_in_use)
 	{
 	  TRACKMOUSEEVENT tme;
 	  tme.cbSize = sizeof (tme);
@@ -3926,6 +3952,9 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	return retval;
       }
+    case WM_EMACS_FILENOTIFY:
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 1;
 
     default:
       /* Check for messages registered at runtime. */
@@ -4271,9 +4300,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
-  /* Note that Windows does support scroll bars.  */
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-
   /* By default, make scrollbars the system standard width. */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
 
@@ -4557,12 +4583,9 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (w32_defined_color (f, SDATA (color), &foo, 0))
-    return list3 (make_number ((GetRValue (foo.pixel) << 8)
-			       | GetRValue (foo.pixel)),
-		  make_number ((GetGValue (foo.pixel) << 8)
-			       | GetGValue (foo.pixel)),
-		  make_number ((GetBValue (foo.pixel) << 8)
-			       | GetBValue (foo.pixel)));
+    return list3i ((GetRValue (foo.pixel) << 8) | GetRValue (foo.pixel),
+		   (GetGValue (foo.pixel) << 8) | GetGValue (foo.pixel),
+		   (GetBValue (foo.pixel) << 8) | GetBValue (foo.pixel));
   else
     return Qnil;
 }
@@ -4688,9 +4711,7 @@ DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
-  return Fcons (make_number (w32_major_version),
-		Fcons (make_number (w32_minor_version),
-		       Fcons (make_number (w32_build_number), Qnil)));
+  return list3i (w32_major_version, w32_minor_version, w32_build_number);
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
@@ -4835,18 +4856,6 @@ int
 x_pixel_height (register struct frame *f)
 {
   return FRAME_PIXEL_HEIGHT (f);
-}
-
-int
-x_char_width (register struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-int
-x_char_height (register struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
 }
 
 int
@@ -5374,7 +5383,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
   /* By setting the output method, we're essentially saying that
@@ -5812,7 +5820,7 @@ Text larger than the specified size is clipped.  */)
       int row_width;
 
       /* Stop at the first empty row at the end.  */
-      if (!row->enabled_p || !row->displays_text_p)
+      if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	break;
 
       /* Let the row go over the full width of the frame.  */
@@ -5873,7 +5881,7 @@ Text larger than the specified size is clipped.  */)
 	  struct glyph *last;
 	  int row_width;
 
-	  if (!row->enabled_p || !row->displays_text_p)
+	  if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	    break;
 	  row->full_width_p = 1;
 	  row_width = row->pixel_width;
@@ -5926,7 +5934,7 @@ Text larger than the specified size is clipped.  */)
 		  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
     /* Let redisplay know that we have made the frame visible already.  */
-    f->async_visible = 1;
+    SET_FRAME_VISIBLE (f, 1);
 
     ShowWindow (FRAME_W32_WINDOW (f), SW_SHOWNOACTIVATE);
   }
@@ -5994,20 +6002,12 @@ Value is t if tooltip was open, nil otherwise.  */)
 #define FILE_NAME_COMBO_BOX cmb13
 #define FILE_NAME_LIST lst1
 
-#ifdef NTGUI_UNICODE
-#define GUISTR(x) (L ## x)
-typedef wchar_t guichar_t;
-#else /* !NTGUI_UNICODE */
-#define GUISTR(x) x
-typedef char guichar_t;
-#endif /* NTGUI_UNICODE */
-
 /* Callback for altering the behavior of the Open File dialog.
    Makes the Filename text field contain "Current Directory" and be
    read-only when "Directories" is selected in the filter.  This
    allows us to work around the fact that the standard Open File
    dialog does not support directories.  */
-static UINT CALLBACK
+static UINT_PTR CALLBACK
 file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)
@@ -6139,9 +6139,9 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       filename = empty_unibyte_string;
 
 #ifdef CYGWIN
-    dir = Fcygwin_convert_path_to_windows (dir, Qt);
+    dir = Fcygwin_convert_file_name_to_windows (dir, Qt);
     if (SCHARS (filename) > 0)
-      filename = Fcygwin_convert_path_to_windows (filename, Qnil);
+      filename = Fcygwin_convert_file_name_to_windows (filename, Qnil);
 #endif
 
     CHECK_STRING (dir);
@@ -6218,11 +6218,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       block_input ();
       file_details->lpfnHook = file_dialog_callback;
 
-#ifdef NTGUI_UNICODE
-      file_opened = GetOpenFileNameW (file_details);
-#else /* !NTGUI_UNICODE */
-      file_opened = GetOpenFileNameA (file_details);
-#endif /* NTGUI_UNICODE */
+      file_opened = GUI_FN (GetOpenFileName) (file_details);
       unblock_input ();
       unbind_to (count, Qnil);
     }
@@ -6231,18 +6227,14 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       {
         /* Get an Emacs string from the value Windows gave us.  */
 #ifdef NTGUI_UNICODE
-        filename = from_unicode (
-          make_unibyte_string (
-            (char*) filename_buf,
-            /* we get one of the two final 0 bytes for free. */
-            1 + sizeof (wchar_t) * wcslen (filename_buf)));
+        filename = from_unicode_buffer (filename_buf);
 #else /* !NTGUI_UNICODE */
-        dostounix_filename (filename_buf);
+        dostounix_filename (filename_buf, 0);
         filename = DECODE_FILE (build_string (filename_buf));
 #endif /* NTGUI_UNICODE */
 
 #ifdef CYGWIN
-        filename = Fcygwin_convert_path_from_windows (filename, Qt);
+        filename = Fcygwin_convert_file_name_from_windows (filename, Qt);
 #endif /* CYGWIN */
 
         /* Strip the dummy filename off the end of the string if we
@@ -6409,20 +6401,29 @@ an integer representing a ShowWindow flag:
   CHECK_STRING (document);
 
   /* Encode filename, current directory and parameters.  */
-  current_dir = ENCODE_FILE (BVAR (current_buffer, directory));
-  document = ENCODE_FILE (document);
-  if (STRINGP (parameters))
-    parameters = ENCODE_SYSTEM (parameters);
+  current_dir = BVAR (current_buffer, directory);
 
-  if ((int) ShellExecute (NULL,
-			  (STRINGP (operation) ?
-			   SDATA (operation) : NULL),
-			  SDATA (document),
-			  (STRINGP (parameters) ?
-			   SDATA (parameters) : NULL),
-			  SDATA (current_dir),
-			  (INTEGERP (show_flag) ?
-			   XINT (show_flag) : SW_SHOWDEFAULT))
+#ifdef CYGWIN
+  current_dir = Fcygwin_convert_file_name_to_windows (current_dir, Qt);
+  if (STRINGP (document))
+    document = Fcygwin_convert_file_name_to_windows (document, Qt);
+#endif /* CYGWIN */
+
+  current_dir = GUI_ENCODE_FILE (current_dir);
+  if (STRINGP (document))
+    document = GUI_ENCODE_FILE (document);
+  if (STRINGP (parameters))
+    parameters = GUI_ENCODE_SYSTEM (parameters);
+
+  if ((int) GUI_FN (ShellExecute) (NULL,
+                                   (STRINGP (operation) ?
+                                    GUI_SDATA (operation) : NULL),
+                                   GUI_SDATA (document),
+                                   (STRINGP (parameters) ?
+                                    GUI_SDATA (parameters) : NULL),
+                                   GUI_SDATA (current_dir),
+                                   (INTEGERP (show_flag) ?
+                                    XINT (show_flag) : SW_SHOWDEFAULT))
       > 32)
     return Qt;
   errstr = w32_strerror (0);
@@ -6467,12 +6468,12 @@ w32_parse_hot_key (Lisp_Object key)
 
   CHECK_VECTOR (key);
 
-  if (XFASTINT (Flength (key)) != 1)
+  if (ASIZE (key) != 1)
     return Qnil;
 
   GCPRO1 (key);
 
-  c = Faref (key, make_number (0));
+  c = AREF (key, 0);
 
   if (CONSP (c) && lucid_event_type_list_p (c))
     c = Fevent_convert_list (c);
@@ -6791,6 +6792,7 @@ The following %-sequences are provided:
 }
 
 
+#ifdef WINDOWSNT
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
        doc: /* Return storage information about the file system FILENAME is on.
 Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
@@ -6886,6 +6888,8 @@ If the underlying system call fails, value is nil.  */)
 
   return value;
 }
+#endif /* WINDOWSNT */
+
 
 DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
        0, 0, 0, doc: /* Return the name of Windows default printer device.  */)
@@ -7009,6 +7013,9 @@ cache_system_info (void)
       DWORD data;
     } version;
 
+  /* Cache the module handle of Emacs itself.  */
+  hinst = GetModuleHandle (NULL);
+
   /* Cache the version of the operating system.  */
   version.data = GetVersion ();
   w32_major_version = version.info.major;
@@ -7021,7 +7028,7 @@ cache_system_info (void)
 
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);
-  syspage_mask = sysinfo_cache.dwPageSize - 1;
+  syspage_mask = (DWORD_PTR)sysinfo_cache.dwPageSize - 1;
 
   /* Cache os info.  */
   osinfo_cache.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
@@ -7609,7 +7616,10 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_battery_status);
 
+#ifdef WINDOWSNT
   defsubr (&Sfile_system_info);
+#endif
+
   defsubr (&Sdefault_printer_name);
   defsubr (&Sset_message_beep);
 
@@ -7685,6 +7695,30 @@ globals_of_w32fns (void)
   syms_of_w32uniscribe ();
 }
 
+typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
+						      PULONG);
+
+#define BACKTRACE_LIMIT_MAX 62
+
+int
+w32_backtrace (void **buffer, int limit)
+{
+  static CaptureStackBackTrace_proc s_pfn_CaptureStackBackTrace = NULL;
+  HMODULE hm_kernel32 = NULL;
+
+  if (!s_pfn_CaptureStackBackTrace)
+    {
+      hm_kernel32 = LoadLibrary ("Kernel32.dll");
+      s_pfn_CaptureStackBackTrace =
+	(CaptureStackBackTrace_proc) GetProcAddress (hm_kernel32,
+						     "RtlCaptureStackBackTrace");
+    }
+  if (s_pfn_CaptureStackBackTrace)
+    return s_pfn_CaptureStackBackTrace (0, min (BACKTRACE_LIMIT_MAX, limit),
+					buffer, NULL);
+  return 0;
+}
+
 void
 emacs_abort (void)
 {
@@ -7692,7 +7726,10 @@ emacs_abort (void)
   button = MessageBox (NULL,
 		       "A fatal error has occurred!\n\n"
 		       "Would you like to attach a debugger?\n\n"
-		       "Select YES to debug, NO to abort Emacs"
+		       "Select:\n"
+		       "YES -- to debug Emacs, or\n"
+		       "NO  -- to abort Emacs and produce a backtrace\n"
+		       "       (emacs_backtrace.txt in current directory)."
 #if __GNUC__
 		       "\n\n(type \"gdb -p <emacs-PID>\" and\n"
 		       "\"continue\" inside GDB before clicking YES.)"
@@ -7707,7 +7744,71 @@ emacs_abort (void)
       exit (2);	/* tell the compiler we will never return */
     case IDNO:
     default:
-      abort ();
-      break;
+      {
+	void *stack[BACKTRACE_LIMIT_MAX + 1];
+	int i = w32_backtrace (stack, BACKTRACE_LIMIT_MAX + 1);
+
+	if (i)
+	  {
+#ifdef CYGWIN
+	    int stderr_fd = 2;
+#else
+	    HANDLE errout = GetStdHandle (STD_ERROR_HANDLE);
+	    int stderr_fd = -1;
+#endif
+	    int errfile_fd = -1;
+	    int j;
+
+#ifndef CYGWIN
+	    if (errout && errout != INVALID_HANDLE_VALUE)
+	      stderr_fd = _open_osfhandle ((intptr_t)errout, O_APPEND | O_BINARY);
+#endif
+	    if (stderr_fd >= 0)
+	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+	    errfile_fd = _open ("emacs_backtrace.txt", O_RDWR | O_CREAT | O_BINARY, S_IREAD | S_IWRITE);
+	    if (errfile_fd >= 0)
+	      {
+		lseek (errfile_fd, 0L, SEEK_END);
+		write (errfile_fd, "\r\nBacktrace:\r\n", 14);
+	      }
+
+	    for (j = 0; j < i; j++)
+	      {
+		char buf[INT_BUFSIZE_BOUND (void *)];
+
+		/* stack[] gives the return addresses, whereas we want
+		   the address of the call, so decrease each address
+		   by approximate size of 1 CALL instruction.  */
+		sprintf (buf, "0x%p\r\n", (char *)stack[j] - sizeof(void *));
+		if (stderr_fd >= 0)
+		  write (stderr_fd, buf, strlen (buf));
+		if (errfile_fd >= 0)
+		  write (errfile_fd, buf, strlen (buf));
+	      }
+	    if (i == BACKTRACE_LIMIT_MAX)
+	      {
+		if (stderr_fd >= 0)
+		  write (stderr_fd, "...\r\n", 5);
+		if (errfile_fd >= 0)
+		  write (errfile_fd, "...\r\n", 5);
+	      }
+	    if (errfile_fd >= 0)
+	      close (errfile_fd);
+	  }
+	abort ();
+	break;
+      }
     }
 }
+
+#ifdef NTGUI_UNICODE
+
+Lisp_Object
+ntgui_encode_system (Lisp_Object str)
+{
+  Lisp_Object encoded;
+  to_unicode (str, &encoded);
+  return encoded;
+}
+
+#endif /* NTGUI_UNICODE */

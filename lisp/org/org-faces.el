@@ -1,6 +1,6 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -43,6 +43,9 @@
       (if (fboundp 'set-face-doc-string)
 	  (set-face-doc-string new-face docstring)))))
 (put 'org-copy-face 'lisp-indent-function 2)
+
+(when (featurep 'xemacs)
+  (put 'mode-line 'face-alias 'modeline))
 
 (defgroup org-faces nil
   "Faces in Org-mode."
@@ -692,13 +695,13 @@ month and 365.24 days for a year)."
   :group 'org-faces)
 
 (defface org-agenda-filter-tags
-  (org-compatible-face 'modeline
+  (org-compatible-face 'mode-line
     nil)
   "Face for tag(s) in the mode-line when filtering the agenda."
   :group 'org-faces)
 
 (defface org-agenda-filter-category
-  (org-compatible-face 'modeline
+  (org-compatible-face 'mode-line
     nil)
   "Face for tag(s) in the mode-line when filtering the agenda."
   :group 'org-faces)
@@ -770,9 +773,9 @@ level org-n-level-faces"
   "Face used to highlight math latex and other special exporter stuff."
   :group 'org-faces)
 
-(org-copy-face 'modeline 'org-mode-line-clock
+(org-copy-face 'mode-line 'org-mode-line-clock
   "Face used for clock display in mode line.")
-(org-copy-face 'modeline 'org-mode-line-clock-overrun
+(org-copy-face 'mode-line 'org-mode-line-clock-overrun
   "Face used for clock display for overrun tasks in mode line."
   :background "red")
 

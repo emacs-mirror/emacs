@@ -1,6 +1,6 @@
 ;;; org-element.el --- Parser And Applications for Org syntax
 
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -478,7 +478,7 @@ containing `:begin', `:end', `:hiddenp', `:contents-begin',
 Assume point is at the beginning of the block."
   (let ((case-fold-search t))
     (if (not (save-excursion
-	       (re-search-forward "^[ \t]*#\\+END_CENTER" limit t)))
+	       (re-search-forward "^[ \t]*#\\+END_CENTER[ \t]*$" limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((block-end-line (match-beginning 0)))
@@ -494,7 +494,8 @@ Assume point is at the beginning of the block."
 					(forward-line)
 					(point)))
 	       (end (save-excursion (skip-chars-forward " \r\t\n" limit)
-				    (if (eobp) (point) (point-at-bol)))))
+				    (skip-chars-backward " \t")
+				    (if (bolp) (point) (line-end-position)))))
 	  (list 'center-block
 		(nconc
 		 (list :begin begin
@@ -524,7 +525,7 @@ Return a list whose CAR is `drawer' and CDR is a plist containing
 
 Assume point is at beginning of drawer."
   (let ((case-fold-search t))
-    (if (not (save-excursion (re-search-forward "^[ \t]*:END:" limit t)))
+    (if (not (save-excursion (re-search-forward "^[ \t]*:END:[ \t]*$" limit t)))
 	;; Incomplete drawer: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((drawer-end-line (match-beginning 0)))
@@ -544,7 +545,8 @@ Assume point is at beginning of drawer."
 					  (forward-line)
 					  (point)))
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol)))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position)))))
 	    (list 'drawer
 		  (nconc
 		   (list :begin begin
@@ -578,7 +580,8 @@ containing `:block-name', `:begin', `:end', `:hiddenp',
 
 Assume point is at beginning of dynamic block."
   (let ((case-fold-search t))
-    (if (not (save-excursion (re-search-forward org-dblock-end-re limit t)))
+    (if (not (save-excursion
+	       (re-search-forward "^[ \t]*#\\+END:?[ \t]*$" limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((block-end-line (match-beginning 0)))
@@ -598,7 +601,8 @@ Assume point is at beginning of dynamic block."
 					  (forward-line)
 					  (point)))
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol)))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position)))))
 	    (list 'dynamic-block
 		  (nconc
 		   (list :begin begin
@@ -653,7 +657,8 @@ Assume point is at the beginning of the footnote definition."
 	   (contents-end (and contents-begin ending))
 	   (end (progn (goto-char ending)
 		       (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'footnote-definition
 	    (nconc
 	     (list :label label
@@ -904,7 +909,8 @@ Assume point is at beginning of the inline task."
 			   (forward-line)
 			   (point)))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position))))
 	   (inlinetask
 	    (list 'inlinetask
 		  (nconc
@@ -1108,7 +1114,8 @@ Assume point is at the beginning of the list."
 		   (unless (bolp) (forward-line))
 		   (point)))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       ;; Return value.
       (list 'plain-list
 	    (nconc
@@ -1145,7 +1152,7 @@ containing `:begin', `:end', `:hiddenp', `:contents-begin',
 Assume point is at the beginning of the block."
   (let ((case-fold-search t))
     (if (not (save-excursion
-	       (re-search-forward "^[ \t]*#\\+END_QUOTE" limit t)))
+	       (re-search-forward "^[ \t]*#\\+END_QUOTE[ \t]*$" limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((block-end-line (match-beginning 0)))
@@ -1162,7 +1169,8 @@ Assume point is at the beginning of the block."
 					  (forward-line)
 					  (point)))
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol)))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position)))))
 	    (list 'quote-block
 		  (nconc
 		   (list :begin begin
@@ -1227,7 +1235,8 @@ Assume point is at the beginning of the block."
 	 (type (progn (looking-at "[ \t]*#\\+BEGIN_\\(S-+\\)")
 		      (upcase (match-string-no-properties 1)))))
     (if (not (save-excursion
-	       (re-search-forward (concat "^[ \t]*#\\+END_" type) limit t)))
+	       (re-search-forward
+		(format "^[ \t]*#\\+END_%s[ \t]*$" type) limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((block-end-line (match-beginning 0)))
@@ -1243,8 +1252,9 @@ Assume point is at the beginning of the block."
 		 (pos-before-blank (progn (goto-char block-end-line)
 					  (forward-line)
 					  (point)))
-		 (end (progn (org-skip-whitespace)
-			     (if (eobp) (point) (point-at-bol)))))
+		 (end (progn (skip-chars-forward " \r\t\n" limit)
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position)))))
 	    (list 'special-block
 		  (nconc
 		   (list :type type
@@ -1295,7 +1305,8 @@ keywords."
 	  (begin (point-at-bol))
 	  (pos-before-blank (progn (forward-line) (point)))
 	  (end (progn (skip-chars-forward " \r\t\n" limit)
-		      (if (eobp) (point) (point-at-bol)))))
+		      (skip-chars-backward " \t")
+		      (if (bolp) (point) (line-end-position)))))
       (list 'babel-call
 	    (list :begin begin
 		  :end end
@@ -1338,7 +1349,8 @@ as keywords."
 	   (status (if time 'closed 'running))
 	   (post-blank (let ((before-blank (progn (forward-line) (point))))
 			 (skip-chars-forward " \r\t\n" limit)
-			 (unless (eobp) (beginning-of-line))
+			 (skip-chars-backward " \t")
+			 (unless (bolp) (end-of-line))
 			 (count-lines before-blank (point))))
 	   (end (point)))
       (list 'clock
@@ -1396,7 +1408,8 @@ Assume point is at comment beginning."
 	      (point)))
 	   (end (progn (goto-char com-end)
 		       (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'comment
 	    (nconc
 	     (list :begin begin
@@ -1425,7 +1438,7 @@ containing `:begin', `:end', `:hiddenp', `:value' and
 Assume point is at comment block beginning."
   (let ((case-fold-search t))
     (if (not (save-excursion
-	       (re-search-forward "^[ \t]*#\\+END_COMMENT" limit t)))
+	       (re-search-forward "^[ \t]*#\\+END_COMMENT[ \t]*$" limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((contents-end (match-beginning 0)))
@@ -1438,7 +1451,8 @@ Assume point is at comment block beginning."
 					  (forward-line)
 					  (point)))
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position))))
 		 (value (buffer-substring-no-properties
 			 contents-begin contents-end)))
 	    (list 'comment-block
@@ -1470,7 +1484,7 @@ containing `:begin', `:end', `:number-lines', `:preserve-indent',
 `:switches', `:value' and `:post-blank' keywords."
   (let ((case-fold-search t))
     (if (not (save-excursion
-	       (re-search-forward "^[ \t]*#\\+END_EXAMPLE" limit t)))
+	       (re-search-forward "^[ \t]*#\\+END_EXAMPLE[ \t]*$" limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((contents-end (match-beginning 0)))
@@ -1502,12 +1516,15 @@ containing `:begin', `:end', `:number-lines', `:preserve-indent',
 		 (begin (car keywords))
 		 (contents-begin (progn (forward-line) (point)))
 		 (hidden (org-invisible-p2))
-		 (value (buffer-substring-no-properties contents-begin contents-end))
+		 (value (org-unescape-code-in-string
+			 (buffer-substring-no-properties
+			  contents-begin contents-end)))
 		 (pos-before-blank (progn (goto-char contents-end)
 					  (forward-line)
 					  (point)))
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol)))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position)))))
 	    (list 'example-block
 		  (nconc
 		   (list :begin begin
@@ -1529,7 +1546,8 @@ CONTENTS is nil."
   (let ((switches (org-element-property :switches example-block)))
     (concat "#+BEGIN_EXAMPLE" (and switches (concat " " switches)) "\n"
 	    (org-remove-indentation
-	     (org-element-property :value example-block))
+	     (org-escape-code-in-string
+	      (org-element-property :value example-block)))
 	    "#+END_EXAMPLE")))
 
 
@@ -1549,7 +1567,8 @@ Assume point is at export-block beginning."
 	 (type (progn (looking-at "[ \t]*#\\+BEGIN_\\(\\S-+\\)")
 		      (upcase (org-match-string-no-properties 1)))))
     (if (not (save-excursion
-	       (re-search-forward (concat "^[ \t]*#\\+END_" type) limit t)))
+	       (re-search-forward
+		(format "^[ \t]*#\\+END_%s[ \t]*$" type) limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((contents-end (match-beginning 0)))
@@ -1562,7 +1581,8 @@ Assume point is at export-block beginning."
 					  (forward-line)
 					  (point)))
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position))))
 		 (value (buffer-substring-no-properties contents-begin
 							contents-end)))
 	    (list 'export-block
@@ -1612,7 +1632,8 @@ Assume point is at the beginning of the fixed-width area."
 		(forward-line))
 	      (point)))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'fixed-width
 	    (nconc
 	     (list :begin begin
@@ -1642,7 +1663,8 @@ containing `:begin', `:end' and `:post-blank' keywords."
 	   (begin (car keywords))
 	   (post-hr (progn (forward-line) (point)))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'horizontal-rule
 	    (nconc
 	     (list :begin begin
@@ -1675,7 +1697,8 @@ keywords."
 			     (match-end 0) (point-at-eol))))
 	   (pos-before-blank (progn (forward-line) (point)))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'keyword
 	    (list :key key
 		  :value value
@@ -1711,12 +1734,14 @@ Assume point is at the beginning of the latex environment."
 	   (env (progn (looking-at "^[ \t]*\\\\begin{\\([A-Za-z0-9]+\\*?\\)}")
 		       (regexp-quote (match-string 1))))
 	   (code-end
-	    (progn (re-search-forward (format "^[ \t]*\\\\end{%s}" env) limit t)
+	    (progn (re-search-forward
+		    (format "^[ \t]*\\\\end{%s}[ \t]*$" env) limit t)
 		   (forward-line)
 		   (point)))
 	   (value (buffer-substring-no-properties code-begin code-end))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'latex-environment
 	    (nconc
 	     (list :begin begin
@@ -1744,69 +1769,80 @@ containing `:begin', `:end', `:contents-begin' and
 
 Assume point is at the beginning of the paragraph."
   (save-excursion
-    (let* (;; INNER-PAR-P is non-nil when paragraph is at the
+    (let* ((contents-begin (point))
+	   ;; INNER-PAR-P is non-nil when paragraph is at the
 	   ;; beginning of an item or a footnote reference. In that
 	   ;; case, we mustn't look for affiliated keywords since they
 	   ;; belong to the container.
 	   (inner-par-p (not (bolp)))
-	   (contents-begin (point))
 	   (keywords (unless inner-par-p
 		       (org-element--collect-affiliated-keywords)))
 	   (begin (if inner-par-p contents-begin (car keywords)))
 	   (before-blank
 	    (let ((case-fold-search t))
 	      (end-of-line)
-	      (re-search-forward org-element-paragraph-separate limit 'm)
-	      (while (and (/= (point) limit)
-			  (cond
-			   ;; Skip non-existent or incomplete drawer.
-			   ((save-excursion
-			      (beginning-of-line)
-			      (and (looking-at "[ \t]*:\\S-")
-				   (or (not (looking-at org-drawer-regexp))
-				       (not (save-excursion
-					      (re-search-forward
-					       "^[ \t]*:END:" limit t)))))))
-			   ;; Stop at comments.
-			   ((save-excursion
-			      (beginning-of-line)
-			      (not (looking-at "[ \t]*#\\S-"))) nil)
-			   ;; Skip incomplete dynamic blocks.
-			   ((save-excursion
-			      (beginning-of-line)
-			      (looking-at "[ \t]*#\\+BEGIN: "))
-			    (not (save-excursion
-				   (re-search-forward
-				    "^[ \t]*\\+END:" limit t))))
-			   ;; Skip incomplete blocks.
-			   ((save-excursion
-			      (beginning-of-line)
-			      (looking-at "[ \t]*#\\+BEGIN_\\(\\S-+\\)"))
-			    (not (save-excursion
-				   (re-search-forward
-				    (concat "^[ \t]*#\\+END_"
-					    (match-string 1))
-				    limit t))))
-			   ;; Skip incomplete latex environments.
-			   ((save-excursion
-			      (beginning-of-line)
-			      (looking-at "^[ \t]*\\\\begin{\\([A-Za-z0-9]+\\*?\\)}"))
-			    (not (save-excursion
-				   (re-search-forward
-				    (format "^[ \t]*\\\\end{%s}"
-					    (match-string 1))
-				    limit t))))
-			   ;; Skip ill-formed keywords.
-			   ((not (save-excursion
-				   (beginning-of-line)
-				   (looking-at "[ \t]*#\\+\\S-+:"))))))
-		(re-search-forward org-element-paragraph-separate limit 'm))
-	      (if (eobp) (point) (goto-char (line-beginning-position)))))
+	      (if (not (re-search-forward
+			org-element-paragraph-separate limit 'm))
+		  limit
+		;; A matching `org-element-paragraph-separate' is not
+		;; necessarily the end of the paragraph.  In
+		;; particular, lines starting with # or : as a first
+		;; non-space character are ambiguous.  We have check
+		;; if they are valid Org syntax (i.e. not an
+		;; incomplete keyword).
+		(beginning-of-line)
+		(while (not
+			(or
+			 ;; There's no ambiguity for other symbols or
+			 ;; empty lines: stop here.
+			 (looking-at "[ \t]*\\(?:[^:#]\\|$\\)")
+			 ;; Stop at valid fixed-width areas.
+			 (looking-at "[ \t]*:\\(?: \\|$\\)")
+			 ;; Stop at drawers.
+			 (and (looking-at org-drawer-regexp)
+			      (save-excursion
+				(re-search-forward
+				 "^[ \t]*:END:[ \t]*$" limit t)))
+			 ;; Stop at valid comments.
+			 (looking-at "[ \t]*#\\(?: \\|$\\)")
+			 ;; Stop at valid dynamic blocks.
+			 (and (looking-at org-dblock-start-re)
+			      (save-excursion
+				(re-search-forward
+				 "^[ \t]*#\\+END:?[ \t]*$" limit t)))
+			 ;; Stop at valid blocks.
+			 (and (looking-at
+			       "[ \t]*#\\+BEGIN_\\(\\S-+\\)")
+			      (save-excursion
+				(re-search-forward
+				 (format "^[ \t]*#\\+END_%s[ \t]*$"
+					 (match-string 1))
+				 limit t)))
+			 ;; Stop at valid latex environments.
+			 (and (looking-at
+			       "^[ \t]*\\\\begin{\\([A-Za-z0-9]+\\*?\\)}[ \t]*$")
+			      (save-excursion
+				(re-search-forward
+				 (format "^[ \t]*\\\\end{%s}[ \t]*$"
+					 (match-string 1))
+				 limit t)))
+			 ;; Stop at valid keywords.
+			 (looking-at "[ \t]*#\\+\\S-+:")
+			 ;; Skip everything else.
+			 (not
+			  (progn
+			    (end-of-line)
+			    (re-search-forward org-element-paragraph-separate
+					       limit 'm)))))
+		  (beginning-of-line)))
+	      (if (= (point) limit) limit
+		(goto-char (line-beginning-position)))))
 	   (contents-end (progn (skip-chars-backward " \r\t\n" contents-begin)
 				(forward-line)
 				(point)))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'paragraph
 	    (nconc
 	     (list :begin begin
@@ -1837,7 +1873,8 @@ and `:post-blank' keywords."
 	   (begin (point))
 	   (post-blank (let ((before-blank (progn (forward-line) (point))))
 			 (skip-chars-forward " \r\t\n" limit)
-			 (unless (eobp) (beginning-of-line))
+			 (skip-chars-backward " \t")
+			 (unless (bolp) (end-of-line))
 			 (count-lines before-blank (point))))
 	   (end (point))
 	   closed deadline scheduled)
@@ -1895,7 +1932,7 @@ Assume point is at the beginning of the property drawer."
 	  (hidden (org-invisible-p2))
 	  (properties
 	   (let (val)
-	     (while (not (looking-at "^[ \t]*:END:"))
+	     (while (not (looking-at "^[ \t]*:END:[ \t]*$"))
 	       (when (looking-at "[ \t]*:\\([A-Za-z][-_A-Za-z0-9]*\\):")
 		 (push (cons (org-match-string-no-properties 1)
 			     (org-trim
@@ -1908,7 +1945,8 @@ Assume point is at the beginning of the property drawer."
 			   (point-at-bol)))
 	  (pos-before-blank (progn (forward-line) (point)))
 	  (end (progn (skip-chars-forward " \r\t\n" limit)
-		      (if (eobp) (point) (point-at-bol)))))
+		      (skip-chars-backward " \t")
+		      (if (bolp) (point) (line-end-position)))))
       (list 'property-drawer
 	    (list :begin begin
 		  :end end
@@ -1974,7 +2012,8 @@ containing `:language', `:switches', `:parameters', `:begin',
 
 Assume point is at the beginning of the block."
   (let ((case-fold-search t))
-    (if (not (save-excursion (re-search-forward "^[ \t]*#\\+END_SRC" limit t)))
+    (if (not (save-excursion (re-search-forward "^[ \t]*#\\+END_SRC[ \t]*$"
+						limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((contents-end (match-beginning 0)))
@@ -2017,13 +2056,15 @@ Assume point is at the beginning of the block."
 		 ;; Get visibility status.
 		 (hidden (progn (forward-line) (org-invisible-p2)))
 		 ;; Retrieve code.
-		 (value (buffer-substring-no-properties (point) contents-end))
+		 (value (org-unescape-code-in-string
+			 (buffer-substring-no-properties (point) contents-end)))
 		 (pos-before-blank (progn (goto-char contents-end)
 					  (forward-line)
 					  (point)))
 		 ;; Get position after ending blank lines.
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol)))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position)))))
 	    (list 'src-block
 		  (nconc
 		   (list :language language
@@ -2051,7 +2092,6 @@ CONTENTS is nil."
 	(params (org-element-property :parameters src-block))
 	(value (let ((val (org-element-property :value src-block)))
 		 (cond
-
 		  (org-src-preserve-indentation val)
 		  ((zerop org-edit-src-content-indentation)
 		   (org-remove-indentation val))
@@ -2065,7 +2105,7 @@ CONTENTS is nil."
 		    (concat (and lang (concat " " lang))
 			    (and switches (concat " " switches))
 			    (and params (concat " " params))))
-	    value
+	    (org-escape-code-in-string value)
 	    "#+END_SRC")))
 
 
@@ -2087,7 +2127,10 @@ Assume point is at the beginning of the table."
 	   (type (if (org-at-table.el-p) 'table.el 'org))
 	   (keywords (org-element--collect-affiliated-keywords))
 	   (begin (car keywords))
-	   (table-end (goto-char (marker-position (org-table-end t))))
+	   (table-end
+	    (if (re-search-forward org-table-any-border-regexp limit 'm)
+		(goto-char (match-beginning 0))
+	      (point)))
 	   (tblfm (let (acc)
 		    (while (looking-at "[ \t]*#\\+TBLFM: +\\(.*\\)[ \t]*$")
 		      (push (org-match-string-no-properties 1) acc)
@@ -2095,7 +2138,8 @@ Assume point is at the beginning of the table."
 		    acc))
 	   (pos-before-blank (point))
 	   (end (progn (skip-chars-forward " \r\t\n" limit)
-		       (if (eobp) (point) (point-at-bol)))))
+		       (skip-chars-backward " \t")
+		       (if (bolp) (point) (line-end-position)))))
       (list 'table
 	    (nconc
 	     (list :begin begin
@@ -2179,7 +2223,7 @@ containing `:begin', `:end', `:contents-begin', `:contents-end',
 Assume point is at beginning of the block."
   (let ((case-fold-search t))
     (if (not (save-excursion
-	       (re-search-forward "^[ \t]*#\\+END_VERSE" limit t)))
+	       (re-search-forward "^[ \t]*#\\+END_VERSE[ \t]*$" limit t)))
 	;; Incomplete block: parse it as a paragraph.
 	(org-element-paragraph-parser limit)
       (let ((contents-end (match-beginning 0)))
@@ -2192,7 +2236,8 @@ Assume point is at beginning of the block."
 					  (forward-line)
 					  (point)))
 		 (end (progn (skip-chars-forward " \r\t\n" limit)
-			     (if (eobp) (point) (point-at-bol)))))
+			     (skip-chars-backward " \t")
+			     (if (bolp) (point) (line-end-position)))))
 	    (list 'verse-block
 		  (nconc
 		   (list :begin begin
@@ -2367,6 +2412,7 @@ LIMIT bounds the search.
 Return value is a cons cell whose CAR is `entity' or
 `latex-fragment' and CDR is beginning position."
   (save-excursion
+    (unless (bolp) (backward-char))
     (let ((matchers
 	   (remove "begin" (plist-get org-format-latex-options :matchers)))
 	  ;; ENTITY-RE matches both LaTeX commands and Org entities.
@@ -2847,10 +2893,13 @@ Assume point is at the macro."
 	  (end (point))
 	  (args (let ((args (org-match-string-no-properties 3)) args2)
 		  (when args
-		    (setq args (org-split-string args ","))
+		    ;; Do not use `org-split-string' since empty
+		    ;; strings are meaningful here.
+		    (setq args (split-string args ","))
 		    (while args
 		      (while (string-match "\\\\\\'" (car args))
-			;; Repair bad splits.
+			;; Repair bad splits, when comma is protected,
+                        ;; and thus not a real separator.
 			(setcar (cdr args) (concat (substring (car args) 0 -1)
 						   "," (nth 1 args)))
 			(pop args))
@@ -3044,6 +3093,7 @@ LIMIT bounds the search.
 Return value is a cons cell whose CAR is either `subscript' or
 `superscript' and CDR is beginning position."
   (save-excursion
+    (unless (bolp) (backward-char))
     (when (re-search-forward org-match-substring-regexp limit t)
       (cons (if (string= (match-string 2) "_") 'subscript 'superscript)
 	    (match-beginning 2)))))
@@ -3564,7 +3614,32 @@ recursion.  It can be set to the following symbols:
 When VISIBLE-ONLY is non-nil, don't parse contents of hidden
 elements.
 
-Assume buffer is in Org mode."
+An element or an objects is represented as a list with the
+pattern (TYPE PROPERTIES CONTENTS), where :
+
+  TYPE is a symbol describing the element or object.  See
+  `org-element-all-elements' and `org-element-all-objects' for an
+  exhaustive list of such symbols.  One can retrieve it with
+  `org-element-type' function.
+
+  PROPERTIES is the list of attributes attached to the element or
+  object, as a plist.  Although most of them are specific to the
+  element or object type, all types share `:begin', `:end',
+  `:post-blank' and `:parent' properties, which respectively
+  refer to buffer position where the element or object starts,
+  ends, the number of white spaces or blank lines after it, and
+  the element or object containing it.  Properties values can be
+  obtained by using `org-element-property' function.
+
+  CONTENTS is a list of elements, objects or raw strings
+  contained in the current element or object, when applicable.
+  One can access them with `org-element-contents' function.
+
+The Org buffer has `org-data' as type and nil as properties.
+`org-element-map' function can be used to find specific elements
+or objects within the parse tree.
+
+This function assumes that current major mode is `org-mode'."
   (save-excursion
     (goto-char (point-min))
     (org-skip-whitespace)
@@ -3593,11 +3668,12 @@ containing the secondary string.  It is used to set correctly
 (defun org-element-map (data types fun &optional info first-match no-recursion)
   "Map a function on selected elements or objects.
 
-DATA is the parsed tree, as returned by, i.e,
+DATA is an Org buffer parse tree, as returned by, i.e.,
 `org-element-parse-buffer'.  TYPES is a symbol or list of symbols
-of elements or objects types.  FUN is the function called on the
-matching element or object.  It must accept one arguments: the
-element or object itself.
+of elements or objects types (see `org-element-all-elements' and
+`org-element-all-objects' for a complete list of types).  FUN is
+the function called on the matching element or object.  It has to
+accept one argument: the element or object itself.
 
 When optional argument INFO is non-nil, it should be a plist
 holding export options.  In that case, parts of the parse tree
@@ -3611,7 +3687,37 @@ representing elements or objects types.  `org-element-map' won't
 enter any recursive element or object whose type belongs to that
 list.  Though, FUN can still be applied on them.
 
-Nil values returned from FUN do not appear in the results."
+Nil values returned from FUN do not appear in the results.
+
+
+Examples:
+--------
+
+Assuming TREE is a variable containing an Org buffer parse tree,
+the following example will return a flat list of all `src-block'
+and `example-block' elements in it:
+
+  \(org-element-map tree '(example-block src-block) 'identity)
+
+The following snippet will find the first headline with a level
+of 1 and a \"phone\" tag, and will return its beginning position:
+
+  \(org-element-map
+   tree 'headline
+   \(lambda (hl)
+     \(and (= (org-element-property :level hl) 1)
+          \(member \"phone\" (org-element-property :tags hl))
+          \(org-element-property :begin hl)))
+   nil t)
+
+Eventually, this last example will return a flat list of all
+`bold' type objects containing a `latex-snippet' type object:
+
+  \(org-element-map
+   tree 'bold
+   \(lambda (b)
+     \(and (org-element-map b 'latex-snippet 'identity nil t)
+          b)))"
   ;; Ensure TYPES and NO-RECURSION are a list, even of one element.
   (unless (listp types) (setq types (list types)))
   (unless (listp no-recursion) (setq no-recursion (list no-recursion)))
@@ -3761,7 +3867,8 @@ Elements are accumulated into ACC."
 		'section))
 	     (plain-list 'item)
 	     (table 'table-row))
-	   (org-element-property :structure element)
+	   (and (memq type '(item plain-list))
+		(org-element-property :structure element))
 	   granularity visible-only element))
 	 ;; ELEMENT has contents.  Parse objects inside, if
 	 ;; GRANULARITY allows it.
@@ -3838,6 +3945,15 @@ Return value is an alist whose CAR is position and CDR the object
 type, as a symbol.
 
 OBJECTS is the previous candidates alist."
+  ;; Filter out any object found but not belonging to RESTRICTION.
+  (setq objects
+	(org-remove-if-not
+	 (lambda (obj)
+	   (let ((type (car obj)))
+	     (memq (or (cdr (assq type org-element-object-successor-alist))
+		       type)
+		   restriction)))
+	 objects))
   (let (next-candidates types-to-search)
     ;; If no previous result, search every object type in RESTRICTION.
     ;; Otherwise, keep potential candidates (old objects located after
@@ -4111,8 +4227,8 @@ of the element and PROPS a plist of properties associated to the
 element.
 
 Possible types are defined in `org-element-all-elements'.
-Properties depend on element or object type, but always
-include :begin, :end, :parent and :post-blank properties.
+Properties depend on element or object type, but always include
+`:begin', `:end', `:parent' and `:post-blank' properties.
 
 As a special case, if point is at the very beginning of a list or
 sub-list, returned element will be that list instead of the first
@@ -4121,8 +4237,8 @@ row of a table, returned element will be the table instead of the
 first row.
 
 If optional argument KEEP-TRAIL is non-nil, the function returns
-a list of of elements leading to element at point.  The list's
-CAR is always the element at point.  Following positions contain
+a list of elements leading to element at point.  The list's CAR
+is always the element at point.  The following positions contain
 element's siblings, then parents, siblings of parents, until the
 first element of current section."
   (org-with-wide-buffer
@@ -4193,8 +4309,11 @@ first element of current section."
 		   (plain-list
 		    (setq special-flag 'item
 			  struct (org-element-property :structure element)))
-		   (table (setq special-flag 'table-row))
-		   (otherwise (setq special-flag nil)))
+		   (item (setq special-flag nil))
+		   (property-drawer
+		    (setq special-flag 'node-property struct nil))
+		   (table (setq special-flag 'table-row struct nil))
+		   (otherwise (setq special-flag nil struct nil)))
 		 (setq end cend)
 		 (goto-char cbeg)))))))))))
 
@@ -4208,8 +4327,8 @@ associated to it.
 
 Possible types are defined in `org-element-all-elements' and
 `org-element-all-objects'.  Properties depend on element or
-object type, but always include :begin, :end, :parent
-and :post-blank properties."
+object type, but always include `:begin', `:end', `:parent' and
+`:post-blank'."
   (org-with-wide-buffer
    (let* ((origin (point))
 	  (element (org-element-at-point))
@@ -4235,7 +4354,7 @@ and :post-blank properties."
 		       (progn (beginning-of-line)
 			      (skip-chars-forward "* ")
 			      (setq end (point-at-eol))))
-		  (and (memq type '(paragraph table-cell verse-block))
+		  (and (memq type '(paragraph table-row verse-block))
 		       (let ((cbeg (org-element-property
 				    :contents-begin element))
 			     (cend (org-element-property
@@ -4254,27 +4373,33 @@ and :post-blank properties."
 					candidates)))
 	       ;; If ORIGIN is before next object in element, there's
 	       ;; no point in looking further.
-	       (if (> (cdr closest-cand) origin) (throw 'exit element)
+	       (if (> (cdr closest-cand) origin) (throw 'exit parent)
 		 (let* ((object
 			 (progn (goto-char (cdr closest-cand))
 				(funcall (intern (format "org-element-%s-parser"
 							 (car closest-cand))))))
 			(cbeg (org-element-property :contents-begin object))
-			(cend (org-element-property :contents-end object)))
+			(cend (org-element-property :contents-end object))
+			(obj-end (org-element-property :end object)))
 		   (cond
 		    ;; ORIGIN is after OBJECT, so skip it.
-		    ((< (org-element-property :end object) origin)
-		     (goto-char (org-element-property :end object)))
-		    ;; ORIGIN is within a non-recursive object or at an
-		    ;; object boundaries: Return that object.
+		    ((<= obj-end origin)
+		     (if (/= obj-end end) (goto-char obj-end)
+		       (throw 'exit
+			      (org-element-put-property
+			       object :parent parent))))
+		    ;; ORIGIN is within a non-recursive object or at
+		    ;; an object boundaries: Return that object.
 		    ((or (not cbeg) (> cbeg origin) (< cend origin))
 		     (throw 'exit
 			    (org-element-put-property object :parent parent)))
-		    ;; Otherwise, move within current object and restrict
-		    ;; search to the end of its contents.
+		    ;; Otherwise, move within current object and
+		    ;; restrict search to the end of its contents.
 		    (t (goto-char cbeg)
 		       (org-element-put-property object :parent parent)
-		       (setq parent object end cend)))))))
+		       (setq parent object
+			     restriction (org-element-restriction object)
+			     end cend)))))))
 	   parent))))))
 
 (defsubst org-element-nested-p (elem-A elem-B)
@@ -4351,6 +4476,10 @@ end of ELEM-A."
 	      (cdr overlays)))
       (goto-char (org-element-property :end elem-B)))))
 
-
 (provide 'org-element)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-element.el ends here

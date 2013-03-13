@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins
 
-;; Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -51,6 +51,19 @@
 	     (gc-cons-percentage alloc float)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
+	     (cursor-type
+	      display
+	      (choice
+	       (const :tag "Frame default" t)
+	       (const :tag "Filled box" box)
+	       (const :tag "Hollow cursor" hollow)
+	       (const :tag "Vertical bar" bar)
+	       (cons  :tag "Vertical bar with specified width"
+		      (const bar) integer)
+	       (const :tag "Horizontal bar" hbar)
+	       (cons  :tag "Horizontal bar with specified width"
+		      (const hbar) integer)
+	       (const :tag "None "nil)))
 	     (mode-line-format mode-line sexp) ;Hard to do right.
 	     (major-mode internal function)
 	     (case-fold-search matching boolean)
@@ -102,12 +115,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    (const :tag "On the right" (down . right))))
 	       (other :tag "On left, no arrows" t)))
 	     (scroll-up-aggressively windows
-				     (choice (const :tag "off" nil) number)
+				     (choice (const :tag "off" nil) float)
 				     "21.1")
 	     (scroll-down-aggressively windows
-				       (choice (const :tag "off" nil) number)
+				       (choice (const :tag "off" nil) float)
 				       "21.1")
-	     (line-spacing display (choice (const :tag "none" nil) integer)
+	     (line-spacing display (choice (const :tag "none" nil) number)
 			   "22.1")
 	     (cursor-in-non-selected-windows
 	      cursor boolean nil
@@ -273,7 +286,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
 	     (double-click-fuzz mouse integer "22.1")
-	     (inhibit-local-menu-bar-menus menu boolean)
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
 	     (menu-prompting menu boolean)
@@ -288,15 +300,15 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                      (const :tag "When sent SIGUSR2" sigusr2))
                              "24.1")
 
-;; This is not good news because it will use the wrong
-;; version-specific directories when you upgrade.  We need
-;; customization of the front of the list, maintaining the standard
-;; value intact at the back.
-;;; 	     (load-path environment
-;;; 			(repeat (choice :tag "[Current dir?]"
-;;; 					:format "%[Current dir?%] %v"
-;;; 					(const :tag " current dir" nil)
-;;;					(directory :format "%v"))))
+             ;; This is not good news because it will use the wrong
+             ;; version-specific directories when you upgrade.  We need
+             ;; customization of the front of the list, maintaining the
+             ;; standard value intact at the back.
+	     ;;(load-path environment
+	     ;;    	(repeat (choice :tag "[Current dir?]"
+	     ;;    			:format "%[Current dir?%] %v"
+	     ;;    			(const :tag " current dir" nil)
+	     ;;    			(directory :format "%v"))))
 	     ;; minibuf.c
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
@@ -385,6 +397,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (const super)) "23.1")
 	     (ns-antialias-text ns boolean "23.1")
 	     (ns-auto-hide-menu-bar ns boolean "24.0")
+	     (ns-use-native-fullscreen ns boolean "24.4")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
@@ -500,6 +513,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")
+	     (scroll-bar-adjust-thumb-portion windows boolean "24.4")
 	     ;; xselect.c
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
@@ -562,6 +576,9 @@ since it could result in memory overflow and make Emacs crash."
 			      (symbol-name symbol))
 		       ;; Any function from fontset.c will do.
 		       (fboundp 'new-fontset))
+		      ((equal "scroll-bar-adjust-thumb-portion"
+			      (symbol-name symbol))
+		       (featurep 'x))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!

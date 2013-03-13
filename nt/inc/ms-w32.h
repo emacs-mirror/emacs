@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -69,6 +69,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
 #define HAVE___BUILTIN_UNWIND_INIT 1
 #endif
+
+/* This isn't perfect, as some systems might have the page file in
+   another place.  Also, I suspect that the time stamp of that file
+   might also change when Windows enlarges the file due to
+   insufficient VM.  Still, this seems to be the most reliable way;
+   the alternative (of using GetSystemTimes) won't work on laptops
+   that hibernate, because the system clock is stopped then.  Other
+   possibility would be to run "net statistics workstation" and parse
+   the output, but that's gross.  So this should do; if the file is
+   not there, the boot time will be returned as zero, and filelock.c
+   already handles that.  */
+#define BOOT_TIME_FILE "C:/pagefile.sys"
 
 /* ============================================================ */
 
@@ -145,13 +157,10 @@ extern char *getenv ();
 #endif
 
 /* Calls that are emulated or shadowed.  */
-#undef access
-#define access  sys_access
 #undef chdir
 #define chdir   sys_chdir
 #undef chmod
 #define chmod   sys_chmod
-#define chown   sys_chown
 #undef close
 #define close   sys_close
 #undef creat
@@ -180,19 +189,20 @@ extern char *getenv ();
 #define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
+/* This prototype is needed because some files include config.h
+   _after_ the standard headers, so sys_unlink gets no prototype from
+   stdio.h or io.h.  */
+extern int sys_unlink (const char *);
 #undef write
 #define write   sys_write
 
 /* Subprocess calls that are emulated.  */
 #define spawnve sys_spawnve
-#define wait    sys_wait
 #define kill    sys_kill
 #define signal  sys_signal
 
 /* Internal signals.  */
 #define emacs_raise(sig) emacs_abort()
-
-extern int sys_wait (int *);
 
 /* termcap.c calls that are emulated.  */
 #define tputs   sys_tputs
@@ -210,6 +220,7 @@ extern int sys_wait (int *);
 /* Map to MSVC names.  */
 #define execlp    _execlp
 #define execvp    _execvp
+#define fdatasync _commit
 #define fdopen	  _fdopen
 #ifndef fileno
 #define fileno	  _fileno
@@ -223,7 +234,6 @@ typedef int pid_t;
 #define strtoll   _strtoi64
 #endif
 #define isatty    _isatty
-#define logb      _logb
 #define _longjmp  longjmp
 #define lseek     _lseek
 #define popen     _popen
@@ -266,8 +276,11 @@ struct timespec
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
 extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
+#ifdef _MSC_VER
 /* This is hacky, but is necessary to avoid warnings about macro
-   redefinitions using the SDK compilers.  */
+   redefinitions using the MSVC compilers, since, when __STDC__ is
+   undefined or zero, those compilers declare functions like fileno,
+   lseek, and chdir, for which we defined macros above.  */
 #ifndef __STDC__
 #define __STDC__ 1
 #define MUST_UNDEF__STDC__
@@ -279,6 +292,11 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #undef __STDC__
 #undef MUST_UNDEF__STDC__
 #endif
+#else  /* !_MSC_VER */
+#include <direct.h>
+#include <io.h>
+#include <stdio.h>
+#endif	/* !_MSC_VER */
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */
@@ -292,6 +310,10 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
 #ifndef NSIG
 #define NSIG 23
+#endif
+
+#ifndef ENOTSUP
+#define ENOTSUP ENOSYS
 #endif
 
 #ifdef _MSC_VER
@@ -381,8 +403,18 @@ extern char *get_emacs_configuration_options (void);
 #define sys_nerr _sys_nerr
 #endif
 
+/* This must be after including stdlib.h, which defines putenv on MinGW.  */
+#ifdef putenv
+# undef putenv
+#endif
+#define putenv    sys_putenv
+extern int sys_putenv (char *);
+
 extern int getloadavg (double *, int);
 extern int getpagesize (void);
+
+extern void * memrchr (void const *, int, size_t);
+
 
 #if defined (__MINGW32__)
 

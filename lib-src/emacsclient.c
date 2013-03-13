@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2012 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -88,10 +88,7 @@ char *w32_getenv (char *);
 
 
 
-char *getenv (const char *), *getwd (char *);
-#ifdef HAVE_GETCWD
-char *(getcwd) (char *, size_t);
-#endif
+char *getenv (const char *);
 
 #ifndef VERSION
 #define VERSION "unspecified"
@@ -223,7 +220,7 @@ get_current_dir_name (void)
   char *buf;
   const char *pwd;
   struct stat dotstat, pwdstat;
-  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+  /* If PWD is accurate, use it instead of calling getcwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
     if ((pwd = egetenv ("PWD")) != 0
@@ -240,7 +237,6 @@ get_current_dir_name (void)
       buf = (char *) xmalloc (strlen (pwd) + 1);
       strcpy (buf, pwd);
     }
-#ifdef HAVE_GETCWD
   else
     {
       size_t buf_size = 1024;
@@ -267,20 +263,6 @@ get_current_dir_name (void)
 	    }
         }
     }
-#else
-  else
-    {
-      /* We need MAXPATHLEN here.  */
-      buf = (char *) xmalloc (MAXPATHLEN + 1);
-      if (getwd (buf) == NULL)
-        {
-          int tmp_errno = errno;
-          free (buf);
-          errno = tmp_errno;
-          return NULL;
-        }
-    }
-#endif
   return buf;
 }
 #endif
@@ -1138,7 +1120,7 @@ handle_sigcont (int signalnum)
   else
     {
       /* We are in the background; cancel the continue. */
-      kill (getpid (), SIGSTOP);
+      raise (SIGSTOP);
     }
 
   signal (signalnum, handle_sigcont);
@@ -1165,7 +1147,7 @@ handle_sigtstp (int signalnum)
   sigprocmask (SIG_BLOCK, NULL, &set);
   sigdelset (&set, signalnum);
   signal (signalnum, SIG_DFL);
-  kill (getpid (), signalnum);
+  raise (signalnum);
   sigprocmask (SIG_SETMASK, &set, NULL); /* Let's the above signal through. */
   signal (signalnum, handle_sigtstp);
 
@@ -1592,7 +1574,6 @@ main (int argc, char **argv)
   cwd = get_current_dir_name ();
   if (cwd == 0)
     {
-      /* getwd puts message in STRING if it fails.  */
       message (TRUE, "%s: %s\n", progname,
 	       "Cannot get current working directory");
       fail ();
@@ -1743,7 +1724,8 @@ main (int argc, char **argv)
       needlf = 2;
     }
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
@@ -1844,7 +1826,8 @@ main (int argc, char **argv)
   if (needlf)
     printf ("\n");
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   if (rl < 0)
     exit_status = EXIT_FAILURE;

@@ -1,6 +1,6 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet
 
-;; Copyright (C) 1996-1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -155,8 +155,8 @@ filenames."
 	  (setq destination
 		(if (= (length bufs) 1)
 		    (get-buffer (car bufs))
-		  (gnus-completing-read "Attach to which mail composition buffer"
-                                         bufs t)))
+		  (gnus-completing-read "Attach to buffer"
+                                         bufs t nil nil (car bufs))))
 	;; setup a new mail composition buffer
 	(let ((mail-user-agent gnus-dired-mail-mode)
 	      ;; A workaround to prevent Gnus from displaying the Gnus

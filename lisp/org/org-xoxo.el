@@ -1,6 +1,6 @@
 ;;; org-xoxo.el --- XOXO export for Org-mode
 
-;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -121,5 +121,9 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
       )))
 
 (provide 'org-xoxo)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-xoxo.el ends here

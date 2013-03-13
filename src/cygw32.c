@@ -1,5 +1,5 @@
 /* Cygwin support routines.
-   Copyright (C) 2011-2012  Free Software Foundation, Inc.
+   Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include <unistd.h>
 #include <fcntl.h>
-static Lisp_Object Qutf_16le;
 
 static Lisp_Object
 fchdir_unwind (Lisp_Object dir_fd)
@@ -107,63 +106,35 @@ conv_filename_from_w32_unicode (const wchar_t* in, int absolute_p)
   return unbind_to (count, DECODE_FILE (converted));
 }
 
-Lisp_Object
-from_unicode (Lisp_Object str)
-{
-  CHECK_STRING (str);
-  if (!STRING_MULTIBYTE (str) &&
-      SBYTES (str) & 1)
-    {
-      str = Fsubstring (str, make_number (0), make_number (-1));
-    }
-
-  return code_convert_string_norecord (str, Qutf_16le, 0);
-}
-
-wchar_t *
-to_unicode (Lisp_Object str, Lisp_Object *buf)
-{
-  *buf = code_convert_string_norecord (str, Qutf_16le, 1);
-  /* We need to make a another copy (in addition to the one made by
-     code_convert_string_norecord) to ensure that the final string is
-     _doubly_ zero terminated --- that is, that the string is
-     terminated by two zero bytes and one utf-16le null character.
-     Because strings are already terminated with a single zero byte,
-     we just add one additional zero. */
-  str = make_uninit_string (SBYTES (*buf) + 1);
-  memcpy (SDATA (str), SDATA (*buf), SBYTES (*buf));
-  SDATA (str) [SBYTES (*buf)] = '\0';
-  *buf = str;
-  return WCSDATA (*buf);
-}
-
-DEFUN ("cygwin-convert-path-to-windows",
-       Fcygwin_convert_path_to_windows, Scygwin_convert_path_to_windows,
+DEFUN ("cygwin-convert-file-name-to-windows",
+       Fcygwin_convert_file_name_to_windows,
+       Scygwin_convert_file_name_to_windows,
        1, 2, 0,
-       doc: /* Convert PATH to a Windows path.  If ABSOLUTE-P if
-               non-nil, return an absolute path.*/)
-  (Lisp_Object path, Lisp_Object absolute_p)
+       doc: /* Convert a Cygwin file name FILE to a Windows-style file name.
+If ABSOLUTE-P is non-nil, return an absolute file name.
+For the reverse operation, see `cygwin-convert-file-name-from-windows'.  */)
+  (Lisp_Object file, Lisp_Object absolute_p)
 {
   return from_unicode (
-    conv_filename_to_w32_unicode (path, EQ (absolute_p, Qnil) ? 0 : 1));
+    conv_filename_to_w32_unicode (file, EQ (absolute_p, Qnil) ? 0 : 1));
 }
 
-DEFUN ("cygwin-convert-path-from-windows",
-       Fcygwin_convert_path_from_windows, Scygwin_convert_path_from_windows,
+DEFUN ("cygwin-convert-file-name-from-windows",
+       Fcygwin_convert_file_name_from_windows,
+       Scygwin_convert_file_name_from_windows,
        1, 2, 0,
-       doc: /* Convert a Windows path to a Cygwin path.  If ABSOLUTE-P
-               if non-nil, return an absolute path.*/)
-  (Lisp_Object path, Lisp_Object absolute_p)
+       doc: /* Convert a Windows-style file name FILE to a Cygwin file name.
+If ABSOLUTE-P is non-nil, return an absolute file name.
+For the reverse operation, see `cygwin-convert-file-name-to-windows'.  */)
+  (Lisp_Object file, Lisp_Object absolute_p)
 {
-  return conv_filename_from_w32_unicode (to_unicode (path, &path),
+  return conv_filename_from_w32_unicode (to_unicode (file, &file),
                                          EQ (absolute_p, Qnil) ? 0 : 1);
 }
 
 void
 syms_of_cygw32 (void)
 {
-  /* No, not utf-16-le: that one has a BOM.  */
-  DEFSYM (Qutf_16le, "utf-16le");
-  defsubr (&Scygwin_convert_path_from_windows);
-  defsubr (&Scygwin_convert_path_to_windows);
+  defsubr (&Scygwin_convert_file_name_from_windows);
+  defsubr (&Scygwin_convert_file_name_to_windows);
 }

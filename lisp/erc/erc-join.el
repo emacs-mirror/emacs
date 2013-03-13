@@ -1,6 +1,6 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects
 
-;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -34,7 +34,6 @@
 
 (require 'erc)
 (require 'auth-source)
-(eval-when-compile (require 'cl))
 
 (defgroup erc-autojoin nil
   "Enable autojoining."

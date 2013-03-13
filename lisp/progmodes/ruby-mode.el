@@ -1,13 +1,13 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files
 
-;; Copyright (C) 1994-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/RubyMode
 ;; Created: Fri Feb  4 14:49:13 JST 1994
 ;; Keywords: languages ruby
-;; Version: 1.0
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -64,8 +64,9 @@
   "Regexp to match keywords that nest without blocks.")
 
 (defconst ruby-indent-beg-re
-  (concat "^\\s *" (regexp-opt '("class" "module" "def" "if" "unless" "case"
-                                 "while" "until" "for" "begin")) "\\_>")
+  (concat "^\\(\\s *" (regexp-opt '("class" "module" "def")) "\\|"
+          (regexp-opt '("if" "unless" "case" "while" "until" "for" "begin"))
+          "\\)\\_>")
   "Regexp to match where the indentation gets deeper.")
 
 (defconst ruby-modifier-beg-keywords
@@ -102,10 +103,17 @@
   '"\\(def\\|class\\|module\\)"
   "Regexp to match the beginning of a defun, in the general sense.")
 
+(defconst ruby-singleton-class-re
+  "class\\s *<<"
+  "Regexp to match the beginning of a singleton class context.")
+
 (eval-and-compile
   (defconst ruby-here-doc-beg-re
   "\\(<\\)<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)"
-    "Regexp to match the beginning of a heredoc."))
+  "Regexp to match the beginning of a heredoc.")
+
+  (defconst ruby-expression-expansion-re
+    "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -381,10 +389,12 @@ and `\\' when preceded by `?'."
     (when pos (goto-char pos))
     (forward-word -1)
     (and (or (bolp) (not (eq (char-before (point)) ?_)))
-         (looking-at "class\\s *<<"))))
+         (looking-at ruby-singleton-class-re))))
 
 (defun ruby-expr-beg (&optional option)
-  "TODO: document."
+  "Check if point is possibly at the beginning of an expression.
+OPTION specifies the type of the expression.
+Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
   (save-excursion
     (store-match-data nil)
     (let ((space (skip-chars-backward " \t"))
@@ -397,10 +407,10 @@ and `\\' when preceded by `?'."
                (or (eq (char-syntax (char-before (point))) ?w)
                    (ruby-special-char-p))))
         nil)
-       ((and (eq option 'heredoc) (< space 0))
-        (not (progn (goto-char start) (ruby-singleton-class-p))))
-       ((or (looking-at ruby-operator-re)
-            (looking-at "[\\[({,;]")
+       ((looking-at ruby-operator-re))
+       ((eq option 'heredoc)
+        (and (< space 0) (not (ruby-singleton-class-p start))))
+       ((or (looking-at "[\\[({,;]")
             (and (looking-at "[!?]")
                  (or (not (eq option 'modifier))
                      (bolp)
@@ -585,8 +595,7 @@ and `\\' when preceded by `?'."
                (not (or (eq ?_ w)
                         (eq ?. w)))))
          (goto-char pnt)
-         (setq w (char-after (point)))
-         (not (eq ?! w))
+         (not (eq ?! (char-after (point))))
          (skip-chars-forward " \t")
          (goto-char (match-beginning 0))
          (or (not (looking-at ruby-modifier-re))
@@ -865,50 +874,67 @@ calculating indentation on the lines after it."
                 (beginning-of-line)))))
 
 (defun ruby-move-to-block (n)
-  "Move to the beginning (N < 0) or the end (N > 0) of the current block
-or blocks containing the current block."
-  ;; TODO: Make this work for n > 1,
-  ;; make it not loop for n = 0,
-  ;; document body
-  (let ((orig (point))
-        (start (ruby-calculate-indent))
-        (down (looking-at (if (< n 0) ruby-block-end-re
-                            (concat "\\<\\(" ruby-block-beg-re "\\)\\>"))))
-        pos done)
-    (while (and (not done) (not (if (< n 0) (bobp) (eobp))))
-      (forward-line n)
-      (cond
-       ((looking-at "^\\s *$"))
-       ((looking-at "^\\s *#"))
-       ((and (> n 0) (looking-at "^=begin\\>"))
-        (re-search-forward "^=end\\>"))
-       ((and (< n 0) (looking-at "^=end\\>"))
-        (re-search-backward "^=begin\\>"))
-       (t
-        (setq pos (current-indentation))
+  "Move to the beginning (N < 0) or the end (N > 0) of the
+current block, a sibling block, or an outer block.  Do that (abs N) times."
+  (let ((signum (if (> n 0) 1 -1))
+        (backward (< n 0))
+        (depth (or (nth 2 (ruby-parse-region (line-beginning-position)
+                                             (line-end-position)))
+                   0))
+        down done)
+    (when (< (* depth signum) 0)
+      ;; Moving end -> end or beginning -> beginning.
+      (setq depth 0))
+    (dotimes (_ (abs n))
+      (setq done nil)
+      (setq down (save-excursion
+                   (back-to-indentation)
+                   ;; There is a block start or block end keyword on this
+                   ;; line, don't need to look for another block.
+                   (and (re-search-forward
+                         (if backward ruby-block-end-re
+                           (concat "\\_<\\(" ruby-block-beg-re "\\)\\_>"))
+                         (line-end-position) t)
+                        (not (nth 8 (syntax-ppss))))))
+      (while (and (not done) (not (if backward (bobp) (eobp))))
+        (forward-line signum)
         (cond
-         ((< start pos)
-          (setq down t))
-         ((and down (= pos start))
-          (setq done t))
-         ((> start pos)
-          (setq done t)))))
-      (if done
-          (save-excursion
-            (back-to-indentation)
-            (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
-                (setq done nil)))))
-    (back-to-indentation)
-    (when (< n 0)
-      (let ((eol (point-at-eol)) state next)
-        (if (< orig eol) (setq eol orig))
-        (setq orig (point))
-        (while (and (setq next (apply 'ruby-parse-partial eol state))
-                    (< (point) eol))
-          (setq state next))
-        (when (cdaadr state)
-          (goto-char (cdaadr state)))
-        (backward-word)))))
+         ;; Skip empty and commented out lines.
+         ((looking-at "^\\s *$"))
+         ((looking-at "^\\s *#"))
+         ;; Skip block comments;
+         ((and (not backward) (looking-at "^=begin\\>"))
+          (re-search-forward "^=end\\>"))
+         ((and backward (looking-at "^=end\\>"))
+          (re-search-backward "^=begin\\>"))
+         ;; Jump over a multiline literal.
+         ((ruby-in-ppss-context-p 'string)
+          (goto-char (nth 8 (syntax-ppss)))
+          (unless backward
+            (forward-sexp)
+            (when (bolp) (forward-char -1)))) ; After a heredoc.
+         (t
+          (let ((state (ruby-parse-region (point) (line-end-position))))
+            (unless (car state) ; Line ends with unfinished string.
+              (setq depth (+ (nth 2 state) depth))))
+          (cond
+           ;; Deeper indentation, we found a block.
+           ;; FIXME: We can't recognize empty blocks this way.
+           ((> (* signum depth) 0)
+            (setq down t))
+           ;; Block found, and same indentation as when started, stop.
+           ((and down (zerop depth))
+            (setq done t))
+           ;; Shallower indentation, means outer block, can stop now.
+           ((< (* signum depth) 0)
+            (setq done t)))))
+        (if done
+            (save-excursion
+              (back-to-indentation)
+              ;; Not really at the first or last line of the block, move on.
+              (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
+                  (setq done nil))))))
+    (back-to-indentation)))
 
 (defun ruby-beginning-of-block (&optional arg)
   "Move backward to the beginning of the current block.
@@ -919,8 +945,7 @@ With ARG, move up multiple blocks."
 (defun ruby-end-of-block (&optional arg)
   "Move forward to the end of the current block.
 With ARG, move out of multiple blocks."
-  ;; Passing a value > 1 to ruby-move-to-block currently doesn't work.
-  (interactive)
+  (interactive "p")
   (ruby-move-to-block (or arg 1)))
 
 (defun ruby-forward-sexp (&optional arg)
@@ -1043,69 +1068,86 @@ For example:
   #exit
   String#gsub
   Net::HTTP#active?
-  File::open.
+  File.open
 
 See `add-log-current-defun-function'."
-  ;; TODO: Document body
-  ;; Why does this append a period to class methods?
   (condition-case nil
       (save-excursion
-        (let (mname mlist (indent 0))
-          ;; get current method (or class/module)
-          (if (re-search-backward
-               (concat "^[ \t]*" ruby-defun-beg-re "[ \t]+"
-                       "\\("
-                       ;; \\. and :: for class method
-                        "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
-                        "+\\)")
-               nil t)
-              (progn
-                (setq mname (match-string 2))
-                (unless (string-equal "def" (match-string 1))
-                  (setq mlist (list mname) mname nil))
-                (goto-char (match-beginning 1))
-                (setq indent (current-column))
-                (beginning-of-line)))
-          ;; nest class/module
-          (while (and (> indent 0)
-                      (re-search-backward
-                       (concat
-                        "^[ \t]*\\(class\\|module\\)[ \t]+"
-                        "\\([A-Z]" ruby-symbol-re "*\\)")
-                       nil t))
+        (let* ((indent 0) mname mlist
+               (start (point))
+               (make-definition-re
+                (lambda (re)
+                  (concat "^[ \t]*" re "[ \t]+"
+                          "\\("
+                          ;; \\. and :: for class methods
+                          "\\([A-Za-z_]" ruby-symbol-re "*\\|\\.\\|::" "\\)"
+                          "+\\)")))
+               (definition-re (funcall make-definition-re ruby-defun-beg-re))
+               (module-re (funcall make-definition-re "\\(class\\|module\\)")))
+          ;; Get the current method definition (or class/module).
+          (when (re-search-backward definition-re nil t)
             (goto-char (match-beginning 1))
-            (if (< (current-column) indent)
-                (progn
-                  (setq mlist (cons (match-string 2) mlist))
-                  (setq indent (current-column))
-                  (beginning-of-line))))
+            (if (not (string-equal "def" (match-string 1)))
+                (setq mlist (list (match-string 2)))
+              ;; We're inside the method. For classes and modules,
+              ;; this check is skipped for performance.
+              (when (ruby-block-contains-point start)
+                (setq mname (match-string 2))))
+            (setq indent (current-column))
+            (beginning-of-line))
+          ;; Walk up the class/module nesting.
+          (while (and (> indent 0)
+                      (re-search-backward module-re nil t))
+            (goto-char (match-beginning 1))
+            (when (< (current-column) indent)
+              (setq mlist (cons (match-string 2) mlist))
+              (setq indent (current-column))
+              (beginning-of-line)))
+          ;; Process the method name.
           (when mname
             (let ((mn (split-string mname "\\.\\|::")))
               (if (cdr mn)
                   (progn
-                    (cond
-                     ((string-equal "" (car mn))
-                      (setq mn (cdr mn) mlist nil))
-                     ((string-equal "self" (car mn))
-                      (setq mn (cdr mn)))
-                     ((let ((ml (nreverse mlist)))
+                    (unless (string-equal "self" (car mn)) ; def self.foo
+                      ;; def C.foo
+                      (let ((ml (nreverse mlist)))
+                        ;; If the method name references one of the
+                        ;; containing modules, drop the more nested ones.
                         (while ml
                           (if (string-equal (car ml) (car mn))
                               (setq mlist (nreverse (cdr ml)) ml nil))
-                          (or (setq ml (cdr ml)) (nreverse mlist))))))
-                    (if mlist
-                        (setcdr (last mlist) mn)
-                      (setq mlist mn))
-                    (setq mn (last mn 2))
-                    (setq mname (concat "." (cadr mn)))
-                    (setcdr mn nil))
-                (setq mname (concat "#" mname)))))
-          ;; generate string
+                          (or (setq ml (cdr ml)) (nreverse mlist))))
+                      (if mlist
+                          (setcdr (last mlist) (butlast mn))
+                        (setq mlist (butlast mn))))
+                    (setq mname (concat "." (car (last mn)))))
+                ;; See if the method is in singleton class context.
+                (let ((in-singleton-class
+                       (when (re-search-forward ruby-singleton-class-re start t)
+                         (goto-char (match-beginning 0))
+                         ;; FIXME: Optimize it out, too?
+                         ;; This can be slow in a large file, but
+                         ;; unlike class/module declaration
+                         ;; indentations, method definitions can be
+                         ;; intermixed with these, and may or may not
+                         ;; be additionally indented after visibility
+                         ;; keywords.
+                         (ruby-block-contains-point start))))
+                  (setq mname (concat
+                               (if in-singleton-class "." "#")
+                               mname))))))
+          ;; Generate the string.
           (if (consp mlist)
               (setq mlist (mapconcat (function identity) mlist "::")))
           (if mname
               (if mlist (concat mlist mname) mname)
             mlist)))))
+
+(defun ruby-block-contains-point (pt)
+  (save-excursion
+    (save-match-data
+      (ruby-forward-sexp)
+      (> (point) pt))))
 
 (defun ruby-brace-to-do-end (orig end)
   (let (beg-marker end-marker)
@@ -1234,8 +1276,10 @@ It will be properly highlighted even when the call omits parens."))
             "\\)\\s *"
             ;; The regular expression itself.
             "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)")
-           (2 (string-to-syntax "\"/"))
-           (3 (string-to-syntax "\"/")))
+           (3 (unless (nth 3 (syntax-ppss (match-beginning 2)))
+                (put-text-property (match-beginning 2) (match-end 2)
+                                   'syntax-table (string-to-syntax "\"/"))
+                (string-to-syntax "\"/"))))
           ("^=en\\(d\\)\\_>" (1 "!"))
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.
@@ -1247,7 +1291,8 @@ It will be properly highlighted even when the call omits parens."))
           ;; Handle percent literals: %w(), %q{}, etc.
           ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
            (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
-         (point) end))
+         (point) end)
+        (ruby-syntax-propertize-expansions start end))
 
       (defun ruby-syntax-propertize-heredoc (limit)
         (let ((ppss (syntax-ppss))
@@ -1314,6 +1359,23 @@ It will be properly highlighted even when the call omits parens."))
                                      (string-to-syntax "|")))
               ;; Unclosed literal, leave the following text unpropertized.
               ((scan-error search-failed) (goto-char limit))))))
+
+      (defun ruby-syntax-propertize-expansions (start end)
+        (remove-text-properties start end '(ruby-expansion-match-data))
+        (goto-char start)
+        ;; Find all expression expansions and
+        ;; - save the match data to a text property, for font-locking later,
+        ;; - set the syntax of all double quotes and backticks to punctuation.
+        (while (re-search-forward ruby-expression-expansion-re end 'move)
+          (let ((beg (match-beginning 2))
+                (end (match-end 2)))
+            (when (and beg (save-excursion (nth 3 (syntax-ppss beg))))
+              (put-text-property beg (1+ beg) 'ruby-expansion-match-data
+                                 (match-data))
+              (goto-char beg)
+              (while (re-search-forward "[\"`]" end 'move)
+                (put-text-property (match-beginning 0) (match-end 0)
+                                   'syntax-table (string-to-syntax ".")))))))
       )
 
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,
@@ -1514,7 +1576,7 @@ See `font-lock-syntax-table'.")
      1 font-lock-function-name-face)
    ;; keywords
    (cons (concat
-          "\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(defined\\?\\|"
+          "\\(^\\|[^.@$]\\|\\.\\.\\)\\_<\\(defined\\?\\|"
           (regexp-opt
            '("alias_method"
              "alias"
@@ -1561,9 +1623,10 @@ See `font-lock-syntax-table'.")
           ruby-keyword-end-re)
          2)
    ;; here-doc beginnings
-   (list ruby-here-doc-beg-re 0 'font-lock-string-face)
+   `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
+                               'font-lock-string-face))
    ;; variables
-   '("\\(^\\|[^_:.@$]\\|\\.\\.\\)\\b\\(nil\\|self\\|true\\|false\\)\\>"
+   '("\\(^\\|[^.@$]\\|\\.\\.\\)\\_<\\(nil\\|self\\|true\\|false\\)\\>"
      2 font-lock-variable-name-face)
    ;; symbols
    '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
@@ -1574,12 +1637,12 @@ See `font-lock-syntax-table'.")
    '("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
    ;; constants
-   '("\\(^\\|[^_]\\)\\b\\([A-Z]+\\(\\w\\|_\\)*\\)"
-     2 font-lock-type-face)
+   '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
+     1 font-lock-type-face)
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; expression expansion
    '(ruby-match-expression-expansion
-     0 font-lock-variable-name-face t)
+     2 font-lock-variable-name-face t)
    ;; warn lower camel case
                                         ;'("\\<[a-z]+[a-z0-9]*[A-Z][A-Za-z0-9]*\\([!?]?\\|\\>\\)"
                                         ;  0 font-lock-warning-face)
@@ -1587,9 +1650,14 @@ See `font-lock-syntax-table'.")
   "Additional expressions to highlight in Ruby mode.")
 
 (defun ruby-match-expression-expansion (limit)
-  (when (re-search-forward "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)" limit 'move)
-    (or (ruby-in-ppss-context-p 'string)
-        (ruby-match-expression-expansion limit))))
+  (let* ((prop 'ruby-expansion-match-data)
+         (pos (next-single-char-property-change (point) prop nil limit))
+         value)
+    (when (and pos (> pos (point)))
+      (goto-char pos)
+      (or (and (setq value (get-text-property pos prop))
+               (progn (set-match-data value) t))
+          (ruby-match-expression-expansion limit)))))
 
 ;;;###autoload
 (define-derived-mode ruby-mode prog-mode "Ruby"
@@ -1638,6 +1706,10 @@ The variable `ruby-indent-level' controls the amount of indentation.
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.rb\\'") 'ruby-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist (cons (purecopy "Rakefile\\'") 'ruby-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.gemspec\\'") 'ruby-mode))
 
 ;;;###autoload
 (dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))

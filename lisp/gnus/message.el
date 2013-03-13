@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -264,7 +264,7 @@ This is a list of regexps and regexp matches."
   :type 'sexp)
 
 (defcustom message-ignored-news-headers
-  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
+  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:\\|^X-Message-SMTP-Method:"
   "*Regexp of headers to be removed unconditionally before posting."
   :group 'message-news
   :group 'message-headers
@@ -592,8 +592,10 @@ Done before generating the new subject of a forward."
   ;; comes back to you (e.g. a mailing-list to which you subscribe, in which
   ;; case you may be removed from the list on the grounds that mail to you
   ;; bounced with a "mailing loop" error).
-  "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:\\|^>?From \\|^Delivered-To:"
+  "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:\\|^>?From \\|^Delivered-To:\
+\\|^X-Content-Length:\\|^X-UIDL:"
   "*All headers that match this regexp will be deleted when resending a message."
+  :version "24.4"
   :group 'message-interface
   :link '(custom-manual "(message)Resending")
   :type '(repeat :value-to-internal (lambda (widget value)
@@ -1741,7 +1743,7 @@ no, only reply back to the author."
 				   (file-error))
 				 (mm-coding-system-p 'utf-8)
 				 (executable-find idna-program)
-				 (string= (idna-to-ascii "räksmörgås")
+				 (string= (idna-to-ascii "rÃ¤ksmÃ¶rgÃ¥s")
 					  "xn--rksmrgs-5wao1o")
 				 t)
   "Whether to encode non-ASCII in domain names into ASCII according to IDNA.
@@ -3135,22 +3137,10 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (push-mark)
   (message-position-on-field "Summary" "Subject"))
 
-(eval-when-compile
-  (defmacro message-called-interactively-p (kind)
-    (condition-case nil
-	(progn
-	  (eval '(called-interactively-p 'any))
-	  ;; Emacs >=23.2
-	  `(called-interactively-p ,kind))
-      ;; Emacs <23.2
-      (wrong-number-of-arguments '(called-interactively-p))
-      ;; XEmacs
-      (void-function '(interactive-p)))))
-
 (defun message-goto-body ()
   "Move point to the beginning of the message body."
   (interactive)
-  (when (and (message-called-interactively-p 'any)
+  (when (and (gmm-called-interactively-p 'any)
 	     (looking-at "[ \t]*\n"))
     (expand-abbrev))
   (push-mark)
@@ -3824,7 +3814,9 @@ prefix, and don't delete any headers."
   (interactive "P")
   ;; eval the let forms contained in message-cite-style
   (eval
-   `(let ,message-cite-style
+   `(let ,(if (symbolp message-cite-style)
+	      (symbol-value message-cite-style)
+	    message-cite-style)
       (message--yank-original-internal ',arg))))
 
 (defun message-yank-buffer (buffer)
@@ -6728,11 +6720,16 @@ The function is called with one parameter, a cons cell ..."
 			       ", "))
 	    mct (message-fetch-field "mail-copies-to")
 	    author (or (message-fetch-field "mail-reply-to")
-		       (message-fetch-field "reply-to")
-		       (message-fetch-field "from")
-		       "")
+		       (message-fetch-field "reply-to"))
 	    mft (and message-use-mail-followup-to
-		     (message-fetch-field "mail-followup-to"))))
+		     (message-fetch-field "mail-followup-to")))
+      ;; Make sure this message goes to the author if this is a wide
+      ;; reply, since Reply-To address may be a list address a mailing
+      ;; list server added.
+      (when (and wide author)
+	(setq cc (concat author ", " cc)))
+      (when (or wide (not author))
+	(setq author (or (message-fetch-field "from") ""))))
 
     ;; Handle special values of Mail-Copies-To.
     (when mct
@@ -7379,12 +7376,13 @@ Optional DIGEST will use digest to forward."
 	(dolist (elem ignored)
 	  (message-remove-header elem t))))))
 
-(defun message-forward-make-body-mime (forward-buffer)
+(defun message-forward-make-body-mime (forward-buffer &optional beg end)
   (let ((b (point)))
     (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")
     (save-restriction
       (narrow-to-region (point) (point))
-      (mml-insert-buffer forward-buffer)
+      (insert-buffer-substring forward-buffer beg end)
+      (mml-quote-region (point-min) (point-max))
       (goto-char (point-min))
       (when (looking-at "From ")
 	(replace-match "X-From-Line: "))
@@ -8134,8 +8132,7 @@ regexp VARSTR."
   (if (fboundp 'mail-abbrevs-setup)
       (let ((minibuffer-setup-hook 'mail-abbrevs-setup)
 	    (minibuffer-local-map message-minibuffer-local-map))
-	(flet ((mail-abbrev-in-expansion-header-p nil t))
-	  (read-from-minibuffer prompt initial-contents)))
+	(read-from-minibuffer prompt initial-contents))
     (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook)
 	  (minibuffer-local-map message-minibuffer-local-map))
       (read-string prompt initial-contents))))
@@ -8424,7 +8421,7 @@ Used in `message-simplify-recipients'."
 (run-hooks 'message-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; message.el ends here

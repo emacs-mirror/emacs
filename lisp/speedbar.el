@@ -1,6 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -3608,6 +3608,7 @@ functions to do caching and flushing if appropriate."
     nil
 
 (eval-when-compile (condition-case nil (require 'imenu) (error nil)))
+(declare-function imenu--make-index-alist "imenu" (&optional no-error))
 
 (defun speedbar-fetch-dynamic-imenu (file)
   "Load FILE into a buffer, and generate tags using Imenu.

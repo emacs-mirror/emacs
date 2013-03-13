@@ -1,6 +1,6 @@
 ;;; ob-ditaa.el --- org-babel functions for ditaa evaluation
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -40,6 +40,7 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-compat)
 
 (defvar org-ditaa-jar-path) ;; provided by org-exp-blocks
 

@@ -1,6 +1,6 @@
 ;;; color.el --- Color manipulation library -*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Authors: Julien Danjou <julien@danjou.info>
 ;;          Drew Adams <drew.adams@oracle.com>
@@ -32,9 +32,6 @@
 ;; CIE XYZ, and CIE L*a*b* color components.
 
 ;;; Code:
-
-(eval-when-compile
-  (require 'cl))
 
 ;; Emacs < 23.3
 (eval-and-compile
@@ -69,9 +66,9 @@ RED, GREEN, and BLUE should be numbers between 0.0 and 1.0, inclusive."
 COLOR-NAME should be a string naming a color (e.g. \"white\"), or
 a string specifying a color's RGB components (e.g. \"#ff12ec\")."
   (let ((color (color-name-to-rgb color-name)))
-    (list (- 1.0 (car color))
-          (- 1.0 (cadr color))
-          (- 1.0 (caddr color)))))
+    (list (- 1.0 (nth 0 color))
+          (- 1.0 (nth 1 color))
+          (- 1.0 (nth 2 color)))))
 
 (defun color-gradient (start stop step-number)
   "Return a list with STEP-NUMBER colors from START to STOP.
@@ -133,7 +130,7 @@ inclusive."
 	 (max (max r g b))
 	 (min (min r g b)))
     (if (< (- max min) 1e-8)
-	(list 0.0 0.0 0.0)
+	(list 0.0 0.0 min)
       (list
        (/ (* 2 float-pi
 	     (cond ((and (= r g) (= g b)) 0)
@@ -149,7 +146,7 @@ inclusive."
 		    (+ 240 (* 60 (/ (- r g) (- max min)))))))
 	  360)
        (if (= max 0) 0 (- 1 (/ min max)))
-       (/ max 255.0)))))
+       max))))
 
 (defun color-rgb-to-hsl (red green blue)
   "Convert RGB colors to their HSL representation.

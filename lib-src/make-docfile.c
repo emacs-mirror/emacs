@@ -1,7 +1,7 @@
 /* Generate doc-string file for GNU Emacs from source files.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -624,7 +624,7 @@ write_globals (void)
   qsort (globals, num_globals, sizeof (struct global), compare_globals);
   for (i = 0; i < num_globals; ++i)
     {
-      char const *type;
+      char const *type = 0;
 
       switch (globals[i].type)
 	{
@@ -649,7 +649,7 @@ write_globals (void)
 	  fatal ("not a recognized DEFVAR_", 0);
 	}
 
-      if (globals[i].type != FUNCTION)
+      if (type)
 	{
 	  fprintf (outfile, "  %s f_%s;\n", type, globals[i].name);
 	  fprintf (outfile, "#define %s globals.f_%s\n",

@@ -1,7 +1,7 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1175,7 +1175,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       f = make_frame (1);
 
   XSETFRAME (frame, f);
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
   f->terminal = dpyinfo->terminal;
 
@@ -1504,12 +1503,12 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   [panel setDelegate: fileDelegate];
 
   panelOK = 0;
-  if (! NILP (dir_only_p)) 
+  if (! NILP (dir_only_p))
     {
       [panel setCanChooseDirectories: YES];
       [panel setCanChooseFiles: NO];
     }
-  
+
   block_input ();
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
@@ -1520,7 +1519,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     [panel setNameFieldStringValue: [initS lastPathComponent]];
   else
     [panel setNameFieldStringValue: @""];
-    
+
   ret = [panel runModal];
 #else
   if (NILP (mustmatch) && NILP (dir_only_p))
@@ -1650,9 +1649,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
           The last number is where we distinguish between the Apple
           and GNUstep implementations ("distributor-specific release
           number") and give int'ized versions of major.minor. */
-  return Fcons (make_number (10),
-		Fcons (make_number (3),
-		       Fcons (make_number (ns_appkit_version_int()), Qnil)));
+  return list3i (10, 3, ns_appkit_version_int ());
 }
 
 
@@ -2107,7 +2104,9 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 void
 ns_run_ascript (void)
 {
-  as_status = ns_do_applescript (as_script, as_result);
+  if (! NILP (as_script))
+    as_status = ns_do_applescript (as_script, as_result);
+  as_script = Qnil;
 }
 
 DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
@@ -2144,11 +2143,14 @@ In case the execution fails, an error is signaled. */)
                                data2: NSAPP_DATA2_RUNASSCRIPT];
 
   [NSApp postEvent: nxev atStart: NO];
-  [NSApp run];
+
+  // If there are other events, the event loop may exit.  Keep running
+  // until the script has been handled.  */
+  while (! NILP (as_script))
+    [NSApp run];
 
   status = as_status;
   as_status = 0;
-  as_script = Qnil;
   as_result = 0;
   unblock_input ();
   if (status == 0)
@@ -2244,20 +2246,6 @@ x_pixel_height (struct frame *f)
 
 
 int
-x_char_width (struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-
-int
-x_char_height (struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-
-int
 x_screen_planes (struct frame *f)
 {
   return FRAME_NS_DISPLAY_INFO (f)->n_planes;
@@ -2306,9 +2294,8 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
   [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
-  return list3 (make_number (lrint (red*65280)),
-		make_number (lrint (green*65280)),
-		make_number (lrint (blue*65280)));
+  return list3i (lrint (red * 65280), lrint (green * 65280),
+		 lrint (blue * 65280));
 }
 
 
@@ -2395,11 +2382,10 @@ that stands for the selected frame's display. */)
 
   /* NS coordinate system is upside-down.
      Transform to screen-specific coordinates. */
-  return list4 (make_number ((int) vScreen.origin.x),
-		make_number ((int) [screen frame].size.height
-			     - vScreen.size.height - vScreen.origin.y),
-                make_number ((int) vScreen.size.width),
-                make_number ((int) vScreen.size.height));
+  return list4i (vScreen.origin.x,
+		 [screen frame].size.height
+		 - vScreen.size.height - vScreen.origin.y,
+		 vScreen.size.width, vScreen.size.height);
 }
 
 

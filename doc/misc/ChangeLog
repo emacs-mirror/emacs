@@ -1,3 +1,618 @@
+2013-03-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units): Streamline some
+	descriptions.
+
+2013-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Top): Don't say this was updated @today.
+	That's irrelevant and leads to spurious diffs.
+
+2013-03-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units): Fix
+	cross-reference.
+
+2013-03-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-faq.texi (FAQ 3-11): Now Gnus supports POP3 UIDL.
+
+2013-03-06  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Custom Line-Up): Clarify position of point on
+	calling a line-up function.
+
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-mime.texi, htmlfontify.texi, mairix-el.texi, mh-e.texi:
+	* ses.texi: Switch from Latin-1 to UTF-8.
+
+2013-03-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Tramp does not connect Android
+	devices by itself.
+
+2013-03-02  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.5.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.5.
+
+	* mh-e.texi (Preface, Conventions, Getting Started)
+	(Using This Manual, Folder Selection, Viewing, Aliases)
+	(Identities, Speedbar, Menu Bar, Tool Bar, Scan Line Formats)
+	(Bug Reports, Mailing Lists, MH FAQ and Support, Getting MH-E):
+	Update URLs.
+
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove "ssh1", "ssh2", "plink1"
+	and "plink2" entries.  "plink2" is obsolete for a long time.
+	(External methods): Remove "scp1" and "scp2" entries.  Explain
+	user name and host name specification for "adb".
+
+2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Mention `tramp-adb-program'.
+
+2013-02-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Visibility cycling): Suggest to set
+	`org-agenda-inhibit-startup' to nil if user wants the startup
+	visibility settings to be honored in any circumstances.
+	(Progress logging, Checkboxes): Fix typos.
+
+2013-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (top) [xxx, yyy, trampfn]: Provide two versions of
+	the macros, for Texinfo 4.13 and 5.0.
+
+2013-02-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	Port Tramp documentation to Texinfo 5.0.
+	* tramp.texi (top) [xxx, yyy, trampfn]: Remove superfluous @c.
+	(Filename Syntax): Do not use @trampfn{} in @item.
+	(Filename completion): Use @columnfractions in @multitable.
+
+2013-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Syntax check statuses): Fix multitable continued rows.
+
+2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (html): New rule.
+
+2013-02-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Android shell setup): Improve.  Reported by Thierry
+	Volpiatto <thierry.volpiatto@gmail.com>.
+
+2013-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Top, Configuration): Insert section `Android shell
+	setup' in menu.
+	(Android shell setup): New section.
+	(Connection types, Default Method)
+	(Frequently Asked Questions): Mention "scp" instead of "scpc".
+	(External methods): Remove "scpc" and "rsyncc" entries.
+	(Frequently Asked Questions): Remove entry about ControlPersist.
+
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* message.texi (News Headers): Don't mention yow any more.
+
+2013-02-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units):
+	(Customizing Calc): Mention the variable `calc-allow-units-as-numbers'.
+
+2013-02-08  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell.texi: Fill most of the missing sections.
+
+2013-02-07  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (References): Clarify an example.
+	(Installation): Fix instructions.
+	(Org-Plot): Fix link.
+	(Checkboxes, Radio lists): Fix typos.
+
+2013-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Equality Predicates): Mention memql.
+
+2013-02-07  Eric Ludlam  <zappo@gnu.org>
+
+	* doc/misc/ede.texi (Creating a project): Make ede-new doc less
+	specific, and only about items it supports, indicating that there
+	might be more.  Remove refs to simple project and direct automake
+	from ede new.
+	(Simple projects): Re-write to not talk about ede-simple-project
+	which is deprecated, and instead use the term to mean projects
+	that don't do much management, just project wrapping.  Add
+	ede-generic-project link.
+	(ede-generic-project): New node (bug#11441).
+
+2013-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Equality Predicates): Fix eq/eql pedantry.
+
+2013-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Help Commands): Update calc-view-news description.
+	Mention etc/CALC-NEWS.
+
+2013-01-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename Syntax): Filenames must be unibyte strings.
+
+2013-01-13  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Installation): Simplify.
+
+2013-01-13  François Allisson  <francois@allisson.co>  (tiny change)
+
+	* org.texi (Handling links): Update the mention to the obsolete
+	variable `org-link-to-org-use-id' with a mention to the newer
+	variable `org-id-link-to-org-use-id'.  Mention the need to load
+	the org-id library.
+
+2013-01-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Default Host): Introduce `tramp-default-host-alist'.
+
+2013-01-09  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Pushing to MobileOrg): Add footnote about using
+	symbolic links in `org-directory'.
+	(Timestamps, Deadlines and scheduling): Use `diary-float' instead
+	of the now obsolete alias `org-float'.
+	(TODO basics): Add `org-use-fast-todo-selection' to the variable
+	index.  Fix description of TODO keywords cycling.
+	(Advanced features): Add missing argument for @item.
+	(Storing searches): Add index entries and a note about
+	*-tree agenda views.
+	(Structure editing): Document `org-mark-element' and
+	`org-mark-subtree'.
+	(Tag inheritance): Document `org-agenda-use-tag-inheritance'.
+
+2013-01-08  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Go to node): Mention the abbreviated format
+	`(FILENAME)' equal to `(FILENAME)Top'.  (Bug#13365)
+
+2013-01-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* autotype.texi: Remove undefined command @subtitlefont.
+	* cc-mode.texi: Likewise.
+
+	* org.texi (Advanced features): Use `@w{ }' instead of `@ ' in
+	@item argument.
+	(Property searches): Use \\ instead of @backslashchar{}.
+	* pgg.texi (VERSION): Move @set below @setfilename.
+
+2013-01-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* ada-mode.texi: Remove braces from @title argument.
+	* eudc.texi: Likewise.
+	* smtpmail.texi: Likewise.
+	* auth.texi (VERSION): Set before first use.
+	* emacs-gnutls.texi (VERSION): Likewise.
+	* pgg.texi (VERSION): Likewise.
+	* ede.texi (Top): Rename from top, all uses changed.
+	* eshell.texi: Add missing argument to @sp.
+	* forms.texi (Top): Reorder menu to match structure.
+	* htmlfontify.texi (Customisation): Add missing @item in
+	@enumerate.
+	* org.texi (Advanced features): Add missing argument for @item.
+	(Property searches): Use @backslashchar{} in macro argument.
+	* pcl-cvs.texi: Add missing argument to @sp.
+	(Movement commands): Fix use of @itemx.
+	* vip.texi (Misc Commands, Viewing the Buffer): Likewise.
+	* reftex.texi (Options (Creating Citations)): Add missing newline
+	before @end.
+	* tramp.texi (Obtaining Tramp): Remove extra dots.
+	(Configuration): Reorder menu to match structure.
+	(Remote shell setup): Replace literal NUL character by \0.
+	* viper.texi (Marking): Add missing argument for @item.
+
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS):
+	Add htmlfontify.
+	(htmlfontify, $(buildinfodir)/htmlfontify$(INFO_EXT))
+	(htmlfontify.dvi, htmlfontify.pdf): New targets.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add htmlfontify.
+	($(infodir)/htmlfontify$(INFO_EXT), htmlfontify.dvi): New targets.
+
+	* htmlfontify.texi: Miscellaneous fixes and updates.
+	Set copyright to FSF, update license to GFDL 1.3+.
+
+2013-01-04  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* htmlfontify.texi: New file.
+
+2013-01-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Free-Form Dates): Expand on the date reading
+	algorithm.
+
+2012-12-27  Glenn Morris  <rgm@gnu.org>
+
+	* viper.texi (Rudimentary Changes, Key Bindings, Key Bindings):
+	Avoid some overfull lines.
+
+	* widget.texi (Programming Example): Break some long lines.
+
+	* wisent.texi (Wisent Overview): Fix xref.
+	(Grammar format, Understanding the automaton): Avoid overfill.
+
+	* bovine.texi (Optional Lambda Expression): Allow line break.
+
+	* auth.texi (Help for users): Break long lines.
+
+	* ada-mode.texi (Project file variables):
+	Reword to reduce underfull hbox.
+	(No project files, Use GNAT project file):
+	Use smallexample to make some overfull lines less terrible.
+
+	* autotype.texi, bovine.texi, ede.texi, eieio.texi, pcl-cvs.texi:
+	Fix cross-references to separate manuals.
+
+	* Makefile.in (gfdl): New variable.  Use throughout where
+	appropriate so that targets depend on doclicense.texi.
+
+2012-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): Mention the other
+	authenticators.
+
+2012-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Browse Foreign Server): Document
+	`gnus-browse-delete-group'.
+
+2012-12-22  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, ebrowse.texi, ediff.texi, ert.texi, eshell.texi:
+	* eudc.texi, idlwave.texi, pcl-cvs.texi, rcirc.texi, reftex.texi:
+	* remember.texi, ses.texi, speedbar.texi, vip.texi, viper.texi:
+	* widget.texi, wisent.texi: Nuke hand-written node pointers.
+
+	* Makefile.in (gfdl): New variable.  Use throughout where
+	appropriate so that targets depend on doclicense.texi.
+
+2012-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(INFO_TARGETS), $(DVI_TARGETS)): Depend on
+	doclicense.texi.  Remove doclicense.texi from all targets that
+	mentioned it explicitly.
+	($(infodir)/woman$(INFO_EXT), woman.dvi): Depend on
+	$(emacsdir)/emacsver.texi.
+	($(infodir)/erc$(INFO_EXT), erc.dvi): Don't depend on gpl.texi.
+
+2012-12-21  Glenn Morris  <rgm@gnu.org>
+
+	* woman.texi (UPDATED, VERSION): Remove in favor of EMACSVER.
+	Include emacsver.texi.  Nuke hand-written node pointers.
+	* Makefile.in ($(buildinfodir)/woman$(INFO_EXT), woman.dvi, woman.pdf):
+	Depend on emacsver.texi.
+
+	* auth.texi, emacs-gnutls.texi, epa.texi, ert.texi:
+	* gnus-coding.texi, info.texi, nxml-mode.texi, sasl.texi:
+	May as well just include doclicense.texi in everything.
+
+	* ede.texi, eieio.texi, mairix-el.texi: Include a copy of GFDL,
+	which @copying says is included.
+
+	* ada-mode.texi, auth.texi, autotype.texi, bovine.texi, calc.texi:
+	* cc-mode.texi, cl.texi, dbus.texi, dired-x.texi, ebrowse.texi:
+	* ede.texi, ediff.texi, edt.texi, eieio.texi, emacs-gnutls.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, ert.texi, eshell.texi:
+	* eudc.texi, flymake.texi, forms.texi, gnus-coding.texi, gnus.texi:
+	* idlwave.texi, info.texi, mairix-el.texi, message.texi, mh-e.texi:
+	* newsticker.texi, nxml-mode.texi, pcl-cvs.texi, pgg.texi:
+	* rcirc.texi, reftex.texi, remember.texi, sasl.texi, sc.texi:
+	* semantic.texi, ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* srecode.texi, tramp.texi, url.texi, vip.texi, viper.texi:
+	* widget.texi, wisent.texi, woman.texi: Do not mention buying
+	copies from the FSF, which does not publish these manuals.
+
+	* erc.texi: No need to include gpl in this small manual.
+
+	* org.texi (copying): Include a copy of the GFDL.
+	(GNU Free Documentation License): New section.
+
+2012-12-21  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi: Fix typos.
+
+2012-12-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calc.texi (ISO 8601): Rename from ISO-8601,
+	as it's typically spelled without a hyphen.
+
+2012-12-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (ISO-8601): New section.
+	(Date Formatting Codes): Mention new codes.
+	(Standard Date Formats): Mention new formats.
+
+2012-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Move `adb' method here.
+
+2012-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Modify Macros, Obsolete Macros): Now letf == cl-letf.
+
+	* wisent.texi: Small edits.  Set copyright to FSF, update license to
+	GFDL 1.3+.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add wisent.
+	(wisent, $(buildinfodir)/wisent$(INFO_EXT), wisent.dvi, wisent.pdf):
+	New targets.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add wisent.
+	($(infodir)/wisent$(INFO_EXT), wisent.dvi): New targets.
+
+	* bovine.texi: Small edits.  Set copyright to FSF, update license to
+	GFDL 1.3+, remove empty index.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add bovine.
+	(bovine, $(buildinfodir)/bovine$(INFO_EXT), bovine.dvi, bovine.pdf):
+	New targets.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add bovine.
+	($(infodir)/bovine$(INFO_EXT), bovine.dvi): New targets.
+
+2012-12-13  Eric Ludlam  <zappo@gnu.org>
+	    David Ponce  <david@dponce.com>
+	    Richard Kim  <emacs18@gmail.com>
+
+	* bovine.texi, wisent.texi: New files, imported from CEDET trunk.
+
+2012-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Customizable variables, Locating the buildfile):
+	Remove refs to flymake-buildfile-dirs, removed 2007-07-20.  (Bug#13148)
+
+	* srecode.texi: Small edits.  Set copyright to FSF, add explicit
+	GFDL 1.3+ license, fix up index.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add srecode.
+	(srecode, $(buildinfodir)/srecode$(INFO_EXT), srecode.dvi)
+	(srecode.pdf): New targets.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add srecode.
+	($(infodir)/srecode$(INFO_EXT), srecode.dvi): New targets.
+
+2012-12-13  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode.texi: New file, imported from CEDET trunk.
+
+2012-12-13  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Summary, Code block specific header arguments)
+	(Code block specific header arguments)
+	(Header arguments in function calls, var, noweb)
+	(Results of evaluation, Code evaluation security):
+	Small reformatting: add a blank line before some example.
+
+	* org.texi (System-wide header arguments)
+	(Header arguments in Org mode properties, Conflicts)
+	(Dynamic blocks, Using the mapping API):
+	Fix indentation of Elisp code examples.
+
+	* org.texi (Comment lines): Fix description of the comment syntax.
+
+	* org.texi (Installation): Mention "make test" in the correct section.
+
+2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (History): Mention ADB.
+	(Inline methods): Add `adb' method.
+
+2012-12-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Top, Obtaining Tramp): Replace CVS by Git.
+	(External methods): Fix typo.
+
+2012-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* rcirc.texi (Notices): Fix typo.
+
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.4.
+
+	* mh-e.texi: (VERSION, EDITION, UPDATED, UPDATE-MONTH, Preface):
+	Update for release 8.4.
+
+	* mh-e.texi (Sequences): Add mh-whitelist-preserves-sequences-flag.
+	(Junk): Add mh-whitelist-preserves-sequences-flag,
+	mh-blacklist-msg-hook, mh-whitelist-msg-hook,
+	mh-folder-blacklisted, mh-folder-whitelisted (closes SF #2945712).
+
+2012-11-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* mh-e.texi (Procmail): Fix two @ typos.
+
+2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-11-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Date Formatting Codes): Mention the new beginning of
+	the date numbering system.
+
+2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calc.texi: Fix TeX issues with capitals followed by ".", "?", "!".
+	(Date Forms): Correct off-by-one error in explanation of
+	Julian day numbers.  Give Gregorian equivalent of its origin.
+
+2012-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* doc/misc/calc.texi (Date Forms): Mention the customizable
+	Gregorian-Julian switch.
+	(Customizing Calc): Mention the variable `calc-gregorian-switch'.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Calc now uses the Gregorian calendar for all dates (Bug#12633).
+	It also uses January 1, 1 AD as its day number 1.
+	* calc.texi (Date Forms): Document this.
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Function Bindings): Clarify that cl-flet is lexical.
+	(Obsolete Macros): Move example here from Function Bindings.
+
+	* erc.texi: Use @code{nil} rather than just "nil".
+	(Modules): Undocument obsolete "hecomplete".
+	Add "notifications".
+	(Connecting): Add brief section on passwords.
+	(Options): Make a start by adding erc-hide-list, erc-lurker-hide-list.
+
+2012-11-13  Glenn Morris  <rgm@gnu.org>
+
+	* flymake.texi (Customizable variables)
+	(Highlighting erroneous lines): Mention flymake-error-bitmap,
+	flymake-warning-bitmap, and flymake-fringe-indicator-position.
+
+2012-11-12  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.texi: Doc for ses-rename-cell, ses-repair-cell-reference-all & ses-range.
+	In all file place SES into @acronym{...}.
+	(Advanced Features): Add key index and function index for
+	ses-set-header-row. Add description for function
+	ses-rename-cell. Add description for function
+	ses-repair-cell-reference-all.
+	(Ranges in formulas): Add description for ses-range flags.
+
+2012-11-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
+
+2012-11-10  Chong Yidong  <cyd@gnu.org>
+
+	* url.texi (Introduction): Move url-configuration-directory to
+	Customization node.
+	(Parsed URIs): Split into its own node.
+	(URI Encoding): New node.
+	(Defining New URLs): Remove empty chapter.
+	(Retrieving URLs): Add an introduction.  Doc fix for url-retrieve.
+	Improve docs for url-queue-*.
+	(Supported URL Types): Copyedits.  Delete empty subnodes.
+
+	* url.texi (Introduction): Rename from Getting Started.  Rewrite
+	the introduction.
+	(URI Parsing): Rewrite.  Omit the obsolete attributes slot.
+
+2012-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Obsolete Setf Customization):
+	Revert defsetf example to the more correct let rather than prog1.
+	Give define-modify-macro, defsetf, and define-setf-method
+	gv.el replacements.
+
+	* cl.texi (Overview): Mention EIEIO here, as well as the appendix.
+	(Setf Extensions): Remove obsolete reference.
+	(Obsolete Setf Customization):
+	Move note on lack of setf functions to lispref/variables.texi.
+	Undocument get-setf-method, since it no longer exists.
+	Mention simple defsetf replaced by gv-define-simple-setter.
+
+2012-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Further general copyedits.
+	(List Functions): Remove copy-tree, standard elisp for some time.
+	(Efficiency Concerns): Comment out examples that no longer apply.
+	(Compiler Optimizations): Rename from "Optimizing Compiler"; reword.
+	(Creating Symbols, Random Numbers): De-emphasize internal
+	variables cl--gensym-counter and cl--random-state.  (Bug#12788)
+	(Naming Conventions, Type Predicates, Macros)
+	(Predicates on Numbers): No longer mention cl-floatp-safe.
+
+2012-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Mail Source Specifiers):
+	Document :leave keyword used for pop mail source.
+
+2012-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: General copyedits for style, line-breaks, etc.
+	(Time of Evaluation, Iteration): Add xref to Emacs Lisp manual.
+	(Macro Bindings, Blocks and Exits):
+	Acknowledge existence of lexical-binding.
+	(Iteration): Mainly defer to doc of standard dolist, dotimes.
+
+2012-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* ert.texi (Introduction, The @code{should} Macro):
+	Refer to "cl-assert" rather than "assert".
+
+	* cl.texi (Function Bindings): Update for cl-flet and cl-labels.
+	(Obsolete Lexical Binding): Rename section from "Lexical Bindings".
+	(Obsolete Macros): Rename section from "Obsolete Lexical Macros".
+	Reword, and add details of flet and labels.
+	(Modify Macros, Function Bindings): Add some xrefs.
+
+2012-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Modify Macros): Update for cl-letf changes.
+	(Obsolete Lexical Macros): Say a little more about letf/cl-letf.
+	(Setf Extensions): Partially restore note about cl-getf,
+	mainly moved to lispref/variables.texi.
+	(Property Lists): Fix cl-getf typos.
+	(Mapping over Sequences): Mention cl-mapc naming oddity.
+
+2012-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Organization): More details on cl-lib.el versus cl.el.
+	(Setf Extensions): Remove `apply' setf since it seems to be disabled.
+	(Customizing Setf): Move contents to "Obsolete Setf Customization".
+	(Modify Macros, Multiple Values, Other Clauses):
+	Remove mentions of obsolete features.
+	(Obsolete Setf Customization): Don't mention `apply' setf.
+
+2012-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Multiple Values, Common Lisp Compatibility):
+	More namespace updates.
+	(Obsolete Features): Copyedits.
+	(Obsolete Lexical Macros, Obsolete Setf Customization):
+	New subsections.
+
+	* cl.texi (Porting Common Lisp, Lexical Bindings):
+	Add some xrefs to the Elisp manual.
+
+	* cl.texi (Lexical Bindings): Move to appendix of obsolete features.
+	(Porting Common Lisp): Emacs Lisp can do true lexical binding now.
+	(Obsolete Features): New appendix.  Move Lexical Bindings here.
+
+2012-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi: Use defmac for macros rather than defspec.
+	(Efficiency Concerns): Related copyedit.
+
+	* cl.texi (Control Structure): Update for setf now being in core.
+	(Setf Extensions): Rename from Basic Setf.  Move much of the
+	former content to lispref/variables.texi.
+	(Modify Macros): Move pop, push details to lispref/variables.texi.
+	(Customizing Setf): Copyedits for setf etc being in core.
+	(Modify Macros, Efficiency Concerns, Porting Common Lisp):
+	Further namespaces updates.
+
+2012-10-26  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Installation): Update the link to Org's ELPA.  Also
+	don't mention org-install.el anymore as the replacement file
+	org-loaddefs.el is now loaded by org.el.
+
 2012-10-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Mention
@@ -155,7 +770,7 @@
 	* org.texi (Moving subtrees): Document the ability to archive to a
 	datetree.
 
-2012-09-30  Bastien Guerry  <bzg@altern.org>
+2012-09-30  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Installation, Feedback, Batch execution): Use
 	(add-to-list 'load-path ... t) for the contrib dir.
@@ -761,7 +1376,7 @@
 
 	* org.texi: Edit :noweb no header argument for correctness.
 
-2012-04-01  Bastien Guerry  <bzg@altern.org>
+2012-04-01  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Customization): Update the approximate number of Org
 	variables.
@@ -9532,7 +10147,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

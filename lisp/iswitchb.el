@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996-1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -471,6 +471,8 @@ interfere with other minibuffer usage.")
     (define-key map "?" 'iswitchb-completion-help)
     (define-key map "\C-s" 'iswitchb-next-match)
     (define-key map "\C-r" 'iswitchb-prev-match)
+    (define-key map [?\C-.] 'iswitchb-next-match)
+    (define-key map [?\C-,] 'iswitchb-prev-match)
     (define-key map "\t" 'iswitchb-complete)
     (define-key map "\C-j" 'iswitchb-select-buffer-text)
     (define-key map "\C-t" 'iswitchb-toggle-regexp)

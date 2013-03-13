@@ -2,7 +2,7 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992-2012 Free Software Foundation, Inc.
+# Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -54,6 +54,9 @@
 # make bootstrap
 #      Removes all the compiled files to force a new bootstrap from a
 #      clean slate, and then build in the normal way.
+#
+# make docs
+#      Make Emacs documentation files from their sources; requires makeinfo.
 
 SHELL = /bin/sh
 
@@ -259,8 +262,9 @@ GZIP_INFO = @GZIP_INFO@
 TRANSFORM = @program_transform_name@
 
 # What emacs should be called when installed.
-EMACS = `echo emacs${EXEEXT} | sed '$(TRANSFORM)'`
-EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
+EMACS_NAME = `echo emacs | sed '$(TRANSFORM)'`
+EMACS = ${EMACS_NAME}${EXEEXT}
+EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
 SUBDIR = lib lib-src src lisp leim
@@ -444,7 +448,7 @@ install-arch-dep: src install-arch-indep install-doc
 	    INSTALL_STRIP=${INSTALL_STRIP}
 	if test "${ns_self_contained}" = "no"; then \
 	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} $(DESTDIR)${bindir}/$(EMACSFULL) || exit 1 ; \
-	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) ; \
+	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) || true; \
 	  if test "x${NO_BIN_LINK}" = x; then \
 	    rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
 	    cd $(DESTDIR)${bindir} && $(LN_S) $(EMACSFULL) $(EMACS); \
@@ -533,6 +537,7 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	       tar -xvf - && cat > /dev/null) || exit 1; \
 	  [ "$${dir}" != "${srcdir}/etc" ] || rm -f $${dest}/DOC* ; \
 	  for subdir in `find $${dest} -type d -print` ; do \
+	    chmod a+rx $${subdir} ; \
 	    rm -f $${subdir}/.gitignore ; \
 	    rm -f $${subdir}/.arch-inventory ; \
 	    rm -f $${subdir}/.DS_Store ; \
@@ -567,7 +572,9 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	    done )
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 
-# The last chmod isn't needed at present.
+## The above chmods are needed because "umask 022; tar ..." is not
+## guaranteed to do the right thing; eg if we are root and tar is
+## preserving source permissions.
 
 ## We install only the relevant DOC file if possible
 ## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
@@ -602,7 +609,7 @@ install-info: info
 	   [ -f dir ] || \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/dir $(DESTDIR)${infodir}/dir) ; \
-	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
+	   info_misc=`cd $${thisdir}/doc/misc; ${MAKE} -s echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
@@ -617,6 +624,12 @@ install-info: info
 	      ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	   done)
 
+## "gzip || true" is because some gzips exit with non-zero status
+## if compression would not reduce the file size.  Eg, the gzip in
+## OpenBSD 4.9 seems to do this (2013/03).  In Emacs, this can
+## only happen with the tiny ctags.1 manpage.  We don't really care if
+## ctags.1 is compressed or not.  "gzip -f" is another option here,
+## but not sure if portable.
 install-man:
 	umask 022; ${MKDIR_P} $(DESTDIR)${man1dir}
 	thisdir=`/bin/pwd`; \
@@ -627,28 +640,33 @@ install-man:
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${dest}); \
 	  ( [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ] ) || continue ; \
 	  rm -f $(DESTDIR)${man1dir}/$${dest}.gz; \
-	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${dest}; \
+	  ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${dest} || true; \
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
+
+## If you prefer, choose "emacs22" at installation time.
+## Note: emacs22 does not have all the resolutions.
+EMACS_ICON=emacs
+
 install-etc:
 	umask 022; ${MKDIR_P} $(DESTDIR)${desktopdir}
-	dest=`echo emacs | sed '$(TRANSFORM)'`; \
 	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
-	sed -e "/^Exec=emacs/ s/emacs/$${dest}/" \
-	  -e "/^Icon=emacs/ s/emacs/$${dest}/" \
+	emacs_name=`echo emacs | sed '$(TRANSFORM)'`; \
+	sed -e "/^Exec=emacs/ s/emacs/$${emacs_name}/" \
+	  -e "/^Icon=emacs/ s/emacs/$${emacs_name}/" \
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
-	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/$${dest}.desktop; \
+	${INSTALL_DATA} $${tmp} $(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop; \
 	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
 	  ( cd $${thisdir}; ${MKDIR_P} $(DESTDIR)${icondir}/$${dir} ) ; \
-	  for icon in $${dir}/emacs[.-]*; do \
+	  for icon in $${dir}/${EMACS_ICON}[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
-	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e '$(TRANSFORM)'`.$${ext} ; \
+	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
 	    ( cd $${thisdir}; \
 	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} $(DESTDIR)${icondir}/$${dir}/$${dest} ) \
 	    || exit 1; \
@@ -684,22 +702,29 @@ uninstall:
 	done
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	thisdir=`/bin/pwd`; \
-	(info_misc=`cd doc/misc; ${MAKE} echo-info | sed '/ing directory/d'`; \
-	  cd $(DESTDIR)${infodir} && \
-	  for elt in ${INFO_NONMISC} $${info_misc}; do \
-	    (cd $${thisdir}; \
-	     $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
-	    if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
-	       ext=.gz; else ext=; fi; \
-	    rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
-	  done;)
+	(info_misc=`cd doc/misc; ${MAKE} -s echo-info`; \
+	 if cd $(DESTDIR)${infodir}; then \
+	   for elt in ${INFO_NONMISC} $${info_misc}; do \
+	     (cd $${thisdir}; \
+	      $(INSTALL_INFO) --remove --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
+	     if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	        ext=.gz; else ext=; fi; \
+	     rm -f $$elt$$ext $$elt-[1-9]$$ext $$elt-[1-9][0-9]$$ext; \
+	   done; \
+	 fi)
 	(if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
 	    ext=.gz; else ext=; fi; \
-	 cd ${mansrcdir} && for page in *.1; do \
-	   rm -f $(DESTDIR)${man1dir}/$$page$$ext; done )
-	(cd $(DESTDIR)${bindir}  && rm -f $(EMACSFULL) $(EMACS))
-	(cd $(DESTDIR)${icondir} && rm -f hicolor/*x*/apps/emacs.png hicolor/*x*/apps/emacs22.png hicolor/scalable/apps/emacs.svg hicolor/scalable/mimetypes/emacs-document.svg )
-	-rm -f $(DESTDIR)${desktopdir}/emacs.desktop
+	 if cd ${mansrcdir}; then \
+	   for page in *.1; do \
+	     rm -f $(DESTDIR)${man1dir}/`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1$$ext; done; \
+	 fi)
+	(cd $(DESTDIR)${bindir} && rm -f $(EMACSFULL) $(EMACS) || true)
+	(if cd $(DESTDIR)${icondir}; then \
+	   rm -f hicolor/*x*/apps/${EMACS_NAME}.png \
+	     hicolor/scalable/apps/${EMACS_NAME}.svg \
+	     hicolor/scalable/mimetypes/`echo emacs-document | sed '$(TRANSFORM)'`.svg; \
+	fi)
+	-rm -f $(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop
 	for file in snake-scores tetris-scores; do \
 	  file=$(DESTDIR)${gamedir}/$${file}; \
 	  [ -s $${file} ] || rm -f $$file; \
@@ -843,13 +868,25 @@ check:
 dist:
 	cd ${srcdir}; ./make-dist
 
+DVIS  = lispref-dvi  lispintro-dvi  emacs-dvi  misc-dvi
+HTMLS = lispref-html lispintro-html emacs-html misc-html
+INFOS = lispref-info lispintro-info emacs-info misc-info
+PDFS  = lispref-pdf  lispintro-pdf  emacs-pdf  misc-pdf
+PSS   = lispref-ps   lispintro-ps   emacs-ps # no misc-ps
+
+DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
+$(DOCS):
+	t=$@; IFS=-; set $$t; IFS=; cd doc/$$1 && $(MAKE) $(MFLAGS) $$2
+
+.PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist check html info-real force-info check-info-dir
 
-info-real:
-	(cd doc/emacs; $(MAKE) $(MFLAGS) info)
-	(cd doc/misc; $(MAKE) $(MFLAGS) info)
-	(cd doc/lispref; $(MAKE) $(MFLAGS) info)
-	(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
+docs: $(DOCS)
+dvi: $(DVIS)
+html: $(HTMLS)
+info-real: $(INFOS)
+pdf: $(PDFS)
+ps: $(PSS)
 
 force-info:
 # Note that man/Makefile knows how to put the info files in $(srcdir),
@@ -887,12 +924,6 @@ check-info-dir: info
 	  exit 1 ; \
 	fi ; \
 	echo "info/dir is OK"
-
-dvi:
-	(cd doc/emacs; $(MAKE) $(MFLAGS) dvi)
-	(cd doc/misc; $(MAKE) $(MFLAGS) dvi)
-	(cd doc/lispref; $(MAKE) $(MFLAGS) elisp.dvi)
-	(cd doc/lispintro; $(MAKE) $(MFLAGS) emacs-lisp-intro.dvi)
 
 #### Bootstrapping.
 

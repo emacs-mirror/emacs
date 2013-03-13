@@ -1,6 +1,6 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
-;; Copyright (C) 1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -63,7 +63,7 @@ Non-nil means use highlight, nil means use minibuffer messages."
   "Non-nil means Flyspell reports a repeated word as an error.
 See `flyspell-mark-duplications-exceptions' to add exceptions to this rule.
 Detection of repeated words is not implemented in
-\"large\" regions; see `flyspell-large-region'."
+\"large\" regions; see variable `flyspell-large-region'."
   :group 'flyspell
   :type 'boolean)
 
@@ -145,9 +145,10 @@ whose length is specified by `flyspell-delay'."
 (defcustom flyspell-default-deplacement-commands
   '(next-line previous-line
     handle-switch-frame handle-select-window
-    scroll-up scroll-down)
+    scroll-up
+    scroll-down)
   "The standard list of deplacement commands for Flyspell.
-See `flyspell-deplacement-commands'."
+See variable `flyspell-deplacement-commands'."
   :group 'flyspell
   :version "21.1"
   :type '(repeat (symbol)))
@@ -445,13 +446,23 @@ like <img alt=\"Some thing.\">."
 ;;*---------------------------------------------------------------------*/
 ;;*    Highlighting                                                     */
 ;;*---------------------------------------------------------------------*/
-(defface flyspell-incorrect '((t :underline t :inherit error))
+(defface flyspell-incorrect
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "Red1"))
+    (t
+     :underline t :inherit error))
   "Flyspell face for misspelled words."
+  :version "24.4"
   :group 'flyspell)
 
-(defface flyspell-duplicate '((t :underline t :inherit warning))
+(defface flyspell-duplicate
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "DarkOrange"))
+    (t
+     :underline t :inherit warning))
   "Flyspell face for words that appear twice in a row.
 See also `flyspell-duplicate-distance'."
+  :version "24.4"
   :group 'flyspell)
 
 (defvar flyspell-overlay nil)

@@ -1,7 +1,7 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -557,7 +557,8 @@ To turn off the world time display, go to that window and type `q'."
     (run-at-time t display-time-world-timer-second 'display-time-world-timer))
   (with-current-buffer (get-buffer-create display-time-world-buffer-name)
     (display-time-world-display display-time-world-list)
-    (display-buffer display-time-world-buffer-name)
+    (display-buffer display-time-world-buffer-name
+		    (cons nil '((window-height . fit-window-to-buffer))))
     (display-time-world-mode)))
 
 (defun display-time-world-timer ()

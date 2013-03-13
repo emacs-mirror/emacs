@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -217,8 +217,6 @@ extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_char_width (struct frame *f);
-extern int x_char_height (struct frame *f);
 extern int x_pixel_width (struct frame *f);
 extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
@@ -251,16 +249,10 @@ extern Lisp_Object x_get_focus_frame (struct frame *);
    diffs between X and w32 code.  */
 struct x_output
 {
-#if 0 /* These are also defined in struct frame.  Use that instead.  */
-  PIX_TYPE background_pixel;
-  PIX_TYPE foreground_pixel;
-#endif
-
   /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
-
 };
 
 enum
@@ -347,17 +339,13 @@ struct w32_output
 
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
-  char explicit_parent;
+  unsigned explicit_parent : 1;
 
   /* Nonzero means tried already to make this frame visible.  */
-  char asked_for_visible;
+  unsigned asked_for_visible : 1;
 
   /* Nonzero means menubar is currently active.  */
-  char menubar_active;
-
-  /* Nonzero means menubar is about to become active, but should be
-     brought up to date first.  */
-  volatile char pending_menu_activation;
+  unsigned menubar_active : 1;
 
   /* Relief GCs, colors etc.  */
   struct relief
@@ -415,9 +403,8 @@ extern struct w32_output w32term_display;
 
 struct scroll_bar {
 
-  /* These fields are shared by all vectors.  */
-  EMACS_INT size_from_Lisp_Vector_struct;
-  struct Lisp_Vector *next_from_Lisp_Vector_struct;
+  /* This field is shared by all vectors.  */
+  struct vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;
@@ -459,12 +446,6 @@ struct scroll_bar {
      bar is extended to the gap between the fringe and the bar.  */
   Lisp_Object fringe_extended_p;
 };
-
-/* The number of elements a vector holding a struct scroll_bar needs.  */
-#define SCROLL_BAR_VEC_SIZE					\
-  ((sizeof (struct scroll_bar)					\
-    - sizeof (EMACS_INT) - sizeof (struct Lisp_Vector *))	\
-   / word_size)
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
@@ -621,7 +602,8 @@ do { \
 #define WM_EMACS_PAINT                 (WM_EMACS_START + 20)
 #define WM_EMACS_BRINGTOTOP            (WM_EMACS_START + 21)
 #define WM_EMACS_INPUT_READY           (WM_EMACS_START + 22)
-#define WM_EMACS_END                   (WM_EMACS_START + 23)
+#define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 23)
+#define WM_EMACS_END                   (WM_EMACS_START + 24)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -671,7 +653,7 @@ extern void deselect_palette (struct frame * f, HDC hdc);
 extern HDC get_frame_dc (struct frame * f);
 extern int release_frame_dc (struct frame * f, HDC hDC);
 
-extern void drain_message_queue (void);
+extern int drain_message_queue (void);
 
 extern BOOL get_next_msg (W32Msg *, BOOL);
 extern BOOL post_msg (W32Msg *);
@@ -681,9 +663,16 @@ extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
+
+extern volatile int notification_buffer_in_use;
+extern BYTE file_notifications[16384];
+extern DWORD notifications_size;
+extern void *notifications_desc;
+extern Lisp_Object w32_get_watch_object (void *);
+extern Lisp_Object lispy_file_action (DWORD);
+
 extern void w32_initialize_display_info (Lisp_Object);
 extern void initialize_w32_display (struct terminal *);
-
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
@@ -752,10 +741,42 @@ extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
 
+#ifdef _MSC_VER
+#ifndef EnumSystemLocales
+/* MSVC headers define these only for _WIN32_WINNT >= 0x0500.  */
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCA)(LPSTR);
+typedef BOOL (CALLBACK *LOCALE_ENUMPROCW)(LPWSTR);
+BOOL WINAPI EnumSystemLocalesA(LOCALE_ENUMPROCA,DWORD);
+BOOL WINAPI EnumSystemLocalesW(LOCALE_ENUMPROCW,DWORD);
+#ifdef UNICODE
+#define EnumSystemLocales EnumSystemLocalesW
+#else
+#define EnumSystemLocales EnumSystemLocalesA
+#endif
+#endif
+#endif
+
 #if EMACSDEBUG
 extern const char*
 w32_name_of_message (UINT msg);
 #endif /* EMACSDEBUG */
+
+#ifdef NTGUI_UNICODE
+extern Lisp_Object ntgui_encode_system (Lisp_Object str);
+#define GUISTR(x) (L ## x)
+#define GUI_ENCODE_FILE GUI_ENCODE_SYSTEM
+#define GUI_ENCODE_SYSTEM(x) ntgui_encode_system (x)
+#define GUI_FN(fn) fn ## W
+typedef wchar_t guichar_t;
+#else /* !NTGUI_UNICODE */
+#define GUISTR(x) x
+#define GUI_ENCODE_FILE ENCODE_FILE
+#define GUI_ENCODE_SYSTEM ENCODE_SYSTEM
+#define GUI_FN(fn) fn
+typedef char guichar_t;
+#endif /* NTGUI_UNICODE */
+
+#define GUI_SDATA(x) ((guichar_t*) SDATA (x))
 
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);
@@ -763,6 +784,7 @@ extern void syms_of_w32fns (void);
 
 extern void globals_of_w32menu (void);
 extern void globals_of_w32fns (void);
+extern void globals_of_w32notify (void);
 
 #ifdef CYGWIN
 extern int w32_message_fd;

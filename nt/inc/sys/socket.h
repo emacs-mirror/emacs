@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 2001-2012  Free Software Foundation, Inc.
+/* Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -119,7 +119,7 @@ int sys_sendto (int s, const char * buf, int len, int flags,
    an fcntl function, for setting sockets to non-blocking mode.  */
 int fcntl (int s, int cmd, int options);
 #define F_SETFL   4
-#define O_NDELAY  04000
+#define O_NONBLOCK  04000
 
 /* we are providing a real h_errno variable */
 #undef h_errno

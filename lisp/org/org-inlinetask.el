@@ -1,6 +1,6 @@
 ;;; org-inlinetask.el --- Tasks independent of outline hierarchy
 
-;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -74,6 +74,9 @@
 ;;
 ;; Also, if you want to use refiling and archiving for inline tasks,
 ;; The END line must be present to make things work properly.
+;;
+;; Note that you should not try to use inline tasks within plain list,
+;; visibility cycling is known to be problematic when doing so.
 ;;
 ;; This package installs one new command:
 ;;

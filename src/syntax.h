@@ -1,7 +1,7 @@
 /* Declarations having to do with GNU Emacs syntax tables.
 
-Copyright (C) 1985, 1993-1994, 1997-1998, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-1998, 2001-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 

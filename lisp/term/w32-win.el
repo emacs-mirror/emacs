@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -91,6 +91,9 @@
 (declare-function w32-send-sys-command "w32fns.c")
 (declare-function set-message-beep "w32fns.c")
 
+(declare-function cygwin-convert-file-name-from-windows "cygw32.c"
+		  (path &optional absolute_p))
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
@@ -105,7 +108,7 @@
 
 (defun w32-handle-dropped-file (window file-name)
   (let ((f (if (eq system-type 'cygwin)
-               (cygwin-convert-path-from-windows file-name t)
+               (cygwin-convert-file-name-from-windows file-name t)
              (subst-char-in-string ?\\ ?/ file-name)))
         (coding (or file-name-coding-system
                     default-file-name-coding-system)))
@@ -116,7 +119,11 @@
                                    "/")
                      "/")))
 		(dnd-handle-one-url window 'private
-				    (concat "file:" file-name)))
+				    (concat
+				     (if (eq system-type 'cygwin)
+					 "file://"
+				       "file:")
+				     file-name)))
 
 (defun w32-drag-n-drop (event &optional new-frame)
   "Edit the files listed in the drag-n-drop EVENT.

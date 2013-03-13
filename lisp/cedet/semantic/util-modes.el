@@ -1,6 +1,6 @@
 ;;; semantic/util-modes.el --- Semantic minor modes
 
-;; Copyright (C) 2000-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -221,11 +221,11 @@ minor mode is enabled."
 	    (setq semantic-highlight-edits-mode nil)
 	    (error "Buffer %s was not set up for parsing"
 		   (buffer-name)))
-	(semantic-make-local-hook 'semantic-edits-new-change-hooks)
-	(add-hook 'semantic-edits-new-change-hooks
+	(semantic-make-local-hook 'semantic-edits-new-change-functions)
+	(add-hook 'semantic-edits-new-change-functions
 		  'semantic-highlight-edits-new-change-hook-fcn nil t))
     ;; Remove hooks
-    (remove-hook 'semantic-edits-new-change-hooks
+    (remove-hook 'semantic-edits-new-change-functions
 		 'semantic-highlight-edits-new-change-hook-fcn t)))
 
 (semantic-add-minor-mode 'semantic-highlight-edits-mode
@@ -460,8 +460,8 @@ minor mode is enabled."
 		(append mode-line-modified
 			'(semantic-show-parser-state-string))))
 	;; Add hooks
-        (semantic-make-local-hook 'semantic-edits-new-change-hooks)
-        (add-hook 'semantic-edits-new-change-hooks
+        (semantic-make-local-hook 'semantic-edits-new-change-functions)
+        (add-hook 'semantic-edits-new-change-functions
                   'semantic-show-parser-state-marker nil t)
 	(semantic-make-local-hook 'semantic-edits-incremental-reparse-failed-hook)
 	(add-hook 'semantic-edits-incremental-reparse-failed-hook
@@ -491,7 +491,7 @@ minor mode is enabled."
     (setq mode-line-modified
 	  (delq 'semantic-show-parser-state-string mode-line-modified))
     ;; Remove hooks
-    (remove-hook 'semantic-edits-new-change-hooks
+    (remove-hook 'semantic-edits-new-change-functions
 		 'semantic-show-parser-state-marker t)
     (remove-hook 'semantic-edits-incremental-reparse-failed-hook
 		 'semantic-show-parser-state-marker t)

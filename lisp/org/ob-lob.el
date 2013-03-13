@@ -1,6 +1,6 @@
 ;;; ob-lob.el --- functions supporting the Library of Babel
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
@@ -45,7 +45,6 @@ To add files to this list use the `org-babel-lob-ingest' command."
 (defvar org-babel-default-lob-header-args '((:exports . "results"))
   "Default header arguments to use when exporting #+lob/call lines.")
 
-;;;###autoload
 (defun org-babel-lob-ingest (&optional file)
   "Add all named source-blocks defined in FILE to
 `org-babel-library-of-babel'."
@@ -143,6 +142,8 @@ if so then run the appropriate source block from the Library."
 
 (provide 'ob-lob)
 
-
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; ob-lob.el ends here

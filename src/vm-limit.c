@@ -1,5 +1,5 @@
 /* Functions for memory limit warnings.
-   Copyright (C) 1990, 1992, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1990, 1992, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +19,37 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <unistd.h> /* for 'environ', on AIX */
 #include "lisp.h"
-#include "mem-limits.h"
+
+#ifdef MSDOS
+#include <dpmi.h>
+extern int etext;
+#endif
+
+/* Some systems need this before <sys/resource.h>.  */
+#include <sys/types.h>
+
+#ifdef HAVE_SYS_RESOURCE_H
+# include <sys/time.h>
+# include <sys/resource.h>
+#else
+# if HAVE_SYS_VLIMIT_H
+#  include <sys/vlimit.h>	/* Obsolete, says glibc */
+# endif
+#endif
+
+/* Start of data.  It is OK if this is approximate; it's used only as
+   a heuristic.  */
+#ifdef DATA_START
+# define data_start ((char *) DATA_START)
+#else
+extern char data_start[];
+# ifndef HAVE_DATA_START
+/* Initialize to nonzero, so that it's put into data and not bss.
+   Link this file's object code first, so that this symbol is near the
+   start of data.  */
+char data_start[1] = { 1 };
+# endif
+#endif
 
 /*
   Level number of warnings already issued.
@@ -31,59 +61,45 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 enum warnlevel { not_warned, warned_75, warned_85, warned_95 };
 static enum warnlevel warnlevel;
 
-typedef void *POINTER;
-
 /* Function to call to issue a warning;
    0 means don't issue them.  */
 static void (*warn_function) (const char *);
 
-/* Start of data space; can be changed by calling malloc_init.  */
-static POINTER data_space_start;
+/* Start of data space; can be changed by calling memory_warnings.  */
+static char *data_space_start;
 
 /* Number of bytes of writable memory we can expect to be able to get.  */
 static size_t lim_data;
 
+/* Return true if PTR cannot be represented as an Emacs Lisp object.  */
+static bool
+exceeds_lisp_ptr (void *ptr)
+{
+  return (! USE_LSB_TAG
+	  && VAL_MAX < UINTPTR_MAX
+	  && ((uintptr_t) ptr & ~DATA_SEG_BITS) >> VALBITS != 0);
+}
 
-#if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
+#ifdef HAVE_GETRLIMIT
+
+# ifndef RLIMIT_AS
+#  define RLIMIT_AS RLIMIT_DATA
+# endif
+
 static void
 get_lim_data (void)
 {
+  /* Set LIM_DATA to the minimum of the maximum object size and the
+     maximum address space.  Don't bother to check for values like
+     RLIM_INFINITY since in practice they are not much less than SIZE_MAX.  */
   struct rlimit rlimit;
-
-  getrlimit (RLIMIT_AS, &rlimit);
-  if (rlimit.rlim_cur == RLIM_INFINITY)
-    lim_data = -1;
-  else
-    lim_data = rlimit.rlim_cur;
+  lim_data
+    = (getrlimit (RLIMIT_AS, &rlimit) == 0 && rlimit.rlim_cur <= SIZE_MAX
+       ? rlimit.rlim_cur
+       : SIZE_MAX);
 }
 
-#else /* not HAVE_GETRLIMIT */
-
-#ifdef USG
-
-static void
-get_lim_data (void)
-{
-  extern long ulimit ();
-
-  lim_data = -1;
-
-  /* Use the ulimit call, if we seem to have it.  */
-#if !defined (ULIMIT_BREAK_VALUE) || defined (GNU_LINUX)
-  lim_data = ulimit (3, 0);
-#endif
-
-  /* If that didn't work, just use the macro's value.  */
-#ifdef ULIMIT_BREAK_VALUE
-  if (lim_data == -1)
-    lim_data = ULIMIT_BREAK_VALUE;
-#endif
-
-  lim_data -= (long) data_space_start;
-}
-
-#else /* not USG */
-#ifdef WINDOWSNT
+#elif defined WINDOWSNT
 
 #include "w32heap.h"
 
@@ -94,10 +110,8 @@ get_lim_data (void)
   lim_data = reserved_heap_size;
 }
 
-#else
-#if !defined (BSD4_2) && !defined (CYGWIN)
+#elif defined MSDOS
 
-#ifdef MSDOS
 void
 get_lim_data (void)
 {
@@ -135,32 +149,9 @@ ret_lim_data (void)
   get_lim_data ();
   return lim_data;
 }
-#else /* not MSDOS */
-static void
-get_lim_data (void)
-{
-  lim_data = vlimit (LIM_DATA, -1);
-}
-#endif /* not MSDOS */
-
-#else /* BSD4_2 || CYGWIN */
-
-static void
-get_lim_data (void)
-{
-  struct rlimit XXrlimit;
-
-  getrlimit (RLIMIT_DATA, &XXrlimit);
-#ifdef RLIM_INFINITY
-  lim_data = XXrlimit.rlim_cur & RLIM_INFINITY; /* soft limit */
 #else
-  lim_data = XXrlimit.rlim_cur;	/* soft limit */
+# error "get_lim_data not implemented on this machine"
 #endif
-}
-#endif /* BSD4_2 */
-#endif /* not WINDOWSNT */
-#endif /* not USG */
-#endif /* not HAVE_GETRLIMIT */
 
 /* Verify amount of memory available, complaining if we're near the end. */
 
@@ -168,11 +159,13 @@ static void
 check_memory_limits (void)
 {
 #ifdef REL_ALLOC
-  extern POINTER (*real_morecore) (ptrdiff_t);
+  extern void *(*real_morecore) (ptrdiff_t);
+#else
+  void *(*real_morecore) (ptrdiff_t) = 0;
 #endif
-  extern POINTER (*__morecore) (ptrdiff_t);
+  extern void *(*__morecore) (ptrdiff_t);
 
-  register POINTER cp;
+  char *cp;
   size_t five_percent;
   size_t data_size;
   enum warnlevel new_warnlevel;
@@ -182,13 +175,8 @@ check_memory_limits (void)
   five_percent = lim_data / 20;
 
   /* Find current end of memory and issue warning if getting near max */
-#ifdef REL_ALLOC
-  if (real_morecore)
-    cp = (char *) (*real_morecore) (0);
-  else
-#endif
-  cp = (char *) (*__morecore) (0);
-  data_size = (char *) cp - (char *) data_space_start;
+  cp = (real_morecore ? real_morecore : __morecore) (0);
+  data_size = cp - data_space_start;
 
   if (!warn_function)
     return;
@@ -235,62 +223,20 @@ check_memory_limits (void)
 	warnlevel = warned_85;
     }
 
-  if (EXCEEDS_LISP_PTR (cp))
+  if (exceeds_lisp_ptr (cp))
     (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
 }
-
-#if !defined (CANNOT_DUMP) || !defined (SYSTEM_MALLOC)
-/* Some systems that cannot dump also cannot implement these.  */
-
-/*
- *	Return the address of the start of the data segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- *	See crt0.c for further information and definition of data_start.
- *
- *	Apparently, on BSD systems this is etext at startup.  On
- *	USG systems (swapping) this is highly mmu dependent and
- *	is also dependent on whether or not the program is running
- *	with shared text.  Generally there is a (possibly large)
- *	gap between end of text and start of data with shared text.
- *
- */
-
-char *
-start_of_data (void)
-{
-#ifdef BSD_SYSTEM
-  extern char etext;
-  return (POINTER)(&etext);
-#elif defined DATA_START
-  return ((POINTER) DATA_START);
-#elif defined ORDINARY_LINK
-  /*
-   * This is a hack.  Since we're not linking crt0.c or pre_crt0.c,
-   * data_start isn't defined.  We take the address of environ, which
-   * is known to live at or near the start of the system crt0.c, and
-   * we don't sweat the handful of bytes that might lose.
-   */
-  return ((POINTER) &environ);
-#else
-  extern int data_start;
-  return ((POINTER) &data_start);
-#endif
-}
-#endif /* (not CANNOT_DUMP or not SYSTEM_MALLOC) */
 
 /* Enable memory usage warnings.
    START says where the end of pure storage is.
    WARNFUN specifies the function to call to issue a warning.  */
 
 void
-memory_warnings (POINTER start, void (*warnfun) (const char *))
+memory_warnings (void *start, void (*warnfun) (const char *))
 {
   extern void (* __after_morecore_hook) (void);     /* From gmalloc.c */
 
-  if (start)
-    data_space_start = start;
-  else
-    data_space_start = start_of_data ();
+  data_space_start = start ? start : data_start;
 
   warn_function = warnfun;
   __after_morecore_hook = check_memory_limits;
