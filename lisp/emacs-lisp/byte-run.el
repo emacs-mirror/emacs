@@ -79,7 +79,8 @@ The return value of this function is not used."
                    (list 'quote f) (list 'quote arglist) (list 'quote when))))
    (list 'obsolete
          #'(lambda (f _args new-name when)
-             `(make-obsolete ',f ',new-name ,when)))
+             (list 'make-obsolete
+                   (list 'quote f) (list 'quote new-name) (list 'quote when))))
    (list 'compiler-macro
          #'(lambda (f args compiler-function)
              ;; FIXME: Make it possible to just reuse `args'.
