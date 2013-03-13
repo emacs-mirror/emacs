@@ -62,7 +62,9 @@ static int
 _unsetenv (const char *name)
 {
   size_t len;
+#if !HAVE__PUTENV
   char **ep;
+#endif
 
   if (name == NULL || *name == '\0' || strchr (name, '=') != NULL)
     {
@@ -126,45 +128,45 @@ putenv (char *string)
     }
 
 #if HAVE__PUTENV
-      /* Rely on _putenv to allocate the new environment.  If other
-         parts of the application use _putenv, the !HAVE__PUTENV code
-         would fight over who owns the environ vector, causing a crash.  */
-      if (name_end[1])
-        return _putenv (string);
-      else
-        {
-          /* _putenv ("NAME=") unsets NAME, so invoke _putenv ("NAME= ")
-             to allocate the environ vector and then replace the new
-             entry with "NAME=".  */
-          int putenv_result, putenv_errno;
-          char *name_x = malloc (name_end - string + sizeof "= ");
-          if (!name_x)
-            return -1;
-          memcpy (name_x, string, name_end - string + 1);
-          name_x[name_end - string + 1] = ' ';
-          name_x[name_end - string + 2] = 0;
-          putenv_result = _putenv (name_x);
-          putenv_errno = errno;
-          for (ep = environ; *ep; ep++)
-            if (strcmp (*ep, name_x) == 0)
-              {
-                *ep = string;
-                break;
-              }
+  /* Rely on _putenv to allocate the new environment.  If other
+     parts of the application use _putenv, the !HAVE__PUTENV code
+     would fight over who owns the environ vector, causing a crash.  */
+  if (name_end[1])
+    return _putenv (string);
+  else
+    {
+      /* _putenv ("NAME=") unsets NAME, so invoke _putenv ("NAME= ")
+         to allocate the environ vector and then replace the new
+         entry with "NAME=".  */
+      int putenv_result, putenv_errno;
+      char *name_x = malloc (name_end - string + sizeof "= ");
+      if (!name_x)
+        return -1;
+      memcpy (name_x, string, name_end - string + 1);
+      name_x[name_end - string + 1] = ' ';
+      name_x[name_end - string + 2] = 0;
+      putenv_result = _putenv (name_x);
+      putenv_errno = errno;
+      for (ep = environ; *ep; ep++)
+        if (strcmp (*ep, name_x) == 0)
+          {
+            *ep = string;
+            break;
+          }
 # if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-          if (putenv_result == 0)
-            {
-              /* _putenv propagated "NAME= " into the subprocess environment;
-                 fix that by calling SetEnvironmentVariable directly.  */
-              name_x[name_end - string] = 0;
-              putenv_result = SetEnvironmentVariable (name_x, "") ? 0 : -1;
-              putenv_errno = ENOMEM; /* ENOMEM is the only way to fail.  */
-            }
-# endif
-          free (name_x);
-          __set_errno (putenv_errno);
-          return putenv_result;
+      if (putenv_result == 0)
+        {
+          /* _putenv propagated "NAME= " into the subprocess environment;
+             fix that by calling SetEnvironmentVariable directly.  */
+          name_x[name_end - string] = 0;
+          putenv_result = SetEnvironmentVariable (name_x, "") ? 0 : -1;
+          putenv_errno = ENOMEM; /* ENOMEM is the only way to fail.  */
         }
+# endif
+      free (name_x);
+      __set_errno (putenv_errno);
+      return putenv_result;
+    }
 #else
   for (ep = environ; *ep; ep++)
     if (strncmp (*ep, string, name_end - string) == 0
