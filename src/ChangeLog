@@ -1,3 +1,10 @@
+2013-03-13  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.c (main): Call syms_of_cygw32 on CYGWIN non-NTGUI builds
+	too so that these builds can use Cygwin's file conversion
+	functions.  (We've been building and linking cygw32.o all along
+	and just not using it.)
+
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).
