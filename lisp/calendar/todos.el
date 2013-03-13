@@ -532,6 +532,8 @@ items in that category, which overrides NUM."
   :type 'sexp
   :group 'todos-filtered)
 
+;; FIXME: rename to todos-top-priorities AFTER renaming command
+;; todos-top-priorities to todos-filter-top-priorities
 (defcustom todos-show-priorities 1
   "Default number of top priorities shown by `todos-top-priorities'."
   :type 'integer
@@ -611,7 +613,7 @@ categories display according to priority."
   :group 'todos-categories)
 
 ;; ---------------------------------------------------------------------------
-;;; Faces and font-lock matcher functions
+;;; Faces and font locking
 
 (defgroup todos-faces nil
   "Faces for the Todos modes."
@@ -2867,17 +2869,19 @@ which is the value of the user option
 (defvar todos-categories-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
+    ;; (define-key map "c" 'todos-display-categories-numberically-or-alphabetically)
     (define-key map "c" 'todos-display-categories-alphabetically-or-by-priority)
     (define-key map "t" 'todos-display-categories-sorted-by-todo)
     (define-key map "y" 'todos-display-categories-sorted-by-diary)
     (define-key map "d" 'todos-display-categories-sorted-by-done)
     (define-key map "a" 'todos-display-categories-sorted-by-archived)
+    (define-key map "#" 'todos-set-category-priority)
     (define-key map "l" 'todos-lower-category-priority)
     (define-key map "+" 'todos-lower-category-priority)
     (define-key map "r" 'todos-raise-category-priority)
     (define-key map "-" 'todos-raise-category-priority)
-    (define-key map "n" 'todos-forward-button)
-    (define-key map "p" 'todos-backward-button)
+    (define-key map "n" 'todos-forward-button) ; todos-next-button
+    (define-key map "p" 'todos-backward-button) ; todos-previous-button
     (define-key map [tab] 'todos-forward-button)
     (define-key map [backtab] 'todos-backward-button)
     (define-key map "q" 'todos-quit)
@@ -3252,7 +3256,7 @@ buries it and restores state as needed."
 	   (kill-buffer buf)))
 	((eq major-mode 'todos-filtered-items-mode)
 	 (kill-buffer)
-	 (todos-show))
+	 (unless (eq major-mode 'todos-mode) (todos-show)))
 	((member major-mode (list 'todos-mode 'todos-archive-mode))
 	 ;; Have to write previously nonexistant archives to file, and might
 	 ;; as well save Todos file also.
@@ -4119,7 +4123,7 @@ i.e. including all existing todo and done items."
 				     "the archived category will remain\n"
 				     "after deleting the todo category.  "
 				     "Do you still want to delete it\n"
-				     "(see 'todos-skip-archived-categories' "
+				     "(see `todos-skip-archived-categories' "
 				     "for another option)? ")))
 		  (t
 		   (y-or-n-p (concat "Permanently remove category \"" cat
@@ -5296,7 +5300,7 @@ meaning to raise or lower the item's priority by one."
 			(todos-get-count 'todo cat))))
 	   (maxnum (if new (1+ todo) todo))
 	   (prompt (format "Set item priority (1-%d): " maxnum))
-	   (priority (cond ((numberp current-prefix-arg)
+	   (priority (cond ((and (not arg) (numberp current-prefix-arg))
 			    current-prefix-arg)
 			   ((and (eq arg 'raise) (>= curnum 1))
 			    (1- curnum))
@@ -5318,7 +5322,7 @@ meaning to raise or lower the item's priority by one."
 		(goto-char (point-min))
 		(setq done (re-search-forward todos-done-string-start nil t))))
 	    (let ((todos-show-with-done done))
-	      (todos-category-select)))))
+	      (todos-category-select))))
 	;; Prompt for priority only when the category has at least one todo item.
 	(when (> maxnum 1)
 	  (while (not priority)
@@ -5371,7 +5375,7 @@ meaning to raise or lower the item's priority by one."
 	(and marked
 	     (let* ((ov (todos-get-overlay 'prefix))
 		    (pref (overlay-get ov 'before-string)))
-	       (overlay-put ov 'before-string (concat todos-item-mark pref)))))))
+	       (overlay-put ov 'before-string (concat todos-item-mark pref))))))))
 
 (defun todos-raise-item-priority ()
   "Raise priority of current item by moving it up by one item."
@@ -5641,7 +5645,7 @@ With prefix ARG delete an existing comment."
 (defun todos-item-undo ()
   "Restore this done item to the todo section of this category.
 If done item has a comment, ask whether to omit the comment from
-the restored item."
+the restored item."			;FIXME: marked done items
   (interactive)
   (let* ((cat (todos-current-category))
 	 (marked (assoc cat todos-categories-with-marks)))

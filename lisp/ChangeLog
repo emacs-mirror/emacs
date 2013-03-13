@@ -1,3 +1,13 @@
+2013-03-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-quit): If quitting
+	todos-filtered-items-mode makes todos-mode current, don't call
+	todos-show, which (here wrongly) prompts for a new Todos file.
+	(todos-delete-category): Fix incorrect quotation mark.
+	(todos-set-item-priority): Make prefix argument a no-op with
+	commands for raising or lowering item priority.  Move mistakenly
+	place right paren to end of defun, where it belongs.
+
 2013-02-25  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-key-bindings): Add binding for `todos-show'.
