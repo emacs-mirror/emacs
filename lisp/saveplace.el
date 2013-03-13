@@ -224,9 +224,7 @@ may have changed\) back to `save-place-alist'."
                       (symbol-name coding-system-for-write)))
       (let ((print-length nil)
             (print-level nil))
-        (pp (sort save-place-alist
-                  (lambda (a b) (string< (car a) (car b))))
-            (current-buffer)))
+        (pp save-place-alist (current-buffer)))
       (let ((version-control
              (cond
               ((null save-place-version-control) nil)
