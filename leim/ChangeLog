@@ -1,3 +1,11 @@
+2013-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Resolve conflicts (bug#13950).
+	(latin-ltx--mark-map, latin-ltx--mark-re): New constants.
+	(latin-ltx--define-rules): Check for conflicts.  Eval `re's.
+	(rules): Use tighter regexps to avoid conflicts.
+	Consolidate the various rules for combining marks.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.
