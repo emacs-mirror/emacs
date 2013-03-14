@@ -339,12 +339,22 @@ the @import directive."
 
 (defun manual-pdf (texi-file dest)
   "Run texi2pdf on TEXI-FILE, emitting plaintext output to DEST."
-  (call-process "texi2pdf" nil nil nil texi-file "-o" dest))
+  (call-process "texi2pdf" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
+		texi-file "-o" dest))
 
 (defun manual-dvi (texi-file dest ps-dest)
   "Run texi2dvi on TEXI-FILE, emitting dvi output to DEST.
 Also generate PostScript output in PS-DEST."
-  (call-process "texi2dvi" nil nil nil texi-file "-o" dest)
+  (call-process "texi2dvi" nil nil nil
+		"-I" (expand-file-name "../emacs"
+				       (file-name-directory texi-file))
+		"-I" (expand-file-name "../misc"
+				       (file-name-directory texi-file))
+		texi-file "-o" dest)
   (call-process "dvips" nil nil nil dest "-o" ps-dest)
   (call-process "gzip" nil nil nil dest)
   (call-process "gzip" nil nil nil ps-dest))
