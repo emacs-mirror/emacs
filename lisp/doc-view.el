@@ -324,7 +324,26 @@ of the page moves to the previous page."
       ;; `window' property is only effective if its value is a window).
       (cl-assert (eq t (car winprops)))
       (delete-overlay ol))
-    (image-mode-window-put 'overlay ol winprops)))
+    (image-mode-window-put 'overlay ol winprops)
+    (when (windowp (car winprops))
+      (if (stringp (get-char-property (point-min) 'display))
+    	  ;; We're not already displaying an image, so this is the
+    	  ;; initial window showing the document.
+    	  (run-with-timer nil nil
+    			  (lambda ()
+			    ;; In case a conversion is running, the
+			    ;; refresh will happen as defined by
+			    ;; `doc-view-conversion-refresh-interval'.
+    			    (unless doc-view-current-converter-processes
+			      (with-selected-window (car winprops)
+				(doc-view-goto-page 1)))))
+    	;; We've split the window showing the document.  All we need
+    	;; to do is selecting the new window to make the image appear
+    	;; there, too.
+    	(run-with-timer nil nil
+    			(lambda ()
+    			  (save-window-excursion
+    			    (select-window (car winprops)))))))))
 
 (defvar doc-view-current-files nil
   "Only used internally.")
@@ -535,7 +554,7 @@ Typically \"page-%s.png\".")
 			  (with-selected-window win
 			    (doc-view-goto-page page))))))))
     (overlay-put (doc-view-current-overlay)
-                 'help-echo (doc-view-current-info))))
+		 'help-echo (doc-view-current-info))))
 
 (defun doc-view-next-page (&optional arg)
   "Browse ARG pages forward."
@@ -1251,9 +1270,8 @@ ARGS is a list of image descriptors."
     (clear-image-cache)
     (setq doc-view-pending-cache-flush nil))
   (let ((ol (doc-view-current-overlay)))
-    ;; ol might be deleted (see `doc-view-new-window-function'), in
-    ;; which case we don't want to modify it.
-    (when (overlay-buffer ol)
+    ;; Only insert the image if the buffer is visible.
+    (when (window-live-p (overlay-get ol 'window))
       (let* ((image (if (and file (file-readable-p file))
 			(if (not (and doc-view-scale-internally
 				      (fboundp 'imagemagick-types)))

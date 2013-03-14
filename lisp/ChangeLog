@@ -1,9 +1,11 @@
 2013-03-14  Tassilo Horn  <tsdh@gnu.org>
 
-	* doc-view.el (doc-view-insert-image): Don't modify overlay
-	associated with pseudo winprops entry, and implement horizontal
-	centering of image in case it's smaller than the window
-	(bug#13887).
+	* doc-view.el Fix bug#13887.
+	(doc-view-insert-image): Don't modify overlay associated to
+	non-live windows, and implement horizontal centering of image in
+	case it's smaller than the window.
+	(doc-view-new-window-function): Force redisplay of new windows on
+	doc-view buffers.
 
 2013-03-13  Karl Fogel  <kfogel@red-bean.com>
 
