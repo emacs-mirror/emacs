@@ -1,3 +1,13 @@
+2013-03-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket) <WM_WINDOWPOSCHANGED>: Remove old
+	and incorrect code.  Treat WM_WINDOWPOSCHANGED like WM_ACTIVATE
+	and WM_ACTIVATEAPP.
+	(w32fullscreen_hook): If the frame is visible, reset
+	f->want_fullscreen flag after changing the frame size.  If the
+	frame is not visible, set f->want_fullscreen to FULLSCREEN_WAIT.
+	(Bug#13953)
+
 2013-03-13  Daniel Colascione  <dancol@dancol.org>
 
 	* emacs.c (main): Call syms_of_cygw32 on CYGWIN non-NTGUI builds
