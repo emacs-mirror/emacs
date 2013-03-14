@@ -1,6 +1,6 @@
 2013-03-14  Leo Liu  <sdl.web@gmail.com>
 
-	* thingatpt.el (end-of-sexp): Fix bug#13952.
+	* thingatpt.el (end-of-sexp): Fix bug#13952.  Use syntax-after.
 
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
