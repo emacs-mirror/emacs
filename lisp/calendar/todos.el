@@ -2191,41 +2191,43 @@ priority has changed or its text was truncated or augmented, and
 		   todos-global-current-todos-file)))
     (find-file-noselect file)
     (with-current-buffer (find-buffer-visiting file)
-      (widen)
-      (goto-char (point-min))
-      (let ((beg (re-search-forward
-		  (concat "^" (regexp-quote (concat todos-category-beg cat)) "$")
-		  nil t))
-	    (done (save-excursion
-		    (re-search-forward
-		     (concat "^" (regexp-quote todos-category-done)) nil t)))
-	    (end (save-excursion
-		   (or (re-search-forward
-			(concat "^" (regexp-quote todos-category-beg))
-			nil t)
-		       (point-max)))))
-	(setq found (when (search-forward str end t)
-		      (goto-char (match-beginning 0))))
-	(when found
-	   (setq found
-		 (cons found (if (> (point) done)
-				 'done
-			       (let ((cpriority 1))
-				 (save-excursion
-				   ;; Not top item in category.
-				   (while (> (point) (1+ beg))
-				     (let ((opoint (point)))
-				       (todos-backward-item)
-				       ;; Can't move backward beyond
-				       ;; first item in file.
-				       (unless (= (point) opoint)
-					 (setq cpriority (1+ cpriority))))))
-				 (if (and (= tpriority cpriority)
-					  ;; Proper substring is not the same.
-					  (string= (todos-item-string)
-						   str))
-				     'same
-				   'changed))))))))
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(let ((beg (re-search-forward
+		    (concat "^" (regexp-quote (concat todos-category-beg cat))
+			    "$")
+		    nil t))
+	      (done (save-excursion
+		      (re-search-forward
+		       (concat "^" (regexp-quote todos-category-done)) nil t)))
+	      (end (save-excursion
+		     (or (re-search-forward
+			  (concat "^" (regexp-quote todos-category-beg))
+			  nil t)
+			 (point-max)))))
+	  (setq found (when (search-forward str end t)
+			(goto-char (match-beginning 0))))
+	  (when found
+	    (setq found
+		  (cons found (if (> (point) done)
+				  'done
+				(let ((cpriority 1))
+				  (save-excursion
+				    ;; Not top item in category.
+				    (while (> (point) (1+ beg))
+				      (let ((opoint (point)))
+					(todos-backward-item)
+					;; Can't move backward beyond
+					;; first item in file.
+					(unless (= (point) opoint)
+					  (setq cpriority (1+ cpriority))))))
+				  (if (and (= tpriority cpriority)
+					   ;; Proper substring is not the same.
+					   (string= (todos-item-string)
+						    str))
+				      'same
+				    'changed)))))))))
       (list found file cat)))
 
 (defun todos-check-top-priorities ()
@@ -4580,8 +4582,9 @@ the priority is not given by HERE but by prompting."
 	(let (use-empty-active-region)
 	  (unless (and todos-use-only-highlighted-region (use-region-p))
 	    (error "There is no active region"))))
-      (let* ((buf (current-buffer))
+      (let* ((obuf (current-buffer))
 	     (ocat (todos-current-category))
+	     (opoint (point))
 	     (todos-mm (eq major-mode 'todos-mode))
 	     (cat+file (cond ((equal arg '(4))
 			      (todos-read-category "Insert in category: "))
@@ -4631,11 +4634,6 @@ the priority is not given by HERE but by prompting."
 	(setq todos-current-todos-file file)
 	(unless todos-global-current-todos-file
 	  (setq todos-global-current-todos-file todos-current-todos-file))
-	;; When inserting into a file that was not being visited on
-	;; invoking this command, point is at bof.
-	(when (= (point) 1)
-	  (todos-category-number cat)
-	  (todos-category-select))
 	(let ((buffer-read-only nil)
 	      done-only item-added)
 	  (setq new-item
@@ -4658,7 +4656,7 @@ the priority is not given by HERE but by prompting."
 	  (unwind-protect
 	      (progn
 		;; If only done items are displayed in category,
-		;; toggle to todo items.
+		;; toggle to todo items before inserting new item.
 		(when (save-excursion
 			(goto-char (point-min))
 			(looking-at todos-done-string-start))
@@ -4666,8 +4664,15 @@ the priority is not given by HERE but by prompting."
 		  (todos-show-done-only))
 		(if here
 		    (progn
-		      (unless (and todos-mm (equal cat ocat)
-				   (not (todos-done-item-section-p)))
+		      ;; If command was invoked with point in done
+		      ;; items section or outside of the current
+		      ;; category, can't insert "here", so to be
+		      ;; useful give new item top priority.
+		      (when (or (todos-done-item-section-p)
+				(prog1 (not (and todos-mm (equal cat ocat)))
+				  (todos-category-number cat)
+				  (todos-category-select))
+				done-only)
 			(goto-char (point-min)))
 		      (todos-insert-with-overlays new-item))
 		  (todos-set-item-priority new-item cat t))
@@ -4675,7 +4680,14 @@ the priority is not given by HERE but by prompting."
 	    ;; If user cancels before setting priority, restore
 	    ;; display.
 	    (unless item-added
-	      (and done-only (todos-show-done-only)))
+	      (if ocat
+		  (progn
+		    (unless (equal cat ocat)
+		      (todos-category-number ocat)
+		      (todos-category-select))
+		    (and done-only (todos-show-done-only)))
+		(set-window-buffer (selected-window) (set-buffer obuf)))
+	      (goto-char opoint))
 	    ;; If todos section is not visible when insertion
 	    ;; command is called (either because only done items
 	    ;; were shown or because category was not in current
@@ -5565,7 +5577,7 @@ visible."
 			    ""))
 	     (done-prefix (concat "[" todos-done-string date-string time-string
 				  "] "))
-	     (comment (and arg (not marked) (read-string "Enter a comment: ")))
+	     (comment (and arg (read-string "Enter a comment: ")))
 	     (item-count 0)
 	     (diary-count 0)
 	     (show-done (save-excursion
@@ -5573,6 +5585,9 @@ visible."
 			  (re-search-forward todos-done-string-start nil t)))
 	     (buffer-read-only nil)
 	     item done-item opoint)
+	;; Don't add empty comment to done item.
+	(setq comment (unless (zerop (length comment))
+			(concat " [" todos-comment-string ": " comment "]")))
 	(and marked (goto-char (point-min)))
 	(catch 'done
 	  ;; Stop looping when we hit the empty line below the last
@@ -5581,14 +5596,8 @@ visible."
 	    (if (or (not marked) (and marked (todos-marked-item-p)))
 		(progn
 		  (setq item (todos-item-string))
-		  (setq done-item (cond (marked
-					 (concat done-item done-prefix item "\n"))
-					(comment
-					 (concat done-prefix item " ["
-						 todos-comment-string
-						 ": " comment "]"))
-					(t
-					 (concat done-prefix item))))
+		  (setq done-item (concat done-item done-prefix item
+					  comment (and marked "\n")))
 		  (setq item-count (1+ item-count))
 		  (when (todos-diary-item-p)
 		    (setq diary-count (1+ diary-count)))

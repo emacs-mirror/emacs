@@ -1,3 +1,13 @@
+2013-03-14  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-insert-item): Fix last change to make
+	sure calling insertion "here" from outside goal todo items section
+	gives new item top priority.  With priority insertion, if user
+	cancels before setting priority, restore display.
+	(todos-find-item): Restore narrowing after searching.
+	(todos-item-done): Allow adding (same) comment to marked items.
+	Don't add empty comment to done item.
+
 2013-03-13  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-quit): If quitting
@@ -6,7 +16,7 @@
 	(todos-delete-category): Fix incorrect quotation mark.
 	(todos-set-item-priority): Make prefix argument a no-op with
 	commands for raising or lowering item priority.  Move mistakenly
-	place right paren to end of defun, where it belongs.
+	placed right paren to end of defun, where it belongs.
 
 2013-02-25  Stephen Berman  <stephen.berman@gmx.net>
 
