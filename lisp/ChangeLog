@@ -1,3 +1,8 @@
+2013-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-auto-fill): Don't inf-loop if there's no
+	token before point (bug#13942).
+
 2013-03-14  Leo Liu  <sdl.web@gmail.com>
 
 	* thingatpt.el (end-of-sexp): Fix bug#13952.  Use syntax-after.
@@ -25,8 +30,8 @@
 
 2013-02-20  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el (python-info-current-defun): Enhance
-	match-data cluttering prevention.
+	* progmodes/python.el (python-info-current-defun):
+	Enhance match-data cluttering prevention.
 
 2013-02-19  Glenn Morris  <rgm@gnu.org>
 
@@ -40,8 +45,8 @@
 
 2013-02-19  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el (python-indent-context): Fix
-	python-info-line-ends-backslash-p call.
+	* progmodes/python.el (python-indent-context):
+	Fix python-info-line-ends-backslash-p call.
 	(python-info-line-ends-backslash-p)
 	(python-info-beginning-of-backslash): Respect line-number
 	argument.
@@ -119,8 +124,8 @@
 	searching for its match.
 	(c-invalidate-state-cache-1): Add HERE parameter to function call.
 	(c-parse-state-1): Don't narrow here for 'forward strategy,
-	instead passing extra parameter HERE to several functions.  Remove
-	'BOD strategy.
+	instead passing extra parameter HERE to several functions.
+	Remove 'BOD strategy.
 
 2013-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
