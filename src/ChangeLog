@@ -1,3 +1,31 @@
+2013-03-15  handa  <handa@gnu.org>
+
+	* insdel.c (insert_from_gap): New arg text_at_gap_tail.
+	(adjust_after_replace): Make it back to static.  Delete the third
+	arg text_at_gap_tail.  Cancel the code for handling it.
+
+	* coding.h (struct coding_system): New member eol_seen.
+
+	* coding.c (detect_ascii): New function.
+	(detect_coding): Set coding->head_ascii and coding->eol_seen only
+	when the source bytes are actually scanned.  On detecting for
+	coding_category_utf_8_auto, call detect_ascii instead of scanning
+	source bytes directly.
+	(produce_chars): Call insert_from_gap with the new arg 0.
+	(encode_coding): Likewise.
+	(decode_coding_gap): Control ASCII optimization by the variable
+	disable_ascii_optimization instead of #ifndef .. #endif.
+	Deccode EOL format according to coding->eol_seen.
+	(syms_of_coding): Declare disable-ascii-optimization as a Lisp
+	variable.
+
+	* global.h (struct emacs_globals): New member
+	f_disable_ascii_optimization.
+	(disable_ascii_optimization): New macro.
+
+	* lisp.h (adjust_after_replace): Cancel externing it.
+	(insert_from_gap): Adjust prototype.
+
 2013-03-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32fullscreen_hook): Swap FULLSCREEN_BOTH and

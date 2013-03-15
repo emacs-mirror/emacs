@@ -977,10 +977,11 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
-   starting at GPT_ADDR.  */
+   starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
+   GPT_ADDR (if not text_at_gap_tail).  */
 
 void
-insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
+insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
@@ -989,10 +990,13 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
   MODIFF++;
 
   GAP_SIZE -= nbytes;
-  GPT += nchars;
+  if (! text_at_gap_tail)
+    {
+      GPT += nchars;
+      GPT_BYTE += nbytes;
+    }
   ZV += nchars;
   Z += nchars;
-  GPT_BYTE += nbytes;
   ZV_BYTE += nbytes;
   Z_BYTE += nbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
@@ -1010,7 +1014,7 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
 				   current_buffer, 0);
     }
 
-  if (GPT - nchars < PT)
+  if (! text_at_gap_tail && GPT - nchars < PT)
     adjust_point (nchars, nbytes);
 
   check_markers ();
@@ -1162,16 +1166,14 @@ insert_from_buffer_1 (struct buffer *buf,
 
 /* Record undo information and adjust markers and position keepers for
    a replacement of a text PREV_TEXT at FROM to a new text of LEN
-   chars (LEN_BYTE bytes).  If TEXT_AT_GAP_TAIL, the new text
-   resides at the gap tail; i.e. at (GAP_END_ADDR - LEN_BYTE)
-   Otherwise, the text resides in the gap just after GPT_BYTE.
+   chars (LEN_BYTE bytes) which resides in the gap just after
+   GPT_ADDR.
 
    PREV_TEXT nil means the new text was just inserted.  */
 
-void
+static void
 adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
-		      Lisp_Object prev_text, ptrdiff_t len, ptrdiff_t len_byte,
-		      bool text_at_gap_tail)
+		      Lisp_Object prev_text, ptrdiff_t len, ptrdiff_t len_byte)
 {
   ptrdiff_t nchars_del = 0, nbytes_del = 0;
 
@@ -1191,11 +1193,8 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
   GAP_SIZE -= len_byte;
   ZV += len; Z+= len;
   ZV_BYTE += len_byte; Z_BYTE += len_byte;
-  if (! text_at_gap_tail)
-    {
-      GPT += len; GPT_BYTE += len_byte;
-      if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
-    }
+  GPT += len; GPT_BYTE += len_byte;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
 
   if (nchars_del > 0)
     adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
@@ -1250,7 +1249,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
   GPT -= len; GPT_BYTE -= len_byte;
   ZV -= len; ZV_BYTE -= len_byte;
   Z -= len; Z_BYTE -= len_byte;
-  adjust_after_replace (from, from_byte, Qnil, newlen, len_byte, 0);
+  adjust_after_replace (from, from_byte, Qnil, newlen, len_byte);
 }
 
 /* Replace the text from character positions FROM to TO with NEW,
