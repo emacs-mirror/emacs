@@ -35,7 +35,7 @@
 
 2013-03-13  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32term.c (w32_read_socket): If we Emacs frame is being
+	* w32term.c (w32_read_socket): If the Emacs frame is being
 	activated, call w32fullscreen_hook, to make sure the new frame
 	dimensions are in effect.  (Bug#13937)
 
