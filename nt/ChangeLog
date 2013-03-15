@@ -1,3 +1,10 @@
+2013-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD_SYSTEM, BSD_SYSTEM_AHB, HAVE_ALARM, HAVE__PUTENV): Remove.
+	(HAVE_DECL_ALARM, HAVE_DECL_FDATASYNC, HAVE_DECL__PUTENV)
+	(HAVE_FDATASYNC): New macros.
+
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).
