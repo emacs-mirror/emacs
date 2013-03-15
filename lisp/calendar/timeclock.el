@@ -81,7 +81,7 @@
 
 ;;; User Variables:
 
-(defcustom timeclock-file (convert-standard-filename "~/.timelog")
+(defcustom timeclock-file (locate-user-emacs-file "timelog" ".timelog")
   "The file used to store timeclock data in."
   :type 'file
   :group 'timeclock)

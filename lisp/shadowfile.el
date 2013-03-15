@@ -651,7 +651,7 @@ Return t unless files were locked; then return nil."
 	(beep)
 	(sit-for 3)
 	nil)
-    (save-excursion
+    (save-current-buffer
       (when shadow-info-file
 	(set-buffer (setq shadow-info-buffer
 			  (find-file-noselect shadow-info-file)))
@@ -683,7 +683,7 @@ Also clear `shadow-hashtable', since when there are new shadows
 defined, the old hashtable info is invalid."
   (shadow-invalidate-hashtable)
   (if shadow-info-file
-      (save-excursion
+      (save-current-buffer
 	(if (not shadow-info-buffer)
 	    (setq shadow-info-buffer (find-file-noselect shadow-info-file)))
 	(set-buffer shadow-info-buffer)
@@ -802,11 +802,13 @@ look for files that have been changed and need to be copied to other systems."
 	    (file-name-as-directory (shadow-expand-file-name "~"))))
   (if (null shadow-info-file)
       (setq shadow-info-file
-	    (shadow-expand-file-name (convert-standard-filename "~/.shadows"))))
+            ;; FIXME: Move defaults to their defcustom.
+	    (shadow-expand-file-name
+             (locate-user-emacs-file "shadows" ".shadows"))))
   (if (null shadow-todo-file)
       (setq shadow-todo-file
 	    (shadow-expand-file-name
-	     (convert-standard-filename "~/.shadow_todo"))))
+	     (locate-user-emacs-file "shadow_todo" ".shadow_todo"))))
   (if (not (shadow-read-files))
       (progn
 	(message "Shadowfile information files not found - aborting")

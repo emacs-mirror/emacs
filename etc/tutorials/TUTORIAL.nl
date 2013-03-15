@@ -23,7 +23,7 @@ commando te proberen.  Bijvoorbeeld:
 	herhalen als je klaar bent met het lezen van een scherm.
 
 Merk op dat er een overlapping van twee regels is als je van een
-scherm naar het volgende gaat; dat zorgt voor continuïteit bij het
+scherm naar het volgende gaat; dat zorgt voor continuÃ¯teit bij het
 lezen van de tekst.
 
 Het eerste wat je moet weten, is hoe je je naar verschillende plaatsen
@@ -55,7 +55,7 @@ De volgende commando's zijn handig om volledige schermen te bekijken:
 
 Als je toetsenbord PageUp- en PageDn-toetsen heeft dan kun je deze ook
 gebruiken om een scherm terug dan wel vooruit te gaan, maar het werken
-met C-v en M-v is efficiënter.
+met C-v en M-v is efficiÃ«nter.
 
 
 * BASISCOMMANDO'S CURSORBEWEGINGEN
@@ -65,7 +65,7 @@ Het is handig om je per scherm te bewegen, maar hoe beweeg je je nu
 naar een specifieke plaats op het scherm?
 
 Er is een aantal manieren waarop je dit kan doen.  Je kan de
-pijltjestoetsen gebruiken, maar het is efficiënter om je handen in de
+pijltjestoetsen gebruiken, maar het is efficiÃ«nter om je handen in de
 standaardhouding te laten, en de commando's C-p, C-b, C-f en C-n te
 gebruiken.  Deze commando's komen overeen met de pijltjestoetsen, als
 in onderstaande figuur:
@@ -206,7 +206,7 @@ makkelijk andere gevorderde cursorbewegingscommando's leren.
 De meeste Emacs-commando's accepteren een numeriek argument.  Voor de
 meeste commando's is dit argument het aantal keren dat het commando
 herhaald moet worden.  Je geeft dit numerieke argument aan met C-u en
-vervolgens de cijfers van het getal, vóór het commando.  Als je
+vervolgens de cijfers van het getal, vÃ³Ã³r het commando.  Als je
 toetsenbord een META- (of EDIT- of ALT-) toets heeft, is er ook een
 andere manier om het getal aan te geven: tik de cijfers terwijl je de
 META toets ingedrukt houdt.  We raden je aan de C-u manier te leren
@@ -256,7 +256,7 @@ Je kan C-g ook gebruiken om een numeriek argument te verwijderen of om
 het begin van een commando dat je niet wilt afmaken, af te breken.
 
 >> Tik nu C-u 100 om een numeriek argument te maken met de waarde 100,
-   en tik dan C-g.  Tik vervolgens C-f.  Het zou de cursor maar één
+   en tik dan C-g.  Tik vervolgens C-f.  Het zou de cursor maar Ã©Ã©n
    positie mogen verplaatsen, omdat je het argument verwijderd hebt
    met C-g.
 
@@ -288,7 +288,7 @@ niet uitvoeren en beantwoord je de vraag met "n" (van "no" of "nee").
 Emacs kan meerdere vensters laten zien, elk venster met zijn eigen
 tekst.  We zullen later uitleggen hoe je met meerdere vensters kan
 werken.  Op dit moment willen we slechts uitleggen hoe je van extra
-vensters af kunt komen en terug kan keren naar het werken met één
+vensters af kunt komen en terug kan keren naar het werken met Ã©Ã©n
 venster.  Het is eenvoudig:
 
 	C-x 1	Een enkel venster (dat wil zeggen: verwijder alle
@@ -318,7 +318,7 @@ bestaan uit twee, drie of vier tekens.
 
 Als je tekst toe wil voegen, tik je die gewoon in.  Tekens die je kan
 zien, zoals A, 7, * en dergelijke, worden door Emacs als tekst
-geïnterpreteerd en meteen toegevoegd.  Tik <Return> (de "volgende
+geÃ¯nterpreteerd en meteen toegevoegd.  Tik <Return> (de "volgende
 regel"-toets) om een Newline toe te voegen en dus een nieuwe regel te
 beginnen.
 
@@ -386,8 +386,8 @@ trekken, die begon met C-f en M-f (waarbij we voor het gemak even
 vergeten dat <DEL> niet echt een CONTROL-teken is).  C-k en M-k lijken
 enigzins op C-e en M-e in hun relatie tot regels en zinnen.
 
-Je kunt ook op één uniforme manier een willekeurig deel van de tekst
-verwijderen.  Beweeg daartoe naar één kant van het gedeelte dat je
+Je kunt ook op Ã©Ã©n uniforme manier een willekeurig deel van de tekst
+verwijderen.  Beweeg daartoe naar Ã©Ã©n kant van het gedeelte dat je
 wilt verwijderen en tik C-<SPC>.  (<SPC> is de spatiebalk.)  Beweeg nu
 naar de andere kant van de tekst die je wilt verwijderen.  Terwijl je
 beweegt, markeert Emacs zichtbaar de tekst tussen de cursor en de
@@ -427,7 +427,7 @@ terwijl tweemaal C-k tikken dat niet doet.
 Het invoegen van de laatst verwijderde tekst heet yanken ("yanking").
 Je kan de tekst yanken op de plek waar je het verwijderde, op een
 andere plek of zelfs in een ander bestand.  Je kan dezelfde tekst
-meerdere keren yanken; op deze manier maak je meerdere kopieën van
+meerdere keren yanken; op deze manier maak je meerdere kopieÃ«n van
 dezelfde tekst.  Verwijderen ("killing") en yanken worden in andere
 programma's ook wel knip ("cut") en plak ("paste") genoemd (zie ook de
 Glossary in de Emacs-handleiding).
@@ -439,14 +439,14 @@ tekst in op de huidige cursorpositie.
 
 Als je meerdere keren C-k achter elkaar hebt gedaan, dan worden alle
 verwijderde tekstregels samen onthouden, zodat een enkele C-y al die
-regels in één keer invoegt.
+regels in Ã©Ã©n keer invoegt.
 
 >> Probeer het nu: tik C-k een paar keer.
 
 Om de verwijderde tekst terug te halen:
 
 >> Tik C-y.  Beweeg de cursor enkele regels naar beneden en tik weer
-   C-y.  Je ziet nu hoe je tekst kan kopiëren.
+   C-y.  Je ziet nu hoe je tekst kan kopiÃ«ren.
 
 Wat moet je doen als je wat tekst terug wilt brengen, maar je intussen
 al iets anders verwijderd hebt?  C-y zou datgene terugbrengen wat je
@@ -583,7 +583,7 @@ Je kan een bestand dat al bestaat bezoeken om het te bekijken of het
 te wijzigen.  Je kan ook een bestand bezoeken dat nog niet bestaat.
 Dit is de manier om met Emacs een nieuw bestand te maken: bezoek het
 bestand, dat eerst leeg zal zijn, en voeg tekst toe.  Zodra je de
-tekst opslaat, wordt het bestand werkelijk gecreëerd, met de nieuwe
+tekst opslaat, wordt het bestand werkelijk gecreÃ«erd, met de nieuwe
 tekst als inhoud.  Vanaf dat moment ben je dus bezig met een bestand
 dat al bestaat.
 
@@ -612,7 +612,7 @@ van een of andere buffer.
 >> Tik C-x 1 om de bufferlijst uit het zicht krijgen.
 
 Wanneer je met meerdere buffers werkt, dan is op elk moment slechts
-één van die buffers "actueel".  De actuele buffer is degene die je aan
+Ã©Ã©n van die buffers "actueel".  De actuele buffer is degene die je aan
 het bewerken bent.  Als je een andere buffer wilt bewerken, dan moet
 je daarnaar "omschakelen".  Als je wilt omschakelen naar een buffer
 die overeenkomt met een bestand, dan kun je dit doen door dat bestand
@@ -647,7 +647,7 @@ deze Emacs-sessie.
 
 Als je de tekst van het ene bestand verandert en dan een ander bestand
 bezoekt, wordt het eerste bestand niet opgeslagen.  De wijzigingen
-blijven in Emacs, in de buffer die bij het bestand hoort.  Het creëren
+blijven in Emacs, in de buffer die bij het bestand hoort.  Het creÃ«ren
 of veranderen van de buffer van het tweede bestand heeft geen effect
 op de eerste buffer.  Dit is erg nuttig, maar betekent ook dat er een
 eenvoudige manier nodig is om het eerste bestand te bewaren.  Het zou
@@ -689,7 +689,7 @@ voordat Emacs helemaal stopt.)
 Als je een grafisch scherm gebruikt heb je geen commando's nodig om
 van Emacs naar een andere applicatie te gaan.  Je gebruikt dat de muis
 of commando's van de vensterbeheerder.  Als je Emacs gebruikt in een
-tekstvenster of terminal, die maar één applicatie tegelijkertijd kan
+tekstvenster of terminal, die maar Ã©Ã©n applicatie tegelijkertijd kan
 laten zien, moet je Emacs tijdelijk verlaten om naar een andere
 applicatie te gaan.
 
@@ -700,7 +700,7 @@ terug in de shell, maar Emacs is nog aanwezig.  In de meeste shells
 kan je Emacs weer activeren met het "fg" commando, of met "%emacs".
 
 Het moment om C-x C-c te gebruiken is wanneer je uit gaat loggen.  Het
-is ook het juiste commando om Emacs te beëindigen wanneer Emacs
+is ook het juiste commando om Emacs te beÃ«indigen wanneer Emacs
 opgestart was door een mail-programma of iets dergelijks.
 
 Er bestaan vele C-x commando's.  Hier is een lijst van degene die je
@@ -723,7 +723,7 @@ toont Emacs onderaan het scherm "M-x" en moet je de naam van het
 commando intikken, in dit geval "replace-string".  Als je gewoon
 "repl s<TAB>" tikt maakt Emacs de naam zelf af.  (<TAB> is de
 Tab-toets, die meestal boven de CapsLock of Shift-toets zit aan de
-linkerkant van het toetsenbord.)  Beëindig het commando met <Return>.
+linkerkant van het toetsenbord.)  BeÃ«indig het commando met <Return>.
 
 Het replace-string commando heeft twee argumenten nodig: de string die
 vervangen moet worden en de string waarmee die vervangen moet worden.
@@ -801,7 +801,7 @@ heet een hoofdmodus ("major mode" in het Engels).
 Emacs heeft verschillende hoofdmodi.  Sommige daarvan zijn bedoeld
 voor het bewerken van verschillende talen of soorten tekst, zoals
 bijvoorbeeld Lisp-modus, Text-modus, etc.  Op elk moment is er altijd
-precies één modus actief, en de naam daarvan staat in de modusregel,
+precies Ã©Ã©n modus actief, en de naam daarvan staat in de modusregel,
 op de plaats waar nu "Fundamental" staat.
 
 Elke hoofdmodus zorgt ervoor dat sommige commando's zich anders
@@ -840,7 +840,7 @@ Hoofdmodi heten zo omdat er ook bijmodi zijn.  Bijmodi zijn geen
 alternatieven voor hoofdmodi; het zijn slechts kleine aanpassingen
 daarvan.  Elke bijmodus kan aan- of uitgezet worden, onafhankelijk van
 andere bijmodi en onafhankelijk van de hoofdmodus.  Het is dus
-mogelijk geen bijmodi, één bijmodus of een willekeurige combinatie van
+mogelijk geen bijmodi, Ã©Ã©n bijmodus of een willekeurige combinatie van
 bijmodi te gebruiken.
 
 Een nuttige bijmodus voor het bewerken van tekst in een natuurlijke
@@ -857,7 +857,7 @@ zeggen dat het commando de modus "schakelt" ("to toggle" in het
 Engels).
 
 >> Tik nu M-x auto-fill-mode<Return>.  Tik nu vele malen "asdf " op
-   een regel totdat je ziet dat de regel in tweeën gesplitst wordt.
+   een regel totdat je ziet dat de regel in tweeÃ«n gesplitst wordt.
    Er moeten wel spaties tussen de woorden staan, omdat de Auto Fill
    modus de regel alleen op spaties breekt.
 
@@ -895,16 +895,16 @@ van "to search", zoeken); C-r start het achterwaarts zoeken (met de
 Als je C-s tikt verschijnt de string "I-search" in het echo-gebied.
 Dit betekent dat Emacs bezig is met een "incremental search"
 (incrementele zoekopdracht) en wacht op het intikken van de
-zoekstring.  <Return> beëindigt het zoeken.
+zoekstring.  <Return> beÃ«indigt het zoeken.
 
->> Tik nu C-s om het zoeken te starten.  Tik nu, LANGZAAM, één letter
+>> Tik nu C-s om het zoeken te starten.  Tik nu, LANGZAAM, Ã©Ã©n letter
    per keer, het woord "cursor", met een pauze na elke letter zodat je
    kan zien wat er met de cursor gebeurt.  Je hebt nu eenmaal naar het
    woord "cursor" gezocht.
 >> Tik nogmaals C-s, om naar het volgende voorkomen van het woord
    "cursor" te zoeken.
 >> Tik nu viermaal <Del> en let op de cursorbewegingen.
->> Tik <Return> om het zoeken te beëindigen.
+>> Tik <Return> om het zoeken te beÃ«indigen.
 
 Zag je wat er gebeurde?  Tijdens incrementeel zoeken probeert Emacs
 naar de eerste plek te gaan waar de string staat die je tot dan toe
@@ -926,7 +926,7 @@ van de zoekstring afgehaald en de cursor gaat terug naar de plaats
 waar "c" het eerst voorkwam.
 
 Als je tijdens een zoekoperatie een CONTROL- of META-teken intikt, dan
-wordt het zoeken beëindigd.  Er zijn een paar uitzonderingen, namelijk
+wordt het zoeken beÃ«indigd.  Er zijn een paar uitzonderingen, namelijk
 tekens die tijdens zoeken een speciale betekenis hebben, zoals C-s en
 C-r.
 
@@ -997,7 +997,7 @@ verdwijnen.  C-x 1 betekent zoveel als "ik wil maar 1 venster,
 en wel het venster waar ik nu ben.")
 
 Je hoeft niet dezelfde buffer in beide vensters te hebben.  Wanneer je
-C-x C-f gebruikt om een bestand in één van de vensters te bezoeken,
+C-x C-f gebruikt om een bestand in Ã©Ã©n van de vensters te bezoeken,
 verandert het andere venster niet.  Je kunt de vensters onafhankelijk
 van elkaar gebruiken om bestanden te bezoeken.
 
@@ -1020,7 +1020,7 @@ vensters, menu's, scrollbalken, echo-gebied, etc.  Op grafische
 schermen is een Emacs-frame wat andere applicaties meestal een venter
 (of een "window" in het Engels, vgl. Windows) noemen.  Meerdere
 grafische frames kunnen tegelijk op het scherm getoond worden.  Een
-tekstterminal kan maar één frame tegelijkertijd tonen.
+tekstterminal kan maar Ã©Ã©n frame tegelijkertijd tonen.
 
 >> Tik M-x make-frame <Return>.
    Een nieuw frame verschijnt op het scherm.
@@ -1144,7 +1144,7 @@ overeenkomende commandonaam zoals find-file.
    C-h i	Lees de handleidingen (ook wel Info genoemd).
 		Dit commando zet je in een speciale buffer genaamd
 		"*info*" waar je handleidingen kunt lezen van
-		software die op je computer is geïnstalleerd.
+		software die op je computer is geÃ¯nstalleerd.
 		Tik m Emacs <Return> om de handleiding van Emacs te
 		lezen.  Als je nog nooit Info hebt gebruikt dan kun je
 		? tikken zodat Emacs je een rondleiding geeft langs de
@@ -1190,7 +1190,7 @@ tegengekomen, blijf dan niet zitten en maak jezelf geen verwijten.
 Doe je beklag!
 
 
-* KOPIËREN
+* KOPIÃ‹REN
 -----------
 
 (De Engelse versie van) deze inleiding is voorafgegaan door een lange
@@ -1229,7 +1229,7 @@ voorwaarden:
   onderdeel van GNU Emacs.  Als dat niet het geval is, ga naar
   www.gnu.org/licenses.
 
-Lees het bestand COPYING en geef daarna kopieën van Emacs aan al je
+Lees het bestand COPYING en geef daarna kopieÃ«n van Emacs aan al je
 vrienden.  Help bij het uitroeien van softwarebeschermingspolitiek
 ("eigendom") door vrije software te gebruiken, te schrijven en te
 delen!
@@ -1261,5 +1261,5 @@ your friends.  Help stamp out software obstructionism ("ownership") by
 using, writing, and sharing free software!
 
 ;;; Local Variables:
-;;;   coding: latin-1
+;;;   coding: utf-8
 ;;; End:

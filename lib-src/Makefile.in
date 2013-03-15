@@ -161,6 +161,8 @@ LIBRESOLV=@LIBRESOLV@
 LIBS_MAIL=@LIBS_MAIL@
 ## empty or -lrt or -lposix4 if HAVE_CLOCK_GETTIME
 LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
+## empty or -lrt or -lposix4 if HAVE_FDATASYNC
+LIB_FDATASYNC = @LIB_FDATASYNC@
 
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
@@ -334,7 +336,7 @@ pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h $(config_h)
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
 	   -DVERSION="\"${version}\"" \
-	   $(LOADLIBES) -o emacsclient
+	   $(LOADLIBES) $(LIB_FDATASYNC) -o emacsclient
 
 hexl${EXEEXT}: ${srcdir}/hexl.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl

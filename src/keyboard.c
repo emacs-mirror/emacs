@@ -6552,10 +6552,7 @@ has the same base event type and all the specified modifiers.  */)
   else if (SYMBOLP (base))
     return apply_modifiers (modifiers, base);
   else
-    {
-      error ("Invalid base event");
-      return Qnil;
-    }
+    error ("Invalid base event");
 }
 
 /* Try to recognize SYMBOL as a modifier name.

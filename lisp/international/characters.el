@@ -1410,16 +1410,16 @@ This function updates the char-table `glyphless-char-display'."
       (or (memq method '(zero-width thin-space empty-box acronym hex-code))
 	  (error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
-	     (set-char-table-range glyphless-char-display '(#x00 . #x1F)
-				   method)
+	     (glyphless-set-char-table-range glyphless-char-display
+					     #x00 #x1F method)
 	     ;; Users will not expect their newlines and TABs be
 	     ;; displayed as anything but themselves, so exempt those
 	     ;; two characters from c0-control.
 	     (set-char-table-range glyphless-char-display #x9 nil)
 	     (set-char-table-range glyphless-char-display #xa nil))
 	    ((eq target 'c1-control)
-	     (set-char-table-range glyphless-char-display '(#x80 . #x9F)
-				   method))
+	     (glyphless-set-char-table-range glyphless-char-display
+					     #x80 #x9F method))
 	    ((eq target 'format-control)
 	     (map-char-table
 	      #'(lambda (char category)
@@ -1442,6 +1442,14 @@ This function updates the char-table `glyphless-char-display'."
 	     (set-char-table-extra-slot glyphless-char-display 0 method))
 	    (t
 	     (error "Invalid glyphless character group: %s" target))))))
+
+(defun glyphless-set-char-table-range (chartable from to method)
+  (if (eq method 'acronym)
+      (let ((i from))
+	(while (<= i to)
+	  (set-char-table-range chartable i (aref char-acronym-table i))
+	  (setq i (1+ i))))
+    (set-char-table-range chartable (cons from to) method)))
 
 ;;; Control of displaying glyphless characters.
 (defcustom glyphless-char-display-control

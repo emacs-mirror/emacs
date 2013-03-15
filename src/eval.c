@@ -1690,7 +1690,6 @@ error (const char *m, ...)
   va_list ap;
   va_start (ap, m);
   verror (m, ap);
-  va_end (ap);
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 2, 0,

@@ -5,7 +5,7 @@
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: languages
-;; Version: 1.1
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -58,6 +58,70 @@
   :group 'cfengine
   :type 'integer)
 
+(defcustom cfengine-parameters-indent '(promise pname 0)
+  "*Indentation of CFEngine3 promise parameters (hanging indent).
+
+For example, say you have this code:
+
+bundle x y
+{
+  section:
+    class::
+      promise ...
+      promiseparameter => ...
+}
+
+You can choose to indent promiseparameter from the beginning of
+the line (absolutely) or from the word \"promise\" (relatively).
+
+You can also choose to indent the start of the word
+\"promiseparameter\" or the arrow that follows it.
+
+Finally, you can choose the amount of the indent.
+
+The default is to anchor at promise, indent parameter name, and offset 0:
+
+bundle agent rcfiles
+{
+  files:
+    any::
+      \"/tmp/netrc\"
+      comment => \"my netrc\",
+      perms => mog(\"600\", \"tzz\", \"tzz\");
+}
+
+Here we anchor at beginning of line, indent arrow, and offset 10:
+
+bundle agent rcfiles
+{
+  files:
+    any::
+      \"/tmp/netrc\"
+  comment => \"my netrc\",
+    perms => mog(\"600\", \"tzz\", \"tzz\");
+}
+
+Some, including cfengine_stdlib.cf, like to anchor at promise, indent
+arrow, and offset 16 or so:
+
+bundle agent rcfiles
+{
+  files:
+    any::
+      \"/tmp/netrc\"
+              comment => \"my netrc\",
+                perms => mog(\"600\", \"tzz\", \"tzz\");
+}
+"
+
+  :group 'cfengine
+  :type '(list
+          (choice (const :tag "Anchor at beginning of promise" promise)
+                  (const :tag "Anchor at beginning of line" bol))
+          (choice (const :tag "Indent parameter name" pname)
+                  (const :tag "Indent arrow" arrow))
+          (integer :tag "Indentation amount from anchor")))
+
 (defvar cfengine-mode-debug nil
   "Whether `cfengine-mode' should print debugging info.")
 
@@ -94,7 +158,7 @@ This includes those for cfservd as well as cfagent.")
     (regexp-opt cfengine3-defuns t)
     "Regex to match the CFEngine 3.x defuns.")
 
-  (defconst cfengine3-class-selector-regex "\\([[:alnum:]_().&|!]+\\)::")
+  (defconst cfengine3-class-selector-regex "\\([[:alnum:]_().&|!:]+\\)::")
 
   (defconst cfengine3-category-regex "\\([[:alnum:]_]+\\):")
 
@@ -126,8 +190,8 @@ This includes those for cfservd as well as cfagent.")
     ;; Defuns.  This happens early so they don't get caught by looser
     ;; patterns.
     (,(concat "\\<" cfengine3-defuns-regex "\\>"
-              "[ \t]+\\<\\([[:alnum:]_]+\\)\\>"
-              "[ \t]+\\<\\([[:alnum:]_]+\\)"
+              "[ \t]+\\<\\([[:alnum:]_.:]+\\)\\>"
+              "[ \t]+\\<\\([[:alnum:]_.:]+\\)"
               ;; Optional parentheses with variable names inside.
               "\\(?:(\\([^)]*\\))\\)?")
      (1 font-lock-builtin-face)
@@ -144,8 +208,8 @@ This includes those for cfservd as well as cfagent.")
      1 font-lock-builtin-face)
 
     ;; Variables, including scope, e.g. module.var
-    ("[@$](\\([[:alnum:]_.]+\\))" 1 font-lock-variable-name-face)
-    ("[@$]{\\([[:alnum:]_.]+\\)}" 1 font-lock-variable-name-face)
+    ("[@$](\\([[:alnum:]_.:]+\\))" 1 font-lock-variable-name-face)
+    ("[@$]{\\([[:alnum:]_.:]+\\)}" 1 font-lock-variable-name-face)
 
     ;; Variable definitions.
     ("\\<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1 font-lock-variable-name-face)
@@ -305,10 +369,10 @@ Intended as the value of `indent-line-function'."
        ((looking-at (concat cfengine3-defuns-regex "\\>"))
         (indent-line-to 0))
        ;; Categories are indented one step.
-       ((looking-at (concat cfengine3-category-regex "[ \t]*$"))
+       ((looking-at (concat cfengine3-category-regex "[ \t]*\\(#.*\\)*$"))
         (indent-line-to cfengine-indent))
        ;; Class selectors are indented two steps.
-       ((looking-at (concat cfengine3-class-selector-regex "[ \t]*$"))
+       ((looking-at (concat cfengine3-class-selector-regex "[ \t]*\\(#.*\\)*$"))
         (indent-line-to (* 2 cfengine-indent)))
        ;; Outdent leading close brackets one step.
        ((or (eq ?\} (char-after))
@@ -317,6 +381,8 @@ Intended as the value of `indent-line-function'."
             (indent-line-to (save-excursion
                               (forward-char)
                               (backward-sexp)
+                              (move-beginning-of-line nil)
+                              (skip-chars-forward " \t")
                               (current-column)))
           (error nil)))
        ;; Inside a string and it starts before this line.
@@ -331,7 +397,23 @@ Intended as the value of `indent-line-function'."
        ;; plus 2.  That way, promises indent deeper than class
        ;; selectors, which in turn are one deeper than categories.
        ((= 1 (nth 0 parse))
-        (indent-line-to (* (+ 2 (nth 0 parse)) cfengine-indent)))
+        (let ((p-anchor (nth 0 cfengine-parameters-indent))
+              (p-what (nth 1 cfengine-parameters-indent))
+              (p-indent (nth 2 cfengine-parameters-indent)))
+          ;; Do we have the parameter anchor and location and indent
+          ;; defined, and are we looking at a promise parameter?
+          (if (and p-anchor p-what p-indent
+                   (looking-at  "\\([[:alnum:]_]+[ \t]*\\)=>"))
+              (let* ((arrow-offset (* -1 (length (match-string 1))))
+                     (extra-offset (if (eq p-what 'arrow) arrow-offset 0))
+                     (base-offset (if (eq p-anchor 'promise)
+                                      (* (+ 2 (nth 0 parse)) cfengine-indent)
+                                    0)))
+                (indent-line-to (max 0 (+ p-indent base-offset extra-offset))))
+            ;; Else, indent to cfengine-indent times the nested depth
+            ;; plus 2.  That way, promises indent deeper than class
+            ;; selectors, which in turn are one deeper than categories.
+          (indent-line-to (* (+ 2 (nth 0 parse)) cfengine-indent)))))
        ;; Inside brackets/parens: indent to start column of non-comment
        ;; token on line following open bracket or by one step from open
        ;; bracket's column.
@@ -436,7 +518,8 @@ Intended as the value of `indent-line-function'."
   ;; The syntax defaults seem OK to give reasonable word movement.
   (modify-syntax-entry ?# "<" table)
   (modify-syntax-entry ?\n ">#" table)
-  (modify-syntax-entry ?\" "\"" table)
+  (modify-syntax-entry ?\" "\"" table)  ; "string"
+  (modify-syntax-entry ?\' "\"" table)  ; 'string'
   ;; Variable substitution.
   (modify-syntax-entry ?$ "." table)
   ;; Doze path separators.
@@ -475,7 +558,6 @@ to the action header."
   ;; Shell commands can be quoted by single, double or back quotes.
   ;; It's debatable whether we should define string syntax, but it
   ;; should avoid potential confusion in some cases.
-  (modify-syntax-entry ?\' "\"" cfengine2-mode-syntax-table)
   (modify-syntax-entry ?\` "\"" cfengine2-mode-syntax-table)
 
   (set (make-local-variable 'indent-line-function) #'cfengine2-indent-line)
@@ -505,7 +587,7 @@ on the buffer contents"
         (forward-line)))
     (if v3 (cfengine3-mode) (cfengine2-mode))))
 
-(defalias 'cfengine-mode 'cfengine-auto-mode)
+(defalias 'cfengine-mode 'cfengine3-mode)
 
 (provide 'cfengine3)
 (provide 'cfengine)

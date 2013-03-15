@@ -104,11 +104,14 @@ Source file encoding
 
 Most Emacs source files are encoded in UTF-8 (or in ASCII, which is a
 subset), but there are a few exceptions, listed below.  Perhaps
-someday these files will be converted to UTF-8, for convenience when
-using tools like 'grep -r', but this might need nontrivial changes to
-the build process.
+someday many of these files will be converted to UTF-8, for
+convenience when using tools like 'grep -r', but this might need
+nontrivial changes to the build process.
 
  * chinese-big5
+
+     These are verbatim copies of files taken from external sources.
+     They haven't been converted to UTF-8.
 
 	leim/CXTERM-DIC/4Corner.tit
 	leim/CXTERM-DIC/ARRAY30.tit
@@ -123,6 +126,9 @@ the build process.
 
  * chinese-iso-8bit
 
+     These are verbatim copies of files taken from external sources.
+     They haven't been converted to UTF-8.
+
 	leim/CXTERM-DIC/CCDOSPY.tit
 	leim/CXTERM-DIC/Punct.tit
 	leim/CXTERM-DIC/QJ.tit
@@ -132,27 +138,73 @@ the build process.
 	leim/MISC-DIC/CTLau.html
 	leim/MISC-DIC/ziranma.cin
 
+ * cp850
+
+     This file contains non-ASCII characters in unibyte strings.  When
+     editing a keyboard layout it's more convenient to see 'é' than
+     '\202', and the MS-DOS compiler requires the single byte if a
+     backslash escape is not being used.
+
+	src/msdos.c
+
+ * iso-2022-cn-ext
+
+     This file is externally generated from leim/MISC-DIC/cangjie-table.b5
+     by Big5->CNS converter.  It hasn't been converted to UTF-8.
+
+	leim/MISC-DIC/cangjie-table.cns
+
  * iso-latin-2
 
-	etc/refcards/cs-refcard.tex
-	etc/refcards/sk-survival.tex
-	etc/refcards/cs-survival.tex
+     These files are processed by csplain, a program that requires
+     Latin-2 input.  In 2012 the csplain maintainers started
+     recommending UTF-8, but these files haven't been converted yet.
+
 	etc/refcards/cs-dired-ref.tex
+	etc/refcards/cs-refcard.tex
+	etc/refcards/cs-survival.tex
 	etc/refcards/sk-dired-ref.tex
 	etc/refcards/sk-refcard.tex
+	etc/refcards/sk-survival.tex
 
  * japanese-iso-8bit
+
+     SKK-JISYO.L is a verbatim copy of a file taken from an external source.
+     ja-dic.el is generated automatically by skkdic-convert; this process
+     hasn't been converted to use UTF-8.
 
 	leim/SKK-DIC/SKK-JISYO.L
 	leim/ja-dic/ja-dic.el
 
  * japanese-shift-jis
 
+     This is a verbatim copy of a file taken from an external source.
+     It hasn't been converted to UTF-8.
+
 	admin/charsets/mapfiles/cns2ucsdkw.txt
 
  * no-conversion
 
+     This file purposely contains arbitrary bytes interspersed within text,
+     to test whether the Emacs distribution is corrupted.
+
 	lib-src/testfile
+
+ * iso-2022-7bit
+
+     This file contains significant charset information, which is not
+     encoded in UTF-8.
+
+	etc/HELLO
+
+     These files contain characters that cannot be encoded in UTF-8.
+
+	leim/quail/tibetan.el
+	leim/quail/ethiopic.el
+	lisp/international/titdic-cnv.el
+	lisp/language/tibetan.el
+	lisp/language/tibet-util.el
+	lisp/language/ind-util.el
 
 
 This file is part of GNU Emacs.

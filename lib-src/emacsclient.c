@@ -1724,7 +1724,8 @@ main (int argc, char **argv)
       needlf = 2;
     }
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
@@ -1825,7 +1826,8 @@ main (int argc, char **argv)
   if (needlf)
     printf ("\n");
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   if (rl < 0)
     exit_status = EXIT_FAILURE;

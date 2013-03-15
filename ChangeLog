@@ -1,3 +1,19 @@
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* configure.ac (BSD_SYSTEM, BSD_SYSTEM_AHB): Remove; no longer needed.
+	(fsync): Remove check; now done by gnulib.
+	* lib/fdatasync.c, lib/fsync.c, m4/fdatasync.m4, m4/fsync.m4:
+	New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+	Merge from gnulib, incorporating:
+	2013-03-13 putenv: port to Solaris 10
+	2013-03-12 mktime: fix configure typo
+	2013-03-11 regex: port to mingw's recent addition of undeclared alarm
+	2013-03-11 putenv: avoid compilation warning on mingw
+	2013-03-11 unistd: don't prevent Tru64 Unix from using gnulib strtod.
+
 2013-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (TERM_HEADER): Remove duplicate definition (Bug#13872).

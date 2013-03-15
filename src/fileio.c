@@ -1850,9 +1850,6 @@ those `/' is discarded.  */)
   error ("Missing \"}\" in environment-variable substitution");
  badvar:
   error ("Substituting nonexistent environment variable \"%s\"", target);
-
-  /* NOTREACHED */
-  return Qnil;
 }
 
 /* A slightly faster and more convenient way to get
@@ -3305,7 +3302,6 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
           return Qnil;
 #endif
         report_file_error ("Setting file times", Fcons (absname, Qnil));
-        return Qnil;
       }
   }
 
@@ -4963,20 +4959,23 @@ This calls `write-region-annotate-functions' at the start, and
 
   immediate_quit = 0;
 
-#ifdef HAVE_FSYNC
   /* fsync appears to change the modtime on BSD4.2.
      Disk full in NFS may be reported here.  */
   /* mib says that closing the file will try to write as fast as NFS can do
      it, and that means the fsync here is not crucial for autosave files.  */
-  if (!auto_saving && !write_region_inhibit_fsync && fsync (desc) < 0)
+  if (!auto_saving && !write_region_inhibit_fsync)
     {
-      /* If fsync fails with EINTR, don't treat that as serious.  Also
+      /* Transfer data and metadata to disk, retrying if interrupted.  Also,
 	 ignore EINVAL which happens when fsync is not supported on this
 	 file.  */
-      if (errno != EINTR && errno != EINVAL)
-	ok = 0, save_errno = errno;
+      while (fsync (desc) != 0)
+	if (errno != EINTR)
+	  {
+	    if (errno != EINVAL)
+	      ok = 0, save_errno = errno;
+	    break;
+	  }
     }
-#endif
 
   modtime = invalid_emacs_time ();
   if (visiting)
@@ -6050,13 +6049,11 @@ in the buffer; this is the default behavior, because the auto-save
 file is usually more useful if it contains the deleted text.  */);
   Vauto_save_include_big_deletions = Qnil;
 
-#ifdef HAVE_FSYNC
   DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
 	       doc: /* Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
 A non-nil value may result in data loss!  */);
   write_region_inhibit_fsync = 0;
-#endif
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.

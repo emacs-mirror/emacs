@@ -1,3 +1,20 @@
+2013-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add coding tags for iso-2022-7bit files that are not already tagged.
+	* HELLO, tutorials/TUTORIAL.ko, tutorials/TUTORIAL.th:
+	Add coding tag.  For TUTORIAL.th this prevents Emacs from
+	misinterpreting the file.
+
+	Switch encodings of tutorials, thai-word to UTF-8 (Bug#13880).
+	* refcards/ru-refcard.tex:
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.bg, tutorials/TUTORIAL.cn:
+	* tutorials/TUTORIAL.cs, tutorials/TUTORIAL.de, tutorials/TUTORIAL.eo:
+	* tutorials/TUTORIAL.es, tutorials/TUTORIAL.fr, tutorials/TUTORIAL.it:
+	* tutorials/TUTORIAL.nl, tutorials/TUTORIAL.pl, tutorials/TUTORIAL.pt_BR:
+	* tutorials/TUTORIAL.ro, tutorials/TUTORIAL.sk, tutorials/TUTORIAL.sv:
+	* tutorials/TUTORIAL.zh:
+	Switch to UTF-8.
+
 2013-03-09  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* refcards/calccard.tex: Remove incorrect entry.

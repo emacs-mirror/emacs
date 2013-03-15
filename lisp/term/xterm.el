@@ -470,7 +470,7 @@ The relevant features are:
   (let ((str "")
         chr)
     ;; The reply should be: \e ] 11 ; rgb: NUMBER1 / NUMBER2 / NUMBER3 \e \\
-    (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
+    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?\\)))
       (setq str (concat str (string chr))))
     (when (string-match
            "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
@@ -489,34 +489,65 @@ The relevant features are:
         (when recompute-faces
           (tty-set-up-initial-frame-faces))))))
 
-(defun xterm--query (query reply-prefix handler)
+(defun xterm--version-handler ()
+  (let ((str "")
+        chr)
+    ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
+    ;; If the timeout is completely removed for read-event, this
+    ;; might hang for terminals that pretend to be xterm, but don't
+    ;; respond to this escape sequence.  RMS' opinion was to remove
+    ;; it completely.  That might be right, but let's first try to
+    ;; see if by using a longer timeout we get rid of most issues.
+    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?c)))
+      (setq str (concat str (string chr))))
+    (when (string-match "0;\\([0-9]+\\);0" str)
+      (let ((version (string-to-number (match-string 1 str))))
+        ;; If version is 242 or higher, assume the xterm supports
+        ;; reporting the background color (TODO: maybe earlier
+        ;; versions do too...)
+        (when (>= version 242)
+          (xterm--query "\e]11;?\e\\"
+                        '(("\e]11;" .  xterm--report-background-handler))))
+
+        ;; If version is 216 (the version when modifyOtherKeys was
+        ;; introduced) or higher, initialize the
+        ;; modifyOtherKeys support.
+        (when (>= version 216)
+          (terminal-init-xterm-modify-other-keys))))))
+
+(defun xterm--query (query handlers)
   ;; We used to query synchronously, but the need to use `discard-input' is
   ;; rather annoying (bug#6758).  Maybe we could always use the asynchronous
   ;; approach, but it's less tested.
   ;; FIXME: Merge the two branches.
   (if (input-pending-p)
       (progn
-        (message "Doing %S asynchronously" query)
-        (define-key input-decode-map reply-prefix
-          (lambda (&optional _prompt)
-            ;; Unregister the handler, since we don't expect further answers.
-            (define-key input-decode-map reply-prefix nil)
-            (funcall handler)
-            []))
+        (dolist (handler handlers)
+          (define-key input-decode-map (car handler)
+            (lambda (&optional _prompt)
+              ;; Unregister the handler, since we don't expect further answers.
+              (dolist (handler handlers)
+                (define-key input-decode-map (car handler) nil))
+              (funcall (cdr handler))
+              [])))
         (send-string-to-terminal query))
     ;; Pending input can be mistakenly returned by the calls to
     ;; read-event below.  Discard it.
-    (message "Doing %S synchronously" query)
     (send-string-to-terminal query)
-    (let ((i 0))
-      (while (and (< i (length reply-prefix))
-                  (eq (read-event nil nil 2) (aref reply-prefix i)))
-        (setq i (1+ i)))
-      (if (= i (length reply-prefix))
-          (funcall handler)
-        (push last-input-event unread-command-events)
-        (while (> i 0)
-          (push (aref reply-prefix (setq i (1- i))) unread-command-events))))))
+    (while handlers
+      (let ((handler (pop handlers))
+            (i 0))
+        (while (and (< i (length (car handler)))
+                    (let ((evt (read-event nil nil 2)))
+                      (or (eq evt (aref (car handler) i))
+                          (progn (if evt (push evt unread-command-events))
+                                 nil))))
+          (setq i (1+ i)))
+        (if (= i (length (car handler)))
+            (funcall (cdr handler))
+          (while (> i 0)
+            (push (aref (car handler) (setq i (1- i)))
+                  unread-command-events)))))))
 
 (defun terminal-init-xterm ()
   "Terminal initialization function for xterm."
@@ -545,37 +576,16 @@ The relevant features are:
   (if (eq xterm-extra-capabilities 'check)
       ;; Try to find out the type of terminal by sending a "Secondary
       ;; Device Attributes (DA)" query.
-      (xterm--query
-       "\e[>0c" "\e[>"
-       (lambda ()
-         (let ((str "")
-               chr)
-           ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
-           ;; If the timeout is completely removed for read-event, this
-           ;; might hang for terminals that pretend to be xterm, but don't
-           ;; respond to this escape sequence.  RMS' opinion was to remove
-           ;; it completely.  That might be right, but let's first try to
-           ;; see if by using a longer timeout we get rid of most issues.
-           (while (not (equal (setq chr (read-event nil nil 2)) ?c))
-             (setq str (concat str (string chr))))
-           (when (string-match "0;\\([0-9]+\\);0" str)
-             (let ((version (string-to-number (match-string 1 str))))
-               ;; If version is 242 or higher, assume the xterm supports
-               ;; reporting the background color (TODO: maybe earlier
-               ;; versions do too...)
-               (when (>= version 242)
-                 (xterm--query "\e]11;?\e\\" "\e]11;"
-                               #'xterm--report-background-handler))
-
-               ;; If version is 216 (the version when modifyOtherKeys was
-               ;; introduced) or higher, initialize the
-               ;; modifyOtherKeys support.
-               (when (>= version 216)
-                 (terminal-init-xterm-modify-other-keys)))))))
+      (xterm--query "\e[>0c"
+                    ;; Some terminals (like OS X's Terminal.app) respond to
+                    ;; this query as if it were a "Primary Device Attributes"
+                    ;; query instead, so we should handle that too.
+                    '(("\e[?" . xterm--version-handler)
+                      ("\e[>" . xterm--version-handler)))
 
     (when (memq 'reportBackground xterm-extra-capabilities)
-      (xterm--query "\e]11;?\e\\" "\e]11;"
-                    #'xterm--report-background-handler))
+      (xterm--query "\e]11;?\e\\"
+                    '(("\e]11;" .  xterm--report-background-handler))))
 
     (when (memq 'modifyOtherKeys xterm-extra-capabilities)
       (terminal-init-xterm-modify-other-keys)))

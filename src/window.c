@@ -5021,7 +5021,7 @@ specifies the window to scroll.  This takes precedence over
   ++windows_or_buffers_changed;
 
   Fset_buffer (w->buffer);
-  SET_PT (marker_position (w->pointm));
+  SET_PT_BOTH (marker_position (w->pointm), marker_byte_position (w->pointm));
 
   if (NILP (arg))
     window_scroll (window, 1, 1, 1);

@@ -2568,7 +2568,9 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	;; Decode the output, it could be multibyte.
 	(decode-coding-region
 	 beg (point-max)
-	 (or file-name-coding-system default-file-name-coding-system))
+	 (or file-name-coding-system
+	     (and (boundp 'default-file-name-coding-system)
+		  (symbol-value 'default-file-name-coding-system))))
 
 	;; The inserted file could be from somewhere else.
 	(when (and (not wildcard) (not full-directory-p))

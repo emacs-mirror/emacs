@@ -26,6 +26,82 @@
 	* lisp.h (adjust_after_replace): Cancel externing it.
 	(insert_from_gap): Adjust prototype.
 
+2013-03-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32fullscreen_hook): Swap FULLSCREEN_BOTH and
+	FULLSCREEN_MAXIMIZED.  (Bug#13935)
+
+2013-03-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* region-cache.c (find_cache_boundary, move_cache_gap)
+	(insert_cache_boundary, delete_cache_boundaries, set_cache_region):
+	Simplify debugging check and convert to eassert.  Adjust comment.
+	(pp_cache): Put under ENABLE_CHECKING.
+
+2013-03-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket) <WM_WINDOWPOSCHANGED>: Remove old
+	and incorrect code.  Treat WM_WINDOWPOSCHANGED like WM_ACTIVATE
+	and WM_ACTIVATEAPP.
+	(w32fullscreen_hook): If the frame is visible, reset
+	f->want_fullscreen flag after changing the frame size.  If the
+	frame is not visible, set f->want_fullscreen to FULLSCREEN_WAIT.
+	(Bug#13953)
+
+2013-03-13  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.c (main): Call syms_of_cygw32 on CYGWIN non-NTGUI builds
+	too so that these builds can use Cygwin's file conversion
+	functions.  (We've been building and linking cygw32.o all along
+	and just not using it.)
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* Makefile.in (LIB_FDATASYNC): New macro.
+	(LIBES): Use it.
+	* conf_post.h (BSD_SYSTEM, BSD_SYSTEM_AHB): Remove; no longer needed.
+	* fileio.c (Fwrite_region, write_region_inhibit_fsync):
+	Don't worry about HAVE_FSYNC, since a substitute fsync is
+	available if the system lacks one.
+	(Fwrite_regin): Retry fsync if interrupted.
+
+2013-03-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket): If the Emacs frame is being
+	activated, call w32fullscreen_hook, to make sure the new frame
+	dimensions are in effect.  (Bug#13937)
+
+2013-03-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (init_iterator): Simplify because both character and byte
+	positions are either specified or -1.  Add eassert.  Adjust comment.
+	* window.c (Fscroll_other_window): Use SET_PT_BOTH because both
+	character and byte positions can be obtained from marker.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checking by Sun C 5.12.
+	* alloc.c (buffer_memory_full) [REL_ALLOC]:
+	* bytecode.c (exec_byte_code):
+	* dispnew.c (init_display):
+	* eval.c (error):
+	* fileio.c (Fsubstitute_in_file_name):
+	* keyboard.c (Fevent_convert_list):
+	* keymap.c (Fsingle_key_description):
+	* term.c (maybe_fatal, fatal):
+	* xfns.c (Fx_display_backing_store, Fx_display_visual_class):
+	* xsmfns.c (Fhandle_save_session):
+	Omit unreachable code.
+	* keymap.c (map_keymap_char_table_item): Cast void * to
+	a function pointer type; the C Standard requires this.
+
+	* sysdep.c: Remove a use of BSD_SYSTEM, which I'm trying to phase out.
+	Include <sys/param.h> unconditionally, as that works elsewhere and
+	is simpler here.  Include <sys/sysctl.h> if DARWIN_OS ||
+	__FreeBSD__, not if BSD_SYSTEM, since it's needed only for Darwin
+	and FreeBSD now.
+
 2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* insdel.c (adjust_after_replace): Use bool for boolean.

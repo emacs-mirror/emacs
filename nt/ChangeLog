@@ -1,3 +1,8 @@
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* inc/ms-w32.h (fdatasync): New macro, suggested by Eli Zaretskii.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).

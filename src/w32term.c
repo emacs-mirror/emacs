@@ -236,6 +236,7 @@ static void my_set_focus (struct frame *, HWND);
 #endif
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
+static void w32fullscreen_hook (FRAME_PTR);
 
 #ifdef GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
@@ -4704,20 +4705,23 @@ w32_read_socket (struct terminal *terminal,
 	  }
 
 	case WM_WINDOWPOSCHANGED:
-	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
-	  if (f)
-	    {
-	      if (f->want_fullscreen & FULLSCREEN_WAIT)
-		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
-	    }
-	  check_visibility = 1;
-	  break;
-
 	case WM_ACTIVATE:
 	case WM_ACTIVATEAPP:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
-	    x_check_fullscreen (f);
+	    {
+	      /* Run the full-screen hook function also when we are
+		 being activated, to actually install the required
+		 size in effect, if the WAIT flag is set.  This is
+		 because when the hook is run from x_set_fullscreen,
+		 the frame might not yet be visible, if that call is a
+		 result of make-frame, and in that case the hook just
+		 sets the WAIT flag.  */
+	      if ((msg.msg.message == WM_WINDOWPOSCHANGED || msg.msg.wParam)
+		  && (f->want_fullscreen & FULLSCREEN_WAIT))
+		w32fullscreen_hook (f);
+	      x_check_fullscreen (f);
+	    }
 	  check_visibility = 1;
 	  break;
 
@@ -5678,10 +5682,10 @@ w32fullscreen_hook (FRAME_PTR f)
 
       switch (f->want_fullscreen)
 	{
-	case FULLSCREEN_MAXIMIZED:
+	case FULLSCREEN_BOTH:
 	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 	  break;
-	case FULLSCREEN_BOTH:
+	case FULLSCREEN_MAXIMIZED:
 	  height =
 	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
 	    - XINT (Ftool_bar_lines_needed (selected_frame))
@@ -5729,8 +5733,11 @@ w32fullscreen_hook (FRAME_PTR f)
 	  x_set_window_size (f, 1, width, height);
 	  do_pending_window_change (0);
 	}
+      f->want_fullscreen = FULLSCREEN_NONE;
       unblock_input ();
     }
+  else
+    f->want_fullscreen |= FULLSCREEN_WAIT;
 }
 
 /* Call this to change the size of frame F's x-window.

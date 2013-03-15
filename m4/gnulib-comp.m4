@@ -63,10 +63,12 @@ AC_DEFUN([gl_EARLY],
   # Code from module extern-inline:
   # Code from module faccessat:
   # Code from module fcntl-h:
+  # Code from module fdatasync:
   # Code from module fdopendir:
   # Code from module filemode:
   # Code from module fpending:
   # Code from module fstatat:
+  # Code from module fsync:
   # Code from module getgroups:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -187,6 +189,11 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([faccessat])
   gl_UNISTD_MODULE_INDICATOR([faccessat])
   gl_FCNTL_H
+  gl_FUNC_FDATASYNC
+  if test $HAVE_FDATASYNC = 0; then
+    AC_LIBOBJ([fdatasync])
+  fi
+  gl_UNISTD_MODULE_INDICATOR([fdatasync])
   gl_FUNC_FDOPENDIR
   if test $HAVE_FDOPENDIR = 0 || test $REPLACE_FDOPENDIR = 1; then
     AC_LIBOBJ([fdopendir])
@@ -204,6 +211,12 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([fstatat])
   fi
   gl_SYS_STAT_MODULE_INDICATOR([fstatat])
+  gl_FUNC_FSYNC
+  if test $HAVE_FSYNC = 0; then
+    AC_LIBOBJ([fsync])
+    gl_PREREQ_FSYNC
+  fi
+  gl_UNISTD_MODULE_INDICATOR([fsync])
   gl_GETLOADAVG
   if test $HAVE_GETLOADAVG = 0; then
     AC_LIBOBJ([getloadavg])
@@ -743,12 +756,14 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/execinfo.in.h
   lib/faccessat.c
   lib/fcntl.in.h
+  lib/fdatasync.c
   lib/fdopendir.c
   lib/filemode.c
   lib/filemode.h
   lib/fpending.c
   lib/fpending.h
   lib/fstatat.c
+  lib/fsync.c
   lib/ftoastr.c
   lib/ftoastr.h
   lib/getgroups.c
@@ -842,10 +857,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/faccessat.m4
   m4/fcntl-o.m4
   m4/fcntl_h.m4
+  m4/fdatasync.m4
   m4/fdopendir.m4
   m4/filemode.m4
   m4/fpending.m4
   m4/fstatat.m4
+  m4/fsync.m4
   m4/getgroups.m4
   m4/getloadavg.m4
   m4/getopt.m4

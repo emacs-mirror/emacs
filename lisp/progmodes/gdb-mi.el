@@ -1,4 +1,4 @@
-;;; gdb-mi.el --- User Interface for running GDB
+;;; gdb-mi.el --- User Interface for running GDB  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
@@ -192,8 +192,8 @@ address for root variables.")
 (defvar gdb-disassembly-position nil)
 
 (defvar gdb-location-alist nil
-  "Alist of breakpoint numbers and full filenames.  Only used for files that
-Emacs can't find.")
+  "Alist of breakpoint numbers and full filenames.
+Only used for files that Emacs can't find.")
 (defvar gdb-active-process nil
   "GUD tooltips display variable values when t, and macro definitions otherwise.")
 (defvar gdb-error "Non-nil when GDB is reporting an error.")
@@ -227,9 +227,8 @@ This variable is updated in `gdb-done-or-error' and returned by
 It is initialized to `gdb-non-stop-setting' at the beginning of
 every GDB session.")
 
-(defvar gdb-buffer-type nil
+(defvar-local gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
-(make-variable-buffer-local 'gdb-buffer-type)
 
 (defvar gdb-output-sink 'nil
   "The disposition of the output of the current gdb command.
@@ -294,9 +293,7 @@ argument (see `gdb-emit-signal')."
     (funcall (cdr subscriber) signal)))
 
 (defvar gdb-buf-publisher '()
-  "Used to invalidate GDB buffers by emitting a signal in
-`gdb-update'.
-
+  "Used to invalidate GDB buffers by emitting a signal in `gdb-update'.
 Must be a list of pairs with cars being buffers and cdr's being
 valid signal handlers.")
 
@@ -327,8 +324,7 @@ valid signal handlers.")
   "When in non-stop mode, stopped threads can be examined while
 other threads continue to execute.
 
-GDB session needs to be restarted for this setting to take
-effect."
+GDB session needs to be restarted for this setting to take effect."
   :type 'boolean
   :group 'gdb-non-stop
   :version "23.2")
@@ -336,19 +332,18 @@ effect."
 ;; TODO Some commands can't be called with --all (give a notice about
 ;; it in setting doc)
 (defcustom gdb-gud-control-all-threads t
-  "When enabled, GUD execution commands affect all threads when
-in non-stop mode. Otherwise, only current thread is affected."
+  "When non-nil, GUD execution commands affect all threads when
+in non-stop mode.  Otherwise, only current thread is affected."
   :type 'boolean
   :group 'gdb-non-stop
   :version "23.2")
 
 (defcustom gdb-switch-reasons t
-  "List of stop reasons which cause Emacs to switch to the thread
-which caused the stop. When t, switch to stopped thread no matter
-what the reason was. When nil, never switch to stopped thread
-automatically.
+  "List of stop reasons for which Emacs should switch thread.
+When t, switch to stopped thread no matter what the reason was.
+When nil, never switch to stopped thread automatically.
 
-This setting is used in non-stop mode only. In all-stop mode,
+This setting is used in non-stop mode only.  In all-stop mode,
 Emacs always switches to the thread which caused the stop."
   ;; exited, exited-normally and exited-signaled are not
   ;; thread-specific stop reasons and therefore are not included in
@@ -404,7 +399,7 @@ and GDB buffers were updated in `gdb-stopped'."
   :link '(info-link "(gdb)GDB/MI Async Records"))
 
 (defcustom gdb-switch-when-another-stopped t
-  "When nil, Emacs won't switch to stopped thread if some other
+  "When nil, don't switch to stopped thread if some other
 stopped thread is already selected."
   :type 'boolean
   :group 'gdb-non-stop
@@ -447,8 +442,7 @@ stopped thread is already selected."
   :version "23.2")
 
 (defcustom gdb-show-threads-by-default nil
-  "Show threads list buffer instead of breakpoints list by
-default."
+  "Show threads list buffer instead of breakpoints list by default."
   :type 'boolean
   :group 'gdb-buffers
   :version "23.2")
@@ -490,12 +484,12 @@ predefined macros."
 
 (defcustom gdb-create-source-file-list t
   "Non-nil means create a list of files from which the executable was built.
- Set this to nil if the GUD buffer displays \"initializing...\" in the mode
- line for a long time when starting, possibly because your executable was
- built from a large number of files.  This allows quicker initialization
- but means that these files are not automatically enabled for debugging,
- e.g., you won't be able to click in the fringe to set a breakpoint until
- execution has already stopped there."
+Set this to nil if the GUD buffer displays \"initializing...\" in the mode
+line for a long time when starting, possibly because your executable was
+built from a large number of files.  This allows quicker initialization
+but means that these files are not automatically enabled for debugging,
+e.g., you won't be able to click in the fringe to set a breakpoint until
+execution has already stopped there."
   :type 'boolean
   :group 'gdb
   :version "23.1")
@@ -506,6 +500,9 @@ Also display the main routine in the disassembly buffer if present."
   :type 'boolean
   :group 'gdb
   :version "22.1")
+
+(defvar gdbmi-debug-mode nil
+  "When non-nil, print the messages sent/received from GDB/MI in *Messages*.")
 
 (defun gdb-force-mode-line-update (status)
   (let ((buffer gud-comint-buffer))
@@ -570,7 +567,7 @@ When `gdb-non-stop' is nil, return COMMAND unchanged."
 
 (defmacro gdb-gud-context-call (cmd1 &optional cmd2 noall noarg)
   "`gud-call' wrapper which adds --thread/--all options between
-CMD1 and CMD2. NOALL is the same as in `gdb-gud-context-command'.
+CMD1 and CMD2.  NOALL is the same as in `gdb-gud-context-command'.
 
 NOARG must be t when this macro is used outside `gud-def'"
   `(gud-call
@@ -603,7 +600,7 @@ and source-file directory for your debugger.
 
 COMMAND-LINE is the shell command for starting the gdb session.
 It should be a string consisting of the name of the gdb
-executable followed by command-line options.  The command-line
+executable followed by command line options.  The command line
 options should include \"-i=mi\" to use gdb's MI text interface.
 Note that the old \"--annotate\" option is no longer supported.
 
@@ -845,6 +842,8 @@ detailed description of this mode.
         gdb-breakpoints-list '()
         gdb-register-names '()
         gdb-non-stop gdb-non-stop-setting)
+  ;;
+  (gdbmi-bnf-init)
   ;;
   (setq gdb-buffer-type 'gdbmi)
   ;;
@@ -1254,7 +1253,7 @@ With arg, enter name of variable to be watched in the minibuffer."
                       (cond
                        ((> new previous)
                         ;; Add new children to list.
-                        (dotimes (dummy previous)
+                        (dotimes (_ previous)
                           (push (pop temp-var-list) var-list))
                         (dolist (child children)
                           (let ((varchild
@@ -1268,9 +1267,9 @@ With arg, enter name of variable to be watched in the minibuffer."
                             (push varchild var-list))))
                        ;; Remove deleted children from list.
                        ((< new previous)
-                        (dotimes (dummy new)
+                        (dotimes (_ new)
                           (push (pop temp-var-list) var-list))
-                        (dotimes (dummy (- previous new))
+                        (dotimes (_ (- previous new))
                           (pop temp-var-list)))))
                   (push var1 var-list))
                 (setq var1 (pop temp-var-list)))
@@ -1502,7 +1501,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
       (gdb-input
        (concat "-inferior-tty-set " tty) 'ignore))))
 
-(defun gdb-inferior-io-sentinel (proc str)
+(defun gdb-inferior-io-sentinel (proc _str)
   (when (eq (process-status proc) 'failed)
     ;; When the debugged process exits, Emacs gets an EIO error on
     ;; read from the pty, and stops listening to it.  If the gdb
@@ -1739,6 +1738,7 @@ complete."
   (setq gdb-token-number (1+ gdb-token-number))
   (setq command (concat (number-to-string gdb-token-number) command))
   (push (cons gdb-token-number handler-function) gdb-handler-alist)
+  (if gdbmi-debug-mode (message "gdb-input: %s" command))
   (process-send-string (get-buffer-process gud-comint-buffer)
 		       (concat command "\n")))
 
@@ -1761,8 +1761,7 @@ If `gdb-thread-number' is nil, just wrap NAME in asterisks."
           "*"))
 
 (defun gdb-current-context-mode-name (mode)
-  "Add thread information to MODE which is to be used as
-`mode-name'."
+  "Add thread information to MODE which is to be used as `mode-name'."
   (concat mode
           (if gdb-thread-number
               (format " [thread %s]" gdb-thread-number)
@@ -1809,7 +1808,8 @@ If NO-PROC is non-nil, do not try to contact the GDB process."
 ;; because we may need to update current gud-running value without
 ;; changing current thread (see gdb-running)
 (defun gdb-setq-thread-number (number)
-  "Only this function must be used to change `gdb-thread-number'
+  "Set `gdb-thread-number' to NUMBER.
+Only this function must be used to change `gdb-thread-number'
 value to NUMBER, because `gud-running' and `gdb-frame-number'
 need to be updated appropriately when current thread changes."
   ;; GDB 6.8 and earlier always output thread-id="0" when stopping.
@@ -1824,7 +1824,7 @@ need to be updated appropriately when current thread changes."
 
 Note that when `gdb-gud-control-all-threads' is t, `gud-running'
 cannot be reliably used to determine whether or not execution
-control buttons should be shown in menu or toolbar. Use
+control buttons should be shown in menu or toolbar.  Use
 `gdb-running-threads-count' and `gdb-stopped-threads-count'
 instead.
 
@@ -1874,23 +1874,337 @@ is running."
       (set-window-buffer source-window buffer))
     source-window))
 
-(defun gdb-car< (a b)
-  (< (car a) (car b)))
 
-(defvar gdbmi-record-list
-  '((gdb-gdb . "(gdb) \n")
-    (gdb-done . "\\([0-9]*\\)\\^done,?\\(.*?\\)\n")
-    (gdb-starting . "\\([0-9]*\\)\\^running\n")
-    (gdb-error . "\\([0-9]*\\)\\^error,\\(.*?\\)\n")
-    (gdb-console . "~\\(\".*?\"\\)\n")
-    (gdb-internals . "&\\(\".*?\"\\)\n")
-    (gdb-stopped . "\\*stopped,?\\(.*?\\)\n")
-    (gdb-running . "\\*running,\\(.*?\n\\)")
-    (gdb-thread-created . "=thread-created,\\(.*?\n\\)")
-    (gdb-thread-selected . "=thread-selected,\\(.*?\\)\n")
-    (gdb-thread-exited . "=thread-exited,\\(.*?\n\\)")
-    (gdb-ignored-notification . "=[-[:alpha:]]+,?\\(.*?\\)\n")
-    (gdb-shell . "\\(\\(?:^.+\n\\)+\\)")))
+(defun gdbmi-start-with (str offset match)
+  "Return non-nil if string STR starts with MATCH, else returns nil.
+OFFSET is the position in STR at which the comparison takes place."
+  (let ((match-length (length match))
+	(str-length (- (length str) offset)))
+    (when (>= str-length match-length)
+      (string-equal match (substring str offset (+ offset match-length))))))
+
+(defun gdbmi-same-start (str offset match)
+  "Return non-nil iff STR and MATCH are equal up to the end of either strings.
+OFFSET is the position in STR at which the comparison takes place."
+  (let* ((str-length (- (length str) offset))
+	 (match-length (length match))
+	 (compare-length (min str-length match-length)))
+    (when (> compare-length 0)
+      (string-equal (substring str offset (+ offset compare-length))
+		    (substring match 0 compare-length)))))
+
+(defun gdbmi-is-number (character)
+  "Return non-nil iff CHARACTER is a numerical character between 0 and 9."
+  (and (>= character ?0)
+       (<= character ?9)))
+
+
+(defvar-local gdbmi-bnf-state 'gdbmi-bnf-output
+  "Current GDB/MI output parser state.
+The parser is placed in a different state when an incomplete data steam is
+received from GDB.
+This variable will preserve the state required to resume the parsing
+when more data arrives.")
+
+(defvar-local gdbmi-bnf-offset 0
+  "Offset in `gud-marker-acc' at which the parser is reading.
+This offset is used to be able to parse the GDB/MI message
+in-place, without the need of copying the string in a temporary buffer
+or discarding parsed tokens by substringing the message.")
+
+(defun gdbmi-bnf-init ()
+  "Initialize the GDB/MI message parser."
+  (setq gdbmi-bnf-state 'gdbmi-bnf-output)
+  (setq gdbmi-bnf-offset 0)
+  (setq gud-marker-acc ""))
+
+
+(defun gdbmi-bnf-output ()
+  "Implementation of the following GDB/MI output grammar rule:
+
+  output ==>
+       ( out-of-band-record )* [ result-record ] gdb-prompt"
+
+  (gdbmi-bnf-skip-unrecognized)
+  (while (gdbmi-bnf-out-of-band-record))
+  (gdbmi-bnf-result-record)
+  (gdbmi-bnf-gdb-prompt))
+
+
+(defun gdbmi-bnf-skip-unrecognized ()
+  "Skip characters until is encounters the beginning of a valid record.
+Used as a protection mechanism in case something goes wrong when parsing
+a GDB/MI reply message."
+  (let ((acc-length (length gud-marker-acc))
+	(prefix-offset gdbmi-bnf-offset)
+	(prompt "(gdb) \n"))
+
+    (while (and (< prefix-offset acc-length)
+                (gdbmi-is-number (aref gud-marker-acc prefix-offset)))
+      (setq prefix-offset (1+ prefix-offset)))
+
+    (if (and (< prefix-offset acc-length)
+             (not (memq (aref gud-marker-acc prefix-offset)
+                        '(?^ ?* ?+ ?= ?~ ?@ ?&)))
+             (not (gdbmi-same-start gud-marker-acc gdbmi-bnf-offset prompt))
+             (string-match "\\([^^*+=~@&]+\\)" gud-marker-acc
+                           gdbmi-bnf-offset))
+        (let ((unrecognized-str (match-string 0 gud-marker-acc)))
+          (setq gdbmi-bnf-offset (match-end 0))
+	  (if gdbmi-debug-mode
+              (message "gdbmi-bnf-skip-unrecognized: %s" unrecognized-str))
+          (gdb-shell unrecognized-str)
+	  t))))
+
+
+(defun gdbmi-bnf-gdb-prompt ()
+  "Implementation of the following GDB/MI output grammar rule:
+  gdb-prompt ==>
+       '(gdb)' nl
+
+  nl ==>
+       CR | CR-LF"
+
+  (let ((prompt "(gdb) \n"))
+    (when (gdbmi-start-with gud-marker-acc gdbmi-bnf-offset prompt)
+      (if gdbmi-debug-mode (message "gdbmi-bnf-gdb-prompt: %s" prompt))
+      (gdb-gdb prompt)
+      (setq gdbmi-bnf-offset (+ gdbmi-bnf-offset (length prompt)))
+
+      ;; Returns non-nil to tell gud-gdbmi-marker-filter we've reached
+      ;; the end of a GDB reply message.
+      t)))
+
+
+(defun gdbmi-bnf-result-record ()
+  "Implementation of the following GDB/MI output grammar rule:
+
+  result-record ==>
+       [ token ] '^' result-class ( ',' result )* nl
+
+  token ==>
+       any sequence of digits."
+
+  (gdbmi-bnf-result-and-async-record-impl))
+
+
+(defun gdbmi-bnf-out-of-band-record ()
+  "Implementation of the following GDB/MI output grammar rule:
+
+  out-of-band-record ==>
+       async-record | stream-record"
+
+  (or (gdbmi-bnf-async-record)
+      (gdbmi-bnf-stream-record)))
+
+
+(defun gdbmi-bnf-async-record ()
+  "Implementation of the following GDB/MI output grammar rules:
+
+  async-record ==>
+       exec-async-output | status-async-output | notify-async-output
+
+  exec-async-output ==>
+       [ token ] '*' async-output
+
+  status-async-output ==>
+       [ token ] '+' async-output
+
+  notify-async-output ==>
+       [ token ] '=' async-output
+
+  async-output ==>
+       async-class ( ',' result )* nl"
+
+  (gdbmi-bnf-result-and-async-record-impl))
+
+
+(defun gdbmi-bnf-stream-record ()
+  "Implement the following GDB/MI output grammar rule:
+  stream-record ==>
+       console-stream-output | target-stream-output | log-stream-output
+
+  console-stream-output ==>
+       '~' c-string
+
+  target-stream-output ==>
+       '@' c-string
+
+  log-stream-output ==>
+       '&' c-string"
+  (when (< gdbmi-bnf-offset (length gud-marker-acc))
+    (if (and (member (aref gud-marker-acc gdbmi-bnf-offset) '(?~ ?@ ?&))
+             (string-match "\\([~@&]\\)\\(\".*?\"\\)\n" gud-marker-acc
+                           gdbmi-bnf-offset))
+        (let ((prefix (match-string 1 gud-marker-acc))
+              (c-string (match-string 2 gud-marker-acc)))
+
+          (setq gdbmi-bnf-offset (match-end 0))
+          (if gdbmi-debug-mode (message "gdbmi-bnf-stream-record: %s"
+                                        (match-string 0 gud-marker-acc)))
+
+          (cond ((string-equal prefix "~")
+                 (gdbmi-bnf-console-stream-output c-string))
+                ((string-equal prefix "@")
+                 (gdbmi-bnf-target-stream-output c-string))
+                ((string-equal prefix "&")
+                 (gdbmi-bnf-log-stream-output c-string)))
+	  t))))
+
+(defun gdbmi-bnf-console-stream-output (c-string)
+  "Handler for the console-stream-output GDB/MI output grammar rule."
+  (gdb-console c-string))
+
+(defun gdbmi-bnf-target-stream-output (_c-string)
+  "Handler for the target-stream-output GDB/MI output grammar rule."
+  ;; Not currently used.
+  )
+
+(defun gdbmi-bnf-log-stream-output (c-string)
+  "Handler for the log-stream-output GDB/MI output grammar rule."
+  ;; Suppress "No registers."  GDB 6.8 and earlier
+  ;; duplicates MI error message on internal stream.
+  ;; Don't print to GUD buffer.
+  (if (not (string-equal (read c-string) "No registers.\n"))
+      (gdb-internals c-string)))
+
+
+(defconst gdbmi-bnf-result-state-configs
+  '(("^" . (("done" . (gdb-done . progressive))
+            ("error" . (gdb-error . progressive))
+            ("running" . (gdb-starting . atomic))))
+    ("*" . (("stopped" . (gdb-stopped . atomic))
+            ("running" . (gdb-running . atomic))))
+    ("+" . ())
+    ("=" . (("thread-created" . (gdb-thread-created . atomic))
+            ("thread-selected" . (gdb-thread-selected . atomic))
+            ("thread-existed" . (gdb-ignored-notification . atomic))
+            ('default . (gdb-ignored-notification . atomic)))))
+  "Alist of alists, mapping the type and class of message to a handler function.
+Handler functions are all flagged as either `progressive' or `atomic'.
+`progressive' handlers are capable of parsing incomplete messages.
+They can be called several time with new data chunk as they arrive from GDB.
+`progressive' handlers must have an extra argument that is set to a non-nil
+value when the message is complete.
+
+Implement the following GDB/MI output grammar rule:
+  result-class ==>
+       'done' | 'running' | 'connected' | 'error' | 'exit'
+
+  async-class ==>
+       'stopped' | others (where others will be added depending on the needs
+                           --this is still in development).")
+
+(defun gdbmi-bnf-result-and-async-record-impl ()
+  "Common implementation of the result-record and async-record rule.
+Both rules share the same syntax.  Those records may be very large in size.
+For that reason, the \"result\" part of the  record is parsed by
+`gdbmi-bnf-incomplete-record-result', which will keep
+receiving characters as they arrive from GDB until the record is complete."
+  (let ((acc-length (length gud-marker-acc))
+	(prefix-offset gdbmi-bnf-offset))
+
+    (while (and (< prefix-offset acc-length)
+                (gdbmi-is-number (aref gud-marker-acc prefix-offset)))
+      (setq prefix-offset (1+ prefix-offset)))
+
+    (if (and (< prefix-offset acc-length)
+             (member (aref gud-marker-acc prefix-offset) '(?* ?+ ?= ?^))
+             (string-match "\\([0-9]*\\)\\([*+=^]\\)\\(.+?\\)\\([,\n]\\)"
+                           gud-marker-acc gdbmi-bnf-offset))
+
+        (let ((token (match-string 1 gud-marker-acc))
+	      (prefix (match-string 2 gud-marker-acc))
+	      (class (match-string 3 gud-marker-acc))
+	      (complete (string-equal (match-string 4 gud-marker-acc) "\n"))
+	      class-alist
+	      class-command)
+
+          (setq gdbmi-bnf-offset (match-end 0))
+	  (if gdbmi-debug-mode (message "gdbmi-bnf-result-record: %s"
+                                        (match-string 0 gud-marker-acc)))
+
+          (setq class-alist
+                (cdr (assoc prefix gdbmi-bnf-result-state-configs)))
+          (setq class-command (cdr (assoc class class-alist)))
+          (if (null class-command)
+              (setq class-command (cdr (assoc 'default class-alist))))
+
+          (if complete
+              (if class-command
+                  (if (equal (cdr class-command) 'progressive)
+                      (funcall (car class-command) token "" complete)
+                    (funcall (car class-command) token "")))
+            (setq gdbmi-bnf-state
+                  (lambda ()
+                    (gdbmi-bnf-incomplete-record-result token class-command)))
+            (funcall gdbmi-bnf-state))
+	  t))))
+
+(defun gdbmi-bnf-incomplete-record-result (token class-command)
+  "State of the parser used to progressively parse a result-record or async-record
+rule from an incomplete data stream.  The parser will stay in this state until
+the end of the current result or async record is reached."
+  (when (< gdbmi-bnf-offset (length gud-marker-acc))
+    ;; Search the data stream for the end of the current record:
+    (let* ((newline-pos (string-match "\n" gud-marker-acc gdbmi-bnf-offset))
+	   (is-progressive (equal (cdr class-command) 'progressive))
+	   (is-complete (not (null newline-pos)))
+	   result-str)
+
+      ;; Update the gdbmi-bnf-offset only if the current chunk of data can
+      ;; be processed by the class-command handler:
+      (when (or is-complete is-progressive)
+	(setq result-str
+              (substring gud-marker-acc gdbmi-bnf-offset newline-pos))
+	(setq gdbmi-bnf-offset (+ 1 newline-pos)))
+
+      (if gdbmi-debug-mode
+          (message "gdbmi-bnf-incomplete-record-result: %s"
+                   (substring gud-marker-acc gdbmi-bnf-offset newline-pos)))
+
+      ;; Update the parsing state before invoking the handler in class-command
+      ;; to make sure it's not left in an invalid state if the handler was
+      ;; to generate an error.
+      (if is-complete
+	  (setq gdbmi-bnf-state 'gdbmi-bnf-output))
+
+      (if class-command
+	  (if is-progressive
+	      (funcall (car class-command) token result-str is-complete)
+	    (if is-complete
+		(funcall (car class-command) token result-str))))
+
+      (unless is-complete
+        ;; Incomplete gdb response: abort parsing until we receive more data.
+        (if gdbmi-debug-mode (message "gdbmi-bnf-incomplete-record-result, aborting: incomplete stream"))
+        (throw 'gdbmi-incomplete-stream nil))
+
+      is-complete)))
+
+
+; The following grammar rules are not yet implemented by this GDBMI-BNF parser.
+; The handling of those rules is currently done by the handlers registered
+; in gdbmi-bnf-result-state-configs
+;
+; result ==>
+;      variable "=" value
+;
+; variable ==>
+;      string
+;
+; value ==>
+;      const | tuple | list
+;
+; const ==>
+;      c-string
+;
+; tuple ==>
+;      "{}" | "{" result ( "," result )* "}"
+;
+; list ==>
+;      "[]" | "[" value ( "," value )* "]" | "[" result ( "," result )* "]"
+
 
 (defun gud-gdbmi-marker-filter (string)
   "Filter GDB/MI output."
@@ -1907,46 +2221,20 @@ is running."
 
   ;; Start accumulating output for the GUD buffer.
   (setq gdb-filter-output "")
-  (let (output-record-list)
 
-    ;; Process all the complete markers in this chunk.
-    (dolist (gdbmi-record gdbmi-record-list)
-      (while (string-match (cdr gdbmi-record) gud-marker-acc)
-	(push (list (match-beginning 0)
-		    (car gdbmi-record)
-		    (match-string 1 gud-marker-acc)
-		    (match-string 2 gud-marker-acc)
-		    (match-end 0))
-	      output-record-list)
-	(setq gud-marker-acc
-	      (concat (substring gud-marker-acc 0 (match-beginning 0))
-		      ;; Pad with spaces to preserve position.
-		      (make-string (length (match-string 0 gud-marker-acc)) 32)
-		      (substring gud-marker-acc (match-end 0))))))
+  (let ((acc-length (length gud-marker-acc)))
+    (catch 'gdbmi-incomplete-stream
+      (while (and (< gdbmi-bnf-offset acc-length)
+		  (funcall gdbmi-bnf-state)))))
 
-    (setq output-record-list (sort output-record-list 'gdb-car<))
+  (when (/= gdbmi-bnf-offset 0)
+    (setq gud-marker-acc (substring gud-marker-acc gdbmi-bnf-offset))
+    (setq gdbmi-bnf-offset 0))
 
-    (dolist (output-record output-record-list)
-      (let ((record-type (cadr output-record))
-	    (arg1 (nth 2 output-record))
-	    (arg2 (nth 3 output-record)))
-	(cond ((eq record-type 'gdb-error)
-	       (gdb-done-or-error arg2 arg1 'error))
-	      ((eq record-type 'gdb-done)
-	       (gdb-done-or-error arg2 arg1 'done))
-	      ;; Suppress "No registers."  GDB 6.8 and earlier
-	      ;; duplicates MI error message on internal stream.
-	      ;; Don't print to GUD buffer.
-	      ((not (and (eq record-type 'gdb-internals)
-			 (string-equal (read arg1) "No registers.\n")))
-	       (funcall record-type arg1)))))
+  (when (and gdbmi-debug-mode (> (length gud-marker-acc) 0))
+    (message "gud-gdbmi-marker-filter, unparsed string: %s" gud-marker-acc))
 
-    (setq gdb-output-sink 'user)
-    ;; Remove padding.
-    (string-match "^ *" gud-marker-acc)
-    (setq gud-marker-acc (substring gud-marker-acc (match-end 0)))
-
-    gdb-filter-output))
+  gdb-filter-output)
 
 (defun gdb-gdb (_output-field))
 
@@ -1954,13 +2242,13 @@ is running."
   (setq gdb-filter-output
         (concat output-field gdb-filter-output)))
 
-(defun gdb-ignored-notification (_output-field))
+(defun gdb-ignored-notification (_token _output-field))
 
 ;; gdb-invalidate-threads is defined to accept 'update-threads signal
-(defun gdb-thread-created (_output-field))
-(defun gdb-thread-exited (output-field)
-  "Handle =thread-exited async record: unset `gdb-thread-number'
- if current thread exited and update threads list."
+(defun gdb-thread-created (_token _output-field))
+(defun gdb-thread-exited (_token output-field)
+  "Handle =thread-exited async record.
+Unset `gdb-thread-number' if current thread exited and update threads list."
   (let* ((thread-id (bindat-get-field (gdb-json-string output-field) 'id)))
     (if (string= gdb-thread-number thread-id)
         (gdb-setq-thread-number nil))
@@ -1971,7 +2259,7 @@ is running."
     (gdb-wait-for-pending
      (gdb-emit-signal gdb-buf-publisher 'update-threads))))
 
-(defun gdb-thread-selected (output-field)
+(defun gdb-thread-selected (_token output-field)
   "Handler for =thread-selected MI output record.
 
 Sets `gdb-thread-number' to new id."
@@ -1988,7 +2276,7 @@ Sets `gdb-thread-number' to new id."
     (gdb-wait-for-pending
      (gdb-update))))
 
-(defun gdb-running (output-field)
+(defun gdb-running (_token output-field)
   (let* ((thread-id
           (bindat-get-field (gdb-json-string output-field) 'thread-id)))
     ;; We reset gdb-frame-number to nil if current thread has gone
@@ -2006,7 +2294,7 @@ Sets `gdb-thread-number' to new id."
   (setq gdb-active-process t)
   (gdb-emit-signal gdb-buf-publisher 'update-threads))
 
-(defun gdb-starting (_output-field)
+(defun gdb-starting (_output-field _result)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
   (setq gdb-inferior-status "running")
   (gdb-force-mode-line-update
@@ -2020,7 +2308,7 @@ Sets `gdb-thread-number' to new id."
 
 ;; -break-insert -t didn't give a reason before gdb 6.9
 
-(defun gdb-stopped (output-field)
+(defun gdb-stopped (_token output-field)
   "Given the contents of *stopped MI async record, select new
 current thread and update GDB buffers."
   ;; Reason is available with target-async only
@@ -2106,7 +2394,13 @@ current thread and update GDB buffers."
   (setq gdb-filter-output
 	(gdb-concat-output gdb-filter-output (read output-field))))
 
-(defun gdb-done-or-error (output-field token-number type)
+(defun gdb-done (token-number output-field is-complete)
+  (gdb-done-or-error token-number 'done output-field is-complete))
+
+(defun gdb-error (token-number output-field is-complete)
+  (gdb-done-or-error token-number 'error output-field is-complete))
+
+(defun gdb-done-or-error (token-number type output-field is-complete)
   (if (string-equal token-number "")
       ;; Output from command entered by user
       (progn
@@ -2122,14 +2416,12 @@ current thread and update GDB buffers."
     ;; Output from command from frontend.
     (setq gdb-output-sink 'emacs))
 
-  (gdb-clear-partial-output)
-
   ;; The process may already be dead (e.g. C-d at the gdb prompt).
   (let* ((proc (get-buffer-process gud-comint-buffer))
 	 (no-proc (or (null proc)
 		      (memq (process-status proc) '(exit signal)))))
 
-    (when gdb-first-done-or-error
+    (when (and is-complete gdb-first-done-or-error)
       (unless (or token-number gud-running no-proc)
 	(setq gdb-filter-output (concat gdb-filter-output gdb-prompt-name)))
       (gdb-update no-proc)
@@ -2138,13 +2430,19 @@ current thread and update GDB buffers."
     (setq gdb-filter-output
 	  (gdb-concat-output gdb-filter-output output-field))
 
-    (when token-number
+    ;; We are done concatenating to the output sink.  Restore it to user sink:
+    (setq gdb-output-sink 'user)
+
+    (when (and token-number is-complete)
       (with-current-buffer
 	  (gdb-get-buffer-create 'gdb-partial-output-buffer)
 	(funcall
 	 (cdr (assoc (string-to-number token-number) gdb-handler-alist))))
       (setq gdb-handler-alist
-	    (assq-delete-all token-number gdb-handler-alist)))))
+            (assq-delete-all token-number gdb-handler-alist)))
+
+  (when is-complete
+    (gdb-clear-partial-output))))
 
 (defun gdb-concat-output (so-far new)
   (cond
@@ -2169,8 +2467,8 @@ Field names are wrapped in double quotes and equal signs are
 replaced with semicolons.
 
 If FIX-KEY is non-nil, strip all \"FIX-KEY=\" occurrences from
-partial output. This is used to get rid of useless keys in lists
-in MI messages, e.g.: [key=.., key=..]. -stack-list-frames and
+partial output.  This is used to get rid of useless keys in lists
+in MI messages, e.g.: [key=.., key=..].  -stack-list-frames and
 -break-info are examples of MI commands which issue such
 responses.
 
@@ -2337,16 +2635,16 @@ calling `gdb-table-string'."
                                                     handler-name
                                                     &optional signal-list)
   "Define a trigger TRIGGER-NAME which sends GDB-COMMAND and sets
-HANDLER-NAME as its handler. HANDLER-NAME is bound to current
+HANDLER-NAME as its handler.  HANDLER-NAME is bound to current
 buffer with `gdb-bind-function-to-buffer'.
 
 If SIGNAL-LIST is non-nil, GDB-COMMAND is sent only when the
-defined trigger is called with an argument from SIGNAL-LIST. It's
+defined trigger is called with an argument from SIGNAL-LIST.  It's
 not recommended to define triggers with empty SIGNAL-LIST.
 Normally triggers should respond at least to 'update signal.
 
 Normally the trigger defined by this command must be called from
-the buffer where HANDLER-NAME must work. This should be done so
+the buffer where HANDLER-NAME must work.  This should be done so
 that buffer-local thread number may be used in GDB-COMMAND (by
 calling `gdb-current-context-command').
 `gdb-bind-function-to-buffer' is used to achieve this, see
@@ -2375,32 +2673,33 @@ Handlers are normally called from the buffers they put output in.
 
 Delete ((current-buffer) . TRIGGER-NAME) from
 `gdb-pending-triggers', erase current buffer and evaluate
-CUSTOM-DEFUN. Then `gdb-update-buffer-name' is called.
+CUSTOM-DEFUN.  Then `gdb-update-buffer-name' is called.
 
 If NOPRESERVE is non-nil, window point is not restored after CUSTOM-DEFUN."
   `(defun ,handler-name ()
      (gdb-delete-pending (cons (current-buffer) ',trigger-name))
-     (let* ((buffer-read-only nil)
-            (window (get-buffer-window (current-buffer) 0))
-            (start (window-start window))
-            (p (window-point window)))
+     (let* ((inhibit-read-only t)
+            ,@(unless nopreserve
+                '((window (get-buffer-window (current-buffer) 0))
+                  (start (window-start window))
+                  (p (window-point window)))))
        (erase-buffer)
        (,custom-defun)
        (gdb-update-buffer-name)
-       ,(when (not nopreserve)
-          '(set-window-start window start)
-          '(set-window-point window p)))))
+       ,@(when (not nopreserve)
+          '((set-window-start window start)
+            (set-window-point window p))))))
 
 (defmacro def-gdb-trigger-and-handler (trigger-name gdb-command
                                                     handler-name custom-defun
                                                     &optional signal-list)
   "Define trigger and handler.
 
-TRIGGER-NAME trigger is defined to send GDB-COMMAND. See
-`def-gdb-auto-update-trigger'.
+TRIGGER-NAME trigger is defined to send GDB-COMMAND.
+See `def-gdb-auto-update-trigger'.
 
-HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
-`def-gdb-auto-update-handler'."
+HANDLER-NAME handler uses customization of CUSTOM-DEFUN.
+See `def-gdb-auto-update-handler'."
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ,gdb-command
@@ -2757,37 +3056,38 @@ corresponding to the mode line clicked."
                      gdb-running-threads-count
                    gdb-stopped-threads-count))
 
-        (gdb-table-add-row table
-                           (list
-                            (bindat-get-field thread 'id)
-                            (concat
-                             (if gdb-thread-buffer-verbose-names
-                                 (concat (bindat-get-field thread 'target-id) " ") "")
-                             (bindat-get-field thread 'state)
-                             ;; Include frame information for stopped threads
-                             (if (not running)
-                                 (concat
-                                  " in " (bindat-get-field thread 'frame 'func)
-                                  (if gdb-thread-buffer-arguments
-                                      (concat
-                                       " ("
-                                       (let ((args (bindat-get-field thread 'frame 'args)))
-                                         (mapconcat
-                                          (lambda (arg)
-                                            (apply #'format "%s=%s"
-                                                   (gdb-get-many-fields arg 'name 'value)))
-                                          args ","))
-                                       ")")
-                                    "")
-                                  (if gdb-thread-buffer-locations
-                                      (gdb-frame-location (bindat-get-field thread 'frame)) "")
-                                  (if gdb-thread-buffer-addresses
-                                      (concat " at " (bindat-get-field thread 'frame 'addr)) ""))
-                               "")))
-                           (list
-                            'gdb-thread thread
-                            'mouse-face 'highlight
-                            'help-echo "mouse-2, RET: select thread")))
+        (gdb-table-add-row
+         table
+         (list
+          (bindat-get-field thread 'id)
+          (concat
+           (if gdb-thread-buffer-verbose-names
+               (concat (bindat-get-field thread 'target-id) " ") "")
+           (bindat-get-field thread 'state)
+           ;; Include frame information for stopped threads
+           (if (not running)
+               (concat
+                " in " (bindat-get-field thread 'frame 'func)
+                (if gdb-thread-buffer-arguments
+                    (concat
+                     " ("
+                     (let ((args (bindat-get-field thread 'frame 'args)))
+                       (mapconcat
+                        (lambda (arg)
+                          (apply #'format "%s=%s"
+                                 (gdb-get-many-fields arg 'name 'value)))
+                        args ","))
+                     ")")
+                  "")
+                (if gdb-thread-buffer-locations
+                    (gdb-frame-location (bindat-get-field thread 'frame)) "")
+                (if gdb-thread-buffer-addresses
+                    (concat " at " (bindat-get-field thread 'frame 'addr)) ""))
+             "")))
+         (list
+          'gdb-thread thread
+          'mouse-face 'highlight
+          'help-echo "mouse-2, RET: select thread")))
       (when (string-equal gdb-thread-number
                           (bindat-get-field thread 'id))
         (setq marked-line (length gdb-threads-list))))
@@ -2803,8 +3103,8 @@ corresponding to the mode line clicked."
   "Define a NAME command which will act upon thread on the current line.
 
 CUSTOM-DEFUN may use locally bound `thread' variable, which will
-be the value of 'gdb-thread property of the current line. If
-'gdb-thread is nil, error is signaled."
+be the value of 'gdb-thread property of the current line.
+If `gdb-thread' is nil, error is signaled."
   `(defun ,name (&optional event)
      ,(when doc doc)
      (interactive (list last-input-event))
@@ -2953,7 +3253,7 @@ line."
 (defun gdb-memory-column-width (size format)
   "Return length of string with memory unit of SIZE in FORMAT.
 
-SIZE is in bytes, as in `gdb-memory-unit'. FORMAT is a string as
+SIZE is in bytes, as in `gdb-memory-unit'.  FORMAT is a string as
 in `gdb-memory-format'."
   (let ((format-base (cdr (assoc format
                                  '(("x" . 16)
@@ -3455,8 +3755,7 @@ DOC is an optional documentation string."
         (error "Not recognized as break/watchpoint line")))))
 
 (defun gdb-goto-breakpoint (&optional event)
-  "Go to the location of breakpoint at current line of
-breakpoints buffer."
+  "Go to the location of breakpoint at current line of breakpoints buffer."
   (interactive (list last-input-event))
   (if event (posn-set-point (event-end event)))
   ;; Hack to stop gdb-goto-breakpoint displaying in GUD buffer.
@@ -3840,7 +4139,7 @@ member."
 
 (defun gdb-get-source-file-list ()
   "Create list of source files for current GDB session.
-If buffers already exist for any of these files, gud-minor-mode
+If buffers already exist for any of these files, `gud-minor-mode'
 is set in them."
   (goto-char (point-min))
   (while (re-search-forward gdb-source-file-regexp nil t)
@@ -3851,8 +4150,8 @@ is set in them."
 	(gdb-init-buffer)))))
 
 (defun gdb-get-main-selected-frame ()
-  "Trigger for `gdb-frame-handler' which uses main current
-thread. Called from `gdb-update'."
+  "Trigger for `gdb-frame-handler' which uses main current thread.
+Called from `gdb-update'."
   (if (not (gdb-pending-p 'gdb-get-main-selected-frame))
       (progn
 	(gdb-input (gdb-current-context-command "-stack-info-frame")
@@ -3860,7 +4159,7 @@ thread. Called from `gdb-update'."
 	(gdb-add-pending 'gdb-get-main-selected-frame))))
 
 (defun gdb-frame-handler ()
-  "Sets `gdb-selected-frame' and `gdb-selected-file' to show
+  "Set `gdb-selected-frame' and `gdb-selected-file' to show
 overlay arrow in source buffer."
   (gdb-delete-pending 'gdb-get-main-selected-frame)
   (let ((frame (bindat-get-field (gdb-json-partial-output) 'frame)))
@@ -3921,8 +4220,8 @@ overlay arrow in source buffer."
 
 (defun gdb-preempt-existing-or-display-buffer (buf &optional split-horizontal)
   "Find window displaying a buffer with the same
-`gdb-buffer-type' as BUF and show BUF there. If no such window
-exists, just call `gdb-display-buffer' for BUF. If the window
+`gdb-buffer-type' as BUF and show BUF there.  If no such window
+exists, just call `gdb-display-buffer' for BUF.  If the window
 found is already dedicated, split window according to
 SPLIT-HORIZONTAL and show BUF in the new window."
   (if buf
@@ -4310,8 +4609,7 @@ CONTEXT is the text before COMMAND on the line."
 	(gud-gdb-fetch-lines-break (length context))
 	(gud-gdb-fetched-lines nil)
 	;; This filter dumps output lines to `gud-gdb-fetched-lines'.
-	(gud-marker-filter #'gud-gdbmi-fetch-lines-filter)
-	complete-list)
+	(gud-marker-filter #'gud-gdbmi-fetch-lines-filter))
     (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
       (gdb-input (concat "complete " context command)
 		 (lambda () (setq gud-gdb-fetch-lines-in-progress nil)))

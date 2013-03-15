@@ -1060,6 +1060,7 @@ GNULIB_FUTIMENS
 GNULIB_FSTATAT
 GNULIB_FSTAT
 GNULIB_FCHMODAT
+LIB_FDATASYNC
 NEXT_AS_FIRST_DIRECTIVE_FCNTL_H
 NEXT_FCNTL_H
 REPLACE_OPENAT
@@ -3340,6 +3341,7 @@ as_fn_append ac_func_list " fdopendir"
 as_fn_append ac_header_list " stdio_ext.h"
 as_fn_append ac_func_list " __fpending"
 as_fn_append ac_func_list " fstatat"
+as_fn_append ac_func_list " fsync"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " gettimeofday"
@@ -3349,7 +3351,6 @@ as_fn_append ac_header_list " wchar.h"
 as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_header_list " inttypes.h"
 as_fn_append ac_func_list " lstat"
-as_fn_append ac_func_list " alarm"
 as_fn_append ac_header_list " sys/select.h"
 as_fn_append ac_func_list " pselect"
 as_fn_append ac_func_list " pthread_sigmask"
@@ -7182,10 +7183,12 @@ esac
   # Code from module extern-inline:
   # Code from module faccessat:
   # Code from module fcntl-h:
+  # Code from module fdatasync:
   # Code from module fdopendir:
   # Code from module filemode:
   # Code from module fpending:
   # Code from module fstatat:
+  # Code from module fsync:
   # Code from module getgroups:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -13803,7 +13806,7 @@ select getpagesize setlocale \
 utimes getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkstemp getline getdelim fsync sync \
+gai_strerror mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
@@ -15905,7 +15908,6 @@ esac
 
 
 
-
 case $opsys in
   aix4-2)
     $as_echo "#define USG /**/" >>confdefs.h
@@ -15944,42 +15946,9 @@ $as_echo "#define CYGWIN 1" >>confdefs.h
     ;;
 
   darwin)
-        $as_echo "#define BSD_SYSTEM /**/" >>confdefs.h
-
 
 $as_echo "#define DARWIN_OS /**/" >>confdefs.h
 
-    ;;
-
-  freebsd)
-
-$as_echo "#define BSD_SYSTEM_AHB 1" >>confdefs.h
-
-    ;;
-
-  gnu | netbsd | openbsd )
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifndef BSD_SYSTEM
-# error "BSD_SYSTEM not defined"
-#endif
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_cpp "$LINENO"; then :
-
-else
-  $as_echo "#define BSD_SYSTEM 43" >>confdefs.h
-
-fi
-rm -f conftest.err conftest.$ac_ext
     ;;
 
   gnu-linux | gnu-kfreebsd )
@@ -17213,6 +17182,17 @@ _ACEOF
 
 fi
 
+ac_fn_c_check_decl "$LINENO" "fdatasync" "ac_cv_have_decl_fdatasync" "$ac_includes_default"
+if test "x$ac_cv_have_decl_fdatasync" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_FDATASYNC $ac_have_decl
+_ACEOF
+
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
@@ -17362,6 +17342,8 @@ _ACEOF
 
       ;;
   esac
+
+
 
 
 
@@ -19467,7 +19449,16 @@ _ACEOF
   REPLACE_NANOSLEEP=GNULIB_PORTCHECK;
   REPLACE_TIMEGM=GNULIB_PORTCHECK;
 
+ac_fn_c_check_decl "$LINENO" "alarm" "ac_cv_have_decl_alarm" "$ac_includes_default"
+if test "x$ac_cv_have_decl_alarm" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
 
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_ALARM $ac_have_decl
+_ACEOF
 
 
   GNULIB_PSELECT=0;
@@ -21294,6 +21285,114 @@ $as_echo "$gl_cv_next_fcntl_h" >&6; }
 
 
 
+  LIB_FDATASYNC=
+
+
+  if test $ac_cv_have_decl_fdatasync = no; then
+    HAVE_DECL_FDATASYNC=0
+        for ac_func in fdatasync
+do :
+  ac_fn_c_check_func "$LINENO" "fdatasync" "ac_cv_func_fdatasync"
+if test "x$ac_cv_func_fdatasync" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FDATASYNC 1
+_ACEOF
+
+fi
+done
+
+    if test $ac_cv_func_fdatasync = no; then
+      HAVE_FDATASYNC=0
+    fi
+  else
+            gl_saved_libs=$LIBS
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fdatasync" >&5
+$as_echo_n "checking for library containing fdatasync... " >&6; }
+if test "${ac_cv_search_fdatasync+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fdatasync ();
+int
+main ()
+{
+return fdatasync ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' rt posix4; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_fdatasync=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_fdatasync+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_fdatasync+set}" = set; then :
+
+else
+  ac_cv_search_fdatasync=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_fdatasync" >&5
+$as_echo "$ac_cv_search_fdatasync" >&6; }
+ac_res=$ac_cv_search_fdatasync
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  test "$ac_cv_search_fdatasync" = "none required" ||
+                    LIB_FDATASYNC=$ac_cv_search_fdatasync
+fi
+
+    LIBS=$gl_saved_libs
+  fi
+
+  if test $HAVE_FDATASYNC = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fdatasync.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_FDATASYNC=1
+
+
+
+
+
+
+
+
+
 
     ac_fn_c_check_decl "$LINENO" "fdopendir" "ac_cv_have_decl_fdopendir" "
 #include <dirent.h>
@@ -21607,6 +21706,37 @@ $as_echo "#define HAVE_WORKING_FSTATAT_ZERO_FLAG 1" >>confdefs.h
 
 
           GNULIB_FSTATAT=1
+
+
+
+
+
+
+
+
+  if test $ac_cv_func_fsync = no; then
+    HAVE_FSYNC=0
+  fi
+
+  if test $HAVE_FSYNC = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fsync.$ac_objext"
+
+    :
+  fi
+
+
+
+
+
+          GNULIB_FSYNC=1
 
 
 
@@ -22549,8 +22679,8 @@ else
 # include <unistd.h>
 #endif
 
-#ifndef HAVE_ALARM
-# define alarm(X) /* empty */
+#if HAVE_DECL_ALARM
+# include <signal.h>
 #endif
 
 /* Work around redefinition to rpl_putenv by other config tests.  */
@@ -22686,10 +22816,13 @@ main ()
   int time_t_signed_magnitude = (time_t) ~ (time_t) 0 < (time_t) -1;
   int time_t_signed = ! ((time_t) 0 < (time_t) -1);
 
+#if HAVE_DECL_ALARM
   /* This test makes some buggy mktime implementations loop.
      Give up after 60 seconds; a mktime slower than that
      isn't worth using anyway.  */
+  signal (SIGALRM, SIG_DFL);
   alarm (60);
+#endif
 
   time_t_max = (! time_t_signed
                 ? (time_t) -1
@@ -23267,16 +23400,16 @@ $as_echo "$gl_cv_func_svid_putenv" >&6; }
   gl_LIBOBJS="$gl_LIBOBJS putenv.$ac_objext"
 
 
-  for ac_func in _putenv
-do :
-  ac_fn_c_check_func "$LINENO" "_putenv" "ac_cv_func__putenv"
-if test "x$ac_cv_func__putenv" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE__PUTENV 1
-_ACEOF
-
+  ac_fn_c_check_decl "$LINENO" "_putenv" "ac_cv_have_decl__putenv" "$ac_includes_default"
+if test "x$ac_cv_have_decl__putenv" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
 fi
-done
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL__PUTENV $ac_have_decl
+_ACEOF
 
 
   fi
@@ -26514,15 +26647,8 @@ case "$opsys" in
    LD_SWITCH_SYSTEM_TEMACS="-fno-pie -prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
 
    ## This is here because src/Makefile.in did some extra fiddling around
-   ## with LD_SWITCH_SYSTEM.  The cpp logic was:
-   ##   #ifndef LD_SWITCH_SYSTEM
-   ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
-   ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-   ## not using gcc, darwin.
-   ## Because this was done in src/Makefile.in, the resulting part of
-   ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
-   ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
-   ## rather than LD_SWITCH_SYSTEM.
+   ## with LD_SWITCH_SYSTEM.  It seems cleaner to put this in
+   ## LD_SWITCH_SYSTEM_TEMACS instead,
    test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
      LD_SWITCH_SYSTEM_TEMACS="-X $LD_SWITCH_SYSTEM_TEMACS"
    ;;

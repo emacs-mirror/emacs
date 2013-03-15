@@ -1,4 +1,120 @@
+2013-03-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.7.
+
+	* net/trampver.el: Update release number.
+
+2013-03-14  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el Fix bug#13887.
+	(doc-view-insert-image): Don't modify overlay associated to
+	non-live windows, and implement horizontal centering of image in
+	case it's smaller than the window.
+	(doc-view-new-window-function): Force redisplay of new windows on
+	doc-view buffers.
+
+2013-03-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el (save-place-alist-to-file): Don't sort
+	`save-place-alist', just pretty-print it (bug#13882).
+
+2013-03-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-insert-directory): Check,
+	whether `default-file-name-coding-system' is bound.  It isn't in
+	XEmacs.
+
+2013-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (defun-declarations-alist): Don't use
+	backquotes for `obsolete' (bug#13929).
+
+	* international/mule.el (find-auto-coding): Include file name in
+	obsolescence warning (bug#13922).
+
+2013-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine-parameters-indent): New variable
+	for CFEngine 3-specific indentation.
+	(cfengine3-indent-line): Use it.  Fix up category regex.
+	(cfengine3-font-lock-keywords): Add bundle and namespace characters.
+
+2013-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* type-break.el (type-break-file-name):
+	* textmodes/remember.el (remember-data-file):
+	* strokes.el (strokes-file):
+	* shadowfile.el (shadow-initialize):
+	* saveplace.el (save-place-file):
+	* ps-bdf.el (bdf-cache-file):
+	* progmodes/idlwave.el (idlwave-config-directory):
+	* net/quickurl.el (quickurl-url-file):
+	* international/kkc.el (kkc-init-file-name):
+	* ido.el (ido-save-directory-list-file):
+	* emulation/viper.el (viper-custom-file-name):
+	* emulation/vip.el (vip-startup-file):
+	* calendar/todo-mode.el (todo-file-do, todo-file-done, todo-file-top):
+	* calendar/timeclock.el (timeclock-file): Use locate-user-emacs-file.
+
+2013-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch encodings of tutorials, thai-word to UTF-8 (Bug#13880).
+	* language/thai-word.el: Switch to UTF-8.
+
 2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* recentf.el (recentf-save-file): Use locate-user-emacs-file (bug#13870).
+
+2013-03-11  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* net/net-utils.el (net-utils-remove-ctrl-m-filter):
+	Use with-current-buffer and don't move point.
+	(net-utils-run-simple): Remove useless code.
+	(net-utils-remove-ctl-m): Remove unused custom.
+
+2013-03-11  Per Starbäck  <starback@stp.lingfil.uu.se>
+
+	* international/characters.el (glyphless-set-char-table-range): New fun.
+	(update-glyphless-char-display): Use it (bug#13744).
+
+2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Update for CFEngine 3.4.2 and higher:
+	namespaces in the syntax, indent closer for hanging brace
+	correctly, allow single-quote delimited 'strings', and make
+	`cfengine3-mode' the default.
+
+2013-03-11  Jean-Philippe Gravel  <jpgravel@gmail.com>
+
+	* progmodes/gdb-mi.el: Speed up initialization (bug#10580).
+	Use lexical-binding.  Fix up docstring according to conventions.
+	(gdbmi-debug-mode): New var.
+	(gdbmi-start-with, gdbmi-same-start, gdbmi-is-number, gdbmi-bnf-init)
+	(gdbmi-bnf-output, gdbmi-bnf-skip-unrecognized, gdbmi-bnf-gdb-prompt)
+	(gdbmi-bnf-result-record, gdbmi-bnf-out-of-band-record)
+	(gdbmi-bnf-async-record, gdbmi-bnf-stream-record)
+	(gdbmi-bnf-console-stream-output, gdbmi-bnf-target-stream-output)
+	(gdbmi-bnf-log-stream-output, gdbmi-bnf-result-and-async-record-impl)
+	(gdbmi-bnf-incomplete-record-result): New functions.
+	(gdb-car<): Remove function.
+	(gdbmi-record-list): Remove variable.
+	(gdbmi-bnf-state, gdbmi-bnf-offset): New vars.
+	(gdbmi-bnf-result-state-configs): New const.
+	(gud-gdbmi-marker-filter): Rewrite.
+	(gdb-ignored-notification, gdb-thread-created, gdb-thread-exited)
+	(gdb-thread-selected, gdb-running, gdb-starting, gdb-stopped):
+	Add `token' argument.
+	(gdb-done, gdb-error): New functions.
+	(gdb-done-or-error): Add `is-complete' argument.  Change arg order.
+
+2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (xterm--report-background-handler): Don't burp
+	upon timeout.
+	(xterm--version-handler): Extract from terminal-init-xterm.
+	(xterm--query): Don't mishandle timeout.  Remove debugging messages.
+	Allow multiple handlers.
+	(terminal-init-xterm): Handle OSX's Terminal.app's incorrect answer.
 
 	* term/xterm.el: Don't discard input (bug#6758).  Use lexical-binding.
 	(xterm--report-background-handler, xterm--query): New functions.
@@ -105,14 +221,13 @@
 	(tramp-gvfs-mount-spec): Use it.
 	(tramp-gvfs-maybe-open-connection): Check, that in case of "smb"
 	there is a share name.  Handle different names of the D-Bus
-	signals and methods.
-	(tramp-gvfs-maybe-open-connection): Set connection properties
-	needed for `tramp-check-cached-permissions'.
+	signals and methods.  Set connection properties needed for
+	`tramp-check-cached-permissions'.
 	(tramp-gvfs-send-command): Apply `tramp-gvfs-maybe-open-connection'.
 	Return t or nil.
 
 	* net/tramp.el (tramp-backtrace): Move up.
-	(tramp-error): Apply a backtrace into the debug buffer when
+	(tramp-error): Dump a backtrace into the debug buffer when
 	`tramp-verbose > 9.
 	(tramp-file-mode-type-map, tramp-file-mode-from-int)
 	(tramp-file-mode-permissions, tramp-get-local-uid)
