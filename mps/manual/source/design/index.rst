@@ -7,6 +7,7 @@ Design
     :numbered:
 
     arena
+    bt
     protocol
     type
     version
