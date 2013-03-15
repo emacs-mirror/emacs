@@ -1,3 +1,14 @@
+2013-03-15  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-reset-prefix): Don't remove overlays,
+	since it's superfluous and also wrongly removes items marks.
+	(todos-category-completions): Select current category on visiting
+	file, to ensure category is properly displayed if user switches to
+	file via a non-Todos command.
+	(todos-mark-category): Make implementation cleaner.
+	(todos-unmark-category): Improve implementation.  Get overlay
+	property only when there is an overlay.
+
 2013-03-14  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el (todos-insert-item): Fix last change to make

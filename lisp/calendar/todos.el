@@ -217,7 +217,6 @@ These reflect the priorities of the items in each category."
     (when (not (equal value oldvalue))
       (dolist (f files)
 	(with-current-buffer (find-file-noselect f)
-	  (remove-overlays 1 (1+ (buffer-size)) 'todos 'prefix)
 	  ;; Activate the new setting in the current category.
 	  (save-excursion (todos-category-select)))))))
 
@@ -1209,6 +1208,9 @@ Todos files named in `todos-category-completions-files'."
       (add-to-list 'files curfile)
       (dolist (f files listall)
 	(with-current-buffer (find-file-noselect f 'nowarn)
+	  ;; Ensure category is properly displayed in case user
+	  ;; switches to file via a non-Todos command.
+	  (todos-category-select)
 	  (save-excursion
 	    (save-restriction
 	      (widen)
@@ -3820,37 +3822,35 @@ marking of the next N items."
 (defun todos-mark-category ()
   "Mark all visiblw items in this category with `todos-item-mark'."
   (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let* ((cat (todos-current-category))
-	     (marks (assoc cat todos-categories-with-marks))
-	     (ov (todos-get-overlay 'prefix))
-	     (pref (overlay-get ov 'before-string)))
-	(unless (todos-marked-item-p)
-	  (overlay-put ov 'before-string (concat todos-item-mark pref))
-	  (if marks
-	      (setcdr marks (1+ (cdr marks)))
-	    (push (cons cat 1) todos-categories-with-marks))))
-      (todos-forward-item))))
+  (let* ((cat (todos-current-category))
+	 (marks (assoc cat todos-categories-with-marks)))
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+	(let* ((ov (todos-get-overlay 'prefix))
+	       (pref (overlay-get ov 'before-string)))
+	  (unless (todos-marked-item-p)
+	    (overlay-put ov 'before-string (concat todos-item-mark pref))
+	    (if marks
+		(setcdr marks (1+ (cdr marks)))
+	      (push (cons cat 1) todos-categories-with-marks))))
+	(todos-forward-item)))))
 
 (defun todos-unmark-category ()
   "Remove `todos-item-mark' from all visible items in this category."
   (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let* ((cat (todos-current-category))
-	     (marks (assoc cat todos-categories-with-marks))
-	     (ov (todos-get-overlay 'prefix))
-	     (pref (overlay-get ov 'before-string)))
-	(when (todos-marked-item-p)
-	  (overlay-put ov 'before-string (substring pref 1))
-	  (setq todos-categories-with-marks
-		(delq (assoc (todos-current-category)
-			     todos-categories-with-marks)
-		      todos-categories-with-marks))))
-      (todos-forward-item))))
+  (let* ((cat (todos-current-category))
+	 (marks (assoc cat todos-categories-with-marks)))
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+	(let* ((ov (todos-get-overlay 'prefix))
+	       ;; No overlay on empty line between todo and done items.
+	       (pref (when ov (overlay-get ov 'before-string))))
+	  (when (todos-marked-item-p)
+	    (overlay-put ov 'before-string (substring pref 1)))
+	  (todos-forward-item))))
+    (setq todos-categories-with-marks (delq marks todos-categories-with-marks))))
 
 ;; ---------------------------------------------------------------------------
 ;;; Item filtering commands
@@ -4688,14 +4688,14 @@ the priority is not given by HERE but by prompting."
 		    (and done-only (todos-show-done-only)))
 		(set-window-buffer (selected-window) (set-buffer obuf)))
 	      (goto-char opoint))
-	    ;; If todos section is not visible when insertion
-	    ;; command is called (either because only done items
-	    ;; were shown or because category was not in current
-	    ;; buffer), then if item is inserted at end of category,
-	    ;; point is at eob and eob at window-start, so that that
-	    ;; higher priority todo items are out of view.  So we
-	    ;; recenter to make sure the todo items are displayed in
-	    ;; the window.
+	    ;; If the todo items section is not visible when the
+	    ;; insertion command is called (either because only done
+	    ;; items were shown or because the category was not in the
+	    ;; current buffer), then if the item is inserted at the
+	    ;; end of the category, point is at eob and eob at
+	    ;; window-start, so that higher priority todo items are
+	    ;; out of view.  So we recenter to make sure the todo
+	    ;; items are displayed in the window.
 	    (when item-added (recenter)))
 	  (todos-update-count 'todo 1)
 	  (if (or diary todos-include-in-diary) (todos-update-count 'diary 1))
