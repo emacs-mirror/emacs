@@ -1,3 +1,9 @@
+2013-03-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.7.
+
+	* net/trampver.el: Update release number.
+
 2013-03-14  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el Fix bug#13887.
