@@ -5682,10 +5682,10 @@ w32fullscreen_hook (FRAME_PTR f)
 
       switch (f->want_fullscreen)
 	{
-	case FULLSCREEN_MAXIMIZED:
+	case FULLSCREEN_BOTH:
 	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 	  break;
-	case FULLSCREEN_BOTH:
+	case FULLSCREEN_MAXIMIZED:
 	  height =
 	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
 	    - XINT (Ftool_bar_lines_needed (selected_frame))

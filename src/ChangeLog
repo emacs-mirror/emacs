@@ -1,3 +1,8 @@
+2013-03-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32fullscreen_hook): Swap FULLSCREEN_BOTH and
+	FULLSCREEN_MAXIMIZED.  (Bug#13935)
+
 2013-03-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* region-cache.c (find_cache_boundary, move_cache_gap)
