@@ -7632,7 +7632,7 @@ decode_coding_gap (struct coding_system *coding,
 	  if (coding->eol_seen == EOL_SEEN_CR)
 	    {
 	      unsigned char *src_end = GAP_END_ADDR;
-	      unsigned char *src = src - coding->src_bytes;
+	      unsigned char *src = src_end - coding->src_bytes;
 
 	      while (src < src_end)
 		{

@@ -1,3 +1,7 @@
+2013-03-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (decode_coding_gap): Fix typo caught by static checking.
+
 2013-03-15  handa  <handa@gnu.org>
 
 	* insdel.c (insert_from_gap): New arg text_at_gap_tail.
