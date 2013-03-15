@@ -1,5 +1,19 @@
 2013-03-15  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Item unarchiving fixes and improvements.
+	(todos-archive-mode-map): Add bindings for item and category
+	marking/unmarking; make todos-display-categories binding same as
+	in Todos mode; remove todos-unarchive-category binding.
+	(todos-unarchive-category): Remove.
+	(todos-unarchive-items): Fix handling of marked items.  Remove
+	code for unarchiving whole category, since that is covered by
+	unarchiving marked items.  Handle unarchiving items to a category
+	that had been deleted from the todo file by re-adding the
+	category.  Use todos-category-select to display restored items,
+	not todos-show.  Remove obsolete or superfluous code.
+
+2013-03-15  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-reset-prefix): Don't remove overlays,
 	since it's superfluous and also wrongly removes items marks.
 	(todos-category-completions): Select current category on visiting

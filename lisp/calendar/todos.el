@@ -2849,9 +2849,12 @@ which is the value of the user option
     (define-key map "n" 'todos-forward-item)
     (define-key map "p" 'todos-backward-item)
     ;; display commands
-    (define-key map "C" 'todos-display-categories)
+    (define-key map "Cd" 'todos-display-categories)
     (define-key map "H" 'todos-highlight-item)
     (define-key map "N" 'todos-hide-show-item-numbering)
+    (define-key map "*"	'todos-mark-unmark-item)
+    (define-key map "C*" 'todos-mark-category)
+    (define-key map "Cu" 'todos-unmark-category)
     ;; (define-key map "" 'todos-hide-show-date-time)
     (define-key map "P" 'todos-print)
     (define-key map "q" 'todos-quit)
@@ -2859,7 +2862,6 @@ which is the value of the user option
     (define-key map "S" 'todos-search)
     (define-key map "t" 'todos-show)
     (define-key map "u" 'todos-unarchive-items)
-    (define-key map "U" 'todos-unarchive-category)
     map)
   "Todos Archive mode keymap.")
 
@@ -5885,120 +5887,110 @@ this category does not exist in the archive, it is created."
   (interactive)
   (todos-archive-done-item t))
 
-(defun todos-unarchive-items (&optional all)
+(defun todos-unarchive-items ()
   "Unarchive at least one item in this archive category.
-
 If there are marked items, unarchive all of these; otherwise,
-with non-nil argument ALL, unarchive all items in this category;
-otherwise, unarchive the item at point.
+unarchive the item at point.
 
 Unarchived items are restored as done items to the corresponding
-category in the Todos file, inserted at the end of done section.
-If all items in the archive category were restored, the category
-is deleted from the archive.  If this was the only category in the
-archive, the archive file is deleted."
+category in the Todos file, inserted at the end of done items
+section.  If all items in the archive category have been
+restored, the category is deleted from the archive.  If this was
+the only category in the archive, the archive file is deleted."
   (interactive)
   (when (eq major-mode 'todos-archive-mode)
-    (catch 'end
-      (let* ((cat (todos-current-category))
-	     (tbuf (find-file-noselect
-		    (concat (file-name-sans-extension todos-current-todos-file)
-			    ".todo") t))
-	     (marked (assoc cat todos-categories-with-marks))
-	     (item (concat (todos-item-string) "\n"))
-	     (all-items (when all (buffer-substring-no-properties
-				   (point-min) (point-max))))
-	     (all-count (when all (todos-get-count 'done)))
-	     marked-items marked-count
-	     buffer-read-only)
-	(when marked
-	  (save-excursion
-	    (goto-char (point-min))
-	    (while (not (eobp))
-	      (when (todos-marked-item-p)
-		(concat marked-items (todos-item-string) "\n")
-		(setq marked-count (1+ marked-count)))
-	      (todos-forward-item))))
-	;; Restore items to end of category's done section and update counts.
-	(with-current-buffer tbuf
-	  (let (buffer-read-only)
-	    (widen)
-	    (goto-char (point-min))
-	    (re-search-forward (concat "^" (regexp-quote
-					    (concat todos-category-beg cat)) "$")
-			       nil t)
-	    ;; Go to end of category's done section.
-	    (if (re-search-forward (concat "^" (regexp-quote todos-category-beg))
-				   nil t)
-		(goto-char (match-beginning 0))
-	      (goto-char (point-max)))
-	    (cond (marked
-		   (insert marked-items)
-		   (todos-update-count 'done marked-count cat)
-		   (todos-update-count 'archived (- marked-count) cat))
-		  (all
-		   (insert all-items)
-		   (todos-update-count 'done all-count cat)
-		   (todos-update-count 'archived (- all-count) cat))
-		  (t
-		   (insert item)
-		   (todos-update-count 'done 1 cat)
-		   (todos-update-count 'archived -1 cat)))
-	    (todos-update-categories-sexp)))
-	;; Delete restored items from archive.
-	(cond ((or marked item)
-	       (and marked (goto-char (point-min)))
-	       (catch 'done
-		 (while (not (eobp))
-		   (if (or (and marked (todos-marked-item-p)) item)
-		       (progn
-			 (todos-remove-item)
-			 ;; Don't leave point below last item.
-			 (and item (bolp) (eolp) (< (point-min) (point-max))
-			      (todos-backward-item))
-			 (when item 
-			   (throw 'done (setq item nil))))
-		     (todos-forward-item))))
-	       (todos-update-count 'done (if marked (- marked-count) -1) cat))
-	      (all
-	       (remove-overlays (point-min) (point-max))
-	       (delete-region (point-min) (point-max))))
-	;; If that was the last category in the archive, delete the whole file.
-	(if (= (length todos-categories) 1)
-	    (progn
-	      (delete-file todos-current-todos-file)
-	      ;; Don't bother confirming killing the archive buffer.
-	      (set-buffer-modified-p nil)
-	      (kill-buffer))
-	  ;; Otherwise, if the archive category is now empty, delete it.
-	  (when (eq (point-min) (point-max))
-	    (widen)
-	    (let ((beg (re-search-backward
-			(concat "^" (regexp-quote todos-category-beg) cat "$")
-			nil t))
-		  (end (if (re-search-forward
-			    (concat "^" (regexp-quote todos-category-beg))
-			    nil t 2)
-			   (match-beginning 0)
-			 (point-max))))
-	      (remove-overlays beg end)
-	      (delete-region beg end)
-	      (setq todos-categories (delete (assoc cat todos-categories)
-					     todos-categories))
-	      (todos-update-categories-sexp))))
-	;; Visit category in Todos file and show restored done items.
-	(let ((tfile (buffer-file-name tbuf))
-	      (todos-show-with-done t))
-	  (set-window-buffer (selected-window)
-			     (set-buffer (find-file-noselect tfile)))
-	  (todos-category-number cat)
-	  (todos-show)
-	  (message "Items unarchived."))))))
-
-(defun todos-unarchive-category ()
-  "Unarchive all items in this category.  See `todos-unarchive-items'."
-  (interactive)
-  (todos-unarchive-items t))
+    (let* ((cat (todos-current-category))
+	   (tbuf (find-file-noselect
+		  (concat (file-name-sans-extension todos-current-todos-file)
+			  ".todo") t))
+	   (marked (assoc cat todos-categories-with-marks))
+	   (item (concat (todos-item-string) "\n"))
+	   (marked-count 0)
+	   marked-items
+	   buffer-read-only)
+      (when marked
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (not (eobp))
+	    (when (todos-marked-item-p)
+	      (setq marked-items (concat marked-items (todos-item-string) "\n"))
+	      (setq marked-count (1+ marked-count)))
+	    (todos-forward-item))))
+      ;; Restore items to end of category's done section and update counts.
+      (with-current-buffer tbuf
+	(let (buffer-read-only newcat)
+	  (widen)
+	  (goto-char (point-min))
+	  ;; Find the corresponding todo category, or if there isn't
+	  ;; one, add it.
+	  (unless (re-search-forward
+		   (concat "^" (regexp-quote (concat todos-category-beg cat))
+			   "$") nil t)
+	    (todos-add-category nil cat)
+	    (setq newcat t)
+	    ;; Put point below newly added category beginning,
+	    ;; otherwise the following search wrongly succeeds.
+	    (forward-line))
+	  ;; Go to end of category's done section.
+	  (if (re-search-forward (concat "^" (regexp-quote todos-category-beg))
+				 nil t)
+	      (goto-char (match-beginning 0))
+	    (goto-char (point-max)))
+	  (cond (marked
+		 (insert marked-items)
+		 (todos-update-count 'done marked-count cat)
+		 (unless newcat		; Newly added category has no archive.
+		   (todos-update-count 'archived (- marked-count) cat)))
+		(t
+		 (insert item)
+		 (todos-update-count 'done 1 cat)
+		 (unless newcat		; Newly added category has no archive.
+		   (todos-update-count 'archived -1 cat))))
+	  (todos-update-categories-sexp)))
+      ;; Delete restored items from archive.
+      (when marked
+	(setq item nil)
+	(goto-char (point-min)))
+      (catch 'done
+	(while (not (eobp))
+	  (if (or (todos-marked-item-p) item)
+	      (progn
+		(todos-remove-item)
+		(when item
+		  (throw 'done (setq item nil))))
+	    (todos-forward-item))))
+      (todos-update-count 'done (if marked (- marked-count) -1) cat)
+      ;; If that was the last category in the archive, delete the whole file.
+      (if (= (length todos-categories) 1)
+	  (progn
+	    (delete-file todos-current-todos-file)
+	    ;; Kill the archive buffer silently.
+	    (set-buffer-modified-p nil)
+	    (kill-buffer))
+	;; Otherwise, if the archive category is now empty, delete it.
+	(when (eq (point-min) (point-max))
+	  (widen)
+	  (let ((beg (re-search-backward
+		      (concat "^" (regexp-quote todos-category-beg) cat "$")
+		      nil t))
+		(end (if (re-search-forward
+			  (concat "^" (regexp-quote todos-category-beg))
+			  nil t 2)
+			 (match-beginning 0)
+		       (point-max))))
+	    (remove-overlays beg end)
+	    (delete-region beg end)
+	    (setq todos-categories (delete (assoc cat todos-categories)
+					   todos-categories))
+	    (todos-update-categories-sexp))))
+      ;; Visit category in Todos file and show restored done items.
+      (let ((tfile (buffer-file-name tbuf))
+	    (todos-show-with-done t))
+	(set-window-buffer (selected-window)
+			   (set-buffer (find-file-noselect tfile)))
+	(todos-category-number cat)
+	(todos-category-select)
+	(message "Items unarchived.")))))
 
 (provide 'todos)
 
