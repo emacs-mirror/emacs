@@ -40,6 +40,7 @@ ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	[ `cd ${srcdir} && /bin/pwd` = `/bin/pwd` ] || \
 	  ( cd ${ns_appsrc} ; tar cfh - . ) | \
 	    ( cd ${ns_appdir} ; umask 022; tar xf - )
+	touch ${ns_appdir}
 
 ${ns_appbindir}/Emacs: ${ns_appdir} ../src/emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}

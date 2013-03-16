@@ -1,3 +1,7 @@
+2013-03-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (${ns_appdir}): Add touch.
+
 2012-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* templates/Info-gnustep.plist.in, templates/InfoPlist.strings.in:
