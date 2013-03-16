@@ -1,3 +1,10 @@
+2013-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line-normalize-file-name): Fix handling of
+	backslashes in DOS and Windows file names.  Reported by Xue Fuqiao
+	<xfq.free@gmail.com> in
+	http://lists.gnu.org/archive/html/help-gnu-emacs/2013-03/msg00245.html.
+
 2013-03-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.7.
