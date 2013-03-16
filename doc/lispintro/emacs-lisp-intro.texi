@@ -227,6 +227,14 @@ This is an @cite{Introduction to Programming in Emacs Lisp}, for
 people who are not programmers.
 @sp 1
 Edition @value{edition-number}, @value{update-date}
+@ifset WWW_GNU_ORG
+@html
+<p>The homepage for GNU Emacs is at
+<a href="http://www.gnu.org/software/emacs/">http://www.gnu.org/software/emacs/</a>.
+<br>To view this manual in other formats, click
+<a href="/software/emacs/emacs-lisp-intro/emacs-lisp-intro.html">here</a>.
+@end html
+@end ifset
 @sp 1
 Copyright @copyright{} 1990--1995, 1997, 2001--2013 Free Software
 Foundation, Inc.

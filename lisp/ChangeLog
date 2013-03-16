@@ -1,3 +1,21 @@
+2013-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/scheme.el: Add indentation and font-locking for λ.
+	(Bug#13975)
+
+2013-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-auto-fill): Don't inf-loop if there's no
+	token before point (bug#13942).
+
+2013-03-16  Leo Liu  <sdl.web@gmail.com>
+
+	* thingatpt.el (end-of-sexp): Fix bug#13952.  Use syntax-after.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
 2013-03-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (command-line-normalize-file-name): Fix handling of
@@ -570,6 +588,11 @@
 	* textmodes/ispell.el (ispell-highlight-spelling-error-overlay):
 	Let-bind `isearch-other-end' to `start', `isearch-forward' to t
 	and `isearch-error' to nil.
+
+2013-03-16  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-info-current-defun):
+	Enhance match-data cluttering prevention.
 
 2013-02-22  Michael Albinus  <michael.albinus@gmx.de>
 

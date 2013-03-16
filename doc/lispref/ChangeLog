@@ -1,3 +1,10 @@
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Add some stuff specific to www.gnu.org.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
 2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* control.texi (Pattern matching case statement): Fix typo.

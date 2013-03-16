@@ -1,3 +1,11 @@
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-pdf, manual-dvi): Pass -I to texi2pdf, texi2dvi.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-html-mono, manual-html-node): Add -DWWW_GNU_ORG.
+
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).
