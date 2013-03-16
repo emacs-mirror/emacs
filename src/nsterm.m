@@ -3601,6 +3601,11 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
           result = t;
         }
     }
+  else
+    {
+      errno = EINTR;
+      result = -1;
+    }
 
   return result;
 }

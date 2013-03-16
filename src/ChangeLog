@@ -1,6 +1,7 @@
 2013-03-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (updateFrameSize:): Change resize increments if needed.
+	(ns_select): Don't return with result uninitialized.
 
 	* nsterm.h (EmacsSavePanel, EmacsOpenPanel): Add getFilename
 	and getDirectory.
