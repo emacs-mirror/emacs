@@ -1,3 +1,10 @@
+2013-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MSVC build.  (Bug#13939)
+	* inc/stdint.h (UINTPTR_MAX): Define.
+
+	* nmake.defs (libc): Fix syntax of !if conditional.
+
 2013-03-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.
