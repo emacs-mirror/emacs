@@ -1,3 +1,17 @@
+2013-03-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (EmacsSavePanel, EmacsOpenPanel): Add getFilename
+	and getDirectory.
+
+	* nsfns.m (ns_filename_from_panel, ns_directory_from_panel): New
+	functions.
+	(Fns_read_file_name): ret is BOOL.  If ! dir_only_p, don't choose
+	directories.  If filename is nil, get directory name (Bug#13932).
+	Use getFilename and getDirectory.
+	(getFilename, getDirectory): New methods for EmacsSavePanel and
+	EmacsOpenPanel.
+	(ok:): In EmacsOpenPanel, if we can't choose directories, just return.
+
 2013-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* coding.c (decode_coding_gap): Fix typo caught by static checking.
