@@ -1,3 +1,18 @@
+2013-03-17  Leo Liu  <sdl.web@gmail.com>
+
+	Extend eldoc to display info in the mode-line.  (Bug#13978)
+	* emacs-lisp/eldoc.el (eldoc-post-insert-mode): New minor mode.
+	(eldoc-mode-line-string): New variable.
+	(eldoc-minibuffer-message): New function.
+	(eldoc-message-function): New variable.
+	(eldoc-message): Use it.
+	(eldoc-display-message-p)
+	(eldoc-display-message-no-interference-p): Support
+	eldoc-post-insert-mode.
+
+	* simple.el (eval-expression-minibuffer-setup-hook): New hook.
+	(eval-expression): Run it.
+
 2013-03-17  Roland Winkler  <winkler@gnu.org>
 
 	* emacs-lisp/crm.el (completing-read-multiple): Ignore empty
