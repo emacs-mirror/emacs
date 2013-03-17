@@ -1,3 +1,7 @@
+2013-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (bitch_at_user): Use `user-error'.
+
 2013-03-17  Ken Brown  <kbrown@cornell.edu>
 
 	* dispextern.h (RGB_PIXEL_COLOR): Move here from image.c.  Use it
@@ -12,8 +16,8 @@
 	* nsterm.h (EmacsSavePanel, EmacsOpenPanel): Add getFilename
 	and getDirectory.
 
-	* nsfns.m (ns_filename_from_panel, ns_directory_from_panel): New
-	functions.
+	* nsfns.m (ns_filename_from_panel, ns_directory_from_panel):
+	New functions.
 	(Fns_read_file_name): ret is BOOL.  If ! dir_only_p, don't choose
 	directories.  If filename is nil, get directory name (Bug#13932).
 	Use getFilename and getDirectory.
@@ -45,10 +49,6 @@
 	Deccode EOL format according to coding->eol_seen.
 	(syms_of_coding): Declare disable-ascii-optimization as a Lisp
 	variable.
-
-	* global.h (struct emacs_globals): New member
-	f_disable_ascii_optimization.
-	(disable_ascii_optimization): New macro.
 
 	* lisp.h (adjust_after_replace): Cancel externing it.
 	(insert_from_gap): Adjust prototype.

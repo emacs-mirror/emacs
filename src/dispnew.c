@@ -5725,7 +5725,11 @@ bitch_at_user (void)
   if (noninteractive)
     putchar (07);
   else if (!INTERACTIVE)  /* Stop executing a keyboard macro.  */
-    error ("Keyboard macro terminated by a command ringing the bell");
+    {
+      const char *msg
+	= "Keyboard macro terminated by a command ringing the bell";
+      Fsignal (Quser_error, Fcons (build_string (msg), Qnil));
+    }
   else
     ring_bell (XFRAME (selected_frame));
 }
