@@ -1,3 +1,9 @@
+2013-03-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: convert some TeX accents to UTF-8
+	* emacs-mime.texi (Interface Functions): Use 'ï' rather than
+	'@"{@dotless{i}}'.
+
 2013-03-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.7.
