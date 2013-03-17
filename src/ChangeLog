@@ -1,3 +1,9 @@
+2013-03-17  Ken Brown  <kbrown@cornell.edu>
+
+	* dispextern.h (RGB_PIXEL_COLOR): Move here from image.c.  Use it
+	as return type of image_background.  (Bug#13981)
+	* image.c (RGB_PIXEL_COLOR): Move to dispextern.h.
+
 2013-03-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (updateFrameSize:): Change resize increments if needed.

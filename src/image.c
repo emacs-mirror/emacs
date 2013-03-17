@@ -68,8 +68,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP None
 
-#define RGB_PIXEL_COLOR unsigned long
-
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 #endif /* HAVE_X_WINDOWS */
@@ -87,8 +85,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 typedef struct w32_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) GetPixel (ximg, x, y)
 #define NO_PIXMAP 0
-
-#define RGB_PIXEL_COLOR COLORREF
 
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
@@ -110,7 +106,6 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP 0
 
-#define RGB_PIXEL_COLOR unsigned long
 #define ZPixmap 0
 
 #define PIX_MASK_RETAIN	0

@@ -3186,7 +3186,15 @@ bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
 ptrdiff_t lookup_image (struct frame *, Lisp_Object);
 
-unsigned long image_background (struct image *, struct frame *,
+#if defined (HAVE_X_WINDOWS) ||  defined (HAVE_NS)
+#define RGB_PIXEL_COLOR unsigned long
+#endif
+
+#ifdef HAVE_NTGUI
+#define RGB_PIXEL_COLOR COLORREF
+#endif
+
+RGB_PIXEL_COLOR image_background (struct image *, struct frame *,
                                 XImagePtr_or_DC ximg);
 int image_background_transparent (struct image *, struct frame *,
                                   XImagePtr_or_DC mask);
