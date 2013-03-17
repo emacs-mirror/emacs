@@ -2,7 +2,7 @@
 
 	* net/tramp-adb.el (tramp-adb-parse-device-names): Use
 	`start-process' instead of `call-process'.  Otherwise, the
-	function might be blocked under MS Windows.
+	function might be blocked under MS Windows.  (Bug#13299)
 
 2013-03-17  Leo Liu  <sdl.web@gmail.com>
 
