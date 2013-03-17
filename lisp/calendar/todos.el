@@ -4629,14 +4629,19 @@ the priority is not given by HERE but by prompting."
 	(setq todos-date-from-calendar nil)
 	(find-file-noselect file 'nowarn)
 	(set-window-buffer (selected-window)
-			   ;; If current category was nil till now, on
-			   ;; entering Todos mode here it will be set to
-			   ;; file's first category.
 			   (set-buffer (find-buffer-visiting file)))
+	;; If this command was invoked outside of a Todos buffer, the
+	;; call to todos-current-category above returned nil.  If we
+	;; just entered Todos mode now, then cat was set to the file's
+	;; first category, but if todos-mode was already enabled, cat
+	;; did not get set, so we have to set it explicitly.
+	(unless cat
+	  (setq cat (todos-current-category)))
 	(setq todos-current-todos-file file)
 	(unless todos-global-current-todos-file
 	  (setq todos-global-current-todos-file todos-current-todos-file))
 	(let ((buffer-read-only nil)
+	      (called-from-outside (not (and todos-mm (equal cat ocat))))
 	      done-only item-added)
 	  (setq new-item
 		;; Add date, time and diary marking as required.
@@ -4657,6 +4662,16 @@ the priority is not given by HERE but by prompting."
 			  new-item nil nil 1))
 	  (unwind-protect
 	      (progn
+		;; Make sure the correct category is selected.  There
+		;; are two cases: (i) we just visited the file, so no
+		;; category is selected yet, or (ii) we invoked
+		;; insertion "here" from outside the category we want
+		;; to insert in (with priority insertion, category
+		;; selection is done by todos-set-item-priority).
+		(when (or (= (- (point-max) (point-min)) (buffer-size))
+			  (and here called-from-outside))
+		  (todos-category-number cat)
+		  (todos-category-select))
 		;; If only done items are displayed in category,
 		;; toggle to todo items before inserting new item.
 		(when (save-excursion
@@ -4671,9 +4686,7 @@ the priority is not given by HERE but by prompting."
 		      ;; category, can't insert "here", so to be
 		      ;; useful give new item top priority.
 		      (when (or (todos-done-item-section-p)
-				(prog1 (not (and todos-mm (equal cat ocat)))
-				  (todos-category-number cat)
-				  (todos-category-select))
+				called-from-outside
 				done-only)
 			(goto-char (point-min)))
 		      (todos-insert-with-overlays new-item))

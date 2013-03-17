@@ -1,3 +1,9 @@
+2013-03-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-insert-item): Fix mistake in logic of
+	here insertion from last change, and ensure category is set when
+	command is called from outside Todos buffer.
+
 2013-03-15  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Item unarchiving fixes and improvements.
