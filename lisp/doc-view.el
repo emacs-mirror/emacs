@@ -326,7 +326,7 @@ of the page moves to the previous page."
       (delete-overlay ol))
     (image-mode-window-put 'overlay ol winprops)
     (when (windowp (car winprops))
-      (if (stringp (get-char-property (point-min) 'display))
+      (if (stringp (overlay-get ol 'display))
     	  ;; We're not already displaying an image, so this is the
     	  ;; initial window showing the document.
     	  (run-with-timer nil nil
@@ -338,12 +338,11 @@ of the page moves to the previous page."
 			      (with-selected-window (car winprops)
 				(doc-view-goto-page 1)))))
     	;; We've split the window showing the document.  All we need
-    	;; to do is selecting the new window to make the image appear
-    	;; there, too.
+    	;; to do is selecting the new window to cause a redisplay to
+    	;; make the image appear there, too.
     	(run-with-timer nil nil
     			(lambda ()
-    			  (save-window-excursion
-    			    (select-window (car winprops)))))))))
+			  (with-selected-window (car winprops))))))))
 
 (defvar doc-view-current-files nil
   "Only used internally.")
@@ -1026,7 +1025,7 @@ Start by converting PAGES, and then the rest."
            ;; not sufficient.
            (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
              (with-selected-window win
-	       (when (stringp (get-char-property (point-min) 'display))
+	       (when (stringp (overlay-get (doc-view-current-overlay) 'display))
 		 (doc-view-goto-page (doc-view-current-page)))))
            ;; Convert the rest of the pages.
            (doc-view-pdf/ps->png pdf png)))))))
