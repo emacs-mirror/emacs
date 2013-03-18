@@ -755,7 +755,8 @@ click is the local or global binding of that event.
 - Otherwise, the mouse-1 event is translated into a mouse-2 event
 at the same position."
   (let ((action
-	 (and (or (not (consp pos))
+	 (and (not (memq 'vertical-scroll-bar pos))
+	      (or (not (consp pos))
 		  mouse-1-click-in-non-selected-windows
 		  (eq (selected-window) (posn-window pos)))
 	      (or (mouse-posn-property pos 'follow-link)
