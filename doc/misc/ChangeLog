@@ -1,3 +1,11 @@
+2013-03-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename Syntax): Host names are not allowed to be
+	any method name, unless method name is specified explicitly.
+	Remove restriction on unibyte filenames.
+
+	* trampver.texi: Update release number.
+
 2013-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	doc: convert some TeX accents to UTF-8
