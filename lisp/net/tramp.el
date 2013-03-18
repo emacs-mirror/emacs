@@ -1203,7 +1203,7 @@ their replacement."
 		  result (substring result 0 -1))
 	  (unless (y-or-n-p (format "Method %s is obsolete, use %s? "
 				    result (substring result 0 -1)))
-	    (error 'file-error "Method \"%s\" not supported" result)))
+	    (tramp-compat-user-error "Method \"%s\" not supported" result)))
 	(add-to-list 'tramp-warned-obsolete-methods result))
       ;; This works with the current set of `tramp-obsolete-methods'.
       ;; Must be improved, if their are more sophisticated replacements.
@@ -1249,7 +1249,7 @@ non-nil, the file name parts are not expanded to their default
 values."
   (save-match-data
     (let ((match (string-match (nth 0 tramp-file-name-structure) name)))
-      (unless match (error "Not a Tramp file name: %s" name))
+      (unless match (tramp-compat-user-error "Not a Tramp file name: %s" name))
       (let ((method    (match-string (nth 1 tramp-file-name-structure) name))
 	    (user      (match-string (nth 2 tramp-file-name-structure) name))
 	    (host      (match-string (nth 3 tramp-file-name-structure) name))
@@ -1259,7 +1259,12 @@ values."
 	  (when (string-match tramp-prefix-ipv6-regexp host)
 	    (setq host (replace-match "" nil t host)))
 	  (when (string-match tramp-postfix-ipv6-regexp host)
-	    (setq host (replace-match "" nil t host))))
+	    (setq host (replace-match "" nil t host)))
+	  (when (and (equal tramp-syntax 'ftp) (null method) (null user)
+		     (member host (mapcar 'car tramp-methods))
+		     (not (tramp-completion-mode-p)))
+	    (tramp-compat-user-error
+	     "Host name must not match method `%s'" host)))
 	(if nodefault
 	    (vector method user host localname hop)
 	  (vector
@@ -3179,7 +3184,7 @@ User is always nil."
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
 	  (ignore-errors (kill-process p))
-	(error "Shell command in progress")))
+	(tramp-compat-user-error "Shell command in progress")))
 
     (if current-buffer-p
 	(progn

@@ -533,6 +533,11 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 			"`dos', `unix', or `mac'")))))
         (t (error "Can't change EOL conversion -- is MULE missing?"))))
 
+;; `user-error' has been added to Emacs 24.3.
+(defun tramp-compat-user-error (format &rest args)
+  "Signal a pilot error."
+  (apply (if (fboundp 'user-error) 'user-error 'error) format args))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-compat 'force)))

@@ -1,3 +1,16 @@
+2013-03-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-user-error): New defun.
+
+	* net/tramp-adb.el (tramp-adb-handle-shell-command):
+	* net/tramp-gvfs.el (top):
+	* net/tramp.el (tramp-find-method, tramp-dissect-file-name)
+	(tramp-handle-shell-command): Use it.
+	(tramp-dissect-file-name): Raise an error when hostname is a
+	method name, and neither method nor user is specified.
+
+	* net/trampver.el: Update release number.
+
 2013-03-18  Leo Liu  <sdl.web@gmail.com>
 
 	Make sure eldoc can be turned off properly.

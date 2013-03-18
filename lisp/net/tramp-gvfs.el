@@ -153,7 +153,7 @@
 (unless (and (tramp-compat-funcall 'dbus-get-unique-name :session)
 	     (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
 		 (tramp-compat-process-running-p "gvfsd-fuse")))
-  (error "Package `tramp-gvfs' not supported"))
+  (tramp-compat-user-error "Package `tramp-gvfs' not supported"))
 
 (defconst tramp-gvfs-path-mounttracker "/org/gtk/vfs/mounttracker"
   "The object path of the GVFS daemon.")
