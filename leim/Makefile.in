@@ -144,6 +144,11 @@ leim-list.el: ${TIT_MISC} ${srcdir}/leim-ext.el
 	fi
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
+$(srcdir)/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
+	@$(MKDIR_P) $(srcdir)/ja-dic
+	$(RUN_EMACS) -l $(buildlisppath)/international/ja-dic-cnv \
+	  --eval '(skkdic-convert "$(srcdir)/SKK-DIC/SKK-JISYO.L" "$(srcdir)/ja-dic")'
+
 ## Following adapted from lisp/Makefile.in.
 setwins=wins="${srcdir}/ja-dic quail"; \
 	[ `cd ${srcdir} && /bin/pwd` != `/bin/pwd` ] && \
@@ -156,7 +161,7 @@ compile-targets: $(TARGETS)
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
 .PHONY: compile-main
-compile-main: ${TIT_MISC}
+compile-main: ${TIT_MISC} $(srcdir)/ja-dic/ja-dic.el
 	@($(setwins); \
 	els=`echo "$$wins " | sed -e 's| |/*.el |g'`; \
 	for el in $$els; do \

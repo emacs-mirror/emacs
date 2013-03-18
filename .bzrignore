@@ -80,6 +80,7 @@ build-aux/config.sub
 build-aux/depcomp
 build-aux/install-sh
 build-aux/missing
+leim/ja-dic/
 leim/leim-list.el
 leim/quail/*.el
 leim/changed.misc

@@ -1,3 +1,18 @@
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate the build of ja-dic.el (Bug#13984).
+	ja-dic.el no longer needs to be in the repository: it's now
+	generated as part of the build from bzr.  Also, update SKK-JISYO.L to
+	match the upstream source exactly.
+	* ja-dic/ja-dic.el: Remove from repository.  It is still distributed
+	as part of the Emacs tarball.
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): New rule.
+	(compile-main): Depend on it.
+	* SKK-DIC/README: Update to reflect new build procedure.
+	* SKK-DIC/SKK-JISYO.L: Update to match source exactly.
+	This is now the annotated version, to match the upstream file name;
+	the unannotated one is built from it automatically.
+
 2013-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Resolve conflicts (bug#13950).

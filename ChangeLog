@@ -1,3 +1,8 @@
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate the build of ja-dic.el (Bug#13984).
+	* .bzrignore: Add leim/ja-dic/.
+
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).
