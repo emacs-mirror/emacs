@@ -170,11 +170,9 @@ nontrivial changes to the build process.
  * japanese-iso-8bit
 
      SKK-JISYO.L is a verbatim copy of a file taken from an external source.
-     ja-dic.el is generated automatically by skkdic-convert; this process
-     hasn't been converted to use UTF-8.
+     It hasn't been converted to UTF-8.
 
 	leim/SKK-DIC/SKK-JISYO.L
-	leim/ja-dic/ja-dic.el
 
  * japanese-shift-jis
 
