@@ -198,8 +198,9 @@ expression point is on."
   (or (and eldoc-timer
            (memq eldoc-timer timer-idle-list))
       (setq eldoc-timer
-            (run-with-idle-timer eldoc-idle-delay t
-                                 'eldoc-print-current-symbol-info)))
+            (run-with-idle-timer
+	     eldoc-idle-delay t
+	     (lambda () (and eldoc-mode (eldoc-print-current-symbol-info))))))
 
   ;; If user has changed the idle delay, update the timer.
   (cond ((not (= eldoc-idle-delay eldoc-current-idle-delay))
@@ -272,21 +273,19 @@ Otherwise work like `message'."
 ;; Decide whether now is a good time to display a message.
 (defun eldoc-display-message-p ()
   (and (eldoc-display-message-no-interference-p)
-       ;; `eldoc-post-insert-mode' uses no timers.
-       (or (not eldoc-mode)
-	   ;; If this-command is non-nil while running via an idle
-	   ;; timer, we're still in the middle of executing a command,
-	   ;; e.g. a query-replace where it would be annoying to
-	   ;; overwrite the echo area.
-	   (and (not this-command)
-		(symbolp last-command)
-		(intern-soft (symbol-name last-command)
-			     eldoc-message-commands)))))
+       ;; If this-command is non-nil while running via an idle
+       ;; timer, we're still in the middle of executing a command,
+       ;; e.g. a query-replace where it would be annoying to
+       ;; overwrite the echo area.
+       (and (not this-command)
+	    (symbolp last-command)
+	    (intern-soft (symbol-name last-command)
+			 eldoc-message-commands))))
 
 ;; Check various conditions about the current environment that might make
 ;; it undesirable to print eldoc messages right this instant.
 (defun eldoc-display-message-no-interference-p ()
-  (and (or eldoc-mode eldoc-post-insert-mode)
+  (and eldoc-mode
        (not executing-kbd-macro)
        (not (and (boundp 'edebug-active) edebug-active))))
 
@@ -310,7 +309,7 @@ Emacs Lisp mode) that support ElDoc.")
 
 (defun eldoc-print-current-symbol-info ()
   (condition-case err
-      (and (eldoc-display-message-p)
+      (and (or (eldoc-display-message-p) eldoc-post-insert-mode)
 	   (if eldoc-documentation-function
 	       (eldoc-message (funcall eldoc-documentation-function))
 	     (let* ((current-symbol (eldoc-current-symbol))

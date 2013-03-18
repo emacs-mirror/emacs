@@ -1,3 +1,12 @@
+2013-03-18  Leo Liu  <sdl.web@gmail.com>
+
+	Make sure eldoc can be turned off properly.
+	* emacs-lisp/eldoc.el (eldoc-schedule-timer): Conditionalize on
+	eldoc-mode.
+	(eldoc-display-message-p): Revert last change.
+	(eldoc-display-message-no-interference-p)
+	(eldoc-print-current-symbol-info): Tweak.
+
 2013-03-18  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el (doc-view-new-window-function): Check the new window
