@@ -11,6 +11,12 @@ its libraries, and the tests and tools that come with it.
 You may be building the MPS for a number of different purposes.
 
 
+Getting hold of the MPS Kit
+---------------------------
+
+Download the latest MPS Kit release from `<http://www.ravenbrook.com/project/mps/release/>`_.
+
+
 Compiling the MPS for your project
 ----------------------------------
 
