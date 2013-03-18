@@ -1,5 +1,11 @@
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Emacs crashes with ImageMagick 6.8.2-3 through 6.8.3-9 (Bug#13867).
+	* configure.ac (IMAGEMAGICK_MODULE): Reject 6.8.2.
+	We want to reject 6.8.2-3 through 6.8.3-9, but there seems to be
+	no way to do this in pkg-config, so make do with a reasonable
+	approximation.
+
 	Automate the build of ja-dic.el (Bug#13984).
 	* .bzrignore: Add leim/ja-dic/.
 
