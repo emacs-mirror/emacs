@@ -462,10 +462,10 @@ stale!
 <div class="section" id="weak-hash-tables">
 <span id="guide-advanced-weak"></span><span id="index-2"></span><h2>6.3. Weak hash tables<a class="headerlink" href="#weak-hash-tables" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference internal" href="../glossary/w.html#term-weak-key-hash-table"><em class="xref std std-term">weak-key hash table</em></a> has <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak references<sup>(1)</sup></em></a> to its
-keys. If the key dies, the value corresponding that key is automatically
-deleted from the table too. Similarly, a <a class="reference internal" href="../glossary/w.html#term-weak-value-hash-table"><em class="xref std std-term">weak-value hash table</em></a>
-has weak references to its values, and a <a class="reference internal" href="../glossary/d.html#term-doubly-weak-hash-table"><em class="xref std std-term">doubly weak hash table</em></a>
-has weak references to both.</p>
+keys. If the key dies, the value corresponding to that key is
+automatically deleted from the table too. Similarly, a
+<a class="reference internal" href="../glossary/w.html#term-weak-value-hash-table"><em class="xref std std-term">weak-value hash table</em></a> has weak references to its values, and a
+<a class="reference internal" href="../glossary/d.html#term-doubly-weak-hash-table"><em class="xref std std-term">doubly weak hash table</em></a> has weak references to both.</p>
 <p>In this section, I&#8217;ll describe how to add all three types of weak hash
 table to the toy Scheme interpreter. This requires a few far-reaching
 changes to the code, so in order to keep the basic integration
@@ -883,7 +883,19 @@ objects that have been left behind.</p>
                         title="previous chapter">5. Tuning the Memory Pool System for performance</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="../topic/index.html"
-                        title="next chapter">Reference</a></p><h4>Contact us</h4>
+                        title="next chapter">Reference</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
         </div>
@@ -907,7 +919,7 @@ objects that have been left behind.</p>
       </ul>
     </div>
     <div class="footer">
-        &copy; <a href="../copyright.html">Copyright</a> 2012, Ravenbrook Limited.
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>

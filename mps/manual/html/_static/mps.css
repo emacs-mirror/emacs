@@ -28,6 +28,11 @@ a.reference.internal:hover {
     border-bottom: 1px solid #aaa;
 }
 
+a.mpstag:hover {
+    background-color: #73626E;
+    color: #FFFFFF;
+}
+
 img.logo {
     width: 100%;
 }
@@ -68,7 +73,7 @@ dl.glossary dt, dl.type dt, dl.function dt, dl.macro dt {
     font-size: 120%;
 }
 
-pre, tt, code {
+pre, tt, code, a.mpstag {
     font-family: 'SCP', monospaced;
     font-size: 100%;
 }

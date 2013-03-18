@@ -33,7 +33,7 @@ Registering roots
 -----------------
 
 You can register a root at any time by calling one of the
-``mps_root_create`` functions. Roots may not be regstered twice, and
+``mps_root_create`` functions. Roots may not be registered twice, and
 no two roots may overlap (that is, each reference is :term:`fixed` by
 at most one root). Roots may be:
 

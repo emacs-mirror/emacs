@@ -92,17 +92,17 @@ Identifiers
 
 2.  All identifiers are either *public* or *private*.
 
-3.  The name of public types, functions, variables, and macros start
-    with ``mps_`` or ``MPS_``. The name of public structure members
+3.  The names of public types, functions, variables, and macros start
+    with ``mps_`` or ``MPS_``. The names of public structure members
     start with any letter.
 
 4.  Private identifiers start with an underscore ``_``.
 
 5.  Type names end with ``_t``, except for structure and union types.
 
-6.  Structure types and tags end with ``_s``.
+6.  The names of structure types and tags end with ``_s``.
 
-7.  Union types and tags end with ``_u``.
+7.  The names of union types and tags end with ``_u``.
 
 
 .. index::
@@ -112,7 +112,7 @@ Types
 -----
 
 There are three kinds of types declared in the MPS interface:
-*transparent types*, *opaque types*, and *derived types*. See below.
+*transparent types*, *opaque types*, and *derived types*.
 
 1.  A *transparent type* is an alias defined using ``typedef``, and this
     is documented so that the :term:`client program` can rely on that
