@@ -206,7 +206,7 @@ added a line like this at the beginning of files of Lisp code:
 If your tar has this problem, install GNU tar--if you can manage to
 untar it :-).
 
-** Emacs crashes when displaying PNG images with simple (tRNS) transparency.
+** Emacs can crash when displaying PNG images with transparency.
 This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug
 should be fixed in ImageMagick 6.8.3-10.  Please see Bug#13867.
 
