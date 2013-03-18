@@ -1,3 +1,13 @@
+2013-03-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.c (window_resize_check, window_resize_apply)
+	(window_from_coordinates, recombine_windows, set_window_buffer)
+	(make_parent_window, Fwindow_resize_apply, resize_frame_windows)
+	(Fsplit_window_internal, Fdelete_window_internal)
+	(freeze_window_starts): Use bool for booleans.
+	* window.h (window_frame_coordinates, resize_frame_windows)
+	(freeze_window_starts, set_window_buffer): Adjust prototypes.
+
 2013-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dispnew.c (bitch_at_user): Use `user-error'.

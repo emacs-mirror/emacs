@@ -84,8 +84,8 @@ static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
 static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
-static int window_resize_check (struct window *, int);
-static void window_resize_apply (struct window *, int);
+static int window_resize_check (struct window *, bool);
+static void window_resize_apply (struct window *, bool);
 static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 static void select_window_1 (Lisp_Object, bool);
 
@@ -1368,7 +1368,7 @@ check_window_containing (struct window *w, void *user_data)
 
 Lisp_Object
 window_from_coordinates (struct frame *f, int x, int y,
-			 enum window_part *part, int tool_bar_p)
+			 enum window_part *part, bool tool_bar_p)
 {
   Lisp_Object window;
   struct check_window_data cw;
@@ -2055,7 +2055,7 @@ recombine_windows (Lisp_Object window)
 {
   struct window *w, *p, *c;
   Lisp_Object parent, child;
-  int horflag;
+  bool horflag;
 
   w = XWINDOW (window);
   parent = w->parent;
@@ -3148,7 +3148,8 @@ If FRAME is omitted or nil, it defaults to the selected frame.  */)
    reset from the buffer's local settings.  */
 
 void
-set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int keep_margins_p)
+set_window_buffer (Lisp_Object window, Lisp_Object buffer,
+		   bool run_hooks_p, bool keep_margins_p)
 {
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
@@ -3406,7 +3407,7 @@ temp_output_buffer_show (register Lisp_Object buf)
    WINDOW its only vertical child (HORFLAG 1 means make WINDOW its only
    horizontal child).   */
 static void
-make_parent_window (Lisp_Object window, int horflag)
+make_parent_window (Lisp_Object window, bool horflag)
 {
   Lisp_Object parent;
   register struct window *o, *p;
@@ -3519,7 +3520,7 @@ Note: This function does not operate on any child windows of WINDOW.  */)
    `window-min-height' or `window-min-width'.  It does check that window
    sizes do not drop below one line (two columns). */
 static int
-window_resize_check (struct window *w, int horflag)
+window_resize_check (struct window *w, bool horflag)
 {
   struct window *c;
 
@@ -3600,7 +3601,7 @@ window_resize_check (struct window *w, int horflag)
    This function does not perform any error checks.  Make sure you have
    run window_resize_check on W before applying this function.  */
 static void
-window_resize_apply (struct window *w, int horflag)
+window_resize_apply (struct window *w, bool horflag)
 {
   struct window *c;
   int pos;
@@ -3681,7 +3682,7 @@ be applied on the Elisp level.  */)
 {
   struct frame *f = decode_live_frame (frame);
   struct window *r = XWINDOW (FRAME_ROOT_WINDOW (f));
-  int horflag = !NILP (horizontal);
+  bool horflag = !NILP (horizontal);
 
   if (!window_resize_check (r, horflag)
       || ! EQ (r->new_total,
@@ -3711,7 +3712,7 @@ be applied on the Elisp level.  */)
    satisfy the request.  The result will be meaningful if and only if
    F's windows have meaningful sizes when you call this.  */
 void
-resize_frame_windows (struct frame *f, int size, int horflag)
+resize_frame_windows (struct frame *f, int size, bool horflag)
 {
   Lisp_Object root = f->root_window;
   struct window *r = XWINDOW (root);
@@ -3825,7 +3826,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   register Lisp_Object new, frame, reference;
   register struct window *o, *p, *n, *r;
   struct frame *f;
-  int horflag
+  bool horflag
     /* HORFLAG is 1 when we split side-by-side, 0 otherwise.  */
     = EQ (side, Qt) || EQ (side, Qleft) || EQ (side, Qright);
   int combination_limit = 0;
@@ -3994,7 +3995,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
   register Lisp_Object parent, sibling, frame, root;
   struct window *w, *p, *s, *r;
   struct frame *f;
-  int horflag;
+  bool horflag;
   int before_sibling = 0;
 
   w = decode_any_window (window);
@@ -6527,7 +6528,7 @@ freeze_window_start (struct window *w, void *freeze_p)
    means freeze the window start.  */
 
 void
-freeze_window_starts (struct frame *f, int freeze_p)
+freeze_window_starts (struct frame *f, bool freeze_p)
 {
   foreach_window (f, freeze_window_start, (void *) (freeze_p ? f : 0));
 }

@@ -891,10 +891,10 @@ extern Lisp_Object Vmouse_event;
 
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
-                                            enum window_part *, int);
-extern void resize_frame_windows (struct frame *, int, int);
+                                            enum window_part *, bool);
+extern void resize_frame_windows (struct frame *, int, bool);
 extern void delete_all_child_windows (Lisp_Object);
-extern void freeze_window_starts (struct frame *, int);
+extern void freeze_window_starts (struct frame *, bool);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
@@ -906,7 +906,7 @@ void run_window_configuration_change_hook (struct frame *f);
    it's not allowed.  */
 
 void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
-                        int run_hooks_p, int keep_margins_p);
+                        bool run_hooks_p, bool keep_margins_p);
 
 /* This is the window where the echo area message was displayed.  It
    is always a minibuffer window, but it may not be the same window
