@@ -1,3 +1,7 @@
+2013-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(srcdir)/ja-dic/ja-dic.el): New target.
+
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Automate the build of ja-dic.el (Bug#13984).
