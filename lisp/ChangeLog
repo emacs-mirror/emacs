@@ -1,3 +1,7 @@
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* term/x-win.el (x-keysym-pair): Add a Fixme (Bug#13936).
+
 2013-03-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* mouse.el (mouse-on-link-p): Check for scroll bar (Bug#13979).

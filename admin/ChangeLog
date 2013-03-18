@@ -1,5 +1,7 @@
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* notes/unicode: Mention some more iso-2022-7bit files (Bug#13936).
+
 	Automate the build of ja-dic.el (Bug#13984).
 	* notes/unicode: ja-dic.el is now UTF-8.
 
