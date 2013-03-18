@@ -1,5 +1,9 @@
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix bug when building Emacs with a GNU Make submake (Bug#13962).
+	* Makefile.in (QUIET_SUBMAKE): New macro.
+	(install-info, uninstall): Use it.
+
 	Emacs crashes with ImageMagick 6.8.2-3 through 6.8.3-9 (Bug#13867).
 	* configure.ac (IMAGEMAGICK_MODULE): Reject 6.8.2.
 	We want to reject 6.8.2-3 through 6.8.3-9, but there seems to be
