@@ -15,14 +15,24 @@ Introduction
 
 :mps:tag:`readership` MPS developers.
 
+
+History
+-------
+
 :mps:tag:`hist.0` Version 0 is a different document.
 
-:mps:tag:`hist.1` First draft written by Pekka P. Pirinen 1997-08-11,
+:mps:tag:`hist.1` First draft written by Pekka P. Pirinen, 1997-08-11,
 based on :mps:ref:`design.mps.space(0)` and
-mail.richard.1997-04-25.11-52(0).
+:mps:ref:`mail.richard.1997-04-25.11-52(0)`.
 
-:mps:tag:`hist.2` Updated for separation of tracts and segments. tony
-1999-04-16
+:mps:tag:`hist.2` Updated for separation of tracts and segments. Tony
+Mann, 1999-04-16.
+
+:mps:tag:`hist.3` Converted from MMInfo database design document.
+Richard Brooksby, 2002-06-07.
+
+:mps:tag:`hist.4` Converted to reStructuredText. Gareth Rees,
+2013-03-11.
 
 
 Overview
