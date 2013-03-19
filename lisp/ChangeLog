@@ -1,3 +1,10 @@
+2013-03-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* whitespace.el (whitespace-font-lock, whitespace-font-lock-mode):
+	Remove vars.
+	(whitespace-color-on, whitespace-color-off): Use
+	`font-lock-fontify-buffer' (Bug#13817).
+
 2013-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse--down-1-maybe-follows-link): Fix follow-link
