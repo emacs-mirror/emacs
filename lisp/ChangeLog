@@ -1,3 +1,9 @@
+2013-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse--down-1-maybe-follows-link): Fix follow-link
+	remapping in mode-line.
+	(mouse-on-link-p): Also check [mode-line follow-link] bindings.
+
 2013-03-19  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* whitespace.el (whitespace-color-on): Use `prepend' OVERRIDE
