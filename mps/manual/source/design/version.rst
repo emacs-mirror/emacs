@@ -15,6 +15,18 @@ Introduction
 describing and inspecting versions.
 
 
+History
+-------
+
+:mps:tag:`hist.0` Incomplete document. David Jones, 1998-08-19.
+
+:mps:tag:`hist.1` Converted from MMInfo database design document.
+Richard Brooksby, 2002-06-07.
+
+:mps:tag:`hist.2` Converted to reStructuredText. Gareth Rees,
+2013-03-11.
+
+
 Overview
 --------
 

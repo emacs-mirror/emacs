@@ -149,8 +149,8 @@ registers and addresses.
 is required that might range as large as the machine word.
 
 :mps:tag:`word.source` ``Word`` is derived from the macro
-``MPS_T_WORD`` which is declared in :mps:ref:`impl.h.mpstd`
-according to the target platform.
+``MPS_T_WORD`` which is declared in :mps:ref:`impl.h.mpstd` according
+to the target platform (:mps:ref:`design.mps.config.pf.word`).
 
 :mps:tag:`word.conv.c` ``Word`` is converted to :c:type:`mps_word_t`
 in the MPS C Interface.
