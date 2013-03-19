@@ -2209,7 +2209,7 @@ resultant list will be returned."
               ,(if (memq 'lines whitespace-active-style)
                    0                    ; whole line
                  2)                     ; line tail
-              whitespace-line t)))
+              whitespace-line prepend)))
        ,@(when (or (memq 'space-before-tab whitespace-active-style)
                    (memq 'space-before-tab::tab whitespace-active-style)
                    (memq 'space-before-tab::space whitespace-active-style))
