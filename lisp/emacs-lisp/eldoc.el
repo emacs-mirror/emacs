@@ -146,6 +146,10 @@ directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
   "Idle time delay currently in use by timer.
 This is used to determine if `eldoc-idle-delay' is changed by the user.")
 
+(defvar eldoc-message-function 'eldoc-minibuffer-message
+  "The function used by `eldoc-message' to display messages.
+It should receive the same arguments as `message'.")
+
 
 ;;;###autoload
 (define-minor-mode eldoc-mode
@@ -170,6 +174,20 @@ expression point is on."
    (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area)))
 
 ;;;###autoload
+(define-minor-mode eldoc-post-insert-mode nil
+  :group 'eldoc :lighter (:eval (if eldoc-mode ""
+				  (concat eldoc-minor-mode-string "|i")))
+  (setq eldoc-last-message nil)
+  (let ((prn-info (lambda ()
+		    (unless eldoc-mode
+		      (eldoc-print-current-symbol-info)))))
+    (if eldoc-post-insert-mode
+	(add-hook 'post-self-insert-hook prn-info nil t)
+      (remove-hook 'post-self-insert-hook prn-info t))))
+
+(add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-post-insert-mode)
+
+;;;###autoload
 (defun turn-on-eldoc-mode ()
   "Unequivocally turn on ElDoc mode (see command `eldoc-mode')."
   (interactive)
@@ -180,13 +198,45 @@ expression point is on."
   (or (and eldoc-timer
            (memq eldoc-timer timer-idle-list))
       (setq eldoc-timer
-            (run-with-idle-timer eldoc-idle-delay t
-                                 'eldoc-print-current-symbol-info)))
+            (run-with-idle-timer
+	     eldoc-idle-delay t
+	     (lambda () (and eldoc-mode (eldoc-print-current-symbol-info))))))
 
   ;; If user has changed the idle delay, update the timer.
   (cond ((not (= eldoc-idle-delay eldoc-current-idle-delay))
          (setq eldoc-current-idle-delay eldoc-idle-delay)
          (timer-set-idle-time eldoc-timer eldoc-idle-delay t))))
+
+(defvar eldoc-mode-line-string nil)
+(put 'eldoc-mode-line-string 'risky-local-variable t)
+
+(defun eldoc-minibuffer-message (format-string &rest args)
+  "Display messages in the mode-line when in the minibuffer.
+Otherwise work like `message'."
+  (if (minibufferp)
+      (progn
+	(with-current-buffer
+	    (window-buffer
+	     (or (window-in-direction 'above (minibuffer-window))
+		 (minibuffer-selected-window)
+		 (get-largest-window)))
+	  (unless (and (listp mode-line-format)
+		       (assq 'eldoc-mode-line-string mode-line-format))
+	    (setq mode-line-format
+		  (list "" '(eldoc-mode-line-string
+			     (" " eldoc-mode-line-string " "))
+			mode-line-format))))
+	(add-hook 'minibuffer-exit-hook
+		  (lambda () (setq eldoc-mode-line-string nil))
+		  nil t)
+	(cond
+	 ((null format-string)
+	  (setq eldoc-mode-line-string nil))
+	 ((stringp format-string)
+	  (setq eldoc-mode-line-string
+		(apply 'format format-string args))))
+	(force-mode-line-update))
+    (apply 'message format-string args)))
 
 (defun eldoc-message (&rest args)
   (let ((omessage eldoc-last-message))
@@ -203,8 +253,9 @@ expression point is on."
     ;; they are Legion.
     ;; Emacs way of preventing log messages.
     (let ((message-log-max nil))
-      (cond (eldoc-last-message (message "%s" eldoc-last-message))
-	    (omessage (message nil)))))
+      (cond (eldoc-last-message
+	     (funcall eldoc-message-function "%s" eldoc-last-message))
+	    (omessage (funcall eldoc-message-function nil)))))
   eldoc-last-message)
 
 ;; This function goes on pre-command-hook for XEmacs or when using idle
@@ -236,11 +287,7 @@ expression point is on."
 (defun eldoc-display-message-no-interference-p ()
   (and eldoc-mode
        (not executing-kbd-macro)
-       (not (and (boundp 'edebug-active) edebug-active))
-       ;; Having this mode operate in an active minibuffer/echo area causes
-       ;; interference with what's going on there.
-       (not cursor-in-echo-area)
-       (not (eq (selected-window) (minibuffer-window)))))
+       (not (and (boundp 'edebug-active) edebug-active))))
 
 
 ;;;###autoload
@@ -262,7 +309,7 @@ Emacs Lisp mode) that support ElDoc.")
 
 (defun eldoc-print-current-symbol-info ()
   (condition-case err
-      (and (eldoc-display-message-p)
+      (and (or (eldoc-display-message-p) eldoc-post-insert-mode)
 	   (if eldoc-documentation-function
 	       (eldoc-message (funcall eldoc-documentation-function))
 	     (let* ((current-symbol (eldoc-current-symbol))

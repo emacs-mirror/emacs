@@ -1,3 +1,7 @@
+2013-03-18  Sam Steingold  <sds@gnu.org>
+
+	* message.el (message-bury): Minor cleanup.
+
 2013-03-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nndir.el (nndir-request-list): Remove 2nd argument passed to

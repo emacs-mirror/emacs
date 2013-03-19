@@ -287,7 +287,8 @@ INHERIT-INPUT-METHOD."
 		       prompt initial-input map
 		       nil hist def inherit-input-method)))
 	  (and def (string-equal input "") (setq input def))
-	  (split-string input crm-separator)))
+          ;; Ignore empty strings in the list of return values.
+	  (split-string input crm-separator t)))
     (remove-hook 'choose-completion-string-functions
 		 'crm--choose-completion-string)))
 

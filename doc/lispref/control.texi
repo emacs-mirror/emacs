@@ -373,7 +373,7 @@ symbol to the value that it matched, so that you can later refer to it, either
 in the @var{body-forms} or also later in the pattern.
 @item _
 This so-called @emph{don't care} pattern matches anything, like the previous
-one, but unless symbol patterns it does not bind any variable.
+one, but unlike symbol patterns it does not bind any variable.
 @item (pred @var{pred})
 This pattern matches if the function @var{pred} returns non-@code{nil} when
 called with the object being matched.

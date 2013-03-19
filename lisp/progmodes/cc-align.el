@@ -737,7 +737,7 @@ arglist-cont-nonempty."
 	      (setq startpos (c-langelem-pos langelem)))))
 
       (setq startpos (c-langelem-pos langelem)
-	    endpos (point))
+	    endpos (c-point 'bol))
 
       ;; Find a syntactically relevant and unnested "=" token on the
       ;; current line.  equalp is in that case set to the number of
@@ -1039,6 +1039,7 @@ brace-list-close, brace-list-intro, statement-block-intro,
 arglist-intro, arglist-cont-nonempty, arglist-close, and all in*
 symbols, e.g. inclass and inextern-lang."
   (save-excursion
+    (beginning-of-line)
     (if (and (c-go-up-list-backward)
 	     (= (point) (c-point 'boi)))
 	nil
@@ -1191,6 +1192,7 @@ Works with: arglist-cont, arglist-cont-nonempty."
   (let ((orig-pos (point))
 	alignto)
     (save-excursion
+      (beginning-of-line)
       (and
        c-opt-asm-stmt-key
 

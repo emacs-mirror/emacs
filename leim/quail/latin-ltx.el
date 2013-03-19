@@ -43,6 +43,26 @@ system, including many technical ones.  Examples:
  t t nil nil nil nil nil nil nil t)
 
 (eval-when-compile
+  (require 'cl-lib)
+
+  (defconst latin-ltx--mark-map
+    '(("DOT BELOW" . "d")
+      ("DOT ABOVE" . ".")
+      ("OGONEK" . "k")
+      ("CEDILLA" . "c")
+      ("CARON" . "v")
+      ;; ("HOOK ABOVE" . ??)
+      ("MACRON" . "=")
+      ("BREVE" . "u")
+      ("TILDE" . "~")
+      ("GRAVE" . "`")
+      ("CIRCUMFLEX" . "^")
+      ("DIAERESIS" . "\"")
+      ("DOUBLE ACUTE" . "H")
+      ("ACUTE" . "'")))
+
+  (defconst latin-ltx--mark-re (regexp-opt (mapcar #'car latin-ltx--mark-map)))
+
   (defun latin-ltx--ascii-p (char)
     (and (characterp char) (< char 128)))
 
@@ -53,7 +73,8 @@ system, including many technical ones.  Examples:
         (pcase rule
           (`(,_ ,(pred characterp)) (push rule newrules)) ;; Normal quail rule.
           (`(,seq ,re)
-           (let ((count 0))
+           (let ((count 0)
+                 (re (eval re t)))
              (dolist (pair (ucs-names))
                (let ((name (car pair))
                      (char (cdr pair)))
@@ -68,9 +89,27 @@ system, including many technical ones.  Examples:
                            (push (list x char) newrules))
                        (setq count (1+ count))
                        (push (list keys char) newrules))))))
-             ;(message "latin-ltx: %d mapping for %S" count re)
+             ;; (message "latin-ltx: %d mappings for %S" count re)
 	     ))))
-      `(quail-define-rules ,@(nreverse (delete-dups newrules))))))
+      (setq newrules (delete-dups newrules))
+      (let ((rules (copy-sequence newrules)))
+        (while rules
+          (let ((rule (pop rules)))
+            (when (assoc (car rule) rules)
+              (let ((conflicts (list (cadr rule)))
+                    (tail rules)
+                    c)
+                (while (setq c (assoc (car rule) tail))
+                  (push (cadr c) conflicts)
+                  (setq tail (cdr (memq c tail)))
+                  (setq rules (delq c rules)))
+                (message "Conflict for %S: %S"
+                         (car rule) (apply #'string conflicts)))))))
+      (let ((inputs (mapcar #'car newrules)))
+        (setq inputs (delete-dups inputs))
+        (message "latin-ltx: %d rules (+ %d conflicts)!"
+                 (length inputs) (- (length newrules) (length inputs))))
+      `(quail-define-rules ,@(nreverse newrules)))))
 
 (latin-ltx--define-rules
  ("!`" ?¡)
@@ -89,69 +128,35 @@ system, including many technical ones.  Examples:
  ("$^o$" ?º)
  ("?`" ?¿)
 
- ("\\`" ?̀)
- ("\\`{}" ?`)
  ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\`{%s}" c) (format "\\`%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH GRAVE")
+    (let* ((c (if (match-end 1)
+                  (downcase (match-string 2 name))
+                (match-string 2 name)))
+           (mark1 (cdr (assoc (match-string 3 name) latin-ltx--mark-map)))
+           (mark2 (if (match-end 4)
+                      (cdr (assoc (match-string 4 name) latin-ltx--mark-map))))
+           (marks (if mark2 (concat mark1 "\\" mark2) mark1)))
+      (cl-assert mark1)
+      (cons (format "\\%s{%s}" marks c)
+            ;; Exclude "d" because we use "\\dh" for something else.
+            (unless (member (or mark2 mark1) '("d"));; "k"
+              (list (format "\\%s%s" marks c))))))
+  (concat "\\`LATIN \\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH \\("
+          latin-ltx--mark-re "\\)\\(?: AND \\("
+          latin-ltx--mark-re "\\)\\)?\\'"))
 
- ("\\'" ?́)
- ("\\'{}" ?´)
  ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\'{%s}" c) (format "\\'%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH ACUTE")
+    (let* ((mark (cdr (assoc (match-string 1 name) latin-ltx--mark-map))))
+      (cl-assert mark)
+      (list (format "\\%s" mark))))
+  (concat "\\`COMBINING \\(" latin-ltx--mark-re "\\)\\(?: ACCENT\\)?\\'"))
 
- ("\\^" ?̂)
- ("\\^{}" ?^)
  ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\^{%s}" c) (format "\\^%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH CIRCUMFLEX")
-
- ("\\~" ?̃)
- ("\\~{}" ?˜)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\~{%s}" c) (format "\\~%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH TILDE")
-
- ("\\\"" ?̈)
- ("\\\"{}" ?¨)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\\"{%s}" c) (format "\\\"%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH DIAERESIS")
-
- ("\\k" ?̨)
- ("\\k{}" ?˛)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\k{%s}" c) ;; (format "\\k%s" c)
-            )))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH OGONEK")
-
- ("\\c" ?̧)
- ("\\c{}" ?¸)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\c{%s}" c) (format "\\c%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH CEDILLA")
+    (unless (latin-ltx--ascii-p char)
+      (let* ((mark (cdr (assoc (match-string 1 name) latin-ltx--mark-map))))
+        (cl-assert mark)
+        (list (format "\\%s{}" mark)))))
+  (concat "\\`\\(?:SPACING \\)?\\(" latin-ltx--mark-re "\\)\\(?: ACCENT\\)?\\'"))
 
  ("\\AA" ?Å) ;; ("{\\AA}" ?Å)
  ("\\AE" ?Æ) ;; ("{\\AE}" ?Æ)
@@ -166,42 +171,6 @@ system, including many technical ones.  Examples:
  ("$\\div$" ?÷) ("\\div" ?÷)
  ("\\o" ?ø) ;; ("{\\o}" ?ø)
 
- ("\\=" ?̄)
- ("\\={}" ?¯)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\={%s}" c) (format "\\=%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH MACRON")
-
- ("\\u" ?̆)
- ("\\u{}" ?˘)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\u{%s}" c) (format "\\u%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH BREVE")
-
- ("\\." ?̇)
- ("\\.{}" ?˙)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\.{%s}" c) (format "\\.%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH DOT ABOVE")
-
- ("\\v" ?̌)
- ("\\v{}" ?ˇ)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\v{%s}" c) (format "\\v%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH CARON")
-
  ("\\~{\\i}" ?ĩ)
  ("\\={\\i}" ?ī)
  ("\\u{\\i}" ?ĭ)
@@ -214,12 +183,6 @@ system, including many technical ones.  Examples:
 
  ("\\H" ?̋)
  ("\\H{}" ?˝)
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\H{%s}" c) (format "\\H%s" c))))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH DOUBLE ACUTE")
  ("\\U{o}" ?ő) ("\\Uo" ?ő) ;; FIXME: Was it just a typo?
  
  ("\\OE" ?Œ) ;; ("{\\OE}" ?Œ)
@@ -248,19 +211,11 @@ system, including many technical ones.  Examples:
         (string (if (match-end 2) ?^ ?_) basechar))))
   "\\(.*\\)SU\\(?:B\\|\\(PER\\)\\)SCRIPT \\(.*\\)")
 
- ((lambda (name char)
+ ((lambda (name _char)
     (let* ((basename (match-string 2 name))
-           (lbase (format "LATIN %s LETTER %s"
-                          (match-string 1 name) basename))
-           (gbase (format "GREEK %s LETTER %s"
-                          (match-string 1 name) basename))
-           tmp)
-      (cond
-       ((assoc gbase (ucs-names)) (concat "^\\" (downcase basename)))
-       ((latin-ltx--ascii-p (setq tmp (cdr (assoc lbase (ucs-names)))))
-        (string ?^ tmp))
-       (t (message "Unknown modifier letter %s" basename)))))
-  "MODIFIER LETTER \\(SMALL\\|CAPITAL\\) \\(.*\\)")
+           (name (if (match-end 1) (capitalize basename) (downcase basename))))
+      (concat "^" (if (> (length name) 1) "\\") name)))
+  "\\`MODIFIER LETTER \\(?:SMALL\\|CAPITA\\(L\\)\\) \\([[:ascii:]]+\\)\\'")
  
  ;; ((lambda (name char) (format "^%s" (downcase (match-string 1 name))))
  ;;  "\\`MODIFIER LETTER SMALL \\(.\\)\\'")
@@ -272,22 +227,14 @@ system, including many technical ones.  Examples:
 
  ("\\b" ?̱)
 
- ("\\d" ?̣)
- ;; ("\\d{}" ?) ;; FIXME: can't find the DOT BELOW character.
- ((lambda (name char)
-    (let ((c (if (match-end 1)
-                 (downcase (match-string 2 name))
-               (match-string 2 name))))
-      (list (format "\\d{%s}" c) ;; (format "\\d%s" c)
-            )))
-  "\\(?:CAPITAL\\|SMAL\\(L\\)\\) LETTER \\(.\\) WITH DOT BELOW")
-
  ("\\rq" ?’)
 
  ;; FIXME: Provides some useful entries (yen, euro, copyright, registered,
  ;; currency, minus, micro), but also a lot of dubious ones.
  ((lambda (name char)
-    (unless (latin-ltx--ascii-p char)
+    (unless (or (latin-ltx--ascii-p char)
+                ;; We prefer COMBINING LONG SOLIDUS OVERLAY for \not.
+                (member name '("NOT SIGN")))
       (concat "\\" (downcase (match-string 1 name)))))
   "\\`\\([^- ]+\\) SIGN\\'")
 
@@ -377,7 +324,6 @@ system, including many technical ones.  Examples:
  ("\\circledcirc" ?⊚)
  ("\\circleddash" ?⊝)
  ("\\clubsuit" ?♣)
- ("\\colon" ?:)                         ;FIXME: Conflict with "COLON SIGN" ₡.
  ("\\coloneq" ?≔)
  ("\\complement" ?∁)
  ("\\cong" ?≅)
@@ -400,7 +346,6 @@ system, including many technical ones.  Examples:
  ("\\ddots" ?⋱)
  ("\\diamond" ?⋄)
  ("\\diamondsuit" ?♢)
- ("\\digamma" ?Ϝ)
  ("\\divideontimes" ?⋇)
  ("\\doteq" ?≐)
  ("\\doteqdot" ?≑)

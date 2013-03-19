@@ -1,4 +1,4 @@
-# putenv.m4 serial 19
+# putenv.m4 serial 20
 dnl Copyright (C) 2002-2013 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -52,5 +52,5 @@ AC_DEFUN([gl_FUNC_PUTENV],
 # Prerequisites of lib/putenv.c.
 AC_DEFUN([gl_PREREQ_PUTENV],
 [
-  AC_CHECK_FUNCS([_putenv])
+  AC_CHECK_DECLS([_putenv])
 ])

@@ -38,6 +38,7 @@ typedef unsigned __int64 uint64_t;
 #define INT64_MIN (~INT64_MAX)
 #define INTPTR_MAX INT64_MAX
 #define INTPTR_MIN INT64_MIN
+#define UINTPTR_MAX UINT64_MAX
 #define UINTMAX_MAX UINT64_MAX
 #define UINTMAX_MIN UINT64_MIN
 #define INTMAX_MAX INT64_MAX
@@ -53,6 +54,7 @@ typedef unsigned int uint32_t;
 #define INT32_MIN (~INT32_MAX)
 #define INTPTR_MAX INT32_MAX
 #define INTPTR_MIN INT32_MIN
+#define UINTPTR_MAX UINT32_MAX
 #define UINTMAX_MAX UINT32_MAX
 #define UINTMAX_MIN UINT32_MIN
 #define INTMAX_MAX INT32_MAX

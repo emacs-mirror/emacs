@@ -267,10 +267,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 @interface EmacsSavePanel : NSSavePanel
 {
 }
+- (NSString *) getFilename;
+- (NSString *) getDirectory;
 @end
 @interface EmacsOpenPanel : NSOpenPanel
 {
 }
+- (NSString *) getFilename;
+- (NSString *) getDirectory;
 @end
 
 @interface EmacsFileDelegate : NSObject

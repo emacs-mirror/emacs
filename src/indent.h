@@ -26,14 +26,14 @@ struct position
     int contin;
   };
 
-struct position *compute_motion (ptrdiff_t from, EMACS_INT fromvpos,
-                                 EMACS_INT fromhpos, bool did_motion,
-                                 ptrdiff_t to, EMACS_INT tovpos,
-                                 EMACS_INT tohpos,
+struct position *compute_motion (ptrdiff_t from, ptrdiff_t frombyte,
+				 EMACS_INT fromvpos, EMACS_INT fromhpos,
+				 bool did_motion, ptrdiff_t to,
+				 EMACS_INT tovpos, EMACS_INT tohpos,
                                  EMACS_INT width, ptrdiff_t hscroll,
                                  int tab_offset, struct window *);
-struct position *vmotion (ptrdiff_t from, EMACS_INT vtarget,
-                          struct window *);
+struct position *vmotion (ptrdiff_t from, ptrdiff_t from_byte,
+			  EMACS_INT vtarget, struct window *);
 ptrdiff_t skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p,
                           ptrdiff_t to, Lisp_Object window);
 

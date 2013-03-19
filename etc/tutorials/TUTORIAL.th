@@ -1001,6 +1001,6 @@ virach@nectec.or.th
 Translate - January 1999 by Virach Sornlertlamvanich
 
 ;;; Local Variables:
-;;;   sentence-end-double-space: nil
+;;; sentence-end-double-space: nil
+;;; coding: iso-2022-7bit
 ;;; End:
-

@@ -79,7 +79,8 @@ The return value of this function is not used."
                    (list 'quote f) (list 'quote arglist) (list 'quote when))))
    (list 'obsolete
          #'(lambda (f _args new-name when)
-             `(make-obsolete ',f ',new-name ,when)))
+             (list 'make-obsolete
+                   (list 'quote f) (list 'quote new-name) (list 'quote when))))
    (list 'compiler-macro
          #'(lambda (f args compiler-function)
              ;; FIXME: Make it possible to just reuse `args'.
@@ -378,7 +379,7 @@ obsolete."
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
-  (declare (debug t) (indent 0))
+  (declare (debug t) (indent 0) (obsolete nil "24.4"))
   (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body)))))
 
 
@@ -402,9 +403,9 @@ In interpreted code, this is entirely equivalent to `progn'."
   ;; macroexpansion.
   (list 'quote (eval (cons 'progn body) lexical-binding)))
 
-(put 'with-no-warnings 'lisp-indent-function 0)
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."
+  (declare (indent 0))
   ;; The implementation for the interpreter is basically trivial.
   (car (last body)))
 

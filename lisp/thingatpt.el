@@ -182,7 +182,7 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 (defun end-of-sexp ()
   "Move point to the end of the current sexp.
 \[This is an internal function.]"
-  (let ((char-syntax (char-syntax (char-after))))
+  (let ((char-syntax (syntax-after (point))))
     (if (or (eq char-syntax ?\))
 	    (and (eq char-syntax ?\") (in-string-p)))
 	(forward-char 1)

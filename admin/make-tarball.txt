@@ -50,6 +50,14 @@ General steps (for each step, check for possible errors):
     For a pretest, start at version .90.  After .99, use .990 (so that
     it sorts).
 
+    The final pretest should be a release candidate.  Set the version
+    number to that of the actual release.  Pick a date about a week
+    from now when you intend to make the release.  Use M-x add-release-logs
+    to add the ChangeLog entries for that date to the tar file (but
+    not yet to the repository).  Name the tar file as
+    emacs-XX.Y-rc1.tar.  If all goes well in the following week, you
+    can simply rename the file and use it for the actual release.
+
 5.   autoreconf -i -I m4 --force
      make bootstrap
 
@@ -77,7 +85,8 @@ General steps (for each step, check for possible errors):
     compile-NEW.log and compare it against an old one.  The easiest way
     to do that is to visit the old log in Emacs, change the version
     number of the old Emacs to __, do the same with the new log and do
-    M-x ediff.  Especially check that Info files aren't built.
+    M-x ediff.  Especially check that Info files aren't built, and that
+    no autotools (autoconf etc) run.
 
 9.  cd EMACS_ROOT_DIR && bzr tag TAG
     TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.

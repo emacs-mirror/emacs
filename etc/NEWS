@@ -85,6 +85,26 @@ Eg View mode, etc.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
+Affected files:
+~/.emacs.d/timelog	replaces  ~/.timelog
+~/.emacs.d/todo-do	replaces  ~/.todo-do
+~/.emacs.d/todo-done	replaces  ~/.todo-done
+~/.emacs.d/todo-top	replaces  ~/.todo-top
+~/.emacs.d/vip		replaces  ~/.vip
+~/.emacs.d/viper	replaces  ~/.viper
+~/.emacs.d/ido.last	replaces  ~/.ido.last
+~/.emacs.d/kkcrc	replaces  ~/.kkcrc
+~/.emacs.d/quickurls	replaces  ~/.quickurls
+~/.emacs.d/idlwave	replaces  ~/.idlwave
+~/.emacs.d/bdfcache.el	replaces  ~/.bdfcache.el
+~/.emacs.d/places	replaces  ~/.emacs-places
+~/.emacs.d/shadows	replaces  ~/.shadows
+~/.emacs.d/shadow_todo	replaces  ~/.shadow_todo
+~/.emacs.d/strokes	replaces  ~/.strokes
+~/.emacs.d/notes	replaces  ~/.notes
+~/.emacs.d/type-break	replaces  ~/.type-break
+
 ** Delphi mode is now called OPascal mode.
 *** All delphi-* variables and functions have been renamed to opascal-*.
 *** `delphi-newline-always-indents' is not supported any more
@@ -238,6 +258,11 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** `read-event' does not return decoded chars in ttys any more.
+Just as was the case in Emacs-22 and before, decoding of tty input according to
+keyboard-coding-system is not performed in read-event any more.  But contrary
+to that past, it is still done before input-decode-map/function-key-map/...
+
 ** Removed inhibit-local-menu-bar-menus.
 
 ** frame-local variables that affect redisplay do not work any more.
@@ -263,6 +288,8 @@ file using `set-file-extended-attributes'.
 
 
 * Lisp Changes in Emacs 24.4
+
+** `dont-compile' is declared obsolete.
 
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as

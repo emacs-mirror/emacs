@@ -111,9 +111,20 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 @top The Emacs Editor
 
 Emacs is the extensible, customizable, self-documenting real-time
-display editor.  This Info file describes how to edit with Emacs and
+display editor.  This manual describes how to edit with Emacs and
 some of the ways to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
+
+@ifset WWW_GNU_ORG
+@html
+The homepage for GNU Emacs is at
+<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+To view this manual in other formats, click
+<a href="/software/emacs/manual/emacs.html">here</a>.<br>
+You can also purchase a printed copy from the
+<a href="http://shop.fsf.org/product/emacs-manual/">FSF store</a>.
+@end html
+@end ifset
 
 @ifinfo
 If you are reading this in Emacs, type @kbd{h} to read a basic
@@ -1359,7 +1370,7 @@ Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
 Bockgård, Jan Böcker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Stefan Bruda,
-Georges Brun-Cottan, Joe Buehler, Scott Byer, W@l{}odek Bzyl,
+Georges Brun-Cottan, Joe Buehler, Scott Byer, Włodek Bzyl,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
 Clark, Mike Clarkson, Glynn Clements, Andrew Cohen, Daniel Colascione,
@@ -1392,14 +1403,14 @@ Josefsson, Alexandre Julliard, Arne Jørgensen, Tomoji Kagatani,
 Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Ivan Kanis, David
 Kastrup, David Kaufman, Henry Kautz, Taichi Kawabata, Taro Kawagishi,
 Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg, Karel
-Klí@v{c}, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
+Klíč, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
 M. Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian Kremer,
 Ryszard Kubiak, Igor Kuzmin, David Kågedal, Daniel LaLiberte, Karl
 Landstrom, Mario Lang, Aaron Larson, James R. Larus, Vinicius Jose
 Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Christian
 Limpach, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
 Juri Linkov, Francis Litterio, Sergey Litvinov, Emilio C. Lopes,
-Martin Lorentzon, Dave Love, Eric Ludlam, Károly L@H{o}rentey, Sascha
+Martin Lorentzon, Dave Love, Eric Ludlam, Károly Lőrentey, Sascha
 Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
 Christopher J. Madsen, Neil M. Mager, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
@@ -1430,7 +1441,7 @@ Philippe Schnoebelen, Jan Schormann, Alex Schroeder, Stefan Schoef,
 Rainer Schoepf, Raymond Scholz, Eric Schulte, Andreas Schwab, Randal
 Schwartz, Oliver Seidel, Manuel Serrano, Paul Sexton, Hovav Shacham,
 Stanislav Shalunov, Marc Shapiro, Richard Sharman, Olin Shivers, Tibor
-@v{S}imko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
+Šimko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
 David Smith, Paul D. Smith, Wilson Snyder, William Sommerfeld, Simon
 South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken

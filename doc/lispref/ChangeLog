@@ -1,3 +1,18 @@
+2013-03-17  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* symbols.texi (Standard Properties): Document pure.  (Bug#13823)
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Add some stuff specific to www.gnu.org.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* control.texi (Pattern matching case statement): Fix typo.
+
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* elisp.texi, intro.texi: Switch from Latin-1 to UTF-8.

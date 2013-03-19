@@ -38,9 +38,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 #include "blockinput.h"
 
-#ifdef BSD_SYSTEM
-#include <sys/param.h>
-#include <sys/sysctl.h>
+#if defined DARWIN_OS || defined __FreeBSD__
+# include <sys/sysctl.h>
 #endif
 
 #ifdef __FreeBSD__
@@ -69,9 +68,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
 #include "msdos.h"
-#include <sys/param.h>
 #endif
 
+#include <sys/param.h>
 #include <sys/file.h>
 #include <fcntl.h>
 
@@ -1290,10 +1289,9 @@ reset_sys_modes (struct tty_display_info *tty_out)
   if (tty_out->terminal->reset_terminal_modes_hook)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
 
-#ifdef BSD_SYSTEM
   /* Avoid possible loss of output when changing terminal modes.  */
-  fsync (fileno (tty_out->output));
-#endif
+  while (fdatasync (fileno (tty_out->output)) != 0 && errno == EINTR)
+    continue;
 
 #ifndef DOS_NT
 #ifdef F_SETOWN

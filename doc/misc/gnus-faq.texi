@@ -705,32 +705,9 @@ retrieves via POP3?
 
 @subsubheading Answer
 
-First of all, that's not the way POP3 is intended to work,
-if you have the possibility, you should use the IMAP
-Protocol if you want your messages to stay on the
-server. Nevertheless there might be situations where you
-need the feature, but sadly Gnus itself has no predefined
-functionality to do so.
-
-However this is Gnus county so there are possibilities to
-achieve what you want. The easiest way is to get an external
-program which retrieves copies of the mail and stores them
-on disk, so Gnus can read it from there. On Unix systems you
-could use, e.g., fetchmail for this, on MS Windows you can use
-Hamster, an excellent local news and mail server.
-
-The other solution would be, to replace the method Gnus
-uses to get mail from POP3 servers by one which is capable
-of leaving the mail on the server. If you use XEmacs, get
-the package mail-lib, it includes an enhanced pop3.el,
-look in the file, there's documentation on how to tell
-Gnus to use it and not to delete the retrieved mail. For
-GNU Emacs look for the file epop3.el which can do the same
-(If you know the home of this file, please send me an
-e-mail). You can also tell Gnus to use an external program
-(e.g., fetchmail) to fetch your mail, see the info node
-"Mail Source Specifiers" in the Gnus manual on how to do
-it.
+Yes, if the POP3 server supports the UIDL control (maybe almost servers
+do it nowadays).  To do that, add a @code{:leave VALUE} pair to each
+POP3 mail source.  See @pxref{Mail Source Specifiers} for VALUE.
 
 @node FAQ 4 - Reading messages
 @subsection Reading messages

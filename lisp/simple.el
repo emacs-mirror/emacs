@@ -1291,6 +1291,9 @@ display the result of expression evaluation."
             (format " (#o%o, #x%x, %s)" value value char-string)
           (format " (#o%o, #x%x)" value value)))))
 
+(defvar eval-expression-minibuffer-setup-hook nil
+  "Hook run by `eval-expression' when entering the minibuffer.")
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (exp &optional insert-value)
@@ -1308,9 +1311,11 @@ If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive
    (list (let ((minibuffer-completing-symbol t))
-	   (read-from-minibuffer "Eval: "
-				 nil read-expression-map t
-				 'read-expression-history))
+	   (minibuffer-with-setup-hook
+	       (lambda () (run-hooks 'eval-expression-minibuffer-setup-hook))
+	     (read-from-minibuffer "Eval: "
+				   nil read-expression-map t
+				   'read-expression-history)))
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)

@@ -1,4 +1,4 @@
-/* MS-DOS specific C utilities.          -*- coding: raw-text -*-
+/* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
 Copyright (C) 1993-1997, 1999-2013 Free Software Foundation, Inc.
 
@@ -19,6 +19,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Contributed by Morten Welinder */
 /* New display, keyboard, and mouse control by Kim F. Storm */
+
+/* Note: This file MUST use a unibyte encoding, to both display the
+   keys on the non-US keyboard layout as their respective labels, and
+   provide the correct byte values for the keyboard input to inject
+   into Emacs.  See 'struct dos_keyboard_map' below.  As long as there
+   are only European keyboard layouts here, we are OK with DOS
+   codepage 850 encoding.  */
 
 /* Note: some of the stuff here was taken from end of sysdep.c in demacs. */
 
@@ -1965,10 +1972,10 @@ struct dos_keyboard_map
 
 static struct dos_keyboard_map us_keyboard = {
 /* 0         1         2         3         4         5      */
-/* 01234567890123456789012345678901234567890 12345678901234 */
-  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\   zxcvbnm,./  ",
+/* 01234567890123456789012345678901234567890 123 45678901234 */
+  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\  \\zxcvbnm,./  ",
 /* 0123456789012345678901234567890123456789 012345678901234 */
-  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|   ZXCVBNM<>?  ",
+  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|  |ZXCVBNM<>?  ",
   0,				/* no Alt-Gr key */
   0				/* no translate table */
 };
@@ -1976,9 +1983,9 @@ static struct dos_keyboard_map us_keyboard = {
 static struct dos_keyboard_map fr_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 012 3456789012345678901234567890123456789012345678901234 */
-  "˝&Ç\",(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*   wxcvbnm;:!  ",
+  "˝&Ç\"'(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*  <wxcvbn,;:!  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
-  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê   WXCVBN?./ı  ",
+  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê  >WXCVBN?./ı  ",
 /* 01234567 89012345678901234567890123456789012345678901234 */
   "  ~#{[|`\\^@]}             œ                              ",
   0				/* no translate table */
@@ -2000,9 +2007,9 @@ static struct kbd_translate it_kbd_translate_table[] = {
 static struct dos_keyboard_map it_keyboard = {
 /* 0          1         2         3         4         5     */
 /* 0 123456789012345678901234567890123456789012345678901234 */
-  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó   zxcvbnm,.-  ",
+  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
+  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "        {}~`             []             @#               ",
   it_kbd_translate_table
@@ -2011,9 +2018,9 @@ static struct dos_keyboard_map it_keyboard = {
 static struct dos_keyboard_map dk_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 0123456789012345678901234567890123456789012345678901234 */
-  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'   zxcvbnm,.-  ",
+  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*   ZXCVBNM;:_  ",
+  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "  @ú$  {[]} |                                             ",
   0				/* no translate table */

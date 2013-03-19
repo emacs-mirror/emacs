@@ -2406,12 +2406,17 @@ using the @option{ssh} method to transfer files, and edit
 @file{.emacs} in my home directory I would specify the filename
 @file{@trampfn{ssh, daniel, melancholia, .emacs}}.
 
+@ifset emacs
+A remote filename containing a host name only, which is equal to a
+method name, is not allowed.  If such a host name is used, it must
+always be preceded by an explicit method name, like
+@file{@value{prefix}ssh@value{postfixhop}ssh@value{postfix}}.
+@end ifset
+
 Finally, for some methods it is possible to specify a different port
 number than the default one, given by the method.  This is specified
 by adding @file{#<port>} to the host name, like in @file{@trampfn{ssh,
 daniel, melancholia#42, .emacs}}.
-
-Note that @value{tramp} supports only filenames encoded in unibyte.
 
 
 @node Alternative Syntax

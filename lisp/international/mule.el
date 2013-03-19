@@ -1844,8 +1844,11 @@ If nothing is specified, the return value is nil."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
 			head-end t))
-              (display-warning 'mule "`unibyte: t' is obsolete; \
-use \"coding: 'raw-text\" instead." :warning)
+              (display-warning 'mule
+                               (format "\"unibyte: t\" (in %s) is obsolete; \
+use \"coding: 'raw-text\" instead."
+                                       (file-relative-name filename))
+                               :warning)
 	      (setq coding-system 'raw-text))
 	    (when (and (not coding-system)
 		       (re-search-forward

@@ -554,13 +554,10 @@ See also `whitespace-display-mappings' for documentation."
 			 (const :tag "(Mark) NEWLINEs" newline-mark)))
   :group 'whitespace)
 
-
-(defcustom whitespace-space 'whitespace-space
+(defvar whitespace-space 'whitespace-space
   "Symbol face used to visualize SPACE.
-
-Used when `whitespace-style' includes the value `spaces'."
-  :type 'face
-  :group 'whitespace)
+Used when `whitespace-style' includes the value `spaces'.")
+(make-obsolete-variable 'whitespace-space "use the face instead" "24.4")
 
 
 (defface whitespace-space
@@ -573,13 +570,10 @@ Used when `whitespace-style' includes the value `spaces'."
   :group 'whitespace)
 
 
-(defcustom whitespace-hspace 'whitespace-hspace
+(defvar whitespace-hspace 'whitespace-hspace
   "Symbol face used to visualize HARD SPACE.
-
-Used when `whitespace-style' includes the value `spaces'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `spaces'.")
+(make-obsolete-variable 'whitespace-hspace "use the face instead" "24.4")
 
 (defface whitespace-hspace		; 'nobreak-space
   '((((class color) (background dark))
@@ -591,13 +585,10 @@ Used when `whitespace-style' includes the value `spaces'."
   :group 'whitespace)
 
 
-(defcustom whitespace-tab 'whitespace-tab
+(defvar whitespace-tab 'whitespace-tab
   "Symbol face used to visualize TAB.
-
-Used when `whitespace-style' includes the value `tabs'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `tabs'.")
+(make-obsolete-variable 'whitespace-tab "use the face instead" "24.4")
 
 (defface whitespace-tab
   '((((class color) (background dark))
@@ -609,16 +600,12 @@ Used when `whitespace-style' includes the value `tabs'."
   :group 'whitespace)
 
 
-(defcustom whitespace-newline 'whitespace-newline
+(defvar whitespace-newline 'whitespace-newline
   "Symbol face used to visualize NEWLINE char mapping.
-
 See `whitespace-display-mappings'.
-
 Used when `whitespace-style' includes the values `newline-mark'
-and `newline'."
-  :type 'face
-  :group 'whitespace)
-
+and `newline'.")
+(make-obsolete-variable 'whitespace-newline "use the face instead" "24.4")
 
 (defface whitespace-newline
   '((default :weight normal)
@@ -634,13 +621,10 @@ See `whitespace-display-mappings'."
   :group 'whitespace)
 
 
-(defcustom whitespace-trailing 'whitespace-trailing
+(defvar whitespace-trailing 'whitespace-trailing
   "Symbol face used to visualize trailing blanks.
-
-Used when `whitespace-style' includes the value `trailing'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `trailing'.")
+(make-obsolete-variable 'whitespace-trailing "use the face instead" "24.4")
 
 (defface whitespace-trailing		; 'trailing-whitespace
   '((default :weight bold)
@@ -650,15 +634,11 @@ Used when `whitespace-style' includes the value `trailing'."
   :group 'whitespace)
 
 
-(defcustom whitespace-line 'whitespace-line
+(defvar whitespace-line 'whitespace-line
   "Symbol face used to visualize \"long\" lines.
-
 See `whitespace-line-column'.
-
-Used when `whitespace-style' includes the value `line'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `line'.")
+(make-obsolete-variable 'whitespace-line "use the face instead" "24.4")
 
 (defface whitespace-line
   '((((class mono)) :inverse-video t :weight bold :underline t)
@@ -669,13 +649,11 @@ See `whitespace-line-column'."
   :group 'whitespace)
 
 
-(defcustom whitespace-space-before-tab 'whitespace-space-before-tab
+(defvar whitespace-space-before-tab 'whitespace-space-before-tab
   "Symbol face used to visualize SPACEs before TAB.
-
-Used when `whitespace-style' includes the value `space-before-tab'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `space-before-tab'.")
+(make-obsolete-variable 'whitespace-space-before-tab
+                        "use the face instead" "24.4")
 
 (defface whitespace-space-before-tab
   '((((class mono)) :inverse-video t :weight bold :underline t)
@@ -684,13 +662,10 @@ Used when `whitespace-style' includes the value `space-before-tab'."
   :group 'whitespace)
 
 
-(defcustom whitespace-indentation 'whitespace-indentation
+(defvar whitespace-indentation 'whitespace-indentation
   "Symbol face used to visualize 8 or more SPACEs at beginning of line.
-
-Used when `whitespace-style' includes the value `indentation'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `indentation'.")
+(make-obsolete-variable 'whitespace-indentation "use the face instead" "24.4")
 
 (defface whitespace-indentation
   '((((class mono)) :inverse-video t :weight bold :underline t)
@@ -699,13 +674,10 @@ Used when `whitespace-style' includes the value `indentation'."
   :group 'whitespace)
 
 
-(defcustom whitespace-empty 'whitespace-empty
+(defvar whitespace-empty 'whitespace-empty
   "Symbol face used to visualize empty lines at beginning and/or end of buffer.
-
-Used when `whitespace-style' includes the value `empty'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `empty'.")
+(make-obsolete-variable 'whitespace-empty "use the face instead" "24.4")
 
 (defface whitespace-empty
   '((((class mono)) :inverse-video t :weight bold :underline t)
@@ -714,13 +686,11 @@ Used when `whitespace-style' includes the value `empty'."
   :group 'whitespace)
 
 
-(defcustom whitespace-space-after-tab 'whitespace-space-after-tab
+(defvar whitespace-space-after-tab 'whitespace-space-after-tab
   "Symbol face used to visualize 8 or more SPACEs after TAB.
-
-Used when `whitespace-style' includes the value `space-after-tab'."
-  :type 'face
-  :group 'whitespace)
-
+Used when `whitespace-style' includes the value `space-after-tab'.")
+(make-obsolete-variable 'whitespace-space-after-tab
+                        "use the face instead" "24.4")
 
 (defface whitespace-space-after-tab
   '((((class mono)) :inverse-video t :weight bold :underline t)
@@ -730,14 +700,8 @@ Used when `whitespace-style' includes the value `space-after-tab'."
 
 
 (defcustom whitespace-hspace-regexp
-  "\\(\\(\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20\\)+\\)"
+  "\\(\u00A0+\\)"
   "Specify HARD SPACE characters regexp.
-
-If you're using `mule' package, there may be other characters besides:
-
-   \"\\xA0\"   \"\\x8A0\"   \"\\x920\"   \"\\xE20\"   \"\\xF20\"
-
-that should be considered HARD SPACE.
 
 Here are some examples:
 
@@ -806,7 +770,7 @@ Used when `whitespace-style' includes `tabs'."
   "\\([\t \u00A0]+\\)$"
   "Specify trailing characters regexp.
 
-If you're using `mule' package, there may be other characters besides:
+There may be other characters besides:
 
    \" \"  \"\\t\"  \"\\u00A0\"
 
@@ -823,13 +787,6 @@ Used when `whitespace-style' includes `trailing'."
 (defcustom whitespace-space-before-tab-regexp "\\( +\\)\\(\t+\\)"
   "Specify SPACEs before TAB regexp.
 
-If you're using `mule' package, there may be other characters besides:
-
-   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
-\"\\xF20\"
-
-that should be considered blank.
-
 Used when `whitespace-style' includes `space-before-tab',
 `space-before-tab::tab' or  `space-before-tab::space'."
   :type '(regexp :tag "SPACEs Before TAB")
@@ -844,13 +801,6 @@ Used when `whitespace-style' includes `space-before-tab',
 It is a cons where the cons car is used for SPACEs visualization
 and the cons cdr is used for TABs visualization.
 
-If you're using `mule' package, there may be other characters besides:
-
-   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
-\"\\xF20\"
-
-that should be considered blank.
-
 Used when `whitespace-style' includes `indentation',
 `indentation::tab' or  `indentation::space'."
   :type '(cons (regexp :tag "Indentation SPACEs")
@@ -861,13 +811,6 @@ Used when `whitespace-style' includes `indentation',
 (defcustom whitespace-empty-at-bob-regexp "^\\(\\([ \t]*\n\\)+\\)"
   "Specify regexp for empty lines at beginning of buffer.
 
-If you're using `mule' package, there may be other characters besides:
-
-   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
-\"\\xF20\"
-
-that should be considered blank.
-
 Used when `whitespace-style' includes `empty'."
   :type '(regexp :tag "Empty Lines At Beginning Of Buffer")
   :group 'whitespace)
@@ -875,13 +818,6 @@ Used when `whitespace-style' includes `empty'."
 
 (defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]+\\)"
   "Specify regexp for empty lines at end of buffer.
-
-If you're using `mule' package, there may be other characters besides:
-
-   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
-\"\\xF20\"
-
-that should be considered blank.
 
 Used when `whitespace-style' includes `empty'."
   :type '(regexp :tag "Empty Lines At End Of Buffer")
@@ -895,13 +831,6 @@ Used when `whitespace-style' includes `empty'."
 
 It is a cons where the cons car is used for SPACEs visualization
 and the cons cdr is used for TABs visualization.
-
-If you're using `mule' package, there may be other characters besides:
-
-   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
-\"\\xF20\"
-
-that should be considered blank.
 
 Used when `whitespace-style' includes `space-after-tab',
 `space-after-tab::tab' or `space-after-tab::space'."
@@ -1145,29 +1074,31 @@ See also `whitespace-style', `whitespace-newline' and
 	(unless whitespace-mode
 	  (whitespace-turn-off)))))))
 
+(defvar whitespace-enable-predicate
+  (lambda ()
+    (and (cond
+          ((eq whitespace-global-modes t))
+          ((listp whitespace-global-modes)
+           (if (eq (car-safe whitespace-global-modes) 'not)
+               (not (memq major-mode (cdr whitespace-global-modes)))
+             (memq major-mode whitespace-global-modes)))
+          (t nil))
+         ;; ...we have a display (we're running a batch job)
+         (not noninteractive)
+         ;; ...the buffer is not internal (name starts with a space)
+         (not (eq (aref (buffer-name) 0) ?\ ))
+         ;; ...the buffer is not special (name starts with *)
+         (or (not (eq (aref (buffer-name) 0) ?*))
+             ;; except the scratch buffer.
+             (string= (buffer-name) "*scratch*"))))
+  "Predicate to decide which buffers obey `global-whitespace-mode'.
+This function is called with no argument and should return non-nil
+if the current buffer should obey `global-whitespace-mode'.
+This variable is normally modified via `add-function'.")
 
 (defun whitespace-turn-on-if-enabled ()
-  (when (cond
-	 ((eq whitespace-global-modes t))
-	 ((listp whitespace-global-modes)
-	  (if (eq (car-safe whitespace-global-modes) 'not)
-	      (not (memq major-mode (cdr whitespace-global-modes)))
-	    (memq major-mode whitespace-global-modes)))
-	 (t nil))
-    (let (inhibit-quit)
-      ;; Don't turn on whitespace mode if...
-      (or
-       ;; ...we don't have a display (we're running a batch job)
-       noninteractive
-       ;; ...or if the buffer is invisible (name starts with a space)
-       (eq (aref (buffer-name) 0) ?\ )
-       ;; ...or if the buffer is temporary (name starts with *)
-       (and (eq (aref (buffer-name) 0) ?*)
-	    ;; except the scratch buffer.
-	    (not (string= (buffer-name) "*scratch*")))
-       ;; Otherwise, turn on whitespace mode.
-       (whitespace-turn-on)))))
-
+  (when (funcall whitespace-enable-predicate)
+    (whitespace-turn-on)))
 
 ;;;###autoload
 (define-minor-mode global-whitespace-newline-mode
@@ -2247,144 +2178,88 @@ resultant list will be returned."
     (set (make-local-variable 'whitespace-font-lock-mode)
 	 font-lock-mode)
     (font-lock-mode 0)
-    ;; add whitespace-mode color into font lock
-    (when (memq 'spaces whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show SPACEs
-	(list whitespace-space-regexp  1 whitespace-space  t)
-	;; Show HARD SPACEs
-	(list whitespace-hspace-regexp 1 whitespace-hspace t))
-       t))
-    (when (memq 'tabs whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show TABs
-	(list whitespace-tab-regexp 1 whitespace-tab t))
-       t))
-    (when (memq 'trailing whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show trailing blanks
-	(list #'whitespace-trailing-regexp 1 whitespace-trailing t))
-       t))
-    (when (or (memq 'lines      whitespace-active-style)
-	      (memq 'lines-tail whitespace-active-style))
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show "long" lines
-	(list
-	 (let ((line-column (or whitespace-line-column fill-column)))
-	   (format
-	    "^\\([^\t\n]\\{%s\\}\\|[^\t\n]\\{0,%s\\}\t\\)\\{%d\\}%s\\(.+\\)$"
-	    whitespace-tab-width
-	    (1- whitespace-tab-width)
-	    (/ line-column whitespace-tab-width)
-	    (let ((rem (% line-column whitespace-tab-width)))
-	      (if (zerop rem)
-		  ""
-		(format ".\\{%d\\}" rem)))))
-	 (if (memq 'lines whitespace-active-style)
-	     0				; whole line
-	   2)				; line tail
-	 whitespace-line t))
-       t))
-    (cond
-     ((memq 'space-before-tab whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show SPACEs before TAB (indent-tabs-mode)
-	(list whitespace-space-before-tab-regexp
-	      (if whitespace-indent-tabs-mode 1 2)
-	      whitespace-space-before-tab t))
-       t))
-     ((memq 'space-before-tab::tab whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show SPACEs before TAB (SPACEs)
-	(list whitespace-space-before-tab-regexp
-	      1 whitespace-space-before-tab t))
-       t))
-     ((memq 'space-before-tab::space whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show SPACEs before TAB (TABs)
-	(list whitespace-space-before-tab-regexp
-	      2 whitespace-space-before-tab t))
-       t)))
-    (cond
-     ((memq 'indentation whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show indentation SPACEs (indent-tabs-mode)
-	(list (whitespace-indentation-regexp)
-	      1 whitespace-indentation t))
-       t))
-     ((memq 'indentation::tab whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show indentation SPACEs (SPACEs)
-	(list (whitespace-indentation-regexp 'tab)
-	      1 whitespace-indentation t))
-       t))
-     ((memq 'indentation::space whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show indentation SPACEs (TABs)
-	(list (whitespace-indentation-regexp 'space)
-	      1 whitespace-indentation t))
-       t)))
-    (when (memq 'empty whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show empty lines at beginning of buffer
-	(list #'whitespace-empty-at-bob-regexp
-	      1 whitespace-empty t))
-       t)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show empty lines at end of buffer
-	(list #'whitespace-empty-at-eob-regexp
-	      1 whitespace-empty t))
-       t))
-    (cond
-     ((memq 'space-after-tab whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show SPACEs after TAB (indent-tabs-mode)
-	(list (whitespace-space-after-tab-regexp)
-	      1 whitespace-space-after-tab t))
-       t))
-     ((memq 'space-after-tab::tab whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show SPACEs after TAB (SPACEs)
-	(list (whitespace-space-after-tab-regexp 'tab)
-	      1 whitespace-space-after-tab t))
-       t))
-     ((memq 'space-after-tab::space whitespace-active-style)
-      (font-lock-add-keywords
-       nil
-       (list
-	;; Show SPACEs after TAB (TABs)
-	(list (whitespace-space-after-tab-regexp 'space)
-	      1 whitespace-space-after-tab t))
-       t)))
-    ;; now turn on font lock and highlight blanks
+    ;; Add whitespace-mode color into font lock.
+    (font-lock-add-keywords
+     nil
+     `(
+       ,@(when (memq 'spaces whitespace-active-style)
+           ;; Show SPACEs.
+           `((,whitespace-space-regexp 1 whitespace-space t)
+             ;; Show HARD SPACEs.
+             (,whitespace-hspace-regexp 1 whitespace-hspace t)))
+       ,@(when (memq 'tabs whitespace-active-style)
+           ;; Show TABs.
+           `((,whitespace-tab-regexp 1 whitespace-tab t)))
+       ,@(when (memq 'trailing whitespace-active-style)
+           ;; Show trailing blanks.
+           `((,#'whitespace-trailing-regexp 1 whitespace-trailing t)))
+       ,@(when (or (memq 'lines      whitespace-active-style)
+                   (memq 'lines-tail whitespace-active-style))
+           ;; Show "long" lines.
+           `((,(let ((line-column (or whitespace-line-column fill-column)))
+                 (format
+                  "^\\([^\t\n]\\{%s\\}\\|[^\t\n]\\{0,%s\\}\t\\)\\{%d\\}%s\\(.+\\)$"
+                  whitespace-tab-width
+                  (1- whitespace-tab-width)
+                  (/ line-column whitespace-tab-width)
+                  (let ((rem (% line-column whitespace-tab-width)))
+                    (if (zerop rem)
+                        ""
+                      (format ".\\{%d\\}" rem)))))
+              ,(if (memq 'lines whitespace-active-style)
+                   0                    ; whole line
+                 2)                     ; line tail
+              whitespace-line t)))
+       ,@(when (or (memq 'space-before-tab whitespace-active-style)
+                   (memq 'space-before-tab::tab whitespace-active-style)
+                   (memq 'space-before-tab::space whitespace-active-style))
+           `((,whitespace-space-before-tab-regexp
+              ,(cond
+                ((memq 'space-before-tab whitespace-active-style)
+                 ;; Show SPACEs before TAB (indent-tabs-mode).
+                 (if whitespace-indent-tabs-mode 1 2))
+                ((memq 'space-before-tab::tab whitespace-active-style)
+                 1)
+                ((memq 'space-before-tab::space whitespace-active-style)
+                 2))
+              whitespace-space-before-tab t)))
+       ,@(when (or (memq 'indentation whitespace-active-style)
+                   (memq 'indentation::tab whitespace-active-style)
+                   (memq 'indentation::space whitespace-active-style))
+           `((,(cond
+                ((memq 'indentation whitespace-active-style)
+                 ;; Show indentation SPACEs (indent-tabs-mode).
+                 (whitespace-indentation-regexp))
+                ((memq 'indentation::tab whitespace-active-style)
+                 ;; Show indentation SPACEs (SPACEs).
+                 (whitespace-indentation-regexp 'tab))
+                ((memq 'indentation::space whitespace-active-style)
+                 ;; Show indentation SPACEs (TABs).
+                 (whitespace-indentation-regexp 'space)))
+              1 whitespace-indentation t)))
+       ,@(when (memq 'empty whitespace-active-style)
+           ;; Show empty lines at beginning of buffer.
+           `((,#'whitespace-empty-at-bob-regexp
+              1 whitespace-empty t)
+             ;; Show empty lines at end of buffer.
+             (,#'whitespace-empty-at-eob-regexp
+              1 whitespace-empty t)))
+       ,@(when (or (memq 'space-after-tab whitespace-active-style)
+                   (memq 'space-after-tab::tab whitespace-active-style)
+                   (memq 'space-after-tab::space whitespace-active-style))
+           `((,(cond
+                ((memq 'space-after-tab whitespace-active-style)
+                 ;; Show SPACEs after TAB (indent-tabs-mode).
+                 (whitespace-space-after-tab-regexp))
+                ((memq 'space-after-tab::tab whitespace-active-style)
+                 ;; Show SPACEs after TAB (SPACEs).
+                 (whitespace-space-after-tab-regexp 'tab))
+                ((memq 'space-after-tab::space whitespace-active-style)
+                 ;; Show SPACEs after TAB (TABs).
+                 (whitespace-space-after-tab-regexp 'space)))
+              1 whitespace-space-after-tab t))))
+     t)
+    ;; Now turn on font lock and highlight blanks.
     (font-lock-mode 1)))
 
 

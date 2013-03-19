@@ -129,9 +129,15 @@ recently set ones come first, oldest ones come last)."
   :type 'boolean
   :group 'bookmark)
 
+(defcustom bookmark-bmenu-use-header-line t
+  "Non-nil means to use an immovable header line, as opposed to inline
+text at the top of the buffer."
+  :type 'boolean
+  :group 'bookmark)
 
-(defconst bookmark-bmenu-header-height 2
-  "Number of lines used for the *Bookmark List* header.")
+(defconst bookmark-bmenu-inline-header-height 2
+  "Number of lines used for the *Bookmark List* header
+\(only significant when `bookmark-bmenu-use-header-line' is nil\).")
 
 (defconst bookmark-bmenu-marks-width 2
   "Number of columns (chars) used for the *Bookmark List* marks column,
@@ -150,6 +156,10 @@ A non-nil value may result in truncated bookmark names."
   :type 'boolean
   :group 'bookmark)
 
+(defface bookmark-menu-bookmark
+  '((t (:weight bold)))
+  "Face used to highlight bookmark names in bookmark menu buffers."
+  :group 'bookmark)
 
 (defcustom bookmark-menu-length 70
   "Maximum length of a bookmark name displayed on a popup menu."
@@ -1176,18 +1186,7 @@ Optional second arg NO-HISTORY means don't record this in the
 minibuffer history list `bookmark-history'."
   (interactive (list (bookmark-completing-read "Insert bookmark location")))
   (or no-history (bookmark-maybe-historicize-string bookmark-name))
-  (let ((start (point)))
-    (prog1
-	(insert (bookmark-location bookmark-name))
-      (if (display-mouse-p)
-	  (add-text-properties
-	   start
-	   (save-excursion (re-search-backward
-			    "[^ \t]")
-                           (1+ (point)))
-	   '(mouse-face highlight
-	     follow-link t
-	     help-echo "mouse-2: go to this bookmark in other window"))))))
+  (insert (bookmark-location bookmark-name)))
 
 ;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
@@ -1552,7 +1551,8 @@ deletion, or > if it is flagged for displaying."
       (set-buffer buf)))
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (insert "% Bookmark\n- --------\n")
+    (if (not bookmark-bmenu-use-header-line)
+      (insert "% Bookmark\n- --------\n"))    
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
     (dolist (full-record (bookmark-maybe-sort-alist))
@@ -1571,14 +1571,17 @@ deletion, or > if it is flagged for displaying."
         (when (display-mouse-p)
           (add-text-properties
            (+ bookmark-bmenu-marks-width start) end
-           '(mouse-face highlight
+           '(font-lock-face bookmark-menu-bookmark
+	     mouse-face highlight
              follow-link t
              help-echo "mouse-2: go to this bookmark in other window")))
         (insert "\n")))
     (set-buffer-modified-p (not (= bookmark-alist-modification-count 0)))
     (goto-char (point-min))
-    (forward-line 2)
     (bookmark-bmenu-mode)
+    (if bookmark-bmenu-use-header-line
+	(bookmark-bmenu-set-header)
+      (forward-line bookmark-bmenu-inline-header-height))
     (if bookmark-bmenu-toggle-filenames
         (bookmark-bmenu-toggle-filenames t))))
 
@@ -1587,7 +1590,25 @@ deletion, or > if it is flagged for displaying."
 ;;;###autoload
 (defalias 'edit-bookmarks 'bookmark-bmenu-list)
 
-
+(defun bookmark-bmenu-set-header ()
+  "Sets the immutable header line."
+  (let ((header (concat "%% " "Bookmark")))
+    (when bookmark-bmenu-toggle-filenames 
+      (setq header (concat header 
+			   (make-string (- bookmark-bmenu-file-column 
+					   (- (length header) 3))  ?\s)
+			   "File")))
+    (let ((pos 0))
+      (while (string-match "[ \t\n]+" header pos)
+	(setq pos (match-end 0))
+	(put-text-property (match-beginning 0) pos 'display
+			   (list 'space :align-to (- pos 1))
+			   header)))
+    (put-text-property 0 2 'face 'fixed-pitch header)
+    (setq header (concat (propertize " " 'display '(space :align-to 0))
+			 header))
+    ;; Code derived from `buff-menu.el'.
+    (setq header-line-format header)))
 
 (define-derived-mode bookmark-bmenu-mode special-mode "Bookmark Menu"
   "Major mode for editing a list of bookmarks.
@@ -1640,7 +1661,9 @@ Optional argument SHOW means show them unconditionally."
     (setq bookmark-bmenu-toggle-filenames nil))
    (t
     (bookmark-bmenu-show-filenames)
-    (setq bookmark-bmenu-toggle-filenames t))))
+    (setq bookmark-bmenu-toggle-filenames t)))
+  (when bookmark-bmenu-use-header-line
+    (bookmark-bmenu-set-header)))
 
 
 (defun bookmark-bmenu-show-filenames (&optional force)
@@ -1653,7 +1676,8 @@ mainly for debugging, and should not be necessary in normal use."
      (save-excursion
        (save-window-excursion
          (goto-char (point-min))
-         (forward-line 2)
+	 (if (not bookmark-bmenu-use-header-line)
+	     (forward-line bookmark-bmenu-inline-header-height))
          (setq bookmark-bmenu-hidden-bookmarks ())
          (let ((inhibit-read-only t))
            (while (< (point) (point-max))
@@ -1681,7 +1705,8 @@ mainly for debugging, and should not be necessary in normal use."
     (with-buffer-modified-unmodified
      (save-excursion
        (goto-char (point-min))
-       (forward-line 2)
+       (if (not bookmark-bmenu-use-header-line)
+	   (forward-line bookmark-bmenu-inline-header-height))
        (setq bookmark-bmenu-hidden-bookmarks
              (nreverse bookmark-bmenu-hidden-bookmarks))
        (let ((inhibit-read-only t))
@@ -1695,8 +1720,9 @@ mainly for debugging, and should not be necessary in normal use."
              (if (display-mouse-p)
                  (add-text-properties
                   start (point)
-                  '(mouse-face
-                    highlight follow-link t help-echo
+                  '(font-lock-face bookmark-menu-bookmark
+		    mouse-face highlight
+		    follow-link t help-echo
                     "mouse-2: go to this bookmark in other window"))))
            (forward-line 1)))))))
 
@@ -1705,9 +1731,11 @@ mainly for debugging, and should not be necessary in normal use."
   "If point is not on a bookmark line, move it to one.
 If before the first bookmark line, move to the first; if after the
 last full line, move to the last full line.  The return value is undefined."
-  (cond ((< (count-lines (point-min) (point)) bookmark-bmenu-header-height)
+  (cond ((and (not bookmark-bmenu-use-header-line)
+	      (< (count-lines (point-min) (point))
+		 bookmark-bmenu-inline-header-height))
          (goto-char (point-min))
-         (forward-line bookmark-bmenu-header-height))
+         (forward-line bookmark-bmenu-inline-header-height))
         ((and (bolp) (eobp))
          (beginning-of-line 0))))
 

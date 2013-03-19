@@ -3601,6 +3601,11 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
           result = t;
         }
     }
+  else
+    {
+      errno = EINTR;
+      result = -1;
+    }
 
   return result;
 }
@@ -5448,12 +5453,26 @@ not_in_argv (NSString *arg)
 
   if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
     {
+      struct frame *f = emacsframe;
       NSView *view = FRAME_NS_VIEW (emacsframe);
+      NSWindow *win = [view window];
+      NSSize sz = [win resizeIncrements];
+
       FRAME_PIXEL_WIDTH (emacsframe) = neww;
       FRAME_PIXEL_HEIGHT (emacsframe) = newh;
       change_frame_size (emacsframe, rows, cols, 0, delay, 0);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
+
+      // Did resize increments change because of a font change?
+      if (sz.width != FRAME_COLUMN_WIDTH (emacsframe) ||
+          sz.height != FRAME_LINE_HEIGHT (emacsframe))
+        {
+          sz.width = FRAME_COLUMN_WIDTH (emacsframe);
+          sz.height = FRAME_LINE_HEIGHT (emacsframe);
+          [win setResizeIncrements: sz];
+        }
+
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
       [self windowDidMove:nil];   // Update top/left.
     }

@@ -2839,10 +2839,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
    but is in the locale files.  This could be used by ps-print.  */
 #ifdef PAPER_WIDTH
   else if (EQ (item, Qpaper))
-    {
-      return list2 (make_number (nl_langinfo (PAPER_WIDTH)),
-		    make_number (nl_langinfo (PAPER_HEIGHT)));
-    }
+    return list2i (nl_langinfo (PAPER_WIDTH), nl_langinfo (PAPER_HEIGHT));
 #endif	/* PAPER_WIDTH */
 #endif	/* HAVE_LANGINFO_CODESET*/
   return Qnil;

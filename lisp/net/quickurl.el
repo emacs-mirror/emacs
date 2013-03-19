@@ -94,7 +94,8 @@
   :group  'abbrev
   :prefix "quickurl-")
 
-(defcustom quickurl-url-file (convert-standard-filename "~/.quickurls")
+(defcustom quickurl-url-file
+  (locate-user-emacs-file "quickurls" ".quickurls")
   "File that contains the URL list."
   :type  'file
   :group 'quickurl)

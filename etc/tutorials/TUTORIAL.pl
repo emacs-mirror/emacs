@@ -1,267 +1,267 @@
-Krótki samouczek Emacsa.  Warunki kopiowania znajduj± sie na koñcu pliku.
+KrÃ³tki samouczek Emacsa.  Warunki kopiowania znajdujÄ… sie na koÅ„cu pliku.
 
-Polecenia Emacsa wymagaj± na ogó³ wci¶niêcia klawisza CONTROL (oznaczanego
+Polecenia Emacsa wymagajÄ… na ogÃ³Å‚ wciÅ›niÄ™cia klawisza CONTROL (oznaczanego
 czasami Ctrl lub CTL) lub klawisza META (oznaczanego czasami EDIT
-albo ALT). Dalej bêdziemy stosowaæ nastêpuj±ce skróty:
+albo ALT). Dalej bÄ™dziemy stosowaÄ‡ nastÄ™pujÄ…ce skrÃ³ty:
 
 C-<znak> oznacza przytrzymanie klawisza CONTROL przy naciskaniu
-	klawisza <znak>. Na przyk³ad C-f bêdzie odpowiada³o
-	naci¶niêciu f przy wci¶niêtym klawiszu CONTROL.
+	klawisza <znak>. Na przykÅ‚ad C-f bÄ™dzie odpowiadaÅ‚o
+	naciÅ›niÄ™ciu f przy wciÅ›niÄ™tym klawiszu CONTROL.
 M-<znak> oznacza przytrzymanie klawisza META lub ALT przy naciskaniu
-	klawisza <znak>. Zamiast tego mo¿na nacisn±æ i pu¶ciæ klawisz
-	ESC, a potem nacisn±æ klawisz <znak>.
+	klawisza <znak>. Zamiast tego moÅ¼na nacisnÄ…Ä‡ i puÅ›ciÄ‡ klawisz
+	ESC, a potem nacisnÄ…Ä‡ klawisz <znak>.
 
-Uwaga: aby zakoñczyæ sesjê Emacsa, naci¶nij C-x C-c (kolejno dwa znaki).
-Znaki ">>" na lewym marginesie oznaczaj± w dalszej czê¶ci tego samouczka
-æwiczenia dla Ciebie. Na przyk³ad:
+Uwaga: aby zakoÅ„czyÄ‡ sesjÄ™ Emacsa, naciÅ›nij C-x C-c (kolejno dwa znaki).
+Znaki ">>" na lewym marginesie oznaczajÄ… w dalszej czÄ™Å›ci tego samouczka
+Ä‡wiczenia dla Ciebie. Na przykÅ‚ad:
 <<Blank lines inserted around following line by help-with-tutorial>>
-[Dodatkowe odstêpy zosta³y zrobione w celach dydaktycznych.]
->> Teraz naci¶nij C-v (nastêpny ekran), aby przej¶æ na nastêpny ekran
-   samouczka (zrób to naciskaj±c jednocze¶nie klawisze CONTROL i v).
-   Od tego momentu powiniene¶ robiæ to zawsze, gdy dojdziesz
-   do koñca ekranu.
+[Dodatkowe odstÄ™py zostaÅ‚y zrobione w celach dydaktycznych.]
+>> Teraz naciÅ›nij C-v (nastÄ™pny ekran), aby przejÅ›Ä‡ na nastÄ™pny ekran
+   samouczka (zrÃ³b to naciskajÄ…c jednoczeÅ›nie klawisze CONTROL i v).
+   Od tego momentu powinieneÅ› robiÄ‡ to zawsze, gdy dojdziesz
+   do koÅ„ca ekranu.
 
-Zwróæ uwagê na to, ¿e kilka linii siê powtarza, gdy przechodzisz z
-ekranu na nastêpny; ma to zapewniæ wra¿enie ci±g³o¶ci podczas przesuwania
-siê w obrêbie pliku.
+ZwrÃ³Ä‡ uwagÄ™ na to, Å¼e kilka linii siÄ™ powtarza, gdy przechodzisz z
+ekranu na nastÄ™pny; ma to zapewniÄ‡ wraÅ¼enie ciÄ…gÅ‚oÅ›ci podczas przesuwania
+siÄ™ w obrÄ™bie pliku.
 
-Pierwsz± umiejêtno¶ci±, która powiniene¶ opanowaæ, jest sposób
-przesuwania siê z miejsca na miejsce. Wiesz ju¿, jak przesuwaæ siê
-o jeden ekran do przodu. Aby przesun±æ siê o jeden ekran do ty³u,
-wci¶nij kombinacjê klawiszy M-v (to znaczy wci¶nij i przytrzymaj
-klawisz META lub Alt i jednocze¶nie naci¶nij v albo naci¶nij kolejno
-klawisze <ESC> v, je¶li nie masz klawisza META lub Alt).
+PierwszÄ… umiejÄ™tnoÅ›ciÄ…, ktÃ³ra powinieneÅ› opanowaÄ‡, jest sposÃ³b
+przesuwania siÄ™ z miejsca na miejsce. Wiesz juÅ¼, jak przesuwaÄ‡ siÄ™
+o jeden ekran do przodu. Aby przesunÄ…Ä‡ siÄ™ o jeden ekran do tyÅ‚u,
+wciÅ›nij kombinacjÄ™ klawiszy M-v (to znaczy wciÅ›nij i przytrzymaj
+klawisz META lub Alt i jednoczeÅ›nie naciÅ›nij v albo naciÅ›nij kolejno
+klawisze <ESC> v, jeÅ›li nie masz klawisza META lub Alt).
 
->> Spróbuj nacisn±æ M-v, a potem C-v, by przesun±æ siê w przód i w ty³
+>> SprÃ³buj nacisnÄ…Ä‡ M-v, a potem C-v, by przesunÄ…Ä‡ siÄ™ w przÃ³d i w tyÅ‚
    kilka razy.
 
 
 PODSUMOWANIE
 ------------
 
-Nastêpuj±ce polecenia s³u¿± do przegl±dania tekstu po jednym ekranie:
+NastÄ™pujÄ…ce polecenia sÅ‚uÅ¼Ä… do przeglÄ…dania tekstu po jednym ekranie:
 
-	C-v Przesuñ siê o jeden ekran do przodu
-	M-v Przesuñ siê o jeden ekran do ty³u
-	C-l Wyczy¶æ ekran i wy¶wietl go na nowo, umieszczaj±c
-	tekst z okolic kursora w ¶rodku ekranu.
+	C-v PrzesuÅ„ siÄ™ o jeden ekran do przodu
+	M-v PrzesuÅ„ siÄ™ o jeden ekran do tyÅ‚u
+	C-l WyczyÅ›Ä‡ ekran i wyÅ›wietl go na nowo, umieszczajÄ…c
+	tekst z okolic kursora w Å›rodku ekranu.
 	(Ta kombinacja to CONTROL-L, a nie CONTROL-1.)
 
->> Znajd¼ kursor i zapamiêtaj, jaki tekst jest w jego pobli¿u.
-   Naci¶nij nastêpnie C-l.
-   Znajd¼ kursor jeszcze raz i zwróæ uwagê, ¿e znajduje siê on
-   w pobli¿u tego samego tekstu.
+>> ZnajdÅº kursor i zapamiÄ™taj, jaki tekst jest w jego pobliÅ¼u.
+   NaciÅ›nij nastÄ™pnie C-l.
+   ZnajdÅº kursor jeszcze raz i zwrÃ³Ä‡ uwagÄ™, Å¼e znajduje siÄ™ on
+   w pobliÅ¼u tego samego tekstu.
 
-Mo¿esz tak¿e u¿yæ klawiszy PageUp i PageDn, je¶li s± dostêpne na
-Twojej klawiaturze, do przemieszczania siê miêdzy stronami, ale u¿ycie
+MoÅ¼esz takÅ¼e uÅ¼yÄ‡ klawiszy PageUp i PageDn, jeÅ›li sÄ… dostÄ™pne na
+Twojej klawiaturze, do przemieszczania siÄ™ miÄ™dzy stronami, ale uÅ¼ycie
 C-v i M-v jest bardziej efektywne.
 
 PODSTAWY KIEROWANIA KURSOREM
 ----------------------------
 
-Przesuwanie siê z ekranu na ekran jest u¿yteczne, ale jak przej¶æ do
-okre¶lonego miejsca w obrêbie jednego ekranu?
+Przesuwanie siÄ™ z ekranu na ekran jest uÅ¼yteczne, ale jak przejÅ›Ä‡ do
+okreÅ›lonego miejsca w obrÄ™bie jednego ekranu?
 
-Mo¿na to zrobiæ na kilka sposobów. Najprostszym jest u¿ycie poleceñ
-C-p, C-b, C-f oraz C-n. Ka¿de z nich przesuwa kursor o jeden wiersz
-albo kolumnê w okre¶lonym kierunku. Oto schemat, który to obrazuje:
+MoÅ¼na to zrobiÄ‡ na kilka sposobÃ³w. Najprostszym jest uÅ¼ycie poleceÅ„
+C-p, C-b, C-f oraz C-n. KaÅ¼de z nich przesuwa kursor o jeden wiersz
+albo kolumnÄ™ w okreÅ›lonym kierunku. Oto schemat, ktÃ³ry to obrazuje:
 
                  Poprzednia linia, C-p
                  (ang. previous line)
                          :
                          :
-    Do ty³u, C-b .... Kursor .... Do przodu, C-f
+    Do tyÅ‚u, C-b .... Kursor .... Do przodu, C-f
              (ang. back) : (ang. forward)
                          :
                          :
-                  Nastêpna linia, C-n
+                  NastÄ™pna linia, C-n
                    (ang. next line)
 
->> Przesuñ kursor na ¶rodek tego schematu za pomoc± C-n lub C-p.
-   Potem naci¶nij C-l, by zobaczyæ ca³y diagram na ¶rodku ekranu.
+>> PrzesuÅ„ kursor na Å›rodek tego schematu za pomocÄ… C-n lub C-p.
+   Potem naciÅ›nij C-l, by zobaczyÄ‡ caÅ‚y diagram na Å›rodku ekranu.
 
-To s± podstawowe polecenia kieruj±ce po³o¿eniem kursora, których
-bêdziesz u¿ywa³ bardzo czêsto, warto wiêc je zapamiêtaæ.
+To sÄ… podstawowe polecenia kierujÄ…ce poÅ‚oÅ¼eniem kursora, ktÃ³rych
+bÄ™dziesz uÅ¼ywaÅ‚ bardzo czÄ™sto, warto wiÄ™c je zapamiÄ™taÄ‡.
 
->> Naci¶nij kilka razy C-n, by przesun±æ kursor do tej linii.
+>> NaciÅ›nij kilka razy C-n, by przesunÄ…Ä‡ kursor do tej linii.
 
->> Przesuñ siê w g³±b linii za pomoc± C-f, a potem do góry za pomoc±
-   C-p. Zwróæ uwagê na zachowanie siê C-p, gdy kursor jest w ¶rodku
+>> PrzesuÅ„ siÄ™ w gÅ‚Ä…b linii za pomocÄ… C-f, a potem do gÃ³ry za pomocÄ…
+   C-p. ZwrÃ³Ä‡ uwagÄ™ na zachowanie siÄ™ C-p, gdy kursor jest w Å›rodku
    linii.
 
-Ka¿da linia tekstu koñczy siê znakiem nowej linii, który oddziela j±
-od nastêpnej. Ka¿dy Twój plik powinien siê koñczyæ znakiem nowej
+KaÅ¼da linia tekstu koÅ„czy siÄ™ znakiem nowej linii, ktÃ³ry oddziela jÄ…
+od nastÄ™pnej. KaÅ¼dy TwÃ³j plik powinien siÄ™ koÅ„czyÄ‡ znakiem nowej
 linii (ale Emacs tego nie wymaga).
 
->> Spróbuj nacisn±æ C-b na pocz±tku linii. Powinno Ciê to przenie¶æ
-   na koniec poprzedniej linii. Dzieje siê tak dlatego, ¿e kursor
-   przechodzi wówczas nad znakiem nowej linii.
+>> SprÃ³buj nacisnÄ…Ä‡ C-b na poczÄ…tku linii. Powinno CiÄ™ to przenieÅ›Ä‡
+   na koniec poprzedniej linii. Dzieje siÄ™ tak dlatego, Å¼e kursor
+   przechodzi wÃ³wczas nad znakiem nowej linii.
 
 C-f przechodzi nad znakiem nowej linii tak samo jak C-b.
 
->> Naci¶nij kilka razy C-b i obserwuj po³o¿enie kursora.
-   Naciskaj potem C-f, by wróciæ na koniec linii. W koñcu naci¶nij
-   jeszcze raz C-f, by przej¶æ do nastêpnej linii.
+>> NaciÅ›nij kilka razy C-b i obserwuj poÅ‚oÅ¼enie kursora.
+   Naciskaj potem C-f, by wrÃ³ciÄ‡ na koniec linii. W koÅ„cu naciÅ›nij
+   jeszcze raz C-f, by przejÅ›Ä‡ do nastÄ™pnej linii.
 
-Gdy przesuwasz kursor poza doln± krawêd¼ ekranu, tekst po³o¿ony
-za krawêdzi± przesuwa siê na ekran (ang. scrolling). Dziêki temu
-Emacs mo¿e przesun±æ kursor do okre¶lonego miejsca bez umieszczania
+Gdy przesuwasz kursor poza dolnÄ… krawÄ™dÅº ekranu, tekst poÅ‚oÅ¼ony
+za krawÄ™dziÄ… przesuwa siÄ™ na ekran (ang. scrolling). DziÄ™ki temu
+Emacs moÅ¼e przesunÄ…Ä‡ kursor do okreÅ›lonego miejsca bez umieszczania
 go poza ekranem.
 
->> Spróbuj przesun±æ kursor poza doln± granicê ekranu za pomoc± C-n
-   i zobacz, co siê stanie.
+>> SprÃ³buj przesunÄ…Ä‡ kursor poza dolnÄ… granicÄ™ ekranu za pomocÄ… C-n
+   i zobacz, co siÄ™ stanie.
 
-Je¶li przesuwanie siê o jeden znak na raz jest dla Ciebie zbyt wolne,
-to spróbuj przesuwaæ siê o s³owa. M-f (Meta-f) przesuwa kursor o s³owo
-do przodu, a M-b przesuwa go o s³owo do ty³u.
+JeÅ›li przesuwanie siÄ™ o jeden znak na raz jest dla Ciebie zbyt wolne,
+to sprÃ³buj przesuwaÄ‡ siÄ™ o sÅ‚owa. M-f (Meta-f) przesuwa kursor o sÅ‚owo
+do przodu, a M-b przesuwa go o sÅ‚owo do tyÅ‚u.
 
->> Naci¶nij kilka razy M-f i M-b.
+>> NaciÅ›nij kilka razy M-f i M-b.
 
-Gdy jeste¶ w ¶rodku s³owa, to M-f przesuwa kursor na jego koniec.
-Je¶li natomiast jeste¶ w przerwie miedzy s³owami, to M-f przesuwa
-kursor na koniec nastêpnego s³owa. M-b zachowuje siê podobnie
-dla ruchu do ty³u.
+Gdy jesteÅ› w Å›rodku sÅ‚owa, to M-f przesuwa kursor na jego koniec.
+JeÅ›li natomiast jesteÅ› w przerwie miedzy sÅ‚owami, to M-f przesuwa
+kursor na koniec nastÄ™pnego sÅ‚owa. M-b zachowuje siÄ™ podobnie
+dla ruchu do tyÅ‚u.
 
->> Naci¶nij M-f i M-b kilka razy na przemian z C-f i C-b, tak by¶
-   móg³ zauwa¿yæ dzia³anie M-f i M-b naci¶niêtych w ró¿nych miejscach
-   wewn±trz i miêdzy s³owami.
+>> NaciÅ›nij M-f i M-b kilka razy na przemian z C-f i C-b, tak byÅ›
+   mÃ³gÅ‚ zauwaÅ¼yÄ‡ dziaÅ‚anie M-f i M-b naciÅ›niÄ™tych w rÃ³Å¼nych miejscach
+   wewnÄ…trz i miÄ™dzy sÅ‚owami.
 
-Zauwa¿ podobieñstwo miêdzy C-f i C-b oraz M-f i M-b. Bardzo czêsto
-kombinacje zawieraj±ce Meta (Alt) oznaczaj± operacje zwi±zane
-z jednostkami jêzykowymi (s³owa, zdania, akapity), podczas gdy
-kombinacje z klawiszem Control dzia³aj± na jednostkach podstawowych,
-niezale¿nych od tego, co edytujesz (znaki, linie, itd.).
+ZauwaÅ¼ podobieÅ„stwo miÄ™dzy C-f i C-b oraz M-f i M-b. Bardzo czÄ™sto
+kombinacje zawierajÄ…ce Meta (Alt) oznaczajÄ… operacje zwiÄ…zane
+z jednostkami jÄ™zykowymi (sÅ‚owa, zdania, akapity), podczas gdy
+kombinacje z klawiszem Control dziaÅ‚ajÄ… na jednostkach podstawowych,
+niezaleÅ¼nych od tego, co edytujesz (znaki, linie, itd.).
 
-Oto zale¿no¶æ, która stosuje siê do linii i zdañ: C-a i C-e przesuwaj±
-kursor na pocz±tek i koniec linii, a M-a i M-e przesuwaj± go na pocz±tek
+Oto zaleÅ¼noÅ›Ä‡, ktÃ³ra stosuje siÄ™ do linii i zdaÅ„: C-a i C-e przesuwajÄ…
+kursor na poczÄ…tek i koniec linii, a M-a i M-e przesuwajÄ… go na poczÄ…tek
 i koniec zdania.
 
->> Naci¶nij kilka razy C-a, a potem kilka razy C-e.
-   Powtórz to z M-a, a potem z M-e.
+>> NaciÅ›nij kilka razy C-a, a potem kilka razy C-e.
+   PowtÃ³rz to z M-a, a potem z M-e.
 
-Czy zauwa¿y³e¶, ¿e powtarzanie C-a nic nie zmienia, natomiast powtórne
-M-a przesuwa Ciê o jedno zdanie? Chocia¿ nie ma tu pe³nej analogii,
-wydaje siê to jednak naturalne.
+Czy zauwaÅ¼yÅ‚eÅ›, Å¼e powtarzanie C-a nic nie zmienia, natomiast powtÃ³rne
+M-a przesuwa CiÄ™ o jedno zdanie? ChociaÅ¼ nie ma tu peÅ‚nej analogii,
+wydaje siÄ™ to jednak naturalne.
 
-Po³o¿enie kursora w tek¶cie jest okre¶lane mianem "punktu".
+PoÅ‚oÅ¼enie kursora w tekÅ›cie jest okreÅ›lane mianem "punktu".
 
-Oto podsumowanie prostych poleceñ s³u¿±cych do przesuwania kursora,
-w³±cznie z operacjami dotycz±cymi s³ów i zdañ:
+Oto podsumowanie prostych poleceÅ„ sÅ‚uÅ¼Ä…cych do przesuwania kursora,
+wÅ‚Ä…cznie z operacjami dotyczÄ…cymi sÅ‚Ã³w i zdaÅ„:
 
 	C-f Do przodu o jeden znak
-	C-b Do ty³u o jeden znak
+	C-b Do tyÅ‚u o jeden znak
 
-	M-f Do przodu o s³owo
-	M-b Do ty³u o s³owo
+	M-f Do przodu o sÅ‚owo
+	M-b Do tyÅ‚u o sÅ‚owo
 
-	C-n Nastêpna linia
+	C-n NastÄ™pna linia
 	C-p Poprzednia linia
 
-	C-a Pocz±tek linii
+	C-a PoczÄ…tek linii
 	C-e Koniec linii
 
-	M-a Do ty³u na pocz±tek zdania
+	M-a Do tyÅ‚u na poczÄ…tek zdania
 	M-e Do przodu na koniec zdania
 
->> Przeæwicz kilka razy dla wprawy wszystkie powy¿sze polecenia.
-   Nale¿± one do najczê¶ciej u¿ywanych.
+>> PrzeÄ‡wicz kilka razy dla wprawy wszystkie powyÅ¼sze polecenia.
+   NaleÅ¼Ä… one do najczÄ™Å›ciej uÅ¼ywanych.
 
-Dwa inne wa¿ne polecenia przesuwaj±ce kursor to M-< (Meta lub Alt
-i znak mniejszo¶ci), które przesuwa kursor na pocz±tek ca³ego tekstu
-i M-> (Meta lub Alt i znak wiêkszo¶ci), które przesuwa kursor na koniec
-ca³ego tekstu.
+Dwa inne waÅ¼ne polecenia przesuwajÄ…ce kursor to M-< (Meta lub Alt
+i znak mniejszoÅ›ci), ktÃ³re przesuwa kursor na poczÄ…tek caÅ‚ego tekstu
+i M-> (Meta lub Alt i znak wiÄ™kszoÅ›ci), ktÃ³re przesuwa kursor na koniec
+caÅ‚ego tekstu.
 
-Na wiêkszo¶ci klawiatur "<" jest nad przecinkiem, musisz wiêc u¿yæ
-klawisza Shift, by nacisn±æ "<", i podobnie musisz u¿yæ klawisza Shift,
-by nacisn±æ M-<. Bez Shift uzyska³by¶ M-przecinek.
+Na wiÄ™kszoÅ›ci klawiatur "<" jest nad przecinkiem, musisz wiÄ™c uÅ¼yÄ‡
+klawisza Shift, by nacisnÄ…Ä‡ "<", i podobnie musisz uÅ¼yÄ‡ klawisza Shift,
+by nacisnÄ…Ä‡ M-<. Bez Shift uzyskaÅ‚byÅ› M-przecinek.
 
->> Naci¶nij M-<, by przej¶æ na pocz±tek samouczka, a potem kilka razy
-   u¿yj C-v, by powróciæ do tego miejsca.
+>> NaciÅ›nij M-<, by przejÅ›Ä‡ na poczÄ…tek samouczka, a potem kilka razy
+   uÅ¼yj C-v, by powrÃ³ciÄ‡ do tego miejsca.
 
->> Teraz naci¶nij M->, by przej¶æ na koniec samouczka, i wróæ do tego
-   miejsca za pomoc± kilkakrotnego M-v.
+>> Teraz naciÅ›nij M->, by przejÅ›Ä‡ na koniec samouczka, i wrÃ³Ä‡ do tego
+   miejsca za pomocÄ… kilkakrotnego M-v.
 
-Je¶li Twoja klawiatura ma klawisze strza³ek, to mo¿esz ich u¿yæ do
-przesuwania kursora. Radzimy Ci nauczyæ siê siê kombinacji C-b, C-f,
-C-n i C-p z trzech powodów. Po pierwsze, dzia³aj± one na wszystkich
-typach terminali. Po drugie, gdy ju¿ zdobêdziesz pewn± praktykê w
-pos³ugiwaniu siê Emacsem, to bêdzie Ci szybciej nacisn±æ te kombinacje
-ni¿ klawisze strza³ek (poniewa¿ nie wymaga to przenoszenia d³oni z
-miejsca, które zajmuj± podczas szybkiego pisania za pomoc± 10 palców).
-Po trzecie wreszcie, gdy ju¿ wyrobisz sobie zwyczaj pos³ugiwania siê
-tymi poleceniami z klawiszem Control, to ³atwo przyjdzie Ci nauczyæ siê
-bardziej zaawansowanych poleceñ przesuwaj±cych kursor.
+JeÅ›li Twoja klawiatura ma klawisze strzaÅ‚ek, to moÅ¼esz ich uÅ¼yÄ‡ do
+przesuwania kursora. Radzimy Ci nauczyÄ‡ siÄ™ siÄ™ kombinacji C-b, C-f,
+C-n i C-p z trzech powodÃ³w. Po pierwsze, dziaÅ‚ajÄ… one na wszystkich
+typach terminali. Po drugie, gdy juÅ¼ zdobÄ™dziesz pewnÄ… praktykÄ™ w
+posÅ‚ugiwaniu siÄ™ Emacsem, to bÄ™dzie Ci szybciej nacisnÄ…Ä‡ te kombinacje
+niÅ¼ klawisze strzaÅ‚ek (poniewaÅ¼ nie wymaga to przenoszenia dÅ‚oni z
+miejsca, ktÃ³re zajmujÄ… podczas szybkiego pisania za pomocÄ… 10 palcÃ³w).
+Po trzecie wreszcie, gdy juÅ¼ wyrobisz sobie zwyczaj posÅ‚ugiwania siÄ™
+tymi poleceniami z klawiszem Control, to Å‚atwo przyjdzie Ci nauczyÄ‡ siÄ™
+bardziej zaawansowanych poleceÅ„ przesuwajÄ…cych kursor.
 
-Wiêkszo¶æ poleceñ Emacsa akceptuje argument liczbowy; dla wiêkszo¶ci
-poleceñ oznacza on liczbê powtórzeñ. Aby okre¶liæ liczbê powtórzeñ
-polecenia, powiniene¶ je poprzedziæ naci¶niêciem C-u a potem cyfr.
-Je¶li masz na klawiaturze klawisz META (lub EDIT albo ALT), to
-alternatywnym sposobem wprowadzenia argumentu liczbowego jest u¿ycie
-tego klawisza i wciskanie cyfr argumentu. Radzimy jednak przyswoiæ
-sobie metodê z klawiszem C-u, poniewa¿ dzia³a ona na wszystkich
+WiÄ™kszoÅ›Ä‡ poleceÅ„ Emacsa akceptuje argument liczbowy; dla wiÄ™kszoÅ›ci
+poleceÅ„ oznacza on liczbÄ™ powtÃ³rzeÅ„. Aby okreÅ›liÄ‡ liczbÄ™ powtÃ³rzeÅ„
+polecenia, powinieneÅ› je poprzedziÄ‡ naciÅ›niÄ™ciem C-u a potem cyfr.
+JeÅ›li masz na klawiaturze klawisz META (lub EDIT albo ALT), to
+alternatywnym sposobem wprowadzenia argumentu liczbowego jest uÅ¼ycie
+tego klawisza i wciskanie cyfr argumentu. Radzimy jednak przyswoiÄ‡
+sobie metodÄ™ z klawiszem C-u, poniewaÅ¼ dziaÅ‚a ona na wszystkich
 terminalach.
 
-Na przyk³ad C-u 8 C-f przesuwa kursor do przodu o osiem znaków.
+Na przykÅ‚ad C-u 8 C-f przesuwa kursor do przodu o osiem znakÃ³w.
 
->> Spróbuj u¿yæ C-n i C-p z argumentem liczbowym, by przesun±æ kursor
-   do jednej z linii w pobli¿u tego zdania za pomoc± tylko jednego
+>> SprÃ³buj uÅ¼yÄ‡ C-n i C-p z argumentem liczbowym, by przesunÄ…Ä‡ kursor
+   do jednej z linii w pobliÅ¼u tego zdania za pomocÄ… tylko jednego
    polecenia.
 
-Wiêkszo¶æ poleceñ u¿ywa argumentu liczbowego jako liczby powtórzeñ.
-Jest kilka poleceñ, które u¿ywaj± go w inny sposób. Do takich wyj±tków
-nale¿± C-v i M-v. Je¶li poda siê im argument, to przesuwaj± zawarto¶æ
-ekranu w górê lub w dó³ o podan± liczbê linii zamiast o tyle¿ ekranów.
-Na przyk³ad C-u 4 C-v przewija ekran o 4 linie.
+WiÄ™kszoÅ›Ä‡ poleceÅ„ uÅ¼ywa argumentu liczbowego jako liczby powtÃ³rzeÅ„.
+Jest kilka poleceÅ„, ktÃ³re uÅ¼ywajÄ… go w inny sposÃ³b. Do takich wyjÄ…tkÃ³w
+naleÅ¼Ä… C-v i M-v. JeÅ›li poda siÄ™ im argument, to przesuwajÄ… zawartoÅ›Ä‡
+ekranu w gÃ³rÄ™ lub w dÃ³Å‚ o podanÄ… liczbÄ™ linii zamiast o tyleÅ¼ ekranÃ³w.
+Na przykÅ‚ad C-u 4 C-v przewija ekran o 4 linie.
 
->> Spróbuj nacisn±æ C-u 8 C-v.
+>> SprÃ³buj nacisnÄ…Ä‡ C-u 8 C-v.
 
-To powinno by³o przewin±æ ekran do góry o 8 linii. Je¶li chcia³by¶
-przewin±æ ekran w dó³, to powiniene¶ podaæ argument przed poleceniem M-v.
+To powinno byÅ‚o przewinÄ…Ä‡ ekran do gÃ³ry o 8 linii. JeÅ›li chciaÅ‚byÅ›
+przewinÄ…Ä‡ ekran w dÃ³Å‚, to powinieneÅ› podaÄ‡ argument przed poleceniem M-v.
 
-Je¶li pracujesz w systemie z okienkowym trybem graficznym, jak X11
+JeÅ›li pracujesz w systemie z okienkowym trybem graficznym, jak X11
 lub MS-Windows, to prawdopodobnie po lewej stronie okna Emacsa znajduje
-siê prostok±tny obszar nazywany po angielsku "scrollbar", a po polsku
-suwakiem. Za jego pomoc± mo¿esz przewijaæ tekst, u¿ywaj±c do tego myszy.
+siÄ™ prostokÄ…tny obszar nazywany po angielsku "scrollbar", a po polsku
+suwakiem. Za jego pomocÄ… moÅ¼esz przewijaÄ‡ tekst, uÅ¼ywajÄ…c do tego myszy.
 
->> Spróbuj nacisn±æ ¶rodkowy klawisz myszy u góry pod¶wietlonego
-   obszaru na suwaku. To powinno przewin±æ tekst do miejsca
-   okre¶lonego przez wysoko¶æ, na której nacisn±³e¶ klawisz myszy.
+>> SprÃ³buj nacisnÄ…Ä‡ Å›rodkowy klawisz myszy u gÃ³ry podÅ›wietlonego
+   obszaru na suwaku. To powinno przewinÄ…Ä‡ tekst do miejsca
+   okreÅ›lonego przez wysokoÅ›Ä‡, na ktÃ³rej nacisnÄ…Å‚eÅ› klawisz myszy.
 
->> Przesuñ mysz do miejsca oddalonego od górnego koñca suwaka o mniej
-   wiêcej trzy linie i naci¶nij lewy klawisz myszy kilka razy.
+>> PrzesuÅ„ mysz do miejsca oddalonego od gÃ³rnego koÅ„ca suwaka o mniej
+   wiÄ™cej trzy linie i naciÅ›nij lewy klawisz myszy kilka razy.
 
 
 * GDY EMACS JEST ZABLOKOWANY
 ----------------------------
 
-Je¶li Emacs przestaje odpowiadaæ na Twoje polecenia, to mo¿esz go
-bezpiecznie zatrzymaæ, przyciskaj±c C-g. Klawisza C-g mo¿esz te¿ u¿yæ do
-przerwania polecenia, które zabiera zbyt wiele czasu.
+JeÅ›li Emacs przestaje odpowiadaÄ‡ na Twoje polecenia, to moÅ¼esz go
+bezpiecznie zatrzymaÄ‡, przyciskajÄ…c C-g. Klawisza C-g moÅ¼esz teÅ¼ uÅ¼yÄ‡ do
+przerwania polecenia, ktÃ³re zabiera zbyt wiele czasu.
 
-Mo¿esz tak¿e u¿yæ C-g do anulowania argumentu liczbowego albo pocz±tku
-polecenia, którego nie zamierzasz dokoñczyæ.
+MoÅ¼esz takÅ¼e uÅ¼yÄ‡ C-g do anulowania argumentu liczbowego albo poczÄ…tku
+polecenia, ktÃ³rego nie zamierzasz dokoÅ„czyÄ‡.
 
->> Napisz C-u 100 jako argument liczbowy, po czym naci¶nij C-g.
-   Teraz naci¶nij C-f. Powinno to przesun±æ kursor zaledwie o
-   jeden znak, poniewa¿ argument liczbowy anulowa³e¶ za pomoc± C-g.
+>> Napisz C-u 100 jako argument liczbowy, po czym naciÅ›nij C-g.
+   Teraz naciÅ›nij C-f. Powinno to przesunÄ…Ä‡ kursor zaledwie o
+   jeden znak, poniewaÅ¼ argument liczbowy anulowaÅ‚eÅ› za pomocÄ… C-g.
 
-Za pomoc± klawisza C-g mo¿esz te¿ anulowaæ skutki omy³kowego
-wci¶niêcia klawisza <ESC>.
+Za pomocÄ… klawisza C-g moÅ¼esz teÅ¼ anulowaÄ‡ skutki omyÅ‚kowego
+wciÅ›niÄ™cia klawisza <ESC>.
 
 
 * ZABLOKOWANE POLECENIA
 -----------------------
 
-Pewne polecenia Emacsa s± ,,zablokowane'' -- po to, by pocz±tkuj±cy
-u¿ytkownicy nie mogli ich wywo³aæ przez przypadek.
+Pewne polecenia Emacsa sÄ… ,,zablokowane'' -- po to, by poczÄ…tkujÄ…cy
+uÅ¼ytkownicy nie mogli ich wywoÅ‚aÄ‡ przez przypadek.
 
-Je¶li wywo³asz jedno z zablokowanych poleceñ, to Emacs wypisze komunikat
-informuj±cy o tym, co to za polecenie, i zapyta Ciê, czy istotnie chcesz
-je wywo³aæ.
+JeÅ›li wywoÅ‚asz jedno z zablokowanych poleceÅ„, to Emacs wypisze komunikat
+informujÄ…cy o tym, co to za polecenie, i zapyta CiÄ™, czy istotnie chcesz
+je wywoÅ‚aÄ‡.
 
-Je¶li naprawdê chcesz wywo³aæ to polecenie, to odpowiedz na pytanie,
-naciskaj±c spacjê. Je¶li nie chcesz wywo³aæ zablokowanego polecenia,
-to na pytanie odpowiedz, naciskaj±c n.
+JeÅ›li naprawdÄ™ chcesz wywoÅ‚aÄ‡ to polecenie, to odpowiedz na pytanie,
+naciskajÄ…c spacjÄ™. JeÅ›li nie chcesz wywoÅ‚aÄ‡ zablokowanego polecenia,
+to na pytanie odpowiedz, naciskajÄ…c n.
 
 >> Napisz `C-x C-l' (co jest zablokowanym poleceniem) i odpowiedz n
    na zadane pytanie.
@@ -270,969 +270,968 @@ to na pytanie odpowiedz, naciskaj±c n.
 * OKNA
 ------
 
-Emacs mo¿e mieæ otwartych kilka okien, z których ka¿de wy¶wietla
-w³asny tekst. Pojêcie ,,okna'', je¶li chodzi o Emacsa, nie odnosi
-siê do osobnego okienka systemu okienkowego, lecz do pojedynczego
-panelu wewn±trz okienka systemowego. (Emacs mo¿e te¿ pracowaæ
+Emacs moÅ¼e mieÄ‡ otwartych kilka okien, z ktÃ³rych kaÅ¼de wyÅ›wietla
+wÅ‚asny tekst. PojÄ™cie ,,okna'', jeÅ›li chodzi o Emacsa, nie odnosi
+siÄ™ do osobnego okienka systemu okienkowego, lecz do pojedynczego
+panelu wewnÄ…trz okienka systemowego. (Emacs moÅ¼e teÅ¼ pracowaÄ‡
 na kilku oknach systemowych (X-oknach); w terminologii Emacsa
-nazywaj± siê one ramkami. Opisane jest to poni¿ej.)
+nazywajÄ… siÄ™ one ramkami. Opisane jest to poniÅ¼ej.)
 
-Na tym etapie lepiej jest siê nie zag³êbiaæ w techniki wykorzystuj±ce
-kilka okien. Powiniene¶ jedynie wiedzieæ, w jaki sposób pozbyæ siê
-nadmiaru okien, które mog± siê pojawiæ w wyniku wywo³ania Emacsowego
-systemu pomocy albo niektórych poleceñ. Robi siê to w prosty sposób:
+Na tym etapie lepiej jest siÄ™ nie zagÅ‚Ä™biaÄ‡ w techniki wykorzystujÄ…ce
+kilka okien. PowinieneÅ› jedynie wiedzieÄ‡, w jaki sposÃ³b pozbyÄ‡ siÄ™
+nadmiaru okien, ktÃ³re mogÄ… siÄ™ pojawiÄ‡ w wyniku wywoÅ‚ania Emacsowego
+systemu pomocy albo niektÃ³rych poleceÅ„. Robi siÄ™ to w prosty sposÃ³b:
 
-	C-x 1 Jedno okno (tzn. zlikwiduj wszystkie pozosta³e okna).
+	C-x 1 Jedno okno (tzn. zlikwiduj wszystkie pozostaÅ‚e okna).
 
-Kombinacja ta to klawisz Control-x, po którym wystêpuje cyfra 1.
-Powiêksza ona okno, w którym jest kursor tak, by wype³ni³o ono ekran,
-kasuj±c zarazem pozosta³e okna Emacsa.
+Kombinacja ta to klawisz Control-x, po ktÃ³rym wystÄ™puje cyfra 1.
+PowiÄ™ksza ona okno, w ktÃ³rym jest kursor tak, by wypeÅ‚niÅ‚o ono ekran,
+kasujÄ…c zarazem pozostaÅ‚e okna Emacsa.
 
->> Przesuñ kursor do tej linii i naci¶nij C-u 0 C-l.
+>> PrzesuÅ„ kursor do tej linii i naciÅ›nij C-u 0 C-l.
 
-(C-l, jak pamiêtasz od¶wie¿a zawarto¶æ ekranu. Je¶li temu poleceniu
-poda siê argument liczbowy, to bêdzie to oznacza³o ,,od¶wie¿ zawarto¶æ
-ekranu i umie¶æ bie¿±ca liniê o tyle linii od góry ekranu''. Tak wiêc,
-C-u 0 C-1 oznacza ,,od¶wie¿ ekran, umieszczaj±c bie¿±ca liniê na samej
-górze''.)
+(C-l, jak pamiÄ™tasz odÅ›wieÅ¼a zawartoÅ›Ä‡ ekranu. JeÅ›li temu poleceniu
+poda siÄ™ argument liczbowy, to bÄ™dzie to oznaczaÅ‚o ,,odÅ›wieÅ¼ zawartoÅ›Ä‡
+ekranu i umieÅ›Ä‡ bieÅ¼Ä…ca liniÄ™ o tyle linii od gÃ³ry ekranu''. Tak wiÄ™c,
+C-u 0 C-1 oznacza ,,odÅ›wieÅ¼ ekran, umieszczajÄ…c bieÅ¼Ä…ca liniÄ™ na samej
+gÃ³rze''.)
 
->> Naci¶nij Control-x 2
-   Zauwa¿, ¿e okno siê kurczy, a jednocze¶nie pojawia siê nowe,
-   wy¶wietlaj±ce ten sam tekst.
+>> NaciÅ›nij Control-x 2
+   ZauwaÅ¼, Å¼e okno siÄ™ kurczy, a jednoczeÅ›nie pojawia siÄ™ nowe,
+   wyÅ›wietlajÄ…ce ten sam tekst.
 
->> Naci¶nij C-x 1, a nowe okno zniknie.
+>> NaciÅ›nij C-x 1, a nowe okno zniknie.
 
 
 * WSTAWIANIE I USUWANIE
 -----------------------
 
-Je¶li chcesz wstawiæ nowy tekst, to po prostu go napisz. Znaki, które da
-siê wy¶wietliæ, takie jak A, 7, *, itd., Emacs traktuje jako tekst i
-natychmiast wstawia do dotychczasowego tekstu. Aby wstawiæ znak nowej
-linii, trzeba nacisn±æ klawisz <Return> (na maszynach do pisania tak
-oznacza³o siê znak powrotu karetki).
+JeÅ›li chcesz wstawiÄ‡ nowy tekst, to po prostu go napisz. Znaki, ktÃ³re da
+siÄ™ wyÅ›wietliÄ‡, takie jak A, 7, *, itd., Emacs traktuje jako tekst i
+natychmiast wstawia do dotychczasowego tekstu. Aby wstawiÄ‡ znak nowej
+linii, trzeba nacisnÄ…Ä‡ klawisz <Return> (na maszynach do pisania tak
+oznaczaÅ‚o siÄ™ znak powrotu karetki).
 
-Ostatnio napisany znak mo¿esz skasowaæ, naciskaj±c klawisz <Delback>.
-Chodzi tu o klawisz, którego normalnie u¿ywasz do skasowania ostatnio
-napisanego znaku. Na wiêkszo¶ci klawiatur wyró¿nia siê on wielko¶ci±,
-le¿y nad klawiszem <Return> i jest oznaczony napisem "Delete", "Del"
+Ostatnio napisany znak moÅ¼esz skasowaÄ‡, naciskajÄ…c klawisz <Delback>.
+Chodzi tu o klawisz, ktÃ³rego normalnie uÅ¼ywasz do skasowania ostatnio
+napisanego znaku. Na wiÄ™kszoÅ›ci klawiatur wyrÃ³Å¼nia siÄ™ on wielkoÅ›ciÄ…,
+leÅ¼y nad klawiszem <Return> i jest oznaczony napisem "Delete", "Del"
 albo "Backspace".
 
-Je¶li masz na klawiaturze klawisz oznaczony "Backspace", to w³a¶nie on
-jest wspomnianym <Delback>. Oprócz niego mo¿e jeszcze wystêpowaæ
-klawisz oznaczony s³owem "Delete", ale to nie on pe³ni rolê <Delback>.
+JeÅ›li masz na klawiaturze klawisz oznaczony "Backspace", to wÅ‚aÅ›nie on
+jest wspomnianym <Delback>. OprÃ³cz niego moÅ¼e jeszcze wystÄ™powaÄ‡
+klawisz oznaczony sÅ‚owem "Delete", ale to nie on peÅ‚ni rolÄ™ <Delback>.
 
-Mówi±c bardziej ogólnie, <Delback> usuwa znak bezpo¶rednio
-poprzedzaj±cy bie¿±c± pozycjê kursora.
+MÃ³wiÄ…c bardziej ogÃ³lnie, <Delback> usuwa znak bezpoÅ›rednio
+poprzedzajÄ…cy bieÅ¼Ä…cÄ… pozycjÄ™ kursora.
 
->> Sprawd¼ to teraz: wstaw kilka znaków, po czym usuñ je, kilka razy
-   naciskaj±c <Delback>. Nie martw siê, ¿e zmieniasz w ten sposób
-   niniejszy plik, w istocie nie zmieniasz g³ównego pliku samouczka.
+>> SprawdÅº to teraz: wstaw kilka znakÃ³w, po czym usuÅ„ je, kilka razy
+   naciskajÄ…c <Delback>. Nie martw siÄ™, Å¼e zmieniasz w ten sposÃ³b
+   niniejszy plik, w istocie nie zmieniasz gÅ‚Ã³wnego pliku samouczka.
    Pracujesz teraz na jego kopii.
 
-Gdy linia tekstu staje siê zbyt d³uga, by zmie¶ciæ siê w jednym
-wierszu ekranu, to jest ona ,,kontynuowana'' w wierszu nastêpnym.
-Znak ,,backslash'' (`\') (albo - je¶li pracujesz w okienkowym
-trybie graficznym - zagiêta strza³ka) umieszczony na prawym marginesie
-wskazuje, ¿e dana linia jest kontynuowana w nastêpnym wierszu ekranu.
+Gdy linia tekstu staje siÄ™ zbyt dÅ‚uga, by zmieÅ›ciÄ‡ siÄ™ w jednym
+wierszu ekranu, to jest ona ,,kontynuowana'' w wierszu nastÄ™pnym.
+Znak ,,backslash'' (`\') (albo - jeÅ›li pracujesz w okienkowym
+trybie graficznym - zagiÄ™ta strzaÅ‚ka) umieszczony na prawym marginesie
+wskazuje, Å¼e dana linia jest kontynuowana w nastÄ™pnym wierszu ekranu.
 
->> Wpisuj jaki¶ tekst tak d³ugo, a¿ dojdziesz do prawego marginesu, i
-   potem nie przestawaj. Zauwa¿ysz, ¿e pojawi siê linia kontynuacji.
+>> Wpisuj jakiÅ› tekst tak dÅ‚ugo, aÅ¼ dojdziesz do prawego marginesu, i
+   potem nie przestawaj. ZauwaÅ¼ysz, Å¼e pojawi siÄ™ linia kontynuacji.
 
->> U¿yj klawisza <Delback>, by usun±æ znaki tekstu, tak by linia znowu
-   mie¶ci³a siê na ekranie; linia kontynuacji zniknie.
+>> UÅ¼yj klawisza <Delback>, by usunÄ…Ä‡ znaki tekstu, tak by linia znowu
+   mieÅ›ciÅ‚a siÄ™ na ekranie; linia kontynuacji zniknie.
 
-Znak nowej linii mo¿na skasowaæ tak jak ka¿dy inny znak. Usuniêcie znaku
-nowej linii miêdzy dwiema liniami spowoduje ich po³±czenie. Je¶li powsta³a
-w wyniku tego linia tekstu jest zbyt d³uga, by zmie¶ciæ siê na szeroko¶æ
-ekranu, to zostanie wy¶wietlona z lini± kontynuacji.
+Znak nowej linii moÅ¼na skasowaÄ‡ tak jak kaÅ¼dy inny znak. UsuniÄ™cie znaku
+nowej linii miÄ™dzy dwiema liniami spowoduje ich poÅ‚Ä…czenie. JeÅ›li powstaÅ‚a
+w wyniku tego linia tekstu jest zbyt dÅ‚uga, by zmieÅ›ciÄ‡ siÄ™ na szerokoÅ›Ä‡
+ekranu, to zostanie wyÅ›wietlona z liniÄ… kontynuacji.
 
->> Przesuñ kursor na pocz±tek linii i naci¶nij <Delback>. Bie¿±ca
-   linia zostanie po³±czona z poprzedni±.
+>> PrzesuÅ„ kursor na poczÄ…tek linii i naciÅ›nij <Delback>. BieÅ¼Ä…ca
+   linia zostanie poÅ‚Ä…czona z poprzedniÄ….
 
->> Naci¶nij <Return>, by z powrotem wstawiæ znak nowej linii, który
-   skasowa³e¶.
+>> NaciÅ›nij <Return>, by z powrotem wstawiÄ‡ znak nowej linii, ktÃ³ry
+   skasowaÅ‚eÅ›.
 
-Jak ju¿ wiesz, wiêkszo¶æ poleceñ Emacsa mo¿na wywo³aæ z parametrem
-liczby powtórzeñ; dotyczy to tak¿e znaków tekstu. Argument liczbowy
-powoduje wstawienie znaku odpowiadaj±c± mu liczbê razy.
+Jak juÅ¼ wiesz, wiÄ™kszoÅ›Ä‡ poleceÅ„ Emacsa moÅ¼na wywoÅ‚aÄ‡ z parametrem
+liczby powtÃ³rzeÅ„; dotyczy to takÅ¼e znakÃ³w tekstu. Argument liczbowy
+powoduje wstawienie znaku odpowiadajÄ…cÄ… mu liczbÄ™ razy.
 
->> Wypróbuj to teraz -- naci¶nij C-u 8 *, a uzyskasz ********.
+>> WyprÃ³buj to teraz -- naciÅ›nij C-u 8 *, a uzyskasz ********.
 
-Nauczy³e¶ siê ju¿ wiêkszej czê¶ci podstawowych sposobów pisania oraz
-poprawiania b³êdów. W Emacsie mo¿esz usuwaæ równie¿ ca³e s³owa lub
-linie. Oto podsumowanie operacji usuwania znaków:
+NauczyÅ‚eÅ› siÄ™ juÅ¼ wiÄ™kszej czÄ™Å›ci podstawowych sposobÃ³w pisania oraz
+poprawiania bÅ‚Ä™dÃ³w. W Emacsie moÅ¼esz usuwaÄ‡ rÃ³wnieÅ¼ caÅ‚e sÅ‚owa lub
+linie. Oto podsumowanie operacji usuwania znakÃ³w:
 
-	<Delback> usuñ znak bezpo¶rednio przed kursorem
-	C-d usuñ znak bezpo¶rednio za kursorem
+	<Delback> usuÅ„ znak bezpoÅ›rednio przed kursorem
+	C-d usuÅ„ znak bezpoÅ›rednio za kursorem
 
-	M-<Delback> wytnij s³owo bezpo¶rednio przed kursorem
-	M-d wytnij s³owo bezpo¶rednio za kursorem
+	M-<Delback> wytnij sÅ‚owo bezpoÅ›rednio przed kursorem
+	M-d wytnij sÅ‚owo bezpoÅ›rednio za kursorem
 
-	C-k wytnij zawarto¶æ linii od kursora do jej koñca
-	M-k wytnij wszystkie znaki od kursora do koñca zdania
+	C-k wytnij zawartoÅ›Ä‡ linii od kursora do jej koÅ„ca
+	M-k wytnij wszystkie znaki od kursora do koÅ„ca zdania
 
-Warto zauwa¿yæ, ¿e stosunek <Delete> i C-d do M-<Delete> i M-d
-rozszerza analogiê wystêpuj±c± w zestawieniu C-f i M-f (<Delete> tak
-naprawdê nie jest znakiem steruj±cym, ale nie jest to tutaj
-istotne). C-k i M-k s± podobne do C-e i M-e w tym sensie, ¿e linie s±
-odpowiednikami zdañ.
+Warto zauwaÅ¼yÄ‡, Å¼e stosunek <Delete> i C-d do M-<Delete> i M-d
+rozszerza analogiÄ™ wystÄ™pujÄ…cÄ… w zestawieniu C-f i M-f (<Delete> tak
+naprawdÄ™ nie jest znakiem sterujÄ…cym, ale nie jest to tutaj
+istotne). C-k i M-k sÄ… podobne do C-e i M-e w tym sensie, Å¼e linie sÄ…
+odpowiednikami zdaÅ„.
 
 
-Oto metoda wycinania czê¶ci tekstu. Umie¶æ kursor na pocz±tku fragmentu,
-który chcesz wyci±æ, i naci¶nij C-@ lub C-SPC (SPC-spacja). Teraz przejd¼
-na drugi koniec wybranego fragmentu i naci¶nij C-w. To wytnie ca³y tekst
-zawarty miêdzy punktami pocz±tkowym i koñcowym.
+Oto metoda wycinania czÄ™Å›ci tekstu. UmieÅ›Ä‡ kursor na poczÄ…tku fragmentu,
+ktÃ³ry chcesz wyciÄ…Ä‡, i naciÅ›nij C-@ lub C-SPC (SPC-spacja). Teraz przejdÅº
+na drugi koniec wybranego fragmentu i naciÅ›nij C-w. To wytnie caÅ‚y tekst
+zawarty miÄ™dzy punktami poczÄ…tkowym i koÅ„cowym.
 
->> Przesuñ kursor na literê O na pocz±tku poprzedniego paragrafu.
+>> PrzesuÅ„ kursor na literÄ™ O na poczÄ…tku poprzedniego paragrafu.
 
->> Naci¶nij C-SPC. Emacs wy¶wietli "Mark set" (znacznik ustawiony)
+>> NaciÅ›nij C-SPC. Emacs wyÅ›wietli "Mark set" (znacznik ustawiony)
    na dole ekranu.
 
->> Przesuñ kursor do litery o w s³owie ,,kursor'' w drugim zdaniu.
+>> PrzesuÅ„ kursor do litery o w sÅ‚owie ,,kursor'' w drugim zdaniu.
 
->> Naci¶nij C-w. Ta komenda wytnie ca³y fragment zaczynaj±cy siê od O,
-   a koñcz±cy tu¿ przed o.
+>> NaciÅ›nij C-w. Ta komenda wytnie caÅ‚y fragment zaczynajÄ…cy siÄ™ od O,
+   a koÅ„czÄ…cy tuÅ¼ przed o.
 
-Gdy usuwasz wiêcej ni¿ jeden znak naraz, Emacs zachowuje usuniêty
-tekst po to, by móg³ go z powrotem gdzie¶ wstawiæ. Wstawianie
-usuniêtego tekstu nazywa siê ,,wklejaniem''. Usuniêty tekst
-mo¿esz wkleiæ zarówno w to samo miejsce, z którego zosta³ usuniêty,
-b±d¼ te¿ w inne miejsca. Ten sam tekst mo¿esz wkleiæ wielokrotnie,
+Gdy usuwasz wiÄ™cej niÅ¼ jeden znak naraz, Emacs zachowuje usuniÄ™ty
+tekst po to, by mÃ³gÅ‚ go z powrotem gdzieÅ› wstawiÄ‡. Wstawianie
+usuniÄ™tego tekstu nazywa siÄ™ ,,wklejaniem''. UsuniÄ™ty tekst
+moÅ¼esz wkleiÄ‡ zarÃ³wno w to samo miejsce, z ktÃ³rego zostaÅ‚ usuniÄ™ty,
+bÄ…dÅº teÅ¼ w inne miejsca. Ten sam tekst moÅ¼esz wkleiÄ‡ wielokrotnie,
 w celu uzyskania wielu kopii. Poleceniem wklejenia tekstu jest C-y.
 
-Zauwa¿ ró¿nicê miêdzy ,,wycinaniem'' i ,,usuwaniem'', polegaj±c± na tym,
-¿e rzeczy wyciête mo¿na na nowo wklejaæ, usuniêtych natomiast wklejaæ nie
-mo¿na. Na ogó³ polecenia Emacsa, które kasuj± du¿o tekstu, zachowuj± go,
-podczas gdy polecenia, które po prostu kasuj± jeden znak albo puste
-linie lub odstêpy, skasowanego tekstu nie zachowuj±.
+ZauwaÅ¼ rÃ³Å¼nicÄ™ miÄ™dzy ,,wycinaniem'' i ,,usuwaniem'', polegajÄ…cÄ… na tym,
+Å¼e rzeczy wyciÄ™te moÅ¼na na nowo wklejaÄ‡, usuniÄ™tych natomiast wklejaÄ‡ nie
+moÅ¼na. Na ogÃ³Å‚ polecenia Emacsa, ktÃ³re kasujÄ… duÅ¼o tekstu, zachowujÄ… go,
+podczas gdy polecenia, ktÃ³re po prostu kasujÄ… jeden znak albo puste
+linie lub odstÄ™py, skasowanego tekstu nie zachowujÄ….
 
->> Przesuñ kursor na pocz±tek linii, która nie jest pusta. Naci¶nij
-   C-k, by wyci±æ tekst z tej linii.
+>> PrzesuÅ„ kursor na poczÄ…tek linii, ktÃ³ra nie jest pusta. NaciÅ›nij
+   C-k, by wyciÄ…Ä‡ tekst z tej linii.
 
->> Naci¶nij C-k jeszcze raz. Zauwa¿, ¿e wycina to znak nowej linii,
-   który znajduje siê za ta lini±.
+>> NaciÅ›nij C-k jeszcze raz. ZauwaÅ¼, Å¼e wycina to znak nowej linii,
+   ktÃ³ry znajduje siÄ™ za ta liniÄ….
 
-Zwróæ uwagê, ¿e pojedyncze C-k wycina zawarto¶æ linii, a powtórne C-k
-wycina sam± liniê, tak ¿e pozosta³e linie przesuwaj± siê do góry. C-k
-traktuje argument liczbowy w sposób specjalny: wycina ono tyle linii,
-ile wynosi warto¶æ argumentu, ORAZ ich zawarto¶æ. To nie jest jedynie
-powtórzenie kilka razy C-k. C-u 2 C-k wycina dwie linie wraz z ich
-znakami nowej linii; dwukrotne naci¶niecie C-k nie zrobi³oby tego.
+ZwrÃ³Ä‡ uwagÄ™, Å¼e pojedyncze C-k wycina zawartoÅ›Ä‡ linii, a powtÃ³rne C-k
+wycina samÄ… liniÄ™, tak Å¼e pozostaÅ‚e linie przesuwajÄ… siÄ™ do gÃ³ry. C-k
+traktuje argument liczbowy w sposÃ³b specjalny: wycina ono tyle linii,
+ile wynosi wartoÅ›Ä‡ argumentu, ORAZ ich zawartoÅ›Ä‡. To nie jest jedynie
+powtÃ³rzenie kilka razy C-k. C-u 2 C-k wycina dwie linie wraz z ich
+znakami nowej linii; dwukrotne naciÅ›niecie C-k nie zrobiÅ‚oby tego.
 
-By odzyskaæ ostatnio wyciêty tekst i wstawiæ go w miejsce kursora,
-naci¶nij C-y.
+By odzyskaÄ‡ ostatnio wyciÄ™ty tekst i wstawiÄ‡ go w miejsce kursora,
+naciÅ›nij C-y.
 
->> Twoja kolej. Naci¶nij C-y, by z powrotem wstawiæ tekst.
+>> Twoja kolej. NaciÅ›nij C-y, by z powrotem wstawiÄ‡ tekst.
 
-Zwróæ uwagê, ¿e je¶li naci¶niesz C-k kilka razy z rzêdu, to ca³y wyciêty
-tekst zostanie zachowywany w jednym kawa³ku, tak ¿e pojedyncze C-y wklei
+ZwrÃ³Ä‡ uwagÄ™, Å¼e jeÅ›li naciÅ›niesz C-k kilka razy z rzÄ™du, to caÅ‚y wyciÄ™ty
+tekst zostanie zachowywany w jednym kawaÅ‚ku, tak Å¼e pojedyncze C-y wklei
 wszystkie linie.
 
->> Naci¶nij C-k kilka razy.
+>> NaciÅ›nij C-k kilka razy.
 
-A by odzyskaæ ten wyciêty tekst...
+A by odzyskaÄ‡ ten wyciÄ™ty tekst...
 
->> ...naci¶nij C-y. Przesuñ potem kursor o kilka linii w dó³ i
-   naci¶nij C-y jeszcze raz. Widzisz, ¿e wstawia to ten sam tekst.
+>> ...naciÅ›nij C-y. PrzesuÅ„ potem kursor o kilka linii w dÃ³Å‚ i
+   naciÅ›nij C-y jeszcze raz. Widzisz, Å¼e wstawia to ten sam tekst.
 
-Co zrobiæ, je¶li chcesz wstawiæ tekst, który wcze¶niej wyci±³e¶,
-a potem wycinasz co¶ innego? C-y wstawia tekst ostatnio wyciêty.
-Poprzedni fragment nie jest jednak stracony. Mo¿esz do niego wróciæ,
-u¿ywaj±c polecenia M-y. Naciskaj±c C-y, wstawiasz tekst ostatnio
-wyciêty, a naciskaj±c M-y, zastêpujesz ten tekst wyciêtym uprzednio.
-Dalsze naciskanie M-y przywo³uje coraz wcze¶niejsze fragmenty tekstu.
-Gdy dojdziesz do tekstu, którego szuka³e¶, po prostu kontynuuj edycjê
-tekstu, pozostawiaj±c wklejony tekst tam, gdzie siê znajduje.
+Co zrobiÄ‡, jeÅ›li chcesz wstawiÄ‡ tekst, ktÃ³ry wczeÅ›niej wyciÄ…Å‚eÅ›,
+a potem wycinasz coÅ› innego? C-y wstawia tekst ostatnio wyciÄ™ty.
+Poprzedni fragment nie jest jednak stracony. MoÅ¼esz do niego wrÃ³ciÄ‡,
+uÅ¼ywajÄ…c polecenia M-y. NaciskajÄ…c C-y, wstawiasz tekst ostatnio
+wyciÄ™ty, a naciskajÄ…c M-y, zastÄ™pujesz ten tekst wyciÄ™tym uprzednio.
+Dalsze naciskanie M-y przywoÅ‚uje coraz wczeÅ›niejsze fragmenty tekstu.
+Gdy dojdziesz do tekstu, ktÃ³rego szukaÅ‚eÅ›, po prostu kontynuuj edycjÄ™
+tekstu, pozostawiajÄ…c wklejony tekst tam, gdzie siÄ™ znajduje.
 
-Naciskaj±c M-y wystarczaj±co wiele razy, dojdziesz do punktu,
-z którego wystartowa³e¶ (czyli tekstu wyciêtego ostatnio).
+NaciskajÄ…c M-y wystarczajÄ…co wiele razy, dojdziesz do punktu,
+z ktÃ³rego wystartowaÅ‚eÅ› (czyli tekstu wyciÄ™tego ostatnio).
 
->> Wytnij jak±¶ liniê, zmieñ pozycjê kursora i wytnij inn±. Naci¶nij
-   potem C-y, by wstawiæ drug± z wyciêtych linii. Potem naci¶nij M-y
-   i linia ta zostanie zast±piona przez t± pierwsz±. Naci¶nij M-y
-   jeszcze kilka razy, by zobaczyæ, co siê dzieje. Powtarzaj to a¿
-   do ponownego pojawienia siê drugiej z linii. Mo¿esz te¿ wypróbowaæ,
-   co siê stanie, gdy polecenie M-y poprzedzisz argumentem dodatnim
+>> Wytnij jakÄ…Å› liniÄ™, zmieÅ„ pozycjÄ™ kursora i wytnij innÄ…. NaciÅ›nij
+   potem C-y, by wstawiÄ‡ drugÄ… z wyciÄ™tych linii. Potem naciÅ›nij M-y
+   i linia ta zostanie zastÄ…piona przez tÄ… pierwszÄ…. NaciÅ›nij M-y
+   jeszcze kilka razy, by zobaczyÄ‡, co siÄ™ dzieje. Powtarzaj to aÅ¼
+   do ponownego pojawienia siÄ™ drugiej z linii. MoÅ¼esz teÅ¼ wyprÃ³bowaÄ‡,
+   co siÄ™ stanie, gdy polecenie M-y poprzedzisz argumentem dodatnim
    albo ujemnym.
 
 
 * COFNIJ
 --------
 
-Je¶li wprowadzisz zmiany do tekstu, a potem dojdziesz do wniosku, ¿e
-to by³a pomy³ka, to mo¿esz cofn±æ zmiany, wydaj±c polecenie ,,cofnij''
+JeÅ›li wprowadzisz zmiany do tekstu, a potem dojdziesz do wniosku, Å¼e
+to byÅ‚a pomyÅ‚ka, to moÅ¼esz cofnÄ…Ä‡ zmiany, wydajÄ…c polecenie ,,cofnij''
 (ang. undo), C-x u.
 
-C-x u cofa zmiany wprowadzone przez jedno polecenie; je¶li powtórzysz
-C-x u kilka razy z rzêdu, to ka¿de powtórzenie cofa kolejne polecenie.
+C-x u cofa zmiany wprowadzone przez jedno polecenie; jeÅ›li powtÃ³rzysz
+C-x u kilka razy z rzÄ™du, to kaÅ¼de powtÃ³rzenie cofa kolejne polecenie.
 
-Od tej regu³y s± dwa wyj±tki: polecenia, które nie zmieniaj± tekstu nie
-licz± siê jako polecenia, które mo¿na wycofaæ (dotyczy to zarówno
-przesuniêæ kursora, jak i przewijania tekstu), oraz znaki wstawiane do
-tekstu (np. litery) ³±czone s± w grupy do 20. (Redukuje to liczbê
-naci¶niêæ C-x u, które musia³by¶ wykonaæ, by wycofaæ siê z niechcianych
+Od tej reguÅ‚y sÄ… dwa wyjÄ…tki: polecenia, ktÃ³re nie zmieniajÄ… tekstu nie
+liczÄ… siÄ™ jako polecenia, ktÃ³re moÅ¼na wycofaÄ‡ (dotyczy to zarÃ³wno
+przesuniÄ™Ä‡ kursora, jak i przewijania tekstu), oraz znaki wstawiane do
+tekstu (np. litery) Å‚Ä…czone sÄ… w grupy do 20. (Redukuje to liczbÄ™
+naciÅ›niÄ™Ä‡ C-x u, ktÃ³re musiaÅ‚byÅ› wykonaÄ‡, by wycofaÄ‡ siÄ™ z niechcianych
 zmian.)
 
->> Wytnij tê liniê za pomoc± C-k, a potem naci¶nij C-x u; linia
-   powinna siê pojawiæ ponownie.
+>> Wytnij tÄ™ liniÄ™ za pomocÄ… C-k, a potem naciÅ›nij C-x u; linia
+   powinna siÄ™ pojawiÄ‡ ponownie.
 
-C-_ jest innym sposobem wywo³ania polecenia "cofnij"; dzia³a to
-dok³adnie tak samo jak C-x u, jest jednak ³atwiejsze do naci¶niêcia
-kilka razy z rzêdu. Wad± kombinacji C-_ jest to, ¿e nie jest oczywiste
-w jaki sposób j± uzyskaæ na niektórych klawiaturach. To w³a¶nie dlatego
-dostêpna jest te¿ kombinacja C-x u. Na niektórych terminalach mo¿esz
-nacisn±æ C-_ poprzez przytrzymanie Ctrl i naci¶niêcie /.
+C-_ jest innym sposobem wywoÅ‚ania polecenia "cofnij"; dziaÅ‚a to
+dokÅ‚adnie tak samo jak C-x u, jest jednak Å‚atwiejsze do naciÅ›niÄ™cia
+kilka razy z rzÄ™du. WadÄ… kombinacji C-_ jest to, Å¼e nie jest oczywiste
+w jaki sposÃ³b jÄ… uzyskaÄ‡ na niektÃ³rych klawiaturach. To wÅ‚aÅ›nie dlatego
+dostÄ™pna jest teÅ¼ kombinacja C-x u. Na niektÃ³rych terminalach moÅ¼esz
+nacisnÄ…Ä‡ C-_ poprzez przytrzymanie Ctrl i naciÅ›niÄ™cie /.
 
-Argument liczbowy podany przed C-_ lub C-x u okre¶la liczbê powtórzeñ
+Argument liczbowy podany przed C-_ lub C-x u okreÅ›la liczbÄ™ powtÃ³rzeÅ„
 tego polecenia.
 
 
 * PLIKI
 -------
 
-Aby edytowany przez Ciebie tekst zosta³ na trwa³e zachowany, musisz
-umie¶ciæ go w pliku. Je¶li tego nie zrobisz, to tekst zniknie, gdy
-zamkniêty zostanie Emacs, za pomoc± którego go edytowa³e¶. Aby zachowaæ
-tekst w pliku, najpierw musisz ten plik ,,znale¼æ'', i to zanim
-zaczniesz wprowadzaæ tekst. Czynno¶æ znajdowania pliku (ang. "file
-finding") bywa te¿ nazywana ,,odwiedzaniem pliku'' (ang. "file
+Aby edytowany przez Ciebie tekst zostaÅ‚ na trwaÅ‚e zachowany, musisz
+umieÅ›ciÄ‡ go w pliku. JeÅ›li tego nie zrobisz, to tekst zniknie, gdy
+zamkniÄ™ty zostanie Emacs, za pomocÄ… ktÃ³rego go edytowaÅ‚eÅ›. Aby zachowaÄ‡
+tekst w pliku, najpierw musisz ten plik ,,znaleÅºÄ‡'', i to zanim
+zaczniesz wprowadzaÄ‡ tekst. CzynnoÅ›Ä‡ znajdowania pliku (ang. "file
+finding") bywa teÅ¼ nazywana ,,odwiedzaniem pliku'' (ang. "file
 visiting").
 
-Odwiedzanie pliku w Emacsie powoduje wy¶wietlenie jego zawarto¶ci.
-Bardzo czêsto jest to pocz±tek edycji pliku. Jednak¿e zmiany, które
-wprowadzasz do pliku, nie s± w nim utrwalone, zanim go nie ,,zachowasz''
-(ang. save). Ma to zapobiec pozostawieniu w systemie pliku, który zosta³
-zmieniony tylko w po³owie, a tego chcesz unikn±æ. Gdy zachowujesz
-zmieniony plik, Emacs zostawia orygina³ (pod inna nazw±) na wypadek,
-gdyby¶ doszed³ do wniosku, ¿e wprowadzone zmiany by³y b³êdne.
+Odwiedzanie pliku w Emacsie powoduje wyÅ›wietlenie jego zawartoÅ›ci.
+Bardzo czÄ™sto jest to poczÄ…tek edycji pliku. JednakÅ¼e zmiany, ktÃ³re
+wprowadzasz do pliku, nie sÄ… w nim utrwalone, zanim go nie ,,zachowasz''
+(ang. save). Ma to zapobiec pozostawieniu w systemie pliku, ktÃ³ry zostaÅ‚
+zmieniony tylko w poÅ‚owie, a tego chcesz uniknÄ…Ä‡. Gdy zachowujesz
+zmieniony plik, Emacs zostawia oryginaÅ‚ (pod inna nazwÄ…) na wypadek,
+gdybyÅ› doszedÅ‚ do wniosku, Å¼e wprowadzone zmiany byÅ‚y bÅ‚Ä™dne.
 
-Je¶li popatrzysz na dó³ ekranu, to zauwa¿ysz liniê, która zaczyna siê
-i koñczy my¶lnikami, a zawiera tekst ,,TUTORIAL''. W tej
-czê¶ci ekranu zawsze mo¿esz znale¼æ nazwê pliku, który w³a¶nie
-odwiedzasz. W tej chwili odwiedzasz plik o nazwie TUTORIAL, który
-jest Twoj± w³asn± kopi± samouczka Emacsa. Obojêtnie, który plik
-odwiedzisz, w³a¶nie w tym miejscu pojawi siê jego nazwa.
+JeÅ›li popatrzysz na dÃ³Å‚ ekranu, to zauwaÅ¼ysz liniÄ™, ktÃ³ra zaczyna siÄ™
+i koÅ„czy myÅ›lnikami, a zawiera tekst ,,TUTORIAL''. W tej
+czÄ™Å›ci ekranu zawsze moÅ¼esz znaleÅºÄ‡ nazwÄ™ pliku, ktÃ³ry wÅ‚aÅ›nie
+odwiedzasz. W tej chwili odwiedzasz plik o nazwie TUTORIAL, ktÃ³ry
+jest TwojÄ… wÅ‚asnÄ… kopiÄ… samouczka Emacsa. ObojÄ™tnie, ktÃ³ry plik
+odwiedzisz, wÅ‚aÅ›nie w tym miejscu pojawi siÄ™ jego nazwa.
 
-Polecenia s³u¿±ce do odwiedzania i zachowywania plików ró¿ni± siê
-od innych poleceñ, które ju¿ pozna³e¶, tym, ¿e sk³adaj± siê z dwóch
-znaków. Obydwa zaczynaj± siê od znaku Control-x. Jest mnóstwo
-poleceñ, które zaczynaj± siê od tego w³a¶nie znaku; wiele z nich
-dotyczy plików, buforów oraz rzeczy z nimi zwi±zanych. Polecenia
-te maj± d³ugo¶æ dwóch, trzech lub czterech znaków.
+Polecenia sÅ‚uÅ¼Ä…ce do odwiedzania i zachowywania plikÃ³w rÃ³Å¼niÄ… siÄ™
+od innych poleceÅ„, ktÃ³re juÅ¼ poznaÅ‚eÅ›, tym, Å¼e skÅ‚adajÄ… siÄ™ z dwÃ³ch
+znakÃ³w. Obydwa zaczynajÄ… siÄ™ od znaku Control-x. Jest mnÃ³stwo
+poleceÅ„, ktÃ³re zaczynajÄ… siÄ™ od tego wÅ‚aÅ›nie znaku; wiele z nich
+dotyczy plikÃ³w, buforÃ³w oraz rzeczy z nimi zwiÄ…zanych. Polecenia
+te majÄ… dÅ‚ugoÅ›Ä‡ dwÃ³ch, trzech lub czterech znakÃ³w.
 
-Kolejn± nowo¶ci± odno¶nie polecenia odwiedzania pliku jest to, ¿e
-musisz mu podaæ nazwê pliku, który chcesz znale¼æ. Mówimy o tym, ¿e
+KolejnÄ… nowoÅ›ciÄ… odnoÅ›nie polecenia odwiedzania pliku jest to, Å¼e
+musisz mu podaÄ‡ nazwÄ™ pliku, ktÃ³ry chcesz znaleÅºÄ‡. MÃ³wimy o tym, Å¼e
 polecenie ,,czyta argument z terminala'' (w tym wypadku argument jest
-nazw± pliku). Po wpisaniu polecenia
+nazwÄ… pliku). Po wpisaniu polecenia
 
-	C-x C-f znajd¼ plik (ang. find a file)
+	C-x C-f znajdÅº plik (ang. find a file)
 
-Emacs poprosi Ciê o wpisanie nazwy pliku. Pojawia siê ona w dolnej linii
-ekranu. Gdy ta linia jest u¿ywana do wprowadzania tego typu danych,
-nazywa siê j± ,,minibuforem'' (ang. "minibuffer"). Do edycji nazwy pliku
-w minibuforze mo¿esz u¿ywaæ zwyk³ych poleceñ Emacsa.
+Emacs poprosi CiÄ™ o wpisanie nazwy pliku. Pojawia siÄ™ ona w dolnej linii
+ekranu. Gdy ta linia jest uÅ¼ywana do wprowadzania tego typu danych,
+nazywa siÄ™ jÄ… ,,minibuforem'' (ang. "minibuffer"). Do edycji nazwy pliku
+w minibuforze moÅ¼esz uÅ¼ywaÄ‡ zwykÅ‚ych poleceÅ„ Emacsa.
 
 Wprowadzanie nazwy pliku (lub jakichkolwiek innych danych w
-minibuforze) mo¿na anulowaæ klawiszem C-g.
+minibuforze) moÅ¼na anulowaÄ‡ klawiszem C-g.
 
->> Naci¶nij C-x C-f, po czym naci¶nij C-g. Na skutek tego zniknie
-   minibufor oraz przerwane zostanie wykonanie polecenia C-x C-f, które
-   tego minibufora u¿ywa³o. W rezultacie nie odwiedzisz ¿adnego pliku.
+>> NaciÅ›nij C-x C-f, po czym naciÅ›nij C-g. Na skutek tego zniknie
+   minibufor oraz przerwane zostanie wykonanie polecenia C-x C-f, ktÃ³re
+   tego minibufora uÅ¼ywaÅ‚o. W rezultacie nie odwiedzisz Å¼adnego pliku.
 
-Gdy skoñczysz wpisywaæ nazwê pliku, naci¶nij <Return>. Wówczas
-polecenie C-x C-f zabierze siê do roboty i znajdzie plik, który
-wybra³e¶. Z chwil± zakoñczenia wykonywania polecenia C-x C-f
-zniknie te¿ minibufor.
+Gdy skoÅ„czysz wpisywaÄ‡ nazwÄ™ pliku, naciÅ›nij <Return>. WÃ³wczas
+polecenie C-x C-f zabierze siÄ™ do roboty i znajdzie plik, ktÃ³ry
+wybraÅ‚eÅ›. Z chwilÄ… zakoÅ„czenia wykonywania polecenia C-x C-f
+zniknie teÅ¼ minibufor.
 
-Zawarto¶æ znalezionego pliku po chwili pojawia siê na ekranie
-i mo¿esz j± edytowaæ. Gdy chcesz zachowaæ zmiany, by je utrwaliæ,
+ZawartoÅ›Ä‡ znalezionego pliku po chwili pojawia siÄ™ na ekranie
+i moÅ¼esz jÄ… edytowaÄ‡. Gdy chcesz zachowaÄ‡ zmiany, by je utrwaliÄ‡,
 wydaj polecenie
 
 	C-x C-s zachowaj plik (ang. save).
 
 Kopiuje to tekst z Emacsa do pliku. Za pierwszym razem, gdy to
-robisz, Emacs zmienia nazwê oryginalnego pliku, dodaj±c na
-koñcu jego nazwy znak ~. W ten sposób powstaje zapasowa kopia
+robisz, Emacs zmienia nazwÄ™ oryginalnego pliku, dodajÄ…c na
+koÅ„cu jego nazwy znak ~. W ten sposÃ³b powstaje zapasowa kopia
 oryginalnego pliku.
 
-Gdy zachowywanie pliku siê koñczy, Emacs wypisuje jego nazwê u do³u
-ekranu. Pliki powiniene¶ zachowywaæ stosunkowo czêsto, aby nie straciæ
-za du¿o w wypadku za³amania systemu.
+Gdy zachowywanie pliku siÄ™ koÅ„czy, Emacs wypisuje jego nazwÄ™ u doÅ‚u
+ekranu. Pliki powinieneÅ› zachowywaÄ‡ stosunkowo czÄ™sto, aby nie straciÄ‡
+za duÅ¼o w wypadku zaÅ‚amania systemu.
 
->> Naci¶nij C-x C-s, by zachowaæ dla siebie kopiê samouczka. Emacs
-   powinien wypisaæ "Wrote ...TUTORIAL" na dole ekranu.
+>> NaciÅ›nij C-x C-s, by zachowaÄ‡ dla siebie kopiÄ™ samouczka. Emacs
+   powinien wypisaÄ‡ "Wrote ...TUTORIAL" na dole ekranu.
 
-Odwiedziæ w celu edycji lub odczytu mo¿esz plik istniej±cy ju¿ w
-systemie. Mo¿esz te¿ odwiedziæ plik, którego jeszcze nie ma w systemie i
-w³a¶nie w taki sposób tworzy siê w Emacsie nowe pliki. Gdy poleceniem
-C-x C-f odwiedzisz plik o nazwie nieistniej±cej w systemie, wówczas
-Emacs wy¶wietli puste miejsce, do którego bêdziesz móg³ zacz±æ wpisywaæ
-tekst. Gdy za¿±dasz zachowania wpisanego tekstu, Emacs utworzy w
-systemie plik z tym tekstem. Od tego momentu mo¿esz uwa¿aæ, ¿e edytujesz
-plik ju¿ istniej±cy.
+OdwiedziÄ‡ w celu edycji lub odczytu moÅ¼esz plik istniejÄ…cy juÅ¼ w
+systemie. MoÅ¼esz teÅ¼ odwiedziÄ‡ plik, ktÃ³rego jeszcze nie ma w systemie i
+wÅ‚aÅ›nie w taki sposÃ³b tworzy siÄ™ w Emacsie nowe pliki. Gdy poleceniem
+C-x C-f odwiedzisz plik o nazwie nieistniejÄ…cej w systemie, wÃ³wczas
+Emacs wyÅ›wietli puste miejsce, do ktÃ³rego bÄ™dziesz mÃ³gÅ‚ zaczÄ…Ä‡ wpisywaÄ‡
+tekst. Gdy zaÅ¼Ä…dasz zachowania wpisanego tekstu, Emacs utworzy w
+systemie plik z tym tekstem. Od tego momentu moÅ¼esz uwaÅ¼aÄ‡, Å¼e edytujesz
+plik juÅ¼ istniejÄ…cy.
 
 
 * BUFORY
 --------
 
-Je¶li za pomoc± C-x C-f odwiedzisz inny plik, to plik odwiedzony
-poprzednio pozostanie w Emacsie. Mo¿esz siê na niego prze³±czyæ,
-odwiedzaj±c go jeszcze raz za pomoc± C-x C-f. W ten sposób mo¿esz
-mieæ w Emacsie odwiedzonych jednocze¶nie wiele plików.
+JeÅ›li za pomocÄ… C-x C-f odwiedzisz inny plik, to plik odwiedzony
+poprzednio pozostanie w Emacsie. MoÅ¼esz siÄ™ na niego przeÅ‚Ä…czyÄ‡,
+odwiedzajÄ…c go jeszcze raz za pomocÄ… C-x C-f. W ten sposÃ³b moÅ¼esz
+mieÄ‡ w Emacsie odwiedzonych jednoczeÅ›nie wiele plikÃ³w.
 
->> Utwórz plik o nazwie "foo" za pomoc± C-x C-f foo <Return>.
-   Wpisz w niego jaki¶ tekst i zachowaj "foo" za pomoc± C-x C-s.
-   W koñcu napisz C-x C-f TUTORIAL <Return>, by wróciæ do samouczka.
+>> UtwÃ³rz plik o nazwie "foo" za pomocÄ… C-x C-f foo <Return>.
+   Wpisz w niego jakiÅ› tekst i zachowaj "foo" za pomocÄ… C-x C-s.
+   W koÅ„cu napisz C-x C-f TUTORIAL <Return>, by wrÃ³ciÄ‡ do samouczka.
 
-Emacs przechowuje tekst ka¿dego pliku w obiekcie, zwanym ,,buforem''.
-Odwiedzenie pliku powoduje utworzenie nowego bufora wewn±trz Emacsa. By
-zobaczyæ listê buforów, które istniej± w Twoim Emacsie, naci¶nij
+Emacs przechowuje tekst kaÅ¼dego pliku w obiekcie, zwanym ,,buforem''.
+Odwiedzenie pliku powoduje utworzenie nowego bufora wewnÄ…trz Emacsa. By
+zobaczyÄ‡ listÄ™ buforÃ³w, ktÃ³re istniejÄ… w Twoim Emacsie, naciÅ›nij
 
-	C-x C-b lista buforów (ang. list buffers).
+	C-x C-b lista buforÃ³w (ang. list buffers).
 
->> Naci¶nij C-x C-b.
+>> NaciÅ›nij C-x C-b.
 
-Zwróæ uwagê, ¿e ka¿dy bufor ma w³asn± nazwê, mo¿e te¿ mieæ skojarzon± z
-nim nazwê pliku, który odwiedza. KA¯DY tekst, który ogl±dasz w Emacsie,
-jest zawsze czê¶ci± jednego z buforów.
+ZwrÃ³Ä‡ uwagÄ™, Å¼e kaÅ¼dy bufor ma wÅ‚asnÄ… nazwÄ™, moÅ¼e teÅ¼ mieÄ‡ skojarzonÄ… z
+nim nazwÄ™ pliku, ktÃ³ry odwiedza. KAÅ»DY tekst, ktÃ³ry oglÄ…dasz w Emacsie,
+jest zawsze czÄ™Å›ciÄ… jednego z buforÃ³w.
 
->> Naci¶nij C-x 1 by pozbyæ siê listy buforów.
+>> NaciÅ›nij C-x 1 by pozbyÄ‡ siÄ™ listy buforÃ³w.
 
-Je¶li masz kilka buforów to tylko jeden z nich jest aktualny, ten
-który w³a¶nie edytujesz. Je¶li chcesz edytowaæ inny bufer musisz siê
-do niego "prze³±czyæ" (ang. switch). Je¶li chcesz prze³±czyæ siê do
-bufora, który odwiedza jaki¶ plik, mo¿esz to zrobiæ poprzez ponowne
-odwiedzenie pliku za pomoc± C-x C-f. Ale istnieje tak¿e ³atwiejszy
-sposób: u¿yj C-x b. U¿ywaj±c tej komendy musisz podaæ nazwê bufora, do
-którego zamierzasz siê prze³±czyæ.
+JeÅ›li masz kilka buforÃ³w to tylko jeden z nich jest aktualny, ten
+ktÃ³ry wÅ‚aÅ›nie edytujesz. JeÅ›li chcesz edytowaÄ‡ inny bufer musisz siÄ™
+do niego "przeÅ‚Ä…czyÄ‡" (ang. switch). JeÅ›li chcesz przeÅ‚Ä…czyÄ‡ siÄ™ do
+bufora, ktÃ³ry odwiedza jakiÅ› plik, moÅ¼esz to zrobiÄ‡ poprzez ponowne
+odwiedzenie pliku za pomocÄ… C-x C-f. Ale istnieje takÅ¼e Å‚atwiejszy
+sposÃ³b: uÅ¼yj C-x b. UÅ¼ywajÄ…c tej komendy musisz podaÄ‡ nazwÄ™ bufora, do
+ktÃ³rego zamierzasz siÄ™ przeÅ‚Ä…czyÄ‡.
 
->> Naci¶nij C-x b foo <Return> by wróciæ do bufora "foo", który
-   przechowuje tekst pliku "foo". Nastêpnie naci¶nij C-x b TUTORIAL
-   <Return> by wróciæ do samouczka.
+>> NaciÅ›nij C-x b foo <Return> by wrÃ³ciÄ‡ do bufora "foo", ktÃ³ry
+   przechowuje tekst pliku "foo". NastÄ™pnie naciÅ›nij C-x b TUTORIAL
+   <Return> by wrÃ³ciÄ‡ do samouczka.
 
-Zwykle nazwa bufora odpowiada nazwie pliku (bez ¶cie¿ki), choæ czasami
-zdarza siê inaczej. Lista buforów, któr± tworzysz za pomoc± C-x C-b
-pokazuje nazwy wszystkich buforów.
+Zwykle nazwa bufora odpowiada nazwie pliku (bez Å›cieÅ¼ki), choÄ‡ czasami
+zdarza siÄ™ inaczej. Lista buforÃ³w, ktÃ³rÄ… tworzysz za pomocÄ… C-x C-b
+pokazuje nazwy wszystkich buforÃ³w.
 
-KA¯DY tekst, który pojawia siê w oknie Emacsa jest czê¶ci± jakiego¶
-bufora.  Niektóre bufory nie odpowiadaj± ¿adnemu odwiedzanemu
-plikowi. Na przyk³ad bufor "*Buffer List*" nie odwiedza ¿adnego pliku;
-zawiera on listê buforów, utworzon± w reakcji na naci¶niêcie przez
-Ciebie C-x C-b. Bufor "*Messages*" tak¿e nie odwiedza ¿adnego pliku;
-zawiera komunikaty, które pojawia³y siê podczas Twojej sesji z
+KAÅ»DY tekst, ktÃ³ry pojawia siÄ™ w oknie Emacsa jest czÄ™Å›ciÄ… jakiegoÅ›
+bufora.  NiektÃ³re bufory nie odpowiadajÄ… Å¼adnemu odwiedzanemu
+plikowi. Na przykÅ‚ad bufor "*Buffer List*" nie odwiedza Å¼adnego pliku;
+zawiera on listÄ™ buforÃ³w, utworzonÄ… w reakcji na naciÅ›niÄ™cie przez
+Ciebie C-x C-b. Bufor "*Messages*" takÅ¼e nie odwiedza Å¼adnego pliku;
+zawiera komunikaty, ktÃ³re pojawiaÅ‚y siÄ™ podczas Twojej sesji z
 Emacsem.
 
->> Naci¶nij C-x b *Messages* <Return> by obejrzeæ bufor zawieraj±cy
-   komunikaty. Nastêpnie naci¶nij C-x b TUTORIAL <Return> by wróciæ do
+>> NaciÅ›nij C-x b *Messages* <Return> by obejrzeÄ‡ bufor zawierajÄ…cy
+   komunikaty. NastÄ™pnie naciÅ›nij C-x b TUTORIAL <Return> by wrÃ³ciÄ‡ do
    samouczka.
 
-Je¶li zmieniasz tekst w jakim¶ pliku, a potem odwiedzisz inny plik, to
-zawarto¶æ tego pierwszego NIE jest automatycznie zachowywana. Zmiany,
-które wprowadzi³e¶, pozostaj± w Emacsie, w buforze tego¿ pliku.
-Tworzenie czy edytowanie innego bufora nie ma ¿adnego wp³ywu na
-pozosta³e. Jest to bardzo przydatne, ale te¿ oznacza, ¿e potrzebny jest
-Ci wygodny sposób zachowywania zawarto¶ci buforów. Niewygodne na
-przyk³ad by³oby, aby zawsze w celu zachowania bufora trzeba by³o do
-niego przechodziæ za pomoc± C-x C-f i dopiero potem wywo³ywaæ C-x C-s.
+JeÅ›li zmieniasz tekst w jakimÅ› pliku, a potem odwiedzisz inny plik, to
+zawartoÅ›Ä‡ tego pierwszego NIE jest automatycznie zachowywana. Zmiany,
+ktÃ³re wprowadziÅ‚eÅ›, pozostajÄ… w Emacsie, w buforze tegoÅ¼ pliku.
+Tworzenie czy edytowanie innego bufora nie ma Å¼adnego wpÅ‚ywu na
+pozostaÅ‚e. Jest to bardzo przydatne, ale teÅ¼ oznacza, Å¼e potrzebny jest
+Ci wygodny sposÃ³b zachowywania zawartoÅ›ci buforÃ³w. Niewygodne na
+przykÅ‚ad byÅ‚oby, aby zawsze w celu zachowania bufora trzeba byÅ‚o do
+niego przechodziÄ‡ za pomocÄ… C-x C-f i dopiero potem wywoÅ‚ywaÄ‡ C-x C-s.
 Dlatego istnieje polecenie:
 
 	C-x s Zachowaj bufory (ang. save some buffers)
 
-W reakcji na polecenie C-x s Emacs dla ka¿dego z buforów, w którym
-wystêpuj± nie zachowane do tej pory zmiany, zadaje pytanie, czy go
-w tej chwili zachowaæ.
+W reakcji na polecenie C-x s Emacs dla kaÅ¼dego z buforÃ³w, w ktÃ³rym
+wystÄ™pujÄ… nie zachowane do tej pory zmiany, zadaje pytanie, czy go
+w tej chwili zachowaÄ‡.
 
->> Wstaw jak±¶ liniê tekstu, a potem naci¶nij C-x s.
-   Powiniene¶ zostaæ zapytany o to, czy chcesz zachowaæ bufor
-   TUTORIAL. Odpowiedz na to pytanie twierdz±co, naciskaj±c y.
+>> Wstaw jakÄ…Å› liniÄ™ tekstu, a potem naciÅ›nij C-x s.
+   PowinieneÅ› zostaÄ‡ zapytany o to, czy chcesz zachowaÄ‡ bufor
+   TUTORIAL. Odpowiedz na to pytanie twierdzÄ…co, naciskajÄ…c y.
 
 
-* ROZSZERZANIE ZESTAWU POLECEÑ
+* ROZSZERZANIE ZESTAWU POLECEÅƒ
 ------------------------------
 
-Poleceñ Emacsa jest znacznie, znacznie wiêcej, ni¿ mo¿na by skojarzyæ
-z klawiszami klawiatury, uwzglêdniaj±c nawet kombinacje z META lub Ctrl.
-Emacs radzi sobie z tym problemem, udostêpniaj±c polecenia X (ang.
-eXtend). Istniej± dwa rodzaje tych poleceñ:
+PoleceÅ„ Emacsa jest znacznie, znacznie wiÄ™cej, niÅ¼ moÅ¼na by skojarzyÄ‡
+z klawiszami klawiatury, uwzglÄ™dniajÄ…c nawet kombinacje z META lub Ctrl.
+Emacs radzi sobie z tym problemem, udostÄ™pniajÄ…c polecenia X (ang.
+eXtend). IstniejÄ… dwa rodzaje tych poleceÅ„:
 
-	C-x Rozszerzenie o znak. Nastêpuje po nim jeden znak.
-	M-x Rozszerzenie o nazwane polecenie. Nastêpuje po nim
-	    pe³na, niekiedy d³uga nazwa polecenia.
+	C-x Rozszerzenie o znak. NastÄ™puje po nim jeden znak.
+	M-x Rozszerzenie o nazwane polecenie. NastÄ™puje po nim
+	    peÅ‚na, niekiedy dÅ‚uga nazwa polecenia.
 
-Polecenia te s± u¿yteczne, ale u¿ywa siê ich nie tak czêsto, jak tych,
-których ju¿ siê nauczy³e¶. Mia³e¶ ju¿ okazjê poznaæ dwa z nich: C-x C-f,
-s³u¿±ce do odwiedzania plików, oraz C-x C-s do ich zachowywania. Innym
-przyk³adem mo¿e byæ polecenie C-x C-c, które koñczy sesjê Emacsa. (Nie
-martw siê, ¿e w ten sposób stracisz zmiany, które wprowadzi³e¶ do
-tekstów; przed zamkniêciem sesji Emacs proponuje Ci zachowania
-ka¿dego ze zmodyfikowanych plików.)
+Polecenia te sÄ… uÅ¼yteczne, ale uÅ¼ywa siÄ™ ich nie tak czÄ™sto, jak tych,
+ktÃ³rych juÅ¼ siÄ™ nauczyÅ‚eÅ›. MiaÅ‚eÅ› juÅ¼ okazjÄ™ poznaÄ‡ dwa z nich: C-x C-f,
+sÅ‚uÅ¼Ä…ce do odwiedzania plikÃ³w, oraz C-x C-s do ich zachowywania. Innym
+przykÅ‚adem moÅ¼e byÄ‡ polecenie C-x C-c, ktÃ³re koÅ„czy sesjÄ™ Emacsa. (Nie
+martw siÄ™, Å¼e w ten sposÃ³b stracisz zmiany, ktÃ³re wprowadziÅ‚eÅ› do
+tekstÃ³w; przed zamkniÄ™ciem sesji Emacs proponuje Ci zachowania
+kaÅ¼dego ze zmodyfikowanych plikÃ³w.)
 
-C-z jest poleceniem, które wychodzi z Emacsa *na chwilê*, tak by¶ móg³
-wróciæ do niej wróciæ po jakim¶ czasie.
+C-z jest poleceniem, ktÃ³re wychodzi z Emacsa *na chwilÄ™*, tak byÅ› mÃ³gÅ‚
+wrÃ³ciÄ‡ do niej wrÃ³ciÄ‡ po jakimÅ› czasie.
 
-W systemach, w których jest to mo¿liwe, C-z zawiesza proces Emacsa;
-powoduje to powrót do pow³oki (ang. shell), ale nie niszczy Emacsa.
-W najpopularniejszych pow³okach mo¿esz wróciæ do Emacsa za pomoc±
+W systemach, w ktÃ³rych jest to moÅ¼liwe, C-z zawiesza proces Emacsa;
+powoduje to powrÃ³t do powÅ‚oki (ang. shell), ale nie niszczy Emacsa.
+W najpopularniejszych powÅ‚okach moÅ¼esz wrÃ³ciÄ‡ do Emacsa za pomocÄ…
 polecenia `fg' lub `%emacs'.
 
-W systemach, w których nie ma zawieszania procesów, C-z tworzy proces
-podpow³oki (ang. "subshell"), który dzia³a pod Emacsem i daje Ci szansê
-uruchamiania innych programów oraz powrotu do Emacsa po ich skoñczeniu; w
-systemach tych C-z w istocie nie powoduje wyj¶cia z Emacsa i wówczas
-normalnym poleceniem powrotu do Emacsa jest wyj¶cie z podpow³oki za
-pomoc± polecenia "exit".
+W systemach, w ktÃ³rych nie ma zawieszania procesÃ³w, C-z tworzy proces
+podpowÅ‚oki (ang. "subshell"), ktÃ³ry dziaÅ‚a pod Emacsem i daje Ci szansÄ™
+uruchamiania innych programÃ³w oraz powrotu do Emacsa po ich skoÅ„czeniu; w
+systemach tych C-z w istocie nie powoduje wyjÅ›cia z Emacsa i wÃ³wczas
+normalnym poleceniem powrotu do Emacsa jest wyjÅ›cie z podpowÅ‚oki za
+pomocÄ… polecenia "exit".
 
-Polecenia C-x C-c powiniene¶ u¿ywaæ, gdy masz zamiar siê wylogowaæ.
-Zalecane jest tak¿e wychodzenie z Emacsa wystartowanego na przyk³ad przez
-programy obs³uguj±ce pocztê elektroniczn± lub innego rodzaju narzêdzia,
-poniewa¿ mog± one nie wiedzieæ, jak sobie poradziæ z zawieszeniem
-Emacsa. Jednak¿e w zwyk³ych okoliczno¶ciach, je¶li nie musisz
-wylogowywaæ siê z systemu, korzystniej jest zawiesiæ Emacsa za pomoc±
-C-z, ni¿ z niego wyj¶æ.
+Polecenia C-x C-c powinieneÅ› uÅ¼ywaÄ‡, gdy masz zamiar siÄ™ wylogowaÄ‡.
+Zalecane jest takÅ¼e wychodzenie z Emacsa wystartowanego na przykÅ‚ad przez
+programy obsÅ‚ugujÄ…ce pocztÄ™ elektronicznÄ… lub innego rodzaju narzÄ™dzia,
+poniewaÅ¼ mogÄ… one nie wiedzieÄ‡, jak sobie poradziÄ‡ z zawieszeniem
+Emacsa. JednakÅ¼e w zwykÅ‚ych okolicznoÅ›ciach, jeÅ›li nie musisz
+wylogowywaÄ‡ siÄ™ z systemu, korzystniej jest zawiesiÄ‡ Emacsa za pomocÄ…
+C-z, niÅ¼ z niego wyjÅ›Ä‡.
 
-Istnieje wiele poleceñ zaczynaj±cych siê od C-x. Oto lista tych,
-których ju¿ siê nauczy³e¶:
+Istnieje wiele poleceÅ„ zaczynajÄ…cych siÄ™ od C-x. Oto lista tych,
+ktÃ³rych juÅ¼ siÄ™ nauczyÅ‚eÅ›:
 
-	C-x C-f odwied¼ plik
+	C-x C-f odwiedÅº plik
 	C-x C-s zachowaj plik
-	C-x C-b wy¶wietl listê buforów
-	C-x C-c wyjd¼ z Emacsa
+	C-x C-b wyÅ›wietl listÄ™ buforÃ³w
+	C-x C-c wyjdÅº z Emacsa
 	C-x u cofnij
 
-Poleceñ podawanych za pomoc± nazwy u¿ywa siê jeszcze rzadziej lub u¿ywa
-siê tylko w niektórych trybach. Przyk³adem mo¿e byæ polecenie
-replace-string, które zastêpuje jeden ³añcuch innym w ca³ym tek¶cie. Gdy
-naciskasz M-x, Emacs czeka na dalszy ci±g polecenia, wy¶wietlaj±c na
-dole ekranu (w minibuforze) napis "M-x". Powiniene¶ tam wpisaæ nazwê
-polecenia, w tym wypadku replace-string. Wystarczy przy tym, ¿e napisz
-jedynie repl s<Tab>; Emacs dokoñczy nazwê automatycznie. Wprowadzanie
-nazwy zakoñcz naci¶niêciem klawisza <Return>.
+PoleceÅ„ podawanych za pomocÄ… nazwy uÅ¼ywa siÄ™ jeszcze rzadziej lub uÅ¼ywa
+siÄ™ tylko w niektÃ³rych trybach. PrzykÅ‚adem moÅ¼e byÄ‡ polecenie
+replace-string, ktÃ³re zastÄ™puje jeden Å‚aÅ„cuch innym w caÅ‚ym tekÅ›cie. Gdy
+naciskasz M-x, Emacs czeka na dalszy ciÄ…g polecenia, wyÅ›wietlajÄ…c na
+dole ekranu (w minibuforze) napis "M-x". PowinieneÅ› tam wpisaÄ‡ nazwÄ™
+polecenia, w tym wypadku replace-string. Wystarczy przy tym, Å¼e napisz
+jedynie repl s<Tab>; Emacs dokoÅ„czy nazwÄ™ automatycznie. Wprowadzanie
+nazwy zakoÅ„cz naciÅ›niÄ™ciem klawisza <Return>.
 
-Polecenie replace-string wymaga dwóch argumentów: ³añcucha, który ma
-zostaæ zast±piony, i ³añcucha, który ma zostaæ wstawiony w miejsce tego¿.
-Wpisywanie ka¿dego z tych ³añcuchów trzeba zakoñczyæ przyci¶niêciem
+Polecenie replace-string wymaga dwÃ³ch argumentÃ³w: Å‚aÅ„cucha, ktÃ³ry ma
+zostaÄ‡ zastÄ…piony, i Å‚aÅ„cucha, ktÃ³ry ma zostaÄ‡ wstawiony w miejsce tegoÅ¼.
+Wpisywanie kaÅ¼dego z tych Å‚aÅ„cuchÃ³w trzeba zakoÅ„czyÄ‡ przyciÅ›niÄ™ciem
 klawisza <Return>.
 
->> Przesuñ kursor do czystej linii, dwie linie poni¿ej tej.
-   Naci¶nij M-x repl s<Return>zmieni<Return>zmodyfikuje<Return>.
+>> PrzesuÅ„ kursor do czystej linii, dwie linie poniÅ¼ej tej.
+   NaciÅ›nij M-x repl s<Return>zmieni<Return>zmodyfikuje<Return>.
 
-   Zwróæ uwagê, jak ta linia siê zmieni³a: zast±pi³e¶ s³owem
-   ,,zmodyfikuje'' ka¿de wyst±pienie s³owa z-m-i-e-n-i poni¿ej pocz±tkowej
+   ZwrÃ³Ä‡ uwagÄ™, jak ta linia siÄ™ zmieniÅ‚a: zastÄ…piÅ‚eÅ› sÅ‚owem
+   ,,zmodyfikuje'' kaÅ¼de wystÄ…pienie sÅ‚owa z-m-i-e-n-i poniÅ¼ej poczÄ…tkowej
    pozycji kursora.
 
 
 * AUTOMATYCZNE ZACHOWYWANIE
 ---------------------------
 
-Je¶li zmian wprowadzonych do pliku nie zachowasz, to mo¿esz je straciæ w
-wypadku, gdy Twój komputer przestanie dzia³aæ. By Ciê przed tym
-uchroniæ, Emacs okresowo zachowuje wprowadzone zmiany w specjalnym
-pliku, który ma znak # na pocz±tku i na koñcu swojej nazwy. Przyjmijmy
-na przyk³ad, ¿e Twój plik nazywa siê "hello.c". Odpowiadaj±cy mu plik
-zachowywany automatycznie bêdzie nosi³ nazwê "#hello.c#". Gdy
-zachowasz plik w zwyk³y sposób, Emacs skasuje plik
+JeÅ›li zmian wprowadzonych do pliku nie zachowasz, to moÅ¼esz je straciÄ‡ w
+wypadku, gdy TwÃ³j komputer przestanie dziaÅ‚aÄ‡. By CiÄ™ przed tym
+uchroniÄ‡, Emacs okresowo zachowuje wprowadzone zmiany w specjalnym
+pliku, ktÃ³ry ma znak # na poczÄ…tku i na koÅ„cu swojej nazwy. Przyjmijmy
+na przykÅ‚ad, Å¼e TwÃ³j plik nazywa siÄ™ "hello.c". OdpowiadajÄ…cy mu plik
+zachowywany automatycznie bÄ™dzie nosiÅ‚ nazwÄ™ "#hello.c#". Gdy
+zachowasz plik w zwykÅ‚y sposÃ³b, Emacs skasuje plik
 zachowany automatycznie.
 
-Je¶li Twój komputer przestanie dzia³aæ, mo¿esz odzyskaæ Twoje dane z
-pliku automatycznie zachowanego przez zwyk³e odwiedzenie tego pliku,
-który edytowa³e¶ (a nie pliku automatycznie zachowanego!) i napisanie
+JeÅ›li TwÃ³j komputer przestanie dziaÅ‚aÄ‡, moÅ¼esz odzyskaÄ‡ Twoje dane z
+pliku automatycznie zachowanego przez zwykÅ‚e odwiedzenie tego pliku,
+ktÃ³ry edytowaÅ‚eÅ› (a nie pliku automatycznie zachowanego!) i napisanie
 M-x recover file<Return>. Gdy Emacs zapyta o potwierdzenie, to
-dane zachowane automatycznie odzyskasz, je¶li odpowiesz yes<Return>.
+dane zachowane automatycznie odzyskasz, jeÅ›li odpowiesz yes<Return>.
 
 
 * OBSZAR ECHA
 -------------
 
-Je¶li polecenia dla Emacsa wpisujesz dostatecznie wolno, bêd± one
+JeÅ›li polecenia dla Emacsa wpisujesz dostatecznie wolno, bÄ™dÄ… one
 pokazywane w specjalnym obszarze na dole ekranu, zwanym obszarem echa
-(ang. echo area). Obszar echa zawiera ostatni± doln± liniê ekranu.
+(ang. echo area). Obszar echa zawiera ostatniÄ… dolnÄ… liniÄ™ ekranu.
 
 
 * LINIA STANU
 -------------
 
-Linia, która znajduje siê bezpo¶rednio nad obszarem echa, zwana jest
-lini± trybu (ang. modeline). Pokazuje ona tekst podobny do
-nastêpuj±cego:
+Linia, ktÃ³ra znajduje siÄ™ bezpoÅ›rednio nad obszarem echa, zwana jest
+liniÄ… trybu (ang. modeline). Pokazuje ona tekst podobny do
+nastÄ™pujÄ…cego:
 
 --:** TUTORIAL (Fundamental)--L670--58%----------------
 
-Linia ta podaje u¿yteczne informacje o stanie Emacsa i tekstu, który
+Linia ta podaje uÅ¼yteczne informacje o stanie Emacsa i tekstu, ktÃ³ry
 edytujesz.
 
-Wiesz ju¿, jakie jest znaczenie nazwy: oznacza ona plik,
-który odwiedzi³e¶. --NN%-- informuje o bie¿±cej pozycji wewn±trz
-tekstu; oznacza to, ¿e NN procent tekstu znajduje siê ponad górnym
-brzegiem ekranu. Je¶li pocz±tek pliku znajduje siê na pocz±tku
+Wiesz juÅ¼, jakie jest znaczenie nazwy: oznacza ona plik,
+ktÃ³ry odwiedziÅ‚eÅ›. --NN%-- informuje o bieÅ¼Ä…cej pozycji wewnÄ…trz
+tekstu; oznacza to, Å¼e NN procent tekstu znajduje siÄ™ ponad gÃ³rnym
+brzegiem ekranu. JeÅ›li poczÄ…tek pliku znajduje siÄ™ na poczÄ…tku
 ekranu, to zamiast liczby --00%-- zobaczysz w tym miejscu --Top--.
-Podobnie dla koñca tekstu pojawi siê tam napis --Bot-- (ang. bottom).
-Je¶li wy¶wietlasz tekst na tyle krótki, ¿e mie¶ci siê w
-ca³o¶ci na ekranie, to linia trybu bêdzie zawiera³a napis --All--.
+Podobnie dla koÅ„ca tekstu pojawi siÄ™ tam napis --Bot-- (ang. bottom).
+JeÅ›li wyÅ›wietlasz tekst na tyle krÃ³tki, Å¼e mieÅ›ci siÄ™ w
+caÅ‚oÅ›ci na ekranie, to linia trybu bÄ™dzie zawieraÅ‚a napis --All--.
 
-Litera L, po której wystêpuj± cyfry, tak¿e opisuje Twoj± bie¿±c±
-pozycjê: cyfry oznaczaj± numer linii, na której obecnie ustawiony jest
+Litera L, po ktÃ³rej wystÄ™pujÄ… cyfry, takÅ¼e opisuje TwojÄ… bieÅ¼Ä…cÄ…
+pozycjÄ™: cyfry oznaczajÄ… numer linii, na ktÃ³rej obecnie ustawiony jest
 kursor.
 
-Gwiazdki blisko pocz±tku linii trybu oznaczaj±, ¿e wprowadzi³e¶ do
-tekstu jakie¶ zmiany. Tu¿ po odwiedzeniu, a tak¿e po zachowaniu pliku
-nie bêdzie w tym miejscu gwiazdek, lecz my¶lniki.
+Gwiazdki blisko poczÄ…tku linii trybu oznaczajÄ…, Å¼e wprowadziÅ‚eÅ› do
+tekstu jakieÅ› zmiany. TuÅ¼ po odwiedzeniu, a takÅ¼e po zachowaniu pliku
+nie bÄ™dzie w tym miejscu gwiazdek, lecz myÅ›lniki.
 
-Wewn±trz nawiasów znajdziesz informacje na temat trybu edycji, w
-którym w³a¶nie jest Emacs. Domy¶lnym trybem edycji nazywa siê
-podstawowym (ang. fundamental); jest to tryb u¿ywanym w³a¶nie w
-tej chwili. Jest to przyk³ad ,,trybu g³ównego'' (ang. major mode).
+WewnÄ…trz nawiasÃ³w znajdziesz informacje na temat trybu edycji, w
+ktÃ³rym wÅ‚aÅ›nie jest Emacs. DomyÅ›lnym trybem edycji nazywa siÄ™
+podstawowym (ang. fundamental); jest to tryb uÅ¼ywanym wÅ‚aÅ›nie w
+tej chwili. Jest to przykÅ‚ad ,,trybu gÅ‚Ã³wnego'' (ang. major mode).
 
-Emacs mo¿e dzia³aæ w wielu trybach g³ównych. Zosta³y one zaprojektowane,
-aby u³atwiæ edycjê napisów w rozmaitych jêzykach programowania, takich
-jak tryb Lisp czy C, oraz rodzajach tekstów, jak tryb tekstowy. W danej
-chwili mo¿e byæ aktywny tylko jeden g³ówny tryb pracy i to jego nazwa
-jest wy¶wietlana w linii trybu w miejscu, w którym teraz jest
+Emacs moÅ¼e dziaÅ‚aÄ‡ w wielu trybach gÅ‚Ã³wnych. ZostaÅ‚y one zaprojektowane,
+aby uÅ‚atwiÄ‡ edycjÄ™ napisÃ³w w rozmaitych jÄ™zykach programowania, takich
+jak tryb Lisp czy C, oraz rodzajach tekstÃ³w, jak tryb tekstowy. W danej
+chwili moÅ¼e byÄ‡ aktywny tylko jeden gÅ‚Ã³wny tryb pracy i to jego nazwa
+jest wyÅ›wietlana w linii trybu w miejscu, w ktÃ³rym teraz jest
 "Fundamental".
 
-Ka¿dy z g³ównych trybów edycyjnych mo¿e zmieniæ zachowanie niektórych
-poleceñ. Na przyk³ad w Emacsie istniej± polecenia s³u¿±ce do tworzenia
-komentarzy w programach. Skoro ka¿dy jêzyk programowania sam okre¶la,
-jak powinien wygl±daæ komentarz, to ka¿dy z g³ównych trybów edycyjnych
-musi wstawiaæ komentarze w odpowiedni sposób. Trybowi edycyjnemu
-odpowiada nazwa polecenia, które mo¿esz wykonaæ, by prze³±czyæ siê w ten
-tryb lub go wy³±czyæ. Przyk³adem mo¿e byæ M-x fundamental-mode, które
-jest poleceniem prze³±czaj±cym tryb podstawowy.
+KaÅ¼dy z gÅ‚Ã³wnych trybÃ³w edycyjnych moÅ¼e zmieniÄ‡ zachowanie niektÃ³rych
+poleceÅ„. Na przykÅ‚ad w Emacsie istniejÄ… polecenia sÅ‚uÅ¼Ä…ce do tworzenia
+komentarzy w programach. Skoro kaÅ¼dy jÄ™zyk programowania sam okreÅ›la,
+jak powinien wyglÄ…daÄ‡ komentarz, to kaÅ¼dy z gÅ‚Ã³wnych trybÃ³w edycyjnych
+musi wstawiaÄ‡ komentarze w odpowiedni sposÃ³b. Trybowi edycyjnemu
+odpowiada nazwa polecenia, ktÃ³re moÅ¼esz wykonaÄ‡, by przeÅ‚Ä…czyÄ‡ siÄ™ w ten
+tryb lub go wyÅ‚Ä…czyÄ‡. PrzykÅ‚adem moÅ¼e byÄ‡ M-x fundamental-mode, ktÃ³re
+jest poleceniem przeÅ‚Ä…czajÄ…cym tryb podstawowy.
 
-Je¶li zamierzasz edytowaæ tekst w jêzyku angielskim, taki jak na
-przyk³ad oryginalna wersja tego samouczka, to prawdopodobnie
-powiniene¶ u¿yæ trybu tekstowego (ang. text mode).
+JeÅ›li zamierzasz edytowaÄ‡ tekst w jÄ™zyku angielskim, taki jak na
+przykÅ‚ad oryginalna wersja tego samouczka, to prawdopodobnie
+powinieneÅ› uÅ¼yÄ‡ trybu tekstowego (ang. text mode).
 
 >> Napisz M-x text-mode<Return>.
 
-Nie musisz siê martwiæ, bo ¿adne z poleceñ, które do tej pory pozna³e¶,
-nie zmienia Emacsa w powa¿ny sposób. Mo¿esz jednak zauwa¿yæ, ¿e teraz
-M-f i M-b traktuj± apostrofy jako czê¶ci s³ów. Poprzednio, w trybie
-podstawowym, polecenia te traktowa³y apostrofy jako separatory s³ów.
+Nie musisz siÄ™ martwiÄ‡, bo Å¼adne z poleceÅ„, ktÃ³re do tej pory poznaÅ‚eÅ›,
+nie zmienia Emacsa w powaÅ¼ny sposÃ³b. MoÅ¼esz jednak zauwaÅ¼yÄ‡, Å¼e teraz
+M-f i M-b traktujÄ… apostrofy jako czÄ™Å›ci sÅ‚Ã³w. Poprzednio, w trybie
+podstawowym, polecenia te traktowaÅ‚y apostrofy jako separatory sÅ‚Ã³w.
 
-G³ówne tryby edycji wprowadzaj± zwykle subtelne zmiany, takie jak
-opisana powy¿ej; wiêkszo¶æ poleceñ nadal robi ,,to samo'', chocia¿
-byæ mo¿e w troszeczkê inny sposób.
+GÅ‚Ã³wne tryby edycji wprowadzajÄ… zwykle subtelne zmiany, takie jak
+opisana powyÅ¼ej; wiÄ™kszoÅ›Ä‡ poleceÅ„ nadal robi ,,to samo'', chociaÅ¼
+byÄ‡ moÅ¼e w troszeczkÄ™ inny sposÃ³b.
 
-By zobaczyæ dokumentacjê na temat bie¿±cego g³ównego trybu edycji,
-naci¶nij C-h m.
+By zobaczyÄ‡ dokumentacjÄ™ na temat bieÅ¼Ä…cego gÅ‚Ã³wnego trybu edycji,
+naciÅ›nij C-h m.
 
->> Naci¶nij C-u C-v raz lub wiêcej razy, tak by ta linia znalaz³a siê
-   blisko góry ekranu.
+>> NaciÅ›nij C-u C-v raz lub wiÄ™cej razy, tak by ta linia znalazÅ‚a siÄ™
+   blisko gÃ³ry ekranu.
 
->> Naci¶nij C-h m, by odczytaæ dokumentacjê na temat tego, czym tryb
-   tekstowy ró¿ni siê od trybu podstawowego.
+>> NaciÅ›nij C-h m, by odczytaÄ‡ dokumentacjÄ™ na temat tego, czym tryb
+   tekstowy rÃ³Å¼ni siÄ™ od trybu podstawowego.
 
->> Naci¶nij q, by usun±æ dokumentacjê trybu z ekranu.
+>> NaciÅ›nij q, by usunÄ…Ä‡ dokumentacjÄ™ trybu z ekranu.
 
-G³ówne tryby edycji nazywaj± siê w³a¶nie ,,g³ównymi'', gdy¿ wystêpuj±
-tak¿e ,,podrzêdne'' tryby edycji (ang. minor modes). Podrzêdne tryby
-edycji nie s± alternatyw± dla trybów g³ównych, lecz jedynie ich
-niewielk± modyfikacj±. Ka¿dy podrzêdny tryb edycji mo¿na w³±czyæ lub
-wy³±czyæ niezale¿nie od pozosta³ych trybów podrzêdnych, a tak¿e
-niezale¿nie od trybu g³ównego. Mo¿esz wiec u¿ywaæ jednego,
-kombinacji dowolnych, albo nie u¿ywaæ ¿adnego trybu podrzêdnego.
+GÅ‚Ã³wne tryby edycji nazywajÄ… siÄ™ wÅ‚aÅ›nie ,,gÅ‚Ã³wnymi'', gdyÅ¼ wystÄ™pujÄ…
+takÅ¼e ,,podrzÄ™dne'' tryby edycji (ang. minor modes). PodrzÄ™dne tryby
+edycji nie sÄ… alternatywÄ… dla trybÃ³w gÅ‚Ã³wnych, lecz jedynie ich
+niewielkÄ… modyfikacjÄ…. KaÅ¼dy podrzÄ™dny tryb edycji moÅ¼na wÅ‚Ä…czyÄ‡ lub
+wyÅ‚Ä…czyÄ‡ niezaleÅ¼nie od pozostaÅ‚ych trybÃ³w podrzÄ™dnych, a takÅ¼e
+niezaleÅ¼nie od trybu gÅ‚Ã³wnego. MoÅ¼esz wiec uÅ¼ywaÄ‡ jednego,
+kombinacji dowolnych, albo nie uÅ¼ywaÄ‡ Å¼adnego trybu podrzÄ™dnego.
 
-Jednym z podrzêdnych trybów edycji, który jest bardzo u¿yteczny,
-szczególnie do edycji tekstu angielskiego lub polskiego, jest tryb
-automatycznego wype³niania (ang. auto fill mode). Je¶li jest on
-w³±czony, to Emacs ³amie linie pomiêdzy s³owami automatycznie, gdy
-podczas wstawiania tekstu linia robi siê za szeroka.
+Jednym z podrzÄ™dnych trybÃ³w edycji, ktÃ³ry jest bardzo uÅ¼yteczny,
+szczegÃ³lnie do edycji tekstu angielskiego lub polskiego, jest tryb
+automatycznego wypeÅ‚niania (ang. auto fill mode). JeÅ›li jest on
+wÅ‚Ä…czony, to Emacs Å‚amie linie pomiÄ™dzy sÅ‚owami automatycznie, gdy
+podczas wstawiania tekstu linia robi siÄ™ za szeroka.
 
-Tryb automatycznego wstawiania w³±cza siê na przyk³ad poleceniem M-x
-auto-fill-mode<Return>. Powtórzenie tego polecenie powoduje wy³±czenie
-trybu, ponowne powtórzenie --- jego w³±czenie, i tak dalej. Mówimy, ¿e
-polecenie ,,prze³±cza tryb''.
+Tryb automatycznego wstawiania wÅ‚Ä…cza siÄ™ na przykÅ‚ad poleceniem M-x
+auto-fill-mode<Return>. PowtÃ³rzenie tego polecenie powoduje wyÅ‚Ä…czenie
+trybu, ponowne powtÃ³rzenie --- jego wÅ‚Ä…czenie, i tak dalej. MÃ³wimy, Å¼e
+polecenie ,,przeÅ‚Ä…cza tryb''.
 
->> Napisz M-x auto-fill-mode<Return>. Wstaw potem wiele napisów
-   ,,asdf '' tak d³ugo, a¿ zobaczysz, ¿e linia podzieli na dwie.
-   Miêdzy literami musisz wstawiaæ spacje, poniewa¿ tryb
-   automatycznego wype³niania ³amie linie tylko tam, gdzie s± spacje.
+>> Napisz M-x auto-fill-mode<Return>. Wstaw potem wiele napisÃ³w
+   ,,asdf '' tak dÅ‚ugo, aÅ¼ zobaczysz, Å¼e linia podzieli na dwie.
+   MiÄ™dzy literami musisz wstawiaÄ‡ spacje, poniewaÅ¼ tryb
+   automatycznego wypeÅ‚niania Å‚amie linie tylko tam, gdzie sÄ… spacje.
 
-Margines jest zazwyczaj ustawiony na 70 znaków, ale mo¿esz to zmieniæ
-poleceniem C-x f. Powiniene¶ poleceniu podaæ argument liczbowy
-mówi±cy, w której kolumnie ma zostaæ ustawiony margines.
+Margines jest zazwyczaj ustawiony na 70 znakÃ³w, ale moÅ¼esz to zmieniÄ‡
+poleceniem C-x f. PowinieneÅ› poleceniu podaÄ‡ argument liczbowy
+mÃ³wiÄ…cy, w ktÃ³rej kolumnie ma zostaÄ‡ ustawiony margines.
 
->> Wywo³aj C-x f z argumentem równym 20. (C-u 2 0 C-x f).
-   Napisz potem jaki¶ tekst i zauwa¿, ¿e Emacs wype³nia linie do
-   d³ugo¶ci co najwy¿ej 20 znaków. Ustaw margines z powrotem na
-   70 znaków, wywo³uj±c jeszcze raz C-x f z odpowiednim argumentem.
+>> WywoÅ‚aj C-x f z argumentem rÃ³wnym 20. (C-u 2 0 C-x f).
+   Napisz potem jakiÅ› tekst i zauwaÅ¼, Å¼e Emacs wypeÅ‚nia linie do
+   dÅ‚ugoÅ›ci co najwyÅ¼ej 20 znakÃ³w. Ustaw margines z powrotem na
+   70 znakÃ³w, wywoÅ‚ujÄ…c jeszcze raz C-x f z odpowiednim argumentem.
 
-Je¶li zmieniasz tekst wewn±trz akapitu, to tryb automatycznego
-wype³niania sam z siebie nie wyrówna marginesu. Mo¿esz go wyrównaæ
-samodzielnie, wydaj±c polecenie M-q (Meta-q) (kursor powinien siê
-wówczas znajdowaæ wewn±trz akapitu).
+JeÅ›li zmieniasz tekst wewnÄ…trz akapitu, to tryb automatycznego
+wypeÅ‚niania sam z siebie nie wyrÃ³wna marginesu. MoÅ¼esz go wyrÃ³wnaÄ‡
+samodzielnie, wydajÄ…c polecenie M-q (Meta-q) (kursor powinien siÄ™
+wÃ³wczas znajdowaÄ‡ wewnÄ…trz akapitu).
 
->> Przesuñ kursor do poprzedniego akapitu i naci¶nij M-q.
+>> PrzesuÅ„ kursor do poprzedniego akapitu i naciÅ›nij M-q.
 
 
 * SZUKANIE
 ----------
 
-Emacs potrafi szukaæ ³añcuchów (zwartych ci±gów znaków lub s³ów)
-zarówno wstecz jak i do przodu. Szukanie ³añcucha jest poleceniem,
-które przesuwa kursor --- do nastêpnego miejsca, w którym dany
-³añcuch wystêpuje.
+Emacs potrafi szukaÄ‡ Å‚aÅ„cuchÃ³w (zwartych ciÄ…gÃ³w znakÃ³w lub sÅ‚Ã³w)
+zarÃ³wno wstecz jak i do przodu. Szukanie Å‚aÅ„cucha jest poleceniem,
+ktÃ³re przesuwa kursor --- do nastÄ™pnego miejsca, w ktÃ³rym dany
+Å‚aÅ„cuch wystÄ™puje.
 
-Polecenie Emacsa "search" ró¿ni siê od podobnych poleceñ w innych
-edytorach tym, ¿e jest przyrostowe. Znaczy to, ¿e szukanie odbywa
-siê w trakcie, gdy wpisujesz kolejne znaki ³añcucha, który ma zostaæ
+Polecenie Emacsa "search" rÃ³Å¼ni siÄ™ od podobnych poleceÅ„ w innych
+edytorach tym, Å¼e jest przyrostowe. Znaczy to, Å¼e szukanie odbywa
+siÄ™ w trakcie, gdy wpisujesz kolejne znaki Å‚aÅ„cucha, ktÃ³ry ma zostaÄ‡
 znaleziony.
 
-Poleceniami rozpoczynaj±cymi szukanie s±: C-s dla szukania w przód
-oraz C-r dla szukania wstecz. POCZEKAJ PROSZÊ! Nie próbuj ich w tej
+Poleceniami rozpoczynajÄ…cymi szukanie sÄ…: C-s dla szukania w przÃ³d
+oraz C-r dla szukania wstecz. POCZEKAJ PROSZÄ˜! Nie prÃ³buj ich w tej
 chwili.
 
-Gdy naci¶niesz C-s, zauwa¿ysz, ¿e w obszarze echa pojawi siê
-tekst "I-search". Jest to informacja, ¿e Emacs znajduje siê w trybie
-"incremental search" i czeka, by¶ napisa³ tekst, który ma znale¼æ.
-Naci¶niêcie <Return> koñczy proces szukania.
+Gdy naciÅ›niesz C-s, zauwaÅ¼ysz, Å¼e w obszarze echa pojawi siÄ™
+tekst "I-search". Jest to informacja, Å¼e Emacs znajduje siÄ™ w trybie
+"incremental search" i czeka, byÅ› napisaÅ‚ tekst, ktÃ³ry ma znaleÅºÄ‡.
+NaciÅ›niÄ™cie <Return> koÅ„czy proces szukania.
 
->> Rozpocznij teraz szukanie, naciskaj±c C-s. POWOLI, litera po
-   literze, napisz s³owo kursor, zatrzymuj±c siê po ka¿dym znaku
-   i obserwuj±c, gdzie zatrzymuje siê kursor. Gdy naci¶niesz drugie
-   r, bêdzie mo¿na powiedzieæ, ¿e szuka³e¶ s³owa kursor
-   jednokrotnie. Naci¶nij jeszcze raz C-s, by znale¼æ nastêpne
-   wyst±pienie s³owa kursor. Naci¶nij teraz cztery razy <Delback>
-   i zobacz, co siê dzieje z kursorem. Naci¶nij <Return>, by skoñczyæ
+>> Rozpocznij teraz szukanie, naciskajÄ…c C-s. POWOLI, litera po
+   literze, napisz sÅ‚owo kursor, zatrzymujÄ…c siÄ™ po kaÅ¼dym znaku
+   i obserwujÄ…c, gdzie zatrzymuje siÄ™ kursor. Gdy naciÅ›niesz drugie
+   r, bÄ™dzie moÅ¼na powiedzieÄ‡, Å¼e szukaÅ‚eÅ› sÅ‚owa kursor
+   jednokrotnie. NaciÅ›nij jeszcze raz C-s, by znaleÅºÄ‡ nastÄ™pne
+   wystÄ…pienie sÅ‚owa kursor. NaciÅ›nij teraz cztery razy <Delback>
+   i zobacz, co siÄ™ dzieje z kursorem. NaciÅ›nij <Return>, by skoÅ„czyÄ‡
    szukanie.
 
-Widzia³e¶, co siê dzia³o? Podczas szukania przyrostowego Emacs próbuje
-przej¶æ do miejsca wyst±pienia ³añcucha, który wpisa³e¶ do tej pory,
-i pod¶wietla go dla Twojej wygody. By znale¼æ nastêpne wyst±pienie
-s³owa kursor, po prostu jeszcze raz naci¶nij C-s. Je¶li takiego
-wyst±pienia nie ma, to Emacs zapiszczy i napisze, ¿e szukanie
-,,skoñczy³o siê pora¿k±''.
+WidziaÅ‚eÅ›, co siÄ™ dziaÅ‚o? Podczas szukania przyrostowego Emacs prÃ³buje
+przejÅ›Ä‡ do miejsca wystÄ…pienia Å‚aÅ„cucha, ktÃ³ry wpisaÅ‚eÅ› do tej pory,
+i podÅ›wietla go dla Twojej wygody. By znaleÅºÄ‡ nastÄ™pne wystÄ…pienie
+sÅ‚owa kursor, po prostu jeszcze raz naciÅ›nij C-s. JeÅ›li takiego
+wystÄ…pienia nie ma, to Emacs zapiszczy i napisze, Å¼e szukanie
+,,skoÅ„czyÅ‚o siÄ™ poraÅ¼kÄ…''.
 
 Kombinacja C-g przerywa proces szukania, podobnie jak to czyni
 z innymi poleceniami.
 
-UWAGA: W niektórych systemach naci¶niecie C-s zamra¿a ekran i w
-rezultacie Emacs nie mo¿e pokazywaæ tekstu. Oznacza to, ¿e sk³adowa
-systemu operacyjnego, zwana kontrol± przep³ywu (ang. "flow control"),
-przechwyci³a znak C-s i nie pozwoli³a mu dotrzeæ do Emacsa. By odzyskaæ
-kontrolê nad ekranem, naci¶nij C-q. Dodatkowej pomocy poszukaj w
-rozdziale "Spontaneous Entry to Incremental Search" w podrêczniku
+UWAGA: W niektÃ³rych systemach naciÅ›niecie C-s zamraÅ¼a ekran i w
+rezultacie Emacs nie moÅ¼e pokazywaÄ‡ tekstu. Oznacza to, Å¼e skÅ‚adowa
+systemu operacyjnego, zwana kontrolÄ… przepÅ‚ywu (ang. "flow control"),
+przechwyciÅ‚a znak C-s i nie pozwoliÅ‚a mu dotrzeÄ‡ do Emacsa. By odzyskaÄ‡
+kontrolÄ™ nad ekranem, naciÅ›nij C-q. Dodatkowej pomocy poszukaj w
+rozdziale "Spontaneous Entry to Incremental Search" w podrÄ™czniku
 Emacsa.
 
-Je¶li podczas szukania przyrostowego naci¶niesz <Delback>, to zauwa¿ysz,
-¿e w minibuforze znika ostatni znak wpisanego przez ciebie ³añcucha, a
-kursor wraca do poprzedniego miejsca. Przypu¶æmy na przyk³ad, ¿e
-nacisn±³e¶ k i znalaz³e¶ pierwsze wyst±pienie tej litery. Je¶li teraz
-naci¶niesz u, to kursor przesunie siê tu¿ za najbli¿sze litery
-ku. Naci¶nij teraz <Delback>. Spowoduje to skasowanie z wyszukiwanego
-³añcucha litery u, a kursor wróci do pierwszego wyst±pienia litery k.
+JeÅ›li podczas szukania przyrostowego naciÅ›niesz <Delback>, to zauwaÅ¼ysz,
+Å¼e w minibuforze znika ostatni znak wpisanego przez ciebie Å‚aÅ„cucha, a
+kursor wraca do poprzedniego miejsca. PrzypuÅ›Ä‡my na przykÅ‚ad, Å¼e
+nacisnÄ…Å‚eÅ› k i znalazÅ‚eÅ› pierwsze wystÄ…pienie tej litery. JeÅ›li teraz
+naciÅ›niesz u, to kursor przesunie siÄ™ tuÅ¼ za najbliÅ¼sze litery
+ku. NaciÅ›nij teraz <Delback>. Spowoduje to skasowanie z wyszukiwanego
+Å‚aÅ„cucha litery u, a kursor wrÃ³ci do pierwszego wystÄ…pienia litery k.
 
-Je¶li podczas szukania naci¶niesz jaki¶ klawisz w kombinacji z META lub
-Ctrl (z nielicznymi wyj±tkami --- znakami, które maj± specjalne
+JeÅ›li podczas szukania naciÅ›niesz jakiÅ› klawisz w kombinacji z META lub
+Ctrl (z nielicznymi wyjÄ…tkami --- znakami, ktÃ³re majÄ… specjalne
 znaczenie podczas szukania, takimi jak C-s i C-r), to szukanie zostanie
 przerwane.
 
-C-s rozpoczyna proces szukania do przodu, czyli ZA bie¿±c± pozycj±
-kursora. Je¶li chcesz szukaæ czego¶ po³o¿onego w tek¶cie wcze¶niej,
-to naci¶nij C-r. Wszystko, co powiedzieli¶my o poleceniu C-s, stosuje
-siê te¿ do C-r, oczywi¶cie w odniesieniu do szukania wstecz.
+C-s rozpoczyna proces szukania do przodu, czyli ZA bieÅ¼Ä…cÄ… pozycjÄ…
+kursora. JeÅ›li chcesz szukaÄ‡ czegoÅ› poÅ‚oÅ¼onego w tekÅ›cie wczeÅ›niej,
+to naciÅ›nij C-r. Wszystko, co powiedzieliÅ›my o poleceniu C-s, stosuje
+siÄ™ teÅ¼ do C-r, oczywiÅ›cie w odniesieniu do szukania wstecz.
 
 
 * WIELE OKIEN
 -------------
 
-Jedn± z u¿ytecznych cech Emacsa jest mo¿liwo¶æ wy¶wietlania wiêcej ni¿
+JednÄ… z uÅ¼ytecznych cech Emacsa jest moÅ¼liwoÅ›Ä‡ wyÅ›wietlania wiÄ™cej niÅ¼
 jednego okna na raz.
 
->> Przesuñ kursor do tej linii i naci¶nij C-u 0 C-l.
+>> PrzesuÅ„ kursor do tej linii i naciÅ›nij C-u 0 C-l.
 
->> Naci¶nij teraz C-x 2, co podzieli ekran na dwa okna. Obydwa okna
-   wy¶wietlaj± ten samouczek. Kursor pozostaje w górnym oknie.
+>> NaciÅ›nij teraz C-x 2, co podzieli ekran na dwa okna. Obydwa okna
+   wyÅ›wietlajÄ… ten samouczek. Kursor pozostaje w gÃ³rnym oknie.
 
->> Naci¶nij C-M-v by przewin±æ dolne okno. (Je¶li nie masz
-   klawisza Meta lub Alt, to naci¶nij ESC C-v.)
+>> NaciÅ›nij C-M-v by przewinÄ…Ä‡ dolne okno. (JeÅ›li nie masz
+   klawisza Meta lub Alt, to naciÅ›nij ESC C-v.)
 
->> Naci¶nij C-x o ("o" jak angielskie "other") by przesun±æ kursor do
-   dolnego okna. U¿yj C-v i M-v w dolnym oknie, by przewin±æ jego
-   zawarto¶æ. Polecenia, które masz wykonaæ, odczytuj z górnego okna.
+>> NaciÅ›nij C-x o ("o" jak angielskie "other") by przesunÄ…Ä‡ kursor do
+   dolnego okna. UÅ¼yj C-v i M-v w dolnym oknie, by przewinÄ…Ä‡ jego
+   zawartoÅ›Ä‡. Polecenia, ktÃ³re masz wykonaÄ‡, odczytuj z gÃ³rnego okna.
 
->> Naci¶nij C-x o jeszcze raz tak, by kursor wróci³ do górnego okna.
-   Kursor w górnym oknie nie zmieni³ po³o¿enia.
+>> NaciÅ›nij C-x o jeszcze raz tak, by kursor wrÃ³ciÅ‚ do gÃ³rnego okna.
+   Kursor w gÃ³rnym oknie nie zmieniÅ‚ poÅ‚oÅ¼enia.
 
-Ka¿de okno pamiêta po³o¿enie swojego kursora, lecz w danej chwili
-tylko jedno z okien wy¶wietla kursor. Wszystkie polecenia edycyjne
-stosuj± siê do okna, w którym jest kursor. To okno nazywane jest
+KaÅ¼de okno pamiÄ™ta poÅ‚oÅ¼enie swojego kursora, lecz w danej chwili
+tylko jedno z okien wyÅ›wietla kursor. Wszystkie polecenia edycyjne
+stosujÄ… siÄ™ do okna, w ktÃ³rym jest kursor. To okno nazywane jest
 ,,oknem wybranym''.
 
-Polecenie C-M-v przyda Ci siê, gdy bêdziesz chcia³ edytowaæ tekst w
-jednym oknie, a drugiego u¿ywa³ jako punktu odniesienia. Dziêki niemu
-kursor mo¿e zawsze znajdowaæ siê w oknie, którego zawarto¶æ edytujesz, a
-Ty mo¿esz przesuwaæ drugie okno.
+Polecenie C-M-v przyda Ci siÄ™, gdy bÄ™dziesz chciaÅ‚ edytowaÄ‡ tekst w
+jednym oknie, a drugiego uÅ¼ywaÅ‚ jako punktu odniesienia. DziÄ™ki niemu
+kursor moÅ¼e zawsze znajdowaÄ‡ siÄ™ w oknie, ktÃ³rego zawartoÅ›Ä‡ edytujesz, a
+Ty moÅ¼esz przesuwaÄ‡ drugie okno.
 
-C-M-v to przyk³ad kombinacji, który uzyskuje siê, wciskaj±c jednocze¶nie
-klawisze Ctrl i Meta (Alt). Je¶li masz prawdziwy klawisz META (Alt), to
-C-M-v mo¿esz uzyskaæ przytrzymuj±c jednocze¶nie Ctrl oraz META (Alt) i
-naciskaj±c v. Nie jest wa¿ne, co zosta³o naci¶niête wcze¶niej, Ctrl czy
-META, poniewa¿ obydwa te klawisze dzia³aj± jako modyfikatory znaczenia
-znaków.
+C-M-v to przykÅ‚ad kombinacji, ktÃ³ry uzyskuje siÄ™, wciskajÄ…c jednoczeÅ›nie
+klawisze Ctrl i Meta (Alt). JeÅ›li masz prawdziwy klawisz META (Alt), to
+C-M-v moÅ¼esz uzyskaÄ‡ przytrzymujÄ…c jednoczeÅ›nie Ctrl oraz META (Alt) i
+naciskajÄ…c v. Nie jest waÅ¼ne, co zostaÅ‚o naciÅ›niÄ™te wczeÅ›niej, Ctrl czy
+META, poniewaÅ¼ obydwa te klawisze dziaÅ‚ajÄ… jako modyfikatory znaczenia
+znakÃ³w.
 
-Je¶li nie masz klawisza META (Alt) i w jego zastêpstwie u¿ywasz ESC, to
-kolejno¶æ naciskania klawiszy ma znaczenie: musisz najpierw nacisn±æ i
-pu¶ciæ ESC, po czym nacisn±æ Ctrl-v; kombinacja Ctrl-ESC v nie zadzia³a.
-Wynika to z tego, ¿e ESC jest znakiem, a nie modyfikatorem.
+JeÅ›li nie masz klawisza META (Alt) i w jego zastÄ™pstwie uÅ¼ywasz ESC, to
+kolejnoÅ›Ä‡ naciskania klawiszy ma znaczenie: musisz najpierw nacisnÄ…Ä‡ i
+puÅ›ciÄ‡ ESC, po czym nacisnÄ…Ä‡ Ctrl-v; kombinacja Ctrl-ESC v nie zadziaÅ‚a.
+Wynika to z tego, Å¼e ESC jest znakiem, a nie modyfikatorem.
 
->> Naci¶nij C-x 1 (w górnym oknie), by pozbyæ siê okna dolnego.
+>> NaciÅ›nij C-x 1 (w gÃ³rnym oknie), by pozbyÄ‡ siÄ™ okna dolnego.
 
-(Je¶li nacisn±³by¶ C-x 1 w dolnym oknie, to górne by znik³o. Mo¿esz
-sobie to polecenie t³umaczyæ jako ,,pozostaw tylko jedno okno --- to w
-którym w³a¶nie jestem''.)
+(JeÅ›li nacisnÄ…Å‚byÅ› C-x 1 w dolnym oknie, to gÃ³rne by znikÅ‚o. MoÅ¼esz
+sobie to polecenie tÅ‚umaczyÄ‡ jako ,,pozostaw tylko jedno okno --- to w
+ktÃ³rym wÅ‚aÅ›nie jestem''.)
 
-Nie musi byæ tak, ¿e obydwa okna pokazuj± ten sam bufor. Je¶li u¿yjesz
-C-x C-f, by odwiedziæ jaki¶ plik w jednym z nich, to zawarto¶æ drugiego
-siê nie zmieni. Z zasady w ró¿nych oknach mo¿esz niezale¿nie wy¶wietlaæ
-ró¿ne pliki.
+Nie musi byÄ‡ tak, Å¼e obydwa okna pokazujÄ… ten sam bufor. JeÅ›li uÅ¼yjesz
+C-x C-f, by odwiedziÄ‡ jakiÅ› plik w jednym z nich, to zawartoÅ›Ä‡ drugiego
+siÄ™ nie zmieni. Z zasady w rÃ³Å¼nych oknach moÅ¼esz niezaleÅ¼nie wyÅ›wietlaÄ‡
+rÃ³Å¼ne pliki.
 
-Oto inny sposób u¿ywania dwóch okien do wy¶wietlania dwóch ró¿nych
+Oto inny sposÃ³b uÅ¼ywania dwÃ³ch okien do wyÅ›wietlania dwÃ³ch rÃ³Å¼nych
 rzeczy:
 
->> Naci¶nij C-x 4 C-f i nazwê jednego z Twoich plików. Zakoñcz
-   wprowadzanie klawiszem <Return>. Podany plik pojawi siê w dolnym
-   oknie razem z kursorem, który tam przeskakuje.
+>> NaciÅ›nij C-x 4 C-f i nazwÄ™ jednego z Twoich plikÃ³w. ZakoÅ„cz
+   wprowadzanie klawiszem <Return>. Podany plik pojawi siÄ™ w dolnym
+   oknie razem z kursorem, ktÃ³ry tam przeskakuje.
 
->> Naci¶nij C-x o, by wróciæ do górnego okna, oraz C-x 1 by usun±æ
+>> NaciÅ›nij C-x o, by wrÃ³ciÄ‡ do gÃ³rnego okna, oraz C-x 1 by usunÄ…Ä‡
    dolne okno.
 
 
 * REKURSYWNE POZIOMY EDYCJI
 ---------------------------
 
-Czasami mo¿esz znale¼æ siê w czym¶, co nazywa siê "rekursywnym
-poziomem edycji". Mo¿esz to rozpoznaæ po nawiasach kwadratowych w
-linii trybu, obejmuj±cych nawiasy okr±g³e zawieraj±ce nazwê g³ównego
-trybu edycji. Móg³by¶ na przyk³ad zobaczyæ [(Fundamental)] zamiast
+Czasami moÅ¼esz znaleÅºÄ‡ siÄ™ w czymÅ›, co nazywa siÄ™ "rekursywnym
+poziomem edycji". MoÅ¼esz to rozpoznaÄ‡ po nawiasach kwadratowych w
+linii trybu, obejmujÄ…cych nawiasy okrÄ…gÅ‚e zawierajÄ…ce nazwÄ™ gÅ‚Ã³wnego
+trybu edycji. MÃ³gÅ‚byÅ› na przykÅ‚ad zobaczyÄ‡ [(Fundamental)] zamiast
 (Fundamental).
 
-By wyj¶æ z rekursywnego poziomu edycji, naci¶nij ESC ESC ESC. Jest to
-ogólnego przeznaczenia polecenie ,,wychodzimy''. Mo¿esz go u¿yæ tak¿e,
-by pozbyæ siê nadmiaru okien albo wyj¶æ z minibufora.
+By wyjÅ›Ä‡ z rekursywnego poziomu edycji, naciÅ›nij ESC ESC ESC. Jest to
+ogÃ³lnego przeznaczenia polecenie ,,wychodzimy''. MoÅ¼esz go uÅ¼yÄ‡ takÅ¼e,
+by pozbyÄ‡ siÄ™ nadmiaru okien albo wyjÅ›Ä‡ z minibufora.
 
->> Naci¶nij M-x by wej¶æ do minibufora, potem naci¶nij ESC ESC ESC, by
-   z niego wyj¶æ.
+>> NaciÅ›nij M-x by wejÅ›Ä‡ do minibufora, potem naciÅ›nij ESC ESC ESC, by
+   z niego wyjÅ›Ä‡.
 
-Aby wyj¶æ z rekursywnego poziomu edycji, nie wystarczy u¿yæ C-g. Dzieje
-siê tak dlatego, ¿e klawisz C-g jest u¿ywany do anulowania poleceñ i
-argumentów WEWN¡TRZ pojedynczego rekursywnego poziomu edycji.
+Aby wyjÅ›Ä‡ z rekursywnego poziomu edycji, nie wystarczy uÅ¼yÄ‡ C-g. Dzieje
+siÄ™ tak dlatego, Å¼e klawisz C-g jest uÅ¼ywany do anulowania poleceÅ„ i
+argumentÃ³w WEWNÄ„TRZ pojedynczego rekursywnego poziomu edycji.
 
 
 SZUKANIE POMOCY
 ---------------
 
-W tym samouczku dostarczyli¶my tylko tyle informacji, ile jest
-niezbêdne, by¶ móg³ zacz±æ u¿ywaæ Emacsa. Emacs jest istn± kopalni±
-najró¿niejszych rzeczy, których nie sposób tutaj opisaæ. Bêdziesz
-zapewne chcia³ dowiedzieæ siê o Emacsie wiêcej, poniewa¿ posiada on
-wiele po¿ytecznych cech, o których na razie nic nie wiesz. Miêdzy innymi
-jest w nim zaszyte mnóstwo wewnêtrznej dokumentacji. Dotrzeæ do tej
-dokumentacji mo¿esz po naci¶niêciu kombinacji C-h.
+W tym samouczku dostarczyliÅ›my tylko tyle informacji, ile jest
+niezbÄ™dne, byÅ› mÃ³gÅ‚ zaczÄ…Ä‡ uÅ¼ywaÄ‡ Emacsa. Emacs jest istnÄ… kopalniÄ…
+najrÃ³Å¼niejszych rzeczy, ktÃ³rych nie sposÃ³b tutaj opisaÄ‡. BÄ™dziesz
+zapewne chciaÅ‚ dowiedzieÄ‡ siÄ™ o Emacsie wiÄ™cej, poniewaÅ¼ posiada on
+wiele poÅ¼ytecznych cech, o ktÃ³rych na razie nic nie wiesz. MiÄ™dzy innymi
+jest w nim zaszyte mnÃ³stwo wewnÄ™trznej dokumentacji. DotrzeÄ‡ do tej
+dokumentacji moÅ¼esz po naciÅ›niÄ™ciu kombinacji C-h.
 
-By uzyskaæ pomoc, naci¶nij C-h, a potem znak, który okre¶la jakiego
-rodzaju pomocy oczekujesz. Je¶li poczujesz siê NAPRAWDÊ zagubiony, to
-napisz C-h?, a Emacs podpowie, jakiego rodzaju pomocy mo¿e Ci
-dostarczyæ. Je¶li naci¶niesz C-h, a potem zadecydujesz, ¿e pomoc nie
-jest Ci jednak potrzebna, to aby anulowaæ zapocz±tkowane polecenie C-h,
-po prostu wci¶nij C-g.
+By uzyskaÄ‡ pomoc, naciÅ›nij C-h, a potem znak, ktÃ³ry okreÅ›la jakiego
+rodzaju pomocy oczekujesz. JeÅ›li poczujesz siÄ™ NAPRAWDÄ˜ zagubiony, to
+napisz C-h?, a Emacs podpowie, jakiego rodzaju pomocy moÅ¼e Ci
+dostarczyÄ‡. JeÅ›li naciÅ›niesz C-h, a potem zadecydujesz, Å¼e pomoc nie
+jest Ci jednak potrzebna, to aby anulowaÄ‡ zapoczÄ…tkowane polecenie C-h,
+po prostu wciÅ›nij C-g.
 
-Najprostsz± pomoc mo¿esz uzyskaæ naciskaj±c C-h c. Naci¶nij C-h a potem
-c, po czym kombinacjê klawiszy, której znaczenie chcesz poznaæ; Emacs
-wy¶wietli krótki opis polecenia odpowiadaj±cego tej kombinacji.
+NajprostszÄ… pomoc moÅ¼esz uzyskaÄ‡ naciskajÄ…c C-h c. NaciÅ›nij C-h a potem
+c, po czym kombinacjÄ™ klawiszy, ktÃ³rej znaczenie chcesz poznaÄ‡; Emacs
+wyÅ›wietli krÃ³tki opis polecenia odpowiadajÄ…cego tej kombinacji.
 
->> Naci¶nij C-h c C-p.
+>> NaciÅ›nij C-h c C-p.
 
-Powinno to przywo³aæ komunikat, o tre¶ci podobnej do
+Powinno to przywoÅ‚aÄ‡ komunikat, o treÅ›ci podobnej do
 
 	C-p runs the command previous-line
 
-W ten sposób mo¿esz uzyskaæ ,,nazwê funkcji'' przypisanej kombinacji
-klawiszy. Przydaje siê to podczas pisania kodu w Lispie, w którym
-zapisane s± rozszerzenia Emacsa; wystarcza to tak¿e do przypomnienia
-Ci, co dane polecenie robi, je¶li widzia³e¶ je ju¿ wcze¶niej, lecz
-go nie zapamiêta³e¶.
+W ten sposÃ³b moÅ¼esz uzyskaÄ‡ ,,nazwÄ™ funkcji'' przypisanej kombinacji
+klawiszy. Przydaje siÄ™ to podczas pisania kodu w Lispie, w ktÃ³rym
+zapisane sÄ… rozszerzenia Emacsa; wystarcza to takÅ¼e do przypomnienia
+Ci, co dane polecenie robi, jeÅ›li widziaÅ‚eÅ› je juÅ¼ wczeÅ›niej, lecz
+go nie zapamiÄ™taÅ‚eÅ›.
 
-Jako dope³nienie polecenia C-h c Emacs dopuszcza te¿ wieloznakowe
-kombinacje klawiszy, na przyk³ad C-x C-s albo (je¶li nie masz klawisza
+Jako dopeÅ‚nienie polecenia C-h c Emacs dopuszcza teÅ¼ wieloznakowe
+kombinacje klawiszy, na przykÅ‚ad C-x C-s albo (jeÅ›li nie masz klawisza
 META lub Alt) <ESC>v.
 
-By uzyskaæ wiêcej informacji na temat polecenia, naci¶nij C-h k
+By uzyskaÄ‡ wiÄ™cej informacji na temat polecenia, naciÅ›nij C-h k
 zamiast C-h c.
 
->> Naci¶nij C-h k C-p.
+>> NaciÅ›nij C-h k C-p.
 
-To polecenie wy¶wietla dokumentacjê na temat danej funkcji oraz jej
-nazwê w oknie Emacsa. Gdy skoñczysz ¶ledziæ wynik tego polecenia
-naci¶nij C-x 1, by pozbyæ siê tekstu pomocy. Nie musisz tego robiæ od
-razu. Mo¿esz wykonaæ pewne operacje w oparciu o tekst pomocy zanim
-naci¶niesz C-x 1.
+To polecenie wyÅ›wietla dokumentacjÄ™ na temat danej funkcji oraz jej
+nazwÄ™ w oknie Emacsa. Gdy skoÅ„czysz Å›ledziÄ‡ wynik tego polecenia
+naciÅ›nij C-x 1, by pozbyÄ‡ siÄ™ tekstu pomocy. Nie musisz tego robiÄ‡ od
+razu. MoÅ¼esz wykonaÄ‡ pewne operacje w oparciu o tekst pomocy zanim
+naciÅ›niesz C-x 1.
 
-Oto kilka innych u¿ytecznych wariantów C-h:
+Oto kilka innych uÅ¼ytecznych wariantÃ³w C-h:
 
 	C-h f Opisz funkcje o podanej nazwie.
 
->> Napisz C-h f previous-line<Return>. Wypisze to na ekranie ca³±
-   informacje, jak± Emacs ma na temat funkcji, która implementuje
+>> Napisz C-h f previous-line<Return>. Wypisze to na ekranie caÅ‚Ä…
+   informacje, jakÄ… Emacs ma na temat funkcji, ktÃ³ra implementuje
    polecenie C-p.
 
-Podobnie komenda C-h v pokazuje na ekranie dokumentacjê zmiennych,
-których warto¶ci mo¿esz zmieniæ, aby dostosowaæ Emacsa do swoich
-preferencji. Wpisz nazwê zmiennej, gdy Emacs o ni± poprosi.
+Podobnie komenda C-h v pokazuje na ekranie dokumentacjÄ™ zmiennych,
+ktÃ³rych wartoÅ›ci moÅ¼esz zmieniÄ‡, aby dostosowaÄ‡ Emacsa do swoich
+preferencji. Wpisz nazwÄ™ zmiennej, gdy Emacs o niÄ… poprosi.
 
 
-	C-h a 	Apropos. Wpisz s³owo, a Emacs wypisze listê
-	      	wszystkich poleceñ, których nazwa zawiera to s³owo.
-		Polecenia te mo¿na wywo³ywaæ za pomoc± Meta-x.
-		Dla niektórych poleceñ Apropos wypisze jedno- lub
-		dwuznakowe sekwencje, które wywo³uj± te polecenia.
+	C-h a 	Apropos. Wpisz sÅ‚owo, a Emacs wypisze listÄ™
+	      	wszystkich poleceÅ„, ktÃ³rych nazwa zawiera to sÅ‚owo.
+		Polecenia te moÅ¼na wywoÅ‚ywaÄ‡ za pomocÄ… Meta-x.
+		Dla niektÃ³rych poleceÅ„ Apropos wypisze jedno- lub
+		dwuznakowe sekwencje, ktÃ³re wywoÅ‚ujÄ… te polecenia.
 
 >> Napisz C-h a file<Return>.
 
-Zobaczysz listê wszystkich poleceñ,
-dostêpnych za pomoc± M-x, które maja s³owo "file" w swojej nazwie.
-Zauwa¿ysz tam tak¿e polecenia takie, jak C-x C-f oraz C-x C-w,
-umieszczone obok nazw poleceñ "find-file" i "write-file".
+Zobaczysz listÄ™ wszystkich poleceÅ„,
+dostÄ™pnych za pomocÄ… M-x, ktÃ³re maja sÅ‚owo "file" w swojej nazwie.
+ZauwaÅ¼ysz tam takÅ¼e polecenia takie, jak C-x C-f oraz C-x C-w,
+umieszczone obok nazw poleceÅ„ "find-file" i "write-file".
 
->> Napisz C-M-v, aby przewin±æ okno pomocy. Zrób to kilka razy.
->> Napisz C-x 1, aby usun±æ okno pomocy.
+>> Napisz C-M-v, aby przewinÄ…Ä‡ okno pomocy. ZrÃ³b to kilka razy.
+>> Napisz C-x 1, aby usunÄ…Ä‡ okno pomocy.
 
-	C-h i 	Czytanie elektronicznych podrêczników (w formacie Info). To
-		polecenie prze³±czy Ciê do specjalnego bufora o nazwie
-		*info*, gdzie bêdziesz móg³ przeczytaæ podrêczniki
-		dotycz±ce pakietów zainstalowanych w Twoim
-		systemie. Napisz m emacs <Return>, aby zapoznaæ siê z
-		podrêcznikiem Emacsa. Je¿eli nigdy wcze¶niej nie u¿ywa³e¶
-		trybu Info, to napisz ?, a Emacs przedstawi Ci mo¿liwo¶ci
-		tego trybu. Po tym, jak zapoznasz siê z niniejszym krótkim
-		samouczkiem, w dalszej pracy dostêp do dokumentacji
-		bêdziesz uzyskiwa³ w³a¶nie za pomoc± Emacs Info.
+	C-h i 	Czytanie elektronicznych podrÄ™cznikÃ³w (w formacie Info). To
+		polecenie przeÅ‚Ä…czy CiÄ™ do specjalnego bufora o nazwie
+		*info*, gdzie bÄ™dziesz mÃ³gÅ‚ przeczytaÄ‡ podrÄ™czniki
+		dotyczÄ…ce pakietÃ³w zainstalowanych w Twoim
+		systemie. Napisz m emacs <Return>, aby zapoznaÄ‡ siÄ™ z
+		podrÄ™cznikiem Emacsa. JeÅ¼eli nigdy wczeÅ›niej nie uÅ¼ywaÅ‚eÅ›
+		trybu Info, to napisz ?, a Emacs przedstawi Ci moÅ¼liwoÅ›ci
+		tego trybu. Po tym, jak zapoznasz siÄ™ z niniejszym krÃ³tkim
+		samouczkiem, w dalszej pracy dostÄ™p do dokumentacji
+		bÄ™dziesz uzyskiwaÅ‚ wÅ‚aÅ›nie za pomocÄ… Emacs Info.
 
 
 DODATKOWE FUNKCJE
 -----------------
 
-Wiêcej o Emacsie mo¿esz siê nauczyæ czytaj±c jego podrêcznik, w formie
-ksi±¿kowej lub on-line w postaci Info (u¿yj menu Help lub naci¶nij F10
-h r). Dwie dodatkowe w³a¶ciwo¶ci, które szczególnie mog± siê przydaæ
-to dope³nianie wprowadzanych danych i dired u³atwiaj±ce zarz±dzanie
+WiÄ™cej o Emacsie moÅ¼esz siÄ™ nauczyÄ‡ czytajÄ…c jego podrÄ™cznik, w formie
+ksiÄ…Å¼kowej lub on-line w postaci Info (uÅ¼yj menu Help lub naciÅ›nij F10
+h r). Dwie dodatkowe wÅ‚aÅ›ciwoÅ›ci, ktÃ³re szczegÃ³lnie mogÄ… siÄ™ przydaÄ‡
+to dopeÅ‚nianie wprowadzanych danych i dired uÅ‚atwiajÄ…ce zarzÄ…dzanie
 plikami.
 
-Dope³nianie pozwala unikn±æ niepotrzebnego wpisywania. Na przyk³ad
-je¶li chcesz siê prze³±czyæ do bufora *Messages*, mo¿esz nacisn±æ C-x
-b *M<Tab> a Emacs dope³ni dalsz± czê¶æ nazwy za Ciebie na tyle, na ile
-bêdzie w stanie ustaliæ na podstawie tego, co do tej pory wpisa³e¶. Dope³nianie
-jest opisane w Info w podrêczniku Emacsa w czê¶ci zatytu³owanej
-"Dop³nianie" (ang. Completion).
+DopeÅ‚nianie pozwala uniknÄ…Ä‡ niepotrzebnego wpisywania. Na przykÅ‚ad
+jeÅ›li chcesz siÄ™ przeÅ‚Ä…czyÄ‡ do bufora *Messages*, moÅ¼esz nacisnÄ…Ä‡ C-x
+b *M<Tab> a Emacs dopeÅ‚ni dalszÄ… czÄ™Å›Ä‡ nazwy za Ciebie na tyle, na ile
+bÄ™dzie w stanie ustaliÄ‡ na podstawie tego, co do tej pory wpisaÅ‚eÅ›. DopeÅ‚nianie
+jest opisane w Info w podrÄ™czniku Emacsa w czÄ™Å›ci zatytuÅ‚owanej
+"DopÅ‚nianie" (ang. Completion).
 
-Dired umo¿liwia Ci zrobienie wykazu plików w danym katalogu (dodatkowo
-w podkatalogach), przemieszczanie siê wewn±trz tej listy, odwiedzanie
-plików, zmienianie nazw, usuwanie i inne operacje na plikach. Dired
-jest opisane w Info w podrêczniku Emacsa w czê¶ci zatytu³owanej
+Dired umoÅ¼liwia Ci zrobienie wykazu plikÃ³w w danym katalogu (dodatkowo
+w podkatalogach), przemieszczanie siÄ™ wewnÄ…trz tej listy, odwiedzanie
+plikÃ³w, zmienianie nazw, usuwanie i inne operacje na plikach. Dired
+jest opisane w Info w podrÄ™czniku Emacsa w czÄ™Å›ci zatytuÅ‚owanej
 "Dired".
 
-Podrêcznik dodatkowo opisuje wiele innych w³a¶ciwo¶ci Emacsa.
+PodrÄ™cznik dodatkowo opisuje wiele innych wÅ‚aÅ›ciwoÅ›ci Emacsa.
 
 
-* KIEROWANIE KURSOREM Z X TERMINALA (akapit dodany przez autorów wersji polskiej)
+* KIEROWANIE KURSOREM Z X TERMINALA (akapit dodany przez autorÃ³w wersji polskiej)
 -----------------------------------
 
-Je¶li pracujesz na terminalu graficznym, to do kierowania kursorem
-prawdopodobnie ³atwiej Ci bêdzie u¿ywaæ klawiszy strza³ek po prawej
-stronie klawiatury. Klawisze strza³ek: w lewo, w prawo, w górê i w dó³
-dzia³aj± zgodnie z oczekiwaniem; odpowiadaj± one dok³adnie C-b, C-f, C-p
-i C-n, ale s± ³atwiejsze do zapamiêtania. Mo¿esz tak¿e u¿ywaæ C-lewo i
-C-prawo, by przesuwaæ siê o s³owa, oraz C-góra i C-dó³, by przesuwaæ siê
-o bloki (np. akapity, je¶li edytujesz tekst). Je¶li masz klawisze
-oznaczone Home (lub Begin) oraz End, to przenios± Ciê one na pocz±tek i,
-odpowiednio, na koniec linii, a C-Home i C-End na pocz±tek i koniec
-pliku. Je¶li na Twojej klawiaturze s± klawisze PgUp i PgDn, to mo¿esz
-ich u¿yæ do przesuwania siê o jeden ekran, tak jak M-v i C-v.
+JeÅ›li pracujesz na terminalu graficznym, to do kierowania kursorem
+prawdopodobnie Å‚atwiej Ci bÄ™dzie uÅ¼ywaÄ‡ klawiszy strzaÅ‚ek po prawej
+stronie klawiatury. Klawisze strzaÅ‚ek: w lewo, w prawo, w gÃ³rÄ™ i w dÃ³Å‚
+dziaÅ‚ajÄ… zgodnie z oczekiwaniem; odpowiadajÄ… one dokÅ‚adnie C-b, C-f, C-p
+i C-n, ale sÄ… Å‚atwiejsze do zapamiÄ™tania. MoÅ¼esz takÅ¼e uÅ¼ywaÄ‡ C-lewo i
+C-prawo, by przesuwaÄ‡ siÄ™ o sÅ‚owa, oraz C-gÃ³ra i C-dÃ³Å‚, by przesuwaÄ‡ siÄ™
+o bloki (np. akapity, jeÅ›li edytujesz tekst). JeÅ›li masz klawisze
+oznaczone Home (lub Begin) oraz End, to przeniosÄ… CiÄ™ one na poczÄ…tek i,
+odpowiednio, na koniec linii, a C-Home i C-End na poczÄ…tek i koniec
+pliku. JeÅ›li na Twojej klawiaturze sÄ… klawisze PgUp i PgDn, to moÅ¼esz
+ich uÅ¼yÄ‡ do przesuwania siÄ™ o jeden ekran, tak jak M-v i C-v.
 
-Wszystkie te polecenia akceptuj± argument liczbowy, tak jak to
-opisano powy¿ej. Wpisanie argumentu mo¿esz sobie upro¶ciæ:
-naci¶nij i trzymaj CONTROL lub META i wpisz liczbê. Na
-przyk³ad, aby przesun±æ kursor o 12 s³ów w prawo, naci¶nij C-1 C-2
-C-prawo. Zwróæ uwagê, ¿e jest to ³atwe do wpisania, poniewa¿ nie
-musisz puszczaæ klawisza CONTROL podczas wpisywania cyfr.
+Wszystkie te polecenia akceptujÄ… argument liczbowy, tak jak to
+opisano powyÅ¼ej. Wpisanie argumentu moÅ¼esz sobie uproÅ›ciÄ‡:
+naciÅ›nij i trzymaj CONTROL lub META i wpisz liczbÄ™. Na
+przykÅ‚ad, aby przesunÄ…Ä‡ kursor o 12 sÅ‚Ã³w w prawo, naciÅ›nij C-1 C-2
+C-prawo. ZwrÃ³Ä‡ uwagÄ™, Å¼e jest to Å‚atwe do wpisania, poniewaÅ¼ nie
+musisz puszczaÄ‡ klawisza CONTROL podczas wpisywania cyfr.
 
 
-* U¯YWANIE MENU (akapit dodany przez autorów wersji polskiej)
+* UÅ»YWANIE MENU (akapit dodany przez autorÃ³w wersji polskiej)
 ---------------
 
-Je¶li pracujesz na X-terminalu, to u góry okna Emacsa powiniene¶ zauwa¿yæ
-pasek z menu. Tego menu mo¿esz u¿ywaæ, by wywo³ywaæ najczê¶ciej
-potrzebne polecenia Emacsa, takie jak "find file". Na pocz±tku bêdziesz
-s±dzi³, ¿e jest to ³atwiejsze ni¿ u¿ywanie klawiatury, poniewa¿ nie
-musisz siê na pamiêæ uczyæ kombinacji klawiszy, które uruchamiaj±
-poszczególne polecenia. Gdy ju¿ jednak poznasz Emacsa, to zaczniesz
-sobie te kombinacje przyswajaæ --- dla wygody przy pozycjach menu
-pokazywane s± odpowiadaj±ce im kombinacje klawiszy.
+JeÅ›li pracujesz na X-terminalu, to u gÃ³ry okna Emacsa powinieneÅ› zauwaÅ¼yÄ‡
+pasek z menu. Tego menu moÅ¼esz uÅ¼ywaÄ‡, by wywoÅ‚ywaÄ‡ najczÄ™Å›ciej
+potrzebne polecenia Emacsa, takie jak "find file". Na poczÄ…tku bÄ™dziesz
+sÄ…dziÅ‚, Å¼e jest to Å‚atwiejsze niÅ¼ uÅ¼ywanie klawiatury, poniewaÅ¼ nie
+musisz siÄ™ na pamiÄ™Ä‡ uczyÄ‡ kombinacji klawiszy, ktÃ³re uruchamiajÄ…
+poszczegÃ³lne polecenia. Gdy juÅ¼ jednak poznasz Emacsa, to zaczniesz
+sobie te kombinacje przyswajaÄ‡ --- dla wygody przy pozycjach menu
+pokazywane sÄ… odpowiadajÄ…ce im kombinacje klawiszy.
 
-Zwróæ uwagê, ¿e niektóre pozycje wystêpuj±ce w menu nie maj±
-odpowiedników klawiszowych. Na przyk³ad pozycja "Buffers" powoduje
-wy¶wietlenie listy wszystkich dostêpnych buforów. Do ka¿dego z nich
-mo¿esz siê prze³±czyæ, wybieraj±c jego nazwê, wy¶wietlon± pod pozycj±
+ZwrÃ³Ä‡ uwagÄ™, Å¼e niektÃ³re pozycje wystÄ™pujÄ…ce w menu nie majÄ…
+odpowiednikÃ³w klawiszowych. Na przykÅ‚ad pozycja "Buffers" powoduje
+wyÅ›wietlenie listy wszystkich dostÄ™pnych buforÃ³w. Do kaÅ¼dego z nich
+moÅ¼esz siÄ™ przeÅ‚Ä…czyÄ‡, wybierajÄ…c jego nazwÄ™, wyÅ›wietlonÄ… pod pozycjÄ…
 Buffers.
 
 
 PODSUMOWANIE
 ------------
 
-Pamiêtaj, ¿e by wyj¶æ z Emacsa na sta³e, trzeba wydaæ polecenie C-x C-c.
-By wyj¶æ do pow³oki na chwilê tak, by jeszcze Do Emacsa wróciæ, trzeba
-u¿yæ C-z. (To nie dzia³a pod X-Windows, poniewa¿ tam nie ma prawdziwego
-konceptu przej¶cia na chwilê do pow³oki. Zamiast tego C-z ,,ikonizuje''
+PamiÄ™taj, Å¼e by wyjÅ›Ä‡ z Emacsa na staÅ‚e, trzeba wydaÄ‡ polecenie C-x C-c.
+By wyjÅ›Ä‡ do powÅ‚oki na chwilÄ™ tak, by jeszcze Do Emacsa wrÃ³ciÄ‡, trzeba
+uÅ¼yÄ‡ C-z. (To nie dziaÅ‚a pod X-Windows, poniewaÅ¼ tam nie ma prawdziwego
+konceptu przejÅ›cia na chwilÄ™ do powÅ‚oki. Zamiast tego C-z ,,ikonizuje''
 okno Emacsa.)
 
-Ten samouczek by³ pisany tak, by wszyscy nowi u¿ytkownicy mogli go
-zrozumieæ. Je¶li co¶ pozostawi³ niejasnym, nie sied¼ cicho i nie
-obwiniaj siebie, tylko daj nam znaæ!
+Ten samouczek byÅ‚ pisany tak, by wszyscy nowi uÅ¼ytkownicy mogli go
+zrozumieÄ‡. JeÅ›li coÅ› pozostawiÅ‚ niejasnym, nie siedÅº cicho i nie
+obwiniaj siebie, tylko daj nam znaÄ‡!
 
 
 KOPIOWANIE
 ----------
 
-Niniejszy samouczek jest potomkiem w d³ugiej linii samouczków
-Emacsa, która rozpoczyna siê od tego, który zosta³ napisany przez
-Stuarta Cracrafta dla oryginalnego Emacsa. Zosta³ on zmodyfikowany we
-wrze¶niu 1994 przez Bena Winga, który zaktualizowa³ go w celu uwzglêdnienia
+Niniejszy samouczek jest potomkiem w dÅ‚ugiej linii samouczkÃ³w
+Emacsa, ktÃ³ra rozpoczyna siÄ™ od tego, ktÃ³ry zostaÅ‚ napisany przez
+Stuarta Cracrafta dla oryginalnego Emacsa. ZostaÅ‚ on zmodyfikowany we
+wrzeÅ›niu 1994 przez Bena Winga, ktÃ³ry zaktualizowaÅ‚ go w celu uwzglÄ™dnienia
 pracy pod X-Windows.
 
-Autorem pierwszego t³umaczenia na jêzyk polski by³ Remek Trzaska
-<remek@npac.syr.edu>, a pomaga³ mu Ryszard Kubiak
-<rysiek@ipipan.gda.pl>. Tamto t³umaczenie zosta³o uaktualnione dla
-wersji GNU Emacs 21 przez Beatê Wierzcho³owsk± <beataw@orient.uw.edu.pl>
-z pomoc± Ryszarda Kubiaka i Janusza S. Bienia <jsbien@mail.uw.edu.pl>.
+Autorem pierwszego tÅ‚umaczenia na jÄ™zyk polski byÅ‚ Remek Trzaska
+<remek@npac.syr.edu>, a pomagaÅ‚ mu Ryszard Kubiak
+<rysiek@ipipan.gda.pl>. Tamto tÅ‚umaczenie zostaÅ‚o uaktualnione dla
+wersji GNU Emacs 21 przez BeatÄ™ WierzchoÅ‚owskÄ… <beataw@orient.uw.edu.pl>
+z pomocÄ… Ryszarda Kubiaka i Janusza S. Bienia <jsbien@mail.uw.edu.pl>.
 
 Ta wersja samouczka, podobnie jak GNU Emacs, jest chroniona prawem
-autorskim, ale wolno j± kopiowaæ pod nastêpuj±cymi warunkami:
+autorskim, ale wolno jÄ… kopiowaÄ‡ pod nastÄ™pujÄ…cymi warunkami:
 
 Copyright (C) 1985, 1994, 2001-2013 Free Software Foundation, Inc.
 
-Zezwala siê na wykonywanie lub rozpowszechnianie
+Zezwala siÄ™ na wykonywanie lub rozpowszechnianie
 wiernych kopii tego dokumentu w otrzymanej formie, na dowolnym
-no¶niku, pod warunkiem zachowania informacji o
+noÅ›niku, pod warunkiem zachowania informacji o
 prawach autorskich i niniejszym zezwoleniu oraz pod
-warunkiem, ¿e dystrybutor udzieli odbiorcy pozwolenia na
+warunkiem, Å¼e dystrybutor udzieli odbiorcy pozwolenia na
 dalsze rozpowszechnianie zgodnie z niniejszym zezwoleniem.
 
 
-Zezwala siê równie¿ na rozpowszechnianie na warunkach podanych
-powy¿ej zmodyfikowanych wersji tego dokumentu lub jego czê¶ci,
-pod warunkiem, ¿e zostan± wyra¼nie uwidocznione
-informacje o tym, kto dokona³ modyfikacji jako ostatni.
+Zezwala siÄ™ rÃ³wnieÅ¼ na rozpowszechnianie na warunkach podanych
+powyÅ¼ej zmodyfikowanych wersji tego dokumentu lub jego czÄ™Å›ci,
+pod warunkiem, Å¼e zostanÄ… wyraÅºnie uwidocznione
+informacje o tym, kto dokonaÅ‚ modyfikacji jako ostatni.
 
 
-Warunki kopiowania samego Emacsa s± bardziej skomplikowane, ale zgodne
-z t± ide±. Proszê, przeczytaj plik COPYING, po czym rozdaj swoim
-znajomym kopie Emacsa. Pomó¿ têpiæ obstrukcjonizm w informatyce,
-u¿ywaj±c, tworz±c i dziel±c siê oprogramowaniem swobodnym.
+Warunki kopiowania samego Emacsa sÄ… bardziej skomplikowane, ale zgodne
+z tÄ… ideÄ…. ProszÄ™, przeczytaj plik COPYING, po czym rozdaj swoim
+znajomym kopie Emacsa. PomÃ³Å¼ tÄ™piÄ‡ obstrukcjonizm w informatyce,
+uÅ¼ywajÄ…c, tworzÄ…c i dzielÄ…c siÄ™ oprogramowaniem swobodnym.
 
 ;;; Local Variables:
 ;;; mode: fundamental
-;;; coding: latin-2
+;;; coding: utf-8
 ;;; sentence-end-double-space: nil
 ;;; End:
-

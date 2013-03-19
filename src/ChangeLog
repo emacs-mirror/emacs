@@ -1,3 +1,346 @@
+2013-03-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.c (window_resize_check, window_resize_apply)
+	(window_from_coordinates, recombine_windows, set_window_buffer)
+	(make_parent_window, Fwindow_resize_apply, resize_frame_windows)
+	(Fsplit_window_internal, Fdelete_window_internal)
+	(freeze_window_starts): Use bool for booleans.
+	* window.h (window_frame_coordinates, resize_frame_windows)
+	(freeze_window_starts, set_window_buffer): Adjust prototypes.
+
+2013-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (bitch_at_user): Use `user-error'.
+
+2013-03-17  Ken Brown  <kbrown@cornell.edu>
+
+	* dispextern.h (RGB_PIXEL_COLOR): Move here from image.c.  Use it
+	as return type of image_background.  (Bug#13981)
+	* image.c (RGB_PIXEL_COLOR): Move to dispextern.h.
+
+2013-03-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (updateFrameSize:): Change resize increments if needed.
+	(ns_select): Don't return with result uninitialized.
+
+	* nsterm.h (EmacsSavePanel, EmacsOpenPanel): Add getFilename
+	and getDirectory.
+
+	* nsfns.m (ns_filename_from_panel, ns_directory_from_panel):
+	New functions.
+	(Fns_read_file_name): ret is BOOL.  If ! dir_only_p, don't choose
+	directories.  If filename is nil, get directory name (Bug#13932).
+	Use getFilename and getDirectory.
+	(getFilename, getDirectory): New methods for EmacsSavePanel and
+	EmacsOpenPanel.
+	(ok:): In EmacsOpenPanel, if we can't choose directories, just return.
+
+2013-03-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (decode_coding_gap): Fix typo caught by static checking.
+
+2013-03-15  handa  <handa@gnu.org>
+
+	* insdel.c (insert_from_gap): New arg text_at_gap_tail.
+	(adjust_after_replace): Make it back to static.  Delete the third
+	arg text_at_gap_tail.  Cancel the code for handling it.
+
+	* coding.h (struct coding_system): New member eol_seen.
+
+	* coding.c (detect_ascii): New function.
+	(detect_coding): Set coding->head_ascii and coding->eol_seen only
+	when the source bytes are actually scanned.  On detecting for
+	coding_category_utf_8_auto, call detect_ascii instead of scanning
+	source bytes directly.
+	(produce_chars): Call insert_from_gap with the new arg 0.
+	(encode_coding): Likewise.
+	(decode_coding_gap): Control ASCII optimization by the variable
+	disable_ascii_optimization instead of #ifndef .. #endif.
+	Deccode EOL format according to coding->eol_seen.
+	(syms_of_coding): Declare disable-ascii-optimization as a Lisp
+	variable.
+
+	* lisp.h (adjust_after_replace): Cancel externing it.
+	(insert_from_gap): Adjust prototype.
+
+2013-03-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32fullscreen_hook): Swap FULLSCREEN_BOTH and
+	FULLSCREEN_MAXIMIZED.  (Bug#13935)
+
+2013-03-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* region-cache.c (find_cache_boundary, move_cache_gap)
+	(insert_cache_boundary, delete_cache_boundaries, set_cache_region):
+	Simplify debugging check and convert to eassert.  Adjust comment.
+	(pp_cache): Put under ENABLE_CHECKING.
+
+2013-03-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket) <WM_WINDOWPOSCHANGED>: Remove old
+	and incorrect code.  Treat WM_WINDOWPOSCHANGED like WM_ACTIVATE
+	and WM_ACTIVATEAPP.
+	(w32fullscreen_hook): If the frame is visible, reset
+	f->want_fullscreen flag after changing the frame size.  If the
+	frame is not visible, set f->want_fullscreen to FULLSCREEN_WAIT.
+	(Bug#13953)
+
+2013-03-13  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.c (main): Call syms_of_cygw32 on CYGWIN non-NTGUI builds
+	too so that these builds can use Cygwin's file conversion
+	functions.  (We've been building and linking cygw32.o all along
+	and just not using it.)
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* Makefile.in (LIB_FDATASYNC): New macro.
+	(LIBES): Use it.
+	* conf_post.h (BSD_SYSTEM, BSD_SYSTEM_AHB): Remove; no longer needed.
+	* fileio.c (Fwrite_region, write_region_inhibit_fsync):
+	Don't worry about HAVE_FSYNC, since a substitute fsync is
+	available if the system lacks one.
+	(Fwrite_regin): Retry fsync if interrupted.
+
+2013-03-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket): If the Emacs frame is being
+	activated, call w32fullscreen_hook, to make sure the new frame
+	dimensions are in effect.  (Bug#13937)
+
+2013-03-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (init_iterator): Simplify because both character and byte
+	positions are either specified or -1.  Add eassert.  Adjust comment.
+	* window.c (Fscroll_other_window): Use SET_PT_BOTH because both
+	character and byte positions can be obtained from marker.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checking by Sun C 5.12.
+	* alloc.c (buffer_memory_full) [REL_ALLOC]:
+	* bytecode.c (exec_byte_code):
+	* dispnew.c (init_display):
+	* eval.c (error):
+	* fileio.c (Fsubstitute_in_file_name):
+	* keyboard.c (Fevent_convert_list):
+	* keymap.c (Fsingle_key_description):
+	* term.c (maybe_fatal, fatal):
+	* xfns.c (Fx_display_backing_store, Fx_display_visual_class):
+	* xsmfns.c (Fhandle_save_session):
+	Omit unreachable code.
+	* keymap.c (map_keymap_char_table_item): Cast void * to
+	a function pointer type; the C Standard requires this.
+
+	* sysdep.c: Remove a use of BSD_SYSTEM, which I'm trying to phase out.
+	Include <sys/param.h> unconditionally, as that works elsewhere and
+	is simpler here.  Include <sys/sysctl.h> if DARWIN_OS ||
+	__FreeBSD__, not if BSD_SYSTEM, since it's needed only for Darwin
+	and FreeBSD now.
+
+2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* insdel.c (adjust_after_replace): Use bool for boolean.
+
+2013-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c: Move keyboard decoding to read_key_sequence.
+	(decode_keyboard_code): Remove.
+	(tty_read_avail_input): Don't try to decode input.
+	(read_decoded_char): New function.
+	(read_key_sequence): Use it.
+
+2013-03-10  Daniel Colascione  <dancol@dancol.org>
+
+	* w32term.h (GUISTR, GUI_ENCODE_FILE, GUI_ENCODE_SYSTEM, GUI_FN)
+	(GUI_SDATA, guichar_t): Macros to abstract out differences between
+	NTGUI_UNICODE and !NTGUI_UNICODE builds, some moved out of
+	w32fns.c.
+
+	* w32term.c (construct_drag_n_drop): Use the above macros to make
+	drag-and-drop work for non-ASCII filenames in cygw32 builds.
+
+	* w32fns.c (x_set_name, x_set_title): Use the above macros to
+	properly display non-ASCII frame titles in cygw32 builds.
+
+	* w32fns.c (Fw32_shell_execute): Use the above macros to properly
+	call ShellExecute in cygw32 builds.
+
+	* w32fn.c (Fx_file_dialog): Use the above macros to simplify the
+	common file dialog code.
+
+	* w32fns.c (Ffile_system_info): Remove from cygw32 builds, which
+	can just use du like other systems.
+
+	* coding.c (from_unicode_buffer): Declare.
+	* coding.c (from_unicode_buffer): Implement.
+
+2013-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c: Minor cleanup.
+	(FROM_FILE_P): New macro.
+	(skip_dyn_bytes, unreadchar, read1): Use it.
+	(read_list): Consolidate duplicated code.
+
+	* bytecode.c (struct byte_stack): Remove `constants' when unused.
+
+2013-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_tool_bar_line, redisplay_tool_bar)
+	(redisplay_internal, set_cursor_from_row, try_window)
+	(try_window_id, dump_glyph_row, extend_face_to_end_of_line)
+	(display_line, notice_overwritten_cursor)
+	(mouse_face_from_buffer_pos, note_mouse_highlight):
+	Use MATRIX_ROW_DISPLAYS_TEXT_P.
+	(note_mouse_highlight): Use MATRIX_ROW_GLYPH_START.
+	(mouse_face_from_string_pos, fast_find_string_pos):
+	Use MATRIX_ROW_VPOS.
+
+	* xfns.c (Fx_show_tip): Use MATRIX_ROW_DISPLAYS_TEXT_P.
+
+	* w32fns.c (Fx_show_tip): Use MATRIX_ROW_DISPLAYS_TEXT_P.
+
+	* xdisp.c (try_cursor_movement): Use MATRIX_ROW and
+	MATRIX_MODE_LINE_ROW.
+
+	* dispnew.c (update_window): Use MATRIX_ROW and MATRIX_MODE_LINE_ROW.
+
+2013-03-10  handa  <handa@gnu.org>
+
+	* lisp.h (adjust_after_replace): Extern it.
+
+	* coding.c (detect_coding): Cound the heading ASCII bytes in the
+	case of detection for coding_category_utf_8_auto.
+	(decode_coding_gap) [not CODING_DISABLE_ASCII_OPTIMIZATION]:
+	Skip decoding if all bytes are ASCII.
+
+	* insdel.c (adjust_after_replace): Make it public.  New arg
+	text_at_gap_tail.
+	(adjust_after_insert): Call adjust_after_replace with the new arg
+	value 0.
+
+2013-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.h (EVENT_START, EVENT_END, POSN_WINDOW, POSN_POSN)
+	(POSN_WINDOW_POSN, POSN_TIMESTAMP): Be careful since events may come
+	from Elisp via unread-command-events.
+
+	* keyboard.c (access_keymap_keyremap): Accept nil return value from
+	functions to mean "no change".
+
+2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	region-cache.c, scroll.c, search.c: Use bool for booleans.
+	* lisp.h (compile_pattern):
+	* scroll.c (do_scrolling, do_direct_scrolling):
+	* search.c (struct regexp_cache, compile_pattern_1)
+	(compile_pattern, string_match_1, search_command)
+	(trivial_regexp_p, search_buffer, Freplace_match, match_limit)
+	(search_regs_saved, Fregexp_quote):
+	Use bool for boolean.
+	* region-cache.c (region_cache_forward, region_cache_backward):
+	Fix comments to match code: these functions return int, not boolean.
+
+2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* search.c (find_newline): Accept start and end byte positions
+	as arguments and allow -1 if not known.
+	(find_newline_no_quit): Likewise for start position.
+	* lisp.h (find_newline, find_newline_no_quit): Adjust prototype.
+	* bidi.c (bidi_find_paragraph_start): Pass byte position to
+	find_newline_no_quit, thus eliminating CHAR_TO_BYTE.
+	* editfns.c (Fconstrain_to_field): Break long line.
+	Adjust call to find_newline.
+	* indent.c (vmotion): Adjust calls to find_newline_no_quit.
+	Use DEC_BOTH to start next search from the previous buffer
+	position, where appropriate.
+	* xdisp.c (back_to_previous_line_start, forward_to_next_line_start)
+	(get_visually_first_element, move_it_vertically_backward): Likewise.
+	Obtain byte position from the display iterator, where appropriate.
+
+2013-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	print.c, process.c: Use bool for booleans.
+	* lisp.h (wait_reading_process_output):
+	* print.c (print_output_debug_flag, PRINTDECLARE, printchar)
+	(strout, debug_output_compilation_hack, float_to_string, print)
+	(print_object):
+	* process.c (kbd_is_on_hold, inhibit_sentinels, process_output_skip)
+	(decode_status, status_message, create_process, create_pty)
+	(Fmake_network_process, Fnetwork_interface_info)
+	(wait_reading_process_output, read_process_output)
+	(write_queue_push, write_queue_pop, process_send_signal)
+	(handle_child_signal, keyboard_bit_set, kbd_on_hold_p):
+	* process.h (struct Lisp_Process, inhibit_sentinels, kbd_on_hold_p):
+	Use bool for booleans.
+	* process.c (Fnetwork_interface_list): Remove unused local.
+	(connect_counter): Now EMACS_INT, not int.
+
+2013-03-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* bidi.c (bidi_fetch_char): Swap first and second arguments
+	to match other functions accepting character and byte positions.
+	Adjust comment.
+	(bidi_resolve_explicit_1, bidi_level_of_next_char): Adjust users.
+	(bidi_paragraph_init): Likewise.  Use DEC_BOTH which is faster
+	when you need just to move to the previous buffer position.
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Use DEC_BOTH.
+
+2013-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (prowlims): Display the enabled_p flag of the row.
+
+2013-03-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid character to byte conversions in motion subroutines.
+	* indent.h (compute_motion, vmotion): Add byte position argument.
+	* indent.c (compute_motion): Use it and avoid CHAR_TO_BYTE.
+	Add eassert.
+	(Fcompute_motion): Break long line.  Adjust call to compute_motion.
+	Use list5 for return value.
+	(vmotion): Use byte position argument and avoid call to CHAR_TO_BYTE.
+	Adjust comments, style and calls to compute_motion.
+	(Fvertical_motion): Adjust call to vmotion.
+	* window.c (Fdelete_other_windows_internal): Record window start
+	byte position and adjust call to vmotion.
+	(window_scroll_line_based): Likewise with call to compute_motion.
+	Use SET_PT_BOTH.
+	(Frecenter): Adjust calls to vmotion.
+
+2013-03-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (list2i, list3i): New functions.
+	(list4i): Move from window.c and make LISP_INLINE.
+	* editfns.c (make_lisp_time):
+	* fns.c (Flocale_info):
+	* keyboard.c (parse_modifiers):
+	* xterm.c (x_ewmh_activate_frame): Use list2i.
+	* instel.c (signal_after_change):
+	* nsfns.m (Fx_server_version, Fxw_color_values):
+	* w32fns.c (Fxw_color_values, Fx_server_version):
+	* xfns.c (Fxw_color_values, Fx_server_version): Use list3i.
+	* fileio.c (Fvisited_file_modtime):
+	* nsfns.m (Fns_display_usable_bounds):
+	* w32.c (ltime): Use list4i.
+
+2013-03-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline_no_quit): Rename from find_next_newline.
+	Add commentary.
+
+	* lisp.h (find_newline_no_quit): Rename prototype.
+
+	* xdisp.c (back_to_previous_line_start)
+	(forward_to_next_line_start, get_visually_first_element)
+	(move_it_vertically_backward): Callers of find_newline_no_quit changed.
+	* indent.c (vmotion): Callers of find_newline_no_quit changed.
+	* bidi.c (bidi_find_paragraph_start): Callers of
+	find_newline_no_quit changed.
+
+	* msdos.c: Change encoding to cp850.  (Bug#13879)
+	(fr_keyboard, it_keyboard, dk_keyboard): Update keyboard layouts.
+
 2013-03-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Coding system support cleanup and minor refactoring.
@@ -158,8 +501,8 @@
 
 2013-03-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* textprop.c (Fadd_text_properties, Fremove_text_properties): If
-	the interval tree changes as a side effect of calling
+	* textprop.c (Fadd_text_properties, Fremove_text_properties):
+	If the interval tree changes as a side effect of calling
 	modify_region, re-do processing starting from the call to
 	validate_interval_range.  (Bug#13743)
 
@@ -235,8 +578,8 @@
 	* textprop.c (Fadd_text_properties, Fremove_text_properties)
 	(Fremove_list_of_text_properties): Skip all of the intervals in
 	the region between START and END that already have resp. don't
-	have the requested properties, not just the first one.  Add
-	assertions that the loop afterwards always modifies the
+	have the requested properties, not just the first one.
+	Add assertions that the loop afterwards always modifies the
 	properties.  (Bug#13743)
 
 2013-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>

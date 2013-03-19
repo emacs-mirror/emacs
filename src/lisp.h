@@ -2880,7 +2880,7 @@ extern void insert (const char *, ptrdiff_t);
 extern void insert_and_inherit (const char *, ptrdiff_t);
 extern void insert_1_both (const char *, ptrdiff_t, ptrdiff_t,
 			   bool, bool, bool);
-extern void insert_from_gap (ptrdiff_t, ptrdiff_t);
+extern void insert_from_gap (ptrdiff_t, ptrdiff_t, bool text_at_gap_tail);
 extern void insert_from_string (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				ptrdiff_t, ptrdiff_t, bool);
 extern void insert_from_buffer (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
@@ -3001,6 +3001,28 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 			  Lisp_Object);
 enum constype {CONSTYPE_HEAP, CONSTYPE_PURE};
 extern Lisp_Object listn (enum constype, ptrdiff_t, Lisp_Object, ...);
+
+/* Build a frequently used 2/3/4-integer lists.  */
+
+LISP_INLINE Lisp_Object
+list2i (EMACS_INT x, EMACS_INT y)
+{
+  return list2 (make_number (x), make_number (y));
+}
+
+LISP_INLINE Lisp_Object
+list3i (EMACS_INT x, EMACS_INT y, EMACS_INT w)
+{
+  return list3 (make_number (x), make_number (y), make_number (w));
+}
+
+LISP_INLINE Lisp_Object
+list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
+{
+  return list4 (make_number (x), make_number (y),
+		make_number (w), make_number (h));
+}
+
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
@@ -3335,18 +3357,19 @@ extern void record_unwind_save_match_data (void);
 struct re_registers;
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
-						  Lisp_Object, int, bool);
+						  Lisp_Object, bool, bool);
 extern ptrdiff_t fast_string_match (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *,
 						  ptrdiff_t);
 extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
-extern ptrdiff_t find_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			       ptrdiff_t *, ptrdiff_t *, bool);
+extern ptrdiff_t find_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
+			       ptrdiff_t, ptrdiff_t *, ptrdiff_t *, bool);
 extern EMACS_INT scan_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 			       EMACS_INT, bool);
-extern ptrdiff_t find_next_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
+extern ptrdiff_t find_newline_no_quit (ptrdiff_t, ptrdiff_t,
+				       ptrdiff_t, ptrdiff_t *);
 extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t,
 					   ptrdiff_t, ptrdiff_t *);
 extern void syms_of_search (void);
@@ -3476,10 +3499,10 @@ extern bool running_asynch_code;
 extern Lisp_Object QCtype, Qlocal;
 extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
-extern int wait_reading_process_output (intmax_t, int, int, bool,
-                                        Lisp_Object,
-                                        struct Lisp_Process *,
-                                        int);
+extern bool wait_reading_process_output (intmax_t, int, int, bool,
+					 Lisp_Object,
+					 struct Lisp_Process *,
+					 int);
 /* Max value for the first argument of wait_reading_process_output.  */
 #if __GNUC__ == 3 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 5)
 /* Work around a bug in GCC 3.4.2, known to be fixed in GCC 4.6.3.

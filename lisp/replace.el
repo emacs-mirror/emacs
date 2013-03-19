@@ -603,15 +603,7 @@ If HISTORY is nil, `regexp-history' is used."
 	  (append
 	   suggestions
 	   (list
-	    ;; Regexp for tag at point.
-	    (let* ((tagf (or find-tag-default-function
-			     (get major-mode 'find-tag-default-function)
-			     'find-tag-default))
-		   (tag (funcall tagf)))
-	      (cond ((not tag) "")
-		    ((eq tagf 'find-tag-default)
-		     (format "\\_<%s\\_>" (regexp-quote tag)))
-		    (t (regexp-quote tag))))
+	    (find-tag-default-as-regexp)
 	    (car regexp-search-ring)
 	    (regexp-quote (or (car search-ring) ""))
 	    (car (symbol-value query-replace-from-history-variable)))))
@@ -1143,12 +1135,32 @@ which means to discard all text properties."
   :group 'matching
   :version "22.1")
 
+(defvar occur-read-regexp-defaults-function
+  'occur-read-regexp-defaults
+  "Function that provides default regexp(s) for occur commands.
+This function should take no arguments and return one of nil, a
+regexp or a list of regexps for use with occur commands -
+`occur', `multi-occur' and `multi-occur-in-matching-buffers'.
+The return value of this function is used as DEFAULTS param of
+`read-regexp' while executing the occur command.  This function
+is called only during interactive use.
+
+For example, to check for occurrence of symbol at point use
+
+    \(setq occur-read-regexp-defaults-function
+	  'find-tag-default-as-regexp\).")
+
+(defun occur-read-regexp-defaults ()
+  "Return the latest regexp from `regexp-history'.
+See `occur-read-regexp-defaults-function' for details."
+  (car regexp-history))
+
 (defun occur-read-primary-args ()
   (let* ((perform-collect (consp current-prefix-arg))
          (regexp (read-regexp (if perform-collect
                                   "Collect strings matching regexp"
                                 "List lines matching regexp")
-                              (car regexp-history))))
+                              (funcall occur-read-regexp-defaults-function))))
     (list regexp
 	  (if perform-collect
 	      ;; Perform collect operation

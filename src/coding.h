@@ -440,8 +440,12 @@ struct coding_system
   /* How may heading bytes we can skip for decoding.  This is set to
      -1 in setup_coding_system, and updated by detect_coding.  So,
      when this is equal to the byte length of the text being
-     converted, we can skip the actual conversion process.  */
+     converted, we can skip the actual conversion process except for
+     the eol format.  */
   ptrdiff_t head_ascii;
+
+  /* Used internally in coding.c.  See the comment of detect_ascii.  */
+  int eol_seen;
 
   /* The following members are set by encoding/decoding routine.  */
   ptrdiff_t produced, produced_char, consumed, consumed_char;
@@ -714,6 +718,9 @@ extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
    calls code_convert_string_norecord internally and has all its
    failure modes.  STR itself is not modified.  */
 extern Lisp_Object from_unicode (Lisp_Object str);
+
+/* Convert WSTR to an Emacs string.  */
+extern Lisp_Object from_unicode_buffer (const wchar_t* wstr);
 
 #endif /* WINDOWSNT || CYGWIN */
 

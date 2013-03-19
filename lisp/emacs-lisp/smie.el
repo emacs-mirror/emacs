@@ -1631,31 +1631,34 @@ to which that point should be aligned, if we were to reindent it.")
 (defun smie-auto-fill ()
   (let ((fc (current-fill-column)))
     (while (and fc (> (current-column) fc))
-      (cond
-       ((not (or (nth 8 (save-excursion
-                          (syntax-ppss (line-beginning-position))))
-                 (nth 8 (syntax-ppss))))
-        (save-excursion
-          (beginning-of-line)
-          (smie-indent-forward-token)
-          (let ((bsf (point))
-                (gain 0)
-                curcol)
-            (while (<= (setq curcol (current-column)) fc)
-              ;; FIXME?  `smie-indent-calculate' can (and often will)
-              ;; return a result that actually depends on the presence/absence
-              ;; of a newline, so the gain computed here may not be accurate,
-              ;; but in practice it seems to works well enough.
-              (let* ((newcol (smie-indent-calculate))
-                     (newgain (- curcol newcol)))
-                (when (> newgain gain)
-                  (setq gain newgain)
-                  (setq bsf (point))))
-              (smie-indent-forward-token))
-            (when (> gain 0)
-              (goto-char bsf)
-              (newline-and-indent)))))
-       (t (do-auto-fill))))))
+      (or (unless (or (nth 8 (save-excursion
+                               (syntax-ppss (line-beginning-position))))
+                      (nth 8 (syntax-ppss)))
+            (save-excursion
+              (let ((end (point))
+                    (bsf (progn (beginning-of-line)
+                                (smie-indent-forward-token)
+                                (point)))
+                    (gain 0)
+                    curcol)
+                (while (and (<= (point) end)
+                            (<= (setq curcol (current-column)) fc))
+                  ;; FIXME?  `smie-indent-calculate' can (and often will)
+                  ;; return a result that actually depends on the
+                  ;; presence/absence of a newline, so the gain computed here
+                  ;; may not be accurate, but in practice it seems to works
+                  ;; well enough.
+                  (let* ((newcol (smie-indent-calculate))
+                         (newgain (- curcol newcol)))
+                    (when (> newgain gain)
+                      (setq gain newgain)
+                      (setq bsf (point))))
+                  (smie-indent-forward-token))
+                (when (> gain 0)
+                  (goto-char bsf)
+                  (newline-and-indent)
+                  'done))))
+          (do-auto-fill)))))
 
 
 (defun smie-setup (grammar rules-function &rest keywords)

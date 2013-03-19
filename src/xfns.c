@@ -3539,9 +3539,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (x_defined_color (f, SSDATA (color), &foo, 0))
-    return list3 (make_number (foo.red),
-		  make_number (foo.green),
-		  make_number (foo.blue));
+    return list3i (foo.red, foo.green, foo.blue);
   else
     return Qnil;
 }
@@ -3703,9 +3701,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Display *dpy = dpyinfo->display;
 
-  return Fcons (make_number (ProtocolVersion (dpy)),
-		Fcons (make_number (ProtocolRevision (dpy)),
-		       Fcons (make_number (VendorRelease (dpy)), Qnil)));
+  return list3i (ProtocolVersion (dpy), ProtocolRevision (dpy),
+		 VendorRelease (dpy));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
@@ -3772,7 +3769,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
     default:
       error ("Strange value for BackingStore parameter of screen");
-      result = Qnil;
     }
 
   return result;
@@ -3814,7 +3810,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
       break;
     default:
       error ("Display has an unknown visual class");
-      result = Qnil;
     }
 
   return result;
@@ -5070,7 +5065,7 @@ Text larger than the specified size is clipped.  */)
       int row_width;
 
       /* Stop at the first empty row at the end.  */
-      if (!row->enabled_p || !row->displays_text_p)
+      if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	break;
 
       /* Let the row go over the full width of the frame.  */
@@ -5129,7 +5124,7 @@ Text larger than the specified size is clipped.  */)
 	  struct glyph *last;
 	  int row_width;
 
-	  if (!row->enabled_p || !row->displays_text_p)
+	  if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	    break;
 	  row->full_width_p = 1;
 	  row_width = row->pixel_width;

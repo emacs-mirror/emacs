@@ -1,3 +1,22 @@
+2013-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MSVC build.  (Bug#13939)
+	* inc/stdint.h (UINTPTR_MAX): Define.
+
+	* nmake.defs (libc): Fix syntax of !if conditional.
+
+2013-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD_SYSTEM, BSD_SYSTEM_AHB, HAVE_ALARM, HAVE__PUTENV): Remove.
+	(HAVE_DECL_ALARM, HAVE_DECL_FDATASYNC, HAVE_DECL__PUTENV)
+	(HAVE_FDATASYNC): New macros.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* inc/ms-w32.h (fdatasync): New macro, suggested by Eli Zaretskii.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).

@@ -220,6 +220,7 @@ extern int sys_unlink (const char *);
 /* Map to MSVC names.  */
 #define execlp    _execlp
 #define execvp    _execvp
+#define fdatasync _commit
 #define fdopen	  _fdopen
 #ifndef fileno
 #define fileno	  _fileno

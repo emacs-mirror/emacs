@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32common.h"
 #endif
 
-#if defined HAVE_NTGUI && defined CYGWIN
+#if defined CYGWIN
 #include "cygw32.h"
 #endif
 
@@ -1348,7 +1348,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef WINDOWSNT
       syms_of_ntproc ();
 #endif /* WINDOWSNT */
-#if defined CYGWIN && defined HAVE_NTGUI
+#if defined CYGWIN
       syms_of_cygw32 ();
 #endif
       syms_of_window ();

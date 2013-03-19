@@ -117,7 +117,7 @@ RC_INCLUDE	= -i
 
 USE_CRT_DLL	= 1
 
-!if USE_CRT_DLL
+!if $(USE_CRT_DLL)
 libc		= msvcrt$(D).lib
 EMACS_EXTRA_C_FLAGS= -D_DLL -D_MT -DUSE_CRT_DLL=1
 !else

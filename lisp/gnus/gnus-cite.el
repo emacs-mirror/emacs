@@ -1250,7 +1250,7 @@ When enabled, it automatically turns on `font-lock-mode'."
 (provide 'gnus-cite)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; gnus-cite.el ends here

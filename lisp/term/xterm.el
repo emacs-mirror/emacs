@@ -1,4 +1,4 @@
-;;; xterm.el --- define function key sequences and standard colors for xterm
+;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 
@@ -37,8 +37,7 @@ If a list, assume that the listed features are supported, without checking.
 
 The relevant features are:
   modifyOtherKeys  -- if supported, more key bindings work (e.g., \"\\C-,\")
-  reportBackground -- if supported, Xterm reports its background color
-"
+  reportBackground -- if supported, Xterm reports its background color"
   :version "24.1"
   :group 'xterm
   :type '(choice (const :tag "No" nil)
@@ -251,120 +250,124 @@ The relevant features are:
 
     ;; These keys are available in xterm starting from version 216
     ;; if the modifyOtherKeys resource is set to 1.
+    (dolist (bind '((5 9   [C-tab])
+                    (5 13  [C-return])
+                    (5 39  [?\C-\'])
+                    (5 44  [?\C-,])
+                    (5 45  [?\C--])
+                    (5 46  [?\C-.])
+                    (5 47  [?\C-/])
+                    (5 48  [?\C-0])
+                    (5 49  [?\C-1])
+                    ;; Not all C-DIGIT keys have a distinct binding.
+                    (5 57  [?\C-9])
+                    (5 59  [?\C-\;])
+                    (5 61  [?\C-=])
+                    (5 92  [?\C-\\])
 
-    (define-key map "\e[27;5;9~"   [C-tab])
-    (define-key map "\e[27;5;13~"  [C-return])
-    (define-key map "\e[27;5;39~"  [?\C-\'])
-    (define-key map "\e[27;5;44~"  [?\C-,])
-    (define-key map "\e[27;5;45~"  [?\C--])
-    (define-key map "\e[27;5;46~"  [?\C-.])
-    (define-key map "\e[27;5;47~"  [?\C-/])
-    (define-key map "\e[27;5;48~"  [?\C-0])
-    (define-key map "\e[27;5;49~"  [?\C-1])
-    ;; Not all C-DIGIT keys have a distinct binding.
-    (define-key map "\e[27;5;57~"  [?\C-9])
-    (define-key map "\e[27;5;59~"  [?\C-\;])
-    (define-key map "\e[27;5;61~"  [?\C-=])
-    (define-key map "\e[27;5;92~"  [?\C-\\])
+                    (6 33  [?\C-!])
+                    (6 34  [?\C-\"])
+                    (6 35  [?\C-#])
+                    (6 36  [?\C-$])
+                    (6 37  [?\C-%])
+                    (6 38  [?\C-&])
+                    (6 40  [?\C-\(])
+                    (6 41  [?\C-\)])
+                    (6 42  [?\C-*])
+                    (6 43  [?\C-+])
+                    (6 58  [?\C-:])
+                    (6 60  [?\C-<])
+                    (6 62  [?\C->])
+                    (6 63  [(control ??)])
 
-    (define-key map "\e[27;6;33~"  [?\C-!])
-    (define-key map "\e[27;6;34~"  [?\C-\"])
-    (define-key map "\e[27;6;35~"  [?\C-#])
-    (define-key map "\e[27;6;36~"  [?\C-$])
-    (define-key map "\e[27;6;37~"  [?\C-%])
-    (define-key map "\e[27;6;38~"  [?\C-&])
-    (define-key map "\e[27;6;40~"  [?\C-(])
-    (define-key map "\e[27;6;41~"  [?\C-)])
-    (define-key map "\e[27;6;42~"  [?\C-*])
-    (define-key map "\e[27;6;43~"  [?\C-+])
-    (define-key map "\e[27;6;58~"  [?\C-:])
-    (define-key map "\e[27;6;60~"  [?\C-<])
-    (define-key map "\e[27;6;62~"  [?\C->])
-    (define-key map "\e[27;6;63~"  [(control ??)])
+                    ;; These are the strings emitted for various C-M-
+                    ;; combinations for keyboards whose Meta and Alt
+                    ;; modifiers are on the same key (usually labeled "Alt").
+                    (13 9  [C-M-tab])
+                    (13 13 [C-M-return])
 
-    ;; These are the strings emitted for various C-M- combinations
-    ;; for keyboards that the Meta and Alt modifiers are on the same
-    ;; key (usually labeled "Alt").
-    (define-key map "\e[27;13;9~"  [C-M-tab])
-    (define-key map "\e[27;13;13~" [C-M-return])
+                    (13 39 [?\C-\M-\'])
+                    (13 44 [?\C-\M-,])
+                    (13 45 [?\C-\M--])
+                    (13 46 [?\C-\M-.])
+                    (13 47 [?\C-\M-/])
+                    (13 48 [?\C-\M-0])
+                    (13 49 [?\C-\M-1])
+                    (13 50 [?\C-\M-2])
+                    (13 51 [?\C-\M-3])
+                    (13 52 [?\C-\M-4])
+                    (13 53 [?\C-\M-5])
+                    (13 54 [?\C-\M-6])
+                    (13 55 [?\C-\M-7])
+                    (13 56 [?\C-\M-8])
+                    (13 57 [?\C-\M-9])
+                    (13 59 [?\C-\M-\;])
+                    (13 61 [?\C-\M-=])
+                    (13 92 [?\C-\M-\\])
 
-    (define-key map "\e[27;13;39~" [?\C-\M-\'])
-    (define-key map "\e[27;13;44~" [?\C-\M-,])
-    (define-key map "\e[27;13;45~" [?\C-\M--])
-    (define-key map "\e[27;13;46~" [?\C-\M-.])
-    (define-key map "\e[27;13;47~" [?\C-\M-/])
-    (define-key map "\e[27;13;48~" [?\C-\M-0])
-    (define-key map "\e[27;13;49~" [?\C-\M-1])
-    (define-key map "\e[27;13;50~" [?\C-\M-2])
-    (define-key map "\e[27;13;51~" [?\C-\M-3])
-    (define-key map "\e[27;13;52~" [?\C-\M-4])
-    (define-key map "\e[27;13;53~" [?\C-\M-5])
-    (define-key map "\e[27;13;54~" [?\C-\M-6])
-    (define-key map "\e[27;13;55~" [?\C-\M-7])
-    (define-key map "\e[27;13;56~" [?\C-\M-8])
-    (define-key map "\e[27;13;57~" [?\C-\M-9])
-    (define-key map "\e[27;13;59~" [?\C-\M-\;])
-    (define-key map "\e[27;13;61~" [?\C-\M-=])
-    (define-key map "\e[27;13;92~" [?\C-\M-\\])
+                    (14 33  [?\C-\M-!])
+                    (14 34  [?\C-\M-\"])
+                    (14 35  [?\C-\M-#])
+                    (14 36  [?\C-\M-$])
+                    (14 37  [?\C-\M-%])
+                    (14 38  [?\C-\M-&])
+                    (14 40  [?\C-\M-\(])
+                    (14 41  [?\C-\M-\)])
+                    (14 42  [?\C-\M-*])
+                    (14 43  [?\C-\M-+])
+                    (14 58  [?\C-\M-:])
+                    (14 60  [?\C-\M-<])
+                    (14 62  [?\C-\M->])
+                    (14 63  [(control meta ??)])
 
-    (define-key map "\e[27;14;33~"  [?\C-\M-!])
-    (define-key map "\e[27;14;34~"  [?\C-\M-\"])
-    (define-key map "\e[27;14;35~"  [?\C-\M-#])
-    (define-key map "\e[27;14;36~"  [?\C-\M-$])
-    (define-key map "\e[27;14;37~"  [?\C-\M-%])
-    (define-key map "\e[27;14;38~"  [?\C-\M-&])
-    (define-key map "\e[27;14;40~"  [?\C-\M-\(])
-    (define-key map "\e[27;14;41~"  [?\C-\M-\)])
-    (define-key map "\e[27;14;42~"  [?\C-\M-*])
-    (define-key map "\e[27;14;43~"  [?\C-\M-+])
-    (define-key map "\e[27;14;58~"  [?\C-\M-:])
-    (define-key map "\e[27;14;60~"  [?\C-\M-<])
-    (define-key map "\e[27;14;62~"  [?\C-\M->])
-    (define-key map "\e[27;14;63~"  [(control meta ??)])
+                    (7 9  [C-M-tab])
+                    (7 13 [C-M-return])
 
-    (define-key map "\e[27;7;9~"  [C-M-tab])
-    (define-key map "\e[27;7;13~" [C-M-return])
+                    (7 32 [?\C-\M-\s])
+                    (7 39 [?\C-\M-\'])
+                    (7 44 [?\C-\M-,])
+                    (7 45 [?\C-\M--])
+                    (7 46 [?\C-\M-.])
+                    (7 47 [?\C-\M-/])
+                    (7 48 [?\C-\M-0])
+                    (7 49 [?\C-\M-1])
+                    (7 50 [?\C-\M-2])
+                    (7 51 [?\C-\M-3])
+                    (7 52 [?\C-\M-4])
+                    (7 53 [?\C-\M-5])
+                    (7 54 [?\C-\M-6])
+                    (7 55 [?\C-\M-7])
+                    (7 56 [?\C-\M-8])
+                    (7 57 [?\C-\M-9])
+                    (7 59 [?\C-\M-\;])
+                    (7 61 [?\C-\M-=])
+                    (7 92 [?\C-\M-\\])
 
-    (define-key map "\e[27;7;32~" [?\C-\M-\s])
-    (define-key map "\e[27;7;39~" [?\C-\M-\'])
-    (define-key map "\e[27;7;44~" [?\C-\M-,])
-    (define-key map "\e[27;7;45~" [?\C-\M--])
-    (define-key map "\e[27;7;46~" [?\C-\M-.])
-    (define-key map "\e[27;7;47~" [?\C-\M-/])
-    (define-key map "\e[27;7;48~" [?\C-\M-0])
-    (define-key map "\e[27;7;49~" [?\C-\M-1])
-    (define-key map "\e[27;7;50~" [?\C-\M-2])
-    (define-key map "\e[27;7;51~" [?\C-\M-3])
-    (define-key map "\e[27;7;52~" [?\C-\M-4])
-    (define-key map "\e[27;7;53~" [?\C-\M-5])
-    (define-key map "\e[27;7;54~" [?\C-\M-6])
-    (define-key map "\e[27;7;55~" [?\C-\M-7])
-    (define-key map "\e[27;7;56~" [?\C-\M-8])
-    (define-key map "\e[27;7;57~" [?\C-\M-9])
-    (define-key map "\e[27;7;59~" [?\C-\M-\;])
-    (define-key map "\e[27;7;61~" [?\C-\M-=])
-    (define-key map "\e[27;7;92~" [?\C-\M-\\])
+                    (8 33  [?\C-\M-!])
+                    (8 34  [?\C-\M-\"])
+                    (8 35  [?\C-\M-#])
+                    (8 36  [?\C-\M-$])
+                    (8 37  [?\C-\M-%])
+                    (8 38  [?\C-\M-&])
+                    (8 40  [?\C-\M-\(])
+                    (8 41  [?\C-\M-\)])
+                    (8 42  [?\C-\M-*])
+                    (8 43  [?\C-\M-+])
+                    (8 58  [?\C-\M-:])
+                    (8 60  [?\C-\M-<])
+                    (8 62  [?\C-\M->])
+                    (8 63  [(control meta ??)])
 
-    (define-key map "\e[27;8;33~"  [?\C-\M-!])
-    (define-key map "\e[27;8;34~"  [?\C-\M-\"])
-    (define-key map "\e[27;8;35~"  [?\C-\M-#])
-    (define-key map "\e[27;8;36~"  [?\C-\M-$])
-    (define-key map "\e[27;8;37~"  [?\C-\M-%])
-    (define-key map "\e[27;8;38~"  [?\C-\M-&])
-    (define-key map "\e[27;8;40~"  [?\C-\M-\(])
-    (define-key map "\e[27;8;41~"  [?\C-\M-\)])
-    (define-key map "\e[27;8;42~"  [?\C-\M-*])
-    (define-key map "\e[27;8;43~"  [?\C-\M-+])
-    (define-key map "\e[27;8;58~"  [?\C-\M-:])
-    (define-key map "\e[27;8;60~"  [?\C-\M-<])
-    (define-key map "\e[27;8;62~"  [?\C-\M->])
-    (define-key map "\e[27;8;63~"  [(control meta ??)])
+                    (2 9   [S-tab])
+                    (2 13  [S-return])
 
-    (define-key map "\e[27;2;9~"   [S-tab])
-    (define-key map "\e[27;2;13~"  [S-return])
-
-    (define-key map "\e[27;6;9~"   [C-S-tab])
-    (define-key map "\e[27;6;13~"  [C-S-return])
+                    (6 9   [C-S-tab])
+                    (6 13  [C-S-return])))
+      (define-key map
+        (format "\e[27;%d;%d~" (nth 0 bind) (nth 1 bind)) (nth 2 bind))
+      ;; For formatOtherKeys=1, the sequence is a bit shorter (bug#13839).
+      (define-key map
+        (format "\e[%d;%du" (nth 1 bind) (nth 0 bind)) (nth 2 bind)))
 
     ;; Other versions of xterm might emit these.
     (define-key map "\e[A" [up])
@@ -463,6 +466,89 @@ The relevant features are:
 ;; List of terminals for which modify-other-keys has been turned on.
 (defvar xterm-modify-other-keys-terminal-list nil)
 
+(defun xterm--report-background-handler ()
+  (let ((str "")
+        chr)
+    ;; The reply should be: \e ] 11 ; rgb: NUMBER1 / NUMBER2 / NUMBER3 \e \\
+    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?\\)))
+      (setq str (concat str (string chr))))
+    (when (string-match
+           "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
+      (let ((recompute-faces
+             (xterm-maybe-set-dark-background-mode
+              (string-to-number (match-string 1 str) 16)
+              (string-to-number (match-string 2 str) 16)
+              (string-to-number (match-string 3 str) 16))))
+
+        ;; Recompute faces here in case the background mode was
+        ;; set to dark.  We used to call
+        ;; `tty-set-up-initial-frame-faces' only once, but that
+        ;; caused the light background faces to be computed
+        ;; incorrectly.  See:
+        ;; http://permalink.gmane.org/gmane.emacs.devel/119627
+        (when recompute-faces
+          (tty-set-up-initial-frame-faces))))))
+
+(defun xterm--version-handler ()
+  (let ((str "")
+        chr)
+    ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
+    ;; If the timeout is completely removed for read-event, this
+    ;; might hang for terminals that pretend to be xterm, but don't
+    ;; respond to this escape sequence.  RMS' opinion was to remove
+    ;; it completely.  That might be right, but let's first try to
+    ;; see if by using a longer timeout we get rid of most issues.
+    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?c)))
+      (setq str (concat str (string chr))))
+    (when (string-match "0;\\([0-9]+\\);0" str)
+      (let ((version (string-to-number (match-string 1 str))))
+        ;; If version is 242 or higher, assume the xterm supports
+        ;; reporting the background color (TODO: maybe earlier
+        ;; versions do too...)
+        (when (>= version 242)
+          (xterm--query "\e]11;?\e\\"
+                        '(("\e]11;" .  xterm--report-background-handler))))
+
+        ;; If version is 216 (the version when modifyOtherKeys was
+        ;; introduced) or higher, initialize the
+        ;; modifyOtherKeys support.
+        (when (>= version 216)
+          (terminal-init-xterm-modify-other-keys))))))
+
+(defun xterm--query (query handlers)
+  ;; We used to query synchronously, but the need to use `discard-input' is
+  ;; rather annoying (bug#6758).  Maybe we could always use the asynchronous
+  ;; approach, but it's less tested.
+  ;; FIXME: Merge the two branches.
+  (if (input-pending-p)
+      (progn
+        (dolist (handler handlers)
+          (define-key input-decode-map (car handler)
+            (lambda (&optional _prompt)
+              ;; Unregister the handler, since we don't expect further answers.
+              (dolist (handler handlers)
+                (define-key input-decode-map (car handler) nil))
+              (funcall (cdr handler))
+              [])))
+        (send-string-to-terminal query))
+    ;; Pending input can be mistakenly returned by the calls to
+    ;; read-event below.  Discard it.
+    (send-string-to-terminal query)
+    (while handlers
+      (let ((handler (pop handlers))
+            (i 0))
+        (while (and (< i (length (car handler)))
+                    (let ((evt (read-event nil nil 2)))
+                      (or (eq evt (aref (car handler) i))
+                          (progn (if evt (push evt unread-command-events))
+                                 nil))))
+          (setq i (1+ i)))
+        (if (= i (length (car handler)))
+            (funcall (cdr handler))
+          (while (> i 0)
+            (push (aref (car handler) (setq i (1- i)))
+                  unread-command-events)))))))
+
 (defun terminal-init-xterm ()
   "Terminal initialization function for xterm."
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
@@ -487,92 +573,24 @@ The relevant features are:
   (xterm-register-default-colors)
   (tty-set-up-initial-frame-faces)
 
-  ;; Try to turn on the modifyOtherKeys feature on modern xterms.
-  ;; When it is turned on many more key bindings work: things like
-  ;; C-. C-, etc.
-  ;; To do that we need to find out if the current terminal supports
-  ;; modifyOtherKeys.  At this time only xterm does.
-  (when xterm-extra-capabilities
-    (let ((coding-system-for-read 'binary)
-          (chr nil)
-          (str "")
-          (recompute-faces nil)
-          ;; If `xterm-extra-capabilities' is 'check, we don't know
-          ;; the capabilities.  We need to check for those defined
-          ;; as `xterm-extra-capabilities' set options.  Otherwise,
-          ;; we don't need to check for any capabilities because
-          ;; they are given by setting `xterm-extra-capabilities' to
-          ;; a list (which could be empty).
-          (tocheck-capabilities (if (eq 'check xterm-extra-capabilities)
-                                    '(modifyOtherKeys reportBackground)))
-          ;; The given capabilities are either the contents of
-          ;; `xterm-extra-capabilities', if it's a list, or an empty list.
-          (given-capabilities (if (consp xterm-extra-capabilities)
-                                  xterm-extra-capabilities))
-          version)
-      ;; 1. Set `version'
-
-      ;; Pending input can be mistakenly returned by the calls to
-      ;; read-event below.  Discard it.
-      (discard-input)
+  (if (eq xterm-extra-capabilities 'check)
       ;; Try to find out the type of terminal by sending a "Secondary
       ;; Device Attributes (DA)" query.
-      (send-string-to-terminal "\e[>0c")
+      (xterm--query "\e[>0c"
+                    ;; Some terminals (like OS X's Terminal.app) respond to
+                    ;; this query as if it were a "Primary Device Attributes"
+                    ;; query instead, so we should handle that too.
+                    '(("\e[?" . xterm--version-handler)
+                      ("\e[>" . xterm--version-handler)))
 
-      ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
-      ;; If the timeout is completely removed for read-event, this
-      ;; might hang for terminals that pretend to be xterm, but don't
-      ;; respond to this escape sequence.  RMS' opinion was to remove
-      ;; it completely.  That might be right, but let's first try to
-      ;; see if by using a longer timeout we get rid of most issues.
-      (when (and (equal (read-event nil nil 2) ?\e)
-                 (equal (read-event nil nil 2) ?\[))
-        (while (not (equal (setq chr (read-event nil nil 2)) ?c))
-          (setq str (concat str (string chr))))
-        (if (string-match ">0;\\([0-9]+\\);0" str)
-            (setq version (string-to-number (match-string 1 str)))))
-      ;; 2. If reportBackground is known to be supported, or the
-      ;; version is 242 or higher, assume the xterm supports
-      ;; reporting the background color (TODO: maybe earlier
-      ;; versions do too...)
-      (when (or (memq 'reportBackground given-capabilities)
-                (and (memq 'reportBackground tocheck-capabilities)
-                     version
-                     (>= version 242)))
-	(discard-input)
-        (send-string-to-terminal "\e]11;?\e\\")
-        (when (and (equal (read-event nil nil 2) ?\e)
-                   (equal (read-event nil nil 2) ?\]))
-          (setq str "")
-          (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
-            (setq str (concat str (string chr))))
-          (if (string-match
-               "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
-              (setq recompute-faces
-                    (xterm-maybe-set-dark-background-mode
-                     (string-to-number (match-string 1 str) 16)
-                     (string-to-number (match-string 2 str) 16)
-                     (string-to-number (match-string 3 str) 16))))))
+    (when (memq 'reportBackground xterm-extra-capabilities)
+      (xterm--query "\e]11;?\e\\"
+                    '(("\e]11;" .  xterm--report-background-handler))))
 
-      ;; 3. If modifyOtherKeys is known to be supported or the
-      ;; version is 216 (the version when modifyOtherKeys was
-      ;; introduced) or higher, initialize the modifyOtherKeys support.
-      (if (or (memq 'modifyOtherKeys given-capabilities)
-              (and (memq 'modifyOtherKeys tocheck-capabilities)
-                   version
-                   (>= version 216)))
-          (terminal-init-xterm-modify-other-keys))
+    (when (memq 'modifyOtherKeys xterm-extra-capabilities)
+      (terminal-init-xterm-modify-other-keys)))
 
-      ;; Recompute faces here in case the background mode was
-      ;; set to dark.  We used to call
-      ;; `tty-set-up-initial-frame-faces' only once, but that
-      ;; caused the light background faces to be computed
-      ;; incorrectly.  See:
-      ;; http://permalink.gmane.org/gmane.emacs.devel/119627
-      (when recompute-faces
-        (tty-set-up-initial-frame-faces))))
-
-    (run-hooks 'terminal-init-xterm-hook))
+  (run-hooks 'terminal-init-xterm-hook))
 
 (defun terminal-init-xterm-modify-other-keys ()
   "Terminal initialization for xterm's modifyOtherKeys support."

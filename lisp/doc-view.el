@@ -324,7 +324,25 @@ of the page moves to the previous page."
       ;; `window' property is only effective if its value is a window).
       (cl-assert (eq t (car winprops)))
       (delete-overlay ol))
-    (image-mode-window-put 'overlay ol winprops)))
+    (image-mode-window-put 'overlay ol winprops)
+    (when (windowp (car winprops))
+      (if (stringp (overlay-get ol 'display))
+    	  ;; We're not already displaying an image, so this is the
+    	  ;; initial window showing the document.
+    	  (run-with-timer nil nil
+    			  (lambda ()
+			    ;; In case a conversion is running, the
+			    ;; refresh will happen as defined by
+			    ;; `doc-view-conversion-refresh-interval'.
+    			    (unless doc-view-current-converter-processes
+			      (with-selected-window (car winprops)
+				(doc-view-goto-page 1)))))
+    	;; We've split the window showing the document.  All we need
+    	;; to do is selecting the new window to cause a redisplay to
+    	;; make the image appear there, too.
+    	(run-with-timer nil nil
+    			(lambda ()
+			  (with-selected-window (car winprops))))))))
 
 (defvar doc-view-current-files nil
   "Only used internally.")
@@ -535,7 +553,7 @@ Typically \"page-%s.png\".")
 			  (with-selected-window win
 			    (doc-view-goto-page page))))))))
     (overlay-put (doc-view-current-overlay)
-                 'help-echo (doc-view-current-info))))
+		 'help-echo (doc-view-current-info))))
 
 (defun doc-view-next-page (&optional arg)
   "Browse ARG pages forward."
@@ -1007,7 +1025,7 @@ Start by converting PAGES, and then the rest."
            ;; not sufficient.
            (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
              (with-selected-window win
-	       (when (stringp (get-char-property (point-min) 'display))
+	       (when (stringp (overlay-get (doc-view-current-overlay) 'display))
 		 (doc-view-goto-page (doc-view-current-page)))))
            ;; Convert the rest of the pages.
            (doc-view-pdf/ps->png pdf png)))))))
@@ -1250,44 +1268,59 @@ ARGS is a list of image descriptors."
   (when doc-view-pending-cache-flush
     (clear-image-cache)
     (setq doc-view-pending-cache-flush nil))
-  (let ((ol (doc-view-current-overlay))
-        (image (if (and file (file-readable-p file))
-		   (if (not (and doc-view-scale-internally
-                                 (fboundp 'imagemagick-types)))
-		       (apply 'create-image file doc-view--image-type nil args)
-		     (unless (member :width args)
-		       (setq args `(,@args :width ,doc-view-image-width)))
-		     (apply 'create-image file 'imagemagick nil args))))
-        (slice (doc-view-current-slice)))
-    (setf (doc-view-current-image) image)
-    (move-overlay ol (point-min) (point-max))
-    (overlay-put ol 'display
-                 (cond
-                  (image
-                   (if slice
-                       (list (cons 'slice slice) image)
-                     image))
-                  ;; We're trying to display a page that doesn't exist.
-                  (doc-view-current-converter-processes
-                   ;; Maybe the page doesn't exist *yet*.
-                   "Cannot display this page (yet)!")
-                  (t
-                   ;; Typically happens if the conversion process somehow
-                   ;; failed.  Better not signal an error here because it
-                   ;; could prevent a subsequent reconversion from fixing
-                   ;; the problem.
-                   (concat "Cannot display this page!\n"
-                           "Maybe because of a conversion failure!"))))
-    (let ((win (overlay-get ol 'window)))
-      (if (stringp (overlay-get ol 'display))
-          (progn            ;Make sure the text is not scrolled out of view.
-            (set-window-hscroll win 0)
-            (set-window-vscroll win 0))
-        (let ((hscroll (image-mode-window-get 'hscroll win))
-              (vscroll (image-mode-window-get 'vscroll win)))
-          ;; Reset scroll settings, in case they were changed.
-          (if hscroll (set-window-hscroll win hscroll))
-          (if vscroll (set-window-vscroll win vscroll)))))))
+  (let ((ol (doc-view-current-overlay)))
+    ;; Only insert the image if the buffer is visible.
+    (when (window-live-p (overlay-get ol 'window))
+      (let* ((image (if (and file (file-readable-p file))
+			(if (not (and doc-view-scale-internally
+				      (fboundp 'imagemagick-types)))
+			    (apply 'create-image file doc-view--image-type nil args)
+			  (unless (member :width args)
+			    (setq args `(,@args :width ,doc-view-image-width)))
+			  (apply 'create-image file 'imagemagick nil args))))
+	     (slice (doc-view-current-slice))
+	     (img-width (and image (car (image-size image))))
+	     (displayed-img-width (if (and image slice)
+				      (* (/ (float (nth 2 slice))
+					    (car (image-size image 'pixels)))
+					 img-width)
+				    img-width))
+	     (window-width (window-width (selected-window))))
+	(setf (doc-view-current-image) image)
+	(move-overlay ol (point-min) (point-max))
+	;; In case the window is wider than the image, center the image
+	;; horizontally.
+	(overlay-put ol 'before-string
+		     (when (and image (> window-width displayed-img-width))
+		       (propertize " " 'display
+				   `(space :align-to (+ center (-0.5 . ,displayed-img-width))))))
+	(overlay-put ol 'display
+		     (cond
+		      (image
+		       (if slice
+			   (list (cons 'slice slice) image)
+			 image))
+		      ;; We're trying to display a page that doesn't exist.
+		      (doc-view-current-converter-processes
+		       ;; Maybe the page doesn't exist *yet*.
+		       "Cannot display this page (yet)!")
+		      (t
+		       ;; Typically happens if the conversion process somehow
+		       ;; failed.  Better not signal an error here because it
+		       ;; could prevent a subsequent reconversion from fixing
+		       ;; the problem.
+		       (concat "Cannot display this page!\n"
+			       "Maybe because of a conversion failure!"))))
+	(let ((win (overlay-get ol 'window)))
+	  (if (stringp (overlay-get ol 'display))
+	      (progn            ;Make sure the text is not scrolled out of view.
+		(set-window-hscroll win 0)
+		(set-window-vscroll win 0))
+	    (let ((hscroll (image-mode-window-get 'hscroll win))
+		  (vscroll (image-mode-window-get 'vscroll win)))
+	      ;; Reset scroll settings, in case they were changed.
+	      (if hscroll (set-window-hscroll win hscroll))
+	      (if vscroll (set-window-vscroll win vscroll)))))))))
 
 (defun doc-view-sort (a b)
   "Return non-nil if A should be sorted before B.

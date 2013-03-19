@@ -50,7 +50,7 @@ The list returned is sorted by oldest-first."
     (call-process "bzr" nil t nil "status" "-v")
     (goto-char (point-min))
     (when (re-search-forward "^conflicts:\n" nil t)
-      (error "You still have unresolved conflicts"))
+      (user-error "You still have unresolved conflicts"))
     (let ((merges ())
           found)
       (if (not (re-search-forward "^pending merges:\n" nil t))
@@ -62,7 +62,7 @@ The list returned is sorted by oldest-first."
                            (setq found
                                  (not (equal "unknown" (match-string 1)))))))
                   found)
-            (error "You still have uncommitted changes"))
+            (user-error "You still have uncommitted changes"))
         ;; This is really stupid, but it seems there's no easy way to figure
         ;; out which revisions have been merged already.  The only info I can
         ;; find is the "pending merges" from "bzr status -v", which is not
@@ -171,7 +171,7 @@ Type `y' to skip this revision,
                                  (enable-local-eval nil))
                              (find-file-noselect file))
         (if (buffer-modified-p)
-            (error "Unsaved changes in %s" (current-buffer)))
+            (user-error "Unsaved changes in %s" (current-buffer)))
         (save-excursion
           (cond
            ((derived-mode-p 'change-log-mode)
@@ -323,7 +323,7 @@ Does not make other difference."
 BEWARE!  Important metadata is kept in this Emacs session!
 Do not commit without re-running `M-x bzrmerge' first!"
                                    :warning bzrmerge-warning-buffer))
-              (error "Resolve conflicts manually")))))
+              (user-error "Resolve conflicts manually")))))
         (cons merge skip)))))
 
 (defun bzrmerge (from)

@@ -1,4 +1,4 @@
-;;; korean.el --- support for Korean -*- coding: iso-2022-7bit -*-
+;;; korean.el --- support for Korean -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -74,7 +74,7 @@
 	    (input-method . "korean-hangul")
 	    (features korea-util)
 	    (coding-priority korean-iso-8bit korean-cp949 iso-2022-kr)
-	    (sample-text . "Hangul ($(CGQ1[(B)	$(C>H3gGO<<?d(B, $(C>H3gGO=J4O1n(B")
+	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")
 	    (documentation . "\
 The following key bindings are available for controlling Korean input methods:
   Shift-SPC, Hangul:	toggle-korean-input-method

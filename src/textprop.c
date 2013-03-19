@@ -60,7 +60,7 @@ Lisp_Object Qinvisible, Qintangible, Qmouse_face;
 static Lisp_Object Qread_only;
 Lisp_Object Qminibuffer_prompt;
 
-/* Sticky properties */
+/* Sticky properties.  */
 Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 /* If o1 is a cons whose cdr is a cons, return non-zero and set o2 to

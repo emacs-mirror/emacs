@@ -1,78 +1,78 @@
-Tutorial do Emacs. Veja no fim as condições para cópia.
+Tutorial do Emacs. Veja no fim as condiÃ§Ãµes para cÃ³pia.
 
 Os comandos do Emacs geralmente envolvem a tecla CONTROL (algumas vezes
 nomeada CTRL ou CTL) ou a tecla META (algumas vezes nomeada EDIT ou
 ALT). Antes de escrever isso tudo toda vez, usaremos as seguintes
-abreviações:
+abreviaÃ§Ãµes:
 
  C-<chr>  Significa pressionar a tecla CONTROL enquanto digitar o
           caractere <chr>.
 	  Assim, C-f seria: Pressionar a tecla CONTROL e digitar f.
  M-<chr>  Significa pressionar a tecla META, EDIT ou ALT enquanto
           digitar <chr>.
-	  Se não tiver META, EDIT ou ALT, no lugar digite ESC e depois
+	  Se nÃ£o tiver META, EDIT ou ALT, no lugar digite ESC e depois
           <chr>. Escrevemos <ESC> para tecla ESC.
 
 
-Nota importante: para terminar a sessão do Emacs, digite C-x C-c. (Dois
-caracteres.) Os caracteres ">>" na margem esquerda indicam direções para
-você tentar usar um comando. Por exemplo:
+Nota importante: para terminar a sessÃ£o do Emacs, digite C-x C-c. (Dois
+caracteres.) Os caracteres ">>" na margem esquerda indicam direÃ§Ãµes para
+vocÃª tentar usar um comando. Por exemplo:
 <<Linhas vazias inseridas ao redor da linha seguinte por
 ajuda-com-tutorial>>
-[Metade da página em branco para propósitos didáticos. O texto continua
+[Metade da pÃ¡gina em branco para propÃ³sitos didÃ¡ticos. O texto continua
 abaixo]
->>  Agora digite C-v (Ver próxima tela) para ir para próxima tela.
-       (vá em frente, faça isso pressionando a tecla CONTROL enquanto
+>>  Agora digite C-v (Ver prÃ³xima tela) para ir para prÃ³xima tela.
+       (vÃ¡ em frente, faÃ§a isso pressionando a tecla CONTROL enquanto
        digitar v).
-       De agora em diante, você deve fazer isso de novo sempre que você
+       De agora em diante, vocÃª deve fazer isso de novo sempre que vocÃª
        terminar de ler a tela.
 
-Note que tem uma sobreposição de duas linhas quando você move de tela em
-tela; isso fornece uma continuidade para que você continue lendo o
+Note que tem uma sobreposiÃ§Ã£o de duas linhas quando vocÃª move de tela em
+tela; isso fornece uma continuidade para que vocÃª continue lendo o
 texto.
 
-A primeira coisa que você precisa saber é como se mover de um lugar a
-outro no texto. Você já sabe como mover para próxima tela, com
-C-v. Para mover para trás uma tela, digite M-v (pressione a tecla
-META enquanto digita v, ou digite <ESC>v se o seu teclado não tiver a tecla
+A primeira coisa que vocÃª precisa saber Ã© como se mover de um lugar a
+outro no texto. VocÃª jÃ¡ sabe como mover para prÃ³xima tela, com
+C-v. Para mover para trÃ¡s uma tela, digite M-v (pressione a tecla
+META enquanto digita v, ou digite <ESC>v se o seu teclado nÃ£o tiver a tecla
 META, EDIT ou ALT).
 
 >>  Tente digitar M-v e depois C-v, algumas vezes.
 
 
-* SUMÁRIO
+* SUMÃRIO
 ---------
 
-Os comandos a seguir são úteis para visualizar telas inteiras
+Os comandos a seguir sÃ£o Ãºteis para visualizar telas inteiras
 
         C-v     Move para tela inteira posterior
 	M-v     Move para tela inteira anterior
-	C-l     Limpa a tela e re-mostrá todo o texto, movendo o texto ao
-		redor do cursor para o centro da tela. (Isso é
-		control-L, não control-1.)
+	C-l     Limpa a tela e re-mostrÃ¡ todo o texto, movendo o texto ao
+		redor do cursor para o centro da tela. (Isso Ã©
+		control-L, nÃ£o control-1.)
 
->> Encontre o cursor, e note o texto que está perto dele.
+>> Encontre o cursor, e note o texto que estÃ¡ perto dele.
    Digite C-l.
    Encontre o cursor novamente e perceba que o mesmo texto continua
    perto do cursor.
 
 
-* CONTROLE BÁSICO DO CURSOR
+* CONTROLE BÃSICO DO CURSOR
 ---------------------------
 
-Movendo de uma tela inteira para outra tela cheia é útil, mas como você
+Movendo de uma tela inteira para outra tela cheia Ã© Ãºtil, mas como vocÃª
 move para um lugar especifico com o mesmo texto na tela?
 
-Existem diversas maneiras para você poder fazer isso. A maneira mais
-básica é utilizar os comandos C-p, C-b, C-f e C-n. Cada um desses
-comandos movem o cursor uma linha ou coluna na tela em uma direção
-particular. Aqui está uma tabela mostrando esses quatro comandos e as
-direções que eles movem:
+Existem diversas maneiras para vocÃª poder fazer isso. A maneira mais
+bÃ¡sica Ã© utilizar os comandos C-p, C-b, C-f e C-n. Cada um desses
+comandos movem o cursor uma linha ou coluna na tela em uma direÃ§Ã£o
+particular. Aqui estÃ¡ uma tabela mostrando esses quatro comandos e as
+direÃ§Ãµes que eles movem:
 
                          Linha anterior, C-p
 			          :
 				  :
-    Traz, C-b .... Posição corrente do cursor .... Frente, C-f
+    Traz, C-b .... PosiÃ§Ã£o corrente do cursor .... Frente, C-f
 				  :
 				  :
                           Linha posterior, C-n
@@ -80,490 +80,490 @@ direções que eles movem:
 >> Mova o cursor para a linha no meio do diagrama acima utilizando C-n
    ou C-p. Digite C-l para ver o diagrama inteiro centralizado na tela.
 
-Você provavelmente achará isso fácil pensando neles pela letra: P para
-Previous (anterior), N para Next (Posterior), B para Backward (trás) e F
-para Forward (frente). Estes são os comandos básicos de posicionamento
-de cursor e você os estará utilizando a TODO tempo, então seria ótimo
-se você os aprendesse agora.
+VocÃª provavelmente acharÃ¡ isso fÃ¡cil pensando neles pela letra: P para
+Previous (anterior), N para Next (Posterior), B para Backward (trÃ¡s) e F
+para Forward (frente). Estes sÃ£o os comandos bÃ¡sicos de posicionamento
+de cursor e vocÃª os estarÃ¡ utilizando a TODO tempo, entÃ£o seria Ã³timo
+se vocÃª os aprendesse agora.
 
->> Faça alguns C-n's para trazer o cursor abaixo desta linha.
+>> FaÃ§a alguns C-n's para trazer o cursor abaixo desta linha.
 
 >> Mova para a linha com C-f's e depois para cima com C-p's.
-   Veja o que C-p faz quando o cursor está no meio da linha.
+   Veja o que C-p faz quando o cursor estÃ¡ no meio da linha.
 
 Cada linha de texto termina com um caractere de nova linha, que serve
-para separar da próxima linha. No fim da última linha deve ter um
-caractere de nova linha (mas não é exigido pelo Emacs).
+para separar da prÃ³xima linha. No fim da Ãºltima linha deve ter um
+caractere de nova linha (mas nÃ£o Ã© exigido pelo Emacs).
 
->> Tente digitar C-b no começo da linha. O cursor deve mover para o fim
-   da linha anterior. Isso acontece por que ele se moveu para trás
-   através do caractere de nova linha.
+>> Tente digitar C-b no comeÃ§o da linha. O cursor deve mover para o fim
+   da linha anterior. Isso acontece por que ele se moveu para trÃ¡s
+   atravÃ©s do caractere de nova linha.
 
-C-f pode mover o cursor através de uma Nova linha do mesmo jeito que
+C-f pode mover o cursor atravÃ©s de uma Nova linha do mesmo jeito que
     C-b.
 
->> Faça mais alguns C-b's, assim você percebe onde o está o cursor.
+>> FaÃ§a mais alguns C-b's, assim vocÃª percebe onde o estÃ¡ o cursor.
    Depois alguns C-f's para retornar para o fim da linha.
    Depois mais um C-f para mover para linha seguinte.
 
-Quando você move o cursor passando o topo ou o rodapé da tela, o próximo
-texto além da borda desloca-se na tela. Isso é chamado rolagem. Isso
+Quando vocÃª move o cursor passando o topo ou o rodapÃ© da tela, o prÃ³ximo
+texto alÃ©m da borda desloca-se na tela. Isso Ã© chamado rolagem. Isso
 ativa o Emacs para mover o cursor para o lugar especificado no texto sem
-movê-lo fora da tela.
+movÃª-lo fora da tela.
 
->> Tente mover o cursor fora do rodapé da tela com C-n, e veja o que
+>> Tente mover o cursor fora do rodapÃ© da tela com C-n, e veja o que
    acontece.
 
-Se mover por caracteres é muito lento, você pode se mover por
+Se mover por caracteres Ã© muito lento, vocÃª pode se mover por
 palavras. M-f (Meta-f) move uma palavra para frente e M-b uma palavra
-para trás.
+para trÃ¡s.
 
 >> Digite alguns M-f's e M-b's
 
-Quando você está no meio de uma palavra, M-f move o cursor para o fim da
-mesma. Quando você está em um espaço em branco no meio de duas palavras,
+Quando vocÃª estÃ¡ no meio de uma palavra, M-f move o cursor para o fim da
+mesma. Quando vocÃª estÃ¡ em um espaÃ§o em branco no meio de duas palavras,
 M-f move o cursor para o fim da palavra seguinte. M-b funciona do mesmo
-jeito na direção contraria.
+jeito na direÃ§Ã£o contraria.
 
 >> Digite M-f e M-b algumas vezes, intercalado com C-f's e C-b's assim
-   você pode observar a ação do M-f e M-b de varias lugares dentro e no
+   vocÃª pode observar a aÃ§Ã£o do M-f e M-b de varias lugares dentro e no
    meio de palavras.
 
 Observe o paralelismo entre C-f e C-b por um lado, e M-f e M-b por outro
-lado. Muito freqüentemente os caracteres Meta são usados para operações
+lado. Muito freqÃ¼entemente os caracteres Meta sÃ£o usados para operaÃ§Ãµes
 relacionadas com as unidades definidas pela linguagem (palavras,
-sentenças, parágrafos), enquanto caracteres Control operam nas unidades
-básicas que são independente do que você está editando (caracteres,
+sentenÃ§as, parÃ¡grafos), enquanto caracteres Control operam nas unidades
+bÃ¡sicas que sÃ£o independente do que vocÃª estÃ¡ editando (caracteres,
 linhas, etc).
 
-Esse paralelismo aplica-se entre linhas e sentenças: C-a e C-e move o
-cursor para o começo ou fim da linha, e M-a e M-e move o cursor para o
-começo ou fim da sentença.
+Esse paralelismo aplica-se entre linhas e sentenÃ§as: C-a e C-e move o
+cursor para o comeÃ§o ou fim da linha, e M-a e M-e move o cursor para o
+comeÃ§o ou fim da sentenÃ§a.
 
 >> Tente alguns C-a's, e depois alguns C-e's.
    Tente alguns M-a's, e depois alguns M-e's.
 
-Veja como repetidos C-a's fazem nada, mas repetidos M-a's mantém movendo
-mais uma sentença. Embora estes não sejam completamente análogos, cada
+Veja como repetidos C-a's fazem nada, mas repetidos M-a's mantÃ©m movendo
+mais uma sentenÃ§a. Embora estes nÃ£o sejam completamente anÃ¡logos, cada
 um parece natural.
 
-A posição do cursor no texto é também chamado "ponto" (point). Para
-parafrasear, o cursor mostra na tela onde o ponto é encontrado no texto.
+A posiÃ§Ã£o do cursor no texto Ã© tambÃ©m chamado "ponto" (point). Para
+parafrasear, o cursor mostra na tela onde o ponto Ã© encontrado no texto.
 
-Aqui está um simples sumário das operações de movimento de cursor,
-incluindo comandos de movimento de palavra e sentença.
+Aqui estÃ¡ um simples sumÃ¡rio das operaÃ§Ãµes de movimento de cursor,
+incluindo comandos de movimento de palavra e sentenÃ§a.
 
 	C-f     Move o cursor um caractere para frente
-	C-b     Move o cursor um caractere para trás
+	C-b     Move o cursor um caractere para trÃ¡s
 
 	M-f     Move o cursor uma palavra para frente
-	M-b	Move o cursor uma palavra para trás
+	M-b	Move o cursor uma palavra para trÃ¡s
 
 	C-n	Move o cursor para linha posterior
 	C-p	Move o cursor para linha anterior
 
-	C-a	Move o cursor para o começo da linha
+	C-a	Move o cursor para o comeÃ§o da linha
 	C-e	Move o cursor para o fim da linha
 
-	M-a     Move o cursor para trás no começo da sentença
-	M-e     Move o cursor para frente no fim da sentença
+	M-a     Move o cursor para trÃ¡s no comeÃ§o da sentenÃ§a
+	M-e     Move o cursor para frente no fim da sentenÃ§a
 
 >> Tente agora todos estes comandos algumas vezes para praticar.
-   Estes são os comandos mais utilizados.
+   Estes sÃ£o os comandos mais utilizados.
 
-Outros dois comandos de movimento de cursor importantes são M-< (Meta
-Menor-que), o qual move o cursor para o começo de todo o texto, e M->
+Outros dois comandos de movimento de cursor importantes sÃ£o M-< (Meta
+Menor-que), o qual move o cursor para o comeÃ§o de todo o texto, e M->
 (Meta Maior-que), o qual move para o fim de todo o texto.
 
-Na maioria dos terminais, o "<" é acima da vírgula, então você precisa
-utilizar a tecla shift para digitá-la. Nestes terminais você precisa
-utilizar a tecla shift para digitar M-< também; sem a tecla shift, você
+Na maioria dos terminais, o "<" Ã© acima da vÃ­rgula, entÃ£o vocÃª precisa
+utilizar a tecla shift para digitÃ¡-la. Nestes terminais vocÃª precisa
+utilizar a tecla shift para digitar M-< tambÃ©m; sem a tecla shift, vocÃª
 estaria teclando M-virgula.
 
->> Tente agora M-<, para mover o cursor ao começo do tutorial.
-   Use então C-v repetidamente para trazer o cursor novamente aqui.
+>> Tente agora M-<, para mover o cursor ao comeÃ§o do tutorial.
+   Use entÃ£o C-v repetidamente para trazer o cursor novamente aqui.
 
 >> Tente agora M->, para mover o cursor ao fim do tutorial.
-   Use então M-v repetidamente para trazer o cursor novamente aqui.
+   Use entÃ£o M-v repetidamente para trazer o cursor novamente aqui.
 
-Você também pode mover o cursor com as setas, se o seu terminal tem
-teclas com setas. Nós recomendamos aprender C-b, C-f, C-n e C-p por três
-razões. Primeira, elas funcionam em todos os terminais. Segunda, uma vez
-que você ganhar prática usando o Emacs, você descobrirá que digitar
-nestes caracteres Control é mais rápido do que digitar nas setas (porque
-você não tem que mover suas mãos tão longe da posição de
-digitação). Terceira, uma vez que você tiver o hábito de utilizar estes
-comandos de caracteres Control, você pode facilmente aprender como usar
-outros comandos avançados de movimentação do cursor.
+VocÃª tambÃ©m pode mover o cursor com as setas, se o seu terminal tem
+teclas com setas. NÃ³s recomendamos aprender C-b, C-f, C-n e C-p por trÃªs
+razÃµes. Primeira, elas funcionam em todos os terminais. Segunda, uma vez
+que vocÃª ganhar prÃ¡tica usando o Emacs, vocÃª descobrirÃ¡ que digitar
+nestes caracteres Control Ã© mais rÃ¡pido do que digitar nas setas (porque
+vocÃª nÃ£o tem que mover suas mÃ£os tÃ£o longe da posiÃ§Ã£o de
+digitaÃ§Ã£o). Terceira, uma vez que vocÃª tiver o hÃ¡bito de utilizar estes
+comandos de caracteres Control, vocÃª pode facilmente aprender como usar
+outros comandos avanÃ§ados de movimentaÃ§Ã£o do cursor.
 
-A maioria dos comandos do Emacs aceitam argumentos numéricos; para
-maioria dos comandos, isso serve como um fator de repetição. A maneira
-que você da a um comando uma repetição teclando C-u e depois os dígitos
-antes de digitar o comando. Se você tem o META (EDIT ou ALT), tem outra
-alternativa para digitar um argumento numérico: digite os dígitos
-enquanto pressionando a tecla META. Nós recomendamos aprender o método
-C-u porque funciona em todos os terminais. O argumento numérico também é
-chamado de "argumento prefixo", porque você digita o argumento antes do
+A maioria dos comandos do Emacs aceitam argumentos numÃ©ricos; para
+maioria dos comandos, isso serve como um fator de repetiÃ§Ã£o. A maneira
+que vocÃª da a um comando uma repetiÃ§Ã£o teclando C-u e depois os dÃ­gitos
+antes de digitar o comando. Se vocÃª tem o META (EDIT ou ALT), tem outra
+alternativa para digitar um argumento numÃ©rico: digite os dÃ­gitos
+enquanto pressionando a tecla META. NÃ³s recomendamos aprender o mÃ©todo
+C-u porque funciona em todos os terminais. O argumento numÃ©rico tambÃ©m Ã©
+chamado de "argumento prefixo", porque vocÃª digita o argumento antes do
 comando que ele se aplica.
 
 Por exemplo, C-u 8 C-f move o cursor oito caracteres para frente
 
->> Tente usar C-n ou C-p com um argumento numérico, para mover o
-   cursor para um linha perto dessa com um único comando.
+>> Tente usar C-n ou C-p com um argumento numÃ©rico, para mover o
+   cursor para um linha perto dessa com um Ãºnico comando.
 
-A maioria dos comandos usam o argumento numérico para um fator de
-repetição, mas alguns comandos usam isso de outra maneira. Diversos
-comandos (mas nenhum daqueles comandos que você tenha aprendido até
-agora) usam isso como uma marca -- a presença de um argumento prefixo,
+A maioria dos comandos usam o argumento numÃ©rico para um fator de
+repetiÃ§Ã£o, mas alguns comandos usam isso de outra maneira. Diversos
+comandos (mas nenhum daqueles comandos que vocÃª tenha aprendido atÃ©
+agora) usam isso como uma marca -- a presenÃ§a de um argumento prefixo,
 independente do seu valor, faz o comando fazer alguma coisa diferente.
 
-C-v e M-v são outro tipo de exceção. Quando você da um argumento, eles
-rolam a tela para cima ou para baixo por aquele número de linhas, de
-preferência com a tela cheia. Por exemplo, C-u 8 C-v rola a tela 8
+C-v e M-v sÃ£o outro tipo de exceÃ§Ã£o. Quando vocÃª da um argumento, eles
+rolam a tela para cima ou para baixo por aquele nÃºmero de linhas, de
+preferÃªncia com a tela cheia. Por exemplo, C-u 8 C-v rola a tela 8
 linhas.
 
 >> Tente agora digitar C-u 8 C-v.
 
-Isso deve ter rolado a tela para cima 8 linhas. Se você quiser rolar a
-tela para baixo novamente, você pode dar um argumento para o M-v.
+Isso deve ter rolado a tela para cima 8 linhas. Se vocÃª quiser rolar a
+tela para baixo novamente, vocÃª pode dar um argumento para o M-v.
 
-Se você está usando um display com janelas, como o X11 ou MS-Windows,
-deve ter uma área retangular alta chamada barra de rolagem na mão
-esquerda da janela do Emacs. Você pode rolar o texto clicando o mouse na
+Se vocÃª estÃ¡ usando um display com janelas, como o X11 ou MS-Windows,
+deve ter uma Ã¡rea retangular alta chamada barra de rolagem na mÃ£o
+esquerda da janela do Emacs. VocÃª pode rolar o texto clicando o mouse na
 barra de rolagem.
 
->> Tente pressionar o botão do meio no topo da área destacada junto a
+>> Tente pressionar o botÃ£o do meio no topo da Ã¡rea destacada junto a
    barra de rolagem. Isso deve rolar o texto para uma determinada
-   posição dependendo de quão alto ou baixo você clicar.
+   posiÃ§Ã£o dependendo de quÃ£o alto ou baixo vocÃª clicar.
 
 >> Tente mover o mouse para cima e para baixo, enquanto pressionar o
-   botão do meio. Você verá que o texto rolará para cima e baixo assim
-   que você mover o mouse.
+   botÃ£o do meio. VocÃª verÃ¡ que o texto rolarÃ¡ para cima e baixo assim
+   que vocÃª mover o mouse.
 
 
 * QUANDO O EMACS PARECE MORTO
 -----------------------------
 
-Se o Emacs parar de responder os seus comandos, você pode seguramente
-pará-lo digitando C-g. Você pode utilizar C-g para parar um comando que
-está levando muito tempo para executar.
+Se o Emacs parar de responder os seus comandos, vocÃª pode seguramente
+parÃ¡-lo digitando C-g. VocÃª pode utilizar C-g para parar um comando que
+estÃ¡ levando muito tempo para executar.
 
-Você também pode utilizar C-g para interromper um argumento numérico ou
-o inicio de um comando que você não quer terminar.
+VocÃª tambÃ©m pode utilizar C-g para interromper um argumento numÃ©rico ou
+o inicio de um comando que vocÃª nÃ£o quer terminar.
 
->> Digite C-u 100 para fazer um argumento numérico de 100, e depois
+>> Digite C-u 100 para fazer um argumento numÃ©rico de 100, e depois
    digite C-g. Agora digite C-f. O Cursor deve mover apenas um
-   caractere, porque você cancelou o argumento com C-g.
+   caractere, porque vocÃª cancelou o argumento com C-g.
 
-Se você digitou um <ESC> por engano, você pode sair dele com um c-g.
+Se vocÃª digitou um <ESC> por engano, vocÃª pode sair dele com um c-g.
 
 
 * COMANDOS DESABILITADOS
 ------------------------
 
-Alguns comandos do Emacs são "desabilitados" para que os usuários
-iniciantes não utilizem por acidente.
+Alguns comandos do Emacs sÃ£o "desabilitados" para que os usuÃ¡rios
+iniciantes nÃ£o utilizem por acidente.
 
-Se você digita um dos comandos desabilitados, o Emacs mostrará uma
-mensagem dizendo qual comando foi, e pergunta se você quer seguir e
+Se vocÃª digita um dos comandos desabilitados, o Emacs mostrarÃ¡ uma
+mensagem dizendo qual comando foi, e pergunta se vocÃª quer seguir e
 executar o comando.
 
-Se você realmente quiser tentar o comando, digite Espaço na resposta da
-pergunta. Normalmente, se você não quer executar o comando desabilitado,
+Se vocÃª realmente quiser tentar o comando, digite EspaÃ§o na resposta da
+pergunta. Normalmente, se vocÃª nÃ£o quer executar o comando desabilitado,
 responda a pergunta com "n".
 
->> Digite C-x C-l (que é um comando desabilitado),
-   e então digite n para responder a pergunta.
+>> Digite C-x C-l (que Ã© um comando desabilitado),
+   e entÃ£o digite n para responder a pergunta.
 
 
 * JANELAS
 ---------
 
-O Emacs pode ter diversas janelas, cada uma mostrando seu próprio
-texto. Nós vamos explicar mais tarde como utilizar estas múltiplas
+O Emacs pode ter diversas janelas, cada uma mostrando seu prÃ³prio
+texto. NÃ³s vamos explicar mais tarde como utilizar estas mÃºltiplas
 janelas. Neste momento nos queremos explicar como se livrar das janelas
-extras e voltar a edição básica em uma janela. É simples:
+extras e voltar a ediÃ§Ã£o bÃ¡sica em uma janela. Ã‰ simples:
 
 	C-x 1	Uma janela (mate todas as outras janelas).
 
-Isto é Control-x seguido pelo digito 1. C-x 1 expande a janela que está
+Isto Ã© Control-x seguido pelo digito 1. C-x 1 expande a janela que estÃ¡
 com o cursor, para ocupar a tela inteira. Ela remove todas as outras
 janelas.
 
 >> Mova o cursor para esta linha e digite C-u 0 C-l.
 >> Digite Control-h k Control-f.
    Veja como esta janela diminui, enquanto uma nova aparece para mostrar
-   a documentação do comando Control-f.
+   a documentaÃ§Ã£o do comando Control-f.
 
->> Digite C-x 1 e veja a listagem de documentação desaparecer.
+>> Digite C-x 1 e veja a listagem de documentaÃ§Ã£o desaparecer.
 
-Este comando é diferente dos outros que você aprendeu por isso ele
+Este comando Ã© diferente dos outros que vocÃª aprendeu por isso ele
 consiste em dois caracteres. Ele inicia com o caractere Control-x. Tem
 uma grande serie de comandos que iniciam com Control-x; a maioria deles
 tem a ver com janelas, arquivos, buffers, e coisas relacionadas. Estes
-comandos tem dois, três ou quatro caracteres de tamanho.
+comandos tem dois, trÃªs ou quatro caracteres de tamanho.
 
 
 * INSERINDO E REMOVENDO
 -----------------------
 
-Se você quiser inserir um texto, apenas digite o texto. Os caracteres
-que você verá, como A, 7, *, etc. são vistos pelo Emacs como texto e são
+Se vocÃª quiser inserir um texto, apenas digite o texto. Os caracteres
+que vocÃª verÃ¡, como A, 7, *, etc. sÃ£o vistos pelo Emacs como texto e sÃ£o
 inseridos imediatamente. Digite <Return> para inserir um caractere de
 nova linha.
 
-Você pode remover o último caractere que você inseriu digitando
-<Delete>. <Delete> é uma tecla no teclado, que está nomeado como
+VocÃª pode remover o Ãºltimo caractere que vocÃª inseriu digitando
+<Delete>. <Delete> Ã© uma tecla no teclado, que estÃ¡ nomeado como
 "Del". Em algumas casos, a tecla "Backspace" serve como o <Delete>, mas
 nem sempre!
 
 Mas geralmente, <Delete> remove o caractere imediatamente anterior a
-posição corrente do cursor.
+posiÃ§Ã£o corrente do cursor.
 
->> Faça isso agora - Digite alguns caracteres, então remova-os
-   digitando <Delete> algumas vezes. Não se preocupe em modificar este
-   arquivo; você não alterará o arquivo principal. Esta é a sua cópia
+>> FaÃ§a isso agora - Digite alguns caracteres, entÃ£o remova-os
+   digitando <Delete> algumas vezes. NÃ£o se preocupe em modificar este
+   arquivo; vocÃª nÃ£o alterarÃ¡ o arquivo principal. Esta Ã© a sua cÃ³pia
    pessoal dele.
 
-Quando uma linha de texto fica muito grande na tela, a linha do texto é
+Quando uma linha de texto fica muito grande na tela, a linha do texto Ã©
 continuada na linha seguinte. Uma barra invertida ("\") na margem
 direita indica a linha que foi continuada.
 
->> Insira texto até que você alcance a margem direita, e mantenha
-   inserindo. Você verá a linha de continuação aparecer.
+>> Insira texto atÃ© que vocÃª alcance a margem direita, e mantenha
+   inserindo. VocÃª verÃ¡ a linha de continuaÃ§Ã£o aparecer.
 
->> Utilize <Delete> para remover o texto até a linha caber em uma linha
-   novamente. A linha de continuação irá embora.
+>> Utilize <Delete> para remover o texto atÃ© a linha caber em uma linha
+   novamente. A linha de continuaÃ§Ã£o irÃ¡ embora.
 
-Você pode remover o caractere de nova linha como qualquer outro
-caracter. Removendo o caractere de nova linha entre duas linhas você
-juntará as duas em uma única linha. Se o resultado for muito longo para
-acomodar na largura da tela, aparecerá um caractere de continuação.
+VocÃª pode remover o caractere de nova linha como qualquer outro
+caracter. Removendo o caractere de nova linha entre duas linhas vocÃª
+juntarÃ¡ as duas em uma Ãºnica linha. Se o resultado for muito longo para
+acomodar na largura da tela, aparecerÃ¡ um caractere de continuaÃ§Ã£o.
 
->> Mova o cursor para o inicio da linha e digite <Delete>. Isso juntará
+>> Mova o cursor para o inicio da linha e digite <Delete>. Isso juntarÃ¡
    esta linha com a anterior.
 
->> Digite <Return> para re-inserir a nova linha que você removeu.
+>> Digite <Return> para re-inserir a nova linha que vocÃª removeu.
 
-Lembre-se que a maioria dos comandos do Emacs podem receber um número de
-repetição; isso inclui texto de caracteres. Repetir um texto de
+Lembre-se que a maioria dos comandos do Emacs podem receber um nÃºmero de
+repetiÃ§Ã£o; isso inclui texto de caracteres. Repetir um texto de
 caractere o insere algumas vezes.
 
 >> Tente isso agora -- digite C-u 8 * para inserir ********.
 
-Você acabou de aprender o jeito mais simples de digitar alguma coisa no
-Emacs e corrigir os erros. Você pode remover palavras ou linhas
-também. Aqui vai um sumário dos comandos de deleção:
+VocÃª acabou de aprender o jeito mais simples de digitar alguma coisa no
+Emacs e corrigir os erros. VocÃª pode remover palavras ou linhas
+tambÃ©m. Aqui vai um sumÃ¡rio dos comandos de deleÃ§Ã£o:
 
         <Delete>     remove o caractere imediatamente antes do cursor
-        C-d          remove o próximo caractere apos o cursor
+        C-d          remove o prÃ³ximo caractere apos o cursor
 
         M-<Delete>   Mata a palavra imediatamente antes do cursor
-        M-d          Mata a próxima palavra depois do cursor
+        M-d          Mata a prÃ³xima palavra depois do cursor
 
-        C-k          Mata a posição do cursor até o fim da linha
-        M-k          Mata até o fim da sentença corrente
+        C-k          Mata a posiÃ§Ã£o do cursor atÃ© o fim da linha
+        M-k          Mata atÃ© o fim da sentenÃ§a corrente
 
 Note que o <Delete> e o C-d vs M-<Delete> e M-d estende o paralelo
-iniciado por C-f e M-f (bem, <Delete> não é realmente um controle de
-caractere, mas não vamos nos preocupar com isso). C-k e M-k são como C-e
-e M-e, uma parte, nessas linhas são sentenças opostas.
+iniciado por C-f e M-f (bem, <Delete> nÃ£o Ã© realmente um controle de
+caractere, mas nÃ£o vamos nos preocupar com isso). C-k e M-k sÃ£o como C-e
+e M-e, uma parte, nessas linhas sÃ£o sentenÃ§as opostas.
 
-Você pode também matar parte de um buffer com um método uniforme. Mova
-para o fim dessa parte, e digite C-@ ou C-SPC (um ou outro). (SPC é a
-Barra de Espaço.) Mova para o outro fim dessa parte, e digite C-w. Isso
-matará todo o texto entre as duas posições.
+VocÃª pode tambÃ©m matar parte de um buffer com um mÃ©todo uniforme. Mova
+para o fim dessa parte, e digite C-@ ou C-SPC (um ou outro). (SPC Ã© a
+Barra de EspaÃ§o.) Mova para o outro fim dessa parte, e digite C-w. Isso
+matarÃ¡ todo o texto entre as duas posiÃ§Ãµes.
 
->> Mova o cursor para o V no inicio do parágrafo anterior.
->> Digite C-SPC. Emacs vai mostrar a mensagem "Mark set" no rodapé da
+>> Mova o cursor para o V no inicio do parÃ¡grafo anterior.
+>> Digite C-SPC. Emacs vai mostrar a mensagem "Mark set" no rodapÃ© da
    tela.
 >> Mova o cursor para o . (ponto) no "fim", na segunda linha do
-   parágrafo.
+   parÃ¡grafo.
 >> Digite C-w. Isso vai matar o texto iniciando no V, e terminando bem
    antes do . (ponto).
 
-A diferença entra "matar" e "remover" é que o texto "matado" pode ser
-re-inserido, onde os textos "removidos" não podem ser re-inseridos.
-Re-inserção de um texto matado chama-se colar (yanking). Geralmente, o
+A diferenÃ§a entra "matar" e "remover" Ã© que o texto "matado" pode ser
+re-inserido, onde os textos "removidos" nÃ£o podem ser re-inseridos.
+Re-inserÃ§Ã£o de um texto matado chama-se colar (yanking). Geralmente, o
 comando que pode remover bastante texto mata o texto (eles fazem com que
-você possa colar (yank) o texto), enquanto os comandos que removem um
-caractere, ou apenas linhas brancas ou espaços, fazem deleção (para que
-você não possa colar esse texto).
+vocÃª possa colar (yank) o texto), enquanto os comandos que removem um
+caractere, ou apenas linhas brancas ou espaÃ§os, fazem deleÃ§Ã£o (para que
+vocÃª nÃ£o possa colar esse texto).
 
->> Mova o cursor para o inicio da linha que não esteja vazia.
+>> Mova o cursor para o inicio da linha que nÃ£o esteja vazia.
    Agora digite C-k para matar o texto nessa linha.
->> Digite C-k pela segunda vez. Você verá que a nova linha que segue a
-   linha será matada.
+>> Digite C-k pela segunda vez. VocÃª verÃ¡ que a nova linha que segue a
+   linha serÃ¡ matada.
 
-Note que um simples C-k mata o conteúdo de uma linha, é um segundo C-k
+Note que um simples C-k mata o conteÃºdo de uma linha, Ã© um segundo C-k
 mata a linha, e faz com que todas as outras linhas movam para cima. C-k
-trata um argumento numérico especialmente: ele mata tantas linhas E seus
-conteúdos. Isso não é uma simples repetição. C-u 2 C-k mata duas linhas
-e suas novas linhas; digitar C-k duas vezes não faria isso.
+trata um argumento numÃ©rico especialmente: ele mata tantas linhas E seus
+conteÃºdos. Isso nÃ£o Ã© uma simples repetiÃ§Ã£o. C-u 2 C-k mata duas linhas
+e suas novas linhas; digitar C-k duas vezes nÃ£o faria isso.
 
-Para trazer o texto matado novamente é chamado colar "yaking". (Pense
+Para trazer o texto matado novamente Ã© chamado colar "yaking". (Pense
 nisso como colar, ou trazer de volta, algum texto que foi levado
-embora.) Você pode colar (yank) o texto matado no mesmo lugar onde ele
+embora.) VocÃª pode colar (yank) o texto matado no mesmo lugar onde ele
 foi matado, ou em qualquer outro lugar do buffer, ou ate em um arquivo
-diferente. Você pode colar o texto diversas vezes, o que fará diversas
-cópias dele.
+diferente. VocÃª pode colar o texto diversas vezes, o que farÃ¡ diversas
+cÃ³pias dele.
 
-O comando para colar é C-y. Ele re-insere o último texto matado, na
-posição corrente do cursor.
+O comando para colar Ã© C-y. Ele re-insere o Ãºltimo texto matado, na
+posiÃ§Ã£o corrente do cursor.
 
 >> Tente; digite C-y para colar o texto novamente.
 
-Se você fizer diversos C-k's em uma linha, todo esse texto matado será
-salvo junto, então aquele C-y vai colar todas aquelas linhas de uma vez.
+Se vocÃª fizer diversos C-k's em uma linha, todo esse texto matado serÃ¡
+salvo junto, entÃ£o aquele C-y vai colar todas aquelas linhas de uma vez.
 
 >> Faca isso agora, digite C-k diversas vezes.
 
 Agora pegue o texto matado:
 
-Digite C-y. Então mova o cursor para baixo algumas linhas e digite C-y
-novamente. Agora você sabe como copiar determinado texto.
+Digite C-y. EntÃ£o mova o cursor para baixo algumas linhas e digite C-y
+novamente. Agora vocÃª sabe como copiar determinado texto.
 
-O que você faria se você tivesse determinado texto que você gostaria de
-colar, e então você mata alguma outra coisa? C-y colará o kill mais
-recente. Mas o antigo texto ainda não foi perdido. Você pode tê-lo
-novamente usando o comando M-y. Depois que você der um C-y para pegar o
-kill mais recente, digitar M-y troca o que você colou pelo anterior a
+O que vocÃª faria se vocÃª tivesse determinado texto que vocÃª gostaria de
+colar, e entÃ£o vocÃª mata alguma outra coisa? C-y colarÃ¡ o kill mais
+recente. Mas o antigo texto ainda nÃ£o foi perdido. VocÃª pode tÃª-lo
+novamente usando o comando M-y. Depois que vocÃª der um C-y para pegar o
+kill mais recente, digitar M-y troca o que vocÃª colou pelo anterior a
 ele. Digitar M-y novamente e novamente traz kills anteriores e
-anteriores. Quando você tiver alcançado o texto que você que esta
-procurando, você não precisa fazer nada para mantê-lo. Apenas continue
-com a sua edição, deixando o texto onde ele esta.
+anteriores. Quando vocÃª tiver alcanÃ§ado o texto que vocÃª que esta
+procurando, vocÃª nÃ£o precisa fazer nada para mantÃª-lo. Apenas continue
+com a sua ediÃ§Ã£o, deixando o texto onde ele esta.
 
-Se você digitar M-y o suficiente, você começará do inicio novamente (o
+Se vocÃª digitar M-y o suficiente, vocÃª comeÃ§arÃ¡ do inicio novamente (o
 kill mais recente).
 
 >> Mate uma linha, mova por ai, mate mais uma linha.
    Agora digite C-y para colar a segunda linha matada.
    Agora digite M-y e ele vai ser trocado pelo primeiro kill.
-   Faca mais alguns M-y's e veja o que você tem. Faca isso ate que o
+   Faca mais alguns M-y's e veja o que vocÃª tem. Faca isso ate que o
    segundo kill volte, e depois mais alguns.
-   Se você preferir, você pode tentar dar argumentos positivos e
+   Se vocÃª preferir, vocÃª pode tentar dar argumentos positivos e
    negativos.
 
 
 * DESFAZENDO (UNDO)
 -------------------
 
-Se você fizer uma mudança no texto, e então decidir que isso foi um
-erro, você pode desfazer com o comando de desfazer (undo), C-x u.
+Se vocÃª fizer uma mudanÃ§a no texto, e entÃ£o decidir que isso foi um
+erro, vocÃª pode desfazer com o comando de desfazer (undo), C-x u.
 
-Normalmente, C-x u desfaz as mudanças feitas por um comando; se você
-repetir C-x u diversas vezes em uma linha, cada repetição desfará
+Normalmente, C-x u desfaz as mudanÃ§as feitas por um comando; se vocÃª
+repetir C-x u diversas vezes em uma linha, cada repetiÃ§Ã£o desfarÃ¡
 um comando adicional.
 
-Mas tem duas exceções: comandos que não trocam o texto não contam (isso
+Mas tem duas exceÃ§Ãµes: comandos que nÃ£o trocam o texto nÃ£o contam (isso
 inclui o movimento do cursor e a barra de rolagem), e caracteres
-auto-inseridos são usualmente cuidados em grupos de mais de 20 (Isso e
-para reduzir o numero de C-x u's que você deve digitar para desfazer a
-inserção de um texto.).
+auto-inseridos sÃ£o usualmente cuidados em grupos de mais de 20 (Isso e
+para reduzir o numero de C-x u's que vocÃª deve digitar para desfazer a
+inserÃ§Ã£o de um texto.).
 
->> Mate essa linha com C-k, então digite C-x u e isso vai re-aparecer.
+>> Mate essa linha com C-k, entÃ£o digite C-x u e isso vai re-aparecer.
 
-C-_ é um comando alternativo para desfazer; ele funciona exatamente como
-o C-x u, mas é mais fácil de digitar diversas vezes em uma linha. A
-desvantagem de C-_ é que alguns teclados ele não é tão obvio para
-digitar. É exatamente por isso que o C-x u é fornecido. Em alguns
-terminais, você pode digitar C-_ digitando / enquanto segurando o
+C-_ Ã© um comando alternativo para desfazer; ele funciona exatamente como
+o C-x u, mas Ã© mais fÃ¡cil de digitar diversas vezes em uma linha. A
+desvantagem de C-_ Ã© que alguns teclados ele nÃ£o Ã© tÃ£o obvio para
+digitar. Ã‰ exatamente por isso que o C-x u Ã© fornecido. Em alguns
+terminais, vocÃª pode digitar C-_ digitando / enquanto segurando o
 CONTROL.
 
-Um argumento numérico para C-_ ou C-x u age como um contador de
-repetição.
+Um argumento numÃ©rico para C-_ ou C-x u age como um contador de
+repetiÃ§Ã£o.
 
-Você pode desfazer a deleção de texto da mesma maneira que você pode
-desfazer o kill de um texto. A distinção entre matar e remover alguma
-coisa afeta se você pode colar com C-y; isso não faz diferença para o
+VocÃª pode desfazer a deleÃ§Ã£o de texto da mesma maneira que vocÃª pode
+desfazer o kill de um texto. A distinÃ§Ã£o entre matar e remover alguma
+coisa afeta se vocÃª pode colar com C-y; isso nÃ£o faz diferenÃ§a para o
 desfazer (undo).
 
 
 * ARQUIVOS
 ----------
 
-Para poder fazer o texto que você edita permanente, você precisa
-colocá-lo em um arquivo. Ou então, isso será perdido quando o seu Emacs
-for fechado. Para colocar seu texto em um arquivo, você precisa
-"encontrar" o arquivo antes de digitar o texto (Isso também é chamado
+Para poder fazer o texto que vocÃª edita permanente, vocÃª precisa
+colocÃ¡-lo em um arquivo. Ou entÃ£o, isso serÃ¡ perdido quando o seu Emacs
+for fechado. Para colocar seu texto em um arquivo, vocÃª precisa
+"encontrar" o arquivo antes de digitar o texto (Isso tambÃ©m Ã© chamado
 "visitar" um arquivo.).
 
-Encontrando um arquivo significa que você verá o conteúdo de um arquivo
-com o Emacs. De diversas maneiras, isso é como se você estivesse
-editando o arquivo. De qualquer maneira, as mudanças que você fizer
-utilizando o Emacs não se tornarão permanente ate que você "salve" o
-arquivo. Isso e para que você evite deixar um arquivo meio-modificado no
-sistema enquanto você não quer isso. Mesmo quando você salva, o Emacs
+Encontrando um arquivo significa que vocÃª verÃ¡ o conteÃºdo de um arquivo
+com o Emacs. De diversas maneiras, isso Ã© como se vocÃª estivesse
+editando o arquivo. De qualquer maneira, as mudanÃ§as que vocÃª fizer
+utilizando o Emacs nÃ£o se tornarÃ£o permanente ate que vocÃª "salve" o
+arquivo. Isso e para que vocÃª evite deixar um arquivo meio-modificado no
+sistema enquanto vocÃª nÃ£o quer isso. Mesmo quando vocÃª salva, o Emacs
 deixa o arquivo original sobre um arquivo de nome alterado no caso que
-você mais tarde decida que aquelas mudanças foram um erro.
+vocÃª mais tarde decida que aquelas mudanÃ§as foram um erro.
 
-Se você olhar no rodapé da tela você verá a linha que começa e termina
-com traços e inicia com "--:-- TUTORIAL.pt_BR" ou algo parecido com
-isso. Essa parte da tela normalmente mostra o nome do arquivo que você
-esta visitando. Agora mesmo, você esta visitando um arquivo chamado
-"TUTORIAL.pt_BR" que é sua própria cópia do tutorial do Emacs. Quando
-você encontra um arquivo com o Emacs, o nome do arquivo aparecerá nesse
-lugar específico.
+Se vocÃª olhar no rodapÃ© da tela vocÃª verÃ¡ a linha que comeÃ§a e termina
+com traÃ§os e inicia com "--:-- TUTORIAL.pt_BR" ou algo parecido com
+isso. Essa parte da tela normalmente mostra o nome do arquivo que vocÃª
+esta visitando. Agora mesmo, vocÃª esta visitando um arquivo chamado
+"TUTORIAL.pt_BR" que Ã© sua prÃ³pria cÃ³pia do tutorial do Emacs. Quando
+vocÃª encontra um arquivo com o Emacs, o nome do arquivo aparecerÃ¡ nesse
+lugar especÃ­fico.
 
 Algo especial para se dizer sobre o comando de encontrar arquivo e que
-você tem que dizer qual nome do arquivo você quer. Dizemos que o comando
-"lê um argumento do terminal" (nesse caso, o argumento e o nome do
-arquivo). Depois que você digitar o comando
+vocÃª tem que dizer qual nome do arquivo vocÃª quer. Dizemos que o comando
+"lÃª um argumento do terminal" (nesse caso, o argumento e o nome do
+arquivo). Depois que vocÃª digitar o comando
 
        C-x C-f  Encontrar um arquivo
 
-O Emacs pede para você digitar o nome do arquivo. O nome do arquivo
-aparece no rodapé da tela. A linha de rodapé é chamada de minibuffer
-quando é utilizada para esse tipo de introdução de dados. Você pode
-utilizar os comandos padrões do Emacs para editar o nome do arquivo.
+O Emacs pede para vocÃª digitar o nome do arquivo. O nome do arquivo
+aparece no rodapÃ© da tela. A linha de rodapÃ© Ã© chamada de minibuffer
+quando Ã© utilizada para esse tipo de introduÃ§Ã£o de dados. VocÃª pode
+utilizar os comandos padrÃµes do Emacs para editar o nome do arquivo.
 
-Enquanto você estiver digitando o nome do arquivo (ou qualquer outro
-tipo de dado para o minibuffer), você pode cancelar o comando com a
+Enquanto vocÃª estiver digitando o nome do arquivo (ou qualquer outro
+tipo de dado para o minibuffer), vocÃª pode cancelar o comando com a
 tecla C-g.
 
->> Digite C-x C-f, então digite C-g. Isso cancelará o minibuffer, e
-   também cancelará o comando C-x C-f que estava sendo utilizado no
-   minibuffer. Para que você não procure nenhum arquivo.
+>> Digite C-x C-f, entÃ£o digite C-g. Isso cancelarÃ¡ o minibuffer, e
+   tambÃ©m cancelarÃ¡ o comando C-x C-f que estava sendo utilizado no
+   minibuffer. Para que vocÃª nÃ£o procure nenhum arquivo.
 
-Quando você terminar de digitar o nome do arquivo, digite <Return> para
-terminar. Então o comando C-x C-f executará, e encontrará o arquivo
-que você escolheu. O minibuffer desaparece quando o comando C-x C-f e
+Quando vocÃª terminar de digitar o nome do arquivo, digite <Return> para
+terminar. EntÃ£o o comando C-x C-f executarÃ¡, e encontrarÃ¡ o arquivo
+que vocÃª escolheu. O minibuffer desaparece quando o comando C-x C-f e
 finalizado.
 
-Em pouco tempo o conteúdo do arquivo aparece na tela, e você poderá
-editar o conteúdo dele. Quando você terminar de fazer suas alterações
+Em pouco tempo o conteÃºdo do arquivo aparece na tela, e vocÃª poderÃ¡
+editar o conteÃºdo dele. Quando vocÃª terminar de fazer suas alteraÃ§Ãµes
 permanentes digite o comando
 
        C-x C-s  Salve o arquivo
 
-Isso copia o texto do Emacs para o arquivo. A primeira vez que você
+Isso copia o texto do Emacs para o arquivo. A primeira vez que vocÃª
 fizer isso, o Emacs vai renomear o arquivo original para um novo nome
-para que você não o perca. O nome novo e feito adicionando "~" no fim do
+para que vocÃª nÃ£o o perca. O nome novo e feito adicionando "~" no fim do
 nome original do arquivo.
 
-Quando o salvamento for concluído, Emacs imprimirá o nome do arquivo
-escrito. Você deve salvar o conteúdo do seu arquivo regularmente, para
-que você não perca muito trabalho caso o sistema caia por um algum
+Quando o salvamento for concluÃ­do, Emacs imprimirÃ¡ o nome do arquivo
+escrito. VocÃª deve salvar o conteÃºdo do seu arquivo regularmente, para
+que vocÃª nÃ£o perca muito trabalho caso o sistema caia por um algum
 motivo.
 
->> Digite C-x C-s, salvará a cópia do seu tutorial.
-   Isso imprimirá "Wrote ...TUTORIAL.pt_BR" no fim da tela.
+>> Digite C-x C-s, salvarÃ¡ a cÃ³pia do seu tutorial.
+   Isso imprimirÃ¡ "Wrote ...TUTORIAL.pt_BR" no fim da tela.
 
-Você pode encontrar um arquivo já existente, para vê-lo ou editá-lo. Você
-também pode encontrar um arquivo que ainda não existe. Essa é a maneira
-de criar um arquivo com o Emacs: encontre o arquivo, que iniciará
-vazio, então começe a inserir o texto para o arquivo. Quando você pedir
-para "salvar" o arquivo, o Emacs perguntará se você realmente quer
-criar o arquivo com o texto que você acabou de inserir. De agora em
-diante, você pode considerar que esta editando um arquivo já existente.
+VocÃª pode encontrar um arquivo jÃ¡ existente, para vÃª-lo ou editÃ¡-lo. VocÃª
+tambÃ©m pode encontrar um arquivo que ainda nÃ£o existe. Essa Ã© a maneira
+de criar um arquivo com o Emacs: encontre o arquivo, que iniciarÃ¡
+vazio, entÃ£o comeÃ§e a inserir o texto para o arquivo. Quando vocÃª pedir
+para "salvar" o arquivo, o Emacs perguntarÃ¡ se vocÃª realmente quer
+criar o arquivo com o texto que vocÃª acabou de inserir. De agora em
+diante, vocÃª pode considerar que esta editando um arquivo jÃ¡ existente.
 
 
 * BUFFERS
 ---------
 
-Se você encontrar um segundo arquivo com C-x C-f, o primeiro continuara
-dentro do Emacs. Você pode voltar para ele encontrando-o novamente com
-C-x C-f. Dessa maneira você pode ter um grande numero de arquivos dentro
+Se vocÃª encontrar um segundo arquivo com C-x C-f, o primeiro continuara
+dentro do Emacs. VocÃª pode voltar para ele encontrando-o novamente com
+C-x C-f. Dessa maneira vocÃª pode ter um grande numero de arquivos dentro
 do Emacs.
 
 >> Crie um arquivo chamado "foo" digitando C-x C-f foo <Return>.
@@ -573,37 +573,37 @@ do Emacs.
 
 O Emacs guarda cada texto de um arquivo em um objeto chamado
 "buffer". Encontrar um arquivo cria um novo buffer dentro do Emacs. Para
-ver uma lista dos buffers que existem no serviço do seu Emacs, digite
+ver uma lista dos buffers que existem no serviÃ§o do seu Emacs, digite
 
         C-x C-b  Lista os buffers
 
 >> Tente C-x C-b agora.
 
-Veja como cada buffer tem um nome, e ele também pode ter um nome de
-arquivo para o conteúdo de arquivo que ele armazena. Alguns buffers não
+Veja como cada buffer tem um nome, e ele tambÃ©m pode ter um nome de
+arquivo para o conteÃºdo de arquivo que ele armazena. Alguns buffers nÃ£o
 correspondem a arquivos. Por exemplo, o buffer chamado "*Buffer List*"
-não tem nenhum arquivo. Esse é o buffer que contem a lista de buffers
-que foi feito com C-x C-b. QUALQUER texto que você ver numa janela do
+nÃ£o tem nenhum arquivo. Esse Ã© o buffer que contem a lista de buffers
+que foi feito com C-x C-b. QUALQUER texto que vocÃª ver numa janela do
 Emacs e sempre parte de algum buffer.
 
 >> Digite C-x 1 para sair da lista dos buffers.
 
-Se você fizer mudanças no texto de um arquivo, então encontrar um novo
-arquivo, isso não salva o conteúdo do primeiro arquivo. As mudanças
-continuam dentro do Emacs, nos buffers de arquivo. A criação ou edição
-do buffer do segundo arquivo não tem nenhum efeito no buffer do primeiro
-arquivo. Isso é muito útil, mas também significa que você precisa de uma
+Se vocÃª fizer mudanÃ§as no texto de um arquivo, entÃ£o encontrar um novo
+arquivo, isso nÃ£o salva o conteÃºdo do primeiro arquivo. As mudanÃ§as
+continuam dentro do Emacs, nos buffers de arquivo. A criaÃ§Ã£o ou ediÃ§Ã£o
+do buffer do segundo arquivo nÃ£o tem nenhum efeito no buffer do primeiro
+arquivo. Isso Ã© muito Ãºtil, mas tambÃ©m significa que vocÃª precisa de uma
 maneira conveniente de salvar o buffer do primeiro arquivo. Seria
-inconveniente ter que voltar para ele com C-x C-f para salvá-lo com C-x
+inconveniente ter que voltar para ele com C-x C-f para salvÃ¡-lo com C-x
 C-s. Por isso temos
 
         C-x s     Salve alguns buffers
 
-C-x s pergunta a você sobre cada buffer que contem modificação e você
-não salvou. Ele te pergunta, para cada buffer, se você quer salvar.
+C-x s pergunta a vocÃª sobre cada buffer que contem modificaÃ§Ã£o e vocÃª
+nÃ£o salvou. Ele te pergunta, para cada buffer, se vocÃª quer salvar.
 
->> Insira uma linha de texto, então digite C-x s.
-   Isso deve te perguntar se você quer salvar o buffer chamado
+>> Insira uma linha de texto, entÃ£o digite C-x s.
+   Isso deve te perguntar se vocÃª quer salvar o buffer chamado
    TUTORIAL.pt_BR.
    Responda sim para a pergunta digitando "y".
 
@@ -613,39 +613,39 @@ não salvou. Ele te pergunta, para cada buffer, se você quer salvar.
 
 Existem mais, muito mais comandos que o Emacs poderia possivelmente ser
 colocado em todos os control e caracteres meta. O Emacs faz isso com o
-comando X (estender). Que vem em duas versões:
+comando X (estender). Que vem em duas versÃµes:
 
         C-x     Extensor de caractere. Seguido por um caractere.
         M-x     Extensor de nome de comando. Seguido por um longo nome.
 
-Esses comandos que são geralmente úteis mas pouco usados que os comandos
-que você já aprendeu. Você já viu dois deles: os comandos de arquivos
+Esses comandos que sÃ£o geralmente Ãºteis mas pouco usados que os comandos
+que vocÃª jÃ¡ aprendeu. VocÃª jÃ¡ viu dois deles: os comandos de arquivos
 C-x C-f para Encontrar e C-x C-s para Salvar. Outro exemplo de um
-comando para finalizar a sessão do Emacs - esse é o comando C-x C-c (Não
-se preocupe em perder as mudanças que você fez; C-x C-c oferece salvar
+comando para finalizar a sessÃ£o do Emacs - esse Ã© o comando C-x C-c (NÃ£o
+se preocupe em perder as mudanÃ§as que vocÃª fez; C-x C-c oferece salvar
 cada arquivo modificado antes de matar o Emacs.).
 
-C-z é o comando para sair do Emacs *temporariamente* - então você pode
-voltar para a mesma seção do Emacs depois.
+C-z Ã© o comando para sair do Emacs *temporariamente* - entÃ£o vocÃª pode
+voltar para a mesma seÃ§Ã£o do Emacs depois.
 
 Em sistemas que permitem isso, C-z "suspende" o Emacs; isso e, retorna
-ao shell mas não destrói o Emacs. Nos shells mais comum, você pode
+ao shell mas nÃ£o destrÃ³i o Emacs. Nos shells mais comum, vocÃª pode
 resumir o Emacs com o comando 'fg' ou com '%emacs'.
 
-Nos sistemas que não implementam suspensão, C-z cria um subshell rodando
-sobre o Emacs para dar a você a chance de rodar outros programas e
-retornar ao Emacs depois; isso não "sai" verdadeiramente do Emacs. Nesse
-caso, o comando shell 'exit' é o comando usual para voltar ao Emacs do
+Nos sistemas que nÃ£o implementam suspensÃ£o, C-z cria um subshell rodando
+sobre o Emacs para dar a vocÃª a chance de rodar outros programas e
+retornar ao Emacs depois; isso nÃ£o "sai" verdadeiramente do Emacs. Nesse
+caso, o comando shell 'exit' Ã© o comando usual para voltar ao Emacs do
 subshell.
 
-A hora de usar o C-x C-c é quando você esta prestes a sair do sistema
-operacional. É também a maneira correta de sair do Emacs quando chamado
-através de um cliente de e-mail ou outros utilitários, porque eles não
-controlam a suspensão do Emacs. Em outras circunstâncias, se você não
-estiver saindo do sistema operacional, é melhor suspender o Emacs com
-C-z ao invés de sair do Emacs.
+A hora de usar o C-x C-c Ã© quando vocÃª esta prestes a sair do sistema
+operacional. Ã‰ tambÃ©m a maneira correta de sair do Emacs quando chamado
+atravÃ©s de um cliente de e-mail ou outros utilitÃ¡rios, porque eles nÃ£o
+controlam a suspensÃ£o do Emacs. Em outras circunstÃ¢ncias, se vocÃª nÃ£o
+estiver saindo do sistema operacional, Ã© melhor suspender o Emacs com
+C-z ao invÃ©s de sair do Emacs.
 
-Existem diversos comando C-x. Aqui esta uma lista dos que você aprendeu:
+Existem diversos comando C-x. Aqui esta uma lista dos que vocÃª aprendeu:
 
 	C-x C-f		Encontrar arquivo.
 	C-x C-s		Salvar arquivo.
@@ -654,157 +654,157 @@ Existem diversos comando C-x. Aqui esta uma lista dos que você aprendeu:
 	C-x 1		Remover todas menos a janela atual.
 	C-x u		Desfazer.
 
-O extensor de nome de comando é usado menos ainda, ou comandos que são
-usados apenas em alguns modos. Um exemplo é o comando replace-string,
-que globalmente troca uma string por outra. Quando você digita M-x, o
-Emacs te pergunta no rodapé da tela M-x e você deve digitar o nome do
+O extensor de nome de comando Ã© usado menos ainda, ou comandos que sÃ£o
+usados apenas em alguns modos. Um exemplo Ã© o comando replace-string,
+que globalmente troca uma string por outra. Quando vocÃª digita M-x, o
+Emacs te pergunta no rodapÃ© da tela M-x e vocÃª deve digitar o nome do
 comando; nesse caso, "replace-string". Apenas digite "repl s<TAB>" e o
-Emacs completará o nome. (<TAB> é a tecla Tab, usualmente encontrando
+Emacs completarÃ¡ o nome. (<TAB> Ã© a tecla Tab, usualmente encontrando
 abaixo do CapsLock ou Shift bem na extremidade do teclado.). Termine o
 comando com <Return>.
 
 O comando replace-string requer dois argumentos - a string para ser
-trocada, e a string que a substituirá. Você precisa terminar cada
+trocada, e a string que a substituirÃ¡. VocÃª precisa terminar cada
 argumento com <Return>.
 
 >> Mova o cursor para a linha branca duas linhas abaixo dessa.
-   Digite então M-x repl s<Return>mudou<Return>alterado<Return>.
+   Digite entÃ£o M-x repl s<Return>mudou<Return>alterado<Return>.
 
-   Note como essa linha mudou: você substituiu a palavra m-u-d-o-u por
-   "alterado" quando ocorreu, apos a posição inicial do cursor.
+   Note como essa linha mudou: vocÃª substituiu a palavra m-u-d-o-u por
+   "alterado" quando ocorreu, apos a posiÃ§Ã£o inicial do cursor.
 
 
-* SALVAMENTO AUTOMÁTICO
+* SALVAMENTO AUTOMÃTICO
 -----------------------
 
-Quando você fizer mudanças em um arquivo, mas você ainda não tiver
+Quando vocÃª fizer mudanÃ§as em um arquivo, mas vocÃª ainda nÃ£o tiver
 salvo, elas podem ser perdidas se o seu computador der algum problema.
-Para proteger você disso, o Emacs periodicamente escreve um arquivo "auto
-salvo" para cada arquivo que você estiver editando. O nome do arquivo
+Para proteger vocÃª disso, o Emacs periodicamente escreve um arquivo "auto
+salvo" para cada arquivo que vocÃª estiver editando. O nome do arquivo
 auto salvo tem um # no inicio e no fim; por exemplo, se o seu arquivo
-tiver o nome "ola.c", o nome do arquivo auto salvo dele será
-"#ola.c#". Quando você salvar o arquivo da maneira normal, o Emacs
-removerá os arquivos auto salvos.
+tiver o nome "ola.c", o nome do arquivo auto salvo dele serÃ¡
+"#ola.c#". Quando vocÃª salvar o arquivo da maneira normal, o Emacs
+removerÃ¡ os arquivos auto salvos.
 
-Se o computador der problema, você pode recuperar suas modificações auto
-salvas abrindo o arquivo normalmente (o arquivo que você estava
-editando, não o arquivo auto salvo) e então digitar M-x recover
-file<Return>. Quando for pedida a confirmação, digite yes<Return>
+Se o computador der problema, vocÃª pode recuperar suas modificaÃ§Ãµes auto
+salvas abrindo o arquivo normalmente (o arquivo que vocÃª estava
+editando, nÃ£o o arquivo auto salvo) e entÃ£o digitar M-x recover
+file<Return>. Quando for pedida a confirmaÃ§Ã£o, digite yes<Return>
 para ir em frente e recuperar os dados auto salvos.
 
 
-* ÁREA DE SAÍDA (ECHO AREA)
+* ÃREA DE SAÃDA (ECHO AREA)
 ---------------------------
 
-Se o Emacs ver que você esta digitando comandos multi-caractere
-lentamente, ele os mostrará para você no fim da tela numa área chamada
-Área de Saída ou Echo Area. A área de saída contem a linha de rodapé da
+Se o Emacs ver que vocÃª esta digitando comandos multi-caractere
+lentamente, ele os mostrarÃ¡ para vocÃª no fim da tela numa Ã¡rea chamada
+Ãrea de SaÃ­da ou Echo Area. A Ã¡rea de saÃ­da contem a linha de rodapÃ© da
 tela.
 
 
 * MODE LINE
 -----------
 
-A linha imediatamente acima da área de saída é chamada de "mode line". O
+A linha imediatamente acima da Ã¡rea de saÃ­da Ã© chamada de "mode line". O
 mode line diz algo algo mais ou menos assim:
 
 --:**  TUTORIAL.pt_BR    (Fundamental)--L670--58%----------------
 
-Essa linha da informações úteis sobre o status do Emacs e o texto que
-você esta editando.
+Essa linha da informaÃ§Ãµes Ãºteis sobre o status do Emacs e o texto que
+vocÃª esta editando.
 
-Você já sabe o que o nome do arquivo significa -- é o arquivo que você
-encontrou. -NN%-- indica sua posição no arquivo texto; significa que NN
+VocÃª jÃ¡ sabe o que o nome do arquivo significa -- Ã© o arquivo que vocÃª
+encontrou. -NN%-- indica sua posiÃ§Ã£o no arquivo texto; significa que NN
 porcento do texto esta acima do topo da tela. Se o topo do arquivo
-estiver na tela, ele mostrará --Top-- ao invés de --00%--. Se o rodapé do
-texto estiver na tela, ele mostrará --Bot--. Se você estiver olhando um
-texto muito pequeno que cabe todo na tela, o mode line mostrará
+estiver na tela, ele mostrarÃ¡ --Top-- ao invÃ©s de --00%--. Se o rodapÃ© do
+texto estiver na tela, ele mostrarÃ¡ --Bot--. Se vocÃª estiver olhando um
+texto muito pequeno que cabe todo na tela, o mode line mostrarÃ¡
 --All--.
 
-O L são dígitos e indicam a posição de uma outra maneira: eles mostram a
+O L sÃ£o dÃ­gitos e indicam a posiÃ§Ã£o de uma outra maneira: eles mostram a
 linha corrente do ponto.
 
-Os asteriscos próximo ao inicio significam que você fez mudanças no
-texto. Logo após você visitar um arquivo ou salvar um arquivo, essa
-parte do mode line não mostrará asteriscos, apenas traços.
+Os asteriscos prÃ³ximo ao inicio significam que vocÃª fez mudanÃ§as no
+texto. Logo apÃ³s vocÃª visitar um arquivo ou salvar um arquivo, essa
+parte do mode line nÃ£o mostrarÃ¡ asteriscos, apenas traÃ§os.
 
-A parte do mode line dentro do parênteses lhe diz quais modos você esta
-utilizando. O modo padrão é o Fundamental que é o que você esta
-utilizando agora. É um exemplo de um "modo majoritário".
+A parte do mode line dentro do parÃªnteses lhe diz quais modos vocÃª esta
+utilizando. O modo padrÃ£o Ã© o Fundamental que Ã© o que vocÃª esta
+utilizando agora. Ã‰ um exemplo de um "modo majoritÃ¡rio".
 
-O Emacs tem diversos diferentes modos majoritários. Alguns deles são
-para edição de diferentes linguagens de programação e/ou tipos de texto,
-como modo Lisp, modo Texto, etc. Em qualquer momento um é apenas um modo
-majoritário e ativo, e seu nome pode ser encontrado no mode line
+O Emacs tem diversos diferentes modos majoritÃ¡rios. Alguns deles sÃ£o
+para ediÃ§Ã£o de diferentes linguagens de programaÃ§Ã£o e/ou tipos de texto,
+como modo Lisp, modo Texto, etc. Em qualquer momento um Ã© apenas um modo
+majoritÃ¡rio e ativo, e seu nome pode ser encontrado no mode line
 exatamente onde o "Fundamental" esta agora.
 
-Cada modo majoritário faz com que alguns comandos operem de modo
-diferente. Por exemplo, existem comandos para criar comentários nos
-programas, e desde que cada linguagem de programação tem uma idéia
-diferente de como um comentário deve ser, cada modo majoritário tem que
-inserir seus comentários individualmente. Cada modo majoritário é o nome
-de um comando estendido, e é assim que você pode mudar para determinado
-modo. Por exemplo, M-x fundamental-mode é o comando para trocar para o
+Cada modo majoritÃ¡rio faz com que alguns comandos operem de modo
+diferente. Por exemplo, existem comandos para criar comentÃ¡rios nos
+programas, e desde que cada linguagem de programaÃ§Ã£o tem uma idÃ©ia
+diferente de como um comentÃ¡rio deve ser, cada modo majoritÃ¡rio tem que
+inserir seus comentÃ¡rios individualmente. Cada modo majoritÃ¡rio Ã© o nome
+de um comando estendido, e Ã© assim que vocÃª pode mudar para determinado
+modo. Por exemplo, M-x fundamental-mode Ã© o comando para trocar para o
 modo Fundamental.
 
-Se você vai editar texto em Português, como neste arquivo, você pode
+Se vocÃª vai editar texto em PortuguÃªs, como neste arquivo, vocÃª pode
 utilizar o modo Texto.
 
 >> Digite M-x text mode<Return>.
 
-Não se preocupe, nenhum dos comandos do Emacs que você aprendeu
-mudarão. Mas você pode observar que o M-f e o M-b tratam os apóstrofos
+NÃ£o se preocupe, nenhum dos comandos do Emacs que vocÃª aprendeu
+mudarÃ£o. Mas vocÃª pode observar que o M-f e o M-b tratam os apÃ³strofos
 como parte das palavras. Anteriormente, no modo Fundamental, M-f e M-b
-trataram os apóstrofos como separadores de palavras.
+trataram os apÃ³strofos como separadores de palavras.
 
-Modos majoritários fazem usualmente modificações como esta: a maioria
-dos comandos fazem "a mesma coisa" em cada modo majoritário, mas eles
+Modos majoritÃ¡rios fazem usualmente modificaÃ§Ãµes como esta: a maioria
+dos comandos fazem "a mesma coisa" em cada modo majoritÃ¡rio, mas eles
 trabalham um pouquinho diferente.
 
-Para ver a documentação do seu modo majoritário, digite C-h m.
+Para ver a documentaÃ§Ã£o do seu modo majoritÃ¡rio, digite C-h m.
 
->> Utilize C-u C-v uma ou mais para trazer essa linha próxima ao topo da
+>> Utilize C-u C-v uma ou mais para trazer essa linha prÃ³xima ao topo da
    tela.
 >> Digite C-h m, para ver como o modo texto difere do modo Fundamental.
->> Digite C-x 1 para remover a documentação da tela.
+>> Digite C-x 1 para remover a documentaÃ§Ã£o da tela.
 
-Modos majoritários são chamados de majoritários porque também existem
-modos minoritários. Modos minoritários não são alternativos aos modos
-majoritários, apenas uma modificação minoritária deles. Cada modo
-minoritário pode ser ligado ou desligado por ele mesmo, independente de
-todos os outros modos minoritários, é independente do modo
-majoritário. Então você pode não utilizar modos minoritários, ou um modo
-minoritário, ou qualquer combinação de modos minoritários.
+Modos majoritÃ¡rios sÃ£o chamados de majoritÃ¡rios porque tambÃ©m existem
+modos minoritÃ¡rios. Modos minoritÃ¡rios nÃ£o sÃ£o alternativos aos modos
+majoritÃ¡rios, apenas uma modificaÃ§Ã£o minoritÃ¡ria deles. Cada modo
+minoritÃ¡rio pode ser ligado ou desligado por ele mesmo, independente de
+todos os outros modos minoritÃ¡rios, Ã© independente do modo
+majoritÃ¡rio. EntÃ£o vocÃª pode nÃ£o utilizar modos minoritÃ¡rios, ou um modo
+minoritÃ¡rio, ou qualquer combinaÃ§Ã£o de modos minoritÃ¡rios.
 
-Um modo minoritário que é bastante útil, especialmente para editar texto
-em Português, é o modo Auto Fill. Quando ele esta ligado, o Emacs quebra
-a linha entre as palavras automaticamente quando você inserir um texto e
+Um modo minoritÃ¡rio que Ã© bastante Ãºtil, especialmente para editar texto
+em PortuguÃªs, Ã© o modo Auto Fill. Quando ele esta ligado, o Emacs quebra
+a linha entre as palavras automaticamente quando vocÃª inserir um texto e
 criar uma linha muito comprida.
 
-Você pode ligar o modo Auto Fill fazendo M-x auto fill
-mode<Return>. Quando o modo estiver ligado, você pode desligá-lo
+VocÃª pode ligar o modo Auto Fill fazendo M-x auto fill
+mode<Return>. Quando o modo estiver ligado, vocÃª pode desligÃ¡-lo
 novamente fazendo M-x auto fill mode<Return>. Se o modo estiver
 desligado, esse comando o liga, e se ele estiver ligado, este comando o
 desligara. Nos dizemos que o comando inverte seu status.
 
->> Digite M-x auto fill mode<Return> agora. Então insira uma linha de
-   "asdf " diversas vezes ate que você veja dividir em duas linhas. Você
-   precisa colocar espaços entre as palavras porque o modo Auto Fill
-   quebra apenas nos espaços.
+>> Digite M-x auto fill mode<Return> agora. EntÃ£o insira uma linha de
+   "asdf " diversas vezes ate que vocÃª veja dividir em duas linhas. VocÃª
+   precisa colocar espaÃ§os entre as palavras porque o modo Auto Fill
+   quebra apenas nos espaÃ§os.
 
-A margem é usualmente definida com 70 caracteres, mas você pode
-modificá-la com o comando C-x f. Você deve dar a margem que você quer
-como um argumento numérico.
+A margem Ã© usualmente definida com 70 caracteres, mas vocÃª pode
+modificÃ¡-la com o comando C-x f. VocÃª deve dar a margem que vocÃª quer
+como um argumento numÃ©rico.
 
 >> Digite C-x f com um argumento de 20. (C-u 20 C-x f).
-   Então digite algum texto e veja o Emacs encher linhas com ate 20
-   caracteres. Então, volte a definir a margem para 70 utilizando C-x f.
+   EntÃ£o digite algum texto e veja o Emacs encher linhas com ate 20
+   caracteres. EntÃ£o, volte a definir a margem para 70 utilizando C-x f.
 
-Se você fizer uma mudança no meio de um parágrafo, o modo Auto Fill não
-re-preencherá para você. Para re-preencher o parágrafo, digite M-q
-(Meta-q) com o cursor dentro do parágrafo.
+Se vocÃª fizer uma mudanÃ§a no meio de um parÃ¡grafo, o modo Auto Fill nÃ£o
+re-preencherÃ¡ para vocÃª. Para re-preencher o parÃ¡grafo, digite M-q
+(Meta-q) com o cursor dentro do parÃ¡grafo.
 
->> Mova o cursor dentro do parágrafo anterior e digite M-q.
+>> Mova o cursor dentro do parÃ¡grafo anterior e digite M-q.
 
 
 * PESQUISANDO
@@ -813,116 +813,116 @@ re-preencherá para você. Para re-preencher o parágrafo, digite M-q
 O Emacs pode fazer pesquisas por strings (esses sao grupos de caracteres
 ligados ou palavras) tanto para frente do texto ou para traz. Pesquisar
 por uma string e um comando de movimento do cursor; ele move o cursor
-para o próximo lugar onde a string aparece.
+para o prÃ³ximo lugar onde a string aparece.
 
-O comando de pesquisa do Emacs é diferente dos comandos de pesquisa da
-maioria dos editores, porque é uma pesquisa "incremental". Isso
-significa que a pesquisa acontece enquanto você digita uma string para
+O comando de pesquisa do Emacs Ã© diferente dos comandos de pesquisa da
+maioria dos editores, porque Ã© uma pesquisa "incremental". Isso
+significa que a pesquisa acontece enquanto vocÃª digita uma string para
 pesquisar.
 
-O comando para iniciar a pesquisa é C-s para pesquisa para frente ou C-r
-para pesquisa inversa. MAS ESPERE! Não tente fazer agora.
+O comando para iniciar a pesquisa Ã© C-s para pesquisa para frente ou C-r
+para pesquisa inversa. MAS ESPERE! NÃ£o tente fazer agora.
 
-Quando você digitar C-s você percebera que uma string "I-search"
-aparecerá como prompt na área de saída. Isso diz para você que o Emacs
-esta no que chamamos de pesquisa incremental esperando que você digite o
-que você quer procurar. <Return> termina a pesquisa.
+Quando vocÃª digitar C-s vocÃª percebera que uma string "I-search"
+aparecerÃ¡ como prompt na Ã¡rea de saÃ­da. Isso diz para vocÃª que o Emacs
+esta no que chamamos de pesquisa incremental esperando que vocÃª digite o
+que vocÃª quer procurar. <Return> termina a pesquisa.
 
 >> Agora digite C-s para iniciar a pesquisa. DEVAGAR, uma letra por vez,
-   digite o caractere 'cursor', pausando cada vez que você digitar um
-   caractere, perceba o que acontece com o cursor. Agora que você
+   digite o caractere 'cursor', pausando cada vez que vocÃª digitar um
+   caractere, perceba o que acontece com o cursor. Agora que vocÃª
    pesquisou por "cursor", uma vez.
->> Digite C-s novamente, para pesquisa a próxima ocorrência de "cursor".
+>> Digite C-s novamente, para pesquisa a prÃ³xima ocorrÃªncia de "cursor".
 >> Agora digite <Delete> quatro vezes e veja como o cursor move.
 >> Digite <Return> para terminar a pesquisa.
 
-Você viu o que aconteceu? O Emacs, em uma pesquisa incremental, tenta ir
-para a ocorrência que você digitou ate o momento. Para ir para próxima
-ocorrência de 'cursor' apenas digite C-s novamente. Se nenhuma
-ocorrência existir, o Emacs bipa e te diz que a pesquisa atual
-falhou. C-g também termina a pesquisa.
+VocÃª viu o que aconteceu? O Emacs, em uma pesquisa incremental, tenta ir
+para a ocorrÃªncia que vocÃª digitou ate o momento. Para ir para prÃ³xima
+ocorrÃªncia de 'cursor' apenas digite C-s novamente. Se nenhuma
+ocorrÃªncia existir, o Emacs bipa e te diz que a pesquisa atual
+falhou. C-g tambÃ©m termina a pesquisa.
 
-NOTA: Em alguns sistemas, digitar C-s trava a tela e você não verá a
-saída do Emacs. Isso indica que um "recurso" do sistema operacional
+NOTA: Em alguns sistemas, digitar C-s trava a tela e vocÃª nÃ£o verÃ¡ a
+saÃ­da do Emacs. Isso indica que um "recurso" do sistema operacional
 chamado "controle de fluxo" (flow control) esta interceptando o C-s e
-não deixando que passe pelo Emacs. Para destravar a tela, digite
-C-q. Então, leia na seção "Spontaneous Entry to Incremental Search" no
+nÃ£o deixando que passe pelo Emacs. Para destravar a tela, digite
+C-q. EntÃ£o, leia na seÃ§Ã£o "Spontaneous Entry to Incremental Search" no
 manual do Emacs para uma dica de como lhe dar com esse "recurso".
 
-Se você estiver no meio de uma pesquisa incremental e digitar <Delete>,
-você perceberá que o último caractere da pesquisa será apagado e a
-pesquisa voltará para o último lugar da pesquisa. Por exemplo, imagine
-que você tenha digitado "c", para pesquisar a primeira ocorrência de
-"c". Agora se você digitar "u", o cursor moverá para a primeira
-ocorrência de "cu". Agora digite <Delete>. Isso apagará o "u" da
-string de pesquisa, e o cursor moverá de volta para a primeira
-ocorrência de "c".
+Se vocÃª estiver no meio de uma pesquisa incremental e digitar <Delete>,
+vocÃª perceberÃ¡ que o Ãºltimo caractere da pesquisa serÃ¡ apagado e a
+pesquisa voltarÃ¡ para o Ãºltimo lugar da pesquisa. Por exemplo, imagine
+que vocÃª tenha digitado "c", para pesquisar a primeira ocorrÃªncia de
+"c". Agora se vocÃª digitar "u", o cursor moverÃ¡ para a primeira
+ocorrÃªncia de "cu". Agora digite <Delete>. Isso apagarÃ¡ o "u" da
+string de pesquisa, e o cursor moverÃ¡ de volta para a primeira
+ocorrÃªncia de "c".
 
-Se você estiver no meio de uma pesquisa e digitar um caractere control
-ou meta (com algumas exceções--caracteres que são especiais em uma
-pesquisa, como C-s e C-r), a pesquisa é terminada.
+Se vocÃª estiver no meio de uma pesquisa e digitar um caractere control
+ou meta (com algumas exceÃ§Ãµes--caracteres que sÃ£o especiais em uma
+pesquisa, como C-s e C-r), a pesquisa Ã© terminada.
 
-O C-s inicia uma pesquisa que procura por qualquer ocorrência da string
-de pesquisa APÓS a posição corrente do cursor. Se você quiser pesquisar
-por alguma coisa anterior no texto, digite C-r ao invés. Tudo que nos
-dissemos sobre C-s também implica para C-r, tirando a direção da
-pesquisa que é reversa.
+O C-s inicia uma pesquisa que procura por qualquer ocorrÃªncia da string
+de pesquisa APÃ“S a posiÃ§Ã£o corrente do cursor. Se vocÃª quiser pesquisar
+por alguma coisa anterior no texto, digite C-r ao invÃ©s. Tudo que nos
+dissemos sobre C-s tambÃ©m implica para C-r, tirando a direÃ§Ã£o da
+pesquisa que Ã© reversa.
 
 
-* MÚLTIPLAS JANELAS
+* MÃšLTIPLAS JANELAS
 -------------------
 
-Um dos recursos mais interessantes do Emacs é que você pode mostrar mais
+Um dos recursos mais interessantes do Emacs Ã© que vocÃª pode mostrar mais
 de uma janela na tela ao mesmo tempo.
 
->> Mova o cursor para essa linha e digite C-u 0 C-l (isso é control-L,
-   não control-1).
+>> Mova o cursor para essa linha e digite C-u 0 C-l (isso Ã© control-L,
+   nÃ£o control-1).
 
 >> Agora digite C-x 2 que vai dividir a tela em duas janelas.
-   As duas janelas vão mostrar esse tutorial. O cursor fica na janela
+   As duas janelas vÃ£o mostrar esse tutorial. O cursor fica na janela
    do topo.
 
 >> Digite C-M-v para rolar para o fim da janela.
-   (Se você não tiver uma tecla Meta de verdade, digite ESC C-v.).
+   (Se vocÃª nÃ£o tiver uma tecla Meta de verdade, digite ESC C-v.).
 
->> Digite C-x o ("o" para "outra") para mover o cursor para o rodapé
+>> Digite C-x o ("o" para "outra") para mover o cursor para o rodapÃ©
    da janela.
->> Use C-v e M-v no rodapé da janela para rodá-la.
-   Continue lendo essas direções na janela do topo.
+>> Use C-v e M-v no rodapÃ© da janela para rodÃ¡-la.
+   Continue lendo essas direÃ§Ãµes na janela do topo.
 
 >> Digite C-x o novamente para mover o cursor de volta para a janela
    do topo.
    O cursor na janela do topo esta exatamente como estava antes.
 
-Você pode continuar usando C-x o para alternar entre as janelas. Cada
-janela tem sua própria posição de cursor, mas apenas uma janela mostra o
-cursor. Todos os comandos mais comuns de edição aplicam para a janela
+VocÃª pode continuar usando C-x o para alternar entre as janelas. Cada
+janela tem sua prÃ³pria posiÃ§Ã£o de cursor, mas apenas uma janela mostra o
+cursor. Todos os comandos mais comuns de ediÃ§Ã£o aplicam para a janela
 que o cursor esta. Chamamos isso de "janela selecionada".
 
-O comando C-M-v é muito útil para quando você estiver editando o texto
-em uma janela e utilizando a outra janela para referencia. Você pode
-manter o cursor sempre na janela que você estiver editando, e avançar
-pela outra janela seqüencialmente utilizando C-M-v.
+O comando C-M-v Ã© muito Ãºtil para quando vocÃª estiver editando o texto
+em uma janela e utilizando a outra janela para referencia. VocÃª pode
+manter o cursor sempre na janela que vocÃª estiver editando, e avanÃ§ar
+pela outra janela seqÃ¼encialmente utilizando C-M-v.
 
-C-M-v é um exemplo de um caractere CONTROL-META. Se você tiver uma tecla
-META real, você pode digitar C-M-v segurando ambos CONTROL e META
-enquanto digitar v. Não importa se CONTROL ou META "vem primeiro,"
-porque ambas as teclas agem modificando o caractere que você digita.
+C-M-v Ã© um exemplo de um caractere CONTROL-META. Se vocÃª tiver uma tecla
+META real, vocÃª pode digitar C-M-v segurando ambos CONTROL e META
+enquanto digitar v. NÃ£o importa se CONTROL ou META "vem primeiro,"
+porque ambas as teclas agem modificando o caractere que vocÃª digita.
 
-Se você não tiver um tecla META real, você pode utilizar ESC ao invés, a
-ordem não importa: você precisa digitar ESC seguido por Control-v,
-porque Control-ESC v não funcionará. Isso porque ESC é um caractere
-com seu próprio direito, não é uma tecla de modificação.
+Se vocÃª nÃ£o tiver um tecla META real, vocÃª pode utilizar ESC ao invÃ©s, a
+ordem nÃ£o importa: vocÃª precisa digitar ESC seguido por Control-v,
+porque Control-ESC v nÃ£o funcionarÃ¡. Isso porque ESC Ã© um caractere
+com seu prÃ³prio direito, nÃ£o Ã© uma tecla de modificaÃ§Ã£o.
 
->> Digite C-x 1 (na janela do topo) para fugir da janela do rodapé.
+>> Digite C-x 1 (na janela do topo) para fugir da janela do rodapÃ©.
 
-(Se você tivesse digitado C-x 1 na janela do rodapé, você fugiria da
+(Se vocÃª tivesse digitado C-x 1 na janela do rodapÃ©, vocÃª fugiria da
 janela do topo. Pense neste comando como "Mantenha apenas uma janela--a
 janela que estou dentro.")
 
-Você não precisa mostrar o mesmo buffer nas duas janelas. Se você
+VocÃª nÃ£o precisa mostrar o mesmo buffer nas duas janelas. Se vocÃª
 utilizar C-x C-f para encontrar um arquivo em outra janela, a outra
-janela não mudara. Você pode encontrar um arquivo em cada janela
+janela nÃ£o mudara. VocÃª pode encontrar um arquivo em cada janela
 independentemente.
 
 Aqui esta uma maneira de utilizar duas janelas para mostrar coisas
@@ -930,103 +930,103 @@ diferentes:
 
 >> Digite C-x 4 C-f seguido pelo nome de um dos seus arquivos.
    Termine com <Return>. Veja o arquivo especificado aparece na janela
-   do rodapé. O cursor irá para lá, também.
+   do rodapÃ©. O cursor irÃ¡ para lÃ¡, tambÃ©m.
 
 >> Digite C-x o para voltar a janela do topo, e C-x1 para remover a
-   janela de rodapé.
+   janela de rodapÃ©.
 
 
-* NÍVEIS RECURSIVOS DE EDIÇÃO
+* NÃVEIS RECURSIVOS DE EDIÃ‡ÃƒO
 -----------------------------
 
-Algumas vezes você entrará no que chamamos de "nível de edição
-recursiva". Isso é indicado por colchetes no mode line, envolvendo os
-parênteses em volta do nome do modo majoritário. Por exemplo, você pode
-ver [(Fundamental)] ao invés de (Fundamental).
+Algumas vezes vocÃª entrarÃ¡ no que chamamos de "nÃ­vel de ediÃ§Ã£o
+recursiva". Isso Ã© indicado por colchetes no mode line, envolvendo os
+parÃªnteses em volta do nome do modo majoritÃ¡rio. Por exemplo, vocÃª pode
+ver [(Fundamental)] ao invÃ©s de (Fundamental).
 
-Para sair desses níveis recorríveis de edição, digite ESC ESC ESC. Isso
-e um comando de todos os propósitos "saia". Você pode também utilizar
+Para sair desses nÃ­veis recorrÃ­veis de ediÃ§Ã£o, digite ESC ESC ESC. Isso
+e um comando de todos os propÃ³sitos "saia". VocÃª pode tambÃ©m utilizar
 para eliminar janelas extras, e sair de um minibuffer.
 
->> Digite M-x para entrar no minibuffer; então digite ESC ESC ESC para
+>> Digite M-x para entrar no minibuffer; entÃ£o digite ESC ESC ESC para
    sair.
 
-Você não pode utilizar C-g para sair de um nível de edição
-recursiva. Isso porque o C-g é utilizado para cancelar comandos e
-argumentos COM o nível de edição recursiva.
+VocÃª nÃ£o pode utilizar C-g para sair de um nÃ­vel de ediÃ§Ã£o
+recursiva. Isso porque o C-g Ã© utilizado para cancelar comandos e
+argumentos COM o nÃ­vel de ediÃ§Ã£o recursiva.
 
 
 * CONSEGUINDO MAIS AJUDA
 ------------------------
 
-Neste tutorial nos tentamos suprimir informações suficientes para que
-você comece a utilizar o Emacs. Existe tanto disponível sobre Emacs que
-seria impossível explicar tudo aqui. De qualquer maneira, você pode
+Neste tutorial nos tentamos suprimir informaÃ§Ãµes suficientes para que
+vocÃª comece a utilizar o Emacs. Existe tanto disponÃ­vel sobre Emacs que
+seria impossÃ­vel explicar tudo aqui. De qualquer maneira, vocÃª pode
 querer aprender mais sobre Emacs mesmo porque ele tem muitos outros
-recursos úteis. O Emacs proporciona comandos para leitura de
-documentação sobre comandos do Emacs. Esses comandos de "ajuda" iniciam
-com o caractere Control-h, que é chamado de "o caractere de ajuda".
+recursos Ãºteis. O Emacs proporciona comandos para leitura de
+documentaÃ§Ã£o sobre comandos do Emacs. Esses comandos de "ajuda" iniciam
+com o caractere Control-h, que Ã© chamado de "o caractere de ajuda".
 
-Para utilizar os recursos de ajuda, digite o caractere C-h, e então um
-caractere dizendo que tipo de ajuda você quer. Se você REALMENTE estiver
-perdido, digite C-h ? e o Emacs lhe dirá que tipo de ajuda ele pode
-lhe dar. Se você digitar C-h e decidir que você não quer nenhuma ajuda,
+Para utilizar os recursos de ajuda, digite o caractere C-h, e entÃ£o um
+caractere dizendo que tipo de ajuda vocÃª quer. Se vocÃª REALMENTE estiver
+perdido, digite C-h ? e o Emacs lhe dirÃ¡ que tipo de ajuda ele pode
+lhe dar. Se vocÃª digitar C-h e decidir que vocÃª nÃ£o quer nenhuma ajuda,
 apenas digite C-g para cancelar.
 
-(Alguns sistemas mudam o significado do caractere C-h. Eles não deveriam
-fazer isso para todos os usuários, então você deve reclamar com o
-administrador do sistema. Enquanto isso, se C-h não mostrar a mensagem
-sobre ajuda no rodapé da tela, tente digitar a tecla F1 ou M-x help
+(Alguns sistemas mudam o significado do caractere C-h. Eles nÃ£o deveriam
+fazer isso para todos os usuÃ¡rios, entÃ£o vocÃª deve reclamar com o
+administrador do sistema. Enquanto isso, se C-h nÃ£o mostrar a mensagem
+sobre ajuda no rodapÃ© da tela, tente digitar a tecla F1 ou M-x help
 <Return>.)
 
-O recurso de ajuda mais básico é o C-h c. Digite C-h, e o caractere c, é
-um comando de caractere ou seqüência; então o Emacs mostrará uma breve
-descrição do comando.
+O recurso de ajuda mais bÃ¡sico Ã© o C-h c. Digite C-h, e o caractere c, Ã©
+um comando de caractere ou seqÃ¼Ãªncia; entÃ£o o Emacs mostrarÃ¡ uma breve
+descriÃ§Ã£o do comando.
 
 >> Digite C-h c C-p
    A mensagem deve ser algo assim
 
 	C-p roda o comando linha-anterior
 
-Isso diz a você "o nome da função". Nome de funções são utilizados
+Isso diz a vocÃª "o nome da funÃ§Ã£o". Nome de funÃ§Ãµes sÃ£o utilizados
 basicamente para personalizar o estender o Emacs. Mas desde que nomes de
-funções são utilizados para indicar que o que o comando faz, eles podem
-servir também como uma breve documentação--suficiente para lembrar você
-os comandos que você já aprendeu.
+funÃ§Ãµes sÃ£o utilizados para indicar que o que o comando faz, eles podem
+servir tambÃ©m como uma breve documentaÃ§Ã£o--suficiente para lembrar vocÃª
+os comandos que vocÃª jÃ¡ aprendeu.
 
-Comandos multi-caractere como C-x C-s e (se você não tiver a tecla META
-ou EDIT ou ALT) <ESC>v é também permitido depois de C-h c.
+Comandos multi-caractere como C-x C-s e (se vocÃª nÃ£o tiver a tecla META
+ou EDIT ou ALT) <ESC>v Ã© tambÃ©m permitido depois de C-h c.
 
-Para ter mais informação sobre um comando, utilize C-h k ao invés de C-h
+Para ter mais informaÃ§Ã£o sobre um comando, utilize C-h k ao invÃ©s de C-h
 c.
 
 >> Digite C-h k C-p.
 
-Isso mostra a documentação da função, assim como seu nome, em uma janela
-do Emacs. Quando você terminar de ler a saída, digite C-x 1 para sair da
-saída do texto de ajuda. Você não precisa fazer isso imediatamente
-apos. Você pode fazer alguma edição enquanto utilizando como referencia
-o texto de ajuda, e então digite C-x 1.
+Isso mostra a documentaÃ§Ã£o da funÃ§Ã£o, assim como seu nome, em uma janela
+do Emacs. Quando vocÃª terminar de ler a saÃ­da, digite C-x 1 para sair da
+saÃ­da do texto de ajuda. VocÃª nÃ£o precisa fazer isso imediatamente
+apos. VocÃª pode fazer alguma ediÃ§Ã£o enquanto utilizando como referencia
+o texto de ajuda, e entÃ£o digite C-x 1.
 
-Aqui estão algumas outras opções úteis do comando C-h:
+Aqui estÃ£o algumas outras opÃ§Ãµes Ãºteis do comando C-h:
 
-   C-h f	Descreve a função. Digite o nome da função.
+   C-h f	Descreve a funÃ§Ã£o. Digite o nome da funÃ§Ã£o.
 
 >> Tente digitar C-h f previous-line<Return>
-   Isso imprimirá toda informação que o Emacs tem sobre a função que
+   Isso imprimirÃ¡ toda informaÃ§Ã£o que o Emacs tem sobre a funÃ§Ã£o que
    implementa o comando C-p.
 
    C-h a        Comando Apropos. Digite uma palavra chave e o Emacs
-                listará todos os comandos que o nome contem essa
+                listarÃ¡ todos os comandos que o nome contem essa
                 palavra. Esses comandos podem ser chamados com
                 Meta-x. Para alguns comandos, o comando Apropos
-                também listará um ou dois caracteres de seqüência que
+                tambÃ©m listarÃ¡ um ou dois caracteres de seqÃ¼Ãªncia que
                 roda o mesmo comando.
 
 >> Digite C-h a file<Return>.
 
 Isso mostra em uma outra janela a lista de todos os comandos M-x com
-"arquivo" em seus nomes. Você verá comandos-caractere como C-x C-f
+"arquivo" em seus nomes. VocÃª verÃ¡ comandos-caractere como C-x C-f
 listados ao lado do comando correspondente assim como o find-file.
 
 >> Digite C-M-v para rolar a janela de ajuda. Faca isso algumas vezes.
@@ -1034,47 +1034,46 @@ listados ao lado do comando correspondente assim como o find-file.
 >> Digite C-x 1 para remover a janela de ajuda.
 
 
-* CONCLUSÃO
+* CONCLUSÃƒO
 -----------
 
 Lembre, para sair permanentemente do Emacs utilize C-x C-c. Para sair
-para um shell temporariamente, para que você possa voltar ao Emacs mais
+para um shell temporariamente, para que vocÃª possa voltar ao Emacs mais
 tarde, utilize C-z.
 
-Esse tutorial foi feito para ser entendível para todos os novos
-usuários, então se você encontrou algo que parece não estar claro, não
+Esse tutorial foi feito para ser entendÃ­vel para todos os novos
+usuÃ¡rios, entÃ£o se vocÃª encontrou algo que parece nÃ£o estar claro, nÃ£o
 sente e se culpe - reclame!
 
 
-* CÓPIA
+* CÃ“PIA
 -------
 
 Esse tutorial descende de uma longa linha de tutoriais do Emacs
 iniciando com um escrito por Stuart Cracraft para o Emacs original.
 
-Essa versão do tutorial foi originalmente traduzida por Marcelo Toledo
+Essa versÃ£o do tutorial foi originalmente traduzida por Marcelo Toledo
 <marcelo@gnu.org> e como o GNU Emacs, tem um copyright, e vem
-com uma permissão de distribuição de cópias nas seguintes condições:
+com uma permissÃ£o de distribuiÃ§Ã£o de cÃ³pias nas seguintes condiÃ§Ãµes:
 
 Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
-   Permissão é garantida a qualquer um para fazer ou distribuir cópias
+   PermissÃ£o Ã© garantida a qualquer um para fazer ou distribuir cÃ³pias
    integrais deste documento como recebido, em qualquer meio, deixando
-   disponível e preservados o aviso de copyright e o aviso de permissão,
-   e o distribuidor garante que a permissão para distribuições
+   disponÃ­vel e preservados o aviso de copyright e o aviso de permissÃ£o,
+   e o distribuidor garante que a permissÃ£o para distribuiÃ§Ãµes
    posteriores permitam o mesmo que esta nota.
 
-   Permissão garantida para distribuir versões modificadas deste
-   documento, ou partes dele, sobre as condições acima, sempre que elas
-   tenham uma nota visível de quem foi o último a alterá-lo.
+   PermissÃ£o garantida para distribuir versÃµes modificadas deste
+   documento, ou partes dele, sobre as condiÃ§Ãµes acima, sempre que elas
+   tenham uma nota visÃ­vel de quem foi o Ãºltimo a alterÃ¡-lo.
 
-As condições para copiar o Emacs especificamente são mais complexas, mas
-no mesmo espírito. Por favor, leia o arquivo COPYING e dê cópias do GNU
+As condiÃ§Ãµes para copiar o Emacs especificamente sÃ£o mais complexas, mas
+no mesmo espÃ­rito. Por favor, leia o arquivo COPYING e dÃª cÃ³pias do GNU
 Emacs para seus amigos. Ajude a erradicar o obstrucionismo de software
-("proprietário") usando, escrevendo, e compartilhando software livre!
+("proprietÃ¡rio") usando, escrevendo, e compartilhando software livre!
 
 ;;; Local Variables:
-;;;   coding: latin-1
+;;;   coding: utf-8
 ;;;   sentence-end-double-space: nil
 ;;; End:
-

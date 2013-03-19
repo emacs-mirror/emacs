@@ -1,1083 +1,1083 @@
-Tutorialului de Emacs.  A se citi sfârºitul pentru condişii.
-Traducere din englezã de Tudor Hulubei <tudor@gnu.org>.
-Mulşumiri Aidei Hulubei <aida@chang.pub.ro> pentru corecturi ºi sugestii.
+Tutorialului de Emacs.  A se citi sfÃ¢rÅŸitul pentru condiÅ£ii.
+Traducere din englezÄƒ de Tudor Hulubei <tudor@gnu.org>.
+MulÅ£umiri Aidei Hulubei <aida@chang.pub.ro> pentru corecturi ÅŸi sugestii.
 
-Aceastã versiune a fost produsã plecând de la versiunea în limba
-englezã, care este
+AceastÄƒ versiune a fost produsÄƒ plecÃ¢nd de la versiunea Ã®n limba
+englezÄƒ, care este
 Copyright (c) 1985, 2013 Free Software Foundation, Inc.
 
-Citişi acum versiunea româneascã a tutorialului de Emacs.
+CitiÅ£i acum versiunea romÃ¢neascÄƒ a tutorialului de Emacs.
 
-Comenzile Emacs folosesc în general tasta CONTROL (uneori denumitã
-CTRL sau CTL) sau tasta META (uneori denumita EDIT sau ALT).  În loc
-sã scriem META sau CONTROL de fiecare datã când vrem sã prefixãm un
-caracter, vom folosi urmãtoarele prescurtãri:
+Comenzile Emacs folosesc Ã®n general tasta CONTROL (uneori denumitÄƒ
+CTRL sau CTL) sau tasta META (uneori denumita EDIT sau ALT).  Ãn loc
+sÄƒ scriem META sau CONTROL de fiecare datÄƒ cÃ¢nd vrem sÄƒ prefixÄƒm un
+caracter, vom folosi urmÄƒtoarele prescurtÄƒri:
 
- C-<chr> înseamnã cã şineşi apãsatã tasta CONTROL în timp ce tastaşi
-	 caracterul <chr>.  Astfel, C-f înseamnã: şineşi apãsatã tasta
-	 CONTROL ºi tastaşi f.
+ C-<chr> Ã®nseamnÄƒ cÄƒ Å£ineÅ£i apÄƒsatÄƒ tasta CONTROL Ã®n timp ce tastaÅ£i
+	 caracterul <chr>.  Astfel, C-f Ã®nseamnÄƒ: Å£ineÅ£i apÄƒsatÄƒ tasta
+	 CONTROL ÅŸi tastaÅ£i f.
 
- M-<chr> înseamnã cã şineşi apãsatã tasta META, EDIT sau ALT în timp
-	 ce tastaşi <chr>.  Dacã nu existã tasta META, EDIT sau ALT,
-	 tastaşi <ESC>, ridicaşi ºi apoi tastaşi caracterul <chr>.
+ M-<chr> Ã®nseamnÄƒ cÄƒ Å£ineÅ£i apÄƒsatÄƒ tasta META, EDIT sau ALT Ã®n timp
+	 ce tastaÅ£i <chr>.  DacÄƒ nu existÄƒ tasta META, EDIT sau ALT,
+	 tastaÅ£i <ESC>, ridicaÅ£i ÅŸi apoi tastaÅ£i caracterul <chr>.
 	 Am notat cu <ESC> tasta ESC.
 
-Observaşie importantã: pentru a termina sesiunea Emacs, tastaşi C-x
-C-c.  (Douã caractere.)  Caracterele ">>" la marginea din stânga
-reprezintã instrucşiuni pentru a încerca o comandã.  De exemplu:
-<<Liniile goale introduse aici de inişializarea comenzii help-with-tutorial>>
->> Acum tastaşi C-v (citirea urmãtorului ecran) pentru a vã muta la
-   urmãtorul ecran.  (Executaşi aceastã comandã acum, tinând apãsatã
-   tasta CONTROL în timp ce tastaşi v).  De acum înainte faceşi acest
-   lucru din nou, de fiecare datã când terminaşi de citit ecranul.
+ObservaÅ£ie importantÄƒ: pentru a termina sesiunea Emacs, tastaÅ£i C-x
+C-c.  (DouÄƒ caractere.)  Caracterele ">>" la marginea din stÃ¢nga
+reprezintÄƒ instrucÅ£iuni pentru a Ã®ncerca o comandÄƒ.  De exemplu:
+<<Liniile goale introduse aici de iniÅ£ializarea comenzii help-with-tutorial>>
+>> Acum tastaÅ£i C-v (citirea urmÄƒtorului ecran) pentru a vÄƒ muta la
+   urmÄƒtorul ecran.  (ExecutaÅ£i aceastÄƒ comandÄƒ acum, tinÃ¢nd apÄƒsatÄƒ
+   tasta CONTROL Ã®n timp ce tastaÅ£i v).  De acum Ã®nainte faceÅ£i acest
+   lucru din nou, de fiecare datÄƒ cÃ¢nd terminaÅ£i de citit ecranul.
 
-De remarcat cã existã o zonã de suprapunere de douã linii când vã
-mutaşi de la un ecran la altul; aveşi astfel o oarecare continuitate
-în citirea textului.
+De remarcat cÄƒ existÄƒ o zonÄƒ de suprapunere de douÄƒ linii cÃ¢nd vÄƒ
+mutaÅ£i de la un ecran la altul; aveÅ£i astfel o oarecare continuitate
+Ã®n citirea textului.
 
-Primul lucru pe care trebuie sã-l stişi este cum sã vã deplasaşi din
-loc în loc în text.  ªtişi deja cum sã vã mutaşi la urmãtorul ecran cu
-C-v.  Pentru a vã deplasa înapoi un ecran, tastaşi M-v (şineşi apãsatã
-tasta META ºi tastaşi v, sau <ESC> v dacã nu aveşi o tastã META, EDIT,
+Primul lucru pe care trebuie sÄƒ-l stiÅ£i este cum sÄƒ vÄƒ deplasaÅ£i din
+loc Ã®n loc Ã®n text.  ÅtiÅ£i deja cum sÄƒ vÄƒ mutaÅ£i la urmÄƒtorul ecran cu
+C-v.  Pentru a vÄƒ deplasa Ã®napoi un ecran, tastaÅ£i M-v (Å£ineÅ£i apÄƒsatÄƒ
+tasta META ÅŸi tastaÅ£i v, sau <ESC> v dacÄƒ nu aveÅ£i o tastÄƒ META, EDIT,
 sau ALT).
 
->> Încercaşi sã tastaşi M-v ºi apoi C-v de câteva ori.
+>> ÃncercaÅ£i sÄƒ tastaÅ£i M-v ÅŸi apoi C-v de cÃ¢teva ori.
 
 
 * SUMAR
 -------
 
-Urmãtoarele comenzi sunt utile pentru a vedea ecrane:
+UrmÄƒtoarele comenzi sunt utile pentru a vedea ecrane:
 
-	C-v	avanseazã un ecran
-	M-v	înapoi un ecran
-	C-l	ºterge ecranul ºi reafiºeazã totul pozişionând textul
-		de lângã cursor în centrul ecranului.  (Este C-L, nu
+	C-v	avanseazÄƒ un ecran
+	M-v	Ã®napoi un ecran
+	C-l	ÅŸterge ecranul ÅŸi reafiÅŸeazÄƒ totul poziÅ£ionÃ¢nd textul
+		de lÃ¢ngÄƒ cursor Ã®n centrul ecranului.  (Este C-L, nu
 		C-1.)
 
->> Gãsişi cursorul ºi şineşi minte ce text este în jurul lui.
-   Apoi tastaşi C-l.  Gãsişi cursorul din nou ºi observaşi cã textul
-   de lângã cursor este acelaºi.
+>> GÄƒsiÅ£i cursorul ÅŸi Å£ineÅ£i minte ce text este Ã®n jurul lui.
+   Apoi tastaÅ£i C-l.  GÄƒsiÅ£i cursorul din nou ÅŸi observaÅ£i cÄƒ textul
+   de lÃ¢ngÄƒ cursor este acelaÅŸi.
 
 
-* COMENZI DE BAZÃ PENTRU CONTROLUL CURSORULUI
+* COMENZI DE BAZÄ‚ PENTRU CONTROLUL CURSORULUI
 ---------------------------------------------
 
-Mutatul ecran cu ecran este util, dar cum vã mutaşi la o anumitã
-pozişie în textul de pe ecran?
+Mutatul ecran cu ecran este util, dar cum vÄƒ mutaÅ£i la o anumitÄƒ
+poziÅ£ie Ã®n textul de pe ecran?
 
-Sunt mai multe modalitaşi în care puteşi face acest lucru.  Cel mai
-simplu este sã folosişi comenzile C-p, C-b, C-f ºi C-n.  Fiecare din
-aceste comenzi mutã cursorul o linie sau coloanã într-o anumitã
-direcşie pe ecran.  Diagrama urmãtoare prezintã aceste patru comenzi
-ºi aratã direcşiile în care ele mutã cursorul.
+Sunt mai multe modalitaÅ£i Ã®n care puteÅ£i face acest lucru.  Cel mai
+simplu este sÄƒ folosiÅ£i comenzile C-p, C-b, C-f ÅŸi C-n.  Fiecare din
+aceste comenzi mutÄƒ cursorul o linie sau coloanÄƒ Ã®ntr-o anumitÄƒ
+direcÅ£ie pe ecran.  Diagrama urmÄƒtoare prezintÄƒ aceste patru comenzi
+ÅŸi aratÄƒ direcÅ£iile Ã®n care ele mutÄƒ cursorul.
 
-			 Linia precedentã, C-p
+			 Linia precedentÄƒ, C-p
 				  :
 				  :
-    Înapoi, C-b .... Pozişia curentã a cursorului .... Înainte, C-f
+    Ãnapoi, C-b .... PoziÅ£ia curentÄƒ a cursorului .... Ãnainte, C-f
 				  :
 				  :
-			 Linia urmãtoare, C-n
+			 Linia urmÄƒtoare, C-n
 
->> Mutaşi cursorul la linia din mijlocul diagramei folosind C-n sau
-   C-p.  Tastaşi apoi C-l pentru a vedea întreaga diagramã centratã pe
+>> MutaÅ£i cursorul la linia din mijlocul diagramei folosind C-n sau
+   C-p.  TastaÅ£i apoi C-l pentru a vedea Ã®ntreaga diagramÄƒ centratÄƒ pe
    ecran.
 
-Vi se va pãrea probabil mai simplu sã vã amintişi aceste comenzi
-gândindu-vã la semnificaşia lor în limba englezã: P pentru previous, N
-pentru next, B pentru backward ºi F pentru forward.  Acestea sunt
-comenzile de bazã pentru pozişionarea cursorului ºi le veşi folosi tot
-timpul, deci ar fi foarte util sã le învãşaşi acum.
+Vi se va pÄƒrea probabil mai simplu sÄƒ vÄƒ amintiÅ£i aceste comenzi
+gÃ¢ndindu-vÄƒ la semnificaÅ£ia lor Ã®n limba englezÄƒ: P pentru previous, N
+pentru next, B pentru backward ÅŸi F pentru forward.  Acestea sunt
+comenzile de bazÄƒ pentru poziÅ£ionarea cursorului ÅŸi le veÅ£i folosi tot
+timpul, deci ar fi foarte util sÄƒ le Ã®nvÄƒÅ£aÅ£i acum.
 
->> Tastaşi câteva C-n-uri pentru a aduce cursorul la aceastã linie.
+>> TastaÅ£i cÃ¢teva C-n-uri pentru a aduce cursorul la aceastÄƒ linie.
 
->> Mutaşi-vã în interiorul liniei cu C-f-uri ºi apoi în sus cu
-   C-p-uri.  Urmãrişi ce face C-p atunci când cursorul este în
+>> MutaÅ£i-vÄƒ Ã®n interiorul liniei cu C-f-uri ÅŸi apoi Ã®n sus cu
+   C-p-uri.  UrmÄƒriÅ£i ce face C-p atunci cÃ¢nd cursorul este Ã®n
    mijlocul liniei.
 
-Fiecare linie se terminã cu un caracter NEWLINE care o separã de linia
-urmãtoare.  Ultima linie în fiºierele dumneavoastrã ar trebui sã aibã
-un asemenea caracter la sfârºit (deºi Emacs-ul nu-l necesitã).
+Fiecare linie se terminÄƒ cu un caracter NEWLINE care o separÄƒ de linia
+urmÄƒtoare.  Ultima linie Ã®n fiÅŸierele dumneavoastrÄƒ ar trebui sÄƒ aibÄƒ
+un asemenea caracter la sfÃ¢rÅŸit (deÅŸi Emacs-ul nu-l necesitÄƒ).
 
->> Încercaşi sã tastaşi C-b la începutul unei linii.  Cursorul ar
-   trebui sã se mute la sfârºitul liniei precedente, din cauza
+>> ÃncercaÅ£i sÄƒ tastaÅ£i C-b la Ã®nceputul unei linii.  Cursorul ar
+   trebui sÄƒ se mute la sfÃ¢rÅŸitul liniei precedente, din cauza
    trecerii peste caracterul NEWLINE.
 
-C-f poate sã treacã peste un caracter NEWLINE, la fel ca ºi C-b.
+C-f poate sÄƒ treacÄƒ peste un caracter NEWLINE, la fel ca ÅŸi C-b.
 
->> Tastaşi câteva C-b-uri, pentru a vã familiariza cu pozişia
-   cursorului.  Tastaşi apoi câteva C-f-uri pentru a vã întoarce la
-   sfârºitul liniei.  Încã un C-f ºi vã veşi muta la linia urmãtoare.
+>> TastaÅ£i cÃ¢teva C-b-uri, pentru a vÄƒ familiariza cu poziÅ£ia
+   cursorului.  TastaÅ£i apoi cÃ¢teva C-f-uri pentru a vÄƒ Ã®ntoarce la
+   sfÃ¢rÅŸitul liniei.  ÃncÄƒ un C-f ÅŸi vÄƒ veÅ£i muta la linia urmÄƒtoare.
 
-Când ajungeşi sã treceşi peste începutul sau sfârºitul ecranului,
-textul aflat dincolo de margine intrã în ecran, permişându-i
-Emacs-ului sã mute cursorul la pozişia specificatã, fãrã a ieºi din
-zona vizibilã (ecran).  Aceastã operaşiune se numeste în limba englezã
+CÃ¢nd ajungeÅ£i sÄƒ treceÅ£i peste Ã®nceputul sau sfÃ¢rÅŸitul ecranului,
+textul aflat dincolo de margine intrÄƒ Ã®n ecran, permiÅ£Ã¢ndu-i
+Emacs-ului sÄƒ mute cursorul la poziÅ£ia specificatÄƒ, fÄƒrÄƒ a ieÅŸi din
+zona vizibilÄƒ (ecran).  AceastÄƒ operaÅ£iune se numeste Ã®n limba englezÄƒ
 "scrolling".
 
->> Încercaşi sã mutaşi cursorul în afara pãrşii de jos a ecranului cu
-   C-n ºi observaşi ce se întamplã.
+>> ÃncercaÅ£i sÄƒ mutaÅ£i cursorul Ã®n afara pÄƒrÅ£ii de jos a ecranului cu
+   C-n ÅŸi observaÅ£i ce se Ã®ntamplÄƒ.
 
-Dacã mutatul caracter cu caracter este lent, puteşi muta cursorul
-cuvânt cu cuvânt.  M-f (META-f) avanseazã cursorul cu un cuvânt, iar
-M-b mutã cursorul un cuvânt înapoi.
+DacÄƒ mutatul caracter cu caracter este lent, puteÅ£i muta cursorul
+cuvÃ¢nt cu cuvÃ¢nt.  M-f (META-f) avanseazÄƒ cursorul cu un cuvÃ¢nt, iar
+M-b mutÄƒ cursorul un cuvÃ¢nt Ã®napoi.
 
->> Tastaşi câteva M-f-uri ºi apoi câteva M-b-uri.
+>> TastaÅ£i cÃ¢teva M-f-uri ÅŸi apoi cÃ¢teva M-b-uri.
 
-Când cursorul este în mijlocul unui cuvânt, M-f îl mutã la sfârºitul
-cuvântului.  Când cursorul este în spaşiul dintre cuvinte, M-f îl mutã
-la sfârºitul cuvântului urmãtor.  M-b acşioneazã similar, dar în
-direcşia opusã.
+CÃ¢nd cursorul este Ã®n mijlocul unui cuvÃ¢nt, M-f Ã®l mutÄƒ la sfÃ¢rÅŸitul
+cuvÃ¢ntului.  CÃ¢nd cursorul este Ã®n spaÅ£iul dintre cuvinte, M-f Ã®l mutÄƒ
+la sfÃ¢rÅŸitul cuvÃ¢ntului urmÄƒtor.  M-b acÅ£ioneazÄƒ similar, dar Ã®n
+direcÅ£ia opusÄƒ.
 
->> Tastaşi M-f ºi M-b de câteva ori, intercalate cu C-f-uri ºi
-   C-b-uri, pentru a observa efectul comenzilor M-f ºi M-b din diverse
-   pozişii în interiorul cuvintelor ºi între ele.
+>> TastaÅ£i M-f ÅŸi M-b de cÃ¢teva ori, intercalate cu C-f-uri ÅŸi
+   C-b-uri, pentru a observa efectul comenzilor M-f ÅŸi M-b din diverse
+   poziÅ£ii Ã®n interiorul cuvintelor ÅŸi Ã®ntre ele.
 
-Observaşi paralela între C-f ºi C-b pe de o parte, ºi M-f ºi M-b pe de
-cealaltã parte.  De multe ori, caracterele META sunt folosite pentru
-operaşii referitoare la unitãşile definite de limbaj (cuvinte, fraze,
-paragrafe), în timp ce caracterele CONTROL opereazã pe unitãşi de
-bazã, care sunt independente de tipul textului editat (caractere,
+ObservaÅ£i paralela Ã®ntre C-f ÅŸi C-b pe de o parte, ÅŸi M-f ÅŸi M-b pe de
+cealaltÄƒ parte.  De multe ori, caracterele META sunt folosite pentru
+operaÅ£ii referitoare la unitÄƒÅ£ile definite de limbaj (cuvinte, fraze,
+paragrafe), Ã®n timp ce caracterele CONTROL opereazÄƒ pe unitÄƒÅ£i de
+bazÄƒ, care sunt independente de tipul textului editat (caractere,
 linii, etc).
 
-Aceastã paralelã se aplicã ºi între linii ºi fraze: C-a ºi C-e mutã
-cursorul la începutul ºi, respectiv sfârºitul unei linii, în timp ce
-M-a ºi M-e îl mutã la începutul ºi, respectiv sfârºitul unei fraze.
+AceastÄƒ paralelÄƒ se aplicÄƒ ÅŸi Ã®ntre linii ÅŸi fraze: C-a ÅŸi C-e mutÄƒ
+cursorul la Ã®nceputul ÅŸi, respectiv sfÃ¢rÅŸitul unei linii, Ã®n timp ce
+M-a ÅŸi M-e Ã®l mutÄƒ la Ã®nceputul ÅŸi, respectiv sfÃ¢rÅŸitul unei fraze.
 
->> Încercaşi câteva C-a-uri, apoi câteva C-e-uri.
-   Încercaşi câteva M-a-uri, apoi câteva M-e-uri.
+>> ÃncercaÅ£i cÃ¢teva C-a-uri, apoi cÃ¢teva C-e-uri.
+   ÃncercaÅ£i cÃ¢teva M-a-uri, apoi cÃ¢teva M-e-uri.
 
-Remarcaşi cum repetarea tastãrii lui C-a nu schimbã nimic, în timp ce
-repetarea tastãrii lui M-a mutã cursorul la fraza urmãtoare.  Deºi
-aceste operaşii nu sunt tocmai analoage, fiecare pare naturalã.
+RemarcaÅ£i cum repetarea tastÄƒrii lui C-a nu schimbÄƒ nimic, Ã®n timp ce
+repetarea tastÄƒrii lui M-a mutÄƒ cursorul la fraza urmÄƒtoare.  DeÅŸi
+aceste operaÅ£ii nu sunt tocmai analoage, fiecare pare naturalÄƒ.
 
-Pozişia cursorului în text mai este numitã ºi "punct" ("point" în
-limba englezã).  Cursorul aratã pe ecran pozişia punctului în text.
+PoziÅ£ia cursorului Ã®n text mai este numitÄƒ ÅŸi "punct" ("point" Ã®n
+limba englezÄƒ).  Cursorul aratÄƒ pe ecran poziÅ£ia punctului Ã®n text.
 
-Operaşiile ce mutã cursorul (inclusiv comenzile ce mutã cursorul
-cuvânt cu cuvânt sau frazã cu frazã) sunt prezentate în sumarul
-urmãtor:
+OperaÅ£iile ce mutÄƒ cursorul (inclusiv comenzile ce mutÄƒ cursorul
+cuvÃ¢nt cu cuvÃ¢nt sau frazÄƒ cu frazÄƒ) sunt prezentate Ã®n sumarul
+urmÄƒtor:
 
-	C-f	avanseazã un caracter
-	C-b	înapoi un caracter
+	C-f	avanseazÄƒ un caracter
+	C-b	Ã®napoi un caracter
 
-	M-f	avanseazã un cuvânt
-	M-b	înapoi un cuvânt
+	M-f	avanseazÄƒ un cuvÃ¢nt
+	M-b	Ã®napoi un cuvÃ¢nt
 
-	C-n	avanseazã o linie
-	C-p	înapoi o linie
+	C-n	avanseazÄƒ o linie
+	C-p	Ã®napoi o linie
 
-	C-a	înapoi la începutul liniei
-	C-e	avanseazã la sfârºitul liniei
+	C-a	Ã®napoi la Ã®nceputul liniei
+	C-e	avanseazÄƒ la sfÃ¢rÅŸitul liniei
 
-	M-a	înapoi la începutul frazei
-	M-e	avanseazã la sfârºitul frazei
+	M-a	Ã®napoi la Ã®nceputul frazei
+	M-e	avanseazÄƒ la sfÃ¢rÅŸitul frazei
 
->> Exersaşi toate aceste comenzi acum, sunt comenzile cele mai des
+>> ExersaÅ£i toate aceste comenzi acum, sunt comenzile cele mai des
    folosite.
 
-Douã alte comenzi importante legate de mutatul cursorului sunt M-<
-(META Mai-mic), care mutã cursorul la începutul textului, ºi M-> (META
-Mai-mare), care mutã cursorul la sfârºitul textului.
+DouÄƒ alte comenzi importante legate de mutatul cursorului sunt M-<
+(META Mai-mic), care mutÄƒ cursorul la Ã®nceputul textului, ÅŸi M-> (META
+Mai-mare), care mutÄƒ cursorul la sfÃ¢rÅŸitul textului.
 
-Pe majoritatea terminalelor "<" este deasupra virgulei ºi deci este
-necesar sã apãsaşi tasta SHIFT în acelaºi timp.  Pe aceste terminale
-este nevoie sã apãsaşi SHIFT ºi când tastaşi M-<; fãrã tasta SHIFT,
-aşi apãsa M-virgulã.
+Pe majoritatea terminalelor "<" este deasupra virgulei ÅŸi deci este
+necesar sÄƒ apÄƒsaÅ£i tasta SHIFT Ã®n acelaÅŸi timp.  Pe aceste terminale
+este nevoie sÄƒ apÄƒsaÅ£i SHIFT ÅŸi cÃ¢nd tastaÅ£i M-<; fÄƒrÄƒ tasta SHIFT,
+aÅ£i apÄƒsa M-virgulÄƒ.
 
->> Încercaşi M-< acum, pentru a vã muta la începutul tutorialului.
-   Folosişi apoi C-v în mod repetat pentru a ajunge înapoi aici.
+>> ÃncercaÅ£i M-< acum, pentru a vÄƒ muta la Ã®nceputul tutorialului.
+   FolosiÅ£i apoi C-v Ã®n mod repetat pentru a ajunge Ã®napoi aici.
 
->> Încercaşi M-> acum, pentru a vã muta la sfârºitul tutorialului.
-   Folosişi apoi M-v repetat pentru a ajunge înapoi aici.
+>> ÃncercaÅ£i M-> acum, pentru a vÄƒ muta la sfÃ¢rÅŸitul tutorialului.
+   FolosiÅ£i apoi M-v repetat pentru a ajunge Ã®napoi aici.
 
-Puteşi de asemenea sã mutaşi cursorul cu tastele sãgeşi, dacã
-terminalul are asemenea taste.  Se recomandã însã acomodarea cu C-b,
-C-f, C-n ºi C-p din trei motive.  În primul rând, aceste taste
-funcşioneazã pe toate tipurile de terminale.  În al doilea rând, odatã
-ce vã obiºnuişi cu Emacs-ul, veşi remarca faptul cã tastarea lor este
-mai rapidã decât cea a tastelor sãgeşi (pentru cã nu trebuie sã vã
-schimbaşi pozişia mâinilor pe tastaturã).  În al treilea rând, odatã
+PuteÅ£i de asemenea sÄƒ mutaÅ£i cursorul cu tastele sÄƒgeÅ£i, dacÄƒ
+terminalul are asemenea taste.  Se recomandÄƒ Ã®nsÄƒ acomodarea cu C-b,
+C-f, C-n ÅŸi C-p din trei motive.  Ãn primul rÃ¢nd, aceste taste
+funcÅ£ioneazÄƒ pe toate tipurile de terminale.  Ãn al doilea rÃ¢nd, odatÄƒ
+ce vÄƒ obiÅŸnuiÅ£i cu Emacs-ul, veÅ£i remarca faptul cÄƒ tastarea lor este
+mai rapidÄƒ decÃ¢t cea a tastelor sÄƒgeÅ£i (pentru cÄƒ nu trebuie sÄƒ vÄƒ
+schimbaÅ£i poziÅ£ia mÃ¢inilor pe tastaturÄƒ).  Ãn al treilea rÃ¢nd, odatÄƒ
 format obiceiul de a folosi aceste comenzi bazate pe CONTROL,
-comenzile avansate de mutat cursorul se învaşã foarte uºor.
+comenzile avansate de mutat cursorul se Ã®nvaÅ£Äƒ foarte uÅŸor.
 
-Majoritatea comenzilor Emacs acceptã un argument numeric; pentru
-majoritatea comenzilor, acest argument reprezintã un contor de
-repetişie.  Contorul de repetişie se introduce tastând C-u, cifrele ce
-alcãtuiesc contorul ºi apoi comanda.  Dacã aveşi tasta META (EDIT sau
-ALT), existã ºi o altã alternativã pentru a introduce un argument
-numeric: tastaşi cifrele în timp ce şineşi tasta META apãsatã.  Se
-recomandã însã folosirea metodei cu C-u, deoarece funcşioneazã pe
+Majoritatea comenzilor Emacs acceptÄƒ un argument numeric; pentru
+majoritatea comenzilor, acest argument reprezintÄƒ un contor de
+repetiÅ£ie.  Contorul de repetiÅ£ie se introduce tastÃ¢nd C-u, cifrele ce
+alcÄƒtuiesc contorul ÅŸi apoi comanda.  DacÄƒ aveÅ£i tasta META (EDIT sau
+ALT), existÄƒ ÅŸi o altÄƒ alternativÄƒ pentru a introduce un argument
+numeric: tastaÅ£i cifrele Ã®n timp ce Å£ineÅ£i tasta META apÄƒsatÄƒ.  Se
+recomandÄƒ Ã®nsÄƒ folosirea metodei cu C-u, deoarece funcÅ£ioneazÄƒ pe
 orice terminal.
 
-De exemplu, C-u 8 C-f avanseazã cursorul cu opt caractere.
+De exemplu, C-u 8 C-f avanseazÄƒ cursorul cu opt caractere.
 
->> Încercaşi sã folosişi C-n sau C-p cu un argument numeric pentru a
-   muta cursorul dintr-o singurã comandã pe o linie apropiatã de
+>> ÃncercaÅ£i sÄƒ folosiÅ£i C-n sau C-p cu un argument numeric pentru a
+   muta cursorul dintr-o singurÄƒ comandÄƒ pe o linie apropiatÄƒ de
    aceasta.
 
-Majoritatea comenzilor utilizeazã argumentul numeric ca un contor de
-repetitie.  Anumite comenzi speciale îl folosesc însa în mod diferit.
-C-v si M-v sunt printre aceste excepşii.  Când li se dã un argument
-numeric, ele mutã ecranul mai sus sau mai jos cu numarul specificat de
-linii, nu de ecrane.  De exemplu, C-u 4 C-v mutã ecranul cu 4 linii.
+Majoritatea comenzilor utilizeazÄƒ argumentul numeric ca un contor de
+repetitie.  Anumite comenzi speciale Ã®l folosesc Ã®nsa Ã®n mod diferit.
+C-v si M-v sunt printre aceste excepÅ£ii.  CÃ¢nd li se dÄƒ un argument
+numeric, ele mutÄƒ ecranul mai sus sau mai jos cu numarul specificat de
+linii, nu de ecrane.  De exemplu, C-u 4 C-v mutÄƒ ecranul cu 4 linii.
 
->> Încercaşi sã tastaşi C-u 8 C-v acum.
+>> ÃncercaÅ£i sÄƒ tastaÅ£i C-u 8 C-v acum.
 
-Aceastã comandã trebuie sã mute ecranul în sus cu 8 linii.  Dacã
-doriti sã îl mutaşi înapoi, puteşi sã-i daşi lui M-v un argument
+AceastÄƒ comandÄƒ trebuie sÄƒ mute ecranul Ã®n sus cu 8 linii.  DacÄƒ
+doriti sÄƒ Ã®l mutaÅ£i Ã®napoi, puteÅ£i sÄƒ-i daÅ£i lui M-v un argument
 numeric.
 
-Dacã folosişi sistemul X Window, existã probabil o zonã rectangularã
-numita "scroll bar" la dreapta ferestrei Emacs-ului.  Puteşi deplasa
-textul manipulând "scroll bar"-ul cu mouse-ul.
+DacÄƒ folosiÅ£i sistemul X Window, existÄƒ probabil o zonÄƒ rectangularÄƒ
+numita "scroll bar" la dreapta ferestrei Emacs-ului.  PuteÅ£i deplasa
+textul manipulÃ¢nd "scroll bar"-ul cu mouse-ul.
 
->> Încercaşi sã apãsaşi butonul din mijloc al mouse-ului la mijlocul
-   butonului din scroll bar.  Aceasta ar trebui sã mute textul la o
-   pozişie determinatã de cât de sus sau de jos aşi apãsat pe scroll
+>> ÃncercaÅ£i sÄƒ apÄƒsaÅ£i butonul din mijloc al mouse-ului la mijlocul
+   butonului din scroll bar.  Aceasta ar trebui sÄƒ mute textul la o
+   poziÅ£ie determinatÄƒ de cÃ¢t de sus sau de jos aÅ£i apÄƒsat pe scroll
    bar.
 
->> Încercaşi sã mutaşi mouse-ul în sus ºi în jos şinând butonul din
-   mijloc apãsat.  Veşi vedea cã textul se deplaseazã în sus ºi în jos
-   corespunzãtor cu miºcarea mouse-ului.
+>> ÃncercaÅ£i sÄƒ mutaÅ£i mouse-ul Ã®n sus ÅŸi Ã®n jos Å£inÃ¢nd butonul din
+   mijloc apÄƒsat.  VeÅ£i vedea cÄƒ textul se deplaseazÄƒ Ã®n sus ÅŸi Ã®n jos
+   corespunzÄƒtor cu miÅŸcarea mouse-ului.
 
 
-* CÂND EMACS-ul ESTE BLOCAT
+* CÃ‚ND EMACS-ul ESTE BLOCAT
 ---------------------------
 
-Dacã Emacs-ul înceteazã sã vã raspundã la comenzi, îl puteşi opri,
-fãrã sã pierdeşi modificãrile fãcute pânã acum, tastând C-g.  Puteşi
-folosi C-g pentru a opri o comandã care dureazã prea mult.
+DacÄƒ Emacs-ul Ã®nceteazÄƒ sÄƒ vÄƒ raspundÄƒ la comenzi, Ã®l puteÅ£i opri,
+fÄƒrÄƒ sÄƒ pierdeÅ£i modificÄƒrile fÄƒcute pÃ¢nÄƒ acum, tastÃ¢nd C-g.  PuteÅ£i
+folosi C-g pentru a opri o comandÄƒ care dureazÄƒ prea mult.
 
-Puteşi de asemenea folosi C-g pentru a opri introducerea unui argument
-numeric sau începutul unei comenzi pe care nu dorişi sã o continuaşi.
+PuteÅ£i de asemenea folosi C-g pentru a opri introducerea unui argument
+numeric sau Ã®nceputul unei comenzi pe care nu doriÅ£i sÄƒ o continuaÅ£i.
 
->> Tastaşi C-u 100 pentru a introduce 100 ca un argument numeric, apoi
-   tastaşi C-g.  Tastaşi apoi C-f.  Cursorul ar trebui sã se mute un
-   singur caracter, pentru cã aşi oprit introducerea argumentului
+>> TastaÅ£i C-u 100 pentru a introduce 100 ca un argument numeric, apoi
+   tastaÅ£i C-g.  TastaÅ£i apoi C-f.  Cursorul ar trebui sÄƒ se mute un
+   singur caracter, pentru cÄƒ aÅ£i oprit introducerea argumentului
    numeric cu C-g.
 
-Dacã aşi tastat un <ESC> din greºealã, puteşi sã-l anulaşi cu un C-g.
+DacÄƒ aÅ£i tastat un <ESC> din greÅŸealÄƒ, puteÅ£i sÄƒ-l anulaÅ£i cu un C-g.
 
 
 * COMENZI DEZAFECTATE
 ---------------------
 
-Anumite comenzi sunt dezafectate în Emacs, în aºa fel încât
-utilizatorii sã nu le poatã folosi din neatenşie.
+Anumite comenzi sunt dezafectate Ã®n Emacs, Ã®n aÅŸa fel Ã®ncÃ¢t
+utilizatorii sÄƒ nu le poatÄƒ folosi din neatenÅ£ie.
 
-Dacã tastaşi una din comenzile dezafectate, Emacs-ul va afiºa un mesaj
-spunând ce comandã aşi tastat ºi întrebându-vã dacã dorişi sã
-continuaşi.
+DacÄƒ tastaÅ£i una din comenzile dezafectate, Emacs-ul va afiÅŸa un mesaj
+spunÃ¢nd ce comandÄƒ aÅ£i tastat ÅŸi Ã®ntrebÃ¢ndu-vÄƒ dacÄƒ doriÅ£i sÄƒ
+continuaÅ£i.
 
-Dacã într-adevãr dorişi sã încercaşi comanda respectivã, tastaşi
-SPAŞIU.  În mod normal, dacã nu dorişi sã executaşi comanda
-dezafectatã, rãspundeşi cu "n".
+DacÄƒ Ã®ntr-adevÄƒr doriÅ£i sÄƒ Ã®ncercaÅ£i comanda respectivÄƒ, tastaÅ£i
+SPAÅ¢IU.  Ãn mod normal, dacÄƒ nu doriÅ£i sÄƒ executaÅ£i comanda
+dezafectatÄƒ, rÄƒspundeÅ£i cu "n".
 
->> Tastaşi <ESC> : (care este o comandã dezafectatã), apoi tastaşi n
-   ca rãspuns la întrebarea pusã de Emacs.
+>> TastaÅ£i <ESC> : (care este o comandÄƒ dezafectatÄƒ), apoi tastaÅ£i n
+   ca rÄƒspuns la Ã®ntrebarea pusÄƒ de Emacs.
 
 
 * FERESTRE
 ----------
 
-Emacs-ul poate avea mai multe ferestre, fiecare afiºând propriul sãu
-text.  Vom explica mai târziu tehnicile de folosire a ferestrelor
-multiple.  Acum vrem sã explicãm cum sã închideşi ferestrele care ar
-putea apare ca rezultat al afiºãrii unor documentaşii sau rezultate
+Emacs-ul poate avea mai multe ferestre, fiecare afiÅŸÃ¢nd propriul sÄƒu
+text.  Vom explica mai tÃ¢rziu tehnicile de folosire a ferestrelor
+multiple.  Acum vrem sÄƒ explicÄƒm cum sÄƒ Ã®nchideÅ£i ferestrele care ar
+putea apare ca rezultat al afiÅŸÄƒrii unor documentaÅ£ii sau rezultate
 specifice anumitor comenzi.  Este simplu:
 
-	C-x 1   o singurã fereastrã (adicã închide toate celelalte
+	C-x 1   o singurÄƒ fereastrÄƒ (adicÄƒ Ã®nchide toate celelalte
 		ferestre).
 
-Asta înseamnã CONTROL-x urmat de cifra 1.  C-x 1 mãreºte fereastra
-care conşine cursorul pânã când ocupã întregul ecran.  Toate celelalte
+Asta Ã®nseamnÄƒ CONTROL-x urmat de cifra 1.  C-x 1 mÄƒreÅŸte fereastra
+care conÅ£ine cursorul pÃ¢nÄƒ cÃ¢nd ocupÄƒ Ã®ntregul ecran.  Toate celelalte
 ferestre sunt distruse.
 
->> Mutaşi cursorul la aceastã linie ºi tastaşi C-u 0 C-l.
+>> MutaÅ£i cursorul la aceastÄƒ linie ÅŸi tastaÅ£i C-u 0 C-l.
 
->> Tastaşi C-h k C-f.  Observaşi cum aceastã fereastrã se micºoreazã,
-   în timp ce o nouã fereastrã apare, afiºând documentaşia comenzii
+>> TastaÅ£i C-h k C-f.  ObservaÅ£i cum aceastÄƒ fereastrÄƒ se micÅŸoreazÄƒ,
+   Ã®n timp ce o nouÄƒ fereastrÄƒ apare, afiÅŸÃ¢nd documentaÅ£ia comenzii
    C-f.
 
->> Tastaşi C-x 1 ºi observaşi cum noua fereastrã dispare.
+>> TastaÅ£i C-x 1 ÅŸi observaÅ£i cum noua fereastrÄƒ dispare.
 
 
-* INTRODUCEREA ªI ªTERGEREA
+* INTRODUCEREA ÅI ÅTERGEREA
 ---------------------------
 
-Dacã vreşi sã introduceşi text, pur ºi simplu tastaşi textul dorit.
-Caracterele pe care le puteşi vedea, cum ar fi A, 7, *, etc. sunt
-interpretate de Emacs ca text ºi introduse imediat.  Tastaşi <Return>
-(tasta mai este etichetatã <Enter> uneori) pentru a introduce un
+DacÄƒ vreÅ£i sÄƒ introduceÅ£i text, pur ÅŸi simplu tastaÅ£i textul dorit.
+Caracterele pe care le puteÅ£i vedea, cum ar fi A, 7, *, etc. sunt
+interpretate de Emacs ca text ÅŸi introduse imediat.  TastaÅ£i <Return>
+(tasta mai este etichetatÄƒ <Enter> uneori) pentru a introduce un
 caracter NEWLINE.
 
-Puteşi ºterge ultimul caracter pe care l-aşi introdus tastând
-<Delete>.  <Delete> este o tastã pe tastaturã etichetatã "Del" sau
-"Delete".  În unele cazuri tasta "Backspace" poate acşiona ca
-<Delete>, dar nu întotdeauna!
+PuteÅ£i ÅŸterge ultimul caracter pe care l-aÅ£i introdus tastÃ¢nd
+<Delete>.  <Delete> este o tastÄƒ pe tastaturÄƒ etichetatÄƒ "Del" sau
+"Delete".  Ãn unele cazuri tasta "Backspace" poate acÅ£iona ca
+<Delete>, dar nu Ã®ntotdeauna!
 
-Mai general, <Delete> ºterge caracterul dinaintea pozişiei curente a
+Mai general, <Delete> ÅŸterge caracterul dinaintea poziÅ£iei curente a
 cursorului.
 
->> Executaşi urmãtoarele operaşii acum - tastaşi câteva caractere,
-   apoi ºtergeşi-le tastând <Delete> de câteva ori.  Nu vã temeşi cã
-   veşi schimba acest fiºier; nu veşi altera versiunea principalã a
-   tutorialului.  Aceasta este copia dumneavoastrã personalã.
+>> ExecutaÅ£i urmÄƒtoarele operaÅ£ii acum - tastaÅ£i cÃ¢teva caractere,
+   apoi ÅŸtergeÅ£i-le tastÃ¢nd <Delete> de cÃ¢teva ori.  Nu vÄƒ temeÅ£i cÄƒ
+   veÅ£i schimba acest fiÅŸier; nu veÅ£i altera versiunea principalÄƒ a
+   tutorialului.  Aceasta este copia dumneavoastrÄƒ personalÄƒ.
 
-Când o linie de text devine prea mare pentru a putea fi reprezentatã
-pe o linie de ecran, linia de text este continuatã pe urmãtoarea linie
+CÃ¢nd o linie de text devine prea mare pentru a putea fi reprezentatÄƒ
+pe o linie de ecran, linia de text este continuatÄƒ pe urmÄƒtoarea linie
 de pe ecran.  Un caracter backslash ("\") la marginea din dreapta
-indicã o linie care a fost continuatã.
+indicÄƒ o linie care a fost continuatÄƒ.
 
->> Introduceşi text pânã când depãºişi cu câteva caractere marginea
-   din dreapta a ecranului.  Veşi observa aparişia liniei de
+>> IntroduceÅ£i text pÃ¢nÄƒ cÃ¢nd depÄƒÅŸiÅ£i cu cÃ¢teva caractere marginea
+   din dreapta a ecranului.  VeÅ£i observa apariÅ£ia liniei de
    continuare.
 
->> Folosişi <Delete>-uri pentru a ºterge textul pânã când linia încape
-   din nou pe o linie de ecran.  Linia de continuare va dispãrea.
+>> FolosiÅ£i <Delete>-uri pentru a ÅŸterge textul pÃ¢nÄƒ cÃ¢nd linia Ã®ncape
+   din nou pe o linie de ecran.  Linia de continuare va dispÄƒrea.
 
-Puteşi ºterge un caracter NEWLINE ca pe orice alt caracter.  ªtergerea
-unui NEWLINE dintre douã linii concateneaza cele douã linii.  Dacã
-linia rezultatã este prea lungã pentru a fi afiºatã pe ecran, va fi
-afiºatã cu o linie de continuare.
+PuteÅ£i ÅŸterge un caracter NEWLINE ca pe orice alt caracter.  Återgerea
+unui NEWLINE dintre douÄƒ linii concateneaza cele douÄƒ linii.  DacÄƒ
+linia rezultatÄƒ este prea lungÄƒ pentru a fi afiÅŸatÄƒ pe ecran, va fi
+afiÅŸatÄƒ cu o linie de continuare.
 
->> Mutaşi cursorul la începutul unei linii ºi tastaşi <Delete>.
-   Aceasta concateneazã linia curentã cu cea precedentã.
+>> MutaÅ£i cursorul la Ã®nceputul unei linii ÅŸi tastaÅ£i <Delete>.
+   Aceasta concateneazÄƒ linia curentÄƒ cu cea precedentÄƒ.
 
->> Tastaşi <Return> pentru a reintroduce caracterul NEWLINE ºters.
+>> TastaÅ£i <Return> pentru a reintroduce caracterul NEWLINE ÅŸters.
 
-Aºa cum vã reamintişi, majoritatea comenzilor Emacs pot primi un
-argument numeric ce acşioneazã ca un contor de repetişie; introducerea
-caracterelor ascultã aceleaºi reguli.  Un argument numeric dat unui
-caracter duce la introducerea caracterului respectiv de numãrul
+AÅŸa cum vÄƒ reamintiÅ£i, majoritatea comenzilor Emacs pot primi un
+argument numeric ce acÅ£ioneazÄƒ ca un contor de repetiÅ£ie; introducerea
+caracterelor ascultÄƒ aceleaÅŸi reguli.  Un argument numeric dat unui
+caracter duce la introducerea caracterului respectiv de numÄƒrul
 specificat de ori.
 
->>  Încercaşi asta acum - tastaşi C-u 8 * pentru a introduce ********.
+>>  ÃncercaÅ£i asta acum - tastaÅ£i C-u 8 * pentru a introduce ********.
 
-Aşi învãşat acum metodele elementare de tastat ºi corectat erori în
-Emacs.  Puteşi de asemenea ºterge cuvinte sau linii.  Acesta este un
-sumar al operaşiilor de ºtergere.
+AÅ£i Ã®nvÄƒÅ£at acum metodele elementare de tastat ÅŸi corectat erori Ã®n
+Emacs.  PuteÅ£i de asemenea ÅŸterge cuvinte sau linii.  Acesta este un
+sumar al operaÅ£iilor de ÅŸtergere.
 
-	<Delete>     ºterge caracterul de dinaintea cursorului
-	C-d   	     ºterge caracterul de dupã cursor
+	<Delete>     ÅŸterge caracterul de dinaintea cursorului
+	C-d   	     ÅŸterge caracterul de dupÄƒ cursor
 
-	M-<Delete>   ºterge cuvântul de dinaintea cursorului
-	M-d	     ºterge cuvântul de dupã cursor
+	M-<Delete>   ÅŸterge cuvÃ¢ntul de dinaintea cursorului
+	M-d	     ÅŸterge cuvÃ¢ntul de dupÄƒ cursor
 
-	C-k	     ºterge de la pozişia curentã pânã la sfârºitul
+	C-k	     ÅŸterge de la poziÅ£ia curentÄƒ pÃ¢nÄƒ la sfÃ¢rÅŸitul
 		     liniei
-	M-k	     ºterge de la pozişia curentã pânã la sfârºitul
+	M-k	     ÅŸterge de la poziÅ£ia curentÄƒ pÃ¢nÄƒ la sfÃ¢rÅŸitul
 		     frazei
 
-De remarcat cã <Delete> ºi C-d versus M-<Delete> ºi M-d extind
-paralela începutã de C-f ºi M-f (<Delete> nu este cu adevãrat un
-caracter bazat pe CONTROL, dar nu o sã ne ocupãm de asta acum).  C-k
-ºi M-k sunt ca C-e ºi M-e, într-un fel, dacã facem o paralelã între
-linii ºi fraze.
+De remarcat cÄƒ <Delete> ÅŸi C-d versus M-<Delete> ÅŸi M-d extind
+paralela Ã®nceputÄƒ de C-f ÅŸi M-f (<Delete> nu este cu adevÄƒrat un
+caracter bazat pe CONTROL, dar nu o sÄƒ ne ocupÄƒm de asta acum).  C-k
+ÅŸi M-k sunt ca C-e ÅŸi M-e, Ã®ntr-un fel, dacÄƒ facem o paralelÄƒ Ã®ntre
+linii ÅŸi fraze.
 
-Când ºtergeşi mai mult de un caracter la un moment dat, Emacs-ul
-pãstreazã intern textul distrus în aºa fel încât îl puteşi restaura.
-Termenul folosit de Emacs pentru operaşiunea de restaurare a textului
-distrus este "yanking".  Puteşi restaura textul distrus fie în acelaºi
-loc, fie în alt loc în fiºier.  Puteşi de asemenea restaura textul de
+CÃ¢nd ÅŸtergeÅ£i mai mult de un caracter la un moment dat, Emacs-ul
+pÄƒstreazÄƒ intern textul distrus Ã®n aÅŸa fel Ã®ncÃ¢t Ã®l puteÅ£i restaura.
+Termenul folosit de Emacs pentru operaÅ£iunea de restaurare a textului
+distrus este "yanking".  PuteÅ£i restaura textul distrus fie Ã®n acelaÅŸi
+loc, fie Ã®n alt loc Ã®n fiÅŸier.  PuteÅ£i de asemenea restaura textul de
 mai multe ori pentru a face mai multe copii.  Comanda de restaurare
 este C-y.
 
-Diferenşa dintre "distrugerea" ºi "ºtergerea" unei porşiuni din text
-este aceea ca porşiunile de text "distruse" pot fi restaurate, în timp
-ce porşiunile de text "ºterse", nu.  În general, comenzile care
-distrug porşiuni semnificative din text, pãstreazã intern textul
-respectiv, în timp ce comenzile care ºterg doar un caracter, linii
-goale sau spaşii, nu fac acest lucru.
+DiferenÅ£a dintre "distrugerea" ÅŸi "ÅŸtergerea" unei porÅ£iuni din text
+este aceea ca porÅ£iunile de text "distruse" pot fi restaurate, Ã®n timp
+ce porÅ£iunile de text "ÅŸterse", nu.  Ãn general, comenzile care
+distrug porÅ£iuni semnificative din text, pÄƒstreazÄƒ intern textul
+respectiv, Ã®n timp ce comenzile care ÅŸterg doar un caracter, linii
+goale sau spaÅ£ii, nu fac acest lucru.
 
->> Mutaşi cursorul la începutul unei linii care nu este goalã.
-   Tastaşi apoi C-k pentru a distruge textul de pe linia respectivã.
->> Tastaşi C-k o a doua oarã.  Veşi observa distrugerea caracterului
-   NEWLINE de la sfârºitul liniei.
+>> MutaÅ£i cursorul la Ã®nceputul unei linii care nu este goalÄƒ.
+   TastaÅ£i apoi C-k pentru a distruge textul de pe linia respectivÄƒ.
+>> TastaÅ£i C-k o a doua oarÄƒ.  VeÅ£i observa distrugerea caracterului
+   NEWLINE de la sfÃ¢rÅŸitul liniei.
 
-Dupã cum vedeşi, un singur C-k distruge conşinutul liniei, iar un al
-doilea C-k distruge linia însãºi, facând toate celelalte linii sã se
-mute în sus.  C-k trateazã un argument numeric în mod special:
-distruge numãrul specificat de linii ºi conşinutul lor.  Aceastã
-comportare nu este doar o simplã repetişie.  C-u 2 C-k distruge douã
-linii ºi NEWLINE-urile de dupã ele; tastând C-k de douã ori nu
-obşineşi acelaºi rezultat.
+DupÄƒ cum vedeÅ£i, un singur C-k distruge conÅ£inutul liniei, iar un al
+doilea C-k distruge linia Ã®nsÄƒÅŸi, facÃ¢nd toate celelalte linii sÄƒ se
+mute Ã®n sus.  C-k trateazÄƒ un argument numeric Ã®n mod special:
+distruge numÄƒrul specificat de linii ÅŸi conÅ£inutul lor.  AceastÄƒ
+comportare nu este doar o simplÄƒ repetiÅ£ie.  C-u 2 C-k distruge douÄƒ
+linii ÅŸi NEWLINE-urile de dupÄƒ ele; tastÃ¢nd C-k de douÄƒ ori nu
+obÅ£ineÅ£i acelaÅŸi rezultat.
 
-Pentru a extrage ultimul text distrus ºi a-l plasa la pozişia curentã
-a cursorului, tastaşi C-y.
+Pentru a extrage ultimul text distrus ÅŸi a-l plasa la poziÅ£ia curentÄƒ
+a cursorului, tastaÅ£i C-y.
 
->> Tastaşi C-y pentru a restaura textul distrus anterior.
+>> TastaÅ£i C-y pentru a restaura textul distrus anterior.
 
-Gânditi-vã la C-y ca ºi cum aşi recupera ceva ce v-a fost luat.
-Observaşi cã dacã executaşi mai multe C-k-uri la rând, tot textul
-distrus este stocat într-o singurã bucatã, în aºa fel încât un singur
+GÃ¢nditi-vÄƒ la C-y ca ÅŸi cum aÅ£i recupera ceva ce v-a fost luat.
+ObservaÅ£i cÄƒ dacÄƒ executaÅ£i mai multe C-k-uri la rÃ¢nd, tot textul
+distrus este stocat Ã®ntr-o singurÄƒ bucatÄƒ, Ã®n aÅŸa fel Ã®ncÃ¢t un singur
 C-y va restaura toate liniile.
 
->> Tastaşi acum C-k de câteva ori.
+>> TastaÅ£i acum C-k de cÃ¢teva ori.
 
-Acum încercaşi sã restauraşi textul distrus:
+Acum Ã®ncercaÅ£i sÄƒ restauraÅ£i textul distrus:
 
->> Tastaşi C-y.  Mutaşi apoi cursorul câteva linii mai jos ºi tastaşi
-   C-y din nou.  Veşi vedea cum se copiazã porşiuni de text.
+>> TastaÅ£i C-y.  MutaÅ£i apoi cursorul cÃ¢teva linii mai jos ÅŸi tastaÅ£i
+   C-y din nou.  VeÅ£i vedea cum se copiazÄƒ porÅ£iuni de text.
 
-Ce faceşi dacã aveşi porşiuni de text pe care vreşi sã le restauraşi,
-dar între timp distrugeşi o altã porşiune de text?  C-y va restaura
-porşiunea de text care a fost distrusã cel mai recent.  Cu toate
-acestea, textul distrus anterior nu este pierdut.  Puteşi sã-l
-restauraşi folosind comanda M-y.  Dupã ce aşi executat C-y pentru a
-obşine textul cel mai recent distrus, tastând M-y veşi înlocui textul
-ce tocmai a fost restaurat cu textul distrus înaintea lui.  Tastând
-M-y de mai multe ori puteşi obşine porşiuni de text distrus din ce în
-ce mai vechi.  Odatã ajunºi la textul care vã intereseazã, puteşi sã
-continuaşi editarea fãrã sã mai faceşi nimic special, lasând textul
-restaurat în pozişia în care se gãseºte.
+Ce faceÅ£i dacÄƒ aveÅ£i porÅ£iuni de text pe care vreÅ£i sÄƒ le restauraÅ£i,
+dar Ã®ntre timp distrugeÅ£i o altÄƒ porÅ£iune de text?  C-y va restaura
+porÅ£iunea de text care a fost distrusÄƒ cel mai recent.  Cu toate
+acestea, textul distrus anterior nu este pierdut.  PuteÅ£i sÄƒ-l
+restauraÅ£i folosind comanda M-y.  DupÄƒ ce aÅ£i executat C-y pentru a
+obÅ£ine textul cel mai recent distrus, tastÃ¢nd M-y veÅ£i Ã®nlocui textul
+ce tocmai a fost restaurat cu textul distrus Ã®naintea lui.  TastÃ¢nd
+M-y de mai multe ori puteÅ£i obÅ£ine porÅ£iuni de text distrus din ce Ã®n
+ce mai vechi.  OdatÄƒ ajunÅŸi la textul care vÄƒ intereseazÄƒ, puteÅ£i sÄƒ
+continuaÅ£i editarea fÄƒrÄƒ sÄƒ mai faceÅ£i nimic special, lasÃ¢nd textul
+restaurat Ã®n poziÅ£ia Ã®n care se gÄƒseÅŸte.
 
-Dacã tastaşi M-y de suficient de multe ori, veşi ajunge în cele din
-urmã la punctul de plecare (textul distrus cel mai de curând).
+DacÄƒ tastaÅ£i M-y de suficient de multe ori, veÅ£i ajunge Ã®n cele din
+urmÄƒ la punctul de plecare (textul distrus cel mai de curÃ¢nd).
 
->> Distrugeşi o linie, mutaşi-vã puşin în jurul ei, distrugeşi o altã
-   linie.  Executaşi apoi C-y pentru a obşine înapoi cea de-a doua
-   linie distrusã.  Executaşi apoi M-y ºi veşi constata cã este
-   înlocuitã de prima linie distrusã.  Executaşi mai multe M-y-uri ºi
-   observaşi ce obşineşi.  Continuaşi sã le executaşi pânã când a doua
-   linie apare din nou, etc.  Dacã dorişi, puteşi încerca sã-i daşi
-   comenzii M-y argumente numerice pozitive ºi negative.
+>> DistrugeÅ£i o linie, mutaÅ£i-vÄƒ puÅ£in Ã®n jurul ei, distrugeÅ£i o altÄƒ
+   linie.  ExecutaÅ£i apoi C-y pentru a obÅ£ine Ã®napoi cea de-a doua
+   linie distrusÄƒ.  ExecutaÅ£i apoi M-y ÅŸi veÅ£i constata cÄƒ este
+   Ã®nlocuitÄƒ de prima linie distrusÄƒ.  ExecutaÅ£i mai multe M-y-uri ÅŸi
+   observaÅ£i ce obÅ£ineÅ£i.  ContinuaÅ£i sÄƒ le executaÅ£i pÃ¢nÄƒ cÃ¢nd a doua
+   linie apare din nou, etc.  DacÄƒ doriÅ£i, puteÅ£i Ã®ncerca sÄƒ-i daÅ£i
+   comenzii M-y argumente numerice pozitive ÅŸi negative.
 
 
 * ANULARE
 ---------
 
-Dacã faceşi o schimbare în text, ºi apoi constataşi cã aşi greºit,
-puteşi anula schimbarea cu comanda de anulare, C-x u.
+DacÄƒ faceÅ£i o schimbare Ã®n text, ÅŸi apoi constataÅ£i cÄƒ aÅ£i greÅŸit,
+puteÅ£i anula schimbarea cu comanda de anulare, C-x u.
 
-În mod normal, C-x u anuleazã schimbãrile fãcute de o comandã; dacã
-repetaşi C-x u de câteva ori la rând, fiecare nouã repetişie anuleazã
-încã o comandã.
+Ãn mod normal, C-x u anuleazÄƒ schimbÄƒrile fÄƒcute de o comandÄƒ; dacÄƒ
+repetaÅ£i C-x u de cÃ¢teva ori la rÃ¢nd, fiecare nouÄƒ repetiÅ£ie anuleazÄƒ
+Ã®ncÄƒ o comandÄƒ.
 
-Existã însã douã excepşii: comenzile care nu schimbã textul nu sunt
-luate în considerare (acestea includ comenzile de mutat cursorul ºi
+ExistÄƒ Ã®nsÄƒ douÄƒ excepÅ£ii: comenzile care nu schimbÄƒ textul nu sunt
+luate Ã®n considerare (acestea includ comenzile de mutat cursorul ÅŸi
 cele de "scrolling"), iar caracterele introduse individual sunt
-tratate în grupuri de maxim 20.  (Motivaşia din spatele acestei
-abordãri este aceea de a reduce numãrul de C-x u-uri pe care trebuie
-sã le tastaşi pentru anularea inserãrilor de text).
+tratate Ã®n grupuri de maxim 20.  (MotivaÅ£ia din spatele acestei
+abordÄƒri este aceea de a reduce numÄƒrul de C-x u-uri pe care trebuie
+sÄƒ le tastaÅ£i pentru anularea inserÄƒrilor de text).
 
->> Distrugeşi linia aceasta cu C-k, apoi tastaşi C-x u; linia ar
-   trebui sã reaparã.
+>> DistrugeÅ£i linia aceasta cu C-k, apoi tastaÅ£i C-x u; linia ar
+   trebui sÄƒ reaparÄƒ.
 
-C-_ este o altã comandã de anulare; funcşioneazã exact ca ºi C-x u,
-dar este mai uºor de tastat de mai multe ori la rând.  Dezavantajul
-lui C-_ este cã pe anumite tastaturi nu este clar cum trebuie tastat.
-Din acest motiv existã C-x u.  Pe unele terminale se poate sã tastaşi
-C-_ tastând "/" în timp ce şineşi apãsatã tasta CONTROL.
+C-_ este o altÄƒ comandÄƒ de anulare; funcÅ£ioneazÄƒ exact ca ÅŸi C-x u,
+dar este mai uÅŸor de tastat de mai multe ori la rÃ¢nd.  Dezavantajul
+lui C-_ este cÄƒ pe anumite tastaturi nu este clar cum trebuie tastat.
+Din acest motiv existÄƒ C-x u.  Pe unele terminale se poate sÄƒ tastaÅ£i
+C-_ tastÃ¢nd "/" Ã®n timp ce Å£ineÅ£i apÄƒsatÄƒ tasta CONTROL.
 
-Un argument numeric la C-_ sau C-x u acşioneazã ca un contor de
-repetişie.
+Un argument numeric la C-_ sau C-x u acÅ£ioneazÄƒ ca un contor de
+repetiÅ£ie.
 
 
-* FIªIERE
+* FIÅIERE
 ---------
 
-Pentru a face permanente modificãrile din textul pe care îl editaşi,
-trebuie sã-l stocaşi (salvaşi) într-un fiºier.  Altminteri,
-modificãrile se vor pierde în momentul pãrãsirii Emacs-ului.  Puneşi
-textul într-un fiºier "deschizând" (sau "vizitând") fiºierul.
+Pentru a face permanente modificÄƒrile din textul pe care Ã®l editaÅ£i,
+trebuie sÄƒ-l stocaÅ£i (salvaÅ£i) Ã®ntr-un fiÅŸier.  Altminteri,
+modificÄƒrile se vor pierde Ã®n momentul pÄƒrÄƒsirii Emacs-ului.  PuneÅ£i
+textul Ã®ntr-un fiÅŸier "deschizÃ¢nd" (sau "vizitÃ¢nd") fiÅŸierul.
 
-Deschiderea unui fiºier înseamnã cã puteşi vedea conşinutul fiºierului
-în Emacs.  Este ca ºi cum aşi edita chiar fiºierul, singura diferenşã
-fiind aceea cã schimbãrile nu devin permanente pânã când nu îl
-"salvaşi" ("save" în limba englezã).  Se evitã astfel existenşa în
-sistem a unor fiºiere incomplet modificate atunci când nu dorişi acest
-lucru.  Chiar ºi când salvaşi fiºierul, Emacs-ul pãstreazã fiºierul
-inişial (cu un nume schimbat) în aºa fel încât sã-l puteşi recupera în
-cazul în care decideşi cã modificãrile efectuate au fost greºite.
+Deschiderea unui fiÅŸier Ã®nseamnÄƒ cÄƒ puteÅ£i vedea conÅ£inutul fiÅŸierului
+Ã®n Emacs.  Este ca ÅŸi cum aÅ£i edita chiar fiÅŸierul, singura diferenÅ£Äƒ
+fiind aceea cÄƒ schimbÄƒrile nu devin permanente pÃ¢nÄƒ cÃ¢nd nu Ã®l
+"salvaÅ£i" ("save" Ã®n limba englezÄƒ).  Se evitÄƒ astfel existenÅ£a Ã®n
+sistem a unor fiÅŸiere incomplet modificate atunci cÃ¢nd nu doriÅ£i acest
+lucru.  Chiar ÅŸi cÃ¢nd salvaÅ£i fiÅŸierul, Emacs-ul pÄƒstreazÄƒ fiÅŸierul
+iniÅ£ial (cu un nume schimbat) Ã®n aÅŸa fel Ã®ncÃ¢t sÄƒ-l puteÅ£i recupera Ã®n
+cazul Ã®n care decideÅ£i cÄƒ modificÄƒrile efectuate au fost greÅŸite.
 
-Aproape de marginea de jos a ecranului veşi observa o linie care
-începe ºi se terminã cu minusuri, ºi conşine ºirul "--:-- TUTORIAL.ro"
-sau ceva în genul acesta.  Aceastã parte a ecranului aratã întotdeauna
-numele fiºierului pe care îl vizitaşi.  Acum vizitaşi fiºierul
-"TUTORIAL.ro" care este copia dumneavoastrã de încercãri a
-tutorialului în limba românã.  Orice fiºier aşi edita, numele acelui
-fiºier va apãrea în pozişia respectivã.
+Aproape de marginea de jos a ecranului veÅ£i observa o linie care
+Ã®ncepe ÅŸi se terminÄƒ cu minusuri, ÅŸi conÅ£ine ÅŸirul "--:-- TUTORIAL.ro"
+sau ceva Ã®n genul acesta.  AceastÄƒ parte a ecranului aratÄƒ Ã®ntotdeauna
+numele fiÅŸierului pe care Ã®l vizitaÅ£i.  Acum vizitaÅ£i fiÅŸierul
+"TUTORIAL.ro" care este copia dumneavoastrÄƒ de Ã®ncercÄƒri a
+tutorialului Ã®n limba romÃ¢nÄƒ.  Orice fiÅŸier aÅ£i edita, numele acelui
+fiÅŸier va apÄƒrea Ã®n poziÅ£ia respectivÄƒ.
 
-Comenzile pentru gãsirea ºi salvarea fiºierelor sunt diferite de
-celelalte comenzi pe care le-aşi învãşat, în sensul cã sunt compuse
-din douã caractere.  Amândouã încep cu caracterul C-x.  Existã o
-întreagã serie de comenzi care încep cu C-x; multe dintre ele sunt
-legate de fiºiere, buffere ºi alte lucruri înrudite.  Aceste comenzi
-sunt compuse din douã, trei sau patru caractere.
+Comenzile pentru gÄƒsirea ÅŸi salvarea fiÅŸierelor sunt diferite de
+celelalte comenzi pe care le-aÅ£i Ã®nvÄƒÅ£at, Ã®n sensul cÄƒ sunt compuse
+din douÄƒ caractere.  AmÃ¢ndouÄƒ Ã®ncep cu caracterul C-x.  ExistÄƒ o
+Ã®ntreagÄƒ serie de comenzi care Ã®ncep cu C-x; multe dintre ele sunt
+legate de fiÅŸiere, buffere ÅŸi alte lucruri Ã®nrudite.  Aceste comenzi
+sunt compuse din douÄƒ, trei sau patru caractere.
 
-Comenzii de deschidere a unui fiºier trebuie sã îi spuneşi numele
-fiºierului dorit.  Spunem despre comandã ca "citeºte un argument de la
-terminal" (în acest caz, argumentul este numele fiºierului).  Dupã ce
-tastaşi comanda
+Comenzii de deschidere a unui fiÅŸier trebuie sÄƒ Ã®i spuneÅ£i numele
+fiÅŸierului dorit.  Spunem despre comandÄƒ ca "citeÅŸte un argument de la
+terminal" (Ã®n acest caz, argumentul este numele fiÅŸierului).  DupÄƒ ce
+tastaÅ£i comanda
 
-	C-x C-f (deschide un fiºier)
+	C-x C-f (deschide un fiÅŸier)
 
-Emacs-ul vã va cere sã introduceşi numele fiºierului.  Numele pe care
-îl tastaşi apare pe ultima linie a ecranului.  Aceastã linie se
-numeste "minibuffer" când este folositã pentru acest tip de
-introducere.  Comenzile normale de editare în Emacs pot fi folosite ºi
-pentru editarea numelui fiºierului.
+Emacs-ul vÄƒ va cere sÄƒ introduceÅ£i numele fiÅŸierului.  Numele pe care
+Ã®l tastaÅ£i apare pe ultima linie a ecranului.  AceastÄƒ linie se
+numeste "minibuffer" cÃ¢nd este folositÄƒ pentru acest tip de
+introducere.  Comenzile normale de editare Ã®n Emacs pot fi folosite ÅŸi
+pentru editarea numelui fiÅŸierului.
 
-În timp ce introduceşi numele fiºierului (sau orice alt tip de
-introducere de date în minibuffer), puteşi anula comanda cu C-g.
+Ãn timp ce introduceÅ£i numele fiÅŸierului (sau orice alt tip de
+introducere de date Ã®n minibuffer), puteÅ£i anula comanda cu C-g.
 
->> Tastaşi C-x C-f, apoi tastaşi C-g.  Aceasta anuleazã minibuffer-ul,
-   ºi, de asemenea, anuleazã comanda C-x C-f care îl folosea.  În
-   concluzie, nu veşi mai deschide nici un fiºier.
+>> TastaÅ£i C-x C-f, apoi tastaÅ£i C-g.  Aceasta anuleazÄƒ minibuffer-ul,
+   ÅŸi, de asemenea, anuleazÄƒ comanda C-x C-f care Ã®l folosea.  Ãn
+   concluzie, nu veÅ£i mai deschide nici un fiÅŸier.
 
-Când aşi terminat de introdus numele fiºierului, tastaşi <Return>
-pentru a-l încheia.  Dupã aceasta, comanda C-x C-f începe sã lucreze
-ºi deschide fiºierul pe care l-aşi ales.  Minibuffer-ul dispare când
-comanda C-x C-f se terminã.
+CÃ¢nd aÅ£i terminat de introdus numele fiÅŸierului, tastaÅ£i <Return>
+pentru a-l Ã®ncheia.  DupÄƒ aceasta, comanda C-x C-f Ã®ncepe sÄƒ lucreze
+ÅŸi deschide fiÅŸierul pe care l-aÅ£i ales.  Minibuffer-ul dispare cÃ¢nd
+comanda C-x C-f se terminÄƒ.
 
-Dupã câteva momente, conşinutul fiºierului apare pe ecran ºi îl puteşi
-edita.  Când doriti sã faceşi schimbãrile permanente, tastaşi comanda
+DupÄƒ cÃ¢teva momente, conÅ£inutul fiÅŸierului apare pe ecran ÅŸi Ã®l puteÅ£i
+edita.  CÃ¢nd doriti sÄƒ faceÅ£i schimbÄƒrile permanente, tastaÅ£i comanda
 
-	C-x C-s	(salveazã fiºierul)
+	C-x C-s	(salveazÄƒ fiÅŸierul)
 
-Aceasta copiazã textul din Emacs într-un fiºier.  Prima oarã când
-faceşi acest lucru, Emacs-ul redenumeºte fiºierul inişial în aºa fel
-încât sã nu se piardã.  Noul nume este creat prin adãugarea
-caracterului "~" la numele inişial.
+Aceasta copiazÄƒ textul din Emacs Ã®ntr-un fiÅŸier.  Prima oarÄƒ cÃ¢nd
+faceÅ£i acest lucru, Emacs-ul redenumeÅŸte fiÅŸierul iniÅ£ial Ã®n aÅŸa fel
+Ã®ncÃ¢t sÄƒ nu se piardÄƒ.  Noul nume este creat prin adÄƒugarea
+caracterului "~" la numele iniÅ£ial.
 
-Când operaşiunea de salvare este terminatã, Emacs-ul afiºeazã numele
-fiºierului salvat.  Se recomandã salvarea la intervale relativ mici,
-pentru a nu pierde prea multã muncã în cazul unei eventuale blocãri a
+CÃ¢nd operaÅ£iunea de salvare este terminatÄƒ, Emacs-ul afiÅŸeazÄƒ numele
+fiÅŸierului salvat.  Se recomandÄƒ salvarea la intervale relativ mici,
+pentru a nu pierde prea multÄƒ muncÄƒ Ã®n cazul unei eventuale blocÄƒri a
 sistemului.
 
->> Tastaşi C-x C-s, pentru a salva copia tutorialului.
-   Aceasta ar trebui sã afiºeze "Wrote ...TUTORIAL.ro" la marginea de
+>> TastaÅ£i C-x C-s, pentru a salva copia tutorialului.
+   Aceasta ar trebui sÄƒ afiÅŸeze "Wrote ...TUTORIAL.ro" la marginea de
    jos a ecranului.
 
-Puteşi deschide un fiºier existent, pentru a-l vedea sau edita.
-Puteşi de asemenea deschide un fiºier care nu existã.  Aceasta este
-modalitatea în care creaşi noi fiºiere cu Emacs-ul: deschideşi
-fiºierul (care va fi gol inişial), apoi începeşi sã introduceşi text
-în el.  Când îi veşi cere sã "salveze" fiºierul, Emacs-ul va crea
-fiºierul cu textul pe care l-aşi introdus.  De acum înainte puteşi
-considera cã editaşi un fiºier existent.
+PuteÅ£i deschide un fiÅŸier existent, pentru a-l vedea sau edita.
+PuteÅ£i de asemenea deschide un fiÅŸier care nu existÄƒ.  Aceasta este
+modalitatea Ã®n care creaÅ£i noi fiÅŸiere cu Emacs-ul: deschideÅ£i
+fiÅŸierul (care va fi gol iniÅ£ial), apoi Ã®ncepeÅ£i sÄƒ introduceÅ£i text
+Ã®n el.  CÃ¢nd Ã®i veÅ£i cere sÄƒ "salveze" fiÅŸierul, Emacs-ul va crea
+fiÅŸierul cu textul pe care l-aÅ£i introdus.  De acum Ã®nainte puteÅ£i
+considera cÄƒ editaÅ£i un fiÅŸier existent.
 
 
 * BUFFERE
 ---------
 
-Dacã deschideşi un al doilea fiºier cu C-x C-f, primul va continua sã
-existe în Emacs.  Puteşi sã vã mutaşi înapoi la el deschizându-l din
-nou cu C-x C-f.  În acest fel puteşi avea un numãr destul de mare de
-fiºiere deschise în Emacs.
+DacÄƒ deschideÅ£i un al doilea fiÅŸier cu C-x C-f, primul va continua sÄƒ
+existe Ã®n Emacs.  PuteÅ£i sÄƒ vÄƒ mutaÅ£i Ã®napoi la el deschizÃ¢ndu-l din
+nou cu C-x C-f.  Ãn acest fel puteÅ£i avea un numÄƒr destul de mare de
+fiÅŸiere deschise Ã®n Emacs.
 
->> Creaşi un fiºier numit "foo" tastând C-x C-f foo <Return>.
-   Introduceşi un text oarecare, editaşi-l, apoi salvaşi "foo" tastând
-   C-x C-s.  În cele din urmã, tastaşi C-x C-f TUTORIAL.ro <Return>
-   pentru a vã întoarce la tutorial.
+>> CreaÅ£i un fiÅŸier numit "foo" tastÃ¢nd C-x C-f foo <Return>.
+   IntroduceÅ£i un text oarecare, editaÅ£i-l, apoi salvaÅ£i "foo" tastÃ¢nd
+   C-x C-s.  Ãn cele din urmÄƒ, tastaÅ£i C-x C-f TUTORIAL.ro <Return>
+   pentru a vÄƒ Ã®ntoarce la tutorial.
 
-Emacs-ul stocheazã textul fiecãrui fiºier într-un obiect numit
-"buffer".  Deschiderea unui fiºier creeazã un nou buffer în Emacs.
-Pentru a vedea o listã a bufferelor existente în Emacs, tastaşi
+Emacs-ul stocheazÄƒ textul fiecÄƒrui fiÅŸier Ã®ntr-un obiect numit
+"buffer".  Deschiderea unui fiÅŸier creeazÄƒ un nou buffer Ã®n Emacs.
+Pentru a vedea o listÄƒ a bufferelor existente Ã®n Emacs, tastaÅ£i
 
 	C-x C-b	  (lista de buffere)
 
->> Încercaşi C-x C-b acum.
+>> ÃncercaÅ£i C-x C-b acum.
 
-Observaşi cum fiecare buffer are un nume ºi, uneori, un nume de fiºier
-corespunzãtor fiºierului al cãrui conşinut este menşinut în buffer-ul
-respectiv.  Unele buffere nu corespund nici unui fiºier.  De exemplu,
-buffer-ul numit "*Buffer List*" nu are nici un fiºier asociat.  Este
-buffer-ul care conşine lista de buffere ºi a fost creat de comanda C-x
-C-b.  Orice text pe care îl vedeşi într-o fereastrã a Emacs-ului este
-întotdeauna parte dintr-un buffer.
+ObservaÅ£i cum fiecare buffer are un nume ÅŸi, uneori, un nume de fiÅŸier
+corespunzÄƒtor fiÅŸierului al cÄƒrui conÅ£inut este menÅ£inut Ã®n buffer-ul
+respectiv.  Unele buffere nu corespund nici unui fiÅŸier.  De exemplu,
+buffer-ul numit "*Buffer List*" nu are nici un fiÅŸier asociat.  Este
+buffer-ul care conÅ£ine lista de buffere ÅŸi a fost creat de comanda C-x
+C-b.  Orice text pe care Ã®l vedeÅ£i Ã®ntr-o fereastrÄƒ a Emacs-ului este
+Ã®ntotdeauna parte dintr-un buffer.
 
->> Tastaşi C-x 1 pentru a scãpa de lista de buffere.
+>> TastaÅ£i C-x 1 pentru a scÄƒpa de lista de buffere.
 
-Dacã faceşi schimbãri în textul unui fiºier, apoi deschideşi un alt
-fiºier, primul fiºier nu este salvat.  Schimbãrile efectuate rãmân în
-Emacs, în buffer-ul asociat acelui fiºier.  Crearea sau editarea
-buffer-ului celui de-al doilea fiºier nu are nici un efect asupra
-buffer-ului primului fiºier.  Acest lucru este foarte util, dar
-înseamnã cã aveşi nevoie de o modalitate convenabilã de a salva
-buffer-ul primului fiºier.  Ar fi obositor sã fie necesar sã vã mutaşi
-înapoi la el cu C-x C-f pentru a-l putea salva cu C-x C-s.  Din acest
-motiv existã comanda:
+DacÄƒ faceÅ£i schimbÄƒri Ã®n textul unui fiÅŸier, apoi deschideÅ£i un alt
+fiÅŸier, primul fiÅŸier nu este salvat.  SchimbÄƒrile efectuate rÄƒmÃ¢n Ã®n
+Emacs, Ã®n buffer-ul asociat acelui fiÅŸier.  Crearea sau editarea
+buffer-ului celui de-al doilea fiÅŸier nu are nici un efect asupra
+buffer-ului primului fiÅŸier.  Acest lucru este foarte util, dar
+Ã®nseamnÄƒ cÄƒ aveÅ£i nevoie de o modalitate convenabilÄƒ de a salva
+buffer-ul primului fiÅŸier.  Ar fi obositor sÄƒ fie necesar sÄƒ vÄƒ mutaÅ£i
+Ã®napoi la el cu C-x C-f pentru a-l putea salva cu C-x C-s.  Din acest
+motiv existÄƒ comanda:
 
-	C-x s	salveazã niºte buffere
+	C-x s	salveazÄƒ niÅŸte buffere
 
-C-x s vã întreabã despre fiecare buffer care conşine modificãri (ºi
-care nu a fost salvat) dacã dorişi sã-l salvaşi.
+C-x s vÄƒ Ã®ntreabÄƒ despre fiecare buffer care conÅ£ine modificÄƒri (ÅŸi
+care nu a fost salvat) dacÄƒ doriÅ£i sÄƒ-l salvaÅ£i.
 
->> Introduceşi o linie de text, apoi tastaşi C-x s.
-   Ar trebui sã vã întrebe dacã sã salveze buffer-ul TUTORIAL.ro.
-   Raspundeşi "da" la întrebare tastând "y".
+>> IntroduceÅ£i o linie de text, apoi tastaÅ£i C-x s.
+   Ar trebui sÄƒ vÄƒ Ã®ntrebe dacÄƒ sÄƒ salveze buffer-ul TUTORIAL.ro.
+   RaspundeÅ£i "da" la Ã®ntrebare tastÃ¢nd "y".
 
 
 * EXTINDEREA SETULUI DE COMENZI
 -------------------------------
 
-Existã mult mai multe comenzi Emacs decât combinaşii de taste bazate
-pe CONTROL ºi META.  Soluşia în Emacs este folosirea comenzilor
-eXtinse.  Acestea sunt de douã feluri:
+ExistÄƒ mult mai multe comenzi Emacs decÃ¢t combinaÅ£ii de taste bazate
+pe CONTROL ÅŸi META.  SoluÅ£ia Ã®n Emacs este folosirea comenzilor
+eXtinse.  Acestea sunt de douÄƒ feluri:
 
-	C-x	eXtinde un caracter; urmatã de un caracter
-	M-x	eXtinde un nume; urmatã de un nume lung
+	C-x	eXtinde un caracter; urmatÄƒ de un caracter
+	M-x	eXtinde un nume; urmatÄƒ de un nume lung
 
-Acestea sunt comenzi care sunt utile în general, dar folosite mai rar
-decât comenzile despre care aşi învãşat pânã acum.  Aşi vãzut deja
-douã dintre ele: comanda de deschis fiºiere (C-x C-f) ºi comanda de
-salvat fiºiere (C-x C-s).  Un alt exemplu este comanda de pãrãsit
-Emacs-ul: C-x C-c.  (Nu vã temeşi cã veşi pierde schimbãri fãcute în
-fiºiere; înainte de a termina sesiunea curentã Emacs, C-x C-c vã va
-întreba dacã dorişi sã salvaşi fiºierele modificate.)
+Acestea sunt comenzi care sunt utile Ã®n general, dar folosite mai rar
+decÃ¢t comenzile despre care aÅ£i Ã®nvÄƒÅ£at pÃ¢nÄƒ acum.  AÅ£i vÄƒzut deja
+douÄƒ dintre ele: comanda de deschis fiÅŸiere (C-x C-f) ÅŸi comanda de
+salvat fiÅŸiere (C-x C-s).  Un alt exemplu este comanda de pÄƒrÄƒsit
+Emacs-ul: C-x C-c.  (Nu vÄƒ temeÅ£i cÄƒ veÅ£i pierde schimbÄƒri fÄƒcute Ã®n
+fiÅŸiere; Ã®nainte de a termina sesiunea curentÄƒ Emacs, C-x C-c vÄƒ va
+Ã®ntreba dacÄƒ doriÅ£i sÄƒ salvaÅ£i fiÅŸierele modificate.)
 
-C-z este comanda cu care puteşi ieºi din Emacs *temporar* - astfel
-încât sã puteşi sã vã întoarceşi la aceeaºi sesiune Emacs mai târziu.
+C-z este comanda cu care puteÅ£i ieÅŸi din Emacs *temporar* - astfel
+Ã®ncÃ¢t sÄƒ puteÅ£i sÄƒ vÄƒ Ã®ntoarceÅ£i la aceeaÅŸi sesiune Emacs mai tÃ¢rziu.
 
-Pe sistemele unde este posibil, C-z "suspendã" Emacs-ul; asta înseamnã
-cã, deºi vã veşi întoarce la prompt-ul shell-ului, Emacs-ul nu a fost
-distrus.  În shell-urile (interpretoarele de comenzi Unix) cele mai
-uzuale puteşi reactiva Emacs-ul cu comanda `fg' sau `%emacs'.
+Pe sistemele unde este posibil, C-z "suspendÄƒ" Emacs-ul; asta Ã®nseamnÄƒ
+cÄƒ, deÅŸi vÄƒ veÅ£i Ã®ntoarce la prompt-ul shell-ului, Emacs-ul nu a fost
+distrus.  Ãn shell-urile (interpretoarele de comenzi Unix) cele mai
+uzuale puteÅ£i reactiva Emacs-ul cu comanda `fg' sau `%emacs'.
 
-Pe sistemele care nu implementeazã mecanismele de suspendare, C-z
-creeazã un subshell care ruleazã sub Emacs pentru a vã oferi
-posibilitatea de a rula alte programe ºi de a vã întoarce la Emacs mai
-târziu; pe aceste sisteme C-z nu iese cu adevãrat din Emacs - comanda
-`exit' la promptul subshell-ului este modalitatea uzualã de a vã
-întoarce în Emacs.
+Pe sistemele care nu implementeazÄƒ mecanismele de suspendare, C-z
+creeazÄƒ un subshell care ruleazÄƒ sub Emacs pentru a vÄƒ oferi
+posibilitatea de a rula alte programe ÅŸi de a vÄƒ Ã®ntoarce la Emacs mai
+tÃ¢rziu; pe aceste sisteme C-z nu iese cu adevÄƒrat din Emacs - comanda
+`exit' la promptul subshell-ului este modalitatea uzualÄƒ de a vÄƒ
+Ã®ntoarce Ã®n Emacs.
 
-În general C-x C-c se foloseºte înainte de pãrãsirea sistemului.
-Puteşi folosi aceastã comandã ºi pentru a ieºi din instanşe de Emacs
+Ãn general C-x C-c se foloseÅŸte Ã®nainte de pÄƒrÄƒsirea sistemului.
+PuteÅ£i folosi aceastÄƒ comandÄƒ ÅŸi pentru a ieÅŸi din instanÅ£e de Emacs
 lansate de programe de citit mail sau alte utilitare, deoarece acestea
-s-ar putea sã nu fie capabile sã foloseascã facilitaşile de suspendare
-ale Emacs-ului.  În mod normal însã, dacã nu sunteşi pe cale sã
-pãrãsişi sistemul, este mai bine sã suspendaşi Emacs-ul cu C-z decât
-sã ieºişi complet cu C-x C-c.
+s-ar putea sÄƒ nu fie capabile sÄƒ foloseascÄƒ facilitaÅ£ile de suspendare
+ale Emacs-ului.  Ãn mod normal Ã®nsÄƒ, dacÄƒ nu sunteÅ£i pe cale sÄƒ
+pÄƒrÄƒsiÅ£i sistemul, este mai bine sÄƒ suspendaÅ£i Emacs-ul cu C-z decÃ¢t
+sÄƒ ieÅŸiÅ£i complet cu C-x C-c.
 
 Emacs-ul are multe comenzi prefixate cu C-x.  Aceasta este lista celor
-pe care le-aşi învãşat pânã acum:
+pe care le-aÅ£i Ã®nvÄƒÅ£at pÃ¢nÄƒ acum:
 
-	C-x C-f		deschide un fiºier
-	C-x C-s		salveazã fiºierul
-	C-x C-b		listeazã bufferele
-	C-x C-c		pãrãseºte Emacs-ul
-	C-x u		anuleazã
+	C-x C-f		deschide un fiÅŸier
+	C-x C-s		salveazÄƒ fiÅŸierul
+	C-x C-b		listeazÄƒ bufferele
+	C-x C-c		pÄƒrÄƒseÅŸte Emacs-ul
+	C-x u		anuleazÄƒ
 
-Comenzile eXtinse cu nume sunt comenzile care sunt folosite ºi mai rar
-sau comenzile care sunt folosite numai în anumite moduri.  Un exemplu
-este comanda replace-string (înlocuieºte-ºir) care înlocuieºte global
-toate aparişiile unui ºir de caractere cu alt ºir de caractere.  Când
-tastaşi M-x, Emacs-ul afiºeazã pe ultima linie de pe ecran "M-x" ºi
-puteşi introduce numele comenzii - în cazul nostru "replace-string".
-Puteşi sã tastaşi doar "repl s<TAB>" ºi Emacs-ul va completa numele.
-Terminaşi comanda cu <Return>.
+Comenzile eXtinse cu nume sunt comenzile care sunt folosite ÅŸi mai rar
+sau comenzile care sunt folosite numai Ã®n anumite moduri.  Un exemplu
+este comanda replace-string (Ã®nlocuieÅŸte-ÅŸir) care Ã®nlocuieÅŸte global
+toate apariÅ£iile unui ÅŸir de caractere cu alt ÅŸir de caractere.  CÃ¢nd
+tastaÅ£i M-x, Emacs-ul afiÅŸeazÄƒ pe ultima linie de pe ecran "M-x" ÅŸi
+puteÅ£i introduce numele comenzii - Ã®n cazul nostru "replace-string".
+PuteÅ£i sÄƒ tastaÅ£i doar "repl s<TAB>" ÅŸi Emacs-ul va completa numele.
+TerminaÅ£i comanda cu <Return>.
 
-Comanda replace-string necesitã douã argumente - ºirul ce va fi
-înlocuit ºi ºirul înlocuitor.  La sfârºitul introducerii fiecãrui
-argument trebuie sã tastaşi <Return>.
+Comanda replace-string necesitÄƒ douÄƒ argumente - ÅŸirul ce va fi
+Ã®nlocuit ÅŸi ÅŸirul Ã®nlocuitor.  La sfÃ¢rÅŸitul introducerii fiecÄƒrui
+argument trebuie sÄƒ tastaÅ£i <Return>.
 
->> Mutaşi cursorul pe linia goalã care se gãseste douã linii mai jos.
-   Tastaşi apoi M-x repl s<Return>modificat<Return>alterat<Return>.
+>> MutaÅ£i cursorul pe linia goalÄƒ care se gÄƒseste douÄƒ linii mai jos.
+   TastaÅ£i apoi M-x repl s<Return>modificat<Return>alterat<Return>.
 
-   Observaşi modul în care aceastã linie s-a modificat: aşi înlocuit
-   toate aparişiile cuvântului s-c-h-i-m-b-a-t cu "alterat", dupã
-   pozişia inişialã a cursorului.
+   ObservaÅ£i modul Ã®n care aceastÄƒ linie s-a modificat: aÅ£i Ã®nlocuit
+   toate apariÅ£iile cuvÃ¢ntului s-c-h-i-m-b-a-t cu "alterat", dupÄƒ
+   poziÅ£ia iniÅ£ialÄƒ a cursorului.
 
 
-* SALVARE AUTOMATÃ
+* SALVARE AUTOMATÄ‚
 ------------------
 
-Dacã aşi facut schimbãri într-un fiºier, dar nu le-aşi salvat, aceste
-schimbãri se pot pierde în cazul în care sistemul se blocheazã.
-Pentru a vã proteja munca, Emacs-ul salveazã periodic un fiºier de
-"autosalvare" pentru fiecare fiºier pe care îl editaşi.  Acest fiºier
-are un "#" la început ºi unul la sfârºit; de exemplu, dacã fiºierul
-dumneavoastrã se numeste "hello.c", fiºierul de autosalvare
-corespunzãtor se va numi "#hello.c#".  Când salvaşi fiºierul în mod
-normal, Emacs-ul ºterge fiºierul de autosalvare.
+DacÄƒ aÅ£i facut schimbÄƒri Ã®ntr-un fiÅŸier, dar nu le-aÅ£i salvat, aceste
+schimbÄƒri se pot pierde Ã®n cazul Ã®n care sistemul se blocheazÄƒ.
+Pentru a vÄƒ proteja munca, Emacs-ul salveazÄƒ periodic un fiÅŸier de
+"autosalvare" pentru fiecare fiÅŸier pe care Ã®l editaÅ£i.  Acest fiÅŸier
+are un "#" la Ã®nceput ÅŸi unul la sfÃ¢rÅŸit; de exemplu, dacÄƒ fiÅŸierul
+dumneavoastrÄƒ se numeste "hello.c", fiÅŸierul de autosalvare
+corespunzÄƒtor se va numi "#hello.c#".  CÃ¢nd salvaÅ£i fiÅŸierul Ã®n mod
+normal, Emacs-ul ÅŸterge fiÅŸierul de autosalvare.
 
-În cazul unei cãderi a sistemului, puteşi sã vã recuperaşi fiºierul de
-autosalvare deschizând fiºierul în mod normal (fiºierul pe care îl
-editaşi, nu pe cel de autosalvare) ºi tastând dupã aceea M-x recover
-file<Return>.  Când vi se cere confirmarea, tastaşi yes<Return> pentru
-a continua ºi a recupera fiºierul.
+Ãn cazul unei cÄƒderi a sistemului, puteÅ£i sÄƒ vÄƒ recuperaÅ£i fiÅŸierul de
+autosalvare deschizÃ¢nd fiÅŸierul Ã®n mod normal (fiÅŸierul pe care Ã®l
+editaÅ£i, nu pe cel de autosalvare) ÅŸi tastÃ¢nd dupÄƒ aceea M-x recover
+file<Return>.  CÃ¢nd vi se cere confirmarea, tastaÅ£i yes<Return> pentru
+a continua ÅŸi a recupera fiÅŸierul.
 
 
 * ZONA DE ECOU
 --------------
 
-Dacã Emacs-ul observã cã tastaşi comenzile încet, vi le va arãta la
-marginea de jos a ecranului într-o zona numitã "zona de ecou".  Zona
-de ecou conşine cea mai de jos linie a ecranului.
+DacÄƒ Emacs-ul observÄƒ cÄƒ tastaÅ£i comenzile Ã®ncet, vi le va arÄƒta la
+marginea de jos a ecranului Ã®ntr-o zona numitÄƒ "zona de ecou".  Zona
+de ecou conÅ£ine cea mai de jos linie a ecranului.
 
 
 * LINIA DE MOD
 --------------
 
-Linia de deasupra zonei de ecou se numeºte "linia de mod" ("mode line"
-în limba englezã).  Linia de mod conşine ceva de genul:
+Linia de deasupra zonei de ecou se numeÅŸte "linia de mod" ("mode line"
+Ã®n limba englezÄƒ).  Linia de mod conÅ£ine ceva de genul:
 
 --**-Emacs: TUTORIAL          (Fundamental)--L670--58%----------------
 
-Aceastã linie prezintã informaşii utile despre starea Emacs-ului ºi
-despre textul pe care îl editaşi.
+AceastÄƒ linie prezintÄƒ informaÅ£ii utile despre starea Emacs-ului ÅŸi
+despre textul pe care Ã®l editaÅ£i.
 
-Stişi deja ce înseamnã numele fiºierului - este fiºierul pe care l-aşi
-deschis.  -NN%-- indicã pozişia curentã a cursorului în text - NN la
-sutã din text este deasupra primei linii de pe ecran.  Dacã începutul
-fiºierului este vizibil pe ecran, veşi vedea --Top-- în loc de
---00%--.  Dacã sfârºitul fiºierului este vizibil pe ecran, veşi vedea
---Bot-- (de la "bottom" în limba englezã).  Dacã fiºierul este atât de
-mic, încât încape în întregime pe ecran, pe linia de mod veşi vedea
+StiÅ£i deja ce Ã®nseamnÄƒ numele fiÅŸierului - este fiÅŸierul pe care l-aÅ£i
+deschis.  -NN%-- indicÄƒ poziÅ£ia curentÄƒ a cursorului Ã®n text - NN la
+sutÄƒ din text este deasupra primei linii de pe ecran.  DacÄƒ Ã®nceputul
+fiÅŸierului este vizibil pe ecran, veÅ£i vedea --Top-- Ã®n loc de
+--00%--.  DacÄƒ sfÃ¢rÅŸitul fiÅŸierului este vizibil pe ecran, veÅ£i vedea
+--Bot-- (de la "bottom" Ã®n limba englezÄƒ).  DacÄƒ fiÅŸierul este atÃ¢t de
+mic, Ã®ncÃ¢t Ã®ncape Ã®n Ã®ntregime pe ecran, pe linia de mod veÅ£i vedea
 --All--.
 
-Stelele de la începutul liniei de mod semnalizeazã existenşa unor
-modificãri nesalvate în text.  Imediat dupã deschiderea fiºierului,
-porşiunea respectivã din linia de mod nu conşine nici o stea, doar
+Stelele de la Ã®nceputul liniei de mod semnalizeazÄƒ existenÅ£a unor
+modificÄƒri nesalvate Ã®n text.  Imediat dupÄƒ deschiderea fiÅŸierului,
+porÅ£iunea respectivÄƒ din linia de mod nu conÅ£ine nici o stea, doar
 minusuri.
 
-Porşiunea dinãuntrul parantezelor vã spune modul de editare curent.
-Modul implicit este "Fundamental", modul pe care îl folosişi chiar
+PorÅ£iunea dinÄƒuntrul parantezelor vÄƒ spune modul de editare curent.
+Modul implicit este "Fundamental", modul pe care Ã®l folosiÅ£i chiar
 acum.  Este un exemplu de "mod major".
 
 Emacs-ul are multe moduri majore.  Unele dintre ele sunt destinate
-editãrii diferitelor limbaje ºi/sau tipuri de text, cum ar fi modul
+editÄƒrii diferitelor limbaje ÅŸi/sau tipuri de text, cum ar fi modul
 Lisp, modul Text, etc.  Numai un mod major poate fi activ la un moment
-dat ºi numele sãu va fi întotdeauna acolo unde este "Fundamental"
+dat ÅŸi numele sÄƒu va fi Ã®ntotdeauna acolo unde este "Fundamental"
 acum.
 
-Fiecare mod major schimbã comportamentul unor comenzi.  De exemplu
-existã comenzi pentru crearea comentariilor într-un program, dar, cum
-fiecare limbaj de programare are o idee diferitã despre felul cum ar
-trebui sã arate un comentariu, fiecare mod major trebuie sã le
-introducã într-un alt fel.  Existã câte o comandã asociatã fiecãrui
+Fiecare mod major schimbÄƒ comportamentul unor comenzi.  De exemplu
+existÄƒ comenzi pentru crearea comentariilor Ã®ntr-un program, dar, cum
+fiecare limbaj de programare are o idee diferitÄƒ despre felul cum ar
+trebui sÄƒ arate un comentariu, fiecare mod major trebuie sÄƒ le
+introducÄƒ Ã®ntr-un alt fel.  ExistÄƒ cÃ¢te o comandÄƒ asociatÄƒ fiecÄƒrui
 mod major - aceasta este modalitatea de a schimba modul major.  De
 exemplu, M-x fundamental-mode este comanda cu care poate fi ales modul
 "Fundamental".
 
-Dacã editaşi text în limba românã, cum ar fi de exemplu acest fiºier,
-ar trebui probabil sã folosişi modul Text.
+DacÄƒ editaÅ£i text Ã®n limba romÃ¢nÄƒ, cum ar fi de exemplu acest fiÅŸier,
+ar trebui probabil sÄƒ folosiÅ£i modul Text.
 
->> Tastaşi M-x text-mode<Return>.
+>> TastaÅ£i M-x text-mode<Return>.
 
-Nu vã temeti, nici una din comenzile pe care le-aşi învãşat pânã acum
-nu schimbã Emacs-ul prea mult.  Puteşi observa acum cã M-f ºi M-b
-trateazã apostrofurile ca parte din cuvinte.  Înainte, în modul
-Fundamental, M-f ºi M-b tratau apostrofurile ca separatoare de
+Nu vÄƒ temeti, nici una din comenzile pe care le-aÅ£i Ã®nvÄƒÅ£at pÃ¢nÄƒ acum
+nu schimbÄƒ Emacs-ul prea mult.  PuteÅ£i observa acum cÄƒ M-f ÅŸi M-b
+trateazÄƒ apostrofurile ca parte din cuvinte.  Ãnainte, Ã®n modul
+Fundamental, M-f ÅŸi M-b tratau apostrofurile ca separatoare de
 cuvinte.
 
-Modurile majore opereazã schimbãri subtile, ca cea descrisã mai sus.
-Majoritatea comenzilor executã aceeaºi operaşie în fiecare mod major,
-dar funcşioneazã puşin diferit.
+Modurile majore opereazÄƒ schimbÄƒri subtile, ca cea descrisÄƒ mai sus.
+Majoritatea comenzilor executÄƒ aceeaÅŸi operaÅ£ie Ã®n fiecare mod major,
+dar funcÅ£ioneazÄƒ puÅ£in diferit.
 
-Pentru a vedea documentaşia referitoare la modul major curent, tastaşi
+Pentru a vedea documentaÅ£ia referitoare la modul major curent, tastaÅ£i
 C-h m.
 
->> Folosişi C-u C-v o datã sau de mai multe ori pentru a aduce aceastã
-   linie aproape de începutul ecranului.  Tastaşi C-h m ca sã aflaşi
-   diferenşele dintre modul Text ºi modul Fundamental.  Tastaşi C-x 1
-   pentru a ºterge documentaşia de pe ecran.
+>> FolosiÅ£i C-u C-v o datÄƒ sau de mai multe ori pentru a aduce aceastÄƒ
+   linie aproape de Ã®nceputul ecranului.  TastaÅ£i C-h m ca sÄƒ aflaÅ£i
+   diferenÅ£ele dintre modul Text ÅŸi modul Fundamental.  TastaÅ£i C-x 1
+   pentru a ÅŸterge documentaÅ£ia de pe ecran.
 
-Modurile majore se numesc "majore" pentru cã existã ºi moduri minore.
-Modurile minore sunt ajustãri minore ale modurilor majore.  Fiecare
+Modurile majore se numesc "majore" pentru cÄƒ existÄƒ ÅŸi moduri minore.
+Modurile minore sunt ajustÄƒri minore ale modurilor majore.  Fiecare
 mod minor poate fi activat sau dezactivat separat, independent de
-celelalte moduri minore ºi independent de modul major curent.  Puteşi
-sã nu folosişi nici un mod minor, un mod minor sau orice combinaşie de
+celelalte moduri minore ÅŸi independent de modul major curent.  PuteÅ£i
+sÄƒ nu folosiÅ£i nici un mod minor, un mod minor sau orice combinaÅ£ie de
 moduri minore.
 
-Un mod minor care este foarte util, în mod special când editaşi text,
-este modul "Auto Fill".  Când acest mod este activat, Emacs-ul sparge
-automat liniile la spaşiul dintre cuvinte de fiecare datã când
-introducând text creaşi o linie care este prea lungã.
+Un mod minor care este foarte util, Ã®n mod special cÃ¢nd editaÅ£i text,
+este modul "Auto Fill".  CÃ¢nd acest mod este activat, Emacs-ul sparge
+automat liniile la spaÅ£iul dintre cuvinte de fiecare datÄƒ cÃ¢nd
+introducÃ¢nd text creaÅ£i o linie care este prea lungÄƒ.
 
-Puteşi activa modul "Auto Fill" executând M-x auto-fill-mode<Return>.
-Când acest mod este activat, îl puteşi dezactiva executând aceeaºi
-comandã.  Dacã modul este dezactivat, aceastã comandã îl activeazã,
-când este activat, comanda îl dezactiveazã.  Se spune cã aceastã
-comandã inverseazã modul.
+PuteÅ£i activa modul "Auto Fill" executÃ¢nd M-x auto-fill-mode<Return>.
+CÃ¢nd acest mod este activat, Ã®l puteÅ£i dezactiva executÃ¢nd aceeaÅŸi
+comandÄƒ.  DacÄƒ modul este dezactivat, aceastÄƒ comandÄƒ Ã®l activeazÄƒ,
+cÃ¢nd este activat, comanda Ã®l dezactiveazÄƒ.  Se spune cÄƒ aceastÄƒ
+comandÄƒ inverseazÄƒ modul.
 
->> Tastaşi M-x auto-fill-mode<Return> acum.  Introduceşi apoi o linie
-   conşinând "asdf " de mai multe ori, pânã când linia se sparge în
-   douã.  Trebuie sã puneşi spaşii între cuvinte pentru cã Auto Fill
-   sparge linia numai la spaşii.
+>> TastaÅ£i M-x auto-fill-mode<Return> acum.  IntroduceÅ£i apoi o linie
+   conÅ£inÃ¢nd "asdf " de mai multe ori, pÃ¢nÄƒ cÃ¢nd linia se sparge Ã®n
+   douÄƒ.  Trebuie sÄƒ puneÅ£i spaÅ£ii Ã®ntre cuvinte pentru cÄƒ Auto Fill
+   sparge linia numai la spaÅ£ii.
 
-Marginea este stabilitã în mod normal la 70 de caractere, dar puteşi
-schimba aceastã valoare cu comanda C-x f.  Introduceşi valoarea doritã
+Marginea este stabilitÄƒ Ã®n mod normal la 70 de caractere, dar puteÅ£i
+schimba aceastÄƒ valoare cu comanda C-x f.  IntroduceÅ£i valoarea doritÄƒ
 ca argument numeric pentru C-x f.
 
->> Tastaşi C-x f cu 20 ca argument numeric.  (C-u 2 0 C-x f).
-   Introduceşi apoi un text oarecare ºi observaşi cum Emacs-ul umple
-   linii de maximum 20 de caractere.  Restauraşi marginea la 70 de
+>> TastaÅ£i C-x f cu 20 ca argument numeric.  (C-u 2 0 C-x f).
+   IntroduceÅ£i apoi un text oarecare ÅŸi observaÅ£i cum Emacs-ul umple
+   linii de maximum 20 de caractere.  RestauraÅ£i marginea la 70 de
    caractere folosind din nou C-x f.
 
-Dacã faceşi schimbãri în mijlocul unui paragraf, modul Auto Fill nu
-rearanjeazã paragraful.  Pentru a face acest lucru, trebuie sã tastaşi
-M-q (META-q) cu cursorul pozişionat înãuntrul paragrafului.
+DacÄƒ faceÅ£i schimbÄƒri Ã®n mijlocul unui paragraf, modul Auto Fill nu
+rearanjeazÄƒ paragraful.  Pentru a face acest lucru, trebuie sÄƒ tastaÅ£i
+M-q (META-q) cu cursorul poziÅ£ionat Ã®nÄƒuntrul paragrafului.
 
->> Mutaşi cursorul în paragraful precedent ºi tastaşi M-q.
+>> MutaÅ£i cursorul Ã®n paragraful precedent ÅŸi tastaÅ£i M-q.
 
 
-* CÃUTARE
+* CÄ‚UTARE
 ---------
 
-Emacs-ul poate cautã ºiruri (grupuri continue de caractere sau
-cuvinte) fie înainte, fie înapoi (faşã de pozişia curentã a cursorului
-în text).  Cãutarea unui ºir este o operaşie ce mutã cursorul;
-cursorul este mutat în pozişia corespunzãtoare urmãtoarei aparişii a
-ºirului în text.
+Emacs-ul poate cautÄƒ ÅŸiruri (grupuri continue de caractere sau
+cuvinte) fie Ã®nainte, fie Ã®napoi (faÅ£Äƒ de poziÅ£ia curentÄƒ a cursorului
+Ã®n text).  CÄƒutarea unui ÅŸir este o operaÅ£ie ce mutÄƒ cursorul;
+cursorul este mutat Ã®n poziÅ£ia corespunzÄƒtoare urmÄƒtoarei apariÅ£ii a
+ÅŸirului Ã®n text.
 
-Cãutarea este diferitã în Emacs faşã de majoritatea editoarelor,
-deoarece este "incrementalã".  Asta înseamnã cã execuşia operaşiunii
-de cãutare se face în timp ce tastaşi ºirul de cãutat.
+CÄƒutarea este diferitÄƒ Ã®n Emacs faÅ£Äƒ de majoritatea editoarelor,
+deoarece este "incrementalÄƒ".  Asta Ã®nseamnÄƒ cÄƒ execuÅ£ia operaÅ£iunii
+de cÄƒutare se face Ã®n timp ce tastaÅ£i ÅŸirul de cÄƒutat.
 
-Comanda ce inişiazã cãutarea este C-s pentru cãutare înainte ºi C-r
-pentru cãutare înapoi.  AªTEPTAŞI!  Nu le încercaşi acum.
+Comanda ce iniÅ£iazÄƒ cÄƒutarea este C-s pentru cÄƒutare Ã®nainte ÅŸi C-r
+pentru cÄƒutare Ã®napoi.  AÅTEPTAÅ¢I!  Nu le Ã®ncercaÅ£i acum.
 
-Când tastaşi C-s veşi remarca faptul cã ºirul "I-search" apare ca
-prompt în zona de ecou.  Aceasta vã spune cã Emacs-ul este în modul de
-cãutare incrementalã, aºteptând ca dumneavoastrã sã introduceşi ºirul
-pe care dorişi sã-l cãutaşi.  Cãutarea poate fi terminatã cu <Return>.
+CÃ¢nd tastaÅ£i C-s veÅ£i remarca faptul cÄƒ ÅŸirul "I-search" apare ca
+prompt Ã®n zona de ecou.  Aceasta vÄƒ spune cÄƒ Emacs-ul este Ã®n modul de
+cÄƒutare incrementalÄƒ, aÅŸteptÃ¢nd ca dumneavoastrÄƒ sÄƒ introduceÅ£i ÅŸirul
+pe care doriÅ£i sÄƒ-l cÄƒutaÅ£i.  CÄƒutarea poate fi terminatÄƒ cu <Return>.
 
->> Tastaşi acum C-s pentru a porni o cãutare.  ÎNCET, câte o singurã
-   literã la un moment dat, tastaşi cuvântul "cursor", fãcând o pauzã
-   dupã fiecare caracter tastat ca sã observaşi ce se întamplã cu
-   cursorul.  Acum aşi terminat de cãutat prima aparişie a cuvântului
+>> TastaÅ£i acum C-s pentru a porni o cÄƒutare.  ÃNCET, cÃ¢te o singurÄƒ
+   literÄƒ la un moment dat, tastaÅ£i cuvÃ¢ntul "cursor", fÄƒcÃ¢nd o pauzÄƒ
+   dupÄƒ fiecare caracter tastat ca sÄƒ observaÅ£i ce se Ã®ntamplÄƒ cu
+   cursorul.  Acum aÅ£i terminat de cÄƒutat prima apariÅ£ie a cuvÃ¢ntului
    "cursor".
->> Tastaşi C-s din nou, pentru a cãuta urmãtoarea aparişie a
-   cuvântului "cursor".
->> Tastaşi acum <Delete> de patru ori ºi observaşi miºcarea
+>> TastaÅ£i C-s din nou, pentru a cÄƒuta urmÄƒtoarea apariÅ£ie a
+   cuvÃ¢ntului "cursor".
+>> TastaÅ£i acum <Delete> de patru ori ÅŸi observaÅ£i miÅŸcarea
    cursorului.
->> Tastaşi <Return> pentru a termina cãutarea.
+>> TastaÅ£i <Return> pentru a termina cÄƒutarea.
 
-Aşi observat ce s-a întamplat?  În timpul unei cãutãri incrementale
-Emacs-ul încearcã sã se pozişioneze pe prima aparişie a ºirului pe
-care l-aşi introdus pânã în momentul respectiv.  Dacã vreşi sã vã
-pozişionaşi pe urmãtoarea aparişie a cuvântului "cursor", nu trebuie
-decât sã tastaşi C-s încã o datã.  Dacã nu mai existã o altã aparişie,
-Emacs-ul va emite un sunet ºi vã va anunşa cã operaşiunea de cãutare a
-eºuat ("failed" în limba englezã).  C-g este o altã metodã de a
-termina cãutarea.
+AÅ£i observat ce s-a Ã®ntamplat?  Ãn timpul unei cÄƒutÄƒri incrementale
+Emacs-ul Ã®ncearcÄƒ sÄƒ se poziÅ£ioneze pe prima apariÅ£ie a ÅŸirului pe
+care l-aÅ£i introdus pÃ¢nÄƒ Ã®n momentul respectiv.  DacÄƒ vreÅ£i sÄƒ vÄƒ
+poziÅ£ionaÅ£i pe urmÄƒtoarea apariÅ£ie a cuvÃ¢ntului "cursor", nu trebuie
+decÃ¢t sÄƒ tastaÅ£i C-s Ã®ncÄƒ o datÄƒ.  DacÄƒ nu mai existÄƒ o altÄƒ apariÅ£ie,
+Emacs-ul va emite un sunet ÅŸi vÄƒ va anunÅ£a cÄƒ operaÅ£iunea de cÄƒutare a
+eÅŸuat ("failed" Ã®n limba englezÄƒ).  C-g este o altÄƒ metodÄƒ de a
+termina cÄƒutarea.
 
-OBSERVAŞIE: Pe unele sisteme, C-s va bloca ecranul ºi nu veşi mai
-primi nici un rãspuns de la Emacs.  Aceasta indicã faptul cã o
-"facilitate" a sistemului de operare numitã "controlul fluxului"
-("flow control" în limba englezã) intercepteazã caracterul C-s ºi
-acesta nu mai ajunge la Emacs.  Pentru deblocarea ecranului, apãsaşi
-C-q.  Puteşi gãsi detalii referitoare la aceastã aºa-numitã
-"facilitate" în secşiunea "Spontaneous Entry to Incremental Search"
+OBSERVAÅ¢IE: Pe unele sisteme, C-s va bloca ecranul ÅŸi nu veÅ£i mai
+primi nici un rÄƒspuns de la Emacs.  Aceasta indicÄƒ faptul cÄƒ o
+"facilitate" a sistemului de operare numitÄƒ "controlul fluxului"
+("flow control" Ã®n limba englezÄƒ) intercepteazÄƒ caracterul C-s ÅŸi
+acesta nu mai ajunge la Emacs.  Pentru deblocarea ecranului, apÄƒsaÅ£i
+C-q.  PuteÅ£i gÄƒsi detalii referitoare la aceastÄƒ aÅŸa-numitÄƒ
+"facilitate" Ã®n secÅ£iunea "Spontaneous Entry to Incremental Search"
 din manualul Emacs-ului.
 
-Dacã sunteşi în mijlocul unei cãutãri incrementale ºi tastaşi
-<Delete>, veşi observa cã ultimul caracter în cãutarea incrementalã
-este ºters ºi cãutarea se întoarce la pozişia anterioarã.  De exemplu,
-sã presupunem cã aşi tastat "c", pentru a cãuta prima aparişie a lui
-"c".  Dacã tastaşi "u", cursorul se va muta la prima aparişie a lui
-"cu".  Tastaşi acum <Delete>.  Aceasta va ºterge "u"-ul din ºirul de
-cãutare ºi cursorul se va muta înapoi la prima aparişie a lui "c".
+DacÄƒ sunteÅ£i Ã®n mijlocul unei cÄƒutÄƒri incrementale ÅŸi tastaÅ£i
+<Delete>, veÅ£i observa cÄƒ ultimul caracter Ã®n cÄƒutarea incrementalÄƒ
+este ÅŸters ÅŸi cÄƒutarea se Ã®ntoarce la poziÅ£ia anterioarÄƒ.  De exemplu,
+sÄƒ presupunem cÄƒ aÅ£i tastat "c", pentru a cÄƒuta prima apariÅ£ie a lui
+"c".  DacÄƒ tastaÅ£i "u", cursorul se va muta la prima apariÅ£ie a lui
+"cu".  TastaÅ£i acum <Delete>.  Aceasta va ÅŸterge "u"-ul din ÅŸirul de
+cÄƒutare ÅŸi cursorul se va muta Ã®napoi la prima apariÅ£ie a lui "c".
 
-Cãutarea incrementalã poate fi terminatã prin tastarea unui caracter
-bazat pe CONTROL sau META (cu câteva excepşii - caracterele care sunt
-specifice cãutãrii, cum ar fi C-s ºi C-r).
+CÄƒutarea incrementalÄƒ poate fi terminatÄƒ prin tastarea unui caracter
+bazat pe CONTROL sau META (cu cÃ¢teva excepÅ£ii - caracterele care sunt
+specifice cÄƒutÄƒrii, cum ar fi C-s ÅŸi C-r).
 
-C-s începe o cãutare care inspecteazã textul de DUPÃ pozişia curentã a
-cursorului.  Dacã dorişi sã cãutaşi în textul dinaintea pozişiei
-curente a cursorului, folosişi C-r.  Toatã discuşia referitoare la C-s
-se aplicã ºi comenzii C-r, cu menşiunea cã direcşia de cãutare este
-inversã.
+C-s Ã®ncepe o cÄƒutare care inspecteazÄƒ textul de DUPÄ‚ poziÅ£ia curentÄƒ a
+cursorului.  DacÄƒ doriÅ£i sÄƒ cÄƒutaÅ£i Ã®n textul dinaintea poziÅ£iei
+curente a cursorului, folosiÅ£i C-r.  ToatÄƒ discuÅ£ia referitoare la C-s
+se aplicÄƒ ÅŸi comenzii C-r, cu menÅ£iunea cÄƒ direcÅ£ia de cÄƒutare este
+inversÄƒ.
 
 
 * FERESTRE MULTIPLE
 -------------------
 
-Una dintre facilitãşile importante ale Emacs-ului este aceea de a
-afiºa pe ecran mai multe ferestre simultan.
+Una dintre facilitÄƒÅ£ile importante ale Emacs-ului este aceea de a
+afiÅŸa pe ecran mai multe ferestre simultan.
 
->> Mutaşi cursorul pe aceastã linie ºi tastaşi C-u 0 C-l.
+>> MutaÅ£i cursorul pe aceastÄƒ linie ÅŸi tastaÅ£i C-u 0 C-l.
 
->> Tastaşi acum C-x 2 pentru a împãrşi ecranul în douã ferestre.
-   Amândouã ferestrele vor afiºa acest tutorial.  Cursorul va rãmane
-   în fereastra din partea de sus a ecranului.
+>> TastaÅ£i acum C-x 2 pentru a Ã®mpÄƒrÅ£i ecranul Ã®n douÄƒ ferestre.
+   AmÃ¢ndouÄƒ ferestrele vor afiÅŸa acest tutorial.  Cursorul va rÄƒmane
+   Ã®n fereastra din partea de sus a ecranului.
 
->> Tastaşi C-M-v pentru a miºca textul din fereastra de jos.
-   (Dacã nu aveşi o tastã META, tastaşi ESC C-v.)
+>> TastaÅ£i C-M-v pentru a miÅŸca textul din fereastra de jos.
+   (DacÄƒ nu aveÅ£i o tastÄƒ META, tastaÅ£i ESC C-v.)
 
->> Tastaşi C-x o ("o" de la "other" - "cealaltã" în limba
-   englezã) pentru a muta cursorul în fereastra de jos.
+>> TastaÅ£i C-x o ("o" de la "other" - "cealaltÄƒ" Ã®n limba
+   englezÄƒ) pentru a muta cursorul Ã®n fereastra de jos.
 
->> Tastaşi C-v ºi M-v în fereastra de jos pentru a muta textul.
-   Continuaşi sã citişi aceste instrucşiuni în fereastra de sus.
+>> TastaÅ£i C-v ÅŸi M-v Ã®n fereastra de jos pentru a muta textul.
+   ContinuaÅ£i sÄƒ citiÅ£i aceste instrucÅ£iuni Ã®n fereastra de sus.
 
->> Tastaşi C-x o din nou pentru a muta cursorul înapoi în fereastra de
-   sus.  Cursorul va fi plasat în locul unde a fost anterior.
+>> TastaÅ£i C-x o din nou pentru a muta cursorul Ã®napoi Ã®n fereastra de
+   sus.  Cursorul va fi plasat Ã®n locul unde a fost anterior.
 
-Puteşi continua sã folosişi C-x o pentru a vã muta între ferestre.
-Fiecare fereastrã are propria ei pozişie a cursorului, dar numai o
-fereastrã aratã cursorul la un moment dat.  Toate operaşiile normale
-de editare au efect în fereastra în care se gãseºte cursorul -
-fereastra respectivã se numeºte "fereastra selectatã".
+PuteÅ£i continua sÄƒ folosiÅ£i C-x o pentru a vÄƒ muta Ã®ntre ferestre.
+Fiecare fereastrÄƒ are propria ei poziÅ£ie a cursorului, dar numai o
+fereastrÄƒ aratÄƒ cursorul la un moment dat.  Toate operaÅ£iile normale
+de editare au efect Ã®n fereastra Ã®n care se gÄƒseÅŸte cursorul -
+fereastra respectivÄƒ se numeÅŸte "fereastra selectatÄƒ".
 
-Comanda C-M-v este foarte utilã când editaşi text într-o fereastrã ºi
-folosişi cealaltã fereastrã pentru a citi documentaşii.  Puteşi şine
-întotdeauna cursorul în fereastra în care editaşi, în timp ce avansaşi
-textul din cealaltã fereastrã cu C-M-v.
+Comanda C-M-v este foarte utilÄƒ cÃ¢nd editaÅ£i text Ã®ntr-o fereastrÄƒ ÅŸi
+folosiÅ£i cealaltÄƒ fereastrÄƒ pentru a citi documentaÅ£ii.  PuteÅ£i Å£ine
+Ã®ntotdeauna cursorul Ã®n fereastra Ã®n care editaÅ£i, Ã®n timp ce avansaÅ£i
+textul din cealaltÄƒ fereastrÄƒ cu C-M-v.
 
-C-M-v este un exemplu de caracter CONTROL-META.  Dacã aveşi o tastã
-META, puteşi tasta C-M-v şinând apãsate ºi CONTROL ºi META când tastaşi
-v.  Nu conteazã care dintre CONTROL sau META este apãsatã mai întâi,
-pentru cã amândouã acşioneazã prin modificarea caracterului pe care îl
-tastaşi.
+C-M-v este un exemplu de caracter CONTROL-META.  DacÄƒ aveÅ£i o tastÄƒ
+META, puteÅ£i tasta C-M-v Å£inÃ¢nd apÄƒsate ÅŸi CONTROL ÅŸi META cÃ¢nd tastaÅ£i
+v.  Nu conteazÄƒ care dintre CONTROL sau META este apÄƒsatÄƒ mai Ã®ntÃ¢i,
+pentru cÄƒ amÃ¢ndouÄƒ acÅ£ioneazÄƒ prin modificarea caracterului pe care Ã®l
+tastaÅ£i.
 
-Dacã nu aveşi o tastã META ºi folosişi ESC în loc, ordinea este
-importantã: trebuie sã tastaşi ESC urmat de CONTROL-v; CONTROL-ESC v
-nu va funcşiona, din cauza faptului cã ESC este un caracter de sine
-stãtãtor, nu un modificator.
+DacÄƒ nu aveÅ£i o tastÄƒ META ÅŸi folosiÅ£i ESC Ã®n loc, ordinea este
+importantÄƒ: trebuie sÄƒ tastaÅ£i ESC urmat de CONTROL-v; CONTROL-ESC v
+nu va funcÅ£iona, din cauza faptului cÄƒ ESC este un caracter de sine
+stÄƒtÄƒtor, nu un modificator.
 
->> Tastaşi C-x 1 (în fereastra de sus) ca sã renunşaşi la fereastra
+>> TastaÅ£i C-x 1 (Ã®n fereastra de sus) ca sÄƒ renunÅ£aÅ£i la fereastra
    de jos.
 
-(Dacã aşi tastat C-x 1 în fereastra de jos, aceastã comandã va închide
-fereastra de sus.  Gândişi-vã la ea aºa "Pãstreazã doar o fereastrã -
-cea în care sunt acum.")
+(DacÄƒ aÅ£i tastat C-x 1 Ã®n fereastra de jos, aceastÄƒ comandÄƒ va Ã®nchide
+fereastra de sus.  GÃ¢ndiÅ£i-vÄƒ la ea aÅŸa "PÄƒstreazÄƒ doar o fereastrÄƒ -
+cea Ã®n care sunt acum.")
 
-Nu este nevoie sã afisaşi acelaºi buffer în ambele ferestre.  Dacã
-folosişi C-x C-f pentru a deschide un fiºier într-o fereastrã,
-cealaltã fereastrã nu se schimbã.  Puteşi deschide un fiºier diferit
-în fiecare fereastrã.
+Nu este nevoie sÄƒ afisaÅ£i acelaÅŸi buffer Ã®n ambele ferestre.  DacÄƒ
+folosiÅ£i C-x C-f pentru a deschide un fiÅŸier Ã®ntr-o fereastrÄƒ,
+cealaltÄƒ fereastrÄƒ nu se schimbÄƒ.  PuteÅ£i deschide un fiÅŸier diferit
+Ã®n fiecare fereastrÄƒ.
 
-O altã modalitate de a folosi douã ferestre ca sã afiºaşi lucruri
+O altÄƒ modalitate de a folosi douÄƒ ferestre ca sÄƒ afiÅŸaÅ£i lucruri
 diferite:
 
->> Tastaşi C-x 4 C-f apoi numele unui fiºier.  Terminaşi comanda
-   cu <Return>  Observaşi cã fiºierul specificat apare în fereastra de
+>> TastaÅ£i C-x 4 C-f apoi numele unui fiÅŸier.  TerminaÅ£i comanda
+   cu <Return>  ObservaÅ£i cÄƒ fiÅŸierul specificat apare Ã®n fereastra de
    jos.  Cursorul la fel.
 
->> Tastaşi C-x o pentru a vã muta în fereastra de sus, apoi tastaşi
-   C-x 1 pentru a ºterge fereastra de jos.
+>> TastaÅ£i C-x o pentru a vÄƒ muta Ã®n fereastra de sus, apoi tastaÅ£i
+   C-x 1 pentru a ÅŸterge fereastra de jos.
 
 
-* NIVELURI DE EDITARE RECURSIVÃ
+* NIVELURI DE EDITARE RECURSIVÄ‚
 -------------------------------
 
-Uneori veşi intra în ceea ce se numeste un "nivel de editare
-recursivã".  Acesta este indicat de prezenşa unor paranteze drepte în
-linia de mod în jurul numelui modului major.  De exemplu, s-ar putea
-sã vedeşi [(Fundamental)] în loc de (Fundamental).
+Uneori veÅ£i intra Ã®n ceea ce se numeste un "nivel de editare
+recursivÄƒ".  Acesta este indicat de prezenÅ£a unor paranteze drepte Ã®n
+linia de mod Ã®n jurul numelui modului major.  De exemplu, s-ar putea
+sÄƒ vedeÅ£i [(Fundamental)] Ã®n loc de (Fundamental).
 
-Pentru a ieºi din nivelul de editare recursivã, tastaşi ESC ESC ESC.
-Aceasta este o comandã de ieºire de uz general.  O puteşi folosi ºi ca
-sã ieºişi din minibuffer sau ca sã eliminaşi ferestrele în plus.
+Pentru a ieÅŸi din nivelul de editare recursivÄƒ, tastaÅ£i ESC ESC ESC.
+Aceasta este o comandÄƒ de ieÅŸire de uz general.  O puteÅ£i folosi ÅŸi ca
+sÄƒ ieÅŸiÅ£i din minibuffer sau ca sÄƒ eliminaÅ£i ferestrele Ã®n plus.
 
->> Tastaşi M-x pentru a intra în minibuffer; tastaşi apoi ESC ESC ESC
-   ca sã ieºişi.
+>> TastaÅ£i M-x pentru a intra Ã®n minibuffer; tastaÅ£i apoi ESC ESC ESC
+   ca sÄƒ ieÅŸiÅ£i.
 
-Nu puteşi folosi C-g pentru a ieºi dintr-un nivel de editare recursivã
-deoarece comanda C-g este folositã pentru a anula comenzi ºi argumente
-înãuntrul unui nivel de editare recursivã.
+Nu puteÅ£i folosi C-g pentru a ieÅŸi dintr-un nivel de editare recursivÄƒ
+deoarece comanda C-g este folositÄƒ pentru a anula comenzi ÅŸi argumente
+Ã®nÄƒuntrul unui nivel de editare recursivÄƒ.
 
 
-* CUM PUTEŞI OBŞINE MAI MULTE INFORMAŞII
+* CUM PUTEÅ¢I OBÅ¢INE MAI MULTE INFORMAÅ¢II
 ----------------------------------------
 
-În acest tutorial am încercat sã furnizãm suficiente informaşii pentru
-a face primii paºi în Emacs.  Existã atât de multe comenzi în Emacs
-încât ar fi imposibil sã le explicãm pe toate aici.  S-ar putea însã
-sã dorişi sã învaşaşi mai multe despre Emacs, deoarece oferã foarte
-multe facilitaşi interesante.  Existã comenzi pentru a citi
-documentaşia despre comenzile Emacs-ului.  Aceste comenzi ajutãtoare
-sunt prefixate cu caracterul C-h, denumit ºi "caracterul de ajutor".
+Ãn acest tutorial am Ã®ncercat sÄƒ furnizÄƒm suficiente informaÅ£ii pentru
+a face primii paÅŸi Ã®n Emacs.  ExistÄƒ atÃ¢t de multe comenzi Ã®n Emacs
+Ã®ncÃ¢t ar fi imposibil sÄƒ le explicÄƒm pe toate aici.  S-ar putea Ã®nsÄƒ
+sÄƒ doriÅ£i sÄƒ Ã®nvaÅ£aÅ£i mai multe despre Emacs, deoarece oferÄƒ foarte
+multe facilitaÅ£i interesante.  ExistÄƒ comenzi pentru a citi
+documentaÅ£ia despre comenzile Emacs-ului.  Aceste comenzi ajutÄƒtoare
+sunt prefixate cu caracterul C-h, denumit ÅŸi "caracterul de ajutor".
 
-Pentru a folosi aceste facilitãşi de ajutor, tastaşi caracterul C-h,
-apoi un caracter ce specificã tipul de ajutor de care aveşi nevoie.
-În cazul în care sunteşi nelãmurit, tastaşi C-h ? ºi Emacs-ul vã va
-spune ce fel de ajutor vã poate oferi.  Dacã aşi tastat C-h ºi vã
-rãzgândişi (nu mai dorişi ajutor) puteşi tasta C-g pentru a anula
+Pentru a folosi aceste facilitÄƒÅ£i de ajutor, tastaÅ£i caracterul C-h,
+apoi un caracter ce specificÄƒ tipul de ajutor de care aveÅ£i nevoie.
+Ãn cazul Ã®n care sunteÅ£i nelÄƒmurit, tastaÅ£i C-h ? ÅŸi Emacs-ul vÄƒ va
+spune ce fel de ajutor vÄƒ poate oferi.  DacÄƒ aÅ£i tastat C-h ÅŸi vÄƒ
+rÄƒzgÃ¢ndiÅ£i (nu mai doriÅ£i ajutor) puteÅ£i tasta C-g pentru a anula
 comanda.
 
-(Anumite site-uri remapeazã caracterul C-h.  Nu ar trebui sã facã asta
-orbeºte pentru toşi utilizatorii - aveşi motiv sã vã plângeşi
-administratorului de sistem.  Între timp, dacã C-h nu afiºeazã un
-mesaj despre ajutor la marginea de jos a ecranului, încercaşi M-x
-help<Return> în loc.)
+(Anumite site-uri remapeazÄƒ caracterul C-h.  Nu ar trebui sÄƒ facÄƒ asta
+orbeÅŸte pentru toÅ£i utilizatorii - aveÅ£i motiv sÄƒ vÄƒ plÃ¢ngeÅ£i
+administratorului de sistem.  Ãntre timp, dacÄƒ C-h nu afiÅŸeazÄƒ un
+mesaj despre ajutor la marginea de jos a ecranului, Ã®ncercaÅ£i M-x
+help<Return> Ã®n loc.)
 
-Comanda elementarã de ajutor este C-h c.  Tastaşi C-h, apoi caracterul
-c ºi o comandã alcãtuitã dintr-un caracter sau secvenşã de caractere
-ºi Emacs-ul va afiºa o scurtã descriere a comenzii.
+Comanda elementarÄƒ de ajutor este C-h c.  TastaÅ£i C-h, apoi caracterul
+c ÅŸi o comandÄƒ alcÄƒtuitÄƒ dintr-un caracter sau secvenÅ£Äƒ de caractere
+ÅŸi Emacs-ul va afiÅŸa o scurtÄƒ descriere a comenzii.
 
->> Tastaşi C-h c C-p.
+>> TastaÅ£i C-h c C-p.
 
-Mesajul ar trebui sã fie ceva de genul
+Mesajul ar trebui sÄƒ fie ceva de genul
 
 	C-p runs the command previous-line
 
-Aceasta vã spune "numele funcşiei".  Numele de funcşii sunt folosite
-în principal pentru a adapta ºi extinde Emacs-ul, dar, cum numele
-funcşiilor sunt alese în aºa fel încât sã indice actiunea comenzii
-respective, ele pot servi ca o documentaşie foarte scurtã, suficientã
-ca sã vã aminteascã de comenzi pe care le-aşi învãşat deja.
+Aceasta vÄƒ spune "numele funcÅ£iei".  Numele de funcÅ£ii sunt folosite
+Ã®n principal pentru a adapta ÅŸi extinde Emacs-ul, dar, cum numele
+funcÅ£iilor sunt alese Ã®n aÅŸa fel Ã®ncÃ¢t sÄƒ indice actiunea comenzii
+respective, ele pot servi ca o documentaÅ£ie foarte scurtÄƒ, suficientÄƒ
+ca sÄƒ vÄƒ aminteascÄƒ de comenzi pe care le-aÅ£i Ã®nvÄƒÅ£at deja.
 
-Comenzile formate din mai multe caractere (cum ar fi C-x C-s) ºi (dacã
-nu aveşi o tasta META, EDIT sau ALT) <ESC> v sunt de asemenea permise
-dupã C-h c.
+Comenzile formate din mai multe caractere (cum ar fi C-x C-s) ÅŸi (dacÄƒ
+nu aveÅ£i o tasta META, EDIT sau ALT) <ESC> v sunt de asemenea permise
+dupÄƒ C-h c.
 
-Pentru a obşine mai multe informaşii despre o comandã, folosişi C-h k
-în loc de C-h c.
+Pentru a obÅ£ine mai multe informaÅ£ii despre o comandÄƒ, folosiÅ£i C-h k
+Ã®n loc de C-h c.
 
->> Tastaşi C-h k C-p.
+>> TastaÅ£i C-h k C-p.
 
-Aceastã comandã afiºeazã documentaşia ºi numele funcşiei într-o
-fereastrã separatã.  Când terminaşi de citit, tastaşi q pentru a
-o elimina.  Nu trebuie sã faceşi acest lucru imediat.  Puteşi edita
+AceastÄƒ comandÄƒ afiÅŸeazÄƒ documentaÅ£ia ÅŸi numele funcÅ£iei Ã®ntr-o
+fereastrÄƒ separatÄƒ.  CÃ¢nd terminaÅ£i de citit, tastaÅ£i q pentru a
+o elimina.  Nu trebuie sÄƒ faceÅ£i acest lucru imediat.  PuteÅ£i edita
 o vreme, citind textul din fereastra de ajutor.
 
-Câteva comenzi C-h utile:
+CÃ¢teva comenzi C-h utile:
 
-   C-h f	descrie o funcşie al cãrei nume trebuie sã-l
-		introduceşi
+   C-h f	descrie o funcÅ£ie al cÄƒrei nume trebuie sÄƒ-l
+		introduceÅ£i
 
->> Încercaşi sã tastaşi C-h f previous-line<Return>.
-   Aceasta afiºeazã toatã informaşia pe care o are Emacs-ul despre
-   funcşia ce implementeazã comanda C-p.
+>> ÃncercaÅ£i sÄƒ tastaÅ£i C-h f previous-line<Return>.
+   Aceasta afiÅŸeazÄƒ toatÄƒ informaÅ£ia pe care o are Emacs-ul despre
+   funcÅ£ia ce implementeazÄƒ comanda C-p.
 
-   C-h a 	Command Apropos.  Tastaşi un cuvânt cheie ºi Emacs-ul va
-		lista toate funcşiile ºi variabilele ale cãror nume
-		conşin acel cuvânt cheie.  La stânga comenzilor care
-		pot fi invocate cu M-x va fi afiºatã o steluşã.
+   C-h a 	Command Apropos.  TastaÅ£i un cuvÃ¢nt cheie ÅŸi Emacs-ul va
+		lista toate funcÅ£iile ÅŸi variabilele ale cÄƒror nume
+		conÅ£in acel cuvÃ¢nt cheie.  La stÃ¢nga comenzilor care
+		pot fi invocate cu M-x va fi afiÅŸatÄƒ o steluÅ£Äƒ.
 		Pentru unele comenzi, Command Apropos va lista o
-		secvenşã de unul sau douã caractere ce executã aceeaºi
-		comandã.
+		secvenÅ£Äƒ de unul sau douÄƒ caractere ce executÄƒ aceeaÅŸi
+		comandÄƒ.
 
->> Tastaşi C-h a fiºier<Return>.
+>> TastaÅ£i C-h a fiÅŸier<Return>.
 
-Aceasta afiºeazã într-o altã ferastrã o listã a tuturor comenzilor M-x
-al cãror nume conşine "fiºier".  Veşi vedea caractere-comandã de genul
-C-x C-f listate lângã comanda nume corespunzãtoare (find-file).
+Aceasta afiÅŸeazÄƒ Ã®ntr-o altÄƒ ferastrÄƒ o listÄƒ a tuturor comenzilor M-x
+al cÄƒror nume conÅ£ine "fiÅŸier".  VeÅ£i vedea caractere-comandÄƒ de genul
+C-x C-f listate lÃ¢ngÄƒ comanda nume corespunzÄƒtoare (find-file).
 
->> Tastaşi C-M-v ca sã deplasaşi conşinutul ferestrei de ajutor.
-   Faceşi acest lucru de câteva ori.
+>> TastaÅ£i C-M-v ca sÄƒ deplasaÅ£i conÅ£inutul ferestrei de ajutor.
+   FaceÅ£i acest lucru de cÃ¢teva ori.
 
->> Tastaşi C-x 1 pentu a ºterge fereastra de ajutor.
+>> TastaÅ£i C-x 1 pentu a ÅŸterge fereastra de ajutor.
 
 
 * CONCLUZII
 -----------
 
-Şineşi minte, pentru a ieºi permanent din Emacs, folosişi C-x C-c.
-Pentru a ieºi temporar într-un shell (în aºa fel încât sã vã puteşi
-întoarce la Emacs mai târziu) folosişi C-z.
+Å¢ineÅ£i minte, pentru a ieÅŸi permanent din Emacs, folosiÅ£i C-x C-c.
+Pentru a ieÅŸi temporar Ã®ntr-un shell (Ã®n aÅŸa fel Ã®ncÃ¢t sÄƒ vÄƒ puteÅ£i
+Ã®ntoarce la Emacs mai tÃ¢rziu) folosiÅ£i C-z.
 
-Acest tutorial a fost organizat în aºa fel încât sã fie pe înşelesul
-noilor utilizatori - nu vã sfiişi sã vã plângeşi autorilor dacã gasişi
+Acest tutorial a fost organizat Ã®n aÅŸa fel Ã®ncÃ¢t sÄƒ fie pe Ã®nÅ£elesul
+noilor utilizatori - nu vÄƒ sfiiÅ£i sÄƒ vÄƒ plÃ¢ngeÅ£i autorilor dacÄƒ gasiÅ£i
 ceva neclar!
 
 
 COPIERE
 -------
 
-Acest tutorial este rezultatul prelucrãrii unei serii lungi de
+Acest tutorial este rezultatul prelucrÄƒrii unei serii lungi de
 tutoriale pentru Emacs derivate din cel scris de Stuart Cracraft
-pentru versiunea inişialã de Emacs.
+pentru versiunea iniÅ£ialÄƒ de Emacs.
 
-Cu scopul evitãrii oricãror confuzii datorate traducerii, las în
-continuare noşita de copyright originalã în limba englezã.
+Cu scopul evitÄƒrii oricÄƒror confuzii datorate traducerii, las Ã®n
+continuare noÅ£ita de copyright originalÄƒ Ã®n limba englezÄƒ.
 
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
@@ -1095,11 +1095,11 @@ Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
    under the above conditions, provided also that they
    carry prominent notices stating who last altered them.
 
-Condişiile de copiere a Emacs-ului sunt mai complexe, dar în acelaºi
-spirit.  Citişi fiºierul COPYING ºi apoi distribuişi prietenilor copii
-ale Emacs-ului.  Contribuişi la eliminarea obstrucşionismului software
-folosind, scriind ºi distribuind free software!
+CondiÅ£iile de copiere a Emacs-ului sunt mai complexe, dar Ã®n acelaÅŸi
+spirit.  CitiÅ£i fiÅŸierul COPYING ÅŸi apoi distribuiÅ£i prietenilor copii
+ale Emacs-ului.  ContribuiÅ£i la eliminarea obstrucÅ£ionismului software
+folosind, scriind ÅŸi distribuind free software!
 
 ;;; Local Variables:
-;;; coding: iso-latin-2
+;;; coding: utf-8
 ;;; End:

@@ -58,8 +58,7 @@ distribution.]
 @node Top, FAQ notation, (dir), (dir)
 @top The GNU Emacs FAQ
 
-@c FIXME @today is just the day we ran `makeinfo'.
-This is the GNU Emacs FAQ, last updated on @today{}.
+This is the GNU Emacs FAQ.
 
 This FAQ is maintained as a part of GNU Emacs.  If you find any errors,
 or have any suggestions, please use @kbd{M-x report-emacs-bug} to report

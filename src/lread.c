@@ -348,11 +348,14 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
   return STRING_CHAR (buf);
 }
 
+#define FROM_FILE_P(readcharfun)			\
+  (EQ (readcharfun, Qget_file_char)			\
+   || EQ (readcharfun, Qget_emacs_mule_file_char))
+
 static void
 skip_dyn_bytes (Lisp_Object readcharfun, ptrdiff_t n)
 {
-  if (EQ (readcharfun, Qget_file_char)
-      || EQ (readcharfun, Qget_emacs_mule_file_char))
+  if (FROM_FILE_P (readcharfun))
     {
       block_input ();		/* FIXME: Not sure if it's needed.  */
       fseek (instream, n, SEEK_CUR);
@@ -423,8 +426,7 @@ unreadchar (Lisp_Object readcharfun, int c)
     {
       unread_char = c;
     }
-  else if (EQ (readcharfun, Qget_file_char)
-	   || EQ (readcharfun, Qget_emacs_mule_file_char))
+  else if (FROM_FILE_P (readcharfun))
     {
       unread_char = c;
     }
@@ -2636,8 +2638,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    UNREAD (c);
 	    
 	  if (load_force_doc_strings
-	      && (EQ (readcharfun, Qget_file_char)
-		  || EQ (readcharfun, Qget_emacs_mule_file_char)))
+	      && (FROM_FILE_P (readcharfun)))
 	    {
 	      /* If we are supposed to force doc strings into core right now,
 		 record the last string that we skipped,
@@ -3573,8 +3574,10 @@ read_list (bool flag, Lisp_Object readcharfun)
 		{
 		  if (doc_reference == 1)
 		    return make_number (0);
-		  if (doc_reference == 2)
+		  if (doc_reference == 2 && INTEGERP (XCDR (val)))
 		    {
+		      char *saved = NULL;
+		      file_offset saved_position;
 		      /* Get a doc string from the file we are loading.
 			 If it's in saved_doc_string, get it from there.
 
@@ -3591,65 +3594,42 @@ read_list (bool flag, Lisp_Object readcharfun)
 			  && pos < (saved_doc_string_position
 				    + saved_doc_string_length))
 			{
-			  ptrdiff_t start = pos - saved_doc_string_position;
-			  ptrdiff_t from, to;
-
-			  /* Process quoting with ^A,
-			     and find the end of the string,
-			     which is marked with ^_ (037).  */
-			  for (from = start, to = start;
-			       saved_doc_string[from] != 037;)
-			    {
-			      int c = saved_doc_string[from++];
-			      if (c == 1)
-				{
-				  c = saved_doc_string[from++];
-				  if (c == 1)
-				    saved_doc_string[to++] = c;
-				  else if (c == '0')
-				    saved_doc_string[to++] = 0;
-				  else if (c == '_')
-				    saved_doc_string[to++] = 037;
-				}
-			      else
-				saved_doc_string[to++] = c;
-			    }
-
-			  return make_unibyte_string (saved_doc_string + start,
-						      to - start);
+			  saved = saved_doc_string;
+			  saved_position = saved_doc_string_position;
 			}
 		      /* Look in prev_saved_doc_string the same way.  */
 		      else if (pos >= prev_saved_doc_string_position
 			       && pos < (prev_saved_doc_string_position
 					 + prev_saved_doc_string_length))
 			{
-			  ptrdiff_t start =
-			    pos - prev_saved_doc_string_position;
+			  saved = prev_saved_doc_string;
+			  saved_position = prev_saved_doc_string_position;
+			}
+		      if (saved)
+			{
+			  ptrdiff_t start = pos - saved_position;
 			  ptrdiff_t from, to;
 
 			  /* Process quoting with ^A,
 			     and find the end of the string,
 			     which is marked with ^_ (037).  */
 			  for (from = start, to = start;
-			       prev_saved_doc_string[from] != 037;)
+			       saved[from] != 037;)
 			    {
-			      int c = prev_saved_doc_string[from++];
+			      int c = saved[from++];
 			      if (c == 1)
 				{
-				  c = prev_saved_doc_string[from++];
-				  if (c == 1)
-				    prev_saved_doc_string[to++] = c;
-				  else if (c == '0')
-				    prev_saved_doc_string[to++] = 0;
-				  else if (c == '_')
-				    prev_saved_doc_string[to++] = 037;
+				  c = saved[from++];
+				  saved[to++] = (c == 1 ? c
+						 : c == '0' ? 0
+						 : c == '_' ? 037
+						 : c);
 				}
 			      else
-				prev_saved_doc_string[to++] = c;
+				saved[to++] = c;
 			    }
 
-			  return make_unibyte_string (prev_saved_doc_string
-						      + start,
+			  return make_unibyte_string (saved + start,
 						      to - start);
 			}
 		      else

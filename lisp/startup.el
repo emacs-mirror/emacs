@@ -2399,13 +2399,17 @@ A fancy display is used on graphic displays, normal otherwise."
     ;; Use arg 1 so that we don't collapse // at the start of the file name.
     ;; That is significant on some systems.
     ;; However, /// at the beginning is supposed to mean just /, not //.
-    (if (string-match "^///+" file)
+    (if (string-match
+	 (if (memq system-type '(ms-dos windows-nt))
+	     "^\\([\\/][\\/][\\/]\\)+"
+	   "^///+")
+	 file)
 	(setq file (replace-match "/" t t file)))
-    (and (memq system-type '(ms-dos windows-nt))
-	 (string-match "^[A-Za-z]:\\(\\\\[\\\\/]\\)" file) ; C:\/ or C:\\
-	 (setq file (replace-match "/" t t file 1)))
-    (while (string-match "//+" file 1)
-      (setq file (replace-match "/" t t file)))
+    (if (memq system-type '(ms-dos windows-nt))
+	(while (string-match "\\([\\/][\\/]\\)+" file 1)
+	  (setq file (replace-match "/" t t file)))
+      (while (string-match "//+" file 1)
+	(setq file (replace-match "/" t t file))))
     file))
 
 ;;; startup.el ends here

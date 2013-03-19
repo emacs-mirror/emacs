@@ -56,12 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define on FreeBSD to work around an issue when reading from a PTY. */
 #undef BROKEN_PTY_READ_AFTER_EAGAIN
 
-/* Define if the system is compatible with BSD 4.2. */
-#undef BSD_SYSTEM
-
-/* Define if AH_BOTTOM should change BSD_SYSTEM. */
-#undef BSD_SYSTEM_AHB
-
 /* Define if Emacs cannot be dumped on your system. */
 #undef CANNOT_DUMP
 
@@ -218,9 +212,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
 #undef HAVE_AIX_SMT_EXP
 
-/* Define to 1 if you have the `alarm' function. */
-#undef HAVE_ALARM
-
 /* Define to 1 if you have 'alloca' after including <alloca.h>, a header that
    may be supplied by this distribution. */
 #undef HAVE_ALLOCA
@@ -281,6 +272,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `dbus_watch_get_unix_fd' function. */
 #undef HAVE_DBUS_WATCH_GET_UNIX_FD
 
+/* Define to 1 if you have the declaration of `alarm', and to 0 if you don't.
+   */
+#undef HAVE_DECL_ALARM
+
+/* Define to 1 if you have the declaration of `fdatasync', and to 0 if you
+   don't. */
+#undef HAVE_DECL_FDATASYNC
+
 /* Define to 1 if you have the declaration of `fdopendir', and to 0 if you
    don't. */
 #undef HAVE_DECL_FDOPENDIR
@@ -329,6 +328,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't. */
 #undef HAVE_DECL_UNSETENV
 
+/* Define to 1 if you have the declaration of `_putenv', and to 0 if you
+   don't. */
+#undef HAVE_DECL__PUTENV
+
 /* Define to 1 if you have the declaration of `__fpending', and to 0 if you
    don't. */
 #undef HAVE_DECL___FPENDING
@@ -372,6 +375,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `faccessat' function. */
 #undef HAVE_FACCESSAT
+
+/* Define to 1 if you have the `fdatasync' function. */
+#undef HAVE_FDATASYNC
 
 /* Define to 1 if you have the `fdopendir' function. */
 #undef HAVE_FDOPENDIR
@@ -1129,9 +1135,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `_ftime' function. */
 #undef HAVE__FTIME
-
-/* Define to 1 if you have the `_putenv' function. */
-#undef HAVE__PUTENV
 
 /* Define to 1 if _setjmp and _longjmp work. */
 #undef HAVE__SETJMP

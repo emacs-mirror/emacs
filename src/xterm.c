@@ -8951,10 +8951,7 @@ x_ewmh_activate_frame (FRAME_PTR f)
       XSETFRAME (frame, f);
       x_send_client_event (frame, make_number (0), frame,
                            dpyinfo->Xatom_net_active_window,
-                           make_number (32),
-                           Fcons (make_number (1),
-                                  Fcons (make_number (last_user_time),
-                                         Qnil)));
+                           make_number (32), list2i (1, last_user_time));
     }
 }
 

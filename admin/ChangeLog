@@ -1,3 +1,44 @@
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/unicode: Mention some more iso-2022-7bit files (Bug#13936).
+
+	Automate the build of ja-dic.el (Bug#13984).
+	* notes/unicode: ja-dic.el is now UTF-8.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-pdf, manual-dvi): Pass -I to texi2pdf, texi2dvi.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-html-mono, manual-html-node): Add -DWWW_GNU_ORG.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* CPP-DEFINES (BSD_SYSTEM, HAVE_FSYNC): Remove.
+	* merge-gnulib (GNULIB_MODULES): Add fsync, fdatasync.
+
+2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/unicode: Improve notes about Emacs source file encoding.
+
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (make-manuals): Add emacs-lisp-intro and some more
+	doc/misc manuals.
+	(manual-html-mono, manual-html-node, manual-txt):
+	Pass -I to makeinfo.
+
+2013-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-release-logs): Use UTC for release date.
+
+2013-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-release-logs): Provide interactive defaults.
+	Allow specification of the release date.  Don't exclude gnus/.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* notes/unicode: Add notes about Emacs source file encoding.

@@ -166,7 +166,7 @@ David M. Brown wrote @file{array.el}, for editing arrays and other
 tabular data.
 
 @item
-W@l{}odek Bzyl and Ryszard Kubiak wrote @file{ogonek.el}, a package for
+Włodek Bzyl and Ryszard Kubiak wrote @file{ogonek.el}, a package for
 changing the encoding of Polish characters.
 
 @item
@@ -605,7 +605,7 @@ files and running a PostScript interpreter interactively from within
 Emacs.
 
 @item
-Karel Klí@v{c} contributed SELinux support, for preserving the
+Karel Klíč contributed SELinux support, for preserving the
 Security-Enhanced Linux context of files on backup and copy.
 
 @item
@@ -635,7 +635,7 @@ R. Dodd.  He also wrote @file{ls-lisp.el}, a Lisp emulation of the
 program.
 
 @item
-David K@ringaccent{a}gedal wrote @file{tempo.el}, providing support for
+David Kågedal wrote @file{tempo.el}, providing support for
 easy insertion of boilerplate text and other common constructions.
 
 @item
@@ -694,7 +694,7 @@ directory-local variables; and the @code{info-finder} feature that
 creates a virtual Info manual of package keywords.
 
 @item
-Károly L@H{o}rentey wrote the ``multi-terminal'' code, which allows
+Károly Lőrentey wrote the ``multi-terminal'' code, which allows
 Emacs to run on graphical and text terminals simultaneously.
 
 @item
@@ -1224,7 +1224,7 @@ Olaf Sylvester wrote @file{bs.el}, a package for manipulating Emacs
 buffers.
 
 @item
-Tibor @v{S}imko and Milan Zamazal wrote @file{slovak.el}, support for
+Tibor Šimko and Milan Zamazal wrote @file{slovak.el}, support for
 editing text in Slovak language.
 
 @item
