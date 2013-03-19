@@ -4,6 +4,10 @@
 	Signal error if window is not internal.  Adjust docstring.
 	(delete_all_child_windows): Use combination_limit to save the buffer.
 	(Fset_window_configuration): Adjust accordingly.
+	* print.c (syms_of_print): Initialize debugging output not here...
+	(init_print_once): ...but in a new function here.
+	* lisp.h (init_print_once): Add prototype.
+	* emacs.c (main): Add call to init_print_once.  Adjust comments.
 
 2013-03-18  Dmitry Antipov  <dmantipov@yandex.ru>
 

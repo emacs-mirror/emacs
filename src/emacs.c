@@ -1080,7 +1080,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   noninteractive1 = noninteractive;
 
-/* Perform basic initializations (not merely interning symbols).  */
+  /* Perform basic initializations (not merely interning symbols).  */
 
   if (!initialized)
     {
@@ -1091,8 +1091,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
       init_category_once ();	/* Create standard category table.  */
-		      /* Must be done before init_buffer.  */
-      init_casetab_once ();
+      init_casetab_once ();	/* Must be done before init_buffer_once.  */
       init_buffer_once ();	/* Create buffer table and some buffers.  */
       init_minibuf_once ();	/* Create list of minibuffers.  */
 				/* Must precede init_window_once.  */
@@ -1117,6 +1116,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fileio ();
       /* Before syms_of_coding to initialize Vgc_cons_threshold.  */
       syms_of_alloc ();
+      /* May call Ffuncall and so GC, thus the latter should be initialized.  */
+      init_print_once ();
       /* Before syms_of_coding because it initializes Qcharsetp.  */
       syms_of_charset ();
       /* Before init_window_once, because it sets up the

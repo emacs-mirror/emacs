@@ -2165,7 +2165,16 @@ print_interval (INTERVAL interval, Lisp_Object printcharfun)
   print_object (interval->plist, printcharfun, 1);
 }
 
-
+/* Initialize debug_print stuff early to have it working from the very
+   beginning.  */
+
+void
+init_print_once (void)
+{
+  DEFSYM (Qexternal_debugging_output, "external-debugging-output");
+  defsubr (&Sexternal_debugging_output);
+}
+
 void
 syms_of_print (void)
 {
@@ -2297,12 +2306,10 @@ priorities.  */);
   defsubr (&Sprint);
   defsubr (&Sterpri);
   defsubr (&Swrite_char);
-  defsubr (&Sexternal_debugging_output);
 #ifdef WITH_REDIRECT_DEBUGGING_OUTPUT
   defsubr (&Sredirect_debugging_output);
 #endif
 
-  DEFSYM (Qexternal_debugging_output, "external-debugging-output");
   DEFSYM (Qprint_escape_newlines, "print-escape-newlines");
   DEFSYM (Qprint_escape_multibyte, "print-escape-multibyte");
   DEFSYM (Qprint_escape_nonascii, "print-escape-nonascii");
