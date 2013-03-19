@@ -635,30 +635,37 @@ Return nil if WINDOW has no previous sibling.  */)
 
 DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combination_limit, 1, 1, 0,
        doc: /* Return combination limit of window WINDOW.
+WINDOW must be a valid window used in horizontal or vertical combination.
 If the return value is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  A return value of t means that child windows of
-WINDOW are never \(re-)combined with WINDOW's siblings.
-
-WINDOW must be a valid window.  The return value is meaningful for
-internal windows only.  */)
+WINDOW are never \(re-)combined with WINDOW's siblings.  */)
   (Lisp_Object window)
 {
+  struct window *w;
+
   CHECK_VALID_WINDOW (window);
+  w = XWINDOW (window);
+  if (!NILP (w->buffer))
+    error ("Combination limit is meaningful for internal windows only");
   return XWINDOW (window)->combination_limit;
 }
 
 DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_window_combination_limit, 2, 2, 0,
        doc: /* Set combination limit of window WINDOW to LIMIT; return LIMIT.
+WINDOW must be a valid window used in horizontal or vertical combination.
 If LIMIT is nil, child windows of WINDOW can be recombined with WINDOW's
 siblings.  LIMIT t means that child windows of WINDOW are never
 \(re-)combined with WINDOW's siblings.  Other values are reserved for
-future use.
-
-WINDOW must be a valid window.  Setting the combination limit is
-meaningful for internal windows only.  */)
+future use.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
-  wset_combination_limit (decode_valid_window (window), limit);
+  struct window *w;
+
+  CHECK_VALID_WINDOW (window);
+  w = XWINDOW (window);
+  if (!NILP (w->buffer))
+    error ("Combination limit is meaningful for internal windows only");
+  wset_combination_limit (w, limit);
   return limit;
 }
 
@@ -5711,10 +5718,9 @@ the return value is nil.  Otherwise the value is t.  */)
 		}
 	    }
 
-	  /* If we squirreled away the buffer in the window's height,
-	     restore it now.  */
-	  if (BUFFERP (w->total_lines))
-	    wset_buffer (w, w->total_lines);
+	  /* If we squirreled away the buffer, restore it now.  */
+	  if (BUFFERP (w->combination_limit))
+	    wset_buffer (w, w->combination_limit);
 	  wset_left_col (w, p->left_col);
 	  wset_top_line (w, p->top_line);
 	  wset_total_cols (w, p->total_cols);
@@ -5918,9 +5924,6 @@ delete_all_child_windows (Lisp_Object window)
     /* Delete WINDOW's siblings (we traverse postorderly).  */
     delete_all_child_windows (w->next);
 
-  /* See Fset_window_configuration for excuse.  */
-  wset_total_lines (w, w->buffer);
-
   if (!NILP (w->vchild))
     {
       delete_all_child_windows (w->vchild);
@@ -5936,6 +5939,10 @@ delete_all_child_windows (Lisp_Object window)
       unshow_buffer (w);
       unchain_marker (XMARKER (w->pointm));
       unchain_marker (XMARKER (w->start));
+      /* Since combination limit makes sense for an internal windows
+	 only, we use this slot to save the buffer for the sake of
+	 possible resurrection in Fset_window_configuration.  */
+      wset_combination_limit (w, w->buffer);
       wset_buffer (w, Qnil);
     }
 
