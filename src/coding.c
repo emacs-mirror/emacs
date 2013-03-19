@@ -6075,7 +6075,7 @@ complement_process_encoding_system (Lisp_Object coding_system)
 static Lisp_Object adjust_coding_eol_type (struct coding_system *coding, int eol_seen);
 
 
-/* Return 1 if all the source bytes are ASCII, and return 0 otherwize.
+/* Return true iff all the source bytes are ASCII.
    By side effects, set coding->head_ascii and coding->eol_seen.  The
    value of coding->eol_seen is "logical or" of EOL_SEEN_LF,
    EOL_SEEN_CR, and EOL_SEEN_CRLF, but the value is reliable only when

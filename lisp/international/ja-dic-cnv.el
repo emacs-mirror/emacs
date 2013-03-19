@@ -330,7 +330,7 @@ The name of generated file is specified by the variable `ja-dic-filename'."
   (interactive "FSKK dictionary file: ")
   (message "Reading file \"%s\" ..." filename)
   (let* ((coding-system-for-read 'euc-japan)
-	 (skkbuf (get-buffer-create " *skkdic-unnannotated*"))
+	 (skkbuf (get-buffer-create " *skkdic-unannotated*"))
 	 (buf (get-buffer-create "*skkdic-work*")))
     ;; Set skkbuf to an unannotated copy of the dictionary.
     (with-current-buffer skkbuf

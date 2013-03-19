@@ -112,7 +112,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    merging faces of that character, that face is `realized'.  The
    realization process maps face attributes to what is physically
    available on the system where Emacs runs.  The result is a
-   `realized face' in form of a struct face which is stored in the
+   `realized face' in the form of a struct face which is stored in the
    face cache of the frame on which it was realized.
 
    Face realization is done in the context of the character to display

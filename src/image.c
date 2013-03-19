@@ -154,15 +154,15 @@ XGetImage (Display *display, Pixmap pixmap, int x, int y,
   return pixmap;
 }
 
-/* use with imgs created by ns_image_for_XPM */
+/* Use with images created by ns_image_for_XPM.  */
 unsigned long
 XGetPixel (XImagePtr ximage, int x, int y)
 {
   return ns_get_pixel (ximage, x, y);
 }
 
-/* use with imgs created by ns_image_for_XPM; alpha set to 1;
-   pixel is assumed to be in form RGB */
+/* Use with images created by ns_image_for_XPM; alpha set to 1;
+   pixel is assumed to be in RGB form.  */
 void
 XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 {
