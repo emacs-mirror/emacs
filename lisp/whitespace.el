@@ -1868,7 +1868,7 @@ cleaning up these problems."
   "Used to remember whether a buffer initially had font lock on or not.")
 
 (defvar whitespace-font-lock-keywords nil
-  "Used to save locally `font-lock-keywords' value.")
+  "Used to save the value `whitespace-color-on' adds to `font-lock-keywords'.")
 
 
 (defconst whitespace-help-text
@@ -2158,9 +2158,7 @@ resultant list will be returned."
   "Turn on color visualization."
   (when (whitespace-style-face-p)
     (unless whitespace-font-lock
-      (setq whitespace-font-lock t
-	    whitespace-font-lock-keywords
-	    (copy-sequence font-lock-keywords)))
+      (setq whitespace-font-lock t))
     ;; save current point and refontify when necessary
     (set (make-local-variable 'whitespace-point)
 	 (point))
@@ -2179,8 +2177,8 @@ resultant list will be returned."
 	 font-lock-mode)
     (font-lock-mode 0)
     ;; Add whitespace-mode color into font lock.
-    (font-lock-add-keywords
-     nil
+    (setq
+     whitespace-font-lock-keywords
      `(
        ,@(when (memq 'spaces whitespace-active-style)
            ;; Show SPACEs.
@@ -2257,8 +2255,8 @@ resultant list will be returned."
                 ((memq 'space-after-tab::space whitespace-active-style)
                  ;; Show SPACEs after TAB (TABs).
                  (whitespace-space-after-tab-regexp 'space)))
-              1 whitespace-space-after-tab t))))
-     t)
+              1 whitespace-space-after-tab t)))))
+    (font-lock-add-keywords nil whitespace-font-lock-keywords t)
     ;; Now turn on font lock and highlight blanks.
     (font-lock-mode 1)))
 
@@ -2271,8 +2269,8 @@ resultant list will be returned."
     (remove-hook 'post-command-hook #'whitespace-post-command-hook t)
     (remove-hook 'before-change-functions #'whitespace-buffer-changed t)
     (when whitespace-font-lock
-      (setq whitespace-font-lock nil
-	    font-lock-keywords   whitespace-font-lock-keywords))
+      (setq whitespace-font-lock nil))
+    (font-lock-remove-keywords nil whitespace-font-lock-keywords)
     ;; restore original font lock state
     (font-lock-mode whitespace-font-lock-mode)))
 

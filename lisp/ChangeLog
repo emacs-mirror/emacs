@@ -2,6 +2,10 @@
 
 	* whitespace.el (whitespace-color-on): Use `prepend' OVERRIDE
 	value for `whitespace-line' face (Bug#13875).
+	(whitespace-font-lock-keywords): Change description.
+	(whitespace-color-on): Don't save `font-lock-keywords' value, save
+	the constructed keywords instead.
+	(whitespace-color-off): Use `font-lock-remove-keywords' (Bug#13817).
 
 2013-03-19  Leo Liu  <sdl.web@gmail.com>
 
