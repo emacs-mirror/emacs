@@ -1,3 +1,9 @@
+2013-03-19  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/compile.el (compilation-display-error): New command.
+	(compilation-mode-map, compilation-minor-mode-map): Bind it to
+	C-o.  (Bug#13992)
+
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* term/x-win.el (x-keysym-pair): Add a Fixme (Bug#13936).

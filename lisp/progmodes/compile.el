@@ -1814,6 +1814,7 @@ Returns the compilation buffer created."
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-m" 'compile-goto-error)
+    (define-key map "\C-o" 'compilation-display-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
     (define-key map "\M-n" 'compilation-next-error)
     (define-key map "\M-p" 'compilation-previous-error)
@@ -1858,6 +1859,7 @@ Returns the compilation buffer created."
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-m" 'compile-goto-error)
+    (define-key map "\C-o" 'compilation-display-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
     (define-key map "\M-n" 'compilation-next-error)
     (define-key map "\M-p" 'compilation-previous-error)
@@ -2298,6 +2300,12 @@ Prefix arg N says how many files to move forwards (or backwards, if negative)."
 Prefix arg N says how many files to move backwards (or forwards, if negative)."
   (interactive "p")
   (compilation-next-file (- n)))
+
+(defun compilation-display-error ()
+  "Display the source for current error in another window."
+  (interactive)
+  (setq compilation-current-error (point))
+  (next-error-no-select 0))
 
 (defun kill-compilation ()
   "Kill the process made by the \\[compile] or \\[grep] commands."
