@@ -8,6 +8,7 @@ Design
 
     arena
     bt
+    config
     protocol
     type
     version
