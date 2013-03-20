@@ -68,6 +68,8 @@ you’re releasing, and <i>N</i> is the first unused release number
 your version. </p> <blockquote> <code> VERSION=<i>VERSION</i> <br>
 RELEASE=$VERSION.<i>N</i> </code> </blockquote> </li>
 
+<li><p> Ensure that the HTML version of the manual is up to date on the version branch: </p> <blockquote> <code>pushd version/$VERSION/manual <br> make checkin <br> popd</code> </blockquote> </li>
+
 <li><p> Ensure that <code>version/$VERSION/readme.txt</code>
 contains an up-to-date description of the release you intend to build
 and the correct release name. </p> </li>
