@@ -10877,7 +10877,7 @@ decode text as usual.  */);
   DEFVAR_BOOL ("disable-ascii-optimization", disable_ascii_optimization,
 	       doc: /* If non-nil, Emacs does not optimize code decoder for ASCII files.
 Internal use only.  Removed after the experimental optimizer gets stable. */);
-  disable_ascii_optimization = 0;
+  disable_ascii_optimization = 1;
 
   DEFVAR_LISP ("translation-table-for-input", Vtranslation_table_for_input,
 	       doc: /* Char table for translating self-inserting characters.
