@@ -1243,9 +1243,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
-
   block_input ();
   register_font_driver (&nsfont_driver, f);
   x_default_parameter (f, parms, Qfont_backend, Qnil,

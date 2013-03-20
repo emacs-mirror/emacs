@@ -287,7 +287,7 @@ font_pixel_size (FRAME_PTR f, Lisp_Object spec)
   if (INTEGERP (val))
     dpi = XINT (val);
   else
-    dpi = f->resy;
+    dpi = FRAME_RES_Y (f);
   pixel_size = POINT_TO_PIXEL (point_size, dpi);
   return pixel_size;
 #else
@@ -3117,7 +3117,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
     {
       double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
 
-      pixel_size = POINT_TO_PIXEL (pt / 10, f->resy);
+      pixel_size = POINT_TO_PIXEL (pt / 10, FRAME_RES_Y (f));
     }
   ASET (work, FONT_SIZE_INDEX, Qnil);
   foundry[0] = AREF (work, FONT_FOUNDRY_INDEX);
@@ -3247,12 +3247,13 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
 	    }
 
 	  pt /= 10;
-	  size = POINT_TO_PIXEL (pt, f->resy);
+	  size = POINT_TO_PIXEL (pt, FRAME_RES_Y (f));
 #ifdef HAVE_NS
 	  if (size == 0)
 	    {
 	      Lisp_Object ffsize = get_frame_param (f, Qfontsize);
-	      size = NUMBERP (ffsize) ? POINT_TO_PIXEL (XINT (ffsize), f->resy) : 0;
+	      size = (NUMBERP (ffsize)
+		      ? POINT_TO_PIXEL (XINT (ffsize), FRAME_RES_Y (f)) : 0);
 	    }
 #endif
 	}
@@ -4021,7 +4022,7 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
   if (INTEGERP (val))
     {
       Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
-      int dpi = INTEGERP (font_dpi) ? XINT (font_dpi) : f->resy;
+      int dpi = INTEGERP (font_dpi) ? XINT (font_dpi) : FRAME_RES_Y (f);
       plist[n++] = QCheight;
       plist[n++] = make_number (PIXEL_TO_POINT (XINT (val) * 10, dpi));
     }
@@ -4532,7 +4533,7 @@ DEFUN ("open-font", Fopen_font, Sopen_font, 1, 3, 0,
     {
       CHECK_NUMBER_OR_FLOAT (size);
       if (FLOATP (size))
-	isize = POINT_TO_PIXEL (XFLOAT_DATA (size), f->resy);
+	isize = POINT_TO_PIXEL (XFLOAT_DATA (size), FRAME_RES_Y (f));
       else
 	isize = XINT (size);
       if (! (INT_MIN <= isize && isize <= INT_MAX))

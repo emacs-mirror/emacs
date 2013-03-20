@@ -3182,9 +3182,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
-
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
   register_font_driver (&xftfont_driver, f);
@@ -4630,9 +4627,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
-
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
 
   register_font_driver (&xfont_driver, f);
 #ifdef HAVE_FREETYPE

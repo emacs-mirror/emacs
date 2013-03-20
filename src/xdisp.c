@@ -22082,11 +22082,6 @@ else if the text is replaced by an ellipsis.  */)
 
 */
 
-#define NUMVAL(X)				\
-     ((INTEGERP (X) || FLOATP (X))		\
-      ? XFLOATINT (X)				\
-      : - 1)
-
 static int
 calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 			    struct font *font, int width_p, int *align_to)
@@ -22117,24 +22112,11 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	    pixels = 0;
 	  if (pixels > 0)
 	    {
-	      double ppi;
-#ifdef HAVE_WINDOW_SYSTEM
-	      if (FRAME_WINDOW_P (it->f)
-		  && (ppi = (width_p
-			     ? FRAME_X_DISPLAY_INFO (it->f)->resx
-			     : FRAME_X_DISPLAY_INFO (it->f)->resy),
-		      ppi > 0))
-		return OK_PIXELS (ppi / pixels);
-#endif
+	      double ppi = (width_p ? FRAME_RES_X (it->f)
+			    : FRAME_RES_Y (it->f));
 
-	      if ((ppi = NUMVAL (Vdisplay_pixels_per_inch), ppi > 0)
-		  || (CONSP (Vdisplay_pixels_per_inch)
-		      && (ppi = (width_p
-				 ? NUMVAL (XCAR (Vdisplay_pixels_per_inch))
-				 : NUMVAL (XCDR (Vdisplay_pixels_per_inch))),
-			  ppi > 0)))
+	      if (ppi > 0)
 		return OK_PIXELS (ppi / pixels);
-
 	      return 0;
 	    }
 	}

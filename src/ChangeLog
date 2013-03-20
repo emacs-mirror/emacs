@@ -1,3 +1,19 @@
+2013-03-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame): Drop resx and resy because the same data is
+	available from window system-specific output context.  Adjust users.
+	(default_pixesls_per_inch_x, default_pixesls_per_inch_y): New
+	functions to provide defaults when no window system available.
+	(FRAME_RES_X, FRAME_RES_Y): New macros.
+	(NUMVAL): Moved from xdisp.c.
+	* font.c (font_pixel_size, font_find_for_lface, font_open_for_lface)
+	(Ffont_face_attributes, Fopen_font):
+	* image.c (gs_load):
+	* w32font.c (fill_in_logfont):
+	* xdisp.c (calc_pixel_width_or_height):
+	* xfaces.c (Fx_family_fonts, set_lface_from_font): Use them.
+	* xsettings.c (apply_xft_settings): Drop frame loop and adjust comment.
+
 2013-03-20  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (syms_of_coding): Initialize disable_ascii_optimization

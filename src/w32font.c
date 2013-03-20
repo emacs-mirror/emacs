@@ -1967,7 +1967,7 @@ static void
 fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
 {
   Lisp_Object tmp, extra;
-  int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
+  int dpi = FRAME_RES_Y (f);
 
   tmp = AREF (font_spec, FONT_DPI_INDEX);
   if (INTEGERP (tmp))

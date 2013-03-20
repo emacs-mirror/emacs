@@ -4353,9 +4353,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
-
   if (uniscribe_available)
     register_font_driver (&uniscribe_font_driver, f);
   register_font_driver (&w32font_driver, f);
@@ -5419,9 +5416,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
-
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
 
   if (uniscribe_available)
     register_font_driver (&uniscribe_font_driver, f);

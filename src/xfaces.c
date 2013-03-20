@@ -1592,7 +1592,7 @@ the face font sort order.  */)
       ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
       ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
       point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      XFRAME (frame)->resy);
+			      FRAME_RES_Y (XFRAME (frame)));
       ASET (v, 2, make_number (point));
       ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
       ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
@@ -2118,7 +2118,7 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
     {
-      int pt = PIXEL_TO_POINT (font->pixel_size * 10, f->resy);
+      int pt = PIXEL_TO_POINT (font->pixel_size * 10, FRAME_RES_Y (f));
 
       eassert (pt > 0);
       ASET (lface, LFACE_HEIGHT_INDEX, make_number (pt));
