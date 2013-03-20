@@ -279,9 +279,9 @@
 		skkdic-okuri-nasi-entries-count
 		(1+ skkdic-okuri-nasi-entries-count))
 	  (setq ratio (floor (/ (* (point) 100.0) (point-max))))
-	  (if (/= ratio prev-ratio)
+	  (if (/= (/ prev-ratio 10) (/ ratio 10))
 	      (progn
-		(message "collected %2d%% %s ..." ratio kana)
+		(message "collected %2d%% ..." ratio)
 		(setq prev-ratio ratio)))
 	  (while candidates
 	    (let ((entry (lookup-nested-alist (car candidates)
@@ -304,12 +304,12 @@
       (while l
 	(let ((kana (car (car l)))
 	      (candidates (cdr (car l))))
-	  (setq ratio (/ (* count 1000) skkdic-okuri-nasi-entries-count)
+	  (setq ratio (/ (* count 100) skkdic-okuri-nasi-entries-count)
 		count (1+ count))
-	  (if (/= prev-ratio (/ ratio 10))
+	  (if (/= (/ prev-ratio 10) (/ ratio 10))
 	      (progn
-		(message "processed %2d%% %s ..." (/ ratio 10) kana)
-		(setq prev-ratio (/ ratio 10))))
+		(message "processed %2d%% ..." ratio)
+		(setq prev-ratio ratio)))
 	  (if (setq candidates
 		    (skkdic-reduced-candidates skkbuf kana candidates))
 	      (progn
@@ -433,12 +433,7 @@ To get complete usage, invoke:
 	    (setq targetdir (expand-file-name (car command-line-args-left)))
 	    (setq command-line-args-left (cdr command-line-args-left))))
       (setq filename (expand-file-name (car command-line-args-left)))
-      (message "Converting %s to %s ..." filename ja-dic-filename)
-      (message "It takes around 10 minutes even on Sun SS20.")
-      (skkdic-convert filename targetdir)
-      (message "Do byte-compile the created file by:")
-      (message "  %% emacs -batch -f batch-byte-compile %s" ja-dic-filename)
-      ))
+      (skkdic-convert filename targetdir)))
   (kill-emacs 0))
 
 
