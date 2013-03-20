@@ -2,7 +2,7 @@
 
 	* frame.h (struct frame): Drop resx and resy because the same data is
 	available from window system-specific output context.  Adjust users.
-	(default_pixesls_per_inch_x, default_pixesls_per_inch_y): New
+	(default_pixels_per_inch_x, default_pixels_per_inch_y): New
 	functions to provide defaults when no window system available.
 	(FRAME_RES_X, FRAME_RES_Y): New macros.
 	(NUMVAL): Moved from xdisp.c.
