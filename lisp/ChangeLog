@@ -1,3 +1,11 @@
+2013-03-20  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-next-reference-or-link)
+	(Info-prev-reference-or-link): New functions.
+	(Info-next-reference, Info-prev-reference): Use them.
+	(Info-try-follow-nearest-node): Handle footnote navigation.
+	(Info-fontify-node): Fontify footnotes.  (Bug#13989)
+
 2013-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (posn-point, posn-string): Fix it here instead (bug#13979).
