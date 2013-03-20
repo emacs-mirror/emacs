@@ -3150,13 +3150,15 @@ for first matching file."
     (exit-minibuffer)))
 
 (defun ido-chop (items elem)
-  "Remove all elements before ELEM and put them at the end of ITEMS."
+  "Remove all elements before ELEM and put them at the end of ITEMS.
+Use `eq' for comparison."
   (let ((ret nil)
 	(next nil)
 	(sofar nil))
     (while (not ret)
       (setq next (car items))
-      (if (equal next elem)
+      ;; Use `eq' to avoid bug http://debbugs.gnu.org/10994
+      (if (eq next elem)
 	  (setq ret (append items (nreverse sofar)))
 	;; else
 	(progn

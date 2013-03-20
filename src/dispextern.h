@@ -602,8 +602,8 @@ struct glyph_pool
 
    2. Window glyph matrices on frames having frame glyph matrices.
    Such matrices are sub-matrices of their corresponding frame matrix,
-   i.e. frame glyph matrices and window glyph matrices share the same
-   glyph memory which is allocated in form of a glyph_pool structure.
+   i.e., frame glyph matrices and window glyph matrices share the same
+   glyph memory, which is allocated in the form of a glyph_pool structure.
    Glyph rows in such a window matrix are slices of frame matrix rows.
 
    2. Free-standing window glyph matrices managing their own glyph

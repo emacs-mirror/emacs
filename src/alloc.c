@@ -1162,7 +1162,7 @@ lisp_align_free (void *block)
 #define INTERVAL_BLOCK_SIZE \
   ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
 
-/* Intervals are allocated in chunks in form of an interval_block
+/* Intervals are allocated in chunks in the form of an interval_block
    structure.  */
 
 struct interval_block

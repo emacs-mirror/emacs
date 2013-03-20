@@ -146,8 +146,9 @@ leim-list.el: ${TIT_MISC} ${srcdir}/leim-ext.el
 
 $(srcdir)/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	@$(MKDIR_P) $(srcdir)/ja-dic
-	$(RUN_EMACS) -l $(buildlisppath)/international/ja-dic-cnv \
-	  --eval '(skkdic-convert "$(srcdir)/SKK-DIC/SKK-JISYO.L" "$(srcdir)/ja-dic")'
+	$(RUN_EMACS) -batch -l $(buildlisppath)/international/ja-dic-cnv \
+	  -f batch-skkdic-convert -dir "$(srcdir)/ja-dic" \
+	  "$(srcdir)/SKK-DIC/SKK-JISYO.L"
 
 ## Following adapted from lisp/Makefile.in.
 setwins=wins="${srcdir}/ja-dic quail"; \

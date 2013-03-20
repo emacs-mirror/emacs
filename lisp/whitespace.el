@@ -1861,14 +1861,8 @@ cleaning up these problems."
 ;;;; Internal functions
 
 
-(defvar whitespace-font-lock-mode nil
-  "Used to remember whether a buffer had font lock mode on or not.")
-
-(defvar whitespace-font-lock nil
-  "Used to remember whether a buffer initially had font lock on or not.")
-
 (defvar whitespace-font-lock-keywords nil
-  "Used to save locally `font-lock-keywords' value.")
+  "Used to save the value `whitespace-color-on' adds to `font-lock-keywords'.")
 
 
 (defconst whitespace-help-text
@@ -2106,8 +2100,6 @@ resultant list will be returned."
   ;; prepare local hooks
   (add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
   ;; create whitespace local buffer environment
-  (set (make-local-variable 'whitespace-font-lock-mode) nil)
-  (set (make-local-variable 'whitespace-font-lock) nil)
   (set (make-local-variable 'whitespace-font-lock-keywords) nil)
   (set (make-local-variable 'whitespace-display-table) nil)
   (set (make-local-variable 'whitespace-display-table-was-local) nil)
@@ -2157,10 +2149,6 @@ resultant list will be returned."
 (defun whitespace-color-on ()
   "Turn on color visualization."
   (when (whitespace-style-face-p)
-    (unless whitespace-font-lock
-      (setq whitespace-font-lock t
-	    whitespace-font-lock-keywords
-	    (copy-sequence font-lock-keywords)))
     ;; save current point and refontify when necessary
     (set (make-local-variable 'whitespace-point)
 	 (point))
@@ -2174,13 +2162,9 @@ resultant list will be returned."
 	 nil)
     (add-hook 'post-command-hook #'whitespace-post-command-hook nil t)
     (add-hook 'before-change-functions #'whitespace-buffer-changed nil t)
-    ;; turn off font lock
-    (set (make-local-variable 'whitespace-font-lock-mode)
-	 font-lock-mode)
-    (font-lock-mode 0)
     ;; Add whitespace-mode color into font lock.
-    (font-lock-add-keywords
-     nil
+    (setq
+     whitespace-font-lock-keywords
      `(
        ,@(when (memq 'spaces whitespace-active-style)
            ;; Show SPACEs.
@@ -2209,7 +2193,7 @@ resultant list will be returned."
               ,(if (memq 'lines whitespace-active-style)
                    0                    ; whole line
                  2)                     ; line tail
-              whitespace-line t)))
+              whitespace-line prepend)))
        ,@(when (or (memq 'space-before-tab whitespace-active-style)
                    (memq 'space-before-tab::tab whitespace-active-style)
                    (memq 'space-before-tab::space whitespace-active-style))
@@ -2257,24 +2241,19 @@ resultant list will be returned."
                 ((memq 'space-after-tab::space whitespace-active-style)
                  ;; Show SPACEs after TAB (TABs).
                  (whitespace-space-after-tab-regexp 'space)))
-              1 whitespace-space-after-tab t))))
-     t)
-    ;; Now turn on font lock and highlight blanks.
-    (font-lock-mode 1)))
+              1 whitespace-space-after-tab t)))))
+    (font-lock-add-keywords nil whitespace-font-lock-keywords t)
+    (font-lock-fontify-buffer)))
 
 
 (defun whitespace-color-off ()
   "Turn off color visualization."
   ;; turn off font lock
   (when (whitespace-style-face-p)
-    (font-lock-mode 0)
     (remove-hook 'post-command-hook #'whitespace-post-command-hook t)
     (remove-hook 'before-change-functions #'whitespace-buffer-changed t)
-    (when whitespace-font-lock
-      (setq whitespace-font-lock nil
-	    font-lock-keywords   whitespace-font-lock-keywords))
-    ;; restore original font lock state
-    (font-lock-mode whitespace-font-lock-mode)))
+    (font-lock-remove-keywords nil whitespace-font-lock-keywords)
+    (font-lock-fontify-buffer)))
 
 
 (defun whitespace-trailing-regexp (limit)
