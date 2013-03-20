@@ -1,3 +1,7 @@
+2013-03-20  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-chop): Fix bug#10994.
+
 2013-03-19  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* whitespace.el (whitespace-font-lock, whitespace-font-lock-mode):
