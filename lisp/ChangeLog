@@ -1,3 +1,8 @@
+2013-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (posn-point, posn-string): Fix it here instead (bug#13979).
+	* mouse.el (mouse-on-link-p): Undo scroll-bar fix.
+
 2013-03-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Suppress unnecessary non-ASCII chatter during build process.
@@ -15,8 +20,8 @@
 
 	* whitespace.el (whitespace-font-lock, whitespace-font-lock-mode):
 	Remove vars.
-	(whitespace-color-on, whitespace-color-off): Use
-	`font-lock-fontify-buffer' (Bug#13817).
+	(whitespace-color-on, whitespace-color-off):
+	Use `font-lock-fontify-buffer' (Bug#13817).
 
 2013-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -76,8 +81,7 @@
 	buffer's first char.  Use `with-selected-window' instead of
 	`save-window-excursion' with `select-window'.
 	(doc-view-document->bitmap): Check the current doc-view overlay's
-	display property instead the char property of the buffer's first
-	char.
+	display property instead the char property of the buffer's first char.
 
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
