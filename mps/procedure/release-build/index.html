@@ -68,7 +68,7 @@ you’re releasing, and <i>N</i> is the first unused release number
 your version. </p> <blockquote> <code> VERSION=<i>VERSION</i> <br>
 RELEASE=$VERSION.<i>N</i> </code> </blockquote> </li>
 
-<li><p> Ensure that the HTML version of the manual is up to date on the version branch: </p> <blockquote> <code>pushd version/$VERSION/manual <br> make checkin <br> popd</code> </blockquote> <p> If this fails with the error <code>make: sphinx-build: No such file or directory</code> then you need to install the Sphinx documentation system and its dependencies (version 1.1.3 or later). On OS X with MacPorts you can install it like this: </p> <blockquote> <code> sudo port install py27-sphinx <br> sudo port select --set sphinx py27-sphinx </code> </blockquote> </li>
+<li><p> Ensure that the HTML version of the manual is up to date on the version branch: </p> <blockquote> <code>pushd version/$VERSION/manual <br> make checkin <br> popd</code> </blockquote> <p> If this fails with the error <code>make: sphinx-build: No such file or directory</code> then you need to install the Sphinx documentation system [<a title="Sphinx: Python document generator" href="http://sphinx-doc.org/">2</a>] and its dependencies (version 1.1.3 or later). On OS X with MacPorts you can install it like this: </p> <blockquote> <code> sudo port install py27-sphinx <br> sudo port select --set sphinx py27-sphinx </code> </blockquote> </li>
 
 <li><p> Ensure that <code>version/$VERSION/readme.txt</code>
 contains an up-to-date description of the release you intend to build
@@ -213,7 +213,7 @@ to <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com<
   <td>
     “revert ; rm ; sync -f”;
     RHSK;
-    &lt;URL: <a href="http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt">http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt</a>&gt;;
+    &lt;<a href="http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt">http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt</a>&gt;;
     2008-10-16.
   </td>
 
@@ -224,7 +224,8 @@ to <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com<
   <td>[<a id="ref-2" name="ref-2" href="http://sphinx-doc.org/">2</a>]</td>
 
   <td>
-    "Sphinx: Python document generator".
+    "Sphinx: Python document generator";
+    &lt;<a href="http://sphinx-doc.org/">http://sphinx-doc.org/</a>&gt;.
   </td>
 
 </tr>
@@ -348,6 +349,16 @@ to <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com<
   <td><a href="mailto:gdr@ravenbrook.com">GDR</a></td>
 
   <td>Add testing step (§2.2).</td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2013-03-20</td>
+
+  <td><a href="mailto:gdr@ravenbrook.com">GDR</a></td>
+
+  <td>Ensure that manual HTML is up to date before making a release.</td>
 
 </tr>
 
