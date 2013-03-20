@@ -1,3 +1,7 @@
+2013-03-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): Use batch-skkdic-convert.
+
 2013-03-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(srcdir)/ja-dic/ja-dic.el): New target.
