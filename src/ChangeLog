@@ -1,3 +1,9 @@
+2013-03-20  Kenichi Handa  <handa@gnu.org>
+
+	* coding.c (syms_of_coding): Initialize disable_ascii_optimization
+	to 1 (temporary workaround until a bug related to ASCII
+	optimization is fixed).
+
 2013-03-19  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.c (Fwindow_combination_limit, Fset_window_combination_limit):
