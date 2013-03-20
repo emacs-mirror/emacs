@@ -363,7 +363,7 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin
 
   if (NUMBERP (margin))
     {
-      int width = XFASTINT (w->total_cols);
+      int width = w->total_cols;
       double d = max (0, XFLOATINT (margin));
       d = min (width / 2 - 1, d);
       n = (int) ((double) total_glyphs / width * d);
@@ -1776,7 +1776,7 @@ required_matrix_width (struct window *w)
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  return XINT (w->total_cols);
+  return w->total_cols;
 }
 
 
@@ -2114,10 +2114,10 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     /* Set window dimensions to frame dimensions and allocate or
        adjust glyph matrices of W.  */
-    wset_top_line (w, make_number (0));
-    wset_left_col (w, make_number (0));
-    wset_total_lines (w, make_number (FRAME_MENU_BAR_LINES (f)));
-    wset_total_cols (w, make_number (FRAME_TOTAL_COLS (f)));
+    w->top_line = 0;
+    w->left_col = 0;
+    w->total_lines = FRAME_MENU_BAR_LINES (f);
+    w->total_cols = FRAME_TOTAL_COLS (f);
     allocate_matrices_for_window_redisplay (w);
   }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
@@ -2140,10 +2140,10 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
     else
       w = XWINDOW (f->tool_bar_window);
 
-    wset_top_line (w, make_number (FRAME_MENU_BAR_LINES (f)));
-    wset_left_col (w, make_number (0));
-    wset_total_lines (w, make_number (FRAME_TOOL_BAR_LINES (f)));
-    wset_total_cols (w, make_number (FRAME_TOTAL_COLS (f)));
+    w->top_line = FRAME_MENU_BAR_LINES (f);
+    w->left_col = 0;
+    w->total_lines = FRAME_TOOL_BAR_LINES (f);
+    w->total_cols = FRAME_TOTAL_COLS (f);
     allocate_matrices_for_window_redisplay (w);
   }
 #endif
@@ -5583,7 +5583,7 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
 	FrameCols (FRAME_TTY (f)) = newwidth;
 
       if (WINDOWP (f->tool_bar_window))
-	wset_total_cols (XWINDOW (f->tool_bar_window), make_number (newwidth));
+	XWINDOW (f->tool_bar_window)->total_cols = newwidth;
     }
 
   FRAME_LINES (f) = newheight;

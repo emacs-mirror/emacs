@@ -1,5 +1,16 @@
 2013-03-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.h (struct window): Convert left_col, top_line, total_lines
+	and total_cols from Lisp_Objects to integers.  Adjust comments.
+	(wset_left_col, wset_top_line, wset_total_cols, wset_total_lines):
+	Remove.
+	(WINDOW_TOTAL_COLS, WINDOW_TOTAL_LINES, WINDOW_LEFT_EDGE_COL)
+	(WINDOW_TOP_EDGE_LINE): Drop Lisp_Object to integer conversion.
+	* dispnew.c, frame.c, w32fns.c, window.c, xdisp.c, xfns.c:
+	Adjust users where appropriate.
+
+2013-03-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.h (struct frame): Drop resx and resy because the same data is
 	available from window system-specific output context.  Adjust users.
 	(default_pixels_per_inch_x, default_pixels_per_inch_y): New

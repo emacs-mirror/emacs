@@ -155,8 +155,8 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
   struct window *w = XWINDOW (window);
 
   w->last_modified = 0;
-  wset_top_line (w, make_number (XFASTINT (w->top_line) + n));
-  wset_total_lines (w, make_number (XFASTINT (w->total_lines) - n));
+  w->top_line += n;
+  w->total_lines -= n;
 
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
@@ -332,14 +332,14 @@ make_frame (int mini_p)
   SET_FRAME_COLS (f, 10);
   FRAME_LINES (f) = 10;
 
-  wset_total_cols (XWINDOW (root_window), make_number (10));
-  wset_total_lines (XWINDOW (root_window), make_number (mini_p ? 9 : 10));
+  XWINDOW (root_window)->total_cols = 10;
+  XWINDOW (root_window)->total_lines = mini_p ? 9 : 10;
 
   if (mini_p)
     {
-      wset_total_cols (XWINDOW (mini_window), make_number (10));
-      wset_top_line (XWINDOW (mini_window), make_number (9));
-      wset_total_lines (XWINDOW (mini_window), make_number (1));
+      XWINDOW (mini_window)->total_cols = 10;
+      XWINDOW (mini_window)->top_line = 9;
+      XWINDOW (mini_window)->total_lines = 1;
     }
 
   /* Choose a buffer for the frame's root window.  */

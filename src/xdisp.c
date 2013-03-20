@@ -979,7 +979,7 @@ window_text_bottom_y (struct window *w)
 int
 window_box_width (struct window *w, int area)
 {
-  int cols = XFASTINT (w->total_cols);
+  int cols = w->total_cols;
   int pixels = 0;
 
   if (!w->pseudo_window_p)
@@ -29218,13 +29218,13 @@ init_xdisp (void)
 
       echo_area_window = minibuf_window;
 
-      wset_top_line (r, make_number (FRAME_TOP_MARGIN (f)));
-      wset_total_lines
-	(r, make_number (FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f)));
-      wset_total_cols (r, make_number (FRAME_COLS (f)));
-      wset_top_line (m, make_number (FRAME_LINES (f) - 1));
-      wset_total_lines (m, make_number (1));
-      wset_total_cols (m, make_number (FRAME_COLS (f)));
+      r->top_line = FRAME_TOP_MARGIN (f);
+      r->total_lines = FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f);
+      r->total_cols = FRAME_COLS (f);
+
+      m->top_line = FRAME_LINES (f) - 1;
+      m->total_lines = 1;
+      m->total_cols = FRAME_COLS (f);
 
       scratch_glyph_row.glyphs[TEXT_AREA] = scratch_glyphs;
       scratch_glyph_row.glyphs[TEXT_AREA + 1]

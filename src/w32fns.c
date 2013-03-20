@@ -5774,8 +5774,8 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  wset_left_col (w, make_number (0));
-  wset_top_line (w, make_number (0));
+  w->left_col = 0;
+  w->top_line = 0;
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -5783,13 +5783,13 @@ Text larger than the specified size is clipped.  */)
       && INTEGERP (XCDR (Vx_max_tooltip_size))
       && XINT (XCDR (Vx_max_tooltip_size)) > 0)
     {
-      wset_total_cols (w, XCAR (Vx_max_tooltip_size));
-      wset_total_lines (w, XCDR (Vx_max_tooltip_size));
+      w->total_cols = XFASTINT (XCAR (Vx_max_tooltip_size));
+      w->total_lines = XFASTINT (XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      wset_total_cols (w, make_number (80));
-      wset_total_lines (w, make_number (40));
+      w->total_cols = 80;
+      w->total_lines = 40;
     }
 
   FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
@@ -5860,7 +5860,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      wset_total_cols (w, make_number (width));
+      w->total_cols = width;
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       w->pseudo_window_p = 1;
