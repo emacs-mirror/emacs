@@ -151,3 +151,10 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+
+checkin: html
+	p4 reconcile $(BUILDDIR)/html/...
+	p4 reopen -t +w $(BUILDDIR)/html/...
+	if p4 -s opened -m 1 $(BUILDDIR)/html/... | grep -q ^info; then \
+	    p4 submit -d "Updated manual HTML"; \
+	fi
