@@ -516,6 +516,7 @@ Intended as the value of `indent-line-function'."
 
 (defun cfengine-common-syntax (table)
   ;; The syntax defaults seem OK to give reasonable word movement.
+  (modify-syntax-entry ?w "_" table)
   (modify-syntax-entry ?# "<" table)
   (modify-syntax-entry ?\n ">#" table)
   (modify-syntax-entry ?\" "\"" table)  ; "string"
