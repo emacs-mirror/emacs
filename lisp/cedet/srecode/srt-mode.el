@@ -187,7 +187,7 @@ we can tell font lock about them.")
   "Keymap used in srecode mode.")
 
 ;;;###autoload
-(define-derived-mode srecode-template-mode fundamental-mode "SRecorder"
+(define-derived-mode srecode-template-mode fundamental-mode "SRecode"
   "Major-mode for writing SRecode macros."
   (set (make-local-variable 'comment-start) ";;")
   (set (make-local-variable 'comment-end) "")
@@ -232,7 +232,7 @@ we can tell font lock about them.")
   "Provide help for working with macros in a template."
   (interactive)
   (let* ((root 'srecode-template-inserter)
-	 (chl (aref (class-v root) class-children))
+	 (chl (eieio--class-children (class-v root)))
 	 (ess (srecode-template-get-escape-start))
 	 (ees (srecode-template-get-escape-end))
 	 )
@@ -248,7 +248,7 @@ we can tell font lock about them.")
 	       (showexample t)
 	       )
 	  (setq chl (cdr chl))
-	  (setq chl (append (aref (class-v C) class-children) chl))
+	  (setq chl (append (eieio--class-children (class-v C)) chl))
 
 	  (catch 'skip
 	    (when (eq C 'srecode-template-inserter-section-end)

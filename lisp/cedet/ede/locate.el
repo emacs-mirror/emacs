@@ -163,7 +163,7 @@ that created this EDE locate object."
   "Create or update the database for the current project.
 You cannot create projects for the baseclass."
   (error "Cannot create/update a database of type %S"
-	 (object-name loc)))
+	 (eieio-object-name loc)))
 
 ;;; LOCATE
 ;;

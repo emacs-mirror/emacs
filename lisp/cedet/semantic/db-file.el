@@ -44,6 +44,8 @@
 (defcustom semanticdb-default-save-directory
   (locate-user-emacs-file "semanticdb" ".semanticdb")
   "Directory name where semantic cache files are stored.
+By default, it is either ~/.emacs.d/semanticdb, or ~/.semanticdb depending
+on which exists.
 If this value is nil, files are saved in the current directory.  If the value
 is a valid directory, then it overrides `semanticdb-default-file-name' and
 stores caches in a coded file name in this directory."
@@ -316,7 +318,7 @@ Argument OBJ is the object to write."
 	 (data-debug-new-buffer (concat "*SEMANTICDB ERROR*"))
 	 (data-debug-insert-thing obj "*" "")
 	 (setq semanticdb-data-debug-on-write-error nil))
-       (message "Error Writing Table: %s" (object-name obj))
+       (message "Error Writing Table: %s" (eieio-object-name obj))
        (error "%S" (car (cdr tableerror)))))
 
     ;; Clear the dirty bit.

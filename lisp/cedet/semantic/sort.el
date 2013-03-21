@@ -522,7 +522,7 @@ See `semantic-tag-external-member-children' for details."
 	   (semanticdb-minor-mode-p)
 	   (require 'semantic/db-find))
       (let ((m (semanticdb-find-tags-external-children-of-type
-		(semantic-tag-name tag))))
+		(semantic-tag-name tag) tag)))
 	(if m (apply #'append (mapcar #'cdr m))))
     (semantic--find-tags-by-function
      `(lambda (tok)

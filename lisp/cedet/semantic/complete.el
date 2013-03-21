@@ -678,7 +678,8 @@ a reasonable distance."
 	    ;;(message "Inline Hook installed, but overlay deleted.")
 	    (semantic-complete-inline-exit))
 	;; Exit if commands caused us to exit the area of interest
-	(let ((s (semantic-overlay-start semantic-complete-inline-overlay))
+	(let ((os (semantic-overlay-get semantic-complete-inline-overlay 'semantic-original-start))
+	      (s (semantic-overlay-start semantic-complete-inline-overlay))
 	      (e (semantic-overlay-end semantic-complete-inline-overlay))
 	      (b (semantic-overlay-buffer semantic-complete-inline-overlay))
 	      (txt nil)
@@ -686,8 +687,10 @@ a reasonable distance."
 	  (cond
 	   ;; EXIT when we are no longer in a good place.
 	   ((or (not (eq b (current-buffer)))
-		(<= (point) s)
-		(> (point) e))
+		(< (point) s)
+		(< (point) os)
+		(> (point) e)
+		)
 	    ;;(message "Exit: %S %S %S" s e (point))
 	    (semantic-complete-inline-exit)
 	    )
@@ -710,7 +713,6 @@ a reasonable distance."
 	   (t
 	    ;; Else, show completions now
 	    (semantic-complete-inline-force-display)
-
 	    ))))
     ;; If something goes terribly wrong, clean up after ourselves.
     (error (semantic-complete-inline-exit))))
@@ -761,6 +763,10 @@ END is at the end of the current symbol being completed."
   (semantic-overlay-put semantic-complete-inline-overlay
 			'window-config-start
 			(current-window-configuration))
+  ;; Save the original start.  We need to exit completion if START
+  ;; moves.
+  (semantic-overlay-put semantic-complete-inline-overlay
+			'semantic-original-start start)
   ;; Install our command hooks
   (add-hook 'pre-command-hook 'semantic-complete-pre-command-hook)
   (add-hook 'post-command-hook 'semantic-complete-post-command-hook)
@@ -1171,7 +1177,7 @@ These collectors track themselves on a per-buffer basis."
   (let ((old nil)
 	(bl semantic-collector-per-buffer-list))
     (while (and bl (null old))
-      (if (eq (object-class (car bl)) this)
+      (if (eq (eieio-object-class (car bl)) this)
 	  (setq old (car bl))))
     (unless old
       (let ((new (call-next-method)))
@@ -1510,7 +1516,7 @@ one in the source buffer."
 	  (insert (semantic-format-tag-summarize tag nil t) "\n\n")
 	  (when table
 	    (insert "From table: \n")
-	    (insert (object-name table) "\n\n"))
+	    (insert (eieio-object-name table) "\n\n"))
 	  (when buf
 	    (insert "In buffer: \n\n")
 	    (insert (format "%S" buf)))

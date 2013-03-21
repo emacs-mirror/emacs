@@ -26,10 +26,11 @@ set application "ede"
 
 context file
 
-template ede-empty :file
+template ede-empty :file :project
 ----
 # Automatically Generated {{FILE}} by EDE.
 # For use with: {{MAKETYPE}}
+# Relative File Name: {{PROJECT_FILENAME}}
 #
 # DO NOT MODIFY THIS FILE OR YOUR CHANGES MAY BE LOST.
 # EDE is the Emacs Development Environment.

@@ -70,8 +70,7 @@ HEADER - Shown section if in a header file."
       (srecode-dictionary-show-section dict "NOTHEADER"))
 
     ;; Strip out bad characters
-    (while (string-match "\\.\\| " fsym)
-      (setq fsym (replace-match "_" t t fsym)))
+    (setq fsym (replace-regexp-in-string "[^a-zA-Z0-9_]" "_" fsym))
     (srecode-dictionary-set-value dict "FILENAME_SYMBOL" fsym)
     )
   )

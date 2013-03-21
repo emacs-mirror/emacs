@@ -1,3 +1,19 @@
+2013-03-21  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/ede-autoconf.srt: Change Copyright to FSF.
+	(ede-empty): Change AC_INIT to use PROJECT_NAME, and
+	PROJECT_VERSION.
+
+	* srecode/ede-make.srt (ede-empty): Add a dependency on :project.
+	Add header comment specifying the project's relative path.
+
+	* srecode/c.srt (header_guard): Upcase the filename symbol.
+
+2013-03-21  Vladimir Kazanov <vkazanov@inbox.ru>
+
+	* srecode/java.srt (empty-main): New.
+	(class-tag): Decapitalize class.
+
 2013-03-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Add coding tags for iso-2022-7bit files that are not already tagged.

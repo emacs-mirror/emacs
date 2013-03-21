@@ -363,6 +363,9 @@ Return non-nil if the map changed."
 	  (let ((semantic-init-hook nil))
 	    (semantic-new-buffer-fcn))
 	  )
+	;; Force semantic to be enabled in this buffer.
+	(unless (semantic-active-p)
+	  (semantic-new-buffer-fcn))
 
 	(semantic-fetch-tags)
 	(let* ((mode-tag
