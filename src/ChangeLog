@@ -1,3 +1,7 @@
+2013-03-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Remove redundant static declarations.
+
 2013-03-20  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Convert left_col, top_line, total_lines

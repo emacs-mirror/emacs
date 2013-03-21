@@ -323,20 +323,7 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static struct Lisp_Vector *allocate_vectorlike (ptrdiff_t);
-static void lisp_free (void *);
-static void mark_stack (void);
-static bool live_vector_p (struct mem_node *, void *);
-static bool live_buffer_p (struct mem_node *, void *);
-static bool live_string_p (struct mem_node *, void *);
-static bool live_cons_p (struct mem_node *, void *);
-static bool live_symbol_p (struct mem_node *, void *);
-static bool live_float_p (struct mem_node *, void *);
-static bool live_misc_p (struct mem_node *, void *);
-static void mark_maybe_object (Lisp_Object);
-static void mark_memory (void *, void *);
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
-static void mem_init (void);
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
 static void mem_rotate_left (struct mem_node *);
@@ -344,11 +331,6 @@ static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
 static struct mem_node *mem_find (void *);
-#endif
-
-
-#if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
-static void check_gcpros (void);
 #endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
