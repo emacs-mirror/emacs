@@ -839,7 +839,7 @@ Lisp_Object
 save_excursion_save (void)
 {
   return make_save_value
-    ("oooo",
+    (SAVE_TYPE_OBJ_OBJ_OBJ_OBJ,
      Fpoint_marker (),
      /* Do not copy the mark if it points to nowhere.  */
      (XMARKER (BVAR (current_buffer, mark))->buffer
@@ -4241,7 +4241,10 @@ usage: (format STRING &rest OBJECTS)  */)
 	    memcpy (buf, initial_buffer, used);
 	  }
 	else
-	  XSAVE_POINTER (buf_save_value, 0) = buf = xrealloc (buf, bufsize);
+	  {
+	    buf = xrealloc (buf, bufsize);
+	    set_save_pointer (buf_save_value, 0, buf);
+	  }
 
 	p = buf + used;
       }

@@ -1,5 +1,28 @@
 2013-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use functions and constants to manipulate Lisp_Save_Value objects.
+	This replaces code that used macros and strings and token-pasting.
+	The change makes the C source a bit easier to follow,
+	and shrinks the Emacs executable a bit.
+	* alloc.c: Verify some properties of Lisp_Save_Value's representation.
+	(make_save_value): Change 1st arg from string to enum.  All callers
+	changed.
+	(INTX): Remove.
+	(mark_object): Use if, not #if, for GC_MARK_STACK.
+	* lisp.h (SAVE_VALUEP, XSAVE_VALUE, XSAVE_POINTER, XSAVE_INTEGER)
+	(XSAVE_OBJECT): Now functions, not macros.
+	(STRING_BYTES_BOUND): Now just a macro, not a constant too;
+	the constant was never used.
+	(SAVE_SLOT_BITS, SAVE_VALUE_SLOTS, SAVE_TYPE_BITS, SAVE_TYPE_INT_INT)
+	(SAVE_TYPE_INT_INT_INT, SAVE_TYPE_OBJ_OBJ, SAVE_TYPE_OBJ_OBJ_OBJ)
+	(SAVE_TYPE_OBJ_OBJ_OBJ_OBJ, SAVE_TYPE_PTR_INT, SAVE_TYPE_PTR_OBJ)
+	(SAVE_TYPE_PTR_PTR, SAVE_TYPE_PTR_PTR_OBJ, SAVE_TYPE_MEMORY):
+	New constants.
+	(struct Lisp_Save_Value): Replace members area, type0, type1, type2,
+	type3 with a single member save_type.  All uses changed.
+	(save_type, set_save_pointer, set_save_integer): New functions.
+	* print.c (PRINTX): Remove.
+
 	* alloc.c: Remove redundant static declarations.
 
 2013-03-20  Dmitry Antipov  <dmantipov@yandex.ru>

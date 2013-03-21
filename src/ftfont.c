@@ -393,7 +393,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
       cache_data = xmalloc (sizeof *cache_data);
       cache_data->ft_face = NULL;
       cache_data->fc_charset = NULL;
-      val = make_save_value ("pi", cache_data, 0);
+      val = make_save_value (SAVE_TYPE_PTR_INT, cache_data, 0);
       cache = Fcons (Qnil, val);
       Fputhash (key, cache, ft_face_cache);
     }
@@ -1211,7 +1211,7 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	  return Qnil;
 	}
     }
-  XSAVE_INTEGER (val, 1)++;
+  set_save_integer (val, 1, XSAVE_INTEGER (val, 1) + 1);
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
@@ -1326,7 +1326,7 @@ ftfont_close (FRAME_PTR f, struct font *font)
   cache = ftfont_lookup_cache (val, FTFONT_CACHE_FOR_FACE);
   eassert (CONSP (cache));
   val = XCDR (cache);
-  XSAVE_INTEGER (val, 1)--;
+  set_save_integer (val, 1, XSAVE_INTEGER (val, 1) - 1);
   if (XSAVE_INTEGER (val, 1) == 0)
     {
       struct ftfont_cache_data *cache_data = XSAVE_POINTER (val, 0);

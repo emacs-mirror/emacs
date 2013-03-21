@@ -2479,7 +2479,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 #endif
 
   record_unwind_protect (pop_down_menu,
-			 make_save_value ("pp", f, menu));
+			 make_save_value (SAVE_TYPE_PTR_PTR, f, menu));
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */

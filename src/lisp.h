@@ -551,6 +551,12 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
   return num < lower ? lower : num <= upper ? num : upper;
 }
 
+
+/* Forward declarations.  */
+
+LISP_INLINE bool SAVE_VALUEP (Lisp_Object);
+LISP_INLINE struct Lisp_Save_Value *XSAVE_VALUE (Lisp_Object);
+
 /* Extract a value or address from a Lisp_Object.  */
 
 #define XCONS(a)   (eassert (CONSP (a)), \
@@ -571,7 +577,6 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define XMISCTYPE(a)   (XMISCANY (a)->type)
 #define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC (a)->u_marker))
 #define XOVERLAY(a)	(eassert (OVERLAYP (a)), &(XMISC (a)->u_overlay))
-#define XSAVE_VALUE(a)	(eassert (SAVE_VALUEP (a)), &(XMISC (a)->u_save_value))
 
 /* Forwarding object types.  */
 
@@ -781,13 +786,10 @@ extern ptrdiff_t string_bytes (struct Lisp_String *);
    would expose alloc.c internal details that we'd rather keep
    private.
 
-   This is a macro for use in static initializers, and a constant for
-   visibility to GDB.  The cast to ptrdiff_t ensures that
-   the macro is signed.  */
-static ptrdiff_t const STRING_BYTES_BOUND =
+   This is a macro for use in static initializers.  The cast to
+   ptrdiff_t ensures that the macro is signed.  */
 #define STRING_BYTES_BOUND  \
   ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1))
-	STRING_BYTES_BOUND;
 
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \
@@ -1392,6 +1394,35 @@ enum
     SAVE_OBJECT
   };
 
+/* Number of bits needed to store one of the above values.  */
+enum { SAVE_SLOT_BITS = 2 };
+
+/* Number of slots in a save value where save_type is nonzero.  */
+enum { SAVE_VALUE_SLOTS = 4 };
+
+/* Bit-width and values for struct Lisp_Save_Value's save_type member.  */
+
+enum { SAVE_TYPE_BITS = SAVE_VALUE_SLOTS * SAVE_SLOT_BITS + 1 };
+
+enum Lisp_Save_Type
+  {
+    SAVE_TYPE_INT_INT = SAVE_INTEGER + (SAVE_INTEGER << SAVE_SLOT_BITS),
+    SAVE_TYPE_INT_INT_INT
+      = (SAVE_INTEGER + (SAVE_TYPE_INT_INT << SAVE_SLOT_BITS)),
+    SAVE_TYPE_OBJ_OBJ = SAVE_OBJECT + (SAVE_OBJECT << SAVE_SLOT_BITS),
+    SAVE_TYPE_OBJ_OBJ_OBJ = SAVE_OBJECT + (SAVE_TYPE_OBJ_OBJ << SAVE_SLOT_BITS),
+    SAVE_TYPE_OBJ_OBJ_OBJ_OBJ
+      = SAVE_OBJECT + (SAVE_TYPE_OBJ_OBJ_OBJ << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_INT = SAVE_POINTER + (SAVE_INTEGER << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_OBJ = SAVE_POINTER + (SAVE_OBJECT << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_PTR = SAVE_POINTER + (SAVE_POINTER << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_PTR_OBJ
+      = SAVE_POINTER + (SAVE_TYPE_PTR_OBJ << SAVE_SLOT_BITS),
+
+    /* This has an extra bit indicating it's raw memory.  */
+    SAVE_TYPE_MEMORY = SAVE_TYPE_PTR_INT + (1 << (SAVE_TYPE_BITS - 1))
+  };
+
 /* Special object used to hold a different values for later use.
 
    This is mostly used to package C integers and pointers to call
@@ -1412,73 +1443,96 @@ enum
 
    If yon need to pass more than just one C pointer, you should
    use make_save_value.  This function allows you to pack up to
-   4 integers, pointers or Lisp_Objects and conveniently get them
-   back with XSAVE_POINTER, XSAVE_INTEGER and XSAVE_OBJECT macros:
+   SAVE_VALUE_SLOTS integers, pointers or Lisp_Objects and
+   conveniently get them back with XSAVE_POINTER, XSAVE_INTEGER and
+   XSAVE_OBJECT macros:
 
    ...
      struct my_data *md = get_my_data ();
-     ptrdiff_t my_offset = get_my_offset ();
      Lisp_Object my_object = get_my_object ();
      record_unwind_protect
-       (my_unwind, make_save_value ("pio", md, my_offset, my_object));
+       (my_unwind, make_save_value (SAVE_TYPE_PTR_OBJ, md, my_object));
    ...
 
    Lisp_Object my_unwind (Lisp_Object arg)
    {
      struct my_data *md = XSAVE_POINTER (arg, 0);
-     ptrdiff_t my_offset = XSAVE_INTEGER (arg, 1);
-     Lisp_Object my_object = XSAVE_OBJECT (arg, 2);
+     Lisp_Object my_object = XSAVE_OBJECT (arg, 1);
      ...
    }
 
    If ENABLE_CHECKING is in effect, XSAVE_xxx macros do type checking of the
    saved objects and raise eassert if type of the saved object doesn't match
    the type which is extracted.  In the example above, XSAVE_INTEGER (arg, 2)
-   or XSAVE_OBJECT (arg, 1) are wrong because integer was saved in slot 1 and
-   Lisp_Object was saved in slot 2 of ARG.  */
+   or XSAVE_OBJECT (arg, 0) are wrong because nothing was saved in slot 2 and
+   Lisp_Object was saved in slot 1 of ARG.  */
 
 struct Lisp_Save_Value
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 6;
-    /* If `area' is nonzero, `data[0].pointer' is the address of a memory area
-       containing `data[1].integer' potential Lisp_Objects.  The rest of `data'
-       fields are unused.  */
-    unsigned area : 1;
-    /* If `area' is zero, `data[N]' may hold different objects which type is
-       encoded in `typeN' fields as described by the anonymous enum above.
-       E.g. if `type0' is SAVE_INTEGER, `data[0].integer' is in use.  */
-    unsigned type0 : 2;
-    unsigned type1 : 2;
-    unsigned type2 : 2;
-    unsigned type3 : 2;
+    int spacer : 32 - (16 + 1 + SAVE_TYPE_BITS);
+
+    /* DATA[N] may hold up to SAVE_VALUE_SLOTS entries.  The type of
+       V's Ith entry is given by save_type (V, I).  E.g., if save_type
+       (V, 3) == SAVE_INTEGER, V->data[3].integer is in use.
+
+       If SAVE_TYPE == SAVE_TYPE_MEMORY, DATA[0].pointer is the address of
+       a memory area containing DATA[1].integer potential Lisp_Objects.  */
+    ENUM_BF (Lisp_Save_Type) save_type : SAVE_TYPE_BITS;
     union {
       void *pointer;
       ptrdiff_t integer;
       Lisp_Object object;
-    } data[4];
+    } data[SAVE_VALUE_SLOTS];
   };
 
-/* Macro to set and extract Nth saved pointer.  Type
-   checking is ugly because it's used as an lvalue.  */
+/* Return the type of V's Nth saved value.  */
+LISP_INLINE int
+save_type (struct Lisp_Save_Value *v, int n)
+{
+  eassert (0 <= n && n < SAVE_VALUE_SLOTS);
+  return (v->save_type >> (SAVE_SLOT_BITS * n) & ((1 << SAVE_SLOT_BITS) - 1));
+}
 
-#define XSAVE_POINTER(obj, n)					\
-  XSAVE_VALUE (obj)->data[(eassert (XSAVE_VALUE (obj)->type	\
-    ## n == SAVE_POINTER), n)].pointer
+/* Get and set the Nth saved pointer.  */
+
+LISP_INLINE void *
+XSAVE_POINTER (Lisp_Object obj, int n)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_POINTER);
+  return XSAVE_VALUE (obj)->data[n].pointer;;
+}
+LISP_INLINE void
+set_save_pointer (Lisp_Object obj, int n, void *val)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_POINTER);
+  XSAVE_VALUE (obj)->data[n].pointer = val;
+}
 
 /* Likewise for the saved integer.  */
 
-#define XSAVE_INTEGER(obj, n)					\
-  XSAVE_VALUE (obj)->data[(eassert (XSAVE_VALUE (obj)->type	\
-    ## n == SAVE_INTEGER), n)].integer
+LISP_INLINE ptrdiff_t
+XSAVE_INTEGER (Lisp_Object obj, int n)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_INTEGER);
+  return XSAVE_VALUE (obj)->data[n].integer;
+}
+LISP_INLINE void
+set_save_integer (Lisp_Object obj, int n, ptrdiff_t val)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_INTEGER);
+  XSAVE_VALUE (obj)->data[n].integer = val;
+}
 
-/* Macro to extract Nth saved object.  This is never used as
-   an lvalue, so we can do more convenient type checking.  */
+/* Extract Nth saved object.  */
 
-#define XSAVE_OBJECT(obj, n)					\
-  (eassert (XSAVE_VALUE (obj)->type ## n == SAVE_OBJECT),	\
-   XSAVE_VALUE (obj)->data[n].object)
+LISP_INLINE Lisp_Object
+XSAVE_OBJECT (Lisp_Object obj, int n)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_OBJECT);
+  return XSAVE_VALUE (obj)->data[n].object;
+}
 
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
@@ -1500,6 +1554,13 @@ union Lisp_Misc
     struct Lisp_Overlay u_overlay;
     struct Lisp_Save_Value u_save_value;
   };
+
+LISP_INLINE struct Lisp_Save_Value *
+XSAVE_VALUE (Lisp_Object a)
+{
+  eassert (SAVE_VALUEP (a));
+  return & XMISC (a)->u_save_value;
+}
 
 /* Forwarding pointer to an int variable.
    This is allowed only in the value cell of a symbol,
@@ -1786,7 +1847,12 @@ typedef struct {
 #define VECTORP(x) (VECTORLIKEP (x) && !(ASIZE (x) & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
-#define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
+
+LISP_INLINE bool
+SAVE_VALUEP (Lisp_Object x)
+{
+  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value;
+}
 
 #define AUTOLOADP(x) (CONSP (x) && EQ (Qautoload, XCAR (x)))
 
@@ -3105,7 +3171,7 @@ extern bool abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
-extern Lisp_Object make_save_value (const char *, ...);
+extern Lisp_Object make_save_value (enum Lisp_Save_Type, ...);
 extern Lisp_Object make_save_pointer (void *);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_marker (Lisp_Object);
@@ -3822,8 +3888,7 @@ extern void *record_xmalloc (size_t);
       {							       \
 	Lisp_Object arg_;				       \
 	buf = xmalloc ((nelt) * word_size);		       \
-	arg_ = make_save_value ("pi", buf, nelt);	       \
-	XSAVE_VALUE (arg_)->area = 1;			       \
+	arg_ = make_save_value (SAVE_TYPE_MEMORY, buf, nelt);  \
 	sa_must_free = 1;				       \
 	record_unwind_protect (safe_alloca_unwind, arg_);      \
       }							       \

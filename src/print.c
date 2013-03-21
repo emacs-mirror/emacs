@@ -2042,17 +2042,15 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 	    strout ("#<save-value ", -1, -1, printcharfun);
 
-	    if (v->area)
+	    if (v->save_type == SAVE_TYPE_MEMORY)
 	      {
 		ptrdiff_t amount = v->data[1].integer;
 
 #if GC_MARK_STACK
 
-		/* If GC_MARK_STACK, valid_lisp_object_p is quite reliable,
-		   and so we try to print up to 8 objects we have saved.
-		   Although valid_lisp_object_p is slow, this shouldn't be
-		   a real bottleneck because we do not use this code under
-		   normal circumstances.  */
+		/* valid_lisp_object_p is reliable, so try to print up
+		   to 8 saved objects.  This code is rarely used, so
+		   it's OK that valid_lisp_object_p is slow.  */
 
 		int limit = min (amount, 8);
 		Lisp_Object *area = v->data[0].pointer;
@@ -2077,9 +2075,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 #else /* not GC_MARK_STACK */
 
-		/* If !GC_MARK_STACK, we have no reliable way to find
-		   whether Lisp_Object pointers points to an initialized
-		   objects, and so we do not ever trying to print them.  */
+		/* There is no reliable way to determine whether the objects
+		   are initialized, so do not try to print them.  */
 
 		i = sprintf (buf, "with %"pD"d objects", amount);
 		strout (buf, i, i, printcharfun);
@@ -2088,33 +2085,37 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      }
 	    else
 	      {
-		/* Print each `data[N]' slot according to its type.  */
+		/* Print each slot according to its type.  */
+		int index;
+		for (index = 0; index < SAVE_VALUE_SLOTS; index++)
+		  {
+		    if (index)
+		      PRINTCHAR (' ');
 
-#define PRINTX(index)							\
-  do {									\
-    i = 0;								\
-    if (v->type ## index == SAVE_UNUSED)				\
-      i = sprintf (buf, "<unused>");					\
-    else if (v->type ## index == SAVE_INTEGER)				\
-      i = sprintf (buf, "<integer %"pD"d>", v->data[index].integer);	\
-    else if (v->type ## index == SAVE_POINTER)				\
-      i = sprintf (buf, "<pointer %p>", v->data[index].pointer);	\
-    else /* SAVE_OBJECT */						\
-      print_object (v->data[index].object, printcharfun, escapeflag);	\
-    if (i)								\
-      strout (buf, i, i, printcharfun);					\
-  } while (0)
+		    switch (save_type (v, index))
+		      {
+		      case SAVE_UNUSED:
+			i = sprintf (buf, "<unused>");
+			break;
 
-		PRINTX (0);
-		PRINTCHAR (' ');
-		PRINTX (1);
-		PRINTCHAR (' ');
-		PRINTX (2);
-		PRINTCHAR (' ');
-		PRINTX (3);
+		      case SAVE_POINTER:
+			i = sprintf (buf, "<pointer %p>",
+				     v->data[index].pointer);
+			break;
 
-#undef PRINTX
+		      case SAVE_INTEGER:
+			i = sprintf (buf, "<integer %"pD"d>",
+				     v->data[index].integer);
+			break;
 
+		      case SAVE_OBJECT:
+			print_object (v->data[index].object, printcharfun,
+				      escapeflag);
+			continue;
+		      }
+
+		    strout (buf, i, i, printcharfun);
+		  }
 	      }
 	    PRINTCHAR ('>');
 	  }
