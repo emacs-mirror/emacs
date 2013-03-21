@@ -1,3 +1,9 @@
+2013-03-21  Kenichi Handa  <handa@gnu.org>
+
+	* coding.c (syms_of_coding): Cancel previous change.
+
+	* insdel.c (insert_from_gap): Fix previous change.
+
 2013-03-20  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (syms_of_coding): Initialize disable_ascii_optimization
