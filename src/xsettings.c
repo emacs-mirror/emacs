@@ -673,19 +673,14 @@ apply_xft_settings (struct x_display_info *dpyinfo,
   if ((settings->seen & SEEN_DPI) != 0 && oldsettings.dpi != settings->dpi
       && settings->dpi > 0)
     {
-      Lisp_Object frame, tail;
-
       FcPatternDel (pat, FC_DPI);
       FcPatternAddDouble (pat, FC_DPI, settings->dpi);
       ++changed;
       oldsettings.dpi = settings->dpi;
 
-      /* Change the DPI on this display and all frames on the display.  */
+      /* Changing the DPI on this display affects all frames on it.
+	 Check FRAME_RES_X and FRAME_RES_Y in frame.h to see how.  */
       dpyinfo->resy = dpyinfo->resx = settings->dpi;
-      FOR_EACH_FRAME (tail, frame)
-        if (FRAME_X_P (XFRAME (frame))
-            && FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
-          XFRAME (frame)->resy = XFRAME (frame)->resx = settings->dpi;
     }
 
   if (changed)

@@ -8554,10 +8554,10 @@ gs_load (struct frame *f, struct image *img)
      info.  */
   pt_width = image_spec_value (img->spec, QCpt_width, NULL);
   in_width = INTEGERP (pt_width) ? XFASTINT (pt_width) / 72.0 : 0;
-  in_width *= FRAME_X_DISPLAY_INFO (f)->resx;
+  in_width *= FRAME_RES_X (f);
   pt_height = image_spec_value (img->spec, QCpt_height, NULL);
   in_height = INTEGERP (pt_height) ? XFASTINT (pt_height) / 72.0 : 0;
-  in_height *= FRAME_X_DISPLAY_INFO (f)->resy;
+  in_height *= FRAME_RES_Y (f);
 
   if (! (in_width <= INT_MAX && in_height <= INT_MAX
 	 && check_image_size (f, in_width, in_height)))

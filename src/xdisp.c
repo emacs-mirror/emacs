@@ -979,7 +979,7 @@ window_text_bottom_y (struct window *w)
 int
 window_box_width (struct window *w, int area)
 {
-  int cols = XFASTINT (w->total_cols);
+  int cols = w->total_cols;
   int pixels = 0;
 
   if (!w->pseudo_window_p)
@@ -22082,11 +22082,6 @@ else if the text is replaced by an ellipsis.  */)
 
 */
 
-#define NUMVAL(X)				\
-     ((INTEGERP (X) || FLOATP (X))		\
-      ? XFLOATINT (X)				\
-      : - 1)
-
 static int
 calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 			    struct font *font, int width_p, int *align_to)
@@ -22117,24 +22112,11 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	    pixels = 0;
 	  if (pixels > 0)
 	    {
-	      double ppi;
-#ifdef HAVE_WINDOW_SYSTEM
-	      if (FRAME_WINDOW_P (it->f)
-		  && (ppi = (width_p
-			     ? FRAME_X_DISPLAY_INFO (it->f)->resx
-			     : FRAME_X_DISPLAY_INFO (it->f)->resy),
-		      ppi > 0))
-		return OK_PIXELS (ppi / pixels);
-#endif
+	      double ppi = (width_p ? FRAME_RES_X (it->f)
+			    : FRAME_RES_Y (it->f));
 
-	      if ((ppi = NUMVAL (Vdisplay_pixels_per_inch), ppi > 0)
-		  || (CONSP (Vdisplay_pixels_per_inch)
-		      && (ppi = (width_p
-				 ? NUMVAL (XCAR (Vdisplay_pixels_per_inch))
-				 : NUMVAL (XCDR (Vdisplay_pixels_per_inch))),
-			  ppi > 0)))
+	      if (ppi > 0)
 		return OK_PIXELS (ppi / pixels);
-
 	      return 0;
 	    }
 	}
@@ -29236,13 +29218,13 @@ init_xdisp (void)
 
       echo_area_window = minibuf_window;
 
-      wset_top_line (r, make_number (FRAME_TOP_MARGIN (f)));
-      wset_total_lines
-	(r, make_number (FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f)));
-      wset_total_cols (r, make_number (FRAME_COLS (f)));
-      wset_top_line (m, make_number (FRAME_LINES (f) - 1));
-      wset_total_lines (m, make_number (1));
-      wset_total_cols (m, make_number (FRAME_COLS (f)));
+      r->top_line = FRAME_TOP_MARGIN (f);
+      r->total_lines = FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f);
+      r->total_cols = FRAME_COLS (f);
+
+      m->top_line = FRAME_LINES (f) - 1;
+      m->total_lines = 1;
+      m->total_cols = FRAME_COLS (f);
 
       scratch_glyph_row.glyphs[TEXT_AREA] = scratch_glyphs;
       scratch_glyph_row.glyphs[TEXT_AREA + 1]
