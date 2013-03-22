@@ -512,9 +512,14 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* 1 if W is a menu bar window.  */
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #define WINDOW_MENU_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->menu_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->menu_bar_window))
+#else
+/* No menu bar windows if X toolkit is in use.  */
+#define WINDOW_MENU_BAR_P(W) (0)
+#endif
 
 /* 1 if W is a tool bar window.  */
 

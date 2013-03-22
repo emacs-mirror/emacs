@@ -794,11 +794,13 @@ clear_current_matrices (register struct frame *f)
   if (f->current_matrix)
     clear_glyph_matrix (f->current_matrix);
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* Clear the matrix of the menu bar window, if such a window exists.
      The menu bar window is currently used to display menus on X when
      no toolkit support is compiled in.  */
   if (WINDOWP (f->menu_bar_window))
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
+#endif
 
   /* Clear the matrix of the tool-bar window, if any.  */
   if (WINDOWP (f->tool_bar_window))
@@ -818,8 +820,10 @@ clear_desired_matrices (register struct frame *f)
   if (f->desired_matrix)
     clear_glyph_matrix (f->desired_matrix);
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   if (WINDOWP (f->menu_bar_window))
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->desired_matrix);
+#endif
 
   if (WINDOWP (f->tool_bar_window))
     clear_glyph_matrix (XWINDOW (f->tool_bar_window)->desired_matrix);
@@ -2184,6 +2188,7 @@ free_glyphs (struct frame *f)
       if (!NILP (f->root_window))
         free_window_matrices (XWINDOW (f->root_window));
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
       /* Free the dummy window for menu bars without X toolkit and its
 	 glyph matrices.  */
       if (!NILP (f->menu_bar_window))
@@ -2194,6 +2199,7 @@ free_glyphs (struct frame *f)
 	  w->desired_matrix = w->current_matrix = NULL;
 	  fset_menu_bar_window (f, Qnil);
 	}
+#endif
 
       /* Free the tool bar window and its glyph matrices.  */
       if (!NILP (f->tool_bar_window))
@@ -3092,10 +3098,12 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 	 when pending input is detected.  */
       update_begin (f);
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
       /* Update the menu bar on X frames that don't have toolkit
 	 support.  */
       if (WINDOWP (f->menu_bar_window))
 	update_window (XWINDOW (f->menu_bar_window), 1);
+#endif
 
       /* Update the tool-bar window, if present.  */
       if (WINDOWP (f->tool_bar_window))

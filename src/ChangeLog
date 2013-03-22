@@ -1,3 +1,15 @@
+2013-03-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame): Put menu_bar_window under #ifdef
+	because this member is not needed when X toolkit is in use.
+	(fset_menu_bar_window):
+	* dispnew.c (clear_current_matrices, clear_desired_matrices)
+	(free_glyphs, update_frame):
+	* xdisp.c (expose_frame): Likewise.
+	(display_menu_bar): Likewise.  Remove redundant eassert.
+	* window.h (WINDOW_MENU_BAR_P): Always define to 0 if X
+	toolkit is in use.
+
 2013-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use functions and constants to manipulate Lisp_Save_Value objects.
