@@ -1,3 +1,11 @@
+2013-03-22  Ken Brown  <kbrown@cornell.edu>
+
+	* unexcw.c: Drop unneeded inclusion of w32common.h.
+	(report_sheap_usage): Declare.
+	(read_exe_header): Add magic numbers for x86_64.
+	(fixup_executable): Fix printf format specifier for unsigned long
+	argument.
+
 2013-03-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.h (struct frame): Put menu_bar_window under #ifdef
