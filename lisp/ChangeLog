@@ -1,3 +1,9 @@
+2013-03-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Update docs to mention
+	`cfengine-auto-mode'.  Use \_> and \_< instead of \> and \< for
+	symbol motion.  Remove "_" from the word syntax.
+
 2013-03-21  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/cfengine.el (cfengine-common-syntax): Add "_" to word
