@@ -155,15 +155,16 @@ part of the preprocessor map.")
 		      ;; not be in a buffer.
 		      (semanticdb-refresh-table table t)
 		    (error (message "Error updating tables for %S"
-				    (object-name table)))))
+				    (eieio-object-name table)))))
 		(setq filemap (append filemap (oref table lexical-table)))
-		;; Update symbol obarray
-		(setq-mode-local c-mode
-				 semantic-lex-spp-macro-symbol-obarray
-				 (semantic-lex-make-spp-table
-				  (append semantic-lex-c-preprocessor-symbol-map-builtin
-					  semantic-lex-c-preprocessor-symbol-map
-					  filemap)))))))))))
+		)))))
+      ;; Update symbol obarray
+      (setq-mode-local c-mode
+		       semantic-lex-spp-macro-symbol-obarray
+		       (semantic-lex-make-spp-table
+			(append semantic-lex-c-preprocessor-symbol-map-builtin
+				semantic-lex-c-preprocessor-symbol-map
+				filemap))))))
 
 ;; Make sure the preprocessor symbols are set up when mode-local kicks
 ;; in.
@@ -1946,15 +1947,17 @@ have to be wrapped in that namespace."
   "Do what `semantic-get-local-variables' does, plus add `this' if needed."
   (let* ((origvar (semantic-get-local-variables-default))
 	 (ct (semantic-current-tag))
-	 (p (semantic-tag-function-parent ct)))
+	 (p (when (semantic-tag-of-class-p ct 'function)
+	      (or (semantic-tag-function-parent ct)
+		  (car-safe (semantic-find-tags-by-type
+			     "class" (semantic-find-tag-by-overlay)))))))
     ;; If we have a function parent, then that implies we can
-    (if (and p (semantic-tag-of-class-p ct 'function))
-	;; Append a new tag THIS into our space.
-	(cons (semantic-tag-new-variable "this" p nil)
+    (if p
+ 	;; Append a new tag THIS into our space.
+	(cons (semantic-tag-new-variable "this" p nil :pointer 1)
 	      origvar)
       ;; No parent, just return the usual
-      origvar)
-    ))
+      origvar)))
 
 (define-mode-local-override semantic-idle-summary-current-symbol-info
   c-mode ()
@@ -2151,14 +2154,18 @@ actually in their parent which is not accessible.")
 	  (princ "\n")))
 
       (princ "\n\nMacro Summary:\n")
+
       (when semantic-lex-c-preprocessor-symbol-file
-	(princ "\n  Your CPP table is primed from these files:\n")
+	(princ "\n  Your CPP table is primed from these system files:\n")
 	(dolist (file semantic-lex-c-preprocessor-symbol-file)
 	  (princ "    ")
 	  (princ file)
 	  (princ "\n")
 	  (princ "    in table: ")
-	  (princ (object-print (semanticdb-file-table-object file)))
+	  (let ((fto (semanticdb-file-table-object file)))
+	    (if fto
+		(princ (object-print fto))
+	      (princ "No Table")))
 	  (princ "\n")
 	  ))
 
@@ -2173,7 +2180,7 @@ actually in their parent which is not accessible.")
 	  ))
 
       (when semantic-lex-c-preprocessor-symbol-map
-	(princ "\n  User symbol map:\n")
+	(princ "\n  User symbol map (primed from system files):\n")
 	(dolist (S semantic-lex-c-preprocessor-symbol-map)
 	  (princ "    ")
 	  (princ (car S))
@@ -2183,25 +2190,27 @@ actually in their parent which is not accessible.")
 	  ))
 
       (when (and (boundp 'ede-object)
-		 ede-object
-		 (arrayp semantic-lex-spp-project-macro-symbol-obarray))
+		 ede-object)
 	(princ "\n  Project symbol map:\n")
 	(when (and (boundp 'ede-object) ede-object)
-	  (princ "      Your project symbol map is derived from the EDE object:\n      ")
+	  (princ "      Your project symbol map is also derived from the EDE object:\n      ")
 	  (princ (object-print ede-object)))
 	(princ "\n\n")
-	(let ((macros nil))
-	  (mapatoms
-	   #'(lambda (symbol)
-	       (setq macros (cons symbol macros)))
-	   semantic-lex-spp-project-macro-symbol-obarray)
-	  (dolist (S macros)
-	    (princ "    ")
-	    (princ (symbol-name S))
-	    (princ " = ")
-	    (princ (symbol-value S))
-	    (princ "\n")
-	    )))
+	(if (arrayp semantic-lex-spp-project-macro-symbol-obarray)
+	    (let ((macros nil))
+	      (mapatoms
+	       #'(lambda (symbol)
+		   (setq macros (cons symbol macros)))
+	       semantic-lex-spp-project-macro-symbol-obarray)
+	      (dolist (S macros)
+		(princ "    ")
+		(princ (symbol-name S))
+		(princ " = ")
+		(princ (symbol-value S))
+		(princ "\n")
+		))
+	  ;; Else, not map
+	  (princ "    No Symbols.\n")))
 
       (princ "\n\n  Use: M-x semantic-lex-spp-describe RET\n")
       (princ "\n  to see the complete macro table.\n")

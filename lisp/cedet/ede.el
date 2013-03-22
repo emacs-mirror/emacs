@@ -330,14 +330,14 @@ Argument MENU-DEF is the menu definition to use."
    (easy-menu-create-menu
     "Project Forms"
     (let* ((obj (ede-current-project))
-	   (class (if obj (object-class obj)))
+	   (class (if obj (eieio-object-class obj)))
 	   (menu nil))
       (condition-case err
 	  (progn
 	    (while (and class (slot-exists-p class 'menu))
 	      ;;(message "Looking at class %S" class)
 	      (setq menu (append menu (oref class menu))
-		    class (class-parent class))
+		    class (eieio-class-parent class))
 	      (if (listp class) (setq class (car class))))
 	    (append
 	     '( [ "Add Target" ede-new-target (ede-current-project) ]
@@ -382,7 +382,7 @@ but can also be used interactively."
 			    (oref proj configuration-default)))))
   (oset (ede-current-project) configuration-default newconfig)
   (message "%s will now build in %s mode."
-	   (object-name (ede-current-project))
+	   (eieio-object-name (ede-current-project))
 	   newconfig))
 
 (defun ede-customize-forms-menu (menu-def)
@@ -727,7 +727,7 @@ Optional argument NAME is the name to give this project."
 			   'name
 			   (let* ((l ede-project-class-files)
 				  (cp (ede-current-project))
-				  (cs (when cp (object-class cp)))
+				  (cs (when cp (eieio-object-class cp)))
 				  (r nil))
 			     (while l
 			       (if cs
@@ -779,7 +779,7 @@ Optional argument NAME is the name to give this project."
 				:targets nil)))
 	 (inits (oref obj initializers)))
     ;; Force the name to match for new objects.
-    (object-set-name-string nobj (oref nobj :name))
+    (eieio-object-set-name-string nobj (oref nobj :name))
     ;; Handle init args.
     (while inits
       (eieio-oset nobj (car inits) (car (cdr inits)))
@@ -885,7 +885,7 @@ a string \"y\" or \"n\", which answers the y/n question done interactively."
   (when (not ede-object)
     (error "Can't add %s to target %s: Wrong file type"
 	   (file-name-nondirectory (buffer-file-name))
-	   (object-name target)))
+	   (eieio-object-name target)))
   (ede-apply-target-options))
 
 (defun ede-remove-file (&optional force)
@@ -979,12 +979,12 @@ Argument PROMPT is the prompt to use when querying the user for a target."
 (defmethod project-add-file ((ot ede-target) file)
   "Add the current buffer into project project target OT.
 Argument FILE is the file to add."
-  (error "add-file not supported by %s" (object-name ot)))
+  (error "add-file not supported by %s" (eieio-object-name ot)))
 
 (defmethod project-remove-file ((ot ede-target) fnnd)
   "Remove the current buffer from project target OT.
 Argument FNND is an argument."
-  (error "remove-file not supported by %s" (object-name ot)))
+  (error "remove-file not supported by %s" (eieio-object-name ot)))
 
 (defmethod project-edit-file-target ((ot ede-target))
   "Edit the target OT associated with this file."
@@ -992,45 +992,45 @@ Argument FNND is an argument."
 
 (defmethod project-new-target ((proj ede-project) &rest args)
   "Create a new target.  It is up to the project PROJ to get the name."
-  (error "new-target not supported by %s" (object-name proj)))
+  (error "new-target not supported by %s" (eieio-object-name proj)))
 
 (defmethod project-new-target-custom ((proj ede-project))
   "Create a new target.  It is up to the project PROJ to get the name."
-  (error "New-target-custom not supported by %s" (object-name proj)))
+  (error "New-target-custom not supported by %s" (eieio-object-name proj)))
 
 (defmethod project-delete-target ((ot ede-target))
   "Delete the current target OT from its parent project."
-  (error "add-file not supported by %s" (object-name ot)))
+  (error "add-file not supported by %s" (eieio-object-name ot)))
 
 (defmethod project-compile-project ((obj ede-project) &optional command)
   "Compile the entire current project OBJ.
 Argument COMMAND is the command to use when compiling."
-  (error "compile-project not supported by %s" (object-name obj)))
+  (error "compile-project not supported by %s" (eieio-object-name obj)))
 
 (defmethod project-compile-target ((obj ede-target) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
-  (error "compile-target not supported by %s" (object-name obj)))
+  (error "compile-target not supported by %s" (eieio-object-name obj)))
 
 (defmethod project-debug-target ((obj ede-target))
   "Run the current project target OBJ in a debugger."
-  (error "debug-target not supported by %s" (object-name obj)))
+  (error "debug-target not supported by %s" (eieio-object-name obj)))
 
 (defmethod project-run-target ((obj ede-target))
   "Run the current project target OBJ."
-  (error "run-target not supported by %s" (object-name obj)))
+  (error "run-target not supported by %s" (eieio-object-name obj)))
 
 (defmethod project-make-dist ((this ede-project))
   "Build a distribution for the project based on THIS project."
-  (error "Make-dist not supported by %s" (object-name this)))
+  (error "Make-dist not supported by %s" (eieio-object-name this)))
 
 (defmethod project-dist-files ((this ede-project))
   "Return a list of files that constitute a distribution of THIS project."
-  (error "Dist-files is not supported by %s" (object-name this)))
+  (error "Dist-files is not supported by %s" (eieio-object-name this)))
 
 (defmethod project-rescan ((this ede-project))
   "Rescan the EDE project THIS."
-  (error "Rescanning a project is not supported by %s" (object-name this)))
+  (error "Rescanning a project is not supported by %s" (eieio-object-name this)))
 
 (defun ede-ecb-project-paths ()
   "Return a list of all paths for all active EDE projects.
@@ -1157,18 +1157,15 @@ Optional argument OBJ is an object to find the parent of."
 (defun ede-current-project (&optional dir)
   "Return the current project file.
 If optional DIR is provided, get the project for DIR instead."
-  (let ((ans nil))
-    ;; If it matches the current directory, do we have a pre-existing project?
-    (when (and (or (not dir) (string= dir default-directory))
-	       ede-object-project)
-      (setq ans ede-object-project)
-      )
+  ;; If it matches the current directory, do we have a pre-existing project?
+  (let ((proj (when (and (or (not dir) (string= dir default-directory))
+			ede-object-project)
+	        ede-object-project)))
     ;; No current project.
-    (when (not ans)
+    (if proj
+	proj
       (let* ((ldir (or dir default-directory)))
-	(setq ans (ede-directory-get-open-project ldir))))
-    ;; Return what we found.
-    ans))
+	(ede-directory-get-open-project ldir)))))
 
 (defun ede-buffer-object (&optional buffer projsym)
   "Return the target object for BUFFER.
@@ -1372,20 +1369,24 @@ and <root>/doc for doc sources."
 ;; C/C++
 (defun ede-apply-preprocessor-map ()
   "Apply preprocessor tables onto the current buffer."
+  ;; TODO - what if semantic-mode isn't enabled?
+  ;; what if we never want to load a C mode? Does this matter?
+  ;; Note: This require is needed for the case where EDE ends up
+  ;; in the hook order before Semantic based hooks.
+  (require 'semantic/lex-spp)
   (when (and ede-object
-	     (boundp 'semantic-lex-spp-macro-symbol-obarray)
-	     semantic-lex-spp-macro-symbol-obarray)
+	     (boundp 'semantic-lex-spp-project-macro-symbol-obarray))
     (let* ((objs ede-object)
 	   (map (ede-preprocessor-map (if (consp objs)
 					  (car objs)
 					objs))))
       (when map
 	;; We can't do a require for the below symbol.
-	(setq semantic-lex-spp-macro-symbol-obarray
+	(setq semantic-lex-spp-project-macro-symbol-obarray
 	      (semantic-lex-make-spp-table map)))
       (when (consp objs)
 	(message "Choosing preprocessor syms for project %s"
-		 (object-name (car objs)))))))
+		 (eieio-object-name (car objs)))))))
 
 (defmethod ede-system-include-path ((this ede-project))
   "Get the system include path used by project THIS."

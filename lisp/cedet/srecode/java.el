@@ -42,9 +42,24 @@ FILENAME_AS_CLASS - file converted to a Java class name."
 	 )
     (while (string-match "\\.\\| " fpak)
       (setq fpak (replace-match "_" t t fpak)))
-    (if (string-match "src/" dir)
-	(setq dir (substring dir (match-end 0)))
-      (setq dir (file-name-nondirectory (directory-file-name dir))))
+    ;; We can extract package from:
+    ;; 1) a java EDE project source paths,
+    (cond ((ede-current-project)
+           (let* ((proj (ede-current-project))
+                  (pths (ede-source-paths proj 'java-mode))
+                  (pth)
+                  (res))
+             (while (and (not res)
+                         (setq pth (expand-file-name (car pths))))
+               (when (string-match pth dir)
+                 (setq res (substring dir (match-end 0))))
+               (setq pths (cdr pths)))
+             (setq dir res)))
+          ;; 2) a simple heuristic
+          ((string-match "src/" dir)
+           (setq dir (substring dir (match-end 0))))
+          ;; 3) outer directory as a fallback
+          (t (setq dir (file-name-nondirectory (directory-file-name dir)))))
     (setq dir (directory-file-name dir))
     (while (string-match "/" dir)
       (setq dir (replace-match "." t t dir)))

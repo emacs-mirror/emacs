@@ -313,6 +313,15 @@ TABLE is a tag table.  See `semantic-something-to-tag-table'."
     (eq ,class (semantic-tag-class (car tags)))
     ,table))
 
+(defmacro semantic-filter-tags-by-class (class &optional table)
+  "Find all tags of class not in the list CLASS in TABLE.
+CLASS is a list of symbols representing the class of the token,
+such as 'variable, of 'function..
+TABLE is a tag table.  See `semantic-something-to-tag-table'."
+  `(semantic--find-tags-by-macro
+    (not (memq (semantic-tag-class (car tags)) ,class))
+    ,table))
+
 (defmacro semantic-find-tags-by-type (type &optional table)
   "Find all tags of with a type TYPE in TABLE.
 TYPE is a string or tag representing a data type as defined in the

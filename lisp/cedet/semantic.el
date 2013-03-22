@@ -466,11 +466,10 @@ unterminated syntax."
     (widen)
     (when (or (< end start) (> end (point-max)))
       (error "Invalid parse region bounds %S, %S" start end))
-    (nreverse
-     (semantic-repeat-parse-whole-stream
+    (semantic-repeat-parse-whole-stream
       (or (cdr (assq start semantic-lex-block-streams))
 	  (semantic-lex start end depth))
-      nonterminal returnonerror))))
+      nonterminal returnonerror)))
 
 ;;; Parsing functions
 ;;
@@ -756,7 +755,7 @@ This function returns semantic tags without overlays."
                                   tag 'reparse-symbol nonterm))
                              tag)
                          (semantic--tag-expand tag))
-                    result (append tag result))
+                    result (append result tag))
             ;; No error in this case, a purposeful nil means don't
             ;; store anything.
             )
@@ -934,7 +933,8 @@ Throw away all the old tags, and recreate the tag database."
     '("--"))
   (define-key edit-menu [senator-yank-tag]
     '(menu-item "Yank Tag" senator-yank-tag
-		:enable (not (ring-empty-p senator-tag-ring))
+		:enable (and (boundp 'senator-tag-ring)
+			     (not (ring-empty-p senator-tag-ring)))
 		:help "Yank the head of the tag ring into the buffer"))
   (define-key edit-menu [senator-copy-tag-to-register]
     '(menu-item "Copy Tag To Register" senator-copy-tag-to-register

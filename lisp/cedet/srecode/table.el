@@ -251,7 +251,7 @@ Use PREDICATE is the same as for the `sort' function."
 (defmethod srecode-dump ((tab srecode-template-table))
   "Dump the contents of the SRecode template table TAB."
   (princ "Template Table for ")
-  (princ (object-name-string tab))
+  (princ (eieio-object-name-string tab))
   (princ "\nPriority: ")
   (prin1 (oref tab :priority))
   (when (oref tab :application)

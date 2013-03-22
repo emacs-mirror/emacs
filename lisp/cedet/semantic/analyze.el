@@ -800,7 +800,7 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
   (semantic-analyze-pulse context)
   (with-output-to-temp-buffer "*Semantic Context Analysis*"
     (princ "Context Type: ")
-    (princ (object-name context))
+    (princ (eieio-object-name context))
     (princ "\n")
     (princ "Bounds: ")
     (princ (oref context bounds))

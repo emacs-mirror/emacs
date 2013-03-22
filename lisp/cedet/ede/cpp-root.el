@@ -242,11 +242,11 @@ ROOTPROJ is nil, since there is only one project."
 (ede-add-project-autoload
  (ede-project-autoload "cpp-root"
 		       :name "CPP ROOT"
-		       :file 'ede-cpp-root
+		       :file 'ede/cpp-root
 		       :proj-file 'ede-cpp-root-project-file-for-dir
 		       :proj-root 'ede-cpp-root-project-root
 		       :load-type 'ede-cpp-root-load
-		       :class-sym 'ede-cpp-root
+		       :class-sym 'ede-cpp-root-project
 		       :new-p nil
 		       :safe-p t)
  ;; When a user creates one of these, it should override any other project
@@ -272,10 +272,12 @@ ROOTPROJ is nil, since there is only one project."
 ;; level include paths, and PreProcessor macro tables.
 
 (defclass ede-cpp-root-target (ede-target)
-  ()
+  ((project :initform nil
+	    :initarg :project))
   "EDE cpp-root project target.
 All directories need at least one target.")
 
+;;;###autoload
 (defclass ede-cpp-root-project (ede-project eieio-instance-tracker)
   ((tracking-symbol :initform 'ede-cpp-root-project-list)
    (include-path :initarg :include-path
@@ -339,6 +341,15 @@ The function symbol must take two arguments:
 It should return the fully qualified file name passed in from NAME.  If that file does not
 exist, it should return nil."
 	       )
+   (compile-command :initarg :compile-command
+		    :initform nil
+		    :type (or null string function)
+		    :documentation
+		    "Compilation command that will be used for this project.
+It could be string or function that will accept proj argument and should return string.
+The string will be passed to 'compuile' function that will be issued in root
+directory of project."
+		    )
    )
   "EDE cpp-root project class.
 Each directory needs a project file to control it.")
@@ -366,7 +377,7 @@ Each directory needs a project file to control it.")
     (when (or (not (file-exists-p f))
 	      (file-directory-p f))
       (delete-instance this)
-      (error ":file for ede-cpp-root must be a file"))
+      (error ":file for ede-cpp-root-project must be a file"))
     (oset this :file f)
     (oset this :directory (file-name-directory f))
     (ede-project-directory-remove-hash (file-name-directory f))
@@ -404,7 +415,8 @@ If one doesn't exist, create a new one for this directory."
                  :name (file-name-nondirectory
 			(directory-file-name dir))
 		 :path dir
-		 :source nil))
+		 :source nil
+		 :project proj))
       (object-add-to-list proj :targets ans)
       )
     ans))
@@ -481,15 +493,6 @@ This is for project include paths and spp source files."
 
     filename))
 
-(defmethod ede-set-project-variables ((project ede-cpp-root-project) &optional buffer)
-  "Set variables local to PROJECT in BUFFER.
-Also set up the lexical preprocessor map."
-  (call-next-method)
-  (when (and (featurep 'semantic/bovine/c) (featurep 'semantic/lex-spp))
-    (setq semantic-lex-spp-project-macro-symbol-obarray
-	  (semantic-lex-make-spp-table (oref project spp-table)))
-    ))
-
 (defmethod ede-system-include-path ((this ede-cpp-root-project))
   "Get the system include path used by project THIS."
   (oref this system-include-path))
@@ -506,11 +509,18 @@ Also set up the lexical preprocessor map."
 	      (table (when expfile
 		       (semanticdb-file-table-object expfile)))
 	      )
-	 (if (not table)
-	     (message "Cannot find file %s in project." F)
+	 (cond 
+	  ((not (file-exists-p expfile))
+	   (message "Cannot find file %s in project." F))
+	  ((string= expfile (buffer-file-name))
+	   ;; Don't include this file in it's own spp table.
+	   )
+	  ((not table)
+	   (message "No db table available for %s." expfile))
+	  (t
 	   (when (semanticdb-needs-refresh-p table)
 	     (semanticdb-refresh-table table))
-	   (setq spp (append spp (oref table lexical-table))))))
+	   (setq spp (append spp (oref table lexical-table)))))))
      (oref this spp-files))
     spp))
 
@@ -521,6 +531,29 @@ Also set up the lexical preprocessor map."
 (defmethod ede-preprocessor-map ((this ede-cpp-root-target))
   "Get the pre-processor map for project THIS."
   (ede-preprocessor-map  (ede-target-parent this)))
+
+(defmethod project-compile-project ((proj ede-cpp-root-project) &optional command)
+  "Compile the entire current project PROJ.
+Argument COMMAND is the command to use when compiling."
+  ;; we need to be in the proj root dir for this to work
+  (let* ((cmd (oref proj :compile-command))
+	 (ov (oref proj :local-variables))
+	 (lcmd (when ov (cdr (assoc 'compile-command ov))))
+	 (cmd-str (cond
+		   ((stringp cmd) cmd)
+		   ((functionp cmd) (funcall cmd proj))
+		   ((stringp lcmd) lcmd)
+		   ((functionp lcmd) (funcall lcmd proj)))))
+    (when cmd-str
+	(let ((default-directory (ede-project-root-directory proj)))
+	(compile cmd-str)))))
+
+(defmethod project-compile-target ((obj ede-cpp-root-target) &optional command)
+  "Compile the current target OBJ.
+Argument COMMAND is the command to use for compiling the target."
+  (when (oref obj :project)
+    (project-compile-project (oref obj :project) command)))
+
 
 ;;; Quick Hack
 (defun ede-create-lots-of-projects-under-dir (dir projfile &rest attributes)
