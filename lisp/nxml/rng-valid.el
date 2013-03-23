@@ -244,7 +244,7 @@ to use for finding the schema."
 	  (> (prefix-numeric-value arg) 0)))
   (save-restriction
     (widen)
-    (nxml-with-unmodifying-text-property-changes
+    (with-silent-modifications
       (rng-clear-cached-state (point-min) (point-max)))
     ;; 1+ to clear empty overlays at (point-max)
     (rng-clear-overlays (point-min) (1+ (point-max)))
@@ -305,7 +305,7 @@ The schema is set like `rng-auto-set-schema'."
 
 (defun rng-after-change-function (start end pre-change-len)
   (setq rng-message-overlay-inhibit-point nil)
-  (nxml-with-unmodifying-text-property-changes
+  (with-silent-modifications
     (rng-clear-cached-state start end))
   ;; rng-validate-up-to-date-end holds the position before the change
   ;; Adjust it to reflect the change.
@@ -469,7 +469,7 @@ The schema is set like `rng-auto-set-schema'."
 	(condition-case-unless-debug err
 	    (and (rng-validate-prepare)
 		 (let ((rng-dt-namespace-context-getter '(nxml-ns-get-context)))
-		   (nxml-with-unmodifying-text-property-changes
+		   (with-silent-modifications
 		     (rng-do-some-validation-1 continue-p-function))))
 	  ;; errors signaled from a function run by an idle timer
 	  ;; are ignored; if we don't catch them, validation

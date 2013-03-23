@@ -1,5 +1,16 @@
 2013-03-23  Leo Liu  <sdl.web@gmail.com>
 
+	* nxml/nxml-util.el (nxml-with-unmodifying-text-property-changes):
+	Remove.
+
+	* nxml/rng-valid.el (rng-validate-mode)
+	(rng-after-change-function, rng-do-some-validation):
+	* nxml/rng-maint.el (rng-validate-buffer):
+	* nxml/nxml-rap.el (nxml-tokenize-forward, nxml-ensure-scan-up-to-date):
+	* nxml/nxml-outln.el (nxml-show-all, nxml-set-outline-state):
+	* nxml/nxml-mode.el (nxml-mode, nxml-degrade, nxml-after-change)
+	(nxml-extend-after-change-region): Use with-silent-modifications.
+
 	* nxml/rng-nxml.el (rng-set-state-after): Do not let-bind
 	timer-idle-list.
 
