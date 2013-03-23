@@ -311,7 +311,7 @@
        ,(when use-package-verbose
           `(let ((elapsed
                   (float-time (time-subtract (current-time) now))))
-             (if (> elapsed use-package-minimum-reported-time)
+             (if (> elapsed ,use-package-minimum-reported-time)
                  (message "%s...done (%.3fs)" ,text elapsed)
                (message "%s...done" ,text)))))))
 
