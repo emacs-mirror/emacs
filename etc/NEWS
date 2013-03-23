@@ -174,6 +174,12 @@ When toggling, it restores the frame's previous window configuration.
 It also has an optional frame argument, which can be used by Lisp
 callers to fit the image to a frame other than the selected frame.
 
+** Info
+
+*** New face `info-index-match' is used to highlight matches in index
+entries displayed by `Info-index-next', `Info-virtual-index' and
+`info-apropos'.
+
 ** Isearch
 
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name

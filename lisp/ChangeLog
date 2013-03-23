@@ -1,3 +1,11 @@
+2013-03-23  Juri Linkov  <juri@jurta.org>
+
+	* info.el (info-index-match): New face.
+	(Info-index, Info-apropos-matches): Add a nested subgroup to the
+	main pattern and add text properties with the new face to matches
+	in index entries relative to the beginning of the index entry.
+	(Bug#14015)
+
 2013-03-21  Eric Ludlam  <zappo@gnu.org>
 
 	* eieio/eieio-datadebug.el (data-debug/eieio-insert-slots):
