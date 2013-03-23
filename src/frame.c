@@ -1819,7 +1819,7 @@ See `redirect-frame-focus'.  */)
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
-#if !HAVE_NS
+#if !HAVE_NS && !defined(WINDOWSNT)
 static
 #endif
 Lisp_Object

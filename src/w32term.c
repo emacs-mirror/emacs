@@ -5661,6 +5661,7 @@ static void
 w32fullscreen_hook (FRAME_PTR f)
 {
   static int normal_width, normal_height;
+  static Lisp_Object prev_full;
 
   if (FRAME_VISIBLE_P (f))
     {
@@ -5669,23 +5670,39 @@ w32fullscreen_hook (FRAME_PTR f)
       RECT workarea_rect;
 
       block_input ();
-      if (normal_height <= 0)
-	normal_height = cur_h;
-      if (normal_width <= 0)
-	normal_width = cur_w;
+      if (!(   EQ (prev_full, Qfullscreen)
+	    || EQ (prev_full, Qfullboth)
+	    || EQ (prev_full, Qmaximized)))
+	{
+	  if (!EQ (prev_full, Qfullheight))
+	    normal_height = cur_h;
+	  if (!EQ (prev_full, Qfullwidth))
+	    normal_width  = cur_w;
+	}
+      eassert (normal_height > 0);
+      eassert (normal_width > 0);
       x_real_positions (f, &f->left_pos, &f->top_pos);
       x_fullscreen_adjust (f, &width, &height, &top_pos, &left_pos);
 
       SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
       pixel_height = workarea_rect.bottom - workarea_rect.top;
       pixel_width  = workarea_rect.right  - workarea_rect.left;
+      /* Need to send SC_RESTORE to the window, in case we are
+	 resizing from FULLSCREEN_MAXIMIZED.  Otherwise, the mouse
+	 resize hints will not be shown by the window manager when the
+	 mouse pointer hovers over the window edges, becaise the WM
+	 will still think the window is maximized.  */
+      if (f->want_fullscreen != FULLSCREEN_BOTH)
+	PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_RESTORE, 0);
 
       switch (f->want_fullscreen)
 	{
 	case FULLSCREEN_BOTH:
+	  prev_full = Qfullboth;
 	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 	  break;
 	case FULLSCREEN_MAXIMIZED:
+	  prev_full = Qmaximized;
 	  height =
 	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
 	    - XINT (Ftool_bar_lines_needed (selected_frame))
@@ -5697,31 +5714,26 @@ w32fullscreen_hook (FRAME_PTR f)
 	  top_pos = workarea_rect.top;
 	  break;
 	case FULLSCREEN_WIDTH:
+	  prev_full = Qfullwidth;
 	  width  =
 	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
 	    - FRAME_SCROLL_BAR_COLS (f);
-	  if (normal_height > 0)
-	    height = normal_height;
+	  height = normal_height;
 	  left_pos = workarea_rect.left;
 	  break;
 	case FULLSCREEN_HEIGHT:
+	  prev_full = Qfullheight;
 	  height =
 	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
 	    - XINT (Ftool_bar_lines_needed (selected_frame))
 	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
-	  if (normal_width > 0)
-	    width = normal_width;
+	  width = normal_width;
 	  top_pos = workarea_rect.top;
 	  break;
 	case FULLSCREEN_NONE:
-	  if (normal_height > 0)
-	    height = normal_height;
-	  else
-	    normal_height = height;
-	  if (normal_width > 0)
-	    width = normal_width;
-	  else
-	    normal_width = width;
+	  prev_full = Qnil;
+	  height = normal_height;
+	  width = normal_width;
 	  /* FIXME: Should restore the original position of the frame.  */
 	  top_pos = left_pos = 0;
 	  break;

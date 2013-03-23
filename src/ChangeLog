@@ -1,3 +1,19 @@
+2013-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32fullscreen_hook): Record last value of the frame's
+	'fullscreen' parameter.  Always record previous width and height
+	of the frame, except when switching out of maximized modes, so
+	that they could be restored correctly, instead of resetting to the
+	default frame dimensions.  Send SC_RESTORE command to the frame,
+	unless we are going to send SC_MAXIMIZE, to restore the frame
+	resize hints in the mouse pointer shown by the window manager.
+	(Bug#14032)
+
+	* frame.c (get_frame_param): Now extern for WINDOWSNT as well.
+
+	* lisp.h (get_frame_param): Adjust conditions for prototype
+	declaration.
+
 2013-03-22  Ken Brown  <kbrown@cornell.edu>
 
 	* unexcw.c: Drop unneeded inclusion of w32common.h.
