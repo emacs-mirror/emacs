@@ -1,3 +1,7 @@
+2013-03-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/diff-mode.el (diff-mode-shared-map): Unbind "/" (Bug#14034).
+
 2013-03-23  Leo Liu  <sdl.web@gmail.com>
 
 	* nxml/nxml-util.el (nxml-with-unmodifying-text-property-changes):
