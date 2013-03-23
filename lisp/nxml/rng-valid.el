@@ -414,26 +414,17 @@ The schema is set like `rng-auto-set-schema'."
 (defvar rng-validate-display-modified-p nil)
 
 (defun rng-validate-while-idle-continue-p ()
-  ;; input-pending-p and sit-for run timers that are
-  ;; ripe.  Binding timer-idle-list to nil prevents
-  ;; this.  If we don't do this, then any ripe timers
-  ;; will get run, and we won't get any chance to
-  ;; validate until Emacs becomes idle again or until
-  ;; the other lower priority timers finish (which
-  ;; can take a very long time in the case of
-  ;; jit-lock).
-  (let ((timer-idle-list nil))
-    (and (not (input-pending-p))
-	 ;; Fake rng-validate-up-to-date-end so that the mode line
-	 ;; shows progress.  Also use this to save point.
-	 (let ((rng-validate-up-to-date-end (point)))
-	   (goto-char rng-validate-display-point)
-	   (when (not rng-validate-display-modified-p)
-	     (restore-buffer-modified-p nil))
-	   (force-mode-line-update)
-	   (let ((continue (sit-for 0)))
-	     (goto-char rng-validate-up-to-date-end)
-	     continue)))))
+  (and (not (input-pending-p))
+       ;; Fake rng-validate-up-to-date-end so that the mode line
+       ;; shows progress.  Also use this to save point.
+       (let ((rng-validate-up-to-date-end (point)))
+	 (goto-char rng-validate-display-point)
+	 (when (not rng-validate-display-modified-p)
+	   (restore-buffer-modified-p nil))
+	 (force-mode-line-update)
+	 (let ((continue (sit-for 0)))
+	   (goto-char rng-validate-up-to-date-end)
+	   continue))))
 
 ;; Calling rng-do-some-validation once with a continue-p function, as
 ;; opposed to calling it repeatedly, helps on initial validation of a
@@ -880,9 +871,7 @@ means goto the first error."
 			    (< rng-validate-up-to-date-end (point-max)))
 		   ;; Display percentage validated.
 		   (force-mode-line-update)
-		   ;; Force redisplay but don't allow idle timers to run.
-		   (let ((timer-idle-list nil))
-		     (sit-for 0))
+		   (sit-for 0)
 		   (setq pos
 			 (max pos (1- rng-validate-up-to-date-end)))
 		   t)))))
@@ -905,9 +894,7 @@ means goto the first error."
       (while (and (rng-do-some-validation)
 		  (< rng-validate-up-to-date-end (min pos (point-max))))
 	(force-mode-line-update)
-	;; Force redisplay but don't allow idle timers to run.
-	(let ((timer-idle-list nil))
-	  (sit-for 0)))
+	(sit-for 0))
       (while (and (> arg 0)
 		  (setq err (rng-find-previous-error-overlay pos)))
 	(setq pos (overlay-start err))

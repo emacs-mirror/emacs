@@ -1,3 +1,12 @@
+2013-03-23  Leo Liu  <sdl.web@gmail.com>
+
+	* nxml/rng-nxml.el (rng-set-state-after): Do not let-bind
+	timer-idle-list.
+
+	* nxml/rng-valid.el (rng-validate-while-idle-continue-p)
+	(rng-next-error-1, rng-previous-error-1): Do not let-bind
+	timer-idle-list.  (Bug#13999)
+
 2013-03-23  Juri Linkov  <juri@jurta.org>
 
 	* info.el (info-index-match): New face.
