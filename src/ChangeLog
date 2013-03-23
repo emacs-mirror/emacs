@@ -1,5 +1,19 @@
 2013-03-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32term.c (w32fullscreen_hook): Use FRAME_NORMAL_WIDTH,
+	FRAME_NORMAL_HEIGHT, and FRAME_PREV_FSMODE, instead of static
+	variables, to save and restore frame dimensions.  Use
+	FRAME_NORMAL_LEFT and FRAME_NORMAL_TOP to restore frame position
+	after returning from a 'fullscreen' configuration.  use
+	SendMessage instead of PostMessage to send the SC_RESTORE message,
+	to avoid races between the main thread and the input thread.
+
+	* w32term.h (struct w32_output): New members normal_width,
+	normal_height, normal_top, normal_left, and prev_fsmode.
+	(FRAME_NORMAL_WIDTH, FRAME_NORMAL_HEIGHT, FRAME_NORMAL_TOP)
+	(FRAME_NORMAL_LEFT, FRAME_PREV_FSMODE): New macros to access these
+	members of a frame.
+
 	* w32term.c (w32fullscreen_hook): Record last value of the frame's
 	'fullscreen' parameter.  Always record previous width and height
 	of the frame, except when switching out of maximized modes, so
