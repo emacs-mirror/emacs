@@ -1,5 +1,8 @@
 2013-03-23  Dmitry Gutov  <dgutov@yandex.ru>
 
+	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column): Make
+	it safe-local.
+
 	* vc/diff-mode.el (diff-mode-shared-map): Unbind "/" (Bug#14034).
 
 2013-03-23  Leo Liu  <sdl.web@gmail.com>
