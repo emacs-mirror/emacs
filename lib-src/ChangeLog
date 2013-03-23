@@ -1,3 +1,7 @@
+2013-03-23  cg  <chengang31@gmail.com>  (tiny change)
+
+	* makefile.w32-in (LIB_SRC): Move before first use.
+
 2013-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* pop.c: Fix ERRMAX typo (Bug#13925).
