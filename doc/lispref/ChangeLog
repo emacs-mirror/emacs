@@ -1,3 +1,8 @@
+2013-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Size Parameters): More accurate description of the
+	difference between 'fullboth' and 'maximized'.  (Bug#13935)
+
 2013-03-17  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* symbols.texi (Standard Properties): Document pure.  (Bug#13823)
