@@ -258,7 +258,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
       QUIT;
 
       if (NILP (match)
-	  || (0 <= re_search (bufp, SSDATA (name), len, 0, len, 0)))
+	  || re_search (bufp, SSDATA (name), len, 0, len, 0) >= 0)
 	wanted = 1;
 
       immediate_quit = 0;
@@ -517,8 +517,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
       QUIT;
       if (len < SCHARS (encoded_file)
-	  || 0 <= scmp (dp->d_name, SSDATA (encoded_file),
-			SCHARS (encoded_file)))
+	  || scmp (dp->d_name, SSDATA (encoded_file),
+		   SCHARS (encoded_file)) >= 0)
 	continue;
 
       if (file_name_completion_stat (fd, dp, &st) < 0)
@@ -580,7 +580,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 		    if (skip < 0)
 		      continue;
 
-		    if (0 <= scmp (dp->d_name + skip, p1, elt_len))
+		    if (scmp (dp->d_name + skip, p1, elt_len) >= 0)
 		      continue;
 		    break;
 		  }
@@ -602,9 +602,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 		    skip = len - SCHARS (elt);
 		    if (skip < 0) continue;
 
-		    if (0 <= scmp (dp->d_name + skip,
-				   SSDATA (elt),
-				   SCHARS (elt)))
+		    if (scmp (dp->d_name + skip, SSDATA (elt), SCHARS (elt))
+			>= 0)
 		      continue;
 		    break;
 		  }

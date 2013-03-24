@@ -476,7 +476,7 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
       if ((prop = Fplist_get (plist, QCwidth),
 	   RANGED_INTEGERP (0, prop, INT_MAX)))
 	width = XINT (prop);
-      else if (FLOATP (prop) && 0 <= XFLOAT_DATA (prop)
+      else if (FLOATP (prop) && XFLOAT_DATA (prop) >= 0
 	       && XFLOAT_DATA (prop) <= INT_MAX)
 	width = (int)(XFLOAT_DATA (prop) + 0.5);
       else if ((prop = Fplist_get (plist, QCalign_to),

@@ -3449,7 +3449,7 @@ file_offset (Lisp_Object val)
   if (FLOATP (val))
     {
       double v = XFLOAT_DATA (val);
-      if (0 <= v
+      if (v >= 0
 	  && (sizeof (off_t) < sizeof v
 	      ? v <= TYPE_MAXIMUM (off_t)
 	      : v < TYPE_MAXIMUM (off_t)))
@@ -5013,7 +5013,7 @@ This calls `write-region-annotate-functions' at the start, and
       && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
     {
       int desc1 = emacs_open (fn, O_WRONLY | O_BINARY, 0);
-      if (0 <= desc1)
+      if (desc1 >= 0)
 	{
 	  struct stat st1;
 	  if (fstat (desc1, &st1) == 0

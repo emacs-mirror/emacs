@@ -4459,7 +4459,7 @@ scrolling_window (struct window *w, bool header_line_p)
     row_table[row_entry_pool[i].bucket] = NULL;
 
   /* Value is 1 to indicate that we scrolled the display.  */
-  return 0 < nruns;
+  return nruns > 0;
 }
 
 
@@ -4545,7 +4545,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	}
     }
 
-  lint_assume (0 <= FRAME_LINES (f));
+  lint_assume (FRAME_LINES (f) >= 0);
   pause_p = 0 < i && i < FRAME_LINES (f) - 1;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
@@ -5764,7 +5764,7 @@ additional wait period, in milliseconds; this is for backwards compatibility.
       duration += XINT (milliseconds) / 1000.0;
     }
 
-  if (0 < duration)
+  if (duration > 0)
     {
       EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (duration);
       wait_reading_process_output (min (EMACS_SECS (t), WAIT_READING_MAX),
@@ -5804,14 +5804,14 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
   if (INTEGERP (timeout))
     {
       sec = XINT (timeout);
-      if (! (0 < sec))
+      if (sec <= 0)
 	return Qt;
       nsec = 0;
     }
   else if (FLOATP (timeout))
     {
       double seconds = XFLOAT_DATA (timeout);
-      if (! (0 < seconds))
+      if (seconds <= 0)
 	return Qt;
       else
 	{

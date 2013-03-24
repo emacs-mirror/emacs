@@ -221,7 +221,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->name = xstrdup (SmRestartCommand);
   props[props_idx]->type = xstrdup (SmLISTofARRAY8);
   /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir ... */
-  if (INT_MAX - 3 < initial_argc)
+  if (initial_argc > INT_MAX - 3)
     memory_full (SIZE_MAX);
   i = 3 + initial_argc;
   props[props_idx]->num_vals = i;

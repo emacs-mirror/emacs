@@ -2063,7 +2063,7 @@ For an approximate inverse of this, see `kbd'.  */)
     size += XINT (Flength (prefix));
 
   /* This has one extra element at the end that we don't pass to Fconcat.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / word_size / 4 < size)
+  if (size > min (PTRDIFF_MAX, SIZE_MAX) / word_size / 4)
     memory_full (SIZE_MAX);
   SAFE_ALLOCA_LISP (args, size * 4);
 

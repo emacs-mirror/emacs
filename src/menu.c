@@ -173,7 +173,7 @@ static void
 ensure_menu_items (int items)
 {
   int incr = items - (menu_items_allocated - menu_items_used);
-  if (0 < incr)
+  if (incr > 0)
     {
       menu_items = larger_vector (menu_items, incr, INT_MAX);
       menu_items_allocated = ASIZE (menu_items);

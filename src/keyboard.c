@@ -6766,7 +6766,7 @@ gobble_input (void)
           hold_quit.kind = NO_EVENT;
 
           /* No need for FIONREAD or fcntl; just say don't wait.  */
-	  while (0 < (nr = (*t->read_socket_hook) (t, &hold_quit)))
+	  while ((nr = (*t->read_socket_hook) (t, &hold_quit)) > 0)
 	    nread += nr;
 
           if (nr == -1)          /* Not OK to read input now.  */
@@ -8240,9 +8240,8 @@ append_tool_bar_item (void)
        - (ASIZE (tool_bar_items_vector) - TOOL_BAR_ITEM_NSLOTS));
 
   /* Enlarge tool_bar_items_vector if necessary.  */
-  if (0 < incr)
-    tool_bar_items_vector
-      = larger_vector (tool_bar_items_vector, incr, -1);
+  if (incr > 0)
+    tool_bar_items_vector = larger_vector (tool_bar_items_vector, incr, -1);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */

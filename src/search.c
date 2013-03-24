@@ -326,7 +326,7 @@ looking_at_1 (Lisp_Object string, bool posix)
   if (i == -2)
     matcher_overflow ();
 
-  val = (0 <= i ? Qt : Qnil);
+  val = (i >= 0 ? Qt : Qnil);
   if (NILP (Vinhibit_changing_match_data) && i >= 0)
     for (i = 0; i < search_regs.num_regs; i++)
       if (search_regs.start[i] >= 0)
@@ -2450,7 +2450,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		  else if (c >= '1' && c <= '9')
 		    {
 		      if (c - '0' < search_regs.num_regs
-			  && 0 <= search_regs.start[c - '0'])
+			  && search_regs.start[c - '0'] >= 0)
 			{
 			  substart = search_regs.start[c - '0'];
 			  subend = search_regs.end[c - '0'];
@@ -2533,7 +2533,7 @@ since only regular expressions have distinguished subexpressions.  */)
       bool str_multibyte = STRING_MULTIBYTE (newtext);
       bool really_changed = 0;
 
-      substed_alloc_size = ((STRING_BYTES_BOUND - 100) / 2 < length
+      substed_alloc_size = (length > (STRING_BYTES_BOUND - 100) / 2
 			    ? STRING_BYTES_BOUND
 			    : length * 2 + 100);
       substed = xmalloc (substed_alloc_size);

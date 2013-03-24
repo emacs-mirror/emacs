@@ -1571,7 +1571,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 		{
 		  struct stat st;
 		  fd = emacs_open (pfn, O_RDONLY, 0);
-		  if (0 <= fd
+		  if (fd >= 0
 		      && (fstat (fd, &st) != 0 || S_ISDIR (st.st_mode)))
 		    {
 		      emacs_close (fd);
@@ -2359,7 +2359,7 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
 	  while (c == '0');
 	}
 
-      while (-1 <= (digit = digit_to_number (c, radix)))
+      while ((digit = digit_to_number (c, radix)) >= -1)
 	{
 	  if (digit == -1)
 	    valid = 0;
@@ -2731,8 +2731,8 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  /* Read a non-negative integer.  */
 	  while (c >= '0' && c <= '9')
 	    {
-	      if (MOST_POSITIVE_FIXNUM / 10 < n
-		  || MOST_POSITIVE_FIXNUM < n * 10 + c - '0')
+	      if (n > MOST_POSITIVE_FIXNUM / 10
+		  || n * 10 + c - '0' > MOST_POSITIVE_FIXNUM)
 		n = MOST_POSITIVE_FIXNUM + 1;
 	      else
 		n = n * 10 + c - '0';
@@ -2930,7 +2930,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    if (end - p < MAX_MULTIBYTE_LENGTH)
 	      {
 		ptrdiff_t offset = p - read_buffer;
-		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		if (read_buffer_size > min (PTRDIFF_MAX, SIZE_MAX) / 2)
 		  memory_full (SIZE_MAX);
 		read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		read_buffer_size *= 2;
@@ -3064,7 +3064,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
 		  ptrdiff_t offset = p - read_buffer;
-		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		  if (read_buffer_size > min (PTRDIFF_MAX, SIZE_MAX) / 2)
 		    memory_full (SIZE_MAX);
 		  read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		  read_buffer_size *= 2;
@@ -3094,7 +3094,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  if (p == end)
 	    {
 	      ptrdiff_t offset = p - read_buffer;
-	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+	      if (read_buffer_size > min (PTRDIFF_MAX, SIZE_MAX) / 2)
 		memory_full (SIZE_MAX);
 	      read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 	      read_buffer_size *= 2;
@@ -3298,12 +3298,12 @@ string_to_number (char const *string, int base, bool ignore_trailing)
   state = 0;
 
   leading_digit = digit_to_number (*cp, base);
-  if (0 <= leading_digit)
+  if (leading_digit >= 0)
     {
       state |= LEAD_INT;
       do
 	++cp;
-      while (0 <= digit_to_number (*cp, base));
+      while (digit_to_number (*cp, base) >= 0);
     }
   if (*cp == '.')
     {
@@ -3380,7 +3380,7 @@ string_to_number (char const *string, int base, bool ignore_trailing)
 
   /* If the number uses integer and not float syntax, and is in C-language
      range, use its value, preferably as a fixnum.  */
-  if (0 <= leading_digit && ! float_syntax)
+  if (leading_digit >= 0 && ! float_syntax)
     {
       uintmax_t n;
 

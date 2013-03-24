@@ -833,8 +833,8 @@ string_escape_byte8 (Lisp_Object string)
 
   if (multibyte)
     {
-      if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
-	  || (STRING_BYTES_BOUND - nbytes) / 2 < byte8_count)
+      if (byte8_count > (MOST_POSITIVE_FIXNUM - nchars) / 3
+	  || byte8_count > (STRING_BYTES_BOUND - nbytes) / 2)
 	string_overflow ();
 
       /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
@@ -843,7 +843,7 @@ string_escape_byte8 (Lisp_Object string)
     }
   else
     {
-      if ((STRING_BYTES_BOUND - nbytes) / 3 < byte8_count)
+      if (byte8_count > (STRING_BYTES_BOUND - nbytes) / 3)
 	string_overflow ();
 
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */

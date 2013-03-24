@@ -6002,8 +6002,7 @@ get_phys_cursor_glyph (struct window *w)
 	hpos = row->used[TEXT_AREA] - 1;
     }
 
-  if (row->used[TEXT_AREA] > hpos
-      && 0 <= hpos)
+  if (hpos >= 0 && hpos < row->used[TEXT_AREA])
     glyph = row->glyphs[TEXT_AREA] + hpos;
   else
     glyph = NULL;

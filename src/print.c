@@ -227,9 +227,9 @@ printchar (unsigned int ch, Lisp_Object fun)
       if (NILP (fun))
 	{
 	  ptrdiff_t incr = len - (print_buffer_size - print_buffer_pos_byte);
-	  if (0 < incr)
-	    print_buffer =
-	      xpalloc (print_buffer, &print_buffer_size, incr, -1, 1);
+	  if (incr > 0)
+	    print_buffer = xpalloc (print_buffer, &print_buffer_size,
+				    incr, -1, 1);
 	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
 	  print_buffer_pos += 1;
 	  print_buffer_pos_byte += len;
@@ -273,7 +273,7 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
   if (NILP (printcharfun))
     {
       ptrdiff_t incr = size_byte - (print_buffer_size - print_buffer_pos_byte);
-      if (0 < incr)
+      if (incr > 0)
 	print_buffer = xpalloc (print_buffer, &print_buffer_size, incr, -1, 1);
       memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
       print_buffer_pos += size;

@@ -3315,13 +3315,13 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       else if (FLOATP (item))
 	{
 	  alpha = XFLOAT_DATA (item);
-	  if (alpha < 0.0 || 1.0 < alpha)
+	  if (alpha < 0.0 || alpha > 1.0)
 	    args_out_of_range (make_float (0.0), make_float (1.0));
 	}
       else if (INTEGERP (item))
 	{
 	  EMACS_INT ialpha = XINT (item);
-	  if (ialpha < 0 || 100 < ialpha)
+	  if (ialpha < 0 || ialpha > 100)
 	    args_out_of_range (make_number (0), make_number (100));
 	  else
 	    alpha = ialpha / 100.0;

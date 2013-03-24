@@ -2677,7 +2677,7 @@ init_iterator (struct it *it, struct window *w,
      and IT->region_end_charpos to the start and end of a visible region
      in window IT->w.  Set both to -1 to indicate no region.  */
   markpos = markpos_of_region ();
-  if (0 <= markpos
+  if (markpos >= 0
       /* Maybe highlight only in selected window.  */
       && (/* Either show region everywhere.  */
 	  highlight_nonselected_windows
@@ -13170,8 +13170,8 @@ redisplay_internal (void)
 	       PT == w->last_point
 	       /* Make sure the cursor was last displayed
 		  in this window.  Otherwise we have to reposition it.  */
-	       && 0 <= w->cursor.vpos
-	       && WINDOW_TOTAL_LINES (w) > w->cursor.vpos)
+	       && w->cursor.vpos >= 0
+	       && w->cursor.vpos < WINDOW_TOTAL_LINES (w))
 	{
 	  if (!must_finish)
 	    {
@@ -15520,7 +15520,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
 	  /* If we are highlighting the region, then we just changed
 	     the region, so redisplay to show it.  */
-	  if (0 <= markpos_of_region ())
+	  if (markpos_of_region () >= 0)
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp, 0))
@@ -16221,7 +16221,7 @@ try_window_reusing_current_matrix (struct window *w)
     return 0;
 
   /* Can't do this if region may have changed.  */
-  if (0 <= markpos_of_region ()
+  if (markpos_of_region () >= 0
       || w->region_showing
       || !NILP (Vshow_trailing_whitespace))
     return 0;
@@ -17053,7 +17053,7 @@ try_window_id (struct window *w)
 
   /* Can't use this if highlighting a region because a cursor movement
      will do more than just set the cursor.  */
-  if (0 <= markpos_of_region ())
+  if (markpos_of_region () >= 0)
     GIVE_UP (9);
 
   /* Likewise if highlighting trailing whitespace.  */
@@ -21008,7 +21008,7 @@ pint2hrstr (char *buf, int width, ptrdiff_t d)
   char * psuffix;
   char * p;
 
-  if (1000 <= quotient)
+  if (quotient >= 1000)
     {
       /* Scale to the appropriate EXPONENT. */
       do
@@ -21017,13 +21017,13 @@ pint2hrstr (char *buf, int width, ptrdiff_t d)
 	  quotient /= 1000;
 	  exponent++;
 	}
-      while (1000 <= quotient);
+      while (quotient >= 1000);
 
       /* Round to nearest and decide whether to use TENTHS or not. */
       if (quotient <= 9)
 	{
 	  tenths = remainder / 100;
-	  if (50 <= remainder % 100)
+	  if (remainder % 100 >= 50)
 	    {
 	      if (tenths < 9)
 		tenths++;
@@ -21038,7 +21038,7 @@ pint2hrstr (char *buf, int width, ptrdiff_t d)
 	    }
 	}
       else
-	if (500 <= remainder)
+	if (remainder >= 500)
 	  {
 	    if (quotient < 999)
 	      quotient++;

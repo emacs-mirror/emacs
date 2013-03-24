@@ -1,3 +1,69 @@
+2013-03-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (xpalloc, Fgarbage_collect): Reorder conditions that are
+	written backwards.
+	* blockinput.h (input_blocked_p): Likewise.
+	* bytecode.c (exec_byte_code): Likewise.
+	* callproc.c (call_process_kill, call_process_cleanup)
+	(Fcall_process): Likewise.
+	* ccl.c (ccl_driver, resolve_symbol_ccl_program)
+	(Fccl_execute_on_string): Likewise.
+	* character.c (string_escape_byte8): Likewise.
+	* charset.c (read_hex): Likewise.
+	* cm.c (calccost): Likewise.
+	* data.c (cons_to_unsigned): Likewise.
+	* dired.c (directory_files_internal, file_name_completion):
+	Likewise.
+	* dispnew.c (scrolling_window, update_frame_1, Fsleep_for)
+	(sit_for): Likewise.
+	* doc.c (Fsubstitute_command_keys): Likewise.
+	* doprnt.c (doprnt): Likewise.
+	* editfns.c (hi_time, decode_time_components, Fformat): Likewise.
+	* emacsgtkfixed.c: Likewise.
+	* fileio.c (file_offset, Fwrite_region): Likewise.
+	* floatfns.c (Fexpt, fmod_float): Likewise.
+	* fns.c (larger_vector, make_hash_table, Fmake_hash_table):
+	Likewise.
+	* font.c (font_intern_prop): Likewise.
+	* frame.c (x_set_alpha): Likewise.
+	* gtkutil.c (get_utf8_string): Likewise.
+	* indent.c (check_display_width): Likewise.
+	* intervals.c (create_root_interval, rotate_right, rotate_left)
+	(split_interval_right, split_interval_left)
+	(adjust_intervals_for_insertion, delete_node)
+	(interval_deletion_adjustment, adjust_intervals_for_deletion)
+	(merge_interval_right, merge_interval_left, copy_intervals)
+	(set_intervals_multibyte_1): Likewise.
+	* keyboard.c (gobble_input, append_tool_bar_item): Likewise.
+	* keymap.c (Fkey_description): Likewise.
+	* lisp.h (FIXNUM_OVERFLOW_P, vcopy): Likewise.
+	* lread.c (openp, read_integer, read1, string_to_number):
+	Likewise.
+	* menu.c (ensure_menu_items): Likewise.
+	* minibuf.c (read_minibuf_noninteractive): Likewise.
+	* print.c (printchar, strout): Likewise.
+	* process.c (create_process, Faccept_process_output)
+	(wait_reading_process_output, read_process_output, send_process)
+	(wait_reading_process_output): Likewise.
+	* profiler.c (make_log, handle_profiler_signal): Likewise.
+	* regex.c (re_exec): Likewise.
+	* regex.h: Likewise.
+	* search.c (looking_at_1, Freplace_match): Likewise.
+	* sysdep.c (get_child_status, procfs_ttyname)
+	(procfs_get_total_memory): Likewise.
+	* systime.h (EMACS_TIME_VALID_P): Likewise.
+	* term.c (dissociate_if_controlling_tty): Likewise.
+	* window.c (get_phys_cursor_glyph): Likewise.
+	* xdisp.c (init_iterator, redisplay_internal, redisplay_window)
+	(try_window_reusing_current_matrix, try_window_id, pint2hrstr):
+	Likewise.
+	* xfns.c (Fx_window_property): Likewise.
+	* xmenu.c (set_frame_menubar): Likewise.
+	* xselect.c (x_get_window_property, x_handle_dnd_message):
+	Likewise.
+	* xsmfns.c (smc_save_yourself_CB): Likewise.
+	* xterm.c (x_scroll_bar_set_handle): Likewise.
+
 2013-03-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfaces.c (Finternal_face_x_get_resource): Allow 3rd (frame) argument
@@ -5273,8 +5339,8 @@
 	a public macro and no need to inline by hand.
 
 2012-09-26  Tomohiro Matsuyama  <tomo@cx4a.org>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
-            Juanma Barranquero  <lekktu@gmail.com>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Juanma Barranquero  <lekktu@gmail.com>
 
 	* profiler.c: New file.
 	* Makefile.in (base_obj): Add profiler.o.

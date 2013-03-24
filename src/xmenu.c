@@ -1055,7 +1055,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
       wv->help = Qnil;
       first_wv = wv;
 
-      for (i = 0; 0 <= submenu_start[i]; i++)
+      for (i = 0; submenu_start[i] >= 0; i++)
 	{
 	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
