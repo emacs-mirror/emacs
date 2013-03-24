@@ -1,3 +1,16 @@
+2013-03-24  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (list-matching-lines-prefix-face): New defcustom.
+	(occur-1): Pass `list-matching-lines-prefix-face' to the function
+	`occur-engine' if `face-differs-from-default-p' returns t.
+	(occur-engine): Add `,' inside backquote construct to evaluate
+	`prefix-face'.  Propertize the prefix with the `prefix-face' face.
+	Pass `prefix-face' to the functions `occur-context-lines' and
+	`occur-engine-add-prefix'.
+	(occur-engine-add-prefix, occur-context-lines): Add optional arg
+	`prefix-face' and propertize the prefix with `prefix-face'.
+	(Bug#14017)
+
 2013-03-24  Leo Liu  <sdl.web@gmail.com>
 
 	* nxml/rng-valid.el (rng-validate-while-idle)
