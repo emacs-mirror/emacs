@@ -1,3 +1,14 @@
+2013-03-24  Leo Liu  <sdl.web@gmail.com>
+
+	* nxml/rng-valid.el (rng-validate-while-idle)
+	(rng-validate-quick-while-idle): Guard against deleted buffer.
+	(Bug#13999)
+
+	* emacs-lisp/edebug.el (edebug-mode): Make sure edebug-kill-buffer
+	is the last entry in kill-buffer-hook.
+
+	* files.el (kill-buffer-hook): Doc fix.
+
 2013-03-23  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column): Make

@@ -3810,7 +3810,10 @@ Options:
   ;; If the user kills the buffer in which edebug is currently active,
   ;; exit to top level, because the edebug command loop can't usefully
   ;; continue running in such a case.
-  (add-hook 'kill-buffer-hook 'edebug-kill-buffer nil t)
+  ;;
+  ;; Append `edebug-kill-buffer' to the hook to avoid interfering with
+  ;; other entries that are ungarded against deleted buffer.
+  (add-hook 'kill-buffer-hook 'edebug-kill-buffer t t)
   (use-local-map edebug-mode-map))
 
 (defun edebug-kill-buffer ()

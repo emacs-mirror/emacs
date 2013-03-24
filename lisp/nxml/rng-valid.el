@@ -433,24 +433,26 @@ The schema is set like `rng-auto-set-schema'."
 ;; validation process down.
 
 (defun rng-validate-while-idle (buffer)
-  (with-current-buffer buffer
-    (if rng-validate-mode
-	(if (let ((rng-validate-display-point (point))
-		  (rng-validate-display-modified-p (buffer-modified-p)))
-	      (rng-do-some-validation 'rng-validate-while-idle-continue-p))
-	    (force-mode-line-update)
-	  (rng-validate-done))
-      ;; must have done kill-all-local-variables
-      (rng-kill-timers))))
+  (when (buffer-live-p buffer)		; bug#13999
+    (with-current-buffer buffer
+      (if rng-validate-mode
+	  (if (let ((rng-validate-display-point (point))
+		    (rng-validate-display-modified-p (buffer-modified-p)))
+		(rng-do-some-validation 'rng-validate-while-idle-continue-p))
+	      (force-mode-line-update)
+	    (rng-validate-done))
+	;; must have done kill-all-local-variables
+	(rng-kill-timers)))))
 
 (defun rng-validate-quick-while-idle (buffer)
-  (with-current-buffer buffer
-    (if rng-validate-mode
-	(if (rng-do-some-validation)
-	    (force-mode-line-update)
-	  (rng-validate-done))
-      ;; must have done kill-all-local-variables
-      (rng-kill-timers))))
+  (when (buffer-live-p buffer)		; bug#13999
+    (with-current-buffer buffer
+      (if rng-validate-mode
+	  (if (rng-do-some-validation)
+	      (force-mode-line-update)
+	    (rng-validate-done))
+	;; must have done kill-all-local-variables
+	(rng-kill-timers)))))
 
 (defun rng-validate-done ()
   (when (or (not (current-message))

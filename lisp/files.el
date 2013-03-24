@@ -1516,7 +1516,10 @@ expand wildcards (if any) and replace the file with multiple files."
 (defvar kill-buffer-hook nil
   "Hook run when a buffer is killed.
 The buffer being killed is current while the hook is running.
-See `kill-buffer'.")
+See `kill-buffer'.
+
+Note: Be careful with let-binding this hook considering it is
+frequently used for cleanup.")
 
 (defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.
