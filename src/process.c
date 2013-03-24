@@ -2155,7 +2155,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
   channel = XPROCESS (process)->infd;
 
   len = get_lisp_to_sockaddr_size (address, &family);
-  if (datagram_address[channel].len != len)
+  if (len == 0 || datagram_address[channel].len != len)
     return Qnil;
   conv_lisp_to_sockaddr (family, address, datagram_address[channel].sa, len);
   return address;
@@ -3269,7 +3269,8 @@ usage: (make-network-process &rest ARGS)  */)
 		{
 		  int rfamily, rlen;
 		  rlen = get_lisp_to_sockaddr_size (remote, &rfamily);
-		  if (rfamily == lres->ai_family && rlen == lres->ai_addrlen)
+		  if (rlen != 0 && rfamily == lres->ai_family
+		      && rlen == lres->ai_addrlen)
 		    conv_lisp_to_sockaddr (rfamily, remote,
 					   datagram_address[s].sa, rlen);
 		}

@@ -1,3 +1,14 @@
+2013-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checking by GCC 4.8-20130319.
+	* image.c (gif_load): Assume pass < 3 to pacify GCC.
+	* process.c (Fset_process_datagram_address)
+	(Fmake_network_process): Check get_lisp_to_sockaddr_size return value.
+	* xdisp.c (get_char_face_and_encoding):
+	(get_glyph_face_and_encoding): Ensure that *CHAR2B is initialized.
+	(get_glyph_face_and_encoding): Prepare face before possibly using it.
+	(get_per_char_metric): Don't use CHAR2B if it might not be initialized.
+
 2013-03-24  Ken Brown  <kbrown@cornell.edu>
 
 	* w32fns.c (emacs_abort) [CYGWIN]: Define `_open' as a macro to

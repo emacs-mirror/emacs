@@ -22391,16 +22391,16 @@ get_char_face_and_encoding (struct frame *f, int c, int face_id,
 			    XChar2b *char2b, int display_p)
 {
   struct face *face = FACE_FROM_ID (f, face_id);
+  unsigned code = 0;
 
   if (face->font)
     {
-      unsigned code = face->font->driver->encode_char (face->font, c);
+      code = face->font->driver->encode_char (face->font, c);
 
-      if (code != FONT_INVALID_CODE)
-	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-      else
-	STORE_XCHAR2B (char2b, 0, 0);
+      if (code == FONT_INVALID_CODE)
+	code = 0;
     }
+  STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
 
   /* Make sure X resources of the face are allocated.  */
 #ifdef HAVE_X_WINDOWS
@@ -22424,31 +22424,30 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 			     XChar2b *char2b, int *two_byte_p)
 {
   struct face *face;
+  unsigned code = 0;
 
   eassert (glyph->type == CHAR_GLYPH);
   face = FACE_FROM_ID (f, glyph->face_id);
+
+  /* Make sure X resources of the face are allocated.  */
+  eassert (face != NULL);
+  PREPARE_FACE_FOR_DISPLAY (f, face);
 
   if (two_byte_p)
     *two_byte_p = 0;
 
   if (face->font)
     {
-      unsigned code;
-
       if (CHAR_BYTE8_P (glyph->u.ch))
 	code = CHAR_TO_BYTE8 (glyph->u.ch);
       else
 	code = face->font->driver->encode_char (face->font, glyph->u.ch);
 
-      if (code != FONT_INVALID_CODE)
-	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-      else
-	STORE_XCHAR2B (char2b, 0, 0);
+      if (code == FONT_INVALID_CODE)
+	code = 0;
     }
 
-  /* Make sure X resources of the face are allocated.  */
-  eassert (face != NULL);
-  PREPARE_FACE_FOR_DISPLAY (f, face);
+  STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
   return face;
 }
 
@@ -22758,9 +22757,12 @@ static struct font_metrics *
 get_per_char_metric (struct font *font, XChar2b *char2b)
 {
   static struct font_metrics metrics;
-  unsigned code = (XCHAR2B_BYTE1 (char2b) << 8) | XCHAR2B_BYTE2 (char2b);
+  unsigned code;
 
-  if (! font || code == FONT_INVALID_CODE)
+  if (! font)
+    return NULL;
+  code = (XCHAR2B_BYTE1 (char2b) << 8) | XCHAR2B_BYTE2 (char2b);
+  if (code == FONT_INVALID_CODE)
     return NULL;
   font->driver->text_extents (font, &code, 1, &metrics);
   return &metrics;

@@ -7373,11 +7373,10 @@ gif_load (struct frame *f, struct image *img)
 	       y < subimg_height;
 	       y++, row += interlace_increment[pass])
 	    {
-	      if (row >= subimg_height)
+	      while (subimg_height <= row)
 		{
+		  lint_assume (pass < 3);
 		  row = interlace_start[++pass];
-		  while (row >= subimg_height)
-		    row = interlace_start[++pass];
 		}
 
 	      for (x = 0; x < subimg_width; x++)
