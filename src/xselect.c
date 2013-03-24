@@ -2571,7 +2571,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event,
   return 1;
 }
 
-DEFUN ("x-send-client-message", Fx_send_client_event,
+DEFUN ("x-send-client-message", Fx_send_client_message,
        Sx_send_client_message, 6, 6, 0,
        doc: /* Send a client message of MESSAGE-TYPE to window DEST on DISPLAY.
 

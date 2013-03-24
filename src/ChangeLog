@@ -1,3 +1,10 @@
+2013-03-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xfaces.c (Finternal_face_x_get_resource): Allow 3rd (frame) argument
+	to be optional or nil.  Adjust comment and convert it to docstring.
+	* xselect.c (Fx_send_client_event): Rename to Fx_send_client_message.
+	* frame.c (display_x_get_resource, Fx_get_resource): Break long line.
+
 2013-03-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Static checking by GCC 4.8-20130319.

@@ -3395,21 +3395,22 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
     }
 }
 
-
-/* Get the value of X resource RESOURCE, class CLASS for the display
-   of frame FRAME.  This is here because ordinary `x-get-resource'
-   doesn't take a frame argument.  */
-
 DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
-       Sinternal_face_x_get_resource, 3, 3, 0, doc: /* */)
+       Sinternal_face_x_get_resource, 2, 3, 0,
+       doc: /* Get the value of X resource RESOURCE, class CLASS.
+Returned value is for the display of frame FRAME.  If FRAME is not
+specified or nil, use selected frame.  This function exists because
+ordinary `x-get-resource' doesn't take a frame argument.  */)
   (Lisp_Object resource, Lisp_Object class, Lisp_Object frame)
 {
   Lisp_Object value = Qnil;
+  struct frame *f;
+
   CHECK_STRING (resource);
   CHECK_STRING (class);
-  CHECK_LIVE_FRAME (frame);
+  f = decode_live_frame (frame);
   block_input ();
-  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
+  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (f),
 				  resource, class, Qnil, Qnil);
   unblock_input ();
   return value;

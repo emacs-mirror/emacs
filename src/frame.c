@@ -3495,7 +3495,8 @@ The optional arguments COMPONENT and SUBCLASS add to the key and the
 class, respectively.  You must specify both of them or neither.
 If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'
 and the class is `Emacs.CLASS.SUBCLASS'.  */)
-  (Lisp_Object attribute, Lisp_Object class, Lisp_Object component, Lisp_Object subclass)
+  (Lisp_Object attribute, Lisp_Object class, Lisp_Object component,
+   Lisp_Object subclass)
 {
 #ifdef HAVE_X_WINDOWS
   check_x ();
@@ -3508,7 +3509,9 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
 /* Get an X resource, like Fx_get_resource, but for display DPYINFO.  */
 
 Lisp_Object
-display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute, Lisp_Object class, Lisp_Object component, Lisp_Object subclass)
+display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute,
+			Lisp_Object class, Lisp_Object component,
+			Lisp_Object subclass)
 {
   return xrdb_get_resource (dpyinfo->xrdb,
 			    attribute, class, component, subclass);
