@@ -1,3 +1,7 @@
+2013-03-24  Ken Brown  <kbrown@cornell.edu>
+
+	* w32term.c (w32_initialize): Silence compiler warning.
+
 2013-03-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32fullscreen_hook): Use FRAME_NORMAL_WIDTH,
