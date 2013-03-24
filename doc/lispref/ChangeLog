@@ -1,3 +1,8 @@
+2013-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* compile.texi (Byte-Code Objects): Add index entry.
+	(Disassembly): Add cross-references.
+
 2013-03-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Size Parameters): More accurate description of the
