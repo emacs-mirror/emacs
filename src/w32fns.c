@@ -7759,6 +7759,9 @@ emacs_abort (void)
 #endif
 	    if (stderr_fd >= 0)
 	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+#ifdef CYGWIN
+#define _open open
+#endif
 	    errfile_fd = _open ("emacs_backtrace.txt", O_RDWR | O_CREAT | O_BINARY, S_IREAD | S_IWRITE);
 	    if (errfile_fd >= 0)
 	      {

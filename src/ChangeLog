@@ -1,5 +1,9 @@
 2013-03-24  Ken Brown  <kbrown@cornell.edu>
 
+	* w32fns.c (emacs_abort) [CYGWIN]: Define `_open' as a macro to
+	fix compilation on 64-bit Cygwin, where underscores are not
+	automatically prepended.
+
 	* w32term.c (w32_initialize): Silence compiler warning.
 
 2013-03-23  Eli Zaretskii  <eliz@gnu.org>
