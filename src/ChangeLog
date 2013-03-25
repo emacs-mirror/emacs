@@ -1,3 +1,8 @@
+2013-03-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c: Include X11/XKBlib.h
+	(XTring_bell): Use XkbBell if HAVE_XKB (Bug#14041).
+
 2013-03-24  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* alloc.c (xpalloc, Fgarbage_collect): Reorder conditions that are
