@@ -1,3 +1,8 @@
+2013-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Don't highlight the "error"
+	part of "(error-foo)".
+
 2013-03-24  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (list-matching-lines-prefix-face): New defcustom.
@@ -24,8 +29,8 @@
 
 2013-03-23  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column): Make
-	it safe-local.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column):
+	Make it safe-local.
 
 	* vc/diff-mode.el (diff-mode-shared-map): Unbind "/" (Bug#14034).
 

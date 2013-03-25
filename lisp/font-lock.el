@@ -2323,12 +2323,12 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 	  "\\_>")
 	  . 1)
        ;; Exit/Feature symbols as constants.
-       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\>"
+       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
 		 "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
 	(1 font-lock-keyword-face)
 	(2 font-lock-constant-face nil t))
        ;; Erroneous structures.
-       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
+       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\_>" 1 font-lock-warning-face)
        ;; Words inside \\[] tend to be for `substitute-command-keys'.
        ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
         (1 font-lock-constant-face prepend))
