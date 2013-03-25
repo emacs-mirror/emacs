@@ -1,3 +1,7 @@
+2013-03-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_XKB): Define if Xkb is present.
+
 2013-03-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

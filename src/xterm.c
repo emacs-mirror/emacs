@@ -130,6 +130,10 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 
 #include "bitmaps/gray.xbm"
 
+#ifdef HAVE_XKB
+#include <X11/XKBlib.h>
+#endif
+
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
 int use_xim = 1;
@@ -3218,7 +3222,11 @@ XTring_bell (struct frame *f)
       else
 	{
 	  block_input ();
+#ifdef HAVE_XKB
+          XkbBell (FRAME_X_DISPLAY (f), None, 0, None);
+#else
 	  XBell (FRAME_X_DISPLAY (f), 0);
+#endif
 	  XFlush (FRAME_X_DISPLAY (f));
 	  unblock_input ();
 	}
