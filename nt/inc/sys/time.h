@@ -23,11 +23,14 @@ void gettimeofday (struct timeval *, struct timezone *);
 #define ITIMER_REAL      0
 #define ITIMER_PROF      1
 
+/* MinGW64 defines 'struct itimerval' and _TIMESPEC_DEFINED in sys/types.h.  */
+#ifndef _TIMESPEC_DEFINED
 struct itimerval
 {
   struct  timeval it_interval;	/* timer interval */
   struct  timeval it_value;	/* current value */
 };
+#endif
 
 int getitimer (int, struct itimerval *);
 int setitimer (int, struct itimerval *, struct itimerval *);
