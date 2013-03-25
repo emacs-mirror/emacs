@@ -1,3 +1,7 @@
+2013-03-25  Chong Yidong  <cyd@gnu.org>
+
+	* iswitchb.el (iswitchb-read-buffer): Fix typo.
+
 2013-03-16  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/scheme.el: Add indentation and font-locking for λ.
