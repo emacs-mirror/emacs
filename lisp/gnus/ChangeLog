@@ -1,3 +1,7 @@
+2013-03-26  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el: Major rewrite. Separate searching from group management.
+
 2013-03-18  Sam Steingold  <sds@gnu.org>
 
 	* message.el (message-bury): Minor cleanup.
