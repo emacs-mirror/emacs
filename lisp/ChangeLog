@@ -1,3 +1,9 @@
+2013-03-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-drop-volume-letter): Make it an ordinary
+	defun.  Defining it as defalias could introduce too eager
+	byte-compiler optimization.  (Bug#14030)
+
 2013-03-25  Chong Yidong  <cyd@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer): Fix typo.
