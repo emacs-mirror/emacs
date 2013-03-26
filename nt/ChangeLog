@@ -1,9 +1,7 @@
 2013-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS): Don't define.
-
-	* config.nt (HAVE__SETJMP) [!_W64]: Don't define for MinGW64, as
-	its _setjmp accepts 2 arguments.
+	(HAVE__SETJMP) [_W64]: Undefine for MinGW64.
 
 	* addsection.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not
 	define for MinGW64.

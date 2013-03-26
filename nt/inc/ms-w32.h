@@ -161,6 +161,10 @@ extern char *getenv ();
 /* Make sure 'struct timespec' and 'struct timezone' are defined.  */
 #include <sys/types.h>
 #include <time.h>
+/* MinGW64 uses a 2-argument _setjmp, and setjmp is a macro defined to
+   supply the 2nd arg correctly, so don't use _setjmp directly in that
+   case. */
+#undef HAVE__SETJMP
 #endif
 
 #ifdef _MSC_VER
