@@ -460,8 +460,9 @@ With @samp{cd -42}, you can access the directory stack by number.
 @cmindex su
 @itemx sudo
 @cmindex sudo
-Uses TRAMP's @command{su} or @command{sudo} method to run a command via
-@command{su} or @command{sudo}.
+Uses TRAMP's @command{su} or @command{sudo} method @pxref{Inline methods, , , tramp}
+to run a command via @command{su} or @command{sudo}.  These commands
+are in the eshell-tramp module, which is disabled by default.
 
 @end table
 

@@ -1,3 +1,13 @@
+2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz
+
+	* lisp/eshell/em-unix.el: Moved su and sudo to...
+	* lisp/eshell/em-tramp.el: ...Eshell tramp module
+	* doc/misc/eshell.texi: Updated manual to reflect changes.
+
+	External su and sudo commands are now the default; the internal,
+	TRAMP-using variants can still be used by enabling the eshell-tramp
+	module.
+
 2013-03-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (HAVE_XKB): Define if Xkb is present.
