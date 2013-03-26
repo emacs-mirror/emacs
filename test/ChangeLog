@@ -1,3 +1,9 @@
+2013-03-26  Fabián Ezequiel Gallina  <fabian@anue.biz>
+
+	* automated/python-tests.el
+	(python-indent-block-enders): New test.
+	(python-info-current-defun-2): Fix test.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.
