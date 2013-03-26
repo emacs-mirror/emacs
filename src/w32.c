@@ -29,10 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <signal.h>
 #include <sys/file.h>
+#include <time.h>	/* must be before nt/inc/sys/time.h, for MinGW64 */
 #include <sys/time.h>
 #include <sys/utime.h>
 #include <math.h>
-#include <time.h>
 
 /* must include CRT headers *before* config.h */
 

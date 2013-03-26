@@ -4,6 +4,8 @@
 	Define only for _WIN32_WINNT less than 0x0500.
 	(_ANONYMOUS_UNION, _ANONYMOUS_STRUCT) [!_W64]: Don't define for
 	MinGW64.
+	Move inclusion of time.h before sys/time.h, so that MinGW64 could
+	see its own definitions of 'struct timeval' and 'struct timezone'.
 
 	Fix incompatibilities between MinGW.org and MinGW64 headers.
 	* w32term.c (WCRANGE, GLYPHSET): Don't define if _W64 is defined.
