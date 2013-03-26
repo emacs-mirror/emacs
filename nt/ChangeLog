@@ -2,11 +2,15 @@
 
 	Fix more incompatibilities between MinGW.org and MinGW64 headers
 	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00733.html
 	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00699.html
 	and in
 	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00707.html.
 	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS) [_W64]: Define to 1.
 	For MinGW64, include sys/types.h and time.h.
+	(_WIN32_WINNT) [!_W64]: Don't define for MinGW64.
+
+	* inc/sys/stat.h (chmod): Remove _CRTIMP from prototype.
 
 	* inc/sys/time.h (struct timeval) [!_W64]: Guard definition with
 	_W64.

@@ -129,9 +129,11 @@ extern char *getenv ();
 
 /* Prevent accidental use of features unavailable in older Windows
    versions we still support.  MinGW64 defines this to a higher value
-   in its system headers, so define our override before including any
-   system headers.  */
-#define _WIN32_WINNT 0x0400
+   in its system headers, and is not really compatible with values
+   lower than 0x0500, so leave it alone.  */
+#ifndef _W64
+# define _WIN32_WINNT 0x0400
+#endif
 
 /* Make a leaner executable.  */
 #define WIN32_LEAN_AND_MEAN 1
