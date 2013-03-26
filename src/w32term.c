@@ -109,9 +109,10 @@ struct w32_display_info *x_display_list;
 Lisp_Object w32_display_name_list;
 
 
-#if _WIN32_WINNT < 0x0500
+#if _WIN32_WINNT < 0x0500 && !defined(_W64)
 /* Pre Windows 2000, this was not available, but define it here so
-   that Emacs compiled on such a platform will run on newer versions.  */
+   that Emacs compiled on such a platform will run on newer versions.
+   MinGW64 (_W64) defines these unconditionally, so avoid redefining.  */
 
 typedef struct tagWCRANGE
 {

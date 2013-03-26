@@ -6,31 +6,34 @@
  * have the below stuff.
  */
 
+/* The guards are for MinGW64, which defines these structs on its
+   system headers which are included by ms-w32.h.  */
+#ifndef _W64
 struct timeval
 {
   long		tv_sec;		/* seconds */
   long		tv_usec;	/* microseconds */
 };
+#endif
 
+#ifndef _TIMEZONE_DEFINED
 struct timezone
 {
   int		tz_minuteswest;	/* minutes west of Greenwich */
   int		tz_dsttime;	/* type of dst correction */
 };
+#endif
 
 void gettimeofday (struct timeval *, struct timezone *);
 
 #define ITIMER_REAL      0
 #define ITIMER_PROF      1
 
-/* MinGW64 defines 'struct itimerval' and _TIMESPEC_DEFINED in sys/types.h.  */
-#ifndef _TIMESPEC_DEFINED
 struct itimerval
 {
   struct  timeval it_interval;	/* timer interval */
   struct  timeval it_value;	/* current value */
 };
-#endif
 
 int getitimer (int, struct itimerval *);
 int setitimer (int, struct itimerval *, struct itimerval *);

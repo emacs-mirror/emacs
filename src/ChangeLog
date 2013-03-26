@@ -1,3 +1,11 @@
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers.
+	* w32term.c (WCRANGE, GLYPHSET): Don't define if _W64 is defined.
+
+	* w32.c (REPARSE_DATA_BUFFER): Guard with
+	MAXIMUM_REPARSE_DATA_BUFFER_SIZE being defined.
+
 2013-03-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c: Include X11/XKBlib.h

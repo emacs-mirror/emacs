@@ -1,3 +1,9 @@
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers.
+	* ntlib.c (struct timespec) [!_TIMEZONE_DEFINED]: Define the
+	struct only if _TIMEZONE_DEFINED is not defined.
+
 2013-03-23  cg  <chengang31@gmail.com>  (tiny change)
 
 	* makefile.w32-in (LIB_SRC): Move before first use.

@@ -127,7 +127,7 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #define SDDL_REVISION_1	1
 #endif	/* SDDL_REVISION_1 */
 
-#ifdef _MSC_VER
+#ifndef MAXIMUM_REPARSE_DATA_BUFFER_SIZE
 /* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER and the
    associated macros, except on ntifs.h, which cannot be included
    because it triggers conflicts with other Windows API headers.  So

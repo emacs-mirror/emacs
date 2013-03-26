@@ -154,6 +154,14 @@ extern char *getenv ();
 
 #ifdef emacs
 
+#ifdef _W64
+/* MinGW64 specific stuff.  */
+#define USE_NO_MINGW_SETJMP_TWO_ARGS 1
+/* Make sure 'struct timespec' and 'struct timezone' are defined.  */
+#include <sys/types.h>
+#include <time.h>
+#endif
+
 #ifdef _MSC_VER
 #include <sys/timeb.h>
 #include <sys/stat.h>
