@@ -1,3 +1,7 @@
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_REPARSE_DATA_BUFFER): Condition by _MSVC and _W64.
+
 2013-03-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (style_changed_cb): Check if frame is live and an
