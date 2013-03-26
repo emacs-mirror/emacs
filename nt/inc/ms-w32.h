@@ -158,7 +158,6 @@ extern char *getenv ();
 
 #ifdef _W64
 /* MinGW64 specific stuff.  */
-#define USE_NO_MINGW_SETJMP_TWO_ARGS 1
 /* Make sure 'struct timespec' and 'struct timezone' are defined.  */
 #include <sys/types.h>
 #include <time.h>
