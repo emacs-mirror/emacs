@@ -1,6 +1,10 @@
 2013-03-26  Andrew Cohen  <cohen@bu.edu>
 
-	* nnir.el: Major rewrite. Separate searching from group management.
+	* nnir.el: Major rewrite. Cleaner separation between searches and group
+	management. Marks are now shown in nnir summary buffers. Rudimentary
+	support for real (i.e. not ephemeral) nnir groups.
+	(gnus-summary-make-nnir-group): New function for initiating searches
+	from a summary buffer.
 
 2013-03-18  Sam Steingold  <sds@gnu.org>
 
