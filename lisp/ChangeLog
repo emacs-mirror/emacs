@@ -1,3 +1,8 @@
+2013-03-26  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el: Move semantic tag handling back to
+	cedet/semantic/senator.el.  (Bug#14052)
+
 2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/em-prompt.el (eshell-emit-prompt): Make sure we can't insert

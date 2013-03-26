@@ -1,3 +1,8 @@
+2013-03-26  Leo Liu  <sdl.web@gmail.com>
+
+	* semantic/senator.el (senator-copy-tag-to-register): Move
+	register handling logic from register.el.  (Bug#14052)
+
 2013-03-21  Eric Ludlam  <zappo@gnu.org>
 
 	* semantic.el (navigate-menu): Yank Tag :enable. Make sure
