@@ -1,3 +1,9 @@
+2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* desktop.el (desktop--v2s): Rename from desktop-internal-v2s.
+	Change return value to be a sexp.  Delay `get-buffer' to after
+	restoring the desktop (bug#13951).
+
 2013-03-26  Leo Liu  <sdl.web@gmail.com>
 
 	* register.el: Move semantic tag handling back to
