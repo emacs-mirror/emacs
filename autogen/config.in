@@ -1106,6 +1106,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
+/* Define to 1 if you have the Xkb extension. */
+#undef HAVE_XKB
+
 /* Define to 1 if you have the XkbGetKeyboard function. */
 #undef HAVE_XKBGETKEYBOARD
 

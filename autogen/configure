@@ -10636,6 +10636,9 @@ $as_echo "$emacs_xkb" >&6; }
 
 $as_echo "#define HAVE_XKBGETKEYBOARD 1" >>confdefs.h
 
+
+$as_echo "#define HAVE_XKB 1" >>confdefs.h
+
   fi
 
   for ac_func in XrmSetDatabase XScreenResourceString \
