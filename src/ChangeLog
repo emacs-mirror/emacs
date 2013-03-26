@@ -1,3 +1,8 @@
+2013-03-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (style_changed_cb): Check if frame is live and an
+	X frame (Bug#14038).
+
 2013-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (_PROCESS_MEMORY_COUNTERS_EX) [_WIN32_WINNT < 0x0500]:

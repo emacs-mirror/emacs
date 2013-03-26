@@ -1094,7 +1094,9 @@ style_changed_cb (GObject *go,
       FOR_EACH_FRAME (rest, frame)
         {
           FRAME_PTR f = XFRAME (frame);
-          if (FRAME_X_DISPLAY (f) == dpy)
+          if (FRAME_LIVE_P (f)
+              && FRAME_X_P (f)
+              && FRAME_X_DISPLAY (f) == dpy)
             {
               x_set_scroll_bar_default_width (f);
               xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
