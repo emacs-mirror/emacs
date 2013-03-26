@@ -2,6 +2,8 @@
 
 	* w32.c (_PROCESS_MEMORY_COUNTERS_EX) [_WIN32_WINNT < 0x0500]:
 	Define only for _WIN32_WINNT less than 0x0500.
+	(_ANONYMOUS_UNION, _ANONYMOUS_STRUCT) [!_W64]: Don't define for
+	MinGW64.
 
 	Fix incompatibilities between MinGW.org and MinGW64 headers.
 	* w32term.c (WCRANGE, GLYPHSET): Don't define if _W64 is defined.
