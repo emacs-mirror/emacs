@@ -1,3 +1,8 @@
+2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/em-prompt.el (eshell-emit-prompt): Make sure we can't insert
+	into the prompt either (bug#13963).
+
 2013-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Don't highlight the "error"
