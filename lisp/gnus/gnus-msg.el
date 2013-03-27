@@ -426,15 +426,24 @@ Thank you for your help in stamping out bugs.
     `(let ((,winconf (current-window-configuration))
 	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
-	   (,article gnus-article-reply)
+	   (,article (or  (when (and
+				 (string-match "^nnir:" gnus-newsgroup-name)
+				 gnus-article-reply)
+			    (nnir-article-number gnus-article-reply))
+			   gnus-article-reply))
 	   (,yanked gnus-article-yanked-articles)
-	   (,group gnus-newsgroup-name)
+	   (,group (or (when (and
+			      (string-match "^nnir:" gnus-newsgroup-name)
+			      gnus-article-reply)
+			 (nnir-article-group gnus-article-reply))
+	   	       gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
 	   (mbl mml-buffer-list)
 	   (message-mode-hook (copy-sequence message-mode-hook)))
        (setq mml-buffer-list nil)
-       (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
+       (add-hook 'message-header-setup-hook (lambda ()
+       					      (gnus-inews-insert-gcc ,group)))
        ;; message-newsreader and message-mailer were formerly set in
        ;; gnus-inews-add-send-actions, but this is too late when
        ;; message-generate-headers-first is used. --ansel
@@ -1706,7 +1715,8 @@ this is a reply."
          (group (when group (gnus-group-decoded-name group)))
          (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
-	  (and group (gnus-group-find-parameter group 'gcc-self)))
+	  (and group (gnus-group-find-parameter group 'gcc-self)
+	       (not (gnus-virtual-group-p group))))
 	 result
 	 (groups
 	  (cond

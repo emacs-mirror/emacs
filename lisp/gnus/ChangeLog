@@ -1,5 +1,9 @@
 2013-03-27  Andrew Cohen  <cohen@bu.edu>
 
+	* gnus-msg.el (gnus-setup-message): When replying from an nnir summary
+	buffer use the posting-style and gcc of the original article group.
+	(gnus-inews-insert-gcc): Don't set gcc-self for virtual groups.
+
 	* nnir.el: Fix byte-compile warning. nnoo-define-skeleton should come
 	after other deffoos.
 
