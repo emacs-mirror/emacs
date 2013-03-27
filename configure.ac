@@ -1821,7 +1821,6 @@ if test "${HAVE_X11}" = "yes"; then
 	emacs_xkb=yes, emacs_xkb=no)
   AC_MSG_RESULT($emacs_xkb)
   if test $emacs_xkb = yes; then
-    AC_DEFINE(HAVE_XKBGETKEYBOARD, 1, [Define to 1 if you have the XkbGetKeyboard function.])
     AC_DEFINE(HAVE_XKB, 1, [Define to 1 if you have the Xkb extension.])
   fi
 

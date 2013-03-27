@@ -5591,7 +5591,7 @@ nil, it defaults to the selected frame. */)
 			       Keyboard
  ***********************************************************************/
 
-#ifdef HAVE_XKBGETKEYBOARD
+#ifdef HAVE_XKB
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
 #endif
@@ -5605,7 +5605,9 @@ usual X keysyms.  Value is `lambda' if we cannot determine if both keys are
 present and mapped to the usual X keysyms.  */)
   (Lisp_Object frame)
 {
-#ifdef HAVE_XKBGETKEYBOARD
+#ifndef HAVE_XKB
+  return Qlambda;
+#else
   XkbDescPtr kb;
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -5683,9 +5685,7 @@ present and mapped to the usual X keysyms.  */)
     }
   unblock_input ();
   return have_keys;
-#else /* not HAVE_XKBGETKEYBOARD */
-  return Qlambda;
-#endif /* not HAVE_XKBGETKEYBOARD */
+#endif
 }
 
 
