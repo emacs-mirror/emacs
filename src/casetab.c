@@ -246,7 +246,7 @@ void
 init_casetab_once (void)
 {
   register int i;
-  Lisp_Object down, up;
+  Lisp_Object down, up, eqv;
   DEFSYM (Qcase_table, "case-table");
 
   /* Intern this now in case it isn't already done.
@@ -275,13 +275,21 @@ init_casetab_once (void)
 
   for (i = 0; i < 128; i++)
     {
+      int c = (i >= 'a' && i <= 'z') ? i + ('A' - 'a') : i;
+      CHAR_TABLE_SET (up, i, make_number (c));
+    }
+
+  eqv = Fmake_char_table (Qcase_table, Qnil);
+
+   for (i = 0; i < 128; i++)
+     {
       int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
 	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
 		  : i));
       CHAR_TABLE_SET (up, i, make_number (c));
     }
 
-  set_char_table_extras (down, 2, Fcopy_sequence (up));
+  set_char_table_extras (down, 2, eqv);
 
   /* Fill in what isn't filled in.  */
   set_case_table (down, 1);

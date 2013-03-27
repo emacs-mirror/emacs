@@ -1,4 +1,4 @@
-;;; case-table.el --- code to extend the character set and support case tables
+;;; case-table.el --- code to extend the character set and support case tables  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1988, 1994, 2001-2013 Free Software Foundation, Inc.
 
@@ -65,18 +65,26 @@
        (describe-vector description)
        (help-mode)))))
 
+(defun case-table-get-table (case-table table)
+  "Return the TABLE of CASE-TABLE.
+TABLE can be `down', `up', `eqv' or `canon'."
+  (let ((slot-nb (cdr (assq table '((up . 0) (canon . 1) (eqv . 2))))))
+    (or (if (eq table 'down) case-table)
+        (char-table-extra-slot case-table slot-nb)
+        ;; Setup all extra slots of CASE-TABLE by temporarily selecting
+        ;; it as the standard case table.
+        (let ((old (standard-case-table)))
+          (unwind-protect
+              (progn
+                (set-standard-case-table case-table)
+                (char-table-extra-slot case-table slot-nb))
+            (or (eq case-table old)
+                (set-standard-case-table old)))))))
+
 (defun get-upcase-table (case-table)
   "Return the upcase table of CASE-TABLE."
-  (or (char-table-extra-slot case-table 0)
-      ;; Setup all extra slots of CASE-TABLE by temporarily selecting
-      ;; it as the standard case table.
-      (let ((old (standard-case-table)))
-	(unwind-protect
-	    (progn
-	      (set-standard-case-table case-table)
-	      (char-table-extra-slot case-table 0))
-	  (or (eq case-table old)
-	      (set-standard-case-table old))))))
+  (case-table-get-table case-table 'up))
+(make-obsolete 'get-upcase-table 'case-table-get-table "24.4")
 
 (defun copy-case-table (case-table)
   (let ((copy (copy-sequence case-table))
@@ -97,7 +105,7 @@ It also modifies `standard-syntax-table' to
 indicate left and right delimiters."
   (aset table l l)
   (aset table r r)
-  (let ((up (get-upcase-table table)))
+  (let ((up (case-table-get-table table 'up)))
     (aset up l l)
     (aset up r r))
   ;; Clear out the extra slots so that they will be
@@ -117,7 +125,7 @@ It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
   (aset table uc lc)
   (aset table lc lc)
-  (let ((up (get-upcase-table table)))
+  (let ((up (case-table-get-table table 'up)))
     (aset up uc uc)
     (aset up lc uc))
   ;; Clear out the extra slots so that they will be
@@ -132,7 +140,7 @@ word constituents."
 It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
   (aset table lc lc)
-  (let ((up (get-upcase-table table)))
+  (let ((up (case-table-get-table table 'up)))
     (aset up uc uc)
     (aset up lc uc))
   ;; Clear out the extra slots so that they will be
@@ -148,7 +156,7 @@ It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
   (aset table uc lc)
   (aset table lc lc)
-  (let ((up (get-upcase-table table)))
+  (let ((up (case-table-get-table table 'up)))
     (aset up uc uc))
   ;; Clear out the extra slots so that they will be
   ;; recomputed from the main (downcase) table and upcase table.
@@ -164,7 +172,7 @@ that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
   (aset table c c)
-  (let ((up (get-upcase-table table)))
+  (let ((up (case-table-get-table table 'up)))
     (aset up c c))
   ;; Clear out the extra slots so that they will be
   ;; recomputed from the main (downcase) table and upcase table.

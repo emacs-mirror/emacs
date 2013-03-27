@@ -302,6 +302,8 @@ file using `set-file-extended-attributes'.
 
 ** `dont-compile' is declared obsolete.
 
+** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
+
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the

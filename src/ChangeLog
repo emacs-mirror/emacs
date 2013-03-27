@@ -1,3 +1,8 @@
+2013-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* casetab.c (init_casetab_once): Don't abuse the ascii eqv table for
+	the upcase table.
+
 2013-03-27  rzl24ozi  <rzl24ozi@gmail.com>  (tiny changes)
 
 	* image.c [WINDOWSNT]: Fix calls to DEF_IMGLIB_FN for SVG function.
