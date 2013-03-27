@@ -1,5 +1,9 @@
 2013-03-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap, bootstrap-nmake, bootstrap-gmake, install-addpm):
+	Depend on .exe files.
+
 	* inc/ms-w32.h (sys_localtime) [_W64]: Provide a prototype, to
 	avoid MinGW64 compiler warnings in editfns.c.
 
