@@ -1,3 +1,8 @@
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* addpm.c (_WIN32_IE) [_W64]: Move after inclusion of standard
+	headers, since that's where _W64 is declared by MinGW64.
+
 2013-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS): Don't define.
