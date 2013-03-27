@@ -10634,9 +10634,6 @@ rm -f core conftest.err conftest.$ac_objext \
 $as_echo "$emacs_xkb" >&6; }
   if test $emacs_xkb = yes; then
 
-$as_echo "#define HAVE_XKBGETKEYBOARD 1" >>confdefs.h
-
-
 $as_echo "#define HAVE_XKB 1" >>confdefs.h
 
   fi
