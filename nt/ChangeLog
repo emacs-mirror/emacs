@@ -1,5 +1,12 @@
 2013-03-27  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix rules for parallel builds.
+	* makefile.w32-in (ALL): Depend on *.exe files, not on phony names
+	without the .exe suffix.
+	(addpm, ddeclient, cmdproxy, addsection, preprep): Remove phony
+	targets.
+	(.PHONY): Remove.
+
 	* addpm.c (_WIN32_IE) [_W64]: Move after inclusion of standard
 	headers, since that's where _W64 is declared by MinGW64.
 

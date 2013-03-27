@@ -31,33 +31,26 @@ CLIENTRES	= $(BLD)/emacsclient.res
 
 XMFLAGS		=
 
-ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
+ALL		= $(BLD)/addpm.exe $(BLD)/ddeclient.exe $(BLD)/runemacs.exe \
+		  $(BLD)/cmdproxy.exe $(BLD)/addsection.exe $(BLD)/preprep.exe
 
-.PHONY: $(ALL)
-
-
-addpm:		  stamp_BLD $(BLD)/addpm.exe
 $(BLD)/addpm.exe: $(BLD)/addpm.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) \
 		  $(USER32) $(OLE32) $(UUID) $(SHELL32)
 
-ddeclient:	  stamp_BLD $(BLD)/ddeclient.exe
 $(BLD)/ddeclient.exe: $(BLD)/ddeclient.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
 
-cmdproxy:	  stamp_BLD $(BLD)/cmdproxy.exe
 $(BLD)/cmdproxy.exe: $(BLD)/cmdproxy.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(USER32)
 
-addsection:	  stamp_BLD $(BLD)/addsection.exe
 $(BLD)/addsection.exe: $(BLD)/addsection.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(USER32)
 
-preprep:	  stamp_BLD $(BLD)/preprep.exe
 $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS)
@@ -72,7 +65,6 @@ $(TRES):	emacs.rc icons/emacs.ico $(EMACS_MANIFEST) stamp_BLD
 $(CLIENTRES):	emacsclient.rc stamp_BLD
 		$(RC) $(RC_OUT)$(CLIENTRES) emacsclient.rc
 
-runemacs:	  stamp_BLD $(BLD)/runemacs.exe
 $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
 		  $(LINK) $(LINK_OUT)$@ $(SUBSYSTEM_WINDOWS) \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
