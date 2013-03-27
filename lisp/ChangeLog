@@ -1,3 +1,9 @@
+2013-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/subword.el: Add `superword-mode' to do word motion
+	over symbol_words (parallels and leverages `subword-mode' which
+	does word motion inside MixedCaseWords).
+
 2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* desktop.el (desktop--v2s): Rename from desktop-internal-v2s.

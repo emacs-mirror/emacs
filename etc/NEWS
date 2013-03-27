@@ -254,6 +254,11 @@ has not been relevant for some time.
 
 
 * New Modes and Packages in Emacs 24.4
+** New `superword-mode' in subword.el
+`superword-mode' overrides the default word motion commands to treat
+symbol_words as a single word, similar to what `subword-mode' does and
+using the same internal functions.
+
 ** New nadvice.el package offering lighter-weight advice facilities.
 It is layered as:
 - add-function/remove-function which can be used to add/remove code on any
