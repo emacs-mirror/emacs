@@ -1,5 +1,8 @@
 2013-03-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* inc/ms-w32.h (sys_localtime) [_W64]: Provide a prototype, to
+	avoid MinGW64 compiler warnings in editfns.c.
+
 	Fix rules for parallel builds.
 	* makefile.w32-in (ALL): Depend on *.exe files, not on phony names
 	without the .exe suffix.

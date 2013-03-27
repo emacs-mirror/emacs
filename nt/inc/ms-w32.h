@@ -161,6 +161,10 @@ extern char *getenv ();
 /* Make sure 'struct timespec' and 'struct timezone' are defined.  */
 #include <sys/types.h>
 #include <time.h>
+/* This prototype avoids MinGW64 compiler warnings due to the fact
+   that time.h is included before localtime is redirected to
+   sys_localtime below.  */
+extern struct tm * sys_localtime (const time_t *);
 /* MinGW64 uses a 2-argument _setjmp, and setjmp is a macro defined to
    supply the 2nd arg correctly, so don't use _setjmp directly in that
    case. */
