@@ -1,11 +1,11 @@
 2013-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion-pcm--merge-completions): Make sure prefixes
+	and suffixes don't overlap (bug#14061).
+
 	* case-table.el: Use lexical-binding.
 	(case-table-get-table): New function.
 	(get-upcase-table): Use it.  Mark as obsolete.  Adjust callers.
-
-	* minibuffer.el (completion-pcm--merge-completions): Make sure prefixes
-	and suffixes don't overlap
 
 2013-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
