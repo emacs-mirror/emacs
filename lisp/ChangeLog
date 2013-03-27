@@ -1,3 +1,10 @@
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* facemenu.el (list-colors-callback): New defvar.
+	(list-colors-redisplay): New function.
+	(list-colors-display): Install list-colors-redisplay as the
+	revert-buffer-function.  (Bug#14063)
+
 2013-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm--merge-completions): Make sure prefixes
