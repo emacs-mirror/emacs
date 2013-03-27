@@ -174,8 +174,11 @@ typedef struct _REPARSE_DATA_BUFFER {
 #ifndef CTL_CODE
 #define CTL_CODE(t,f,m,a)       (((t)<<16)|((a)<<14)|((f)<<2)|(m))
 #endif
+/* MinGW64 defines FSCTL_GET_REPARSE_POINT on winioctl.h.  */
+#ifndef FSCTL_GET_REPARSE_POINT
 #define FSCTL_GET_REPARSE_POINT \
   CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 42, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
 #endif
 
 /* TCP connection support.  */

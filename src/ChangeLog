@@ -1,3 +1,11 @@
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (IsValidLocale) [__GNUC__]: Don't declare prototype,
+	since MinGW's w32api headers do.  This avoids compiler warnings.
+
+	* w32.c (FSCTL_GET_REPARSE_POINT) [_MSC_VER || _W64]: Don't define
+	if already defined.
+
 2013-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (_REPARSE_DATA_BUFFER): Condition by _MSVC and _W64.
