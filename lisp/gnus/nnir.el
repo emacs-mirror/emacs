@@ -886,7 +886,7 @@ skips all prompting."
 ;;  (car (assoc  '(nnir "nnir-ephemeral" (nnir-address "nnir"))
 ;; 		gnus-opened-servers))))
 
-(nnoo-define-skeleton nnir)
+
 
 
 (defmacro nnir-add-result (dirnam artno score prefix server artlist)
@@ -1880,6 +1880,11 @@ article came from is also searched."
 	(nnir-request-update-info pgroup (gnus-get-info pgroup)))
     t))
 
+(deffoo nnir-request-close ()
+  t)
+
+
+(nnoo-define-skeleton nnir)
 
 ;; The end.
 (provide 'nnir)

@@ -1,3 +1,8 @@
+2013-03-27  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el: Fix byte-compile warning. nnoo-define-skeleton should come
+	after other deffoos.
+
 2013-03-26  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el: Major rewrite. Cleaner separation between searches and group
