@@ -1,3 +1,7 @@
+2013-03-27  rzl24ozi  <rzl24ozi@gmail.com>  (tiny changes)
+
+	* image.c [WINDOWSNT]: Fix calls to DEF_IMGLIB_FN for SVG function.
+
 2013-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (IsValidLocale) [__GNUC__]: Don't declare prototype,
