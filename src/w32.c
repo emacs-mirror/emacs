@@ -2394,7 +2394,7 @@ get_emacs_configuration_options (void)
 #include <sys/timeb.h>
 
 /* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
-void
+int
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
   struct _timeb tb;
@@ -2413,6 +2413,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
       tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
     }
+  return 0;
 }
 
 /* Emulate fdutimens.  */
