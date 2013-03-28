@@ -1,3 +1,8 @@
+2013-03-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el (nndraft-request-expire-articles):
+	Make expiry target always `delete'.
+
 2013-03-27  Andrew Cohen  <cohen@bu.edu>
 
 	* gnus-msg.el (gnus-setup-message): When replying from an nnir summary
