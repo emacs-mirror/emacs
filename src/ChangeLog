@@ -1,5 +1,9 @@
 2013-03-28  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32fns.c (w32_wnd_proc) [ENABLE_CHECKING]: Add code to help
+	identify the reasons for assertion violations in bug#14062 and
+	similar ones.
+
 	* image.c (g_error_free) [WINDOWSNT]: Add DEF_IMGLIB_FN.
 	Reported by <rzl24ozi@gmail.com>.
 
