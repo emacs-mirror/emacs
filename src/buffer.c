@@ -2394,8 +2394,9 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
 	eassert (!m->buffer);
   }
-  { /* Some of the C code expects that w->buffer == w->pointm->buffer.
-       So since we just swapped the markers between the two buffers, we need
+  { /* Some of the C code expects that both window markers of a
+       live window points to that window's buffer.  So since we
+       just swapped the markers between the two buffers, we need
        to undo the effect of this swap for window markers.  */
     Lisp_Object w = Fselected_window (), ws = Qnil;
     Lisp_Object buf1, buf2;
@@ -2410,6 +2411,13 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 	  Fset_marker (XWINDOW (w)->pointm,
 		       make_number
 		       (BUF_BEGV (XBUFFER (XWINDOW (w)->buffer))),
+		       XWINDOW (w)->buffer);
+	if (MARKERP (XWINDOW (w)->start)
+	    && (EQ (XWINDOW (w)->buffer, buf1)
+		|| EQ (XWINDOW (w)->buffer, buf2)))
+	  Fset_marker (XWINDOW (w)->start,
+		       make_number
+		       (XBUFFER (XWINDOW (w)->buffer)->last_window_start),
 		       XWINDOW (w)->buffer);
 	w = Fnext_window (w, Qt, Qt);
       }

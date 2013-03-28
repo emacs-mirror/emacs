@@ -17,6 +17,8 @@
 	which is verified by eassert.
 	* editfns.c (save_excursion_save): Do not assume that
 	selected_window always displays the buffer.
+	* buffer.c (Fbuffer_swap_text): Adjust window start markers.
+	Fix comment.
 
 2013-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
