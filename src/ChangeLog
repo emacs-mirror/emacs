@@ -3,6 +3,8 @@
 	* w32fns.c (w32_wnd_proc) [ENABLE_CHECKING]: Add code to help
 	identify the reasons for assertion violations in bug#14062 and
 	similar ones.
+	(Fx_show_tip): Fix compilation error under
+	"--enable-check-lisp-object-type".  (Bug#14073)
 
 	* image.c (g_error_free) [WINDOWSNT]: Add DEF_IMGLIB_FN.
 	Reported by <rzl24ozi@gmail.com>.

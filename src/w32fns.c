@@ -5810,7 +5810,7 @@ Text larger than the specified size is clipped.  */)
       w->total_lines = 40;
     }
 
-  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
+  FRAME_TOTAL_COLS (f) = WINDOW_TOTAL_COLS (w);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
