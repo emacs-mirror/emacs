@@ -9994,7 +9994,7 @@ with_echo_area_buffer_unwind_data (struct window *w)
   Vwith_echo_area_save_vector = Qnil;
 
   if (NILP (vector))
-    vector = Fmake_vector (make_number (7), Qnil);
+    vector = Fmake_vector (make_number (9), Qnil);
 
   XSETBUFFER (tmp, current_buffer); ASET (vector, i, tmp); ++i;
   ASET (vector, i, Vdeactivate_mark); ++i;
@@ -10006,10 +10006,12 @@ with_echo_area_buffer_unwind_data (struct window *w)
       ASET (vector, i, w->buffer); ++i;
       ASET (vector, i, make_number (marker_position (w->pointm))); ++i;
       ASET (vector, i, make_number (marker_byte_position (w->pointm))); ++i;
+      ASET (vector, i, make_number (marker_position (w->start))); ++i;
+      ASET (vector, i, make_number (marker_byte_position (w->start))); ++i;
     }
   else
     {
-      int end = i + 4;
+      int end = i + 6;
       for (; i < end; ++i)
 	ASET (vector, i, Qnil);
     }
@@ -10032,16 +10034,18 @@ unwind_with_echo_area_buffer (Lisp_Object vector)
   if (WINDOWP (AREF (vector, 3)))
     {
       struct window *w;
-      Lisp_Object buffer, charpos, bytepos;
+      Lisp_Object buffer;
 
       w = XWINDOW (AREF (vector, 3));
       buffer = AREF (vector, 4);
-      charpos = AREF (vector, 5);
-      bytepos = AREF (vector, 6);
 
       wset_buffer (w, buffer);
       set_marker_both (w->pointm, buffer,
-		       XFASTINT (charpos), XFASTINT (bytepos));
+		       XFASTINT (AREF (vector, 5)),
+		       XFASTINT (AREF (vector, 6)));
+      set_marker_both (w->start, buffer,
+		       XFASTINT (AREF (vector, 7)),
+		       XFASTINT (AREF (vector, 8)));
     }
 
   Vwith_echo_area_save_vector = vector;
@@ -15231,11 +15235,13 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
 
-  /* W must be a leaf window here.  */
-  eassert (!NILP (w->buffer));
 #ifdef GLYPH_DEBUG
   *w->desired_matrix->method = 0;
 #endif
+
+  /* Make sure that both W's markers are valid.  */
+  eassert (XMARKER (w->start)->buffer == buffer);
+  eassert (XMARKER (w->pointm)->buffer == buffer);
 
  restart:
   reconsider_clip_changes (w, buffer);

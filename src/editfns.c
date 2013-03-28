@@ -846,7 +846,7 @@ save_excursion_save (void)
       ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
       : Qnil),
      /* Selected window if current buffer is shown in it, nil otherwise.  */
-     ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+     (EQ (XWINDOW (selected_window)->buffer, Fcurrent_buffer ())
       ? selected_window : Qnil),
      BVAR (current_buffer, mark_active));
 }

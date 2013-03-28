@@ -1,3 +1,14 @@
+2013-03-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (with_echo_area_buffer_unwind_data): Save window
+	start marker...
+	(unwind_with_echo_area_buffer): ...to restore it here.  This
+	is needed to ensure that...
+	(redisplay_window): ...both window markers are valid here,
+	which is verified by eassert.
+	* editfns.c (save_excursion_save): Do not assume that
+	selected_window always displays the buffer.
+
 2013-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* casetab.c (init_casetab_once): Don't abuse the ascii eqv table for
