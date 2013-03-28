@@ -1,3 +1,10 @@
+2013-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-mode): Make it a minor mode.
+	(edebug--recursive-edit): Use it.
+	(edebug-kill-buffer): Don't let-bind kill-buffer-hook.
+	(edebug-temp-display-freq-count): Don't let-bind buffer-read-only.
+
 2013-03-28  Leo Liu  <sdl.web@gmail.com>
 
 	* vc/vc-bzr.el (vc-bzr-revert): Don't backup.  (Bug#14066)
