@@ -41,14 +41,13 @@ They are deleted only by calling delete-window on them (but
 this can be done implicitly).  Combination windows can be created
 and deleted at any time.
 
-A leaf window has a non-nil buffer field, and also
- has markers in its start and pointm fields.  Non-leaf windows
- have nil in these fields.
+A leaf window has a buffer stored in contents field and markers in its start
+and pointm fields.  Non-leaf windows have nil in the latter two fields.
 
 Non-leaf windows are either vertical or horizontal combinations.
 
 A vertical combination window has children that are arranged on the frame
-one above the next.  Its vchild field points to the uppermost child.
+one above the next.  Its contents field points to the uppermost child.
 The parent field of each of the children points to the vertical
 combination window.  The next field of each child points to the
 child below it, or is nil for the lowest child.  The prev field
@@ -56,7 +55,7 @@ of each child points to the child above it, or is nil for the
 highest child.
 
 A horizontal combination window has children that are side by side.
-Its hchild field points to the leftmost child.  In each child
+Its contents field points to the leftmost child.  In each child
 the next field points to the child to the right and the prev field
 points to the child to the left.
 
@@ -78,7 +77,7 @@ the root window is the minibuf window.  On minibufferless screens or
 minibuffer-only screens, the root window and the minibuffer window are
 one and the same, so its prev and next members are nil.
 
-A dead window has its buffer, hchild, and vchild windows all nil.  */
+A dead window has its contents field set to nil.  */
 
 struct cursor_pos
 {
@@ -102,13 +101,6 @@ struct window
     Lisp_Object next;
     Lisp_Object prev;
 
-    /* First child of this window: vchild is used if this is a vertical
-       combination, hchild if this is a horizontal combination.  Of the
-       fields vchild, hchild and buffer, one and only one is non-nil
-       unless the window is dead.  */
-    Lisp_Object hchild;
-    Lisp_Object vchild;
-
     /* The window this one is a child of.  */
     Lisp_Object parent;
 
@@ -123,10 +115,8 @@ struct window
     Lisp_Object new_total;
     Lisp_Object new_normal;
 
-    /* The buffer displayed in this window.  Of the fields vchild,
-       hchild and buffer, one and only one is non-nil unless the window
-       is dead.  */
-    Lisp_Object buffer;
+    /* May be buffer, window, or nil.  */
+    Lisp_Object contents;
 
     /* A marker pointing to where in the text to start displaying.
        BIDI Note: This is the _logical-order_ start, i.e. the smallest
@@ -282,6 +272,10 @@ struct window
     /* Non-zero if this window is a minibuffer window.  */
     unsigned mini : 1;
 
+    /* Meaningful only if contents is a window, non-zero if this
+       internal window is used in horizontal combination.  */
+    unsigned horizontal : 1;
+
     /* Non-zero means must regenerate mode line of this window.  */
     unsigned update_mode_line : 1;
 
@@ -427,6 +421,21 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 
 /* A handy macro.  */
+
+/* Non-zero if W is leaf (carry the buffer).  */
+
+#define WINDOW_LEAF_P(W) \
+  (BUFFERP ((W)->contents))
+
+/* Non-zero if W is a member of horizontal combination.  */
+
+#define WINDOW_HORIZONTAL_COMBINATION_P(W) \
+  (WINDOWP ((W)->contents) && (W)->horizontal)
+
+/* Non-zero if W is a member of vertical combination.  */
+
+#define WINDOW_VERTICAL_COMBINATION_P(W) \
+  (WINDOWP ((W)->contents) && !(W)->horizontal)
 
 #define WINDOW_XFRAME(W) \
   (XFRAME (WINDOW_FRAME ((W))))
@@ -931,20 +940,17 @@ extern void check_frame_size (struct frame *frame, int *rows, int *cols);
 struct glyph *get_phys_cursor_glyph (struct window *w);
 
 /* Value is non-zero if WINDOW is a valid window.  */
-#define WINDOW_VALID_P(WINDOW)				\
-  (WINDOWP (WINDOW)					\
-   && (!NILP (XWINDOW (WINDOW)->buffer)			\
-       || !NILP (XWINDOW (WINDOW)->vchild)		\
-       || !NILP (XWINDOW (WINDOW)->hchild)))
+#define WINDOW_VALID_P(WINDOW)					\
+  (WINDOWP (WINDOW) && !NILP (XWINDOW (WINDOW)->contents))	\
 
-/* A window of any sort, leaf or interior, is "valid" if one
-   of its buffer, vchild, or hchild members is non-nil.  */
+/* A window of any sort, leaf or interior, is "valid" if its
+   contents slot is non-nil.  */
 #define CHECK_VALID_WINDOW(WINDOW)				\
   CHECK_TYPE (WINDOW_VALID_P (WINDOW), Qwindow_valid_p, WINDOW)
 
 /* Value is non-zero if WINDOW is a live window.  */
 #define WINDOW_LIVE_P(WINDOW)					\
-  (WINDOWP (WINDOW) && !NILP (XWINDOW (WINDOW)->buffer))
+  (WINDOWP (WINDOW) && BUFFERP (XWINDOW (WINDOW)->contents))
 
 /* A window is "live" if and only if it shows a buffer.  */
 #define CHECK_LIVE_WINDOW(WINDOW)				\

@@ -5810,14 +5810,13 @@ mark_object (Lisp_Object arg)
 	  case PVEC_WINDOW:
 	    {
 	      struct window *w = (struct window *) ptr;
-	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
 
 	      mark_vectorlike (ptr);
 
-	      /* Mark glyphs for leaf windows.  Marking window
+	      /* Mark glyph matrices, if any.  Marking window
 		 matrices is sufficient because frame matrices
 		 use the same glyph memory.  */
-	      if (leaf && w->current_matrix)
+	      if (w->current_matrix)
 		{
 		  mark_glyph_matrix (w->current_matrix);
 		  mark_glyph_matrix (w->desired_matrix);

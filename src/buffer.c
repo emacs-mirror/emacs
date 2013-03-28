@@ -1769,7 +1769,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      since anything can happen within do_yes_or_no_p.  */
 
   /* Don't kill the minibuffer now current.  */
-  if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
+  if (EQ (buffer, XWINDOW (minibuf_window)->contents))
     return Qnil;
 
   /* When we kill an ordinary buffer which shares it's buffer text
@@ -1820,7 +1820,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   /* If the buffer now current is shown in the minibuffer and our buffer
      is the sole other buffer give up.  */
   XSETBUFFER (tem, current_buffer);
-  if (EQ (tem, XWINDOW (minibuf_window)->buffer)
+  if (EQ (tem, XWINDOW (minibuf_window)->contents)
       && EQ (buffer, Fother_buffer (buffer, Qnil, Qnil)))
     return Qnil;
 
@@ -2406,19 +2406,19 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
       {
 	ws = Fcons (w, ws);
 	if (MARKERP (XWINDOW (w)->pointm)
-	    && (EQ (XWINDOW (w)->buffer, buf1)
-		|| EQ (XWINDOW (w)->buffer, buf2)))
+	    && (EQ (XWINDOW (w)->contents, buf1)
+		|| EQ (XWINDOW (w)->contents, buf2)))
 	  Fset_marker (XWINDOW (w)->pointm,
 		       make_number
-		       (BUF_BEGV (XBUFFER (XWINDOW (w)->buffer))),
-		       XWINDOW (w)->buffer);
+		       (BUF_BEGV (XBUFFER (XWINDOW (w)->contents))),
+		       XWINDOW (w)->contents);
 	if (MARKERP (XWINDOW (w)->start)
-	    && (EQ (XWINDOW (w)->buffer, buf1)
-		|| EQ (XWINDOW (w)->buffer, buf2)))
+	    && (EQ (XWINDOW (w)->contents, buf1)
+		|| EQ (XWINDOW (w)->contents, buf2)))
 	  Fset_marker (XWINDOW (w)->start,
 		       make_number
-		       (XBUFFER (XWINDOW (w)->buffer)->last_window_start),
-		       XWINDOW (w)->buffer);
+		       (XBUFFER (XWINDOW (w)->contents)->last_window_start),
+		       XWINDOW (w)->contents);
 	w = Fnext_window (w, Qt, Qt);
       }
   }
@@ -3901,7 +3901,7 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
   if (buffer_window_count (buf) > 0)
     {
       /* ... it's visible in other window than selected,  */
-      if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
+      if (buf != XBUFFER (XWINDOW (selected_window)->contents))
 	windows_or_buffers_changed = 1;
       /* ... or if we modify an overlay at the end of the buffer
 	 and so we cannot be sure that window end is still valid.  */

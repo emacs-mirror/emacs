@@ -159,15 +159,15 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
   w->total_lines -= n;
 
   /* Handle just the top child in a vertical split.  */
-  if (!NILP (w->vchild))
-    set_menu_bar_lines_1 (w->vchild, n);
-
-  /* Adjust all children in a horizontal split.  */
-  for (window = w->hchild; !NILP (window); window = w->next)
-    {
-      w = XWINDOW (window);
-      set_menu_bar_lines_1 (window, n);
-    }
+  if (WINDOW_VERTICAL_COMBINATION_P (w))
+    set_menu_bar_lines_1 (w->contents, n);
+  else if (WINDOW_HORIZONTAL_COMBINATION_P (w))
+    /* Adjust all children in a horizontal split.  */
+    for (window = w->contents; !NILP (window); window = w->next)
+      {
+	w = XWINDOW (window);
+	set_menu_bar_lines_1 (window, n);
+      }
 }
 
 void
@@ -421,7 +421,7 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
 
   /* Make the chosen minibuffer window display the proper minibuffer,
      unless it is already showing a minibuffer.  */
-  if (NILP (Fmemq (XWINDOW (mini_window)->buffer, Vminibuffer_list)))
+  if (NILP (Fmemq (XWINDOW (mini_window)->contents, Vminibuffer_list)))
     /* Use set_window_buffer instead of Fset_window_buffer (see
        discussion of bug#11984, bug#12025, bug#12026).  */
     set_window_buffer (mini_window,
@@ -1189,7 +1189,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       /* Use set_window_buffer instead of Fset_window_buffer (see
 	 discussion of bug#11984, bug#12025, bug#12026).  */
       set_window_buffer (sf->minibuffer_window,
-			 XWINDOW (minibuf_window)->buffer, 0, 0);
+			 XWINDOW (minibuf_window)->contents, 0, 0);
       minibuf_window = sf->minibuffer_window;
 
       /* If the dying minibuffer window was selected,
@@ -1593,17 +1593,13 @@ make_frame_visible_1 (Lisp_Object window)
 {
   struct window *w;
 
-  for (;!NILP (window); window = w->next)
+  for (; !NILP (window); window = w->next)
     {
       w = XWINDOW (window);
-
-      if (!NILP (w->buffer))
-	bset_display_time (XBUFFER (w->buffer), Fcurrent_time ());
-
-      if (!NILP (w->vchild))
-	make_frame_visible_1 (w->vchild);
-      if (!NILP (w->hchild))
-	make_frame_visible_1 (w->hchild);
+      if (WINDOWP (w->contents))
+	make_frame_visible_1 (w->contents);
+      else
+	bset_display_time (XBUFFER (w->contents), Fcurrent_time ());
     }
 }
 
@@ -1634,7 +1630,7 @@ displayed in the terminal.  */)
       /* Use set_window_buffer instead of Fset_window_buffer (see
 	 discussion of bug#11984, bug#12025, bug#12026).  */
       set_window_buffer (sf->minibuffer_window,
-			 XWINDOW (minibuf_window)->buffer, 0, 0);
+			 XWINDOW (minibuf_window)->contents, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -1665,7 +1661,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
       /* Use set_window_buffer instead of Fset_window_buffer (see
 	 discussion of bug#11984, bug#12025, bug#12026).  */
       set_window_buffer (sf->minibuffer_window,
-			 XWINDOW (minibuf_window)->buffer, 0, 0);
+			 XWINDOW (minibuf_window)->contents, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 

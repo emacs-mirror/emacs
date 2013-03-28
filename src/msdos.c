@@ -1261,7 +1261,7 @@ IT_update_begin (struct frame *f)
 	  /* If the mouse highlight is in the window that was deleted
 	     (e.g., if it was popped by completion), clear highlight
 	     unconditionally.  */
-	  if (NILP (w->buffer))
+	  if (NILP (w->contents))
 	    hlinfo->mouse_face_window = Qnil;
 	  else
 	    {
@@ -1271,7 +1271,7 @@ IT_update_begin (struct frame *f)
 		  break;
 	    }
 
-	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
+	  if (NILP (w->contents) || i < w->desired_matrix->nrows)
 	    clear_mouse_face (hlinfo);
 	}
     }
@@ -1321,7 +1321,7 @@ IT_frame_up_to_date (struct frame *f)
     new_cursor = frame_desired_cursor;
   else
     {
-      struct buffer *b = XBUFFER (sw->buffer);
+      struct buffer *b = XBUFFER (sw->contents);
 
       if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;

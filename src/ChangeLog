@@ -1,3 +1,57 @@
+2013-03-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (struct window): Replace hchild, vchild and buffer slots
+	with the only contents slot.  This is possible because each valid
+	window may have either the child window (in vertical or horizontal
+	combination) or buffer to display (for the leaf window).  Using that,
+	a lof of operations to traverse and/or change window hierarchies may
+	be simplified.  New member horizontal is used to distinguish between
+	horizontal and vertical combinations of internal windows.
+	(WINDOW_LEAF_P, WINDOW_HORIZONTAL_COMBINATION_P)
+	(WINDOW_VERTICAL_COMBINATION_P): New macros.
+	(WINDOW_VALID_P, WINDOW_LIVE_P): Adjust to match struct window changes.
+	* window.c (wset_hchild, wset_vchild): Remove.  Adjust all users.
+	Use contents slot, not buffer, where appropriate.
+	(wset_combination): New function.
+	(wset_buffer): Add eassert.
+	(Fframe_first_window): Simplify the loop reaching first window.
+	(Fwindow_buffer): Use WINDOW_LEAF_P.
+	(Fwindow_top_child): Use WINDOW_VERTICAL_COMBINATION_P.
+	(Fwindow_left_child): Use WINDOW_HORIZONTAL_COMBINATION_P.
+	(unshow_buffer): Convert initial debugging check to eassert.
+	(replace_window, recombine_windows, Fdelete_other_windows_internal)
+	(make_parent_window, window_resize_check, window_resize_apply)
+	(resize_frame_windows, Fsplit_window_internal, Fdelete_window_internal)
+	(Fset_window_configuration, delete_all_child_windows, save_window_save):
+	Adjust to match struct window changes.
+	(window_loop): Check for broken markers in CHECK_ALL_WINDOWS.
+	(mark_window_cursors_off, count_windows, get_leaf_windows)
+	(foreach_window_1): Simplify the loop.
+	* alloc.c (mark_object): Do not check for the leaf window because
+	internal windows has no glyph matrices anyway.
+	* dispnew.c (clear_window_matrices, showing_window_margins_p)
+	(allocate_matrices_for_window_redisplay, fake_current_matrices)
+	(allocate_matrices_for_frame_redisplay, free_window_matrices)
+	(build_frame_matrix_from_window_tree, mirror_make_current)
+	(frame_row_to_window, mirror_line_dance, check_window_matrix_pointers)
+	(update_window_tree, set_window_update_flags): Simplify the loop.
+	(sync_window_with_frame_matrix_rows): Enforce live window.
+	Use contents slot, not buffer, where appropriate.
+	* frame.c (set_menu_bar_lines_1): Use WINDOW_VERTICAL_COMBINATION_P
+	and WINDOW_HORIZONTAL_COMBINATION_P.
+	(make_frame_visible_1): Simplify the loop.
+	Use contents slot, not buffer, where appropriate.
+	* xdisp.c (hscroll_window_tree, mark_window_display_accurate)
+	(redisplay_windows, redisplay_mode_lines, update_cursor_in_window_tree)
+	(expose_window_tree): Likewise.
+	Use contents slot, not buffer, where appropriate.
+	* textprop.c (get_char_property_and_overlay): Add CHECK_LIVE_WINDOW
+	to avoid deleted windows.  Use contents slot instead of buffer.
+	* buffer.c, dispextern.h, editfns.c, fileio.c, font.c, fringe.c:
+	* indent.c, insdel.c, keyboard.c, keymap.c, minibuf.c, msdos.c:
+	* nsfns.m, nsmenu.m, nsterm.m, print.c, w32fns.c, w32menu.c, xfaces.c:
+	* xfns.c, xmenu.c: Use contents slot, not buffer, where appropriate.
+
 2013-03-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) [ENABLE_CHECKING]: Add code to help

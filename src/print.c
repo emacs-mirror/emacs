@@ -1769,10 +1769,10 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  strout ("#<window ", -1, -1, printcharfun);
 	  len = sprintf (buf, "%p", XWINDOW (obj));
 	  strout (buf, len, len, printcharfun);
-	  if (!NILP (XWINDOW (obj)->buffer))
+	  if (BUFFERP (XWINDOW (obj)->contents))
 	    {
 	      strout (" on ", -1, -1, printcharfun);
-	      print_string (BVAR (XBUFFER (XWINDOW (obj)->buffer), name),
+	      print_string (BVAR (XBUFFER (XWINDOW (obj)->contents), name),
 			    printcharfun);
 	    }
 	  PRINTCHAR ('>');

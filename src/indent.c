@@ -254,7 +254,7 @@ skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p, ptrdiff_t to, Lisp_Ob
      the next property change */
   prop = Fget_char_property (position, Qinvisible,
 			     (!NILP (window)
-			      && EQ (XWINDOW (window)->buffer, buffer))
+			      && EQ (XWINDOW (window)->contents, buffer))
 			     ? window : buffer);
   inv_p = TEXT_PROP_MEANS_INVISIBLE (prop);
   /* When counting columns (window == nil), don't skip over ellipsis text.  */
@@ -1826,7 +1826,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
-  if (EQ (w->buffer, Fcurrent_buffer ()))
+  if (EQ (w->contents, Fcurrent_buffer ()))
     text_prop_object = window;
   else
     text_prop_object = Fcurrent_buffer ();
@@ -1979,14 +1979,14 @@ whether or not it is currently displayed in some window.  */)
 
   old_buffer = Qnil;
   GCPRO1 (old_buffer);
-  if (XBUFFER (w->buffer) != current_buffer)
+  if (XBUFFER (w->contents) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
-      old_buffer = w->buffer;
+      old_buffer = w->contents;
       old_charpos = marker_position (w->pointm);
       old_bytepos = marker_byte_position (w->pointm);
       wset_buffer (w, Fcurrent_buffer ());
-      set_marker_both (w->pointm, w->buffer,
+      set_marker_both (w->pointm, w->contents,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
@@ -2139,7 +2139,7 @@ whether or not it is currently displayed in some window.  */)
   if (BUFFERP (old_buffer))
     {
       wset_buffer (w, old_buffer);
-      set_marker_both (w->pointm, w->buffer,
+      set_marker_both (w->pointm, w->contents,
 		       old_charpos, old_bytepos);
     }
 

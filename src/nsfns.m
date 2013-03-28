@@ -619,7 +619,7 @@ ns_set_name_as_filename (struct frame *f)
 {
   NSView *view;
   Lisp_Object name, filename;
-  Lisp_Object buf = XWINDOW (f->selected_window)->buffer;
+  Lisp_Object buf = XWINDOW (f->selected_window)->contents;
   const char *title;
   NSAutoreleasePool *pool;
   struct gcpro gcpro1;

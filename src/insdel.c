@@ -1798,7 +1798,7 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 
   /* If we're modifying the buffer other than shown in a selected window,
      let redisplay consider other windows if this buffer is visible.  */
-  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer
+  if (XBUFFER (XWINDOW (selected_window)->contents) != current_buffer
       && buffer_window_count (current_buffer))
     ++windows_or_buffers_changed;
 
