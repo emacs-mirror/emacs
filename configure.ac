@@ -549,7 +549,7 @@ case "${canonical}" in
       *-mingw32 )		
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I nt/inc"
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
 		;;
       *-sysv4.2uw* )	  	opsys=unixware ;;
       *-sysv5uw* )	  	opsys=unixware ;;
@@ -4330,7 +4330,7 @@ CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
 if test "${opsys}" = "mingw32"; then
-  CPPFLAGS="-DUSE_CRT_DLL=1 -I../nt/inc"
+  CPPFLAGS="-DUSE_CRT_DLL=1 -I $srcdir/nt/inc"
   # Remove unneeded switches from the value of CC that goes to Makefiles
   CC=`echo $CC | sed -e "s,$GCC_TEST_OPTIONS,,"`
 fi
