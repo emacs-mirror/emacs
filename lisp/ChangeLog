@@ -1,3 +1,7 @@
+2013-03-28  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-revert): Don't backup.  (Bug#14066)
+
 2013-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* facemenu.el (list-colors-callback): New defvar.
