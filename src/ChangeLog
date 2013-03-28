@@ -1,3 +1,8 @@
+2013-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (g_error_free) [WINDOWSNT]: Add DEF_IMGLIB_FN.
+	Reported by <rzl24ozi@gmail.com>.
+
 2013-03-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (with_echo_area_buffer_unwind_data): Save window

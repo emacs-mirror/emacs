@@ -8138,6 +8138,7 @@ DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample, (const GdkPixbuf *));
 
 DEF_IMGLIB_FN (void, g_type_init, (void));
 DEF_IMGLIB_FN (void, g_object_unref, (gpointer));
+DEF_IMGLIB_FN (void, g_error_free, (GError *));
 
 Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 
