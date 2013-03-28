@@ -99,8 +99,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef __GNUC__
-# define restrict __restrict__
+/* config.h may have defined already.  */
+# ifndef restrict
+#  define restrict __restrict__
+# endif
 #else
+  /* FIXME: should we define to __restrict, which MSVC supports? */
 # define restrict
 #endif
 

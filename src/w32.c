@@ -2395,7 +2395,7 @@ get_emacs_configuration_options (void)
 
 /* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
 int
-gettimeofday (struct timeval *tv, struct timezone *tz)
+gettimeofday (struct timeval *restrict tv, struct timezone *restrict tz)
 {
   struct _timeb tb;
   _ftime (&tb);

@@ -36,8 +36,9 @@ struct timezone
 #endif
 
 /* This needs to be compatible with Posix signature, in order to pass
-   the configure test for the type of the second argument.  */
-int gettimeofday (struct timeval *, struct timezone *);
+   the configure test for the type of the second argument.  See
+   m4/gettimeofday.m4.  */
+int gettimeofday (struct timeval *restrict, struct timezone *restrict);
 
 #define ITIMER_REAL      0
 #define ITIMER_PROF      1
