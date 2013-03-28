@@ -1088,8 +1088,8 @@ static struct position val_compute_motion;
 	    : (window_width + window_left != frame_cols))
 
 	where
-	  window_width is XFASTINT (w->total_cols),
-	  window_left is XFASTINT (w->left_col),
+	  window_width is w->total_cols,
+	  window_left is w->left_col,
 	  has_vertical_scroll_bars is
 	    WINDOW_HAS_VERTICAL_SCROLL_BAR (window)
 	  and frame_cols = FRAME_COLS (XFRAME (window->frame))
