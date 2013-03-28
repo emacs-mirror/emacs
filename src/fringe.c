@@ -1,5 +1,6 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985-1988, 1993-1995, 1997-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -698,7 +699,7 @@ get_logical_cursor_bitmap (struct window *w, Lisp_Object cursor)
 {
   Lisp_Object cmap, bm = Qnil;
 
-  if ((cmap = BVAR (XBUFFER (w->buffer), fringe_cursor_alist)), !NILP (cmap))
+  if ((cmap = BVAR (XBUFFER (w->contents), fringe_cursor_alist)), !NILP (cmap))
     {
       bm = Fassq (cursor, cmap);
       if (CONSP (bm))
@@ -735,7 +736,7 @@ get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, in
      If partial, lookup partial bitmap in default value if not found here.
      If not partial, or no partial spec is present, use non-partial bitmap.  */
 
-  if ((cmap = BVAR (XBUFFER (w->buffer), fringe_indicator_alist)), !NILP (cmap))
+  if ((cmap = BVAR (XBUFFER (w->contents), fringe_indicator_alist)), !NILP (cmap))
     {
       bm1 = Fassq (bitmap, cmap);
       if (CONSP (bm1))
@@ -962,7 +963,7 @@ update_window_fringes (struct window *w, int keep_current_p)
     return 0;
 
   if (!MINI_WINDOW_P (w)
-      && (ind = BVAR (XBUFFER (w->buffer), indicate_buffer_boundaries), !NILP (ind)))
+      && (ind = BVAR (XBUFFER (w->contents), indicate_buffer_boundaries), !NILP (ind)))
     {
       if (EQ (ind, Qleft) || EQ (ind, Qright))
 	boundary_top = boundary_bot = arrow_top = arrow_bot = ind;
@@ -1003,7 +1004,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 	    {
 	      if (top_ind_rn < 0 && row->visible_height > 0)
 		{
-		  if (MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer))
+		  if (MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->contents))
 		      && !MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
 		    row->indicate_bob_p = !NILP (boundary_top);
 		  else
@@ -1013,7 +1014,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 
 	      if (bot_ind_rn < 0)
 		{
-		  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer))
+		  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->contents))
 		      && !MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row))
 		    row->indicate_eob_p = !NILP (boundary_bot), bot_ind_rn = rn;
 		  else if (y + row->height >= yb)
@@ -1023,7 +1024,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 	}
     }
 
-  empty_pos = BVAR (XBUFFER (w->buffer), indicate_empty_lines);
+  empty_pos = BVAR (XBUFFER (w->contents), indicate_empty_lines);
   if (!NILP (empty_pos) && !EQ (empty_pos, Qright))
     empty_pos = WINDOW_LEFT_FRINGE_WIDTH (w) == 0 ? Qright : Qleft;
 
@@ -1360,8 +1361,8 @@ compute_fringe_widths (struct frame *f, int redraw)
 
   if (left_fringe_width || right_fringe_width)
     {
-      int left_wid = left_fringe_width >= 0 ? left_fringe_width : -left_fringe_width;
-      int right_wid = right_fringe_width >= 0 ? right_fringe_width : -right_fringe_width;
+      int left_wid = eabs (left_fringe_width);
+      int right_wid = eabs (right_fringe_width);
       int conf_wid = left_wid + right_wid;
       int font_wid = FRAME_COLUMN_WIDTH (f);
       int cols = (left_wid + right_wid + font_wid-1) / font_wid;
@@ -1744,7 +1745,7 @@ Return nil if POS is not visible in WINDOW.  */)
   else if (w == XWINDOW (selected_window))
     textpos = PT;
   else
-    textpos = XMARKER (w->pointm)->charpos;
+    textpos = marker_position (w->pointm);
 
   row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   row = row_containing_pos (w, textpos, row, NULL, 0);

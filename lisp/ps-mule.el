@@ -1,6 +1,6 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)

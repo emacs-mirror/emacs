@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996-1997, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -443,6 +443,7 @@
     (define-key map [remap self-insert-command] 'Custom-no-edit)
     (define-key map "\^m" 'Custom-newline)
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\177" 'scroll-down-command)
     (define-key map "\C-c\C-c" 'Custom-set)
     (define-key map "\C-x\C-s" 'Custom-save)
@@ -3679,15 +3680,10 @@ Optional EVENT is the location for the menu."
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
-    (put symbol 'customized-face value)
     (custom-push-theme 'theme-face symbol 'user 'set value)
-    (if (face-spec-choose value)
-	(face-spec-set symbol value t)
-      ;; face-set-spec ignores empty attribute lists, so just give it
-      ;; something harmless instead.
-      (face-spec-set symbol '((t :foreground unspecified)) t))
-    (put symbol 'customized-face-comment comment)
+    (face-spec-set symbol value 'customized-face)
     (put symbol 'face-comment comment)
+    (put symbol 'customized-face-comment comment)
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
 
@@ -3696,20 +3692,14 @@ Optional EVENT is the location for the menu."
   (let* ((symbol (widget-value widget))
 	 (value  (custom-face-widget-to-spec widget))
 	 (comment-widget (widget-get widget :comment-widget))
-	 (comment (widget-value comment-widget)))
+	 (comment (widget-value comment-widget))
+	 (standard (eq (widget-get widget :custom-state) 'standard)))
     (when (equal comment "")
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
     (custom-push-theme 'theme-face symbol 'user 'set value)
-    (if (face-spec-choose value)
-	(face-spec-set symbol value t)
-      ;; face-set-spec ignores empty attribute lists, so just give it
-      ;; something harmless instead.
-      (face-spec-set symbol '((t :foreground unspecified)) t))
-    (unless (eq (widget-get widget :custom-state) 'standard)
-      (put symbol 'saved-face value))
-    (put symbol 'customized-face nil)
+    (face-spec-set symbol value (if standard 'reset 'saved-face))
     (put symbol 'face-comment comment)
     (put symbol 'customized-face-comment nil)
     (put symbol 'saved-face-comment comment)))
@@ -3738,13 +3728,12 @@ uncustomized (themed or standard) face."
 	 (saved-face (get face 'saved-face))
 	 (comment (get face 'saved-face-comment))
 	 (comment-widget (widget-get widget :comment-widget)))
-    (put face 'customized-face nil)
-    (put face 'customized-face-comment nil)
     (custom-push-theme 'theme-face face 'user
 		       (if saved-face 'set 'reset)
 		       saved-face)
-    (face-spec-set face saved-face t)
+    (face-spec-set face saved-face 'saved-face)
     (put face 'face-comment comment)
+    (put face 'customized-face-comment nil)
     (widget-value-set child saved-face)
     ;; This call manages the comment visibility
     (widget-value-set comment-widget (or comment ""))
@@ -3764,11 +3753,10 @@ redraw the widget immediately."
 	 (comment-widget (widget-get widget :comment-widget)))
     (unless value
       (user-error "No standard setting for this face"))
-    (put symbol 'customized-face nil)
-    (put symbol 'customized-face-comment nil)
     (custom-push-theme 'theme-face symbol 'user 'reset)
-    (face-spec-set symbol value t)
-    (custom-theme-recalc-face symbol)
+    (face-spec-set symbol value 'reset)
+    (put symbol 'face-comment nil)
+    (put symbol 'customized-face-comment nil)
     (if (and custom-reset-standard-faces-list
 	     (or (get symbol 'saved-face) (get symbol 'saved-face-comment)))
 	;; Do this later.
@@ -3784,7 +3772,6 @@ redraw the widget immediately."
 	(put symbol 'saved-face nil)
 	(put symbol 'saved-face-comment nil)
 	(custom-save-all))
-      (put symbol 'face-comment nil)
       (widget-value-set child
 			(custom-pre-filter-face-spec
 			 (list (list t (custom-face-attributes-get

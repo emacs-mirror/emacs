@@ -1,7 +1,7 @@
 ;;; diary-lib.el --- diary functions
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -444,8 +444,7 @@ The format of the header is specified by `diary-header-line-format'."
 (defcustom diary-header-line-format
   '(:eval (calendar-string-spread
            (list (if diary-selective-display
-                     "Some text is hidden - press \"s\" in calendar \
-before edit/copy"
+                     "Some text is hidden - press \"C-c C-s\" before edit/copy"
                    "Diary"))
            ?\s (window-width)))
   "Format of the header line displayed by `diary-simple-display'.

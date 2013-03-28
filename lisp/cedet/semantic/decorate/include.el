@@ -1,6 +1,6 @@
 ;;; semantic/decorate/include.el --- Decoration modes for include statements
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -797,7 +797,7 @@ Argument EVENT describes the event that caused this function to be called."
 	  (dolist (p path)
 	    (if (slot-boundp p 'tags)
 		(princ (format "\n  %s :\t%d tags, %d are includes. %s"
-			       (object-name-string p)
+			       (eieio-object-name-string p)
 			       (length (oref p tags))
 			       (length (semantic-find-tags-by-class
 					'include p))
@@ -810,7 +810,7 @@ Argument EVENT describes the event that caused this function to be called."
 				 "  Needs to be parsed.")
 				(t ""))))
 	      (princ (format "\n  %s :\tUnparsed"
-			     (object-name-string p))))
+			     (eieio-object-name-string p))))
 	    )))
       )))
 

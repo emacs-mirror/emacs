@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -63,7 +63,7 @@
 ;; The list of possible completions can be viewed at any point by
 ;; pressing <M-?>.
 ;;
-;; Finally, context-related help can be accessed by pressing <C-c i>.
+;; Finally, context-related help can be accessed by pressing <C-c M-h>.
 ;; This only works well if the completion function has provided Eshell
 ;; with sufficient pointers to locate the relevant help text.
 
@@ -451,11 +451,15 @@ to writing a completion function."
 			(all-completions filename obarray 'functionp))
 		   completions)))))))
 
-(defun eshell-pcomplete ()
+(defun eshell-pcomplete (&optional interactively)
   "Eshell wrapper for `pcomplete'."
-  (interactive)
+  (interactive "p")
+  ;; Pretend to be pcomplete so that cycling works (bug#13293).
+  (setq this-command 'pcomplete)
   (condition-case nil
-      (pcomplete)
+      (if interactively
+	  (call-interactively 'pcomplete)
+	(pcomplete))
     (text-read-only (completion-at-point)))) ; Workaround for bug#12838.
 
 (provide 'em-cmpl)

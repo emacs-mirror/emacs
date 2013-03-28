@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
 @chapter Documentation
@@ -448,7 +448,7 @@ This function returns a string describing @var{event} in the standard
 Emacs notation for keyboard input.  A normal printing character
 appears as itself, but a control character turns into a string
 starting with @samp{C-}, a meta character turns into a string starting
-with @samp{M-}, and space, tab, etc.@: appear as @samp{SPC},
+with @samp{M-}, and space, tab, etc., appear as @samp{SPC},
 @samp{TAB}, etc.  A function key symbol appears inside angle brackets
 @samp{<@dots{}>}.  An event that is a list appears as the name of the
 symbol in the @sc{car} of the list, inside angle brackets.
@@ -728,4 +728,3 @@ If this variable is non-@code{nil}, commands defined with
 echo area at first, and display the longer @var{help-text} strings only
 if the user types the help character again.
 @end defopt
-

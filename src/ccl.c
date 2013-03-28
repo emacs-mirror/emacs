@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1668,7 +1668,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		  }
 		map = XCDR (map);
 		if (! (VECTORP (map)
-		       && 0 < ASIZE (map)
+		       && ASIZE (map) > 0
 		       && INTEGERP (AREF (map, 0))
 		       && XINT (AREF (map, 0)) <= op
 		       && op - XINT (AREF (map, 0)) + 1 < ASIZE (map)))
@@ -1867,7 +1867,7 @@ resolve_symbol_ccl_program (Lisp_Object ccl)
       return Qnil;
     }
 
-  if (! (0 <= XINT (AREF (result, CCL_HEADER_BUF_MAG))
+  if (! (XINT (AREF (result, CCL_HEADER_BUF_MAG)) >= 0
 	 && ASCENDING_ORDER (0, XINT (AREF (result, CCL_HEADER_EOF)),
 			     ASIZE (ccl))))
     return Qnil;
@@ -2130,7 +2130,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  produced_chars += ccl.produced;
 	  offset = outp - outbuf;
 	  shortfall = ccl.produced * max_expansion - (outbufsize - offset);
-	  if (0 < shortfall)
+	  if (shortfall > 0)
 	    {
 	      outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 	      outp = outbuf + offset;
@@ -2228,9 +2228,8 @@ Return index number of the registered CCL program.  */)
     Vccl_program_table = larger_vector (Vccl_program_table, 1, -1);
 
   {
-    Lisp_Object elt;
+    Lisp_Object elt = make_uninit_vector (4);
 
-    elt = Fmake_vector (make_number (4), Qnil);
     ASET (elt, 0, name);
     ASET (elt, 1, ccl_prog);
     ASET (elt, 2, resolved);

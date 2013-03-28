@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
 @chapter Searching and Replacement
@@ -387,7 +387,7 @@ wrap around, going from the last page to the first page or vice versa.
 
 When the current match is on a history element, that history element
 is pulled into the minibuffer.  If you exit the incremental search
-normally (e.g. by typing @key{RET}), it remains in the minibuffer
+normally (e.g., by typing @key{RET}), it remains in the minibuffer
 afterwards.  Canceling the search, with @kbd{C-g}, restores the
 contents of the minibuffer when you began the search.
 

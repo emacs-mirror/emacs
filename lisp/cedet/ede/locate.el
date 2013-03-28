@@ -1,6 +1,6 @@
 ;;; ede/locate.el --- Locate support
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -163,7 +163,7 @@ that created this EDE locate object."
   "Create or update the database for the current project.
 You cannot create projects for the baseclass."
   (error "Cannot create/update a database of type %S"
-	 (object-name loc)))
+	 (eieio-object-name loc)))
 
 ;;; LOCATE
 ;;

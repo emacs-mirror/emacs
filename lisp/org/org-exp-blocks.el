@@ -1,6 +1,6 @@
 ;;; org-exp-blocks.el --- pre-process blocks when exporting org files
 
-;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -514,6 +514,7 @@ one you intend to suppress.
 @section Byte-Code Function Objects
 @cindex compiled function
 @cindex byte-code function
+@cindex byte-code object
 
   Byte-compiled functions have a special data type: they are
 @dfn{byte-code function objects}.  Whenever such an object appears as
@@ -606,8 +607,9 @@ name of an existing buffer.  Then the output goes there, at point, and
 point is left before the output.
 
 The argument @var{object} can be a function name, a lambda expression
-or a byte-code object.  If it is a lambda expression, @code{disassemble}
-compiles it and disassembles the resulting compiled code.
+(@pxref{Lambda Expressions}), or a byte-code object (@pxref{Byte-Code
+Objects}).  If it is a lambda expression, @code{disassemble} compiles
+it and disassembles the resulting compiled code.
 @end deffn
 
   Here are two examples of using the @code{disassemble} function.  We
@@ -657,7 +659,7 @@ Lisp source; these do not appear in the output of @code{disassemble}.
 11  sub1                  ; @r{Pop @code{integer}, decrement value,}
                           ;   @r{push new value onto stack.}
 12  call     1            ; @r{Call function @code{factorial} using first}
-                          ;   @r{(i.e. top) stack element as argument;}
+                          ;   @r{(i.e., top) stack element as argument;}
                           ;   @r{push returned value onto stack.}
 @end group
 @group
@@ -704,7 +706,7 @@ The @code{silly-loop} function is somewhat more complex:
 4   sub1                  ; @r{Subtract 1 from top of stack.}
 @end group
 @group
-5   dup                   ; @r{Duplicate top of stack; i.e. copy the top}
+5   dup                   ; @r{Duplicate top of stack; i.e., copy the top}
                           ;   @r{of the stack and push copy onto stack.}
 6   varset   n            ; @r{Pop the top of the stack,}
                           ;   @r{and bind @code{n} to the value.}
@@ -737,4 +739,3 @@ The @code{silly-loop} function is somewhat more complex:
 17  return                ; @r{Return value of the top of stack.}
 @end group
 @end example
-

@@ -1,6 +1,6 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: FSF
@@ -452,11 +452,19 @@ Use this defun with `erc-insert-modify-hook'."
 			(match-beginning 0)))
 	 (nick-end (when nick-beg
 		     (match-end 0)))
-	 (message (buffer-substring (if (and nick-end
-					     (<= (+ 2 nick-end) (point-max)))
-					(+ 2 nick-end)
-				      (point-min))
-				    (point-max))))
+	 (message (buffer-substring
+		   (if (and nick-end
+			    (<= (+ 2 nick-end) (point-max)))
+		       ;; Message starts 2 characters after the nick
+		       ;; except for CTCP ACTION messages.  Nick
+		       ;; surrounded by angle brackets only in normal
+		       ;; messages.
+		       (+ nick-end
+			  (if (eq ?> (char-after nick-end))
+			      2
+			    1))
+		     (point-min))
+		   (point-max))))
     (when (and vector
 	       (not (and erc-match-exclude-server-buffer
 			 (erc-server-buffer-p))))

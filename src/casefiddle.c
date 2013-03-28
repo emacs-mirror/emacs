@@ -1,6 +1,7 @@
 /* GNU Emacs case conversion functions.
 
-Copyright (C) 1985, 1994, 1997-1999, 2001-2012 Free Software Foundation, Inc.
+Copyright (C) 1985, 1994, 1997-1999, 2001-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -213,7 +214,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   validate_region (&b, &e);
   start = XFASTINT (b);
   end = XFASTINT (e);
-  modify_region (current_buffer, start, end, 0);
+  modify_region_1 (start, end, false);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
 

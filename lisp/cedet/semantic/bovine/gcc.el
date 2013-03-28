@@ -1,6 +1,6 @@
 ;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -157,7 +157,11 @@ It should also include other symbols GCC was compiled with.")
                     ;; `cpp' command in `semantic-gcc-setup' doesn't work on
                     ;; Mac, try `gcc'.
                     (apply 'semantic-gcc-query "gcc" cpp-options))))
-         (defines (semantic-cpp-defs query))
+         (defines (if (stringp query)
+		      (semantic-cpp-defs query)
+		    (message (concat "Could not query gcc for defines. "
+				     "Maybe g++ is not installed."))
+		    nil))
          (ver (cdr (assoc 'version fields)))
          (host (or (cdr (assoc 'target fields))
                    (cdr (assoc '--target fields))

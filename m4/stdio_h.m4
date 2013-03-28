@@ -1,5 +1,5 @@
-# stdio_h.m4 serial 42
-dnl Copyright (C) 2007-2012 Free Software Foundation, Inc.
+# stdio_h.m4 serial 43
+dnl Copyright (C) 2007-2013 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -7,7 +7,6 @@ dnl with or without modifications, as long as this notice is preserved.
 AC_DEFUN([gl_STDIO_H],
 [
   AC_REQUIRE([gl_STDIO_H_DEFAULTS])
-  AC_REQUIRE([AC_C_INLINE])
   gl_NEXT_HEADERS([stdio.h])
 
   dnl No need to create extra modules for these functions. Everyone who uses

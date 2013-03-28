@@ -1,7 +1,7 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -40,17 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* This silences a few compilation warnings on FreeBSD.  */
-#ifdef BSD_SYSTEM_AHB
-#undef BSD_SYSTEM_AHB
-#undef BSD_SYSTEM
-#if __FreeBSD__ == 1
-#define BSD_SYSTEM 199103
-#elif __FreeBSD__ == 2
-#define BSD_SYSTEM 199306
-#elif __FreeBSD__ >= 3
-#define BSD_SYSTEM 199506
-#endif
+#ifndef __has_attribute
+# define __has_attribute(a) 0 /* non-clang */
 #endif
 
 #ifdef DARWIN_OS
@@ -178,10 +169,6 @@ extern void _DebPrint (const char *fmt, ...);
 #endif
 #endif
 
-/* Tell gnulib to omit support for openat-related functions having a
-   first argument other than AT_FDCWD.  */
-#define GNULIB_SUPPORT_ONLY_AT_FDCWD
-
 #include <string.h>
 #include <stdlib.h>
 
@@ -191,7 +178,9 @@ extern void _DebPrint (const char *fmt, ...);
 #define NO_INLINE
 #endif
 
-#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#if (__clang__								\
+     ? __has_attribute (externally_visible)				\
+     : (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE

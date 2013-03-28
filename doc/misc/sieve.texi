@@ -11,7 +11,7 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,8 +22,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -160,7 +159,7 @@ press RET on <new script> to create a new script.
 @end example
 
 One of the scripts are highlighted, and standard point navigation
-commands (@kbd{<up>}, @kbd{<down>} etc) can be used to navigate the
+commands (@kbd{<up>}, @kbd{<down>} etc.)@: can be used to navigate the
 list.
 
 The following commands are available in the Manage Sieve buffer:
@@ -213,7 +212,7 @@ Bury the Manage Sieve buffer without closing the connection.
 @kindex ?
 @kindex h
 @findex sieve-help
-Displays help in the minibuffer. 
+Displays help in the minibuffer.
 
 @end table
 

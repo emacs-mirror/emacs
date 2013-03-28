@@ -1,6 +1,6 @@
 ;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 1.0
@@ -93,8 +93,8 @@
 
 (require 'macroexp)
 
-(defvar cl-optimize-speed 1)
-(defvar cl-optimize-safety 1)
+(defvar cl--optimize-speed 1)
+(defvar cl--optimize-safety 1)
 
 ;;;###autoload
 (define-obsolete-variable-alias
@@ -112,12 +112,6 @@ printer proceeds to the next function on the list.
 
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
-
-(defun cl-unload-function ()
-  "Stop unloading of the Common Lisp extensions."
-  (message "Cannot unload the feature `cl'")
-  ;; Stop standard unloading!
-  t)
 
 ;;; Generalized variables.
 ;; These macros are defined here so that they
@@ -248,23 +242,21 @@ one value.
 	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
 		  " *Compiler Output*"))))
 
-(defvar cl-proclaims-deferred nil)
+(defvar cl--proclaims-deferred nil)
 
 (defun cl-proclaim (spec)
   "Record a global declaration specified by SPEC."
-  (if (fboundp 'cl-do-proclaim) (cl-do-proclaim spec t)
-    (push spec cl-proclaims-deferred))
+  (if (fboundp 'cl--do-proclaim) (cl--do-proclaim spec t)
+    (push spec cl--proclaims-deferred))
   nil)
 
 (defmacro cl-declaim (&rest specs)
   "Like `cl-proclaim', but takes any number of unevaluated, unquoted arguments.
 Puts `(cl-eval-when (compile load eval) ...)' around the declarations
 so that they are registered at compile-time as well as run-time."
-  (let ((body (mapcar (function (lambda (x)
-                                  (list 'cl-proclaim (list 'quote x))))
-		      specs)))
-    (if (cl--compiling-file) (cl-list* 'cl-eval-when '(compile load eval) body)
-      (cons 'progn body))))   ; avoid loading cl-macs.el for cl-eval-when
+  (let ((body (mapcar (lambda (x) `(cl-proclaim ',x)) specs)))
+    (if (cl--compiling-file) `(cl-eval-when (compile load eval) ,@body)
+      `(progn ,@body))))           ; Avoid loading cl-macs.el for cl-eval-when.
 
 
 ;;; Symbols.
@@ -279,11 +271,7 @@ so that they are registered at compile-time as well as run-time."
 
 ;;; Numbers.
 
-(defun cl-floatp-safe (object)
-  "Return t if OBJECT is a floating point number.
-On Emacs versions that lack floating-point support, this function
-always returns nil."
-  (and (numberp object) (not (integerp object))))
+(define-obsolete-function-alias 'cl-floatp-safe 'floatp "24.4")
 
 (defsubst cl-plusp (number)
   "Return t if NUMBER is positive."
@@ -301,7 +289,8 @@ always returns nil."
   "Return t if INTEGER is even."
   (eq (logand integer 1) 0))
 
-(defvar cl--random-state (vector 'cl-random-state-tag -1 30 (cl--random-time)))
+(defvar cl--random-state
+  (vector 'cl--random-state-tag -1 30 (cl--random-time)))
 
 (defconst cl-most-positive-float nil
   "The largest value that a Lisp float can hold.
@@ -746,8 +735,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (load "cl-loaddefs" nil 'quiet)
 
 (provide 'cl-lib)
-
-(run-hooks 'cl-load-hook)
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

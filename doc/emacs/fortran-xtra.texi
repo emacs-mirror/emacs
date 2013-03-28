@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2012 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2013 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -89,7 +89,7 @@ Move to the beginning of the next statement
 @item C-c C-p
 Move to the beginning of the previous statement
 (@code{fortran-previous-statement}/@code{f90-previous-statement}).
-If there is no previous statement (i.e. if called from the first
+If there is no previous statement (i.e., if called from the first
 statement in the buffer), move to the start of the buffer.
 
 @kindex C-c C-e @r{(F90 mode)}

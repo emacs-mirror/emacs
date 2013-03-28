@@ -1,6 +1,6 @@
 ;;; org-list.el --- Plain lists for Org-mode
 ;;
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg AT gnu DOT org>
@@ -144,15 +144,15 @@ item.  When the cursor is on an outline heading, plain lists are
 treated as text.  This is the most stable way of handling this,
 which is why it is the default.
 
-When this is the symbol `integrate', then during cycling, plain
-list items will *temporarily* be interpreted as outline headlines
-with a level given by 1000+i where i is the indentation of the
-bullet.  This setting can lead to strange effects when switching
-visibility to `children', because the first \"child\" in a
-subtree decides what children should be listed.  If that first
-\"child\" is a plain list item with an implied large level
-number, all true children and grand children of the outline
-heading will be exposed in a children' view."
+When this is the symbol `integrate', then integrate plain list
+items when cycling, as if they were children of outline headings.
+
+This setting can lead to strange effects when switching visibility
+to `children', because the first \"child\" in a subtree decides
+what children should be listed.  If that first \"child\" is a
+plain list item with an implied large level number, all true
+children and grand children of the outline heading will be
+exposed in a children' view."
   :group 'org-plain-lists
   :type '(choice
 	  (const :tag "Never" nil)
@@ -1230,7 +1230,9 @@ some heuristics to guess the result."
 	     ;; Are there blank lines inside the list so far?
 	     ((save-excursion
 		(goto-char (org-list-get-top-point struct))
-		(org-list-search-forward
+		;; Do not use `org-list-search-forward' so blank lines
+		;; in blocks can be counted in.
+		(re-search-forward
 		 "^[ \t]*$" (org-list-get-item-end-before-blank item struct) t))
 	      1)
 	     ;; Default choice: no blank line.
@@ -1800,7 +1802,9 @@ This function modifies STRUCT."
 	;; There are boxes checked after an unchecked one: fix that.
 	(when (member "[X]" after-unchecked)
 	  (let ((index (- (length struct) (length after-unchecked))))
-	    (mapc (lambda (e) (org-list-set-checkbox e struct "[ ]"))
+	    (mapc (lambda (e)
+		    (when (org-list-get-checkbox e struct)
+		      (org-list-set-checkbox e struct "[ ]")))
 		  (nthcdr index all-items))
 	    ;; Verify once again the structure, without ORDERED.
 	    (org-list-struct-fix-box struct parents prevs nil)

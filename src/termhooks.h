@@ -1,6 +1,7 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-1994, 2001-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -211,6 +212,11 @@ enum event_kind
   , NS_NONKEY_EVENT
 #endif
 
+#if defined (HAVE_INOTIFY) || defined (HAVE_NTGUI)
+  /* File or directory was changed.  */
+  , FILE_NOTIFY_EVENT
+#endif
+
 };
 
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
@@ -376,7 +382,7 @@ struct terminal
   struct image_cache *image_cache;
 #endif /* HAVE_WINDOW_SYSTEM */
 
-  /* Device-type dependent data shared amongst all frames on this terminal. */
+  /* Device-type dependent data shared amongst all frames on this terminal.  */
   union display_info
   {
     struct tty_display_info *tty;     /* termchar.h */
@@ -397,22 +403,22 @@ struct terminal
      the function `set-keyboard-coding-system'.  */
   struct coding_system *keyboard_coding;
 
-  /* Terminal characteristics. */
-  /* XXX Are these really used on non-termcap displays? */
+  /* Terminal characteristics.  */
+  /* XXX Are these really used on non-termcap displays?  */
 
   int must_write_spaces;	/* Nonzero means spaces in the text must
 				   actually be output; can't just skip over
 				   some columns to leave them blank.  */
-  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string */
+  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string.  */
 
-  int line_ins_del_ok;          /* Terminal can insert and delete lines */
-  int char_ins_del_ok;          /* Terminal can insert and delete chars */
+  int line_ins_del_ok;          /* Terminal can insert and delete lines.  */
+  int char_ins_del_ok;          /* Terminal can insert and delete chars.  */
   int scroll_region_ok;         /* Terminal supports setting the scroll
-                                   window */
+                                   window.  */
   int scroll_region_cost;	/* Cost of setting the scroll window,
-                                   measured in characters. */
+                                   measured in characters.  */
   int memory_below_frame;	/* Terminal remembers lines scrolled
-                                   off bottom */
+                                   off bottom.  */
 
   /* Window-based redisplay interface for this device (0 for tty
      devices). */
@@ -611,7 +617,7 @@ tset_selection_alist (struct terminal *t, Lisp_Object val)
   t->Vselection_alist = val;
 }
 
-/* Chain of all terminal devices currently in use. */
+/* Chain of all terminal devices currently in use.  */
 extern struct terminal *terminal_list;
 
 #define FRAME_MUST_WRITE_SPACES(f) ((f)->terminal->must_write_spaces)
@@ -632,14 +638,16 @@ extern struct terminal *terminal_list;
 
 #define FRAME_TERMINAL(f) ((f)->terminal)
 
-/* Return true if the terminal device is not suspended. */
-#define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
+/* Return true if the terminal device is not suspended.  */
+#define TERMINAL_ACTIVE_P(d)						\
+  (((d)->type != output_termcap && (d)->type != output_msdos_raw)	\
+   || (d)->display_info.tty->input)
 
 extern struct terminal *get_terminal (Lisp_Object terminal, int);
 extern struct terminal *create_terminal (void);
 extern void delete_terminal (struct terminal *);
 
-/* The initial terminal device, created by initial_term_init. */
+/* The initial terminal device, created by initial_term_init.  */
 extern struct terminal *initial_terminal;
 
 extern unsigned char *encode_terminal_code (struct glyph *, int,

@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -375,6 +375,13 @@ to it is returned.  This function does not modify the point or the mark."
   (if (fboundp 'int-to-char)
       `(int-to-char ,integer)
     integer))
+
+(defmacro c-last-command-char ()
+  ;; The last character just typed.  Note that `last-command-event' exists in
+  ;; both Emacs and XEmacs, but with confusingly different meanings.
+  (if (featurep 'xemacs)
+      'last-command-char
+    'last-command-event))
 
 (defmacro c-sentence-end ()
   ;; Get the regular expression `sentence-end'.

@@ -1,6 +1,6 @@
 ;;; semantic/analyze/fcn.el --- Analyzer support functions.
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -255,7 +255,7 @@ Optional argument TYPE-DECLARATION is how TYPE was found referenced."
 	(nexttype (semantic-analyze-dereference-metatype type scope type-declaration))
 	(idx 0))
     (catch 'metatype-recursion
-      (while (and nexttype (not (eq (car nexttype) lasttype)))
+      (while (and nexttype (not (semantic-tag-similar-p (car nexttype) lasttype)))
 	(setq lasttype (car nexttype)
 	      lasttypedeclaration (cadr nexttype))
 	(setq nexttype (semantic-analyze-dereference-metatype lasttype scope lasttypedeclaration))

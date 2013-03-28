@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -427,7 +427,9 @@ as returned by `x-server-vendor'."
 	(#x3fe . ?,D~(B)
 	;; Kana: Fixme: needs conversion to Japanese charset -- seems
 	;; to require jisx0213, for which the Unicode translation
-	;; isn't clear.
+	;; isn't clear.  Using Emacs to convert this to Unicode and back changes
+	;; this from "(J~(B" (i.e., bytes "ESC ( J ~ ESC ( B") to "$(G"#(B" (i.e., bytes
+	;; "ESC $ ( G " # ESC ( B").
 	(#x47e . ?(J~(B)
 	(#x4a1 . ?$A!#(B)
 	(#x4a2 . ?\$A!8(B)
@@ -1127,6 +1129,9 @@ as returned by `x-server-vendor'."
 	(#x20a8 . ?$,1tH(B)
 	(#x20aa . ?$,1tJ(B)
 	(#x20ab . ?$,1tK(B)
+	;; Kana: Fixme: needs checking.  Using Emacs to convert this to Unicode
+	;; and back changes this from ",b$(B" (i.e., bytes "ESC , b $ ESC ( B") to
+	;; ",F$(B" (i.e., bytes "ESC , F $ ESC ( B").
 	(#x20ac . ?,b$(B)))
   (puthash (car pair) (cdr pair) x-keysym-table))
 

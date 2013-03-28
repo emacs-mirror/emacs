@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
 
-Copyright (C) 1989, 1992-2012 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -68,8 +68,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP None
 
-#define RGB_PIXEL_COLOR unsigned long
-
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 #endif /* HAVE_X_WINDOWS */
@@ -87,8 +85,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 typedef struct w32_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) GetPixel (ximg, x, y)
 #define NO_PIXMAP 0
-
-#define RGB_PIXEL_COLOR COLORREF
 
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
@@ -110,7 +106,6 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP 0
 
-#define RGB_PIXEL_COLOR unsigned long
 #define ZPixmap 0
 
 #define PIX_MASK_RETAIN	0
@@ -159,15 +154,15 @@ XGetImage (Display *display, Pixmap pixmap, int x, int y,
   return pixmap;
 }
 
-/* use with imgs created by ns_image_for_XPM */
+/* Use with images created by ns_image_for_XPM.  */
 unsigned long
 XGetPixel (XImagePtr ximage, int x, int y)
 {
   return ns_get_pixel (ximage, x, y);
 }
 
-/* use with imgs created by ns_image_for_XPM; alpha set to 1;
-   pixel is assumed to be in form RGB */
+/* Use with images created by ns_image_for_XPM; alpha set to 1;
+   pixel is assumed to be in RGB form.  */
 void
 XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 {
@@ -7378,11 +7373,10 @@ gif_load (struct frame *f, struct image *img)
 	       y < subimg_height;
 	       y++, row += interlace_increment[pass])
 	    {
-	      if (row >= subimg_height)
+	      while (subimg_height <= row)
 		{
+		  lint_assume (pass < 3);
 		  row = interlace_start[++pass];
-		  while (row >= subimg_height)
-		    row = interlace_start[++pass];
 		}
 
 	      for (x = 0; x < subimg_width; x++)
@@ -7792,11 +7786,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
         }
     }
 
-  /* Finally we are done manipulating the image.  Figure out the
-     resulting width/height and transfer ownership to Emacs.  */
-  height = MagickGetImageHeight (image_wand);
-  width = MagickGetImageWidth (image_wand);
-
   /* Set the canvas background color to the frame or specified
      background, and flatten the image.  Note: as of ImageMagick
      6.6.0, SVG image transparency is not handled properly
@@ -7812,6 +7801,11 @@ imagemagick_load_image (struct frame *f, struct image *img,
     DestroyMagickWand (image_wand);
     image_wand = new_wand;
   }
+
+  /* Finally we are done manipulating the image.  Figure out the
+     resulting width/height and transfer ownership to Emacs.  */
+  height = MagickGetImageHeight (image_wand);
+  width = MagickGetImageWidth (image_wand);
 
   if (! (width <= INT_MAX && height <= INT_MAX
 	 && check_image_size (f, width, height)))
@@ -8126,24 +8120,25 @@ svg_image_p (Lisp_Object object)
 #ifdef WINDOWSNT
 
 /* SVG library functions.  */
-DEF_IMGLIB_FN (RsvgHandle *, rsvg_handle_new);
-DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions);
-DEF_IMGLIB_FN (gboolean, rsvg_handle_write);
-DEF_IMGLIB_FN (gboolean, rsvg_handle_close);
-DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf);
+DEF_IMGLIB_FN (RsvgHandle *, rsvg_handle_new, (void));
+DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions, (RsvgHandle *, RsvgDimensionData *));
+DEF_IMGLIB_FN (gboolean, rsvg_handle_write, (RsvgHandle *, const guchar *, gsize, GError **));
+DEF_IMGLIB_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
+DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
+DEF_IMGLIB_FN (void *, rsvg_handle_set_size_callback, (RsvgHandle *, RsvgSizeFunc, gpointer, GDestroyNotify));
 
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_width);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_height);
-DEF_IMGLIB_FN (guchar *, gdk_pixbuf_get_pixels);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_rowstride);
-DEF_IMGLIB_FN (GdkColorspace, gdk_pixbuf_get_colorspace);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels);
-DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
+DEF_IMGLIB_FN (guchar *, gdk_pixbuf_get_pixels, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_rowstride, (const GdkPixbuf *));
+DEF_IMGLIB_FN (GdkColorspace, gdk_pixbuf_get_colorspace, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels, (const GdkPixbuf *));
+DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample, (const GdkPixbuf *));
 
-DEF_IMGLIB_FN (void, g_type_init);
-DEF_IMGLIB_FN (void, g_object_unref);
-DEF_IMGLIB_FN (void, g_error_free);
+DEF_IMGLIB_FN (void, g_type_init, (void));
+DEF_IMGLIB_FN (void, g_object_unref, (gpointer));
+DEF_IMGLIB_FN (void, g_error_free, (GError *));
 
 Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 
@@ -8559,10 +8554,10 @@ gs_load (struct frame *f, struct image *img)
      info.  */
   pt_width = image_spec_value (img->spec, QCpt_width, NULL);
   in_width = INTEGERP (pt_width) ? XFASTINT (pt_width) / 72.0 : 0;
-  in_width *= FRAME_X_DISPLAY_INFO (f)->resx;
+  in_width *= FRAME_RES_X (f);
   pt_height = image_spec_value (img->spec, QCpt_height, NULL);
   in_height = INTEGERP (pt_height) ? XFASTINT (pt_height) / 72.0 : 0;
-  in_height *= FRAME_X_DISPLAY_INFO (f)->resy;
+  in_height *= FRAME_RES_Y (f);
 
   if (! (in_width <= INT_MAX && in_height <= INT_MAX
 	 && check_image_size (f, in_width, in_height)))

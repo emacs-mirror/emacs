@@ -1,6 +1,6 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals
 
-;; Copyright (C) 1994-1995, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -420,6 +420,7 @@ A prefix arg suppresses display of that buffer."
     (define-key map [ down-mouse-2 ] 'cpp-push-button)
     (define-key map [ mouse-2 ] 'ignore)
     (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\C-?" 'scroll-down-command)
     (define-key map [ delete ] 'scroll-down)
     (define-key map "\C-c\C-c" 'cpp-edit-apply)

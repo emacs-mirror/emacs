@@ -1,6 +1,6 @@
 ;;; ido.el --- interactively do things with buffers and files
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -927,7 +927,8 @@ ido is running.  Copied from `icomplete-minibuffer-setup-hook'."
   :type 'hook
   :group 'ido)
 
-(defcustom ido-save-directory-list-file (convert-standard-filename "~/.ido.last")
+(defcustom ido-save-directory-list-file
+  (locate-user-emacs-file "ido.last" ".ido.last")
   "File in which the ido state is saved between invocations.
 Variables stored are: `ido-last-directory-list', `ido-work-directory-list',
 `ido-work-file-list', and `ido-dir-file-cache'.
@@ -1585,6 +1586,8 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-p" 'ido-toggle-prefix)
     (define-key map "\C-r" 'ido-prev-match)
     (define-key map "\C-s" 'ido-next-match)
+    (define-key map [?\C-.] 'ido-next-match)
+    (define-key map [?\C-,] 'ido-prev-match)
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
     (define-key map [(control ?\s)] 'ido-restrict-to-matches)
@@ -2389,7 +2392,10 @@ If cursor is not at the end of the user input, move to end of input."
 	(ido-buffer-internal 'insert 'insert-buffer "Insert buffer: " nil ido-text 'ido-enter-insert-file))
 
        ((eq ido-exit 'dired)
-	(dired (concat ido-current-directory (or ido-text ""))))
+        (funcall (cond ((eq method 'other-window) 'dired-other-window)
+                       ((eq method 'other-frame) 'dired-other-frame)
+                       (t 'dired))
+                 (concat ido-current-directory (or ido-text ""))))
 
        ((eq ido-exit 'ffap)
 	(find-file-at-point))
@@ -3144,13 +3150,15 @@ for first matching file."
     (exit-minibuffer)))
 
 (defun ido-chop (items elem)
-  "Remove all elements before ELEM and put them at the end of ITEMS."
+  "Remove all elements before ELEM and put them at the end of ITEMS.
+Use `eq' for comparison."
   (let ((ret nil)
 	(next nil)
 	(sofar nil))
     (while (not ret)
       (setq next (car items))
-      (if (equal next elem)
+      ;; Use `eq' to avoid bug http://debbugs.gnu.org/10994
+      (if (eq next elem)
 	  (setq ret (append items (nreverse sofar)))
 	;; else
 	(progn

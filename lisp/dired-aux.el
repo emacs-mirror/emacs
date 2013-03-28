@@ -1,7 +1,7 @@
 ;;; dired-aux.el --- less commonly used parts of dired
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF
@@ -55,7 +55,8 @@ into this list; they also should call `dired-log' to log the errors.")
 (defun dired-diff (file &optional switches)
   "Compare file at point with file FILE using `diff'.
 If called interactively, prompt for FILE.  If the file at point
-has a backup file, use that as the default.  If the mark is active
+has a backup file, use that as the default.  If the file at point
+is a backup file, use its original.  If the mark is active
 in Transient Mark mode, use the file at the mark as the default.
 \(That's the mark set by \\[set-mark-command], not by Dired's
 \\[dired-mark] command.)
@@ -67,8 +68,10 @@ With prefix arg, prompt for second argument SWITCHES, which is
 the string of command switches for the third argument of `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
-	  ;; Get the latest existing backup file.
-	  (oldf (diff-latest-backup-file current))
+	  ;; Get the latest existing backup file or its original.
+	  (oldf (if (backup-file-name-p current)
+		    (file-name-sans-versions current)
+		  (diff-latest-backup-file current)))
 	  ;; Get the file at the mark.
 	  (file-at-mark (if (and transient-mark-mode mark-active)
 			    (save-excursion (goto-char (mark t))
@@ -107,7 +110,10 @@ the string of command switches for the third argument of `diff'."
 		   (equal (expand-file-name current file)
 			  (expand-file-name current))))
       (error "Attempt to compare the file to itself"))
-    (diff file current switches)))
+    (if (and (backup-file-name-p current)
+	     (equal file (file-name-sans-versions current)))
+	(diff current file switches)
+      (diff file current switches))))
 
 ;;;###autoload
 (defun dired-backup-diff (&optional switches)

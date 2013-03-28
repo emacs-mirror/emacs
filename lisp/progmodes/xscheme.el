@@ -1,7 +1,7 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs
 
-;; Copyright (C) 1986-1987, 1989-1990, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1989-1990, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, lisp

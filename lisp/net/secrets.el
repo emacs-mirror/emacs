@@ -1,6 +1,6 @@
 ;;; secrets.el --- Client interface to gnome-keyring and kwallet.
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm password passphrase

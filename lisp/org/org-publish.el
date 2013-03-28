@@ -1,5 +1,5 @@
 ;;; org-publish.el --- publish related org-mode files as a website
-;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
@@ -577,7 +577,7 @@ PUB-DIR is the publishing directory."
 	(setq export-buf-or-file
 	      (funcall (intern (concat "org-export-as-" format))
 		       (plist-get plist :headline-levels)
-		       nil plist nil
+		       plist nil
 		       (plist-get plist :body-only)
 		       pub-dir))
 	(when (and (bufferp export-buf-or-file)

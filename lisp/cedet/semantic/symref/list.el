@@ -1,6 +1,6 @@
 ;;; semantic/symref/list.el --- Symref Output List UI.
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

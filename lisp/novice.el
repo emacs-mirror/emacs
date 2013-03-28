@@ -1,6 +1,7 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985-1987, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1994, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal, help
@@ -49,7 +50,6 @@ If nil, the feature is disabled, i.e., all commands work normally.")
   (unless keys (setq keys (this-command-keys)))
   (let (char)
     (save-window-excursion
-      (help-setup-xref (list 'disabled-command-function cmd keys) nil)
       (with-output-to-temp-buffer "*Disabled Command*" ;; (help-buffer)
 	 (if (or (eq (aref keys 0)
 		     (if (stringp keys)

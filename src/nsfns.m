@@ -1,7 +1,7 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -261,6 +261,29 @@ ns_display_info_for_name (Lisp_Object name)
   return dpyinfo;
 }
 
+static NSString *
+ns_filename_from_panel (NSSavePanel *panel)
+{
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  NSURL *url = [panel URL];
+  NSString *str = [url path];
+  return str;
+#else
+  return [panel filename];
+#endif
+}
+
+static NSString *
+ns_directory_from_panel (NSSavePanel *panel)
+{
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  NSURL *url = [panel directoryURL];
+  NSString *str = [url path];
+  return str;
+#else
+  return [panel directory];
+#endif
+}
 
 static Lisp_Object
 interpret_services_menu (NSMenu *menu, Lisp_Object prefix, Lisp_Object old)
@@ -596,7 +619,7 @@ ns_set_name_as_filename (struct frame *f)
 {
   NSView *view;
   Lisp_Object name, filename;
-  Lisp_Object buf = XWINDOW (f->selected_window)->buffer;
+  Lisp_Object buf = XWINDOW (f->selected_window)->contents;
   const char *title;
   NSAutoreleasePool *pool;
   struct gcpro gcpro1;
@@ -1220,9 +1243,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
-
   block_input ();
   register_font_driver (&nsfont_driver, f);
   x_default_parameter (f, parms, Qfont_backend, Qnil,
@@ -1471,7 +1491,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
    Lisp_Object init, Lisp_Object dir_only_p)
 {
   static id fileDelegate = nil;
-  int ret;
+  BOOL ret;
   id panel;
   Lisp_Object fname;
 
@@ -1503,12 +1523,19 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   [panel setDelegate: fileDelegate];
 
   panelOK = 0;
-  if (! NILP (dir_only_p)) 
+  if (! NILP (dir_only_p))
     {
       [panel setCanChooseDirectories: YES];
       [panel setCanChooseFiles: NO];
     }
-  
+  else
+    {
+      /* This is not quite what the documentation says, but it is compatible
+         with the Gtk+ code.  Also, the menu entry says "Open File...".  */
+      [panel setCanChooseDirectories: NO];
+      [panel setCanChooseFiles: YES];
+    }
+
   block_input ();
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
@@ -1519,7 +1546,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     [panel setNameFieldStringValue: [initS lastPathComponent]];
   else
     [panel setNameFieldStringValue: @""];
-    
+
   ret = [panel runModal];
 #else
   if (NILP (mustmatch) && NILP (dir_only_p))
@@ -1528,15 +1555,19 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     }
   else
     {
-      [panel setCanChooseDirectories: YES];
       ret = [panel runModalForDirectory: dirS file: initS types: nil];
     }
 #endif
 
   ret = (ret == NSOKButton) || panelOK;
 
-  if (ret)
-    fname = build_string ([[panel filename] UTF8String]);
+  if (ret) 
+    {
+      NSString *str = [panel getFilename];
+      if (! str) str = [panel getDirectory];
+      if (! str) ret = NO;
+      else fname = build_string ([str UTF8String]);
+    }
 
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
   unblock_input ();
@@ -1649,9 +1680,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
           The last number is where we distinguish between the Apple
           and GNUstep implementations ("distributor-specific release
           number") and give int'ized versions of major.minor. */
-  return Fcons (make_number (10),
-		Fcons (make_number (3),
-		       Fcons (make_number (ns_appkit_version_int()), Qnil)));
+  return list3i (10, 3, ns_appkit_version_int ());
 }
 
 
@@ -2106,7 +2135,9 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 void
 ns_run_ascript (void)
 {
-  as_status = ns_do_applescript (as_script, as_result);
+  if (! NILP (as_script))
+    as_status = ns_do_applescript (as_script, as_result);
+  as_script = Qnil;
 }
 
 DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
@@ -2143,11 +2174,14 @@ In case the execution fails, an error is signaled. */)
                                data2: NSAPP_DATA2_RUNASSCRIPT];
 
   [NSApp postEvent: nxev atStart: NO];
-  [NSApp run];
+
+  // If there are other events, the event loop may exit.  Keep running
+  // until the script has been handled.  */
+  while (! NILP (as_script))
+    [NSApp run];
 
   status = as_status;
   as_status = 0;
-  as_script = Qnil;
   as_result = 0;
   unblock_input ();
   if (status == 0)
@@ -2243,20 +2277,6 @@ x_pixel_height (struct frame *f)
 
 
 int
-x_char_width (struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-
-int
-x_char_height (struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-
-int
 x_screen_planes (struct frame *f)
 {
   return FRAME_NS_DISPLAY_INFO (f)->n_planes;
@@ -2305,9 +2325,8 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
   [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
-  return list3 (make_number (lrint (red*65280)),
-		make_number (lrint (green*65280)),
-		make_number (lrint (blue*65280)));
+  return list3i (lrint (red * 65280), lrint (green * 65280),
+		 lrint (blue * 65280));
 }
 
 
@@ -2394,11 +2413,10 @@ that stands for the selected frame's display. */)
 
   /* NS coordinate system is upside-down.
      Transform to screen-specific coordinates. */
-  return list4 (make_number ((int) vScreen.origin.x),
-		make_number ((int) [screen frame].size.height
-			     - vScreen.size.height - vScreen.origin.y),
-                make_number ((int) vScreen.size.width),
-                make_number ((int) vScreen.size.height));
+  return list4i (vScreen.origin.x,
+		 [screen frame].size.height
+		 - vScreen.size.height - vScreen.origin.y,
+		 vScreen.size.width, vScreen.size.height);
 }
 
 
@@ -2616,6 +2634,14 @@ Value is t if tooltip was open, nil otherwise.  */)
   [NSApp stop: self];
 }
 #endif
+- (NSString *) getFilename
+{
+  return ns_filename_from_panel (self);
+}
+- (NSString *) getDirectory
+{
+  return ns_directory_from_panel (self);
+}
 @end
 
 
@@ -2629,6 +2655,12 @@ Value is t if tooltip was open, nil otherwise.  */)
 - (void) ok: (id)sender
 {
   [super ok: sender];
+
+  // If not choosing directories, and Open is pressed on a directory, return.
+  if (! [self canChooseDirectories] && [self getDirectory] &&
+      ! [self getFilename])
+    return;
+
   panelOK = 1;
   [NSApp stop: self];
 }
@@ -2637,7 +2669,17 @@ Value is t if tooltip was open, nil otherwise.  */)
   [super cancel: sender];
   [NSApp stop: self];
 }
+
 #endif
+- (NSString *) getFilename
+{
+  return ns_filename_from_panel (self);
+}
+- (NSString *) getDirectory
+{
+  return ns_directory_from_panel (self);
+}
+
 @end
 
 

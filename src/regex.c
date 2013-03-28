@@ -2,7 +2,7 @@
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
 
-   Copyright (C) 1993-2012  Free Software Foundation, Inc.
+   Copyright (C) 1993-2013 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,9 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
-   USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* TODO:
    - structure the opcode space into opcode+flag.
@@ -35,7 +33,7 @@
 
 /* Ignore some GCC warnings for now.  This section should go away
    once the Emacs and Gnulib regex code is merged.  */
-#if (__GNUC__ == 4 && 5 <= __GNUC_MINOR__) || 4 < __GNUC__
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 # ifndef emacs
 #  pragma GCC diagnostic ignored "-Wunused-but-set-variable"
@@ -6406,8 +6404,8 @@ weak_function
 re_exec (const char *s)
 {
   const size_t len = strlen (s);
-  return
-    0 <= re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0);
+  return (re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0)
+	  >= 0);
 }
 #endif /* _REGEX_RE_COMP */
 

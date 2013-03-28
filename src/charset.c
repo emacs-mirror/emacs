@@ -1,5 +1,5 @@
 /* Basic character set support.
-   Copyright (C) 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -447,7 +447,7 @@ read_hex (FILE *fp, bool *eof, bool *overflow)
   n = 0;
   while (c_isxdigit (c = getc (fp)))
     {
-      if (UINT_MAX >> 4 < n)
+      if (n > UINT_MAX >> 4)
 	*overflow = 1;
       n = ((n << 4)
 	   | (c - ('0' <= c && c <= '9' ? '0'
@@ -1053,7 +1053,7 @@ usage: (define-charset-internal ...)  */)
       CHECK_NATNUM (parent_max_code);
       parent_code_offset = Fnth (make_number (3), val);
       CHECK_NUMBER (parent_code_offset);
-      val = Fmake_vector (make_number (4), Qnil);
+      val = make_uninit_vector (4);
       ASET (val, 0, make_number (parent_charset->id));
       ASET (val, 1, parent_min_code);
       ASET (val, 2, parent_max_code);
@@ -1142,12 +1142,14 @@ usage: (define-charset-internal ...)  */)
 	     example, the IDs are stuffed into struct
 	     coding_system.charbuf[i] entries, which are 'int'.  */
 	  int old_size = charset_table_size;
+	  ptrdiff_t new_size = old_size;
 	  struct charset *new_table =
-	    xpalloc (0, &charset_table_size, 1,
+	    xpalloc (0, &new_size, 1,
 		     min (INT_MAX, MOST_POSITIVE_FIXNUM),
 		     sizeof *charset_table);
 	  memcpy (new_table, charset_table, old_size * sizeof *new_table);
 	  charset_table = new_table;
+	  charset_table_size = new_size;
 	  /* FIXME: This leaks memory, as the old charset_table becomes
 	     unreachable.  If the old charset table is charset_table_init
 	     then this leak is intentional; otherwise, it's unclear.
@@ -1257,7 +1259,7 @@ define_charset_internal (Lisp_Object name,
 
   args[charset_arg_name] = name;
   args[charset_arg_dimension] = make_number (dimension);
-  val = Fmake_vector (make_number (8), make_number (0));
+  val = make_uninit_vector (8);
   for (i = 0; i < 8; i++)
     ASET (val, i, make_number (code_space[i]));
   args[charset_arg_code_space] = val;

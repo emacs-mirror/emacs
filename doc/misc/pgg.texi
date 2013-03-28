@@ -3,15 +3,15 @@
 @include gnus-overrides.texi
 
 @setfilename ../../info/pgg
-@settitle PGG @value{VERSION}
 
 @set VERSION 0.1
+@settitle PGG @value{VERSION}
 
 @copying
 This file describes PGG @value{VERSION}, an Emacs interface to various
 PGP implementations.
 
-Copyright @copyright{} 2001, 2003-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2003--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,8 +22,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -89,12 +88,12 @@ PGG requires at least one implementation of privacy guard system.
 This document assumes that you have already obtained and installed them
 and that you are familiar with its basic functions.
 
-By default, PGG uses GnuPG.  If you are new to such a system, I
+By default, PGG uses GnuPG@.  If you are new to such a system, I
 recommend that you should look over the GNU Privacy Handbook (GPH)
 which is available at @uref{http://www.gnupg.org/documentation/}.
 
 When using GnuPG, we recommend the use of the @code{gpg-agent}
-program, which is distributed with versions 2.0 and later of GnuPG.
+program, which is distributed with versions 2.0 and later of GnuPG@.
 This is a daemon to manage private keys independently from any
 protocol, and provides the most secure way to input and cache your
 passphrases (@pxref{Caching passphrase}).  By default, PGG will

@@ -1,6 +1,6 @@
 ;;; org-exp.el --- Export internals for Org-mode
 
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -3047,12 +3047,11 @@ to the value of `temporary-file-directory'."
 	  (eval ;; convert to fmt -- mimicking `org-run-like-in-org-mode'
 	   (list 'let org-local-vars
 		 (list (intern (format "org-export-as-%s" fmt))
-		       nil nil nil ''string t))))
+		       nil nil ''string t dir))))
       (delete-file tmp-file))))
 
 ;;;###autoload
-(defun org-export-as-org (arg &optional hidden ext-plist
-			      to-buffer body-only pub-dir)
+(defun org-export-as-org (arg &optional ext-plist to-buffer body-only pub-dir)
   "Make a copy with not-exporting stuff removed.
 The purpose of this function is to provide a way to export the source
 Org file of a webpage in Org format, but with sensitive and/or irrelevant

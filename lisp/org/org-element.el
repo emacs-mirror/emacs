@@ -1,6 +1,6 @@
 ;;; org-element.el --- Parser And Applications for Org syntax
 
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -2893,10 +2893,13 @@ Assume point is at the macro."
 	  (end (point))
 	  (args (let ((args (org-match-string-no-properties 3)) args2)
 		  (when args
-		    (setq args (org-split-string args ","))
+		    ;; Do not use `org-split-string' since empty
+		    ;; strings are meaningful here.
+		    (setq args (split-string args ","))
 		    (while args
 		      (while (string-match "\\\\\\'" (car args))
-			;; Repair bad splits.
+			;; Repair bad splits, when comma is protected,
+                        ;; and thus not a real separator.
 			(setcar (cdr args) (concat (substring (car args) 0 -1)
 						   "," (nth 1 args)))
 			(pop args))
@@ -3611,7 +3614,32 @@ recursion.  It can be set to the following symbols:
 When VISIBLE-ONLY is non-nil, don't parse contents of hidden
 elements.
 
-Assume buffer is in Org mode."
+An element or an objects is represented as a list with the
+pattern (TYPE PROPERTIES CONTENTS), where :
+
+  TYPE is a symbol describing the element or object.  See
+  `org-element-all-elements' and `org-element-all-objects' for an
+  exhaustive list of such symbols.  One can retrieve it with
+  `org-element-type' function.
+
+  PROPERTIES is the list of attributes attached to the element or
+  object, as a plist.  Although most of them are specific to the
+  element or object type, all types share `:begin', `:end',
+  `:post-blank' and `:parent' properties, which respectively
+  refer to buffer position where the element or object starts,
+  ends, the number of white spaces or blank lines after it, and
+  the element or object containing it.  Properties values can be
+  obtained by using `org-element-property' function.
+
+  CONTENTS is a list of elements, objects or raw strings
+  contained in the current element or object, when applicable.
+  One can access them with `org-element-contents' function.
+
+The Org buffer has `org-data' as type and nil as properties.
+`org-element-map' function can be used to find specific elements
+or objects within the parse tree.
+
+This function assumes that current major mode is `org-mode'."
   (save-excursion
     (goto-char (point-min))
     (org-skip-whitespace)
@@ -3640,11 +3668,12 @@ containing the secondary string.  It is used to set correctly
 (defun org-element-map (data types fun &optional info first-match no-recursion)
   "Map a function on selected elements or objects.
 
-DATA is the parsed tree, as returned by, i.e,
+DATA is an Org buffer parse tree, as returned by, i.e.,
 `org-element-parse-buffer'.  TYPES is a symbol or list of symbols
-of elements or objects types.  FUN is the function called on the
-matching element or object.  It must accept one arguments: the
-element or object itself.
+of elements or objects types (see `org-element-all-elements' and
+`org-element-all-objects' for a complete list of types).  FUN is
+the function called on the matching element or object.  It has to
+accept one argument: the element or object itself.
 
 When optional argument INFO is non-nil, it should be a plist
 holding export options.  In that case, parts of the parse tree
@@ -3658,7 +3687,37 @@ representing elements or objects types.  `org-element-map' won't
 enter any recursive element or object whose type belongs to that
 list.  Though, FUN can still be applied on them.
 
-Nil values returned from FUN do not appear in the results."
+Nil values returned from FUN do not appear in the results.
+
+
+Examples:
+--------
+
+Assuming TREE is a variable containing an Org buffer parse tree,
+the following example will return a flat list of all `src-block'
+and `example-block' elements in it:
+
+  \(org-element-map tree '(example-block src-block) 'identity)
+
+The following snippet will find the first headline with a level
+of 1 and a \"phone\" tag, and will return its beginning position:
+
+  \(org-element-map
+   tree 'headline
+   \(lambda (hl)
+     \(and (= (org-element-property :level hl) 1)
+          \(member \"phone\" (org-element-property :tags hl))
+          \(org-element-property :begin hl)))
+   nil t)
+
+Eventually, this last example will return a flat list of all
+`bold' type objects containing a `latex-snippet' type object:
+
+  \(org-element-map
+   tree 'bold
+   \(lambda (b)
+     \(and (org-element-map b 'latex-snippet 'identity nil t)
+          b)))"
   ;; Ensure TYPES and NO-RECURSION are a list, even of one element.
   (unless (listp types) (setq types (list types)))
   (unless (listp no-recursion) (setq no-recursion (list no-recursion)))
@@ -3808,7 +3867,8 @@ Elements are accumulated into ACC."
 		'section))
 	     (plain-list 'item)
 	     (table 'table-row))
-	   (org-element-property :structure element)
+	   (and (memq type '(item plain-list))
+		(org-element-property :structure element))
 	   granularity visible-only element))
 	 ;; ELEMENT has contents.  Parse objects inside, if
 	 ;; GRANULARITY allows it.
@@ -4167,8 +4227,8 @@ of the element and PROPS a plist of properties associated to the
 element.
 
 Possible types are defined in `org-element-all-elements'.
-Properties depend on element or object type, but always
-include :begin, :end, :parent and :post-blank properties.
+Properties depend on element or object type, but always include
+`:begin', `:end', `:parent' and `:post-blank' properties.
 
 As a special case, if point is at the very beginning of a list or
 sub-list, returned element will be that list instead of the first
@@ -4177,8 +4237,8 @@ row of a table, returned element will be the table instead of the
 first row.
 
 If optional argument KEEP-TRAIL is non-nil, the function returns
-a list of of elements leading to element at point.  The list's
-CAR is always the element at point.  Following positions contain
+a list of elements leading to element at point.  The list's CAR
+is always the element at point.  The following positions contain
 element's siblings, then parents, siblings of parents, until the
 first element of current section."
   (org-with-wide-buffer
@@ -4249,8 +4309,11 @@ first element of current section."
 		   (plain-list
 		    (setq special-flag 'item
 			  struct (org-element-property :structure element)))
-		   (table (setq special-flag 'table-row))
-		   (otherwise (setq special-flag nil)))
+		   (item (setq special-flag nil))
+		   (property-drawer
+		    (setq special-flag 'node-property struct nil))
+		   (table (setq special-flag 'table-row struct nil))
+		   (otherwise (setq special-flag nil struct nil)))
 		 (setq end cend)
 		 (goto-char cbeg)))))))))))
 
@@ -4264,8 +4327,8 @@ associated to it.
 
 Possible types are defined in `org-element-all-elements' and
 `org-element-all-objects'.  Properties depend on element or
-object type, but always include :begin, :end, :parent
-and :post-blank properties."
+object type, but always include `:begin', `:end', `:parent' and
+`:post-blank'."
   (org-with-wide-buffer
    (let* ((origin (point))
 	  (element (org-element-at-point))
@@ -4316,18 +4379,22 @@ and :post-blank properties."
 				(funcall (intern (format "org-element-%s-parser"
 							 (car closest-cand))))))
 			(cbeg (org-element-property :contents-begin object))
-			(cend (org-element-property :contents-end object)))
+			(cend (org-element-property :contents-end object))
+			(obj-end (org-element-property :end object)))
 		   (cond
 		    ;; ORIGIN is after OBJECT, so skip it.
-		    ((< (org-element-property :end object) origin)
-		     (goto-char (org-element-property :end object)))
-		    ;; ORIGIN is within a non-recursive object or at an
-		    ;; object boundaries: Return that object.
+		    ((<= obj-end origin)
+		     (if (/= obj-end end) (goto-char obj-end)
+		       (throw 'exit
+			      (org-element-put-property
+			       object :parent parent))))
+		    ;; ORIGIN is within a non-recursive object or at
+		    ;; an object boundaries: Return that object.
 		    ((or (not cbeg) (> cbeg origin) (< cend origin))
 		     (throw 'exit
 			    (org-element-put-property object :parent parent)))
-		    ;; Otherwise, move within current object and restrict
-		    ;; search to the end of its contents.
+		    ;; Otherwise, move within current object and
+		    ;; restrict search to the end of its contents.
 		    (t (goto-char cbeg)
 		       (org-element-put-property object :parent parent)
 		       (setq parent object

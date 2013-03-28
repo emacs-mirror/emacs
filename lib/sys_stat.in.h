@@ -1,5 +1,5 @@
 /* Provide a more complete sys/stat header file.
-   Copyright (C) 2005-2012 Free Software Foundation, Inc.
+   Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -148,6 +148,10 @@
 #  define S_ISMPB(m) 0
 #  define S_ISMPC(m) 0
 # endif
+#endif
+
+#ifndef S_ISMPX /* AIX */
+# define S_ISMPX(m) 0
 #endif
 
 #ifndef S_ISNAM /* Xenix */
@@ -497,7 +501,7 @@ _GL_CXXALIAS_RPL (mkdir, int, (char const *name, mode_t mode));
 # if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 
 #  if !GNULIB_defined_rpl_mkdir
-static inline int
+static int
 rpl_mkdir (char const *name, mode_t mode)
 {
   return _mkdir (name);

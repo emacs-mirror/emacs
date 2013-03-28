@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep and MacOSX Cocoa menu and toolbar module.
-   Copyright (C) 2007-2012 Free Software Foundation, Inc.
+   Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -191,7 +191,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 	= alloca (previous_menu_items_used * sizeof *previous_items);
 
       /* lisp preliminaries */
-      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
+      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
       specbind (Qdebug_on_next_call, Qnil);
       record_unwind_save_match_data ();
@@ -1110,6 +1110,8 @@ update_frame_tool_bar (FRAME_PTR f)
   FRAME_TOOLBAR_HEIGHT (f) =
     NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
     - FRAME_NS_TITLEBAR_HEIGHT (f);
+    if (FRAME_TOOLBAR_HEIGHT (f) < 0) // happens if frame is fullscreen.
+      FRAME_TOOLBAR_HEIGHT (f) = 0;
     unblock_input ();
 }
 
@@ -1347,8 +1349,7 @@ struct Popdown_data
 static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  struct Popdown_data *unwind_data = (struct Popdown_data *) p->pointer;
+  struct Popdown_data *unwind_data = XSAVE_POINTER (arg, 0);
 
   block_input ();
   if (popup_activated_flag)
@@ -1441,7 +1442,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     unwind_data->pool = pool;
     unwind_data->dialog = dialog;
 
-    record_unwind_protect (pop_down_menu, make_save_value (unwind_data, 0));
+    record_unwind_protect (pop_down_menu, make_save_pointer (unwind_data));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
     unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */

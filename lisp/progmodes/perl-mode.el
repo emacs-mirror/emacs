@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1990, 1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -578,6 +578,13 @@ create a new comment."
    ((looking-at "=head[0-9]") (- (char-before (match-end 0)) ?0))
    ((looking-at "=cut") 1)
    (t 3)))
+
+(defun perl-current-defun-name ()
+  "The `add-log-current-defun' function in Perl mode."
+  (save-excursion
+    (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+	(match-string-no-properties 1))))
+
 
 (defvar perl-mode-hook nil
   "Normal hook to run when entering Perl mode.")
@@ -631,15 +638,15 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
 
 Turning on Perl mode runs the normal hook `perl-mode-hook'."
   :abbrev-table perl-mode-abbrev-table
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'indent-line-function) #'perl-indent-line)
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "\\(^\\|\\s-\\);?#+ *")
-  (set (make-local-variable 'comment-indent-function) #'perl-comment-indent)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local indent-line-function #'perl-indent-line)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-start-skip "\\(^\\|\\s-\\);?#+ *")
+  (setq-local comment-indent-function #'perl-comment-indent)
+  (setq-local parse-sexp-ignore-comments t)
   ;; Tell font-lock.el how to handle Perl.
   (setq font-lock-defaults '((perl-font-lock-keywords
 			      perl-font-lock-keywords-1
@@ -647,22 +654,21 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
 			     nil nil ((?\_ . "w")) nil
                              (font-lock-syntactic-face-function
                               . perl-font-lock-syntactic-face-function)))
-  (set (make-local-variable 'syntax-propertize-function)
-       #'perl-syntax-propertize-function)
+  (setq-local syntax-propertize-function #'perl-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
   ;; Electricity.
   ;; FIXME: setup electric-layout-rules.
-  (set (make-local-variable 'electric-indent-chars)
-       (append '(?\{ ?\} ?\; ?\:) electric-indent-chars))
+  (setq-local electric-indent-chars
+	      (append '(?\{ ?\} ?\; ?\:) electric-indent-chars))
   (add-hook 'electric-indent-functions #'perl-electric-noindent-p nil t)
   ;; Tell imenu how to handle Perl.
-  (set (make-local-variable 'imenu-generic-expression)
-       perl-imenu-generic-expression)
+  (setq-local imenu-generic-expression perl-imenu-generic-expression)
   (setq imenu-case-fold-search nil)
   ;; Setup outline-minor-mode.
-  (set (make-local-variable 'outline-regexp) perl-outline-regexp)
-  (set (make-local-variable 'outline-level) 'perl-outline-level))
+  (setq-local outline-regexp perl-outline-regexp)
+  (setq-local outline-level 'perl-outline-level)
+  (setq-local add-log-current-defun-function #'perl-current-defun-name))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in Perl code

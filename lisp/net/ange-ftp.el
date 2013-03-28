@@ -1,6 +1,7 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989-1996, 1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1989-1996, 1998, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -719,6 +720,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH\\|^KERBEROS\\|"
+          "^500 This security scheme is not implemented\\|"
           "^504 Unknown security mechanism\\|"
 	  "^530 Please login with USER and PASS\\|" ; non kerberized vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
@@ -3295,7 +3297,6 @@ system TYPE.")
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
 		     (binary (ange-ftp-binary-file filename))
-		     (buffer-file-type buffer-file-type)
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     (coding-system-used last-coding-system-used)
 		     size)
@@ -3320,10 +3321,7 @@ system TYPE.")
 			   size
 			   (nth 1 (ange-ftp-real-insert-file-contents
 				   temp visit beg end replace))
-			   coding-system-used last-coding-system-used
-			   ;; override autodetection of buffer file type
-			   ;; to ensure buffer is saved in DOS format
-			   buffer-file-type binary)
+			   coding-system-used last-coding-system-used)
 			(signal 'ftp-error
 				(list
 				 "Opening input file:"
@@ -4086,7 +4084,8 @@ directory, so that Emacs will know its current contents."
 	(or (file-exists-p parent)
 	    (ange-ftp-make-directory parent parents))))
   (if (file-exists-p dir)
-      (error "Cannot make directory %s: file already exists" dir)
+      (unless parents
+	(error "Cannot make directory %s: file already exists" dir))
     (let ((parsed (ange-ftp-ftp-name dir)))
       (if parsed
 	  (let* ((host (nth 0 parsed))
@@ -5135,7 +5134,7 @@ Other orders of $ and _ seem to all work just fine.")
 	(forward-line 1))
       ;; Would like to look for a "Total" line, or a "Directory" line to
       ;; make sure that the listing isn't complete garbage before putting
-      ;; in "." and "..", but we can't even count on all VAX's giving us
+      ;; in "." and "..", but we can't count on VMS giving us
       ;; either of these.
       (puthash "." t tbl)
       (puthash ".." t tbl))

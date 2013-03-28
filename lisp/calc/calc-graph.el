@@ -1,6 +1,6 @@
 ;;; calc-graph.el --- graph output functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -948,6 +948,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (setq calc-dumb-map (make-sparse-keymap))
 	  (define-key calc-dumb-map "\n" 'scroll-up-command)
 	  (define-key calc-dumb-map " " 'scroll-up-command)
+	  (define-key calc-dumb-map [?\S-\ ] 'scroll-down-command)
 	  (define-key calc-dumb-map "\177" 'scroll-down-command)
 	  (define-key calc-dumb-map "<" 'scroll-left)
 	  (define-key calc-dumb-map ">" 'scroll-right)

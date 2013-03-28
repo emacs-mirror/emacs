@@ -1,5 +1,6 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993, 2001-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -420,18 +421,18 @@ typedef struct _widget_value
   (EVENT_HAS_PARAMETERS (event) ? XCAR (event) : (event))
 
 /* Extract the starting and ending positions from a composite event.  */
-#define EVENT_START(event) (XCAR (XCDR (event)))
-#define EVENT_END(event) (XCAR (XCDR (XCDR (event))))
+#define EVENT_START(event) (CAR_SAFE (CDR_SAFE (event)))
+#define EVENT_END(event) (CAR_SAFE (CDR_SAFE (CDR_SAFE (event))))
 
 /* Extract the click count from a multi-click event.  */
 #define EVENT_CLICK_COUNT(event) (Fnth (make_number (2), (event)))
 
 /* Extract the fields of a position.  */
-#define POSN_WINDOW(posn) (XCAR (posn))
-#define POSN_POSN(posn) (XCAR (XCDR (posn)))
+#define POSN_WINDOW(posn) (CAR_SAFE (posn))
+#define POSN_POSN(posn) (CAR_SAFE (CDR_SAFE (posn)))
 #define POSN_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
-#define POSN_WINDOW_POSN(posn) (XCAR (XCDR (XCDR (posn))))
-#define POSN_TIMESTAMP(posn) (XCAR (XCDR (XCDR (XCDR (posn)))))
+#define POSN_WINDOW_POSN(posn) (CAR_SAFE (CDR_SAFE (CDR_SAFE (posn))))
+#define POSN_TIMESTAMP(posn) (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (posn)))))
 #define POSN_SCROLLBAR_PART(posn)	(Fnth (make_number (4), (posn)))
 
 /* A cons (STRING . STRING-CHARPOS), or nil in mouse-click events.
@@ -481,7 +482,7 @@ struct input_event;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
-extern Lisp_Object read_char (int, ptrdiff_t, Lisp_Object *, Lisp_Object,
+extern Lisp_Object read_char (int, Lisp_Object, Lisp_Object,
                               bool *, EMACS_TIME *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 

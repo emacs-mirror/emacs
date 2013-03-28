@@ -1,5 +1,5 @@
 /* Definitions for asynchronous process control in GNU Emacs.
-   Copyright (C) 1985, 1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -159,7 +159,7 @@ struct Lisp_Process
     gnutls_anon_client_credentials_t gnutls_anon_cred;
     int gnutls_log_level;
     int gnutls_handshakes_tried;
-    int gnutls_p;
+    unsigned int gnutls_p : 1;
 #endif
 };
 
@@ -185,26 +185,9 @@ pset_gnutls_cred_type (struct Lisp_Process *p, Lisp_Object val)
 }
 #endif
 
-/* True if we are about to fork off a synchronous process or if we
-   are waiting for it.  */
-extern bool synch_process_alive;
-
-/* Communicate exit status of sync process to from sigchld_handler
-   to Fcall_process.  */
-
-/* Nonzero => this is a string explaining death of synchronous subprocess.  */
-extern const char *synch_process_death;
-
-/* Nonzero => this is the signal number that terminated the subprocess.  */
-extern int synch_process_termsig;
-
-/* If synch_process_death is zero,
-   this is exit code of synchronous subprocess.  */
-extern int synch_process_retcode;
-
-/* Nonzero means don't run process sentinels.  This is used
+/* True means don't run process sentinels.  This is used
    when exiting.  */
-extern int inhibit_sentinels;
+extern bool inhibit_sentinels;
 
 extern Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname;
 extern Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime;
@@ -215,12 +198,18 @@ extern Lisp_Object QCspeed;
 extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
+/* Defined in callproc.c.  */
+
+extern void record_kill_process (struct Lisp_Process *);
+
+/* Defined in process.c.  */
+
 extern Lisp_Object list_system_processes (void);
 extern Lisp_Object system_process_attributes (Lisp_Object);
 
 extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
-extern int kbd_on_hold_p (void);
+extern bool kbd_on_hold_p (void);
 
 typedef void (*fd_callback) (int fd, void *data);
 

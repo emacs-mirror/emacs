@@ -1,3 +1,110 @@
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* indent/octave.m: Fix encoding error in comment.  Add coding tag.
+
+2013-02-28  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* automated/python-tests.el (python-tests-with-temp-buffer): Doc fix.
+	(python-tests-with-temp-file): New macro.
+	(python-tests-shell-interpreter): New var.
+	(python-shell-get-process-name-1)
+	(python-shell-internal-get-process-name-1)
+	(python-shell-parse-command-1)
+	(python-shell-calculate-process-environment-1)
+	(python-shell-calculate-process-environment-2)
+	(python-shell-calculate-process-environment-3)
+	(python-shell-calculate-exec-path-1)
+	(python-shell-calculate-exec-path-2)
+	(python-shell-make-comint-1)
+	(python-shell-make-comint-2)
+	(python-shell-get-process-1)
+	(python-shell-get-or-create-process-1)
+	(python-shell-internal-get-or-create-process-1): New tests.
+
+2013-02-21  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* automated/python-tests.el: New file.
+
+2013-02-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-move-to-block-skips-percent-literal): Add depth-affecting
+	bits inside the examples.
+	(ruby-move-to-block-skips-heredoc): New test.
+	(ruby-add-log-current-method-after-inner-class): Lower
+	expectations: move point inside a method, initially.
+
+2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-move-to-block-skips-percent-literal): New test.
+
+2013-02-04  Chong Yidong  <cyd@gnu.org>
+
+	* automated/thingatpt.el: New file.
+
+2013-02-03  Chong Yidong  <cyd@gnu.org>
+
+	* automated/files.el (file-test--do-local-variables-test): Avoid
+	compilation warning message.
+
+2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-indent-spread-args-in-parens): New test.
+	* automated/ruby-mode-tests.el (ruby-block-test-example):
+	Break indentation of the do block opener and add a line inside it.
+	* automated/ruby-mode-tests.el (works-on-do, ok-with-three):
+	Adjust line numbers.
+
+2013-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el: Split up.  Add advice-test-preactivate.
+
+2013-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* automated/compile-tests.el (compile-tests--test-regexps-data):
+	Fix interpretation of gnu line.col1-col2 format.  (Bug#13335)
+
+2013-01-10  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* automated/man-tests.el: New file.
+
+2013-01-09  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* automated/undo-tests.el (undo-test0): Adjust error to code change.
+
+2013-01-08  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* automated/undo-tests.el: New file.
+
+2012-12-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	(ruby-indent-after-block-in-continued-expression): New test.
+
+2012-12-14  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el
+	Rename one interpolation test; add three more.
+	(ruby-with-temp-buffer): New macro, use it where appropriate.
+	(ruby-add-log-current-method-examples): Use "_" for target point.
+	Add four new tests for ruby-add-log-current-method.
+
+2012-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/f90.el (f90-test-bug13138): New test.
+
+2012-12-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* automated/inotify-test.el: New test.
+
+2012-12-02  Chong Yidong  <cyd@gnu.org>
+
+	* automated/ruby-mode-tests.el
+	(ruby-add-log-current-method-examples): Don't use loop macro, to
+	allow automated testing to work.
+
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/advice-tests.el (advice-tests--data): Remove.
@@ -557,7 +664,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2008-2012  Free Software Foundation, Inc.
+  Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 1993-1995, 1997-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,21 +84,14 @@ check_markers (void)
 
 #endif /* MARKER_DEBUG */
 
-/* Move gap to position CHARPOS.
-   Note that this can quit!  */
-
-void
-move_gap (ptrdiff_t charpos)
-{
-  move_gap_both (charpos, charpos_to_bytepos (charpos));
-}
-
 /* Move gap to byte position BYTEPOS, which is also char position CHARPOS.
    Note that this can quit!  */
 
 void
 move_gap_both (ptrdiff_t charpos, ptrdiff_t bytepos)
 {
+  eassert (charpos == BYTE_TO_CHAR (bytepos)
+	   && bytepos == CHAR_TO_BYTE (charpos));
   if (bytepos < GPT_BYTE)
     gap_left (charpos, bytepos, 0);
   else if (bytepos > GPT_BYTE)
@@ -388,14 +381,13 @@ make_gap_larger (ptrdiff_t nbytes_added)
   ptrdiff_t real_gap_loc_byte;
   ptrdiff_t old_gap_size;
   ptrdiff_t current_size = Z_BYTE - BEG_BYTE + GAP_SIZE;
-  enum { enough_for_a_while = 2000 };
 
   if (BUF_BYTES_MAX - current_size < nbytes_added)
     buffer_overflow ();
 
   /* If we have to get more space, get enough to last a while;
      but do not exceed the maximum buffer size.  */
-  nbytes_added = min (nbytes_added + enough_for_a_while,
+  nbytes_added = min (nbytes_added + GAP_BYTES_DFL,
 		      BUF_BYTES_MAX - current_size);
 
   enlarge_buffer_text (current_buffer, nbytes_added);
@@ -413,8 +405,7 @@ make_gap_larger (ptrdiff_t nbytes_added)
   GPT_BYTE = Z_BYTE + GAP_SIZE;
   GAP_SIZE = nbytes_added;
 
-  /* Move the new gap down to be consecutive with the end of the old one.
-     This adjusts the markers properly too.  */
+  /* Move the new gap down to be consecutive with the end of the old one.  */
   gap_left (real_gap_loc + old_gap_size, real_gap_loc_byte + old_gap_size, 1);
 
   /* Now combine the two into one large gap.  */
@@ -443,9 +434,9 @@ make_gap_smaller (ptrdiff_t nbytes_removed)
   ptrdiff_t real_beg_unchanged;
   ptrdiff_t new_gap_size;
 
-  /* Make sure the gap is at least 20 bytes.  */
-  if (GAP_SIZE - nbytes_removed < 20)
-    nbytes_removed = GAP_SIZE - 20;
+  /* Make sure the gap is at least GAP_BYTES_MIN bytes.  */
+  if (GAP_SIZE - nbytes_removed < GAP_BYTES_MIN)
+    nbytes_removed = GAP_SIZE - GAP_BYTES_MIN;
 
   /* Prevent quitting in move_gap.  */
   tem = Vinhibit_quit;
@@ -468,8 +459,7 @@ make_gap_smaller (ptrdiff_t nbytes_removed)
   Z_BYTE += new_gap_size;
   GAP_SIZE = nbytes_removed;
 
-  /* Move the unwanted pretend gap to the end of the buffer.  This
-     adjusts the markers properly too.  */
+  /* Move the unwanted pretend gap to the end of the buffer.  */
   gap_right (Z, Z_BYTE);
 
   enlarge_buffer_text (current_buffer, -nbytes_removed);
@@ -500,7 +490,20 @@ make_gap (ptrdiff_t nbytes_added)
     make_gap_smaller (-nbytes_added);
 #endif
 }
-
+
+/* Add NBYTES to B's gap.  It's enough to temporarily
+   fake current_buffer and avoid real switch to B.  */
+
+void
+make_gap_1 (struct buffer *b, ptrdiff_t nbytes)
+{
+  struct buffer *oldb = current_buffer;
+
+  current_buffer = b;
+  make_gap (nbytes);
+  current_buffer = oldb;
+}
+
 /* Copy NBYTES bytes of text from FROM_ADDR to TO_ADDR.
    FROM_MULTIBYTE says whether the incoming text is multibyte.
    TO_MULTIBYTE says whether to store the text as multibyte.
@@ -655,17 +658,6 @@ insert_before_markers_and_inherit (const char *string,
     }
 }
 
-/* Subroutine used by the insert functions above.  */
-
-void
-insert_1 (const char *string, ptrdiff_t nbytes,
-	  bool inherit, bool prepare, bool before_markers)
-{
-  insert_1_both (string, chars_in_text ((unsigned char *) string, nbytes),
-		 nbytes, inherit, prepare, before_markers);
-}
-
-
 #ifdef BYTE_COMBINING_DEBUG
 
 /* See if the bytes before POS/POS_BYTE combine with bytes
@@ -985,10 +977,11 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
-   starting at GPT_ADDR.  */
+   starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
+   GPT_ADDR (if not text_at_gap_tail).  */
 
 void
-insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
+insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
@@ -997,10 +990,13 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
   MODIFF++;
 
   GAP_SIZE -= nbytes;
-  GPT += nchars;
+  if (! text_at_gap_tail)
+    {
+      GPT += nchars;
+      GPT_BYTE += nbytes;
+    }
   ZV += nchars;
   Z += nchars;
-  GPT_BYTE += nbytes;
   ZV_BYTE += nbytes;
   Z_BYTE += nbytes;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
@@ -1018,7 +1014,7 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes)
 				   current_buffer, 0);
     }
 
-  if (GPT - nchars < PT)
+  if (! text_at_gap_tail && GPT - nchars < PT)
     adjust_point (nchars, nbytes);
 
   check_markers ();
@@ -1755,9 +1751,9 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   return deletion;
 }
-
-/* Call this if you're about to change the region of BUFFER from
-   character positions START to END.  This checks the read-only
+
+/* Call this if you're about to change the region of current buffer
+   from character positions START to END.  This checks the read-only
    properties of the region, calls the necessary modification hooks,
    and warns the next redisplay that it should pay attention to that
    area.
@@ -1766,16 +1762,11 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
    Otherwise set CHARS_MODIFF to the new value of MODIFF.  */
 
 void
-modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
-	       bool preserve_chars_modiff)
+modify_region_1 (ptrdiff_t start, ptrdiff_t end, bool preserve_chars_modiff)
 {
-  struct buffer *old_buffer = current_buffer;
-
-  set_buffer_internal (buffer);
-
   prepare_to_modify_buffer (start, end, NULL);
 
-  BUF_COMPUTE_UNCHANGED (buffer, start - 1, end);
+  BUF_COMPUTE_UNCHANGED (current_buffer, start - 1, end);
 
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
@@ -1783,11 +1774,9 @@ modify_region (struct buffer *buffer, ptrdiff_t start, ptrdiff_t end,
   if (! preserve_chars_modiff)
     CHARS_MODIFF = MODIFF;
 
-  bset_point_before_scroll (buffer, Qnil);
-
-  set_buffer_internal (old_buffer);
+  bset_point_before_scroll (current_buffer, Qnil);
 }
-
+
 /* Check that it is okay to modify the buffer between START and END,
    which are char positions.
 
@@ -1807,9 +1796,10 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
   if (!NILP (BVAR (current_buffer, read_only)))
     Fbarf_if_buffer_read_only ();
 
-  /* Let redisplay consider other windows than selected_window
-     if modifying another buffer.  */
-  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
+  /* If we're modifying the buffer other than shown in a selected window,
+     let redisplay consider other windows if this buffer is visible.  */
+  if (XBUFFER (XWINDOW (selected_window)->contents) != current_buffer
+      && buffer_window_count (current_buffer))
     ++windows_or_buffers_changed;
 
   if (buffer_intervals (current_buffer))
@@ -1861,7 +1851,7 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
     {
-      ptrdiff_t b = XMARKER (BVAR (current_buffer, mark))->charpos;
+      ptrdiff_t b = marker_position (BVAR (current_buffer, mark));
       ptrdiff_t e = PT;
       if (b < e)
 	Vsaved_region_selection = make_buffer_string (b, e, 0);
@@ -2027,9 +2017,8 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 	  && current_buffer != XBUFFER (combine_after_change_buffer))
 	Fcombine_after_change_execute ();
 
-      elt = Fcons (make_number (charpos - BEG),
-		   Fcons (make_number (Z - (charpos - lendel + lenins)),
-			  Fcons (make_number (lenins - lendel), Qnil)));
+      elt = list3i (charpos - BEG, Z - (charpos - lendel + lenins),
+		    lenins - lendel);
       combine_after_change_list
 	= Fcons (elt, combine_after_change_list);
       combine_after_change_buffer = Fcurrent_buffer ();
@@ -2087,7 +2076,7 @@ Fcombine_after_change_execute_1 (Lisp_Object val)
 
 DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        Scombine_after_change_execute, 0, 0, 0,
-       doc: /* This function is for use internally in `combine-after-change-calls'.  */)
+       doc: /* This function is for use internally in the function `combine-after-change-calls'.  */)
   (void)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2179,7 +2168,7 @@ syms_of_insdel (void)
   combine_after_change_buffer = Qnil;
 
   DEFVAR_LISP ("combine-after-change-calls", Vcombine_after_change_calls,
-	       doc: /* Used internally by the `combine-after-change-calls' macro.  */);
+	       doc: /* Used internally by the function `combine-after-change-calls' macro.  */);
   Vcombine_after_change_calls = Qnil;
 
   DEFVAR_BOOL ("inhibit-modification-hooks", inhibit_modification_hooks,

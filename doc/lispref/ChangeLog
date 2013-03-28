@@ -1,4 +1,274 @@
+2013-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* compile.texi (Byte-Code Objects): Add index entry.
+	(Disassembly): Add cross-references.
+
+2013-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Size Parameters): More accurate description of the
+	difference between 'fullboth' and 'maximized'.  (Bug#13935)
+
+2013-03-17  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* symbols.texi (Standard Properties): Document pure.  (Bug#13823)
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Add some stuff specific to www.gnu.org.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* control.texi (Pattern matching case statement): Fix typo.
+
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* elisp.texi, intro.texi: Switch from Latin-1 to UTF-8.
+
+2013-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Symbol Type): Fix typo.
+
+2013-02-28  Bastien Guerry  <bzg@gnu.org>
+
+	* variables.texi (File Local Variables): Fix reference.
+
+2013-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Magic File Names): Improve wording and indexing.
+
+2013-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Multi-Frame Images): Minor rephrasing.
+
+2013-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (GIF Images, TIFF Images): Delete these nodes.
+	(ImageMagick Images): For :index, use an xref rather than duplicating.
+	(Other Image Types): Add GIF, adjust formatting.
+	(Multi-Frame Images): Rename from Animated Images.  Expand section.
+	* elisp.texi (Top): Update menu for these changes.
+
+2013-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Change Hooks): Fix typo.
+
+2013-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Basic Major Modes): 'z' no longer bound in special-mode.
+
+2013-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Char-Table Type): Add footnote about #^^.
+
+	* modes.texi (Minor Mode Conventions): Fix typo.
+
+	* keymaps.texi (Scanning Keymaps): Remove obsolete sentence about
+	meta characters; this changed in 22.1.  (Bug#13684)
+
+	* objects.texi (Char-Table Type): Add cindex.
+
+	* keymaps.texi (Key Binding Commands): Trivial rephrasing.
+
+2013-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Creating Keymaps): Update make-keymap result.
+
+2013-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (%-Constructs): Remove the description of %t.
+
+	* nonascii.texi (MS-DOS File Types): Delete node.
+
+2013-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Active Keymaps, Searching Keymaps):
+	Remove confusing mention of "symbolic prefix".  (Bug#13643)
+
+2013-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* macros.texi (Indenting Macros): Fix order of an indent
+	symbol's arguments.  (Bug#13450)
+
+2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow floating-point file offsets.
+	* files.texi (Reading from Files, Writing to Files):
+	Say that file offsets can be numbers, not just integers.
+
+2013-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Interactive Codes):
+	Whitespace does not terminate interactive "S".  (Bug#13393)
+
+2013-01-06  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Vertical Scrolling): Fix typos (Bug#13267).
+
+2013-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Overlay Properties): Mention field.  (Bug#13364)
+
+2013-01-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* hooks.texi (Standard Hooks): Use @item, not @itemx, as the first
+	directive in a group of items.
+
+2013-01-05  Chong Yidong  <cyd@gnu.org>
+
+	* keymaps.texi (Key Sequences): Remove obsolete sentence
+	(Bug#13356).
+
+2013-01-04  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* hash.texi (Defining Hash): Fix typo.  (Bug#13345)
+
+2013-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.texi (File Attributes): Undocument return format of file-acl.
+
+2013-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* processes.texi (System Processes):
+	* syntax.texi (Syntax Table Functions): Tweak some line breaks.
+
+	* searching.texi (Replacing Match): Fix xref.
+
+	* elisp.texi (DATE): Bump to Jan 2013.
+
+2013-01-02  Glenn Morris  <rgm@gnu.org>
+
+	* customize.texi (Common Keywords, Type Keywords):
+	Replace "active field" with "button".  (Bug#13310)
+
+	* customize.texi (Common Keywords): Add xref.  (Bug#13311)
+	* tips.texi (Library Headers): Add cindex.
+
+2012-12-30  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* functions.texi (Declare Form):
+	* intro.texi (A Sample Function Description):
+	* syntax.texi (Syntax Table Internals, Syntax Table Functions):
+	* variables.texi (Using Lexical Binding): Don't use @var or CAPS
+	in @def.. commands.  (Bug#13292)
+
+2012-12-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Changing Files): Document the return values of
+	set-file-selinux-context and set-file-acl.
+
+2012-12-27  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Names): Mention Cygwin conversion functions.
+
+2012-12-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Selecting Windows): Reword description of
+	select-window (Bug#13248).
+
+2012-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Attributes, Changing Files): Remove the details
+	about the text returned by file-acl.  Instead, just document that
+	it is an opaque string meant to be used by set-file-acl.
+
+2012-12-21  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Auto Major Mode): Fix typo (Bug#13230).
+
+	* customize.texi (Simple Types): Document key-sequence type
+	(Bug#13048).
+
+	* strings.texi (Text Comparison): Doc fix for compare-strings.
+
+2012-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add `file-acl',
+	`file-selinux-context', `set-file-acl' and
+	`set-file-selinux-context'.  Make the list consistent.
+
+2012-12-19  Jonas Bernoulli  <jonas@bernoul.li>
+
+	* tips.texi (Library Headers): New header keyword `Homepage'.
+	Make continuation lines syntax more precise.
+
+2012-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Attributes, Changing Files): Update to include
+	MS-Windows support for ACLs.
+
+2012-12-16  Romain Francoise  <romain@orebokech.com>
+
+	* files.texi (File Attributes): Document ACL support and new
+	`file-acl' function.
+	(Changing Files): Mention argument name change of `copy-file' and
+	document new function `set-file-acl'.
+
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* files.texi (Testing Accessibility): Document GROUP arg
+	of file-ownership-preserved-p.
+	(File Attributes): Document that 9th element is now
+	just a placeholder.
+	* os.texi (User Identification): Document new functions group-gid,
+	group-real-gid.
+
+2012-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* internals.texi (C Integer Types): New section.
+	This follows up and records an email in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00496.html>.
+
+2012-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* control.texi (Pattern matching case statement): New node.
+
+	* customize.texi (Variable Definitions): Mention the default :group
+	for defcustoms (bug#13093).
+
+2012-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* customize.texi (Variable Definitions): Mention eval-defun
+	on a defcustom calls the :set function when appropriate.
+
+2012-12-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi, gpl.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+
+2012-12-06  Chong Yidong  <cyd@gnu.org>
+
+	* lists.texi (Plist Access): Move put example to Symbol Plists.
+
+	* symbols.texi (Standard Properties): Fix typo.
+
+2012-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* symbols.texi (Symbol Properties): New node.
+	(Symbol Plists): Make it a subsection under Symbol Properties.
+	(Standard Properties): New node.
+
+	* lists.texi (Property Lists): Move here from symbols.texi.
+	(Plist Access): Rename from Other Plists.
+
+	* customize.texi (Variable Definitions):
+	* display.texi (Defining Faces):
+	* sequences.texi (Char-Tables): Fix xref.
+
+	* keymaps.texi (Key Sequences): `kbd' is now a function.
+
+	* commands.texi (Using Interactive): Fix index entry.
+
 2012-11-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doclicense.texi: Update to latest version from FSF.
+	These are just minor editorial changes.
+	* elisp.texi (GNU Free Documentation License)
+	(GNU General Public Licens):
+	Provide sectioning, since doclicense.texi no longer does that.
 
 	* loading.texi (Named Features): @ -> @@ to fix typo.
 
@@ -8,16 +278,14 @@
 	(Windows and Frames): Fix example.  Move description of
 	window-in-direction here.
 	(Recombining Windows): Fix example.
-	(Buffers and Windows): Fix description of
-	replace-buffer-in-windows.
+	(Buffers and Windows): Fix description of replace-buffer-in-windows.
 	(Switching Buffers): Reword.
 	(Display Action Functions): Minor adjustments.
 	(Choosing Window Options): Minor fixes.
 	(Window History): Minor rewording.
 	(Dedicated Windows): Correct and reword part describing how
 	dedicatedness affects functions removing buffers or windows.
-	* buffers.texi (The Buffer List): Fix description of
-	bury-buffer.
+	* buffers.texi (The Buffer List): Fix description of bury-buffer.
 
 2012-11-24  Chong Yidong  <cyd@gnu.org>
 
@@ -76,8 +344,8 @@
 
 	* windows.texi (Choosing Window): Rewrite description of
 	display-buffer-alist (Bug#12167).
-	(Display Action Functions): Mention inhibit-switch-frame.  Fix
-	description of display-buffer-below-selected.  Reorder actions.
+	(Display Action Functions): Mention inhibit-switch-frame.
+	Fix description of display-buffer-below-selected.  Reorder actions.
 	Add example (Bug#12848).
 
 2012-11-16  Glenn Morris  <rgm@gnu.org>
@@ -176,11 +444,11 @@
 	switch-to-buffer-preserve-window-point.
 	(Display Action Functions): Document window-height and
 	window-width alist entries.
-	(Display Action Functions): Document
-	display-buffer-below-selected and
+	(Display Action Functions):
+	Document display-buffer-below-selected and
 	display-buffer-in-previous-window.
-	(Quitting Windows): Document quit-restore-window.  Rewrite
-	section.
+	(Quitting Windows): Document quit-restore-window.
+	Rewrite section.
 	(Window Configurations): In window-state-get mention that
 	argument window must be valid.
 	(Window Parameters): Document quit-restore window parameter
@@ -280,8 +548,8 @@
 	* minibuf.texi (Text from Minibuffer): Document read-regexp
 	changes.
 
-	* nonascii.texi (Selecting a Representation): Document
-	set-buffer-multibyte changes.
+	* nonascii.texi (Selecting a Representation):
+	Document set-buffer-multibyte changes.
 
 	* keymaps.texi (Toolkit Differences): Node deleted.
 	(Easy Menu): New node.
@@ -1053,8 +1321,8 @@
 
 2012-04-12  Jari Aalto  <jari.aalto@cante.net>
 
-	* processes.texi (Synchronous Processes): Mention
-	`default-directory' (bug#7515).
+	* processes.texi (Synchronous Processes):
+	Mention `default-directory' (bug#7515).
 
 2012-04-09  Chong Yidong  <cyd@gnu.org>
 
@@ -1077,8 +1345,8 @@
 
 	* minibuf.texi (Programmed Completion): Remove obsolete variable
 	completion-annotate-function.
-	(Completion Variables): Rename from Completion Styles.  Document
-	completion-extra-properties.  Document completion-styles-alist
+	(Completion Variables): Rename from Completion Styles.
+	Document completion-extra-properties.  Document completion-styles-alist
 	change.
 	(Reading File Names): minibuffer-local-filename-must-match-map is
 	not used anymore.
@@ -1213,8 +1481,8 @@
 	Minor clarifications.
 	(Defining Faces): Copyedits.  Update face example.
 	(Attribute Functions): Mark set-face-foreground etc as commands.
-	(Face Remapping): Mention text-scale-adjust.  Clarify
-	face-remapping-alist and related docs.
+	(Face Remapping): Mention text-scale-adjust.
+	Clarify face-remapping-alist and related docs.
 	(Face Functions): Don't document make-face or copy-face.
 
 2012-03-20  Chong Yidong  <cyd@gnu.org>
@@ -1555,8 +1823,8 @@
 	(Syntax Properties): Document syntax-propertize-function and
 	syntax-propertize-extend-region-functions.
 	(Motion via Parsing): Clarify scan-lists. Fix indentation.
-	(Parser State): Update for the new "c" comment style.  Fix
-	description of item 7 (comment style).
+	(Parser State): Update for the new "c" comment style.
+	Fix description of item 7 (comment style).
 
 	* modes.texi (Minor Modes): Update how mode commands should treat
 	arguments now.
@@ -1634,9 +1902,9 @@
 
 	* debugging.texi (Debugging): Copyedits.  Describe testcover, ERT.
 	(Error Debugging): Note that debug-ignored-errors overrides list
-	values of debug-on-error too.  Add xref to Signaling Errors.  Note
-	that debug-on-signal is not customizable.  Mention
-	condition-case-unless-debug.
+	values of debug-on-error too.  Add xref to Signaling Errors.
+	Note that debug-on-signal is not customizable.
+	Mention condition-case-unless-debug.
 	(Compilation Errors): Node deleted.
 
 	* compile.texi (Compiler Errors): Move a paragraph here from
@@ -1752,15 +2020,15 @@
 2012-02-04  Chong Yidong  <cyd@gnu.org>
 
 	* functions.texi (What Is a Function): Add closures.  Mention
-	"return value" terminology.  Add xref for command-execute.  Remove
-	unused "keystroke command" terminology.
+	"return value" terminology.  Add xref for command-execute.
+	Remove unused "keystroke command" terminology.
 	(Lambda Expressions): Give a different example than in the
 	following subsection.  Add xref to Anonymous Functions.
 	(Function Documentation): Remove gratuitous markup.
 	(Function Names): Move introductory text to `What Is a Function'.
 	(Defining Functions): Fix defun argument spec.
-	(Anonymous Functions): Document lambda macro explicitly.  Mention
-	effects on lexical binding.
+	(Anonymous Functions): Document lambda macro explicitly.
+	Mention effects on lexical binding.
 	(Function Cells): Downplay direct usage of fset.
 	(Closures): New node.
 	(Inline Functions): Remove "open-code" terminology.
@@ -1891,8 +2159,8 @@
 	* variables.texi (Variables, Local Variables, Void Variables):
 	Edit to make the descriptions less specific to dynamic binding.
 	(Local Variables): Default max-specpdl-size is now 1300.
-	(Defining Variables): Edits for lexical scoping.  Delete
-	information about starting docstrings with *.  De-document
+	(Defining Variables): Edits for lexical scoping.
+	Delete information about starting docstrings with *.  De-document
 	user-variable-p.
 	(Tips for Defining): Remove an unimportant discussion of quitting
 	in the middle of a load.
@@ -1980,8 +2248,8 @@
 
 2012-01-06  Chong Yidong  <cyd@gnu.org>
 
-	* variables.texi (Directory Local Variables): Document
-	hack-dir-local-variables-non-file-buffer.
+	* variables.texi (Directory Local Variables):
+	Document hack-dir-local-variables-non-file-buffer.
 
 2012-01-06  Glenn Morris  <rgm@gnu.org>
 
@@ -11798,7 +12066,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1998-2012 Free Software Foundation, Inc.
+  Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

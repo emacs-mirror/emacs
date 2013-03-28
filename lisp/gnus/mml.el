@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -1440,7 +1440,9 @@ TYPE is the MIME type to use."
   ;; when you send the message.
   (or (eq mail-user-agent 'message-user-agent)
       (setq mail-encode-mml t))
-  (mml-insert-tag 'part 'type type 'disposition "inline"))
+  (mml-insert-tag 'part 'type type 'disposition "inline")
+  (save-excursion
+    (mml-insert-tag '/part)))
 
 (declare-function message-subscribed-p "message" ())
 (declare-function message-make-mail-followup-to "message"

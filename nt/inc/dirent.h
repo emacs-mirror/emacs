@@ -30,7 +30,7 @@ typedef struct
 	char	dd_buf[DIRBLKSIZ];	/* directory block */
 	}	DIR;			/* stream data from opendir() */
 
-extern DIR		*opendir (char *);
+extern DIR		*opendir (const char *);
 extern struct dirent	*readdir (DIR *);
 extern void		seekdir (DIR *, long);
 extern void		closedir (DIR *);

@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2013 Free
+;; Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -583,29 +583,31 @@ of `history-length', which see.")
 (defun read-regexp (prompt &optional defaults history)
   "Read and return a regular expression as a string.
 When PROMPT doesn't end with a colon and space, it adds a final \": \".
-If DEFAULTS is non-nil, it displays the first default in the prompt.
+If the first element of DEFAULTS is non-nil, it's added to the prompt.
 
-Non-nil optional arg DEFAULTS is a string or a list of strings that
-are prepended to a list of standard default values, which include the
-string at point, the last isearch regexp, the last isearch string, and
-the last replacement regexp.
+Optional arg DEFAULTS has the form (DEFAULT . SUGGESTIONS)
+or simply DEFAULT where DEFAULT, if non-nil, should be a string that
+is returned as the default value when the user enters empty input.
+SUGGESTIONS is a list of strings that can be inserted into
+the minibuffer using \\<minibuffer-local-map>\\[next-history-element].  \
+The values supplied in SUGGESTIONS
+are prepended to the list of standard suggestions that include
+the tag at point, the last isearch regexp, the last isearch string,
+and the last replacement regexp.
 
-Non-nil HISTORY is a symbol to use for the history list.
+Optional arg HISTORY is a symbol to use for the history list.
 If HISTORY is nil, `regexp-history' is used."
-  (let* ((default (if (consp defaults) (car defaults) defaults))
-	 (defaults
-	   (append
-	    (if (listp defaults) defaults (list defaults))
-	    (list (regexp-quote
-		   (or (funcall (or find-tag-default-function
-				    (get major-mode 'find-tag-default-function)
-				    'find-tag-default))
-		       ""))
-		  (car regexp-search-ring)
-		  (regexp-quote (or (car search-ring) ""))
-		  (car (symbol-value
-			query-replace-from-history-variable)))))
-	 (defaults (delete-dups (delq nil (delete "" defaults))))
+  (let* ((default     (if (consp defaults) (car defaults) defaults))
+	 (suggestions (if (listp defaults) defaults (list defaults)))
+	 (suggestions
+	  (append
+	   suggestions
+	   (list
+	    (find-tag-default-as-regexp)
+	    (car regexp-search-ring)
+	    (regexp-quote (or (car search-ring) ""))
+	    (car (symbol-value query-replace-from-history-variable)))))
+	 (suggestions (delete-dups (delq nil (delete "" suggestions))))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
 	 (input (read-from-minibuffer
@@ -616,9 +618,11 @@ If HISTORY is nil, `regexp-history' is used."
 				 (query-replace-descr default)))
 		       (t
 			(format "%s: " prompt)))
-		 nil nil nil (or history 'regexp-history) defaults t)))
+		 nil nil nil (or history 'regexp-history) suggestions t)))
     (if (equal input "")
+	;; Return the default value when the user enters empty input.
 	(or default input)
+      ;; Otherwise, add non-empty input to the history and return input.
       (prog1 input
 	(add-to-history (or history 'regexp-history) input)))))
 
@@ -1121,6 +1125,14 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
+(defcustom list-matching-lines-prefix-face 'shadow
+  "Face used by \\[list-matching-lines] to show the prefix column.
+If the face doesn't differ from the default face,
+don't highlight the prefix with line numbers specially."
+  :type 'face
+  :group 'matching
+  :version "24.4")
+
 (defcustom occur-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler follow-link)
@@ -1131,12 +1143,32 @@ which means to discard all text properties."
   :group 'matching
   :version "22.1")
 
+(defvar occur-read-regexp-defaults-function
+  'occur-read-regexp-defaults
+  "Function that provides default regexp(s) for occur commands.
+This function should take no arguments and return one of nil, a
+regexp or a list of regexps for use with occur commands -
+`occur', `multi-occur' and `multi-occur-in-matching-buffers'.
+The return value of this function is used as DEFAULTS param of
+`read-regexp' while executing the occur command.  This function
+is called only during interactive use.
+
+For example, to check for occurrence of symbol at point use
+
+    \(setq occur-read-regexp-defaults-function
+	  'find-tag-default-as-regexp\).")
+
+(defun occur-read-regexp-defaults ()
+  "Return the latest regexp from `regexp-history'.
+See `occur-read-regexp-defaults-function' for details."
+  (car regexp-history))
+
 (defun occur-read-primary-args ()
   (let* ((perform-collect (consp current-prefix-arg))
          (regexp (read-regexp (if perform-collect
                                   "Collect strings matching regexp"
                                 "List lines matching regexp")
-                              (car regexp-history))))
+                              (funcall occur-read-regexp-defaults-function))))
     (list regexp
 	  (if perform-collect
 	      ;; Perform collect operation
@@ -1310,7 +1342,9 @@ See also `multi-occur'."
 		      (isearch-no-upper-case-p regexp t)
 		    case-fold-search)
 		  list-matching-lines-buffer-name-face
-		  nil list-matching-lines-face
+		  (if (face-differs-from-default-p list-matching-lines-prefix-face)
+		      list-matching-lines-prefix-face)
+		  list-matching-lines-face
 		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
@@ -1399,7 +1433,7 @@ See also `multi-occur'."
 			    (apply #'propertize (format "%7d:" lines)
 				   (append
 				    (when prefix-face
-				      `(font-lock-face prefix-face))
+				      `(font-lock-face ,prefix-face))
 				    `(occur-prefix t mouse-face (highlight)
 				      ;; Allow insertion of text at
 				      ;; the end of the prefix (for
@@ -1423,7 +1457,9 @@ See also `multi-occur'."
 			     ;; of multi-line matches.
 			     (replace-regexp-in-string
 			      "\n"
-			      "\n       :"
+			      (if prefix-face
+				  (propertize "\n       :" 'font-lock-face prefix-face)
+				"\n       :")
 			      match-str)
 			     ;; Add marker at eol, but no mouse props.
 			     (propertize "\n" 'occur-target marker)))
@@ -1434,7 +1470,8 @@ See also `multi-occur'."
 			      ;; The complex multi-line display style.
 			      (setq ret (occur-context-lines
 					 out-line nlines keep-props begpt endpt
-					 lines prev-lines prev-after-lines))
+					 lines prev-lines prev-after-lines
+					 prefix-face))
 			      ;; Set first elem of the returned list to `data',
 			      ;; and the second elem to `prev-after-lines'.
 			      (setq prev-after-lines (nth 1 ret))
@@ -1458,7 +1495,7 @@ See also `multi-occur'."
 		(when prev-after-lines
 		  (with-current-buffer out-buf
 		    (insert (apply #'concat (occur-engine-add-prefix
-					     prev-after-lines)))))))
+					     prev-after-lines prefix-face)))))))
 	    (when (not (zerop matches)) ;; is the count zero?
 	      (setq globalcount (+ globalcount matches))
 	      (with-current-buffer out-buf
@@ -1513,10 +1550,13 @@ See also `multi-occur'."
 	str)
     (buffer-substring-no-properties beg end)))
 
-(defun occur-engine-add-prefix (lines)
+(defun occur-engine-add-prefix (lines &optional prefix-face)
   (mapcar
    #'(lambda (line)
-       (concat "       :" line "\n"))
+       (concat (if prefix-face
+		   (propertize "       :" 'font-lock-face prefix-face)
+		 "       :")
+	       line "\n"))
    lines))
 
 (defun occur-accumulate-lines (count &optional keep-props pt)
@@ -1545,7 +1585,8 @@ See also `multi-occur'."
 ;; Generate a list of lines, add prefixes to all but OUT-LINE,
 ;; then concatenate them all together.
 (defun occur-context-lines (out-line nlines keep-props begpt endpt
-				     lines prev-lines prev-after-lines)
+				     lines prev-lines prev-after-lines
+				     &optional prefix-face)
   ;; Find after- and before-context lines of the current match.
   (let ((before-lines
 	 (nreverse (cdr (occur-accumulate-lines
@@ -1585,10 +1626,13 @@ See also `multi-occur'."
      ;; Return a list where the first element is the output line.
      (apply #'concat
 	    (append
-	     (and prev-after-lines
-		  (occur-engine-add-prefix prev-after-lines))
-	     (and separator (list separator))
-	     (occur-engine-add-prefix before-lines)
+	     (if prev-after-lines
+		 (occur-engine-add-prefix prev-after-lines prefix-face))
+	     (if separator
+		 (list (if prefix-face
+			   (propertize separator 'font-lock-face prefix-face)
+			 separator)))
+	     (occur-engine-add-prefix before-lines prefix-face)
 	     (list out-line)))
      ;; And the second element is the list of context after-lines.
      (if (> nlines 0) after-lines))))
@@ -1819,19 +1863,6 @@ make, or the user didn't cancel the call."
 	    case-fold-search))
          (nocasify (not (and case-replace case-fold-search)))
          (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
-         (search-function
-	  (or (if regexp-flag
-		  replace-re-search-function
-		replace-search-function)
-	      (let ((isearch-regexp regexp-flag)
-		    (isearch-word delimited-flag)
-		    (isearch-lax-whitespace
-		     replace-lax-whitespace)
-		    (isearch-regexp-lax-whitespace
-		     replace-regexp-lax-whitespace)
-		    (isearch-case-fold-search case-fold-search)
-		    (isearch-forward t))
-		(isearch-search-fun))))
          (search-string from-string)
          (real-match-data nil)       ; The match data for the current match.
          (next-replacement nil)
@@ -1894,39 +1925,62 @@ make, or the user didn't cancel the call."
 	;; Loop finding occurrences that perhaps should be replaced.
 	(while (and keep-going
 		    (not (or (eobp) (and limit (>= (point) limit))))
-		    ;; Use the next match if it is already known;
-		    ;; otherwise, search for a match after moving forward
-		    ;; one char if progress is required.
-		    (setq real-match-data
-			  (cond ((consp match-again)
-				 (goto-char (nth 1 match-again))
-				 (replace-match-data
-				  t real-match-data match-again))
-				;; MATCH-AGAIN non-nil means accept an
-				;; adjacent match.
-				(match-again
-				 (and
-				  (funcall search-function search-string
-					   limit t)
-				  ;; For speed, use only integers and
-				  ;; reuse the list used last time.
-				  (replace-match-data t real-match-data)))
-				((and (< (1+ (point)) (point-max))
-				      (or (null limit)
-					  (< (1+ (point)) limit)))
-				 ;; If not accepting adjacent matches,
-				 ;; move one char to the right before
-				 ;; searching again.  Undo the motion
-				 ;; if the search fails.
-				 (let ((opoint (point)))
-				   (forward-char 1)
-				   (if (funcall
-					search-function search-string
-					limit t)
-				       (replace-match-data
-					t real-match-data)
-				     (goto-char opoint)
-				     nil))))))
+		    ;; Let-bind global isearch-* variables to values used
+		    ;; to search the next replacement.  These let-bindings
+		    ;; should be effective both at the time of calling
+		    ;; `isearch-search-fun-default' and also at the
+		    ;; time of funcalling `search-function'.
+		    ;; These isearch-* bindings can't be placed higher
+		    ;; outside of this loop because then another I-search
+		    ;; used after `recursive-edit' might override them.
+		    (let* ((isearch-regexp regexp-flag)
+			   (isearch-word delimited-flag)
+			   (isearch-lax-whitespace
+			    replace-lax-whitespace)
+			   (isearch-regexp-lax-whitespace
+			    replace-regexp-lax-whitespace)
+			   (isearch-case-fold-search case-fold-search)
+			   (isearch-adjusted nil)
+			   (isearch-nonincremental t) ; don't use lax word mode
+			   (isearch-forward t)
+			   (search-function
+			    (or (if regexp-flag
+				    replace-re-search-function
+				  replace-search-function)
+				(isearch-search-fun-default))))
+		      ;; Use the next match if it is already known;
+		      ;; otherwise, search for a match after moving forward
+		      ;; one char if progress is required.
+		      (setq real-match-data
+			    (cond ((consp match-again)
+				   (goto-char (nth 1 match-again))
+				   (replace-match-data
+				    t real-match-data match-again))
+				  ;; MATCH-AGAIN non-nil means accept an
+				  ;; adjacent match.
+				  (match-again
+				   (and
+				    (funcall search-function search-string
+					     limit t)
+				    ;; For speed, use only integers and
+				    ;; reuse the list used last time.
+				    (replace-match-data t real-match-data)))
+				  ((and (< (1+ (point)) (point-max))
+					(or (null limit)
+					    (< (1+ (point)) limit)))
+				   ;; If not accepting adjacent matches,
+				   ;; move one char to the right before
+				   ;; searching again.  Undo the motion
+				   ;; if the search fails.
+				   (let ((opoint (point)))
+				     (forward-char 1)
+				     (if (funcall
+					  search-function search-string
+					  limit t)
+					 (replace-match-data
+					  t real-match-data)
+				       (goto-char opoint)
+				       nil)))))))
 
 	  ;; Record whether the match is nonempty, to avoid an infinite loop
 	  ;; repeatedly matching the same empty string.
@@ -2188,6 +2242,7 @@ make, or the user didn't cancel the call."
 	     replace-regexp-lax-whitespace)
 	    (isearch-case-fold-search case-fold-search)
 	    (isearch-forward t)
+	    (isearch-other-end match-beg)
 	    (isearch-error nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 

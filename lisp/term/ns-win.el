@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2005-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2013 Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -656,18 +656,6 @@ This defines a fontset consisting of the Courier and other fonts that
 come with OS X.
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
-;; Conditional on new-fontset so bootstrapping works on non-GUI compiles.
-(when (fboundp 'new-fontset)
-  ;; Setup the default fontset.
-  (create-default-fontset)
-  ;; Create the standard fontset.
-  (condition-case err
-      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
-    (error (display-warning
-            'initialization
-            (format "Creation of the standard fontset failed: %s" err)
-            :error))))
-
 (defvar ns-reg-to-script)               ; nsfont.m
 
 ;; This maps font registries (not exposed by NS APIs for font selection) to
@@ -913,6 +901,16 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
   ;; PENDING: not needed?
   (setq command-line-args (x-handle-args command-line-args))
+
+  ;; Setup the default fontset.
+  (create-default-fontset)
+  ;; Create the standard fontset.
+  (condition-case err
+      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
+    (error (display-warning
+            'initialization
+            (format "Creation of the standard fontset failed: %s" err)
+            :error)))
 
   (x-open-connection (system-name) nil t)
 

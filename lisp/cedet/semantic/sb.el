@@ -1,6 +1,6 @@
 ;;; semantic/sb.el --- Semantic tag display for speedbar
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -42,6 +42,11 @@
 This will replace the named bucket that would have usually occurred here."
   :group 'speedbar
   :type 'integer)
+
+(defvar semantic-sb-filter-tags-of-class '(code)
+  "Tags classes to not display in speedbar.
+Make this buffer local for modes that have different types of tags
+that should be ignored.")
 
 (defcustom semantic-sb-button-format-tag-function 'semantic-format-tag-abbreviate
   "*Function called to create the text for a but from a token."
@@ -405,7 +410,12 @@ Returns the tag list, or t for an error."
 	      (setq out (semantic-adopt-external-members out))
 	      ;; Dump all the tokens into buckets.
 	      (semantic-sb-with-tag-buffer (car out)
-		(semantic-bucketize out)))
+		(semantic-bucketize out nil
+				    (lambda (tagsin)
+				      ;; Remove all boring tags.
+				      (semantic-filter-tags-by-class
+				       semantic-sb-filter-tags-of-class
+				       tagsin)))))
 	  (error t))
       t)))
 

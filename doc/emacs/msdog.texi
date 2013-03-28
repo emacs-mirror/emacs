@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows
 @appendix Emacs and Microsoft Windows/MS-DOS
@@ -218,29 +218,6 @@ set conversion, only end-of-line conversion.  Essentially, it directs
 Emacs to create new files with the Unix-style convention of using
 newline at the end of a line.  @xref{Coding Systems}.
 
-@vindex file-name-buffer-file-type-alist
-@cindex binary files, on MS-DOS/MS-Windows
-  Some kinds of files should not be converted at all, because their
-contents are not really text.  Therefore, Emacs on MS-Windows distinguishes
-certain files as @dfn{binary files}.  (This distinction is not part of
-MS-Windows; it is made by Emacs only.)  Binary files include executable
-programs, compressed archives, etc.  Emacs uses the file name to decide
-whether to treat a file as binary: the variable
-@code{file-name-buffer-file-type-alist} defines the file-name patterns
-that indicate binary files.  If a file name matches one of the patterns
-for binary files (those whose associations are of the type
-@code{(@var{pattern} . t)}, Emacs reads and writes that file using the
-@code{no-conversion} coding system (@pxref{Coding Systems}) which turns
-off @emph{all} coding-system conversions, not only the EOL conversion.
-@code{file-name-buffer-file-type-alist} also includes file-name patterns
-for files which are known to be Windows-style text files with
-carriage-return linefeed EOL format, such as @file{CONFIG.SYS}; Emacs
-always writes those files with Windows-style EOLs.
-
-  If a file that belongs to an untranslated file system matches one of
-the file-name patterns in @code{file-name-buffer-file-type-alist}, the
-EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
-
 @node Windows Files
 @section File Names on MS-Windows
 @cindex file names on MS-Windows
@@ -334,7 +311,7 @@ names that are associated with (a.k.a.@: @dfn{links to}) the file's
 data; this is only useful on NTFS volumes.  @code{uid} means display
 the numerical identifier of the user who owns the file.  @code{gid}
 means display the numerical identifier of the file owner's group.  The
-default value is @code{(links uid gid)} i.e.@: all the 3 optional
+default value is @code{(links uid gid)} i.e., all the 3 optional
 attributes are displayed.
 
 @vindex ls-lisp-emulation
@@ -354,12 +331,12 @@ Emulate @sc{gnu} systems; this is the default.  This sets
 Emulate Unix systems.  Like @code{GNU}, but sets
 @code{ls-lisp-verbosity} to @code{(links uid)}.
 @item MacOS
-Emulate MacOS.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
+Emulate MacOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
 @code{ls-lisp-dirs-first} and @code{ls-lisp-verbosity} to @code{nil}.
 @item MS-Windows
 Emulate MS-Windows.  Sets @code{ls-lisp-ignore-case} and
 @code{ls-lisp-dirs-first} to @code{t}, and @code{ls-lisp-verbosity} to
-@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X.
+@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X@.
 Note that the default emulation is @emph{not} @code{MS-Windows}, even
 on Windows, since many users of Emacs on those platforms prefer the
 @sc{gnu} defaults.
@@ -422,7 +399,7 @@ Settings\@var{username}\Application Data} on Windows 2000/XP/2K3,
 @file{C:\Users\@var{username}\AppData\Roaming} on Windows
 Vista/7/2008, and either @file{C:\WINDOWS\Application Data} or
 @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on Windows
-9X/ME.  If this directory does not exist or cannot be accessed, Emacs
+9X/ME@.  If this directory does not exist or cannot be accessed, Emacs
 falls back to @file{C:\} as the default value of @code{HOME}.
 
   You can override this default value of @code{HOME} by explicitly
@@ -690,7 +667,7 @@ If you can go to the first subprocess, and tell it to exit, the second
 subprocess should continue normally.  However, if the second subprocess
 is synchronous, Emacs itself will be hung until the first subprocess
 finishes.  If it will not finish without user input, then you have no
-choice but to reboot if you are running on Windows 9X.  If you are
+choice but to reboot if you are running on Windows 9X@.  If you are
 running on Windows NT/2K/XP, you can use a process viewer application to kill
 the appropriate instance of NTVDM instead (this will terminate both DOS
 subprocesses).
@@ -714,7 +691,7 @@ character based on the type of the program.
 customized commands that run MS-Windows applications registered to
 handle a certain standard Windows operation for a specific type of
 document or file.  This function is a wrapper around the Windows
-@code{ShellExecute} API.  See the MS-Windows API documentation for
+@code{ShellExecute} API@.  See the MS-Windows API documentation for
 more details.
 @end ifnottex
 

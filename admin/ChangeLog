@@ -1,3 +1,113 @@
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/unicode: Mention some more iso-2022-7bit files (Bug#13936).
+
+	Automate the build of ja-dic.el (Bug#13984).
+	* notes/unicode: ja-dic.el is now UTF-8.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-pdf, manual-dvi): Pass -I to texi2pdf, texi2dvi.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-html-mono, manual-html-node): Add -DWWW_GNU_ORG.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* CPP-DEFINES (BSD_SYSTEM, HAVE_FSYNC): Remove.
+	* merge-gnulib (GNULIB_MODULES): Add fsync, fdatasync.
+
+2013-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/unicode: Improve notes about Emacs source file encoding.
+
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (make-manuals): Add emacs-lisp-intro and some more
+	doc/misc manuals.
+	(manual-html-mono, manual-html-node, manual-txt):
+	Pass -I to makeinfo.
+
+2013-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-release-logs): Use UTC for release date.
+
+2013-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (add-release-logs): Provide interactive defaults.
+	Allow specification of the release date.  Don't exclude gnus/.
+
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/unicode: Add notes about Emacs source file encoding.
+
+2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* grammars/java-tags.wy (CHAR): Remove "('\u0000' to '\uffff')"
+	from summary, as this causes javat-wy.el to contain both a null byte
+	and a byte sequence that is not valid UTF-8, which is inconvenient.
+
+2013-03-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bzrmerge.el (bzrmerge-apply): Omit Latin-1 char from diagnostic.
+	If there were a real need, it should be UTF-8 anyway.
+
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	* CPP-DEFINES (DATA_START, ORDINARY_LINK): Remove.
+
+2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Tune by using memchr and memrchr.
+	* merge-gnulib (GNULIB_MODULES): Add memrchr.
+
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* merge-gnulib (GNULIB_MODULES): Add fdopendir, fstatat, readlinkat.
+	(GNULIB_TOOL_FLAGS): Do not avoid at-internal, openat-h.
+	Avoid dup, open, opendir.
+
+2013-01-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* coccinelle/xsave.cocci: Semantic patch to adjust users of
+	XSAVE_POINTER and XSAVE_INTEGER macros.
+
+2013-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* check-doc-strings: Update for CVS->bzr, moved lispref/ directory.
+
+	* emacs-pretesters, make-announcement, make-changelog-diff:
+	Remove files.
+
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* CPP-DEFINES (BSD4_2): Remove.
+
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
+	* merge-gnulib (GNULIB_MODULES): Add putenv, unsetenv.
+
+	Simplify get_lim_data.
+	* CPP-DEFINES (ULIMIT_BREAK_VALUE): Remove.
+
+2012-12-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for signal.h (Bug#13026).
+	* CPP-DEFINES (SIGALRM, SIGCHLD, SIGHUP, SIGKILL, SIGPIPE, SIGQUIT):
+	Remove.
+	(SIGTRAP): Remove this one too, as config.h no longer defines it.
+	* merge-gnulib (GNULIB_MODULES): Add sig2str.
+
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* CPP-DEFINES (HAVE_MOUSE): Remove.
+
 2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
@@ -100,15 +210,14 @@
 
 	* grammars/bovine-grammar.el (bovine--grammar-newstyle-unquote):
 	Remove.
-        (bovine-grammar-expand-form): Test for emacs-major-version.
+	(bovine-grammar-expand-form): Test for emacs-major-version.
 
 	* grammars/c.by: Add EXPLICIT to keyword tokens.
+	Add %provide token.
 
-        * grammars/f90.by: Add %provide token.
-
-        * grammar/grammar.wy (semantic-grammar-lexer): Remove, since it
+	* grammars/grammar.wy (semantic-grammar-lexer): Remove, since it
 	was copied to grammar.el.  New %provide token to generate prefix
-	which conforms with Emacs conventions.  Remove lexer definition,
+	which conforms with Emacs conventions.	Remove lexer definition,
 	which is now in grammar.el.
 
 2012-09-27  Glenn Morris  <rgm@gnu.org>
@@ -152,7 +261,7 @@
 2012-09-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify SIGIO usage (Bug#12408).
-	* CPP_DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	* CPP-DEFINES (BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
 	(BROKEN_SIGPTY, NO_TERMIO): Remove.
 
 2012-09-11  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1640,7 +1749,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

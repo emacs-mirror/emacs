@@ -1,6 +1,6 @@
 ;;; uudecode.el -- elisp native uudecode
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: uudecode news

@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2012 Free Software Foundation, Inc.
+   Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1967,7 +1967,7 @@ static void
 fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
 {
   Lisp_Object tmp, extra;
-  int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
+  int dpi = FRAME_RES_Y (f);
 
   tmp = AREF (font_spec, FONT_DPI_INDEX);
   if (INTEGERP (tmp))

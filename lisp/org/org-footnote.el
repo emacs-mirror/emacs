@@ -1,6 +1,6 @@
 ;;; org-footnote.el --- Footnote support in Org and elsewhere
 ;;
-;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -486,7 +486,8 @@ or new, let the user edit the definition of the footnote."
 (defun org-footnote-create-definition (label)
   "Start the definition of a footnote with label LABEL."
   (interactive "sLabel: ")
-  (let ((label (org-footnote-normalize-label label)))
+  (let ((label (org-footnote-normalize-label label))
+	electric-indent-mode) ;; Prevent wrong indentation
     (cond
      ;; In an Org file.
      ((derived-mode-p 'org-mode)

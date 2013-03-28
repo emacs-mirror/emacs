@@ -1,4 +1,4 @@
-/* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
+/* Tags file maker to go with GNU Emacs           -*- coding: utf-8 -*-
 
 Copyright (C) 1984 The Regents of the University of California
 
@@ -28,8 +28,8 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2013 Free Software
+Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
 
@@ -64,12 +64,12 @@ University of California, as described above. */
  * 1985 Emacs TAGS format by Richard Stallman.
  * 1989 Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
- * 1993 Francesco PotortÏ reorganized C and C++.
+ * 1993 Francesco Potort√¨ reorganized C and C++.
  * 1994 Line-by-line regexp tags by Tom Tromey.
- * 2001 Nested classes by Francesco PotortÏ (concept by Mykola Dzyuba).
- * 2002 #line directives by Francesco PotortÏ.
+ * 2001 Nested classes by Francesco Potort√¨ (concept by Mykola Dzyuba).
+ * 2002 #line directives by Francesco Potort√¨.
  *
- * Francesco PotortÏ <pot@gnu.org> has maintained and improved it since 1993.
+ * Francesco Potort√¨ <pot@gnu.org> has maintained and improved it since 1993.
  */
 
 /*
@@ -353,6 +353,7 @@ static void put_entries (node *);
 static char *concat (const char *, const char *, const char *);
 static char *skip_spaces (char *);
 static char *skip_non_spaces (char *);
+static char *skip_name (char *);
 static char *savenstr (const char *, int);
 static char *savestr (const char *);
 static char *etags_strchr (const char *, int);
@@ -619,7 +620,8 @@ static const char Lisp_help [] =
 "In Lisp code, any function defined with `defun', any variable\n\
 defined with `defvar' or `defconst', and in general the first\n\
 argument of any expression that starts with `(def' in column zero\n\
-is a tag.";
+is a tag.\n\
+The `--declarations' option tags \"(defvar foo)\" constructs too.";
 
 static const char *Lua_suffixes [] =
   { "lua", "LUA", NULL };
@@ -4269,10 +4271,11 @@ Asm_labels (FILE *inf)
 /*
  * Perl support
  * Perl sub names: /^sub[ \t\n]+[^ \t\n{]+/
+ *                 /^use constant[ \t\n]+[^ \t\n{=,;]+/
  * Perl variable names: /^(my|local).../
  * Original code by Bart Robinson <lomew@cs.utah.edu> (1995)
  * Additions by Michael Ernst <mernst@alum.mit.edu> (1997)
- * Ideas by Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE> (2001)
+ * Ideas by Kai Gro√üjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE> (2001)
  */
 static void
 Perl_functions (FILE *inf)
@@ -4291,9 +4294,10 @@ Perl_functions (FILE *inf)
 	}
       else if (LOOKING_AT (cp, "sub"))
 	{
-	  char *pos;
-	  char *sp = cp;
+	  char *pos, *sp;
 
+	subr:
+	  sp = cp;
 	  while (!notinname (*cp))
 	    cp++;
 	  if (cp == sp)
@@ -4316,8 +4320,21 @@ Perl_functions (FILE *inf)
 			lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	      free (name);
 	    }
+	}
+      else if (LOOKING_AT (cp, "use constant")
+	       || LOOKING_AT (cp, "use constant::defer"))
+	{
+	  /* For hash style multi-constant like
+	        use constant { FOO => 123,
+	                       BAR => 456 };
+	     only the first FOO is picked up.  Parsing across the value
+	     expressions would be difficult in general, due to possible nested
+	     hashes, here-documents, etc.  */
+	  if (*cp == '{')
+	    cp = skip_spaces (cp+1);
+	  goto subr;
  	}
-       else if (globals)	/* only if we are tagging global vars */
+      else if (globals)	/* only if we are tagging global vars */
  	{
 	  /* Skip a qualifier, if any. */
 	  bool qual = LOOKING_AT (cp, "my") || LOOKING_AT (cp, "local");
@@ -4732,6 +4749,19 @@ Lisp_functions (FILE *inf)
       if (dbp[0] != '(')
 	continue;
 
+      /* "(defvar foo)" is a declaration rather than a definition.  */
+      if (! declarations)
+	{
+	  char *p = dbp + 1;
+	  if (LOOKING_AT (p, "defvar"))
+	    {
+	      p = skip_name (p); /* past var name */
+	      p = skip_spaces (p);
+	      if (*p == ')')
+		continue;
+	    }
+	}
+
       if (strneq (dbp+1, "def", 3) || strneq (dbp+1, "DEF", 3))
 	{
 	  dbp = skip_non_spaces (dbp);
@@ -5075,7 +5105,7 @@ Texinfo_nodes (FILE *inf)
  * Contents of <title>, <h1>, <h2>, <h3> are tags.
  * Contents of <a name=xxx> are tags with name xxx.
  *
- * Francesco PotortÏ, 2002.
+ * Francesco Potort√¨, 2002.
  */
 static void
 HTML_labels (FILE *inf)
@@ -5598,10 +5628,7 @@ analyse_regex (char *regex_arg)
 	/* regexfile is a file containing regexps, one per line. */
 	regexfp = fopen (regexfile, "r");
 	if (regexfp == NULL)
-	  {
-	    pfatal (regexfile);
-	    return;
-	  }
+	  pfatal (regexfile);
 	linebuffer_init (&regexbuf);
 	while (readline_internal (&regexbuf, regexfp) > 0)
 	  analyse_regex (regexbuf.buffer);
@@ -6288,6 +6315,16 @@ static char *
 skip_non_spaces (char *cp)
 {
   while (*cp != '\0' && !iswhite (*cp))
+    cp++;
+  return cp;
+}
+
+/* Skip any chars in the "name" class.*/
+static char *
+skip_name (char *cp)
+{
+  /* '\0' is a notinname() so loop stops there too */
+  while (! notinname (*cp))
     cp++;
   return cp;
 }

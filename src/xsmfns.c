@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2012  Free Software Foundation, Inc.
+Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -221,7 +221,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->name = xstrdup (SmRestartCommand);
   props[props_idx]->type = xstrdup (SmLISTofARRAY8);
   /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir ... */
-  if (INT_MAX - 3 < initial_argc)
+  if (initial_argc > INT_MAX - 3)
     memory_full (SIZE_MAX);
   i = 3 + initial_argc;
   props[props_idx]->num_vals = i;
@@ -514,9 +514,11 @@ Do not call this function yourself. */)
          prevent.  Fix this in next version.  */
       Fkill_emacs (Qnil);
 
+#if 0
       /* This will not be reached, but we want kill-emacs-hook to be run.  */
       SmcCloseConnection (smc_conn, 0, 0);
       ice_connection_closed ();
+#endif
     }
 
   return Qnil;

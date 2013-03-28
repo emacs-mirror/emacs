@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -272,37 +272,31 @@ enum coding_result_code
     CODING_RESULT_SUCCESS,
     CODING_RESULT_INSUFFICIENT_SRC,
     CODING_RESULT_INSUFFICIENT_DST,
-    CODING_RESULT_INCONSISTENT_EOL,
     CODING_RESULT_INVALID_SRC,
-    CODING_RESULT_INTERRUPT,
-    CODING_RESULT_INSUFFICIENT_MEM
+    CODING_RESULT_INTERRUPT
   };
 
 
 /* Macros used for the member `mode' of the struct coding_system.  */
 
-/* If set, recover the original CR or LF of the already decoded text
-   when the decoding routine encounters an inconsistent eol format.  */
-#define CODING_MODE_INHIBIT_INCONSISTENT_EOL	0x01
-
 /* If set, the decoding/encoding routines treat the current data as
    the last block of the whole text to be converted, and do the
    appropriate finishing job.  */
-#define CODING_MODE_LAST_BLOCK			0x02
+#define CODING_MODE_LAST_BLOCK			0x01
 
 /* If set, it means that the current source text is in a buffer which
    enables selective display.  */
-#define CODING_MODE_SELECTIVE_DISPLAY		0x04
+#define CODING_MODE_SELECTIVE_DISPLAY		0x02
 
 /* This flag is used by the decoding/encoding routines on the fly.  If
    set, it means that right-to-left text is being processed.  */
-#define CODING_MODE_DIRECTION			0x08
+#define CODING_MODE_DIRECTION			0x04
 
-#define CODING_MODE_FIXED_DESTINATION		0x10
+#define CODING_MODE_FIXED_DESTINATION		0x08
 
 /* If set, it means that the encoding routines produces some safe
    ASCII characters (usually '?') for unsupported characters.  */
-#define CODING_MODE_SAFE_ENCODING		0x20
+#define CODING_MODE_SAFE_ENCODING		0x10
 
   /* For handling composition sequence.  */
 #include "composite.h"
@@ -446,8 +440,12 @@ struct coding_system
   /* How may heading bytes we can skip for decoding.  This is set to
      -1 in setup_coding_system, and updated by detect_coding.  So,
      when this is equal to the byte length of the text being
-     converted, we can skip the actual conversion process.  */
+     converted, we can skip the actual conversion process except for
+     the eol format.  */
   ptrdiff_t head_ascii;
+
+  /* Used internally in coding.c.  See the comment of detect_ascii.  */
+  int eol_seen;
 
   /* The following members are set by encoding/decoding routine.  */
   ptrdiff_t produced, produced_char, consumed, consumed_char;
@@ -721,25 +719,12 @@ extern wchar_t *to_unicode (Lisp_Object str, Lisp_Object *buf);
    failure modes.  STR itself is not modified.  */
 extern Lisp_Object from_unicode (Lisp_Object str);
 
+/* Convert WSTR to an Emacs string.  */
+extern Lisp_Object from_unicode_buffer (const wchar_t* wstr);
+
 #endif /* WINDOWSNT || CYGWIN */
 
 /* Macros for backward compatibility.  */
-
-#define decode_coding_region(coding, from, to)		\
-  decode_coding_object (coding, Fcurrent_buffer (),	\
-			from, CHAR_TO_BYTE (from),	\
-			to, CHAR_TO_BYTE (to), Fcurrent_buffer ())
-
-
-#define encode_coding_region(coding, from, to)		\
-  encode_coding_object (coding, Fcurrent_buffer (),	\
-			from, CHAR_TO_BYTE (from),	\
-			to, CHAR_TO_BYTE (to), Fcurrent_buffer ())
-
-
-#define decode_coding_string(coding, string, nocopy)			\
-  decode_coding_object (coding, string, 0, 0, SCHARS (string),		\
-			SBYTES (string), Qt)
 
 #define encode_coding_string(coding, string, nocopy)			\
   (STRING_MULTIBYTE(string) ?						\
@@ -767,7 +752,7 @@ extern Lisp_Object Qcoding_system_p;
 extern Lisp_Object Qraw_text, Qemacs_mule, Qno_conversion, Qundecided;
 extern Lisp_Object Qbuffer_file_coding_system;
 
-extern Lisp_Object Qunix, Qdos, Qmac;
+extern Lisp_Object Qunix, Qdos;
 
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;

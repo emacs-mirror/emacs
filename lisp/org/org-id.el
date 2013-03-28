@@ -1,6 +1,6 @@
 ;;; org-id.el --- Global identifiers for Org-mode entries
 ;;
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -259,11 +259,11 @@ In any case, the ID of the entry is returned."
 	id)))))
 
 (defun org-id-get-with-outline-path-completion (&optional targets)
-  "Use outline-path-completion to retrieve the ID of an entry.
-TARGETS may be a setting for `org-refile-targets' to define the eligible
-headlines.  When omitted, all headlines in all agenda files are
-eligible.
-It returns the ID of the entry.  If necessary, the ID is created."
+  "Use `outline-path-completion' to retrieve the ID of an entry.
+TARGETS may be a setting for `org-refile-targets' to define
+eligible headlines.  When omitted, all headlines in the current
+file are eligible.  This function returns the ID of the entry.
+If necessary, the ID is created."
   (let* ((org-refile-targets (or targets '((nil . (:maxlevel . 10)))))
 	 (org-refile-use-outline-path
 	  (if (caar org-refile-targets) 'file t))

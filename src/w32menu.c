@@ -1,6 +1,6 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2013 Free
+   Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -396,7 +396,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
       if (! menubar_widget)
 	previous_menu_items_used = 0;
 
-      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
+      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
       /* Don't let the debugger step into this code
 	 because it is not reentrant.  */

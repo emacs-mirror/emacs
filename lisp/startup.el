@@ -1,6 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-2013 Free Software Foundation,
+;; Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -41,9 +42,10 @@
 (defcustom initial-buffer-choice nil
   "Buffer to show after starting Emacs.
 If the value is nil and `inhibit-startup-screen' is nil, show the
-startup screen.  If the value is a string, visit the specified file
-or directory using `find-file'.  If t, open the `*scratch*'
-buffer.
+startup screen.  If the value is a string, switch to a buffer
+visiting the file or directory specified by that string.  If the
+value is a function, switch to the buffer returned by that
+function.  If t, open the `*scratch*' buffer.
 
 A string value also causes emacsclient to open the specified file
 or directory when no target file is specified."
@@ -51,8 +53,9 @@ or directory when no target file is specified."
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/.emacs")
+          (function  :tag "Function")
 	  (const     :tag "Lisp scratch buffer" t))
-  :version "23.1"
+  :version "24.4"
   :group 'initialization)
 
 (defcustom inhibit-startup-screen nil
@@ -767,11 +770,20 @@ Amongst another things, it parses the command-line arguments."
 	 (locate-file "simple" load-path (get-load-suffixes)))
 	lisp-dir)
     ;; Don't abort if simple.el cannot be found, but print a warning.
+    ;; Although in most usage we are going to cryptically abort a moment
+    ;; later anyway, due to missing required bidi data files (eg bug#13430).
     (if (null simple-file-name)
-	(progn
-	  (princ "Warning: Could not find simple.el nor simple.elc"
-		 'external-debugging-output)
-	  (terpri 'external-debugging-output))
+	(let ((standard-output 'external-debugging-output)
+	      (lispdir (expand-file-name "../lisp" data-directory)))
+	  (princ "Warning: Could not find simple.el or simple.elc")
+	  (terpri)
+	  (when (getenv "EMACSLOADPATH")
+	    (princ "The EMACSLOADPATH environment variable is set, \
+please check its value")
+	    (terpri))
+	  (unless (file-readable-p lispdir)
+	    (princ (format "Lisp directory %s not readable?" lispdir))
+	    (terpri)))
       (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
       (setq load-history
 	    (mapcar (lambda (elt)
@@ -1454,6 +1466,7 @@ Each element in the list should be a list of strings or pairs
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
     (define-key map "\C-?" 'scroll-down-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
     (define-key map "q" 'exit-splash-screen)
     map)
@@ -1569,27 +1582,24 @@ a face or button specification."
 		       :face '(variable-pitch (:height 0.8))
 		       emacs-copyright
 		       "\n")
-  (and auto-save-list-file-prefix
-       ;; Don't signal an error if the
-       ;; directory for auto-save-list files
-       ;; does not yet exist.
-       (file-directory-p (file-name-directory
-			  auto-save-list-file-prefix))
-       (directory-files
-	(file-name-directory auto-save-list-file-prefix)
-	nil
-	(concat "\\`"
-		(regexp-quote (file-name-nondirectory
-			       auto-save-list-file-prefix)))
-	t)
-       (fancy-splash-insert :face '(variable-pitch font-lock-comment-face)
-			    "\nIf an Emacs session crashed recently, "
-			    "type "
-			    :face '(fixed-pitch font-lock-comment-face)
-			    "Meta-x recover-session RET"
-			    :face '(variable-pitch font-lock-comment-face)
-			    "\nto recover"
-			    " the files you were editing."))
+  (when auto-save-list-file-prefix
+    (let ((dir  (file-name-directory auto-save-list-file-prefix))
+	  (name (file-name-nondirectory auto-save-list-file-prefix))
+	  files)
+      ;; Don't warn if the directory for auto-save-list files does not
+      ;; yet exist.
+      (and (file-directory-p dir)
+	   (setq files (directory-files dir nil (concat "\\`" name) t))
+	   (fancy-splash-insert :face '(variable-pitch font-lock-comment-face)
+				(if (= (length files) 1)
+				    "\nAn auto-save file list was found.  "
+				  "\nAuto-save file lists were found.  ")
+				"If an Emacs session crashed recently,\ntype "
+				:link `("M-x recover-session RET"
+					,(lambda (_button)
+					   (call-interactively
+					    'recover-session)))
+				" to recover the files you were editing."))))
 
   (when concise
     (fancy-splash-insert
@@ -2326,10 +2336,14 @@ A fancy display is used on graphic displays, normal otherwise."
 	     (set-buffer-modified-p nil))))
 
     (when initial-buffer-choice
-      (cond ((eq initial-buffer-choice t)
-	     (switch-to-buffer (get-buffer-create "*scratch*")))
-	    ((stringp initial-buffer-choice)
-	     (find-file initial-buffer-choice))))
+      (let ((buf
+             (cond ((stringp initial-buffer-choice)
+		    (find-file-noselect initial-buffer-choice))
+		   ((functionp initial-buffer-choice)
+		    (funcall initial-buffer-choice)))))
+	(switch-to-buffer
+	 (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
+	 'norecord)))
 
     (if (or inhibit-startup-screen
 	    initial-buffer-choice
@@ -2385,13 +2399,17 @@ A fancy display is used on graphic displays, normal otherwise."
     ;; Use arg 1 so that we don't collapse // at the start of the file name.
     ;; That is significant on some systems.
     ;; However, /// at the beginning is supposed to mean just /, not //.
-    (if (string-match "^///+" file)
+    (if (string-match
+	 (if (memq system-type '(ms-dos windows-nt))
+	     "^\\([\\/][\\/][\\/]\\)+"
+	   "^///+")
+	 file)
 	(setq file (replace-match "/" t t file)))
-    (and (memq system-type '(ms-dos windows-nt))
-	 (string-match "^[A-Za-z]:\\(\\\\[\\\\/]\\)" file) ; C:\/ or C:\\
-	 (setq file (replace-match "/" t t file 1)))
-    (while (string-match "//+" file 1)
-      (setq file (replace-match "/" t t file)))
+    (if (memq system-type '(ms-dos windows-nt))
+	(while (string-match "\\([\\/][\\/]\\)+" file 1)
+	  (setq file (replace-match "/" t t file)))
+      (while (string-match "//+" file 1)
+	(setq file (replace-match "/" t t file))))
     file))
 
 ;;; startup.el ends here

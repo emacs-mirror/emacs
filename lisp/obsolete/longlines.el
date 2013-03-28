@@ -1,11 +1,12 @@
 ;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
 
-;; Copyright (C) 2000-2001, 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2013 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
 ;;             Chong Yidong <cyd@stupidchicken.com>
 ;; Maintainer: Chong Yidong <cyd@stupidchicken.com>
+;; Obsolete-since: 24.4
 ;; Keywords: convenience, wp
 
 ;; This file is part of GNU Emacs.
@@ -278,7 +279,7 @@ end of the buffer."
 If wrapping is performed, point remains on the line.  If the line does
 not need to be wrapped, move point to the next line and return t."
   (if (longlines-set-breakpoint)
-      (progn (insert-before-markers ?\n)
+      (progn (insert-before-markers-and-inherit ?\n)
 	     (backward-char 1)
              (delete-char -1)
 	     (forward-char 1)
@@ -384,8 +385,12 @@ compatibility with `format-alist', and is ignored."
 	  (mod (buffer-modified-p)))
       (goto-char (min beg end))
       (while (search-forward "\n" reg-max t)
-        (unless (get-text-property (match-beginning 0) 'hard)
-          (replace-match " ")))
+	(let ((pos (match-beginning 0)))
+	  (unless (get-text-property pos 'hard)
+	    (goto-char (1+ pos))
+	    (insert-and-inherit " ")
+	    (delete-region pos (1+ pos))
+	    (remove-text-properties pos (1+ pos) 'hard))))
       (set-buffer-modified-p mod)
       end)))
 

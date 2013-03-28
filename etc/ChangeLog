@@ -1,3 +1,127 @@
+2013-03-21  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/ede-autoconf.srt: Change Copyright to FSF.
+	(ede-empty): Change AC_INIT to use PROJECT_NAME, and
+	PROJECT_VERSION.
+
+	* srecode/ede-make.srt (ede-empty): Add a dependency on :project.
+	Add header comment specifying the project's relative path.
+
+	* srecode/c.srt (header_guard): Upcase the filename symbol.
+
+2013-03-21  Vladimir Kazanov <vkazanov@inbox.ru>
+
+	* srecode/java.srt (empty-main): New.
+	(class-tag): Decapitalize class.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Emacs crashes with ImageMagick 6.8.2-3 through 6.8.3-9 (Bug#13867).
+	* PROBLEMS: Mention problem with ImageMagick 6.8.2-3 through 6.8.3-9.
+
+2013-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add coding tags for iso-2022-7bit files that are not already tagged.
+	* HELLO, tutorials/TUTORIAL.ko, tutorials/TUTORIAL.th:
+	Add coding tag.  For TUTORIAL.th this prevents Emacs from
+	misinterpreting the file.
+
+	Switch encodings of tutorials, thai-word to UTF-8 (Bug#13880).
+	* refcards/ru-refcard.tex:
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.bg, tutorials/TUTORIAL.cn:
+	* tutorials/TUTORIAL.cs, tutorials/TUTORIAL.de, tutorials/TUTORIAL.eo:
+	* tutorials/TUTORIAL.es, tutorials/TUTORIAL.fr, tutorials/TUTORIAL.it:
+	* tutorials/TUTORIAL.nl, tutorials/TUTORIAL.pl, tutorials/TUTORIAL.pt_BR:
+	* tutorials/TUTORIAL.ro, tutorials/TUTORIAL.sk, tutorials/TUTORIAL.sv:
+	* tutorials/TUTORIAL.zh:
+	Switch to UTF-8.
+
+2013-03-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* refcards/calccard.tex: Remove incorrect entry.
+
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
+	* NEWS: Document this.
+
+2013-03-02  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.5.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.5.
+
+2013-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: The lock for FILE is now .#FILE or .#-FILE (Bug#13807).
+
+2013-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Fix Tramp "adb" entry.  Extend list of discontinued Tramp
+	methods.
+
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	* NEWS: Document removal of --with-crt-dir.
+	* PROBLEMS (LIBS_SYSTEM, LIBS_MACHINE, LIBS_STANDARD): Remove.
+	Remove legacy-systems section, as this stuff is no longer
+	applicable with current linking strategies.
+
+2013-02-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp methods "scpc" and "rsyncc" are discontinued.
+
+2013-02-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add autorevert changes.
+
+2013-02-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention ns-use-native-fullscreen.
+
+2013-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* CALC-NEWS: Move here from lisp/calc/README, README.prev.
+
+2012-12-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* TODO: Adjust entry about NS event loop.
+
+2012-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp implements `file-acl' and `set-file-acl'.
+
+2012-12-19  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Add customizations of
+	many new faces.
+
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* NEWS: Document changes to file-attributes,
+	file-ownership-preserved-p.
+	Mention new functions group-gid, group-real-gid.
+
+2012-12-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* themes/leuven-theme.el: Convert to Unix format.
+
+2012-12-06  Fabrice Niessen  <fniessen@pirilampo.org>
+
+	* themes/leuven-theme.el: New theme.
+
+2012-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Mention new Tramp method "adb".
+
+2012-11-25  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.4.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.4.
+
 2012-11-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: Document Calc changes for Gregorian calendar (Bug#12633).
@@ -47,7 +171,7 @@
 
 2012-10-01  Eric Ludlam  <zappo@gnu.org>
 
-	* srecode/cc.srt, srecode/ede-autoconf.srt: New files.
+	* srecode/c.srt, srecode/ede-autoconf.srt: New files.
 
 	* srecode/cpp.srt: Move parts to c.srt.
 
@@ -1465,7 +1589,7 @@
 
 2009-01-27  Kenichi Handa  <handa@m17n.org>
 
-	* NEWS: New function `coding-sytem-from-name'.
+	* NEWS: New function `coding-system-from-name'.
 
 2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -5918,7 +6042,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

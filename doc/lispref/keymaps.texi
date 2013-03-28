@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -75,8 +75,8 @@ the vector @code{[?\C-x ?l]} represents the key sequence @kbd{C-x l}.
   For examples of key sequences written in string and vector
 representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
 
-@defmac kbd keyseq-text
-This macro converts the text @var{keyseq-text} (a string constant)
+@defun kbd keyseq-text
+This function converts the text @var{keyseq-text} (a string constant)
 into a key sequence (a string or vector constant).  The contents of
 @var{keyseq-text} should use the same syntax as in the buffer invoked
 by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
@@ -94,10 +94,7 @@ Manual}.
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
-
-This macro is not meant for use with arguments that vary---only
-with string constants.
-@end defmac
+@end defun
 
 @node Keymap Basics
 @section Keymap Basics
@@ -330,10 +327,12 @@ these characters to @code{nil}, and does not bind any other kind of
 event.  The argument @var{prompt} specifies a
 prompt string, as in @code{make-sparse-keymap}.
 
+@c This example seems kind of pointless, but I guess it serves
+@c to contrast the result with make-sparse-keymap above.
 @example
 @group
 (make-keymap)
-    @result{} (keymap #^[t nil nil nil @dots{} nil nil keymap])
+    @result{} (keymap #^[nil nil keymap nil nil nil @dots{}])
 @end group
 @end example
 
@@ -637,8 +636,8 @@ keymap, and the global keymap, in that order.  Emacs searches for each
 input key sequence in all these keymaps.  @xref{Searching Keymaps},
 for more details of this procedure.
 
-  When the key sequence starts with a mouse event (optionally preceded
-by a symbolic prefix), the active keymaps are determined based on the
+  When the key sequence starts with a mouse event,
+the active keymaps are determined based on the
 position in that event.  If the event happened on a string embedded
 with a @code{display}, @code{before-string}, or @code{after-string}
 property (@pxref{Special Properties}), the non-@code{nil} map
@@ -769,8 +768,7 @@ them:
 @var{find-in} and @var{find-in-any} are pseudo functions that search
 in one keymap and in an alist of keymaps, respectively.  (Searching a
 single keymap for a binding is called @dfn{key lookup}; see @ref{Key
-Lookup}.)  If the key sequence starts with a mouse event, or a
-symbolic prefix event followed by a mouse event, that event's position
+Lookup}.)  If the key sequence starts with a mouse event, that event's position
 is used instead of point and the current buffer.  Mouse events on an
 embedded string use non-@code{nil} text properties from that string
 instead of the buffer.  @var{temp-map} is a pseudo variable that
@@ -839,7 +837,7 @@ keymap.
 @end defun
 
 @code{current-local-map} returns a reference to the local keymap, not
-a copy of it; if you use @code{define-key} or other functions on it 
+a copy of it; if you use @code{define-key} or other functions on it
 you will alter local bindings.
 
 @defun current-minor-mode-maps
@@ -1294,8 +1292,8 @@ numeric codes for the modifier bits don't appear in compiled files.
   The functions below signal an error if @var{keymap} is not a keymap,
 or if @var{key} is not a string or vector representing a key sequence.
 You can use event types (symbols) as shorthand for events that are
-lists.  The @code{kbd} macro (@pxref{Key Sequences}) is a convenient
-way to specify the key sequence.
+lists.  The @code{kbd} function (@pxref{Key Sequences}) is a
+convenient way to specify the key sequence.
 
 @defun define-key keymap key binding
 This function sets the binding for @var{key} in @var{keymap}.  (If
@@ -1530,7 +1528,7 @@ Instead, if an ordinary key binding specifies @code{kill-line}, it is
 remapped to @code{my-kill-line}; if an ordinary binding specifies
 @code{my-kill-line}, it is remapped to @code{my-other-kill-line}.
 
-To undo the remapping of a command, remap it to @code{nil}; e.g.
+To undo the remapping of a command, remap it to @code{nil}; e.g.,
 
 @smallexample
 (define-key my-mode-map [remap kill-line] nil)
@@ -1597,7 +1595,7 @@ alternative interpretations that are usually preferred.  It applies
 after @code{input-decode-map} and before @code{key-translation-map}.
 
 Entries in @code{local-function-key-map} are ignored if they conflict
-with bindings made in the minor mode, local, or global keymaps.  I.e.
+with bindings made in the minor mode, local, or global keymaps.  I.e.,
 the remapping only applies if the original key sequence would
 otherwise not have any binding.
 
@@ -1786,7 +1784,7 @@ that uses @var{key} as a prefix---which would not be allowed if
 @end group
 @end smallexample
 
-This function is implemented simply using @code{define-key}:
+This function is equivalent to using @code{define-key} as follows:
 
 @smallexample
 @group
@@ -1977,9 +1975,6 @@ modes---minor modes first, then the major mode, then global bindings.
 If @var{prefix} is non-@code{nil}, it should be a prefix key; then the
 listing includes only keys that start with @var{prefix}.
 
-The listing describes meta characters as @key{ESC} followed by the
-corresponding non-meta character.
-
 When several characters with consecutive @acronym{ASCII} codes have the
 same definition, they are shown together, as
 @samp{@var{firstchar}..@var{lastchar}}.  In this instance, you need to
@@ -2029,7 +2024,7 @@ which is a string that appears as an element of the keymap.
 the menu's commands.  Emacs displays the overall prompt string as the
 menu title in some cases, depending on the toolkit (if any) used for
 displaying menus.@footnote{It is required for menus which do not use a
-toolkit, e.g.@: under MS-DOS.}  Keyboard menus also display the
+toolkit, e.g., under MS-DOS.}  Keyboard menus also display the
 overall prompt string.
 
 The easiest way to construct a keymap with a prompt string is to
@@ -2308,9 +2303,9 @@ the following word.  Thus, @code{"--:singleLine"}, is equivalent to
 and @code{:visible} for a menu separator:
 
 @code{(menu-item @var{separator-type} nil . @var{item-property-list})}
-  
+
 For example:
-  
+
 @example
 (menu-item "--" nil :visible (boundp 'foo))
 @end example

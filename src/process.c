@@ -1,7 +1,7 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -91,6 +91,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pty.h>
 #endif
 
+#include <c-ctype.h>
+#include <sig2str.h>
+
 #endif	/* subprocesses */
 
 #include "systime.h"
@@ -133,7 +136,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
    <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
    These lines can be removed once the GCC bug is fixed.  */
-#if (__GNUC__ == 4 && 3 <= __GNUC_MINOR__) || 4 < __GNUC__
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 #endif
 
@@ -143,13 +146,13 @@ Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
 Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
 Lisp_Object QCname, QCtype;
 
-/* Non-zero if keyboard input is on hold, zero otherwise.  */
+/* True if keyboard input is on hold, zero otherwise.  */
 
-static int kbd_is_on_hold;
+static bool kbd_is_on_hold;
 
 /* Nonzero means don't run process sentinels.  This is used
    when exiting.  */
-int inhibit_sentinels;
+bool inhibit_sentinels;
 
 #ifdef subprocesses
 
@@ -176,10 +179,6 @@ static Lisp_Object Qlast_nonmenu_event;
 #define NETCONN1_P(p) (EQ (p->type, Qnetwork))
 #define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
 #define SERIALCONN1_P(p) (EQ (p->type, Qserial))
-
-#ifndef HAVE_H_ERRNO
-extern int h_errno;
-#endif
 
 /* Number of events of change of status of a process.  */
 static EMACS_INT process_tick;
@@ -235,9 +234,9 @@ static EMACS_INT update_tick;
 
 static int process_output_delay_count;
 
-/* Non-zero if any process has non-nil read_output_skip.  */
+/* True if any process has non-nil read_output_skip.  */
 
-static int process_output_skip;
+static bool process_output_skip;
 
 #else
 #define process_output_delay_count 0
@@ -245,7 +244,7 @@ static int process_output_skip;
 
 static void create_process (Lisp_Object, char **, Lisp_Object);
 #ifdef USABLE_SIGIO
-static int keyboard_bit_set (SELECT_TYPE *);
+static bool keyboard_bit_set (SELECT_TYPE *);
 #endif
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
@@ -528,7 +527,7 @@ status_convert (int w)
    and store them individually through the three pointers.  */
 
 static void
-decode_status (Lisp_Object l, Lisp_Object *symbol, int *code, int *coredump)
+decode_status (Lisp_Object l, Lisp_Object *symbol, int *code, bool *coredump)
 {
   Lisp_Object tem;
 
@@ -555,7 +554,8 @@ status_message (struct Lisp_Process *p)
 {
   Lisp_Object status = p->status;
   Lisp_Object symbol;
-  int code, coredump;
+  int code;
+  bool coredump;
   Lisp_Object string, string2;
 
   decode_status (status, &symbol, &code, &coredump);
@@ -773,13 +773,22 @@ get_process (register Lisp_Object name)
 }
 
 
-#ifdef SIGCHLD
 /* Fdelete_process promises to immediately forget about the process, but in
    reality, Emacs needs to remember those processes until they have been
    treated by the SIGCHLD handler and waitpid has been invoked on them;
-   otherwise they might fill up the kernel's process table.  */
+   otherwise they might fill up the kernel's process table.
+
+   Some processes created by call-process are also put onto this list.  */
 static Lisp_Object deleted_pid_list;
-#endif
+
+void
+record_deleted_pid (pid_t pid)
+{
+  deleted_pid_list = Fcons (make_fixnum_or_float (pid),
+			    /* GC treated elements set to nil.  */
+			    Fdelq (Qnil, deleted_pid_list));
+
+}
 
 DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
        doc: /* Delete PROCESS: kill it and forget about it immediately.
@@ -800,32 +809,22 @@ nil, indicating the current buffer's process.  */)
       status_notify (p);
       redisplay_preserve_echo_area (13);
     }
-  else if (p->infd >= 0)
+  else
     {
-#ifdef SIGCHLD
-      Lisp_Object symbol;
-      pid_t pid = p->pid;
+      if (p->alive)
+	record_kill_process (p);
 
-      /* No problem storing the pid here, as it is still in Vprocess_alist.  */
-      deleted_pid_list = Fcons (make_fixnum_or_float (pid),
-				/* GC treated elements set to nil.  */
-				Fdelq (Qnil, deleted_pid_list));
-      /* If the process has already signaled, remove it from the list.  */
-      if (p->raw_status_new)
-	update_status (p);
-      symbol = p->status;
-      if (CONSP (p->status))
-	symbol = XCAR (p->status);
-      if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
-	deleted_pid_list
-	  = Fdelete (make_fixnum_or_float (pid), deleted_pid_list);
-      else
-#endif
+      if (p->infd >= 0)
 	{
-	  Fkill_process (process, Qnil);
-	  /* Do this now, since remove_process will make the
-	     SIGCHLD handler do nothing.  */
-	  pset_status (p, Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil)));
+	  /* Update P's status, since record_kill_process will make the
+	     SIGCHLD handler update deleted_pid_list, not *P.  */
+	  Lisp_Object symbol;
+	  if (p->raw_status_new)
+	    update_status (p);
+	  symbol = CONSP (p->status) ? XCAR (p->status) : p->status;
+	  if (! (EQ (symbol, Qsignal) || EQ (symbol, Qexit)))
+	    pset_status (p, list2 (Qsignal, make_number (SIGKILL)));
+
 	  p->tick = ++process_tick;
 	  status_notify (p);
 	  redisplay_preserve_echo_area (13);
@@ -1578,17 +1577,12 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #ifndef WINDOWSNT
   int wait_child_setup[2];
 #endif
-#ifdef SIGCHLD
   sigset_t blocked;
-#endif
   /* Use volatile to protect variables from being clobbered by vfork.  */
   volatile int forkin, forkout;
-  volatile int pty_flag = 0;
+  volatile bool pty_flag = 0;
   volatile Lisp_Object lisp_pty_name = Qnil;
   volatile Lisp_Object encoded_current_dir;
-#if HAVE_WORKING_VFORK
-  char **volatile save_environ;
-#endif
 
   inchannel = outchannel = -1;
 
@@ -1680,19 +1674,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   block_input ();
 
-#ifdef SIGCHLD
   /* Block SIGCHLD until we have a chance to store the new fork's
      pid in its process structure.  */
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGCHLD);
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
-#endif
-
-#if HAVE_WORKING_VFORK
-  /* child_setup must clobber environ on systems with true vfork.
-     Protect it from permanent change.  */
-  save_environ = environ;
-#endif
 
 #ifndef WINDOWSNT
   pid = vfork ();
@@ -1800,10 +1786,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       /* Emacs ignores SIGPIPE, but the child should not.  */
       signal (SIGPIPE, SIG_DFL);
 
-#ifdef SIGCHLD
 	/* Stop blocking signals in the child.  */
       pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
-#endif
 
       if (pty_flag)
 	child_setup_tty (xforkout);
@@ -1819,18 +1803,12 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   /* Back in the parent process.  */
 
-#if HAVE_WORKING_VFORK
-  environ = save_environ;
-#endif
-
   XPROCESS (process)->pid = pid;
-  if (0 <= pid)
+  if (pid >= 0)
     XPROCESS (process)->alive = 1;
 
   /* Stop blocking signals in the parent.  */
-#ifdef SIGCHLD
   pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
-#endif
   unblock_input ();
 
   if (pid < 0)
@@ -1874,7 +1852,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       /* Wait for child_setup to complete in case that vfork is
 	 actually defined as fork.  The descriptor wait_child_setup[1]
 	 of a pipe is closed at the child side either by close-on-exec
-	 on successful execvp or the _exit call in child_setup.  */
+	 on successful execve or the _exit call in child_setup.  */
       {
 	char dummy;
 
@@ -1894,7 +1872,7 @@ void
 create_pty (Lisp_Object process)
 {
   int inchannel, outchannel;
-  int pty_flag = 0;
+  bool pty_flag = 0;
 
   inchannel = outchannel = -1;
 
@@ -2177,7 +2155,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
   channel = XPROCESS (process)->infd;
 
   len = get_lisp_to_sockaddr_size (address, &family);
-  if (datagram_address[channel].len != len)
+  if (len == 0 || datagram_address[channel].len != len)
     return Qnil;
   conv_lisp_to_sockaddr (family, address, datagram_address[channel].sa, len);
   return address;
@@ -2842,8 +2820,9 @@ usage: (make-network-process &rest ARGS)  */)
   Lisp_Object tem;
   Lisp_Object name, buffer, host, service, address;
   Lisp_Object filter, sentinel;
-  int is_non_blocking_client = 0;
-  int is_server = 0, backlog = 5;
+  bool is_non_blocking_client = 0;
+  bool is_server = 0;
+  int backlog = 5;
   int socktype;
   int family = -1;
 
@@ -3290,7 +3269,8 @@ usage: (make-network-process &rest ARGS)  */)
 		{
 		  int rfamily, rlen;
 		  rlen = get_lisp_to_sockaddr_size (remote, &rfamily);
-		  if (rfamily == lres->ai_family && rlen == lres->ai_addrlen)
+		  if (rlen != 0 && rfamily == lres->ai_family
+		      && rlen == lres->ai_addrlen)
 		    conv_lisp_to_sockaddr (rfamily, remote,
 					   datagram_address[s].sa, rlen);
 		}
@@ -3520,7 +3500,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   struct ifreq *ifreq;
   void *buf = NULL;
   ptrdiff_t buf_size = 512;
-  int s, i;
+  int s;
   Lisp_Object res;
 
   s = socket (AF_INET, SOCK_STREAM, 0);
@@ -3558,7 +3538,6 @@ format; see the description of ADDRESS in `make-network-process'.  */)
       int len = sizeof (*ifreq);
 #endif
       char namebuf[sizeof (ifq->ifr_name) + 1];
-      i += len;
       ifreq = (struct ifreq *) ((char *) ifreq + len);
 
       if (ifq->ifr_addr.sa_family != AF_INET)
@@ -3668,7 +3647,7 @@ FLAGS is the current flags of the interface.  */)
   Lisp_Object res = Qnil;
   Lisp_Object elt;
   int s;
-  int any = 0;
+  bool any = 0;
 #if (! (defined SIOCGIFHWADDR && defined HAVE_STRUCT_IFREQ_IFR_HWADDR)	\
      && defined HAVE_GETIFADDRS && defined LLADDR)
   struct ifaddrs *ifap;
@@ -3922,7 +3901,7 @@ Return non-nil if we received any output before the timeout expired.  */)
     {
       if (INTEGERP (seconds))
 	{
-	  if (0 < XINT (seconds))
+	  if (XINT (seconds) > 0)
 	    {
 	      secs = XINT (seconds);
 	      nsecs = 0;
@@ -3930,7 +3909,7 @@ Return non-nil if we received any output before the timeout expired.  */)
 	}
       else if (FLOATP (seconds))
 	{
-	  if (0 < XFLOAT_DATA (seconds))
+	  if (XFLOAT_DATA (seconds) > 0)
 	    {
 	      EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (seconds));
 	      secs = min (EMACS_SECS (t), WAIT_READING_MAX);
@@ -3954,7 +3933,7 @@ Return non-nil if we received any output before the timeout expired.  */)
 
 /* Accept a connection for server process SERVER on CHANNEL.  */
 
-static int connect_counter = 0;
+static EMACS_INT connect_counter = 0;
 
 static void
 server_accept_connection (Lisp_Object server, int channel)
@@ -4209,7 +4188,7 @@ wait_reading_process_output_1 (void)
      process.  The return value is true if we read some input from
      that process.
 
-   If JUST_WAIT_PROC is non-nil, handle only output from WAIT_PROC
+   If JUST_WAIT_PROC is nonzero, handle only output from WAIT_PROC
      (suspending output from other processes).  A negative value
      means don't run any timers either.
 
@@ -4217,22 +4196,23 @@ wait_reading_process_output_1 (void)
      received input from that process before the timeout elapsed.
    Otherwise, return true if we received input from any process.  */
 
-int
+bool
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     bool do_display,
 			     Lisp_Object wait_for_cell,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
-  register int channel, nfds;
+  int channel, nfds;
   SELECT_TYPE Available;
   SELECT_TYPE Writeok;
-  int check_write;
-  int check_delay, no_avail;
+  bool check_write;
+  int check_delay;
+  bool no_avail;
   int xerrno;
   Lisp_Object proc;
   EMACS_TIME timeout, end_time;
   int wait_channel = -1;
-  int got_some_input = 0;
+  bool got_some_input = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   FD_ZERO (&Available);
@@ -4241,7 +4221,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   if (time_limit == 0 && nsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
       && !(CONSP (wait_proc->status)
 	   && EQ (XCAR (wait_proc->status), Qexit)))
-    message ("Blocking call to accept-process-output with quit inhibited!!");
+    message1 ("Blocking call to accept-process-output with quit inhibited!!");
 
   /* If wait_proc is a process to watch, set wait_channel accordingly.  */
   if (wait_proc != NULL)
@@ -4256,12 +4236,12 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       time_limit = 0;
       nsecs = -1;
     }
-  else if (TYPE_MAXIMUM (time_t) < time_limit)
+  else if (time_limit > TYPE_MAXIMUM (time_t))
     time_limit = TYPE_MAXIMUM (time_t);
 
   /* Since we may need to wait several times,
      compute the absolute time to return at.  */
-  if (time_limit || 0 < nsecs)
+  if (time_limit || nsecs > 0)
     {
       timeout = make_emacs_time (time_limit, nsecs);
       end_time = add_emacs_time (current_emacs_time (), timeout);
@@ -4269,7 +4249,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   while (1)
     {
-      int timeout_reduced_for_timers = 0;
+      bool timeout_reduced_for_timers = 0;
 
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
@@ -4293,7 +4273,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  timeout = make_emacs_time (0, 0);
 	}
-      else if (time_limit || 0 < nsecs)
+      else if (time_limit || nsecs > 0)
 	{
 	  EMACS_TIME now = current_emacs_time ();
 	  if (EMACS_TIME_LE (end_time, now))
@@ -4345,7 +4325,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    break;
 
 	  /* A negative timeout means do not wait at all.  */
-	  if (0 <= nsecs)
+	  if (nsecs >= 0)
 	    {
 	      if (EMACS_TIME_VALID_P (timer_delay))
 		{
@@ -4427,19 +4407,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      if (nread == 0)
 		break;
 
-	      if (0 < nread)
+	      if (nread > 0)
 		{
 		  total_nread += nread;
 		  got_some_input = 1;
 		}
-#ifdef EIO
-	      else if (nread == -1 && EIO == errno)
+	      else if (nread == -1 && (errno == EIO || errno == EAGAIN))
 		break;
-#endif
-#ifdef EAGAIN
-	      else if (nread == -1 && EAGAIN == errno)
-		break;
-#endif
 #ifdef EWOULDBLOCK
 	      else if (nread == -1 && EWOULDBLOCK == errno)
 		break;
@@ -4628,7 +4602,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 yielding EBADF here or at select() call above.
 		 So, SIGHUP is ignored (see def of PTY_TTY_NAME_SPRINTF
 		 in m/ibmrt-aix.h), and here we just ignore the select error.
-		 Cleanup occurs c/o status_notify after SIGCLD. */
+		 Cleanup occurs c/o status_notify after SIGCHLD. */
 	      no_avail = 1; /* Cannot depend on values returned */
 #else
 	      emacs_abort ();
@@ -4653,7 +4627,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  unsigned old_timers_run = timers_run;
 	  struct buffer *old_buffer = current_buffer;
 	  Lisp_Object old_window = selected_window;
-	  int leave = 0;
+	  bool leave = 0;
 
 	  if (detect_input_pending_run_timers (do_display))
 	    {
@@ -4798,11 +4772,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 Therefore, if we get an error reading and errno =
 		 EIO, just continue, because the child process has
 		 exited and should clean itself up soon (e.g. when we
-		 get a SIGCHLD).
-
-		 However, it has been known to happen that the SIGCHLD
-		 got lost.  So raise the signal again just in case.
-		 It can't hurt.  */
+		 get a SIGCHLD).  */
 	      else if (nread == -1 && errno == EIO)
 		{
 		  struct Lisp_Process *p = XPROCESS (proc);
@@ -4820,16 +4790,12 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		      p->tick = ++process_tick;
 		      pset_status (p, Qfailed);
 		    }
-                  else
-		    handle_child_signal (SIGCHLD);
 		}
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the
 		 process gone just because its pipe is closed.  */
-#ifdef SIGCHLD
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;
-#endif
 	      else
 		{
 		  /* Preserve status of processes already terminated.  */
@@ -4982,7 +4948,7 @@ read_process_output (Lisp_Object proc, register int channel)
   else
 #endif
     {
-      int buffered = 0 <= proc_buffered_char[channel];
+      bool buffered = proc_buffered_char[channel] >= 0;
       if (buffered)
 	{
 	  chars[carryover] = proc_buffered_char[channel];
@@ -5298,7 +5264,7 @@ read_process_output (Lisp_Object proc, register int channel)
 
 static void
 write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
-                  const char *buf, ptrdiff_t len, int front)
+                  const char *buf, ptrdiff_t len, bool front)
 {
   ptrdiff_t offset;
   Lisp_Object entry, obj;
@@ -5323,10 +5289,10 @@ write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
 }
 
 /* Remove the first element in the write_queue of process P, put its
-   contents in OBJ, BUF and LEN, and return non-zero.  If the
-   write_queue is empty, return zero.  */
+   contents in OBJ, BUF and LEN, and return true.  If the
+   write_queue is empty, return false.  */
 
-static int
+static bool
 write_queue_pop (struct Lisp_Process *p, Lisp_Object *obj,
 		 const char **buf, ptrdiff_t *len)
 {
@@ -5489,7 +5455,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	      rv = sendto (outfd, cur_buf, cur_len,
 			   0, datagram_address[outfd].sa,
 			   datagram_address[outfd].len);
-	      if (0 <= rv)
+	      if (rv >= 0)
 		written = rv;
 	      else if (errno == EMSGSIZE)
 		report_file_error ("sending datagram", Fcons (proc, Qnil));
@@ -5517,12 +5483,9 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 
 	  if (rv < 0)
 	    {
-	      if (0
+	      if (errno == EAGAIN
 #ifdef EWOULDBLOCK
 		  || errno == EWOULDBLOCK
-#endif
-#ifdef EAGAIN
-		  || errno == EAGAIN
 #endif
 		  )
 		/* Buffer is full.  Wait, accepting input;
@@ -5592,19 +5555,19 @@ it is sent in several bunches.  This may happen even for shorter regions.
 Output from processes can arrive in between bunches.  */)
   (Lisp_Object process, Lisp_Object start, Lisp_Object end)
 {
-  Lisp_Object proc;
-  ptrdiff_t start1, end1;
+  Lisp_Object proc = get_process (process);
+  ptrdiff_t start_byte, end_byte;
 
-  proc = get_process (process);
   validate_region (&start, &end);
 
-  if (XINT (start) < GPT && XINT (end) > GPT)
-    move_gap (XINT (start));
+  start_byte = CHAR_TO_BYTE (XINT (start));
+  end_byte = CHAR_TO_BYTE (XINT (end));
 
-  start1 = CHAR_TO_BYTE (XINT (start));
-  end1 = CHAR_TO_BYTE (XINT (end));
-  send_process (proc, (char *) BYTE_POS_ADDR (start1), end1 - start1,
-		Fcurrent_buffer ());
+  if (XINT (start) < GPT && XINT (end) > GPT)
+    move_gap_both (XINT (start), start_byte);
+
+  send_process (proc, (char *) BYTE_POS_ADDR (start_byte),
+		end_byte - start_byte, Fcurrent_buffer ());
 
   return Qnil;
 }
@@ -5690,21 +5653,21 @@ return t unconditionally.  */)
    If CURRENT_GROUP is lambda, that means send to the process group
    that currently owns the terminal, but only if it is NOT the shell itself.
 
-   If NOMSG is zero, insert signal-announcements into process's buffers
+   If NOMSG is false, insert signal-announcements into process's buffers
    right away.
 
    If we can, we try to signal PROCESS by sending control characters
    down the pty.  This allows us to signal inferiors who have changed
-   their uid, for which killpg would return an EPERM error.  */
+   their uid, for which kill would return an EPERM error.  */
 
 static void
 process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
-		     int nomsg)
+		     bool nomsg)
 {
   Lisp_Object proc;
-  register struct Lisp_Process *p;
+  struct Lisp_Process *p;
   pid_t gid;
-  int no_pgrp = 0;
+  bool no_pgrp = 0;
 
   proc = get_process (process);
   p = XPROCESS (proc);
@@ -5833,7 +5796,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
   if (!NILP (current_group))
     {
       if (ioctl (p->infd, TIOCSIGSEND, signo) == -1)
-	EMACS_KILLPG (gid, signo);
+	kill (-gid, signo);
     }
   else
     {
@@ -5841,7 +5804,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
       kill (gid, signo);
     }
 #else /* ! defined (TIOCSIGSEND) */
-  EMACS_KILLPG (gid, signo);
+  kill (-gid, signo);
 #endif /* ! defined (TIOCSIGSEND) */
 }
 
@@ -5946,6 +5909,27 @@ traffic.  */)
   return process;
 }
 
+/* Return the integer value of the signal whose abbreviation is ABBR,
+   or a negative number if there is no such signal.  */
+static int
+abbr_to_signal (char const *name)
+{
+  int i, signo;
+  char sigbuf[20]; /* Large enough for all valid signal abbreviations.  */
+
+  if (!strncmp (name, "SIG", 3) || !strncmp (name, "sig", 3))
+    name += 3;
+
+  for (i = 0; i < sizeof sigbuf; i++)
+    {
+      sigbuf[i] = c_toupper (name[i]);
+      if (! sigbuf[i])
+	return str2sig (sigbuf, &signo) == 0 ? signo : -1;
+    }
+
+  return -1;
+}
+
 DEFUN ("signal-process", Fsignal_process, Ssignal_process,
        2, 2, "sProcess (name or number): \nnSignal code: ",
        doc: /* Send PROCESS the signal with code SIGCODE.
@@ -5956,6 +5940,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
   (Lisp_Object process, Lisp_Object sigcode)
 {
   pid_t pid;
+  int signo;
 
   if (STRINGP (process))
     {
@@ -5985,12 +5970,11 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 	error ("Cannot signal process %s", SDATA (XPROCESS (process)->name));
     }
 
-#define parse_signal(NAME, VALUE)		\
-  else if (!xstrcasecmp (name, NAME))		\
-    XSETINT (sigcode, VALUE)
-
   if (INTEGERP (sigcode))
-    CHECK_TYPE_RANGED_INTEGER (int, sigcode);
+    {
+      CHECK_TYPE_RANGED_INTEGER (int, sigcode);
+      signo = XINT (sigcode);
+    }
   else
     {
       char *name;
@@ -5998,96 +5982,12 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SSDATA (SYMBOL_NAME (sigcode));
 
-      if (!strncmp (name, "SIG", 3) || !strncmp (name, "sig", 3))
-	name += 3;
-
-      if (0)
-	;
-#ifdef SIGUSR1
-      parse_signal ("usr1", SIGUSR1);
-#endif
-#ifdef SIGUSR2
-      parse_signal ("usr2", SIGUSR2);
-#endif
-      parse_signal ("term", SIGTERM);
-#ifdef SIGHUP
-      parse_signal ("hup", SIGHUP);
-#endif
-      parse_signal ("int", SIGINT);
-#ifdef SIGQUIT
-      parse_signal ("quit", SIGQUIT);
-#endif
-      parse_signal ("ill", SIGILL);
-      parse_signal ("abrt", SIGABRT);
-#ifdef SIGEMT
-      parse_signal ("emt", SIGEMT);
-#endif
-#ifdef SIGKILL
-      parse_signal ("kill", SIGKILL);
-#endif
-      parse_signal ("fpe", SIGFPE);
-#ifdef SIGBUS
-      parse_signal ("bus", SIGBUS);
-#endif
-      parse_signal ("segv", SIGSEGV);
-#ifdef SIGSYS
-      parse_signal ("sys", SIGSYS);
-#endif
-#ifdef SIGPIPE
-      parse_signal ("pipe", SIGPIPE);
-#endif
-#ifdef SIGALRM
-      parse_signal ("alrm", SIGALRM);
-#endif
-#ifdef SIGURG
-      parse_signal ("urg", SIGURG);
-#endif
-#ifdef SIGSTOP
-      parse_signal ("stop", SIGSTOP);
-#endif
-#ifdef SIGTSTP
-      parse_signal ("tstp", SIGTSTP);
-#endif
-#ifdef SIGCONT
-      parse_signal ("cont", SIGCONT);
-#endif
-#ifdef SIGCHLD
-      parse_signal ("chld", SIGCHLD);
-#endif
-#ifdef SIGTTIN
-      parse_signal ("ttin", SIGTTIN);
-#endif
-#ifdef SIGTTOU
-      parse_signal ("ttou", SIGTTOU);
-#endif
-#ifdef SIGIO
-      parse_signal ("io", SIGIO);
-#endif
-#ifdef SIGXCPU
-      parse_signal ("xcpu", SIGXCPU);
-#endif
-#ifdef SIGXFSZ
-      parse_signal ("xfsz", SIGXFSZ);
-#endif
-#ifdef SIGVTALRM
-      parse_signal ("vtalrm", SIGVTALRM);
-#endif
-#ifdef SIGPROF
-      parse_signal ("prof", SIGPROF);
-#endif
-#ifdef SIGWINCH
-      parse_signal ("winch", SIGWINCH);
-#endif
-#ifdef SIGINFO
-      parse_signal ("info", SIGINFO);
-#endif
-      else
+      signo = abbr_to_signal (name);
+      if (signo < 0)
 	error ("Undefined signal name %s", name);
     }
 
-#undef parse_signal
-
-  return make_number (kill (pid, XINT (sigcode)));
+  return make_number (kill (pid, signo));
 }
 
 DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
@@ -6169,35 +6069,35 @@ process has been transmitted to the serial port.  */)
   return process;
 }
 
-/* If the status of the process DESIRED has changed, return true and
-   set *STATUS to its exit status; otherwise, return false.
-   If HAVE is nonnegative, assume that HAVE = waitpid (HAVE, STATUS, ...)
-   has already been invoked, and do not invoke waitpid again.  */
+/* The main Emacs thread records child processes in three places:
 
-static bool
-process_status_retrieved (pid_t desired, pid_t have, int *status)
-{
-  if (have < 0)
-    {
-      /* Invoke waitpid only with a known process ID; do not invoke
-	 waitpid with a nonpositive argument.  Otherwise, Emacs might
-	 reap an unwanted process by mistake.  For example, invoking
-	 waitpid (-1, ...) can mess up glib by reaping glib's subprocesses,
-	 so that another thread running glib won't find them.  */
-      do
-	have = waitpid (desired, status, WNOHANG | WUNTRACED);
-      while (have < 0 && errno == EINTR);
-    }
+   - Vprocess_alist, for asynchronous subprocesses, which are child
+     processes visible to Lisp.
 
-  return have == desired;
-}
+   - deleted_pid_list, for child processes invisible to Lisp,
+     typically because of delete-process.  These are recorded so that
+     the processes can be reaped when they exit, so that the operating
+     system's process table is not cluttered by zombies.
 
-/* If PID is nonnegative, the child process PID with wait status W has
-   changed its status; record this and return true.
+   - the local variable PID in Fcall_process, call_process_cleanup and
+     call_process_kill, for synchronous subprocesses.
+     record_unwind_protect is used to make sure this process is not
+     forgotten: if the user interrupts call-process and the child
+     process refuses to exit immediately even with two C-g's,
+     call_process_kill adds PID's contents to deleted_pid_list before
+     returning.
 
-   If PID is negative, ignore W, and look for known child processes
-   of Emacs whose status have changed.  For each one found, record its new
-   status.
+   The main Emacs thread invokes waitpid only on child processes that
+   it creates and that have not been reaped.  This avoid races on
+   platforms such as GTK, where other threads create their own
+   subprocesses which the main thread should not reap.  For example,
+   if the main thread attempted to reap an already-reaped child, it
+   might inadvertently reap a GTK-created process that happened to
+   have the same process ID.  */
+
+/* Handle a SIGCHLD signal by looking for known child processes of
+   Emacs whose status have changed.  For each one found, record its
+   new status.
 
    All we do is change the status; we do not run sentinels or print
    notifications.  That is saved for the next time keyboard input is
@@ -6220,20 +6120,15 @@ process_status_retrieved (pid_t desired, pid_t have, int *status)
    ** Malloc WARNING: This should never call malloc either directly or
    indirectly; if it does, that is a bug  */
 
-void
-record_child_status_change (pid_t pid, int w)
+static void
+handle_child_signal (int sig)
 {
-#ifdef SIGCHLD
-
-  /* Record at most one child only if we already know one child that
-     has exited.  */
-  bool record_at_most_one_child = 0 <= pid;
-
   Lisp_Object tail;
 
   /* Find the process that signaled us, and record its status.  */
 
-  /* The process can have been deleted by Fdelete_process.  */
+  /* The process can have been deleted by Fdelete_process, or have
+     been started asynchronously by Fcall_process.  */
   for (tail = deleted_pid_list; CONSP (tail); tail = XCDR (tail))
     {
       bool all_pids_are_fixnums
@@ -6247,12 +6142,8 @@ record_child_status_change (pid_t pid, int w)
 	    deleted_pid = XINT (xpid);
 	  else
 	    deleted_pid = XFLOAT_DATA (xpid);
-	  if (process_status_retrieved (deleted_pid, pid, &w))
-	    {
-	      XSETCAR (tail, Qnil);
-	      if (record_at_most_one_child)
-		return;
-	    }
+	  if (child_status_changed (deleted_pid, 0, 0))
+	    XSETCAR (tail, Qnil);
 	}
     }
 
@@ -6261,17 +6152,19 @@ record_child_status_change (pid_t pid, int w)
     {
       Lisp_Object proc = XCDR (XCAR (tail));
       struct Lisp_Process *p = XPROCESS (proc);
-      if (p->alive && process_status_retrieved (p->pid, pid, &w))
+      int status;
+
+      if (p->alive && child_status_changed (p->pid, &status, WUNTRACED))
 	{
 	  /* Change the status of the process that was found.  */
 	  p->tick = ++process_tick;
-	  p->raw_status = w;
+	  p->raw_status = status;
 	  p->raw_status_new = 1;
 
 	  /* If process has terminated, stop waiting for its output.  */
-	  if (WIFSIGNALED (w) || WIFEXITED (w))
+	  if (WIFSIGNALED (status) || WIFEXITED (status))
 	    {
-	      int clear_desc_flag = 0;
+	      bool clear_desc_flag = 0;
 	      p->alive = 0;
 	      if (p->infd >= 0)
 		clear_desc_flag = 1;
@@ -6283,44 +6176,8 @@ record_child_status_change (pid_t pid, int w)
 		  FD_CLR (p->infd, &non_keyboard_wait_mask);
 		}
 	    }
-
-	  /* Tell wait_reading_process_output that it needs to wake up and
-	     look around.  */
-	  if (input_available_clear_time)
-	    *input_available_clear_time = make_emacs_time (0, 0);
-
-	  if (record_at_most_one_child)
-	    return;
 	}
     }
-
-  if (0 <= pid)
-    {
-      /* The caller successfully waited for a pid but no asynchronous
-	 process was found for it, so this is a synchronous process.  */
-
-      synch_process_alive = 0;
-
-      /* Report the status of the synchronous process.  */
-      if (WIFEXITED (w))
-	synch_process_retcode = WEXITSTATUS (w);
-      else if (WIFSIGNALED (w))
-	synch_process_termsig = WTERMSIG (w);
-
-      /* Tell wait_reading_process_output that it needs to wake up and
-	 look around.  */
-      if (input_available_clear_time)
-	*input_available_clear_time = make_emacs_time (0, 0);
-    }
-#endif
-}
-
-#ifdef SIGCHLD
-
-static void
-handle_child_signal (int sig)
-{
-  record_child_status_change (-1, 0);
 }
 
 static void
@@ -6328,8 +6185,6 @@ deliver_child_signal (int sig)
 {
   deliver_process_signal (sig, handle_child_signal);
 }
-
-#endif /* SIGCHLD */
 
 
 static Lisp_Object
@@ -6652,10 +6507,10 @@ delete_gpm_wait_descriptor (int desc)
 
 # ifdef USABLE_SIGIO
 
-/* Return nonzero if *MASK has a bit set
+/* Return true if *MASK has a bit set
    that corresponds to one of the keyboard input descriptors.  */
 
-static int
+static bool
 keyboard_bit_set (fd_set *mask)
 {
   int fd;
@@ -6705,7 +6560,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 
    Return true if we received input from any process.  */
 
-int
+bool
 wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     bool do_display,
 			     Lisp_Object wait_for_cell,
@@ -6723,7 +6578,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
     time_limit = TYPE_MAXIMUM (time_t);
 
   /* What does time_limit really mean?  */
-  if (time_limit || 0 < nsecs)
+  if (time_limit || nsecs > 0)
     {
       timeout = make_emacs_time (time_limit, nsecs);
       end_time = add_emacs_time (current_emacs_time (), timeout);
@@ -6737,7 +6592,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   while (1)
     {
-      int timeout_reduced_for_timers = 0;
+      bool timeout_reduced_for_timers = 0;
       SELECT_TYPE waitchannels;
       int xerrno;
 
@@ -6761,7 +6616,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  timeout = make_emacs_time (0, 0);
 	}
-      else if (time_limit || 0 < nsecs)
+      else if (time_limit || nsecs > 0)
 	{
 	  EMACS_TIME now = current_emacs_time ();
 	  if (EMACS_TIME_LE (end_time, now))
@@ -6799,7 +6654,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      && requeued_events_pending_p ())
 	    break;
 
-	  if (EMACS_TIME_VALID_P (timer_delay) && 0 <= nsecs)
+	  if (EMACS_TIME_VALID_P (timer_delay) && nsecs >= 0)
 	    {
 	      if (EMACS_TIME_LT (timer_delay, timeout))
 		{
@@ -7088,9 +6943,9 @@ unhold_keyboard_input (void)
   kbd_is_on_hold = 0;
 }
 
-/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+/* Return true if keyboard input is on hold, zero otherwise.  */
 
-int
+bool
 kbd_on_hold_p (void)
 {
   return kbd_is_on_hold;
@@ -7178,7 +7033,6 @@ init_process_emacs (void)
 
   inhibit_sentinels = 0;
 
-#ifdef SIGCHLD
 #ifndef CANNOT_DUMP
   if (! noninteractive || initialized)
 #endif
@@ -7187,7 +7041,6 @@ init_process_emacs (void)
       emacs_sigaction_init (&action, deliver_child_signal);
       sigaction (SIGCHLD, &action, 0);
     }
-#endif
 
   FD_ZERO (&input_wait_mask);
   FD_ZERO (&non_keyboard_wait_mask);
@@ -7214,9 +7067,7 @@ init_process_emacs (void)
 #endif
 
   Vprocess_alist = Qnil;
-#ifdef SIGCHLD
   deleted_pid_list = Qnil;
-#endif
   for (i = 0; i < MAXDESC; i++)
     {
       chan_process[i] = Qnil;
@@ -7343,9 +7194,7 @@ syms_of_process (void)
   DEFSYM (Qlast_nonmenu_event, "last-nonmenu-event");
 
   staticpro (&Vprocess_alist);
-#ifdef SIGCHLD
   staticpro (&deleted_pid_list);
-#endif
 
 #endif	/* subprocesses */
 

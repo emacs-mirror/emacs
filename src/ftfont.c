@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2012 Free Software Foundation, Inc.
+   Copyright (C) 2006-2013 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -393,16 +393,14 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
       cache_data = xmalloc (sizeof *cache_data);
       cache_data->ft_face = NULL;
       cache_data->fc_charset = NULL;
-      val = make_save_value (NULL, 0);
-      XSAVE_VALUE (val)->integer = 0;
-      XSAVE_VALUE (val)->pointer = cache_data;
+      val = make_save_value (SAVE_TYPE_PTR_INT, cache_data, 0);
       cache = Fcons (Qnil, val);
       Fputhash (key, cache, ft_face_cache);
     }
   else
     {
       val = XCDR (cache);
-      cache_data = XSAVE_VALUE (val)->pointer;
+      cache_data = XSAVE_POINTER (val, 0);
     }
 
   if (cache_for == FTFONT_CACHE_FOR_ENTITY)
@@ -468,7 +466,7 @@ ftfont_get_fc_charset (Lisp_Object entity)
 
   cache = ftfont_lookup_cache (entity, FTFONT_CACHE_FOR_CHARSET);
   val = XCDR (cache);
-  cache_data = XSAVE_VALUE (val)->pointer;
+  cache_data = XSAVE_POINTER (val, 0);
   return cache_data->fc_charset;
 }
 
@@ -1200,9 +1198,9 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   filename = XCAR (val);
   idx = XCDR (val);
   val = XCDR (cache);
-  cache_data = XSAVE_VALUE (XCDR (cache))->pointer;
+  cache_data = XSAVE_POINTER (XCDR (cache), 0);
   ft_face = cache_data->ft_face;
-  if (XSAVE_VALUE (val)->integer > 0)
+  if (XSAVE_INTEGER (val, 1) > 0)
     {
       /* FT_Face in this cache is already used by the different size.  */
       if (FT_New_Size (ft_face, &ft_size) != 0)
@@ -1213,13 +1211,13 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	  return Qnil;
 	}
     }
-  XSAVE_VALUE (val)->integer++;
+  set_save_integer (val, 1, XSAVE_INTEGER (val, 1) + 1);
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
   if (FT_Set_Pixel_Sizes (ft_face, size, size) != 0)
     {
-      if (XSAVE_VALUE (val)->integer == 0)
+      if (XSAVE_INTEGER (val, 1) == 0)
 	FT_Done_Face (ft_face);
       return Qnil;
     }
@@ -1328,10 +1326,10 @@ ftfont_close (FRAME_PTR f, struct font *font)
   cache = ftfont_lookup_cache (val, FTFONT_CACHE_FOR_FACE);
   eassert (CONSP (cache));
   val = XCDR (cache);
-  (XSAVE_VALUE (val)->integer)--;
-  if (XSAVE_VALUE (val)->integer == 0)
+  set_save_integer (val, 1, XSAVE_INTEGER (val, 1) - 1);
+  if (XSAVE_INTEGER (val, 1) == 0)
     {
-      struct ftfont_cache_data *cache_data = XSAVE_VALUE (val)->pointer;
+      struct ftfont_cache_data *cache_data = XSAVE_POINTER (val, 0);
 
       FT_Done_Face (cache_data->ft_face);
 #ifdef HAVE_LIBOTF
@@ -2543,7 +2541,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 
       if (NILP (lglyph))
 	{
-	  lglyph = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+	  lglyph = LGLYPH_NEW ();
 	  LGSTRING_SET_GLYPH (lgstring, i, lglyph);
 	}
       LGLYPH_SET_FROM (lglyph, g->from);
@@ -2557,9 +2555,8 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       LGLYPH_SET_DESCENT (lglyph, g->descent >> 6);
       if (g->adjusted)
 	{
-	  Lisp_Object vec;
+	  Lisp_Object vec = make_uninit_vector (3);
 
-	  vec = Fmake_vector (make_number (3), Qnil);
 	  ASET (vec, 0, make_number (g->xoff >> 6));
 	  ASET (vec, 1, make_number (g->yoff >> 6));
 	  ASET (vec, 2, make_number (g->xadv >> 6));

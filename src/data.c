@@ -1,6 +1,6 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -506,7 +506,9 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
 /* Extract and set components of symbols.  */
 
 DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
-       doc: /* Return t if SYMBOL's value is not void.  */)
+       doc: /* Return t if SYMBOL's value is not void.
+Note that if `lexical-binding' is in effect, this refers to the
+global value outside of any lexical scope.  */)
   (register Lisp_Object symbol)
 {
   Lisp_Object valcontents;
@@ -581,7 +583,7 @@ DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-    return XSYMBOL (symbol)->function;
+  return XSYMBOL (symbol)->function;
 }
 
 DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
@@ -912,13 +914,11 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
     case Lisp_Fwd_Buffer_Obj:
       {
 	int offset = XBUFFER_OBJFWD (valcontents)->offset;
-	Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
+	Lisp_Object predicate = XBUFFER_OBJFWD (valcontents)->predicate;
 
-	if (!(NILP (type) || NILP (newval)
-	      || (XINT (type) == Lisp_Int0
-		  ? INTEGERP (newval)
-		  : XTYPE (newval) == XINT (type))))
-	  buffer_slot_type_mismatch (newval, XINT (type));
+	if (!NILP (predicate) && !NILP (newval)
+	    && NILP (call1 (predicate, newval)))
+	  wrong_type_argument (predicate, newval);
 
 	if (buf == NULL)
 	  buf = current_buffer;
@@ -1047,7 +1047,9 @@ find_symbol_value (Lisp_Object symbol)
 }
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
-       doc: /* Return SYMBOL's value.  Error if that is void.  */)
+       doc: /* Return SYMBOL's value.  Error if that is void.
+Note that if `lexical-binding' is in effect, this returns the
+global value outside of any lexical scope.  */)
   (Lisp_Object symbol)
 {
   Lisp_Object val;
@@ -2335,13 +2337,13 @@ cons_to_unsigned (Lisp_Object c, uintmax_t max)
   uintmax_t val IF_LINT (= 0);
   if (INTEGERP (c))
     {
-      valid = 0 <= XINT (c);
+      valid = XINT (c) >= 0;
       val = XINT (c);
     }
   else if (FLOATP (c))
     {
       double d = XFLOAT_DATA (c);
-      if (0 <= d
+      if (d >= 0
 	  && d < (max == UINTMAX_MAX ? (double) UINTMAX_MAX + 1 : max + 1))
 	{
 	  val = d;

@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -264,7 +264,7 @@ This is a list of regexps and regexp matches."
   :type 'sexp)
 
 (defcustom message-ignored-news-headers
-  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
+  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:\\|^X-Message-SMTP-Method:"
   "*Regexp of headers to be removed unconditionally before posting."
   :group 'message-news
   :group 'message-headers
@@ -1743,7 +1743,7 @@ no, only reply back to the author."
 				   (file-error))
 				 (mm-coding-system-p 'utf-8)
 				 (executable-find idna-program)
-				 (string= (idna-to-ascii "räksmörgås")
+				 (string= (idna-to-ascii "rÃ¤ksmÃ¶rgÃ¥s")
 					  "xn--rksmrgs-5wao1o")
 				 t)
   "Whether to encode non-ASCII in domain names into ASCII according to IDNA.
@@ -3137,22 +3137,10 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (push-mark)
   (message-position-on-field "Summary" "Subject"))
 
-(eval-when-compile
-  (defmacro message-called-interactively-p (kind)
-    (condition-case nil
-	(progn
-	  (eval '(called-interactively-p 'any))
-	  ;; Emacs >=23.2
-	  `(called-interactively-p ,kind))
-      ;; Emacs <23.2
-      (wrong-number-of-arguments '(called-interactively-p))
-      ;; XEmacs
-      (void-function '(interactive-p)))))
-
 (defun message-goto-body ()
   "Move point to the beginning of the message body."
   (interactive)
-  (when (and (message-called-interactively-p 'any)
+  (when (and (gmm-called-interactively-p 'any)
 	     (looking-at "[ \t]*\n"))
     (expand-abbrev))
   (push-mark)
@@ -3826,7 +3814,9 @@ prefix, and don't delete any headers."
   (interactive "P")
   ;; eval the let forms contained in message-cite-style
   (eval
-   `(let ,message-cite-style
+   `(let ,(if (symbolp message-cite-style)
+	      (symbol-value message-cite-style)
+	    message-cite-style)
       (message--yank-original-internal ',arg))))
 
 (defun message-yank-buffer (buffer)
@@ -4107,11 +4097,9 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
-  (if message-return-action
-      (progn
-        (bury-buffer buffer)
-        (apply (car message-return-action) (cdr message-return-action)))
-    (with-current-buffer buffer (bury-buffer))))
+  (bury-buffer buffer)
+  (when message-return-action
+    (apply (car message-return-action) (cdr message-return-action))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
@@ -7386,12 +7374,13 @@ Optional DIGEST will use digest to forward."
 	(dolist (elem ignored)
 	  (message-remove-header elem t))))))
 
-(defun message-forward-make-body-mime (forward-buffer)
+(defun message-forward-make-body-mime (forward-buffer &optional beg end)
   (let ((b (point)))
     (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")
     (save-restriction
       (narrow-to-region (point) (point))
-      (mml-insert-buffer forward-buffer)
+      (insert-buffer-substring forward-buffer beg end)
+      (mml-quote-region (point-min) (point-max))
       (goto-char (point-min))
       (when (looking-at "From ")
 	(replace-match "X-From-Line: "))
@@ -8141,8 +8130,7 @@ regexp VARSTR."
   (if (fboundp 'mail-abbrevs-setup)
       (let ((minibuffer-setup-hook 'mail-abbrevs-setup)
 	    (minibuffer-local-map message-minibuffer-local-map))
-	(flet ((mail-abbrev-in-expansion-header-p nil t))
-	  (read-from-minibuffer prompt initial-contents)))
+	(read-from-minibuffer prompt initial-contents))
     (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook)
 	  (minibuffer-local-map message-minibuffer-local-map))
       (read-string prompt initial-contents))))
@@ -8431,7 +8419,7 @@ Used in `message-simplify-recipients'."
 (run-hooks 'message-load-hook)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; message.el ends here

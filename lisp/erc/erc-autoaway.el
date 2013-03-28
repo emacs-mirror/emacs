@@ -1,6 +1,6 @@
 ;;; erc-autoaway.el --- Provides autoaway for ERC
 
-;; Copyright (C) 2002-2004, 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: FSF

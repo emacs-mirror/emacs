@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -426,6 +426,14 @@ when converting units."
   :version "24.3"
   :type 'boolean)
 
+(defcustom calc-allow-units-as-numbers
+  t
+  "If non-nil, allow unit expressions to be treated like numbers 
+when converting units, if the expression can be simplified to be unitless."
+  :group 'calc
+  :version "24.4"
+  :type 'boolean)
+
 (defcustom calc-undo-length
   100
   "The number of undo steps that will be preserved when Calc is quit."
@@ -435,9 +443,9 @@ when converting units."
 (defcustom calc-highlight-selections-with-faces
   nil
   "If non-nil, use a separate face to indicate selected sub-formulas.
-If `calc-show-selections' is non-nil, then selected sub-formulas are shown
-by displaying the rest of the formula in `calc-nonselected-face'.
-If `calc-show-selections' is nil, then selected sub-formulas are shown
+If option `calc-show-selections' is non-nil, then selected sub-formulas are
+shown by displaying the rest of the formula in `calc-nonselected-face'.
+If option `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
   :version "24.1"
   :group 'calc
@@ -787,7 +795,9 @@ If nil, selections displayed but ignored.")
     "M-D-Y< H:mm:SSpp>"
     "D-M-Y< h:mm:SS>"
     "j<, h:mm:SS>"
-    "YYddd< hh:mm:ss>"))
+    "YYddd< hh:mm:ss>"
+    "ZYYY-MM-DD Www< hh:mm>"
+    "IYYY-Iww-w<Thh:mm:ss>"))
 
 (defcalcmodevar calc-autorange-units nil
   "If non-nil, automatically set unit prefixes to keep units in a reasonable range.")
@@ -1181,7 +1191,7 @@ Used by `calc-user-invocation'.")
 
 ;;;###autoload
 (defun calc-dispatch (&optional arg)
-  "Invoke the GNU Emacs Calculator.  See `calc-dispatch-help' for details."
+  "Invoke the GNU Emacs Calculator.  See \\[calc-dispatch-help] for details."
   (interactive "P")
 ;  (sit-for echo-keystrokes)
   (condition-case err   ; look for other keys bound to calc-dispatch

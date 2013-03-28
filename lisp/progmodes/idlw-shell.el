@@ -1,6 +1,6 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>

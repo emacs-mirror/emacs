@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -200,6 +200,8 @@ pass to the OPERATION."
 		 (inhibit-file-name-operation operation))
 	    (apply 'ange-ftp-hook-function operation args)))))))
 
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."

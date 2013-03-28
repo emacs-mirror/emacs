@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -1518,7 +1518,7 @@ mail status in mode line"))
                   :button (:toggle . (bound-and-true-p semantic-mode))))
 
     (bindings--define-key menu [ede]
-      '(menu-item "Project support (EDE)"
+      '(menu-item "Project Support (EDE)"
                   global-ede-mode
                   :help "Toggle the Emacs Development Environment (Global EDE mode)"
                   :button (:toggle . (bound-and-true-p global-ede-mode))))
@@ -1637,8 +1637,8 @@ key, a click, or a menu-item"))
       '(menu-item "Find Options by Value..." apropos-value
                   :help "Find variables whose values match a regexp"))
     (bindings--define-key menu [find-options-by-name]
-      '(menu-item "Find Options by Name..." apropos-variable
-                  :help "Find variables whose names match a regexp"))
+      '(menu-item "Find Options by Name..." apropos-user-option
+                  :help "Find user options whose names match a regexp"))
     (bindings--define-key menu [find-commands-by-name]
       '(menu-item "Find Commands by Name..." apropos-command
                   :help "Find commands whose names match a regexp"))

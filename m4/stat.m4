@@ -1,6 +1,6 @@
-# serial 10
+# serial 11
 
-# Copyright (C) 2009-2012 Free Software Foundation, Inc.
+# Copyright (C) 2009-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -68,8 +68,4 @@ AC_DEFUN([gl_FUNC_STAT],
 ])
 
 # Prerequisites of lib/stat.c.
-AC_DEFUN([gl_PREREQ_STAT],
-[
-  AC_REQUIRE([AC_C_INLINE])
-  :
-])
+AC_DEFUN([gl_PREREQ_STAT], [:])

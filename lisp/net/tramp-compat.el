@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -52,6 +52,7 @@
   (require 'format-spec)
   (require 'shell)
 
+  (require 'trampver)
   (require 'tramp-loaddefs)
 
   ;; As long as password.el is not part of (X)Emacs, it shouldn't be
@@ -70,22 +71,6 @@
   (if (featurep 'xemacs)
       (require 'timer-funcs)
     (require 'timer))
-
-  ;; We check whether `start-file-process' is bound.
-  ;; Note: we deactivate this.  There are problems, at least in SXEmacs.
-  (unless t;(fboundp 'start-file-process)
-
-    ;; tramp-util offers integration into other (X)Emacs packages like
-    ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
-    (eval-after-load "tramp"
-      '(require 'tramp-util))
-
-    ;; Make sure that we get integration with the VC package.  When it
-    ;; is loaded, we need to pull in the integration module.  Not
-    ;; necessary in Emacs 23.
-    (eval-after-load "vc"
-      (eval-after-load "tramp"
-	'(require 'tramp-vc))))
 
   ;; Avoid byte-compiler warnings if the byte-compiler supports this.
   ;; Currently, XEmacs supports this.
@@ -112,7 +97,8 @@
   ;; `remote-file-name-inhibit-cache' has been introduced with Emacs 24.1.
   ;; Besides `t', `nil', and integer, we use also timestamps (as
   ;; returned by `current-time') internally.
-  (defvar remote-file-name-inhibit-cache nil)
+  (unless (boundp 'remote-file-name-inhibit-cache)
+    (defvar remote-file-name-inhibit-cache nil))
 
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
@@ -132,9 +118,7 @@
   ;; mechanism.
 
   ;; `file-remote-p' has been introduced with Emacs 22.  The version
-  ;; of XEmacs is not a magic file name function (yet); this is
-  ;; corrected in tramp-util.el.  Here it is sufficient if the
-  ;; function exists.
+  ;; of XEmacs is not a magic file name function (yet).
   (unless (fboundp 'file-remote-p)
     (defalias 'file-remote-p
       (lambda (file &optional identification connected)
@@ -322,16 +306,17 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	(wrong-number-of-arguments (file-attributes filename))))))
 
 ;; PRESERVE-UID-GID does not exist in XEmacs.
-;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.1.
+;; PRESERVE-EXTENDED-ATTRIBUTES has been introduced with Emacs 24.1
+;; (as PRESERVE-SELINUX-CONTEXT), and renamed in Emacs 24.3.
 (defun tramp-compat-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-selinux-context)
+	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files (compat function)."
   (cond
-   (preserve-selinux-context
+   (preserve-extended-attributes
     (tramp-compat-funcall
      'copy-file filename newname ok-if-already-exists keep-date
-     preserve-uid-gid preserve-selinux-context))
+     preserve-uid-gid preserve-extended-attributes))
    (preserve-uid-gid
     (tramp-compat-funcall
      'copy-file filename newname ok-if-already-exists keep-date
@@ -399,25 +384,30 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 		 trash)))
        (delete-file filename)))))
 
-;; RECURSIVE has been introduced with Emacs 23.2.
-(defun tramp-compat-delete-directory (directory &optional recursive)
+;; RECURSIVE has been introduced with Emacs 23.2.  TRASH has been
+;; introduced with Emacs 24.1.
+(defun tramp-compat-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files (compat function)."
-  (if (null recursive)
-      (delete-directory directory)
-    (condition-case nil
-	(tramp-compat-funcall 'delete-directory directory recursive)
-      ;; This Emacs version does not support the RECURSIVE flag.  We
-      ;; use the implementation from Emacs 23.2.
-      (wrong-number-of-arguments
-       (setq directory (directory-file-name (expand-file-name directory)))
-       (if (not (file-symlink-p directory))
-	   (mapc (lambda (file)
-		   (if (eq t (car (file-attributes file)))
-		       (tramp-compat-delete-directory file recursive)
-		     (delete-file file)))
-		 (directory-files
-		  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
-       (delete-directory directory)))))
+  (condition-case nil
+      (cond
+       (trash
+	(tramp-compat-funcall 'delete-directory directory recursive trash))
+       (recursive
+	(tramp-compat-funcall 'delete-directory directory recursive))
+       (t
+	(delete-directory directory)))
+    ;; This Emacs version does not support the RECURSIVE or TRASH flag.  We
+    ;; use the implementation from Emacs 23.2.
+    (wrong-number-of-arguments
+     (setq directory (directory-file-name (expand-file-name directory)))
+     (if (not (file-symlink-p directory))
+	 (mapc (lambda (file)
+		 (if (eq t (car (file-attributes file)))
+		     (tramp-compat-delete-directory file recursive trash)
+		   (tramp-compat-delete-file file trash)))
+	       (directory-files
+		directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
+     (delete-directory directory))))
 
 ;; `number-sequence' does not exist in XEmacs.  Implementation is
 ;; taken from Emacs 23.
@@ -542,6 +532,11 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 			eol-type
 			"`dos', `unix', or `mac'")))))
         (t (error "Can't change EOL conversion -- is MULE missing?"))))
+
+;; `user-error' has been added to Emacs 24.3.
+(defun tramp-compat-user-error (format &rest args)
+  "Signal a pilot error."
+  (apply (if (fboundp 'user-error) 'user-error 'error) format args))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -168,7 +168,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
 ;;;###autoload   "Return non-nil if FILE is registered with git."
 ;;;###autoload   (if (vc-find-root file ".git")       ; Short cut.
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-git")
+;;;###autoload         (load "vc-git" nil t)
 ;;;###autoload         (vc-git-registered file))))
 
 (defun vc-git-registered (file)
@@ -1148,7 +1148,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 The difference to vc-do-command is that this function always invokes
 `vc-git-program'."
   (apply 'vc-do-command (or buffer "*vc*") okstatus vc-git-program
-         file-or-list flags))
+         file-or-list (cons "--no-pager" flags)))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."

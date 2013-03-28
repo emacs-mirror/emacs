@@ -1,6 +1,6 @@
-/* MS-DOS specific C utilities.          -*- coding: raw-text -*-
+/* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Contributed by Morten Welinder */
 /* New display, keyboard, and mouse control by Kim F. Storm */
+
+/* Note: This file MUST use a unibyte encoding, to both display the
+   keys on the non-US keyboard layout as their respective labels, and
+   provide the correct byte values for the keyboard input to inject
+   into Emacs.  See 'struct dos_keyboard_map' below.  As long as there
+   are only European keyboard layouts here, we are OK with DOS
+   codepage 850 encoding.  */
 
 /* Note: some of the stuff here was taken from end of sysdep.c in demacs. */
 
@@ -1254,7 +1261,7 @@ IT_update_begin (struct frame *f)
 	  /* If the mouse highlight is in the window that was deleted
 	     (e.g., if it was popped by completion), clear highlight
 	     unconditionally.  */
-	  if (NILP (w->buffer))
+	  if (NILP (w->contents))
 	    hlinfo->mouse_face_window = Qnil;
 	  else
 	    {
@@ -1264,7 +1271,7 @@ IT_update_begin (struct frame *f)
 		  break;
 	    }
 
-	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
+	  if (NILP (w->contents) || i < w->desired_matrix->nrows)
 	    clear_mouse_face (hlinfo);
 	}
     }
@@ -1314,7 +1321,7 @@ IT_frame_up_to_date (struct frame *f)
     new_cursor = frame_desired_cursor;
   else
     {
-      struct buffer *b = XBUFFER (sw->buffer);
+      struct buffer *b = XBUFFER (sw->contents);
 
       if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;
@@ -1965,10 +1972,10 @@ struct dos_keyboard_map
 
 static struct dos_keyboard_map us_keyboard = {
 /* 0         1         2         3         4         5      */
-/* 01234567890123456789012345678901234567890 12345678901234 */
-  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\   zxcvbnm,./  ",
+/* 01234567890123456789012345678901234567890 123 45678901234 */
+  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\  \\zxcvbnm,./  ",
 /* 0123456789012345678901234567890123456789 012345678901234 */
-  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|   ZXCVBNM<>?  ",
+  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|  |ZXCVBNM<>?  ",
   0,				/* no Alt-Gr key */
   0				/* no translate table */
 };
@@ -1976,9 +1983,9 @@ static struct dos_keyboard_map us_keyboard = {
 static struct dos_keyboard_map fr_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 012 3456789012345678901234567890123456789012345678901234 */
-  "˝&Ç\",(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*   wxcvbnm;:!  ",
+  "˝&Ç\"'(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*  <wxcvbn,;:!  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
-  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê   WXCVBN?./ı  ",
+  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê  >WXCVBN?./ı  ",
 /* 01234567 89012345678901234567890123456789012345678901234 */
   "  ~#{[|`\\^@]}             œ                              ",
   0				/* no translate table */
@@ -2000,9 +2007,9 @@ static struct kbd_translate it_kbd_translate_table[] = {
 static struct dos_keyboard_map it_keyboard = {
 /* 0          1         2         3         4         5     */
 /* 0 123456789012345678901234567890123456789012345678901234 */
-  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó   zxcvbnm,.-  ",
+  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
+  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "        {}~`             []             @#               ",
   it_kbd_translate_table
@@ -2011,9 +2018,9 @@ static struct dos_keyboard_map it_keyboard = {
 static struct dos_keyboard_map dk_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 0123456789012345678901234567890123456789012345678901234 */
-  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'   zxcvbnm,.-  ",
+  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*   ZXCVBNM;:_  ",
+  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "  @ú$  {[]} |                                             ",
   0				/* no translate table */
@@ -3281,10 +3288,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      erasing it works correctly...  */
   if (! NILP (saved_echo_area_message))
     message_with_string ("%s", saved_echo_area_message, 0);
-  message (0);
+  message1 (0);
   while (statecount--)
     xfree (state[statecount].screen_behind);
-  IT_display_cursor (1);	/* turn cursor back on */
+  IT_display_cursor (1);	/* Turn cursor back on.  */
   /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button
@@ -3339,7 +3346,7 @@ void msdos_downcase_filename (unsigned char *);
 /* Destructively turn backslashes into slashes.  */
 
 void
-dostounix_filename (char *p)
+dostounix_filename (char *p, int ignore)
 {
   msdos_downcase_filename (p);
 
@@ -3603,7 +3610,7 @@ init_environment (int argc, char **argv, int skip_args)
   if (!s) s = "c:/command.com";
   t = alloca (strlen (s) + 1);
   strcpy (t, s);
-  dostounix_filename (t);
+  dostounix_filename (t, 0);
   setenv ("SHELL", t, 0);
 
   /* PATH is also downcased and backslashes mirrored.  */
@@ -3613,7 +3620,7 @@ init_environment (int argc, char **argv, int skip_args)
   /* Current directory is always considered part of MsDos's path but it is
      not normally mentioned.  Now it is.  */
   strcat (strcpy (t, ".;"), s);
-  dostounix_filename (t); /* Not a single file name, but this should work.  */
+  dostounix_filename (t, 0); /* Not a single file name, but this should work.  */
   setenv ("PATH", t, 1);
 
   /* In some sense all dos users have root privileges, so...  */
@@ -3955,14 +3962,6 @@ careadlinkat (int fd, char const *filename,
 	buffer[len + 1] = '\0';
     }
   return buffer;
-}
-
-ssize_t
-careadlinkatcwd (int fd, char const *filename, char *buffer,
-                 size_t buffer_size)
-{
-  (void) fd;
-  return readlink (filename, buffer, buffer_size);
 }
 
 

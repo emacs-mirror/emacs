@@ -6,7 +6,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -17,8 +17,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -191,11 +190,11 @@ but use different function names (in fact, @file{cl.el} mainly just
 defines aliases to the @file{cl-lib.el} definitions).  Where
 @file{cl-lib.el} defines a function called, for example,
 @code{cl-incf}, @file{cl.el} uses the same name but without the
-@samp{cl-} prefix, e.g.@: @code{incf} in this example.  There are a few
+@samp{cl-} prefix, e.g., @code{incf} in this example.  There are a few
 exceptions to this.  First, functions such as @code{cl-defun} where
 the unprefixed version was already used for a standard Emacs Lisp
 function.  In such cases, the @file{cl.el} version adds a @samp{*}
-suffix, e.g.@: @code{defun*}.  Second, there are some obsolete features
+suffix, e.g., @code{defun*}.  Second, there are some obsolete features
 that are only implemented in @file{cl.el}, not in @file{cl-lib.el},
 because they are replaced by other standard Emacs Lisp features.
 Finally, in a very few cases the old @file{cl.el} versions do not
@@ -704,14 +703,6 @@ The type symbol @code{real} is a synonym for @code{number}, and
 The type symbols @code{character} and @code{string-char} match
 integers in the range from 0 to 255.
 
-@c No longer relevant, so covered by first item above (float -> floatp).
-@ignore
-@item
-The type symbol @code{float} uses the @code{cl-floatp-safe} predicate
-defined by this package rather than @code{floatp}, so it will work
-correctly even in Emacs versions without floating-point support.
-@end ignore
-
 @item
 The type list @code{(integer @var{low} @var{high})} represents all
 integers between @var{low} and @var{high}, inclusive.  Either bound
@@ -749,7 +740,7 @@ This function attempts to convert @var{object} to the specified
 @var{type}.  If @var{object} is already of that type as determined by
 @code{cl-typep}, it is simply returned.  Otherwise, certain types of
 conversions will be made:  If @var{type} is any sequence type
-(@code{string}, @code{list}, etc.) then @var{object} will be
+(@code{string}, @code{list}, etc.)@: then @var{object} will be
 converted to that type if possible.  If @var{type} is
 @code{character}, then strings of length one and symbols with
 one-character names can be coerced.  If @var{type} is @code{float},
@@ -818,8 +809,9 @@ not compare strings against vectors of integers.
 Also note that the Common Lisp functions @code{member} and @code{assoc}
 use @code{eql} to compare elements, whereas Emacs Lisp follows the
 MacLisp tradition and uses @code{equal} for these two functions.
-In Emacs, use @code{memq} (or @code{cl-member}) and @code{assq} (or
-@code{cl-assoc}) to get functions which use @code{eql} for comparisons.
+The functions @code{cl-member} and @code{cl-assoc} use @code{eql},
+as in Common Lisp.  The standard Emacs Lisp functions @code{memq} and
+@code{assq} use @code{eq}, and the standard @code{memql} uses @code{eql}.
 
 @node Control Structure
 @chapter Control Structure
@@ -898,8 +890,8 @@ generalized variables.
 @node Setf Extensions
 @subsection Setf Extensions
 
-Several standard (e.g.@: @code{car}) and Emacs-specific
-(e.g.@: @code{window-point}) Lisp functions are @code{setf}-able by default.
+Several standard (e.g., @code{car}) and Emacs-specific
+(e.g., @code{window-point}) Lisp functions are @code{setf}-able by default.
 This package defines @code{setf} handlers for several additional functions:
 
 @itemize
@@ -1200,9 +1192,6 @@ The only exceptions are plain variables and calls to
 bound on entry, it is simply made unbound by @code{makunbound} or
 @code{fmakunbound} on exit.
 @end ignore
-
-Note that the @file{cl.el} version of this macro behaves slightly
-differently.  @xref{Obsolete Macros}.
 @end defmac
 
 @defmac cl-letf* (bindings@dots{}) forms@dots{}
@@ -2923,14 +2912,6 @@ error if the argument is not an integer.
 This predicate tests whether @var{integer} is even.  It is an
 error if the argument is not an integer.
 @end defun
-
-@ignore
-@defun cl-floatp-safe object
-This predicate tests whether @var{object} is a floating-point
-number.  On systems that support floating-point, this is equivalent
-to @code{floatp}.  On other systems, this always returns @code{nil}.
-@end defun
-@end ignore
 
 @node Numerical Functions
 @section Numerical Functions
@@ -4870,7 +4851,7 @@ direct C-language calls to the message routines rather than going
 through the Lisp @code{message} function.
 
 @c Bug#411.
-Note that many primitives (e.g.@: @code{+}) have special byte-compile
+Note that many primitives (e.g., @code{+}) have special byte-compile
 handling.  Attempts to redefine such functions using @code{flet} will
 fail if byte-compiled.
 @c Or cl-flet.
@@ -4886,13 +4867,6 @@ does not behave in precisely the same way.
 This version of @code{labels} uses the obsolete @code{lexical-let}
 form (@pxref{Obsolete Lexical Binding}), rather than the true
 lexical binding that @code{cl-labels} uses.
-@end defmac
-
-@defmac letf (bindings@dots{}) forms@dots{}
-This macro is almost exactly the same as @code{cl-letf}, which
-replaces it (@pxref{Modify Macros}).  The only difference is in
-details that relate to some deprecated usage of @code{symbol-function}
-in place forms.
 @end defmac
 
 @node Obsolete Setf Customization

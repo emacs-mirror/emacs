@@ -1,6 +1,6 @@
 ;;; ob-exp.el --- Exportation of org-babel source blocks
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
@@ -28,7 +28,6 @@
 (eval-when-compile
   (require 'cl))
 
-(defvar obe-marker nil)
 (defvar org-current-export-file)
 (defvar org-babel-lob-one-liner-regexp)
 (defvar org-babel-ref-split-regexp)

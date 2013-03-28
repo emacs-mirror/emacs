@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2012 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1724,7 +1724,8 @@ main (int argc, char **argv)
       needlf = 2;
     }
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
@@ -1825,7 +1826,8 @@ main (int argc, char **argv)
   if (needlf)
     printf ("\n");
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   if (rl < 0)
     exit_status = EXIT_FAILURE;

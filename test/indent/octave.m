@@ -1,4 +1,4 @@
-## -*- octave -*-
+## -*- mode: octave; coding: utf-8 -*-
 
 function res = tcomp (fn)
   %% res = tcomp (fn)
@@ -35,7 +35,7 @@ function res = tcomp (fn)
 
 endfunction
 
-## Copyright (C) 2005, 2006, 2007, 2008, 2009 S�ren Hauberg
+## Copyright (C) 2005, 2006, 2007, 2008, 2009 Søren Hauberg
 ##
 ## This file is part of Octave.
 ##

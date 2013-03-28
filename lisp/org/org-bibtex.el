@@ -1,6 +1,6 @@
 ;;; org-bibtex.el --- Org links to BibTeX entries
 ;;
-;; Copyright (C) 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg at altern dot org>
 ;;       Carsten Dominik <carsten dot dominik at gmail dot com>
@@ -88,7 +88,7 @@
 ;;
 ;; - All Bibtex information is taken from the document compiled by
 ;;   Andrew Roberts from the Bibtex manual, available at
-;;   http://www.andy-roberts.net/misc/latex/sessions/bibtex/bibentries.pdf
+;;   http://www.andy-roberts.net/res/writing/latex/bibentries.pdf
 ;;
 ;;; History:
 ;;
@@ -120,7 +120,6 @@
 (declare-function bibtex-generate-autokey "bibtex" ())
 (declare-function bibtex-parse-entry "bibtex" (&optional content))
 (declare-function bibtex-url "bibtex" (&optional pos no-browse))
-(declare-function longlines-mode "longlines" (&optional arg))
 (declare-function org-babel-trim "ob" (string &optional regexp))
 
 
@@ -381,7 +380,7 @@ This variable is relevant only if `org-bibtex-export-tags-as-keywords' is t."
 	   (buf-name (format "*Bibtex Help %s*" name)))
       (with-output-to-temp-buffer buf-name
 	(princ (cdr (assoc field org-bibtex-fields))))
-      (with-current-buffer buf-name (longlines-mode t))
+      (with-current-buffer buf-name (visual-line-mode 1))
       (org-fit-window-to-buffer (get-buffer-window buf-name))
       ((lambda (result) (when (> (length result) 0) result))
        (read-from-minibuffer (format "%s: " name))))))
@@ -679,7 +678,7 @@ This function relies `org-search-view' to locate results."
         (org-agenda-search-view-always-boolean t))
     (org-search-view nil
 		     (format "%s +{:%s%s:}"
-			     string org-bibtex-prefix
+			     string (or org-bibtex-prefix "")
 			     org-bibtex-type-property-name))))
 
 (provide 'org-bibtex)

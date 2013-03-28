@@ -1,7 +1,7 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
@@ -897,7 +897,7 @@ other client."
       (let* ((buffer (erc-dcc-find-file file))
              (size (buffer-size buffer))
              (start (with-current-buffer buffer
-                      (set-marker (make-marker) (point-min))))
+                      (point-min-marker)))
              (sproc (erc-dcc-server "dcc-send"
                                     'erc-dcc-send-filter
                                     'erc-dcc-send-sentinel))
@@ -942,7 +942,6 @@ filter and a process sentinel, and making the connection."
         (set-buffer-multibyte nil))
 
       (setq mode-line-process '(":%s")
-            buffer-file-type t
             buffer-read-only t)
       (setq erc-dcc-file-name file)
 
@@ -1166,7 +1165,7 @@ other client."
     (setq erc-dcc-from nick)
     (setq erc-dcc-entry-data entry)
     (setq erc-dcc-unprocessed-output "")
-    (setq erc-insert-marker (set-marker (make-marker) (point-max)))
+    (setq erc-insert-marker (point-max-marker))
     (setq erc-input-marker (make-marker))
     (erc-display-prompt buffer (point-max))
     (set-process-buffer proc buffer)

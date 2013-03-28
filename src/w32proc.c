@@ -1,5 +1,5 @@
 /* Process support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1995, 1999-2012  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -800,18 +800,68 @@ new_child (void)
   DWORD id;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (!CHILD_ACTIVE (cp))
+    if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
       goto Initialize;
+  if (child_proc_count == MAX_CHILDREN)
+    {
+      int i = 0;
+      child_process *dead_cp = NULL;
+
+      DebPrint (("new_child: No vacant slots, looking for dead processes\n"));
+      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+	if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
+	  {
+	    DWORD status = 0;
+
+	    if (!GetExitCodeProcess (cp->procinfo.hProcess, &status))
+	      {
+		DebPrint (("new_child.GetExitCodeProcess: error %lu for PID %lu\n",
+			   GetLastError (), cp->procinfo.dwProcessId));
+		status = STILL_ACTIVE;
+	      }
+	    if (status != STILL_ACTIVE
+		|| WaitForSingleObject (cp->procinfo.hProcess, 0) == WAIT_OBJECT_0)
+	      {
+		DebPrint (("new_child: Freeing slot of dead process %d, fd %d\n",
+			   cp->procinfo.dwProcessId, cp->fd));
+		CloseHandle (cp->procinfo.hProcess);
+		cp->procinfo.hProcess = NULL;
+		CloseHandle (cp->procinfo.hThread);
+		cp->procinfo.hThread = NULL;
+		/* Free up to 2 dead slots at a time, so that if we
+		   have a lot of them, they will eventually all be
+		   freed when the tornado ends.  */
+		if (i == 0)
+		  dead_cp = cp;
+		else
+		  break;
+		i++;
+	      }
+	  }
+      if (dead_cp)
+	{
+	  cp = dead_cp;
+	  goto Initialize;
+	}
+    }
   if (child_proc_count == MAX_CHILDREN)
     return NULL;
   cp = &child_procs[child_proc_count++];
 
  Initialize:
+  /* Last opportunity to avoid leaking handles before we forget them
+     for good.  */
+  if (cp->procinfo.hProcess)
+    CloseHandle (cp->procinfo.hProcess);
+  if (cp->procinfo.hThread)
+    CloseHandle (cp->procinfo.hThread);
   memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
   cp->procinfo.hProcess = NULL;
   cp->status = STATUS_READ_ERROR;
+  cp->input_file = NULL;
+  cp->pending_deletion = 0;
 
   /* use manual reset event so that select() will function properly */
   cp->char_avail = CreateEvent (NULL, TRUE, FALSE, NULL);
@@ -857,8 +907,23 @@ delete_child (child_process *cp)
     if (fd_info[i].cp == cp)
       emacs_abort ();
 
-  if (!CHILD_ACTIVE (cp))
+  if (!CHILD_ACTIVE (cp) && cp->procinfo.hProcess == NULL)
     return;
+
+  /* Delete the child's temporary input file, if any, that is pending
+     deletion.  */
+  if (cp->input_file)
+    {
+      if (cp->pending_deletion)
+	{
+	  if (unlink (cp->input_file))
+	    DebPrint (("delete_child.unlink (%s) failed, errno: %d\n",
+		       cp->input_file, errno));
+	  cp->pending_deletion = 0;
+	}
+      xfree (cp->input_file);
+      cp->input_file = NULL;
+    }
 
   /* reap thread if necessary */
   if (cp->thrd)
@@ -901,7 +966,8 @@ delete_child (child_process *cp)
   if (cp == child_procs + child_proc_count - 1)
     {
       for (i = child_proc_count-1; i >= 0; i--)
-	if (CHILD_ACTIVE (&child_procs[i]))
+	if (CHILD_ACTIVE (&child_procs[i])
+	    || child_procs[i].procinfo.hProcess != NULL)
 	  {
 	    child_proc_count = i + 1;
 	    break;
@@ -918,7 +984,8 @@ find_child_pid (DWORD pid)
   child_process *cp;
 
   for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
-    if (CHILD_ACTIVE (cp) && pid == cp->pid)
+    if ((CHILD_ACTIVE (cp) || cp->procinfo.hProcess != NULL)
+	&& pid == cp->pid)
       return cp;
   return NULL;
 }
@@ -946,17 +1013,23 @@ reader_thread (void *arg)
     {
       int rc;
 
-      if (fd_info[cp->fd].flags & FILE_LISTEN)
+      if (cp->fd >= 0 && fd_info[cp->fd].flags & FILE_LISTEN)
 	rc = _sys_wait_accept (cp->fd);
       else
 	rc = _sys_read_ahead (cp->fd);
+
+      /* Don't bother waiting for the event if we already have been
+	 told to exit by delete_child.  */
+      if (cp->status == STATUS_READ_ERROR || !cp->char_avail)
+	break;
 
       /* The name char_avail is a misnomer - it really just means the
 	 read-ahead has completed, whether successfully or not. */
       if (!SetEvent (cp->char_avail))
         {
-	  DebPrint (("reader_thread.SetEvent failed with %lu for fd %ld\n",
-		     GetLastError (), cp->fd));
+	  DebPrint (("reader_thread.SetEvent(0x%x) failed with %lu for fd %ld (PID %d)\n",
+		     (DWORD_PTR)cp->char_avail, GetLastError (),
+		     cp->fd, cp->pid));
 	  return 1;
 	}
 
@@ -967,6 +1040,11 @@ reader_thread (void *arg)
       if (rc == STATUS_READ_FAILED)
 	break;
 
+      /* Don't bother waiting for the acknowledge if we already have
+	 been told to exit by delete_child.  */
+      if (cp->status == STATUS_READ_ERROR || !cp->char_consumed)
+	break;
+
       /* Wait until our input is acknowledged before reading again */
       if (WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
         {
@@ -974,6 +1052,10 @@ reader_thread (void *arg)
 		     "%lu for fd %ld\n", GetLastError (), cp->fd));
 	  break;
         }
+      /* delete_child sets status to STATUS_READ_ERROR when it wants
+	 us to exit.  */
+      if (cp->status == STATUS_READ_ERROR)
+	break;
     }
   return 0;
 }
@@ -1056,11 +1138,11 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
    This way the select emulator knows how to match file handles with
    entries in child_procs.  */
 void
-register_child (int pid, int fd)
+register_child (pid_t pid, int fd)
 {
   child_process *cp;
 
-  cp = find_child_pid (pid);
+  cp = find_child_pid ((DWORD)pid);
   if (cp == NULL)
     {
       DebPrint (("register_child unable to find pid %lu\n", pid));
@@ -1087,10 +1169,46 @@ register_child (int pid, int fd)
   fd_info[fd].cp = cp;
 }
 
-/* When a process dies its pipe will break so the reader thread will
-   signal failure to the select emulator.
-   The select emulator then calls this routine to clean up.
-   Since the thread signaled failure we can assume it is exiting.  */
+/* Record INFILE as an input file for process PID.  */
+void
+record_infile (pid_t pid, char *infile)
+{
+  child_process *cp;
+
+  /* INFILE should never be NULL, since xstrdup would have signaled
+     memory full condition in that case, see callproc.c where this
+     function is called.  */
+  eassert (infile);
+
+  cp = find_child_pid ((DWORD)pid);
+  if (cp == NULL)
+    {
+      DebPrint (("record_infile is unable to find pid %lu\n", pid));
+      return;
+    }
+
+  cp->input_file = infile;
+}
+
+/* Mark the input file INFILE of the corresponding subprocess as
+   temporary, to be deleted when the subprocess exits.  */
+void
+record_pending_deletion (char *infile)
+{
+  child_process *cp;
+
+  eassert (infile);
+
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
+    if (CHILD_ACTIVE (cp)
+	&& cp->input_file && xstrcasecmp (cp->input_file, infile) == 0)
+      {
+	cp->pending_deletion = 1;
+	break;
+      }
+}
+
+/* Called from waitpid when a process exits.  */
 static void
 reap_subprocess (child_process *cp)
 {
@@ -1100,7 +1218,7 @@ reap_subprocess (child_process *cp)
 #ifdef FULL_DEBUG
       /* Process should have already died before we are called.  */
       if (WaitForSingleObject (cp->procinfo.hProcess, 0) != WAIT_OBJECT_0)
-	DebPrint (("reap_subprocess: child fpr fd %d has not died yet!", cp->fd));
+	DebPrint (("reap_subprocess: child for fd %d has not died yet!", cp->fd));
 #endif
       CloseHandle (cp->procinfo.hProcess);
       cp->procinfo.hProcess = NULL;
@@ -1108,11 +1226,11 @@ reap_subprocess (child_process *cp)
       cp->procinfo.hThread = NULL;
     }
 
-  /* For asynchronous children, the child_proc resources will be freed
-     when the last pipe read descriptor is closed; for synchronous
-     children, we must explicitly free the resources now because
-     register_child has not been called. */
-  if (cp->fd == -1)
+  /* If cp->fd was not closed yet, we might be still reading the
+     process output, so don't free its resources just yet.  The call
+     to delete_child on behalf of this subprocess will be made by
+     sys_read when the subprocess output is fully read.  */
+  if (cp->fd < 0)
     delete_child (cp);
 }
 
@@ -1220,12 +1338,21 @@ waitpid (pid_t pid, int *status, int options)
     {
       QUIT;
       active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
-    } while (active == WAIT_TIMEOUT);
+    } while (active == WAIT_TIMEOUT && !dont_wait);
 
   if (active == WAIT_FAILED)
     {
       errno = EBADF;
       return -1;
+    }
+  else if (active == WAIT_TIMEOUT && dont_wait)
+    {
+      /* PID specifies our subprocess, but it didn't exit yet, so its
+	 status is not yet available.  */
+#ifdef FULL_DEBUG
+      DebPrint (("Wait: PID %d not reap yet\n", cp->pid));
+#endif
+      return 0;
     }
   else if (active >= WAIT_OBJECT_0
 	   && active < WAIT_OBJECT_0+MAXIMUM_WAIT_OBJECTS)
@@ -1274,33 +1401,7 @@ waitpid (pid_t pid, int *status, int options)
 #endif
 
   if (status)
-    {
-      *status = retval;
-    }
-  else if (synch_process_alive)
-    {
-      synch_process_alive = 0;
-
-      /* Report the status of the synchronous process.  */
-      if (WIFEXITED (retval))
-	synch_process_retcode = WEXITSTATUS (retval);
-      else if (WIFSIGNALED (retval))
-	{
-	  int code = WTERMSIG (retval);
-	  const char *signame;
-
-	  synchronize_system_messages_locale ();
-	  signame = strsignal (code);
-
-	  if (signame == 0)
-	    signame = "unknown";
-
-	  synch_process_death = signame;
-	}
-
-      reap_subprocess (cp);
-    }
-
+    *status = retval;
   reap_subprocess (cp);
 
   return pid;
@@ -1485,11 +1586,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   Lisp_Object program, full;
   char *cmdline, *env, *parg, **targ;
   int arglen, numenv;
-  int pid;
+  pid_t pid;
   child_process *cp;
   int is_dos_app, is_cygnus_app, is_gui_app;
   int do_quoting = 0;
-  char escape_char;
   /* We pass our process ID to our children by setting up an environment
      variable in their environment.  */
   char ppid_env_var_buffer[64];
@@ -1502,6 +1602,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      Some extra whitespace characters need quoting in Cygwin programs,
      so this list is conditionally modified below.  */
   char *sepchars = " \t*?";
+  /* This is for native w32 apps; modified below for Cygwin apps.  */
+  char escape_char = '\\';
 
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)
@@ -1874,7 +1976,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	  }
 	else
 	  {
-	    /* Child process and socket input */
+	    /* Child process and socket/comm port input.  */
 	    cp = fd_info[i].cp;
 	    if (cp)
 	      {
@@ -1887,7 +1989,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		    /* Wake up the reader thread for this process */
 		    cp->status = STATUS_READ_READY;
 		    if (!SetEvent (cp->char_consumed))
-		      DebPrint (("nt_select.SetEvent failed with "
+		      DebPrint (("sys_select.SetEvent failed with "
 				 "%lu for fd %ld\n", GetLastError (), i));
 		  }
 
@@ -1955,7 +2057,7 @@ count_children:
     /* Some child_procs might be sockets; ignore them.  Also some
        children may have died already, but we haven't finished reading
        the process output; ignore them too.  */
-    if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
+    if ((CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
 	&& (cp->fd < 0
 	    || (fd_info[cp->fd].flags & FILE_SEND_SIGCHLD) == 0
 	    || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0)
@@ -2035,7 +2137,24 @@ count_children:
 	     (*) Note that MsgWaitForMultipleObjects above is an
 	     internal dispatch point for messages that are sent to
 	     windows created by this thread.  */
-	  drain_message_queue ();
+	  if (drain_message_queue ()
+	      /* If drain_message_queue returns non-zero, that means
+		 we received a WM_EMACS_FILENOTIFY message.  If this
+		 is a TTY frame, we must signal the caller that keyboard
+		 input is available, so that w32_console_read_socket
+		 will be called to pick up the notifications.  If we
+		 don't do that, file notifications will only work when
+		 the Emacs TTY frame has focus.  */
+	      && FRAME_TERMCAP_P (SELECTED_FRAME ())
+	      /* they asked for stdin reads */
+	      && FD_ISSET (0, &orfds)
+	      /* the stdin handle is valid */
+	      && keyboard_handle)
+	    {
+	      FD_SET (0, rfds);
+	      if (nr == 0)
+		nr = 1;
+	    }
 	}
       else if (active >= nh)
 	{
@@ -2132,18 +2251,52 @@ find_child_console (HWND hwnd, LPARAM arg)
 
 /* Emulate 'kill', but only for other processes.  */
 int
-sys_kill (int pid, int sig)
+sys_kill (pid_t pid, int sig)
 {
   child_process *cp;
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
 
+  /* Each process is in its own process group.  */
+  if (pid < 0)
+    pid = -pid;
+
   /* Only handle signals that will result in the process dying */
-  if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
+  if (sig != 0
+      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
     {
       errno = EINVAL;
       return -1;
+    }
+
+  if (sig == 0)
+    {
+      /* It will take _some_ time before PID 4 or less on Windows will
+	 be Emacs...  */
+      if (pid <= 4)
+	{
+	  errno = EPERM;
+	  return -1;
+	}
+      proc_hand = OpenProcess (PROCESS_QUERY_INFORMATION, 0, pid);
+      if (proc_hand == NULL)
+        {
+	  DWORD err = GetLastError ();
+
+	  switch (err)
+	    {
+	    case ERROR_ACCESS_DENIED: /* existing process, but access denied */
+	      errno = EPERM;
+	      return -1;
+	    case ERROR_INVALID_PARAMETER: /* process PID does not exist */
+	      errno = ESRCH;
+	      return -1;
+	    }
+	}
+      else
+	CloseHandle (proc_hand);
+      return 0;
     }
 
   cp = find_child_pid (pid);
@@ -2484,8 +2637,9 @@ All path elements in FILENAME are converted to their short names.  */)
   if (GetShortPathName (SDATA (ENCODE_FILE (filename)), shortname, MAX_PATH) == 0)
     return Qnil;
 
-  dostounix_filename (shortname);
+  dostounix_filename (shortname, 0);
 
+  /* No need to DECODE_FILE, because 8.3 names are pure ASCII.   */
   return build_string (shortname);
 }
 
@@ -2512,7 +2666,7 @@ All path elements in FILENAME are converted to their long names.  */)
   if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname, MAX_PATH))
     return Qnil;
 
-  dostounix_filename (longname);
+  dostounix_filename (longname, 0);
 
   /* If we were passed only a drive, make sure that a slash is not appended
      for consistency with directories.  Allow for drive mapping via SUBST

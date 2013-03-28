@@ -1,6 +1,6 @@
 ;;; semantic/symref/filter.el --- Filter symbol reference hits for accuracy.
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

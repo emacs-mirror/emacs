@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -426,15 +426,24 @@ Thank you for your help in stamping out bugs.
     `(let ((,winconf (current-window-configuration))
 	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
-	   (,article gnus-article-reply)
+	   (,article (or  (when (and
+				 (string-match "^nnir:" gnus-newsgroup-name)
+				 gnus-article-reply)
+			    (nnir-article-number gnus-article-reply))
+			   gnus-article-reply))
 	   (,yanked gnus-article-yanked-articles)
-	   (,group gnus-newsgroup-name)
+	   (,group (or (when (and
+			      (string-match "^nnir:" gnus-newsgroup-name)
+			      gnus-article-reply)
+			 (nnir-article-group gnus-article-reply))
+	   	       gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
 	   (mbl mml-buffer-list)
 	   (message-mode-hook (copy-sequence message-mode-hook)))
        (setq mml-buffer-list nil)
-       (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
+       (add-hook 'message-header-setup-hook (lambda ()
+       					      (gnus-inews-insert-gcc ,group)))
        ;; message-newsreader and message-mailer were formerly set in
        ;; gnus-inews-add-send-actions, but this is too late when
        ;; message-generate-headers-first is used. --ansel
@@ -1384,7 +1393,8 @@ For the \"inline\" alternatives, also see the variable
     (dolist (style (if styles
 		       (append gnus-posting-styles (list (cons ".*" styles)))
 		     gnus-posting-styles))
-      (when (string-match (pop style) gnus-newsgroup-name)
+      (when (and (stringp (car style))
+		 (string-match (pop style) gnus-newsgroup-name))
 	(when (setq tem (cadr (assq 'name style)))
 	  (setq user-full-name tem))
 	(when (setq tem (cadr (assq 'address style)))
@@ -1705,7 +1715,8 @@ this is a reply."
          (group (when group (gnus-group-decoded-name group)))
          (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
-	  (and group (gnus-group-find-parameter group 'gcc-self)))
+	  (and group (gnus-group-find-parameter group 'gcc-self)
+	       (not (gnus-virtual-group-p group))))
 	 result
 	 (groups
 	  (cond
@@ -1744,7 +1755,8 @@ this is a reply."
 	      (setq var (cdr var)))
 	    result)))
 	 name)
-    (when (or groups gcc-self-val)
+    (when (and (or groups gcc-self-val)
+	       (gnus-alive-p))
       (when (stringp groups)
 	(setq groups (list groups)))
       (save-excursion

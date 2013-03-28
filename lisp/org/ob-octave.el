@@ -1,6 +1,6 @@
 ;;; ob-octave.el --- org-babel functions for octave and matlab evaluation
 
-;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research

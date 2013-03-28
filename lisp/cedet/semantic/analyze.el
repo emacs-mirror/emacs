@@ -1,6 +1,6 @@
 ;;; semantic/analyze.el --- Analyze semantic tags against local context
 
-;; Copyright (C) 2000-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -800,7 +800,7 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
   (semantic-analyze-pulse context)
   (with-output-to-temp-buffer "*Semantic Context Analysis*"
     (princ "Context Type: ")
-    (princ (object-name context))
+    (princ (eieio-object-name context))
     (princ "\n")
     (princ "Bounds: ")
     (princ (oref context bounds))

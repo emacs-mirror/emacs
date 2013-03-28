@@ -3,11 +3,11 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2012-11-08.11}
+\def\texinfoversion{2013-02-01.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-% 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+% 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -24,7 +24,8 @@
 %
 % As a special exception, when this file is read by TeX when processing
 % a Texinfo source document, you may use the result without
-% restriction.  (This has been our intent since Texinfo was invented.)
+% restriction. This Exception is an additional permission under section 7
+% of the GNU General Public License, version 3 ("GPLv3").
 %
 % Please try the latest version of texinfo.tex before submitting bug
 % reports; you can get the latest version from:
@@ -2495,7 +2496,7 @@ end
      \let-\codedash
      \let_\codeunder
     \else
-     \let-\realdash
+     \let-\normaldash
      \let_\realunder
     \fi
     \codex
@@ -2504,7 +2505,7 @@ end
 
 \def\codex #1{\tclose{#1}\endgroup}
 
-\def\realdash{-}
+\def\normaldash{-}
 \def\codedash{-\discretionary{}{}{}}
 \def\codeunder{%
   % this is all so @math{@code{var_name}+1} can work.  In math mode, _
@@ -2519,9 +2520,9 @@ end
 }
 
 % An additional complication: the above will allow breaks after, e.g.,
-% each of the four underscores in __typeof__.  This is undesirable in
-% some manuals, especially if they don't have long identifiers in
-% general.  @allowcodebreaks provides a way to control this.
+% each of the four underscores in __typeof__.  This is bad.
+% @allowcodebreaks provides a document-level way to turn breaking at -
+% and _ on and off.
 %
 \newif\ifallowcodebreaks  \allowcodebreakstrue
 
@@ -4187,7 +4188,7 @@ end
     % ..., but we might end up with active ones in the argument if
     % we're called from @code, as @code{@value{foo-bar_}}, though.
     % So \let them to their normal equivalents.
-    \let-\realdash \let_\normalunderscore
+    \let-\normaldash \let_\normalunderscore
   }
 }
 
@@ -9992,22 +9993,26 @@ directory should work if nowhere else does.}
 @gdef@otherbackslash{@let\=@realbackslash}
 
 % Same as @turnoffactive except outputs \ as {\tt\char`\\} instead of
-% the literal character `\'.
+% the literal character `\'.  Also revert - to its normal character, in
+% case the active - from code has slipped in.
 %
-@def@normalturnoffactive{%
-  @let"=@normaldoublequote
-  @let$=@normaldollar %$ font-lock fix
-  @let+=@normalplus
-  @let<=@normalless
-  @let>=@normalgreater
-  @let\=@normalbackslash
-  @let^=@normalcaret
-  @let_=@normalunderscore
-  @let|=@normalverticalbar
-  @let~=@normaltilde
-  @markupsetuplqdefault
-  @markupsetuprqdefault
-  @unsepspaces
+{@catcode`- = @active
+ @gdef@normalturnoffactive{%
+   @let-=@normaldash
+   @let"=@normaldoublequote
+   @let$=@normaldollar %$ font-lock fix
+   @let+=@normalplus
+   @let<=@normalless
+   @let>=@normalgreater
+   @let\=@normalbackslash
+   @let^=@normalcaret
+   @let_=@normalunderscore
+   @let|=@normalverticalbar
+   @let~=@normaltilde
+   @markupsetuplqdefault
+   @markupsetuprqdefault
+   @unsepspaces
+ }
 }
 
 % Make _ and + \other characters, temporarily.

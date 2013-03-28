@@ -1,6 +1,6 @@
 ;;; semantic/find.el --- Search routines for Semantic
 
-;; Copyright (C) 1999-2005, 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -311,6 +311,15 @@ CLASS is a symbol representing the class of the token, such as
 TABLE is a tag table.  See `semantic-something-to-tag-table'."
   `(semantic--find-tags-by-macro
     (eq ,class (semantic-tag-class (car tags)))
+    ,table))
+
+(defmacro semantic-filter-tags-by-class (class &optional table)
+  "Find all tags of class not in the list CLASS in TABLE.
+CLASS is a list of symbols representing the class of the token,
+such as 'variable, of 'function..
+TABLE is a tag table.  See `semantic-something-to-tag-table'."
+  `(semantic--find-tags-by-macro
+    (not (memq (semantic-tag-class (car tags)) ,class))
     ,table))
 
 (defmacro semantic-find-tags-by-type (type &optional table)

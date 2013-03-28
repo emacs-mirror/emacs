@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2012  Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2013 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -13,9 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301, USA.
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 # Force loading of symbols, enough to give us VALBITS etc.
 set $dummy = main + 8
@@ -360,7 +358,6 @@ end
 
 define pwinx
   set $w = $arg0
-  xgetint $w->sequence_number
   if ($w->mini_p != Qnil)
     printf "Mini "
   end
@@ -609,7 +606,7 @@ Pretty print all glyphs in it->glyph_row.
 end
 
 define prowlims
-  printf "edges=(%d,%d),r2l=%d,cont=%d,trunc=(%d,%d),at_zv=%d\n", $arg0->minpos.charpos, $arg0->maxpos.charpos, $arg0->reversed_p, $arg0->continued_p, $arg0->truncated_on_left_p, $arg0->truncated_on_right_p, $arg0->ends_at_zv_p
+  printf "edges=(%d,%d),enb=%d,r2l=%d,cont=%d,trunc=(%d,%d),at_zv=%d\n", $arg0->minpos.charpos, $arg0->maxpos.charpos, $arg0->enabled_p, $arg0->reversed_p, $arg0->continued_p, $arg0->truncated_on_left_p, $arg0->truncated_on_right_p, $arg0->ends_at_zv_p
 end
 document prowlims
 Print important attributes of a glyph_row structure.

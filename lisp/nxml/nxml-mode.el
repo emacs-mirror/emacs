@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode
 
-;; Copyright (C) 2003-2004, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -159,12 +159,12 @@ This is not used directly, but only via inheritance by other faces."
 
 (defface nxml-comment-delimiter
   '((t (:inherit font-lock-comment-delimiter-face)))
-  "Face used for the delimiters of comments, i.e <!-- and -->."
+  "Face used for the delimiters of comments, i.e., <!-- and -->."
   :group 'nxml-faces)
 
 (defface nxml-processing-instruction-delimiter
   '((t (:inherit nxml-delimiter)))
-  "Face used for the delimiters of processing instructions, i.e <? and ?>."
+  "Face used for the delimiters of processing instructions, i.e., <? and ?>."
   :group 'nxml-faces)
 
 (defface nxml-processing-instruction-target
@@ -179,7 +179,7 @@ This is not used directly, but only via inheritance by other faces."
 
 (defface nxml-cdata-section-delimiter
   '((t (:inherit nxml-delimiter)))
-  "Face used for the delimiters of CDATA sections, i.e <![, [, and ]]>."
+  "Face used for the delimiters of CDATA sections, i.e., <![, [, and ]]>."
   :group 'nxml-faces)
 
 (defface nxml-cdata-section-CDATA
@@ -200,7 +200,7 @@ This includes ths `x' in hex references."
 
 (defface nxml-char-ref-delimiter
   '((t (:inherit nxml-ref)))
-  "Face used for the delimiters of character references, i.e &# and ;."
+  "Face used for the delimiters of character references, i.e., &# and ;."
   :group 'nxml-faces)
 
 (defface nxml-entity-ref-name
@@ -210,7 +210,7 @@ This includes ths `x' in hex references."
 
 (defface nxml-entity-ref-delimiter
   '((t (:inherit nxml-ref)))
-  "Face used for the delimiters of entity references, i.e & and ;."
+  "Face used for the delimiters of entity references, i.e., & and ;."
   :group 'nxml-faces)
 
 (defface nxml-tag-delimiter
@@ -540,7 +540,7 @@ Many aspects this mode can be customized using
       (widen)
       (nxml-clear-dependent-regions (point-min) (point-max))
       (setq nxml-scan-end (copy-marker (point-min) nil))
-      (nxml-with-unmodifying-text-property-changes
+      (with-silent-modifications
         (nxml-clear-inside (point-min) (point-max))
 	(nxml-with-invisible-motion
 	  (nxml-scan-prolog)))))
@@ -601,7 +601,7 @@ Many aspects this mode can be customized using
   (save-excursion
     (save-restriction
       (widen)
-      (nxml-with-unmodifying-text-property-changes
+      (with-silent-modifications
 	(nxml-clear-inside (point-min) (point-max))))))
 
 ;;; Change management
@@ -625,7 +625,7 @@ Many aspects this mode can be customized using
             (widen)
             (save-match-data
               (nxml-with-invisible-motion
-                (nxml-with-unmodifying-text-property-changes
+                (with-silent-modifications
                   (nxml-after-change1
                    start end pre-change-length)))))))))
 
@@ -910,7 +910,7 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
 		       (widen)
 		       (save-match-data
 			 (nxml-with-invisible-motion
-			   (nxml-with-unmodifying-text-property-changes
+			   (with-silent-modifications
 			     (nxml-extend-after-change-region1
 			      start end pre-change-length)))))))))
       (if (consp region) region))))

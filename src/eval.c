@@ -1,5 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1987, 1993-1995, 1999-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1995, 1999-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1689,7 +1690,6 @@ error (const char *m, ...)
   va_list ap;
   va_start (ap, m);
   verror (m, ap);
-  va_end (ap);
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 2, 0,
@@ -1897,7 +1897,7 @@ If LEXICAL is t, evaluate using lexical scoping.  */)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
-	    NILP (lexical) ? Qnil : Fcons (Qt, Qnil));
+	    CONSP (lexical) || NILP (lexical) ? lexical : Fcons (Qt, Qnil));
   return unbind_to (count, eval_sub (form));
 }
 
@@ -1930,7 +1930,10 @@ eval_sub (Lisp_Object form)
     return form;
 
   QUIT;
+
+  GCPRO1 (form);
   maybe_gc ();
+  UNGCPRO;
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {

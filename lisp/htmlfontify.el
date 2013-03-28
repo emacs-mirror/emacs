@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks
 
-;; Copyright (C) 2002-2003, 2009-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2013 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -717,7 +717,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
 --> </script>
   </head>
   <body onload=\"stripe('index'); return true;\">\n"
-          file style))
+          (mapconcat 'hfy-html-quote (mapcar 'char-to-string file) "") style))
 
 (defun hfy-default-footer (_file)
   "Default value for `hfy-page-footer'.
@@ -2406,7 +2406,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
 
 
 ;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
-;;;;;;  "hfy-cmap" "hfy-cmap.el" "ef24066922f1e27b7580d572f12fabbe")
+;;;;;;  "hfy-cmap" "hfy-cmap.el" "3f97eeabe72027099da579f6ef9ae0bd")
 ;;; Generated autoloads from hfy-cmap.el
 
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\

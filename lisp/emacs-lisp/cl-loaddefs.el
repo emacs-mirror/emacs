@@ -11,7 +11,7 @@
 ;;;;;;  cl--map-overlays cl--map-intervals cl--map-keymap-recursively
 ;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
 ;;;;;;  cl-mapl cl-mapc cl-maplist cl-map cl--mapcar-many cl-equalp
-;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "8e9fee941c465ac0fee9b92a92d64154")
+;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "c5730f2a706cb1efc5fec0a790d3ca72")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -224,7 +224,7 @@ Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
 
 \(fn SYMBOL PROPNAME &optional DEFAULT)" nil nil)
 
-(put 'cl-get 'compiler-macro #'cl--compiler-macro-get)
+(eval-and-compile (put 'cl-get 'compiler-macro #'cl--compiler-macro-get))
 
 (autoload 'cl-getf "cl-extra" "\
 Search PROPLIST for property PROPNAME; return its value or DEFAULT.
@@ -262,12 +262,12 @@ including `cl-block' and `cl-eval-when'.
 ;;;;;;  cl-rotatef cl-shiftf cl-remf cl-psetf cl-declare cl-the cl-locally
 ;;;;;;  cl-multiple-value-setq cl-multiple-value-bind cl-symbol-macrolet
 ;;;;;;  cl-macrolet cl-labels cl-flet* cl-flet cl-progv cl-psetq
-;;;;;;  cl-do-all-symbols cl-do-symbols cl-dotimes cl-dolist cl-do*
-;;;;;;  cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
+;;;;;;  cl-do-all-symbols cl-do-symbols cl-tagbody cl-dotimes cl-dolist
+;;;;;;  cl-do* cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "a7d9b56ea588b869813de8ed7ec1fbcd")
+;;;;;;  "cl-macs" "cl-macs.el" "8a90c81a400a2846e7b4c3da07626d94")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -464,6 +464,19 @@ nil.
 \(fn (VAR COUNT [RESULT]) BODY...)" nil t)
 
 (put 'cl-dotimes 'lisp-indent-function '1)
+
+(autoload 'cl-tagbody "cl-macs" "\
+Execute statements while providing for control transfers to labels.
+Each element of LABELS-OR-STMTS can be either a label (integer or symbol)
+or a `cons' cell, in which case it's taken to be a statement.
+This distinction is made before performing macroexpansion.
+Statements are executed in sequence left to right, discarding any return value,
+stopping only when reaching the end of LABELS-OR-STMTS.
+Any statement can transfer control at any time to the statements that follow
+one of the labels with the special form (go LABEL).
+Labels have lexical scope and dynamic extent.
+
+\(fn &rest LABELS-OR-STMTS)" nil t)
 
 (autoload 'cl-do-symbols "cl-macs" "\
 Loop over all symbols.
@@ -759,7 +772,7 @@ surrounded by (cl-block NAME ...).
 ;;;;;;  cl-nsubstitute-if cl-nsubstitute cl-substitute-if-not cl-substitute-if
 ;;;;;;  cl-substitute cl-delete-duplicates cl-remove-duplicates cl-delete-if-not
 ;;;;;;  cl-delete-if cl-delete cl-remove-if-not cl-remove-if cl-remove
-;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "4c1e1191e82dc8d5449a5ec4d59efc10")
+;;;;;;  cl-replace cl-fill cl-reduce) "cl-seq" "cl-seq.el" "51a70dea9cbc225165a50135956609aa")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'cl-reduce "cl-seq" "\
@@ -1020,7 +1033,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn ITEM LIST [KEYWORD VALUE]...)" nil nil)
 
-(put 'cl-member 'compiler-macro #'cl--compiler-macro-member)
+(eval-and-compile (put 'cl-member 'compiler-macro #'cl--compiler-macro-member))
 
 (autoload 'cl-member-if "cl-seq" "\
 Find the first item satisfying PREDICATE in LIST.
@@ -1050,7 +1063,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn ITEM LIST [KEYWORD VALUE]...)" nil nil)
 
-(put 'cl-assoc 'compiler-macro #'cl--compiler-macro-assoc)
+(eval-and-compile (put 'cl-assoc 'compiler-macro #'cl--compiler-macro-assoc))
 
 (autoload 'cl-assoc-if "cl-seq" "\
 Find the first item whose car satisfies PREDICATE in LIST.

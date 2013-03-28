@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3182,9 +3182,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
-
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
   register_font_driver (&xftfont_driver, f);
@@ -3539,9 +3536,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (x_defined_color (f, SSDATA (color), &foo, 0))
-    return list3 (make_number (foo.red),
-		  make_number (foo.green),
-		  make_number (foo.blue));
+    return list3i (foo.red, foo.green, foo.blue);
   else
     return Qnil;
 }
@@ -3703,9 +3698,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Display *dpy = dpyinfo->display;
 
-  return Fcons (make_number (ProtocolVersion (dpy)),
-		Fcons (make_number (ProtocolRevision (dpy)),
-		       Fcons (make_number (VendorRelease (dpy)), Qnil)));
+  return list3i (ProtocolVersion (dpy), ProtocolRevision (dpy),
+		 VendorRelease (dpy));
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
@@ -3772,7 +3766,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
     default:
       error ("Strange value for BackingStore parameter of screen");
-      result = Qnil;
     }
 
   return result;
@@ -3814,7 +3807,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
       break;
     default:
       error ("Display has an unknown visual class");
-      result = Qnil;
     }
 
   return result;
@@ -3848,20 +3840,6 @@ x_pixel_height (register struct frame *f)
   return FRAME_PIXEL_HEIGHT (f);
 }
 
-int
-x_char_width (register struct frame *f)
-{
-  return FRAME_COLUMN_WIDTH (f);
-}
-
-int
-x_char_height (register struct frame *f)
-{
-  return FRAME_LINE_HEIGHT (f);
-}
-
-
-
 /************************************************************************
 			      X Displays
  ************************************************************************/
@@ -4344,7 +4322,7 @@ no value of TYPE (always string in the MS Windows case).  */)
              property and those are indeed in 32 bit quantities if format is
              32.  */
 
-          if (32 < BITS_PER_LONG && actual_format == 32)
+          if (BITS_PER_LONG > 32 && actual_format == 32)
             {
               unsigned long i;
               int  *idata = (int *) tmp_data;
@@ -4649,9 +4627,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
-
-  f->resx = dpyinfo->resx;
-  f->resy = dpyinfo->resy;
 
   register_font_driver (&xfont_driver, f);
 #ifdef HAVE_FREETYPE
@@ -5046,29 +5021,29 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  wset_left_col (w, make_number (0));
-  wset_top_line (w, make_number (0));
+  w->left_col = 0;
+  w->top_line = 0;
 
   if (CONSP (Vx_max_tooltip_size)
       && RANGED_INTEGERP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
       && RANGED_INTEGERP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
     {
-      wset_total_cols (w, XCAR (Vx_max_tooltip_size));
-      wset_total_lines (w, XCDR (Vx_max_tooltip_size));
+      w->total_cols = XFASTINT (XCAR (Vx_max_tooltip_size));
+      w->total_lines = XFASTINT (XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      wset_total_cols (w, make_number (80));
-      wset_total_lines (w, make_number (40));
+      w->total_cols = 80;
+      w->total_lines = 40;
     }
 
-  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
+  FRAME_TOTAL_COLS (f) = w->total_cols;
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
+  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->contents));
   bset_truncate_lines (current_buffer, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
@@ -5084,7 +5059,7 @@ Text larger than the specified size is clipped.  */)
       int row_width;
 
       /* Stop at the first empty row at the end.  */
-      if (!row->enabled_p || !row->displays_text_p)
+      if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	break;
 
       /* Let the row go over the full width of the frame.  */
@@ -5129,7 +5104,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      wset_total_cols (w, make_number (width));
+      w->total_cols = width;
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       clear_glyph_matrix (w->desired_matrix);
@@ -5143,7 +5118,7 @@ Text larger than the specified size is clipped.  */)
 	  struct glyph *last;
 	  int row_width;
 
-	  if (!row->enabled_p || !row->displays_text_p)
+	  if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	    break;
 	  row->full_width_p = 1;
 	  row_width = row->pixel_width;
@@ -5306,8 +5281,7 @@ file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
 static Lisp_Object
 clean_up_file_dialog (Lisp_Object arg)
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  Widget dialog = (Widget) p->pointer;
+  Widget dialog = XSAVE_POINTER (arg, 0);
 
   /* Clean up.  */
   block_input ();
@@ -5431,7 +5405,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       XmStringFree (default_xmstring);
     }
 
-  record_unwind_protect (clean_up_file_dialog, make_save_value (dialog, 0));
+  record_unwind_protect (clean_up_file_dialog, make_save_pointer (dialog));
 
   /* Process events until the user presses Cancel or OK.  */
   x_menu_set_in_use (1);
@@ -5617,7 +5591,7 @@ nil, it defaults to the selected frame. */)
 			       Keyboard
  ***********************************************************************/
 
-#ifdef HAVE_XKBGETKEYBOARD
+#ifdef HAVE_XKB
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
 #endif
@@ -5631,7 +5605,9 @@ usual X keysyms.  Value is `lambda' if we cannot determine if both keys are
 present and mapped to the usual X keysyms.  */)
   (Lisp_Object frame)
 {
-#ifdef HAVE_XKBGETKEYBOARD
+#ifndef HAVE_XKB
+  return Qlambda;
+#else
   XkbDescPtr kb;
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -5709,9 +5685,7 @@ present and mapped to the usual X keysyms.  */)
     }
   unblock_input ();
   return have_keys;
-#else /* not HAVE_XKBGETKEYBOARD */
-  return Qlambda;
-#endif /* not HAVE_XKBGETKEYBOARD */
+#endif
 }
 
 

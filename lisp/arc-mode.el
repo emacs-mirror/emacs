@@ -1,6 +1,7 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
@@ -974,11 +975,6 @@ using `make-temp-file', and the generated name is returned."
 		    (save-excursion
 		      (funcall set-auto-coding-function
 			       filename (- (point-max) (point-min)))))
-	       ;; dos-w32.el defines the function
-	       ;; find-buffer-file-type-coding-system for DOS/Windows
-	       ;; systems which preserves the coding-system of existing files.
-	       ;; (That function is called via file-coding-system-alist.)
-	       ;; Here, we want it to act as if the extracted file existed.
 	       ;; The following let-binding of file-name-handler-alist forces
 	       ;; find-file-not-found-set-buffer-file-coding-system to ignore
 	       ;; the file's name (see dos-w32.el).

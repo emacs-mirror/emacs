@@ -1,6 +1,6 @@
 ;;; semantic/bovine/c-by.el --- Generated parser support file
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

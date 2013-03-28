@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -112,7 +112,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    merging faces of that character, that face is `realized'.  The
    realization process maps face attributes to what is physically
    available on the system where Emacs runs.  The result is a
-   `realized face' in form of a struct face which is stored in the
+   `realized face' in the form of a struct face which is stored in the
    face cache of the frame on which it was realized.
 
    Face realization is done in the context of the character to display
@@ -1585,14 +1585,14 @@ the face font sort order.  */)
   for (i = nfonts - 1; i >= 0; --i)
     {
       Lisp_Object font = AREF (vec, i);
-      Lisp_Object v = Fmake_vector (make_number (8), Qnil);
+      Lisp_Object v = make_uninit_vector (8);
       int point;
       Lisp_Object spacing;
 
       ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
       ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
       point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      XFRAME (frame)->resy);
+			      FRAME_RES_Y (XFRAME (frame)));
       ASET (v, 2, make_number (point));
       ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
       ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
@@ -2118,7 +2118,7 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
     {
-      int pt = PIXEL_TO_POINT (font->pixel_size * 10, f->resy);
+      int pt = PIXEL_TO_POINT (font->pixel_size * 10, FRAME_RES_Y (f));
 
       eassert (pt > 0);
       ASET (lface, LFACE_HEIGHT_INDEX, make_number (pt));
@@ -3395,21 +3395,22 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
     }
 }
 
-
-/* Get the value of X resource RESOURCE, class CLASS for the display
-   of frame FRAME.  This is here because ordinary `x-get-resource'
-   doesn't take a frame argument.  */
-
 DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
-       Sinternal_face_x_get_resource, 3, 3, 0, doc: /* */)
+       Sinternal_face_x_get_resource, 2, 3, 0,
+       doc: /* Get the value of X resource RESOURCE, class CLASS.
+Returned value is for the display of frame FRAME.  If FRAME is not
+specified or nil, use selected frame.  This function exists because
+ordinary `x-get-resource' doesn't take a frame argument.  */)
   (Lisp_Object resource, Lisp_Object class, Lisp_Object frame)
 {
   Lisp_Object value = Qnil;
+  struct frame *f;
+
   CHECK_STRING (resource);
   CHECK_STRING (class);
-  CHECK_LIVE_FRAME (frame);
+  f = decode_live_frame (frame);
   block_input ();
-  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
+  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (f),
 				  resource, class, Qnil, Qnil);
   unblock_input ();
   return value;
@@ -4877,6 +4878,8 @@ tty_supports_face_attributes_p (struct frame *f,
     {
       if (STRINGP (val))
 	return 0;		/* ttys can't use colored underlines */
+      else if (EQ (CAR_SAFE (val), QCstyle) && EQ (CAR_SAFE (CDR_SAFE (val)), Qwave))
+	return 0;		/* ttys can't use wave underlines */
       else if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
 	return 0;		/* same as default */
       else
@@ -5961,7 +5964,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
-  /* eassert (XBUFFER (w->buffer) == current_buffer); */
+  /* eassert (XBUFFER (w->contents) == current_buffer); */
 
   XSETFASTINT (position, pos);
 
@@ -5971,9 +5974,9 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
-  prop = Fget_text_property (position, propname, w->buffer);
+  prop = Fget_text_property (position, propname, w->contents);
   XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
-  end = Fnext_single_property_change (position, propname, w->buffer, limit1);
+  end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (INTEGERP (end))
     endpos = XINT (end);
 
@@ -6069,7 +6072,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
-  /* eassert (XBUFFER (w->buffer) == current_buffer); */
+  /* eassert (XBUFFER (w->contents) == current_buffer); */
 
   XSETFASTINT (position, pos);
 
@@ -6079,9 +6082,9 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
-  prop = Fget_text_property (position, propname, w->buffer);
+  prop = Fget_text_property (position, propname, w->contents);
   XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
-  end = Fnext_single_property_change (position, propname, w->buffer, limit1);
+  end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (INTEGERP (end))
     endpos = XINT (end);
 
@@ -6150,7 +6153,7 @@ face_at_string_position (struct window *w, Lisp_Object string,
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   struct face *base_face;
-  int multibyte_p = STRING_MULTIBYTE (string);
+  bool multibyte_p = STRING_MULTIBYTE (string);
   Lisp_Object prop_name = mouse_p ? Qmouse_face : Qface;
 
   /* Get the value of the face property at the current position within

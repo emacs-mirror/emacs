@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -647,7 +647,9 @@ compatible with old code; callers should always specify it."
 
   (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
   (set (make-local-variable 'outline-level) 'c-outline-level)
-
+  (set (make-local-variable 'add-log-current-defun-function)
+       (lambda ()
+	 (or (c-cpp-define-name) (c-defun-name))))
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
       (and (cdr rfn)

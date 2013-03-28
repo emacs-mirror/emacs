@@ -1,6 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1999-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,9 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <unistd.h>
 
-#include <allocator.h>
 #include <c-ctype.h>
-#include <careadlinkat.h>
 #include <ignore-value.h>
 #include <utimens.h>
 
@@ -40,9 +38,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 #include "blockinput.h"
 
-#ifdef BSD_SYSTEM
-#include <sys/param.h>
-#include <sys/sysctl.h>
+#if defined DARWIN_OS || defined __FreeBSD__
+# include <sys/sysctl.h>
 #endif
 
 #ifdef __FreeBSD__
@@ -71,9 +68,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
 #include "msdos.h"
-#include <sys/param.h>
 #endif
 
+#include <sys/param.h>
 #include <sys/file.h>
 #include <fcntl.h>
 
@@ -266,45 +263,74 @@ init_baud_rate (int fd)
 
 #ifndef MSDOS
 
-static void
-wait_for_termination_1 (pid_t pid, int interruptible)
+/* Wait for the subprocess with process id CHILD to terminate or change status.
+   CHILD must be a child process that has not been reaped.
+   If STATUS is non-null, store the waitpid-style exit status into *STATUS
+   and tell wait_reading_process_output that it needs to look around.
+   Use waitpid-style OPTIONS when waiting.
+   If INTERRUPTIBLE, this function is interruptible by a signal.
+
+   Return CHILD if successful, 0 if no status is available;
+   the latter is possible only when options & NOHANG.  */
+static pid_t
+get_child_status (pid_t child, int *status, int options, bool interruptible)
 {
-  while (1)
+  pid_t pid;
+
+  /* Invoke waitpid only with a known process ID; do not invoke
+     waitpid with a nonpositive argument.  Otherwise, Emacs might
+     reap an unwanted process by mistake.  For example, invoking
+     waitpid (-1, ...) can mess up glib by reaping glib's subprocesses,
+     so that another thread running glib won't find them.  */
+  eassert (child > 0);
+
+  while ((pid = waitpid (child, status, options)) < 0)
     {
-      int status;
-      int wait_result = waitpid (pid, &status, 0);
-      if (wait_result < 0)
-	{
-	  if (errno != EINTR)
-	    break;
-	}
-      else
-	{
-	  record_child_status_change (wait_result, status);
-	  break;
-	}
+      /* Check that CHILD is a child process that has not been reaped,
+	 and that STATUS and OPTIONS are valid.  Otherwise abort,
+	 as continuing after this internal error could cause Emacs to
+	 become confused and kill innocent-victim processes.  */
+      if (errno != EINTR)
+	emacs_abort ();
 
       /* Note: the MS-Windows emulation of waitpid calls QUIT
 	 internally.  */
       if (interruptible)
 	QUIT;
     }
+
+  /* If successful and status is requested, tell wait_reading_process_output
+     that it needs to wake up and look around.  */
+  if (pid && status && input_available_clear_time)
+    *input_available_clear_time = make_emacs_time (0, 0);
+
+  return pid;
 }
 
-/* Wait for subprocess with process id `pid' to terminate and
-   make sure it will get eliminated (not remain forever as a zombie) */
-
+/* Wait for the subprocess with process id CHILD to terminate.
+   CHILD must be a child process that has not been reaped.
+   If STATUS is non-null, store the waitpid-style exit status into *STATUS
+   and tell wait_reading_process_output that it needs to look around.
+   If INTERRUPTIBLE, this function is interruptible by a signal.  */
 void
-wait_for_termination (pid_t pid)
+wait_for_termination (pid_t child, int *status, bool interruptible)
 {
-  wait_for_termination_1 (pid, 0);
+  get_child_status (child, status, 0, interruptible);
 }
 
-/* Like the above, but allow keyboard interruption. */
-void
-interruptible_wait_for_termination (pid_t pid)
+/* Report whether the subprocess with process id CHILD has changed status.
+   Termination counts as a change of status.
+   CHILD must be a child process that has not been reaped.
+   If STATUS is non-null, store the waitpid-style exit status into *STATUS
+   and tell wait_reading_process_output that it needs to look around.
+   Use waitpid-style OPTIONS to check status, but do not wait.
+
+   Return CHILD if successful, 0 if no status is available because
+   the process's state has not changed.  */
+pid_t
+child_status_changed (pid_t child, int *status, int options)
 {
-  wait_for_termination_1 (pid, 1);
+  return get_child_status (child, status, WNOHANG | options, 0);
 }
 
 /*
@@ -428,20 +454,15 @@ static void restore_signal_handlers (struct save_signal *);
 void
 sys_suspend (void)
 {
-#if defined (SIGTSTP) && !defined (MSDOS)
-
-  {
-    pid_t pgrp = getpgrp ();
-    EMACS_KILLPG (pgrp, SIGTSTP);
-  }
-
-#else /* No SIGTSTP */
+#ifndef DOS_NT
+  kill (0, SIGTSTP);
+#else
 /* On a system where suspending is not implemented,
    instead fork a subshell and let it talk directly to the terminal
    while we wait.  */
   sys_subshell ();
 
-#endif /* no SIGTSTP */
+#endif
 }
 
 /* Fork a subshell.  */
@@ -453,7 +474,8 @@ sys_subshell (void)
   int st;
   char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
 #endif
-  int pid;
+  pid_t pid;
+  int status;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
   unsigned char *volatile str_volatile = 0;
@@ -491,7 +513,6 @@ sys_subshell (void)
 #ifdef DOS_NT
   pid = 0;
   save_signal_handlers (saved_handlers);
-  synch_process_alive = 1;
 #else
   pid = vfork ();
   if (pid == -1)
@@ -505,10 +526,10 @@ sys_subshell (void)
 #ifdef DOS_NT    /* MW, Aug 1993 */
       getcwd (oldwd, sizeof oldwd);
       if (sh == 0)
-	sh = (char *) egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
+	sh = egetenv ("SUSPEND");	/* KFS, 1994-12-14 */
 #endif
       if (sh == 0)
-	sh = (char *) egetenv ("SHELL");
+	sh = egetenv ("SHELL");
       if (sh == 0)
 	sh = "sh";
 
@@ -560,14 +581,12 @@ sys_subshell (void)
   /* Do this now if we did not do it before.  */
 #ifndef MSDOS
   save_signal_handlers (saved_handlers);
-  synch_process_alive = 1;
 #endif
 
 #ifndef DOS_NT
-  wait_for_termination (pid);
+  wait_for_termination (pid, &status, 0);
 #endif
   restore_signal_handlers (saved_handlers);
-  synch_process_alive = 0;
 }
 
 static void
@@ -692,6 +711,27 @@ init_foreground_group (void)
   inherited_pgroup = getpid () == pgrp ? 0 : pgrp;
 }
 
+/* Block and unblock SIGTTOU.  */
+
+void
+block_tty_out_signal (void)
+{
+#ifdef SIGTTOU
+  sigset_t blocked;
+  sigemptyset (&blocked);
+  sigaddset (&blocked, SIGTTOU);
+  pthread_sigmask (SIG_BLOCK, &blocked, 0);
+#endif
+}
+
+void
+unblock_tty_out_signal (void)
+{
+#ifdef SIGTTOU
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+#endif
+}
+
 /* Safely set a controlling terminal FD's process group to PGID.
    If we are not in the foreground already, POSIX requires tcsetpgrp
    to deliver a SIGTTOU signal, which would stop us.  This is an
@@ -703,11 +743,10 @@ static void
 tcsetpgrp_without_stopping (int fd, pid_t pgid)
 {
 #ifdef SIGTTOU
-  signal_handler_t handler;
   block_input ();
-  handler = signal (SIGTTOU, SIG_IGN);
+  block_tty_out_signal ();
   tcsetpgrp (fd, pgid);
-  signal (SIGTTOU, handler);
+  unblock_tty_out_signal ();
   unblock_input ();
 #endif
 }
@@ -1250,10 +1289,9 @@ reset_sys_modes (struct tty_display_info *tty_out)
   if (tty_out->terminal->reset_terminal_modes_hook)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
 
-#ifdef BSD_SYSTEM
   /* Avoid possible loss of output when changing terminal modes.  */
-  fsync (fileno (tty_out->output));
-#endif
+  while (fdatasync (fileno (tty_out->output)) != 0 && errno == EINTR)
+    continue;
 
 #ifndef DOS_NT
 #ifdef F_SETOWN
@@ -1491,9 +1529,7 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
   /* When handling a signal, block nonfatal system signals that are caught
      by Emacs.  This makes race conditions less likely.  */
   sigaddset (&action->sa_mask, SIGALRM);
-#ifdef SIGCHLD
   sigaddset (&action->sa_mask, SIGCHLD);
-#endif
 #ifdef SIGDANGER
   sigaddset (&action->sa_mask, SIGDANGER);
 #endif
@@ -1638,6 +1674,25 @@ deliver_arith_signal (int sig)
   deliver_thread_signal (sig, handle_arith_signal);
 }
 
+#ifdef SIGDANGER
+
+/* Handler for SIGDANGER.  */
+static void
+handle_danger_signal (int sig)
+{
+  malloc_warning ("Operating system warns that virtual memory is running low.\n");
+
+  /* It might be unsafe to call do_auto_save now.  */
+  force_auto_save_soon ();
+}
+
+static void
+deliver_danger_signal (int sig)
+{
+  deliver_process_signal (sig, handle_danger_signal);
+}
+#endif
+
 /* Treat SIG as a terminating signal, unless it is already ignored and
    we are in --batch mode.  Among other things, this makes nohup work.  */
 static void
@@ -1673,18 +1728,11 @@ init_signals (bool dumping)
 # ifdef SIGAIO
       sys_siglist[SIGAIO] = "LAN I/O interrupt";
 # endif
-# ifdef SIGALRM
       sys_siglist[SIGALRM] = "Alarm clock";
-# endif
 # ifdef SIGBUS
       sys_siglist[SIGBUS] = "Bus error";
 # endif
-# ifdef SIGCLD
-      sys_siglist[SIGCLD] = "Child status changed";
-# endif
-# ifdef SIGCHLD
       sys_siglist[SIGCHLD] = "Child status changed";
-# endif
 # ifdef SIGCONT
       sys_siglist[SIGCONT] = "Continued";
 # endif
@@ -1704,9 +1752,7 @@ init_signals (bool dumping)
 # ifdef SIGGRANT
       sys_siglist[SIGGRANT] = "Monitor mode granted";
 # endif
-# ifdef SIGHUP
       sys_siglist[SIGHUP] = "Hangup";
-# endif
       sys_siglist[SIGILL] = "Illegal instruction";
       sys_siglist[SIGINT] = "Interrupt";
 # ifdef SIGIO
@@ -1718,9 +1764,7 @@ init_signals (bool dumping)
 # ifdef SIGIOT
       sys_siglist[SIGIOT] = "IOT trap";
 # endif
-# ifdef SIGKILL
       sys_siglist[SIGKILL] = "Killed";
-# endif
 # ifdef SIGLOST
       sys_siglist[SIGLOST] = "Resource lost";
 # endif
@@ -1733,9 +1777,7 @@ init_signals (bool dumping)
 # ifdef SIGPHONE
       sys_siglist[SIGWIND] = "SIGPHONE";
 # endif
-# ifdef SIGPIPE
       sys_siglist[SIGPIPE] = "Broken pipe";
-# endif
 # ifdef SIGPOLL
       sys_siglist[SIGPOLL] = "Pollable event occurred";
 # endif
@@ -1748,9 +1790,7 @@ init_signals (bool dumping)
 # ifdef SIGPWR
       sys_siglist[SIGPWR] = "Power-fail restart";
 # endif
-# ifdef SIGQUIT
       sys_siglist[SIGQUIT] = "Quit";
-# endif
 # ifdef SIGRETRACT
       sys_siglist[SIGRETRACT] = "Need to relinquish monitor mode";
 # endif
@@ -2105,7 +2145,7 @@ emacs_backtrace (int backtrace_limit)
 void
 emacs_abort (void)
 {
-  terminate_due_to_signal (SIGABRT, 10);
+  terminate_due_to_signal (SIGABRT, 40);
 }
 #endif
 
@@ -2202,22 +2242,6 @@ emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
     }
 
   return (bytes_written);
-}
-
-static struct allocator const emacs_norealloc_allocator =
-  { xmalloc, NULL, xfree, memory_full };
-
-/* Get the symbolic link value of FILENAME.  Return a pointer to a
-   NUL-terminated string.  If readlink fails, return NULL and set
-   errno.  If the value fits in INITIAL_BUF, return INITIAL_BUF.
-   Otherwise, allocate memory and return a pointer to that memory.  If
-   memory allocation fails, diagnose and fail without returning.  If
-   successful, store the length of the symbolic link into *LINKLEN.  */
-char *
-emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
-{
-  return careadlinkat (AT_FDCWD, filename, initial_buf, READLINK_BUFSIZE,
-		       &emacs_norealloc_allocator, careadlinkatcwd);
 }
 
 /* Return a struct timeval that is roughly equivalent to T.
@@ -2515,12 +2539,12 @@ list_system_processes (void)
   return proclist;
 }
 
-#elif defined BSD_SYSTEM
+#elif defined DARWIN_OS || defined __FreeBSD__
 
 Lisp_Object
 list_system_processes (void)
 {
-#if defined DARWIN_OS || defined __NetBSD__ || defined __OpenBSD__
+#ifdef DARWIN_OS
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
 #else
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
@@ -2546,10 +2570,8 @@ list_system_processes (void)
   len /= sizeof (struct kinfo_proc);
   for (i = 0; i < len; i++)
     {
-#if defined DARWIN_OS || defined __NetBSD__
+#ifdef DARWIN_OS
       proclist = Fcons (make_fixnum_or_float (procs[i].kp_proc.p_pid), proclist);
-#elif defined __OpenBSD__
-      proclist = Fcons (make_fixnum_or_float (procs[i].p_pid), proclist);
 #else
       proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
 #endif
@@ -2669,7 +2691,7 @@ procfs_ttyname (int rdev)
 
       while (!feof (fdev) && !ferror (fdev))
 	{
-	  if (3 <= fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor)
+	  if (fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor) >= 3
 	      && major == MAJOR (rdev))
 	    {
 	      minor_beg = strtoul (minor, &endp, 0);
@@ -2709,7 +2731,7 @@ procfs_get_total_memory (void)
 
       while (!feof (fmem) && !ferror (fmem))
 	{
-	  if (2 <= fscanf (fmem, "%s %lu kB\n", entry_name, &entry_value)
+	  if (fscanf (fmem, "%s %lu kB\n", entry_name, &entry_value) >= 2
 	      && strcmp (entry_name, "MemTotal:") == 0)
 	    {
 	      retval = entry_value;

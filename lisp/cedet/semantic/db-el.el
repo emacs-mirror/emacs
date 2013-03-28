@@ -1,6 +1,6 @@
 ;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
 
-;;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -216,9 +216,8 @@ TOKTYPE is a hint to the type of tag desired."
 	    (symbol-name sym)
 	    "class"
 	    (semantic-elisp-desymbolify
-	     (aref (class-v semanticdb-project-database)
-		   class-public-a)) ;; slots
-	    (semantic-elisp-desymbolify (class-parents sym)) ;; parents
+	     (eieio--class-public-a (class-v semanticdb-project-database))) ;; slots
+	    (semantic-elisp-desymbolify (eieio-class-parents sym)) ;; parents
 	    ))
 	  ((not toktype)
 	   ;; Figure it out on our own.

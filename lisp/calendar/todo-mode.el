@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;; Maintainer: Stephen Berman <stephen.berman@gmx.net>
@@ -281,11 +281,11 @@ show and mark todo entries for today, but may slow down processing of
 the diary file somewhat."
   :type 'string
   :group 'todo)
-(defcustom todo-file-do    (convert-standard-filename "~/.todo-do")
+(defcustom todo-file-do    (locate-user-emacs-file "todo-do" ".todo-do")
   "TODO mode list file."
   :type 'file
   :group 'todo)
-(defcustom todo-file-done  (convert-standard-filename "~/.todo-done")
+(defcustom todo-file-done  (locate-user-emacs-file "todo-done" ".todo-done")
   "TODO mode archive file."
   :type 'file
   :group 'todo)
@@ -315,7 +315,7 @@ window."
   :group 'todo)
 (defvar todo-edit-buffer " *TODO Edit*"
   "TODO Edit buffer name.")
-(defcustom todo-file-top (convert-standard-filename "~/.todo-top")
+(defcustom todo-file-top (locate-user-emacs-file "todo-top" ".todo-top")
   "TODO mode top priorities file.
 
 Not in TODO format, but diary compatible.

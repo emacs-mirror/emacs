@@ -1,7 +1,7 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1654,12 +1654,60 @@ terminals, cursor blinking is controlled by the terminal."
                                'blink-cursor-start))))
 
 
+;; Frame maximization/fullscreen
+
+(defun toggle-frame-maximized ()
+  "Toggle maximization state of the selected frame.
+Maximize the selected frame or un-maximize if it is already maximized.
+Respect window manager screen decorations.
+If the frame is in fullscreen mode, don't change its mode,
+just toggle the temporary frame parameter `maximized',
+so the frame will go to the right maximization state
+after disabling fullscreen mode.
+See also `toggle-frame-fullscreen'."
+  (interactive)
+  (if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
+      (modify-frame-parameters
+       nil
+       `((maximized
+	  . ,(unless (eq (frame-parameter nil 'maximized) 'maximized)
+	       'maximized))))
+    (modify-frame-parameters
+     nil
+     `((fullscreen
+	. ,(unless (eq (frame-parameter nil 'fullscreen) 'maximized)
+	     'maximized))))))
+
+(defun toggle-frame-fullscreen ()
+  "Toggle fullscreen mode of the selected frame.
+Enable fullscreen mode of the selected frame or disable if it is
+already fullscreen.  Ignore window manager screen decorations.
+When turning on fullscreen mode, remember the previous value of the
+maximization state in the temporary frame parameter `maximized'.
+Restore the maximization state when turning off fullscreen mode.
+See also `toggle-frame-maximized'."
+  (interactive)
+  (modify-frame-parameters
+   nil
+   `((maximized
+      . ,(unless (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
+	   (frame-parameter nil 'fullscreen)))
+     (fullscreen
+      . ,(if (memq (frame-parameter nil 'fullscreen) '(fullscreen fullboth))
+	     (if (eq (frame-parameter nil 'maximized) 'maximized)
+		 'maximized)
+	   'fullscreen)))))
+
+
 ;;;; Key bindings
 
 (define-key ctl-x-5-map "2" 'make-frame-command)
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
+(define-key global-map [f11] 'toggle-frame-fullscreen)
+(define-key global-map [(meta f10)] 'toggle-frame-maximized)
+(define-key esc-map    [f10]        'toggle-frame-maximized)
 
 
 ;; Misc.

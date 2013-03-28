@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -1106,6 +1106,13 @@ scroll the window of possible completions."
              (sort-fun (completion-metadata-get all-md 'cycle-sort-function)))
         (when last
           (setcdr last nil)
+
+          ;; Delete duplicates: do it after setting last's cdr to nil (so
+          ;; it's a proper list), and be careful to reset `last' since it
+          ;; may be a different cons-cell.
+          (setq all (delete-dups all))
+          (setq last (last all))
+
           (setq all (if sort-fun (funcall sort-fun all)
                       ;; Prefer shorter completions, by default.
                       (sort all (lambda (c1 c2) (< (length c1) (length c2))))))
@@ -1119,6 +1126,15 @@ scroll the window of possible completions."
           ;; repeated calls to minibuffer-force-complete can cycle through
           ;; all possibilities.
           (completion--cache-all-sorted-completions (nconc all base-size))))))
+
+(defun minibuffer-force-complete-and-exit ()
+  "Complete the minibuffer with first of the matches and exit."
+  (interactive)
+  (minibuffer-force-complete)
+  (minibuffer--complete-and-exit
+   ;; If the previous completion completed to an element which fails
+   ;; test-completion, then we shouldn't exit, but that should be rare.
+   (lambda () (minibuffer-message "Incomplete"))))
 
 (defun minibuffer-force-complete ()
   "Complete the minibuffer to an exact match.
@@ -1192,6 +1208,22 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
  `minibuffer-confirm-exit-commands', and accept the input
  otherwise."
   (interactive)
+  (minibuffer--complete-and-exit
+   (lambda ()
+     (pcase (condition-case nil
+                (completion--do-completion nil 'expect-exact)
+              (error 1))
+       ((or #b001 #b011) (exit-minibuffer))
+       (#b111 (if (not minibuffer-completion-confirm)
+                  (exit-minibuffer)
+                (minibuffer-message "Confirm")
+                nil))
+       (_ nil)))))
+
+(defun minibuffer--complete-and-exit (completion-function)
+  "Exit from `require-match' minibuffer.
+COMPLETION-FUNCTION is called if the current buffer's content does not
+appear to be a match."
   (let ((beg (field-beginning))
         (end (field-end)))
     (cond
@@ -1239,15 +1271,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
 
      (t
       ;; Call do-completion, but ignore errors.
-      (pcase (condition-case nil
-                (completion--do-completion nil 'expect-exact)
-              (error 1))
-        ((or #b001 #b011) (exit-minibuffer))
-        (#b111 (if (not minibuffer-completion-confirm)
-                   (exit-minibuffer)
-                 (minibuffer-message "Confirm")
-                 nil))
-        (_ nil))))))
+      (funcall completion-function)))))
 
 (defun completion--try-word-completion (string table predicate point md)
   (let ((comp (completion-try-completion string table predicate point md)))
@@ -1434,9 +1458,11 @@ It also eliminates runs of equal strings."
                                    'mouse-face 'highlight)
               (put-text-property (point) (progn (insert (car str)) (point))
                                  'mouse-face 'highlight)
-              (add-text-properties (point) (progn (insert (cadr str)) (point))
-                                   '(mouse-face nil
-                                     face completions-annotations)))
+              (let ((beg (point))
+                    (end (progn (insert (cadr str)) (point))))
+                (put-text-property beg end 'mouse-face nil)
+                (font-lock-prepend-text-property beg end 'face
+                                                 'completions-annotations)))
 	    (cond
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format
@@ -1463,12 +1489,11 @@ See also `display-completion-list'.")
 
 (defface completions-first-difference
   '((t (:inherit bold)))
-  "Face put on the first uncommon character in completions in *Completions* buffer."
+  "Face added on the first uncommon character in completions in *Completions* buffer."
   :group 'completion)
 
-(defface completions-common-part
-  '((t (:inherit default)))
-  "Face put on the common prefix substring in completions in *Completions* buffer.
+(defface completions-common-part '((t nil))
+  "Face added on the common prefix substring in completions in *Completions* buffer.
 The idea of `completions-common-part' is that you can use it to
 make the common parts less visible than normal, so that the rest
 of the differing parts is, by contrast, slightly highlighted."
@@ -1489,17 +1514,18 @@ of the differing parts is, by contrast, slightly highlighted."
                      (car (setq elem (cons (copy-sequence (car elem))
                                            (cdr elem))))
                    (setq elem (copy-sequence elem)))))
-            (put-text-property 0
-			       ;; If completion-boundaries returns incorrect
-			       ;; values, all-completions may return strings
-			       ;; that don't contain the prefix.
-			       (min com-str-len (length str))
-                               'font-lock-face 'completions-common-part
-                               str)
+            (font-lock-prepend-text-property
+             0
+             ;; If completion-boundaries returns incorrect
+             ;; values, all-completions may return strings
+             ;; that don't contain the prefix.
+             (min com-str-len (length str))
+             'face 'completions-common-part str)
             (if (> (length str) com-str-len)
-                (put-text-property com-str-len (1+ com-str-len)
-                                   'font-lock-face 'completions-first-difference
-                                   str)))
+                (font-lock-prepend-text-property com-str-len (1+ com-str-len)
+                                                 'face
+                                                 'completions-first-difference
+                                                 str)))
           elem)
         completions)
        base-size))))
@@ -2021,10 +2047,7 @@ with `minibuffer-local-must-match-map'.")
     (define-key map "i" 'info)
     (define-key map "m" 'mail)
     (define-key map "n" 'make-frame)
-    (define-key map [mouse-1] (lambda () (interactive)
-				(with-current-buffer "*Messages*"
-				  (goto-char (point-max))
-				  (display-buffer (current-buffer)))))
+    (define-key map [mouse-1] 'view-echo-area-messages)
     ;; So the global down-mouse-1 binding doesn't clutter the execution of the
     ;; above mouse-1 binding.
     (define-key map [down-mouse-1] #'ignore)
@@ -2974,12 +2997,21 @@ the same set of elements."
                 ;; here any more.
                 (unless unique
                   (push elem res)
-                  (when (memq elem '(star point prefix))
-                    ;; Extract common suffix additionally to common prefix.
-                    ;; Only do it for `point', `star', and `prefix' since for
-                    ;; `any' it could lead to a merged completion that
-                    ;; doesn't itself match the candidates.
-                    (let ((suffix (completion--common-suffix comps)))
+                  ;; Extract common suffix additionally to common prefix.
+                  ;; Don't do it for `any' since it could lead to a merged
+                  ;; completion that doesn't itself match the candidates.
+                  (when (and (memq elem '(star point prefix))
+                             ;; If prefix is one of the completions, there's no
+                             ;; suffix left to find.
+                             (not (assoc-string prefix comps t)))
+                    (let ((suffix
+                           (completion--common-suffix
+                            (if (zerop (length prefix)) comps
+                              ;; Ignore the chars in the common prefix, so we
+                              ;; don't merge '("abc" "abbc") as "ab*bc".
+                              (let ((skip (length prefix)))
+                                (mapcar (lambda (str) (substring str skip))
+                                        comps))))))
                       (cl-assert (stringp suffix))
                       (unless (equal suffix "")
                         (push suffix res)))))

@@ -1,6 +1,7 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997-1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -289,7 +290,7 @@ If no function name is found, return nil."
     (when (and (null name)
 	       (boundp 'imenu--index-alist) (null imenu--index-alist)
 	       (null which-function-imenu-failed))
-      (imenu--make-index-alist t)
+      (ignore-errors (imenu--make-index-alist t))
       (unless imenu--index-alist
         (set (make-local-variable 'which-function-imenu-failed) t)))
     ;; If we have an index alist, use it.
@@ -318,7 +319,9 @@ If no function name is found, return nil."
                     namestack (cons (car pair) namestack)
                     alist     (cdr pair)))
 
-             ((number-or-marker-p (setq mark (cdr pair)))
+             ((or (number-or-marker-p (setq mark (cdr pair)))
+		  (and (overlayp mark)
+		       (setq mark (overlay-start mark))))
               (when (and (>= (setq offset (- (point) mark)) 0)
                          (< offset minoffset)) ; Find the closest item.
                 (setq minoffset offset

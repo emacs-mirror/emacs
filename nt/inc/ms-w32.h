@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -70,6 +70,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE___BUILTIN_UNWIND_INIT 1
 #endif
 
+/* This isn't perfect, as some systems might have the page file in
+   another place.  Also, I suspect that the time stamp of that file
+   might also change when Windows enlarges the file due to
+   insufficient VM.  Still, this seems to be the most reliable way;
+   the alternative (of using GetSystemTimes) won't work on laptops
+   that hibernate, because the system clock is stopped then.  Other
+   possibility would be to run "net statistics workstation" and parse
+   the output, but that's gross.  So this should do; if the file is
+   not there, the boot time will be returned as zero, and filelock.c
+   already handles that.  */
+#define BOOT_TIME_FILE "C:/pagefile.sys"
+
 /* ============================================================ */
 
 /* Here, add any special hacks needed to make Emacs work on this
@@ -115,6 +127,17 @@ typedef unsigned short mode_t;
 extern char *getenv ();
 #endif
 
+/* Prevent accidental use of features unavailable in older Windows
+   versions we still support.  MinGW64 defines this to a higher value
+   in its system headers, and is not really compatible with values
+   lower than 0x0500, so leave it alone.  */
+#ifndef _W64
+# define _WIN32_WINNT 0x0400
+#endif
+
+/* Make a leaner executable.  */
+#define WIN32_LEAN_AND_MEAN 1
+
 #ifdef HAVE_STRINGS_H
 #include "strings.h"
 #endif
@@ -133,6 +156,21 @@ extern char *getenv ();
 
 #ifdef emacs
 
+#ifdef _W64
+/* MinGW64 specific stuff.  */
+/* Make sure 'struct timespec' and 'struct timezone' are defined.  */
+#include <sys/types.h>
+#include <time.h>
+/* This prototype avoids MinGW64 compiler warnings due to the fact
+   that time.h is included before localtime is redirected to
+   sys_localtime below.  */
+extern struct tm * sys_localtime (const time_t *);
+/* MinGW64 uses a 2-argument _setjmp, and setjmp is a macro defined to
+   supply the 2nd arg correctly, so don't use _setjmp directly in that
+   case. */
+#undef HAVE__SETJMP
+#endif
+
 #ifdef _MSC_VER
 #include <sys/timeb.h>
 #include <sys/stat.h>
@@ -149,7 +187,6 @@ extern char *getenv ();
 #define chdir   sys_chdir
 #undef chmod
 #define chmod   sys_chmod
-#define chown   sys_chown
 #undef close
 #define close   sys_close
 #undef creat
@@ -178,6 +215,10 @@ extern char *getenv ();
 #define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
+/* This prototype is needed because some files include config.h
+   _after_ the standard headers, so sys_unlink gets no prototype from
+   stdio.h or io.h.  */
+extern int sys_unlink (const char *);
 #undef write
 #define write   sys_write
 
@@ -205,6 +246,7 @@ extern char *getenv ();
 /* Map to MSVC names.  */
 #define execlp    _execlp
 #define execvp    _execvp
+#define fdatasync _commit
 #define fdopen	  _fdopen
 #ifndef fileno
 #define fileno	  _fileno
@@ -218,7 +260,6 @@ typedef int pid_t;
 #define strtoll   _strtoi64
 #endif
 #define isatty    _isatty
-#define logb      _logb
 #define _longjmp  longjmp
 #define lseek     _lseek
 #define popen     _popen
@@ -251,18 +292,24 @@ int _getpid (void);
 /* 'struct timespec' is used by time-related functions in lib/ and
    elsewhere, but we don't use lib/time.h where the structure is
    defined.  */
+/* MinGW64 defines 'struct timespec' and _TIMESPEC_DEFINED in sys/types.h.  */
+#ifndef _TIMESPEC_DEFINED
 struct timespec
 {
   time_t	tv_sec;		/* seconds */
   long int	tv_nsec;	/* nanoseconds */
 };
+#endif
 
 /* Required for functions in lib/time_r.c, since we don't use lib/time.h.  */
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
 extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 
+#ifdef _MSC_VER
 /* This is hacky, but is necessary to avoid warnings about macro
-   redefinitions using the SDK compilers.  */
+   redefinitions using the MSVC compilers, since, when __STDC__ is
+   undefined or zero, those compilers declare functions like fileno,
+   lseek, and chdir, for which we defined macros above.  */
 #ifndef __STDC__
 #define __STDC__ 1
 #define MUST_UNDEF__STDC__
@@ -274,6 +321,11 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #undef __STDC__
 #undef MUST_UNDEF__STDC__
 #endif
+#else  /* !_MSC_VER */
+#include <direct.h>
+#include <io.h>
+#include <stdio.h>
+#endif	/* !_MSC_VER */
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */
@@ -289,9 +341,17 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #define NSIG 23
 #endif
 
+#ifndef ENOTSUP
+#define ENOTSUP ENOSYS
+#endif
+
 #ifdef _MSC_VER
 typedef int sigset_t;
 typedef int ssize_t;
+#endif
+
+#ifndef _POSIX	/* MinGW64 */
+typedef _sigset_t sigset_t;
 #endif
 
 typedef void (_CALLBACK_ *signal_handler) (int);
@@ -339,13 +399,6 @@ extern char *get_emacs_configuration_options (void);
 #define _WINSOCKAPI_    1
 #define _WINSOCK_H
 
-/* Prevent accidental use of features unavailable in
-   older Windows versions we still support.  */
-#define _WIN32_WINNT 0x0400
-
-/* Make a leaner executable.  */
-#define WIN32_LEAN_AND_MEAN 1
-
 /* Defines size_t and alloca ().  */
 #ifdef emacs
 #define malloc e_malloc
@@ -376,8 +429,18 @@ extern char *get_emacs_configuration_options (void);
 #define sys_nerr _sys_nerr
 #endif
 
+/* This must be after including stdlib.h, which defines putenv on MinGW.  */
+#ifdef putenv
+# undef putenv
+#endif
+#define putenv    sys_putenv
+extern int sys_putenv (char *);
+
 extern int getloadavg (double *, int);
 extern int getpagesize (void);
+
+extern void * memrchr (void const *, int, size_t);
+
 
 #if defined (__MINGW32__)
 

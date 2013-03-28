@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
 @chapter Dired, the Directory Editor
@@ -968,7 +968,7 @@ is the second argument.  The output of the @command{diff} program is
 shown in a buffer using Diff mode (@pxref{Comparing Files}).
 
   If the region is active, the default for the file read using the
-minibuffer is the file at the mark (i.e.@: the ordinary Emacs mark,
+minibuffer is the file at the mark (i.e., the ordinary Emacs mark,
 not a Dired mark; @pxref{Setting Mark}).  Otherwise, if the file at
 point has a backup file (@pxref{Backup}), that is the default.
 

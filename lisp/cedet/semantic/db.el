@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -190,7 +190,7 @@ If one doesn't exist, create it."
       (oref obj index)
     (let ((idx nil))
       (setq idx (funcall semanticdb-default-find-index-class
-			 (concat (object-name obj) " index")
+			 (concat (eieio-object-name obj) " index")
 			 ;; Fill in the defaults
 		         :table obj
 			 ))
@@ -469,7 +469,7 @@ other than :table."
   (let ((cache (oref table cache))
 	(obj nil))
     (while (and (not obj) cache)
-      (if (eq (object-class-fast (car cache)) desired-class)
+      (if (eq (eieio--object-class (car cache)) desired-class)
 	  (setq obj (car cache)))
       (setq cache (cdr cache)))
     (if obj
@@ -520,7 +520,7 @@ other than :table."
   (let ((cache (oref db cache))
 	(obj nil))
     (while (and (not obj) cache)
-      (if (eq (object-class-fast (car cache)) desired-class)
+      (if (eq (eieio--object-class (car cache)) desired-class)
 	  (setq obj (car cache)))
       (setq cache (cdr cache)))
     (if obj

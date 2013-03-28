@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -1489,7 +1489,8 @@ downloaded into the agent."
 
 (defun gnus-agent-fetch-articles (group articles)
   "Fetch ARTICLES from GROUP and put them into the Agent."
-  (when articles
+  (when (and articles
+	     (gnus-online (gnus-group-method group)))
     (gnus-agent-load-alist group)
     (let* ((alist gnus-agent-article-alist)
            (headers (if (< (length articles) 2) nil gnus-newsgroup-headers))

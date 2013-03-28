@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -234,7 +234,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     key = components;
   else if (NILP (components))
     {
-      key = Fmake_vector (make_number (nchars), Qnil);
+      key = make_uninit_vector (nchars);
       if (STRINGP (string))
 	for (i = 0; i < nchars; i++)
 	  {
@@ -642,13 +642,7 @@ compose_text (ptrdiff_t start, ptrdiff_t end, Lisp_Object components,
 		       Qcomposition, prop, string);
 }
 
-
-static Lisp_Object autocmp_chars (Lisp_Object, ptrdiff_t, ptrdiff_t,
-                                  ptrdiff_t, struct window *,
-                                  struct face *, Lisp_Object);
-
-
-/* Lisp glyph-string handlers */
+/* Lisp glyph-string handlers.  */
 
 /* Hash table for automatic composition.  The key is a header of a
    lgstring (Lispy glyph-string), and the value is a body of a
@@ -703,10 +697,6 @@ composition_gstring_from_id (ptrdiff_t id)
 
   return HASH_VALUE (h, id);
 }
-
-static Lisp_Object fill_gstring_header (Lisp_Object, Lisp_Object,
-                                        Lisp_Object, Lisp_Object,
-                                        Lisp_Object);
 
 bool
 composition_gstring_p (Lisp_Object gstring)
@@ -797,7 +787,8 @@ static Lisp_Object gstring_work;
 static Lisp_Object gstring_work_headers;
 
 static Lisp_Object
-fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lisp_Object font_object, Lisp_Object string)
+fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end,
+		     Lisp_Object font_object, Lisp_Object string)
 {
   ptrdiff_t from, to, from_byte;
   ptrdiff_t len, i;
@@ -837,7 +828,7 @@ fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lis
       if (len <= 8)
 	header = AREF (gstring_work_headers, len - 1);
       else
-	header = Fmake_vector (make_number (len + 1), Qnil);
+	header = make_uninit_vector (len + 1);
     }
 
   ASET (header, 0, font_object);
@@ -905,7 +896,9 @@ fill_gstring_body (Lisp_Object gstring)
    object.  Otherwise return nil.  */
 
 static Lisp_Object
-autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t limit, struct window *win, struct face *face, Lisp_Object string)
+autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
+	       ptrdiff_t limit, struct window *win, struct face *face,
+	       Lisp_Object string)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   FRAME_PTR f = XFRAME (win->frame);
@@ -935,7 +928,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      font_object = font_range (charpos, &to, win, face, string);
+      font_object = font_range (charpos, bytepos, &to, win, face, string);
       if (! FONT_OBJECT_P (font_object)
 	  || (! NILP (re)
 	      && to < limit
@@ -1958,7 +1951,7 @@ syms_of_composite (void)
   }
 
   staticpro (&gstring_work_headers);
-  gstring_work_headers = Fmake_vector (make_number (8), Qnil);
+  gstring_work_headers = make_uninit_vector (8);
   for (i = 0; i < 8; i++)
     ASET (gstring_work_headers, i, Fmake_vector (make_number (i + 2), Qnil));
   staticpro (&gstring_work);

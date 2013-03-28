@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Characters, Keys and Commands
@@ -53,7 +53,7 @@ holding down the @key{Ctrl} key while pressing @kbd{a}; we will refer
 to this as @kbd{C-a} for short.  Similarly @kbd{Meta-a}, or @kbd{M-a}
 for short, is entered by holding down the @key{Alt} key and pressing
 @kbd{a}.  Modifier keys can also be applied to non-alphanumerical
-characters, e.g. @kbd{C-@key{F1}} or @kbd{M-@key{left}}.
+characters, e.g., @kbd{C-@key{F1}} or @kbd{M-@key{left}}.
 
 @cindex @key{ESC} replacing @key{Meta} key
   You can also type Meta characters using two-character sequences

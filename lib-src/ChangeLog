@@ -1,3 +1,83 @@
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers.
+	* ntlib.c (struct timespec) [!_TIMEZONE_DEFINED]: Define the
+	struct only if _TIMEZONE_DEFINED is not defined.
+
+2013-03-23  cg  <chengang31@gmail.com>  (tiny change)
+
+	* makefile.w32-in (LIB_SRC): Move before first use.
+
+2013-03-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* pop.c: Fix ERRMAX typo (Bug#13925).
+	(socket_connection) [!HAVE_KRB5_ERROR_TEXT && HAVE_KRB5_ERROR_E_TEXT]:
+	Use ERROR_MAX, not ERRMAX.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* Version 24.3 released.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* Makefile.in (LIB_FDATASYNC): New macro.
+	(emacsclient${EXEEXT}): Use it.
+	* emacsclient.c (main): Use fdatasync, not fsync, since we don't
+	care about metadata.  Keep trying if interrupted.
+	* movemail.c (main, popmail): Don't worry about BSD_SYSTEM, since
+	fsync is available everywhere (or there is a substitute).
+	Don't report an error if fsync returns EINVAL.
+
+	Static checking by Sun C 5.12.
+	* etags.c (analyse_regex): Omit unreachable code.
+
+	* movemail.c (main): Call umask on all systems.
+	This is OK since Emacs already assumes umask elsewhere.
+	Don't grant more read permissions than necessary.
+	The old 0333 dates back to before we called setuid,
+	so it was needed back then to ensure user-readability,
+	but 0377 should suffice now.
+
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c (getenv): Remove decl (unused since 1994).
+
+2013-01-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (write_globals): Make it a bit clearer (Bug#13448).
+	This pacifies GCC 4.7.2 when Emacs is configured with
+	--enable-link-time-optimization and --enable-gcc-warnings.
+
+2013-01-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (lisp1): Add macroexp.elc (bug#13320).
+
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (SYSWAIT_H): Update dependencies.
+
+2012-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add w32notify.o.  Add missing X and Unix
+	sources.
+
+2012-12-02  Kevin Ryde  <user42@zip.com.au>
+
+	* etags.c (Lisp_functions): Skip (defvar foo) declarations unless
+	the --declarations flag is enabled (Bug#5600).
+	(Lisp_help): Update.
+	(skip_name): New function.
+
+2012-12-01  Kevin Ryde  <user42@zip.com.au>
+
+	* etags.c (Perl_functions): Support "use constant" (Bug#5055).
+
+2012-11-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for errno.h (Bug#12968).
+	* movemail.c (main): Assume EAGAIN and EBUSY.
+
 2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	movemail: treat EACCES etc. failures as permanent
@@ -5122,7 +5202,7 @@
 	(longopts): New long options without short counterpart are
 	globals, members, no-globals, no-members.  Regexp options are now
 	defined  conditionally to ETAGS_REGEXPS.
-	(print_help): Updated.
+	(print_help): Update.
 
 1997-05-22  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
@@ -8454,7 +8534,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1988-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1988-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

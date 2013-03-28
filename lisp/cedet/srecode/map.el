@@ -1,6 +1,6 @@
 ;;; srecode/map.el --- Manage a template file map
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -363,6 +363,9 @@ Return non-nil if the map changed."
 	  (let ((semantic-init-hook nil))
 	    (semantic-new-buffer-fcn))
 	  )
+	;; Force semantic to be enabled in this buffer.
+	(unless (semantic-active-p)
+	  (semantic-new-buffer-fcn))
 
 	(semantic-fetch-tags)
 	(let* ((mode-tag

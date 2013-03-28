@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
 @chapter Customization
@@ -555,7 +555,7 @@ or disabled as a unit.  You can use Custom themes to switch easily
 between various collections of settings, and to transfer such
 collections from one computer to another.
 
-  A Custom theme is stored an Emacs Lisp source file.  If the name of
+  A Custom theme is stored as an Emacs Lisp source file.  If the name of
 the Custom theme is @var{name}, the theme file is named
 @file{@var{name}-theme.el}.  @xref{Creating Custom Themes}, for the
 format of a theme file and how to make one.
@@ -610,10 +610,10 @@ always considered safe.
 @vindex custom-enabled-themes
   Setting or saving Custom themes actually works by customizing the
 variable @code{custom-enabled-themes}.  The value of this variable is
-a list of Custom theme names (as Lisp symbols, e.g.@: @code{tango}).
+a list of Custom theme names (as Lisp symbols, e.g., @code{tango}).
 Instead of using the @file{*Custom Themes*} buffer to set
 @code{custom-enabled-themes}, you can customize the variable using the
-usual customization interface, e.g.@: with @kbd{M-x customize-option}.
+usual customization interface, e.g., with @kbd{M-x customize-option}.
 Note that Custom themes are not allowed to set
 @code{custom-enabled-themes} themselves.
 
@@ -1305,7 +1305,7 @@ files in that subdirectory.
 @example
 ((nil . ((indent-tabs-mode . t)
          (fill-column . 80)))
- (c-mode . ((c-file-style . "BSD")))
+ (c-mode . ((c-file-style . "BSD")
             (subdirs . nil)))
  ("src/imported"
   . ((nil . ((change-log-default-name
@@ -1648,7 +1648,7 @@ you can specify them in your initialization file by writing Lisp code.
 
 @findex kbd
   There are several ways to write a key binding using Lisp.  The
-simplest is to use the @code{kbd} macro, which converts a textual
+simplest is to use the @code{kbd} function, which converts a textual
 representation of a key sequence---similar to how we have written key
 sequences in this manual---into a form that can be passed as an
 argument to @code{global-set-key}.  For example, here's how to bind
@@ -1676,11 +1676,11 @@ and mouse events:
 (global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
 @end example
 
-  Instead of using the @code{kbd} macro, you can use a Lisp string or
-vector to specify the key sequence.  Using a string is simpler, but
-only works for @acronym{ASCII} characters and Meta-modified
-@acronym{ASCII} characters.  For example, here's how to bind @kbd{C-x
-M-l} to @code{make-symbolic-link} (@pxref{Misc File Ops}):
+  Instead of using @code{kbd}, you can use a Lisp string or vector to
+specify the key sequence.  Using a string is simpler, but only works
+for @acronym{ASCII} characters and Meta-modified @acronym{ASCII}
+characters.  For example, here's how to bind @kbd{C-x M-l} to
+@code{make-symbolic-link} (@pxref{Misc File Ops}):
 
 @example
 (global-set-key "\C-x\M-l" 'make-symbolic-link)
@@ -2329,7 +2329,7 @@ Here a full file name is used, so no searching is done.
 @cindex loading Lisp libraries automatically
 @cindex autoload Lisp libraries
 Tell Emacs to find the definition for the function @code{myfunction}
-by loading a Lisp library named @file{mypackage} (i.e.@: a file
+by loading a Lisp library named @file{mypackage} (i.e., a file
 @file{mypackage.elc} or @file{mypackage.el}):
 
 @example
@@ -2496,7 +2496,7 @@ editor customizations even if you are running as the super user.
 
   More precisely, Emacs first determines which user's init file to use.
 It gets your user name from the environment variables @env{LOGNAME} and
-@env{USER}; if neither of those exists, it uses effective user-ID.
+@env{USER}; if neither of those exists, it uses effective user-ID@.
 If that user name matches the real user-ID, then Emacs uses @env{HOME};
 otherwise, it looks up the home directory corresponding to that user
 name in the system's data base of users.

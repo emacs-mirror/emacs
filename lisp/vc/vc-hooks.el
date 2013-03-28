@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2013 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -107,10 +107,12 @@ control systems."
   :type 'boolean
   :group 'vc)
 
-(defcustom vc-mistrust-permissions nil
+;; If you fix bug#11490, probably you can set this back to nil.
+(defcustom vc-mistrust-permissions t
   "If non-nil, don't assume permissions/ownership track version-control status.
 If nil, do rely on the permissions.
 See also variable `vc-consult-headers'."
+  :version "24.3"                       ; nil->t, bug#11490
   :type 'boolean
   :group 'vc)
 
@@ -436,8 +438,8 @@ For registered files, the possible values are:
 (defun vc-state (file &optional backend)
   "Return the version control state of FILE.
 
-If FILE is not registered, this function always returns nil.
-For registered files, the value returned is one of:
+A return of nil from this function means we have no information on the
+status of this file.  Otherwise, the value returned is one of:
 
   'up-to-date        The working file is unmodified with respect to the
                      latest version on the current branch, and not locked.
@@ -489,10 +491,8 @@ For registered files, the value returned is one of:
                      that any file with vc-state nil might be ignorable
                      without VC knowing it.
 
-  'unregistered      The file is not under version control.
+  'unregistered      The file is not under version control."
 
-A return of nil from this function means we have no information on the
-status of this file."
   ;; Note: in Emacs 22 and older, return of nil meant the file was
   ;; unregistered.  This is potentially a source of
   ;; backward-compatibility bugs.
@@ -703,19 +703,21 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; the state to 'edited and redisplay the mode line.
   (let* ((file buffer-file-name)
          (backend (vc-backend file)))
-    (and backend
-	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
-			 (nth 5 (file-attributes file)))
-		  ;; File has been saved in the same second in which
-		  ;; it was checked out.  Clear the checkout-time
-		  ;; to avoid confusion.
-		  (vc-file-setprop file 'vc-checkout-time nil))
-	     t)
-         (eq (vc-checkout-model backend (list file)) 'implicit)
-         (vc-state-refresh file backend)
-	 (vc-mode-line file backend))
-    ;; Try to avoid unnecessary work, a *vc-dir* buffer is
-    ;; present if this is true.
+    (cond
+     ((null backend))
+     ((eq (vc-checkout-model backend (list file)) 'implicit)
+      ;; If the file was saved in the same second in which it was
+      ;; checked out, clear the checkout-time to avoid confusion.
+      (if (equal (vc-file-getprop file 'vc-checkout-time)
+		 (nth 5 (file-attributes file)))
+	  (vc-file-setprop file 'vc-checkout-time nil))
+      (if (vc-state-refresh file backend)
+	  (vc-mode-line file backend)))
+     ;; If we saved an unlocked file on a locking based VCS, that
+     ;; file is not longer up-to-date.
+     ((eq (vc-file-getprop file 'vc-state) 'up-to-date)
+      (vc-file-setprop file 'vc-state nil)))
+    ;; Resynch *vc-dir* buffers, if any are present.
     (when vc-dir-buffers
       (vc-dir-resynch-file file))))
 
@@ -856,13 +858,23 @@ current, and kill the buffer that visits the link."
 	  (set (make-local-variable 'backup-inhibited) t))
 	;; Let the backend setup any buffer-local things he needs.
 	(vc-call-backend backend 'find-file-hook))
-       ((let ((link-type (and (not (equal buffer-file-name buffer-file-truename))
-			      (vc-backend buffer-file-truename))))
+       ((let* ((truename (and buffer-file-truename
+			      (expand-file-name buffer-file-truename)))
+	       (link-type (and truename
+			       (not (equal buffer-file-name truename))
+			       (vc-backend truename))))
 	  (cond ((not link-type) nil)	;Nothing to do.
 		((eq vc-follow-symlinks nil)
 		 (message
 		  "Warning: symbolic link to %s-controlled source file" link-type))
 		((or (not (eq vc-follow-symlinks 'ask))
+		     ;; Assume we cannot ask, default to yes.
+		     noninteractive
+		     ;; Copied from server-start.  Seems like there should
+		     ;; be a better way to ask "can we get user input?"...
+		     (and (daemonp)
+			  (null (cdr (frame-list)))
+			  (eq (selected-frame) terminal-frame))
 		     ;; If we already visited this file by following
 		     ;; the link, don't ask again if we try to visit
 		     ;; it again.  GUD does that, and repeated questions
@@ -973,6 +985,10 @@ current, and kill the buffer that visits the link."
 "))
     (bindings--define-key map [undo]
       '(menu-item "Undo Last Check-In" vc-rollback
+                  :enable (let ((backend (if buffer-file-name
+                                             (vc-backend buffer-file-name))))
+                            (or (not backend)
+                                (vc-find-backend-function backend 'rollback)))
 		  :help "Remove the most recent changeset committed to the repository"))
     (bindings--define-key map [vc-revert]
       '(menu-item "Revert to Base Version" vc-revert

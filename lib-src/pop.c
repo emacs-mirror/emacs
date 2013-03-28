@@ -1,7 +1,7 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
 
-Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2013 Free Software
+Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
 
@@ -1198,7 +1198,7 @@ socket_connection (char *host, int flags)
 	    }
 #elif defined HAVE_KRB5_ERROR_E_TEXT
 	  if (err_ret && err_ret->e_text && **err_ret->e_text)
-	    snprintf (pop_error + pop_error_len, ERRMAX - pop_error_len,
+	    snprintf (pop_error + pop_error_len, ERROR_MAX - pop_error_len,
 		      " [server says '%s']", *err_ret->e_text);
 #endif
 	  if (err_ret)

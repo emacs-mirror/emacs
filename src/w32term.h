@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -217,8 +217,6 @@ extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_char_width (struct frame *f);
-extern int x_char_height (struct frame *f);
 extern int x_pixel_width (struct frame *f);
 extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
@@ -361,6 +359,12 @@ struct w32_output
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* Frame geometry and full-screen mode before it was resized by
+     specifying the 'fullscreen' frame parameter.  Used to restore the
+     geometry when 'fullscreen' is reset to nil.  */
+  int normal_width, normal_height, normal_top, normal_left;
+  int prev_fsmode;
 };
 
 extern struct w32_output w32term_display;
@@ -392,6 +396,13 @@ extern struct w32_output w32term_display;
 
 #define FRAME_SMALLEST_FONT_HEIGHT(F) \
      FRAME_W32_DISPLAY_INFO(F)->smallest_font_height
+
+#define FRAME_NORMAL_WIDTH(F)  ((F)->output_data.w32->normal_width)
+#define FRAME_NORMAL_HEIGHT(F) ((F)->output_data.w32->normal_height)
+#define FRAME_NORMAL_TOP(F)    ((F)->output_data.w32->normal_top)
+#define FRAME_NORMAL_LEFT(F)   ((F)->output_data.w32->normal_left)
+#define FRAME_PREV_FSMODE(F)   ((F)->output_data.w32->prev_fsmode)
+
 
 /* W32-specific scroll bar stuff.  */
 
@@ -604,7 +615,8 @@ do { \
 #define WM_EMACS_PAINT                 (WM_EMACS_START + 20)
 #define WM_EMACS_BRINGTOTOP            (WM_EMACS_START + 21)
 #define WM_EMACS_INPUT_READY           (WM_EMACS_START + 22)
-#define WM_EMACS_END                   (WM_EMACS_START + 23)
+#define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 23)
+#define WM_EMACS_END                   (WM_EMACS_START + 24)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -654,7 +666,7 @@ extern void deselect_palette (struct frame * f, HDC hdc);
 extern HDC get_frame_dc (struct frame * f);
 extern int release_frame_dc (struct frame * f, HDC hDC);
 
-extern void drain_message_queue (void);
+extern int drain_message_queue (void);
 
 extern BOOL get_next_msg (W32Msg *, BOOL);
 extern BOOL post_msg (W32Msg *);
@@ -664,9 +676,16 @@ extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
+
+extern volatile int notification_buffer_in_use;
+extern BYTE file_notifications[16384];
+extern DWORD notifications_size;
+extern void *notifications_desc;
+extern Lisp_Object w32_get_watch_object (void *);
+extern Lisp_Object lispy_file_action (DWORD);
+
 extern void w32_initialize_display_info (Lisp_Object);
 extern void initialize_w32_display (struct terminal *);
-
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
@@ -755,12 +774,30 @@ extern const char*
 w32_name_of_message (UINT msg);
 #endif /* EMACSDEBUG */
 
+#ifdef NTGUI_UNICODE
+extern Lisp_Object ntgui_encode_system (Lisp_Object str);
+#define GUISTR(x) (L ## x)
+#define GUI_ENCODE_FILE GUI_ENCODE_SYSTEM
+#define GUI_ENCODE_SYSTEM(x) ntgui_encode_system (x)
+#define GUI_FN(fn) fn ## W
+typedef wchar_t guichar_t;
+#else /* !NTGUI_UNICODE */
+#define GUISTR(x) x
+#define GUI_ENCODE_FILE ENCODE_FILE
+#define GUI_ENCODE_SYSTEM ENCODE_SYSTEM
+#define GUI_FN(fn) fn
+typedef char guichar_t;
+#endif /* NTGUI_UNICODE */
+
+#define GUI_SDATA(x) ((guichar_t*) SDATA (x))
+
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);
 extern void syms_of_w32fns (void);
 
 extern void globals_of_w32menu (void);
 extern void globals_of_w32fns (void);
+extern void globals_of_w32notify (void);
 
 #ifdef CYGWIN
 extern int w32_message_fd;

@@ -1,7 +1,7 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,9 +41,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined WINDOWSNT || defined HAVE_NTGUI
 #include "w32select.h"
 #include "w32font.h"
+#include "w32common.h"
 #endif
 
-#if defined HAVE_NTGUI && defined CYGWIN
+#if defined CYGWIN
 #include "cygw32.h"
 #endif
 
@@ -133,6 +134,7 @@ Lisp_Object Qfile_name_handler_alist;
 Lisp_Object Qrisky_local_variable;
 
 Lisp_Object Qkill_emacs;
+static Lisp_Object Qkill_emacs_hook;
 
 /* If true, Emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
@@ -343,25 +345,6 @@ terminate_due_to_signal (int sig, int backtrace_limit)
   /* This shouldn't be executed, but it prevents a warning.  */
   exit (1);
 }
-
-#ifdef SIGDANGER
-
-/* Handler for SIGDANGER.  */
-static void
-handle_danger_signal (int sig)
-{
-  malloc_warning ("Operating system warns that virtual memory is running low.\n");
-
-  /* It might be unsafe to call do_auto_save now.  */
-  force_auto_save_soon ();
-}
-
-static void
-deliver_danger_signal (int sig)
-{
-  deliver_process_signal (sig, handle_danger_signal);
-}
-#endif
 
 /* Code for dealing with Lisp access to the Unix command line.  */
 
@@ -535,34 +518,8 @@ DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
 #ifdef HAVE_TZSET
 /* A valid but unlikely value for the TZ environment value.
    It is OK (though a bit slower) if the user actually chooses this value.  */
-static char dump_tz[] = "UtC0";
+static char const dump_tz[] = "UtC0";
 #endif
-
-#ifndef ORDINARY_LINK
-/* We don't include crtbegin.o and crtend.o in the link,
-   so these functions and variables might be missed.
-   Provide dummy definitions to avoid error.
-   (We don't have any real constructors or destructors.)  */
-#ifdef __GNUC__
-
-/* Define a dummy function F.  Declare F too, to pacify gcc
-   -Wmissing-prototypes.  */
-#define DEFINE_DUMMY_FUNCTION(f) \
-  void f (void) ATTRIBUTE_CONST EXTERNALLY_VISIBLE; void f (void) {}
-
-#ifndef GCC_CTORS_IN_LIBC
-DEFINE_DUMMY_FUNCTION (__do_global_ctors)
-DEFINE_DUMMY_FUNCTION (__do_global_ctors_aux)
-DEFINE_DUMMY_FUNCTION (__do_global_dtors)
-/* GNU/Linux has a bug in its library; avoid an error.  */
-#ifndef GNU_LINUX
-char * __CTOR_LIST__[2] EXTERNALLY_VISIBLE = { (char *) (-1), 0 };
-#endif
-char * __DTOR_LIST__[2] EXTERNALLY_VISIBLE = { (char *) (-1), 0 };
-#endif /* GCC_CTORS_IN_LIBC */
-DEFINE_DUMMY_FUNCTION (__main)
-#endif /* __GNUC__ */
-#endif /* ORDINARY_LINK */
 
 /* Test whether the next argument in ARGV matches SSTR or a prefix of
    LSTR (at least MINLEN characters).  If so, then if VALPTR is non-null
@@ -717,7 +674,7 @@ main (int argc, char **argv)
 
 #ifdef G_SLICE_ALWAYS_MALLOC
   /* This is used by the Cygwin build.  */
-  setenv ("G_SLICE", "always-malloc", 1);
+  xputenv ("G_SLICE=always-malloc");
 #endif
 
 #ifdef GNU_LINUX
@@ -731,6 +688,13 @@ main (int argc, char **argv)
 
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
+#endif
+
+#if defined WINDOWSNT || defined HAVE_NTGUI
+  /* Set global variables used to detect Windows version.  Do this as
+     early as possible.  (unexw32.c calls this function as well, but
+     the additional call here is harmless.) */
+  cache_system_info ();
 #endif
 
 #ifdef RUN_TIME_REMAP
@@ -803,9 +767,8 @@ main (int argc, char **argv)
 #ifdef HAVE_PERSONALITY_LINUX32
   if (dumping && ! getenv ("EMACS_HEAP_EXEC"))
     {
-      static char heapexec[] = "EMACS_HEAP_EXEC=true";
       /* Set this so we only do this once.  */
-      putenv (heapexec);
+      xputenv ("EMACS_HEAP_EXEC=true");
 
       /* A flag to turn off address randomization which is introduced
          in linux kernel shipped with fedora core 4 */
@@ -1070,7 +1033,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
             argv[skip_args] = fdStr;
 
-            execv (argv[0], argv);
+            execvp (argv[0], argv);
             fprintf (stderr, "emacs daemon: exec failed: %d\n", errno);
             exit (1);
           }
@@ -1117,7 +1080,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   noninteractive1 = noninteractive;
 
-/* Perform basic initializations (not merely interning symbols).  */
+  /* Perform basic initializations (not merely interning symbols).  */
 
   if (!initialized)
     {
@@ -1128,8 +1091,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
       init_category_once ();	/* Create standard category table.  */
-		      /* Must be done before init_buffer.  */
-      init_casetab_once ();
+      init_casetab_once ();	/* Must be done before init_buffer_once.  */
       init_buffer_once ();	/* Create buffer table and some buffers.  */
       init_minibuf_once ();	/* Create list of minibuffers.  */
 				/* Must precede init_window_once.  */
@@ -1154,6 +1116,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fileio ();
       /* Before syms_of_coding to initialize Vgc_cons_threshold.  */
       syms_of_alloc ();
+      /* May call Ffuncall and so GC, thus the latter should be initialized.  */
+      init_print_once ();
       /* Before syms_of_coding because it initializes Qcharsetp.  */
       syms_of_charset ();
       /* Before init_window_once, because it sets up the
@@ -1288,6 +1252,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef WINDOWSNT
   globals_of_w32 ();
+  globals_of_w32notify ();
   /* Initialize environment from registry settings.  */
   init_environment (argv);
   init_ntproc (dumping); /* must precede init_editfns.  */
@@ -1309,7 +1274,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      don't pollute Vglobal_environment.  */
   /* Setting LANG here will defeat the startup locale processing...  */
 #ifdef AIX
-  putenv ("LANG=C");
+  xputenv ("LANG=C");
 #endif
 
   init_buffer ();	/* Init default directory of main buffer.  */
@@ -1328,6 +1293,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
+  init_fileio ();
   init_lread ();
 #ifdef WINDOWSNT
   /* Check to see if Emacs has been installed correctly.  */
@@ -1383,7 +1349,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef WINDOWSNT
       syms_of_ntproc ();
 #endif /* WINDOWSNT */
-#if defined CYGWIN && defined HAVE_NTGUI
+#if defined CYGWIN
       syms_of_cygw32 ();
 #endif
       syms_of_window ();
@@ -1443,12 +1409,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_gnutls ();
 #endif
 
+#ifdef HAVE_INOTIFY
+      syms_of_inotify ();
+#endif /* HAVE_INOTIFY */
+
 #ifdef HAVE_DBUS
       syms_of_dbusbind ();
 #endif /* HAVE_DBUS */
 
 #ifdef WINDOWSNT
       syms_of_ntterm ();
+      syms_of_w32notify ();
 #endif /* WINDOWSNT */
 
       syms_of_profiler ();
@@ -1846,7 +1817,6 @@ all of which are called before Emacs is actually killed.  */)
   (Lisp_Object arg)
 {
   struct gcpro gcpro1;
-  Lisp_Object hook;
   int exit_code;
 
   GCPRO1 (arg);
@@ -1854,9 +1824,10 @@ all of which are called before Emacs is actually killed.  */)
   if (feof (stdin))
     arg = Qt;
 
-  hook = intern ("kill-emacs-hook");
-  Frun_hooks (1, &hook);
-
+  /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
+     set.  */
+  waiting_for_input = 0;
+  Frun_hooks (1, &Qkill_emacs_hook);
   UNGCPRO;
 
 #ifdef HAVE_X_WINDOWS
@@ -2156,7 +2127,7 @@ decode_env_path (const char *evarname, const char *defalt)
     {
       char *path_copy = alloca (strlen (path) + 1);
       strcpy (path_copy, path);
-      dostounix_filename (path_copy);
+      dostounix_filename (path_copy, 0);
       path = path_copy;
     }
 #endif
@@ -2268,6 +2239,7 @@ syms_of_emacs (void)
   DEFSYM (Qfile_name_handler_alist, "file-name-handler-alist");
   DEFSYM (Qrisky_local_variable, "risky-local-variable");
   DEFSYM (Qkill_emacs, "kill-emacs");
+  DEFSYM (Qkill_emacs_hook, "kill-emacs-hook");
 
 #ifndef CANNOT_DUMP
   defsubr (&Sdump_emacs);

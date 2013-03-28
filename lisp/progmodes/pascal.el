@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2013 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
@@ -138,6 +138,9 @@
     ;; find about the syntax of Pascal's comments said that (* ... } is
     ;; a valid comment, just as { ... *) or (* ... *) or { ... }.
     (modify-syntax-entry ?* ". 23" st)
+    ;; Allow //...\n comments as accepted by Free Pascal (bug#13585).
+    (modify-syntax-entry ?/ ". 12c" st)
+    (modify-syntax-entry ?\n "> c" st)
     (modify-syntax-entry ?{ "<"    st)
     (modify-syntax-entry ?} ">"    st)
     (modify-syntax-entry ?+ "."    st)

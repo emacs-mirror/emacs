@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -114,7 +114,7 @@ choose_minibuf_frame (void)
       /* Under X, we come here with minibuf_window being the
 	 minibuffer window of the unused termcap window created in
 	 init_window_once.  That window doesn't have a buffer.  */
-      buffer = XWINDOW (minibuf_window)->buffer;
+      buffer = XWINDOW (minibuf_window)->contents;
       if (BUFFERP (buffer))
 	/* Use set_window_buffer instead of Fset_window_buffer (see
 	   discussion of bug#11984, bug#12025, bug#12026).  */
@@ -251,7 +251,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	{
 	  if (len == size)
 	    {
-	      if (STRING_BYTES_BOUND / 2 < size)
+	      if (size > STRING_BYTES_BOUND / 2)
 		memory_full (SIZE_MAX);
 	      size *= 2;
 	      line = xrealloc (line, size);
@@ -844,7 +844,7 @@ read_minibuf_unwind (Lisp_Object data)
   window = minibuf_window;
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  */
-  Fset_buffer (XWINDOW (window)->buffer);
+  Fset_buffer (XWINDOW (window)->contents);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
   minibuf_prompt = Fcar (minibuf_save_list);
@@ -1398,12 +1398,7 @@ is used to further constrain the set of candidates.  */)
 				      eltstring, zero,
 				      make_number (compare),
 				      completion_ignore_case ? Qt : Qnil);
-	      if (EQ (tem, Qt))
-		matchsize = compare;
-	      else if (XINT (tem) < 0)
-		matchsize = - XINT (tem) - 1;
-	      else
-		matchsize = XINT (tem) - 1;
+	      matchsize = EQ (tem, Qt) ? compare : eabs (XINT (tem)) - 1;
 
 	      if (completion_ignore_case)
 		{

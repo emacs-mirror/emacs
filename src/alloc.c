@@ -1,7 +1,7 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,7 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>		/* For CHAR_BIT.  */
 
 #ifdef ENABLE_CHECKING
-#include <signal.h>		/* For SIGABRT. */
+#include <signal.h>		/* For SIGABRT.  */
 #endif
 
 #ifdef HAVE_PTHREAD
@@ -209,6 +209,7 @@ Lisp_Object Qchar_table_extra_slots;
 
 static Lisp_Object Qpost_gc_hook;
 
+static void free_save_value (Lisp_Object);
 static void mark_terminals (void);
 static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
@@ -219,7 +220,6 @@ static void refill_memory_reserve (void);
 #endif
 static void compact_small_strings (void);
 static void free_large_strings (void);
-static void free_misc (Lisp_Object);
 extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track of
@@ -323,20 +323,7 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static struct Lisp_Vector *allocate_vectorlike (ptrdiff_t);
-static void lisp_free (void *);
-static void mark_stack (void);
-static bool live_vector_p (struct mem_node *, void *);
-static bool live_buffer_p (struct mem_node *, void *);
-static bool live_string_p (struct mem_node *, void *);
-static bool live_cons_p (struct mem_node *, void *);
-static bool live_symbol_p (struct mem_node *, void *);
-static bool live_float_p (struct mem_node *, void *);
-static bool live_misc_p (struct mem_node *, void *);
-static void mark_maybe_object (Lisp_Object);
-static void mark_memory (void *, void *);
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
-static void mem_init (void);
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
 static void mem_rotate_left (struct mem_node *);
@@ -344,11 +331,6 @@ static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
 static struct mem_node *mem_find (void *);
-#endif
-
-
-#if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
-static void check_gcpros (void);
 #endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
@@ -422,11 +404,11 @@ buffer_memory_full (ptrdiff_t nbytes)
 
 #ifndef REL_ALLOC
   memory_full (nbytes);
-#endif
-
+#else
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
   xsignal (Qnil, Vmemory_signal_data);
+#endif
 }
 
 /* A common multiple of the positive integers A and B.  Ideally this
@@ -761,13 +743,17 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
    infinity.
 
    If PA is null, then allocate a new array instead of reallocating
-   the old one.  Thus, to grow an array A without saving its old
-   contents, invoke xfree (A) immediately followed by xgrowalloc (0,
-   &NITEMS, ...).
+   the old one.
 
    Block interrupt input as needed.  If memory exhaustion occurs, set
    *NITEMS to zero if PA is null, and signal an error (i.e., do not
-   return).  */
+   return).
+
+   Thus, to grow an array A without saving its old contents, do
+   { xfree (A); A = NULL; A = xpalloc (NULL, &AITEMS, ...); }.
+   The A = NULL avoids a dangling pointer if xpalloc exhausts memory
+   and signals an error, and later this code is reexecuted and
+   attempts to free A.  */
 
 void *
 xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
@@ -793,7 +779,7 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   ptrdiff_t nitems_incr_max = n_max - n;
   ptrdiff_t incr = max (nitems_incr_min, min (incr_estimate, nitems_incr_max));
 
-  eassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
+  eassert (item_size > 0 && nitems_incr_min > 0 && n >= 0 && nitems_max >= -1);
   if (! pa)
     *nitems = 0;
   if (nitems_incr_max < incr)
@@ -816,18 +802,22 @@ xstrdup (const char *s)
   return p;
 }
 
+/* Like putenv, but (1) use the equivalent of xmalloc and (2) the
+   argument is a const pointer.  */
+
+void
+xputenv (char const *string)
+{
+  if (putenv ((char *) string) != 0)
+    memory_full (0);
+}
 
 /* Unwind for SAFE_ALLOCA */
 
 Lisp_Object
 safe_alloca_unwind (Lisp_Object arg)
 {
-  register struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-
-  p->dogc = 0;
-  xfree (p->pointer);
-  p->pointer = 0;
-  free_misc (arg);
+  free_save_value (arg);
   return Qnil;
 }
 
@@ -837,7 +827,7 @@ void *
 record_xmalloc (size_t size)
 {
   void *p = xmalloc (size);
-  record_unwind_protect (safe_alloca_unwind, make_save_value (p, 0));
+  record_unwind_protect (safe_alloca_unwind, make_save_pointer (p));
   return p;
 }
 
@@ -1154,7 +1144,7 @@ lisp_align_free (void *block)
 #define INTERVAL_BLOCK_SIZE \
   ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
 
-/* Intervals are allocated in chunks in form of an interval_block
+/* Intervals are allocated in chunks in the form of an interval_block
    structure.  */
 
 struct interval_block
@@ -1676,7 +1666,7 @@ allocate_string_data (struct Lisp_String *s,
       b = lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
-      /* Back to a reasonable maximum of mmap'ed areas. */
+      /* Back to a reasonable maximum of mmap'ed areas.  */
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
@@ -1893,7 +1883,7 @@ compact_small_strings (void)
 
 #ifdef GC_CHECK_STRING_BYTES
 	  /* Check that the string size recorded in the string is the
-	     same as the one recorded in the sdata structure. */
+	     same as the one recorded in the sdata structure.  */
 	  if (s && string_bytes (s) != SDATA_NBYTES (from))
 	    emacs_abort ();
 #endif /* GC_CHECK_STRING_BYTES */
@@ -3097,13 +3087,10 @@ Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  register Lisp_Object len, val;
   ptrdiff_t i;
-  register struct Lisp_Vector *p;
+  register Lisp_Object val = make_uninit_vector (nargs);
+  register struct Lisp_Vector *p = XVECTOR (val);
 
-  XSETFASTINT (len, nargs);
-  val = Fmake_vector (len, Qnil);
-  p = XVECTOR (val);
   for (i = 0; i < nargs; i++)
     p->contents[i] = args[i];
   return val;
@@ -3141,9 +3128,9 @@ stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  register Lisp_Object len, val;
   ptrdiff_t i;
-  register struct Lisp_Vector *p;
+  register Lisp_Object val = make_uninit_vector (nargs);
+  register struct Lisp_Vector *p = XVECTOR (val);
 
   /* We used to purecopy everything here, if purify-flag was set.  This worked
      OK for Emacs-23, but with Emacs-24's lexical binding code, it can be
@@ -3153,10 +3140,6 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
      just wasteful and other times plainly wrong (e.g. those free vars may want
      to be setcar'd).  */
 
-  XSETFASTINT (len, nargs);
-  val = Fmake_vector (len, Qnil);
-
-  p = XVECTOR (val);
   for (i = 0; i < nargs; i++)
     p->contents[i] = args[i];
   make_byte_code (p);
@@ -3331,9 +3314,9 @@ allocate_misc (enum Lisp_Misc_Type type)
   return val;
 }
 
-/* Free a Lisp_Misc object */
+/* Free a Lisp_Misc object.  */
 
-static void
+void
 free_misc (Lisp_Object misc)
 {
   XMISCTYPE (misc) = Lisp_Misc_Free;
@@ -3343,22 +3326,73 @@ free_misc (Lisp_Object misc)
   total_free_markers++;
 }
 
-/* Return a Lisp_Misc_Save_Value object containing POINTER and
-   INTEGER.  This is used to package C values to call record_unwind_protect.
-   The unwind function can get the C values back using XSAVE_VALUE.  */
+/* Verify properties of Lisp_Save_Value's representation
+   that are assumed here and elsewhere.  */
+
+verify (SAVE_UNUSED == 0);
+verify ((SAVE_INTEGER | SAVE_POINTER | SAVE_OBJECT) >> SAVE_SLOT_BITS == 0);
+
+/* Return a Lisp_Save_Value object with the data saved according to
+   DATA_TYPE.  DATA_TYPE should be one of SAVE_TYPE_INT_INT, etc.  */
 
 Lisp_Object
-make_save_value (void *pointer, ptrdiff_t integer)
+make_save_value (enum Lisp_Save_Type save_type, ...)
 {
-  register Lisp_Object val;
-  register struct Lisp_Save_Value *p;
+  va_list ap;
+  int i;
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
 
-  val = allocate_misc (Lisp_Misc_Save_Value);
-  p = XSAVE_VALUE (val);
-  p->pointer = pointer;
-  p->integer = integer;
-  p->dogc = 0;
+  eassert (0 < save_type
+	   && (save_type < 1 << (SAVE_TYPE_BITS - 1)
+	       || save_type == SAVE_TYPE_MEMORY));
+  p->save_type = save_type;
+  va_start (ap, save_type);
+  save_type &= ~ (1 << (SAVE_TYPE_BITS - 1));
+
+  for (i = 0; save_type; i++, save_type >>= SAVE_SLOT_BITS)
+    switch (save_type & ((1 << SAVE_SLOT_BITS) - 1))
+      {
+      case SAVE_POINTER:
+	p->data[i].pointer = va_arg (ap, void *);
+	break;
+
+      case SAVE_INTEGER:
+	p->data[i].integer = va_arg (ap, ptrdiff_t);
+	break;
+
+      case SAVE_OBJECT:
+	p->data[i].object = va_arg (ap, Lisp_Object);
+	break;
+
+      default:
+	emacs_abort ();
+      }
+
+  va_end (ap);
   return val;
+}
+
+/* The most common task it to save just one C pointer.  */
+
+Lisp_Object
+make_save_pointer (void *pointer)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_POINTER;
+  p->data[0].pointer = pointer;
+  return val;
+}
+
+/* Free a Lisp_Save_Value object.  Do not use this function
+   if SAVE contains pointer other than returned by xmalloc.  */
+
+static void
+free_save_value (Lisp_Object save)
+{
+  xfree (XSAVE_POINTER (save, 0));
+  free_misc (save);
 }
 
 /* Return a Lisp_Misc_Overlay object with specified START, END and PLIST.  */
@@ -4425,11 +4459,6 @@ mark_memory (void *start, void *end)
       }
 }
 
-/* setjmp will work with GCC unless NON_SAVING_SETJMP is defined in
-   the GCC system configuration.  In gcc 3.2, the only systems for
-   which this is so are i386-sco5 non-ELF, i386-sysv3 (maybe included
-   by others?) and ns32k-pc532-min.  */
-
 #if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
 
 static bool setjmp_tested_p;
@@ -4700,12 +4729,12 @@ valid_pointer_p (void *p)
 #endif
 }
 
-/* Return 2 if OBJ is a killed or special buffer object.
-   Return 1 if OBJ is a valid lisp object.
-   Return 0 if OBJ is NOT a valid lisp object.
-   Return -1 if we cannot validate OBJ.
-   This function can be quite slow,
-   so it should only be used in code for manual debugging.  */
+/* Return 2 if OBJ is a killed or special buffer object, 1 if OBJ is a
+   valid lisp object, 0 if OBJ is NOT a valid lisp object, or -1 if we
+   cannot validate OBJ.  This function can be quite slow, so its primary
+   use is the manual debugging.  The only exception is print_object, where
+   we use it to check whether the memory referenced by the pointer of
+   Lisp_Save_Value object contains valid objects.  */
 
 int
 valid_lisp_object_p (Lisp_Object obj)
@@ -5347,7 +5376,7 @@ See Info node `(elisp)Garbage Collection'.  */)
       double tot = total_bytes_of_live_objects ();
 
       tot *= XFLOAT_DATA (Vgc_cons_percentage);
-      if (0 < tot)
+      if (tot > 0)
 	{
 	  if (tot < TYPE_MAXIMUM (EMACS_INT))
 	    gc_relative_threshold = tot;
@@ -5781,14 +5810,13 @@ mark_object (Lisp_Object arg)
 	  case PVEC_WINDOW:
 	    {
 	      struct window *w = (struct window *) ptr;
-	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
 
 	      mark_vectorlike (ptr);
 
-	      /* Mark glyphs for leaf windows.  Marking window
+	      /* Mark glyph matrices, if any.  Marking window
 		 matrices is sufficient because frame matrices
 		 use the same glyph memory.  */
-	      if (leaf && w->current_matrix)
+	      if (w->current_matrix)
 		{
 		  mark_glyph_matrix (w->current_matrix);
 		  mark_glyph_matrix (w->desired_matrix);
@@ -5919,20 +5947,27 @@ mark_object (Lisp_Object arg)
 
 	case Lisp_Misc_Save_Value:
 	  XMISCANY (obj)->gcmarkbit = 1;
-#if GC_MARK_STACK
 	  {
-	    register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
-	    /* If DOGC is set, POINTER is the address of a memory
-	       area containing INTEGER potential Lisp_Objects.  */
-	    if (ptr->dogc)
+	    struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
+	    /* If `save_type' is zero, `data[0].pointer' is the address
+	       of a memory area containing `data[1].integer' potential
+	       Lisp_Objects.  */
+	    if (GC_MARK_STACK && ptr->save_type == SAVE_TYPE_MEMORY)
 	      {
-		Lisp_Object *p = (Lisp_Object *) ptr->pointer;
+		Lisp_Object *p = ptr->data[0].pointer;
 		ptrdiff_t nelt;
-		for (nelt = ptr->integer; nelt > 0; nelt--, p++)
+		for (nelt = ptr->data[1].integer; nelt > 0; nelt--, p++)
 		  mark_maybe_object (*p);
 	      }
+	    else
+	      {
+		/* Find Lisp_Objects in `data[N]' slots and mark them.  */
+		int i;
+		for (i = 0; i < SAVE_VALUE_SLOTS; i++)
+		  if (save_type (ptr, i) == SAVE_OBJECT)
+		    mark_object (ptr->data[i].object);
+	      }
 	  }
-#endif
 	  break;
 
 	case Lisp_Misc_Overlay:
@@ -6488,7 +6523,7 @@ die (const char *msg, const char *file, int line)
 }
 #endif
 
-/* Initialization */
+/* Initialization.  */
 
 void
 init_alloc_once (void)
@@ -6503,9 +6538,9 @@ init_alloc_once (void)
 #endif
 
 #ifdef DOUG_LEA_MALLOC
-  mallopt (M_TRIM_THRESHOLD, 128*1024); /* trim threshold */
-  mallopt (M_MMAP_THRESHOLD, 64*1024); /* mmap threshold */
-  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS); /* max. number of mmap'ed areas */
+  mallopt (M_TRIM_THRESHOLD, 128 * 1024); /* Trim threshold.  */
+  mallopt (M_MMAP_THRESHOLD, 64 * 1024);  /* Mmap threshold.  */
+  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);   /* Max. number of mmap'ed areas.  */
 #endif
   init_strings ();
   init_vectors ();

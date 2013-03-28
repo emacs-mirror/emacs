@@ -1,6 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -260,7 +260,7 @@ WARNING: Changing the value of this variable will gravely affect the
   :type 'integer
   :group 'strokes)
 
-(defcustom strokes-file (convert-standard-filename "~/.strokes")
+(defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
   "File containing saved strokes for Strokes mode (default is ~/.strokes)."
   :type 'file
   :group 'strokes)

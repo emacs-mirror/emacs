@@ -1,5 +1,5 @@
 /* A C macro for emitting warnings if a function is used.
-   Copyright (C) 2010-2012 Free Software Foundation, Inc.
+   Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published
@@ -55,7 +55,7 @@
    rather than issue the nice warning, but the end result of informing
    the developer about their portability problem is still achieved):
    #if HAVE_RAW_DECL_ENVIRON
-   static inline char ***rpl_environ (void) { return &environ; }
+   static char ***rpl_environ (void) { return &environ; }
    _GL_WARN_ON_USE (rpl_environ, "environ is not always properly declared");
    # undef environ
    # define environ (*rpl_environ ())

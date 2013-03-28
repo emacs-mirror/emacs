@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2013 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
@@ -198,7 +198,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
 ;;;###autoload   "Return non-nil if file F is registered with CVS."
 ;;;###autoload   (when (file-readable-p (expand-file-name
 ;;;###autoload 			  "CVS/Entries" (file-name-directory f)))
-;;;###autoload       (load "vc-cvs")
+;;;###autoload       (load "vc-cvs" nil t)
 ;;;###autoload       (vc-cvs-registered f)))
 
 (defun vc-cvs-registered (file)

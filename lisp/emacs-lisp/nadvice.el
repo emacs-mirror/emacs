@@ -1,6 +1,6 @@
 ;;; nadvice.el --- Light-weight advice primitives for Elisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
@@ -23,7 +23,7 @@
 
 ;; This package lets you add behavior (which we call "piece of advice") to
 ;; existing functions, like the old `advice.el' package, but with much fewer
-;; bells ans whistles.  It comes in 2 parts:
+;; bells and whistles.  It comes in 2 parts:
 ;;
 ;; - The first part lets you add/remove functions, similarly to
 ;;   add/remove-hook, from any "place" (i.e. as accepted by `setf') that
@@ -167,20 +167,27 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
         (setq definition (advice--cdr definition))))
     found))
 
+(defun advice--tweak (flist tweaker)
+  (if (not (advice--p flist))
+      (funcall tweaker nil flist nil)
+    (let ((first (advice--car flist))
+          (rest (advice--cdr flist))
+          (props (advice--props flist)))
+      (let ((val (funcall tweaker first rest props)))
+        (if val (car val)
+          (let ((nrest (advice--tweak rest tweaker)))
+            (if (eq rest nrest) flist
+              (advice--make-1 (aref flist 1) (aref flist 3)
+                              first nrest props))))))))
+
 ;;;###autoload
 (defun advice--remove-function (flist function)
-  (if (not (advice--p flist))
-      flist
-    (let ((first (advice--car flist))
-          (props (advice--props flist)))
-      (if (or (equal function first)
-              (equal function (cdr (assq 'name props))))
-          (advice--cdr flist)
-        (let* ((rest (advice--cdr flist))
-               (nrest (advice--remove-function rest function)))
-          (if (eq rest nrest) flist
-            (advice--make-1 (aref flist 1) (aref flist 3)
-                            first nrest props)))))))
+  (advice--tweak flist
+                 (lambda (first rest props)
+                   (cond ((not first) rest)
+                         ((or (equal function first)
+                           (equal function (cdr (assq 'name props))))
+                          (list rest))))))
 
 (defvar advice--buffer-local-function-sample nil)
 
@@ -269,15 +276,8 @@ of the piece of advice."
 ;;;; Specific application of add-function to `symbol-function' for advice.
 
 (defun advice--subst-main (old new)
-  (if (not (advice--p old))
-      new
-    (let* ((first (advice--car old))
-           (rest (advice--cdr old))
-           (props (advice--props old))
-           (nrest (advice--subst-main rest new)))
-      (if (equal rest nrest) old
-        (advice--make-1 (aref old 1) (aref old 3)
-                        first nrest props)))))
+  (advice--tweak old
+                 (lambda (first _rest _props) (if (not first) new))))
 
 (defun advice--normalize (symbol def)
   (cond

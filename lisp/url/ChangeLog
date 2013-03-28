@@ -1,3 +1,31 @@
+2013-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Avoid prematurely finding the end of headers when they arrive
+	line-by-line.  (Bug#13598)
+
+2013-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cache.el (url-cache-create-filename-using-md5): Don't waste your
+	time `requiring' a builtin feature.
+
+2012-12-22  Takafumi Arakaki  <aka.tkf@gmail.com>  (tiny change)
+
+	* url-http.el (url-http-end-of-document-sentinel): Bind relevant
+	url-request-* variables around the call to url-http (Bug#11469).
+
+	* url-expand.el (url-default-expander): Don't calculate a default
+	url port before checking url-type (Bug#12374).
+
+2012-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* url-parse.el (url-port): Doc fix.
+
+2012-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* url-misc.el (url-do-terminal-emulator): Use make-term instead of
+	terminal-emulator.
+
 2012-10-13  Liam Stitt  <stittl@cuug.ab.ca>  (tiny change)
 
 	* url-vars.el (url-uncompressor-alist):
@@ -2784,7 +2812,8 @@
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 1999, 2001-2002, 2004-2012  Free Software Foundation, Inc.
+	Copyright (C) 1999, 2001-2002, 2004-2013 Free Software
+	Foundation, Inc.
 
   This file is part of GNU Emacs.
 

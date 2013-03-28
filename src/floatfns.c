@@ -1,7 +1,7 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1988, 1993-1994, 1999, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 1999, 2001-2013 Free Software Foundation,
+Inc.
 
 Author: Wolfgang Rupprecht
 (according to ack.texi)
@@ -193,7 +193,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   CHECK_NUMBER_OR_FLOAT (arg2);
   if (INTEGERP (arg1)     /* common lisp spec */
       && INTEGERP (arg2)   /* don't promote, if both are ints, and */
-      && 0 <= XINT (arg2)) /* we are sure the result is not fractional */
+      && XINT (arg2) >= 0) /* we are sure the result is not fractional */
     {				/* this can be improved by pre-calculating */
       EMACS_INT y;		/* some binary powers of x then accumulating */
       EMACS_UINT acc, x;  /* Unsigned so that overflow is well defined.  */
@@ -399,8 +399,8 @@ round2 (EMACS_INT i1, EMACS_INT i2)
      odd.  */
   EMACS_INT q = i1 / i2;
   EMACS_INT r = i1 % i2;
-  EMACS_INT abs_r = r < 0 ? -r : r;
-  EMACS_INT abs_r1 = (i2 < 0 ? -i2 : i2) - abs_r;
+  EMACS_INT abs_r = eabs (r);
+  EMACS_INT abs_r1 = eabs (i2) - abs_r;
   return q + (abs_r + (q & 1) <= abs_r1 ? 0 : (i2 ^ r) < 0 ? -1 : 1);
 }
 
@@ -475,7 +475,7 @@ fmod_float (Lisp_Object x, Lisp_Object y)
   f1 = fmod (f1, f2);
 
   /* If the "remainder" comes out with the wrong sign, fix it.  */
-  if (f2 < 0 ? 0 < f1 : f1 < 0)
+  if (f2 < 0 ? f1 > 0 : f1 < 0)
     f1 += f2;
 
   return make_float (f1);

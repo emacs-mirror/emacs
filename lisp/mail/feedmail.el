@@ -590,7 +590,7 @@ header is fiddled after the From: header is fiddled."
 (defcustom feedmail-force-binary-write t
   "If non-nil, force writing file as binary (this applies to queues and Fcc:).
 On systems where there is a difference between binary and text files,
-feedmail will temporarily manipulate the value of `buffer-file-type'
+feedmail will temporarily manipulate the value of `coding-system-for-write'
 to make the writing as binary.  If nil, writing will be in text mode.
 On systems where there is no distinction or where it is controlled by other
 variables or other means, this option has no effect."
@@ -2016,7 +2016,6 @@ backup file names and the like)."
 	      (setq buffer-offer-save nil)
 	      (buffer-disable-undo blobby-buffer)
 	      (insert-file-contents-literally maybe-file)
-	      (setq buffer-file-type t) ; binary
 	      (goto-char (point-min))
 	      ;; if at least two line-endings with CRLF, translate the file
 	      (if (looking-at ".*\r\n.*\r\n")
@@ -2334,7 +2333,10 @@ mapped to mostly alphanumerics for safety."
 	(setq filename buffer-file-name)
       (setq filename (feedmail-create-queue-filename queue-directory)))
     ;; make binary file on DOS/Windows 95/Windows NT, etc
-    (let ((buffer-file-type feedmail-force-binary-write))
+    (let ((coding-system-for-write
+	   (if feedmail-force-binary-write
+	       'no-conversion
+	     coding-system-for-write)))
       (write-file filename))
     ;; convenient for moving from draft to q, for example
     (if (and previous-buffer-file-name (or (not is-fqm) (not is-in-this-dir))
@@ -2571,26 +2573,27 @@ mapped to mostly alphanumerics for safety."
 		  ;; Re-insert and handle any Fcc fields (and, optionally,
                   ;; any Bcc).
 		  (when fcc
-                    (let ((old (default-value 'buffer-file-type)))
+                    (let ((coding-system-for-write
+			   (if (and (memq system-type '(ms-dos windows-nt))
+				    feedmail-force-binary-write)
+			       'no-conversion
+			     coding-system-for-write)))
                       (unwind-protect
                           (progn
-                            (setq-default buffer-file-type 
-                                          feedmail-force-binary-write)
                             (insert fcc)
                             (unless feedmail-nuke-bcc-in-fcc
                               (if bcc-holder (insert bcc-holder))
                               (if resent-bcc-holder
                                   (insert resent-bcc-holder)))
-                          
+
                             (run-hooks 'feedmail-before-fcc-hook)
-                          
+
                             (when feedmail-nuke-body-in-fcc
                               (goto-char eoh-marker)
                               (if (natnump feedmail-nuke-body-in-fcc)
                                   (forward-line feedmail-nuke-body-in-fcc))
                               (delete-region (point) (point-max)))
-                            (mail-do-fcc eoh-marker))
-                        (setq-default buffer-file-type old)))))
+                            (mail-do-fcc eoh-marker))))))
 	      ;; User bailed out of one-last-look.
 	      (if feedmail-queue-runner-is-active
 		  (throw 'skip-me-q 'skip-me-q)

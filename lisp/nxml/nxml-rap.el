@@ -1,6 +1,6 @@
 ;;; nxml-rap.el --- low-level support for random access parsing for nXML mode
 
-;; Copyright (C) 2003-2004, 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -293,7 +293,7 @@ Sets variables like `nxml-token-after'."
       (cond ((memq xmltok-type '(comment
 				 cdata-section
 				 processing-instruction))
-	     (nxml-with-unmodifying-text-property-changes
+	     (with-silent-modifications
 	       (nxml-set-inside (1+ xmltok-start) (point) xmltok-type)))
 	    (xmltok-dependent-regions
 	     (nxml-mark-parse-dependent-regions)))
@@ -338,7 +338,7 @@ Leave point unmoved if it is not inside anything special."
 			       '(comment
 				 processing-instruction
 				 cdata-section))
-		     (nxml-with-unmodifying-text-property-changes
+		     (with-silent-modifications
 		       (nxml-set-inside (1+ xmltok-start)
 					(point)
 					xmltok-type)))

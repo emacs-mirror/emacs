@@ -1,6 +1,7 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1992, 1994-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -153,7 +154,7 @@ long-lived shared key will decrease security (especially since
 the key is transmitted as plain-text).
 
 In some situations however, it can be difficult to share randomly
-generated passwords with remote hosts (eg. no shared directory),
+generated passwords with remote hosts (e.g., no shared directory),
 so you can set the key with this variable and then copy the
 server file to the remote host (with possible changes to IP
 address and/or port if that applies).
@@ -360,7 +361,7 @@ Updates `server-clients'."
 
 (defconst server-buffer " *server*"
   "Buffer used internally by Emacs's server.
-One use is to log the I/O for debugging purposes (see `server-log'),
+One use is to log the I/O for debugging purposes (see option `server-log'),
 the other is to provide a current buffer in which the process filter can
 safely let-bind buffer-local variables like `default-directory'.")
 
@@ -368,7 +369,7 @@ safely let-bind buffer-local variables like `default-directory'.")
   "If non-nil, log the server's inputs and outputs in the `server-buffer'.")
 
 (defun server-log (string &optional client)
-  "If `server-log' is non-nil, log STRING to `server-buffer'.
+  "If option `server-log' is non-nil, log STRING to `server-buffer'.
 If CLIENT is non-nil, add a description of it to the logged message."
   (when server-log
     (with-current-buffer (get-buffer-create server-buffer)
@@ -1256,12 +1257,17 @@ The following commands are accepted by the client:
           (mapc 'funcall (nreverse commands))
 
 	  ;; If we were told only to open a new client, obey
-	  ;; `initial-buffer-choice' if it specifies a file.
-	  (unless (or files commands)
-	    (if (stringp initial-buffer-choice)
-		(find-file initial-buffer-choice)
-	      (switch-to-buffer (get-buffer-create "*scratch*")
-				'norecord)))
+	  ;; `initial-buffer-choice' if it specifies a file
+          ;; or a function.
+          (unless (or files commands)
+            (let ((buf
+                   (cond ((stringp initial-buffer-choice)
+			  (find-file-noselect initial-buffer-choice))
+			 ((functionp initial-buffer-choice)
+			  (funcall initial-buffer-choice)))))
+	      (switch-to-buffer
+	       (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
+	       'norecord)))
 
           ;; Delete the client if necessary.
           (cond

@@ -1,11 +1,11 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "13. Mai 2011, 19:28:34 (ulf)"
+;; Time-stamp:  "Mon 11-Feb-2013 20:27:11 gm on skiddaw"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -405,6 +405,7 @@ images."
     (define-key map "sx" 'newsticker-show-extra)
     (define-key map "hx" 'newsticker-hide-extra)
 
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map " "  'scroll-up-command)
     (define-key map "q"  'newsticker-close-buffer)
     (define-key map "p"  'newsticker-previous-item)

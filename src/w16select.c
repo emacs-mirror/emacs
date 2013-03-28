@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
 
-Copyright (C) 1996-1997, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1996-1997, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -532,13 +532,13 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
       switch (put_status)
 	{
 	  case 1:
-	    message2 (no_mem_msg, sizeof (no_mem_msg) - 1, 0);
+	    message3 (make_unibyte_string (no_mem_msg, sizeof (no_mem_msg) - 1));
 	    break;
 	  case 2:
-	    message2 (binary_msg, sizeof (binary_msg) - 1, 0);
+	    message3 (make_unibyte_string (binary_msg, sizeof (binary_msg) - 1));
 	    break;
 	  case 3:
-	    message2 (system_error_msg, sizeof (system_error_msg) - 1, 0);
+	    message3 (make_unibyte_string (system_error_msg, sizeof (system_error_msg) - 1));
 	    break;
 	}
       sit_for (make_number (2), 0, 2);

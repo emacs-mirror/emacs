@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985-1987, 1993-1995, 1997-2012
-		 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -66,7 +66,10 @@ and `most-positive-fixnum', inclusive, are equally likely.
 
 With positive integer LIMIT, return random number in interval [0,LIMIT).
 With argument t, set the random number seed from the current time and pid.
-Other values of LIMIT are ignored.  */)
+With a string argument, set the seed based on the string's contents.
+Other values of LIMIT are ignored.
+
+See Info node `(elisp)Random Numbers' for more details.  */)
   (Lisp_Object limit)
 {
   EMACS_INT val;
@@ -86,7 +89,7 @@ Other values of LIMIT are ignored.  */)
    before it's time to do a QUIT.  This must be a power of 2.  */
 enum { QUIT_COUNT_HEURISTIC = 1 << 16 };
 
-/* Random data-structure functions */
+/* Random data-structure functions.  */
 
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
@@ -211,12 +214,18 @@ Symbols are also allowed; their print names are used instead.  */)
 
 DEFUN ("compare-strings", Fcompare_strings, Scompare_strings, 6, 7, 0,
        doc: /* Compare the contents of two strings, converting to multibyte if needed.
-In string STR1, skip the first START1 characters and stop at END1.
-In string STR2, skip the first START2 characters and stop at END2.
-END1 and END2 default to the full lengths of the respective strings.
+The arguments START1, END1, START2, and END2, if non-nil, are
+positions specifying which parts of STR1 or STR2 to compare.  In
+string STR1, compare the part between START1 (inclusive) and END1
+\(exclusive).  If START1 is nil, it defaults to 0, the beginning of
+the string; if END1 is nil, it defaults to the length of the string.
+Likewise, in string STR2, compare the part between START2 and END2.
 
-Case is significant in this comparison if IGNORE-CASE is nil.
-Unibyte strings are converted to multibyte for comparison.
+The strings are compared by the numeric values of their characters.
+For instance, STR1 is "less than" STR2 if its first differing
+character has a smaller numeric value.  If IGNORE-CASE is non-nil,
+characters are converted to lower-case before comparing them.  Unibyte
+strings are converted to multibyte for comparison.
 
 The value is t if the strings (or specified portions) match.
 If string STR1 is less, the value is a negative number N;
@@ -2476,7 +2485,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
 
       Fding (Qnil);
       Fdiscard_input ();
-      message ("Please answer yes or no.");
+      message1 ("Please answer yes or no.");
       Fsleep_for (make_number (2), Qnil);
     }
 }
@@ -2736,7 +2745,7 @@ ARGS are passed as extra arguments to the function.
 usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  /* This function can GC. */
+  /* This function can GC.  */
   Lisp_Object newargs[3];
   struct gcpro gcpro1, gcpro2;
   Lisp_Object result;
@@ -2798,9 +2807,8 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	  val = build_unibyte_string (str);
 	  /* Fixme: Is this coding system necessarily right, even if
 	     it is consistent with CODESET?  If not, what to do?  */
-	  Faset (v, make_number (i),
-		 code_convert_string_norecord (val, Vlocale_coding_system,
-					       0));
+	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
+						    0));
 	}
       UNGCPRO;
       return v;
@@ -2820,8 +2828,8 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	{
 	  str = nl_langinfo (months[i]);
 	  val = build_unibyte_string (str);
-	  Faset (v, make_number (i),
-		 code_convert_string_norecord (val, Vlocale_coding_system, 0));
+	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
+						    0));
 	}
       UNGCPRO;
       return v;
@@ -2831,10 +2839,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
    but is in the locale files.  This could be used by ps-print.  */
 #ifdef PAPER_WIDTH
   else if (EQ (item, Qpaper))
-    {
-      return list2 (make_number (nl_langinfo (PAPER_WIDTH)),
-		    make_number (nl_langinfo (PAPER_HEIGHT)));
-    }
+    return list2i (nl_langinfo (PAPER_WIDTH), nl_langinfo (PAPER_HEIGHT));
 #endif	/* PAPER_WIDTH */
 #endif	/* HAVE_LANGINFO_CODESET*/
   return Qnil;
@@ -3404,7 +3409,7 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
   ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
 		     ? nitems_max : C_language_max);
   eassert (VECTORP (vec));
-  eassert (0 < incr_min && -1 <= nitems_max);
+  eassert (incr_min > 0 && nitems_max >= -1);
   old_size = ASIZE (vec);
   incr_max = n_max - old_size;
   incr = max (incr_min, min (old_size >> 1, incr_max));
@@ -3569,9 +3574,9 @@ make_hash_table (struct hash_table_test test,
   eassert (SYMBOLP (test.name));
   eassert (INTEGERP (size) && XINT (size) >= 0);
   eassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
-	   || (FLOATP (rehash_size) && 1 < XFLOAT_DATA (rehash_size)));
+	   || (FLOATP (rehash_size) && XFLOAT_DATA (rehash_size) > 1));
   eassert (FLOATP (rehash_threshold)
-	   && 0 < XFLOAT_DATA (rehash_threshold)
+	   && XFLOAT_DATA (rehash_threshold) > 0
 	   && XFLOAT_DATA (rehash_threshold) <= 1.0);
 
   if (XFASTINT (size) == 0)
@@ -4037,10 +4042,6 @@ sweep_weak_hash_tables (void)
 
 #define SXHASH_MAX_LEN   7
 
-/* Hash X, returning a value that fits into a Lisp integer.  */
-#define SXHASH_REDUCE(X) \
-  ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)
-
 /* Return a hash for string PTR which has length LEN.  The hash value
    can be any EMACS_UINT value.  */
 
@@ -4073,7 +4074,7 @@ sxhash_string (char const *ptr, ptrdiff_t len)
 
 /* Return a hash for the floating point value VAL.  */
 
-static EMACS_INT
+static EMACS_UINT
 sxhash_float (double val)
 {
   EMACS_UINT hash = 0;
@@ -4311,15 +4312,15 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   /* Look for `:rehash-size SIZE'.  */
   i = get_key_arg (QCrehash_size, nargs, args, used);
   rehash_size = i ? args[i] : make_float (DEFAULT_REHASH_SIZE);
-  if (! ((INTEGERP (rehash_size) && 0 < XINT (rehash_size))
-	 || (FLOATP (rehash_size) && 1 < XFLOAT_DATA (rehash_size))))
+  if (! ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
+	 || (FLOATP (rehash_size) && XFLOAT_DATA (rehash_size) > 1)))
     signal_error ("Invalid hash table rehash size", rehash_size);
 
   /* Look for `:rehash-threshold THRESHOLD'.  */
   i = get_key_arg (QCrehash_threshold, nargs, args, used);
   rehash_threshold = i ? args[i] : make_float (DEFAULT_REHASH_THRESHOLD);
   if (! (FLOATP (rehash_threshold)
-	 && 0 < XFLOAT_DATA (rehash_threshold)
+	 && XFLOAT_DATA (rehash_threshold) > 0
 	 && XFLOAT_DATA (rehash_threshold) <= 1))
     signal_error ("Invalid hash table rehash threshold", rehash_threshold);
 

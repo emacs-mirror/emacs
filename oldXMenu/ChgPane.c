@@ -13,7 +13,6 @@
  *
  */
 
-#include <config.h>
 #include "XMenuInt.h"
 
 int
@@ -65,4 +64,3 @@ XMenuChangePane(register XMenu *menu, register int p_num, char *label)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
-

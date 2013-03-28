@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993-1997, 2000-2012 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1120,7 +1120,7 @@ unexpect_property_change (struct prop_location *location)
 static Lisp_Object
 wait_for_property_change_unwind (Lisp_Object loc)
 {
-  struct prop_location *location = XSAVE_VALUE (loc)->pointer;
+  struct prop_location *location = XSAVE_POINTER (loc, 0);
 
   unexpect_property_change (location);
   if (location == property_change_reply_object)
@@ -1141,7 +1141,7 @@ wait_for_property_change (struct prop_location *location)
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind,
-			 make_save_value (location, 0));
+			 make_save_pointer (location));
 
   XSETCAR (property_change_reply, Qnil);
   property_change_reply_object = location;
@@ -1388,7 +1388,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 	  data = data1;
 	}
 
-      if (32 < BITS_PER_LONG && *actual_format_ret == 32)
+      if (BITS_PER_LONG > 32 && *actual_format_ret == 32)
         {
           unsigned long i;
 	  int  *idata = (int *) (data + offset);
@@ -1670,11 +1670,10 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
 	return x_atom_to_symbol (display, (Atom) idata[0]);
       else
 	{
-	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (int)),
-					make_number (0));
+	  Lisp_Object v = make_uninit_vector (size / sizeof (int));
+
 	  for (i = 0; i < size / sizeof (int); i++)
-	    Faset (v, make_number (i),
-                   x_atom_to_symbol (display, (Atom) idata[i]));
+	    ASET (v, i, x_atom_to_symbol (display, (Atom) idata[i]));
 	  return v;
 	}
     }
@@ -1694,24 +1693,24 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
   else if (format == 16)
     {
       ptrdiff_t i;
-      Lisp_Object v;
-      v = Fmake_vector (make_number (size / 2), make_number (0));
+      Lisp_Object v = make_uninit_vector (size / 2);
+
       for (i = 0; i < size / 2; i++)
 	{
 	  short j = ((short *) data) [i];
-	  Faset (v, make_number (i), make_number (j));
+	  ASET (v, i, make_number (j));
 	}
       return v;
     }
   else
     {
       ptrdiff_t i;
-      Lisp_Object v = Fmake_vector (make_number (size / X_LONG_SIZE),
-				    make_number (0));
+      Lisp_Object v = make_uninit_vector (size / X_LONG_SIZE);
+
       for (i = 0; i < size / X_LONG_SIZE; i++)
 	{
 	  int j = ((int *) data) [i];
-	  Faset (v, make_number (i), INTEGER_TO_CONS (j));
+	  ASET (v, i, INTEGER_TO_CONS (j));
 	}
       return v;
     }
@@ -1904,7 +1903,7 @@ clean_local_selection_data (Lisp_Object obj)
       Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (AREF (obj, 0));
-      copy = Fmake_vector (make_number (size), Qnil);
+      copy = make_uninit_vector (size);
       for (i = 0; i < size; i++)
 	ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;
@@ -2542,7 +2541,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event,
      function expects them to be of size int (i.e. 32).  So to be able to
      use that function, put the data in the form it expects if format is 32. */
 
-  if (32 < BITS_PER_LONG && event->format == 32)
+  if (BITS_PER_LONG > 32 && event->format == 32)
     {
       for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
 	idata[i] = event->data.l[i];
@@ -2572,7 +2571,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event,
   return 1;
 }
 
-DEFUN ("x-send-client-message", Fx_send_client_event,
+DEFUN ("x-send-client-message", Fx_send_client_message,
        Sx_send_client_message, 6, 6, 0,
        doc: /* Send a client message of MESSAGE-TYPE to window DEST on DISPLAY.
 

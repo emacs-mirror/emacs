@@ -1,6 +1,6 @@
 ;;; org-timer.el --- The relative timer code for Org-mode
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -162,7 +162,8 @@ With prefix arg STOP, stop it entirely."
   (run-hooks 'org-timer-stop-hook)
   (setq org-timer-start-time nil
 	org-timer-pause-time nil)
-  (org-timer-set-mode-line 'off))
+  (org-timer-set-mode-line 'off)
+  (message "Timer stopped"))
 
 ;;;###autoload
 (defun org-timer (&optional restart no-insert-p)

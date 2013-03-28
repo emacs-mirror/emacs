@@ -1,3 +1,412 @@
+2013-03-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (HAVE_XKBGETKEYBOARD): Remove.
+	Subsumed by HAVE_XKB.  All uses changed.
+
+2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz
+
+	* lisp/eshell/em-unix.el: Moved su and sudo to...
+	* lisp/eshell/em-tramp.el: ...Eshell tramp module
+	* doc/misc/eshell.texi: Updated manual to reflect changes.
+
+	External su and sudo commands are now the default; the internal,
+	TRAMP-using variants can still be used by enabling the eshell-tramp
+	module.
+
+2013-03-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_XKB): Define if Xkb is present.
+
+2013-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-03-21 sys_select, sys_time: port 2013-01-30 fix to Cygwin
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug when building Emacs with a GNU Make submake (Bug#13962).
+	* Makefile.in (QUIET_SUBMAKE): New macro.
+	(install-info, uninstall): Use it.
+
+	Emacs crashes with ImageMagick 6.8.2-3 through 6.8.3-9 (Bug#13867).
+	* configure.ac (IMAGEMAGICK_MODULE): Reject 6.8.2.
+	We want to reject 6.8.2-3 through 6.8.3-9, but there seems to be
+	no way to do this in pkg-config, so make do with a reasonable
+	approximation.
+
+	Automate the build of ja-dic.el (Bug#13984).
+	* .bzrignore: Add leim/ja-dic/.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* configure.ac (BSD_SYSTEM, BSD_SYSTEM_AHB): Remove; no longer needed.
+	(fsync): Remove check; now done by gnulib.
+	* lib/fdatasync.c, lib/fsync.c, m4/fdatasync.m4, m4/fsync.m4:
+	New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+	Merge from gnulib, incorporating:
+	2013-03-13 putenv: port to Solaris 10
+	2013-03-12 mktime: fix configure typo
+	2013-03-11 regex: port to mingw's recent addition of undeclared alarm
+	2013-03-11 putenv: avoid compilation warning on mingw
+	2013-03-11 unistd: don't prevent Tru64 Unix from using gnulib strtod.
+
+2013-03-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (TERM_HEADER): Remove duplicate definition (Bug#13872).
+	It can mess up 'configure' runs.
+
+2013-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-man): Ignore gzip exit status.
+
+2013-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove lzma (it's replaced by xz).
+
+2013-03-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-02-21 putenv: port better to native Windows
+	2013-02-18 extern-inline: avoid compilation error with HP-UX cc
+	2013-02-14 putenv: fix heap corruption with mixed putenv/_putenv
+
+2013-02-28  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (HAVE_DATA_START): Fix test.  (Bug#13818)
+
+2013-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify data_start configuration (Bug#13783).
+	* configure.ac (CRT_DIR, LIB_STANDARD, START_FILES, DATA_START)
+	(LD_FIRSTFLAG, ORDINARY_LINK, LIB_GCC): Remove.
+	(AC_CHECK_HEADERS_ONCE): Remove sys/resource.h, as it's
+	not always needed.
+	(HAVE_DATA_START): New macro.
+
+2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* lisp/eshell/em-cmpl.el: Corrected "context-related help"
+	keybinding in commentary.
+
+2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Parallelize documentation builds.
+	This speeds up building of documentation on multiprocessor
+	platforms, and is motivated by Texinfo 5.0, which is much slower.
+	Add a toplevel rule 'make docs' to make all the documentation.
+	* .bzrignore: Add .dvi, .html, .ps.
+	* Makefile.in (DVIS, HTMLS, INFOS, PSS, DOCS): New macros.
+	($(DOCS), docs, vi, html, pdf, ps): New rules.
+	(info-real): Depend on $(INFOS) rather than doing it sequentially.
+	(dvi): Depend on $(DVIS) rather than doing it sequentially.
+
+2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* doc/misc/eshell.texi: Added documentation for Eshell insert
+	output redirection operator, >>>.
+
+2013-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix AIX port (Bug#13650).
+	* configure.ac (DATA_START, DATA_SEG_BITS): Set to 0x20000000 on AIX.
+
+2013-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/memrchr.$(O).
+	($(BLD)/memrchr.$(O)): New dependency.
+
+2013-02-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Tune by using memchr and memrchr.
+	* .bzrignore: Add string.h.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/memrchr.c, lib/string.in.h, m4/memrchr.m4, m4/string_h.m4:
+	New files, from gnulib.
+
+	Merge from gnulib, incorporating:
+	2013-02-11 unsetenv etc.: port to Solaris 11 + GNU Emacs
+	2013-02-09 secure_getenv: fix C++ declaration typo
+
+2013-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (emacs_config_options): Record some env vars.
+
+2013-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (emacs_config_options): Strip out the (internal)
+	arguments --no-create and --no-recursion.
+
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-02-08 careadlinkat: stop exporting careadlinkatcwd
+	The MS-Windows port can remove careadlinkatcwd at its convenience.
+	2013-02-08 extensions: port better to HP-UX
+	2013-02-06 extensions: port better to MINIX 3, HP-UX, autoheader 2.62
+	2013-02-06 unistd: avoid namespace pollution on non-glibc systems
+	2013-02-04 secure_getenv: new module [module not used by Emacs]
+	2013-01-30 sys_time: port to Solaris 2.6
+
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	On my host, this speeds up directory-files-and-attributes by a
+	factor of 3, when applied to Emacs's src directory.
+	These functions are standardized by POSIX and are common these
+	days; fall back on a (slower) gnulib implementation if the host
+	is too old to supply them.
+	* .bzrignore: Add lib/dirent.h.
+	* lib/Makefile.am (libgnu_a_SOURCES): Add openat-die.c, save-cwd.c.
+	* lib/careadlinkat.c, lib/careadlinkat.h: Merge from gnulib,
+	incorporating: 2013-01-29 careadlinkat: do not provide careadlinkatcwd.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/dirent.in.h, lib/fdopendir.c, lib/fstatat.c, lib/openat-priv.h:
+	* lib/openat-proc.c, lib/openat.h, m4/dirent_h.m4, m4/fdopendir.m4:
+	* m4/fstatat.m4: New files, from gnulib.
+	* lib/openat-die.c, lib/save-cwd.c, lib/save-cwd.h: New files.
+	These last three are specific to Emacs and are not copied from gnulib.
+	They are simpler than the gnulib versions and are tuned for Emacs.
+
+2013-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Only README files exist in lisp/ now, not README*.
+
+2013-01-23  Giorgos Keramidas  <gkeramidas@gmail.com>  (tiny change)
+
+	* .bzrignore: add lib-src/blessmail.
+
+2013-01-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-01-16 unistd: port to recent mingw
+
+2013-01-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Put back a chmod that was
+	removed 2012-05-19.  (Bug#13430)
+
+2013-01-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-01-16 largefile: port better to Mac OS X 10.5
+	2013-01-15 stdint: fix build with Android's Bionic fox x86
+
+2013-01-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Document that --enable-gcc-warnings emits errors.
+	(Bug#13448)
+
+2013-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add options for xz compression and no compression.
+
+2013-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Enable conservative stack scanning for all architectures.
+	Suggested by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00183.html>.
+	* configure.ac (GC_MARK_STACK): Remove.
+
+2013-01-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/getopt_.h: Remove trailing CRs that crept in.
+
+2013-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/getopt_.h: Regenerate.
+
+2013-01-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-01-09 stdlib: port to Solaris 2.6
+
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add htmlfontify.
+
+2013-01-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-01-04 stdio: remove now-unnecessary stdio.c
+	2013-01-04 fprintftime: depend on stdio, not ignore-value
+	2013-01-04 fwrite: silence __wur only for older glibc versions
+	2013-01-04 fwrite: silence __wur without using inline
+	* lib/stdio.c: Remove.
+	* lib/stdio.in.h, lib/strftime.c: Update from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2013-01-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating copyright-date changes and:
+	2012-12-31 dup2: work around cygwin bug
+
+2012-12-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac: Check for GtkHandlebox.
+	Check for GtkTearoffMenuItem.
+	New enable: --enable-gtk-deprecation-warnings, default off.
+	(HAVE_GTK3): If above enable is off, add
+	-DGDK_DISABLE_DEPRECATION_WARNINGS to GTK_CFLAGS.
+
+2012-12-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac (TEMACS_LDFLAGS2): Don't define.
+	(LIBS_GNUSTEP): Set for GNUstep and substitute.
+	(LD_SWITCH_SYSTEM_TEMACS): Don't set for GNUstep.
+
+2012-12-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (emacs_config_options): New.
+	Use $@ rather than undocumented $ac_configure_args.
+	Replace any embedded double quotes.  (Bug#13274)
+
+2012-12-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac (SIGNALS_VIA_CHARACTERS): Also define for darwin.
+	(Bug#13222)
+
+2012-12-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert static checking of stack smashing.
+	* configure.ac (WARN_CFLAGS): Omit -Wstack-protector when
+	configured with --enable-gcc-warnings.  -Wstack-protector causes
+	diagnostics to be issued on Ubuntu 12.10 x86-64.
+
+2012-12-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-12-21 AC_PROG_MKDIR_P: port workaround to pre-2.62 Autoconf
+	2012-12-20 AC_PROG_MKDIR_P: don't workaround if not buggy
+	2012-12-17 filemode, sys_stat: Handle MPX files a la AIX.
+
+2012-12-21  Akinori MUSHA  <knu@iDaemons.org>  (tiny change)
+
+	* Makefile.in (install-arch-dep): Ignore chmod errors.  (Bug#13233)
+
+2012-12-16  Romain Francoise  <romain@orebokech.com>
+
+	* configure.ac (acl): New option.
+	(HAVE_POSIX_ACL): Test for POSIX ACL support.  This is typically
+	provided by libacl on GNU/Linux.
+
+2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	* configure.ac (BSD4_2): Remove; no longer needed.
+
+2012-12-13  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add bovine, srecode, wisent.
+
+2012-12-13  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install-info): Use `${MAKE} -s' for echo-info.
+	(uninstall): Likewise.  (Bug#13143)
+
+2012-12-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib for 'inline' (Bug#13040), incorporating:
+	2012-12-11 extern-inline: avoid incompatibility with Darwin Libc
+	* m4/extern-inline.m4: Update from gnulib.
+
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (SIG2STR_H): New macro.
+	($(BLD)/sig2str.$(O)): Update dependencies.
+
+2012-12-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (HAVE_INOTIFY): Speed up configure-time test.
+	There's no need to test for any of three inotify functions,
+	since we use all three.  Check for just the first one.
+
+2012-12-10  Daniel Colascione  <dancol@dancol.org>
+
+	* .bzrignore: add src/emacs.res.
+
+	* configure.ac (W32_RES, W32_RES_LINK, WINDRES): Teach the cygw32
+	build how to compile Windows resource files; use these variables
+	to tell src/Makefile.in how and whether to compile resources.
+
+2012-12-10  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* configure.ac (inotify): New option.
+	(HAVE_INOTIFY): Test for inotify.
+
+2012-12-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac: Fix source command in .gdbinit.
+	Don't quote $MAKEINFO.
+
+2012-12-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow spaces in some configuration vars (Bug#13078).
+	* configure.ac (srcdir): Don't assume $PWD lacks spaces.
+	(srcdir, MAKEINFO, PKG_CONFIG, PKG_CONFIG_MIN_VERSION):
+	All uses quoted, to allow spaces in these vars.
+
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use putenv+unsetenv instead of modifying environ directly (Bug#13070).
+	* lib/putenv.c, lib/unsetenv.c, m4/putenv.m4, m4/setenv.m4:
+	New files, copied automatically from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/sig2str.$(O)): New dependency.
+	Remove a stray character at the beginning of the file.
+	(Bug#13026)
+
+2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify get_lim_data.
+	* configure.ac (ULIMIT_BREAK_VALUE): Remove.
+
+	Assume POSIX 1003.1-1988 or later for signal.h (Bug#13026).
+	* configure.ac (PTY_OPEN, PTY_TTY_NAME_SPRINTF):
+	Use SIGCHLD rather than SIGCLD.
+	* lib/sig2str.c, lib/sig2str.h, m4/sig2str.m4: New files, from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BUILD)/sig2str.$(O).
+
+2012-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Handle info/ files with or without ".info" extension.
+
+2012-11-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib for 'inline' (Bug#13040), incorporating:
+	2012-11-29 snippet/warn-on-use: no 'static inline'
+	2012-11-29 ftruncate, fts, lstat, openat, raise: no 'static inline'
+	2012-11-29 arctwo, md4, md5, sha1, sha256, sha512: no 'static inline'
+	2012-11-29 fflush, stat: no 'static inline'
+	2012-11-29 stdio: better 'inline'
+	2012-11-29 sys_stat: no 'static inline'
+	2012-11-29 unistd: better 'inline'
+	2012-11-29 c-strtod, memcoll, readutmp: no 'static inline'
+	2012-11-29 extern-inline: no 'static inline'
+	2012-11-29 sys_socket: better 'inline'
+	* lib/stdio.c, lib/unistd.c: New files, from gnulib.
+	* build-aux/snippet/warn-on-use.h, lib/gnulib.mk, lib/lstat.c:
+	* lib/md5.c, lib/sha1.c, lib/sha256.c, lib/sha512.c, lib/stat.c:
+	* lib/stdio.in.h, lib/sys_stat.in.h, lib/unistd.in.h, m4/c-strtod.m4:
+	* m4/extern-inline.m4, m4/gnulib-comp.m4, m4/lstat.m4, m4/md5.m4:
+	* m4/sha1.m4, m4/sha256.m4, m4/sha512.m4, m4/stat.m4, m4/stdio_h.m4:
+	* m4/sys_socket_h.m4, m4/sys_stat_h.m4, m4/unistd_h.m4:
+	Update from gnulib.
+
+2012-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist (nt): Adjust to changes in names of the *.manifest files.
+
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (HAVE_MOUSE): Remove.
+
 2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
@@ -11703,7 +12112,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

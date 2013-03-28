@@ -1,7 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1044,14 +1044,17 @@ and `event-end' functions."
 		(nth 1 position))))
     (and (symbolp area) area)))
 
-(defsubst posn-point (position)
+(defun posn-point (position)
   "Return the buffer location in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+and `event-end' functions.
+Returns nil if POSITION does not correspond to any buffer location (e.g.
+a click on a scroll bar)."
   (or (nth 5 position)
-      (if (consp (nth 1 position))
-	  (car (nth 1 position))
-	(nth 1 position))))
+      (let ((pt (nth 1 position)))
+        (or (car-safe pt)
+            ;; Apparently this can also be `vertical-scroll-bar' (bug#13979).
+            (if (integerp pt) pt)))))
 
 (defun posn-set-point (position)
   "Move point to POSITION.
@@ -1124,12 +1127,14 @@ POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 3 position))
 
-(defsubst posn-string (position)
+(defun posn-string (position)
   "Return the string object of POSITION.
 Value is a cons (STRING . STRING-POS), or nil if not a string.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
-  (nth 4 position))
+  (let ((x (nth 4 position)))
+    ;; Apparently this can also be `handle' or `below-handle' (bug#13979).
+    (when (consp x) x)))
 
 (defsubst posn-image (position)
   "Return the image object of POSITION.
@@ -1229,7 +1234,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'default-scroll-down-aggressively 'scroll-down-aggressively "23.2")
 (make-obsolete-variable 'default-fill-column 'fill-column "23.2")
 (make-obsolete-variable 'default-cursor-type 'cursor-type "23.2")
-(make-obsolete-variable 'default-buffer-file-type 'buffer-file-type "23.2")
 (make-obsolete-variable 'default-cursor-in-non-selected-windows 'cursor-in-non-selected-windows "23.2")
 (make-obsolete-variable 'default-buffer-file-coding-system 'buffer-file-coding-system "23.2")
 (make-obsolete-variable 'default-major-mode 'major-mode "23.2")
@@ -1867,7 +1871,7 @@ This function makes or adds to an entry on `after-load-alist'."
 		 ,form)))
       ;; Add FORM to the element unless it's already there.
       (unless (member form (cdr elt))
-	(nconc elt (purecopy (list form)))))))
+	(nconc elt (list form))))))
 
 (defvar after-load-functions nil
   "Special hook run after loading a file.
@@ -2622,14 +2626,6 @@ When the hook runs, the temporary buffer is current.
 This hook is normally set up with a function to put the buffer in Help
 mode.")
 
-;; Avoid compiler warnings about this variable,
-;; which has a special meaning on certain system types.
-(defvar buffer-file-type nil
-  "Non-nil if the visited file is a binary file.
-This variable is meaningful on MS-DOG and Windows NT.
-On those systems, it is automatically local in every buffer.
-On other systems, this variable is normally always nil.")
-
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.
 (put 'cl-assertion-failed 'error-conditions '(error))
@@ -2705,6 +2701,22 @@ If there is no plausible default, return nil."
 		     (skip-syntax-forward "w_")
 		     (setq to (point)))))
       (buffer-substring-no-properties from to))))
+
+(defun find-tag-default-as-regexp ()
+  "Return regexp that matches the default tag at point.
+If there is no tag at point, return nil.
+
+When in a major mode that does not provide its own
+`find-tag-default-function', return a regexp that matches the
+symbol at point exactly."
+  (let* ((tagf (or find-tag-default-function
+		   (get major-mode 'find-tag-default-function)
+		   'find-tag-default))
+	 (tag (funcall tagf)))
+    (cond ((not tag))
+	  ((eq tagf 'find-tag-default)
+	   (format "\\_<%s\\_>" (regexp-quote tag)))
+	  (t (regexp-quote tag)))))
 
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
@@ -2804,7 +2816,7 @@ Otherwise, return nil."
 (defun special-form-p (object)
   "Non-nil if and only if OBJECT is a special form."
   (if (and (symbolp object) (fboundp object))
-      (setq object (indirect-function object)))
+      (setq object (indirect-function object t)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun field-at-pos (pos)
@@ -3366,16 +3378,17 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
 	       (progn ,@body)))))))
 
 (defmacro condition-case-unless-debug (var bodyform &rest handlers)
-  "Like `condition-case' except that it does not catch anything when debugging.
-More specifically if `debug-on-error' is set, then it does not catch any signal."
+  "Like `condition-case' except that it does not prevent debugging.
+More specifically if `debug-on-error' is set then the debugger will be invoked
+even if this catches the signal."
   (declare (debug condition-case) (indent 2))
-  (let ((bodysym (make-symbol "body")))
-    `(let ((,bodysym (lambda () ,bodyform)))
-       (if debug-on-error
-           (funcall ,bodysym)
-         (condition-case ,var
-             (funcall ,bodysym)
-           ,@handlers)))))
+  `(condition-case ,var
+       ,bodyform
+     ,@(mapcar (lambda (handler)
+                 `((debug ,@(if (listp (car handler)) (car handler)
+                              (list (car handler))))
+                   ,@(cdr handler)))
+               handlers)))
 
 (define-obsolete-function-alias 'condition-case-no-debug
   'condition-case-unless-debug "24.1")
@@ -3846,7 +3859,7 @@ This is used on the `modification-hooks' property of text clones."
 		(if (not (re-search-forward
 			  (overlay-get ol1 'text-clone-syntax) cend t))
 		    ;; Mark the overlay for deletion.
-		    (overlay-put ol1 'text-clones nil)
+		    (setq end cbeg)
 		  (when (< (match-end 0) cend)
 		    ;; Shrink the clone at its end.
 		    (setq end (min end (match-end 0)))
@@ -3974,12 +3987,13 @@ the number of frames to skip (minus 1).")
   ;; "static" variables.
   (let ((sym (make-symbol "base-index")))
     `(progn
-       (defvar ,sym
+       (defvar ,sym)
+       (unless (boundp ',sym)
          (let ((i 1))
-           (while (not (eq (nth 1 (backtrace-frame i))
-                           'called-interactively-p))
+           (while (not (eq (indirect-function (nth 1 (backtrace-frame i)) t)
+                           (indirect-function 'called-interactively-p)))
              (setq i (1+ i)))
-           i))
+           (setq ,sym i)))
        ;; (unless (eq (nth 1 (backtrace-frame ,sym)) 'called-interactively-p)
        ;;   (error "called-interactively-p: %s is out-of-sync!" ,sym))
        (backtrace-frame (+ ,sym ,n)))))
@@ -4320,6 +4334,36 @@ convenience wrapper around `make-progress-reporter' and friends.
 				   (setq ,(car spec) (1+ ,(car spec)))))
        (progress-reporter-done ,temp2)
        nil ,@(cdr (cdr spec)))))
+
+
+;;;; Support for watching filesystem events.
+
+(defun inotify-event-p (event)
+  "Check if EVENT is an inotify event."
+  (and (listp event)
+       (>= (length event) 3)
+       (eq (car event) 'file-inotify)))
+
+;;;###autoload
+(defun inotify-handle-event (event)
+  "Handle inotify file system monitoring event.
+If EVENT is an inotify filewatch event, call its callback.
+Otherwise, signal a `filewatch-error'."
+  (interactive "e")
+  (unless (inotify-event-p event)
+    (signal 'filewatch-error (cons "Not a valid inotify event" event)))
+  (funcall (nth 2 event) (nth 1 event)))
+
+(defun w32notify-handle-event (event)
+  "Handle MS-Windows file system monitoring event.
+If EVENT is an MS-Windows filewatch event, call its callback.
+Otherwise, signal a `filewatch-error'."
+  (interactive "e")
+  (if (and (eq (car event) 'file-w32notify)
+	   (= (length event) 3))
+      (funcall (nth 2 event) (nth 1 event))
+    (signal 'filewatch-error
+	    (cons "Not a valid MS-Windows file-notify event" event))))
 
 
 ;;;; Comparing version strings.

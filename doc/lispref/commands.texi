@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
 @chapter Command Loop
@@ -65,7 +66,7 @@ use the minibuffer, so if you call @code{find-file} as a function from
 Lisp code, you must supply the file name string as an ordinary Lisp
 function argument.
 
-  If the command is a keyboard macro (i.e.@: a string or vector),
+  If the command is a keyboard macro (i.e., a string or vector),
 Emacs executes it using @code{execute-kbd-macro} (@pxref{Keyboard
 Macros}).
 
@@ -141,10 +142,10 @@ A command may be called from Lisp programs like any other function, but
 then the caller supplies the arguments and @var{arg-descriptor} has no
 effect.
 
-@cindex @code{interactive-form}, function property
+@cindex @code{interactive-form}, symbol property
 The @code{interactive} form must be located at top-level in the
 function body, or in the function symbol's @code{interactive-form}
-property (@pxref{Symbol Plists}).  It has its effect because the
+property (@pxref{Symbol Properties}).  It has its effect because the
 command loop looks for it before calling the function
 (@pxref{Interactive Call}).  Once the function is called, all its body
 forms are executed; at this time, if the @code{interactive} form
@@ -470,10 +471,10 @@ Arbitrary text, read in the minibuffer and returned as a string
 these characters in the input.)  Prompt.
 
 @item S
-An interned symbol whose name is read in the minibuffer.  Any whitespace
-character terminates the input.  (Use @kbd{C-q} to include whitespace in
-the string.)  Other characters that normally terminate a symbol (e.g.,
-parentheses and brackets) do not do so here.  Prompt.
+An interned symbol whose name is read in the minibuffer.  Terminate
+the input with either @kbd{C-j} or @key{RET}.  Other characters that
+normally terminate a symbol (e.g., whitespace, parentheses and
+brackets) do not do so here.  Prompt.
 
 @item U
 A key sequence or @code{nil}.  Can be used after a @samp{k} or
@@ -2451,7 +2452,7 @@ right-arrow function key:
 
 @defun read-char &optional prompt inherit-input-method seconds
 This function reads and returns a character of command input.  If the
-user generates an event which is not a character (i.e. a mouse click or
+user generates an event which is not a character (i.e., a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
 work as in @code{read-event}.
 
@@ -2660,7 +2661,7 @@ The command @code{quoted-insert} uses this function.
 @cindex control characters, reading
 @cindex nonprinting characters, reading
 This function is like @code{read-char}, except that if the first
-character read is an octal digit (0-7), it reads any number of octal
+character read is an octal digit (0--7), it reads any number of octal
 digits (but stopping if a non-octal digit is found), and returns the
 character represented by that numeric character code.  If the
 character that terminates the sequence of octal digits is @key{RET},
@@ -2727,7 +2728,7 @@ Normally you add events to the front of this list, so that the events
 most recently unread will be reread first.
 
 Events read from this list are not normally added to the current
-command's key sequence (as returned by e.g. @code{this-command-keys}),
+command's key sequence (as returned by, e.g., @code{this-command-keys}),
 as the events will already have been added once as they were read for
 the first time.  An element of the form @code{(@code{t} . @var{event})}
 forces @var{event} to be added to the current command's key sequence.
@@ -2863,7 +2864,7 @@ Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 
 The expression @code{(sit-for 0)} is equivalent to @code{(redisplay)},
-i.e. it requests a redisplay, without any delay, if there is no pending input.
+i.e., it requests a redisplay, without any delay, if there is no pending input.
 @xref{Forcing Redisplay}.
 
 If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not

@@ -1,6 +1,6 @@
 ;;; semantic/grammar.el --- Major mode framework for Semantic grammars
 
-;; Copyright (C) 2002-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -47,6 +47,9 @@
   (require 'semantic/edit)
   (require 'semantic/find)
   (require 'semantic/db))
+
+(declare-function semantic-grammar-wy--install-parser
+		  "semantic/gram-wy-fallback")
 
 (declare-function semantic-grammar-wy--install-parser
 		  "semantic/gram-wy-fallback")
