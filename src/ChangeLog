@@ -1,3 +1,8 @@
+2013-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/filelock.$(O), $(BLD)/filelock.$(O)):
+	Update dependencies.
+
 2013-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (save_type, XSAVE_POINTER, set_save_pointer, XSAVE_INTEGER)
