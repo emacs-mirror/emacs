@@ -1,0 +1,33 @@
+#! /bin/sh
+# Site defaults for the MinGW configuration of GNU Emacs.
+
+# We want to use getopt.h from gnulib
+ac_cv_header_getopt_h=no
+
+# Implemented in w32.c
+ac_cv_func_acl_set_file=yes
+# Autoconf's test program is not smart enough, and fails to detect gethostname
+ac_cv_func_gethostname=yes
+# Implemented as sys_select in w32proc.c
+ac_cv_func_select=yes
+# Implemented as sys_shutdown in w32.c
+ac_cv_func_shutdown=yes
+# Implemented in w32proc.c
+ac_cv_func_setitimer=yes
+# Implemented as sys_sendto in w32.c
+ac_cv_func_sendto=yes
+# Implemented as sys_recfrom in w32.c
+ac_cv_func_recfrom=yes
+# Implemented as sys_getsockname in w32.c
+ac_cv_func_getsockname=yes
+# Implemented as sys_getpeername in w32.c
+ac_cv_func_getpeername=yes
+# Implemented in w32.c
+ac_cv_func_readlink=yes
+# Avoid run-time test of readlink, which will fail
+gl_cv_func_readlink_works=yes
+ac_cv_func_readlinkat=yes
+ac_cv_func_faccessat=yes
+# We don't need fdopendir
+ac_cv_func_fdopendir="not needed"
+gl_cv_func_fdopendir_works="no, but not needed, so yes"
