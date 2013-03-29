@@ -1,3 +1,10 @@
+2013-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el: Use defvar-local and setq-local.
+	(mpc--proc-connect): Connection failures are not bugs.
+	(mpc-mode-map): `follow-link' only applies to the buffer's content.
+	(mpc-volume-map): Bind to the up-events.
+
 2013-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/subword.el (superword-mode): Use `forward-sexp'
