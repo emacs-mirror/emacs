@@ -1,3 +1,8 @@
+2013-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/subword.el (superword-mode): Use `forward-sexp'
+	instead of `forward-symbol'.
+
 2013-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-mode): Make it a minor mode.
