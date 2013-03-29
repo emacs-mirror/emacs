@@ -239,6 +239,13 @@ which support POSIX ACLs.
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-* faces instead.
 
+** Eshell
+
+*** Added Eshell-TRAMP module
+External su and sudo commands are now the default; the internal,
+TRAMP-using variants can still be used by enabling the eshell-tramp
+module.
+
 ** Obsolete packages:
 
 *** longlines.el is obsolete; use visual-line-mode instead.
