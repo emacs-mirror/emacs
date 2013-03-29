@@ -173,7 +173,15 @@
 
 ;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
+  (unless (fboundp 'number-sequence)
+    (defun number-sequence (from to)
+      (let (seq (n 0) (next from))
+	(while (<= next to)
+	  (setq seq (cons next seq)
+		n (1+ n)
+		next (+ from  n )))
+	(nreverse seq)))))
 
 (require 'nnoo)
 (require 'gnus-group)
@@ -1840,24 +1848,38 @@ article came from is also searched."
       (add-hook 'gnus-summary-article-expire-hook 'nnir-registry-action t t))))
 
 
+(defun gnus-summary-create-nnir-group ()
+  (interactive)
+  (let ((name (gnus-read-group "Group name: "))
+	(method "nnir")
+	(pgroup (if (gnus-group-prefixed-p gnus-newsgroup-name)
+		    gnus-newsgroup-name
+		  (gnus-group-prefixed-name
+		   gnus-newsgroup-name '(nnir "nnir")))))
+    (with-current-buffer gnus-group-buffer
+      (gnus-group-make-group
+       name method nil
+       (gnus-group-find-parameter pgroup)))))
+
 
 (deffoo nnir-request-create-group (group &optional server args)
   (message "Creating nnir group %s" group)
-  (let ((group (gnus-group-prefixed-name  group '(nnir "nnir")))
-	(query-spec
-	  (list (cons 'query
-		      (read-string "Query: " nil 'nnir-search-history))))
-	 (group-spec (list (list (read-string "Server: " nil nil)))))
-    (gnus-group-set-parameter
-     group 'nnir-specs
-     (list (cons 'nnir-query-spec query-spec)
-	   (cons 'nnir-group-spec group-spec)))
+  (let* ((group (gnus-group-prefixed-name  group '(nnir "nnir")))
+         (specs (assoc 'nnir-specs args))
+         (query-spec
+          (or (cdr (assoc 'nnir-query-spec specs))
+              (list (cons 'query
+                          (read-string "Query: " nil 'nnir-search-history)))))
+         (group-spec
+          (or (cdr (assoc 'nnir-group-spec specs))
+              (list (list (read-string "Server: " nil nil)))))
+         (nnir-specs (list (cons 'nnir-query-spec query-spec)
+                           (cons 'nnir-group-spec group-spec))))
+    (gnus-group-set-parameter group 'nnir-specs nnir-specs)
     (gnus-group-set-parameter
      group 'nnir-artlist
-     (setq nnir-artlist
-	   (nnir-run-query
-	    (list (cons 'nnir-query-spec query-spec)
-		  (cons 'nnir-group-spec group-spec)))))
+     (or (cdr (assoc 'nnir-artlist args))
+         (nnir-run-query nnir-specs)))
     (nnir-request-update-info group (gnus-get-info group)))
   t)
 
