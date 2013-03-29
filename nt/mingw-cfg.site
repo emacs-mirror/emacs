@@ -30,4 +30,10 @@ ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
 # We don't need fdopendir
 ac_cv_func_fdopendir="not-needed"
-gl_cv_func_fdopendir_works="no, but not needed, so yes"
+gl_cv_func_fdopendir_works="no-but-not-needed-so-yes"
+# Implemented in w32.c
+ac_cv_func_fstatat=yes
+gl_cv_func_fstatat_zero_flag=yes
+gl_cv_func_lstat_dereferences_slashed_symlink=yes
+# Aliased to _commit in ms-w32.h
+ac_cv_func_fsync=yes
