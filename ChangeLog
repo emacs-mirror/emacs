@@ -3,7 +3,7 @@
 	* configure.ac (HAVE_XKBGETKEYBOARD): Remove.
 	Subsumed by HAVE_XKB.  All uses changed.
 
-2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz
+2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* lisp/eshell/em-unix.el: Moved su and sudo to...
 	* lisp/eshell/em-tramp.el: ...Eshell tramp module
