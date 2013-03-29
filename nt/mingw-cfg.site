@@ -16,8 +16,8 @@ ac_cv_func_shutdown=yes
 ac_cv_func_setitimer=yes
 # Implemented as sys_sendto in w32.c
 ac_cv_func_sendto=yes
-# Implemented as sys_recfrom in w32.c
-ac_cv_func_recfrom=yes
+# Implemented as sys_recvfrom in w32.c
+ac_cv_func_recvfrom=yes
 # Implemented as sys_getsockname in w32.c
 ac_cv_func_getsockname=yes
 # Implemented as sys_getpeername in w32.c
@@ -45,6 +45,9 @@ ac_cv_func_fsync=yes
 ac_cv_func_fdatasync=yes
 # Implemented in w32proc.c
 ac_cv_func_pthread_sigmask=yes
+# Avoid gnulib replacement
+gl_cv_func_pthread_sigmask_return_works=yes
+gl_cv_func_pthread_sigmask_unblock_works="not relevant"
 # Implemented in w32proc.c
 emacs_cv_langinfo_codeset=yes
 # Declared in ms-w32.h
@@ -62,3 +65,4 @@ gt_cv_func_unsetenv_ret='int'
 gl_cv_func_unsetenv_works=yes
 gl_cv_func_stat_dir_slash=yes
 gl_cv_func_stat_file_slash=yes
+ac_cv_func_random=yes

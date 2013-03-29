@@ -1080,6 +1080,7 @@ case $opsys in
     ;;
   mingw32 )
     LIB_MATH=
+    SYSTEM_TYPE=windows-nt
     ;;
   dnl NB this may be adjusted below.
   netbsd | openbsd )
@@ -1156,11 +1157,9 @@ AC_DEFUN([PKG_CHECK_MODULES], [
   fi
 ])
 
-test "$opsys" = "mingw32" && with_sound=no
-
 if test "${with_sound}" != "no"; then
-  # Sound support for GNU/Linux and the free BSDs.
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h,
+  # Sound support for GNU/Linux, the free BSDs, and MinGW.
+  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h,
     have_sound_header=yes)
   # Emulation library used on NetBSD.
   AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
@@ -1202,6 +1201,9 @@ if test "${with_sound}" != "no"; then
      case "$opsys" in
        dnl defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
        gnu-linux|freebsd|netbsd)
+         AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
+         ;;
+       mingw32)
          AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
          ;;
      esac
@@ -2150,6 +2152,8 @@ if test "${with_gnutls}" = "yes" ; then
     AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
   fi
 
+  OLD_CFLAGS=$CFLAGS
+  OLD_LIBS=$LIBS
   CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
   LIBS="$LIBGNUTLS_LIBS $LIBS"
   AC_CHECK_FUNCS(gnutls_certificate_set_verify_function, HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=yes)
@@ -2160,6 +2164,8 @@ if test "${with_gnutls}" = "yes" ; then
 
   # Windows loads GnuTLS dynamically
   if test "${opsys}" = "mingw32"; then
+    CFLAGS=$OLD_CFLAGS
+    LIBS=$OLD_LIBS
     LIBGNUTLS_LIBS=
   fi
 fi
@@ -3423,8 +3429,11 @@ dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetatt
 dnl fi
 
 dnl Turned on June 1996 supposing nobody will mind it.
-AC_DEFINE(AMPERSAND_FULL_NAME, 1, [Define to use the convention that &
-  in the full name stands for the login id.])
+dnl MinGW emulates passwd database, so this feature doesn't make sense there.
+if test "${opsys}" != "mingw32"; then
+   AC_DEFINE(AMPERSAND_FULL_NAME, 1, [Define to use the convention that &
+     in the full name stands for the login id.])
+fi
 
 dnl Every platform that uses configure supports this.
 dnl There is a create-lockfiles option you can
@@ -4154,6 +4163,12 @@ AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${emacs_config_options}",
 		   [Define to the options passed to configure.])
 AH_TEMPLATE(config_opsysfile, [Some platforms that do not use configure
   define this to include extra configuration information.])
+
+case $opsys in
+  mingw32)
+    AC_DEFINE(config_opsysfile, <ms-w32.h>, [])
+    ;;
+esac
 
 XMENU_OBJ=
 XOBJ=

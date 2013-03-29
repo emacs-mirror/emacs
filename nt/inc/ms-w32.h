@@ -67,7 +67,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
-#define HAVE___BUILTIN_UNWIND_INIT 1
+# ifndef HAVE___BUILTIN_UNWIND_INIT
+#  define HAVE___BUILTIN_UNWIND_INIT 1
+# endif
 #endif
 
 /* This isn't perfect, as some systems might have the page file in
@@ -152,8 +154,12 @@ extern char *getenv ();
 #endif
 
 #ifdef HAVE_NTGUI
-#define HAVE_WINDOW_SYSTEM 1
-#define HAVE_MENUS 1
+# ifndef HAVE_WINDOW_SYSTEM
+#  define HAVE_WINDOW_SYSTEM 1
+# endif
+# ifndef HAVE_MENUS
+#  define HAVE_MENUS 1
+# endif
 #endif
 
 /* Get some redefinitions in place.  */
@@ -449,10 +455,14 @@ extern void * memrchr (void const *, int, size_t);
 #if defined (__MINGW32__)
 
 /* Define to 1 if the system has the type `long long int'. */
-# define HAVE_LONG_LONG_INT 1
+# ifndef HAVE_LONG_LONG_INT
+#  define HAVE_LONG_LONG_INT 1
+# endif
 
 /* Define to 1 if the system has the type `unsigned long long int'. */
-# define HAVE_UNSIGNED_LONG_LONG_INT 1
+# ifndef HAVE_UNSIGNED_LONG_LONG_INT
+#  define HAVE_UNSIGNED_LONG_LONG_INT 1
+# endif
 
 #endif
 
