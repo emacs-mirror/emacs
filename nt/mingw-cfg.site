@@ -29,5 +29,5 @@ gl_cv_func_readlink_works=yes
 ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
 # We don't need fdopendir
-ac_cv_func_fdopendir="not needed"
+ac_cv_func_fdopendir="not-needed"
 gl_cv_func_fdopendir_works="no, but not needed, so yes"
