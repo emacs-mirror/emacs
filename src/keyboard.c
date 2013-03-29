@@ -210,12 +210,6 @@ static EMACS_INT last_auto_save;
 /* The value of point when the last command was started.  */
 static ptrdiff_t last_point_position;
 
-/* The buffer that was current when the last command was started.  */
-static Lisp_Object last_point_position_buffer;
-
-/* The window that was selected when the last command was started.  */
-static Lisp_Object last_point_position_window;
-
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.  We use this to determine when to
    generate switch-frame events.  This may be cleared by functions
@@ -1512,8 +1506,6 @@ command_loop_1 (void)
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
-      last_point_position_window = selected_window;
-      XSETBUFFER (last_point_position_buffer, prev_buffer);
 
       /* By default, we adjust point to a boundary of a region that
          has such a property that should be treated intangible
@@ -11046,9 +11038,6 @@ syms_of_keyboard (void)
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);
-
-  last_point_position_buffer = Qnil;
-  last_point_position_window = Qnil;
 
   {
     int i;
