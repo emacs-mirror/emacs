@@ -251,7 +251,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_COM_ERR_H
 
 /* Define to 1 if you have the `copysign' function. */
-#undef HAVE_COPYSIGN
+#define HAVE_COPYSIGN 1
 
 /* Define to 1 if data_start is the address of the start of the main data
    segment. */

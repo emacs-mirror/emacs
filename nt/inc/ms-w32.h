@@ -258,6 +258,7 @@ extern int sys_unlink (const char *);
 typedef int pid_t;
 #define snprintf  _snprintf
 #define strtoll   _strtoi64
+#define copysign  _copysign
 #endif
 #define isatty    _isatty
 #define _longjmp  longjmp
