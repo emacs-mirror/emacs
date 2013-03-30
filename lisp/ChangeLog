@@ -1,3 +1,9 @@
+2013-03-30  Leo Liu  <sdl.web@gmail.com>
+
+	* kmacro.el (kmacro-call-macro): Add optional arg MACRO.
+	(kmacro-execute-from-register): Pass the keyboard macro to
+	kmacro-call-macro or repeating won't work correctly.
+
 2013-03-30  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/subword.el: Back to using `forward-symbol'.
