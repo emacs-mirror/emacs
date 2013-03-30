@@ -584,7 +584,7 @@ needs the variables `nnir-namazu-program',
 
 Add an entry here when adding a new search engine.")
 
-(defcustom nnir-method-default-engines  '((nnimap . imap) (nttp . gmane))
+(defcustom nnir-method-default-engines  '((nnimap . imap) (nntp . gmane))
   "*Alist of default search engines keyed by server method."
   :version "24.1"
   :group 'nnir

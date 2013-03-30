@@ -82,6 +82,8 @@ bound to <f11> and M-<f10>, respectively.
 ** In keymaps where SPC scrolls, S-SPC now scrolls in the reverse direction.
 Eg View mode, etc.
 
+** New command `kmacro-to-register' to store keyboard macros in registers.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
@@ -110,6 +112,8 @@ Affected files:
 *** `delphi-newline-always-indents' is not supported any more
 use `electric-indent-mode' instead.
 *** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
+
+** Eldoc Mode works properly in the minibuffer.
 
 ** jit-lock-debug-mode lets you use the debuggers on code run via jit-lock.
 

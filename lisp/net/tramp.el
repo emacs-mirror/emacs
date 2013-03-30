@@ -1660,23 +1660,16 @@ FILE must be a local file name on a connection identified via VEC."
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-connection-property\\>"))
 
-(defalias 'tramp-drop-volume-letter
-  (if (memq system-type '(cygwin windows-nt))
-      (lambda (name)
-	"Cut off unnecessary drive letter from file NAME.
+(defun tramp-drop-volume-letter (name)
+  "Cut off unnecessary drive letter from file NAME.
 The functions `tramp-*-handle-expand-file-name' call `expand-file-name'
 locally on a remote file name.  When the local system is a W32 system
 but the remote system is Unix, this introduces a superfluous drive
 letter into the file name.  This function removes it."
-	(save-match-data
-	  (if (string-match "\\`[a-zA-Z]:/" name)
-	      (replace-match "/" nil t name)
-	    name)))
-
-    'identity))
-
-(if (featurep 'xemacs)
-    (defalias 'tramp-drop-volume-letter 'identity))
+  (save-match-data
+    (if (string-match "\\`[a-zA-Z]:/" name)
+	(replace-match "/" nil t name)
+      name)))
 
 (defun tramp-cleanup (vec)
   "Cleanup connection VEC, but keep the debug buffer."

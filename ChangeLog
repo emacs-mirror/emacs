@@ -1,21 +1,14 @@
-2013-03-29  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+2013-03-30  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* etc/NEWS: Added entry for em-tramp change in r112148
+	Merge from gnulib, incorporating:
+	2013-03-29 stdalign: port to stricter ISO C11
+	This helps to run 'configure' on MS-Windows; see Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00999.html>.
 
 2013-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (HAVE_XKBGETKEYBOARD): Remove.
 	Subsumed by HAVE_XKB.  All uses changed.
-
-2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
-
-	* lisp/eshell/em-unix.el: Moved su and sudo to...
-	* lisp/eshell/em-tramp.el: ...Eshell tramp module
-	* doc/misc/eshell.texi: Updated manual to reflect changes.
-
-	External su and sudo commands are now the default; the internal,
-	TRAMP-using variants can still be used by enabling the eshell-tramp
-	module.
 
 2013-03-25  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -90,11 +83,6 @@
 	not always needed.
 	(HAVE_DATA_START): New macro.
 
-2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
-
-	* lisp/eshell/em-cmpl.el: Corrected "context-related help"
-	keybinding in commentary.
-
 2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Parallelize documentation builds.
@@ -106,11 +94,6 @@
 	($(DOCS), docs, vi, html, pdf, ps): New rules.
 	(info-real): Depend on $(INFOS) rather than doing it sequentially.
 	(dvi): Depend on $(DVIS) rather than doing it sequentially.
-
-2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
-
-	* doc/misc/eshell.texi: Added documentation for Eshell insert
-	output redirection operator, >>>.
 
 2013-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 

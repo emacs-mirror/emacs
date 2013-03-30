@@ -614,9 +614,10 @@ An argument of zero means repeat until error."
 
 
 ;;;###autoload
-(defun kmacro-call-macro (arg &optional no-repeat end-macro)
-  "Call the last keyboard macro that you defined with \\[kmacro-start-macro].
+(defun kmacro-call-macro (arg &optional no-repeat end-macro macro)
+  "Call the keyboard MACRO that you defined with \\[kmacro-start-macro].
 A prefix argument serves as a repeat count.  Zero means repeat until error.
+MACRO defaults to `last-kbd-macro'.
 
 When you call the macro, you can call the macro again by repeating
 just the last key in the key sequence that you used to call this
@@ -630,7 +631,8 @@ others, use \\[kmacro-name-last-macro]."
                                   (> (length (this-single-command-keys)) 1))
                              ;; Used when we're in the process of repeating.
                              (eq no-repeat 'repeating))
-			 last-input-event)))
+			 last-input-event))
+	(last-kbd-macro (or macro last-kbd-macro)))
     (if end-macro
 	(kmacro-end-macro arg)
       (call-last-kbd-macro arg #'kmacro-loop-setup-function))
@@ -656,7 +658,7 @@ others, use \\[kmacro-name-last-macro]."
          (define-key map (vector repeat-key)
            `(lambda () (interactive)
               (kmacro-call-macro ,(and kmacro-call-repeat-with-arg arg)
-                                 'repeating)))
+                                 'repeating nil ,last-kbd-macro)))
          map)))))
 
 
@@ -838,8 +840,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 
 
 (defun kmacro-execute-from-register (k)
-  (let ((last-kbd-macro k))
-    (kmacro-call-macro current-prefix-arg)))
+  (kmacro-call-macro current-prefix-arg nil nil k))
 
 (defun kmacro-to-register (r)
   "Store the last keyboard macro in register R."
@@ -851,10 +852,10 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 		   last-kbd-macro
 		   :jump-func 'kmacro-execute-from-register
 		   :print-func (lambda (k)
-                                 (princ (format "a keyboard macro:\n   %s"
-                                                (format-kbd-macro k))))
+				 (princ (format "a keyboard macro:\n   %s"
+						(format-kbd-macro k))))
 		   :insert-func (lambda (k)
-                                  (insert (format-kbd-macro k))))))
+				  (insert (format-kbd-macro k))))))
 
 
 (defun kmacro-view-macro (&optional _arg)

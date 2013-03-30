@@ -1,3 +1,8 @@
+2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
+
+	* automated/python-tests.el (python-indent-block-enders): New test.
+	(python-info-current-defun-2): Fix test.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* indent/octave.m: Fix encoding error in comment.  Add coding tag.

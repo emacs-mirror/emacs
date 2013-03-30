@@ -597,7 +597,7 @@ the selection process begins.  Used by isearchb.el."
   ;; The map is generated every time so that it can inherit new
   ;; functions.
   (let ((map (copy-keymap minibuffer-local-map))
-	buf-sel iswitchb-final-text map
+	buf-sel iswitchb-final-text
 	icomplete-mode)  ; prevent icomplete starting up
     (define-key map "?" 'iswitchb-completion-help)
     (define-key map "\C-s" 'iswitchb-next-match)

@@ -88,14 +88,6 @@ static int trackingMenu;
    ========================================================================== */
 
 
-/* FIXME: not currently used, but should normalize with other terms. */
-void
-x_activate_menubar (struct frame *f)
-{
-    fprintf (stderr, "XXX: Received x_activate_menubar event.\n");
-}
-
-
 /* Supposed to discard menubar and free storage.  Since we share the
    menubar among frames and update its context for the focused window,
    there is nothing to do here. */
@@ -138,7 +130,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   long t;
 #endif
 
-  NSTRACE (set_frame_menubar);
+  NSTRACE (ns_update_menubar);
 
   if (f != SELECTED_FRAME ())
       return;
@@ -512,6 +504,29 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
   ns_update_menubar (f, deep_p, nil);
 }
 
+void
+x_activate_menubar (struct frame *f)
+{
+  NSArray *a = [[NSApp mainMenu] itemArray];
+  /* Update each submenu separatly so ns_update_menubar don't reset
+     the delegate.  */
+  int i = 0;
+  while (i < [a count])
+    {
+      EmacsMenu *menu = (EmacsMenu *)[[a objectAtIndex:i] submenu];
+      const char *title = [[menu title] UTF8String];
+      if (strcmp (title, ns_get_pending_menu_title ()) == 0)
+        {
+          ns_update_menubar (f, true, menu);
+          break;
+        }
+      ++i;
+    }
+  ns_check_pending_open_menu ();
+}
+
+
+
 
 /* ==========================================================================
 
@@ -564,6 +579,14 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
                   ? 1 : 0);
 }
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+- (void)menuWillOpen:(NSMenu *)menu
+{
+  ns_check_menu_open (menu);
+}
+#endif
+
 #endif
 
 /* delegate method called when a submenu is being opened: run a 'deep' call
@@ -591,7 +614,12 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   if (trackingMenu == 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
-  ns_update_menubar (frame, 1, self);
+#if ! defined(NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
+  /* Don't know how to do this for anything other than OSX >= 10.5
+     This is wrong, as it might run Lisp code in the event loop.  */
+  ns_update_menubar (frame, true, self);
+#endif
 }
 
 
@@ -1300,6 +1328,7 @@ update_frame_tool_bar (FRAME_PTR f)
   wr.size = [textField frame].size;
 
   [win setFrame: wr display: YES];
+  [win setLevel: NSPopUpMenuWindowLevel];
   [win orderFront: self];
   [win display];
   timer = [NSTimer scheduledTimerWithTimeInterval: (float)seconds target: self
