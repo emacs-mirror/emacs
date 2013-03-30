@@ -10,6 +10,9 @@ ac_cv_func_acl_set_file=yes
 ac_cv_func_gethostname=yes
 # Implemented as sys_select in w32proc.c
 ac_cv_func_select=yes
+ac_cv_func_pselect=yes
+gl_cv_sig_pselect=yes
+gl_cv_func_pselect_detects_ebadf=yes
 # Implemented as sys_shutdown in w32.c
 ac_cv_func_shutdown=yes
 # Implemented in w32proc.c
@@ -46,6 +49,7 @@ ac_cv_func_fdatasync=yes
 # Implemented in w32proc.c
 ac_cv_func_pthread_sigmask=yes
 # Avoid gnulib replacement
+gl_threads_api=posix
 gl_cv_func_pthread_sigmask_return_works=yes
 gl_cv_func_pthread_sigmask_unblock_works="not relevant"
 # Implemented in w32proc.c
@@ -66,3 +70,5 @@ gl_cv_func_unsetenv_works=yes
 gl_cv_func_stat_dir_slash=yes
 gl_cv_func_stat_file_slash=yes
 ac_cv_func_random=yes
+# Implemented in w32.c as sys_putenv
+gl_cv_func_svid_putenv=yes
