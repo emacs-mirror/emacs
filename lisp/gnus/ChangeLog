@@ -1,3 +1,7 @@
+2013-03-30  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-method-default-engines): Fix typo.
+
 2013-03-29  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el: Define 'number-sequence for xemacs.
