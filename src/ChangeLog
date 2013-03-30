@@ -1,3 +1,20 @@
+2013-03-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (ns_get_pending_menu_title, ns_check_menu_open)
+	(ns_check_pending_open_menu): Declare.
+
+	* nsmenu.m (ns_update_menubar): Correct NSTRACE.
+	(x_activate_menubar): Update the menu with title that matches
+	ns_get_pending_menu_title, and call
+	ns_check_pending_openmenu (Bug#12698).
+	(menuWillOpen:): New method.
+	(menuNeedsUpdate:): Add check for ! COCOA || OSX < 10.5 (Bug#12698).
+
+	* nsterm.m (menu_will_open_state, menu_mouse_point)
+	(menu_pending_title): New varaibles.
+	(ns_get_pending_menu_title, ns_check_menu_open)
+	(ns_check_pending_open_menu): New functions.
+
 2013-03-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* indent.c (current_column_bol_cache): Remove leftover which is not

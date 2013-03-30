@@ -792,6 +792,9 @@ extern int ns_lisp_to_color (Lisp_Object color, NSColor **col);
 extern NSColor *ns_lookup_indexed_color (unsigned long idx, struct frame *f);
 extern unsigned long ns_index_color (NSColor *color, struct frame *f);
 extern void ns_free_indexed_color (unsigned long idx, struct frame *f);
+extern const char *ns_get_pending_menu_title ();
+extern void ns_check_menu_open (NSMenu *menu);
+extern void ns_check_pending_open_menu ();
 #endif
 
 /* C access to ObjC functionality */
