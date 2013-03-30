@@ -1160,7 +1160,12 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
   AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h,
-    have_sound_header=yes)
+    have_sound_header=yes, [], [
+    #ifdef __MINGW32__
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    #endif
+    ])
   # Emulation library used on NetBSD.
   AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
   AC_SUBST(LIBSOUND)
