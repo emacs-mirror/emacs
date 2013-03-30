@@ -1,4 +1,5 @@
-2013-03-30  Darren Ho <darren.hoo@gmail.com> (tiny change).
+2013-03-30  Darren Ho  <darren.hoo@gmail.com>  (tiny change)
+
 	* nsmenu.m (showAtX:Y:for:): setLevel to
 	NSPopUpMenuWindowLevel (Bug#13998).
 
