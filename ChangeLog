@@ -1,3 +1,10 @@
+2013-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-03-29 stdalign: port to stricter ISO C11
+	This helps to run 'configure' on MS-Windows; see Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00999.html>.
+
 2013-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (HAVE_XKBGETKEYBOARD): Remove.
