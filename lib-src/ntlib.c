@@ -20,6 +20,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef __MINGW32__
+/* A kludge to avoid including header files in lib/.  They cannot be
+   configured-out, and their stuff interferes with what we have
+   defined in this header and in other headers in nt/inc.  Yuck!  */
+#define __need_system_fcntl_h
+#define _GL_FCNTL_H
+#define _GL_JUST_INCLUDE_SYSTEM_INTTYPES_H
+#define _GL_ALREADY_INCLUDING_SIGNAL_H
+#define _GL_ALREADY_INCLUDING_STDIO_H
+#define __need_system_stdlib_h
+#define _GL_TIME_H
+#define __need_system_sys_stat_h
+#endif
+
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,10 +63,11 @@ struct timezone
 /* Emulate sleep...we could have done this with a define, but that
    would necessitate including windows.h in the files that used it.
    This is much easier.  */
-void
-sleep (unsigned long seconds)
+unsigned
+sleep (unsigned seconds)
 {
   Sleep (seconds * 1000);
+  return 0;
 }
 
 /* Get the current working directory.  */
@@ -135,6 +150,12 @@ unsigned
 getuid (void)
 {
   return 0;
+}
+
+unsigned
+geteuid (void)
+{
+  return getuid ();
 }
 
 unsigned
@@ -415,4 +436,3 @@ lstat (const char * path, struct stat * buf)
 {
   return stat (path, buf);
 }
-

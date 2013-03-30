@@ -368,8 +368,10 @@ typedef int sigset_t;
 typedef int ssize_t;
 #endif
 
-#ifndef _POSIX	/* MinGW64 */
+#ifdef _W64	/* MinGW64 */
+#ifndef _POSIX
 typedef _sigset_t sigset_t;
+#endif
 #endif
 
 typedef void (_CALLBACK_ *signal_handler) (int);

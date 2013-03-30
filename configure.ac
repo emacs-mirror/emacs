@@ -1026,6 +1026,8 @@ AC_SUBST(C_SWITCH_SYSTEM)
 
 
 LIBS_SYSTEM=
+LIB_WSOCK32=
+NTLIB_O=
 case "$opsys" in
   ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
   aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
@@ -1038,9 +1040,16 @@ case "$opsys" in
 
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
-esac
-AC_SUBST(LIBS_SYSTEM)
 
+  mingw32) LIBS_SYSTEM="-lcomctl32"
+  LIB_WSOCK32="$LIB_WSOCK32 -lwsock32"
+  NTLIB_O="ntlib.$ac_objext"
+  ;;
+esac
+
+AC_SUBST(LIBS_SYSTEM)
+AC_SUBST(LIB_WSOCK32)
+AC_SUBST(NTLIB_O)
 
 ### Make sure subsequent tests use flags consistent with the build flags.
 
@@ -1574,8 +1583,8 @@ if test "${HAVE_W32}" = "yes"; then
     W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
   else
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
-    W32_LIBS="$W32_LIBS -lwinmm -ladvapi32 -lgdi32 -lcomdlg32 -luser32"
-    W32_LIBS="$W32_LIBS -lmpr -lshell32 -lwinspool -lole32 -lcomctl32 -lusp10"
+    W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
+    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lusp10"
   fi
 fi
 AC_SUBST(W32_OBJ)

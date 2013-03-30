@@ -163,10 +163,15 @@ LIBS_MAIL=@LIBS_MAIL@
 LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
 ## empty or -lrt or -lposix4 if HAVE_FDATASYNC
 LIB_FDATASYNC = @LIB_FDATASYNC@
+## empty of -lwsock32 for MinGW
+LIB_WSOCK32 = @LIB_WSOCK32@
 
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
             $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
+
+## Extra object files for linking emacsclient
+NTLIB_O = @NTLIB_O@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM = @LIBS_SYSTEM@
@@ -292,7 +297,7 @@ TAGS: etags${EXEEXT}
 ## distribute Emacs.  If they were clobbered, all the .elc files were
 ## clobbered too.
 test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
-	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
+	$(CC) ${ALL_CFLAGS} -o test-distrib${EXEEXT} ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
 ../lib/libgnu.a: $(config_h)
@@ -305,44 +310,49 @@ regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
 etags${EXEEXT}: ${srcdir}/etags.c regex.o $(config_h)
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  regex.o $(LOADLIBES) -o etags
+	  regex.o $(LOADLIBES) -o etags${EXEEXT}
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
-	  ${srcdir}/ebrowse.c $(LOADLIBES) -o ebrowse
+	  ${srcdir}/ebrowse.c $(LOADLIBES) -o ebrowse${EXEEXT}
 
 ## We depend on etags to assure that parallel makes do not write two
 ## etags.o files on top of each other.
 ctags${EXEEXT}: etags${EXEEXT}
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  regex.o $(LOADLIBES) -o ctags
+	  regex.o $(LOADLIBES) -o ctags${EXEEXT}
 
 profile${EXEEXT}: ${srcdir}/profile.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c \
-	  $(LOADLIBES) $(LIB_CLOCK_GETTIME) -o profile
+	  $(LOADLIBES) $(LIB_CLOCK_GETTIME) -o profile${EXEEXT}
 
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
-	  -o make-docfile
+	  -o make-docfile${EXEEXT}
 
-movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(config_h)
+movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB_O) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
-	  $(LOADLIBES) $(LIBS_MOVE) -o movemail
+	  $(NTLIB_O) $(LIB_WSOCK32) $(LOADLIBES) $(LIBS_MOVE) \
+	  -o movemail${EXEEXT}
 
 pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
-emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(config_h)
+emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB_O) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
-	   -DVERSION="\"${version}\"" \
-	   $(LOADLIBES) $(LIB_FDATASYNC) -o emacsclient
+	   -DVERSION="\"${version}\"" $(LIB_WSOCK32) \
+	   $(LOADLIBES) $(LIB_FDATASYNC) -o emacsclient${EXEEXT}
+
+ntlib.o: ${srcdir}/ntlib.c ${srcdir}/ntlib.h
+	$(CC) -c ${CPP_CFLAGS} ${srcdir}/ntlib.c
 
 hexl${EXEEXT}: ${srcdir}/hexl.c $(config_h)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
+	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl${EXEEXT}
 
-update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(config_h)
+update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB_O) $(config_h)
 	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
-	  ${srcdir}/update-game-score.c $(LOADLIBES) -o update-game-score
+	  ${srcdir}/update-game-score.c $(NTLIB_O) $(LOADLIBES) \
+	  -o update-game-score${EXEEXT}
 
 ## Makefile ends here.
