@@ -251,7 +251,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_COM_ERR_H
 
 /* Define to 1 if you have the `copysign' function. */
-#undef HAVE_COPYSIGN
+#define HAVE_COPYSIGN 1
 
 /* Define to 1 if data_start is the address of the start of the main data
    segment. */
@@ -1113,8 +1113,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
-/* Define to 1 if you have the XkbGetKeyboard function. */
-#undef HAVE_XKBGETKEYBOARD
+/* Define to 1 if you have the Xkb extension. */
+#undef HAVE_XKB
 
 /* Define to 1 if you have the Xpm library (-lXpm). */
 #undef HAVE_XPM

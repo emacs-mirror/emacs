@@ -1,3 +1,11 @@
+2013-03-29  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el: Define 'number-sequence for xemacs.
+	(gnus-summary-create-nnir-group): New function to create an nnir group
+	from an nnir summary buffer based on the current query.
+	(nnir-request-create-group): Update to allow nnir group creation based
+	on the current query.
+
 2013-03-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nndraft.el (nndraft-request-expire-articles):

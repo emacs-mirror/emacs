@@ -1,3 +1,26 @@
+2013-03-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* indent.c (current_column_bol_cache): Remove leftover which is not
+	used in Fmove_to_column any more.
+	(current_column, scan_for_column): Adjust users.
+	* keyboard.c (last_point_position_buffer, last_point_position_window):
+	Remove leftovers which are not used for recording undo any more.
+	(command_loop_1, syms_of_keyboard): Adjust users.
+	* xdisp.c (last_max_ascent): Remove leftover which is not used in
+	redisplay_window any more.
+	(move_it_to): Adjust user.
+
+2013-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/filelock.$(O), $(BLD)/filelock.$(O)):
+	Update dependencies.
+
+2013-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (save_type, XSAVE_POINTER, set_save_pointer, XSAVE_INTEGER)
+	(set_save_integer, XSAVE_OBJECT, XSAVE_VALUE): Move to avoid
+	forward references.
+
 2013-03-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Replace hchild, vchild and buffer slots

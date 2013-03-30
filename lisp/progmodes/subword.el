@@ -154,7 +154,7 @@ as words.
   "Do the same as `forward-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `forward-word'."
-  (interactive "p")
+  (interactive "^p")
   (unless arg (setq arg 1))
   (cond
    ((< 0 arg)
@@ -168,16 +168,26 @@ Optional argument ARG is the same as for `forward-word'."
 
 (put 'subword-forward 'CUA 'move)
 
-(defalias 'subword-right 'subword-forward)
-
 (defun subword-backward (&optional arg)
   "Do the same as `backward-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `backward-word'."
-  (interactive "p")
+  (interactive "^p")
   (subword-forward (- (or arg 1))))
 
-(defalias 'subword-left 'subword-backward)
+(defun subword-right (&optional arg)
+  "Do the same as `right-word' but on subwords."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (subword-forward arg)
+    (subword-backward arg)))
+
+(defun subword-left (&optional arg)
+  "Do the same as `left-word' but on subwords."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (subword-backward arg)
+    (subword-forward arg)))
 
 (defun subword-mark (arg)
   "Do the same as `mark-word' but on subwords.

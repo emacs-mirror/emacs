@@ -529,59 +529,10 @@ with angle brackets.")
              (buffer-substring-no-properties
               (car boundary-pair) (cdr boundary-pair))))))
 
-;;  Whitespace
-
-(defun forward-whitespace (arg)
-  "Move point to the end of the next sequence of whitespace chars.
-Each such sequence may be a single newline, or a sequence of
-consecutive space and/or tab characters.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (if (natnump arg)
-      (re-search-forward "[ \t]+\\|\n" nil 'move arg)
-    (while (< arg 0)
-      (if (re-search-backward "[ \t]+\\|\n" nil 'move)
-	  (or (eq (char-after (match-beginning 0)) ?\n)
-	      (skip-chars-backward " \t")))
-      (setq arg (1+ arg)))))
-
 ;;  Buffer
 
 (put 'buffer 'end-op (lambda () (goto-char (point-max))))
 (put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
-
-;;  Symbols
-
-(defun forward-symbol (arg)
-  "Move point to the next position that is the end of a symbol.
-A symbol is any sequence of characters that are in either the
-word constituent or symbol constituent syntax class.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (if (natnump arg)
-      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil 'move arg)
-    (while (< arg 0)
-      (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil 'move)
-	  (skip-syntax-backward "w_"))
-      (setq arg (1+ arg)))))
-
-;;  Syntax blocks
-
-(defun forward-same-syntax (&optional arg)
-  "Move point past all characters with the same syntax class.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (or arg (setq arg 1))
-  (while (< arg 0)
-    (skip-syntax-backward
-     (char-to-string (char-syntax (char-before))))
-    (setq arg (1+ arg)))
-  (while (> arg 0)
-    (skip-syntax-forward (char-to-string (char-syntax (char-after))))
-    (setq arg (1- arg))))
 
 ;;  Aliases
 

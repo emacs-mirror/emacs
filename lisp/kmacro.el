@@ -202,6 +202,7 @@ macro to be executed before appending to it."
     ;; naming and binding
     (define-key map "b"    'kmacro-bind-to-key)
     (define-key map "n"    'kmacro-name-last-macro)
+    (define-key map "x"    'kmacro-to-register)
     map)
   "Keymap for keyboard macro commands.")
 (defalias 'kmacro-keymap kmacro-keymap)
@@ -834,6 +835,26 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
       (error "No command name given"))
   (fset symbol (kmacro-lambda-form (kmacro-ring-head)))
   (put symbol 'kmacro t))
+
+
+(defun kmacro-execute-from-register (k)
+  (let ((last-kbd-macro k))
+    (kmacro-call-macro current-prefix-arg)))
+
+(defun kmacro-to-register (r)
+  "Store the last keyboard macro in register R."
+  (interactive
+   (progn
+     (or last-kbd-macro (error "No keyboard macro defined"))
+     (list (read-char "Save to register: "))))
+  (set-register r (registerv-make
+		   last-kbd-macro
+		   :jump-func 'kmacro-execute-from-register
+		   :print-func (lambda (k)
+                                 (princ (format "a keyboard macro:\n   %s"
+                                                (format-kbd-macro k))))
+		   :insert-func (lambda (k)
+                                  (insert (format-kbd-macro k))))))
 
 
 (defun kmacro-view-macro (&optional _arg)

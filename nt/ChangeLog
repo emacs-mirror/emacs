@@ -1,3 +1,15 @@
+2013-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (copysign) [_MSC_VER]: Redirect to _copysign.
+
+	* config.nt (HAVE_COPYSIGN): Define.
+
+2013-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_XKBGETKEYBOARD): Remove.
+	(HAVE_XKB): New macro.
+
 2013-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)

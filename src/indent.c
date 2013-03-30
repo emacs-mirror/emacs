@@ -56,11 +56,6 @@ static EMACS_INT last_known_column_modified;
 static ptrdiff_t current_column_1 (void);
 static ptrdiff_t position_indentation (ptrdiff_t);
 
-/* Cache of beginning of line found by the last call of
-   current_column. */
-
-static ptrdiff_t current_column_bol_cache;
-
 /* Get the display table to use for the current buffer.  */
 
 struct Lisp_Char_Table *
@@ -439,11 +434,6 @@ current_column (void)
       col += post_tab;
     }
 
-  if (ptr == BEGV_ADDR)
-    current_column_bol_cache = BEGV;
-  else
-    current_column_bol_cache = BYTE_TO_CHAR (PTR_BYTE_POS (ptr));
-
   last_known_column = col;
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
@@ -525,7 +515,6 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
   {
   ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
-  current_column_bol_cache = PT;
   scan = PT, scan_byte = PT_BYTE;
   SET_PT_BOTH (opoint, opoint_byte);
   next_boundary = scan;
