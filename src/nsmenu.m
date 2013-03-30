@@ -1328,6 +1328,7 @@ update_frame_tool_bar (FRAME_PTR f)
   wr.size = [textField frame].size;
 
   [win setFrame: wr display: YES];
+  [win setLevel: NSPopUpMenuWindowLevel];
   [win orderFront: self];
   [win display];
   timer = [NSTimer scheduledTimerWithTimeInterval: (float)seconds target: self

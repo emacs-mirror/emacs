@@ -1,3 +1,7 @@
+2013-03-30  Darren Ho <darren.hoo@gmail.com> (tiny change).
+	* nsmenu.m (showAtX:Y:for:): setLevel to
+	NSPopUpMenuWindowLevel (Bug#13998).
+
 2013-03-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (ns_get_pending_menu_title, ns_check_menu_open)
