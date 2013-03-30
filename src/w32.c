@@ -4430,9 +4430,9 @@ fstat (int desc, struct stat * buf)
 }
 
 int
-utime (const char *name, struct utimbuf *times)
+utime (const char *name, struct _utimbuf *times)
 {
-  struct utimbuf deftime;
+  struct _utimbuf deftime;
   HANDLE fh;
   FILETIME mtime;
   FILETIME atime;

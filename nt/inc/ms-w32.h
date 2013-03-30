@@ -133,6 +133,20 @@ typedef unsigned short mode_t;
 extern char *getenv ();
 #endif
 
+#ifdef __MINGW32__
+/* A kludge to avoid including header files in lib/.  They cannot be
+   configured-out, and their stuff interferes with what we have
+   defined in this header and in other headers in nt/inc.  Yuck!  */
+#define __need_system_fcntl_h
+#define _GL_FCNTL_H
+#define _GL_JUST_INCLUDE_SYSTEM_INTTYPES_H
+#define _GL_ALREADY_INCLUDING_SIGNAL_H
+#define _GL_ALREADY_INCLUDING_STDIO_H
+#define __need_system_stdlib_h
+#define _GL_TIME_H
+#define __need_system_sys_stat_h
+#endif
+
 /* Prevent accidental use of features unavailable in older Windows
    versions we still support.  MinGW64 defines this to a higher value
    in its system headers, and is not really compatible with values
@@ -276,9 +290,6 @@ typedef int pid_t;
 #define popen     _popen
 #define pclose    _pclose
 #define umask	  _umask
-#ifndef _MSC_VER
-#define utimbuf	  _utimbuf
-#endif
 #define strdup    _strdup
 #define strupr    _strupr
 #define strnicmp  _strnicmp
@@ -295,10 +306,6 @@ int _getpid (void);
    array, and triggers an error message.  */
 #include <time.h>
 #define tzname    _tzname
-#if !defined (_MSC_VER) || (_MSC_VER < 1400)
-#undef  utime
-#define utime	  _utime
-#endif
 
 /* 'struct timespec' is used by time-related functions in lib/ and
    elsewhere, but we don't use lib/time.h where the structure is

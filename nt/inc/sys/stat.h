@@ -83,6 +83,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define S_TYPEISSHM(p) 0
 #define S_TYPEISTMO(p) 0
 
+#define UTIME_NOW  (-1)
+#define UTIME_OMIT (-2)
+
 struct stat {
   unsigned __int64 st_ino;	/* ino_t in sys/types.h is too narrow */
   dev_t st_dev;
