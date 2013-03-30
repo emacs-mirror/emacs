@@ -309,7 +309,7 @@ edit them as words.
 ;;
 (defun subword-forward-internal ()
   (if superword-mode
-      (forward-sexp 1)
+      (forward-symbol 1)
     (if (and
          (save-excursion
            (let ((case-fold-search nil))
@@ -325,7 +325,7 @@ edit them as words.
 
 (defun subword-backward-internal ()
   (if superword-mode
-      (forward-sexp -1)
+      (forward-symbol -1)
     (if (save-excursion
           (let ((case-fold-search nil))
             (re-search-backward subword-backward-regexp nil t)))
