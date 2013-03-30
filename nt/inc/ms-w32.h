@@ -399,10 +399,12 @@ extern int sys_kill (int, int);
 #define getdefdir(_drv, _buf)   _getdcwd (_drv, _buf, MAXPATHLEN)
 #endif
 
+#ifndef EMACS_CONFIGURATION
 extern char *get_emacs_configuration (void);
 extern char *get_emacs_configuration_options (void);
 #define EMACS_CONFIGURATION 	get_emacs_configuration ()
 #define EMACS_CONFIG_OPTIONS	get_emacs_configuration_options ()
+#endif
 
 /* Define this so that winsock.h definitions don't get included with
    windows.h.  For this to have proper effect, config.h must always be
