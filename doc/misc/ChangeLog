@@ -1,6 +1,6 @@
 2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
-	* eshell.texi: Updated manual to reflect changes.
+	* eshell.texi (Built-ins): Update manual to mention tramp module.
 
 2013-03-18  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2415,8 +2415,7 @@
 
 2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
-	* eshell.texi: Added documentation for Eshell insert
-	output redirection operator, >>>.
+	* eshell.texi (Input/Output): Document insert output redirection operator, >>>.
 
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
