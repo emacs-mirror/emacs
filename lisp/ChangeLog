@@ -1,3 +1,19 @@
+2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
+
+	Un-indent after "pass" and "return" statements (Bug#13888)
+	* progmodes/python.el (python-indent-block-enders): New var.
+	(python-indent-calculate-indentation): Use it.
+
+2013-03-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-drop-volume-letter): Make it an ordinary
+	defun.  Defining it as defalias could introduce too eager
+	byte-compiler optimization.  (Bug#14030)
+
+2013-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* iswitchb.el (iswitchb-read-buffer): Fix typo.
+
 2013-03-30  Leo Liu  <sdl.web@gmail.com>
 
 	* kmacro.el (kmacro-call-macro): Add optional arg MACRO.
