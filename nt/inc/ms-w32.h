@@ -551,7 +551,6 @@ extern void _DebPrint (const char *fmt, ...);
 #pragma warning(disable:4308)
 #endif
 #endif
-#define TERM_HEADER "w32term.h"
 
 
 /* ============================================================ */

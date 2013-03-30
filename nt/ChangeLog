@@ -1,3 +1,10 @@
+2013-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Remove definition.
+
+	* config.nt (TERM_HEADER): Move the definition to "w32term.h" from
+	ms-w32.h.
+
 2013-03-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (copysign) [_MSC_VER]: Redirect to _copysign.
