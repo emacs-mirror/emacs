@@ -85,6 +85,7 @@ leim/leim-list.el
 leim/quail/*.el
 leim/changed.misc
 leim/changed.tit
+leim/stamp-subdir
 lib/.deps/
 lib/Makefile.in
 lib/deps/
