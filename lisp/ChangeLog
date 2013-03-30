@@ -56,6 +56,11 @@
 	over symbol_words (parallels and leverages `subword-mode' which
 	does word motion inside MixedCaseWords).
 
+2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell/em-unix.el: Moved su and sudo to...
+	* eshell/em-tramp.el: ...Eshell tramp module
+
 2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* desktop.el (desktop--v2s): Rename from desktop-internal-v2s.
@@ -1053,6 +1058,11 @@
 	* emacs-lisp/eieio-opt.el (eieio-class-button, eieio-describe-generic)
 	(eieio-browse-tree, eieio-browse): Use eieio--check-type.
 
+
+2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell/em-cmpl.el: Corrected "context-related help"
+	keybinding in commentary.
 
 2013-02-18  Michael Heerdegen  <michael_heerdegen@web.de>
 

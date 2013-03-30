@@ -1,3 +1,7 @@
+2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell.texi: Updated manual to reflect changes.
+
 2013-03-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename Syntax): Host names are not allowed to be
@@ -2408,6 +2412,11 @@
 	* dired-x.texi (Technical Details): No longer redefines
 	dired-add-entry, dired-initial-position, dired-clean-up-after-deletion,
 	dired-read-shell-command, or dired-find-buffer-nocreate.
+
+2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell.texi: Added documentation for Eshell insert
+	output redirection operator, >>>.
 
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 
