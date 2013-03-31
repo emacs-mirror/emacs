@@ -1,3 +1,7 @@
+2013-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hi-lock.el (hi-lock-mode): Cleanup after revert-buffer (bug#13891).
+
 2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
 
 	Un-indent after "pass" and "return" statements (Bug#13888)
