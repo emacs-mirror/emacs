@@ -599,6 +599,11 @@ else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
+dnl This is used in lib/Makefile.am to use nt/gnulib.mk, the
+dnl alternative to lib/gnulib.mk, so as to avoid generating header files
+dnl that clash with MinGW.
+AM_CONDITIONAL([BUILDING_FOR_WINDOWSNT], [test "x$opsys" = "xmingw32"])
+
 # Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
 # as we don't use them.
 AC_DEFUN([gl_FCNTL_O_FLAGS])
@@ -1027,7 +1032,7 @@ AC_SUBST(C_SWITCH_SYSTEM)
 
 LIBS_SYSTEM=
 LIB_WSOCK32=
-NTLIB_O=
+NTLIB=
 case "$opsys" in
   ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
   aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
@@ -1043,13 +1048,13 @@ case "$opsys" in
 
   mingw32) LIBS_SYSTEM="-lcomctl32"
   LIB_WSOCK32="$LIB_WSOCK32 -lwsock32"
-  NTLIB_O="ntlib.$ac_objext"
+  NTLIB="ntlib.$ac_objext"
   ;;
 esac
 
 AC_SUBST(LIBS_SYSTEM)
 AC_SUBST(LIB_WSOCK32)
-AC_SUBST(NTLIB_O)
+AC_SUBST(NTLIB)
 
 ### Make sure subsequent tests use flags consistent with the build flags.
 

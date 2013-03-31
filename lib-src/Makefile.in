@@ -171,7 +171,7 @@ LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
             $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
 
 ## Extra object files for linking emacsclient
-NTLIB_O = @NTLIB_O@
+NTLIB = @NTLIB@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM = @LIBS_SYSTEM@
@@ -331,15 +331,15 @@ make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
 	  -o make-docfile${EXEEXT}
 
-movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB_O) $(config_h)
+movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
-	  $(NTLIB_O) $(LIB_WSOCK32) $(LOADLIBES) $(LIBS_MOVE) \
+	  $(NTLIB) $(LIB_WSOCK32) $(LOADLIBES) $(LIBS_MOVE) \
 	  -o movemail${EXEEXT}
 
 pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
-emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB_O) $(config_h)
+emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
 	   -DVERSION="\"${version}\"" $(LIB_WSOCK32) \
 	   $(LOADLIBES) $(LIB_FDATASYNC) -o emacsclient${EXEEXT}
@@ -350,9 +350,9 @@ ntlib.o: ${srcdir}/ntlib.c ${srcdir}/ntlib.h
 hexl${EXEEXT}: ${srcdir}/hexl.c $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl${EXEEXT}
 
-update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB_O) $(config_h)
+update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
-	  ${srcdir}/update-game-score.c $(NTLIB_O) $(LOADLIBES) \
+	  ${srcdir}/update-game-score.c $(NTLIB) $(LOADLIBES) \
 	  -o update-game-score${EXEEXT}
 
 ## Makefile ends here.

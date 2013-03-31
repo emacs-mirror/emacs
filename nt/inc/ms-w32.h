@@ -133,20 +133,6 @@ typedef unsigned short mode_t;
 extern char *getenv ();
 #endif
 
-#ifdef __MINGW32__
-/* A kludge to avoid including header files in lib/.  They cannot be
-   configured-out, and their stuff interferes with what we have
-   defined in this header and in other headers in nt/inc.  Yuck!  */
-#define __need_system_fcntl_h
-#define _GL_FCNTL_H
-#define _GL_JUST_INCLUDE_SYSTEM_INTTYPES_H
-#define _GL_ALREADY_INCLUDING_SIGNAL_H
-#define _GL_ALREADY_INCLUDING_STDIO_H
-#define __need_system_stdlib_h
-#define _GL_TIME_H
-#define __need_system_sys_stat_h
-#endif
-
 /* Prevent accidental use of features unavailable in older Windows
    versions we still support.  MinGW64 defines this to a higher value
    in its system headers, and is not really compatible with values
