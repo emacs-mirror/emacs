@@ -12948,8 +12948,6 @@ redisplay_internal (void)
 
   unbind_to (count1, Qnil);
 
-  FRAME_SCROLL_BOTTOM_VPOS (XFRAME (w->frame)) = -1;
-
   consider_all_windows_p = (update_mode_lines
 			    || buffer_shared_and_changed ()
 			    || cursor_type_changed);

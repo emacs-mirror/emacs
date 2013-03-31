@@ -427,10 +427,6 @@ struct frame
   /* Width of bar cursor (if we are using that) for blink-off state.  */
   int blink_off_cursor_width;
 
-  /* Nonnegative if current redisplay should not do scroll computation
-     for lines beyond a certain vpos.  This is the vpos.  */
-  int scroll_bottom_vpos;
-
   /* Configured width of the scroll bar, in pixels and in characters.
      config_scroll_bar_cols tracks config_scroll_bar_width if the
      latter is positive; a zero value in config_scroll_bar_width means
@@ -785,7 +781,6 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
-#define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
 
 /* This frame slot says whether scroll bars are currently enabled for frame F,

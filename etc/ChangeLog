@@ -4,7 +4,7 @@
 
 2013-03-29  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
-	* NEWS: Added entry for em-tramp change in r112148
+	* NEWS (Eshell): New entry for em-tramp change in r112148
 
 2013-03-21  Eric Ludlam  <zappo@gnu.org>
 

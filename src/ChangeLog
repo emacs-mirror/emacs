@@ -1,3 +1,10 @@
+2013-03-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (struct frame): Drop scroll_bottom_vpos
+	member becaue all real users are dead long ago.
+	(FRAME_SCROLL_BOTTOM_VPOS): Remove.
+	* xdisp.c (redisplay_internal): Adjust user.
+
 2013-03-30  Darren Ho  <darren.hoo@gmail.com>  (tiny change)
 
 	* nsmenu.m (showAtX:Y:for:): setLevel to

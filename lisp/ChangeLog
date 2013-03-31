@@ -80,7 +80,7 @@
 
 2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
-	* eshell/em-unix.el: Moved su and sudo to...
+	* eshell/em-unix.el: Move su and sudo to...
 	* eshell/em-tramp.el: ...Eshell tramp module
 
 2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -1083,8 +1083,8 @@
 
 2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
-	* eshell/em-cmpl.el: Corrected "context-related help"
-	keybinding in commentary.
+	* eshell/em-cmpl.el: Correct "context-related help" keybinding in
+	commentary.
 
 2013-02-18  Michael Heerdegen  <michael_heerdegen@web.de>
 
