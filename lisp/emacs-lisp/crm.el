@@ -263,7 +263,8 @@ Completion is available on a per-element basis.  For example, if the
 contents of the minibuffer are 'alice,bob,eve' and point is between
 'l' and 'i', pressing TAB operates on the element 'alice'.
 
-The return value of this function is a list of the read strings.
+The return value of this function is a list of the read strings
+with empty strings removed.
 
 See the documentation for `completing-read' for details on the arguments:
 PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
@@ -287,7 +288,7 @@ INHERIT-INPUT-METHOD."
 		       prompt initial-input map
 		       nil hist def inherit-input-method)))
 	  (and def (string-equal input "") (setq input def))
-          ;; Ignore empty strings in the list of return values.
+          ;; Remove empty strings in the list of read strings.
 	  (split-string input crm-separator t)))
     (remove-hook 'choose-completion-string-functions
 		 'crm--choose-completion-string)))
