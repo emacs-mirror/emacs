@@ -1,3 +1,7 @@
+2013-03-31  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-method-default-engines): And another typo.
+
 2013-03-30  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (nnir-method-default-engines): Fix typo.

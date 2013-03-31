@@ -588,7 +588,7 @@ Add an entry here when adding a new search engine.")
   "*Alist of default search engines keyed by server method."
   :version "24.1"
   :group 'nnir
-  :type `(repeat (cons (choice (const nnimap) (const nttp) (const nnspool)
+  :type `(repeat (cons (choice (const nnimap) (const nntp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)
 			       (const nnfolder) (const nnmaildir))
