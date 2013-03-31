@@ -2,7 +2,9 @@
  * Main program for testing ede/cpp-root project.
  */
 
+#include <cpprootsys.h>
 #include "sppmacros.h"
+#include "projincmacros.h"
 #include "test.h"
 
 int main(int argc, char *argv[])
@@ -29,6 +31,13 @@ int feature2()
 int feature3()
 {
   return 3;
+}
+#endif
+
+#ifdef PROJMACRO_A
+char projmacro_a()
+{
+  return 'a';
 }
 #endif
 
