@@ -841,6 +841,11 @@ skips all prompting."
     (gnus-summary-read-group-1 backend-article-group t t  nil
                                nil (list backend-article-number))))
 
+(deffoo nnir-request-update-mark (group article mark)
+  (let ((artgroup (nnir-article-group article))
+	(artnumber (nnir-article-number article)))
+    (gnus-request-update-mark artgroup artnumber mark)))
+
 
 (deffoo nnir-request-update-info (group info &optional server)
   (let ((articles-by-group

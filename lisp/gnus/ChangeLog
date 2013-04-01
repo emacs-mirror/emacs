@@ -1,3 +1,11 @@
+2013-04-01  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-request-update-mark): Improve mark updating in original
+	group.
+
+	* gnus-msg.el (nnir-article-number, nnir-article-group): Autoload to
+	fix compilation.
+
 2013-03-31  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (nnir-method-default-engines): And another typo.

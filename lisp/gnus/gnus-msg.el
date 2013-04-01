@@ -415,6 +415,10 @@ Thank you for your help in stamping out bugs.
      (gnus-inews-make-draft-meta-information
       ,(gnus-group-decoded-name gnus-newsgroup-name) ',articles)))
 
+(autoload 'nnir-article-number "nnir" nil nil 'macro)
+(autoload 'nnir-article-group "nnir" nil nil 'marcro)
+
+
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
