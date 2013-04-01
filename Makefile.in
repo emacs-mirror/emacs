@@ -93,6 +93,9 @@ version=@version@
 ### for, like `mips-dec-ultrix' or `sparc-sun-sunos'.
 configuration=@configuration@
 
+### The nt/ subdirectory gets built only for MinGW
+NTDIR=@NTDIR@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / Mac OS X.
@@ -271,17 +274,17 @@ EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
-SUBDIR = lib lib-src src lisp leim
+SUBDIR = lib lib-src src lisp leim $(NTDIR)
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
 SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 
-# Subdirectories to install, and where they'll go.
-# lib-src's makefile knows how to install it, so we don't do that here.
-# Directories that cannot simply be copied, eg info,
-# are treated separately.
-# quail appears twice because in out-of-tree builds, it exists twice.
+# Subdirectories to install, and where they'll go.  lib-src's and nt's
+# makefiles know how to install them, so we don't do that here.
+# Directories that cannot simply be copied, eg info, are treated
+# separately.  quail appears twice because in out-of-tree builds, it
+# exists twice.
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/leim/ja-dic ${srcdir}/leim/quail leim/quail
 COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic $(DESTDIR)${leimdir}/quail $(DESTDIR)${leimdir}/quail
 

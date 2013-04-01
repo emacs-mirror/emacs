@@ -1544,8 +1544,10 @@ AC_SUBST(NS_OBJC_OBJ)
 HAVE_W32=no
 W32_OBJ=
 W32_LIBS=
-W32_RES=
+EMACSRES=
+CLIENTRES=
 W32_RES_LINK=
+EMACS_MANIFEST=
 if test "${with_w32}" != no; then
   if test "${opsys}" != "cygwin"; then
     if test "${opsys}" != "mingw32"; then
@@ -1573,29 +1575,39 @@ if test "${opsys}" = "mingw32"; then
   fi
 fi
 
+FIRSTFILE_OBJ=
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   AC_CHECK_TOOL(WINDRES, [windres],
                 [AC_MSG_ERROR([No resource compiler found.])])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
+  EMACSRES="emacs.res"
+  case "$canonical" in
+    x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
+    *) EMACS_MANIFEST="emacs-x86.manifest" ;;
+  esac
   if test "${opsys}" = "cygwin"; then
     W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
-    W32_RES="emacs.res"
     # Tell the linker that emacs.res is an object (which we compile from
     # the rc file), not a linker script.
     W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
   else
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
-    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lusp10"
+    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
+    CLIENTRES="emacsclient.res"
+    FIRSTFILE_OBJ=firstfile.o
   fi
 fi
 AC_SUBST(W32_OBJ)
 AC_SUBST(W32_LIBS)
-AC_SUBST(W32_RES)
+AC_SUBST(EMACSRES)
+AC_SUBST(EMACS_MANIFEST)
+AC_SUBST(CLIENTRES)
 AC_SUBST(W32_RES_LINK)
+AC_SUBST(FIRSTFILE_OBJ)
 
 if test "${HAVE_W32}" = "yes"; then
   window_system=w32
@@ -4016,6 +4028,9 @@ case $opsys in
   mingw32)
     AC_DEFINE(DOS_NT, [])
     AC_DEFINE(WINDOWSNT, 1, [Define if compiling for native MS Windows.])
+    if test "x$ac_enable_checking" != "x" ; then
+      AC_DEFINE(EMACSDEBUG, 1, [Define to 1 to enable w32 debug facilities.])
+    fi
     ;;
 
   sol2*)
@@ -4362,7 +4377,7 @@ CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
 if test "${opsys}" = "mingw32"; then
-  CPPFLAGS="-DUSE_CRT_DLL=1 -I $srcdir/nt/inc"
+  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I $srcdir/nt/inc"
   # Remove unneeded switches from the value of CC that goes to Makefiles
   CC=`echo $CC | sed -e "s,$GCC_TEST_OPTIONS,,"`
 fi
@@ -4401,13 +4416,34 @@ case "$opsys" in
   gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_RPATH)" ;;
 
   mingw32)
-   LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-subsystem,console -Wl,-entry,__start -Wl,-Map,./temacs.map"
+   case "$canonical" in
+     x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-subsystem,console -Wl,-entry,_start -Wl,-Map,./temacs.map" ;;
+     *) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-subsystem,console -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
+   esac
    ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
+
+## MinGW-specific post-link processing of temacs.
+TEMACS_POST_LINK=":"
+ADDSECTION=
+EMACS_HEAPSIZE=
+if test "${opsys}" = "mingw32"; then
+  TEMACS_POST_LINK="\$(MINGW_TEMACS_POST_LINK)"
+  ADDSECTION="../nt/addsection\$(EXEEXT)"
+  ## Preload heap size of temacs.exe in MB.
+  case "$canonical" in
+    x86_64-*-*) EMACS_HEAPSIZE=42 ;;
+    *) EMACS_HEAPSIZE=27 ;;
+  esac
+fi
+
+AC_SUBST(ADDSECTION)
+AC_SUBST(TEMACS_POST_LINK)
+AC_SUBST(EMACS_HEAPSIZE)
 
 ## Common for all window systems
 if test "$window_system" != "none"; then
@@ -4567,12 +4603,12 @@ dnl This will work, but you get a config.status that is not quite right
 dnl (see http://lists.gnu.org/archive/html/bug-autoconf/2008-08/msg00028.html).
 dnl That doesn't have any obvious consequences for Emacs, but on the whole
 dnl it seems better to just live with the duplication.
-SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile"
 
 AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
        doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
        doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile \
-       leim/Makefile nextstep/Makefile])
+       leim/Makefile nextstep/Makefile nt/Makefile])
 
 dnl test/ is not present in release tarfiles.
 opt_makefile=test/automated/Makefile
