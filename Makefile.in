@@ -274,7 +274,7 @@ EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
-SUBDIR = lib lib-src src lisp leim $(NTDIR)
+SUBDIR = $(NTDIR) lib lib-src src lisp leim
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
@@ -317,7 +317,7 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
-lib-src src: lib
+lib-src src: $(NTDIR) lib
 
 src:	lib-src FRC
 
@@ -326,7 +326,7 @@ src:	lib-src FRC
 lisp leim: src
 
 # These targets should be "${SUBDIR} without `src'".
-lib lib-src lisp leim: Makefile FRC
+lib lib-src lisp leim nt: Makefile FRC
 	cd $@ && $(MAKE) all $(MFLAGS)                         \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -464,6 +464,13 @@ install-arch-dep: src install-arch-indep install-doc
 	  subdir=${ns_appresdir}/site-lisp; \
 	  ${write_subdir} || exit 1; \
 	  rm -rf ${ns_appresdir}/share; \
+	fi
+	if test "x$(NTDIR)" != "x"; then \
+	  cd $(NTDIR) && \
+	    $(MAKE) install $(MFLAGS) prefix=${prefix} \
+	      exec_prefix=${exec_prefix} bindir=${bindir} \
+	      libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	      INSTALL_STRIP=${INSTALL_STRIP}; \
 	fi
 
 ## In the share directory, we are deleting:
@@ -695,6 +702,13 @@ uninstall:
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
 	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
+
+	if test "x$(NTDIR)" != "x"; then \
+	  cd $(NTDIR) && 					\
+	   $(MAKE) $(MFLAGS) uninstall			\
+	      prefix=${prefix} exec_prefix=${exec_prefix}	\
+	      bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}; \
+	fi
 	-unset CDPATH; \
 	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
@@ -756,6 +770,7 @@ mostlyclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
+	(cd nt;       $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) mostlyclean)
@@ -777,6 +792,7 @@ clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib;      $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
+	(cd nt;       $(MAKE) $(MFLAGS) clean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
@@ -803,6 +819,7 @@ distclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
 	(cd lib;      $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
+	(cd nt;       $(MAKE) $(MFLAGS) distclean)
 	(cd doc/emacs &&    $(MAKE) $(MFLAGS) distclean)
 	(cd doc/misc &&    $(MAKE) $(MFLAGS) distclean)
 	(cd doc/lispref &&    $(MAKE) $(MFLAGS) distclean)
@@ -821,6 +838,7 @@ bootstrap-clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib;      $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd nt;       $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)

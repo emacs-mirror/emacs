@@ -524,7 +524,8 @@ doc.o: buildobj.h
 emacs.res: $(ntsource)/emacs.rc \
 	   $(ntsource)/icons/emacs.ico \
 	   $(ntsource)/$(EMACS_MANIFEST)
-	$(WINDRES) -O COFF -o $@ $(ntsource)/emacs.rc
+	$(WINDRES) -O COFF --include-dir=$(srcdir)/../nt \
+	  -o $@ $(ntsource)/emacs.rc
 
 ns-app: emacs$(EXEEXT)
 	cd ../nextstep && $(MAKE) $(MFLAGS) all

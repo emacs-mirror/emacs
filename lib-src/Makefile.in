@@ -365,7 +365,8 @@ update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 	  ${srcdir}/update-game-score.c $(NTLIB) $(LOADLIBES) \
 	  -o update-game-score${EXEEXT}
 
-emacsclient.res: ${srcdir}/nt/emacsclient.rc
-	$(WINDRES) -O coff --include-dir=${srcdir}/nt -o emacscient.res
+emacsclient.res: ${srcdir}/../nt/emacsclient.rc
+	$(WINDRES) -O coff --include-dir=${srcdir}/../nt -o emacsclient.res \
+	  ${srcdir}/../nt/emacsclient.rc
 
 ## Makefile ends here.

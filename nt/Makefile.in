@@ -201,12 +201,12 @@ addpm${EXEEXT}: ${srcdir}/addpm.c
 ddeclient${EXEEXT}: ${srcdir}/ddeclient.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/ddeclient.c -o ddeclient${EXEEXT}
 
-cmdproxy{EXEEXT}: ${srcdir}/cmdproxy.c
+cmdproxy${EXEEXT}: ${srcdir}/cmdproxy.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/cmdproxy.c -o cmdproxy${EXEEXT}
 
-runemacs{EXEEXT}: ${srcdir}/runemacs.c $(EMACSRES)
+runemacs${EXEEXT}: ${srcdir}/runemacs.c $(EMACSRES)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/runemacs.c $(EMACSRES) \
          -o runemacs${EXEEXT}
 
-emacs.res: ${srcdir}/emacs.rc ${srcdir}/emacs.ico ${srcdir}/$(EMACS_MANIFEST)
+emacs.res: ${srcdir}/emacs.rc ${srcdir}/icons/emacs.ico ${srcdir}/$(EMACS_MANIFEST)
 	${WINDRES} -O coff -o emacs.res emacs.rc

@@ -1577,6 +1577,7 @@ if test "${opsys}" = "mingw32"; then
 fi
 
 FIRSTFILE_OBJ=
+NTDIR=
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   AC_CHECK_TOOL(WINDRES, [windres],
@@ -1601,6 +1602,7 @@ if test "${HAVE_W32}" = "yes"; then
     CLIENTRES="emacsclient.res"
     CLIENTW="emacsclientw\$(EXEEXT)"
     FIRSTFILE_OBJ=firstfile.o
+    NTDIR=nt
   fi
 fi
 AC_SUBST(W32_OBJ)
@@ -1611,6 +1613,7 @@ AC_SUBST(CLIENTRES)
 AC_SUBST(CLIENTW)
 AC_SUBST(W32_RES_LINK)
 AC_SUBST(FIRSTFILE_OBJ)
+AC_SUBST(NTDIR)
 
 if test "${HAVE_W32}" = "yes"; then
   window_system=w32
