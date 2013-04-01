@@ -352,7 +352,7 @@ emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
 	$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows ${srcdir}/emacsclient.c \
 	   -DVERSION="\"${version}\"" $(LIB_WSOCK32) \
-	   $(LOADLIBES) -lcomctl32 $(LIB_FDATASYNC) -o emacsclient${EXEEXT}
+	   $(LOADLIBES) -lcomctl32 $(LIB_FDATASYNC) -o emacsclientw${EXEEXT}
 
 ntlib.o: ${srcdir}/ntlib.c ${srcdir}/ntlib.h
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/ntlib.c
