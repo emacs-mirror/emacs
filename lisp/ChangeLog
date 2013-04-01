@@ -1,3 +1,10 @@
+2013-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-pair-inhibit-predicate): New var (bug#14000).
+	(electric-pair-post-self-insert-function): Use it.
+	(electric-pair-default-inhibit): New function, extracted from
+	electric-pair-post-self-insert-function.
+
 2013-03-31  Roland Winkler  <winkler@gnu.org>
 
 	* emacs-lisp/crm.el (completing-read-multiple): Doc fix.
