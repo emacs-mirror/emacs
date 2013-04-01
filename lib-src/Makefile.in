@@ -113,8 +113,11 @@ MKDIR_P = @MKDIR_P@
 
 # ========================== Lists of Files ===========================
 
+# emacsclientw.exe for MinGW, empty otherwise
+CLIENTW = @CLIENTW@
+
 # Things that a user might actually run, which should be installed in bindir.
-INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
+INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} $(CLIENTW) \
                ebrowse${EXEEXT}
 
 INSTALLABLE_SCRIPTS = grep-changelog
@@ -341,10 +344,15 @@ movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
 pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h $(config_h)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
-emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
+emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \
-	   -DVERSION="\"${version}\"" $(CLIENTRES) $(LIB_WSOCK32) \
+	   -DVERSION="\"${version}\"" $(LIB_WSOCK32) \
 	   $(LOADLIBES) $(LIB_FDATASYNC) -o emacsclient${EXEEXT}
+
+emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
+	$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows ${srcdir}/emacsclient.c \
+	   -DVERSION="\"${version}\"" $(LIB_WSOCK32) \
+	   $(LOADLIBES) -lcomctl32 $(LIB_FDATASYNC) -o emacsclient${EXEEXT}
 
 ntlib.o: ${srcdir}/ntlib.c ${srcdir}/ntlib.h
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/ntlib.c

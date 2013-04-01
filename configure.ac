@@ -629,9 +629,6 @@ if test "$ac_test_CFLAGS" != set; then
   if test -n "$emacs_g3_CFLAGS"; then
     emacs_save_CFLAGS=$CFLAGS
     CFLAGS=$emacs_g3_CFLAGS
-    if test $opsys = mingw32; then
-      CFLAGS="$CFLAGS -gdwarf-2"
-    fi
     AC_CACHE_CHECK([whether $CC accepts $emacs_g3_CFLAGS],
       [emacs_cv_prog_cc_g3],
       [AC_LINK_IFELSE([AC_LANG_PROGRAM()],
@@ -641,6 +638,9 @@ if test "$ac_test_CFLAGS" != set; then
       CFLAGS=$emacs_g3_CFLAGS
     else
       CFLAGS=$emacs_save_CFLAGS
+    fi
+    if test $opsys = mingw32; then
+      CFLAGS="$CFLAGS -gdwarf-2"
     fi
   fi
 fi
@@ -1546,6 +1546,7 @@ W32_OBJ=
 W32_LIBS=
 EMACSRES=
 CLIENTRES=
+CLIENTW=
 W32_RES_LINK=
 EMACS_MANIFEST=
 if test "${with_w32}" != no; then
@@ -1598,6 +1599,7 @@ if test "${HAVE_W32}" = "yes"; then
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
     CLIENTRES="emacsclient.res"
+    CLIENTW="emacsclientw\$(EXEEXT)"
     FIRSTFILE_OBJ=firstfile.o
   fi
 fi
@@ -1606,6 +1608,7 @@ AC_SUBST(W32_LIBS)
 AC_SUBST(EMACSRES)
 AC_SUBST(EMACS_MANIFEST)
 AC_SUBST(CLIENTRES)
+AC_SUBST(CLIENTW)
 AC_SUBST(W32_RES_LINK)
 AC_SUBST(FIRSTFILE_OBJ)
 
