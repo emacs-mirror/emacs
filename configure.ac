@@ -1578,6 +1578,7 @@ fi
 
 FIRSTFILE_OBJ=
 NTDIR=
+CM_OBJ="cm.o"
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   AC_CHECK_TOOL(WINDRES, [windres],
@@ -1597,12 +1598,14 @@ if test "${HAVE_W32}" = "yes"; then
     W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
   else
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
+    W32_OBJ="$W32_OBJ w32notify.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
-    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
+    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lusp10"
     CLIENTRES="emacsclient.res"
     CLIENTW="emacsclientw\$(EXEEXT)"
     FIRSTFILE_OBJ=firstfile.o
     NTDIR=nt
+    CM_OBJ=
   fi
 fi
 AC_SUBST(W32_OBJ)
@@ -1614,6 +1617,7 @@ AC_SUBST(CLIENTW)
 AC_SUBST(W32_RES_LINK)
 AC_SUBST(FIRSTFILE_OBJ)
 AC_SUBST(NTDIR)
+AC_SUBST(CM_OBJ)
 
 if test "${HAVE_W32}" = "yes"; then
   window_system=w32

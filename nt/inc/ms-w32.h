@@ -144,9 +144,6 @@ extern char *getenv ();
 /* Make a leaner executable.  */
 #define WIN32_LEAN_AND_MEAN 1
 
-#ifdef HAVE_STRINGS_H
-#include "strings.h"
-#endif
 #include <sys/types.h>
 
 #ifndef MAXPATHLEN
@@ -258,9 +255,6 @@ extern int sys_unlink (const char *);
 #define execvp    _execvp
 #define fdatasync _commit
 #define fdopen	  _fdopen
-#ifndef fileno
-#define fileno	  _fileno
-#endif
 #define fsync	  _commit
 #define ftruncate _chsize
 #define getpid    _getpid
@@ -330,6 +324,9 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #include <io.h>
 #include <stdio.h>
 #endif	/* !_MSC_VER */
+#ifndef fileno
+#define fileno	  _fileno
+#endif
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */

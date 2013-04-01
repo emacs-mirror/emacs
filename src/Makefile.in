@@ -274,6 +274,9 @@ W32_RES_LINK=@W32_RES_LINK@
 ## else xfont.o
 FONT_OBJ=@FONT_OBJ@
 
+## Empty for MinGW, cm.o for the rest.
+CM_OBJ=@CM_OBJ@
+
 LIBGPM = @LIBGPM@
 
 ## -lresolv, or empty.
@@ -344,7 +347,7 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 ## be dumped as pure by dump-emacs.
 base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
-	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
+	$(CM_OBJ) term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o \

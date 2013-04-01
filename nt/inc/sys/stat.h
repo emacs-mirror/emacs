@@ -102,6 +102,39 @@ struct stat {
   char		   st_gname[260];
 };
 
+/* These are here to avoid compiler warnings when using wchar.h.  */
+struct _stat
+{
+	_dev_t	st_dev;		/* Equivalent to drive number 0=A 1=B ... */
+	_ino_t	st_ino;		/* Always zero ? */
+	_mode_t	st_mode;	/* See above constants */
+	short	st_nlink;	/* Number of links. */
+	short	st_uid;		/* User: Maybe significant on NT ? */
+	short	st_gid;		/* Group: Ditto */
+	_dev_t	st_rdev;	/* Seems useless (not even filled in) */
+	_off_t	st_size;	/* File size in bytes */
+	time_t	st_atime;	/* Accessed date (always 00:00 hrs local
+				 * on FAT) */
+	time_t	st_mtime;	/* Modified time */
+	time_t	st_ctime;	/* Creation time */
+};
+
+#if defined (__MSVCRT__)
+struct _stati64 {
+    _dev_t st_dev;
+    _ino_t st_ino;
+    _mode_t st_mode;
+    short st_nlink;
+    short st_uid;
+    short st_gid;
+    _dev_t st_rdev;
+    __int64 st_size;
+    time_t st_atime;
+    time_t st_mtime;
+    time_t st_ctime;
+};
+#endif
+
 /* Internal variable for asking 'stat'/'lstat' to produce accurate
    info about owner and group of files. */
 extern int w32_stat_get_owner_group;
