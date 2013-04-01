@@ -5508,7 +5508,7 @@
 
 	* term/ns-win.el (ns-read-file-name): Update declaration to match
 	nsfns.m.
-	(ns-respond-to-change-font): Change fontsize separatly so we are sure
+	(ns-respond-to-change-font): Change fontsize separately so we are sure
 	it is set when font is acted upon.
 
 2012-10-07  Fabián Ezequiel Gallina  <fgallina@cuca>

@@ -3818,7 +3818,7 @@ Options:
        edebug--mode-saved-vars)
       (set (make-local-variable var) val))
     ;; Append `edebug-kill-buffer' to the hook to avoid interfering with
-    ;; other entries that are ungarded against deleted buffer.
+    ;; other entries that are unguarded against deleted buffer.
     (add-hook 'kill-buffer-hook 'edebug-kill-buffer t t)))
 
 (defun edebug-kill-buffer ()

@@ -19493,7 +19493,7 @@
 	* menu-bar.el (menu-bar-showhide-scroll-bar-menu):
 	Quote `window-system'.
 
-	* tmm.el (tmm-get-keymap): Honour :visible in `menu-item'.
+	* tmm.el (tmm-get-keymap): Honor :visible in `menu-item'.
 	Add Keywords header.  Update Commentary section.
 	Update copyright notice.
 

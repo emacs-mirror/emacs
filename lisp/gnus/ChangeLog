@@ -109,7 +109,7 @@
 2013-01-30  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* gnus-int.el (gnus-backend-trace-elapsed): New variable.
-	(gnus-backend-trace): Honour gnus-backend-trace.
+	(gnus-backend-trace): Honor gnus-backend-trace.
 
 	* mml.el (mml-insert-part): Insert closing tag.
 
