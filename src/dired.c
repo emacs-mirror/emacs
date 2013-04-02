@@ -517,8 +517,9 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
       QUIT;
       if (len < SCHARS (encoded_file)
-	  || scmp (dp->d_name, SSDATA (encoded_file),
-		   SCHARS (encoded_file)) >= 0)
+	  || (scmp (dp->d_name, SSDATA (encoded_file),
+		    SCHARS (encoded_file))
+	      >= 0))
 	continue;
 
       if (file_name_completion_stat (fd, dp, &st) < 0)

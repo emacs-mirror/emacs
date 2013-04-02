@@ -13168,7 +13168,7 @@ redisplay_internal (void)
 	       PT == w->last_point
 	       /* Make sure the cursor was last displayed
 		  in this window.  Otherwise we have to reposition it.  */
-	       && w->cursor.vpos >= 0
+	       && 0 <= w->cursor.vpos
 	       && w->cursor.vpos < WINDOW_TOTAL_LINES (w))
 	{
 	  if (!must_finish)

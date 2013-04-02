@@ -543,7 +543,7 @@ static EMACS_INT const VALMASK
    type or if I is a NaN.  */
 
 #define FIXNUM_OVERFLOW_P(i) \
-  (! (((i) >= 0 || (i) >= MOST_NEGATIVE_FIXNUM) && (i) <= MOST_POSITIVE_FIXNUM))
+  (! ((0 <= (i) || MOST_NEGATIVE_FIXNUM <= (i)) && (i) <= MOST_POSITIVE_FIXNUM))
 
 LISP_INLINE ptrdiff_t
 clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
@@ -2560,7 +2560,7 @@ gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp_Object val)
 LISP_INLINE void
 vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Object *args, ptrdiff_t count)
 {
-  eassert (offset >= 0 && count >= 0 && offset + count <= ASIZE (v));
+  eassert (0 <= offset && 0 <= count && offset + count <= ASIZE (v));
   memcpy (XVECTOR (v)->contents + offset, args, count * sizeof *args);
 }
 

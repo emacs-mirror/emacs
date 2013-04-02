@@ -2636,7 +2636,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    nskip--;
 	  else
 	    UNREAD (c);
-	    
+
 	  if (load_force_doc_strings
 	      && (FROM_FILE_P (readcharfun)))
 	    {
@@ -2731,8 +2731,8 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  /* Read a non-negative integer.  */
 	  while (c >= '0' && c <= '9')
 	    {
-	      if (n > MOST_POSITIVE_FIXNUM / 10
-		  || n * 10 + c - '0' > MOST_POSITIVE_FIXNUM)
+	      if (MOST_POSITIVE_FIXNUM / 10 < n
+		  || MOST_POSITIVE_FIXNUM < n * 10 + c - '0')
 		n = MOST_POSITIVE_FIXNUM + 1;
 	      else
 		n = n * 10 + c - '0';
@@ -2930,7 +2930,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    if (end - p < MAX_MULTIBYTE_LENGTH)
 	      {
 		ptrdiff_t offset = p - read_buffer;
-		if (read_buffer_size > min (PTRDIFF_MAX, SIZE_MAX) / 2)
+		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		  memory_full (SIZE_MAX);
 		read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		read_buffer_size *= 2;
@@ -3064,7 +3064,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
 		  ptrdiff_t offset = p - read_buffer;
-		  if (read_buffer_size > min (PTRDIFF_MAX, SIZE_MAX) / 2)
+		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		    memory_full (SIZE_MAX);
 		  read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		  read_buffer_size *= 2;
@@ -3094,7 +3094,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  if (p == end)
 	    {
 	      ptrdiff_t offset = p - read_buffer;
-	      if (read_buffer_size > min (PTRDIFF_MAX, SIZE_MAX) / 2)
+	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		memory_full (SIZE_MAX);
 	      read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 	      read_buffer_size *= 2;

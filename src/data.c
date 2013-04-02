@@ -2337,13 +2337,13 @@ cons_to_unsigned (Lisp_Object c, uintmax_t max)
   uintmax_t val IF_LINT (= 0);
   if (INTEGERP (c))
     {
-      valid = XINT (c) >= 0;
+      valid = 0 <= XINT (c);
       val = XINT (c);
     }
   else if (FLOATP (c))
     {
       double d = XFLOAT_DATA (c);
-      if (d >= 0
+      if (0 <= d
 	  && d < (max == UINTMAX_MAX ? (double) UINTMAX_MAX + 1 : max + 1))
 	{
 	  val = d;

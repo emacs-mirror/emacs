@@ -229,7 +229,7 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 
   if (len == 1 && *str == '*')
     return Qnil;
-  if (!force_symbol && len > 0 && '0' <= *str && *str <= '9')
+  if (!force_symbol && 0 < len && '0' <= *str && *str <= '9')
     {
       for (i = 1; i < len; i++)
 	if (! ('0' <= str[i] && str[i] <= '9'))
@@ -243,7 +243,7 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 	    {
 	      if (i == len)
 		return make_number (n);
-	      if (n > MOST_POSITIVE_FIXNUM / 10)
+	      if (MOST_POSITIVE_FIXNUM / 10 < n)
 		break;
 	    }
 

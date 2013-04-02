@@ -3449,7 +3449,7 @@ file_offset (Lisp_Object val)
   if (FLOATP (val))
     {
       double v = XFLOAT_DATA (val);
-      if (v >= 0
+      if (0 <= v
 	  && (sizeof (off_t) < sizeof v
 	      ? v <= TYPE_MAXIMUM (off_t)
 	      : v < TYPE_MAXIMUM (off_t)))

@@ -543,7 +543,7 @@ get_utf8_string (const char *str)
       if (cp) g_free (cp);
 
       len = strlen (str);
-      if (nr_bad > (min (PTRDIFF_MAX, SIZE_MAX) - len - 1) / 4)
+      if ((min (PTRDIFF_MAX, SIZE_MAX) - len - 1) / 4 < nr_bad)
 	memory_full (SIZE_MAX);
       up = utf8_str = xmalloc (len + nr_bad * 4 + 1);
       p = (unsigned char *)str;

@@ -889,7 +889,7 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
 /* Return CANDIDATE if it can be used as 'other-than-FRAME' frame on the
    same tty (for tty frames) or among frames which uses FRAME's keyboard.
    If MINIBUF is nil, do not consider minibuffer-only candidate.
-   If MINIBUF is `visible', do not consider an invisible candidate. 
+   If MINIBUF is `visible', do not consider an invisible candidate.
    If MINIBUF is a window, consider only its own frame and candidate now
    using that window as the minibuffer.
    If MINIBUF is 0, consider candidate if it is visible or iconified.
@@ -3311,16 +3311,15 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       else if (FLOATP (item))
 	{
 	  alpha = XFLOAT_DATA (item);
-	  if (alpha < 0.0 || alpha > 1.0)
+	  if (! (0 <= alpha && alpha <= 1.0))
 	    args_out_of_range (make_float (0.0), make_float (1.0));
 	}
       else if (INTEGERP (item))
 	{
 	  EMACS_INT ialpha = XINT (item);
-	  if (ialpha < 0 || ialpha > 100)
+	  if (! (0 <= ialpha && alpha <= 100))
 	    args_out_of_range (make_number (0), make_number (100));
-	  else
-	    alpha = ialpha / 100.0;
+	  alpha = ialpha / 100.0;
 	}
       else
 	wrong_type_argument (Qnumberp, item);

@@ -4236,7 +4236,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       time_limit = 0;
       nsecs = -1;
     }
-  else if (time_limit > TYPE_MAXIMUM (time_t))
+  else if (TYPE_MAXIMUM (time_t) < time_limit)
     time_limit = TYPE_MAXIMUM (time_t);
 
   /* Since we may need to wait several times,

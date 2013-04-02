@@ -826,7 +826,7 @@ Otherwise, return a new string, without any text properties.  */)
 	  if (NILP (tem))	/* but not on any keys */
 	    {
 	      ptrdiff_t offset = bufp - buf;
-	      if (bsize > STRING_BYTES_BOUND - 4)
+	      if (STRING_BYTES_BOUND - 4 < bsize)
 		string_overflow ();
 	      buf = xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;

@@ -447,7 +447,7 @@ read_hex (FILE *fp, bool *eof, bool *overflow)
   n = 0;
   while (c_isxdigit (c = getc (fp)))
     {
-      if (n > UINT_MAX >> 4)
+      if (UINT_MAX >> 4 < n)
 	*overflow = 1;
       n = ((n << 4)
 	   | (c - ('0' <= c && c <= '9' ? '0'

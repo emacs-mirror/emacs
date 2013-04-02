@@ -361,7 +361,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
 	      /* Copy string into final output, truncating if no room.  */
 	    doit:
-	      eassert (tem >= 0);
+	      eassert (0 <= tem);
 	      /* Coming here means STRING contains ASCII only.  */
 	      if (STRING_BYTES_BOUND < tem)
 		error ("Format width or precision too large");
