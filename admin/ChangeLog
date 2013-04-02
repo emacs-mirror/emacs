@@ -1,3 +1,11 @@
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* notes/unicode (etc/tutorials/TUTORIAL.ko, leim/quail/hanja.el)
+	(leim/quail/hanja3.el, leim/quail/symbol-ksc.el):
+	Now utf-8, not iso-2022-7bit.  Also, files that contain non-UTF-8
+	characters are now encoded in utf-8-emacs, not iso-2022-7bit.
+
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* notes/unicode: Mention some more iso-2022-7bit files (Bug#13936).

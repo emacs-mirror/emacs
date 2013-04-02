@@ -201,15 +201,11 @@ nontrivial changes to the build process.
      operating in some other language environment.
 
 	etc/tutorials/TUTORIAL.ja
-	etc/tutorials/TUTORIAL.ko
 	leim/quail/cyril-jis.el
 	leim/quail/hanja-jis.el
-	leim/quail/hanja.el
-	leim/quail/hanja3.el
 	leim/quail/japanese.el
 	leim/quail/py-punct.el
 	leim/quail/pypunct-b5.el
-	leim/quail/symbol-ksc.el
 	lisp/international/ja-dic-cnv.el
 	lisp/international/ja-dic-utl.el
 	lisp/international/kinsoku.el
@@ -218,6 +214,8 @@ nontrivial changes to the build process.
 	lisp/language/japan-util.el
 	lisp/language/japanese.el
 	lisp/term/x-win.el
+
+ * utf-8-emacs
 
      These files contain characters that cannot be encoded in UTF-8.
 
