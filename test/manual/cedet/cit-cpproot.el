@@ -29,8 +29,6 @@
 ;; and files of preprocessor symbols whos features need to be tested.
 
 ;;; Code:
-(require 'cedet-android)
-(require 'ede/android)
 
 ;;; Setup
 (defvar cit-integ-target-cpproot
@@ -47,7 +45,7 @@
   (expand-file-name
    cit-integ-cpproot-subdir
    (file-name-directory (locate-library "cit-cpproot")))
-  "The source directory dor the CPP root sources.")
+  "The source directory for the CPP root sources.")
 
 (defvar cit-integ-cpproot-sys-subdir "integ_src/fauxsyslib/"
   "Directory of files to copy into the tmp project dir.")
@@ -121,8 +119,7 @@
     (error "main.cpp failed to parse."))
 
   ;; Validate found tags based on project provided macros.
-  (cit-srecode-verify-tags (semantic-fetch-tags)
-			   cit-src-cpproot-main-tags)
+  (cit-srecode-verify-tags (semantic-fetch-tags) cit-src-cpproot-main-tags)
 
   ;; Test out the include paths by checking the discovered file names for the includes.
   (let ((itag (semantic-find-tags-included (current-buffer)))
