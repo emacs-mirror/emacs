@@ -416,7 +416,7 @@ Thank you for your help in stamping out bugs.
       ,(gnus-group-decoded-name gnus-newsgroup-name) ',articles)))
 
 (autoload 'nnir-article-number "nnir" nil nil 'macro)
-(autoload 'nnir-article-group "nnir" nil nil 'marcro)
+(autoload 'nnir-article-group "nnir" nil nil 'macro)
 
 
 (defvar gnus-article-reply nil)
