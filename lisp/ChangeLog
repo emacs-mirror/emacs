@@ -1,3 +1,19 @@
+2013-04-03  Alan Mackenzie  <acm@muc.de>
+
+	Handle `parse-partial-sexp' landing inside a comment opener
+	(Bug#13244). Also adapt to the new values of element 7 of a parse
+	state.
+
+	* progmodes/cc-engine.el (c-state-pp-to-literal): New optional
+	parameter `not-in-delimiter'.  Handle being inside comment opener.
+	(c-invalidate-state-cache-1): Reckon with an extra "invalid"
+	character in case we're typing a '*' after a '/'.
+	(c-literal-limits): Handle the awkward "not-in-delimiter" cond arm
+	instead by passing the parameter to c-state-pp-to-literal.
+
+	* progmodes/cc-fonts.el (c-font-lock-doc-comments): New handling
+	for elt. 7 of a parse state.
+
 2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
