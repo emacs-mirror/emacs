@@ -1,3 +1,8 @@
+2013-04-03  Kevin Layer  <layer@known.net>  (tiny change)
+
+	* mml.el (mml-minibuffer-read-description): Allow passing in a prefix
+	(used by MH-E).
+
 2013-04-01  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (nnir-request-update-mark): Improve mark updating in original
