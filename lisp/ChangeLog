@@ -1,3 +1,11 @@
+2013-04-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* bookmark.el: Fix deletion of bookmarks (bug#13972).
+	(bookmark-bmenu-list): Don't toggle filenames if alist is empty.
+	(bookmark-bmenu-execute-deletions): Only skip first line if it's
+	the header.
+	(bookmark-exit-hook-internal): Save even if list is empty.
+
 2013-04-04  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
 
 	* emacs-lisp/package.el (package-pinned-packages): New var.
