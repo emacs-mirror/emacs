@@ -1,3 +1,10 @@
+2013-04-04  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (gnus-nnir-group-p): New function.
+	(nnir-possibly-change-group): Use it.
+
+	* gnus-msg.el (gnus-setup-message): Use it.
+
 2013-04-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-minibuffer-read-description): Use `default' insted of
