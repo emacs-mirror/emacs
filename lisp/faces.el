@@ -935,80 +935,79 @@ a colon.
 
 The optional argument DEFAULT specifies the default face name(s)
 to return if the user just types RET.  If its value is non-nil,
-it should be a list of face names (symbols); in that case, the
-default return value is the `car' of DEFAULT (if the argument
+it should be a list of face names (symbols or strings); in that case,
+the default return value is the `car' of DEFAULT (if the argument
 MULTIPLE is non-nil), or DEFAULT (if MULTIPLE is nil).  See below
 for the meaning of MULTIPLE.
 
 If DEFAULT is nil, the list of default face names is taken from
-the `read-face-name' property of the text at point, or, if that
-is nil, from the `face' property of the text at point.
+the symbol at point and the `read-face-name' property of the text at point,
+or, if that is nil, from the `face' property of the text at point.
 
-This function uses `completing-read-multiple' with \",\" as the
-separator character.  Thus, the user may enter multiple face
+This function uses `completing-read-multiple' with \"[ \\t]*,[ \\t]*\"
+as the separator regexp.  Thus, the user may enter multiple face
 names, separated by commas.  The optional argument MULTIPLE
 specifies the form of the return value.  If MULTIPLE is non-nil,
 return a list of face names; if the user entered just one face
 name, the return value would be a list of one face name.
 Otherwise, return a single face name; if the user entered more
 than one face name, return only the first one."
-  (let ((faceprop (or (get-char-property (point) 'read-face-name)
-		      (get-char-property (point) 'face)))
-        (aliasfaces nil)
-        (nonaliasfaces nil)
-	faces)
-    ;; Try to get a face name from the buffer.
-    (if (memq (intern-soft (thing-at-point 'symbol)) (face-list))
-	(setq faces (list (intern-soft (thing-at-point 'symbol)))))
-    ;; Add the named faces that the `face' property uses.
-    (if (and (listp faceprop)
-	     ;; Don't treat an attribute spec as a list of faces.
-	     (not (keywordp (car faceprop)))
-	     (not (memq (car faceprop) '(foreground-color background-color))))
-	(dolist (f faceprop)
-	  (if (symbolp f)
-	      (push f faces)))
-      (if (symbolp faceprop)
-	  (push faceprop faces)))
-    (delete-dups faces)
+  ;; Should we better not generate automagically a value for DEFAULT
+  ;; when `read-face-name' was called with DEFAULT being nil?
+  ;; Such magic is somewhat unusual for a function  `read-...'.
+  ;; Also, one cannot skip this magic by means of a suitable
+  ;; value of DEFAULT.  It would be cleaner to use
+  ;; (read-face-name prompt (face-at-point)).
+  (unless default
+    ;; Try to get a default face name from the buffer.
+    (let ((thing (intern-soft (thing-at-point 'symbol))))
+      (if (memq thing (face-list))
+          (setq default (list thing))))
+    ;; Add the named faces that the `read-face-name' or `face' property uses.
+    (let ((faceprop (or (get-char-property (point) 'read-face-name)
+                        (get-char-property (point) 'face))))
+      (if (and (listp faceprop)
+               ;; Don't treat an attribute spec as a list of faces.
+               (not (keywordp (car faceprop)))
+               (not (memq (car faceprop) '(foreground-color background-color))))
+          (dolist (face faceprop)
+            (if (symbolp face)
+                (push face default)))
+        (if (symbolp faceprop)
+            (push faceprop default)))
+      (delete-dups default)))
 
-    ;; Build up the completion tables.
+  ;; If we only want one, and the default is more than one,
+  ;; discard the unwanted ones now.
+  (if (and default (not multiple))
+      (setq default (list (car default))))
+
+  (if default
+      (setq default (mapconcat (lambda (f)
+                                 (if (symbolp f) (symbol-name f) f))
+                               default ", ")))
+
+  ;; Build up the completion tables.
+  (let (aliasfaces nonaliasfaces)
     (mapatoms (lambda (s)
                 (if (custom-facep s)
                     (if (get s 'face-alias)
                         (push (symbol-name s) aliasfaces)
                       (push (symbol-name s) nonaliasfaces)))))
 
-    ;; If we only want one, and the default is more than one,
-    ;; discard the unwanted ones now.
-    (unless multiple
-      (if faces
-	  (setq faces (list (car faces)))))
-    (require 'crm)
-    (let* ((input
-	    ;; Read the input.
-	    (completing-read-multiple
-	     (if (or faces default)
-		 (format "%s (default `%s'): " prompt
-			 (if faces (mapconcat 'symbol-name faces ",")
-			   default))
-	       (format "%s: " prompt))
-	     (completion-table-in-turn nonaliasfaces aliasfaces)
-	     nil t nil 'face-name-history
-	     (if faces (mapconcat 'symbol-name faces ","))))
-	   ;; Canonicalize the output.
-	   (output
-	    (cond ((or (equal input "") (equal input '("")))
-		   (or faces (unless (stringp default) default)))
-		  ((stringp input)
-		   (mapcar 'intern (split-string input ", *" t)))
-		  ((listp input)
-		   (mapcar 'intern input))
-		  (input))))
+    (let ((faces
+           ;; Read the faces.
+           (mapcar 'intern
+                   (completing-read-multiple
+                    (if default
+                        (format "%s (default `%s'): " prompt default)
+                      (format "%s: " prompt))
+                    (completion-table-in-turn nonaliasfaces aliasfaces)
+                    nil t nil 'face-name-history default))))
       ;; Return either a list of faces or just one face.
       (if multiple
-	  output
-	(car output)))))
+	  faces
+	(car faces)))))
 
 ;; Not defined without X, but behind window-system test.
 (defvar x-bitmap-file-path)
@@ -1363,7 +1362,10 @@ and FRAME defaults to the selected frame.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face" 'default t)))
+  (interactive (list (read-face-name "Describe face"
+                                     (if (eq 'default (face-at-point))
+                                         '(default))
+                                     t)))
   (let* ((attrs '((:family . "Family")
 		  (:foundry . "Foundry")
 		  (:width . "Width")

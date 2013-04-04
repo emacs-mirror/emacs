@@ -1,3 +1,9 @@
+2013-04-04  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Behave as promised by the docstring.
+	Assume that arg default is a list of faces.
+	(describe-face): Call read-face-name with list of default faces.
+
 2013-04-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* bookmark.el: Fix deletion of bookmarks (bug#13972).
