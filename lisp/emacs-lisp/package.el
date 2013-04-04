@@ -811,7 +811,10 @@ but version %s required"
 	     (package-version-join (package-desc-vers (cdr pkg-desc)))))
 	  ;; Only add to the transaction if we don't already have it.
 	  (unless (memq next-pkg package-list)
-	    (push next-pkg package-list))
+            (setq package-list
+                  ;; Move to front, so it gets installed early enough
+                  ;; (bug#14082).
+                  (cons next-pkg (delq next-pkg package-list))))
 	  (setq package-list
 		(package-compute-transaction package-list
 					     (package-desc-reqs
