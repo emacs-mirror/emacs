@@ -1280,11 +1280,25 @@ static void AMCRampEnd(Pool pool, Buffer buf)
     PoolGen pgen = &amc->rampGen->pgen;
     Ring node, nextNode;
 
-    if(amc->rampMode == RampRAMPING) {
-      /* We were ramping, so clean up. */
-      amc->rampMode = RampFINISH;
-    } else {
-      amc->rampMode = RampOUTSIDE;
+    switch(amc->rampMode) {
+      case RampRAMPING:
+        /* We were ramping, so clean up. */
+        amc->rampMode = RampFINISH;
+        break;
+      case RampBEGIN:
+        /* short-circuit for short ramps */
+        amc->rampMode = RampOUTSIDE;
+        break;
+      case RampCOLLECTING:
+        /* we have finished a circuit of the state machine */
+        amc->rampMode = RampOUTSIDE;
+        break;
+      case RampFINISH:
+        /* stay in FINISH because we need to pass through COLLECTING */
+        break;
+      default:
+        /* can't get here if already OUTSIDE */
+        NOTREACHED;
     }
 
     /* Adjust amc->rampGen->pgen.newSize: Now count all the segments */
@@ -2497,9 +2511,15 @@ static Bool AMCCheck(AMC amc)
     CHECKD(amcGen, amc->rampGen);
     CHECKD(amcGen, amc->afterRampGen);
   }
-  /* nothing to check for rampCount */
+
   CHECKL(amc->rampMode >= RampOUTSIDE);
   CHECKL(amc->rampMode <= RampCOLLECTING);
+
+  /* if OUTSIDE, count must be zero. */
+  CHECKL((amc->rampCount == 0) || (amc->rampMode != RampOUTSIDE));
+  /* if BEGIN or RAMPING, count must not be zero. */
+  CHECKL((amc->rampCount != 0) || ((amc->rampMode != RampBEGIN) &&
+                                   (amc->rampMode != RampRAMPING)));
   /* pageretstruct[ti] is statistics only, currently unchecked */
 
   return TRUE;
