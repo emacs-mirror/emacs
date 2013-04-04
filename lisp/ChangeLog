@@ -1,3 +1,8 @@
+2013-04-04  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-pinned-packages): New var.
+	(package--add-to-archive-contents): Obey it (bug#14118).
+
 2013-04-03  Alan Mackenzie  <acm@muc.de>
 
 	Handle `parse-partial-sexp' landing inside a comment opener

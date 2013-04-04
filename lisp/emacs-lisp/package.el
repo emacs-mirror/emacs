@@ -4,7 +4,7 @@
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
-;; Version: 1.0
+;; Version: 1.0.1
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
@@ -234,11 +234,28 @@ a package can run arbitrary code."
   :group 'package
   :version "24.1")
 
+(defcustom package-pinned-packages nil
+  "An alist of packages that are pinned to a specific archive
+
+Each element has the form (SYM . ID).
+ SYM is a package, as a symbol.
+ ID is an archive name, as a string. This should correspond to an
+ entry in `package-archives'.
+
+If the archive of name ID does not contain the package SYM, no
+other location will be considered, which will make the
+package unavailable."
+  :type '(alist :key-type (symbol :tag "Package")
+                :value-type (string :tag "Archive name"))
+  :risky t
+  :group 'package
+  :version "24.4")
+
 (defconst package-archive-version 1
   "Version number of the package archive understood by this file.
 Lower version numbers than this will probably be understood as well.")
 
-(defconst package-el-version "1.0"
+(defconst package-el-version "1.0.1"
   "Version of package.el.")
 
 ;; We don't prime the cache since it tends to get out of date.
@@ -857,8 +874,13 @@ Also, add the originating archive to the end of the package vector."
          (version (package-desc-vers (cdr package)))
          (entry   (cons name
 			(vconcat (cdr package) (vector archive))))
-         (existing-package (assq name package-archive-contents)))
-    (cond ((not existing-package)
+         (existing-package (assq name package-archive-contents))
+         (pinned-to-archive (assoc name package-pinned-packages)))
+    (cond ((and pinned-to-archive
+                ;; If pinned to another archive, skip entirely.
+                (not (equal (cdr pinned-to-archive) archive)))
+           nil)
+          ((not existing-package)
 	   (add-to-list 'package-archive-contents entry))
 	  ((version-list-< (package-desc-vers (cdr existing-package))
 			   version)
