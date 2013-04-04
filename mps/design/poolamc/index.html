@@ -373,14 +373,15 @@ generations.  The generation that the ramp generation ordinarily promotes
 into is designated the "after-ramp generation" (amc-&gt;afterRampGen).
 
 <a id="gen.ramp.particular"
-name="gen.ramp.particular">.gen.ramp.particular</a>: As of 2002-02-06
-the ramp generation is the second oldest generation and the after-ramp
+name="gen.ramp.particular">.gen.ramp.particular</a>: the ramp
+generation is the second oldest generation and the after-ramp
 generation is the oldest generation.
 
-<a id="gen.ramp.possible" name="gen.ramp.possible">.gen.ramp.possible</a>:
-(Old design notes) In alternative designs it might be possible to make
-the ramp generation a special generation that is only promoted into
-during ramping (AMCRampGenFollows), however, this is not done.
+<a id="gen.ramp.possible"
+name="gen.ramp.possible">.gen.ramp.possible</a>: In alternative
+designs it might be possible to make the ramp generation a special
+generation that is only promoted into during ramping, however, this is
+not done.
 
 <a id="gen.ramp.ramping" name="gen.ramp.ramping">.gen.ramp.ramping</a>:
 The ramp generation is promoted into itself during ramping mode;
@@ -399,82 +400,84 @@ The rampMode field of the pool forms an important part of the state of
 the machine.
 
 There are five states:
-  outside, begin, ramping, finish, collecting
+  OUTSIDE, BEGIN, RAMPING, FINISH, COLLECTING
 
 These appear in the code as RampOUTSIDE, and so on.
 
 <a id="ramp.state.cycle.usual"
 name="ramp.state.cycle.usual">.ramp.state.cycle.usual</a>: The usual
 progression of states is a cycle:
-outside -> begin -> ramping -> finish -> collecting -> outside.
+OUTSIDE -> BEGIN -> RAMPING -> FINISH -> COLLECTING -> OUTSIDE.
 
 <a id="ramp.count" name="ramp.count">.ramp.count</a>: The pool just
-counts the number of ap's that have begun ramp mode (and not ended).
-No state changes occur unless this count goes from 0 to 1 (entering
-ramping) or from 1 to 0 (leaving ramping).  In other words, all nested
-ramps are ignored (see code in AMCRampBegin and AMCRampEnd).
+counts the number of APs that have begun ramp mode (and not ended).
+No state changes occur unless this count goes from 0 to 1 (starting
+the first ramp) or from 1 to 0 (leaving the last ramp).  In other
+words, all nested ramps are ignored (see code in AMCRampBegin and
+AMCRampEnd).
 
-<a id="ramp.state.invariants"
-name="ramp.state.invariants">.ramp.state.invariants</a>: In states
-collecting and outside the count must be 0.  In states begin and ramping
-the count must be &gt; 0.  In state finish the count is not constrained
-(but it must be &gt;= 0 anyway).
+<a id="ramp.state.invariant.count"
+name="ramp.state.invariant.count">.ramp.state.invariant.count</a>: In the
+OUTSIDE state the count must be 0.  In the BEGIN and RAMPING states
+the count must be &gt; 0.  In the FINISH and COLLECTING states the
+count is not constrained.
+
+<a id="ramp.state.invariant.forward"
+name="ramp.state.invariant.forward">.ramp.state.invariant.forward</a>:
+When in OUTSIDE, BEGIN, or COLLECTING, the ramp generation forwards to
+the after-ramp generation.  When in RAMPING or FINISH, the ramp
+generation forwards to itself.
+
+<a id="ramp.outside" name="ramp.outside">.ramp.outside</a>: The pool
+is initially in the OUTSIDE state.  The only transition away from the
+OUTSIDE state is to the BEGIN state, when a ramp is entered.
 
 <a id="ramp.begin" name="ramp.begin">.ramp.begin</a>: When the count goes
-up from zero, the states moves from collecting or outside to begin; if
-the state is finish then no transition takes place (it cannot be in
-state begin or ramping).
+up from zero, the state moves from COLLECTING or OUTSIDE to BEGIN.
 
-<a id="ramp.begin.leave" name="ramp.begin.leave">.ramp.begin.leave</a>:
-We can leave the begin state to either the state outside or the state
-ramping.  .ramp.begin.leave.outside: We go to outside if the count drops
-to 0 before a collection starts.  This shortcuts the usual cycle of
-states for small enough ramps.  .ramp.begin.leave.ramping: We enter the
-ramping state if a collection starts that condemns the ramp generation
-(pedantically when a new GC begins, and a segment in the ramp generation is
-condemned we leave the begin state, see AMCWhiten).  At this point
-we switch the forwarding generations to forward in the ramping way (.gen.ramp);
-the pool enters ramping mode.  (This assumes that each generation is
-condemned together with all lower generations.)
+<a id="ramp.begin.leave"
+name="ramp.begin.leave">.ramp.begin.leave</a>: We can leave the BEGIN
+state to either the OUTSIDE or the RAMPING state.
+.ramp.begin.leave.outside: We go to OUTSIDE if the count drops to 0
+before a collection starts.  This shortcuts the usual cycle of states
+for small enough ramps.  .ramp.begin.leave.ramping: We enter the
+RAMPING state if a collection starts that condemns the ramp generation
+(pedantically when a new GC begins, and a segment in the ramp
+generation is condemned, we leave the BEGIN state, see AMCWhiten).  At
+this point we switch the ramp generation to forward to itself
+(.gen.ramp.ramping).
 
-<a id="ramp.end" name="ramp.end">.ramp.end</a>: After the ramp count goes
-back to zero, the pool enters the finish state if it was in the ramping
-state, or shortcuts the usual cycle by going to the outside state if it
-was in the begin state.  If it was already in the finish state then it
-stay there.  It can't be in any other state.
+<a id="ramp.ramping.leave"
+name="ramp.ramping.leave">.ramp.ramping.leave</a>: We leave the
+RAMPING state and go to the FINISH state when the ramp count goes back
+to zero.  Thus, the FINISH state indicates that we have started
+collecting the ramp generation while inside a ramp which we have
+subsequently finished.
 
-<a id="ramp.finish" name="ramp.finish">.ramp.finish</a>: We stay in
-the finish state until we do a GC that condemns the ramp generation,
-and we ensure that such a GC will promote from the ramp generation to
-the after-ramp generation.  In fact, the next new GC should collect the
-ramp generation because we jig the benefits to ensure that [is this
-true? drj 2002-03-06].
+<a id="ramp.finish" name="ramp.finish">.ramp.finish.remain</a>: We
+remain in the FINISH state until we next start to collect the ramp
+generation (condemn it), regardless of entering or leaving any ramps.
+This ensures that the ramp generation will be collected to the
+after-ramp generation at least once.
 
-<a id="ramp.finish.leave" name="ramp.finish.leave">.ramp.finish.leave</a>:
-We leave this state when the GC starts the condemn phase and we enter
-collecting state.  At this point the forwarding generations are also
-switched so that the ramp generation promotes into the after-ramp
-generation.
+<a id="ramp.finish.leave"
+name="ramp.finish.leave">.ramp.finish.leave</a>: When we next condemn
+the ramp genearation, we move to the COLLECTING state.  At this point
+the forwarding generations are switched back so that the ramp
+generation promotes into the after-ramp generation on this collection.
 
 <a id="ramp.collecting.leave"
 name="ramp.collecting.leave">.ramp.collecting.leave</a>: We leave the
-collecting state when the GC enters reclaim (specifically, when a segment
-in the ramp generation is reclaimed).  Ordinarily we enter the outside
-state, but if the client has increased the ramp count then we go directly
-to the begin state.  The forwarding generations are not switched until
-we leave this state, ensuring that we perform a whole collection with
-the ramp generation promoting to the after-ramp generation.
+COLLECTING state when the GC enters reclaim (specifically, when a
+segment in the ramp generation is reclaimed), or when we begin another
+ramp.  Ordinarily we enter the OUTSIDE state, but if the client has
+started a ramp then we go directly to the BEGIN state.
 
 <a id="ramp.collect-all" name="ramp.collect-all">.ramp.collect-all</a>
-There are two flavours of ramp collections: the normal one that collects
-the ramp generation and the younger ones, and the collect-all flavour that
-does a full GC (this is a hack for producing certain Dylan statistics).
-The collection will be of collect-all flavour, if any of the RampBegins
-during the corresponding rank asked for that.  Ramp beginnings and
-collections are asynchronous, so we need two fields to implement this
-behaviour: collectAll to indicate whether the ramp collection that is
-about to start should be collect-all, and collectAllNext to keep track
-of whether the current ramp has any requests for it.
+There used to be two flavours of ramps: the normal one and the
+collect-all flavour that triggered a full GC after the ramp end. This
+was a hack for producing certain Dylan statistics, and no longer has
+any effect (the flag is passed to AMCRampBegin, but ignored there).
 
 
 
