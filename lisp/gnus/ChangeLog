@@ -1,3 +1,9 @@
+2013-04-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-minibuffer-read-description): Use `default' insted of
+	`initial-input' for the argument name.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+
 2013-04-03  Kevin Layer  <layer@known.net>  (tiny change)
 
 	* mml.el (mml-minibuffer-read-description): Allow passing in a prefix
