@@ -39,10 +39,6 @@
 	(rules): Use tighter regexps to avoid conflicts.
 	Consolidate the various rules for combining marks.
 
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
-
 2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Add greek superscripts.

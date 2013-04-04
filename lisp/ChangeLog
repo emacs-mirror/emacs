@@ -406,10 +406,6 @@
 
 	* thingatpt.el (end-of-sexp): Fix bug#13952.  Use syntax-after.
 
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
-
 2013-03-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* startup.el (command-line-normalize-file-name): Fix handling of

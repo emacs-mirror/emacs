@@ -14,10 +14,6 @@
 	(socket_connection) [!HAVE_KRB5_ERROR_TEXT && HAVE_KRB5_ERROR_E_TEXT]:
 	Use ERROR_MAX, not ERRMAX.
 
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
-
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).
