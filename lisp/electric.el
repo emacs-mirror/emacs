@@ -308,6 +308,7 @@ This can be convenient for people who find it easier to hit ) than C-f."
 The function is called with a single char (the opening char just inserted).
 If it returns non-nil, then `electric-pair-mode' will not insert a matching
 closer."
+  :version "24.4"
   :type '(choice
           (const :tag "Default" electric-pair-default-inhibit)
           (const :tag "Always pair" ignore)

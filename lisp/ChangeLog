@@ -1,3 +1,7 @@
+2013-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* electric.el (electric-pair-inhibit-predicate): Add :version.
+
 2013-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-compute-transaction): Fix ordering
