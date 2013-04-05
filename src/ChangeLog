@@ -1,3 +1,40 @@
+2013-04-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer < to > in range checks such as 0 <= i && i < N.
+	This makes it easier to visualize quantities on a number line.
+	This patch doesn't apply to all such range checks,
+	only to the range checks affected by the 2013-03-24 change.
+	This patch reverts most of the 2013-03-24 change.
+	* alloc.c (xpalloc, Fgarbage_collect):
+	* ccl.c (ccl_driver, resolve_symbol_ccl_program):
+	* character.c (string_escape_byte8):
+	* charset.c (read_hex):
+	* data.c (cons_to_unsigned):
+	* dispnew.c (update_frame_1):
+	* doc.c (Fsubstitute_command_keys):
+	* doprnt.c (doprnt):
+	* editfns.c (hi_time, decode_time_components):
+	* fileio.c (file_offset):
+	* fns.c (larger_vector, make_hash_table, Fmake_hash_table):
+	* font.c (font_intern_prop):
+	* frame.c (x_set_alpha):
+	* gtkutil.c (get_utf8_string):
+	* indent.c (check_display_width):
+	* keymap.c (Fkey_description):
+	* lisp.h (FIXNUM_OVERFLOW_P, vcopy):
+	* lread.c (read1):
+	* minibuf.c (read_minibuf_noninteractive):
+	* process.c (wait_reading_process_output):
+	* search.c (Freplace_match):
+	* window.c (get_phys_cursor_glyph):
+	* xdisp.c (redisplay_internal):
+	* xsmfns.c (smc_save_yourself_CB):
+	Prefer < to > for range checks.
+	* dispnew.c (sit_for): Don't mishandle NaNs.
+	This fixes a bug introduced in the 2013-03-24 change.
+	* editfns.c (decode_time_components): Don't hoist comparison.
+	This fixes another bug introduced in the 2013-03-24 change.
+
 2013-03-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.h (struct frame): Drop scroll_bottom_vpos

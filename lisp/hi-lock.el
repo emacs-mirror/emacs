@@ -389,7 +389,9 @@ versions before 22 use the following in your init file:
 	(define-key-after menu-bar-edit-menu [hi-lock]
 	  (cons "Regexp Highlighting" hi-lock-menu))
 	(hi-lock-find-patterns)
-	(add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook nil t))
+        (add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook nil t)
+        ;; Remove regexps from font-lock-keywords (bug#13891).
+	(add-hook 'change-major-mode-hook (lambda () (hi-lock-mode -1)) nil t))
     ;; Turned off.
     (when (or hi-lock-interactive-patterns
 	      hi-lock-file-patterns)

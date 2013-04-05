@@ -14,10 +14,6 @@
 	(socket_connection) [!HAVE_KRB5_ERROR_TEXT && HAVE_KRB5_ERROR_E_TEXT]:
 	Use ERROR_MAX, not ERRMAX.
 
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
-
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).
@@ -3728,7 +3724,7 @@
 
 2002-03-05  Francesco Potortì  <pot@gnu.org>
 
-	* etags.c: Honour #line directives.
+	* etags.c: Honor #line directives.
 	(no_line_directive): New global var; set it for old behavior.
 	(main): Remove some #ifdef in the getopt switch.
 	(add_node, put_entries): Code added to merge different chunks of

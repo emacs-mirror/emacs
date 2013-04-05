@@ -2486,7 +2486,7 @@ need for `pike-font-lock-extra-types'.")
 	      (setq comment-beg nil))
 	    (setq region-beg comment-beg))
 
-      (if (eq (elt (parse-partial-sexp comment-beg (+ comment-beg 2)) 7) t)
+      (if (elt (parse-partial-sexp comment-beg (+ comment-beg 2)) 7)
 	  ;; Collect a sequence of doc style line comments.
 	  (progn
 	    (goto-char comment-beg)

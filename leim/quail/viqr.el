@@ -1,4 +1,4 @@
-;;; viqr.el --- Quail packages for inputting Vietnamese with VIQR system  -*-coding: iso-2022-7bit;-*-
+;;; viqr.el --- Quail packages for inputting Vietnamese with VIQR system  -*-coding: utf-8;-*-
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
@@ -48,21 +48,21 @@
 
     effect   | postfix | examples
  ------------+---------+----------
-    breve    |    (    | a( -> ,1e(B
-  circumflex |    ^    | a^ -> ,1b(B
-    horn     |    +    | o+ -> ,1=(B
+    breve    |    (    | a( -> ă
+  circumflex |    ^    | a^ -> â
+    horn     |    +    | o+ -> ơ
  ------------+---------+----------
-    acute    |    '    | a' -> ,1a(B
-    grave    |    `    | a` -> ,1`(B
-  hook above |    ?    | a? -> ,1d(B
-    tilde    |    ~    | a~ -> ,1c(B
-   dot below |    .    | a. -> ,1U(B
+    acute    |    '    | a' -> á
+    grave    |    `    | a` -> à
+  hook above |    ?    | a? -> ả
+    tilde    |    ~    | a~ -> ã
+   dot below |    .    | a. -> ạ
  ------------+---------+----------
-    d bar    |   dd    | dd -> ,1p(B
+    d bar    |   dd    | dd -> đ
  ------------+---------+----------
   no compose |    \\    | a\\. -> a.
  ------------+---------+----------
-  combination|   (~    | a(~ -> ,1G(B
+  combination|   (~    | a(~ -> ẵ
 " nil t t nil nil t nil nil nil nil t)
 
 

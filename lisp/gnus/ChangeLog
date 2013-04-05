@@ -1,3 +1,33 @@
+2013-04-04  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (gnus-nnir-group-p): New function.
+	(nnir-possibly-change-group): Use it.
+
+	* gnus-msg.el (gnus-setup-message): Use it.
+
+2013-04-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-minibuffer-read-description): Use `default' insted of
+	`initial-input' for the argument name.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+
+2013-04-03  Kevin Layer  <layer@known.net>  (tiny change)
+
+	* mml.el (mml-minibuffer-read-description): Allow passing in a prefix
+	(used by MH-E).
+
+2013-04-01  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-request-update-mark): Improve mark updating in original
+	group.
+
+	* gnus-msg.el (nnir-article-number, nnir-article-group): Autoload to
+	fix compilation.
+
+2013-03-31  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-method-default-engines): And another typo.
+
 2013-03-30  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (nnir-method-default-engines): Fix typo.
@@ -105,7 +135,7 @@
 2013-01-30  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* gnus-int.el (gnus-backend-trace-elapsed): New variable.
-	(gnus-backend-trace): Honour gnus-backend-trace.
+	(gnus-backend-trace): Honor gnus-backend-trace.
 
 	* mml.el (mml-insert-part): Insert closing tag.
 

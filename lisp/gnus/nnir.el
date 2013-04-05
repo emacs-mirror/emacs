@@ -588,7 +588,7 @@ Add an entry here when adding a new search engine.")
   "*Alist of default search engines keyed by server method."
   :version "24.1"
   :group 'nnir
-  :type `(repeat (cons (choice (const nnimap) (const nttp) (const nnspool)
+  :type `(repeat (cons (choice (const nnimap) (const nntp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)
 			       (const nnfolder) (const nnmaildir))
@@ -840,6 +840,11 @@ skips all prompting."
 ;      (gnus-summary-exit))
     (gnus-summary-read-group-1 backend-article-group t t  nil
                                nil (list backend-article-number))))
+
+(deffoo nnir-request-update-mark (group article mark)
+  (let ((artgroup (nnir-article-group article))
+	(artnumber (nnir-article-number article)))
+    (gnus-request-update-mark artgroup artnumber mark)))
 
 
 (deffoo nnir-request-update-info (group info &optional server)
@@ -1702,6 +1707,12 @@ actually)."
 
 ;;; Util Code:
 
+(defun gnus-nnir-group-p (group)
+  "Say whether GROUP is nnir or not."
+  (if (gnus-group-prefixed-p group)
+      (eq 'nnir (car (gnus-find-method-for-group group)))
+    (and group (string-match "^nnir" group))))
+
 (defun nnir-read-parms (nnir-search-engine)
   "Reads additional search parameters according to `nnir-engines'."
   (let ((parmspec (caddr (assoc nnir-search-engine nnir-engines))))
@@ -1749,7 +1760,7 @@ environment unless `not-global' is non-nil."
 
 (defun nnir-possibly-change-group (group &optional server)
   (or (not server) (nnir-server-opened server) (nnir-open-server server))
-  (when (and group (string-match "\\`nnir" group))
+  (when (gnus-nnir-group-p group)
     (setq nnir-artlist (gnus-group-get-parameter
 			(gnus-group-prefixed-name
 			 (gnus-group-short-name group) '(nnir "nnir"))

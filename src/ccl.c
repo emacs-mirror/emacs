@@ -1668,7 +1668,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		  }
 		map = XCDR (map);
 		if (! (VECTORP (map)
-		       && ASIZE (map) > 0
+		       && 0 < ASIZE (map)
 		       && INTEGERP (AREF (map, 0))
 		       && XINT (AREF (map, 0)) <= op
 		       && op - XINT (AREF (map, 0)) + 1 < ASIZE (map)))
@@ -1867,7 +1867,7 @@ resolve_symbol_ccl_program (Lisp_Object ccl)
       return Qnil;
     }
 
-  if (! (XINT (AREF (result, CCL_HEADER_BUF_MAG)) >= 0
+  if (! (0 <= XINT (AREF (result, CCL_HEADER_BUF_MAG))
 	 && ASCENDING_ORDER (0, XINT (AREF (result, CCL_HEADER_EOF)),
 			     ASIZE (ccl))))
     return Qnil;

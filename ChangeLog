@@ -50,6 +50,10 @@
 	2013-03-11 putenv: avoid compilation warning on mingw
 	2013-03-11 unistd: don't prevent Tru64 Unix from using gnulib strtod.
 
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Merge in all changes up to version 24.3 release.
+
 2013-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (TERM_HEADER): Remove duplicate definition (Bug#13872).

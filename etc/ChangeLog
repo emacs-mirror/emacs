@@ -1,3 +1,13 @@
+2013-04-02  Fabrice Niessen  <fni@missioncriticalit.com>
+
+	* themes/leuven-theme.el: Update theme.
+
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* tutorials/TUTORIAL.ko, tutorials/TUTORIAL.th:
+	Switch from iso-2022-7bit to utf-8.
+
 2013-03-30  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention `kmacro-to-register' and new eldoc feature.

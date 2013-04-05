@@ -445,7 +445,7 @@ objects = Thing.objects.all() \\\\
    (should (= (python-indent-calculate-indentation) 0))))
 
 (ert-deftest python-indent-block-enders ()
-  "Test `python-indent-block-enders' value honouring."
+  "Test `python-indent-block-enders' value honoring."
   (python-tests-with-temp-buffer
    "
 Class foo(object):

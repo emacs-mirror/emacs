@@ -2180,32 +2180,45 @@ comment at the start of cc-engine.el for more info."
 ;; reduced by buffer changes, and increased by invocations of
 ;; `c-state-literal-at'.  FIXME!!!
 
-(defsubst c-state-pp-to-literal (from to)
+(defsubst c-state-pp-to-literal (from to &optional not-in-delimiter)
   ;; Do a parse-partial-sexp from FROM to TO, returning either
   ;;     (STATE TYPE (BEG . END))     if TO is in a literal; or
   ;;     (STATE)                      otherwise,
   ;; where STATE is the parsing state at TO, TYPE is the type of the literal
   ;; (one of 'c, 'c++, 'string) and (BEG . END) is the boundaries of the literal.
   ;;
+  ;; Unless NOT-IN-DELIMITER is non-nil, when TO is inside a two-character
+  ;; comment opener, this is recognized as being in a comment literal.
+  ;;
   ;; Only elements 3 (in a string), 4 (in a comment), 5 (following a quote),
   ;; 7 (comment type) and 8 (start of comment/string) (and possibly 9) of
   ;; STATE are valid.
   (save-excursion
     (let ((s (parse-partial-sexp from to))
-	  ty)
-      (when (or (nth 3 s) (nth 4 s))	; in a string or comment
+	  ty co-st)
+      (cond
+       ((or (nth 3 s) (nth 4 s))	; in a string or comment
 	(setq ty (cond
 		  ((nth 3 s) 'string)
-		  ((eq (nth 7 s) t) 'c++)
+		  ((nth 7 s) 'c++)
 		  (t 'c)))
 	(parse-partial-sexp (point) (point-max)
-			    nil			 ; TARGETDEPTH
-			    nil			 ; STOPBEFORE
-			    s			 ; OLDSTATE
-			    'syntax-table))	 ; stop at end of literal
-      (if ty
-	  `(,s ,ty (,(nth 8 s) . ,(point)))
-	`(,s)))))
+			    nil		   ; TARGETDEPTH
+			    nil		   ; STOPBEFORE
+			    s		   ; OLDSTATE
+			    'syntax-table) ; stop at end of literal
+	`(,s ,ty (,(nth 8 s) . ,(point))))
+
+       ((and (not not-in-delimiter)	; inside a comment starter
+	     (not (bobp))
+	     (progn (backward-char)
+		    (looking-at c-comment-start-regexp)))
+	(setq ty (if (looking-at c-block-comment-start-regexp) 'c 'c++)
+	      co-st (point))
+	(forward-comment 1)
+	`(,s ,ty (,co-st . ,(point))))
+
+       (t `(,s))))))
 
 (defun c-state-safe-place (here)
   ;; Return a buffer position before HERE which is "safe", i.e. outside any
@@ -3143,10 +3156,13 @@ comment at the start of cc-engine.el for more info."
   ;; This function is called from c-after-change.
 
   ;; The caches of non-literals:
-  (if (< here c-state-nonlit-pos-cache-limit)
-      (setq c-state-nonlit-pos-cache-limit here))
-  (if (< here c-state-semi-nonlit-pos-cache-limit)
-      (setq c-state-semi-nonlit-pos-cache-limit here))
+  ;; Note that we use "<=" for the possibility of the second char of a two-char
+  ;; comment opener being typed; this would invalidate any cache position at
+  ;; HERE.
+  (if (<= here c-state-nonlit-pos-cache-limit)
+      (setq c-state-nonlit-pos-cache-limit (1- here)))
+  (if (<= here c-state-semi-nonlit-pos-cache-limit)
+      (setq c-state-semi-nonlit-pos-cache-limit (1- here)))
 
   ;; `c-state-cache':
   ;; Case 1: if `here' is in a literal containing point-min, everything
@@ -4444,19 +4460,12 @@ comment at the start of cc-engine.el for more info."
 	   (lim (or lim (c-state-semi-safe-place pos)))
 	   (pp-to-lit (save-restriction
 			(widen)
-			(c-state-pp-to-literal lim pos)))
+			(c-state-pp-to-literal lim pos not-in-delimiter)))
 	   (state (car pp-to-lit))
 	   (lit-limits (car (cddr pp-to-lit))))
 
       (cond
        (lit-limits)
-       ((and (not not-in-delimiter)
-	     (not (elt state 5))
-	     (eq (char-before) ?/)
-	     (looking-at "[/*]")) ; FIXME!!! use c-line/block-comment-starter.  2008-09-28.
-	;; We're standing in a comment starter.
-	(backward-char 1)
-	(cons (point) (progn (c-forward-single-comment) (point))))
 
        (near
 	(goto-char pos)

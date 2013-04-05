@@ -508,7 +508,7 @@ void
 x_activate_menubar (struct frame *f)
 {
   NSArray *a = [[NSApp mainMenu] itemArray];
-  /* Update each submenu separatly so ns_update_menubar don't reset
+  /* Update each submenu separately so ns_update_menubar doesn't reset
      the delegate.  */
   int i = 0;
   while (i < [a count])

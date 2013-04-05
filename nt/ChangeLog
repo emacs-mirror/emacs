@@ -1,3 +1,12 @@
+2013-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* README: A better documentation of ddeclient.exe.
+
+	* README.W32: A better documentation of ddeclient.exe.
+
+	* paths.h (PATH_EXEC): Add nt/oo-spd/i386 and nt/oo/i386
+	subdirectories.
+
 2013-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/ms-w32.h (TERM_HEADER): Remove definition.

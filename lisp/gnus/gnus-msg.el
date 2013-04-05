@@ -415,6 +415,11 @@ Thank you for your help in stamping out bugs.
      (gnus-inews-make-draft-meta-information
       ,(gnus-group-decoded-name gnus-newsgroup-name) ',articles)))
 
+(autoload 'nnir-article-number "nnir" nil nil 'macro)
+(autoload 'nnir-article-group "nnir" nil nil 'macro)
+(autoload 'gnus-nnir-group-p "nnir")
+
+
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
@@ -426,17 +431,15 @@ Thank you for your help in stamping out bugs.
     `(let ((,winconf (current-window-configuration))
 	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
-	   (,article (or  (when (and
-				 (string-match "^nnir:" gnus-newsgroup-name)
-				 gnus-article-reply)
-			    (nnir-article-number gnus-article-reply))
-			   gnus-article-reply))
-	   (,yanked gnus-article-yanked-articles)
-	   (,group (or (when (and
-			      (string-match "^nnir:" gnus-newsgroup-name)
+	   (,article (if (and (gnus-nnir-group-p gnus-newsgroup-name)
 			      gnus-article-reply)
-			 (nnir-article-group gnus-article-reply))
-	   	       gnus-newsgroup-name))
+			 (nnir-article-number gnus-article-reply)
+		       gnus-article-reply))
+	   (,yanked gnus-article-yanked-articles)
+	   (,group (if (and (gnus-nnir-group-p gnus-newsgroup-name)
+			    gnus-article-reply)
+		       (nnir-article-group gnus-article-reply)
+		     gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
 	   (mbl mml-buffer-list)

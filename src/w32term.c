@@ -5694,7 +5694,7 @@ w32fullscreen_hook (FRAME_PTR f)
       /* Need to send SC_RESTORE to the window, in case we are
 	 resizing from FULLSCREEN_MAXIMIZED.  Otherwise, the mouse
 	 resize hints will not be shown by the window manager when the
-	 mouse pointer hovers over the window edges, becaise the WM
+	 mouse pointer hovers over the window edges, because the WM
 	 will still think the window is maximized.  */
       if (f->want_fullscreen != FULLSCREEN_BOTH)
 	SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_RESTORE, 0);

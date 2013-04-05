@@ -2533,9 +2533,9 @@ since only regular expressions have distinguished subexpressions.  */)
       bool str_multibyte = STRING_MULTIBYTE (newtext);
       bool really_changed = 0;
 
-      substed_alloc_size = (length > (STRING_BYTES_BOUND - 100) / 2
-			    ? STRING_BYTES_BOUND
-			    : length * 2 + 100);
+      substed_alloc_size = (length <= (STRING_BYTES_BOUND - 100) / 2
+			    ? length * 2 + 100
+			    : STRING_BYTES_BOUND);
       substed = xmalloc (substed_alloc_size);
       substed_len = 0;
 

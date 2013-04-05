@@ -631,11 +631,11 @@ others, use \\[kmacro-name-last-macro]."
                                   (> (length (this-single-command-keys)) 1))
                              ;; Used when we're in the process of repeating.
                              (eq no-repeat 'repeating))
-			 last-input-event))
-	(last-kbd-macro (or macro last-kbd-macro)))
+			 last-input-event)))
     (if end-macro
-	(kmacro-end-macro arg)
-      (call-last-kbd-macro arg #'kmacro-loop-setup-function))
+	(kmacro-end-macro arg)		; modifies last-kbd-macro
+      (let ((last-kbd-macro (or macro last-kbd-macro)))
+	(call-last-kbd-macro arg #'kmacro-loop-setup-function)))
     (when (consp arg)
       (setq arg (car arg)))
     (when (and (or (null arg) (> arg 0))
@@ -658,7 +658,9 @@ others, use \\[kmacro-name-last-macro]."
          (define-key map (vector repeat-key)
            `(lambda () (interactive)
               (kmacro-call-macro ,(and kmacro-call-repeat-with-arg arg)
-                                 'repeating nil ,last-kbd-macro)))
+                                 'repeating nil ,(if end-macro
+						     last-kbd-macro
+						   (or macro last-kbd-macro)))))
          map)))))
 
 

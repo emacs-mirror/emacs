@@ -1398,8 +1398,8 @@ hi_time (time_t t)
      no runtime check is needed, and taking care not to convert
      negative numbers to unsigned before comparing them.  */
   if (! ((! TYPE_SIGNED (time_t)
-	  || TIME_T_MIN >> 16 >= MOST_NEGATIVE_FIXNUM
-	  || hi >= MOST_NEGATIVE_FIXNUM)
+	  || MOST_NEGATIVE_FIXNUM <= TIME_T_MIN >> 16
+	  || MOST_NEGATIVE_FIXNUM <= hi)
 	 && (TIME_T_MAX >> 16 <= MOST_POSITIVE_FIXNUM
 	     || hi <= MOST_POSITIVE_FIXNUM)))
     time_overflow ();
@@ -1561,7 +1561,7 @@ decode_time_components (Lisp_Object high, Lisp_Object low, Lisp_Object usec,
 
   if (result)
     {
-      if (hi >= (TYPE_SIGNED (time_t) ? TIME_T_MIN >> 16 : 0)
+      if ((TYPE_SIGNED (time_t) ? TIME_T_MIN >> 16 <= hi : 0 <= hi)
 	  && hi <= TIME_T_MAX >> 16)
 	{
 	  /* Return the greatest representable time that is not greater

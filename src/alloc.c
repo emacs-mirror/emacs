@@ -779,7 +779,7 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   ptrdiff_t nitems_incr_max = n_max - n;
   ptrdiff_t incr = max (nitems_incr_min, min (incr_estimate, nitems_incr_max));
 
-  eassert (item_size > 0 && nitems_incr_min > 0 && n >= 0 && nitems_max >= -1);
+  eassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
   if (! pa)
     *nitems = 0;
   if (nitems_incr_max < incr)
@@ -5376,7 +5376,7 @@ See Info node `(elisp)Garbage Collection'.  */)
       double tot = total_bytes_of_live_objects ();
 
       tot *= XFLOAT_DATA (Vgc_cons_percentage);
-      if (tot > 0)
+      if (0 < tot)
 	{
 	  if (tot < TYPE_MAXIMUM (EMACS_INT))
 	    gc_relative_threshold = tot;

@@ -13,10 +13,6 @@
 
 	* emacs.texi (Top): Add some stuff specific to www.gnu.org.
 
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
-
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer UTF-8 for documentation.

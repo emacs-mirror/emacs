@@ -347,7 +347,7 @@ exist, it should return nil."
 		    :documentation
 		    "Compilation command that will be used for this project.
 It could be string or function that will accept proj argument and should return string.
-The string will be passed to 'compuile' function that will be issued in root
+The string will be passed to 'compile' function that will be issued in root
 directory of project."
 		    )
    )
@@ -509,7 +509,7 @@ This is for project include paths and spp source files."
 	      (table (when expfile
 		       (semanticdb-file-table-object expfile)))
 	      )
-	 (cond 
+	 (cond
 	  ((not (file-exists-p expfile))
 	   (message "Cannot find file %s in project." F))
 	  ((string= expfile (buffer-file-name))

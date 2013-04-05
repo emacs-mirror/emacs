@@ -114,7 +114,12 @@ See the end of the file for license conditions.
   + ebrowse.exe - A tool for generating C++ browse information.  See the
     `Ebrowse' manual.
 
-  + ddeclient.exe - A tool for interacting with DDE servers.
+  + ddeclient.exe - A tool for interacting with DDE servers.  To be
+    invoked as "ddeclient SERVER [TOPIC]", where SERVER is the DDE
+    server name, and sends each line of its standard input to the DDE
+    server using the DdeClientTransaction API.  This program is
+    supposed to be invoked via the 'call-process-region' Emacs
+    primitive.
 
   + hexl.exe - A tool for producing hex dumps of binary files.  See the
     `Editing Binary Files' node of the Emacs manual.
