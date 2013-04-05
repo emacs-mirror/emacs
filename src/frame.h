@@ -170,9 +170,11 @@ struct frame
      most recently buried buffer is first.  For last-buffer.  */
   Lisp_Object buried_buffer_list;
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
   Lisp_Object menu_bar_window;
+#endif
 
   /* A window used to display the tool-bar of a frame.  */
   Lisp_Object tool_bar_window;
@@ -425,10 +427,6 @@ struct frame
   /* Width of bar cursor (if we are using that) for blink-off state.  */
   int blink_off_cursor_width;
 
-  /* Nonnegative if current redisplay should not do scroll computation
-     for lines beyond a certain vpos.  This is the vpos.  */
-  int scroll_bottom_vpos;
-
   /* Configured width of the scroll bar, in pixels and in characters.
      config_scroll_bar_cols tracks config_scroll_bar_width if the
      latter is positive; a zero value in config_scroll_bar_width means
@@ -515,11 +513,13 @@ fset_menu_bar_vector (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_vector = val;
 }
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 FRAME_INLINE void
 fset_menu_bar_window (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_window = val;
 }
+#endif
 FRAME_INLINE void
 fset_name (struct frame *f, Lisp_Object val)
 {
@@ -781,7 +781,6 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
-#define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
 
 /* This frame slot says whether scroll bars are currently enabled for frame F,

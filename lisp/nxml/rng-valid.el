@@ -244,7 +244,7 @@ to use for finding the schema."
 	  (> (prefix-numeric-value arg) 0)))
   (save-restriction
     (widen)
-    (nxml-with-unmodifying-text-property-changes
+    (with-silent-modifications
       (rng-clear-cached-state (point-min) (point-max)))
     ;; 1+ to clear empty overlays at (point-max)
     (rng-clear-overlays (point-min) (1+ (point-max)))
@@ -305,7 +305,7 @@ The schema is set like `rng-auto-set-schema'."
 
 (defun rng-after-change-function (start end pre-change-len)
   (setq rng-message-overlay-inhibit-point nil)
-  (nxml-with-unmodifying-text-property-changes
+  (with-silent-modifications
     (rng-clear-cached-state start end))
   ;; rng-validate-up-to-date-end holds the position before the change
   ;; Adjust it to reflect the change.
@@ -414,26 +414,17 @@ The schema is set like `rng-auto-set-schema'."
 (defvar rng-validate-display-modified-p nil)
 
 (defun rng-validate-while-idle-continue-p ()
-  ;; input-pending-p and sit-for run timers that are
-  ;; ripe.  Binding timer-idle-list to nil prevents
-  ;; this.  If we don't do this, then any ripe timers
-  ;; will get run, and we won't get any chance to
-  ;; validate until Emacs becomes idle again or until
-  ;; the other lower priority timers finish (which
-  ;; can take a very long time in the case of
-  ;; jit-lock).
-  (let ((timer-idle-list nil))
-    (and (not (input-pending-p))
-	 ;; Fake rng-validate-up-to-date-end so that the mode line
-	 ;; shows progress.  Also use this to save point.
-	 (let ((rng-validate-up-to-date-end (point)))
-	   (goto-char rng-validate-display-point)
-	   (when (not rng-validate-display-modified-p)
-	     (restore-buffer-modified-p nil))
-	   (force-mode-line-update)
-	   (let ((continue (sit-for 0)))
-	     (goto-char rng-validate-up-to-date-end)
-	     continue)))))
+  (and (not (input-pending-p))
+       ;; Fake rng-validate-up-to-date-end so that the mode line
+       ;; shows progress.  Also use this to save point.
+       (let ((rng-validate-up-to-date-end (point)))
+	 (goto-char rng-validate-display-point)
+	 (when (not rng-validate-display-modified-p)
+	   (restore-buffer-modified-p nil))
+	 (force-mode-line-update)
+	 (let ((continue (sit-for 0)))
+	   (goto-char rng-validate-up-to-date-end)
+	   continue))))
 
 ;; Calling rng-do-some-validation once with a continue-p function, as
 ;; opposed to calling it repeatedly, helps on initial validation of a
@@ -442,24 +433,26 @@ The schema is set like `rng-auto-set-schema'."
 ;; validation process down.
 
 (defun rng-validate-while-idle (buffer)
-  (with-current-buffer buffer
-    (if rng-validate-mode
-	(if (let ((rng-validate-display-point (point))
-		  (rng-validate-display-modified-p (buffer-modified-p)))
-	      (rng-do-some-validation 'rng-validate-while-idle-continue-p))
-	    (force-mode-line-update)
-	  (rng-validate-done))
-      ;; must have done kill-all-local-variables
-      (rng-kill-timers))))
+  (when (buffer-live-p buffer)		; bug#13999
+    (with-current-buffer buffer
+      (if rng-validate-mode
+	  (if (let ((rng-validate-display-point (point))
+		    (rng-validate-display-modified-p (buffer-modified-p)))
+		(rng-do-some-validation 'rng-validate-while-idle-continue-p))
+	      (force-mode-line-update)
+	    (rng-validate-done))
+	;; must have done kill-all-local-variables
+	(rng-kill-timers)))))
 
 (defun rng-validate-quick-while-idle (buffer)
-  (with-current-buffer buffer
-    (if rng-validate-mode
-	(if (rng-do-some-validation)
-	    (force-mode-line-update)
-	  (rng-validate-done))
-      ;; must have done kill-all-local-variables
-      (rng-kill-timers))))
+  (when (buffer-live-p buffer)		; bug#13999
+    (with-current-buffer buffer
+      (if rng-validate-mode
+	  (if (rng-do-some-validation)
+	      (force-mode-line-update)
+	    (rng-validate-done))
+	;; must have done kill-all-local-variables
+	(rng-kill-timers)))))
 
 (defun rng-validate-done ()
   (when (or (not (current-message))
@@ -478,7 +471,7 @@ The schema is set like `rng-auto-set-schema'."
 	(condition-case-unless-debug err
 	    (and (rng-validate-prepare)
 		 (let ((rng-dt-namespace-context-getter '(nxml-ns-get-context)))
-		   (nxml-with-unmodifying-text-property-changes
+		   (with-silent-modifications
 		     (rng-do-some-validation-1 continue-p-function))))
 	  ;; errors signaled from a function run by an idle timer
 	  ;; are ignored; if we don't catch them, validation
@@ -880,9 +873,7 @@ means goto the first error."
 			    (< rng-validate-up-to-date-end (point-max)))
 		   ;; Display percentage validated.
 		   (force-mode-line-update)
-		   ;; Force redisplay but don't allow idle timers to run.
-		   (let ((timer-idle-list nil))
-		     (sit-for 0))
+		   (sit-for 0)
 		   (setq pos
 			 (max pos (1- rng-validate-up-to-date-end)))
 		   t)))))
@@ -905,9 +896,7 @@ means goto the first error."
       (while (and (rng-do-some-validation)
 		  (< rng-validate-up-to-date-end (min pos (point-max))))
 	(force-mode-line-update)
-	;; Force redisplay but don't allow idle timers to run.
-	(let ((timer-idle-list nil))
-	  (sit-for 0)))
+	(sit-for 0))
       (while (and (> arg 0)
 		  (setq err (rng-find-previous-error-overlay pos)))
 	(setq pos (overlay-start err))

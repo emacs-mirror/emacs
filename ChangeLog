@@ -1,3 +1,24 @@
+2013-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-03-29 stdalign: port to stricter ISO C11
+	This helps to run 'configure' on MS-Windows; see Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00999.html>.
+
+2013-03-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (HAVE_XKBGETKEYBOARD): Remove.
+	Subsumed by HAVE_XKB.  All uses changed.
+
+2013-03-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_XKB): Define if Xkb is present.
+
+2013-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-03-21 sys_select, sys_time: port 2013-01-30 fix to Cygwin
+
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bug when building Emacs with a GNU Make submake (Bug#13962).
@@ -28,6 +49,10 @@
 	2013-03-11 regex: port to mingw's recent addition of undeclared alarm
 	2013-03-11 putenv: avoid compilation warning on mingw
 	2013-03-11 unistd: don't prevent Tru64 Unix from using gnulib strtod.
+
+2013-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Merge in all changes up to version 24.3 release.
 
 2013-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -62,11 +87,6 @@
 	not always needed.
 	(HAVE_DATA_START): New macro.
 
-2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
-
-	* lisp/eshell/em-cmpl.el: Corrected "context-related help"
-	keybinding in commentary.
-
 2013-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Parallelize documentation builds.
@@ -78,11 +98,6 @@
 	($(DOCS), docs, vi, html, pdf, ps): New rules.
 	(info-real): Depend on $(INFOS) rather than doing it sequentially.
 	(dvi): Depend on $(DVIS) rather than doing it sequentially.
-
-2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
-
-	* doc/misc/eshell.texi: Added documentation for Eshell insert
-	output redirection operator, >>>.
 
 2013-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -34,16 +34,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    installed, then the DDE fallback for creating icons the Windows 3.1
    progman way will be used instead, but that is prone to lockups
    caused by other applications not servicing their message queues.  */
+#include <stdlib.h>
+#include <stdio.h>
+#include <malloc.h>
+
+/* MinGW64 defines _W64 and barfs if _WIN32_IE is defined to anything
+   below 0x500.  */
+#ifndef _W64
 #define _WIN32_IE 0x400
+#endif
 /* Request C Object macros for COM interfaces.  */
 #define COBJMACROS 1
 
 #include <windows.h>
 #include <shlobj.h>
 #include <ddeml.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <malloc.h>
 
 HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,

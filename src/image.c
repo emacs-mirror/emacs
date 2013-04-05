@@ -7373,11 +7373,10 @@ gif_load (struct frame *f, struct image *img)
 	       y < subimg_height;
 	       y++, row += interlace_increment[pass])
 	    {
-	      if (row >= subimg_height)
+	      while (subimg_height <= row)
 		{
+		  lint_assume (pass < 3);
 		  row = interlace_start[++pass];
-		  while (row >= subimg_height)
-		    row = interlace_start[++pass];
 		}
 
 	      for (x = 0; x < subimg_width; x++)
@@ -8121,24 +8120,25 @@ svg_image_p (Lisp_Object object)
 #ifdef WINDOWSNT
 
 /* SVG library functions.  */
-DEF_IMGLIB_FN (RsvgHandle *, rsvg_handle_new);
-DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions);
-DEF_IMGLIB_FN (gboolean, rsvg_handle_write);
-DEF_IMGLIB_FN (gboolean, rsvg_handle_close);
-DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf);
+DEF_IMGLIB_FN (RsvgHandle *, rsvg_handle_new, (void));
+DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions, (RsvgHandle *, RsvgDimensionData *));
+DEF_IMGLIB_FN (gboolean, rsvg_handle_write, (RsvgHandle *, const guchar *, gsize, GError **));
+DEF_IMGLIB_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
+DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
+DEF_IMGLIB_FN (void *, rsvg_handle_set_size_callback, (RsvgHandle *, RsvgSizeFunc, gpointer, GDestroyNotify));
 
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_width);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_height);
-DEF_IMGLIB_FN (guchar *, gdk_pixbuf_get_pixels);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_rowstride);
-DEF_IMGLIB_FN (GdkColorspace, gdk_pixbuf_get_colorspace);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels);
-DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
+DEF_IMGLIB_FN (guchar *, gdk_pixbuf_get_pixels, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_rowstride, (const GdkPixbuf *));
+DEF_IMGLIB_FN (GdkColorspace, gdk_pixbuf_get_colorspace, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels, (const GdkPixbuf *));
+DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample, (const GdkPixbuf *));
 
-DEF_IMGLIB_FN (void, g_type_init);
-DEF_IMGLIB_FN (void, g_object_unref);
-DEF_IMGLIB_FN (void, g_error_free);
+DEF_IMGLIB_FN (void, g_type_init, (void));
+DEF_IMGLIB_FN (void, g_object_unref, (gpointer));
+DEF_IMGLIB_FN (void, g_error_free, (GError *));
 
 Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 

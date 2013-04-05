@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "unexec.h"
-#include "w32common.h"
 
 #include <lisp.h>
 #include <stdio.h>
@@ -30,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <assert.h>
 
 #define DOTEXE ".exe"
+
+extern void report_sheap_usage (int);
 
 extern int bss_sbrk_did_unexec;
 
@@ -73,7 +74,11 @@ read_exe_header (int fd, exe_header_t * exe_header_buffer)
 
   assert (exe_header_buffer->file_header.e_magic == 0x5a4d);
   assert (exe_header_buffer->file_header.nt_signature == 0x4550);
+#ifdef __x86_64__
+  assert (exe_header_buffer->file_header.f_magic == 0x8664);
+#else
   assert (exe_header_buffer->file_header.f_magic == 0x014c);
+#endif
   assert (exe_header_buffer->file_header.f_nscns > 0);
   assert (exe_header_buffer->file_header.f_nscns <=
 	  sizeof (exe_header_buffer->section_header) /
@@ -85,7 +90,11 @@ read_exe_header (int fd, exe_header_t * exe_header_buffer)
 	  sizeof (exe_header_buffer->file_optional_header));
   assert (ret == sizeof (exe_header_buffer->file_optional_header));
 
+#ifdef __x86_64__
+  assert (exe_header_buffer->file_optional_header.magic == 0x020b);
+#else
   assert (exe_header_buffer->file_optional_header.magic == 0x010b);
+#endif
 
   for (i = 0; i < exe_header_buffer->file_header.f_nscns; ++i)
     {
@@ -132,7 +141,7 @@ fixup_executable (int fd)
 	exe_header->file_optional_header.ImageBase +
 	exe_header->section_header[i].s_paddr;
       if (debug_unexcw)
-	printf ("%8s start 0x%08x end 0x%08x\n",
+	printf ("%8s start %#lx end %#lx\n",
 		exe_header->section_header[i].s_name,
 		start_address, end_address);
       if (my_edata >= (char *) start_address
@@ -149,7 +158,7 @@ fixup_executable (int fd)
 	  assert (ret == my_edata - (char *) start_address);
 	  ++found_data;
 	  if (debug_unexcw)
-	    printf ("         .data, mem start 0x%08x mem length %d\n",
+	    printf ("         .data, mem start %#lx mem length %d\n",
 		    start_address, my_edata - (char *) start_address);
 	  if (debug_unexcw)
 	    printf ("         .data, file start %d file length %d\n",
@@ -233,7 +242,7 @@ fixup_executable (int fd)
 	  __malloc_initialized = 1;
 	  assert (ret == (my_endbss - (char *) start_address));
 	  if (debug_unexcw)
-	    printf ("         .bss, mem start 0x%08x mem length %d\n",
+	    printf ("         .bss, mem start %#lx mem length %d\n",
 		    start_address, my_endbss - (char *) start_address);
 	  if (debug_unexcw)
 	    printf ("         .bss, file start %d file length %d\n",

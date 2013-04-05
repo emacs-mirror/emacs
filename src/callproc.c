@@ -1,5 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2012
+   Copyright (C) 1985-1988, 1993-1995, 1999-2013
 		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -125,7 +125,7 @@ record_kill_process (struct Lisp_Process *p)
 static Lisp_Object
 call_process_kill (Lisp_Object ignored)
 {
-  if (0 <= synch_process_fd)
+  if (synch_process_fd >= 0)
     emacs_close (synch_process_fd);
 
   if (synch_process_pid)
@@ -173,7 +173,7 @@ call_process_cleanup (Lisp_Object arg)
     }
 #endif
 
-  if (0 <= synch_process_fd)
+  if (synch_process_fd >= 0)
     emacs_close (synch_process_fd);
 
 #ifdef MSDOS
@@ -682,7 +682,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     child_errno = errno;
 
-    if (0 < pid)
+    if (pid > 0)
       {
 	if (INTEGERP (buffer))
 	  record_deleted_pid (pid);

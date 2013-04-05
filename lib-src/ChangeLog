@@ -1,12 +1,18 @@
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers.
+	* ntlib.c (struct timespec) [!_TIMEZONE_DEFINED]: Define the
+	struct only if _TIMEZONE_DEFINED is not defined.
+
+2013-03-23  cg  <chengang31@gmail.com>  (tiny change)
+
+	* makefile.w32-in (LIB_SRC): Move before first use.
+
 2013-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* pop.c: Fix ERRMAX typo (Bug#13925).
 	(socket_connection) [!HAVE_KRB5_ERROR_TEXT && HAVE_KRB5_ERROR_E_TEXT]:
 	Use ERROR_MAX, not ERRMAX.
-
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
 
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -3718,7 +3724,7 @@
 
 2002-03-05  Francesco Potortì  <pot@gnu.org>
 
-	* etags.c: Honour #line directives.
+	* etags.c: Honor #line directives.
 	(no_line_directive): New global var; set it for old behavior.
 	(main): Remove some #ifdef in the getopt switch.
 	(add_node, put_entries): Code added to merge different chunks of

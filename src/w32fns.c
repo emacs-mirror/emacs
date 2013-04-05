@@ -242,7 +242,7 @@ static unsigned int sound_type = 0xFFFFFFFF;
 
 /* Error if we are not connected to MS-Windows.  */
 void
-check_w32 (void)
+check_window_system (void)
 {
   if (! w32_in_use)
     error ("MS-Windows not in use or not initialized");
@@ -3155,8 +3155,26 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  form.ptCurrentPos.y = w32_system_caret_y;
 
 	  form.rcArea.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, 0);
+
+#ifdef ENABLE_CHECKING
+	  /* Temporary code to catch crashes in computing form.rcArea.top.  */
+	  {
+	    int wmbp = WINDOW_MENU_BAR_P (w);
+	    int wtbp = WINDOW_TOOL_BAR_P (w);
+	    struct frame *wf = WINDOW_XFRAME (w);
+	    int fibw = FRAME_INTERNAL_BORDER_WIDTH (wf);
+	    int wtel = WINDOW_TOP_EDGE_LINE (w);
+	    int wflh = FRAME_LINE_HEIGHT (wf);
+	    int wwhlp= WINDOW_WANTS_HEADER_LINE_P (w);
+	    int chlh = CURRENT_HEADER_LINE_HEIGHT (w);
+	    int whlh = (wwhlp ? chlh : 0);
+
+	    form.rcArea.top = ((wmbp || wtbp) ? 0 : fibw) + wtel * wflh + whlh;
+	  }
+#else
 	  form.rcArea.top = (WINDOW_TOP_EDGE_Y (w)
 			     + WINDOW_HEADER_LINE_HEIGHT (w));
+#endif
 	  form.rcArea.right = (WINDOW_BOX_RIGHT_EDGE_X (w)
 			       - WINDOW_RIGHT_MARGIN_WIDTH (w)
 			       - WINDOW_RIGHT_FRINGE_WIDTH (w));
@@ -5340,7 +5358,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Lisp_Object buffer;
   struct buffer *old_buffer;
 
-  check_w32 ();
+  check_window_system ();
 
   /* Use this general default value to start with until we know if
      this frame has a specified name.  */
@@ -5792,13 +5810,13 @@ Text larger than the specified size is clipped.  */)
       w->total_lines = 40;
     }
 
-  FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
+  FRAME_TOTAL_COLS (f) = WINDOW_TOTAL_COLS (w);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
+  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->contents));
   bset_truncate_lines (current_buffer, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
@@ -7617,8 +7635,6 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sdefault_printer_name);
   defsubr (&Sset_message_beep);
 
-  check_window_system_func = check_w32;
-
   hourglass_hwnd = NULL;
 
   defsubr (&Sx_show_tip);
@@ -7759,6 +7775,9 @@ emacs_abort (void)
 #endif
 	    if (stderr_fd >= 0)
 	      write (stderr_fd, "\r\nBacktrace:\r\n", 14);
+#ifdef CYGWIN
+#define _open open
+#endif
 	    errfile_fd = _open ("emacs_backtrace.txt", O_RDWR | O_CREAT | O_BINARY, S_IREAD | S_IWRITE);
 	    if (errfile_fd >= 0)
 	      {

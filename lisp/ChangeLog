@@ -1,3 +1,273 @@
+2013-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ido.el (ido-completions): Use extra elements of ido-decorations
+	(bug#14143).
+	(ido-decorations): Update docstring.
+
+2013-04-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
+	(global-auto-revert-mode): Let-bind `auto-revert-use-notify' to
+	nil during initialization, in order not to miss changes since the
+	file was opened.  (Bug#14140)
+
+2013-04-05  Leo Liu  <sdl.web@gmail.com>
+
+	* kmacro.el (kmacro-call-macro): Fix bug#14135.
+
+2013-04-05  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (calc-convert-units): Rewrite conditional.
+
+2013-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* electric.el (electric-pair-inhibit-predicate): Add :version.
+
+2013-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-compute-transaction): Fix ordering
+	when a package is required several times (bug#14082).
+
+2013-04-04  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Behave as promised by the docstring.
+	Assume that arg default is a list of faces.
+	(describe-face): Call read-face-name with list of default faces.
+
+2013-04-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* bookmark.el: Fix deletion of bookmarks (bug#13972).
+	(bookmark-bmenu-list): Don't toggle filenames if alist is empty.
+	(bookmark-bmenu-execute-deletions): Only skip first line if it's
+	the header.
+	(bookmark-exit-hook-internal): Save even if list is empty.
+
+2013-04-04  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-pinned-packages): New var.
+	(package--add-to-archive-contents): Obey it (bug#14118).
+
+2013-04-03  Alan Mackenzie  <acm@muc.de>
+
+	Handle `parse-partial-sexp' landing inside a comment opener
+	(Bug#13244). Also adapt to the new values of element 7 of a parse
+	state.
+
+	* progmodes/cc-engine.el (c-state-pp-to-literal): New optional
+	parameter `not-in-delimiter'.  Handle being inside comment opener.
+	(c-invalidate-state-cache-1): Reckon with an extra "invalid"
+	character in case we're typing a '*' after a '/'.
+	(c-literal-limits): Handle the awkward "not-in-delimiter" cond arm
+	instead by passing the parameter to c-state-pp-to-literal.
+
+	* progmodes/cc-fonts.el (c-font-lock-doc-comments): New handling
+	for elt. 7 of a parse state.
+
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* international/latin1-disp.el, international/mule-util.el:
+	* language/cyril-util.el, language/european.el, language/ind-util.el:
+	* language/lao-util.el, language/thai.el, language/tibet-util.el:
+	* language/tibetan.el, language/viet-util.el:
+	Switch from iso-2022-7bit to utf-8 or (if needed) utf-8-emacs.
+
+2013-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-pair-inhibit-predicate): New var (bug#14000).
+	(electric-pair-post-self-insert-function): Use it.
+	(electric-pair-default-inhibit): New function, extracted from
+	electric-pair-post-self-insert-function.
+
+2013-03-31  Roland Winkler  <winkler@gnu.org>
+
+	* emacs-lisp/crm.el (completing-read-multiple): Doc fix.
+
+2013-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hi-lock.el (hi-lock-mode): Cleanup after revert-buffer (bug#13891).
+
+2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
+
+	Un-indent after "pass" and "return" statements (Bug#13888)
+	* progmodes/python.el (python-indent-block-enders): New var.
+	(python-indent-calculate-indentation): Use it.
+
+2013-03-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-drop-volume-letter): Make it an ordinary
+	defun.  Defining it as defalias could introduce too eager
+	byte-compiler optimization.  (Bug#14030)
+
+2013-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* iswitchb.el (iswitchb-read-buffer): Fix typo.
+
+2013-03-30  Leo Liu  <sdl.web@gmail.com>
+
+	* kmacro.el (kmacro-call-macro): Add optional arg MACRO.
+	(kmacro-execute-from-register): Pass the keyboard macro to
+	kmacro-call-macro or repeating won't work correctly.
+
+2013-03-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/subword.el: Back to using `forward-symbol'.
+
+	* subr.el (forward-whitespace, forward-symbol)
+	(forward-same-syntax): Move from thingatpt.el.
+
+2013-03-29  Leo Liu  <sdl.web@gmail.com>
+
+	* kmacro.el (kmacro-to-register): New command.
+	(kmacro-execute-from-register): New function.
+	(kmacro-keymap): Bind to 'x'.  (Bug#14071)
+
+2013-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el: Use defvar-local and setq-local.
+	(mpc--proc-connect): Connection failures are not bugs.
+	(mpc-mode-map): `follow-link' only applies to the buffer's content.
+	(mpc-volume-map): Bind to the up-events.
+
+2013-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/subword.el (superword-mode): Use `forward-sexp'
+	instead of `forward-symbol'.
+
+2013-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-mode): Make it a minor mode.
+	(edebug--recursive-edit): Use it.
+	(edebug-kill-buffer): Don't let-bind kill-buffer-hook.
+	(edebug-temp-display-freq-count): Don't let-bind buffer-read-only.
+
+2013-03-28  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-revert): Don't backup.  (Bug#14066)
+
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* facemenu.el (list-colors-callback): New defvar.
+	(list-colors-redisplay): New function.
+	(list-colors-display): Install list-colors-redisplay as the
+	revert-buffer-function.  (Bug#14063)
+
+2013-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--merge-completions): Make sure prefixes
+	and suffixes don't overlap (bug#14061).
+
+	* case-table.el: Use lexical-binding.
+	(case-table-get-table): New function.
+	(get-upcase-table): Use it.  Mark as obsolete.  Adjust callers.
+
+2013-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/subword.el: Add `superword-mode' to do word motion
+	over symbol_words (parallels and leverages `subword-mode' which
+	does word motion inside MixedCaseWords).
+
+2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell/em-unix.el: Move su and sudo to...
+	* eshell/em-tramp.el: ...Eshell tramp module
+
+2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* desktop.el (desktop--v2s): Rename from desktop-internal-v2s.
+	Change return value to be a sexp.  Delay `get-buffer' to after
+	restoring the desktop (bug#13951).
+
+2013-03-26  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el: Move semantic tag handling back to
+	cedet/semantic/senator.el.  (Bug#14052)
+
+2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/em-prompt.el (eshell-emit-prompt): Make sure we can't insert
+	into the prompt either (bug#13963).
+
+2013-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Don't highlight the "error"
+	part of "(error-foo)".
+
+2013-03-24  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (list-matching-lines-prefix-face): New defcustom.
+	(occur-1): Pass `list-matching-lines-prefix-face' to the function
+	`occur-engine' if `face-differs-from-default-p' returns t.
+	(occur-engine): Add `,' inside backquote construct to evaluate
+	`prefix-face'.  Propertize the prefix with the `prefix-face' face.
+	Pass `prefix-face' to the functions `occur-context-lines' and
+	`occur-engine-add-prefix'.
+	(occur-engine-add-prefix, occur-context-lines): Add optional arg
+	`prefix-face' and propertize the prefix with `prefix-face'.
+	(Bug#14017)
+
+2013-03-24  Leo Liu  <sdl.web@gmail.com>
+
+	* nxml/rng-valid.el (rng-validate-while-idle)
+	(rng-validate-quick-while-idle): Guard against deleted buffer.
+	(Bug#13999)
+
+	* emacs-lisp/edebug.el (edebug-mode): Make sure edebug-kill-buffer
+	is the last entry in kill-buffer-hook.
+
+	* files.el (kill-buffer-hook): Doc fix.
+
+2013-03-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column):
+	Make it safe-local.
+
+	* vc/diff-mode.el (diff-mode-shared-map): Unbind "/" (Bug#14034).
+
+2013-03-23  Leo Liu  <sdl.web@gmail.com>
+
+	* nxml/nxml-util.el (nxml-with-unmodifying-text-property-changes):
+	Remove.
+
+	* nxml/rng-valid.el (rng-validate-mode)
+	(rng-after-change-function, rng-do-some-validation):
+	* nxml/rng-maint.el (rng-validate-buffer):
+	* nxml/nxml-rap.el (nxml-tokenize-forward, nxml-ensure-scan-up-to-date):
+	* nxml/nxml-outln.el (nxml-show-all, nxml-set-outline-state):
+	* nxml/nxml-mode.el (nxml-mode, nxml-degrade, nxml-after-change)
+	(nxml-extend-after-change-region): Use with-silent-modifications.
+
+	* nxml/rng-nxml.el (rng-set-state-after): Do not let-bind
+	timer-idle-list.
+
+	* nxml/rng-valid.el (rng-validate-while-idle-continue-p)
+	(rng-next-error-1, rng-previous-error-1): Do not let-bind
+	timer-idle-list.  (Bug#13999)
+
+2013-03-23  Juri Linkov  <juri@jurta.org>
+
+	* info.el (info-index-match): New face.
+	(Info-index, Info-apropos-matches): Add a nested subgroup to the
+	main pattern and add text properties with the new face to matches
+	in index entries relative to the beginning of the index entry.
+	(Bug#14015)
+
+2013-03-21  Eric Ludlam  <zappo@gnu.org>
+
+	* eieio/eieio-datadebug.el (data-debug/eieio-insert-slots):
+	Inhibit read only while inserting objects.
+
+2013-03-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Update docs to mention
+	`cfengine-auto-mode'.  Use \_> and \_< instead of \> and \< for
+	symbol motion.  Remove "_" from the word syntax.
+
+2013-03-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine-common-syntax): Add "_" to word
+	syntax for both `cfengine2-mode' and `cfengine3-mode'.
+
 2013-03-20  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-next-reference-or-link)
@@ -156,10 +426,6 @@
 2013-03-16  Leo Liu  <sdl.web@gmail.com>
 
 	* thingatpt.el (end-of-sexp): Fix bug#13952.  Use syntax-after.
-
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
 
 2013-03-16  Eli Zaretskii  <eliz@gnu.org>
 
@@ -899,6 +1165,11 @@
 	* emacs-lisp/eieio-opt.el (eieio-class-button, eieio-describe-generic)
 	(eieio-browse-tree, eieio-browse): Use eieio--check-type.
 
+
+2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell/em-cmpl.el: Correct "context-related help" keybinding in
+	commentary.
 
 2013-02-18  Michael Heerdegen  <michael_heerdegen@web.de>
 
@@ -5314,7 +5585,7 @@
 
 	* term/ns-win.el (ns-read-file-name): Update declaration to match
 	nsfns.m.
-	(ns-respond-to-change-font): Change fontsize separatly so we are sure
+	(ns-respond-to-change-font): Change fontsize separately so we are sure
 	it is set when font is acted upon.
 
 2012-10-07  Fabián Ezequiel Gallina  <fgallina@cuca>

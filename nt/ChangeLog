@@ -1,3 +1,98 @@
+2013-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* README: A better documentation of ddeclient.exe.
+
+	* README.W32: A better documentation of ddeclient.exe.
+
+	* paths.h (PATH_EXEC): Add nt/oo-spd/i386 and nt/oo/i386
+	subdirectories.
+
+2013-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Remove definition.
+
+	* config.nt (TERM_HEADER): Move the definition to "w32term.h" from
+	ms-w32.h.
+
+2013-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (copysign) [_MSC_VER]: Redirect to _copysign.
+
+	* config.nt (HAVE_COPYSIGN): Define.
+
+2013-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_XKBGETKEYBOARD): Remove.
+	(HAVE_XKB): New macro.
+
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap, bootstrap-nmake, bootstrap-gmake, install-addpm):
+	Depend on .exe files.
+
+	* inc/ms-w32.h (sys_localtime) [_W64]: Provide a prototype, to
+	avoid MinGW64 compiler warnings in editfns.c.
+
+	Fix rules for parallel builds.
+	* makefile.w32-in (ALL): Depend on *.exe files, not on phony names
+	without the .exe suffix.
+	(addpm, ddeclient, cmdproxy, addsection, preprep): Remove phony
+	targets.
+	(.PHONY): Remove.
+
+	* addpm.c (_WIN32_IE) [_W64]: Move after inclusion of standard
+	headers, since that's where _W64 is declared by MinGW64.
+
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS): Don't define.
+	(HAVE__SETJMP) [_W64]: Undefine for MinGW64.
+
+	* addsection.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not
+	define for MinGW64.
+
+	* preprep.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not define
+	for MinGW64.
+
+	Fix more incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00733.html
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00699.html
+	and in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00707.html.
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS) [_W64]: Define to 1.
+	For MinGW64, include sys/types.h and time.h.
+	(_WIN32_WINNT) [!_W64]: Don't define for MinGW64.
+
+	* inc/sys/stat.h (chmod): Remove _CRTIMP from prototype.
+
+	* inc/sys/time.h (struct timeval) [!_W64]: Guard definition with
+	_W64.
+	(struct timezone) [!_TIMEZONE_DEFINED]: Guard definition with
+	_TIMEZONE_DEFINED.
+
+	* addpm.c (_WIN32_IE) [_W64]: For MinGW64, don't define to 0x400.
+
+	* inc/sys/stat.h: Remove _CRTIMP from prototypes of fstat, stat,
+	lstat, and fstatat.
+
+2013-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00611.html.
+	* inc/ms-w32.h (struct timespec): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+	(sigset_t) [!_POSIX]: Typedef for MinGW64.
+	(_WIN32_WINNT, WIN32_LEAN_AND_MEAN): Move definitions before
+	including the first system header, to avoid redefinition if some
+	system header defines a default value.
+
+	* inc/sys/time.h (struct itimerval): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+
 2013-03-16  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix the MSVC build.  (Bug#13939)

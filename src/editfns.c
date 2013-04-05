@@ -373,7 +373,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
   else if (WINDOWP (object))
-    object = XWINDOW (object)->buffer;
+    object = XWINDOW (object)->contents;
 
   if (!BUFFERP (object))
     /* pos-property only makes sense in buffers right now, since strings
@@ -839,14 +839,14 @@ Lisp_Object
 save_excursion_save (void)
 {
   return make_save_value
-    ("oooo",
+    (SAVE_TYPE_OBJ_OBJ_OBJ_OBJ,
      Fpoint_marker (),
      /* Do not copy the mark if it points to nowhere.  */
      (XMARKER (BVAR (current_buffer, mark))->buffer
       ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
       : Qnil),
      /* Selected window if current buffer is shown in it, nil otherwise.  */
-     ((XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+     (EQ (XWINDOW (selected_window)->contents, Fcurrent_buffer ())
       ? selected_window : Qnil),
      BVAR (current_buffer, mark_active));
 }
@@ -915,7 +915,7 @@ save_excursion_restore (Lisp_Object info)
   tem = XSAVE_OBJECT (info, 2);
   if (WINDOWP (tem)
       && !EQ (tem, selected_window)
-      && (tem1 = XWINDOW (tem)->buffer,
+      && (tem1 = XWINDOW (tem)->contents,
 	  (/* Window is live...  */
 	   BUFFERP (tem1)
 	   /* ...and it shows the current buffer.  */
@@ -3958,7 +3958,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		   trailing "d").  */
 		pMlen = sizeof pMd - 2
 	      };
-	      verify (0 < USEFUL_PRECISION_MAX);
+	      verify (USEFUL_PRECISION_MAX > 0);
 
 	      int prec;
 	      ptrdiff_t padding, sprintf_bytes;
@@ -4241,7 +4241,10 @@ usage: (format STRING &rest OBJECTS)  */)
 	    memcpy (buf, initial_buffer, used);
 	  }
 	else
-	  XSAVE_POINTER (buf_save_value, 0) = buf = xrealloc (buf, bufsize);
+	  {
+	    buf = xrealloc (buf, bufsize);
+	    set_save_pointer (buf_save_value, 0, buf);
+	  }
 
 	p = buf + used;
       }

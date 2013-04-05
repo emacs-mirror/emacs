@@ -1,3 +1,37 @@
+2013-04-02  Fabrice Niessen  <fni@missioncriticalit.com>
+
+	* themes/leuven-theme.el: Update theme.
+
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* tutorials/TUTORIAL.ko, tutorials/TUTORIAL.th:
+	Switch from iso-2022-7bit to utf-8.
+
+2013-03-30  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention `kmacro-to-register' and new eldoc feature.
+
+2013-03-29  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* NEWS (Eshell): New entry for em-tramp change in r112148
+
+2013-03-21  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/ede-autoconf.srt: Change Copyright to FSF.
+	(ede-empty): Change AC_INIT to use PROJECT_NAME, and
+	PROJECT_VERSION.
+
+	* srecode/ede-make.srt (ede-empty): Add a dependency on :project.
+	Add header comment specifying the project's relative path.
+
+	* srecode/c.srt (header_guard): Upcase the filename symbol.
+
+2013-03-21  Vladimir Kazanov <vkazanov@inbox.ru>
+
+	* srecode/java.srt (empty-main): New.
+	(class-tag): Decapitalize class.
+
 2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Emacs crashes with ImageMagick 6.8.2-3 through 6.8.3-9 (Bug#13867).

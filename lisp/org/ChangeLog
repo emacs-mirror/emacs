@@ -5577,7 +5577,7 @@
 
 2012-04-01  Bernt Hansen  <bernt@norang.ca>
 
-	* org.el: Honour existing restrictions when regenerating the agenda.
+	* org.el: Honor existing restrictions when regenerating the agenda.
 
 2012-04-01  Bastien Guerry  <bzg@gnu.org>
 

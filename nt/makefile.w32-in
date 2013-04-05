@@ -31,33 +31,26 @@ CLIENTRES	= $(BLD)/emacsclient.res
 
 XMFLAGS		=
 
-ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
+ALL		= $(BLD)/addpm.exe $(BLD)/ddeclient.exe $(BLD)/runemacs.exe \
+		  $(BLD)/cmdproxy.exe $(BLD)/addsection.exe $(BLD)/preprep.exe
 
-.PHONY: $(ALL)
-
-
-addpm:		  stamp_BLD $(BLD)/addpm.exe
 $(BLD)/addpm.exe: $(BLD)/addpm.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) \
 		  $(USER32) $(OLE32) $(UUID) $(SHELL32)
 
-ddeclient:	  stamp_BLD $(BLD)/ddeclient.exe
 $(BLD)/ddeclient.exe: $(BLD)/ddeclient.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
 
-cmdproxy:	  stamp_BLD $(BLD)/cmdproxy.exe
 $(BLD)/cmdproxy.exe: $(BLD)/cmdproxy.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(USER32)
 
-addsection:	  stamp_BLD $(BLD)/addsection.exe
 $(BLD)/addsection.exe: $(BLD)/addsection.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(USER32)
 
-preprep:	  stamp_BLD $(BLD)/preprep.exe
 $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 		  $(LINK) $(LINK_OUT)$@ \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS)
@@ -72,7 +65,6 @@ $(TRES):	emacs.rc icons/emacs.ico $(EMACS_MANIFEST) stamp_BLD
 $(CLIENTRES):	emacsclient.rc stamp_BLD
 		$(RC) $(RC_OUT)$(CLIENTRES) emacsclient.rc
 
-runemacs:	  stamp_BLD $(BLD)/runemacs.exe
 $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
 		  $(LINK) $(LINK_OUT)$@ $(SUBSYSTEM_WINDOWS) \
 		  $(LINK_FLAGS) $(ALL_DEPS) $(BASE_LIBS) $(ADVAPI32) $(USER32)
@@ -93,7 +85,7 @@ all:	which-sh $(ALL) $(CLIENTRES) all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-$(MAKETYPE): maybe-bootstrap
 
-all-other-dirs-nmake: addsection
+all-other-dirs-nmake: $(BLD)/addsection.exe
 	cd ..\lib
 	$(MAKE) $(MFLAGS) all
 	cd ..\lib-src
@@ -106,7 +98,7 @@ all-other-dirs-nmake: addsection
 	$(MAKE) $(MFLAGS) all
 	cd ..\nt
 
-all-other-dirs-gmake: addsection
+all-other-dirs-gmake: $(BLD)/addsection.exe
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src all
@@ -153,10 +145,10 @@ maybe-bootstrap-SH: doit
 
 # Bootstrap depends on cmdproxy because some Lisp functions
 # loaded during bootstrap may need to run shell commands.
-bootstrap:	addsection cmdproxy bootstrap-$(MAKETYPE)
+bootstrap:	$(BLD)/addsection.exe $(BLD)/cmdproxy.exe bootstrap-$(MAKETYPE)
 	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 
-bootstrap-nmake: addsection cmdproxy
+bootstrap-nmake: $(BLD)/addsection.exe $(BLD)/cmdproxy.exe
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\src
@@ -176,7 +168,7 @@ bootstrap-nmake: addsection cmdproxy
 	$(MAKE) $(MFLAGS) DOC
 	cd ..\nt
 
-bootstrap-gmake: addsection cmdproxy
+bootstrap-gmake: $(BLD)/addsection.exe $(BLD)/cmdproxy.exe
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
@@ -257,7 +249,7 @@ install-other-dirs-gmake: all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp install
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim install
 
-install-addpm: $(INSTALL_DIR)/bin addpm
+install-addpm: $(INSTALL_DIR)/bin $(BLD)/addpm.exe
 	- $(CP) $(BLD)/addpm.exe $(INSTALL_DIR)/bin
 
 install-shortcuts: install-addpm

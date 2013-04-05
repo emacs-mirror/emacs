@@ -27,6 +27,7 @@ LOCAL_FLAGS	= -DNO_LDAV=1 -DNO_ARCHIVES=1 -I../lib \
 		  -I../nt/inc -I../src $(EMACS_EXTRA_C_FLAGS)
 
 LIBS 		= $(BASE_LIBS) $(ADVAPI32)
+LIB_SRC		= .
 
 # The following target is used by makefile.w32-in files in other directories.
 make-docfile:	$(BLD)/make-docfile.exe
@@ -360,7 +361,6 @@ TAGS: $(BLD)/etags.exe *.c *.h
 ### DEPENDENCIES ###
 
 EMACS_ROOT	= ..
-LIB_SRC		= .
 SRC		= $(EMACS_ROOT)/src
 NT_INC		= $(EMACS_ROOT)/nt/inc
 GNU_LIB		= $(EMACS_ROOT)/lib

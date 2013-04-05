@@ -228,6 +228,25 @@ static struct {
   NULL, 0, 0
 };
 
+/*
+ * State for pending menu activation:
+ * MENU_NONE     Normal state
+ * MENU_PENDING  A menu has been clicked on, but has been canceled so we can
+ *               run lisp to update the menu.
+ * MENU_OPENING  Menu is up to date, and the click event is redone so the menu
+ *               will open.
+ */
+#define MENU_NONE 0
+#define MENU_PENDING 1
+#define MENU_OPENING 2
+static int menu_will_open_state = MENU_NONE;
+
+/* Saved position for menu click.  */
+static CGPoint menu_mouse_point;
+
+/* Title for the menu to open.  */
+static char *menu_pending_title = 0;
+
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
 #define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
@@ -994,7 +1013,7 @@ ns_raise_frame (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
-  check_ns ();
+  check_window_system ();
   block_input ();
   if (FRAME_VISIBLE_P (f))
     [[view window] makeKeyAndOrderFront: NSApp];
@@ -1009,7 +1028,7 @@ ns_lower_frame (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
-  check_ns ();
+  check_window_system ();
   block_input ();
   [[view window] orderBack: NSApp];
   unblock_input ();
@@ -1114,7 +1133,7 @@ x_make_frame_invisible (struct frame *f)
 {
   NSView * view = FRAME_NS_VIEW (f);
   NSTRACE (x_make_frame_invisible);
-  check_ns ();
+  check_window_system ();
   [[view window] orderOut: NSApp];
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, 0);
@@ -1130,7 +1149,7 @@ x_iconify_frame (struct frame *f)
   NSView * view = FRAME_NS_VIEW (f);
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
   NSTRACE (x_iconify_frame);
-  check_ns ();
+  check_window_system ();
 
   if (dpyinfo->x_highlight_frame == f)
     dpyinfo->x_highlight_frame = 0;
@@ -1159,7 +1178,7 @@ x_free_frame_resources (struct frame *f)
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   NSTRACE (x_free_frame_resources);
-  check_ns ();
+  check_window_system ();
 
   [(EmacsView *)view setWindowClosing: YES]; /* may not have been informed */
 
@@ -1200,7 +1219,7 @@ x_destroy_window (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSTRACE (x_destroy_window);
-  check_ns ();
+  check_window_system ();
   x_free_frame_resources (f);
   ns_window_num--;
 }
@@ -3387,6 +3406,77 @@ check_native_fs ()
     }
 }
 #endif
+
+const char *
+ns_get_pending_menu_title ()
+{
+  return menu_pending_title;
+}
+
+/* Check if menu open should be cancelled or continued as normal.  */
+void
+ns_check_menu_open (NSMenu *menu)
+{
+  /* GNUStep and OSX <= 10.4 does not have cancelTracking.  */
+#if defined(NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+
+  /* Click in menu bar? */
+  NSArray *a = [[NSApp mainMenu] itemArray];
+  int i;
+  BOOL found = NO;
+  for (i = 0; ! found && i < [a count]; i++)
+    found = menu == [[a objectAtIndex:i] submenu];
+  if (found)
+    {
+      if (menu_will_open_state == MENU_NONE && emacs_event)
+        {
+          NSEvent *theEvent = [NSApp currentEvent];
+          struct frame *emacsframe = SELECTED_FRAME ();
+
+          [menu cancelTracking];
+          menu_will_open_state = MENU_PENDING;
+          emacs_event->kind = MENU_BAR_ACTIVATE_EVENT;
+          EV_TRAILER (theEvent);
+
+          CGEventRef ourEvent = CGEventCreate (NULL);
+          menu_mouse_point = CGEventGetLocation (ourEvent);
+          CFRelease (ourEvent);
+          xfree (menu_pending_title);
+          menu_pending_title = xstrdup ([[menu title] UTF8String]);
+        }
+      else if (menu_will_open_state == MENU_OPENING)
+        {
+          menu_will_open_state = MENU_NONE;
+        }
+    }
+#endif
+}
+
+/* Redo saved menu click if state is MENU_PENDING.  */
+void
+ns_check_pending_open_menu ()
+{
+#ifdef NS_IMPL_COCOA
+  if (menu_will_open_state == MENU_PENDING)
+    {
+      CGEventSourceRef source
+        = CGEventSourceCreate (kCGEventSourceStateHIDSystemState);
+
+      CGEventRef event = CGEventCreateMouseEvent (source,
+                                                  kCGEventLeftMouseDown,
+                                                  menu_mouse_point,
+                                                  kCGMouseButtonLeft);
+      CGEventSetType (event, kCGEventLeftMouseDown);
+      CGEventPost (kCGHIDEventTap, event);
+      CFRelease (event);
+      CFRelease (source);
+
+      menu_will_open_state = MENU_OPENING;
+    }
+#endif
+}
+
 
 static int
 ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
@@ -6532,7 +6622,7 @@ not_in_argv (NSString *arg)
 {
   Lisp_Object str = Qnil;
   struct frame *f = SELECTED_FRAME ();
-  struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->buffer);
+  struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->contents);
 
   if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
     return NSAccessibilityTextFieldRole;

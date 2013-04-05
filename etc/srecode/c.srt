@@ -46,12 +46,12 @@ template empty :time :user :file :c
 
 template header_guard :file :blank
 ----
-#ifndef {{FILENAME_SYMBOL}}
-#define {{FILENAME_SYMBOL}} 1
+#ifndef {{FILENAME_SYMBOL:upcase}}
+#define {{FILENAME_SYMBOL:upcase}} 1
 
 {{^}}
 
-#endif // {{FILENAME_SYMBOL}}
+#endif // {{FILENAME_SYMBOL:upcase}}
 ----
 
 context misc

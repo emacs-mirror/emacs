@@ -149,7 +149,7 @@ See the variable `nxml-section-element-name-regexp' for more details."
 (defun nxml-show-all ()
   "Show all elements in the buffer normally."
   (interactive)
-  (nxml-with-unmodifying-text-property-changes
+  (with-silent-modifications
     (remove-text-properties (point-min)
 			    (point-max)
 			    '(nxml-outline-state nil)))
@@ -370,7 +370,7 @@ customize which elements are recognized as sections and headings."
   (get-text-property pos 'nxml-outline-state))
 
 (defun nxml-set-outline-state (pos state)
-  (nxml-with-unmodifying-text-property-changes
+  (with-silent-modifications
     (if state
 	(put-text-property pos (1+ pos) 'nxml-outline-state state)
       (remove-text-properties pos (1+ pos) '(nxml-outline-state nil)))))

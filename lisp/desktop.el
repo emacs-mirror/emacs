@@ -697,83 +697,69 @@ is nil, ask the user where to save the desktop."
      ll)))
 
 ;; ----------------------------------------------------------------------------
-(defun desktop-internal-v2s (value)
-  "Convert VALUE to a pair (QUOTE . TXT); (eval (read TXT)) gives VALUE.
-TXT is a string that when read and evaluated yields VALUE.
+(defun desktop--v2s (value)
+  "Convert VALUE to a pair (QUOTE . SEXP); (eval SEXP) gives VALUE.
+SEXP is an sexp that when evaluated yields VALUE.
 QUOTE may be `may' (value may be quoted),
 `must' (value must be quoted), or nil (value must not be quoted)."
   (cond
     ((or (numberp value) (null value) (eq t value) (keywordp value))
-     (cons 'may (prin1-to-string value)))
+     (cons 'may value))
     ((stringp value)
      (let ((copy (copy-sequence value)))
        (set-text-properties 0 (length copy) nil copy)
-       ;; Get rid of text properties because we cannot read them
-       (cons 'may (prin1-to-string copy))))
+       ;; Get rid of text properties because we cannot read them.
+       (cons 'may copy)))
     ((symbolp value)
-     (cons 'must (prin1-to-string value)))
+     (cons 'must value))
     ((vectorp value)
-     (let* ((special nil)
-	    (pass1 (mapcar
-		    (lambda (el)
-		      (let ((res (desktop-internal-v2s el)))
-			(if (null (car res))
-			    (setq special t))
-			res))
-		    value)))
+     (let* ((pass1 (mapcar #'desktop--v2s value))
+	    (special (assq nil pass1)))
        (if special
-	   (cons nil (concat "(vector "
-			     (mapconcat (lambda (el)
-					  (if (eq (car el) 'must)
-					      (concat "'" (cdr el))
-					    (cdr el)))
-					pass1
-					" ")
-			     ")"))
-	 (cons 'may (concat "[" (mapconcat 'cdr pass1 " ") "]")))))
+	   (cons nil `(vector
+                       ,@(mapcar (lambda (el)
+                                   (if (eq (car el) 'must)
+                                       `',(cdr el) (cdr el)))
+                                 pass1)))
+	 (cons 'may `[,@(mapcar #'cdr pass1)]))))
     ((consp value)
      (let ((p value)
 	   newlist
 	   use-list*
 	   anynil)
        (while (consp p)
-	 (let ((q.txt (desktop-internal-v2s (car p))))
-	   (or anynil (setq anynil (null (car q.txt))))
-	   (setq newlist (cons q.txt newlist)))
+	 (let ((q.sexp (desktop--v2s (car p))))
+           (push q.sexp newlist))
 	 (setq p (cdr p)))
-       (if p
-	   (let ((last (desktop-internal-v2s p)))
-	     (or anynil (setq anynil (null (car last))))
-	     (or anynil
-		 (setq newlist (cons '(must . ".") newlist)))
-	     (setq use-list* t)
-	     (setq newlist (cons last newlist))))
-       (setq newlist (nreverse newlist))
-       (if anynil
+       (when p
+         (let ((last (desktop--v2s p)))
+           (setq use-list* t)
+           (push last newlist)))
+       (if (assq nil newlist)
 	   (cons nil
-		 (concat (if use-list* "(desktop-list* "  "(list ")
-			 (mapconcat (lambda (el)
-				      (if (eq (car el) 'must)
-					  (concat "'" (cdr el))
-					(cdr el)))
-				    newlist
-				    " ")
-			 ")"))
+		 `(,(if use-list* 'desktop-list* 'list)
+                   ,@(mapcar (lambda (el)
+                               (if (eq (car el) 'must)
+                                   `',(cdr el) (cdr el)))
+                             (nreverse newlist))))
 	 (cons 'must
-	       (concat "(" (mapconcat 'cdr newlist " ") ")")))))
+	       `(,@(mapcar #'cdr
+                           (nreverse (if use-list* (cdr newlist) newlist)))
+                 ,@(if use-list* (cdar newlist)))))))
     ((subrp value)
-     (cons nil (concat "(symbol-function '"
-		       (substring (prin1-to-string value) 7 -1)
-		       ")")))
+     (cons nil `(symbol-function
+                 ',(intern-soft (substring (prin1-to-string value) 7 -1)))))
     ((markerp value)
-     (let ((pos (prin1-to-string (marker-position value)))
-	   (buf (prin1-to-string (buffer-name (marker-buffer value)))))
-       (cons nil (concat "(let ((mk (make-marker)))"
-			 " (add-hook 'desktop-delay-hook"
-			 " (list 'lambda '() (list 'set-marker mk "
-			 pos " (get-buffer " buf ")))) mk)"))))
-    (t					 ; save as text
-     (cons 'may "\"Unprintable entity\""))))
+     (let ((pos (marker-position value))
+	   (buf (buffer-name (marker-buffer value))))
+       (cons nil
+             `(let ((mk (make-marker)))
+                (add-hook 'desktop-delay-hook
+                          `(lambda ()
+                             (set-marker ,mk ,,pos (get-buffer ,,buf))))
+                mk))))
+    (t                                  ; Save as text.
+     (cons 'may "Unprintable entity"))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-value-to-string (value)
@@ -781,9 +767,11 @@ QUOTE may be `may' (value may be quoted),
 Not all types of values are supported."
   (let* ((print-escape-newlines t)
 	 (float-output-format nil)
-	 (quote.txt (desktop-internal-v2s value))
-	 (quote (car quote.txt))
-	 (txt (cdr quote.txt)))
+	 (quote.sexp (desktop--v2s value))
+	 (quote (car quote.sexp))
+	 (txt
+          (let ((print-quoted t))
+            (prin1-to-string (cdr quote.sexp)))))
     (if (eq quote 'must)
 	(concat "'" txt)
       txt)))

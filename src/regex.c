@@ -33,7 +33,7 @@
 
 /* Ignore some GCC warnings for now.  This section should go away
    once the Emacs and Gnulib regex code is merged.  */
-#if (__GNUC__ == 4 && 5 <= __GNUC_MINOR__) || 4 < __GNUC__
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 # ifndef emacs
 #  pragma GCC diagnostic ignored "-Wunused-but-set-variable"
@@ -6404,8 +6404,8 @@ weak_function
 re_exec (const char *s)
 {
   const size_t len = strlen (s);
-  return
-    0 <= re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0);
+  return (re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0)
+	  >= 0);
 }
 #endif /* _REGEX_RE_COMP */
 

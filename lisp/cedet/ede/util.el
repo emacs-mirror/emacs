@@ -49,7 +49,7 @@ Argument NEWVERSION is the version number to use in the current project."
 (defmethod project-update-version ((ot ede-project))
   "The :version of the project OT has been updated.
 Handle saving, or other detail."
-  (error "project-update-version not supported by %s" (object-name ot)))
+  (error "project-update-version not supported by %s" (eieio-object-name ot)))
 
 (defmethod ede-update-version-in-source ((this ede-project) version)
   "Change occurrences of a version string in sources.

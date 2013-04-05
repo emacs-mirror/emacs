@@ -59,7 +59,7 @@ DIR is the directory to search from."
   "Get the root directory for DIR."
   (when (not dir) (setq dir default-directory))
   (let ((case-fold-search t)
-	(proj (ede-emacs-file-existing dir)))
+	(proj (ede-files-find-existing dir ede-emacs-project-list)))
     (if proj
 	(ede-up-directory (file-name-directory
 			   (oref proj :file)))
@@ -134,7 +134,7 @@ m4_define(\\[SXEM4CS_BETA_VERSION\\], \\[\\([0-9]+\\)\\])")
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
-  (or (ede-emacs-file-existing dir)
+  (or (ede-files-find-existing dir ede-emacs-project-list)
       ;; Doesn't already exist, so let's make one.
       (let* ((vertuple (ede-emacs-version dir))
 	     (proj (ede-emacs-project

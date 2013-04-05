@@ -223,7 +223,7 @@ for instance using the window manager, then this produces a quit and
   FRAME_PTR f = NULL;
   Lisp_Object window;
 
-  check_x ();
+  check_window_system ();
 
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
@@ -976,7 +976,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
       if (! menubar_widget)
 	previous_menu_items_used = 0;
 
-      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
+      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
       /* Don't let the debugger step into this code
 	 because it is not reentrant.  */
@@ -1055,7 +1055,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
       wv->help = Qnil;
       first_wv = wv;
 
-      for (i = 0; 0 <= submenu_start[i]; i++)
+      for (i = 0; submenu_start[i] >= 0; i++)
 	{
 	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
@@ -2479,7 +2479,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 #endif
 
   record_unwind_protect (pop_down_menu,
-			 make_save_value ("pp", f, menu));
+			 make_save_value (SAVE_TYPE_PTR_PTR, f, menu));
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */

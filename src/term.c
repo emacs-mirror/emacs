@@ -2909,7 +2909,7 @@ dissociate_if_controlling_tty (int fd)
 {
   /* If tcgetpgrp succeeds, fd is the controlling terminal,
      so dissociate it by invoking setsid.  */
-  if (0 <= tcgetpgrp (fd) && setsid () < 0)
+  if (tcgetpgrp (fd) >= 0 && setsid () < 0)
     {
 #ifdef TIOCNOTTY
       /* setsid failed, presumably because Emacs is already a process

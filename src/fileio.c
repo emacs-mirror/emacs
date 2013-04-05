@@ -3958,7 +3958,7 @@ by calling `format-decode', which see.  */)
 
 	  /* If display currently starts at beginning of line,
 	     keep it that way.  */
-	  if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	  if (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer)
 	    XWINDOW (selected_window)->start_at_line_beg = !NILP (Fbolp ());
 
 	  replace_handled = 1;
@@ -4108,7 +4108,7 @@ by calling `format-decode', which see.  */)
 
       /* If display currently starts at beginning of line,
 	 keep it that way.  */
-      if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+      if (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer)
 	XWINDOW (selected_window)->start_at_line_beg = !NILP (Fbolp ());
 
       /* Replace the chars that we need to replace,
@@ -4218,7 +4218,8 @@ by calling `format-decode', which see.  */)
 	       to be signaled after decoding the text we read.  */
 	    nbytes = internal_condition_case_1
 	      (read_non_regular,
-	       make_save_value ("iii", (ptrdiff_t) fd, inserted, trytry),
+	       make_save_value (SAVE_TYPE_INT_INT_INT, (ptrdiff_t) fd,
+				inserted, trytry),
 	       Qerror, read_non_regular_quit);
 
 	    if (NILP (nbytes))
@@ -5012,7 +5013,7 @@ This calls `write-region-annotate-functions' at the start, and
       && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
     {
       int desc1 = emacs_open (fn, O_WRONLY | O_BINARY, 0);
-      if (0 <= desc1)
+      if (desc1 >= 0)
 	{
 	  struct stat st1;
 	  if (fstat (desc1, &st1) == 0

@@ -282,7 +282,7 @@ get_child_status (pid_t child, int *status, int options, bool interruptible)
      reap an unwanted process by mistake.  For example, invoking
      waitpid (-1, ...) can mess up glib by reaping glib's subprocesses,
      so that another thread running glib won't find them.  */
-  eassert (0 < child);
+  eassert (child > 0);
 
   while ((pid = waitpid (child, status, options)) < 0)
     {
@@ -2691,7 +2691,7 @@ procfs_ttyname (int rdev)
 
       while (!feof (fdev) && !ferror (fdev))
 	{
-	  if (3 <= fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor)
+	  if (fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor) >= 3
 	      && major == MAJOR (rdev))
 	    {
 	      minor_beg = strtoul (minor, &endp, 0);
@@ -2731,7 +2731,7 @@ procfs_get_total_memory (void)
 
       while (!feof (fmem) && !ferror (fmem))
 	{
-	  if (2 <= fscanf (fmem, "%s %lu kB\n", entry_name, &entry_value)
+	  if (fscanf (fmem, "%s %lu kB\n", entry_name, &entry_value) >= 2
 	      && strcmp (entry_name, "MemTotal:") == 0)
 	    {
 	      retval = entry_value;

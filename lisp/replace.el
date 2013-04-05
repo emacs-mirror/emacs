@@ -1125,6 +1125,14 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
+(defcustom list-matching-lines-prefix-face 'shadow
+  "Face used by \\[list-matching-lines] to show the prefix column.
+If the face doesn't differ from the default face,
+don't highlight the prefix with line numbers specially."
+  :type 'face
+  :group 'matching
+  :version "24.4")
+
 (defcustom occur-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler follow-link)
@@ -1334,7 +1342,9 @@ See also `multi-occur'."
 		      (isearch-no-upper-case-p regexp t)
 		    case-fold-search)
 		  list-matching-lines-buffer-name-face
-		  nil list-matching-lines-face
+		  (if (face-differs-from-default-p list-matching-lines-prefix-face)
+		      list-matching-lines-prefix-face)
+		  list-matching-lines-face
 		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
@@ -1423,7 +1433,7 @@ See also `multi-occur'."
 			    (apply #'propertize (format "%7d:" lines)
 				   (append
 				    (when prefix-face
-				      `(font-lock-face prefix-face))
+				      `(font-lock-face ,prefix-face))
 				    `(occur-prefix t mouse-face (highlight)
 				      ;; Allow insertion of text at
 				      ;; the end of the prefix (for
@@ -1447,7 +1457,9 @@ See also `multi-occur'."
 			     ;; of multi-line matches.
 			     (replace-regexp-in-string
 			      "\n"
-			      "\n       :"
+			      (if prefix-face
+				  (propertize "\n       :" 'font-lock-face prefix-face)
+				"\n       :")
 			      match-str)
 			     ;; Add marker at eol, but no mouse props.
 			     (propertize "\n" 'occur-target marker)))
@@ -1458,7 +1470,8 @@ See also `multi-occur'."
 			      ;; The complex multi-line display style.
 			      (setq ret (occur-context-lines
 					 out-line nlines keep-props begpt endpt
-					 lines prev-lines prev-after-lines))
+					 lines prev-lines prev-after-lines
+					 prefix-face))
 			      ;; Set first elem of the returned list to `data',
 			      ;; and the second elem to `prev-after-lines'.
 			      (setq prev-after-lines (nth 1 ret))
@@ -1482,7 +1495,7 @@ See also `multi-occur'."
 		(when prev-after-lines
 		  (with-current-buffer out-buf
 		    (insert (apply #'concat (occur-engine-add-prefix
-					     prev-after-lines)))))))
+					     prev-after-lines prefix-face)))))))
 	    (when (not (zerop matches)) ;; is the count zero?
 	      (setq globalcount (+ globalcount matches))
 	      (with-current-buffer out-buf
@@ -1537,10 +1550,13 @@ See also `multi-occur'."
 	str)
     (buffer-substring-no-properties beg end)))
 
-(defun occur-engine-add-prefix (lines)
+(defun occur-engine-add-prefix (lines &optional prefix-face)
   (mapcar
    #'(lambda (line)
-       (concat "       :" line "\n"))
+       (concat (if prefix-face
+		   (propertize "       :" 'font-lock-face prefix-face)
+		 "       :")
+	       line "\n"))
    lines))
 
 (defun occur-accumulate-lines (count &optional keep-props pt)
@@ -1569,7 +1585,8 @@ See also `multi-occur'."
 ;; Generate a list of lines, add prefixes to all but OUT-LINE,
 ;; then concatenate them all together.
 (defun occur-context-lines (out-line nlines keep-props begpt endpt
-				     lines prev-lines prev-after-lines)
+				     lines prev-lines prev-after-lines
+				     &optional prefix-face)
   ;; Find after- and before-context lines of the current match.
   (let ((before-lines
 	 (nreverse (cdr (occur-accumulate-lines
@@ -1609,10 +1626,13 @@ See also `multi-occur'."
      ;; Return a list where the first element is the output line.
      (apply #'concat
 	    (append
-	     (and prev-after-lines
-		  (occur-engine-add-prefix prev-after-lines))
-	     (and separator (list separator))
-	     (occur-engine-add-prefix before-lines)
+	     (if prev-after-lines
+		 (occur-engine-add-prefix prev-after-lines prefix-face))
+	     (if separator
+		 (list (if prefix-face
+			   (propertize separator 'font-lock-face prefix-face)
+			 separator)))
+	     (occur-engine-add-prefix before-lines prefix-face)
 	     (list out-line)))
      ;; And the second element is the list of context after-lines.
      (if (> nlines 0) after-lines))))

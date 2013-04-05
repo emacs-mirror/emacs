@@ -43,6 +43,23 @@ package {{FILENAME_AS_PACKAGE}};
 ----
 bind "e"
 
+template empty-main :file :user :time :java :indent
+"Fill out an empty file with a class having a static main method"
+sectiondictionary "CLASSSECTION"
+set NAME macro "FILENAME_AS_CLASS"
+----
+{{>:filecomment}}
+
+package {{FILENAME_AS_PACKAGE}};
+
+{{<CLASSSECTION:declaration:class}}
+public static void main(String args[]) {
+       {{^}}
+}
+{{/CLASSSECTION}}
+----
+bind "l"
+
 context declaration
 
 template import :blank :indent
@@ -74,8 +91,8 @@ Override this to affect applications, or the outer class structure for
 the user-facing template."
 ----
 {{>:declaration:javadoc-class}}
-public Class {{?NAME}} {{#PARENTS}}{{#FIRST}}extends {{/FIRST}}{{#NOTFIRST}}implements {{/NOTFIRST}}{{NAME}}{{/PARENTS}}
-{     
+public class {{?NAME}} {{#PARENTS}}{{#FIRST}}extends {{/FIRST}}{{#NOTFIRST}}implements {{/NOTFIRST}}{{NAME}}{{/PARENTS}}
+{
    {{^}}
 };
 ----

@@ -1,4 +1,14 @@
-2013-03-20  Paul Eggert  <eggert@cs.ucla.edu>
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* quail/cyrillic.el, quail/czech.el, quail/ethiopic.el:
+	* quail/greek.el, quail/hanja.el, quail/hanja3.el, quail/hebrew.el:
+	* quail/lao.el, quail/lrt.el, quail/slovak.el, quail/symbol-ksc.el:
+	* quail/thai.el, quail/tibetan.el, quail/viqr.el, quail/vntelex.el:
+	* quail/vnvni.el, quail/welsh.el:
+	Switch from iso-2022-7bit to utf-8 or (if needed) utf-8-emacs.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): Use batch-skkdic-convert.
 
@@ -28,10 +38,6 @@
 	(latin-ltx--define-rules): Check for conflicts.  Eval `re's.
 	(rules): Use tighter regexps to avoid conflicts.
 	Consolidate the various rules for combining marks.
-
-2013-03-16  Glenn Morris  <rgm@gnu.org>
-
-	* Version 24.3 released.
 
 2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

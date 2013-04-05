@@ -121,7 +121,7 @@ EMACS_TIME_SIGN (EMACS_TIME t)
 SYSTIME_INLINE int
 EMACS_TIME_VALID_P (EMACS_TIME t)
 {
-  return 0 <= t.tv_nsec;
+  return t.tv_nsec >= 0;
 }
 
 /* Convert the double D to the greatest EMACS_TIME not greater than D.

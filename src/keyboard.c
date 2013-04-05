@@ -210,12 +210,6 @@ static EMACS_INT last_auto_save;
 /* The value of point when the last command was started.  */
 static ptrdiff_t last_point_position;
 
-/* The buffer that was current when the last command was started.  */
-static Lisp_Object last_point_position_buffer;
-
-/* The window that was selected when the last command was started.  */
-static Lisp_Object last_point_position_window;
-
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.  We use this to determine when to
    generate switch-frame events.  This may be cleared by functions
@@ -833,7 +827,7 @@ This function is called by the editor initialization to begin editing.  */)
   update_mode_lines = 1;
 
   if (command_loop_level
-      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
+      && current_buffer != XBUFFER (XWINDOW (selected_window)->contents))
     buffer = Fcurrent_buffer ();
   else
     buffer = Qnil;
@@ -1395,7 +1389,7 @@ command_loop_1 (void)
 	Fkill_emacs (Qnil);
 
       /* Make sure the current window's buffer is selected.  */
-      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->contents));
 
       /* Display any malloc warning that just came out.  Use while because
 	 displaying one warning can cause another.  */
@@ -1461,7 +1455,7 @@ command_loop_1 (void)
       /* A filter may have run while we were reading the input.  */
       if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 	Fkill_emacs (Qnil);
-      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->contents));
 
       ++num_input_keys;
 
@@ -1492,7 +1486,7 @@ command_loop_1 (void)
 	{
 	  struct buffer *b;
 	  XWINDOW (selected_window)->force_start = 0;
-	  b = XBUFFER (XWINDOW (selected_window)->buffer);
+	  b = XBUFFER (XWINDOW (selected_window)->contents);
 	  BUF_BEG_UNCHANGED (b) = BUF_END_UNCHANGED (b) = 0;
 	}
 
@@ -1512,8 +1506,6 @@ command_loop_1 (void)
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
-      last_point_position_window = selected_window;
-      XSETBUFFER (last_point_position_buffer, prev_buffer);
 
       /* By default, we adjust point to a boundary of a region that
          has such a property that should be treated intangible
@@ -5142,7 +5134,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
 	  textpos = (w == XWINDOW (selected_window)
-		     && current_buffer == XBUFFER (w->buffer))
+		     && current_buffer == XBUFFER (w->contents))
 	    ? PT : marker_position (w->pointm);
 
 	  xret = wx;
@@ -6766,7 +6758,7 @@ gobble_input (void)
           hold_quit.kind = NO_EVENT;
 
           /* No need for FIONREAD or fcntl; just say don't wait.  */
-	  while (0 < (nr = (*t->read_socket_hook) (t, &hold_quit)))
+	  while ((nr = (*t->read_socket_hook) (t, &hold_quit)) > 0)
 	    nread += nr;
 
           if (nr == -1)          /* Not OK to read input now.  */
@@ -8240,9 +8232,8 @@ append_tool_bar_item (void)
        - (ASIZE (tool_bar_items_vector) - TOOL_BAR_ITEM_NSLOTS));
 
   /* Enlarge tool_bar_items_vector if necessary.  */
-  if (0 < incr)
-    tool_bar_items_vector
-      = larger_vector (tool_bar_items_vector, incr, -1);
+  if (incr > 0)
+    tool_bar_items_vector = larger_vector (tool_bar_items_vector, incr, -1);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
@@ -9146,9 +9137,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		{
 		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 		    Fkill_emacs (Qnil);
-		  if (XBUFFER (XWINDOW (selected_window)->buffer)
+		  if (XBUFFER (XWINDOW (selected_window)->contents)
 		      != current_buffer)
-		    Fset_buffer (XWINDOW (selected_window)->buffer);
+		    Fset_buffer (XWINDOW (selected_window)->contents);
 		}
 
 	      goto replay_sequence;
@@ -9196,9 +9187,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		 special-event-map, ...) might have switched the current buffer
 		 or the selected window from under us in the mean time.  */
 	      if (fix_current_buffer
-		  && (XBUFFER (XWINDOW (selected_window)->buffer)
+		  && (XBUFFER (XWINDOW (selected_window)->contents)
 		      != current_buffer))
-		Fset_buffer (XWINDOW (selected_window)->buffer);
+		Fset_buffer (XWINDOW (selected_window)->contents);
 	      current_binding = active_maps (first_event);
 	    }
 
@@ -9247,8 +9238,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		     not the current buffer.  If we're at the
 		     beginning of a key sequence, switch buffers.  */
 		  if (WINDOWP (window)
-		      && BUFFERP (XWINDOW (window)->buffer)
-		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+		      && BUFFERP (XWINDOW (window)->contents)
+		      && XBUFFER (XWINDOW (window)->contents) != current_buffer)
 		    {
 		      ASET (raw_keybuf, raw_keybuf_count, key);
 		      raw_keybuf_count++;
@@ -9269,7 +9260,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
 		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 			Fkill_emacs (Qnil);
-		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		      set_buffer_internal (XBUFFER (XWINDOW (window)->contents));
 		      goto replay_sequence;
 		    }
 		}
@@ -11047,9 +11038,6 @@ syms_of_keyboard (void)
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);
-
-  last_point_position_buffer = Qnil;
-  last_point_position_window = Qnil;
 
   {
     int i;

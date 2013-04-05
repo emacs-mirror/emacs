@@ -2997,12 +2997,21 @@ the same set of elements."
                 ;; here any more.
                 (unless unique
                   (push elem res)
-                  (when (memq elem '(star point prefix))
-                    ;; Extract common suffix additionally to common prefix.
-                    ;; Only do it for `point', `star', and `prefix' since for
-                    ;; `any' it could lead to a merged completion that
-                    ;; doesn't itself match the candidates.
-                    (let ((suffix (completion--common-suffix comps)))
+                  ;; Extract common suffix additionally to common prefix.
+                  ;; Don't do it for `any' since it could lead to a merged
+                  ;; completion that doesn't itself match the candidates.
+                  (when (and (memq elem '(star point prefix))
+                             ;; If prefix is one of the completions, there's no
+                             ;; suffix left to find.
+                             (not (assoc-string prefix comps t)))
+                    (let ((suffix
+                           (completion--common-suffix
+                            (if (zerop (length prefix)) comps
+                              ;; Ignore the chars in the common prefix, so we
+                              ;; don't merge '("abc" "abbc") as "ab*bc".
+                              (let ((skip (length prefix)))
+                                (mapcar (lambda (str) (substring str skip))
+                                        comps))))))
                       (cl-assert (stringp suffix))
                       (unless (equal suffix "")
                         (push suffix res)))))

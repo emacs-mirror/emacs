@@ -127,6 +127,17 @@ typedef unsigned short mode_t;
 extern char *getenv ();
 #endif
 
+/* Prevent accidental use of features unavailable in older Windows
+   versions we still support.  MinGW64 defines this to a higher value
+   in its system headers, and is not really compatible with values
+   lower than 0x0500, so leave it alone.  */
+#ifndef _W64
+# define _WIN32_WINNT 0x0400
+#endif
+
+/* Make a leaner executable.  */
+#define WIN32_LEAN_AND_MEAN 1
+
 #ifdef HAVE_STRINGS_H
 #include "strings.h"
 #endif
@@ -144,6 +155,21 @@ extern char *getenv ();
 /* Get some redefinitions in place.  */
 
 #ifdef emacs
+
+#ifdef _W64
+/* MinGW64 specific stuff.  */
+/* Make sure 'struct timespec' and 'struct timezone' are defined.  */
+#include <sys/types.h>
+#include <time.h>
+/* This prototype avoids MinGW64 compiler warnings due to the fact
+   that time.h is included before localtime is redirected to
+   sys_localtime below.  */
+extern struct tm * sys_localtime (const time_t *);
+/* MinGW64 uses a 2-argument _setjmp, and setjmp is a macro defined to
+   supply the 2nd arg correctly, so don't use _setjmp directly in that
+   case. */
+#undef HAVE__SETJMP
+#endif
 
 #ifdef _MSC_VER
 #include <sys/timeb.h>
@@ -232,6 +258,7 @@ extern int sys_unlink (const char *);
 typedef int pid_t;
 #define snprintf  _snprintf
 #define strtoll   _strtoi64
+#define copysign  _copysign
 #endif
 #define isatty    _isatty
 #define _longjmp  longjmp
@@ -266,11 +293,14 @@ int _getpid (void);
 /* 'struct timespec' is used by time-related functions in lib/ and
    elsewhere, but we don't use lib/time.h where the structure is
    defined.  */
+/* MinGW64 defines 'struct timespec' and _TIMESPEC_DEFINED in sys/types.h.  */
+#ifndef _TIMESPEC_DEFINED
 struct timespec
 {
   time_t	tv_sec;		/* seconds */
   long int	tv_nsec;	/* nanoseconds */
 };
+#endif
 
 /* Required for functions in lib/time_r.c, since we don't use lib/time.h.  */
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);
@@ -321,6 +351,10 @@ typedef int sigset_t;
 typedef int ssize_t;
 #endif
 
+#ifndef _POSIX	/* MinGW64 */
+typedef _sigset_t sigset_t;
+#endif
+
 typedef void (_CALLBACK_ *signal_handler) (int);
 extern signal_handler sys_signal (int, signal_handler);
 
@@ -365,13 +399,6 @@ extern char *get_emacs_configuration_options (void);
    included before windows.h.  */
 #define _WINSOCKAPI_    1
 #define _WINSOCK_H
-
-/* Prevent accidental use of features unavailable in
-   older Windows versions we still support.  */
-#define _WIN32_WINNT 0x0400
-
-/* Make a leaner executable.  */
-#define WIN32_LEAN_AND_MEAN 1
 
 /* Defines size_t and alloca ().  */
 #ifdef emacs
@@ -510,7 +537,6 @@ extern void _DebPrint (const char *fmt, ...);
 #pragma warning(disable:4308)
 #endif
 #endif
-#define TERM_HEADER "w32term.h"
 
 
 /* ============================================================ */

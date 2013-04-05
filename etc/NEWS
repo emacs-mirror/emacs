@@ -82,8 +82,12 @@ bound to <f11> and M-<f10>, respectively.
 ** In keymaps where SPC scrolls, S-SPC now scrolls in the reverse direction.
 Eg View mode, etc.
 
+** New command `kmacro-to-register' to store keyboard macros in registers.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
+** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
@@ -110,6 +114,8 @@ Affected files:
 *** `delphi-newline-always-indents' is not supported any more
 use `electric-indent-mode' instead.
 *** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
+
+** Eldoc Mode works properly in the minibuffer.
 
 ** jit-lock-debug-mode lets you use the debuggers on code run via jit-lock.
 
@@ -174,6 +180,12 @@ When toggling, it restores the frame's previous window configuration.
 It also has an optional frame argument, which can be used by Lisp
 callers to fit the image to a frame other than the selected frame.
 
+** Info
+
+*** New face `info-index-match' is used to highlight matches in index
+entries displayed by `Info-index-next', `Info-virtual-index' and
+`info-apropos'.
+
 ** Isearch
 
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
@@ -233,6 +245,13 @@ which support POSIX ACLs.
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-* faces instead.
 
+** Eshell
+
+*** Added Eshell-TRAMP module
+External su and sudo commands are now the default; the internal,
+TRAMP-using variants can still be used by enabling the eshell-tramp
+module.
+
 ** Obsolete packages:
 
 *** longlines.el is obsolete; use visual-line-mode instead.
@@ -248,6 +267,11 @@ has not been relevant for some time.
 
 
 * New Modes and Packages in Emacs 24.4
+** New `superword-mode' in subword.el
+`superword-mode' overrides the default word motion commands to treat
+symbol_words as a single word, similar to what `subword-mode' does and
+using the same internal functions.
+
 ** New nadvice.el package offering lighter-weight advice facilities.
 It is layered as:
 - add-function/remove-function which can be used to add/remove code on any
@@ -290,6 +314,8 @@ file using `set-file-extended-attributes'.
 * Lisp Changes in Emacs 24.4
 
 ** `dont-compile' is declared obsolete.
+
+** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as

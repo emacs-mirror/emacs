@@ -114,7 +114,7 @@ choose_minibuf_frame (void)
       /* Under X, we come here with minibuf_window being the
 	 minibuffer window of the unused termcap window created in
 	 init_window_once.  That window doesn't have a buffer.  */
-      buffer = XWINDOW (minibuf_window)->buffer;
+      buffer = XWINDOW (minibuf_window)->contents;
       if (BUFFERP (buffer))
 	/* Use set_window_buffer instead of Fset_window_buffer (see
 	   discussion of bug#11984, bug#12025, bug#12026).  */
@@ -844,7 +844,7 @@ read_minibuf_unwind (Lisp_Object data)
   window = minibuf_window;
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  */
-  Fset_buffer (XWINDOW (window)->buffer);
+  Fset_buffer (XWINDOW (window)->contents);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
   minibuf_prompt = Fcar (minibuf_save_list);

@@ -540,7 +540,7 @@ Many aspects this mode can be customized using
       (widen)
       (nxml-clear-dependent-regions (point-min) (point-max))
       (setq nxml-scan-end (copy-marker (point-min) nil))
-      (nxml-with-unmodifying-text-property-changes
+      (with-silent-modifications
         (nxml-clear-inside (point-min) (point-max))
 	(nxml-with-invisible-motion
 	  (nxml-scan-prolog)))))
@@ -601,7 +601,7 @@ Many aspects this mode can be customized using
   (save-excursion
     (save-restriction
       (widen)
-      (nxml-with-unmodifying-text-property-changes
+      (with-silent-modifications
 	(nxml-clear-inside (point-min) (point-max))))))
 
 ;;; Change management
@@ -625,7 +625,7 @@ Many aspects this mode can be customized using
             (widen)
             (save-match-data
               (nxml-with-invisible-motion
-                (nxml-with-unmodifying-text-property-changes
+                (with-silent-modifications
                   (nxml-after-change1
                    start end pre-change-length)))))))))
 
@@ -910,7 +910,7 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
 		       (widen)
 		       (save-match-data
 			 (nxml-with-invisible-motion
-			   (nxml-with-unmodifying-text-property-changes
+			   (with-silent-modifications
 			     (nxml-extend-after-change-region1
 			      start end pre-change-length)))))))))
       (if (consp region) region))))

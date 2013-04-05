@@ -1582,8 +1582,8 @@ deletion, or > if it is flagged for displaying."
     (if bookmark-bmenu-use-header-line
 	(bookmark-bmenu-set-header)
       (forward-line bookmark-bmenu-inline-header-height))
-    (if bookmark-bmenu-toggle-filenames
-        (bookmark-bmenu-toggle-filenames t))))
+    (when (and bookmark-alist bookmark-bmenu-toggle-filenames)
+      (bookmark-bmenu-toggle-filenames t))))
 
 ;;;###autoload
 (defalias 'list-bookmarks 'bookmark-bmenu-list)
@@ -1998,7 +1998,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
                        (progn (end-of-line) (point))))))
         (o-col     (current-column)))
     (goto-char (point-min))
-    (forward-line 1)
+    (unless bookmark-bmenu-use-header-line
+      (forward-line 1))
     (while (re-search-forward "^D" (point-max) t)
       (bookmark-delete (bookmark-bmenu-bookmark) t)) ; pass BATCH arg
     (bookmark-bmenu-list)
@@ -2186,8 +2187,7 @@ strings returned are not."
   "Save bookmark state, if necessary, at Emacs exit time.
 This also runs `bookmark-exit-hook'."
   (run-hooks 'bookmark-exit-hook)
-  (and bookmark-alist
-       (bookmark-time-to-save-p t)
+  (and (bookmark-time-to-save-p t)
        (bookmark-save)))
 
 (unless noninteractive

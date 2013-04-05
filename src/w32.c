@@ -29,10 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <signal.h>
 #include <sys/file.h>
+#include <time.h>	/* must be before nt/inc/sys/time.h, for MinGW64 */
 #include <sys/time.h>
 #include <sys/utime.h>
 #include <math.h>
-#include <time.h>
 
 /* must include CRT headers *before* config.h */
 
@@ -69,7 +69,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pwd.h>
 #include <grp.h>
 
-#ifdef __GNUC__
+/* MinGW64 (_W64) defines these in its _mingw.h.  */
+#if defined(__GNUC__) && !defined(_W64)
 #define _ANONYMOUS_UNION
 #define _ANONYMOUS_STRUCT
 #endif
@@ -96,6 +97,7 @@ typedef struct _MEMORY_STATUS_EX {
 #ifndef _MSC_VER
 #include <w32api.h>
 #endif
+#if _WIN32_WINNT < 0x0500
 #if !defined (__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
    _WIN32_WINNT than what we use.  w32api supplied with MinGW 3.15
@@ -114,6 +116,7 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
   SIZE_T PrivateUsage;
 } PROCESS_MEMORY_COUNTERS_EX,*PPROCESS_MEMORY_COUNTERS_EX;
 #endif
+#endif
 
 #include <winioctl.h>
 #include <aclapi.h>
@@ -127,11 +130,11 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #define SDDL_REVISION_1	1
 #endif	/* SDDL_REVISION_1 */
 
-#ifdef _MSC_VER
-/* MSVC doesn't provide the definition of REPARSE_DATA_BUFFER and the
-   associated macros, except on ntifs.h, which cannot be included
-   because it triggers conflicts with other Windows API headers.  So
-   we define it here by hand.  */
+#if defined(_MSC_VER) || defined(_W64)
+/* MSVC and MinGW64 don't provide the definition of
+   REPARSE_DATA_BUFFER and the associated macros, except on ntifs.h,
+   which cannot be included because it triggers conflicts with other
+   Windows API headers.  So we define it here by hand.  */
 
 typedef struct _REPARSE_DATA_BUFFER {
     ULONG  ReparseTag;
@@ -171,8 +174,11 @@ typedef struct _REPARSE_DATA_BUFFER {
 #ifndef CTL_CODE
 #define CTL_CODE(t,f,m,a)       (((t)<<16)|((a)<<14)|((f)<<2)|(m))
 #endif
+/* MinGW64 defines FSCTL_GET_REPARSE_POINT on winioctl.h.  */
+#ifndef FSCTL_GET_REPARSE_POINT
 #define FSCTL_GET_REPARSE_POINT \
   CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 42, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
 #endif
 
 /* TCP connection support.  */

@@ -444,6 +444,28 @@ objects = Thing.objects.all() \\\\
    (should (eq (car (python-indent-context)) 'after-line))
    (should (= (python-indent-calculate-indentation) 0))))
 
+(ert-deftest python-indent-block-enders ()
+  "Test `python-indent-block-enders' value honoring."
+  (python-tests-with-temp-buffer
+   "
+Class foo(object):
+
+    def bar(self):
+        if self.baz:
+            return (1,
+                    2,
+                    3)
+
+        else:
+            pass
+"
+   (python-tests-look-at "3)")
+   (forward-line 1)
+   (= (python-indent-calculate-indentation) 12)
+   (python-tests-look-at "pass")
+   (forward-line 1)
+   (= (python-indent-calculate-indentation) 8)))
+
 
 ;;; Navigation
 
@@ -1546,13 +1568,13 @@ class C(object):
             return []
 
         def b():
-            pass
+            do_b()
 
         def a():
-            pass
+            do_a()
 
     def c(self):
-        pass
+        do_c()
 "
    (forward-line 1)
    (should (string= "C" (python-info-current-defun)))
@@ -1582,7 +1604,7 @@ class C(object):
    (python-tests-look-at "def c(self):")
    (should (string= "C.c" (python-info-current-defun)))
    (should (string= "def C.c" (python-info-current-defun t)))
-   (python-tests-look-at "pass")
+   (python-tests-look-at "do_c()")
    (should (string= "C.c" (python-info-current-defun)))
    (should (string= "def C.c" (python-info-current-defun t)))))
 

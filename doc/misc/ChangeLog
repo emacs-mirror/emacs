@@ -1,3 +1,12 @@
+2013-03-31  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: (Basic Operations on Units): Streamline some
+	descriptions.
+
+2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell.texi (Built-ins): Update manual to mention tramp module.
+
 2013-03-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename Syntax): Host names are not allowed to be
@@ -2408,6 +2417,10 @@
 	* dired-x.texi (Technical Details): No longer redefines
 	dired-add-entry, dired-initial-position, dired-clean-up-after-deletion,
 	dired-read-shell-command, or dired-find-buffer-nocreate.
+
+2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* eshell.texi (Input/Output): Document insert output redirection operator, >>>.
 
 2011-02-18  Glenn Morris  <rgm@gnu.org>
 

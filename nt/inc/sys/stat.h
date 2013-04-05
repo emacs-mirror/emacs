@@ -106,11 +106,11 @@ extern int w32_stat_get_owner_group;
 /* Prevent redefinition by other headers, e.g. wchar.h.  */
 #define _STAT_DEFINED
 
-_CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
-_CRTIMP int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
-_CRTIMP int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
-_CRTIMP int __cdecl __MINGW_NOTHROW	lstat (const char*, struct stat*);
-_CRTIMP int __cdecl __MINGW_NOTHROW	fstatat (int, char const *,
+int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
+int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
+int __cdecl __MINGW_NOTHROW	lstat (const char*, struct stat*);
+int __cdecl __MINGW_NOTHROW	fstatat (int, char const *,
 						 struct stat *, int);
+int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
 
 #endif	/* INC_SYS_STAT_H_ */

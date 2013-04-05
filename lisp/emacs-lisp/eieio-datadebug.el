@@ -80,38 +80,39 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 ;; Each object should have an opportunity to show stuff about itself.
 
 (defmethod data-debug/eieio-insert-slots ((obj eieio-default-superclass)
-						prefix)
+					  prefix)
   "Insert the slots of OBJ into the current DDEBUG buffer."
-  (data-debug-insert-thing (eieio-object-name-string obj)
-				prefix
-				"Name: ")
-  (let* ((cl (eieio-object-class obj))
-	 (cv (class-v cl)))
-    (data-debug-insert-thing (class-constructor cl)
-				  prefix
-				  "Class: ")
-    ;; Loop over all the public slots
-    (let ((publa (eieio--class-public-a cv))
-	  )
-      (while publa
-	(if (slot-boundp obj (car publa))
-	    (let* ((i (class-slot-initarg cl (car publa)))
-		   (v (eieio-oref obj (car publa))))
-	      (data-debug-insert-thing
-	       v prefix (concat
-			 (if i (symbol-name i)
-			   (symbol-name (car publa)))
-			 " ")))
-	  ;; Unbound case
-	  (let ((i (class-slot-initarg cl (car publa))))
-	    (data-debug-insert-custom
-	     "#unbound" prefix
-	     (concat (if i (symbol-name i)
-		       (symbol-name (car publa)))
-		     " ")
-	     'font-lock-keyword-face))
-	  )
-	(setq publa (cdr publa))))))
+  (let ((inhibit-read-only t))
+    (data-debug-insert-thing (eieio-object-name-string obj)
+			     prefix
+			     "Name: ")
+    (let* ((cl (eieio-object-class obj))
+	   (cv (class-v cl)))
+      (data-debug-insert-thing (class-constructor cl)
+			       prefix
+			       "Class: ")
+      ;; Loop over all the public slots
+      (let ((publa (eieio--class-public-a cv))
+	    )
+	(while publa
+	  (if (slot-boundp obj (car publa))
+	      (let* ((i (class-slot-initarg cl (car publa)))
+		     (v (eieio-oref obj (car publa))))
+		(data-debug-insert-thing
+		 v prefix (concat
+			   (if i (symbol-name i)
+			     (symbol-name (car publa)))
+			   " ")))
+	    ;; Unbound case
+	    (let ((i (class-slot-initarg cl (car publa))))
+	      (data-debug-insert-custom
+	       "#unbound" prefix
+	       (concat (if i (symbol-name i)
+			 (symbol-name (car publa)))
+		       " ")
+	       'font-lock-keyword-face))
+	    )
+	  (setq publa (cdr publa)))))))
 
 ;;; Augment the Data debug thing display list.
 (data-debug-add-specialized-thing (lambda (thing) (object-p thing))

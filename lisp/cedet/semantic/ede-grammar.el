@@ -162,7 +162,7 @@ Lays claim to all -by.el, and -wy.el files."
 			(setq comp (1+ comp))
 		      (setq utd (1+ utd))))))))
 	  (oref obj source))
-    (message "All Semantic Grammar sources are up to date in %s" (object-name obj))
+    (message "All Semantic Grammar sources are up to date in %s" (eieio-object-name obj))
     (cons comp utd)))
 
 ;;; Makefile generation functions

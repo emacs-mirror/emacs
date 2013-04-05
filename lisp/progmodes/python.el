@@ -638,6 +638,12 @@ It makes underscores and dots word constituent chars.")
 These make `python-indent-calculate-indentation' subtract the value of
 `python-indent-offset'.")
 
+(defvar python-indent-block-enders '("return" "pass")
+  "List of words that mark the end of a block.
+These make `python-indent-calculate-indentation' subtract the
+value of `python-indent-offset' when `python-indent-context' is
+AFTER-LINE.")
+
 (defun python-indent-guess-indent-offset ()
   "Guess and set `python-indent-offset' for the current buffer."
   (interactive)
@@ -763,9 +769,13 @@ START is the buffer position where the sexp starts."
             (save-excursion
               (goto-char context-start)
               (current-indentation))
-            (if (progn
-                  (back-to-indentation)
-                  (looking-at (regexp-opt python-indent-dedenters)))
+            (if (or (save-excursion
+                      (back-to-indentation)
+                      (looking-at (regexp-opt python-indent-dedenters)))
+                    (save-excursion
+                      (python-util-forward-comment -1)
+                      (python-nav-beginning-of-statement)
+                      (member (current-word) python-indent-block-enders)))
                 python-indent-offset
               0)))
           ;; When inside of a string, do nothing. just use the current

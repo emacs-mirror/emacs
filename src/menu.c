@@ -173,7 +173,7 @@ static void
 ensure_menu_items (int items)
 {
   int incr = items - (menu_items_allocated - menu_items_used);
-  if (0 < incr)
+  if (incr > 0)
     {
       menu_items = larger_vector (menu_items, incr, INT_MAX);
       menu_items_allocated = ASIZE (menu_items);
@@ -1085,7 +1085,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #ifdef HAVE_MENUS
   {
     bool get_current_pos_p = 0;
-    /* FIXME!!  check_w32 (); or check_x (); or check_ns (); */
+
+    check_window_system ();
 
     /* Decode the first argument: find the window and the coordinates.  */
     if (EQ (position, Qt)

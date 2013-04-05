@@ -214,7 +214,7 @@ calccost (struct tty_display_info *tty,
     if (doit)
       do
           emacs_tputs (tty, p, 1, cmputc);
-      while (0 < --deltay);
+      while (--deltay > 0);
 x:
     if ((deltax = dstx - srcx) == 0)
 	goto done;
@@ -297,7 +297,7 @@ fail:
     if (doit)
       do
           emacs_tputs (tty, p, 1, cmputc);
-      while (0 < --deltax);
+      while (--deltax > 0);
 done:
     return totalcost;
 }

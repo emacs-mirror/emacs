@@ -136,7 +136,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
    <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
    These lines can be removed once the GCC bug is fixed.  */
-#if (__GNUC__ == 4 && 3 <= __GNUC_MINOR__) || 4 < __GNUC__
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 #endif
 
@@ -1804,7 +1804,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   /* Back in the parent process.  */
 
   XPROCESS (process)->pid = pid;
-  if (0 <= pid)
+  if (pid >= 0)
     XPROCESS (process)->alive = 1;
 
   /* Stop blocking signals in the parent.  */
@@ -2155,7 +2155,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
   channel = XPROCESS (process)->infd;
 
   len = get_lisp_to_sockaddr_size (address, &family);
-  if (datagram_address[channel].len != len)
+  if (len == 0 || datagram_address[channel].len != len)
     return Qnil;
   conv_lisp_to_sockaddr (family, address, datagram_address[channel].sa, len);
   return address;
@@ -3269,7 +3269,8 @@ usage: (make-network-process &rest ARGS)  */)
 		{
 		  int rfamily, rlen;
 		  rlen = get_lisp_to_sockaddr_size (remote, &rfamily);
-		  if (rfamily == lres->ai_family && rlen == lres->ai_addrlen)
+		  if (rlen != 0 && rfamily == lres->ai_family
+		      && rlen == lres->ai_addrlen)
 		    conv_lisp_to_sockaddr (rfamily, remote,
 					   datagram_address[s].sa, rlen);
 		}
@@ -3900,7 +3901,7 @@ Return non-nil if we received any output before the timeout expired.  */)
     {
       if (INTEGERP (seconds))
 	{
-	  if (0 < XINT (seconds))
+	  if (XINT (seconds) > 0)
 	    {
 	      secs = XINT (seconds);
 	      nsecs = 0;
@@ -3908,7 +3909,7 @@ Return non-nil if we received any output before the timeout expired.  */)
 	}
       else if (FLOATP (seconds))
 	{
-	  if (0 < XFLOAT_DATA (seconds))
+	  if (XFLOAT_DATA (seconds) > 0)
 	    {
 	      EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (seconds));
 	      secs = min (EMACS_SECS (t), WAIT_READING_MAX);
@@ -4240,7 +4241,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   /* Since we may need to wait several times,
      compute the absolute time to return at.  */
-  if (time_limit || 0 < nsecs)
+  if (time_limit || nsecs > 0)
     {
       timeout = make_emacs_time (time_limit, nsecs);
       end_time = add_emacs_time (current_emacs_time (), timeout);
@@ -4272,7 +4273,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  timeout = make_emacs_time (0, 0);
 	}
-      else if (time_limit || 0 < nsecs)
+      else if (time_limit || nsecs > 0)
 	{
 	  EMACS_TIME now = current_emacs_time ();
 	  if (EMACS_TIME_LE (end_time, now))
@@ -4324,7 +4325,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    break;
 
 	  /* A negative timeout means do not wait at all.  */
-	  if (0 <= nsecs)
+	  if (nsecs >= 0)
 	    {
 	      if (EMACS_TIME_VALID_P (timer_delay))
 		{
@@ -4406,7 +4407,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      if (nread == 0)
 		break;
 
-	      if (0 < nread)
+	      if (nread > 0)
 		{
 		  total_nread += nread;
 		  got_some_input = 1;
@@ -4947,7 +4948,7 @@ read_process_output (Lisp_Object proc, register int channel)
   else
 #endif
     {
-      bool buffered = 0 <= proc_buffered_char[channel];
+      bool buffered = proc_buffered_char[channel] >= 0;
       if (buffered)
 	{
 	  chars[carryover] = proc_buffered_char[channel];
@@ -5454,7 +5455,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	      rv = sendto (outfd, cur_buf, cur_len,
 			   0, datagram_address[outfd].sa,
 			   datagram_address[outfd].len);
-	      if (0 <= rv)
+	      if (rv >= 0)
 		written = rv;
 	      else if (errno == EMSGSIZE)
 		report_file_error ("sending datagram", Fcons (proc, Qnil));
@@ -6577,7 +6578,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
     time_limit = TYPE_MAXIMUM (time_t);
 
   /* What does time_limit really mean?  */
-  if (time_limit || 0 < nsecs)
+  if (time_limit || nsecs > 0)
     {
       timeout = make_emacs_time (time_limit, nsecs);
       end_time = add_emacs_time (current_emacs_time (), timeout);
@@ -6615,7 +6616,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 	  timeout = make_emacs_time (0, 0);
 	}
-      else if (time_limit || 0 < nsecs)
+      else if (time_limit || nsecs > 0)
 	{
 	  EMACS_TIME now = current_emacs_time ();
 	  if (EMACS_TIME_LE (end_time, now))
@@ -6653,7 +6654,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      && requeued_events_pending_p ())
 	    break;
 
-	  if (EMACS_TIME_VALID_P (timer_delay) && 0 <= nsecs)
+	  if (EMACS_TIME_VALID_P (timer_delay) && nsecs >= 0)
 	    {
 	      if (EMACS_TIME_LT (timer_delay, timeout))
 		{

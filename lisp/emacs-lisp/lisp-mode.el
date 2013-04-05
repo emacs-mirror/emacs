@@ -1436,6 +1436,8 @@ Any non-integer value means do not use a different value of
   :type '(choice (integer)
                  (const :tag "Use the current `fill-column'" t))
   :group 'lisp)
+(put 'emacs-lisp-docstring-fill-column 'safe-local-variable
+     (lambda (x) (or (eq x t) (integerp x))))
 
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.

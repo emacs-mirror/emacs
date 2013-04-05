@@ -158,6 +158,12 @@ A header-line does not scroll with the rest of the buffer."
   "Face for Info nodes in a node header."
   :group 'info)
 
+(defface info-index-match
+  '((t :inherit match))
+  "Face used to highlight matches in an index entry."
+  :group 'info
+  :version "24.4")
+
 ;; This is a defcustom largely so that we can get the benefit
 ;; of custom-initialize-delay.  Perhaps it would work to make it a
 ;; defvar and explicitly give it a standard-value property, and
@@ -3063,15 +3069,15 @@ The next cross-reference is searched using the regexp PAT, and the next link
 is searched using the text property PROP.  Move point to the closest found position
 of either a cross-reference found by `re-search-forward' or a link found by
 `next-single-char-property-change'.  Return the new position of point, or nil."
-  (let ((pcref (save-excursion (re-search-forward pat nil t)))
+  (let ((pxref (save-excursion (re-search-forward pat nil t)))
 	(plink (next-single-char-property-change (point) prop)))
     (when (and (< plink (point-max)) (not (get-char-property plink prop)))
       (setq plink (next-single-char-property-change plink prop)))
     (if (< plink (point-max))
-	(if (and pcref (<= pcref plink))
+	(if (and pxref (<= pxref plink))
 	    (goto-char (or (match-beginning 1) (match-beginning 0)))
 	  (goto-char plink))
-      (if pcref (goto-char (or (match-beginning 1) (match-beginning 0)))))))
+      (if pxref (goto-char (or (match-beginning 1) (match-beginning 0)))))))
 
 (defun Info-prev-reference-or-link (pat prop)
   "Move point to the previous pattern-based cross-reference or property-based link.
@@ -3079,15 +3085,15 @@ The previous cross-reference is searched using the regexp PAT, and the previous 
 is searched using the text property PROP.  Move point to the closest found position
 of either a cross-reference found by `re-search-backward' or a link found by
 `previous-single-char-property-change'.  Return the new position of point, or nil."
-  (let ((pcref (save-excursion (re-search-backward pat nil t)))
+  (let ((pxref (save-excursion (re-search-backward pat nil t)))
 	(plink (previous-single-char-property-change (point) prop)))
     (when (and (> plink (point-min)) (not (get-char-property plink prop)))
       (setq plink (previous-single-char-property-change plink prop)))
     (if (> plink (point-min))
-	(if (and pcref (>= pcref plink))
+	(if (and pxref (>= pxref plink))
 	    (goto-char (or (match-beginning 1) (match-beginning 0)))
 	  (goto-char plink))
-      (if pcref (goto-char (or (match-beginning 1) (match-beginning 0)))))))
+      (if pxref (goto-char (or (match-beginning 1) (match-beginning 0)))))))
 
 (defun Info-next-reference (&optional recur count)
   "Move cursor to the next cross-reference or menu item in the node.
@@ -3276,7 +3282,7 @@ Give an empty topic name to go to the Index node itself."
 	   (= (aref topic 0) ?:))
       (setq topic (substring topic 1)))
   (let ((orignode Info-current-node)
-	(pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]*\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
+	(pattern (format "\n\\* +\\([^\n]*\\(%s\\)[^\n]*\\):[ \t]+\\([^\n]*\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
 			 (regexp-quote topic)))
 	node (nodes (Info-index-nodes))
 	(ohist-list Info-history-list)
@@ -3295,12 +3301,14 @@ Give an empty topic name to go to the Index node itself."
 	      (progn
 		(goto-char (point-min))
 		(while (re-search-forward pattern nil t)
-		  (push (list (match-string-no-properties 1)
-			      (match-string-no-properties 2)
-			      Info-current-node
-			      (string-to-number (concat "0"
-							(match-string 3))))
-			matches))
+		  (let ((entry (match-string-no-properties 1))
+			(nodename (match-string-no-properties 3))
+			(line (string-to-number (concat "0" (match-string 4)))))
+		    (add-text-properties
+		     (- (match-beginning 2) (match-beginning 1))
+		     (- (match-end 2) (match-beginning 1))
+		     '(face info-index-match) entry)
+		    (push (list entry nodename Info-current-node line) matches)))
 		(setq nodes (cdr nodes) node (car nodes)))
 	    (Info-goto-node node))
 	  (or matches
@@ -3526,7 +3534,7 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 Return a list of matches where each element is in the format
 \((FILENAME INDEXTEXT NODENAME LINENUMBER))."
   (unless (string= string "")
-    (let ((pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]+\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
+    (let ((pattern (format "\n\\* +\\([^\n]*\\(%s\\)[^\n]*\\):[ \t]+\\([^\n]+\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
 			   (regexp-quote string)))
 	  (ohist Info-history)
 	  (ohist-list Info-history-list)
@@ -3559,12 +3567,15 @@ Return a list of matches where each element is in the format
                         (progn
                           (goto-char (point-min))
                           (while (re-search-forward pattern nil t)
-			    (setq matches
-				  (cons (list manual
-					      (match-string-no-properties 1)
-					      (match-string-no-properties 2)
-					      (match-string-no-properties 3))
-					matches)))
+			    (let ((entry (match-string-no-properties 1))
+				  (nodename (match-string-no-properties 3))
+				  (line (match-string-no-properties 4)))
+			      (add-text-properties
+			       (- (match-beginning 2) (match-beginning 1))
+			       (- (match-end 2) (match-beginning 1))
+			       '(face info-index-match) entry)
+			      (setq matches (cons (list manual entry nodename line)
+						  matches))))
                           (setq nodes (cdr nodes) node (car nodes)))
                       (Info-goto-node node))))
 	    (error

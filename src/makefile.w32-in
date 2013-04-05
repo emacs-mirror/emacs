@@ -873,6 +873,7 @@ $(BLD)/filelock.$(O) : \
 	$(CHARACTER_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(C_CTYPE_H) \
 	$(LISP_H) \
 	$(SYSTIME_H)
 
@@ -1398,6 +1399,7 @@ $(BLD)/sysdep.$(O) : \
 	$(NT_INC)/netdb.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/param.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/execinfo.h \

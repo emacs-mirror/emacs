@@ -33,8 +33,9 @@ AC_DEFUN([gl_STDALIGN_H],
             #if \
                 (__GNUC__ || __IBMC__ || __IBMCPP__ \
                  || 0x5110 <= __SUNPRO_C || 1300 <= _MSC_VER)
-              int alignas (8) alignas_int = 1;
-              char test_alignas[_Alignof (alignas_int) == 8 ? 1 : -1];
+              struct alignas_test { char c; char alignas (8) alignas_8; };
+              char test_alignas[offsetof (struct alignas_test, alignas_8) == 8
+                                ? 1 : -1];
             #endif
           ]])],
        [gl_cv_header_working_stdalign_h=yes],

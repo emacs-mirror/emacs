@@ -157,7 +157,11 @@ It should also include other symbols GCC was compiled with.")
                     ;; `cpp' command in `semantic-gcc-setup' doesn't work on
                     ;; Mac, try `gcc'.
                     (apply 'semantic-gcc-query "gcc" cpp-options))))
-         (defines (semantic-cpp-defs query))
+         (defines (if (stringp query)
+		      (semantic-cpp-defs query)
+		    (message (concat "Could not query gcc for defines. "
+				     "Maybe g++ is not installed."))
+		    nil))
          (ver (cdr (assoc 'version fields)))
          (host (or (cdr (assoc 'target fields))
                    (cdr (assoc '--target fields))

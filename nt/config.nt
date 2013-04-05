@@ -251,7 +251,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_COM_ERR_H
 
 /* Define to 1 if you have the `copysign' function. */
-#undef HAVE_COPYSIGN
+#define HAVE_COPYSIGN 1
 
 /* Define to 1 if data_start is the address of the start of the main data
    segment. */
@@ -1113,8 +1113,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
-/* Define to 1 if you have the XkbGetKeyboard function. */
-#undef HAVE_XKBGETKEYBOARD
+/* Define to 1 if you have the Xkb extension. */
+#undef HAVE_XKB
 
 /* Define to 1 if you have the Xpm library (-lXpm). */
 #undef HAVE_XPM
@@ -1143,7 +1143,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `_ftime' function. */
 #undef HAVE__FTIME
 
-/* Define to 1 if _setjmp and _longjmp work. */
+/* Define to 1 if _setjmp and _longjmp work.  */
 #define HAVE__SETJMP 1
 
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
@@ -1370,7 +1370,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef TERMINFO
 
 /* Define to the header for the built-in window system. */
-#undef TERM_HEADER
+#define TERM_HEADER "w32term.h"
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #define TIME_WITH_SYS_TIME 1

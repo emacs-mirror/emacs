@@ -2130,7 +2130,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  produced_chars += ccl.produced;
 	  offset = outp - outbuf;
 	  shortfall = ccl.produced * max_expansion - (outbufsize - offset);
-	  if (0 < shortfall)
+	  if (shortfall > 0)
 	    {
 	      outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 	      outp = outbuf + offset;

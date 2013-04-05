@@ -1,4 +1,4 @@
-;;; tibet-util.el --- utilities for Tibetan   -*- coding: iso-2022-7bit; -*-
+;;; tibet-util.el --- utilities for Tibetan   -*- coding: utf-8-emacs; -*-
 
 ;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -35,21 +35,21 @@
 ;;; Code:
 
 (defconst tibetan-obsolete-glyphs
-  `(("$(7!=(B" . "$(7!=(B")			; 2 col <-> 1 col
-    ("$(7!?(B" . "$(7!?(B")
-    ("$(7!@(B" . "$(7!@(B")
-    ("$(7!A(B" . "$(7!A(B")
-    ("$(7"`(B" . "$(7"`(B")
-    ("$(7!;(B" . "$(7!;(B")
-    ("$(7!D(B" . "$(7!D(B")
+  `(("།" . "།")			; 2 col <-> 1 col
+    ("༏" . "༏")
+    ("༐" . "༐")
+    ("༑" . "༑")
+    ("ཿ" . "ཿ")
+    ("་" . "་")
+    ("༔" . "༔")
     ;; Yes these are dirty. But ...
-    ("$(7!>(B $(7!>(B" . ,(compose-string "$(7!>(B $(7!>(B" 0 3 [?$(7!>(B (Br . Bl) ?  (Br . Bl) ?$(7!>(B]))
-    ("$(7!4!5!5(B" . ,(compose-string
-		  "$(7#R#S#S#S(B" 0 4
-		  [?$(7#R(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B]))
-    ("$(7!4!5(B" . ,(compose-string "$(7#R#S#S(B" 0 3 [?$(7#R(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B]))
-    ("$(7!6(B" . ,(compose-string "$(7#R#S!I(B" 0 3 [?$(7#R(B (Br . Bl) ?$(7#S(B (br . tr) ?$(7!I(B]))
-    ("$(7!4(B"   . ,(compose-string "$(7#R#S(B" 0 2 [?$(7#R(B (Br . Bl) ?$(7#S(B]))))
+    ("༎ ༎" . ,(compose-string "༎ ༎" 0 3 [?༎ (Br . Bl) ?  (Br . Bl) ?༎]))
+    ("༄༅༅" . ,(compose-string
+		  "࿁࿂࿂࿂" 0 4
+		  [?࿁ (Br . Bl) ?࿂ (Br . Bl) ?࿂ (Br . Bl) ?࿂]))
+    ("༄༅" . ,(compose-string "࿁࿂࿂" 0 3 [?࿁ (Br . Bl) ?࿂ (Br . Bl) ?࿂]))
+    ("༆" . ,(compose-string "࿁࿂༙" 0 3 [?࿁ (Br . Bl) ?࿂ (br . tr) ?༙]))
+    ("༄"   . ,(compose-string "࿁࿂" 0 2 [?࿁ (Br . Bl) ?࿂]))))
 
 ;;;###autoload
 (defun tibetan-char-p (ch)
@@ -136,7 +136,7 @@ The returned string has no composition information."
 ;;;
 ;;; Here are examples of the words "bsgrubs" and "hfauM"
 ;;;
-;;;            $(7"7"G###C"U"7"G(B            $(7"H"R"U"_(B
+;;;            བསྒྲུབས            ཧཱུཾ
 ;;;
 ;;;                             M
 ;;;             b s b s         h
@@ -144,7 +144,7 @@ The returned string has no composition information."
 ;;;               r             u
 ;;;               u
 ;;;
-;;; Consonants `'' ($(7"A(B), `w' ($(7">(B), `y' ($(7"B(B), `r' ($(7"C(B) take special
+;;; Consonants `'' (འ), `w' (ཝ), `y' (ཡ), `r' (ར) take special
 ;;; forms when they are used as subjoined consonant.  Consonant `r'
 ;;; takes another special form when used as superjoined in such a case
 ;;; as "rka", while it does not change its form when conjoined with
@@ -161,15 +161,15 @@ The returned string has no composition information."
     ;; Special treatment for 'a chung.
     ;; If 'a follows a consonant, turn it into the subjoined form.
     ;; * Disabled by Tomabechi 2000/06/09 *
-    ;; Because in Unicode, $(7"A(B may follow directly a consonant without
-    ;; any intervening vowel, as in $(7"9"""Q"A!;(B=$(7"9(B $(7""(B $(7"A(B not $(7"9(B $(7""(B $(7"Q(B $(7"A(B
-    ;;(if (and (= char ?$(7"A(B)
+    ;; Because in Unicode, འ may follow directly a consonant without
+    ;; any intervening vowel, as in མཁ����འ་=མ ཁ འ not མ ཁ ���� འ
+    ;;(if (and (= char ?འ)
     ;;	     (aref (char-category-set (car last)) ?0))
-    ;;	(setq char ?$(7"R(B)) ;; modified for new font by Tomabechi 1999/12/10
+    ;;	(setq char ?ཱ)) ;; modified for new font by Tomabechi 1999/12/10
 
     ;; Composite vowel signs are decomposed before being added
     ;; Added by Tomabechi 2000/06/08
-    (if (memq char '(?$(7"T(B ?$(7"V(B ?$(7"W(B ?$(7"X(B ?$(7"Y(B ?$(7"Z(B ?$(7"b(B))
+    (if (memq char '(?ཱི ?ཱུ ?ྲྀ ?ཷ ?ླྀ ?ཹ ?ཱྀ))
 	(setq comp-vowel
 	      (copy-sequence
 	       (cddr (assoc (char-to-string char)
@@ -184,22 +184,22 @@ The returned string has no composition information."
 
      ;; Compose lower vowel sign vertically under.
      ((aref (char-category-set char) ?3)
-      (if (or (eq char ?$(7"Q(B) ;; `$(7"Q(B' and `$,1FP(B' should not visible when composed.
+      (if (or (eq char ?����) ;; `����' and `཰' should not visible when composed.
 	      (eq char #xF70))
 	  (setq rule nil)
 	(setq rule stack-under)))
      ;; Transform ra-mgo (superscribed r) if followed by a subjoined
      ;; consonant other than w, ', y, r.
-     ((and (= (car last) ?$(7"C(B)
-	   (not (memq char '(?$(7#>(B ?$(7"R(B ?$(7#B(B ?$(7#C(B))))
-      (setcar last ?$(7!"(B) ;; modified for newfont by Tomabechi 1999/12/10
+     ((and (= (car last) ?ར)
+	   (not (memq char '(?ྭ ?ཱ ?ྱ ?ྲ))))
+      (setcar last ?����) ;; modified for newfont by Tomabechi 1999/12/10
       (setq rule stack-under))
      ;; Transform initial base consonant if followed by a subjoined
      ;; consonant but 'a.
      (t
       (let ((laststr (char-to-string (car last))))
-	(if (and (/= char ?$(7"R(B) ;; modified for new font by Tomabechi
-		 (string-match "[$(7"!(B-$(7"="?"@"D(B-$(7"J"K(B]" laststr))
+	(if (and (/= char ?ཱ) ;; modified for new font by Tomabechi
+		 (string-match "[ཀ-ཛྷཞཟལ-ཀྵཪ]" laststr))
 	    (setcar last (string-to-char
 			  (cdr (assoc (char-to-string (car last))
 				      tibetan-base-to-subjoined-alist)))))
@@ -216,7 +216,7 @@ The returned string has no composition information."
 (defun tibetan-compose-string (str)
   "Compose Tibetan string STR."
   (let ((idx 0))
-    ;; `$(7"A(B' is included in the pattern for subjoined consonants
+    ;; `འ' is included in the pattern for subjoined consonants
     ;; because we treat it specially in tibetan-add-components.
     ;; (This feature is removed by Tomabechi 2000/06/08)
     (while (setq idx (string-match tibetan-composable-pattern str idx))
@@ -247,7 +247,7 @@ The returned string has no composition information."
       (save-restriction
 	(narrow-to-region beg end)
 	(goto-char (point-min))
-	;; `$(7"A(B' is included in the pattern for subjoined consonants
+	;; `འ' is included in the pattern for subjoined consonants
 	;; because we treat it specially in tibetan-add-components.
 	;; (This feature is removed by Tomabechi 2000/06/08)
 	(while (re-search-forward tibetan-composable-pattern nil t)
@@ -366,18 +366,18 @@ See also docstring of the function tibetan-compose-region."
 ;;;
 
 (defvar tibetan-canonicalize-for-unicode-alist
-  '(("$(7"Q(B" . "")	;; remove vowel a
-    ("$(7"T(B" . "$(7"R"S(B") ;; decompose vowels whose use is ``discouraged'' in Unicode 3.0
-    ("$(7"V(B" . "$(7"R"U(B")
-    ("$(7"W(B" . "$(7#C"a(B")
-    ("$(7"X(B" . "$(7#C"R"a(B")
-    ("$(7"Y(B" . "$(7#D"a(B")
-    ("$(7"Z(B" . "$(7#D"R"a(B")
-    ("$(7"b(B" . "$(7"R"a(B"))
+  '(("����" . "")	;; remove vowel a
+    ("ཱི" . "ཱི") ;; decompose vowels whose use is ``discouraged'' in Unicode 3.0
+    ("ཱུ" . "ཱུ")
+    ("ྲྀ" . "ྲྀ")
+    ("ཷ" . "ྲཱྀ")
+    ("ླྀ" . "ླྀ")
+    ("ཹ" . "ླཱྀ")
+    ("ཱྀ" . "ཱྀ"))
   "Rules for canonicalizing Tibetan vowels for Unicode.")
 
 (defvar tibetan-canonicalize-for-unicode-regexp
-  "[$(7"Q"T"V"W"X"Y"Z"b(B]"
+  "[����ཱཱིུྲྀཷླྀཹཱྀ]"
   "Regexp for Tibetan vowels to be canonicalized in Unicode.")
 
 (defun tibetan-canonicalize-for-unicode-region (from to)

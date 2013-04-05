@@ -627,7 +627,9 @@ following headers:
 
 1) The leading envelope From line.
 2) Message-ID (get it from /var/log/mailman/vette).
-3) X-Debbugs-Envelope-To: submit
+3) X-Debbugs-Envelope-To: xxx
+For a new report, xxx = submit; for a control message, xxx = control;
+for a reply to bug#123, xxx = 123
 
 Then pipe it to receive as above.
 

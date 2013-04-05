@@ -1374,7 +1374,7 @@ Georges Brun-Cottan, Joe Buehler, Scott Byer, Włodek Bzyl,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
 Clark, Mike Clarkson, Glynn Clements, Andrew Cohen, Daniel Colascione,
-Edward O'Connor, Christoph Conrad, Ludovic Courtès, Andrew Csillag,
+Christoph Conrad, Ludovic Courtès, Andrew Csillag,
 Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki
 Das, Vivek Dasmohapatra, Dan Davison, Michael DeCorte, Gary Delp, Nachum
 Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eri
@@ -1421,7 +1421,7 @@ Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
 Don Morrison, Diane Murray, Riccardo Murri, Sen Nagata, Erik Naggum,
 Gergely Nagy, Nobuyoshi Nakada, Thomas Neumann, Mike Newton, Thien-Thi Nguyen,
 Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff Norden,
-Andrew Norman, Kentaro Ohkouchi, Christian Ohler,
+Andrew Norman, Edward O'Connor, Kentaro Ohkouchi, Christian Ohler,
 Kenichi Okada, Alexandre Oliva, Bob Olson, Michael Olson, Takaaki Ota,
 Pieter E. J. Pareit, Ross Patterson, David Pearson, Juan Pechiar,
 Jeff Peck, Damon Anton Permezel, Tom Perrine, William M. Perry, Per

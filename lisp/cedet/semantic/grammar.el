@@ -51,6 +51,9 @@
 (declare-function semantic-grammar-wy--install-parser
 		  "semantic/gram-wy-fallback")
 
+(declare-function semantic-grammar-wy--install-parser
+		  "semantic/gram-wy-fallback")
+
 
 ;;;;
 ;;;; Set up lexer

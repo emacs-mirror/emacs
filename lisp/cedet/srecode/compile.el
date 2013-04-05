@@ -510,12 +510,12 @@ to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
       (apply 'srecode-template-inserter-variable name props)
-    (let ((classes (class-children srecode-template-inserter))
+    (let ((classes (eieio-class-children srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and
       ;; create the correct inserter.
       (while (and (not new) classes)
-	(setq classes (append classes (class-children (car classes))))
+	(setq classes (append classes (eieio-class-children (car classes))))
 	;; Do we have a match?
 	(when (and (not (class-abstract-p (car classes)))
 		   (equal (oref (car classes) key) key))
@@ -594,7 +594,7 @@ A list of defined variables VARS provides a variable table."
 (defmethod srecode-dump ((tmp srecode-template))
   "Dump the contents of the SRecode template tmp."
   (princ "== Template \"")
-  (princ (object-name-string tmp))
+  (princ (eieio-object-name-string tmp))
   (princ "\" in context ")
   (princ (oref tmp context))
   (princ "\n")
@@ -640,12 +640,12 @@ Argument INDENT specifies the indentation level for the list."
 (defmethod srecode-dump ((ins srecode-template-inserter) indent)
   "Dump the state of the SRecode template inserter INS."
   (princ "INS: \"")
-  (princ (object-name-string ins))
+  (princ (eieio-object-name-string ins))
   (when (oref ins :secondname)
     (princ "\" : \"")
     (princ (oref ins :secondname)))
   (princ "\" type \"")
-  (let* ((oc (symbol-name (object-class ins)))
+  (let* ((oc (symbol-name (eieio-object-class ins)))
 	 (junk (string-match "srecode-template-inserter-" oc))
 	 (on (if junk
 		 (substring oc (match-end 0))

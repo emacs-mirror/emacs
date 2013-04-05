@@ -225,7 +225,7 @@ MENU-DEF is the menu to bind this into."
 		   (ctxtcons (assoc ctxt alltabs))
 		   (bind (if (slot-boundp temp 'binding)
 			     (oref temp binding)))
-		   (name (object-name-string temp)))
+		   (name (eieio-object-name-string temp)))
 
 	      (when (not ctxtcons)
 		(if (string= context ctxt)

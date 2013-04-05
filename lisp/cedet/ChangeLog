@@ -1,3 +1,180 @@
+2013-03-26  Leo Liu  <sdl.web@gmail.com>
+
+	* semantic/senator.el (senator-copy-tag-to-register): Move
+	register handling logic from register.el.  (Bug#14052)
+
+2013-03-21  Eric Ludlam  <zappo@gnu.org>
+
+	* semantic.el (navigate-menu): Yank Tag :enable. Make sure
+	`senator-tag-ring' is bound.
+	(semantic-parse-region-default): Stop reversing the output of
+	parse-whole-stream.
+	(semantic-repeat-parse-whole-stream): Append returned tags
+	differently, so they come out in the right order.
+
+	* semantic/sb.el (semantic-sb-filter-tags-of-class): New option.
+	(semantic-sb-fetch-tag-table): Filter tags being bucketed to
+	exclude tags belonging to above filtered classes.
+
+	* semantic/find.el (semantic-filter-tags-by-class): New function.
+
+	* semantic/tag-ls.el (semantic-tag-similar-p-default): Add
+	short-circuit in case tag1 and 2 are identical.
+
+	* semantic/analyze/fcn.el
+	(semantic-analyze-dereference-metatype-stack): Use
+	`semantic-tag-similar-p' instead of 'eq' when comparing two tags
+	during metatype evaluation in case they are the same, but not the
+	same node. (Tweaked patch from Tomasz Gajewski) (Tiny change)
+
+	* semantic/db-find.el (semanticdb-partial-synchronize): Fix
+	require to semantic/db-typecache to be correct.
+	(semanticdb-find-tags-external-children-of-type): Make this a
+	brutish search by default.
+
+	* semantic/sort.el
+	(semantic-tag-external-member-children-default): When calling
+	`semanticdb-find-tags-external-children-of-type', pass in the
+	input tag as the place to start searching for externally defined
+	methods.
+
+	* semantic/db-file.el (semanticdb-default-save-directory): Doc
+	fix: Add ref to default value.
+
+	* semantic/complete.el (semantic-complete-post-command-hook): When
+	detecting if cursor is outside completion area, do so if cursor
+	moves before start of overlay, or the original starting location
+	of the overlay (i.e., if user deletes past beginning of the
+	overlay region).
+	(semantic-complete-inline-tag-engine): Initialize original start
+	of `semantic-complete-inline-overlay'.
+
+	* semantic/bovine/c.el (semantic-c-describe-environment): Update
+	some section titles.  Test semanticdb table before printing it.
+	(semantic-c-reset-preprocessor-symbol-map): Update
+	`semantic-lex-spp-macro-symbol-obarray' outside the loop over all
+	the files contributing to its value.
+	(semantic-c-describe-environment): If there is an EDE project but
+	no spp symbols from it, say so.
+
+	* srecode/args.el (srecode-semantic-handle-:project): New argument
+	handler. Provide variable values if not in an EDE project.
+
+	* srecode/srt-mode.el (srecode-template-mode): Fix typo on srecode
+	name.
+
+	* srecode/cpp.el (srecode-semantic-handle-:c): Replace all
+	characters in FILENAME_SYMBOL that aren't valid CPP symbol chars.
+
+	* srecode/map.el (srecode-map-validate-file-for-mode): Force
+	semantic to load if it is not active in the template being added
+	to the map.
+
+	* srecode/srt.el: Add local variables for setting the autoload
+	file name.
+	(srecode-semantic-handle-:srt): New autoload cookie
+
+	* ede.el (ede-apply-preprocessor-map): Apply map to
+	`semantic-lex-spp-project-macro-symbol-obarray' instead of the
+	system one. Add require for semantic.
+
+	* ede/proj-elisp.el (ede-update-version-in-source): In case a file
+	has both a version variable and a Version: comment, always use
+	`call-next-method'.
+
+	* ede/cpp-root.el (ede-set-project-variables): Deleted.
+	`ede-preprocessor-map' does the job this function was attempting
+	to do with :spp-table.
+	(ede-preprocessor-map): Update file tests to provide better
+	messages.  Do not try to get symbols from a file that is the file
+	in the current buffer.
+
+	* ede/base.el (ede-project-placeholder): Add more documentation to
+	:file slot.
+	(ede-load-cache): Use `insert-file-contents' instead of
+	`find-file-noselect' in order to avoid activating other tools.
+
+2013-03-21  David Engster  <deng@randomsample.de>
+
+	* semantic/bovine/c.el (semantic-get-local-variables): Also add a
+	new variable 'this' if we are in an inline member function.  For
+	detecting this, we check overlays at point if there is a class
+	spanning the current function.  Also, the variable 'this' has to
+	be a pointer.
+
+	* semantic/bovine/gcc.el (semantic-gcc-setup): Fail gracefully
+	when querying g++ for defines returns an error.
+
+	* srecode/srt-mode.el:
+	* srecode/compile.el:
+	* semantic/elp.el:
+	* semantic/db-el.el:
+	* semantic/complete.el:
+	* ede.el:
+	* cogre.el:
+	* srecode/table.el:
+	* srecode/mode.el:
+	* srecode/insert.el:
+	* srecode/compile.el:
+	* semantic/decorate/include.el:
+	* semantic/db.el:
+	* semantic/adebug.el:
+	* ede/auto.el:
+	* srecode/dictionary.el:
+	* semantic/ede-grammar.el:
+	* semantic/db.el:
+	* semantic/db-find.el:
+	* semantic/db-file.el:
+	* semantic/complete.el:
+	* semantic/bovine/c.el:
+	* semantic/analyze.el:
+	* ede/util.el:
+	* ede/proj.el:
+	* ede/proj-elisp.el:
+	* ede/pconf.el:
+	* ede/locate.el:
+	* ede.el: Adapt to EIEIO namespace cleanup: Rename `object-name'
+	to `eieio-object-name', `object-set-name-string' to
+	`eieio-object-set-name-string', `object-class' to
+	`eieio-object-class', `class-parent' to `eieio-class-parent',
+	`class-parents' to `eieio-class-parents', `class-children' to
+	`eieio-class-children', `object-name-string' to
+	`eieio-object-name-string', `object-class-fast' to
+	`eieio--object-class'. Also replace direct access with new
+	accessor functions.
+
+2013-03-21  Tomasz Gajewski <tomga@wp.pl> (tiny change)
+
+	* ede/cpp-root.el (ede-project-autoload, initialize-instance): Fix
+	EDE file symbol to match rename.  Fix ede-cpp-root symbol to
+	include -project in name.
+
+2013-03-21  Alex Ott <alexott@gmail.com>
+
+	* cedet-files.el (cedet-files-list-recursively): New.  Recursively
+	find files whose names are matching to given regex
+
+	* ede.el (ede-current-project): Rewrite to avoid imperative style.
+
+	* ede/files.el (ede-find-file): Simplify code.
+
+	* ede/base.el (ede-normalize-file/directory): Add function to
+	normalize :file or :directory slots if they are missing.
+
+	* ede/cpp-root.el (ede-cpp-root-project): Add compile-command
+	slot.
+	(project-compile-project): Compiles project using value specified
+	in :compule-command slot or in compile-command local variable.
+	Value of slot or local variable could be string or function that
+	receives project and should return string that will be invoked as
+	command.
+	(project-compile-target): Invokes compilation of whole project
+
+	* ede/files.el (ede-find-project-root): New function to
+	find root of project that contains specific file.
+	(ede-files-find-existing): New function which checks presence of
+	given directory in the list of registered projects.
+
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* semantic/wisent/wisent.el (wisent): Stick to ASCII in the ASCII art.

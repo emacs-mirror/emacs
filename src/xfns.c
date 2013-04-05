@@ -143,7 +143,7 @@ static struct x_display_info *x_display_info_for_name (Lisp_Object);
 /* Error if we are not connected to X.  */
 
 void
-check_x (void)
+check_window_system (void)
 {
   if (! x_in_use)
     error ("X windows are not in use or not initialized");
@@ -4322,7 +4322,7 @@ no value of TYPE (always string in the MS Windows case).  */)
              property and those are indeed in 32 bit quantities if format is
              32.  */
 
-          if (32 < BITS_PER_LONG && actual_format == 32)
+          if (BITS_PER_LONG > 32 && actual_format == 32)
             {
               unsigned long i;
               int  *idata = (int *) tmp_data;
@@ -4525,7 +4525,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   Lisp_Object buffer;
   struct buffer *old_buffer;
 
-  check_x ();
+  check_window_system ();
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");
@@ -5043,7 +5043,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
+  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->contents));
   bset_truncate_lines (current_buffer, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
@@ -5316,7 +5316,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
-  check_x ();
+  check_window_system ();
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
@@ -5486,7 +5486,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
 
-  check_x ();
+  check_window_system ();
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
@@ -5548,7 +5548,7 @@ nil, it defaults to the selected frame. */)
   struct gcpro gcpro1, gcpro2;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  check_x ();
+  check_window_system ();
 
   if (popup_activated ())
     error ("Trying to use a menu from within a menu-entry");
@@ -5591,7 +5591,7 @@ nil, it defaults to the selected frame. */)
 			       Keyboard
  ***********************************************************************/
 
-#ifdef HAVE_XKBGETKEYBOARD
+#ifdef HAVE_XKB
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
 #endif
@@ -5605,7 +5605,9 @@ usual X keysyms.  Value is `lambda' if we cannot determine if both keys are
 present and mapped to the usual X keysyms.  */)
   (Lisp_Object frame)
 {
-#ifdef HAVE_XKBGETKEYBOARD
+#ifndef HAVE_XKB
+  return Qlambda;
+#else
   XkbDescPtr kb;
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -5683,9 +5685,7 @@ present and mapped to the usual X keysyms.  */)
     }
   unblock_input ();
   return have_keys;
-#else /* not HAVE_XKBGETKEYBOARD */
-  return Qlambda;
-#endif /* not HAVE_XKBGETKEYBOARD */
+#endif
 }
 
 
@@ -5918,9 +5918,6 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_synchronize);
   defsubr (&Sx_focus_frame);
   defsubr (&Sx_backspace_delete_keys_p);
-
-  /* Setting callback functions for fontset handler.  */
-  check_window_system_func = check_x;
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
