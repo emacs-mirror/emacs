@@ -2243,7 +2243,8 @@ resultant list will be returned."
                  (whitespace-space-after-tab-regexp 'space)))
               1 whitespace-space-after-tab t)))))
     (font-lock-add-keywords nil whitespace-font-lock-keywords t)
-    (font-lock-fontify-buffer)))
+    (when font-lock-mode
+      (font-lock-fontify-buffer))))
 
 
 (defun whitespace-color-off ()
@@ -2253,7 +2254,8 @@ resultant list will be returned."
     (remove-hook 'post-command-hook #'whitespace-post-command-hook t)
     (remove-hook 'before-change-functions #'whitespace-buffer-changed t)
     (font-lock-remove-keywords nil whitespace-font-lock-keywords)
-    (font-lock-fontify-buffer)))
+    (when font-lock-mode
+      (font-lock-fontify-buffer))))
 
 
 (defun whitespace-trailing-regexp (limit)

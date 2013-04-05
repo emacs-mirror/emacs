@@ -3,6 +3,11 @@
 	* emacs-lisp/package.el (package-compute-transaction): Fix last fix.
 	Suggested by Donald Curtis <dcurtis@coe.edu> (bug#14082).
 
+2013-04-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* whitespace.el (whitespace-color-on, whitespace-color-off): Only
+	call `font-lock-fontify-buffer' when `font-lock-mode' is on.
+
 2013-04-05  Jacek Chrząszcz  <chrzaszcz@mimuw.edu.pl> (tiny change)
 
 	* ispell.el (ispell-set-spellchecker-params):
