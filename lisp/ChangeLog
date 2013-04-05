@@ -1,3 +1,10 @@
+2013-04-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
+	(global-auto-revert-mode): Let-bind `auto-revert-use-notify' to
+	nil during initialization, in order not to miss changes since the
+	file was opened.  (Bug#14140)
+
 2013-04-05  Leo Liu  <sdl.web@gmail.com>
 
 	* kmacro.el (kmacro-call-macro): Fix bug#14135.
