@@ -1,3 +1,8 @@
+2013-04-05  Jacek Chrząszcz  <chrzaszcz@mimuw.edu.pl> (tiny change)
+
+	* ispell.el (ispell-set-spellchecker-params):
+	Really set `ispell-args' for all equivs.
+
 2013-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ido.el (ido-completions): Use extra elements of ido-decorations
