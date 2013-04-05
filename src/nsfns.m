@@ -109,7 +109,7 @@ static ptrdiff_t image_cache_refcount;
 
 
 void
-check_ns (void)
+check_window_system (void)
 {
  if (NSApp == nil)
    error ("OpenStep is not in use or not initialized");
@@ -1145,7 +1145,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object tfont, tfontsize;
   static int desc_ctr = 1;
 
-  check_ns ();
+  check_window_system ();
 
   /* x_get_arg modifies parms.  */
   parms = Fcopy_alist (parms);
@@ -1442,7 +1442,7 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
   id fm;
   struct frame *f;
 
-  check_ns ();
+  check_window_system ();
   fm = [NSFontManager sharedFontManager];
   if (NILP (frame))
     f = SELECTED_FRAME ();
@@ -1466,7 +1466,7 @@ DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
 {
   struct frame *f;
 
-  check_ns ();
+  check_window_system ();
   if (NILP (frame))
     f = SELECTED_FRAME ();
   else
@@ -1503,7 +1503,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
     [NSString stringWithUTF8String: SSDATA (init)];
 
-  check_ns ();
+  check_window_system ();
 
   if (fileDelegate == nil)
     fileDelegate = [EmacsFileDelegate new];
@@ -1594,7 +1594,7 @@ If OWNER is nil, Emacs is assumed.  */)
 {
   const char *value;
 
-  check_ns ();
+  check_window_system ();
   if (NILP (owner))
     owner = build_string([ns_app_name UTF8String]);
   CHECK_STRING (name);
@@ -1614,7 +1614,7 @@ If OWNER is nil, Emacs is assumed.
 If VALUE is nil, the default is removed.  */)
      (Lisp_Object owner, Lisp_Object name, Lisp_Object value)
 {
-  check_ns ();
+  check_window_system ();
   if (NILP (owner))
     owner = build_string ([ns_app_name UTF8String]);
   CHECK_STRING (name);
@@ -1642,7 +1642,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        doc: /* This function is a no-op.  It is only present for completeness.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   /* This function has no real equivalent under NeXTstep.  Return nil to
      indicate this. */
   return Qnil;
@@ -1692,7 +1692,7 @@ If omitted or nil, the selected frame's display is used.  */)
 {
   int num;
 
-  check_ns ();
+  check_window_system ();
   num = [[NSScreen screens] count];
 
   return (num != 0) ? make_number (num) : Qnil;
@@ -1706,7 +1706,7 @@ DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   return make_number ((int)
                      ([ns_get_screen (display) frame].size.height/(92.0/25.4)));
 }
@@ -1719,7 +1719,7 @@ DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   return make_number ((int)
                      ([ns_get_screen (display) frame].size.width/(92.0/25.4)));
 }
@@ -1733,7 +1733,7 @@ DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   switch ([ns_get_window (display) backingType])
     {
     case NSBackingStoreBuffered:
@@ -1759,7 +1759,7 @@ If omitted or nil, the selected frame's display is used.  */)
      (Lisp_Object display)
 {
   NSWindowDepth depth;
-  check_ns ();
+  check_window_system ();
   depth = [ns_get_screen (display) depth];
 
   if ( depth == NSBestDepth (NSCalibratedWhiteColorSpace, 2, 2, YES, NULL))
@@ -1786,7 +1786,7 @@ DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   switch ([ns_get_window (display) backingType])
     {
     case NSBackingStoreBuffered:
@@ -1839,7 +1839,7 @@ DEFUN ("x-close-connection", Fx_close_connection, Sx_close_connection,
 The argument DISPLAY is currently ignored.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   /*ns_delete_terminal (dpyinfo->terminal); */
   [NSApp terminate: NSApp];
   return Qnil;
@@ -1865,7 +1865,7 @@ DEFUN ("ns-hide-others", Fns_hide_others, Sns_hide_others,
        doc: /* Hides all applications other than Emacs.  */)
      (void)
 {
-  check_ns ();
+  check_window_system ();
   [NSApp hideOtherApplications: NSApp];
   return Qnil;
 }
@@ -1878,7 +1878,7 @@ If ON is equal to `activate', Emacs is unhidden and becomes
 the active application.  */)
      (Lisp_Object on)
 {
-  check_ns ();
+  check_window_system ();
   if (EQ (on, intern ("activate")))
     {
       [NSApp unhide: NSApp];
@@ -1897,7 +1897,7 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
        doc: /* Shows the 'Info' or 'About' panel for Emacs.  */)
      (void)
 {
-  check_ns ();
+  check_window_system ();
   [NSApp orderFrontStandardAboutPanel: nil];
   return Qnil;
 }
@@ -1975,7 +1975,7 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
   NSMenu *svcs;
   id delegate;
 
-  check_ns ();
+  check_window_system ();
   svcs = [[NSMenu alloc] initWithTitle: @"Services"];
   [NSApp setServicesMenu: svcs];
   [NSApp registerServicesMenuSendTypes: ns_send_types
@@ -2028,7 +2028,7 @@ there was no result.  */)
   char *utfStr;
 
   CHECK_STRING (service);
-  check_ns ();
+  check_window_system ();
 
   utfStr = SSDATA (service);
   svcName = [NSString stringWithUTF8String: utfStr];
@@ -2152,7 +2152,7 @@ In case the execution fails, an error is signaled. */)
   NSEvent *nxev;
 
   CHECK_STRING (script);
-  check_ns ();
+  check_window_system ();
 
   block_input ();
 
@@ -2235,7 +2235,7 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
   /* remove appname prefix; TODO: allow for !="Emacs" */
   char *toCheck = class + (!strncmp (class, "Emacs.", 6) ? 6 : 0);
   const char *res;
-  check_ns ();
+  check_window_system ();
 
   if (inhibit_x_resources)
     /* --quick was passed, so this is a no-op.  */
@@ -2305,7 +2305,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
      (Lisp_Object color, Lisp_Object frame)
 {
   NSColor * col;
-  check_ns ();
+  check_window_system ();
   return ns_lisp_to_color (color, &col) ? Qnil : Qt;
 }
 
@@ -2317,7 +2317,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   NSColor * col;
   CGFloat red, green, blue, alpha;
 
-  check_ns ();
+  check_window_system ();
   CHECK_STRING (color);
 
   if (ns_lisp_to_color (color, &col))
@@ -2336,7 +2336,7 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
 {
   NSWindowDepth depth;
   NSString *colorSpace;
-  check_ns ();
+  check_window_system ();
   depth = [ns_get_screen (display) depth];
   colorSpace = NSColorSpaceFromDepth (depth);
 
@@ -2356,7 +2356,7 @@ If omitted or nil, that stands for the selected frame's display. */)
      (Lisp_Object display)
 {
   NSWindowDepth depth;
-  check_ns ();
+  check_window_system ();
   depth = [ns_get_screen (display) depth];
 
   return NSBitsPerPixelFromDepth (depth) > 1 ? Qt : Qnil;
@@ -2371,7 +2371,7 @@ DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   return make_number ((int) [ns_get_screen (display) frame].size.width);
 }
 
@@ -2384,7 +2384,7 @@ DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   return make_number ((int) [ns_get_screen (display) frame].size.height);
 }
 
@@ -2404,7 +2404,7 @@ that stands for the selected frame's display. */)
   NSScreen *screen;
   NSRect vScreen;
 
-  check_ns ();
+  check_window_system ();
   screen = ns_get_screen (display);
   if (!screen)
     return Qnil;
@@ -2428,7 +2428,7 @@ DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
      (Lisp_Object display)
 {
-  check_ns ();
+  check_window_system ();
   return make_number
     (NSBitsPerPixelFromDepth ([ns_get_screen (display) depth]));
 }
@@ -2443,7 +2443,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (Lisp_Object display)
 {
   struct ns_display_info *dpyinfo;
-  check_ns ();
+  check_window_system ();
 
   dpyinfo = check_ns_display_info (display);
   /* We force 24+ bit depths to 24-bit to prevent an overflow.  */
@@ -2786,9 +2786,6 @@ be used as the image of the icon representing the frame.  */);
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
-
-  /* used only in fontset.c */
-  check_window_system_func = check_ns;
 
   as_status = 0;
   as_script = Qnil;

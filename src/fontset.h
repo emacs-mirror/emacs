@@ -26,9 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_FONTSET_H
 #define EMACS_FONTSET_H
 
-/* Check if any window system is used now.  */
-extern void (*check_window_system_func) (void);
-
 struct face;
 
 extern void free_face_fontset (FRAME_PTR, struct face *);

@@ -242,7 +242,7 @@ static unsigned int sound_type = 0xFFFFFFFF;
 
 /* Error if we are not connected to MS-Windows.  */
 void
-check_w32 (void)
+check_window_system (void)
 {
   if (! w32_in_use)
     error ("MS-Windows not in use or not initialized");
@@ -5358,7 +5358,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Lisp_Object buffer;
   struct buffer *old_buffer;
 
-  check_w32 ();
+  check_window_system ();
 
   /* Use this general default value to start with until we know if
      this frame has a specified name.  */
@@ -7634,8 +7634,6 @@ only be necessary if the default setting causes problems.  */);
 
   defsubr (&Sdefault_printer_name);
   defsubr (&Sset_message_beep);
-
-  check_window_system_func = check_w32;
 
   hourglass_hwnd = NULL;
 

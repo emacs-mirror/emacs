@@ -3493,9 +3493,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
   (Lisp_Object attribute, Lisp_Object class, Lisp_Object component,
    Lisp_Object subclass)
 {
-#ifdef HAVE_X_WINDOWS
-  check_x ();
-#endif
+  check_window_system ();
 
   return xrdb_get_resource (check_x_display_info (Qnil)->xrdb,
 			    attribute, class, component, subclass);

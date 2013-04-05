@@ -366,10 +366,6 @@ struct x_display_info
 extern int use_xim;
 #endif
 
-/* This checks to make sure we have a display.  */
-
-extern void check_x (void);
-
 extern struct frame *x_window_to_frame (struct x_display_info *, int);
 extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
 extern struct frame *x_menubar_window_to_frame (struct x_display_info *,

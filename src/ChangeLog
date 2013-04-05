@@ -1,3 +1,22 @@
+2013-04-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Consistently use platform-specific function to detect window system.
+	* lisp.h (check_window_system): New prototype.  This function is
+	going to replace check_x, check_w32 and check_ns.
+	(have_menus_p): Mention msdos.c in comment.
+	* fontset.c (check_window_system_func): Remove.  Adjust all users.
+	* fontset.h (check_window_system_func): Remove prototype.
+	* nsterm.h (check_ns):
+	* xterm.h (check_x):
+	* w32term.h (check_w32): Likewise.
+	* menu.c (Fx_popup_menu): Use check_window_system.
+	* msdos.c (check_window_system): Define for MS-DOS.
+	* nsfns.m (check_window_system): Define for NS.  Adjust all users.
+	* w32fns.c (check_window_system): Likewise for MS-Windows.
+	* xfns.c (check_window_system): Likewise for X.
+	* font.c, frame.c, nsmenu.m, nsselect.m, nsterm.m, w32menu.c:
+	* xfaces.c, xmenu.c: Use check_window_system where appropriate.
+
 2013-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer < to > in range checks such as 0 <= i && i < N.

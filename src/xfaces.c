@@ -231,7 +231,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
-#define check_x check_w32
 #define GCGraphicsExposures 0
 #endif /* HAVE_NTGUI */
 
@@ -239,7 +238,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define x_display_info ns_display_info
-#define check_x check_ns
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1636,7 +1634,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
   struct frame *f;
   int size, avgwidth IF_LINT (= 0);
 
-  check_x ();
+  check_window_system ();
   CHECK_STRING (pattern);
 
   if (! NILP (maximum))

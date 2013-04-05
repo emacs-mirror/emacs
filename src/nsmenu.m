@@ -1409,7 +1409,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   NSTRACE (x-popup-dialog);
 
-  check_ns ();
+  check_window_system ();
 
   isQ = NILP (header);
 

@@ -223,7 +223,7 @@ for instance using the window manager, then this produces a quit and
   FRAME_PTR f = NULL;
   Lisp_Object window;
 
-  check_x ();
+  check_window_system ();
 
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
