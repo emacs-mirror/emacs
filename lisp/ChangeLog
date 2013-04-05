@@ -1,3 +1,7 @@
+2013-04-05  Leo Liu  <sdl.web@gmail.com>
+
+	* kmacro.el (kmacro-call-macro): Fix bug#14135.
+
 2013-04-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (calc-convert-units): Rewrite conditional.
