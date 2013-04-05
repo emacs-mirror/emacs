@@ -126,6 +126,7 @@ lib-src/ctags
 lib-src/ctags.c
 lib-src/ebrowse
 lib-src/emacsclient
+lib-src/emacsclient.res
 lib-src/etags
 lib-src/fakemail
 lib-src/hexl
@@ -147,6 +148,7 @@ nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
 nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop
 nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 nt/config.log
+nt/emacs.res
 src/_dbxinit
 src/_gdbinit
 src/bootstrap-emacs
