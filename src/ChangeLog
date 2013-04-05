@@ -1,3 +1,23 @@
+2013-04-03  Kenichi Handa  <handa@gnu.org>
+
+	The following changes is to optimize the code for reading UTF-8
+	files.
+
+	* coding.c (check_ascii): Renamed from detect_ascii.  Return value
+	changed.  Check EOL format.  Do not call adjust_coding_eol_type
+	here.
+	(check_utf_8): New function.
+	(adjust_coding_eol_type): Do nothing if already adjusted.
+	(detect_coding): Compare the return value of check_ascii with
+	coding->src_bytes.  Call adjust_coding_eol_type if necessary.
+	(decode_coding_gap): Optimize for valid UTF-8.
+
+2013-03-21  Kenichi Handa  <handa@gnu.org>
+
+	* coding.c (syms_of_coding): Cancel previous change.
+
+	* insdel.c (insert_from_gap): Fix previous change.
+
 2013-04-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Consistently use platform-specific function to detect window system.
@@ -484,7 +504,7 @@
 
 	* coding.c (decode_coding_gap): Fix typo caught by static checking.
 
-2013-03-15  handa  <handa@gnu.org>
+2013-03-15  Kenichi Handa  <handa@gnu.org>
 
 	* insdel.c (insert_from_gap): New arg text_at_gap_tail.
 	(adjust_after_replace): Make it back to static.  Delete the third
