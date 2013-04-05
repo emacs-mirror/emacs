@@ -87,6 +87,8 @@ Eg View mode, etc.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** `ido-decorations' has been slightly extended to give a bit more control.
+
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog

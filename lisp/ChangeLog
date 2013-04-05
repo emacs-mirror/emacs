@@ -1,3 +1,9 @@
+2013-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ido.el (ido-completions): Use extra elements of ido-decorations
+	(bug#14143).
+	(ido-decorations): Update docstring.
+
 2013-04-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
