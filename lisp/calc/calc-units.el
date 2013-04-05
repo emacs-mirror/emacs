@@ -437,7 +437,7 @@ If COMP or STD is non-nil, put that in the units table instead."
                  (list new-units (car default-units))
                  math-default-units-table))))))
 
-(defvar calc-allow-units-as-numbers)
+(defvar calc-allow-units-as-numbers t)
 
 (defun calc-convert-units (&optional old-units new-units)
   (interactive)
@@ -451,7 +451,9 @@ If COMP or STD is non-nil, put that in the units table instead."
          defunits)
      (if (or (not (math-units-in-expr-p expr t))
              (setq unitscancel (and
-                                calc-allow-units-as-numbers
+                                (if (get 'calc-allow-units-as-numbers 'saved-value)
+                                    (car (get 'calc-allow-units-as-numbers 'saved-value))
+                                  calc-allow-units-as-numbers)
                                 (eq (math-get-standard-units expr) 1))))
        (let ((uold (or old-units
 		       (progn

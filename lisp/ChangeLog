@@ -1,3 +1,7 @@
+2013-04-05  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (calc-convert-units): Rewrite conditional.
+
 2013-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* electric.el (electric-pair-inhibit-predicate): Add :version.
