@@ -185,6 +185,9 @@ of just logging the error."
 	      ;; and will be forced to bootstrap a new one.
 	      (setq srecode-map-save-file nil)
 
+              ;; Disable saving EDE's cache file.
+              (setq ede-project-placeholder-cache-file nil)
+
 	      ;; Run the tests
 	      (cedet-utest t)
 	      )
