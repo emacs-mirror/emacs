@@ -1,3 +1,14 @@
+2013-04-06  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Minor clarifications.
+	(Defining Faces): Clarify default vs custom face specs.  Document
+	face-spec-set.
+
+	* display.texi (Overlay Properties):
+	* text.texi (Special Properties): Use the "anonymous face"
+	terminology.  Describe foreground-color and background-color forms
+	as compatibility-only.
+
 2013-03-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* compile.texi (Byte-Code Objects): Add index entry.
