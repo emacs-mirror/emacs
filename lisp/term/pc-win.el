@@ -403,7 +403,7 @@ Errors out because it is not supposed to be called, ever."
   (error "terminal-init-internal called for window-system `%s'"
 	 (window-system)))
 
-(defun msdos-initialize-window-system ()
+(defun msdos-initialize-window-system (&optional display)
   "Initialization function for the `pc' \"window system\"."
   (or (eq (window-system) 'pc)
       (error

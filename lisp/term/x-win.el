@@ -1343,7 +1343,7 @@ Request data types in the order specified by `x-select-request-type'."
 (defvar x-display-name)
 (defvar x-command-line-resources)
 
-(defun x-initialize-window-system ()
+(defun x-initialize-window-system (&optional display)
   "Initialize Emacs for X frames and open the first connection to an X server."
   (cl-assert (not x-initialized))
 
@@ -1357,7 +1357,7 @@ Request data types in the order specified by `x-select-request-type'."
 	(while (setq i (string-match "[.*]" x-resource-name))
 	  (aset x-resource-name i ?-))))
 
-  (x-open-connection (or x-display-name
+  (x-open-connection (or display
 			 (setq x-display-name (or (getenv "DISPLAY" (selected-frame))
 						  (getenv "DISPLAY"))))
 		     x-command-line-resources
