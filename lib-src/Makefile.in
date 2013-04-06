@@ -358,7 +358,7 @@ emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
 	   -DVERSION="\"${version}\"" $(LOADLIBES) $(LIB_FDATASYNC) \
 	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o emacsclientw${EXEEXT}
 
-NTINC = ${srcdir}/../nt
+NTINC = ${srcdir}/../nt/inc
 NTDEPS = $(NTINC)/ms-w32.h $(NTINC)/sys/stat.h $(NTINC)/inttypes.h \
  $(NTINC)/stdint.h $(NTINC)/pwd.h $(NTINC)/sys/time.h $(NTINC)/stdbool.h \
  $(NTINC)/sys/wait.h $(NTINC)/unistd.h $(NTINC)/sys/file.h $(NTINC)/netdb.h
@@ -376,8 +376,8 @@ update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 	  ${srcdir}/update-game-score.c $(LOADLIBES) $(NTLIB) \
 	  -o update-game-score${EXEEXT}
 
-emacsclient.res: $(NTINC)/emacsclient.rc
-	$(WINDRES) -O coff --include-dir=$(NTINC) -o emacsclient.res \
-	  $(NTINC)/emacsclient.rc
+emacsclient.res: $(NTINC)/../emacsclient.rc
+	$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o emacsclient.res \
+	  $(NTINC)/../emacsclient.rc
 
 ## Makefile ends here.
