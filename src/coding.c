@@ -6152,7 +6152,7 @@ check_ascii (struct coding_system *coding)
 }
 
 
-/* Return the number of charcters at the source if all the bytes are
+/* Return the number of characters at the source if all the bytes are
    valid UTF-8 (of Unicode range).  Otherwise, return -1.  By side
    effects, update coding->eol_seen.  The value of coding->eol_seen is
    "logical or" of EOL_SEEN_LF, EOL_SEEN_CR, and EOL_SEEN_CRLF, but
