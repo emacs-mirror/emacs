@@ -311,8 +311,18 @@
 			   "-"
 			   (substring name (match-end 0)))))
       (if (memq system-type '(ms-dos windows-nt))
-	  (setq name (expand-file-name
-		      (if (fboundp 'x-create-frame) "DOC-X" "DOC") "../etc"))
+	  (let ((name1 (expand-file-name
+			(if (fboundp 'x-create-frame) "DOC-X" "DOC")
+			"../etc")))
+	    ;; There will be no DOC-X on MS-Windows when we build
+	    ;; using the Posix Makefile's.  In that case, we want
+	    ;; to create DOC-XX.YY.ZZ, as on Unix.
+	    (if (file-exists-p name)
+		(setq name name1)
+	      (setq name (concat (expand-file-name "../etc/DOC-") name))
+	      (if (file-exists-p name)
+		  (delete-file name))
+	      (copy-file (expand-file-name "../etc/DOC") name t)))
 	(setq name (concat (expand-file-name "../etc/DOC-") name))
 	(if (file-exists-p name)
 	    (delete-file name))
