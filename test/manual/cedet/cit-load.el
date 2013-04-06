@@ -1,6 +1,6 @@
 ;;; cit-load.el --- Configuration when running the integration tests.
 
-;; Copyright (C) 2008, 2009, 2012 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2012, 2013 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -36,6 +36,9 @@
   "Src dir to CIT testing suite.")
 
 (setq inhibit-splash-screen t)
+
+;; Disable saving EDE's cache file.
+(setq ede-project-placeholder-cache-file nil)
 
 ;; Disables all caches related to semantic DB so all
 ;; tests run as if we have bootstrapped CEDET for the
