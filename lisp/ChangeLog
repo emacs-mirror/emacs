@@ -1,3 +1,11 @@
+2013-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (normal-backup-enable-predicate): On MS-Windows and
+	MS-DOS compare truenames of temporary-file-directory and of the
+	file, so that 8+3 aliases (usually found in $TEMP on Windows)
+	don't fail comparison by compare-strings.  Also, compare file
+	names case-insensitively on MS-Windows and MS-DOS.
+
 2013-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-compute-transaction): Fix last fix.

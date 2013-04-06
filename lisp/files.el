@@ -4180,23 +4180,31 @@ ignored."
   "Default `backup-enable-predicate' function.
 Checks for files in `temporary-file-directory',
 `small-temporary-file-directory', and /tmp."
-  (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
-					name 0 nil)))
-	     ;; Directory is under temporary-file-directory.
-	     (and (not (eq comp t))
-		  (< comp (- (length temporary-file-directory)))))
-	   (let ((comp (compare-strings "/tmp" 0 nil
-					name 0 nil)))
-	     ;; Directory is under /tmp.
-	     (and (not (eq comp t))
-		  (< comp (- (length "/tmp")))))
-	   (if small-temporary-file-directory
-	       (let ((comp (compare-strings small-temporary-file-directory
-					    0 nil
-					    name 0 nil)))
-		 ;; Directory is under small-temporary-file-directory.
-		 (and (not (eq comp t))
-		      (< comp (- (length small-temporary-file-directory)))))))))
+  (let ((temporary-file-directory temporary-file-directory)
+	caseless)
+    ;; On MS-Windows, file-truename will convert short 8+3 alises to
+    ;; their long file-name equivalents, so compare-strings does TRT.
+    (if (memq system-type '(ms-dos windows-nt))
+	(setq temporary-file-directory (file-truename temporary-file-directory)
+	      name (file-truename name)
+	      caseless t))
+    (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
+					  name 0 nil caseless)))
+	       ;; Directory is under temporary-file-directory.
+	       (and (not (eq comp t))
+		    (< comp (- (length temporary-file-directory)))))
+	     (let ((comp (compare-strings "/tmp" 0 nil
+					  name 0 nil)))
+	       ;; Directory is under /tmp.
+	       (and (not (eq comp t))
+		    (< comp (- (length "/tmp")))))
+	     (if small-temporary-file-directory
+		 (let ((comp (compare-strings small-temporary-file-directory
+					      0 nil
+					      name 0 nil caseless)))
+		   ;; Directory is under small-temporary-file-directory.
+		   (and (not (eq comp t))
+			(< comp (- (length small-temporary-file-directory))))))))))
 
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
