@@ -38,7 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    <datadir>/emacs/VERSION/lisp:<datadir>/emacs/VERSION/leim
    where datadir is eg /usr/local/share.
 */
-#define PATH_LOADSEARCH "%emacs_dir%/share/emacs/@VER@/lisp:%emacs_dir%/share/emacs/@VER@/leim"
+#define PATH_LOADSEARCH "%emacs_dir%/share/emacs/@VER@/lisp;%emacs_dir%/share/emacs/@VER@/leim"
 
 /* Like PATH_LOADSEARCH, but contains the non-standard pieces.
    These are the site-lisp directories, typically something like
@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This is combined with PATH_LOADSEARCH to make the default load-path.
    If the --no-site-lisp option is used, this piece is excluded.
 */
-#define PATH_SITELOADSEARCH "%emacs_dir%/share/emacs/@VER@/site-lisp:%emacs_dir%/share/emacs/site-lisp"
+#define PATH_SITELOADSEARCH "%emacs_dir%/share/emacs/@VER@/site-lisp;%emacs_dir%/share/emacs/site-lisp"
 
 /* Like PATH_LOADSEARCH, but used only during the build process
    when Emacs is dumping.  Configure (using "make epaths-force") sets

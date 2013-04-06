@@ -1031,8 +1031,6 @@ AC_SUBST(C_SWITCH_SYSTEM)
 
 
 LIBS_SYSTEM=
-LIB_WSOCK32=
-NTLIB=
 case "$opsys" in
   ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
   aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
@@ -1045,16 +1043,9 @@ case "$opsys" in
 
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
-
-  mingw32) LIBS_SYSTEM="-lcomctl32"
-  LIB_WSOCK32="$LIB_WSOCK32 -lwsock32"
-  NTLIB="ntlib.$ac_objext"
-  ;;
 esac
 
 AC_SUBST(LIBS_SYSTEM)
-AC_SUBST(LIB_WSOCK32)
-AC_SUBST(NTLIB)
 
 ### Make sure subsequent tests use flags consistent with the build flags.
 
@@ -1578,6 +1569,9 @@ fi
 
 FIRSTFILE_OBJ=
 NTDIR=
+LIBS_ECLIENT=
+LIB_WSOCK32=
+NTLIB=
 CM_OBJ="cm.o"
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
@@ -1600,12 +1594,15 @@ if test "${HAVE_W32}" = "yes"; then
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
     W32_OBJ="$W32_OBJ w32notify.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
-    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lusp10"
+    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
     CLIENTRES="emacsclient.res"
     CLIENTW="emacsclientw\$(EXEEXT)"
     FIRSTFILE_OBJ=firstfile.o
     NTDIR=nt
     CM_OBJ=
+    LIBS_ECLIENT="-lcomctl32"
+    LIB_WSOCK32="-lwsock32"
+    NTLIB="ntlib.$ac_objext"
   fi
 fi
 AC_SUBST(W32_OBJ)
@@ -1618,6 +1615,9 @@ AC_SUBST(W32_RES_LINK)
 AC_SUBST(FIRSTFILE_OBJ)
 AC_SUBST(NTDIR)
 AC_SUBST(CM_OBJ)
+AC_SUBST(LIBS_ECLIENT)
+AC_SUBST(LIB_WSOCK32)
+AC_SUBST(NTLIB)
 
 if test "${HAVE_W32}" = "yes"; then
   window_system=w32
@@ -4661,8 +4661,12 @@ dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
 AC_CONFIG_COMMANDS([epaths], [
 echo creating src/epaths.h
-${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
-], [GCC="$GCC" CPPFLAGS="$CPPFLAGS"])
+if test "${opsys}" = "mingw32"; then
+  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
+else
+  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
+fi
+], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
 
 AC_CONFIG_COMMANDS([gdbinit], [
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then

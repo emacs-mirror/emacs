@@ -290,7 +290,7 @@ COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic
 
 all: ${SUBDIR}
 
-.PHONY: all ${SUBDIR} blessmail epaths-force FRC
+.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 FRC
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
@@ -315,6 +315,19 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
+	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
+
+# Convert MSYS-style /x/foo file name into x:/foo that Windows can grok.
+msys_to_w32=sed -e 's,^/\([A-Za-z]\)/,\1:/,'
+
+# The w32 build needs a slightly different editing, and it uses
+# nt/epaths.nt as the template.
+epaths-force-w32: FRC
+	@(w32srcdir=`echo "${srcdir}" | ${msys_to_w32}` ; 	\
+	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
+	  -e '/^.*#/s/@VER@/${version}/g' 			\
+	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
+	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
 lib-src src: $(NTDIR) lib
