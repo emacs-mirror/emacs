@@ -165,6 +165,8 @@ src/stamp-oldxmenu
 src/stamp-h.in
 src/emacs.res
 src/temacs
+src/temacs.map
+src/temacs.tmp
 test/indent/*.new
 +*
 src/globals.h
