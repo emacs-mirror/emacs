@@ -4844,11 +4844,9 @@ If the named font is not yet loaded, return nil.  */)
   Lisp_Object info;
   Lisp_Object font_object;
 
-  check_window_system ();
-
   if (! FONTP (name))
     CHECK_STRING (name);
-  f = decode_live_frame (frame);
+  f = decode_window_system_frame (frame);
 
   if (STRINGP (name))
     {

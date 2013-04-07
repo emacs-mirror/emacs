@@ -2443,10 +2443,9 @@ is nil, and `use-dialog-box' is non-nil.  */)
   CHECK_STRING (prompt);
 
 #ifdef HAVE_MENUS
-  if (FRAME_WINDOW_P (SELECTED_FRAME ())
-      && (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
-      && have_menus_p ())
+      && window_system_available (SELECTED_FRAME ()))
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);

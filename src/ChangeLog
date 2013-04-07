@@ -1,3 +1,34 @@
+2013-04-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Get rid of some platform-specific functions examining window
+	system and its capabilities.  This is a partial rework of the
+	2013-04-05 change.
+	* lisp.h (have_menus_p): Remove prototype.  This function is
+	replaced with platform-independent window_system_available.
+	(check_window_system): Move to...
+	* frame.h (decode_window_system_frame, window_system_available):
+	...here, add new prototypes.
+	* frame.c (window_system_available, decode_window_system_frame):
+	New functions.
+	(check_window_system): Platform-independent now.
+	* xterm.h (x_in_use): Remove declaration.
+	(check_x_frame):
+	* w32term.h (check_x_frame):
+	* nsterm.h (check_x_frame): Remove prototypes.  This function
+	is replaced with platform-independent decode_window_system_frame.
+	* msdos.c (have_menus_p): Remove.
+	* nsfns.m (check_window_system, have_menus_p, check_ns_frame):
+	Remove platform-specific functions.  Use check_window_system,
+	decode_window_system_frame and check_ns_display_info where
+	appropriate.  Minor style and comment tweaks.
+	* w32fns.c (w32_in_use, check_window_system, have_menus_p)
+	(check_x_frame): Likewise.
+	* xfns.c (x_in_use, check_window_system, have_menus_p, check_x_frame):
+	Likewise.
+	* fileio.c, fns.c, font.c, fontset.c, image.c, menu.c, nsmenu.m:
+	* nsselect.m, nsterm.m, w32font.c, w32menu.c, xfaces.c, xgselect.c:
+	* xmenu.c, xselect.c: All related users changed.
+
 2013-04-03  Kenichi Handa  <handa@gnu.org>
 
 	The following changes is to optimize the code for reading UTF-8

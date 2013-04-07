@@ -149,6 +149,37 @@ decode_any_frame (register Lisp_Object frame)
   return XFRAME (frame);
 }
 
+bool
+window_system_available (struct frame *f)
+{
+  if (f)
+    return FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f);
+  else
+#ifdef HAVE_WINDOW_SYSTEM
+    return x_display_list != NULL;
+#else
+    return 0;
+#endif
+}
+
+struct frame *
+decode_window_system_frame (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  
+  if (!window_system_available (f))
+    error ("Window system frame should be used");
+  return f;
+}
+
+void
+check_window_system (struct frame *f)
+{
+  if (!window_system_available (f))
+    error (f ? "Window system frame should be used"
+	   : "Window system is not in use or not initialized");
+}
+
 static void
 set_menu_bar_lines_1 (Lisp_Object window, int n)
 {
@@ -3493,7 +3524,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
   (Lisp_Object attribute, Lisp_Object class, Lisp_Object component,
    Lisp_Object subclass)
 {
-  check_window_system ();
+  check_window_system (NULL);
 
   return xrdb_get_resource (check_x_display_info (Qnil)->xrdb,
 			    attribute, class, component, subclass);

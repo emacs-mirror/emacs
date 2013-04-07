@@ -1209,7 +1209,7 @@ If REGEXPP is non-nil, PATTERN is a regular expression.  */)
   Lisp_Object fontset;
   int id;
 
-  check_window_system ();
+  check_window_system (NULL);
 
   CHECK_STRING (pattern);
 
@@ -1915,8 +1915,7 @@ format is the same as above.  */)
   Lisp_Object val, elt;
   int c, i, j, k;
 
-  check_window_system ();
-
+  check_window_system (NULL);
   fontset = check_fontset_name (fontset, &frame);
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET

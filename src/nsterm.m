@@ -1012,8 +1012,9 @@ ns_raise_frame (struct frame *f)
      Bring window to foreground and make it active
    -------------------------------------------------------------------------- */
 {
-  NSView *view = FRAME_NS_VIEW (f);
-  check_window_system ();
+  NSView *view;
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
   block_input ();
   if (FRAME_VISIBLE_P (f))
     [[view window] makeKeyAndOrderFront: NSApp];
@@ -1027,8 +1028,9 @@ ns_lower_frame (struct frame *f)
      Send window to back
    -------------------------------------------------------------------------- */
 {
-  NSView *view = FRAME_NS_VIEW (f);
-  check_window_system ();
+  NSView *view;
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
   block_input ();
   [[view window] orderBack: NSApp];
   unblock_input ();
@@ -1131,9 +1133,10 @@ x_make_frame_invisible (struct frame *f)
      External: Hide the window (X11 semantics)
    -------------------------------------------------------------------------- */
 {
-  NSView * view = FRAME_NS_VIEW (f);
+  NSView *view;
   NSTRACE (x_make_frame_invisible);
-  check_window_system ();
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
   [[view window] orderOut: NSApp];
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, 0);
@@ -1146,10 +1149,13 @@ x_iconify_frame (struct frame *f)
      External: Iconify window
    -------------------------------------------------------------------------- */
 {
-  NSView * view = FRAME_NS_VIEW (f);
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  NSView *view;
+  struct ns_display_info *dpyinfo;
+
   NSTRACE (x_iconify_frame);
-  check_window_system ();
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
+  dpyinfo = FRAME_NS_DISPLAY_INFO (f);
 
   if (dpyinfo->x_highlight_frame == f)
     dpyinfo->x_highlight_frame = 0;
@@ -1174,11 +1180,15 @@ x_iconify_frame (struct frame *f)
 void
 x_free_frame_resources (struct frame *f)
 {
-  NSView *view = FRAME_NS_VIEW (f);
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+  NSView *view;
+  struct ns_display_info *dpyinfo;
+  Mouse_HLInfo *hlinfo;
+
   NSTRACE (x_free_frame_resources);
-  check_window_system ();
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
+  dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  hlinfo = MOUSE_HL_INFO (f);
 
   [(EmacsView *)view setWindowClosing: YES]; /* may not have been informed */
 
@@ -1219,7 +1229,7 @@ x_destroy_window (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSTRACE (x_destroy_window);
-  check_window_system ();
+  check_window_system (f);
   x_free_frame_resources (f);
   ns_window_num--;
 }
