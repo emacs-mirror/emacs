@@ -92,6 +92,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #elif defined EOPNOTSUPP /* Tru64 NFS */
 #define ACL_NOT_WELL_SUPPORTED(Err)					\
   ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY || (Err) == EOPNOTSUPP)
+#elif defined WINDOWSNT
+#define ACL_NOT_WELL_SUPPORTED(Err)  ((Err) == ENOTSUP)
 #else
 #define ACL_NOT_WELL_SUPPORTED(Err)					\
   ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY)
