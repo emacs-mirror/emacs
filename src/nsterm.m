@@ -1883,7 +1883,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
         f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
                                     : SELECTED_FRAME ();
 
-      if (f && f->output_data.ns)  /* TODO: 2nd check no longer needed? */
+      if (f && FRAME_NS_P (f))
         {
           view = FRAME_NS_VIEW (*fp);
 

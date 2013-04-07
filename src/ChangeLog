@@ -1,3 +1,8 @@
+2013-03-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_mouse_position): Use NS_FRAME_P instead of checking
+	f->output_data.ns.
+
 2013-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix --enable-profiling bug introduced by 2013-02-25 change (Bug#13783).
