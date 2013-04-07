@@ -1,3 +1,16 @@
+2013-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix --enable-profiling bug introduced by 2013-02-25 change (Bug#13783).
+	This bug was introduced by my 2013-02-25 change that simplified
+	data_start configuration.  Without this change, on GNU/Linux
+	an Emacs configured with --enable-profiling fails immediately
+	due to a profiler signal.
+	* Makefile.in: Compile with $(PROFILING_CFLAGS), but do not link
+	with these flags.  On platforms where special flags are needed
+	when linking temacs, the flags are now in LD_SWITCH_SYSTEM_TEMACS.
+	(ALL_CFLAGS): Remove $(PROFILING_CFLAGS).
+	(.c.o, .m.o): Compile with $(PROFILING_CFLAGS).
+
 2013-04-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Get rid of some platform-specific functions examining window
