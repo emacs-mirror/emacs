@@ -1,3 +1,7 @@
+2013-04-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Mention Ubuntu warnings about libdbusmenu.
+
 2013-04-02  Fabrice Niessen  <fni@missioncriticalit.com>
 
 	* themes/leuven-theme.el: Update theme.

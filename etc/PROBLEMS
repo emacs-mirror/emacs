@@ -1405,6 +1405,24 @@ For example, in the Xfce 4.8 desktop environment, the clipboard
 manager in versions of xfce4-settings-helper before 4.8.2 is buggy;
 https://bugzilla.xfce.org/show_bug.cgi?id=7588 .
 
+*** Warning messages when running in Ubuntu
+
+When you start Emacs you may see something like this:
+
+(emacs:2286): LIBDBUSMENU-GTK-CRITICAL **: watch_submenu: assertion 
+`GTK_IS_MENU_SHELL(menu)' failed
+
+This happens if the Emacs binary has been renamed.  The cause it the Ubuntu
+appmenu concept.  It tries to track Emacs menus and show them in the top
+panel, instead of in each Emacs window.  This is not properly implemented,
+so it fails for Emacs.  The order of menus is wrong, and things like copy/paste
+that depends on what state Emacs is in, is usually wrong (i.e. paste disabled
+even if you should be able to paste, and similar).
+
+You can get back menus on each frame by starting emacs like this:
+% env UBUNTU_MENUPROXY= emacs
+
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
