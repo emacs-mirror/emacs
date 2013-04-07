@@ -1,3 +1,9 @@
+2013-04-07  Romain Francoise  <romain@orebokech.com>
+
+	Ignore additional platform-specific ACL errors (Bug#13702).
+	* fileio.c (ACL_NOT_WELL_SUPPORTED): New macro copied from gnulib.
+	(Fcopy_file, Fset_file_acl) [HAVE_POSIX_ACL]: Use it.
+
 2013-03-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_mouse_position): Use NS_FRAME_P instead of checking

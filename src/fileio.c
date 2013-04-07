@@ -81,6 +81,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DRIVE_LETTER(x) c_tolower (x)
 #endif
 
+#ifdef HAVE_POSIX_ACL
+/* FIXME: this macro was copied from gnulib's private acl-internal.h
+   header file.  */
+/* Recognize some common errors such as from an NFS mount that does
+   not support ACLs, even when local drives do.  */
+#if defined __APPLE__ && defined __MACH__ /* Mac OS X */
+#define ACL_NOT_WELL_SUPPORTED(Err)					\
+  ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY || (Err) == ENOENT)
+#elif defined EOPNOTSUPP /* Tru64 NFS */
+#define ACL_NOT_WELL_SUPPORTED(Err)					\
+  ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY || (Err) == EOPNOTSUPP)
+#else
+#define ACL_NOT_WELL_SUPPORTED(Err)					\
+  ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY)
+#endif
+#endif	/* HAVE_POSIX_ACL */
+
 #include "systime.h"
 #include <allocator.h>
 #include <careadlinkat.h>
@@ -2011,7 +2028,7 @@ entries (depending on how Emacs was built).  */)
     {
 #ifdef HAVE_POSIX_ACL
       acl = acl_get_file (SDATA (encoded_file), ACL_TYPE_ACCESS);
-      if (acl == NULL && errno != ENOTSUP)
+      if (acl == NULL && !ACL_NOT_WELL_SUPPORTED (errno))
 	report_file_error ("Getting ACL", Fcons (file, Qnil));
 #endif
     }
@@ -2055,7 +2072,7 @@ entries (depending on how Emacs was built).  */)
     {
       bool fail =
 	acl_set_file (SDATA (encoded_newname), ACL_TYPE_ACCESS, acl) != 0;
-      if (fail && errno != ENOTSUP)
+      if (fail && !ACL_NOT_WELL_SUPPORTED (errno))
 	report_file_error ("Setting ACL", Fcons (newname, Qnil));
 
       acl_free (acl);
@@ -2087,7 +2104,7 @@ entries (depending on how Emacs was built).  */)
 
 #ifdef HAVE_POSIX_ACL
       acl = acl_get_fd (ifd);
-      if (acl == NULL && errno != ENOTSUP)
+      if (acl == NULL && !ACL_NOT_WELL_SUPPORTED (errno))
 	report_file_error ("Getting ACL", Fcons (file, Qnil));
 #endif
     }
@@ -2176,7 +2193,7 @@ entries (depending on how Emacs was built).  */)
   if (acl != NULL)
     {
       bool fail = acl_set_fd (ofd, acl) != 0;
-      if (fail && errno != ENOTSUP)
+      if (fail && !ACL_NOT_WELL_SUPPORTED (errno))
 	report_file_error ("Setting ACL", Fcons (newname, Qnil));
 
       acl_free (acl);
@@ -3174,7 +3191,7 @@ support.  */)
       fail = (acl_set_file (SSDATA (encoded_absname), ACL_TYPE_ACCESS,
 			    acl)
 	      != 0);
-      if (fail && errno != ENOTSUP)
+      if (fail && !ACL_NOT_WELL_SUPPORTED (errno))
 	report_file_error ("Setting ACL", Fcons (absname, Qnil));
 
       acl_free (acl);
