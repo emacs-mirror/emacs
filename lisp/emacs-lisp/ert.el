@@ -464,7 +464,7 @@ FORM-DESCRIPTION-FORM before it has called INNER-FORM."
   "Evaluate FORM.  If it returns nil, abort the current test as failed.
 
 Returns the value of FORM."
-  (declare (debug t)))
+  (declare (debug t))
   (ert--expand-should `(should ,form) form
                       (lambda (inner-form form-description-form _value-var)
                         `(unless ,inner-form
@@ -474,7 +474,7 @@ Returns the value of FORM."
   "Evaluate FORM.  If it returns non-nil, abort the current test as failed.
 
 Returns nil."
-  (declare (debug t)))
+  (declare (debug t))
   (ert--expand-should `(should-not ,form) form
                       (lambda (inner-form form-description-form _value-var)
                         `(unless (not ,inner-form)
