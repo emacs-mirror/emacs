@@ -1,3 +1,8 @@
+2013-04-07  Nic Ferrier  <nferrier@ferrier.me.uk>
+
+	* emacs-lisp/ert.el (should, should-not, should-error): Add edebug
+	declaration.
+
 2013-04-07  Leo Liu  <sdl.web@gmail.com>
 
 	* pcmpl-x.el: New file.
@@ -31,8 +36,8 @@
 
 2013-04-05  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* whitespace.el (whitespace-color-on, whitespace-color-off): Only
-	call `font-lock-fontify-buffer' when `font-lock-mode' is on.
+	* whitespace.el (whitespace-color-on, whitespace-color-off):
+	Only call `font-lock-fontify-buffer' when `font-lock-mode' is on.
 
 2013-04-05  Jacek Chrząszcz  <chrzaszcz@mimuw.edu.pl> (tiny change)
 
