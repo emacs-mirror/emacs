@@ -1,3 +1,10 @@
+2013-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (select_window): Don't record_buffer while the invariant is
+	temporarily broken (bug#14161).
+
+	* fns.c (Fdelq): Don't assume !NILP => CONSP.
+
 2013-04-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (ACL_NOT_WELL_SUPPORTED): Define macro for WINDOWSNT.

@@ -485,12 +485,6 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   w = XWINDOW (window);
   w->frozen_window_start_p = 0;
 
-  if (NILP (norecord))
-    {
-      w->use_time = ++window_select_count;
-      record_buffer (w->contents);
-    }
-
   /* Make the selected window's buffer current.  */
   Fset_buffer (w->contents);
 
@@ -514,6 +508,15 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
     fset_selected_window (sf, window);
 
   select_window_1 (window, inhibit_point_swap);
+
+  /* record_buffer can run QUIT, so make sure it is run only after we have
+     re-established the invariant between selected_window and selected_frame,
+     otherwise the temporary broken invariant might "escape" (bug#14161).  */
+  if (NILP (norecord))
+    {
+      w->use_time = ++window_select_count;
+      record_buffer (w->contents);
+    }
 
   bset_last_selected_window (XBUFFER (w->contents), window);
   windows_or_buffers_changed++;
@@ -2929,7 +2932,7 @@ window-start value is reasonable when this function is called.  */)
 
   replace_window (root, window, 1);
 
-  /* This must become SWINDOW anyway ....... */
+  /* This must become SWINDOW anyway .......  */
   if (BUFFERP (w->contents) && !resize_failed)
     {
       /* Try to minimize scrolling, by setting the window start to the

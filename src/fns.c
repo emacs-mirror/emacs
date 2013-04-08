@@ -1551,7 +1551,7 @@ the value of a list `foo'.  */)
 
   tail = list;
   prev = Qnil;
-  while (!NILP (tail))
+  while (CONSP (tail))
     {
       CHECK_LIST_CONS (tail, list);
       tem = XCAR (tail);

@@ -72,7 +72,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Variables for blockinput.h: */
+/* Variables for blockinput.h:  */
 
 /* Positive if interrupt input is blocked right now.  */
 volatile int interrupt_input_blocked;
@@ -4337,10 +4337,10 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	    }
 
 	  idle_timer_ripe = EMACS_TIME_LE (idle_timer_time, idleness_now);
-	  idle_timer_difference =
-	    (idle_timer_ripe
-	     ? sub_emacs_time (idleness_now, idle_timer_time)
-	     : sub_emacs_time (idle_timer_time, idleness_now));
+	  idle_timer_difference
+	    = (idle_timer_ripe
+	       ? sub_emacs_time (idleness_now, idle_timer_time)
+	       : sub_emacs_time (idle_timer_time, idleness_now));
 	}
 
       /* Decide which timer is the next timer,
