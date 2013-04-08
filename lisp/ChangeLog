@@ -1,3 +1,8 @@
+2013-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (timer-event-handler): Don't retrigger a canceled
+	timer (bug#14156).
+
 2013-04-07  Nic Ferrier  <nferrier@ferrier.me.uk>
 
 	* emacs-lisp/ert.el (should, should-not, should-error): Add edebug

@@ -314,8 +314,12 @@ This function is called, by name, directly by the C code."
               (save-current-buffer
                 (apply (timer--function timer) (timer--args timer)))
 	    (error (message "Error in timer: %S" err)))
-	  (if retrigger
-	      (setf (timer--triggered timer) nil)))
+	  (when (and retrigger
+                     ;; If the timer's been canceled, don't "retrigger" it
+                     ;; since it might still be in the copy of timer-list kept
+                     ;; by keyboard.c:timer_check (bug#14156).
+                     (memq timer timer-list))
+            (setf (timer--triggered timer) nil)))
       (error "Bogus timer event"))))
 
 ;; This function is incompatible with the one in levents.el.
