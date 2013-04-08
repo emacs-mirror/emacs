@@ -1,5 +1,7 @@
 2013-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el (edebug-mode): Fix typo (bug#14144).
+
 	* emacs-lisp/timer.el (timer-event-handler): Don't retrigger a canceled
 	timer (bug#14156).
 
