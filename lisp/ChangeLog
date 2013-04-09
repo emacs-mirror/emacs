@@ -1,3 +1,10 @@
+2013-04-10  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el: Implement `sh-mode' own
+	`add-log-current-defun-function' (bug#14112).
+	(sh-current-defun-name): New function.
+	(sh-mode): Use the function.
+
 2013-04-09  Bastien Guerry  <bzg@gnu.org>
 
 	* simple.el (choose-completion-string): Fix docstring (bug#14163).
