@@ -1800,17 +1800,21 @@ the values STRING, PREDICATE and `lambda'.  */)
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
       i = hash_lookup (h, string, NULL);
+      Lisp_Object key = Qnil;
       if (i >= 0)
 	tem = HASH_KEY (h, i);
       else
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
 	  if (!NILP (HASH_HASH (h, i))
+	      && (key = HASH_KEY (h, i),
+		  SYMBOLP (key) ? key = Fsymbol_name (key) : key,
+		  STRINGP (key))
 	      && EQ (Fcompare_strings (string, make_number (0), Qnil,
-				       HASH_KEY (h, i), make_number (0) , Qnil,
+				       key, make_number (0) , Qnil,
 				       completion_ignore_case ? Qt : Qnil),
 		     Qt))
 	    {
-	      tem = HASH_KEY (h, i);
+	      tem = key;
 	      break;
 	    }
       if (!STRINGP (tem))

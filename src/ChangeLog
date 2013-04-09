@@ -1,3 +1,8 @@
+2013-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Ftest_completion): Ignore non-string/symbol keys in hash
+	tables (bug#14054).
+
 2013-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (select_window): Don't record_buffer while the invariant is
