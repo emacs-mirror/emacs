@@ -251,7 +251,7 @@ allowing the MPS to detect whether they have changed.
         This was introduced in the hope of being able to maintain a
         :term:`remembered set` for the root without needing a
         :term:`write barrier`, but it can't work as described, since
-        you can't reliably a valid registered constant root that
+        you can't reliably create a valid registered constant root that
         contains any references. (If you add the references before
         registering the root, they may have become invalid; but you
         can't add them afterwards because the root is supposed to be
