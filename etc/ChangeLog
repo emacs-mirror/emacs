@@ -1,3 +1,7 @@
+2013-04-09  Masatake YAMATO  <yamato@redhat.com>
+
+	* NEWS: Mention `sh-mode' own `add-log-current-defun-function'.
+
 2013-04-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Mention Ubuntu warnings about libdbusmenu.

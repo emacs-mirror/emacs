@@ -84,6 +84,11 @@ Eg View mode, etc.
 
 ** New command `kmacro-to-register' to store keyboard macros in registers.
 
+** Shell Script mode
+
+*** `sh-mode' now has the mode own `add-log-current-defun-function'.
+You can pick the name of the function and the variables with `C-x 4 a'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
