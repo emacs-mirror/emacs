@@ -6628,7 +6628,9 @@ the default method of inserting the completion in BUFFER.")
 (defun choose-completion-string (choice &optional
                                         buffer base-position insert-function)
   "Switch to BUFFER and insert the completion choice CHOICE.
-BASE-POSITION, says where to insert the completion."
+BASE-POSITION says where to insert the completion.
+INSERT-FUNCTION says how to insert the completion and falls
+back on `completion-list-insert-choice-function' when nil."
 
   ;; If BUFFER is the minibuffer, exit the minibuffer
   ;; unless it is reading a file name and CHOICE is a directory,

@@ -1,3 +1,7 @@
+2013-04-09  Bastien Guerry  <bzg@gnu.org>
+
+	* simple.el (choose-completion-string): Fix docstring (bug#14163).
+
 2013-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-mode): Fix typo (bug#14144).
