@@ -1,3 +1,7 @@
+2013-04-09  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Add some more faces.
+
 2013-04-09  Masatake YAMATO  <yamato@redhat.com>
 
 	* NEWS: Mention `sh-mode' own `add-log-current-defun-function'.
