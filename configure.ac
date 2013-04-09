@@ -1527,7 +1527,7 @@ if test "${with_w32}" != no; then
   W32_RES="emacs.res"
   # Tell the linker that emacs.res is an object (which we compile from
   # the rc file), not a linker script.
-  W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
+  W32_RES_LINK="-Wl,emacs.res"
 fi
 AC_SUBST(W32_OBJ)
 AC_SUBST(W32_LIBS)

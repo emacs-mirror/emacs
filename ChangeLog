@@ -1,3 +1,9 @@
+2013-04-09  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (W32_RES_LINK): Remove unneeded linker directive
+	`-Wl,-bpe-i386', which is confusing in the 64-bit case.
+	(Bug#12993)
+
 2013-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix --enable-profiling bug introduced by 2013-02-25 change (Bug#13783).
