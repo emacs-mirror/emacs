@@ -1,3 +1,7 @@
+2013-04-10  Petr Hracek  <phracek@redhat.com>  (tiny change)
+
+	* emacs.1: Add some more command-line options.  (Bug#14165)
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.
