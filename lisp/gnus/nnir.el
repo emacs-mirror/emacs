@@ -881,10 +881,10 @@ skips all prompting."
 		   articleids))))
 	(dolist (mark marks)
 	  (destructuring-bind (type . range) mark
-		  (gnus-add-marked-articles
+	    (gnus-add-marked-articles
 	     group type
 	     (delq nil
-			   (mapcar
+		     (mapcar
 		      #'(lambda (art)
 			(when (gnus-member-of-range (cdr art) range) (car art)))
 		      articleids)))))))))
