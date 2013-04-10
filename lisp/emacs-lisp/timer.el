@@ -27,26 +27,33 @@
 
 ;;; Code:
 
-;; Layout of a timer vector:
-;; [triggered-p high-seconds low-seconds usecs repeat-delay
-;;  function args idle-delay psecs]
-;; triggered-p is nil if the timer is active (waiting to be triggered),
-;;  t if it is inactive ("already triggered", in theory)
-
 (eval-when-compile (require 'cl-lib))
 
 (cl-defstruct (timer
-            (:constructor nil)
-            (:copier nil)
-            (:constructor timer-create ())
-            (:type vector)
-            (:conc-name timer--))
+               (:constructor nil)
+               (:copier nil)
+               (:constructor timer-create ())
+               (:type vector)
+               (:conc-name timer--))
+  ;; nil if the timer is active (waiting to be triggered),
+  ;; non-nil if it is inactive ("already triggered", in theory).
   (triggered t)
-  high-seconds low-seconds usecs repeat-delay function args idle-delay psecs)
+  ;; Time of next trigger: for normal timers, absolute time, for idle timers,
+  ;; time relative to idle-start.
+  high-seconds low-seconds usecs
+  ;; For normal timers, time between repetitions, or nil.  For idle timers,
+  ;; non-nil iff repeated.
+  repeat-delay
+  function args                         ;What to do when triggered.
+  idle-delay                            ;If non-nil, this is an idle-timer.
+  psecs)
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."
   (and (vectorp object) (= (length object) 9)))
+
+(defsubst timer--check (timer)
+  (or (timerp timer) (signal 'wrong-type-argument (list #'timerp timer))))
 
 ;; Pseudo field `time'.
 (defun timer--time (timer)
@@ -57,17 +64,17 @@
 
 (gv-define-simple-setter timer--time
   (lambda (timer time)
-    (or (timerp timer) (error "Invalid timer"))
+    (timer--check timer)
     (setf (timer--high-seconds timer) (pop time))
     (let ((low time) (usecs 0) (psecs 0))
       (if (consp time)
-	  (progn
-	    (setq low (pop time))
-	    (if time
-		(progn
-		  (setq usecs (pop time))
-		  (if time
-		      (setq psecs (car time)))))))
+          (progn
+            (setq low (pop time))
+            (if time
+                (progn
+                  (setq usecs (pop time))
+                  (if time
+                      (setq psecs (car time)))))))
       (setf (timer--low-seconds timer) low)
       (setf (timer--usecs timer) usecs)
       (setf (timer--psecs timer) psecs))))
@@ -83,15 +90,13 @@ fire repeatedly that many seconds apart."
   timer)
 
 (defun timer-set-idle-time (timer secs &optional repeat)
+  ;; FIXME: Merge with timer-set-time.
   "Set the trigger idle time of TIMER to SECS.
 SECS may be an integer, floating point number, or the internal
 time format returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
-  (if (consp secs)
-      (setf (timer--time timer) secs)
-    (setf (timer--time timer) '(0 0 0))
-    (timer-inc-time timer secs))
+  (setf (timer--time timer) (if (consp secs) secs (seconds-to-time secs)))
   (setf (timer--repeat-delay timer) repeat)
   timer)
 
@@ -156,8 +161,7 @@ fire repeatedly that many seconds apart."
 
 (defun timer-set-function (timer function &optional args)
   "Make TIMER call FUNCTION with optional ARGS when triggering."
-  (or (timerp timer)
-      (error "Invalid timer"))
+  (timer--check timer)
   (setf (timer--function timer) function)
   (setf (timer--args timer) args)
   timer)
@@ -181,9 +185,10 @@ fire repeatedly that many seconds apart."
 	      (setcdr reuse-cell timers))
 	  (setq reuse-cell (cons timer timers)))
 	;; Insert new timer after last which possibly means in front of queue.
-	(cond (last (setcdr last reuse-cell))
-	      (idle (setq timer-idle-list reuse-cell))
-	      (t    (setq timer-list reuse-cell)))
+        (setf (cond (last (cdr last))
+                    (idle timer-idle-list)
+                    (t    timer-list))
+              reuse-cell)
 	(setf (timer--triggered timer) triggered-p)
 	(setf (timer--idle-delay timer) idle)
 	nil)
@@ -223,8 +228,7 @@ timer will fire right away."
 
 (defun cancel-timer (timer)
   "Remove TIMER from the list of active timers."
-  (or (timerp timer)
-      (error "Invalid timer"))
+  (timer--check timer)
   (setq timer-list (delq timer timer-list))
   (setq timer-idle-list (delq timer timer-idle-list))
   nil)
@@ -283,44 +287,47 @@ This function is called, by name, directly by the C code."
   (setq timer-event-last-1 timer-event-last)
   (setq timer-event-last timer)
   (let ((inhibit-quit t))
-    (if (timerp timer)
-	(let (retrigger cell)
-	  ;; Delete from queue.  Record the cons cell that was used.
-	  (setq cell (cancel-timer-internal timer))
-	  ;; Re-schedule if requested.
-	  (if (timer--repeat-delay timer)
-	      (if (timer--idle-delay timer)
-		  (timer-activate-when-idle timer nil cell)
-		(timer-inc-time timer (timer--repeat-delay timer) 0)
-		;; If real time has jumped forward,
-		;; perhaps because Emacs was suspended for a long time,
-		;; limit how many times things get repeated.
-		(if (and (numberp timer-max-repeats)
-			 (< 0 (timer-until timer (current-time))))
-		    (let ((repeats (/ (timer-until timer (current-time))
-				      (timer--repeat-delay timer))))
-		      (if (> repeats timer-max-repeats)
-			  (timer-inc-time timer (* (timer--repeat-delay timer)
-                                                   repeats)))))
-		(timer-activate timer t cell)
-		(setq retrigger t)))
-	  ;; Run handler.
-	  ;; We do this after rescheduling so that the handler function
-	  ;; can cancel its own timer successfully with cancel-timer.
-	  (condition-case-unless-debug err
-              ;; Timer functions should not change the current buffer.
-              ;; If they do, all kinds of nasty surprises can happen,
-              ;; and it can be hellish to track down their source.
-              (save-current-buffer
-                (apply (timer--function timer) (timer--args timer)))
-	    (error (message "Error in timer: %S" err)))
-	  (when (and retrigger
-                     ;; If the timer's been canceled, don't "retrigger" it
-                     ;; since it might still be in the copy of timer-list kept
-                     ;; by keyboard.c:timer_check (bug#14156).
-                     (memq timer timer-list))
-            (setf (timer--triggered timer) nil)))
-      (error "Bogus timer event"))))
+    (timer--check timer)
+    (let ((retrigger nil)
+          (cell
+           ;; Delete from queue.  Record the cons cell that was used.
+           (cancel-timer-internal timer)))
+      ;; Re-schedule if requested.
+      (if (timer--repeat-delay timer)
+          (if (timer--idle-delay timer)
+              (timer-activate-when-idle timer nil cell)
+            (timer-inc-time timer (timer--repeat-delay timer) 0)
+            ;; If real time has jumped forward,
+            ;; perhaps because Emacs was suspended for a long time,
+            ;; limit how many times things get repeated.
+            (if (and (numberp timer-max-repeats)
+                     (< 0 (timer-until timer (current-time))))
+                (let ((repeats (/ (timer-until timer (current-time))
+                                  (timer--repeat-delay timer))))
+                  (if (> repeats timer-max-repeats)
+                      (timer-inc-time timer (* (timer--repeat-delay timer)
+                                               repeats)))))
+            ;; Place it back on the timer-list before running
+            ;; timer--function, so it can cancel-timer itself.
+            (timer-activate timer t cell)
+            (setq retrigger t)))
+      ;; Run handler.
+      (condition-case-unless-debug err
+          ;; Timer functions should not change the current buffer.
+          ;; If they do, all kinds of nasty surprises can happen,
+          ;; and it can be hellish to track down their source.
+          (save-current-buffer
+            (apply (timer--function timer) (timer--args timer)))
+        (error (message "Error running timer%s: %S"
+                        (if (symbolp (timer--function timer))
+                            (format " `%s'" (timer--function timer)) "")
+                        err)))
+      (when (and retrigger
+                 ;; If the timer's been canceled, don't "retrigger" it
+                 ;; since it might still be in the copy of timer-list kept
+                 ;; by keyboard.c:timer_check (bug#14156).
+                 (memq timer timer-list))
+        (setf (timer--triggered timer) nil)))))
 
 ;; This function is incompatible with the one in levents.el.
 (defun timeout-event-p (event)
@@ -531,6 +538,12 @@ If the user does not answer after SECONDS seconds, return DEFAULT-VALUE."
 	secs
       (if (string-match-p "\\`[0-9.]+\\'" string)
 	  (string-to-number string)))))
+
+(defun internal-timer-start-idle ()
+  "Mark all idle-time timers as once again candidates for running."
+  (dolist (timer timer-idle-list)
+    (if (timerp timer) ;; FIXME: Why test?
+        (setf (timer--triggered timer) nil))))
 
 (provide 'timer)
 

@@ -4198,16 +4198,7 @@ timer_start_idle (void)
   timer_last_idleness_start_time = timer_idleness_start_time;
 
   /* Mark all idle-time timers as once again candidates for running.  */
-  for (timers = Vtimer_idle_list; CONSP (timers); timers = XCDR (timers))
-    {
-      Lisp_Object timer;
-
-      timer = XCAR (timers);
-
-      if (!VECTORP (timer) || ASIZE (timer) != 9)
-	continue;
-      ASET (timer, 0, Qnil);
-    }
+  call0 (intern ("internal-timer-start-idle"));
 }
 
 /* Record that Emacs is no longer idle, so stop running idle-time timers.  */

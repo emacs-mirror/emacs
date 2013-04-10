@@ -1,5 +1,12 @@
 2013-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/timer.el (timer--check): New function.
+	(timer--time, timer-set-function, timer-event-handler): Use it.
+	(timer-set-idle-time): Simplify.
+	(timer--activate): CSE.
+	(timer-event-handler): Give more info in error message.
+	(internal-timer-start-idle): New function, moved from C.
+
 	* mpc.el (mpc-proc): Add `restart' argument.
 	(mpc-proc-cmd): Use it.
 	(mpc--status-timer-run): Also catch signals from `mpc-proc'.
