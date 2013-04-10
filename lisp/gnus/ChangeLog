@@ -1,3 +1,10 @@
+2013-04-10  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (number-sequence): No longer used.
+	(nnir-request-set-mark): New function.
+	(nnir-request-update-info): Improve marks updating.
+	(nnir-request-scan): Don't duplicate marks updating.
+
 2013-04-04  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (gnus-nnir-group-p): New function.

@@ -173,15 +173,7 @@
 
 ;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
-  (unless (fboundp 'number-sequence)
-    (defun number-sequence (from to)
-      (let (seq (n 0) (next from))
-	(while (<= next to)
-	  (setq seq (cons next seq)
-		n (1+ n)
-		next (+ from  n )))
-	(nreverse seq)))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (require 'nnoo)
 (require 'gnus-group)
@@ -846,11 +838,31 @@ skips all prompting."
 	(artnumber (nnir-article-number article)))
     (gnus-request-update-mark artgroup artnumber mark)))
 
+(deffoo nnir-request-set-mark (group actions &optional server)
+  (let (mlist)
+    (dolist (action actions)
+      (destructuring-bind (range action marks) action
+        (let ((articles-by-group (nnir-categorize
+                                  (gnus-uncompress-range range)
+                                  nnir-article-group nnir-article-number)))
+          (dolist (artgroup articles-by-group)
+            (push (list
+		   (car artgroup)
+		   (list (gnus-compress-sequence
+			  (sort (cadr artgroup) '<)) action marks)) mlist)))))
+    (dolist (request (nnir-categorize  mlist car cadr))
+      (gnus-request-set-mark (car request) (cadr request)))))
+
 
 (deffoo nnir-request-update-info (group info &optional server)
-  (let ((articles-by-group
+  (nnir-possibly-change-group group)
+  ;; clear out all existing marks.
+  (gnus-info-set-marks info nil)
+  (gnus-info-set-read info nil)
+  (let ((group (gnus-group-guess-full-name-from-command-method group))
+	(articles-by-group
 	 (nnir-categorize
-	  (number-sequence 1 (nnir-artlist-length nnir-artlist))
+	  (gnus-uncompress-range (cons 1 (nnir-artlist-length nnir-artlist)))
 	  nnir-article-group nnir-article-ids)))
     (gnus-set-active group
 		     (cons 1 (nnir-artlist-length nnir-artlist)))
@@ -864,23 +876,20 @@ skips all prompting."
 	 info
 	 (gnus-add-to-range
 	  (gnus-info-read info)
-	  (remove nil  (mapcar (lambda (art)
-				 (let ((num (cdr art)))
-				   (when (gnus-member-of-range num read)
-				     (car art)))) articleids))))
-	(mapc (lambda (mark)
-		(let ((type (car mark))
-		      (range (cdr mark)))
+	  (delq nil
+		  (mapcar
+		   #'(lambda (art)
+		     (when (gnus-member-of-range (cdr art) read) (car art)))
+		   articleids))))
+	(dolist (mark marks)
+	  (destructuring-bind (type . range) mark
 		  (gnus-add-marked-articles
-		   group
-		   type
-		   (remove nil
+	     group type
+	     (delq nil
 			   (mapcar
-			    (lambda (art)
-			      (let ((num (cdr art)))
-				(when (gnus-member-of-range num range)
-				  (car art))))
-			    articleids))))) marks)))))
+		      #'(lambda (art)
+			(when (gnus-member-of-range (cdr art) range) (car art)))
+		      articleids)))))))))
 
 
 (deffoo nnir-close-group (group &optional server)
@@ -1901,21 +1910,10 @@ article came from is also searched."
   t)
 
 (deffoo nnir-request-scan (group method)
-  (if group
-      (let ((pgroup (if (gnus-group-prefixed-p group)
-			group
-		      (gnus-group-prefixed-name  group '(nnir "nnir")))))
-	(gnus-group-set-parameter
-	 pgroup 'nnir-artlist
-	 (setq nnir-artlist
-	       (nnir-run-query
-		(gnus-group-get-parameter pgroup 'nnir-specs t))))
-	(nnir-request-update-info pgroup (gnus-get-info pgroup)))
-    t))
+  t)
 
 (deffoo nnir-request-close ()
   t)
-
 
 (nnoo-define-skeleton nnir)
 
