@@ -4,6 +4,11 @@
 	(nnir-request-set-mark): New function.
 	(nnir-request-update-info): Improve marks updating.
 	(nnir-request-scan): Don't duplicate marks updating.
+	(gnus-group-make-nnir-group, nnir-run-imap, nnir-request-create-group):
+	Use 'assq rather than 'assoc. Quote anonymous function.
+	(nnir-request-group, nnir-close-group, gnus-summary-create-nnir-group):
+	Use 'gnus-group-prefixed-p.
+	(gnus-summary-create-nnir-group): Make sure server for method is open.
 
 2013-04-04  Andrew Cohen  <cohen@bu.edu>
 
