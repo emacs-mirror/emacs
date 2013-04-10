@@ -1,3 +1,11 @@
+2013-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc-proc): Add `restart' argument.
+	(mpc-proc-cmd): Use it.
+	(mpc--status-timer-run): Also catch signals from `mpc-proc'.
+	(mpc-status-buffer-show, mpc-tagbrowser-dir-toggle): Call `mpc-proc'
+	less often.
+
 2013-04-10  Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/sh-script.el: Implement `sh-mode' own
