@@ -1,3 +1,10 @@
+2013-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (do_switch_frame): Mark the TTY frame we switch to as
+	garbaged only if it is not already the top frame on its TTY.  This
+	prevents flickering due to constant redrawing of TTY frames when
+	there are GUI frames open in the same session.  (Bug#13864)
+
 2013-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (timer_start_idle): Call internal-timer-start-idle instead

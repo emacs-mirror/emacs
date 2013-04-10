@@ -834,10 +834,18 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
   if (FRAME_TERMCAP_P (XFRAME (frame)) || FRAME_MSDOS_P (XFRAME (frame)))
     {
-      if (FRAMEP (FRAME_TTY (XFRAME (frame))->top_frame))
-	/* Mark previously displayed frame as now obscured.  */
-	SET_FRAME_VISIBLE (XFRAME (FRAME_TTY (XFRAME (frame))->top_frame), 2);
-      SET_FRAME_VISIBLE (XFRAME (frame), 1);
+      Lisp_Object top_frame = FRAME_TTY (XFRAME (frame))->top_frame;
+
+      /* Don't mark the frame garbaged and/or obscured if we are
+	 switching to the frame that is already the top frame of that
+	 TTY.  */
+      if (!EQ (frame, top_frame))
+	{
+	  if (FRAMEP (top_frame))
+	    /* Mark previously displayed frame as now obscured.  */
+	    SET_FRAME_VISIBLE (XFRAME (top_frame), 2);
+	  SET_FRAME_VISIBLE (XFRAME (frame), 1);
+	}
       FRAME_TTY (XFRAME (frame))->top_frame = frame;
     }
 
