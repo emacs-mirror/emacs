@@ -1,3 +1,12 @@
+2013-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fwindow_end): Test more flags, including the buffer's
+	last_overlay_modified flag, to determine whether the window's
+	display is really up-to-date.  Prevents the function from
+	returning a stale value.  (Bug#14170)
+	(Fwindow_line_height): Fix the test for up-to-date-ness of the
+	current matrix.
+
 2013-04-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (do_switch_frame): Mark the TTY frame we switch to as

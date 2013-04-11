@@ -1493,7 +1493,12 @@ if it isn't already recorded.  */)
   b = XBUFFER (buf);
 
   if (! NILP (update)
-      && (windows_or_buffers_changed || !w->window_end_valid)
+      && (windows_or_buffers_changed
+	  || !w->window_end_valid
+	  || b->clip_changed
+	  || b->prevent_redisplay_optimizations_p
+	  || w->last_modified < BUF_MODIFF (b)
+	  || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
@@ -1702,8 +1707,9 @@ Return nil if window display is not up-to-date.  In that case, use
 
   /* Fail if current matrix is not up-to-date.  */
   if (!w->window_end_valid
-      || current_buffer->clip_changed
-      || current_buffer->prevent_redisplay_optimizations_p
+      || windows_or_buffers_changed
+      || b->clip_changed
+      || b->prevent_redisplay_optimizations_p
       || w->last_modified < BUF_MODIFF (b)
       || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b))
     return Qnil;
