@@ -538,7 +538,8 @@ instead."
 	(message-mail to subject other-headers continue
 		      nil yank-action send-actions return-action))
     (let ((buf (current-buffer))
-	  (gnus-newsgroup-name (or gnus-newsgroup-name ""))
+	  ;; Don't use posting styles corresponding to any existing group.
+	  (gnus-newsgroup-name "")
 	  mail-buf)
       (gnus-setup-message 'message
 	(message-mail to subject other-headers continue

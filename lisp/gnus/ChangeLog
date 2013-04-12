@@ -1,3 +1,8 @@
+2013-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-msg-mail): Make it avoid using posting styles
+	corresponding to any existing group (Bug#14166).
+
 2013-04-10  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (number-sequence): No longer used.
