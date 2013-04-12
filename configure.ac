@@ -471,6 +471,11 @@ case "${canonical}" in
 ##    fi
   ;;
 
+  ## Cygwin ports
+  *-*-cygwin )
+    opsys=cygwin
+  ;;
+
   ## HP 9000 series 700 and 800, running HP/UX
   hppa*-hp-hpux10.2* )
     opsys=hpux10-20
@@ -544,7 +549,6 @@ case "${canonical}" in
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     case "${canonical}" in
-      *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
       *-sysv4.2uw* )	  	opsys=unixware ;;
       *-sysv5uw* )	  	opsys=unixware ;;

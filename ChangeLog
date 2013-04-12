@@ -1,3 +1,8 @@
+2013-04-12  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (canonical): Adapt to 64-bit Cygwin, for which
+	`canonical' is `x86_64-unknown-cygwin'.
+
 2013-04-09  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (W32_RES_LINK): Remove unneeded linker directive
