@@ -489,7 +489,10 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   Fset_buffer (w->contents);
 
   if (EQ (window, selected_window) && !inhibit_point_swap)
-    return window;
+    /* `switch-to-buffer' uses (select-window (selected-window)) as a "clever"
+       way to call record_buffer from Elisp, so it's important that we call
+       record_buffer before returning here.  */
+    goto record_and_return;
 
   sf = SELECTED_FRAME ();
   if (XFRAME (WINDOW_FRAME (w)) != sf)
@@ -508,7 +511,10 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
     fset_selected_window (sf, window);
 
   select_window_1 (window, inhibit_point_swap);
+  bset_last_selected_window (XBUFFER (w->contents), window);
+  windows_or_buffers_changed++;
 
+ record_and_return:
   /* record_buffer can run QUIT, so make sure it is run only after we have
      re-established the invariant between selected_window and selected_frame,
      otherwise the temporary broken invariant might "escape" (bug#14161).  */
@@ -518,8 +524,6 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
       record_buffer (w->contents);
     }
 
-  bset_last_selected_window (XBUFFER (w->contents), window);
-  windows_or_buffers_changed++;
   return window;
 }
 

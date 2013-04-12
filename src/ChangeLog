@@ -1,3 +1,8 @@
+2013-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (select_window): `record_buffer' even if window is
+	already selected (bug#14191).
+
 2013-04-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.c (Fwindow_end): Test more flags, including the buffer's
@@ -10,8 +15,8 @@
 2013-04-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (do_switch_frame): Mark the TTY frame we switch to as
-	garbaged only if it is not already the top frame on its TTY.  This
-	prevents flickering due to constant redrawing of TTY frames when
+	garbaged only if it is not already the top frame on its TTY.
+	This prevents flickering due to constant redrawing of TTY frames when
 	there are GUI frames open in the same session.  (Bug#13864)
 
 2013-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -95,7 +100,7 @@
 	The following changes is to optimize the code for reading UTF-8
 	files.
 
-	* coding.c (check_ascii): Renamed from detect_ascii.  Return value
+	* coding.c (check_ascii): Rename from detect_ascii.  Return value
 	changed.  Check EOL format.  Do not call adjust_coding_eol_type
 	here.
 	(check_utf_8): New function.
@@ -287,8 +292,8 @@
 
 	* xdisp.c (with_echo_area_buffer_unwind_data): Save window
 	start marker...
-	(unwind_with_echo_area_buffer): ...to restore it here.  This
-	is needed to ensure that...
+	(unwind_with_echo_area_buffer): ...to restore it here.
+	This is needed to ensure that...
 	(redisplay_window): ...both window markers are valid here,
 	which is verified by eassert.
 	* editfns.c (save_excursion_save): Do not assume that
@@ -438,10 +443,10 @@
 
 	* w32term.c (w32fullscreen_hook): Use FRAME_NORMAL_WIDTH,
 	FRAME_NORMAL_HEIGHT, and FRAME_PREV_FSMODE, instead of static
-	variables, to save and restore frame dimensions.  Use
-	FRAME_NORMAL_LEFT and FRAME_NORMAL_TOP to restore frame position
-	after returning from a 'fullscreen' configuration.  use
-	SendMessage instead of PostMessage to send the SC_RESTORE message,
+	variables, to save and restore frame dimensions.
+	Use FRAME_NORMAL_LEFT and FRAME_NORMAL_TOP to restore frame position
+	after returning from a 'fullscreen' configuration.
+	use SendMessage instead of PostMessage to send the SC_RESTORE message,
 	to avoid races between the main thread and the input thread.
 
 	* w32term.h (struct w32_output): New members normal_width,
@@ -526,10 +531,10 @@
 
 	* frame.h (struct frame): Drop resx and resy because the same data is
 	available from window system-specific output context.  Adjust users.
-	(default_pixels_per_inch_x, default_pixels_per_inch_y): New
-	functions to provide defaults when no window system available.
+	(default_pixels_per_inch_x, default_pixels_per_inch_y):
+	New functions to provide defaults when no window system available.
 	(FRAME_RES_X, FRAME_RES_Y): New macros.
-	(NUMVAL): Moved from xdisp.c.
+	(NUMVAL): Move from xdisp.c.
 	* font.c (font_pixel_size, font_find_for_lface, font_open_for_lface)
 	(Ffont_face_attributes, Fopen_font):
 	* image.c (gs_load):
