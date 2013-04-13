@@ -116,7 +116,7 @@ Each constructor allocates memory for the new object by calling
 Objects are never freed, because it is necessary to prove that they
 are :term:`dead` before their memory can be :term:`reclaimed`. To
 prove that they are dead, we need a :term:`tracing <trace>`
-:term:`garbage collector`. Which the MPS will provide.
+:term:`garbage collector`, which the MPS will provide.
 
 
 .. index::
