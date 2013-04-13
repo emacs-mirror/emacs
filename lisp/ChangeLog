@@ -1,3 +1,21 @@
+2013-04-12  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Do not override value of arg default.
+	Allow single faces and strings as default values.  Remove those
+	elements from return value that are not faces.
+	(describe-face): Simplify.
+	(face-at-point): New optional args thing and multiple so that this
+	function can provide the same functionality previously provided by
+	read-face-name.
+	(make-face-bold, make-face-unbold, make-face-italic)
+	(make-face-unitalic, make-face-bold-italic, invert-face)
+	(modify-face, read-face-and-attribute): Use face-at-point.
+
+	* cus-edit.el (customize-face, customize-face-other-window)
+	* cus-theme.el (custom-theme-add-face)
+	* face-remap.el (buffer-face-set)
+	* facemenu.el (facemenu-set-face): Use face-at-point.
+
 2013-04-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* info.el (Info-file-list-for-emacs): Add "tramp" and "dbus".
