@@ -5241,19 +5241,22 @@ where FILE is the BibTeX file of ENTRY."
           (if (string= "" field)
               ;; Unrestricted search.
               (while (re-search-forward regexp nil t)
-                (let ((beg (bibtex-beginning-of-entry))
-                      (end (bibtex-end-of-entry))
-                      key)
-                  (if (and (<= beg (match-beginning 0))
-                           (<= (match-end 0) end)
-                           (save-excursion
-                             (goto-char beg)
-                             (and (looking-at bibtex-entry-head)
-                                  (setq key (bibtex-key-in-head))))
-                           (not (assoc key entries)))
-                      (push (list key file
-                                  (buffer-substring-no-properties beg end))
-                            entries))))
+                (save-excursion
+                  (let ((mbeg (match-beginning 0))
+                        (mend (match-end 0))
+                        (beg (bibtex-beginning-of-entry))
+                        (end (bibtex-end-of-entry))
+                        key)
+                    (if (and (<= beg mbeg)
+                             (<= mend end)
+                             (progn
+                               (goto-char beg)
+                               (looking-at bibtex-entry-head))
+                             (setq key (bibtex-key-in-head))
+                             (not (assoc key entries)))
+                        (push (list key file
+                                    (buffer-substring-no-properties beg end))
+                              entries)))))
             ;; The following is slow.  But it works reliably even in more
             ;; complicated cases with BibTeX string constants and crossrefed
             ;; entries.  If you prefer speed over reliability, perform an

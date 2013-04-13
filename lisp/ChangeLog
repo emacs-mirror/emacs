@@ -1,5 +1,10 @@
 2013-04-13  Roland Winkler  <winkler@gnu.org>
 
+	* textmodes/bibtex.el (bibtex-search-entries): Bug fix.  Use match
+	data before it gets modified by bibtex-beginning-of-entry.
+
+2013-04-13  Roland Winkler  <winkler@gnu.org>
+
 	* textmodes/bibtex.el (bibtex-url): Doc fix.
 
 2013-04-13  Roland Winkler  <winkler@gnu.org>
