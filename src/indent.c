@@ -2006,11 +2006,15 @@ whether or not it is currently displayed in some window.  */)
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
 
+	  disp_string_at_start_p =
 	  /* If it.area is anything but TEXT_AREA, we need not bother
 	     about the display string, as it doesn't affect cursor
 	     positioning.  */
-	  disp_string_at_start_p =
-	    it.string_from_display_prop_p && it.area == TEXT_AREA;
+	    it.area == TEXT_AREA
+	    && it.string_from_display_prop_p
+	    /* A display string on anything but buffer text (e.g., on
+	       an overlay string) doesn't affect cursor positioning.  */
+	    && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER);
 	  while (s < e)
 	    {
 	      if (*s++ == '\n')

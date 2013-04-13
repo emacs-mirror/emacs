@@ -1,3 +1,13 @@
+2013-04-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): Don't consider display strings on
+	overlay strings as display strings on the buffer position we
+	started from.  This prevents vertical cursor motion from jumping
+	more than one line when there's an overlay string with a display
+	property at end of line.
+	Reported by Karl Chen <Karl.Chen@quarl.org> in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00362.html.
+
 2013-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (select_window): `record_buffer' even if window is
