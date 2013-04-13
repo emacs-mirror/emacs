@@ -252,7 +252,7 @@ the sum of some subset of <a class="reference internal" href="#MPS_RM_CONST" tit
 <p class="last">This was introduced in the hope of being able to maintain a
 <a class="reference internal" href="../glossary/r.html#term-remembered-set"><em class="xref std std-term">remembered set</em></a> for the root without needing a
 <a class="reference internal" href="../glossary/w.html#term-write-barrier"><em class="xref std std-term">write barrier</em></a>, but it can&#8217;t work as described, since
-you can&#8217;t reliably a valid registered constant root that
+you can&#8217;t reliably create a valid registered constant root that
 contains any references. (If you add the references before
 registering the root, they may have become invalid; but you
 can&#8217;t add them afterwards because the root is supposed to be
