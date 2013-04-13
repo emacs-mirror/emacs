@@ -3020,11 +3020,14 @@ Parsing initializes `bibtex-reference-keys' and `bibtex-strings'."
 Visit the BibTeX files defined by `bibtex-files' and return a list
 of corresponding buffers.
 Initialize in these buffers `bibtex-reference-keys' if not yet set.
-List of BibTeX buffers includes current buffer if CURRENT is non-nil.
+List of BibTeX buffers includes current buffer if CURRENT is non-nil
+and the current buffer visits a file using `bibtex-mode'.
 If FORCE is non-nil, (re)initialize `bibtex-reference-keys' even if
 already set.  If SELECT is non-nil interactively select a BibTeX buffer.
-When called interactively, FORCE is t, CURRENT is t if current buffer uses
-`bibtex-mode', and SELECT is t if current buffer does not use `bibtex-mode',"
+
+When called interactively, FORCE is t, CURRENT is t if current buffer
+visits a file using `bibtex-mode', and SELECT is t if current buffer
+does not use `bibtex-mode',"
   (interactive (list (eq major-mode 'bibtex-mode) t
                      (not (eq major-mode 'bibtex-mode))))
   (let ((file-path (split-string (or bibtex-file-path default-directory) ":+"))
@@ -3062,10 +3065,12 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
       (if (file-readable-p file)
         (push (find-file-noselect file) buffer-list)))
     ;; Include current buffer iff we want it.
-    ;; Exclude current buffer if it doesn't use `bibtex-mode'.
-    ;; Thus calling `bibtex-initialize' gives meaningful results for
-    ;; any current buffer.
-    (unless (and current (eq major-mode 'bibtex-mode)) (setq current nil))
+    ;; Exclude current buffer if it does not visit a file using `bibtex-mode'.
+    ;; This way we exclude BibTeX buffers such as `bibtex-search-buffer'
+    ;; that are not visiting a BibTeX file.  Also, calling `bibtex-initialize'
+    ;; gives meaningful results for any current buffer.
+    (unless (and current (eq major-mode 'bibtex-mode) buffer-file-name)
+      (setq current nil))
     (cond ((and current (not (memq (current-buffer) buffer-list)))
            (push (current-buffer) buffer-list))
           ((and (not current) (memq (current-buffer) buffer-list))
