@@ -1,3 +1,7 @@
+2013-04-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* NEWS: Mention fixing `split-window' to be non-interactive.
+
 2013-04-09  Tassilo Horn  <tsdh@gnu.org>
 
 	* themes/tsdh-dark-theme.el (tsdh-dark): Add some more faces.

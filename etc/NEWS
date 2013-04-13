@@ -76,6 +76,11 @@ of the buffer is visible).
 
 * Editing Changes in Emacs 24.4
 
+** `split-window' is no longer a command, just a non-interactive function.
+As a command it was a special case of `split-window-below', and as such
+superfluous.  After being reimplemented in Lisp, its interactive form
+was mistakenly retained.
+
 ** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
 

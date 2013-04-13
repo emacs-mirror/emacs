@@ -1,3 +1,8 @@
+2013-04-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* windows.texi (Splitting Windows): Change category of
+	split-window from a command to a function.
+
 2013-04-06  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Faces): Minor clarifications.
