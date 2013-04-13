@@ -1,4 +1,8 @@
-2012-09-23  Roland Winkler  <winkler@gnu.org>
+2013-04-13  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-url): Doc fix.
+
+2013-04-13  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-initialize): If the current buffer
 	does not visit a BibTeX file, exclude it from the list of buffers

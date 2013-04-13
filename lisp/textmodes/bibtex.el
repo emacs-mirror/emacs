@@ -5168,6 +5168,9 @@ Return the URL or nil if none can be generated."
                     (if (stringp (car scheme))
                         (setq fmt (pop scheme)))
                     (dolist (step scheme)
+                      ;; In the first STEP, if the field contains multiple
+                      ;; matches, we want the match the closest to point.
+                      ;; (if (eq step (car scheme))
                       (setq text (cdr (assoc-string (car step) fields-alist t)))
                       (if (string-match (nth 1 step) text)
                           (push (cond ((functionp (nth 2 step))
