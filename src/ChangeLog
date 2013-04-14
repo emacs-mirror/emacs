@@ -1,3 +1,10 @@
+2013-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (syms_of_buffer) <left-margin-width, right-margin-width>
+	<left-fringe-width, right-fringe-width, fringes-outside-margins>:
+	Mention in the doc string that setting these variables takes
+	effect only after a call to set-window-buffer.  (Bug#14200)
+
 2013-04-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* indent.c (Fvertical_motion): Don't consider display strings on
