@@ -80,7 +80,12 @@
 
 (define-minor-mode override-global-mode
   "A minor mode so that keymap settings override other modes."
-  t "" override-global-map)
+  t "")
+
+;; the keymaps in `emulation-mode-map-alists' take precedence over
+;; `minor-mode-map-alist'
+(add-to-list 'emulation-mode-map-alists
+             `((override-global-mode . ,override-global-map)))
 
 (add-hook 'after-init-hook
           (function
