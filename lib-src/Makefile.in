@@ -241,7 +241,7 @@ $(DESTDIR)${archlibdir}: all
 	umask 022; ${MKDIR_P} $(DESTDIR)${gamedir}; \
 	touch $(DESTDIR)${gamedir}/snake-scores; \
 	touch $(DESTDIR)${gamedir}/tetris-scores
-	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score && chmod u+s $(DESTDIR)${archlibdir}/update-game-score; then \
+	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score${EXEEXT} && chmod u+s $(DESTDIR)${archlibdir}/update-game-score${EXEEXT}; then \
 	  chown ${gameuser} $(DESTDIR)${gamedir}; \
 	  chmod u=rwx,g=rwx,o=rx $(DESTDIR)${gamedir}; \
 	fi

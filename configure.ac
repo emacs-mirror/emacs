@@ -810,6 +810,12 @@ dnl   AC_PROG_RANLIB
 dnl fi
 AC_PROG_LN_S
 
+LN_EMACS="\$(LN_S)"
+if test "$opsys" = "mingw32"; then
+  LN_EMACS="ln"
+fi
+AC_SUBST(LN_EMACS)
+
 AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
@@ -3033,6 +3039,9 @@ case "$opsys" in
       test $ac_cv_header_maillock_h = yes && mail_lock=no
     fi
     ;;
+
+  mingw32)
+    mail_lock="none-needed" ;;
 esac
 
 BLESSMAIL_TARGET=
@@ -3040,6 +3049,8 @@ case "$mail_lock" in
   flock) AC_DEFINE(MAIL_USE_FLOCK, 1, [Define if the mailer uses flock to interlock the mail spool.]) ;;
 
   lockf) AC_DEFINE(MAIL_USE_LOCKF, 1, [Define if the mailer uses lockf to interlock the mail spool.]) ;;
+
+  none-needed) ;;
 
   *) BLESSMAIL_TARGET="need-blessmail" ;;
 esac

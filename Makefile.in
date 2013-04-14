@@ -257,6 +257,8 @@ INSTALL_INFO = @INSTALL_INFO@
 INSTALL_STRIP =
 MKDIR_P = @MKDIR_P@
 LN_S = @LN_S@
+# Used in "make install".  Usually, $(LN_S), but MS-Windows uses hard links.
+LN_EMACS = @LN_EMACS@
 
 # We use gzip to compress installed .el files.
 GZIP_PROG = @GZIP_PROG@
@@ -471,7 +473,7 @@ install-arch-dep: src install-arch-indep install-doc
 	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) || true; \
 	  if test "x${NO_BIN_LINK}" = x; then \
 	    rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
-	    cd $(DESTDIR)${bindir} && $(LN_S) $(EMACSFULL) $(EMACS); \
+	    cd $(DESTDIR)${bindir} && $(LN_EMACS) $(EMACSFULL) $(EMACS); \
 	  fi; \
 	else \
 	  subdir=${ns_appresdir}/site-lisp; \
