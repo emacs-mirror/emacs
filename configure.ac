@@ -1596,6 +1596,7 @@ if test "${HAVE_W32}" = "yes"; then
     W32_OBJ="$W32_OBJ w32notify.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
+    W32_RES_LINK="\$(EMACSRES)"
     CLIENTRES="emacsclient.res"
     CLIENTW="emacsclientw\$(EXEEXT)"
     FIRSTFILE_OBJ=firstfile.o

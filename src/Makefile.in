@@ -263,9 +263,10 @@ W32_LIBS=@W32_LIBS@
 EMACSRES = @EMACSRES@
 ## emacs-*.manifest if HAVE_W32
 EMACS_MANIFEST = @EMACS_MANIFEST@
-## If HAVE_W32 and CYGWIN, compiler arguments for including
+## If HAVE_W32, compiler arguments for including
 ## the resource file in the binary.
-## XXX -Wl,-b -Wl,pe-i386 -Wl,emacs.res
+## Cygwin: -Wl,-b -Wl,pe-i386 -Wl,emacs.res
+## MinGW: emacs.res
 W32_RES_LINK=@W32_RES_LINK@
 
 ## Empty if !HAVE_X_WINDOWS
@@ -481,8 +482,7 @@ $(lib)/libgnu.a: $(config_h)
 temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
 	         $(lib)/libgnu.a $(EMACSRES)
 	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(LIBES) \
-	  $(W32_RES_LINK)
+	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
 	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
