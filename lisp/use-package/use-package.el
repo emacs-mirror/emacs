@@ -212,7 +212,9 @@
 ;; if you have that installed.  It's purpose is to remove strings from your
 ;; mode-line that would otherwise always be there and provide no useful
 ;; information.  It is invoked with the `:diminish' keyword, which is passed
-;; either the minor mode symbol, or a cons of the symbol and a replacement string:
+;; either the minor mode symbol, a cons of the symbol and a replacement string,
+;; or just a replacement string in which case the minor mode symbol is guessed
+;; to be the package name with "-mode" at the end:
 ;;
 ;;   (use-package abbrev
 ;;     :diminish abbrev-mode
@@ -453,16 +455,20 @@ For full documentation. please see commentary.
                 `(progn
                    ,config-body
                    (ignore-errors
-                     ,@(if (listp diminish-var)
-                           (if (listp (cdr diminish-var))
-                               (mapcar (lambda (var)
-                                           (if (listp var)
-                                               `(diminish (quote ,(car var)) ,(cdr var))
-                                               `(diminish (quote ,var))))
-                                diminish-var)
-                               `((diminish (quote ,(car diminish-var)) ,(cdr diminish-var)))
-                           )
-                         `((diminish (quote ,diminish-var))))))))
+                     ,@(cond
+                        ((stringp diminish-var)
+                         `(diminish (quote ,(intern (concat name-string "-mode")))
+                                    ,diminish-var))
+                        ((symbolp diminish-var)
+                         `(diminish (quote ,diminish-var)))
+                        ((and (consp diminish-var) (stringp (cdr diminish-var)))
+                         `(diminish (quote ,(car diminish-var)) ,(cdr diminish-var)))
+                        (t ; list of symbols or (symbol . "string") pairs
+                         (mapcar (lambda (var)
+                                   (if (listp var)
+                                       `(diminish (quote ,(car var)) ,(cdr var))
+                                     `(diminish (quote ,var))))
+                                 diminish-var)))))))
 
       (if (and commands (symbolp commands))
           (setq commands (list commands)))
