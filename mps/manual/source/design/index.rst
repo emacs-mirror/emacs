@@ -8,7 +8,9 @@ Design
 
     arena
     bt
+    cbs
     config
+    finalize
     protocol
     type
     version
