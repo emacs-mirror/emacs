@@ -1986,8 +1986,7 @@ Do you want to revisit the file normally now? ")
 	    (set-buffer-multibyte nil)
 	    (setq buffer-file-coding-system 'no-conversion)
 	    (set-buffer-major-mode buf)
-	    (make-local-variable 'find-file-literally)
-	    (setq find-file-literally t))
+	    (setq-local find-file-literally t))
 	(after-find-file error (not nowarn)))
       (current-buffer))))
 
@@ -2175,7 +2174,7 @@ not set local variables (though we do notice a mode specified with -*-.)
 or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
-  (funcall (or (default-value 'major-mode) 'fundamental-mode))
+  (fundamental-mode)
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     ;; FIXME this is less efficient than it could be, since both
     ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
@@ -2759,7 +2758,9 @@ we don't actually set it to the same mode the buffer already has."
 					  (if (functionp re)
 					      (funcall re)
 					    (looking-at re)))))))
-	  (set-auto-mode-0 done keep-mode-if-same)))))
+	  (set-auto-mode-0 done keep-mode-if-same)))
+    (unless done
+      (set-buffer-major-mode (current-buffer)))))
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
