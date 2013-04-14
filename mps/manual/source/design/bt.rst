@@ -292,6 +292,8 @@ because both of these are required to be fast.
 Interface
 ---------
 
+.. c:type:: typedef Word *BT;
+
 :mps:tag:`if.representation.abstract` A Bit Table is represented by
 the type :c:type:`BT`.
 
