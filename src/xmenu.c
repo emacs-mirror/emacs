@@ -223,8 +223,6 @@ for instance using the window manager, then this produces a quit and
   FRAME_PTR f = NULL;
   Lisp_Object window;
 
-  check_x ();
-
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
       || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
@@ -277,8 +275,7 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
-  if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
-    error ("Can not put X dialog on this terminal");
+  check_window_system (f);
 
   /* Force a redisplay before showing the dialog.  If a frame is created
      just before showing the dialog, its contents may not have been fully
@@ -485,7 +482,7 @@ If FRAME is nil or not given, use the selected frame.  */)
   (Lisp_Object frame)
 {
   XEvent ev;
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
   Widget menubar;
   block_input ();
 
@@ -569,7 +566,7 @@ If FRAME is nil or not given, use the selected frame.  */)
      block_input ().  */
 
   block_input ();
-  f = check_x_frame (frame);
+  f = decode_window_system_frame (frame);
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
     set_frame_menubar (f, 0, 1);

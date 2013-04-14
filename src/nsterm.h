@@ -577,8 +577,6 @@ extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name (Lisp_Object name);
 
 struct ns_display_info *check_x_display_info (Lisp_Object frame);
-FRAME_PTR check_x_frame (Lisp_Object frame);
-
 
 struct ns_output
 {
@@ -764,7 +762,6 @@ extern void ns_clear_frame (struct frame *f);
 
 extern const char *ns_xlfd_to_fontname (const char *xlfd);
 
-extern void check_ns (void);
 extern Lisp_Object ns_map_event_to_object (void);
 #ifdef __OBJC__
 extern Lisp_Object ns_string_from_pasteboard (id pb);

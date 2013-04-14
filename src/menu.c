@@ -1085,7 +1085,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #ifdef HAVE_MENUS
   {
     bool get_current_pos_p = 0;
-    /* FIXME!!  check_w32 (); or check_x (); or check_ns (); */
+
+    check_window_system (SELECTED_FRAME ());
 
     /* Decode the first argument: find the window and the coordinates.  */
     if (EQ (position, Qt)

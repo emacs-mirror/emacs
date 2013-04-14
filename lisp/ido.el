@@ -765,7 +765,7 @@ Obsolete.  Set 3rd element of `ido-decorations' instead."
 
 (defcustom ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]" " [Not readable]" " [Too big]" " [Confirm]")
   "List of strings used by ido to display the alternatives in the minibuffer.
-There are 11 elements in this list:
+There are between 11 and 13 elements in this list:
 1st and 2nd elements are used as brackets around the prospect list,
 3rd element is the separator between prospects (ignored if `ido-separator' is set),
 4th element is the string inserted at the end of a truncated list of prospects,
@@ -775,7 +775,9 @@ can be completed using TAB,
 8th element is displayed if there is a single match (and faces are not used),
 9th element is displayed when the current directory is non-readable,
 10th element is displayed when directory exceeds `ido-max-directory-size',
-11th element is displayed to confirm creating new file or buffer."
+11th element is displayed to confirm creating new file or buffer.
+12th and 13th elements (if present) are used as brackets around the sole
+remaining completion.  If absent, elements 5 and 6 are used instead."
   :type '(repeat string)
   :group 'ido)
 
@@ -4581,10 +4583,12 @@ For details of keybindings, see `ido-find-file'."
                          (string-equal (match-string 0 (ido-name (car comps)))
                                        (ido-name (car comps))))
                        ""
-                     ;; when there is one match, show the matching file name in full
-                     (concat (nth 4 ido-decorations)  ;; [ ... ]
-                             (ido-name (car comps))
-                             (nth 5 ido-decorations)))
+                     ;; When there is only one match, show the matching file
+                     ;; name in full, wrapped in [ ... ].
+                     (concat
+                      (or (nth 11 ido-decorations) (nth 4 ido-decorations))
+                      (ido-name (car comps))
+                      (or (nth 12 ido-decorations) (nth 5 ido-decorations))))
 		   (if (not ido-use-faces) (nth 7 ido-decorations))))  ;; [Matched]
 	  (t				;multiple matches
 	   (let* ((items (if (> ido-max-prospects 0) (1+ ido-max-prospects) 999))

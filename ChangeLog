@@ -1,3 +1,22 @@
+2013-04-12  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (canonical): Adapt to 64-bit Cygwin, for which
+	`canonical' is `x86_64-unknown-cygwin'.
+
+2013-04-09  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (W32_RES_LINK): Remove unneeded linker directive
+	`-Wl,-bpe-i386', which is confusing in the 64-bit case.
+	(Bug#12993)
+
+2013-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix --enable-profiling bug introduced by 2013-02-25 change (Bug#13783).
+	* configure.ac (LD_SWITCH_SYSTEM_TEMACS): Append -pg if profiling
+	and if not on GNU/Linux or FreeBSD.
+	* lib/Makefile.am (AM_CFLAGS): Add $(PROFILING_CFLAGS), so that
+	lib/*.o is profiled too.
+
 2013-03-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

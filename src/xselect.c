@@ -2450,7 +2450,7 @@ Use the display for FRAME or the current frame if FRAME is not given or nil.
 If the value is 0 or the atom is not known, return the empty string.  */)
   (Lisp_Object value, Lisp_Object frame)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   char *name = 0;
   char empty[] = "";
   Lisp_Object ret = Qnil;
@@ -2485,7 +2485,7 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
   (Lisp_Object atom, Lisp_Object frame)
 {
   Atom x_atom;
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   ptrdiff_t i;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -2618,7 +2618,7 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
   struct x_display_info *dpyinfo = check_x_display_info (display);
   Window wdest;
   XEvent event;
-  struct frame *f = check_x_frame (from);
+  struct frame *f = decode_window_system_frame (from);
   int to_root;
 
   CHECK_NUMBER (format);
@@ -2635,7 +2635,7 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 
   if (FRAMEP (dest) || NILP (dest))
     {
-      struct frame *fdest = check_x_frame (dest);
+      struct frame *fdest = decode_window_system_frame (dest);
       wdest = FRAME_OUTER_WINDOW (fdest);
     }
   else if (STRINGP (dest))

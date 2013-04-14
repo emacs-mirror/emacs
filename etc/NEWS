@@ -76,6 +76,11 @@ of the buffer is visible).
 
 * Editing Changes in Emacs 24.4
 
+** `split-window' is no longer a command, just a non-interactive function.
+As a command it was a special case of `split-window-below', and as such
+superfluous.  After being reimplemented in Lisp, its interactive form
+was mistakenly retained.
+
 ** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
 
@@ -84,8 +89,15 @@ Eg View mode, etc.
 
 ** New command `kmacro-to-register' to store keyboard macros in registers.
 
+** Shell Script mode
+
+*** `sh-mode' now has the mode own `add-log-current-defun-function'.
+You can pick the name of the function and the variables with `C-x 4 a'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
+** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:

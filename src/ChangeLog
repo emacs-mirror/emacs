@@ -1,3 +1,156 @@
+2013-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (syms_of_buffer) <left-margin-width, right-margin-width>
+	<left-fringe-width, right-fringe-width, fringes-outside-margins>:
+	Mention in the doc string that setting these variables takes
+	effect only after a call to set-window-buffer.  (Bug#14200)
+
+2013-04-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (Fvertical_motion): Don't consider display strings on
+	overlay strings as display strings on the buffer position we
+	started from.  This prevents vertical cursor motion from jumping
+	more than one line when there's an overlay string with a display
+	property at end of line.
+	Reported by Karl Chen <Karl.Chen@quarl.org> in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00362.html.
+
+2013-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (select_window): `record_buffer' even if window is
+	already selected (bug#14191).
+
+2013-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fwindow_end): Test more flags, including the buffer's
+	last_overlay_modified flag, to determine whether the window's
+	display is really up-to-date.  Prevents the function from
+	returning a stale value.  (Bug#14170)
+	(Fwindow_line_height): Fix the test for up-to-date-ness of the
+	current matrix.
+
+2013-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (do_switch_frame): Mark the TTY frame we switch to as
+	garbaged only if it is not already the top frame on its TTY.
+	This prevents flickering due to constant redrawing of TTY frames when
+	there are GUI frames open in the same session.  (Bug#13864)
+
+2013-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (timer_start_idle): Call internal-timer-start-idle instead
+	of marking the idle timers directly.
+
+2013-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Ftest_completion): Ignore non-string/symbol keys in hash
+	tables (bug#14054).
+
+2013-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (select_window): Don't record_buffer while the invariant is
+	temporarily broken (bug#14161).
+
+	* fns.c (Fdelq): Don't assume !NILP => CONSP.
+
+2013-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (ACL_NOT_WELL_SUPPORTED): Define macro for WINDOWSNT.
+
+2013-04-07  Romain Francoise  <romain@orebokech.com>
+
+	Ignore additional platform-specific ACL errors (Bug#13702).
+	* fileio.c (ACL_NOT_WELL_SUPPORTED): New macro copied from gnulib.
+	(Fcopy_file, Fset_file_acl) [HAVE_POSIX_ACL]: Use it.
+
+2013-03-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_mouse_position): Use NS_FRAME_P instead of checking
+	f->output_data.ns.
+
+2013-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix --enable-profiling bug introduced by 2013-02-25 change (Bug#13783).
+	This bug was introduced by my 2013-02-25 change that simplified
+	data_start configuration.  Without this change, on GNU/Linux
+	an Emacs configured with --enable-profiling fails immediately
+	due to a profiler signal.
+	* Makefile.in: Compile with $(PROFILING_CFLAGS), but do not link
+	with these flags.  On platforms where special flags are needed
+	when linking temacs, the flags are now in LD_SWITCH_SYSTEM_TEMACS.
+	(ALL_CFLAGS): Remove $(PROFILING_CFLAGS).
+	(.c.o, .m.o): Compile with $(PROFILING_CFLAGS).
+
+2013-04-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Get rid of some platform-specific functions examining window
+	system and its capabilities.  This is a partial rework of the
+	2013-04-05 change.
+	* lisp.h (have_menus_p): Remove prototype.  This function is
+	replaced with platform-independent window_system_available.
+	(check_window_system): Move to...
+	* frame.h (decode_window_system_frame, window_system_available):
+	...here, add new prototypes.
+	* frame.c (window_system_available, decode_window_system_frame):
+	New functions.
+	(check_window_system): Platform-independent now.
+	* xterm.h (x_in_use): Remove declaration.
+	(check_x_frame):
+	* w32term.h (check_x_frame):
+	* nsterm.h (check_x_frame): Remove prototypes.  This function
+	is replaced with platform-independent decode_window_system_frame.
+	* msdos.c (have_menus_p): Remove.
+	* nsfns.m (check_window_system, have_menus_p, check_ns_frame):
+	Remove platform-specific functions.  Use check_window_system,
+	decode_window_system_frame and check_ns_display_info where
+	appropriate.  Minor style and comment tweaks.
+	* w32fns.c (w32_in_use, check_window_system, have_menus_p)
+	(check_x_frame): Likewise.
+	* xfns.c (x_in_use, check_window_system, have_menus_p, check_x_frame):
+	Likewise.
+	* fileio.c, fns.c, font.c, fontset.c, image.c, menu.c, nsmenu.m:
+	* nsselect.m, nsterm.m, w32font.c, w32menu.c, xfaces.c, xgselect.c:
+	* xmenu.c, xselect.c: All related users changed.
+
+2013-04-03  Kenichi Handa  <handa@gnu.org>
+
+	The following changes is to optimize the code for reading UTF-8
+	files.
+
+	* coding.c (check_ascii): Rename from detect_ascii.  Return value
+	changed.  Check EOL format.  Do not call adjust_coding_eol_type
+	here.
+	(check_utf_8): New function.
+	(adjust_coding_eol_type): Do nothing if already adjusted.
+	(detect_coding): Compare the return value of check_ascii with
+	coding->src_bytes.  Call adjust_coding_eol_type if necessary.
+	(decode_coding_gap): Optimize for valid UTF-8.
+
+2013-03-21  Kenichi Handa  <handa@gnu.org>
+
+	* coding.c (syms_of_coding): Cancel previous change.
+
+	* insdel.c (insert_from_gap): Fix previous change.
+
+2013-04-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Consistently use platform-specific function to detect window system.
+	* lisp.h (check_window_system): New prototype.  This function is
+	going to replace check_x, check_w32 and check_ns.
+	(have_menus_p): Mention msdos.c in comment.
+	* fontset.c (check_window_system_func): Remove.  Adjust all users.
+	* fontset.h (check_window_system_func): Remove prototype.
+	* nsterm.h (check_ns):
+	* xterm.h (check_x):
+	* w32term.h (check_w32): Likewise.
+	* menu.c (Fx_popup_menu): Use check_window_system.
+	* msdos.c (check_window_system): Define for MS-DOS.
+	* nsfns.m (check_window_system): Define for NS.  Adjust all users.
+	* w32fns.c (check_window_system): Likewise for MS-Windows.
+	* xfns.c (check_window_system): Likewise for X.
+	* font.c, frame.c, nsmenu.m, nsselect.m, nsterm.m, w32menu.c:
+	* xfaces.c, xmenu.c: Use check_window_system where appropriate.
+
 2013-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer < to > in range checks such as 0 <= i && i < N.
@@ -156,8 +309,8 @@
 
 	* xdisp.c (with_echo_area_buffer_unwind_data): Save window
 	start marker...
-	(unwind_with_echo_area_buffer): ...to restore it here.  This
-	is needed to ensure that...
+	(unwind_with_echo_area_buffer): ...to restore it here.
+	This is needed to ensure that...
 	(redisplay_window): ...both window markers are valid here,
 	which is verified by eassert.
 	* editfns.c (save_excursion_save): Do not assume that
@@ -307,10 +460,10 @@
 
 	* w32term.c (w32fullscreen_hook): Use FRAME_NORMAL_WIDTH,
 	FRAME_NORMAL_HEIGHT, and FRAME_PREV_FSMODE, instead of static
-	variables, to save and restore frame dimensions.  Use
-	FRAME_NORMAL_LEFT and FRAME_NORMAL_TOP to restore frame position
-	after returning from a 'fullscreen' configuration.  use
-	SendMessage instead of PostMessage to send the SC_RESTORE message,
+	variables, to save and restore frame dimensions.
+	Use FRAME_NORMAL_LEFT and FRAME_NORMAL_TOP to restore frame position
+	after returning from a 'fullscreen' configuration.
+	use SendMessage instead of PostMessage to send the SC_RESTORE message,
 	to avoid races between the main thread and the input thread.
 
 	* w32term.h (struct w32_output): New members normal_width,
@@ -395,10 +548,10 @@
 
 	* frame.h (struct frame): Drop resx and resy because the same data is
 	available from window system-specific output context.  Adjust users.
-	(default_pixels_per_inch_x, default_pixels_per_inch_y): New
-	functions to provide defaults when no window system available.
+	(default_pixels_per_inch_x, default_pixels_per_inch_y):
+	New functions to provide defaults when no window system available.
 	(FRAME_RES_X, FRAME_RES_Y): New macros.
-	(NUMVAL): Moved from xdisp.c.
+	(NUMVAL): Move from xdisp.c.
 	* font.c (font_pixel_size, font_find_for_lface, font_open_for_lface)
 	(Ffont_face_attributes, Fopen_font):
 	* image.c (gs_load):
@@ -465,7 +618,7 @@
 
 	* coding.c (decode_coding_gap): Fix typo caught by static checking.
 
-2013-03-15  handa  <handa@gnu.org>
+2013-03-15  Kenichi Handa  <handa@gnu.org>
 
 	* insdel.c (insert_from_gap): New arg text_at_gap_tail.
 	(adjust_after_replace): Make it back to static.  Delete the third

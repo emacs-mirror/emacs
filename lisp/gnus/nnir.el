@@ -173,15 +173,7 @@
 
 ;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
-  (unless (fboundp 'number-sequence)
-    (defun number-sequence (from to)
-      (let (seq (n 0) (next from))
-	(while (<= next to)
-	  (setq seq (cons next seq)
-		n (1+ n)
-		next (+ from  n )))
-	(nreverse seq)))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (require 'nnoo)
 (require 'gnus-group)
@@ -610,7 +602,7 @@ an alist with `nnir-query-spec' and `nnir-group-spec' keys, and
 skips all prompting."
   (interactive "P")
   (let* ((group-spec
-	  (or (cdr (assoc 'nnir-group-spec specs))
+	  (or (cdr (assq 'nnir-group-spec specs))
 	    (if (gnus-server-server-name)
 		(list (list (gnus-server-server-name)))
 	      (nnir-categorize
@@ -620,7 +612,7 @@ skips all prompting."
 		     (cdr (assoc (gnus-group-topic-name) gnus-topic-alist))))
 	       gnus-group-server))))
 	 (query-spec
-	  (or (cdr (assoc 'nnir-query-spec specs))
+	  (or (cdr (assq 'nnir-query-spec specs))
 	    (apply
 	     'append
 	     (list (cons 'query
@@ -667,9 +659,7 @@ skips all prompting."
 
 (deffoo nnir-request-group (group &optional server dont-check info)
   (nnir-possibly-change-group group server)
-  (let ((pgroup (if (gnus-group-prefixed-p group)
-		    group
-		  (gnus-group-prefixed-name  group '(nnir "nnir"))))
+  (let ((pgroup (gnus-group-guess-full-name-from-command-method group))
 	length)
     ;; Check for cached search result or run the query and cache the
     ;; result.
@@ -846,11 +836,31 @@ skips all prompting."
 	(artnumber (nnir-article-number article)))
     (gnus-request-update-mark artgroup artnumber mark)))
 
+(deffoo nnir-request-set-mark (group actions &optional server)
+  (let (mlist)
+    (dolist (action actions)
+      (destructuring-bind (range action marks) action
+        (let ((articles-by-group (nnir-categorize
+                                  (gnus-uncompress-range range)
+                                  nnir-article-group nnir-article-number)))
+          (dolist (artgroup articles-by-group)
+            (push (list
+		   (car artgroup)
+		   (list (gnus-compress-sequence
+			  (sort (cadr artgroup) '<)) action marks)) mlist)))))
+    (dolist (request (nnir-categorize  mlist car cadr))
+      (gnus-request-set-mark (car request) (cadr request)))))
+
 
 (deffoo nnir-request-update-info (group info &optional server)
-  (let ((articles-by-group
+  (nnir-possibly-change-group group)
+  ;; clear out all existing marks.
+  (gnus-info-set-marks info nil)
+  (gnus-info-set-read info nil)
+  (let ((group (gnus-group-guess-full-name-from-command-method group))
+	(articles-by-group
 	 (nnir-categorize
-	  (number-sequence 1 (nnir-artlist-length nnir-artlist))
+	  (gnus-uncompress-range (cons 1 (nnir-artlist-length nnir-artlist)))
 	  nnir-article-group nnir-article-ids)))
     (gnus-set-active group
 		     (cons 1 (nnir-artlist-length nnir-artlist)))
@@ -864,29 +874,24 @@ skips all prompting."
 	 info
 	 (gnus-add-to-range
 	  (gnus-info-read info)
-	  (remove nil  (mapcar (lambda (art)
-				 (let ((num (cdr art)))
-				   (when (gnus-member-of-range num read)
-				     (car art)))) articleids))))
-	(mapc (lambda (mark)
-		(let ((type (car mark))
-		      (range (cdr mark)))
-		  (gnus-add-marked-articles
-		   group
-		   type
-		   (remove nil
-			   (mapcar
-			    (lambda (art)
-			      (let ((num (cdr art)))
-				(when (gnus-member-of-range num range)
-				  (car art))))
-			    articleids))))) marks)))))
+	  (delq nil
+		  (mapcar
+		   #'(lambda (art)
+		     (when (gnus-member-of-range (cdr art) read) (car art)))
+		   articleids))))
+	(dolist (mark marks)
+	  (destructuring-bind (type . range) mark
+	    (gnus-add-marked-articles
+	     group type
+	     (delq nil
+		     (mapcar
+		      #'(lambda (art)
+			(when (gnus-member-of-range (cdr art) range) (car art)))
+		      articleids)))))))))
 
 
 (deffoo nnir-close-group (group &optional server)
-  (let ((pgroup (if (gnus-group-prefixed-p group)
-		    group
-		  (gnus-group-prefixed-name  group '(nnir "nnir")))))
+  (let ((pgroup (gnus-group-guess-full-name-from-command-method group)))
     (when (and nnir-artlist (not (gnus-ephemeral-group-p pgroup)))
       (gnus-group-set-parameter  pgroup 'nnir-artlist nnir-artlist))
     (setq nnir-artlist nil)
@@ -963,7 +968,7 @@ details on the language and supported extensions."
        'vconcat
        (catch 'found
          (mapcar
-          (lambda (group)
+          #'(lambda (group)
             (let (artlist)
               (condition-case ()
                   (when (nnimap-possibly-change-group
@@ -1861,12 +1866,11 @@ article came from is also searched."
 
 (defun gnus-summary-create-nnir-group ()
   (interactive)
+  (or (nnir-server-opened "") (nnir-open-server "nnir"))
   (let ((name (gnus-read-group "Group name: "))
-	(method "nnir")
-	(pgroup (if (gnus-group-prefixed-p gnus-newsgroup-name)
-		    gnus-newsgroup-name
-		  (gnus-group-prefixed-name
-		   gnus-newsgroup-name '(nnir "nnir")))))
+	(method '(nnir ""))
+	(pgroup
+	 (gnus-group-guess-full-name-from-command-method gnus-newsgroup-name)))
     (with-current-buffer gnus-group-buffer
       (gnus-group-make-group
        name method nil
@@ -1876,20 +1880,20 @@ article came from is also searched."
 (deffoo nnir-request-create-group (group &optional server args)
   (message "Creating nnir group %s" group)
   (let* ((group (gnus-group-prefixed-name  group '(nnir "nnir")))
-         (specs (assoc 'nnir-specs args))
+         (specs (assq 'nnir-specs args))
          (query-spec
-          (or (cdr (assoc 'nnir-query-spec specs))
+          (or (cdr (assq 'nnir-query-spec specs))
               (list (cons 'query
                           (read-string "Query: " nil 'nnir-search-history)))))
          (group-spec
-          (or (cdr (assoc 'nnir-group-spec specs))
+          (or (cdr (assq 'nnir-group-spec specs))
               (list (list (read-string "Server: " nil nil)))))
          (nnir-specs (list (cons 'nnir-query-spec query-spec)
                            (cons 'nnir-group-spec group-spec))))
     (gnus-group-set-parameter group 'nnir-specs nnir-specs)
     (gnus-group-set-parameter
      group 'nnir-artlist
-     (or (cdr (assoc 'nnir-artlist args))
+     (or (cdr (assq 'nnir-artlist args))
          (nnir-run-query nnir-specs)))
     (nnir-request-update-info group (gnus-get-info group)))
   t)
@@ -1901,21 +1905,10 @@ article came from is also searched."
   t)
 
 (deffoo nnir-request-scan (group method)
-  (if group
-      (let ((pgroup (if (gnus-group-prefixed-p group)
-			group
-		      (gnus-group-prefixed-name  group '(nnir "nnir")))))
-	(gnus-group-set-parameter
-	 pgroup 'nnir-artlist
-	 (setq nnir-artlist
-	       (nnir-run-query
-		(gnus-group-get-parameter pgroup 'nnir-specs t))))
-	(nnir-request-update-info pgroup (gnus-get-info pgroup)))
-    t))
+  t)
 
 (deffoo nnir-request-close ()
   t)
-
 
 (nnoo-define-skeleton nnir)
 

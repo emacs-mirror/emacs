@@ -3771,11 +3771,6 @@ extern void syms_of_xml (void);
 extern void xml_cleanup_parser (void);
 #endif
 
-#ifdef HAVE_MENUS
-/* Defined in (x|w32)fns.c, nsfns.m...  */
-extern int have_menus_p (void);
-#endif
-
 #ifdef HAVE_DBUS
 /* Defined in dbusbind.c.  */
 void syms_of_dbusbind (void);

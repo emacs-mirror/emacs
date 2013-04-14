@@ -354,8 +354,7 @@ On Nextstep, FRAME is unused.  */)
   Lisp_Object successful_p = Qnil, rest;
   Lisp_Object target_symbol, data;
 
-
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (NILP (value))
       error ("selection value may not be nil.");
@@ -409,7 +408,7 @@ On MS-DOS, all this does is return non-nil if we own the selection.  */)
   (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
 {
   id pb;
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (NILP (assq_no_quit (selection, Vselection_alist))) return Qnil;
 
@@ -436,7 +435,7 @@ On Nextstep, TERMINAL is unused.  */)
   id pb;
   NSArray *types;
 
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
@@ -464,7 +463,7 @@ frame's display, or the first available X display.
 On Nextstep, TERMINAL is unused.  */)
      (Lisp_Object selection, Lisp_Object terminal)
 {
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
@@ -492,7 +491,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
 {
   Lisp_Object val;
 
-  check_ns ();
+  check_window_system (NULL);
   CHECK_SYMBOL (selection_name);
   CHECK_SYMBOL (target_type);
   val = ns_get_local_selection (selection_name, target_type);
@@ -516,7 +515,7 @@ SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'. */)
      (Lisp_Object selection)
 {
   id pb;
-  check_ns ();
+  check_window_system (NULL);
   pb = ns_symbol_to_pb (selection);
   return pb != nil ? ns_string_from_pasteboard (pb) : Qnil;
 }
@@ -529,7 +528,7 @@ SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'. */)
      (Lisp_Object selection, Lisp_Object string)
 {
   id pb;
-  check_ns ();
+  check_window_system (NULL);
   pb = ns_symbol_to_pb (selection);
   if (pb != nil) ns_string_to_pasteboard (pb, string);
   return Qnil;

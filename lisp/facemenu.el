@@ -329,7 +329,7 @@ This command can also add FACE to the menu of faces,
 if `facemenu-listed-faces' says to do that."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
-		       (read-face-name "Use face"))
+		       (read-face-name "Use face" (face-at-point t)))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-beginning))
 		     (if (and mark-active (not current-prefix-arg))

@@ -1986,8 +1986,7 @@ Do you want to revisit the file normally now? ")
 	    (set-buffer-multibyte nil)
 	    (setq buffer-file-coding-system 'no-conversion)
 	    (set-buffer-major-mode buf)
-	    (make-local-variable 'find-file-literally)
-	    (setq find-file-literally t))
+	    (setq-local find-file-literally t))
 	(after-find-file error (not nowarn)))
       (current-buffer))))
 
@@ -2175,7 +2174,7 @@ not set local variables (though we do notice a mode specified with -*-.)
 or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
-  (funcall (or (default-value 'major-mode) 'fundamental-mode))
+  (fundamental-mode)
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     ;; FIXME this is less efficient than it could be, since both
     ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
@@ -2759,7 +2758,9 @@ we don't actually set it to the same mode the buffer already has."
 					  (if (functionp re)
 					      (funcall re)
 					    (looking-at re)))))))
-	  (set-auto-mode-0 done keep-mode-if-same)))))
+	  (set-auto-mode-0 done keep-mode-if-same)))
+    (unless done
+      (set-buffer-major-mode (current-buffer)))))
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
@@ -3029,6 +3030,9 @@ n  -- to ignore the local variables list.")
 	  (prog1 (memq char '(?! ?\s ?y))
 	    (quit-window t)))))))
 
+(defconst hack-local-variable-regexp
+  "[ \t]*\\([^][;\"'?()\\ \t\n]+\\)[ \t]*:[ \t]*")
+
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
 Returns an alist of elements (VAR . VAL), where VAR is a variable
@@ -3055,11 +3059,11 @@ mode, if there is one, otherwise nil."
 	       ;; (last ";" is optional).
 	       ;; If MODE-ONLY, just check for `mode'.
 	       ;; Otherwise, parse the -*- line into the RESULT alist.
-	       (while (and (or (not mode-only)
-			       (not result))
-			   (< (point) end))
-		 (unless (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
-		   (message "Malformed mode-line")
+	       (while (not (or (and mode-only result)
+                               (>= (point) end)))
+		 (unless (looking-at hack-local-variable-regexp)
+		   (message "Malformed mode-line: %S"
+                            (buffer-substring-no-properties (point) end))
 		   (throw 'malformed-line nil))
 		 (goto-char (match-end 0))
 		 ;; There used to be a downcase here,
@@ -3211,8 +3215,7 @@ local variables, but directory-local variables may still be applied."
 		  (prefix
 		   (concat "^" (regexp-quote
 				(buffer-substring (line-beginning-position)
-						  (match-beginning 0)))))
-		  beg)
+						  (match-beginning 0))))))
 
 	      (forward-line 1)
 	      (let ((startpos (point))
@@ -3247,18 +3250,16 @@ local variables, but directory-local variables may still be applied."
 		    (forward-line 1))
 		  (goto-char (point-min))
 
-		  (while (and (not (eobp))
-			      (or (not mode-only)
-				  (not result)))
-		    ;; Find the variable name; strip whitespace.
-		    (skip-chars-forward " \t")
-		    (setq beg (point))
-		    (skip-chars-forward "^:\n")
-		    (if (eolp) (error "Missing colon in local variables entry"))
-		    (skip-chars-backward " \t")
-		    (let* ((str (buffer-substring beg (point)))
-			   (var (let ((read-circle nil))
-				  (read str)))
+		  (while (not (or (eobp)
+                                  (and mode-only result)))
+		    ;; Find the variable name;
+		    (unless (looking-at hack-local-variable-regexp)
+                      (error "Malformed local variable line: %S"
+                             (buffer-substring-no-properties
+                              (point) (line-end-position))))
+                    (goto-char (match-end 1))
+		    (let* ((str (match-string 1))
+			   (var (intern str))
 			   val val2)
 		      (and (equal (downcase (symbol-name var)) "mode")
 			   (setq var 'mode))
@@ -4180,23 +4181,31 @@ ignored."
   "Default `backup-enable-predicate' function.
 Checks for files in `temporary-file-directory',
 `small-temporary-file-directory', and /tmp."
-  (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
-					name 0 nil)))
-	     ;; Directory is under temporary-file-directory.
-	     (and (not (eq comp t))
-		  (< comp (- (length temporary-file-directory)))))
-	   (let ((comp (compare-strings "/tmp" 0 nil
-					name 0 nil)))
-	     ;; Directory is under /tmp.
-	     (and (not (eq comp t))
-		  (< comp (- (length "/tmp")))))
-	   (if small-temporary-file-directory
-	       (let ((comp (compare-strings small-temporary-file-directory
-					    0 nil
-					    name 0 nil)))
-		 ;; Directory is under small-temporary-file-directory.
-		 (and (not (eq comp t))
-		      (< comp (- (length small-temporary-file-directory)))))))))
+  (let ((temporary-file-directory temporary-file-directory)
+	caseless)
+    ;; On MS-Windows, file-truename will convert short 8+3 alises to
+    ;; their long file-name equivalents, so compare-strings does TRT.
+    (if (memq system-type '(ms-dos windows-nt))
+	(setq temporary-file-directory (file-truename temporary-file-directory)
+	      name (file-truename name)
+	      caseless t))
+    (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
+					  name 0 nil caseless)))
+	       ;; Directory is under temporary-file-directory.
+	       (and (not (eq comp t))
+		    (< comp (- (length temporary-file-directory)))))
+	     (let ((comp (compare-strings "/tmp" 0 nil
+					  name 0 nil)))
+	       ;; Directory is under /tmp.
+	       (and (not (eq comp t))
+		    (< comp (- (length "/tmp")))))
+	     (if small-temporary-file-directory
+		 (let ((comp (compare-strings small-temporary-file-directory
+					      0 nil
+					      name 0 nil caseless)))
+		   ;; Directory is under small-temporary-file-directory.
+		   (and (not (eq comp t))
+			(< comp (- (length small-temporary-file-directory))))))))))
 
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.

@@ -157,6 +157,17 @@
 (defvar inhibit-trace nil
   "If non-nil, all tracing is temporarily inhibited.")
 
+;;;###autoload
+(defun trace-values (&rest values)
+  "Helper function to get internal values.
+You can call this function to add internal values in the trace buffer."
+  (unless inhibit-trace
+    (with-current-buffer trace-buffer
+      (goto-char (point-max))
+      (insert
+       (trace-entry-message
+        'trace-values trace-level values "")))))
+
 (defun trace-entry-message (function level args context)
   "Generate a string that describes that FUNCTION has been entered.
 LEVEL is the trace level, ARGS is the list of arguments passed to FUNCTION,

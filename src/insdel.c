@@ -983,6 +983,9 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 void
 insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
+  int ins_charpos = GPT;
+  int ins_bytepos = GPT_BYTE;
+
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
 
@@ -1003,18 +1006,18 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 
   eassert (GPT <= GPT_BYTE);
 
-  adjust_overlays_for_insert (GPT - nchars, nchars);
-  adjust_markers_for_insert (GPT - nchars, GPT_BYTE - nbytes,
-			     GPT, GPT_BYTE, 0);
+  adjust_overlays_for_insert (ins_charpos, nchars);
+  adjust_markers_for_insert (ins_charpos, ins_bytepos,
+			     ins_charpos + nchars, ins_bytepos + nbytes, 0);
 
   if (buffer_intervals (current_buffer))
     {
-      offset_intervals (current_buffer, GPT - nchars, nchars);
-      graft_intervals_into_buffer (NULL, GPT - nchars, nchars,
+      offset_intervals (current_buffer, ins_charpos, nchars);
+      graft_intervals_into_buffer (NULL, ins_charpos, nchars,
 				   current_buffer, 0);
     }
 
-  if (! text_at_gap_tail && GPT - nchars < PT)
+  if (ins_charpos < PT)
     adjust_point (nchars, nbytes);
 
   check_markers ();

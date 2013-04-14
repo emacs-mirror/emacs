@@ -1383,7 +1383,8 @@ aspell is used along with Emacs).")
 		;; Unless default dict, re-add "-d" option with the mapped value
 		(if dict-name
 		    (if dict-equiv
-			(nconc ispell-args (list "-d" dict-equiv))
+			(setq ispell-args
+			      (nconc ispell-args (list "-d" dict-equiv)))
 		      (message
 		       "ispell-set-spellchecker-params: Missing hunspell equiv for \"%s\". Skipping."
 		       dict-name)

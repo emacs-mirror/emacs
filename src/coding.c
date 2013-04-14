@@ -6072,17 +6072,18 @@ complement_process_encoding_system (Lisp_Object coding_system)
 #define EOL_SEEN_CRLF	4
 
 
-static Lisp_Object adjust_coding_eol_type (struct coding_system *coding, int eol_seen);
+static Lisp_Object adjust_coding_eol_type (struct coding_system *coding,
+					   int eol_seen);
 
 
-/* Return true iff all the source bytes are ASCII.
+/* Return the number of ASCII characters at the head of the source.
    By side effects, set coding->head_ascii and coding->eol_seen.  The
    value of coding->eol_seen is "logical or" of EOL_SEEN_LF,
    EOL_SEEN_CR, and EOL_SEEN_CRLF, but the value is reliable only when
    all the source bytes are ASCII.  */
 
-static bool
-detect_ascii (struct coding_system *coding)
+static int
+check_ascii (struct coding_system *coding)
 {
   const unsigned char *src, *end;
   Lisp_Object eol_type = CODING_ID_EOL_TYPE (coding->id);
@@ -6096,27 +6097,89 @@ detect_ascii (struct coding_system *coding)
   src = coding->source;
   end = src + coding->src_bytes;
 
-  if (inhibit_eol_conversion)
+  if (inhibit_eol_conversion
+      || eol_seen != EOL_SEEN_NONE)
     {
       /* We don't have to check EOL format.  */
       while (src < end && !( *src & 0x80)) src++;
-      eol_seen = EOL_SEEN_LF;
-      adjust_coding_eol_type (coding, eol_seen);
-    }
-  else if (eol_seen != EOL_SEEN_NONE)
-    {
-      /* We don't have to check EOL format either.  */
-      while (src < end && !(*src & 0x80)) src++;
+      if (inhibit_eol_conversion)
+	{
+	  eol_seen = EOL_SEEN_LF;
+	  adjust_coding_eol_type (coding, eol_seen);
+	}
     }
   else
     {
-      end--;			/* We look ahead one byte.  */
+      end--;		    /* We look ahead one byte for "CR LF".  */
       while (src < end)
 	{
 	  int c = *src;
 
 	  if (c & 0x80)
 	    break;
+	  src++;
+	  if (c == '\r')
+	    {
+	      if (*src == '\n')
+		{
+		  eol_seen |= EOL_SEEN_CRLF;
+		  src++;
+		}
+	      else
+		eol_seen |= EOL_SEEN_CR;
+	    }
+	  else if (c == '\n')
+	    eol_seen |= EOL_SEEN_LF;
+	}
+      if (src == end)
+	{
+	  int c = *src;
+
+	  /* All bytes but the last one C are ASCII.  */
+	  if (! (c & 0x80))
+	    {
+	      if (c == '\r')
+		eol_seen |= EOL_SEEN_CR;
+	      else if (c  == '\n')
+		eol_seen |= EOL_SEEN_LF;
+	      src++;
+	    }
+	}
+    }
+  coding->head_ascii = src - coding->source;
+  coding->eol_seen = eol_seen;
+  return (coding->head_ascii);
+}
+
+
+/* Return the number of characters at the source if all the bytes are
+   valid UTF-8 (of Unicode range).  Otherwise, return -1.  By side
+   effects, update coding->eol_seen.  The value of coding->eol_seen is
+   "logical or" of EOL_SEEN_LF, EOL_SEEN_CR, and EOL_SEEN_CRLF, but
+   the value is reliable only when all the source bytes are valid
+   UTF-8.  */
+
+static int
+check_utf_8 (struct coding_system *coding)
+{
+  const unsigned char *src, *end;
+  int eol_seen = coding->eol_seen;
+  int nchars = coding->head_ascii;
+
+  if (coding->head_ascii < 0)
+    check_ascii (coding);
+  else
+    coding_set_source (coding);
+  src = coding->source + coding->head_ascii;
+  /* We look ahead one byte for CR LF.  */
+  end = coding->source + coding->src_bytes - 1;
+
+  while (src < end)
+    {
+      int c = *src;
+
+      if (UTF_8_1_OCTET_P (*src))
+	{
 	  src++;
 	  if (c < 0x20)
 	    {
@@ -6126,6 +6189,7 @@ detect_ascii (struct coding_system *coding)
 		    {
 		      eol_seen |= EOL_SEEN_CRLF;
 		      src++;
+		      nchars++;
 		    }
 		  else
 		    eol_seen |= EOL_SEEN_CR;
@@ -6134,27 +6198,58 @@ detect_ascii (struct coding_system *coding)
 		eol_seen |= EOL_SEEN_LF;
 	    }
 	}
-      if (src > end)
-	/* The last two bytes are CR LF, which means that we have
-	   scanned all bytes. */
-	end++;
-      else if (src == end)
+      else if (UTF_8_2_OCTET_LEADING_P (c))
 	{
-	  end++;
-	  if (! (*src & 0x80))
-	    {
-	      if (*src == '\r')
-		eol_seen |= EOL_SEEN_CR;
-	      else if (*src  == '\n')
-		eol_seen |= EOL_SEEN_LF;
-	      src++;
-	    }
+	  if (c < 0xC2		/* overlong sequence */
+	      || src + 1 >= end
+	      || ! UTF_8_EXTRA_OCTET_P (src[1]))
+	    return -1;
+	  src += 2;
 	}
-      adjust_coding_eol_type (coding, eol_seen);
+      else if (UTF_8_3_OCTET_LEADING_P (c))
+	{
+	  if (src + 2 >= end
+	      || ! (UTF_8_EXTRA_OCTET_P (src[1])
+		    && UTF_8_EXTRA_OCTET_P (src[2])))
+	    return -1;
+	  c = (((c & 0xF) << 12)
+	       | ((src[1] & 0x3F) << 6) | (src[2] & 0x3F));
+	  if (c < 0x800			      /* overlong sequence */
+	      || (c >= 0xd800 && c < 0xe000)) /* surrogates (invalid) */
+	    return -1;
+	  src += 3;
+	}
+      else if (UTF_8_4_OCTET_LEADING_P (c))
+	{
+	  if (src + 3 >= end
+	      || ! (UTF_8_EXTRA_OCTET_P (src[1])
+		    && UTF_8_EXTRA_OCTET_P (src[2])
+		    && UTF_8_EXTRA_OCTET_P (src[3])))
+	    return -1;
+	  c = (((c & 0x7) << 18) | ((src[1] & 0x3F) << 12)
+	       | ((src[2] & 0x3F) << 6) | (src[3] & 0x3F));
+	  if (c < 0x10000	/* overlong sequence */
+	      || c >= 0x110000)	/* non-Unicode character  */
+	    return -1;
+	  src += 4;
+	}
+      else
+	return -1;
+      nchars++;
     }
-  coding->head_ascii = src - coding->source;
+
+  if (src == end)
+    {
+      if (! UTF_8_1_OCTET_P (*src))
+	return -1;
+      nchars++;
+      if (*src == '\r')
+	eol_seen |= EOL_SEEN_CR;
+      else if (*src  == '\n')
+	eol_seen |= EOL_SEEN_LF;
+    }
   coding->eol_seen = eol_seen;
-  return (src == end);
+  return nchars;
 }
 
 
@@ -6269,6 +6364,9 @@ adjust_coding_eol_type (struct coding_system *coding, int eol_seen)
   Lisp_Object eol_type;
 
   eol_type = CODING_ID_EOL_TYPE (coding->id);
+  if (! VECTORP (eol_type))
+    /* Already adjusted.  */
+    return eol_type;
   if (eol_seen & EOL_SEEN_LF)
     {
       coding->id = CODING_SYSTEM_ID (AREF (eol_type, 0));
@@ -6360,7 +6458,8 @@ detect_coding (struct coding_system *coding)
 			{
 			  coding->eol_seen |= EOL_SEEN_CRLF;
 			  src++;
-			  coding->head_ascii++;
+			  if (! eight_bit_found)
+			    coding->head_ascii++;
 			}
 		      else
 			coding->eol_seen |= EOL_SEEN_CR;
@@ -6461,9 +6560,14 @@ detect_coding (struct coding_system *coding)
       coding_systems
 	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_bom);
       detect_info.found = detect_info.rejected = 0;
-      if (detect_ascii (coding))
+      if (check_ascii (coding) == coding->src_bytes)
 	{
+	  int head_ascii = coding->head_ascii;
+
+	  if (coding->eol_seen != EOL_SEEN_NONE)
+	    adjust_coding_eol_type (coding, coding->eol_seen);
 	  setup_coding_system (XCDR (coding_systems), coding);
+	  coding->head_ascii = head_ascii;
 	}
       else
 	{
@@ -7620,15 +7724,27 @@ decode_coding_gap (struct coding_system *coding,
   if (CODING_REQUIRE_DETECTION (coding))
     detect_coding (coding);
   attrs = CODING_ID_ATTRS (coding->id);
-  if (! disable_ascii_optimization)
+  if (! disable_ascii_optimization
+      && ! coding->src_multibyte
+      && ! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
+      && NILP (CODING_ATTR_POST_READ (attrs))
+      && NILP (get_translation_table (attrs, 0, NULL)))
     {
-      if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
-	  && NILP (CODING_ATTR_POST_READ (attrs))
-	  && NILP (get_translation_table (attrs, 0, NULL))
-	  && (coding->head_ascii >= 0 /* We've already called detect_coding */
-	      ? coding->head_ascii == bytes
-	      : detect_ascii (coding)))
+      chars = coding->head_ascii;
+      if (chars < 0)
+	chars = check_ascii (coding);
+      if (chars != bytes)
 	{
+	  if (EQ (CODING_ATTR_TYPE (attrs), Qutf_8))
+	    chars = check_utf_8 (coding);
+	  else
+	    chars = -1;
+	}
+      if (chars >= 0)
+	{
+	  if (coding->eol_seen != EOL_SEEN_NONE)
+	    adjust_coding_eol_type (coding, coding->eol_seen);
+
 	  if (coding->eol_seen == EOL_SEEN_CR)
 	    {
 	      unsigned char *src_end = GAP_END_ADDR;
@@ -7645,6 +7761,7 @@ decode_coding_gap (struct coding_system *coding,
 	      unsigned char *src = GAP_END_ADDR;
 	      unsigned char *src_beg = src - coding->src_bytes;
 	      unsigned char *dst = src;
+	      ptrdiff_t diff;
 
 	      while (src_beg < src)
 		{
@@ -7652,10 +7769,13 @@ decode_coding_gap (struct coding_system *coding,
 		  if (*src == '\n')
 		    src--;
 		}
-	      bytes -= dst - src;
+	      diff = dst - src;
+	      bytes -= diff;
+	      chars -= diff;
 	    }
-	  coding->produced_char = coding->produced = bytes;
-	  insert_from_gap (bytes, bytes, 1);
+	  coding->produced = bytes;
+	  coding->produced_char = chars;
+	  insert_from_gap (chars, bytes, 1);
 	  return;
 	}
     }
@@ -10877,7 +10997,7 @@ decode text as usual.  */);
   DEFVAR_BOOL ("disable-ascii-optimization", disable_ascii_optimization,
 	       doc: /* If non-nil, Emacs does not optimize code decoder for ASCII files.
 Internal use only.  Removed after the experimental optimizer gets stable. */);
-  disable_ascii_optimization = 1;
+  disable_ascii_optimization = 0;
 
   DEFVAR_LISP ("translation-table-for-input", Vtranslation_table_for_input,
 	       doc: /* Char table for translating self-inserting characters.

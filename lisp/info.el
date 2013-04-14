@@ -4383,7 +4383,8 @@ This feature will be removed in future.")
     ("ietf-drums" . "emacs-mime")  ("quoted-printable" . "emacs-mime")
     ("binhex" . "emacs-mime") ("uudecode" . "emacs-mime")
     ("mailcap" . "emacs-mime") ("mm" . "emacs-mime")
-    ("mml" . "emacs-mime"))
+    ("mml" . "emacs-mime")
+    "tramp" "dbus")
   "List of Info files that describe Emacs commands.
 An element can be a file name, or a list of the form (PREFIX . FILE)
 where PREFIX is a name prefix and FILE is the file to look in.

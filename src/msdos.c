@@ -1920,7 +1920,7 @@ dos_get_saved_screen (char **screen, int *rows, int *cols)
 
 /* We are not X, but we can emulate it well enough for our needs... */
 void
-check_x (void)
+check_window_system (void)
 {
   if (! FRAME_MSDOS_P (SELECTED_FRAME ()))
     error ("Not running under a window system");
@@ -2982,11 +2982,6 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 }
 
 /* --------------------------- X Menu emulation ---------------------- */
-
-/* Report availability of menus.  */
-
-int
-have_menus_p (void) {  return 1; }
 
 /* Create a brand new menu structure.  */
 

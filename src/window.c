@@ -485,17 +485,14 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   w = XWINDOW (window);
   w->frozen_window_start_p = 0;
 
-  if (NILP (norecord))
-    {
-      w->use_time = ++window_select_count;
-      record_buffer (w->contents);
-    }
-
   /* Make the selected window's buffer current.  */
   Fset_buffer (w->contents);
 
   if (EQ (window, selected_window) && !inhibit_point_swap)
-    return window;
+    /* `switch-to-buffer' uses (select-window (selected-window)) as a "clever"
+       way to call record_buffer from Elisp, so it's important that we call
+       record_buffer before returning here.  */
+    goto record_and_return;
 
   sf = SELECTED_FRAME ();
   if (XFRAME (WINDOW_FRAME (w)) != sf)
@@ -514,9 +511,19 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
     fset_selected_window (sf, window);
 
   select_window_1 (window, inhibit_point_swap);
-
   bset_last_selected_window (XBUFFER (w->contents), window);
   windows_or_buffers_changed++;
+
+ record_and_return:
+  /* record_buffer can run QUIT, so make sure it is run only after we have
+     re-established the invariant between selected_window and selected_frame,
+     otherwise the temporary broken invariant might "escape" (bug#14161).  */
+  if (NILP (norecord))
+    {
+      w->use_time = ++window_select_count;
+      record_buffer (w->contents);
+    }
+
   return window;
 }
 
@@ -1490,7 +1497,12 @@ if it isn't already recorded.  */)
   b = XBUFFER (buf);
 
   if (! NILP (update)
-      && (windows_or_buffers_changed || !w->window_end_valid)
+      && (windows_or_buffers_changed
+	  || !w->window_end_valid
+	  || b->clip_changed
+	  || b->prevent_redisplay_optimizations_p
+	  || w->last_modified < BUF_MODIFF (b)
+	  || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
@@ -1699,8 +1711,9 @@ Return nil if window display is not up-to-date.  In that case, use
 
   /* Fail if current matrix is not up-to-date.  */
   if (!w->window_end_valid
-      || current_buffer->clip_changed
-      || current_buffer->prevent_redisplay_optimizations_p
+      || windows_or_buffers_changed
+      || b->clip_changed
+      || b->prevent_redisplay_optimizations_p
       || w->last_modified < BUF_MODIFF (b)
       || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b))
     return Qnil;
@@ -2929,7 +2942,7 @@ window-start value is reasonable when this function is called.  */)
 
   replace_window (root, window, 1);
 
-  /* This must become SWINDOW anyway ....... */
+  /* This must become SWINDOW anyway .......  */
   if (BUFFERP (w->contents) && !resize_failed)
     {
       /* Try to minimize scrolling, by setting the window start to the

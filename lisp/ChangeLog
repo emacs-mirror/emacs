@@ -1,3 +1,147 @@
+2013-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (normal-mode): Only use default major-mode if no other mode
+	was specified.
+
+	* emacs-lisp/trace.el (trace-values): New function.
+
+	* files.el: Allow : in local variables (bug#14089).
+	(hack-local-variable-regexp): New var.
+	(hack-local-variables-prop-line, hack-local-variables): Use it.
+
+2013-04-13  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-search-entries): Bug fix.  Use match
+	data before it gets modified by bibtex-beginning-of-entry.
+
+2013-04-13  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-url): Doc fix.
+
+2013-04-13  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-initialize): If the current buffer
+	does not visit a BibTeX file, exclude it from the list of buffers
+	returned by bibtex-initialize.
+
+2013-04-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* window.el (split-window): Remove interactive form, since as a
+	command this function is a special case of split-window-below.
+	Correct doc string.
+
+2013-04-12  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Do not override value of arg default.
+	Allow single faces and strings as default values.  Remove those
+	elements from return value that are not faces.
+	(describe-face): Simplify.
+	(face-at-point): New optional args thing and multiple so that this
+	function can provide the same functionality previously provided by
+	read-face-name.
+	(make-face-bold, make-face-unbold, make-face-italic)
+	(make-face-unitalic, make-face-bold-italic, invert-face)
+	(modify-face, read-face-and-attribute): Use face-at-point.
+
+	* cus-edit.el (customize-face, customize-face-other-window)
+	* cus-theme.el (custom-theme-add-face)
+	* face-remap.el (buffer-face-set)
+	* facemenu.el (facemenu-set-face): Use face-at-point.
+
+2013-04-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* info.el (Info-file-list-for-emacs): Add "tramp" and "dbus".
+
+2013-04-10  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-cite.el (reftex-parse-bibtex-entry): Don't cut
+	off leading { and trailing } from field values.
+
+2013-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (timer--check): New function.
+	(timer--time, timer-set-function, timer-event-handler): Use it.
+	(timer-set-idle-time): Simplify.
+	(timer--activate): CSE.
+	(timer-event-handler): Give more info in error message.
+	(internal-timer-start-idle): New function, moved from C.
+
+	* mpc.el (mpc-proc): Add `restart' argument.
+	(mpc-proc-cmd): Use it.
+	(mpc--status-timer-run): Also catch signals from `mpc-proc'.
+	(mpc-status-buffer-show, mpc-tagbrowser-dir-toggle): Call `mpc-proc'
+	less often.
+
+2013-04-10  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el: Implement `sh-mode' own
+	`add-log-current-defun-function' (bug#14112).
+	(sh-current-defun-name): New function.
+	(sh-mode): Use the function.
+
+2013-04-09  Bastien Guerry  <bzg@gnu.org>
+
+	* simple.el (choose-completion-string): Fix docstring (bug#14163).
+
+2013-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-mode): Fix typo (bug#14144).
+
+	* emacs-lisp/timer.el (timer-event-handler): Don't retrigger a canceled
+	timer (bug#14156).
+
+2013-04-07  Nic Ferrier  <nferrier@ferrier.me.uk>
+
+	* emacs-lisp/ert.el (should, should-not, should-error): Add edebug
+	declaration.
+
+2013-04-07  Leo Liu  <sdl.web@gmail.com>
+
+	* pcmpl-x.el: New file.
+
+2013-04-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not set x-display-name until X connection is established.
+	This is needed to prevent from weird situation described at
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00212.html>.
+	* frame.el (make-frame): Set x-display-name after call to
+	window system initialization function, not before.
+	* term/x-win.el (x-initialize-window-system): Add optional
+	display argument and use it.
+	* term/w32-win.el (w32-initialize-window-system):
+	* term/ns-win.el (ns-initialize-window-system):
+	* term/pc-win.el (msdos-initialize-window-system):
+	Add compatible optional display argument.
+
+2013-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (normal-backup-enable-predicate): On MS-Windows and
+	MS-DOS compare truenames of temporary-file-directory and of the
+	file, so that 8+3 aliases (usually found in $TEMP on Windows)
+	don't fail comparison by compare-strings.  Also, compare file
+	names case-insensitively on MS-Windows and MS-DOS.
+
+2013-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-compute-transaction): Fix last fix.
+	Suggested by Donald Curtis <dcurtis@coe.edu> (bug#14082).
+
+2013-04-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* whitespace.el (whitespace-color-on, whitespace-color-off):
+	Only call `font-lock-fontify-buffer' when `font-lock-mode' is on.
+
+2013-04-05  Jacek Chrząszcz  <chrzaszcz@mimuw.edu.pl> (tiny change)
+
+	* ispell.el (ispell-set-spellchecker-params):
+	Really set `ispell-args' for all equivs.
+
+2013-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ido.el (ido-completions): Use extra elements of ido-decorations
+	(bug#14143).
+	(ido-decorations): Update docstring.
+
 2013-04-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)

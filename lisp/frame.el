@@ -655,9 +655,8 @@ the new frame according to its own rules."
       (error "Don't know how to create a frame on window system %s" w))
 
     (unless (get w 'window-system-initialized)
-      (unless x-display-name
-        (setq x-display-name display))
-      (funcall (cdr (assq w window-system-initialization-alist)))
+      (funcall (cdr (assq w window-system-initialization-alist)) display)
+      (setq x-display-name display)
       (put w 'window-system-initialized t))
 
     ;; Add parameters from `window-system-default-frame-alist'.

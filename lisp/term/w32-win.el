@@ -246,7 +246,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function x-parse-geometry "frame.c" (string))
 (defvar x-command-line-resources)
 
-(defun w32-initialize-window-system ()
+(defun w32-initialize-window-system (&optional display)
   "Initialize Emacs for W32 GUI frames."
   (cl-assert (not w32-initialized))
 
