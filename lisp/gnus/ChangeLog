@@ -1,3 +1,8 @@
+2013-04-14  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-request-set-mark): Make sure we are in the right
+	group.
+
 2013-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-msg.el (gnus-msg-mail): Make it avoid using posting styles

@@ -837,6 +837,7 @@ skips all prompting."
     (gnus-request-update-mark artgroup artnumber mark)))
 
 (deffoo nnir-request-set-mark (group actions &optional server)
+  (nnir-possibly-change-group group server)
   (let (mlist)
     (dolist (action actions)
       (destructuring-bind (range action marks) action
@@ -853,7 +854,7 @@ skips all prompting."
 
 
 (deffoo nnir-request-update-info (group info &optional server)
-  (nnir-possibly-change-group group)
+  (nnir-possibly-change-group group server)
   ;; clear out all existing marks.
   (gnus-info-set-marks info nil)
   (gnus-info-set-read info nil)
