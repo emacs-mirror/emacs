@@ -9,6 +9,7 @@ Design
     arena
     bt
     cbs
+    check
     config
     finalize
     protocol
