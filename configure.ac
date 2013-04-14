@@ -1573,6 +1573,7 @@ LIBS_ECLIENT=
 LIB_WSOCK32=
 NTLIB=
 CM_OBJ="cm.o"
+XARGS_LIMIT=
 if test "${HAVE_W32}" = "yes"; then
   AC_DEFINE(HAVE_NTGUI, 1, [Define to use native MS Windows GUI.])
   AC_CHECK_TOOL(WINDRES, [windres],
@@ -1603,6 +1604,7 @@ if test "${HAVE_W32}" = "yes"; then
     LIBS_ECLIENT="-lcomctl32"
     LIB_WSOCK32="-lwsock32"
     NTLIB="ntlib.$ac_objext"
+    XARGS_LIMIT="-s 10000"
   fi
 fi
 AC_SUBST(W32_OBJ)
@@ -1618,6 +1620,7 @@ AC_SUBST(CM_OBJ)
 AC_SUBST(LIBS_ECLIENT)
 AC_SUBST(LIB_WSOCK32)
 AC_SUBST(NTLIB)
+AC_SUBST(XARGS_LIMIT)
 
 if test "${HAVE_W32}" = "yes"; then
   window_system=w32
