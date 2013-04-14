@@ -4183,7 +4183,7 @@ Checks for files in `temporary-file-directory',
 `small-temporary-file-directory', and /tmp."
   (let ((temporary-file-directory temporary-file-directory)
 	caseless)
-    ;; On MS-Windows, file-truename will convert short 8+3 alises to
+    ;; On MS-Windows, file-truename will convert short 8+3 aliases to
     ;; their long file-name equivalents, so compare-strings does TRT.
     (if (memq system-type '(ms-dos windows-nt))
 	(setq temporary-file-directory (file-truename temporary-file-directory)
