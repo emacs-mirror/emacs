@@ -1,5 +1,7 @@
 2013-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/trace.el (trace-values): New function.
+
 	* files.el: Allow : in local variables (bug#14089).
 	(hack-local-variable-regexp): New var.
 	(hack-local-variables-prop-line, hack-local-variables): Use it.
