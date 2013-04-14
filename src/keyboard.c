@@ -4188,8 +4188,6 @@ swallow_events (bool do_display)
 static void
 timer_start_idle (void)
 {
-  Lisp_Object timers;
-
   /* If we are already in the idle state, do nothing.  */
   if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     return;
