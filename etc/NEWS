@@ -409,6 +409,12 @@ used in place of the 9th element of `file-attributes'.
 `preserve-extended-attributes' as it now handles both SELinux context
 and ACL entries.
 
+** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
+
+*** The package descriptor and name of global variables, constants,
+and functions should be separated by two hypens if the symbol is not
+meant to be used by other packages.
+
 
 * Changes in Emacs 24.4 on Non-Free Operating Systems
 
