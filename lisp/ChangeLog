@@ -1,3 +1,16 @@
+2013-04-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-beginning-of-defun)
+	(ruby-end-of-defun, ruby-move-to-block): Bind `case-fold-search'
+	to nil.
+	(ruby-end-of-defun): Remove the unused arg, change the docstring
+	to reflect that this function is only used as the value of
+	`end-of-defun-function'.
+	(ruby-beginning-of-defun): Remove "top-level" from the docstring,
+	to reflect an earlier change that beginning/end-of-defun functions
+	jump between methods in a class definition, as well as top-level
+	functions.
+
 2013-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-complete): Don't just scroll
