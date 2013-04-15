@@ -863,6 +863,20 @@ DOWNCASE    t:   Downcase words before using them."
                          (string :tag ""))
                 (option (boolean :tag "Downcase words          "))))
 
+(defcustom reftex-label-regexps
+  '(;; Normal \\label{foo} labels
+    "\\\\label{\\(?1:[^}]*\\)}"
+    ;; keyvals [..., label = {foo}, ...] forms used by ctable,
+    ;; listings, minted, ...
+    "\\[[^]]*\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
+  "List of regexps matching \\label definitions.
+The default value matches usual \\label{...} definitions and
+keyval style [..., label = {...}, ...] label definitions.  It is
+assumed that the regexp group 1 matches the label text, so you
+have to define it using \\(?1:...\\) when adding new regexps."
+  :group 'reftex-defining-label-environments
+  :type '(repeat (regexp :tag "Regular Expression")))
+
 (defcustom reftex-label-illegal-re "[^-a-zA-Z0-9_+=:;,.]"
   "Regexp matching characters not valid in labels."
   :group 'reftex-making-and-inserting-labels
