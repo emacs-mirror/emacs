@@ -1,3 +1,9 @@
+2013-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el: Properly test names when adding advice.
+	(advice--member-p): New arg `name'.
+	(advice--add-function, advice-member-p): Use it (bug#14202).
+
 2013-04-15  Filipp Gunbin  <fgunbin@fastmail.fm>
 
 	Reformulate java imenu-generic-expression.
@@ -7,7 +13,7 @@
 	(cc-imenu-java-type-spec-regexp, cc-imenu-java-comment-regexp)
 	(cc-imenu-java-method-arg-regexp): New defconsts.
 	(cc-imenu-java-build-type-args-regex): New defun.
-	(cc-imenu-java-generic-expression): Fixed, to remove "ambiguous"
+	(cc-imenu-java-generic-expression): Fix, to remove "ambiguous"
 	handling of spaces in the regexp.
 
 2013-03-15  Agustín Martín Domingo  <agustin.martin@hispalinux.es>

@@ -158,11 +158,12 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
     (advice--make-1 (nth 1 desc) (nth 2 desc)
                     function main props)))
 
-(defun advice--member-p (function definition)
+(defun advice--member-p (function name definition)
   (let ((found nil))
     (while (and (not found) (advice--p definition))
       (if (or (equal function (advice--car definition))
-              (equal function (cdr (assq 'name (advice--props definition)))))
+              (when name
+                (equal name (cdr (assq 'name (advice--props definition))))))
           (setq found t)
         (setq definition (advice--cdr definition))))
     found))
@@ -255,7 +256,8 @@ is also interactive.  There are 3 cases:
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (unless (advice--member-p function (gv-deref ref))
+  (unless (advice--member-p function (cdr (assq 'name props))
+                            (gv-deref ref))
     (setf (gv-deref ref)
           (advice--make where function (gv-deref ref) props))))
 
@@ -396,7 +398,7 @@ of the piece of advice."
   "Return non-nil if ADVICE has been added to FUNCTION-NAME.
 Instead of ADVICE being the actual function, it can also be the `name'
 of the piece of advice."
-  (advice--member-p advice
+  (advice--member-p advice advice
                     (or (get function-name 'advice--pending)
 			(advice--strip-macro
 			 (if (fboundp function-name)
