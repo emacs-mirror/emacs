@@ -1,3 +1,22 @@
+2013-03-15  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-command-loop): Remove
+	flyspell highlight of a word when ispell accepts it (bug #14178).
+
+2013-04-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-run-real-handler-orig): New defun,
+	uses code from the previous `ange-ftp-run-real-handler'.
+	(ange-ftp-run-real-handler): Set it to `tramp-run-real-handler'
+	only in case that function exist.  This is needed for proper
+	unloading of Tramp.
+
+2013-04-15  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-label-regexps): New defcustom.
+
+	* textmodes/reftex.el (reftex-compile-variables): Use it.
+
 2013-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (normal-mode): Only use default major-mode if no other mode

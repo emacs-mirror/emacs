@@ -3123,6 +3123,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 #ifdef ENABLE_CHECKING
 	  /* Temporary code to catch crashes in computing form.rcArea.top.  */
+	  eassert (FRAMEP (w->frame));
+	  eassert (BUFFERP (w->contents));
 	  {
 	    int wmbp = WINDOW_MENU_BAR_P (w);
 	    int wtbp = WINDOW_TOOL_BAR_P (w);

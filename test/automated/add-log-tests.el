@@ -73,7 +73,7 @@ function foo()
 
 (add-log-current-defun-deftest
  sh-var
- "Test sh-current-defun-name can find variabe definition."
+ "Test sh-current-defun-name can find variable definition."
  sh-mode "
 PATH=a:/ab:/usr/abc
 DIR=/pr><oc"
