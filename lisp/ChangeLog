@@ -1,3 +1,10 @@
+2013-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-complete): Don't just scroll
+	a *Completions* that's been iconified.
+	(minibuffer-force-complete): Make sure repetitions do cycle when going
+	through completion-in-region -> minibuffer-complete.
+
 2013-04-15  Alan Mackenzie  <acm@muc.de>
 
 	Correct the placement of c-cpp-delimiters when there're #s not at
@@ -5,8 +12,8 @@
 
 	* progmodes/cc-langs.el (c-anchored-cpp-prefix): Reformulate and
 	place a submatch around the #.
-	* progmodes/cc-mode.el(c-neutralize-syntax-in-and-mark-CPP): Start
-	a search at BOL.  Put the c-cpp-delimiter category text propertiy
+	* progmodes/cc-mode.el(c-neutralize-syntax-in-and-mark-CPP):
+	Start a search at BOL.  Put the c-cpp-delimiter category text propertiy
 	on the #, not BOL.
 
 2013-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
