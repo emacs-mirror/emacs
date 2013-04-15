@@ -1,3 +1,16 @@
+2013-04-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Add more assertions to investigate
+	bug#14205.
+
+	* frame.h (WINDOW_FRAME): Protect macro and its argument with
+	parentheses.
+
+	* dispextern.h (CURRENT_MODE_LINE_HEIGHT)
+	(CURRENT_HEADER_LINE_HEIGHT, WINDOW_WANTS_MODELINE_P)
+	(WINDOW_WANTS_HEADER_LINE_P): Protect macro arguments with
+	parentheses where appropriate.
+
 2013-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c (timer_start_idle): Remove no-longer-used local.
