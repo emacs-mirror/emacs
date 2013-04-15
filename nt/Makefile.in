@@ -195,7 +195,7 @@ TAGS: ${EXE_FILES:${EXEEXT}=.c}
 addsection${EXEEXT}: ${srcdir}/addsection.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/addsection.c -o addsection${EXEEXT}
 
-addpm${EXEEXT}: ${srcdir}/addpm.c
+addpm${EXEEXT}: ${srcdir}/addpm.c ${srcdir}/../src/epaths.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/addpm.c $(LIBS_ADDPM) -o addpm${EXEEXT}
 
 ddeclient${EXEEXT}: ${srcdir}/ddeclient.c
