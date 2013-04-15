@@ -423,7 +423,7 @@ static void error(char *format, ...)
  * Protocol with `reserve` and `commmit`.  This protocol allows very fast
  * in-line allocation without locking, but there is a very tiny chance that
  * the object must be re-initialized.  In nearly all cases, however, it's
- * it'just a pointer bump. See topic/allocation.
+ * just a pointer bump. See topic/allocation.
  *
  * NOTE: We could reduce duplicated code here using macros, but we want to
  * write these out because this is code to illustrate how to use the
