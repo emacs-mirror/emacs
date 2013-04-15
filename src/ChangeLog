@@ -1,7 +1,7 @@
 2013-04-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Add more assertions to investigate
-	bug#14205.
+	bug#14062.
 
 	* frame.h (WINDOW_FRAME): Protect macro and its argument with
 	parentheses.
