@@ -593,6 +593,17 @@ size, and full-buffer size."
 		      (put-text-property start (point) type value))))))))))
     (kill-buffer image-buffer)))
 
+(defun shr-image-from-data (data)
+  "Return an image from the data: URI content DATA."
+  (when (string-match
+	 "\\(\\([^/;,]+\\(/[^;,]+\\)?\\)\\(;[^;,]+\\)*\\)?,\\(.*\\)"
+	 data)
+    (let ((param (match-string 4 data))
+	  (payload (url-unhex-string (match-string 5 data))))
+      (when (string-match "^.*\\(;[ \t]*base64\\)$" param)
+	(setq payload (base64-decode-string payload)))
+      payload)))
+
 (defun shr-put-image (data alt &optional flags)
   "Put image DATA with a string ALT.  Return image."
   (if (display-graphic-p)
@@ -982,6 +993,12 @@ ones, in case fg and bg are nil."
 	      (member (cdr (assq :width cont)) '("0" "1")))
 	  ;; Ignore zero-sized or single-pixel images.
 	  )
+	 ((and (not shr-inhibit-images)
+	       (string-match "\\`data:" url))
+	  (let ((image (shr-image-from-data (substring url (match-end 0)))))
+	    (if image
+		(funcall shr-put-image-function image alt)
+	      (insert alt))))
 	 ((and (not shr-inhibit-images)
 	       (string-match "\\`cid:" url))
 	  (let ((url (substring url (match-end 0)))
