@@ -290,7 +290,7 @@
 	     (equal (nth 4 command-line-args) "dump"))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
-	   (exelen (if (eq system-type 'windows-nt) -4 0))
+	   (exelen (if (eq system-type 'windows-nt) -4))
 	   (files (file-name-all-completions base default-directory))
 	   (versions (mapcar (function
 			      (lambda (name)
