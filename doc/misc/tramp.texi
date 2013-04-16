@@ -3139,19 +3139,27 @@ already an @command{ssh} connection to that host.  Further
 process on that host, will reuse that initial @command{ssh}
 connection.
 
-If you know that your @code{ControlPath} settings won't disturb
-@value{tramp}, you could customize the variable
-@code{tramp-ssh-controlmaster-options} like this:
+If your @command{ssh} version supports the @code{ControlPersist}
+option, you could customize the variable
+@code{tramp-ssh-controlmaster-options} to use your @code{ControlPath},
+for example:
 
 @lisp
 (setq tramp-ssh-controlmaster-options
       (concat
         "-o ControlPath=/tmp/ssh-ControlPath-%%r@@%%h:%%p "
-        "-o ControlMaster=auto -o ControlPersist=no"))
+        "-o ControlMaster=auto -o ControlPersist=yes"))
 @end lisp
 
 Note, that "%r", "%h" and "%p" must be encoded as "%%r", "%%h" and
-"%%p", respectively.
+"%%p", respectively.  The entries of @code{ControlPath},
+@code{ControlMaster} and @code{ControlPersist} can be removed from
+this setting, if they are configured properly in your
+@file{~/.ssh/config}:
+
+@lisp
+(setq tramp-ssh-controlmaster-options "")
+@end lisp
 
 
 @item
