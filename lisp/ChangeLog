@@ -1,3 +1,8 @@
+2013-04-16  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave-mod.el (octave-mode-map): Remove redundant key
+	binding to info-lookup-symbol.
+
 2013-04-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (completion--twq-all):

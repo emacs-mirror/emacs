@@ -223,8 +223,6 @@ parenthetical grouping.")
     (define-key map "\C-c]" 'smie-close-block)
     (define-key map "\C-c/" 'smie-close-block)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
-    ;; FIXME: free C-h so it can do the describe-prefix-bindings.
-    (define-key map "\C-c\C-h" 'info-lookup-symbol)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
     (define-key map "\C-c\C-if" 'octave-send-defun)
