@@ -895,7 +895,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Do the actual Nextstep Windows setup here; the above code just
 ;; defines functions and variables that we use now.
-(defun ns-initialize-window-system (&optional display)
+(defun ns-initialize-window-system (&optional _display)
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
   (cl-assert (not ns-initialized))
 

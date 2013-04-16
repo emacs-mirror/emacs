@@ -1,3 +1,9 @@
+2013-04-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion--twq-all):
+	* term/ns-win.el (ns-initialize-window-system):
+	* term/w32-win.el (w32-initialize-window-system): Silence byte-compiler.
+
 2013-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el (add-function): Default simple vars to their

@@ -525,7 +525,7 @@ for use at QPOS."
   (eq t (compare-strings s1 nil nil s2 nil nil 'ignore-case)))
 
 (defun completion--twq-all (string ustring completions boundary
-                                   unquote requote)
+                                   _unquote requote)
   (when completions
     (pcase-let*
         ((prefix
