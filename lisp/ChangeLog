@@ -1,3 +1,7 @@
+2013-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-start-process): Handle url-handler directories.
+
 2013-04-15  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-beginning-of-defun)
