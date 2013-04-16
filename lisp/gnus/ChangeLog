@@ -3,7 +3,7 @@
 	Support <img src="data:...">.
 
 	* shr.el (shr-image-from-data): New function.
-	(shr-tag-img) Use it.
+	(shr-tag-img): Use it.
 
 2013-04-14  Andrew Cohen  <cohen@bu.edu>
 
