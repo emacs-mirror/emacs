@@ -159,6 +159,14 @@ open_output_file (file_data *p_file, char *filename, unsigned long size)
   HANDLE file_mapping;
   void  *file_base;
 
+  /* We delete any existing FILENAME because loadup.el will create a
+     hard link to it under the name emacs-XX.YY.ZZ.nn.exe.  Evidently,
+     overwriting a file on Unix breaks any hard links to it, but that
+     doesn't happen on Windows.  If we don't delete the file before
+     creating it, all the emacs-XX.YY.ZZ.nn.exe end up being hard
+     links to the same file, which defeats the purpose of these hard
+     links: being able to run previous builds.  */
+  DeleteFile (filename);
   file = CreateFile (filename, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		     CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
   if (file == INVALID_HANDLE_VALUE)
