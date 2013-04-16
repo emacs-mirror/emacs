@@ -236,9 +236,8 @@ PROPS is an alist of additional properties, among which the following have
 a special meaning:
 - `name': a string or symbol.  It can be used to refer to this piece of advice.
 
-PLACE cannot be a simple variable.  Instead it should either be
-\(default-value 'VAR) or (local 'VAR) depending on whether FUNCTION
-should be applied to VAR buffer-locally or globally.
+If PLACE is a simple variable, only its global value will be affected.
+Use (local 'VAR) if you want to apply FUNCTION to VAR buffer-locally.
 
 If one of FUNCTION or OLDFUN is interactive, then the resulting function
 is also interactive.  There are 3 cases:
@@ -251,7 +250,7 @@ is also interactive.  There are 3 cases:
   (cond ((eq 'local (car-safe place))
          (setq place `(advice--buffer-local ,@(cdr place))))
         ((symbolp place)
-         (error "Use (default-value '%S) or (local '%S)" place place)))
+         (setq place `(default-value ',place))))
   `(advice--add-function ,where (gv-ref ,place) ,function ,props))
 
 ;;;###autoload
