@@ -457,12 +457,12 @@ For full documentation. please see commentary.
                    (ignore-errors
                      ,@(cond
                         ((stringp diminish-var)
-                         `(diminish (quote ,(intern (concat name-string "-mode")))
-                                    ,diminish-var))
+                         `((diminish (quote ,(intern (concat name-string "-mode")))
+                                     ,diminish-var)))
                         ((symbolp diminish-var)
-                         `(diminish (quote ,diminish-var)))
+                         `((diminish (quote ,diminish-var))))
                         ((and (consp diminish-var) (stringp (cdr diminish-var)))
-                         `(diminish (quote ,(car diminish-var)) ,(cdr diminish-var)))
+                         `((diminish (quote ,(car diminish-var)) ,(cdr diminish-var))))
                         (t ; list of symbols or (symbol . "string") pairs
                          (mapcar (lambda (var)
                                    (if (listp var)
