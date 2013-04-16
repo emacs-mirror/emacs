@@ -212,7 +212,7 @@
 	* whitespace.el (whitespace-color-on, whitespace-color-off):
 	Only call `font-lock-fontify-buffer' when `font-lock-mode' is on.
 
-2013-04-05  Jacek Chrząszcz  <chrzaszcz@mimuw.edu.pl> (tiny change)
+2013-04-05  Jacek Chrząszcz  <chrzaszcz@mimuw.edu.pl>  (tiny change)
 
 	* ispell.el (ispell-set-spellchecker-params):
 	Really set `ispell-args' for all equivs.
@@ -389,7 +389,7 @@
 2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* eshell/em-unix.el: Move su and sudo to...
-	* eshell/em-tramp.el: ...Eshell tramp module
+	* eshell/em-tramp.el: ...Eshell tramp module.
 
 2013-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1384,7 +1384,6 @@
 	* emacs-lisp/eieio-opt.el (eieio-class-button, eieio-describe-generic)
 	(eieio-browse-tree, eieio-browse): Use eieio--check-type.
 
-
 2013-02-18  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* eshell/em-cmpl.el: Correct "context-related help" keybinding in
@@ -1591,7 +1590,7 @@
 	[scpc, rsyncc]: Remove methods.
 	(top): Remove completion functions for "scpc", "rsyncc", "ssh1_old"
 	and "ssh2_old".
-	(tramp-do-copy-or-rename-file-out-of-band):  Change trace level.
+	(tramp-do-copy-or-rename-file-out-of-band): Change trace level.
 	(tramp-maybe-open-connection): Reuse tmpfile for ControlPath.
 
 2013-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -1600,7 +1599,7 @@
 
 2013-02-13  Jambunathan K  <kjambunathan@gmail.com>
 
-	* icomplete.el (icomplete-hide-common-prefix):  New user option.
+	* icomplete.el (icomplete-hide-common-prefix): New user option.
 	(icomplete-first-match): New face.
 	(icomplete-completions): Correct handling of "complete but not
 	unique" (Bug#12638).
@@ -1883,7 +1882,7 @@
 	instead passing extra parameter HERE to several functions.
 	Remove 'BOD strategy.
 
-2013-02-06  Nicolas Richard <theonewiththeevillook@yahoo.fr>  (tiny change)
+2013-02-06  Nicolas Richard  <theonewiththeevillook@yahoo.fr>  (tiny change)
 
 	* emacs-lisp/package.el (describe-package-1): Tell what archive is
 	used to install the package.
@@ -2275,7 +2274,7 @@
 
 	* xml.el (xml-entity-or-char-ref-re): Fix regexp.
 
-2013-01-24  Aaron Ecay <aaronecay@gmail.com>  (tiny change)
+2013-01-24  Aaron Ecay  <aaronecay@gmail.com>  (tiny change)
 
 	* paren.el (show-paren-function): Make sure to set 'priority and
 	'face only if the overlay does exist.
@@ -2435,7 +2434,7 @@
 
 2013-01-15  Michael R. Mauger  <mmaug@yahoo.com>
 
-	* progmodes/sql.el: (sql-imenu-generic-expression):
+	* progmodes/sql.el (sql-imenu-generic-expression):
 	(sql-mode-font-lock-object-name): Match schema qualified names.
 	(sql-connect): Use string keys.
 	(sql-product-interactive): Wait for interpreter prompt.
@@ -3054,7 +3053,7 @@
 	* calc/calc-forms.el (math-parse-date): Try using
 	`math-parse-iso-date' when it looks like it might be needed.
 	Allow times of 24:00.
-	(math-parse-date-validate, math-parse-iso-date-validate):  Allow times
+	(math-parse-date-validate, math-parse-iso-date-validate): Allow times
 	of 24:00.
 
 2012-12-30  Glenn Morris  <rgm@gnu.org>
@@ -3217,7 +3216,7 @@
 	(tramp-adb-get-toolbox): New defun.  Check for remote shell
 	implementation (BusyBox or Toolbox).
 
-2012-12-24  Constantin Kulikov <zxnotdead@gmail.com>  (tiny change)
+2012-12-24  Constantin Kulikov  <zxnotdead@gmail.com>  (tiny change)
 
 	* startup.el (initial-buffer-choice): Allow function as value
 	(Bug#13251).
@@ -3364,7 +3363,7 @@
 	Add `file-acl' and `set-file-acl' handlers.
 	(tramp-smb-handle-copy-file): Handle PRESERVE-EXTENDED-ATTRIBUTES.
 
-2012-12-17  Kelly Dean  <kellydeanch@yahoo.com> (tiny change)
+2012-12-17  Kelly Dean  <kellydeanch@yahoo.com>  (tiny change)
 
 	* help-macro.el (make-help-screen): Instead of switch-to-buffer
 	use pop-to-buffer with NORECORD argument t.  As buffer name, use
@@ -3565,7 +3564,7 @@
 
 2012-12-11  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.el (calc-standard-date-formats):  Add more date
+	* calc/calc.el (calc-standard-date-formats): Add more date
 	formats.
 	* calc/calc-forms.el (math-parse-iso-date): New function.
 	(math-parse-date): Use `math-parse-iso-date' when appropriate.
@@ -3599,7 +3598,7 @@
 
 	* subr.el (inotify-event-p, inotify-handle-event): New functions.
 
-2012-12-10  Dani Moncayo <dmoncayo@gmail.com>
+2012-12-10  Dani Moncayo  <dmoncayo@gmail.com>
 
 	* simple.el (just-one-space): Doc fix.
 
@@ -4437,7 +4436,7 @@
 
 2012-11-19  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-forms.el (math-leap-year-p):  Fix formula for negative
+	* calc/calc-forms.el (math-leap-year-p): Fix formula for negative
 	year numbers.
 	(math-date-to-julian-dt): Adjust the initial approximation for the
 	year to deal with the new definition of the DATE.
@@ -5522,7 +5521,7 @@
 	Recover input meta mode when the new coding system doesn not use 8-bit.
 	Supply TERMINAL arg to set-input-meta-mode.
 
-2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>
+2012-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* wdired.el (wdired-old-marks): New variable.
 	(wdired-change-to-wdired-mode): Locally set wdired-old-marks.
