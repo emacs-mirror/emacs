@@ -1,3 +1,10 @@
+2013-04-16  David Edmondson  <dme@dme.org>
+
+	Support <img src="data:...">.
+
+	* shr.el (shr-image-from-data): New function.
+	(shr-tag-img): Use it.
+
 2013-04-14  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (nnir-request-set-mark): Make sure we are in the right

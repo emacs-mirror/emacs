@@ -1,3 +1,7 @@
+2013-04-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Ftest_completion): Silence compiler warning.
+
 2013-04-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Add more assertions to investigate
@@ -1257,7 +1261,7 @@
 	(Fcommand_execute): Remove, replace by an Elisp implementation.
 	(syms_of_keyboard): Adjust accordingly.
 
-2013-02-19  Daniel Colascione <dancol@dancol.org>
+2013-02-19  Daniel Colascione  <dancol@dancol.org>
 
 	* sheap.c (report_sheap_usage): Use message, not message1, so
 	that we don't try to create a buffer while we're in the middle
@@ -12081,9 +12085,9 @@
 	to denote vector blocks.  Adjust users (live_vector_p,
 	mark_maybe_pointer, valid_lisp_object_p) accordingly.
 	(COMMON_MULTIPLE): Move outside #if USE_LSB_TAG.
-	(VECTOR_BLOCK_SIZE, vroundup, VECTOR_BLOCK_BYTES),
-	(VBLOCK_BYTES_MIN, VBLOCK_BYTES_MAX, VECTOR_MAX_FREE_LIST_INDEX),
-	(VECTOR_FREE_LIST_FLAG, ADVANCE, VINDEX, SETUP_ON_FREE_LIST),
+	(VECTOR_BLOCK_SIZE, vroundup, VECTOR_BLOCK_BYTES)
+	(VBLOCK_BYTES_MIN, VBLOCK_BYTES_MAX, VECTOR_MAX_FREE_LIST_INDEX)
+	(VECTOR_FREE_LIST_FLAG, ADVANCE, VINDEX, SETUP_ON_FREE_LIST)
 	(VECTOR_SIZE, VECTOR_IN_BLOCK): New macros.
 	(roundup_size): New constant.
 	(struct vector_block): New data type.

@@ -1,3 +1,8 @@
+2013-04-15  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* tips.texi (Coding Conventions): Mention separation of package
+	descriptor and name of internal symbols by two hyphens.
+
 2013-04-13  Stephen Berman  <stephen.berman@gmx.net>
 
 	* windows.texi (Splitting Windows): Change category of

@@ -847,22 +847,24 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
         indent))))
 
 (defun ruby-beginning-of-defun (&optional arg)
-  "Move backward to the beginning of the current top-level defun.
+  "Move backward to the beginning of the current defun.
 With ARG, move backward multiple defuns.  Negative ARG means
 move forward."
   (interactive "p")
-  (and (re-search-backward (concat "^\\s *" ruby-defun-beg-re "\\_>")
-                           nil t (or arg 1))
-       (beginning-of-line)))
+  (let (case-fold-search)
+    (and (re-search-backward (concat "^\\s *" ruby-defun-beg-re "\\_>")
+                             nil t (or arg 1))
+         (beginning-of-line))))
 
-(defun ruby-end-of-defun (&optional arg)
-  "Move forward to the end of the current top-level defun.
-With ARG, move forward multiple defuns.  Negative ARG means
-move backward."
+(defun ruby-end-of-defun ()
+  "Move point to the end of the current defun.
+The defun begins at or after the point.  This function is called
+by `end-of-defun'."
   (interactive "p")
   (ruby-forward-sexp)
-  (when (looking-back (concat "^\\s *" ruby-block-end-re))
-    (forward-line 1)))
+  (let (case-fold-search)
+    (when (looking-back (concat "^\\s *" ruby-block-end-re))
+      (forward-line 1))))
 
 (defun ruby-beginning-of-indent ()
   "Backtrack to a line which can be used as a reference for
@@ -881,6 +883,7 @@ current block, a sibling block, or an outer block.  Do that (abs N) times."
         (depth (or (nth 2 (ruby-parse-region (line-beginning-position)
                                              (line-end-position)))
                    0))
+        case-fold-search
         down done)
     (when (< (* depth signum) 0)
       ;; Moving end -> end or beginning -> beginning.
