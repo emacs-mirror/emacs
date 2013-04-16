@@ -2654,8 +2654,8 @@ the if condition."
 (defvar python-skeleton-available '()
   "Internal list of available skeletons.")
 
-(define-abbrev-table 'python-mode-abbrev-table ()
-  "Abbrev table for Python mode."
+(define-abbrev-table 'python-mode-skeleton-abbrev-table ()
+  "Abbrev table for Python mode skeletons."
   :case-fixed t
   ;; Allow / inside abbrevs.
   :regexp "\\(?:^\\|[^/]\\)\\<\\([[:word:]/]+\\)\\W*"
@@ -2668,19 +2668,23 @@ the if condition."
 (defmacro python-skeleton-define (name doc &rest skel)
   "Define a `python-mode' skeleton using NAME DOC and SKEL.
 The skeleton will be bound to python-skeleton-NAME and will
-be added to `python-mode-abbrev-table'."
+be added to `python-mode-skeleton-abbrev-table'."
   (declare (indent 2))
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
-       (define-abbrev python-mode-abbrev-table ,name "" ',function-name
-         :system t)
+       (define-abbrev python-mode-skeleton-abbrev-table
+         ,name "" ',function-name :system t)
        (setq python-skeleton-available
              (cons ',function-name python-skeleton-available))
        (define-skeleton ,function-name
          ,(or doc
               (format "Insert %s statement." name))
          ,@skel))))
+
+(define-abbrev-table 'python-mode-abbrev-table ()
+  "Abbrev table for Python mode."
+  :parents (list python-mode-skeleton-abbrev-table))
 
 (defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
   "Define a `python-mode' auxiliary skeleton using NAME DOC and SKEL.

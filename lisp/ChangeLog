@@ -1,3 +1,15 @@
+2013-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode-skeleton-abbrev-table): Rename from
+	python-mode-abbrev-table.
+	(python-skeleton-define): Adjust accordingly.
+	(python-mode-abbrev-table): New table that inherits from it so that
+	python-skeleton-autoinsert does not affect non-skeleton abbrevs.
+
+	* abbrev.el (abbrev--symbol): New function, extracted from abbrev-symbol.
+	(abbrev-symbol): Use it.
+	(abbrev--before-point): Use it since we already handle inheritance.
+
 2013-04-16  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave-mod.el (octave-mode-map): Remove redundant key
