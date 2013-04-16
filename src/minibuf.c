@@ -1799,8 +1799,8 @@ the values STRING, PREDICATE and `lambda'.  */)
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
-      i = hash_lookup (h, string, NULL);
       Lisp_Object key = Qnil;
+      i = hash_lookup (h, string, NULL);
       if (i >= 0)
 	tem = HASH_KEY (h, i);
       else
