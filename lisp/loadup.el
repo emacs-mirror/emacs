@@ -414,7 +414,12 @@
 				 (substring name (match-end 0)))))
 	    (setq name (concat name exe))
             (message "Adding name %s" name)
-	    (add-name-to-file (concat "emacs" exe) name t)))
+	    ;; When this runs on Windows, invocation-directory is not
+	    ;; necessarily the current directory.
+	    (add-name-to-file (expand-file-name (concat "emacs" exe)
+						invocation-directory)
+			      (expand-file-name name invocation-directory)
+			      t)))
       (kill-emacs)))
 
 ;; For machines with CANNOT_DUMP defined in config.h,
