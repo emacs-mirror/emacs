@@ -290,9 +290,12 @@
 	     (equal (nth 4 command-line-args) "dump"))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
+	   (exelen (if (eq system-type 'windows-nt) -4 0))
 	   (files (file-name-all-completions base default-directory))
-	   (versions (mapcar (function (lambda (name)
-					 (string-to-number (substring name (length base)))))
+	   (versions (mapcar (function
+			      (lambda (name)
+				(string-to-number
+				 (substring name (length base) exelen))))
 			     files)))
       (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
                               (error nil)))
@@ -317,7 +320,7 @@
 	    ;; There will be no DOC-X on MS-Windows when we build
 	    ;; using the Posix Makefile's.  In that case, we want
 	    ;; to create DOC-XX.YY.ZZ, as on Unix.
-	    (if (file-exists-p name)
+	    (if (file-exists-p name1)
 		(setq name name1)
 	      (setq name (concat (expand-file-name "../etc/DOC-") name))
 	      (if (file-exists-p name)
@@ -398,18 +401,20 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (memq system-type '(ms-dos windows-nt))
+      (if (not (or (eq system-type 'ms-dos)
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (nth 3 command-line-args) "bootstrap")
                    (equal (nth 4 command-line-args) "bootstrap")))
-	  (let ((name (concat "emacs-" emacs-version)))
+	  (let ((name (concat "emacs-" emacs-version))
+		(exe (if (eq system-type 'windows-nt) ".exe" "")))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 				 "-"
 				 (substring name (match-end 0)))))
+	    (setq name (concat name exe))
             (message "Adding name %s" name)
-	    (add-name-to-file "emacs" name t)))
+	    (add-name-to-file (concat "emacs" exe) name t)))
       (kill-emacs)))
 
 ;; For machines with CANNOT_DUMP defined in config.h,
