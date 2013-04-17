@@ -814,11 +814,15 @@ dnl   AC_PROG_RANLIB
 dnl fi
 AC_PROG_LN_S
 
-LN_EMACS="\$(LN_S)"
+dnl AC_PROG_LN_S sets LN_S to 'cp -pR' for MinGW, on the premise that 'ln'
+dnl doesn't support links to directories, as in "ln file dir".  But that
+dnl use is non-portable, and OTOH MinGW wants to use hard links for Emacs
+dnl executables at "make install" time.
+dnl See http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00475.html
+dnl for more details.
 if test "$opsys" = "mingw32"; then
-  LN_EMACS="ln"
+  LN_S="ln"
 fi
-AC_SUBST(LN_EMACS)
 
 AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
