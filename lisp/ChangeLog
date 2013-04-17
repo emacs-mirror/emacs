@@ -1,3 +1,8 @@
+2013-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-hg.el (vc-hg-annotate-re): Disallow ": " in file names
+	(bug#14216).
+
 2013-04-17  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
 	* progmodes/gdb-mi.el (gdbmi-bnf-incomplete-record-result):
