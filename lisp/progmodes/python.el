@@ -368,22 +368,24 @@ This variant of `rx' supports common python named REGEXPS."
 
 ;;; Font-lock and syntax
 
+(eval-when-compile
+  (defun python-syntax--context-compiler-macro (form type &optional syntax-ppss)
+    (pcase type
+      (`'comment
+       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
+          (and (nth 4 ppss) (nth 8 ppss))))
+      (`'string
+       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
+          (and (nth 3 ppss) (nth 8 ppss))))
+      (`'paren
+       `(nth 1 (or ,syntax-ppss (syntax-ppss))))
+      (_ form))))
+
 (defun python-syntax-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
 TYPE can be `comment', `string' or `paren'.  It returns the start
 character address of the specified TYPE."
-  (declare (compiler-macro
-            (lambda (form)
-              (pcase type
-                (`'comment
-                 `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
-                    (and (nth 4 ppss) (nth 8 ppss))))
-                (`'string
-                 `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
-                    (and (nth 3 ppss) (nth 8 ppss))))
-                (`'paren
-                 `(nth 1 (or ,syntax-ppss (syntax-ppss))))
-                (_ form)))))
+  (declare (compiler-macro python-syntax--context-compiler-macro))
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (pcase type
       (`comment (and (nth 4 ppss) (nth 8 ppss)))
@@ -1189,6 +1191,66 @@ Returns nil if point is not in a def or class."
       (forward-line 1)
       ;; Ensure point moves forward.
       (and (> beg-pos (point)) (goto-char beg-pos)))))
+
+(defun python-nav--syntactically (fn poscompfn &optional pos)
+  "Move to point using FN ignoring non-code or paren context.
+FN must take no arguments and could be used to set match-data.
+POSCOMPFN is a two arguments function used to compare current and
+previous point after it is moved using FN, this is normally a
+less-than or greater-than comparison.  Optional argument POS is
+internally used in recursive calls and should not be explicitly
+passed."
+  (let* ((newpos
+          (and (funcall fn)
+               (save-match-data
+                 (and
+                  (not (python-syntax-context-type))
+                  (point-marker)))))
+         (current-match-data (match-data)))
+    (cond ((or (and (not pos) newpos)
+               (and pos newpos (funcall poscompfn newpos pos)))
+           (set-match-data current-match-data)
+           (point-marker))
+          ((and (not pos) (not newpos)) nil)
+          (t (python-nav--syntactically
+              fn poscompfn (point-marker))))))
+
+(defun python-nav--forward-defun (arg)
+  "Internal implementation of python-nav-{backward,forward}-defun.
+Uses ARG to define which function to call, and how many times
+repeat it."
+  (let ((found))
+    (while (and (> arg 0)
+                (setq found
+                      (python-nav--syntactically
+                       (lambda ()
+                         (re-search-forward
+                          python-nav-beginning-of-defun-regexp nil t))
+                       '>)))
+      (setq arg (1- arg)))
+    (while (and (< arg 0)
+                (setq found
+                      (python-nav--syntactically
+                       (lambda ()
+                         (re-search-backward
+                          python-nav-beginning-of-defun-regexp nil t))
+                       '<)))
+      (setq arg (1+ arg)))
+    found))
+
+(defun python-nav-backward-defun (&optional arg)
+  "Navigate to closer defun backward ARG times.
+Unlikely `python-nav-beginning-of-defun' this doesn't care about
+nested definitions."
+  (interactive "^p")
+  (python-nav--forward-defun (- (or arg 1))))
+
+(defun python-nav-forward-defun (&optional arg)
+  "Navigate to closer defun forward ARG times.
+Unlikely `python-nav-beginning-of-defun' this doesn't care about
+nested definitions."
+  (interactive "^p")
+  (python-nav--forward-defun (or arg 1)))
 
 (defun python-nav-beginning-of-statement ()
   "Move to start of current statement."
@@ -2654,8 +2716,8 @@ the if condition."
 (defvar python-skeleton-available '()
   "Internal list of available skeletons.")
 
-(define-abbrev-table 'python-mode-abbrev-table ()
-  "Abbrev table for Python mode."
+(define-abbrev-table 'python-mode-skeleton-abbrev-table ()
+  "Abbrev table for Python mode skeletons."
   :case-fixed t
   ;; Allow / inside abbrevs.
   :regexp "\\(?:^\\|[^/]\\)\\<\\([[:word:]/]+\\)\\W*"
@@ -2668,19 +2730,23 @@ the if condition."
 (defmacro python-skeleton-define (name doc &rest skel)
   "Define a `python-mode' skeleton using NAME DOC and SKEL.
 The skeleton will be bound to python-skeleton-NAME and will
-be added to `python-mode-abbrev-table'."
+be added to `python-mode-skeleton-abbrev-table'."
   (declare (indent 2))
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
-       (define-abbrev python-mode-abbrev-table ,name "" ',function-name
-         :system t)
+       (define-abbrev python-mode-skeleton-abbrev-table
+         ,name "" ',function-name :system t)
        (setq python-skeleton-available
              (cons ',function-name python-skeleton-available))
        (define-skeleton ,function-name
          ,(or doc
               (format "Insert %s statement." name))
          ,@skel))))
+
+(define-abbrev-table 'python-mode-abbrev-table ()
+  "Abbrev table for Python mode."
+  :parents (list python-mode-skeleton-abbrev-table))
 
 (defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
   "Define a `python-mode' auxiliary skeleton using NAME DOC and SKEL.

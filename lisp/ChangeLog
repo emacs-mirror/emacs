@@ -1,3 +1,44 @@
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	New defun movement commands.
+	* progmodes/python.el (python-nav--syntactically)
+	(python-nav--forward-defun, python-nav-backward-defun)
+	(python-nav-forward-defun): New functions.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-syntax--context-compiler-macro): New defun.
+	(python-syntax-context): Use named compiler-macro for backwards
+	compatibility with Emacs 24.x.
+
+2013-04-17  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave-mod.el (octave-mode-map): Fix key binding to
+	octave-hide-process-buffer.
+
+2013-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-hg.el (vc-hg-annotate-re): Disallow ": " in file names
+	(bug#14216).
+
+2013-04-17  Jean-Philippe Gravel  <jpgravel@gmail.com>
+
+	* progmodes/gdb-mi.el (gdbmi-bnf-incomplete-record-result):
+	Fix adjustment of offset when receiving incomplete responses from GDB
+	(bug#14129).
+
+2013-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode-skeleton-abbrev-table): Rename from
+	python-mode-abbrev-table.
+	(python-skeleton-define): Adjust accordingly.
+	(python-mode-abbrev-table): New table that inherits from it so that
+	python-skeleton-autoinsert does not affect non-skeleton abbrevs.
+
+	* abbrev.el (abbrev--symbol): New function, extracted from abbrev-symbol.
+	(abbrev-symbol): Use it.
+	(abbrev--before-point): Use it since we already handle inheritance.
+
 2013-04-16  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave-mod.el (octave-mode-map): Remove redundant key

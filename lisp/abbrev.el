@@ -669,6 +669,26 @@ either a single abbrev table or a list of abbrev tables."
       tables))))
 
 
+(defun abbrev--symbol (abbrev table)
+  "Return the symbol representing abbrev named ABBREV in TABLE.
+This symbol's name is ABBREV, but it is not the canonical symbol of that name;
+it is interned in the abbrev-table TABLE rather than the normal obarray.
+The value is nil if that abbrev is not defined."
+  (let* ((case-fold (not (abbrev-table-get table :case-fixed)))
+         ;; In case the table doesn't set :case-fixed but some of the
+         ;; abbrevs do, we have to be careful.
+         (sym
+          ;; First try without case-folding.
+          (or (intern-soft abbrev table)
+              (when case-fold
+                ;; We didn't find any abbrev, try case-folding.
+                (let ((sym (intern-soft (downcase abbrev) table)))
+                  ;; Only use it if it doesn't require :case-fixed.
+                  (and sym (not (abbrev-get sym :case-fixed))
+                       sym))))))
+    (if (symbol-value sym)
+        sym)))
+
 (defun abbrev-symbol (abbrev &optional table)
   "Return the symbol representing abbrev named ABBREV.
 This symbol's name is ABBREV, but it is not the canonical symbol of that name;
@@ -678,23 +698,11 @@ Optional second arg TABLE is abbrev table to look it up in.
 The default is to try buffer's mode-specific abbrev table, then global table."
   (let ((tables (abbrev--active-tables table))
         sym)
-    (while (and tables (not (symbol-value sym)))
-      (let* ((table (pop tables))
-             (case-fold (not (abbrev-table-get table :case-fixed))))
+    (while (and tables (not sym))
+      (let* ((table (pop tables)))
         (setq tables (append (abbrev-table-get table :parents) tables))
-        ;; In case the table doesn't set :case-fixed but some of the
-        ;; abbrevs do, we have to be careful.
-        (setq sym
-              ;; First try without case-folding.
-              (or (intern-soft abbrev table)
-                  (when case-fold
-                    ;; We didn't find any abbrev, try case-folding.
-                    (let ((sym (intern-soft (downcase abbrev) table)))
-                      ;; Only use it if it doesn't require :case-fixed.
-                      (and sym (not (abbrev-get sym :case-fixed))
-                           sym)))))))
-    (if (symbol-value sym)
-        sym)))
+        (setq sym (abbrev--symbol abbrev table))))
+    sym))
 
 
 (defun abbrev-expansion (abbrev &optional table)
@@ -748,7 +756,7 @@ then ABBREV is looked up in that table only."
                            (setq start (match-beginning 1))
                            (setq end   (match-end 1)))))
                      (setq name  (buffer-substring start end))
-                     (let ((abbrev (abbrev-symbol name table)))
+                     (let ((abbrev (abbrev--symbol name table)))
                        (when abbrev
                          (setq enable-fun (abbrev-get abbrev :enable-function))
                          (and (or (not enable-fun) (funcall enable-fun))
