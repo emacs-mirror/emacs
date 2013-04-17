@@ -638,7 +638,8 @@ If ARGS are provided, then pass MESSAGE through `format'."
 
 (defun minibuffer-completion-contents ()
   "Return the user input in a minibuffer before point as a string.
-That is what completion commands operate on."
+That used to be what completion commands operate on."
+  (declare (obsolete minibuffer-contents "24.4"))
   (buffer-substring (field-beginning) (point)))
 
 (defun delete-minibuffer-contents ()

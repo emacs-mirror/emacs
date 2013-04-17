@@ -46,6 +46,12 @@ This affects `insert-parentheses' and `insert-pair'."
   :group 'lisp)
 
 (defvar forward-sexp-function nil
+  ;; FIXME:
+  ;; - for some uses, we may want a "sexp-only" version, which only
+  ;;   jumps over a well-formed sexp, rather than some dwimish thing
+  ;;   like jumping from an "else" back up to its "if".
+  ;; - for up-list, we could use the "sexp-only" behavior as well
+  ;;   to treat the dwimish halfsexp as a form of "up-list" step.
   "If non-nil, `forward-sexp' delegates to this function.
 Should take the same arguments and behave similarly to `forward-sexp'.")
 
@@ -618,9 +624,10 @@ character."
 		;; "Unbalanced parentheses", but those may not be so
 		;; accurate/helpful, e.g. quotes may actually be
 		;; mismatched.
-  		(error "Unmatched bracket or quote"))))
+  		(user-error "Unmatched bracket or quote"))))
 
 (defun field-complete (table &optional predicate)
+  (declare (obsolete completion-in-region "24.4"))
   (let ((minibuffer-completion-table table)
         (minibuffer-completion-predicate predicate)
         ;; This made sense for lisp-complete-symbol, but for
@@ -645,6 +652,7 @@ considered.  If the symbol starts just after an open-parenthesis, only
 symbols with function definitions are considered.  Otherwise, all
 symbols with function definitions, values or properties are
 considered."
+  (declare (obsolete completion-at-point "24.4"))
   (interactive)
   (let* ((data (lisp-completion-at-point predicate))
          (plist (nthcdr 3 data)))
@@ -666,25 +674,6 @@ considered."
 		      (skip-syntax-forward "'")
 		      (point))
 		  (scan-error pos)))
-	   (predicate
-	    (or predicate
-		(save-excursion
-		  (goto-char beg)
-		  (if (not (eq (char-before) ?\())
-		      (lambda (sym)	     ;why not just nil ?   -sm
-			(or (boundp sym) (fboundp sym)
-			    (symbol-plist sym)))
-		    ;; Looks like a funcall position.  Let's double check.
-		    (if (condition-case nil
-			    (progn (up-list -2) (forward-char 1)
-				   (eq (char-after) ?\())
-			  (error nil))
-			;; If the first element of the parent list is an open
-			;; paren we are probably not in a funcall position.
-			;; Maybe a `let' varlist or something.
-			nil
-		      ;; Else, we assume that a function name is expected.
-		      'fboundp)))))
 	   (end
 	    (unless (or (eq beg (point-max))
 			(member (char-syntax (char-after beg)) '(?\" ?\( ?\))))
@@ -694,12 +683,51 @@ considered."
 		    (forward-sexp 1)
 		    (when (>= (point) pos)
 		      (point)))
-		(scan-error pos)))))
+		(scan-error pos))))
+           (funpos (eq (char-before beg) ?\()) ;t if in function position.
+           (table-etc
+            (if (not funpos)
+                ;; FIXME: We could look at the first element of the list and
+                ;; use it to provide a more specific completion table in some
+                ;; cases.  E.g. filter out keywords that are not understood by
+                ;; the macro/function being called.
+                (list nil obarray       ;Could be anything.
+                      :annotation-function
+                      (lambda (str) (if (fboundp (intern-soft str)) " <f>")))
+              ;; Looks like a funcall position.  Let's double check.
+              (save-excursion
+                (goto-char (1- beg))
+                (let ((parent
+                       (condition-case nil
+                           (progn (up-list -1) (forward-char 1)
+                                  (let ((c (char-after)))
+                                    (if (eq c ?\() ?\(
+                                      (if (memq (char-syntax c) '(?w ?_))
+                                          (read (current-buffer))))))
+                         (error nil))))
+                  (pcase parent
+                    ;; FIXME: Rather than hardcode special cases here,
+                    ;; we should use something like a symbol-property.
+                    (`declare
+                     (list t (mapcar (lambda (x) (symbol-name (car x)))
+                                   (delete-dups
+                                    (append
+                                     macro-declarations-alist
+                                     defun-declarations-alist)))))
+                    ((or `condition-case `condition-case-unless-debug)
+                     (list t obarray
+                           :predicate (lambda (sym) (get sym 'error-conditions))))
+                    (_ (list nil obarray #'fboundp))))))))
       (when end
-	(list beg end obarray
-	      :predicate predicate
-	      :annotation-function
-	      (unless (eq predicate 'fboundp)
-		(lambda (str) (if (fboundp (intern-soft str)) " <f>"))))))))
+        (let ((tail (if (null (car table-etc))
+                        (cdr table-etc)
+                      (cons
+                       (if (memq (char-syntax (char-after end))
+                                 '(?\s ?>))
+                           (cadr table-etc)
+                         (apply-partially 'completion-table-with-terminator
+                                          " " (cadr table-etc)))
+                       (cddr table-etc)))))
+          `(,beg ,end ,@tail))))))
 
 ;;; lisp.el ends here

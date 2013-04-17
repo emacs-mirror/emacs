@@ -323,7 +323,11 @@ file using `set-file-extended-attributes'.
 
 * Lisp Changes in Emacs 24.4
 
-** `dont-compile' is declared obsolete.
+** Obsoleted functions:
+*** `dont-compile'
+*** `lisp-complete-symbol'
+*** `field-complete'
+*** `minibuffer-completion-contents'
 
 ** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 

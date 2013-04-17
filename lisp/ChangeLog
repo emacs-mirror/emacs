@@ -1,13 +1,22 @@
+2013-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Provide specialized
+	completion tables when completing error conditions and
+	`declare' arguments.
+	(lisp-complete-symbol, field-complete): Mark as obsolete.
+	(check-parens): Unmatched parens are user errors.
+	* minibuffer.el (minibuffer-completion-contents): Mark as obsolete.
+
 2013-04-17  Michal Nazarewicz  <mina86@mina86.com>
 
-        * textmodes/flyspell.el (flyspell-check-pre-word-p): Return nil if
-        command changed buffer (ie. `flyspell-pre-buffer' is not current
-        buffer), which prevents making decisions based on invalid value of
-        `flyspell-pre-point' in the wrong buffer.  Most notably, this used to
-        cause an error when `flyspell-pre-point' was nil after switching
-        buffers
-        (flyspell-post-command-hook): No longer needs to change buffers when
-        checking pre-word.  While at it remove unnecessary progn.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p): Return nil if
+	command changed buffer (ie. `flyspell-pre-buffer' is not current
+	buffer), which prevents making decisions based on invalid value of
+	`flyspell-pre-point' in the wrong buffer.  Most notably, this used to
+	cause an error when `flyspell-pre-point' was nil after switching
+	buffers.
+	(flyspell-post-command-hook): No longer needs to change buffers when
+	checking pre-word.  While at it remove unnecessary progn.
 
 2013-04-17  Nicolas Richard  <theonewiththeevillook@yahoo.fr>  (tiny change)
 
