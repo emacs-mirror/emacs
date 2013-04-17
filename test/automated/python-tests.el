@@ -674,6 +674,93 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (python-tests-look-at "return wrapped_f")
                 (line-beginning-position))))))
 
+(ert-deftest python-nav-backward-defun-1 ()
+  (python-tests-with-temp-buffer
+   "
+class A(object): # A
+
+    def a(self): # a
+        pass
+
+    def b(self): # b
+        pass
+
+    class B(object): # B
+
+        class C(object): # C
+
+            def d(self): # d
+                pass
+
+            # def e(self): # e
+            #     pass
+
+    def c(self): # c
+        pass
+
+    # def d(self): # d
+    #     pass
+"
+   (goto-char (point-max))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def c(self): # c" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "            def d(self): # d" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "        class C(object): # C" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    class B(object): # B" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def b(self): # b" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def a(self): # a" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "class A(object): # A" -1)))
+   (should (not (python-nav-backward-defun)))))
+
+(ert-deftest python-nav-forward-defun-1 ()
+  (python-tests-with-temp-buffer
+   "
+class A(object): # A
+
+    def a(self): # a
+        pass
+
+    def b(self): # b
+        pass
+
+    class B(object): # B
+
+        class C(object): # C
+
+            def d(self): # d
+                pass
+
+            # def e(self): # e
+            #     pass
+
+    def c(self): # c
+        pass
+
+    # def d(self): # d
+    #     pass
+"
+   (goto-char (point-min))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(object): # A")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # a")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # b")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(object): # B")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(object): # C")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # d")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(self): # c")))
+   (should (not (python-nav-forward-defun)))))
 
 (ert-deftest python-nav-beginning-of-statement-1 ()
   (python-tests-with-temp-buffer

@@ -1192,6 +1192,66 @@ Returns nil if point is not in a def or class."
       ;; Ensure point moves forward.
       (and (> beg-pos (point)) (goto-char beg-pos)))))
 
+(defun python-nav--syntactically (fn poscompfn &optional pos)
+  "Move to point using FN ignoring non-code or paren context.
+FN must take no arguments and could be used to set match-data.
+POSCOMPFN is a two arguments function used to compare current and
+previous point after it is moved using FN, this is normally a
+less-than or greater-than comparison.  Optional argument POS is
+internally used in recursive calls and should not be explicitly
+passed."
+  (let* ((newpos
+          (and (funcall fn)
+               (save-match-data
+                 (and
+                  (not (python-syntax-context-type))
+                  (point-marker)))))
+         (current-match-data (match-data)))
+    (cond ((or (and (not pos) newpos)
+               (and pos newpos (funcall poscompfn newpos pos)))
+           (set-match-data current-match-data)
+           (point-marker))
+          ((and (not pos) (not newpos)) nil)
+          (t (python-nav--syntactically
+              fn poscompfn (point-marker))))))
+
+(defun python-nav--forward-defun (arg)
+  "Internal implementation of python-nav-{backward,forward}-defun.
+Uses ARG to define which function to call, and how many times
+repeat it."
+  (let ((found))
+    (while (and (> arg 0)
+                (setq found
+                      (python-nav--syntactically
+                       (lambda ()
+                         (re-search-forward
+                          python-nav-beginning-of-defun-regexp nil t))
+                       '>)))
+      (setq arg (1- arg)))
+    (while (and (< arg 0)
+                (setq found
+                      (python-nav--syntactically
+                       (lambda ()
+                         (re-search-backward
+                          python-nav-beginning-of-defun-regexp nil t))
+                       '<)))
+      (setq arg (1+ arg)))
+    found))
+
+(defun python-nav-backward-defun (&optional arg)
+  "Navigate to closer defun backward ARG times.
+Unlikely `python-nav-beginning-of-defun' this doesn't care about
+nested definitions."
+  (interactive "^p")
+  (python-nav--forward-defun (- (or arg 1))))
+
+(defun python-nav-forward-defun (&optional arg)
+  "Navigate to closer defun forward ARG times.
+Unlikely `python-nav-beginning-of-defun' this doesn't care about
+nested definitions."
+  (interactive "^p")
+  (python-nav--forward-defun (or arg 1)))
+
 (defun python-nav-beginning-of-statement ()
   "Move to start of current statement."
   (interactive "^")
