@@ -343,7 +343,7 @@
        Does Emacs use -lxft?                                   no
        Does Emacs use toolkit scroll bars?                     yes
 
-  You are almost there, hand on.
+  You are almost there, hang on.
 
   If the output is significantly different, or if configure finishes
   prematurely and displays some error message, you should examine the

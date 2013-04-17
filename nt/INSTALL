@@ -13,7 +13,7 @@
   Do not use this recipe with Cygwin.  For building on Cygwin,
   use the normal installation instructions, ../INSTALL.
 
-  Do not use these instructions with MSYS encironment.  For building
+  Do not use these instructions with MSYS environment.  For building
   the native Windows binary with MinGW and MSYS, follow the
   instructions in the file INSTALL.MSYS in this directory.
 
