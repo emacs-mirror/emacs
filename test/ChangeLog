@@ -1,5 +1,11 @@
 2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
+	* automated/python-tests.el (python-nav-backward-defun-2)
+	(python-nav-backward-defun-3, python-nav-forward-defun-2)
+	(python-nav-forward-defun-3): New tests.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
 	* automated/python-tests.el (python-nav-backward-defun-1)
 	(python-nav-forward-defun-1): New tests.
 

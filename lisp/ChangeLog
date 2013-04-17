@@ -1,3 +1,8 @@
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-nav--syntactically): Fix cornercases
+	and do not care about match data.
+
 2013-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Provide specialized

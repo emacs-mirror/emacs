@@ -1192,28 +1192,32 @@ Returns nil if point is not in a def or class."
       ;; Ensure point moves forward.
       (and (> beg-pos (point)) (goto-char beg-pos)))))
 
-(defun python-nav--syntactically (fn poscompfn &optional pos)
-  "Move to point using FN ignoring non-code or paren context.
-FN must take no arguments and could be used to set match-data.
-POSCOMPFN is a two arguments function used to compare current and
-previous point after it is moved using FN, this is normally a
-less-than or greater-than comparison.  Optional argument POS is
-internally used in recursive calls and should not be explicitly
-passed."
-  (let* ((newpos
-          (and (funcall fn)
-               (save-match-data
-                 (and
-                  (not (python-syntax-context-type))
-                  (point-marker)))))
-         (current-match-data (match-data)))
-    (cond ((or (and (not pos) newpos)
-               (and pos newpos (funcall poscompfn newpos pos)))
-           (set-match-data current-match-data)
-           (point-marker))
-          ((and (not pos) (not newpos)) nil)
-          (t (python-nav--syntactically
-              fn poscompfn (point-marker))))))
+(defun python-nav--syntactically (fn poscompfn &optional contextfn)
+  "Move point using FN avoiding places with specific context.
+FN must take no arguments. POSCOMPFN is a two arguments function
+used to compare current and previous point after it is moved
+using FN, this is normally a less-than or greater-than
+comparison.  Optional argument CONTEXTFN defaults to
+`python-syntax-context-type' and is used for checking current
+point context, it must return a non-nil value if this point must
+be skipped."
+  (let ((contextfn (or contextfn 'python-syntax-context-type))
+        (start-pos (point-marker))
+        (prev-pos))
+    (catch 'found
+      (while t
+        (let* ((newpos
+                (and (funcall fn) (point-marker)))
+               (context (funcall contextfn)))
+          (cond ((and (not context) newpos
+                      (or (and (not prev-pos) newpos)
+                          (and prev-pos newpos
+                               (funcall poscompfn newpos prev-pos))))
+                 (throw 'found (point-marker)))
+                ((and newpos context)
+                 (setq prev-pos (point)))
+                (t (when (not newpos) (goto-char start-pos))
+                   (throw 'found nil))))))))
 
 (defun python-nav--forward-defun (arg)
   "Internal implementation of python-nav-{backward,forward}-defun.

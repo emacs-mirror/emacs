@@ -718,6 +718,60 @@ class A(object): # A
               (python-tests-look-at "class A(object): # A" -1)))
    (should (not (python-nav-backward-defun)))))
 
+(ert-deftest python-nav-backward-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def decoratorFunctionWithArguments(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decoratorFunctionWithArguments('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wwrap(f):
+        print 'Inside wwrap()'
+        def wrapped_f(*args):
+            print 'Inside wrapped_f()'
+            print 'Decorator arguments:', arg1, arg2, arg3
+            f(*args)
+            print 'After f(*args)'
+        return wrapped_f
+    return wwrap
+"
+   (goto-char (point-max))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "        def wrapped_f(*args):" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def wwrap(f):" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "def decoratorFunctionWithArguments(arg1, arg2, arg3):" -1)))
+   (should (not (python-nav-backward-defun)))))
+
+(ert-deftest python-nav-backward-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+'''
+    def u(self):
+        pass
+
+    def v(self):
+        pass
+
+    def w(self):
+        pass
+'''
+
+class A(object):
+    pass
+"
+   (goto-char (point-min))
+   (let ((point (python-tests-look-at "class A(object):")))
+     (should (not (python-nav-backward-defun)))
+     (should (= point (point))))))
+
 (ert-deftest python-nav-forward-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -761,6 +815,60 @@ class A(object): # A
    (should (= (save-excursion (python-nav-forward-defun))
               (python-tests-look-at "(self): # c")))
    (should (not (python-nav-forward-defun)))))
+
+(ert-deftest python-nav-forward-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def decoratorFunctionWithArguments(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decoratorFunctionWithArguments('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wwrap(f):
+        print 'Inside wwrap()'
+        def wrapped_f(*args):
+            print 'Inside wrapped_f()'
+            print 'Decorator arguments:', arg1, arg2, arg3
+            f(*args)
+            print 'After f(*args)'
+        return wrapped_f
+    return wwrap
+"
+   (goto-char (point-min))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(arg1, arg2, arg3):")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(f):")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(*args):")))
+   (should (not (python-nav-forward-defun)))))
+
+(ert-deftest python-nav-forward-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+class A(object):
+    pass
+
+'''
+    def u(self):
+        pass
+
+    def v(self):
+        pass
+
+    def w(self):
+        pass
+'''
+"
+   (goto-char (point-min))
+   (let ((point (python-tests-look-at "(object):")))
+     (should (not (python-nav-forward-defun)))
+     (should (= point (point))))))
 
 (ert-deftest python-nav-beginning-of-statement-1 ()
   (python-tests-with-temp-buffer
