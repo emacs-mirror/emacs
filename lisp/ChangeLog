@@ -1,3 +1,10 @@
+2013-04-17  Nicolas Richard  <theonewiththeevillook@yahoo.fr>  (tiny change)
+
+	* textmodes/ispell.el (ispell-add-per-file-word-list):
+	Fix `flyspell-correct-word-before-point' error when accepting
+	words and `coment-padding' is an integer by using
+	`comment-normalize-vars' (Bug #14214).
+
 2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	New defun movement commands.
