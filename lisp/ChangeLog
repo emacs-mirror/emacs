@@ -1,3 +1,9 @@
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-syntax--context-compiler-macro): New defun.
+	(python-syntax-context): Use named compiler-macro for backwards
+	compatibility with Emacs 24.x.
+
 2013-04-17  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave-mod.el (octave-mode-map): Fix key binding to
