@@ -1,3 +1,8 @@
+2013-04-17  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave-mod.el (octave-mode-map): Fix key binding to
+	octave-hide-process-buffer.
+
 2013-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/vc-hg.el (vc-hg-annotate-re): Disallow ": " in file names
