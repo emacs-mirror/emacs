@@ -393,9 +393,9 @@ $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
 
 config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
-	    ./config.status --recheck;	\
+	    $(CFG) ./config.status --recheck;	\
 	else				\
-	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
+	    $(CFG) $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
