@@ -3559,18 +3559,19 @@ AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
 
 AH_TEMPLATE(INTERNAL_TERMINAL, [This is substituted when $TERM is "internal".])
 
+AH_TEMPLATE(NULL_DEVICE, [Name of the file to open to get
+  a null file, or a data sink.])
 if test "${opsys}" = "mingw32"; then
-  AC_DEFINE(NULL_DEVICE, ["NUL:"], [Name of the file to open to get
-    a null file, or a data sink.])
+  AC_DEFINE(NULL_DEVICE, ["NUL:"])
 else
-  AC_DEFINE(NULL_DEVICE, ["/dev/null"], [Name of the file to open to get
-    a null file, or a data sink.])
+  AC_DEFINE(NULL_DEVICE, ["/dev/null"])
 fi
 
+AH_TEMPLATE(SEPCHAR, [Character that separates PATH elements.])
 if test "${opsys}" = "mingw32"; then
-  AC_DEFINE(SEPCHAR, [';'], [Character that separates PATH elements.])
+  AC_DEFINE(SEPCHAR, [';'])
 else
-  AC_DEFINE(SEPCHAR, [':'], [Character that separates PATH elements.])
+  AC_DEFINE(SEPCHAR, [':'])
 fi
 
 dnl Everybody supports this, except MS-DOS.
@@ -3582,9 +3583,10 @@ AC_DEFINE(USER_FULL_NAME, [pw->pw_gecos], [How to get a user's full name.])
 AC_DEFINE(DIRECTORY_SEP, ['/'],
   [Character that separates directories in a file name.])
 
+AH_TEMPLATE(DEVICE_SEP, [Character that separates a device in a file name.])
 if test "${opsys}" = "mingw32"; then
   dnl Only used on MS platforms.
-  AC_DEFINE(DEVICE_SEP, ':', [Character that separates a device in a file name.])
+  AC_DEFINE(DEVICE_SEP, ':')
   AC_DEFINE(IS_DEVICE_SEP(_c_), [((_c_) == DEVICE_SEP)],
     [Returns true if character is a device separator.])
 
@@ -3594,8 +3596,6 @@ if test "${opsys}" = "mingw32"; then
   AC_DEFINE(IS_ANY_SEP(_c_), [(IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP(_c_))],
     [Returns true if character is any form of separator.])
 else
-  AH_TEMPLATE(DEVICE_SEP, [Character that separates a device in a file name.])
-
   AC_DEFINE(IS_DEVICE_SEP(_c_), 0,
     [Returns true if character is a device separator.])
 
