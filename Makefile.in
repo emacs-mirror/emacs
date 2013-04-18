@@ -433,13 +433,14 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 # ==================== Installation ====================
 
 .PHONY: install install-arch-dep install-arch-indep install-doc install-info
-.PHONY: install-man install-etc install-strip uninstall
+.PHONY: install-man install-etc install-strip install-$(NTDIR)
+.PHONY: uninstall uninstall-$(NTDIR)
 
 ## If we let lib-src do its own installation, that means we
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: all install-arch-indep install-doc install-arch-dep blessmail
+install: all install-arch-indep install-doc install-arch-dep install-$(NTDIR) blessmail
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -460,7 +461,7 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Install the executables that were compiled specifically for this machine.
 ### We do install-arch-indep first because the executable needs the
 ### Lisp files and DOC file to work properly.
-install-arch-dep: src install-arch-indep install-doc
+install-arch-dep: src install-arch-indep install-doc install-$(NTDIR)
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	cd lib-src && \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
@@ -479,13 +480,16 @@ install-arch-dep: src install-arch-indep install-doc
 	  ${write_subdir} || exit 1; \
 	  rm -rf ${ns_appresdir}/share; \
 	fi
-	if test "x$(NTDIR)" != "x"; then \
-	  cd $(NTDIR) && \
-	    $(MAKE) install $(MFLAGS) prefix=${prefix} \
-	      exec_prefix=${exec_prefix} bindir=${bindir} \
-	      libexecdir=${libexecdir} archlibdir=${archlibdir} \
-	      INSTALL_STRIP=${INSTALL_STRIP}; \
-	fi
+
+### Windows-specific install target for installing programs produced
+### in nt/, and its Posix do-nothing shadow.
+install-:
+install-nt:
+	cd $(NTDIR) && \
+	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
+	    exec_prefix=${exec_prefix} bindir=${bindir} \
+	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	    INSTALL_STRIP=${INSTALL_STRIP}
 
 ## In the share directory, we are deleting:
 ## applications (with emacs.desktop, also found in etc/)
@@ -711,18 +715,12 @@ install-strip:
 ### create (but not the noninstalled files such as `make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
-uninstall:
+uninstall: uninstall-$(NTDIR)
 	cd lib-src && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
 	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
 
-	if test "x$(NTDIR)" != "x"; then \
-	  cd $(NTDIR) && 					\
-	   $(MAKE) $(MFLAGS) uninstall			\
-	      prefix=${prefix} exec_prefix=${exec_prefix}	\
-	      bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}; \
-	fi
 	-unset CDPATH; \
 	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
@@ -766,6 +764,15 @@ uninstall:
 	  file=$(DESTDIR)${gamedir}/$${file}; \
 	  [ -s $${file} ] || rm -f $$file; \
 	done
+
+### Windows-specific uninstall target for removing programs produced
+### in nt/, and its Posix do-nothing shadow.
+uninstall-:
+uninstall-nt:
+	cd $(NTDIR) && 					\
+	 $(MAKE) $(MFLAGS) uninstall			\
+	    prefix=${prefix} exec_prefix=${exec_prefix}	\
+	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
 
 FRC:
 
