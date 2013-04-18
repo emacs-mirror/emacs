@@ -1,3 +1,7 @@
+2013-04-18  John Marino  <gnugcc@marino.st>  (tiny change)
+
+	* configure.ac: Add DragonFly BSD, mostly same as FreeBSD.  (Bug#14068)
+
 2013-04-18  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (AC_PROG_LN_S): Remove, too restrictive.
