@@ -1,3 +1,7 @@
+2013-04-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Add "TMOUT=0".
+
 2013-04-18  Tassilo Horn  <tsdh@gnu.org>
 
 	* files.el (auto-mode-alist): Delete OpenDocument and StarOffice
