@@ -1,3 +1,9 @@
+2013-04-18  Tassilo Horn  <tsdh@gnu.org>
+
+	* files.el (auto-mode-alist): Delete OpenDocument and StarOffice
+	file extensions from the archive-mode entry in order to prefer
+	doc-view-mode-maybe with archive-mode as fallback (bug#14188).
+
 2013-04-18  Leo Liu  <sdl.web@gmail.com>
 
 	* bindings.el (help-event-list): Add ?\?.
