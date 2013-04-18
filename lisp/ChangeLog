@@ -1,3 +1,72 @@
+2013-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* winner.el (winner-active-region): Use region-active-p, activate-mark
+	and deactivate-mark (bug#14225).
+
+	* simple.el (deactivate-mark): Don't inline it.
+
+2013-04-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Add "TMOUT=0".
+
+2013-04-18  Tassilo Horn  <tsdh@gnu.org>
+
+	* files.el (auto-mode-alist): Delete OpenDocument and StarOffice
+	file extensions from the archive-mode entry in order to prefer
+	doc-view-mode-maybe with archive-mode as fallback (bug#14188).
+
+2013-04-18  Leo Liu  <sdl.web@gmail.com>
+
+	* bindings.el (help-event-list): Add ?\?.
+
+2013-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-wrapper-hook): Declare obsolete.
+	* simple.el (filter-buffer-substring-function): New hook.
+	(filter-buffer-substring): Use it.
+	(filter-buffer-substring-functions): Mark obsolete.
+	* minibuffer.el (completion-in-region-function): New hook.
+	(completion-in-region): Use it.
+	(completion-in-region-functions): Mark obsolete.
+	* mail/mailabbrev.el (mail-abbrevs-setup): Use abbrev-expand-function.
+	* abbrev.el (abbrev-expand-function): New hook.
+	(expand-abbrev): Use it.
+	(abbrev-expand-functions): Mark obsolete.
+	* emacs-lisp/nadvice.el (advice--where-alist): Add :filter-args
+	and :filter-return.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-nav--syntactically): Fix cornercases
+	and do not care about match data.
+
+2013-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Provide specialized
+	completion tables when completing error conditions and
+	`declare' arguments.
+	(lisp-complete-symbol, field-complete): Mark as obsolete.
+	(check-parens): Unmatched parens are user errors.
+	* minibuffer.el (minibuffer-completion-contents): Mark as obsolete.
+
+2013-04-17  Michal Nazarewicz  <mina86@mina86.com>
+
+	* textmodes/flyspell.el (flyspell-check-pre-word-p): Return nil if
+	command changed buffer (ie. `flyspell-pre-buffer' is not current
+	buffer), which prevents making decisions based on invalid value of
+	`flyspell-pre-point' in the wrong buffer.  Most notably, this used to
+	cause an error when `flyspell-pre-point' was nil after switching
+	buffers.
+	(flyspell-post-command-hook): No longer needs to change buffers when
+	checking pre-word.  While at it remove unnecessary progn.
+
+2013-04-17  Nicolas Richard  <theonewiththeevillook@yahoo.fr>  (tiny change)
+
+	* textmodes/ispell.el (ispell-add-per-file-word-list):
+	Fix `flyspell-correct-word-before-point' error when accepting
+	words and `coment-padding' is an integer by using
+	`comment-normalize-vars' (Bug #14214).
+
 2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	New defun movement commands.

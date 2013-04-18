@@ -37,6 +37,8 @@ It is no longer needed, as the crt*.o files are no longer linked specially.
 
 * Changes in Emacs 24.4
 
+** Key ? also describes prefix bindings like C-h.
+
 +++
 ** `apropos-variable' is now `apropos-user-option'
 `apropos-user-option' shows all user options while `apropos-variable'
@@ -323,7 +325,18 @@ file using `set-file-extended-attributes'.
 
 * Lisp Changes in Emacs 24.4
 
-** `dont-compile' is declared obsolete.
+** Obsoleted functions:
+*** `dont-compile'
+*** `lisp-complete-symbol'
+*** `field-complete'
+*** `minibuffer-completion-contents'
+
+** `with-wrapper-hook' is obsoleted by `add-function'.
+The few hooks that used with-wrapper-hook are replaced as follows:
+*** `abbrev-expand-function' obsoletes `abbrev-expand-functions'.
+*** `completion-in-region-function' obsoletes `completion-in-region-functions'.
+*** `filter-buffer-substring-function' obsoletes `filter-buffer-substring-functions'.
+
 
 ** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 

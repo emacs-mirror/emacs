@@ -638,7 +638,8 @@ If ARGS are provided, then pass MESSAGE through `format'."
 
 (defun minibuffer-completion-contents ()
   "Return the user input in a minibuffer before point as a string.
-That is what completion commands operate on."
+That used to be what completion commands operate on."
+  (declare (obsolete minibuffer-contents "24.4"))
   (buffer-substring (field-beginning) (point)))
 
 (defun delete-minibuffer-contents ()
@@ -1763,14 +1764,15 @@ variables.")
   (exit-minibuffer))
 
 (defvar completion-in-region-functions nil
-  "Wrapper hook around `completion-in-region'.
-The functions on this special hook are called with 5 arguments:
-  NEXT-FUN START END COLLECTION PREDICATE.
-NEXT-FUN is a function of four arguments (START END COLLECTION PREDICATE)
-that performs the default operation.  The other four arguments are like
-the ones passed to `completion-in-region'.  The functions on this hook
-are expected to perform completion on START..END using COLLECTION
-and PREDICATE, either by calling NEXT-FUN or by doing it themselves.")
+  "Wrapper hook around `completion-in-region'.")
+(make-obsolete-variable 'completion-in-region-functions
+                        'completion-in-region-function "24.4")
+
+(defvar completion-in-region-function #'completion--in-region
+  "Function to perform the job of `completion-in-region'.
+The function is called with 4 arguments: START END COLLECTION PREDICATE.
+The arguments and expected return value are like the ones of
+`completion-in-region'.")
 
 (defvar completion-in-region--data nil)
 
@@ -1792,6 +1794,9 @@ Point needs to be somewhere between START and END.
 PREDICATE (a function called with no arguments) says when to
 exit."
   (cl-assert (<= start (point)) (<= (point) end))
+  (funcall completion-in-region-function start end collection predicate))
+
+(defun completion--in-region (start end collection &optional predicate)
   (with-wrapper-hook
       ;; FIXME: Maybe we should use this hook to provide a "display
       ;; completions" operation as well.

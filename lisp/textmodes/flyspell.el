@@ -738,7 +738,7 @@ before the current command."
   (let ((ispell-otherchars (ispell-get-otherchars)))
     (cond
    ((not (and (numberp flyspell-pre-point)
-              (buffer-live-p flyspell-pre-buffer)))
+              (eq flyspell-pre-buffer (current-buffer))))
       nil)
      ((and (eq flyspell-pre-pre-point flyspell-pre-point)
 	   (eq flyspell-pre-pre-buffer flyspell-pre-buffer))
@@ -956,11 +956,10 @@ Mostly we check word delimiters."
             ;; Prevent anything we do from affecting the mark.
             deactivate-mark)
         (if (flyspell-check-pre-word-p)
-            (with-current-buffer flyspell-pre-buffer
+            (save-excursion
               '(flyspell-debug-signal-pre-word-checked)
-              (save-excursion
-                (goto-char flyspell-pre-point)
-                (flyspell-word))))
+              (goto-char flyspell-pre-point)
+              (flyspell-word)))
         (if (flyspell-check-word-p)
             (progn
               '(flyspell-debug-signal-word-checked)
@@ -974,16 +973,14 @@ Mostly we check word delimiters."
               ;; FLYSPELL-CHECK-PRE-WORD-P
               (setq flyspell-pre-pre-buffer (current-buffer))
               (setq flyspell-pre-pre-point  (point)))
-          (progn
-            (setq flyspell-pre-pre-buffer nil)
-            (setq flyspell-pre-pre-point  nil)
-            ;; when a word is not checked because of a delayed command
-            ;; we do not disable the ispell cache.
-            (if (and (symbolp this-command)
+          (setq flyspell-pre-pre-buffer nil)
+          (setq flyspell-pre-pre-point  nil)
+          ;; when a word is not checked because of a delayed command
+          ;; we do not disable the ispell cache.
+          (when (and (symbolp this-command)
                      (get this-command 'flyspell-delayed))
-                (progn
-                  (setq flyspell-word-cache-end -1)
-                  (setq flyspell-word-cache-result '_)))))
+            (setq flyspell-word-cache-end -1)
+            (setq flyspell-word-cache-result '_)))
         (while (and (not (input-pending-p)) (consp flyspell-changes))
           (let ((start (car (car flyspell-changes)))
                 (stop  (cdr (car flyspell-changes))))

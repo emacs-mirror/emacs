@@ -422,7 +422,7 @@ as given in your `~/.profile'."
 
 ;;;###tramp-autoload
 (defcustom tramp-remote-process-environment
-  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_ALL=C"
+  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "TMOUT=0" "LC_ALL=C"
     ,(format "TERM=%s" tramp-terminal-type)
     "EMACS=t" ;; Deprecated.
     ,(format "INSIDE_EMACS='%s,tramp:%s'" emacs-version tramp-version)

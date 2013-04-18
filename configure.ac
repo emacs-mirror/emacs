@@ -812,7 +812,38 @@ dnl AC_PROG_MKDIR_P
 dnl if test "x$RANLIB" = x; then
 dnl   AC_PROG_RANLIB
 dnl fi
-AC_PROG_LN_S
+
+
+dnl Sadly, AC_PROG_LN_S is too restrictive.  It also tests whether links
+dnl can be made to directories.  This is not relevant for our usage, and
+dnl excludes some cases that work fine for us.  Eg MS Windows or files
+dnl hosted on AFS, both examples where simple links work, but links to
+dnl directories fail.  We use a cut-down version instead.
+dnl AC_PROG_LN_S
+
+AC_MSG_CHECKING([whether ln -s works for files in the same directory])
+rm -f conf$$ conf$$.file
+
+LN_S_FILEONLY='cp -p'
+
+if (echo >conf$$.file) 2>/dev/null; then
+  if ln -s conf$$.file conf$$ 2>/dev/null; then
+    LN_S_FILEONLY='ln -s'
+  elif ln conf$$.file conf$$ 2>/dev/null; then
+    LN_S_FILEONLY=ln
+  fi
+fi
+
+rm -f conf$$ conf$$.file
+
+if test "$LN_S_FILEONLY" = "ln -s"; then
+   AC_MSG_RESULT([yes])
+else
+   AC_MSG_RESULT([no, using $LN_S_FILEONLY])
+fi
+
+AC_SUBST(LN_S_FILEONLY)
+
 
 dnl AC_PROG_LN_S sets LN_S to 'cp -pR' for MinGW, on the premise that 'ln'
 dnl doesn't support links to directories, as in "ln file dir".  But that

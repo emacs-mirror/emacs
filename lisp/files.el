@@ -2312,7 +2312,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
-     ("\\.\\(sx[dmicw]\\|od[fgpst]\\|oxt\\)\\'" . archive-mode) ;OpenOffice.org
+     ("\\.oxt\\'" . archive-mode) ;(Open|Libre)Office extensions.
      ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
