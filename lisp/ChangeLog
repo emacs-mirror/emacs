@@ -1,3 +1,10 @@
+2013-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* winner.el (winner-active-region): Use region-active-p, activate-mark
+	and deactivate-mark (bug#14225).
+
+	* simple.el (deactivate-mark): Don't inline it.
+
 2013-04-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-remote-process-environment): Add "TMOUT=0".
