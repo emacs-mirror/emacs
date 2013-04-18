@@ -253,7 +253,8 @@ INSTALL_INFO = @INSTALL_INFO@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 MKDIR_P = @MKDIR_P@
-LN_S = @LN_S@
+# Create a link to a file in the same directory as the target.
+LN_S_FILEONLY = @LN_S_FILEONLY@
 
 # We use gzip to compress installed .el files.
 GZIP_PROG = @GZIP_PROG@
@@ -455,7 +456,7 @@ install-arch-dep: src install-arch-indep install-doc
 	  chmod 1755 $(DESTDIR)${bindir}/$(EMACSFULL) || true; \
 	  if test "x${NO_BIN_LINK}" = x; then \
 	    rm -f $(DESTDIR)${bindir}/$(EMACS) ; \
-	    cd $(DESTDIR)${bindir} && $(LN_S) $(EMACSFULL) $(EMACS); \
+	    cd $(DESTDIR)${bindir} && $(LN_S_FILEONLY) $(EMACSFULL) $(EMACS); \
 	  fi; \
 	else \
 	  subdir=${ns_appresdir}/site-lisp; \

@@ -1,3 +1,11 @@
+2013-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (AC_PROG_LN_S): Remove, too restrictive.
+	(LN_S_FILEONLY): New output variable.
+	* Makefile.in (LN_S): Remove.
+	(LN_S_FILEONLY): New, set by configure.
+	(install-arch-dep): Use LN_S_FILEONLY rather than LN_S.
+
 2013-04-12  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (canonical): Adapt to 64-bit Cygwin, for which
