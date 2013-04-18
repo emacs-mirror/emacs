@@ -1255,10 +1255,7 @@ if test "${with_sound}" != "no"; then
   if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
      case "$opsys" in
        dnl defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
-       gnu-linux|freebsd|netbsd)
-         AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
-         ;;
-       mingw32)
+       gnu-linux|freebsd|netbsd|mingw32)
          AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
          ;;
      esac
@@ -1586,26 +1583,31 @@ CLIENTW=
 W32_RES_LINK=
 EMACS_MANIFEST=
 if test "${with_w32}" != no; then
-  if test "${opsys}" != "cygwin"; then
-    if test "${opsys}" != "mingw32"; then
+  case "${opsys}" in
+    cygwin) 
+      AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
+             [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
+                   cannot be found.])]) 
+    ;;
+    mingw32)
+    ## Using --with-w32 with MinGW is a no-op, but we allow it.
+    ;;
+    *) 
       AC_MSG_ERROR([Using w32 with an autotools build is only supported for Cygwin and MinGW32.])
-    fi
-  fi
-  AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
-                  [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
-                  cannot be found.])])
+    ;;
+  esac
 fi
+
 if test "${opsys}" = "mingw32"; then
-  AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
-                  [AC_MSG_ERROR([The windows.h header file is required,
-		  but cannot be found.])])
   AC_MSG_CHECKING([whether Windows API headers are recent enough])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
      #include <windows.h>
      #include <usp10.h>]],
    [[void test(PIMAGE_NT_HEADERS pHeader)
      {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}]])],
-   emacs_cv_w32api=yes, emacs_cv_w32api=no)
+   [emacs_cv_w32api=yes
+    HAVE_W32=yes], 
+   emacs_cv_w32api=no)
   AC_MSG_RESULT($emacs_cv_w32api)
   if test "${emacs_cv_w32api}" = "no"; then
     AC_MSG_ERROR([the Windows API headers are too old to support this build.])
@@ -2715,6 +2717,10 @@ no_return_alloc_pixels
   fi
 fi
 
+### FIXME: Perhaps regroup to minimize code duplication due to MinGW's
+### slightly different requirements wrt image libraries (it doesn't
+### use -lXpm because it loads the xpm shared library dynamically at
+### run time).
 if test "${opsys}" = "mingw32"; then
   if test "${with_xpm}" != "no"; then
     AC_CHECK_HEADER(X11/xpm.h, HAVE_XPM=yes, HAVE_XPM=no, [
