@@ -329,6 +329,13 @@ file using `set-file-extended-attributes'.
 *** `field-complete'
 *** `minibuffer-completion-contents'
 
+** `with-wrapper-hook' is obsoleted by `add-function'.
+The few hooks that used with-wrapper-hook are replaced as follows:
+*** `abbrev-expand-function' obsoletes `abbrev-expand-functions'.
+*** `completion-in-region-function' obsoletes `completion-in-region-functions'.
+*** `filter-buffer-substring-function' obsoletes `filter-buffer-substring-functions'.
+
+
 ** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
 ** Support for filesystem notifications.

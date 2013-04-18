@@ -1,3 +1,19 @@
+2013-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-wrapper-hook): Declare obsolete.
+	* simple.el (filter-buffer-substring-function): New hook.
+	(filter-buffer-substring): Use it.
+	(filter-buffer-substring-functions): Mark obsolete.
+	* minibuffer.el (completion-in-region-function): New hook.
+	(completion-in-region): Use it.
+	(completion-in-region-functions): Mark obsolete.
+	* mail/mailabbrev.el (mail-abbrevs-setup): Use abbrev-expand-function.
+	* abbrev.el (abbrev-expand-function): New hook.
+	(expand-abbrev): Use it.
+	(abbrev-expand-functions): Mark obsolete.
+	* emacs-lisp/nadvice.el (advice--where-alist): Add :filter-args
+	and :filter-return.
+
 2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-nav--syntactically): Fix cornercases

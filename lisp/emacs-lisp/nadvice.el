@@ -44,7 +44,9 @@
     (:after-until "\300\302\002\"\206\013\000\300\301\002\"\207" 4)
     (:after-while "\300\302\002\"\205\013\000\300\301\002\"\207" 4)
     (:before-until "\300\301\002\"\206\013\000\300\302\002\"\207" 4)
-    (:before-while "\300\301\002\"\205\013\000\300\302\002\"\207" 4))
+    (:before-while "\300\301\002\"\205\013\000\300\302\002\"\207" 4)
+    (:filter-args "\300\302\301!\"\207" 5)
+    (:filter-return "\301\300\302\"!\207" 5))
   "List of descriptions of how to add a function.
 Each element has the form (WHERE BYTECODE STACK) where:
   WHERE is a keyword indicating where the function is added.
@@ -208,7 +210,6 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
 ;;;###autoload
 (defmacro add-function (where place function &optional props)
   ;; TODO:
-  ;; - obsolete with-wrapper-hook (mostly requires buffer-local support).
   ;; - provide some kind of control over ordering.  E.g. debug-on-entry, ELP
   ;;   and tracing want to stay first.
   ;; - maybe let `where' specify some kind of predicate and use it
@@ -231,6 +232,8 @@ call OLDFUN here:
 `:before-until'	(lambda (&rest r) (or  (apply FUNCTION r) (apply OLDFUN r)))
 `:after-while'	(lambda (&rest r) (and (apply OLDFUN r) (apply FUNCTION r)))
 `:after-until'	(lambda (&rest r) (or  (apply OLDFUN r) (apply FUNCTION r)))
+`:filter-args'	(lambda (&rest r) (apply OLDFUN (funcall FUNCTION r)))
+`:filter-return'(lambda (&rest r) (funcall FUNCTION (apply OLDFUN r)))
 If FUNCTION was already added, do nothing.
 PROPS is an alist of additional properties, among which the following have
 a special meaning:
