@@ -1,3 +1,7 @@
+2013-04-18  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention new key ? for describe-prefix-bindings.
+
 2013-04-15  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* NEWS: Mention separation of package descriptor and name of
