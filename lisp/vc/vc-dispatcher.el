@@ -329,7 +329,9 @@ case, and the process object in the asynchronous case."
                               command squeezed))))
 		(when vc-command-messages
 		  (message "Running %s in background..." full-command))
-		;;(set-process-sentinel proc (lambda (p msg) (delete-process p)))
+                ;; Get rid of the default message insertion, in case we don't
+                ;; set a sentinel explicitly.
+		(set-process-sentinel proc #'ignore)
 		(set-process-filter proc 'vc-process-filter)
 		(setq status proc)
 		(when vc-command-messages

@@ -1,3 +1,7 @@
+2013-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-dispatcher.el (vc-do-command): Get rid of default sentinel msg.
+
 2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	New faster Imenu implementation (bug#14058).
