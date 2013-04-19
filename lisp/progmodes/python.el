@@ -3176,6 +3176,7 @@ To this:
      (\"decorator\" . 173)
      (\"decorator.wrap\" . 353)
      (\"decorator.wrapped_f\" . 393))"
+  ;; Inspired by imenu--flatten-index-alist removed in revno 21853.
   (apply
    'nconc
    (mapcar
@@ -3187,14 +3188,14 @@ To this:
         (cond ((or (numberp pos) (markerp pos))
                (list (cons name pos)))
               ((listp pos)
-               (message "%S" item)
                (cons
                 (cons name (cdar pos))
                 (python-imenu-create-flat-index (cddr item) name))))))
     (or alist
-        (let ((python-imenu-format-item-label-function (lambda (type name) name))
-              (python-imenu-format-parent-item-label-function (lambda (type name) name))
-              (python-imenu-format-parent-item-jump-label-function (lambda (type name) name)))
+        (let* ((fn (lambda (type name) name))
+               (python-imenu-format-item-label-function fn)
+              (python-imenu-format-parent-item-label-function fn)
+              (python-imenu-format-parent-item-jump-label-function fn))
           (python-imenu-create-index))))))
 
 
