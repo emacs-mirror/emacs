@@ -1487,14 +1487,38 @@ into one that invokes an Emacs-enabled debugging session.
   (let ((output ""))
 
     ;; Process all the complete markers in this chunk.
-    (while (string-match "\032\032\\(\\([a-zA-Z]:\\)?[^:\n]*\\):\\([0-9]*\\):.*\n"
-			 gud-marker-acc)
+    ;;
+    ;; Here I match the string coming out of perldb.
+    ;; The strings can look like any of
+    ;;
+    ;;  "\032\032/tmp/tst.pl:6:0\n"
+    ;;  "\032\032(eval 5)[/tmp/tst.pl:6]:3:0\n"
+    ;;  "\032\032(eval 17)[Basic/Core/Core.pm.PL (i.e. PDL::Core.pm):2931]:1:0\n"
+    ;;
+    ;; From those I want the filename and the line number.  First I look for
+    ;; the eval case.  If that doesn't match, I look for the "normal" case.
+    (while
+        (string-match
+         (eval-when-compile
+           (let ((file-re "\\(?:[a-zA-Z]:\\)?[^:\n]*"))
+             (concat "\032\032\\(?:"
+                     (concat
+                      "(eval [0-9]+)\\["
+                      "\\(" file-re "\\)" ; Filename.
+                      "\\(?: (i\\.e\\. [^)]*)\\)?"
+                      ":\\([0-9]*\\)\\]") ; Line number.
+                     "\\|"
+                     (concat
+                      "\\(?1:" file-re "\\)" ; Filename.
+                      ":\\(?2:[0-9]*\\)")    ; Line number.
+                     "\\):.*\n")))
+         gud-marker-acc)
       (setq
 
        ;; Extract the frame position from the marker.
        gud-last-frame
        (cons (match-string 1 gud-marker-acc)
-	     (string-to-number (match-string 3 gud-marker-acc)))
+	     (string-to-number (match-string 2 gud-marker-acc)))
 
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
