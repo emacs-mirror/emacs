@@ -4,6 +4,11 @@
   Copyright (C) 2013 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
+The MSYS/MinGW build described here is supported on versions of
+Windows starting with Windows 2000 and newer.  Windows 9X are not
+supported (but the Emacs binary produced by this build will run on
+Windows 9X as well).
+
 * For the brave (a.k.a. "impatient"):
 
   For those who have a working MSYS/MinGW development environment and
