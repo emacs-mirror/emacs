@@ -1,3 +1,21 @@
+2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	New faster Imenu implementation (bug#14058).
+	* progmodes/python.el:
+	(python-imenu-prev-index-position):
+	(python-imenu-format-item-label-function)
+	(python-imenu-format-parent-item-label-function)
+	(python-imenu-format-parent-item-jump-label-function):
+	New vars.
+	(python-imenu-format-item-label)
+	(python-imenu-format-parent-item-label)
+	(python-imenu-format-parent-item-jump-label)
+	(python-imenu--put-parent, python-imenu--build-tree)
+	(python-imenu-create-index, python-imenu-create-flat-index)
+	(python-util-popn): New functions.
+	(python-mode): Set imenu-create-index-function to
+	python-imenu-create-index.
+
 2013-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* winner.el (winner-active-region): Use region-active-p, activate-mark
