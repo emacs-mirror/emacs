@@ -86,18 +86,6 @@ that text will be copied verbatim to `generated-autoload-file'.")
 
 (defvar autoload-modified-buffers)      ;Dynamically scoped var.
 
-(defun set-generated-autoload-file (file)
-  "Set value of `generated-autoload-file' from FILE.
-
-On systems other than MS-Windows, just sets the value
-of `generated-autoload-file'.  On MS-Windows, converts /d/foo/bar
-form passed by MSYS Make into d:/foo/bar that Emacs can grok.
-This function is called from lisp/Makefile."
-  (when (and (eq system-type 'windows-nt)
-	     (string-match "\\`/[a-zA-Z]/" file))
-    (setq file (concat (substring file 1 2) ":" (substring file 2))))
-  (setq generated-autoload-file file))
-
 (defun make-autoload (form file &optional expansion)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a special autoload form (i.e. a function definition

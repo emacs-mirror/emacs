@@ -138,18 +138,6 @@ cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 
 (autoload 'autoload-rubric "autoload")
 
-(defun set-generated-finder-keywords-file (file)
-  "Set value of `generated-finder-keywords-file' from FILE.
-
-On systems other than MS-Windows, just sets the value
-of `generated-finder-keywords-file'.  On MS-Windows, converts
-/d/foo/bar form passed by MSYS Make into d:/foo/bar that Emacs
-can grok.  This function is called from lisp/Makefile."
-  (when (and (eq system-type 'windows-nt)
-	     (string-match "\\`/[a-zA-Z]/" file))
-    (setq file (concat (substring file 1 2) ":" (substring file 2))))
-  (setq generated-finder-keywords-file file))
-
 (defvar finder--builtins-alist
   '(("calc" . calc)
     ("ede"  . ede)
