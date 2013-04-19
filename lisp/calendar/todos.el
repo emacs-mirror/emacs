@@ -143,7 +143,9 @@ displayed correctly."
   "What action to take on first use of `todos-show' on a file."
   :type '(choice (const :tag "Show first category" first)
 		 (const :tag "Show table of categories" table)
-		 (const :tag "Show top priorities" top))
+		 (const :tag "Show top priorities" top)
+		 (const :tag "Show diary items" diary)
+		 (const :tag "Show regexp items" regexp))
   :group 'todos)
 
 (defcustom todos-completion-ignore-case nil
@@ -495,26 +497,6 @@ current time, if nil, they include it."
   "User options for Todos Filter Items mode."
   :version "24.2"
   :group 'todos)
-
-(defcustom todos-filtered-items-buffer "Todos filtered items"
-  "Initial name of buffer in Todos Filter Items mode."
-  :type 'string
-  :group 'todos-filtered)
-
-(defcustom todos-top-priorities-buffer "Todos top priorities"
-  "Buffer type string for `todos-filtered-buffer-name'."
-  :type 'string
-  :group 'todos-filtered)
-
-(defcustom todos-diary-items-buffer "Todos diary items"
-  "Buffer type string for `todos-filtered-buffer-name'."
-  :type 'string
-  :group 'todos-filtered)
-
-(defcustom todos-regexp-items-buffer "Todos regexp items"
-  "Buffer type string for `todos-filtered-buffer-name'."
-  :type 'string
-  :group 'todos-filtered)
 
 (defcustom todos-priorities-rules nil
   "List of rules giving how many items `todos-top-priorities' shows.
@@ -1078,6 +1060,8 @@ short Todos Archive or Top Priorities file name, respectively."
      (concat todos-files-directory name
 	     (cond ((eq type 'archive) ".toda")
 		   ((eq type 'top) ".todt")
+		   ((eq type 'diary) ".tody")
+		   ((eq type 'regexp) ".todr")
 		   (t ".todo"))))))
 
 (defun todos-check-format ()
@@ -1940,15 +1924,64 @@ the empty string (i.e., no time string)."
   (message "Click \"Apply\" after selecting files.")
   (recursive-edit))
 
-(defun todos-filter-items (filter file-list)
-  "Display a list of items from FILE-LIST that satisfy FILTER.
-The values of FILE-LIST and FILTER are passed from the calling
-commands.  The files in FILE-LIST are either the current Todos
-file or those listed in `todos-filter-files' or chosen
-interactively.  The values of FILTER can be `top' for top
-priority items, a cons of `top' and a number passed by the
-caller, `diary' for diary items, or `regexp' for items matching a
-regular expresion entered by the user."
+(defun todos-filter-items (filter &optional new multifile)
+  "Internal routine for displaying items that satisfy FILTER.
+The values of FILTER can be `top' for top priority items, a cons
+of `top' and a number passed by the caller, `diary' for diary
+items, or `regexp' for items matching a regular expresion entered
+by the user.  The items can be from any categories in the current
+todo file or, with non-nil MULTIFILE, from several files.  If NEW
+is nil, visit an appropriate file containing the list of filtered
+items; if there is no such file, or with non-nil NEW, build the
+list and display it.
+
+See the document strings of the commands `todos-top-priorities',
+`todos-diary-items', `todos-regexp-items', and those of the
+corresponding multifile commands for further details. "
+  (let* ((top (eq filter 'top))
+	 (diary (eq filter 'diary))
+	 (regexp (eq filter 'regexp))
+	 (buf (cond (top todos-top-priorities-buffer)
+		    (diary todos-diary-items-buffer)
+		    (regexp todos-regexp-items-buffer)))
+	 (flist (if multifile
+		    (or todos-filter-files
+			(progn (todos-multiple-filter-files)
+			       todos-multiple-filter-files))
+		  (list todos-current-todos-file)))
+	 (multi (> (length flist) 1))
+	 (fname (if (equal flist 'quit)
+		    ;; Pressed `cancel' in t-m-f-f file selection dialog.
+		    (keyboard-quit)
+		  (concat todos-files-directory
+			  (mapconcat 'todos-short-file-name flist "-")
+			  (cond (top ".todt")
+				(diary ".tody")
+				(regexp ".todr")))))
+	 (rxfiles (when regexp
+		    (directory-files todos-files-directory t ".*\\.todr$" t)))
+	 (file-exists (or (file-exists-p fname) rxfiles)))
+    (cond ((and top new (natnump new))
+	   (todos-filter-items-1 (cons 'top new) flist))
+	  ((and (not new) file-exists)
+	   (when (and rxfiles (> (length rxfiles) 1))
+	     (let ((rxf (mapcar 'todos-short-file-name rxfiles)))
+	       (setq fname (todos-absolute-file-name
+			    (completing-read "Choose a regexp items file: "
+					     rxf) 'regexp))))
+	   (find-file fname)
+	   (todos-prefix-overlays)
+	   (todos-check-filtered-items-file))
+	  (t
+	   (todos-filter-items-1 filter flist)))
+    (when (or new (not file-exists))
+      (setq fname (replace-regexp-in-string "-" ", " fname))
+      (rename-buffer (format (concat "%s for file" (if multi "s" "")
+				   " \"%s\"") buf fname)))))
+
+(defun todos-filter-items-1 (filter file-list)
+  "Internal subroutine called by `todos-filter-items'.
+The values of FILTER and FILE-LIST are passed from the caller."
   (let ((num (if (consp filter) (cdr filter) todos-show-priorities))
 	(buf (get-buffer-create todos-filtered-items-buffer))
 	(multifile (> (length file-list) 1))
@@ -2143,27 +2176,26 @@ set the user customizable option `todos-priorities-rules'."
     (customize-save-variable 'todos-priorities-rules rules)
     (todos-prefix-overlays)))
 
-(defun todos-filtered-buffer-name (buffer-type file-list)
-  "Rename Todos filtered buffer using BUFFER-TYPE and FILE-LIST.
+(defconst todos-filtered-items-buffer "Todos filtered items"
+  "Initial name of buffer in Todos Filter Items mode.")
 
-The new name is constructed from the string BUFFER-TYPE, which
-refers to one of the top priorities, diary or regexp item
-filters, and the names of the filtered files in FILE-LIST.  Used
-in Todos Filter Items mode."
-  (let* ((multi (> (length file-list) 1))
-	 (fnames (mapconcat (lambda (f) (todos-short-file-name f))
-			   file-list ", ")))
-    (rename-buffer (format (concat "%s for file" (if multi "s" "")
-				   " \"%s\"") buffer-type fnames))))
+(defconst todos-top-priorities-buffer "Todos top priorities"
+  "Buffer type string for `todos-filter-items'.")
+
+(defconst todos-diary-items-buffer "Todos diary items"
+  "Buffer type string for `todos-filter-items'.")
+
+(defconst todos-regexp-items-buffer "Todos regexp items"
+  "Buffer type string for `todos-filter-items'.")
 
 (defun todos-find-item (str)
-  "Search for saved top priority item STR in its Todos file.
+  "Search for filtered item STR in its saved Todos file.
 Return the list (FOUND FILE CAT), where CAT and FILE are the
 item's category and file, and FOUND is a cons cell if the search
 succeeds, whose car is the start of the item in FILE and whose
-cdr is `done' if the item is now a done item, `changed' if its
-priority has changed or its text was truncated or augmented, and
-`same' otherwise."
+cdr is `done', if the item is now a done item, `changed', if its
+text was truncated or augmented or, for a top priority item, if
+its priority has changed, and `same' otherwise."
   (string-match (concat (if todos-filter-done-items
 			    (concat "\\(?:" todos-done-string-start "\\|"
 				    todos-date-string-start "\\)")
@@ -2179,11 +2211,14 @@ priority has changed or its text was truncated or augmented, and
 	(archive (string= (match-string 3 str) "(archive) "))
 	(filcat (match-string 4 str))
 	(tpriority 1)
+	(tpbuf (string-match "top" (buffer-name)))
 	found)
     (setq str (replace-match "" nil nil str 4))
-    (save-excursion
-      (while (search-backward filcat nil t)
-	  (setq tpriority (1+ tpriority))))
+    (when tpbuf
+      ;; Calculate priority of STR wrt its category.
+      (save-excursion
+	(while (search-backward filcat nil t)
+	    (setq tpriority (1+ tpriority)))))
     (setq file (if file
 		   (concat todos-files-directory (substring file 0 -1)
 			   (if archive ".toda" ".todo"))
@@ -2215,15 +2250,16 @@ priority has changed or its text was truncated or augmented, and
 		  (cons found (if (> (point) done)
 				  'done
 				(let ((cpriority 1))
-				  (save-excursion
-				    ;; Not top item in category.
-				    (while (> (point) (1+ beg))
-				      (let ((opoint (point)))
-					(todos-backward-item)
-					;; Can't move backward beyond
-					;; first item in file.
-					(unless (= (point) opoint)
-					  (setq cpriority (1+ cpriority))))))
+				  (when tpbuf
+				    (save-excursion
+				      ;; Not top item in category.
+				      (while (> (point) (1+ beg))
+					(let ((opoint (point)))
+					  (todos-backward-item)
+					  ;; Can't move backward beyond
+					  ;; first item in file.
+					  (unless (= (point) opoint)
+					    (setq cpriority (1+ cpriority)))))))
 				  (if (and (= tpriority cpriority)
 					   ;; Proper substring is not the same.
 					   (string= (todos-item-string)
@@ -2232,8 +2268,8 @@ priority has changed or its text was truncated or augmented, and
 				    'changed)))))))))
       (list found file cat)))
 
-(defun todos-check-top-priorities ()
-  "Return a message saying whether top priorities file is up to date."
+(defun todos-check-filtered-items-file ()
+  "Check if filtered items file is up to date and a show suitable message."
   ;; (catch 'old
   (let ((count 0))
     (while (not (eobp))
@@ -2247,26 +2283,35 @@ priority has changed or its text was truncated or augmented, and
 	  ;; (throw 'old (message "The marked item is not up to date.")))
       (todos-forward-item))
     (if (zerop count)
-	(message "Top priorities file is up to date.")
+	(message "Filtered items file is up to date.")
       (message (concat "The highlighted item" (if (= count 1) " is " "s are ")
 		       "not up to date."
 		       ;; "\nType <return> on item for details."
 		       )))))
 
-(defun todos-top-priorities-filename ()
-  ""
+(defun todos-filter-items-filename ()
+  "Return absolute file name for saving this Filtered Items buffer."
   (let ((bufname (buffer-name)))
     (string-match "\"\\([^\"]+\\)\"" bufname)
     (let* ((filename-str (substring bufname (match-beginning 1) (match-end 1)))
-	   (filename-base (replace-regexp-in-string ", " "-" filename-str)))
-      (concat todos-files-directory filename-base ".todt"))))
+	   (filename-base (replace-regexp-in-string ", " "-" filename-str))
+	   (top-priorities (string-match "top priorities" bufname))
+	   (diary-items (string-match "diary items" bufname))
+	   (regexp-items (string-match "regexp items" bufname)))
+      (when regexp-items
+	(let ((prompt (concat "Enter a short identifying string"
+			      " to make this file name unique: ")))
+	  (setq filename-base (concat filename-base "-" (read-string prompt)))))
+      (concat todos-files-directory filename-base
+	      (cond (top-priorities ".todt")
+		    (diary-items ".tody")
+		    (regexp-items ".todr"))))))
 
-(defun todos-save-top-priorities-buffer ()
-  ""
-  (let ((filename (todos-top-priorities-filename)))
-    (if (file-exists-p filename)
-	(save-buffer)
-      (write-region nil nil filename nil t nil t))))
+(defun todos-save-filtered-items-buffer ()
+  "Save current Filtered Items buffer to a file.
+If the file already exists, overwrite it only on confirmation."
+  (let ((filename (or (buffer-file-name) (todos-filter-items-filename))))
+    (write-file filename t)))
 
 ;; ---------------------------------------------------------------------------
 ;;; Sorting and display routines for Todos Categories mode.
@@ -3051,12 +3096,13 @@ file name and an initial category (defaulting to
 of these, visits the file and displays the category.
 
 The first invocation of this command on an existing Todos file
-interacts with the option `todos-show-first': if `table', show
-the table of categories in the file; if `top', show the
-corresponding top priorities file, if any; if `first' (the
-default value), show the first category in the file.  Subsequent
-invocations always show the file's current (i.e., last displayed)
-category.
+interacts with the option `todos-show-first': if its value is
+`first' (the default), show the first category in the file; if
+its value is `table', show the table of categories in the file;
+if its value is one of `top', `diary' or `regexp', show the
+corresponding saved top priorities, diary items, or regexp items
+file, if any.  Subsequent invocations always show the file's
+current (i.e., last displayed) category.
 
 In Todos mode just the category's unfinished todo items are shown
 by default.  The done items are hidden, but typing
@@ -3090,18 +3136,35 @@ corresponding Todos file, displaying the corresponding category."
 			  (todos-add-file))))))
     (unless (member file todos-visited)
       ;; Can't setq t-c-t-f here, otherwise wrong file shown when
-      ;; called again from todos-display-categories.
+      ;; todos-show is called from todos-display-categories.
       (let ((todos-current-todos-file file))
 	(cond ((eq todos-show-first 'table)
 	       (todos-display-categories))
-	      ((eq todos-show-first 'top)
+	      ((memq todos-show-first '(top diary regexp))
 	       (let* ((shortf (todos-short-file-name file))
-		      (tp-file (todos-absolute-file-name shortf 'top)))
-		 (if (file-exists-p tp-file)
+		      (fi-file (todos-absolute-file-name
+				shortf todos-show-first)))
+		 (when (eq todos-show-first 'regexp)
+		   (let ((rxfiles (directory-files todos-files-directory t
+						   ".*\\.todr$" t)))
+		     (when (and rxfiles (> (length rxfiles) 1))
+		       (let ((rxf (mapcar 'todos-short-file-name rxfiles)))
+			 (setq fi-file (todos-absolute-file-name
+					(completing-read
+					 "Choose a regexp items file: "
+					 rxf) 'regexp))))))
+		 (if (file-exists-p fi-file)
 		     (set-window-buffer
 		      (selected-window)
-		      (set-buffer (find-file-noselect tp-file 'nowarn)))
-		   (message "There is no top priorities file for %s" shortf)
+		      (set-buffer (find-file-noselect fi-file 'nowarn)))
+		   (message "There is no %s file for %s"
+			    (cond ((eq todos-show-first 'top)
+				   "top priorities")
+				  ((eq todos-show-first 'diary)
+				   "diary items")
+				  ((eq todos-show-first 'regexp)
+				   "regexp items"))
+			    shortf)
 		   (setq todos-show-first 'first)))))))
     (when (or (member file todos-visited)
 	      (eq todos-show-first 'first))
@@ -3239,8 +3302,8 @@ displayed."
   "Save the current Todos file."
   (interactive)
   (cond ((eq major-mode 'todos-filtered-items-mode)
-	 (todos-check-top-priorities)
-	 (todos-save-top-priorities-buffer))
+	 (todos-check-filtered-items-file)
+	 (todos-save-filtered-items-buffer))
 	(t
 	 (save-buffer))))
 
@@ -3869,13 +3932,9 @@ See `todos-set-top-priorities' for more details."
   (interactive)
   (todos-set-top-priorities t))
 
-(defun todos-top-priorities (&optional arg multifile)
+(defun todos-top-priorities (&optional arg)
   "Display a list of top priority items from different categories.
-The categories are either a subset of those in the current Todos
-file, or else, with non-nil argument MULTIFILE, a subset of the
-categories in the files listed in `todos-filter-files', or if
-this nil, in the files chosen from a file selection dialog that
-pops up in this case.
+The categories can be any of those in the current Todos file.
 
 With numerical prefix ARG show at most ARG top priority items
 from each category.  With `C-u' as prefix argument show the
@@ -3884,37 +3943,13 @@ numbers of top priority items specified by category in
 otherwise show `todos-show-priorities' items per category in the
 file(s).  With no prefix argument, if a top priorities file for
 the current Todos file has previously been saved (see
-`todos-save-top-priorities-buffer'), visit this file; if there is
+`todos-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list as with prefix argument `C-u'.
 
   The prefix ARG regulates how many top priorities from
 each category to show, as described above."
   (interactive "P")
-  (let* ((flist (if multifile
-		    (or todos-filter-files
-			(progn (todos-multiple-filter-files)
-			       todos-multiple-filter-files))
-		  (list todos-current-todos-file)))
-	 (tp-file (if (equal flist 'quit)
-		      ;; Pressed `cancel' in file selection dialog.
-		      (keyboard-quit)
-		    (concat todos-files-directory
-			    (mapconcat 'identity
-				       (mapcar 'todos-short-file-name flist)
-				       "-")
-			    ".todt")))
-	 (tp-file-exists (file-exists-p tp-file))
-	 (buf todos-top-priorities-buffer))
-    (cond ((and arg (natnump arg))
-	   (todos-filter-items (cons 'top arg) flist))
-	  ((and (not arg) tp-file-exists)
-	   (find-file tp-file)
-	   (todos-prefix-overlays)
-	   (todos-check-top-priorities))
-	  (t
-	   (todos-filter-items 'top flist)))
-    (unless tp-file-exists
-      (todos-filtered-buffer-name buf flist))))
+  (todos-filter-items 'top arg))
 
 (defun todos-top-priorities-multifile (&optional arg)
   "Display a list of top priority items from different categories.
@@ -3928,77 +3963,73 @@ show the numbers of top priority items specified in
 `todos-priorities-rules', if this is non-nil; otherwise show
 `todos-show-priorities' items per category.  With no prefix
 argument, if a top priorities file for the chosen Todos files
-exists (see `todos-save-top-priorities-buffer'), visit this file;
+exists (see `todos-save-filtered-items-buffer'), visit this file;
 if there is no such file, do the same as with prefix argument
 `C-u'."
   (interactive "P")
-    (todos-top-priorities arg t))
+  (todos-filter-items 'top arg t))
 
-(defun todos-diary-items (&optional multifile)
+(defun todos-diary-items (&optional arg)
   "Display a list of todo diary items from different categories.
-The categories are either a subset of those in the current Todos
-file, or else, with non-nil argument MULTIFILE, a subset of the
-categories in the files listed in `todos-filter-files', or if
-this nil, in the files chosen from a file selection dialog that
-pops up in this case."
-  (interactive)
-  (let ((flist (if multifile
-		    (or todos-filter-files
-			(progn (todos-multiple-filter-files)
-			       todos-multiple-filter-files))
-		  (list todos-current-todos-file)))
-	(buf todos-diary-items-buffer))
-    (if (equal flist 'quit)
-	;; Pressed `cancel' in file selection dialog.
-	(keyboard-quit)
-      (todos-filter-items 'diary flist)
-      (todos-filtered-buffer-name buf flist))))
+The categories can be any of those in the current Todos file.
 
-(defun todos-diary-items-multifile ()
-  "Display a list of todo diary items from one or more Todos files.
+Called with no prefix argument, if a diary items file for the
+current Todos file has previously been saved (see
+`todos-save-filtered-items-buffer'), visit this file; if there is
+no such file, build the list of diary items.  Called with a
+prefix argument, build the list even if there is a saved file of
+diary items."
+  (interactive "P")
+  (todos-filter-items 'diary arg))
+
+(defun todos-diary-items-multifile (&optional arg)
+  "Display a list of todo diary items from different categories.
 The categories are a subset of the categories in the files listed
 in `todos-filter-files', or if this nil, in the files chosen from
-a file selection dialog that pops up in this case."
-  (interactive)
-  (todos-diary-items t))
+a file selection dialog that pops up in this case.
 
-(defun todos-regexp-items (&optional multifile)
+Called with no prefix argument, if a diary items file for the
+chosen Todos files has previously been saved (see
+`todos-save-filtered-items-buffer'), visit this file; if there is
+no such file, build the list of diary items.  Called with a
+prefix argument, build the list even if there is a saved file of
+diary items."
+  (interactive "P")
+  (todos-filter-items 'diary arg t))
+
+(defun todos-regexp-items (&optional arg)
   "Prompt for a regular expression and display items that match it.
-The matches may be from different categories and with non-nil
-option `todos-filter-done-items', can include not only todo items
-but also done items, including those in Archive files.
+The matches can be from any categories in the current Todos file
+and with non-nil option `todos-filter-done-items', can include
+not only todo items but also done items, including those in
+Archive files.
 
-The categories are either a subset of those in the current Todos
-file (and possibly in the corresponding Archive file), or else,
-with non-nil argument MULTIFILE, a subset of the categories in
-the files listed in `todos-filter-files', or if this nil, in the
-files chosen from a file selection dialog that pops up in this
-case (and possibly in the corresponding Archive files)."
-  (interactive)
-  (let ((flist (if multifile
-		    (or todos-filter-files
-			(progn (todos-multiple-filter-files)
-			       todos-multiple-filter-files))
-		  (list todos-current-todos-file)))
-	(buf todos-regexp-items-buffer))
-    (if (equal flist 'quit)
-	;; Pressed `cancel' in file selection dialog.
-	(keyboard-quit)
-      (todos-filter-items 'regexp flist)
-      (todos-filtered-buffer-name buf flist))))
+Called with no prefix argument, if a regexp items file for the
+current Todos file has previously been saved (see
+`todos-save-filtered-items-buffer'), visit this file; if there is
+no such file, build the list of regexp items.  Called with a
+prefix argument, build the list even if there is a saved file of
+regexp items."
+  (interactive "P")
+  (todos-filter-items 'regexp arg))
 
-(defun todos-regexp-items-multifile ()
+(defun todos-regexp-items-multifile (&optional arg)
   "Prompt for a regular expression and display items that match it.
-The matches may be from different categories and with non-nil
-option `todos-filter-done-items', can include not only todo items
-but also done items, including those in Archive files.
+The matches can be from any categories in the files listed in
+`todos-filter-files', or if this nil, in the files chosen from a
+file selection dialog that pops up in this case.  With non-nil
+option `todos-filter-done-items', the matches can include not
+only todo items but also done items, including those in Archive
+files.
 
-The categories are a subset of the categories in the files listed
-in `todos-filter-files', or if this nil, in the files chosen from
-a file selection dialog that pops up in this case (and possibly
-in the corresponding Archive files)."
-  (interactive)
-  (todos-regexp-items t))
+Called with no prefix argument, if a regexp items file for the
+current Todos file has previously been saved (see
+`todos-save-filtered-items-buffer'), visit this file; if there is
+no such file, build the list of regexp items.  Called with a
+prefix argument, build the list even if there is a saved file of
+regexp items."
+  (interactive "P")
+  (todos-filter-items 'regexp arg t))
 
 ;; ---------------------------------------------------------------------------
 ;;; Editing Commands
@@ -6013,7 +6044,7 @@ the only category in the archive, the archive file is deleted."
 ;; ---------------------------------------------------------------------------
 (add-to-list 'auto-mode-alist '("\\.todo\\'" . todos-mode))
 (add-to-list 'auto-mode-alist '("\\.toda\\'" . todos-archive-mode))
-(add-to-list 'auto-mode-alist '("\\.todt\\'" . todos-filtered-items-mode))
+(add-to-list 'auto-mode-alist '("\\.tod[tyr]\\'" . todos-filtered-items-mode))
 
 ;;; Addition to calendar.el
 ;; FIXME: autoload when key-binding is defined in calendar.el
