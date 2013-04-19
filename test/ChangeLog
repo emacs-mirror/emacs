@@ -1,6 +1,6 @@
 2013-04-01  Masatake YAMATO  <yamato@redhat.com>
 
-	* automated/imenu-tests.el: New file.
+	* automated/imenu-tests.el: New file.  (Bug#14112)
 
 2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
