@@ -1,3 +1,8 @@
+2013-04-19 Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression): Handle
+	function names with a single character.
+
 2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
 
 	* progmodes/gud.el (gud-perldb-marker-filter): Understand position info
