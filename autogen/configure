@@ -4640,6 +4640,11 @@ case "${canonical}" in
     opsys=freebsd
   ;;
 
+  ## DragonFly ports
+  *-*-dragonfly* )
+    opsys=dragonfly
+  ;;
+
   ## FreeBSD kernel + glibc based userland
   *-*-kfreebsd*gnu* )
     opsys=gnu-kfreebsd
@@ -8462,7 +8467,7 @@ esac
 
 LD_SWITCH_SYSTEM=
 case "$opsys" in
-  freebsd)
+  freebsd|dragonfly)
    ## Let `ld' find image libs and similar things in /usr/local/lib.
    ## The system compiler, GCC, has apparently been modified to not
    ## look there, contrary to what a stock GCC would do.
@@ -8552,7 +8557,7 @@ case "$opsys" in
   ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
   aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
 
-  freebsd) LIBS_SYSTEM="-lutil" ;;
+  freebsd|dragonfly) LIBS_SYSTEM="-lutil" ;;
 
   hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
 
@@ -8589,7 +8594,7 @@ case $opsys in
     ## Adding -lm confuses the dynamic linker, so omit it.
     LIB_MATH=
     ;;
-  freebsd )
+  freebsd | dragonfly )
     SYSTEM_TYPE=berkeley-unix
     ;;
   gnu-linux | gnu-kfreebsd )
@@ -13783,7 +13788,7 @@ mail_lock=no
 case "$opsys" in
   aix4-2) mail_lock="lockf" ;;
 
-  gnu|freebsd|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
+  gnu|freebsd|dragonfly|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
 
   ## On GNU/Linux systems, both methods are used by various mail programs.
   ## I assume most people are using newer mailers that have heard of flock.
@@ -14150,7 +14155,7 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     fi
     ;;
 
-  openbsd) LIBS_TERMCAP="-lncurses" ;;
+  openbsd | dragonfly) LIBS_TERMCAP="-lncurses" ;;
 
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
@@ -15527,7 +15532,7 @@ $as_echo "#define HAVE_PROCFS 1" >>confdefs.h
 esac
 
 case $opsys in
-  darwin | freebsd | netbsd | openbsd )
+  darwin | dragonfly | freebsd | netbsd | openbsd )
 
 $as_echo "#define DONT_REOPEN_PTY 1" >>confdefs.h
 
@@ -15609,7 +15614,7 @@ case $opsys in
 
     ;;
 
-  gnu-linux | gnu-kfreebsd | freebsd | netbsd )
+  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | netbsd )
         if test "x$ac_cv_func_grantpt" = xyes; then
 
 $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
@@ -15688,7 +15693,7 @@ esac
 
 
 case $opsys in
-      aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd | darwin )
+      aix4-2 | cygwin | gnu | irix6-5 | dragonfly | freebsd | netbsd | openbsd | darwin )
     $as_echo "#define SIGNALS_VIA_CHARACTERS 1" >>confdefs.h
 
     ;;
@@ -15752,7 +15757,7 @@ case $opsys in
   darwin) $as_echo "#define TAB3 OXTABS" >>confdefs.h
  ;;
 
-  gnu | freebsd | netbsd | openbsd )
+  gnu | dragonfly | freebsd | netbsd | openbsd )
 
 $as_echo "#define TABDLY OXTABS" >>confdefs.h
 
@@ -15831,7 +15836,7 @@ if test x$GCC = xyes; then
 
 else
   case $opsys in
-        freebsd | netbsd | openbsd | irix6-5 | sol2* )
+        dragonfly | freebsd | netbsd | openbsd | irix6-5 | sol2* )
       $as_echo "#define GC_SETJMP_WORKS 1" >>confdefs.h
 
       ;;

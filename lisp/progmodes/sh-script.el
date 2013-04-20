@@ -335,11 +335,11 @@ shell it really is."
      . ((nil
 	 ;; function FOO
 	 ;; function FOO()
-         "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*\\(?:()\\)?"
+         "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*\\(?:()\\)?"
          1)
 	;; FOO()
 	(nil
-	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*()"
+	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
 	 1)
 	)))
   "Alist of regular expressions for recognizing shell function definitions.

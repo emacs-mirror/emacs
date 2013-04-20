@@ -1,3 +1,13 @@
+2013-04-19 Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression): Handle
+	function names with a single character.   (Bug#11182)
+
+2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
+
+	* progmodes/gud.el (gud-perldb-marker-filter): Understand position info
+	for subroutines defined in an eval (bug#14182).
+
 2013-04-19  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* bookmark.el (bookmark-completing-read): Improve handling of empty
