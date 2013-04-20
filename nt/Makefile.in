@@ -209,4 +209,4 @@ runemacs${EXEEXT}: ${srcdir}/runemacs.c $(EMACSRES)
          -o runemacs${EXEEXT}
 
 emacs.res: ${srcdir}/emacs.rc ${srcdir}/icons/emacs.ico ${srcdir}/$(EMACS_MANIFEST)
-	${WINDRES} -O coff -o emacs.res emacs.rc
+	${WINDRES} -O coff -o emacs.res ${srcdir}/emacs.rc
