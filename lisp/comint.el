@@ -3491,11 +3491,6 @@ buffer.  The idea is that this regular expression should match a prompt
 string, and that there ought to be at least one copy of your prompt string
 in the process buffer already.")
 
-(defvar comint-redirect-original-filter-function nil
-  "The process filter that was in place when redirection is started.
-When redirection is completed, the process filter is restored to
-this value.")
-
 (defvar comint-redirect-subvert-readonly nil
   "Non-nil means `comint-redirect' can insert into read-only buffers.
 This works by binding `inhibit-read-only' around the insertion.
@@ -3558,8 +3553,8 @@ and does not normally need to be invoked by the end user or programmer."
   ;; Release the last redirected string
   (setq comint-redirect-previous-input-string nil)
   ;; Restore the process filter
-  (set-process-filter (get-buffer-process (current-buffer))
-		      comint-redirect-original-filter-function)
+  (remove-function (process-filter (get-buffer-process (current-buffer)))
+                   #'comint-redirect-filter)
   ;; Restore the mode line
   (setq mode-line-process comint-redirect-original-mode-line-process)
   ;; Set the completed flag
@@ -3701,10 +3696,8 @@ If NO-DISPLAY is non-nil, do not show the output buffer."
        comint-prompt-regexp             ; Finished Regexp
        echo)                            ; Echo input
 
-      ;; Set the filter
-      (setq comint-redirect-original-filter-function ; Save the old filter
-	    (process-filter proc))
-      (set-process-filter proc 'comint-redirect-filter)
+      ;; Set the filter.
+      (add-function :override (process-filter proc) #'comint-redirect-filter)
 
       ;; Send the command
       (process-send-string (current-buffer) (concat command "\n"))

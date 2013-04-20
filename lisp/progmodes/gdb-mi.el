@@ -574,21 +574,20 @@ NOARG must be t when this macro is used outside `gud-def'"
     (concat (gdb-gud-context-command ,cmd1 ,noall) " " ,cmd2)
     ,(when (not noarg) 'arg)))
 
-(defun gdb--check-interpreter (proc string)
+(defun gdb--check-interpreter (filter proc string)
   (unless (zerop (length string))
-    (let ((filter (process-get proc 'gud-normal-filter)))
-      (set-process-filter proc filter)
-      (unless (memq (aref string 0) '(?^ ?~ ?@ ?& ?* ?=))
-        ;; Apparently we're not running with -i=mi.
-        (let ((msg "Error: you did not specify -i=mi on GDB's command line!"))
-          (message msg)
-          (setq string (concat (propertize msg 'font-lock-face 'error)
-                               "\n" string)))
-        ;; Use the old gud-gbd filter, not because it works, but because it
-        ;; will properly display GDB's answers rather than hanging waiting for
-        ;; answers that aren't coming.
-        (set (make-local-variable 'gud-marker-filter) #'gud-gdb-marker-filter))
-      (funcall filter proc string))))
+    (remove-function (process-filter proc) #'gdb--check-interpreter)
+    (unless (memq (aref string 0) '(?^ ?~ ?@ ?& ?* ?=))
+      ;; Apparently we're not running with -i=mi.
+      (let ((msg "Error: you did not specify -i=mi on GDB's command line!"))
+        (message msg)
+        (setq string (concat (propertize msg 'font-lock-face 'error)
+                             "\n" string)))
+      ;; Use the old gud-gbd filter, not because it works, but because it
+      ;; will properly display GDB's answers rather than hanging waiting for
+      ;; answers that aren't coming.
+      (set (make-local-variable 'gud-marker-filter) #'gud-gdb-marker-filter))
+    (funcall filter proc string)))
 
 (defvar gdb-control-level 0)
 
@@ -662,8 +661,7 @@ detailed description of this mode.
   ;; Setup a temporary process filter to warn when GDB was not started
   ;; with -i=mi.
   (let ((proc (get-buffer-process gud-comint-buffer)))
-    (process-put proc 'gud-normal-filter (process-filter proc))
-    (set-process-filter proc #'gdb--check-interpreter))
+    (add-function :around (process-filter proc) #'gdb--check-interpreter))
 
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
   (set (make-local-variable 'gdb-control-level) 0)

@@ -3387,9 +3387,6 @@ ACTIVATEP non-nil means activate mouse motion events."
 
 ;;; Tips for `gud'
 
-(defvar gud-tooltip-original-filter nil
-  "Process filter to restore after GUD output has been received.")
-
 (defvar gud-tooltip-dereference nil
   "Non-nil means print expressions with a `*' in front of them.
 For C this would dereference a pointer expression.")
@@ -3423,7 +3420,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 ; gdb-mi.el gets round this problem.
 (defun gud-tooltip-process-output (process output)
   "Process debugger output and show it in a tooltip window."
-  (set-process-filter process gud-tooltip-original-filter)
+  (remove-function (process-filter process) #'gud-tooltip-process-output)
   (tooltip-show (tooltip-strip-prompt process output)
 		(or gud-tooltip-echo-area tooltip-use-echo-area)))
 
@@ -3490,8 +3487,8 @@ so they have been disabled."))
                       (gdb-input
 		       (concat cmd "\n")
 		       `(lambda () (gdb-tooltip-print ,expr))))
-		  (setq gud-tooltip-original-filter (process-filter process))
-		  (set-process-filter process 'gud-tooltip-process-output)
+                  (add-function :override (process-filter process)
+                                #'gud-tooltip-process-output)
 		  (gud-basic-call cmd))
 		expr))))))))
 

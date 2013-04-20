@@ -348,9 +348,9 @@ the rest to `inferior-octave-output-string'."
 The elements of LIST have to be strings and are sent one by one.  All
 output is passed to the filter `inferior-octave-output-digest'."
   (let* ((proc inferior-octave-process)
-	 (filter (process-filter proc))
 	 string)
-    (set-process-filter proc 'inferior-octave-output-digest)
+    (add-function :override (process-filter proc)
+                  #'inferior-octave-output-digest)
     (setq inferior-octave-output-list nil)
     (unwind-protect
 	(while (setq string (car list))
@@ -360,7 +360,8 @@ output is passed to the filter `inferior-octave-output-digest'."
 	  (while inferior-octave-receive-in-progress
 	    (accept-process-output proc))
 	  (setq list (cdr list)))
-      (set-process-filter proc filter))))
+      (remove-function (process-filter proc)
+                       #'inferior-octave-output-digest))))
 
 (defun inferior-octave-directory-tracker (string)
   "Tracks `cd' commands issued to the inferior Octave process.
