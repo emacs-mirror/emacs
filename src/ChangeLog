@@ -1,3 +1,22 @@
+2013-04-20  Erik Charlebois  <erikcharlebois@gmail.com>
+
+	* w32fns.c (w32_fullscreen_rect): New function to compute the
+	window rectangle for the given fullscreen mode.
+	(w32_wnd_proc): When in a fullscreen mode, WM_WINDOWPOSCHANGING no
+	longer tunes the window size.  This keeps the window's edges flush
+	with the screen and allows the taskbar to hide itself in fullboth.
+
+	* w32term.c (w32fullscreen_hook): 'fullboth' now shows without
+	window decorations and uses the entire screen.
+
+	* w32term.h  (w32_fullscreen_rect) Add prototype.
+	(struct w32_output): Replace normal_width, normal_height,
+	normal_top, and normal_left members with a single normal_placement
+	struct.
+	(FRAME_NORMAL_WIDTH, FRAME_NORMAL_HEIGHT, FRAME_NORMAL_TOP):
+	Remove macros.
+	(FRAME_NORMAL_PLACEMENT): New macro.
+
 2013-04-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Ftest_completion): Silence compiler warning.

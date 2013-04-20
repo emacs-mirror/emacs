@@ -5663,88 +5663,40 @@ w32fullscreen_hook (FRAME_PTR f)
 {
   if (FRAME_VISIBLE_P (f))
     {
-      int width, height, top_pos, left_pos, pixel_height, pixel_width;
-      int cur_w = FRAME_COLS (f), cur_h = FRAME_LINES (f);
-      RECT workarea_rect;
+      HWND hwnd = FRAME_W32_WINDOW(f);
+      DWORD dwStyle = GetWindowLong (hwnd, GWL_STYLE);
+      RECT rect;
 
-      block_input ();
-      /* Record current "normal" dimensions for restoring later.  */
-      if (!(   FRAME_PREV_FSMODE (f) == FULLSCREEN_BOTH
-	    || FRAME_PREV_FSMODE (f) == FULLSCREEN_MAXIMIZED))
-	{
-	  if (FRAME_PREV_FSMODE (f) != FULLSCREEN_HEIGHT)
-	    {
-	      FRAME_NORMAL_HEIGHT (f) = cur_h;
-	      FRAME_NORMAL_TOP (f) = f->top_pos;
-	    }
-	  if (FRAME_PREV_FSMODE (f) != FULLSCREEN_WIDTH)
-	    {
-	      FRAME_NORMAL_WIDTH (f)  = cur_w;
-	      FRAME_NORMAL_LEFT (f) = f->left_pos;
-	    }
-	}
-      eassert (FRAME_NORMAL_HEIGHT (f) > 0);
-      eassert (FRAME_NORMAL_WIDTH (f) > 0);
-      x_real_positions (f, &f->left_pos, &f->top_pos);
-      x_fullscreen_adjust (f, &width, &height, &top_pos, &left_pos);
+      block_input();
+      f->want_fullscreen &= ~FULLSCREEN_WAIT;
 
-      SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
-      pixel_height = workarea_rect.bottom - workarea_rect.top;
-      pixel_width  = workarea_rect.right  - workarea_rect.left;
-      /* Need to send SC_RESTORE to the window, in case we are
-	 resizing from FULLSCREEN_MAXIMIZED.  Otherwise, the mouse
-	 resize hints will not be shown by the window manager when the
-	 mouse pointer hovers over the window edges, because the WM
-	 will still think the window is maximized.  */
-      if (f->want_fullscreen != FULLSCREEN_BOTH)
-	SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_RESTORE, 0);
+      if (FRAME_PREV_FSMODE (f) == FULLSCREEN_NONE)
+        GetWindowPlacement (hwnd, &FRAME_NORMAL_PLACEMENT (f));
 
+      if (FRAME_PREV_FSMODE (f) == FULLSCREEN_BOTH)
+        {
+          SetWindowLong (hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+          SetWindowPos (hwnd, NULL, 0, 0, 0, 0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                        SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+
+      w32_fullscreen_rect (hwnd, f->want_fullscreen,
+                           FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
       FRAME_PREV_FSMODE (f) = f->want_fullscreen;
-      switch (f->want_fullscreen)
-	{
-	case FULLSCREEN_BOTH:
-	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
-	  break;
-	case FULLSCREEN_MAXIMIZED:
-	  height =
-	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
-	    - XINT (Ftool_bar_lines_needed (selected_frame))
-	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
-	  width  =
-	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
-	    - FRAME_SCROLL_BAR_COLS (f);
-	  left_pos = workarea_rect.left;
-	  top_pos = workarea_rect.top;
-	  break;
-	case FULLSCREEN_WIDTH:
-	  width  =
-	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
-	    - FRAME_SCROLL_BAR_COLS (f);
-	  height = FRAME_NORMAL_HEIGHT (f);
-	  left_pos = workarea_rect.left;
-	  break;
-	case FULLSCREEN_HEIGHT:
-	  height =
-	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
-	    - XINT (Ftool_bar_lines_needed (selected_frame))
-	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
-	  width = FRAME_NORMAL_WIDTH (f);
-	  top_pos = workarea_rect.top;
-	  break;
-	case FULLSCREEN_NONE:
-	  height = FRAME_NORMAL_HEIGHT (f);
-	  width = FRAME_NORMAL_WIDTH (f);
-	  left_pos = FRAME_NORMAL_LEFT (f);
-	  top_pos = FRAME_NORMAL_TOP (f);
-	  break;
-	}
+      if (f->want_fullscreen == FULLSCREEN_BOTH)
+        {
+          SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+          SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
+                        rect.right - rect.left, rect.bottom - rect.top,
+                        SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+      else
+        {
+          SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
+                        rect.right - rect.left, rect.bottom - rect.top, 0);
+        }
 
-      if (cur_w != width || cur_h != height)
-	{
-	  x_set_offset (f, left_pos, top_pos, 1);
-	  x_set_window_size (f, 1, width, height);
-	  do_pending_window_change (0);
-	}
       f->want_fullscreen = FULLSCREEN_NONE;
       unblock_input ();
     }

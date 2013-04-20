@@ -157,6 +157,8 @@ typedef HWND (WINAPI * ImmSetCompositionWindow_Proc) (IN HIMC context,
 typedef HMONITOR (WINAPI * MonitorFromPoint_Proc) (IN POINT pt, IN DWORD flags);
 typedef BOOL (WINAPI * GetMonitorInfo_Proc)
   (IN HMONITOR monitor, OUT struct MONITOR_INFO* info);
+typedef HMONITOR (WINAPI * MonitorFromWindow_Proc)
+  (IN HWND hwnd, IN DWORD dwFlags);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
@@ -165,6 +167,7 @@ ImmReleaseContext_Proc release_ime_context_fn = NULL;
 ImmSetCompositionWindow_Proc set_ime_composition_window_fn = NULL;
 MonitorFromPoint_Proc monitor_from_point_fn = NULL;
 GetMonitorInfo_Proc get_monitor_info_fn = NULL;
+MonitorFromWindow_Proc monitor_from_window_fn = NULL;
 
 #ifdef NTGUI_UNICODE
 #define unicode_append_menu AppendMenuW
@@ -334,6 +337,66 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
 
   *xptr = rect.left;
   *yptr = rect.top;
+}
+
+/* Returns the window rectangle appropriate for the given fullscreen mode.
+   The normal rect parameter was the window's rectangle prior to entering
+   fullscreen mode.  If multiple monitor support is available, the nearest
+   monitor to the window is chosen.  */
+
+void
+w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal, RECT *rect)
+{
+  struct MONITOR_INFO mi = { sizeof(mi) };
+  if (monitor_from_window_fn && get_monitor_info_fn)
+    {
+      HMONITOR monitor =
+        monitor_from_window_fn (hwnd, MONITOR_DEFAULT_TO_NEAREST);
+      get_monitor_info_fn (monitor, &mi);
+    }
+  else
+    {
+      mi.rcMonitor.left = 0;
+      mi.rcMonitor.top = 0;
+      mi.rcMonitor.right = GetSystemMetrics (SM_CXSCREEN);
+      mi.rcMonitor.bottom = GetSystemMetrics (SM_CYSCREEN);
+      mi.rcWork.left = 0;
+      mi.rcWork.top = 0;
+      mi.rcWork.right = GetSystemMetrics (SM_CXMAXIMIZED);
+      mi.rcWork.bottom = GetSystemMetrics (SM_CYMAXIMIZED);
+    }
+
+  switch (fsmode)
+    {
+    case FULLSCREEN_BOTH:
+      rect->left = mi.rcMonitor.left;
+      rect->top = mi.rcMonitor.top;
+      rect->right = mi.rcMonitor.right;
+      rect->bottom = mi.rcMonitor.bottom;
+      break;
+    case FULLSCREEN_MAXIMIZED:
+      rect->left = mi.rcWork.left;
+      rect->top = mi.rcWork.top;
+      rect->right = mi.rcWork.right;
+      rect->bottom = mi.rcWork.bottom;
+      break;
+    case FULLSCREEN_WIDTH:
+      rect->left = mi.rcWork.left;
+      rect->top = normal.top;
+      rect->right = mi.rcWork.right;
+      rect->bottom = normal.bottom;
+      break;
+    case FULLSCREEN_HEIGHT:
+      rect->left = normal.left;
+      rect->top = mi.rcWork.top;
+      rect->right = normal.right;
+      rect->bottom = mi.rcWork.bottom;
+      break;
+    case FULLSCREEN_NONE:
+    default:
+      *rect = normal;
+      break;
+    }
 }
 
 
@@ -3693,6 +3756,13 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       /* Don't restrict the sizing of tip frames.  */
       if (hwnd == tip_window)
 	return 0;
+
+      /* Don't restrict the sizing of fullscreened frames, allowing them to be
+         flush with the sides of the screen.  */
+      f = x_window_to_frame (dpyinfo, hwnd);
+      if (f && FRAME_PREV_FSMODE (f) != FULLSCREEN_NONE)
+        return 0;
+
       {
 	WINDOWPLACEMENT wp;
 	LPWINDOWPOS lppos = (WINDOWPOS *) lParam;
@@ -7637,6 +7707,8 @@ globals_of_w32fns (void)
     GetProcAddress (user32_lib, "MonitorFromPoint");
   get_monitor_info_fn = (GetMonitorInfo_Proc)
     GetProcAddress (user32_lib, "GetMonitorInfoA");
+  monitor_from_window_fn = (MonitorFromWindow_Proc)
+    GetProcAddress (user32_lib, "MonitorFromWindow");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
