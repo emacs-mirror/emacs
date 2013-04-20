@@ -1,3 +1,8 @@
+2013-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header):
+	No longer include timestamp etc information.
+
 2013-04-20  Roland Winkler  <winkler@gnu.org>
 
 	* faces.el (read-face-name): Bug fix, return just one face if arg
