@@ -205,7 +205,7 @@ cmdproxy${EXEEXT}: ${srcdir}/cmdproxy.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/cmdproxy.c -o cmdproxy${EXEEXT}
 
 runemacs${EXEEXT}: ${srcdir}/runemacs.c $(EMACSRES)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/runemacs.c $(EMACSRES) \
+	$(CC) ${ALL_CFLAGS} ${srcdir}/runemacs.c $(EMACSRES) -mwindows \
          -o runemacs${EXEEXT}
 
 emacs.res: ${srcdir}/emacs.rc ${srcdir}/icons/emacs.ico ${srcdir}/$(EMACS_MANIFEST)
