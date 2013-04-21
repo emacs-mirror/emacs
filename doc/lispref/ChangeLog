@@ -1,3 +1,8 @@
+2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* searching.texi (Regexp Backslash): Doc fix for backslash
+	constructs in regular expressions.
+
 2013-04-15  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* tips.texi (Coding Conventions): Mention separation of package
