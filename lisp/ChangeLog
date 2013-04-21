@@ -1,3 +1,9 @@
+2013-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-print-log-setup-buttons, vc-print-log-internal):
+	Add doc strings.
+	(vc-print-log): Clarify interactive prompt.
+
 2013-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-insert-header):
