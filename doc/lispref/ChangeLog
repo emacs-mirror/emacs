@@ -1,5 +1,8 @@
 2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* internals.texi (Writing Emacs Primitives): Remove unnecessary
+	references to the sources. (Bug#13800)
+
 	* searching.texi (Regexp Backslash): Doc fix for backslash
 	constructs in regular expressions.
 
