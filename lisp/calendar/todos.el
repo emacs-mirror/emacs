@@ -1193,8 +1193,15 @@ Todos files named in `todos-category-completions-files'."
       (dolist (f files listall)
 	(with-current-buffer (find-file-noselect f 'nowarn)
 	  ;; Ensure category is properly displayed in case user
-	  ;; switches to file via a non-Todos command.
-	  (todos-category-select)
+	  ;; switches to file via a non-Todos command.  And if done
+	  ;; items in category are visible, keep them visible.
+	  (let ((done todos-show-with-done))
+	    (when (> (buffer-size) (- (point-max) (point-min)))
+	      (save-excursion
+		(goto-char (point-min))
+		(setq done (re-search-forward todos-done-string-start nil t))))
+	    (let ((todos-show-with-done done))
+	      (todos-category-select)))
 	  (save-excursion
 	    (save-restriction
 	      (widen)
@@ -5380,7 +5387,9 @@ meaning to raise or lower the item's priority by one."
 		(goto-char (point-min))
 		(setq done (re-search-forward todos-done-string-start nil t))))
 	    (let ((todos-show-with-done done))
-	      (todos-category-select))))
+	      (todos-category-select)
+	      ;; Keep top of category in view while setting priority.
+	      (goto-char (point-min)))))
 	;; Prompt for priority only when the category has at least one todo item.
 	(when (> maxnum 1)
 	  (while (not priority)
@@ -5462,12 +5471,12 @@ With moved Todo items, prompt to set the priority in the category
 moved to (with multiple todos items, the one that had the highest
 priority in the category moved from gets the new priority and the
 rest of the moved todo items are inserted in sequence below it).
-Moved done items are appended to the end of the done items
+Moved done items are appended to the top of the done items
 section in the category moved to."
   (interactive "P")
   (let* ((cat1 (todos-current-category))
 	 (marked (assoc cat1 todos-categories-with-marks)))
-    ;; NOP if point is not on an item and there are no marked items.
+    ;; Noop if point is not on an item and there are no marked items.
     (unless (and (looking-at "^$")
 		 (not marked))
       (let* ((buffer-read-only)
@@ -5480,20 +5489,23 @@ section in the category moved to."
 	     (todo 0)
 	     (diary 0)
 	     (done 0)
-	     ov cat+file cat2 file2 moved nmark todo-items done-items)
+	     ov cat2 file2 moved nmark todo-items done-items)
 	(unwind-protect
 	    (progn
 	      (unless marked
 		(setq ov (make-overlay (save-excursion (todos-item-start))
 				       (save-excursion (todos-item-end))))
 		(overlay-put ov 'face 'todos-search))
-	      (setq cat+file (let ((pl (if (and marked (> (cdr marked) 1))
-					   "s" "")))
-			       (todos-read-category (concat "Move item" pl
+	      (let* ((pl (if (and marked (> (cdr marked) 1)) "s" ""))
+		     (cat+file (todos-read-category (concat "Move item" pl
 							    " to category: ")
-						    nil file))
-		    cat2 (car cat+file)
-		    file2 (cdr cat+file)))
+						    nil file)))
+		(while (and (equal (car cat+file) cat1)
+			    (equal (cdr cat+file) file1))
+		  (setq cat+file (todos-read-category
+				  "Choose a different category: ")))
+		(setq cat2 (car cat+file)
+		      file2 (cdr cat+file))))
 	  (if ov (delete-overlay ov)))
 	(set-buffer (find-buffer-visiting file1))
 	(if marked
@@ -5527,7 +5539,7 @@ section in the category moved to."
 	    (progn
 	      (when (or todo-items (and item (not done-item)))
 		(todos-set-item-priority (or todo-items item) cat2 t))
-	      ;; Move done items en bloc to end of done item section.
+	      ;; Move done items en bloc to top of done items section.
 	      (when (or done-items done-item)
 		(todos-category-number cat2)
 		(widen)
@@ -5536,11 +5548,9 @@ section in the category moved to."
 						(concat todos-category-beg cat2))
 					   "$")
 				   nil t)
-		(goto-char (if (re-search-forward
-				(concat "^" (regexp-quote todos-category-beg))
-				nil t)
-			       (match-beginning 0)
-			     (point-max)))
+		(re-search-forward
+		 (concat "^" (regexp-quote todos-category-done)) nil t)
+		(forward-line)
 		(insert (or done-items done-item)))
 	      (setq moved t))
 	  (cond
@@ -5595,6 +5605,8 @@ section in the category moved to."
 	   ;; User quit before setting priority of todo item(s), so
 	   ;; return to starting category.
 	   (t
+	    (set-window-buffer (selected-window)
+			       (set-buffer (find-file-noselect file1 'nowarn)))
 	    (todos-category-number cat1)
 	    (todos-category-select)
 	    (goto-char omark))))))))
@@ -5698,22 +5710,28 @@ With prefix ARG delete an existing comment."
 	  (insert " [" todos-comment-string ": " comment "]"))))))
 
 (defun todos-item-undo ()
-  "Restore this done item to the todo section of this category.
-If done item has a comment, ask whether to omit the comment from
-the restored item."			;FIXME: marked done items
+  "Restore at least one done item to this category's todo section.
+Prompt for the new priority.  If there are marked items, undo all
+of these, giving the first undone item the new priority and the
+rest following directly in sequence; otherwise, undo just the
+item at point.
+
+If the done item has a comment, ask whether to omit the comment
+from the restored item.  With multiple marked done items with
+comments, only ask once, and if affirmed, omit subsequent
+comments without asking."
   (interactive)
   (let* ((cat (todos-current-category))
-	 (marked (assoc cat todos-categories-with-marks)))
+	 (marked (assoc cat todos-categories-with-marks))
+	 (pl (if (and marked (> (cdr marked) 1)) "s" "")))
     (when (or marked (todos-done-item-p))
       (let ((buffer-read-only)
-	    (bufmod (buffer-modified-p))
 	    (opoint (point))
-	    (orig-mrk (progn (todos-item-start) (point-marker)))
-	    (orig-item (todos-item-string))
+	    (omark (point-marker))
 	    (first 'first)
 	    (item-count 0)
 	    (diary-count 0)
-	    start end item undone)
+	    start end item ov npoint undone)
 	(and marked (goto-char (point-min)))
 	(catch 'done
 	  (while (not (eobp))
@@ -5721,6 +5739,10 @@ the restored item."			;FIXME: marked done items
 		(if (not (todos-done-item-p))
 		    (error "Only done items can be undone")
 		  (todos-item-start)
+		  (unless marked
+		    (setq ov (make-overlay (save-excursion (todos-item-start))
+					   (save-excursion (todos-item-end))))
+		    (overlay-put ov 'face 'todos-search))
 		  ;; Find the end of the date string added upon tagging item as
 		  ;; done.
 		  (setq start (search-forward "] "))
@@ -5736,61 +5758,52 @@ the restored item."			;FIXME: marked done items
 		    (if (eq first 'first)
 			(setq first
 			      (if (eq todos-undo-item-omit-comment 'ask)
-				  (when (y-or-n-p
-					 "Omit comment from restored item? ")
+				  (when (y-or-n-p (concat "Omit comment" pl
+							  " from restored item"
+							  pl "? "))
 				    'omit)
 				(when todos-undo-item-omit-comment 'omit)))
 		      t)
 		    (when (eq first 'omit)
-		      (delete-region (match-beginning 0) (match-end 0))
-		      (setq end (point))))
+		      (setq end (match-beginning 0)))
 		  (setq item (concat item
 				     (buffer-substring-no-properties start end)
 				     (when marked "\n")))
-		  (todos-remove-item)
-		  (unless marked (throw 'done nil)))
-	      (todos-forward-item))))
-	(if marked
+		  (unless marked (throw 'done nil)))))
+	    (todos-forward-item)))
+	(unwind-protect
 	    (progn
-	      (setq todos-categories-with-marks
-		    (assq-delete-all cat todos-categories-with-marks))
-	      ;; Insert undone items that were marked at end of todo item list.
-	      (goto-char (point-min))
-	      (re-search-forward (concat "^" (regexp-quote todos-category-done))
-				 nil t)
-	      (forward-line -1)
-	      (insert item)
-	      (todos-update-count 'todo item-count)
-	      (todos-update-count 'done (- item-count))
-	      (when diary-count (todos-update-count 'diary diary-count))
-	      (todos-update-categories-sexp)
-	      (let ((todos-show-with-done (> (todos-get-count 'done) 0)))
-		(todos-category-select)))
-	  ;; With an unmarked undone item, prompt for its priority.  If user
-	  ;; cancels before setting new priority, then leave the done item
-	  ;; unchanged.
-	  (unwind-protect
-	      (progn
-		(todos-set-item-priority item (todos-current-category) t)
-		(setq undone t
-		      opoint (point))
-		(todos-update-count 'todo 1)
-		(todos-update-count 'done -1)
-		(and (todos-diary-item-p) (todos-update-count 'diary 1))
-		(todos-update-categories-sexp)
-		(let ((todos-show-with-done (> (todos-get-count 'done) 0)))
-		  (todos-category-select)
-		  ;; Put the cursor on the undone item.
-		  (goto-char opoint)))
-	    (unless undone
-	      (let ((todos-show-with-done t))
-		(widen)
-		(goto-char orig-mrk)
-		(todos-insert-with-overlays orig-item)
-		(set-buffer-modified-p bufmod)
-		(todos-category-select))
-		(goto-char opoint))))
-	(set-marker orig-mrk nil)))))
+	      ;; Chop off last newline of multiple items string, since
+	      ;; it will be reinserted on setting priority.
+	      (and marked (setq item (substring item 0 -1)))
+	      (todos-set-item-priority item cat t)
+	      (setq npoint (point))
+	      (setq undone t))
+	  (if ov (delete-overlay ov))
+	  (if (not undone)
+	      (goto-char opoint)
+	    (if marked
+		(progn
+		  (setq item nil)
+		  (re-search-forward
+		   (concat "^" (regexp-quote todos-category-done)) nil t)
+		  (while (not (eobp))
+		    (if (todos-marked-item-p)
+			(todos-remove-item)
+		      (todos-forward-item)))
+		  (setq todos-categories-with-marks
+			(assq-delete-all cat todos-categories-with-marks)))
+	      (goto-char omark)
+	      (todos-remove-item))
+	    (todos-update-count 'todo item-count)
+	    (todos-update-count 'done (- item-count))
+	    (when diary-count (todos-update-count 'diary diary-count))
+	    (todos-update-categories-sexp)
+	    (let ((todos-show-with-done (> (todos-get-count 'done) 0)))
+	      (todos-category-select))
+	    ;; Put cursor on undone item.
+	    (goto-char npoint)))
+	(set-marker omark nil)))))
 
 (defun todos-archive-done-item (&optional all)
   "Archive at least one done item in this category.
@@ -5937,7 +5950,7 @@ If there are marked items, unarchive all of these; otherwise,
 unarchive the item at point.
 
 Unarchived items are restored as done items to the corresponding
-category in the Todos file, inserted at the end of done items
+category in the Todos file, inserted at the top of done items
 section.  If all items in the archive category have been
 restored, the category is deleted from the archive.  If this was
 the only category in the archive, the archive file is deleted."
@@ -5960,7 +5973,7 @@ the only category in the archive, the archive file is deleted."
 	      (setq marked-items (concat marked-items (todos-item-string) "\n"))
 	      (setq marked-count (1+ marked-count)))
 	    (todos-forward-item))))
-      ;; Restore items to end of category's done section and update counts.
+      ;; Restore items to top of category's done section and update counts.
       (with-current-buffer tbuf
 	(let (buffer-read-only newcat)
 	  (widen)
@@ -5971,15 +5984,19 @@ the only category in the archive, the archive file is deleted."
 		   (concat "^" (regexp-quote (concat todos-category-beg cat))
 			   "$") nil t)
 	    (todos-add-category nil cat)
-	    (setq newcat t)
-	    ;; Put point below newly added category beginning,
-	    ;; otherwise the following search wrongly succeeds.
-	    (forward-line))
-	  ;; Go to end of category's done section.
-	  (if (re-search-forward (concat "^" (regexp-quote todos-category-beg))
-				 nil t)
-	      (goto-char (match-beginning 0))
-	    (goto-char (point-max)))
+	    (setq newcat t))
+	  ;; Go to top of category's done section.
+	  (re-search-forward
+	   (concat "^" (regexp-quote todos-category-done)) nil t)
+	  (forward-line)
+	  ;; FIXME: delete after checking
+	  ;; ;; Put point below newly added category beginning,
+	  ;; ;; otherwise the following search wrongly succeeds.
+	  ;; (forward-line))
+	  ;; (if (re-search-forward (concat "^" (regexp-quote todos-category-beg))
+	  ;; 			 nil t)
+	  ;;     (goto-char (match-beginning 0))
+	  ;;   (goto-char (point-max)))
 	  (cond (marked
 		 (insert marked-items)
 		 (todos-update-count 'done marked-count cat)

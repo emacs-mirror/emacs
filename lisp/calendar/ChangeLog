@@ -1,3 +1,21 @@
+2013-04-21  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Fixes and improvements related to item relocation.
+	(todos-category-completions): On ensuring proper category display,
+	if done items in category are visible, keep them visible.
+	(todos-set-item-priority): Keep top of category in view while
+	setting priority.
+	(todos-move-item): Restore prevention of moving within the same
+	category.  Move done items to top, not end, of done items section.
+	When user quits before setting priority, make sure to return to
+	starting file.
+	(todos-item-undo): Partly reimplement along lines of
+	todos-move-item, adding highlighting of single item as undo
+	target, setting priority of multiple undone items, improving
+	handling of quitting before setting priority.
+	(todos-unarchive-items): Restore items to top, not end, of
+	category's done section.
+
 2013-04-19  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Extend and improve item filtering and handling of
