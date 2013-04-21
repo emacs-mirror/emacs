@@ -1,3 +1,10 @@
+2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* emacs-lisp-intro.texi (defcustom, defun)
+	(simplified-beginning-of-buffer, defvar, Building Robots, Review)
+	(save-excursion): `defun' and `defcustom' are now macros rather
+	than special forms. (Bug#13853)
+
 2013-03-16  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi: Add some stuff specific to www.gnu.org.

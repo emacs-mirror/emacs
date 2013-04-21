@@ -37,6 +37,7 @@
 
 @set edition-number 3.10
 @set update-date 28 October 2009
+@c FIXME can this be updated?  -- xfq
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -3094,18 +3095,15 @@ unless you investigate, you won't know whether an already-written
 function is written in Emacs Lisp or C.
 
 @node defun
-@section The @code{defun} Special Form
+@section The @code{defun} Macro
 @findex defun
-@cindex Special form of @code{defun}
 
 @cindex @samp{function definition} defined
 In Lisp, a symbol such as @code{mark-whole-buffer} has code attached to
 it that tells the computer what to do when the function is called.
 This code is called the @dfn{function definition} and is created by
 evaluating a Lisp expression that starts with the symbol @code{defun}
-(which is an abbreviation for @emph{define function}).  Because
-@code{defun} does not evaluate its arguments in the usual way, it is
-called a @dfn{special form}.
+(which is an abbreviation for @emph{define function}).
 
 In subsequent sections, we will look at function definitions from the
 Emacs source code, such as @code{mark-whole-buffer}.  In this section,
@@ -4254,7 +4252,7 @@ On the other hand, this function returns @code{nil} if the test is false.
 @findex point
 @findex mark
 
-The @code{save-excursion} function is the fourth and final special form
+The @code{save-excursion} function is the third and final special form
 that we will discuss in this chapter.
 
 In Emacs Lisp programs used for editing, the @code{save-excursion}
@@ -4381,9 +4379,9 @@ within the body of a @code{let} expression.  It looks like this:
 @node Review
 @section Review
 
-In the last few chapters we have introduced a fair number of functions
-and special forms.  Here they are described in brief, along with a few
-similar functions that have not been mentioned yet.
+In the last few chapters we have introduced a macro and a fair number
+of functions and special forms.  Here they are described in brief,
+along with a few similar functions that have not been mentioned yet.
 
 @table @code
 @item eval-last-sexp
@@ -4393,10 +4391,10 @@ invoked with an argument; in that case, the output is printed in the
 current buffer.  This command is normally bound to @kbd{C-x C-e}.
 
 @item defun
-Define function.  This special form has up to five parts: the name,
-a template for the arguments that will be passed to the function,
-documentation, an optional interactive declaration, and the body of the
-definition.
+Define function.  This macro has up to five parts: the name, a
+template for the arguments that will be passed to the function,
+documentation, an optional interactive declaration, and the body of
+the definition.
 
 @need 1250
 For example, in an early version of Emacs, the function definition was
@@ -4803,7 +4801,7 @@ leave mark at previous position."
 @end smallexample
 
 Like all function definitions, this definition has five parts following
-the special form @code{defun}:
+the macro @code{defun}:
 
 @enumerate
 @item
@@ -9293,10 +9291,6 @@ have a value.  If the variable already has a value, @code{defvar} does
 not override the existing value.  Second, @code{defvar} has a
 documentation string.
 
-(Another special form, @code{defcustom}, is designed for variables
-that people customize.  It has more features than @code{defvar}.
-(@xref{defcustom, , Setting Variables with @code{defcustom}}.)
-
 @menu
 * See variable current value::
 * defvar and asterisk::
@@ -11300,11 +11294,11 @@ Let's expand on the metaphor in which a computer program is a robot.
 
 A function definition provides the blueprints for a robot.  When you
 install a function definition, that is, when you evaluate a
-@code{defun} special form, you install the necessary equipment to
-build robots.  It is as if you were in a factory, setting up an
-assembly line.  Robots with the same name are built according to the
-same blueprints.  So they have, as it were, the same `model number',
-but a different `serial number'.
+@code{defun} macro, you install the necessary equipment to build
+robots.  It is as if you were in a factory, setting up an assembly
+line.  Robots with the same name are built according to the same
+blueprints.  So they have, as it were, the same `model number', but a
+different `serial number'.
 
 We often say that a recursive function `calls itself'.  What we mean
 is that the instructions in a recursive function cause the Lisp
@@ -16971,10 +16965,9 @@ definitions; but you can write @code{defuns} in your @file{.emacs}
 file.  Indeed, you can write any Lisp expression in your @file{.emacs}
 file.)
 
-The @code{customize} feature depends on the @code{defcustom} special
-form.  Although you can use @code{defvar} or @code{setq} for variables
-that users set, the @code{defcustom} special form is designed for the
-job.
+The @code{customize} feature depends on the @code{defcustom} macro.
+Although you can use @code{defvar} or @code{setq} for variables that
+users set, the @code{defcustom} macro is designed for the job.
 
 You can use your knowledge of @code{defvar} for writing the
 first three arguments for @code{defcustom}.  The first argument to
