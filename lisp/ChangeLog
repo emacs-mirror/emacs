@@ -1,3 +1,9 @@
+2013-04-22  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg-context-pinentry-mode): New function.
+	(epg-context-set-pinentry-mode): New function.
+	(epg--start): Pass --pinentry-mode option to gpg command.
+
 2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* comint.el: (comint-dynamic-complete-functions, comint-mode-map):
