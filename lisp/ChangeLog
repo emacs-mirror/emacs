@@ -1,3 +1,9 @@
+2013-04-22  Erik Charlebois  <erikcharlebois@gmail.com>
+
+	* emacs-lisp/syntax.el (syntax-propertize-multiline):
+	Use `syntax-multiline' text property consistently instead of
+	`font-lock-multiline'. (bug#14237).
+
 2013-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell/em-prompt.el (eshell-emit-prompt): Make sure we can't insert
