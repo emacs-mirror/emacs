@@ -1,3 +1,8 @@
+2013-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (bootstrap-clean): Remove stamp-h1 too.
+	Without this fix, "make distclean" leaves stamp-h1 behind.
+
 2013-04-20  Erik Charlebois  <erikcharlebois@gmail.com>
 
 	* w32fns.c (w32_fullscreen_rect): New function to compute the
