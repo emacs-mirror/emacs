@@ -438,20 +438,6 @@ This is, the first, empty, element is omitted.  In XEmacs, the first
 element is not omitted."
   (delete "" (split-string string pattern)))
 
-(defun tramp-compat-call-process
-  (program &optional infile destination display &rest args)
-  "Calls `call-process' on the local host.
-This is needed because for some Emacs flavors Tramp has
-defadvised `call-process' to behave like `process-file'.  The
-Lisp error raised when PROGRAM is nil is trapped also, returning 1."
-  (let ((default-directory
-	  (if (file-remote-p default-directory)
-	      (tramp-compat-temporary-file-directory)
-	    default-directory)))
-    (if (executable-find program)
-	(apply 'call-process program infile destination display args)
-      1)))
-
 (defun tramp-compat-process-running-p (process-name)
   "Returns `t' if system process PROCESS-NAME is running for `user-login-name'."
   (when (stringp process-name)

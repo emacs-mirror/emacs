@@ -1,3 +1,24 @@
+2013-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix pack/unpack coding.  Reported by David Smith <davidsmith@acm.org>.
+
+	* net/tramp-compat.el (tramp-compat-call-process): Move function ...
+	* net/tramp.el (tramp-call-process): ... here
+	(tramp-set-completion-function, tramp-parse-putty):
+	* net/tramp-adb.el (tramp-adb-execute-adb-command):
+	* net/tramp-gvfs.el (tramp-gvfs-send-command):
+	* net/tramp-sh.el (tramp-sh-handle-set-file-times)
+	(tramp-set-file-uid-gid, tramp-sh-handle-write-region)
+	(tramp-call-local-coding-command): Use `tramp-call-process'
+	instead of `tramp-compat-call-process'.
+
+	* net/tramp-sh.el (tramp-perl-pack, tramp-perl-unpack): New defconst.
+	(tramp-local-coding-commands, tramp-remote-coding-commands): Use them.
+	(tramp-sh-handle-file-local-copy, tramp-sh-handle-write-region):
+	(tramp-find-inline-compress):Improve traces.
+	(tramp-maybe-send-script): Check for Perl binary.
+	(tramp-get-inline-coding): Do not redirect STDOUT for local decoding.
+
 2013-04-22  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg-context-pinentry-mode): New function.

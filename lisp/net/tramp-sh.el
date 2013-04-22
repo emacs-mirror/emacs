@@ -767,6 +767,16 @@ while (my $data = <STDIN>) {
 Escape sequence %s is replaced with name of Perl binary.
 This string is passed to `format', so percent characters need to be doubled.")
 
+(defconst tramp-perl-pack
+  "%s -e 'binmode STDIN; binmode STDOUT; print pack(q{u*}, join q{}, <>)'"
+  "Perl program to use for encoding a file.
+Escape sequence %s is replaced with name of Perl binary.")
+
+(defconst tramp-perl-unpack
+  "%s -e 'binmode STDIN; binmode STDOUT; print unpack(q{u*}, join q{}, <>)'"
+  "Perl program to use for decoding a file.
+Escape sequence %s is replaced with name of Perl binary.")
+
 (defconst tramp-vc-registered-read-file-names
   "echo \"(\"
 while read file; do
@@ -1309,7 +1319,7 @@ of."
     ;; without `set-file-times', this function is an alias for this.
     ;; We are local, so we don't need the UTC settings.
     (zerop
-     (tramp-compat-call-process
+     (tramp-call-process
       "touch" nil nil nil "-t"
       (format-time-string "%Y%m%d%H%M.%S" time)
       (tramp-shell-quote-argument filename)))))
@@ -1343,7 +1353,7 @@ be non-negative integers."
       ;; `set-file-uid-gid'.  On W32 "chown" might not work.
       (let ((uid (or (and (natnump uid) uid) (tramp-get-local-uid 'integer)))
 	    (gid (or (and (natnump gid) gid) (tramp-get-local-gid 'integer))))
-	(tramp-compat-call-process
+	(tramp-call-process
 	 "chown" nil nil nil
          (format "%d:%d" uid gid) (tramp-shell-quote-argument filename))))))
 
@@ -2891,40 +2901,39 @@ the result will be a local, non-Tramp, filename."
 	   (rem-enc
 	    (save-excursion
 	      (with-tramp-progress-reporter
-	       v 3 (format "Encoding remote file %s" filename)
+	       v 3
+	       (format "Encoding remote file `%s' with `%s'" filename rem-enc)
 	       (tramp-barf-unless-okay
 		v (format rem-enc (tramp-shell-quote-argument localname))
 		"Encoding remote file failed"))
 
-	      (if (functionp loc-dec)
-		  ;; If local decoding is a function, we call it.  We
-		  ;; must disable multibyte, because
-		  ;; `uudecode-decode-region' doesn't handle it
-		  ;; correctly.
-		  (with-temp-buffer
-		    (set-buffer-multibyte nil)
-		    (insert-buffer-substring (tramp-get-buffer v))
-		    (with-tramp-progress-reporter
-			v 3 (format "Decoding remote file %s with function %s"
-				    filename loc-dec)
+	      (with-tramp-progress-reporter
+		  v 3 (format "Decoding local file `%s' with `%s'"
+			      tmpfile loc-dec)
+		(if (functionp loc-dec)
+		    ;; If local decoding is a function, we call it.
+		    ;; We must disable multibyte, because
+		    ;; `uudecode-decode-region' doesn't handle it
+		    ;; correctly.
+		    (with-temp-buffer
+		      (set-buffer-multibyte nil)
+		      (insert-buffer-substring (tramp-get-buffer v))
 		      (funcall loc-dec (point-min) (point-max))
 		      ;; Unset `file-name-handler-alist'.  Otherwise,
 		      ;; epa-file gets confused.
 		      (let (file-name-handler-alist
 			    (coding-system-for-write 'binary))
-			(write-region (point-min) (point-max) tmpfile))))
+			(write-region (point-min) (point-max) tmpfile)))
 
-		;; If tramp-decoding-function is not defined for this
-		;; method, we invoke tramp-decoding-command instead.
-		(let ((tmpfile2 (tramp-compat-make-temp-file filename)))
-		  ;; Unset `file-name-handler-alist'.  Otherwise,
-		  ;; epa-file gets confused.
-		  (let (file-name-handler-alist
-			(coding-system-for-write 'binary))
-		    (write-region (point-min) (point-max) tmpfile2))
-		  (with-tramp-progress-reporter
-		      v 3 (format "Decoding remote file %s with command %s"
-				  filename loc-dec)
+		  ;; If tramp-decoding-function is not defined for this
+		  ;; method, we invoke tramp-decoding-command instead.
+		  (let ((tmpfile2 (tramp-compat-make-temp-file filename)))
+		    ;; Unset `file-name-handler-alist'.  Otherwise,
+		    ;; epa-file gets confused.
+		    (let (file-name-handler-alist
+			  (coding-system-for-write 'binary))
+		      (with-current-buffer (tramp-get-buffer v)
+			(write-region (point-min) (point-max) tmpfile2)))
 		    (unwind-protect
 			(tramp-call-local-coding-command
 			 loc-dec tmpfile2 tmpfile)
@@ -3149,28 +3158,25 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		  (with-temp-buffer
 		    (set-buffer-multibyte nil)
 		    ;; Use encoding function or command.
-		    (if (functionp loc-enc)
-			(with-tramp-progress-reporter
-			    v 3 (format "Encoding region using function `%s'"
-					loc-enc)
-			  (let ((coding-system-for-read 'binary))
-			    (insert-file-contents-literally tmpfile))
-			  ;; The following `let' is a workaround for the
-			  ;; base64.el that comes with pgnus-0.84.  If
-			  ;; both of the following conditions are
+		    (with-tramp-progress-reporter
+			v 3 (format "Encoding local file `%s' using `%s'"
+				    tmpfile loc-enc)
+		      (if (functionp loc-enc)
+			  ;; The following `let' is a workaround for
+			  ;; the base64.el that comes with pgnus-0.84.
+			  ;; If both of the following conditions are
 			  ;; satisfied, it tries to write to a local
 			  ;; file in default-directory, but at this
 			  ;; point, default-directory is remote.
 			  ;; (`call-process-region' can't write to
 			  ;; remote files, it seems.)  The file in
 			  ;; question is a tmp file anyway.
-			  (let ((default-directory
+			  (let ((coding-system-for-read 'binary)
+				(default-directory
 				  (tramp-compat-temporary-file-directory)))
-			    (funcall loc-enc (point-min) (point-max))))
+			    (insert-file-contents-literally tmpfile)
+			    (funcall loc-enc (point-min) (point-max)))
 
-		      (with-tramp-progress-reporter
-			  v 3 (format "Encoding region using command `%s'"
-				      loc-enc)
 			(unless (zerop (tramp-call-local-coding-command
 					loc-enc tmpfile t))
 			  (tramp-error
@@ -3183,8 +3189,8 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		    ;; writes to remote file.  Because this happens on
 		    ;; the remote host, we cannot use the function.
 		    (with-tramp-progress-reporter
-			v 3
-			(format "Decoding region into remote file %s" filename)
+			v 3 (format "Decoding remote file `%s' using `%s'"
+				    filename rem-dec)
 		      (goto-char (point-max))
 		      (unless (bolp) (newline))
 		      (tramp-send-command
@@ -3204,7 +3210,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 			(erase-buffer)
 			(and
 			 ;; cksum runs locally, if possible.
-			 (zerop (tramp-compat-call-process "cksum" tmpfile t))
+			 (zerop (tramp-call-process "cksum" tmpfile t))
 			 ;; cksum runs remotely.
 			 (tramp-send-command-and-check
 			  v
@@ -3382,6 +3388,9 @@ Only send the definition if it has not already been done."
     (unless (member name scripts)
       (with-tramp-progress-reporter vec 5 (format "Sending script `%s'" name)
 	;; The script could contain a call of Perl.  This is masked with `%s'.
+	(when (and (string-match "%s" script)
+		   (not (tramp-get-remote-perl vec)))
+	  (tramp-error vec 'file-error "No Perl available on remote host"))
 	(tramp-barf-unless-okay
 	 vec
 	 (format "%s () {\n%s\n}" name
@@ -3811,11 +3820,6 @@ process to set up.  VEC specifies the connection."
       (tramp-send-command
        vec (format "unset %s" (mapconcat 'identity unset " ")) t))))
 
-;; CCC: We should either implement a Perl version of base64 encoding
-;; and decoding.  Then we just use that in the last item.  The other
-;; alternative is to use the Perl version of UU encoding.  But then
-;; we need a Lisp version of uuencode.
-;;
 ;; Old text from documentation of tramp-methods:
 ;; Using a uuencode/uudecode inline method is discouraged, please use one
 ;; of the base64 methods instead since base64 encoding is much more
@@ -3832,11 +3836,9 @@ process to set up.  VEC specifies the connection."
 (autoload 'uudecode-decode-region "uudecode")
 
 (defconst tramp-local-coding-commands
-  '((b64 base64-encode-region base64-decode-region)
+  `((b64 base64-encode-region base64-decode-region)
     (uu  tramp-uuencode-region uudecode-decode-region)
-    (pack
-     "perl -e 'binmode STDIN; binmode STDOUT; print pack(q{u*}, join q{}, <>)'"
-     "perl -e 'binmode STDIN; binmode STDOUT; print unpack(q{u*}, join q{}, <>)'"))
+    (pack ,(format tramp-perl-pack "perl") ,(format tramp-perl-unpack "perl")))
   "List of local coding commands for inline transfer.
 Each item is a list that looks like this:
 
@@ -3871,9 +3873,7 @@ with the encoded or decoded results, respectively.")
     (uu  "uuencode xxx" "uudecode -o -")
     (uu  "uuencode xxx" "uudecode -p")
     (uu  "uuencode xxx" tramp-uudecode)
-    (pack
-     "perl -e 'binmode STDIN; binmode STDOUT; print pack(q{u*}, join q{}, <>)'"
-     "perl -e 'binmode STDIN; binmode STDOUT; print unpack(q{u*}, join q{}, <>)'"))
+    (pack tramp-perl-pack tramp-perl-unpack))
   "List of remote coding commands for inline transfer.
 Each item is a list that looks like this:
 
@@ -4014,7 +4014,7 @@ INPUT can also be nil which means `/dev/null'.
 OUTPUT can be a string (which specifies a filename), or t (which
 means standard output and thus the current buffer), or nil (which
 means discard it)."
-  (tramp-compat-call-process
+  (tramp-call-process
    tramp-encoding-shell
    (when (and input (not (string-match "%s" cmd))) input)
    (if (eq output t) t nil)
@@ -4022,7 +4022,7 @@ means discard it)."
    tramp-encoding-command-switch
    (concat
     (if (string-match "%s" cmd) (format cmd input) cmd)
-    (if (stringp output) (concat "> " output) ""))))
+    (if (stringp output) (concat " >" output) ""))))
 
 (defconst tramp-inline-compress-commands
   '(("gzip" "gzip -d")
@@ -4051,7 +4051,7 @@ Goes through the list `tramp-inline-compress-commands'."
 		decompress (nth 1 item))
 	  (tramp-message
 	   vec 5
-	   "Checking local compress command `%s', `%s' for sanity"
+	   "Checking local compress commands `%s', `%s' for sanity"
 	   compress decompress)
 	  (unless
 	      (zerop
@@ -4067,7 +4067,7 @@ Goes through the list `tramp-inline-compress-commands'."
 	    (throw 'next nil))
 	  (tramp-message
 	   vec 5
-	   "Checking remote compress command `%s', `%s' for sanity"
+	   "Checking remote compress commands `%s', `%s' for sanity"
 	   compress decompress)
 	  (unless (tramp-send-command-and-check
 		   vec (format "echo %s | %s | %s" magic compress decompress) t)
@@ -4981,10 +4981,12 @@ function cell is returned to be applied on a buffer."
 	   ;; Windows shells need the program file name after
 	   ;; the pipe symbol be quoted if they use forward
 	   ;; slashes as directory separators.
-	   (if (and (string-match "local" prop)
-		    (memq system-type '(windows-nt)))
-	       "(%s | \"%s\" >%%s)"
-	     "(%s | %s >%%s)")
+	   (cond
+	    ((and (string-match "local" prop)
+		  (memq system-type '(windows-nt)))
+	       "(%s | \"%s\")")
+	    ((string-match "local" prop) "(%s | %s)")
+	    (t "(%s | %s >%%s)"))
 	   coding compress))
 	 (compress
 	  (format
@@ -4997,7 +4999,9 @@ function cell is returned to be applied on a buffer."
 	     "(%s <%%s | %s)")
 	   compress coding))
 	 ((string-match "decoding" prop)
-	  (format "%s >%%s" coding))
+	  (cond
+	   ((string-match "local" prop) (format "%s" coding))
+	   (t (format "%s >%%s" coding))))
 	 (t
 	  (format "%s <%%s" coding)))))))
 
