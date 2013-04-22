@@ -1,3 +1,7 @@
+2013-04-22  Leo Liu  <sdl.web@gmail.com>
+
+	* info-look.el: Prefer latex2e.info.  (Bug#14240)
+
 2013-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Fix pack/unpack coding.  Reported by David Smith <davidsmith@acm.org>.
