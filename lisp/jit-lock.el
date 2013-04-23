@@ -1,4 +1,4 @@
-;;; jit-lock.el --- just-in-time fontification
+;;; jit-lock.el --- just-in-time fontification  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
 
@@ -412,21 +412,24 @@ Defaults to the whole buffer.  END can be out of bounds."
            ;; eagerly extend the refontified region with
            ;; jit-lock-after-change-extend-region-functions.
            (when (< start orig-start)
-	     (run-with-timer 0 nil 'jit-lock-force-redisplay
-			     (current-buffer) start orig-start))
+	     (run-with-timer 0 nil #'jit-lock-force-redisplay
+                             (copy-marker start) (copy-marker orig-start)))
 
 	   ;; Find the start of the next chunk, if any.
 	   (setq start (text-property-any next end 'fontified nil))))))))
 
-(defun jit-lock-force-redisplay (buf start end)
+(defun jit-lock-force-redisplay (start end)
   "Force the display engine to re-render buffer BUF from START to END."
-  (with-current-buffer buf
-    (with-buffer-prepared-for-jit-lock
-     ;; Don't cause refontification (it's already been done), but just do
-     ;; some random buffer change, so as to force redisplay.
-     (put-text-property start end 'fontified t))))
-
-
+  (when (marker-buffer start)
+    (with-current-buffer (marker-buffer start)
+      (with-buffer-prepared-for-jit-lock
+       (when (> end (point-max))
+         (setq end (point-max) start (min start end)))
+       (when (< start (point-min))
+         (setq start (point-min) end (max start end)))
+       ;; Don't cause refontification (it's already been done), but just do
+       ;; some random buffer change, so as to force redisplay.
+       (put-text-property start end 'fontified t)))))
 
 ;;; Stealth fontification.
 
