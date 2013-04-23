@@ -880,7 +880,8 @@ When changed from Lisp, make sure to call
 effective."
   :set (lambda (symbol value)
 	 (set symbol value)
-	 (reftex-compile-variables))
+	 (when (fboundp 'reftex-compile-variables)
+	   (reftex-compile-variables)))
   :group 'reftex-defining-label-environments
   :type '(repeat (regexp :tag "Regular Expression")))
 

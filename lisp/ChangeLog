@@ -1,8 +1,5 @@
 2013-04-23  Tassilo Horn  <tsdh@gnu.org>
 
-	* textmodes/reftex.el (reftex-compile-variables): Add autoload
-	cookie.
-
 	* textmodes/reftex-vars.el (reftex-label-regexps): Call
 	`reftex-compile-variables' after changes to this variable.
 
