@@ -3059,7 +3059,7 @@ symbol refers to it.)
 
 @menu
 * Primitive Functions::
-* defun::                        The @code{defun} special form.
+* defun::                        The @code{defun} macro.
 * Install::                      Install a function definition.
 * Interactive::                  Making a function interactive.
 * Interactive Options::          Different options for @code{interactive}.
@@ -3700,7 +3700,7 @@ name for a @dfn{local variable} that overshadows any use of the same
 name outside the @code{let} expression.  This is like understanding
 that whenever your host refers to `the house', he means his house, not
 yours.  (Symbols used in argument lists work the same way.
-@xref{defun, , The @code{defun} Special Form}.)
+@xref{defun, , The @code{defun} Macro}.)
 
 Local variables created by a @code{let} expression retain their value
 @emph{only} within the @code{let} expression itself (and within
@@ -19456,7 +19456,7 @@ them in an argument list (and within expressions called by them).
 @ignore
 @c texi2dvi fails when the name of the section is within ifnottex ...
 (@xref{Prevent confusion, , @code{let} Prevents Confusion}, and
-@ref{defun, , The @code{defun} Special Form}.)
+@ref{defun, , The @code{defun} Macro}.)
 @end ignore
 
 @node yank
@@ -20976,7 +20976,7 @@ equivalent of @code{multiply-by-seven} is:
 @end smallexample
 
 @noindent
-(@xref{defun, ,  The @code{defun} Special Form}.)
+(@xref{defun, ,  The @code{defun} Macro}.)
 
 @need 1250
 @noindent
