@@ -1,3 +1,8 @@
+2013-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (normal-no-mouse-startup-screen, normal-about-screen):
+	Remove venerable code attempting to avoid substitute-command-keys.
+
 2013-04-23  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-label-regexps): Call

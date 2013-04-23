@@ -1856,11 +1856,8 @@ To quit a partially entered command, type Control-g.\n")
   (insert "\n" (emacs-version)
 	  "\n" emacs-copyright))
 
-;; No mouse menus, so give help using kbd commands.
 (defun normal-no-mouse-startup-screen ()
-
-  ;; If keys have their default meanings,
-  ;; use precomputed string to save lots of time.
+  "Show a splash screen suitable for displays without mouse support."
   (let* ((c-h-accessible
           ;; If normal-erase-is-backspace is used on a tty, there's
           ;; no way to invoke C-h and you have to use F1 instead.
@@ -1938,47 +1935,24 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 		 'follow-link t)
   (insert "\n")
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
-
-  (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-	   (eq (key-binding "\C-h\C-o") 'describe-distribution)
-	   (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-      (progn
-	(insert
-	 "
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
-	(insert-button "full details"
-		       'action (lambda (_button) (describe-no-warranty))
-		       'follow-link t)
-	(insert ".
-Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type C-h C-c to see ")
-	(insert-button "the conditions"
-		       'action (lambda (_button) (describe-copying))
-		       'follow-link t)
-	(insert ".
-Type C-h C-d for information on ")
-	(insert-button "getting the latest version"
-		       'action (lambda (_button) (describe-distribution))
-		       'follow-link t)
-	(insert "."))
-    (insert (substitute-command-keys
-	     "
+  (insert (substitute-command-keys
+	   "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
-    (insert-button "full details"
-		   'action (lambda (_button) (describe-no-warranty))
-		   'follow-link t)
-    (insert (substitute-command-keys ".
+  (insert-button "full details"
+		 'action (lambda (_button) (describe-no-warranty))
+		 'follow-link t)
+  (insert (substitute-command-keys ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type \\[describe-copying] to see "))
-    (insert-button "the conditions"
-		   'action (lambda (_button) (describe-copying))
-		   'follow-link t)
-    (insert (substitute-command-keys".
+  (insert-button "the conditions"
+		 'action (lambda (_button) (describe-copying))
+		 'follow-link t)
+  (insert (substitute-command-keys".
 Type \\[describe-distribution] for information on "))
-    (insert-button "getting the latest version"
-		   'action (lambda (_button) (describe-distribution))
-		   'follow-link t)
-    (insert ".")))
+  (insert-button "getting the latest version"
+		 'action (lambda (_button) (describe-distribution))
+		 'follow-link t)
+  (insert "."))
 
 (defun normal-about-screen ()
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n\n")
@@ -2027,14 +2001,11 @@ Type \\[describe-distribution] for information on "))
   (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
-  (cond ((daemonp)
-	 "Starting Emacs daemon.")
-	((eq (key-binding "\C-h\C-a") 'about-emacs)
-	 "For information about GNU Emacs and the GNU system, type C-h C-a.")
-	(t
-	 (substitute-command-keys
-	  "For information about GNU Emacs and the GNU system, type \
-\\[about-emacs]."))))
+  (if (daemonp)
+      "Starting Emacs daemon."
+    (substitute-command-keys
+     "For information about GNU Emacs and the GNU system, type \
+\\[about-emacs].")))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
