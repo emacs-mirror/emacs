@@ -457,7 +457,7 @@ Practicing Evaluation
 How To Write Function Definitions
 
 * Primitive Functions::
-* defun::                        The @code{defun} special form.
+* defun::                        The @code{defun} macro.
 * Install::                      Install a function definition.
 * Interactive::                  Making a function interactive.
 * Interactive Options::          Different options for @code{interactive}.
@@ -1618,11 +1618,16 @@ the symbol's value as a @dfn{variable}.  This situation is described
 in the section on variables.  (@xref{Variables}.)
 
 @cindex Special form
-The second complication occurs because some functions are unusual and do
-not work in the usual manner.  Those that don't are called @dfn{special
-forms}.  They are used for special jobs, like defining a function, and
-there are not many of them.  In the next few chapters, you will be
-introduced to several of the more important special forms.
+The second complication occurs because some functions are unusual and
+do not work in the usual manner.  Those that don't are called
+@dfn{special forms}.  They are used for special jobs, like defining a
+function, and there are not many of them.  In the next few chapters,
+you will be introduced to several of the more important special forms.
+And there are also @dfn{macros}.  Macro is a construct defined in
+Lisp, which differs from a function in that it translates a Lisp
+expression into another expression which is to be evaluated instead of
+the original expression.  (@xref{Lisp macro}.)
+
 
 The third and final complication is this: if the function that the
 Lisp interpreter is looking at is not a special form, and if it is part
@@ -9290,6 +9295,10 @@ it only sets the value of the variable if the variable does not already
 have a value.  If the variable already has a value, @code{defvar} does
 not override the existing value.  Second, @code{defvar} has a
 documentation string.
+
+(There is a related macro, @code{defcustom}, designed for variables
+that people customize.  It has more features than @code{defvar}.
+(@xref{defcustom, , Setting Variables with @code{defcustom}}.)
 
 @menu
 * See variable current value::
