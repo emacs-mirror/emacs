@@ -666,28 +666,20 @@ less than 8.
 This is an interactive specification, a string such as might be used
 as the argument of @code{interactive} in a Lisp function.  In the case
 of @code{or}, it is 0 (a null pointer), indicating that @code{or}
-cannot be called interactively.  A value of @code{""} indicates a function that should receive no
-arguments when called interactively.  For example:
-
-@smallexample
-@group
-DEFUN ("baz", Fbaz, Sbaz, 0, 0, "",
-       doc: /* @dots{} */)
-@end group
-@end smallexample
-
+cannot be called interactively.  A value of @code{""} indicates a
+function that should receive no arguments when called interactively.
 If the value begins with a @samp{"(}, the string is evaluated as a
 Lisp form.  For example:
 
-@smallexample
+@example
 @group
-DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED, "(list
-              (read-char-by-name \"Insert character (Unicode name or hex): \")\
+DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED,
+       "(list (read-char-by-name \"Insert character: \")\
               (prefix-numeric-value current-prefix-arg)\
               t))",
   doc: /* @dots{} /*)
 @end group
-@end smallexample
+@end example
 
 @item doc
 This is the documentation string.  It uses C comment syntax rather
