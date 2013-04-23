@@ -982,11 +982,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (setq args (append (list "-s" (tramp-file-name-host vec)) args)))
   (with-temp-buffer
     (prog1
-	(unless (zerop (apply 'call-process tramp-adb-program nil t nil args))
+	(unless
+	    (zerop (apply 'tramp-call-process tramp-adb-program nil t nil args))
 	  (buffer-string))
-      (tramp-message
-       vec 6 "%s %s\n%s"
-       tramp-adb-program (mapconcat 'identity args " ") (buffer-string)))))
+      (tramp-message vec 6 "%s" (buffer-string)))))
 
 (defun tramp-adb-find-test-command (vec)
   "Checks, whether the ash has a builtin \"test\" command.

@@ -1717,7 +1717,7 @@ Example:
 		       ;; Windows registry.
 		       (and (memq system-type '(cygwin windows-nt))
 			    (zerop
-			     (tramp-compat-call-process
+			     (tramp-call-process
 			      "reg" nil nil nil "query" (nth 1 (car v)))))
 		     ;; Configuration file.
 		     (file-exists-p (nth 1 (car v)))))
@@ -2769,7 +2769,7 @@ User may be nil."
 User is always nil."
   (if (memq system-type '(windows-nt))
       (with-temp-buffer
-	(when (zerop (tramp-compat-call-process
+	(when (zerop (tramp-call-process
 		      "reg" nil t nil "query" registry-or-dirname))
 	  (goto-char (point-min))
 	  (loop while (not (eobp)) collect
@@ -3896,6 +3896,24 @@ ALIST is of the form ((FROM . TO) ...)."
     string))
 
 ;;; Compatibility functions section:
+
+(defun tramp-call-process
+  (program &optional infile destination display &rest args)
+  "Calls `call-process' on the local host.
+This is needed because for some Emacs flavors Tramp has
+defadvised `call-process' to behave like `process-file'.  The
+Lisp error raised when PROGRAM is nil is trapped also, returning 1.
+Furthermore, traces are written with verbosity of 6."
+  (let ((default-directory
+	  (if (file-remote-p default-directory)
+	      (tramp-compat-temporary-file-directory)
+	    default-directory)))
+    (tramp-message
+     (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
+     6 "%s %s %s" program infile args)
+    (if (executable-find program)
+	(apply 'call-process program infile destination display args)
+      1)))
 
 ;;;###tramp-autoload
 (defun tramp-read-passwd (proc &optional prompt)

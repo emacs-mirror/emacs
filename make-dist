@@ -439,6 +439,9 @@ echo "Making links to \`lwlib'"
 
 echo "Making links to \`admin' and its subdirectories"
 for f in `find admin -type f`; do
+  case $f in
+    admin/unidata/Makefile) continue ;;
+  esac
   ln $f $tempdir/$f
 done
 

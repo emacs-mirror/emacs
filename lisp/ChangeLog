@@ -1,3 +1,55 @@
+2013-04-23  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex.el (reftex-compile-variables): Add autoload
+	cookie.
+
+	* textmodes/reftex-vars.el (reftex-label-regexps): Call
+	`reftex-compile-variables' after changes to this variable.
+
+2013-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el: Fix signals in jit-lock-force-redisplay.
+	Use lexical-binding.
+	(jit-lock-force-redisplay): Use markers, check buffer's continued
+	existence and beware narrowed buffers.
+	(jit-lock-fontify-now): Adjust call accordingly.
+
+2013-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-completion-contents): Fix obsolescence info
+	to avoid misleading the user.
+
+2013-04-22  Leo Liu  <sdl.web@gmail.com>
+
+	* info-look.el: Prefer latex2e.info.  (Bug#14240)
+
+2013-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix pack/unpack coding.  Reported by David Smith <davidsmith@acm.org>.
+
+	* net/tramp-compat.el (tramp-compat-call-process): Move function ...
+	* net/tramp.el (tramp-call-process): ... here
+	(tramp-set-completion-function, tramp-parse-putty):
+	* net/tramp-adb.el (tramp-adb-execute-adb-command):
+	* net/tramp-gvfs.el (tramp-gvfs-send-command):
+	* net/tramp-sh.el (tramp-sh-handle-set-file-times)
+	(tramp-set-file-uid-gid, tramp-sh-handle-write-region)
+	(tramp-call-local-coding-command): Use `tramp-call-process'
+	instead of `tramp-compat-call-process'.
+
+	* net/tramp-sh.el (tramp-perl-pack, tramp-perl-unpack): New defconst.
+	(tramp-local-coding-commands, tramp-remote-coding-commands): Use them.
+	(tramp-sh-handle-file-local-copy, tramp-sh-handle-write-region):
+	(tramp-find-inline-compress):Improve traces.
+	(tramp-maybe-send-script): Check for Perl binary.
+	(tramp-get-inline-coding): Do not redirect STDOUT for local decoding.
+
+2013-04-22  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg-context-pinentry-mode): New function.
+	(epg-context-set-pinentry-mode): New function.
+	(epg--start): Pass --pinentry-mode option to gpg command.
+
 2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* comint.el: (comint-dynamic-complete-functions, comint-mode-map):
@@ -53,7 +105,7 @@
 2013-04-19 Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/sh-script.el (sh-imenu-generic-expression):
-	Handle function names with a single character.   (Bug#11182)
+	Handle function names with a single character.   (Bug#14111)
 
 2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
 

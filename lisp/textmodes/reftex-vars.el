@@ -873,7 +873,14 @@ DOWNCASE    t:   Downcase words before using them."
 The default value matches usual \\label{...} definitions and
 keyval style [..., label = {...}, ...] label definitions.  It is
 assumed that the regexp group 1 matches the label text, so you
-have to define it using \\(?1:...\\) when adding new regexps."
+have to define it using \\(?1:...\\) when adding new regexps.
+
+When changed from Lisp, make sure to call
+`reftex-compile-variables' afterwards to make the change
+effective."
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (reftex-compile-variables))
   :group 'reftex-defining-label-environments
   :type '(repeat (regexp :tag "Regular Expression")))
 

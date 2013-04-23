@@ -1,3 +1,8 @@
+2013-04-23  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* emacs-lisp-intro.texi (Complications, defvar): Refine the doc
+	about Lisp macros. (http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00618.html)
+
 2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* emacs-lisp-intro.texi (defcustom, defun)
