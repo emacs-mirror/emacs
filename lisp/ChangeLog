@@ -1,3 +1,8 @@
+2013-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-completion-contents): Fix obsolescence info
+	to avoid misleading the user.
+
 2013-04-22  Leo Liu  <sdl.web@gmail.com>
 
 	* info-look.el: Prefer latex2e.info.  (Bug#14240)
