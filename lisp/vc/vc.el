@@ -2084,6 +2084,11 @@ Not all VC backends support short logs!")
 (defvar log-view-vc-fileset)
 
 (defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
+  "Insert at the end of the current buffer buttons to show more log entries.
+In the new log, leave point at WORKING-REVISION (if non-nil).
+LIMIT is the number of entries currently shown.
+Does nothing if IS-START-REVISION is non-nil, or if LIMIT is nil,
+or if PL-RETURN is 'limit-unsupported."
   (when (and limit (not (eq 'limit-unsupported pl-return))
 	     (not is-start-revision))
     (goto-char (point-max))
@@ -2104,6 +2109,17 @@ Not all VC backends support short logs!")
 
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit)
+  "For specified BACKEND and FILES, show the VC log.
+Leave point at WORKING-REVISION, if it is non-nil.
+If IS-START-REVISION is non-nil, start the log from WORKING-REVISION.
+Show up to LIMIT entries (non-nil means unlimited).
+\(IS-START-REVISION non-nil might not work correctly if LIMIT is not 1.)"
+  ;; The parenthetical remark is based on the commentary of vc.el for
+  ;; "print log": "At this point START-REVISION is only required to work
+  ;; in conjunction with LIMIT = 1."  The only thing that passes
+  ;; IS-START-REVISION non-nil is vc-annotate-show-log-revision-at-line,
+  ;; which sets LIMIT = 1.
+
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
@@ -2189,7 +2205,7 @@ WORKING-REVISION and LIMIT."
   (interactive
    (cond
     (current-prefix-arg
-     (let ((rev (read-from-minibuffer "Log from revision (default: last revision): " nil
+     (let ((rev (read-from-minibuffer "Leave point at revision (default: last revision): " nil
 				      nil nil nil))
 	   (lim (string-to-number
 		 (read-from-minibuffer

@@ -1,4 +1,4 @@
-;;; vc-dispatcher.el -- generic command-dispatcher facility.
+;;; vc-dispatcher.el -- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
@@ -182,32 +182,29 @@ Another is that undo information is not kept."
 
 (defvar vc-sentinel-movepoint)          ;Dynamically scoped.
 
-(defun vc-process-sentinel (p s)
-  (let ((previous (process-get p 'vc-previous-sentinel))
-        (buf (process-buffer p)))
+(defun vc--process-sentinel (p code)
+  (let ((buf (process-buffer p)))
     ;; Impatient users sometime kill "slow" buffers; check liveness
     ;; to avoid "error in process sentinel: Selecting deleted buffer".
     (when (buffer-live-p buf)
-      (when previous (funcall previous p s))
       (with-current-buffer buf
         (setq mode-line-process
               (let ((status (process-status p)))
                 ;; Leave mode-line uncluttered, normally.
                 (unless (eq 'exit status)
                   (format " (%s)" status))))
-        (let (vc-sentinel-movepoint)
+        (let (vc-sentinel-movepoint
+              (m (process-mark p)))
           ;; Normally, we want async code such as sentinels to not move point.
           (save-excursion
-            (goto-char (process-mark p))
-            (let ((cmds (process-get p 'vc-sentinel-commands)))
-              (process-put p 'vc-sentinel-commands nil)
-              (dolist (cmd cmds)
+            (goto-char m)
                 ;; Each sentinel may move point and the next one should be run
                 ;; at that new point.  We could get the same result by having
                 ;; each sentinel read&set process-mark, but since `cmd' needs
                 ;; to work both for async and sync processes, this would be
                 ;; difficult to achieve.
-                (vc-exec-after cmd))))
+            (vc-exec-after code)
+            (move-marker m (point)))
           ;; But sometimes the sentinels really want to move point.
           (when vc-sentinel-movepoint
 	    (let ((win (get-buffer-window (current-buffer) 0)))
@@ -226,7 +223,9 @@ Another is that undo information is not kept."
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
-Else, add CODE to the process' sentinel."
+Else, add CODE to the process' sentinel.
+CODE can be either a function of no arguments, or an expression
+to evaluate."
   (let ((proc (get-buffer-process (current-buffer))))
     (cond
      ;; If there's no background process, just execute the code.
@@ -237,20 +236,14 @@ Else, add CODE to the process' sentinel."
      ((or (null proc) (eq (process-status proc) 'exit))
       ;; Make sure we've read the process's output before going further.
       (when proc (accept-process-output proc))
-      (eval code))
+      (if (functionp code) (funcall code) (eval code)))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
       (vc-set-mode-line-busy-indicator)
-      (let ((previous (process-sentinel proc)))
-        (unless (eq previous 'vc-process-sentinel)
-          (process-put proc 'vc-previous-sentinel previous))
-        (set-process-sentinel proc 'vc-process-sentinel))
-      (process-put proc 'vc-sentinel-commands
-                   ;; We keep the code fragments in the order given
-                   ;; so that vc-diff-finish's message shows up in
-                   ;; the presence of non-nil vc-command-messages.
-                   (append (process-get proc 'vc-sentinel-commands)
-                           (list code))))
+      (letrec ((fun (lambda (p _msg)
+                      (remove-function (process-sentinel p) fun)
+                      (vc--process-sentinel p code))))
+        (add-function :after (process-sentinel proc) fun)))
      (t (error "Unexpected process state"))))
   nil)
 
@@ -388,6 +381,8 @@ Display the buffer in some window, but don't select it."
 	(set-window-start window new-window-start))
     buffer))
 
+(defvar compilation-error-regexp-alist)
+
 (defun vc-compilation-mode (backend)
   "Setup `compilation-mode' after with the appropriate `compilation-error-regexp-alist'."
   (let* ((error-regexp-alist
@@ -479,7 +474,7 @@ Used by `vc-restore-buffer-context' to later restore the context."
 			 (vc-position-context (mark-marker))))
 	;; Make the right thing happen in transient-mark-mode.
 	(mark-active nil))
-    (list point-context mark-context nil)))
+    (list point-context mark-context)))
 
 (defun vc-restore-buffer-context (context)
   "Restore point/mark, and reparse any affected compilation buffers.
@@ -517,6 +512,8 @@ ARG and NO-CONFIRM are passed on to `revert-buffer'."
 (defvar vc-mode-line-hook nil)
 (make-variable-buffer-local 'vc-mode-line-hook)
 (put 'vc-mode-line-hook 'permanent-local t)
+
+(defvar view-old-buffer-read-only)
 
 (defun vc-resynch-window (file &optional keep noquery reset-vc-info)
   "If FILE is in the current buffer, either revert or unvisit it.

@@ -562,14 +562,13 @@ Will fail unless you have administrative privileges on the repo."
 
 (defconst vc-cvs-annotate-first-line-re "^[0-9]")
 
-(defun vc-cvs-annotate-process-filter (process string)
+(defun vc-cvs-annotate-process-filter (filter process string)
   (setq string (concat (process-get process 'output) string))
   (if (not (string-match vc-cvs-annotate-first-line-re string))
       ;; Still waiting for the first real line.
       (process-put process 'output string)
-    (let ((vc-filter (process-get process 'vc-filter)))
-      (set-process-filter process vc-filter)
-      (funcall vc-filter process (substring string (match-beginning 0))))))
+    (remove-function (process-filter process) #'vc-cvs-annotate-process-filter)
+    (funcall filter process (substring string (match-beginning 0)))))
 
 (defun vc-cvs-annotate-command (file buffer &optional revision)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
@@ -583,9 +582,8 @@ Optional arg REVISION is a revision to annotate from."
   (let ((proc (get-buffer-process buffer)))
     (if proc
         ;; If running asynchronously, use a process filter.
-        (progn
-          (process-put proc 'vc-filter (process-filter proc))
-          (set-process-filter proc 'vc-cvs-annotate-process-filter))
+        (add-function :around (process-filter proc)
+                      #'vc-cvs-annotate-process-filter)
       (with-current-buffer buffer
         (goto-char (point-min))
         (re-search-forward vc-cvs-annotate-first-line-re)

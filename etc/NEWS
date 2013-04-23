@@ -75,6 +75,8 @@ Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
 
+** In compiled Lisp files, the header no longer includes a timestamp.
+
 
 * Editing Changes in Emacs 24.4
 

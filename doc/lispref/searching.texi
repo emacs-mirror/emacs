@@ -589,10 +589,8 @@ through @samp{f} and @samp{A} through @samp{F}.
 
   For the most part, @samp{\} followed by any character matches only
 that character.  However, there are several exceptions: certain
-two-character sequences starting with @samp{\} that have special
-meanings.  (The character after the @samp{\} in such a sequence is
-always ordinary when used on its own.)  Here is a table of the special
-@samp{\} constructs.
+sequences starting with @samp{\} that have special meanings.  Here is
+a table of the special @samp{\} constructs.
 
 @table @samp
 @item \|

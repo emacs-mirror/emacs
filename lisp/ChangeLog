@@ -1,7 +1,59 @@
+2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* comint.el: (comint-dynamic-complete-functions, comint-mode-map):
+	`comint-dynamic-complete' is obsolete since 24.1, replaced by
+	`completion-at-point'. (Bug#13774)
+
+	* startup.el (normal-no-mouse-startup-screen): Bug fix, the
+	default key binding for `describe-distribution' has been moved to
+	`C-h C-o'.  (Bug#13970)
+
+2013-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-print-log-setup-buttons, vc-print-log-internal):
+	Add doc strings.
+	(vc-print-log): Clarify interactive prompt.
+
+2013-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header):
+	No longer include timestamp etc information.
+
+2013-04-20  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Bug fix, return just one face if arg
+	multiple is nil.  (Bug#14209)
+
+2013-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--where-alist): Add :override.
+	(remove-function): Autoload.
+
+	* comint.el (comint-redirect-original-filter-function): Remove.
+	(comint-redirect-cleanup, comint-redirect-send-command-to-process):
+	* vc/vc-cvs.el (vc-cvs-annotate-process-filter,vc-cvs-annotate-command):
+	* progmodes/octave-inf.el (inferior-octave-send-list-and-digest):
+	* progmodes/prolog.el (prolog-consult-compile):
+	* progmodes/gdb-mi.el (gdb, gdb--check-interpreter):
+	Use add/remove-function instead.
+	* progmodes/gud.el (gud-tooltip-original-filter): Remove.
+	(gud-tooltip-process-output, gud-tooltip-tips):
+	Use add/remove-function instead.
+	* progmodes/xscheme.el (xscheme-previous-process-state): Remove.
+	(scheme-interaction-mode, exit-scheme-interaction-mode):
+	Use add/remove-function instead.
+
+	* vc/vc-dispatcher.el: Use lexical-binding.
+	(vc--process-sentinel): Rename from vc-process-sentinel.
+	Change last arg to be the code to run.  Don't use vc-previous-sentinel
+	and vc-sentinel-commands any more.
+	(vc-exec-after): Allow code to be a function.  Use add/remove-function.
+	(compilation-error-regexp-alist, view-old-buffer-read-only): Declare.
+
 2013-04-19 Masatake YAMATO  <yamato@redhat.com>
 
-	* progmodes/sh-script.el (sh-imenu-generic-expression): Handle
-	function names with a single character.   (Bug#11182)
+	* progmodes/sh-script.el (sh-imenu-generic-expression):
+	Handle function names with a single character.   (Bug#11182)
 
 2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
 

@@ -213,7 +213,7 @@ This mirrors the optional behavior of tcsh (its autoexpand and histlist).
 If the value is `input', then the expansion is seen on input.
 If the value is `history', then the expansion is only when inserting
 into the buffer's input ring.  See also `comint-magic-space' and
-`comint-dynamic-complete'.
+`completion-at-point'.
 
 This variable is buffer-local."
   :type '(choice (const :tag "off" nil)
@@ -371,7 +371,7 @@ text matching `comint-prompt-regexp', depending on the value of
   '(comint-c-a-p-replace-by-expanded-history comint-filename-completion)
   "List of functions called to perform completion.
 Works like `completion-at-point-functions'.
-See also `comint-dynamic-complete'.
+See also `completion-at-point'.
 
 This is a good thing to set in mode hooks.")
 
@@ -616,7 +616,7 @@ Input ring expansion is controlled by the variable `comint-input-autoexpand',
 and addition is controlled by the variable `comint-input-ignoredups'.
 
 Commands with no default key bindings include `send-invisible',
-`comint-dynamic-complete', `comint-dynamic-list-filename-completions', and
+`completion-at-point', `comint-dynamic-list-filename-completions', and
 `comint-magic-space'.
 
 Input to, and output from, the subprocess can cause the window to scroll to
@@ -2892,7 +2892,7 @@ its response can be seen."
 ;; Useful completion functions, courtesy of the Ergo group.
 
 ;; Six commands:
-;; comint-dynamic-complete		Complete or expand command, filename,
+;; completion-at-point		Complete or expand command, filename,
 ;;                                     history at point.
 ;; comint-dynamic-complete-filename	Complete filename at point.
 ;; comint-dynamic-list-filename-completions List completions in help buffer.
@@ -2901,7 +2901,7 @@ its response can be seen."
 
 ;; These are not installed in the comint-mode keymap.  But they are
 ;; available for people who want them.  Shell-mode installs them:
-;; (define-key shell-mode-map "\t" 'comint-dynamic-complete)
+;; (define-key shell-mode-map "\t" 'completion-at-point)
 ;; (define-key shell-mode-map "\M-?"
 ;;             'comint-dynamic-list-filename-completions)))
 ;;
@@ -3491,11 +3491,6 @@ buffer.  The idea is that this regular expression should match a prompt
 string, and that there ought to be at least one copy of your prompt string
 in the process buffer already.")
 
-(defvar comint-redirect-original-filter-function nil
-  "The process filter that was in place when redirection is started.
-When redirection is completed, the process filter is restored to
-this value.")
-
 (defvar comint-redirect-subvert-readonly nil
   "Non-nil means `comint-redirect' can insert into read-only buffers.
 This works by binding `inhibit-read-only' around the insertion.
@@ -3558,8 +3553,8 @@ and does not normally need to be invoked by the end user or programmer."
   ;; Release the last redirected string
   (setq comint-redirect-previous-input-string nil)
   ;; Restore the process filter
-  (set-process-filter (get-buffer-process (current-buffer))
-		      comint-redirect-original-filter-function)
+  (remove-function (process-filter (get-buffer-process (current-buffer)))
+                   #'comint-redirect-filter)
   ;; Restore the mode line
   (setq mode-line-process comint-redirect-original-mode-line-process)
   ;; Set the completed flag
@@ -3701,10 +3696,8 @@ If NO-DISPLAY is non-nil, do not show the output buffer."
        comint-prompt-regexp             ; Finished Regexp
        echo)                            ; Echo input
 
-      ;; Set the filter
-      (setq comint-redirect-original-filter-function ; Save the old filter
-	    (process-filter proc))
-      (set-process-filter proc 'comint-redirect-filter)
+      ;; Set the filter.
+      (add-function :override (process-filter proc) #'comint-redirect-filter)
 
       ;; Send the command
       (process-send-string (current-buffer) (concat command "\n"))
@@ -3812,7 +3805,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;;        (setq shell-mode-map (copy-keymap comint-mode-map))
 ;;        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
 ;;        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
-;;        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
+;;        (define-key shell-mode-map "\t" 'completion-at-point)
 ;;        (define-key shell-mode-map "\M-?"
 ;;          'comint-dynamic-list-filename-completions)))
 ;;

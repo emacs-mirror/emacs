@@ -1997,11 +1997,7 @@ Call from the source buffer."
       ;; >4	byte		x		version %d
       (insert
        ";ELC" 23 "\000\000\000\n"
-       ";;; Compiled by "
-       (or (and (boundp 'user-mail-address) user-mail-address)
-	   (concat (user-login-name) "@" (system-name)))
-       " on " (current-time-string) "\n"
-       ";;; from file " filename "\n"
+       ";;; Compiled\n"
        ";;; in Emacs version " emacs-version "\n"
        ";;; with"
        (cond

@@ -661,15 +661,33 @@ equivalent of @code{&rest}).  Both @code{UNEVALLED} and @code{MANY} are
 macros.  If @var{max} is a number, it must be more than @var{min} but
 less than 8.
 
+@cindex interactive specification in primitives
 @item interactive
-This is an interactive specification, a string such as might be used as
-the argument of @code{interactive} in a Lisp function.  In the case of
-@code{or}, it is 0 (a null pointer), indicating that @code{or} cannot be
-called interactively.  A value of @code{""} indicates a function that
-should receive no arguments when called interactively.  If the value
-begins with a @samp{(}, the string is evaluated as a Lisp form.
-For examples of the last two forms, see @code{widen} and
-@code{narrow-to-region} in @file{editfns.c}.
+This is an interactive specification, a string such as might be used
+as the argument of @code{interactive} in a Lisp function.  In the case
+of @code{or}, it is 0 (a null pointer), indicating that @code{or}
+cannot be called interactively.  A value of @code{""} indicates a function that should receive no
+arguments when called interactively.  For example:
+
+@smallexample
+@group
+DEFUN ("baz", Fbaz, Sbaz, 0, 0, "",
+       doc: /* @dots{} */)
+@end group
+@end smallexample
+
+If the value begins with a @samp{"(}, the string is evaluated as a
+Lisp form.  For example:
+
+@smallexample
+@group
+DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED, "(list
+              (read-char-by-name \"Insert character (Unicode name or hex): \")\
+              (prefix-numeric-value current-prefix-arg)\
+              t))",
+  doc: /* @dots{} /*)
+@end group
+@end smallexample
 
 @item doc
 This is the documentation string.  It uses C comment syntax rather

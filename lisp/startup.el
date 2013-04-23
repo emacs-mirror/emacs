@@ -1940,7 +1940,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
 
   (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-	   (eq (key-binding "\C-h\C-d") 'describe-distribution)
+	   (eq (key-binding "\C-h\C-o") 'describe-distribution)
 	   (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
       (progn
 	(insert
