@@ -1,3 +1,8 @@
+2013-04-23  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-label-regexps): Call
+	`reftex-compile-variables' after changes to this variable.
+
 2013-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el: Fix signals in jit-lock-force-redisplay.
