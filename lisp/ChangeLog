@@ -1,3 +1,12 @@
+2013-04-24  Reuben Thomas <rrt@sc3d.org>
+
+	* textmodes/remember.el (remember-handler-functions): Add an
+	option for a new handler `remember-store-in-files'.
+	(remember-data-directory, remember-directory-file-name-format):
+	New options.
+	(remember-store-in-files): New function to store remember notes
+	as separate files within a directory.
+
 2013-04-24  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* progmodes/compile.el (compilation-next-error-function):
