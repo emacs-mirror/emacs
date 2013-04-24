@@ -1,3 +1,246 @@
+2013-04-24  Reuben Thomas <rrt@sc3d.org>
+
+	* textmodes/remember.el (remember-handler-functions): Add an
+	option for a new handler `remember-store-in-files'.
+	(remember-data-directory, remember-directory-file-name-format):
+	New options.
+	(remember-store-in-files): New function to store remember notes
+	as separate files within a directory.
+
+2013-04-24  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* progmodes/compile.el (compilation-next-error-function):
+	Pass "formats" to compilation-find-file (bug#11777).
+
+2013-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-print-log):
+	* vc/vc-hg.el (vc-hg-print-log):
+	* vc/vc-svn.el (vc-svn-print-log):
+	Fix START-REVISION with LIMIT != 1.  (Bug#14168)
+
+	* vc/vc-bzr.el (vc-bzr-print-log):
+	* vc/vc-cvs.el (vc-cvs-print-log):
+	* vc/vc-git.el (vc-git-print-log):
+	* vc/vc-hg.el (vc-hg-print-log):
+	* vc/vc-mtn.el (vc-mtn-print-log):
+	* vc/vc-rcs.el (vc-rcs-print-log):
+	* vc/vc-sccs.el (vc-sccs-print-log):
+	* vc/vc-svn.el (vc-svn-print-log):
+	* vc/vc.el (vc-print-log-internal): Doc fixes.
+
+2013-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (normal-no-mouse-startup-screen, normal-about-screen):
+	Remove venerable code attempting to avoid substitute-command-keys.
+
+2013-04-23  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-label-regexps):
+	Call `reftex-compile-variables' after changes to this variable.
+
+2013-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el: Fix signals in jit-lock-force-redisplay (bug#13542).
+	Use lexical-binding.
+	(jit-lock-force-redisplay): Use markers, check buffer's continued
+	existence and beware narrowed buffers.
+	(jit-lock-fontify-now): Adjust call accordingly.
+
+2013-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-completion-contents): Fix obsolescence info
+	to avoid misleading the user.
+
+2013-04-22  Leo Liu  <sdl.web@gmail.com>
+
+	* info-look.el: Prefer latex2e.info.  (Bug#14240)
+
+2013-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix pack/unpack coding.  Reported by David Smith <davidsmith@acm.org>.
+
+	* net/tramp-compat.el (tramp-compat-call-process): Move function ...
+	* net/tramp.el (tramp-call-process): ... here
+	(tramp-set-completion-function, tramp-parse-putty):
+	* net/tramp-adb.el (tramp-adb-execute-adb-command):
+	* net/tramp-gvfs.el (tramp-gvfs-send-command):
+	* net/tramp-sh.el (tramp-sh-handle-set-file-times)
+	(tramp-set-file-uid-gid, tramp-sh-handle-write-region)
+	(tramp-call-local-coding-command): Use `tramp-call-process'
+	instead of `tramp-compat-call-process'.
+
+	* net/tramp-sh.el (tramp-perl-pack, tramp-perl-unpack): New defconst.
+	(tramp-local-coding-commands, tramp-remote-coding-commands): Use them.
+	(tramp-sh-handle-file-local-copy, tramp-sh-handle-write-region):
+	(tramp-find-inline-compress):Improve traces.
+	(tramp-maybe-send-script): Check for Perl binary.
+	(tramp-get-inline-coding): Do not redirect STDOUT for local decoding.
+
+2013-04-22  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg-context-pinentry-mode): New function.
+	(epg-context-set-pinentry-mode): New function.
+	(epg--start): Pass --pinentry-mode option to gpg command.
+
+2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* comint.el: (comint-dynamic-complete-functions, comint-mode-map):
+	`comint-dynamic-complete' is obsolete since 24.1, replaced by
+	`completion-at-point'. (Bug#13774)
+
+	* startup.el (normal-no-mouse-startup-screen): Bug fix, the
+	default key binding for `describe-distribution' has been moved to
+	`C-h C-o'.  (Bug#13970)
+
+2013-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-print-log-setup-buttons, vc-print-log-internal):
+	Add doc strings.
+	(vc-print-log): Clarify interactive prompt.
+
+2013-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header):
+	No longer include timestamp etc information.
+
+2013-04-20  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Bug fix, return just one face if arg
+	multiple is nil.  (Bug#14209)
+
+2013-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--where-alist): Add :override.
+	(remove-function): Autoload.
+
+	* comint.el (comint-redirect-original-filter-function): Remove.
+	(comint-redirect-cleanup, comint-redirect-send-command-to-process):
+	* vc/vc-cvs.el (vc-cvs-annotate-process-filter,vc-cvs-annotate-command):
+	* progmodes/octave-inf.el (inferior-octave-send-list-and-digest):
+	* progmodes/prolog.el (prolog-consult-compile):
+	* progmodes/gdb-mi.el (gdb, gdb--check-interpreter):
+	Use add/remove-function instead.
+	* progmodes/gud.el (gud-tooltip-original-filter): Remove.
+	(gud-tooltip-process-output, gud-tooltip-tips):
+	Use add/remove-function instead.
+	* progmodes/xscheme.el (xscheme-previous-process-state): Remove.
+	(scheme-interaction-mode, exit-scheme-interaction-mode):
+	Use add/remove-function instead.
+
+	* vc/vc-dispatcher.el: Use lexical-binding.
+	(vc--process-sentinel): Rename from vc-process-sentinel.
+	Change last arg to be the code to run.  Don't use vc-previous-sentinel
+	and vc-sentinel-commands any more.
+	(vc-exec-after): Allow code to be a function.  Use add/remove-function.
+	(compilation-error-regexp-alist, view-old-buffer-read-only): Declare.
+
+2013-04-19 Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression):
+	Handle function names with a single character.   (Bug#14111)
+
+2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
+
+	* progmodes/gud.el (gud-perldb-marker-filter): Understand position info
+	for subroutines defined in an eval (bug#14182).
+
+2013-04-19  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* bookmark.el (bookmark-completing-read): Improve handling of empty
+	string (bug#14176).
+
+2013-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-dispatcher.el (vc-do-command): Get rid of default sentinel msg.
+
+2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	New faster Imenu implementation (bug#14058).
+	* progmodes/python.el:
+	(python-imenu-prev-index-position):
+	(python-imenu-format-item-label-function)
+	(python-imenu-format-parent-item-label-function)
+	(python-imenu-format-parent-item-jump-label-function):
+	New vars.
+	(python-imenu-format-item-label)
+	(python-imenu-format-parent-item-label)
+	(python-imenu-format-parent-item-jump-label)
+	(python-imenu--put-parent, python-imenu--build-tree)
+	(python-imenu-create-index, python-imenu-create-flat-index)
+	(python-util-popn): New functions.
+	(python-mode): Set imenu-create-index-function to
+	python-imenu-create-index.
+
+2013-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* winner.el (winner-active-region): Use region-active-p, activate-mark
+	and deactivate-mark (bug#14225).
+
+	* simple.el (deactivate-mark): Don't inline it.
+
+2013-04-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Add "TMOUT=0".
+
+2013-04-18  Tassilo Horn  <tsdh@gnu.org>
+
+	* files.el (auto-mode-alist): Delete OpenDocument and StarOffice
+	file extensions from the archive-mode entry in order to prefer
+	doc-view-mode-maybe with archive-mode as fallback (bug#14188).
+
+2013-04-18  Leo Liu  <sdl.web@gmail.com>
+
+	* bindings.el (help-event-list): Add ?\?.
+
+2013-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-wrapper-hook): Declare obsolete.
+	* simple.el (filter-buffer-substring-function): New hook.
+	(filter-buffer-substring): Use it.
+	(filter-buffer-substring-functions): Mark obsolete.
+	* minibuffer.el (completion-in-region-function): New hook.
+	(completion-in-region): Use it.
+	(completion-in-region-functions): Mark obsolete.
+	* mail/mailabbrev.el (mail-abbrevs-setup): Use abbrev-expand-function.
+	* abbrev.el (abbrev-expand-function): New hook.
+	(expand-abbrev): Use it.
+	(abbrev-expand-functions): Mark obsolete.
+	* emacs-lisp/nadvice.el (advice--where-alist): Add :filter-args
+	and :filter-return.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-nav--syntactically): Fix cornercases
+	and do not care about match data.
+
+2013-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Provide specialized
+	completion tables when completing error conditions and
+	`declare' arguments.
+	(lisp-complete-symbol, field-complete): Mark as obsolete.
+	(check-parens): Unmatched parens are user errors.
+	* minibuffer.el (minibuffer-completion-contents): Mark as obsolete.
+
+2013-04-17  Michal Nazarewicz  <mina86@mina86.com>
+
+	* textmodes/flyspell.el (flyspell-check-pre-word-p): Return nil if
+	command changed buffer (ie. `flyspell-pre-buffer' is not current
+	buffer), which prevents making decisions based on invalid value of
+	`flyspell-pre-point' in the wrong buffer.  Most notably, this used to
+	cause an error when `flyspell-pre-point' was nil after switching
+	buffers.
+	(flyspell-post-command-hook): No longer needs to change buffers when
+	checking pre-word.  While at it remove unnecessary progn.
+
+2013-04-17  Nicolas Richard  <theonewiththeevillook@yahoo.fr>  (tiny change)
+
+	* textmodes/ispell.el (ispell-add-per-file-word-list):
+	Fix `flyspell-correct-word-before-point' error when accepting
+	words and `coment-padding' is an integer by using
+	`comment-normalize-vars' (Bug #14214).
+
 2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	New defun movement commands.

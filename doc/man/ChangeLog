@@ -1,3 +1,7 @@
+2013-04-20  Petr Hracek  <phracek@redhat.com>  (tiny change)
+
+	* emacs.1: Add some more command-line options.  (Bug#14165)
+
 2012-12-02  Kevin Ryde  <user42@zip.com.au>
 
 	* etags.1: Mention effect of --declarations in Lisp.

@@ -350,7 +350,8 @@ revert all subfiles."
 ;;;
 
 (defun vc-sccs-print-log (files buffer &optional shortlog start-revision-ignored limit)
-  "Get change log associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored."
   (setq files (vc-expand-dirs files))
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files))
   (when limit 'limit-unsupported))

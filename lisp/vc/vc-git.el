@@ -732,9 +732,11 @@ This prompts for a branch to merge from."
 ;;; HISTORY FUNCTIONS
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log associated with FILES.
-Note that using SHORTLOG requires at least Git version 1.5.6,
-for the --graph option."
+  "Print commit log associated with FILES into specified BUFFER.
+If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
+\(This requires at least Git version 1.5.6, for the --graph option.)
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   (let ((coding-system-for-read vc-git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.

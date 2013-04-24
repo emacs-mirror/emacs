@@ -49,8 +49,8 @@ else
 ;; no-byte-compile: t
 ;; End:" > subdirs.el~
   if cmp "subdirs.el" "subdirs.el~" >/dev/null 2>&1; then
-    :; # echo "subdirs.el unchanged";
+    rm subdirs.el~
   else
-  mv subdirs.el~ subdirs.el
+    mv subdirs.el~ subdirs.el
   fi
 fi

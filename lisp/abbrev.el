@@ -532,7 +532,7 @@ This is the first thing that `expand-abbrev' does, and so this may change
 the current abbrev table before abbrev lookup happens."
   :type 'hook
   :group 'abbrev-mode)
-(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-functions "23.1")
+(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-function "23.1")
 
 (defun clear-abbrev-table (table)
   "Undefine all abbrevs in abbrev table TABLE, leaving it empty."
@@ -832,10 +832,12 @@ see `define-abbrev' for details."
     value))
 
 (defvar abbrev-expand-functions nil
-  "Wrapper hook around `expand-abbrev'.
-The functions on this special hook are called with one argument:
-a function that performs the abbrev expansion.  It should return
-the abbrev symbol if expansion took place.")
+  "Wrapper hook around `expand-abbrev'.")
+(make-obsolete-variable 'abbrev-expand-functions 'abbrev-expand-function "24.4")
+
+(defvar abbrev-expand-function #'abbrev--default-expand
+  "Function to perform abbrev expansion.
+Takes no argument and should return the abbrev symbol if expansion took place.")
 
 (defun expand-abbrev ()
   "Expand the abbrev before point, if there is an abbrev there.
@@ -844,6 +846,9 @@ Returns the abbrev symbol, if expansion took place.  (The actual
 return value is that of `abbrev-insert'.)"
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
+  (funcall abbrev-expand-function))
+
+(defun abbrev--default-expand ()
   (with-wrapper-hook abbrev-expand-functions ()
     (pcase-let ((`(,sym ,name ,wordstart ,wordend) (abbrev--before-point)))
       (when sym

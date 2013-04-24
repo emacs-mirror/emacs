@@ -427,8 +427,8 @@ just return it."
   "Prompting with PROMPT, read a bookmark name in completion.
 PROMPT will get a \": \" stuck on the end no matter what, so you
 probably don't want to include one yourself.
-Optional second arg DEFAULT is a string to return if the user enters
-the empty string."
+Optional arg DEFAULT is a string to return if the user input is empty.
+If DEFAULT is nil then return empty string for empty input."
   (bookmark-maybe-load-default-file) ; paranoia
   (if (listp last-nonmenu-event)
       (bookmark-menu-popup-paned-menu t prompt
@@ -437,22 +437,17 @@ the empty string."
 						'string-lessp)
 					(bookmark-all-names)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
-	   (default default)
+           (default (unless (equal "" default) default))
 	   (prompt (concat prompt (if default
                                       (format " (%s): " default)
-                                    ": ")))
-	   (str
-	    (completing-read prompt
-			     (lambda (string pred action)
-                               (if (eq action 'metadata)
-                                   '(metadata (category . bookmark))
-                                 (complete-with-action
-                                  action bookmark-alist string pred)))
-			     nil
-			     0
-			     nil
-			     'bookmark-history)))
-      (if (string-equal "" str) default str))))
+                                    ": "))))
+      (completing-read prompt
+                       (lambda (string pred action)
+                         (if (eq action 'metadata)
+                             '(metadata (category . bookmark))
+                             (complete-with-action
+                              action bookmark-alist string pred)))
+                       nil 0 nil 'bookmark-history default))))
 
 
 (defmacro bookmark-maybe-historicize-string (string)

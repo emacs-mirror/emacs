@@ -494,7 +494,10 @@ or svn+ssh://."
   (set (make-local-variable 'log-view-per-file-logs) nil))
 
 (defun vc-svn-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log(s) associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+SHORTLOG is ignored.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   (save-current-buffer
     (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
@@ -512,7 +515,7 @@ or svn+ssh://."
 		   (append
 		    (list
 		     (if start-revision
-			 (format "-r%s" start-revision)
+			 (format "-r%s:1" start-revision)
 		       ;; By default Subversion only shows the log up to the
 		       ;; working revision, whereas we also want the log of the
 		       ;; subsequent commits.  At least that's what the

@@ -25,6 +25,8 @@ version=@version@
 buildinfodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
+# Directory with emacsver.texi.
+emacsdir =  $(srcdir)/../emacs
 
 MKDIR_P = @MKDIR_P@
 
@@ -33,17 +35,18 @@ INFO_EXT=@INFO_EXT@
 INFO_OPTS=@INFO_OPTS@
 
 MAKEINFO = @MAKEINFO@
-MAKEINFO_OPTS = --force -I $(srcdir)
+MAKEINFO_OPTS = --force -I $(emacsdir) -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(emacsdir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 mkinfodir = @${MKDIR_P} ${buildinfodir}
 
-srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi
+srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi \
+  ${emacsdir}/emacsver.texi
 
 .PHONY: info dvi html pdf ps
 
@@ -97,9 +100,10 @@ dist:
 	rm -rf emacs-lispintro-${version}
 	mkdir emacs-lispintro-${version}
 	cp ${srcdir}/*.texi ${srcdir}/*.eps ${srcdir}/*.pdf \
-	  ${texinfodir}/texinfo.tex \
+	  ${texinfodir}/texinfo.tex ${emacsdir}/emacsver.texi \
 	  ${srcdir}/ChangeLog* ${srcdir}/README emacs-lispintro-${version}/
 	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
+	  -e 's/^\(emacsdir *=\).*/\1 ./' \
 	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \

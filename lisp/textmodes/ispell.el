@@ -4336,8 +4336,13 @@ Both should not be used to define a buffer-local dictionary."
                                   (if (fboundp 'comment-padright)
                                       ;; Try and use the proper comment marker,
                                       ;; e.g. ";;" rather than ";".
-                                      (comment-padright comment-start
-                                                        (comment-add nil))
+				      (progn
+					;; XEmacs: comment-normalize-vars
+					;; (newcomment.el) only in >= 21.5
+					(and (fboundp 'comment-normalize-vars)
+					     (comment-normalize-vars))
+					(comment-padright comment-start
+							  (comment-add nil)))
                                     comment-start)
                                   " ")
                               "")

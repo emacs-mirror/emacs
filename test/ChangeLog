@@ -1,3 +1,20 @@
+2013-04-01  Masatake YAMATO  <yamato@redhat.com>
+
+	* automated/imenu-tests.el: New file.  (Bug#14112)
+
+2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-prev-index-position-1):
+	Removed test.
+	(python-imenu-create-index-1, python-imenu-create-flat-index-1):
+	New tests.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-nav-backward-defun-2)
+	(python-nav-backward-defun-3, python-nav-forward-defun-2)
+	(python-nav-forward-defun-3): New tests.
+
 2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-nav-backward-defun-1)

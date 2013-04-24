@@ -979,9 +979,8 @@ if the user entered more than one face name, return only the first one."
       ;; (for example, because DEFAULT was "all faces")
       (if (facep face) (push (intern face) faces)))
     ;; Return either a list of faces or just one face.
-    (if multiple
-        (nreverse faces)
-      (last faces))))
+    (setq faces (nreverse faces))
+    (if multiple faces (car faces))))
 
 ;; Not defined without X, but behind window-system test.
 (defvar x-bitmap-file-path)

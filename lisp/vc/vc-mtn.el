@@ -202,6 +202,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;   )
 
 (defun vc-mtn-print-log (files buffer &optional _shortlog start-revision limit)
+  "Print commit logs associated with FILES into specified BUFFER.
+_SHORTLOG is ignored.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   (apply 'vc-mtn-command buffer 0 files "log"
 	 (append
 	  (when start-revision (list "--from" (format "%s" start-revision)))

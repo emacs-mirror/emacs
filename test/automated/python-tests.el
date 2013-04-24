@@ -718,6 +718,60 @@ class A(object): # A
               (python-tests-look-at "class A(object): # A" -1)))
    (should (not (python-nav-backward-defun)))))
 
+(ert-deftest python-nav-backward-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def decoratorFunctionWithArguments(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decoratorFunctionWithArguments('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wwrap(f):
+        print 'Inside wwrap()'
+        def wrapped_f(*args):
+            print 'Inside wrapped_f()'
+            print 'Decorator arguments:', arg1, arg2, arg3
+            f(*args)
+            print 'After f(*args)'
+        return wrapped_f
+    return wwrap
+"
+   (goto-char (point-max))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "        def wrapped_f(*args):" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "    def wwrap(f):" -1)))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "def decoratorFunctionWithArguments(arg1, arg2, arg3):" -1)))
+   (should (not (python-nav-backward-defun)))))
+
+(ert-deftest python-nav-backward-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+'''
+    def u(self):
+        pass
+
+    def v(self):
+        pass
+
+    def w(self):
+        pass
+'''
+
+class A(object):
+    pass
+"
+   (goto-char (point-min))
+   (let ((point (python-tests-look-at "class A(object):")))
+     (should (not (python-nav-backward-defun)))
+     (should (= point (point))))))
+
 (ert-deftest python-nav-forward-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -761,6 +815,60 @@ class A(object): # A
    (should (= (save-excursion (python-nav-forward-defun))
               (python-tests-look-at "(self): # c")))
    (should (not (python-nav-forward-defun)))))
+
+(ert-deftest python-nav-forward-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def decoratorFunctionWithArguments(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decoratorFunctionWithArguments('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wwrap(f):
+        print 'Inside wwrap()'
+        def wrapped_f(*args):
+            print 'Inside wrapped_f()'
+            print 'Decorator arguments:', arg1, arg2, arg3
+            f(*args)
+            print 'After f(*args)'
+        return wrapped_f
+    return wwrap
+"
+   (goto-char (point-min))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(arg1, arg2, arg3):")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(f):")))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "(*args):")))
+   (should (not (python-nav-forward-defun)))))
+
+(ert-deftest python-nav-forward-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+class A(object):
+    pass
+
+'''
+    def u(self):
+        pass
+
+    def v(self):
+        pass
+
+    def w(self):
+        pass
+'''
+"
+   (goto-char (point-min))
+   (let ((point (python-tests-look-at "(object):")))
+     (should (not (python-nav-forward-defun)))
+     (should (= point (point))))))
 
 (ert-deftest python-nav-beginning-of-statement-1 ()
   (python-tests-with-temp-buffer
@@ -1565,66 +1673,133 @@ Using `python-shell-interpreter' and
 
 
 ;;; Imenu
-(ert-deftest python-imenu-prev-index-position-1 ()
-  (require 'imenu)
+
+(ert-deftest python-imenu-create-index-1 ()
   (python-tests-with-temp-buffer
    "
-def decoratorFunctionWithArguments(arg1, arg2, arg3):
+class Foo(models.Model):
+    pass
+
+
+class Bar(models.Model):
+    pass
+
+
+def decorator(arg1, arg2, arg3):
     '''print decorated function call data to stdout.
 
     Usage:
 
-    @decoratorFunctionWithArguments('arg1', 'arg2')
+    @decorator('arg1', 'arg2')
     def func(a, b, c=True):
         pass
     '''
 
-    def wwrap(f):
-        print 'Inside wwrap()'
+    def wrap(f):
+        print ('wrap')
         def wrapped_f(*args):
-            print 'Inside wrapped_f()'
-            print 'Decorator arguments:', arg1, arg2, arg3
+            print ('wrapped_f')
+            print ('Decorator arguments:', arg1, arg2, arg3)
             f(*args)
-            print 'After f(*args)'
+            print ('called f(*args)')
         return wrapped_f
-    return wwrap
+    return wrap
 
-def test(): # Some comment
-    'This is a test function'
-    print 'test'
 
-class C(object):
+class Baz(object):
 
-    def m(self):
-        self.c()
-
-        def b():
-            pass
-
-        def a():
-            pass
-
-    def c(self):
+    def a(self):
         pass
+
+    def b(self):
+        pass
+
+    class Frob(object):
+
+        def c(self):
+            pass
 "
-   (let ((expected
-          '(("*Rescan*" . -99)
-            ("decoratorFunctionWithArguments" . 2)
-            ("decoratorFunctionWithArguments.wwrap" . 224)
-            ("decoratorFunctionWithArguments.wwrap.wrapped_f" . 273)
-            ("test" . 500)
-            ("C" . 575)
-            ("C.m" . 593)
-            ("C.m.b" . 628)
-            ("C.m.a" . 663)
-            ("C.c" . 698))))
-     (mapc
-      (lambda (elt)
-        (should (= (cdr (assoc-string (car elt) expected))
-                   (if (markerp (cdr elt))
-                       (marker-position (cdr elt))
-                     (cdr elt)))))
-      (imenu--make-index-alist)))))
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (cons "Foo (class)" (copy-marker 2))
+             (cons "Bar (class)" (copy-marker 38))
+             (list
+              "decorator (def)"
+              (cons "*function definition*" (copy-marker 74))
+              (list
+               "wrap (def)"
+               (cons "*function definition*" (copy-marker 254))
+               (cons "wrapped_f (def)" (copy-marker 294))))
+             (list
+              "Baz (class)"
+              (cons "*class definition*" (copy-marker 519))
+              (cons "a (def)" (copy-marker 539))
+              (cons "b (def)" (copy-marker 570))
+              (list
+               "Frob (class)"
+               (cons "*class definition*" (copy-marker 601))
+               (cons "c (def)" (copy-marker 626)))))
+            (python-imenu-create-index)))))
+
+(ert-deftest python-imenu-create-flat-index-1 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(models.Model):
+    pass
+
+
+class Bar(models.Model):
+    pass
+
+
+def decorator(arg1, arg2, arg3):
+    '''print decorated function call data to stdout.
+
+    Usage:
+
+    @decorator('arg1', 'arg2')
+    def func(a, b, c=True):
+        pass
+    '''
+
+    def wrap(f):
+        print ('wrap')
+        def wrapped_f(*args):
+            print ('wrapped_f')
+            print ('Decorator arguments:', arg1, arg2, arg3)
+            f(*args)
+            print ('called f(*args)')
+        return wrapped_f
+    return wrap
+
+
+class Baz(object):
+
+    def a(self):
+        pass
+
+    def b(self):
+        pass
+
+    class Frob(object):
+
+        def c(self):
+            pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list (cons "Foo" (copy-marker 2))
+                  (cons "Bar" (copy-marker 38))
+                  (cons "decorator" (copy-marker 74))
+                  (cons "decorator.wrap" (copy-marker 254))
+                  (cons "decorator.wrap.wrapped_f" (copy-marker 294))
+                  (cons "Baz" (copy-marker 519))
+                  (cons "Baz.a" (copy-marker 539))
+                  (cons "Baz.b" (copy-marker 570))
+                  (cons "Baz.Frob" (copy-marker 601))
+                  (cons "Baz.Frob.c" (copy-marker 626)))
+            (python-imenu-create-flat-index)))))
 
 
 ;;; Misc helpers

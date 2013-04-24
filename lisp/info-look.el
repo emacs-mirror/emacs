@@ -881,8 +881,11 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'latex-mode
  :regexp "\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)"
- :doc-spec '(("(latex)Command Index" nil
-	      "`" "\\({[^}]*}\\)?'")))
+ :doc-spec `((,(if (Info-find-file "latex2e" t)
+		   ;; From http://home.gna.org/latexrefman
+		   "(latex2e)Command Index"
+		 "(latex)Command Index")
+	      nil "`" "\\({[^}]*}\\)?'")))
 
 (info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode

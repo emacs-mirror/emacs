@@ -1487,14 +1487,38 @@ into one that invokes an Emacs-enabled debugging session.
   (let ((output ""))
 
     ;; Process all the complete markers in this chunk.
-    (while (string-match "\032\032\\(\\([a-zA-Z]:\\)?[^:\n]*\\):\\([0-9]*\\):.*\n"
-			 gud-marker-acc)
+    ;;
+    ;; Here I match the string coming out of perldb.
+    ;; The strings can look like any of
+    ;;
+    ;;  "\032\032/tmp/tst.pl:6:0\n"
+    ;;  "\032\032(eval 5)[/tmp/tst.pl:6]:3:0\n"
+    ;;  "\032\032(eval 17)[Basic/Core/Core.pm.PL (i.e. PDL::Core.pm):2931]:1:0\n"
+    ;;
+    ;; From those I want the filename and the line number.  First I look for
+    ;; the eval case.  If that doesn't match, I look for the "normal" case.
+    (while
+        (string-match
+         (eval-when-compile
+           (let ((file-re "\\(?:[a-zA-Z]:\\)?[^:\n]*"))
+             (concat "\032\032\\(?:"
+                     (concat
+                      "(eval [0-9]+)\\["
+                      "\\(" file-re "\\)" ; Filename.
+                      "\\(?: (i\\.e\\. [^)]*)\\)?"
+                      ":\\([0-9]*\\)\\]") ; Line number.
+                     "\\|"
+                     (concat
+                      "\\(?1:" file-re "\\)" ; Filename.
+                      ":\\(?2:[0-9]*\\)")    ; Line number.
+                     "\\):.*\n")))
+         gud-marker-acc)
       (setq
 
        ;; Extract the frame position from the marker.
        gud-last-frame
        (cons (match-string 1 gud-marker-acc)
-	     (string-to-number (match-string 3 gud-marker-acc)))
+	     (string-to-number (match-string 2 gud-marker-acc)))
 
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
@@ -3363,9 +3387,6 @@ ACTIVATEP non-nil means activate mouse motion events."
 
 ;;; Tips for `gud'
 
-(defvar gud-tooltip-original-filter nil
-  "Process filter to restore after GUD output has been received.")
-
 (defvar gud-tooltip-dereference nil
   "Non-nil means print expressions with a `*' in front of them.
 For C this would dereference a pointer expression.")
@@ -3399,7 +3420,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 ; gdb-mi.el gets round this problem.
 (defun gud-tooltip-process-output (process output)
   "Process debugger output and show it in a tooltip window."
-  (set-process-filter process gud-tooltip-original-filter)
+  (remove-function (process-filter process) #'gud-tooltip-process-output)
   (tooltip-show (tooltip-strip-prompt process output)
 		(or gud-tooltip-echo-area tooltip-use-echo-area)))
 
@@ -3466,8 +3487,8 @@ so they have been disabled."))
                       (gdb-input
 		       (concat cmd "\n")
 		       `(lambda () (gdb-tooltip-print ,expr))))
-		  (setq gud-tooltip-original-filter (process-filter process))
-		  (set-process-filter process 'gud-tooltip-process-output)
+                  (add-function :override (process-filter process)
+                                #'gud-tooltip-process-output)
 		  (gud-basic-call cmd))
 		expr))))))))
 

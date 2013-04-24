@@ -675,7 +675,7 @@ language you are using."
 (garbage-collect)
 
 
-(setq help-event-list '(help f1))
+(setq help-event-list '(help f1 ?\?))
 
 (make-variable-buffer-local 'minor-mode-overriding-map-alist)
 

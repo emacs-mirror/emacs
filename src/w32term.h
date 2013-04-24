@@ -71,6 +71,8 @@ struct w32_palette_entry {
 };
 
 extern void w32_regenerate_palette (struct frame *f);
+extern void w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal,
+                                 RECT *rect);
 
 
 /* For each display (currently only one on w32), we have a structure that
@@ -362,7 +364,7 @@ struct w32_output
   /* Frame geometry and full-screen mode before it was resized by
      specifying the 'fullscreen' frame parameter.  Used to restore the
      geometry when 'fullscreen' is reset to nil.  */
-  int normal_width, normal_height, normal_top, normal_left;
+  WINDOWPLACEMENT normal_placement;
   int prev_fsmode;
 };
 
@@ -396,11 +398,8 @@ extern struct w32_output w32term_display;
 #define FRAME_SMALLEST_FONT_HEIGHT(F) \
      FRAME_W32_DISPLAY_INFO(F)->smallest_font_height
 
-#define FRAME_NORMAL_WIDTH(F)  ((F)->output_data.w32->normal_width)
-#define FRAME_NORMAL_HEIGHT(F) ((F)->output_data.w32->normal_height)
-#define FRAME_NORMAL_TOP(F)    ((F)->output_data.w32->normal_top)
-#define FRAME_NORMAL_LEFT(F)   ((F)->output_data.w32->normal_left)
-#define FRAME_PREV_FSMODE(F)   ((F)->output_data.w32->prev_fsmode)
+#define FRAME_NORMAL_PLACEMENT(F) ((F)->output_data.w32->normal_placement)
+#define FRAME_PREV_FSMODE(F)      ((F)->output_data.w32->prev_fsmode)
 
 
 /* W32-specific scroll bar stuff.  */
