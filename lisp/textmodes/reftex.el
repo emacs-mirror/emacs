@@ -811,7 +811,6 @@ This enforces rescanning the buffer on next use."
      (reftex-kill-buffer (reftex-make-index-buffer-name tag)))
    (cdr (assoc 'index-tags (symbol-value reftex-docstruct-symbol)))))
 
-;;;###autoload
 (defun reftex-compile-variables ()
   ;; Compile the information in reftex-label-alist & Co.
 

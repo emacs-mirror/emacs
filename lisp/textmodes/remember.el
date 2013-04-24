@@ -216,10 +216,11 @@ All functions are run in the remember buffer."
 Each function is called with the current buffer narrowed to what the
 user wants remembered.
 If any function returns non-nil, the data is assumed to have been
-recorded somewhere by that function. "
+recorded somewhere by that function."
   :type 'hook
   :options '(remember-store-in-mailbox
              remember-append-to-file
+             remember-store-in-files
              remember-diary-extract-entries
              org-remember-handler)
   :group 'remember)
@@ -428,6 +429,27 @@ If you want to remember a region, supply a universal prefix to
           (run-hooks 'remember-handler-functions)
         (run-hook-with-args-until-success 'remember-handler-functions))
       (remember-destroy))))
+
+(defcustom remember-data-directory "~/remember"
+  "The directory in which to store remember data as files."
+  :type 'file
+  :group 'remember)
+
+(defcustom remember-directory-file-name-format "%Y-%m-%d_%T-%z"
+  "Format string for the file name in which to store unprocessed data."
+  :type 'file
+  :group 'remember)
+
+(defun remember-store-in-files ()
+  "Store remember data in a file in `remember-data-directory'.
+The file is named after `remember-directory-file-name-format'."
+  (let ((name (format-time-string
+	       remember-directory-file-name-format (current-time)))
+        (text (buffer-string)))
+    (with-temp-buffer
+      (insert text)
+      (write-file (convert-standard-filename
+                   (format "%s/%s" remember-data-directory name))))))
 
 ;;;###autoload
 (defun remember-clipboard ()

@@ -1,3 +1,8 @@
+2013-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Remove obvious example.
+	Tweak other to avoid overly long line.
+
 2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* internals.texi (Writing Emacs Primitives): Remove unnecessary

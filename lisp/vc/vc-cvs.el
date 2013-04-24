@@ -503,7 +503,8 @@ Will fail unless you have administrative privileges on the repo."
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
 
 (defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
-  "Get change logs associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored."
   (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
   (vc-cvs-command

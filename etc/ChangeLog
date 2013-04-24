@@ -1,3 +1,8 @@
+2013-04-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Add ido faces and remove
+	:box from outline faces.
+
 2013-04-18  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention new key ? for describe-prefix-bindings.

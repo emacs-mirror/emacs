@@ -3887,6 +3887,14 @@ decode_coding_iso_2022 (struct coding_system *coding)
       *charbuf++ = c < 0 ? -c : ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
       char_offset++;
       coding->errors++;
+      /* Reset the invocation and designation status to the safest
+	 one; i.e. designate ASCII to the graphic register 0, and
+	 invoke that register to the graphic plane 0.  This typically
+	 helps the case that an designation sequence for ASCII "ESC (
+	 B" is somehow broken (e.g. broken by a newline).  */
+      CODING_ISO_INVOCATION (coding, 0) = 0;
+      CODING_ISO_DESIGNATION (coding, 0) = charset_ascii;
+      charset_id_0 = charset_ascii;
       continue;
 
     break_loop:

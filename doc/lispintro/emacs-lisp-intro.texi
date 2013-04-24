@@ -8,6 +8,8 @@
 @syncodeindex fn cp
 @finalout
 
+@include emacsver.texi
+
 @c ---------
 @c <<<< For hard copy printing, this file is now
 @c      set for smallbook, which works for all sizes
@@ -35,79 +37,9 @@
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
+@c These refer to the printed book sold by the FSF.
 @set edition-number 3.10
 @set update-date 28 October 2009
-@c FIXME can this be updated?  -- xfq
-
-@ignore
- ## Summary of shell commands to create various output formats:
-
-    pushd /usr/local/src/emacs/lispintro/
-    ## pushd /u/intro/
-
-    ## Info output
-    makeinfo --paragraph-indent=0 --verbose emacs-lisp-intro.texi
-
-      ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "/usr/local/src/emacs/info/eintr"))
-
-    ## DVI output
-    texi2dvi emacs-lisp-intro.texi
-
-      ## xdvi -margins 24pt -topmargin 4pt -offsets 24pt -geometry 760x1140 -s 5 -useTeXpages -mousemode 1 emacs-lisp-intro.dvi &
-
-    ## HTML output
-    makeinfo --html --no-split --verbose emacs-lisp-intro.texi
-
-      ## galeon emacs-lisp-intro.html
-
-    ## Plain text output
-    makeinfo --fill-column=70 --no-split --paragraph-indent=0 \
-    --verbose --no-headers --output=emacs-lisp-intro.txt emacs-lisp-intro.texi
-
-    popd
-
-# as user `root'
-# insert thumbdrive
-  mtusb       #   mount -v -t ext3 /dev/sda /mnt
-  cp -v /u/intro/emacs-lisp-intro.texi /mnt/backup/intro/emacs-lisp-intro.texi
-  umtusb      #   umount -v /mnt
-# remove thumbdrive
-
-    ## Other shell commands
-
-    pushd /usr/local/src/emacs/lispintro/
-    ## pushd /u/intro/
-
-    ## PDF
-    texi2dvi --pdf emacs-lisp-intro.texi
-       # xpdf emacs-lisp-intro.pdf &
-
-    ## DocBook                    -- note file extension
-    makeinfo --docbook --no-split --paragraph-indent=0 \
-    --verbose --output=emacs-lisp-intro.docbook emacs-lisp-intro.texi
-
-    ## XML with a Texinfo DTD     -- note file extension
-    makeinfo --xml --no-split --paragraph-indent=0 \
-    --verbose --output=emacs-lisp-intro.texinfoxml emacs-lisp-intro.texi
-
-    ## PostScript (needs DVI)
-        #     gv emacs-lisp-intro.ps &
-        # Create DVI if we lack it
-        # texi2dvi emacs-lisp-intro.texi
-    dvips emacs-lisp-intro.dvi -o emacs-lisp-intro.ps
-
-    ## RTF (needs HTML)
-        # Use OpenOffice to view RTF
-        # Create HTML if we lack it
-        # makeinfo --no-split --html emacs-lisp-intro.texi
-    /usr/local/src/html2rtf.pl emacs-lisp-intro.html
-
-    ## LaTeX (needs RTF)
-    /usr/bin/rtf2latex emacs-lisp-intro.rtf
-
-    popd
-
-@end ignore
 
 @c ================ Included Figures ================
 
@@ -116,25 +48,6 @@
 @c (This is not relevant to Info, since Info only handles ASCII.)
 @c Your site may require editing changes to print PostScript; in this
 @c case, search for `print-postscript-figures' and make appropriate changes.
-
-@c ================ How to Create an Info file ================
-
-@c If you have `makeinfo' installed, run the following command
-
-@c     makeinfo emacs-lisp-intro.texi
-
-@c or, if you want a single, large Info file, and no paragraph indents:
-@c     makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
-
-@c After creating the Info file, edit your Info `dir' file, if the
-@c `dircategory' section below does not enable your system to
-@c install the manual automatically.
-@c (The `dir' file is often in the `/usr/local/share/info/' directory.)
-
-@c ================ How to Create an HTML file ================
-
-@c To convert to HTML format
-@c     makeinfo --html --no-split --verbose emacs-lisp-intro.texi
 
 @c ================ How to Print a Book in Various Sizes ================
 
@@ -153,34 +66,6 @@
 @c              @c smallbook
 @c              @afourpaper
 @c              @set largebook
-
-@c ================ How to Typeset and Print ================
-
-@c If you do not include PostScript figures, run either of the
-@c following command sequences, or similar commands suited to your
-@c system:
-
-@c     texi2dvi emacs-lisp-intro.texi
-@c     lpr -d emacs-lisp-intro.dvi
-
-@c or else:
-
-@c     tex emacs-lisp-intro.texi
-@c     texindex emacs-lisp-intro.??
-@c     tex emacs-lisp-intro.texi
-@c     lpr -d emacs-lisp-intro.dvi
-
-@c If you include the PostScript figures, and you have old software,
-@c you may need to convert the .dvi file to a .ps file before
-@c printing.  Run either of the following command sequences, or one
-@c similar:
-@c
-@c     dvips -f < emacs-lisp-intro.dvi > emacs-lisp-intro.ps
-@c
-@c or else:
-@c
-@c     postscript -p < emacs-lisp-intro.dvi > emacs-lisp-intro.ps
-@c
 
 @c (Note: if you edit the book so as to change the length of the
 @c table of contents, you may have to change the value of `pageno' below.)
@@ -227,7 +112,12 @@
 This is an @cite{Introduction to Programming in Emacs Lisp}, for
 people who are not programmers.
 @sp 1
+@iftex
 Edition @value{edition-number}, @value{update-date}
+@end iftex
+@ifnottex
+Distributed with Emacs version @value{EMACSVER}.
+@end ifnottex
 @ifset WWW_GNU_ORG
 @html
 <p>The homepage for GNU Emacs is at
@@ -244,7 +134,7 @@ Foundation, Inc.
 @iftex
 Published by the:@*
 
-GNU Press,               @hfill @uref{http://www.fsf.org/campaigns/gnu-press/}@*
+GNU Press,               @hfill @uref{http://www.fsf.org/licensing/gnu-press/}@*
 a division of the               @hfill email: @email{sales@@fsf.org}@*
 Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
 51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
@@ -252,10 +142,10 @@ Boston, MA 02110-1301 USA
 @end iftex
 
 @ifnottex
-Published by the:
+Printed copies available from @uref{http://shop.fsf.org/}. Published by:
 
 @example
-GNU Press,                        http://www.fsf.org/campaigns/gnu-press/
+GNU Press,                        http://www.fsf.org/licensing/gnu-press/
 a division of the                 email: sales@@fsf.org
 Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
 51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
@@ -264,7 +154,6 @@ Boston, MA 02110-1301 USA
 @end ifnottex
 
 @sp 1
-@c Printed copies are available from @uref{http://shop.fsf.org/} for $35 each.@*
 ISBN 1-882114-43-4
 
 Permission is granted to copy, distribute and/or modify this document
@@ -1623,13 +1512,20 @@ do not work in the usual manner.  Those that don't are called
 @dfn{special forms}.  They are used for special jobs, like defining a
 function, and there are not many of them.  In the next few chapters,
 you will be introduced to several of the more important special forms.
-And there are also @dfn{macros}.  Macro is a construct defined in
-Lisp, which differs from a function in that it translates a Lisp
-expression into another expression which is to be evaluated instead of
-the original expression.  (@xref{Lisp macro}.)
 
+As well as special forms, there are also @dfn{macros}.  A macro
+is a construct defined in Lisp, which differs from a function in that it
+translates a Lisp expression into another expression that is to be
+evaluated in place of the original expression.  (@xref{Lisp macro}.)
 
-The third and final complication is this: if the function that the
+For the purposes of this introduction, you do not need to worry too much
+about whether something is a special form, macro, or ordinary function.
+For example, @code{if} is a special form (@pxref{if}), but @code{when}
+is a macro (@pxref{Lisp macro}).  In earlier versions of Emacs,
+@code{defun} was a special form, but now it is a macro (@pxref{defun}).
+It still behaves in the same way.
+
+The final complication is this: if the function that the
 Lisp interpreter is looking at is not a special form, and if it is part
 of a list, the Lisp interpreter looks to see whether the list has a list
 inside of it.  If there is an inner list, the Lisp interpreter first
@@ -3059,7 +2955,7 @@ symbol refers to it.)
 
 @menu
 * Primitive Functions::
-* defun::                        The @code{defun} special form.
+* defun::                        The @code{defun} macro.
 * Install::                      Install a function definition.
 * Interactive::                  Making a function interactive.
 * Interactive Options::          Different options for @code{interactive}.
@@ -3700,7 +3596,7 @@ name for a @dfn{local variable} that overshadows any use of the same
 name outside the @code{let} expression.  This is like understanding
 that whenever your host refers to `the house', he means his house, not
 yours.  (Symbols used in argument lists work the same way.
-@xref{defun, , The @code{defun} Special Form}.)
+@xref{defun, , The @code{defun} Macro}.)
 
 Local variables created by a @code{let} expression retain their value
 @emph{only} within the @code{let} expression itself (and within
@@ -8313,7 +8209,7 @@ an @code{if} without the possibility of an else clause.  In your mind,
 you can replace @code{when} with @code{if} and understand what goes
 on.  That is what the Lisp interpreter does.
 
-Technically speaking, @code{when} is a Lisp macro.  A Lisp @dfn{macro}
+Technically speaking, @code{when} is a Lisp macro.  A Lisp macro
 enables you to define new control constructs and other language
 features.  It tells the interpreter how to compute another Lisp
 expression which will in turn compute the value.  In this case, the
@@ -9366,7 +9262,7 @@ In the past, Emacs used the @code{defvar} special form both for
 internal variables that you would not expect a user to change and for
 variables that you do expect a user to change.  Although you can still
 use @code{defvar} for user customizable variables, please use
-@code{defcustom} instead, since that special form provides a path into
+@code{defcustom} instead, since it provides a path into
 the Customization commands.  (@xref{defcustom, , Specifying Variables
 using @code{defcustom}}.)
 
@@ -17025,7 +16921,7 @@ Finally, the @code{:group} keyword tells the Emacs Customization
 command in which group the variable is located.  This tells where to
 find it.
 
-The @code{defcustom} function recognizes more than a dozen keywords.
+The @code{defcustom} macro recognizes more than a dozen keywords.
 For more information, see @ref{Customization, , Writing Customization
 Definitions, elisp, The GNU Emacs Lisp Reference Manual}.
 
@@ -19456,7 +19352,7 @@ them in an argument list (and within expressions called by them).
 @ignore
 @c texi2dvi fails when the name of the section is within ifnottex ...
 (@xref{Prevent confusion, , @code{let} Prevents Confusion}, and
-@ref{defun, , The @code{defun} Special Form}.)
+@ref{defun, , The @code{defun} Macro}.)
 @end ignore
 
 @node yank
@@ -20976,7 +20872,7 @@ equivalent of @code{multiply-by-seven} is:
 @end smallexample
 
 @noindent
-(@xref{defun, ,  The @code{defun} Special Form}.)
+(@xref{defun, ,  The @code{defun} Macro}.)
 
 @need 1250
 @noindent

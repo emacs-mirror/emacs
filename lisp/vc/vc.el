@@ -356,9 +356,11 @@
 ;;   If LIMIT is true insert only insert LIMIT log entries.  If the
 ;;   backend does not support limiting the number of entries to show
 ;;   it should return `limit-unsupported'.
-;;   If START-REVISION is given, then show the log starting from the
-;;   revision.  At this point START-REVISION is only required to work
-;;   in conjunction with LIMIT = 1.
+;;   If START-REVISION is given, then show the log starting from that
+;;   revision ("starting" in the sense of it being the _newest_
+;;   revision shown, rather than the working revision, which is normally
+;;   the case).  Not all backends support this.  At present, this is
+;;   only ever used with LIMIT = 1 (by vc-annotate-show-log-revision-at-line).
 ;;
 ;; * log-outgoing (backend remote-location)
 ;;
@@ -2111,14 +2113,11 @@ or if PL-RETURN is 'limit-unsupported."
                                       &optional is-start-revision limit)
   "For specified BACKEND and FILES, show the VC log.
 Leave point at WORKING-REVISION, if it is non-nil.
-If IS-START-REVISION is non-nil, start the log from WORKING-REVISION.
-Show up to LIMIT entries (non-nil means unlimited).
-\(IS-START-REVISION non-nil might not work correctly if LIMIT is not 1.)"
-  ;; The parenthetical remark is based on the commentary of vc.el for
-  ;; "print log": "At this point START-REVISION is only required to work
-  ;; in conjunction with LIMIT = 1."  The only thing that passes
-  ;; IS-START-REVISION non-nil is vc-annotate-show-log-revision-at-line,
-  ;; which sets LIMIT = 1.
+If IS-START-REVISION is non-nil, start the log from WORKING-REVISION
+\(not all backends support this); i.e., show only WORKING-REVISION and
+earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
+  ;; As of 2013/04 the only thing that passes IS-START-REVISION non-nil
+  ;; is vc-annotate-show-log-revision-at-line, which sets LIMIT = 1.
 
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled

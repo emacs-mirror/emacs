@@ -2382,10 +2382,12 @@ This is the value of `next-error-function' in Compilation buffers."
                  ;;            (setq timestamp compilation-buffer-modtime)))
                  )
       (with-current-buffer
-          (compilation-find-file
-           marker
-           (caar (compilation--loc->file-struct loc))
-           (cadr (car (compilation--loc->file-struct loc))))
+          (apply #'compilation-find-file
+                 marker
+                 (caar (compilation--loc->file-struct loc))
+                 (cadr (car (compilation--loc->file-struct loc)))
+                 (compilation--file-struct->formats
+                  (compilation--loc->file-struct loc)))
         (let ((screen-columns
                ;; Obey the compilation-error-screen-columns of the target
                ;; buffer if its major mode set it buffer-locally.

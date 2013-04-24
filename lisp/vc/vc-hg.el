@@ -152,7 +152,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
      (2 'change-log-list)
      (3 'change-log-name)
      (4 'change-log-date)))
-  "Mercurial log template for `vc-print-root-log'.
+  "Mercurial log template for `vc-hg-print-log' short format.
 This should be a list (TEMPLATE REGEXP KEYWORDS), where TEMPLATE
 is the \"--template\" argument string to pass to Mercurial,
 REGEXP is a regular expression matching the resulting Mercurial
@@ -246,7 +246,10 @@ highlighting the Log View buffer."
   :group 'vc-hg)
 
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
   (vc-setup-buffer buffer)
@@ -257,7 +260,7 @@ highlighting the Log View buffer."
 	buffer
       (apply 'vc-hg-command buffer 0 files "log"
 	     (nconc
-	      (when start-revision (list (format "-r%s:" start-revision)))
+	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
 	      (when shortlog (list "--template" (car vc-hg-root-log-format)))
 	      vc-hg-log-switches)))))
