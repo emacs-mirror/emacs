@@ -260,7 +260,7 @@ If LIMIT is non-nil, show no more than this many entries."
 	buffer
       (apply 'vc-hg-command buffer 0 files "log"
 	     (nconc
-	      (when start-revision (list (format "-r%s:" start-revision)))
+	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
 	      (when shortlog (list "--template" (car vc-hg-root-log-format)))
 	      vc-hg-log-switches)))))

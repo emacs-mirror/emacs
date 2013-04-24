@@ -515,7 +515,7 @@ If LIMIT is non-nil, show no more than this many entries."
 		   (append
 		    (list
 		     (if start-revision
-			 (format "-r%s" start-revision)
+			 (format "-r%s:1" start-revision)
 		       ;; By default Subversion only shows the log up to the
 		       ;; working revision, whereas we also want the log of the
 		       ;; subsequent commits.  At least that's what the
