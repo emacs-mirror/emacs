@@ -2149,19 +2149,23 @@ the end of the current result or async record is reached."
     ;; Search the data stream for the end of the current record:
     (let* ((newline-pos (string-match "\n" gud-marker-acc gdbmi-bnf-offset))
 	   (is-progressive (equal (cdr class-command) 'progressive))
-	   (is-complete (not (null newline-pos)))
-	   result-str)
+       (is-complete (not (null newline-pos)))
+       result-str)
+
+      (when gdbmi-debug-mode
+        (message "gdbmi-bnf-incomplete-record-result: %s"
+                 (substring gud-marker-acc gdbmi-bnf-offset newline-pos)))
 
       ;; Update the gdbmi-bnf-offset only if the current chunk of data can
       ;; be processed by the class-command handler:
       (when (or is-complete is-progressive)
-	(setq result-str
+        (setq result-str
               (substring gud-marker-acc gdbmi-bnf-offset newline-pos))
-	(setq gdbmi-bnf-offset (+ 1 newline-pos)))
 
-      (if gdbmi-debug-mode
-          (message "gdbmi-bnf-incomplete-record-result: %s"
-                   (substring gud-marker-acc gdbmi-bnf-offset newline-pos)))
+        ;; Move gdbmi-bnf-offset past the end of the chunk.
+        (setq gdbmi-bnf-offset (+ gdbmi-bnf-offset (length result-str)))
+        (when newline-pos
+          (setq gdbmi-bnf-offset (1+ gdbmi-bnf-offset))))
 
       ;; Update the parsing state before invoking the handler in class-command
       ;; to make sure it's not left in an invalid state if the handler was

@@ -103,7 +103,7 @@ This is annoying.
 to hopefully stop this happening, but it is still better to use X-Debbugs-CC.)
 
 If a new report contains X-Debbugs-CC in the input, this is
-converted to a real Cc header in the output.  (See Bug#1720).
+converted to a real Cc header in the output.  (See Bug#1780,5384)
 It is also merged into the Resent-CC header (see below).
 
 ** How does Debbugs send out mails?

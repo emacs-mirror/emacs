@@ -471,6 +471,11 @@ case "${canonical}" in
 ##    fi
   ;;
 
+  ## Cygwin ports
+  *-*-cygwin )
+    opsys=cygwin
+  ;;
+
   ## HP 9000 series 700 and 800, running HP/UX
   hppa*-hp-hpux10.2* )
     opsys=hpux10-20
@@ -544,7 +549,6 @@ case "${canonical}" in
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     case "${canonical}" in
-      *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
       *-sysv4.2uw* )	  	opsys=unixware ;;
       *-sysv5uw* )	  	opsys=unixware ;;
@@ -1527,7 +1531,7 @@ if test "${with_w32}" != no; then
   W32_RES="emacs.res"
   # Tell the linker that emacs.res is an object (which we compile from
   # the rc file), not a linker script.
-  W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
+  W32_RES_LINK="-Wl,emacs.res"
 fi
 AC_SUBST(W32_OBJ)
 AC_SUBST(W32_LIBS)
@@ -4184,6 +4188,13 @@ case "$opsys" in
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
+
+if test x$ac_enable_profiling != x ; then
+  case $opsys in
+    *freebsd | gnu-linux) ;;
+    *) LD_SWITCH_SYSTEM_TEMACS="$LD_SWITCH_SYSTEM_TEMACS -pg" ;;
+  esac
+fi
 
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 

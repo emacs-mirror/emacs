@@ -1081,13 +1081,7 @@ This enforces rescanning the buffer on next use."
            (wbol "\\(^\\)[ \t]*") ; Need to keep the empty group because
                                   ; match numbers are hard coded
            (label-re (concat "\\(?:"
-			     ;; Normal \label{...}
-			     "\\\\label{\\([^}]*\\)}"
-			     "\\|"
-			     ;; keyvals [..., label = {foo}, ...]
-			     ;; forms used by ctable, listings,
-			     ;; minted, ...
-			     "\\[[^]]*label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?"
+			     (mapconcat 'identity reftex-label-regexps "\\|")
 			     "\\)"))
            (include-re (concat wbol
                                "\\\\\\("

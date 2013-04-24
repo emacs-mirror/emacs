@@ -2983,11 +2983,6 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 
 /* --------------------------- X Menu emulation ---------------------- */
 
-/* Report availability of menus.  */
-
-int
-have_menus_p (void) {  return 1; }
-
 /* Create a brand new menu structure.  */
 
 XMenu *

@@ -464,6 +464,7 @@ FORM-DESCRIPTION-FORM before it has called INNER-FORM."
   "Evaluate FORM.  If it returns nil, abort the current test as failed.
 
 Returns the value of FORM."
+  (declare (debug t))
   (ert--expand-should `(should ,form) form
                       (lambda (inner-form form-description-form _value-var)
                         `(unless ,inner-form
@@ -473,6 +474,7 @@ Returns the value of FORM."
   "Evaluate FORM.  If it returns non-nil, abort the current test as failed.
 
 Returns nil."
+  (declare (debug t))
   (ert--expand-should `(should-not ,form) form
                       (lambda (inner-form form-description-form _value-var)
                         `(unless (not ,inner-form)
@@ -520,6 +522,7 @@ non-nil, the error matches TYPE if it is an element of TYPE.
 If the error matches, returns (ERROR-SYMBOL . DATA) from the
 error.  If not, or if no error was signaled, abort the test as
 failed."
+  (declare (debug t))
   (unless type (setq type ''error))
   (ert--expand-should
    `(should-error ,form ,@keys)

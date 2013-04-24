@@ -598,7 +598,7 @@ typedef struct frame *FRAME_PTR;
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
-#define WINDOW_FRAME(w) w->frame
+#define WINDOW_FRAME(w) ((w)->frame)
 
 /* Test a frame for particular kinds of display methods.  */
 #define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
@@ -958,6 +958,7 @@ extern Lisp_Object Qnoelisp;
 extern struct frame *last_nonminibuf_frame;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern struct frame *decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
@@ -968,6 +969,8 @@ extern struct frame *make_frame_without_minibuffer (Lisp_Object,
                                                     struct kboard *,
                                                     Lisp_Object);
 #endif /* HAVE_WINDOW_SYSTEM */
+extern bool window_system_available (struct frame *);
+extern void check_window_system (struct frame *);
 extern void frame_make_pointer_invisible (void);
 extern void frame_make_pointer_visible (void);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);

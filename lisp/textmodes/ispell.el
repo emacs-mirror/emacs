@@ -1383,7 +1383,8 @@ aspell is used along with Emacs).")
 		;; Unless default dict, re-add "-d" option with the mapped value
 		(if dict-name
 		    (if dict-equiv
-			(nconc ispell-args (list "-d" dict-equiv))
+			(setq ispell-args
+			      (nconc ispell-args (list "-d" dict-equiv)))
 		      (message
 		       "ispell-set-spellchecker-params: Missing hunspell equiv for \"%s\". Skipping."
 		       dict-name)
@@ -2328,10 +2329,14 @@ Global `ispell-quit' set to start location to continue spell session."
 		   ((= char ?i)		; accept and insert word into pers dict
 		    (ispell-send-string (concat "*" word "\n"))
 		    (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
+		    (and (fboundp 'flyspell-unhighlight-at)
+			 (flyspell-unhighlight-at start))
 		    nil)
 		   ((or (= char ?a) (= char ?A)) ; accept word without insert
 		    (ispell-send-string (concat "@" word "\n"))
 		    (add-to-list 'ispell-buffer-session-localwords word)
+		    (and (fboundp 'flyspell-unhighlight-at)
+			 (flyspell-unhighlight-at start))
 		    (or ispell-buffer-local-name ; session localwords might conflict
 			(setq ispell-buffer-local-name (buffer-name)))
 		    (if (null ispell-pdict-modified-p)

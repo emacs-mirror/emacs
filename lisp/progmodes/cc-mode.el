@@ -936,7 +936,8 @@ Note that the style variables are always made local to the buffer."
 
     ;; Add needed properties to each CPP construct in the region.
     (goto-char c-new-BEG)
-    (let ((pps-position c-new-BEG)  pps-state mbeg)
+    (skip-chars-backward " \t")
+    (let ((pps-position (point))  pps-state mbeg)
       (while (and (< (point) c-new-END)
 		  (search-forward-regexp c-anchored-cpp-prefix c-new-END t))
 	;; If we've found a "#" inside a string/comment, ignore it.
@@ -945,14 +946,12 @@ Note that the style variables are always made local to the buffer."
 	      pps-position (point))
 	(unless (or (nth 3 pps-state)	; in a string?
 		    (nth 4 pps-state))	; in a comment?
-	  (goto-char (match-beginning 0))
+	  (goto-char (match-beginning 1))
 	  (setq mbeg (point))
 	  (if (> (c-syntactic-end-of-macro) mbeg)
 	      (progn
 		(c-neutralize-CPP-line mbeg (point))
-		(c-set-cpp-delimiters mbeg (point))
-		;(setq pps-position (point))
-		)
+		(c-set-cpp-delimiters mbeg (point)))
 	    (forward-line))	      ; no infinite loop with, e.g., "#//"
 	  )))))
 

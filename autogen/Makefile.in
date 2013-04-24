@@ -1019,7 +1019,7 @@ MOSTLYCLEANFILES = core *.stackdump alloca.h alloca.h-t dirent.h \
 	string.h-t sys/select.h sys/select.h-t sys/stat.h sys/stat.h-t \
 	sys/time.h sys/time.h-t time.h time.h-t unistd.h unistd.h-t
 noinst_LIBRARIES = libgnu.a
-AM_CFLAGS = $(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS)
+AM_CFLAGS = $(PROFILING_CFLAGS) $(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS)
 DEFAULT_INCLUDES = -I. -I$(top_srcdir)/lib -I../src -I$(top_srcdir)/src
 libgnu_a_SOURCES = allocator.c c-ctype.h c-ctype.c c-strcase.h \
 	c-strcasecmp.c c-strncasecmp.c careadlinkat.c close-stream.c \

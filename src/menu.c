@@ -1086,7 +1086,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   {
     bool get_current_pos_p = 0;
 
-    check_window_system ();
+    check_window_system (SELECTED_FRAME ());
 
     /* Decode the first argument: find the window and the coordinates.  */
     if (EQ (position, Qt)

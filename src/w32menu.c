@@ -140,8 +140,6 @@ otherwise it is "Question". */)
   FRAME_PTR f = NULL;
   Lisp_Object window;
 
-  check_window_system ();
-
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
       || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
@@ -193,6 +191,8 @@ otherwise it is "Question". */)
     /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
+
+  check_window_system (f);
 
 #ifndef HAVE_DIALOGS
 

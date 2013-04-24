@@ -1,3 +1,24 @@
+2013-04-15  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* tips.texi (Coding Conventions): Mention separation of package
+	descriptor and name of internal symbols by two hyphens.
+
+2013-04-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* windows.texi (Splitting Windows): Change category of
+	split-window from a command to a function.
+
+2013-04-06  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Minor clarifications.
+	(Defining Faces): Clarify default vs custom face specs.  Document
+	face-spec-set.
+
+	* display.texi (Overlay Properties):
+	* text.texi (Special Properties): Use the "anonymous face"
+	terminology.  Describe foreground-color and background-color forms
+	as compatibility-only.
+
 2013-03-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* compile.texi (Byte-Code Objects): Add index entry.

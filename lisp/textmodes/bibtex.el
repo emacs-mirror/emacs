@@ -3020,11 +3020,14 @@ Parsing initializes `bibtex-reference-keys' and `bibtex-strings'."
 Visit the BibTeX files defined by `bibtex-files' and return a list
 of corresponding buffers.
 Initialize in these buffers `bibtex-reference-keys' if not yet set.
-List of BibTeX buffers includes current buffer if CURRENT is non-nil.
+List of BibTeX buffers includes current buffer if CURRENT is non-nil
+and the current buffer visits a file using `bibtex-mode'.
 If FORCE is non-nil, (re)initialize `bibtex-reference-keys' even if
 already set.  If SELECT is non-nil interactively select a BibTeX buffer.
-When called interactively, FORCE is t, CURRENT is t if current buffer uses
-`bibtex-mode', and SELECT is t if current buffer does not use `bibtex-mode',"
+
+When called interactively, FORCE is t, CURRENT is t if current buffer
+visits a file using `bibtex-mode', and SELECT is t if current buffer
+does not use `bibtex-mode',"
   (interactive (list (eq major-mode 'bibtex-mode) t
                      (not (eq major-mode 'bibtex-mode))))
   (let ((file-path (split-string (or bibtex-file-path default-directory) ":+"))
@@ -3062,10 +3065,12 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
       (if (file-readable-p file)
         (push (find-file-noselect file) buffer-list)))
     ;; Include current buffer iff we want it.
-    ;; Exclude current buffer if it doesn't use `bibtex-mode'.
-    ;; Thus calling `bibtex-initialize' gives meaningful results for
-    ;; any current buffer.
-    (unless (and current (eq major-mode 'bibtex-mode)) (setq current nil))
+    ;; Exclude current buffer if it does not visit a file using `bibtex-mode'.
+    ;; This way we exclude BibTeX buffers such as `bibtex-search-buffer'
+    ;; that are not visiting a BibTeX file.  Also, calling `bibtex-initialize'
+    ;; gives meaningful results for any current buffer.
+    (unless (and current (eq major-mode 'bibtex-mode) buffer-file-name)
+      (setq current nil))
     (cond ((and current (not (memq (current-buffer) buffer-list)))
            (push (current-buffer) buffer-list))
           ((and (not current) (memq (current-buffer) buffer-list))
@@ -5163,6 +5168,9 @@ Return the URL or nil if none can be generated."
                     (if (stringp (car scheme))
                         (setq fmt (pop scheme)))
                     (dolist (step scheme)
+                      ;; In the first STEP, if the field contains multiple
+                      ;; matches, we want the match the closest to point.
+                      ;; (if (eq step (car scheme))
                       (setq text (cdr (assoc-string (car step) fields-alist t)))
                       (if (string-match (nth 1 step) text)
                           (push (cond ((functionp (nth 2 step))
@@ -5233,19 +5241,22 @@ where FILE is the BibTeX file of ENTRY."
           (if (string= "" field)
               ;; Unrestricted search.
               (while (re-search-forward regexp nil t)
-                (let ((beg (bibtex-beginning-of-entry))
-                      (end (bibtex-end-of-entry))
-                      key)
-                  (if (and (<= beg (match-beginning 0))
-                           (<= (match-end 0) end)
-                           (save-excursion
-                             (goto-char beg)
-                             (and (looking-at bibtex-entry-head)
-                                  (setq key (bibtex-key-in-head))))
-                           (not (assoc key entries)))
-                      (push (list key file
-                                  (buffer-substring-no-properties beg end))
-                            entries))))
+                (save-excursion
+                  (let ((mbeg (match-beginning 0))
+                        (mend (match-end 0))
+                        (beg (bibtex-beginning-of-entry))
+                        (end (bibtex-end-of-entry))
+                        key)
+                    (if (and (<= beg mbeg)
+                             (<= mend end)
+                             (progn
+                               (goto-char beg)
+                               (looking-at bibtex-entry-head))
+                             (setq key (bibtex-key-in-head))
+                             (not (assoc key entries)))
+                        (push (list key file
+                                    (buffer-substring-no-properties beg end))
+                              entries)))))
             ;; The following is slow.  But it works reliably even in more
             ;; complicated cases with BibTeX string constants and crossrefed
             ;; entries.  If you prefer speed over reliability, perform an

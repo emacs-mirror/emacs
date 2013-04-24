@@ -889,7 +889,7 @@ or omitted means use the selected frame.  */)
   size = Qnil;
   if (valid_image_p (spec))
     {
-      struct frame *f = check_x_frame (frame);
+      struct frame *f = decode_window_system_frame (frame);
       ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       int width = img->width + 2 * img->hmargin;
@@ -919,7 +919,7 @@ or omitted means use the selected frame.  */)
   mask = Qnil;
   if (valid_image_p (spec))
     {
-      struct frame *f = check_x_frame (frame);
+      struct frame *f = decode_window_system_frame (frame);
       ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       if (img->mask)
@@ -942,7 +942,7 @@ or omitted means use the selected frame.  */)
   ext = Qnil;
   if (valid_image_p (spec))
     {
-      struct frame *f = check_x_frame (frame);
+      struct frame *f = decode_window_system_frame (frame);
       ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       ext = img->lisp_data;
@@ -1550,7 +1550,7 @@ which is then usually a filename.  */)
   if (!(EQ (filter, Qnil) || FRAMEP (filter)))
     clear_image_caches (filter);
   else
-    clear_image_cache (check_x_frame (filter), Qt);
+    clear_image_cache (decode_window_system_frame (filter), Qt);
 
   return Qnil;
 }
@@ -1581,7 +1581,7 @@ FRAME t means refresh the image on all frames.  */)
 	}
     }
   else
-    uncache_image (check_x_frame (frame), spec);
+    uncache_image (decode_window_system_frame (frame), spec);
 
   return Qnil;
 }

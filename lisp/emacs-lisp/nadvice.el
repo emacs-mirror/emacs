@@ -158,11 +158,12 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
     (advice--make-1 (nth 1 desc) (nth 2 desc)
                     function main props)))
 
-(defun advice--member-p (function definition)
+(defun advice--member-p (function name definition)
   (let ((found nil))
     (while (and (not found) (advice--p definition))
       (if (or (equal function (advice--car definition))
-              (equal function (cdr (assq 'name (advice--props definition)))))
+              (when name
+                (equal name (cdr (assq 'name (advice--props definition))))))
           (setq found t)
         (setq definition (advice--cdr definition))))
     found))
@@ -235,9 +236,8 @@ PROPS is an alist of additional properties, among which the following have
 a special meaning:
 - `name': a string or symbol.  It can be used to refer to this piece of advice.
 
-PLACE cannot be a simple variable.  Instead it should either be
-\(default-value 'VAR) or (local 'VAR) depending on whether FUNCTION
-should be applied to VAR buffer-locally or globally.
+If PLACE is a simple variable, only its global value will be affected.
+Use (local 'VAR) if you want to apply FUNCTION to VAR buffer-locally.
 
 If one of FUNCTION or OLDFUN is interactive, then the resulting function
 is also interactive.  There are 3 cases:
@@ -250,12 +250,13 @@ is also interactive.  There are 3 cases:
   (cond ((eq 'local (car-safe place))
          (setq place `(advice--buffer-local ,@(cdr place))))
         ((symbolp place)
-         (error "Use (default-value '%S) or (local '%S)" place place)))
+         (setq place `(default-value ',place))))
   `(advice--add-function ,where (gv-ref ,place) ,function ,props))
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (unless (advice--member-p function (gv-deref ref))
+  (unless (advice--member-p function (cdr (assq 'name props))
+                            (gv-deref ref))
     (setf (gv-deref ref)
           (advice--make where function (gv-deref ref) props))))
 
@@ -396,7 +397,7 @@ of the piece of advice."
   "Return non-nil if ADVICE has been added to FUNCTION-NAME.
 Instead of ADVICE being the actual function, it can also be the `name'
 of the piece of advice."
-  (advice--member-p advice
+  (advice--member-p advice advice
                     (or (get function-name 'advice--pending)
 			(advice--strip-macro
 			 (if (fboundp function-name)

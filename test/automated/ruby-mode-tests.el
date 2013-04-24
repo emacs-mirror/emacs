@@ -487,6 +487,42 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-beginning-of-block)
     (should (= 1 (line-number-at-pos)))))
 
+(ert-deftest ruby-move-to-block-does-not-fold-case ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "foo do
+       |  Module.to_s
+       |end")
+    (end-of-buffer)
+    (let ((case-fold-search t))
+      (ruby-beginning-of-block))
+    (should (= 1 (line-number-at-pos)))))
+
+(ert-deftest ruby-beginning-of-defun-does-not-fold-case ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "class C
+       |  def bar
+       |    Class.to_s
+       |  end
+       |end")
+    (goto-line 4)
+    (let ((case-fold-search t))
+      (beginning-of-defun))
+    (should (= 2 (line-number-at-pos)))))
+
+(ert-deftest ruby-end-of-defun-skips-to-next-line-after-the-method ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "class D
+       |  def tee
+       |    'ho hum'
+       |  end
+       |end")
+    (goto-line 2)
+    (end-of-defun)
+    (should (= 5 (line-number-at-pos)))))
+
 (provide 'ruby-mode-tests)
 
 ;;; ruby-mode-tests.el ends here

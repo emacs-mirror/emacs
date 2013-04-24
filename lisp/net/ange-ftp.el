@@ -4437,16 +4437,18 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
 
-;(defun ange-ftp-run-real-handler (operation args)
-;  (let ((inhibit-file-name-handlers
-;	 (cons 'ange-ftp-hook-function
-;	       (cons 'ange-ftp-completion-hook-function
-;		     (and (eq inhibit-file-name-operation operation)
-;			  inhibit-file-name-handlers))))
-;	(inhibit-file-name-operation operation))
-;    (apply operation args)))
+(defun ange-ftp-run-real-handler-orig (operation args)
+  (let ((inhibit-file-name-handlers
+	 (cons 'ange-ftp-hook-function
+	       (cons 'ange-ftp-completion-hook-function
+		     (and (eq inhibit-file-name-operation operation)
+			  inhibit-file-name-handlers))))
+	(inhibit-file-name-operation operation))
+    (apply operation args)))
 
-(defalias 'ange-ftp-run-real-handler 'tramp-run-real-handler)
+(defalias 'ange-ftp-run-real-handler
+  (if (fboundp 'tramp-run-real-handler)
+      'tramp-run-real-handler 'ange-ftp-run-real-handler-orig))
 
 (defun ange-ftp-real-file-name-directory (&rest args)
   (ange-ftp-run-real-handler 'file-name-directory args))

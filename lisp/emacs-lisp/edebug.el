@@ -3814,7 +3814,7 @@ Options:
         (remove-hook 'kill-buffer-hook 'edebug-kill-buffer t))
     (pcase-dolist (`(,var . ,val) '((buffer-read-only . t)))
       (push
-       (if (local-variable-p var) var (cons var (symbol-value var)))
+       (if (local-variable-p var) (cons var (symbol-value var)) var)
        edebug--mode-saved-vars)
       (set (make-local-variable var) val))
     ;; Append `edebug-kill-buffer' to the hook to avoid interfering with

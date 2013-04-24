@@ -525,7 +525,7 @@ for use at QPOS."
   (eq t (compare-strings s1 nil nil s2 nil nil 'ignore-case)))
 
 (defun completion--twq-all (string ustring completions boundary
-                                   unquote requote)
+                                   _unquote requote)
   (when completions
     (pcase-let*
         ((prefix
@@ -1043,7 +1043,8 @@ scroll the window of possible completions."
   (cond
    ;; If there's a fresh completion window with a live buffer,
    ;; and this command is repeated, scroll that window.
-   ((window-live-p minibuffer-scroll-window)
+   ((and (window-live-p minibuffer-scroll-window)
+         (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
     (let ((window minibuffer-scroll-window))
       (with-current-buffer (window-buffer window)
         (if (pos-visible-in-window-p (point-max) window)
@@ -1140,6 +1141,7 @@ scroll the window of possible completions."
   "Complete the minibuffer to an exact match.
 Repeated uses step through the possible completions."
   (interactive)
+  (setq minibuffer-scroll-window nil)
   ;; FIXME: Need to deal with the extra-size issue here as well.
   ;; FIXME: ~/src/emacs/t<M-TAB>/lisp/minibuffer.el completes to
   ;; ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
@@ -1162,6 +1164,7 @@ Repeated uses step through the possible completions."
       (completion--done (buffer-substring-no-properties start (point)) 'sole)
       ;; Set cycling after modifying the buffer since the flush hook resets it.
       (setq completion-cycling t)
+      (setq this-command 'completion-at-point) ;For minibuffer-complete.
       ;; If completing file names, (car all) may be a directory, so we'd now
       ;; have a new set of possible completions and might want to reset
       ;; completion-all-sorted-completions to nil, but we prefer not to,

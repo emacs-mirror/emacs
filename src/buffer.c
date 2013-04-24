@@ -5883,29 +5883,44 @@ See also the functions `display-table-slot' and `set-display-table-slot'.  */);
   DEFVAR_PER_BUFFER ("left-margin-width", &BVAR (current_buffer, left_margin_cols),
 		     Qintegerp,
 		     doc: /* Width of left marginal area for display of a buffer.
-A value of nil means no marginal area.  */);
+A value of nil means no marginal area.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("right-margin-width", &BVAR (current_buffer, right_margin_cols),
 		     Qintegerp,
 		     doc: /* Width of right marginal area for display of a buffer.
-A value of nil means no marginal area.  */);
+A value of nil means no marginal area.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("left-fringe-width", &BVAR (current_buffer, left_fringe_width),
 		     Qintegerp,
 		     doc: /* Width of this buffer's left fringe (in pixels).
 A value of 0 means no left fringe is shown in this buffer's window.
-A value of nil means to use the left fringe width from the window's frame.  */);
+A value of nil means to use the left fringe width from the window's frame.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("right-fringe-width", &BVAR (current_buffer, right_fringe_width),
 		     Qintegerp,
 		     doc: /* Width of this buffer's right fringe (in pixels).
 A value of 0 means no right fringe is shown in this buffer's window.
-A value of nil means to use the right fringe width from the window's frame.  */);
+A value of nil means to use the right fringe width from the window's frame.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("fringes-outside-margins", &BVAR (current_buffer, fringes_outside_margins),
 		     Qnil,
 		     doc: /* Non-nil means to display fringes outside display margins.
-A value of nil means to display fringes between margins and buffer text.  */);
+A value of nil means to display fringes between margins and buffer text.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("scroll-bar-width", &BVAR (current_buffer, scroll_bar_width),
 		     Qintegerp,

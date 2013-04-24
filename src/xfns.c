@@ -123,10 +123,6 @@ extern LWLIB_ID widget_id_tick;
 
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 
-/* Nonzero if using X.  */
-
-int x_in_use;
-
 static Lisp_Object Qsuppress_icon;
 static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
@@ -138,38 +134,6 @@ static int dpyinfo_refcount;
 #endif
 
 static struct x_display_info *x_display_info_for_name (Lisp_Object);
-
-
-/* Error if we are not connected to X.  */
-
-void
-check_window_system (void)
-{
-  if (! x_in_use)
-    error ("X windows are not in use or not initialized");
-}
-
-/* Nonzero if we can use mouse menus.
-   You should not call this unless HAVE_MENUS is defined.  */
-
-int
-have_menus_p (void)
-{
-  return x_in_use;
-}
-
-/* Extract a frame as a FRAME_PTR, defaulting to the selected frame
-   and checking validity for X.  */
-
-FRAME_PTR
-check_x_frame (Lisp_Object frame)
-{
-  struct frame *f = decode_live_frame (frame);
-
-  if (! FRAME_X_P (f))
-    error ("Non-X frame used");
-  return f;
-}
 
 /* Let the user specify an X display with a Lisp object.
    OBJECT may be nil, a frame or a terminal object.
@@ -205,7 +169,7 @@ check_x_display_info (Lisp_Object object)
     dpyinfo = x_display_info_for_name (object);
   else
     {
-      FRAME_PTR f = check_x_frame (object);
+      FRAME_PTR f = decode_window_system_frame (object);
       dpyinfo = FRAME_X_DISPLAY_INFO (f);
     }
 
@@ -2992,7 +2956,7 @@ If FRAME is omitted or nil, use the selected frame.
 Signal error if FRAME is not an X frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
 
   block_input ();
   x_wm_set_size_hint (f, 0, 0);
@@ -3483,7 +3447,7 @@ DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
 FRAME nil means use the selected frame.  */)
   (Lisp_Object frame)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
 
   block_input ();
@@ -3516,7 +3480,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
 
   CHECK_STRING (color);
 
@@ -3531,7 +3495,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
 
   CHECK_STRING (color);
 
@@ -3996,7 +3960,6 @@ x_display_info_for_name (Lisp_Object name)
   if (dpyinfo == 0)
     error ("Cannot connect to X server %s", SDATA (name));
 
-  x_in_use = 1;
   XSETFASTINT (Vwindow_system_version, 11);
 
   return dpyinfo;
@@ -4049,8 +4012,6 @@ An insecure way to solve the problem may be to use `xhost'.\n",
       else
 	error ("Cannot connect to X server %s", SDATA (display));
     }
-
-  x_in_use = 1;
 
   XSETFASTINT (Vwindow_system_version, 11);
   return Qnil;
@@ -4143,7 +4104,7 @@ FRAME.  Default is to change on the edit X window.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
    Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Atom prop_atom;
   Atom target_type = XA_STRING;
   int element_format = 8;
@@ -4221,7 +4182,7 @@ DEFUN ("x-delete-window-property", Fx_delete_window_property,
 FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
   (Lisp_Object prop, Lisp_Object frame)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Atom prop_atom;
 
   CHECK_STRING (prop);
@@ -4257,7 +4218,7 @@ no value of TYPE (always string in the MS Windows case).  */)
   (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
    Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Atom prop_atom;
   int rc;
   Lisp_Object prop_value = Qnil;
@@ -4524,8 +4485,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   int face_change_count_before = face_change_count;
   Lisp_Object buffer;
   struct buffer *old_buffer;
-
-  check_window_system ();
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");
@@ -4923,7 +4882,7 @@ Text larger than the specified size is clipped.  */)
   if (SCHARS (string) == 0)
     string = make_unibyte_string (" ", 1);
 
-  f = check_x_frame (frame);
+  f = decode_window_system_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);
   else
@@ -5246,7 +5205,7 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
 #ifdef USE_GTK
   if (use_dialog_box
       && use_file_dialog
-      && have_menus_p ()
+      && window_system_available (SELECTED_FRAME ())
       && xg_uses_old_file_dialog ())
     return Qt;
 #endif
@@ -5316,7 +5275,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
-  check_window_system ();
+  check_window_system (f);
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
@@ -5486,7 +5445,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
 
-  check_window_system ();
+  check_window_system (f);
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
@@ -5541,14 +5500,12 @@ FRAME is the frame on which to pop up the font chooser.  If omitted or
 nil, it defaults to the selected frame. */)
   (Lisp_Object frame, Lisp_Object ignored)
 {
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
   Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;
   struct gcpro gcpro1, gcpro2;
   ptrdiff_t count = SPECPDL_INDEX ();
-
-  check_window_system ();
 
   if (popup_activated ())
     error ("Trying to use a menu from within a menu-entry");
@@ -5609,7 +5566,7 @@ present and mapped to the usual X keysyms.  */)
   return Qlambda;
 #else
   XkbDescPtr kb;
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
   Lisp_Object have_keys;
   int major, minor, op, event, error_code;
@@ -5737,9 +5694,6 @@ frame_parm_handler x_frame_parm_handlers[] =
 void
 syms_of_xfns (void)
 {
-  /* This is zero if not using X windows.  */
-  x_in_use = 0;
-
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/

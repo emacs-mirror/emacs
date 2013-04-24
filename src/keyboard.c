@@ -72,7 +72,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Variables for blockinput.h: */
+/* Variables for blockinput.h:  */
 
 /* Positive if interrupt input is blocked right now.  */
 volatile int interrupt_input_blocked;
@@ -4188,8 +4188,6 @@ swallow_events (bool do_display)
 static void
 timer_start_idle (void)
 {
-  Lisp_Object timers;
-
   /* If we are already in the idle state, do nothing.  */
   if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     return;
@@ -4198,16 +4196,7 @@ timer_start_idle (void)
   timer_last_idleness_start_time = timer_idleness_start_time;
 
   /* Mark all idle-time timers as once again candidates for running.  */
-  for (timers = Vtimer_idle_list; CONSP (timers); timers = XCDR (timers))
-    {
-      Lisp_Object timer;
-
-      timer = XCAR (timers);
-
-      if (!VECTORP (timer) || ASIZE (timer) != 9)
-	continue;
-      ASET (timer, 0, Qnil);
-    }
+  call0 (intern ("internal-timer-start-idle"));
 }
 
 /* Record that Emacs is no longer idle, so stop running idle-time timers.  */
@@ -4337,10 +4326,10 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	    }
 
 	  idle_timer_ripe = EMACS_TIME_LE (idle_timer_time, idleness_now);
-	  idle_timer_difference =
-	    (idle_timer_ripe
-	     ? sub_emacs_time (idleness_now, idle_timer_time)
-	     : sub_emacs_time (idle_timer_time, idleness_now));
+	  idle_timer_difference
+	    = (idle_timer_ripe
+	       ? sub_emacs_time (idleness_now, idle_timer_time)
+	       : sub_emacs_time (idle_timer_time, idleness_now));
 	}
 
       /* Decide which timer is the next timer,

@@ -881,8 +881,8 @@ Should be invoked when the cached images aren't up-to-date."
 (defun doc-view-start-process (name program args callback)
   ;; Make sure the process is started in an existing directory, (rather than
   ;; some file-name-handler-managed dir, for example).
-  (let* ((default-directory (if (file-readable-p default-directory)
-				default-directory
+  (let* ((default-directory (or (unhandled-file-name-directory
+                                 default-directory)
 			      (expand-file-name "~/")))
          (proc (apply 'start-process name doc-view-conversion-buffer
                       program args)))

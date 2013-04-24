@@ -514,12 +514,6 @@
           ;; remove extra whitespace
           (while (string-match "[\n\t\r]\\|[ \t][ \t]+" field)
             (setq field (replace-match " " nil t field)))
-          ;; remove leading garbage
-          (if (string-match (if raw "^[ \t]+" "^[ \t{]+") field)
-              (setq field (replace-match "" nil t field)))
-          ;; remove trailing garbage
-          (if (string-match (if raw "[ \t]+$" "[ \t}]+$") field)
-              (setq field (replace-match "" nil t field)))
           (push (cons key field) alist))))
     alist))
 

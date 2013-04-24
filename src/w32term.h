@@ -739,7 +739,6 @@ struct image;
 struct face;
 
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
-struct frame * check_x_frame (Lisp_Object);
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (

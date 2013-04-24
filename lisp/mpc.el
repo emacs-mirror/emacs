@@ -320,10 +320,11 @@ defaults to 6600 and HOST defaults to localhost."
     (if tmp (push (nreverse tmp) alists))
     (nreverse alists)))
 
-(defun mpc-proc ()
+(defun mpc-proc (&optional restart)
   (unless (and mpc-proc
                (buffer-live-p (process-buffer mpc-proc))
-               (not (memq (process-status mpc-proc) '(closed))))
+               (not (and restart
+                         (memq (process-status mpc-proc) '(closed)))))
     (mpc--proc-connect mpc-host))
   mpc-proc)
 
@@ -356,7 +357,7 @@ otherwise return immediately and call CALLBACK with no argument
 when the command terminates.
 CMD can be a string which is passed as-is to MPD or a list of strings
 which will be concatenated with proper quoting before passing them to MPD."
-  (let ((proc (mpc-proc)))
+  (let ((proc (mpc-proc 'restart)))
     (if (and callback (not (process-get proc 'ready)))
         (let ((old (process-get proc 'callback)))
           (process-put proc 'callback
@@ -491,10 +492,10 @@ to call FUN for any change whatsoever.")
     (cancel-timer mpc--status-timer)
     (setq mpc--status-timer nil)))
 (defun mpc--status-timer-run ()
-  (when (process-get (mpc-proc) 'ready)
     (condition-case err
-        (with-local-quit (mpc-status-refresh))
-      (error (message "MPC: %s" err)))))
+      (when (process-get (mpc-proc) 'ready)
+        (with-local-quit (mpc-status-refresh)))
+    (error (message "MPC: %s" err))))
 
 (defvar mpc--status-idle-timer nil)
 (defun mpc--status-idle-timer-start ()
@@ -1177,14 +1178,15 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 (defun mpc-status-buffer-show ()
   (interactive)
-  (let* ((buf (mpc-proc-buffer (mpc-proc) 'status))
-         (songs-buf (mpc-proc-buffer (mpc-proc) 'songs))
+  (let* ((proc (mpc-proc))
+         (buf (mpc-proc-buffer proc 'status))
+         (songs-buf (mpc-proc-buffer proc 'songs))
          (songs-win (if songs-buf (get-buffer-window songs-buf 0))))
     (unless (buffer-live-p buf)
       (setq buf (get-buffer-create "*MPC-Status*"))
       (with-current-buffer buf
         (mpc-status-mode))
-      (mpc-proc-buffer (mpc-proc) 'status buf))
+      (mpc-proc-buffer proc 'status buf))
     (if (null songs-win) (pop-to-buffer buf)
       (let ((_win (split-window songs-win 20 t)))
         (set-window-dedicated-p songs-win nil)
@@ -1692,13 +1694,14 @@ Return non-nil if a selection was deactivated."
   (mpc-event-set-point event)
   (let ((name (buffer-substring (line-beginning-position)
                                 (line-end-position)))
-        (prop (intern mpc-tag)))
-    (if (not (member name (process-get (mpc-proc) prop)))
-        (process-put (mpc-proc) prop
-                     (cons name (process-get (mpc-proc) prop)))
-      (let ((new (delete name (process-get (mpc-proc) prop))))
+        (prop (intern mpc-tag))
+        (proc (mpc-proc)))
+    (if (not (member name (process-get proc prop)))
+        (process-put proc prop
+                     (cons name (process-get proc prop)))
+      (let ((new (delete name (process-get proc prop))))
         (setq name (concat name "/"))
-        (process-put (mpc-proc) prop
+        (process-put proc prop
                      (delq nil
                            (mapcar (lambda (x)
                                      (if (string-prefix-p name x)

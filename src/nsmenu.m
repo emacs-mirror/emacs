@@ -1409,8 +1409,6 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   NSTRACE (x-popup-dialog);
 
-  check_window_system ();
-
   isQ = NILP (header);
 
   if (EQ (position, Qt)
@@ -1447,6 +1445,8 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     }
   else
     CHECK_WINDOW (window);
+
+  check_window_system (f);
 
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;

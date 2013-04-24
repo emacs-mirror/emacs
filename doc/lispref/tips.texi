@@ -51,13 +51,15 @@ don't postpone it.
 
 @item
 You should choose a short word to distinguish your program from other
-Lisp programs.  The names of all global variables, constants, and
-functions in your program should begin with that chosen prefix.
-Separate the prefix from the rest of the name with a hyphen, @samp{-}.
-This practice helps avoid name conflicts, since all global variables
-in Emacs Lisp share the same name space, and all functions share
-another name space@footnote{The benefits of a Common Lisp-style
-package system are considered not to outweigh the costs.}.
+Lisp programs.  The names of all global symbols in your program, that
+is the names of variables, constants, and functions, should begin with
+that chosen prefix.  Separate the prefix from the rest of the name
+with a hyphen, @samp{-}.  Use two hyphens if the symbol is not meant
+to be used by other packages.  This practice helps avoid name
+conflicts, since all global variables in Emacs Lisp share the same
+name space, and all functions share another name space@footnote{The
+benefits of a Common Lisp-style package system are considered not to
+outweigh the costs.}.
 
 Occasionally, for a command name intended for users to use, it is more
 convenient if some words come before the package's name prefix.  And

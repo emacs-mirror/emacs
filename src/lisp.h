@@ -3765,20 +3765,10 @@ extern void syms_of_xterm (void);
 extern char *x_get_keysym_name (int);
 #endif /* HAVE_WINDOW_SYSTEM */
 
-#if defined(HAVE_WINDOW_SYSTEM) || defined (MSDOS)
-/* Defined in (x|w32)fns.c, nsfns.m, msdos.c.  */
-extern void check_window_system (void);
-#endif
-
 #ifdef HAVE_LIBXML2
 /* Defined in xml.c.  */
 extern void syms_of_xml (void);
 extern void xml_cleanup_parser (void);
-#endif
-
-#ifdef HAVE_MENUS
-/* Defined in (x|w32)fns.c, nsfns.m, msdos.c.  */
-extern int have_menus_p (void);
 #endif
 
 #ifdef HAVE_DBUS

@@ -3686,7 +3686,7 @@ lines or columns tall.  If SIZE is negative, make the new window
 absolute value can be less than `window-min-height' or
 `window-min-width'; so this command can make a new window as
 small as one line or two columns.  SIZE defaults to half of
-WINDOW's size.  Interactively, SIZE is the prefix argument.
+WINDOW's size.
 
 Optional third argument SIDE nil (or `below') specifies that the
 new window shall be located below WINDOW.  SIDE `above' means the
@@ -3718,7 +3718,6 @@ scrollbars are inherited from WINDOW.  If WINDOW is an internal
 window, these properties as well as the buffer displayed in the
 new window are inherited from the window selected on WINDOW's
 frame.  The selected window is not changed by this function."
-  (interactive "i")
   (setq window (window-normalize-window window))
   (let* ((side (cond
 		((not side) 'below)

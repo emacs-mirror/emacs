@@ -95,10 +95,6 @@ static HWND hourglass_hwnd = NULL;
 #define IDC_HAND MAKEINTRESOURCE(32649)
 #endif
 
-/* Nonzero if using Windows.  */
-
-static int w32_in_use;
-
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
@@ -238,37 +234,6 @@ HINSTANCE hinst = NULL;
 
 static unsigned int sound_type = 0xFFFFFFFF;
 #define MB_EMACS_SILENT (0xFFFFFFFF - 1)
-
-
-/* Error if we are not connected to MS-Windows.  */
-void
-check_window_system (void)
-{
-  if (! w32_in_use)
-    error ("MS-Windows not in use or not initialized");
-}
-
-/* Nonzero if we can use mouse menus.
-   You should not call this unless HAVE_MENUS is defined.  */
-
-int
-have_menus_p (void)
-{
-  return w32_in_use;
-}
-
-/* Extract a frame as a FRAME_PTR, defaulting to the selected frame
-   and checking validity for W32.  */
-
-FRAME_PTR
-check_x_frame (Lisp_Object frame)
-{
-  struct frame *f = decode_live_frame (frame);
-
-  if (! FRAME_W32_P (f))
-    error ("Non-W32 frame used");
-  return f;
-}
 
 /* Let the user specify a display with a frame.
    nil stands for the selected frame--or, if that is not a w32 frame,
@@ -3158,6 +3123,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 #ifdef ENABLE_CHECKING
 	  /* Temporary code to catch crashes in computing form.rcArea.top.  */
+	  eassert (FRAMEP (w->frame));
+	  eassert (BUFFERP (w->contents));
 	  {
 	    int wmbp = WINDOW_MENU_BAR_P (w);
 	    int wtbp = WINDOW_TOOL_BAR_P (w);
@@ -4567,7 +4534,7 @@ DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Give FRAME input focus, raising to foreground if necessary.  */)
   (Lisp_Object frame)
 {
-  x_focus_on_frame (check_x_frame (frame));
+  x_focus_on_frame (decode_window_system_frame (frame));
   return Qnil;
 }
 
@@ -4578,7 +4545,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
 
   CHECK_STRING (color);
 
@@ -4593,7 +4560,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
 
   CHECK_STRING (color);
 
@@ -4911,7 +4878,6 @@ x_display_info_for_name (Lisp_Object name)
   if (dpyinfo == 0)
     error ("Cannot connect to server %s", SDATA (name));
 
-  w32_in_use = 1;
   XSETFASTINT (Vwindow_system_version, w32_major_version);
 
   return dpyinfo;
@@ -4941,7 +4907,7 @@ terminate Emacs if we can't open the connection.
 
   /* If initialization has already been done, return now to avoid
      overwriting critical parts of one_w32_display_info.  */
-  if (w32_in_use)
+  if (window_system_available (NULL))
     return Qnil;
 
   if (! NILP (xrm_string))
@@ -5009,8 +4975,6 @@ terminate Emacs if we can't open the connection.
       else
 	error ("Cannot connect to server %s", SDATA (display));
     }
-
-  w32_in_use = 1;
 
   XSETFASTINT (Vwindow_system_version, w32_major_version);
   return Qnil;
@@ -5095,7 +5059,7 @@ FRAME.  Default is to change on the edit X window.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
    Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Atom prop_atom;
 
   CHECK_STRING (prop);
@@ -5121,7 +5085,7 @@ DEFUN ("x-delete-window-property", Fx_delete_window_property,
 FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
   (Lisp_Object prop, Lisp_Object frame)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Atom prop_atom;
 
   CHECK_STRING (prop);
@@ -5157,7 +5121,7 @@ no value of TYPE (always string in the MS Windows case).  */)
   (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
    Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
-  struct frame *f = check_x_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Atom prop_atom;
   int rc;
   Lisp_Object prop_value = Qnil;
@@ -5357,8 +5321,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   int face_change_count_before = face_change_count;
   Lisp_Object buffer;
   struct buffer *old_buffer;
-
-  check_window_system ();
 
   /* Use this general default value to start with until we know if
      this frame has a specified name.  */
@@ -5703,7 +5665,7 @@ Text larger than the specified size is clipped.  */)
   GCPRO4 (string, parms, frame, timeout);
 
   CHECK_STRING (string);
-  f = check_x_frame (frame);
+  f = decode_window_system_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);
   else
@@ -6354,7 +6316,7 @@ screen saver if defined.
 If optional parameter FRAME is not specified, use selected frame.  */)
   (Lisp_Object command, Lisp_Object frame)
 {
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
 
   CHECK_NUMBER (command);
 
@@ -7312,8 +7274,6 @@ void
 syms_of_w32fns (void)
 {
   globals_of_w32fns ();
-  /* This is zero if not using MS-Windows.  */
-  w32_in_use = 0;
   track_mouse_window = NULL;
 
   w32_visible_system_caret_hwnd = NULL;
