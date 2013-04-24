@@ -41,76 +41,6 @@
 @set edition-number 3.10
 @set update-date 28 October 2009
 
-@ignore
- ## Summary of shell commands to create various output formats:
-
-    pushd /usr/local/src/emacs/lispintro/
-    ## pushd /u/intro/
-
-    ## Info output
-    makeinfo --paragraph-indent=0 --verbose emacs-lisp-intro.texi
-
-      ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "/usr/local/src/emacs/info/eintr"))
-
-    ## DVI output
-    texi2dvi emacs-lisp-intro.texi
-
-      ## xdvi -margins 24pt -topmargin 4pt -offsets 24pt -geometry 760x1140 -s 5 -useTeXpages -mousemode 1 emacs-lisp-intro.dvi &
-
-    ## HTML output
-    makeinfo --html --no-split --verbose emacs-lisp-intro.texi
-
-      ## galeon emacs-lisp-intro.html
-
-    ## Plain text output
-    makeinfo --fill-column=70 --no-split --paragraph-indent=0 \
-    --verbose --no-headers --output=emacs-lisp-intro.txt emacs-lisp-intro.texi
-
-    popd
-
-# as user `root'
-# insert thumbdrive
-  mtusb       #   mount -v -t ext3 /dev/sda /mnt
-  cp -v /u/intro/emacs-lisp-intro.texi /mnt/backup/intro/emacs-lisp-intro.texi
-  umtusb      #   umount -v /mnt
-# remove thumbdrive
-
-    ## Other shell commands
-
-    pushd /usr/local/src/emacs/lispintro/
-    ## pushd /u/intro/
-
-    ## PDF
-    texi2dvi --pdf emacs-lisp-intro.texi
-       # xpdf emacs-lisp-intro.pdf &
-
-    ## DocBook                    -- note file extension
-    makeinfo --docbook --no-split --paragraph-indent=0 \
-    --verbose --output=emacs-lisp-intro.docbook emacs-lisp-intro.texi
-
-    ## XML with a Texinfo DTD     -- note file extension
-    makeinfo --xml --no-split --paragraph-indent=0 \
-    --verbose --output=emacs-lisp-intro.texinfoxml emacs-lisp-intro.texi
-
-    ## PostScript (needs DVI)
-        #     gv emacs-lisp-intro.ps &
-        # Create DVI if we lack it
-        # texi2dvi emacs-lisp-intro.texi
-    dvips emacs-lisp-intro.dvi -o emacs-lisp-intro.ps
-
-    ## RTF (needs HTML)
-        # Use OpenOffice to view RTF
-        # Create HTML if we lack it
-        # makeinfo --no-split --html emacs-lisp-intro.texi
-    /usr/local/src/html2rtf.pl emacs-lisp-intro.html
-
-    ## LaTeX (needs RTF)
-    /usr/bin/rtf2latex emacs-lisp-intro.rtf
-
-    popd
-
-@end ignore
-
 @c ================ Included Figures ================
 
 @c Set  print-postscript-figures  if you print PostScript figures.
@@ -118,25 +48,6 @@
 @c (This is not relevant to Info, since Info only handles ASCII.)
 @c Your site may require editing changes to print PostScript; in this
 @c case, search for `print-postscript-figures' and make appropriate changes.
-
-@c ================ How to Create an Info file ================
-
-@c If you have `makeinfo' installed, run the following command
-
-@c     makeinfo emacs-lisp-intro.texi
-
-@c or, if you want a single, large Info file, and no paragraph indents:
-@c     makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
-
-@c After creating the Info file, edit your Info `dir' file, if the
-@c `dircategory' section below does not enable your system to
-@c install the manual automatically.
-@c (The `dir' file is often in the `/usr/local/share/info/' directory.)
-
-@c ================ How to Create an HTML file ================
-
-@c To convert to HTML format
-@c     makeinfo --html --no-split --verbose emacs-lisp-intro.texi
 
 @c ================ How to Print a Book in Various Sizes ================
 
@@ -155,34 +66,6 @@
 @c              @c smallbook
 @c              @afourpaper
 @c              @set largebook
-
-@c ================ How to Typeset and Print ================
-
-@c If you do not include PostScript figures, run either of the
-@c following command sequences, or similar commands suited to your
-@c system:
-
-@c     texi2dvi emacs-lisp-intro.texi
-@c     lpr -d emacs-lisp-intro.dvi
-
-@c or else:
-
-@c     tex emacs-lisp-intro.texi
-@c     texindex emacs-lisp-intro.??
-@c     tex emacs-lisp-intro.texi
-@c     lpr -d emacs-lisp-intro.dvi
-
-@c If you include the PostScript figures, and you have old software,
-@c you may need to convert the .dvi file to a .ps file before
-@c printing.  Run either of the following command sequences, or one
-@c similar:
-@c
-@c     dvips -f < emacs-lisp-intro.dvi > emacs-lisp-intro.ps
-@c
-@c or else:
-@c
-@c     postscript -p < emacs-lisp-intro.dvi > emacs-lisp-intro.ps
-@c
 
 @c (Note: if you edit the book so as to change the length of the
 @c table of contents, you may have to change the value of `pageno' below.)
