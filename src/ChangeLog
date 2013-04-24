@@ -1,3 +1,9 @@
+2013-04-24  Kenichi Handa  <handa@gnu.org>
+
+	* coding.c (decode_coding_iso_2022): When an invalid escape
+	sequence is encountered, reset the invocation and designation
+	status to the safest one.
+
 2013-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (bootstrap-clean): Remove stamp-h1 too.
