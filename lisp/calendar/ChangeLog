@@ -1,3 +1,9 @@
+2013-04-24  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-check-format): Add check of well-formedness of
+	categories sexp.  If it is well-formed but differs from
+	todos-categories, do not signal an error but display a message.
+
 2013-04-21  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Fixes and improvements related to item relocation.

@@ -1066,31 +1066,45 @@ short Todos Archive or Top Priorities file name, respectively."
 
 (defun todos-check-format ()
   "Signal an error if the current Todos file is ill-formatted.
-Otherwise return t.  The error message gives the line number
-where the invalid formatting was found."
+Otherwise return t.  Display a message if the file is well-formed
+but the categories sexp differs from the current value of
+`todos-categories'."
   (save-excursion
     (save-restriction
       (widen)
       (goto-char (point-min))
-      (let ((cats (prin1-to-string todos-categories))
-	    (sexp (buffer-substring-no-properties (line-beginning-position)
-						  (line-end-position))))
-	;; Check for `todos-categories' sexp as the first line
-	(unless (string= sexp cats)
-	  (error "Invalid or missing todos-categories sexp")))
-      (forward-line)
-      (let ((legit (concat "\\(^" (regexp-quote todos-category-beg) "\\)"
-			   "\\|\\(" todos-date-string-start todos-date-pattern "\\)"
-			   "\\|\\(^[ \t]+[^ \t]*\\)"
-			   "\\|^$"
-			   "\\|\\(^" (regexp-quote todos-category-done) "\\)"
-			   "\\|\\(" todos-done-string-start "\\)")))
-	(while (not (eobp))
-	  (unless (looking-at legit)
-	    (error "Illegitimate Todos file format at line %d"
-		   (line-number-at-pos (point))))
-	  (forward-line)))))
-  ;; (message "This Todos file is well-formatted.")
+      (let* ((cats (prin1-to-string todos-categories))
+	     (ssexp (buffer-substring-no-properties (line-beginning-position)
+						    (line-end-position)))
+	     (sexp (read ssexp)))
+	;; Check the first line for `todos-categories' sexp.
+	(dolist (c sexp)
+	  (let ((v (cdr c)))
+	    (unless (and (stringp (car c))
+			 (vectorp v)
+			 (= 4 (length v)))
+	      (error "Invalid or missing todos-categories sexp"))))
+	(forward-line)
+	;; Check well-formedness of categories.
+	(let ((legit (concat "\\(^" (regexp-quote todos-category-beg) "\\)"
+			     "\\|\\(" todos-date-string-start todos-date-pattern "\\)"
+			     "\\|\\(^[ \t]+[^ \t]*\\)"
+			     "\\|^$"
+			     "\\|\\(^" (regexp-quote todos-category-done) "\\)"
+			     "\\|\\(" todos-done-string-start "\\)")))
+	  (while (not (eobp))
+	    (unless (looking-at legit)
+	      (error "Illegitimate Todos file format at line %d"
+		     (line-number-at-pos (point))))
+	    (forward-line)))
+	;; Warn user if categories sexp has changed.
+	(unless (string= ssexp cats)
+	  (message (concat "The sexp at the beginning of the file differs "
+			   "from the value of `todos-categories.\n"
+			   "If the sexp is wrong, you can fix it with "
+			   "M-x todos-repair-categories-sexp,\n"
+			   "but note this reverts any changes you have "
+			   "made in the order of the categories."))))))
   t)
 
 ;; ---------------------------------------------------------------------------
