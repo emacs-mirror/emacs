@@ -406,11 +406,11 @@ Defaults to t in case the `opascal-after-change' function is called on a
 non-OPascal buffer.  Set to nil in OPascal buffers.  To override, just do:
  (let ((opascal--ignore-changes t)) ...)")
 
-(defun opascal-set-text-properties (from to properties)
+(defun opascal-set-token-property (from to value)
   ;; Like `set-text-properties', except we do not consider this to be a buffer
   ;; modification.
   (opascal-save-state
-   (set-text-properties from to properties)))
+   (put-text-property from to 'token value)))
 
 (defun opascal-literal-kind (p)
   ;; Returns the literal kind the point p is in (or nil if not in a literal).
@@ -490,13 +490,6 @@ non-OPascal buffer.  Set to nil in OPascal buffers.  To override, just do:
       (re-search-forward pattern limit 'goto-limit-on-fail)
       (point))))
 
-(defun opascal-literal-text-properties (kind)
-  ;; Creates a list of text properties for the literal kind.
-  (if (and (boundp 'font-lock-mode)
-           font-lock-mode)
-      (list 'token kind 'face (opascal-face-of kind) 'lazy-lock t)
-    (list 'token kind)))
-
 (defun opascal-parse-next-literal (limit)
   ;; Searches for the next literal region (i.e. comment or string) and sets the
   ;; the point to its end (or the limit, if not found). The literal region is
@@ -507,8 +500,7 @@ non-OPascal buffer.  Set to nil in OPascal buffers.  To override, just do:
            ;; We are completing an incomplete literal.
            (let ((kind (opascal-literal-kind (1- search-start))))
              (opascal-complete-literal kind limit)
-             (opascal-set-text-properties
-              search-start (point) (opascal-literal-text-properties kind))))
+             (opascal-set-token-property search-start (point) kind)))
 
           ((re-search-forward
             "\\(//\\)\\|\\({\\)\\|\\((\\*\\)\\|\\('\\)\\|\\(\"\\)"
@@ -520,13 +512,12 @@ non-OPascal buffer.  Set to nil in OPascal buffers.  To override, just do:
                              ((match-beginning 4) 'string)
                              ((match-beginning 5) 'double-quoted-string)))
                  (start (match-beginning 0)))
-             (opascal-set-text-properties search-start start nil)
+             (opascal-set-token-property search-start start nil)
              (opascal-complete-literal kind limit)
-             (opascal-set-text-properties
-              start (point) (opascal-literal-text-properties kind))))
+             (opascal-set-token-property start (point) kind)))
 
           ;; Nothing found. Mark it as a non-literal.
-          ((opascal-set-text-properties search-start limit nil)))
+          ((opascal-set-token-property search-start limit nil)))
     (opascal-step-progress (point) "Parsing" opascal-parsing-progress-step)))
 
 (defun opascal-literal-token-at (p)
@@ -1570,7 +1561,7 @@ If before the indent, the point is moved to the indent."
 
 (defun opascal-debug-unparse-buffer ()
   (interactive)
-  (opascal-set-text-properties (point-min) (point-max) nil))
+  (opascal-set-token-property (point-min) (point-max) nil))
 
 (defun opascal-debug-parse-region (from to)
   (interactive "r")

@@ -1,3 +1,12 @@
+2013-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/opascal.el (opascal-set-token-property): Rename from
+	opascal-set-text-properties and only set `token' (bug#14134).
+	Suggested by Erik Knowles <eknowles@geosystemsoftware.com>.
+	(opascal-literal-text-properties): Remove.
+	(opascal-parse-next-literal, opascal-debug-unparse-buffer):
+	Adjust callers.
+
 2013-04-24  Reuben Thomas <rrt@sc3d.org>
 
 	* textmodes/remember.el (remember-handler-functions): Add an
