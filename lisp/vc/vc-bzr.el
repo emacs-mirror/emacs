@@ -712,6 +712,15 @@ If LIMIT is non-nil, show no more than this many entries."
 	    (when shortlog '("--line"))
 	    (when start-revision (list (format "-r..%s" start-revision)))
 	    (when limit (list "-l" (format "%s" limit)))
+	    ;; This is to remove --forward, if it has been added by an alias.
+	    ;; There is no sensible way to combine --limit and --forward,
+	    ;; and it breaks the meaning of START-REVISION as the
+	    ;; _newest_ revision.  See bug#14168.
+	    ;; FIXME There may be other alias stuff we want to keep.
+	    ;; Is there a way to just suppress --forward?
+	    ;; As of 2013/4 the only caller uses limit = 1, so it does
+	    ;; not matter much.
+	    (and start-revision limit (> limit 1) '("--no-aliases"))
 	    (if (stringp vc-bzr-log-switches)
 		(list vc-bzr-log-switches)
 	      vc-bzr-log-switches)))))

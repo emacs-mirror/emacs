@@ -1,5 +1,6 @@
 2013-04-24  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-bzr.el (vc-bzr-print-log):
 	* vc/vc-hg.el (vc-hg-print-log):
 	* vc/vc-svn.el (vc-svn-print-log):
 	Fix START-REVISION with LIMIT != 1.  (Bug#14168)
