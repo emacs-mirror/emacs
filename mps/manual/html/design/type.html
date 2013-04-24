@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>4. General MPS types &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>17. General MPS types &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="5. Software versions" href="version.html" />
-    <link rel="prev" title="3. Protocol inheritance" href="protocol.html" /> 
+    <link rel="next" title="18. Software versions" href="version.html" />
+    <link rel="prev" title="16. Protocol inheritance" href="protocol.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="version.html" title="5. Software versions"
+          <a href="version.html" title="18. Software versions"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="3. Protocol inheritance"
+          <a href="protocol.html" title="16. Protocol inheritance"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,13 +55,13 @@
           <div class="body">
             
   <div class="section" id="general-mps-types">
-<span id="design.mps.type"></span><h1>4. General MPS types<a class="headerlink" href="#general-mps-types" title="Permalink to this headline">¶</a></h1>
+<span id="design.mps.type"></span><h1>17. General MPS types<a class="headerlink" href="#general-mps-types" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>4.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>17.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.type.intro"></span><a class="mpstag reference internal" href="#design.mps.type.intro">.intro:</a> See impl.h.mpmtypes.</p>
 </div>
 <div class="section" id="rationale">
-<h2>4.2. Rationale<a class="headerlink" href="#rationale" title="Permalink to this headline">¶</a></h2>
+<h2>17.2. Rationale<a class="headerlink" href="#rationale" title="Permalink to this headline">¶</a></h2>
 <p>Some types are declared to resolve a point of design, such as the best
 type to use for array indexing.</p>
 <p>Some types are declared so that the intention of code is clearer. For
@@ -69,7 +69,7 @@ example, <a class="reference internal" href="#Byte" title="Byte"><tt class="xref
 better to say <a class="reference internal" href="#Byte" title="Byte"><tt class="xref c c-type docutils literal"><span class="pre">Byte</span></tt></a> in your code if it&#8217;s what you mean.</p>
 </div>
 <div class="section" id="concrete-types">
-<h2>4.3. Concrete types<a class="headerlink" href="#concrete-types" title="Permalink to this headline">¶</a></h2>
+<h2>17.3. Concrete types<a class="headerlink" href="#concrete-types" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="Bool">
 <tt class="descname">Bool</tt><a class="headerlink" href="#Bool" title="Permalink to this definition">¶</a></dt>
@@ -206,8 +206,8 @@ registers and addresses.</p>
 <p><span class="target" id="design.mps.type.word.use"></span><a class="mpstag reference internal" href="#design.mps.type.word.use">.word.use:</a> <tt class="docutils literal"><span class="pre">Word</span></tt> should be used where an unsigned integer
 is required that might range as large as the machine word.</p>
 <p><span class="target" id="design.mps.type.word.source"></span><a class="mpstag reference internal" href="#design.mps.type.word.source">.word.source:</a> <tt class="docutils literal"><span class="pre">Word</span></tt> is derived from the macro
-<tt class="docutils literal"><span class="pre">MPS_T_WORD</span></tt> which is declared in impl.h.mpstd
-according to the target platform.</p>
+<tt class="docutils literal"><span class="pre">MPS_T_WORD</span></tt> which is declared in impl.h.mpstd according
+to the target platform (design.mps.config.pf.word).</p>
 <p><span class="target" id="design.mps.type.word.conv.c"></span><a class="mpstag reference internal" href="#design.mps.type.word.conv.c">.word.conv.c:</a> <tt class="docutils literal"><span class="pre">Word</span></tt> is converted to <a class="reference internal" href="../topic/interface.html#mps_word_t" title="mps_word_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_word_t</span></tt></a>
 in the MPS C Interface.</p>
 <dl class="type">
@@ -605,7 +605,7 @@ where any integer might be passed. Notably, it is used in <tt class="docutils li
 to print any integer.</p>
 </div>
 <div class="section" id="abstract-types">
-<h2>4.4. Abstract types<a class="headerlink" href="#abstract-types" title="Permalink to this headline">¶</a></h2>
+<h2>17.4. Abstract types<a class="headerlink" href="#abstract-types" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.type.adts"></span><a class="mpstag reference internal" href="#design.mps.type.adts">.adts:</a> The following types are abstract data types,
 implemented as pointers to structures. For example, <tt class="xref c c-type docutils literal"><span class="pre">Ring</span></tt> is
 a pointer to a <tt class="xref c c-type docutils literal"><span class="pre">RingStruct</span></tt>. They are described elsewhere</p>
@@ -639,21 +639,21 @@ exists to sanctify functions such as <tt class="xref c c-func docutils literal">
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">4. General MPS types</a><ul>
-<li><a class="reference internal" href="#introduction">4.1. Introduction</a></li>
-<li><a class="reference internal" href="#rationale">4.2. Rationale</a></li>
-<li><a class="reference internal" href="#concrete-types">4.3. Concrete types</a></li>
-<li><a class="reference internal" href="#abstract-types">4.4. Abstract types</a></li>
+<li><a class="reference internal" href="#">17. General MPS types</a><ul>
+<li><a class="reference internal" href="#introduction">17.1. Introduction</a></li>
+<li><a class="reference internal" href="#rationale">17.2. Rationale</a></li>
+<li><a class="reference internal" href="#concrete-types">17.3. Concrete types</a></li>
+<li><a class="reference internal" href="#abstract-types">17.4. Abstract types</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="protocol.html"
-                        title="previous chapter">3. Protocol inheritance</a></p>
+                        title="previous chapter">16. Protocol inheritance</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="version.html"
-                        title="next chapter">5. Software versions</a></p><h4>Downloads</h4>
+                        title="next chapter">18. Software versions</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -679,10 +679,10 @@ exists to sanctify functions such as <tt class="xref c c-func docutils literal">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="version.html" title="5. Software versions"
+          <a href="version.html" title="18. Software versions"
              >next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="3. Protocol inheritance"
+          <a href="protocol.html" title="16. Protocol inheritance"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

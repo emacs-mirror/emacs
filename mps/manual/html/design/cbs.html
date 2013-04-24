@@ -1,0 +1,777 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>3. Coalescing block structure &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Design" href="index.html" />
+    <link rel="next" title="4. Checking" href="check.html" />
+    <link rel="prev" title="2. Bit tables" href="bt.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="check.html" title="4. Checking"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bt.html" title="2. Bit tables"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="coalescing-block-structure">
+<span id="design.mps.cbs"></span><h1>3. Coalescing block structure<a class="headerlink" href="#coalescing-block-structure" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>3.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.intro"></span><a class="mpstag reference internal" href="#design.mps.cbs.intro">.intro:</a> This is the design for impl.c.cbs, which
+implements a data structure for the management of non-intersecting
+memory ranges, with eager coalescence.</p>
+<p><span class="target" id="design.mps.cbs.readership"></span><a class="mpstag reference internal" href="#design.mps.cbs.readership">.readership:</a> This document is intended for any MM developer.</p>
+<p><span class="target" id="design.mps.cbs.source"></span><a class="mpstag reference internal" href="#design.mps.cbs.source">.source:</a> design.mps.poolmv2, design.mps.poolmvff.</p>
+<p><span class="target" id="design.mps.cbs.overview"></span><a class="mpstag reference internal" href="#design.mps.cbs.overview">.overview:</a> The &#8220;coalescing block structure&#8221; is a set of
+addresses (or a subset of address space), with provision for efficient
+management of contiguous ranges, including insertion and deletion,
+high level communication with the client about the size of contiguous
+ranges, and detection of protocol violations.</p>
+</div>
+<div class="section" id="history">
+<h2>3.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.hist.0"></span><a class="mpstag reference internal" href="#design.mps.cbs.hist.0">.hist.0:</a> This document was derived from the outline in
+design.mps.poolmv2(2). Written by Gavin Matthews
+1998-05-01.</p>
+<p><span class="target" id="design.mps.cbs.hist.1"></span><a class="mpstag reference internal" href="#design.mps.cbs.hist.1">.hist.1:</a> Updated by Gavin Matthews 1998-07-22 in response to
+approval comments in change.epcore.anchovy.160040 There is
+too much fragmentation in trapping memory.</p>
+<p><span class="target" id="design.mps.cbs.hist.2"></span><a class="mpstag reference internal" href="#design.mps.cbs.hist.2">.hist.2:</a> Updated by Gavin Matthews (as part of
+change.epcore.brisling.160158: MVFF cannot be instantiated
+with 4-byte alignment) to document new alignment restrictions.</p>
+<p><span class="target" id="design.mps.cbs.hist.3"></span><a class="mpstag reference internal" href="#design.mps.cbs.hist.3">.hist.3:</a> Converted from MMInfo database design document.
+Richard Brooksby, 2002-06-07.</p>
+<p><span class="target" id="design.mps.cbs.hist.4"></span><a class="mpstag reference internal" href="#design.mps.cbs.hist.4">.hist.4:</a> Converted to reStructuredText. Gareth Rees,
+2013-04-14.</p>
+</div>
+<div class="section" id="definitions">
+<h2>3.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.def.range"></span><a class="mpstag reference internal" href="#design.mps.cbs.def.range">.def.range:</a> A (contiguous) range of addresses is a semi-open
+interval on address space.</p>
+<p><span class="target" id="design.mps.cbs.def.isolated"></span><a class="mpstag reference internal" href="#design.mps.cbs.def.isolated">.def.isolated:</a> A contiguous range is isolated with respect to
+some property it has, if adjacent elements do not have that property.</p>
+<p><span class="target" id="design.mps.cbs.def.interesting"></span><a class="mpstag reference internal" href="#design.mps.cbs.def.interesting">.def.interesting:</a> A block is interesting if it is of at least
+the minimum interesting size specified by the client.</p>
+</div>
+<div class="section" id="requirements">
+<h2>3.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.req.set"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.set">.req.set:</a> Must maintain a set of addresses.</p>
+<p><span class="target" id="design.mps.cbs.req.fast"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.fast">.req.fast:</a> Common operations must have a low amortized cost.</p>
+<p><span class="target" id="design.mps.cbs.req.add"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.add">.req.add:</a> Must be able to add address ranges to the set.</p>
+<p><span class="target" id="design.mps.cbs.req.remove"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.remove">.req.remove:</a> Must be able to remove address ranges from the set.</p>
+<p><span class="target" id="design.mps.cbs.req.size"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.size">.req.size:</a> Must report concisely to the client when isolated
+contiguous ranges of at least a certain size appear and disappear.</p>
+<p><span class="target" id="design.mps.cbs.req.iterate"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.iterate">.req.iterate:</a> Must support the iteration of all isolated
+contiguous ranges. This will not be a common operation.</p>
+<p><span class="target" id="design.mps.cbs.req.protocol"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.protocol">.req.protocol:</a> Must detect protocol violations.</p>
+<p><span class="target" id="design.mps.cbs.req.debug"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.debug">.req.debug:</a> Must support debugging of client code.</p>
+<p><span class="target" id="design.mps.cbs.req.small"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.small">.req.small:</a> Must have a small space overhead for the storage
+of typical subsets of address space and not have abysmal overhead for
+the storage of any subset of address space.</p>
+<p><span class="target" id="design.mps.cbs.req.align"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.align">.req.align:</a> Must support an alignment (the alignment of all
+addresses specifying ranges) of down to <tt class="docutils literal"><span class="pre">sizeof(void</span> <span class="pre">*)</span></tt> without
+losing memory.</p>
+</div>
+<div class="section" id="interface">
+<h2>3.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.header"></span><a class="mpstag reference internal" href="#design.mps.cbs.header">.header:</a> CBS is used through impl.h.cbs.</p>
+<div class="section" id="external-types">
+<h3>3.5.1. External types<a class="headerlink" href="#external-types" title="Permalink to this headline">¶</a></h3>
+<dl class="type">
+<dt>
+<tt class="descname">typedef struct CBSStruct CBSStruct, *CBS;</tt></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.type.cbs"></span><a class="mpstag reference internal" href="#design.mps.cbs.type.cbs">.type.cbs:</a> <tt class="xref c c-type docutils literal"><span class="pre">CBS</span></tt> is the main datastructure for
+manipulating a CBS. It is intended that a <tt class="xref c c-type docutils literal"><span class="pre">CBSStruct</span></tt> be
+embedded in another structure. No convenience functions are provided
+for the allocation or deallocation of the CBS.</p>
+<dl class="type">
+<dt>
+<tt class="descname">typedef struct CBSBlockStruct CBSBlockStruct, *CBSBlock;</tt></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.type.cbs.block"></span><a class="mpstag reference internal" href="#design.mps.cbs.type.cbs.block">.type.cbs.block:</a> <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> is the data-structure
+that represents an isolated contiguous range held by the CBS. It is
+returned by the new and delete methods described below.</p>
+<p><span class="target" id="design.mps.cbs.type.cbs.method"></span><a class="mpstag reference internal" href="#design.mps.cbs.type.cbs.method">.type.cbs.method:</a> The following methods are provided as
+callbacks to advise the client of certain events. The implementation
+of these functions should not cause any CBS function to be called on
+the same CBS. In this respect, the CBS module is not re-entrant.</p>
+<dl class="type">
+<dt>
+<tt class="descname">typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block, Size oldSize, SizeNewSize);</tt></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.type.cbs.change.size.method"></span><a class="mpstag reference internal" href="#design.mps.cbs.type.cbs.change.size.method">.type.cbs.change.size.method:</a> <tt class="xref c c-type docutils literal"><span class="pre">CBSChangeSizeMethod</span></tt>
+is the function pointer type, four instances of which are optionally
+registered via CBSInit.</p>
+<p>These callbacks are invoked under <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a>,
+<a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>, or <a class="reference internal" href="#CBSSetMinSize" title="CBSSetMinSize"><tt class="xref c c-func docutils literal"><span class="pre">CBSSetMinSize()</span></tt></a> in certain
+circumstances. Unless otherwise stated, <tt class="docutils literal"><span class="pre">oldSize</span></tt> and <tt class="docutils literal"><span class="pre">newSize</span></tt>
+will both be non-zero, and different. The accessors
+<a class="reference internal" href="#CBSBlockBase" title="CBSBlockBase"><tt class="xref c c-func docutils literal"><span class="pre">CBSBlockBase()</span></tt></a>, <a class="reference internal" href="#CBSBlockLimit" title="CBSBlockLimit"><tt class="xref c c-func docutils literal"><span class="pre">CBSBlockLimit()</span></tt></a>, and
+<a class="reference internal" href="#CBSBlockSize" title="CBSBlockSize"><tt class="xref c c-func docutils literal"><span class="pre">CBSBlockSize()</span></tt></a> may be called from within these callbacks,
+except within the delete callback when <tt class="docutils literal"><span class="pre">newSize</span></tt> is zero. See
+<a class="reference internal" href="#design.mps.cbs.impl.callback">.impl.callback</a> for implementation details.</p>
+<dl class="type">
+<dt>
+<tt class="descname">typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block, void *closureP, unsigned long closureS);</tt></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.type.cbs.iterate.method"></span><a class="mpstag reference internal" href="#design.mps.cbs.type.cbs.iterate.method">.type.cbs.iterate.method:</a> <tt class="xref c c-type docutils literal"><span class="pre">CBSIterateMethod</span></tt> is a
+function pointer type for a client method invoked by the CBS module
+for every isolated contiguous range in address order, when passed to
+the <a class="reference internal" href="#CBSIterate" title="CBSIterate"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterate()</span></tt></a> or <a class="reference internal" href="#CBSIterateLarge" title="CBSIterateLarge"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterateLarge()</span></tt></a> functions. The
+function returns a boolean indicating whether to continue with the
+iteration.</p>
+</div>
+<div class="section" id="external-functions">
+<h3>3.5.2. External functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="CBSInit">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">CBSInit</tt><big>(</big>Arena<em>&nbsp;arena</em>, CBS<em>&nbsp;cbs</em>, CBSChangeSizeMethod<em>&nbsp;new</em>, CBSChangeSizeMethod<em>&nbsp;delete</em>, CBSChangeSizeMethod<em>&nbsp;grow</em>, CBSChangeSizeMethod<em>&nbsp;shrink</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;minSize</em>, <a class="reference internal" href="type.html#Align" title="Align">Align</a><em>&nbsp;alignment</em>, <a class="reference internal" href="type.html#Bool" title="Bool">Bool</a><em>&nbsp;mayUseInline</em><big>)</big><a class="headerlink" href="#CBSInit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.init"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.init">.function.cbs.init:</a> <a class="reference internal" href="#CBSInit" title="CBSInit"><tt class="xref c c-func docutils literal"><span class="pre">CBSInit()</span></tt></a> is the function that
+initialises the CBS structure. It performs allocation in the supplied
+arena. Four methods are passed in as function pointers (see
+<a class="reference internal" href="#design.mps.cbs.type.*">.type.*</a> above), any of which may be <tt class="docutils literal"><span class="pre">NULL</span></tt>. It receives a
+minimum size, which is used when determining whether to call the
+optional methods. The <tt class="docutils literal"><span class="pre">mayUseInline</span></tt> Boolean indicates whether the
+CBS may use the memory in the ranges as a low-memory fallback (see
+<a class="reference internal" href="#design.mps.cbs.impl.low-mem">.impl.low-mem</a>). The alignment indicates the alignment of
+ranges to be maintained. An initialised CBS contains no ranges.</p>
+<p><span class="target" id="design.mps.cbs.function.cbs.init.may-use-inline"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.init.may-use-inline">.function.cbs.init.may-use-inline:</a> If <tt class="docutils literal"><span class="pre">mayUseInline</span></tt> is
+set, then <tt class="docutils literal"><span class="pre">alignment</span></tt> must be at least <tt class="docutils literal"><span class="pre">sizeof(void</span> <span class="pre">*)</span></tt>. In this
+mode, the CBS will never fail to insert or delete ranges, even if
+memory for control structures becomes short. Note that, in such cases,
+the CBS may defer notification of new/grow events, but will report
+available blocks in <a class="reference internal" href="#CBSFindFirst" title="CBSFindFirst"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindFirst()</span></tt></a> and <a class="reference internal" href="#CBSFindLast" title="CBSFindLast"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLast()</span></tt></a>.
+Such low memory conditions will be rare and transitory. See
+<a class="reference internal" href="#design.mps.cbs.align">.align</a> for more details.</p>
+<dl class="function">
+<dt id="CBSFinish">
+void <tt class="descname">CBSFinish</tt><big>(</big>CBS<em>&nbsp;cbs</em><big>)</big><a class="headerlink" href="#CBSFinish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.finish"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.finish">.function.cbs.finish:</a> <a class="reference internal" href="#CBSFinish" title="CBSFinish"><tt class="xref c c-func docutils literal"><span class="pre">CBSFinish()</span></tt></a> is the function
+that finishes the CBS structure and discards any other resources
+associated with the CBS.</p>
+<dl class="function">
+<dt id="CBSInsert">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">CBSInsert</tt><big>(</big>CBS<em>&nbsp;cbs</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;base</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;limit</em><big>)</big><a class="headerlink" href="#CBSInsert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.insert"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.insert">.function.cbs.insert:</a> <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> is the function
+used to add a contiguous range specified by <tt class="docutils literal"><span class="pre">[base,limit)</span></tt> to the
+CBS. If any part of the range is already in the CBS, then
+<tt class="xref c c-macro docutils literal"><span class="pre">ResFAIL</span></tt> is returned, and the CBS is unchanged. This
+function may cause allocation; if this allocation fails, and any
+contingency mechanism fails, then <tt class="xref c c-macro docutils literal"><span class="pre">ResMEMORY</span></tt> is returned,
+and the CBS is unchanged.</p>
+<p><span class="target" id="design.mps.cbs.function.cbs.insert.callback"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.insert.callback">.function.cbs.insert.callback:</a> <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> will invoke callbacks as follows:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">new</span></tt>: when a new block is created that is interesting. <tt class="docutils literal"><span class="pre">oldSize</span> <span class="pre">==</span> <span class="pre">0;</span> <span class="pre">newSize</span> <span class="pre">&gt;=</span> <span class="pre">minSize</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">new</span></tt>: when an uninteresting block coalesces to become interesting. <tt class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">oldSize</span> <span class="pre">&lt;</span> <span class="pre">minSize</span> <span class="pre">&lt;=</span> <span class="pre">newSize</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">delete</span></tt>: when two interesting blocks are coalesced.  <tt class="docutils literal"><span class="pre">grow</span></tt> will also be invoked in this case on the larger of the two blocks.  <tt class="docutils literal"><span class="pre">newSize</span> <span class="pre">==</span> <span class="pre">0;</span> <span class="pre">oldSize</span> <span class="pre">&gt;=</span> <span class="pre">minSize</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">grow</span></tt>: when an interesting block grows in size.  <tt class="docutils literal"><span class="pre">minSize</span> <span class="pre">&lt;=</span> <span class="pre">oldSize</span> <span class="pre">&lt;</span> <span class="pre">newSize</span></tt>.</li>
+</ul>
+<dl class="function">
+<dt id="CBSDelete">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">CBSDelete</tt><big>(</big>CBS<em>&nbsp;cbs</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;base</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;limit</em><big>)</big><a class="headerlink" href="#CBSDelete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.delete"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.delete">.function.cbs.delete:</a> <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a> is the function
+used to remove a contiguous range specified by <tt class="docutils literal"><span class="pre">[base,limit)</span></tt> from
+the CBS. If any part of the range is not in the CBS, then
+<tt class="xref c c-macro docutils literal"><span class="pre">ResFAIL</span></tt> is returned, and the CBS is unchanged. This
+function may cause allocation; if this allocation fails, and any
+contingency mechanism fails, then <tt class="xref c c-macro docutils literal"><span class="pre">ResMEMORY</span></tt> is returned,
+and the CBS is unchanged.</p>
+<p><span class="target" id="design.mps.cbs.function.cbs.delete.callback"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.delete.callback">.function.cbs.delete.callback:</a> <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a> will
+invoke callbacks as follows:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">delete</span></tt>: when an interesting block is entirely removed.  <tt class="docutils literal"><span class="pre">newSize</span> <span class="pre">==</span> <span class="pre">0;</span> <span class="pre">oldSize</span> <span class="pre">&gt;=</span> <span class="pre">minSize</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">delete</span></tt>: when an interesting block becomes uninteresting. <tt class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">newSize</span> <span class="pre">&lt;</span> <span class="pre">minSize</span> <span class="pre">&lt;=</span> <span class="pre">oldSize</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">new</span></tt>: when a block is split into two blocks, both of which are interesting. <tt class="docutils literal"><span class="pre">shrink</span></tt> will also be invoked in this case on the larger of the two blocks. <tt class="docutils literal"><span class="pre">oldSize</span> <span class="pre">==</span> <span class="pre">0;</span> <span class="pre">newSize</span> <span class="pre">&gt;=</span> <span class="pre">minSize</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">shrink</span></tt>: when an interesting block shrinks in size, but remains interesting. <tt class="docutils literal"><span class="pre">minSize</span> <span class="pre">&lt;=</span> <span class="pre">newSize</span> <span class="pre">&lt;</span> <span class="pre">oldSize</span></tt>.</li>
+</ul>
+<dl class="function">
+<dt id="CBSIterate">
+void <tt class="descname">CBSIterate</tt><big>(</big>CBS<em>&nbsp;cbs</em>, CBSIterateMethod<em>&nbsp;iterate</em>, void<em>&nbsp;*closureP</em>, unsigned long<em>&nbsp;closureS</em><big>)</big><a class="headerlink" href="#CBSIterate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.iterate"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.iterate">.function.cbs.iterate:</a> <a class="reference internal" href="#CBSIterate" title="CBSIterate"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterate()</span></tt></a> is the function
+used to iterate all isolated contiguous ranges in a CBS. It receives a
+pointer, unsigned long closure pair to pass on to the iterator method,
+and an iterator method to invoke on every range in address order. If
+the iterator method returns <tt class="docutils literal"><span class="pre">FALSE</span></tt>, then the iteration is
+terminated.</p>
+<dl class="function">
+<dt id="CBSIterateLarge">
+void <tt class="descname">CBSIterateLarge</tt><big>(</big>CBS<em>&nbsp;cbs</em>, CBSIterateMethod<em>&nbsp;iterate</em>, void<em>&nbsp;*closureP</em>, unsigned long<em>&nbsp;closureS</em><big>)</big><a class="headerlink" href="#CBSIterateLarge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.iterate.large"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.iterate.large">.function.cbs.iterate.large:</a> <a class="reference internal" href="#CBSIterateLarge" title="CBSIterateLarge"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterateLarge()</span></tt></a> is the
+function used to iterate all isolated contiguous ranges of size
+greater than or equal to the client indicated minimum size in a CBS.
+It receives a pointer, unsigned long closure pair to pass on to the
+iterator method, and an iterator method to invoke on every large range
+in address order. If the iterator method returns <tt class="docutils literal"><span class="pre">FALSE</span></tt>, then the
+iteration is terminated.</p>
+<dl class="function">
+<dt id="CBSSetMinSize">
+void <tt class="descname">CBSSetMinSize</tt><big>(</big>CBS<em>&nbsp;cbs</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;minSize</em><big>)</big><a class="headerlink" href="#CBSSetMinSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.set.min-size"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.set.min-size">.function.cbs.set.min-size:</a> <a class="reference internal" href="#CBSSetMinSize" title="CBSSetMinSize"><tt class="xref c c-func docutils literal"><span class="pre">CBSSetMinSize()</span></tt></a> is the
+function used to change the minimum size of interest in a CBS. This
+minimum size is used to determine whether to invoke the client
+callbacks from <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> and <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>. This
+function will invoke either the <tt class="docutils literal"><span class="pre">new</span></tt> or <tt class="docutils literal"><span class="pre">delete</span></tt> callback for all
+blocks that are (in the semi-open interval) between the old and new
+values. <tt class="docutils literal"><span class="pre">oldSize</span></tt> and <tt class="docutils literal"><span class="pre">newSize</span></tt> will be the same in these cases.</p>
+<dl class="function">
+<dt id="CBSDescribe">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">CBSDescribe</tt><big>(</big>CBS<em>&nbsp;cbs</em>, <a class="reference internal" href="../topic/plinth.html#mps_lib_FILE" title="mps_lib_FILE">mps_lib_FILE</a><em>&nbsp;*stream</em><big>)</big><a class="headerlink" href="#CBSDescribe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.describe"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.describe">.function.cbs.describe:</a> <a class="reference internal" href="#CBSDescribe" title="CBSDescribe"><tt class="xref c c-func docutils literal"><span class="pre">CBSDescribe()</span></tt></a> is a function
+that prints a textual representation of the CBS to the given stream,
+indicating the contiguous ranges in order, as well as the structure of
+the underlying splay tree implementation. It is provided for debugging
+purposes only.</p>
+<dl class="function">
+<dt id="CBSBlockBase">
+<a class="reference internal" href="type.html#Addr" title="Addr">Addr</a> <tt class="descname">CBSBlockBase</tt><big>(</big>CBSBlock<em>&nbsp;block</em><big>)</big><a class="headerlink" href="#CBSBlockBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.block.base"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.block.base">.function.cbs.block.base:</a> The <a class="reference internal" href="#CBSBlockBase" title="CBSBlockBase"><tt class="xref c c-func docutils literal"><span class="pre">CBSBlockBase()</span></tt></a> function
+returns the base of the range represented by the <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt>.
+This function may not be called from the delete callback when the
+block is being deleted entirely.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The value of the base of a particular <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> is not
+guaranteed to remain constant across calls to <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>
+and <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a>, regardless of whether a callback is
+invoked.</p>
+</div>
+<dl class="function">
+<dt id="CBSBlockLimit">
+<a class="reference internal" href="type.html#Addr" title="Addr">Addr</a> <tt class="descname">CBSBlockLimit</tt><big>(</big>CBSBlock<em>&nbsp;block</em><big>)</big><a class="headerlink" href="#CBSBlockLimit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.block.limit"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.block.limit">.function.cbs.block.limit:</a> The <a class="reference internal" href="#CBSBlockLimit" title="CBSBlockLimit"><tt class="xref c c-func docutils literal"><span class="pre">CBSBlockLimit()</span></tt></a>
+function returns the limit of the range represented by the
+<tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt>. This function may not be called from the delete
+callback when the block is being deleted entirely.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The value of the limit of a particular <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> is not
+guaranteed to remain constant across calls to <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>
+and <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a>, regardless of whether a callback is
+invoked.</p>
+</div>
+<dl class="function">
+<dt id="CBSBlockSize">
+<a class="reference internal" href="type.html#Size" title="Size">Size</a> <tt class="descname">CBSBlockSize</tt><big>(</big>CBSBlock<em>&nbsp;block</em><big>)</big><a class="headerlink" href="#CBSBlockSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.block.size"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.block.size">.function.cbs.block.size:</a> The <a class="reference internal" href="#CBSBlockSize" title="CBSBlockSize"><tt class="xref c c-func docutils literal"><span class="pre">CBSBlockSize()</span></tt></a> function
+returns the size of the range represented by the <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt>.
+This function may not be called from the <tt class="docutils literal"><span class="pre">delete</span></tt> callback when the
+block is being deleted entirely.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The value of the size of a particular <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> is not
+guaranteed to remain constant across calls to <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>
+and <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a>, regardless of whether a callback is
+invoked.</p>
+</div>
+<dl class="function">
+<dt id="CBSBlockDescribe">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">CBSBlockDescribe</tt><big>(</big>CBSBlock<em>&nbsp;block</em>, <a class="reference internal" href="../topic/plinth.html#mps_lib_FILE" title="mps_lib_FILE">mps_lib_FILE</a><em>&nbsp;*stream</em><big>)</big><a class="headerlink" href="#CBSBlockDescribe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.block.describe"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.block.describe">.function.cbs.block.describe:</a> The <a class="reference internal" href="#CBSBlockDescribe" title="CBSBlockDescribe"><tt class="xref c c-func docutils literal"><span class="pre">CBSBlockDescribe()</span></tt></a>
+function prints a textual representation of the <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> to
+the given stream. It is provided for debugging purposes only.</p>
+<dl class="function">
+<dt id="CBSFindFirst">
+<a class="reference internal" href="type.html#Bool" title="Bool">Bool</a> <tt class="descname">CBSFindFirst</tt><big>(</big><a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;*baseReturn</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;*limitReturn</em>, CBS<em>&nbsp;cbs</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em>, CBSFindDelete<em>&nbsp;findDelete</em><big>)</big><a class="headerlink" href="#CBSFindFirst" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.find.first"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.find.first">.function.cbs.find.first:</a> The <a class="reference internal" href="#CBSFindFirst" title="CBSFindFirst"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindFirst()</span></tt></a> function
+locates the first block (in address order) within the CBS of at least
+the specified size, and returns its range. If there are no such
+blocks, it returns <tt class="docutils literal"><span class="pre">FALSE</span></tt>. It optionally deletes the top, bottom,
+or all of the found range, depending on the <tt class="docutils literal"><span class="pre">findDelete</span></tt> argument
+(this saves a separate call to <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>, and uses the
+knowledge of exactly where we found the range), which must come from
+this enumeration:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">enum</span> <span class="p">{</span>
+    <span class="n">CBSFindDeleteNONE</span><span class="p">,</span>    <span class="cm">/* don&#39;t delete after finding */</span>
+    <span class="n">CBSFindDeleteLOW</span><span class="p">,</span>     <span class="cm">/* delete precise size from low end */</span>
+    <span class="n">CBSFindDeleteHIGH</span><span class="p">,</span>    <span class="cm">/* delete precise size from high end */</span>
+    <span class="n">CBSFindDeleteENTIRE</span>   <span class="cm">/* delete entire range */</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="CBSFindLast">
+<a class="reference internal" href="type.html#Bool" title="Bool">Bool</a> <tt class="descname">CBSFindLast</tt><big>(</big><a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;*baseReturn</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;*limitReturn</em>, CBS<em>&nbsp;cbs</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em>, CBSFindDelete<em>&nbsp;findDelete</em><big>)</big><a class="headerlink" href="#CBSFindLast" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.find.last"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.find.last">.function.cbs.find.last:</a> The <a class="reference internal" href="#CBSFindLast" title="CBSFindLast"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLast()</span></tt></a> function
+locates the last block (in address order) within the CBS of at least
+the specified size, and returns its range. If there are no such
+blocks, it returns <tt class="docutils literal"><span class="pre">FALSE</span></tt>. Like <a class="reference internal" href="#CBSFindFirst" title="CBSFindFirst"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindFirst()</span></tt></a>, it
+optionally deletes the range.</p>
+<dl class="function">
+<dt id="CBSFindLargest">
+<a class="reference internal" href="type.html#Bool" title="Bool">Bool</a> <tt class="descname">CBSFindLargest</tt><big>(</big><a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;*baseReturn</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;*limitReturn</em>, CBS<em>&nbsp;cbs</em>, CBSFindDelete<em>&nbsp;findDelete</em><big>)</big><a class="headerlink" href="#CBSFindLargest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.cbs.function.cbs.find.largest"></span><a class="mpstag reference internal" href="#design.mps.cbs.function.cbs.find.largest">.function.cbs.find.largest:</a> The <a class="reference internal" href="#CBSFindLargest" title="CBSFindLargest"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLargest()</span></tt></a>
+function locates the largest block within the CBS, and returns its
+range. If there are no blocks, it returns <tt class="docutils literal"><span class="pre">FALSE</span></tt>. Like
+<a class="reference internal" href="#CBSFindFirst" title="CBSFindFirst"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindFirst()</span></tt></a>, it optionally deletes the range (specifying
+<tt class="docutils literal"><span class="pre">CBSFindDeleteLOW</span></tt> or <tt class="docutils literal"><span class="pre">CBSFindDeleteHIGH</span></tt> has the same effect as
+<tt class="docutils literal"><span class="pre">CBSFindDeleteENTIRE</span></tt>).</p>
+</div>
+</div>
+<div class="section" id="alignment">
+<h2>3.6. Alignment<a class="headerlink" href="#alignment" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.align"></span><a class="mpstag reference internal" href="#design.mps.cbs.align">.align:</a> When <tt class="docutils literal"><span class="pre">mayUseInline</span></tt> is specified to permit inline
+data structures and hence avoid losing memory in low memory
+situations, the alignments that the CBS supports are constrained by
+three requirements:</p>
+<ul class="simple">
+<li>The smallest possible range (namely one that is the alignment in
+size) must be large enough to contain a single <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt> pointer (see
+<a class="reference internal" href="#design.mps.cbs.impl.low-mem.inline.grain">.impl.low-mem.inline.grain</a>);</li>
+<li>Any larger range (namely one that is at least twice the alignment in
+size) must be large enough to contain two <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt> pointers (see
+<a class="reference internal" href="#design.mps.cbs.impl.low-mem.inline.block">.impl.low-mem.inline.block</a>);</li>
+<li>It must be valid on all platforms to access a <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt> pointer
+stored at the start of an aligned range.</li>
+</ul>
+<p>All alignments that meet these requirements are aligned to
+<tt class="docutils literal"><span class="pre">sizeof(void</span> <span class="pre">*)</span></tt>, so we take that as the minimum alignment.</p>
+</div>
+<div class="section" id="implementation">
+<h2>3.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.impl"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl">.impl:</a> Note that this section is concerned with describing
+various aspects of the implementation. It does not form part of the
+interface definition.</p>
+<div class="section" id="size-change-callback-protocol">
+<h3>3.7.1. Size change callback protocol<a class="headerlink" href="#size-change-callback-protocol" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.cbs.impl.callback"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback">.impl.callback:</a> The size change callback protocol concerns
+the mechanism for informing the client of the appearance and
+disappearance of interesting ranges. The intention is that each range
+has an identity (represented by the <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt>). When blocks
+are split, the larger fragment retains the identity. When blocks are
+merged, the new block has the identity of the larger fragment.</p>
+<p><span class="target" id="design.mps.cbs.impl.callback.delete"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.delete">.impl.callback.delete:</a> Consider the case when the minimum
+size is <tt class="docutils literal"><span class="pre">minSize</span></tt>, and <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a> is called to remove a
+range of size <tt class="docutils literal"><span class="pre">middle</span></tt>. The two (possibly non-existant) neighbouring
+ranges have (possibly zero) sizes <tt class="docutils literal"><span class="pre">left</span></tt> and <tt class="docutils literal"><span class="pre">right</span></tt>. <tt class="docutils literal"><span class="pre">middle</span></tt> is part
+of the <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> <tt class="docutils literal"><span class="pre">middleBlock</span></tt>.</p>
+<p><span class="target" id="design.mps.cbs.impl.callback.delete.delete"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.delete.delete">.impl.callback.delete.delete:</a> The <tt class="docutils literal"><span class="pre">delete</span></tt> callback will be
+called in this case if and only if:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">left</span> <span class="o">+</span> <span class="n">middle</span> <span class="o">+</span> <span class="n">right</span> <span class="o">&gt;=</span> <span class="n">minSize</span>  <span class="o">&amp;&amp;</span>  <span class="n">left</span> <span class="o">&lt;</span> <span class="n">minSize</span>  <span class="o">&amp;&amp;</span>  <span class="n">right</span> <span class="o">&lt;</span> <span class="n">minSize</span>
+</pre></div>
+</div>
+<p>That is, the combined range is interesting, but neither remaining
+fragment is. It will be called with the following parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">block</span></tt>: <tt class="docutils literal"><span class="pre">middleBlock</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">oldSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">+</span> <span class="pre">middle</span> <span class="pre">+</span> <span class="pre">right</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">newSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">left</span> <span class="pre">:</span> <span class="pre">right</span></tt></li>
+</ul>
+<p><span class="target" id="design.mps.cbs.impl.callback.delete.new"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.delete.new">.impl.callback.delete.new:</a> The <tt class="docutils literal"><span class="pre">new</span></tt> callback will be
+called in this case if and only if:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">left</span> <span class="o">&gt;=</span> <span class="n">minSize</span>  <span class="o">&amp;&amp;</span>  <span class="n">right</span> <span class="o">&gt;=</span> <span class="n">minSize</span>
+</pre></div>
+</div>
+<p>That is, both remaining fragments are interesting. It will be called
+with the following parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">block</span></tt>: a new block</li>
+<li><tt class="docutils literal"><span class="pre">oldSize</span></tt>: <tt class="docutils literal"><span class="pre">0</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">newSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">right</span> <span class="pre">:</span> <span class="pre">left</span></tt></li>
+</ul>
+<p><span class="target" id="design.mps.cbs.impl.callback.delete.shrink"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.delete.shrink">.impl.callback.delete.shrink:</a> The shrink callback will be
+called in this case if and only if:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">left</span> <span class="o">+</span> <span class="n">middle</span> <span class="o">+</span> <span class="n">right</span> <span class="o">&gt;=</span> <span class="n">minSize</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">&gt;=</span> <span class="n">minSize</span> <span class="o">||</span> <span class="n">right</span> <span class="o">&gt;=</span> <span class="n">minSize</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>That is, at least one of the remaining fragments is still interesting.  It will be called with the following parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">block</span></tt>: <tt class="docutils literal"><span class="pre">middleBlock</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">oldSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">+</span> <span class="pre">middle</span> <span class="pre">+</span> <span class="pre">right</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">newSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">left</span> <span class="pre">:</span> <span class="pre">right</span></tt></li>
+</ul>
+<p><span class="target" id="design.mps.cbs.impl.callback.insert"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.insert">.impl.callback.insert:</a> Consider the case when the minimum
+size is <tt class="docutils literal"><span class="pre">minSize</span></tt>, and <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> is called to add a range
+of size <tt class="docutils literal"><span class="pre">middle</span></tt>. The two (possibly non-existant) neighbouring
+blocks are <tt class="docutils literal"><span class="pre">leftBlock</span></tt> and <tt class="docutils literal"><span class="pre">rightBlock</span></tt>, and have (possibly zero)
+sizes <tt class="docutils literal"><span class="pre">left</span></tt> and <tt class="docutils literal"><span class="pre">right</span></tt>.</p>
+<p><span class="target" id="design.mps.cbs.impl.callback.insert.delete"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.insert.delete">.impl.callback.insert.delete:</a> The <tt class="docutils literal"><span class="pre">delete</span></tt> callback will be
+called in this case if and only if:</p>
+<blockquote>
+<div>left &gt;= minSize  &amp;&amp;  right &gt;= minSize</div></blockquote>
+<p>That is, both neighbours were interesting. It will be called with the
+following parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">block</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">rightBlock</span> <span class="pre">:</span> <span class="pre">leftBlock</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">oldSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">right</span> <span class="pre">:</span> <span class="pre">left</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">newSize</span></tt>: <tt class="docutils literal"><span class="pre">0</span></tt></li>
+</ul>
+<p><span class="target" id="design.mps.cbs.impl.callback.insert.new"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.insert.new">.impl.callback.insert.new:</a> The <tt class="docutils literal"><span class="pre">new</span></tt> callback will be
+called in this case if and only if:</p>
+<blockquote>
+<div>left + middle + right &gt;= minSize  &amp;&amp;  left &lt; minSize  &amp;&amp;  right &lt; minSize</div></blockquote>
+<p>That is, the combined block is interesting, but neither neighbour was.
+It will be called with the following parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">block</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">leftBlock</span> <span class="pre">:</span> <span class="pre">rightBlock</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">oldSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">left</span> <span class="pre">:</span> <span class="pre">right</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">newSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">+</span> <span class="pre">middle</span> <span class="pre">+</span> <span class="pre">right</span></tt></li>
+</ul>
+<p><span class="target" id="design.mps.cbs.impl.callback.insert.grow"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback.insert.grow">.impl.callback.insert.grow:</a> The <tt class="docutils literal"><span class="pre">grow</span></tt> callback will be
+called in this case if and only if:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">left</span> <span class="o">+</span> <span class="n">middle</span> <span class="o">+</span> <span class="n">right</span> <span class="o">&gt;=</span> <span class="n">minSize</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">&gt;=</span> <span class="n">minSize</span> <span class="o">||</span> <span class="n">right</span> <span class="o">&gt;=</span> <span class="n">minSize</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>That is, at least one of the neighbours was interesting. It will be
+called with the following parameters:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">block</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">leftBlock</span> <span class="pre">:</span> <span class="pre">rightBlock</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">oldSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">&gt;=</span> <span class="pre">right</span> <span class="pre">?</span> <span class="pre">left</span> <span class="pre">:</span> <span class="pre">right</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">newSize</span></tt>: <tt class="docutils literal"><span class="pre">left</span> <span class="pre">+</span> <span class="pre">middle</span> <span class="pre">+</span> <span class="pre">right</span></tt></li>
+</ul>
+</div>
+<div class="section" id="splay-tree">
+<h3>3.7.2. Splay tree<a class="headerlink" href="#splay-tree" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.cbs.impl.splay"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.splay">.impl.splay:</a> The CBS is principally implemented using a splay
+tree (see design.mps.splay). Each splay tree node is
+embedded in a CBSBlock that represents a semi-open address range. The
+key passed for comparison is the base of another range.</p>
+<p><span class="target" id="design.mps.cbs.impl.splay.fast-find"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.splay.fast-find">.impl.splay.fast-find:</a> <a class="reference internal" href="#CBSFindFirst" title="CBSFindFirst"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindFirst()</span></tt></a> and
+<a class="reference internal" href="#CBSFindLast" title="CBSFindLast"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLast()</span></tt></a> use the update/refresh facility of splay trees
+to store, in each <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt>, an accurate summary of the
+maximum block size in the tree rooted at the corresponding splay node.
+This allows rapid location of the first or last suitable block, and
+very rapid failure if there is no suitable block.</p>
+<p><span class="target" id="design.mps.cbs.impl.find-largest"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.find-largest">.impl.find-largest:</a> <a class="reference internal" href="#CBSFindLargest" title="CBSFindLargest"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLargest()</span></tt></a> simply finds out
+the size of the largest block in the CBS from the root of the tree
+(using <tt class="xref c c-func docutils literal"><span class="pre">SplayRoot()</span></tt>), and does <tt class="xref c c-func docutils literal"><span class="pre">SplayFindFirst()</span></tt> for a
+block of that size. This is O(log(<em>n</em>)) in the size of the free list,
+so it&#8217;s about the best you can do without maintaining a separate
+priority queue, just to do <a class="reference internal" href="#CBSFindLargest" title="CBSFindLargest"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLargest()</span></tt></a>. Except when the
+emergency lists (see <a class="reference internal" href="#design.mps.cbs.impl.low-mem">.impl.low-mem</a>) are in use, they are
+also searched.</p>
+</div>
+<div class="section" id="low-memory-behaviour">
+<h3>3.7.3. Low memory behaviour<a class="headerlink" href="#low-memory-behaviour" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.cbs.impl.low-mem"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem">.impl.low-mem:</a> Low memory situations cause problems when the
+CBS tries to allocate a new <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> structure for a new
+isolated range as a result of either <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> or
+<a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>, and there is insufficient memory to allocation
+the <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> structure:</p>
+<p><span class="target" id="design.mps.cbs.impl.low-mem.no-inline"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem.no-inline">.impl.low-mem.no-inline:</a> If <tt class="docutils literal"><span class="pre">mayUseInline</span></tt> is <tt class="docutils literal"><span class="pre">FALSE</span></tt>,
+then the range is not added to the CBS, and the call to
+<a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> or <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a> returns <tt class="docutils literal"><span class="pre">ResMEMORY</span></tt>.</p>
+<p><span class="target" id="design.mps.cbs.impl.low-mem.inline"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem.inline">.impl.low-mem.inline:</a> If <tt class="docutils literal"><span class="pre">mayUseInline</span></tt> is <tt class="docutils literal"><span class="pre">TRUE</span></tt>:</p>
+<p><span class="target" id="design.mps.cbs.impl.low-mem.inline.block"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem.inline.block">.impl.low-mem.inline.block:</a> If the range is large enough to
+contain an inline block descriptor consisting of two pointers, then it
+is kept on an emergency block list. The CBS will eagerly attempt to
+add this block back into the splay tree during subsequent calls to
+<a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> and <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>. The CBS will also keep
+its emergency block list in address order, and will coalesce this list
+eagerly. Some performance degradation will be seen when the emergency
+block list is in use. Ranges on this emergency block list will not be
+made available to the CBS&#8217;s client via callbacks. <a class="reference internal" href="#CBSIterate" title="CBSIterate"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterate()</span></tt></a>
+and <a class="reference internal" href="#CBSIterateLarge" title="CBSIterateLarge"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterateLarge()</span></tt></a> will not iterate over ranges on this
+list.</p>
+<p><span class="target" id="design.mps.cbs.impl.low-mem.inline.block.structure"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem.inline.block.structure">.impl.low-mem.inline.block.structure:</a> The two pointers stored
+are to the next such block (or <tt class="docutils literal"><span class="pre">NULL</span></tt>), and to the limit of the
+block, in that order.</p>
+<p><span class="target" id="design.mps.cbs.impl.low-mem.inline.grain"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem.inline.grain">.impl.low-mem.inline.grain:</a> Otherwise, the range must be
+large enough to contain an inline grain descriptor consisting of one
+pointer, then it is kept on an emergency grain list. The CBS will
+eagerly attempt to add this grain back into either the splay tree or
+the emergency block list during subsequent calls to
+<a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> and <a class="reference internal" href="#CBSDelete" title="CBSDelete"><tt class="xref c c-func docutils literal"><span class="pre">CBSDelete()</span></tt></a>. The CBS will also keep
+its emergency grain list in address order. Some performance
+degradation will be seen when the emergency grain list is in use.
+Ranges on this emergency grain list will not be made available to the
+CBS&#8217;s client via callbacks. <a class="reference internal" href="#CBSIterate" title="CBSIterate"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterate()</span></tt></a> and
+<a class="reference internal" href="#CBSIterateLarge" title="CBSIterateLarge"><tt class="xref c c-func docutils literal"><span class="pre">CBSIterateLarge()</span></tt></a> will not iterate over ranges on this list.</p>
+<p><span class="target" id="design.mps.cbs.impl.low-mem.inline.grain.structure"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem.inline.grain.structure">.impl.low-mem.inline.grain.structure:</a> The pointer stored is
+to the next such grain, or <tt class="docutils literal"><span class="pre">NULL</span></tt>.</p>
+</div>
+<div class="section" id="the-cbs-block">
+<h3>3.7.4. The CBS block<a class="headerlink" href="#the-cbs-block" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.cbs.impl.cbs.block"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.cbs.block">.impl.cbs.block:</a> The block contains a base-limit pair and a
+splay tree node.</p>
+<p><span class="target" id="design.mps.cbs.impl.cbs.block.special"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.cbs.block.special">.impl.cbs.block.special:</a> The base and limit may be equal if
+the block is halfway through being deleted.</p>
+<p><span class="target" id="design.mps.cbs.impl.cbs.block.special.just"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.cbs.block.special.just">.impl.cbs.block.special.just:</a> This conflates values and
+status, but is justified because block size is very important.</p>
+</div>
+</div>
+<div class="section" id="testing">
+<h2>3.8. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.test"></span><a class="mpstag reference internal" href="#design.mps.cbs.test">.test:</a> The following testing will be performed on this module:</p>
+<p><span class="target" id="design.mps.cbs.test.cbstest"></span><a class="mpstag reference internal" href="#design.mps.cbs.test.cbstest">.test.cbstest:</a> There is a stress test for this module in
+impl.c.cbstest. This allocates a large block of memory and
+then simulates the allocation and deallocation of ranges within this
+block using both a <tt class="xref c c-type docutils literal"><span class="pre">CBS</span></tt> and a <tt class="xref c c-type docutils literal"><span class="pre">BT</span></tt>. It makes both
+valid and invalid requests, and compares the <tt class="xref c c-type docutils literal"><span class="pre">CBS</span></tt> response to
+the correct behaviour as determined by the <tt class="xref c c-type docutils literal"><span class="pre">BT</span></tt>. It also
+iterates the ranges in the <tt class="xref c c-type docutils literal"><span class="pre">CBS</span></tt>, comparing them to the
+<tt class="xref c c-type docutils literal"><span class="pre">BT</span></tt>. It also invokes the <a class="reference internal" href="#CBSDescribe" title="CBSDescribe"><tt class="xref c c-func docutils literal"><span class="pre">CBSDescribe()</span></tt></a> method, but
+makes no automatic test of the resulting output. It does not currently
+test the callbacks.</p>
+<p><span class="target" id="design.mps.cbs.test.pool"></span><a class="mpstag reference internal" href="#design.mps.cbs.test.pool">.test.pool:</a> Several pools (currently <a class="reference internal" href="../pool/mvt.html#pool-mvt"><em>MVT (Manual Variable Temporal)</em></a> and
+<a class="reference internal" href="../pool/mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a>) are implemented on top of a CBS. These pool are
+subject to testing in development, QA, and are/will be heavily
+exercised by customers.</p>
+</div>
+<div class="section" id="notes-for-future-development">
+<h2>3.9. Notes for future development<a class="headerlink" href="#notes-for-future-development" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.future.not-splay"></span><a class="mpstag reference internal" href="#design.mps.cbs.future.not-splay">.future.not-splay:</a> The initial implementation of CBSs is
+based on splay trees. It could be revised to use any other data
+structure that meets the requirements (especially
+<a class="reference internal" href="#design.mps.cbs.req.fast">.req.fast</a>).</p>
+<p><span class="target" id="design.mps.cbs.future.hybrid"></span><a class="mpstag reference internal" href="#design.mps.cbs.future.hybrid">.future.hybrid:</a> It would be possible to attenuate the problem
+of <a class="reference internal" href="#design.mps.cbs.risk.overhead">.risk.overhead</a> (below) by using a single word bit set to
+represent the membership in a (possibly aligned) word-width of grains.
+This might be used for block sizes less than a word-width of grains,
+converting them when they reach all free in the bit set. Note that
+this would make coalescence slightly less eager, by up to
+<tt class="docutils literal"><span class="pre">(word-width</span> <span class="pre">-</span> <span class="pre">1)</span></tt>.</p>
+</div>
+<div class="section" id="risks">
+<h2>3.10. Risks<a class="headerlink" href="#risks" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.cbs.risk.overhead"></span><a class="mpstag reference internal" href="#design.mps.cbs.risk.overhead">.risk.overhead:</a> Clients should note that the current
+implementation of CBSs has a space overhead proportional to the number
+of isolated contiguous ranges. [Four words per range.] If the CBS
+contains every other grain in an area, then the overhead will be large
+compared to the size of that area. [Four words per two grains.] See
+<a class="reference internal" href="#design.mps.cbs.future.hybrid">.future.hybrid</a> for a suggestion to solve this problem. An
+alternative solution is to use CBSs only for managing long ranges.</p>
+</div>
+<div class="section" id="proposed-hybrid-implementation">
+<h2>3.11. Proposed hybrid implementation<a class="headerlink" href="#proposed-hybrid-implementation" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The following relates to a pending re-design and does not yet
+relate to any working source version. GavinM 1998-09-25</p>
+</div>
+<p>The CBS system provides its services by combining the services
+provided by three subsidiary CBS modules:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">CBSST</span></tt> &#8211; Splay Tree: Based on out-of-line splay trees; must
+allocate to insert isolated, which may therefore fail.</li>
+<li><tt class="docutils literal"><span class="pre">CBSBL</span></tt> &#8211; Block List: Based on a singly-linked list of variable
+sized ranges with inline descriptors; ranges must be at least large
+enough to store the inline descriptor.</li>
+<li><tt class="docutils literal"><span class="pre">CBSGL</span></tt> &#8211; Grain List: Based on a singly-linked list of fixed size
+ranges with inline descriptors; the ranges must be the alignment of
+the CBS.</li>
+</ul>
+<p>The three sub-modules have a lot in common. Although their methods are
+not invoked via a dispatcher, they have been given consistent
+interfaces, and consistent internal appearance, to aid maintenance.</p>
+<p>Methods supported by sub-modules (not all sub-modules support all
+methods):</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">MergeRange</span></tt> &#8211; Finds any ranges in the specific CBS adjacent to
+the supplied one. If there are any, it extends the ranges, possibly
+deleting one of them. This cannot fail, but should return <tt class="docutils literal"><span class="pre">FALSE</span></tt>
+if there is an intersection between the supplied range and a range
+in the specific CBS.</li>
+<li><tt class="docutils literal"><span class="pre">InsertIsolatedRange</span></tt> &#8211; Adds a range to the specific CBS that is
+not adjacent to any range already in there. Depending on the
+specific CBS, this may be able to fail for allocation reasons, in
+which case it should return <tt class="docutils literal"><span class="pre">FALSE</span></tt>. It should <tt class="xref c c-func docutils literal"><span class="pre">AVER()</span></tt> if
+the range is adjacent to or intersects with a range already there.</li>
+<li><tt class="docutils literal"><span class="pre">RemoveAdjacentRanges</span></tt> &#8211; Finds and removes from the specific CBS
+any ranges that are adjacent to the supplied range. Should return
+<tt class="docutils literal"><span class="pre">FALSE</span></tt> if the supplied range intersects with any ranges already
+there.</li>
+<li><tt class="docutils literal"><span class="pre">DeleteRange</span></tt> &#8211; Finds and deletes the supplied range from the
+specific CBS. Returns a tri-state result:<ul>
+<li><tt class="docutils literal"><span class="pre">Success</span></tt> &#8211; The range was successfully deleted. This may have
+involved the creation of a new range, which should be done via
+<tt class="docutils literal"><span class="pre">CBSInsertIsolatedRange</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">ProtocolError</span></tt> &#8211; Either some non-trivial strict subset of the
+supplied range was in the specific CBS, or a range adjacent to the
+supplied range was in the specific CBS. Either of these indicates
+a protocol error.</li>
+<li><tt class="docutils literal"><span class="pre">NoIntersection</span></tt> &#8211; The supplied range was not found in the CBS.
+This may or not be a protocol error, depending on the invocation
+context.</li>
+</ul>
+</li>
+<li><tt class="docutils literal"><span class="pre">FindFirst</span></tt> &#8211; Returns the first (in address order) range in the
+specific CBS that is at least as large as the supplied size, or
+<tt class="docutils literal"><span class="pre">FALSE</span></tt> if there is no such range.</li>
+<li><tt class="docutils literal"><span class="pre">FindFirstBefore</span></tt> &#8211; As <tt class="docutils literal"><span class="pre">FindFirst</span></tt>, but only finds ranges prior
+to the supplied address.</li>
+<li><tt class="docutils literal"><span class="pre">FindLast</span></tt> &#8211; As <tt class="docutils literal"><span class="pre">FindFirst</span></tt>, but finds the last such range in
+address order.</li>
+<li><tt class="docutils literal"><span class="pre">FindLastAfter</span></tt> &#8211; <tt class="docutils literal"><span class="pre">FindLast</span></tt> equivalent of <tt class="docutils literal"><span class="pre">FindFirstBefore</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">Init</span></tt> &#8211; Initialise the control structure embedded in the CBS.</li>
+<li><tt class="docutils literal"><span class="pre">Finish</span></tt> &#8211; Finish the control structure embedded in the CBS.</li>
+<li><tt class="docutils literal"><span class="pre">InlineDescriptorSize</span></tt> &#8211; Returns the aligned size of the inline descriptor.</li>
+<li><tt class="docutils literal"><span class="pre">Check</span></tt> &#8211; Checks the control structure embedded in the CBS.</li>
+</ul>
+<p>The CBS supplies the following utilities:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">CBSAlignment</span></tt> &#8211; Returns the alignment of the CBS.</li>
+<li><tt class="docutils literal"><span class="pre">CBSMayUseInline</span></tt> &#8211; Returns whether the CBS may use the memory in
+the ranges stored.</li>
+<li><tt class="docutils literal"><span class="pre">CBSInsertIsolatedRange</span></tt> &#8211; Wrapper for <tt class="docutils literal"><span class="pre">CBS*InsertIsolatedRange</span></tt>.</li>
+</ul>
+<p>Internally, the <tt class="docutils literal"><span class="pre">CBS*</span></tt> sub-modules each have an internal structure
+<tt class="docutils literal"><span class="pre">CBS*Block</span></tt> that represents an isolated range within the module. It
+supports the following methods (for sub-module internal use):</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">BlockBase</span></tt> &#8211; Returns the base of the associated range;</li>
+<li><tt class="docutils literal"><span class="pre">BlockLimit</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">BlockRange</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">BlockSize</span></tt></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3. Coalescing block structure</a><ul>
+<li><a class="reference internal" href="#introduction">3.1. Introduction</a></li>
+<li><a class="reference internal" href="#history">3.2. History</a></li>
+<li><a class="reference internal" href="#definitions">3.3. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">3.4. Requirements</a></li>
+<li><a class="reference internal" href="#interface">3.5. Interface</a><ul>
+<li><a class="reference internal" href="#external-types">3.5.1. External types</a></li>
+<li><a class="reference internal" href="#external-functions">3.5.2. External functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#alignment">3.6. Alignment</a></li>
+<li><a class="reference internal" href="#implementation">3.7. Implementation</a><ul>
+<li><a class="reference internal" href="#size-change-callback-protocol">3.7.1. Size change callback protocol</a></li>
+<li><a class="reference internal" href="#splay-tree">3.7.2. Splay tree</a></li>
+<li><a class="reference internal" href="#low-memory-behaviour">3.7.3. Low memory behaviour</a></li>
+<li><a class="reference internal" href="#the-cbs-block">3.7.4. The CBS block</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#testing">3.8. Testing</a></li>
+<li><a class="reference internal" href="#notes-for-future-development">3.9. Notes for future development</a></li>
+<li><a class="reference internal" href="#risks">3.10. Risks</a></li>
+<li><a class="reference internal" href="#proposed-hybrid-implementation">3.11. Proposed hybrid implementation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="bt.html"
+                        title="previous chapter">2. Bit tables</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="check.html"
+                        title="next chapter">4. Checking</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="check.html" title="4. Checking"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bt.html" title="2. Bit tables"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

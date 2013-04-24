@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>4. Checking &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Design" href="index.html" />
+    <link rel="next" title="5. Pool class interface" href="class-interface.html" />
+    <link rel="prev" title="3. Coalescing block structure" href="cbs.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="class-interface.html" title="5. Pool class interface"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cbs.html" title="3. Coalescing block structure"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="checking">
+<span id="design.mps.check"></span><h1>4. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>4.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>This documents the design of structure checking within the MPS.</p>
+</div>
+<div class="section" id="history">
+<h2>4.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.check.hist.0"></span><a class="mpstag reference internal" href="#design.mps.check.hist.0">.hist.0:</a> Incomplete design. Gavin Matthews, 1996-08-05.</p>
+<p><span class="target" id="design.mps.check.hist.1"></span><a class="mpstag reference internal" href="#design.mps.check.hist.1">.hist.1:</a> Converted from MMInfo database design document.
+Richard Brooksby, 2002-06-07.</p>
+<p><span class="target" id="design.mps.check.hist.2"></span><a class="mpstag reference internal" href="#design.mps.check.hist.2">.hist.2:</a> Converted to reStructuredText. Gareth Rees,
+2013-03-12.</p>
+</div>
+<div class="section" id="implementation">
+<h2>4.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.check.level"></span><a class="mpstag reference internal" href="#design.mps.check.level">.level:</a> There are three levels of checking:</p>
+<ol class="arabic simple">
+<li><span class="target" id="design.mps.check.level.sig"></span><a class="mpstag reference internal" href="#design.mps.check.level.sig">.level.sig:</a> The lowest level checks only that the
+structure has a valid <tt class="xref c c-type docutils literal"><span class="pre">Signature</span></tt> (see
+design.mps.sig).</li>
+<li><span class="target" id="design.mps.check.level.shallow"></span><a class="mpstag reference internal" href="#design.mps.check.level.shallow">.level.shallow:</a> Shallow checking checks all local fields
+(including signature) and also checks the signatures of any parent
+or child structures.</li>
+<li><span class="target" id="design.mps.check.level.deep"></span><a class="mpstag reference internal" href="#design.mps.check.level.deep">.level.deep:</a> Deep checking checks all local fields
+(including signatures), the signatures of any parent structures,
+and does full recursive checking on any child structures.</li>
+</ol>
+<p><span class="target" id="design.mps.check.level.control"></span><a class="mpstag reference internal" href="#design.mps.check.level.control">.level.control:</a> Control over the levels of checking is via
+the definition of at most one of the macros
+<tt class="xref c c-macro docutils literal"><span class="pre">TARGET_CHECK_SHALLOW</span></tt> (which if defined gives
+<a class="reference internal" href="#design.mps.check.level.shallow">.level.shallow</a>), <tt class="xref c c-macro docutils literal"><span class="pre">TARGET_CHECK_DEEP</span></tt> (which if
+defined gives <a class="reference internal" href="#design.mps.check.level.deep">.level.deep</a>). If neither macro is defined
+then <a class="reference internal" href="#design.mps.check.level.sig">.level.sig</a> is used. These macros are not intended to
+be manipulated directly by developers, they should use the interface
+in impl.h.target.</p>
+<p><span class="target" id="design.mps.check.order"></span><a class="mpstag reference internal" href="#design.mps.check.order">.order:</a> Because deep checking (<a class="reference internal" href="#design.mps.check.level.deep">.level.deep</a>) uses
+unchecked recursion, it is important that child relationships are
+acyclic (<a class="reference internal" href="#design.mps.check.macro.down">.macro.down</a>).</p>
+<p><span class="target" id="design.mps.check.fun"></span><a class="mpstag reference internal" href="#design.mps.check.fun">.fun:</a> Every abstract data type which is a structure pointer
+should have a function <tt class="docutils literal"><span class="pre">&lt;type&gt;Check</span></tt> which takes a pointer of type
+<tt class="docutils literal"><span class="pre">&lt;type&gt;</span></tt> and returns a <a class="reference internal" href="type.html#Bool" title="Bool"><tt class="xref c c-type docutils literal"><span class="pre">Bool</span></tt></a>. It should check all fields in
+order, using one of the macros in <a class="reference internal" href="#design.mps.check.macro">.macro</a>, or document why
+not.</p>
+<p><span class="target" id="design.mps.check.fun.omit"></span><a class="mpstag reference internal" href="#design.mps.check.fun.omit">.fun.omit:</a> The only fields which should be omitted from a
+check function are those for which there is no meaningful check (for
+example, an unlimited unsigned integer with no relation to other fields).</p>
+<p><span class="target" id="design.mps.check.fun.return"></span><a class="mpstag reference internal" href="#design.mps.check.fun.return">.fun.return:</a> Although the function returns a <a class="reference internal" href="type.html#Bool" title="Bool"><tt class="xref c c-type docutils literal"><span class="pre">Bool</span></tt></a>,
+if the assert handler returns (or there is no assert handler), then
+this is taken to mean &#8220;ignore and continue&#8221;, and the check function
+hence returns <tt class="docutils literal"><span class="pre">TRUE</span></tt>.</p>
+<p><span class="target" id="design.mps.check.macro"></span><a class="mpstag reference internal" href="#design.mps.check.macro">.macro:</a> Checking is implemented by invoking four macros in impl.h.assert:</p>
+<ul class="simple">
+<li><span class="target" id="design.mps.check.macro.sig"></span><a class="mpstag reference internal" href="#design.mps.check.macro.sig">.macro.sig:</a> <tt class="docutils literal"><span class="pre">CHECKS(type,</span> <span class="pre">val)</span></tt> checks the signature
+only, and should be called precisely on <tt class="docutils literal"><span class="pre">type</span></tt> and the received
+object pointer.</li>
+<li><span class="target" id="design.mps.check.macro.local"></span><a class="mpstag reference internal" href="#design.mps.check.macro.local">.macro.local:</a> <tt class="docutils literal"><span class="pre">CHECKL(cond)</span></tt> checks a local field
+(depending on level; see <a class="reference internal" href="#design.mps.check.level">.level</a>), and should be called on
+each local field that is not an abstract data type structure pointer
+itself (apart from the signature), with an appropriate normally-true
+test condition.</li>
+<li><span class="target" id="design.mps.check.macro.up"></span><a class="mpstag reference internal" href="#design.mps.check.macro.up">.macro.up:</a> <tt class="docutils literal"><span class="pre">CHECKU(type,</span> <span class="pre">val)</span></tt> checks a parent abstract
+data type structure pointer, performing at most signature checks
+(depending on level; see <a class="reference internal" href="#design.mps.check.level">.level</a>). It should be called
+with the parent type and pointer.</li>
+<li><span class="target" id="design.mps.check.macro.down"></span><a class="mpstag reference internal" href="#design.mps.check.macro.down">.macro.down:</a> <tt class="docutils literal"><span class="pre">CHECKD(type,</span> <span class="pre">val)</span></tt> checks a child abstract
+data type structure pointer, possibly invoking <tt class="docutils literal"><span class="pre">&lt;type&gt;Check</span></tt>
+(depending on level; see <a class="reference internal" href="#design.mps.check.level">.level</a>). It should be called
+with the child type and pointer.</li>
+</ul>
+<p><span class="target" id="design.mps.check.full-type"></span><a class="mpstag reference internal" href="#design.mps.check.full-type">.full-type:</a> <tt class="docutils literal"><span class="pre">CHECKS</span></tt>, <tt class="docutils literal"><span class="pre">CHECKD</span></tt>, <tt class="docutils literal"><span class="pre">CHECKU</span></tt>, all operate
+only on fully fledged types. This means the type has to provide a
+function <tt class="docutils literal"><span class="pre">Bool</span> <span class="pre">TypeCheck(Type</span> <span class="pre">type)</span></tt> where <tt class="docutils literal"><span class="pre">Type</span></tt> is substituted
+for the name of the type (for example, <tt class="xref c c-func docutils literal"><span class="pre">PoolCheck()</span></tt>), and the
+expression <tt class="docutils literal"><span class="pre">obj-&gt;sig</span></tt> must be a valid value of type <tt class="xref c c-type docutils literal"><span class="pre">Sig</span></tt>
+whenever <tt class="docutils literal"><span class="pre">obj</span></tt> is a valid value of type <tt class="docutils literal"><span class="pre">Type</span></tt>.</p>
+<p><span class="target" id="design.mps.check.type.no-sig"></span><a class="mpstag reference internal" href="#design.mps.check.type.no-sig">.type.no-sig:</a> This tag is to be referenced in implementations
+whenever the form <tt class="docutils literal"><span class="pre">CHECKL(ThingCheck(thing))</span></tt> is used instead of
+<tt class="docutils literal"><span class="pre">CHECK{U,D}(Thing,</span> <span class="pre">thing)</span></tt> because <tt class="docutils literal"><span class="pre">Thing</span></tt> is not a fully fledged
+type (<a class="reference internal" href="#design.mps.check.full-type">.full-type</a>).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">4. Checking</a><ul>
+<li><a class="reference internal" href="#introduction">4.1. Introduction</a></li>
+<li><a class="reference internal" href="#history">4.2. History</a></li>
+<li><a class="reference internal" href="#implementation">4.3. Implementation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cbs.html"
+                        title="previous chapter">3. Coalescing block structure</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="class-interface.html"
+                        title="next chapter">5. Pool class interface</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="class-interface.html" title="5. Pool class interface"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cbs.html" title="3. Coalescing block structure"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Configuration &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>7. Configuration &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="4. Protocol inheritance" href="protocol.html" />
-    <link rel="prev" title="2. Bit tables" href="bt.html" /> 
+    <link rel="next" title="8. Finalization" href="finalize.html" />
+    <link rel="prev" title="6. Collection framework" href="collection.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="4. Protocol inheritance"
+          <a href="finalize.html" title="8. Finalization"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="collection.html" title="6. Collection framework"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="configuration">
-<span id="design.mps.config"></span><h1>3. Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<span id="design.mps.config"></span><h1>7. Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>3.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>7.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.intro"></span><a class="mpstag reference internal" href="#design.mps.config.intro">.intro:</a> This document describes how the MPS configuration is
 parameterized so that it can target different architectures, operating
 systems, build environments, varieties, and products.</p>
@@ -65,7 +65,7 @@ systems, build environments, varieties, and products.</p>
 mail, meeting.general.something]</p>
 </div>
 <div class="section" id="history">
-<h2>3.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<h2>7.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.hist.0"></span><a class="mpstag reference internal" href="#design.mps.config.hist.0">.hist.0:</a> Initial draft created by Richard Brooksby on
 1997-02-19 based on discussions of configuration at
 meeting.general.1997-02-05.</p>
@@ -81,7 +81,7 @@ things, though the document could do with a rewrite. Richard Brooksby,
 2013-03-19.</p>
 </div>
 <div class="section" id="requirements">
-<h2>3.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>7.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.req.arch"></span><a class="mpstag reference internal" href="#design.mps.config.req.arch">.req.arch:</a> Allow architecture specific configurations of the
 MPS.</p>
 <p><span class="target" id="design.mps.config.req.os"></span><a class="mpstag reference internal" href="#design.mps.config.req.os">.req.os:</a> Allow operating system specific configurations of
@@ -103,7 +103,7 @@ systems.</p>
 should not consume much developer time.</p>
 </div>
 <div class="section" id="definitions">
-<h2>3.4. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>7.4. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.def.platform"></span><a class="mpstag reference internal" href="#design.mps.config.def.platform">.def.platform:</a> A platform is a combination of an architecture
 (<a class="reference internal" href="#design.mps.config.def.arch">.def.arch</a>), an operating system (<a class="reference internal" href="#design.mps.config.def.os">.def.os</a>), and
 a builder (<a class="reference internal" href="#design.mps.config.def.builder">.def.builder</a>). The set of supported platforms is
@@ -121,7 +121,7 @@ MPS will fit, e.g. ScriptWorks, Dylan, etc.</p>
 <p><span class="target" id="design.mps.config.def.target"></span><a class="mpstag reference internal" href="#design.mps.config.def.target">.def.target:</a> The target is the result of the build.</p>
 </div>
 <div class="section" id="overview">
-<h2>3.5. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>7.5. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>No automatically generated code. Use only C compiler and linker.</li>
 <li>Simple build function (design.mps.buildsys).</li>
@@ -131,9 +131,9 @@ localized when developing code.</li>
 </ul>
 </div>
 <div class="section" id="the-build-system">
-<h2>3.6. The build system<a class="headerlink" href="#the-build-system" title="Permalink to this headline">¶</a></h2>
+<h2>7.6. The build system<a class="headerlink" href="#the-build-system" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="abstract-build-function">
-<h3>3.6.1. Abstract Build Function<a class="headerlink" href="#abstract-build-function" title="Permalink to this headline">¶</a></h3>
+<h3>7.6.1. Abstract Build Function<a class="headerlink" href="#abstract-build-function" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.build.fun"></span><a class="mpstag reference internal" href="#design.mps.config.build.fun">.build.fun:</a> The MPS implementation assumes only a simple
 &#8220;build function&#8221; which takes a set of sources, possibly in several
 languages, compiles them with a set of predefined preprocessor
@@ -175,7 +175,7 @@ example, when building a test program, it might include the ANSI C
 library and an operating system interface library.</p>
 </div>
 <div class="section" id="file-structure">
-<h3>3.6.2. File Structure<a class="headerlink" href="#file-structure" title="Permalink to this headline">¶</a></h3>
+<h3>7.6.2. File Structure<a class="headerlink" href="#file-structure" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.file.dir"></span><a class="mpstag reference internal" href="#design.mps.config.file.dir">.file.dir:</a> Each product consists of a single directory
 (corresponding to a HOPE compound) containing all the sources for the
 whole family of targets.</p>
@@ -187,7 +187,7 @@ directly indicates the source language.</p>
 <p>[Where is the set of valid extensions and languages defined?]</p>
 </div>
 <div class="section" id="modules-and-naming">
-<h3>3.6.3. Modules and Naming<a class="headerlink" href="#modules-and-naming" title="Permalink to this headline">¶</a></h3>
+<h3>7.6.3. Modules and Naming<a class="headerlink" href="#modules-and-naming" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.mod.unique"></span><a class="mpstag reference internal" href="#design.mps.config.mod.unique">.mod.unique:</a> Each module has an identifier which is unique
 within the MPS.</p>
 <p><span class="target" id="design.mps.config.mod.impls"></span><a class="mpstag reference internal" href="#design.mps.config.mod.impls">.mod.impls:</a> Each module has one or more implementations which
@@ -203,7 +203,7 @@ version of it) and be suffixed with on or more target parameter codes
 must include the target parameter code for the relevant architecture.</p>
 </div>
 <div class="section" id="build-system-rationale">
-<h3>3.6.4. Build System Rationale<a class="headerlink" href="#build-system-rationale" title="Permalink to this headline">¶</a></h3>
+<h3>7.6.4. Build System Rationale<a class="headerlink" href="#build-system-rationale" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.build.rat"></span><a class="mpstag reference internal" href="#design.mps.config.build.rat">.build.rat:</a> This simple design makes it possible to build the
 MPS using many different tools. Microsoft Visual C++, Metrowerks
 Codewarrior, and other graphical development tools do not support much
@@ -237,7 +237,7 @@ efforts have failed in EP.</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>3.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>7.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.impl"></span><a class="mpstag reference internal" href="#design.mps.config.impl">.impl:</a> The two implementation files impl.h.config
 and impl.h.mpstd can be seen as preprocessor programs which
 &#8220;accept&#8221; build parameters and &#8220;emit&#8221; configuration parameters
@@ -274,7 +274,7 @@ should only appear in impl.h.config. Code may depend on
 configuration parameters in certain, limited ways, as defined
 below (<a class="reference internal" href="#design.mps.config.conf">.conf</a>).</p>
 <div class="section" id="target-platform-detection">
-<h3>3.7.1. Target Platform Detection<a class="headerlink" href="#target-platform-detection" title="Permalink to this headline">¶</a></h3>
+<h3>7.7.1. Target Platform Detection<a class="headerlink" href="#target-platform-detection" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.pf"></span><a class="mpstag reference internal" href="#design.mps.config.pf">.pf:</a> The target platform is &#8220;detected&#8221; by the preprocessor
 directives in impl.h.mpstd.</p>
 <p><span class="target" id="design.mps.config.pf.form"></span><a class="mpstag reference internal" href="#design.mps.config.pf.form">.pf.form:</a> This file consists of sets of directives of the
@@ -342,7 +342,7 @@ For example:</p>
 </div>
 </div>
 <div class="section" id="target-varieties">
-<h3>3.7.2. Target varieties<a class="headerlink" href="#target-varieties" title="Permalink to this headline">¶</a></h3>
+<h3>7.7.2. Target varieties<a class="headerlink" href="#target-varieties" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.var"></span><a class="mpstag reference internal" href="#design.mps.config.var">.var:</a> The target variety is handled by preprocessor directives in
 impl.h.config.</p>
 <p><span class="target" id="design.mps.config.var.form"></span><a class="mpstag reference internal" href="#design.mps.config.var.form">.var.form:</a> The file contains sets of directives of the form:</p>
@@ -372,7 +372,7 @@ principle which applies to other configuration stuff too.]</p>
 </div>
 </div>
 <div class="section" id="source-code-configuration">
-<h2>3.8. Source code configuration<a class="headerlink" href="#source-code-configuration" title="Permalink to this headline">¶</a></h2>
+<h2>7.8. Source code configuration<a class="headerlink" href="#source-code-configuration" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.conf"></span><a class="mpstag reference internal" href="#design.mps.config.conf">.conf:</a> This section describes how the configuration may
 affect the source code of the MPS.</p>
 <p><span class="target" id="design.mps.config.conf.limit"></span><a class="mpstag reference internal" href="#design.mps.config.conf.limit">.conf.limit:</a> The form of dependency allowed is carefully
@@ -382,7 +382,7 @@ limited to ensure that code remains maintainable and portable
 should be kept to a minimum in order to keep the system maintainable
 (<a class="reference internal" href="#design.mps.config.req.impact">.req.impact</a>).</p>
 <div class="section" id="configuration-parameters">
-<h3>3.8.1. Configuration parameters<a class="headerlink" href="#configuration-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>7.8.1. Configuration parameters<a class="headerlink" href="#configuration-parameters" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.conf.params"></span><a class="mpstag reference internal" href="#design.mps.config.conf.params">.conf.params:</a> The compilation of a module is parameterized
 by:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARCH_</span><span class="o">&lt;</span><span class="n">arch</span><span class="o">-</span><span class="n">code</span><span class="o">&gt;</span>
@@ -393,7 +393,7 @@ by:</p>
 </div>
 </div>
 <div class="section" id="abstract-and-concrete-module-interfaces">
-<h3>3.8.2. Abstract and concrete module interfaces<a class="headerlink" href="#abstract-and-concrete-module-interfaces" title="Permalink to this headline">¶</a></h3>
+<h3>7.8.2. Abstract and concrete module interfaces<a class="headerlink" href="#abstract-and-concrete-module-interfaces" title="Permalink to this headline">¶</a></h3>
 <p>Basic principle: the caller must not be affected by configuration of a
 module. This reduces complexity and dependency of configuration.</p>
 <p>All callers use the same abstract interface. Caller code does not
@@ -412,7 +412,7 @@ possibly their types, depending on the protocol defined</li>
 parameter.  However, the concrete interface may vary.</p>
 </div>
 <div class="section" id="configuring-module-implementations">
-<h3>3.8.3. Configuring module implementations<a class="headerlink" href="#configuring-module-implementations" title="Permalink to this headline">¶</a></h3>
+<h3>7.8.3. Configuring module implementations<a class="headerlink" href="#configuring-module-implementations" title="Permalink to this headline">¶</a></h3>
 <p>For example, this isn&#8217;t allowed, because there is a change in the
 interface:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#if defined(PROT_FOO)</span>
@@ -470,11 +470,11 @@ placed in a separate, common module.</p>
 </div>
 </div>
 <div class="section" id="procedures">
-<h2>3.9. Procedures<a class="headerlink" href="#procedures" title="Permalink to this headline">¶</a></h2>
+<h2>7.9. Procedures<a class="headerlink" href="#procedures" title="Permalink to this headline">¶</a></h2>
 <p>[Adding an architecture, etc.]</p>
 </div>
 <div class="section" id="notes">
-<h2>3.10. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2>7.10. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
 <p>What about constants?</p>
 </div>
 </div>
@@ -490,42 +490,42 @@ placed in a separate, common module.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. Configuration</a><ul>
-<li><a class="reference internal" href="#introduction">3.1. Introduction</a></li>
-<li><a class="reference internal" href="#history">3.2. History</a></li>
-<li><a class="reference internal" href="#requirements">3.3. Requirements</a></li>
-<li><a class="reference internal" href="#definitions">3.4. Definitions</a></li>
-<li><a class="reference internal" href="#overview">3.5. Overview</a></li>
-<li><a class="reference internal" href="#the-build-system">3.6. The build system</a><ul>
-<li><a class="reference internal" href="#abstract-build-function">3.6.1. Abstract Build Function</a></li>
-<li><a class="reference internal" href="#file-structure">3.6.2. File Structure</a></li>
-<li><a class="reference internal" href="#modules-and-naming">3.6.3. Modules and Naming</a></li>
-<li><a class="reference internal" href="#build-system-rationale">3.6.4. Build System Rationale</a></li>
+<li><a class="reference internal" href="#">7. Configuration</a><ul>
+<li><a class="reference internal" href="#introduction">7.1. Introduction</a></li>
+<li><a class="reference internal" href="#history">7.2. History</a></li>
+<li><a class="reference internal" href="#requirements">7.3. Requirements</a></li>
+<li><a class="reference internal" href="#definitions">7.4. Definitions</a></li>
+<li><a class="reference internal" href="#overview">7.5. Overview</a></li>
+<li><a class="reference internal" href="#the-build-system">7.6. The build system</a><ul>
+<li><a class="reference internal" href="#abstract-build-function">7.6.1. Abstract Build Function</a></li>
+<li><a class="reference internal" href="#file-structure">7.6.2. File Structure</a></li>
+<li><a class="reference internal" href="#modules-and-naming">7.6.3. Modules and Naming</a></li>
+<li><a class="reference internal" href="#build-system-rationale">7.6.4. Build System Rationale</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#implementation">3.7. Implementation</a><ul>
-<li><a class="reference internal" href="#target-platform-detection">3.7.1. Target Platform Detection</a></li>
-<li><a class="reference internal" href="#target-varieties">3.7.2. Target varieties</a></li>
+<li><a class="reference internal" href="#implementation">7.7. Implementation</a><ul>
+<li><a class="reference internal" href="#target-platform-detection">7.7.1. Target Platform Detection</a></li>
+<li><a class="reference internal" href="#target-varieties">7.7.2. Target varieties</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#source-code-configuration">3.8. Source code configuration</a><ul>
-<li><a class="reference internal" href="#configuration-parameters">3.8.1. Configuration parameters</a></li>
-<li><a class="reference internal" href="#abstract-and-concrete-module-interfaces">3.8.2. Abstract and concrete module interfaces</a></li>
-<li><a class="reference internal" href="#configuring-module-implementations">3.8.3. Configuring module implementations</a></li>
+<li><a class="reference internal" href="#source-code-configuration">7.8. Source code configuration</a><ul>
+<li><a class="reference internal" href="#configuration-parameters">7.8.1. Configuration parameters</a></li>
+<li><a class="reference internal" href="#abstract-and-concrete-module-interfaces">7.8.2. Abstract and concrete module interfaces</a></li>
+<li><a class="reference internal" href="#configuring-module-implementations">7.8.3. Configuring module implementations</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#procedures">3.9. Procedures</a></li>
-<li><a class="reference internal" href="#notes">3.10. Notes</a></li>
+<li><a class="reference internal" href="#procedures">7.9. Procedures</a></li>
+<li><a class="reference internal" href="#notes">7.10. Notes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="bt.html"
-                        title="previous chapter">2. Bit tables</a></p>
+  <p class="topless"><a href="collection.html"
+                        title="previous chapter">6. Collection framework</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="protocol.html"
-                        title="next chapter">4. Protocol inheritance</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="finalize.html"
+                        title="next chapter">8. Finalization</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -551,10 +551,10 @@ placed in a separate, common module.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="4. Protocol inheritance"
+          <a href="finalize.html" title="8. Finalization"
              >next</a> |</li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="collection.html" title="6. Collection framework"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

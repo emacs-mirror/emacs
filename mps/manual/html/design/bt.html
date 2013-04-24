@@ -28,7 +28,7 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="3. Protocol inheritance" href="protocol.html" />
+    <link rel="next" title="3. Coalescing block structure" href="cbs.html" />
     <link rel="prev" title="1. Arena" href="arena.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="3. Protocol inheritance"
+          <a href="cbs.html" title="3. Coalescing block structure"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="arena.html" title="1. Arena"
@@ -70,11 +70,15 @@ image&#8221; copy of a range.</p>
 </div>
 <div class="section" id="history">
 <h2>2.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design.mps.bt.history.0-3"></span><a class="mpstag reference internal" href="#design.mps.bt.history.0-3">.history.0-3:</a> The history for versions 0-3 is lost pending
-possible reconstruction.</p>
-<p><span class="target" id="design.mps.bt.history.4"></span><a class="mpstag reference internal" href="#design.mps.bt.history.4">.history.4:</a> Prepared for review. Added full requirements
+<p><span class="target" id="design.mps.bt.hist.0-3"></span><a class="mpstag reference internal" href="#design.mps.bt.hist.0-3">.hist.0-3:</a> The history for versions 0-3 is lost pending
+possible reconstruction. David Jones, 1997-03-04.</p>
+<p><span class="target" id="design.mps.bt.hist.4"></span><a class="mpstag reference internal" href="#design.mps.bt.hist.4">.hist.4:</a> Prepared for review. Added full requirements
 section. Made notation more consistent throughout. Documented all
-functions. drj 1999-04-29</p>
+functions. David Jones, 1999-04-29.</p>
+<p><span class="target" id="design.mps.bt.hist.5"></span><a class="mpstag reference internal" href="#design.mps.bt.hist.5">.hist.5:</a> Converted from MMInfo database design document.
+Richard Brooksby, 2002-06-07.</p>
+<p><span class="target" id="design.mps.bt.hist.6"></span><a class="mpstag reference internal" href="#design.mps.bt.hist.6">.hist.6:</a> Converted to reStructuredText. Gareth Rees,
+2013-03-12.</p>
 </div>
 <div class="section" id="definitions">
 <h2>2.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
@@ -297,6 +301,11 @@ because both of these are required to be fast.</p>
 </div>
 <div class="section" id="interface">
 <h2>2.9. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<dl class="type">
+<dt>
+<tt class="descname">typedef Word *BT;</tt></dt>
+<dd></dd></dl>
+
 <p><span class="target" id="design.mps.bt.if.representation.abstract"></span><a class="mpstag reference internal" href="#design.mps.bt.if.representation.abstract">.if.representation.abstract:</a> A Bit Table is represented by
 the type <tt class="xref c c-type docutils literal"><span class="pre">BT</span></tt>.</p>
 <p><span class="target" id="design.mps.bt.if.declare"></span><a class="mpstag reference internal" href="#design.mps.bt.if.declare">.if.declare:</a> The module declares a type <tt class="xref c c-type docutils literal"><span class="pre">BT</span></tt> and a
@@ -791,8 +800,8 @@ TEST1 and TEST2.</p>
   <p class="topless"><a href="arena.html"
                         title="previous chapter">1. Arena</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="protocol.html"
-                        title="next chapter">3. Protocol inheritance</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="cbs.html"
+                        title="next chapter">3. Coalescing block structure</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -818,7 +827,7 @@ TEST1 and TEST2.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="3. Protocol inheritance"
+          <a href="cbs.html" title="3. Coalescing block structure"
              >next</a> |</li>
         <li class="right" >
           <a href="arena.html" title="1. Arena"

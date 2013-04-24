@@ -347,12 +347,12 @@
   <dt><a href="glossary/a.html#term-allocation-frame"><strong>allocation frame</strong></a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/a.html#term-allocation-mechanism"><strong>allocation mechanism</strong></a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/a.html#term-allocation-pattern"><strong>allocation pattern</strong></a>
   </dt>
@@ -532,6 +532,10 @@
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="design/finalize.html#ArenaFinalize">ArenaFinalize (C function)</a>
+  </dt>
+
       
   <dt><a href="guide/debug.html#index-2">ASLR</a>
   </dt>
@@ -957,6 +961,66 @@
 
       </dl></dd>
       
+  <dt><a href="design/cbs.html#CBSBlockBase">CBSBlockBase (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSBlockDescribe">CBSBlockDescribe (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSBlockLimit">CBSBlockLimit (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSBlockSize">CBSBlockSize (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSDelete">CBSDelete (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSDescribe">CBSDescribe (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSFindFirst">CBSFindFirst (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSFindLargest">CBSFindLargest (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSFindLast">CBSFindLast (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSFinish">CBSFinish (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSInit">CBSInit (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSInsert">CBSInsert (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSIterate">CBSIterate (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSIterateLarge">CBSIterateLarge (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/cbs.html#CBSSetMinSize">CBSSetMinSize (C function)</a>
+  </dt>
+
+      
   <dt><a href="glossary/c.html#term-cell"><strong>cell</strong></a>
   </dt>
 
@@ -1022,6 +1086,8 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/c.html#term-collect"><strong>collect</strong></a>
   </dt>
@@ -1076,8 +1142,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="mmref/lang.html#term-common-lisp"><strong>Common Lisp</strong></a>
   </dt>
@@ -1507,7 +1571,7 @@
   </dt>
 
       
-  <dt><a href="glossary/f.html#term-fencepost"><strong>fencepost</strong></a>, <a href="topic/debugging.html#index-1">[1]</a>
+  <dt><a href="topic/debugging.html#index-1">fencepost</a>, <a href="glossary/f.html#term-fencepost"><strong>[1]</strong></a>
   </dt>
 
       
@@ -2253,8 +2317,6 @@
   <dt><a href="glossary/l.html#term-linear-addressing"><strong>linear addressing</strong></a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="mmref/lang.html#term-lisp"><strong>Lisp</strong></a>
   </dt>
@@ -2285,6 +2347,8 @@
   <dt><a href="glossary/l.html#term-load"><strong>load</strong></a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/l.html#term-locality-of-reference"><strong>locality of reference</strong></a>
   </dt>
@@ -2325,6 +2389,50 @@
       </dl></dd>
       
   <dt><a href="glossary/l.html#term-lock-free"><strong>lock free</strong></a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockClaim">LockClaim (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockClaimGlobal">LockClaimGlobal (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockClaimGlobalRecursive">LockClaimGlobalRecursive (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockClaimRecursive">LockClaimRecursive (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockFinish">LockFinish (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockInit">LockInit (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockReleaseGlobal">LockReleaseGlobal (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockReleaseGlobalRecursive">LockReleaseGlobalRecursive (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockReleaseMPM">LockReleaseMPM (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockReleaseRecursive">LockReleaseRecursive (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/lock.html#LockSize">LockSize (C function)</a>
   </dt>
 
       
@@ -2825,6 +2933,10 @@
   </dt>
 
       
+  <dt><a href="design/object-debug.html#mps_arena_walk">mps_arena_walk (C function)</a>
+  </dt>
+
+      
   <dt><a href="pool/awl.html#mps_awl_find_dependent_t">mps_awl_find_dependent_t (C type)</a>
   </dt>
 
@@ -2933,11 +3045,15 @@
   </dt>
 
       
-  <dt><a href="topic/finalization.html#mps_definalize">mps_definalize (C function)</a>
+  <dt><a href="design/object-debug.html#mps_debug_class">mps_debug_class (C function)</a>
   </dt>
 
       
-  <dt><a href="topic/finalization.html#mps_finalize">mps_finalize (C function)</a>
+  <dt><a href="design/finalize.html#mps_definalize">mps_definalize (C function)</a>, <a href="topic/finalization.html#mps_definalize">[1]</a>
+  </dt>
+
+      
+  <dt><a href="design/finalize.html#mps_finalize">mps_finalize (C function)</a>, <a href="topic/finalization.html#mps_finalize">[1]</a>
   </dt>
 
       
@@ -2965,11 +3081,19 @@
   </dt>
 
       
+  <dt><a href="design/object-debug.html#mps_fmt_adjust_fencepost_t">mps_fmt_adjust_fencepost_t (C function)</a>
+  </dt>
+
+      
   <dt><a href="topic/format.html#mps_fmt_auto_header_s">mps_fmt_auto_header_s (C type)</a>
   </dt>
 
       
   <dt><a href="topic/format.html#mps_fmt_B_s">mps_fmt_B_s (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/object-debug.html#mps_fmt_check_fenceposts_t">mps_fmt_check_fenceposts_t (C function)</a>
   </dt>
 
       
@@ -2993,6 +3117,10 @@
   </dt>
 
       
+  <dt><a href="design/object-debug.html#mps_fmt_fencepost_wrap">mps_fmt_fencepost_wrap (C function)</a>
+  </dt>
+
+      
   <dt><a href="topic/format.html#mps_fmt_fwd_t">mps_fmt_fwd_t (C type)</a>
   </dt>
 
@@ -3005,6 +3133,10 @@
   </dt>
 
       
+  <dt><a href="design/object-debug.html#mps_fmt_put_fencepost_t">mps_fmt_put_fencepost_t (C function)</a>
+  </dt>
+
+      
   <dt><a href="topic/format.html#mps_fmt_scan_t">mps_fmt_scan_t (C type)</a>
   </dt>
 
@@ -3012,6 +3144,8 @@
   <dt><a href="topic/format.html#mps_fmt_skip_t">mps_fmt_skip_t (C type)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/format.html#mps_fmt_t">mps_fmt_t (C type)</a>
   </dt>
@@ -3020,8 +3154,6 @@
   <dt><a href="topic/format.html#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t (C type)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/frame.html#mps_frame_t">mps_frame_t (C type)</a>
   </dt>
@@ -3135,7 +3267,7 @@
   </dt>
 
       
-  <dt><a href="topic/finalization.html#mps_message_finalization_ref">mps_message_finalization_ref (C function)</a>
+  <dt><a href="design/finalize.html#mps_message_finalization_ref">mps_message_finalization_ref (C function)</a>, <a href="topic/finalization.html#mps_message_finalization_ref">[1]</a>
   </dt>
 
       
@@ -3220,6 +3352,10 @@
 
       
   <dt><a href="pool/mvt.html#mps_mvt_size">mps_mvt_size (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/object-debug.html#mps_objects_step_t">mps_objects_step_t (C function)</a>
   </dt>
 
       
@@ -3308,6 +3444,10 @@
 
       
   <dt><a href="topic/pool.html#mps_pool_t">mps_pool_t (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/object-debug.html#mps_pool_walk">mps_pool_walk (C function)</a>
   </dt>
 
       
@@ -3842,7 +3982,7 @@
   </dt>
 
       
-  <dt><a href="glossary/p.html#term-padding-method"><strong>padding method</strong></a>, <a href="guide/lang.html#index-9">[1]</a>
+  <dt><a href="guide/lang.html#index-9">padding method</a>, <a href="glossary/p.html#term-padding-method"><strong>[1]</strong></a>
   </dt>
 
       
@@ -3890,7 +4030,7 @@
   </dt>
 
       
-  <dt><a href="glossary/p.html#term-parked-state"><strong>parked state</strong></a>, <a href="topic/arena.html#index-8">[1]</a>
+  <dt><a href="topic/arena.html#index-8">parked state</a>, <a href="glossary/p.html#term-parked-state"><strong>[1]</strong></a>
   </dt>
 
       

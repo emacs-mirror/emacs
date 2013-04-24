@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Protocol inheritance &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>16. Protocol inheritance &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="4. General MPS types" href="type.html" />
-    <link rel="prev" title="2. Bit tables" href="bt.html" /> 
+    <link rel="next" title="17. General MPS types" href="type.html" />
+    <link rel="prev" title="15. Debugging features for client objects" href="object-debug.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="type.html" title="4. General MPS types"
+          <a href="type.html" title="17. General MPS types"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="object-debug.html" title="15. Debugging features for client objects"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,19 +55,22 @@
           <div class="body">
             
   <div class="section" id="protocol-inheritance">
-<span id="design.mps.protocol"></span><h1>3. Protocol inheritance<a class="headerlink" href="#protocol-inheritance" title="Permalink to this headline">¶</a></h1>
+<span id="design.mps.protocol"></span><h1>16. Protocol inheritance<a class="headerlink" href="#protocol-inheritance" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>3.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>16.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protocol.intro"></span><a class="mpstag reference internal" href="#design.mps.protocol.intro">.intro:</a> This document explains the design of the support for
 class inheritance in MPS. It is not yet complete. It describes support
 for single inheritance of classes. Future extensions will describe
 multiple inheritance and the relationship between instances and
 classes.</p>
 <p><span class="target" id="design.mps.protocol.readership"></span><a class="mpstag reference internal" href="#design.mps.protocol.readership">.readership:</a> This document is intended for any MPS developer.</p>
+</div>
+<div class="section" id="history">
+<h2>16.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protocol.hist.0"></span><a class="mpstag reference internal" href="#design.mps.protocol.hist.0">.hist.0:</a> Written by Tony 1998-10-12</p>
 </div>
 <div class="section" id="purpose">
-<h2>3.2. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<h2>16.3. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protocol.purpose.code-maintain"></span><a class="mpstag reference internal" href="#design.mps.protocol.purpose.code-maintain">.purpose.code-maintain:</a> The purpose of the protocol
 inheritance design is to ensure that the MPS code base can make use of
 the benefits of object-oriented class inheritance to maximize code
@@ -78,7 +81,7 @@ mail.tony.1998-08-28.16-26(0), mail.tony.1998-09-01.11-38(0),
 mail.tony.1998-10-06.11-03(0) and other messages in the same threads.</p>
 </div>
 <div class="section" id="requirements">
-<h2>3.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>16.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protocol.req.implicit"></span><a class="mpstag reference internal" href="#design.mps.protocol.req.implicit">.req.implicit:</a> The object system should provide a means for
 classes to inherit the methods of their direct superclasses implicitly
 for all functions in the protocol without having to write any explicit
@@ -100,7 +103,7 @@ with several classes which do not themselves support identical
 protocols.</p>
 </div>
 <div class="section" id="overview">
-<h2>3.4. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>16.5. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protocol.overview.root"></span><a class="mpstag reference internal" href="#design.mps.protocol.overview.root">.overview.root:</a> We start with the root of all conformant
 class hierarchies, which is called <tt class="xref c c-type docutils literal"><span class="pre">ProtocolClass</span></tt>. This is an
 &#8220;abstract&#8221; class (that is, it has no direct instances, but it is
@@ -199,9 +202,9 @@ a type which contains the new class fields.</div></blockquote>
 <div>names the function that returns the initialized class object.</div></blockquote>
 </div>
 <div class="section" id="interface">
-<h2>3.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>16.6. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="class-definition">
-<h3>3.5.1. Class definition<a class="headerlink" href="#class-definition" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.1. Class definition<a class="headerlink" href="#class-definition" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.int.define-class"></span><a class="mpstag reference internal" href="#design.mps.protocol.int.define-class">.int.define-class:</a> Class definition is performed by the macro
 <tt class="docutils literal"><span class="pre">DEFINE_CLASS(className,</span> <span class="pre">var)</span></tt>. A call to the macro must be followed
 by a body of initialization code in braces <tt class="docutils literal"><span class="pre">{}</span></tt>. The parameter
@@ -239,7 +242,7 @@ convenient to define a static superclass accessor macro at the same
 time (see <a class="reference internal" href="#design.mps.protocol.int.static-superclass.special">.int.static-superclass.special</a>).</p>
 </div>
 <div class="section" id="single-inheritance">
-<h3>3.5.2. Single inheritance<a class="headerlink" href="#single-inheritance" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.2. Single inheritance<a class="headerlink" href="#single-inheritance" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.int.inheritance"></span><a class="mpstag reference internal" href="#design.mps.protocol.int.inheritance">.int.inheritance:</a> Class inheritance details must be provided
 in the class initialization code (see <a class="reference internal" href="#design.mps.protocol.int.define-class">.int.define-class</a>).
 Inheritance is performed by the macro
@@ -255,14 +258,14 @@ second parameter to <tt class="xref c c-func docutils literal"><span class="pre"
 to <tt class="xref c c-func docutils literal"><span class="pre">INHERIT_CLASS()</span></tt>.</p>
 </div>
 <div class="section" id="specialization">
-<h3>3.5.3. Specialization<a class="headerlink" href="#specialization" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.3. Specialization<a class="headerlink" href="#specialization" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.int.specialize"></span><a class="mpstag reference internal" href="#design.mps.protocol.int.specialize">.int.specialize:</a> Class specialization details must be given
 explicitly in the class initialization code (see
 <a class="reference internal" href="#design.mps.protocol.int.define-class">.int.define-class</a>). This must happen <em>after</em> the
 inheritance details are given (see <a class="reference internal" href="#design.mps.protocol.int.inheritance">.int.inheritance</a>).</p>
 </div>
 <div class="section" id="extension">
-<h3>3.5.4. Extension<a class="headerlink" href="#extension" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.4. Extension<a class="headerlink" href="#extension" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.int.extend"></span><a class="mpstag reference internal" href="#design.mps.protocol.int.extend">.int.extend:</a> To extend the protocol when defining a new
 class, a new type must be defined for the class structure. This must
 embed the structure for the primarily inherited class as the first
@@ -272,7 +275,7 @@ explicitly in the class initialization code (see
 inheritance details are given (see <a class="reference internal" href="#design.mps.protocol.int.inheritance">.int.inheritance</a>).</p>
 </div>
 <div class="section" id="introspection">
-<h3>3.5.5. Introspection<a class="headerlink" href="#introspection" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.5. Introspection<a class="headerlink" href="#introspection" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.introspect.c-lang"></span><a class="mpstag reference internal" href="#design.mps.protocol.introspect.c-lang">.introspect.c-lang:</a> The design includes a number of
 introspection functions for dynamically examining class relationships.
 These functions are polymorphic and accept arbitrary subclasses of
@@ -315,7 +318,7 @@ is a subclass of super. That is, it is a predicate for testing
 subclass relationships.</p>
 </div>
 <div class="section" id="multiple-inheritance">
-<h3>3.5.6. Multiple inheritance<a class="headerlink" href="#multiple-inheritance" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.6. Multiple inheritance<a class="headerlink" href="#multiple-inheritance" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.int.mult-inherit"></span><a class="mpstag reference internal" href="#design.mps.protocol.int.mult-inherit">.int.mult-inherit:</a> Multiple inheritance involves an extension
 of the protocol (see <a class="reference internal" href="#design.mps.protocol.int.extend">.int.extend</a>) and also multiple uses
 of the single inheritance mechanism (see
@@ -328,7 +331,7 @@ currently used. The basic idea is described in
 mail.tony.1998-10-06.11-03(0).</p>
 </div>
 <div class="section" id="protocol-guidelines">
-<h3>3.5.7. Protocol guidelines<a class="headerlink" href="#protocol-guidelines" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.7. Protocol guidelines<a class="headerlink" href="#protocol-guidelines" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.guide.fail"></span><a class="mpstag reference internal" href="#design.mps.protocol.guide.fail">.guide.fail:</a> When designing an extensible function which
 might fail, the design must permit the correct implementation of the
 failure-case code. Typically, a failure might occur in any method in
@@ -354,7 +357,7 @@ the anti-method for the superclass. See <a class="reference internal" href="#des
 below.</p>
 </div>
 <div class="section" id="example">
-<h3>3.5.8. Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.8. Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.protocol.example.inheritance"></span><a class="mpstag reference internal" href="#design.mps.protocol.example.inheritance">.example.inheritance:</a> The following example class definition
 shows both inheritance and specialization. It shows the definition of
 the class <tt class="docutils literal"><span class="pre">EPDRPoolClass</span></tt>, which inherits from <tt class="docutils literal"><span class="pre">EPDLPoolClass</span></tt> and
@@ -446,7 +449,7 @@ anti-method:</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>3.6. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>16.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protocol.impl.derived-names"></span><a class="mpstag reference internal" href="#design.mps.protocol.impl.derived-names">.impl.derived-names:</a> The <tt class="xref c c-func docutils literal"><span class="pre">DEFINE_CLASS()</span></tt> macro derives
 some additional names from the class name as part of it&#8217;s
 implementation. These should not appear in the source code - but it
@@ -514,33 +517,34 @@ design.mps.lock(0).</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. Protocol inheritance</a><ul>
-<li><a class="reference internal" href="#introduction">3.1. Introduction</a></li>
-<li><a class="reference internal" href="#purpose">3.2. Purpose</a></li>
-<li><a class="reference internal" href="#requirements">3.3. Requirements</a></li>
-<li><a class="reference internal" href="#overview">3.4. Overview</a></li>
-<li><a class="reference internal" href="#interface">3.5. Interface</a><ul>
-<li><a class="reference internal" href="#class-definition">3.5.1. Class definition</a></li>
-<li><a class="reference internal" href="#single-inheritance">3.5.2. Single inheritance</a></li>
-<li><a class="reference internal" href="#specialization">3.5.3. Specialization</a></li>
-<li><a class="reference internal" href="#extension">3.5.4. Extension</a></li>
-<li><a class="reference internal" href="#introspection">3.5.5. Introspection</a></li>
-<li><a class="reference internal" href="#multiple-inheritance">3.5.6. Multiple inheritance</a></li>
-<li><a class="reference internal" href="#protocol-guidelines">3.5.7. Protocol guidelines</a></li>
-<li><a class="reference internal" href="#example">3.5.8. Example</a></li>
+<li><a class="reference internal" href="#">16. Protocol inheritance</a><ul>
+<li><a class="reference internal" href="#introduction">16.1. Introduction</a></li>
+<li><a class="reference internal" href="#history">16.2. History</a></li>
+<li><a class="reference internal" href="#purpose">16.3. Purpose</a></li>
+<li><a class="reference internal" href="#requirements">16.4. Requirements</a></li>
+<li><a class="reference internal" href="#overview">16.5. Overview</a></li>
+<li><a class="reference internal" href="#interface">16.6. Interface</a><ul>
+<li><a class="reference internal" href="#class-definition">16.6.1. Class definition</a></li>
+<li><a class="reference internal" href="#single-inheritance">16.6.2. Single inheritance</a></li>
+<li><a class="reference internal" href="#specialization">16.6.3. Specialization</a></li>
+<li><a class="reference internal" href="#extension">16.6.4. Extension</a></li>
+<li><a class="reference internal" href="#introspection">16.6.5. Introspection</a></li>
+<li><a class="reference internal" href="#multiple-inheritance">16.6.6. Multiple inheritance</a></li>
+<li><a class="reference internal" href="#protocol-guidelines">16.6.7. Protocol guidelines</a></li>
+<li><a class="reference internal" href="#example">16.6.8. Example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#implementation">3.6. Implementation</a></li>
+<li><a class="reference internal" href="#implementation">16.7. Implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="bt.html"
-                        title="previous chapter">2. Bit tables</a></p>
+  <p class="topless"><a href="object-debug.html"
+                        title="previous chapter">15. Debugging features for client objects</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="type.html"
-                        title="next chapter">4. General MPS types</a></p><h4>Downloads</h4>
+                        title="next chapter">17. General MPS types</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -566,10 +570,10 @@ design.mps.lock(0).</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="type.html" title="4. General MPS types"
+          <a href="type.html" title="17. General MPS types"
              >next</a> |</li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="object-debug.html" title="15. Debugging features for client objects"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

@@ -25,12 +25,18 @@ image" copy of a range.
 History
 -------
 
-:mps:tag:`history.0-3` The history for versions 0-3 is lost pending
-possible reconstruction.
+:mps:tag:`hist.0-3` The history for versions 0-3 is lost pending
+possible reconstruction. David Jones, 1997-03-04.
 
-:mps:tag:`history.4` Prepared for review. Added full requirements
+:mps:tag:`hist.4` Prepared for review. Added full requirements
 section. Made notation more consistent throughout. Documented all
-functions. drj 1999-04-29
+functions. David Jones, 1999-04-29.
+
+:mps:tag:`hist.5` Converted from MMInfo database design document.
+Richard Brooksby, 2002-06-07.
+
+:mps:tag:`hist.6` Converted to reStructuredText. Gareth Rees,
+2013-03-12.
 
 
 Definitions
@@ -285,6 +291,8 @@ because both of these are required to be fast.
 
 Interface
 ---------
+
+.. c:type:: typedef Word *BT;
 
 :mps:tag:`if.representation.abstract` A Bit Table is represented by
 the type :c:type:`BT`.
