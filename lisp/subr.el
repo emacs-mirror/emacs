@@ -2229,7 +2229,7 @@ The value of DEFAULT is inserted into PROMPT."
 	    (condition-case nil
 		(setq n (cond
 			 ((zerop (length str)) default1)
-			 ((stringp str) (string-to-number str))))
+			 ((stringp str) (read str))))
 	      (error nil)))
 	  (unless (numberp n)
 	    (message "Please enter a number.")
