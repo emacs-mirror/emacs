@@ -8,6 +8,8 @@
 @syncodeindex fn cp
 @finalout
 
+@include emacsver.texi
+
 @c ---------
 @c <<<< For hard copy printing, this file is now
 @c      set for smallbook, which works for all sizes
@@ -35,9 +37,9 @@
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
+@c These refer to the printed book sold by the FSF.
 @set edition-number 3.10
 @set update-date 28 October 2009
-@c FIXME can this be updated?  -- xfq
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -227,7 +229,12 @@
 This is an @cite{Introduction to Programming in Emacs Lisp}, for
 people who are not programmers.
 @sp 1
+@iftex
 Edition @value{edition-number}, @value{update-date}
+@end iftex
+@ifnottex
+Distributed with Emacs version @value{EMACSVER}.
+@end ifnottex
 @ifset WWW_GNU_ORG
 @html
 <p>The homepage for GNU Emacs is at
@@ -244,7 +251,7 @@ Foundation, Inc.
 @iftex
 Published by the:@*
 
-GNU Press,               @hfill @uref{http://www.fsf.org/campaigns/gnu-press/}@*
+GNU Press,               @hfill @uref{http://www.fsf.org/licensing/gnu-press/}@*
 a division of the               @hfill email: @email{sales@@fsf.org}@*
 Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
 51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
@@ -252,10 +259,10 @@ Boston, MA 02110-1301 USA
 @end iftex
 
 @ifnottex
-Published by the:
+Printed copies available from @uref{http://shop.fsf.org/}. Published by:
 
 @example
-GNU Press,                        http://www.fsf.org/campaigns/gnu-press/
+GNU Press,                        http://www.fsf.org/licensing/gnu-press/
 a division of the                 email: sales@@fsf.org
 Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
 51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
@@ -264,7 +271,6 @@ Boston, MA 02110-1301 USA
 @end ifnottex
 
 @sp 1
-@c Printed copies are available from @uref{http://shop.fsf.org/} for $35 each.@*
 ISBN 1-882114-43-4
 
 Permission is granted to copy, distribute and/or modify this document
@@ -1623,13 +1629,20 @@ do not work in the usual manner.  Those that don't are called
 @dfn{special forms}.  They are used for special jobs, like defining a
 function, and there are not many of them.  In the next few chapters,
 you will be introduced to several of the more important special forms.
-And there are also @dfn{macros}.  Macro is a construct defined in
-Lisp, which differs from a function in that it translates a Lisp
-expression into another expression which is to be evaluated instead of
-the original expression.  (@xref{Lisp macro}.)
 
+As well as special forms, there are also @dfn{macros}.  A macro
+is a construct defined in Lisp, which differs from a function in that it
+translates a Lisp expression into another expression that is to be
+evaluated in place of the original expression.  (@xref{Lisp macro}.)
 
-The third and final complication is this: if the function that the
+For the purposes of this introduction, you do not need to worry too much
+about whether something is a special form, macro, or ordinary function.
+For example, @code{if} is a special form (@pxref{if}), but @code{when}
+is a macro (@pxref{Lisp macro}).  In earlier versions of Emacs,
+@code{defun} was a special form, but now it is a macro (@pxref{defun}).
+It still behaves in the same way.
+
+The final complication is this: if the function that the
 Lisp interpreter is looking at is not a special form, and if it is part
 of a list, the Lisp interpreter looks to see whether the list has a list
 inside of it.  If there is an inner list, the Lisp interpreter first
@@ -8313,7 +8326,7 @@ an @code{if} without the possibility of an else clause.  In your mind,
 you can replace @code{when} with @code{if} and understand what goes
 on.  That is what the Lisp interpreter does.
 
-Technically speaking, @code{when} is a Lisp macro.  A Lisp @dfn{macro}
+Technically speaking, @code{when} is a Lisp macro.  A Lisp macro
 enables you to define new control constructs and other language
 features.  It tells the interpreter how to compute another Lisp
 expression which will in turn compute the value.  In this case, the
@@ -9366,7 +9379,7 @@ In the past, Emacs used the @code{defvar} special form both for
 internal variables that you would not expect a user to change and for
 variables that you do expect a user to change.  Although you can still
 use @code{defvar} for user customizable variables, please use
-@code{defcustom} instead, since that special form provides a path into
+@code{defcustom} instead, since it provides a path into
 the Customization commands.  (@xref{defcustom, , Specifying Variables
 using @code{defcustom}}.)
 
@@ -17025,7 +17038,7 @@ Finally, the @code{:group} keyword tells the Emacs Customization
 command in which group the variable is located.  This tells where to
 find it.
 
-The @code{defcustom} function recognizes more than a dozen keywords.
+The @code{defcustom} macro recognizes more than a dozen keywords.
 For more information, see @ref{Customization, , Writing Customization
 Definitions, elisp, The GNU Emacs Lisp Reference Manual}.
 

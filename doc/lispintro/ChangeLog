@@ -1,3 +1,17 @@
+2013-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (emacsver.texi): Include it.
+	(copying): For non-printed versions, uses Emacs version rather
+	than that of the printed book.
+	(Complications, Lisp macro, defvar and asterisk, defcustom): Copyedits.
+	* Makefile.in (emacsdir): New variable..
+	(MAKEINFO_OPTS, ENVADD): Add $emacsdir.
+	(srcs): Add emacsver.texi.
+	(dist): Include emacsver.texi.  Edit emacsdir.
+	* makefile.w32-in (emacsdir): New variable.
+	(INFO_SOURCES): Add emacsver.texi.
+	(ENVADD): Add $emacsdir (and $texinfodir).
+
 2013-04-23  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* emacs-lisp-intro.texi (Complications, defvar, Writing Defuns)
