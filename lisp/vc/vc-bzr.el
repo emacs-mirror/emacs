@@ -694,7 +694,10 @@ REV non-nil gets an error."
 		   ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face)))))))
 
 (defun vc-bzr-print-log (files buffer &optional shortlog start-revision limit)
-  "Get bzr change log for FILES into specified BUFFER."
+  "Print commit log associated with FILES into specified BUFFER.
+If SHORTLOG is non-nil, use --line format.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
   (vc-setup-buffer buffer)

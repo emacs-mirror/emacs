@@ -1,3 +1,15 @@
+2013-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-print-log):
+	* vc/vc-cvs.el (vc-cvs-print-log):
+	* vc/vc-git.el (vc-git-print-log):
+	* vc/vc-hg.el (vc-hg-print-log):
+	* vc/vc-mtn.el (vc-mtn-print-log):
+	* vc/vc-rcs.el (vc-rcs-print-log):
+	* vc/vc-sccs.el (vc-sccs-print-log):
+	* vc/vc-svn.el (vc-svn-print-log):
+	* vc/vc.el (vc-print-log-internal): Doc fixes.
+
 2013-04-23  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (normal-no-mouse-startup-screen, normal-about-screen):

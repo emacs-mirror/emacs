@@ -567,10 +567,14 @@ directory the operation is applied to all registered files beneath it."
     (when (looking-at "[\b\t\n\v\f\r ]+")
       (delete-char (- (match-end 0) (match-beginning 0))))))
 
-(defun vc-rcs-print-log (files buffer &optional shortlog start-revision-ignored limit)
-  "Get change log associated with FILE.  If FILE is a
-directory the operation is applied to all registered files beneath it."
-  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))
+(defun vc-rcs-print-log (files buffer &optional shortlog
+                               start-revision-ignored limit)
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored.
+If FILE is a directory the operation is applied to all registered
+files beneath it."
+  (vc-do-command (or buffer "*vc*") 0 "rlog"
+                 (mapcar 'vc-name (vc-expand-dirs files)))
   (with-current-buffer (or buffer "*vc*")
     (vc-rcs-print-log-cleanup))
   (when limit 'limit-unsupported))
