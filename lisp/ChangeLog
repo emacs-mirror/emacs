@@ -1,3 +1,8 @@
+2013-04-24  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* progmodes/compile.el (compilation-next-error-function):
+	Pass "formats" to compilation-find-file (bug#11777).
+
 2013-04-24  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-print-log):
@@ -22,12 +27,12 @@
 
 2013-04-23  Tassilo Horn  <tsdh@gnu.org>
 
-	* textmodes/reftex-vars.el (reftex-label-regexps): Call
-	`reftex-compile-variables' after changes to this variable.
+	* textmodes/reftex-vars.el (reftex-label-regexps):
+	Call `reftex-compile-variables' after changes to this variable.
 
 2013-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* jit-lock.el: Fix signals in jit-lock-force-redisplay.
+	* jit-lock.el: Fix signals in jit-lock-force-redisplay (bug#13542).
 	Use lexical-binding.
 	(jit-lock-force-redisplay): Use markers, check buffer's continued
 	existence and beware narrowed buffers.
