@@ -4447,8 +4447,10 @@ int main(int argc, char *argv[])
   /* Make sure we can pick up finalization messages. */
   mps_message_type_enable(arena, mps_message_type_finalization());
 
-  /* Call the main program.  This call is required to mark the top of the
-     stack of the main thread. See topic/thread. */
+  /* Call the main program. A function call is required here so that
+     'marker' reliably points into the stack below any potential roots
+     in the main thread. See the section "Thread roots" in
+     topic/root. */
   exit_code = start(argc, argv);
   
   /* Cleaning up the MPS object with destroy methods will allow the MPS to
