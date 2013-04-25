@@ -330,12 +330,6 @@ newline or semicolon after an else or end keyword."
   :type 'string
   :group 'octave)
 
-(defvar octave-completion-alist nil
-  "Alist of Octave symbols for completion in Octave mode.
-Each element looks like (VAR . VAR), where the car and cdr are the same
-symbol (an Octave command or variable name).
-Currently, only builtin variables can be completed.")
-
 (defvar octave-mode-imenu-generic-expression
   (list
    ;; Functions
@@ -639,8 +633,7 @@ including a reproducible test case and send the message."
   (set (make-local-variable 'beginning-of-defun-function)
        'octave-beginning-of-defun)
 
-  (easy-menu-add octave-mode-menu)
-  (octave-initialize-completions))
+  (easy-menu-add octave-mode-menu))
 
 
 (defcustom inferior-octave-program "octave"
@@ -874,6 +867,15 @@ startup file, `~/.emacs-octave'."
     ;; won't have detrimental effects.
     (inferior-octave-resync-dirs)))
 
+(defun inferior-octave-completion-table ()
+  (unless inferior-octave-complete-impossible
+    (completion-table-dynamic
+     (lambda (command)
+       (inferior-octave-send-list-and-digest
+        (list (concat "completion_matches (\"" command "\");\n")))
+       (sort (delete-dups inferior-octave-output-list)
+             'string-lessp)))))
+
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
   (let* ((end (point))
@@ -887,15 +889,7 @@ startup file, `~/.emacs-octave'."
                      "Your Octave does not have `completion_matches'.  "
                      "Please upgrade to version 2.X."))
            nil)
-	  (t
-           (list
-            start end
-            (completion-table-dynamic
-             (lambda (command)
-               (inferior-octave-send-list-and-digest
-                (list (concat "completion_matches (\"" command "\");\n")))
-               (sort (delete-dups inferior-octave-output-list)
-                     'string-lessp))))))))
+	  (t (list start end (inferior-octave-completion-table))))))
 
 (define-obsolete-function-alias 'inferior-octave-complete
   'completion-at-point "24.1")
@@ -1296,14 +1290,6 @@ otherwise."
 
 
 ;;; Completions
-(defun octave-initialize-completions ()
-  "Create an alist for Octave completions."
-  (if octave-completion-alist
-      ()
-    (setq octave-completion-alist
-          (append octave-reserved-words
-                  octave-text-functions
-                  octave-variables))))
 
 (defun octave-completion-at-point-function ()
   "Find the text to complete and the corresponding table."
@@ -1313,7 +1299,12 @@ otherwise."
         ;; Extend region past point, if applicable.
         (save-excursion (skip-syntax-forward "w_")
                         (setq end (point))))
-    (list beg end octave-completion-alist)))
+    (list beg end (or (and inferior-octave-process
+                           (process-live-p inferior-octave-process)
+                           (inferior-octave-completion-table))
+                      (append octave-reserved-words
+                              octave-text-functions
+                              octave-variables)))))
 
 (define-obsolete-function-alias 'octave-complete-symbol
   'completion-at-point "24.1")
