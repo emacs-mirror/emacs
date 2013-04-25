@@ -1,3 +1,11 @@
+2013-04-25  Leo Liu  <sdl.web@gmail.com>
+
+	Merge octave-mod.el and octave-inf.el into octave.el with some
+	cleanups.
+	* progmodes/octave.el: New file renamed from octave-mod.el.
+	* progmodes/octave-inf.el: Merged into octave.el.
+	* progmodes/octave-mod.el: Renamed to octave.el.
+
 2013-04-25  Tassilo Horn  <tsdh@gnu.org>
 
 	* textmodes/reftex-vars.el
