@@ -1,3 +1,7 @@
+2013-04-25  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-print-log): Tweak LIMIT = 1 case.
+
 2013-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/opascal.el (opascal-set-token-property): Rename from
