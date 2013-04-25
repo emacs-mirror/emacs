@@ -1,3 +1,13 @@
+2013-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent--hanging-p): Don't burp at EOB.
+	(smie-indent-keyword): Improve the check to ensure that the next
+	comment is really on the same line.
+	(smie-indent-comment): Don't align with a subsequent closer (or eob).
+
+	* progmodes/octave-mod.el (octave-smie-forward-token): Only emit
+	semi-colons if the line is not otherwise empty (bug#14218).
+
 2013-04-25  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-print-log): Tweak LIMIT = 1 case.

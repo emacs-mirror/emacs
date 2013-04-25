@@ -1067,9 +1067,10 @@ the beginning of a line."
        (save-excursion
          (<= (line-end-position)
              (progn
-               (when (zerop (length (funcall smie-forward-token-function)))
-                 ;; Could be an open-paren.
-                 (forward-char 1))
+               (and (zerop (length (funcall smie-forward-token-function)))
+		    (not (eobp))
+		    ;; Could be an open-paren.
+		    (forward-char 1))
                (skip-chars-forward " \t")
                (or (eolp)
                    (and (looking-at comment-start-skip)
@@ -1350,8 +1351,11 @@ should not be computed on the basis of the following token."
                 (if (and (< pos (line-beginning-position))
                          ;; Make sure `token' also *starts* on another line.
                          (save-excursion
-                           (smie-indent-backward-token)
-                           (< pos (line-beginning-position))))
+                           (let ((endpos (point)))
+                             (goto-char pos)
+                             (forward-line 1)
+                             (and (equal res (smie-indent-forward-token))
+                                  (eq (point) endpos)))))
                     nil
                   (goto-char pos)
                   res)))))
@@ -1473,13 +1477,21 @@ should not be computed on the basis of the following token."
        (save-excursion
          (forward-comment (point-max))
          (skip-chars-forward " \t\r\n")
-         ;; FIXME: We assume here that smie-indent-calculate will compute the
-         ;; indentation of the next token based on text before the comment, but
-         ;; this is not guaranteed, so maybe we should let
-         ;; smie-indent-calculate return some info about which buffer position
-         ;; was used as the "indentation base" and check that this base is
-         ;; before `pos'.
-         (smie-indent-calculate))))
+         (unless
+             ;; Don't align with a closer, since the comment is "within" the
+             ;; closed element.  Don't align with EOB either.
+             (save-excursion
+               (let ((next (funcall smie-forward-token-function)))
+                 (or (if (zerop (length next))
+                         (or (eobp) (eq (car (syntax-after (point))) 5)))
+                     (rassoc next smie-closer-alist))))
+	   ;; FIXME: We assume here that smie-indent-calculate will compute the
+           ;; indentation of the next token based on text before the comment,
+           ;; but this is not guaranteed, so maybe we should let
+           ;; smie-indent-calculate return some info about which buffer
+           ;; position was used as the "indentation base" and check that this
+           ;; base is before `pos'.
+           (smie-indent-calculate)))))
 
 (defun smie-indent-comment-continue ()
   ;; indentation of comment-continue lines.
