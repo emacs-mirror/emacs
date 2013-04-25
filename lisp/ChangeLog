@@ -1,3 +1,10 @@
+2013-04-25  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el
+	(reftex-label-ignored-macros-and-environments): New defcustom.
+
+	* textmodes/reftex-parse.el (reftex-parse-from-file): Use it.
+
 2013-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-indent--hanging-p): Don't burp at EOB.

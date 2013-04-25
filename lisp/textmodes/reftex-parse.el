@@ -234,8 +234,18 @@ of master file."
 
                 ((match-end 1)
                  ;; It is a label
-                 (push (reftex-label-info (reftex-match-string 1) file bound)
-                       docstruct))
+		 (when (or (null reftex-label-ignored-macros-and-environments)
+			   ;; \label{} defs should always be honored,
+			   ;; just no keyval style [label=foo] defs.
+			   (string-equal "\label{" (substring (reftex-match-string 0) 0 7))
+			   (not (fboundp 'TeX-current-macro))
+			   (not (fboundp 'LaTeX-current-environment))
+			   (not (or (member (save-match-data (TeX-current-macro))
+					    reftex-label-ignored-macros-and-environments)
+				    (member (save-match-data (LaTeX-current-environment))
+					    reftex-label-ignored-macros-and-environments))))
+		   (push (reftex-label-info (reftex-match-string 1) file bound)
+			 docstruct)))
 
                 ((match-end 3)
                  ;; It is a section

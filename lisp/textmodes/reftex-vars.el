@@ -885,6 +885,25 @@ effective."
   :group 'reftex-defining-label-environments
   :type '(repeat (regexp :tag "Regular Expression")))
 
+(defcustom reftex-label-ignored-macros-and-environments nil
+  "List of macros and environments to be ignored when searching for labels.
+The purpose is to ignore environments and macros that use keyval
+style label=foo arguments, but the label has a different meaning
+than a \\label{foo}.  Standard \\label{...} definitions are never
+ignored.
+
+E.g., TikZ defines several macros/environments where [label=foo]
+defines the label to be printed at some node or edge, but it's
+not a label used for referencing.
+
+Note that this feature is only supported if you are using AUCTeX
+and the functions `TeX-current-macro' and
+`LaTeX-current-environment' are bound.  Also note that this
+feature might slow down the reftex parsing process for large TeX
+files."
+  :group 'reftex-defining-label-environments
+  :type '(repeat string))
+
 (defcustom reftex-label-illegal-re "[^-a-zA-Z0-9_+=:;,.]"
   "Regexp matching characters not valid in labels."
   :group 'reftex-making-and-inserting-labels
