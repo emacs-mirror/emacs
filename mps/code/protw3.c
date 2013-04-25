@@ -126,7 +126,7 @@ void ProtSync(Arena arena)
 /* ProtTramp -- wrap a mutator thread in a Structured Exception Handler filter
  *
  * This was the method by which we installed an exception handler on Windows
- * prior to MPS 1.111.  Not we are using Vectored Exception Handlers, so this
+ * prior to MPS 1.111.  Now we are using Vectored Exception Handlers, so this
  * is deprecated and just calls through to the mutator function.
  */
 
