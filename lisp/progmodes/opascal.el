@@ -110,29 +110,6 @@ end;                            end;"
 regardless of where in the line point is when the TAB command is used."
   :type 'boolean)
 
-(define-obsolete-variable-alias
-  'delphi-comment-face 'opascal-comment-face "24.4")
-(defcustom opascal-comment-face 'font-lock-comment-face
-  "Face used to color OPascal comments."
-  :type 'face)
-
-(define-obsolete-variable-alias
-  'delphi-string-face 'opascal-string-face "24.4")
-(defcustom opascal-string-face 'font-lock-string-face
-  "Face used to color OPascal strings."
-  :type 'face)
-
-(define-obsolete-variable-alias
-  'delphi-keyword-face 'opascal-keyword-face "24.4")
-(defcustom opascal-keyword-face 'font-lock-keyword-face
-  "Face used to color OPascal keywords."
-  :type 'face)
-
-(define-obsolete-variable-alias 'delphi-other-face 'opascal-other-face "24.4")
-(defcustom opascal-other-face nil
-  "Face used to color everything else."
-  :type '(choice (const :tag "None" nil) face))
-
 (defconst opascal-directives
   '(absolute abstract assembler automated cdecl default dispid dynamic
     export external far forward index inline message name near nodefault
@@ -274,6 +251,21 @@ routine.")
 (defconst opascal-leading-spaces-re (concat "^" opascal-spaces-re))
 (defconst opascal-word-chars "a-zA-Z0-9_")
 
+(defvar opascal-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; Strings.
+    (modify-syntax-entry ?\" "\"" st)
+    (modify-syntax-entry ?\' "\"" st)
+    ;; Comments.
+    (modify-syntax-entry ?\{ "<" st)
+    (modify-syntax-entry ?\} ">" st)
+    (modify-syntax-entry ?\( "()1" st)
+    (modify-syntax-entry ?\) ")(4" st)
+    (modify-syntax-entry ?*  ". 23b" st)
+    (modify-syntax-entry ?/  ". 12c" st)
+    (modify-syntax-entry ?\n "> c" st)
+    st))
+
 (defmacro opascal-save-excursion (&rest forms)
   ;; Executes the forms such that any movements have no effect, including
   ;; searches.
@@ -282,13 +274,6 @@ routine.")
       (let ((inhibit-point-motion-hooks t)
             (deactivate-mark nil))
         (progn ,@forms)))))
-
-(defmacro opascal-save-state (&rest forms)
-  ;; Executes the forms such that any buffer modifications do not have any side
-  ;; effects beyond the buffer's actual content changes.
-  `(let ((opascal--ignore-changes t))
-     (with-silent-modifications
-       ,@forms)))
 
 (defsubst opascal-is (element in-set)
   ;; If the element is in the set, the element cdr is returned, otherwise nil.
@@ -347,13 +332,6 @@ routine.")
   ;; Returns the column of the point p.
   (save-excursion (goto-char p) (current-column)))
 
-(defun opascal-face-of (token-kind)
-  ;; Returns the face property appropriate for the token kind.
-  (cond ((opascal-is token-kind opascal-comments) opascal-comment-face)
-        ((opascal-is token-kind opascal-strings) opascal-string-face)
-        ((opascal-is token-kind opascal-keywords) opascal-keyword-face)
-        (opascal-other-face)))
-
 (defvar opascal-progress-last-reported-point nil
   "The last point at which progress was reported.")
 
@@ -361,8 +339,6 @@ routine.")
   "Number of chars to process before the next parsing progress report.")
 (defconst opascal-scanning-progress-step 2048
   "Number of chars to process before the next scanning progress report.")
-(defconst opascal-fontifying-progress-step opascal-scanning-progress-step
-  "Number of chars to process before the next fontification progress report.")
 
 (defun opascal-progress-start ()
   ;; Initializes progress reporting.
@@ -400,22 +376,30 @@ routine.")
     (goto-char curr-point)
     next))
 
-(defvar opascal--ignore-changes t
-  "Internal flag to control if the OPascal mode responds to buffer changes.
-Defaults to t in case the `opascal-after-change' function is called on a
-non-OPascal buffer.  Set to nil in OPascal buffers.  To override, just do:
- (let ((opascal--ignore-changes t)) ...)")
-
-(defun opascal-set-token-property (from to value)
-  ;; Like `set-text-properties', except we do not consider this to be a buffer
-  ;; modification.
-  (opascal-save-state
-   (put-text-property from to 'token value)))
+(defconst opascal--literal-start-re (regexp-opt '("//" "{" "(*" "'" "\"")))
 
 (defun opascal-literal-kind (p)
   ;; Returns the literal kind the point p is in (or nil if not in a literal).
-  (if (and (<= (point-min) p) (<= p (point-max)))
-      (get-text-property p 'token)))
+  (when (and (<= (point-min) p) (<= p (point-max)))
+    (save-excursion
+      (let ((ppss (syntax-ppss p)))
+        ;; We want to return non-nil when right in front
+        ;; of a comment/string.
+        (if (null (nth 8 ppss))
+            (when (looking-at opascal--literal-start-re)
+              (pcase (char-after)
+                (`?/  'comment-single-line)
+                (`?\{ 'comment-multi-line-1)
+                (`?\( 'comment-multi-line-2)
+                (`?\' 'string)
+                (`?\" 'double-quoted-string)))
+          (if (nth 3 ppss)   ;String.
+              (if (eq (nth 3 ppss) ?\")
+                  'double-quoted-string 'string)
+            (pcase (nth 7 ppss)
+              (`2 'comment-single-line)
+              (`1 'comment-multi-line-2)
+              (_  'comment-multi-line-1))))))))
 
 (defun opascal-literal-start-pattern (literal-kind)
   ;; Returns the start pattern of the literal kind.
@@ -446,87 +430,27 @@ non-OPascal buffer.  Set to nil in OPascal buffers.  To override, just do:
                 (string . "['\n]")
                 (double-quoted-string . "[\"\n]")))))
 
-(defun opascal-is-literal-start (p)
-  ;; True if the point p is at the start point of a (completed) literal.
-  (let* ((kind (opascal-literal-kind p))
-         (pattern (opascal-literal-start-pattern kind)))
-    (or (null kind) ; Non-literals are considered as start points.
-        (opascal-looking-at-string p pattern))))
-
 (defun opascal-is-literal-end (p)
   ;; True if the point p is at the end point of a (completed) literal.
-  (let* ((kind (opascal-literal-kind (1- p)))
-         (pattern (opascal-literal-end-pattern kind)))
-    (or (null kind) ; Non-literals are considered as end points.
-
-        (and (opascal-looking-at-string (- p (length pattern)) pattern)
-             (or (not (opascal-is kind opascal-strings))
-                 ;; Special case: string delimiters are start/end ambiguous.
-                 ;; We have an end only if there is some string content (at
-                 ;; least a starting delimiter).
-                 (not (opascal-is-literal-end (1- p)))))
-
-        ;; Special case: strings cannot span lines.
-        (and (opascal-is kind opascal-strings) (eq ?\n (char-after (1- p)))))))
-
-(defun opascal-is-stable-literal (p)
-  ;; True if the point p marks a stable point. That is, a point outside of a
-  ;; literal region, inside of a literal region, or adjacent to completed
-  ;; literal regions.
-  (let ((at-start (opascal-is-literal-start p))
-        (at-end  (opascal-is-literal-end p)))
-    (or (>= p (point-max))
-        (and at-start at-end)
-        (and (not at-start) (not at-end)
-             (eq (opascal-literal-kind (1- p)) (opascal-literal-kind p))))))
-
-(defun opascal-complete-literal (literal-kind limit)
-  ;; Continues the search for a literal's true end point and returns the
-  ;; point past the end pattern (if found) or the limit (if not found).
-  (let ((pattern (opascal-literal-stop-pattern literal-kind)))
-    (if (not (stringp pattern))
-        (error "Invalid literal kind %S" literal-kind)
-      ;; Search up to the limit.
-      (re-search-forward pattern limit 'goto-limit-on-fail)
-      (point))))
-
-(defun opascal-parse-next-literal (limit)
-  ;; Searches for the next literal region (i.e. comment or string) and sets the
-  ;; the point to its end (or the limit, if not found). The literal region is
-  ;; marked as such with a text property, to speed up tokenizing during face
-  ;; coloring and indentation scanning.
-  (let ((search-start (point)))
-    (cond ((not (opascal-is-literal-end search-start))
-           ;; We are completing an incomplete literal.
-           (let ((kind (opascal-literal-kind (1- search-start))))
-             (opascal-complete-literal kind limit)
-             (opascal-set-token-property search-start (point) kind)))
-
-          ((re-search-forward
-            "\\(//\\)\\|\\({\\)\\|\\((\\*\\)\\|\\('\\)\\|\\(\"\\)"
-            limit 'goto-limit-on-fail)
-           ;; We found the start of a new literal. Find its end and mark it.
-           (let ((kind (cond ((match-beginning 1) 'comment-single-line)
-                             ((match-beginning 2) 'comment-multi-line-1)
-                             ((match-beginning 3) 'comment-multi-line-2)
-                             ((match-beginning 4) 'string)
-                             ((match-beginning 5) 'double-quoted-string)))
-                 (start (match-beginning 0)))
-             (opascal-set-token-property search-start start nil)
-             (opascal-complete-literal kind limit)
-             (opascal-set-token-property start (point) kind)))
-
-          ;; Nothing found. Mark it as a non-literal.
-          ((opascal-set-token-property search-start limit nil)))
-    (opascal-step-progress (point) "Parsing" opascal-parsing-progress-step)))
+  (save-excursion
+    (and (null (nth 8 (syntax-ppss p)))
+         (nth 8 (syntax-ppss (1- p))))))
 
 (defun opascal-literal-token-at (p)
-  ;; Returns the literal token surrounding the point p, or nil if none.
-  (let ((kind (opascal-literal-kind p)))
-    (when kind
-      (let ((start (previous-single-property-change (1+ p) 'token))
-            (end (next-single-property-change p 'token)))
-        (opascal-token-of kind (or start (point-min)) (or end (point-max)))))))
+  "Return the literal token surrounding the point P, or nil if none."
+  (save-excursion
+    (let ((ppss (syntax-ppss p)))
+      (when (or (nth 8 ppss) (looking-at opascal--literal-start-re))
+        (let* ((new-start (or (nth 8 ppss) p))
+               (new-end (progn
+                          (goto-char new-start)
+                          (condition-case nil
+                              (if (memq (char-after) '(?\' ?\"))
+                                  (forward-sexp 1)
+                                (forward-comment 1))
+                            (scan-error (goto-char (point-max))))
+                          (point))))
+          (opascal-token-of (opascal-literal-kind p) new-start new-end))))))
 
 (defun opascal-point-token-at (p kind)
   ;; Returns the single character token at the point p.
@@ -635,55 +559,6 @@ non-OPascal buffer.  Set to nil in OPascal buffers.  To override, just do:
              (setq next-token (opascal-next-token token))
              (opascal-is (opascal-token-kind next-token) '(space newline))))
     next-token))
-
-(defun opascal-parse-region (from to)
-  ;; Parses the literal tokens in the region. The point is set to "to".
-  (save-restriction
-    (widen)
-    (goto-char from)
-    (while (< (point) to)
-      (opascal-parse-next-literal to))))
-
-(defun opascal-parse-region-until-stable (from to)
-  ;; Parses at least the literal tokens in the region. After that, parsing
-  ;; continues as long as obsolete literal regions are encountered. The point
-  ;; is set to the encountered stable point.
-  (save-restriction
-    (widen)
-    (opascal-parse-region from to)
-    (while (not (opascal-is-stable-literal (point)))
-      (opascal-parse-next-literal (point-max)))))
-
-(defun opascal-fontify-region (from to &optional verbose)
-  ;; Colors the text in the region according to OPascal rules.
-  (opascal-save-excursion
-   (opascal-save-state
-    (let ((p from)
-          (opascal-verbose verbose)
-          (token nil))
-      (opascal-progress-start)
-      (while (< p to)
-        ;; Color the token and move past it.
-        (setq token (opascal-token-at p))
-        (add-text-properties
-         (opascal-token-start token) (opascal-token-end token)
-         (list 'face (opascal-face-of (opascal-token-kind token)) 'lazy-lock t))
-        (setq p (opascal-token-end token))
-        (opascal-step-progress p "Fontifying" opascal-fontifying-progress-step))
-      (opascal-progress-done)))))
-
-(defun opascal-after-change (change-start change-end _old-length)
-  ;; Called when the buffer has changed. Reparses the changed region.
-  (unless opascal--ignore-changes
-    (let ((opascal--ignore-changes t)) ; Prevent recursive calls.
-      (opascal-save-excursion
-       (opascal-progress-start)
-       ;; Reparse at least from the token previous to the change to the end of
-       ;; line after the change.
-       (opascal-parse-region-until-stable
-        (opascal-token-start (opascal-token-at (1- change-start)))
-        (progn (goto-char change-end) (end-of-line) (point)))
-       (opascal-progress-done)))))
 
 (defun opascal-group-start (from-token)
   ;; Returns the token that denotes the start of the ()/[] group.
@@ -1552,41 +1427,6 @@ If before the indent, the point is moved to the indent."
   (interactive "r")
   (opascal-debug-log "String: %S" (buffer-substring from to)))
 
-(defun opascal-debug-show-is-stable ()
-  (interactive)
-  (opascal-debug-log "stable: %S prev: %S next: %S"
-                    (opascal-is-stable-literal (point))
-                    (opascal-literal-kind (1- (point)))
-                    (opascal-literal-kind (point))))
-
-(defun opascal-debug-unparse-buffer ()
-  (interactive)
-  (opascal-set-token-property (point-min) (point-max) nil))
-
-(defun opascal-debug-parse-region (from to)
-  (interactive "r")
-  (let ((opascal-verbose t))
-    (opascal-save-excursion
-     (opascal-progress-start)
-     (opascal-parse-region from to)
-     (opascal-progress-done "Parsing done"))))
-
-(defun opascal-debug-parse-window ()
-  (interactive)
-  (opascal-debug-parse-region (window-start) (window-end)))
-
-(defun opascal-debug-parse-buffer ()
-  (interactive)
-  (opascal-debug-parse-region (point-min) (point-max)))
-
-(defun opascal-debug-fontify-window ()
-  (interactive)
-  (opascal-fontify-region (window-start) (window-end) t))
-
-(defun opascal-debug-fontify-buffer ()
-  (interactive)
-  (opascal-fontify-region (point-min) (point-max) t))
-
 (defun opascal-debug-tokenize-region (from to)
   (interactive)
   (opascal-save-excursion
@@ -1738,6 +1578,7 @@ An error is raised if not in a comment."
           (error "Not in a comment")
         (let* ((start-comment (opascal-comment-block-start comment))
                (end-comment (opascal-comment-block-end comment))
+               ;; FIXME: Don't abuse global variables like `comment-end/start'.
                (comment-start (opascal-token-start start-comment))
                (comment-end (opascal-token-end end-comment))
                (content-start (opascal-comment-content-start start-comment))
@@ -1805,12 +1646,7 @@ An error is raised if not in a comment."
 
           ;; Restore our position
           (goto-char marked-point)
-          (set-marker marked-point nil)
-
-          ;; React to the entire fill change as a whole.
-          (opascal-progress-start)
-          (opascal-parse-region comment-start comment-end)
-            (opascal-progress-done)))))))
+          (set-marker marked-point nil)))))))
 
 (defun opascal-new-comment-line ()
   "If in a // comment, do a newline, indented such that one is still in the
@@ -1839,15 +1675,36 @@ comment block.  If not in a // comment, just does a normal newline."
         (goto-char end)
         token)))
 
+(defconst opascal-font-lock-keywords
+  `(("\\_<\\(function\\|pro\\(cedure\\|gram\\)\\)[ \t]+\\([[:alpha:]][[:alnum:]_]*\\)"
+     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+    ,(concat "\\_<" (regexp-opt (mapcar #'symbol-name opascal-keywords))
+              "\\_>")))
+
 (defconst opascal-font-lock-defaults
-  '(nil ; We have our own fontify routine, so keywords don't apply.
-    t ; Syntactic fontification doesn't apply.
+  '(opascal-font-lock-keywords
+    nil ; Syntactic fontification does apply.
     nil ; Don't care about case since we don't use regexps to find tokens.
     nil ; Syntax alists don't apply.
-    nil ; Syntax begin movement doesn't apply
-    (font-lock-fontify-region-function . opascal-fontify-region)
-    (font-lock-verbose . opascal-fontifying-progress-step))
+    nil ; Syntax begin movement doesn't apply.
+    )
   "OPascal mode font-lock defaults.  Syntactic fontification is ignored.")
+
+(defconst opascal--syntax-propertize
+  (syntax-propertize-rules
+   ;; The syntax-table settings are too coarse and end up treating /* and (/
+   ;; as comment starters.  Fix it here by removing the "2" from the syntax
+   ;; of the second char of such sequences.
+   ("/\\(\\*\\)" (1 ". 3b"))
+   ("(\\(\\/\\)" (1 (prog1 ". 1c" (forward-char -1) nil)))
+   ;; Pascal uses '' and "" rather than \' and \" to escape quotes.
+   ("''\\|\"\"" (0 (if (save-excursion
+                         (nth 3 (syntax-ppss (match-beginning 0))))
+                       (string-to-syntax ".")
+                     ;; In case of 3 or more quotes in a row, only advance
+                     ;; one quote at a time.
+                     (forward-char -1)
+                     nil)))))
 
 (defvar opascal-debug-mode-map
   (let ((kmap (make-sparse-keymap)))
@@ -1857,14 +1714,7 @@ comment block.  If not in a // comment, just does a normal newline."
                        ("T" opascal-debug-tokenize-buffer)
                        ("W" opascal-debug-tokenize-window)
                        ("g" opascal-debug-goto-point)
-                       ("s" opascal-debug-show-current-string)
-                       ("a" opascal-debug-parse-buffer)
-                       ("w" opascal-debug-parse-window)
-                       ("f" opascal-debug-fontify-window)
-                       ("F" opascal-debug-fontify-buffer)
-                       ("r" opascal-debug-parse-region)
-                       ("c" opascal-debug-unparse-buffer)
-                       ("x" opascal-debug-show-is-stable)))
+                       ("s" opascal-debug-show-current-string)))
       (define-key kmap (car binding) (cadr binding)))
     kmap)
   "Keystrokes for OPascal mode debug commands.")
@@ -1914,14 +1764,8 @@ Customization:
 
 Coloring:
 
- `opascal-comment-face'                (default font-lock-comment-face)
-    Face used to color OPascal comments.
- `opascal-string-face'                 (default font-lock-string-face)
-    Face used to color OPascal strings.
  `opascal-keyword-face'                (default font-lock-keyword-face)
     Face used to color OPascal keywords.
- `opascal-other-face'                  (default nil)
-    Face used to color everything else.
 
 Turning on OPascal mode calls the value of the variable `opascal-mode-hook'
 with no args, if that value is non-nil."
@@ -1931,21 +1775,13 @@ with no args, if that value is non-nil."
   (setq-local comment-indent-function #'opascal-indent-line)
   (setq-local case-fold-search t)
   (setq-local opascal-progress-last-reported-point nil)
-  (setq-local opascal--ignore-changes nil)
   (setq-local font-lock-defaults opascal-font-lock-defaults)
   (setq-local tab-always-indent opascal-tab-always-indents)
+  (setq-local syntax-propertize-function opascal--syntax-propertize)
 
-  ;; FIXME: Use syntax-propertize-function to tokenize, maybe?
-  
-  ;; We need to keep track of changes to the buffer to determine if we need
-  ;; to retokenize changed text.
-  (add-hook 'after-change-functions #'opascal-after-change nil t)
-
-  (opascal-save-excursion
-   (let ((opascal-verbose t))
-     (opascal-progress-start)
-     (opascal-parse-region (point-min) (point-max))
-     (opascal-progress-done))))
+  (setq-local comment-start "// ")
+  (setq-local comment-start-skip "\\(?://\\|(\\*\\|{\\)[ \t]*")
+  (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*)\\|}\\)"))
 
 (provide 'opascal)
 ;;; opascal.el ends here

@@ -1,3 +1,30 @@
+2013-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/opascal.el: Use font-lock and syntax-propertize.
+	(opascal-mode-syntax-table): New var.
+	(opascal-literal-kind, opascal-is-literal-end)
+	(opascal-literal-token-at): Rewrite.
+	(opascal--literal-start-re, opascal-font-lock-keywords)
+	(opascal--syntax-propertize): New constants.
+	(opascal-font-lock-defaults): Adjust.
+	(opascal-mode): Use them.  Set comment-<foo> variables as well.
+	(delphi-comment-face, opascal-comment-face, delphi-string-face)
+	(opascal-string-face, delphi-keyword-face, opascal-keyword-face)
+	(delphi-other-face, opascal-other-face): Remove face variables.
+	(opascal-save-state): Remove macro.
+	(opascal-fontifying-progress-step): Remove constant.
+	(opascal--ignore-changes): Remove var.
+	(opascal-set-token-property, opascal-parse-next-literal)
+	(opascal-is-stable-literal, opascal-complete-literal)
+	(opascal-is-literal-start, opascal-face-of)
+	(opascal-parse-region, opascal-parse-region-until-stable)
+	(opascal-fontify-region, opascal-after-change)
+	(opascal-debug-show-is-stable, opascal-debug-unparse-buffer)
+	(opascal-debug-parse-region, opascal-debug-parse-window)
+	(opascal-debug-parse-buffer, opascal-debug-fontify-window)
+	(opascal-debug-fontify-buffer): Remove.
+	(opascal-debug-mode-map): Adjust accordingly.
+
 2013-04-25  Leo Liu  <sdl.web@gmail.com>
 
 	Merge octave-mod.el and octave-inf.el into octave.el with some
