@@ -1,3 +1,8 @@
+2013-04-25  Bastien Guerry  <bzg@gnu.org>
+
+	* textmodes/remember.el (remember-data-directory)
+	(remember-directory-file-name-format): Fix custom types.
+
 2013-04-25  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-completion-at-point-function): Make

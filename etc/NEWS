@@ -101,6 +101,12 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** `remember' can now store notes in separates files
+You can use the new function `remember-store-in-files' within the
+`remember-handler-functions' option.
+
+See `remember-data-directory' and `remember-directory-file-name-format'
+for new options related to this function.
 ** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
