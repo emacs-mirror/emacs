@@ -1,3 +1,10 @@
+2013-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (list-load-path-shadows):
+	No longer necessary to check for duplicate simple.el, since
+	2012-07-07 change to init_lread to not include installation lisp
+	directories in load-path when running uninstalled.  (Bug#14270)
+
 2013-04-26  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-submit-bug-report): Obsolete.
