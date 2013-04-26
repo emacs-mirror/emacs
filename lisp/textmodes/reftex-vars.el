@@ -901,6 +901,7 @@ and the functions `TeX-current-macro' and
 `LaTeX-current-environment' are bound.  Also note that this
 feature might slow down the reftex parsing process for large TeX
 files."
+  :version "24.4"
   :group 'reftex-defining-label-environments
   :type '(repeat string))
 
