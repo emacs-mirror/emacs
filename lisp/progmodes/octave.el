@@ -461,11 +461,12 @@ Non-nil means always go to the next Octave code line after sending."
     (forward-comment 1))
   (cond
    ((and (looking-at "$\\|[%#]")
-         (not (smie-rule-bolp))
-         ;; Ignore it if it's within parentheses.
-         (prog1 (let ((ppss (syntax-ppss)))
-                  (not (and (nth 1 ppss)
-                            (eq ?\( (char-after (nth 1 ppss))))))
+         ;; Ignore it if it's within parentheses or if the newline does not end
+         ;; some preceding text.
+         (prog1 (and (not (smie-rule-bolp))
+		     (let ((ppss (syntax-ppss)))
+		       (not (and (nth 1 ppss)
+				 (eq ?\( (char-after (nth 1 ppss)))))))
            (forward-comment (point-max))))
     ;; Why bother distinguishing \n and ;?
     ";") ;;"\n"
