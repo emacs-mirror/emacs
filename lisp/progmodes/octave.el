@@ -1024,7 +1024,8 @@ See Info node `(octave)Function Files'."
                    (file-name-nondirectory buffer-file-name)))
             (func (and (re-search-forward octave-function-header-regexp nil t)
                        (match-string 3))))
-        (when (and (not (equal file func))
+        (when (and func
+                   (not (equal file func))
                    (yes-or-no-p
                     "Function name different from file name. Fix? "))
           (replace-match file nil nil nil 3))))))
