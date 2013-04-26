@@ -1,3 +1,7 @@
+2013-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-bury): Revert 2013-03-18 change.  (Bug#14117)
+
 2013-04-25  Andrew Cohen  <cohen@bu.edu>
 
 	* gnus-msg.el (gnus-inews-insert-gcc): Re-order conditional to work for
