@@ -1,5 +1,16 @@
 2013-04-26  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (read-number): Once more use `read' rather than
+	`string-to-number', to trap non-numeric input.  (Bug#14254)
+
+2013-04-26  Erik Charlebois  <erikcharlebois@gmail.com>
+
+	* emacs-lisp/syntax.el (syntax-propertize-multiline):
+	Use `syntax-multiline' text property consistently instead of
+	`font-lock-multiline'. (bug#14237).
+
+2013-04-26  Glenn Morris  <rgm@gnu.org>
+
 	* emacs-lisp/shadow.el (list-load-path-shadows):
 	No longer necessary to check for duplicate simple.el, since
 	2012-07-07 change to init_lread to not include installation lisp
