@@ -1,3 +1,8 @@
+2013-04-25  Andrew Cohen  <cohen@bu.edu>
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Re-order conditional to work for
+	string values of 'gcc-self.  Thanks to Saroj Thirumalai.
+
 2013-04-24  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (nnir-close-group): Make sure we are in the right group.
