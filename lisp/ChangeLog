@@ -1,5 +1,8 @@
 2013-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Disable undo
+	(bug#14274).
+
 	* progmodes/octave.el (octave-smie-forward-token): Properly skip
 	\n and comment, even if it's not an implicit ; (bug#14218).
 

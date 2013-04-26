@@ -519,12 +519,11 @@ printer is `tabulated-list-print-entry', but a mode that keeps
 data in an ewoc may instead specify a printer function (e.g., one
 that calls `ewoc-enter-last'), with `tabulated-list-print-entry'
 as the ewoc pretty-printer."
-  (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (set (make-local-variable 'revert-buffer-function)
-       'tabulated-list-revert)
-  (set (make-local-variable 'glyphless-char-display)
-       tabulated-list-glyphless-char-display))
+  (setq-local truncate-lines t)
+  (setq-local buffer-read-only t)
+  (setq-local buffer-undo-list t)
+  (setq-local revert-buffer-function #'tabulated-list-revert)
+  (setq-local glyphless-char-display tabulated-list-glyphless-char-display))
 
 (put 'tabulated-list-mode 'mode-class 'special)
 
