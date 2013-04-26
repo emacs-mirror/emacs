@@ -433,7 +433,7 @@ bootstrap-clean:
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)
 
 distclean:
-	-rm -f ./Makefile
+	-rm -f ./Makefile $(lisp)/loaddefs.el~
 
 maintainer-clean: distclean bootstrap-clean
 

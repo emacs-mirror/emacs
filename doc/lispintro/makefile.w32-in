@@ -27,7 +27,7 @@ texinfodir = $(srcdir)/../misc
 emacsdir = $(srcdir)/../emacs
 
 INFO_EXT=.info
-INFO_OPTS=--no-split
+INFO_OPTS=--no-split -I$(emacsdir)
 INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi $(emacsdir)/emacsver.texi \
   $(srcdir)/doclicense.texi
 # The file name eintr must fit within 5 characters, to allow for

@@ -207,101 +207,79 @@ the earlier.
 
 For example, suppose `load-path' is set to
 
-\(\"/usr/gnu/emacs/site-lisp\" \"/usr/gnu/emacs/share/emacs/19.30/lisp\"\)
+\(\"/usr/share/emacs/site-lisp\" \"/usr/share/emacs/24.3/lisp\")
 
 and that each of these directories contains a file called XXX.el.  Then
 XXX.el in the site-lisp directory is referred to by all of:
-\(require 'XXX\), \(autoload .... \"XXX\"\), \(load-library \"XXX\"\) etc.
+\(require 'XXX), (autoload .... \"XXX\"), (load-library \"XXX\") etc.
 
-The first XXX.el file prevents Emacs from seeing the second \(unless
-the second is loaded explicitly via `load-file'\).
+The first XXX.el file prevents Emacs from seeing the second (unless
+the second is loaded explicitly via `load-file').
 
 When not intended, such shadowings can be the source of subtle
 problems.  For example, the above situation may have arisen because the
 XXX package was not distributed with versions of Emacs prior to
-19.30.  An Emacs maintainer downloaded XXX from elsewhere and installed
+24.3.  A system administrator downloaded XXX from elsewhere and installed
 it.  Later, XXX was updated and included in the Emacs distribution.
-Unless the Emacs maintainer checks for this, the new version of XXX
-will be hidden behind the old \(which may no longer work with the new
-Emacs version\).
+Unless the system administrator checks for this, the new version of XXX
+will be hidden behind the old (which may no longer work with the new
+Emacs version).
 
 This function performs these checks and flags all possible
 shadowings.  Because a .el file may exist without a corresponding .elc
-\(or vice-versa\), these suffixes are essentially ignored.  A file
-XXX.elc in an early directory \(that does not contain XXX.el\) is
+\(or vice-versa), these suffixes are essentially ignored.  A file
+XXX.elc in an early directory (that does not contain XXX.el) is
 considered to shadow a later file XXX.el, and vice-versa.
 
 Shadowings are located by calling the (non-interactive) companion
 function, `load-path-shadows-find'."
   (interactive)
-  (let* ((path (copy-sequence load-path))
-	(tem path)
-	toplevs)
-    ;; If we can find simple.el in two places,
-    (dolist (tt tem)
-      (if (or (file-exists-p (expand-file-name "simple.el" tt))
-	      (file-exists-p (expand-file-name "simple.el.gz" tt)))
-	  (setq toplevs (cons tt toplevs))))
-    (if (> (length toplevs) 1)
-	;; Cut off our copy of load-path right before
-	;; the last directory which has simple.el in it.
-	;; This avoids loads of duplications between the source dir
-	;; and the dir where these files were copied by installation.
-	(let ((break (car toplevs)))
-	  (setq tem path)
-	  (while tem
-	    (if (eq (nth 1 tem) break)
-		(progn
-		  (setcdr tem nil)
-		  (setq tem nil)))
-	    (setq tem (cdr tem)))))
-
-    (let* ((shadows (load-path-shadows-find path))
-	   (n (/ (length shadows) 2))
-	   (msg (format "%s Emacs Lisp load-path shadowing%s found"
-			(if (zerop n) "No" (concat "\n" (number-to-string n)))
-			(if (= n 1) " was" "s were"))))
-      (with-temp-buffer
-	(while shadows
-	  (insert (format "%s hides %s\n" (car shadows)
-			  (car (cdr shadows))))
-	  (setq shadows (cdr (cdr shadows))))
-	(if stringp
-	    (buffer-string)
-	  (if (called-interactively-p 'interactive)
-	      ;; We are interactive.
-	      ;; Create the *Shadows* buffer and display shadowings there.
-	      (let ((string (buffer-string)))
-		(with-current-buffer (get-buffer-create "*Shadows*")
-		  (display-buffer (current-buffer))
-		  (load-path-shadows-mode) ; run after-change-major-mode-hook
-		  (let ((inhibit-read-only t))
-		    (erase-buffer)
-		    (insert string)
-		    (insert msg "\n")
-		    (while (re-search-backward "\\(^.*\\) hides \\(.*$\\)"
-					       nil t)
-		      (dotimes (i 2)
-			(make-button (match-beginning (1+ i))
-				     (match-end (1+ i))
-				     'type 'load-path-shadows-find-file
-				     'shadow-file
-				     (match-string (1+ i)))))
-		    (goto-char (point-max)))))
-	    ;; We are non-interactive, print shadows via message.
-	    (unless (zerop n)
-	      (message "This site has duplicate Lisp libraries with the same name.
+  (let* ((shadows (load-path-shadows-find load-path))
+	 (n (/ (length shadows) 2))
+	 (msg (format "%s Emacs Lisp load-path shadowing%s found"
+		      (if (zerop n) "No" (concat "\n" (number-to-string n)))
+		      (if (= n 1) " was" "s were"))))
+    (with-temp-buffer
+      (while shadows
+	(insert (format "%s hides %s\n" (car shadows)
+			(car (cdr shadows))))
+	(setq shadows (cdr (cdr shadows))))
+      (if stringp
+	  (buffer-string)
+	(if (called-interactively-p 'interactive)
+	    ;; We are interactive.
+	    ;; Create the *Shadows* buffer and display shadowings there.
+	    (let ((string (buffer-string)))
+	      (with-current-buffer (get-buffer-create "*Shadows*")
+		(display-buffer (current-buffer))
+		(load-path-shadows-mode) ; run after-change-major-mode-hook
+		(let ((inhibit-read-only t))
+		  (erase-buffer)
+		  (insert string)
+		  (insert msg "\n")
+		  (while (re-search-backward "\\(^.*\\) hides \\(.*$\\)"
+					     nil t)
+		    (dotimes (i 2)
+		      (make-button (match-beginning (1+ i))
+				   (match-end (1+ i))
+				   'type 'load-path-shadows-find-file
+				   'shadow-file
+				   (match-string (1+ i)))))
+		  (goto-char (point-max)))))
+	  ;; We are non-interactive, print shadows via message.
+	  (unless (zerop n)
+	    (message "This site has duplicate Lisp libraries with the same name.
 If a locally-installed Lisp library overrides a library in the Emacs release,
 that can cause trouble, and you should probably remove the locally-installed
 version unless you know what you are doing.\n")
-	      (goto-char (point-min))
-	      ;; Mimic the previous behavior of using lots of messages.
-	      ;; I think one single message would look better...
-	      (while (not (eobp))
-		(message "%s" (buffer-substring (line-beginning-position)
-						(line-end-position)))
-		(forward-line 1))
-	      (message "%s" msg))))))))
+	    (goto-char (point-min))
+	    ;; Mimic the previous behavior of using lots of messages.
+	    ;; I think one single message would look better...
+	    (while (not (eobp))
+	      (message "%s" (buffer-substring (line-beginning-position)
+					      (line-end-position)))
+	      (forward-line 1))
+	    (message "%s" msg)))))))
 
 (provide 'shadow)
 

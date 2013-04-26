@@ -809,6 +809,10 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
      prescript-delay)
     (let ((from (format "%s:%s:%s" server user port))
 	  (mail-source-string (format "pop:%s@%s" user server))
+	  (process-environment (if server
+				   (cons (concat "MAILHOST=" server)
+					 process-environment)
+				 process-environment))
 	  result)
       (when (eq authentication 'password)
 	(setq password
@@ -816,8 +820,6 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		  (cdr (assoc from mail-source-password-cache))
 		  (read-passwd
 		   (format "Password for %s at %s: " user server)))))
-      (when server
-	(setenv "MAILHOST" server))
       (setq result
 	    (cond
 	     (program
@@ -877,6 +879,10 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
   (mail-source-bind (pop source)
     (let ((from (format "%s:%s:%s" server user port))
 	  (mail-source-string (format "pop:%s@%s" user server))
+	  (process-environment (if server
+				   (cons (concat "MAILHOST=" server)
+					 process-environment)
+				 process-environment))
 	  result)
       (when (eq authentication 'password)
 	(setq password
@@ -886,8 +892,6 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		   (format "Password for %s at %s: " user server))))
 	(unless (assoc from mail-source-password-cache)
 	  (push (cons from password) mail-source-password-cache)))
-      (when server
-	(setenv "MAILHOST" server))
       (setq result
 	    (cond
 	     ;; No easy way to check whether mail is waiting for these.
