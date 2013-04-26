@@ -3,7 +3,7 @@
 # comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -52,10 +52,10 @@
 #
 # CHECK PARAMETERS
 #
-# GNU make doesn't really have an "error" directive, but these lines
-# will cause it to exit with an error.
-# [These only test to see whether the symbol is defined.  We could be
-#  more thorough and test the syntax and content. -- richard 1995-09-07]
+# Old versions of GNU make don't have the $(error) function, but lines
+# starting "error" cause it to exit with an error. [These only test to
+# see whether the symbol is defined. We could be more thorough and
+# test the syntax and content. -- richard 1995-09-07]
 
 ifndef CC
 error "comm.gmk: CC not defined"
@@ -314,7 +314,7 @@ endif
 # We mostly use the method (2), because it is fast to compile and execute.
 # But we use method (1) for some varieties to ensure correctness of
 # code (linkage errors are masked by (2)) and to maintain a correct list
-# of source files in case method (1) won't work on some future constrained
+# of source files in case method (2) won't work on some future constrained
 # platform.
 #
 # %%VARIETY: When adding a new variety, add a rule for how to build the
@@ -569,7 +569,7 @@ find-puns: phony
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
