@@ -1,4 +1,4 @@
-;;; octave.el --- editing octave source files under emacs
+;;; octave.el --- editing octave source files under emacs   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2001-2013 Free Software Foundation, Inc.
 
@@ -39,9 +39,8 @@
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
-(defconst octave-maintainer-address
-  "Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>, bug-gnu-emacs@gnu.org"
-  "Current maintainer of the Emacs Octave package.")
+(define-obsolete-function-alias 'octave-submit-bug-report
+  'report-emacs-bug "24.4")
 
 (define-abbrev-table 'octave-abbrev-table
   (mapcar (lambda (e) (append e '(nil 0 t)))
@@ -585,53 +584,48 @@ including a reproducible test case and send the message."
   (smie-setup octave-smie-grammar #'octave-smie-rules
               :forward-token  #'octave-smie-forward-token
               :backward-token #'octave-smie-backward-token)
-  (set (make-local-variable 'smie-indent-basic) 'octave-block-offset)
+  (setq-local smie-indent-basic 'octave-block-offset)
 
-    (set (make-local-variable 'smie-blink-matching-triggers)
-       (cons ?\; smie-blink-matching-triggers))
+  (setq-local smie-blink-matching-triggers
+              (cons ?\; smie-blink-matching-triggers))
   (unless octave-blink-matching-block
     (remove-hook 'post-self-insert-hook #'smie-blink-matching-open 'local))
 
-  (set (make-local-variable 'electric-indent-chars)
-       (cons ?\; electric-indent-chars))
+  (setq-local electric-indent-chars
+              (cons ?\; electric-indent-chars))
   ;; IIUC matlab-mode takes the opposite approach: it makes RET insert
   ;; a ";" at those places where it's correct (i.e. outside of parens).
-  (set (make-local-variable 'electric-layout-rules) '((?\; . after)))
+  (setq-local electric-layout-rules '((?\; . after)))
 
-  (set (make-local-variable 'comment-start) octave-comment-start)
-  (set (make-local-variable 'comment-end) "")
+  (setq-local comment-start octave-comment-start)
+  (setq-local comment-end "")
   ;; Don't set it here: it's not really a property of the language,
   ;; just a personal preference of the author.
-  ;; (set (make-local-variable 'comment-column) 32)
-  (set (make-local-variable 'comment-start-skip) "\\s<+\\s-*")
-  (set (make-local-variable 'comment-add) 1)
+  ;; (setq-local comment-column 32)
+  (setq-local comment-start-skip "\\s<+\\s-*")
+  (setq-local comment-add 1)
 
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'paragraph-start)
-       (concat "\\s-*$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'fill-paragraph-function) 'octave-fill-paragraph)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local paragraph-start (concat "\\s-*$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local fill-paragraph-function 'octave-fill-paragraph)
   ;; FIXME: Why disable it?
-  ;; (set (make-local-variable 'adaptive-fill-regexp) nil)
+  ;; (setq-local adaptive-fill-regexp nil)
   ;; Again, this is not a property of the language, don't set it here.
-  ;; (set (make-local-variable 'fill-column) 72)
-  (set (make-local-variable 'normal-auto-fill-function) 'octave-auto-fill)
+  ;; (setq fill-column 72)
+  (setq-local normal-auto-fill-function 'octave-auto-fill)
 
-  (set (make-local-variable 'font-lock-defaults)
-       '(octave-font-lock-keywords))
+  (setq font-lock-defaults '(octave-font-lock-keywords))
 
-  (set (make-local-variable 'syntax-propertize-function)
-       #'octave-syntax-propertize-function)
+  (setq-local syntax-propertize-function #'octave-syntax-propertize-function)
 
-  (set (make-local-variable 'imenu-generic-expression)
-       octave-mode-imenu-generic-expression)
-  (set (make-local-variable 'imenu-case-fold-search) nil)
+  (setq imenu-generic-expression octave-mode-imenu-generic-expression)
+  (setq imenu-case-fold-search nil)
 
   (add-hook 'completion-at-point-functions
             'octave-completion-at-point-function nil t)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'octave-beginning-of-defun)
+  (setq-local beginning-of-defun-function 'octave-beginning-of-defun)
 
   (easy-menu-add octave-mode-menu))
 
@@ -738,21 +732,20 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
 	mode-line-process '(":%s")
 	local-abbrev-table octave-abbrev-table)
 
-  (set (make-local-variable 'comment-start) octave-comment-start)
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-column) 32)
-  (set (make-local-variable 'comment-start-skip) octave-comment-start-skip)
+  (setq-local comment-start octave-comment-start)
+  (setq-local comment-end "")
+  (setq comment-column 32)
+  (setq-local comment-start-skip octave-comment-start-skip)
 
-  (set (make-local-variable 'font-lock-defaults)
-       '(inferior-octave-font-lock-keywords nil nil))
+  (setq font-lock-defaults '(inferior-octave-font-lock-keywords nil nil))
 
-  (set (make-local-variable 'info-lookup-mode) 'octave-mode)
+  (setq info-lookup-mode 'octave-mode)
 
   (setq comint-input-ring-file-name
 	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
 	comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
-  (set (make-local-variable 'comint-dynamic-complete-functions)
-       inferior-octave-dynamic-complete-functions)
+  (setq-local comint-dynamic-complete-functions
+              inferior-octave-dynamic-complete-functions)
   (add-hook 'comint-input-filter-functions
 	'inferior-octave-directory-tracker nil t)
   (comint-read-input-ring t))
@@ -989,19 +982,17 @@ directory and makes this the current buffer's default directory."
 
 ;;; Miscellaneous useful functions
 
-(defsubst octave-in-comment-p ()
-  "Return t if point is inside an Octave comment."
+(defun octave-in-comment-p ()
+  "Return non-nil if point is inside an Octave comment."
   (nth 4 (syntax-ppss)))
 
-(defsubst octave-in-string-p ()
-  "Return t if point is inside an Octave string."
+(defun octave-in-string-p ()
+  "Return non-nil if point is inside an Octave string."
   (nth 3 (syntax-ppss)))
 
-(defsubst octave-not-in-string-or-comment-p ()
-  "Return t if point is not inside an Octave string or comment."
-  (let ((pps (syntax-ppss)))
-    (not (or (nth 3 pps) (nth 4 pps)))))
-
+(defun octave-in-string-or-comment-p ()
+  "Return non-nil if point is inside an Octave string or comment."
+  (nth 8 (syntax-ppss)))
 
 (defun octave-looking-at-kw (regexp)
   "Like `looking-at', but sets `case-fold-search' nil."
@@ -1149,8 +1140,8 @@ Returns t unless search stops at the beginning or end of the buffer."
     (while (and (/= arg 0)
 		(setq found
 		      (re-search-backward "\\_<function\\_>" inc)))
-      (if (octave-not-in-string-or-comment-p)
-	  (setq arg (- arg inc))))
+      (unless (octave-in-string-or-comment-p)
+        (setq arg (- arg inc))))
     (if found
 	(progn
 	  (and (< inc 0) (goto-char (match-beginning 0)))
@@ -1330,7 +1321,7 @@ Note that all Octave mode abbrevs start with a grave accent."
   "Insert an Octave function skeleton.
 Prompt for the function's name, arguments and return values (to be
 entered without parens)."
-  (let* ((defname (substring (buffer-name) 0 -2))
+  (let* ((defname (file-name-sans-extension (buffer-name)))
          (name (read-string (format "Function name (default %s): " defname)
                             nil nil defname))
          (args (read-string "Arguments: "))
@@ -1450,26 +1441,7 @@ code line."
 		      "\n")))
        (mapconcat 'identity inferior-octave-output-list "\n")))
     (terpri)))
-
-;;; Bug reporting
-(defun octave-submit-bug-report ()
-  "Submit a bug report on the Emacs Octave package via mail."
-  (interactive)
-  (require 'reporter)
-  (and
-   (y-or-n-p "Do you want to submit a bug report? ")
-   (reporter-submit-bug-report
-    octave-maintainer-address
-    (concat "Emacs version " emacs-version)
-    (list
-     'octave-blink-matching-block
-     'octave-block-offset
-     'octave-comment-char
-     'octave-continuation-offset
-     'octave-continuation-string
-     'octave-send-echo-input
-     'octave-send-line-auto-forward
-     'octave-send-show-buffer))))
+
 
 (provide 'octave)
 ;;; octave.el ends here
