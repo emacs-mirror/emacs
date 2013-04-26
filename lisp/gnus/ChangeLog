@@ -1,3 +1,8 @@
+2013-04-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail-source.el (mail-source-fetch-pop, mail-source-check-pop):
+	Don't set the MAILHOST environment variable permanently (Bug#14271).
+
 2013-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-bury): Revert 2013-03-18 change.  (Bug#14117)
