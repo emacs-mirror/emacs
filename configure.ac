@@ -613,10 +613,10 @@ AC_DEFUN([gl_THREADLIB])
 dnl Amongst other things, this sets AR and ARFLAGS.
 gl_EARLY
 
-# It's helpful to have C macros available to GDB, so prefer -g3 to -g
-# if -g3 works and the user does not specify CFLAGS.
-# This test must follow gl_EARLY; otherwise AC_LINK_IFELSE complains.
 if test "$ac_test_CFLAGS" != set; then
+  # It's helpful to have C macros available to GDB, so prefer -g3 to -g
+  # if -g3 works and the user does not specify CFLAGS.
+  # This test must follow gl_EARLY; otherwise AC_LINK_IFELSE complains.
   case $CFLAGS in
     '-g')
       emacs_g3_CFLAGS='-g3';;
@@ -632,13 +632,29 @@ if test "$ac_test_CFLAGS" != set; then
       [emacs_cv_prog_cc_g3],
       [AC_LINK_IFELSE([AC_LANG_PROGRAM()],
 	 [emacs_cv_prog_cc_g3=yes],
-         [emacs_cv_prog_cc_g3=no])])
-    if test $emacs_cv_prog_cc_g3 = yes; then
-      CFLAGS=$emacs_g3_CFLAGS
-    else
+	 [emacs_cv_prog_cc_g3=no])])
+    if test $emacs_cv_prog_cc_g3 != yes; then
       CFLAGS=$emacs_save_CFLAGS
     fi
   fi
+
+  case $CFLAGS in
+    *-O*) ;;
+    *)
+      # No optimization flag was inferred for this non-GCC compiler.
+      # Try -O.  This is needed for xlc on AIX; see Bug#14258.
+      emacs_save_CFLAGS=$CFLAGS
+      test -z "$CFLAGS" || CFLAGS="$CFLAGS "
+      CFLAGS=${CFLAGS}-O
+      AC_CACHE_CHECK([whether $CC accepts -O],
+        [emacs_cv_prog_cc_o],
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM()],
+	   [emacs_cv_prog_cc_o=yes],
+	   [emacs_cv_prog_cc_o=no])])
+      if test $emacs_cv_prog_cc_o != yes; then
+	CFLAGS=$emacs_save_CFLAGS
+      fi ;;
+  esac
 fi
 
 AC_ARG_ENABLE([gcc-warnings],

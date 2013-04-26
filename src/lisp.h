@@ -231,9 +231,9 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 #define LISP_INT_TAG_P(x) (((x) & ~Lisp_Int1) == 0)
 
-/* Stolen from GDB.  The only known compiler that doesn't support
-   enums in bitfields is MSVC.  */
-#ifdef _MSC_VER
+/* Idea stolen from GDB.  MSVC doesn't support enums in bitfields,
+   and xlc complains vociferously about them.  */
+#if defined _MSC_VER || defined __IBMC__
 #define ENUM_BF(TYPE) unsigned int
 #else
 #define ENUM_BF(TYPE) enum TYPE

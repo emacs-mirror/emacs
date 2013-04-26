@@ -1,3 +1,9 @@
+2013-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port better to AIX (Bug#14258).
+	* lisp.h (ENUM_BF) [__IBMC__]: Make it 'unsigned int' here, too,
+	to pacify AIX xlc.
+
 2013-04-24  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (decode_coding_iso_2022): When an invalid escape
