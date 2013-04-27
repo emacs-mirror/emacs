@@ -219,5 +219,7 @@
     (display-buffer (current-buffer))))
 
 (provide 'bind-key)
-
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; bind-key.el ends here

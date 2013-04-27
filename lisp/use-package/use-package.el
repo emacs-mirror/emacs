@@ -376,9 +376,9 @@
              (message
               "Failure on use-package idle. Form: %s, Error: %s"
               next e)))
-	  ;; recurse after a bit
+          ;; recurse after a bit
           (when (sit-for 3)
-	    (use-package-idle-eval)))
+            (use-package-idle-eval)))
       ;; finished (so far!)
       (cancel-timer use-package-idle-timer)
       (setq use-package-idle-timer nil))))
@@ -605,5 +605,7 @@ For full documentation. please see commentary.
 (put 'use-package 'lisp-indent-function 1)
 
 (provide 'use-package)
-
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; use-package.el ends here
