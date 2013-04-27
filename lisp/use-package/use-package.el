@@ -482,35 +482,38 @@ For full documentation. please see commentary.
                    ,init-body)))
 
 
-      (flet ((init-for-commands
-              (func sym-or-list)
-              (let ((cons-list (if (and (consp sym-or-list)
-                                        (stringp (car sym-or-list)))
-                                   (list sym-or-list)
-                                 sym-or-list)))
-                (if cons-list
-                    (setq init-body
-                          `(progn
-                             ,init-body
-                             ,@(mapcar #'(lambda (elem)
-                                           (push (cdr elem) commands)
-                                           (funcall func elem))
-                                       cons-list)))))))
+      (let ((init-for-commands
+             (lambda (func sym-or-list)
+               (let ((cons-list (if (and (consp sym-or-list)
+                                         (stringp (car sym-or-list)))
+                                    (list sym-or-list)
+                                  sym-or-list)))
+                 (if cons-list
+                     (setq init-body
+                           `(progn
+                              ,init-body
+                              ,@(mapcar #'(lambda (elem)
+                                            (push (cdr elem) commands)
+                                            (funcall func elem))
+                                        cons-list))))))))
 
-        (init-for-commands #'(lambda (binding)
-                               `(bind-key ,(car binding)
-                                          (quote ,(cdr binding))))
-                           (plist-get args :bind))
+        (funcall init-for-commands
+                 #'(lambda (binding)
+                     `(bind-key ,(car binding)
+                                (quote ,(cdr binding))))
+                 (plist-get args :bind))
 
-        (init-for-commands #'(lambda (mode)
-                               `(add-to-list 'auto-mode-alist
-                                             (quote ,mode)))
-                           (plist-get args :mode))
+        (funcall init-for-commands
+                 #'(lambda (mode)
+                     `(add-to-list 'auto-mode-alist
+                                   (quote ,mode)))
+                 (plist-get args :mode))
 
-        (init-for-commands #'(lambda (interpreter)
-                               `(add-to-list 'interpreter-mode-alist
-                                             (quote ,interpreter)))
-                           (plist-get args :interpreter)))
+        (funcall init-for-commands
+                 #'(lambda (interpreter)
+                     `(add-to-list 'interpreter-mode-alist
+                                   (quote ,interpreter)))
+                 (plist-get args :interpreter)))
 
       `(progn
          ,@(mapcar
