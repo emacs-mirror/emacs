@@ -444,7 +444,8 @@ If you want to remember a region, supply a universal prefix to
 
 (defun remember-store-in-files ()
   "Store remember data in a file in `remember-data-directory'.
-The file is named after `remember-directory-file-name-format'."
+The file is named after `remember-directory-file-name-format' fed through
+`format-time-string'."
   (let ((name (format-time-string
 	       remember-directory-file-name-format (current-time)))
         (text (buffer-string)))

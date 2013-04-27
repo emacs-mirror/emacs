@@ -461,11 +461,12 @@ Non-nil means always go to the next Octave code line after sending."
     (forward-comment 1))
   (cond
    ((and (looking-at "$\\|[%#]")
-         (not (smie-rule-bolp))
-         ;; Ignore it if it's within parentheses.
-         (prog1 (let ((ppss (syntax-ppss)))
-                  (not (and (nth 1 ppss)
-                            (eq ?\( (char-after (nth 1 ppss))))))
+         ;; Ignore it if it's within parentheses or if the newline does not end
+         ;; some preceding text.
+         (prog1 (and (not (smie-rule-bolp))
+		     (let ((ppss (syntax-ppss)))
+		       (not (and (nth 1 ppss)
+				 (eq ?\( (char-after (nth 1 ppss)))))))
            (forward-comment (point-max))))
     ;; Why bother distinguishing \n and ;?
     ";") ;;"\n"
@@ -625,6 +626,7 @@ including a reproducible test case and send the message."
 
   (add-hook 'completion-at-point-functions
             'octave-completion-at-point-function nil t)
+  (add-hook 'before-save-hook 'octave-sync-function-file-names nil t)
   (setq-local beginning-of-defun-function 'octave-beginning-of-defun)
 
   (easy-menu-add octave-mode-menu))
@@ -1007,6 +1009,27 @@ directory and makes this the current buffer's default directory."
       nil
     (delete-horizontal-space)
     (insert (concat " " octave-continuation-string))))
+
+(defun octave-sync-function-file-names ()
+  "Ensure function name agree with function file name.
+See Info node `(octave)Function Files'."
+  (interactive)
+  (save-excursion
+    (when (and buffer-file-name
+               (prog2
+                   (goto-char (point-min))
+                   (equal (funcall smie-forward-token-function) "function")
+                 (forward-word -1)))
+      (let ((file (file-name-sans-extension
+                   (file-name-nondirectory buffer-file-name)))
+            (func (and (re-search-forward octave-function-header-regexp nil t)
+                       (match-string 3))))
+        (when (and func
+                   (not (equal file func))
+                   (yes-or-no-p
+                    "Function name different from file name. Fix? "))
+          (replace-match file nil nil nil 3))))))
+
 
 ;;; Indentation
 
