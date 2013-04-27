@@ -284,6 +284,9 @@
 (eval-when-compile
   (require 'cl))
 
+(declare-function package-installed-p 'package)
+(declare-function el-get-read-recipe 'el-get)
+
 (defgroup use-package nil
   "A use-package declaration for simplifying your .emacs"
   :group 'startup)
@@ -448,6 +451,7 @@ For full documentation. please see commentary.
                   ensure)))
 
         (when package-name
+          (require 'package)
           (use-package-ensure-elpa package-name)))
 
 
