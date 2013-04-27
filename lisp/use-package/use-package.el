@@ -288,7 +288,7 @@
 (declare-function el-get-read-recipe 'el-get)
 
 (defgroup use-package nil
-  "A use-package declaration for simplifying your .emacs"
+  "A use-package declaration for simplifying your `.emacs'."
   :group 'startup)
 
 (defcustom use-package-verbose t
@@ -297,15 +297,14 @@
   :group 'use-package)
 
 (defcustom use-package-debug nil
-  "Whether to report more information, mostly regarding el-get"
+  "Whether to report more information, mostly regarding el-get."
   :type 'boolean
   :group 'use-package)
 
 (defcustom use-package-minimum-reported-time 0.01
   "Minimal load time that will be reported"
   :type 'number
-  :group 'use-package
-  )
+  :group 'use-package)
 
 (defmacro with-elapsed-timer (text &rest forms)
   `(let ((now ,(if use-package-verbose
@@ -349,7 +348,7 @@
 (defvar use-package-idle-forms nil)
 
 (defun use-package-start-idle-timer ()
-  "Ensure that the idle timer is running"
+  "Ensure that the idle timer is running."
   (unless use-package-idle-timer
     (setq use-package-idle-timer
           (run-with-idle-timer
@@ -357,16 +356,15 @@
            'use-package-idle-eval))))
 
 (defun use-package-init-on-idle (form)
-  "Add a new form to the idle queue"
+  "Add a new form to the idle queue."
   (use-package-start-idle-timer)
   (if use-package-idle-forms
       (add-to-list 'use-package-idle-forms
                    form t)
-    (setq use-package-idle-forms (list form))
-    ))
+    (setq use-package-idle-forms (list form))))
 
 (defun use-package-idle-eval()
-  "Start to eval idle-commands from the idle queue"
+  "Start to eval idle-commands from the idle queue."
   (let ((next (pop use-package-idle-forms)))
     (if next
         (progn
@@ -413,8 +411,7 @@ For full documentation. please see commentary.
 :defines Define vars to silence byte-compiler.
 :load-path Add to `load-path' before loading.
 :diminish Support for diminish package (if it's installed).
-:idle adds a form to run on an idle timer
-"
+:idle adds a form to run on an idle timer"
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
          (init-body (plist-get args :init))
