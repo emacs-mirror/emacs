@@ -1,3 +1,7 @@
+2013-04-27  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
+
+	* isearch.el (isearch-fail-pos): Check for empty `cmds'.  (Bug#14268)
+
 2013-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* vc/log-view.el (log-view-current-entry):

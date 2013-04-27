@@ -1106,8 +1106,9 @@ If MSG is non-nil, use variable `isearch-message', otherwise `isearch-string'."
 	(curr-msg (if msg isearch-message isearch-string))
 	succ-msg)
     (when (or (not isearch-success) isearch-error)
-      (while (or (not (isearch--state-success (car cmds)))
-                 (isearch--state-error (car cmds)))
+      (while (and cmds
+		  (or (not (isearch--state-success (car cmds)))
+		      (isearch--state-error (car cmds))))
         (pop cmds))
       (setq succ-msg (and cmds (if msg (isearch--state-message (car cmds))
 				 (isearch--state-string (car cmds)))))
