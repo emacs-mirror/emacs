@@ -198,7 +198,6 @@ parenthetical grouping.")
     (define-key map "`" 'octave-abbrev-start)
     (define-key map "\e\n" 'octave-indent-new-comment-line)
     (define-key map "\M-\C-q" 'octave-indent-defun)
-    (define-key map "\C-c\C-b" 'octave-submit-bug-report)
     (define-key map "\C-c\C-p" 'octave-previous-code-line)
     (define-key map "\C-c\C-n" 'octave-next-code-line)
     (define-key map "\C-c\C-a" 'octave-beginning-of-line)
@@ -207,6 +206,7 @@ parenthetical grouping.")
     (define-key map "\C-c\M-\C-h" 'octave-mark-block)
     (define-key map "\C-c]" 'smie-close-block)
     (define-key map "\C-c/" 'smie-close-block)
+    (define-key map "\C-c;" 'octave-update-function-file-comment)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
@@ -241,7 +241,8 @@ parenthetical grouping.")
       ["Close Block"		smie-close-block t])
     ("Functions"
       ["Indent Function"	octave-indent-defun t]
-      ["Insert Function"	octave-insert-defun t])
+      ["Insert Function"	octave-insert-defun t]
+      ["Update function file comment" octave-update-function-file-comment t])
     "-"
     ("Debug"
       ["Send Current Line"	octave-send-line t]
@@ -260,10 +261,11 @@ parenthetical grouping.")
     ["Toggle Auto-Fill Mode"	auto-fill-mode
      :style toggle :selected auto-fill-function]
     "-"
-    ["Submit Bug Report"	octave-submit-bug-report t]
-    "-"
     ["Describe Octave Mode"	describe-mode t]
-    ["Lookup Octave Index"	info-lookup-symbol t]))
+    ["Lookup Octave Index"	info-lookup-symbol t]
+    ["Customize Octave" (customize-group 'octave) t]
+    "-"
+    ["Submit Bug Report"	report-emacs-bug t]))
 
 (defvar octave-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -508,78 +510,10 @@ Non-nil means always go to the next Octave code line after sending."
 (define-derived-mode octave-mode prog-mode "Octave"
   "Major mode for editing Octave code.
 
-This mode makes it easier to write Octave code by helping with
-indentation, doing some of the typing for you (with Abbrev mode) and by
-showing keywords, comments, strings, etc. in different faces (with
-Font Lock mode on terminals that support it).
-
-Octave itself is a high-level language, primarily intended for numerical
-computations.  It provides a convenient command line interface for
-solving linear and nonlinear problems numerically.  Function definitions
-can also be stored in files, and it can be used in a batch mode (which
-is why you need this mode!).
-
-The latest released version of Octave is always available via anonymous
-ftp from ftp.octave.org in the directory `/pub/octave'.  Complete
-source and binaries for several popular systems are available.
-
-Type \\[list-abbrevs] to display the built-in abbrevs for Octave keywords.
-
-Keybindings
-===========
-
-\\{octave-mode-map}
-
-Variables you can use to customize Octave mode
-==============================================
-
-`octave-blink-matching-block'
-  Non-nil means show matching begin of block when inserting a space,
-  newline or semicolon after an else or end keyword.  Default is t.
-
-`octave-block-offset'
-  Extra indentation applied to statements in block structures.
-  Default is 2.
-
-`octave-continuation-offset'
-  Extra indentation applied to Octave continuation lines.
-  Default is 4.
-
-`octave-continuation-string'
-  String used for Octave continuation lines.
-  Default is a backslash.
-
-`octave-send-echo-input'
-  Non-nil means always display `inferior-octave-buffer' after sending a
-  command to the inferior Octave process.
-
-`octave-send-line-auto-forward'
-  Non-nil means always go to the next unsent line of Octave code after
-  sending a line to the inferior Octave process.
-
-`octave-send-echo-input'
-  Non-nil means echo input sent to the inferior Octave process.
-
-Turning on Octave mode runs the hook `octave-mode-hook'.
-
-To begin using this mode for all `.m' files that you edit, add the
-following lines to your init file:
-
-  (add-to-list 'auto-mode-alist '(\"\\\\.m\\\\'\" . octave-mode))
-
-To automatically turn on the abbrev and auto-fill features,
-add the following lines to your init file as well:
-
-  (add-hook 'octave-mode-hook
-	    (lambda ()
-	      (abbrev-mode 1)
-	      (auto-fill-mode 1)))
-
-To submit a problem report, enter \\[octave-submit-bug-report] from \
-an Octave mode buffer.
-This automatically sets up a mail buffer with version information
-already added.  You just need to add a description of the problem,
-including a reproducible test case and send the message."
+Octave is a high-level language, primarily intended for numerical
+computations.  It provides a convenient command line interface
+for solving linear and nonlinear problems numerically.  Function
+definitions can also be stored in files and used in batch mode."
   (setq local-abbrev-table octave-abbrev-table)
 
   (smie-setup octave-smie-grammar #'octave-smie-rules
@@ -724,12 +658,7 @@ in the Inferior Octave buffer.")
 (defvar info-lookup-mode)
 
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
-  "Major mode for interacting with an inferior Octave process.
-Runs Octave as a subprocess of Emacs, with Octave I/O through an Emacs
-buffer.
-
-Entry to this mode successively runs the hooks `comint-mode-hook' and
-`inferior-octave-mode-hook'."
+  "Major mode for interacting with an inferior Octave process."
   (setq comint-prompt-regexp inferior-octave-prompt
 	mode-line-process '(":%s")
 	local-abbrev-table octave-abbrev-table)
@@ -1010,25 +939,105 @@ directory and makes this the current buffer's default directory."
     (delete-horizontal-space)
     (insert (concat " " octave-continuation-string))))
 
+(defun octave-function-file-p ()
+  "Return non-nil if the first token is \"function\".
+The value is (START END NAME-START NAME-END) of the function."
+  (save-excursion
+    (goto-char (point-min))
+    (when (equal (funcall smie-forward-token-function) "function")
+      (forward-word -1)
+      (let* ((start (point))
+             (end (progn (forward-sexp 1) (point)))
+             (name (when (progn
+                           (goto-char start)
+                           (re-search-forward octave-function-header-regexp
+                                              end t))
+                     (list (match-beginning 3) (match-end 3)))))
+        (cons start (cons end name))))))
+
+;; Like forward-comment but stop at non-comment blank
+(defun octave-skip-comment-forward (limit)
+  (let ((ppss (syntax-ppss)))
+    (if (nth 4 ppss)
+        (goto-char (nth 8 ppss))
+      (goto-char (or (comment-search-forward limit t) (point)))))
+  (while (and (< (point) limit) (looking-at-p "\\s<"))
+    (forward-comment 1)))
+
+;;; First non-copyright comment block
+(defun octave-function-file-comment ()
+  "Beginnning and end positions of the function file comment."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((bound (progn (forward-comment (point-max)) (point))))
+      (goto-char (point-min))
+      ;; Copyright block: octave/libinterp/parse-tree/lex.ll around line 1634
+      (when (save-excursion
+              (comment-search-forward bound t)
+              (when (eq (char-after) ?\{) ; case of block comment
+                (forward-char 1))
+              (skip-syntax-forward "-")
+              (let ((case-fold-search t))
+                (looking-at-p "\\(?:copyright\\|author\\)\\_>")))
+        (octave-skip-comment-forward bound))
+      (let ((beg (comment-search-forward bound t)))
+        (when beg
+          (goto-char beg)
+          (octave-skip-comment-forward bound)
+          (list beg (point)))))))
+
 (defun octave-sync-function-file-names ()
   "Ensure function name agree with function file name.
 See Info node `(octave)Function Files'."
   (interactive)
+  (when buffer-file-name
+    (pcase-let ((`(,start ,_end ,name-start ,name-end)
+                 (octave-function-file-p)))
+      (when (and start name-start)
+        (let ((func (buffer-substring name-start name-end))
+              (file (file-name-sans-extension
+                     (file-name-nondirectory buffer-file-name))))
+          (save-excursion
+            (when (and (not (equal file func))
+                       (progn
+                         (goto-char name-start)
+                         (yes-or-no-p
+                          "Function name different from file name. Fix? ")))
+              (delete-region name-start name-end)
+              (insert file))))))))
+
+(defun octave-update-function-file-comment (beg end)
+  "Query replace function names in function file comment."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (if (use-region-p)
+         (list (region-beginning) (region-end))
+       (or (octave-function-file-comment)
+           (error "No function file comment found")))))
   (save-excursion
-    (when (and buffer-file-name
-               (prog2
-                   (goto-char (point-min))
-                   (equal (funcall smie-forward-token-function) "function")
-                 (forward-word -1)))
-      (let ((file (file-name-sans-extension
-                   (file-name-nondirectory buffer-file-name)))
-            (func (and (re-search-forward octave-function-header-regexp nil t)
-                       (match-string 3))))
-        (when (and func
-                   (not (equal file func))
-                   (yes-or-no-p
-                    "Function name different from file name. Fix? "))
-          (replace-match file nil nil nil 3))))))
+    (let* ((bounds (or (octave-function-file-p)
+                       (error "Not in a function file buffer")))
+           (func (if (cddr bounds)
+                     (apply #'buffer-substring (cddr bounds))
+                   (error "Function name not found")))
+           (old-func (progn
+                       (goto-char beg)
+                       (when (and (re-search-forward
+                                   "usage:\\|@deftypefn" end t)
+                                  (re-search-forward
+                                   "[=}]\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+                                   (line-end-position) t))
+                         (match-string 1))))
+           (old-func (read-string (format (if old-func
+                                              "Name to replace (default %s): "
+                                            "Name to replace: ")
+                                          old-func)
+                                  nil nil old-func)))
+      (if (and func old-func (not (equal func old-func)))
+          (perform-replace old-func func 'query
+                           nil 'delimited nil nil beg end)
+        (message "Function names match")))))
 
 
 ;;; Indentation
@@ -1356,10 +1365,11 @@ entered without parens)."
              (t (concat vals " = ")))
             name
             args))
-  \n "function " > str \n \n
-  octave-block-comment-start "usage: " str \n
-  octave-block-comment-start \n octave-block-comment-start
-  \n _ \n
+  \n octave-block-comment-start "usage: " str \n
+  octave-block-comment-start '(delete-horizontal-space) \n
+  octave-block-comment-start '(delete-horizontal-space) \n
+  "function " > str \n
+  _ \n
   "endfunction" > \n)
 
 ;;; Communication with the inferior Octave process
