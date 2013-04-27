@@ -1,5 +1,10 @@
 2013-04-27  Juri Linkov  <juri@jurta.org>
 
+	* subr.el (read-number): Doc fix about using it by interactive
+	code letter `n'.  (Bug#14254)
+
+2013-04-27  Juri Linkov  <juri@jurta.org>
+
 	* desktop.el (desktop-auto-save-timeout): New option.
 	(desktop-file-checksum): New variable.
 	(desktop-save): Add optional arg `auto-save' and don't auto-save

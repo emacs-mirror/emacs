@@ -34,6 +34,7 @@ static Lisp_Object Qcommand_debug_status;
 static Lisp_Object Qenable_recursive_minibuffers;
 
 static Lisp_Object Qhandle_shift_selection;
+static Lisp_Object Qread_number;
 
 Lisp_Object Qmouse_leave_buffer_hook;
 
@@ -683,29 +684,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  if (!NILP (prefix_arg))
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
-	  {
-	    bool first = 1;
-	    do
-	      {
-		Lisp_Object str;
-		if (! first)
-		  {
-		    message1 ("Please enter a number.");
-		    sit_for (make_number (1), 0, 0);
-		  }
-		first = 0;
-
-		str = Fread_from_minibuffer (callint_message,
-					     Qnil, Qnil, Qnil, Qnil, Qnil,
-					     Qnil);
-		if (! STRINGP (str) || SCHARS (str) == 0)
-		  args[i] = Qnil;
-		else
-		  args[i] = Fread (str);
-	      }
-	    while (! NUMBERP (args[i]));
-	  }
-	  visargs[i] = args[i];
+	  args[i] = call1 (Qread_number, callint_message);
 	  break;
 
 	case 'P':		/* Prefix arg in raw form.  Does no I/O.  */
@@ -903,6 +882,7 @@ syms_of_callint (void)
   DEFSYM (Qminus, "-");
   DEFSYM (Qplus, "+");
   DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
+  DEFSYM (Qread_number, "read-number");
   DEFSYM (Qcall_interactively, "call-interactively");
   DEFSYM (Qcommand_debug_status, "command-debug-status");
   DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
