@@ -1,3 +1,8 @@
+2013-04-27  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (font_open_entity): Always open a font of manageable
+	size.
+
 2013-04-24  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (decode_coding_iso_2022): When an invalid escape
