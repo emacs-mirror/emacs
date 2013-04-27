@@ -1,3 +1,8 @@
+2013-04-20  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Use completing-read if arg multiple
+	is nil.
+
 2013-04-27  Ingo Lohmar  <i.lohmar@gmail.com>  (tiny change)
 
 	* ls-lisp.el (ls-lisp-insert-directory): If no files are
