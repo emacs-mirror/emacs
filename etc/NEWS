@@ -169,6 +169,11 @@ on the given date.
 
 *** Support for ISO 8601 dates.
 
+** Desktop
+
+*** `desktop-auto-save-timeout' defines the number of seconds between
+auto-saves of the desktop.
+
 ** Dired
 
 *** New minor mode `dired-hide-details-mode' hides details.
