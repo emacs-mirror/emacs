@@ -4909,14 +4909,15 @@ minibuffer; otherwise, edit it in Todos Edit mode."
 Use of newlines invokes `todos-indent' to insure compliance with
 the format of Diary entries."
   (interactive)
-  (let ((buf todos-edit-buffer))
-    (set-window-buffer (selected-window)
-		       (set-buffer (make-indirect-buffer (buffer-name) buf)))
-    (narrow-to-region (todos-item-start) (todos-item-end))
-    (todos-edit-mode)
-    (message "%s" (substitute-command-keys
-		   (concat "Type \\[todos-edit-quit] "
-			   "to return to Todos mode.\n")))))
+  (when (todos-item-string)
+    (let ((buf todos-edit-buffer))
+      (set-window-buffer (selected-window)
+			 (set-buffer (make-indirect-buffer (buffer-name) buf)))
+      (narrow-to-region (todos-item-start) (todos-item-end))
+      (todos-edit-mode)
+      (message "%s" (substitute-command-keys
+		     (concat "Type \\[todos-edit-quit] "
+			     "to return to Todos mode.\n"))))))
 
 (defun todos-edit-multiline (&optional item) ;FIXME: not item editing command
   ""					;FIXME
