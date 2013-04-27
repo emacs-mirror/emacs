@@ -1,3 +1,8 @@
+2013-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-view.el (log-view-current-entry):
+	Treat "---" separator lines as part of the following rev.  (Bug#14169)
+
 2013-04-27  Juri Linkov  <juri@jurta.org>
 
 	* subr.el (read-number): Doc fix about using it by interactive
