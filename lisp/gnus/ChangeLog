@@ -1,3 +1,8 @@
+2013-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-list-debbugs):
+	Use require rather than autoload.  (Bug#14262)
+
 2013-04-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail-source.el (mail-source-fetch-pop, mail-source-check-pop):
