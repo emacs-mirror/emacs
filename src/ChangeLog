@@ -1,3 +1,8 @@
+2013-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (decode_coding_gap): Don't remove the character before
+	a newline unless it's a CR character.  (Bug#14287)
+
 2013-04-28  Dan Nicolaescu  <dann@gnu.org>
 
 	* dispextern.h (struct face): Move enum face_underline_type
