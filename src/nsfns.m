@@ -1477,7 +1477,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
       [panel setCanChooseFiles: YES];
     }
 
-  block_input ();
+ block_input ();
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   if (! NILP (mustmatch) || ! NILP (dir_only_p))
@@ -2544,6 +2544,75 @@ Value is t if tooltip was open, nil otherwise.  */)
 
    ========================================================================== */
 
+/*
+  Handle arrow/function/control keys and copy/paste/cut in file dialogs.
+  Return YES if handeled, NO if not.
+ */
+static BOOL
+handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
+{
+  NSString *s;
+  int i;
+  BOOL ret = NO;
+
+  if ([theEvent type] != NSKeyDown) return NO;
+  s = [theEvent characters];
+
+  for (i = 0; i < [s length]; ++i)
+    {
+      int ch = (int) [s characterAtIndex: i];
+      switch (ch)
+        {
+        case NSHomeFunctionKey:
+        case NSDownArrowFunctionKey:
+        case NSUpArrowFunctionKey:
+        case NSLeftArrowFunctionKey:
+        case NSRightArrowFunctionKey:
+        case NSPageUpFunctionKey:
+        case NSPageDownFunctionKey:
+        case NSEndFunctionKey:
+          [panel sendEvent: theEvent];
+          ret = YES;
+          break;
+          /* As we don't have the standard key commands for
+             copy/paste/cut/select-all in our edit menu, we must handle
+             them here.  TODO: handle Emacs key bindings for copy/cut/select-all
+             here, paste works, because we have that in our Edit menu.
+             I.e. refactor out code in nsterm.m, keyDown: to figure out the
+             correct modifier.
+          */
+        case 'x': // Cut
+        case 'c': // Copy
+        case 'v': // Paste
+        case 'a': // Select all
+          if ([theEvent modifierFlags] & NSCommandKeyMask)
+            {
+              [NSApp sendAction:
+                       (ch == 'x'
+                        ? @selector(cut:)
+                        : (ch == 'c'
+                           ? @selector(copy:)
+                           : (ch == 'v'
+                              ? @selector(paste:)
+                              : @selector(selectAll:))))
+                             to:nil from:panel];
+              ret = YES;
+            }
+        default:
+          // Send all control keys, as the text field supports C-a, C-f, C-e
+          // C-b and more.
+          if ([theEvent modifierFlags] & NSControlKeyMask)
+            {
+              [panel sendEvent: theEvent];
+              ret = YES;
+            }
+          break;
+        }
+    }
+
+
+  return ret;
+}
 
 @implementation EmacsSavePanel
 #ifdef NS_IMPL_COCOA
@@ -2571,6 +2640,14 @@ Value is t if tooltip was open, nil otherwise.  */)
 - (NSString *) getDirectory
 {
   return ns_directory_from_panel (self);
+}
+
+- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
+{
+  BOOL ret = handlePanelKeys (self, theEvent);
+  if (! ret)
+    ret = [super performKeyEquivalent:theEvent];
+  return ret;
 }
 @end
 
@@ -2609,7 +2686,14 @@ Value is t if tooltip was open, nil otherwise.  */)
 {
   return ns_directory_from_panel (self);
 }
-
+- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
+{
+  // NSOpenPanel inherits NSSavePanel, so passing self is OK.
+  BOOL ret = handlePanelKeys (self, theEvent);
+  if (! ret)
+    ret = [super performKeyEquivalent:theEvent];
+  return ret;
+}
 @end
 
 

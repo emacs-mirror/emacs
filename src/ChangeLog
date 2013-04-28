@@ -1,3 +1,10 @@
+2013-04-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (handlePanelKeys): New function.
+	(EmacsOpenPanel:performKeyEquivalent:)
+	(EmacsSavePanel:performKeyEquivalent:): Call handlePanelKeys to handle
+	arrows/function/control and copy/paste keys (Bug#14296).
+
 2013-04-27  Juri Linkov  <juri@jurta.org>
 
 	* callint.c (Fcall_interactively): Call `Qread_number' for
