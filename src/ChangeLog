@@ -1,3 +1,8 @@
+2013-04-28  Dan Nicolaescu  <dann@gnu.org>
+
+	* dispextern.h (struct face): Move enum face_underline_type
+	earlier so that bitfields can be in the same word.
+
 2013-04-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (handlePanelKeys): New function.
