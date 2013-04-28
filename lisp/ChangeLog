@@ -1,3 +1,8 @@
+2013-04-28  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-normalize): Don't set `math-normalize-error'
+	to t for the less important warnings.
+
 2013-04-27  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
 
 	* isearch.el (isearch-fail-pos): Check for empty `cmds'.  (Bug#14268)
