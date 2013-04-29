@@ -1,3 +1,10 @@
+2013-04-29  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup-hook): Obsolete.
+	(inferior-octave-startup): Remove inferior-octave-startup-hook.
+	(octave-function-file-comment): Fix typo.
+	(octave-sync-function-file-names): Use read-char-choice.
+
 2013-04-28  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-normalize): Don't set `math-normalize-error'

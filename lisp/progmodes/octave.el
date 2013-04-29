@@ -641,7 +641,8 @@ the regular expression `comint-prompt-regexp', a buffer local variable."
 (defvar inferior-octave-output-string nil)
 (defvar inferior-octave-receive-in-progress nil)
 
-(defvar inferior-octave-startup-hook nil)
+(define-obsolete-variable-alias 'inferior-octave-startup-hook
+  'inferior-octave-mode-hook "24.4")
 
 (defvar inferior-octave-complete-impossible nil
   "Non-nil means that `inferior-octave-complete' is impossible.")
@@ -785,8 +786,6 @@ startup file, `~/.emacs-octave'."
 
     ;; And finally, everything is back to normal.
     (set-process-filter proc 'inferior-octave-output-filter)
-    (run-hooks 'inferior-octave-startup-hook)
-    (run-hooks 'inferior-octave-startup-hook)
     ;; Just in case, to be sure a cd in the startup file
     ;; won't have detrimental effects.
     (inferior-octave-resync-dirs)))
@@ -966,7 +965,7 @@ The value is (START END NAME-START NAME-END) of the function."
 
 ;;; First non-copyright comment block
 (defun octave-function-file-comment ()
-  "Beginnning and end positions of the function file comment."
+  "Beginning and end positions of the function file comment."
   (save-excursion
     (goto-char (point-min))
     (let ((bound (progn (forward-comment (point-max)) (point))))
@@ -994,17 +993,32 @@ See Info node `(octave)Function Files'."
     (pcase-let ((`(,start ,_end ,name-start ,name-end)
                  (octave-function-file-p)))
       (when (and start name-start)
-        (let ((func (buffer-substring name-start name-end))
-              (file (file-name-sans-extension
-                     (file-name-nondirectory buffer-file-name))))
-          (save-excursion
-            (when (and (not (equal file func))
-                       (progn
-                         (goto-char name-start)
-                         (yes-or-no-p
-                          "Function name different from file name. Fix? ")))
-              (delete-region name-start name-end)
-              (insert file))))))))
+        (let* ((func (buffer-substring name-start name-end))
+               (file (file-name-sans-extension
+                      (file-name-nondirectory buffer-file-name)))
+               (help-form (format "\
+a: Use function name `%s'
+b: Use file name `%s'
+q: Don't fix\n" func file))
+               (c (unless (equal file func)
+                    (save-window-excursion
+                      (help-form-show)
+                      (read-char-choice
+                       "Which name to use? (a/b/q) " '(?a ?b ?q))))))
+          (pcase c
+            (`?a (let ((newname (expand-file-name
+                                 (concat func (file-name-extension
+                                               buffer-file-name t)))))
+                   (when (or (not (file-exists-p newname))
+                             (yes-or-no-p
+                              (format "Target file %s exists; proceed? " newname)))
+                     (when (file-exists-p buffer-file-name)
+                       (rename-file buffer-file-name newname t))
+                     (set-visited-file-name newname))))
+            (`?b (save-excursion
+                   (goto-char name-start)
+                   (delete-region name-start name-end)
+                   (insert file)))))))))
 
 (defun octave-update-function-file-comment (beg end)
   "Query replace function names in function file comment."
