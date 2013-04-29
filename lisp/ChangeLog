@@ -1,5 +1,18 @@
 2013-04-29  Leo Liu  <sdl.web@gmail.com>
 
+	* progmodes/octave.el (octave-font-lock-keywords): Handle 'end' in
+	indexing expression.
+	(octave-continuation-string): Do not use \.
+	(inferior-octave-complete-impossible): Remove.
+	(inferior-octave-completion-table)
+	(inferior-octave-completion-at-point): Remove its uses.
+	(inferior-octave-startup): completion_matches was introduced to
+	Octave in 1996 so safe to assume it.
+	(octave-function-file-comment): Improve to follow how Octave does it.
+	(octave-update-function-file-comment): Tweak.
+
+2013-04-29  Leo Liu  <sdl.web@gmail.com>
+
 	* progmodes/octave.el (inferior-octave-startup-hook): Obsolete.
 	(inferior-octave-startup): Remove inferior-octave-startup-hook.
 	(octave-function-file-comment): Fix typo.

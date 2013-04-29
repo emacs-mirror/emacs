@@ -155,6 +155,17 @@ parenthetical grouping.")
                                      octave-text-functions))
 		 "\\)\\_>")
 	 'font-lock-keyword-face)
+   ;; Note: 'end' also serves as the last index in an indexing expression.
+   ;; Ref: http://www.mathworks.com/help/matlab/ref/end.html
+   '("\\_<end\\_>" (0 (save-excursion
+                        (condition-case nil
+                            (progn
+                              (goto-char (match-beginning 0))
+                              (backward-up-list)
+                              (unless (eq (char-after) ?\()
+                                font-lock-keyword-face))
+                          (error font-lock-keyword-face)))
+                      t))
    ;; Fontify all builtin operators.
    (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
 	 (if (boundp 'font-lock-builtin-face)
@@ -321,15 +332,17 @@ newline or semicolon after an else or end keyword."
   "Extra indentation applied to Octave continuation lines."
   :type 'integer
   :group 'octave)
+
 (eval-and-compile
   (defconst octave-continuation-marker-regexp "\\\\\\|\\.\\.\\."))
+
 (defvar octave-continuation-regexp
   (concat "[^#%\n]*\\(" octave-continuation-marker-regexp
           "\\)\\s-*\\(\\s<.*\\)?$"))
-(defcustom octave-continuation-string "\\"
-  "Character string used for Octave continuation lines.  Normally \\."
-  :type 'string
-  :group 'octave)
+
+;; Char \ is considered a bad decision for continuing a line.
+(defconst octave-continuation-string "..."
+  "Character string used for Octave continuation lines.")
 
 (defvar octave-mode-imenu-generic-expression
   (list
@@ -644,9 +657,6 @@ the regular expression `comint-prompt-regexp', a buffer local variable."
 (define-obsolete-variable-alias 'inferior-octave-startup-hook
   'inferior-octave-mode-hook "24.4")
 
-(defvar inferior-octave-complete-impossible nil
-  "Non-nil means that `inferior-octave-complete' is impossible.")
-
 (defvar inferior-octave-has-built-in-variables nil
   "Non-nil means that Octave has built-in variables.")
 
@@ -778,11 +788,6 @@ startup file, `~/.emacs-octave'."
 		   'identity inferior-octave-output-list "\n")
 		  "\n"))
       inferior-octave-output-string))
-    ;; Next, we check whether Octave supports `completion_matches' ...
-    (inferior-octave-send-list-and-digest
-     (list "exist \"completion_matches\"\n"))
-    (setq inferior-octave-complete-impossible
-	  (not (string-match "5$" (car inferior-octave-output-list))))
 
     ;; And finally, everything is back to normal.
     (set-process-filter proc 'inferior-octave-output-filter)
@@ -791,13 +796,12 @@ startup file, `~/.emacs-octave'."
     (inferior-octave-resync-dirs)))
 
 (defun inferior-octave-completion-table ()
-  (unless inferior-octave-complete-impossible
-    (completion-table-dynamic
-     (lambda (command)
-       (inferior-octave-send-list-and-digest
-        (list (concat "completion_matches (\"" command "\");\n")))
-       (sort (delete-dups inferior-octave-output-list)
-             'string-lessp)))))
+  (completion-table-dynamic
+   (lambda (command)
+     (inferior-octave-send-list-and-digest
+      (list (concat "completion_matches (\"" command "\");\n")))
+     (sort (delete-dups inferior-octave-output-list)
+           'string-lessp))))
 
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
@@ -806,13 +810,8 @@ startup file, `~/.emacs-octave'."
 	  (save-excursion
 	    (skip-syntax-backward "w_" (comint-line-beginning-position))
             (point))))
-    (cond ((eq start end) nil)
-	  (inferior-octave-complete-impossible
-           (message (concat
-                     "Your Octave does not have `completion_matches'.  "
-                     "Please upgrade to version 2.X."))
-           nil)
-	  (t (list start end (inferior-octave-completion-table))))))
+    (when (> end start)
+      (list start end (inferior-octave-completion-table)))))
 
 (define-obsolete-function-alias 'inferior-octave-complete
   'completion-at-point "24.1")
@@ -968,22 +967,20 @@ The value is (START END NAME-START NAME-END) of the function."
   "Beginning and end positions of the function file comment."
   (save-excursion
     (goto-char (point-min))
-    (let ((bound (progn (forward-comment (point-max)) (point))))
-      (goto-char (point-min))
-      ;; Copyright block: octave/libinterp/parse-tree/lex.ll around line 1634
-      (when (save-excursion
-              (comment-search-forward bound t)
-              (when (eq (char-after) ?\{) ; case of block comment
-                (forward-char 1))
-              (skip-syntax-forward "-")
-              (let ((case-fold-search t))
-                (looking-at-p "\\(?:copyright\\|author\\)\\_>")))
-        (octave-skip-comment-forward bound))
-      (let ((beg (comment-search-forward bound t)))
-        (when beg
-          (goto-char beg)
-          (octave-skip-comment-forward bound)
-          (list beg (point)))))))
+    ;; Copyright block: octave/libinterp/parse-tree/lex.ll around line 1634
+    (while (save-excursion
+             (when (comment-search-forward (point-max) t)
+               (when (eq (char-after) ?\{) ; case of block comment
+                 (forward-char 1))
+               (skip-syntax-forward "-")
+               (let ((case-fold-search t))
+                 (looking-at-p "\\(?:copyright\\|author\\)\\_>"))))
+      (octave-skip-comment-forward (point-max)))
+    (let ((beg (comment-search-forward (point-max) t)))
+      (when beg
+        (goto-char beg)
+        (octave-skip-comment-forward (point-max))
+        (list beg (point))))))
 
 (defun octave-sync-function-file-names ()
   "Ensure function name agree with function file name.
@@ -1037,11 +1034,10 @@ q: Don't fix\n" func file))
                    (error "Function name not found")))
            (old-func (progn
                        (goto-char beg)
-                       (when (and (re-search-forward
-                                   "usage:\\|@deftypefn" end t)
-                                  (re-search-forward
-                                   "[=}]\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>"
-                                   (line-end-position) t))
+                       (when (re-search-forward
+                              "[=}]\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+                              (min (line-end-position 4) end)
+                              t)
                          (match-string 1))))
            (old-func (read-string (format (if old-func
                                               "Name to replace (default %s): "
