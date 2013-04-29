@@ -1,3 +1,8 @@
+2013-04-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-04-28 extern-inline: work around bug in Sun c99
+
 2013-04-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
