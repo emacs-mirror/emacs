@@ -6475,6 +6475,52 @@ comment at the start of cc-engine.el for more info."
 	   (c-go-list-forward)
          t)))
 
+(defun c-back-over-member-initializers ()
+  ;; Test whether we are in a C++ member initializer list, and if so, go back
+  ;; to the introducing ":", returning the position of the opening paren of
+  ;; the function's arglist.  Otherwise return nil, leaving point unchanged.
+  (let ((here (point))
+	(paren-state (c-parse-state))
+	res)
+
+    (setq res
+	  (catch 'done
+	    (if (not (c-at-toplevel-p))
+		(progn
+		  (while (not (c-at-toplevel-p))
+		    (goto-char (c-pull-open-brace paren-state)))
+		  (c-backward-syntactic-ws)
+		  (when (not (c-simple-skip-symbol-backward))
+		    (throw 'done nil))
+		  (c-backward-syntactic-ws))
+	      (c-backward-syntactic-ws)
+	      (when (memq (char-before) '(?\) ?}))
+		(when (not (c-go-list-backward))
+		  (throw 'done nil))
+		(c-backward-syntactic-ws))
+	      (when (c-simple-skip-symbol-backward)
+		(c-backward-syntactic-ws)))
+
+	    (while (eq (char-before) ?,)
+	      (backward-char)
+	      (c-backward-syntactic-ws)
+
+	      (when (not (memq (char-before) '(?\) ?})))
+		(throw 'done nil))
+	      (when (not (c-go-list-backward))
+		(throw 'done nil))
+	      (c-backward-syntactic-ws)
+	      (when (not (c-simple-skip-symbol-backward))
+		(throw 'done nil))
+	      (c-backward-syntactic-ws))
+
+	    (and
+	     (eq (char-before) ?:)
+	     (c-just-after-func-arglist-p))))
+
+    (or res (goto-char here))
+    res))
+
 
 ;; Handling of large scale constructs like statements and declarations.
 
@@ -9677,18 +9723,13 @@ comment at the start of cc-engine.el for more info."
 	      ;; 2007-11-09)
 	      ))))
 
-	 ;; CASE 5B: After a function header but before the body (or
-	 ;; the ending semicolon if there's no body).
+	 ;; CASE 5R: Member init list.  (Used to be part of CASE  5B.1)
+	 ;; Note there is no limit on the backward search here, since member
+	 ;; init lists can, in practice, be very large.
 	 ((save-excursion
-	    (when (setq placeholder (c-just-after-func-arglist-p
-				     (max lim (c-determine-limit 500))))
+	    (when (setq placeholder (c-back-over-member-initializers))
 	      (setq tmp-pos (point))))
-	  (cond
-
-	   ;; CASE 5B.1: Member init list.
-	   ((eq (char-after tmp-pos) ?:)
-	    (if (or (>= tmp-pos indent-point)
-		    (= (c-point 'bosws) (1+ tmp-pos)))
+	  (if (= (c-point 'bosws) (1+ tmp-pos))
 		(progn
 		  ;; There is no preceding member init clause.
 		  ;; Indent relative to the beginning of indentation
@@ -9700,6 +9741,23 @@ comment at the start of cc-engine.el for more info."
 	      (goto-char (1+ tmp-pos))
 	      (c-forward-syntactic-ws)
 	      (c-add-syntax 'member-init-cont (point))))
+
+	 ;; CASE 5B: After a function header but before the body (or
+	 ;; the ending semicolon if there's no body).
+	 ((save-excursion
+	    (when (setq placeholder (c-just-after-func-arglist-p
+				     (max lim (c-determine-limit 500))))
+	      (setq tmp-pos (point))))
+	  (cond
+
+	   ;; CASE 5B.1: Member init list.
+	   ((eq (char-after tmp-pos) ?:)
+	    ;; There is no preceding member init clause.
+	    ;; Indent relative to the beginning of indentation
+	    ;; for the topmost-intro line that contains the
+	    ;; prototype's open paren.
+	    (goto-char placeholder)
+	    (c-add-syntax 'member-init-intro (c-point 'boi)))
 
 	   ;; CASE 5B.2: K&R arg decl intro
 	   ((and c-recognize-knr-p

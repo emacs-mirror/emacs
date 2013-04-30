@@ -1,3 +1,11 @@
+2013-04-30  Alan Mackenzie  <acm@muc.de>
+
+	Handle arbitrarily long C++ member initialisation lists.
+	* progmodes/cc-engine.el (c-back-over-member-initializers): new
+	function.
+	(c-guess-basic-syntax): New CASE 5R (extracted from 5B) to handle
+	(most) member init lists.
+
 2013-04-30  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* progmodes/octave.el (inferior-octave-prompt-read-only): New user
