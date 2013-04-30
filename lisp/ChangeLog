@@ -1,3 +1,16 @@
+2013-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-variables): Remove.  No builtin
+	variables any more.  All converted to functions.
+	(octave-font-lock-keywords, octave-completion-at-point-function):
+	Fix uses.
+	(octave-font-lock-texinfo-comment): New user variable.
+	(octave-texinfo-font-lock-keywords): New variable for texinfo
+	comment block.
+	(octave-function-comment-block): New face.
+	(octave-font-lock-texinfo-comment): New function.
+	(octave-mode): Font lock texinfo comment block.
+
 2013-04-29  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-font-lock-keywords): Handle 'end' in
