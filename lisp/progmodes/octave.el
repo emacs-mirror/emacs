@@ -568,6 +568,15 @@ definitions can also be stored in files and used in batch mode."
   :type 'regexp
   :group 'octave)
 
+(defcustom inferior-octave-prompt-read-only t
+  "If non-nil, the Octave prompt is read only.
+The read only region includes the newline before the prompt.
+Setting this variable does not affect existing Octave runs.
+This feature utilizes the `comint-prompt-read-only' variable."
+  :type 'boolean
+  :group 'octave
+  :version "24.4")
+
 (defcustom inferior-octave-startup-file nil
   "Name of the inferior Octave startup file.
 The contents of this file are sent to the inferior Octave process on
@@ -661,6 +670,7 @@ in the Inferior Octave buffer.")
 	comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
   (setq-local comint-dynamic-complete-functions
               inferior-octave-dynamic-complete-functions)
+  (setq-local comint-prompt-read-only inferior-octave-prompt-read-only)
   (add-hook 'comint-input-filter-functions
 	'inferior-octave-directory-tracker nil t)
   (comint-read-input-ring t))
