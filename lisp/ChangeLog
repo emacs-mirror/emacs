@@ -1,3 +1,8 @@
+2013-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-prompt-read-only): Fix last
+	change.
+
 2013-04-30  Alan Mackenzie  <acm@muc.de>
 
 	Handle arbitrarily long C++ member initialisation lists.

@@ -568,11 +568,9 @@ definitions can also be stored in files and used in batch mode."
   :type 'regexp
   :group 'octave)
 
-(defcustom inferior-octave-prompt-read-only t
+(defcustom inferior-octave-prompt-read-only comint-prompt-read-only
   "If non-nil, the Octave prompt is read only.
-The read only region includes the newline before the prompt.
-Setting this variable does not affect existing Octave runs.
-This feature utilizes the `comint-prompt-read-only' variable."
+See `comint-prompt-read-only' for details."
   :type 'boolean
   :group 'octave
   :version "24.4")
