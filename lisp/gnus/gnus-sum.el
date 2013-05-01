@@ -12775,7 +12775,7 @@ returned."
     (setq gnus-newsgroup-headers
 	  (gnus-merge 'list
 		      gnus-newsgroup-headers
-		      (gnus-fetch-headers articles)
+		      (gnus-fetch-headers articles nil t)
 		      'gnus-article-sort-by-number))
     (setq gnus-newsgroup-articles
 	  (gnus-sorted-nunion gnus-newsgroup-articles articles))

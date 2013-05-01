@@ -710,12 +710,28 @@ If LIMIT is non-nil, show no more than this many entries."
     (apply 'vc-bzr-command "log" buffer 'async files
 	   (append
 	    (when shortlog '("--line"))
-	    (when start-revision (list (format "-r..%s" start-revision)))
+	    ;; The extra complications here when start-revision and limit
+	    ;; are set are due to bzr log's --forward argument, which
+	    ;; could be enabled via an alias in bazaar.conf.
+	    ;; Svn, for example, does not have this problem, because
+	    ;; it doesn't have --forward.  Instead, you can use
+	    ;; svn --log -r HEAD:0 or -r 0:HEAD as you prefer.
+	    ;; Bzr, however, insists in -r X..Y that X come before Y.
+	    (if start-revision
+		(list (format
+		       (if (and limit (= limit 1))
+			   ;; This means we don't have to use --no-aliases.
+			   ;; Is -c any different to -r in this case?
+			   "-r%s"
+			 "-r..%s") start-revision)))
 	    (when limit (list "-l" (format "%s" limit)))
-	    ;; This is to remove --forward, if it has been added by an alias.
 	    ;; There is no sensible way to combine --limit and --forward,
 	    ;; and it breaks the meaning of START-REVISION as the
 	    ;; _newest_ revision.  See bug#14168.
+	    ;; Eg bzr log --forward -r ..100 --limit 50 prints
+	    ;; revisions 1-50 rather than 50-100.  There
+	    ;; seems no way in general to get bzr to print revisions
+	    ;; 50-100 in --forward order in that case.
 	    ;; FIXME There may be other alias stuff we want to keep.
 	    ;; Is there a way to just suppress --forward?
 	    ;; As of 2013/4 the only caller uses limit = 1, so it does

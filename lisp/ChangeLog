@@ -1,3 +1,77 @@
+2013-04-25  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-completion-at-point-function): Make
+	use of inferior octave process.
+	(octave-initialize-completions): Remove.
+	(inferior-octave-completion-table): New function.
+	(inferior-octave-completion-at-point): Use it.
+	(octave-completion-alist): Remove.
+
+2013-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/opascal.el: Use font-lock and syntax-propertize.
+	(opascal-mode-syntax-table): New var.
+	(opascal-literal-kind, opascal-is-literal-end)
+	(opascal-literal-token-at): Rewrite.
+	(opascal--literal-start-re, opascal-font-lock-keywords)
+	(opascal--syntax-propertize): New constants.
+	(opascal-font-lock-defaults): Adjust.
+	(opascal-mode): Use them.  Set comment-<foo> variables as well.
+	(delphi-comment-face, opascal-comment-face, delphi-string-face)
+	(opascal-string-face, delphi-keyword-face, opascal-keyword-face)
+	(delphi-other-face, opascal-other-face): Remove face variables.
+	(opascal-save-state): Remove macro.
+	(opascal-fontifying-progress-step): Remove constant.
+	(opascal--ignore-changes): Remove var.
+	(opascal-set-token-property, opascal-parse-next-literal)
+	(opascal-is-stable-literal, opascal-complete-literal)
+	(opascal-is-literal-start, opascal-face-of)
+	(opascal-parse-region, opascal-parse-region-until-stable)
+	(opascal-fontify-region, opascal-after-change)
+	(opascal-debug-show-is-stable, opascal-debug-unparse-buffer)
+	(opascal-debug-parse-region, opascal-debug-parse-window)
+	(opascal-debug-parse-buffer, opascal-debug-fontify-window)
+	(opascal-debug-fontify-buffer): Remove.
+	(opascal-debug-mode-map): Adjust accordingly.
+
+2013-04-25  Leo Liu  <sdl.web@gmail.com>
+
+	Merge octave-mod.el and octave-inf.el into octave.el with some
+	cleanups.
+	* progmodes/octave.el: New file renamed from octave-mod.el.
+	* progmodes/octave-inf.el: Merged into octave.el.
+	* progmodes/octave-mod.el: Renamed to octave.el.
+
+2013-04-25  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el
+	(reftex-label-ignored-macros-and-environments): New defcustom.
+
+	* textmodes/reftex-parse.el (reftex-parse-from-file): Use it.
+
+2013-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent--hanging-p): Don't burp at EOB.
+	(smie-indent-keyword): Improve the check to ensure that the next
+	comment is really on the same line.
+	(smie-indent-comment): Don't align with a subsequent closer (or eob).
+
+	* progmodes/octave-mod.el (octave-smie-forward-token): Only emit
+	semi-colons if the line is not otherwise empty (bug#14218).
+
+2013-04-25  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-print-log): Tweak LIMIT = 1 case.
+
+2013-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/opascal.el (opascal-set-token-property): Rename from
+	opascal-set-text-properties and only set `token' (bug#14134).
+	Suggested by Erik Knowles <eknowles@geosystemsoftware.com>.
+	(opascal-literal-text-properties): Remove.
+	(opascal-parse-next-literal, opascal-debug-unparse-buffer):
+	Adjust callers.
+
 2013-04-24  Reuben Thomas <rrt@sc3d.org>
 
 	* textmodes/remember.el (remember-handler-functions): Add an

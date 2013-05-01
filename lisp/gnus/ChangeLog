@@ -1,3 +1,10 @@
+2013-04-24  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-close-group): Make sure we are in the right group.
+
+	* gnus-sum.el (gnus-summary-insert-articles): Force updates to the
+	dependency table from all newly retrieved headers.
+
 2013-04-16  David Edmondson  <dme@dme.org>
 
 	Support <img src="data:...">.

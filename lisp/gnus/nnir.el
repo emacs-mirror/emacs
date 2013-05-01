@@ -892,6 +892,7 @@ skips all prompting."
 
 
 (deffoo nnir-close-group (group &optional server)
+  (nnir-possibly-change-group group server)
   (let ((pgroup (gnus-group-guess-full-name-from-command-method group)))
     (when (and nnir-artlist (not (gnus-ephemeral-group-p pgroup)))
       (gnus-group-set-parameter  pgroup 'nnir-artlist nnir-artlist))
