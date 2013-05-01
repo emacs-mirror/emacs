@@ -735,8 +735,9 @@ Other control and meta characters terminate the search
  and are then executed normally (depending on `search-exit-option').
 Likewise for function keys and mouse button events.
 
-If this function is called non-interactively, it does not return to
-the calling function until the search is done."
+If this function is called non-interactively with a nil NO-RECURSIVE-EDIT,
+it does not return to the calling function until the search is done.
+See the function `isearch-mode' for more information."
 
   (interactive "P\np")
   (isearch-mode t (not (null regexp-p)) nil (not no-recursive-edit)))
@@ -799,7 +800,23 @@ as a regexp.  See the command `isearch-forward' for more information."
 
 (defun isearch-mode (forward &optional regexp op-fun recursive-edit word)
   "Start Isearch minor mode.
-It is called by the function `isearch-forward' and other related functions."
+It is called by the function `isearch-forward' and other related functions.
+
+The non-nil arg FORWARD means searching in the forward direction.
+
+The non-nil arg REGEXP does an incremental regular expression search.
+
+The arg OP-FUN is a function to be called after each input character
+is processed.  (It is not called after characters that exit the search.)
+
+When the arg RECURSIVE-EDIT is non-nil, this function behaves modally and
+does not return to the calling function until the search is completed.
+To behave this way it enters a recursive-edit and exits it when done
+isearching.
+
+The arg WORD, if t, does incremental search for a sequence of words,
+ignoring punctuation.  If the value is a function, it is called to
+convert the search string to a regexp used by regexp search functions."
 
   ;; Initialize global vars.
   (setq isearch-forward forward

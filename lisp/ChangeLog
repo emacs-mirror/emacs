@@ -1,5 +1,9 @@
 2013-05-01  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-forward, isearch-mode): Doc fix.  (Bug#13923)
+
+2013-05-01  Juri Linkov  <juri@jurta.org>
+
 	* comint.el (comint-previous-matching-input): Don't print message
 	"History item: %d" when `isearch-mode' is active.
 	(comint-history-isearch-message): Print message "History item: %d"
