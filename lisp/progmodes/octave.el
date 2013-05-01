@@ -34,6 +34,14 @@
 ;;; Code:
 (require 'comint)
 
+;;; For emacs < 24.3.
+(require 'newcomment)
+(eval-when-compile
+  (unless (fboundp 'setq-local)
+    (defmacro setq-local (var val)
+      "Set variable VAR to value VAL in current buffer."
+      (list 'set (list 'make-local-variable (list 'quote var)) val))))
+
 (defgroup octave nil
   "Editing Octave code."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)

@@ -1,7 +1,8 @@
 2013-05-01  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (inferior-octave-has-built-in-variables):
-	Remove.  Buil-in variables were removed from Octave in 2007.
+	* progmodes/octave.el: Compatible with older emacs-24 releases.
+	(inferior-octave-has-built-in-variables): Remove.  Buil-in
+	variables were removed from Octave in 2007.
 	(inferior-octave-startup): Fix uses.
 	(comint-line-beginning-position): Remove compatibility code for
 	emacs 21.
