@@ -88,7 +88,7 @@ Lisp_Object Qfontsize;
 /* hack for OS X file panels */
 char panelOK = 0;
 
-EmacsTooltip *ns_tooltip;
+EmacsTooltip *ns_tooltip = nil;
 
 /* Need forward declaration here to preserve organizational integrity of file */
 Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);

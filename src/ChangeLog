@@ -1,3 +1,7 @@
+2013-05-01  David Reitter  <david.reitter@gmail.com>
+
+	* nsfns.m (ns_tooltip): Initialize.
+
 2013-04-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (decode_coding_gap): Don't remove the character before
