@@ -1,3 +1,7 @@
+2013-05-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-dist: Keep necessary restrictions on file access.
+
 2013-04-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
