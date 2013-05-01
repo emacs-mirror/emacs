@@ -589,26 +589,12 @@ mode, set this to (\"-q\" \"--traditional\")."
   ;; Could certainly do more font locking in inferior Octave ...
   "Additional expressions to highlight in Inferior Octave mode.")
 
-
-;;; Compatibility functions
-(if (not (fboundp 'comint-line-beginning-position))
-    ;; comint-line-beginning-position is defined in Emacs 21
-    (defun comint-line-beginning-position ()
-      "Returns the buffer position of the beginning of the line, after any prompt.
-The prompt is assumed to be any text at the beginning of the line matching
-the regular expression `comint-prompt-regexp', a buffer local variable."
-      (save-excursion (comint-bol nil) (point))))
-
-
 (defvar inferior-octave-output-list nil)
 (defvar inferior-octave-output-string nil)
 (defvar inferior-octave-receive-in-progress nil)
 
 (define-obsolete-variable-alias 'inferior-octave-startup-hook
   'inferior-octave-mode-hook "24.4")
-
-(defvar inferior-octave-has-built-in-variables nil
-  "Non-nil means that Octave has built-in variables.")
 
 (defvar inferior-octave-dynamic-complete-functions
   '(inferior-octave-completion-at-point comint-filename-completion)
@@ -701,20 +687,11 @@ startup file, `~/.emacs-octave'."
 		   'identity inferior-octave-output-list "\n")
 		  "\n"))))
 
-     ;; Find out whether Octave has built-in variables.
-     (inferior-octave-send-list-and-digest
-      (list "exist \"LOADPATH\"\n"))
-     (setq inferior-octave-has-built-in-variables
- 	  (string-match "101$" (car inferior-octave-output-list)))
-
     ;; An empty secondary prompt, as e.g. obtained by '--braindead',
     ;; means trouble.
     (inferior-octave-send-list-and-digest (list "PS2\n"))
     (if (string-match "\\(PS2\\|ans\\) = *$" (car inferior-octave-output-list))
- 	(inferior-octave-send-list-and-digest
- 	 (list (if inferior-octave-has-built-in-variables
- 		   "PS2 = \"> \"\n"
- 		 "PS2 (\"> \");\n"))))
+ 	(inferior-octave-send-list-and-digest (list "PS2 (\"> \");\n")))
 
     ;; O.k., now we are ready for the Inferior Octave startup commands.
     (let* (commands
@@ -725,9 +702,7 @@ startup file, `~/.emacs-octave'."
 	    (list "more off;\n"
 		  (if (not (string-equal
 			    inferior-octave-output-string ">> "))
-		      (if inferior-octave-has-built-in-variables
-			  "PS1=\"\\\\s> \";\n"
-			"PS1 (\"\\\\s> \");\n"))
+                      "PS1 (\"\\\\s> \");\n")
 		  (if (file-exists-p file)
 		      (format "source (\"%s\");\n" file))))
       (inferior-octave-send-list-and-digest commands))

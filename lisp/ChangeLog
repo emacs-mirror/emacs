@@ -1,3 +1,11 @@
+2013-05-01  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-has-built-in-variables):
+	Remove.  Buil-in variables were removed from Octave in 2007.
+	(inferior-octave-startup): Fix uses.
+	(comint-line-beginning-position): Remove compatibility code for
+	emacs 21.
+
 2013-05-01  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-forward, isearch-mode): Doc fix.  (Bug#13923)
