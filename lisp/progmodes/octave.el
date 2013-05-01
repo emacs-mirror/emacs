@@ -42,54 +42,26 @@
 (define-obsolete-function-alias 'octave-submit-bug-report
   'report-emacs-bug "24.4")
 
-(define-abbrev-table 'octave-abbrev-table
-  (mapcar (lambda (e) (append e '(nil 0 t)))
-          '(("`a" "all_va_args")
-            ("`b" "break")
-            ("`cs" "case")
-            ("`ca" "catch")
-            ("`c" "continue")
-            ("`el" "else")
-            ("`eli" "elseif")
-            ("`et" "end_try_catch")
-            ("`eu" "end_unwind_protect")
-            ("`ef" "endfor")
-            ("`efu" "endfunction")
-            ("`ei" "endif")
-            ("`es" "endswitch")
-            ("`ew" "endwhile")
-            ("`f" "for")
-            ("`fu" "function")
-            ("`gl" "global")
-            ("`gp" "gplot")
-            ("`gs" "gsplot")
-            ("`if" "if ()")
-            ("`o" "otherwise")
-            ("`rp" "replot")
-            ("`r" "return")
-            ("`s" "switch")
-            ("`t" "try")
-            ("`u" "until ()")
-            ("`up" "unwind_protect")
-            ("`upc" "unwind_protect_cleanup")
-            ("`w" "while ()")))
+(define-abbrev-table 'octave-abbrev-table nil
   "Abbrev table for Octave's reserved words.
-Used in `octave-mode' and `inferior-octave-mode' buffers.
-All Octave abbrevs start with a grave accent (`)."
-  :regexp "\\(?:[^`]\\|^\\)\\(\\(?:\\<\\|`\\)\\w+\\)\\W*")
+Used in `octave-mode' and `inferior-octave-mode' buffers.")
 
 (defvar octave-comment-char ?#
   "Character to start an Octave comment.")
+
 (defvar octave-comment-start
   (string octave-comment-char ?\s)
   "String to insert to start a new Octave in-line comment.")
+
 (defvar octave-comment-start-skip "\\s<+\\s-*"
   "Regexp to match the start of an Octave comment up to its body.")
 
 (defvar octave-begin-keywords
   '("do" "for" "function" "if" "switch" "try" "unwind_protect" "while"))
+
 (defvar octave-else-keywords
   '("case" "catch" "else" "elseif" "otherwise" "unwind_protect_cleanup"))
+
 (defvar octave-end-keywords
   '("endfor" "endfunction" "endif" "endswitch" "end_try_catch"
     "end_unwind_protect" "endwhile" "until" "end"))
@@ -172,7 +144,6 @@ parenthetical grouping.")
 
 (defvar octave-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "`" 'octave-abbrev-start)
     (define-key map "\e\n" 'octave-indent-new-comment-line)
     (define-key map "\M-\C-q" 'octave-indent-defun)
     (define-key map "\C-c\C-p" 'octave-previous-code-line)
@@ -232,9 +203,6 @@ parenthetical grouping.")
     "-"
     ["Indent Line"		indent-according-to-mode t]
     ["Complete Symbol"		completion-at-point t]
-    "-"
-    ["Toggle Abbrev Mode"	abbrev-mode
-     :style toggle :selected abbrev-mode]
     ["Toggle Auto-Fill Mode"	auto-fill-mode
      :style toggle :selected auto-fill-function]
     "-"
@@ -331,11 +299,13 @@ newline or semicolon after an else or end keyword."
   "Non-nil means display `inferior-octave-buffer' after sending to it."
   :type 'boolean
   :group 'octave)
+
 (defcustom octave-send-line-auto-forward t
   "Control auto-forward after sending to the inferior Octave process.
 Non-nil means always go to the next Octave code line after sending."
   :type 'boolean
   :group 'octave)
+
 (defcustom octave-send-echo-input t
   "Non-nil means echo input sent to the inferior Octave process."
   :type 'boolean
@@ -499,7 +469,7 @@ Octave is a high-level language, primarily intended for numerical
 computations.  It provides a convenient command line interface
 for solving linear and nonlinear problems numerically.  Function
 definitions can also be stored in files and used in batch mode."
-  (setq local-abbrev-table octave-abbrev-table)
+  :abbrev-table octave-abbrev-table
 
   (smie-setup octave-smie-grammar #'octave-smie-rules
               :forward-token  #'octave-smie-forward-token
@@ -650,9 +620,8 @@ in the Inferior Octave buffer.")
 
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
   "Major mode for interacting with an inferior Octave process."
-  (setq comint-prompt-regexp inferior-octave-prompt
-	mode-line-process '(":%s")
-	local-abbrev-table octave-abbrev-table)
+  :abbrev-table octave-abbrev-table
+  (setq comint-prompt-regexp inferior-octave-prompt)
 
   (setq-local comment-start octave-comment-start)
   (setq-local comment-end "")
@@ -1367,22 +1336,6 @@ otherwise."
   'completion-at-point "24.1")
 
 ;;; Electric characters && friends
-
-(defun octave-abbrev-start ()
-  "Start entering an Octave abbreviation.
-If Abbrev mode is turned on, typing ` (grave accent) followed by ? or
-\\[help-command] lists all Octave abbrevs.  Any other key combination is
-executed normally.
-Note that all Octave mode abbrevs start with a grave accent."
-  (interactive)
-  (self-insert-command 1)
-  (when abbrev-mode
-    (set-temporary-overlay-map
-     (let ((map (make-sparse-keymap)))
-       (define-key map [??] 'list-abbrevs)
-       (define-key map (vector help-char) 'list-abbrevs)
-       map))))
-
 (define-skeleton octave-insert-defun
   "Insert an Octave function skeleton.
 Prompt for the function's name, arguments and return values (to be
