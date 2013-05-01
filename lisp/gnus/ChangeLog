@@ -1,3 +1,7 @@
+2013-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-emacs-completing-read): Fix a filter for XEmacs.
+
 2013-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* gnus.el (gnus-list-debbugs):
