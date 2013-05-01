@@ -84,7 +84,43 @@ Windows 9X as well).
   A correct installation makes all the rest almost trivial; a botched
   installation will likely make you miserable for quite some time.
 
-** Installing MinGW
+  There are two alternative to installing MinGW + MSYS: using the GUI
+  installer, called mingw-get, provided by the MinGW project, or
+  manual installation.  The next two sections describe each one of
+  these.
+
+** Installing MinGW and MSYS using mingw-get
+
+  A nice GUI installer, called mingw-get, is available for those who
+  don't like to mess with manual installations.  You can download it
+  from here:
+
+    https://sourceforge.net/projects/mingw/files/Installer/mingw-get/
+
+  (This installer only supports packages downloaded from the MinGW
+  site; for the rest you will still need the manual method.)
+
+  After installing mingw-get, invoke it install the packages that are
+  already selected by default on the "Select Components" screen of its
+  wizard.
+
+  After that, use "ming-get install PACKAGE" to install the following
+  additional packages:
+
+   . msys-base
+   . mingw-developer-toolkit
+   . msys-automake
+
+  At this point, you should be ready to configure and build Emacs in
+  its basic configuration.  Skip to the "Generating the configure
+  script" section for the build instructions.  If you want to build it
+  with image support and other optional libraries, read about the
+  optional libraries near the end of this document, before you start
+  the build.
+
+** Installing MinGW and MSYS manually
+
+*** MinGW
 
   You will need to install the MinGW port of GCC and Binutils, and the
   MinGW runtime and Windows API distributions, to compile Emacs.  You
@@ -96,20 +132,10 @@ Windows 9X as well).
   MinGW packages from that page: gcc, binutils, mingw-rt, w32api.  You
   only need the 'bin' and the 'dll' tarballs of each of the above.
 
-  A nice GUI installer, called mingw-get, is available for those who
-  don't like to mess with manual installations.  You can download it
-  from here:
-
-    https://sourceforge.net/projects/mingw/files/Installer/mingw-get/
-
-  (This installer only supports packages downloaded from the MinGW
-  site; for the rest you will still need the manual method.)
-
-  MinGW and MSYS packages are distributed as .tar.lzma compressed
-  archives.  If you like to install the packages manually, then we
-  recommend to use the Windows port of the 'bsdtar' program to unpack
-  the tarballs.  'bsdtar' is available as part of the 'libarchive'
-  package from here:
+  MinGW packages are distributed as .tar.lzma compressed archives.  To
+  install the packages manually, we recommend to use the Windows port
+  of the 'bsdtar' program to unpack the tarballs.  'bsdtar' is
+  available as part of the 'libarchive' package from here:
 
     http://sourceforge.net/projects/ezwinports/files/
 
@@ -118,7 +144,7 @@ Windows 9X as well).
   C:.  A typical example would be D:\usr, with D:\usr\bin holding the
   binaries and DLLs (should be added to your Path environment
   variable), D:\usr\include holding the include files, D:\usr\lib
-  holding the static and import libraries, D:\share holding docs,
+  holding the static and import libraries, D:\usr\share holding docs,
   message catalogs, and package-specific subdirectories, etc.
 
   Having all the headers and libraries in a single place will greatly
@@ -144,7 +170,8 @@ Windows 9X as well).
 
      Available from http://gnuwin32.sourceforge.net/packages/gzip.htm.
 
-   . pkg-config (needed for building with some optional image libraries)
+   . pkg-config (needed for building with some optional libraries,
+     such as GnuTLS and libxml2)
 
      Available from http://www.gtk.org/download/win32.php
 
@@ -160,7 +187,7 @@ Windows 9X as well).
   building a trivial "hello, world!" program, and make sure that it
   builds without any error messages and the binary works when run.
 
-** Installing MSYS
+*** Installing MSYS
 
   You will also need a reasonably full MSYS installation.  MSYS is an
   environment needed to run the Posix configure scripts and the
@@ -192,6 +219,10 @@ Windows 9X as well).
 
      http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
      http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
+
+  MSYS packages are distributed as .tar.lzma compressed archives.  To
+  install the packages manually, we recommend to use the Windows port
+  of the 'bsdtar' program, already mentioned above.
 
   If/when you are confident in your MinGW/MSYS installation, and want
   to speed up the builds, we recommend installing a pre-release
@@ -229,10 +260,10 @@ Windows 9X as well).
   need.
 
   At this point, you are ready to build Emacs in its basic
-  configuration.  If you want to build it with image support, read
-  about the optional image libraries near the end of this document.
+  configuration.  If you want to build it with image support and other
+  optional libraries, read about that near the end of this document.
 
-* Generating the configure script.
+* Generating the configure script
 
   If you are building a release or pretest tarball, skip this section,
   because the configure script is already present in the tarball.
@@ -493,6 +524,11 @@ Windows 9X as well).
 
 * Optional GnuTLS support
 
+  To compile with GnuTLS, you will need pkg-config to be installed, as
+  the configure script invokes pkg-config to find out which compiler
+  switches to use for GnuTLS.  See above for the URL where you can
+  find pkg-config for Windows.
+
   If the configure script finds the gnutls/gnutls.h file in the
   include path, Emacs is built with GnuTLS support by default; to
   avoid that you can pass the argument --without-gnutls.
@@ -506,6 +542,11 @@ Windows 9X as well).
   header files) at http://sourceforge.net/projects/ezwinports/files/.
 
 * Optional libxml2 support
+
+  To compile with libxml2, you will need pkg-config to be installed,
+  as the configure script invokes pkg-config to find out which
+  compiler switches to use for libxml2.  See above for the URL where
+  you can find pkg-config for Windows.
 
   If the configure script finds the libxml/HTMLparser.h file in the
   include path, Emacs is built with libxml2 support by default; to
@@ -532,6 +573,11 @@ Windows 9X as well).
   site.
 
 * Experimental SVG support
+
+  To compile with SVG, you will need pkg-config to be installed, as
+  the configure script invokes pkg-config to find out which compiler
+  switches to use for SVG.  See above for the URL where you can find
+  pkg-config for Windows.
 
   SVG support is currently experimental, and not built by default.
   Specify --with-rsvg and ensure you have all the dependencies in your
