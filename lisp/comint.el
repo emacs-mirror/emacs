@@ -1191,7 +1191,8 @@ If N is negative, find the next or Nth next match."
 	  (setq comint-stored-incomplete-input
 		(funcall comint-get-old-input)))
       (setq comint-input-ring-index pos)
-      (message "History item: %d" (1+ pos))
+      (unless isearch-mode
+	(message "History item: %d" (1+ pos)))
       (comint-delete-input)
       (insert (ring-ref comint-input-ring pos)))))
 
@@ -1540,8 +1541,11 @@ the function `isearch-message'."
       (overlay-put comint-history-isearch-message-overlay 'evaporate t))
     (overlay-put comint-history-isearch-message-overlay
 		 'display (isearch-message-prefix c-q-hack ellipsis))
-    ;; And clear any previous isearch message.
-    (message "")))
+    (if (and comint-input-ring-index (not ellipsis))
+	;; Display the current history index.
+	(message "History item: %d" (1+ comint-input-ring-index))
+      ;; Or clear a previous isearch message.
+      (message ""))))
 
 (defun comint-history-isearch-wrap ()
   "Wrap the input history search when search fails.

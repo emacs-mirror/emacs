@@ -1,3 +1,11 @@
+2013-05-01  Juri Linkov  <juri@jurta.org>
+
+	* comint.el (comint-previous-matching-input): Don't print message
+	"History item: %d" when `isearch-mode' is active.
+	(comint-history-isearch-message): Print message "History item: %d"
+	when `comint-input-ring-index' is not empty and this function is
+	called from `isearch-update' with a nil `ellipsis'.  (Bug#13223)
+
 2013-05-01  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-abbrev-table): Remove abbrev
