@@ -1719,8 +1719,8 @@ this is a reply."
          (group (when group (gnus-group-decoded-name group)))
          (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
-	  (and group (gnus-group-find-parameter group 'gcc-self)
-	       (not (gnus-virtual-group-p group))))
+	  (and group (not (gnus-virtual-group-p group))
+	       (gnus-group-find-parameter group 'gcc-self)))
 	 result
 	 (groups
 	  (cond

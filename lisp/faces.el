@@ -938,19 +938,14 @@ of the default face.  Value is FACE."
 PROMPT should not end in a space or a colon.
 
 Return DEFAULT if the user enters the empty string.
-If DEFAULT is non-nil, it should be a list of face names (symbols or strings).
-In that case, return the `car' of DEFAULT (if MULTIPLE is non-nil),
-or DEFAULT (if MULTIPLE is nil).  See below for the meaning of MULTIPLE.
-DEFAULT can also be a single face.
+If DEFAULT is non-nil, it should be a single face or a list of face names
+\(symbols or strings).  In the latter case, return the `car' of DEFAULT
+\(if MULTIPLE is nil, see below), or DEFAULT (if MULTIPLE is non-nil).
 
-This function uses `completing-read-multiple' with \"[ \\t]*,[ \\t]*\"
-as the separator regexp.  Thus, the user may enter multiple face names,
-separated by commas.
-
-MULTIPLE specifies the form of the return value.  If MULTIPLE is non-nil,
-return a list of face names; if the user entered just one face name,
-return a list of one face name.  Otherwise, return a single face name;
-if the user entered more than one face name, return only the first one."
+If MULTIPLE is non-nil, this function uses `completing-read-multiple'
+to read multiple faces with \"[ \\t]*,[ \\t]*\" as the separator regexp
+and it returns a list of face names.  Otherwise, it reads and returns
+a single face name."
   (if (and default (not (stringp default)))
       (setq default
             (cond ((symbolp default)
@@ -961,26 +956,36 @@ if the user entered more than one face name, return only the first one."
                   ;; If we only want one, and the default is more than one,
                   ;; discard the unwanted ones.
                   (t (symbol-name (car default))))))
+  (if (and default (not multiple))
+      ;; For compatibility with `completing-read-multiple' use `crm-separator'
+      ;; to define DEFAULT if MULTIPLE is nil.
+      (setq default (car (split-string default crm-separator t))))
 
-  (let (aliasfaces nonaliasfaces faces)
+  (let ((prompt (if default
+                    (format "%s (default `%s'): " prompt default)
+                  (format "%s: " prompt)))
+        aliasfaces nonaliasfaces faces)
     ;; Build up the completion tables.
     (mapatoms (lambda (s)
                 (if (facep s)
                     (if (get s 'face-alias)
                         (push (symbol-name s) aliasfaces)
                       (push (symbol-name s) nonaliasfaces)))))
-    (dolist (face (completing-read-multiple
-                   (if default
-                       (format "%s (default `%s'): " prompt default)
-                     (format "%s: " prompt))
+    (if multiple
+        (progn
+          (dolist (face (completing-read-multiple
+                         prompt
+                         (completion-table-in-turn nonaliasfaces aliasfaces)
+                         nil t nil 'face-name-history default))
+            ;; Ignore elements that are not faces
+            ;; (for example, because DEFAULT was "all faces")
+            (if (facep face) (push (intern face) faces)))
+          (nreverse faces))
+      (let ((face (completing-read
+                   prompt
                    (completion-table-in-turn nonaliasfaces aliasfaces)
-                   nil t nil 'face-name-history default))
-      ;; Ignore elements that are not faces
-      ;; (for example, because DEFAULT was "all faces")
-      (if (facep face) (push (intern face) faces)))
-    ;; Return either a list of faces or just one face.
-    (setq faces (nreverse faces))
-    (if multiple faces (car faces))))
+                   nil t nil 'face-name-history default)))
+        (if (facep face) (intern face))))))
 
 ;; Not defined without X, but behind window-system test.
 (defvar x-bitmap-file-path)

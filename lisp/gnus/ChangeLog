@@ -1,3 +1,32 @@
+2013-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-emacs-completing-read): Fix a filter for XEmacs.
+	(Bug#14304)
+
+2013-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-list-debbugs):
+	Use require rather than autoload.  (Bug#14262)
+
+2013-04-27  Julien Danjou  <julien@danjou.info>
+
+	* sieve-manage.el (sieve-manage-authenticator-alist): Update the sieve
+	port to "sieve" now that it has an official IANA port assigned.
+
+2013-04-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail-source.el (mail-source-fetch-pop, mail-source-check-pop):
+	Don't set the MAILHOST environment variable permanently (Bug#14271).
+
+2013-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-bury): Revert 2013-03-18 change.  (Bug#14117)
+
+2013-04-25  Andrew Cohen  <cohen@bu.edu>
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Re-order conditional to work for
+	string values of 'gcc-self.  Thanks to Saroj Thirumalai.
+
 2013-04-24  Andrew Cohen  <cohen@bu.edu>
 
 	* nnir.el (nnir-close-group): Make sure we are in the right group.

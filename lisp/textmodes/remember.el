@@ -432,17 +432,20 @@ If you want to remember a region, supply a universal prefix to
 
 (defcustom remember-data-directory "~/remember"
   "The directory in which to store remember data as files."
-  :type 'file
+  :type 'directory
+  :version "24.4"
   :group 'remember)
 
 (defcustom remember-directory-file-name-format "%Y-%m-%d_%T-%z"
   "Format string for the file name in which to store unprocessed data."
-  :type 'file
+  :type 'string
+  :version "24.4"
   :group 'remember)
 
 (defun remember-store-in-files ()
   "Store remember data in a file in `remember-data-directory'.
-The file is named after `remember-directory-file-name-format'."
+The file is named after `remember-directory-file-name-format' fed through
+`format-time-string'."
   (let ((name (format-time-string
 	       remember-directory-file-name-format (current-time)))
         (text (buffer-string)))

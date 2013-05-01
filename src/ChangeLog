@@ -1,3 +1,44 @@
+2013-05-01  David Reitter  <david.reitter@gmail.com>
+
+	* nsfns.m (ns_tooltip): Initialize.
+
+2013-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (decode_coding_gap): Don't remove the character before
+	a newline unless it's a CR character.  (Bug#14287)
+
+2013-04-28  Dan Nicolaescu  <dann@gnu.org>
+
+	* dispextern.h (struct face): Move enum face_underline_type
+	earlier so that bitfields can be in the same word.
+
+2013-04-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (handlePanelKeys): New function.
+	(EmacsOpenPanel:performKeyEquivalent:)
+	(EmacsSavePanel:performKeyEquivalent:): Call handlePanelKeys to handle
+	arrows/function/control and copy/paste keys (Bug#14296).
+
+2013-04-27  Juri Linkov  <juri@jurta.org>
+
+	* callint.c (Fcall_interactively): Call `Qread_number' for
+	interactive code letter `n' instead of using duplicate code.
+	(Bug#14254)
+
+2013-04-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* systime.h (make_timeval): Declare as 'const'.
+
+2013-04-27  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (font_open_entity): Always open a font of manageable
+	size.
+
+2013-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+	Port better to AIX (Bug#14258).
+	* lisp.h (ENUM_BF) [__IBMC__]: Make it 'unsigned int' here, too,
+	to pacify AIX xlc.
+
 2013-04-24  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (decode_coding_iso_2022): When an invalid escape

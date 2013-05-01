@@ -2701,7 +2701,6 @@ largest Emacs integer.")
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
-                 (setq math-normalize-error t)
 		 (or calc-next-why
                      (calc-record-why "Wrong type of argument"
                                       (cons (car math-normalize-a) args)))
@@ -2712,7 +2711,6 @@ largest Emacs integer.")
                                   (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
-                 (setq math-normalize-error t)
 		 (calc-record-why "No exact representation for result"
 				  (cons (car math-normalize-a) args))
 		 nil)

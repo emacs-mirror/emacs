@@ -1,3 +1,20 @@
+2013-04-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-04-28 extern-inline: work around bug in Sun c99
+
+2013-04-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-04-27 alignof, intprops, malloca: port better to IBM's C compiler
+
+2013-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port better to AIX (Bug#14258).
+	* configure.ac (CFLAGS): Append -O if the user did not specify CFLAGS,
+	we did not already infer an optimization option, and -O works.
+	AIX xlc needs -O, otherwise garbage collection doesn't work.
+
 2013-04-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-dist: Do not distribute admin/unidata/Makefile.

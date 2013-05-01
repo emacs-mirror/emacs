@@ -89,7 +89,7 @@
 
 /* Return 1 if the __typeof__ keyword works.  This could be done by
    'configure', but for now it's easier to do it by hand.  */
-#if 2 <= __GNUC__ || 0x5110 <= __SUNPRO_C
+#if 2 <= __GNUC__ || defined __IBM__TYPEOF__ || 0x5110 <= __SUNPRO_C
 # define _GL_HAVE___TYPEOF__ 1
 #else
 # define _GL_HAVE___TYPEOF__ 0

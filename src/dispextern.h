@@ -1591,12 +1591,12 @@ struct face
      shadow colors derived from the background color of the face.  */
   enum face_box_type box;
 
+  /* Style of underlining. */
+  enum face_underline_type underline_type;
+
   /* If `box' above specifies a 3D type, 1 means use box_color for
      drawing shadows.  */
   unsigned use_box_color_for_shadows_p : 1;
-
-  /* Style of underlining. */
-  enum face_underline_type underline_type;
 
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */

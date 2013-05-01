@@ -588,7 +588,8 @@ EXTRA-PROPERTIES is currently unused."
      (concat ";;; " (file-name-nondirectory file)
 	     " --- automatically extracted autoloads\n"
 	     ";;\n"
-	     ";;; Code:\n\n"
+	     ";;; Code:\n"
+             "(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))\n"
 	     "\n;; Local Variables:\n"
 	     ";; version-control: never\n"
 	     ";; no-byte-compile: t\n"
@@ -605,8 +606,7 @@ EXTRA-PROPERTIES is currently unused."
 	 ;;(ignore-name (concat name "-pkg.el"))
 	 (generated-autoload-file (expand-file-name auto-name pkg-dir))
 	 (version-control 'never))
-    (unless (fboundp 'autoload-ensure-default-file)
-      (package-autoload-ensure-default-file generated-autoload-file))
+    (package-autoload-ensure-default-file generated-autoload-file)
     (update-directory-autoloads pkg-dir)
     (let ((buf (find-buffer-visiting generated-autoload-file)))
       (when buf (kill-buffer buf)))))

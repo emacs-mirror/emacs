@@ -988,14 +988,17 @@ Calculate the cache if there isn't one."
   "Calculate the completions for prefix from completionlist.
 Output must be in semanticdb Find result format."
   ;; Must output in semanticdb format
+  (unless completionlist
+    (setq completionlist
+	  (or (oref obj cache)
+	      (semantic-collector-calculate-cache obj))))
   (let ((table (with-current-buffer (oref obj buffer)
 		 semanticdb-current-table))
 	(result (semantic-find-tags-for-completion
 		 prefix
 		 ;; To do this kind of search with a pre-built completion
 		 ;; list, we need to strip it first.
-		 (semanticdb-strip-find-results completionlist)))
-	)
+		 (semanticdb-strip-find-results completionlist))))
     (if result
 	(list (cons table result)))))
 

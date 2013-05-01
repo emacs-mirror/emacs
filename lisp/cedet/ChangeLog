@@ -1,3 +1,11 @@
+2013-04-27  David Engster  <deng@randomsample.de>
+
+	* semantic/complete.el
+	(semantic-collector-calculate-completions-raw): If
+	`completionslist' is not set, refresh the cache if necessary and
+	use it for completions.  This fixes the
+	`semantic-collector-buffer-deep' collector (bug#14265).
+
 2013-03-26  Leo Liu  <sdl.web@gmail.com>
 
 	* semantic/senator.el (senator-copy-tag-to-register): Move

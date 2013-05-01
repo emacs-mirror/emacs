@@ -7774,7 +7774,7 @@ decode_coding_gap (struct coding_system *coding,
 	      while (src_beg < src)
 		{
 		  *--dst = *--src;
-		  if (*src == '\n')
+		  if (*src == '\n' && src > src_beg && src[-1] == '\r')
 		    src--;
 		}
 	      diff = dst - src;

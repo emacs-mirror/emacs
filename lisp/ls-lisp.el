@@ -404,6 +404,13 @@ not contain `d', so that a full listing is expected."
 		;; the wildcard; let's say something similar.
 		(insert "(No match)\n"))
 	    (insert (format "total %.0f\n" (fceiling (/ sum 1024.0))))))
+	;; dired-insert-directory exprects to find point after the
+	;; text.  But if the listinmg is empty, as e.g. in empty
+	;; directories with -a removed from switches, point will be
+	;; before the inserted text, and dired-insert-directory will
+	;; not indent the listing correctly.  Going to the end of the
+	;; buffer fixes that.
+	(unless files (goto-char (point-max)))
 	(if (memq ?R switches)
 	    ;; List the contents of all directories recursively.
 	    ;; cadr of each element of `file-alist' is t for

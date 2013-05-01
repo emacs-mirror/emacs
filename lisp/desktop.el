@@ -189,6 +189,19 @@ determine where the desktop is saved."
   :group 'desktop
   :version "22.1")
 
+(defcustom desktop-auto-save-timeout nil
+  "Number of seconds between auto-saves of the desktop.
+Zero or nil means disable timer-based auto-saving."
+  :type '(choice (const :tag "Off" nil)
+                 (integer :tag "Seconds"))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (condition-case nil
+	     (desktop-auto-save-set-timer)
+	   (error nil)))
+  :group 'desktop
+  :version "24.4")
+
 (defcustom desktop-load-locked-desktop 'ask
   "Specifies whether the desktop should be loaded if locked.
 Possible values are:
@@ -539,6 +552,10 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 (defvar desktop-delay-hook nil
   "Hooks run after all buffers are loaded; intended for internal use.")
 
+(defvar desktop-file-checksum nil
+  "Checksum of the last auto-saved contents of the desktop file.
+Used to avoid writing contents unchanged between auto-saves.")
+
 ;; ----------------------------------------------------------------------------
 ;; Desktop file conflict detection
 (defvar desktop-file-modtime nil
@@ -842,11 +859,12 @@ DIRNAME must be the directory in which the desktop file will be saved."
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
-(defun desktop-save (dirname &optional release)
+(defun desktop-save (dirname &optional release auto-save)
   "Save the desktop in a desktop file.
 Parameter DIRNAME specifies where to save the desktop file.
 Optional parameter RELEASE says whether we're done with this desktop.
-See also `desktop-base-file-name'."
+If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
+and don't save the buffer if they are the same."
   (interactive "DDirectory to save desktop file in: ")
   (setq desktop-dirname (file-name-as-directory (expand-file-name dirname)))
   (save-excursion
@@ -906,10 +924,17 @@ See also `desktop-base-file-name'."
 		(insert ")\n\n"))))
 
 	  (setq default-directory desktop-dirname)
-	  (let ((coding-system-for-write 'emacs-mule))
-	    (write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
-	  ;; We remember when it was modified (which is presumably just now).
-	  (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name)))))))))
+	  ;; If auto-saving, avoid writing if nothing has changed since the last write.
+	  ;; Don't check 300 characters of the header that contains the timestamp.
+	  (let ((checksum (and auto-save (md5 (current-buffer)
+					      (+ (point-min) 300) (point-max)
+					      'emacs-mule))))
+	    (unless (and auto-save (equal checksum desktop-file-checksum))
+	      (let ((coding-system-for-write 'emacs-mule))
+		(write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
+	      (setq desktop-file-checksum checksum)
+	      ;; We remember when it was modified (which is presumably just now).
+	      (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name)))))))))))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -1061,6 +1086,37 @@ directory DIRNAME."
       (desktop-save desktop-dirname)
     (call-interactively 'desktop-save))
   (message "Desktop saved in %s" (abbreviate-file-name desktop-dirname)))
+
+;; ----------------------------------------------------------------------------
+;; Auto-Saving.
+(defvar desktop-auto-save-timer nil)
+
+(defun desktop-auto-save ()
+  "Save the desktop periodically.
+Called by the timer created in `desktop-auto-save-set-timer'."
+  (when (and desktop-save-mode
+	     (integerp desktop-auto-save-timeout)
+	     (> desktop-auto-save-timeout 0)
+	     ;; Avoid desktop saving during lazy loading.
+	     (not desktop-lazy-timer)
+	     ;; Save only to own desktop file.
+	     (eq (emacs-pid) (desktop-owner))
+	     desktop-dirname)
+    (desktop-save desktop-dirname nil t))
+  (desktop-auto-save-set-timer))
+
+(defun desktop-auto-save-set-timer ()
+  "Reset the auto-save timer.
+Cancel any previous timer.  When `desktop-auto-save-timeout' is a positive
+integer, start a new timer to call `desktop-auto-save' in that many seconds."
+  (when desktop-auto-save-timer
+    (cancel-timer desktop-auto-save-timer)
+    (setq desktop-auto-save-timer nil))
+  (when (and (integerp desktop-auto-save-timeout)
+	     (> desktop-auto-save-timeout 0))
+    (setq desktop-auto-save-timer
+	  (run-with-timer desktop-auto-save-timeout nil
+			  'desktop-auto-save))))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -1315,6 +1371,7 @@ If there are no buffers left to create, kill the timer."
         (setq desktop-save-mode nil)))
     (when desktop-save-mode
       (desktop-read)
+      (desktop-auto-save-set-timer)
       (setq inhibit-startup-screen t))))
 
 (provide 'desktop)

@@ -1,7 +1,205 @@
+2013-05-01  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el: Compatible with older emacs-24 releases.
+	(inferior-octave-has-built-in-variables): Remove.  Buil-in
+	variables were removed from Octave in 2007.
+	(inferior-octave-startup): Fix uses.
+	(comint-line-beginning-position): Remove compatibility code for
+	emacs 21.
+
+2013-05-01  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-forward, isearch-mode): Doc fix.  (Bug#13923)
+
+2013-05-01  Juri Linkov  <juri@jurta.org>
+
+	* comint.el (comint-previous-matching-input): Don't print message
+	"History item: %d" when `isearch-mode' is active.
+	(comint-history-isearch-message): Print message "History item: %d"
+	when `comint-input-ring-index' is not empty and this function is
+	called from `isearch-update' with a nil `ellipsis'.  (Bug#13223)
+
+2013-05-01  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-abbrev-table): Remove abbrev
+	definitions.  Use completion-at-point to insert keywords.
+	(octave-abbrev-start): Remove.
+	(inferior-octave-mode, octave-mode): Use :abbrev-table instead.
+
+2013-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-prompt-read-only): Fix last
+	change.
+
+2013-04-30  Alan Mackenzie  <acm@muc.de>
+
+	Handle arbitrarily long C++ member initialisation lists.
+	* progmodes/cc-engine.el (c-back-over-member-initializers): new
+	function.
+	(c-guess-basic-syntax): New CASE 5R (extracted from 5B) to handle
+	(most) member init lists.
+
+2013-04-30  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (inferior-octave-prompt-read-only): New user
+	variable.
+
+2013-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-variables): Remove.  No builtin
+	variables any more.  All converted to functions.
+	(octave-font-lock-keywords, octave-completion-at-point-function):
+	Fix uses.
+	(octave-font-lock-texinfo-comment): New user variable.
+	(octave-texinfo-font-lock-keywords): New variable for texinfo
+	comment block.
+	(octave-function-comment-block): New face.
+	(octave-font-lock-texinfo-comment): New function.
+	(octave-mode): Font lock texinfo comment block.
+
+2013-04-29  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-font-lock-keywords): Handle 'end' in
+	indexing expression.
+	(octave-continuation-string): Do not use \.
+	(inferior-octave-complete-impossible): Remove.
+	(inferior-octave-completion-table)
+	(inferior-octave-completion-at-point): Remove its uses.
+	(inferior-octave-startup): completion_matches was introduced to
+	Octave in 1996 so safe to assume it.
+	(octave-function-file-comment): Improve to follow how Octave does it.
+	(octave-update-function-file-comment): Tweak.
+
+2013-04-29  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup-hook): Obsolete.
+	(inferior-octave-startup): Remove inferior-octave-startup-hook.
+	(octave-function-file-comment): Fix typo.
+	(octave-sync-function-file-names): Use read-char-choice.
+
+2013-04-28  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-normalize): Don't set `math-normalize-error'
+	to t for the less important warnings.
+
+2013-04-27  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
+
+	* isearch.el (isearch-fail-pos): Check for empty `cmds'.  (Bug#14268)
+
+2013-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-view.el (log-view-current-entry):
+	Treat "---" separator lines as part of the following rev.  (Bug#14169)
+
+2013-04-27  Juri Linkov  <juri@jurta.org>
+
+	* subr.el (read-number): Doc fix about using it by interactive
+	code letter `n'.  (Bug#14254)
+
+2013-04-27  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-auto-save-timeout): New option.
+	(desktop-file-checksum): New variable.
+	(desktop-save): Add optional arg `auto-save' and don't auto-save
+	if nothing changed.
+	(desktop-auto-save-timer): New variable.
+	(desktop-auto-save, desktop-auto-save-set-timer): New functions.
+	(after-init-hook): Call `desktop-auto-save-set-timer'.
+	Suggested by Reuben Thomas <rrt@sc3d.org> in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00327.html>.
+
+2013-04-27  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-function-file-p)
+	(octave-skip-comment-forward, octave-function-file-comment)
+	(octave-update-function-file-comment): New functions.
+	(octave-mode-map): Bind C-c ; to
+	octave-update-function-file-comment.
+	(octave-mode-menu): Add octave-update-function-file-comment.
+	(octave-mode, inferior-octave-mode): Fix doc-string.
+	(octave-insert-defun): Conform to Octave's coding convention.
+	(Bug#14285)
+
+	* files.el (basic-save-buffer): Don't let errors in
+	before-save-hook prevent saving buffer.
+
+2013-04-20  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Use completing-read if arg multiple
+	is nil.
+
+2013-04-27  Ingo Lohmar  <i.lohmar@gmail.com>  (tiny change)
+
+	* ls-lisp.el (ls-lisp-insert-directory): If no files are
+	displayed, move point to after the totals line.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00677.html
+	for the details.
+
+2013-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-autoload-ensure-default-file):
+	Add current dir to the load-path.
+	(package-generate-autoloads): Don't rely on
+	autoload-ensure-default-file.
+
+2013-04-26  Reuben Thomas  <rrt@sc3d.org>
+
+	* textmodes/remember.el (remember-store-in-files): Document that
+	the file name format is passed to `format-time-string'.
+
+2013-04-26  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-sync-function-file-names): New function.
+	(octave-mode): Use it in before-save-hook.
+
+2013-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Disable undo
+	(bug#14274).
+
+	* progmodes/octave.el (octave-smie-forward-token): Properly skip
+	\n and comment, even if it's not an implicit ; (bug#14218).
+
+2013-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-number): Once more use `read' rather than
+	`string-to-number', to trap non-numeric input.  (Bug#14254)
+
+2013-04-26  Erik Charlebois  <erikcharlebois@gmail.com>
+
+	* emacs-lisp/syntax.el (syntax-propertize-multiline):
+	Use `syntax-multiline' text property consistently instead of
+	`font-lock-multiline'. (bug#14237).
+
+2013-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (list-load-path-shadows):
+	No longer necessary to check for duplicate simple.el, since
+	2012-07-07 change to init_lread to not include installation lisp
+	directories in load-path when running uninstalled.  (Bug#14270)
+
+2013-04-26  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-submit-bug-report): Obsolete.
+	(octave-mode, inferior-octave-mode): Use setq-local.
+	(octave-not-in-string-or-comment-p): Rename to
+	octave-in-string-or-comment-p.
+	(octave-in-comment-p, octave-in-string-p)
+	(octave-in-string-or-comment-p): Replace defsubst with defun.
+
+2013-04-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (distclean): Remove $(lisp)/loaddefs.el~.
+
+2013-04-25  Bastien Guerry  <bzg@gnu.org>
+
+	* textmodes/remember.el (remember-data-directory)
+	(remember-directory-file-name-format): Fix custom types.
+
 2013-04-25  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (octave-completion-at-point-function): Make
-	use of inferior octave process.
+	* progmodes/octave.el (octave-completion-at-point-function):
+	Make use of inferior octave process.
 	(octave-initialize-completions): Remove.
 	(inferior-octave-completion-table): New function.
 	(inferior-octave-completion-at-point): Use it.
@@ -72,7 +270,7 @@
 	(opascal-parse-next-literal, opascal-debug-unparse-buffer):
 	Adjust callers.
 
-2013-04-24  Reuben Thomas <rrt@sc3d.org>
+2013-04-24  Reuben Thomas  <rrt@sc3d.org>
 
 	* textmodes/remember.el (remember-handler-functions): Add an
 	option for a new handler `remember-store-in-files'.

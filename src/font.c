@@ -2819,7 +2819,7 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   struct font_driver_list *driver_list;
   Lisp_Object objlist, size, val, font_object;
   struct font *font;
-  int min_width, height;
+  int min_width, height, psize;
 
   eassert (FONT_ENTITY_P (entity));
   size = AREF (entity, FONT_SIZE_INDEX);
@@ -2846,12 +2846,19 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
         }
     }
 
-  font_object = driver_list->driver->open (f, entity, pixel_size);
-  if (!NILP (font_object))
-    ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
+  /* We always open a font of manageable size; i.e non-zero average
+     width and height.  */
+  for (psize = pixel_size; ; psize++)
+    {
+      font_object = driver_list->driver->open (f, entity, psize);
+      if (NILP (font_object))
+	return Qnil;
+      font = XFONT_OBJECT (font_object);
+      if (font->average_width > 0 && font->height > 0)
+	break;
+    }
+  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
   FONT_ADD_LOG ("open", entity, font_object);
-  if (NILP (font_object))
-    return Qnil;
   ASET (entity, FONT_OBJLIST_INDEX,
 	Fcons (font_object, AREF (entity, FONT_OBJLIST_INDEX)));
 
@@ -3118,6 +3125,8 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
       double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
 
       pixel_size = POINT_TO_PIXEL (pt / 10, FRAME_RES_Y (f));
+      if (pixel_size < 1)
+	pixel_size = 1;
     }
   ASET (work, FONT_SIZE_INDEX, Qnil);
   foundry[0] = AREF (work, FONT_FOUNDRY_INDEX);
