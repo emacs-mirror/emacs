@@ -62,6 +62,7 @@ typedef struct mps_alloc_pattern_s
   *mps_alloc_pattern_t;                    /* allocation patterns */
 typedef struct mps_frame_s
   *mps_frame_t;                            /* allocation frames */
+typedef const struct mps_key_s *mps_key_t; /* argument key */
 
 /* Concrete Types */
 
@@ -90,6 +91,36 @@ enum {
   MPS_RES_COMMIT_LIMIT,         /* arena commit limit exceeded */
   MPS_RES_PARAM                 /* illegal user parameter value */
 };
+
+/* Keyword argument lists */
+
+typedef struct mps_arg_s {
+  mps_key_t key;
+  union {
+    mps_bool_t b;
+    char c;
+    const char *string;
+    int i;
+    unsigned u;
+    long l;
+    unsigned long ul;
+    size_t size;
+    va_list varargs;
+    mps_addr_t addr;
+  } val;
+} mps_arg_s;
+
+#define MPS_KEY_ARGS_END        NULL
+
+/* FIXME: This shouldn't be here */
+extern const struct mps_key_s _mps_key_vmw3_top_down;
+#define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
+
+extern const struct mps_key_s _mps_key_varargs;
+#define MPS_KEY_VARARGS         (&_mps_key_varargs)
+extern const struct mps_key_s _mps_key_arena_size;
+#define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
+
 
 /* <a id="message.types"> Keep in sync with
  * <code/mpmtypes.h#message.types> */
@@ -272,6 +303,8 @@ extern mps_bool_t mps_arena_step(mps_arena_t, double, double);
 
 extern mps_res_t mps_arena_create(mps_arena_t *, mps_arena_class_t, ...);
 extern mps_res_t mps_arena_create_v(mps_arena_t *, mps_arena_class_t, va_list);
+extern mps_res_t mps_arena_create_args(mps_arena_t *, mps_arena_class_t,
+                                       mps_arg_s []);
 extern void mps_arena_destroy(mps_arena_t);
 
 extern size_t mps_arena_reserved(mps_arena_t);

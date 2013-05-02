@@ -182,6 +182,7 @@
 		3124CAFB156BE82000753214 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3124CAFC156BE82900753214 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		3150AE53156ABA2500A6E22A /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		317B3C2B1731830100F9A469 /* arg.c in Sources */ = {isa = PBXBuildFile; fileRef = 317B3C2A1731830100F9A469 /* arg.c */; };
 		31A47BA4156C1E130039B1C2 /* mps.c in Sources */ = {isa = PBXBuildFile; fileRef = 31A47BA3156C1E130039B1C2 /* mps.c */; };
 		31D60007156D3C6200337B26 /* segsmss.c in Sources */ = {isa = PBXBuildFile; fileRef = 31D60006156D3C5F00337B26 /* segsmss.c */; };
 		31D60008156D3C7400337B26 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -1049,6 +1050,7 @@
 		3124CAE4156BE6D500753214 /* fmthe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmthe.c; sourceTree = "<group>"; };
 		3124CAEB156BE7F300753214 /* amcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAF5156BE81100753214 /* amcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcss.c; sourceTree = "<group>"; };
+		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
 		31A47BA3156C1E130039B1C2 /* mps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mps.c; sourceTree = "<group>"; };
 		31A47BA5156C1E5E0039B1C2 /* ssixi3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssixi3.c; sourceTree = "<group>"; };
 		31D60006156D3C5F00337B26 /* segsmss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = segsmss.c; sourceTree = "<group>"; };
@@ -1568,6 +1570,7 @@
 				31EEAC05156AB27B00714D05 /* arena.c */,
 				31EEAC06156AB27B00714D05 /* arenacl.c */,
 				31EEAC03156AB23A00714D05 /* arenavm.c */,
+				317B3C2A1731830100F9A469 /* arg.c */,
 				31EEAC3F156AB32500714D05 /* boot.c */,
 				31EEAC27156AB2F200714D05 /* bt.c */,
 				31EEAC19156AB2B200714D05 /* buffer.c */,
@@ -2690,6 +2693,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				31A47BA4156C1E130039B1C2 /* mps.c in Sources */,
+				317B3C2B1731830100F9A469 /* arg.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -98,9 +98,12 @@ Bool VMCheck(VM vm)
 }
 
 
+Res VM
+
+
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size)
+Res VMCreate(VM *vmReturn, Size size, mps_arg_s args[])
 {
   Align align;
   VM vm;
@@ -109,6 +112,8 @@ Res VMCreate(VM *vmReturn, Size size)
   Res res;
 
   AVER(vmReturn != NULL);
+  AVERT(Arg, args);
+  UNUSED(args);
 
   /* Find out the page size from the OS */
   pagesize = getpagesize();

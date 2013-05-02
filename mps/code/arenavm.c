@@ -445,7 +445,7 @@ static void VMChunkFinish(Chunk chunk)
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
-static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
+static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Size userSize;        /* size requested by user */
   Size chunkSize;       /* size actually created */
@@ -456,15 +456,26 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   Index gen;
   VM arenaVM;
   Chunk chunk;
-
-  userSize = va_arg(args, Size);
+  mps_arg_s arg;
+  
   AVER(arenaReturn != NULL);
   AVER(class == VMArenaClassGet() || class == VMNZArenaClassGet());
+  AVER(ArgListCheck(args));
+
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
+    userSize = arg.val.size;
+  else if (ArgPick(&arg, args, MPS_KEY_VARARGS))
+    userSize = va_arg(arg.val.varargs, Size);
+  else {
+    res = ResPARAM;
+    goto failVMCreate;
+  }
+
   AVER(userSize > 0);
 
   /* Create a VM to hold the arena and map it. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
-  res = VMCreate(&arenaVM, vmArenaSize);
+  res = VMCreate(&arenaVM, vmArenaSize, args);
   if (res != ResOK)
     goto failVMCreate;
   res = VMMap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));

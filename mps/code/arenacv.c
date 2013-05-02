@@ -340,7 +340,7 @@ static void testPageTable(ArenaClass class, ...)
   va_list args;
 
   va_start(args, class);
-  die(ArenaCreateV(&arena, class, args), "ArenaCreate");
+  die(ArenaCreate(&arena, class, args), "ArenaCreate");
   va_end(args);
 
   die(PoolCreate(&pool, arena, PoolClassMV(),

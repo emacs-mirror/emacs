@@ -130,6 +130,14 @@ extern int (AddrComp)(Addr a, Addr b, Size size);
 extern Bool ResIsAllocFailure(Res res);
 
 
+/* Argument Lists */
+
+extern Bool KeyCheck(Key key);
+extern Bool ArgCheck(Arg arg);
+extern Bool ArgListCheck(ArgList args);
+extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
+
+
 /* Logs and Powers
  *
  * SizeIsP2 returns TRUE if and only if size is a non-negative integer
@@ -485,7 +493,7 @@ extern AbstractArenaClass AbstractArenaClassGet(void);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
-extern Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args);
+extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, mps_arg_s args[]);
 extern void ArenaDestroy(Arena arena);
 extern Res ArenaInit(Arena arena, ArenaClass class);
 extern void ArenaFinish(Arena arena);
@@ -966,7 +974,7 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 extern Align VMAlign(VM vm);
 extern Bool VMCheck(VM vm);
-extern Res VMCreate(VM *VMReturn, Size size);
+extern Res VMCreate(VM *VMReturn, Size size, mps_arg_s args[]);
 extern void VMDestroy(VM vm);
 extern Addr VMBase(VM vm);
 extern Addr VMLimit(VM vm);

@@ -1,22 +1,87 @@
-/* mpsacl.h: MEMORY POOL SYSTEM ARENA CLASS "CL"
+/* arg.c: ARGUMENT LISTS
  *
- * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * $Id: //info.ravenbrook.com/project/mps/custom/cet/main/code/bt.c#1 $
+ * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef mpsacl_h
-#define mpsacl_h
+#include "config.h"
+#include "check.h"
+#include "mpm.h"
 
-#include "mps.h"
+SRCID(arg, "$Id$");
 
-/* Client arena base address argument */
-extern const struct mps_key_s _mps_key_arena_cl_addr;
-#define MPS_KEY_ARENA_CL_ADDR (&_mps_key_arena_cl_addr)
+#define KeySig          ((Sig)0x519CE333) /* SIGnature KEYyy */
+typedef struct mps_key_s {
+  Sig sig;
+  const char *name;
+  Bool (*check)(Arg arg);
+} KeyStruct;
 
-extern mps_arena_class_t mps_arena_class_cl(void);
+
+static Bool ArgCheckCant(Arg arg) {
+  UNUSED(arg);
+  return TRUE;
+}
+
+const KeyStruct _mps_key_varargs = {KeySig, "VARARGS", ArgCheckCant};
 
 
-#endif /* mpsacl_h */
+/* KeyCheck -- check the validity of an argument key */
+
+Bool KeyCheck(Key key)
+{
+  CHECKS(Key, key);
+  CHECKL(key->name != NULL);
+  CHECKL(FUNCHECK(key->check));
+  return TRUE;
+}
+
+
+Bool ArgCheck(Arg arg)
+{
+  CHECKL(arg != NULL);
+  CHECKD(Key, arg->key);
+  CHECKL(arg->key->check(arg));
+  return TRUE;
+}
+
+
+/* ArgCheck -- check the validity of an argument list */
+
+Bool ArgListCheck(ArgList args)
+{
+  Index i;
+  CHECKL(args != NULL);
+  /* FIXME: Maximum plausible length? */
+  for (i = 0; args[i].key != MPS_KEY_ARGS_END; ++i)
+    CHECKL(ArgCheck(&args[i]));
+  return TRUE;
+}
+
+
+Bool ArgPick(mps_arg_s *argOut, mps_arg_s args[], Key key) {
+  Index i;
+  
+  AVER(argOut != NULL);
+  AVERT(Arg, args);
+  AVERT(Key, key);
+
+  for (i = 0; args[i].key != MPS_KEY_ARGS_END; ++i)
+    if (args[i].key == key)
+      goto found;
+  return FALSE;
+
+found:
+  *argOut = args[i];
+  for(;;) {
+    args[i] = args[i + 1];
+    if (args[i].key == MPS_KEY_ARGS_END)
+      break;
+    ++i;
+  }
+
+  return TRUE;
+}
 
 
 /* C. COPYRIGHT AND LICENSE
