@@ -1,3 +1,10 @@
+2013-05-02  Alan Mackenzie  <acm@muc.de>
+
+	Eliminate variable c-standard-font-lock-fontify-region-function.
+	* progmodes/cc-mode.el
+	(c-standard-font-lock-fontify-region-function): Remove.
+	(c-font-lock-fontify-region, c-after-font-lock-init): Adapt.
+
 2013-05-01  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el: Compatible with older emacs-24 releases.
