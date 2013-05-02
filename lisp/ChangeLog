@@ -1,3 +1,8 @@
+2013-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-dir.el (vc-dir-mode): Don't autoload it for everyone.
+	* desktop.el (vc-dir-mode): Just autoload it here.
+
 2013-05-02  Alan Mackenzie  <acm@muc.de>
 
 	Eliminate variable c-standard-font-lock-fontify-region-function.
