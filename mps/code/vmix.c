@@ -98,9 +98,6 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VM
-
-
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
 Res VMCreate(VM *vmReturn, Size size, mps_arg_s args[])
