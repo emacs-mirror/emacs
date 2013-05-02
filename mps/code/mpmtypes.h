@@ -44,6 +44,11 @@ typedef void *Pointer;                  /* <design/type/#pointer> */
 typedef Word Clock;                     /* processor time */
 typedef MPS_T_ULONGEST ULongest;        /* <design/type/#ulongest> */
 
+typedef mps_arg_s ArgStruct;
+typedef mps_arg_s *Arg;
+typedef mps_arg_s *ArgList;
+typedef mps_key_t Key;
+
 typedef Word RefSet;                    /* design.mps.refset */
 typedef Word ZoneSet;                   /* design.mps.refset */
 typedef unsigned Rank;
@@ -109,7 +114,7 @@ typedef struct StackContextStruct *StackContext;
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
 
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
-                               ArenaClass class, va_list args);
+                               ArenaClass class, mps_arg_s args[]);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef void (*ArenaSpareCommitExceededMethod)(Arena arena);

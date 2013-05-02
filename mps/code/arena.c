@@ -205,15 +205,16 @@ failGlobalsInit:
 }
 
 
-/* ArenaCreateV -- create the arena and call initializers */
+/* ArenaCreate -- create the arena and call initializers */
 
-Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
+Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Arena arena;
   Res res;
 
   AVER(arenaReturn != NULL);
   AVERT(ArenaClass, class);
+  AVER(ArgListCheck(args));
 
   /* We must initialise the event subsystem very early, because event logging
      will start as soon as anything interesting happens and expect to write
