@@ -131,7 +131,7 @@ parenthetical grouping.")
   (octave-syntax-propertize-sqs end)
   (funcall (syntax-propertize-rules
             ;; Try to distinguish the string-quotes from the transpose-quotes.
-            ("[[({,; ]\\('\\)"
+            ("\\(?:^\\|[[({,; ]\\)\\('\\)"
              (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
            (point) end))
 
