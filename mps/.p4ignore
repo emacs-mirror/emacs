@@ -1,0 +1,5 @@
+# Mac OS X Finder turds
+.DS_Store
+# Patch results
+*.orig
+*.rej

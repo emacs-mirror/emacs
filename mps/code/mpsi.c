@@ -52,6 +52,10 @@
 #include "sac.h"
 #include "chain.h"
 
+#include <stdarg.h>
+#include <string.h>
+
+
 SRCID(mpsi, "$Id$");
 
 
@@ -311,11 +315,14 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
                            mps_arena_class_t mps_arena_class, ...)
 {
   mps_res_t res;
-  va_list args;
+  mps_arg_s args[2];
 
-  va_start(args, mps_arena_class);
-  res = mps_arena_create_v(mps_arena_o, mps_arena_class, args);
-  va_end(args);
+  args[0].key = MPS_KEY_VARARGS;
+  va_start(args[0].val.varargs, mps_arena_class);
+  args[1].key = MPS_KEY_ARGS_END;
+  res = mps_arena_create_args(mps_arena_o, mps_arena_class, args);
+  va_end(args[0].val.varargs);
+
   return res;
 }
 
@@ -323,7 +330,25 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
 /* mps_arena_create_v -- create an arena object */
 
 mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
-                             mps_arena_class_t arena_class, va_list args)
+                             mps_arena_class_t arena_class,
+                             va_list varargs)
+{
+  mps_arg_s args[2];
+  
+  args[0].key = MPS_KEY_VARARGS;
+  /* FIXME: va_copy not available in C89 */
+  memcpy(&args[0].val.varargs, &varargs, sizeof(va_list));
+  args[1].key = MPS_KEY_ARGS_END;
+
+  return mps_arena_create_args(mps_arena_o, arena_class, args);
+}
+
+
+/* mps_arena_create_arg -- create an arena object */
+
+mps_res_t mps_arena_create_args(mps_arena_t *mps_arena_o,
+                                mps_arena_class_t arena_class,
+                                mps_arg_s mps_args[])
 {
   Arena arena;
   Res res;
@@ -334,14 +359,20 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
 
   AVER(mps_arena_o != NULL);
 
-  res = ArenaCreateV(&arena, arena_class, args);
+  res = ArenaCreate(&arena, arena_class, mps_args);
   if (res != ResOK)
     return res;
+
+  /* FIXME: Consider doing this
+  if (args[0].key != MPS_KEY_ARGS_END)
+    return MPS_RES_PARAM;
+  */
 
   ArenaLeave(arena);
   *mps_arena_o = (mps_arena_t)arena;
   return MPS_RES_OK;
 }
+
 
 /* mps_arena_destroy -- destroy an arena object */
 

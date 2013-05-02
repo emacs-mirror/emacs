@@ -186,8 +186,7 @@ static void ClientChunkFinish(Chunk chunk)
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
-static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
-                           va_list args)
+static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Arena arena;
   ClientArena clientArena;
@@ -196,11 +195,32 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   Addr base, limit, chunkBase;
   Res res;
   Chunk chunk;
- 
-  size = va_arg(args, Size);
-  base = va_arg(args, Addr);
+  mps_arg_s arg;
+  
   AVER(arenaReturn != NULL);
   AVER((ArenaClass)mps_arena_class_cl() == class);
+  AVER(ArgListCheck(args));
+
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE)) {
+    size = arg.val.size;
+    if (ArgPick(&arg, args, MPS_KEY_ARENA_CL_ADDR))
+      base = arg.val.addr;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+  } else if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    if (ArgPick(&arg, args, MPS_KEY_ARENA_CL_ADDR)) {
+      res = ResPARAM;
+      goto failParam;
+    }
+    size = va_arg(arg.val.varargs, Size);
+    base = va_arg(arg.val.varargs, Addr);
+  } else {
+    res = ResPARAM;
+    goto failParam;
+  }
+
   AVER(base != (Addr)0);
 
   clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN);
@@ -243,6 +263,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
 
 failChunkCreate:
   ArenaFinish(arena);
+failParam:
   return res;
 }
 
