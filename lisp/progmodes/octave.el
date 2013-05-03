@@ -100,30 +100,34 @@ parenthetical grouping.")
   (list
    ;; Fontify all builtin keywords.
    (cons (concat "\\_<\\("
-		 (regexp-opt (append octave-reserved-words
+                 (regexp-opt (append octave-reserved-words
                                      octave-text-functions))
-		 "\\)\\_>")
-	 'font-lock-keyword-face)
+                 "\\)\\_>")
+         'font-lock-keyword-face)
    ;; Note: 'end' also serves as the last index in an indexing expression.
    ;; Ref: http://www.mathworks.com/help/matlab/ref/end.html
-   '("\\_<end\\_>" (0 (save-excursion
-                        (condition-case nil
-                            (progn
-                              (goto-char (match-beginning 0))
-                              (backward-up-list)
-                              (unless (memq (char-after) '(?\( ?\[ ?\{))
-                                font-lock-keyword-face))
-                          (error font-lock-keyword-face)))
-                      t))
+   '((lambda (limit)
+       (while (re-search-forward "\\_<end\\_>" limit 'move)
+         (let ((beg (match-beginning 0))
+               (end (match-end 0)))
+           (unless (octave-in-string-or-comment-p)
+             (unwind-protect
+                 (progn
+                   (goto-char beg)
+                   (backward-up-list)
+                   (when (memq (char-after) '(?\( ?\[ ?\{))
+                     (put-text-property beg end 'face nil)))
+               (goto-char end)))))
+       nil))
    ;; Fontify all builtin operators.
    (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
-	 (if (boundp 'font-lock-builtin-face)
-	     'font-lock-builtin-face
-	   'font-lock-preprocessor-face))
+         (if (boundp 'font-lock-builtin-face)
+             'font-lock-builtin-face
+           'font-lock-preprocessor-face))
    ;; Fontify all function declarations.
    (list octave-function-header-regexp
-	 '(1 font-lock-keyword-face)
-	 '(3 font-lock-function-name-face nil t)))
+         '(1 font-lock-keyword-face)
+         '(3 font-lock-function-name-face nil t)))
   "Additional Octave expressions to highlight.")
 
 (defun octave-syntax-propertize-function (start end)
