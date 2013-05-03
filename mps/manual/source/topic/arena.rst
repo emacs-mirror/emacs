@@ -73,6 +73,19 @@ the way that they acquire the memory to be managed.
     The type of :term:`arena classes`.
 
 
+.. c:function:: mps_res_t mps_arena_create_k(mps_arena_t *arena_o, mps_arena_class_t arena_class, mps_arg_s args[])
+
+    Create an :term:`arena`.
+    
+    ``arena_o`` points to a location that will hold a pointer to the new
+    arena.
+
+    ``arena_class`` is the :term:`arena class`.
+    
+    ``args`` are :ref:`topic-interface-keywords` specific to the arena
+    class.  See the documentation for the arena class.
+
+
 .. c:function:: mps_res_t mps_arena_create(mps_arena_t *arena_o, mps_arena_class_t arena_class, ...)
 
     Create an :term:`arena`.
@@ -142,17 +155,28 @@ Client arenas
     A client arena gets its managed memory from the :term:`client
     program`. This memory chunk is passed when the arena is created.
 
-    When creating a client arena, :c:func:`mps_arena_create` takes two
-    extra arguments::
+    When creating a client arena, :c:func:`mps_arena_create_k` requires two
+    :ref:`topic-interface-keywords`:
+   
+    * ``MPS_KEY_ARENA_CL_BASE`` (type ``mps_addr_t``) is the
+      :term:`address` of the chunk of memory that will be managed by the
+      arena.
+
+    * ``MPS_KEY_ARENA_SIZE`` (type ``size_t``) is its size.
+    
+    For example (in C99)::
+    
+        res = mps_arena_create_k(&arena, mps_arena_class_cl(),
+            (mps_arg_s[]){{MPS_KEY_ARENA_CL_BASE, .val.addr = base},
+                          {MPS_KEY_ARENA_SIZE,    .val.size = size},
+                          {MPS_KEY_ARGS_END}});
+
+    When creating a client arena, :c:func:`mps_arena_create` takes the
+    these arguments like this::
 
         mps_res_t mps_arena_create(mps_arena_t *arena_o,
                                    mps_arena_class_t mps_arena_class_cl,
                                    size_t size, mps_addr_t base)
-
-    ``base`` is the :term:`address` of the chunk of memory that will
-    be managed by the arena.
-
-    ``size`` is its :term:`size`.
 
     If the chunk is too small to hold the internal arena structures,
     :c:func:`mps_arena_create` returns :c:macro:`MPS_RES_MEMORY`. In
@@ -204,12 +228,17 @@ Virtual memory arenas
     :term:`fragmentation` and helps make :term:`garbage collection`
     more efficient.
 
-    When creating a virtual memory arena, :c:func:`mps_arena_create`
-    takes one extra argument::
-
-        mps_res_t mps_arena_create(mps_arena_t *arena_o,
-                                   mps_arena_class_t arena_class_vm(),
-                                   size_t size)
+    When creating a virtual memory arena, :c:func:`mps_arena_create_k`
+    requires one
+    :ref:`topic-interface-keywords`:
+   
+    * ``MPS_KEY_ARENA_SIZE`` (type ``size_t``)
+    
+    For example (in C99)::
+    
+        res = mps_arena_create_k(&arena, mps_arena_class_cl(),
+            (mps_arg_s[]){{MPS_KEY_ARENA_SIZE, .val.size = size},
+                          {MPS_KEY_ARGS_END}});
 
     ``size`` is the initial amount of virtual address space, in
     :term:`bytes (1)`, that the arena will reserve (this space is
@@ -226,6 +255,28 @@ Virtual memory arenas
         The MPS asks for more address space if it runs out, but the
         more times it has to extend its address space, the less
         efficient garbage collection will become.
+
+    An optional :ref:`topic-interface-keywords` may be passed, but is
+    only used on the Windows operating system:
+    
+    * ``MPS_KEY_VM_W3_TOP_DOWN`` (type ``mps_bool_t``)
+    
+    If true, the arena will allocate address space starting at the
+    highest possible address and working downwards through memory.
+    
+    .. note::
+    
+        This causes the arena to pass the ``MEM_TOP_DOWN`` flag to
+        `VirtualAlloc`_.
+
+        .. _VirtualAlloc: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.aspx
+
+    When creating a virtual memory arena, :c:func:`mps_arena_create`
+    takes one extra argument::
+
+        mps_res_t mps_arena_create(mps_arena_t *arena_o,
+                                   mps_arena_class_t arena_class_vm(),
+                                   size_t size)
 
     If the MPS fails to reserve adequate address space to place the
     arena in, :c:func:`mps_arena_create` returns

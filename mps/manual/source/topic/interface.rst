@@ -258,6 +258,43 @@ Macros
     separately.
 
 
+.. _topic-interface-keywords:
+
+Keyword arguments
+-----------------
+
+Some functions take :term:`keyword arguments` in order to pass values
+that might be optional, or are only required in some circumstances. For
+example, :ref:`topic-arena-client` require a base address. These
+arguments are passed in a keyword argument array, like this::
+    
+    mps_res_t res;
+    mps_arena_t arena;
+    mps_arg_s args[3];
+    args[0].key = MPS_KEY_ARENA_SIZE;
+    args[0].val.size = 6553600;
+    args[1].key = MPS_KEY_ARENA_CL_BASE;
+    args[1].val.addr = base_address;
+    args[2].key = MPS_KEY_ARGS_END;
+    res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+    
+If you are writing C99, you can write this more concisely as::
+
+    mps_res_t res;
+    mps_arena_t arena;
+    res = mps_arena_create_k(&arena, mps_arena_class_cl(),
+           (mps_arg_s[]){{MPS_KEY_ARENA_SIZE,    .val.size = 6553600},
+                         {MPS_KEY_ARENA_CL_BASE, .val.addr = base_address},
+                         {MPS_KEY_ARGS_END}});
+
+The argument array must not be ``NULL``, and must end with
+``MPS_KEY_ARGS_END``.
+
+On return, the keyword argument array will be *modified* to remove any
+arguments that have been used.  If all arguments have been used the
+first element key will be MPS_KEY_ARGS_END.
+                             
+
 .. _topic-interface-general:
 
 General types
