@@ -2,6 +2,12 @@
 
 	* progmodes/octave.el (octave-font-lock-keywords): Do not
 	dehighlight 'end' in comments or strings.
+	(octave-completing-read, octave-goto-function-definition): New
+	helpers.
+	(octave-help-buffer): New user variable.
+	(octave-help-file, octave-help-function): New button types.
+	(octave-help): New command and bind it to C-h ;.
+	(octave-find-definition): New command and bind it to M-.
 
 2013-05-02  Leo Liu  <sdl.web@gmail.com>
 

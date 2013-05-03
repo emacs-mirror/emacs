@@ -156,6 +156,7 @@ parenthetical grouping.")
 
 (defvar octave-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "\M-." 'octave-find-definition)
     (define-key map "\e\n" 'octave-indent-new-comment-line)
     (define-key map "\M-\C-q" 'octave-indent-defun)
     (define-key map "\C-c\C-p" 'octave-previous-code-line)
@@ -167,6 +168,7 @@ parenthetical grouping.")
     (define-key map "\C-c]" 'smie-close-block)
     (define-key map "\C-c/" 'smie-close-block)
     (define-key map "\C-c;" 'octave-update-function-file-comment)
+    (define-key map "\C-hd" 'octave-help)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
@@ -584,7 +586,9 @@ mode, set this to (\"-q\" \"--traditional\")."
 (defvar inferior-octave-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map comint-mode-map)
+    (define-key map "\M-." 'octave-find-definition)
     (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\C-hd" 'octave-help)
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\C-c\C-l" 'inferior-octave-dynamic-list-input-ring)
     (define-key map [menu-bar inout list-history]
@@ -869,6 +873,25 @@ directory and makes this the current buffer's default directory."
       nil
     (delete-horizontal-space)
     (insert (concat " " octave-continuation-string))))
+
+(defun octave-completing-read ()
+  (let ((def (or (thing-at-point 'symbol)
+                 (save-excursion
+                   (skip-syntax-backward "-(")
+                   (thing-at-point 'symbol)))))
+    (completing-read
+     (format (if def "Function (default %s): "
+               "Function: ") def)
+     (inferior-octave-completion-table)
+     nil nil nil nil def)))
+
+(defun octave-goto-function-definition ()
+  "Go to the first function definition."
+  (when (save-excursion
+          (goto-char (point-min))
+          (re-search-forward octave-function-header-regexp nil t))
+    (goto-char (match-beginning 3))
+    (match-string 3)))
 
 (defun octave-function-file-p ()
   "Return non-nil if the first token is \"function\".
@@ -1444,6 +1467,92 @@ code line."
 		      "\n")))
        (mapconcat 'identity inferior-octave-output-list "\n")))
     (terpri)))
+
+
+
+(defcustom octave-help-buffer "*Octave Help*"
+  "Buffer name for `octave-help'."
+  :type 'string
+  :group 'octave
+  :version "24.4")
+
+(define-button-type 'octave-help-file
+  'follow-link t
+  'action #'help-button-action
+  'help-function (lambda (fn)
+                   (find-file fn)
+                   (octave-goto-function-definition)))
+
+(define-button-type 'octave-help-function
+  'follow-link t
+  'action (lambda (b)
+            (octave-help
+             (buffer-substring (button-start b) (button-end b)))))
+
+(defvar help-xref-following)
+
+(defun octave-help (fn)
+  "Display the documentation of FN."
+  (interactive (list (octave-completing-read)))
+  (inferior-octave-send-list-and-digest
+   (list (format "help \"%s\"\n" fn)))
+  (let ((lines inferior-octave-output-list))
+    (when (string-match "error: \\(.*\\)$" (car lines))
+      (error "%s" (match-string 1 (car lines))))
+    (with-help-window octave-help-buffer
+      (princ (mapconcat 'identity lines "\n"))
+      (with-current-buffer octave-help-buffer
+        ;; Bound to t so that `help-buffer' returns current buffer for
+        ;; `help-setup-xref'.
+        (let ((help-xref-following t))
+          (help-setup-xref (list 'octave-help fn)
+                           (called-interactively-p 'interactive)))
+        ;; Note: can be turned off by suppress_verbose_help_message.
+        ;;
+        ;; Remove boring trailing text: Additional help for built-in functions
+        ;; and operators ...
+        (goto-char (point-max))
+        (when (search-backward "\n\n\n" nil t)
+          (goto-char (match-beginning 0))
+          (delete-region (point) (point-max)))
+        ;; File name highlight
+        (goto-char (point-min))
+        (when (re-search-forward "from the file \\(.*\\)$"
+                                 (line-end-position)
+                                 t)
+          (let ((file (match-string 1)))
+            (replace-match "" nil nil nil 1)
+            (insert "`")
+            (help-insert-xref-button (file-name-nondirectory file)
+                                     'octave-help-file file)
+            (insert "'")))
+        ;; Make 'See also' clickable
+        (with-syntax-table octave-mode-syntax-table
+          (when (re-search-forward "^\\s-*See also:" nil t)
+            (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" nil t)
+              (make-text-button (match-beginning 0)
+                                (match-end 0)
+                                :type 'octave-help-function))))))))
+
+(defvar find-tag-marker-ring)
+
+(defun octave-find-definition (fn)
+  "Find the definition of FN."
+  (interactive (list (octave-completing-read)))
+  (inferior-octave-send-list-and-digest
+   ;; help NAME is more verbose
+   (list (format "\
+if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
+                 fn fn fn)))
+  (let* ((line (car inferior-octave-output-list))
+         (file (when (and line (string-match "from the file \\(.*\\)$" line))
+                 (match-string 1 line))))
+    (if (not file)
+        (user-error "%s" (or line (format "`%s' not found" fn)))
+      (require 'etags)
+      (ring-insert find-tag-marker-ring (point-marker))
+      (find-file file)
+      (octave-goto-function-definition))))
 
 
 (provide 'octave)
