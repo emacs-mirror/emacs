@@ -332,16 +332,19 @@ static void testAllocAndIterate(Arena arena, Pool pool,
 }
 
 
-static void testPageTable(ArenaClass class, ...)
+static void testPageTable(ArenaClass class, Size size, Addr addr)
 {
   Arena arena; Pool pool;
   Size pageSize;
   Count tractsPerPage;
-  va_list args;
-
-  va_start(args, class);
+  ArgStruct args[3];
+  
+  args[0].key = MPS_KEY_ARENA_SIZE;
+  args[0].val.size = size;
+  args[1].key = MPS_KEY_ARENA_CL_ADDR;
+  args[1].val.addr = addr;
+  args[2].key = MPS_KEY_ARGS_END;
   die(ArenaCreate(&arena, class, args), "ArenaCreate");
-  va_end(args);
 
   die(PoolCreate(&pool, arena, PoolClassMV(),
                  (Size)65536, (Size)32, (Size)65536),
@@ -364,18 +367,6 @@ static void testPageTable(ArenaClass class, ...)
 }
 
 
-static Res makeArena(Arena *arenaOut, ArenaClass class, ...)
-{
-  va_list args;
-  Res res;
-
-  va_start(args, class);
-  res = ArenaCreateV(arenaOut, class, args);
-  va_end(args);
-  return res;
-}
-
-
 /* testSize -- test arena size overflow
  *
  * Just try allocating larger arenas, doubling the size each time, until
@@ -389,7 +380,11 @@ static void testSize(Size size)
   Res res;
 
   do {
-    res = makeArena(&arena, class, size);
+    ArgStruct args[2];
+    args[0].key = MPS_KEY_ARENA_SIZE;
+    args[0].val.size = size;
+    args[1].key = MPS_KEY_ARGS_END;
+    res = ArenaCreate(&arena, class, args);
     if (res == ResOK)
       ArenaDestroy(arena);
     else
@@ -407,13 +402,12 @@ int main(int argc, char *argv[])
   void *block;
   testlib_unused(argc);
 
-  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
-  testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE);
+  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0);
+  testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE, 0);
 
   block = malloc(TEST_ARENA_SIZE);
   cdie(block != NULL, "malloc");
-  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE,
-                (Addr)block);
+  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, block);
 
   testSize(TEST_ARENA_SIZE);
 

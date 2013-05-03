@@ -294,6 +294,8 @@
 
 #define VMANPageALIGNMENT ((Align)4096)
 #define VMJunkBYTE ((unsigned char)0xA9)
+#define VMParamSize (sizeof(Word))
+
 
 /* Protection Configuration see <code/prot*.c>
 
