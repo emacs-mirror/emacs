@@ -186,6 +186,9 @@ static void ClientChunkFinish(Chunk chunk)
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
+
+const KeyStruct _mps_key_arena_cl_addr = {KeySig, "ARENA_CL_ADDR", ArgCheckCant};
+
 static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Arena arena;
