@@ -36,6 +36,9 @@
 
 ;;; For emacs < 24.3.
 (require 'newcomment)
+(eval-and-compile
+  (unless (fboundp 'user-error)
+    (defalias 'user-error 'error)))
 (eval-when-compile
   (unless (fboundp 'setq-local)
     (defmacro setq-local (var val)
