@@ -10,17 +10,14 @@
 #include "testlib.h"
 
 
-static void testit(ArenaClass class, ...)
+static void testit(ArenaClass class, ArgList args)
 {
   Arena arena;
   Pool pool;
   Res res;
   Addr p;
-  va_list args;
 
-  va_start(args, class);
-  die(ArenaCreateV(&arena, class, args), "ArenaCreate");
-  va_end(args);
+  die(ArenaCreate(&arena, class, args), "ArenaCreate");
 
   die(PoolCreate(&pool, arena, PoolClassN()), "PoolNCreate");
   res = PoolAlloc(&p, pool, 1, /* withReservoirPermit */ FALSE);
@@ -35,8 +32,12 @@ static void testit(ArenaClass class, ...)
 
 int main(int argc, char *argv[])
 {
+  mps_arg_s args[2];
   testlib_unused(argc);
-  testit((ArenaClass)mps_arena_class_vm(), (Size)600000);
+  args[0].key = MPS_KEY_ARENA_SIZE;
+  args[0].val.size = (Size)600000;
+  args[1].key = MPS_KEY_ARGS_END;
+  testit((ArenaClass)mps_arena_class_vm(), args);
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }

@@ -10,18 +10,18 @@
 
 SRCID(arg, "$Id$");
 
-#define KeySig          ((Sig)0x519CE333) /* SIGnature KEYyy */
-typedef struct mps_key_s {
-  Sig sig;
-  const char *name;
-  Bool (*check)(Arg arg);
-} KeyStruct;
 
+/* ArgCheckCant -- default argument checker
+ *
+ * This is a default value for the KeyStruct check field for keywords
+ * that don't have any meaningful checking they can do.
+ */
 
-static Bool ArgCheckCant(Arg arg) {
+Bool ArgCheckCant(Arg arg) {
   UNUSED(arg);
   return TRUE;
 }
+
 
 const KeyStruct _mps_key_varargs = {KeySig, "VARARGS", ArgCheckCant};
 
@@ -59,11 +59,11 @@ Bool ArgListCheck(ArgList args)
 }
 
 
-Bool ArgPick(mps_arg_s *argOut, mps_arg_s args[], Key key) {
+Bool ArgPick(ArgStruct *argOut, ArgList args, Key key) {
   Index i;
   
   AVER(argOut != NULL);
-  AVERT(Arg, args);
+  AVER(ArgListCheck(args));
   AVERT(Key, key);
 
   for (i = 0; args[i].key != MPS_KEY_ARGS_END; ++i)

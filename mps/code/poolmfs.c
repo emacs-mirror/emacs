@@ -31,8 +31,8 @@
  * is a shame.
  */
 
-
 #include "mpscmfs.h"
+#include "dbgpool.h"
 #include "poolmfs.h"
 #include "mpm.h"
 

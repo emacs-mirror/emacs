@@ -136,6 +136,7 @@ extern Bool KeyCheck(Key key);
 extern Bool ArgCheck(Arg arg);
 extern Bool ArgListCheck(ArgList args);
 extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
+extern Bool ArgCheckCant(Arg arg);
 
 
 /* Logs and Powers
@@ -974,7 +975,8 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 extern Align VMAlign(VM vm);
 extern Bool VMCheck(VM vm);
-extern Res VMCreate(VM *VMReturn, Size size, mps_arg_s args[]);
+extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
+extern Res VMCreate(VM *VMReturn, Size size, void *params);
 extern void VMDestroy(VM vm);
 extern Addr VMBase(VM vm);
 extern Addr VMLimit(VM vm);
