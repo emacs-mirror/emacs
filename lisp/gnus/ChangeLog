@@ -4,6 +4,11 @@
 	(message-send-and-exit): Don't pass `buf' so as to hide the buffer
 	(bug#14085).
 
+2013-05-04  Andrew Cohen  <cohen@bu.edu>
+
+	* gnus-sum.el (gnus-read-header): Ensure groups are prefixed when
+	entering into the registry.
+
 2013-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-emacs-completing-read): Fix a filter for XEmacs.
