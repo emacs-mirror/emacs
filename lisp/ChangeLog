@@ -1,9 +1,16 @@
+2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (read-expression-map): Use completion-at-point (bug#14255).
+	Move the declaration from C.
+	(read-minibuffer, eval-minibuffer): Move from C.
+	(completion-setup-function): Avoid minibuffer-completion-contents.
+
 2013-05-03  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-font-lock-keywords): Do not
 	dehighlight 'end' in comments or strings.
-	(octave-completing-read, octave-goto-function-definition): New
-	helpers.
+	(octave-completing-read, octave-goto-function-definition):
+	New helpers.
 	(octave-help-buffer): New user variable.
 	(octave-help-file, octave-help-function): New button types.
 	(octave-help): New command and bind it to C-h ;.
@@ -24,8 +31,8 @@
 
 2013-05-02  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (octave-syntax-propertize-function): Include
-	the case when ' is at line beginning.  (Bug#14336)
+	* progmodes/octave.el (octave-syntax-propertize-function):
+	Include the case when ' is at line beginning.  (Bug#14336)
 
 2013-05-02  Glenn Morris  <rgm@gnu.org>
 
@@ -75,8 +82,8 @@
 2013-04-30  Alan Mackenzie  <acm@muc.de>
 
 	Handle arbitrarily long C++ member initialisation lists.
-	* progmodes/cc-engine.el (c-back-over-member-initializers): new
-	function.
+	* progmodes/cc-engine.el (c-back-over-member-initializers):
+	new function.
 	(c-guess-basic-syntax): New CASE 5R (extracted from 5B) to handle
 	(most) member init lists.
 
@@ -172,8 +179,8 @@
 2013-04-27  Ingo Lohmar  <i.lohmar@gmail.com>  (tiny change)
 
 	* ls-lisp.el (ls-lisp-insert-directory): If no files are
-	displayed, move point to after the totals line.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00677.html
+	displayed, move point to after the totals line.
+	See http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00677.html
 	for the details.
 
 2013-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>

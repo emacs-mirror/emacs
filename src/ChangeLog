@@ -1,8 +1,15 @@
+2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Move to Elisp.
+	(syms_of_minibuf): Adjust accodingly.
+	* lread.c (Fread):
+	* callint.c (Fcall_interactively): Adjust calls accordingly.
+
 2013-05-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (WINDOW_WANTS_HEADER_LINE_P): Verify that
-	w->contents is a buffer before computing everything else.  Use
-	parentheses to disambiguate last part of the condition.
+	w->contents is a buffer before computing everything else.
+	Use parentheses to disambiguate last part of the condition.
 
 	* w32fns.c (w32_wnd_proc): Remove temporary code used to trap
 	assertion violations.  (Bug#14062)

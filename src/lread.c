@@ -1976,7 +1976,9 @@ STREAM or the value of `standard-input' may be:
   if (EQ (stream, Qt))
     stream = Qread_char;
   if (EQ (stream, Qread_char))
-    return Fread_minibuffer (build_string ("Lisp expression: "), Qnil);
+    /* FIXME: ¿¡ When is this used !?  */
+    return call1 (intern ("read-minibuffer"),
+		  build_string ("Lisp expression: "));
 
   return read_internal_start (stream, Qnil, Qnil);
 }

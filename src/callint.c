@@ -733,12 +733,12 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'x':		/* Lisp expression read but not evaluated.  */
-	  args[i] = Fread_minibuffer (callint_message, Qnil);
+	  args[i] = call1 (intern ("read-minibuffer"), callint_message);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'X':		/* Lisp expression read and evaluated.  */
-	  args[i] = Feval_minibuffer (callint_message, Qnil);
+	  args[i] = call1 (intern ("eval-minibuffer"), callint_message);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
