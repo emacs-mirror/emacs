@@ -1,3 +1,7 @@
+2013-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Importing Diary): Mention diary-from-outlook-function.
+
 2013-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	doc: convert some TeX accents to UTF-8

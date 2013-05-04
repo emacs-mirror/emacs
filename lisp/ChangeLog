@@ -1,3 +1,8 @@
+2013-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-from-outlook-function): New variable.
+	(diary-from-outlook): Respect diary-from-outlook-function.
+
 2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (read-expression-map): Use completion-at-point (bug#14255).

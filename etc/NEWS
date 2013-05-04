@@ -146,6 +146,12 @@ The default separator is changed to allow surrounding spaces around the comma.
 
 *** Battery information via the BSD `apm' utility is now supported.
 
+** Calendar and Diary
+
++++
+*** New variable `diary-from-outlook-function' for used by the command
+`diary-from-outlook'.
+
 ** cl-lib
 
 *** New macro cl-tagbody.

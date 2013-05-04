@@ -1542,7 +1542,8 @@ variety of other formats.
 messages.  While viewing such a message in Rmail or Gnus, do @kbd{M-x
 diary-from-outlook} to import the entry.  You can make this command
 recognize additional appointment message formats by customizing the
-variable @code{diary-outlook-formats}.
+variable @code{diary-outlook-formats}.  Other mail clients can set
+@code{diary-from-outlook-function} to an appropriate value.
 
 @c FIXME the name of the RFC is hardly very relevant.
 @cindex iCalendar support
