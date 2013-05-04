@@ -1,3 +1,9 @@
+2013-05-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* message.el (message-bury): Make `buffer' optional.
+	(message-send-and-exit): Don't pass `buf' so as to hide the buffer
+	(bug#14085).
+
 2013-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-emacs-completing-read): Fix a filter for XEmacs.
