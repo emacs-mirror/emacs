@@ -1,3 +1,9 @@
+2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).
+	* cmdargs.texi (Initial Options):
+	* files.texi (Customize Save): Document this.
+
 2013-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Importing Diary): Mention diary-from-outlook-function.

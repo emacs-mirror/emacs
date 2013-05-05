@@ -4979,15 +4979,14 @@ This calls `write-region-annotate-functions' at the start, and
 
   immediate_quit = 0;
 
-  /* fsync appears to change the modtime on BSD4.2.
-     Disk full in NFS may be reported here.  */
-  /* mib says that closing the file will try to write as fast as NFS can do
-     it, and that means the fsync here is not crucial for autosave files.  */
+  /* fsync is not crucial for auto-save files, since they might lose
+     some work anyway.  */
   if (!auto_saving && !write_region_inhibit_fsync)
     {
-      /* Transfer data and metadata to disk, retrying if interrupted.  Also,
-	 ignore EINVAL which happens when fsync is not supported on this
-	 file.  */
+      /* Transfer data and metadata to disk, retrying if interrupted.
+	 fsync can report a write failure here, e.g., due to disk full
+	 under NFS.  But ignore EINVAL, which means fsync is not
+	 supported on this file.  */
       while (fsync (desc) != 0)
 	if (errno != EINTR)
 	  {
@@ -6069,11 +6068,29 @@ in the buffer; this is the default behavior, because the auto-save
 file is usually more useful if it contains the deleted text.  */);
   Vauto_save_include_big_deletions = Qnil;
 
+  /* fsync can be a significant performance hit.  Often it doesn't
+     suffice to make the file-save operation survive a crash.  For
+     batch scripts, which are typically part of larger shell commands
+     that don't fsync other files, its effect on performance can be
+     significant so its utility is particularly questionable.
+     Hence, for now by default fsync is used only when interactive.
+
+     For more on why fsync often fails to work on today's hardware, see:
+     Zheng M, Tucek J, Qin F, Lillibridge M. Understanding the
+     robustness of SSDs under power fault. 11th USENIX Conference on
+     File and Storage Technologies, 2013 (FAST '13), 271-84
+     http://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
+
+     For more on why fsync does not suffice even if it works properly, see:
+     Roche X. Necessary step(s) to synchronize filename operations on disk.
+     Austin Group Defect 672, 2013-03-19
+     http://austingroupbugs.net/view.php?id=672  */
   DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
 	       doc: /* Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
-A non-nil value may result in data loss!  */);
-  write_region_inhibit_fsync = 0;
+Setting this to nil may avoid data loss if the system loses power or
+the operating system crashes.  */);
+  write_region_inhibit_fsync = noninteractive;
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.

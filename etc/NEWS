@@ -61,6 +61,8 @@ simply disabling Transient Mark mode does the same thing.
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
 
+** `write-region-inhibit-fsync' now defaults to t in batch mode.
+
 ** ACL support has been added.
 +++
 *** Emacs preserves the ACL entries of files when backing up.

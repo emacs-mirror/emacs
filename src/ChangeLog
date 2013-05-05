@@ -1,3 +1,11 @@
+2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).
+	* fileio.c (syms_of_fileio): Implement this.
+	* filelock.c (create_lock_file): If symbolic links don't work, so
+	we use a regular file as a lock file, do not fsync the lock file;
+	it's not needed.
+
 2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Move to Elisp.
@@ -51,6 +59,7 @@
 	size.
 
 2013-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Port better to AIX (Bug#14258).
 	* lisp.h (ENUM_BF) [__IBMC__]: Make it 'unsigned int' here, too,
 	to pacify AIX xlc.
