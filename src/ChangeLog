@@ -1,3 +1,10 @@
+2013-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_iterator_to_next): Set the
+	ignore_overlay_strings_at_pos_p flag only if we are _really_
+	iterating over an overlay string, as indicated by the
+	current.overlay_string_index member.  (Bug#14306)
+
 2013-05-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (ns_update_menubar): Move initialization of submenuTitle

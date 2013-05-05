@@ -7153,6 +7153,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 	  else if (it->dpvec_char_len > 0)
 	    {
 	      if (it->method == GET_FROM_STRING
+		  && it->current.overlay_string_index >= 0
 		  && it->n_overlay_strings > 0)
 		it->ignore_overlay_strings_at_pos_p = 1;
 	      it->len = it->dpvec_char_len;
