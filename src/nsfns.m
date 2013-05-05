@@ -1502,7 +1502,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
 
   ret = (ret == NSOKButton) || panelOK;
 
-  if (ret) 
+  if (ret)
     {
       NSString *str = [panel getFilename];
       if (! str) str = [panel getDirectory];
@@ -1699,7 +1699,7 @@ If omitted or nil, the selected frame's display is used.  */)
      (Lisp_Object display)
 {
   NSWindowDepth depth;
-  
+
   check_ns_display_info (display);
   depth = [ns_get_screen (display) depth];
 
@@ -2267,7 +2267,7 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
 {
   NSWindowDepth depth;
   NSString *colorSpace;
-  
+
   check_ns_display_info (display);
   depth = [ns_get_screen (display) depth];
   colorSpace = NSColorSpaceFromDepth (depth);
@@ -2546,7 +2546,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 /*
   Handle arrow/function/control keys and copy/paste/cut in file dialogs.
-  Return YES if handeled, NO if not.
+  Return YES if handled, NO if not.
  */
 static BOOL
 handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)

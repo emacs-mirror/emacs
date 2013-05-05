@@ -6076,9 +6076,8 @@ file is usually more useful if it contains the deleted text.  */);
      Hence, for now by default fsync is used only when interactive.
 
      For more on why fsync often fails to work on today's hardware, see:
-     Zheng M, Tucek J, Qin F, Lillibridge M. Understanding the
-     robustness of SSDs under power fault. 11th USENIX Conference on
-     File and Storage Technologies, 2013 (FAST '13), 271-84
+     Zheng M et al. Understanding the robustness of SSDs under power fault.
+     11th USENIX Conf. on File and Storage Technologies, 2013 (FAST '13), 271-84
      http://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
 
      For more on why fsync does not suffice even if it works properly, see:
