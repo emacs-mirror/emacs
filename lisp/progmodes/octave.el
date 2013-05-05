@@ -24,9 +24,9 @@
 
 ;;; Commentary:
 
-;; This package provides emacs support for octave.  It defines a major
-;; mode for editing octave code and contains code for interacting with
-;; an inferior octave process using comint.
+;; This package provides emacs support for Octave.  It defines a major
+;; mode for editing Octave code and contains code for interacting with
+;; an inferior Octave process using comint.
 
 ;; See the documentation of `octave-mode' and `run-octave' for further
 ;; information on usage and customization.
@@ -109,19 +109,19 @@ parenthetical grouping.")
          'font-lock-keyword-face)
    ;; Note: 'end' also serves as the last index in an indexing expression.
    ;; Ref: http://www.mathworks.com/help/matlab/ref/end.html
-   '((lambda (limit)
-       (while (re-search-forward "\\_<end\\_>" limit 'move)
-         (let ((beg (match-beginning 0))
-               (end (match-end 0)))
-           (unless (octave-in-string-or-comment-p)
-             (unwind-protect
-                 (progn
-                   (goto-char beg)
-                   (backward-up-list)
-                   (when (memq (char-after) '(?\( ?\[ ?\{))
-                     (put-text-property beg end 'face nil)))
-               (goto-char end)))))
-       nil))
+   (list (lambda (limit)
+           (while (re-search-forward "\\_<end\\_>" limit 'move)
+             (let ((beg (match-beginning 0))
+                   (end (match-end 0)))
+               (unless (octave-in-string-or-comment-p)
+                 (unwind-protect
+                     (progn
+                       (goto-char beg)
+                       (backward-up-list)
+                       (when (memq (char-after) '(?\( ?\[ ?\{))
+                         (put-text-property beg end 'face nil)))
+                   (goto-char end)))))
+           nil))
    ;; Fontify all builtin operators.
    (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
          (if (boundp 'font-lock-builtin-face)
@@ -527,8 +527,8 @@ definitions can also be stored in files and used in batch mode."
 
   (setq-local syntax-propertize-function #'octave-syntax-propertize-function)
 
-  (setq imenu-generic-expression octave-mode-imenu-generic-expression)
-  (setq imenu-case-fold-search nil)
+  (setq-local imenu-generic-expression octave-mode-imenu-generic-expression)
+  (setq-local imenu-case-fold-search nil)
 
   (add-hook 'completion-at-point-functions
             'octave-completion-at-point-function nil t)
@@ -638,7 +638,7 @@ in the Inferior Octave buffer.")
 
   (setq font-lock-defaults '(inferior-octave-font-lock-keywords nil nil))
 
-  (setq info-lookup-mode 'octave-mode)
+  (setq-local info-lookup-mode 'octave-mode)
 
   (setq comint-input-ring-file-name
 	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
@@ -802,6 +802,10 @@ the rest to `inferior-octave-output-string'."
   "Send LIST to the inferior Octave process and digest the output.
 The elements of LIST have to be strings and are sent one by one.  All
 output is passed to the filter `inferior-octave-output-digest'."
+  (or (and inferior-octave-process
+           (process-live-p inferior-octave-process))
+      (error (substitute-command-keys
+              "No inferior octave process running. Type \\[run-octave]")))
   (let* ((proc inferior-octave-process)
 	 (filter (process-filter proc))
 	 string)
@@ -1021,21 +1025,21 @@ q: Don't fix\n" func file))
 (defun octave-font-lock-texinfo-comment ()
   (font-lock-add-keywords
    nil
-   '(((lambda (limit)
-        (while (and (search-forward "-*- texinfo -*-" limit t)
-                    (octave-in-comment-p))
-          (let ((beg (nth 8 (syntax-ppss)))
-                (end (progn
-                       (octave-skip-comment-forward (point-max))
-                       (point))))
-            (put-text-property beg end 'font-lock-multiline t)
-            (font-lock-prepend-text-property
-             beg end 'face 'octave-function-comment-block)
-            (dolist (kw octave-texinfo-font-lock-keywords)
-              (goto-char beg)
-              (while (re-search-forward (car kw) end 'move)
-                (font-lock-apply-highlight (cdr kw))))))
-        nil)))
+   `((,(lambda (limit)
+         (while (and (search-forward "-*- texinfo -*-" limit t)
+                     (octave-in-comment-p))
+           (let ((beg (nth 8 (syntax-ppss)))
+                 (end (progn
+                        (octave-skip-comment-forward (point-max))
+                        (point))))
+             (put-text-property beg end 'font-lock-multiline t)
+             (font-lock-prepend-text-property
+              beg end 'face 'octave-function-comment-block)
+             (dolist (kw octave-texinfo-font-lock-keywords)
+               (goto-char beg)
+               (while (re-search-forward (car kw) end 'move)
+                 (font-lock-apply-highlight (cdr kw))))))
+         nil)))
    'append))
 
 
@@ -1493,6 +1497,7 @@ code line."
         (let ((help-xref-following t))
           (help-setup-xref (list 'octave-help fn)
                            (called-interactively-p 'interactive)))
+        (setq-local info-lookup-mode 'octave-mode)
         ;; Note: can be turned off by suppress_verbose_help_message.
         ;;
         ;; Remove boring trailing text: Additional help for built-in functions
