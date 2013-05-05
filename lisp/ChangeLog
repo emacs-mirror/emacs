@@ -1,3 +1,9 @@
+2013-05-05  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-read-subfile): Use (point-min) instead of (point)
+	to not add the length of the summary segment to the return value.
+	(Bug#14125)
+
 2013-05-05  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-strip-ctrl-g)
