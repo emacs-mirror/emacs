@@ -1,5 +1,8 @@
 2013-05-05  Richard Stallman  <rms@gnu.org>
 
+	* vc/compare-w.el (compare-windows-whitespace):
+	Treat no-break space as whitespace.
+
 	* mail/rmailsum.el (rmail-summary-rmail-update):
 	Detect empty summary and don't change selected message.
 	(rmail-summary-goto-msg): Likewise.
