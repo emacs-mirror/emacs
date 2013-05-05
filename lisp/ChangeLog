@@ -1,3 +1,7 @@
+2013-05-05  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Increment to 5.32.5.
+
 2013-05-05  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-read-subfile): Use (point-min) instead of (point)
