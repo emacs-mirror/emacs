@@ -1,3 +1,8 @@
+2013-05-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (ns_update_menubar): Move initialization of submenuTitle
+	to where it is used, to avoid autorelease issues (Bug#14050).
+
 2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).

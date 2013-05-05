@@ -119,7 +119,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   id menu = [NSApp mainMenu];
   static EmacsMenu *last_submenu = nil;
   BOOL needsSet = NO;
-  const char *submenuTitle = [[submenu title] UTF8String];
   bool owfi;
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
@@ -239,7 +238,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
           /* FIXME: we'd like to only parse the needed submenu, but this
                was causing crashes in the _common parsing code.. need to make
                sure proper initialization done.. */
-/*        if (submenu && strcmp (submenuTitle, SSDATA (string)))
+/*        if (submenu && strcmp ([[submenu title] UTF8String], SSDATA (string)))
              continue; */
 
 	  submenu_start[i] = menu_items_used;
@@ -259,7 +258,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
         {
           /* should have found a menu for this one but didn't */
           fprintf (stderr, "ERROR: did not find lisp menu for submenu '%s'.\n",
-                  submenuTitle);
+                  [[submenu title] UTF8String]);
 	  discard_menu_items ();
 	  unbind_to (specpdl_count, Qnil);
           [pool release];
@@ -346,8 +345,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
-/*           if (submenu && strcmp (submenuTitle, SSDATA (string)))
-               continue; */
 
 	  wv->name = SSDATA (string);
           update_submenu_strings (wv->contents);
@@ -358,6 +355,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
          create a new menu for each sub and fill it. */
       if (submenu)
         {
+          const char *submenuTitle = [[submenu title] UTF8String];
           for (wv = first_wv->contents; wv; wv = wv->next)
             {
               if (!strcmp (submenuTitle, wv->name))
