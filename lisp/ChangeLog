@@ -1,3 +1,10 @@
+2013-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el (pascal-font-lock-keywords): Use backquotes.
+	Merge the two entries that handle function definitions.
+	(pascal--syntax-propertize): New const.
+	(pascal-mode): Use it.  Use setq-local.
+
 2013-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-from-outlook-function): New variable.

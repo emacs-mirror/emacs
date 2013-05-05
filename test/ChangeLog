@@ -1,3 +1,7 @@
+2013-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/pascal.pas: Add test for mis-identified comments.
+
 2013-04-01  Masatake YAMATO  <yamato@redhat.com>
 
 	* automated/imenu-tests.el: New file.  (Bug#14112)
@@ -5,7 +9,7 @@
 2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-imenu-prev-index-position-1):
-	Removed test.
+	Remove test.
 	(python-imenu-create-index-1, python-imenu-create-flat-index-1):
 	New tests.
 
@@ -62,8 +66,8 @@
 	(ruby-move-to-block-skips-percent-literal): Add depth-affecting
 	bits inside the examples.
 	(ruby-move-to-block-skips-heredoc): New test.
-	(ruby-add-log-current-method-after-inner-class): Lower
-	expectations: move point inside a method, initially.
+	(ruby-add-log-current-method-after-inner-class):
+	Lower expectations: move point inside a method, initially.
 
 2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -76,8 +80,8 @@
 
 2013-02-03  Chong Yidong  <cyd@gnu.org>
 
-	* automated/files.el (file-test--do-local-variables-test): Avoid
-	compilation warning message.
+	* automated/files.el (file-test--do-local-variables-test):
+	Avoid compilation warning message.
 
 2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -381,7 +385,7 @@
 2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el (icalendar-tests--compare-strings):
-	Removed, simply use string=.
+	Remove, simply use string=.
 	(icalendar--diarytime-to-isotime)
 	(icalendar--datetime-to-diary-date)
 	(icalendar--datestring-to-isodate)
