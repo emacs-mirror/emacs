@@ -4,6 +4,9 @@
 	Detect empty summary and don't change selected message.
 	(rmail-summary-goto-msg): Likewise.
 
+	* mail/rmailsum.el (rmail-new-summary, rmail-new-summary-1):
+	Doc fixes, rename args.
+
 2013-05-05  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-version): Increment to 5.32.5.

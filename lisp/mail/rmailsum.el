@@ -394,12 +394,16 @@ SENDERS is a string of regexps separated by commas."
 
 (defvar rmail-new-summary-line-count)
 
-(defun rmail-new-summary (desc redo func &rest args)
+(defun rmail-new-summary (desc redo function &rest args)
   "Create a summary of selected messages.
-DESC makes part of the mode line of the summary buffer. REDO is form ...
-For each message, FUNC is applied to the message number and ARGS...
-and if the result is non-nil, that message is included.
-nil for FUNCTION means all messages."
+DESC makes part of the mode line of the summary buffer.
+REDO is what to put in `rmail-summary-redo'; usually
+its car is the function that called `rmail-new-summary'
+and its cdr is the arguments passed to that function.
+
+For each message, applies FUNCTION to the message number and ARGS...,
+and if the result is non-nil, it includes that message in the summary.
+If FUNCTION is nil, includes all messages."
   (message "Computing summary lines...")
   (unless rmail-buffer
     (error "No RMAIL buffer found"))
@@ -407,7 +411,7 @@ nil for FUNCTION means all messages."
     (if (eq major-mode 'rmail-summary-mode)
 	(setq was-in-summary t))
     (with-current-buffer rmail-buffer
-      (setq rmail-summary-buffer (rmail-new-summary-1 desc redo func args)
+      (setq rmail-summary-buffer (rmail-new-summary-1 desc redo function args)
 	    ;; r-s-b is buffer-local.
 	    sumbuf rmail-summary-buffer
 	    mesg rmail-current-message))
@@ -435,14 +439,14 @@ nil for FUNCTION means all messages."
     (rmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
 
-(defun rmail-new-summary-1 (description form function args)
+(defun rmail-new-summary-1 (description redo function args)
   "Filter messages to obtain summary lines.
 DESCRIPTION is added to the mode line.
 
 Return the summary buffer by invoking FUNCTION on each message
-passing the message number and ARGS...
+passing the message number and ARGS.
 
-REDO is a form ...
+REDO is what to put in `rmail-summary-redo'.
 
 The current buffer must be a Rmail buffer either containing a
 collection of mbox formatted messages or displaying a single
@@ -511,7 +515,7 @@ message."
 	(make-local-variable 'minor-mode-alist)
 	(setq minor-mode-alist (list (list t (concat ": " description))))
 	(setq rmail-buffer rbuf
-	      rmail-summary-redo form
+	      rmail-summary-redo redo
 	      rmail-total-messages total)))
     sumbuf))
 
