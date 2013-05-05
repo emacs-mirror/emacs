@@ -1,3 +1,9 @@
+2013-05-05  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-rmail-update):
+	Detect empty summary and don't change selected message.
+	(rmail-summary-goto-msg): Likewise.
+
 2013-05-05  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-version): Increment to 5.32.5.
