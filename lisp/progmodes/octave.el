@@ -590,8 +590,9 @@ mode, set this to (\"-q\" \"--traditional\")."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map comint-mode-map)
     (define-key map "\M-." 'octave-find-definition)
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\t" 'completion-at-point)
     (define-key map "\C-hd" 'octave-help)
+    ;; Same as in `shell-mode'.
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\C-c\C-l" 'inferior-octave-dynamic-list-input-ring)
     (define-key map [menu-bar inout list-history]
@@ -730,7 +731,7 @@ startup file, `~/.emacs-octave'."
       inferior-octave-output-string))
 
     ;; And finally, everything is back to normal.
-    (set-process-filter proc 'inferior-octave-output-filter)
+    (set-process-filter proc 'comint-output-filter)
     ;; Just in case, to be sure a cd in the startup file
     ;; won't have detrimental effects.
     (inferior-octave-resync-dirs)))
@@ -782,21 +783,6 @@ startup file, `~/.emacs-octave'."
         (if (eq ch ?\ )
             (set-window-configuration conf)
           (setq unread-command-events (list ch)))))))
-
-(defun inferior-octave-strip-ctrl-g (string)
-  "Strip leading `^G' character.
-If STRING starts with a `^G', ring the bell and strip it."
-  (if (string-match "^\a" string)
-      (progn
-        (ding)
-        (setq string (substring string 1))))
-  string)
-
-(defun inferior-octave-output-filter (proc string)
-  "Standard output filter for the inferior Octave process.
-Ring Emacs bell if process output starts with an ASCII bell, and pass
-the rest to `comint-output-filter'."
-  (comint-output-filter proc (inferior-octave-strip-ctrl-g string)))
 
 (defun inferior-octave-output-digest (_proc string)
   "Special output filter for the inferior Octave process.
@@ -1398,27 +1384,26 @@ entered without parens)."
   (interactive "r")
   (inferior-octave t)
   (let ((proc inferior-octave-process)
-	(string (buffer-substring-no-properties beg end))
-	line)
+        (string (buffer-substring-no-properties beg end))
+        line)
     (with-current-buffer inferior-octave-buffer
       (setq inferior-octave-output-list nil)
       (while (not (string-equal string ""))
-	(if (string-match "\n" string)
-	    (setq line (substring string 0 (match-beginning 0))
-		  string (substring string (match-end 0)))
-	  (setq line string string ""))
-	(setq inferior-octave-receive-in-progress t)
-	(inferior-octave-send-list-and-digest (list (concat line "\n")))
-	(while inferior-octave-receive-in-progress
-	  (accept-process-output proc))
-	(insert-before-markers
-	 (mapconcat 'identity
-		    (append
-		     (if octave-send-echo-input (list line) (list ""))
-		     (mapcar 'inferior-octave-strip-ctrl-g
-			     inferior-octave-output-list)
-		     (list inferior-octave-output-string))
-		    "\n")))))
+        (if (string-match "\n" string)
+            (setq line (substring string 0 (match-beginning 0))
+                  string (substring string (match-end 0)))
+          (setq line string string ""))
+        (setq inferior-octave-receive-in-progress t)
+        (inferior-octave-send-list-and-digest (list (concat line "\n")))
+        (while inferior-octave-receive-in-progress
+          (accept-process-output proc))
+        (insert-before-markers
+         (mapconcat 'identity
+                    (append
+                     (if octave-send-echo-input (list line) (list ""))
+                     inferior-octave-output-list
+                     (list inferior-octave-output-string))
+                    "\n")))))
   (if octave-send-show-buffer
       (display-buffer inferior-octave-buffer)))
 
@@ -1482,9 +1467,7 @@ code line."
 (define-button-type 'octave-help-file
   'follow-link t
   'action #'help-button-action
-  'help-function (lambda (fn)
-                   (find-file fn)
-                   (octave-goto-function-definition)))
+  'help-function 'octave-find-definition)
 
 (define-button-type 'octave-help-function
   'follow-link t
@@ -1527,7 +1510,7 @@ code line."
             (replace-match "" nil nil nil 1)
             (insert "`")
             (help-insert-xref-button (file-name-nondirectory file)
-                                     'octave-help-file file)
+                                     'octave-help-file fn)
             (insert "'")))
         ;; Make 'See also' clickable
         (with-syntax-table octave-mode-syntax-table
@@ -1536,6 +1519,12 @@ code line."
               (make-text-button (match-beginning 0)
                                 (match-end 0)
                                 :type 'octave-help-function))))))))
+
+(defcustom octave-binary-file-extensions '("oct" "mex")
+  "A list of binary file extensions for Octave."
+  :type '(repeat string)
+  :group 'octave
+  :version "24.4")
 
 (defvar find-tag-marker-ring)
 
@@ -1552,6 +1541,11 @@ if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
                  (match-string 1 line))))
     (if (not file)
         (user-error "%s" (or line (format "`%s' not found" fn)))
+      (when (and (member (file-name-extension file)
+                         octave-binary-file-extensions)
+                 (not (yes-or-no-p (format "File `%s' may be binary; open? "
+                                           (file-name-nondirectory file)))))
+        (error "Aborted"))
       (require 'etags)
       (ring-insert find-tag-marker-ring (point-marker))
       (find-file file)

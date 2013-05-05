@@ -1,3 +1,15 @@
+2013-05-05  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-strip-ctrl-g)
+	(inferior-octave-output-filter): Remove.
+	(octave-send-region, inferior-octave-startup): Fix callers.
+	(inferior-octave-mode-map): Don't use comint-dynamic-complete.
+	(octave-binary-file-extensions): New user variable.
+	(octave-find-definition): Confirm if opening binary files.
+	(octave-help-file): Use octave-find-definition to get the binary
+	confirmation.
+	(octave-help): Adjust for octave-help-file change.
+
 2013-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/pascal.el (pascal-font-lock-keywords): Use backquotes.
