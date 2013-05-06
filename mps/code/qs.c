@@ -187,6 +187,7 @@ static void makerndlist(unsigned l)
 {
   unsigned i;
   mps_word_t r;
+  mps_addr_t addr;
 
   cdie(l > 0, "list len");
   if(list != NULL) {
@@ -194,8 +195,10 @@ static void makerndlist(unsigned l)
     list = NULL;
   }
   listl = l;
-  die(mps_alloc((mps_addr_t *)&list, mpool, (l * sizeof(mps_word_t))),
+  addr = list;
+  die(mps_alloc(&addr, mpool, (l * sizeof(mps_word_t))),
       "Alloc List");
+  list = addr;
   reg[0] = (mps_addr_t)0;
   regtag[0] = QSRef;
   for(i = 0; i < l; ++i) {
@@ -330,6 +333,8 @@ static void *go(void *p, size_t s)
 {
   mps_fmt_t format;
   mps_chain_t chain;
+  mps_addr_t base;
+  mps_addr_t *addr;
 
   testlib_unused(p);
   testlib_unused(s);
@@ -350,8 +355,11 @@ static void *go(void *p, size_t s)
                             reg,
                             NREGS),
       "RootCreateTable");
+  
+  base = &activationStack;
+  addr = base;
   die(mps_root_create_table(&actroot, arena, mps_rank_ambig(), 0,
-      (mps_addr_t *)&activationStack, sizeof(QSCell)/sizeof(mps_addr_t)),
+                            addr, sizeof(QSCell)/sizeof(mps_addr_t)),
       "RootCreateTable");
 
   /* makes a random list */
@@ -396,6 +404,7 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
 {
   QSCell cell;
   mps_res_t res;
+  mps_addr_t addr;
 
   cdie(objectIO != NULL, "objectIO");
 
@@ -404,20 +413,24 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
 
     switch(cell->tag) {
     case QSRef:
-      if(!MPS_FIX1(ss, (mps_addr_t)cell->value))
+      addr = cell->value;
+      if(!MPS_FIX1(ss, addr))
         goto fixTail;
-      res = MPS_FIX2(ss, (mps_addr_t *)&cell->value);
+      res = MPS_FIX2(ss, &addr);
       if(res != MPS_RES_OK)
         return res;
+      cell->value = addr;
     /* fall */
 
     case QSInt:
     fixTail:
-      if(!MPS_FIX1(ss, (mps_addr_t)cell->tail))
+      addr = cell->tail;
+      if(!MPS_FIX1(ss, addr))
         break;
-      res = MPS_FIX2(ss, (mps_addr_t *)&cell->tail);
+      res = MPS_FIX2(ss, &addr);
       if(res != MPS_RES_OK)
         return res;
+      cell->tail = addr;
       break;
 
     case QSEvac:
