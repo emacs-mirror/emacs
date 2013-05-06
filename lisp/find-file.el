@@ -268,6 +268,7 @@ This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each directory
 specified in `ff-search-directories'.  If a file is not found, a new one
 is created with the first matching extension (`.cc' yields `.hh')."
+  :version "24.4"                       ; add .m
   :type '(repeat (list regexp (choice (repeat string) function)))
   :group 'ff)
 
