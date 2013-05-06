@@ -1,3 +1,11 @@
+2013-05-06  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-2): Doc fix.  (Bug#14344)
+	(eval-defun-2, eval-defun, eval-last-sexp, eval-last-sexp-1):
+	Doc fix.
+	(emacs-lisp-mode-map): Replace "minibuffer" with "echo area"
+	in the help string.  (Bug#12985)
+
 2013-05-06  Kelly Dean  <kellydeanch@yahoo.com>  (tiny change)
 
 	* simple.el (shell-command-on-region): Doc fix.  (Bug#14279)
