@@ -1,3 +1,8 @@
+2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-04-30 utimens, utimensat: work around Solaris UTIME_OMIT bug
+
 2013-05-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-dist: Keep necessary restrictions on file access.
