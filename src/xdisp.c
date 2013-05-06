@@ -1392,23 +1392,34 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	      Lisp_Object cpos = make_number (charpos);
 	      Lisp_Object spec = Fget_char_property (cpos, Qdisplay, Qnil);
 	      Lisp_Object string = string_from_display_spec (spec);
+	      struct text_pos tpos;
+	      int replacing_spec_p;
 	      bool newline_in_string
 		= (STRINGP (string)
 		   && memchr (SDATA (string), '\n', SBYTES (string)));
+
+	      SET_TEXT_POS (tpos, charpos, CHAR_TO_BYTE (charpos));
+	      replacing_spec_p
+		= (!NILP (spec)
+		   && handle_display_spec (NULL, spec, Qnil, Qnil, &tpos,
+					   charpos, FRAME_WINDOW_P (it.f)));
 	      /* The tricky code below is needed because there's a
 		 discrepancy between move_it_to and how we set cursor
-		 when the display line ends in a newline from a
-		 display string.  move_it_to will stop _after_ such
-		 display strings, whereas set_cursor_from_row
-		 conspires with cursor_row_p to place the cursor on
-		 the first glyph produced from the display string.  */
+		 when PT is at the beginning of a portion of text
+		 covered by a display property or an overlay with a
+		 display property, or the display line ends in a
+		 newline from a display string.  move_it_to will stop
+		 _after_ such display strings, whereas
+		 set_cursor_from_row conspires with cursor_row_p to
+		 place the cursor on the first glyph produced from the
+		 display string.  */
 
 	      /* We have overshoot PT because it is covered by a
-		 display property whose value is a string.  If the
-		 string includes embedded newlines, we are also in the
-		 wrong display line.  Backtrack to the correct line,
-		 where the display string begins.  */
-	      if (newline_in_string)
+		 display property that replaces the text it covers.
+		 If the string includes embedded newlines, we are also
+		 in the wrong display line.  Backtrack to the correct
+		 line, where the display property begins.  */
+	      if (replacing_spec_p)
 		{
 		  Lisp_Object startpos, endpos;
 		  EMACS_INT start, end;
@@ -1434,7 +1445,8 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     rightmost character on a line that is
 		     continued or word-wrapped.  */
 		  if (it3.method == GET_FROM_BUFFER
-		      && it3.c == '\n')
+		      && (it3.c == '\n'
+			  || FETCH_BYTE (IT_BYTEPOS (it3)) == '\n'))
 		    move_it_by_lines (&it3, 1);
 		  else if (move_it_in_display_line_to (&it3, -1,
 						       it3.current_x
@@ -1502,6 +1514,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     produced from the string, until we find the
 		     rightmost glyph not from the string.  */
 		  if (it3_moved
+		      && newline_in_string
 		      && IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
 		    {
 		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]

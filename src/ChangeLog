@@ -1,3 +1,10 @@
+2013-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): Use the special code for finding the
+	beginning of a display property or overlay for any "replacing"
+	display property, not just for display strings.  This solves
+	incorrect reporting of position by posn-at-point.  (Bug#14241)
+
 2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* unexelf.c: Fix some 32-bit integer problems, notably when debugging.
