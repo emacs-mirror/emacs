@@ -1,3 +1,7 @@
+2013-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* mml2015.el (mml2015-epg-sign): Add name="signature.asc".  (Bug#13465)
+
 2013-05-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* message.el (message-bury): Make `buffer' optional.

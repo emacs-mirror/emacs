@@ -1106,7 +1106,7 @@ If no one is selected, default secret key is used.  "
     (insert (format "\n--%s\n" boundary))
     (goto-char (point-max))
     (insert (format "\n--%s\n" boundary))
-    (insert "Content-Type: application/pgp-signature\n\n")
+    (insert "Content-Type: application/pgp-signature; name=\"signature.asc\"\n\n")
     (insert signature)
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))
