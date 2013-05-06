@@ -1,5 +1,7 @@
 2013-05-06  Glenn Morris  <rgm@gnu.org>
 
+	* generic-x.el: No need to require comint when compiling.
+
 	* net/eudc-export.el: Make it loadable without bbdb.
 	(top-level): Use require rather than load-library.
 	(eudc-create-bbdb-record, eudc-bbdbify-phone)
