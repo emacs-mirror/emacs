@@ -1,5 +1,26 @@
 2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* unexelf.c: Fix some 32-bit integer problems, notably when debugging.
+	Include <limits.h>, <stdbool.h>, <intprops.h>, <verify.h>.
+	Verify that ElfW (Half) fits in int.
+	(fatal): Use same signature as lisp.h.
+	(UNEXELF_DEBUG): New macro, replacing DEBUG, so that people can
+	configure and build with -DUNEXELF_DEBUG without worrying about
+	other modules that use DEBUG.
+	(DEBUG_LOG) [UNEXELF_DEBUG]: New macro.  All debug code that prints
+	possibly-wide integers now uses it instead of plain fprintf.
+	(entry_address): New function, which avoids problems with 32-bit
+	overflow on 64-bit hosts.
+	(OLD_SECTION_H, NEW_SECTION_H, NEW_PROGRAM_H): Use it.
+	(round_up): Don't assume the remainder fits in int.
+	(find_section): Use bool for boolean.  Simplify debug code.
+	(unexec): Don't assume file sizes fit in int or size_t.
+	Omit unnecessary trailing newline in 'fatal' format.
+	Use strerror rather than outputting decimal error number.
+	Remove unused code when emacs is not defined;
+	this file relies on Emacs now.
+	Don't assume e_phnum and e_shnum are positive.
+
 	* regex.c: Fix problems when DEBUG is defined.
 	(extract_number, extract_number_and_incr): Define regardless of
 	whether DEBUG is defined; that's simpler and makes the code less
