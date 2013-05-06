@@ -1,3 +1,8 @@
+2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/trace.el (trace--display-buffer): New function.
+	(trace-make-advice): Use it.
+
 2013-05-06  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Doc fix.  (Bug#14344)
