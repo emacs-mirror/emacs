@@ -49,6 +49,7 @@ any text before that point.
 
 If the function returns the same value for both windows, then the
 whitespace is considered to match, and is skipped."
+  :version "24.4"			; added \240
   :type '(choice regexp function)
   :group 'compare-windows)
 
