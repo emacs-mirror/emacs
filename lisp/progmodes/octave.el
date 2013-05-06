@@ -998,49 +998,40 @@ q: Don't fix\n" func file))
                            nil 'delimited nil nil beg end)
         (message "Function names match")))))
 
-;; Adapted from texinfo-font-lock-keywords
-(defvar octave-texinfo-font-lock-keywords
-  `(("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face prepend) ;commands
-    ("^\\*\\([^\n:]*\\)" 1 font-lock-function-name-face prepend) ;menu items
-    ("@\\(emph\\|i\\|sc\\){\\([^}]+\\)" 2 'italic prepend)
-    ("@\\(strong\\|b\\){\\([^}]+\\)" 2 'bold prepend)
-    ("@\\(kbd\\|key\\|url\\|uref\\){\\([^}]+\\)"
-     2 font-lock-string-face prepend)
-    ("@\\(file\\|email\\){\\([^}]+\\)" 2 font-lock-string-face prepend)
-    ("@\\(samp\\|code\\|var\\|math\\|env\\|command\\|option\\){\\([^}]+\\)"
-     2 font-lock-variable-name-face prepend)
-    ("@\\(cite\\|x?ref\\|pxref\\|dfn\\|inforef\\){\\([^}]+\\)"
-     2 font-lock-constant-face prepend)
-    ("@\\(anchor\\){\\([^}]+\\)" 2 font-lock-type-face prepend)
-    ("@\\(dmn\\|acronym\\|value\\){\\([^}]+\\)"
-     2 font-lock-builtin-face prepend)
-    ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-keyword-face prepend))
-  "Additional keywords to highlight in texinfo comment block.")
-
 (defface octave-function-comment-block
   '((t (:inherit font-lock-doc-face)))
   "Face used to highlight function comment block."
   :group 'octave)
 
+(eval-when-compile (require 'texinfo))
+
 (defun octave-font-lock-texinfo-comment ()
-  (font-lock-add-keywords
-   nil
-   `((,(lambda (limit)
-         (while (and (search-forward "-*- texinfo -*-" limit t)
-                     (octave-in-comment-p))
-           (let ((beg (nth 8 (syntax-ppss)))
-                 (end (progn
-                        (octave-skip-comment-forward (point-max))
-                        (point))))
-             (put-text-property beg end 'font-lock-multiline t)
-             (font-lock-prepend-text-property
-              beg end 'face 'octave-function-comment-block)
-             (dolist (kw octave-texinfo-font-lock-keywords)
-               (goto-char beg)
-               (while (re-search-forward (car kw) end 'move)
-                 (font-lock-apply-highlight (cdr kw))))))
-         nil)))
-   'append))
+  (let ((kws
+         (eval-when-compile
+           (delq nil (mapcar
+                      (lambda (kw)
+                        (if (numberp (nth 1 kw))
+                            `(,(nth 0 kw) ,(nth 1 kw) ,(nth 2 kw) prepend)
+                          (message "Ignoring Texinfo highlight: %S" kw)))
+                      texinfo-font-lock-keywords)))))
+    (font-lock-add-keywords
+     nil
+     `((,(lambda (limit)
+           (while (and (search-forward "-*- texinfo -*-" limit t)
+                       (octave-in-comment-p))
+             (let ((beg (nth 8 (syntax-ppss)))
+                   (end (progn
+                          (octave-skip-comment-forward (point-max))
+                          (point))))
+               (put-text-property beg end 'font-lock-multiline t)
+               (font-lock-prepend-text-property
+                beg end 'face 'octave-function-comment-block)
+               (dolist (kw kws)
+                 (goto-char beg)
+                 (while (re-search-forward (car kw) end 'move)
+                   (font-lock-apply-highlight (cdr kw))))))
+           nil)))
+     'append)))
 
 
 ;;; Indentation
