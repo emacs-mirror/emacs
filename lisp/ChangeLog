@@ -1,3 +1,12 @@
+2013-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* net/eudc-export.el: Make it loadable without bbdb.
+	(top-level): Use require rather than load-library.
+	(eudc-create-bbdb-record, eudc-bbdbify-phone)
+	(eudc-batch-export-records-to-bbdb)
+	(eudc-insert-record-at-point-into-bbdb, eudc-try-bbdb-insert):
+	Require bbdb.
+
 2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave.el (octave-texinfo-font-lock-keywords): Remove.
