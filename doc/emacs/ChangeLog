@@ -1,3 +1,7 @@
+2013-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Contributing): Remove obsolete info re pretesters.
+
 2013-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Top): Add some stuff specific to www.gnu.org.
