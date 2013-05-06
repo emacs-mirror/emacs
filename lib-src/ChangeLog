@@ -1,3 +1,8 @@
+2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (search_lisp_doc_at_eol) [DEBUG]: Fix typo,
+	by removing references to no-longer-existing locals.
+
 2013-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix incompatibilities between MinGW.org and MinGW64 headers.
