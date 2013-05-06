@@ -1,3 +1,8 @@
+2013-05-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* message.el (message-bury, message-send-and-exit):
+	Revert 2013-05-04 change.
+
 2013-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* mml2015.el (mml2015-epg-sign): Add name="signature.asc".  (Bug#13465)

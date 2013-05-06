@@ -4047,7 +4047,7 @@ It should typically alter the sending method in some way or other."
 	(actions message-exit-actions))
     (when (and (message-send arg)
 	       (buffer-name buf))
-      (message-bury)
+      (message-bury buf)
       (if message-kill-buffer-on-exit
 	  (kill-buffer buf))
       (message-do-actions actions)
@@ -4095,7 +4095,7 @@ Instead, just auto-save the buffer and then bury it."
 	  (message-disassociate-draft)))
       (message-do-actions actions))))
 
-(defun message-bury (&optional buffer)
+(defun message-bury (buffer)
   "Bury this mail BUFFER."
   (if message-return-action
       (progn
