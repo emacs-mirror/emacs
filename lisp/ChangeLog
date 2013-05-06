@@ -1,3 +1,9 @@
+2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--member-p): Return the advice if found.
+	(advice--add-function): Refresh the advice if already present
+	(bug#14317).
+
 2013-05-06  Ivan Andrus  <darthandrus@gmail.com>
 
 	* find-file.el (cc-other-file-alist): Add ".m" for ObjC.  (Bug#14339)
