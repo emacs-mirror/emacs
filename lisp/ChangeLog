@@ -1,5 +1,7 @@
 2013-05-06  Glenn Morris  <rgm@gnu.org>
 
+	* w32-fns.el (w32-charset-info-alist): Declare.
+
 	* eshell/em-cmpl.el: Simply require pcomplete; eg we use a bunch
 	of its defcustom properties.
 	(eshell-cmpl-initialize): No need to load pcomplete.
