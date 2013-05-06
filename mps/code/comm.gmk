@@ -239,7 +239,7 @@ TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv awlut \
           messtest mpmss mpsicv poolncv qs sacss segsmss steptest \
           walkt0
 testrun: $(TESTCASES)
-	OUTPUT=$$(mktemp /tmp/mps-XXXXXX.log); \
+	OUTPUT=$$(mktemp /tmp/mps.log.XXXXXX); \
 	echo "Logging test output to $$OUTPUT"; \
 	$(^:%=(TESTCASE=$(PFM)/$(VARIETY)/%; \
               echo "\n\n-- Running $$TESTCASE at $$(date) --" >> $$OUTPUT && \
