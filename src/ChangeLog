@@ -1,3 +1,25 @@
+2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* regex.c: Fix problems when DEBUG is defined.
+	(extract_number, extract_number_and_incr): Define regardless of
+	whether DEBUG is defined; that's simpler and makes the code less
+	likely to go stale in the normal case when DEBUG is not defined.
+	Return int rather than taking an int * arg.  All callers changed.
+	(DEBUG_PRINT1, DEBUG_PRINT2, DEBUG_PRINT3, DEBUG_PRINT4):
+	Remove, replacing with ...
+	(DEBUG_PRINT): New macro.  All callers changed.
+	(DEBUG_COMPILES_ARGUMENTS): New macro.
+	(print_fastmap, print_partial_compiled_pattern) [DEBUG]:
+	(print_compiled_pattern, print_double_string) [DEBUG]:
+	Use prototype rather than old-style definition.
+	(print_partial_compiled_pattern, print_compiled_pattern) [DEBUG]:
+	(ENSURE_FAIL_STACK, PUSH_FAILURE_REG) [DEBUG]:
+	(POP_FAILURE_REG_OR_COUNT, PUSH_FAILURE_POINT) [DEBUG]:
+	(POP_FAILURE_POINT, re_match_2_internal) [DEBUG]:
+	Don't assume ptrdiff_t, size_t, and long are the same width as int.
+	(POINTER_TO_OFFSET): Return ptrdiff_t, not regoff_t.
+	This matters only when DEBUG is defined.
+
 2013-05-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_iterator_to_next): Set the
