@@ -1,3 +1,14 @@
+2013-05-06  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-syntax-propertize-function): Change
+	\'s syntax to escape when inside double-quoted strings.  (Bug#14332)
+	(octave-font-lock-keywords): Use octave-operator-regexp.
+	(octave-completion-at-point): Renamed from
+	octave-completion-at-point-function.
+	(inferior-octave-directory-tracker): Robustify.
+	(octave-text-functions): Remove and fix its uses.  No such things
+	any more.
+
 2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/trace.el (trace--display-buffer): New function.

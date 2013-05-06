@@ -84,77 +84,12 @@ Used in `octave-mode' and `inferior-octave-mode' buffers.")
 	  '("break" "continue" "end" "global" "persistent" "return"))
   "Reserved words in Octave.")
 
-(defvar octave-text-functions
-  '("casesen" "cd" "chdir" "clear" "diary" "dir" "document" "echo"
-    "edit_history" "format" "help" "history" "hold"
-    "load" "ls" "more" "run_history" "save" "type"
-    "which" "who" "whos")
-  "Text functions in Octave.")
-
 (defvar octave-function-header-regexp
   (concat "^\\s-*\\_<\\(function\\)\\_>"
 	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\(?:\\w\\|\\s_\\)+\\)\\_>")
   "Regexp to match an Octave function header.
 The string `function' and its name are given by the first and third
 parenthetical grouping.")
-
-
-(defvar octave-font-lock-keywords
-  (list
-   ;; Fontify all builtin keywords.
-   (cons (concat "\\_<\\("
-                 (regexp-opt (append octave-reserved-words
-                                     octave-text-functions))
-                 "\\)\\_>")
-         'font-lock-keyword-face)
-   ;; Note: 'end' also serves as the last index in an indexing expression.
-   ;; Ref: http://www.mathworks.com/help/matlab/ref/end.html
-   (list (lambda (limit)
-           (while (re-search-forward "\\_<end\\_>" limit 'move)
-             (let ((beg (match-beginning 0))
-                   (end (match-end 0)))
-               (unless (octave-in-string-or-comment-p)
-                 (unwind-protect
-                     (progn
-                       (goto-char beg)
-                       (backward-up-list)
-                       (when (memq (char-after) '(?\( ?\[ ?\{))
-                         (put-text-property beg end 'face nil)))
-                   (goto-char end)))))
-           nil))
-   ;; Fontify all builtin operators.
-   (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
-         (if (boundp 'font-lock-builtin-face)
-             'font-lock-builtin-face
-           'font-lock-preprocessor-face))
-   ;; Fontify all function declarations.
-   (list octave-function-header-regexp
-         '(1 font-lock-keyword-face)
-         '(3 font-lock-function-name-face nil t)))
-  "Additional Octave expressions to highlight.")
-
-(defun octave-syntax-propertize-function (start end)
-  (goto-char start)
-  (octave-syntax-propertize-sqs end)
-  (funcall (syntax-propertize-rules
-            ;; Try to distinguish the string-quotes from the transpose-quotes.
-            ("\\(?:^\\|[[({,; ]\\)\\('\\)"
-             (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
-           (point) end))
-
-(defun octave-syntax-propertize-sqs (end)
-  "Propertize the content/end of single-quote strings."
-  (when (eq (nth 3 (syntax-ppss)) ?\')
-    ;; A '..' string.
-    (when (re-search-forward
-           "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)\\($\\|[^']\\)" end 'move)
-      (goto-char (match-beginning 2))
-      (when (eq (char-before (match-beginning 1)) ?\\)
-        ;; Backslash cannot escape a single quote.
-        (put-text-property (1- (match-beginning 1)) (match-beginning 1)
-                           'syntax-table (string-to-syntax ".")))
-      (put-text-property (match-beginning 1) (match-end 1)
-                         'syntax-table (string-to-syntax "\"'")))))
 
 
 (defvar octave-mode-map
@@ -333,6 +268,7 @@ Non-nil means always go to the next Octave code line after sending."
 
 (require 'smie)
 
+;; Use '__operators__' in Octave REPL to get a full list.
 (defconst octave-operator-table
   '((assoc ";" "\n") (assoc ",") ; The doc claims they have equal precedence!?
     (right "=" "+=" "-=" "*=" "/=")
@@ -476,6 +412,64 @@ Non-nil means always go to the next Octave code line after sending."
        ;; (if (smie-parent-p "switch") 4)
        0))))
 
+
+(defvar octave-font-lock-keywords
+  (list
+   ;; Fontify all builtin keywords.
+   (cons (concat "\\_<\\("
+                 (regexp-opt octave-reserved-words)
+                 "\\)\\_>")
+         'font-lock-keyword-face)
+   ;; Note: 'end' also serves as the last index in an indexing expression.
+   ;; Ref: http://www.mathworks.com/help/matlab/ref/end.html
+   (list (lambda (limit)
+           (while (re-search-forward "\\_<end\\_>" limit 'move)
+             (let ((beg (match-beginning 0))
+                   (end (match-end 0)))
+               (unless (octave-in-string-or-comment-p)
+                 (unwind-protect
+                     (progn
+                       (goto-char beg)
+                       (backward-up-list)
+                       (when (memq (char-after) '(?\( ?\[ ?\{))
+                         (put-text-property beg end 'face nil)))
+                   (goto-char end)))))
+           nil))
+   ;; Fontify all operators.
+   (cons octave-operator-regexp 'font-lock-builtin-face)
+   ;; Fontify all function declarations.
+   (list octave-function-header-regexp
+         '(1 font-lock-keyword-face)
+         '(3 font-lock-function-name-face nil t)))
+  "Additional Octave expressions to highlight.")
+
+(defun octave-syntax-propertize-function (start end)
+  (goto-char start)
+  (octave-syntax-propertize-sqs end)
+  (funcall (syntax-propertize-rules
+            ("\\\\" (0 (when (eq (nth 3 (save-excursion
+                                          (syntax-ppss (match-beginning 0))))
+                                 ?\")
+                         (string-to-syntax "\\"))))
+            ;; Try to distinguish the string-quotes from the transpose-quotes.
+            ("\\(?:^\\|[[({,; ]\\)\\('\\)"
+             (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
+           (point) end))
+
+(defun octave-syntax-propertize-sqs (end)
+  "Propertize the content/end of single-quote strings."
+  (when (eq (nth 3 (syntax-ppss)) ?\')
+    ;; A '..' string.
+    (when (re-search-forward
+           "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)\\($\\|[^']\\)" end 'move)
+      (goto-char (match-beginning 2))
+      (when (eq (char-before (match-beginning 1)) ?\\)
+        ;; Backslash cannot escape a single quote.
+        (put-text-property (1- (match-beginning 1)) (match-beginning 1)
+                           'syntax-table (string-to-syntax ".")))
+      (put-text-property (match-beginning 1) (match-end 1)
+                         'syntax-table (string-to-syntax "\"'")))))
+
 (defvar electric-layout-rules)
 
 ;;;###autoload
@@ -530,8 +524,7 @@ definitions can also be stored in files and used in batch mode."
   (setq-local imenu-generic-expression octave-mode-imenu-generic-expression)
   (setq-local imenu-case-fold-search nil)
 
-  (add-hook 'completion-at-point-functions
-            'octave-completion-at-point-function nil t)
+  (add-hook 'completion-at-point-functions 'octave-completion-at-point nil t)
   (add-hook 'before-save-hook 'octave-sync-function-file-names nil t)
   (setq-local beginning-of-defun-function 'octave-beginning-of-defun)
   (and octave-font-lock-texinfo-comment (octave-font-lock-texinfo-comment))
@@ -647,7 +640,7 @@ in the Inferior Octave buffer.")
               inferior-octave-dynamic-complete-functions)
   (setq-local comint-prompt-read-only inferior-octave-prompt-read-only)
   (add-hook 'comint-input-filter-functions
-	'inferior-octave-directory-tracker nil t)
+            'inferior-octave-directory-tracker nil t)
   (comint-read-input-ring t))
 
 ;;;###autoload
@@ -828,7 +821,8 @@ Use \\[inferior-octave-resync-dirs] to resync if Emacs gets confused."
    ((string-match "^[ \t]*cd[ \t;]*$" string)
     (cd "~"))
    ((string-match "^[ \t]*cd[ \t]+\\([^ \t\n;]*\\)[ \t\n;]*" string)
-    (cd (substring string (match-beginning 1) (match-end 1))))))
+    (with-demoted-errors             ; in case directory doesn't exist
+      (cd (substring string (match-beginning 1) (match-end 1)))))))
 
 (defun inferior-octave-resync-dirs ()
   "Resync the buffer's idea of the current directory.
@@ -1308,7 +1302,7 @@ otherwise."
 
 ;;; Completions
 
-(defun octave-completion-at-point-function ()
+(defun octave-completion-at-point ()
   "Find the text to complete and the corresponding table."
   (let* ((beg (save-excursion (skip-syntax-backward "w_") (point)))
          (end (point)))
@@ -1316,11 +1310,11 @@ otherwise."
         ;; Extend region past point, if applicable.
         (save-excursion (skip-syntax-forward "w_")
                         (setq end (point))))
-    (list beg end (or (and inferior-octave-process
-                           (process-live-p inferior-octave-process)
-                           (inferior-octave-completion-table))
-                      (append octave-reserved-words
-                              octave-text-functions)))))
+    (when (> end beg)
+      (list beg end (or (and inferior-octave-process
+                             (process-live-p inferior-octave-process)
+                             (inferior-octave-completion-table))
+                        octave-reserved-words)))))
 
 (define-obsolete-function-alias 'octave-complete-symbol
   'completion-at-point "24.1")
