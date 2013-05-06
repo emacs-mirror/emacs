@@ -1,5 +1,10 @@
 2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/perl-mode.el: Add support for here documents.
+	(perl-syntax-propertize-function): Match here-doc markers.
+	(perl-syntax-propertize-special-constructs): Find their end.
+	(perl-imenu-generic-expression): Use [:alnum:].
+
 	* emacs-lisp/nadvice.el (advice--member-p): Return the advice if found.
 	(advice--add-function): Refresh the advice if already present
 	(bug#14317).
