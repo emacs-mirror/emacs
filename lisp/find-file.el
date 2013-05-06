@@ -245,7 +245,8 @@ the preceding slash.  The star represents all the subdirectories except
     ("\\.hh\\'"  (".cc" ".C"))
 
     ("\\.c\\'"   (".h"))
-    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp"))
+    ("\\.m\\'"   (".h"))
+    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp" ".m"))
 
     ("\\.C\\'"   (".H"  ".hh" ".h"))
     ("\\.H\\'"   (".C"  ".CC"))

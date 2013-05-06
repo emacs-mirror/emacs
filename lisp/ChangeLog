@@ -1,3 +1,7 @@
+2013-05-06  Ivan Andrus  <darthandrus@gmail.com>
+
+	* find-file.el (cc-other-file-alist): Add ".m" for ObjC.  (Bug#14339)
+
 2013-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* w32-fns.el (w32-charset-info-alist): Declare.
