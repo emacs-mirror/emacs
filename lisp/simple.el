@@ -2868,7 +2868,7 @@ Command Output*' is deleted.
 
 Optional fourth arg OUTPUT-BUFFER specifies where to put the
 command's output.  If the value is a buffer or buffer name, put
-the output there.  Any other value, including nil, means to
+the output there.  Any other value, excluding nil, means to
 insert the output in the current buffer.  In either case, the
 output is inserted after point (leaving mark after it).
 

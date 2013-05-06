@@ -1,3 +1,7 @@
+2013-05-06  Kelly Dean  <kellydeanch@yahoo.com>  (tiny change)
+
+	* simple.el (shell-command-on-region): Doc fix.  (Bug#14279)
+
 2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el: Add support for here documents.
