@@ -6629,11 +6629,7 @@ KEY is a string or a vector."
 ;;`gnus-agent-mode' in gnus-agent.el will define it.
 (defvar gnus-agent-summary-mode)
 (defvar gnus-draft-mode)
-;; Calling help-buffer will autoload help-mode.
 (defvar help-xref-stack-item)
-;; Emacs 22 doesn't load it in the batch mode.
-(eval-when-compile
-  (autoload 'help-buffer "help-mode"))
 
 (defun gnus-article-describe-bindings (&optional prefix)
   "Show a list of all defined keys, and their definitions.
@@ -6684,6 +6680,7 @@ then we display only bindings that start with that prefix."
 		    (with-current-buffer ,(current-buffer)
 		      (gnus-article-describe-bindings prefix)))
 		  ,prefix)))
+      (require 'help-mode)
       (with-current-buffer (let (help-xref-following) (help-buffer))
 	(setq help-xref-stack-item item)))))
 

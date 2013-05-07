@@ -1,3 +1,8 @@
+2013-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): Require help-mode
+	because of let-binding help-xref-following.  (Bug#14356)
+
 2013-05-06  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* message.el (message-bury, message-send-and-exit):
