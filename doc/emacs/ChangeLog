@@ -1,3 +1,7 @@
+2013-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Changing a Variable): Fix typo.
+
 2013-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Contributing): Remove obsolete info re pretesters.
