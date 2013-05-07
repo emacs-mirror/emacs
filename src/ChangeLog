@@ -1,3 +1,7 @@
+2013-05-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c: Move misplaced ifndef USE_GTK from previous checkin.
+
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Static checking by GCC 4.8.0.
