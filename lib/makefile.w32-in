@@ -23,7 +23,8 @@ ALL = gnulib
 LOCAL_FLAGS	= -I. -I../nt/inc -I../src
 LIBS 		=
 
-GNULIBOBJS = $(BLD)/c-ctype.$(O) \
+GNULIBOBJS = $(BLD)/acl-errno-valid.$(O) \
+	     $(BLD)/c-ctype.$(O) \
 	     $(BLD)/c-strcasecmp.$(O) \
 	     $(BLD)/c-strncasecmp.$(O) \
 	     $(BLD)/close-stream.$(O) \
@@ -108,6 +109,12 @@ SIG2STR_H      = $(GNU_LIB)/sig2str.h \
 		 $(GNU_LIB)/intprops.h
 STAT_TIME_H    = $(GNU_LIB)/stat-time.h \
 		 $(NT_INC)/sys/stat.h
+
+$(BLD)/acl-errno-valid.$(O) : \
+	$(GNU_LIB)/acl-errno-valid.c \
+	$(CONFIG_H) \
+	$(GNU_LIB)/acl.h \
+	$(NT_INC)/stdbool.h
 
 $(BLD)/c-ctype.$(O) : \
 	$(GNU_LIB)/c-ctype.c \

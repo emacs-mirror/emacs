@@ -36,7 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <selinux/context.h>
 #endif
 
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
 #include <sys/acl.h>
 #endif
 
@@ -81,26 +81,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DRIVE_LETTER(x) c_tolower (x)
 #endif
 
-#ifdef HAVE_POSIX_ACL
-/* FIXME: this macro was copied from gnulib's private acl-internal.h
-   header file.  */
-/* Recognize some common errors such as from an NFS mount that does
-   not support ACLs, even when local drives do.  */
-#if defined __APPLE__ && defined __MACH__ /* Mac OS X */
-#define ACL_NOT_WELL_SUPPORTED(Err)					\
-  ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY || (Err) == ENOENT)
-#elif defined EOPNOTSUPP /* Tru64 NFS */
-#define ACL_NOT_WELL_SUPPORTED(Err)					\
-  ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY || (Err) == EOPNOTSUPP)
-#elif defined WINDOWSNT
-#define ACL_NOT_WELL_SUPPORTED(Err)  ((Err) == ENOTSUP)
-#else
-#define ACL_NOT_WELL_SUPPORTED(Err)					\
-  ((Err) == ENOTSUP || (Err) == ENOSYS || (Err) == EINVAL || (Err) == EBUSY)
-#endif
-#endif	/* HAVE_POSIX_ACL */
-
 #include "systime.h"
+#include <acl.h>
 #include <allocator.h>
 #include <careadlinkat.h>
 #include <stat-time.h>
@@ -1988,7 +1970,7 @@ entries (depending on how Emacs was built).  */)
   security_context_t con;
   int conlength = 0;
 #endif
-#ifdef HAVE_POSIX_ACL
+#ifdef WINDOWSNT
   acl_t acl = NULL;
 #endif
 
@@ -2028,11 +2010,9 @@ entries (depending on how Emacs was built).  */)
 #ifdef WINDOWSNT
   if (!NILP (preserve_extended_attributes))
     {
-#ifdef HAVE_POSIX_ACL
       acl = acl_get_file (SDATA (encoded_file), ACL_TYPE_ACCESS);
-      if (acl == NULL && !ACL_NOT_WELL_SUPPORTED (errno))
+      if (acl == NULL && acl_errno_valid (errno))
 	report_file_error ("Getting ACL", Fcons (file, Qnil));
-#endif
     }
   if (!CopyFile (SDATA (encoded_file),
 		 SDATA (encoded_newname),
@@ -2069,17 +2049,15 @@ entries (depending on how Emacs was built).  */)
       /* Restore original attributes.  */
       SetFileAttributes (filename, attributes);
     }
-#ifdef HAVE_POSIX_ACL
   if (acl != NULL)
     {
       bool fail =
 	acl_set_file (SDATA (encoded_newname), ACL_TYPE_ACCESS, acl) != 0;
-      if (fail && !ACL_NOT_WELL_SUPPORTED (errno))
+      if (fail && acl_errno_valid (errno))
 	report_file_error ("Setting ACL", Fcons (newname, Qnil));
 
       acl_free (acl);
     }
-#endif
 #else /* not WINDOWSNT */
   immediate_quit = 1;
   ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);
@@ -2102,12 +2080,6 @@ entries (depending on how Emacs was built).  */)
 	  if (conlength == -1)
 	    report_file_error ("Doing fgetfilecon", Fcons (file, Qnil));
 	}
-#endif
-
-#ifdef HAVE_POSIX_ACL
-      acl = acl_get_fd (ifd);
-      if (acl == NULL && !ACL_NOT_WELL_SUPPORTED (errno))
-	report_file_error ("Getting ACL", Fcons (file, Qnil));
 #endif
     }
 
@@ -2156,7 +2128,7 @@ entries (depending on how Emacs was built).  */)
   immediate_quit = 0;
 
 #ifndef MSDOS
-  /* Preserve the original file modes, and if requested, also its
+  /* Preserve the original file permissions, and if requested, also its
      owner and group.  */
   {
     mode_t mode_mask = 07777;
@@ -2173,8 +2145,16 @@ entries (depending on how Emacs was built).  */)
 	      mode_mask |= 02000;
 	  }
       }
-    if (fchmod (ofd, st.st_mode & mode_mask) != 0)
-      report_file_error ("Doing chmod", Fcons (newname, Qnil));
+
+    switch (!NILP (preserve_extended_attributes)
+	    ? qcopy_acl (SSDATA (encoded_file), ifd,
+			 SSDATA (encoded_newname), ofd,
+			 st.st_mode & mode_mask)
+	    : fchmod (ofd, st.st_mode & mode_mask))
+      {
+      case -2: report_file_error ("Copying permissions from", list1 (file));
+      case -1: report_file_error ("Copying permissions to", list1 (newname));
+      }
   }
 #endif	/* not MSDOS */
 
@@ -2188,17 +2168,6 @@ entries (depending on how Emacs was built).  */)
 	report_file_error ("Doing fsetfilecon", Fcons (newname, Qnil));
 
       freecon (con);
-    }
-#endif
-
-#ifdef HAVE_POSIX_ACL
-  if (acl != NULL)
-    {
-      bool fail = acl_set_fd (ofd, acl) != 0;
-      if (fail && !ACL_NOT_WELL_SUPPORTED (errno))
-	report_file_error ("Setting ACL", Fcons (newname, Qnil));
-
-      acl_free (acl);
     }
 #endif
 
@@ -3111,7 +3080,7 @@ was unable to determine the ACL entries.  */)
 {
   Lisp_Object absname;
   Lisp_Object handler;
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   acl_t acl;
   Lisp_Object acl_string;
   char *str;
@@ -3126,7 +3095,7 @@ was unable to determine the ACL entries.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_acl, absname);
 
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   absname = ENCODE_FILE (absname);
 
   acl = acl_get_file (SSDATA (absname), ACL_TYPE_ACCESS);
@@ -3164,7 +3133,7 @@ support.  */)
 {
   Lisp_Object absname;
   Lisp_Object handler;
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   Lisp_Object encoded_absname;
   acl_t acl;
   bool fail;
@@ -3178,7 +3147,7 @@ support.  */)
   if (!NILP (handler))
     return call3 (handler, Qset_file_acl, absname, acl_string);
 
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   if (STRINGP (acl_string))
     {
       acl = acl_from_text (SSDATA (acl_string));
@@ -3193,7 +3162,7 @@ support.  */)
       fail = (acl_set_file (SSDATA (encoded_absname), ACL_TYPE_ACCESS,
 			    acl)
 	      != 0);
-      if (fail && !ACL_NOT_WELL_SUPPORTED (errno))
+      if (fail && acl_errno_valid (errno))
 	report_file_error ("Setting ACL", Fcons (absname, Qnil));
 
       acl_free (acl);

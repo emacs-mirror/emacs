@@ -1,5 +1,16 @@
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	* Makefile.in (LIB_ACL): New macro.
+	(LIBACL_LIBS): Remove.
+	(LIBES): Use LIB_ACL, not LIBACL_LIBS.
+	* fileio.c: Include <acl.h>.
+	Use HAVE_ACL_SET_FILE rather than HAVE_POSIX_ACL.
+	(ACL_NOT_WELL_SUPPORTED): Remove.  All uses replaced by
+	!acl_errno_valid.
+	(Fcopy_file) [!WINDOWSNT]: Use qcopy_acl instead of rolling
+	it ourselves.
+
 	* unexelf.c: Don't assume ElfW (Half) fits in int.
 	(entry_address, find_section, unexec): Use ptrdiff_t, not int,
 	when dealing with ElfW (Half) values, since they can exceed 2**31

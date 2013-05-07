@@ -756,7 +756,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_PNG_H
 
 /* Define to 1 if using POSIX ACL support. */
-#define HAVE_POSIX_ACL 1
+#define HAVE_ACL_SET_FILE 1
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN

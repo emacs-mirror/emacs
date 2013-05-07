@@ -199,7 +199,6 @@ OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
-OPTION_DEFAULT_ON([acl],[don't compile with ACL support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([inotify],[don't compile with inotify (file-watch) support])
 
@@ -2184,23 +2183,6 @@ fi
 if test "$ac_cv_func_inotify_init1" = yes; then
   AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
 fi
-
-dnl POSIX ACL support: provided by libacl on GNU/Linux, by libc on FreeBSD.
-HAVE_POSIX_ACL=no
-LIBACL_LIBS=
-if test "${with_acl}" = "yes"; then
-  AC_CHECK_LIB([acl], [acl_set_file], HAVE_POSIX_ACL=yes, HAVE_POSIX_ACL=no)
-  if test "$HAVE_POSIX_ACL" = yes; then
-    AC_DEFINE(HAVE_POSIX_ACL, 1, [Define to 1 if using POSIX ACL support.])
-    LIBACL_LIBS=-lacl
-  else
-    AC_CHECK_FUNC(acl_set_file, HAVE_POSIX_ACL=yes, HAVE_POSIX_ACL=no)
-    if test "$HAVE_POSIX_ACL" = yes; then
-      AC_DEFINE(HAVE_POSIX_ACL, 1, [Define to 1 if using POSIX ACL support.])
-    fi
- fi
-fi
-AC_SUBST(LIBACL_LIBS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.

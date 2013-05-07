@@ -1,3 +1,9 @@
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	* config.nt (HAVE_ACL_SET_FILE): Rename from HAVE_POSIX_ACL.
+	* inc/ms-w32.h (EOPNOTSUPP): New macro.
+
 2013-04-09  Ken Brown  <kbrown@cornell.edu>
 
 	* emacs.rc: Use 64-bit manifest for 64-bit Cygwin build.
