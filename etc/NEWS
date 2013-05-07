@@ -198,6 +198,9 @@ auto-saves of the desktop.
 If set to a number, this can be used to avoid accidentally paste large
 amounts of data into the ERC input.
 
+---
+** New F90 mode option `f90-smart-end-names'.
+
 ** Icomplete is a bit more like IDO.
 *** key bindings to navigate through and select the completions.
 *** The icomplete-separator is customizable, and its default has changed.

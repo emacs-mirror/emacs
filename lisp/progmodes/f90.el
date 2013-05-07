@@ -247,14 +247,35 @@
 
 (defcustom f90-smart-end 'blink
   "Qualification of END statements according to the matching block start.
-For example, the END that closes an IF block is changed to END
-IF.  If the block has a label, this is added as well.  Allowed
-values are 'blink, 'no-blink, and nil.  If nil, nothing is done.
-The other two settings have the same effect, but 'blink
+For example, change the END that closes an IF block to END IF.
+If the block has a label, add it as well (unless `f90-smart-end-names'
+says not to).  Allowed values are 'blink, 'no-blink, and nil.  If nil,
+nothing is done.  The other two settings have the same effect, but 'blink
 additionally blinks the cursor to the start of the block."
   :type  '(choice (const blink) (const no-blink) (const nil))
   :safe  (lambda (value) (memq value '(blink no-blink nil)))
   :group 'f90)
+
+;; Optional: program, module, type, function, subroutine
+;; Not optional: block data?, forall, if, select case/type, associate, do,
+;;   where, interface, critical
+;; No labels: enum
+(defcustom f90-smart-end-names t
+  "Whether completion of END statements should insert optional block names.
+For example, when closing a \"PROGRAM PROGNAME\" block, \"PROGNAME\" is
+optional in the \"END PROGRAM\" statement.  The same is true for modules,
+functions, subroutines, and types.  Some people prefer to omit the name
+from the END statement, since it makes it easier to change the name.
+
+This does not apply to named DO, IF, etc. blocks.  If such blocks
+start with a label, they must end with one.
+
+If an end statement has a name that does not match the start, it is always
+corrected, regardless of the value of this variable."
+  :type 'boolean
+  :safe 'booleanp
+  :group 'f90
+  :version "24.4")
 
 (defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
   "Regexp matching delimiter characters at which lines may be broken.
@@ -2108,12 +2129,19 @@ Like `join-line', but handles F90 syntax."
         (zmacs-deactivate-region)
       (deactivate-mark))))
 
+(defconst f90-end-block-optional-name
+  '("program" "module" "subroutine" "function" "type")
+  "Block types where including the name in the end statement is optional.")
+
 (defun f90-block-match (beg-block beg-name end-block end-name)
   "Match end-struct with beg-struct and complete end-block if possible.
 BEG-BLOCK is the type of block as indicated at the start (e.g., do).
 BEG-NAME is the block start name (may be nil).
 END-BLOCK is the type of block as indicated at the end (may be nil).
 END-NAME is the block end name (may be nil).
+If the block type matches `f90-end-block-optional-name', do not add
+an end name if `f90-smart-end-names' is nil, but always update an
+incorrect end name if there already was one.
 Leave point at the end of line."
   ;; Hack to deal with the case when this is called from
   ;; f90-indent-region on a program block without an explicit PROGRAM
@@ -2133,8 +2161,11 @@ Leave point at the end of line."
     (if (f90-equal-symbols beg-name end-name)
         (and end-name (search-forward end-name))
       (cond ((and beg-name (not end-name))
-             (message "Inserting %s." beg-name)
-             (insert (concat " " beg-name)))
+             (unless (and (not f90-smart-end-names)
+                          (member-ignore-case beg-block
+                                              f90-end-block-optional-name))
+               (message "Inserting %s." beg-name)
+               (insert (concat " " beg-name))))
             ((and beg-name end-name)
              (message "Replacing %s with %s." end-name beg-name)
              (search-forward end-name)
