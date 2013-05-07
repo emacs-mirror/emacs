@@ -160,6 +160,7 @@
 
 (defcustom perl-prettify-symbols t
   "If non-nil, some symbols will be displayed using Unicode chars."
+  :version "24.4"
   :type 'boolean)
 
 (defconst perl--prettify-symbols-alist
