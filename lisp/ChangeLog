@@ -1,5 +1,8 @@
 2013-05-07  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-hist.el (eshell-isearch-map): Initialize in the defvar.
+	Remove explicit eshell-isearch-cancel-map.
+
 	* progmodes/f90.el (f90-smart-end-names): New option.
 	(f90-smart-end): Doc fix.
 	(f90-end-block-optional-name): New constant.
