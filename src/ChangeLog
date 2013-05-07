@@ -1,3 +1,7 @@
+2013-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (readchar): Don't read from a dead buffer.  (Bug#14280)
+
 2013-05-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c: Move misplaced ifndef USE_GTK from previous checkin.

@@ -201,6 +201,9 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
 
       ptrdiff_t pt_byte = BUF_PT_BYTE (inbuffer);
 
+      if (! BUFFER_LIVE_P (inbuffer))
+	return -1;
+
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
