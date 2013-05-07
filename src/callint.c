@@ -688,6 +688,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
 	  args[i] = call1 (Qread_number, callint_message);
+	  /* Passing args[i] directly stimulates compiler bug.  */
+	  teml = args[i];
+	  visargs[i] = Fnumber_to_string (teml);
 	  break;
 
 	case 'P':		/* Prefix arg in raw form.  Does no I/O.  */

@@ -1,3 +1,9 @@
+2013-05-07  Juri Linkov  <juri@jurta.org>
+
+	* callint.c (Fcall_interactively): Set `visargs[i]' for code 'n'
+	to the string converted from number with `Fnumber_to_string'.
+	(Bug#14254)
+
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xfns.c (x_get_net_workarea): Define only if !GTK || GTK<3.4.
