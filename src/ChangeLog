@@ -1,3 +1,11 @@
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* unexelf.c: Don't assume ElfW (Half) fits in int.
+	(entry_address, find_section, unexec): Use ptrdiff_t, not int,
+	when dealing with ElfW (Half) values, since they can exceed 2**31
+	on 64-bit OpenBSD hosts.  Problem reported privately by Han Boetes.
+	(entry_address): Omit unused NUM arg.  All uses changed.
+
 2013-05-07  Juri Linkov  <juri@jurta.org>
 
 	* callint.c (Fcall_interactively): Set `visargs[i]' for code 'n'

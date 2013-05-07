@@ -522,12 +522,13 @@ typedef struct {
 # define ElfW(type) ElfExpandBitsW (ELFSIZE, type)
 #endif
 
-/* The code often converts ElfW (Half) values like e_shentsize to int;
+/* The code often converts ElfW (Half) values like e_shentsize to ptrdiff_t;
    check that this doesn't lose information.  */
 #include <intprops.h>
 #include <verify.h>
-verify ((! TYPE_SIGNED (ElfW (Half)) || INT_MIN <= TYPE_MINIMUM (ElfW (Half)))
-	&& TYPE_MAXIMUM (ElfW (Half)) <= INT_MAX);
+verify ((! TYPE_SIGNED (ElfW (Half))
+	 || PTRDIFF_MIN <= TYPE_MINIMUM (ElfW (Half)))
+	&& TYPE_MAXIMUM (ElfW (Half)) <= PTRDIFF_MAX);
 
 #ifdef UNEXELF_DEBUG
 # define DEBUG_LOG(expr) fprintf (stderr, #expr " 0x%jx\n", (uintmax_t) (expr))
@@ -561,22 +562,18 @@ verify ((! TYPE_SIGNED (ElfW (Half)) || INT_MIN <= TYPE_MINIMUM (ElfW (Half)))
    */
 
 static void *
-entry_address (void *section_h, int idx, int num, int entsize)
+entry_address (void *section_h, ptrdiff_t idx, ptrdiff_t entsize)
 {
   char *h = section_h;
-  ptrdiff_t n = idx;
-  return h + entsize * n;
+  return h + idx * entsize;
 }
 
 #define OLD_SECTION_H(n) \
-  (*(ElfW (Shdr) *) entry_address (old_section_h, n, old_file_h->e_shnum, \
-				   old_file_h->e_shentsize))
+  (*(ElfW (Shdr) *) entry_address (old_section_h, n, old_file_h->e_shentsize))
 #define NEW_SECTION_H(n) \
-  (*(ElfW (Shdr) *) entry_address (new_section_h, n, new_file_h->e_shnum, \
-				   new_file_h->e_shentsize))
+  (*(ElfW (Shdr) *) entry_address (new_section_h, n, new_file_h->e_shentsize))
 #define NEW_PROGRAM_H(n) \
-  (*(ElfW (Phdr) *) entry_address (new_program_h, n, new_file_h->e_phnum, \
-				   new_file_h->e_phentsize))
+  (*(ElfW (Phdr) *) entry_address (new_program_h, n, new_file_h->e_phentsize))
 
 #define PATCH_INDEX(n) ((n) += old_bss_index <= (n))
 typedef unsigned char byte;
@@ -599,12 +596,12 @@ round_up (ElfW (Addr) x, ElfW (Addr) y)
    If we don't find the section NAME, that is a fatal error
    if NOERROR is false; return -1 if NOERROR is true.  */
 
-static int
+static ptrdiff_t
 find_section (const char *name, const char *section_names, const char *file_name,
 	      ElfW (Ehdr) *old_file_h, ElfW (Shdr) *old_section_h,
 	      bool noerror)
 {
-  int idx;
+  ptrdiff_t idx;
 
   for (idx = 1; idx < old_file_h->e_shnum; idx++)
     {
@@ -662,14 +659,15 @@ unexec (const char *new_name, const char *old_name)
   ElfW (Off)  old_bss_offset;
   ElfW (Word) new_data2_incr;
 
-  int n, nn;
-  int old_bss_index, old_sbss_index, old_plt_index;
-  int old_data_index, new_data2_index;
+  ptrdiff_t n, nn;
+  ptrdiff_t old_bss_index, old_sbss_index, old_plt_index;
+  ptrdiff_t old_data_index, new_data2_index;
 #if defined _SYSTYPE_SYSV || defined __sgi
-  int old_mdebug_index;
+  ptrdiff_t old_mdebug_index;
 #endif
   struct stat stat_buf;
   off_t old_file_size;
+  int mask;
 
   /* Open the old file, allocate a buffer of the right size, and read
      in the file contents.  */
@@ -785,7 +783,7 @@ unexec (const char *new_name, const char *old_name)
   new_data2_incr = new_data2_size + (new_data2_offset - old_bss_offset);
 
 #ifdef UNEXELF_DEBUG
-  fprintf (stderr, "old_bss_index %d\n", old_bss_index);
+  fprintf (stderr, "old_bss_index %td\n", old_bss_index);
   DEBUG_LOG (old_bss_addr);
   DEBUG_LOG (old_bss_size);
   DEBUG_LOG (old_bss_offset);
@@ -840,9 +838,9 @@ unexec (const char *new_name, const char *old_name)
 
 #ifdef UNEXELF_DEBUG
   DEBUG_LOG (old_file_h->e_shoff);
-  fprintf (stderr, "Old section count %d\n", old_file_h->e_shnum);
+  fprintf (stderr, "Old section count %td\n", (ptrdiff_t) old_file_h->e_shnum);
   DEBUG_LOG (new_file_h->e_shoff);
-  fprintf (stderr, "New section count %d\n", new_file_h->e_shnum);
+  fprintf (stderr, "New section count %td\n", (ptrdiff_t) new_file_h->e_shnum);
 #endif
 
   /* Fix up a new program header.  Extend the writable data segment so
@@ -1089,8 +1087,9 @@ temacs:
       if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG
 	  && old_mdebug_index != -1)
 	{
-	  int diff = NEW_SECTION_H (nn).sh_offset
-		- OLD_SECTION_H (old_mdebug_index).sh_offset;
+	  ptrdiff_t new_offset = NEW_SECTION_H (nn).sh_offset;
+	  ptrdiff_t old_offset = OLD_SECTION_H (old_mdebug_index).sh_offset;
+	  ptrdiff_t diff = new_offset - old_offset;
 	  HDRR *phdr = (HDRR *)(NEW_SECTION_H (nn).sh_offset + new_base);
 
 	  if (diff)
@@ -1170,7 +1169,7 @@ temacs:
 	  || NEW_SECTION_H (nn).sh_type == SHT_DYNSYM)
 	{
 	  ElfW (Shdr) *spt = &NEW_SECTION_H (nn);
-	  unsigned int num = spt->sh_size / spt->sh_entsize;
+	  ptrdiff_t num = spt->sh_size / spt->sh_entsize;
 	  ElfW (Sym) * sym = (ElfW (Sym) *) (NEW_SECTION_H (nn).sh_offset +
 					   new_base);
 	  for (; num--; sym++)
@@ -1326,9 +1325,9 @@ temacs:
   if (stat (new_name, &stat_buf) != 0)
     fatal ("Can't stat (%s): %s", new_name, strerror (errno));
 
-  n = umask (777);
-  umask (n);
-  stat_buf.st_mode |= 0111 & ~n;
+  mask = umask (777);
+  umask (mask);
+  stat_buf.st_mode |= 0111 & ~mask;
   if (chmod (new_name, stat_buf.st_mode) != 0)
     fatal ("Can't chmod (%s): %s", new_name, strerror (errno));
 }
