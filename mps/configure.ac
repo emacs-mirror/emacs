@@ -80,8 +80,7 @@ case $host in
       MPS_TARGET_NAME=fri3gc
       CFLAGS="$CFLAGS_GC"
     ;;
-  amd64-*-freebsd*)
-  x86_64-*-freebsd*)
+  amd64-*-freebsd* | x86_64-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86_64])
       MPS_TARGET_NAME=fri6gc
       CFLAGS="$CFLAGS_GC"
