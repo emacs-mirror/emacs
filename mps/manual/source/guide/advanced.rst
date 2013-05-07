@@ -364,7 +364,7 @@ actually test that ``key`` appears in the table, not just that some key
 with the same hash does.)
 
 When a table is rehashed, call :c:func:`mps_ld_reset` to clear the
-location dependency, and the :c:func:`mps_ld_add` for each key before it is added back to the table.
+location dependency, and then :c:func:`mps_ld_add` for each key before it is added back to the table.
 
 .. note::
 
