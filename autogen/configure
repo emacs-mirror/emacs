@@ -1286,6 +1286,10 @@ LIBS_MAIL
 liblockfile
 LIBXML2_LIBS
 LIBXML2_CFLAGS
+XINERAMA_LIBS
+XINERAMA_CFLAGS
+XRANDR_LIBS
+XRANDR_CFLAGS
 LIBXSM
 LIBGPM
 LIBGIF
@@ -13466,6 +13470,257 @@ $as_echo "#define HAVE_X_SM 1" >>confdefs.h
       *-lSM*) ;;
       *)      LIBS="$LIBXSM $LIBS" ;;
     esac
+  fi
+fi
+
+
+### Use XRandr (-lXrandr) if available
+HAVE_XRANDR=no
+if test "${HAVE_X11}" = "yes"; then
+  XRANDR_REQUIRED=1.2.2
+  XRANDR_MODULES="xrandr >= $XRANDR_REQUIRED"
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_XRANDR=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $XRANDR_MODULES" >&5
+$as_echo_n "checking for $XRANDR_MODULES... " >&6; }
+
+        if "$PKG_CONFIG" --exists "$XRANDR_MODULES" 2>&5 &&
+	   XRANDR_CFLAGS=`"$PKG_CONFIG" --cflags "$XRANDR_MODULES" 2>&5` &&
+	   XRANDR_LIBS=`"$PKG_CONFIG" --libs "$XRANDR_MODULES" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    XRANDR_CFLAGS=`$as_echo "$XRANDR_CFLAGS" | sed -e "$edit_cflags"`
+	    XRANDR_LIBS=`$as_echo "$XRANDR_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XRANDR_CFLAGS' LIBS='$XRANDR_LIBS'" >&5
+$as_echo "yes CFLAGS='$XRANDR_CFLAGS' LIBS='$XRANDR_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            XRANDR_CFLAGS=""
+            XRANDR_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XRANDR_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$XRANDR_MODULES") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_XRANDR=yes
+  else
+     HAVE_XRANDR=no
+  fi
+
+  if test $HAVE_XRANDR = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xrandr.h" "ac_cv_header_X11_extensions_Xrandr_h" "$ac_includes_default"
+if test "x$ac_cv_header_X11_extensions_Xrandr_h" = x""yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XRRQueryExtension in -lXrandr" >&5
+$as_echo_n "checking for XRRQueryExtension in -lXrandr... " >&6; }
+if test "${ac_cv_lib_Xrandr_XRRQueryExtension+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXrandr  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XRRQueryExtension ();
+int
+main ()
+{
+return XRRQueryExtension ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xrandr_XRRQueryExtension=yes
+else
+  ac_cv_lib_Xrandr_XRRQueryExtension=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xrandr_XRRQueryExtension" >&5
+$as_echo "$ac_cv_lib_Xrandr_XRRQueryExtension" >&6; }
+if test "x$ac_cv_lib_Xrandr_XRRQueryExtension" = x""yes; then :
+  HAVE_XRANDR=yes
+fi
+
+fi
+
+
+    if test $HAVE_XRANDR = yes; then
+      XRANDR_LIBS=-lXrandr
+
+    fi
+  fi
+  if test $HAVE_XRANDR = yes; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LIBS="$LIBS"
+    CFLAGS="$XRANDR_CFLAGS $CFLAGS"
+    LIBS="$XRANDR_LIBS $LIBS"
+    for ac_func in XRRGetOutputPrimary XRRGetScreenResourcesCurrent
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+    CFLAGS="$SAVE_CFLAGS"
+    LIBS="$SAVE_LIBS"
+
+
+$as_echo "#define HAVE_XRANDR 1" >>confdefs.h
+
+  fi
+fi
+
+### Use Xinerama (-lXinerama) if available
+HAVE_XINERAMA=no
+if test "${HAVE_X11}" = "yes"; then
+  XINERAMA_REQUIRED=1.0.2
+  XINERAMA_MODULES="xinerama >= $XINERAMA_REQUIRED"
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_XINERAMA=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $XINERAMA_MODULES" >&5
+$as_echo_n "checking for $XINERAMA_MODULES... " >&6; }
+
+        if "$PKG_CONFIG" --exists "$XINERAMA_MODULES" 2>&5 &&
+	   XINERAMA_CFLAGS=`"$PKG_CONFIG" --cflags "$XINERAMA_MODULES" 2>&5` &&
+	   XINERAMA_LIBS=`"$PKG_CONFIG" --libs "$XINERAMA_MODULES" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    XINERAMA_CFLAGS=`$as_echo "$XINERAMA_CFLAGS" | sed -e "$edit_cflags"`
+	    XINERAMA_LIBS=`$as_echo "$XINERAMA_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XINERAMA_CFLAGS' LIBS='$XINERAMA_LIBS'" >&5
+$as_echo "yes CFLAGS='$XINERAMA_CFLAGS' LIBS='$XINERAMA_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            XINERAMA_CFLAGS=""
+            XINERAMA_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XINERAMA_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$XINERAMA_MODULES") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_XINERAMA=yes
+  else
+     HAVE_XINERAMA=no
+  fi
+
+  if test $HAVE_XINERAMA = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xinerama.h" "ac_cv_header_X11_extensions_Xinerama_h" "$ac_includes_default"
+if test "x$ac_cv_header_X11_extensions_Xinerama_h" = x""yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XineramaQueryExtension in -lXinerama" >&5
+$as_echo_n "checking for XineramaQueryExtension in -lXinerama... " >&6; }
+if test "${ac_cv_lib_Xinerama_XineramaQueryExtension+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXinerama  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XineramaQueryExtension ();
+int
+main ()
+{
+return XineramaQueryExtension ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xinerama_XineramaQueryExtension=yes
+else
+  ac_cv_lib_Xinerama_XineramaQueryExtension=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xinerama_XineramaQueryExtension" >&5
+$as_echo "$ac_cv_lib_Xinerama_XineramaQueryExtension" >&6; }
+if test "x$ac_cv_lib_Xinerama_XineramaQueryExtension" = x""yes; then :
+  HAVE_XINERAMA=yes
+fi
+
+fi
+
+
+    if test $HAVE_XINERAMA = yes; then
+      XINERAMA_LIBS=-lXinerama
+
+    fi
+  fi
+  if test $HAVE_XINERAMA = yes; then
+
+$as_echo "#define HAVE_XINERAMA 1" >>confdefs.h
+
   fi
 fi
 

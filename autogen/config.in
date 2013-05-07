@@ -1106,14 +1106,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
+/* Define to 1 if you have the Xinerama extension. */
+#undef HAVE_XINERAMA
+
 /* Define to 1 if you have the Xkb extension. */
 #undef HAVE_XKB
 
 /* Define to 1 if you have the Xpm library (-lXpm). */
 #undef HAVE_XPM
 
+/* Define to 1 if you have the XRandr extension. */
+#undef HAVE_XRANDR
+
 /* Define to 1 if you have the `XrmSetDatabase' function. */
 #undef HAVE_XRMSETDATABASE
+
+/* Define to 1 if you have the `XRRGetOutputPrimary' function. */
+#undef HAVE_XRRGETOUTPUTPRIMARY
+
+/* Define to 1 if you have the `XRRGetScreenResourcesCurrent' function. */
+#undef HAVE_XRRGETSCREENRESOURCESCURRENT
 
 /* Define to 1 if you have the `XScreenNumberOfScreen' function. */
 #undef HAVE_XSCREENNUMBEROFSCREEN
