@@ -373,7 +373,7 @@ Non-nil means always go to the next Octave code line after sending."
    ((and (looking-at "[%#\n]")
          (not (or (save-excursion (skip-chars-backward " \t")
                                   ;; Only add implicit ; when needed.
-                                  (or (bolp) (eq (char-before ?\;))))
+                                  (or (bolp) (eq (char-before) ?\;)))
                   ;; Ignore it if it's within parentheses.
                   (let ((ppss (syntax-ppss)))
                     (and (nth 1 ppss)
