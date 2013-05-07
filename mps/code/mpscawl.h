@@ -11,6 +11,8 @@
 
 extern mps_class_t mps_class_awl(void);
 
+typedef mps_addr_t (*mps_awl_find_dependent_t)(mps_addr_t addr);
+
 #endif /* mpscawl_h */
 
 
