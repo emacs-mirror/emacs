@@ -3804,6 +3804,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
    Return false if and only if the workarea information cannot be
    obtained via the _NET_WORKAREA root window property.  */
 
+#ifndef USE_GTK
+
 static bool
 x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 {
@@ -3868,6 +3870,7 @@ struct MonitorInfo {
   char *name;
 };
 
+#if defined HAVE_XINERAMA || defined HAVE_XRANDR
 static void
 free_monitors (struct MonitorInfo *monitors, int n_monitors)
 {
@@ -3876,6 +3879,7 @@ free_monitors (struct MonitorInfo *monitors, int n_monitors)
     xfree (monitors[i].name);
   xfree (monitors);
 }
+#endif /* HAVE_XINERAMA || HAVE_XRANDR */
 
 
 /* Return monitor number where F is "most" or closest to.  */
@@ -3906,10 +3910,11 @@ x_get_monitor_for_frame (struct frame *f,
       if (x_intersect_rectangles (&mi->geom, &frect, &res))
         {
           a = res.width * res.height;
-          if (a > area) {
-            area = a;
-            best_area = i;
-          }
+          if (a > area)
+	    {
+	      area = a;
+	      best_area = i;
+	    }
         }
 
       if (a == 0 && area == 0)
@@ -4005,7 +4010,6 @@ static Lisp_Object
 x_get_monitor_attributes_fallback (struct x_display_info *dpyinfo)
 {
   struct MonitorInfo monitor;
-  int width_mm, height_mm;
   XRectangle workarea_r;
 
   /* Fallback: treat (possibly) multiple physical monitors as if they
@@ -4035,7 +4039,7 @@ x_get_monitor_attributes_xinerama (struct x_display_info *dpyinfo)
   Display *dpy = dpyinfo->display;
   XineramaScreenInfo *info = XineramaQueryScreens (dpy, &n_monitors);
   struct MonitorInfo *monitors;
-  float mm_width_per_pixel, mm_height_per_pixel;
+  double mm_width_per_pixel, mm_height_per_pixel;
 
   if (! info || n_monitors == 0)
     {
@@ -4044,9 +4048,9 @@ x_get_monitor_attributes_xinerama (struct x_display_info *dpyinfo)
       return attributes_list;
     }
 
-  mm_width_per_pixel = ((float) WidthMMOfScreen (dpyinfo->screen)
+  mm_width_per_pixel = ((double) WidthMMOfScreen (dpyinfo->screen)
 			/ x_display_pixel_width (dpyinfo));
-  mm_height_per_pixel = ((float) HeightMMOfScreen (dpyinfo->screen)
+  mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
 			 / x_display_pixel_height (dpyinfo));
   monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
   for (i = 0; i < n_monitors; ++i)
@@ -4218,6 +4222,8 @@ x_get_monitor_attributes (struct x_display_info *dpyinfo)
   return attributes_list;
 }
 
+#endif /* !USE_GTK */
+
 DEFUN ("x-display-monitor-attributes-list", Fx_display_monitor_attributes_list,
        Sx_display_monitor_attributes_list,
        0, 1, 0,
@@ -4242,7 +4248,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   Lisp_Object attributes_list = Qnil;
 
 #ifdef USE_GTK
-  float mm_width_per_pixel, mm_height_per_pixel;
+  double mm_width_per_pixel, mm_height_per_pixel;
   GdkDisplay *gdpy;
   GdkScreen *gscreen;
   gint primary_monitor = 0, n_monitors, i;
@@ -4251,9 +4257,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   static const char *source = "Gdk";
 
   block_input ();
-  mm_width_per_pixel = ((float) WidthMMOfScreen (dpyinfo->screen)
+  mm_width_per_pixel = ((double) WidthMMOfScreen (dpyinfo->screen)
 			/ x_display_pixel_width (dpyinfo));
-  mm_height_per_pixel = ((float) HeightMMOfScreen (dpyinfo->screen)
+  mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
 			 / x_display_pixel_height (dpyinfo));
   gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
   gscreen = gdk_display_get_default_screen (gdpy);
