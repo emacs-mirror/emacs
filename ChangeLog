@@ -1,3 +1,8 @@
+2013-05-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_XRANDR, HAVE_XINERAMA): Define if available.
+	(XRANDR_LIBS, XINERAMA_LIBS): New AC_SUBSTs.
+
 2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

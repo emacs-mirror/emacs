@@ -1,3 +1,28 @@
+2013-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+	    Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (XRANDR_LIBS, XRANDR_CFLAGS, XINERAMA_LIBS)
+	(XINERAMA_CFLAGS): New macros.
+	(ALL_CFLAGS, LIBES): Use them.
+
+	* xfns.c: Include <X11/extensions/Xrandr.h> if HAVE_XRANDR, and
+	include <X11/extensions/Xinerama.h> if HAVE_XINERAMA.
+	(Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): New variables.
+	(syms_of_xfns): DEFSYM them.
+	(struct MonitorInfo): New struct.
+	(x_get_net_workarea, free_monitors, x_get_monitor_for_frame)
+	(x_make_monitor_attribute_list, x_get_monitor_attributes_fallback)
+	(x_get_monitor_attributes_xrandr, x_get_monitor_attributes)
+	(x_get_monitor_attributes_xinerama): New functions.
+	(Fx_display_monitor_attributes_list): New primitive.
+	(syms_of_xfns): Defsubr it.
+
+	* xterm.h (x_display_info): Add Xatom_net_workarea and
+	Xatom_net_current_desktop.
+
+	* xterm.c (x_term_init): Initialize dpyinfo->Xatom_net_workarea
+	and dpyinfo->Xatom_net_current_desktop.
+
 2013-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): Use the special code for finding the

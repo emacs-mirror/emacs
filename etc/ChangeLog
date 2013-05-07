@@ -1,3 +1,7 @@
+2013-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* NEWS: Mention multi-monitor support.
+
 2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).

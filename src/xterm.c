@@ -10251,6 +10251,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       { "_NET_WM_WINDOW_OPACITY", &dpyinfo->Xatom_net_wm_window_opacity },
       { "_NET_ACTIVE_WINDOW", &dpyinfo->Xatom_net_active_window },
       { "_NET_FRAME_EXTENTS", &dpyinfo->Xatom_net_frame_extents },
+      { "_NET_CURRENT_DESKTOP", &dpyinfo->Xatom_net_current_desktop },
+      { "_NET_WORKAREA", &dpyinfo->Xatom_net_workarea },
       /* Session management */
       { "SM_CLIENT_ID", &dpyinfo->Xatom_SM_CLIENT_ID },
       { "_XSETTINGS_SETTINGS", &dpyinfo->Xatom_xsettings_prop },
