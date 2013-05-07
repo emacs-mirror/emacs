@@ -1,3 +1,8 @@
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfns.c (x_get_net_workarea): Define only if !GTK || GTK<3.4.
+	This fixes a problem introduced by my previous change.
+
 2013-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (readchar): Don't read from a dead buffer.  (Bug#14280)

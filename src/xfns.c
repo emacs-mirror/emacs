@@ -3804,6 +3804,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
    Return false if and only if the workarea information cannot be
    obtained via the _NET_WORKAREA root window property.  */
 
+#if !defined USE_GTK || GTK_MAJOR_VERSION < 3 + (GTK_MINOR_VERSION < 4)
 static bool
 x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 {
@@ -3861,6 +3862,7 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 
   return result;
 }
+#endif
 
 #ifndef USE_GTK
 
