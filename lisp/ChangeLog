@@ -1,3 +1,8 @@
+2013-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave.el (octave-smie-forward-token): Be more careful
+	about implicit semi-colons (bug#14218).
+
 2013-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.el (display-monitor-attributes-list)

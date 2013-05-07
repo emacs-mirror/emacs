@@ -370,16 +370,18 @@ Non-nil means always go to the next Octave code line after sending."
     (goto-char (match-end 1))
     (forward-comment 1))
   (cond
-   ((and (looking-at "$\\|[%#]")
-         ;; Ignore it if it's within parentheses or if the newline does not end
-         ;; some preceding text.
-         (prog1 (and (not (smie-rule-bolp))
-		     (let ((ppss (syntax-ppss)))
-		       (not (and (nth 1 ppss)
-				 (eq ?\( (char-after (nth 1 ppss)))))))
-           (forward-comment (point-max))))
+   ((and (looking-at "[%#\n]")
+         (not (or (save-excursion (skip-chars-backward " \t")
+                                  ;; Only add implicit ; when needed.
+                                  (or (bolp) (eq (char-before ?\;))))
+                  ;; Ignore it if it's within parentheses.
+                  (let ((ppss (syntax-ppss)))
+                    (and (nth 1 ppss)
+                         (eq ?\( (char-after (nth 1 ppss))))))))
+    (if (eolp) (forward-char 1) (forward-comment 1))
     ;; Why bother distinguishing \n and ;?
     ";") ;;"\n"
+   ((progn (forward-comment (point-max)) nil))
    ((looking-at ";[ \t]*\\($\\|[%#]\\)")
     ;; Combine the ; with the subsequent \n.
     (goto-char (match-beginning 1))
