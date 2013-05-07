@@ -6680,6 +6680,8 @@ then we display only bindings that start with that prefix."
 		    (with-current-buffer ,(current-buffer)
 		      (gnus-article-describe-bindings prefix)))
 		  ,prefix)))
+      ;; Loading `help-mode' here is necessary if `describe-bindings'
+      ;; is replaced with something, e.g. `helm-descbinds'.
       (require 'help-mode)
       (with-current-buffer (let (help-xref-following) (help-buffer))
 	(setq help-xref-stack-item item)))))
