@@ -105,12 +105,12 @@ typedef struct mps_arg_s {
     long l;
     unsigned long ul;
     size_t size;
-    va_list varargs;
     mps_addr_t addr;
     mps_fmt_t format;
     mps_chain_t chain;
     struct mps_pool_debug_option_s *pool_debug_option;
     mps_addr_t (*addr_method)(mps_addr_t);
+    mps_align_t align;
   } val;
 } mps_arg_s;
 
@@ -120,8 +120,6 @@ typedef struct mps_arg_s {
 extern const struct mps_key_s _mps_key_vmw3_top_down;
 #define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
 
-extern const struct mps_key_s _mps_key_varargs;
-#define MPS_KEY_VARARGS         (&_mps_key_varargs)
 extern const struct mps_key_s _mps_key_arena_size;
 #define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
 extern const struct mps_key_s _mps_key_format;

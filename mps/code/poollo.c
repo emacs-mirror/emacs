@@ -482,15 +482,11 @@ static Res LOInit(Pool pool, ArgList args)
 
   arena = PoolArena(pool);
   
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    format = va_arg(arg.val.varargs, Format);
-  } else {
-    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-      format = arg.val.format;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+    format = arg.val.format;
+  else {
+    res = ResPARAM;
+    goto failParam;
   }
   
   AVERT(Format, format);
