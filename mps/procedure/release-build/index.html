@@ -81,8 +81,10 @@ set <code>MPS_RELEASE</code> to the correct value (see the rules in
 the comments), and check strings that contain copyright dates,
 etc. </p> </li>
 
+<li><p> In <code>configure.ac</code> edit the second argument of <code>AC_INIT</code> to be "<code>release $RELEASE</code>", then open <code>configure</code> for edit and run <code>autoreconf -vif</code> to bring the configure script up to date.</p></li>
+
 <li><p> <strong>Submit <code>readme.txt</code>,
-<code>version.c</code>, and other changed files to Perforce before you
+<code>version.c</code>, <code>configure.ac</code>, and other changed files to Perforce before you
 continue.</strong> </p></li>
 
 <li><p> Determine the <i>CHANGELEVEL</i> at which you’re going to make
