@@ -95,7 +95,7 @@
 (modify-syntax-entry ?{  "_" m4-mode-syntax-table)
 (modify-syntax-entry ?}  "_" m4-mode-syntax-table)
 (modify-syntax-entry ?*  "w" m4-mode-syntax-table)
-(modify-syntax-entry ?_  "w" m4-mode-syntax-table)
+(modify-syntax-entry ?_  "_" m4-mode-syntax-table)
 (modify-syntax-entry ?\"  "w" m4-mode-syntax-table)
 (modify-syntax-entry ?\"  "w" m4-mode-syntax-table)
 

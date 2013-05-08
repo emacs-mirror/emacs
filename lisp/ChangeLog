@@ -1,3 +1,8 @@
+2013-05-08  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/m4-mode.el (m4-mode-syntax-table):
+	Do not treat "_" as word constituent.  (Bug#14167)
+
 2013-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/em-hist.el (eshell-isearch-map): Initialize in the defvar.
