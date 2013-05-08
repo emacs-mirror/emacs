@@ -1,3 +1,9 @@
+2013-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Sending): Fix typo.
+
+	* windows.texi (Change Window): Fix typo.
+
 2013-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Changing a Variable): Fix typo.
