@@ -1,3 +1,13 @@
+2013-05-08  Sam Steingold  <sds@gnu.org>
+
+	* thingatpt.el (thing-at-point): Accept optional second argument
+	NO-PROPERTIES to strip the text properties from the return value.
+	* net/browse-url.el (browse-url-url-at-point): Pass NO-PROPERTIES
+	to `thing-at-point' instead of stripping the properties ourselves.
+	Also, when `thing-at-point' fails to find a url, prepend "http://"
+	to the filename at point on the assumption that the user is
+	pointing at something like gnu.org/gnu.
+
 2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-insert-header):
