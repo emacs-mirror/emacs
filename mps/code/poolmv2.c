@@ -195,11 +195,11 @@ static SegPref MVTSegPref(MVT mvt)
 
 static void MVTVarargs(ArgStruct args[], va_list varargs)
 {
-  args[0].key = MPS_KEY_MVT_MIN_SIZE;
+  args[0].key = MPS_KEY_MIN_SIZE;
   args[0].val.size = va_arg(varargs, Size);
-  args[1].key = MPS_KEY_MVT_MEAN_SIZE;
+  args[1].key = MPS_KEY_MEAN_SIZE;
   args[1].val.size = va_arg(varargs, Size);
-  args[2].key = MPS_KEY_MVT_MAX_SIZE;
+  args[2].key = MPS_KEY_MAX_SIZE;
   args[2].val.size = va_arg(varargs, Size);
   args[3].key = MPS_KEY_MVT_RESERVE_DEPTH;
   args[3].val.count = va_arg(varargs, Count);
@@ -245,17 +245,17 @@ static Res MVTInit(Pool pool, ArgList args)
 
   /* FIXME: Inconsistent reporting of bad arguments.  Elsewhere we assert or return ResPARAM. */
   /* --- Should there be a ResBADARG ? */
-  if (ArgPick(&arg, args, MPS_KEY_MVT_MIN_SIZE)) {
+  if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE)) {
     minSize = arg.val.size;
     unless (minSize > 0)
       return ResLIMIT;
   }
-  if (ArgPick(&arg, args, MPS_KEY_MVT_MEAN_SIZE)) {
+  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE)) {
     meanSize = arg.val.size;
     unless (meanSize >= minSize)
       return ResLIMIT;
   }
-  if (ArgPick(&arg, args, MPS_KEY_MVT_MAX_SIZE)) {
+  if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE)) {
     maxSize = arg.val.size;
     unless (maxSize >= meanSize)
       return ResLIMIT;

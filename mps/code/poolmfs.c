@@ -81,7 +81,7 @@ Pool (MFSPool)(MFS mfs)
 
 static void MFSVarargs(ArgStruct args[], va_list varargs)
 {
-  args[0].key = MPS_KEY_MFS_EXTEND_BY;
+  args[0].key = MPS_KEY_EXTEND_BY;
   args[0].val.size = va_arg(varargs, Size);
   args[1].key = MPS_KEY_MFS_UNIT_SIZE;
   args[1].val.size = va_arg(varargs, Size);
@@ -89,7 +89,6 @@ static void MFSVarargs(ArgStruct args[], va_list varargs)
   AVER(ArgListCheck(args));
 }
 
-ARG_DEFINE_KEY(mfs_extend_by, Size);
 ARG_DEFINE_KEY(mfs_unit_size, Size);
 
 static Res MFSInit(Pool pool, ArgList args)
@@ -109,7 +108,7 @@ static Res MFSInit(Pool pool, ArgList args)
     res = ResPARAM;
     goto failParam;
   }
-  if (ArgPick(&arg, args, MPS_KEY_MFS_EXTEND_BY))
+  if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
     extendBy = arg.val.size;
   else {
     extendBy = MFS_EXTEND_BY_DEFAULT;

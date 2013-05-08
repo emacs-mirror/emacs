@@ -411,11 +411,11 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
 
 static void MVFFVarargs(ArgStruct args[], va_list varargs)
 {
-  args[0].key = MPS_KEY_MVFF_EXTEND_BY;
+  args[0].key = MPS_KEY_EXTEND_BY;
   args[0].val.size = va_arg(varargs, Size);
-  args[1].key = MPS_KEY_MVFF_AVG_SIZE;
+  args[1].key = MPS_KEY_MEAN_SIZE;
   args[1].val.size = va_arg(varargs, Size);
-  args[2].key = MPS_KEY_MVFF_ALIGN;
+  args[2].key = MPS_KEY_ALIGN;
   args[2].val.align = va_arg(varargs, Size); /* promoted type */
   args[3].key = MPS_KEY_MVFF_SLOT_HIGH;
   args[3].val.b = va_arg(varargs, Bool);
@@ -437,9 +437,6 @@ static void MVFFDebugVarargs(ArgStruct args[], va_list varargs)
 
 /* MVFFInit -- initialize method for MVFF */
 
-ARG_DEFINE_KEY(mvff_extend_by, Size);
-ARG_DEFINE_KEY(mvff_avg_size, Size);
-ARG_DEFINE_KEY(mvff_align, Align);
 ARG_DEFINE_KEY(mvff_slot_high, Bool);
 ARG_DEFINE_KEY(mvff_arena_high, Bool);
 ARG_DEFINE_KEY(mvff_first_fit, Bool);
@@ -468,13 +465,13 @@ static Res MVFFInit(Pool pool, ArgList args)
   /* .arg.check: we do the same checks here and in MVFFCheck */
   /* except for arenaHigh, which is stored only in the segPref. */
   
-  if (ArgPick(&arg, args, MPS_KEY_MVFF_EXTEND_BY))
+  if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
     extendBy = arg.val.size;
   
-  if (ArgPick(&arg, args, MPS_KEY_MVFF_AVG_SIZE))
+  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
     avgSize = arg.val.size;
   
-  if (ArgPick(&arg, args, MPS_KEY_MVFF_ALIGN))
+  if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
 
   if (ArgPick(&arg, args, MPS_KEY_MVFF_SLOT_HIGH))

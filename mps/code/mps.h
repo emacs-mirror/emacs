@@ -115,7 +115,9 @@ typedef struct mps_arg_s {
   } val;
 } mps_arg_s;
 
-#define MPS_KEY_ARGS_END        NULL
+extern const struct mps_key_s _mps_key_args_end;
+#define MPS_KEY_ARGS_END        (&_mps_key_args_end)
+extern mps_arg_s mps_args_none[];
 
 /* FIXME: This shouldn't be here */
 extern const struct mps_key_s _mps_key_vmw3_top_down;
@@ -128,7 +130,16 @@ extern const struct mps_key_s _mps_key_format;
 extern const struct mps_key_s _mps_key_chain;
 #define MPS_KEY_CHAIN           (&_mps_key_chain)
 
-extern mps_arg_s mps_args_none[];
+extern const struct mps_key_s _mps_key_extend_by;
+#define MPS_KEY_EXTEND_BY (&_mps_key_extend_by)
+extern const struct mps_key_s _mps_key_min_size;
+#define MPS_KEY_MIN_SIZE (&_mps_key_min_size)
+extern const struct mps_key_s _mps_key_mean_size;
+#define MPS_KEY_MEAN_SIZE (&_mps_key_mean_size)
+extern const struct mps_key_s _mps_key_max_size;
+#define MPS_KEY_MAX_SIZE (&_mps_key_max_size)
+extern const struct mps_key_s _mps_key_align;
+#define MPS_KEY_ALIGN (&_mps_key_align)
 
 
 /* <a id="message.types"> Keep in sync with
