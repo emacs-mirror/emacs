@@ -1,3 +1,9 @@
+2013-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/m4-mode.el (m4-program): Assume it is in PATH.
+	(m4-mode-syntax-table): Init in the defvar.
+	(m4-mode-abbrev-table): Let define-derived-mode define it.
+
 2013-05-08  Tom Tromey  <tromey@redhat.com>
 
 	* progmodes/m4-mode.el (m4-mode-syntax-table):
