@@ -77,6 +77,19 @@ Pool (MFSPool)(MFS mfs)
 }
 
 
+/* MFSVarargs -- decode obsolete varargs */
+
+static void MFSVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_MFS_EXTEND_BY;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MFS_UNIT_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 const KeyStruct _mps_mfs_extend_by = {KeySig, "MFS_EXTEND_BY", ArgCheckCant};
 const KeyStruct _mps_mfs_unit_size = {KeySig, "MFS_UNIT_SIZE", ArgCheckCant};
 
@@ -289,6 +302,7 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
   this->name = "MFS";
   this->size = sizeof(MFSStruct);
   this->offset = offsetof(MFSStruct, poolStruct);
+  this->varargs = MFSVarargs;
   this->init = MFSInit;
   this->finish = MFSFinish;
   this->alloc = MFSAlloc;

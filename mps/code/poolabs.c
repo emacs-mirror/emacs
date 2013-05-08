@@ -122,6 +122,7 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->size = 0;
   class->offset = 0;
   class->attr = 0;
+  class->varargs = PoolTrivVarargs;
   class->init = PoolTrivInit;
   class->finish = PoolTrivFinish;
   class->alloc = PoolNoAlloc;
@@ -192,6 +193,13 @@ void PoolTrivFinish(Pool pool)
 {
   AVERT(Pool, pool);
   NOOP;
+}
+
+void PoolTrivVarargs(ArgStruct args[], va_list varargs)
+{
+  UNUSED(varargs);
+  args[0].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
 }
 
 Res PoolTrivInit(Pool pool, ArgList args)

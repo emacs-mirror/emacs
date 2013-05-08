@@ -47,6 +47,7 @@ Bool PoolClassCheck(PoolClass class)
   /* greater than the size of the class-specific portion of the instance */
   CHECKL(class->offset <= (size_t)(class->size - sizeof(PoolStruct)));
   CHECKL(AttrCheck(class->attr));
+  CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
   CHECKL(FUNCHECK(class->alloc));

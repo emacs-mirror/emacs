@@ -55,14 +55,6 @@
 /* TODO: Remove these includes when varargs support is removed. */
 #include "mpsacl.h"
 #include "mpsavm.h"
-#include "mpscamc.h"
-#include "mpscmfs.h"
-#include "mpscmv.h"
-#include "mpscams.h"
-#include "mpscawl.h"
-#include "mpsclo.h"
-#include "mpscsnc.h"
-#include "mpscmvff.h"
 
 #include <stdarg.h>
 #include <string.h>
@@ -658,94 +650,14 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
   return mps_pool_create_v(mps_pool_o, arena, mps_class, varargs);
 }
 
-/* Decode deprecated varargs.  TODO: This can be deleted when varargs go. */
-
-static void mps_pool_create_v_decode(mps_arg_s args[],
-                                     mps_class_t class,
-                                     va_list varargs) {
-  if (class == mps_class_amc()) {
-    args[0].key = MPS_KEY_FORMAT;
-    args[0].val.format = va_arg(varargs, Format);
-    args[1].key = MPS_KEY_CHAIN;
-    args[1].val.chain = va_arg(varargs, Chain);
-    args[2].key = MPS_KEY_ARGS_END;
-  } else if (class == mps_class_mfs()) {
-    args[0].key = MPS_KEY_MFS_EXTEND_BY;
-    args[0].val.size = va_arg(varargs, Size);
-    args[1].key = MPS_KEY_MFS_UNIT_SIZE;
-    args[1].val.size = va_arg(varargs, Size);
-    args[2].key = MPS_KEY_ARGS_END;
-  } else if (class == mps_class_mv()) {
-    args[0].key = MPS_KEY_MV_EXTEND_BY;
-    args[0].val.size = va_arg(varargs, Size);
-    args[1].key = MPS_KEY_MV_AVG_SIZE;
-    args[1].val.size = va_arg(varargs, Size);
-    args[2].key = MPS_KEY_MV_MAX_SIZE;
-    args[2].val.size = va_arg(varargs, Size);
-    args[3].key = MPS_KEY_ARGS_END;
-  } else if (class == mps_class_ams()) {
-    args[0].key = MPS_KEY_FORMAT;
-    args[0].val.format = va_arg(varargs, Format);
-    args[1].key = MPS_KEY_CHAIN;
-    args[1].val.chain = va_arg(varargs, Chain);
-    args[2].key = MPS_KEY_AMS_SUPPORT_AMBIGUOUS;
-    args[2].val.b = va_arg(varargs, Bool);
-    args[3].key = MPS_KEY_ARGS_END;
-  } else if (class == mps_class_awl()) {
-    args[0].key = MPS_KEY_FORMAT;
-    args[0].val.format = va_arg(varargs, Format);
-    args[1].key = MPS_KEY_AWL_FIND_DEPENDENT;
-    args[1].val.addr_method = va_arg(varargs, mps_awl_find_dependent_t);
-    args[2].key = MPS_KEY_ARGS_END;
-  } else if (class == mps_class_lo() || class == mps_class_snc()) {
-    args[0].key = MPS_KEY_FORMAT;
-    args[0].val.format = va_arg(varargs, Format);
-    args[1].key = MPS_KEY_ARGS_END;
-  } else if (class == mps_class_mvff()) {
-    args[0].key = MPS_KEY_MVFF_EXTEND_BY;
-    args[0].val.size = va_arg(varargs, Size);
-    args[1].key = MPS_KEY_MVFF_AVG_SIZE;
-    args[1].val.size = va_arg(varargs, Size);
-    args[2].key = MPS_KEY_MVFF_ALIGN;
-    args[2].val.align = va_arg(varargs, Size); /* promoted type */
-    args[3].key = MPS_KEY_MVFF_SLOT_HIGH;
-    args[3].val.b = va_arg(varargs, Bool);
-    args[4].key = MPS_KEY_MVFF_ARENA_HIGH;
-    args[4].val.b = va_arg(varargs, Bool);
-    args[5].key = MPS_KEY_MVFF_FIRST_FIT;
-    args[5].val.b = va_arg(varargs, Bool);
-  } else {
-    args[0].key = MPS_KEY_ARGS_END;
-  }
-  /* Do not extend this list.  Future pools should not take varargs. */
-}
-
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
                             mps_class_t class, va_list varargs)
 {
-  mps_arg_s args[16];
-  
-  if (class == mps_class_mv_debug()) {
-    args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
-    args[1].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
-    mps_pool_create_v_decode(args + 1, mps_class_mv(), varargs);
-  } else if (class == mps_class_ams_debug()) {
-    args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
-    args[1].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
-    mps_pool_create_v_decode(args + 1, mps_class_ams(), varargs);
-  } else if (class == mps_class_mvff_debug()) {
-    args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
-    args[1].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
-    mps_pool_create_v_decode(args + 1, mps_class_mvff(), varargs);
-  } else
-    mps_pool_create_v_decode(args, class, varargs);
-  /* Do not extend this list.  Future pools should not take varargs. */
-  
+  mps_arg_s args[16]; /* FIXME: Have a maximum in config.h */
+  class->varargs(args, varargs);
   va_end(varargs);
-  
   return mps_pool_create_k(mps_pool_o, arena, class, args);
 }
-
 
 mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
                             mps_class_t class, mps_arg_s args[])

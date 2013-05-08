@@ -1101,6 +1101,7 @@
 		31CD33BB173A9F1500524741 /* mpscams.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscams.h; sourceTree = "<group>"; };
 		31CD33BC173A9F1500524741 /* poolams.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = poolams.c; sourceTree = "<group>"; };
 		31CD33BD173A9F1500524741 /* poolams.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolams.h; sourceTree = "<group>"; };
+		31CD33BE173ABB3000524741 /* poolmv2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmv2.h; sourceTree = "<group>"; };
 		31D60006156D3C5F00337B26 /* segsmss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = segsmss.c; sourceTree = "<group>"; };
 		31D6000D156D3CB200337B26 /* awluthe */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awluthe; sourceTree = BUILT_PRODUCTS_DIR; };
 		31D60017156D3CC300337B26 /* awluthe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awluthe.c; sourceTree = "<group>"; };
@@ -1726,6 +1727,7 @@
 		31EEAC5A156AB40800714D05 /* Extra pools */ = {
 			isa = PBXGroup;
 			children = (
+				31CD33BE173ABB3000524741 /* poolmv2.h */,
 				311F2F5D17398B0400C15B6A /* lo.h */,
 				31F6CCA91739B0CF00C48748 /* mpscamc.h */,
 				31CD33BB173A9F1500524741 /* mpscams.h */,

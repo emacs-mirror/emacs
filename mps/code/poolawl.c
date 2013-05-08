@@ -509,6 +509,19 @@ static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
 }
 
 
+/* AWLVarargs -- decode obsolete varargs */
+
+static void AWLVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_AWL_FIND_DEPENDENT;
+  args[1].val.addr_method = va_arg(varargs, mps_awl_find_dependent_t);
+  args[2].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* AWLInit -- initialize an AWL pool */
 
 const KeyStruct _mps_key_awl_find_dependent = {
@@ -1258,6 +1271,7 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->name = "AWL";
   this->size = sizeof(AWLStruct);
   this->offset = offsetof(AWLStruct, poolStruct);
+  this->varargs = AWLVarargs;
   this->init = AWLInit;
   this->finish = AWLFinish;
   this->bufferClass = RankBufClassGet;

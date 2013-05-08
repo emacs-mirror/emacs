@@ -467,6 +467,17 @@ static void LOWalk(Pool pool, Seg seg,
 }
 
 
+/* LOVarargs -- decode obsolete varargs */
+
+static void LOVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* LOInit -- initialize an LO pool */
 
 static Res LOInit(Pool pool, ArgList args)
@@ -787,6 +798,7 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
   this->size = sizeof(LOStruct);
   this->offset = offsetof(LOStruct, poolStruct);
   this->attr &= ~(AttrSCAN | AttrINCR_RB);
+  this->varargs = LOVarargs;
   this->init = LOInit;
   this->finish = LOFinish;
   this->bufferFill = LOBufferFill;
