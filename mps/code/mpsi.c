@@ -660,11 +660,9 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
 
 /* Decode deprecated varargs.  TODO: This can be deleted when varargs go. */
 
-mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
-                            mps_class_t class, va_list varargs)
-{
-  mps_arg_s args[6];
-  
+static void mps_pool_create_v_decode(mps_arg_s args[],
+                                     mps_class_t class,
+                                     va_list varargs) {
   if (class == mps_class_amc()) {
     args[0].key = MPS_KEY_FORMAT;
     args[0].val.format = va_arg(varargs, Format);
@@ -719,6 +717,31 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
   } else {
     args[0].key = MPS_KEY_ARGS_END;
   }
+  /* Do not extend this list.  Future pools should not take varargs. */
+}
+
+mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
+                            mps_class_t class, va_list varargs)
+{
+  mps_arg_s args[16];
+  
+  if (class == mps_class_mv_debug()) {
+    args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
+    args[1].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+    mps_pool_create_v_decode(args + 1, mps_class_mv(), varargs);
+  } else if (class == mps_class_ams_debug()) {
+    args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
+    args[1].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+    mps_pool_create_v_decode(args + 1, mps_class_ams(), varargs);
+  } else if (class == mps_class_mvff_debug()) {
+    args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
+    args[1].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+    mps_pool_create_v_decode(args + 1, mps_class_mvff(), varargs);
+  } else
+    mps_pool_create_v_decode(args, class, varargs);
+  /* Do not extend this list.  Future pools should not take varargs. */
+  
+  va_end(varargs);
   
   return mps_pool_create_k(mps_pool_o, arena, class, args);
 }
