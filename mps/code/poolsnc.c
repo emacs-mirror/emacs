@@ -373,15 +373,11 @@ static Res SNCInit(Pool pool, ArgList args)
 
   snc = Pool2SNC(pool);
 
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS))
-    format = va_arg(arg.val.varargs, Format);
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+    format = arg.val.format;
   else {
-    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-      format = arg.val.format;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
+    res = ResPARAM;
+    goto failParam;
   }
 
   AVERT(Format, format);

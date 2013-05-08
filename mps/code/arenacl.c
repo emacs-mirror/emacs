@@ -212,13 +212,6 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
       res = ResPARAM;
       goto failParam;
     }
-  } else if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    if (ArgPick(&arg, args, MPS_KEY_ARENA_CL_ADDR)) {
-      res = ResPARAM;
-      goto failParam;
-    }
-    size = va_arg(arg.val.varargs, Size);
-    base = va_arg(arg.val.varargs, Addr);
   } else {
     res = ResPARAM;
     goto failParam;

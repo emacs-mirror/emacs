@@ -530,22 +530,17 @@ static Res AWLInit(Pool pool, ArgList args)
 
   awl = Pool2AWL(pool);
   
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    format = va_arg(arg.val.varargs, Format);
-    findDependent = va_arg(arg.val.varargs, FindDependentMethod);
-  } else {
-    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-      format = arg.val.format;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
-    if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
-      findDependent = (FindDependentMethod)arg.val.addr_method;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+    format = arg.val.format;
+  else {
+    res = ResPARAM;
+    goto failParam;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
+    findDependent = (FindDependentMethod)arg.val.addr_method;
+  else {
+    res = ResPARAM;
+    goto failParam;
   }
 
   AVERT(Format, format);

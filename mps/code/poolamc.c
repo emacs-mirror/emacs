@@ -960,22 +960,17 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   amc = Pool2AMC(pool);
   arena = PoolArena(pool);
 
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    pool->format = va_arg(arg.val.varargs, Format);
-    amc->chain = va_arg(arg.val.varargs, Chain);
-  } else {
-    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-      pool->format = arg.val.format;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
-    if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-      amc->chain = arg.val.chain;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+    pool->format = arg.val.format;
+  else {
+    res = ResPARAM;
+    goto failParam;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    amc->chain = arg.val.chain;
+  else {
+    res = ResPARAM;
+    goto failParam;
   }
   
   AVERT(Format, pool->format);

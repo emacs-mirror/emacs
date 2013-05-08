@@ -250,6 +250,15 @@
 #define MFS_EXTEND_BY_DEFAULT ((Size)65536)
 
 
+/* Pool MVFF Configuration -- see <code/poolmvff.c> */
+
+#define MVFF_EXTEND_BY_DEFAULT   ((Size)65536)
+#define MVFF_AVG_SIZE_DEFAULT    ((Size)32)
+#define MVFF_SLOT_HIGH_DEFAULT   FALSE
+#define MVFF_ARENA_HIGH_DEFAULT  FALSE
+#define MVFF_FIRST_FIT_DEFAULT   TRUE
+
+
 /* Arena Configuration -- see <code/arena.c>
  *
  * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a

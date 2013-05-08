@@ -409,10 +409,21 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
 
 /* MVFFInit -- initialize method for MVFF */
 
+const KeyStruct _mps_key_mvff_extend_by = {KeySig, "EXTEND_BY", ArgCheckCant};
+const KeyStruct _mps_key_mvff_avg_size = {KeySig, "AVG_SIZE", ArgCheckCant};
+const KeyStruct _mps_key_mvff_align = {KeySig, "ALIGN", ArgCheckCant}; /* FIXME: ArgCheckAlign */
+const KeyStruct _mps_key_mvff_slot_high = {KeySig, "SLOT_HIGH", ArgCheckCant}; /* FIXME: ArgCheckBool */
+const KeyStruct _mps_key_mvff_arena_high = {KeySig, "ARENA_HIGH", ArgCheckCant}; /* FIXME: ArgCheckBool */
+const KeyStruct _mps_key_mvff_first_fit = {KeySig, "FIRST_FIT", ArgCheckCant}; /* FIXME: ArgCheckBool */
+
 static Res MVFFInit(Pool pool, ArgList args)
 {
-  Size extendBy, avgSize, align;
-  Bool slotHigh, arenaHigh, firstFit;
+  Size extendBy = MVFF_EXTEND_BY_DEFAULT;
+  Size avgSize = MVFF_AVG_SIZE_DEFAULT;
+  Size align;
+  Bool slotHigh = MVFF_SLOT_HIGH_DEFAULT;
+  Bool arenaHigh = MVFF_ARENA_HIGH_DEFAULT;
+  Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
   MVFF mvff;
   Arena arena;
   Res res;
@@ -421,24 +432,31 @@ static Res MVFFInit(Pool pool, ArgList args)
   ArgStruct arg;
 
   AVERT(Pool, pool);
+  arena = PoolArena(pool);
+  align = ArenaAlign(arena);
 
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
   /* .arg.check: we do the same checks here and in MVFFCheck */
   /* except for arenaHigh, which is stored only in the segPref. */
+  
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_EXTEND_BY))
+    extendBy = arg.val.size;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_AVG_SIZE))
+    avgSize = arg.val.size;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_ALIGN))
+    align = arg.val.align;
 
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    extendBy = va_arg(arg.val.varargs, Size);
-    avgSize = va_arg(arg.val.varargs, Size);
-    align = va_arg(arg.val.varargs, Size);
-    slotHigh = va_arg(arg.val.varargs, Bool);
-    arenaHigh = va_arg(arg.val.varargs, Bool);
-    firstFit = va_arg(arg.val.varargs, Bool);
-  } else {
-    /* FIXME: Accept keywords! */
-    res = ResPARAM;
-    goto failParam;
-  }
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_SLOT_HIGH))
+    slotHigh = arg.val.b;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_ARENA_HIGH))
+    arenaHigh = arg.val.b;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_FIRST_FIT))
+    firstFit = arg.val.b;
 
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
@@ -448,7 +466,6 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(BoolCheck(firstFit));
 
   mvff = Pool2MVFF(pool);
-  arena = PoolArena(pool);
 
   mvff->extendBy = extendBy;
   if (extendBy < ArenaAlign(arena))
@@ -488,7 +505,6 @@ static Res MVFFInit(Pool pool, ArgList args)
 
 failInit:
   ControlFree(arena, p, sizeof(SegPrefStruct));
-failParam:
   return res;
 }
 
