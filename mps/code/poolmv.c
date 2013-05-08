@@ -198,17 +198,17 @@ static void MVVarargs(ArgStruct args[], va_list varargs)
 
 static void MVDebugVarargs(ArgStruct args[], va_list varargs)
 {
-  args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
-  args[0].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
+  args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
   MVVarargs(args + 1, varargs);
 }
 
 
 /* MVInit -- init method for class MV */
 
-const KeyStruct _mps_key_mv_extend_by = {KeySig, "MV_EXTEND_BY", ArgCheckCant};
-const KeyStruct _mps_key_mv_avg_size = {KeySig, "MV_AVG_SIZE", ArgCheckCant};
-const KeyStruct _mps_key_mv_max_size = {KeySig, "MV_MAX_SIZE", ArgCheckCant};
+ARG_DEFINE_KEY(mv_extend_by, Size);
+ARG_DEFINE_KEY(mv_avg_size, Size);
+ARG_DEFINE_KEY(mv_max_size, Size);
 
 static Res MVInit(Pool pool, ArgList args)
 {

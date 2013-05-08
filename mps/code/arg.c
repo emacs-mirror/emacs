@@ -7,6 +7,7 @@
 #include "config.h"
 #include "check.h"
 #include "mpm.h"
+#include "dbgpool.h"
 
 SRCID(arg, "$Id$");
 
@@ -31,6 +32,42 @@ Bool ArgCheckChain(Arg arg) {
   CHECKD(Chain, arg->val.chain);
   return TRUE;
 }
+
+Bool ArgCheckSize(Arg arg) {
+  UNUSED(arg);
+  return TRUE;
+}
+
+Bool ArgCheckAddr(Arg arg) {
+  UNUSED(arg);
+  return TRUE;
+}
+
+Bool ArgCheckPoolDebugOptions(Arg arg) {
+  CHECKL(PoolDebugOptionsCheck((PoolDebugOptions)arg->val.pool_debug_options));
+  return TRUE;
+}
+
+Bool ArgCheckFun(Arg arg) {
+  CHECKL(FUNCHECK(arg->val.addr_method)); /* FIXME: Potential pun here */
+  return TRUE;
+}
+
+Bool ArgCheckAlign(Arg arg) {
+  CHECKL(AlignCheck(arg->val.align));
+  return TRUE;
+}
+
+Bool ArgCheckBool(Arg arg) {
+  CHECKL(BoolCheck(arg->val.b));
+  return TRUE;
+}
+
+Bool ArgCheckCount(Arg arg) {
+  UNUSED(arg);
+  return TRUE;
+}
+
 
 
 ArgStruct mps_args_none[] = {{MPS_KEY_ARGS_END}};

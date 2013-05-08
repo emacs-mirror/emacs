@@ -200,7 +200,7 @@ static void ClientArenaVarargs(ArgStruct args[], va_list varargs)
  * to do the generic part of init.
  */
 
-const KeyStruct _mps_key_arena_cl_addr = {KeySig, "ARENA_CL_ADDR", ArgCheckCant};
+ARG_DEFINE_KEY(arena_cl_addr, Addr);
 
 static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {

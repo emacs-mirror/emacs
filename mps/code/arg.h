@@ -11,6 +11,11 @@
 
 #include "mpmtypes.h"
 
+/* FIXME: Whether to have a check field should be conditional on variety */
+
+#define ARG_DEFINE_KEY(id, type) \
+  const KeyStruct _mps_key_##id = {KeySig, #id, ArgCheck##type}
+
 #define argsNone mps_args_none
 extern Bool KeyCheck(Key key);
 extern Bool ArgCheck(Arg arg);
@@ -19,6 +24,13 @@ extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
 extern Bool ArgCheckCant(Arg arg);
 extern Bool ArgCheckFormat(Arg arg);
 extern Bool ArgCheckChain(Arg arg);
+extern Bool ArgCheckSize(Arg arg);
+extern Bool ArgCheckAddr(Arg arg);
+extern Bool ArgCheckPoolDebugOptions(Arg arg);
+extern Bool ArgCheckFun(Arg arg);
+extern Bool ArgCheckAlign(Arg arg);
+extern Bool ArgCheckBool(Arg arg);
+extern Bool ArgCheckCount(Arg arg);
 
 #endif /* arg_h */
 

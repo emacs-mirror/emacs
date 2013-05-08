@@ -744,8 +744,8 @@ static void AMSVarargs(ArgStruct args[], va_list varargs)
 
 static void AMSDebugVarargs(ArgStruct args[], va_list varargs)
 {
-  args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
-  args[0].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
+  args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
   AMSVarargs(args + 1, varargs);
 }
 
@@ -756,9 +756,7 @@ static void AMSDebugVarargs(ArgStruct args[], va_list varargs)
  *  allocated in the pool.  See <design/poolams/#init>.
  */
 
-const KeyStruct _mps_key_ams_support_ambiguous = {
-  KeySig, "AMS_SUPPORT_AMBIGUOUS", ArgCheckCant /* FIXME: ArgCheckBool */
-};
+ARG_DEFINE_KEY(ams_support_ambiguous, Bool);
 
 static Res AMSInit(Pool pool, ArgList args)
 {

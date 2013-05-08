@@ -108,7 +108,7 @@ typedef struct mps_arg_s {
     mps_addr_t addr;
     mps_fmt_t format;
     mps_chain_t chain;
-    struct mps_pool_debug_option_s *pool_debug_option;
+    struct mps_pool_debug_option_s *pool_debug_options;
     mps_addr_t (*addr_method)(mps_addr_t);
     mps_align_t align;
     mps_word_t count;
@@ -645,8 +645,8 @@ typedef struct mps_pool_debug_option_s {
   size_t free_size;
 } mps_pool_debug_option_s;
 
-extern const struct mps_key_s _mps_key_pool_debug_option;
-#define MPS_KEY_POOL_DEBUG_OPTION (&_mps_key_pool_debug_option)
+extern const struct mps_key_s _mps_key_pool_debug_options;
+#define MPS_KEY_POOL_DEBUG_OPTIONS (&_mps_key_pool_debug_options)
 
 extern void mps_pool_check_fenceposts(mps_pool_t);
 extern void mps_pool_check_free_space(mps_pool_t);

@@ -219,8 +219,7 @@ failGlobalsInit:
 
 /* ArenaCreate -- create the arena and call initializers */
 
-/* FIXME: SizeCheck?  On x64 it can't be more than 43 bits etc. etc. */
-const KeyStruct _mps_key_arena_size = {KeySig, "ARENA_SIZE", ArgCheckCant};
+ARG_DEFINE_KEY(arena_size, Size);
 
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
