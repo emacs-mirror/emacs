@@ -1,3 +1,8 @@
+2013-05-08  Adam Spiers  <emacs@adamspiers.org>
+
+	* cus-edit.el (custom-save-variables):
+	Pretty-print long values.  (Bug#14187)
+
 2013-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/m4-mode.el (m4-program): Assume it is in PATH.
