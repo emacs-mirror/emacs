@@ -110,6 +110,11 @@ Bool PoolCheck(Pool pool)
 
 ARG_DEFINE_KEY(format, Format);
 ARG_DEFINE_KEY(chain, Chain);
+ARG_DEFINE_KEY(extend_by, Size);
+ARG_DEFINE_KEY(min_size, Size);
+ARG_DEFINE_KEY(mean_size, Size);
+ARG_DEFINE_KEY(max_size, Size);
+ARG_DEFINE_KEY(align, Align);
 
 
 /* PoolInit -- initialize a pool

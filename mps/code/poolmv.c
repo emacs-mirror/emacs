@@ -186,11 +186,11 @@ static Bool MVSpanCheck(MVSpan span)
 
 static void MVVarargs(ArgStruct args[], va_list varargs)
 {
-  args[0].key = MPS_KEY_MV_EXTEND_BY;
+  args[0].key = MPS_KEY_EXTEND_BY;
   args[0].val.size = va_arg(varargs, Size);
-  args[1].key = MPS_KEY_MV_AVG_SIZE;
+  args[1].key = MPS_KEY_MEAN_SIZE;
   args[1].val.size = va_arg(varargs, Size);
-  args[2].key = MPS_KEY_MV_MAX_SIZE;
+  args[2].key = MPS_KEY_MAX_SIZE;
   args[2].val.size = va_arg(varargs, Size);
   args[3].key = MPS_KEY_ARGS_END;
   AVER(ArgListCheck(args));
@@ -206,10 +206,6 @@ static void MVDebugVarargs(ArgStruct args[], va_list varargs)
 
 /* MVInit -- init method for class MV */
 
-ARG_DEFINE_KEY(mv_extend_by, Size);
-ARG_DEFINE_KEY(mv_avg_size, Size);
-ARG_DEFINE_KEY(mv_max_size, Size);
-
 static Res MVInit(Pool pool, ArgList args)
 {
   Size extendBy = MV_EXTEND_BY_DEFAULT;
@@ -222,11 +218,11 @@ static Res MVInit(Pool pool, ArgList args)
   ArgStruct arg;
   ArgStruct piArgs[3];
   
-  if (ArgPick(&arg, args, MPS_KEY_MV_EXTEND_BY))
+  if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
     extendBy = arg.val.size;
-  if (ArgPick(&arg, args, MPS_KEY_MV_AVG_SIZE))
+  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
     avgSize = arg.val.size;
-  if (ArgPick(&arg, args, MPS_KEY_MV_MAX_SIZE))
+  if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
     maxSize = arg.val.size;
 
   AVER(extendBy > 0);
@@ -245,7 +241,7 @@ static Res MVInit(Pool pool, ArgList args)
     blockExtendBy = sizeof(MVBlockStruct);
   }
 
-  piArgs[0].key = MPS_KEY_MFS_EXTEND_BY;
+  piArgs[0].key = MPS_KEY_EXTEND_BY;
   piArgs[0].val.size = blockExtendBy;
   piArgs[1].key = MPS_KEY_MFS_UNIT_SIZE;
   piArgs[1].val.size = sizeof(MVBlockStruct);
@@ -256,7 +252,7 @@ static Res MVInit(Pool pool, ArgList args)
 
   spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
-  piArgs[0].key = MPS_KEY_MFS_EXTEND_BY;
+  piArgs[0].key = MPS_KEY_EXTEND_BY;
   piArgs[0].val.size = spanExtendBy;
   piArgs[1].key = MPS_KEY_MFS_UNIT_SIZE;
   piArgs[1].val.size = sizeof(MVSpanStruct);
