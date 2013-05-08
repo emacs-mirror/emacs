@@ -289,7 +289,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
                 fastFind ? &cbsUpdateNode : NULL);
   args[0].key = MPS_KEY_MFS_UNIT_SIZE;
   args[0].val.size = sizeof(CBSBlockStruct);
-  args[1].key = MPS_KEY_MFS_EXTEND_BY;
+  args[1].key = MPS_KEY_EXTEND_BY;
   args[1].val.size = sizeof(CBSBlockStruct) * 64;
   args[2].key = MPS_KEY_ARGS_END;
   res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), args);

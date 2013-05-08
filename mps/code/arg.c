@@ -23,6 +23,12 @@ Bool ArgCheckCant(Arg arg) {
   return TRUE;
 }
 
+static Bool ArgCheckShouldnt(Arg arg) {
+  UNUSED(arg);
+  NOTREACHED;
+  return FALSE;
+}
+
 Bool ArgCheckFormat(Arg arg) {
   CHECKD(Format, arg->val.format);
   return TRUE;
@@ -69,6 +75,7 @@ Bool ArgCheckCount(Arg arg) {
 }
 
 
+ARG_DEFINE_KEY(args_end, Shouldnt);
 
 ArgStruct mps_args_none[] = {{MPS_KEY_ARGS_END}};
 

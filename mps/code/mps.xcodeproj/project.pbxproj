@@ -1031,7 +1031,7 @@
 		3114A66C156E95EB001E0AA3 /* btcv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = btcv.c; sourceTree = "<group>"; };
 		3114A67C156E9668001E0AA3 /* mv2test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mv2test; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A686156E9674001E0AA3 /* mv2test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mv2test.c; sourceTree = "<group>"; };
-		3114A68E156E96B6001E0AA3 /* poolmv2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmv2.c; sourceTree = "<group>"; };
+		3114A68E156E96B6001E0AA3 /* poolmv2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmv2.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		3114A695156E971B001E0AA3 /* messtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = messtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A69F156E9725001E0AA3 /* messtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = messtest.c; sourceTree = "<group>"; };
 		3114A6AC156E9759001E0AA3 /* walkt0 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = walkt0; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1059,7 +1059,7 @@
 		311F2F6117398B0E00C15B6A /* mpm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpm.h; sourceTree = "<group>"; };
 		311F2F6217398B1A00C15B6A /* mpmst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpmst.h; sourceTree = "<group>"; };
 		311F2F6317398B1A00C15B6A /* mpmtypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpmtypes.h; sourceTree = "<group>"; };
-		311F2F6417398B1A00C15B6A /* mps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mps.h; sourceTree = "<group>"; };
+		311F2F6417398B1A00C15B6A /* mps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = mps.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		311F2F6517398B3B00C15B6A /* mpsacl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsacl.h; sourceTree = "<group>"; };
 		311F2F6617398B3B00C15B6A /* mpsavm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsavm.h; sourceTree = "<group>"; };
 		311F2F6717398B3B00C15B6A /* mpsio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsio.h; sourceTree = "<group>"; };
@@ -1145,7 +1145,7 @@
 		31EEAC2C156AB2F200714D05 /* message.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = message.c; sourceTree = "<group>"; };
 		31EEAC2D156AB2F200714D05 /* poolmfs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmfs.c; sourceTree = "<group>"; };
 		31EEAC2E156AB2F200714D05 /* poolmrg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmrg.c; sourceTree = "<group>"; };
-		31EEAC2F156AB2F200714D05 /* poolmv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmv.c; sourceTree = "<group>"; };
+		31EEAC2F156AB2F200714D05 /* poolmv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmv.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		31EEAC30156AB2F200714D05 /* ring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ring.c; sourceTree = "<group>"; };
 		31EEAC31156AB2F200714D05 /* sac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sac.c; sourceTree = "<group>"; };
 		31EEAC32156AB2F200714D05 /* shield.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shield.c; sourceTree = "<group>"; };
@@ -1163,7 +1163,7 @@
 		31EEAC53156AB3E300714D05 /* vmix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmix.c; sourceTree = "<group>"; };
 		31EEAC5B156AB41900714D05 /* poolamc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolamc.c; sourceTree = "<group>"; };
 		31EEAC5D156AB43F00714D05 /* poolsnc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolsnc.c; sourceTree = "<group>"; };
-		31EEAC5F156AB44D00714D05 /* poolmvff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmvff.c; sourceTree = "<group>"; };
+		31EEAC5F156AB44D00714D05 /* poolmvff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmvff.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		31EEAC65156AB52600714D05 /* mpmss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpmss; sourceTree = BUILT_PRODUCTS_DIR; };
 		31EEAC70156AB56000714D05 /* mpsioan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpsioan.c; sourceTree = "<group>"; };
 		31EEAC71156AB56000714D05 /* mpsliban.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpsliban.c; sourceTree = "<group>"; };

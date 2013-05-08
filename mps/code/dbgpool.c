@@ -189,7 +189,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     debug->tagSize = tagSize + sizeof(tagStruct) - 1;
     /* This pool has to be like the arena control pool: the blocks */
     /* allocated must be accessible using void*. */
-    pcArgs[0].key = MPS_KEY_MFS_EXTEND_BY;
+    pcArgs[0].key = MPS_KEY_EXTEND_BY;
     pcArgs[0].val.size = debug->tagSize; /* FIXME: Really? */
     pcArgs[1].key = MPS_KEY_MFS_UNIT_SIZE;
     pcArgs[1].val.size = debug->tagSize;

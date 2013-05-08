@@ -9,12 +9,6 @@
 
 #include "mps.h"
 
-extern const struct mps_key_s _mps_key_mvff_extend_by;
-#define MPS_KEY_MVFF_EXTEND_BY (&_mps_key_mvff_extend_by)
-extern const struct mps_key_s _mps_key_mvff_avg_size;
-#define MPS_KEY_MVFF_AVG_SIZE (&_mps_key_mvff_avg_size)
-extern const struct mps_key_s _mps_key_mvff_align;
-#define MPS_KEY_MVFF_ALIGN (&_mps_key_mvff_align)
 extern const struct mps_key_s _mps_key_mvff_slot_high;
 #define MPS_KEY_MVFF_SLOT_HIGH (&_mps_key_mvff_slot_high)
 extern const struct mps_key_s _mps_key_mvff_arena_high;
