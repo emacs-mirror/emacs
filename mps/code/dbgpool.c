@@ -131,7 +131,6 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   AVERT(Pool, pool);
 
   /* FIXME: Split this structure into separate keys */
-  /* FIXME: Can't use varargs -- update docs. */
   if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
     options = (PoolDebugOptions)arg.val.pool_debug_options;
   else {
