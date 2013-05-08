@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>10. MV (Manual Variable) &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>10. MV (Manual Variable) &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Pool reference" href="index.html" />
     <link rel="next" title="11. MVFF (Manual Variable First Fit)" href="mvff.html" />
     <link rel="prev" title="9. MFS (Manual Fixed Small)" href="mfs.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="mfs.html" title="9. MFS (Manual Fixed Small)"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Pool reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -99,11 +99,11 @@ managed pools (unless these are registered as <a class="reference internal" href
 <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
 <p>When creating an MV pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a> takes three
 extra arguments:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="n">mps_class_t</span> <span class="n">mps_class_mv</span><span class="p">(),</span>
-                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mv</span><span class="p">(),</span>
+                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="kt">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">extend_size</span></tt> is the <a class="reference internal" href="../glossary/s.html#term-size"><em class="xref std std-term">size</em></a> of segment that the pool will
@@ -121,12 +121,12 @@ these are wrong.</p>
 class.</p>
 <p>When creating a debugging MV pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>
 takes four extra arguments:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="n">mps_class_t</span> <span class="n">mps_class_mv_debug</span><span class="p">(),</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mv_debug</span><span class="p">(),</span>
                           <span class="n">mps_debug_option_s</span> <span class="n">debug_option</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
+                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="kt">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">debug_option</span></tt> specifies the debugging options. See
@@ -188,7 +188,7 @@ is the sum of allocated space and free space.</p>
                         title="next chapter">11. MVFF (Manual Variable First Fit)</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -196,7 +196,7 @@ is the sum of allocated space and free space.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -216,7 +216,7 @@ is the sum of allocated space and free space.</p>
         <li class="right" >
           <a href="mfs.html" title="9. MFS (Manual Fixed Small)"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Pool reference</a> &raquo;</li> 
       </ul>
     </div>

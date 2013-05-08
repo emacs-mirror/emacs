@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>9. Roots &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>9. Roots &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="10. Garbage collection" href="collection.html" />
     <link rel="prev" title="8. Threads" href="thread.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="thread.html" title="8. Threads"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -168,8 +168,8 @@ the work function is not inlined so that the address is definitely in
 the stack frame below any potential roots.</p>
 <p id="index-4">For example, here&#8217;s the code from the toy Scheme interpreter that
 registers a thread root and then calls the program:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
-<span class="n">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
+<span class="kt">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">exit_code</span><span class="p">;</span>
 <span class="kt">void</span> <span class="o">*</span><span class="n">marker</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">marker</span><span class="p">;</span>
 
@@ -499,17 +499,17 @@ calling <a class="reference internal" href="#mps_root_destroy" title="mps_root_d
 <span class="cm">/* Global symbol table. */</span>
 <span class="kt">size_t</span> <span class="n">symtab_size</span><span class="p">;</span>
 <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
-    <span class="n">obj_t</span> <span class="n">value</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">value</span><span class="p">;</span>
 <span class="p">}</span> <span class="o">*</span><span class="n">symtab</span><span class="p">;</span>
 
-<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-<span class="n">mps_root_t</span> <span class="n">root</span><span class="p">;</span>
+<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="kt">mps_root_t</span> <span class="n">root</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table_masked</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span>
                                    <span class="n">mps_rank_exact</span><span class="p">(),</span>
-                                   <span class="p">(</span><span class="n">mps_rm_t</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span>
+                                   <span class="p">(</span><span class="kt">mps_rm_t</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span>
                                    <span class="n">symtab</span><span class="p">,</span> <span class="n">symtab_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
-                                   <span class="p">(</span><span class="n">mps_word_t</span><span class="p">)</span><span class="n">TAG_MASK</span><span class="p">);</span>
+                                   <span class="p">(</span><span class="kt">mps_word_t</span><span class="p">)</span><span class="n">TAG_MASK</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">errror</span><span class="p">(</span><span class="s">&quot;can&#39;t create symtab root&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -618,7 +618,7 @@ it might point to somewhere in the middle of an allocated block.</p>
                         title="next chapter">10. Garbage collection</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -626,7 +626,7 @@ it might point to somewhere in the middle of an allocated block.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -646,7 +646,7 @@ it might point to somewhere in the middle of an allocated block.</p>
         <li class="right" >
           <a href="thread.html" title="8. Threads"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>

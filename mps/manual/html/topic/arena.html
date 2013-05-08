@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Arenas &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>3. Arenas &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="4. Pools" href="pool.html" />
     <link rel="prev" title="2. Error handing" href="error.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="error.html" title="2. Error handing"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -166,9 +166,9 @@ and <a class="reference internal" href="../glossary/r.html#term-root"><em class=
 program</em></a>. This memory chunk is passed when the arena is created.</p>
 <p>When creating a client arena, <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> takes two
 extra arguments:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="n">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
-                           <span class="n">mps_arena_class_t</span> <span class="n">mps_arena_class_cl</span><span class="p">,</span>
-                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="kt">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
+                           <span class="kt">mps_arena_class_t</span> <span class="n">mps_arena_class_cl</span><span class="p">,</span>
+                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">base</span></tt> is the <a class="reference internal" href="../glossary/a.html#term-address"><em class="xref std std-term">address</em></a> of the chunk of memory that will
@@ -215,8 +215,8 @@ where to place <a class="reference internal" href="../glossary/b.html#term-block
 more efficient.</p>
 <p>When creating a virtual memory arena, <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>
 takes one extra argument:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="n">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
-                           <span class="n">mps_arena_class_t</span> <span class="n">arena_class_vm</span><span class="p">(),</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="kt">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
+                           <span class="kt">mps_arena_class_t</span> <span class="n">arena_class_vm</span><span class="p">(),</span>
                            <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -797,7 +797,7 @@ cannot be restored more than once.</p>
                         title="next chapter">4. Pools</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -805,7 +805,7 @@ cannot be restored more than once.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -825,7 +825,7 @@ cannot be restored more than once.</p>
         <li class="right" >
           <a href="error.html" title="2. Error handing"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>

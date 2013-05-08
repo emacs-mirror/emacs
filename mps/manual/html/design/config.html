@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>7. Configuration &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>7. Configuration &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
     <link rel="next" title="8. Finalization" href="finalize.html" />
     <link rel="prev" title="6. Collection framework" href="collection.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="collection.html" title="6. Collection framework"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
       </ul>
     </div>  
@@ -416,19 +416,19 @@ parameter.  However, the concrete interface may vary.</p>
 <p>For example, this isn&#8217;t allowed, because there is a change in the
 interface:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#if defined(PROT_FOO)</span>
-<span class="kt">void</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
 <span class="cp">#else</span>
-<span class="kt">int</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
+<span class="kt">int</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
 <p>This example is allowed:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#ifdef PROTECTION</span>
-<span class="kt">void</span> <span class="n">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
-<span class="cp">/* more decls. */</span>
+<span class="kt">void</span> <span class="nf">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
+<span class="cm">/* more decls. */</span>
 <span class="cp">#else </span><span class="cm">/* PROTECTION not */</span><span class="cp"></span>
 <span class="cp">#define ProtSync(space) NOOP</span>
-<span class="cp">/* more decls. */</span>
+<span class="cm">/* more decls. */</span>
 <span class="cp">#endif </span><span class="cm">/* PROTECTION */</span><span class="cp"></span>
 </pre></div>
 </div>
@@ -528,7 +528,7 @@ placed in a separate, common module.</p>
                         title="next chapter">8. Finalization</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -536,7 +536,7 @@ placed in a separate, common module.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -556,7 +556,7 @@ placed in a separate, common module.</p>
         <li class="right" >
           <a href="collection.html" title="6. Collection framework"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 
       </ul>
     </div>
