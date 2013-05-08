@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>7. Scanning &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>7. Scanning &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="8. Threads" href="thread.html" />
     <link rel="prev" title="6. Object formats" href="format.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="format.html" title="6. Object formats"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -121,12 +121,12 @@ reference is within the object and need not be stripped. So your code
 might look like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">))</span> <span class="p">{</span>
     <span class="cm">/* strip the tag */</span>
-    <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0x7</span><span class="p">;</span>
-    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+    <span class="kt">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0x7</span><span class="p">;</span>
+    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
     <span class="cm">/* restore the tag and update reference */</span>
-    <span class="n">mps_word_t</span> <span class="n">tag</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="mh">0x7</span><span class="p">;</span>
-    <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">=</span> <span class="p">(</span><span class="n">obj_t</span><span class="p">)((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span> <span class="o">+</span> <span class="n">tag</span><span class="p">);</span>
+    <span class="kt">mps_word_t</span> <span class="n">tag</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="mh">0x7</span><span class="p">;</span>
+    <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">=</span> <span class="p">(</span><span class="kt">obj_t</span><span class="p">)((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span> <span class="o">+</span> <span class="n">tag</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -244,11 +244,11 @@ reference and cast it to this type. The behaviour of such a cast
 is not defined by the C standard. See <a class="reference internal" href="interface.html#topic-interface-pun"><em>Type punning</em></a>.</p>
 </div>
 <p>Here&#8217;s the Scheme scanner:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
             <span class="k">switch</span> <span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>
                 <span class="k">case</span> <span class="n">TYPE_PAIR</span>:
                     <span class="n">FIX</span><span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">pair</span><span class="p">.</span><span class="n">car</span><span class="p">);</span>
@@ -366,10 +366,10 @@ references inside the object&#8217;s <tt class="docutils literal"><span class="p
 <tt class="docutils literal"><span class="pre">data_scan</span></tt>. In order to ensure that the scan state is passed
 correctly to <tt class="docutils literal"><span class="pre">data_scan</span></tt>, the call must be wrapped in
 <a class="reference internal" href="#MPS_FIX_CALL" title="MPS_FIX_CALL"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX_CALL()</span></tt></a>.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+    <span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span> <span class="n">obj</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">;</span> <span class="n">obj</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX12</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">)</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>
@@ -529,7 +529,7 @@ ensure that the scan state is passed correctly.</p>
                         title="next chapter">8. Threads</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -537,7 +537,7 @@ ensure that the scan state is passed correctly.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -557,7 +557,7 @@ ensure that the scan state is passed correctly.</p>
         <li class="right" >
           <a href="format.html" title="6. Object formats"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>

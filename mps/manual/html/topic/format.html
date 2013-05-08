@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>6. Object formats &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>6. Object formats &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="7. Scanning" href="scanning.html" />
     <link rel="prev" title="5. Allocation" href="allocation.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="allocation.html" title="5. Allocation"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -114,9 +114,9 @@ of.</p>
     <span class="n">obj_pad</span>
 <span class="p">};</span>
 
-<span class="n">mps_pool_t</span> <span class="n">obj_pool</span><span class="p">;</span>
-<span class="n">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
-<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="kt">mps_pool_t</span> <span class="n">obj_pool</span><span class="p">;</span>
+<span class="kt">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
+<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj_fmt_s</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
@@ -132,13 +132,13 @@ of.</p>
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant A.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="p">{</span>
-    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="n">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_A_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -189,14 +189,14 @@ calling <a class="reference internal" href="#mps_fmt_destroy" title="mps_fmt_des
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant B.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_B_s</span> <span class="p">{</span>
-    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="n">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
-    <span class="n">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_B_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -223,12 +223,12 @@ return an appropriate <a class="reference internal" href="../glossary/r.html#ter
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant auto-header.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_auto_header_s</span> <span class="p">{</span>
-    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
     <span class="kt">size_t</span>          <span class="n">mps_headerSize</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_auto_header_s</span><span class="p">;</span>
 </pre></div>
@@ -615,7 +615,7 @@ their contents;</li>
                         title="next chapter">7. Scanning</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -623,7 +623,7 @@ their contents;</li>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -643,7 +643,7 @@ their contents;</li>
         <li class="right" >
           <a href="allocation.html" title="5. Allocation"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>

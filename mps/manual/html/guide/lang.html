@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Garbage collecting a language with the Memory Pool System &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>3. Garbage collecting a language with the Memory Pool System &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Guide" href="index.html" />
     <link rel="next" title="4. Debugging with the Memory Pool System" href="debug.html" />
     <link rel="prev" title="2. Building the Memory Pool System" href="build.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="build.html" title="2. Building the Memory Pool System"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Guide</a> &raquo;</li> 
       </ul>
     </div>  
@@ -90,7 +90,7 @@ pointers to strings.</li>
 <p>A Scheme object (whose type is not necessarily known) is represented by
 an <tt class="docutils literal"><span class="pre">obj_t</span></tt>, which is a pointer to a union of every type in the
 language:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">union</span> <span class="n">obj_u</span> <span class="o">*</span><span class="n">obj_t</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">union</span> <span class="n">obj_u</span> <span class="o">*</span><span class="kt">obj_t</span><span class="p">;</span>
 <span class="k">typedef</span> <span class="k">union</span> <span class="n">obj_u</span> <span class="p">{</span>
     <span class="n">type_s</span> <span class="n">type</span><span class="p">;</span>
     <span class="n">pair_s</span> <span class="n">pair</span><span class="p">;</span>
@@ -113,8 +113,8 @@ specifying the type of the object (<tt class="docutils literal"><span class="pre
 represented by a pointer to the structure <tt class="docutils literal"><span class="pre">pair_s</span></tt> defined as
 follows:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">pair_s</span> <span class="p">{</span>
-    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>        <span class="cm">/* TYPE_PAIR */</span>
-    <span class="n">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="n">cdr</span><span class="p">;</span>     <span class="cm">/* first and second projections */</span>
+    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>        <span class="cm">/* TYPE_PAIR */</span>
+    <span class="kt">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="n">cdr</span><span class="p">;</span>     <span class="cm">/* first and second projections */</span>
 <span class="p">}</span> <span class="n">pair_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -122,7 +122,7 @@ follows:</p>
 operate on objects generically, testing <tt class="docutils literal"><span class="pre">TYPE(obj)</span></tt> as necessary
 (which is a macro for <tt class="docutils literal"><span class="pre">obj-&gt;type.type</span></tt>). For example, the
 <tt class="docutils literal"><span class="pre">print()</span></tt> function is implemented like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">print</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">depth</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">stream</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">print</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">depth</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">stream</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">switch</span> <span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span> <span class="p">{</span>
     <span class="k">case</span> <span class="n">TYPE_INTEGER</span>:
@@ -140,9 +140,9 @@ operate on objects generically, testing <tt class="docutils literal"><span class
 </div>
 <p>Each constructor allocates memory for the new object by calling
 <tt class="docutils literal"><span class="pre">malloc</span></tt>. For example, <tt class="docutils literal"><span class="pre">make_pair</span></tt> is the constructor for pairs:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">make_pair</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">cdr</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">make_pair</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">cdr</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="p">(</span><span class="n">obj_t</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">pair_s</span><span class="p">));</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="p">(</span><span class="kt">obj_t</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">pair_s</span><span class="p">));</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">obj</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory&quot;</span><span class="p">);</span>
     <span class="n">obj</span><span class="o">-&gt;</span><span class="n">pair</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_PAIR</span><span class="p">;</span>
     <span class="n">CAR</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">=</span> <span class="n">car</span><span class="p">;</span>
@@ -181,7 +181,7 @@ general-purpose programs you&#8217;ll want to use the virtual memory arena.</p>
 <p>There&#8217;s only one arena, and many MPS functions take an arena as an
 argument, so it makes sense for the arena to be a global variable
 rather than having to pass it around everywhere:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Create an arena by calling <a class="reference internal" href="../topic/arena.html#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>. This function
@@ -193,7 +193,7 @@ its address space, the less efficient garbage collection will become.
 The MPS works best if you reserve an address space that is several times
 larger than your peak memory usage.</p>
 <p>Let&#8217;s reserve 32 megabytes:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span>
                        <span class="n">mps_arena_class_vm</span><span class="p">(),</span>
                        <span class="p">(</span><span class="kt">size_t</span><span class="p">)(</span><span class="mi">32</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">));</span>
@@ -266,7 +266,7 @@ code for creating the object format for the toy Scheme interpreter:</p>
     <span class="n">obj_pad</span><span class="p">,</span>
 <span class="p">};</span>
 
-<span class="n">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
+<span class="kt">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj_fmt_s</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
 </pre></div>
@@ -324,11 +324,11 @@ which the scan method was called. The scan method is called to
 discover references and so determine which objects are <a class="reference internal" href="../glossary/l.html#term-live"><em class="xref std std-term">alive</em></a> and which are <a class="reference internal" href="../glossary/d.html#term-dead"><em class="xref std std-term">dead</em></a>, and also to update references
 after objects have been moved.</p>
 <p>Here&#8217;s the scan method for the toy Scheme interpreter:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
             <span class="k">switch</span> <span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span> <span class="p">{</span>
             <span class="k">case</span> <span class="n">TYPE_PAIR</span>:
                 <span class="n">FIX</span><span class="p">(</span><span class="n">CAR</span><span class="p">(</span><span class="n">obj</span><span class="p">));</span>
@@ -406,9 +406,9 @@ soon as practicable.</li>
 <a class="reference internal" href="../topic/format.html#mps_fmt_skip_t" title="mps_fmt_skip_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_skip_t</span></tt></a>. It is called by the MPS to skip over an
 object belonging to the format, and also to determine its size.</p>
 <p>Here&#8217;s the skip method for the toy Scheme interpreter:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_addr_t</span> <span class="nf">obj_skip</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_addr_t</span> <span class="nf">obj_skip</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
     <span class="k">switch</span> <span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span> <span class="p">{</span>
     <span class="k">case</span> <span class="n">TYPE_PAIR</span>:
         <span class="n">base</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">base</span> <span class="o">+</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">pair_s</span><span class="p">));</span>
@@ -461,24 +461,24 @@ objects might be as small as two words (for example, integers).</p>
 The first type is suitable for forwarding objects of three words or
 longer:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">fwd_s</span> <span class="p">{</span>
-    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_FWD */</span>
-    <span class="n">obj_t</span> <span class="n">fwd</span><span class="p">;</span>                    <span class="cm">/* forwarded object */</span>
+    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_FWD */</span>
+    <span class="kt">obj_t</span> <span class="n">fwd</span><span class="p">;</span>                    <span class="cm">/* forwarded object */</span>
     <span class="kt">size_t</span> <span class="n">size</span><span class="p">;</span>                  <span class="cm">/* total size of this object */</span>
 <span class="p">}</span> <span class="n">fwd_s</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>while the second type is suitable for forwarding objects of two words:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">fwd2_s</span> <span class="p">{</span>
-    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_FWD2 */</span>
-    <span class="n">obj_t</span> <span class="n">fwd</span><span class="p">;</span>                    <span class="cm">/* forwarded object */</span>
+    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_FWD2 */</span>
+    <span class="kt">obj_t</span> <span class="n">fwd</span><span class="p">;</span>                    <span class="cm">/* forwarded object */</span>
 <span class="p">}</span> <span class="n">fwd2_s</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Here&#8217;s the forward method for the toy Scheme interpreter:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">obj_fwd</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">old</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">new</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">obj_fwd</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="n">old</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">new</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">old</span><span class="p">;</span>
-    <span class="n">mps_addr_t</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">obj_skip</span><span class="p">(</span><span class="n">old</span><span class="p">);</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">old</span><span class="p">;</span>
+    <span class="kt">mps_addr_t</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">obj_skip</span><span class="p">(</span><span class="n">old</span><span class="p">);</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">limit</span> <span class="o">-</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">old</span><span class="p">;</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="n">ALIGN_UP</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">fwd2_s</span><span class="p">)));</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="n">ALIGN_UP</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">fwd2_s</span><span class="p">)))</span> <span class="p">{</span>
@@ -537,9 +537,9 @@ scanning them could be avoided.</li>
 object is a <a class="reference internal" href="../glossary/f.html#term-forwarding-object"><em class="xref std std-term">forwarding object</em></a>, and if it is, to determine the
 location where that object was moved.</p>
 <p>Here&#8217;s the is-forwarded method for the toy Scheme interpreter:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_addr_t</span> <span class="nf">obj_isfwd</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_addr_t</span> <span class="nf">obj_isfwd</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
     <span class="k">switch</span> <span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span> <span class="p">{</span>
     <span class="k">case</span> <span class="n">TYPE_FWD2</span>:
         <span class="k">return</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">fwd2</span><span class="p">.</span><span class="n">fwd</span><span class="p">;</span>
@@ -573,7 +573,7 @@ word. As with forwarding objects, this can be solved by having two
 types of padding object. The first type is suitable for padding
 objects of two words or longer:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">pad_s</span> <span class="p">{</span>
-    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_PAD */</span>
+    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_PAD */</span>
     <span class="kt">size_t</span> <span class="n">size</span><span class="p">;</span>                  <span class="cm">/* total size of this object */</span>
 <span class="p">}</span> <span class="n">pad_s</span><span class="p">;</span>
 </pre></div>
@@ -581,14 +581,14 @@ objects of two words or longer:</p>
 <p>while the second type is suitable for padding objects consisting of a
 single word:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">pad1_s</span> <span class="p">{</span>
-    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_PAD1 */</span>
+    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_PAD1 */</span>
 <span class="p">}</span> <span class="n">pad1_s</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Here&#8217;s the padding method:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">obj_pad</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">obj_pad</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">pad1_s</span><span class="p">)));</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">pad1_s</span><span class="p">)))</span> <span class="p">{</span>
         <span class="n">TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">=</span> <span class="n">TYPE_PAD1</span><span class="p">;</span>
@@ -664,7 +664,7 @@ the pool creation code. First, the header for the AMC pool class:</p>
 </div>
 <p>Second, the <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="n">obj_fmt_s</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="k">sizeof</span><span class="p">(</span><span class="n">mps_word_t</span><span class="p">),</span>
+    <span class="k">sizeof</span><span class="p">(</span><span class="kt">mps_word_t</span><span class="p">),</span>
     <span class="n">obj_scan</span><span class="p">,</span>
     <span class="n">obj_skip</span><span class="p">,</span>
     <span class="nb">NULL</span><span class="p">,</span>
@@ -673,7 +673,7 @@ the pool creation code. First, the header for the AMC pool class:</p>
     <span class="n">obj_pad</span><span class="p">,</span>
 <span class="p">};</span>
 
-<span class="n">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
+<span class="kt">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj_fmt_s</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
 </pre></div>
@@ -684,7 +684,7 @@ the pool creation code. First, the header for the AMC pool class:</p>
     <span class="p">{</span> <span class="mi">170</span><span class="p">,</span> <span class="mf">0.45</span> <span class="p">},</span>
 <span class="p">};</span>
 
-<span class="n">mps_chain_t</span> <span class="n">obj_chain</span><span class="p">;</span>
+<span class="kt">mps_chain_t</span> <span class="n">obj_chain</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_chain_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_chain</span><span class="p">,</span>
                        <span class="n">arena</span><span class="p">,</span>
                        <span class="n">LENGTH</span><span class="p">(</span><span class="n">obj_gen_params</span><span class="p">),</span>
@@ -693,7 +693,7 @@ the pool creation code. First, the header for the AMC pool class:</p>
 </pre></div>
 </div>
 <p>And finally the <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_pool_t</span> <span class="n">obj_pool</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_pool_t</span> <span class="n">obj_pool</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_pool</span><span class="p">,</span>
                       <span class="n">arena</span><span class="p">,</span>
                       <span class="n">mps_class_amc</span><span class="p">(),</span>
@@ -721,15 +721,15 @@ memory allocated by other memory managers. For these roots you must
 describe to the MPS how to <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scan</em></a> them for references.</p>
 <p>The toy Scheme interpreter has a number of static variables that point
 to heap-allocated objects. First, the special objects, including:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="n">obj_empty</span><span class="p">;</span>         <span class="cm">/* (), the empty list */</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="n">obj_empty</span><span class="p">;</span>         <span class="cm">/* (), the empty list */</span>
 </pre></div>
 </div>
 <p>Second, the predefined symbols, including:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="n">obj_quote</span><span class="p">;</span>         <span class="cm">/* &quot;quote&quot; symbol */</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="n">obj_quote</span><span class="p">;</span>         <span class="cm">/* &quot;quote&quot; symbol */</span>
 </pre></div>
 </div>
 <p>And third, the global symbol table:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="o">*</span><span class="n">symtab</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="o">*</span><span class="n">symtab</span><span class="p">;</span>
 <span class="k">static</span> <span class="kt">size_t</span> <span class="n">symtab_size</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -740,7 +740,7 @@ described above.</p>
 <p>In the case of the toy Scheme interpreter, the root scanning function
 for the special objects and the predefined symbols could be written
 like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">globals_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">s</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">globals_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">s</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">FIX</span><span class="p">(</span><span class="n">obj_empty</span><span class="p">);</span>
@@ -755,7 +755,7 @@ like this:</p>
 <p>but in fact the interpreter already has tables of these global
 objects, so it&#8217;s simpler and more extensible for the root scanning
 function to iterate over them:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">globals_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">s</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">globals_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">s</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
@@ -770,7 +770,7 @@ function to iterate over them:</p>
 </div>
 <p>Each root scanning function must be registered with the MPS by calling
 <a class="reference internal" href="../topic/root.html#mps_root_create" title="mps_root_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_create()</span></tt></a>, like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_root_t</span> <span class="n">globals_root</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_root_t</span> <span class="n">globals_root</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">globals_root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span>
                       <span class="n">globals_scan</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t register globals root&quot;</span><span class="p">);</span>
@@ -808,11 +808,11 @@ after the rehash has completed, de-registering the old root by calling
 the global symbol table, but the case of a table of references is
 sufficiently common that the MPS provides a convenient (and optimized)
 function, <a class="reference internal" href="../topic/root.html#mps_root_create_table" title="mps_root_create_table"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_create_table()</span></tt></a>, for registering it:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_root_t</span> <span class="n">symtab_root</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_root_t</span> <span class="n">symtab_root</span><span class="p">;</span>
 
 <span class="cm">/* ... */</span>
 
-<span class="n">mps_addr_t</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">symtab</span><span class="p">;</span>
+<span class="kt">mps_addr_t</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">symtab</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table</span><span class="p">(</span><span class="o">&amp;</span><span class="n">symtab_root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span>
                             <span class="n">ref</span><span class="p">,</span> <span class="n">symtab_size</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t register new symtab root&quot;</span><span class="p">);</span>
@@ -821,15 +821,15 @@ function, <a class="reference internal" href="../topic/root.html#mps_root_create
 <p id="guide-lang-roots-rehash">The root must be re-registered whenever the global symbol table
 changes size:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">rehash</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="o">*</span><span class="n">old_symtab</span> <span class="o">=</span> <span class="n">symtab</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="o">*</span><span class="n">old_symtab</span> <span class="o">=</span> <span class="n">symtab</span><span class="p">;</span>
     <span class="kt">unsigned</span> <span class="n">old_symtab_size</span> <span class="o">=</span> <span class="n">symtab_size</span><span class="p">;</span>
-    <span class="n">mps_root_t</span> <span class="n">old_symtab_root</span> <span class="o">=</span> <span class="n">symtab_root</span><span class="p">;</span>
+    <span class="kt">mps_root_t</span> <span class="n">old_symtab_root</span> <span class="o">=</span> <span class="n">symtab_root</span><span class="p">;</span>
     <span class="kt">unsigned</span> <span class="n">i</span><span class="p">;</span>
-    <span class="n">mps_addr_t</span> <span class="n">ref</span><span class="p">;</span>
-    <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+    <span class="kt">mps_addr_t</span> <span class="n">ref</span><span class="p">;</span>
+    <span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 
     <span class="n">symtab_size</span> <span class="o">*=</span> <span class="mi">2</span><span class="p">;</span>
-    <span class="n">symtab</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">obj_t</span><span class="p">)</span> <span class="o">*</span> <span class="n">symtab_size</span><span class="p">);</span>
+    <span class="n">symtab</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">obj_t</span><span class="p">)</span> <span class="o">*</span> <span class="n">symtab_size</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">symtab</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory&quot;</span><span class="p">);</span>
 
     <span class="cm">/* Initialize the new table to NULL so that &quot;find&quot; will work. */</span>
@@ -843,7 +843,7 @@ changes size:</p>
 
     <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">old_symtab_size</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">old_symtab</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">obj_t</span> <span class="o">*</span><span class="n">where</span> <span class="o">=</span> <span class="n">find</span><span class="p">(</span><span class="n">old_symtab</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">symbol</span><span class="p">.</span><span class="n">string</span><span class="p">);</span>
+            <span class="kt">obj_t</span> <span class="o">*</span><span class="n">where</span> <span class="o">=</span> <span class="n">find</span><span class="p">(</span><span class="n">old_symtab</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">symbol</span><span class="p">.</span><span class="n">string</span><span class="p">);</span>
             <span class="n">assert</span><span class="p">(</span><span class="n">where</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>    <span class="cm">/* new table shouldn&#39;t be full */</span>
             <span class="n">assert</span><span class="p">(</span><span class="o">*</span><span class="n">where</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>   <span class="cm">/* shouldn&#39;t be in new table */</span>
             <span class="o">*</span><span class="n">where</span> <span class="o">=</span> <span class="n">old_symtab</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
@@ -906,7 +906,7 @@ programs written in <a class="reference internal" href="../mmref/lang.html#term-
 </ol>
 <p>You register a thread with an <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a> by calling
 <a class="reference internal" href="../topic/thread.html#mps_thread_reg" title="mps_thread_reg"><tt class="xref c c-func docutils literal"><span class="pre">mps_thread_reg()</span></tt></a>:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_thread_reg</span><span class="p">(</span><span class="o">&amp;</span><span class="kr">thread</span><span class="p">,</span> <span class="n">arena</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t register thread&quot;</span><span class="p">);</span>
 </pre></div>
@@ -915,7 +915,7 @@ programs written in <a class="reference internal" href="../mmref/lang.html#term-
 calling <a class="reference internal" href="../topic/root.html#mps_root_create_reg" title="mps_root_create_reg"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_create_reg()</span></tt></a> and passing
 <a class="reference internal" href="../topic/root.html#mps_stack_scan_ambig" title="mps_stack_scan_ambig"><tt class="xref c c-func docutils literal"><span class="pre">mps_stack_scan_ambig()</span></tt></a>:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="o">*</span><span class="n">marker</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">marker</span><span class="p">;</span>
-<span class="n">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
+<span class="kt">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_reg</span><span class="p">(</span><span class="o">&amp;</span><span class="n">reg_root</span><span class="p">,</span>
                           <span class="n">arena</span><span class="p">,</span>
                           <span class="n">mps_rank_ambig</span><span class="p">(),</span>
@@ -946,11 +946,11 @@ to start allocating.</p>
 <p><a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">Manual</em></a> pools typically support
 <a class="reference internal" href="../glossary/m.html#term-malloc"><em class="xref std std-term">malloc</em></a>-like allocation using the function
 <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a>. But <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatic</em></a> pools cannot, because of the following problem:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">make_pair</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">cdr</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">make_pair</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">cdr</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
-    <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+    <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_alloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">pair_s</span><span class="p">));</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory in make_pair&quot;</span><span class="p">);</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
@@ -973,7 +973,7 @@ may abort.</p>
 <a class="reference internal" href="../topic/allocation.html#topic-allocation-point-protocol"><em>Allocation point protocol</em></a>. This needs an additional
 structure, an <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a>, to be attached to the pool by
 calling <a class="reference internal" href="../topic/allocation.html#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a>:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_ap_t</span> <span class="n">obj_ap</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_ap_t</span> <span class="n">obj_ap</span><span class="p">;</span>
 
 <span class="cm">/* ... */</span>
 
@@ -982,13 +982,13 @@ calling <a class="reference internal" href="../topic/allocation.html#mps_ap_crea
 </pre></div>
 </div>
 <p>And then the constructor can be implemented like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">make_pair</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">cdr</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">make_pair</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">car</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">cdr</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+    <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">pair_s</span><span class="p">));</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory in make_pair&quot;</span><span class="p">);</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
         <span class="n">obj</span><span class="o">-&gt;</span><span class="n">pair</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_PAIR</span><span class="p">;</span>
@@ -1150,7 +1150,7 @@ then you&#8217;ll be more interested in the chapter <a class="reference internal
                         title="next chapter">4. Debugging with the Memory Pool System</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -1158,7 +1158,7 @@ then you&#8217;ll be more interested in the chapter <a class="reference internal
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -1178,7 +1178,7 @@ then you&#8217;ll be more interested in the chapter <a class="reference internal
         <li class="right" >
           <a href="build.html" title="2. Building the Memory Pool System"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Guide</a> &raquo;</li> 
       </ul>
     </div>
