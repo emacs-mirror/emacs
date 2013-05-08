@@ -99,9 +99,10 @@ Bool ArgListCheck(ArgList args)
 {
   Index i;
   CHECKL(args != NULL);
-  /* FIXME: Maximum plausible length? */
-  for (i = 0; args[i].key != MPS_KEY_ARGS_END; ++i)
+  for (i = 0; args[i].key != MPS_KEY_ARGS_END; ++i) {
+    CHECKL(i < ARGS_MAX);
     CHECKL(ArgCheck(&args[i]));
+  }
   return TRUE;
 }
 
