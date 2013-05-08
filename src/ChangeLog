@@ -1,3 +1,9 @@
+2013-05-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.h (GTK_PREREQ): New macro.
+	All simple uses of GTK_MAJOR_VERSION and GTK_MINOR_VERSION changed
+	to use this macro instead, for consistency and clarity.
+
 2013-05-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (row_for_charpos_p): New function, with code of

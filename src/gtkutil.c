@@ -70,13 +70,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define gtk_adjustment_get_step_increment(w) ((w)->step_increment)
 #define gtk_adjustment_set_step_increment(w, s) ((w)->step_increment = (s))
 #endif
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 11
+#if GTK_PREREQ (2, 12)
 #define remove_submenu(w) gtk_menu_item_set_submenu ((w), NULL)
 #else
 #define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
 #endif
 
-#if GTK_MAJOR_VERSION > 3 || (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION >= 2)
+#if GTK_PREREQ (3, 2)
 #define USE_NEW_GTK_FONT_CHOOSER 1
 #else
 #define USE_NEW_GTK_FONT_CHOOSER 0

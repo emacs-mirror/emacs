@@ -3804,7 +3804,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
    Return false if and only if the workarea information cannot be
    obtained via the _NET_WORKAREA root window property.  */
 
-#if !defined USE_GTK || GTK_MAJOR_VERSION < 3 + (GTK_MINOR_VERSION < 4)
+#if ! (defined USE_GTK && GTK_PREREQ (3, 4))
 static bool
 x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 {
@@ -4265,7 +4265,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 			 / x_display_pixel_height (dpyinfo));
   gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
   gscreen = gdk_display_get_default_screen (gdpy);
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION >= 20
+#if GTK_PREREQ (2, 20)
   primary_monitor = gdk_screen_get_primary_monitor (gscreen);
 #endif
   n_monitors = gdk_screen_get_n_monitors (gscreen);
@@ -4300,7 +4300,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       gdk_screen_get_monitor_geometry (gscreen, i, &rec);
       geometry = list4i (rec.x, rec.y, rec.width, rec.height);
 
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION >= 14
+#if GTK_PREREQ (2, 14)
       width_mm = gdk_screen_get_monitor_width_mm (gscreen, i);
       height_mm = gdk_screen_get_monitor_height_mm (gscreen, i);
 #endif
@@ -4312,7 +4312,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 				 list2i (width_mm, height_mm)),
 			  attributes);
 
-#if GTK_MAJOR_VERSION > 3 || (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION >= 4)
+#if GTK_PREREQ (3, 4)
       gdk_screen_get_monitor_workarea (gscreen, i, &rec);
       workarea = list4i (rec.x, rec.y, rec.width, rec.height);
 #else
@@ -4339,7 +4339,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
 
       attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
-#if GTK_MAJOR_VERSION > 2 || (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION >= 14)
+#if GTK_PREREQ (2, 14)
       {
         char *name = gdk_screen_get_monitor_plug_name (gscreen, i);
         if (name)
