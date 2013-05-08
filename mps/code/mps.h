@@ -111,6 +111,7 @@ typedef struct mps_arg_s {
     struct mps_pool_debug_option_s *pool_debug_option;
     mps_addr_t (*addr_method)(mps_addr_t);
     mps_align_t align;
+    mps_word_t count;
   } val;
 } mps_arg_s;
 

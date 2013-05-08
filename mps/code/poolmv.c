@@ -182,6 +182,28 @@ static Bool MVSpanCheck(MVSpan span)
 }
 
 
+/* MVVarargs -- decode obsolete varargs */
+
+static void MVVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_MV_EXTEND_BY;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MV_AVG_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_MV_MAX_SIZE;
+  args[2].val.size = va_arg(varargs, Size);
+  args[3].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+static void MVDebugVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
+  args[0].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+  MVVarargs(args + 1, varargs);
+}
+
+
 /* MVInit -- init method for class MV */
 
 const KeyStruct _mps_key_mv_extend_by = {KeySig, "MV_EXTEND_BY", ArgCheckCant};
@@ -771,6 +793,7 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
   this->name = "MV";
   this->size = sizeof(MVStruct);
   this->offset = offsetof(MVStruct, poolStruct);
+  this->varargs = MVVarargs;
   this->init = MVInit;
   this->finish = MVFinish;
   this->alloc = MVAlloc;
@@ -793,6 +816,7 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
   PoolClassMixInDebug(this);
   this->name = "MVDBG";
   this->size = sizeof(MVDebugStruct);
+  this->varargs = MVDebugVarargs;
   this->debugMixin = MVDebugMixin;
 }
 

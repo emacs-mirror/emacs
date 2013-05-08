@@ -27,6 +27,7 @@ SRCID(poolmv2, "$Id$");
 /* Private prototypes */
 
 typedef struct MVTStruct *MVT;
+static void MVTVarargs(ArgStruct args[], va_list varargs);
 static Res MVTInit(Pool pool, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
@@ -139,6 +140,7 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
   this->attr |= AttrFREE;
+  this->varargs = MVTVarargs;
   this->init = MVTInit;
   this->finish = MVTFinish;
   this->free = MVTFree;
@@ -189,16 +191,47 @@ static SegPref MVTSegPref(MVT mvt)
 /* Methods */
 
 
+/* MVTVarargs -- decode obsolete varargs */
+
+static void MVTVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_MVT_MIN_SIZE;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MVT_MEAN_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_MVT_MAX_SIZE;
+  args[2].val.size = va_arg(varargs, Size);
+  args[3].key = MPS_KEY_MVT_RESERVE_DEPTH;
+  args[3].val.count = va_arg(varargs, Count);
+  args[4].key = MPS_KEY_MVT_FRAG_LIMIT;
+  args[4].val.count = va_arg(varargs, Count);
+  args[5].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* MVTInit -- initialize an MVT pool
  *
  * Parameters are:
  * minSize, meanSize, maxSize, reserveDepth, fragLimit
  */
+
+const KeyStruct _mps_key_mvt_min_size = {KeySig, "MVT_MIN_SIZE", ArgCheckCant};
+const KeyStruct _mps_key_mvt_mean_size = {KeySig, "MVT_MEAN_SIZE", ArgCheckCant};
+const KeyStruct _mps_key_mvt_max_size = {KeySig, "MVT_MAX_SIZE", ArgCheckCant};
+const KeyStruct _mps_key_mvt_reserve_depth = {KeySig, "MVT_RESERVE_DEPTH", ArgCheckCant};
+const KeyStruct _mps_key_mvt_frag_limit = {KeySig, "MVT_FRAG_LIMIT", ArgCheckCant};
+
 static Res MVTInit(Pool pool, ArgList args)
 {
   Arena arena;
-  Size minSize, meanSize, maxSize, reuseSize, fillSize;
-  Count reserveDepth, abqDepth, fragLimit;
+  Size minSize = MVT_MIN_SIZE_DEFAULT;
+  Size meanSize = MVT_MEAN_SIZE_DEFAULT;
+  Size maxSize = MVT_MAX_SIZE_DEFAULT;
+  Count reserveDepth = MVT_RESERVE_DEPTH_DEFAULT;
+  Count fragLimit = MVT_FRAG_LIMIT_DEFAULT;
+  Size reuseSize, fillSize;
+  Count abqDepth;
   MVT mvt;
   Res res;
   ArgStruct arg;
@@ -209,30 +242,35 @@ static Res MVTInit(Pool pool, ArgList args)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
   
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    /* FIXME: Inconsistent reporting of bad arguments.  Elsewhere we assert or return ResPARAM. */
-    /* --- Should there be a ResBADARG ? */
-    minSize = va_arg(arg.val.varargs, Size);
+
+  /* FIXME: Inconsistent reporting of bad arguments.  Elsewhere we assert or return ResPARAM. */
+  /* --- Should there be a ResBADARG ? */
+  if (ArgPick(&arg, args, MPS_KEY_MVT_MIN_SIZE)) {
+    minSize = arg.val.size;
     unless (minSize > 0)
       return ResLIMIT;
-    meanSize = va_arg(arg.val.varargs, Size);
+  }
+  if (ArgPick(&arg, args, MPS_KEY_MVT_MEAN_SIZE)) {
+    meanSize = arg.val.size;
     unless (meanSize >= minSize)
       return ResLIMIT;
-    maxSize = va_arg(arg.val.varargs, Size);
+  }
+  if (ArgPick(&arg, args, MPS_KEY_MVT_MAX_SIZE)) {
+    maxSize = arg.val.size;
     unless (maxSize >= meanSize)
       return ResLIMIT;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_MVT_RESERVE_DEPTH)) {
     /* --- check that maxSize is not too large */
-    reserveDepth = va_arg(arg.val.varargs, Count);
+    reserveDepth = arg.val.count;
     unless (reserveDepth > 0)
       return ResLIMIT;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_MVT_FRAG_LIMIT)) {
     /* --- check that reserveDepth is not too large or small */
-    fragLimit = va_arg(arg.val.varargs, Count);
+    fragLimit = arg.val.count;
     unless (fragLimit <= 100)
       return ResLIMIT;
-  } else {
-    /* FIXME: Keywords not yet supported. */
-    res = ResPARAM;
-    goto failParam;
   }
 
   /* see <design/poolmvt/#arch.parameters> */
@@ -327,7 +365,6 @@ static Res MVTInit(Pool pool, ArgList args)
 failABQ:
   CBSFinish(MVTCBS(mvt));
 failCBS:
-failParam:
   AVER(res != ResOK);
   return res;
 }

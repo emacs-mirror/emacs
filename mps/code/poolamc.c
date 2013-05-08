@@ -928,6 +928,19 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 }
 
 
+/* amcVarargs -- decode obsolete varargs */
+
+static void AMCVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_CHAIN;
+  args[1].val.chain = va_arg(varargs, Chain);
+  args[2].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* amcInitComm -- initialize AMC/Z pool
  *
  * See <design/poolamc/#init>.
@@ -2409,6 +2422,7 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->size = sizeof(AMCStruct);
   this->offset = offsetof(AMCStruct, poolStruct);
   this->attr |= AttrMOVINGGC;
+  this->varargs = AMCVarargs;
   this->init = AMCInit;
   this->finish = AMCFinish;
   this->bufferFill = AMCBufferFill;
