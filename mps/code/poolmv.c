@@ -200,11 +200,6 @@ static Res MVInit(Pool pool, ArgList args)
   ArgStruct arg;
   ArgStruct piArgs[3];
   
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    extendBy = va_arg(arg.val.varargs, Size);
-    avgSize = va_arg(arg.val.varargs, Size);
-    maxSize = va_arg(arg.val.varargs, Size);
-  }
   if (ArgPick(&arg, args, MPS_KEY_MV_EXTEND_BY))
     extendBy = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_MV_AVG_SIZE))

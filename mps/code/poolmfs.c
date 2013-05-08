@@ -91,23 +91,18 @@ static Res MFSInit(Pool pool, ArgList args)
   AVER(pool != NULL);
   AVER(ArgListCheck(args));
   
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    extendBy = va_arg(arg.val.varargs, Size);
-    unitSize = va_arg(arg.val.varargs, Size);
-  } else {
-    if (ArgPick(&arg, args, MPS_KEY_MFS_UNIT_SIZE))
-      unitSize = arg.val.size;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
-    if (ArgPick(&arg, args, MPS_KEY_MFS_EXTEND_BY))
-      extendBy = arg.val.size;
-    else {
-      extendBy = MFS_EXTEND_BY_DEFAULT;
-      if (extendBy < unitSize)
-        extendBy = unitSize;
-    }
+  if (ArgPick(&arg, args, MPS_KEY_MFS_UNIT_SIZE))
+    unitSize = arg.val.size;
+  else {
+    res = ResPARAM;
+    goto failParam;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_MFS_EXTEND_BY))
+    extendBy = arg.val.size;
+  else {
+    extendBy = MFS_EXTEND_BY_DEFAULT;
+    if (extendBy < unitSize)
+      extendBy = unitSize;
   }
 
   AVER(unitSize >= UNIT_MIN);

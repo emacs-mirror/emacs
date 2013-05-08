@@ -469,8 +469,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
     userSize = arg.val.size;
-  else if (ArgPick(&arg, args, MPS_KEY_VARARGS))
-    userSize = va_arg(arg.val.varargs, Size);
   else {
     res = ResPARAM;
     goto failVMCreate;

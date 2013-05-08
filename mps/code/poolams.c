@@ -749,29 +749,23 @@ static Res AMSInit(Pool pool, ArgList args)
   AVERT(Pool, pool);
   AVER(ArgListCheck(args));
 
-  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
-    format = va_arg(arg.val.varargs, Format);
-    chain = va_arg(arg.val.varargs, Chain);
-    supportAmbiguous = va_arg(arg.val.varargs, Bool);
-  } else {
-    if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-      chain = arg.val.chain;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
-    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-      format = arg.val.format;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
-    if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
-      supportAmbiguous = arg.val.b;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
+  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+    chain = arg.val.chain;
+  else {
+    res = ResPARAM;
+    goto failParam;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+    format = arg.val.format;
+  else {
+    res = ResPARAM;
+    goto failParam;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
+    supportAmbiguous = arg.val.b;
+  else {
+    res = ResPARAM;
+    goto failParam;
   }
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */

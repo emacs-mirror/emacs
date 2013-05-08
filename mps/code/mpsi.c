@@ -52,6 +52,18 @@
 #include "sac.h"
 #include "chain.h"
 
+/* TODO: Remove these includes when varargs support is removed. */
+#include "mpsacl.h"
+#include "mpsavm.h"
+#include "mpscamc.h"
+#include "mpscmfs.h"
+#include "mpscmv.h"
+#include "mpscams.h"
+#include "mpscawl.h"
+#include "mpsclo.h"
+#include "mpscsnc.h"
+#include "mpscmvff.h"
+
 #include <stdarg.h>
 #include <string.h>
 
@@ -314,31 +326,40 @@ mps_bool_t mps_arena_step(mps_arena_t arena,
 mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
                            mps_arena_class_t mps_arena_class, ...)
 {
-  mps_res_t res;
-  mps_arg_s args[2];
-
-  args[0].key = MPS_KEY_VARARGS;
-  va_start(args[0].val.varargs, mps_arena_class);
-  args[1].key = MPS_KEY_ARGS_END;
-  res = mps_arena_create_args(mps_arena_o, mps_arena_class, args);
-  /* FIXME: Can't va_end? */
-
-  return res;
+  va_list varargs;
+  va_start(varargs, mps_arena_class);
+  return mps_arena_create_v(mps_arena_o, mps_arena_class, varargs);
 }
 
 
-/* mps_arena_create_v -- create an arena object */
+/* mps_arena_create_v -- create an arena object
+ *
+ * TODO: Decode deprecated varargs.  This code can be removed when varargs
+ * support is dropped.
+ */
 
 mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
                              mps_arena_class_t arena_class,
                              va_list varargs)
 {
-  mps_arg_s args[2];
-  
-  args[0].key = MPS_KEY_VARARGS;
-  /* FIXME: va_copy not available in C89 */
-  memcpy(&args[0].val.varargs, &varargs, sizeof(va_list));
-  args[1].key = MPS_KEY_ARGS_END;
+  mps_arg_s args[3];
+
+  /* Decode deprecated varargs. */
+  if (arena_class == mps_arena_class_cl()) {
+    args[0].key = MPS_KEY_ARENA_SIZE;
+    args[0].val.size = va_arg(varargs, Size);
+    args[1].key = MPS_KEY_ARENA_CL_ADDR;
+    args[1].val.addr = va_arg(varargs, Addr);
+    args[2].key = MPS_KEY_ARGS_END;
+  } else if (arena_class == mps_arena_class_vm()) {
+    args[0].key = MPS_KEY_ARENA_SIZE;
+    args[0].val.size = va_arg(varargs, Size);
+    args[1].key = MPS_KEY_ARGS_END;
+  } else {
+    /* TODO: Could take args list for forward compatibility. */
+    args[0].key = MPS_KEY_ARGS_END;
+  }
+  va_end(varargs);
 
   return mps_arena_create_args(mps_arena_o, arena_class, args);
 }
@@ -632,26 +653,73 @@ void mps_fmt_destroy(mps_fmt_t format)
 mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
                           mps_class_t mps_class, ...)
 {
-  mps_res_t res;
-  mps_arg_s args[2];
-  args[0].key = MPS_KEY_VARARGS;
-  va_start(args[0].val.varargs, mps_class);
-  args[1].key = MPS_KEY_ARGS_END;
-  res = mps_pool_create_k(mps_pool_o, arena, mps_class, args);
-  /* FIXME: Can't va_end? */
-  return res;
+  va_list varargs;
+  va_start(varargs, mps_class);
+  return mps_pool_create_v(mps_pool_o, arena, mps_class, varargs);
 }
+
+/* Decode deprecated varargs.  TODO: This can be deleted when varargs go. */
 
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
                             mps_class_t class, va_list varargs)
 {
-  mps_arg_s args[2];
+  mps_arg_s args[6];
   
-  args[0].key = MPS_KEY_VARARGS;
-  /* FIXME: va_copy not available in C89 */
-  memcpy(&args[0].val.varargs, &varargs, sizeof(va_list));
-  args[1].key = MPS_KEY_ARGS_END;
-
+  if (class == mps_class_amc()) {
+    args[0].key = MPS_KEY_FORMAT;
+    args[0].val.format = va_arg(varargs, Format);
+    args[1].key = MPS_KEY_CHAIN;
+    args[1].val.chain = va_arg(varargs, Chain);
+    args[2].key = MPS_KEY_ARGS_END;
+  } else if (class == mps_class_mfs()) {
+    args[0].key = MPS_KEY_MFS_EXTEND_BY;
+    args[0].val.size = va_arg(varargs, Size);
+    args[1].key = MPS_KEY_MFS_UNIT_SIZE;
+    args[1].val.size = va_arg(varargs, Size);
+    args[2].key = MPS_KEY_ARGS_END;
+  } else if (class == mps_class_mv()) {
+    args[0].key = MPS_KEY_MV_EXTEND_BY;
+    args[0].val.size = va_arg(varargs, Size);
+    args[1].key = MPS_KEY_MV_AVG_SIZE;
+    args[1].val.size = va_arg(varargs, Size);
+    args[2].key = MPS_KEY_MV_MAX_SIZE;
+    args[2].val.size = va_arg(varargs, Size);
+    args[3].key = MPS_KEY_ARGS_END;
+  } else if (class == mps_class_ams()) {
+    args[0].key = MPS_KEY_FORMAT;
+    args[0].val.format = va_arg(varargs, Format);
+    args[1].key = MPS_KEY_CHAIN;
+    args[1].val.chain = va_arg(varargs, Chain);
+    args[2].key = MPS_KEY_AMS_SUPPORT_AMBIGUOUS;
+    args[2].val.b = va_arg(varargs, Bool);
+    args[3].key = MPS_KEY_ARGS_END;
+  } else if (class == mps_class_awl()) {
+    args[0].key = MPS_KEY_FORMAT;
+    args[0].val.format = va_arg(varargs, Format);
+    args[1].key = MPS_KEY_AWL_FIND_DEPENDENT;
+    args[1].val.addr_method = va_arg(varargs, mps_awl_find_dependent_t);
+    args[2].key = MPS_KEY_ARGS_END;
+  } else if (class == mps_class_lo() || class == mps_class_snc()) {
+    args[0].key = MPS_KEY_FORMAT;
+    args[0].val.format = va_arg(varargs, Format);
+    args[1].key = MPS_KEY_ARGS_END;
+  } else if (class == mps_class_mvff()) {
+    args[0].key = MPS_KEY_MVFF_EXTEND_BY;
+    args[0].val.size = va_arg(varargs, Size);
+    args[1].key = MPS_KEY_MVFF_AVG_SIZE;
+    args[1].val.size = va_arg(varargs, Size);
+    args[2].key = MPS_KEY_MVFF_ALIGN;
+    args[2].val.align = va_arg(varargs, Size); /* promoted type */
+    args[3].key = MPS_KEY_MVFF_SLOT_HIGH;
+    args[3].val.b = va_arg(varargs, Bool);
+    args[4].key = MPS_KEY_MVFF_ARENA_HIGH;
+    args[4].val.b = va_arg(varargs, Bool);
+    args[5].key = MPS_KEY_MVFF_FIRST_FIT;
+    args[5].val.b = va_arg(varargs, Bool);
+  } else {
+    args[0].key = MPS_KEY_ARGS_END;
+  }
+  
   return mps_pool_create_k(mps_pool_o, arena, class, args);
 }
 
