@@ -1,3 +1,8 @@
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (ACL_H): New macro.
+	($(BLD)/fileio.$(O)): Update dependencies.
+
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)

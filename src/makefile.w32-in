@@ -388,6 +388,9 @@ EMACS_ROOT = ..
 GNU_LIB = $(EMACS_ROOT)/lib
 NT_INC = $(EMACS_ROOT)/nt/inc
 
+ACL_H	       = $(GNU_LIB)/acl.h \
+		 $(NT_INC)/sys/stat.h \
+		 $(NT_INC)/stdbool.h
 SYSTIME_H      = $(SRC)/systime.h \
 		 $(NT_INC)/sys/time.h \
 		 $(GNU_LIB)/timespec.h
@@ -848,6 +851,7 @@ $(BLD)/fileio.$(O) : \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(GNU_LIB)/allocator.h \
+	$(ACL_H) \
 	$(BUFFER_H) \
 	$(CAREADLINKAT_H) \
 	$(CHARACTER_H) \
