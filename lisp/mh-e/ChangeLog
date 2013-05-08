@@ -1,3 +1,7 @@
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-comp.el (mh-regexp-in-field-p): Minor simplification.
+
 2013-03-02  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.5.

@@ -2784,6 +2784,8 @@ find the errors."
     (modify-syntax-entry ?> "." table)
     (modify-syntax-entry ?& "." table)
     (modify-syntax-entry ?| "." table)
+    ;; FIXME: This goes against Emacs conventions.  Use "_" syntax instead and
+    ;; then use regexps with things like "\\_<...\\_>".
     (modify-syntax-entry ?` "w" table)
     (modify-syntax-entry ?_ "w" table)
     (modify-syntax-entry ?\' "." table)

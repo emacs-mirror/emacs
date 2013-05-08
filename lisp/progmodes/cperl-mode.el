@@ -565,6 +565,7 @@ If nil, the value of `cperl-indent-level' will be used."
   "*Non-nil means that the _ (underline) should be treated as word char."
   :type 'boolean
   :group 'cperl)
+(make-obsolete-variable 'cperl-under-as-char 'superword-mode "24.4")
 
 (defcustom cperl-extra-perl-args ""
   "*Extra arguments to use when starting Perl.

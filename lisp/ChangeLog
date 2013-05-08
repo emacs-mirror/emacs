@@ -1,3 +1,41 @@
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vera-mode.el (vera-underscore-is-part-of-word):
+	* progmodes/prolog.el (prolog-underscore-wordchar-flag)
+	(prolog-char-quote-workaround):
+	* progmodes/cperl-mode.el (cperl-under-as-char):
+	* progmodes/vhdl-mode.el (vhdl-underscore-is-part-of-word):
+	 Mark as obsolete.
+	 (vhdl-mode-syntax-table, vhdl-mode-ext-syntax-table): Initialize in
+	their declaration.
+	(vhdl-mode-syntax-table-init): Remove.
+
+	* progmodes/m4-mode.el (m4-mode-syntax-table): Add comment on last change.
+
+	* progmodes/ld-script.el (ld-script-mode-syntax-table): Use symbol
+	syntax for "_".
+	(ld-script-font-lock-keywords):
+	Change regexps to use things like \_< and \_>.
+
+	* progmodes/f90.el (f90-mode-syntax-table): Use symbol syntax for "_".
+	Change all regexps to use things like \_< and \_>.
+
+	* progmodes/autoconf.el (autoconf-definition-regexp)
+	(autoconf-font-lock-keywords, autoconf-current-defun-function):
+	Handle a _ with symbol syntax.
+	(autoconf-mode): Don't change the syntax-table for imenu and font-lock.
+
+	* progmodes/ada-mode.el (ada-mode-abbrev-table): Consolidate declaration.
+	(ada-mode-syntax-table, ada-mode-symbol-syntax-table): Initialize in
+	the declaration.
+	(ada-create-syntax-table): Remove.
+	(ada-capitalize-word): Don't mess with the syntax of "_" since it
+	already has the right syntax nowadays.
+	(ada-goto-next-word): Don't change the syntax of "_".
+
+	* font-lock.el (lisp-font-lock-keywords-2): Don't highlight obsolete
+	with-wrapper-hook.
+
 2013-05-08  Sam Steingold  <sds@gnu.org>
 
 	* thingatpt.el (thing-at-point): Accept optional second argument

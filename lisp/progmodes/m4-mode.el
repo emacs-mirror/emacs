@@ -88,8 +88,12 @@ If m4 is not in your PATH, set this to an absolute file name."
     (modify-syntax-entry ?\n ">#" table)
     (modify-syntax-entry ?{  "_" table)
     (modify-syntax-entry ?}  "_" table)
-    (modify-syntax-entry ?*  "w" table)
+    ;; FIXME: This symbol syntax for underscore looks OK on its own, but it's
+    ;; odd that it should have the same syntax as { and } are these really
+    ;; valid in m4 symbols?
     (modify-syntax-entry ?_  "_" table)
+    ;; FIXME: These three chars with word syntax look wrong.
+    (modify-syntax-entry ?*  "w" table)
     (modify-syntax-entry ?\"  "w" table)
     (modify-syntax-entry ?\"  "w" table)
     table)

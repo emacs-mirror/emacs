@@ -1205,17 +1205,17 @@ discarded."
           (let ((search-result nil))
             (while fields
               (let ((field (car fields))
-                    (syntax-table mh-regexp-in-field-syntax-table))
-                (if (null syntax-table)
-                    (let ((case-fold-search t))
-                      (cond
-                       ((string-match field "^To$\\|^[BD]?cc$\\|^From$")
-                        (setq syntax-table mh-addr-syntax-table))
-                       ((string-match field "^Fcc$")
-                        (setq syntax-table mh-fcc-syntax-table))
-                       (t
-                        (setq syntax-table (syntax-table)))
-                       )))
+                    (syntax-table
+                     (or mh-regexp-in-field-syntax-table
+                         (let ((case-fold-search t))
+                           (cond
+                            ((string-match field "^To$\\|^[BD]?cc$\\|^From$")
+                             mh-addr-syntax-table)
+                            ((string-match field "^Fcc$")
+                             mh-fcc-syntax-table)
+                            (t
+                             (syntax-table)))
+                           ))))
                 (if (and (mh-goto-header-field field)
                          (set-syntax-table syntax-table)
                          (re-search-forward

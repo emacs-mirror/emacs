@@ -101,6 +101,8 @@ select and move operations.  All parts of an identifier separated by underscore
 are treated as single words otherwise."
   :type 'boolean
   :group 'vera)
+(make-obsolete-variable 'vera-underscore-is-part-of-word
+                        'superword-mode "24.4")
 
 (defcustom vera-intelligent-tab t
   "Non-nil means `TAB' does indentation, word completion and tab insertion.
