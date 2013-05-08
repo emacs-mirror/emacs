@@ -321,7 +321,7 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
   va_start(args[0].val.varargs, mps_arena_class);
   args[1].key = MPS_KEY_ARGS_END;
   res = mps_arena_create_args(mps_arena_o, mps_arena_class, args);
-  va_end(args[0].val.varargs);
+  /* FIXME: Can't va_end? */
 
   return res;
 }
@@ -633,15 +633,31 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
                           mps_class_t mps_class, ...)
 {
   mps_res_t res;
-  va_list args;
-  va_start(args, mps_class);
-  res = mps_pool_create_v(mps_pool_o, arena, mps_class, args);
-  va_end(args);
+  mps_arg_s args[2];
+  args[0].key = MPS_KEY_VARARGS;
+  va_start(args[0].val.varargs, mps_class);
+  args[1].key = MPS_KEY_ARGS_END;
+  res = mps_pool_create_k(mps_pool_o, arena, mps_class, args);
+  /* FIXME: Can't va_end? */
   return res;
 }
 
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
-                            mps_class_t class, va_list args)
+                            mps_class_t class, va_list varargs)
+{
+  mps_arg_s args[2];
+  
+  args[0].key = MPS_KEY_VARARGS;
+  /* FIXME: va_copy not available in C89 */
+  memcpy(&args[0].val.varargs, &varargs, sizeof(va_list));
+  args[1].key = MPS_KEY_ARGS_END;
+
+  return mps_pool_create_k(mps_pool_o, arena, class, args);
+}
+
+
+mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
+                            mps_class_t class, mps_arg_s args[])
 {
   Pool pool;
   Res res;
@@ -651,8 +667,9 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
   AVER(mps_pool_o != NULL);
   AVERT(Arena, arena);
   AVERT(PoolClass, class);
+  AVER(ArgListCheck(args));
 
-  res = PoolCreateV(&pool, arena, class, args);
+  res = PoolCreate(&pool, arena, class, args);
 
   ArenaLeave(arena);
 

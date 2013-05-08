@@ -733,24 +733,56 @@ static void AMSSegsDestroy(AMS ams)
  *  Takes one additional argument: the format of the objects
  *  allocated in the pool.  See <design/poolams/#init>.
  */
-static Res AMSInit(Pool pool, va_list args)
+
+const KeyStruct _mps_key_ams_support_ambiguous = {
+  KeySig, "AMS_SUPPORT_AMBIGUOUS", ArgCheckCant /* FIXME: ArgCheckBool */
+};
+
+static Res AMSInit(Pool pool, ArgList args)
 {
   Res res;
   Format format;
   Chain chain;
   Bool supportAmbiguous;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
+  AVER(ArgListCheck(args));
 
-  format = va_arg(args, Format);
-  chain = va_arg(args, Chain);
-  supportAmbiguous = va_arg(args, Bool);
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    format = va_arg(arg.val.varargs, Format);
+    chain = va_arg(arg.val.varargs, Chain);
+    supportAmbiguous = va_arg(arg.val.varargs, Bool);
+  } else {
+    if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+      chain = arg.val.chain;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+      format = arg.val.format;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+    if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
+      supportAmbiguous = arg.val.b;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+  }
+
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
   res = AMSInitInternal(Pool2AMS(pool), format, chain, !supportAmbiguous);
   if (res == ResOK) {
     EVENT3(PoolInitAMS, pool, PoolArena(pool), format);
   }
+  return res;
+
+failParam:
   return res;
 }
 

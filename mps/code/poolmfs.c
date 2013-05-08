@@ -77,16 +77,38 @@ Pool (MFSPool)(MFS mfs)
 }
 
 
-static Res MFSInit(Pool pool, va_list arg)
+const KeyStruct _mps_mfs_extend_by = {KeySig, "MFS_EXTEND_BY", ArgCheckCant};
+const KeyStruct _mps_mfs_unit_size = {KeySig, "MFS_UNIT_SIZE", ArgCheckCant};
+
+static Res MFSInit(Pool pool, ArgList args)
 {
+  Res res;
   Size extendBy, unitSize;
   MFS mfs;
   Arena arena;
+  ArgStruct arg;
 
   AVER(pool != NULL);
-
-  extendBy = va_arg(arg, Size);
-  unitSize = va_arg(arg, Size);
+  AVER(ArgListCheck(args));
+  
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    extendBy = va_arg(arg.val.varargs, Size);
+    unitSize = va_arg(arg.val.varargs, Size);
+  } else {
+    if (ArgPick(&arg, args, MPS_KEY_MFS_UNIT_SIZE))
+      unitSize = arg.val.size;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+    if (ArgPick(&arg, args, MPS_KEY_MFS_EXTEND_BY))
+      extendBy = arg.val.size;
+    else {
+      extendBy = MFS_EXTEND_BY_DEFAULT;
+      if (extendBy < unitSize)
+        extendBy = unitSize;
+    }
+  }
 
   AVER(unitSize >= UNIT_MIN);
   AVER(extendBy >= unitSize);
@@ -109,6 +131,9 @@ static Res MFSInit(Pool pool, va_list arg)
   AVERT(MFS, mfs);
   EVENT4(PoolInitMFS, pool, arena, extendBy, unitSize);
   return ResOK;
+
+failParam:
+  return res;
 }
 
 

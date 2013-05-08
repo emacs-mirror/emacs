@@ -35,7 +35,7 @@ SRCID(reserv, "$Id$");
 
 /* ResPoolInit -- Reservoir pool init method */
 
-static Res ResPoolInit(Pool pool, va_list arg)
+static Res ResPoolInit(Pool pool, ArgList arg)
 {
   AVER(pool != NULL);
 
@@ -388,7 +388,7 @@ Res ReservoirInit(Reservoir reservoir, Arena arena)
   reservoir->sig = ReservoirSig;
   /* initialize the reservoir pool, <design/reservoir/> */
   res = PoolInit(&reservoir->poolStruct,
-                 arena, EnsureReservoirPoolClass());
+                 arena, EnsureReservoirPoolClass(), argsNone);
   if (res == ResOK) {
     AVERT(Reservoir, reservoir);
   }

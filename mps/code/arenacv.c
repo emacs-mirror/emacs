@@ -337,7 +337,7 @@ static void testPageTable(ArenaClass class, Size size, Addr addr)
   Arena arena; Pool pool;
   Size pageSize;
   Count tractsPerPage;
-  ArgStruct args[3];
+  ArgStruct args[4];
   
   args[0].key = MPS_KEY_ARENA_SIZE;
   args[0].val.size = size;
@@ -346,9 +346,7 @@ static void testPageTable(ArenaClass class, Size size, Addr addr)
   args[2].key = MPS_KEY_ARGS_END;
   die(ArenaCreate(&arena, class, args), "ArenaCreate");
 
-  die(PoolCreate(&pool, arena, PoolClassMV(),
-                 (Size)65536, (Size)32, (Size)65536),
-      "PoolCreate");
+  die(PoolCreate(&pool, arena, PoolClassMV(), argsNone), "PoolCreate");
 
   pageSize = ArenaAlign(arena);
   tractsPerPage = pageSize / sizeof(TractStruct);

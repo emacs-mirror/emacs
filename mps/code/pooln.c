@@ -30,7 +30,7 @@ typedef struct PoolNStruct {
 
 /* NInit -- init method for class N */
 
-static Res NInit(Pool pool, va_list args)
+static Res NInit(Pool pool, ArgList args)
 {
   PoolN poolN = PoolPoolN(pool);
 

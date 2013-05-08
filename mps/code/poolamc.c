@@ -933,7 +933,7 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
  * See <design/poolamc/#init>.
  * Shared by AMCInit and AMCZinit.
  */
-static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
+static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 {
   AMC amc;
   Res res;
@@ -943,6 +943,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   Index i;
   size_t genArraySize;
   size_t genCount;
+  ArgStruct arg;
   
   /* Suppress a warning about this structure not being used when there
      are no statistics.  Note that simply making the declaration conditional
@@ -959,11 +960,27 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   amc = Pool2AMC(pool);
   arena = PoolArena(pool);
 
-  pool->format = va_arg(arg, Format);
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    pool->format = va_arg(arg.val.varargs, Format);
+    amc->chain = va_arg(arg.val.varargs, Chain);
+  } else {
+    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+      pool->format = arg.val.format;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+    if (ArgPick(&arg, args, MPS_KEY_CHAIN))
+      amc->chain = arg.val.chain;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+  }
+  
   AVERT(Format, pool->format);
-  pool->alignment = pool->format->alignment;
-  amc->chain = va_arg(arg, Chain);
   AVERT(Chain, amc->chain);
+  pool->alignment = pool->format->alignment;
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);
@@ -1035,17 +1052,18 @@ failGenAlloc:
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
+failParam:
   return res;
 }
 
-static Res AMCInit(Pool pool, va_list arg)
+static Res AMCInit(Pool pool, ArgList args)
 {
-  return amcInitComm(pool, RankSetSingle(RankEXACT), arg);
+  return amcInitComm(pool, RankSetSingle(RankEXACT), args);
 }
 
-static Res AMCZInit(Pool pool, va_list arg)
+static Res AMCZInit(Pool pool, ArgList args)
 {
-  return amcInitComm(pool, RankSetEMPTY, arg);
+  return amcInitComm(pool, RankSetEMPTY, args);
 }
 
 

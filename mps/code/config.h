@@ -238,16 +238,24 @@
 #define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
+/* Pool MV Configuration -- see <code/poolmv.c> */
+
+#define MV_EXTEND_BY_DEFAULT  ((Size)4096)
+#define MV_AVG_SIZE_DEFAULT   ((Size)32)
+#define MV_MAX_SIZE_DEFAULT   ((Size)65536)
+
+
+/* Pool MFS Configuration -- see <code/poolmfs.c> */
+
+#define MFS_EXTEND_BY_DEFAULT ((Size)65536)
+
+
 /* Arena Configuration -- see <code/arena.c>
  *
  * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a
  * "page" (i.e., segment granule) in the client arena.  It's set at 8192
  * with no particular justification.
  */
-
-#define ARENA_CONTROL_EXTENDBY  ((Size)4096)
-#define ARENA_CONTROL_AVGSIZE   ((Size)32)
-#define ARENA_CONTROL_MAXSIZE   ((Size)65536)
 
 #define ArenaPollALLOCTIME (65536.0)
 

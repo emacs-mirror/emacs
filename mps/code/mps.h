@@ -107,6 +107,10 @@ typedef struct mps_arg_s {
     size_t size;
     va_list varargs;
     mps_addr_t addr;
+    mps_fmt_t format;
+    mps_chain_t chain;
+    struct mps_pool_debug_option_s *pool_debug_option;
+    mps_addr_t (*addr_method)(mps_addr_t);
   } val;
 } mps_arg_s;
 
@@ -120,6 +124,12 @@ extern const struct mps_key_s _mps_key_varargs;
 #define MPS_KEY_VARARGS         (&_mps_key_varargs)
 extern const struct mps_key_s _mps_key_arena_size;
 #define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
+extern const struct mps_key_s _mps_key_format;
+#define MPS_KEY_FORMAT          (&_mps_key_format)
+extern const struct mps_key_s _mps_key_chain;
+#define MPS_KEY_CHAIN           (&_mps_key_chain)
+
+extern mps_arg_s mps_args_none[];
 
 
 /* <a id="message.types"> Keep in sync with
@@ -347,6 +357,8 @@ extern mps_res_t mps_pool_create(mps_pool_t *, mps_arena_t,
                                  mps_class_t, ...);
 extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_arena_t,
                                    mps_class_t, va_list);
+extern mps_res_t mps_pool_create_k(mps_pool_t *, mps_arena_t,
+                                   mps_class_t, mps_arg_s []);
 extern void mps_pool_destroy(mps_pool_t);
 
 /* .gen-param: This structure must match <code/chain.h#gen-param>. */
@@ -633,6 +645,9 @@ typedef struct mps_pool_debug_option_s {
   void*  free_template;
   size_t free_size;
 } mps_pool_debug_option_s;
+
+extern const struct mps_key_s _mps_key_pool_debug_option;
+#define MPS_KEY_POOL_DEBUG_OPTION (&_mps_key_pool_debug_option)
 
 extern void mps_pool_check_fenceposts(mps_pool_t);
 extern void mps_pool_check_free_space(mps_pool_t);
