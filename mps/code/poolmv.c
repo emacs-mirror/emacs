@@ -184,16 +184,33 @@ static Bool MVSpanCheck(MVSpan span)
 
 /* MVInit -- init method for class MV */
 
-static Res MVInit(Pool pool, va_list arg)
+const KeyStruct _mps_key_mv_extend_by = {KeySig, "MV_EXTEND_BY", ArgCheckCant};
+const KeyStruct _mps_key_mv_avg_size = {KeySig, "MV_AVG_SIZE", ArgCheckCant};
+const KeyStruct _mps_key_mv_max_size = {KeySig, "MV_MAX_SIZE", ArgCheckCant};
+
+static Res MVInit(Pool pool, ArgList args)
 {
-  Size extendBy, avgSize, maxSize, blockExtendBy, spanExtendBy;
+  Size extendBy = MV_EXTEND_BY_DEFAULT;
+  Size avgSize = MV_AVG_SIZE_DEFAULT;
+  Size maxSize = MV_MAX_SIZE_DEFAULT;
+  Size blockExtendBy, spanExtendBy;
   MV mv;
   Arena arena;
   Res res;
-
-  extendBy = va_arg(arg, Size);
-  avgSize = va_arg(arg, Size);
-  maxSize = va_arg(arg, Size);
+  ArgStruct arg;
+  ArgStruct piArgs[3];
+  
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    extendBy = va_arg(arg.val.varargs, Size);
+    avgSize = va_arg(arg.val.varargs, Size);
+    maxSize = va_arg(arg.val.varargs, Size);
+  }
+  if (ArgPick(&arg, args, MPS_KEY_MV_EXTEND_BY))
+    extendBy = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_MV_AVG_SIZE))
+    avgSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_MV_MAX_SIZE))
+    maxSize = arg.val.size;
 
   AVER(extendBy > 0);
   AVER(avgSize > 0);
@@ -211,17 +228,23 @@ static Res MVInit(Pool pool, va_list arg)
     blockExtendBy = sizeof(MVBlockStruct);
   }
 
-  res = PoolInit(&mv->blockPoolStruct.poolStruct,
-                 arena, PoolClassMFS(),
-                 blockExtendBy, sizeof(MVBlockStruct));
+  piArgs[0].key = MPS_KEY_MFS_EXTEND_BY;
+  piArgs[0].val.size = blockExtendBy;
+  piArgs[1].key = MPS_KEY_MFS_UNIT_SIZE;
+  piArgs[1].val.size = sizeof(MVBlockStruct);
+  piArgs[2].key = MPS_KEY_ARGS_END;
+  res = PoolInit(&mv->blockPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
   if(res != ResOK)
     return res;
 
   spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
-  res = PoolInit(&mv->spanPoolStruct.poolStruct,
-                 arena, PoolClassMFS(),
-                 spanExtendBy, sizeof(MVSpanStruct));
+  piArgs[0].key = MPS_KEY_MFS_EXTEND_BY;
+  piArgs[0].val.size = spanExtendBy;
+  piArgs[1].key = MPS_KEY_MFS_UNIT_SIZE;
+  piArgs[1].val.size = sizeof(MVSpanStruct);
+  piArgs[2].key = MPS_KEY_ARGS_END;
+  res = PoolInit(&mv->spanPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
   if(res != ResOK)
     return res;
 

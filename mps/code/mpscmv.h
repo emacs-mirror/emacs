@@ -9,6 +9,13 @@
 
 #include "mps.h"
 
+extern const struct mps_key_s _mps_key_mv_extend_by;
+#define MPS_KEY_MV_EXTEND_BY (&_mps_key_mv_extend_by)
+extern const struct mps_key_s _mps_key_mv_avg_size;
+#define MPS_KEY_MV_AVG_SIZE (&_mps_key_mv_avg_size)
+extern const struct mps_key_s _mps_key_mv_max_size;
+#define MPS_KEY_MV_MAX_SIZE (&_mps_key_mv_max_size)
+
 extern size_t mps_mv_free_size(mps_pool_t mps_pool);
 extern size_t mps_mv_size(mps_pool_t mps_pool);
 extern mps_class_t mps_class_mv(void);

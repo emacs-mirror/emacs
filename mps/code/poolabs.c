@@ -194,9 +194,10 @@ void PoolTrivFinish(Pool pool)
   NOOP;
 }
 
-Res PoolTrivInit(Pool pool, va_list args)
+Res PoolTrivInit(Pool pool, ArgList args)
 {
   AVERT(Pool, pool);
+  AVER(ArgListCheck(args));
   UNUSED(args);
   return ResOK;
 }

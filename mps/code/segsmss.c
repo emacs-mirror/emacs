@@ -330,17 +330,24 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
 /* AMSTInit -- the pool class initialization method */
 
-static Res AMSTInit(Pool pool, va_list args)
+static Res AMSTInit(Pool pool, ArgList args)
 {
   AMST amst; AMS ams;
   Format format;
   Chain chain;
   Res res;
   static GenParamStruct genParam = { 1024, 0.2 };
+  ArgStruct arg;
 
   AVERT(Pool, pool);
-
-  format = va_arg(args, Format);
+  
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+    format = arg.val.format;
+  else {
+    res = ResPARAM;
+    goto failParam;
+  }
+  
   res = ChainCreate(&chain, pool->arena, 1, &genParam);
   if (res != ResOK)
     return res;
@@ -362,6 +369,10 @@ static Res AMSTInit(Pool pool, va_list args)
   amst->sig = AMSTSig;
   AVERT(AMST, amst);
   return ResOK;
+
+failParam:
+  AVER(res != ResOK);
+  return res;
 }
 
 
@@ -755,13 +766,17 @@ static void *test(void *arg, size_t s)
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
   char *indent = "    ";
+  mps_arg_s args[2];
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
 
-  die(mps_pool_create(&pool, arena, mps_class_amst(), format),
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = format;
+  args[1].key = MPS_KEY_ARGS_END;
+  die(mps_pool_create_k(&pool, arena, mps_class_amst(), args),
       "pool_create(amst)");
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");

@@ -27,7 +27,7 @@ SRCID(poolmv2, "$Id$");
 /* Private prototypes */
 
 typedef struct MVTStruct *MVT;
-static Res MVTInit(Pool pool, va_list arg);
+static Res MVTInit(Pool pool, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
@@ -194,38 +194,46 @@ static SegPref MVTSegPref(MVT mvt)
  * Parameters are:
  * minSize, meanSize, maxSize, reserveDepth, fragLimit
  */
-static Res MVTInit(Pool pool, va_list arg)
+static Res MVTInit(Pool pool, ArgList args)
 {
   Arena arena;
   Size minSize, meanSize, maxSize, reuseSize, fillSize;
   Count reserveDepth, abqDepth, fragLimit;
   MVT mvt;
   Res res;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
   mvt = Pool2MVT(pool);
   /* can't AVERT mvt, yet */
   arena = PoolArena(pool);
   AVERT(Arena, arena);
- 
-  /* --- Should there be a ResBADARG ? */
-  minSize = va_arg(arg, Size);
-  unless (minSize > 0)
-    return ResLIMIT;
-  meanSize = va_arg(arg, Size);
-  unless (meanSize >= minSize)
-    return ResLIMIT;
-  maxSize = va_arg(arg, Size);
-  unless (maxSize >= meanSize)
-    return ResLIMIT;
-  /* --- check that maxSize is not too large */
-  reserveDepth = va_arg(arg, Count);
-  unless (reserveDepth > 0)
-    return ResLIMIT;
-  /* --- check that reserveDepth is not too large or small */
-  fragLimit = va_arg(arg, Count);
-  unless (fragLimit <= 100)
-    return ResLIMIT;
+  
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    /* FIXME: Inconsistent reporting of bad arguments.  Elsewhere we assert or return ResPARAM. */
+    /* --- Should there be a ResBADARG ? */
+    minSize = va_arg(arg.val.varargs, Size);
+    unless (minSize > 0)
+      return ResLIMIT;
+    meanSize = va_arg(arg.val.varargs, Size);
+    unless (meanSize >= minSize)
+      return ResLIMIT;
+    maxSize = va_arg(arg.val.varargs, Size);
+    unless (maxSize >= meanSize)
+      return ResLIMIT;
+    /* --- check that maxSize is not too large */
+    reserveDepth = va_arg(arg.val.varargs, Count);
+    unless (reserveDepth > 0)
+      return ResLIMIT;
+    /* --- check that reserveDepth is not too large or small */
+    fragLimit = va_arg(arg.val.varargs, Count);
+    unless (fragLimit <= 100)
+      return ResLIMIT;
+  } else {
+    /* FIXME: Keywords not yet supported. */
+    res = ResPARAM;
+    goto failParam;
+  }
 
   /* see <design/poolmvt/#arch.parameters> */
   fillSize = SizeAlignUp(maxSize, ArenaAlign(arena));
@@ -319,6 +327,7 @@ static Res MVTInit(Pool pool, va_list arg)
 failABQ:
   CBSFinish(MVTCBS(mvt));
 failCBS:
+failParam:
   AVER(res != ResOK);
   return res;
 }

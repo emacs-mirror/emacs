@@ -361,17 +361,28 @@ static Bool sncFindFreeSeg(Seg *segReturn, SNC snc, Size size)
 
 /* SNCInit -- initialize an SNC pool */
 
-static Res SNCInit(Pool pool, va_list arg)
+static Res SNCInit(Pool pool, ArgList args)
 {
+  Res res;
   SNC snc;
   Format format;
+  ArgStruct arg;
 
   /* weak check, as half-way through initialization */
   AVER(pool != NULL);
 
   snc = Pool2SNC(pool);
 
-  format = va_arg(arg, Format);
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS))
+    format = va_arg(arg.val.varargs, Format);
+  else {
+    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+      format = arg.val.format;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+  }
 
   AVERT(Format, format);
   pool->format = format;
@@ -384,6 +395,9 @@ static Res SNCInit(Pool pool, va_list arg)
   AVERT(SNC, snc);
   EVENT2(PoolInitSNC, pool, format);
   return ResOK;
+
+failParam:
+  return res;
 }
 
 

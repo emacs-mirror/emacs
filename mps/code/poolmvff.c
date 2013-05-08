@@ -409,7 +409,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
 
 /* MVFFInit -- initialize method for MVFF */
 
-static Res MVFFInit(Pool pool, va_list arg)
+static Res MVFFInit(Pool pool, ArgList args)
 {
   Size extendBy, avgSize, align;
   Bool slotHigh, arenaHigh, firstFit;
@@ -418,6 +418,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   Res res;
   void *p;
   ZoneSet zones;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
 
@@ -425,12 +426,20 @@ static Res MVFFInit(Pool pool, va_list arg)
   /* <design/poolmvff/#method.init> */
   /* .arg.check: we do the same checks here and in MVFFCheck */
   /* except for arenaHigh, which is stored only in the segPref. */
-  extendBy = va_arg(arg, Size);
-  avgSize = va_arg(arg, Size);
-  align = va_arg(arg, Size);
-  slotHigh = va_arg(arg, Bool);
-  arenaHigh = va_arg(arg, Bool);
-  firstFit = va_arg(arg, Bool);
+
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    extendBy = va_arg(arg.val.varargs, Size);
+    avgSize = va_arg(arg.val.varargs, Size);
+    align = va_arg(arg.val.varargs, Size);
+    slotHigh = va_arg(arg.val.varargs, Bool);
+    arenaHigh = va_arg(arg.val.varargs, Bool);
+    firstFit = va_arg(arg.val.varargs, Bool);
+  } else {
+    /* FIXME: Accept keywords! */
+    res = ResPARAM;
+    goto failParam;
+  }
+
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
@@ -479,6 +488,7 @@ static Res MVFFInit(Pool pool, va_list arg)
 
 failInit:
   ControlFree(arena, p, sizeof(SegPrefStruct));
+failParam:
   return res;
 }
 

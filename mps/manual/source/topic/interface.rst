@@ -265,7 +265,7 @@ Keyword arguments
 
 Some functions take :term:`keyword arguments` in order to pass values
 that might be optional, or are only required in some circumstances. For
-example, :ref:`topic-arena-client` require a base address. These
+example, :term:`client arenas` require a base address. These
 arguments are passed in a keyword argument array, like this::
     
     mps_res_t res;
@@ -288,12 +288,14 @@ If you are writing C99, you can write this more concisely as::
                          {MPS_KEY_ARGS_END}});
 
 The argument array must not be ``NULL``, and must end with
-``MPS_KEY_ARGS_END``.
+``MPS_KEY_ARGS_END``.  If you don't want to pass any arguments, you can
+either call the equivalent function that does not take keyword arguments
+(named without the ``_k``) or pass ``mps_args_none``.
 
 On return, the keyword argument array will be *modified* to remove any
 arguments that have been used.  If all arguments have been used the
-first element key will be MPS_KEY_ARGS_END.
-                             
+first element key will be ``MPS_KEY_ARGS_END``.
+
 
 .. _topic-interface-general:
 
