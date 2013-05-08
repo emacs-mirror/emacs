@@ -933,6 +933,8 @@ of the default face.  Value is FACE."
 ;;; Interactively modifying faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar crm-separator) ; from crm.el
+
 (defun read-face-name (prompt &optional default multiple)
   "Read one or more face names, prompting with PROMPT.
 PROMPT should not end in a space or a colon.

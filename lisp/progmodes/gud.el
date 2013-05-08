@@ -46,11 +46,8 @@
 (defvar gdb-show-changed-values)
 (defvar gdb-source-window)
 (defvar gdb-var-list)
-(defvar gdb-speedbar-auto-raise)
-(defvar gud-tooltip-mode)
 (defvar hl-line-mode)
 (defvar hl-line-sticky-flag)
-(defvar tool-bar-map)
 
 
 ;; ======================================================================
@@ -3417,7 +3414,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
 ; the tooltip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
 ; it may be difficult to do better. Using GDB/MI as in
-; gdb-mi.el gets round this problem.
+; gdb-mi.el gets around this problem.
 (defun gud-tooltip-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (remove-function (process-filter process) #'gud-tooltip-process-output)

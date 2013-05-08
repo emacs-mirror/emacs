@@ -1,3 +1,12 @@
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header):
+	* faces.el (crm-separator):
+	Silence byte-compiler.
+
+	* progmodes/gud.el (gdb-speedbar-auto-raise, gud-tooltip-mode)
+	(tool-bar-map): Remove unneeded defvars.
+
 2013-05-08  Leo Liu  <sdl.web@gmail.com>
 
 	Re-work a fix for bug#10994 based on Le Wang's patch.
