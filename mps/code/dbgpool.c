@@ -97,7 +97,7 @@ PoolDebugMixin PoolNoDebugMixin(Pool pool)
 
 /* PoolDebugOptionsCheck -- check a PoolDebugOptions */
 
-static Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
+Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
 {
   CHECKL(opt != NULL);
   if (opt->fenceSize != 0) {
@@ -117,9 +117,7 @@ static Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
  * Someday, this could be split into fence and tag init methods.
  */
 
-const KeyStruct _mps_key_pool_debug_option = {
-  KeySig, "POOL_DEBUG_OPTION", ArgCheckCant /* FIXME: ArgCheckPoolDebugOption */
-};
+ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
 
 static Res DebugPoolInit(Pool pool, ArgList args)
 {
@@ -134,8 +132,8 @@ static Res DebugPoolInit(Pool pool, ArgList args)
 
   /* FIXME: Split this structure into separate keys */
   /* FIXME: Can't use varargs -- update docs. */
-  if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTION))
-    options = (PoolDebugOptions)arg.val.pool_debug_option;
+  if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
+    options = (PoolDebugOptions)arg.val.pool_debug_options;
   else {
     res = ResPARAM;
     goto failParam;

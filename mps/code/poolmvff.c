@@ -429,20 +429,20 @@ static void MVFFVarargs(ArgStruct args[], va_list varargs)
 
 static void MVFFDebugVarargs(ArgStruct args[], va_list varargs)
 {
-  args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
-  args[0].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
+  args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
   MVFFVarargs(args + 1, varargs);
 }
 
 
 /* MVFFInit -- initialize method for MVFF */
 
-const KeyStruct _mps_key_mvff_extend_by = {KeySig, "MVFF_EXTEND_BY", ArgCheckCant};
-const KeyStruct _mps_key_mvff_avg_size = {KeySig, "MVFF_AVG_SIZE", ArgCheckCant};
-const KeyStruct _mps_key_mvff_align = {KeySig, "MVFF_ALIGN", ArgCheckCant}; /* FIXME: ArgCheckAlign */
-const KeyStruct _mps_key_mvff_slot_high = {KeySig, "MVFF_SLOT_HIGH", ArgCheckCant}; /* FIXME: ArgCheckBool */
-const KeyStruct _mps_key_mvff_arena_high = {KeySig, "MVFF_ARENA_HIGH", ArgCheckCant}; /* FIXME: ArgCheckBool */
-const KeyStruct _mps_key_mvff_first_fit = {KeySig, "MVFF_FIRST_FIT", ArgCheckCant}; /* FIXME: ArgCheckBool */
+ARG_DEFINE_KEY(mvff_extend_by, Size);
+ARG_DEFINE_KEY(mvff_avg_size, Size);
+ARG_DEFINE_KEY(mvff_align, Align);
+ARG_DEFINE_KEY(mvff_slot_high, Bool);
+ARG_DEFINE_KEY(mvff_arena_high, Bool);
+ARG_DEFINE_KEY(mvff_first_fit, Bool);
 
 static Res MVFFInit(Pool pool, ArgList args)
 {
