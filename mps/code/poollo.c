@@ -469,19 +469,30 @@ static void LOWalk(Pool pool, Seg seg,
 
 /* LOInit -- initialize an LO pool */
 
-static Res LOInit(Pool pool, va_list arg)
+static Res LOInit(Pool pool, ArgList args)
 {
   Format format;
   LO lo;
   Arena arena;
   Res res;
   static GenParamStruct loGenParam = { 1024, 0.2 };
+  ArgStruct arg;
 
   AVERT(Pool, pool);
 
   arena = PoolArena(pool);
-
-  format = va_arg(arg, Format);
+  
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    format = va_arg(arg.val.varargs, Format);
+  } else {
+    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+      format = arg.val.format;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+  }
+  
   AVERT(Format, format);
 
   lo = PoolPoolLO(pool);
@@ -507,6 +518,7 @@ static Res LOInit(Pool pool, va_list arg)
 
 failGenInit:
   ChainDestroy(lo->chain);
+failParam:
   return res;
 }
 

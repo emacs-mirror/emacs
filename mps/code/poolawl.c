@@ -511,7 +511,11 @@ static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
 
 /* AWLInit -- initialize an AWL pool */
 
-static Res AWLInit(Pool pool, va_list arg)
+const KeyStruct _mps_key_awl_find_dependent = {
+  KeySig, "AWL_FIND_DEPENDENT", ArgCheckCant /* FIXME: ArgCheckFun */
+};
+
+static Res AWLInit(Pool pool, ArgList args)
 {
   AWL awl;
   Format format;
@@ -519,17 +523,34 @@ static Res AWLInit(Pool pool, va_list arg)
   Chain chain;
   Res res;
   static GenParamStruct genParam = { SizeMAX, 0.5 /* dummy */ };
+  ArgStruct arg;
 
   /* Weak check, as half-way through initialization. */
   AVER(pool != NULL);
 
   awl = Pool2AWL(pool);
+  
+  if (ArgPick(&arg, args, MPS_KEY_VARARGS)) {
+    format = va_arg(arg.val.varargs, Format);
+    findDependent = va_arg(arg.val.varargs, FindDependentMethod);
+  } else {
+    if (ArgPick(&arg, args, MPS_KEY_FORMAT))
+      format = arg.val.format;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+    if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
+      findDependent = (FindDependentMethod)arg.val.addr_method;
+    else {
+      res = ResPARAM;
+      goto failParam;
+    }
+  }
 
-  format = va_arg(arg, Format);
   AVERT(Format, format);
   pool->format = format;
 
-  findDependent = va_arg(arg, FindDependentMethod);
   AVER(FUNCHECK(findDependent));
   awl->findDependent = findDependent;
 
@@ -557,6 +578,7 @@ static Res AWLInit(Pool pool, va_list arg)
 
 failGenInit:
   ChainDestroy(chain);
+failParam:
   return res;
 }
 

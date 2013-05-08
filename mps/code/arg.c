@@ -25,6 +25,8 @@ Bool ArgCheckCant(Arg arg) {
 
 const KeyStruct _mps_key_varargs = {KeySig, "VARARGS", ArgCheckCant};
 
+ArgStruct mps_args_none[] = {{MPS_KEY_ARGS_END}};
+
 
 /* KeyCheck -- check the validity of an argument key */
 

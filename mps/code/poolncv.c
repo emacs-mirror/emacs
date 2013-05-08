@@ -19,7 +19,7 @@ static void testit(ArenaClass class, ArgList args)
 
   die(ArenaCreate(&arena, class, args), "ArenaCreate");
 
-  die(PoolCreate(&pool, arena, PoolClassN()), "PoolNCreate");
+  die(PoolCreate(&pool, arena, PoolClassN(), argsNone), "PoolNCreate");
   res = PoolAlloc(&p, pool, 1, /* withReservoirPermit */ FALSE);
   if (res == ResOK) {
     error("Error: Unexpectedly succeeded in"

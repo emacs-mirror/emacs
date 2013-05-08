@@ -616,11 +616,12 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 
 /* MRGInit -- init method for MRG */
 
-static Res MRGInit(Pool pool, va_list args)
+static Res MRGInit(Pool pool, ArgList args)
 {
   MRG mrg;
  
   AVER(pool != NULL); /* Can't check more; see pool contract @@@@ */
+  AVER(ArgListCheck(args));
   UNUSED(args);
  
   mrg = Pool2MRG(pool);

@@ -117,17 +117,32 @@ static Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
  * Someday, this could be split into fence and tag init methods.
  */
 
-static Res DebugPoolInit(Pool pool, va_list args)
+const KeyStruct _mps_key_pool_debug_option = {
+  KeySig, "POOL_DEBUG_OPTION", ArgCheckCant /* FIXME: ArgCheckPoolDebugOption */
+};
+
+static Res DebugPoolInit(Pool pool, ArgList args)
 {
   Res res;
   PoolDebugOptions options;
   PoolDebugMixin debug;
   TagInitMethod tagInit;
   Size tagSize;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
-  options = va_arg(args, PoolDebugOptions);
+
+  /* FIXME: Split this structure into separate keys */
+  /* FIXME: Can't use varargs -- update docs. */
+  if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTION))
+    options = (PoolDebugOptions)arg.val.pool_debug_option;
+  else {
+    res = ResPARAM;
+    goto failParam;
+  }
+  
   AVERT(PoolDebugOptions, options);
+
   /* @@@@ Tag parameters should be taken from options, but tags have */
   /* not been published yet. */
   tagInit = NULL; tagSize = 0;
@@ -173,11 +188,16 @@ static Res DebugPoolInit(Pool pool, va_list args)
   /* tag init */
   debug->tagInit = tagInit;
   if (debug->tagInit != NULL) {
+    ArgStruct pcArgs[3];
     debug->tagSize = tagSize + sizeof(tagStruct) - 1;
     /* This pool has to be like the arena control pool: the blocks */
     /* allocated must be accessible using void*. */
-    res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(),
-                     debug->tagSize, debug->tagSize);
+    pcArgs[0].key = MPS_KEY_MFS_EXTEND_BY;
+    pcArgs[0].val.size = debug->tagSize; /* FIXME: Really? */
+    pcArgs[1].key = MPS_KEY_MFS_UNIT_SIZE;
+    pcArgs[1].val.size = debug->tagSize;
+    pcArgs[2].key = MPS_KEY_ARGS_END;
+    res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;
@@ -191,6 +211,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
 tagFail:
 alignFail:
   SuperclassOfPool(pool)->finish(pool);
+failParam:
   return res;
 }
 

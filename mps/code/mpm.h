@@ -132,6 +132,7 @@ extern Bool ResIsAllocFailure(Res res);
 
 /* Argument Lists */
 
+#define argsNone mps_args_none
 extern Bool KeyCheck(Key key);
 extern Bool ArgCheck(Arg arg);
 extern Bool ArgListCheck(ArgList args);
@@ -187,8 +188,7 @@ extern char *MPSVersion(void);
 
 /* Pool Interface -- see impl.c.pool */
 
-extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ...);
-extern Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args);
+extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args);
 extern void PoolFinish(Pool pool);
 extern Bool PoolClassCheck(PoolClass class);
 extern Bool PoolCheck(Pool pool);
@@ -205,9 +205,8 @@ extern double PoolMutatorAllocSize(Pool pool);
 extern Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
 
-extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class, ...);
-extern Res PoolCreateV(Pool *poolReturn, Arena arena, PoolClass class,
-                       va_list arg);
+extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class,
+                      ArgList args);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
@@ -229,7 +228,7 @@ extern void PoolTraceEnd(Pool pool, Trace trace);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
-extern Res PoolTrivInit(Pool pool, va_list arg);
+extern Res PoolTrivInit(Pool pool, ArgList arg);
 extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
                        Bool withReservoirPermit);

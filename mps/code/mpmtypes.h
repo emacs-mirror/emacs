@@ -182,7 +182,7 @@ typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream);
 
 /* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
-typedef Res (*PoolInitMethod)(Pool pool, va_list args);
+typedef Res (*PoolInitMethod)(Pool pool, ArgList args);
 typedef void (*PoolFinishMethod)(Pool pool);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size,
                                Bool withReservoirPermit);

@@ -301,10 +301,8 @@ Res ControlInit(Arena arena)
   Res res;
 
   AVERT(Arena, arena);
-  res = PoolInit(&arena->controlPoolStruct.poolStruct,
-                 arena, PoolClassMV(),
-                 ARENA_CONTROL_EXTENDBY, ARENA_CONTROL_AVGSIZE,
-                 ARENA_CONTROL_MAXSIZE);
+  res = PoolInit(&arena->controlPoolStruct.poolStruct, arena,
+                 PoolClassMV(), argsNone);
   if (res != ResOK)
     return res;
   arena->poolReady = TRUE;      /* <design/arena/#pool.ready> */

@@ -105,22 +105,18 @@ Bool PoolCheck(Pool pool)
 }
 
 
-/* PoolInit, PoolInitV -- initialize a pool
+/* Common keywords to PoolInit */
+
+const KeyStruct _mps_key_format = {KeySig, "AMS_FORMAT", ArgCheckCant}; /* FIXME: ArgCheckFormat */
+const KeyStruct _mps_key_chain = {KeySig, "AMS_CHAIN", ArgCheckCant}; /* FIXME: ArgCheckChain */
+
+
+/* PoolInit -- initialize a pool
  *
  * Initialize the generic fields of the pool and calls class-specific
  * init.  See <design/pool/#align>.  */
 
-Res PoolInit(Pool pool, Arena arena, PoolClass class, ...)
-{
-  Res res;
-  va_list args;
-  va_start(args, class);
-  res = PoolInitV(pool, arena, class, args);
-  va_end(args);
-  return res;
-}
-
-Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args)
+Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Res res;
   Word classId;
@@ -185,18 +181,7 @@ failInit:
 /* PoolCreate, PoolCreateV: Allocate and initialise pool */
 
 Res PoolCreate(Pool *poolReturn, Arena arena,
-               PoolClass class, ...)
-{
-  Res res;
-  va_list args;
-  va_start(args, class);
-  res = PoolCreateV(poolReturn, arena, class, args);
-  va_end(args);
-  return res;
-}
-
-Res PoolCreateV(Pool *poolReturn, Arena arena, 
-                PoolClass class, va_list args)
+               PoolClass class, ArgList args)
 {
   Res res;
   Pool pool;
@@ -219,7 +204,7 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
   pool = (Pool)PointerAdd(base, class->offset);
 
   /* Initialize the pool. */ 
-  res = PoolInitV(pool, arena, class, args);
+  res = PoolInit(pool, arena, class, args);
   if (res != ResOK)
     goto failPoolInit;
  
