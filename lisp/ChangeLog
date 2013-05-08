@@ -1,3 +1,10 @@
+2013-05-08  Leo Liu  <sdl.web@gmail.com>
+
+	Re-work a fix for bug#10994 based on Le Wang's patch.
+	* ido.el (ido-remove-consecutive-dups): New helper.
+	(ido-completing-read): Use it.
+	(ido-chop): Revert fix for bug#10994.
+
 2013-05-08  Adam Spiers  <emacs@adamspiers.org>
 
 	* cus-edit.el (custom-save-variables):
