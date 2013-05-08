@@ -107,8 +107,8 @@ Bool PoolCheck(Pool pool)
 
 /* Common keywords to PoolInit */
 
-const KeyStruct _mps_key_format = {KeySig, "AMS_FORMAT", ArgCheckCant}; /* FIXME: ArgCheckFormat */
-const KeyStruct _mps_key_chain = {KeySig, "AMS_CHAIN", ArgCheckCant}; /* FIXME: ArgCheckChain */
+const KeyStruct _mps_key_format = {KeySig, "AMS_FORMAT", ArgCheckFormat};
+const KeyStruct _mps_key_chain = {KeySig, "AMS_CHAIN", ArgCheckChain};
 
 
 /* PoolInit -- initialize a pool

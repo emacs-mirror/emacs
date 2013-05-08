@@ -22,6 +22,16 @@ Bool ArgCheckCant(Arg arg) {
   return TRUE;
 }
 
+Bool ArgCheckFormat(Arg arg) {
+  CHECKD(Format, arg->val.format);
+  return TRUE;
+}
+
+Bool ArgCheckChain(Arg arg) {
+  CHECKD(Chain, arg->val.chain);
+  return TRUE;
+}
+
 
 const KeyStruct _mps_key_varargs = {KeySig, "VARARGS", ArgCheckCant};
 

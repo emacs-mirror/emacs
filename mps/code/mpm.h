@@ -138,6 +138,8 @@ extern Bool ArgCheck(Arg arg);
 extern Bool ArgListCheck(ArgList args);
 extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
 extern Bool ArgCheckCant(Arg arg);
+extern Bool ArgCheckFormat(Arg arg);
+extern Bool ArgCheckChain(Arg arg);
 
 
 /* Logs and Powers
