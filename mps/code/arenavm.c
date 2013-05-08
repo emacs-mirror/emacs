@@ -444,6 +444,17 @@ static void VMChunkFinish(Chunk chunk)
 }
 
 
+/* VMArenaVarargs -- parse obsolete varargs */
+
+static void VMArenaVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_ARENA_SIZE;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* VMArenaInit -- create and initialize the VM arena
  *
  * .arena.init: Once the arena has been allocated, we call ArenaInit
@@ -1798,6 +1809,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->name = "VM";
   this->size = sizeof(VMArenaStruct);
   this->offset = offsetof(VMArenaStruct, arenaStruct);
+  this->varargs = VMArenaVarargs;
   this->init = VMArenaInit;
   this->finish = VMArenaFinish;
   this->reserved = VMArenaReserved;

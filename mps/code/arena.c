@@ -46,6 +46,16 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 }
 
 
+/* ArenaTrivVarargs -- ignore obsolete varargs for future arena classes */
+
+static void ArenaTrivVarargs(ArgStruct args[], va_list varargs)
+{
+  UNUSED(varargs);
+  args[0].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* AbstractArenaClass  -- The abstract arena class definition
  *
  * .null: Most abstract class methods are set to NULL.  See
@@ -59,6 +69,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->name = "ABSARENA";
   class->size = 0;
   class->offset = 0;
+  class->varargs = ArenaTrivVarargs;
   class->init = NULL;
   class->finish = NULL;
   class->reserved = NULL;
@@ -85,6 +96,7 @@ Bool ArenaClassCheck(ArenaClass class)
   /* greater than the size of the class-specific portion of the */
   /* instance. */
   CHECKL(class->offset <= (size_t)(class->size - sizeof(ArenaStruct)));
+  CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
   CHECKL(FUNCHECK(class->reserved));

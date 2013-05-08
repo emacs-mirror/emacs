@@ -179,6 +179,19 @@ static void ClientChunkFinish(Chunk chunk)
 }
 
 
+/* ClientArenaVarargs -- parse obsolete varargs */
+
+static void ClientArenaVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_ARENA_SIZE;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_ARENA_CL_ADDR;
+  args[1].val.addr = va_arg(varargs, Addr);
+  args[2].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* ClientArenaInit -- create and initialize the client arena
  *
  * .init.memory: Creates the arena structure in the chuck given, and
@@ -474,6 +487,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->name = "CL";
   this->size = sizeof(ClientArenaStruct);
   this->offset = offsetof(ClientArenaStruct, arenaStruct);
+  this->varargs = ClientArenaVarargs;
   this->init = ClientArenaInit;
   this->finish = ClientArenaFinish;
   this->reserved = ClientArenaReserved;

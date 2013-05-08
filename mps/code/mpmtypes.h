@@ -113,8 +113,9 @@ typedef struct StackContextStruct *StackContext;
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
 
+typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
-                               ArenaClass class, mps_arg_s args[]);
+                               ArenaClass class, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef void (*ArenaSpareCommitExceededMethod)(Arena arena);
