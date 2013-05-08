@@ -74,6 +74,7 @@ int main(int argc, char *argv[])
   Insist(lock != NULL);
 
   LockInit(lock);
+  UNUSED(argc);
 
   shared = 0;
 
