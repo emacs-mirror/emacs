@@ -1,3 +1,14 @@
+2013-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (row_for_charpos_p): New function, with code of
+	cursor_row_p, but accepts an additional argument CHARPOS instead
+	of using a hardcoded PT.
+	(cursor_row_p): Call row_for_charpos_p with 2nd argument PT.
+	(row_containing_pos): Call row_for_charpos_p instead of partially
+	doing the same.  Fixes cursor positioning under longlines-mode
+	when longlines-show-effect includes more than one newline, when
+	moving the cursor vertically up.
+
 2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (ACL_H): New macro.

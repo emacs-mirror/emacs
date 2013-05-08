@@ -794,6 +794,7 @@ static void set_iterator_to_next (struct it *, int);
 static void mark_window_display_accurate_1 (struct window *, int);
 static int single_display_spec_string_p (Lisp_Object, Lisp_Object);
 static int display_prop_string_p (Lisp_Object, Lisp_Object);
+static int row_for_charpos_p (struct glyph_row *, ptrdiff_t);
 static int cursor_row_p (struct glyph_row *);
 static int redisplay_mode_lines (Lisp_Object, int);
 static char *decode_mode_spec_coding (Lisp_Object, char *, int);
@@ -16909,10 +16910,9 @@ row_containing_pos (struct window *w, ptrdiff_t charpos,
 	     || (MATRIX_ROW_END_CHARPOS (row) == charpos
 		 /* The end position of a row equals the start
 		    position of the next row.  If CHARPOS is there, we
-		    would rather display it in the next line, except
-		    when this line ends in ZV.  */
-		 && !row->ends_at_zv_p
-		 && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
+		    would rather consider it displayed in the next
+		    line, except when this line ends in ZV.  */
+		 && !row_for_charpos_p (row, charpos)))
 	  && charpos >= MATRIX_ROW_START_CHARPOS (row))
 	{
 	  struct glyph *g;
@@ -16920,10 +16920,10 @@ row_containing_pos (struct window *w, ptrdiff_t charpos,
 	  if (NILP (BVAR (XBUFFER (w->contents), bidi_display_reordering))
 	      || (!best_row && !row->continued_p))
 	    return row;
-	  /* In bidi-reordered rows, there could be several rows
-	     occluding point, all of them belonging to the same
-	     continued line.  We need to find the row which fits
-	     CHARPOS the best.  */
+	  /* In bidi-reordered rows, there could be several rows whose
+	     edges surround CHARPOS, all of these rows belonging to
+	     the same continued line.  We need to find the row which
+	     fits CHARPOS the best.  */
 	  for (g = row->glyphs[TEXT_AREA];
 	       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
 	       g++)
@@ -18727,15 +18727,15 @@ highlight_trailing_whitespace (struct frame *f, struct glyph_row *row)
 
 
 /* Value is non-zero if glyph row ROW should be
-   used to hold the cursor.  */
+   considered to hold the buffer position CHARPOS.  */
 
 static int
-cursor_row_p (struct glyph_row *row)
+row_for_charpos_p (struct glyph_row *row, ptrdiff_t charpos)
 {
   int result = 1;
 
-  if (PT == CHARPOS (row->end.pos)
-      || PT == MATRIX_ROW_END_CHARPOS (row))
+  if (charpos == CHARPOS (row->end.pos)
+      || charpos == MATRIX_ROW_END_CHARPOS (row))
     {
       /* Suppose the row ends on a string.
 	 Unless the row is continued, that means it ends on a newline
@@ -18761,7 +18761,7 @@ cursor_row_p (struct glyph_row *row)
 		if (STRINGP (glyph->object))
 		  {
 		    Lisp_Object prop
-		      = Fget_char_property (make_number (PT),
+		      = Fget_char_property (make_number (charpos),
 					    Qdisplay, Qnil);
 		    result =
 		      (!NILP (prop)
@@ -18813,6 +18813,15 @@ cursor_row_p (struct glyph_row *row)
     }
 
   return result;
+}
+
+/* Value is non-zero if glyph row ROW should be
+   used to hold the cursor.  */
+
+static int
+cursor_row_p (struct glyph_row *row)
+{
+  return row_for_charpos_p (row, PT);
 }
 
 
