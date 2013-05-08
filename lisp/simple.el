@@ -4857,13 +4857,25 @@ lines."
 			 (frame-char-width)) hscroll))))))
     (if target-hscroll
 	(set-window-hscroll (selected-window) target-hscroll))
-    (or (and (= (vertical-motion
-		 (cons (or goal-column
-			   (if (consp temporary-goal-column)
-			       (car temporary-goal-column)
-			     temporary-goal-column))
-		       arg))
-		arg)
+    ;; vertical-motion can move more than it was asked to if it moves
+    ;; across display strings with newlines.  We don't want to ring
+    ;; the bell and announce beginning/end of buffer in that case.
+    (or (and (or (and (>= arg 0)
+		      (>= (vertical-motion
+			   (cons (or goal-column
+				     (if (consp temporary-goal-column)
+					 (car temporary-goal-column)
+				       temporary-goal-column))
+				 arg))
+			  arg))
+		 (and (< arg 0)
+		      (<= (vertical-motion
+			   (cons (or goal-column
+				     (if (consp temporary-goal-column)
+					 (car temporary-goal-column)
+				       temporary-goal-column))
+				 arg))
+			  arg)))
 	     (or (>= arg 0)
 		 (/= (point) opoint)
 		 ;; If the goal column lies on a display string,

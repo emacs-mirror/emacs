@@ -1,3 +1,10 @@
+2013-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-visual): Signal beginning/end of buffer
+	only if vertical-motion moved less than it was requested.  Avoids
+	silly incorrect error messages when there are display strings with
+	multiple newlines at EOL.
+
 2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/vera-mode.el (vera-underscore-is-part-of-word):
