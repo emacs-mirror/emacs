@@ -728,6 +728,28 @@ static void AMSSegsDestroy(AMS ams)
 }
 
 
+/* AMSVarargs -- decode obsolete varargs */
+
+static void AMSVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_CHAIN;
+  args[1].val.chain = va_arg(varargs, Chain);
+  args[2].key = MPS_KEY_AMS_SUPPORT_AMBIGUOUS;
+  args[2].val.b = va_arg(varargs, Bool);
+  args[3].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+static void AMSDebugVarargs(ArgStruct args[], va_list varargs)
+{
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTION;
+  args[0].val.pool_debug_option = va_arg(varargs, mps_pool_debug_option_s *);
+  AMSVarargs(args + 1, varargs);
+}
+
+
 /* AMSInit -- the pool class initialization method
  *
  *  Takes one additional argument: the format of the objects
@@ -1668,6 +1690,7 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->name = "AMS";
   this->size = sizeof(AMSStruct);
   this->offset = offsetof(AMSStruct, poolStruct);
+  this->varargs = AMSVarargs;
   this->init = AMSInit;
   this->finish = AMSFinish;
   this->bufferClass = RankBufClassGet;
@@ -1706,6 +1729,7 @@ DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
   PoolClassMixInDebug(this);
   this->name = "AMSDBG";
   this->size = sizeof(AMSDebugStruct);
+  this->varargs = AMSDebugVarargs;
   this->debugMixin = AMSDebugMixin;
 }
 

@@ -259,6 +259,16 @@
 #define MVFF_FIRST_FIT_DEFAULT   TRUE
 
 
+/* Pool MVT Configuration -- see <code.poolmv2.c> */
+/* FIXME: These numbers were lifted from mv2test and need thought. */
+
+#define MVT_MIN_SIZE_DEFAULT      MPS_PF_ALIGN
+#define MVT_MEAN_SIZE_DEFAULT     32
+#define MVT_MAX_SIZE_DEFAULT      8192
+#define MVT_RESERVE_DEPTH_DEFAULT 1024
+#define MVT_FRAG_LIMIT_DEFAULT    30
+
+
 /* Arena Configuration -- see <code/arena.c>
  *
  * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a

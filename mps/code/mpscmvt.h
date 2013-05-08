@@ -9,6 +9,17 @@
 
 #include "mps.h"
 
+extern const struct mps_key_s _mps_key_mvt_min_size;
+#define MPS_KEY_MVT_MIN_SIZE (&_mps_key_mvt_min_size)
+extern const struct mps_key_s _mps_key_mvt_mean_size;
+#define MPS_KEY_MVT_MEAN_SIZE (&_mps_key_mvt_mean_size)
+extern const struct mps_key_s _mps_key_mvt_max_size;
+#define MPS_KEY_MVT_MAX_SIZE (&_mps_key_mvt_max_size)
+extern const struct mps_key_s _mps_key_mvt_reserve_depth;
+#define MPS_KEY_MVT_RESERVE_DEPTH (&_mps_key_mvt_reserve_depth)
+extern const struct mps_key_s _mps_key_mvt_frag_limit;
+#define MPS_KEY_MVT_FRAG_LIMIT (&_mps_key_mvt_frag_limit)
+
 /* The mvt pool class has five extra parameters to mps_pool_create:
  *  mps_res_t mps_pool_create(mps_pool_t * pool, mps_arena_t arena,
  *                            mps_class_t mvt_class,
