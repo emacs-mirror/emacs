@@ -524,9 +524,7 @@ static void AWLVarargs(ArgStruct args[], va_list varargs)
 
 /* AWLInit -- initialize an AWL pool */
 
-const KeyStruct _mps_key_awl_find_dependent = {
-  KeySig, "AWL_FIND_DEPENDENT", ArgCheckCant /* FIXME: ArgCheckFun */
-};
+ARG_DEFINE_KEY(awl_find_dependent, Fun);
 
 static Res AWLInit(Pool pool, ArgList args)
 {

@@ -89,9 +89,8 @@ static void MFSVarargs(ArgStruct args[], va_list varargs)
   AVER(ArgListCheck(args));
 }
 
-
-const KeyStruct _mps_mfs_extend_by = {KeySig, "MFS_EXTEND_BY", ArgCheckCant};
-const KeyStruct _mps_mfs_unit_size = {KeySig, "MFS_UNIT_SIZE", ArgCheckCant};
+ARG_DEFINE_KEY(mfs_extend_by, Size);
+ARG_DEFINE_KEY(mfs_unit_size, Size);
 
 static Res MFSInit(Pool pool, ArgList args)
 {

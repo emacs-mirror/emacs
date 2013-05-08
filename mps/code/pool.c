@@ -108,8 +108,8 @@ Bool PoolCheck(Pool pool)
 
 /* Common keywords to PoolInit */
 
-const KeyStruct _mps_key_format = {KeySig, "AMS_FORMAT", ArgCheckFormat};
-const KeyStruct _mps_key_chain = {KeySig, "AMS_CHAIN", ArgCheckChain};
+ARG_DEFINE_KEY(format, Format);
+ARG_DEFINE_KEY(chain, Chain);
 
 
 /* PoolInit -- initialize a pool

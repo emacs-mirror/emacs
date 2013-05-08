@@ -216,11 +216,11 @@ static void MVTVarargs(ArgStruct args[], va_list varargs)
  * minSize, meanSize, maxSize, reserveDepth, fragLimit
  */
 
-const KeyStruct _mps_key_mvt_min_size = {KeySig, "MVT_MIN_SIZE", ArgCheckCant};
-const KeyStruct _mps_key_mvt_mean_size = {KeySig, "MVT_MEAN_SIZE", ArgCheckCant};
-const KeyStruct _mps_key_mvt_max_size = {KeySig, "MVT_MAX_SIZE", ArgCheckCant};
-const KeyStruct _mps_key_mvt_reserve_depth = {KeySig, "MVT_RESERVE_DEPTH", ArgCheckCant};
-const KeyStruct _mps_key_mvt_frag_limit = {KeySig, "MVT_FRAG_LIMIT", ArgCheckCant};
+ARG_DEFINE_KEY(mvt_min_size, Size);
+ARG_DEFINE_KEY(mvt_mean_size, Size);
+ARG_DEFINE_KEY(mvt_max_size, Size);
+ARG_DEFINE_KEY(mvt_reserve_depth, Count);
+ARG_DEFINE_KEY(mvt_frag_limit, Count);
 
 static Res MVTInit(Pool pool, ArgList args)
 {
