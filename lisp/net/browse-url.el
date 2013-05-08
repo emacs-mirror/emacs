@@ -658,9 +658,10 @@ regarding its parameter treatment."
 ;; URL input
 
 (defun browse-url-url-at-point ()
-  (let ((url (thing-at-point 'url)))
-    (set-text-properties 0 (length url) nil url)
-    url))
+  (or (thing-at-point 'url t)
+      ;; assume that the user is pointing at something like gnu.org/gnu
+      (let ((f (thing-at-point 'filename t)))
+        (and f (concat "http://" f)))))
 
 ;; Having this as a separate function called by the browser-specific
 ;; functions allows them to be stand-alone commands, making it easier
