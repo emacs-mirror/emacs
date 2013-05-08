@@ -1,3 +1,7 @@
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Fix indentation after =; add more cases.
+
 2013-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/pascal.pas: Add test for mis-identified comments.

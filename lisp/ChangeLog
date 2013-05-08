@@ -1,3 +1,13 @@
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el: First cut at SMIE support.
+	(ruby-use-smie): New var.
+	(ruby-smie-grammar): New constant.
+	(ruby-smie--bosp, ruby-smie--implicit-semi-p)
+	(ruby-smie--forward-token, ruby-smie--backward-token)
+	(ruby-smie-rules): New functions.
+	(ruby-mode-variables): Setup SMIE if applicable.
+
 2013-05-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move-visual): Signal beginning/end of buffer
