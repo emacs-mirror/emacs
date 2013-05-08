@@ -124,9 +124,22 @@ version/$VERSION/... | cut -d' ' -f2)</code> </blockquote> </li>
 
 <h3><a id="section-2.3" name="section-2.3">2.3. MPS Kit Tarball and Zip file</a></h3>
 
+<p> <em> Note: If you are creating a custom variant then vary the release name according to the variant, e.g. <code>mps-<b>cet</b>-1.110.0.zip</code> </em> </p>
+
 <p> On a Unix box: </p>
 
 <ol>
+
+<li>
+  <p> Create a Perforce client workspace that maps:
+  <ul>
+    <li> version/VERSION/... to mps-kit-RELEASE/... </li>
+    <li> release/RELEASE/... to release/RELEASE/... </li>
+  </ul>
+  </p>
+</li>
+
+<li> <p> Ensure the Perforce client workspace is set for Unix (LF) line endings. </p> </li>
 
 <li>
 
@@ -134,34 +147,46 @@ version/$VERSION/... | cut -d' ' -f2)</code> </blockquote> </li>
   procedure from step 2.2.1: </p>
 
   <blockquote> <code>
-    p4 revert version/$VERSION/...<br />
-    rm -rf version/$VERSION <br />
-    p4 sync -f version/$VERSION/...@$CHANGELEVEL
+    rm -rf mps-kit-RELEASE <br />
+    p4 sync -f @CHANGELEVEL
   </code> </blockquote>
 
 </li>
 
 <li>
 
-  <p> Create a tarball and a zip file containing the MPS sources, and
-  open it for add: </p>
+//info.ravenbrook.com/project/mps/custom/cet/version/1.110/procedure/release-build/index.html#4
+  <p> Create a tarball containing the MPS sources, and open it for add: </p>
 
   <blockquote><code>
-    KIT=mps-kit-$RELEASE <br />
-    cp -R version/$VERSION $KIT <br />
-    mkdir -p release/$RELEASE<br />
-    tar cf - $KIT | gzip -c &gt; release/$RELEASE/$KIT.tar.gz <br />
-    zip -r release/$RELEASE/$KIT.zip $KIT <br/>
-    rm -r $KIT <br />
-    p4 add release/$RELEASE/$KIT.tar.gz <br/>
-    p4 add release/$RELEASE/$KIT.zip
+    mkdir -p release/RELEASE <br />
+    tar czf release/RELEASE/mps-kit-RELEASE.tar.gz mps-kit-RELEASE <br />
+    p4 add release/RELEASE/mps-kit-RELEASE.tar.gz
   </code></blockquote>
 
 </li>
 
-<li> <p> Submit the release files to Perforce with the comment “MPS:
-adding the MPS Kit tarball and zip file for
-release <i>RELEASE</i>.” </p> </li>
+<li> <p> Ensure the Perforce client workspace is set for Windows (CRLF) line endings. </p> </li>
+
+<li> <p> Sync the version sources again as in step (2) above. </p> </li>
+
+<li>
+
+  <p> Create a zip file containing the MPS sources, and open it for add: </p>
+
+  <blockquote><code>
+    mkdir -p release/RELEASE<br />
+    zip -r release/RELEASE/mps-kit-RELEASE.zip mps-cet-kit-RELEASE <br />
+    p4 add release/RELEASE/mps-kit-RELEASE.zip
+  </code></blockquote>
+
+</li>
+
+<li> <p> Revert any changes to your Perforce client line endings.  (You probably want them set to local.) </p> </li>
+
+<li> <p> Submit the release files to Perforce with
+the comment "MPS: adding the MPS Kit tarball and zip file for
+release RELEASE." </p> </li>
 
 </ol>
 
@@ -353,6 +378,16 @@ to <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com<
   <td><a href="mailto:gdr@ravenbrook.com">GDR</a></td>
 
   <td>Add testing step (§2.2).</td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2012&#x2011;09&#x2011;24</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td> <ul> <li> Make sure zip files contain files with Windows line endings. </li> <li> Use a fresh Perforce client to avoid any possibility of a clash with working files. </li> <li> Different archive name for custom variants. </li> </ul> </td>
 
 </tr>
 
