@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>13. SNC (Stack No Checking) &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>13. SNC (Stack No Checking) &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Pool reference" href="index.html" />
     <link rel="next" title="Internals" href="../topic/internals.html" />
     <link rel="prev" title="12. MVT (Manual Variable Temporal)" href="mvt.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="mvt.html" title="12. MVT (Manual Variable Temporal)"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Pool reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -114,9 +114,9 @@ a format of variant auto-header.</li>
 <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
 <p>When creating an SNC pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a> takes one
 extra argument:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="n">mps_class_t</span> <span class="n">mps_class_snc</span><span class="p">(),</span>
-                          <span class="n">mps_fmt_t</span> <span class="n">fmt</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="kt">mps_class_t</span> <span class="n">mps_class_snc</span><span class="p">(),</span>
+                          <span class="kt">mps_fmt_t</span> <span class="n">fmt</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">fmt</span></tt> specifies the <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> for the objects
@@ -124,8 +124,8 @@ allocated in the pool. The format must provide a <a class="reference internal" h
 method</em></a>, a <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a>, and a <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a>.</p>
 <p>When creating an allocation point on an SNC pool,
 <a class="reference internal" href="../topic/allocation.html#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a> takes one extra argument:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="n">mps_ap_t</span> <span class="o">*</span><span class="n">ap_o</span><span class="p">,</span> <span class="n">mps_pool_t</span> <span class="n">pool</span><span class="p">,</span>
-                        <span class="n">mps_rank_t</span> <span class="n">rank</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="kt">mps_ap_t</span> <span class="o">*</span><span class="n">ap_o</span><span class="p">,</span> <span class="kt">mps_pool_t</span> <span class="n">pool</span><span class="p">,</span>
+                        <span class="kt">mps_rank_t</span> <span class="n">rank</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><tt class="docutils literal"><span class="pre">rank</span></tt> specifies the <a class="reference internal" href="../glossary/r.html#term-rank"><em class="xref std std-term">rank</em></a> of references in objects
@@ -162,7 +162,7 @@ allocated on this allocation point. It must be
                         title="next chapter">Internals</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -170,7 +170,7 @@ allocated on this allocation point. It must be
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -190,7 +190,7 @@ allocated on this allocation point. It must be
         <li class="right" >
           <a href="mvt.html" title="12. MVT (Manual Variable Temporal)"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Pool reference</a> &raquo;</li> 
       </ul>
     </div>

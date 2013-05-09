@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>17. Debugging pools &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>17. Debugging pools &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="18. Telemetry" href="telemetry.html" />
     <link rel="prev" title="16. Allocation frames" href="frame.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="frame.html" title="16. Allocation frames"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -115,8 +115,8 @@ signal an error or stop if wrongly interpreted as executable code.</li>
    <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="s">&quot;postpost&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span>
    <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="s">&quot;freefree&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span>
 <span class="p">};</span>
-<span class="n">mps_pool_t</span> <span class="n">pool</span><span class="p">;</span>
-<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="kt">mps_pool_t</span> <span class="n">pool</span><span class="p">;</span>
+<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_ams_debug</span><span class="p">(),</span>
                       <span class="o">&amp;</span><span class="n">debug_options</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fmt</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">chain</span><span class="p">)</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;can&#39;t create debug pool&quot;</span><span class="p">);</span>
@@ -195,7 +195,7 @@ non-debugging pools.</p>
                         title="next chapter">18. Telemetry</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -203,7 +203,7 @@ non-debugging pools.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -223,7 +223,7 @@ non-debugging pools.</p>
         <li class="right" >
           <a href="frame.html" title="16. Allocation frames"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>

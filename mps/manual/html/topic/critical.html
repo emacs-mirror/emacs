@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. The critical path &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>3. The critical path &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Internals" href="internals.html" />
     <link rel="next" title="Design" href="../design/index.html" />
     <link rel="prev" title="2. Platforms" href="platform.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="platform.html" title="2. Platforms"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="internals.html" accesskey="U">Internals</a> &raquo;</li> 
       </ul>
     </div>  
@@ -164,18 +164,18 @@ a client function of type <a class="reference internal" href="format.html#mps_fm
 of the format creation functions. (See <a class="reference internal" href="format.html#topic-format"><em>Object formats</em></a>.)</p>
 <p>Here is an example of part of a format scanner for scanning contiguous
 runs of pointers, from <tt class="docutils literal"><span class="pre">fmtdy.c</span></tt>, the scanner for the <a class="reference external" href="http://opendylan.org/">Open Dylan</a> runtime:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">dylan_scan_contig</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">mps_ss</span><span class="p">,</span>
-                                   <span class="n">mps_addr_t</span> <span class="o">*</span><span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="o">*</span><span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">dylan_scan_contig</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">mps_ss</span><span class="p">,</span>
+                                   <span class="kt">mps_addr_t</span> <span class="o">*</span><span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="o">*</span><span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-  <span class="n">mps_addr_t</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>        <span class="cm">/* reference cursor */</span>
-  <span class="n">mps_addr_t</span> <span class="n">r</span><span class="p">;</span>         <span class="cm">/* reference to be fixed */</span>
+  <span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+  <span class="kt">mps_addr_t</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>        <span class="cm">/* reference cursor */</span>
+  <span class="kt">mps_addr_t</span> <span class="n">r</span><span class="p">;</span>         <span class="cm">/* reference to be fixed */</span>
 
   <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">mps_ss</span><span class="p">)</span> <span class="p">{</span>
           <span class="n">p</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
     <span class="nl">loop:</span> <span class="k">if</span><span class="p">(</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">)</span> <span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
           <span class="n">r</span> <span class="o">=</span> <span class="o">*</span><span class="n">p</span><span class="o">++</span><span class="p">;</span>
-          <span class="k">if</span><span class="p">(((</span><span class="n">mps_word_t</span><span class="p">)</span><span class="n">r</span><span class="o">&amp;</span><span class="mi">3</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="cm">/* pointers tagged with 0 */</span>
+          <span class="k">if</span><span class="p">(((</span><span class="kt">mps_word_t</span><span class="p">)</span><span class="n">r</span><span class="o">&amp;</span><span class="mi">3</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="cm">/* pointers tagged with 0 */</span>
             <span class="k">goto</span> <span class="n">loop</span><span class="p">;</span>             <span class="cm">/* not a pointer */</span>
           <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">mps_ss</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span> <span class="k">goto</span> <span class="n">loop</span><span class="p">;</span>
           <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">mps_ss</span><span class="p">,</span> <span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
@@ -368,7 +368,7 @@ vigilant.</p>
                         title="next chapter">Design</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -376,7 +376,7 @@ vigilant.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -396,7 +396,7 @@ vigilant.</p>
         <li class="right" >
           <a href="platform.html" title="2. Platforms"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="internals.html" >Internals</a> &raquo;</li> 
       </ul>
     </div>

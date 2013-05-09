@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>14. Segregated allocation caches &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>14. Segregated allocation caches &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="15. Allocation patterns" href="pattern.html" />
     <link rel="prev" title="13. Location dependency" href="location.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="location.html" title="13. Location dependency"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -70,7 +70,7 @@ small number of relatively long-lived 128-byte objects, and a large
 number of relatively short-lived 8-byte objects, we might create a
 cache as follows:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_sac_class_s</span> <span class="n">classes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{{</span><span class="mi">8</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">},</span> <span class="p">{</span><span class="mi">128</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">}};</span>
-<span class="n">mps_sac_t</span> <span class="n">sac</span><span class="p">;</span>
+<span class="kt">mps_sac_t</span> <span class="n">sac</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_sac_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sac</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span> <span class="n">classes</span> <span class="o">/</span> <span class="k">sizeof</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">classes</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>
@@ -83,8 +83,8 @@ otherwise from the pool. Similarly, deallocations through the cache
 (using <a class="reference internal" href="#mps_sac_free" title="mps_sac_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_sac_free()</span></tt></a> or <a class="reference internal" href="#MPS_SAC_FREE_FAST" title="MPS_SAC_FREE_FAST"><tt class="xref c c-func docutils literal"><span class="pre">MPS_SAC_FREE_FAST()</span></tt></a>) return
 the block to the appopriate free list for its size. For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">Foo</span> <span class="o">*</span><span class="n">foo</span><span class="p">;</span>
-<span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_sac_alloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">sac</span><span class="p">,</span> <span class="k">sizeof</span> <span class="o">*</span><span class="n">foo</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>
@@ -415,7 +415,7 @@ the function.</p>
                         title="next chapter">15. Allocation patterns</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -423,7 +423,7 @@ the function.</p>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -443,7 +443,7 @@ the function.</p>
         <li class="right" >
           <a href="location.html" title="13. Location dependency"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>

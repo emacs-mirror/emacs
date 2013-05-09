@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>1. Interface conventions &mdash; Memory Pool System 1.110.0 documentation</title>
+    <title>1. Interface conventions &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.110.0',
+        VERSION:     '1.111.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.110.0 documentation" href="../index.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="2. Error handing" href="error.html" />
     <link rel="prev" title="Reference" href="index.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="index.html" title="Reference"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -185,7 +185,7 @@ is read by the function. See for example <a class="reference internal" href="sca
 out parameter, like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cm">/* allocate a struct foo */</span>
 <span class="k">struct</span> <span class="n">foo</span> <span class="o">*</span><span class="n">fp</span><span class="p">;</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_alloc</span><span class="p">((</span><span class="n">mps_addr_t</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">fp</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mps_alloc</span><span class="p">((</span><span class="kt">mps_addr_t</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">fp</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
 </pre></div>
 </div>
 <p>This is known as <a class="reference internal" href="../glossary/t.html#term-type-punning"><em class="xref std std-term">type punning</em></a>, and its behaviour is not
@@ -194,7 +194,7 @@ defined in ANSI/ISO Standard C. See <a class="reference internal" href="../mmref
 another: the behaviour of this cast is not covered by any of the cases
 in the standard.</p>
 <p>Instead, we recommend this approach:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
 <span class="k">struct</span> <span class="n">foo</span> <span class="o">*</span><span class="n">fp</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_alloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
 <span class="k">if</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="cm">/* handle error case */</span><span class="p">;</span>
@@ -356,7 +356,7 @@ or function return from the MPS, 0 means &#8220;false&#8221;, and 1 means
                         title="next chapter">2. Error handing</a></p><h4>Downloads</h4>
 
 <p class="topless">
-<a href="http://www.ravenbrook.com/project/mps/release/1.110.0/">MPS Kit release 1.110.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
 <a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
 </p>
 
@@ -364,7 +364,7 @@ or function return from the MPS, 0 means &#8220;false&#8221;, and 1 means
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
-<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.110.0">Issues fixed in release 1.110.0</a>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
 </p><h4>Contact us</h4>
 
 <p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
@@ -384,7 +384,7 @@ or function return from the MPS, 0 means &#8220;false&#8221;, and 1 means
         <li class="right" >
           <a href="index.html" title="Reference"
              >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.110.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>
