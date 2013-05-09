@@ -42,12 +42,12 @@ Bool ArgCheckChain(Arg arg) {
 }
 
 Bool ArgCheckSize(Arg arg) {
-  UNUSED(arg);
+  UNUSED(arg); /* TODO: Add and call SizeCheck */
   return TRUE;
 }
 
 Bool ArgCheckAddr(Arg arg) {
-  UNUSED(arg);
+  UNUSED(arg); /* TODO: Add and call AddrCheck */
   return TRUE;
 }
 
@@ -72,7 +72,7 @@ Bool ArgCheckBool(Arg arg) {
 }
 
 Bool ArgCheckCount(Arg arg) {
-  UNUSED(arg);
+  UNUSED(arg); /* TODO: Add and call CountCheck */
   return TRUE;
 }
 
@@ -116,6 +116,8 @@ Bool ArgListCheck(ArgList args)
 }
 
 
+/* ArgPick -- try to pick an argument out of the argument list by keyword */
+
 Bool ArgPick(ArgStruct *argOut, ArgList args, Key key) {
   Index i;
   
@@ -136,14 +138,13 @@ found:
       break;
     ++i;
   }
-
   return TRUE;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

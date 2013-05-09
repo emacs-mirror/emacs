@@ -11,9 +11,14 @@
 
 #include "mpmtypes.h"
 
-/* KeyStruct -- keyword argument structure */
 
-/* FIXME: Whether to have a check field should be conditional on variety */
+/* KeyStruct -- keyword argument structure
+ *
+ * NOTE: Whether or not to have an argument checking field and functions
+ * could be conditional on build variety.  Checking arguments isn't on
+ * the critical path, but this might save space if the MPS is being
+ * deployed in a tight memory situation.
+ */
 
 #define KeySig          ((Sig)0x519CE111) /* SIGnature KEYyy */
 typedef struct mps_key_s {
@@ -49,7 +54,7 @@ extern Bool ArgCheckCount(Arg arg);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
