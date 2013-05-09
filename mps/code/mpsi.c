@@ -318,9 +318,12 @@ mps_bool_t mps_arena_step(mps_arena_t arena,
 mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
                            mps_arena_class_t mps_arena_class, ...)
 {
+  mps_res_t res;
   va_list varargs;
   va_start(varargs, mps_arena_class);
-  return mps_arena_create_v(mps_arena_o, mps_arena_class, varargs);
+  res = mps_arena_create_v(mps_arena_o, mps_arena_class, varargs);
+  va_end(varargs);
+  return res;
 }
 
 
@@ -333,7 +336,6 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   mps_arg_s args[MPS_ARGS_MAX];
   AVERT(ArenaClass, arena_class);
   arena_class->varargs(args, varargs);
-  va_end(varargs);
   return mps_arena_create_args(mps_arena_o, arena_class, args);
 }
 
@@ -621,9 +623,12 @@ void mps_fmt_destroy(mps_fmt_t format)
 mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
                           mps_class_t mps_class, ...)
 {
+  mps_res_t res;
   va_list varargs;
   va_start(varargs, mps_class);
-  return mps_pool_create_v(mps_pool_o, arena, mps_class, varargs);
+  res = mps_pool_create_v(mps_pool_o, arena, mps_class, varargs);
+  va_end(varargs);
+  return res;
 }
 
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
@@ -632,7 +637,6 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
   mps_arg_s args[MPS_ARGS_MAX];
   AVERT(PoolClass, class);
   class->varargs(args, varargs);
-  va_end(varargs);
   return mps_pool_create_k(mps_pool_o, arena, class, args);
 }
 
@@ -740,39 +744,42 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
 
 mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t pool, ...)
 {
-  Arena arena;
-  Buffer buf;
-  BufferClass bufclass;
-  Res res;
-  va_list args;
-
-  AVER(mps_ap_o != NULL);
-  AVER(TESTT(Pool, pool));
-  arena = PoolArena(pool);
-
-  ArenaEnter(arena);
-
-  AVERT(Pool, pool);
-
-  va_start(args, pool);
-  bufclass = PoolDefaultBufferClass(pool);
-  res = BufferCreateV(&buf, bufclass, pool, TRUE, args);
-  va_end(args);
-
-  ArenaLeave(arena);
-
-  if (res != ResOK)
-    return res;
-  *mps_ap_o = BufferAP(buf);
-  return MPS_RES_OK;
+  mps_res_t res;
+  va_list varargs;
+  va_start(varargs, pool);
+  res = mps_ap_create_v(mps_ap_o, pool, varargs);
+  va_end(varargs);
+  return res;
 }
 
 
 /* mps_ap_create_v -- create an allocation point, with varargs */
 
 mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t pool,
-                          va_list args)
+                          va_list varargs)
 {
+  Arena arena;
+  BufferClass bufclass;
+  mps_arg_s args[MPS_ARGS_MAX];
+
+  AVER(mps_ap_o != NULL);
+  AVER(TESTT(Pool, pool));
+  arena = PoolArena(pool);
+  
+  ArenaEnter(arena);
+  AVERT(Pool, pool);
+  bufclass = PoolDefaultBufferClass(pool);
+  bufclass->varargs(args, varargs);
+  ArenaLeave(arena);
+
+  return mps_ap_create_k(mps_ap_o, pool, args);
+}
+
+/* mps_ap_create_k -- create an allocation point, with keyword args */
+
+mps_res_t mps_ap_create_k(mps_ap_t *mps_ap_o,
+                          mps_pool_t pool,
+                          mps_arg_s args[]) {
   Arena arena;
   Buffer buf;
   BufferClass bufclass;
@@ -787,12 +794,13 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t pool,
   AVERT(Pool, pool);
 
   bufclass = PoolDefaultBufferClass(pool);
-  res = BufferCreateV(&buf, bufclass, pool, TRUE, args);
+  res = BufferCreate(&buf, bufclass, pool, TRUE, args);
 
   ArenaLeave(arena);
 
   if (res != ResOK)
     return res;
+
   *mps_ap_o = BufferAP(buf);
   return MPS_RES_OK;
 }

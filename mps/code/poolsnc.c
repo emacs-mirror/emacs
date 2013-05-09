@@ -127,7 +127,7 @@ static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 
 /* SNCBufInit -- Initialize an SNCBuf */
 
-static Res SNCBufInit (Buffer buffer, Pool pool, va_list args)
+static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
 {
   SNCBuf sncbuf;
   Res res;
