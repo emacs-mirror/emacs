@@ -716,7 +716,6 @@ startup file, `~/.emacs-octave'."
            (when (and inferior-octave-startup-file
                       (file-exists-p inferior-octave-startup-file))
              (format "source (\"%s\");\n" inferior-octave-startup-file))))
-    ;; XXX: the first prompt is incorrectly highlighted
     (insert-before-markers
      (concat
       (if inferior-octave-output-list
@@ -729,7 +728,9 @@ startup file, `~/.emacs-octave'."
     (set-process-filter proc 'comint-output-filter)
     ;; Just in case, to be sure a cd in the startup file
     ;; won't have detrimental effects.
-    (inferior-octave-resync-dirs)))
+    (inferior-octave-resync-dirs)
+    ;; A trick to get the prompt highlighted.
+    (comint-send-string proc "\n")))
 
 (defun inferior-octave-completion-table ()
   (completion-table-dynamic
@@ -741,13 +742,19 @@ startup file, `~/.emacs-octave'."
 
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
-  (let* ((end (point))
+  ;; http://debbugs.gnu.org/14300
+  (let* ((filecomp (string-match-p
+                    "/" (or (comint--match-partial-filename) "")))
+         (end (point))
 	 (start
-	  (save-excursion
-	    (skip-syntax-backward "w_" (comint-line-beginning-position))
-            (point))))
-    (when (> end start)
-      (list start end (inferior-octave-completion-table)))))
+	  (unless filecomp
+            (save-excursion
+              (skip-syntax-backward "w_" (comint-line-beginning-position))
+              (point)))))
+    (when (and start (> end start))
+      (list start end (completion-table-in-turn
+                       (inferior-octave-completion-table)
+                       'comint-completion-file-name-table)))))
 
 (define-obsolete-function-alias 'inferior-octave-complete
   'completion-at-point "24.1")

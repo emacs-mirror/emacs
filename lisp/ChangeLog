@@ -1,3 +1,10 @@
+2013-05-09  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-completion-at-point):
+	Restore the broken file completion.  (Bug#14300)
+	(inferior-octave-startup): Fix incorrect highlighting for the
+	first prompt.
+
 2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el: First cut at SMIE support.
