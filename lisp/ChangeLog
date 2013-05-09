@@ -1,3 +1,11 @@
+2013-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-redirect-send-command-to-process): Use :around
+	rather than :override for comint-redirect-filter.
+	(comint-redirect-filter): Add the corresponding `orig-filter' argument.
+	Call it instead of comint-redirect-original-filter-function (which
+	is gone).  Reported by Juanma Barranquero <lekktu@gmail.com>.
+
 2013-05-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.el (display-monitor-attributes-list): Add NS case.
