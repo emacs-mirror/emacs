@@ -702,7 +702,7 @@ typedef struct AllocPatternStruct {
 
 /* KeyStruct -- keyword argument structure */
 
-#define KeySig          ((Sig)0x519CE333) /* SIGnature KEYyy */
+#define KeySig          ((Sig)0x519CE111) /* SIGnature KEYyy */
 typedef struct mps_key_s {
   Sig sig;
   const char *name;

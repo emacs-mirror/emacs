@@ -1,7 +1,9 @@
 /* arg.c: ARGUMENT LISTS
  *
- * $Id: //info.ravenbrook.com/project/mps/custom/cet/main/code/bt.c#1 $
+ * $Id$
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ *
+ * .source: See <design/keyword-arguments.rst>.
  */
 
 #include "config.h"
