@@ -217,6 +217,17 @@ failGlobalsInit:
 }
 
 
+/* VM keys are defined here even though the code they apply to might
+ * not be linked.  For example, MPS_KEY_VMW3_TOP_DOWN only applies to
+ * vmw3.c.  The reason is that we want these keywords to be optional
+ * even on the wrong platform, so that clients can write simple portable
+ * code.  They should be free to pass MPS_KEY_VMW3_TOP_DOWN on other
+ * platforms, knowing that it has no effect.  To do that, the key must
+ * exist on all platforms. */
+
+ARG_DEFINE_KEY(vmw3_top_down, Bool);
+
+
 /* ArenaCreate -- create the arena and call initializers */
 
 ARG_DEFINE_KEY(arena_size, Size);
