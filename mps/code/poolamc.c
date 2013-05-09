@@ -973,9 +973,9 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   amc = Pool2AMC(pool);
   arena = PoolArena(pool);
 
-  ArgRequired(&arg, args, MPS_KEY_FORMAT);
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
   pool->format = arg.val.format;
-  ArgRequired(&arg, args, MPS_KEY_CHAIN);
+  ArgRequire(&arg, args, MPS_KEY_CHAIN);
   amc->chain = arg.val.chain;
   
   AVERT(Format, pool->format);

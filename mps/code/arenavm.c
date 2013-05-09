@@ -478,12 +478,8 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(class == VMArenaClassGet() || class == VMNZArenaClassGet());
   AVER(ArgListCheck(args));
 
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
-    userSize = arg.val.size;
-  else {
-    res = ResPARAM;
-    goto failVMCreate;
-  }
+  ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
+  userSize = arg.val.size;
 
   AVER(userSize > 0);
   

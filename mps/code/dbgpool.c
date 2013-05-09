@@ -132,12 +132,8 @@ static Res DebugPoolInit(Pool pool, ArgList args)
 
   /* TODO: Split this structure into separate keyword arguments,
      now that we can support them. */
-  if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
-    options = (PoolDebugOptions)arg.val.pool_debug_options;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  ArgRequire(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS);
+  options = (PoolDebugOptions)arg.val.pool_debug_options;
   
   AVERT(PoolDebugOptions, options);
 
@@ -208,7 +204,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
 tagFail:
 alignFail:
   SuperclassOfPool(pool)->finish(pool);
-failParam:
+  AVER(res != ResOK);
   return res;
 }
 

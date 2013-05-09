@@ -341,12 +341,8 @@ static Res AMSTInit(Pool pool, ArgList args)
 
   AVERT(Pool, pool);
   
-  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-    format = arg.val.format;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
   
   res = ChainCreate(&chain, pool->arena, 1, &genParam);
   if (res != ResOK)
@@ -369,10 +365,6 @@ static Res AMSTInit(Pool pool, ArgList args)
   amst->sig = AMSTSig;
   AVERT(AMST, amst);
   return ResOK;
-
-failParam:
-  AVER(res != ResOK);
-  return res;
 }
 
 

@@ -142,6 +142,15 @@ found:
 }
 
 
+/* ArgRequire -- take a required argument out of the argument list by keyword */
+
+void ArgRequire(ArgStruct *argOut, ArgList args, Key key) {
+  if (ArgPick(argOut, args, key))
+    return;
+  NOTREACHED;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.

@@ -242,36 +242,23 @@ static Res MVTInit(Pool pool, ArgList args)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
   
-
-  /* FIXME: Inconsistent reporting of bad arguments.  Elsewhere we assert or return ResPARAM. */
-  /* --- Should there be a ResBADARG ? */
-  if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE)) {
+  if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE))
     minSize = arg.val.size;
-    unless (minSize > 0)
-      return ResLIMIT;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE)) {
+  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
     meanSize = arg.val.size;
-    unless (meanSize >= minSize)
-      return ResLIMIT;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE)) {
+  if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
     maxSize = arg.val.size;
-    unless (maxSize >= meanSize)
-      return ResLIMIT;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_MVT_RESERVE_DEPTH)) {
-    /* --- check that maxSize is not too large */
+  if (ArgPick(&arg, args, MPS_KEY_MVT_RESERVE_DEPTH))
     reserveDepth = arg.val.count;
-    unless (reserveDepth > 0)
-      return ResLIMIT;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_MVT_FRAG_LIMIT)) {
-    /* --- check that reserveDepth is not too large or small */
+  if (ArgPick(&arg, args, MPS_KEY_MVT_FRAG_LIMIT))
     fragLimit = arg.val.count;
-    unless (fragLimit <= 100)
-      return ResLIMIT;
-  }
+
+  AVER(0 < minSize);
+  AVER(minSize <= meanSize);
+  AVER(meanSize <= maxSize);
+  AVER(reserveDepth > 0);
+  AVER(fragLimit <= 100);
+  /* TODO: More sanity checks possible? */
 
   /* see <design/poolmvt/#arch.parameters> */
   fillSize = SizeAlignUp(maxSize, ArenaAlign(arena));
