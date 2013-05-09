@@ -81,7 +81,6 @@ Internally, keys are static constant structures which are signed and contain
 a checking method for the argument, like this::
 
     typedef struct mps_arg_s *Arg;
-    #define KeySig          ((Sig)0x519CE333) /* SIGnature KEYyy */
     typedef struct mps_key_s {
       Sig sig;              /* Always KeySig */
       const char *name;
@@ -136,6 +135,19 @@ handle keyword arguments only.
 
 The use of varargs is deprecated in the manual and the interface and these
 methods can be deleted at some point in the future.
+
+
+References
+----------
+[RB 2012-05-24]
+    "Keyword and optional arguments" (e-mail); Richard Brooksby;
+    Ravenbrook Limited;
+    <https://info.ravenbrook.com/mail/2012/05/24/21-19-15/0/>.
+
+
+Document History
+----------------
+2013-05-09  RB  Created based on [RB 2012-05-24].
 
 
 Copyright and License
