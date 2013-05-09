@@ -1,5 +1,7 @@
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
+	* mml1991.el: Make it loadable.  (Bug#13456)
+
 	* gnus-art.el (gnus-article-date-headers, gnus-blocked-images):
 	* gnus-async.el (gnus-async-post-fetch-function):
 	* gnus-gravatar.el (gnus-gravatar-size, gnus-gravatar-properties):

@@ -47,6 +47,9 @@
                   (config &optional minimum-version))
 (declare-function epg-configuration "ext:epg-config" ())
 
+;; Maybe this should be in eg mml-sec.el (and have a different name).
+;; Then mml1991 would not need to require mml2015, and mml1991-use
+;; could be removed.
 (defvar mml2015-use (or
 		     (condition-case nil
 			 (progn
