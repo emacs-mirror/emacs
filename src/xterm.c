@@ -9921,7 +9921,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         dpy = DEFAULT_GDK_DISPLAY ();
 
-#if ! GTK_PREREQ (2, 90)
+#if ! GTK_CHECK_VERSION (2, 90, 0)
         /* Load our own gtkrc if it exists.  */
         {
           const char *file = "~/.emacs.d/gtkrc";

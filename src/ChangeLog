@@ -1,3 +1,10 @@
+2013-05-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.h (GTK_PREREQ): Remove, replacing with GTK_CHECK_VERSION.
+	(GTK_CHECK_VERSION): New macro, if not already defined.
+	All uses of GTK_PREREQ, GTK_MAJOR_VERSION, etc.
+	replaced by GTK_CHECK_VERSION.
+
 2013-05-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.h (GTK_PREREQ): New macro.
