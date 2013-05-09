@@ -1,3 +1,8 @@
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* jka-cmpr-hook.el (jka-compr-mode-alist-additions): Fix typo.
+	Add :version.
+
 2013-05-09  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-completion-at-point):
