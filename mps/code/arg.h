@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  *
- * .source: FIXME: Write up design from email discussion.
+ * .source: See <design/keyword-arguments.rst>.
  */
 
 #ifndef arg_h
