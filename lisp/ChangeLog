@@ -1,3 +1,7 @@
+2013-05-09  Ulrich Mueller  <ulm@gentoo.org>
+
+	* descr-text.el (describe-char): Fix %d/%x typo.  (Bug#14360)
+
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* international/fontset.el (vertical-centering-font-regexp):

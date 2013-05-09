@@ -1,3 +1,13 @@
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Sending): Fix typo.
+
+	* windows.texi (Change Window): Fix typo.
+
+	* custom.texi (Changing a Variable): Fix typo.
+
+	* trouble.texi (Contributing): Remove obsolete info re pretesters.
+
 2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).
