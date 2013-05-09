@@ -363,7 +363,6 @@ static Bool sncFindFreeSeg(Seg *segReturn, SNC snc, Size size)
 
 static Res SNCInit(Pool pool, ArgList args)
 {
-  Res res;
   SNC snc;
   Format format;
   ArgStruct arg;
@@ -373,12 +372,8 @@ static Res SNCInit(Pool pool, ArgList args)
 
   snc = Pool2SNC(pool);
 
-  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-    format = arg.val.format;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
 
   AVERT(Format, format);
   pool->format = format;
@@ -391,9 +386,6 @@ static Res SNCInit(Pool pool, ArgList args)
   AVERT(SNC, snc);
   EVENT2(PoolInitSNC, pool, format);
   return ResOK;
-
-failParam:
-  return res;
 }
 
 

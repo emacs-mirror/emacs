@@ -216,19 +216,11 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(arenaReturn != NULL);
   AVER((ArenaClass)mps_arena_class_cl() == class);
   AVER(ArgListCheck(args));
-
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE)) {
-    size = arg.val.size;
-    if (ArgPick(&arg, args, MPS_KEY_ARENA_CL_ADDR))
-      base = arg.val.addr;
-    else {
-      res = ResPARAM;
-      goto failParam;
-    }
-  } else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  
+  ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
+  size = arg.val.size;
+  ArgRequire(&arg, args, MPS_KEY_ARENA_CL_ADDR);
+  base = arg.val.addr;
 
   AVER(base != (Addr)0);
 
@@ -272,7 +264,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
 failChunkCreate:
   ArenaFinish(arena);
-failParam:
+  AVER(res != ResOK);
   return res;
 }
 

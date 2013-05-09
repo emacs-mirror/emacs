@@ -493,12 +493,8 @@ static Res LOInit(Pool pool, ArgList args)
 
   arena = PoolArena(pool);
   
-  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-    format = arg.val.format;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
   
   AVERT(Format, format);
 
@@ -525,7 +521,7 @@ static Res LOInit(Pool pool, ArgList args)
 
 failGenInit:
   ChainDestroy(lo->chain);
-failParam:
+  AVER(res != ResOK);
   return res;
 }
 

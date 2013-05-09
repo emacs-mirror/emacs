@@ -769,24 +769,12 @@ static Res AMSInit(Pool pool, ArgList args)
   AVERT(Pool, pool);
   AVER(ArgListCheck(args));
 
-  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-    chain = arg.val.chain;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-    format = arg.val.format;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS))
-    supportAmbiguous = arg.val.b;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  ArgRequire(&arg, args, MPS_KEY_CHAIN);
+  chain = arg.val.chain;
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
+  ArgRequire(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS);
+  supportAmbiguous = arg.val.b;
 
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
@@ -794,9 +782,6 @@ static Res AMSInit(Pool pool, ArgList args)
   if (res == ResOK) {
     EVENT3(PoolInitAMS, pool, PoolArena(pool), format);
   }
-  return res;
-
-failParam:
   return res;
 }
 
