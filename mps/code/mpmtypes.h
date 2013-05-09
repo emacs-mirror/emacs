@@ -167,7 +167,8 @@ typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
 
 /* Buffer*Method -- see <design/buffer/> */
 
-typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, va_list args);
+typedef void (*BufferVarargsMethod)(ArgStruct args[], va_list varargs);
+typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, ArgList args);
 typedef void (*BufferFinishMethod)(Buffer buffer);
 typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit,
                                    Addr init, Size size);

@@ -708,9 +708,7 @@ extern Addr (SegLimit)(Seg seg);
 /* Buffer Interface -- see <code/buffer.c> */
 
 extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
-                        Pool pool, Bool isMutator, ...);
-extern Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
-                         Pool pool, Bool isMutator, va_list args);
+                        Pool pool, Bool isMutator, ArgList args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
 extern Bool SegBufCheck(SegBuf segbuf);
