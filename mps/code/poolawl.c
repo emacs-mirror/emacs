@@ -541,18 +541,10 @@ static Res AWLInit(Pool pool, ArgList args)
 
   awl = Pool2AWL(pool);
   
-  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-    format = arg.val.format;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
-    findDependent = (FindDependentMethod)arg.val.addr_method;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
+  ArgRequire(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT);
+  findDependent = (FindDependentMethod)arg.val.addr_method;
 
   AVERT(Format, format);
   pool->format = format;
@@ -584,7 +576,7 @@ static Res AWLInit(Pool pool, ArgList args)
 
 failGenInit:
   ChainDestroy(chain);
-failParam:
+  AVER(res != ResOK);
   return res;
 }
 
