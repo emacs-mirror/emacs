@@ -11,16 +11,28 @@
 
 #include "mpmtypes.h"
 
+/* KeyStruct -- keyword argument structure */
+
 /* FIXME: Whether to have a check field should be conditional on variety */
+
+#define KeySig          ((Sig)0x519CE111) /* SIGnature KEYyy */
+typedef struct mps_key_s {
+  Sig sig;
+  const char *name;
+  Bool (*check)(Arg arg);
+} KeyStruct;
 
 #define ARG_DEFINE_KEY(id, type) \
   const KeyStruct _mps_key_##id = {KeySig, #id, ArgCheck##type}
 
 #define argsNone mps_args_none
+
 extern Bool KeyCheck(Key key);
 extern Bool ArgCheck(Arg arg);
 extern Bool ArgListCheck(ArgList args);
+
 extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
+
 extern Bool ArgCheckCant(Arg arg);
 extern Bool ArgCheckFormat(Arg arg);
 extern Bool ArgCheckChain(Arg arg);
