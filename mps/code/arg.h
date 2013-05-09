@@ -49,6 +49,8 @@ extern Bool ArgCheckFun(Arg arg);
 extern Bool ArgCheckAlign(Arg arg);
 extern Bool ArgCheckBool(Arg arg);
 extern Bool ArgCheckCount(Arg arg);
+extern Bool ArgCheckPointer(Arg arg);
+extern Bool ArgCheckRankSet(Arg arg);
 
 
 #endif /* arg_h */

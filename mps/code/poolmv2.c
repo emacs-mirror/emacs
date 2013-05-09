@@ -890,7 +890,8 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Pool pool, Bool withReservoirPermit)
 {
   Res res = SegAlloc(segReturn, GCSegClassGet(),
-                     MVTSegPref(mvt), size, pool, withReservoirPermit);
+                     MVTSegPref(mvt), size, pool, withReservoirPermit,
+                     argsNone);
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);

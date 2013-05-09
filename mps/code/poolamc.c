@@ -142,13 +142,20 @@ static Bool amcSegCheck(amcSeg amcseg)
 
 /* AMCSegInit -- initialise an AMC segment */
 
+ARG_DEFINE_KEY(amc_seg_type, Pointer);
+#define amcKeySegType (&_mps_key_amc_seg_type)
+
 static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, va_list args)
+                      Bool reservoirPermit, ArgList args)
 {
-  int *segtype = va_arg(args, int*);  /* .segtype */
+  int *segtype;
   SegClass super;
   amcSeg amcseg;
   Res res;
+  ArgStruct arg;
+  
+  ArgRequire(&arg, args, amcKeySegType); /* .segtype */
+  segtype = arg.val.p;
 
   AVERT(Seg, seg);
   amcseg = Seg2amcSeg(seg);
@@ -1163,9 +1170,12 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   genNr = PoolGenNr(&gen->pgen);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &genNr);
-  res = SegAlloc(&seg, amcSegClassGet(), &segPrefStruct,
-                 alignedSize, pool, withReservoirPermit,
-                 &gen->type); /* .segtype */
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, amcKeySegType, p, &gen->type); /* .segtype */
+    MPS_ARGS_DONE(args);
+    res = SegAlloc(&seg, amcSegClassGet(), &segPrefStruct,
+                   alignedSize, pool, withReservoirPermit, args);
+  } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
   AVER(alignedSize == SegSize(seg));

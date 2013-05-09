@@ -299,10 +299,6 @@
 #define LDHistoryLENGTH ((Size)4)
 
 
-/* Maximum length of a keyword argument list. */
-#define ARGS_MAX  ((Count)32)
-
-
 /* Stack configuration */
 
 /* Currently StackProbe has a useful implementation only on
