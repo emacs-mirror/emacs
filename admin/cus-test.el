@@ -87,43 +87,6 @@
 ;; The command `cus-test-noloads' returns a list of variables which
 ;; are somewhere declared as custom options, but not loaded by
 ;; `custom-load-symbol'.
-;;
-;; Some results from October 2002:
-;;
-;; 4523 options tested
-;; The following variables might have problems:
-;; ps-mule-font-info-database-default
-;; grep-tree-command
-;; grep-find-command
-;;
-;; 288 features required
-;; 10 files loaded
-;; The following load problems appeared:
-;; (killing x-win (file-error Cannot open load file x-win))
-;; Symbol faces has loaddefs as custom dependency
-;; (reftex-index-support reftex-vars (void-function reftex-set-dirty))
-;; (eshell-script em-script (void-variable eshell-directory-name))
-;; (pcomplete em-cmpl (void-function eshell-under-windows-p))
-;; (eshell-ext esh-ext (void-function eshell-under-windows-p))
-;; ...
-;;
-;; 422 libraries had no load errors
-;; The following load problems appeared:
-;; (eudc-export error 255)
-;; (ada-xref error 255)
-;; (ada-stmt error 255)
-;;
-;; The following options were not loaded by custom-load-symbol:
-;; edt-bottom-scroll-margin
-;; edt-keep-current-page-delimiter
-;; edt-top-scroll-margin
-;; edt-use-EDT-control-key-bindings
-;; edt-word-entities
-;; grep-find-use-xargs
-;; master-mode-hook
-;; outline-level
-;; outline-minor-mode-hook
-;; refill-mode-hook
 
 
 ;;; Code:
@@ -138,12 +101,6 @@
 
 (defvar cus-test-libs-noloads nil
   "List of libraries not to load by `cus-test-load-libs'.")
-
-;; The file eudc-export.el loads libraries "bbdb" and "bbdb-com" which
-;; are not part of GNU Emacs:  (locate-library "bbdb") => nil
-;; We avoid the resulting errors from loading eudc-export.el:
-(provide 'bbdb)
-(provide 'bbdb-com)
 
 ;; This avoids a hang of `cus-test-apropos' in 21.2.
 ;; (add-to-list 'cus-test-skip-list 'sh-alias-alist)
@@ -516,11 +473,6 @@ in the Emacs source directory."
       (message "The following options were not loaded by custom-load-symbol:")
       (cus-test-message
        (sort cus-test-vars-not-cus-loaded 'string<)))))
-
-;; And last but not least a quiz:
-;;
-;; Evaluation of the form (customize-option 'debug-on-error) yields a
-;; *Customize* buffer with a mismatch mess.  Why?
 
 (provide 'cus-test)
 
