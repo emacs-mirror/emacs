@@ -1,5 +1,8 @@
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
+	* international/fontset.el (vertical-centering-font-regexp):
+	Set standard-value.
+
 	* tar-mode.el (tar-superior-buffer, tar-superior-descriptor): Add doc.
 
 	* bookmark.el (bookmark-search-delay):
