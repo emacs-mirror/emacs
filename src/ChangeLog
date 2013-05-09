@@ -1,3 +1,10 @@
+2013-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (skip_dyn_eof): New function.
+	(read1): Use it to skip the end of a file in response to #@00.
+
+	* doc.c (get_doc_string): Slightly relax the sanity checking.
+
 2013-05-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m: Include IOGraphicsLib.h if Cocoa.
