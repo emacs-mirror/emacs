@@ -1,0 +1,181 @@
+Keyword arguments in the MPS
+============================
+
+:Author: Richard Brooksby
+:Organization: Ravenbrook Limited
+:Date: 2013-05-09
+:Revision: $Id$
+
+
+Introduction
+------------
+Up to version 1.111, the `Memory Pool System
+<http://www.ravenbrook.com/project/mps/>`_ used varags to pass arguments
+to arena and pool classes, because the general MPS interface can't
+specify what arguments those classes might need in C prototypes. This
+mechanism was error-prone and did not allow for any optional arguments,
+meaning that the client had to specify or predict esoteric tuning
+parameters.
+
+Starting with version 1.112, the MPS uses an idiom for keyword arguments.
+
+
+Overview
+--------
+The basic design is not specific to the MPS.  The keyword argument list is
+passed as an array of argument structures which look like this::
+
+    typedef struct key_s *key_t;
+    typedef struct arg_s {
+      key_t key;
+      union {
+        int i;
+        char c;
+        void *p;
+        size_t size;
+        /* etc. */
+      } val;
+    } arg_s;
+
+The argument list is assembled and passed like this::
+
+    arg_s args[3];
+    args[0].key = KEY_MIN_SIZE;
+    args[0].val.size = 32;
+    args[1].key = KEY_MAX_SIZE;
+    args[1].val.size = 1024;
+    args[2].key = KEY_ARGS_END;
+    pool_create(&pool, some_pool_class(), args);
+
+This can be written quite concisely in C99::
+
+    pool_create(&pool, some_pool_class(),
+                (arg_s []){{KEY_MIN_SIZE, {.size = 32}},
+                           {KEY_MAX_SIZE, {.size = 1024}},
+                           {KEY_ARGS_END}});
+
+The arguments that are recognised and used by the function are removed
+from the array (and the subsequent arguments moved up) so that if they
+are all consumed the array has ``KEY_ARGS_END`` in slot zero on return. 
+This can be checked by the caller.
+
+- It's not a static error to pass excess arguments.  This makes it easy to
+  substitute one pool or arena class for another (which might ignore some
+  arguments).  The caller can check that ``args[0].key`` is
+  ``MPS_KEY_ARGS_END`` if desired.
+
+- NULL is not a valid argument list.  This is in line with general MPS
+  design principles to avoid accidental omissions.  For convenience, we
+  provide ``mps_args_none`` as a static empty argument list.
+
+- NULL is not a valid argument key.  This is in line with general MPS
+  design principles to avoid accidental omissions.  Every key points to
+  a structure with a signature that can be checked.  This makes it virtually
+  impossible to get an argument list with bad keys or that is unterminated
+  past MPS checking.
+
+
+Internals
+---------
+Internally, keys are static constant structures which are signed and contain
+a checking method for the argument, like this::
+
+    typedef struct mps_arg_s *Arg;
+    #define KeySig          ((Sig)0x519CE333) /* SIGnature KEYyy */
+    typedef struct mps_key_s {
+      Sig sig;              /* Always KeySig */
+      const char *name;
+      Bool check(Arg arg);
+    } KeyStruct;
+
+They are mostly declared in the modules that consume them, except for a few
+common keys.  Declarations look like::
+
+    const KeyStruct _mps_key_extend_by = {KeySig, "extend_by", ArgCheckSize};
+
+but ``arg.h`` provides a macro for this::
+
+    ARG_DEFINE_KEY(extend_by, Size);
+
+We define keys as static structures (rather than, say, an enum) because:
+
+- The set of keys can be extended indefinitely.
+- The set of keys can be extended by indepdently linked modules.
+- The structure contents allow strong checking of argument lists.
+
+In the MPS Interface, we declare keys like this::
+
+    extern const struct mps_key_s _mps_key_extend_by;
+    #define MPS_KEY_EXTEND_BY (&_mps_key_extend_by)
+
+The underscore on the symbol requests that client code doesn't reference
+it, but instead uses the macro.  This gives us adaptability to change the
+design and replace keys with, say, magic numbers.
+
+
+The varargs legacy
+------------------
+For backward compatibility, varargs to arena and pool creation are
+converted into keyword arguments by position, using a method in the
+arena or pool class. For example::
+
+    static void MVVarargs(ArgStruct args[], va_list varargs)
+    {
+      args[0].key = MPS_KEY_EXTEND_BY;
+      args[0].val.size = va_arg(varargs, Size);
+      args[1].key = MPS_KEY_MEAN_SIZE;
+      args[1].val.size = va_arg(varargs, Size);
+      args[2].key = MPS_KEY_MAX_SIZE;
+      args[2].val.size = va_arg(varargs, Size);
+      args[3].key = MPS_KEY_ARGS_END;
+      AVER(ArgListCheck(args));
+    }
+
+This leaves the main body of code, and any future code, free to just
+handle keyword arguments only.
+
+The use of varargs is deprecated in the manual and the interface and these
+methods can be deleted at some point in the future.
+
+
+Copyright and License
+---------------------
+Copyright (C) 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+$Id$
