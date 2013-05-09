@@ -337,14 +337,13 @@ static void testPageTable(ArenaClass class, Size size, Addr addr)
   Arena arena; Pool pool;
   Size pageSize;
   Count tractsPerPage;
-  ArgStruct args[4];
   
-  args[0].key = MPS_KEY_ARENA_SIZE;
-  args[0].val.size = size;
-  args[1].key = MPS_KEY_ARENA_CL_ADDR;
-  args[1].val.addr = addr;
-  args[2].key = MPS_KEY_ARGS_END;
-  die(ArenaCreate(&arena, class, args), "ArenaCreate");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, size);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_ADDR, addr, addr);
+    MPS_ARGS_DONE(args);
+    die(ArenaCreate(&arena, class, args), "ArenaCreate");
+  } MPS_ARGS_END(args);
 
   die(PoolCreate(&pool, arena, PoolClassMV(), argsNone), "PoolCreate");
 
@@ -378,11 +377,11 @@ static void testSize(Size size)
   Res res;
 
   do {
-    ArgStruct args[2];
-    args[0].key = MPS_KEY_ARENA_SIZE;
-    args[0].val.size = size;
-    args[1].key = MPS_KEY_ARGS_END;
-    res = ArenaCreate(&arena, class, args);
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, size);
+      MPS_ARGS_DONE(args);
+      res = ArenaCreate(&arena, class, args);
+    } MPS_ARGS_END(args);
     if (res == ResOK)
       ArenaDestroy(arena);
     else

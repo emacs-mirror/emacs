@@ -32,12 +32,12 @@ static void testit(ArenaClass class, ArgList args)
 
 int main(int argc, char *argv[])
 {
-  mps_arg_s args[2];
   testlib_unused(argc);
-  args[0].key = MPS_KEY_ARENA_SIZE;
-  args[0].val.size = (Size)600000;
-  args[1].key = MPS_KEY_ARGS_END;
-  testit((ArenaClass)mps_arena_class_vm(), args);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, 600000);
+    MPS_ARGS_DONE(args);
+    testit((ArenaClass)mps_arena_class_vm(), args);
+  } MPS_ARGS_END(args);
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
