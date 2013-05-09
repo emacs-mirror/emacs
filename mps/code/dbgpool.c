@@ -185,16 +185,15 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   /* tag init */
   debug->tagInit = tagInit;
   if (debug->tagInit != NULL) {
-    ArgStruct pcArgs[3];
     debug->tagSize = tagSize + sizeof(tagStruct) - 1;
     /* This pool has to be like the arena control pool: the blocks */
     /* allocated must be accessible using void*. */
-    pcArgs[0].key = MPS_KEY_EXTEND_BY;
-    pcArgs[0].val.size = debug->tagSize; /* FIXME: Really? */
-    pcArgs[1].key = MPS_KEY_MFS_UNIT_SIZE;
-    pcArgs[1].val.size = debug->tagSize;
-    pcArgs[2].key = MPS_KEY_ARGS_END;
-    res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
+    MPS_ARGS_BEGIN(pcArgs) {
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, size, debug->tagSize); /* FIXME: Check this */
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, size, debug->tagSize);
+      MPS_ARGS_DONE(pcArgs);
+      res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
+    } MPS_ARGS_END(pcArgs);
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;

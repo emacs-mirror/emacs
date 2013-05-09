@@ -766,18 +766,18 @@ static void *test(void *arg, size_t s)
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
   char *indent = "    ";
-  mps_arg_s args[2];
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
 
-  args[0].key = MPS_KEY_FORMAT;
-  args[0].val.format = format;
-  args[1].key = MPS_KEY_ARGS_END;
-  die(mps_pool_create_k(&pool, arena, mps_class_amst(), args),
-      "pool_create(amst)");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format, format);
+    MPS_ARGS_DONE(args);
+    die(mps_pool_create_k(&pool, arena, mps_class_amst(), args),
+        "pool_create(amst)");
+  } MPS_ARGS_END(args);
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
   die(mps_ap_create(&busy_ap, pool, mps_rank_exact()), "BufferCreate 2");

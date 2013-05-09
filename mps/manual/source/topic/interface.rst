@@ -277,8 +277,18 @@ arguments are passed in a keyword argument array, like this::
     args[1].val.addr = base_address;
     args[2].key = MPS_KEY_ARGS_END;
     res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+
+For convenience and robustness, the MPS interface includes macros to
+help with forming keyword argument lists::
+
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, 6553600);
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, addr, base_address);
+      MPS_ARGS_DONE(args);
+      res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+    } MPS_ARGS_END(args);
     
-If you are writing C99, you can write this more concisely as::
+But if you are writing C99, you can write this more concisely as::
 
     mps_res_t res;
     mps_arena_t arena;

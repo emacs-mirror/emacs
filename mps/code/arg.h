@@ -37,6 +37,7 @@ extern Bool ArgCheck(Arg arg);
 extern Bool ArgListCheck(ArgList args);
 
 extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
+extern void ArgRequired(ArgStruct *argOut, ArgList args, Key key);
 
 extern Bool ArgCheckCant(Arg arg);
 extern Bool ArgCheckFormat(Arg arg);
@@ -48,6 +49,7 @@ extern Bool ArgCheckFun(Arg arg);
 extern Bool ArgCheckAlign(Arg arg);
 extern Bool ArgCheckBool(Arg arg);
 extern Bool ArgCheckCount(Arg arg);
+
 
 #endif /* arg_h */
 

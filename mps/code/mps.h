@@ -119,10 +119,6 @@ extern const struct mps_key_s _mps_key_args_end;
 #define MPS_KEY_ARGS_END        (&_mps_key_args_end)
 extern mps_arg_s mps_args_none[];
 
-/* FIXME: This shouldn't be here */
-extern const struct mps_key_s _mps_key_vmw3_top_down;
-#define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
-
 extern const struct mps_key_s _mps_key_arena_size;
 #define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
 extern const struct mps_key_s _mps_key_format;
@@ -131,15 +127,44 @@ extern const struct mps_key_s _mps_key_chain;
 #define MPS_KEY_CHAIN           (&_mps_key_chain)
 
 extern const struct mps_key_s _mps_key_extend_by;
-#define MPS_KEY_EXTEND_BY (&_mps_key_extend_by)
+#define MPS_KEY_EXTEND_BY       (&_mps_key_extend_by)
 extern const struct mps_key_s _mps_key_min_size;
-#define MPS_KEY_MIN_SIZE (&_mps_key_min_size)
+#define MPS_KEY_MIN_SIZE        (&_mps_key_min_size)
 extern const struct mps_key_s _mps_key_mean_size;
-#define MPS_KEY_MEAN_SIZE (&_mps_key_mean_size)
+#define MPS_KEY_MEAN_SIZE       (&_mps_key_mean_size)
 extern const struct mps_key_s _mps_key_max_size;
-#define MPS_KEY_MAX_SIZE (&_mps_key_max_size)
+#define MPS_KEY_MAX_SIZE        (&_mps_key_max_size)
 extern const struct mps_key_s _mps_key_align;
-#define MPS_KEY_ALIGN (&_mps_key_align)
+#define MPS_KEY_ALIGN           (&_mps_key_align)
+
+/* FIXME: This will only be present on Windows. */
+extern const struct mps_key_s _mps_key_vmw3_top_down;
+#define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
+
+#define MPS_ARGS_BEGIN(_var) \
+  BEGIN \
+      mps_arg_s _var[ARGS_MAX]; \
+      unsigned _var##_i = 0; \
+      BEGIN
+
+#define MPS_ARGS_ADD(_var, _key, _field, _val) \
+  BEGIN \
+    /* FIXME: AVER(_var_i < ARGS_MAX); */ \
+    _var[_var##_i].key = (_key); \
+    _var[_var##_i].val._field = (_val); \
+    ++_var##_i; \
+  END
+
+#define MPS_ARGS_DONE(_var) \
+  BEGIN \
+    /* FIXME: AVER(_var##_i < ARGS_MAX); */ \
+    _var[_var##_i].key = MPS_KEY_ARGS_END; \
+    /* FIXME: _var##_i = ARGS_MAX; */ \
+  END
+
+#define MPS_ARGS_END(_var) \
+    END; \
+  END
 
 
 /* <a id="message.types"> Keep in sync with
