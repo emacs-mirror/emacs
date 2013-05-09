@@ -203,7 +203,7 @@ static void amsDestroyTables(AMS ams, BT allocTable,
 /* AMSSegInit -- Init method for AMS segments */
 
 static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, va_list args)
+                      Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   AMSSeg amsseg;
@@ -679,14 +679,14 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
     goto failSize;
 
   res = SegAlloc(&seg, (*ams->segClass)(), segPref, prefSize,
-                 pool, withReservoirPermit);
+                 pool, withReservoirPermit, argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
     Size minSize = SizeAlignUp(size, ArenaAlign(arena));
 
     if (minSize == prefSize)
       goto failSeg;
     res = SegAlloc(&seg, (*ams->segClass)(), segPref, minSize,
-                   pool, withReservoirPermit);
+                   pool, withReservoirPermit, argsNone);
     if (res != ResOK)
       goto failSeg;
   }

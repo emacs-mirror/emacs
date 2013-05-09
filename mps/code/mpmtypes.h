@@ -147,7 +147,7 @@ typedef void (*FreeBlockStepMethod)(Addr base, Addr limit, Pool pool, void *p);
 /* Seg*Method -- see <design/seg/> */
 
 typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
-                             Bool withReservoirPermit, va_list args);
+                             Bool withReservoirPermit, ArgList args);
 typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);

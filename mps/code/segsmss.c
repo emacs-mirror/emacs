@@ -115,7 +115,7 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
 /* amstSegInit -- initialise an amst segment */
 
 static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
-                       Bool reservoirPermit, va_list args)
+                       Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   AMSTSeg amstseg;

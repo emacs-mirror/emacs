@@ -198,13 +198,13 @@ static Res MVFFAddSeg(Seg *segReturn,
   segSize = SizeAlignUp(segSize, align);
 
   res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
-                 withReservoirPermit);
+                 withReservoirPermit, argsNone);
   if (res != ResOK) {
     /* try again for a seg just large enough for object */
     /* see <design/poolmvff/#design.seg-fail> */
     segSize = SizeAlignUp(size, align);
     res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
-                   withReservoirPermit);
+                   withReservoirPermit, argsNone);
     if (res != ResOK) {
       return res;
     }

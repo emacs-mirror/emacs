@@ -76,6 +76,17 @@ Bool ArgCheckCount(Arg arg) {
   return TRUE;
 }
 
+Bool ArgCheckPointer(Arg arg) {
+  CHECKL(arg != NULL);
+  return TRUE;
+}
+
+Bool ArgCheckRankSet(Arg arg) {
+  CHECKL(COMPATTYPE(RankSet, unsigned));
+  CHECKL(RankSetCheck(arg->val.u));
+  return TRUE;
+}
+
 
 ARG_DEFINE_KEY(args_end, Shouldnt);
 
@@ -109,7 +120,7 @@ Bool ArgListCheck(ArgList args)
   Index i;
   CHECKL(args != NULL);
   for (i = 0; args[i].key != MPS_KEY_ARGS_END; ++i) {
-    CHECKL(i < ARGS_MAX);
+    CHECKL(i < MPS_ARGS_MAX);
     CHECKL(ArgCheck(&args[i]));
   }
   return TRUE;
