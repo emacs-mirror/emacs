@@ -273,7 +273,6 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
             Bool mayUseInline, Bool fastFind)
 {
   Res res;
-  ArgStruct args[3];
 
   AVERT(Arena, arena);
   AVER(new == NULL || FUNCHECK(new));
@@ -287,12 +286,12 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
 
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
-  args[0].key = MPS_KEY_MFS_UNIT_SIZE;
-  args[0].val.size = sizeof(CBSBlockStruct);
-  args[1].key = MPS_KEY_EXTEND_BY;
-  args[1].val.size = sizeof(CBSBlockStruct) * 64;
-  args[2].key = MPS_KEY_ARGS_END;
-  res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), args);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, size, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, size, sizeof(CBSBlockStruct) * 64);
+    MPS_ARGS_DONE(args);
+    res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), args);
+  } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
   cbs->splayTreeSize = 0;

@@ -973,18 +973,10 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   amc = Pool2AMC(pool);
   arena = PoolArena(pool);
 
-  if (ArgPick(&arg, args, MPS_KEY_FORMAT))
-    pool->format = arg.val.format;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
-  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-    amc->chain = arg.val.chain;
-  else {
-    res = ResPARAM;
-    goto failParam;
-  }
+  ArgRequired(&arg, args, MPS_KEY_FORMAT);
+  pool->format = arg.val.format;
+  ArgRequired(&arg, args, MPS_KEY_CHAIN);
+  amc->chain = arg.val.chain;
   
   AVERT(Format, pool->format);
   AVERT(Chain, amc->chain);
@@ -1060,7 +1052,6 @@ failGenAlloc:
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
-failParam:
   return res;
 }
 
