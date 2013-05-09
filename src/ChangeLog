@@ -1,3 +1,14 @@
+2013-05-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: Include IOGraphicsLib.h if Cocoa.
+	(Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): Declare.
+	(MonitorInfo): New struct.
+	(free_monitors, ns_screen_name, ns_make_monitor_attribute_list)
+	(Fns_display_monitor_attributes_list): New functions.
+	(display-usable-bounds): Remove.
+	(syms_of_nsfns): DEFSYM Qgeometry, Qworkarea, Qmm_size, Qframes and
+	Qsource.
+
 2013-05-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.h (GTK_PREREQ): Remove, replacing with GTK_CHECK_VERSION.

@@ -1495,6 +1495,8 @@ The value is one of the symbols `static-gray', `gray-scale',
 
 (declare-function x-display-monitor-attributes-list "xfns.c"
 		  (&optional terminal))
+(declare-function ns-display-monitor-attributes-list "nsfns.c"
+		  (&optional terminal))
 
 (defun display-monitor-attributes-list (&optional display)
   "Return a list of physical monitor attributes on DISPLAY.
@@ -1528,6 +1530,8 @@ monitors."
     (cond
      ((eq frame-type 'x)
       (x-display-monitor-attributes-list display))
+     ((eq frame-type 'ns)
+      (ns-display-monitor-attributes-list display))
      (t
       (let ((geometry (list 0 0 (display-pixel-width display)
 			    (display-pixel-height display))))

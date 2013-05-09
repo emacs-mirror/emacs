@@ -4247,6 +4247,9 @@ case "$opsys" in
    ## each); under Cocoa 31 commands are required.
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
+     if test "$NS_IMPL_COCOA" = "yes"; then
+        libs_nsgui="$libs_nsgui -framework IOKit"
+     fi
      headerpad_extra=6C8
    else
      libs_nsgui=
