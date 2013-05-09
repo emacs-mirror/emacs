@@ -330,7 +330,7 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
                              mps_arena_class_t arena_class,
                              va_list varargs)
 {
-  mps_arg_s args[ARGS_MAX];
+  mps_arg_s args[MPS_ARGS_MAX];
   AVERT(ArenaClass, arena_class);
   arena_class->varargs(args, varargs);
   va_end(varargs);
@@ -629,7 +629,7 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
                             mps_class_t class, va_list varargs)
 {
-  mps_arg_s args[ARGS_MAX];
+  mps_arg_s args[MPS_ARGS_MAX];
   AVERT(PoolClass, class);
   class->varargs(args, varargs);
   va_end(varargs);

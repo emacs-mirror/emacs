@@ -63,7 +63,7 @@ typedef struct LOSegStruct {
 
 /* forward decls */
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool reservoirPermit, va_list args);
+                     Bool reservoirPermit, ArgList args);
 static void loSegFinish(Seg seg);
 
 
@@ -99,7 +99,7 @@ static Bool LOSegCheck(LOSeg loseg)
 /* loSegInit -- Init method for LO segments */
 
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool reservoirPermit, va_list args)
+                     Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   LOSeg loseg;
@@ -305,7 +305,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
   res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct,
-                 asize, pool, withReservoirPermit);
+                 asize, pool, withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
   PoolGenUpdateZones(&lo->pgen, seg);

@@ -112,6 +112,7 @@ typedef struct mps_arg_s {
     mps_addr_t (*addr_method)(mps_addr_t);
     mps_align_t align;
     mps_word_t count;
+    void *p;
   } val;
 } mps_arg_s;
 
@@ -140,15 +141,18 @@ extern const struct mps_key_s _mps_key_align;
 extern const struct mps_key_s _mps_key_vmw3_top_down;
 #define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
 
+/* Maximum length of a keyword argument list. */
+#define MPS_ARGS_MAX          32
+
 #define MPS_ARGS_BEGIN(_var) \
   BEGIN \
-      mps_arg_s _var[ARGS_MAX]; \
+      mps_arg_s _var[MPS_ARGS_MAX]; \
       unsigned _var##_i = 0; \
       BEGIN
 
 #define MPS_ARGS_ADD(_var, _key, _field, _val) \
   BEGIN \
-    /* TODO: AVER(_var_i < ARGS_MAX); */ \
+    /* TODO: AVER(_var_i < MPS_ARGS_MAX); */ \
     _var[_var##_i].key = (_key); \
     _var[_var##_i].val._field = (_val); \
     ++_var##_i; \
@@ -156,9 +160,9 @@ extern const struct mps_key_s _mps_key_vmw3_top_down;
 
 #define MPS_ARGS_DONE(_var) \
   BEGIN \
-    /* TODO: AVER(_var##_i < ARGS_MAX); */ \
+    /* TODO: AVER(_var##_i < MPS_ARGS_MAX); */ \
     _var[_var##_i].key = MPS_KEY_ARGS_END; \
-    /* TODO: _var##_i = ARGS_MAX; */ \
+    /* TODO: _var##_i = MPS_ARGS_MAX; */ \
   END
 
 #define MPS_ARGS_END(_var) \

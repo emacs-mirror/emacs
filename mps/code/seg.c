@@ -46,7 +46,7 @@ SRCID(seg, "$Id$");
 static void SegFinish(Seg seg);
 
 static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
-                   Bool withReservoirPermit, va_list args);
+                   Bool withReservoirPermit, ArgList args);
 
 
 /* Generic interface support */
@@ -55,13 +55,12 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 /* SegAlloc -- allocate a segment from the arena */
 
 Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
-             Size size, Pool pool, Bool withReservoirPermit, ...)
+             Size size, Pool pool, Bool withReservoirPermit, ArgList args)
 {
   Res res;
   Arena arena;
   Seg seg;
   Addr base;
-  va_list args;
   void *p;
 
   AVER(segReturn != NULL);
@@ -86,10 +85,8 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
     goto failControl;
   seg = p;
 
-  va_start(args, withReservoirPermit);
   seg->class = class;
   res = SegInit(seg, pool, base, size, withReservoirPermit, args);
-  va_end(args);
   if (res != ResOK)
     goto failInit;
 
@@ -138,7 +135,7 @@ void SegFree(Seg seg)
 /* SegInit -- initialize a segment */
 
 static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
-                   Bool withReservoirPermit, va_list args)
+                   Bool withReservoirPermit, ArgList args)
 {
   Tract tract;
   Addr addr, limit;
@@ -691,7 +688,7 @@ Bool SegCheck(Seg seg)
 /* segTrivInit -- method to initialize the base fields of a segment */
 
 static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size,
-                       Bool reservoirPermit, va_list args)
+                       Bool reservoirPermit, ArgList args)
 {
   /* all the initialization happens in SegInit so checks are safe */
   Size align;
@@ -707,6 +704,7 @@ static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(SegSize(seg) == size);
   AVER(SegPool(seg) == pool);
   AVER(BoolCheck(reservoirPermit));
+  AVER(ArgListCheck(args));
   UNUSED(args);
   return ResOK;
 }
@@ -1064,7 +1062,7 @@ Bool GCSegCheck(GCSeg gcseg)
 /* gcSegInit -- method to initialize a GC segment */
 
 static Res gcSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool withReservoirPermit, va_list args)
+                     Bool withReservoirPermit, ArgList args)
 {
   SegClass super;
   GCSeg gcseg;

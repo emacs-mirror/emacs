@@ -169,8 +169,11 @@ static void awlStatTotalInit(AWL awl)
 
 /* AWLSegInit -- Init method for AWL segments */
 
+ARG_DEFINE_KEY(awl_seg_rank_set, RankSet);
+#define awlKeySegRankSet (&_mps_key_awl_seg_rank_set)
+
 static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, va_list args)
+                      Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   AWLSeg awlseg;
@@ -181,6 +184,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
   Res res;
   Size tableSize;
   void *v;
+  ArgStruct arg;
 
   AVERT(Seg, seg);
   awlseg = Seg2AWLSeg(seg);
@@ -188,7 +192,9 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
   arena = PoolArena(pool);
   /* no useful checks for base and size */
   AVER(BoolCheck(reservoirPermit));
-  rankSet = va_arg(args, RankSet);
+  ArgRequire(&arg, args, awlKeySegRankSet);
+  rankSet = arg.val.u;
+  AVERT(RankSet, rankSet);
   /* .assume.samerank */
   /* AWL only accepts two ranks */
   AVER(RankSetSingle(RankEXACT) == rankSet
@@ -467,8 +473,12 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
-  res = SegAlloc(&seg, AWLSegClassGet(), &segPrefStruct, size, pool,
-                 reservoirPermit, rankSet);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, awlKeySegRankSet, u, rankSet);
+    MPS_ARGS_DONE(args);
+    res = SegAlloc(&seg, AWLSegClassGet(), &segPrefStruct, size, pool,
+                   reservoirPermit, args);
+  } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
 

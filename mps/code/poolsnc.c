@@ -228,7 +228,7 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 /* sncSegInit -- Init method for SNC segments */
 
 static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, va_list args)
+                      Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   SNCSeg sncseg;
@@ -439,7 +439,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   arena = PoolArena(pool);
   asize = SizeAlignUp(size, ArenaAlign(arena));
   res = SegAlloc(&seg, SNCSegClassGet(), &snc->segPrefStruct,
-                 asize, pool, withReservoirPermit);
+                 asize, pool, withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
 

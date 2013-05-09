@@ -640,7 +640,8 @@ extern Bool LocusCheck(Arena arena);
 /* Segment interface */
 
 extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
-                    Size size, Pool pool, Bool withReservoirPermit, ...);
+                    Size size, Pool pool, Bool withReservoirPermit,
+                    ArgList args);
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
