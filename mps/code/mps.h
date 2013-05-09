@@ -113,6 +113,7 @@ typedef struct mps_arg_s {
     mps_align_t align;
     mps_word_t count;
     void *p;
+    mps_rank_t rank;
   } val;
 } mps_arg_s;
 
@@ -126,6 +127,8 @@ extern const struct mps_key_s _mps_key_format;
 #define MPS_KEY_FORMAT          (&_mps_key_format)
 extern const struct mps_key_s _mps_key_chain;
 #define MPS_KEY_CHAIN           (&_mps_key_chain)
+extern const struct mps_key_s _mps_key_rank;
+#define MPS_KEY_RANK (&_mps_key_rank)
 
 extern const struct mps_key_s _mps_key_extend_by;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_extend_by)
@@ -418,6 +421,7 @@ extern void mps_free(mps_pool_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_create(mps_ap_t *, mps_pool_t, ...);
 extern mps_res_t mps_ap_create_v(mps_ap_t *, mps_pool_t, va_list);
+extern mps_res_t mps_ap_create_k(mps_ap_t *, mps_pool_t, mps_arg_s []);
 extern void mps_ap_destroy(mps_ap_t);
 
 extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);

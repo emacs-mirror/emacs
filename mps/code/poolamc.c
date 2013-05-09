@@ -611,7 +611,7 @@ static void amcBufSetGen(Buffer buffer, amcGen gen)
 
 /* AMCBufInit -- Initialize an amcBuf */
 
-static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
+static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
 {
   AMC amc;
   amcBuf amcbuf;
@@ -696,7 +696,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, Serial genNr)
     goto failControlAlloc;
   gen = (amcGen)p;
 
-  res = BufferCreate(&buffer, EnsureamcBufClass(), pool, FALSE);
+  res = BufferCreate(&buffer, EnsureamcBufClass(), pool, FALSE, argsNone);
   if(res != ResOK)
     goto failBufferCreate;
 

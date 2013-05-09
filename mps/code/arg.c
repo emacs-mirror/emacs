@@ -87,6 +87,11 @@ Bool ArgCheckRankSet(Arg arg) {
   return TRUE;
 }
 
+Bool ArgCheckRank(Arg arg) {
+  CHECKL(RankCheck(arg->val.rank));
+  return TRUE;
+}
+
 
 ARG_DEFINE_KEY(args_end, Shouldnt);
 

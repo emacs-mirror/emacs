@@ -331,6 +331,7 @@ typedef struct BufferClassStruct {
   ProtocolClassStruct protocol;
   const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
+  BufferVarargsMethod varargs;  /* parse obsolete varargs */
   BufferInitMethod init;        /* initialize the buffer */
   BufferFinishMethod finish;    /* finish the buffer */
   BufferAttachMethod attach;    /* attach the buffer */
