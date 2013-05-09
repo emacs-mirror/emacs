@@ -1,5 +1,31 @@
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
+	* bookmark.el (bookmark-search-delay):
+	* cus-start.el (vertical-centering-font-regexp):
+	* ps-mule.el (ps-mule-font-info-database-default):
+	* ps-print.el (ps-default-fg, ps-default-bg):
+	* type-break.el (type-break-good-break-interval):
+	* whitespace.el (whitespace-indentation-regexp)
+	(whitespace-space-after-tab-regexp):
+	* emacs-lisp/testcover.el (testcover-1value-functions)
+	(testcover-noreturn-functions, testcover-progn-functions)
+	(testcover-prog1-functions):
+	* emulation/viper-init.el (viper-emacs-state-cursor-color):
+	* eshell/em-glob.el (eshell-glob-translate-alist):
+	* play/tetris.el (tetris-tty-colors):
+	* progmodes/cpp.el (cpp-face-default-list):
+	* progmodes/flymake.el (flymake-allowed-file-name-masks):
+	* progmodes/idlw-help.el (idlwave-help-browser-generic-program)
+	(idlwave-help-browser-generic-args):
+	* progmodes/make-mode.el (makefile-special-targets-list):
+	* progmodes/python.el (python-shell-virtualenv-path):
+	* progmodes/verilog-mode.el (verilog-active-low-regexp)
+	(verilog-auto-input-ignore-regexp, verilog-auto-inout-ignore-regexp)
+	(verilog-auto-output-ignore-regexp, verilog-auto-tieoff-ignore-regexp)
+	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp):
+	* textmodes/reftex-vars.el (reftex-format-label-function):
+	* textmodes/remember.el (remember-diary-file): Fix custom types.
+
 	* jka-cmpr-hook.el (jka-compr-mode-alist-additions): Fix typo.
 	Add :version.
 

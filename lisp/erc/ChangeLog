@@ -1,3 +1,8 @@
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* erc-desktop-notifications.el (erc-notifications-icon):
+	Fix custom type.
+
 2013-02-13  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* erc-match.el (erc-match-message): Fix last commit.

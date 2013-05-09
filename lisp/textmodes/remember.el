@@ -481,7 +481,7 @@ Most useful for remembering things from other applications."
 (defcustom remember-diary-file nil
   "File for extracted diary entries.
 If this is nil, then `diary-file' will be used instead."
-  :type 'file
+  :type '(choice (const :tag "diary-file" nil) file)
   :group 'remember)
 
 (defun remember-diary-convert-entry (entry)

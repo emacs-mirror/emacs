@@ -64,7 +64,8 @@ not get notifications."
 
 (defcustom gnus-notifications-timeout nil
   "Timeout used for notifications sent via `notifications-notify'."
-  :type 'integer
+  :type '(choice (const :tag "Server default" nil)
+                 (integer :tag "Milliseconds"))
   :group 'gnus-notifications)
 
 (defvar gnus-notifications-sent nil

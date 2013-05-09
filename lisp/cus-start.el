@@ -252,7 +252,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (use-file-dialog menu boolean "22.1")
 	     (focus-follows-mouse frames boolean "20.3")
 	     ;; fontset.c
-	     (vertical-centering-font-regexp display regexp)
+	     ;; FIXME nil is the initial value, fontset.el setqs it.
+	     (vertical-centering-font-regexp display
+					     (choice (const nil) regexp))
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"

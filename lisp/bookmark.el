@@ -170,7 +170,7 @@ A non-nil value may result in truncated bookmark names."
 (defcustom bookmark-search-delay 0.2
   "Time before `bookmark-bmenu-search' updates the display."
   :group 'bookmark
-  :type  'integer)
+  :type  'number)
 
 (defface bookmark-menu-heading
   '((t (:inherit font-lock-type-face)))

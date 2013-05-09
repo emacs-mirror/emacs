@@ -1681,7 +1681,7 @@ This variable, when set to a string, makes the values stored in
 `python-shell-process-environment' and `python-shell-exec-path'
 to be modified properly so shells are started with the specified
 virtualenv."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'python
   :safe 'stringp)
 

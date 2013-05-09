@@ -68,7 +68,7 @@
   "Value of `completion-styles' to use when completing."
   :version "24.1"
   :group 'gnus-meta
-  :type 'list)
+  :type '(repeat symbol))
 
 ;; Fixme: this should be a gnus variable, not nnmail-.
 (defvar nnmail-pathname-coding-system)

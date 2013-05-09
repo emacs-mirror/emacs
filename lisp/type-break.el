@@ -95,7 +95,7 @@ When this variable is non-nil, its value is considered to be a \"good\"
 length (in seconds) for a break initiated by the command `type-break',
 overriding `type-break-good-rest-interval'.  This provides querying of
 break interruptions when `type-break-good-rest-interval' is nil."
-  :type 'integer
+  :type '(choice (const nil) integer)
   :group 'type-break)
 
 (defcustom type-break-keystroke-threshold
