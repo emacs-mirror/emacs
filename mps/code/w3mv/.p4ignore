@@ -1,0 +1,8 @@
+# Subproject build results
+*/Debug
+*/Release
+# Temporary user preferences
+*.vcxproj.user
+# Mystery rubbish
+*.sdf
+*.opensdf
