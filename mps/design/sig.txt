@@ -46,11 +46,12 @@ There must also be a definition for the valid value for that signature::
 
     #define MessageSig      ((Sig)0x5193e559) /* SIG MESSaGe */
 
-This is a 32-bit hex constant, spelled according to the standard MPS
-transliteration [GRM_1997-04-11]_::
+This is a 32-bit hex constant, spelled according to guide.hex.trans_::
 
     ABCDEFGHIJKLMNOPQRSTUVWXYZ
     ABCDEF9811C7340BC6520F3812
+
+.. _guide.hex.trans: ./guide.hex.trans.txt
 
 This allows the structure to be recognised when looking at memory in a hex
 dump or memory window, or found using memory searches.
@@ -139,9 +140,6 @@ undesirable and the problem should be investigated.
 
 A. References
 -------------
-.. [GRM_1997-04-11] "Guide to transliterating the alphabet into hexadecimal";
-   Gavin Matthews; Harlequin; 1997-04-11.
-
 .. [RB_1995-08-25] "design.mps.sig: The design of the Memory Pool System
    Signature System"; Richard Brooksby; Harlequin; 1995-08-25.
 
