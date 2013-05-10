@@ -1,3 +1,7 @@
+2013-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (cl-loop): Doc fix.
+
 2013-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint-redirect-send-command-to-process): Use :around
