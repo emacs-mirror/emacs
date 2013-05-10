@@ -1,81 +1,141 @@
-         GUIDE TO TRANSLITERATING THE ALPHABET INTO HEXADECIMAL
-                            guide.hex.trans
-                             incomplete doc
-                           gavinm 1997-04-11
+Guide to transliterating the alphabet into hexadecimal
+======================================================
 
-INTRODUCTION
+:Tag: guide.hex.trans
+:Status: incomplete doc
+:Author: Gavin Matthews
+:Organization: Harlequin
+:Date: 1997-04-11
+:Revision: $Id$
+:Copyright: See section `C. Copyright and License`_.
 
-.scope: This document explains how to represent the alphabet as hexadecimal 
+
+1. Introduction
+---------------
+
+_`.scope`: This document explains how to represent the alphabet as hexadecimal 
 digits.
 
-.readership: This document is intended for anyone devising arbitrary constants 
+_`.readership`: This document is intended for anyone devising arbitrary constants 
 which may appear in hex-dumps.
 
-.sources: This transliteration was supplied by RichardK in 
+_`.sources`: This transliteration was supplied by RichardK in 
 mail.richardk.1997-04-07.13-44.
 
 
-TRANSLITERATION
+2. Transliteration
+------------------
 
-.forward: The chosen transliteration is as follows:
-  ABCDEFGHIJKLMNOPQRSTUVWXYZ
-  ABCDEF9811C7340BC6520F3812
+_`.forward`: The chosen transliteration is as follows::
 
-.backward: The backwards transliteration is as follows:
-  0 OU
-  1 IJY
-  2 TZ
-  3 MW
-  4 N
-  5 S
-  6 R
-  7 L
-  8 HX
-  9 G
-  A A
-  B BP
-  C CKQ
-  D D
-  E E
-  F FV
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    ABCDEF9811C7340BC6520F3812
 
-.pad: If padding is required (to fill a hex constant length), you should use 
+_`.backward`: The backwards transliteration is as follows::
+
+    0 OU
+    1 IJY
+    2 TZ
+    3 MW
+    4 N
+    5 S
+    6 R
+    7 L
+    8 HX
+    9 G
+    A A
+    B BP
+    C CKQ
+    D D
+    E E
+    F FV
+
+_`.pad`: If padding is required (to fill a hex constant length), you should use 
 9's, because G is rare and can usually be inferred from context.
 
-.punc: There is no formal scheme for spaces, or punctuation.  It is suggested 
-that you use 9 (as .pad).
+_`.punc`: There is no formal scheme for spaces, or punctuation.  It is suggested 
+that you use 9 (as `.pad`_).
 
 
-JUSTIFICATION
+3. Justification
+----------------
 
-.letters: The hexadecimal letters (A-F) are all formed by similarity of sound.  
+_`.letters`: The hexadecimal letters (A-F) are all formed by similarity of sound.  
 B and P sound similar, as do F and V, and C, K, & Q can all sound similar.
 
-.numbers: The numbers (0-9) are all formed by similarity of shape (but see 
-.trans.t).  Nevertheless, 1=IJY retains some similarity of sound.
+_`.numbers`: The numbers (0-9) are all formed by similarity of shape (but see 
+`.trans.t`_).  Nevertheless, 1=IJY retains some similarity of sound.
 
-.trans.t: T is an exception to .numbers, but is such a common letter that it 
+_`.trans.t`: T is an exception to `.numbers`_, but is such a common letter that it 
 deserves it.
 
 
-NOTES
+4. Notes
+--------
 
-.change: This transliteration differs from the old transliteration used for 
+_`.change`: This transliteration differs from the old transliteration used for 
 signatures (see design.mps.sig(0)), as follows: J:6->1; L:1->7; N:9->4; R:4->6; 
 W:8->3; X:5->8; Y:E->I.
 
-.problem.mw: There is a known problem that M and W are both common, map to the 
+_`.problem.mw`: There is a known problem that M and W are both common, map to the 
 same digit (3), and are hard to distinguish in context.
 
-.find.c: It is possible to find all 8-digit hexadecimal constants and how many 
-times they're used in C files, using the following Perl script:
-  perl5 -n -e 'BEGIN { %C=(); } if(/0x([0-9A-Fa-f]{8})/) { $C{$1} = +[] if(
-!defined($C{$1})); push(@{$C{$1}}, $ARGV); } END { foreach $H (sort(keys(%C)))
-{ printf "%3d %s %s\n", scalar(@{$C{$H}}), $H, join(", ", @{@C{$H}}); } }' *.c
-*.h
+_`.find.c`: It is possible to find all 8-digit hexadecimal constants and how many 
+times they're used in C files, using the following Perl script::
 
-.comment: It is a good idea to add a comment to any constant declaration 
+    perl5 -n -e 'BEGIN { %C=(); } if(/0x([0-9A-Fa-f]{8})/) { $C{$1} = +[] if(
+    !defined($C{$1})); push(@{$C{$1}}, $ARGV); } END { foreach $H (sort(keys(%C)))
+    { printf "%3d %s %s\n", scalar(@{$C{$H}}), $H, join(", ", @{@C{$H}}); } }' *.c
+    *.h
+
+_`.comment`: It is a good idea to add a comment to any constant declaration 
 indicating the English version and which letters were selected (by 
-capitalisation), e.g.:  #define SpaceSig        ((Sig)0x5195BACE) /* SIGnature 
-SPACE */
+capitalisation), e.g.::
 
+    #define SpaceSig        ((Sig)0x5195BACE) /* SIGnature SPACE */
+
+
+B. Document History
+-------------------
+2013-05-10  RB  Converted to reStructuredText and imported to MPS design.
+
+
+C. Copyright and License
+------------------------
+Copyright (C) 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
