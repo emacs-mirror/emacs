@@ -1,3 +1,10 @@
+2013-05-10  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-completion-table): No
+	longer a function and all uses changed.  Use cache to speed up
+	completion due to bug#11906.
+	(octave-beginning-of-defun): Re-write to be more general.
+
 2013-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (cl-loop): Doc fix.

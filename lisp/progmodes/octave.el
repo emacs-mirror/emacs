@@ -732,13 +732,22 @@ startup file, `~/.emacs-octave'."
     ;; A trick to get the prompt highlighted.
     (comint-send-string proc "\n")))
 
-(defun inferior-octave-completion-table ()
-  (completion-table-dynamic
-   (lambda (command)
-     (inferior-octave-send-list-and-digest
-      (list (concat "completion_matches (\"" command "\");\n")))
-     (sort (delete-dups inferior-octave-output-list)
-           'string-lessp))))
+(defvar inferior-octave-completion-table
+  ;;
+  ;; Use cache to avod repetitive computation of completions due to
+  ;; bug#11906 - http://debbugs.gnu.org/11906 - which may cause
+  ;; noticeable delay.  CACHE: (CMD TIME VALUE).
+  (let ((cache))
+    (completion-table-dynamic
+     (lambda (command)
+       (unless (and (equal (car cache) command)
+                    (< (float-time) (+ 5 (cadr cache))))
+         (inferior-octave-send-list-and-digest
+          (list (concat "completion_matches (\"" command "\");\n")))
+         (setq cache (list command (float-time)
+                           (sort (delete-dups inferior-octave-output-list)
+                                 'string-lessp))))
+       (car (cddr cache))))))
 
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
@@ -753,7 +762,7 @@ startup file, `~/.emacs-octave'."
               (point)))))
     (when (and start (> end start))
       (list start end (completion-table-in-turn
-                       (inferior-octave-completion-table)
+                       inferior-octave-completion-table
                        'comint-completion-file-name-table)))))
 
 (define-obsolete-function-alias 'inferior-octave-complete
@@ -878,7 +887,7 @@ directory and makes this the current buffer's default directory."
     (completing-read
      (format (if def "Function (default %s): "
                "Function: ") def)
-     (inferior-octave-completion-table)
+     inferior-octave-completion-table
      nil nil nil nil def)))
 
 (defun octave-goto-function-definition ()
@@ -1155,26 +1164,23 @@ The block marked is the one that contains point or follows point."
   (mark-sexp))
 
 (defun octave-beginning-of-defun (&optional arg)
-  "Move backward to the beginning of an Octave function.
-With positive ARG, do it that many times.  Negative argument -N means
-move forward to Nth following beginning of a function.
-Returns t unless search stops at the beginning or end of the buffer."
-  (let* ((arg (or arg 1))
-	 (inc (if (> arg 0) 1 -1))
-	 (found nil)
-         (case-fold-search nil))
-    (and (not (eobp))
-	 (not (and (> arg 0) (looking-at "\\_<function\\_>")))
-	 (skip-syntax-forward "w"))
-    (while (and (/= arg 0)
-		(setq found
-		      (re-search-backward "\\_<function\\_>" inc)))
-      (unless (octave-in-string-or-comment-p)
-        (setq arg (- arg inc))))
-    (if found
-	(progn
-	  (and (< inc 0) (goto-char (match-beginning 0)))
-	  t))))
+  "Octave-specific `beginning-of-defun-function' (which see)."
+  (or arg (setq arg 1))
+  ;; Move out of strings or comments.
+  (when (octave-in-string-or-comment-p)
+    (goto-char (octave-in-string-or-comment-p)))
+  (letrec ((orig (point))
+           (toplevel (lambda (pos)
+                       (condition-case nil
+                           (progn
+                             (backward-up-list 1)
+                             (funcall toplevel (point)))
+                         (scan-error pos)))))
+    (goto-char (funcall toplevel (point)))
+    (when (and (> arg 0) (/= orig (point)))
+      (setq arg (1- arg)))
+    (forward-sexp (- arg))
+    (/= orig (point))))
 
 
 ;;; Filling
@@ -1322,7 +1328,7 @@ otherwise."
     (when (> end beg)
       (list beg end (or (and inferior-octave-process
                              (process-live-p inferior-octave-process)
-                             (inferior-octave-completion-table))
+                             inferior-octave-completion-table)
                         octave-reserved-words)))))
 
 (define-obsolete-function-alias 'octave-complete-symbol
