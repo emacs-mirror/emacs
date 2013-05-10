@@ -1,3 +1,65 @@
+2013-05-10  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Rename numerous commands and defcustoms and adjust all
+	uses, change numerous key bindings, make some basic commands
+	noninteractive and use them to define the commands, unify
+	archiving commands.
+	(todos-directory): Rename from todos-files-directory.
+	(todos-print-buffer-function): Rename from todos-print-function.
+	(todos-number-prefix): Rename from todos-number-priorities.
+	(todos-top-priorities-overrides): Rename from todos-priorities-rules.
+	(todos-top-priorities): Rename from todos-show-priorities.
+	(todos-insertion-command-name, todos-insertion-key-bindings):
+	Use "todos-insert-item-".
+	(todos-key-bindings, todos-archive-mode-map)
+	(todos-categories-mode-map, todos-filtered-items-mode-map):
+	Adjust to renamed commands, make bindings more systematic,
+	reorder entries.
+	(todos-show-categories-table): Rename from todos-display-categories.
+	(todos-sort-categories-alphabetically-or-by-priority): Rename from
+	todos-display-categories-alphabetically-or-by-priority.
+	(todos-sort-categories-by-todo): Rename from
+	todos-display-categories-sorted-by-todo.
+	(todos-sort-categories-by-diary): Rename from
+	todos-display-categories-sorted-by-diary.
+	(todos-sort-categories-by-done): Rename from
+	todos-display-categories-sorted-by-done.
+	(todos-sort-categories-by-archived): Rename from
+	todos-display-categories-sorted-by-archived.
+	(todos-print-buffer): Rename function from todos-print.
+	(todos-print-buffer-to-file): Rename from todos-print-to-file.
+	(todos-go-to-source-item): Rename from todos-jump-to-item.
+	(todos-forward-item, todos-backward-item): Remove interactive form
+	and move most of doc string and prefix argument error checking to...
+	(todos-next-item, todos-previous-item): ...these new commands,
+	which use the preceding functions.
+	(todos-next-button): Rename from todos-forward-button.
+	(todos-previous-button): Rename from todos-backward-button.
+	(todos-toggle-prefix-numbers): Rename from
+	todos-hide-show-item-numbering.
+	(todos-toggle-view-done-items): Rename from todos-hide-show-done-items.
+	(todos-toggle-view-done-only): Rename from todos-show-done-only.
+	(todos-toggle-item-highlighting): Rename from todos-highlight-item.
+	(todos-toggle-item-header): Rename from todos-hide-show-date-time.
+	(todos-toggle-mark-item): Rename from todos-mark-unmark-item.
+	(todos-filter-top-priorities): Rename from todos-top-priorities.
+	(todos-filter-top-priorities-multifile): Rename from
+	todos-top-priorities-multifile.
+	(todos-filter-diary-items): Rename from todos-diary-items.
+	(todos-filter-diary-items-multifile): Rename from
+	todos-diary-items-multifile.
+	(todos-filter-regexp-items): Rename from todos-regexp-items.
+	(todos-filter-regexp-items-multifile): Rename from
+	todos-regexp-items-multifile.
+	(todos-insert-item-1): Remove interactive form, since
+	todos-insert-item is generated like other item insertion commands.
+	(todos-edit-file): Rename from todos-edit-multiline.
+	(todos-item-undone): Rename from todos-item-undo.
+	(todos-archive-done-item): Add raw prefix spec to interactive form
+	and use it to test for archiving all done items in category;
+	reorder tests in function body accordingly.
+	(todos-archive-category-done-items): Remove.
+
 2013-04-27  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-edit-multiline-item): Make a no-op when point is
