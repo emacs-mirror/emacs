@@ -1,3 +1,6 @@
+# .p4ignore -- Perforce files to ignore from MPS Project
+# $Id$
+# Don't forget to consider files in more specific directories.
 # Personal Perforce configurations
 .p4config
 # Mac OS X Finder turds
