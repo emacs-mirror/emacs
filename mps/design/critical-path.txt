@@ -1,12 +1,17 @@
 The critical path through the MPS
 =================================
-Richard Brooksby, Ravenbrook Limited, 2012-09-07
+
+:Author: Richard Brooksby
+:Organization: Ravenbrook Limited
+:Date: 2012-09-07
+:Revision: $Id$
+:Copyright: See section `C. Copyright and License`_.
 
 
 1. Introduction
 ---------------
-The critical path is a key concept in the design of the [Memory Pool
-System](http://www.ravenbrook.com/project/mps/).  Code on the critical
+The critical path is a key concept in the design of the `Memory Pool
+System <http://www.ravenbrook.com/project/mps/>`_.  Code on the critical
 path is usually executed more than any other code in the process.  A
 change of just one instruction on the critical path can make as much as
 a 1% difference in overall run-time.  A lot of the design of the MPS is
@@ -19,7 +24,7 @@ design, with reference to more detailed documents.
 ----------------------------------------
 In order to determine which object can be recycled, the garbage
 collector has to frequently examine a very large number of pointers in
-the program's objects.  It does this by [scanning][] memory, both
+the program's objects.  It does this by scanning_ memory, both
 allocated objects and roots (such as the thread stacks).
 
 This means that the scanning functions must loop over pretty much *every
@@ -44,7 +49,7 @@ unnecessary scanning and fixing.
 Firstly, the MPS must occasionally decide which objects to try to
 recycle.  It does this using various facts it knows about the objects,
 primarily their age and whether they've survived previous attempts at
-recycling them.  It then ["condemns"][condemn] a large number of objects
+recycling them.  It then `"condemns"`_ a large number of objects
 at once, and each of these objects must be "preserved" by fixing
 references to them.
 
@@ -65,10 +70,10 @@ by all the pointers in a segment from previous scans.
 So, once the MPS has decided what to condemn, it can quickly eliminate
 all segments which definitely do not point to anything in those zones. 
 This avoids a large amount of scanning.  It is an implementation of a
-[remembered set][], though it is unlike that in most other GCs.
+`remembered set`_, though it is unlike that in most other GCs.
 
 In addition, the fix operation can quickly ignore pointers to the wrong
-zones.  This is called the "zone check" and is a [BIBOP][] technique.
+zones.  This is called the "zone check" and is a BIBOP_ technique.
 
 Even if a pointer passes the zone check, it may still not point to a
 segment containing condemned objects.  The next stage of the fix
@@ -93,47 +98,49 @@ all of theirs many times.)
 ----------------------------------
 Very briefly, the critical path consists of five stages:
 
-  1. The scanner, which iterates over pointers in objects.  The MPS has
-     several internal scanners, but the most important ones will be format
-     scanners in client code registered through `mps_format_create`
-     functions.  [Insert ref to manual explaining how to write a good
-     scanner.]
+1. The scanner, which iterates over pointers in objects.  The MPS has
+   several internal scanners, but the most important ones will be format
+   scanners in client code registered through ``mps_format_create``
+   functions.  [Insert ref to manual explaining how to write a good
+   scanner.]
 
-  2. The first-stage fix, which filters out pointers inline in the
-     scanner.  This is implemented in `MPS_FIX` macros in
-     [mps.h](..\code\mps.h).
+2. The first-stage fix, which filters out pointers inline in the
+   scanner.  This is implemented in ``MPS_FIX`` macros in
+   mps.h_.
 
-  3. The second-stage fix, which filters out pointers using general
-     information about segments.  This is `_mps_fix2` in
-     [trace.c](..\code\trace.c).
+.. _mps.h: ../code/mps.h
 
-  4. The third-stage fix, which filters out pointers using pool-specific
-     information.  Implemented in pool class functions called `AMCFix`,
-     `LOFix`, etc. in pool*.c.
-     
-  5. Preserving the object, which might entail
-  
-     - [marking][] it to prevent it being recycled; and/or
-  
-     - [copying][] it and updating the original pointer (or just
-       updating the pointer, if the object has previously been
-       copied); and/or
+3. The second-stage fix, which filters out pointers using general
+   information about segments.  This is ``_mps_fix2`` in
+   `trace.c <../code/trace.c>`_.
 
-     - adding it to a queue of objects to be scanned later, if it
-       contains pointers.
+4. The third-stage fix, which filters out pointers using pool-specific
+   information.  Implemented in pool class functions called ``AMCFix``,
+   ``LOFix``, etc. in pool*.c.
+   
+5. Preserving the object, which might entail
 
-     Found in or near the pool class fix functions.
+   - marking_ it to prevent it being recycled; and/or
+
+   - copying_ it and updating the original pointer (or just
+     updating the pointer, if the object has previously been
+     copied); and/or
+
+   - adding it to a queue of objects to be scanned later, if it
+     contains pointers.
+
+   Found in or near the pool class fix functions.
 
 
 5. The format scanner
 ---------------------
 The critical path starts when a format scan method is called.  That is a
-call from the MPS to a client function of type `mps_fmt_scan_t`
-registered with one of the `mps_format_create` functions in `mps.h`.
+call from the MPS to a client function of type ``mps_fmt_scan_t``
+registered with one of the ``mps_format_create`` functions in mps.h_.
 
 Here is an example of part of a format scanner for scanning contiguous
-runs of pointers, from `fmtdy.c`, the scanner for the [Open Dylan][]
-runtime.
+runs of pointers, from `fmtdy.c <../code/fmtdy.c>`_, the scanner for the `Open Dylan`_
+runtime::
 
     static mps_res_t dylan_scan_contig(mps_ss_t mps_ss,
                                        mps_addr_t *base, mps_addr_t *limit)
@@ -163,21 +170,21 @@ pseudo-assembler style, with one line roughly corresponding to each
 instruction of an idealized intermediate code.)
 
 The MPS C interface provides macros to try to help optimise this code. 
-The `mps_ss` object is a "scan state" and contains data that is used to
+The ``mps_ss`` object is a "scan state" and contains data that is used to
 eliminate uninteresting pointers now, and record information which will
 be used to reduce scanning in future by maintaining the remembered set.
 
-The macros `MPS_SCAN_BEGIN` and `MPS_SCAN_END` load key data from the
+The macros ``MPS_SCAN_BEGIN`` and ``MPS_SCAN_END`` load key data from the
 scan state into local variables, and hopefully into processor registers.
- This avoids aliasing values that we know won't change when calls are
-made to `_mps_fix2` later, and so allows the compiler to keep the scan
+This avoids aliasing values that we know won't change when calls are
+made to ``_mps_fix2`` later, and so allows the compiler to keep the scan
 loop small and avoid unnecessary memory references.
 
 This scanner knows that words not ending in 0b00 aren't pointers to
 objects, so it eliminates them straight away.  This is a kind of
-[reference tag][] chosen by the client for its object representation.
+`reference tag`_ chosen by the client for its object representation.
 
-Next, the pointer is tested using `MPS_FIX1`.  This performs fast tests
+Next, the pointer is tested using ``MPS_FIX1``.  This performs fast tests
 on the pointer without using any other memory.  In particular, it does
 the "zone check" described in section 3.  If a pointer fails these
 tests, it isn't interesting and can be skipped.  It is very important to
@@ -185,29 +192,29 @@ proceed to the next pointer as fast as possible in this case.
 
 Having passed these tests, we need to fix the pointer using other data
 in memory, and possibly call the MPS to preserve the object.  This is
-what `MPS_FIX2` does.  The important distinction here is that `MPS_FIX2`
+what ``MPS_FIX2`` does.  The important distinction here is that ``MPS_FIX2``
 can fail and return an error code, which must be propagated without ado
-by returning from the scanner.  Separating `MPS_FIX1` from `MPS_FIX2`
+by returning from the scanner.  Separating ``MPS_FIX1`` from ``MPS_FIX2``
 helps keep the error handling code away from the tight loop with the
 zone check.
 
-`MPS_FIX*`, the macro/inline part of the fix operation, are referred to
+``MPS_FIX*``, the macro/inline part of the fix operation, are referred to
 as "fix stage 1" or "the first stage fix" in other documents and comments.
 
-If these inline checks pass, `_mps_fix2` is called.  If the MPS has been
+If these inline checks pass, ``_mps_fix2`` is called.  If the MPS has been
 built as a separate object file or library, this is where the function
 call out of the scan loop happens.  Since version 1.110 of the MPS, we
 encourage clients to compile the MPS in the same translation unit as
 their format code, so that the compiler can be intelligent about
-inlining parts of `_mps_fix2` in the format scanner.  The instructions
-for doing this are in [Building the Memory Pool
-System](..\manual\build.txt), part of the manual.
+inlining parts of ``_mps_fix2`` in the format scanner.  The instructions
+for doing this are in `Building the Memory Pool
+System <../manual/build.txt>`_, part of the manual.
 
 
 6. The second stage fix in the MPM
 ----------------------------------
 If a pointer gets past the first-stage fix filters, it is passed to
-`_mps_fix2`, the "second stage fix".  The second stage can filter out
+``_mps_fix2``, the "second stage fix".  The second stage can filter out
 yet more pointers using information about segments before it has to
 consult the pool class.
 
@@ -242,13 +249,13 @@ dispatch to in the scan state, which has recently been looked at and is
 with luck still in the processor cache.  The reason there is a dispatch
 at all is to allow for a fast changeover to emergency garbage
 collection, or overriding of garbage collection with extra operations. 
-Those are beyond the scope of this document.  Normally, `ss->fix` points
-at `PoolFix`, and we rely somewhat on modern processor [branch target
-prediction](https://en.wikipedia.org/wiki/Branch_target_predictor). 
-`PoolFix` is passed the pool, which is fetched from the tract table
+Those are beyond the scope of this document.  Normally, ``ss->fix`` points
+at ``PoolFix``, and we rely somewhat on modern processor `branch target
+prediction <https://en.wikipedia.org/wiki/Branch_target_predictor>`_). 
+``PoolFix`` is passed the pool, which is fetched from the tract table
 entry, and that should be in the cache.
 
-`PoolFix` itself dispatches to the pool class.  Normally, a dispatch to
+``PoolFix`` itself dispatches to the pool class.  Normally, a dispatch to
 a pool class would indirect through the pool class object.  That would
 be a double indirection from the tract, so instead we have a cache of
 the pool's fix method in the pool object.  This also allows a pool class
@@ -264,9 +271,9 @@ MPM can't, in general, know how the objects within a pool are arranged,
 so this is pool class specific code.
 
 Furthermore, the pool class must make decisions based on the "reference
-rank" of the pointer.  If a pointer is ambiguous (`RankAMBIG`) then it
+rank" of the pointer.  If a pointer is ambiguous (``RankAMBIG``) then it
 can't be changed, so even a [copying] pool class can't move an object. 
-On the other hand, if the pointer is weak (`RankWEAK`) then the pool fix
+On the other hand, if the pointer is weak (``RankWEAK``) then the pool fix
 method shouldn't preserve the object at all, even if it's condemned.
 
 The exact details of the logic that the pool fix must implement in
@@ -285,14 +292,14 @@ implements a copying GC), or was already moved when fixing a previous
 reference to it, the reference being fixed must be updated (this is
 the origin of the term "fix").
 
-As a simple example, `LOFix` is the pool fix method for the Leaf Only
+As a simple example, ``LOFix`` is the pool fix method for the Leaf Only
 pool class.  It implements a [marking] garbage collector, and does not
 have to worry about scanning preserved objects because it is used to
 store objects that don't contain pointers.  (It is used in compiler
 run-time systems to store binary data such as character strings, thus
 avoiding any scanning, decoding, or remembered set overhead for them.)
 
-`LOFix` filters any ambiguous pointers that aren't aligned, since they
+``LOFix`` filters any ambiguous pointers that aren't aligned, since they
 can't point to objects it allocated.  Otherwise it subtracts the segment
 base address and shifts the result to get an index into a mark bit
 table.  If the object wasn't marked and the pointer is weak, then it
@@ -310,8 +317,8 @@ few other things that the MPS does that are important.
 
 Firstly, inlining is very important.  The first stage fix is inlined
 into the format scanner by being implemented in macros in
-[mps.h](..\code\mps.h).  And to get even better inlining, [we
-recommend](..\manual\build.txt) that the whole MPS is compiled in a
+mps.h_.  And to get even better inlining, `we
+recommend <../manual/build.txt>`_ that the whole MPS is compiled in a
 single translation unit with the client format and that strong global
 optimisation is applied.
 
@@ -330,27 +337,26 @@ And we write long documents about it.
 
 A. References
 -------------
-[MMRef] "The Memory Management Reference"; <http://www.memorymanagement.org/>.
-[scanning]: http://www.memorymanagement.org/glossary/s.html#scan
-[marking]: http://www.memorymanagement.org/glossary/m.html#marking
-[copying]: http://www.memorymanagement.org/glossary/c.html#copying.garbage.collection
-[condemn]: http://www.memorymanagement.org/glossary/c.html#condemned.set
-[BIBOP]: http://www.memorymanagement.org/glossary/b.html#bibop
-[remembered set]: http://www.memorymanagement.org/glossary/r.html#remembered.set
-[reference tag]: http://www.memorymanagement.org/glossary/t.html#tag
-
-[Open Dylan] "Welcome to Open Dylan!"; <http://opendylan.org/>.
-[Open Dylan]: http://opendylan.org/
+.. [MMRef] "The Memory Management Reference"; <http://www.memorymanagement.org/>.
+.. _scanning: http://www.memorymanagement.org/glossary/s.html#scan
+.. _marking: http://www.memorymanagement.org/glossary/m.html#marking
+.. _copying: http://www.memorymanagement.org/glossary/c.html#copying.garbage.collection
+.. _`"condemns"`: http://www.memorymanagement.org/glossary/c.html#condemned.set
+.. _BIBOP: http://www.memorymanagement.org/glossary/b.html#bibop
+.. _`remembered set`: http://www.memorymanagement.org/glossary/r.html#remembered.set
+.. _`reference tag`: http://www.memorymanagement.org/glossary/t.html#tag
+.. _`Open Dylan`: http://opendylan.org/
 
 
 B. Document History
 -------------------
 - 2012-09-07  RB  First draft.
+- 2013-05-10  RB  Converted to reStructuredText.
 
 
 C. Copyright and License
 ------------------------
-Copyright (C) 2012 Ravenbrook Limited. All rights reserved. 
+Copyright (C) 2012-2013 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -359,22 +365,22 @@ modification, are permitted provided that the following conditions are
 met:
 
 1. Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
+   notice, this list of conditions and the following disclaimer.
 
 2. Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
 
 3. Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
@@ -387,5 +393,3 @@ USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
