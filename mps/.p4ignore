@@ -1,3 +1,5 @@
+# Personal Perforce configurations
+.p4config
 # Mac OS X Finder turds
 .DS_Store
 # Patch results
