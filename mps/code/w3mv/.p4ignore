@@ -1,3 +1,5 @@
+# code/w3mv/.p4ignore -- Perforce files to ignore from Visual Studio 
+# $Id$
 # Subproject build results
 */Debug
 */Release
