@@ -1160,9 +1160,6 @@ Note that the style variables are always made local to the buffer."
   ;; `c-set-fl-decl-start' for the detailed functionality.
   (cons (c-set-fl-decl-start beg) end))
 
-(defvar c-standard-font-lock-fontify-region-function nil
-  "Standard value of `font-lock-fontify-region-function'")
-
 (defun c-font-lock-fontify-region (beg end &optional verbose)
   ;; Effectively advice around `font-lock-fontify-region' which extends the
   ;; region (BEG END), for example, to avoid context fontification chopping
@@ -1187,17 +1184,14 @@ Note that the style variables are always made local to the buffer."
 		  (setq new-region (funcall fn new-beg new-end))
 		  (setq new-beg (car new-region)  new-end (cdr new-region)))
 		c-before-context-fontification-functions))))
-    (funcall c-standard-font-lock-fontify-region-function
+    (funcall (default-value 'font-lock-fontify-region-function)
 	     new-beg new-end verbose)))
 
 (defun c-after-font-lock-init ()
   ;; Put on `font-lock-mode-hook'.  This function ensures our after-change
-  ;; function will get executed before the font-lock one.  Amongst other
-  ;; things.
+  ;; function will get executed before the font-lock one.
   (remove-hook 'after-change-functions 'c-after-change t)
-  (add-hook 'after-change-functions 'c-after-change nil t)
-  (setq c-standard-font-lock-fontify-region-function
-	(default-value 'font-lock-fontify-region-function)))
+  (add-hook 'after-change-functions 'c-after-change nil t))
 
 (defun c-font-lock-init ()
   "Set up the font-lock variables for using the font-lock support in CC Mode.

@@ -6,7 +6,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# This definition of AC_USE_SYSTEM_EXTENSIONS is stolen from CVS
+# This definition of AC_USE_SYSTEM_EXTENSIONS is stolen from git
 # Autoconf.  Perhaps we can remove this once we can assume Autoconf
 # 2.70 or later everywhere, but since Autoconf mutates rapidly
 # enough in this area it's likely we'll need to redefine

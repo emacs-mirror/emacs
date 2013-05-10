@@ -37,7 +37,7 @@
   "Minimum luminance distance between two colors to be considered visible.
 Must be between 0 and 100."
   :group 'shr
-  :type 'float)
+  :type 'number)
 
 (defcustom shr-color-visible-distance-min 5
   "Minimum color distance between two colors to be considered visible.

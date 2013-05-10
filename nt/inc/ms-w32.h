@@ -346,6 +346,12 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #define ENOTSUP ENOSYS
 #endif
 
+/* WINDOWSNT <errno.h> doesn't define EOPNOTSUPP, and we don't have
+   'configure' working yet so we can't rely on the Gnulib replacement
+   errno.h defining EOPNOTSUPP.  Work around the problem by defining
+   it here.  */
+#define EOPNOTSUPP 130
+
 #ifdef _MSC_VER
 typedef int sigset_t;
 typedef int ssize_t;

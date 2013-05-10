@@ -1138,12 +1138,9 @@ form that is clearly safe to install.
 @section Contributing to Emacs Development
 @cindex contributing to Emacs
 
-If you would like to help pretest Emacs releases to assure they work
-well, or if you would like to work on improving Emacs, please contact
-the maintainers at @email{emacs-devel@@gnu.org}.  A pretester
-should be prepared to investigate bugs as well as report them.  If you'd
-like to work on improving Emacs, please ask for suggested projects or
-suggest your own ideas.
+If you would like to work on improving Emacs, please contact
+the maintainers at @email{emacs-devel@@gnu.org}.  You can ask for
+suggested projects or suggest your own ideas.
 
 If you have already written an improvement, please tell us about it.  If
 you have not yet started work, it is useful to contact

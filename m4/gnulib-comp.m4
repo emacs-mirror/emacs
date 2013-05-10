@@ -56,6 +56,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module dtotimespec:
   # Code from module dup2:
   # Code from module environ:
+  # Code from module errno:
   # Code from module euidaccess:
   # Code from module execinfo:
   # Code from module extensions:
@@ -94,6 +95,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module pselect:
   # Code from module pthread_sigmask:
   # Code from module putenv:
+  # Code from module qacl:
   # Code from module readlink:
   # Code from module readlinkat:
   # Code from module root-uid:
@@ -179,6 +181,7 @@ AC_DEFUN([gl_INIT],
   gl_UNISTD_MODULE_INDICATOR([dup2])
   gl_ENVIRON
   gl_UNISTD_MODULE_INDICATOR([environ])
+  gl_HEADER_ERRNO_H
   gl_EXECINFO_H
   AC_REQUIRE([gl_EXTERN_INLINE])
   gl_FUNC_FACCESSAT
@@ -287,6 +290,7 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_PUTENV
   fi
   gl_STDLIB_MODULE_INDICATOR([putenv])
+  gl_FUNC_ACL
   gl_FUNC_READLINK
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     AC_LIBOBJ([readlink])
@@ -733,6 +737,10 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/snippet/arg-nonnull.h
   build-aux/snippet/c++defs.h
   build-aux/snippet/warn-on-use.h
+  lib/acl-errno-valid.c
+  lib/acl-internal.h
+  lib/acl.h
+  lib/acl_entries.c
   lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
@@ -751,6 +759,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/dtoastr.c
   lib/dtotimespec.c
   lib/dup2.c
+  lib/errno.in.h
   lib/euidaccess.c
   lib/execinfo.c
   lib/execinfo.in.h
@@ -758,6 +767,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fcntl.in.h
   lib/fdatasync.c
   lib/fdopendir.c
+  lib/file-has-acl.c
   lib/filemode.c
   lib/filemode.h
   lib/fpending.c
@@ -792,6 +802,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/pselect.c
   lib/pthread_sigmask.c
   lib/putenv.c
+  lib/qcopy-acl.c
+  lib/qset-acl.c
   lib/readlink.c
   lib/readlinkat.c
   lib/root-uid.h
@@ -843,6 +855,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/verify.h
   lib/xalloc-oversized.h
   m4/00gnulib.m4
+  m4/acl.m4
   m4/alloca.m4
   m4/c-strtod.m4
   m4/clock_time.m4
@@ -850,6 +863,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/dirent_h.m4
   m4/dup2.m4
   m4/environ.m4
+  m4/errno_h.m4
   m4/euidaccess.m4
   m4/execinfo.m4
   m4/extensions.m4

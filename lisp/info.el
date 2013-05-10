@@ -1530,11 +1530,14 @@ a case-insensitive match is tried."
     ;; Widen in case we are in the same subfile as before.
     (widen)
     (goto-char (point-min))
+    ;; Skip the summary segment for `Info-search'.
     (if (looking-at "\^_")
 	(forward-char 1)
       (search-forward "\n\^_"))
+    ;; Don't add the length of the skipped summary segment to
+    ;; the value returned to `Info-find-node-2'.  (Bug#14125)
     (if (numberp nodepos)
-	(+ (- nodepos lastfilepos) (point)))))
+	(+ (- nodepos lastfilepos) (point-min)))))
 
 (defun Info-unescape-quotes (value)
   "Unescape double quotes and backslashes in VALUE."

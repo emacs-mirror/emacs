@@ -148,13 +148,16 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 (define-abbrev-table 'ruby-mode-abbrev-table ()
   "Abbrev table in use in Ruby mode buffers.")
 
+(defvar ruby-use-smie nil)
+
 (defvar ruby-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-C-b") 'ruby-backward-sexp)
-    (define-key map (kbd "M-C-f") 'ruby-forward-sexp)
+    (unless ruby-use-smie
+      (define-key map (kbd "M-C-b") 'ruby-backward-sexp)
+      (define-key map (kbd "M-C-f") 'ruby-forward-sexp)
+      (define-key map (kbd "M-C-q") 'ruby-indent-exp))
     (define-key map (kbd "M-C-p") 'ruby-beginning-of-block)
     (define-key map (kbd "M-C-n") 'ruby-end-of-block)
-    (define-key map (kbd "M-C-q") 'ruby-indent-exp)
     (define-key map (kbd "C-c {") 'ruby-toggle-block)
     map)
   "Keymap used in Ruby mode.")
@@ -236,6 +239,111 @@ Also ignores spaces after parenthesis when 'space."
 (put 'ruby-comment-column 'safe-local-variable 'integerp)
 (put 'ruby-deep-arglist 'safe-local-variable 'booleanp)
 
+;;; SMIE support
+
+(require 'smie)
+
+(defconst ruby-smie-grammar
+  ;; FIXME: Add support for Cucumber.
+  (smie-prec2->grammar
+   (smie-bnf->prec2
+    '((id)
+      (insts (inst) (insts ";" insts))
+      (inst (exp) (inst "iuwu-mod" exp))
+      (exp  (exp1) (exp "," exp))
+      (exp1 (exp2) (exp2 "?" exp1 ":" exp1))
+      (exp2 ("def" insts "end")
+            ("begin" insts-rescue-insts "end")
+            ("do" insts "end")
+            ("class" insts "end") ("module" insts "end")
+            ("for" for-body "end")
+            ("[" expseq "]")
+            ("{" hashvals "}")
+            ("while" insts "end")
+            ("until" insts "end")
+            ("unless" insts "end")
+            ("if" if-body "end")
+            ("case"  cases "end"))
+      (for-body (for-head ";" insts))
+      (for-head (id "in" exp))
+      (cases (exp "then" insts) ;; FIXME: Ruby also allows (exp ":" insts).
+	      (cases "when" cases) (insts "else" insts))
+      (expseq (exp) );;(expseq "," expseq)
+      (hashvals (id "=>" exp1) (hashvals "," hashvals))
+      (insts-rescue-insts (insts)
+                          (insts-rescue-insts "rescue" insts-rescue-insts)
+                          (insts-rescue-insts "ensure" insts-rescue-insts))
+      (itheni (insts) (exp "then" insts))
+      (ielsei (itheni) (itheni "else" insts))
+      (if-body (ielsei) (if-body "elsif" if-body)))
+    '((nonassoc "in") (assoc ";") (assoc ","))
+    '((assoc "when"))
+    '((assoc "elsif"))
+    '((assoc "rescue" "ensure"))
+    '((assoc ",")))))
+
+(defun ruby-smie--bosp ()
+  (save-excursion (skip-chars-backward " \t")
+                  (or (bolp) (eq (char-before) ?\;))))
+
+(defun ruby-smie--implicit-semi-p ()
+  (save-excursion
+    (skip-chars-backward " \t")
+    (not (or (bolp)
+             (memq (char-before) '(?\; ?- ?+ ?* ?/ ?:))
+             (and (memq (char-before) '(?\? ?=))
+                  (not (memq (char-syntax (char-before (1- (point))))
+                             '(?w ?_))))))))
+
+(defun ruby-smie--forward-token ()
+  (skip-chars-forward " \t")
+  (if (and (looking-at "[\n#]")
+           ;; Only add implicit ; when needed.
+           (ruby-smie--implicit-semi-p))
+      (progn
+        (if (eolp) (forward-char 1) (forward-comment 1))
+        ";")
+    (forward-comment (point-max))
+    (let ((tok (smie-default-forward-token)))
+      (cond
+       ((member tok '("unless" "if" "while" "until"))
+        (if (save-excursion (forward-word -1) (ruby-smie--bosp))
+            tok "iuwu-mod"))
+       (t tok)))))
+
+(defun ruby-smie--backward-token ()
+  (let ((pos (point)))
+    (forward-comment (- (point)))
+    (if (and (> pos (line-end-position))
+             (ruby-smie--implicit-semi-p))
+        (progn (skip-chars-forward " \t")
+               ";")
+      (let ((tok (smie-default-backward-token)))
+        (cond
+         ((member tok '("unless" "if" "while" "until"))
+          (if (ruby-smie--bosp)
+              tok "iuwu-mod"))
+         (t tok))))))
+
+(defun ruby-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:elem . basic) ruby-indent-level)
+    (`(:after . ";")
+     (if (smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
+                             "[" "{" "while" "until" "unless"
+                             "if" "then" "elsif" "else" "when"
+                             "rescue" "ensure")
+         (smie-rule-parent ruby-indent-level)
+       ;; For (invalid) code between switch and case.
+       ;; (if (smie-parent-p "switch") 4)
+       0))
+    (`(:before . ,(or `"else" `"then" `"elsif")) 0)
+    (`(:before . ,(or `"when"))
+     (if (not (smie-rule-sibling-p)) 0)) ;; ruby-indent-level
+    ;; Hack attack: Since newlines are separators, don't try to align args that
+    ;; appear on a separate line.
+    (`(:list-intro . ";") t)))
+
 (defun ruby-imenu-create-index-in-block (prefix beg end)
   "Create an imenu index of methods inside a block."
   (let ((index-alist '()) (case-fold-search nil)
@@ -290,7 +398,11 @@ Also ignores spaces after parenthesis when 'space."
   (set-syntax-table ruby-mode-syntax-table)
   (setq local-abbrev-table ruby-mode-abbrev-table)
   (setq indent-tabs-mode ruby-indent-tabs-mode)
-  (set (make-local-variable 'indent-line-function) 'ruby-indent-line)
+  (if ruby-use-smie
+      (smie-setup ruby-smie-grammar #'ruby-smie-rules
+                  :forward-token  #'ruby-smie--forward-token
+                  :backward-token #'ruby-smie--backward-token)
+    (set (make-local-variable 'indent-line-function) 'ruby-indent-line))
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-end) "")

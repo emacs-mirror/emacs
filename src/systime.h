@@ -143,7 +143,7 @@ EMACS_TIME_TO_DOUBLE (EMACS_TIME t)
 
 /* defined in sysdep.c */
 extern int set_file_times (int, const char *, EMACS_TIME, EMACS_TIME);
-extern struct timeval make_timeval (EMACS_TIME);
+extern struct timeval make_timeval (EMACS_TIME) ATTRIBUTE_CONST;
 
 /* defined in keyboard.c */
 extern void set_waiting_for_input (EMACS_TIME *);

@@ -47,6 +47,9 @@
                   (config &optional minimum-version))
 (declare-function epg-configuration "ext:epg-config" ())
 
+;; Maybe this should be in eg mml-sec.el (and have a different name).
+;; Then mml1991 would not need to require mml2015, and mml1991-use
+;; could be removed.
 (defvar mml2015-use (or
 		     (condition-case nil
 			 (progn
@@ -1106,7 +1109,7 @@ If no one is selected, default secret key is used.  "
     (insert (format "\n--%s\n" boundary))
     (goto-char (point-max))
     (insert (format "\n--%s\n" boundary))
-    (insert "Content-Type: application/pgp-signature\n\n")
+    (insert "Content-Type: application/pgp-signature; name=\"signature.asc\"\n\n")
     (insert signature)
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))

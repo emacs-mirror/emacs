@@ -43,6 +43,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 typedef Widget xt_or_gtk_widget;
 #endif
 
+/* True iff GTK's version is at least MAJOR.MINOR.  */
+#define GTK_PREREQ(major, minor) \
+    ((major) < GTK_MAJOR_VERSION + ((minor) <= GTK_MINOR_VERSION))
+
 #ifdef USE_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
@@ -55,7 +59,7 @@ typedef GtkWidget *xt_or_gtk_widget;
                          XSync (d, b);  } while (0)
 
 /* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 13
+#if GTK_PREREQ (2, 14)
 #define USE_GTK_TOOLTIP
 #endif
 
@@ -346,7 +350,8 @@ struct x_display_info
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_hidden,
-    Xatom_net_frame_extents;
+    Xatom_net_frame_extents,
+    Xatom_net_current_desktop, Xatom_net_workarea;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;

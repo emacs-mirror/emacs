@@ -1,3 +1,472 @@
+2013-05-09  Ulrich Mueller  <ulm@gentoo.org>
+
+	* descr-text.el (describe-char): Fix %d/%x typo.  (Bug#14360)
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* international/fontset.el (vertical-centering-font-regexp):
+	Set standard-value.
+
+	* tar-mode.el (tar-superior-buffer, tar-superior-descriptor): Add doc.
+
+	* bookmark.el (bookmark-search-delay):
+	* cus-start.el (vertical-centering-font-regexp):
+	* ps-mule.el (ps-mule-font-info-database-default):
+	* ps-print.el (ps-default-fg, ps-default-bg):
+	* type-break.el (type-break-good-break-interval):
+	* whitespace.el (whitespace-indentation-regexp)
+	(whitespace-space-after-tab-regexp):
+	* emacs-lisp/testcover.el (testcover-1value-functions)
+	(testcover-noreturn-functions, testcover-progn-functions)
+	(testcover-prog1-functions):
+	* emulation/viper-init.el (viper-emacs-state-cursor-color):
+	* eshell/em-glob.el (eshell-glob-translate-alist):
+	* play/tetris.el (tetris-tty-colors):
+	* progmodes/cpp.el (cpp-face-default-list):
+	* progmodes/flymake.el (flymake-allowed-file-name-masks):
+	* progmodes/idlw-help.el (idlwave-help-browser-generic-program)
+	(idlwave-help-browser-generic-args):
+	* progmodes/make-mode.el (makefile-special-targets-list):
+	* progmodes/python.el (python-shell-virtualenv-path):
+	* progmodes/verilog-mode.el (verilog-active-low-regexp)
+	(verilog-auto-input-ignore-regexp, verilog-auto-inout-ignore-regexp)
+	(verilog-auto-output-ignore-regexp, verilog-auto-tieoff-ignore-regexp)
+	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp):
+	* textmodes/reftex-vars.el (reftex-format-label-function):
+	* textmodes/remember.el (remember-diary-file): Fix custom types.
+
+	* jka-cmpr-hook.el (jka-compr-mode-alist-additions): Fix typo.
+	Add :version.
+
+2013-05-09  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-completion-at-point):
+	Restore the broken file completion.  (Bug#14300)
+	(inferior-octave-startup): Fix incorrect highlighting for the
+	first prompt.
+
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el: First cut at SMIE support.
+	(ruby-use-smie): New var.
+	(ruby-smie-grammar): New constant.
+	(ruby-smie--bosp, ruby-smie--implicit-semi-p)
+	(ruby-smie--forward-token, ruby-smie--backward-token)
+	(ruby-smie-rules): New functions.
+	(ruby-mode-variables): Setup SMIE if applicable.
+
+2013-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-visual): Signal beginning/end of buffer
+	only if vertical-motion moved less than it was requested.  Avoids
+	silly incorrect error messages when there are display strings with
+	multiple newlines at EOL.
+
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vera-mode.el (vera-underscore-is-part-of-word):
+	* progmodes/prolog.el (prolog-underscore-wordchar-flag)
+	(prolog-char-quote-workaround):
+	* progmodes/cperl-mode.el (cperl-under-as-char):
+	* progmodes/vhdl-mode.el (vhdl-underscore-is-part-of-word):
+	 Mark as obsolete.
+	 (vhdl-mode-syntax-table, vhdl-mode-ext-syntax-table): Initialize in
+	their declaration.
+	(vhdl-mode-syntax-table-init): Remove.
+
+	* progmodes/m4-mode.el (m4-mode-syntax-table): Add comment on last change.
+
+	* progmodes/ld-script.el (ld-script-mode-syntax-table): Use symbol
+	syntax for "_".
+	(ld-script-font-lock-keywords):
+	Change regexps to use things like \_< and \_>.
+
+	* progmodes/f90.el (f90-mode-syntax-table): Use symbol syntax for "_".
+	Change all regexps to use things like \_< and \_>.
+
+	* progmodes/autoconf.el (autoconf-definition-regexp)
+	(autoconf-font-lock-keywords, autoconf-current-defun-function):
+	Handle a _ with symbol syntax.
+	(autoconf-mode): Don't change the syntax-table for imenu and font-lock.
+
+	* progmodes/ada-mode.el (ada-mode-abbrev-table): Consolidate declaration.
+	(ada-mode-syntax-table, ada-mode-symbol-syntax-table): Initialize in
+	the declaration.
+	(ada-create-syntax-table): Remove.
+	(ada-capitalize-word): Don't mess with the syntax of "_" since it
+	already has the right syntax nowadays.
+	(ada-goto-next-word): Don't change the syntax of "_".
+
+	* font-lock.el (lisp-font-lock-keywords-2): Don't highlight obsolete
+	with-wrapper-hook.
+
+2013-05-08  Sam Steingold  <sds@gnu.org>
+
+	* thingatpt.el (thing-at-point): Accept optional second argument
+	NO-PROPERTIES to strip the text properties from the return value.
+	* net/browse-url.el (browse-url-url-at-point): Pass NO-PROPERTIES
+	to `thing-at-point' instead of stripping the properties ourselves.
+	Also, when `thing-at-point' fails to find a url, prepend "http://"
+	to the filename at point on the assumption that the user is
+	pointing at something like gnu.org/gnu.
+
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header):
+	* faces.el (crm-separator):
+	Silence byte-compiler.
+
+	* progmodes/gud.el (gdb-speedbar-auto-raise, gud-tooltip-mode)
+	(tool-bar-map): Remove unneeded defvars.
+
+2013-05-08  Leo Liu  <sdl.web@gmail.com>
+
+	Re-work a fix for bug#10994 based on Le Wang's patch.
+	* ido.el (ido-remove-consecutive-dups): New helper.
+	(ido-completing-read): Use it.
+	(ido-chop): Revert fix for bug#10994.
+
+2013-05-08  Adam Spiers  <emacs@adamspiers.org>
+
+	* cus-edit.el (custom-save-variables):
+	Pretty-print long values.  (Bug#14187)
+
+2013-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/m4-mode.el (m4-program): Assume it is in PATH.
+	(m4-mode-syntax-table): Init in the defvar.
+	(m4-mode-abbrev-table): Let define-derived-mode define it.
+
+2013-05-08  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/m4-mode.el (m4-mode-syntax-table):
+	Do not treat "_" as word constituent.  (Bug#14167)
+
+2013-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-hist.el (eshell-isearch-map): Initialize in the defvar.
+	Remove explicit eshell-isearch-cancel-map.
+
+	* progmodes/f90.el (f90-smart-end-names): New option.
+	(f90-smart-end): Doc fix.
+	(f90-end-block-optional-name): New constant.
+	(f90-block-match): Respect f90-smart-end-names.
+
+2013-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave.el (octave-smie-forward-token): Be more careful
+	about implicit semi-colons (bug#14218).
+
+2013-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (display-monitor-attributes-list)
+	(frame-monitor-attributes): New functions.
+
+2013-05-06  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-syntax-propertize-function): Change
+	\'s syntax to escape when inside double-quoted strings.  (Bug#14332)
+	(octave-font-lock-keywords): Use octave-operator-regexp.
+	(octave-completion-at-point): Renamed from
+	octave-completion-at-point-function.
+	(inferior-octave-directory-tracker): Robustify.
+	(octave-text-functions): Remove and fix its uses.  No such things
+	any more.
+
+2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/trace.el (trace--display-buffer): New function.
+	(trace-make-advice): Use it.
+
+2013-05-06  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-2): Doc fix.  (Bug#14344)
+	(eval-defun-2, eval-defun, eval-last-sexp, eval-last-sexp-1):
+	Doc fix.
+	(emacs-lisp-mode-map): Replace "minibuffer" with "echo area"
+	in the help string.  (Bug#12985)
+
+2013-05-06  Kelly Dean  <kellydeanch@yahoo.com>  (tiny change)
+
+	* simple.el (shell-command-on-region): Doc fix.  (Bug#14279)
+
+2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el: Add support for here documents.
+	(perl-syntax-propertize-function): Match here-doc markers.
+	(perl-syntax-propertize-special-constructs): Find their end.
+	(perl-imenu-generic-expression): Use [:alnum:].
+
+	* emacs-lisp/nadvice.el (advice--member-p): Return the advice if found.
+	(advice--add-function): Refresh the advice if already present
+	(bug#14317).
+
+2013-05-06  Ivan Andrus  <darthandrus@gmail.com>
+
+	* find-file.el (cc-other-file-alist): Add ".m" for ObjC.  (Bug#14339)
+
+2013-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* w32-fns.el (w32-charset-info-alist): Declare.
+
+	* eshell/em-cmpl.el: Simply require pcomplete; eg we use a bunch
+	of its defcustom properties.
+	(eshell-cmpl-initialize): No need to load pcomplete.
+
+	* generic-x.el: No need to require comint when compiling.
+
+	* net/eudc-export.el: Make it loadable without bbdb.
+	(top-level): Use require rather than load-library.
+	(eudc-create-bbdb-record, eudc-bbdbify-phone)
+	(eudc-batch-export-records-to-bbdb)
+	(eudc-insert-record-at-point-into-bbdb, eudc-try-bbdb-insert):
+	Require bbdb.
+
+2013-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave.el (octave-texinfo-font-lock-keywords): Remove.
+	(octave-font-lock-texinfo-comment): Use texinfo-font-lock-keywords with
+	some tweaks, instead.
+
+2013-05-05  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-font-lock-keywords)
+	(octave-font-lock-texinfo-comment): Adjust for the byte-compiler.
+	(inferior-octave-send-list-and-digest): Improve error message.
+	(octave-mode, inferior-octave-mode): Use setq-local.
+	(octave-help): Set info-lookup-mode.
+
+2013-05-05  Richard Stallman  <rms@gnu.org>
+
+	* vc/compare-w.el (compare-windows-whitespace):
+	Treat no-break space as whitespace.
+
+	* mail/rmailsum.el (rmail-summary-rmail-update):
+	Detect empty summary and don't change selected message.
+	(rmail-summary-goto-msg): Likewise.
+
+	* mail/rmailsum.el (rmail-new-summary, rmail-new-summary-1):
+	Doc fixes, rename args.
+
+2013-05-05  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Increment to 5.32.5.
+
+2013-05-05  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-read-subfile): Use (point-min) instead of (point)
+	to not add the length of the summary segment to the return value.
+	(Bug#14125)
+
+2013-05-05  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-strip-ctrl-g)
+	(inferior-octave-output-filter): Remove.
+	(octave-send-region, inferior-octave-startup): Fix callers.
+	(inferior-octave-mode-map): Don't use comint-dynamic-complete.
+	(octave-binary-file-extensions): New user variable.
+	(octave-find-definition): Confirm if opening binary files.
+	(octave-help-file): Use octave-find-definition to get the binary
+	confirmation.
+	(octave-help): Adjust for octave-help-file change.
+
+2013-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el (pascal-font-lock-keywords): Use backquotes.
+	Merge the two entries that handle function definitions.
+	(pascal--syntax-propertize): New const.
+	(pascal-mode): Use it.  Use setq-local.
+
+2013-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-from-outlook-function): New variable.
+	(diary-from-outlook): Respect diary-from-outlook-function.
+
+2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (read-expression-map): Use completion-at-point (bug#14255).
+	Move the declaration from C.
+	(read-minibuffer, eval-minibuffer): Move from C.
+	(completion-setup-function): Avoid minibuffer-completion-contents.
+
+2013-05-03  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-font-lock-keywords): Do not
+	dehighlight 'end' in comments or strings.
+	(octave-completing-read, octave-goto-function-definition):
+	New helpers.
+	(octave-help-buffer): New user variable.
+	(octave-help-file, octave-help-function): New button types.
+	(octave-help): New command and bind it to C-h ;.
+	(octave-find-definition): New command and bind it to M-.
+	(user-error): Alias to error if not defined.
+
+2013-05-02  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-mode-syntax-table): Correct syntax
+	for \.  (bug#14332)
+	(octave-font-lock-keywords): Include [ and {.
+
+2013-05-02  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup-file): Change default.
+	(inferior-octave): Remove calling comint-mode and return the buffer.
+	(inferior-octave-startup): Cosmetic changes.
+
+2013-05-02  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-syntax-propertize-function):
+	Include the case when ' is at line beginning.  (Bug#14336)
+
+2013-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-dir.el (vc-dir-mode): Don't autoload it for everyone.
+	* desktop.el (vc-dir-mode): Just autoload it here.
+
+2013-05-02  Alan Mackenzie  <acm@muc.de>
+
+	Eliminate variable c-standard-font-lock-fontify-region-function.
+	* progmodes/cc-mode.el
+	(c-standard-font-lock-fontify-region-function): Remove.
+	(c-font-lock-fontify-region, c-after-font-lock-init): Adapt.
+
+2013-05-01  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el: Compatible with older emacs-24 releases.
+	(inferior-octave-has-built-in-variables): Remove.  Built-in
+	variables were removed from Octave in 2007.
+	(inferior-octave-startup): Fix uses.
+	(comint-line-beginning-position): Remove compatibility code for
+	emacs 21.
+
+2013-05-01  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-forward, isearch-mode): Doc fix.  (Bug#13923)
+
+2013-05-01  Juri Linkov  <juri@jurta.org>
+
+	* comint.el (comint-previous-matching-input): Don't print message
+	"History item: %d" when `isearch-mode' is active.
+	(comint-history-isearch-message): Print message "History item: %d"
+	when `comint-input-ring-index' is not empty and this function is
+	called from `isearch-update' with a nil `ellipsis'.  (Bug#13223)
+
+2013-05-01  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-abbrev-table): Remove abbrev
+	definitions.  Use completion-at-point to insert keywords.
+	(octave-abbrev-start): Remove.
+	(inferior-octave-mode, octave-mode): Use :abbrev-table instead.
+
+2013-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-prompt-read-only): Fix last
+	change.
+
+2013-04-30  Alan Mackenzie  <acm@muc.de>
+
+	Handle arbitrarily long C++ member initialisation lists.
+	* progmodes/cc-engine.el (c-back-over-member-initializers):
+	new function.
+	(c-guess-basic-syntax): New CASE 5R (extracted from 5B) to handle
+	(most) member init lists.
+
+2013-04-30  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* progmodes/octave.el (inferior-octave-prompt-read-only): New user
+	variable.
+
+2013-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-variables): Remove.  No builtin
+	variables any more.  All converted to functions.
+	(octave-font-lock-keywords, octave-completion-at-point-function):
+	Fix uses.
+	(octave-font-lock-texinfo-comment): New user variable.
+	(octave-texinfo-font-lock-keywords): New variable for texinfo
+	comment block.
+	(octave-function-comment-block): New face.
+	(octave-font-lock-texinfo-comment): New function.
+	(octave-mode): Font lock texinfo comment block.
+
+2013-04-29  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-font-lock-keywords): Handle 'end' in
+	indexing expression.
+	(octave-continuation-string): Do not use \.
+	(inferior-octave-complete-impossible): Remove.
+	(inferior-octave-completion-table)
+	(inferior-octave-completion-at-point): Remove its uses.
+	(inferior-octave-startup): completion_matches was introduced to
+	Octave in 1996 so safe to assume it.
+	(octave-function-file-comment): Improve to follow how Octave does it.
+	(octave-update-function-file-comment): Tweak.
+
+2013-04-29  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup-hook): Obsolete.
+	(inferior-octave-startup): Remove inferior-octave-startup-hook.
+	(octave-function-file-comment): Fix typo.
+	(octave-sync-function-file-names): Use read-char-choice.
+
+2013-04-28  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-normalize): Don't set `math-normalize-error'
+	to t for the less important warnings.
+
+2013-04-27  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
+
+	* isearch.el (isearch-fail-pos): Check for empty `cmds'.  (Bug#14268)
+
+2013-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-view.el (log-view-current-entry):
+	Treat "---" separator lines as part of the following rev.  (Bug#14169)
+
+2013-04-27  Juri Linkov  <juri@jurta.org>
+
+	* subr.el (read-number): Doc fix about using it by interactive
+	code letter `n'.  (Bug#14254)
+
+2013-04-27  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-auto-save-timeout): New option.
+	(desktop-file-checksum): New variable.
+	(desktop-save): Add optional arg `auto-save' and don't auto-save
+	if nothing changed.
+	(desktop-auto-save-timer): New variable.
+	(desktop-auto-save, desktop-auto-save-set-timer): New functions.
+	(after-init-hook): Call `desktop-auto-save-set-timer'.
+	Suggested by Reuben Thomas <rrt@sc3d.org> in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00327.html>.
+
+2013-04-27  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-function-file-p)
+	(octave-skip-comment-forward, octave-function-file-comment)
+	(octave-update-function-file-comment): New functions.
+	(octave-mode-map): Bind C-c ; to
+	octave-update-function-file-comment.
+	(octave-mode-menu): Add octave-update-function-file-comment.
+	(octave-mode, inferior-octave-mode): Fix doc-string.
+	(octave-insert-defun): Conform to Octave's coding convention.
+	(Bug#14285)
+
+	* files.el (basic-save-buffer): Don't let errors in
+	before-save-hook prevent saving buffer.
+
+2013-04-20  Roland Winkler  <winkler@gnu.org>
+
+	* faces.el (read-face-name): Use completing-read if arg multiple
+	is nil.
+
+2013-04-27  Ingo Lohmar  <i.lohmar@gmail.com>  (tiny change)
+
+	* ls-lisp.el (ls-lisp-insert-directory): If no files are
+	displayed, move point to after the totals line.
+	See http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00677.html
+	for the details.
+
 2013-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-autoload-ensure-default-file):
@@ -133,7 +602,7 @@
 	(opascal-parse-next-literal, opascal-debug-unparse-buffer):
 	Adjust callers.
 
-2013-04-24  Reuben Thomas <rrt@sc3d.org>
+2013-04-24  Reuben Thomas  <rrt@sc3d.org>
 
 	* textmodes/remember.el (remember-handler-functions): Add an
 	option for a new handler `remember-store-in-files'.

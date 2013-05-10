@@ -87,43 +87,6 @@
 ;; The command `cus-test-noloads' returns a list of variables which
 ;; are somewhere declared as custom options, but not loaded by
 ;; `custom-load-symbol'.
-;;
-;; Some results from October 2002:
-;;
-;; 4523 options tested
-;; The following variables might have problems:
-;; ps-mule-font-info-database-default
-;; grep-tree-command
-;; grep-find-command
-;;
-;; 288 features required
-;; 10 files loaded
-;; The following load problems appeared:
-;; (killing x-win (file-error Cannot open load file x-win))
-;; Symbol faces has loaddefs as custom dependency
-;; (reftex-index-support reftex-vars (void-function reftex-set-dirty))
-;; (eshell-script em-script (void-variable eshell-directory-name))
-;; (pcomplete em-cmpl (void-function eshell-under-windows-p))
-;; (eshell-ext esh-ext (void-function eshell-under-windows-p))
-;; ...
-;;
-;; 422 libraries had no load errors
-;; The following load problems appeared:
-;; (eudc-export error 255)
-;; (ada-xref error 255)
-;; (ada-stmt error 255)
-;;
-;; The following options were not loaded by custom-load-symbol:
-;; edt-bottom-scroll-margin
-;; edt-keep-current-page-delimiter
-;; edt-top-scroll-margin
-;; edt-use-EDT-control-key-bindings
-;; edt-word-entities
-;; grep-find-use-xargs
-;; master-mode-hook
-;; outline-level
-;; outline-minor-mode-hook
-;; refill-mode-hook
 
 
 ;;; Code:
@@ -136,24 +99,17 @@
 (defvar cus-test-skip-list nil
   "List of variables to disregard by `cus-test-apropos'.")
 
-(defvar cus-test-libs-noloads nil
-  "List of libraries not to load by `cus-test-load-libs'.")
-
-;; The file eudc-export.el loads libraries "bbdb" and "bbdb-com" which
-;; are not part of GNU Emacs:  (locate-library "bbdb") => nil
-;; We avoid the resulting errors from loading eudc-export.el:
-(provide 'bbdb)
-(provide 'bbdb-com)
+;; Loading dunnet in batch mode leads to a Dead end.
+(defvar cus-test-libs-noloads '("play/dunnet.el")
+  "List of files not to load by `cus-test-load-libs'.
+Names should be as they appear in loaddefs.el.")
 
 ;; This avoids a hang of `cus-test-apropos' in 21.2.
 ;; (add-to-list 'cus-test-skip-list 'sh-alias-alist)
 
-;; Loading dunnet in batch mode leads to a Dead end.
-(let (noninteractive) (load "dunnet"))
-(add-to-list 'cus-test-libs-noloads "dunnet")
-
-;; Never Viperize.
-(setq viper-mode nil)
+(or noninteractive
+    ;; Never Viperize.
+    (setq viper-mode nil))
 
 ;; Don't create a file `save-place-file'.
 (eval-after-load "saveplace"
@@ -302,49 +258,49 @@ The detected problematic options are stored in `cus-test-errors'."
 (defun cus-test-load-custom-loads ()
   "Call `custom-load-symbol' on all atoms."
   (interactive)
+  (if noninteractive (let (noninteractive) (require 'dunnet)))
   (mapatoms 'custom-load-symbol)
   (run-hooks 'cus-test-after-load-libs-hook))
 
+(defmacro cus-test-load-1 (&rest body)
+  `(progn
+     (setq cus-test-libs-errors nil
+	   cus-test-libs-loaded nil)
+     ,@body
+     (message "%s libraries loaded successfully"
+	      (length cus-test-libs-loaded))
+     (if (not cus-test-libs-errors)
+	 (message "No load problems encountered")
+       (message "The following load problems appeared:")
+       (cus-test-message cus-test-libs-errors))
+     (run-hooks 'cus-test-after-load-libs-hook)))
+
+;; This is just cus-test-libs, but loading in the current Emacs process.
 (defun cus-test-load-libs ()
   "Load the libraries with autoloads.
 Don't load libraries in `cus-test-libs-noloads'."
   (interactive)
-  (setq cus-test-libs-errors nil)
-  (setq cus-test-libs-loaded nil)
-  (mapc
-   (lambda (file)
-     (condition-case alpha
-	 (unless (member file cus-test-libs-noloads)
-	   (load file)
-	   (push file cus-test-libs-loaded))
-       (error
-	(push (cons file alpha) cus-test-libs-errors)
-	(message "Error for %s: %s" file alpha))))
-   (cus-test-get-autoload-deps))
-  (message "%s libraries loaded successfully"
-	   (length cus-test-libs-loaded))
-  (if (not cus-test-libs-errors)
-      (message "No load problems encountered")
-    (message "The following load problems appeared:")
-    (cus-test-message cus-test-libs-errors))
-  (run-hooks 'cus-test-after-load-libs-hook))
+  (cus-test-load-1
+   (let ((lispdir (file-name-directory (locate-library "loaddefs"))))
+     (mapc
+      (lambda (file)
+	(condition-case alpha
+	    (unless (member file cus-test-libs-noloads)
+	      (load (file-name-sans-extension (expand-file-name file lispdir)))
+	      (push file cus-test-libs-loaded))
+	  (error
+	   (push (cons file alpha) cus-test-libs-errors)
+	   (message "Error for %s: %s" file alpha))))
+      (cus-test-get-autoload-deps)))))
 
 (defun cus-test-get-autoload-deps ()
-  "Return the list of libraries with autoloads."
+  "Return the list of files with autoloads."
   (with-temp-buffer
     (insert-file-contents (locate-library "loaddefs"))
-    ;; This is from `customize-option'.
-    (let (deps file)
-      (while
-	  (search-forward "\n;;; Generated autoloads from " nil t)
-	(goto-char (match-end 0))
-	(setq file (buffer-substring (point)
-				     (progn (end-of-line) (point))))
-	(setq file (file-name-nondirectory file))
-	(string-match "\\.el\\'" file)
-	(setq file (substring file 0 (match-beginning 0)))
-	(setq deps (nconc deps (list file))))
-      deps)))
+    (let (files)
+      (while (search-forward "\n;;; Generated autoloads from " nil t)
+	(push (buffer-substring (match-end 0) (line-end-position)) files))
+      files)))
 
 (defun cus-test-message (list)
   "Print the members of LIST line by line."
@@ -392,7 +348,8 @@ in the Emacs source directory."
 	  ((symbolp load)
 	   ;; (condition-case nil (require load) (error nil))
 	   (condition-case alpha
-	       (unless (featurep load)
+	       (unless (or (featurep load)
+			   (and noninteractive (eq load 'dunnet)))
 		 (require load)
 		 (push (list symbol load) cus-test-deps-required))
 	     (error
@@ -449,42 +406,41 @@ in the Emacs source directory."
 This function is useful to detect load problems of libraries.
 It is suitable for batch mode.  E.g., invoke
 
-  src/emacs -batch -l admin/cus-test.el -f cus-test-libs
+  ./src/emacs -batch -l admin/cus-test.el -f cus-test-libs
 
 in the Emacs source directory."
   (interactive)
-  (with-temp-buffer
-    (setq cus-test-libs-errors nil)
-    (setq cus-test-libs-loaded nil)
-    (cd source-directory)
-    (if (not (file-executable-p "src/emacs"))
-	(error "No Emacs executable in %ssrc" default-directory))
-    (mapc
-     (lambda (file)
-       (condition-case alpha
-	   (let (fn cmd status)
-	     (setq fn (locate-library file))
-	     (if (not fn)
-		 (error "Library %s not found" file))
-	     (setq cmd (concat "src/emacs -batch -l " fn))
-	     (setq status (call-process shell-file-name nil nil nil
-					shell-command-switch cmd))
-	     (if (equal status 0)
-		 (message "%s" file)
-	       (error "%s" status))
-	     (push file cus-test-libs-loaded))
-	 (error
-	  (push (cons file alpha) cus-test-libs-errors)
-	  (message "Error for %s: %s" file alpha))))
-     (cus-test-get-autoload-deps))
-    (message "Default Directory: %s" default-directory)
-    (message "%s libraries had no load errors"
-	     (length cus-test-libs-loaded))
-    (if (not cus-test-libs-errors)
-	(message "No load problems encountered")
-      (message "The following load problems appeared:")
-      (cus-test-message cus-test-libs-errors))
-    (run-hooks 'cus-test-after-load-libs-hook)))
+  (cus-test-load-1
+   (let ((default-directory source-directory)
+	 (emacs (expand-file-name "src/emacs"))
+	 skipped)
+     (or (file-executable-p emacs)
+	 (error "No Emacs executable in %ssrc" default-directory))
+     (mapc
+      (lambda (file)
+	(if (member file cus-test-libs-noloads)
+	    (push file skipped)
+	  (condition-case alpha
+	      (let* ((fn (expand-file-name file "lisp/"))
+		     (elc (concat fn "c"))
+		     status)
+		(if (file-readable-p elc) ; load compiled if present (faster)
+		    (setq fn elc)
+		  (or (file-readable-p fn)
+		      (error "Library %s not found" file)))
+		(if (equal 0 (setq status (call-process emacs nil nil nil
+							"-batch" "-l" fn)))
+		    (message "%s" file)
+		  (error "%s" status))
+		(push file cus-test-libs-loaded))
+	    (error
+	     (push (cons file alpha) cus-test-libs-errors)
+	     (message "Error for %s: %s" file alpha)))))
+      (cus-test-get-autoload-deps))
+     (message "Default directory: %s" default-directory)
+     (when skipped
+       (message "The following libraries were skipped:")
+       (cus-test-message skipped)))))
 
 (defun cus-test-noloads ()
   "Find custom options not loaded by `custom-load-symbol'.
@@ -516,11 +472,6 @@ in the Emacs source directory."
       (message "The following options were not loaded by custom-load-symbol:")
       (cus-test-message
        (sort cus-test-vars-not-cus-loaded 'string<)))))
-
-;; And last but not least a quiz:
-;;
-;; Evaluation of the form (customize-option 'debug-on-error) yields a
-;; *Customize* buffer with a mismatch mess.  Why?
 
 (provide 'cus-test)
 

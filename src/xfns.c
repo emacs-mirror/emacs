@@ -59,6 +59,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "xsettings.h"
 
+#ifdef HAVE_XRANDR
+#include <X11/extensions/Xrandr.h>
+#endif
+#ifdef HAVE_XINERAMA
+#include <X11/extensions/Xinerama.h>
+#endif
+
 #ifdef USE_GTK
 #include "gtkutil.h"
 #endif
@@ -126,6 +133,7 @@ extern LWLIB_ID widget_id_tick;
 static Lisp_Object Qsuppress_icon;
 static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
+static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 Lisp_Object Qfont_param;
 
 #ifdef GLYPH_DEBUG
@@ -3791,6 +3799,575 @@ If omitted or nil, that stands for the selected frame's display.  */)
   else
     return Qnil;
 }
+
+/* Store the geometry of the workarea on display DPYINFO into *RECT.
+   Return false if and only if the workarea information cannot be
+   obtained via the _NET_WORKAREA root window property.  */
+
+#if ! (defined USE_GTK && GTK_PREREQ (3, 4))
+static bool
+x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
+{
+  Display *dpy = dpyinfo->display;
+  long offset, max_len;
+  Atom target_type, actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int rc, actual_format;
+  unsigned char *tmp_data = NULL;
+  bool result = false;
+
+  x_catch_errors (dpy);
+  offset = 0;
+  max_len = 1;
+  target_type = XA_CARDINAL;
+  rc = XGetWindowProperty (dpy, dpyinfo->root_window,
+			   dpyinfo->Xatom_net_current_desktop,
+			   offset, max_len, False, target_type,
+			   &actual_type, &actual_format, &actual_size,
+			   &bytes_remaining, &tmp_data);
+  if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
+      && actual_format == 32 && actual_size == max_len)
+    {
+      long current_desktop = ((long *) tmp_data)[0];
+
+      XFree (tmp_data);
+      tmp_data = NULL;
+
+      offset = 4 * current_desktop;
+      max_len = 4;
+      rc = XGetWindowProperty (dpy, dpyinfo->root_window,
+			       dpyinfo->Xatom_net_workarea,
+			       offset, max_len, False, target_type,
+			       &actual_type, &actual_format, &actual_size,
+			       &bytes_remaining, &tmp_data);
+      if (rc == Success && actual_type == target_type && !x_had_errors_p (dpy)
+	  && actual_format == 32 && actual_size == max_len)
+	{
+	  long *values = (long *) tmp_data;
+
+	  rect->x = values[0];
+	  rect->y = values[1];
+	  rect->width = values[2];
+	  rect->height = values[3];
+
+	  XFree (tmp_data);
+	  tmp_data = NULL;
+
+	  result = true;
+	}
+    }
+  if (tmp_data)
+    XFree (tmp_data);
+  x_uncatch_errors ();
+
+  return result;
+}
+#endif
+
+#ifndef USE_GTK
+
+struct MonitorInfo {
+  XRectangle geom, work;
+  int mm_width, mm_height;
+  char *name;
+};
+
+#if defined HAVE_XINERAMA || defined HAVE_XRANDR
+static void
+free_monitors (struct MonitorInfo *monitors, int n_monitors)
+{
+  int i;
+  for (i = 0; i < n_monitors; ++i)
+    xfree (monitors[i].name);
+  xfree (monitors);
+}
+#endif /* HAVE_XINERAMA || HAVE_XRANDR */
+
+
+/* Return monitor number where F is "most" or closest to.  */
+static int
+x_get_monitor_for_frame (struct frame *f,
+                         struct MonitorInfo *monitors,
+                         int n_monitors)
+{
+  XRectangle frect;
+  int area = 0, dist = -1;
+  int best_area = -1, best_dist = -1;
+  int i;
+
+  if (n_monitors == 1) return 0;
+  frect.x = f->left_pos;
+  frect.y = f->top_pos;
+  frect.width = FRAME_PIXEL_WIDTH (f);
+  frect.height = FRAME_PIXEL_HEIGHT (f);
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      struct MonitorInfo *mi = &monitors[i];
+      XRectangle res;
+      int a = 0;
+
+      if (mi->geom.width == 0) continue;
+
+      if (x_intersect_rectangles (&mi->geom, &frect, &res))
+        {
+          a = res.width * res.height;
+          if (a > area)
+	    {
+	      area = a;
+	      best_area = i;
+	    }
+        }
+
+      if (a == 0 && area == 0)
+        {
+          int dx, dy, d;
+          if (frect.x + frect.width < mi->geom.x)
+            dx = mi->geom.x - frect.x + frect.width;
+          else if (frect.x > mi->geom.x + mi->geom.width)
+            dx = frect.x - mi->geom.x + mi->geom.width;
+          else
+            dx = 0;
+          if (frect.y + frect.height < mi->geom.y)
+            dy = mi->geom.y - frect.y + frect.height;
+          else if (frect.y > mi->geom.y + mi->geom.height)
+            dy = frect.y - mi->geom.y + mi->geom.height;
+          else
+            dy = 0;
+
+          d = dx*dx + dy*dy;
+          if (dist == -1 || dist > d)
+            {
+              dist = d;
+              best_dist = i;
+            }
+        }
+    }
+
+  return best_area != -1 ? best_area : (best_dist != -1 ? best_dist : 0);
+}
+
+static Lisp_Object
+x_make_monitor_attribute_list (struct MonitorInfo *monitors,
+                               int n_monitors,
+                               int primary_monitor,
+                               struct x_display_info *dpyinfo,
+                               const char *source)
+{
+  Lisp_Object monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  Lisp_Object frame, rest, attributes_list = Qnil;
+  Lisp_Object primary_monitor_attributes = Qnil;
+  int i;
+
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *f = XFRAME (frame);
+
+      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo
+	  && !EQ (frame, tip_frame))
+	{
+	  i = x_get_monitor_for_frame (f, monitors, n_monitors);
+	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
+	}
+    }
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      Lisp_Object geometry, workarea, attributes = Qnil;
+      struct MonitorInfo *mi = &monitors[i];
+
+      if (mi->geom.width == 0) continue;
+
+      workarea = list4i (mi->work.x, mi->work.y,
+			 mi->work.width, mi->work.height);
+      geometry = list4i (mi->geom.x, mi->geom.y,
+			 mi->geom.width, mi->geom.height);
+      attributes = Fcons (Fcons (Qsource,
+                                 make_string (source, strlen (source))),
+                          attributes);
+      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
+			  attributes);
+      attributes = Fcons (Fcons (Qmm_size,
+                                 list2i (mi->mm_width, mi->mm_height)),
+                          attributes);
+      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
+      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
+      if (mi->name)
+        attributes = Fcons (Fcons (Qname, make_string (mi->name,
+                                                       strlen (mi->name))),
+                            attributes);
+
+      if (i == primary_monitor)
+        primary_monitor_attributes = attributes;
+      else
+        attributes_list = Fcons (attributes, attributes_list);
+    }
+
+  if (!NILP (primary_monitor_attributes))
+    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
+  return attributes_list;
+}
+
+static Lisp_Object
+x_get_monitor_attributes_fallback (struct x_display_info *dpyinfo)
+{
+  struct MonitorInfo monitor;
+  XRectangle workarea_r;
+
+  /* Fallback: treat (possibly) multiple physical monitors as if they
+     formed a single monitor as a whole.  This should provide a
+     consistent result at least on single monitor environments.  */
+  monitor.geom.x = monitor.geom.y = 0;
+  monitor.geom.width = x_display_pixel_width (dpyinfo);
+  monitor.geom.height = x_display_pixel_height (dpyinfo);
+  monitor.mm_width = WidthMMOfScreen (dpyinfo->screen);
+  monitor.mm_height = HeightMMOfScreen (dpyinfo->screen);
+  monitor.name = xstrdup ("combined screen");
+
+  if (x_get_net_workarea (dpyinfo, &workarea_r))
+    monitor.work = workarea_r;
+  else
+    monitor.work = monitor.geom;
+  return x_make_monitor_attribute_list (&monitor, 1, 0, dpyinfo, "fallback");
+}
+
+
+#ifdef HAVE_XINERAMA
+static Lisp_Object
+x_get_monitor_attributes_xinerama (struct x_display_info *dpyinfo)
+{
+  int n_monitors, i;
+  Lisp_Object attributes_list = Qnil;
+  Display *dpy = dpyinfo->display;
+  XineramaScreenInfo *info = XineramaQueryScreens (dpy, &n_monitors);
+  struct MonitorInfo *monitors;
+  double mm_width_per_pixel, mm_height_per_pixel;
+
+  if (! info || n_monitors == 0)
+    {
+      if (info)
+	XFree (info);
+      return attributes_list;
+    }
+
+  mm_width_per_pixel = ((double) WidthMMOfScreen (dpyinfo->screen)
+			/ x_display_pixel_width (dpyinfo));
+  mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
+			 / x_display_pixel_height (dpyinfo));
+  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+  for (i = 0; i < n_monitors; ++i)
+    {
+      struct MonitorInfo *mi = &monitors[i];
+      XRectangle workarea_r;
+
+      mi->geom.x = info[i].x_org;
+      mi->geom.y = info[i].y_org;
+      mi->geom.width = info[i].width;
+      mi->geom.height = info[i].height;
+      mi->mm_width = mi->geom.width * mm_width_per_pixel + 0.5;
+      mi->mm_height = mi->geom.height * mm_height_per_pixel + 0.5;
+      mi->name = 0;
+
+      /* Xinerama usually have primary monitor first, just use that.  */
+      if (i == 0 && x_get_net_workarea (dpyinfo, &workarea_r))
+	{
+	  mi->work = workarea_r;
+	  if (! x_intersect_rectangles (&mi->geom, &mi->work, &mi->work))
+	    mi->work = mi->geom;
+	}
+      else
+	mi->work = mi->geom;
+    }
+  XFree (info);
+
+  attributes_list = x_make_monitor_attribute_list (monitors,
+                                                   n_monitors,
+                                                   0,
+                                                   dpyinfo,
+                                                   "Xinerama");
+  free_monitors (monitors, n_monitors);
+  return attributes_list;
+}
+#endif /* HAVE_XINERAMA */
+
+
+#ifdef HAVE_XRANDR
+static Lisp_Object
+x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
+{
+  Lisp_Object attributes_list = Qnil;
+  XRRScreenResources *resources;
+  Display *dpy = dpyinfo->display;
+  int i, n_monitors, primary = -1;
+  RROutput pxid = None;
+  struct MonitorInfo *monitors;
+
+#ifdef HAVE_XRRGETSCREENRESOURCESCURRENT
+  resources = XRRGetScreenResourcesCurrent (dpy, dpyinfo->root_window);
+#else
+  resources = XRRGetScreenResources (dpy, dpyinfo->root_window);
+#endif
+  if (! resources || resources->noutput == 0)
+    {
+      if (resources)
+	XRRFreeScreenResources (resources);
+      return Qnil;
+    }
+  n_monitors = resources->noutput;
+  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+
+#ifdef HAVE_XRRGETOUTPUTPRIMARY
+  pxid = XRRGetOutputPrimary (dpy, dpyinfo->root_window);
+#endif
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      XRROutputInfo *info = XRRGetOutputInfo (dpy, resources,
+                                              resources->outputs[i]);
+      Connection conn = info ? info->connection : RR_Disconnected;
+      RRCrtc id = info ? info->crtc : None;
+
+      if (strcmp (info->name, "default") == 0)
+        {
+          /* Non XRandr 1.2 driver, does not give useful data.  */
+	  XRRFreeOutputInfo (info);
+	  XRRFreeScreenResources (resources);
+          free_monitors (monitors, n_monitors);
+          return Qnil;
+        }
+
+      if (conn != RR_Disconnected && id != None)
+        {
+          XRRCrtcInfo *crtc = XRRGetCrtcInfo (dpy, resources, id);
+          struct MonitorInfo *mi = &monitors[i];
+          XRectangle workarea_r;
+
+          if (! crtc)
+	    {
+	      XRRFreeOutputInfo (info);
+	      continue;
+	    }
+
+          mi->geom.x = crtc->x;
+          mi->geom.y = crtc->y;
+          mi->geom.width = crtc->width;
+          mi->geom.height = crtc->height;
+          mi->mm_width = info->mm_width;
+          mi->mm_height = info->mm_height;
+          mi->name = xstrdup (info->name);
+
+          if (pxid != None && pxid == resources->outputs[i])
+            primary = i;
+          else if (primary == -1 && strcmp (info->name, "LVDS") == 0)
+            primary = i;
+
+          if (i == primary && x_get_net_workarea (dpyinfo, &workarea_r))
+            {
+              mi->work= workarea_r;
+              if (! x_intersect_rectangles (&mi->geom, &mi->work, &mi->work))
+                mi->work = mi->geom;
+            }
+          else
+            mi->work = mi->geom;
+
+          XRRFreeCrtcInfo (crtc);
+        }
+      XRRFreeOutputInfo (info);
+    }
+  XRRFreeScreenResources (resources);
+
+  attributes_list = x_make_monitor_attribute_list (monitors,
+                                                   n_monitors,
+                                                   primary,
+                                                   dpyinfo,
+                                                   "XRandr");
+  free_monitors (monitors, n_monitors);
+  return attributes_list;
+}
+#endif /* HAVE_XRANDR */
+
+static Lisp_Object
+x_get_monitor_attributes (struct x_display_info *dpyinfo)
+{
+  Lisp_Object attributes_list = Qnil;
+  Display *dpy = dpyinfo->display;
+
+#ifdef HAVE_XRANDR
+  int xrr_event_base, xrr_error_base;
+  bool xrr_ok = false;
+  xrr_ok = XRRQueryExtension (dpy, &xrr_event_base, &xrr_error_base);
+  if (xrr_ok)
+    {
+      int xrr_major, xrr_minor;
+      XRRQueryVersion (dpy, &xrr_major, &xrr_minor);
+      xrr_ok = (xrr_major == 1 && xrr_minor >= 2) || xrr_major > 1;
+    }
+
+  if (xrr_ok)
+    attributes_list = x_get_monitor_attributes_xrandr (dpyinfo);
+#endif /* HAVE_XRANDR */
+
+#ifdef HAVE_XINERAMA
+  if (NILP (attributes_list))
+    {
+      int xin_event_base, xin_error_base;
+      bool xin_ok = false;
+      xin_ok = XineramaQueryExtension (dpy, &xin_event_base, &xin_error_base);
+      if (xin_ok && XineramaIsActive (dpy))
+        attributes_list = x_get_monitor_attributes_xinerama (dpyinfo);
+    }
+#endif /* HAVE_XINERAMA */
+
+  if (NILP (attributes_list))
+    attributes_list = x_get_monitor_attributes_fallback (dpyinfo);
+
+  return attributes_list;
+}
+
+#endif /* !USE_GTK */
+
+DEFUN ("x-display-monitor-attributes-list", Fx_display_monitor_attributes_list,
+       Sx_display_monitor_attributes_list,
+       0, 1, 0,
+       doc: /* Return a list of physical monitor attributes on the X display TERMINAL.
+
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+In addition to the standard attribute keys listed in
+`display-monitor-attributes-list', the following keys are contained in
+the attributes:
+
+ source -- String describing the source from which multi-monitor
+	   information is obtained, one of \"Gdk\", \"XRandr\",
+	   \"Xinerama\", or \"fallback\"
+
+Internal use only, use `display-monitor-attributes-list' instead.  */)
+  (Lisp_Object terminal)
+{
+  struct x_display_info *dpyinfo = check_x_display_info (terminal);
+  Lisp_Object attributes_list = Qnil;
+
+#ifdef USE_GTK
+  double mm_width_per_pixel, mm_height_per_pixel;
+  GdkDisplay *gdpy;
+  GdkScreen *gscreen;
+  gint primary_monitor = 0, n_monitors, i;
+  Lisp_Object primary_monitor_attributes = Qnil;
+  Lisp_Object monitor_frames, rest, frame;
+  static const char *source = "Gdk";
+
+  block_input ();
+  mm_width_per_pixel = ((double) WidthMMOfScreen (dpyinfo->screen)
+			/ x_display_pixel_width (dpyinfo));
+  mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
+			 / x_display_pixel_height (dpyinfo));
+  gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
+  gscreen = gdk_display_get_default_screen (gdpy);
+#if GTK_PREREQ (2, 20)
+  primary_monitor = gdk_screen_get_primary_monitor (gscreen);
+#endif
+  n_monitors = gdk_screen_get_n_monitors (gscreen);
+  monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *f = XFRAME (frame);
+
+      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo
+	  && !EQ (frame, tip_frame))
+	{
+	  GdkWindow *gwin = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+
+	  i = gdk_screen_get_monitor_at_window (gscreen, gwin);
+	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
+	}
+    }
+
+  i = n_monitors;
+  while (i-- > 0)
+    {
+      Lisp_Object geometry, workarea, attributes = Qnil;
+      gint width_mm = -1, height_mm = -1;
+      GdkRectangle rec;
+
+      attributes = Fcons (Fcons (Qsource,
+                                 make_string (source, strlen (source))),
+                          attributes);
+      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
+			  attributes);
+
+      gdk_screen_get_monitor_geometry (gscreen, i, &rec);
+      geometry = list4i (rec.x, rec.y, rec.width, rec.height);
+
+#if GTK_PREREQ (2, 14)
+      width_mm = gdk_screen_get_monitor_width_mm (gscreen, i);
+      height_mm = gdk_screen_get_monitor_height_mm (gscreen, i);
+#endif
+      if (width_mm < 0)
+	width_mm = rec.width * mm_width_per_pixel + 0.5;
+      if (height_mm < 0)
+	height_mm = rec.height * mm_height_per_pixel + 0.5;
+      attributes = Fcons (Fcons (Qmm_size,
+				 list2i (width_mm, height_mm)),
+			  attributes);
+
+#if GTK_PREREQ (3, 4)
+      gdk_screen_get_monitor_workarea (gscreen, i, &rec);
+      workarea = list4i (rec.x, rec.y, rec.width, rec.height);
+#else
+      /* Emulate the behavior of GTK+ 3.4.  */
+      {
+	XRectangle workarea_r;
+
+	workarea = Qnil;
+	if (i == primary_monitor && x_get_net_workarea (dpyinfo, &workarea_r))
+	  {
+	    GdkRectangle work;
+
+	    work.x = workarea_r.x;
+	    work.y = workarea_r.y;
+	    work.width = workarea_r.width;
+	    work.height = workarea_r.height;
+	    if (gdk_rectangle_intersect (&rec, &work, &work))
+	      workarea = list4i (work.x, work.y, work.width, work.height);
+	  }
+	if (NILP (workarea))
+	  workarea = geometry;
+      }
+#endif
+      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
+
+      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
+#if GTK_PREREQ (2, 14)
+      {
+        char *name = gdk_screen_get_monitor_plug_name (gscreen, i);
+        if (name)
+          attributes = Fcons (Fcons (Qname, make_string (name, strlen (name))),
+                              attributes);
+      }
+#endif
+
+      if (i == primary_monitor)
+	primary_monitor_attributes = attributes;
+      else
+	attributes_list = Fcons (attributes, attributes_list);
+    }
+
+  if (!NILP (primary_monitor_attributes))
+    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
+  unblock_input ();
+#else  /* not USE_GTK */
+
+  block_input ();
+  attributes_list = x_get_monitor_attributes (dpyinfo);
+  unblock_input ();
+
+#endif	/* not USE_GTK */
+
+  return attributes_list;
+}
+
 
 int
 x_pixel_width (register struct frame *f)
@@ -5701,6 +6278,11 @@ syms_of_xfns (void)
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcompound_text, "compound-text");
   DEFSYM (Qcancel_timer, "cancel-timer");
+  DEFSYM (Qgeometry, "geometry");
+  DEFSYM (Qworkarea, "workarea");
+  DEFSYM (Qmm_size, "mm-size");
+  DEFSYM (Qframes, "frames");
+  DEFSYM (Qsource, "source");
   DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
 
@@ -5864,6 +6446,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_display_visual_class);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
+  defsubr (&Sx_display_monitor_attributes_list);
   defsubr (&Sx_wm_set_size_hint);
   defsubr (&Sx_create_frame);
   defsubr (&Sx_open_connection);

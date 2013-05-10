@@ -930,8 +930,6 @@ If it is a file, return the corresponding cons for the file itself."
 
 (defvar use-vc-backend)  ;; dynamically bound
 
-;; Autoload cookie needed by desktop.el.
-;;;###autoload
 (define-derived-mode vc-dir-mode special-mode "VC dir"
   "Major mode for VC directory buffers.
 Marking/Unmarking key bindings and actions:

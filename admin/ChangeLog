@@ -1,3 +1,25 @@
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* cus-test.el: No need to provide bbdb, bbdb-com any more.
+	(cus-test-libs-noloads): Add dunnet in the defvar.
+	(dunnet): Don't always load it.
+	(viper-mode): Only set if interactive.
+	(cus-test-load-custom-loads): Load dunnet if necessary.
+	(cus-test-load-1): New macro, with common code from cus-test-load-libs
+	and cus-test-libs.
+	(cus-test-load-libs, cus-test-libs): Use cus-test-load-1 macro.
+	Update for cus-test-get-autoload-deps changed result.
+	(cus-test-get-autoload-deps): Simplify.  Return file names as they
+	appear in loaddefs.el (directory parts are needed now that not all
+	lisp subdirs are in load-path).
+	(cus-test-deps): Explicitly skip dunnet.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	* merge-gnulib (GNULIB_MODULES): Add qacl.
+	(GNULIB_TOOL_FLAGS): Do not avoid errno.
+
 2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use UTF-8 for most files with non-ASCII characters (Bug#13936).

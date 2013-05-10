@@ -803,8 +803,8 @@ and the cons cdr is used for TABs visualization.
 
 Used when `whitespace-style' includes `indentation',
 `indentation::tab' or  `indentation::space'."
-  :type '(cons (regexp :tag "Indentation SPACEs")
-	       (regexp :tag "Indentation TABs"))
+  :type '(cons (string :tag "Indentation SPACEs")
+	       (string :tag "Indentation TABs"))
   :group 'whitespace)
 
 
@@ -834,7 +834,8 @@ and the cons cdr is used for TABs visualization.
 
 Used when `whitespace-style' includes `space-after-tab',
 `space-after-tab::tab' or `space-after-tab::space'."
-  :type '(regexp :tag "SPACEs After TAB")
+  :type '(cons (string :tag "SPACEs After TAB")
+	       string)
   :group 'whitespace)
 
 

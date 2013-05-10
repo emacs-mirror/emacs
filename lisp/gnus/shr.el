@@ -52,7 +52,7 @@ fit these criteria."
   "Images that have URLs matching this regexp will be blocked."
   :version "24.1"
   :group 'shr
-  :type 'regexp)
+  :type '(choice (const nil) regexp))
 
 (defcustom shr-table-horizontal-line ?\s
   "Character used to draw horizontal table lines."

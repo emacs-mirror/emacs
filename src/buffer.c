@@ -5501,6 +5501,8 @@ This is the same as (default-value 'left-margin).  */);
   DEFVAR_BUFFER_DEFAULTS ("default-tab-width",
 			  tab_width,
 			  doc: /* Default value of `tab-width' for buffers that do not override it.
+NOTE: This controls the display width of a TAB character, and not
+the size of an indentation step.
 This is the same as (default-value 'tab-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-case-fold-search",
@@ -5692,6 +5694,8 @@ Linefeed indents to this column in Fundamental mode.  */);
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
 		     Qintegerp,
 		     doc: /* Distance between tab stops (for display of tab characters), in columns.
+NOTE: This controls the display width of a TAB character, and not
+the size of an indentation step.
 This should be an integer greater than zero.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &BVAR (current_buffer, ctl_arrow), Qnil,

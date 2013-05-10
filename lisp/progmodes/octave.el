@@ -24,15 +24,26 @@
 
 ;;; Commentary:
 
-;; This package provides emacs support for octave.  It defines a major
-;; mode for editing octave code and contains code for interacting with
-;; an inferior octave process using comint.
+;; This package provides emacs support for Octave.  It defines a major
+;; mode for editing Octave code and contains code for interacting with
+;; an inferior Octave process using comint.
 
 ;; See the documentation of `octave-mode' and `run-octave' for further
 ;; information on usage and customization.
 
 ;;; Code:
 (require 'comint)
+
+;;; For emacs < 24.3.
+(require 'newcomment)
+(eval-and-compile
+  (unless (fboundp 'user-error)
+    (defalias 'user-error 'error)))
+(eval-when-compile
+  (unless (fboundp 'setq-local)
+    (defmacro setq-local (var val)
+      "Set variable VAR to value VAL in current buffer."
+      (list 'set (list 'make-local-variable (list 'quote var)) val))))
 
 (defgroup octave nil
   "Editing Octave code."
@@ -42,54 +53,26 @@
 (define-obsolete-function-alias 'octave-submit-bug-report
   'report-emacs-bug "24.4")
 
-(define-abbrev-table 'octave-abbrev-table
-  (mapcar (lambda (e) (append e '(nil 0 t)))
-          '(("`a" "all_va_args")
-            ("`b" "break")
-            ("`cs" "case")
-            ("`ca" "catch")
-            ("`c" "continue")
-            ("`el" "else")
-            ("`eli" "elseif")
-            ("`et" "end_try_catch")
-            ("`eu" "end_unwind_protect")
-            ("`ef" "endfor")
-            ("`efu" "endfunction")
-            ("`ei" "endif")
-            ("`es" "endswitch")
-            ("`ew" "endwhile")
-            ("`f" "for")
-            ("`fu" "function")
-            ("`gl" "global")
-            ("`gp" "gplot")
-            ("`gs" "gsplot")
-            ("`if" "if ()")
-            ("`o" "otherwise")
-            ("`rp" "replot")
-            ("`r" "return")
-            ("`s" "switch")
-            ("`t" "try")
-            ("`u" "until ()")
-            ("`up" "unwind_protect")
-            ("`upc" "unwind_protect_cleanup")
-            ("`w" "while ()")))
+(define-abbrev-table 'octave-abbrev-table nil
   "Abbrev table for Octave's reserved words.
-Used in `octave-mode' and `inferior-octave-mode' buffers.
-All Octave abbrevs start with a grave accent (`)."
-  :regexp "\\(?:[^`]\\|^\\)\\(\\(?:\\<\\|`\\)\\w+\\)\\W*")
+Used in `octave-mode' and `inferior-octave-mode' buffers.")
 
 (defvar octave-comment-char ?#
   "Character to start an Octave comment.")
+
 (defvar octave-comment-start
   (string octave-comment-char ?\s)
   "String to insert to start a new Octave in-line comment.")
+
 (defvar octave-comment-start-skip "\\s<+\\s-*"
   "Regexp to match the start of an Octave comment up to its body.")
 
 (defvar octave-begin-keywords
   '("do" "for" "function" "if" "switch" "try" "unwind_protect" "while"))
+
 (defvar octave-else-keywords
   '("case" "catch" "else" "elseif" "otherwise" "unwind_protect_cleanup"))
+
 (defvar octave-end-keywords
   '("endfor" "endfunction" "endif" "endswitch" "end_try_catch"
     "end_unwind_protect" "endwhile" "until" "end"))
@@ -101,44 +84,6 @@ All Octave abbrevs start with a grave accent (`)."
 	  '("break" "continue" "end" "global" "persistent" "return"))
   "Reserved words in Octave.")
 
-(defvar octave-text-functions
-  '("casesen" "cd" "chdir" "clear" "diary" "dir" "document" "echo"
-    "edit_history" "format" "help" "history" "hold"
-    "load" "ls" "more" "run_history" "save" "type"
-    "which" "who" "whos")
-  "Text functions in Octave.")
-
-(defvar octave-variables
-  '("DEFAULT_EXEC_PATH" "DEFAULT_LOADPATH"
-    "EDITOR" "EXEC_PATH" "F_DUPFD" "F_GETFD" "F_GETFL" "F_SETFD"
-    "F_SETFL" "I" "IMAGE_PATH" "Inf" "J"
-    "NaN" "OCTAVE_VERSION" "O_APPEND" "O_CREAT" "O_EXCL"
-    "O_NONBLOCK" "O_RDONLY" "O_RDWR" "O_TRUNC" "O_WRONLY" "PAGER" "PS1"
-    "PS2" "PS4" "PWD" "SEEK_CUR" "SEEK_END" "SEEK_SET" "__F_DUPFD__"
-    "__F_GETFD__" "__F_GETFL__" "__F_SETFD__" "__F_SETFL__" "__I__"
-    "__Inf__" "__J__" "__NaN__" "__OCTAVE_VERSION__" "__O_APPEND__"
-    "__O_CREAT__" "__O_EXCL__" "__O_NONBLOCK__" "__O_RDONLY__"
-    "__O_RDWR__" "__O_TRUNC__" "__O_WRONLY__" "__PWD__" "__SEEK_CUR__"
-    "__SEEK_END__" "__SEEK_SET__" "__argv__" "__e__" "__eps__"
-    "__i__" "__inf__" "__j__" "__nan__" "__pi__"
-    "__program_invocation_name__" "__program_name__" "__realmax__"
-    "__realmin__" "__stderr__" "__stdin__" "__stdout__" "ans" "argv"
-    "beep_on_error" "completion_append_char"
-    "crash_dumps_octave_core" "default_save_format"
-    "e" "echo_executing_commands" "eps"
-    "error_text" "gnuplot_binary" "history_file"
-    "history_size" "ignore_function_time_stamp"
-    "inf" "nan" "nargin" "output_max_field_width" "output_precision"
-    "page_output_immediately" "page_screen_output" "pi"
-    "print_answer_id_name" "print_empty_dimensions"
-    "program_invocation_name" "program_name"
-    "realmax" "realmin" "return_last_computed_value" "save_precision"
-    "saving_history" "sighup_dumps_octave_core" "sigterm_dumps_octave_core"
-    "silent_functions" "split_long_rows" "stderr" "stdin" "stdout"
-    "string_fill_char" "struct_levels_to_print"
-    "suppress_verbose_help_message")
-  "Builtin variables in Octave.")
-
 (defvar octave-function-header-regexp
   (concat "^\\s-*\\_<\\(function\\)\\_>"
 	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\(?:\\w\\|\\s_\\)+\\)\\_>")
@@ -147,58 +92,11 @@ The string `function' and its name are given by the first and third
 parenthetical grouping.")
 
 
-(defvar octave-font-lock-keywords
-  (list
-   ;; Fontify all builtin keywords.
-   (cons (concat "\\_<\\("
-		 (regexp-opt (append octave-reserved-words
-                                     octave-text-functions))
-		 "\\)\\_>")
-	 'font-lock-keyword-face)
-   ;; Fontify all builtin operators.
-   (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
-	 (if (boundp 'font-lock-builtin-face)
-	     'font-lock-builtin-face
-	   'font-lock-preprocessor-face))
-   ;; Fontify all builtin variables.
-   (cons (concat "\\_<" (regexp-opt octave-variables) "\\_>")
-	 'font-lock-variable-name-face)
-   ;; Fontify all function declarations.
-   (list octave-function-header-regexp
-	 '(1 font-lock-keyword-face)
-	 '(3 font-lock-function-name-face nil t)))
-  "Additional Octave expressions to highlight.")
-
-(defun octave-syntax-propertize-function (start end)
-  (goto-char start)
-  (octave-syntax-propertize-sqs end)
-  (funcall (syntax-propertize-rules
-            ;; Try to distinguish the string-quotes from the transpose-quotes.
-            ("[[({,; ]\\('\\)"
-             (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
-           (point) end))
-
-(defun octave-syntax-propertize-sqs (end)
-  "Propertize the content/end of single-quote strings."
-  (when (eq (nth 3 (syntax-ppss)) ?\')
-    ;; A '..' string.
-    (when (re-search-forward
-           "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)\\($\\|[^']\\)" end 'move)
-      (goto-char (match-beginning 2))
-      (when (eq (char-before (match-beginning 1)) ?\\)
-        ;; Backslash cannot escape a single quote.
-        (put-text-property (1- (match-beginning 1)) (match-beginning 1)
-                           'syntax-table (string-to-syntax ".")))
-      (put-text-property (match-beginning 1) (match-end 1)
-                         'syntax-table (string-to-syntax "\"'")))))
-
-
 (defvar octave-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "`" 'octave-abbrev-start)
+    (define-key map "\M-." 'octave-find-definition)
     (define-key map "\e\n" 'octave-indent-new-comment-line)
     (define-key map "\M-\C-q" 'octave-indent-defun)
-    (define-key map "\C-c\C-b" 'octave-submit-bug-report)
     (define-key map "\C-c\C-p" 'octave-previous-code-line)
     (define-key map "\C-c\C-n" 'octave-next-code-line)
     (define-key map "\C-c\C-a" 'octave-beginning-of-line)
@@ -207,6 +105,8 @@ parenthetical grouping.")
     (define-key map "\C-c\M-\C-h" 'octave-mark-block)
     (define-key map "\C-c]" 'smie-close-block)
     (define-key map "\C-c/" 'smie-close-block)
+    (define-key map "\C-c;" 'octave-update-function-file-comment)
+    (define-key map "\C-hd" 'octave-help)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
@@ -241,7 +141,8 @@ parenthetical grouping.")
       ["Close Block"		smie-close-block t])
     ("Functions"
       ["Indent Function"	octave-indent-defun t]
-      ["Insert Function"	octave-insert-defun t])
+      ["Insert Function"	octave-insert-defun t]
+      ["Update function file comment" octave-update-function-file-comment t])
     "-"
     ("Debug"
       ["Send Current Line"	octave-send-line t]
@@ -254,16 +155,14 @@ parenthetical grouping.")
     "-"
     ["Indent Line"		indent-according-to-mode t]
     ["Complete Symbol"		completion-at-point t]
-    "-"
-    ["Toggle Abbrev Mode"	abbrev-mode
-     :style toggle :selected abbrev-mode]
     ["Toggle Auto-Fill Mode"	auto-fill-mode
      :style toggle :selected auto-fill-function]
     "-"
-    ["Submit Bug Report"	octave-submit-bug-report t]
-    "-"
     ["Describe Octave Mode"	describe-mode t]
-    ["Lookup Octave Index"	info-lookup-symbol t]))
+    ["Lookup Octave Index"	info-lookup-symbol t]
+    ["Customize Octave" (customize-group 'octave) t]
+    "-"
+    ["Submit Bug Report"	report-emacs-bug t]))
 
 (defvar octave-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -278,7 +177,7 @@ parenthetical grouping.")
     (modify-syntax-entry ?& "."   table)
     (modify-syntax-entry ?| "."   table)
     (modify-syntax-entry ?! "."   table)
-    (modify-syntax-entry ?\\ "\\" table)
+    (modify-syntax-entry ?\\ "."  table)
     (modify-syntax-entry ?\' "."  table)
     ;; Was "w" for abbrevs, but now that it's not necessary any more,
     (modify-syntax-entry ?\` "."  table)
@@ -298,6 +197,12 @@ parenthetical grouping.")
     (modify-syntax-entry ?\n ">"  table)
     table)
   "Syntax table in use in `octave-mode' buffers.")
+
+(defcustom octave-font-lock-texinfo-comment t
+  "Control whether to highlight the texinfo comment block."
+  :type 'boolean
+  :group 'octave
+  :version "24.4")
 
 (defcustom octave-blink-matching-block t
   "Control the blinking of matching Octave block keywords.
@@ -319,15 +224,17 @@ newline or semicolon after an else or end keyword."
   "Extra indentation applied to Octave continuation lines."
   :type 'integer
   :group 'octave)
+
 (eval-and-compile
   (defconst octave-continuation-marker-regexp "\\\\\\|\\.\\.\\."))
+
 (defvar octave-continuation-regexp
   (concat "[^#%\n]*\\(" octave-continuation-marker-regexp
           "\\)\\s-*\\(\\s<.*\\)?$"))
-(defcustom octave-continuation-string "\\"
-  "Character string used for Octave continuation lines.  Normally \\."
-  :type 'string
-  :group 'octave)
+
+;; Char \ is considered a bad decision for continuing a line.
+(defconst octave-continuation-string "..."
+  "Character string used for Octave continuation lines.")
 
 (defvar octave-mode-imenu-generic-expression
   (list
@@ -344,11 +251,13 @@ newline or semicolon after an else or end keyword."
   "Non-nil means display `inferior-octave-buffer' after sending to it."
   :type 'boolean
   :group 'octave)
+
 (defcustom octave-send-line-auto-forward t
   "Control auto-forward after sending to the inferior Octave process.
 Non-nil means always go to the next Octave code line after sending."
   :type 'boolean
   :group 'octave)
+
 (defcustom octave-send-echo-input t
   "Non-nil means echo input sent to the inferior Octave process."
   :type 'boolean
@@ -359,6 +268,7 @@ Non-nil means always go to the next Octave code line after sending."
 
 (require 'smie)
 
+;; Use '__operators__' in Octave REPL to get a full list.
 (defconst octave-operator-table
   '((assoc ";" "\n") (assoc ",") ; The doc claims they have equal precedence!?
     (right "=" "+=" "-=" "*=" "/=")
@@ -460,16 +370,18 @@ Non-nil means always go to the next Octave code line after sending."
     (goto-char (match-end 1))
     (forward-comment 1))
   (cond
-   ((and (looking-at "$\\|[%#]")
-         ;; Ignore it if it's within parentheses or if the newline does not end
-         ;; some preceding text.
-         (prog1 (and (not (smie-rule-bolp))
-		     (let ((ppss (syntax-ppss)))
-		       (not (and (nth 1 ppss)
-				 (eq ?\( (char-after (nth 1 ppss)))))))
-           (forward-comment (point-max))))
+   ((and (looking-at "[%#\n]")
+         (not (or (save-excursion (skip-chars-backward " \t")
+                                  ;; Only add implicit ; when needed.
+                                  (or (bolp) (eq (char-before) ?\;)))
+                  ;; Ignore it if it's within parentheses.
+                  (let ((ppss (syntax-ppss)))
+                    (and (nth 1 ppss)
+                         (eq ?\( (char-after (nth 1 ppss))))))))
+    (if (eolp) (forward-char 1) (forward-comment 1))
     ;; Why bother distinguishing \n and ;?
     ";") ;;"\n"
+   ((progn (forward-comment (point-max)) nil))
    ((looking-at ";[ \t]*\\($\\|[%#]\\)")
     ;; Combine the ; with the subsequent \n.
     (goto-char (match-beginning 1))
@@ -502,85 +414,75 @@ Non-nil means always go to the next Octave code line after sending."
        ;; (if (smie-parent-p "switch") 4)
        0))))
 
+
+(defvar octave-font-lock-keywords
+  (list
+   ;; Fontify all builtin keywords.
+   (cons (concat "\\_<\\("
+                 (regexp-opt octave-reserved-words)
+                 "\\)\\_>")
+         'font-lock-keyword-face)
+   ;; Note: 'end' also serves as the last index in an indexing expression.
+   ;; Ref: http://www.mathworks.com/help/matlab/ref/end.html
+   (list (lambda (limit)
+           (while (re-search-forward "\\_<end\\_>" limit 'move)
+             (let ((beg (match-beginning 0))
+                   (end (match-end 0)))
+               (unless (octave-in-string-or-comment-p)
+                 (unwind-protect
+                     (progn
+                       (goto-char beg)
+                       (backward-up-list)
+                       (when (memq (char-after) '(?\( ?\[ ?\{))
+                         (put-text-property beg end 'face nil)))
+                   (goto-char end)))))
+           nil))
+   ;; Fontify all operators.
+   (cons octave-operator-regexp 'font-lock-builtin-face)
+   ;; Fontify all function declarations.
+   (list octave-function-header-regexp
+         '(1 font-lock-keyword-face)
+         '(3 font-lock-function-name-face nil t)))
+  "Additional Octave expressions to highlight.")
+
+(defun octave-syntax-propertize-function (start end)
+  (goto-char start)
+  (octave-syntax-propertize-sqs end)
+  (funcall (syntax-propertize-rules
+            ("\\\\" (0 (when (eq (nth 3 (save-excursion
+                                          (syntax-ppss (match-beginning 0))))
+                                 ?\")
+                         (string-to-syntax "\\"))))
+            ;; Try to distinguish the string-quotes from the transpose-quotes.
+            ("\\(?:^\\|[[({,; ]\\)\\('\\)"
+             (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
+           (point) end))
+
+(defun octave-syntax-propertize-sqs (end)
+  "Propertize the content/end of single-quote strings."
+  (when (eq (nth 3 (syntax-ppss)) ?\')
+    ;; A '..' string.
+    (when (re-search-forward
+           "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)\\($\\|[^']\\)" end 'move)
+      (goto-char (match-beginning 2))
+      (when (eq (char-before (match-beginning 1)) ?\\)
+        ;; Backslash cannot escape a single quote.
+        (put-text-property (1- (match-beginning 1)) (match-beginning 1)
+                           'syntax-table (string-to-syntax ".")))
+      (put-text-property (match-beginning 1) (match-end 1)
+                         'syntax-table (string-to-syntax "\"'")))))
+
 (defvar electric-layout-rules)
 
 ;;;###autoload
 (define-derived-mode octave-mode prog-mode "Octave"
   "Major mode for editing Octave code.
 
-This mode makes it easier to write Octave code by helping with
-indentation, doing some of the typing for you (with Abbrev mode) and by
-showing keywords, comments, strings, etc. in different faces (with
-Font Lock mode on terminals that support it).
-
-Octave itself is a high-level language, primarily intended for numerical
-computations.  It provides a convenient command line interface for
-solving linear and nonlinear problems numerically.  Function definitions
-can also be stored in files, and it can be used in a batch mode (which
-is why you need this mode!).
-
-The latest released version of Octave is always available via anonymous
-ftp from ftp.octave.org in the directory `/pub/octave'.  Complete
-source and binaries for several popular systems are available.
-
-Type \\[list-abbrevs] to display the built-in abbrevs for Octave keywords.
-
-Keybindings
-===========
-
-\\{octave-mode-map}
-
-Variables you can use to customize Octave mode
-==============================================
-
-`octave-blink-matching-block'
-  Non-nil means show matching begin of block when inserting a space,
-  newline or semicolon after an else or end keyword.  Default is t.
-
-`octave-block-offset'
-  Extra indentation applied to statements in block structures.
-  Default is 2.
-
-`octave-continuation-offset'
-  Extra indentation applied to Octave continuation lines.
-  Default is 4.
-
-`octave-continuation-string'
-  String used for Octave continuation lines.
-  Default is a backslash.
-
-`octave-send-echo-input'
-  Non-nil means always display `inferior-octave-buffer' after sending a
-  command to the inferior Octave process.
-
-`octave-send-line-auto-forward'
-  Non-nil means always go to the next unsent line of Octave code after
-  sending a line to the inferior Octave process.
-
-`octave-send-echo-input'
-  Non-nil means echo input sent to the inferior Octave process.
-
-Turning on Octave mode runs the hook `octave-mode-hook'.
-
-To begin using this mode for all `.m' files that you edit, add the
-following lines to your init file:
-
-  (add-to-list 'auto-mode-alist '(\"\\\\.m\\\\'\" . octave-mode))
-
-To automatically turn on the abbrev and auto-fill features,
-add the following lines to your init file as well:
-
-  (add-hook 'octave-mode-hook
-	    (lambda ()
-	      (abbrev-mode 1)
-	      (auto-fill-mode 1)))
-
-To submit a problem report, enter \\[octave-submit-bug-report] from \
-an Octave mode buffer.
-This automatically sets up a mail buffer with version information
-already added.  You just need to add a description of the problem,
-including a reproducible test case and send the message."
-  (setq local-abbrev-table octave-abbrev-table)
+Octave is a high-level language, primarily intended for numerical
+computations.  It provides a convenient command line interface
+for solving linear and nonlinear problems numerically.  Function
+definitions can also be stored in files and used in batch mode."
+  :abbrev-table octave-abbrev-table
 
   (smie-setup octave-smie-grammar #'octave-smie-rules
               :forward-token  #'octave-smie-forward-token
@@ -621,13 +523,13 @@ including a reproducible test case and send the message."
 
   (setq-local syntax-propertize-function #'octave-syntax-propertize-function)
 
-  (setq imenu-generic-expression octave-mode-imenu-generic-expression)
-  (setq imenu-case-fold-search nil)
+  (setq-local imenu-generic-expression octave-mode-imenu-generic-expression)
+  (setq-local imenu-case-fold-search nil)
 
-  (add-hook 'completion-at-point-functions
-            'octave-completion-at-point-function nil t)
+  (add-hook 'completion-at-point-functions 'octave-completion-at-point nil t)
   (add-hook 'before-save-hook 'octave-sync-function-file-names nil t)
   (setq-local beginning-of-defun-function 'octave-beginning-of-defun)
+  (and octave-font-lock-texinfo-comment (octave-font-lock-texinfo-comment))
 
   (easy-menu-add octave-mode-menu))
 
@@ -648,13 +550,22 @@ including a reproducible test case and send the message."
   :type 'regexp
   :group 'octave)
 
-(defcustom inferior-octave-startup-file nil
+(defcustom inferior-octave-prompt-read-only comint-prompt-read-only
+  "If non-nil, the Octave prompt is read only.
+See `comint-prompt-read-only' for details."
+  :type 'boolean
+  :group 'octave
+  :version "24.4")
+
+(defcustom inferior-octave-startup-file
+  (convert-standard-filename
+   (concat "~/.emacs-" (file-name-nondirectory inferior-octave-program)))
   "Name of the inferior Octave startup file.
 The contents of this file are sent to the inferior Octave process on
 startup."
-  :type '(choice (const :tag "None" nil)
-		 file)
-  :group 'octave)
+  :type '(choice (const :tag "None" nil) file)
+  :group 'octave
+  :version "24.4")
 
 (defcustom inferior-octave-startup-args nil
   "List of command line arguments for the inferior Octave process.
@@ -673,7 +584,10 @@ mode, set this to (\"-q\" \"--traditional\")."
 (defvar inferior-octave-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map comint-mode-map)
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\M-." 'octave-find-definition)
+    (define-key map "\t" 'completion-at-point)
+    (define-key map "\C-hd" 'octave-help)
+    ;; Same as in `shell-mode'.
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\C-c\C-l" 'inferior-octave-dynamic-list-input-ring)
     (define-key map [menu-bar inout list-history]
@@ -692,28 +606,12 @@ mode, set this to (\"-q\" \"--traditional\")."
   ;; Could certainly do more font locking in inferior Octave ...
   "Additional expressions to highlight in Inferior Octave mode.")
 
-
-;;; Compatibility functions
-(if (not (fboundp 'comint-line-beginning-position))
-    ;; comint-line-beginning-position is defined in Emacs 21
-    (defun comint-line-beginning-position ()
-      "Returns the buffer position of the beginning of the line, after any prompt.
-The prompt is assumed to be any text at the beginning of the line matching
-the regular expression `comint-prompt-regexp', a buffer local variable."
-      (save-excursion (comint-bol nil) (point))))
-
-
 (defvar inferior-octave-output-list nil)
 (defvar inferior-octave-output-string nil)
 (defvar inferior-octave-receive-in-progress nil)
 
-(defvar inferior-octave-startup-hook nil)
-
-(defvar inferior-octave-complete-impossible nil
-  "Non-nil means that `inferior-octave-complete' is impossible.")
-
-(defvar inferior-octave-has-built-in-variables nil
-  "Non-nil means that Octave has built-in variables.")
+(define-obsolete-variable-alias 'inferior-octave-startup-hook
+  'inferior-octave-mode-hook "24.4")
 
 (defvar inferior-octave-dynamic-complete-functions
   '(inferior-octave-completion-at-point comint-filename-completion)
@@ -724,15 +622,9 @@ in the Inferior Octave buffer.")
 (defvar info-lookup-mode)
 
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
-  "Major mode for interacting with an inferior Octave process.
-Runs Octave as a subprocess of Emacs, with Octave I/O through an Emacs
-buffer.
-
-Entry to this mode successively runs the hooks `comint-mode-hook' and
-`inferior-octave-mode-hook'."
-  (setq comint-prompt-regexp inferior-octave-prompt
-	mode-line-process '(":%s")
-	local-abbrev-table octave-abbrev-table)
+  "Major mode for interacting with an inferior Octave process."
+  :abbrev-table octave-abbrev-table
+  (setq comint-prompt-regexp inferior-octave-prompt)
 
   (setq-local comment-start octave-comment-start)
   (setq-local comment-end "")
@@ -741,15 +633,16 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
 
   (setq font-lock-defaults '(inferior-octave-font-lock-keywords nil nil))
 
-  (setq info-lookup-mode 'octave-mode)
+  (setq-local info-lookup-mode 'octave-mode)
 
   (setq comint-input-ring-file-name
 	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
 	comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
   (setq-local comint-dynamic-complete-functions
               inferior-octave-dynamic-complete-functions)
+  (setq-local comint-prompt-read-only inferior-octave-prompt-read-only)
   (add-hook 'comint-input-filter-functions
-	'inferior-octave-directory-tracker nil t)
+            'inferior-octave-directory-tracker nil t)
   (comint-read-input-ring t))
 
 ;;;###autoload
@@ -766,16 +659,14 @@ Additional commands to be executed on startup can be provided either in
 the file specified by `inferior-octave-startup-file' or by the default
 startup file, `~/.emacs-octave'."
   (interactive "P")
-  (let ((buffer inferior-octave-buffer))
-    (get-buffer-create buffer)
-    (if (comint-check-proc buffer)
-	()
+  (let ((buffer (get-buffer-create inferior-octave-buffer)))
+    (unless (comint-check-proc buffer)
       (with-current-buffer buffer
-	(comint-mode)
-	(inferior-octave-startup)
-	(inferior-octave-mode)))
-    (if (not arg)
-	(pop-to-buffer buffer))))
+        (inferior-octave-startup)
+        (inferior-octave-mode)))
+    (unless arg
+      (pop-to-buffer buffer))
+    buffer))
 
 ;;;###autoload
 (defalias 'run-octave 'inferior-octave)
@@ -783,17 +674,16 @@ startup file, `~/.emacs-octave'."
 (defun inferior-octave-startup ()
   "Start an inferior Octave process."
   (let ((proc (comint-exec-1
-	       (substring inferior-octave-buffer 1 -1)
-	       inferior-octave-buffer
-	       inferior-octave-program
-	       (append (list "-i" "--no-line-editing")
-		       inferior-octave-startup-args))))
+               (substring inferior-octave-buffer 1 -1)
+               inferior-octave-buffer
+               inferior-octave-program
+               (append (list "-i" "--no-line-editing")
+                       inferior-octave-startup-args))))
     (set-process-filter proc 'inferior-octave-output-digest)
-    (setq comint-ptyp process-connection-type
-	  inferior-octave-process proc
-	  inferior-octave-output-list nil
-	  inferior-octave-output-string nil
-	  inferior-octave-receive-in-progress t)
+    (setq inferior-octave-process proc
+          inferior-octave-output-list nil
+          inferior-octave-output-string nil
+          inferior-octave-receive-in-progress t)
 
     ;; This may look complicated ... However, we need to make sure that
     ;; we additional startup code only AFTER Octave is ready (otherwise,
@@ -807,84 +697,64 @@ startup file, `~/.emacs-octave'."
      (concat
       (if (not (bobp)) "\n")
       (if inferior-octave-output-list
-	  (concat (mapconcat
-		   'identity inferior-octave-output-list "\n")
-		  "\n"))))
-
-     ;; Find out whether Octave has built-in variables.
-     (inferior-octave-send-list-and-digest
-      (list "exist \"LOADPATH\"\n"))
-     (setq inferior-octave-has-built-in-variables
- 	  (string-match "101$" (car inferior-octave-output-list)))
+          (concat (mapconcat
+                   'identity inferior-octave-output-list "\n")
+                  "\n"))))
 
     ;; An empty secondary prompt, as e.g. obtained by '--braindead',
     ;; means trouble.
     (inferior-octave-send-list-and-digest (list "PS2\n"))
-    (if (string-match "\\(PS2\\|ans\\) = *$" (car inferior-octave-output-list))
- 	(inferior-octave-send-list-and-digest
- 	 (list (if inferior-octave-has-built-in-variables
- 		   "PS2 = \"> \"\n"
- 		 "PS2 (\"> \");\n"))))
+    (when (string-match "\\(PS2\\|ans\\) = *$"
+                        (car inferior-octave-output-list))
+      (inferior-octave-send-list-and-digest (list "PS2 (\"> \");\n")))
 
-    ;; O.k., now we are ready for the Inferior Octave startup commands.
-    (let* (commands
-	   (program (file-name-nondirectory inferior-octave-program))
-	   (file (or inferior-octave-startup-file
-			  (concat "~/.emacs-" program))))
-      (setq commands
-	    (list "more off;\n"
-		  (if (not (string-equal
-			    inferior-octave-output-string ">> "))
-		      (if inferior-octave-has-built-in-variables
-			  "PS1=\"\\\\s> \";\n"
-			"PS1 (\"\\\\s> \");\n"))
-		  (if (file-exists-p file)
-		      (format "source (\"%s\");\n" file))))
-      (inferior-octave-send-list-and-digest commands))
+    ;; O.K., now we are ready for the Inferior Octave startup commands.
+    (inferior-octave-send-list-and-digest
+     (list "more off;\n"
+           (unless (equal inferior-octave-output-string ">> ")
+             "PS1 (\"\\\\s> \");\n")
+           (when (and inferior-octave-startup-file
+                      (file-exists-p inferior-octave-startup-file))
+             (format "source (\"%s\");\n" inferior-octave-startup-file))))
     (insert-before-markers
      (concat
       (if inferior-octave-output-list
-	  (concat (mapconcat
-		   'identity inferior-octave-output-list "\n")
-		  "\n"))
+          (concat (mapconcat
+                   'identity inferior-octave-output-list "\n")
+                  "\n"))
       inferior-octave-output-string))
-    ;; Next, we check whether Octave supports `completion_matches' ...
-    (inferior-octave-send-list-and-digest
-     (list "exist \"completion_matches\"\n"))
-    (setq inferior-octave-complete-impossible
-	  (not (string-match "5$" (car inferior-octave-output-list))))
 
     ;; And finally, everything is back to normal.
-    (set-process-filter proc 'inferior-octave-output-filter)
-    (run-hooks 'inferior-octave-startup-hook)
-    (run-hooks 'inferior-octave-startup-hook)
+    (set-process-filter proc 'comint-output-filter)
     ;; Just in case, to be sure a cd in the startup file
     ;; won't have detrimental effects.
-    (inferior-octave-resync-dirs)))
+    (inferior-octave-resync-dirs)
+    ;; A trick to get the prompt highlighted.
+    (comint-send-string proc "\n")))
 
 (defun inferior-octave-completion-table ()
-  (unless inferior-octave-complete-impossible
-    (completion-table-dynamic
-     (lambda (command)
-       (inferior-octave-send-list-and-digest
-        (list (concat "completion_matches (\"" command "\");\n")))
-       (sort (delete-dups inferior-octave-output-list)
-             'string-lessp)))))
+  (completion-table-dynamic
+   (lambda (command)
+     (inferior-octave-send-list-and-digest
+      (list (concat "completion_matches (\"" command "\");\n")))
+     (sort (delete-dups inferior-octave-output-list)
+           'string-lessp))))
 
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
-  (let* ((end (point))
+  ;; http://debbugs.gnu.org/14300
+  (let* ((filecomp (string-match-p
+                    "/" (or (comint--match-partial-filename) "")))
+         (end (point))
 	 (start
-	  (save-excursion
-	    (skip-syntax-backward "w_" (comint-line-beginning-position))
-            (point))))
-    (cond ((eq start end) nil)
-	  (inferior-octave-complete-impossible
-           (message (concat
-                     "Your Octave does not have `completion_matches'.  "
-                     "Please upgrade to version 2.X."))
-           nil)
-	  (t (list start end (inferior-octave-completion-table))))))
+	  (unless filecomp
+            (save-excursion
+              (skip-syntax-backward "w_" (comint-line-beginning-position))
+              (point)))))
+    (when (and start (> end start))
+      (list start end (completion-table-in-turn
+                       (inferior-octave-completion-table)
+                       'comint-completion-file-name-table)))))
 
 (define-obsolete-function-alias 'inferior-octave-complete
   'completion-at-point "24.1")
@@ -916,21 +786,6 @@ startup file, `~/.emacs-octave'."
             (set-window-configuration conf)
           (setq unread-command-events (list ch)))))))
 
-(defun inferior-octave-strip-ctrl-g (string)
-  "Strip leading `^G' character.
-If STRING starts with a `^G', ring the bell and strip it."
-  (if (string-match "^\a" string)
-      (progn
-        (ding)
-        (setq string (substring string 1))))
-  string)
-
-(defun inferior-octave-output-filter (proc string)
-  "Standard output filter for the inferior Octave process.
-Ring Emacs bell if process output starts with an ASCII bell, and pass
-the rest to `comint-output-filter'."
-  (comint-output-filter proc (inferior-octave-strip-ctrl-g string)))
-
 (defun inferior-octave-output-digest (_proc string)
   "Special output filter for the inferior Octave process.
 Save all output between newlines into `inferior-octave-output-list', and
@@ -949,6 +804,10 @@ the rest to `inferior-octave-output-string'."
   "Send LIST to the inferior Octave process and digest the output.
 The elements of LIST have to be strings and are sent one by one.  All
 output is passed to the filter `inferior-octave-output-digest'."
+  (or (and inferior-octave-process
+           (process-live-p inferior-octave-process))
+      (error (substitute-command-keys
+              "No inferior octave process running. Type \\[run-octave]")))
   (let* ((proc inferior-octave-process)
 	 (filter (process-filter proc))
 	 string)
@@ -971,7 +830,8 @@ Use \\[inferior-octave-resync-dirs] to resync if Emacs gets confused."
    ((string-match "^[ \t]*cd[ \t;]*$" string)
     (cd "~"))
    ((string-match "^[ \t]*cd[ \t]+\\([^ \t\n;]*\\)[ \t\n;]*" string)
-    (cd (substring string (match-beginning 1) (match-end 1))))))
+    (with-demoted-errors             ; in case directory doesn't exist
+      (cd (substring string (match-beginning 1) (match-end 1)))))))
 
 (defun inferior-octave-resync-dirs ()
   "Resync the buffer's idea of the current directory.
@@ -1010,25 +870,171 @@ directory and makes this the current buffer's default directory."
     (delete-horizontal-space)
     (insert (concat " " octave-continuation-string))))
 
+(defun octave-completing-read ()
+  (let ((def (or (thing-at-point 'symbol)
+                 (save-excursion
+                   (skip-syntax-backward "-(")
+                   (thing-at-point 'symbol)))))
+    (completing-read
+     (format (if def "Function (default %s): "
+               "Function: ") def)
+     (inferior-octave-completion-table)
+     nil nil nil nil def)))
+
+(defun octave-goto-function-definition ()
+  "Go to the first function definition."
+  (when (save-excursion
+          (goto-char (point-min))
+          (re-search-forward octave-function-header-regexp nil t))
+    (goto-char (match-beginning 3))
+    (match-string 3)))
+
+(defun octave-function-file-p ()
+  "Return non-nil if the first token is \"function\".
+The value is (START END NAME-START NAME-END) of the function."
+  (save-excursion
+    (goto-char (point-min))
+    (when (equal (funcall smie-forward-token-function) "function")
+      (forward-word -1)
+      (let* ((start (point))
+             (end (progn (forward-sexp 1) (point)))
+             (name (when (progn
+                           (goto-char start)
+                           (re-search-forward octave-function-header-regexp
+                                              end t))
+                     (list (match-beginning 3) (match-end 3)))))
+        (cons start (cons end name))))))
+
+;; Like forward-comment but stop at non-comment blank
+(defun octave-skip-comment-forward (limit)
+  (let ((ppss (syntax-ppss)))
+    (if (nth 4 ppss)
+        (goto-char (nth 8 ppss))
+      (goto-char (or (comment-search-forward limit t) (point)))))
+  (while (and (< (point) limit) (looking-at-p "\\s<"))
+    (forward-comment 1)))
+
+;;; First non-copyright comment block
+(defun octave-function-file-comment ()
+  "Beginning and end positions of the function file comment."
+  (save-excursion
+    (goto-char (point-min))
+    ;; Copyright block: octave/libinterp/parse-tree/lex.ll around line 1634
+    (while (save-excursion
+             (when (comment-search-forward (point-max) t)
+               (when (eq (char-after) ?\{) ; case of block comment
+                 (forward-char 1))
+               (skip-syntax-forward "-")
+               (let ((case-fold-search t))
+                 (looking-at-p "\\(?:copyright\\|author\\)\\_>"))))
+      (octave-skip-comment-forward (point-max)))
+    (let ((beg (comment-search-forward (point-max) t)))
+      (when beg
+        (goto-char beg)
+        (octave-skip-comment-forward (point-max))
+        (list beg (point))))))
+
 (defun octave-sync-function-file-names ()
   "Ensure function name agree with function file name.
 See Info node `(octave)Function Files'."
   (interactive)
+  (when buffer-file-name
+    (pcase-let ((`(,start ,_end ,name-start ,name-end)
+                 (octave-function-file-p)))
+      (when (and start name-start)
+        (let* ((func (buffer-substring name-start name-end))
+               (file (file-name-sans-extension
+                      (file-name-nondirectory buffer-file-name)))
+               (help-form (format "\
+a: Use function name `%s'
+b: Use file name `%s'
+q: Don't fix\n" func file))
+               (c (unless (equal file func)
+                    (save-window-excursion
+                      (help-form-show)
+                      (read-char-choice
+                       "Which name to use? (a/b/q) " '(?a ?b ?q))))))
+          (pcase c
+            (`?a (let ((newname (expand-file-name
+                                 (concat func (file-name-extension
+                                               buffer-file-name t)))))
+                   (when (or (not (file-exists-p newname))
+                             (yes-or-no-p
+                              (format "Target file %s exists; proceed? " newname)))
+                     (when (file-exists-p buffer-file-name)
+                       (rename-file buffer-file-name newname t))
+                     (set-visited-file-name newname))))
+            (`?b (save-excursion
+                   (goto-char name-start)
+                   (delete-region name-start name-end)
+                   (insert file)))))))))
+
+(defun octave-update-function-file-comment (beg end)
+  "Query replace function names in function file comment."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (if (use-region-p)
+         (list (region-beginning) (region-end))
+       (or (octave-function-file-comment)
+           (error "No function file comment found")))))
   (save-excursion
-    (when (and buffer-file-name
-               (prog2
-                   (goto-char (point-min))
-                   (equal (funcall smie-forward-token-function) "function")
-                 (forward-word -1)))
-      (let ((file (file-name-sans-extension
-                   (file-name-nondirectory buffer-file-name)))
-            (func (and (re-search-forward octave-function-header-regexp nil t)
-                       (match-string 3))))
-        (when (and func
-                   (not (equal file func))
-                   (yes-or-no-p
-                    "Function name different from file name. Fix? "))
-          (replace-match file nil nil nil 3))))))
+    (let* ((bounds (or (octave-function-file-p)
+                       (error "Not in a function file buffer")))
+           (func (if (cddr bounds)
+                     (apply #'buffer-substring (cddr bounds))
+                   (error "Function name not found")))
+           (old-func (progn
+                       (goto-char beg)
+                       (when (re-search-forward
+                              "[=}]\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+                              (min (line-end-position 4) end)
+                              t)
+                         (match-string 1))))
+           (old-func (read-string (format (if old-func
+                                              "Name to replace (default %s): "
+                                            "Name to replace: ")
+                                          old-func)
+                                  nil nil old-func)))
+      (if (and func old-func (not (equal func old-func)))
+          (perform-replace old-func func 'query
+                           nil 'delimited nil nil beg end)
+        (message "Function names match")))))
+
+(defface octave-function-comment-block
+  '((t (:inherit font-lock-doc-face)))
+  "Face used to highlight function comment block."
+  :group 'octave)
+
+(eval-when-compile (require 'texinfo))
+
+(defun octave-font-lock-texinfo-comment ()
+  (let ((kws
+         (eval-when-compile
+           (delq nil (mapcar
+                      (lambda (kw)
+                        (if (numberp (nth 1 kw))
+                            `(,(nth 0 kw) ,(nth 1 kw) ,(nth 2 kw) prepend)
+                          (message "Ignoring Texinfo highlight: %S" kw)))
+                      texinfo-font-lock-keywords)))))
+    (font-lock-add-keywords
+     nil
+     `((,(lambda (limit)
+           (while (and (search-forward "-*- texinfo -*-" limit t)
+                       (octave-in-comment-p))
+             (let ((beg (nth 8 (syntax-ppss)))
+                   (end (progn
+                          (octave-skip-comment-forward (point-max))
+                          (point))))
+               (put-text-property beg end 'font-lock-multiline t)
+               (font-lock-prepend-text-property
+                beg end 'face 'octave-function-comment-block)
+               (dolist (kw kws)
+                 (goto-char beg)
+                 (while (re-search-forward (car kw) end 'move)
+                   (font-lock-apply-highlight (cdr kw))))))
+           nil)))
+     'append)))
 
 
 ;;; Indentation
@@ -1305,7 +1311,7 @@ otherwise."
 
 ;;; Completions
 
-(defun octave-completion-at-point-function ()
+(defun octave-completion-at-point ()
   "Find the text to complete and the corresponding table."
   (let* ((beg (save-excursion (skip-syntax-backward "w_") (point)))
          (end (point)))
@@ -1313,33 +1319,16 @@ otherwise."
         ;; Extend region past point, if applicable.
         (save-excursion (skip-syntax-forward "w_")
                         (setq end (point))))
-    (list beg end (or (and inferior-octave-process
-                           (process-live-p inferior-octave-process)
-                           (inferior-octave-completion-table))
-                      (append octave-reserved-words
-                              octave-text-functions
-                              octave-variables)))))
+    (when (> end beg)
+      (list beg end (or (and inferior-octave-process
+                             (process-live-p inferior-octave-process)
+                             (inferior-octave-completion-table))
+                        octave-reserved-words)))))
 
 (define-obsolete-function-alias 'octave-complete-symbol
   'completion-at-point "24.1")
 
 ;;; Electric characters && friends
-
-(defun octave-abbrev-start ()
-  "Start entering an Octave abbreviation.
-If Abbrev mode is turned on, typing ` (grave accent) followed by ? or
-\\[help-command] lists all Octave abbrevs.  Any other key combination is
-executed normally.
-Note that all Octave mode abbrevs start with a grave accent."
-  (interactive)
-  (self-insert-command 1)
-  (when abbrev-mode
-    (set-temporary-overlay-map
-     (let ((map (make-sparse-keymap)))
-       (define-key map [??] 'list-abbrevs)
-       (define-key map (vector help-char) 'list-abbrevs)
-       map))))
-
 (define-skeleton octave-insert-defun
   "Insert an Octave function skeleton.
 Prompt for the function's name, arguments and return values (to be
@@ -1356,10 +1345,11 @@ entered without parens)."
              (t (concat vals " = ")))
             name
             args))
-  \n "function " > str \n \n
-  octave-block-comment-start "usage: " str \n
-  octave-block-comment-start \n octave-block-comment-start
-  \n _ \n
+  \n octave-block-comment-start "usage: " str \n
+  octave-block-comment-start '(delete-horizontal-space) \n
+  octave-block-comment-start '(delete-horizontal-space) \n
+  "function " > str \n
+  _ \n
   "endfunction" > \n)
 
 ;;; Communication with the inferior Octave process
@@ -1392,27 +1382,26 @@ entered without parens)."
   (interactive "r")
   (inferior-octave t)
   (let ((proc inferior-octave-process)
-	(string (buffer-substring-no-properties beg end))
-	line)
+        (string (buffer-substring-no-properties beg end))
+        line)
     (with-current-buffer inferior-octave-buffer
       (setq inferior-octave-output-list nil)
       (while (not (string-equal string ""))
-	(if (string-match "\n" string)
-	    (setq line (substring string 0 (match-beginning 0))
-		  string (substring string (match-end 0)))
-	  (setq line string string ""))
-	(setq inferior-octave-receive-in-progress t)
-	(inferior-octave-send-list-and-digest (list (concat line "\n")))
-	(while inferior-octave-receive-in-progress
-	  (accept-process-output proc))
-	(insert-before-markers
-	 (mapconcat 'identity
-		    (append
-		     (if octave-send-echo-input (list line) (list ""))
-		     (mapcar 'inferior-octave-strip-ctrl-g
-			     inferior-octave-output-list)
-		     (list inferior-octave-output-string))
-		    "\n")))))
+        (if (string-match "\n" string)
+            (setq line (substring string 0 (match-beginning 0))
+                  string (substring string (match-end 0)))
+          (setq line string string ""))
+        (setq inferior-octave-receive-in-progress t)
+        (inferior-octave-send-list-and-digest (list (concat line "\n")))
+        (while inferior-octave-receive-in-progress
+          (accept-process-output proc))
+        (insert-before-markers
+         (mapconcat 'identity
+                    (append
+                     (if octave-send-echo-input (list line) (list ""))
+                     inferior-octave-output-list
+                     (list inferior-octave-output-string))
+                    "\n")))))
   (if octave-send-show-buffer
       (display-buffer inferior-octave-buffer)))
 
@@ -1464,6 +1453,102 @@ code line."
 		      "\n")))
        (mapconcat 'identity inferior-octave-output-list "\n")))
     (terpri)))
+
+
+
+(defcustom octave-help-buffer "*Octave Help*"
+  "Buffer name for `octave-help'."
+  :type 'string
+  :group 'octave
+  :version "24.4")
+
+(define-button-type 'octave-help-file
+  'follow-link t
+  'action #'help-button-action
+  'help-function 'octave-find-definition)
+
+(define-button-type 'octave-help-function
+  'follow-link t
+  'action (lambda (b)
+            (octave-help
+             (buffer-substring (button-start b) (button-end b)))))
+
+(defvar help-xref-following)
+
+(defun octave-help (fn)
+  "Display the documentation of FN."
+  (interactive (list (octave-completing-read)))
+  (inferior-octave-send-list-and-digest
+   (list (format "help \"%s\"\n" fn)))
+  (let ((lines inferior-octave-output-list))
+    (when (string-match "error: \\(.*\\)$" (car lines))
+      (error "%s" (match-string 1 (car lines))))
+    (with-help-window octave-help-buffer
+      (princ (mapconcat 'identity lines "\n"))
+      (with-current-buffer octave-help-buffer
+        ;; Bound to t so that `help-buffer' returns current buffer for
+        ;; `help-setup-xref'.
+        (let ((help-xref-following t))
+          (help-setup-xref (list 'octave-help fn)
+                           (called-interactively-p 'interactive)))
+        (setq-local info-lookup-mode 'octave-mode)
+        ;; Note: can be turned off by suppress_verbose_help_message.
+        ;;
+        ;; Remove boring trailing text: Additional help for built-in functions
+        ;; and operators ...
+        (goto-char (point-max))
+        (when (search-backward "\n\n\n" nil t)
+          (goto-char (match-beginning 0))
+          (delete-region (point) (point-max)))
+        ;; File name highlight
+        (goto-char (point-min))
+        (when (re-search-forward "from the file \\(.*\\)$"
+                                 (line-end-position)
+                                 t)
+          (let ((file (match-string 1)))
+            (replace-match "" nil nil nil 1)
+            (insert "`")
+            (help-insert-xref-button (file-name-nondirectory file)
+                                     'octave-help-file fn)
+            (insert "'")))
+        ;; Make 'See also' clickable
+        (with-syntax-table octave-mode-syntax-table
+          (when (re-search-forward "^\\s-*See also:" nil t)
+            (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" nil t)
+              (make-text-button (match-beginning 0)
+                                (match-end 0)
+                                :type 'octave-help-function))))))))
+
+(defcustom octave-binary-file-extensions '("oct" "mex")
+  "A list of binary file extensions for Octave."
+  :type '(repeat string)
+  :group 'octave
+  :version "24.4")
+
+(defvar find-tag-marker-ring)
+
+(defun octave-find-definition (fn)
+  "Find the definition of FN."
+  (interactive (list (octave-completing-read)))
+  (inferior-octave-send-list-and-digest
+   ;; help NAME is more verbose
+   (list (format "\
+if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
+                 fn fn fn)))
+  (let* ((line (car inferior-octave-output-list))
+         (file (when (and line (string-match "from the file \\(.*\\)$" line))
+                 (match-string 1 line))))
+    (if (not file)
+        (user-error "%s" (or line (format "`%s' not found" fn)))
+      (when (and (member (file-name-extension file)
+                         octave-binary-file-extensions)
+                 (not (yes-or-no-p (format "File `%s' may be binary; open? "
+                                           (file-name-nondirectory file)))))
+        (error "Aborted"))
+      (require 'etags)
+      (ring-insert find-tag-marker-ring (point-marker))
+      (find-file file)
+      (octave-goto-function-definition))))
 
 
 (provide 'octave)

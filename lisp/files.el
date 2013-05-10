@@ -4617,7 +4617,8 @@ Before and after saving the buffer, this function runs
 		     (insert ?\n))))
 	    ;; Support VC version backups.
 	    (vc-before-save)
-	    (run-hooks 'before-save-hook)
+	    ;; Don't let errors prevent saving the buffer.
+	    (with-demoted-errors (run-hooks 'before-save-hook))
 	    (or (run-hook-with-args-until-success 'write-contents-functions)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
 		(run-hook-with-args-until-success 'write-file-functions)

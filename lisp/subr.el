@@ -2200,11 +2200,11 @@ by doing (clear-string STRING)."
               ;; And of course, don't keep the sensitive data around.
               (erase-buffer))))))))
 
-;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)
   "Read a numeric value in the minibuffer, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
-The value of DEFAULT is inserted into PROMPT."
+The value of DEFAULT is inserted into PROMPT.
+This function is used by the `interactive' code letter `n'."
   (let ((n nil)
 	(default1 (if (consp default) (car default) default)))
     (when default1

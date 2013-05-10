@@ -199,7 +199,6 @@ OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
-OPTION_DEFAULT_ON([acl],[don't compile with ACL support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([inotify],[don't compile with inotify (file-watch) support])
 
@@ -2185,23 +2184,6 @@ if test "$ac_cv_func_inotify_init1" = yes; then
   AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
 fi
 
-dnl POSIX ACL support: provided by libacl on GNU/Linux, by libc on FreeBSD.
-HAVE_POSIX_ACL=no
-LIBACL_LIBS=
-if test "${with_acl}" = "yes"; then
-  AC_CHECK_LIB([acl], [acl_set_file], HAVE_POSIX_ACL=yes, HAVE_POSIX_ACL=no)
-  if test "$HAVE_POSIX_ACL" = yes; then
-    AC_DEFINE(HAVE_POSIX_ACL, 1, [Define to 1 if using POSIX ACL support.])
-    LIBACL_LIBS=-lacl
-  else
-    AC_CHECK_FUNC(acl_set_file, HAVE_POSIX_ACL=yes, HAVE_POSIX_ACL=no)
-    if test "$HAVE_POSIX_ACL" = yes; then
-      AC_DEFINE(HAVE_POSIX_ACL, 1, [Define to 1 if using POSIX ACL support.])
-    fi
- fi
-fi
-AC_SUBST(LIBACL_LIBS)
-
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
@@ -2813,6 +2795,56 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 AC_SUBST(LIBXSM)
+
+### Use XRandr (-lXrandr) if available
+HAVE_XRANDR=no
+if test "${HAVE_X11}" = "yes"; then
+  XRANDR_REQUIRED=1.2.2
+  XRANDR_MODULES="xrandr >= $XRANDR_REQUIRED"
+  PKG_CHECK_MODULES(XRANDR, $XRANDR_MODULES, HAVE_XRANDR=yes, HAVE_XRANDR=no)
+  if test $HAVE_XRANDR = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    AC_CHECK_HEADER(X11/extensions/Xrandr.h,
+      [AC_CHECK_LIB(Xrandr, XRRQueryExtension, HAVE_XRANDR=yes)])
+    if test $HAVE_XRANDR = yes; then
+      XRANDR_LIBS=-lXrandr
+      AC_SUBST(XRANDR_LIBS)
+    fi
+  fi
+  if test $HAVE_XRANDR = yes; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LIBS="$LIBS"
+    CFLAGS="$XRANDR_CFLAGS $CFLAGS"
+    LIBS="$XRANDR_LIBS $LIBS"
+    AC_CHECK_FUNCS(XRRGetOutputPrimary XRRGetScreenResourcesCurrent)
+    CFLAGS="$SAVE_CFLAGS"
+    LIBS="$SAVE_LIBS"
+
+    AC_DEFINE(HAVE_XRANDR, 1, [Define to 1 if you have the XRandr extension.])
+  fi
+fi
+
+### Use Xinerama (-lXinerama) if available
+HAVE_XINERAMA=no
+if test "${HAVE_X11}" = "yes"; then
+  XINERAMA_REQUIRED=1.0.2
+  XINERAMA_MODULES="xinerama >= $XINERAMA_REQUIRED"
+  PKG_CHECK_MODULES(XINERAMA, $XINERAMA_MODULES, HAVE_XINERAMA=yes,
+                    HAVE_XINERAMA=no)
+  if test $HAVE_XINERAMA = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    AC_CHECK_HEADER(X11/extensions/Xinerama.h,
+      [AC_CHECK_LIB(Xinerama, XineramaQueryExtension, HAVE_XINERAMA=yes)])
+    if test $HAVE_XINERAMA = yes; then
+      XINERAMA_LIBS=-lXinerama
+      AC_SUBST(XINERAMA_LIBS)
+    fi
+  fi
+  if test $HAVE_XINERAMA = yes; then
+    AC_DEFINE(HAVE_XINERAMA, 1, [Define to 1 if you have the Xinerama extension.])
+  fi
+fi
+
 
 ### Use libxml (-lxml2) if available
 HAVE_LIBXML2=no

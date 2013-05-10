@@ -3152,15 +3152,13 @@ for first matching file."
     (exit-minibuffer)))
 
 (defun ido-chop (items elem)
-  "Remove all elements before ELEM and put them at the end of ITEMS.
-Use `eq' for comparison."
+  "Remove all elements before ELEM and put them at the end of ITEMS."
   (let ((ret nil)
 	(next nil)
 	(sofar nil))
     (while (not ret)
       (setq next (car items))
-      ;; Use `eq' to avoid bug http://debbugs.gnu.org/10994
-      (if (eq next elem)
+      (if (equal next elem)
 	  (setq ret (append items (nreverse sofar)))
 	;; else
 	(progn
@@ -4678,6 +4676,21 @@ For details of keybindings, see `ido-find-file'."
 			      ido-temp-list))))
     (ido-to-end summaries)))
 
+(defun ido-remove-consecutive-dups (list)
+  "Remove consecutive duplicates in LIST.
+Use `equal' for comparison.  First and last elements are
+considered consecutive."
+  (let ((tail list)
+	(last (make-symbol ""))
+	(result nil))
+    (while (consp tail)
+      (unless (equal (car tail) last)
+	(push (setq last (car tail)) result))
+      (setq tail (cdr tail)))
+    (nreverse (or (and (equal last (car list))
+		       (cdr result))
+		  result))))
+
 ;;; Helper functions for other programs
 
 (put 'dired-do-rename 'ido 'ignore)
@@ -4795,7 +4808,7 @@ DEF, if non-nil, is the default value."
 	(ido-directory-nonreadable nil)
 	(ido-directory-too-big nil)
 	(ido-context-switch-command 'ignore)
-	(ido-choice-list choices))
+	(ido-choice-list (ido-remove-consecutive-dups choices)))
     ;; Initialize ido before invoking ido-read-internal
     (ido-common-initialization)
     (ido-read-internal 'list prompt hist def require-match initial-input)))
