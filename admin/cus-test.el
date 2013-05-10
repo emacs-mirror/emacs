@@ -100,7 +100,8 @@
   "List of variables to disregard by `cus-test-apropos'.")
 
 ;; Loading dunnet in batch mode leads to a Dead end.
-(defvar cus-test-libs-noloads '("play/dunnet.el")
+(defvar cus-test-libs-noloads '("play/dunnet.el" "emulation/edt-mapper.el"
+				"loadup.el" "mail/blessmail.el")
   "List of files not to load by `cus-test-load-libs'.
 Names should be as they appear in loaddefs.el.")
 
@@ -302,6 +303,22 @@ Don't load libraries in `cus-test-libs-noloads'."
 	(push (buffer-substring (match-end 0) (line-end-position)) files))
       files)))
 
+(defun cus-test-get-lisp-files (&optional all)
+  "Return list of all Lisp files with defcustoms.
+Optional argument ALL non-nil means list all Lisp files."
+  (let ((default-directory (expand-file-name "lisp/" source-directory))
+	(msg "Finding files..."))
+    (message "%s" msg)
+    (prog1
+	;; Hack to remove leading "./".
+	(mapcar (lambda (e) (substring e 2))
+		(apply 'process-lines find-program
+		       "-name" "*.el"
+		       (unless all
+			 (list "-exec" grep-program
+			       "-l" "^[ \t]*(defcustom" "{}" "+"))))
+      (message "%sdone" msg))))
+
 (defun cus-test-message (list)
   "Print the members of LIST line by line."
   (dolist (m list) (message "%s" m)))
@@ -401,15 +418,21 @@ in the Emacs source directory."
     (cus-test-message cus-test-deps-errors))
   (run-hooks 'cus-test-after-load-libs-hook))
 
-(defun cus-test-libs ()
+(defun cus-test-libs (&optional more)
   "Load the libraries with autoloads in separate processes.
 This function is useful to detect load problems of libraries.
 It is suitable for batch mode.  E.g., invoke
 
   ./src/emacs -batch -l admin/cus-test.el -f cus-test-libs
 
-in the Emacs source directory."
+in the Emacs source directory.
+
+If optional argument MORE is \"defcustom\", load all files with defcustoms.
+If it is \"all\", load all Lisp files."
   (interactive)
+  (and noninteractive
+       command-line-args-left
+       (setq more (pop command-line-args-left)))
   (cus-test-load-1
    (let ((default-directory source-directory)
 	 (emacs (expand-file-name "src/emacs"))
@@ -436,7 +459,9 @@ in the Emacs source directory."
 	    (error
 	     (push (cons file alpha) cus-test-libs-errors)
 	     (message "Error for %s: %s" file alpha)))))
-      (cus-test-get-autoload-deps))
+      (if more
+	  (cus-test-get-lisp-files (equal more "all"))
+	(cus-test-get-autoload-deps)))
      (message "Default directory: %s" default-directory)
      (when skipped
        (message "The following libraries were skipped:")

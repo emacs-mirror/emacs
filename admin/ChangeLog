@@ -1,3 +1,9 @@
+2013-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* cus-test.el (cus-test-libs-noloads): Add some files.
+	(cus-test-get-lisp-files): New function.
+	(cus-test-libs): Add option to load more/all Lisp files.
+
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* cus-test.el: No need to provide bbdb, bbdb-com any more.
