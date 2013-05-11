@@ -1107,45 +1107,43 @@ On success, return 0.  Otherwise, go as far as possible and return -1."
 If on an empty or comment line, go to the beginning of that line.
 Otherwise, move backward to the beginning of the first Octave code line
 which is not inside a continuation statement, i.e., which does not
-follow a code line ending in `...' or `\\', or is inside an open
+follow a code line ending with `...' or is inside an open
 parenthesis list."
   (interactive)
   (beginning-of-line)
-  (if (not (looking-at "\\s-*\\($\\|\\s<\\)"))
-      (while (or (condition-case nil
-		     (progn
-		       (up-list -1)
-		       (beginning-of-line)
-		       t)
-		   (error nil))
-		 (and (or (looking-at "\\s-*\\($\\|\\s<\\)")
-			  (save-excursion
-			    (if (zerop (octave-previous-code-line))
-				(looking-at octave-continuation-regexp))))
-		      (zerop (forward-line -1)))))))
+  (unless (looking-at "\\s-*\\($\\|\\s<\\)")
+    (while (or (when (cadr (syntax-ppss))
+                 (goto-char (cadr (syntax-ppss)))
+                 (beginning-of-line)
+                 t)
+               (and (or (looking-at "\\s-*\\($\\|\\s<\\)")
+                        (save-excursion
+                          (if (zerop (octave-previous-code-line))
+                              (looking-at octave-continuation-regexp))))
+                    (zerop (forward-line -1)))))))
 
 (defun octave-end-of-line ()
   "Move point to end of current Octave line.
 If on an empty or comment line, go to the end of that line.
 Otherwise, move forward to the end of the first Octave code line which
-does not end in `...' or `\\' or is inside an open parenthesis list."
+does not end with `...' or is inside an open parenthesis list."
   (interactive)
   (end-of-line)
-  (if (save-excursion
-	(beginning-of-line)
-	(looking-at "\\s-*\\($\\|\\s<\\)"))
-      ()
-    (while (or (condition-case nil
-		   (progn
-		     (up-list 1)
-		     (end-of-line)
-		     t)
-		 (error nil))
-	       (and (save-excursion
-		      (beginning-of-line)
-		      (or (looking-at "\\s-*\\($\\|\\s<\\)")
-			  (looking-at octave-continuation-regexp)))
-		    (zerop (forward-line 1)))))
+  (unless (save-excursion
+            (beginning-of-line)
+            (looking-at "\\s-*\\($\\|\\s<\\)"))
+    (while (or (when (cadr (syntax-ppss))
+                 (condition-case nil
+                     (progn
+                       (up-list 1)
+                       (end-of-line)
+                       t)
+                   (error nil)))
+               (and (save-excursion
+                      (beginning-of-line)
+                      (or (looking-at "\\s-*\\($\\|\\s<\\)")
+                          (looking-at octave-continuation-regexp)))
+                    (zerop (forward-line 1)))))
     (end-of-line)))
 
 (defun octave-mark-block ()
