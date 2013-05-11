@@ -71,15 +71,20 @@ For example::
     };
     mps_pool_t pool;
     mps_res_t res;
-    res = mps_pool_create(&pool, arena, mps_class_ams_debug(),
-                          &debug_options, &fmt, &chain)
+    res = mps_pool_create_k(&pool, arena, mps_class_ams_debug(),
+           (mps_arg_s[]){{MPS_KEY_POOL_DEBUG_OPTIONS, .val.pool_debug_options = &debug_options},
+                         {MPS_KEY_FORMAT, .val.format = &fmt},
+                         {MPS_KEY_CHAIN, .val.chain = &chain},
+                         {MPS_KEY_ARGS_END}});
     if (res != MPS_RES_OK) error("can't create debug pool");
 
 
 .. c:type:: mps_pool_debug_option_s
 
-    The type of the structure used to pass options to
-    :c:func:`mps_pool_create` for debugging :term:`pool classes`. ::
+    The type of the structure passed as the
+    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` keyword argument to
+    :c:func:`mps_pool_create_k` when creating a debugging :term:`pool
+    class`. ::
 
         typedef struct mps_pool_debug_option_s {
             void  *fence_template;

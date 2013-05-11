@@ -103,20 +103,34 @@ AMS interface
     Return the :term:`pool class` for an AMS (Automatic Mark & Sweep)
     :term:`pool`.
 
-    When creating an AMS pool, :c:func:`mps_pool_create` takes two
-    extra arguments::
+    When creating an AMS pool, :c:func:`mps_pool_create_k` requires
+    two :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_ams(),
-                                  mps_fmt_t fmt,
-                                  mps_chain_t chain)
+    * :c:macro:`MPS_KEY_FORMAT` (member ``.val.format``; type
+      :c:type:`mps_fmt_t`) specifies the :term:`object format` for the
+      objects allocated in the pool. The format must provide a
+      :term:`scan method` and a :term:`skip method`.
 
-    ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool. The format must provide a :term:`scan
-    method` and a :term:`skip method`.
+    * :c:macro:`MPS_KEY_CHAIN` (member ``.val.chain``; type
+      :c:type:`mps_chain_t`) specifies the :term:`generation chain`
+      for the pool. It must have a single generation.
 
-    ``chain`` specifies the :term:`generation chain` for the pool. It
-    must have a single generation.
+    For example, in :term:`C99`::
+
+        res = mps_pool_create_k(&pool, arena, mps_class_ams(),
+               (mps_arg_s[]){{MPS_KEY_CHAIN, .val.chain = chain},
+                             {MPS_KEY_FORMAT, .val.format = fmt},
+                             {MPS_KEY_ARGS_END}});
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_pool_create`, pass the format and
+        chain like this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_ams(),
+                                      mps_fmt_t fmt,
+                                      mps_chain_t chain)
 
 
 .. c:function:: mps_class_t mps_class_ams_debug(void)
@@ -124,16 +138,19 @@ AMS interface
     A :ref:`debugging <topic-debugging>` version of the AMS pool
     class.
 
-    When creating a debugging AMS pool, :c:func:`mps_pool_create`
-    takes three extra arguments::
+    When creating a debugging AMS pool, :c:func:`mps_pool_create_k`
+    requires three keyword arguments: :c:macro:`MPS_KEY_FORMAT` and
+    :c:macro:`MPS_KEY_CHAIN` are as described above, and
+    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
+    options. See :c:type:`mps_debug_option_s`.
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_ams_debug(),
-                                  mps_debug_option_s debug_option,
-                                  mps_fmt_t fmt,
-                                  mps_chain_t chain)
+    .. deprecated:: starting with version 1.112.
 
-    ``debug_option`` specifies the debugging options. See
-    :c:type:`mps_debug_option_s`.
+        When using :c:func:`mps_pool_create`, pass the format,
+        chain, and debugging options like this::
 
-    ``fmt`` and ``chain`` are the same as for :c:func:`mps_class_ams`.
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_ams_debug(),
+                                      mps_debug_option_s debug_option,
+                                      mps_fmt_t fmt,
+                                      mps_chain_t chain)

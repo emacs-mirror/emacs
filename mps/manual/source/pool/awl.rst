@@ -318,34 +318,59 @@ AWL interface
     Return the :term:`pool class` for an AWL (Automatic Weak Linked)
     :term:`pool`.
 
-    When creating an AWL pool, :c:func:`mps_pool_create` takes two
-    extra arguments::
+    When creating an AWL pool, :c:func:`mps_pool_create_k` requires
+    two :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_awl(),
-                                  mps_fmt_t fmt,
-                                  mps_awl_find_dependent_t find_dependent)
+    * :c:macro:`MPS_KEY_FORMAT` (member ``.val.format``; type
+      :c:type:`mps_fmt_t`) specifies the :term:`object format` for the
+      objects allocated in the pool. The format must provide a :term:`scan
+      method` and a :term:`skip method`.
 
-    ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool. The format must provide a :term:`scan
-    method` and a :term:`skip method`.
+    * :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT` (member
+      ``.val.addr_method``; type :c:type:`mps_awl_find_dependent_t`)
+      is a function that specifies how to find the :term:`dependent
+      object` for an object in the pool.
 
-    ``find_dependent`` is a function of type
-    :c:type:`mps_awl_find_dependent_t` that specifies how to find the
-    :term:`dependent object` for an object in the pool.
+    For example, in :term:`C99`::
 
-    When creating an allocation point on an AWL pool,
-    :c:func:`mps_ap_create` takes one extra argument::
+        res = mps_pool_create_k(&pool, arena, mps_class_awl(),
+               (mps_arg_s[]){{MPS_KEY_FORMAT, .val.format = fmt},
+                             {MPS_KEY_AWL_FIND_DEPENDENT, .val.addr_method = find_dependent},
+                             {MPS_KEY_ARGS_END}});
 
-        mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool,
-                                mps_rank_t rank)
+    .. deprecated:: starting with version 1.112.
 
-    ``rank`` specifies the :term:`rank` of references in objects
-    allocated on this allocation point. It must be
-    :c:func:`mps_rank_exact` (if the objects allocated on this
-    allocation point will contain :term:`exact references`), or
-    :c:func:`mps_rank_weak` (if the objects will contain :term:`weak
-    references (1)`).
+        When using :c:func:`mps_pool_create`, pass the format and
+        find-dependent function like this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_awl(),
+                                      mps_fmt_t fmt,
+                                      mps_awl_find_dependent_t find_dependent)
+
+    When creating an :term:`allocation point` on an AWL pool,
+    :c:func:`mps_ap_create_k` requires one keyword argument:
+
+    * :c:macro:`MPS_KEY_RANK` (member ``.val.rank``; type
+      :c:type:`mps_rank_t`) specifies the :term:`rank` of references
+      in objects allocated on this allocation point. It must be
+      :c:func:`mps_rank_exact` (if the objects allocated on this
+      allocation point will contain :term:`exact references`), or
+      :c:func:`mps_rank_weak` (if the objects will contain :term:`weak
+      references (1)`).
+
+    For example, in :term:`C99`::
+
+        res = mps_ap_create_k(&ap, awl_pool,
+               (mps_arg_s[]){{MPS_KEY_RANK, .val.rank = mps_rank_weak()},
+                             {MPS_KEY_ARGS_END}});
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_ap_create`, pass the rank like this::
+
+            mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool,
+                                    mps_rank_t rank)
 
 
 .. c:type:: mps_addr_t (*mps_awl_find_dependent_t)(mps_addr_t addr)

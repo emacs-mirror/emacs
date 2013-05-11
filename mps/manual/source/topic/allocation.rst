@@ -96,7 +96,7 @@ many small objects. They must be used according to the
     :c:type:`mps_ap_s`.
 
 
-.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
+.. c:function:: mps_res_t mps_ap_create_k(mps_ap_t *ap_o, mps_pool_t pool, mps_arg_s args[])
 
     Create an :term:`allocation point` in a :term:`pool`.
 
@@ -105,11 +105,13 @@ many small objects. They must be used according to the
 
     ``pool`` is the pool.
 
+    ``args`` are :term:`keyword arguments` specific to the pool class
+    to which ``pool`` belong. See the documentation for that pool
+    class. (Most pool classes don't take any keyword arguments; in
+    those cases you can pass :c:macro:`mps_args_none`.)
+
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
-
-    Some pool classes require additional arguments to be passed to
-    :c:func:`mps_ap_create`. See the documentation for the pool class.
 
     .. warning::
 
@@ -124,9 +126,28 @@ many small objects. They must be used according to the
         ``va_list`` mechanism.
 
 
+.. c:function:: mps_res_t mps_ap_create(mps_ap_t *ap_o, mps_pool_t pool, ...)
+
+    .. deprecated:: starting with version 1.112.
+
+        Use :c:func:`mps_ap_create_k` instead: the :term:`keyword
+        arguments` interface is more reliable and produces better
+        error messages.
+
+    An alternative to :c:func:`mps_ap_create_k` that takes its extra
+    arguments using the standard :term:`C` variable argument list
+    mechanism.
+
+
 .. c:function:: mps_res_t mps_ap_create_v(mps_ap_t *ap_o, mps_pool_t pool, va_list args)
 
-    An alternative to :c:func:`mps_ap_create` that takes its extra
+    .. deprecated:: starting with version 1.112.
+
+        Use :c:func:`mps_ap_create_k` instead: the :term:`keyword
+        arguments` interface is more reliable and produces better
+        error messages.
+
+    An alternative to :c:func:`mps_ap_create_k` that takes its extra
     arguments using the standard :term:`C` ``va_list`` mechanism.
 
 
@@ -642,7 +663,7 @@ branch prediction should work well since the test almost never fails).
     synchronization in a multi-threaded environment.
 
     Create an allocation point for a pool by calling
-    :c:func:`mps_ap_create`, and allocate memory via one by calling
+    :c:func:`mps_ap_create_k`, and allocate memory via one by calling
     :c:func:`mps_reserve` and :c:func:`mps_commit`.
 
 
