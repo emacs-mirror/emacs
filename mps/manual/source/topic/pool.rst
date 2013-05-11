@@ -19,7 +19,7 @@ making it available for allocation.
     :c:func:`mps_alloc` or via an :term:`allocation point`.
 
 
-.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
+.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, mps_arg_s args[])
 
     Create a :term:`pool` in an :term:`arena`.
 
@@ -30,9 +30,8 @@ making it available for allocation.
 
     ``class`` is the :term:`pool class` of the new pool.
 
-    Some pool classes require additional arguments to be passed to
-    :c:func:`mps_pool_create`. See the documentation for the pool
-    class.
+    ``args`` are :term:`keyword arguments` specific to the pool class.
+    See the documentation for the pool class.
 
     Returns :c:macro:`MPS_RES_OK` if the pool is created successfully,
     or another :term:`result code` otherwise.
@@ -40,16 +39,29 @@ making it available for allocation.
     The pool persists until it is destroyed by calling
     :c:func:`mps_pool_destroy`.
 
-    .. note::
 
-        There's an alternative function :c:func:`pool_create_v` that
-        takes its extra arguments using the standard :term:`C`
-        ``va_list`` mechanism.
+.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, ...)
+
+    .. deprecated:: starting with version 1.112.
+
+        Use :c:func:`mps_pool_create_k` instead: the :term:`keyword
+        arguments` interface is more reliable and produces better
+        error messages.
+
+    An alternative to :c:func:`mps_pool_create_k` that takes its
+    extra arguments using the standard :term:`C` variable argument
+    list mechanism.
 
 
 .. c:function:: mps_res_t mps_pool_create_v(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, va_list args)
 
-    An alternative to :c:func:`mps_pool_create` that takes its extra
+    .. deprecated:: starting with version 1.112.
+
+        Use :c:func:`mps_pool_create_k` instead: the :term:`keyword
+        arguments` interface is more reliable and produces better
+        error messages.
+
+    An alternative to :c:func:`mps_pool_create_k` that takes its extra
     arguments using the standard :term:`C` ``va_list`` mechanism.
 
 
