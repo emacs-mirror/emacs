@@ -809,4 +809,6 @@ optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
 ;(put 'defclass 'common-lisp-indent-function '((&whole 2 &rest (&whole 2 &rest 1) &rest (&whole 2 &rest 1)))
 ;(put 'defgeneric 'common-lisp-indent-function 'defun)
 
+(provide 'cl-indent)
+
 ;;; cl-indent.el ends here
