@@ -9,50 +9,21 @@
  * documentation, or, in the case of GCC, from the compiler itself.
  * References to the documentation appear above each detection line.
  *
+ * For more details on how this file fits into the MPS build system,
+ * and an explanation of all the MPS_* defines, see design.config.pf
+ * "MPS Configuration" <../design/config.txt>
+ *
  * .macos.ppc.align: MacOS / PowerPC requires 8 bytes alignment (in
  * general).  See "Mac OS Runtime Architecture", table 4-2.
- */
-
-#ifndef mpstd_h
-#define mpstd_h
-
-/* DESIGN NOTES
- * ------------
- * [These should be moved to a proper buildsys design doc.  RHSK]
- *
- * mpstd.h does two main things:
- *   1. platform detection by looking at preprocessor symbols;
- *   2. setting variables (eg. MPS_PF_STRING, MPS_WORD_WIDTH).
- *
- * Sometimes the platform is *already* known by the buildsystem:
- *   - the Global Graphics buildsystem always sets CONFIG_PF_*.
- *   - the Ravenbrook buildsystem knows the platform and may (but
- *     typically does not) set CONFIG_PF_*.
- *
- * Regardless of this, mpstd.h still attempts to detect the platform.
- * (This is intentional).  However if both CONFIG_PF_* and
- * CONFIG_PF_STRING are set, then mpstd.h performs a third function:
- *   3. checking that the detected platform corresponds to that
- *      specified by CONFIG_PF_*.
- *
- * Sometimes no MPS buildsystem is in use, so the platform *must*
- * be detected.  For example, when client software #includes mps.h,
- * we want it to just work out of the box with whatever compiler is
- * being used.  In other words we do not require the client to define
- * CONFIG_PF_*.
- * (This is the case that justifies mpstd.h doing platform detection
- * by looking at preprocessor symbols; otherwise we'd simply use
- * CONFIG_PF_*).
  *
  * mpstd.h fails if it cannot detect the platform (even if CONFIG_PF_*
  * is specified).  This is intentional.  mpstd.h does *not* allow
  * CONFIG_PF_* to override the platform as detected from preprocessor
- * symbols.  This is intentional.
- *
- * References:
- * GG buildsys use of CONFIG_PF_*:
- *   <http://info.ravenbrook.com/mail/2005/03/01/15-45-17/0.txt>
+ * symbols.  This is intentional. [This needs justifying. RB 2013-05-11]
  */
+
+#ifndef mpstd_h
+#define mpstd_h
 
 
 /* Visual C++ 2.0, Books Online, C/C++ Book, Preprocessor Reference,
