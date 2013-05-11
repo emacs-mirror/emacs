@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>12. Finalization &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>13. Finalization &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="13. Location dependency" href="location.html" />
-    <link rel="prev" title="11. Messages" href="message.html" /> 
+    <link rel="next" title="14. Location dependency" href="location.html" />
+    <link rel="prev" title="12. Messages" href="message.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="location.html" title="13. Location dependency"
+          <a href="location.html" title="14. Location dependency"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="message.html" title="11. Messages"
+          <a href="message.html" title="12. Messages"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,14 +55,14 @@
           <div class="body">
             
   <div class="section" id="finalization">
-<span id="topic-finalization"></span><span id="index-0"></span><h1>12. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h1>
+<span id="topic-finalization"></span><span id="index-0"></span><h1>13. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h1>
 <p>It is sometimes necessary to perform actions when a block of memory
 <a class="reference internal" href="../glossary/d.html#term-dead"><em class="xref std std-term">dies</em></a>. For example, a block may represent the
 acquisition of an external resource such as a file handle or a network
 connection. When the block dies, the corresponding resource must be
 released. This procedure is known as <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a>.</p>
 <p>A block requiring finalization must be registered by calling <a class="reference internal" href="#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a>:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">block_requiring_finalization</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">block_requiring_finalization</span><span class="p">;</span>
 <span class="n">mps_finalize</span><span class="p">(</span><span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ref</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -126,7 +126,7 @@ disappear again.</p>
 </div>
 <p>See <a class="reference internal" href="message.html#topic-message"><em>Messages</em></a> for details of the message mechanism.</p>
 <div class="section" id="multiple-finalizations">
-<span id="index-1"></span><h2>12.1. Multiple finalizations<a class="headerlink" href="#multiple-finalizations" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>13.1. Multiple finalizations<a class="headerlink" href="#multiple-finalizations" title="Permalink to this headline">¶</a></h2>
 <p>A block may be registered for finalization multiple times. A block
 that has been registered for finalization <em>n</em> times will be finalized
 at most <em>n</em> times.</p>
@@ -139,7 +139,7 @@ program that registers the same block multiple times must cope with
 either behaviour.</p>
 </div>
 <div class="section" id="cautions">
-<span id="topic-finalization-cautions"></span><span id="index-2"></span><h2>12.2. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
+<span id="topic-finalization-cautions"></span><span id="index-2"></span><h2>13.2. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first">Don&#8217;t rely on finalization for your program to work. Treat it as an
 optimization that enables the freeing of resources that the
@@ -208,7 +208,7 @@ collection do so. See the <a class="reference internal" href="../pool/index.html
 </ol>
 </div>
 <div class="section" id="finalization-interface">
-<span id="index-3"></span><h2>12.3. Finalization interface<a class="headerlink" href="#finalization-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>13.3. Finalization interface<a class="headerlink" href="#finalization-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_finalize">
 <a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_finalize</tt><big>(</big><a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;*ref_p</em><big>)</big><a class="headerlink" href="#mps_finalize" title="Permalink to this definition">¶</a></dt>
@@ -251,7 +251,7 @@ that the C call stack be a <a class="reference internal" href="../glossary/r.htm
 
 </div>
 <div class="section" id="finalization-messages">
-<span id="index-4"></span><h2>12.4. Finalization messages<a class="headerlink" href="#finalization-messages" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>13.4. Finalization messages<a class="headerlink" href="#finalization-messages" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_message_type_finalization">
 <a class="reference internal" href="message.html#mps_message_type_t" title="mps_message_type_t">mps_message_type_t</a> <tt class="descname">mps_message_type_finalization</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_message_type_finalization" title="Permalink to this definition">¶</a></dt>
@@ -320,21 +320,21 @@ prevent its reclamation.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">12. Finalization</a><ul>
-<li><a class="reference internal" href="#multiple-finalizations">12.1. Multiple finalizations</a></li>
-<li><a class="reference internal" href="#cautions">12.2. Cautions</a></li>
-<li><a class="reference internal" href="#finalization-interface">12.3. Finalization interface</a></li>
-<li><a class="reference internal" href="#finalization-messages">12.4. Finalization messages</a></li>
+<li><a class="reference internal" href="#">13. Finalization</a><ul>
+<li><a class="reference internal" href="#multiple-finalizations">13.1. Multiple finalizations</a></li>
+<li><a class="reference internal" href="#cautions">13.2. Cautions</a></li>
+<li><a class="reference internal" href="#finalization-interface">13.3. Finalization interface</a></li>
+<li><a class="reference internal" href="#finalization-messages">13.4. Finalization messages</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="message.html"
-                        title="previous chapter">11. Messages</a></p>
+                        title="previous chapter">12. Messages</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="location.html"
-                        title="next chapter">13. Location dependency</a></p><h4>Downloads</h4>
+                        title="next chapter">14. Location dependency</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -360,10 +360,10 @@ prevent its reclamation.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="location.html" title="13. Location dependency"
+          <a href="location.html" title="14. Location dependency"
              >next</a> |</li>
         <li class="right" >
-          <a href="message.html" title="11. Messages"
+          <a href="message.html" title="12. Messages"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

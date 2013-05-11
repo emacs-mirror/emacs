@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>5. Allocation &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>6. Allocation &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="6. Object formats" href="format.html" />
-    <link rel="prev" title="4. Pools" href="pool.html" /> 
+    <link rel="next" title="7. Object formats" href="format.html" />
+    <link rel="prev" title="5. Pools" href="pool.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="format.html" title="6. Object formats"
+          <a href="format.html" title="7. Object formats"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="pool.html" title="4. Pools"
+          <a href="pool.html" title="5. Pools"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="allocation">
-<span id="topic-allocation"></span><span id="index-0"></span><h1>5. Allocation<a class="headerlink" href="#allocation" title="Permalink to this headline">¶</a></h1>
+<span id="topic-allocation"></span><span id="index-0"></span><h1>6. Allocation<a class="headerlink" href="#allocation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="manual-allocation">
-<span id="index-1"></span><h2>5.1. Manual allocation<a class="headerlink" href="#manual-allocation" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>6.1. Manual allocation<a class="headerlink" href="#manual-allocation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">Not all <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> support this interface:
@@ -108,7 +108,7 @@ all.</p>
 
 </div>
 <div class="section" id="allocation-points">
-<span id="index-2"></span><h2>5.2. Allocation points<a class="headerlink" href="#allocation-points" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>6.2. Allocation points<a class="headerlink" href="#allocation-points" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">Allocation points</em></a> provide fast, <a class="reference internal" href="../glossary/i.html#term-inline-allocation-1"><em class="xref std std-term">inline</em></a>, nearly <a class="reference internal" href="../glossary/l.html#term-lock-free"><em class="xref std std-term">lock-free</em></a> allocation.
 They allow code to allocate without calling an allocation function:
 this is vital for performance in languages or programs that allocate
@@ -123,16 +123,18 @@ many small objects. They must be used according to the
 </dd></dl>
 
 <dl class="function">
-<dt id="mps_ap_create">
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_ap_create</tt><big>(</big><a class="reference internal" href="#mps_ap_t" title="mps_ap_t">mps_ap_t</a><em>&nbsp;*ap_o</em>, <a class="reference internal" href="pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;pool</em>, ...<big>)</big><a class="headerlink" href="#mps_ap_create" title="Permalink to this definition">¶</a></dt>
+<dt id="mps_ap_create_k">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_ap_create_k</tt><big>(</big><a class="reference internal" href="#mps_ap_t" title="mps_ap_t">mps_ap_t</a><em>&nbsp;*ap_o</em>, <a class="reference internal" href="pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;pool</em>, <a class="reference internal" href="keyword.html#mps_arg_s" title="mps_arg_s">mps_arg_s</a><em>&nbsp;args[]</em><big>)</big><a class="headerlink" href="#mps_ap_create_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a> in a <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
 <p><tt class="docutils literal"><span class="pre">ap_o</span></tt> points to a location that will hold the address of the
 allocation point, if successful.</p>
 <p><tt class="docutils literal"><span class="pre">pool</span></tt> is the pool.</p>
+<p><tt class="docutils literal"><span class="pre">args</span></tt> are <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a> specific to the pool class
+to which <tt class="docutils literal"><span class="pre">pool</span></tt> belong. See the documentation for that pool
+class. (Most pool classes don&#8217;t take any keyword arguments; in
+those cases you can pass <a class="reference internal" href="keyword.html#mps_args_none" title="mps_args_none"><tt class="xref c c-macro docutils literal"><span class="pre">mps_args_none</span></tt></a>.)</p>
 <p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if successful, or another
 <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> if not.</p>
-<p>Some pool classes require additional arguments to be passed to
-<a class="reference internal" href="#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a>. See the documentation for the pool class.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">An allocation point must not be used by more than one
@@ -148,9 +150,31 @@ takes its extra arguments using the standard <a class="reference internal" href=
 </dd></dl>
 
 <dl class="function">
+<dt id="mps_ap_create">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_ap_create</tt><big>(</big><a class="reference internal" href="#mps_ap_t" title="mps_ap_t">mps_ap_t</a><em>&nbsp;*ap_o</em>, <a class="reference internal" href="pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;pool</em>, ...<big>)</big><a class="headerlink" href="#mps_ap_create" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p class="last">Use <a class="reference internal" href="#mps_ap_create_k" title="mps_ap_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+arguments</em></a> interface is more reliable and produces better
+error messages.</p>
+</div>
+<p>An alternative to <a class="reference internal" href="#mps_ap_create_k" title="mps_ap_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create_k()</span></tt></a> that takes its extra
+arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> variable argument list
+mechanism.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="mps_ap_create_v">
 <a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_ap_create_v</tt><big>(</big><a class="reference internal" href="#mps_ap_t" title="mps_ap_t">mps_ap_t</a><em>&nbsp;*ap_o</em>, <a class="reference internal" href="pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;pool</em>, va_list<em>&nbsp;args</em><big>)</big><a class="headerlink" href="#mps_ap_create_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>An alternative to <a class="reference internal" href="#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a> that takes its extra
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p class="last">Use <a class="reference internal" href="#mps_ap_create_k" title="mps_ap_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+arguments</em></a> interface is more reliable and produces better
+error messages.</p>
+</div>
+<p>An alternative to <a class="reference internal" href="#mps_ap_create_k" title="mps_ap_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create_k()</span></tt></a> that takes its extra
 arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> <tt class="docutils literal"><span class="pre">va_list</span></tt> mechanism.</p>
 </dd></dl>
 
@@ -166,7 +190,7 @@ allocated from it, so long as they were successfully
 
 </div>
 <div class="section" id="allocation-point-protocol">
-<span id="topic-allocation-point-protocol"></span><span id="index-3"></span><h2>5.3. Allocation point protocol<a class="headerlink" href="#allocation-point-protocol" title="Permalink to this headline">¶</a></h2>
+<span id="topic-allocation-point-protocol"></span><span id="index-3"></span><h2>6.3. Allocation point protocol<a class="headerlink" href="#allocation-point-protocol" title="Permalink to this headline">¶</a></h2>
 <p>This protocol is designed to work with <a class="reference internal" href="../glossary/i.html#term-incremental-garbage-collection"><em class="xref std std-term">incremental garbage
 collection</em></a> and multiple <a class="reference internal" href="../glossary/t.html#term-thread"><em class="xref std std-term">threads</em></a>, where between any
 two instructions in the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a>, the MPS may run part
@@ -231,10 +255,10 @@ may point to the old location of blocks that moved.</p>
 </ol>
 <p>The usual implementation of the allocation point protocol in <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a>
 is thus:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-<span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+<span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
 <span class="k">do</span> <span class="p">{</span>
-    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="cm">/* handle the error */</span><span class="p">;</span>
     <span class="cm">/* p is now an ambiguous reference to the reserved block */</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
@@ -336,20 +360,20 @@ may evaluate its arguments multiple times.</p>
 
 </div>
 <div class="section" id="example-allocating-a-symbol">
-<span id="index-4"></span><h2>5.4. Example: allocating a symbol<a class="headerlink" href="#example-allocating-a-symbol" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>6.4. Example: allocating a symbol<a class="headerlink" href="#example-allocating-a-symbol" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">symbol_s</span> <span class="p">{</span>
-    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_SYMBOL */</span>
+    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_SYMBOL */</span>
     <span class="kt">size_t</span> <span class="n">length</span><span class="p">;</span>                <span class="cm">/* length of symbol string (excl. NUL) */</span>
     <span class="kt">char</span> <span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>               <span class="cm">/* symbol string, NUL terminated */</span>
-<span class="p">}</span> <span class="n">symbol_s</span><span class="p">,</span> <span class="o">*</span><span class="kt">symbol_t</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">symbol_s</span><span class="p">,</span> <span class="o">*</span><span class="n">symbol_t</span><span class="p">;</span>
 
-<span class="kt">symbol_t</span> <span class="nf">make_symbol</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">char</span> <span class="n">string</span><span class="p">[])</span>
+<span class="n">symbol_t</span> <span class="nf">make_symbol</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">char</span> <span class="n">string</span><span class="p">[])</span>
 <span class="p">{</span>
-    <span class="kt">symbol_t</span> <span class="n">symbol</span><span class="p">;</span>
-    <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="n">symbol_t</span> <span class="n">symbol</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="n">offsetof</span><span class="p">(</span><span class="n">symbol_s</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span> <span class="o">+</span> <span class="n">length</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory in make_symbol&quot;</span><span class="p">);</span>
         <span class="n">symbol</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
         <span class="n">symbol</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_SYMBOL</span><span class="p">;</span>
@@ -362,7 +386,7 @@ may evaluate its arguments multiple times.</p>
 </div>
 </div>
 <div class="section" id="cautions">
-<span id="topic-allocation-cautions"></span><span id="index-5"></span><h2>5.5. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
+<span id="topic-allocation-cautions"></span><span id="index-5"></span><h2>6.5. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
 <p>While a block is reserved but not yet committed:</p>
 <ol class="arabic simple">
 <li>The client program must not create an <a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">exact reference</em></a> to
@@ -411,24 +435,24 @@ choosing. See <a class="reference internal" href="debugging.html#topic-debugging
 </div>
 </div>
 <div class="section" id="example-inserting-into-a-doubly-linked-list">
-<span id="index-6"></span><h2>5.6. Example: inserting into a doubly linked list<a class="headerlink" href="#example-inserting-into-a-doubly-linked-list" title="Permalink to this headline">¶</a></h2>
+<span id="index-6"></span><h2>6.6. Example: inserting into a doubly linked list<a class="headerlink" href="#example-inserting-into-a-doubly-linked-list" title="Permalink to this headline">¶</a></h2>
 <p>This example contains several mistakes. See the highlighted lines:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">link_s</span> <span class="p">{</span>
-    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                       <span class="cm">/* TYPE_LINK */</span>
+    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                       <span class="cm">/* TYPE_LINK */</span>
     <span class="cm">/* all three of these pointers are fixed: */</span>
     <span class="k">struct</span> <span class="n">link_s</span> <span class="o">*</span><span class="n">prev</span><span class="p">;</span>
     <span class="k">struct</span> <span class="n">link_s</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
-    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">link_s</span><span class="p">,</span> <span class="o">*</span><span class="kt">link_t</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">link_s</span><span class="p">,</span> <span class="o">*</span><span class="n">link_t</span><span class="p">;</span>
 
 <span class="cm">/* insert &#39;obj&#39; into the doubly-linked list after &#39;head&#39; */</span>
-<span class="kt">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="kt">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">)</span>
+<span class="n">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="n">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-    <span class="kt">link_t</span> <span class="n">link</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+    <span class="n">link_t</span> <span class="n">link</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">link_s</span><span class="p">));</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory&quot;</span><span class="p">);</span>
         <span class="n">link</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
         <span class="n">link</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_LINK</span><span class="p">;</span>
@@ -454,13 +478,13 @@ be deferred until after a successful commit.</li>
 scan method, so it must be initialized before the call to commit.</li>
 </ol>
 <p>A correct version of <tt class="docutils literal"><span class="pre">insert_link</span></tt> looks like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="kt">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="n">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-    <span class="kt">link_t</span> <span class="n">link</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+    <span class="n">link_t</span> <span class="n">link</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">link_s</span><span class="p">));</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory&quot;</span><span class="p">);</span>
         <span class="n">link</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
         <span class="n">link</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_LINK</span><span class="p">;</span>
@@ -476,7 +500,7 @@ scan method, so it must be initialized before the call to commit.</li>
 </div>
 </div>
 <div class="section" id="allocation-point-implementation">
-<span id="topic-allocation-point-implementation"></span><span id="index-7"></span><h2>5.7. Allocation point implementation<a class="headerlink" href="#allocation-point-implementation" title="Permalink to this headline">¶</a></h2>
+<span id="topic-allocation-point-implementation"></span><span id="index-7"></span><h2>6.7. Allocation point implementation<a class="headerlink" href="#allocation-point-implementation" title="Permalink to this headline">¶</a></h2>
 <p>An allocation point consists of a structure of type <a class="reference internal" href="#mps_ap_s" title="mps_ap_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_ap_s</span></tt></a>
 and an associated <a class="reference internal" href="../glossary/b.html#term-buffer"><em class="xref std std-term">buffer</em></a>.</p>
 <div class="figure align-center">
@@ -574,9 +598,9 @@ instruction at this point.</p>
 <dd><p>The type of the structure used to represent <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation
 points</em></a>:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_ap_s</span> <span class="p">{</span>
-    <span class="kt">mps_addr_t</span> <span class="n">init</span><span class="p">;</span>
-    <span class="kt">mps_addr_t</span> <span class="n">alloc</span><span class="p">;</span>
-    <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">init</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">alloc</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">;</span>
     <span class="cm">/* ... private fields ... */</span>
 <span class="p">}</span> <span class="n">mps_ap_s</span><span class="p">;</span>
 </pre></div>
@@ -588,7 +612,7 @@ points</em></a>:</p>
 provides very fast allocation, and defers the need for
 synchronization in a multi-threaded environment.</p>
 <p>Create an allocation point for a pool by calling
-<a class="reference internal" href="#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a>, and allocate memory via one by calling
+<a class="reference internal" href="#mps_ap_create_k" title="mps_ap_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create_k()</span></tt></a>, and allocate memory via one by calling
 <a class="reference internal" href="#mps_reserve" title="mps_reserve"><tt class="xref c c-func docutils literal"><span class="pre">mps_reserve()</span></tt></a> and <a class="reference internal" href="#mps_commit" title="mps_commit"><tt class="xref c c-func docutils literal"><span class="pre">mps_commit()</span></tt></a>.</p>
 </dd></dl>
 
@@ -631,24 +655,24 @@ when the allocation point has insufficient space.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">5. Allocation</a><ul>
-<li><a class="reference internal" href="#manual-allocation">5.1. Manual allocation</a></li>
-<li><a class="reference internal" href="#allocation-points">5.2. Allocation points</a></li>
-<li><a class="reference internal" href="#allocation-point-protocol">5.3. Allocation point protocol</a></li>
-<li><a class="reference internal" href="#example-allocating-a-symbol">5.4. Example: allocating a symbol</a></li>
-<li><a class="reference internal" href="#cautions">5.5. Cautions</a></li>
-<li><a class="reference internal" href="#example-inserting-into-a-doubly-linked-list">5.6. Example: inserting into a doubly linked list</a></li>
-<li><a class="reference internal" href="#allocation-point-implementation">5.7. Allocation point implementation</a></li>
+<li><a class="reference internal" href="#">6. Allocation</a><ul>
+<li><a class="reference internal" href="#manual-allocation">6.1. Manual allocation</a></li>
+<li><a class="reference internal" href="#allocation-points">6.2. Allocation points</a></li>
+<li><a class="reference internal" href="#allocation-point-protocol">6.3. Allocation point protocol</a></li>
+<li><a class="reference internal" href="#example-allocating-a-symbol">6.4. Example: allocating a symbol</a></li>
+<li><a class="reference internal" href="#cautions">6.5. Cautions</a></li>
+<li><a class="reference internal" href="#example-inserting-into-a-doubly-linked-list">6.6. Example: inserting into a doubly linked list</a></li>
+<li><a class="reference internal" href="#allocation-point-implementation">6.7. Allocation point implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="pool.html"
-                        title="previous chapter">4. Pools</a></p>
+                        title="previous chapter">5. Pools</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="format.html"
-                        title="next chapter">6. Object formats</a></p><h4>Downloads</h4>
+                        title="next chapter">7. Object formats</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -674,10 +698,10 @@ when the allocation point has insufficient space.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="format.html" title="6. Object formats"
+          <a href="format.html" title="7. Object formats"
              >next</a> |</li>
         <li class="right" >
-          <a href="pool.html" title="4. Pools"
+          <a href="pool.html" title="5. Pools"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

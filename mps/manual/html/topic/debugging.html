@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>17. Debugging pools &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>18. Debugging pools &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="18. Telemetry" href="telemetry.html" />
-    <link rel="prev" title="16. Allocation frames" href="frame.html" /> 
+    <link rel="next" title="19. Telemetry" href="telemetry.html" />
+    <link rel="prev" title="17. Allocation frames" href="frame.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="telemetry.html" title="18. Telemetry"
+          <a href="telemetry.html" title="19. Telemetry"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="frame.html" title="16. Allocation frames"
+          <a href="frame.html" title="17. Allocation frames"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="debugging-pools">
-<span id="topic-debugging"></span><span id="index-0"></span><h1>17. Debugging pools<a class="headerlink" href="#debugging-pools" title="Permalink to this headline">¶</a></h1>
+<span id="topic-debugging"></span><span id="index-0"></span><h1>18. Debugging pools<a class="headerlink" href="#debugging-pools" title="Permalink to this headline">¶</a></h1>
 <p>Several <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> have debugging counterparts:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -115,18 +115,23 @@ signal an error or stop if wrongly interpreted as executable code.</li>
    <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="s">&quot;postpost&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span>
    <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="s">&quot;freefree&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span>
 <span class="p">};</span>
-<span class="kt">mps_pool_t</span> <span class="n">pool</span><span class="p">;</span>
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_ams_debug</span><span class="p">(),</span>
-                      <span class="o">&amp;</span><span class="n">debug_options</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fmt</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">chain</span><span class="p">)</span>
+<span class="n">mps_pool_t</span> <span class="n">pool</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_ams_debug</span><span class="p">(),</span>
+       <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_POOL_DEBUG_OPTIONS</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">pool_debug_options</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">debug_options</span><span class="p">},</span>
+                     <span class="p">{</span><span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">format</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">fmt</span><span class="p">},</span>
+                     <span class="p">{</span><span class="n">MPS_KEY_CHAIN</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">chain</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">chain</span><span class="p">},</span>
+                     <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;can&#39;t create debug pool&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 <dl class="type">
 <dt id="mps_pool_debug_option_s">
 <tt class="descname">mps_pool_debug_option_s</tt><a class="headerlink" href="#mps_pool_debug_option_s" title="Permalink to this definition">¶</a></dt>
-<dd><p>The type of the structure used to pass options to
-<a class="reference internal" href="pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a> for debugging <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a>.</p>
+<dd><p>The type of the structure passed as the
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_POOL_DEBUG_OPTIONS</span></tt> keyword argument to
+<tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt> when creating a debugging <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool
+class</em></a>.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_pool_debug_option_s</span> <span class="p">{</span>
     <span class="kt">void</span>  <span class="o">*</span><span class="n">fence_template</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">fence_size</span><span class="p">;</span>
@@ -189,10 +194,10 @@ non-debugging pools.</p>
             </a></p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="frame.html"
-                        title="previous chapter">16. Allocation frames</a></p>
+                        title="previous chapter">17. Allocation frames</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="telemetry.html"
-                        title="next chapter">18. Telemetry</a></p><h4>Downloads</h4>
+                        title="next chapter">19. Telemetry</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -218,10 +223,10 @@ non-debugging pools.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="telemetry.html" title="18. Telemetry"
+          <a href="telemetry.html" title="19. Telemetry"
              >next</a> |</li>
         <li class="right" >
-          <a href="frame.html" title="16. Allocation frames"
+          <a href="frame.html" title="17. Allocation frames"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

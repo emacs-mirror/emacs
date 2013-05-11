@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>2. Error handing &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>3. Error handing &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="3. Arenas" href="arena.html" />
-    <link rel="prev" title="1. Interface conventions" href="interface.html" /> 
+    <link rel="next" title="4. Arenas" href="arena.html" />
+    <link rel="prev" title="2. Keyword arguments" href="keyword.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="arena.html" title="3. Arenas"
+          <a href="arena.html" title="4. Arenas"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="interface.html" title="1. Interface conventions"
+          <a href="keyword.html" title="2. Keyword arguments"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="error-handing">
-<span id="topic-error"></span><span id="index-0"></span><h1>2. Error handing<a class="headerlink" href="#error-handing" title="Permalink to this headline">¶</a></h1>
+<span id="topic-error"></span><span id="index-0"></span><h1>3. Error handing<a class="headerlink" href="#error-handing" title="Permalink to this headline">¶</a></h1>
 <p>Operations in the Memory Pool System that might fail return a
 <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> of type <a class="reference internal" href="#mps_res_t" title="mps_res_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_res_t</span></tt></a>, rather than a
 &#8220;special value&#8221; of the return type.</p>
@@ -99,7 +99,7 @@ limit</em></a> would be exceeded.</li>
 </dd></dl>
 
 <div class="section" id="result-codes">
-<h2>2.1. Result codes<a class="headerlink" href="#result-codes" title="Permalink to this headline">¶</a></h2>
+<h2>3.1. Result codes<a class="headerlink" href="#result-codes" title="Permalink to this headline">¶</a></h2>
 <dl class="macro">
 <dt id="MPS_RES_COMMIT_LIMIT">
 <tt class="descname">MPS_RES_COMMIT_LIMIT</tt><a class="headerlink" href="#MPS_RES_COMMIT_LIMIT" title="Permalink to this definition">¶</a></dt>
@@ -204,7 +204,7 @@ yet supported.</p>
 
 </div>
 <div class="section" id="assertions">
-<span id="topic-error-assertion"></span><span id="index-1"></span><h2>2.2. Assertions<a class="headerlink" href="#assertions" title="Permalink to this headline">¶</a></h2>
+<span id="topic-error-assertion"></span><span id="index-1"></span><h2>3.2. Assertions<a class="headerlink" href="#assertions" title="Permalink to this headline">¶</a></h2>
 <p>Bugs in the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> may violate the invariants that the
 MPS relies on. Most functions in the MPS (in most <em>varieties</em>; see
 below) assert the correctness of their data structures, so these bugs
@@ -225,7 +225,7 @@ assertions automatically, by adding the following to your <tt class="docutils li
 </div>
 </div>
 <div class="section" id="common-assertions-and-their-causes">
-<span id="topic-error-cause"></span><span id="index-2"></span><h2>2.3. Common assertions and their causes<a class="headerlink" href="#common-assertions-and-their-causes" title="Permalink to this headline">¶</a></h2>
+<span id="topic-error-cause"></span><span id="index-2"></span><h2>3.3. Common assertions and their causes<a class="headerlink" href="#common-assertions-and-their-causes" title="Permalink to this headline">¶</a></h2>
 <p>This section lists some commonly encountered assertions and suggests
 likely causes. If you encounter an assertion not listed here (or an
 assertion that is listed here but for which you discovered a different
@@ -241,7 +241,7 @@ the beginning of an allocated block. See <a class="reference internal" href="deb
 <a class="reference internal" href="debugging.html#topic-debugging"><em>Debugging pools</em></a>.</div></blockquote>
 <p><tt class="docutils literal"><span class="pre">format.c:</span> <span class="pre">SigCheck</span> <span class="pre">Format:</span> <span class="pre">format</span></tt></p>
 <blockquote>
-<div>The client program called <a class="reference internal" href="pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a> for a
+<div>The client program called <tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt> for a
 <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> like <a class="reference internal" href="../pool/amc.html#pool-amc"><em>AMC (Automatic Mostly-Copying)</em></a> that requires a
 <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>, but passed something other than a
 <a class="reference internal" href="format.html#mps_fmt_t" title="mps_fmt_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_t</span></tt></a> for this argument.</div></blockquote>
@@ -277,7 +277,7 @@ have kept the block alive failed to be scanned. Perhaps a
 condition?</div></blockquote>
 </div>
 <div class="section" id="varieties">
-<span id="index-3"></span><h2>2.4. Varieties<a class="headerlink" href="#varieties" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>3.4. Varieties<a class="headerlink" href="#varieties" title="Permalink to this headline">¶</a></h2>
 <p>The MPS has three behaviours with respect to internal checking and
 <a class="reference internal" href="telemetry.html#topic-telemetry"><em>telemetry</em></a>, which need to be selected at
 compile time, by defining one of the following preprocessor
@@ -327,21 +327,21 @@ consequently there are no assertions.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">2. Error handing</a><ul>
-<li><a class="reference internal" href="#result-codes">2.1. Result codes</a></li>
-<li><a class="reference internal" href="#assertions">2.2. Assertions</a></li>
-<li><a class="reference internal" href="#common-assertions-and-their-causes">2.3. Common assertions and their causes</a></li>
-<li><a class="reference internal" href="#varieties">2.4. Varieties</a></li>
+<li><a class="reference internal" href="#">3. Error handing</a><ul>
+<li><a class="reference internal" href="#result-codes">3.1. Result codes</a></li>
+<li><a class="reference internal" href="#assertions">3.2. Assertions</a></li>
+<li><a class="reference internal" href="#common-assertions-and-their-causes">3.3. Common assertions and their causes</a></li>
+<li><a class="reference internal" href="#varieties">3.4. Varieties</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="interface.html"
-                        title="previous chapter">1. Interface conventions</a></p>
+  <p class="topless"><a href="keyword.html"
+                        title="previous chapter">2. Keyword arguments</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="arena.html"
-                        title="next chapter">3. Arenas</a></p><h4>Downloads</h4>
+                        title="next chapter">4. Arenas</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -367,10 +367,10 @@ consequently there are no assertions.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="arena.html" title="3. Arenas"
+          <a href="arena.html" title="4. Arenas"
              >next</a> |</li>
         <li class="right" >
-          <a href="interface.html" title="1. Interface conventions"
+          <a href="keyword.html" title="2. Keyword arguments"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

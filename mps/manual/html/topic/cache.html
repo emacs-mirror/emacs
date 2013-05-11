@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>14. Segregated allocation caches &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>15. Segregated allocation caches &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="15. Allocation patterns" href="pattern.html" />
-    <link rel="prev" title="13. Location dependency" href="location.html" /> 
+    <link rel="next" title="16. Allocation patterns" href="pattern.html" />
+    <link rel="prev" title="14. Location dependency" href="location.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="pattern.html" title="15. Allocation patterns"
+          <a href="pattern.html" title="16. Allocation patterns"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="location.html" title="13. Location dependency"
+          <a href="location.html" title="14. Location dependency"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="segregated-allocation-caches">
-<span id="topic-cache"></span><span id="index-0"></span><h1>14. Segregated allocation caches<a class="headerlink" href="#segregated-allocation-caches" title="Permalink to this headline">¶</a></h1>
+<span id="topic-cache"></span><span id="index-0"></span><h1>15. Segregated allocation caches<a class="headerlink" href="#segregated-allocation-caches" title="Permalink to this headline">¶</a></h1>
 <p>A <em class="dfn">segregated allocation cache</em> is a data structure that can be
 attached to any <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manually managed</em></a>
 <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>, that maintains a <a class="reference internal" href="../glossary/s.html#term-segregated-free-list"><em class="xref std std-term">segregated free list</em></a>, that is,
@@ -70,7 +70,7 @@ small number of relatively long-lived 128-byte objects, and a large
 number of relatively short-lived 8-byte objects, we might create a
 cache as follows:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_sac_class_s</span> <span class="n">classes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{{</span><span class="mi">8</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">},</span> <span class="p">{</span><span class="mi">128</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">}};</span>
-<span class="kt">mps_sac_t</span> <span class="n">sac</span><span class="p">;</span>
+<span class="n">mps_sac_t</span> <span class="n">sac</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_sac_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sac</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span> <span class="n">classes</span> <span class="o">/</span> <span class="k">sizeof</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">classes</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>
@@ -83,8 +83,8 @@ otherwise from the pool. Similarly, deallocations through the cache
 (using <a class="reference internal" href="#mps_sac_free" title="mps_sac_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_sac_free()</span></tt></a> or <a class="reference internal" href="#MPS_SAC_FREE_FAST" title="MPS_SAC_FREE_FAST"><tt class="xref c c-func docutils literal"><span class="pre">MPS_SAC_FREE_FAST()</span></tt></a>) return
 the block to the appopriate free list for its size. For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">Foo</span> <span class="o">*</span><span class="n">foo</span><span class="p">;</span>
-<span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_sac_alloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">sac</span><span class="p">,</span> <span class="k">sizeof</span> <span class="o">*</span><span class="n">foo</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>
@@ -121,7 +121,7 @@ classes: the debugging checks only happen when blocks are moved
 between the cache and the pool.</p>
 </div>
 <div class="section" id="cache-interface">
-<span id="index-1"></span><h2>14.1. Cache interface<a class="headerlink" href="#cache-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>15.1. Cache interface<a class="headerlink" href="#cache-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_sac_t">
 <tt class="descname">mps_sac_t</tt><a class="headerlink" href="#mps_sac_t" title="Permalink to this definition">¶</a></dt>
@@ -271,7 +271,7 @@ pool.</p>
 
 </div>
 <div class="section" id="allocation-interface">
-<span id="index-2"></span><h2>14.2. Allocation interface<a class="headerlink" href="#allocation-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>15.2. Allocation interface<a class="headerlink" href="#allocation-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_sac_alloc">
 <a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_sac_alloc</tt><big>(</big><a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;*p_o</em>, <a class="reference internal" href="#mps_sac_t" title="mps_sac_t">mps_sac_t</a><em>&nbsp;sac</em>, size_t<em>&nbsp;size</em>, <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t">mps_bool_t</a><em>&nbsp;has_reservoir_permit</em><big>)</big><a class="headerlink" href="#mps_sac_alloc" title="Permalink to this definition">¶</a></dt>
@@ -400,19 +400,19 @@ the function.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">14. Segregated allocation caches</a><ul>
-<li><a class="reference internal" href="#cache-interface">14.1. Cache interface</a></li>
-<li><a class="reference internal" href="#allocation-interface">14.2. Allocation interface</a></li>
+<li><a class="reference internal" href="#">15. Segregated allocation caches</a><ul>
+<li><a class="reference internal" href="#cache-interface">15.1. Cache interface</a></li>
+<li><a class="reference internal" href="#allocation-interface">15.2. Allocation interface</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="location.html"
-                        title="previous chapter">13. Location dependency</a></p>
+                        title="previous chapter">14. Location dependency</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pattern.html"
-                        title="next chapter">15. Allocation patterns</a></p><h4>Downloads</h4>
+                        title="next chapter">16. Allocation patterns</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -438,10 +438,10 @@ the function.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="pattern.html" title="15. Allocation patterns"
+          <a href="pattern.html" title="16. Allocation patterns"
              >next</a> |</li>
         <li class="right" >
-          <a href="location.html" title="13. Location dependency"
+          <a href="location.html" title="14. Location dependency"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

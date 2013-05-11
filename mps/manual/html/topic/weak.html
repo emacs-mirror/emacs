@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>19. Weak references &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>20. Weak references &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -29,7 +29,7 @@
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
     <link rel="next" title="Pool reference" href="../pool/index.html" />
-    <link rel="prev" title="18. Telemetry" href="telemetry.html" /> 
+    <link rel="prev" title="19. Telemetry" href="telemetry.html" /> 
   </head>
   <body>
     <div class="related">
@@ -42,7 +42,7 @@
           <a href="../pool/index.html" title="Pool reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="telemetry.html" title="18. Telemetry"
+          <a href="telemetry.html" title="19. Telemetry"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="weak-references">
-<span id="topic-weak"></span><span id="index-0"></span><h1>19. Weak references<a class="headerlink" href="#weak-references" title="Permalink to this headline">¶</a></h1>
+<span id="topic-weak"></span><span id="index-0"></span><h1>20. Weak references<a class="headerlink" href="#weak-references" title="Permalink to this headline">¶</a></h1>
 <p>A <em class="dfn">weak reference</em> is a <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">reference</em></a> that does not keep the
 block it refers to <a class="reference internal" href="../glossary/l.html#term-live"><em class="xref std std-term">alive</em></a>.</p>
 <p>The open source MPS supports weak references only:</p>
@@ -78,14 +78,14 @@ all weak references to the block have been splatted, the block may be
 reclaimed.</p>
 <p>For example, a <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a> for objects in an AWL pool might
 look like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
-            <span class="kt">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">;</span>
+            <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">;</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="p">{</span>
-                <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+                <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
                     <span class="cm">/* reference was splatted */</span>
@@ -141,7 +141,7 @@ that block from being splatted. See <a class="reference internal" href="finaliza
             </a></p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="telemetry.html"
-                        title="previous chapter">18. Telemetry</a></p>
+                        title="previous chapter">19. Telemetry</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="../pool/index.html"
                         title="next chapter">Pool reference</a></p><h4>Downloads</h4>
@@ -173,7 +173,7 @@ that block from being splatted. See <a class="reference internal" href="finaliza
           <a href="../pool/index.html" title="Pool reference"
              >next</a> |</li>
         <li class="right" >
-          <a href="telemetry.html" title="18. Telemetry"
+          <a href="telemetry.html" title="19. Telemetry"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

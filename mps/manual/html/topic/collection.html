@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>10. Garbage collection &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>11. Garbage collection &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="11. Messages" href="message.html" />
-    <link rel="prev" title="9. Roots" href="root.html" /> 
+    <link rel="next" title="12. Messages" href="message.html" />
+    <link rel="prev" title="10. Roots" href="root.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="message.html" title="11. Messages"
+          <a href="message.html" title="12. Messages"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="root.html" title="9. Roots"
+          <a href="root.html" title="10. Roots"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="garbage-collection">
-<span id="topic-collection"></span><span id="index-0"></span><h1>10. Garbage collection<a class="headerlink" href="#garbage-collection" title="Permalink to this headline">¶</a></h1>
+<span id="topic-collection"></span><span id="index-0"></span><h1>11. Garbage collection<a class="headerlink" href="#garbage-collection" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="generation-chains">
-<span id="index-1"></span><h2>10.1. Generation chains<a class="headerlink" href="#generation-chains" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>11.1. Generation chains<a class="headerlink" href="#generation-chains" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference internal" href="../glossary/g.html#term-generation-chain"><em class="xref std std-term">generation chain</em></a> describes the structure of the
 <a class="reference internal" href="../glossary/g.html#term-generation"><em class="xref std std-term">generations</em></a> in a set of <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a> <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pools</em></a>. The same generation
 chain should be used for all pools whose blocks live and die together.</p>
@@ -74,8 +74,8 @@ prepared to start collecting the generation. See
     <span class="p">{</span> <span class="mi">2048</span><span class="p">,</span> <span class="mf">0.4</span> <span class="p">},</span>
 <span class="p">};</span>
 
-<span class="kt">mps_chain_t</span> <span class="n">chain</span><span class="p">;</span>
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="n">mps_chain_t</span> <span class="n">chain</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_chain_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chain</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span>
                        <span class="k">sizeof</span><span class="p">(</span><span class="n">gen_params</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">gen_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
                        <span class="n">gen_params</span><span class="p">);</span>
@@ -139,7 +139,7 @@ void <tt class="descname">mps_chain_destroy</tt><big>(</big><a class="reference 
 
 </div>
 <div class="section" id="scheduling-of-collections">
-<span id="topic-collection-schedule"></span><span id="index-2"></span><h2>10.2. Scheduling of collections<a class="headerlink" href="#scheduling-of-collections" title="Permalink to this headline">¶</a></h2>
+<span id="topic-collection-schedule"></span><span id="index-2"></span><h2>11.2. Scheduling of collections<a class="headerlink" href="#scheduling-of-collections" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">It&#8217;s likely that the algorithm the MPS uses to schedule its
@@ -193,7 +193,7 @@ predicted mortality is too low, the collector will take larger time
 slices up front and then find that it is idle later on.</p>
 </div>
 <div class="section" id="garbage-collection-start-messages">
-<span id="index-3"></span><h2>10.3. Garbage collection start messages<a class="headerlink" href="#garbage-collection-start-messages" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>11.3. Garbage collection start messages<a class="headerlink" href="#garbage-collection-start-messages" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_message_type_gc_start">
 <a class="reference internal" href="message.html#mps_message_type_t" title="mps_message_type_t">mps_message_type_t</a> <tt class="descname">mps_message_type_gc_start</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_message_type_gc_start" title="Permalink to this definition">¶</a></dt>
@@ -234,7 +234,7 @@ the message is discarded with <a class="reference internal" href="message.html#m
 
 </div>
 <div class="section" id="garbage-collection-messages">
-<span id="index-4"></span><h2>10.4. Garbage collection messages<a class="headerlink" href="#garbage-collection-messages" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>11.4. Garbage collection messages<a class="headerlink" href="#garbage-collection-messages" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_message_type_gc">
 <a class="reference internal" href="message.html#mps_message_type_t" title="mps_message_type_t">mps_message_type_t</a> <tt class="descname">mps_message_type_gc</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_message_type_gc" title="Permalink to this definition">¶</a></dt>
@@ -329,21 +329,21 @@ collection</em></a> that generated the message.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">10. Garbage collection</a><ul>
-<li><a class="reference internal" href="#generation-chains">10.1. Generation chains</a></li>
-<li><a class="reference internal" href="#scheduling-of-collections">10.2. Scheduling of collections</a></li>
-<li><a class="reference internal" href="#garbage-collection-start-messages">10.3. Garbage collection start messages</a></li>
-<li><a class="reference internal" href="#garbage-collection-messages">10.4. Garbage collection messages</a></li>
+<li><a class="reference internal" href="#">11. Garbage collection</a><ul>
+<li><a class="reference internal" href="#generation-chains">11.1. Generation chains</a></li>
+<li><a class="reference internal" href="#scheduling-of-collections">11.2. Scheduling of collections</a></li>
+<li><a class="reference internal" href="#garbage-collection-start-messages">11.3. Garbage collection start messages</a></li>
+<li><a class="reference internal" href="#garbage-collection-messages">11.4. Garbage collection messages</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="root.html"
-                        title="previous chapter">9. Roots</a></p>
+                        title="previous chapter">10. Roots</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="message.html"
-                        title="next chapter">11. Messages</a></p><h4>Downloads</h4>
+                        title="next chapter">12. Messages</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -369,10 +369,10 @@ collection</em></a> that generated the message.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="message.html" title="11. Messages"
+          <a href="message.html" title="12. Messages"
              >next</a> |</li>
         <li class="right" >
-          <a href="root.html" title="9. Roots"
+          <a href="root.html" title="10. Roots"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

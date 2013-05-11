@@ -82,7 +82,7 @@ Memory management in various languages
 
         .. seealso:: :term:`automatic storage duration`, :term:`static storage duration`.
 
-        .. bibref:: :ref:`Boehm & Weiser (1988) <BW88>`, :ref:`Daconta (1993) <DACONTA93>`, :ref:`Zorn (1993) <ZORN93>`.
+        .. bibref:: :ref:`ISO/IEC 9899:1990 <C1990>`, :ref:`ISO/IEC 9899:1999 <C1999>`, :ref:`Boehm & Weiser (1988) <BW88>`, :ref:`Daconta (1993) <DACONTA93>`, :ref:`Zorn (1993) <ZORN93>`.
 
         .. link::
 

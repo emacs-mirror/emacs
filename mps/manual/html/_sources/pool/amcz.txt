@@ -59,17 +59,32 @@ AMCZ interface
     Return the :term:`pool class` for an AMCZ (Automatic
     Mostly-Copying Zero-rank) :term:`pool`.
 
-    When creating an AMCZ pool, :c:func:`mps_pool_create` takes two
-    extra arguments::
+    When creating an AMCZ pool, :c:func:`mps_pool_create_k` requires
+    two :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_amcz(),
-                                  mps_fmt_t fmt,
-                                  mps_chain_t chain)
+    * :c:macro:`MPS_KEY_FORMAT` (member ``.val.format``; type
+      :c:type:`mps_fmt_t`) specifies the :term:`object format` for the
+      objects allocated in the pool. The format must provide a
+      :term:`skip method`, a :term:`forward method`, an
+      :term:`is-forwarded method` and a :term:`padding method`.
 
-    ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool. The format must provide a :term:`skip
-    method`, a :term:`forward method`, an :term:`is-forwarded method`
-    and a :term:`padding method`.
+    * :c:macro:`MPS_KEY_CHAIN` (member ``.val.chain``; type
+      :c:type:`mps_chain_t`) specifies the :term:`generation chain`
+      for the pool.
 
-    ``chain`` specifies the :term:`generation chain` for the pool.
+    For example, in :term:`C99`::
+
+        res = mps_pool_create_k(&pool, arena, mps_class_amcz(),
+               (mps_arg_s[]){{MPS_KEY_CHAIN, .val.chain = chain},
+                             {MPS_KEY_FORMAT, .val.format = fmt},
+                             {MPS_KEY_ARGS_END}});
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_pool_create`, pass the format and
+        chain like this::
+
+          mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                    mps_class_t mps_class_amcz(),
+                                    mps_fmt_t fmt,
+                                    mps_chain_t chain)
