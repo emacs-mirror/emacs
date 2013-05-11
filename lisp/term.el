@@ -953,7 +953,7 @@ is buffer-local."
   (when term-escape-char
     ;; Undo previous term-set-escape-char.
     (define-key term-raw-map term-escape-char 'term-send-raw))
-  (setq term-escape-char (vector key))
+  (setq term-escape-char (if (vectorp key) key (vector key)))
   (define-key term-raw-map term-escape-char term-raw-escape-map)
   ;; FIXME: If we later call term-set-escape-char again with another key,
   ;; we should undo this binding.

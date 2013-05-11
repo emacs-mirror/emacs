@@ -1,3 +1,7 @@
+2013-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* term.el (term-set-escape-char): Make it idempotent.
+
 2013-05-10  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-completion-table): No
