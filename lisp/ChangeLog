@@ -1,3 +1,10 @@
+2013-05-11  Kevin Ryde  <user42@zip.com.au>
+
+	* cus-dep.el (custom-make-dependencies):
+	Use generated-autoload-load-name for the sake of files such
+	such cedet/semantic/bovine/c.el, where the base file name
+	is not in load-path.  (Bug#5277)
+
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* dos-vars.el, emacs-lisp/cl-indent.el, emulation/tpu-extras.el:

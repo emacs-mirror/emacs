@@ -36,7 +36,7 @@
 ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
   "Regexp matching file names not to scan for `custom-make-dependencies'.")
 
-(autoload 'autoload-rubric "autoload")
+(require 'autoload)
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
@@ -60,10 +60,13 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                         (string-match preloaded file)
                         (not (file-exists-p file)))
               (erase-buffer)
+              (kill-all-local-variables)
               (insert-file-contents file)
+              (hack-local-variables)
               (goto-char (point-min))
               (string-match "\\`\\(.*\\)\\.el\\'" file)
-              (let ((name (file-name-nondirectory (match-string 1 file)))
+              (let ((name (or generated-autoload-load-name ; see bug#5277
+                              (file-name-nondirectory (match-string 1 file))))
                     (load-file-name file))
                 (if (save-excursion
                       (re-search-forward
