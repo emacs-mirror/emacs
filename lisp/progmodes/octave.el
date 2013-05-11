@@ -414,6 +414,13 @@ Non-nil means always go to the next Octave code line after sending."
        ;; (if (smie-parent-p "switch") 4)
        0))))
 
+(defun octave-indent-comment ()
+  "A function for `smie-indent-functions' (which see)."
+  (save-excursion
+    (back-to-indentation)
+    (when (and (looking-at-p "\\s<") (not (looking-at-p "\\s<\\s<")))
+      (comment-choose-indent))))
+
 
 (defvar octave-font-lock-keywords
   (list
@@ -488,6 +495,7 @@ definitions can also be stored in files and used in batch mode."
               :forward-token  #'octave-smie-forward-token
               :backward-token #'octave-smie-backward-token)
   (setq-local smie-indent-basic 'octave-block-offset)
+  (add-hook 'smie-indent-functions #'octave-indent-comment nil t)
 
   (setq-local smie-blink-matching-triggers
               (cons ?\; smie-blink-matching-triggers))
