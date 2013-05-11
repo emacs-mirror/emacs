@@ -510,7 +510,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   vmArena->vm = arenaVM;
   vmArena->spareSize = 0;
 
-  /* Copy the stack-allocated VM parmeters into their home in the VMArena. */
+  /* Copy the stack-allocated VM parameters into their home in the VMArena. */
   AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
   memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
 
