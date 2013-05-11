@@ -1,5 +1,7 @@
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/autoload.el (generated-autoload-load-name): Doc fix.
+
 	* cus-dep.el (custom-make-dependencies): Only use safe local variables.
 	Treat cc-provide like provide.
 
