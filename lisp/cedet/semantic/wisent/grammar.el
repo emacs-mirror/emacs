@@ -523,4 +523,8 @@ Menu items are appended to the common grammar menu.")
 
 (provide 'semantic/wisent/grammar)
 
+;; Local variables:
+;; generated-autoload-load-name: "semantic/wisent/grammar"
+;; End:
+
 ;;; semantic/wisent/grammar.el ends here

@@ -425,4 +425,8 @@ Returns the tag list, or t for an error."
 
 (provide 'semantic/sb)
 
+;; Local variables:
+;; generated-autoload-load-name: "semantic/sb"
+;; End:
+
 ;;; semantic/sb.el ends here

@@ -1909,4 +1909,8 @@ Optional argument COLOR determines if color is added to the text."
 
 (provide 'semantic/grammar)
 
+;; Local variables:
+;; generated-autoload-load-name: "semantic/grammar"
+;; End:
+
 ;;; semantic/grammar.el ends here

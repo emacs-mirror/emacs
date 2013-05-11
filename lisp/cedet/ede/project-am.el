@@ -1014,4 +1014,8 @@ per file or in .dir-locals.el or similar."
 
 (provide 'ede/project-am)
 
+;; Local variables:
+;; generated-autoload-load-name: "ede/project-am"
+;; End:
+
 ;;; ede/project-am.el ends here

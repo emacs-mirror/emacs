@@ -3548,6 +3548,7 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
 
 ;; Local variables:
 ;; byte-compile-warnings: (not lexical)
+;; generated-autoload-load-name: "semantic/wisent/comp"
 ;; End:
 
 ;;; semantic/wisent/comp.el ends here

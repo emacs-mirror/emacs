@@ -1,5 +1,10 @@
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* ede/project-am.el, semantic/db-ebrowse.el, semantic/grammar.el:
+	* semantic/sb.el, semantic/bovine/grammar.el, semantic/wisent/comp.el:
+	* semantic/wisent/grammar.el, semantic/wisent/wisent.el:
+	* srecode/fields.el: Set generated-autoload-load-name (for cus-load).
+
 	* ede/locate.el (cedet-cscope-version-check)
 	(cedet-cscope-support-for-directory):
 	* semantic/grammar.el (semantic-grammar-wy--install-parser):
