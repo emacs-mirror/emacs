@@ -42,6 +42,7 @@ ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (let ((enable-local-eval nil)
+	(enable-local-variables :safe)
 	subdir)
     (with-temp-buffer
       ;; Use up command-line-args-left else Emacs can try to open
@@ -70,7 +71,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                     (load-file-name file))
                 (if (save-excursion
                       (re-search-forward
-		     (concat "(provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
+		     (concat "(\\(cc-\\)?provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
 			     (regexp-quote name) "[ \t\n)]")
 		     nil t))
                     (setq name (intern name)))
