@@ -48,11 +48,7 @@
   (require 'semantic/find)
   (require 'semantic/db))
 
-(declare-function semantic-grammar-wy--install-parser
-		  "semantic/gram-wy-fallback")
-
-(declare-function semantic-grammar-wy--install-parser
-		  "semantic/gram-wy-fallback")
+(declare-function semantic-grammar-wy--install-parser "semantic/grammar-wy")
 
 
 ;;;;

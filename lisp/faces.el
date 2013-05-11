@@ -297,7 +297,7 @@ X resource class for the attribute."
 
 
 (declare-function internal-face-x-get-resource "xfaces.c"
-		  (resource class frame))
+		  (resource class &optional frame))
 
 (declare-function internal-set-lisp-face-attribute-from-resource "xfaces.c"
 		  (face attr value &optional frame))

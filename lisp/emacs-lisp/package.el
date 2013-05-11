@@ -613,8 +613,8 @@ EXTRA-PROPERTIES is currently unused."
 
 (defvar tar-parse-info)
 (declare-function tar-untar-buffer "tar-mode" ())
-(declare-function tar-header-name "tar-mode" (tar-header))
-(declare-function tar-header-link-type "tar-mode" (tar-header))
+(declare-function tar-header-name "tar-mode" (tar-header) t)
+(declare-function tar-header-link-type "tar-mode" (tar-header) t)
 
 (defun package-untar-buffer (dir)
   "Untar the current buffer.

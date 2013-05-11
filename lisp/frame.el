@@ -1495,7 +1495,7 @@ The value is one of the symbols `static-gray', `gray-scale',
 
 (declare-function x-display-monitor-attributes-list "xfns.c"
 		  (&optional terminal))
-(declare-function ns-display-monitor-attributes-list "nsfns.c"
+(declare-function ns-display-monitor-attributes-list "nsfns.m"
 		  (&optional terminal))
 
 (defun display-monitor-attributes-list (&optional display)

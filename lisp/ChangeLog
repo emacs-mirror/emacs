@@ -1,5 +1,11 @@
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* faces.el (internal-face-x-get-resource):
+	* frame.el (ns-display-monitor-attributes-list):
+	* calc/calc-aent.el (math-to-radians-2): Fix declarations.
+
+	* emacs-lisp/package.el (tar-header-name, tar-header-link-type):
+
 	* calc/calc-menu.el: Make it loadable in isolation.
 
 	* net/eudcb-bbdb.el: Make it loadable without bbdb.
