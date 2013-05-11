@@ -99,9 +99,14 @@
 (defvar cus-test-skip-list nil
   "List of variables to disregard by `cus-test-apropos'.")
 
-;; Loading dunnet in batch mode leads to a Dead end.
-(defvar cus-test-libs-noloads '("play/dunnet.el" "emulation/edt-mapper.el"
-				"loadup.el" "mail/blessmail.el")
+(defvar cus-test-libs-noloads
+  ;; Loading dunnet in batch mode leads to a Dead end.
+  ;; blessmail writes a file.
+  ;; characters cannot be loaded twice ("Category `a' is already defined").
+  '("play/dunnet.el" "emulation/edt-mapper.el"
+    "loadup.el" "mail/blessmail.el" "international/characters.el"
+    "cedet/ede/loaddefs.el" "cedet/semantic/loaddefs.el"
+    "net/tramp-loaddefs.el")
   "List of files not to load by `cus-test-load-libs'.
 Names should be as they appear in loaddefs.el.")
 
@@ -277,9 +282,11 @@ The detected problematic options are stored in `cus-test-errors'."
      (run-hooks 'cus-test-after-load-libs-hook)))
 
 ;; This is just cus-test-libs, but loading in the current Emacs process.
-(defun cus-test-load-libs ()
+(defun cus-test-load-libs (&optional more)
   "Load the libraries with autoloads.
-Don't load libraries in `cus-test-libs-noloads'."
+Don't load libraries in `cus-test-libs-noloads'.
+If optional argument MORE is \"defcustom\", load all files with defcustoms.
+If it is \"all\", load all Lisp files."
   (interactive)
   (cus-test-load-1
    (let ((lispdir (file-name-directory (locate-library "loaddefs"))))
@@ -292,7 +299,9 @@ Don't load libraries in `cus-test-libs-noloads'."
 	  (error
 	   (push (cons file alpha) cus-test-libs-errors)
 	   (message "Error for %s: %s" file alpha))))
-      (cus-test-get-autoload-deps)))))
+      (if more
+	  (cus-test-get-lisp-files (equal more "all"))
+	(cus-test-get-autoload-deps))))))
 
 (defun cus-test-get-autoload-deps ()
   "Return the list of files with autoloads."
@@ -313,7 +322,7 @@ Optional argument ALL non-nil means list all Lisp files."
 	;; Hack to remove leading "./".
 	(mapcar (lambda (e) (substring e 2))
 		(apply 'process-lines find-program
-		       "-name" "*.el"
+		       "-name" "[^.]*.el" ; ignore .dir-locals.el
 		       (unless all
 			 (list "-exec" grep-program
 			       "-l" "^[ \t]*(defcustom" "{}" "+"))))
@@ -326,16 +335,21 @@ Optional argument ALL non-nil means list all Lisp files."
 
 ;;; The routines for batch mode:
 
-(defun cus-test-opts ()
+(defun cus-test-opts (&optional all)
   "Test custom options.
 This function is suitable for batch mode.  E.g., invoke
 
   src/emacs -batch -l admin/cus-test.el -f cus-test-opts
 
-in the Emacs source directory."
+in the Emacs source directory.
+Normally only tests options belonging to files in loaddefs.el.
+If optional argument ALL is non-nil, test all files with defcustoms."
   (interactive)
+  (and noninteractive
+       command-line-args-left
+       (setq all (pop command-line-args-left)))
   (message "Running %s" 'cus-test-load-libs)
-  (cus-test-load-libs)
+  (cus-test-load-libs (if all "defcustom"))
   (message "Running %s" 'cus-test-load-custom-loads)
   (cus-test-load-custom-loads)
   (message "Running %s" 'cus-test-apropos)
