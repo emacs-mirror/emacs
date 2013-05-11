@@ -5770,41 +5770,43 @@ comments without asking."
 	(and marked (goto-char (point-min)))
 	(catch 'done
 	  (while (not (eobp))
-	    (if (or (not marked) (and marked (todos-marked-item-p)))
-		(if (not (todos-done-item-p))
-		    (error "Only done items can be undone")
-		  (todos-item-start)
-		  (unless marked
-		    (setq ov (make-overlay (save-excursion (todos-item-start))
-					   (save-excursion (todos-item-end))))
-		    (overlay-put ov 'face 'todos-search))
-		  ;; Find the end of the date string added upon tagging item as
-		  ;; done.
-		  (setq start (search-forward "] "))
-		  (setq item-count (1+ item-count))
-		  (unless (looking-at (regexp-quote todos-nondiary-start))
-		    (setq diary-count (1+ diary-count)))
-		  (setq end (save-excursion (todos-item-end)))
-		  ;; Ask (once) whether to omit done item's comment.  If
-		  ;; affirmed, omit subsequent comments without asking.
-		  (when (re-search-forward
-			 (concat " \\[" (regexp-quote todos-comment-string)
-				 ": [^]]+\\]") end t)
-		    (if (eq first 'first)
-			(setq first
-			      (if (eq todos-undo-item-omit-comment 'ask)
-				  (when (y-or-n-p (concat "Omit comment" pl
-							  " from restored item"
-							  pl "? "))
-				    'omit)
-				(when todos-undo-item-omit-comment 'omit)))
-		      t)
-		    (when (eq first 'omit)
-		      (setq end (match-beginning 0)))
-		  (setq item (concat item
-				     (buffer-substring-no-properties start end)
-				     (when marked "\n")))
-		  (unless marked (throw 'done nil)))))
+	    (when (or (not marked) (and marked (todos-marked-item-p)))
+	      (if (not (todos-done-item-p))
+		  (error "Only done items can be undone")
+		(todos-item-start)
+		(unless marked
+		  (setq ov (make-overlay (save-excursion (todos-item-start))
+					 (save-excursion (todos-item-end))))
+		  (overlay-put ov 'face 'todos-search))
+		;; Find the end of the date string added upon tagging item as
+		;; done.
+		(setq start (search-forward "] "))
+		(setq item-count (1+ item-count))
+		(unless (looking-at (regexp-quote todos-nondiary-start))
+		  (setq diary-count (1+ diary-count)))
+		(setq end (save-excursion (todos-item-end)))
+		;; Ask (once) whether to omit done item's comment.  If
+		;; affirmed, omit subsequent comments without asking.
+		(when (re-search-forward
+		       (concat " \\[" (regexp-quote todos-comment-string)
+			       ": [^]]+\\]") end t)
+		  (unwind-protect
+		      (if (eq first 'first)
+			  (setq first
+				(if (eq todos-undo-item-omit-comment 'ask)
+				    (when (y-or-n-p (concat "Omit comment" pl
+							    " from restored item"
+							    pl "? "))
+				      'omit)
+				  (when todos-undo-item-omit-comment 'omit)))
+			t)
+		    (when (and (eq first 'first) ov) (delete-overlay ov)))
+		  (when (eq first 'omit)
+		    (setq end (match-beginning 0))))
+		(setq item (concat item
+				   (buffer-substring-no-properties start end)
+				   (when marked "\n")))
+		(unless marked (throw 'done nil))))
 	    (todos-forward-item)))
 	(unwind-protect
 	    (progn
@@ -5814,7 +5816,7 @@ comments without asking."
 	      (todos-set-item-priority item cat t)
 	      (setq npoint (point))
 	      (setq undone t))
-	  (if ov (delete-overlay ov))
+	  (when ov (delete-overlay ov))
 	  (if (not undone)
 	      (goto-char opoint)
 	    (if marked

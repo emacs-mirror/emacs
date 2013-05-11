@@ -1,3 +1,9 @@
+2013-05-11  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-item-undone): Remove item highlighting when user
+	quits before deciding whether to omit comment.  Fix misplaced
+	closing paren.  Change two uses of `if' to `when'.
+
 2013-05-10  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Rename numerous commands and defcustoms and adjust all
