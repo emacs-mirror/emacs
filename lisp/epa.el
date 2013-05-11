@@ -621,30 +621,33 @@ If SECRET is non-nil, list secret keys instead of public keys."
       (message "%s..." prompt))))
 
 ;;;###autoload
-(defun epa-decrypt-file (file)
-  "Decrypt FILE."
-  (interactive "fFile: ")
-  (setq file (expand-file-name file))
-  (let* ((default-name (file-name-sans-extension file))
-	 (plain (expand-file-name
-		 (read-file-name
-		  (concat "To file (default "
-			  (file-name-nondirectory default-name)
-			  ") ")
-		  (file-name-directory default-name)
-		  default-name)))
-	 (context (epg-make-context epa-protocol)))
+(defun epa-decrypt-file (decrypt-file plain-file)
+  "Decrypt DECRYPT-FILE into PLAIN-FILE."
+  (interactive
+   (let (file default-name plain)
+     (setq file (read-file-name "File to decrypt: "))
+     (setq default-name (file-name-sans-extension (expand-file-name file)))
+     (setq plain (expand-file-name
+		  (read-file-name
+		   (concat "To file (default "
+			   (file-name-nondirectory default-name)
+			   ") ")
+		   (file-name-directory default-name)
+		   default-name)))
+     (list file plain)))
+  (setq decrypt-file (expand-file-name decrypt-file))
+  (let ((context (epg-make-context epa-protocol)))
     (epg-context-set-passphrase-callback context
 					 #'epa-passphrase-callback-function)
     (epg-context-set-progress-callback context
 				       (cons
 					#'epa-progress-callback-function
 					(format "Decrypting %s..."
-						(file-name-nondirectory file))))
-    (message "Decrypting %s..." (file-name-nondirectory file))
-    (epg-decrypt-file context file plain)
-    (message "Decrypting %s...wrote %s" (file-name-nondirectory file)
-	     (file-name-nondirectory plain))
+						(file-name-nondirectory decrypt-file))))
+    (message "Decrypting %s..." (file-name-nondirectory decrypt-file))
+    (epg-decrypt-file context decrypt-file plain-file)
+    (message "Decrypting %s...wrote %s" (file-name-nondirectory decrypt-file)
+	     (file-name-nondirectory plain-file))
     (if (epg-context-result-for context 'verify)
 	(epa-display-info (epg-verify-result-to-string
 			   (epg-context-result-for context 'verify))))))
