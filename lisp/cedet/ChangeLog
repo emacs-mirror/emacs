@@ -1,3 +1,7 @@
+2013-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* ede/project-am.el (project-am-compile-project-command): Fix :type.
+
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/db-find.el (semanticdb-find-throttle-custom-list):

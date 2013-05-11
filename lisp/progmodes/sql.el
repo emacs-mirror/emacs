@@ -285,36 +285,49 @@ file.  Since that is a plaintext file, this could be dangerous."
 
 (define-widget 'sql-login-params 'lazy
   "Widget definition of the login parameters list"
-  ;; FIXME: does not implement :default property for the user,
-  ;; database and server options.  Anybody have some guidance on how to
-  ;; do this.
   :tag "Login Parameters"
-  :type '(repeat (choice
-                  (const user)
-                  (const password)
-                  (choice :tag "server"
-                          (const server)
-                          (list :tag "file"
-                                (const :format "" server)
-                                (const :format "" :file)
-                                regexp)
-                          (list :tag "completion"
-                                (const :format "" server)
+  :type '(set :tag "Login Parameters"
+              (choice :tag "user"
+                      :value user
+                      (const user)
+                      (list :tag "Specify a default"
+                            (const user)
+                            (list :tag "Default"
+                                  :inline t (const :default) string)))
+              (const password)
+              (choice :tag "server"
+                      :value server
+                      (const server)
+                      (list :tag "Specify a default"
+                            (const server)
+                            (list :tag "Default"
+                                  :inline t (const :default) string))
+                      (list :tag "file"
+                            (const :format "" server)
+                            (const :format "" :file)
+                            regexp)
+                      (list :tag "completion"
+                            (const :format "" server)
+                            (const :format "" :completion)
+                            (restricted-sexp
+                             :match-alternatives (listp stringp))))
+              (choice :tag "database"
+                      :value database
+                      (const database)
+                      (list :tag "Specify a default"
+                            (const database)
+                            (list :tag "Default"
+                                  :inline t (const :default) string))
+                      (list :tag "file"
+                            (const :format "" database)
+                            (const :format "" :file)
+                            regexp)
+                      (list :tag "completion"
+                            (const :format "" database)
                                 (const :format "" :completion)
                                 (restricted-sexp
                                  :match-alternatives (listp stringp))))
-                  (choice :tag "database"
-                          (const database)
-                          (list :tag "file"
-                                (const :format "" database)
-                                (const :format "" :file)
-                                regexp)
-                          (list :tag "completion"
-                                (const :format "" database)
-                                (const :format "" :completion)
-                                (restricted-sexp
-                                 :match-alternatives (listp stringp))))
-                  (const port))))
+              (const port)))
 
 ;; SQL Product support
 

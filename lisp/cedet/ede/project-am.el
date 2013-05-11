@@ -55,7 +55,7 @@
 (defcustom project-am-compile-project-command nil
   "*Default command used to compile a project."
   :group 'project-am
-  :type 'string)
+  :type '(choice const nil) string)
 
 (defcustom project-am-compile-target-command (concat ede-make-command " -k %s")
   "*Default command used to compile a project."

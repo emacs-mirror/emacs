@@ -1,5 +1,10 @@
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* lpr.el (lpr-headers-switches):
+	* emacs-lisp/testcover.el (testcover-compose-functions): Fix :type.
+
+	* progmodes/sql.el (sql-login-params): Fix and improve :type.
+
 	* emulation/edt-mapper.el: In batch mode, error rather than hang.
 
 	* term.el (term-set-escape-char): Make it idempotent.
