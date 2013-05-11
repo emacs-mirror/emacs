@@ -712,17 +712,21 @@ Finally, we can create the buckets pool and its allocation points::
 
     /* Create an Automatic Weak Linked (AWL) pool to manage the hash table
        buckets. */
-    res = mps_pool_create(&buckets_pool,
-                          arena,
-                          mps_class_awl(),
-                          buckets_fmt,
-                          buckets_find_dependent);
+    res = mps_pool_create_k(&buckets_pool, arena, mps_class_awl(),
+           (mps_arg_s[]){{MPS_KEY_FORMAT, .val.format = buckets_fmt},
+                         {MPS_KEY_AWL_FIND_DEPENDENT,
+                             .val.addr_method = buckets_find_dependent},
+                         {MPS_KEY_ARGS_END}});
     if (res != MPS_RES_OK) error("Couldn't create buckets pool");
 
     /* Create allocation points for weak and strong buckets. */
-    res = mps_ap_create(&strong_buckets_ap, buckets_pool, mps_rank_exact());
+    res = mps_ap_create_k(&strong_buckets_ap, buckets_pool,
+           (mps_arg_s[]){{MPS_KEY_RANK, .val.rank = mps_rank_exact()},
+                         {MPS_KEY_ARGS_END}});
     if (res != MPS_RES_OK) error("Couldn't create strong buckets allocation point");
-    res = mps_ap_create(&weak_buckets_ap, buckets_pool, mps_rank_weak());
+    res = mps_ap_create_k(&weak_buckets_ap, buckets_pool,
+           (mps_arg_s[]){{MPS_KEY_RANK, .val.rank = mps_rank_weak()},
+                         {MPS_KEY_ARGS_END}});
     if (res != MPS_RES_OK) error("Couldn't create weak buckets allocation point");
 
 By adding the line::
@@ -888,15 +892,14 @@ Second, the leaf objects must be allocated on ``leaf_ap`` instead of
 
     /* Create an Automatic Mostly-Copying Zero-rank (AMCZ) pool to
        manage the leaf objects. */
-    res = mps_pool_create(&leaf_pool,
-                          arena,
-                          mps_class_amcz(),
-                          obj_fmt,
-                          obj_chain);
+    res = mps_pool_create_k(&leaf_pool, arena, mps_class_amcz(),
+           (mps_arg_s[]){{MPS_KEY_CHAIN, .val.chain = obj_chain},
+                         {MPS_KEY_FORMAT, .val.format = obj_fmt},
+                         {MPS_KEY_ARGS_END}});
     if (res != MPS_RES_OK) error("Couldn't create leaf pool");
 
     /* Create allocation point for leaf objects. */
-    res = mps_ap_create(&leaf_ap, leaf_pool);
+    res = mps_ap_create_k(&leaf_ap, leaf_pool, mps_args_none);
     if (res != MPS_RES_OK) error("Couldn't create leaf objects allocation point");
 
 Note that the new pool shared a :term:`generation chain` with the old
