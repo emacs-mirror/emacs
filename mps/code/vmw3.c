@@ -149,11 +149,11 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
 
   /* Allocate the address space. */
   vbase = VirtualAlloc(NULL,
-		       size,
-		       vmParams->topDown ?
-		         MEM_RESERVE | MEM_TOP_DOWN :
-		         MEM_RESERVE,
-		       PAGE_NOACCESS);
+                       size,
+                       vmParams->topDown ?
+                         MEM_RESERVE | MEM_TOP_DOWN :
+                         MEM_RESERVE,
+                       PAGE_NOACCESS);
   if (vbase == NULL) {
     res = ResRESOURCE;
     goto failReserve;
