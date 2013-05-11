@@ -1,5 +1,12 @@
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* calc/calc-menu.el: Make it loadable in isolation.
+
+	* net/eudcb-bbdb.el: Make it loadable without bbdb.
+	(eudc-bbdb-filter-non-matching-record, eudc-bbdb-extract-phones)
+	(eudc-bbdb-extract-addresses, eudc-bbdb-format-record-as-result)
+	(eudc-bbdb-query-internal): Require 'bbdb.
+
 	* lpr.el (lpr-headers-switches):
 	* emacs-lisp/testcover.el (testcover-compose-functions): Fix :type.
 

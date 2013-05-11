@@ -1,3 +1,9 @@
+2013-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-vm.el: Make it loadable without VM.
+	(gnus-vm-make-folder, gnus-summary-save-in-vm): Require 'vm.
+	(vm-forward-message, vm-reply, vm-mail): Remove unused autoloads.
+
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* mml1991.el: Make it loadable.  (Bug#13456)
