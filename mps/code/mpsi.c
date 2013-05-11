@@ -336,15 +336,15 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   mps_arg_s args[MPS_ARGS_MAX];
   AVERT(ArenaClass, arena_class);
   arena_class->varargs(args, varargs);
-  return mps_arena_create_args(mps_arena_o, arena_class, args);
+  return mps_arena_create_k(mps_arena_o, arena_class, args);
 }
 
 
-/* mps_arena_create_arg -- create an arena object */
+/* mps_arena_create_k -- create an arena object */
 
-mps_res_t mps_arena_create_args(mps_arena_t *mps_arena_o,
-                                mps_arena_class_t arena_class,
-                                mps_arg_s mps_args[])
+mps_res_t mps_arena_create_k(mps_arena_t *mps_arena_o,
+                             mps_arena_class_t arena_class,
+                             mps_arg_s mps_args[])
 {
   Arena arena;
   Res res;
