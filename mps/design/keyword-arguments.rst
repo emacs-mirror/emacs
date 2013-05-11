@@ -25,9 +25,9 @@ Overview
 The basic design is not specific to the MPS.  The keyword argument list is
 passed as an array of argument structures which look like this::
 
-    typedef struct key_s *key_t;
-    typedef struct arg_s {
-      key_t key;
+    typedef struct mps_key_s *mps_key_t;
+    typedef struct mps_arg_s {
+      mps_key_t key;
       union {
         int i;
         char c;
@@ -35,29 +35,29 @@ passed as an array of argument structures which look like this::
         size_t size;
         /* etc. */
       } val;
-    } arg_s;
+    } mps_arg_s;
 
 The argument list is assembled and passed like this::
 
-    arg_s args[3];
-    args[0].key = KEY_MIN_SIZE;
+    mps_arg_s args[3];
+    args[0].key = MPS_KEY_MIN_SIZE;
     args[0].val.size = 32;
-    args[1].key = KEY_MAX_SIZE;
+    args[1].key = MPS_KEY_MAX_SIZE;
     args[1].val.size = 1024;
-    args[2].key = KEY_ARGS_END;
-    pool_create(&pool, some_pool_class(), args);
+    args[2].key = MPS_KEY_ARGS_END;
+    mps_pool_create_k(&pool, some_pool_class(), args);
 
 This can be written quite concisely in C99::
 
-    pool_create(&pool, some_pool_class(),
-                (arg_s []){{KEY_MIN_SIZE, {.size = 32}},
-                           {KEY_MAX_SIZE, {.size = 1024}},
-                           {KEY_ARGS_END}});
+    mps_pool_create_k(&pool, some_pool_class(),
+            (mps_arg_s []){{MPS_KEY_MIN_SIZE, {.size = 32}},
+                           {MPS_KEY_MAX_SIZE, {.size = 1024}},
+                           {MPS_KEY_ARGS_END}});
 
 The arguments that are recognised and used by the function are removed
 from the array (and the subsequent arguments moved up) so that if they
-are all consumed the array has ``KEY_ARGS_END`` in slot zero on return. 
-This can be checked by the caller.
+are all consumed the array has ``MPS_KEY_ARGS_END`` in slot zero on
+return. This can be checked by the caller.
 
 - It's not a static error to pass excess arguments.  This makes it easy to
   substitute one pool or arena class for another (which might ignore some
