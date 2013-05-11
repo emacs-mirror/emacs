@@ -1,3 +1,11 @@
+2013-05-11  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-indent-comment): Improve.
+	(octave-eldoc-message-style, octave-eldoc-cache): New variables.
+	(octave-eldoc-function-signatures, octave-eldoc-function): New
+	functions.
+	(octave-mode, inferior-octave-mode): Add eldoc support.
+
 2013-05-11  Richard Stallman  <rms@gnu.org>
 
 	* epa.el (epa-decrypt-file): Take output file name as argument

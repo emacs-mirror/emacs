@@ -434,7 +434,9 @@ Non-nil means always go to the next Octave code line after sending."
   "A function for `smie-indent-functions' (which see)."
   (save-excursion
     (back-to-indentation)
-    (when (and (looking-at-p "\\s<") (not (looking-at-p "\\s<\\s<")))
+    (when (and (not (octave-in-string-or-comment-p))
+               (looking-at-p "\\s<\\(?:[^{}]\\|$\\)")
+               (not (looking-at-p "\\s<\\s<")))
       (comment-choose-indent))))
 
 
@@ -554,6 +556,7 @@ definitions can also be stored in files and used in batch mode."
   (add-hook 'before-save-hook 'octave-sync-function-file-names nil t)
   (setq-local beginning-of-defun-function 'octave-beginning-of-defun)
   (and octave-font-lock-texinfo-comment (octave-font-lock-texinfo-comment))
+  (setq-local eldoc-documentation-function 'octave-eldoc-function)
 
   (easy-menu-add octave-mode-menu))
 
@@ -658,6 +661,7 @@ in the Inferior Octave buffer.")
   (setq font-lock-defaults '(inferior-octave-font-lock-keywords nil nil))
 
   (setq-local info-lookup-mode 'octave-mode)
+  (setq-local eldoc-documentation-function 'octave-eldoc-function)
 
   (setq comint-input-ring-file-name
 	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
@@ -1483,6 +1487,70 @@ code line."
     (terpri)))
 
 
+
+(defcustom octave-eldoc-message-style 'auto
+  "Octave eldoc message style: auto, oneline, multiline."
+  :type '(choice (const :tag "Automatic" auto)
+                 (const :tag "One Line" oneline)
+                 (const :tag "Multi Line" multiline))
+  :group 'octave
+  :version "24.4")
+
+;; (FN SIGNATURE1 SIGNATURE2 ...)
+(defvar octave-eldoc-cache nil)
+
+(defun octave-eldoc-function-signatures (fn)
+  (unless (equal fn (car octave-eldoc-cache))
+    (inferior-octave-send-list-and-digest
+     (list (format "\
+if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
+                   fn fn)))
+    (let (result)
+      (dolist (line inferior-octave-output-list)
+        (when (string-match
+               "\\s-*\\(?:--[^:]+\\|usage\\):\\s-*\\(.*\\)$"
+               line)
+          (push (match-string 1 line) result)))
+      (setq octave-eldoc-cache
+            (cons (substring-no-properties fn)
+                  (nreverse result)))))
+  (cdr octave-eldoc-cache))
+
+(defun octave-eldoc-function ()
+  "A function for `eldoc-documentation-function' (which see)."
+  (when (and inferior-octave-process
+             (process-live-p inferior-octave-process))
+    (let* ((ppss (syntax-ppss))
+           (paren-pos (cadr ppss))
+           (fn (save-excursion
+                 (if (and paren-pos
+                          ;; PAREN-POS must be after the prompt
+                          (>= paren-pos
+                              (if (eq (get-buffer-process (current-buffer))
+                                      inferior-octave-process)
+                                  (process-mark inferior-octave-process)
+                                (point-min)))
+                          (or (not (eq (get-buffer-process (current-buffer))
+                                       inferior-octave-process))
+                              (< (process-mark inferior-octave-process)
+                                 paren-pos))
+                          (eq (char-after paren-pos) ?\())
+                     (goto-char paren-pos)
+                   (setq paren-pos nil))
+                 (when (or (< (skip-syntax-backward "-") 0) paren-pos)
+                   (thing-at-point 'symbol))))
+           (sigs (and fn (octave-eldoc-function-signatures fn)))
+           (oneline (mapconcat 'identity sigs
+                               (propertize " | " 'face 'warning)))
+           (multiline (mapconcat (lambda (s) (concat "-- " s)) sigs "\n")))
+      ;;
+      ;; Return the value according to style.
+      (pcase octave-eldoc-message-style
+        (`auto (if (< (length oneline) (window-width (minibuffer-window)))
+                   oneline
+                 multiline))
+        (`oneline oneline)
+        (`multiline multiline)))))
 
 (defcustom octave-help-buffer "*Octave Help*"
   "Buffer name for `octave-help'."
