@@ -68,20 +68,22 @@ Used in `octave-mode' and `inferior-octave-mode' buffers.")
   "Regexp to match the start of an Octave comment up to its body.")
 
 (defvar octave-begin-keywords
-  '("do" "for" "function" "if" "switch" "try" "unwind_protect" "while"))
+  '("classdef" "do" "enumeration" "events" "for" "function" "if" "methods"
+    "parfor" "properties" "switch" "try" "unwind_protect" "while"))
 
 (defvar octave-else-keywords
   '("case" "catch" "else" "elseif" "otherwise" "unwind_protect_cleanup"))
 
 (defvar octave-end-keywords
-  '("endfor" "endfunction" "endif" "endswitch" "end_try_catch"
+  '("endclassdef" "endenumeration" "endevents" "endfor" "endfunction" "endif"
+    "endmethods" "endparfor" "endproperties" "endswitch" "end_try_catch"
     "end_unwind_protect" "endwhile" "until" "end"))
 
 (defvar octave-reserved-words
   (append octave-begin-keywords
 	  octave-else-keywords
 	  octave-end-keywords
-	  '("break" "continue" "end" "global" "persistent" "return"))
+	  '("break" "continue" "global" "persistent" "return"))
   "Reserved words in Octave.")
 
 (defvar octave-function-header-regexp
@@ -303,6 +305,8 @@ Non-nil means always go to the next Octave code line after sending."
          ("unwind_protect" exp "unwind_protect_cleanup" exp "end")
          ("for" exp "endfor")
          ("for" exp "end")
+         ("parfor" exp "endparfor")
+         ("parfor" exp "end")
          ("do" exp "until" atom)
          ("while" exp "endwhile")
          ("while" exp "end")
@@ -316,7 +320,17 @@ Non-nil means always go to the next Octave code line after sending."
          ("switch" exp "case" exp "case" exp "otherwise" exp "endswitch")
          ("switch" exp "case" exp "case" exp "otherwise" exp "end")
          ("function" exp "endfunction")
-         ("function" exp "end"))
+         ("function" exp "end")
+         ("enumeration" exp "endenumeration")
+         ("enumeration" exp "end")
+         ("events" exp "endevents")
+         ("events" exp "end")
+         ("methods" exp "endmethods")
+         ("methods" exp "end")
+         ("properties" exp "endproperties")
+         ("properties" exp "end")
+         ("classdef" exp "endclassdef")
+         ("classdef" exp "end"))
     ;; (fundesc (atom "=" atom))
     ))
 
@@ -406,8 +420,10 @@ Non-nil means always go to the next Octave code line after sending."
     ;; aligns it with "switch".
     (`(:before . "case") (if (not (smie-rule-sibling-p)) octave-block-offset))
     (`(:after . ";")
-     (if (smie-rule-parent-p "function" "if" "while" "else" "elseif" "for"
-                             "otherwise" "case" "try" "catch" "unwind_protect"
+     (if (smie-rule-parent-p "classdef" "events" "enumeration" "function" "if"
+                             "while" "else" "elseif" "for" "parfor"
+                             "properties" "methods" "otherwise" "case"
+                             "try" "catch" "unwind_protect"
                              "unwind_protect_cleanup")
          (smie-rule-parent octave-block-offset)
        ;; For (invalid) code between switch and case.

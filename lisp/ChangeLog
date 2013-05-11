@@ -5,6 +5,9 @@
 	out of more syntactic contructs since moving to smie.
 	(octave-indent-comment): New function.
 	(octave-mode): Use it in smie-indent-functions.  (Bug#14350)
+	(octave-begin-keywords, octave-end-keywords)
+	(octave-reserved-words, octave-smie-bnf-table)
+	(octave-smie-rules): Add new keywords from Octave 3.6.4.
 
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
