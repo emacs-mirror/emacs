@@ -736,6 +736,10 @@ startup file, `~/.emacs-octave'."
                         (car inferior-octave-output-list))
       (inferior-octave-send-list-and-digest (list "PS2 (\"> \");\n")))
 
+    (inferior-octave-send-list-and-digest
+     (list "if exist(\"__octave_srcdir__\") disp(__octave_srcdir__) endif\n"))
+    (process-put proc 'octave-srcdir (car inferior-octave-output-list))
+
     ;; O.K., now we are ready for the Inferior Octave startup commands.
     (inferior-octave-send-list-and-digest
      (list "more off;\n"
@@ -762,7 +766,7 @@ startup file, `~/.emacs-octave'."
 
 (defvar inferior-octave-completion-table
   ;;
-  ;; Use cache to avod repetitive computation of completions due to
+  ;; Use cache to avoid repetitive computation of completions due to
   ;; bug#11906 - http://debbugs.gnu.org/11906 - which may cause
   ;; noticeable delay.  CACHE: (CMD TIME VALUE).
   (let ((cache))
@@ -837,14 +841,17 @@ the rest to `inferior-octave-output-string'."
       (setq inferior-octave-receive-in-progress nil))
   (setq inferior-octave-output-string string))
 
+(defun inferior-octave-check-process ()
+  (or (and inferior-octave-process
+           (process-live-p inferior-octave-process))
+      (error (substitute-command-keys
+              "No inferior octave process running. Type \\[run-octave]"))))
+
 (defun inferior-octave-send-list-and-digest (list)
   "Send LIST to the inferior Octave process and digest the output.
 The elements of LIST have to be strings and are sent one by one.  All
 output is passed to the filter `inferior-octave-output-digest'."
-  (or (and inferior-octave-process
-           (process-live-p inferior-octave-process))
-      (error (substitute-command-keys
-              "No inferior octave process running. Type \\[run-octave]")))
+  (inferior-octave-check-process)
   (let* ((proc inferior-octave-process)
 	 (filter (process-filter proc))
 	 string)
@@ -1615,16 +1622,50 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
                                 (match-end 0)
                                 :type 'octave-help-function))))))))
 
-(defcustom octave-binary-file-extensions '("oct" "mex")
-  "A list of binary file extensions for Octave."
-  :type '(repeat string)
+(defcustom octave-source-directories nil
+  "A list of directories for Octave sources."
+  :type '(repeat directory)
   :group 'octave
   :version "24.4")
+
+(defun octave-source-directories ()
+  (inferior-octave-check-process)
+  (let ((srcdir (process-get inferior-octave-process 'octave-srcdir)))
+    (if srcdir
+        (cons srcdir octave-source-directories)
+      octave-source-directories)))
+
+(defvar octave-find-definition-filename-function
+  #'octave-find-definition-default-filename)
+
+(defun octave-find-definition-default-filename (name)
+  "Default value for `octave-find-definition-filename-function'."
+  (pcase (file-name-extension name)
+    (`"oct"
+     (octave-find-definition-default-filename
+      (concat "libinterp/dldfcn/"
+              (file-name-sans-extension (file-name-nondirectory name))
+              ".cc")))
+    (`"cc"
+     (let ((file (or (locate-file name (octave-source-directories))
+                     (locate-file (file-name-nondirectory name)
+                                  (octave-source-directories)))))
+       (or (and file (file-exists-p file))
+           (error "File `%s' not found" name))
+       file))
+    (`"mex"
+     (if (yes-or-no-p (format "File `%s' may be binary; open? "
+                              (file-name-nondirectory name)))
+         name
+       (user-error "Aborted")))
+    (t name)))
 
 (defvar find-tag-marker-ring)
 
 (defun octave-find-definition (fn)
-  "Find the definition of FN."
+  "Find the definition of FN.
+Definitions for functions implemented in C++ can be found if
+`octave-source-directories' is set correctly."
   (interactive (list (octave-completing-read)))
   (inferior-octave-send-list-and-digest
    ;; help NAME is more verbose
@@ -1636,15 +1677,11 @@ if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
                  (match-string 1 line))))
     (if (not file)
         (user-error "%s" (or line (format "`%s' not found" fn)))
-      (when (and (member (file-name-extension file)
-                         octave-binary-file-extensions)
-                 (not (yes-or-no-p (format "File `%s' may be binary; open? "
-                                           (file-name-nondirectory file)))))
-        (error "Aborted"))
       (require 'etags)
       (ring-insert find-tag-marker-ring (point-marker))
-      (find-file file)
-      (octave-goto-function-definition))))
+      (find-file (funcall octave-find-definition-filename-function file))
+      (or (octave-goto-function-definition)
+          (forward-comment (point-max))))))
 
 
 (provide 'octave)

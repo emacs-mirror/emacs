@@ -1,3 +1,15 @@
+2013-05-12  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup): Store the value
+	of __octave_srcdir__ for octave-source-directories.
+	(inferior-octave-check-process): New function refactored out of
+	inferior-octave-send-list-and-digest.
+	(octave-source-directories)
+	(octave-find-definition-filename-function): New variables.
+	(octave-source-directories)
+	(octave-find-definition-default-filename): New functions.
+	(octave-find-definition): Improve to find functions implemented in C++.
+
 2013-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-outlook-format-1):
