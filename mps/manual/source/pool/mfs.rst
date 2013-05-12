@@ -80,24 +80,22 @@ MFS interface
     When creating an MFS pool, :c:func:`mps_pool_create_k` requires
     two :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_MFS_UNIT_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is the :term:`size` of blocks that will be
-      allocated from this pool, in :term:`bytes (1)`. It must be at
-      least one :term:`word`.
+    * :c:macro:`MPS_KEY_MFS_UNIT_SIZE` (type :c:type:`size_t`) is the
+      :term:`size` of blocks that will be allocated from this pool, in
+      :term:`bytes (1)`. It must be at least one :term:`word`.
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (member ``.val.size``; type
-      :c:type:`size_t`) is the :term:`size` of segment that the pool
-      will request from the :term:`arena`. It must be at least as big
-      as the unit size specified by the
-      :c:macro:`MPS_KEY_MFS_UNIT_SIZE` keyword argument. If this is
-      not a multiple of the unit size, there will be wasted space in
-      each segment.
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`) is the
+      :term:`size` of segment that the pool will request from the
+      :term:`arena`. It must be at least as big as the unit size
+      specified by the :c:macro:`MPS_KEY_MFS_UNIT_SIZE` keyword
+      argument. If this is not a multiple of the unit size, there will
+      be wasted space in each segment.
 
     For example, in :term:`C99`::
 
         res = mps_pool_create_k(&pool, arena, mps_class_mfs(),
-               (mps_arg_s[]){{MPS_KEY_MFS_UNIT_SIZE, .val.size = 1024},
-                             {MPS_KEY_EXTEND_BY, .val.size = 1024 * 1024},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_MFS_UNIT_SIZE, 1024),
+                             MPS_ARG(MPS_KEY_EXTEND_BY, 1024 * 1024),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.

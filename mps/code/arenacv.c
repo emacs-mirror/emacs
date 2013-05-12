@@ -339,8 +339,8 @@ static void testPageTable(ArenaClass class, Size size, Addr addr)
   Count tractsPerPage;
   
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, size);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_ADDR, addr, addr);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_ADDR, addr);
     MPS_ARGS_DONE(args);
     die(ArenaCreate(&arena, class, args), "ArenaCreate");
   } MPS_ARGS_END(args);
@@ -378,7 +378,7 @@ static void testSize(Size size)
 
   do {
     MPS_ARGS_BEGIN(args) {
-      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, size);
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
       MPS_ARGS_DONE(args);
       res = ArenaCreate(&arena, class, args);
     } MPS_ARGS_END(args);

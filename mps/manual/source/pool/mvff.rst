@@ -115,44 +115,43 @@ MVFF interface
     When creating an MVFF pool, :c:func:`mps_pool_create_k` requires
     six :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (member ``.val.size``; type
-      :c:type:`size_t`) is the :term:`size` of segment that the pool
-      will request from the :term:`arena`.
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`) is the
+      :term:`size` of segment that the pool will request from the
+      :term:`arena`.
 
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is the predicted mean size of blocks that will
-      be allocated from the pool. This is a *hint* to the MPS: the
-      pool will be less efficient if this is wrong, but nothing will
-      break.
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`) is the
+      predicted mean size of blocks that will be allocated from the
+      pool. This is a *hint* to the MPS: the pool will be less
+      efficient if this is wrong, but nothing will break.
 
-    * :c:macro:`MPS_KEY_ALIGN` (member ``.val.align``; type
-      :c:type:`mps_align_t`) is the :term:`alignment` of addresses for
-      allocation (and freeing) in the pool. If an unaligned size is
-      passed to :c:func:`mps_alloc` or :c:func:`mps_free`, it will be
-      rounded up to the pool's alignment. The minimum alignment
-      supported by pools of this class is ``sizeof(void *)``.
+    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`) is the
+      :term:`alignment` of addresses for allocation (and freeing) in
+      the pool. If an unaligned size is passed to :c:func:`mps_alloc`
+      or :c:func:`mps_free`, it will be rounded up to the pool's
+      alignment. The minimum alignment supported by pools of this
+      class is ``sizeof(void *)``.
 
-    * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (member ``.val.b``; type
-      :c:type:`mps_bool_t`) indicates whether new segments for
-      buffered allocation are acquired at high addresses (if true), or
-      at low addresses (if false).
+    * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`)
+      indicates whether new segments for buffered allocation are
+      acquired at high addresses (if true), or at low addresses (if
+      false).
 
-    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` (member ``.val.b``; type
-      :c:type:`mps_bool_t`) is undocumented. It must have the same
-      value as :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`.
+    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` (type :c:type:`mps_bool_t`) is
+      undocumented. It must have the same value as
+      :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`.
 
-    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` (member ``.val.b``; type
-      :c:type:`mps_bool_t`) is undocumented and must be set to true.
+    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` (type :c:type:`mps_bool_t`) is
+      undocumented and must be set to true.
 
     For example, in :term:`C99`::
 
         res = mps_pool_create_k(&pool, arena, mps_class_mvff(),
-               (mps_arg_s[]){{MPS_KEY_EXTEND_BY, .val.size = },
-                             {MPS_KEY_MEAN_SIZE, .val.size = },
-                             {MPS_KEY_ALIGN, .val.align = },
-                             {MPS_KEY_MVFF_ARENA_HIGH, .val.b = 0},
-                             {MPS_KEY_MVFF_SLOT_HIGH, .val.b = 0},
-                             {MPS_KEY_MVFF_FIRST_FIT, .val.b = 1},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_EXTEND_BY, 1024 * 1024),
+                             MPS_ARG(MPS_KEY_MEAN_SIZE, 32),
+                             MPS_ARG(MPS_KEY_ALIGN, 8),
+                             MPS_ARG(MPS_KEY_MVFF_ARENA_HIGH, 0),
+                             MPS_ARG(MPS_KEY_MVFF_SLOT_HIGH, 0),
+                             MPS_ARG(MPS_KEY_MVFF_FIRST_FIT, 1),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.

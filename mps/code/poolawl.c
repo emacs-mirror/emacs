@@ -1,7 +1,7 @@
 /* poolawl.c: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -474,7 +474,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, awlKeySegRankSet, u, rankSet);
+    MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
     MPS_ARGS_DONE(args);
     res = SegAlloc(&seg, AWLSegClassGet(), &segPrefStruct, size, pool,
                    reservoirPermit, args);
@@ -1316,7 +1316,7 @@ static Bool AWLCheck(AWL awl)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

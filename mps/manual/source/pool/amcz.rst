@@ -62,21 +62,20 @@ AMCZ interface
     When creating an AMCZ pool, :c:func:`mps_pool_create_k` requires
     two :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_FORMAT` (member ``.val.format``; type
-      :c:type:`mps_fmt_t`) specifies the :term:`object format` for the
-      objects allocated in the pool. The format must provide a
-      :term:`skip method`, a :term:`forward method`, an
-      :term:`is-forwarded method` and a :term:`padding method`.
+    * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
+      the :term:`object format` for the objects allocated in the pool.
+      The format must provide a :term:`skip method`, a :term:`forward
+      method`, an :term:`is-forwarded method` and a :term:`padding
+      method`.
 
-    * :c:macro:`MPS_KEY_CHAIN` (member ``.val.chain``; type
-      :c:type:`mps_chain_t`) specifies the :term:`generation chain`
-      for the pool.
+    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
+      the :term:`generation chain` for the pool.
 
     For example, in :term:`C99`::
 
         res = mps_pool_create_k(&pool, arena, mps_class_amcz(),
-               (mps_arg_s[]){{MPS_KEY_CHAIN, .val.chain = chain},
-                             {MPS_KEY_FORMAT, .val.format = fmt},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_CHAIN, chain),
+                             MPS_ARG(MPS_KEY_FORMAT, fmt),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.
