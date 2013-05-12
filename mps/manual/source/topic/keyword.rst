@@ -18,7 +18,7 @@ arguments are passed in a keyword argument array, like this::
     mps_arg_s args[3];
     args[0].key = MPS_KEY_ARENA_SIZE;
     args[0].val.size = 6553600;
-    args[1].key = MPS_KEY_ARENA_CL_ADDR;
+    args[1].key = MPS_KEY_ARENA_CL_BASE;
     args[1].val.addr = base_address;
     args[2].key = MPS_KEY_ARGS_END;
     res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
@@ -31,7 +31,7 @@ help with forming keyword argument lists::
 
     MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 6553600);
-        MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_ADDR, base_address);
+        MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base_address);
         MPS_ARGS_DONE(args);
         res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
     } MPS_ARGS_END(args);
@@ -43,7 +43,7 @@ using the helper macro :c:func:`MPS_ARG`::
     mps_arena_t arena;
     res = mps_arena_create_k(&arena, mps_arena_class_cl(),
            (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_SIZE, 6553600),
-                         MPS_ARG(MPS_KEY_ARENA_CL_ADDR, base_address),
+                         MPS_ARG(MPS_KEY_ARENA_CL_BASE, base_address),
                          {MPS_KEY_ARGS_END}});
 
 The argument array must not be ``NULL``, and must end with
@@ -118,7 +118,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_KEY_ARGS_END`              *none*                 *see above*
     :c:macro:`MPS_KEY_ALIGN`                 ``align``              :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` ``b``                  :c:func:`mps_class_ams`
-    :c:macro:`MPS_KEY_ARENA_CL_ADDR`         ``addr``               :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_ARENA_CL_BASE`         ``addr``               :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_ARENA_SIZE`            ``size``               :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT`    ``addr_method``        :c:func:`mps_class_awl`
     :c:macro:`MPS_KEY_CHAIN`                 ``chain``              :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`
@@ -146,7 +146,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
 
         MPS_ARGS_BEGIN(args) {
             MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 6553600);
-            MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_ADDR, base_address);
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base_address);
             MPS_ARGS_DONE(args);
             res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
         } MPS_ARGS_END(args);
