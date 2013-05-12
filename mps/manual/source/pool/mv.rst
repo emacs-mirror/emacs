@@ -75,17 +75,17 @@ MV interface
     When creating an MV pool, :c:func:`mps_pool_create_k` requires
     three :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (member ``.val.size``; type
-      :c:type:`size_t`) is the :term:`size` of segment that the pool
-      will request from the :term:`arena`.
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`) is the
+      :term:`size` of segment that the pool will request from the
+      :term:`arena`.
 
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is the predicted mean size of blocks that
-      will be allocated from the pool.
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`) is the
+      predicted mean size of blocks that will be allocated from the
+      pool.
 
-    * :c:macro:`MPS_KEY_MAX_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is the predicted maximum size of blocks that
-      will be allocated from the pool.
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`) is the
+      predicted maximum size of blocks that will be allocated from the
+      pool.
 
     The mean and maximum sizes are *hints* to the MPS: the pool will be
     less efficient if these are wrong, but nothing will break.
@@ -93,9 +93,9 @@ MV interface
     For example, in :term:`C99`::
 
         res = mps_pool_create_k(&pool, arena, mps_class_mfs(),
-               (mps_arg_s[]){{MPS_KEY_MEAN_SIZE, .val.size = 32},
-                             {MPS_KEY_MAX_SIZE, .val.size = 1024},
-                             {MPS_KEY_EXTEND_BY, .val.size = 1024 * 1024},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_MEAN_SIZE, 32),
+                             MPS_ARG(MPS_KEY_MAX_SIZE, 1024),
+                             MPS_ARG(MPS_KEY_EXTEND_BY, 1024 * 1024),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.

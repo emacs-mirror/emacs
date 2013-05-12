@@ -72,9 +72,9 @@ For example::
     mps_pool_t pool;
     mps_res_t res;
     res = mps_pool_create_k(&pool, arena, mps_class_ams_debug(),
-           (mps_arg_s[]){{MPS_KEY_POOL_DEBUG_OPTIONS, .val.pool_debug_options = &debug_options},
-                         {MPS_KEY_FORMAT, .val.format = &fmt},
-                         {MPS_KEY_CHAIN, .val.chain = &chain},
+           (mps_arg_s[]){MPS_ARG(MPS_KEY_POOL_DEBUG_OPTIONS, &debug_options),
+                         MPS_ARG(MPS_KEY_FORMAT, &fmt),
+                         MPS_ARG(MPS_KEY_CHAIN, &chain),
                          {MPS_KEY_ARGS_END}});
     if (res != MPS_RES_OK) error("can't create debug pool");
 
