@@ -1731,10 +1731,11 @@ All embedded quotes, newlines, and backslashes are preceded with a backslash."
   "Send COMMAND to GDB via the MI interface.
 Run the function HANDLER-FUNCTION, with no arguments, once the command is
 complete."
-  (if gdb-enable-debug (push (list 'send-item command handler-function)
-			     gdb-debug-log))
   (setq gdb-token-number (1+ gdb-token-number))
   (setq command (concat (number-to-string gdb-token-number) command))
+
+  (if gdb-enable-debug (push (list 'send-item command handler-function)
+			     gdb-debug-log))
   (push (cons gdb-token-number handler-function) gdb-handler-alist)
   (if gdbmi-debug-mode (message "gdb-input: %s" command))
   (process-send-string (get-buffer-process gud-comint-buffer)

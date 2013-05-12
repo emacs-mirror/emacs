@@ -1,3 +1,8 @@
+2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
+
+	* progmodes/gdb-mi.el (gdb-input): Include token numbers in
+	gdb-debug-log.
+
 2013-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (user-emacs-directory-warning): New option.
