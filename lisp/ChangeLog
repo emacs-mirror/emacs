@@ -1,3 +1,8 @@
+2013-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-outlook-format-1):
+	Don't include dayname in the output.  (Bug#14349)
+
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/autoload.el (generated-autoload-load-name): Doc fix.
