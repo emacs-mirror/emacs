@@ -158,7 +158,7 @@ Client arenas
     When creating a client arena, :c:func:`mps_arena_create_k` requires two
     :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_ARENA_CL_ADDR` (type :c:type:`mps_addr_t`) is
+    * :c:macro:`MPS_KEY_ARENA_CL_BASE` (type :c:type:`mps_addr_t`) is
       the :term:`address` of the chunk of memory that will be managed
       by the arena.
 
@@ -168,7 +168,7 @@ Client arenas
     For example (in :term:`C99`)::
 
         res = mps_arena_create_k(&arena, mps_arena_class_cl(),
-            (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_CL_ADDR, base),
+            (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_CL_BASE, base),
                           MPS_ARG(MPS_KEY_ARENA_SIZE, size),
                           {MPS_KEY_ARGS_END}});
 
