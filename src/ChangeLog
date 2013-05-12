@@ -1,3 +1,7 @@
+2013-05-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (gif_load): Check that subimages fit (Bug#14345).
+
 2013-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (skip_dyn_eof): New function.
