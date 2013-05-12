@@ -1,7 +1,7 @@
 /* mpscmvff.h: MEMORY POOL SYSTEM CLASS "MVFF"
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef mpscmvff_h
@@ -11,10 +11,13 @@
 
 extern const struct mps_key_s _mps_key_mvff_slot_high;
 #define MPS_KEY_MVFF_SLOT_HIGH (&_mps_key_mvff_slot_high)
+#define MPS_KEY_MVFF_SLOT_HIGH_FIELD() b
 extern const struct mps_key_s _mps_key_mvff_arena_high;
 #define MPS_KEY_MVFF_ARENA_HIGH (&_mps_key_mvff_arena_high)
+#define MPS_KEY_MVFF_ARENA_HIGH_FIELD() b
 extern const struct mps_key_s _mps_key_mvff_first_fit;
 #define MPS_KEY_MVFF_FIRST_FIT (&_mps_key_mvff_first_fit)
+#define MPS_KEY_MVFF_FIRST_FIT_FIELD() b
 
 extern size_t mps_mvff_free_size(mps_pool_t mps_pool);
 extern size_t mps_mvff_size(mps_pool_t mps_pool);
@@ -26,7 +29,7 @@ extern mps_class_t mps_class_mvff_debug(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
@@ -1171,7 +1171,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   genNr = PoolGenNr(&gen->pgen);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &genNr);
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, amcKeySegType, p, &gen->type); /* .segtype */
+    MPS_ARGS_ADD_FIELD(args, amcKeySegType, p, &gen->type); /* .segtype */
     MPS_ARGS_DONE(args);
     res = SegAlloc(&seg, amcSegClassGet(), &segPrefStruct,
                    alignedSize, pool, withReservoirPermit, args);
@@ -2556,7 +2556,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

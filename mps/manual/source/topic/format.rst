@@ -93,7 +93,7 @@ For example::
     /* obj_fmt created successfully */
 
     res = mps_pool_create_k(&obj_pool, arena, pool_class,
-           (mps_arg_s[]){{MPS_KEY_FORMAT, .val.format = obj_fmt},
+           (mps_arg_s[]){MPS_ARG(MPS_KEY_FORMAT, obj_fmt),
                          {MPS_KEY_ARGS_END}});
     if (res != MPS_RES_OK) error("Couldn't create obj pool");
 

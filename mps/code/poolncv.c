@@ -1,7 +1,7 @@
 /* poolncv.c: NULL POOL COVERAGE TEST
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 {
   testlib_unused(argc);
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, 600000);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 600000);
     MPS_ARGS_DONE(args);
     testit((ArenaClass)mps_arena_class_vm(), args);
   } MPS_ARGS_END(args);

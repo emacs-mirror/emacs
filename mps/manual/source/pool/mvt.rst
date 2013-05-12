@@ -115,30 +115,30 @@ MVT interface
     When creating an MVT pool, :c:func:`mps_pool_create_k` requires
     five :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_MIN_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is the predicted minimum size of blocks that
-      will be allocated from the pool.
+    * :c:macro:`MPS_KEY_MIN_SIZE` (type :c:type:`size_t`) is the
+      predicted minimum size of blocks that will be allocated from the
+      pool.
 
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is the predicted mean size of blocks that will
-      be allocated from the pool.
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`) is the
+      predicted mean size of blocks that will be allocated from the
+      pool.
 
-    * :c:macro:`MPS_KEY_MAX_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is the predicted maximum size of blocks that
-      will be allocated from the pool. Partial freeing is not
-      supported for blocks larger than this; doing so will
-      result in the storage of the block never being reused.
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`) is the
+      predicted maximum size of blocks that will be allocated from the
+      pool. Partial freeing is not supported for blocks larger than
+      this; doing so will result in the storage of the block never
+      being reused.
 
     These three arguments are *hints* to the MPS: the pool will be
     less efficient if they are wrong, but the only thing that will
     break is the partial freeing of large blocks.
 
-    * :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH` (member ``.val.count``;
-      type :c:type:`mps_count_t`) is the expected hysteresis of the
+    * :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH` (type
+      :c:type:`mps_count_t`) is the expected hysteresis of the
       population of the pool. When blocks are freed, the pool will
-      retain sufficient storage to allocate this many blocks of the mean
-      size for near term allocations (rather than immediately making
-      that storage available to other pools).
+      retain sufficient storage to allocate this many blocks of the
+      mean size for near term allocations (rather than immediately
+      making that storage available to other pools).
 
       If a pool has a stable population, or one which only grows over
       the lifetime of the pool, or one which grows steadily and then
@@ -158,17 +158,16 @@ MVT interface
       object population does vary, at a slight cost in efficiency. The
       reserve does not guarantee any particular amount of allocation.
 
-    * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (member ``.val.count``; type
-      :c:type:`mps_count_t`) is a percentage from 1 to 100
-      (inclusive). It sets an upper limit on the space overhead of an
-      MVT pool, in case block death times and allocations do not
-      correlate well. If the free space managed by the pool as a ratio
-      of all the space managed by the pool exceeds the fragmentation
-      limit, the pool falls back to a first fit allocation policy,
-      exploiting space more efficiently at a cost in time efficiency.
-      A fragmentation limit of 0 would cause the pool to operate as a
-      first-fit pool, at a significant cost in time efficiency:
-      therefore this is not permitted.
+    * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (type :c:type:`mps_count_t`)
+      is a percentage from 1 to 100 (inclusive). It sets an upper
+      limit on the space overhead of an MVT pool, in case block death
+      times and allocations do not correlate well. If the free space
+      managed by the pool as a ratio of all the space managed by the
+      pool exceeds the fragmentation limit, the pool falls back to a
+      first fit allocation policy, exploiting space more efficiently
+      at a cost in time efficiency. A fragmentation limit of 0 would
+      cause the pool to operate as a first-fit pool, at a significant
+      cost in time efficiency: therefore this is not permitted.
 
       A fragmentation limit of 100 causes the pool to always use
       temporal fit (unless resources are exhausted). If the objects
@@ -182,11 +181,11 @@ MVT interface
     For example, in :term:`C99`::
 
         res = mps_pool_create_k(&pool, arena, mps_class_mvt(),
-               (mps_arg_s[]){{MPS_KEY_MIN_SIZE, .val.size = 4},
-                             {MPS_KEY_MEAN_SIZE, .val.size = 32},
-                             {MPS_KEY_MAX_SIZE, .val.size = 1024},
-                             {MPS_KEY_MVT_RESERVE_DEPTH, .val.count = 256},
-                             {MPS_KEY_MVT_FRAG_LIMIT, .val.count = 50},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_MIN_SIZE, 4),
+                             MPS_ARG(MPS_KEY_MEAN_SIZE, 32),
+                             MPS_ARG(MPS_KEY_MAX_SIZE, 1024),
+                             MPS_ARG(MPS_KEY_MVT_RESERVE_DEPTH, 256),
+                             MPS_ARG(MPS_KEY_MVT_FRAG_LIMIT, 50),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.

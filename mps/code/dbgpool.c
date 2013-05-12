@@ -1,7 +1,7 @@
 /* dbgpool.c: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .source: design.mps.object-debug
@@ -186,8 +186,8 @@ static Res DebugPoolInit(Pool pool, ArgList args)
     /* This pool has to be like the arena control pool: the blocks */
     /* allocated must be accessible using void*. */
     MPS_ARGS_BEGIN(pcArgs) {
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, size, debug->tagSize); /* FIXME: Check this */
-      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, size, debug->tagSize);
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, debug->tagSize); /* FIXME: Check this */
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, debug->tagSize);
       MPS_ARGS_DONE(pcArgs);
       res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
     } MPS_ARGS_END(pcArgs);
@@ -687,7 +687,7 @@ void PoolClassMixInDebug(PoolClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

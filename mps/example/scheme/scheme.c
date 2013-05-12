@@ -4392,7 +4392,7 @@ int main(int argc, char *argv[])
   /* Create an MPS arena.  There is usually only one of these in a process.
      It holds all the MPS "global" state and is where everything happens. */
   res = mps_arena_create_k(&arena, mps_arena_class_vm(), 
-         (mps_arg_s[]){{MPS_KEY_ARENA_SIZE, .val.size = 32 * 1024 * 1024},
+         (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024),
                        {MPS_KEY_ARGS_END}});
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
@@ -4410,8 +4410,8 @@ int main(int argc, char *argv[])
   /* Create an Automatic Mostly-Copying (AMC) pool to manage the Scheme
      objects.  This is a kind of copying garbage collector. */
   res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(),
-         (mps_arg_s[]){{MPS_KEY_CHAIN, .val.chain = obj_chain},
-                       {MPS_KEY_FORMAT, .val.format = obj_fmt},
+         (mps_arg_s[]){MPS_ARG(MPS_KEY_CHAIN, obj_chain),
+                       MPS_ARG(MPS_KEY_FORMAT, obj_fmt),
                        {MPS_KEY_ARGS_END}});
   if (res != MPS_RES_OK) error("Couldn't create obj pool");
 

@@ -1,7 +1,7 @@
 /* mps.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * THIS HEADER IS NOT DOCUMENTATION.
@@ -123,26 +123,36 @@ extern mps_arg_s mps_args_none[];
 
 extern const struct mps_key_s _mps_key_arena_size;
 #define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
+#define MPS_KEY_ARENA_SIZE_FIELD() size
 extern const struct mps_key_s _mps_key_format;
 #define MPS_KEY_FORMAT          (&_mps_key_format)
+#define MPS_KEY_FORMAT_FIELD()    format
 extern const struct mps_key_s _mps_key_chain;
 #define MPS_KEY_CHAIN           (&_mps_key_chain)
+#define MPS_KEY_CHAIN_FIELD()     chain
 extern const struct mps_key_s _mps_key_rank;
-#define MPS_KEY_RANK (&_mps_key_rank)
+#define MPS_KEY_RANK            (&_mps_key_rank)
+#define MPS_KEY_RANK_FIELD()      rank
 
 extern const struct mps_key_s _mps_key_extend_by;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_extend_by)
+#define MPS_KEY_EXTEND_BY_FIELD() size
 extern const struct mps_key_s _mps_key_min_size;
 #define MPS_KEY_MIN_SIZE        (&_mps_key_min_size)
+#define MPS_KEY_MIN_SIZE_FIELD()  size
 extern const struct mps_key_s _mps_key_mean_size;
 #define MPS_KEY_MEAN_SIZE       (&_mps_key_mean_size)
+#define MPS_KEY_MEAN_SIZE_FIELD() size
 extern const struct mps_key_s _mps_key_max_size;
 #define MPS_KEY_MAX_SIZE        (&_mps_key_max_size)
+#define MPS_KEY_MAX_SIZE_FIELD()  size
 extern const struct mps_key_s _mps_key_align;
 #define MPS_KEY_ALIGN           (&_mps_key_align)
+#define MPS_KEY_ALIGN_FIELD()     align
 
 extern const struct mps_key_s _mps_key_vmw3_top_down;
 #define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
+#define MPS_KEY_VMW3_TOP_DOWN_FIELD() b
 
 /* Maximum length of a keyword argument list. */
 #define MPS_ARGS_MAX          32
@@ -153,24 +163,29 @@ extern const struct mps_key_s _mps_key_vmw3_top_down;
       unsigned _var##_i = 0; \
       BEGIN
 
-#define MPS_ARGS_ADD(_var, _key, _field, _val) \
+#define MPS_ARGS_ADD_FIELD(_var, _key, _field, _val)  \
   BEGIN \
-    /* TODO: AVER(_var_i < MPS_ARGS_MAX); */ \
+    AVER(_var##_i < MPS_ARGS_MAX); \
     _var[_var##_i].key = (_key); \
     _var[_var##_i].val._field = (_val); \
     ++_var##_i; \
   END
 
+#define MPS_ARGS_ADD(_var, _key, _val) \
+  MPS_ARGS_ADD_FIELD(_var, _key, _key##_FIELD(), _val)
+
 #define MPS_ARGS_DONE(_var) \
   BEGIN \
-    /* TODO: AVER(_var##_i < MPS_ARGS_MAX); */ \
+    AVER(_var##_i < MPS_ARGS_MAX); \
     _var[_var##_i].key = MPS_KEY_ARGS_END; \
-    /* TODO: _var##_i = MPS_ARGS_MAX; */ \
+    _var##_i = MPS_ARGS_MAX; \
   END
 
 #define MPS_ARGS_END(_var) \
     END; \
   END
+
+#define MPS_ARG(_key, _val) ((mps_arg_s){(_key), {._key##_FIELD() = (_val)}})
 
 
 /* <a id="message.types"> Keep in sync with
@@ -690,6 +705,7 @@ typedef struct mps_pool_debug_option_s {
 
 extern const struct mps_key_s _mps_key_pool_debug_options;
 #define MPS_KEY_POOL_DEBUG_OPTIONS (&_mps_key_pool_debug_options)
+#define MPS_KEY_VAL_POOL_DEBUG_OPTIONS pool_debug_options
 
 extern void mps_pool_check_fenceposts(mps_pool_t);
 extern void mps_pool_check_free_space(mps_pool_t);
@@ -740,7 +756,7 @@ extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

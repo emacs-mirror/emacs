@@ -98,16 +98,15 @@ SNC introspection
     When creating an SNC pool, :c:func:`mps_pool_create_k` requires one
     :term:`keyword argument`:
 
-    * :c:macro:`MPS_KEY_FORMAT` (member ``.val.format``; type
-      :c:type:`mps_fmt_t`) specifies the :term:`object format` for the
-      objects allocated in the pool. The format must provide a
-      :term:`scan method`, a :term:`skip method`, and a :term:`padding
-      method`.
+    * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
+      the :term:`object format` for the objects allocated in the pool.
+      The format must provide a :term:`scan method`, a :term:`skip
+      method`, and a :term:`padding method`.
 
     For example, in :term:`C99`::
 
         res = mps_pool_create_k(&pool, arena, mps_class_snc(),
-               (mps_arg_s[]){{MPS_KEY_FORMAT, .val.format = fmt},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_FORMAT, fmt),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.
@@ -122,15 +121,14 @@ SNC introspection
     When creating an :term:`allocation point` on an SNC pool,
     :c:func:`mps_ap_create_k` requires one keyword argument:
 
-    * :c:macro:`MPS_KEY_RANK` (member ``.val.rank``; type
-      :c:type:`mps_rank_t`) specifies the :term:`rank` of references
-      in objects allocated on this allocation point. It must be
-      :c:func:`mps_rank_exact`.
+    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`) specifies
+      the :term:`rank` of references in objects allocated on this
+      allocation point. It must be :c:func:`mps_rank_exact`.
 
     For example, in :term:`C99`::
 
         res = mps_ap_create_k(&ap, awl_pool,
-               (mps_arg_s[]){{MPS_KEY_RANK, .val.rank = mps_rank_exact()},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_RANK, mps_rank_exact()),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.

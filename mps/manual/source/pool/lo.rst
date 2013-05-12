@@ -108,15 +108,14 @@ LO interface
     When creating an LO pool, :c:func:`mps_pool_create_k` require one
     :term:`keyword argument`:
 
-    * :c:macro:`MPS_KEY_FORMAT` (member ``.val.format``; type
-      :c:type:`mps_fmt_t`) specifies the :term:`object format` for the
-      objects allocated in the pool. The format must provide a :term:`skip
-      method`.
+    * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
+      the :term:`object format` for the objects allocated in the pool.
+      The format must provide a :term:`skip method`.
 
     For example, in :term:`C99`::
 
         res = mps_pool_create_k(&pool, arena, mps_class_lo(),
-               (mps_arg_s[]){{MPS_KEY_FORMAT, .val.format = fmt},
+               (mps_arg_s[]){MPS_ARG(MPS_KEY_FORMAT, fmt),
                              {MPS_KEY_ARGS_END}});
 
     .. deprecated:: starting with version 1.112.
