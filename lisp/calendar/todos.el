@@ -3906,24 +3906,28 @@ face."
 With a positive numerical prefix argument N, change the
 marking of the next N items."
   (interactive "p")
-  (unless (> n 1) (setq n 1))
-  (dotimes (i n)
-    (let* ((cat (todos-current-category))
-	   (marks (assoc cat todos-categories-with-marks))
-	   (ov (todos-get-overlay 'prefix))
-	   (pref (overlay-get ov 'before-string)))
-      (if (todos-marked-item-p)
-	  (progn
-	    (overlay-put ov 'before-string (substring pref 1))
-	    (if (= (cdr marks) 1)	; Deleted last mark in this category.
-		(setq todos-categories-with-marks
-		      (assq-delete-all cat todos-categories-with-marks))
-	      (setcdr marks (1- (cdr marks)))))
-	(overlay-put ov 'before-string (concat todos-item-mark pref))
-	(if marks
-	    (setcdr marks (1+ (cdr marks)))
-	  (push (cons cat 1) todos-categories-with-marks))))
-    (todos-forward-item)))
+  (when (todos-item-string)
+    (unless (> n 1) (setq n 1))
+    (dotimes (i n)
+      (let* ((cat (todos-current-category))
+	     (marks (assoc cat todos-categories-with-marks))
+	     (ov (progn
+		   (unless (looking-at todos-item-start)
+		     (todos-item-start))
+		   (todos-get-overlay 'prefix)))
+	     (pref (overlay-get ov 'before-string)))
+	(if (todos-marked-item-p)
+	    (progn
+	      (overlay-put ov 'before-string (substring pref 1))
+	      (if (= (cdr marks) 1)	; Deleted last mark in this category.
+		  (setq todos-categories-with-marks
+			(assq-delete-all cat todos-categories-with-marks))
+		(setcdr marks (1- (cdr marks)))))
+	  (overlay-put ov 'before-string (concat todos-item-mark pref))
+	  (if marks
+	      (setcdr marks (1+ (cdr marks)))
+	    (push (cons cat 1) todos-categories-with-marks))))
+      (todos-forward-item))))
 
 (defun todos-mark-category ()
   "Mark all visiblw items in this category with `todos-item-mark'."
@@ -5661,9 +5665,25 @@ visible."
   (interactive "P")
   (let* ((cat (todos-current-category))
 	 (marked (assoc cat todos-categories-with-marks)))
-    (unless (or (todos-done-item-p) 
-		;; Point is between todo and done items.
-		(and (looking-at "^$") (not marked)))
+    (when marked
+      (save-excursion
+	(save-restriction
+	  (goto-char (point-max))
+	  (todos-backward-item)
+	  (unless (todos-done-item-p)
+	    (widen)
+	    (unless (re-search-forward
+		     (concat "^" (regexp-quote todos-category-beg)) nil t)
+	      (goto-char (point-max)))
+	    (forward-line -1))
+	  (while (todos-done-item-p)
+	    (when (todos-marked-item-p)
+	      (user-error "This command does not apply to done items"))
+	    (todos-backward-item)))))
+    (unless (and (not marked)
+		 (or (todos-done-item-p)
+		     ;; Point is between todo and done items.
+		     (looking-at "^$")))
       (let* ((date-string (calendar-date-string (calendar-current-date) t t))
 	     (time-string (if todos-always-add-time-string
 			      (concat " " (substring (current-time-string) 11 16))
@@ -5685,7 +5705,7 @@ visible."
 	(catch 'done
 	  ;; Stop looping when we hit the empty line below the last
 	  ;; todo item (this is eobp if only done items are hidden).
-	  (while (not (looking-at "^$")) ;(not (eobp))
+	  (while (not (looking-at "^$"))
 	    (if (or (not marked) (and marked (todos-marked-item-p)))
 		(progn
 		  (setq item (todos-item-string))

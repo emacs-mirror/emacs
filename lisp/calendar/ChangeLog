@@ -1,3 +1,11 @@
+2013-05-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Fixes for item marking and marked items.
+	(todos-toggle-mark-item): Make no-op if point is not on an item.
+	Toggle mark even if point is not at start of item.
+	(todos-item-done): Signal an error if a done item is marked.
+	Process marked todo items even if point is in done items section.
+
 2013-05-11  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-item-undone): Remove item highlighting when user
