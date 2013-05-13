@@ -143,16 +143,18 @@ MVFF interface
     * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` (type :c:type:`mps_bool_t`) is
       undocumented and must be set to true.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_mvff(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_EXTEND_BY, 1024 * 1024),
-                             MPS_ARG(MPS_KEY_MEAN_SIZE, 32),
-                             MPS_ARG(MPS_KEY_ALIGN, 8),
-                             MPS_ARG(MPS_KEY_MVFF_ARENA_HIGH, 0),
-                             MPS_ARG(MPS_KEY_MVFF_SLOT_HIGH, 0),
-                             MPS_ARG(MPS_KEY_MVFF_FIRST_FIT, 1),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_EXTEND_BY, 1024 * 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_ALIGN, 8);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_ARENA_HIGH, 0);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_SLOT_HIGH, 0);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_FIRST_FIT, 1);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mvff(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

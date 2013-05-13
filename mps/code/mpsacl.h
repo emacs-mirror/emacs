@@ -12,7 +12,7 @@
 /* Client arena base address argument */
 extern const struct mps_key_s _mps_key_arena_cl_addr;
 #define MPS_KEY_ARENA_CL_BASE (&_mps_key_arena_cl_addr)
-#define MPS_KEY_ARENA_CL_BASE_FIELD() addr
+#define MPS_KEY_ARENA_CL_BASE_FIELD addr
 
 extern mps_arena_class_t mps_arena_class_cl(void);
 

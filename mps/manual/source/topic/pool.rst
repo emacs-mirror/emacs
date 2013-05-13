@@ -19,7 +19,7 @@ making it available for allocation.
     :c:func:`mps_alloc` or via an :term:`allocation point`.
 
 
-.. c:function:: mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, mps_arg_s args[])
+.. c:function:: mps_res_t mps_pool_create_k(mps_pool_t *pool_o, mps_arena_t arena, mps_class_t class, mps_arg_s args[])
 
     Create a :term:`pool` in an :term:`arena`.
 

@@ -14,8 +14,9 @@ Memory Management Glossary: K
 
     keyword argument
 
-        An optional argument to a function call, identified by an
-        associated keyword.
+        A argument to a function call that's identified by an
+        associated keyword rather than by its position in the argument
+        list.
 
         .. mps:specific::
 

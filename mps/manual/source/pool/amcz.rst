@@ -71,12 +71,14 @@ AMCZ interface
     * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
       the :term:`generation chain` for the pool.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_amcz(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_CHAIN, chain),
-                             MPS_ARG(MPS_KEY_FORMAT, fmt),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+            MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_amcz(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

@@ -178,15 +178,17 @@ MVT interface
       intermediate setting can be used to limit the space-inefficiency
       of temporal fit due to varying object life expectancies.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_mvt(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_MIN_SIZE, 4),
-                             MPS_ARG(MPS_KEY_MEAN_SIZE, 32),
-                             MPS_ARG(MPS_KEY_MAX_SIZE, 1024),
-                             MPS_ARG(MPS_KEY_MVT_RESERVE_DEPTH, 256),
-                             MPS_ARG(MPS_KEY_MVT_FRAG_LIMIT, 50),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MIN_SIZE, 4);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MAX_SIZE, 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVT_RESERVE_DEPTH, 256);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVT_FRAG_LIMIT, 50);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mvt(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

@@ -115,12 +115,14 @@ AMS interface
       the :term:`generation chain` for the pool. It must have a single
       generation.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_ams(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_CHAIN, chain),
-                             MPS_ARG(MPS_KEY_FORMAT, fmt),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+            MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_ams(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

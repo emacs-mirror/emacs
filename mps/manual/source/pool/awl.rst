@@ -331,12 +331,14 @@ AWL interface
       how to find the :term:`dependent object` for an object in the
       pool.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_awl(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_FORMAT, fmt),
-                             MPS_ARG(MPS_KEY_AWL_FIND_DEPENDENT, find_dependent),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+            MPS_ARGS_ADD(args, MPS_KEY_AWL_FIND_DEPENDENT, find_dependent);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_awl(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 
@@ -358,11 +360,13 @@ AWL interface
       :term:`exact references`), or :c:func:`mps_rank_weak` (if the
       objects will contain :term:`weak references (1)`).
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_ap_create_k(&ap, awl_pool,
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_RANK, mps_rank_weak()),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_weak());
+            MPS_ARGS_DONE(args);
+            res = mps_ap_create_k(&ap, awl_pool, args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

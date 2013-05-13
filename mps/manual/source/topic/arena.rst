@@ -165,12 +165,14 @@ Client arenas
     * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`) is its
       size.
 
-    For example (in :term:`C99`)::
+    For example::
 
-        res = mps_arena_create_k(&arena, mps_arena_class_cl(),
-            (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_CL_BASE, base),
-                          MPS_ARG(MPS_KEY_ARENA_SIZE, size),
-                          {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base);
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+            MPS_ARGS_DONE(args);
+            res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+        } MPS_ARGS_END(args);
 
     If the chunk is too small to hold the internal arena structures,
     :c:func:`mps_arena_create_k` returns :c:macro:`MPS_RES_MEMORY`. In
@@ -275,11 +277,13 @@ Virtual memory arenas
     :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or
     the operating system refused to provide enough memory.
 
-    For example (in :term:`C99`)::
+    For example::
 
-        res = mps_arena_create_k(&arena, mps_arena_class_cl(),
-            (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_SIZE, size),
-                          {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+            MPS_ARGS_DONE(args);
+            res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

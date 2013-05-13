@@ -103,11 +103,13 @@ SNC introspection
       The format must provide a :term:`scan method`, a :term:`skip
       method`, and a :term:`padding method`.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_snc(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_FORMAT, fmt),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_snc(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 
@@ -125,11 +127,13 @@ SNC introspection
       the :term:`rank` of references in objects allocated on this
       allocation point. It must be :c:func:`mps_rank_exact`.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_ap_create_k(&ap, awl_pool,
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_RANK, mps_rank_exact()),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_exact());
+            MPS_ARGS_DONE(args);
+            res = mps_ap_create_k(&ap, awl_pool, args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

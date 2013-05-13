@@ -112,11 +112,13 @@ LO interface
       the :term:`object format` for the objects allocated in the pool.
       The format must provide a :term:`skip method`.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_lo(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_FORMAT, fmt),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_lo(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 
