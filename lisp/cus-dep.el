@@ -38,6 +38,18 @@ ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 
 (require 'autoload)
 
+;; Hack workaround for bug#14384.
+;; Define defcustom-mh as an alias for defcustom, etc.
+;; Only do this in batch mode to avoid messing up a normal Emacs session.
+;; Alternative would be to load mh-e when making cus-load.
+;; (Would be better to split just the necessary parts of mh-e into a
+;; separate file and only load that.)
+(when (and noninteractive)
+  (mapc (lambda (e) (let ((sym (intern (format "%s-mh" e))))
+		      (or (fboundp sym)
+			  (defalias sym e))))
+	'(defcustom defface defgroup)))
+
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
@@ -82,6 +94,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                       (let ((expr (read (current-buffer))))
                         (condition-case nil
                             (let ((custom-dont-initialize t))
+                              ;; Why do we need to eval just for the name?
                               (eval expr)
                               (put (nth 1 expr) 'custom-where name))
                           (error nil))))
