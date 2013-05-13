@@ -4273,6 +4273,8 @@ case "$opsys" in
   ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
   gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_RPATH)" ;;
 
+  openbsd) LD_SWITCH_SYSTEM_TEMACS='-fno-pie' ;;
+
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
 
