@@ -96,9 +96,10 @@ parenthetical grouping.")
 
 (defvar octave-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\M-." 'octave-find-definition)
-    (define-key map "\e\n" 'octave-indent-new-comment-line)
-    (define-key map "\M-\C-q" 'octave-indent-defun)
+    (define-key map "\M-."     'octave-find-definition)
+    (define-key map "\M-\C-j"  'octave-indent-new-comment-line)
+    ;; C-c C-q is also used by cc modes for similar command
+    (define-key map "\C-c\C-q" 'octave-indent-defun)
     (define-key map "\C-c\C-p" 'octave-previous-code-line)
     (define-key map "\C-c\C-n" 'octave-next-code-line)
     (define-key map "\C-c\C-a" 'octave-beginning-of-line)
