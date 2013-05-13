@@ -434,10 +434,13 @@ Non-nil means always go to the next Octave code line after sending."
   "A function for `smie-indent-functions' (which see)."
   (save-excursion
     (back-to-indentation)
-    (when (and (not (octave-in-string-or-comment-p))
-               (looking-at-p "\\s<\\(?:[^{}]\\|$\\)")
-               (not (looking-at-p "\\s<\\s<")))
-      (comment-choose-indent))))
+    (cond
+     ((octave-in-string-or-comment-p) nil)
+     ((looking-at-p "\\s<\\{3,\\}")
+      0)
+     ((and (looking-at-p "\\s<\\(?:[^{}]\\|$\\)")
+           (not (looking-at-p "\\s<\\s<")))
+      (comment-choose-indent)))))
 
 
 (defvar octave-font-lock-keywords
