@@ -64,7 +64,7 @@ Used in `octave-mode' and `inferior-octave-mode' buffers.")
   (string octave-comment-char ?\s)
   "String to insert to start a new Octave in-line comment.")
 
-(defvar octave-comment-start-skip "\\s<+\\s-*"
+(defvar octave-comment-start-skip "\\(?:%!\\|\\s<+\\)\\s-*"
   "Regexp to match the start of an Octave comment up to its body.")
 
 (defvar octave-begin-keywords
@@ -439,7 +439,8 @@ Non-nil means always go to the next Octave code line after sending."
      ((octave-in-string-or-comment-p) nil)
      ((looking-at-p "\\s<\\{3,\\}")
       0)
-     ((and (looking-at-p "\\s<\\(?:[^{}]\\|$\\)")
+     ;; Exclude %{, %} and %!.
+     ((and (looking-at-p "\\s<\\(?:[^{}!]\\|$\\)")
            (not (looking-at-p "\\s<\\s<")))
       (comment-choose-indent)))))
 
@@ -532,10 +533,7 @@ definitions can also be stored in files and used in batch mode."
 
   (setq-local comment-start octave-comment-start)
   (setq-local comment-end "")
-  ;; Don't set it here: it's not really a property of the language,
-  ;; just a personal preference of the author.
-  ;; (setq-local comment-column 32)
-  (setq-local comment-start-skip "\\s<+\\s-*")
+  (setq-local comment-start-skip octave-comment-start-skip)
   (setq-local comment-add 1)
 
   (setq-local parse-sexp-ignore-comments t)

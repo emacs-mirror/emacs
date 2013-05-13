@@ -1,9 +1,11 @@
 2013-05-13  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (octave-indent-comment): Fix the indentation
-	of ### or %%%.
+	* progmodes/octave.el (octave-indent-comment): Fix indentation for
+	###, and %!.
 	(octave-mode-map): Bind octave-indent-defun to C-c C-q instead of
 	C-M-q.
+	(octave-comment-start-skip): Include %!.
+	(octave-mode): Set comment-start-skip to octave-comment-start-skip.
 
 2013-05-12  Leo Liu  <sdl.web@gmail.com>
 
