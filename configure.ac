@@ -1009,7 +1009,7 @@ case "$opsys" in
    ;;
 
   openbsd)
-   ## Han Boetes <han@mijncomputer.nl> says this is necessary,
+   ## Han Boetes <han@boetes.org> says this is necessary,
    ## otherwise Emacs dumps core on elf systems.
    LD_SWITCH_SYSTEM="-Z"
    ;;
@@ -4273,7 +4273,7 @@ case "$opsys" in
   ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
   gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_RPATH)" ;;
 
-  openbsd) LD_SWITCH_SYSTEM_TEMACS='-fno-pie' ;;
+  openbsd) LD_SWITCH_SYSTEM_TEMACS='-nopie' ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac

@@ -1,6 +1,6 @@
 2013-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* configure.ac (LD_SWITCH_SYSTEM_TEMACS): OpenBSD needs -fno-pie.
+	* configure.ac (LD_SWITCH_SYSTEM_TEMACS): OpenBSD needs -nopie.
 	Reported privately by Han Boetes <han@boetes.org>.
 
 2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
