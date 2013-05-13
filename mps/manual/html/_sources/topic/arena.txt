@@ -158,19 +158,21 @@ Client arenas
     When creating a client arena, :c:func:`mps_arena_create_k` requires two
     :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_ARENA_CL_ADDR` (member ``.val.addr``; type
-      :c:type:`mps_addr_t`) is the :term:`address` of the chunk of memory
-      that will be managed by the arena.
+    * :c:macro:`MPS_KEY_ARENA_CL_BASE` (type :c:type:`mps_addr_t`) is
+      the :term:`address` of the chunk of memory that will be managed
+      by the arena.
 
-    * :c:macro:`MPS_KEY_ARENA_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`) is its size.
+    * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`) is its
+      size.
 
-    For example (in :term:`C99`)::
+    For example::
 
-        res = mps_arena_create_k(&arena, mps_arena_class_cl(),
-            (mps_arg_s[]){{MPS_KEY_ARENA_CL_ADDR, .val.addr = base},
-                          {MPS_KEY_ARENA_SIZE,    .val.size = size},
-                          {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base);
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+            MPS_ARGS_DONE(args);
+            res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+        } MPS_ARGS_END(args);
 
     If the chunk is too small to hold the internal arena structures,
     :c:func:`mps_arena_create_k` returns :c:macro:`MPS_RES_MEMORY`. In
@@ -234,46 +236,36 @@ Virtual memory arenas
     When creating a virtual memory arena, :c:func:`mps_arena_create_k`
     requires one :term:`keyword argument`:
 
-    * :c:macro:`MPS_KEY_ARENA_SIZE` (member ``.val.size``; type
-      :c:type:`size_t`).
+    * :c:macro:`MPS_KEY_ARENA_SIZE` (type :c:type:`size_t`). is the
+      initial amount of virtual address space, in :term:`bytes (1)`,
+      that the arena will reserve (this space is initially reserved so
+      that the arena can subsequently use it without interference from
+      other parts of the program, but most of it is not committed, so
+      it doesn't require any RAM or backing store). The arena may
+      allocate more virtual address space beyond this initial
+      reservation as and when it deems it necessary. The MPS is most
+      efficient if you reserve an address space that is several times
+      larger than your peak memory usage.
 
-    For example (in :term:`C99`)::
+      .. note::
 
-        res = mps_arena_create_k(&arena, mps_arena_class_cl(),
-            (mps_arg_s[]){{MPS_KEY_ARENA_SIZE, .val.size = size},
-                          {MPS_KEY_ARGS_END}});
-
-    ``size`` is the initial amount of virtual address space, in
-    :term:`bytes (1)`, that the arena will reserve (this space is
-    initially reserved so that the arena can subsequently use it
-    without interference from other parts of the program, but most of
-    it is not committed, so it doesn't require any RAM or backing
-    store). The arena may allocate more virtual address space beyond
-    this initial reservation as and when it deems it necessary. The
-    MPS is most efficient if you reserve an address space that is
-    several times larger than your peak memory usage.
-
-    .. note::
-
-        The MPS asks for more address space if it runs out, but the
-        more times it has to extend its address space, the less
-        efficient garbage collection will become.
+          The MPS asks for more address space if it runs out, but the
+          more times it has to extend its address space, the less
+          efficient garbage collection will become.
 
     An optional :term:`keyword argument` may be passed, but is
     only used on the Windows operating system:
 
-    * :c:macro:`MPS_KEY_VMW3_TOP_DOWN` (member ``.val.b``; type
-      :c:type:`mps_bool_t`).
+    * :c:macro:`MPS_KEY_VMW3_TOP_DOWN` (type :c:type:`mps_bool_t`). If
+      true, the arena will allocate address space starting at the
+      highest possible address and working downwards through memory.
 
-    If true, the arena will allocate address space starting at the
-    highest possible address and working downwards through memory.
+      .. note::
 
-    .. note::
+          This causes the arena to pass the ``MEM_TOP_DOWN`` flag to
+          `VirtualAlloc`_.
 
-        This causes the arena to pass the ``MEM_TOP_DOWN`` flag to
-        `VirtualAlloc`_.
-
-        .. _VirtualAlloc: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.aspx
+          .. _VirtualAlloc: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.aspx
 
     If the MPS fails to reserve adequate address space to place the
     arena in, :c:func:`mps_arena_create_k` returns
@@ -284,6 +276,14 @@ Virtual memory arenas
     structures, :c:func:`mps_arena_create_k` returns
     :c:macro:`MPS_RES_MEMORY`. Either ``size`` was far too small or
     the operating system refused to provide enough memory.
+
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+            MPS_ARGS_DONE(args);
+            res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

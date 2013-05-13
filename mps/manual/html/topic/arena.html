@@ -183,17 +183,19 @@ program</em></a>. This memory chunk is passed when the arena is created.</p>
 <p>When creating a client arena, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> requires two
 <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>:</p>
 <ul class="simple">
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_CL_ADDR</span></tt> (member <tt class="docutils literal"><span class="pre">.val.addr</span></tt>; type
-<a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_addr_t</span></tt></a>) is the <a class="reference internal" href="../glossary/a.html#term-address"><em class="xref std std-term">address</em></a> of the chunk of memory
-that will be managed by the arena.</li>
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt> (member <tt class="docutils literal"><span class="pre">.val.size</span></tt>; type
-<tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>) is its size.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_CL_BASE</span></tt> (type <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_addr_t</span></tt></a>) is
+the <a class="reference internal" href="../glossary/a.html#term-address"><em class="xref std std-term">address</em></a> of the chunk of memory that will be managed
+by the arena.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>) is its
+size.</li>
 </ul>
-<p>For example (in <a class="reference internal" href="../glossary/c.html#term-c99"><em class="xref std std-term">C99</em></a>):</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span>
-    <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_ARENA_CL_ADDR</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">base</span><span class="p">},</span>
-                  <span class="p">{</span><span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span>    <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span><span class="p">},</span>
-                  <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
+<p>For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_CL_BASE</span><span class="p">,</span> <span class="n">base</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>If the chunk is too small to hold the internal arena structures,
@@ -248,44 +250,38 @@ where to place <a class="reference internal" href="../glossary/b.html#term-block
 more efficient.</p>
 <p>When creating a virtual memory arena, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a>
 requires one <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a>:</p>
-<ul class="simple">
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt> (member <tt class="docutils literal"><span class="pre">.val.size</span></tt>; type
-<tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>).</li>
-</ul>
-<p>For example (in <a class="reference internal" href="../glossary/c.html#term-c99"><em class="xref std std-term">C99</em></a>):</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span>
-    <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span><span class="p">},</span>
-                  <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
-</pre></div>
-</div>
-<p><tt class="docutils literal"><span class="pre">size</span></tt> is the initial amount of virtual address space, in
-<a class="reference internal" href="../glossary/b.html#term-byte-1"><em class="xref std std-term">bytes<sup>(1)</sup></em></a>, that the arena will reserve (this space is
-initially reserved so that the arena can subsequently use it
-without interference from other parts of the program, but most of
-it is not committed, so it doesn&#8217;t require any RAM or backing
-store). The arena may allocate more virtual address space beyond
-this initial reservation as and when it deems it necessary. The
-MPS is most efficient if you reserve an address space that is
-several times larger than your peak memory usage.</p>
+<ul>
+<li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>). is the
+initial amount of virtual address space, in <a class="reference internal" href="../glossary/b.html#term-byte-1"><em class="xref std std-term">bytes<sup>(1)</sup></em></a>,
+that the arena will reserve (this space is initially reserved so
+that the arena can subsequently use it without interference from
+other parts of the program, but most of it is not committed, so
+it doesn&#8217;t require any RAM or backing store). The arena may
+allocate more virtual address space beyond this initial
+reservation as and when it deems it necessary. The MPS is most
+efficient if you reserve an address space that is several times
+larger than your peak memory usage.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">The MPS asks for more address space if it runs out, but the
 more times it has to extend its address space, the less
 efficient garbage collection will become.</p>
 </div>
+</li>
+</ul>
 <p>An optional <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a> may be passed, but is
 only used on the Windows operating system:</p>
-<ul class="simple">
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_VMW3_TOP_DOWN</span></tt> (member <tt class="docutils literal"><span class="pre">.val.b</span></tt>; type
-<a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>).</li>
-</ul>
-<p>If true, the arena will allocate address space starting at the
+<ul>
+<li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_VMW3_TOP_DOWN</span></tt> (type <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>). If
+true, the arena will allocate address space starting at the
 highest possible address and working downwards through memory.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">This causes the arena to pass the <tt class="docutils literal"><span class="pre">MEM_TOP_DOWN</span></tt> flag to
 <a class="reference external" href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.aspx">VirtualAlloc</a>.</p>
 </div>
+</li>
+</ul>
 <p>If the MPS fails to reserve adequate address space to place the
 arena in, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> returns
 <a class="reference internal" href="error.html#MPS_RES_RESOURCE" title="MPS_RES_RESOURCE"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_RESOURCE</span></tt></a>. Possibly this means that other parts
@@ -294,6 +290,14 @@ of the program are reserving too much virtual memory.</p>
 structures, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> returns
 <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a>. Either <tt class="docutils literal"><span class="pre">size</span></tt> was far too small or
 the operating system refused to provide enough memory.</p>
+<p>For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+</pre></div>
+</div>
 <div class="admonition-deprecated admonition">
 <p class="first admonition-title">Deprecated</p>
 <p>starting with version 1.112.</p>

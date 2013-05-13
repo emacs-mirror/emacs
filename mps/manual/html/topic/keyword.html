@@ -67,7 +67,7 @@ arguments are passed in a keyword argument array, like this:</p>
 <span class="n">mps_arg_s</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
 <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">key</span> <span class="o">=</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">;</span>
 <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">val</span><span class="p">.</span><span class="n">size</span> <span class="o">=</span> <span class="mi">6553600</span><span class="p">;</span>
-<span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">key</span> <span class="o">=</span> <span class="n">MPS_KEY_ARENA_CL_ADDR</span><span class="p">;</span>
+<span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">key</span> <span class="o">=</span> <span class="n">MPS_KEY_ARENA_CL_BASE</span><span class="p">;</span>
 <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">val</span><span class="p">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">base_address</span><span class="p">;</span>
 <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="n">key</span> <span class="o">=</span> <span class="n">MPS_KEY_ARGS_END</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
@@ -78,20 +78,11 @@ arguments are passed in a keyword argument array, like this:</p>
 <p>For convenience and robustness, the MPS interface includes macros to
 help with forming keyword argument lists:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="mi">6553600</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_CL_ADDR</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">base_address</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="mi">6553600</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_CL_BASE</span><span class="p">,</span> <span class="n">base_address</span><span class="p">);</span>
     <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
 <span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
-</pre></div>
-</div>
-<p>But if you are writing <a class="reference internal" href="../glossary/c.html#term-c99"><em class="xref std std-term">C99</em></a>, you can write this more concisely as:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-<span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">;</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span>
-       <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span>    <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">size</span> <span class="o">=</span> <span class="mi">6553600</span><span class="p">},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_ARENA_CL_ADDR</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">base_address</span><span class="p">},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
 </pre></div>
 </div>
 <p>The argument array must not be <tt class="docutils literal"><span class="pre">NULL</span></tt>, and must end with
@@ -133,9 +124,15 @@ now <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARGS_E
 </div>
 <p><tt class="docutils literal"><span class="pre">key</span></tt> identifies the key. It must be one of the legal values
 of <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a> listed in the documentation for that type.</p>
-<p><tt class="docutils literal"><span class="pre">val</span></tt> is the corresponding value. The documentation for each
-value of the type <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a> explains which structure
-member is used by that keyword.</p>
+<p><tt class="docutils literal"><span class="pre">val</span></tt> is the corresponding value. The table given in the
+documentation for <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a> explains which structure
+field is used by that keyword.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">If you use the convenience macros <a class="reference internal" href="#MPS_ARGS_ADD" title="MPS_ARGS_ADD"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_ADD()</span></tt></a> and
+<tt class="xref c c-func docutils literal"><span class="pre">MPS_ARG()</span></tt> you don&#8217;t need to know the name of the
+field.</p>
+</div>
 </dd></dl>
 
 <dl class="macro">
@@ -161,7 +158,7 @@ following values:</p>
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Keyword</th>
-<th class="head">Value slot</th>
+<th class="head">Field</th>
 <th class="head">See</th>
 </tr>
 </thead>
@@ -178,7 +175,7 @@ following values:</p>
 <td><tt class="docutils literal"><span class="pre">b</span></tt></td>
 <td><a class="reference internal" href="../pool/ams.html#mps_class_ams" title="mps_class_ams"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_ams()</span></tt></a></td>
 </tr>
-<tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_CL_ADDR</span></tt></td>
+<tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_CL_BASE</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">addr</span></tt></td>
 <td><a class="reference internal" href="arena.html#mps_arena_class_cl" title="mps_arena_class_cl"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_class_cl()</span></tt></a></td>
 </tr>
@@ -260,16 +257,17 @@ following values:</p>
 <dd><p>Start construction of a list of keyword arguments. This macro must
 be used like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="mi">6553600</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_CL_ADDR</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">base_address</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="mi">6553600</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_CL_BASE</span><span class="p">,</span> <span class="n">base_address</span><span class="p">);</span>
     <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
 <span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>That is, you must call <a class="reference internal" href="#MPS_ARGS_ADD" title="MPS_ARGS_ADD"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_ADD()</span></tt></a> zero or more times,
-and then call <a class="reference internal" href="#MPS_ARGS_DONE" title="MPS_ARGS_DONE"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_DONE()</span></tt></a> before passing the arguments
-to a function.</p>
+<p>That is, you must call <a class="reference internal" href="#MPS_ARGS_ADD" title="MPS_ARGS_ADD"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_ADD()</span></tt></a> (or
+<a class="reference internal" href="#MPS_ARGS_ADD_FIELD" title="MPS_ARGS_ADD_FIELD"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_ADD_FIELD()</span></tt></a>) zero or more times, and then call
+<a class="reference internal" href="#MPS_ARGS_DONE" title="MPS_ARGS_DONE"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_DONE()</span></tt></a> before passing the arguments to a
+function.</p>
 <p><tt class="docutils literal"><span class="pre">args</span></tt> is the name of the array that contains the keyword
 arguments. The array is stack-allocated, and exists between
 <a class="reference internal" href="#MPS_ARGS_BEGIN" title="MPS_ARGS_BEGIN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_ARGS_BEGIN</span></tt></a> and <a class="reference internal" href="#MPS_ARGS_END" title="MPS_ARGS_END"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_ARGS_END</span></tt></a>.</p>
@@ -286,6 +284,30 @@ used only between <a class="reference internal" href="#MPS_ARGS_BEGIN" title="MP
 <p><tt class="docutils literal"><span class="pre">args</span></tt> is the name of array that contains the keyword arguments.
 It must match the argument to the preceding call to
 <a class="reference internal" href="#MPS_ARGS_BEGIN" title="MPS_ARGS_BEGIN"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_BEGIN()</span></tt></a>.</p>
+<p><tt class="docutils literal"><span class="pre">key</span></tt> is the keyword identifying this argument. It must be one
+of the key names starting with <tt class="docutils literal"><span class="pre">MPS_KEY_</span></tt> that are listed in the
+table in the documentation for <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a>.</p>
+<p><tt class="docutils literal"><span class="pre">value</span></tt> is the value for this argument.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="MPS_ARGS_ADD_FIELD">
+<tt class="descname">MPS_ARGS_ADD_FIELD</tt><big>(</big><a class="reference internal" href="#mps_arg_s" title="mps_arg_s">mps_arg_s</a><em>&nbsp;args[]</em>, <a class="reference internal" href="#mps_key_t" title="mps_key_t">mps_key_t</a><em>&nbsp;key</em>, field, value<big>)</big><a class="headerlink" href="#MPS_ARGS_ADD_FIELD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an argument to a list of keyword arguments. This macro must be
+used only between <a class="reference internal" href="#MPS_ARGS_BEGIN" title="MPS_ARGS_BEGIN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_ARGS_BEGIN</span></tt></a> and
+<a class="reference internal" href="#MPS_ARGS_END" title="MPS_ARGS_END"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_ARGS_END</span></tt></a>.</p>
+<p><tt class="docutils literal"><span class="pre">args</span></tt> is the name of array that contains the keyword arguments.
+It must match the argument to the preceding call to
+<a class="reference internal" href="#MPS_ARGS_BEGIN" title="MPS_ARGS_BEGIN"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_BEGIN()</span></tt></a>.</p>
+<p><tt class="docutils literal"><span class="pre">key</span></tt> is the keyword identifying this argument.</p>
+<p><tt class="docutils literal"><span class="pre">field</span></tt> is the name of the field in the <tt class="docutils literal"><span class="pre">val</span></tt> union in the
+structure <tt class="xref c c-type docutils literal"><span class="pre">mps_args_s</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">value</span></tt> is the value for this argument.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">You should prefer to use <a class="reference internal" href="#MPS_ARGS_ADD" title="MPS_ARGS_ADD"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_ADD()</span></tt></a>, because then
+you don&#8217;t need to look up the name of the field.</p>
+</div>
 </dd></dl>
 
 <dl class="function">

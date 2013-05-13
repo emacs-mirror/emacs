@@ -18,7 +18,7 @@ arguments are passed in a keyword argument array, like this::
     mps_arg_s args[3];
     args[0].key = MPS_KEY_ARENA_SIZE;
     args[0].val.size = 6553600;
-    args[1].key = MPS_KEY_ARENA_CL_ADDR;
+    args[1].key = MPS_KEY_ARENA_CL_BASE;
     args[1].val.addr = base_address;
     args[2].key = MPS_KEY_ARGS_END;
     res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
@@ -30,20 +30,11 @@ For convenience and robustness, the MPS interface includes macros to
 help with forming keyword argument lists::
 
     MPS_ARGS_BEGIN(args) {
-        MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, 6553600);
-        MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_ADDR, addr, base_address);
+        MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 6553600);
+        MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base_address);
         MPS_ARGS_DONE(args);
         res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
     } MPS_ARGS_END(args);
-    
-But if you are writing :term:`C99`, you can write this more concisely as::
-
-    mps_res_t res;
-    mps_arena_t arena;
-    res = mps_arena_create_k(&arena, mps_arena_class_cl(),
-           (mps_arg_s[]){{MPS_KEY_ARENA_SIZE,    .val.size = 6553600},
-                         {MPS_KEY_ARENA_CL_ADDR, .val.addr = base_address},
-                         {MPS_KEY_ARGS_END}});
 
 The argument array must not be ``NULL``, and must end with
 :c:macro:`MPS_KEY_ARGS_END`.  If you don't want to pass any arguments, you can
@@ -87,9 +78,15 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     ``key`` identifies the key. It must be one of the legal values
     of :c:type:`mps_key_t` listed in the documentation for that type.
 
-    ``val`` is the corresponding value. The documentation for each
-    value of the type :c:type:`mps_key_t` explains which structure
-    member is used by that keyword.
+    ``val`` is the corresponding value. The table given in the
+    documentation for :c:type:`mps_key_t` explains which structure
+    field is used by that keyword.
+
+    .. note::
+
+        If you use the convenience macros :c:func:`MPS_ARGS_ADD` and
+        :c:func:`MPS_ARG` you don't need to know the name of the
+        field.
 
 
 .. c:macro:: mps_args_none
@@ -106,12 +103,12 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     following values:
 
     ======================================== ====================== ==========================================================
-    Keyword                                  Value slot             See
+    Keyword                                  Field                  See
     ======================================== ====================== ==========================================================
     :c:macro:`MPS_KEY_ARGS_END`              *none*                 *see above*
     :c:macro:`MPS_KEY_ALIGN`                 ``align``              :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_AMS_SUPPORT_AMBIGUOUS` ``b``                  :c:func:`mps_class_ams`
-    :c:macro:`MPS_KEY_ARENA_CL_ADDR`         ``addr``               :c:func:`mps_arena_class_cl`
+    :c:macro:`MPS_KEY_ARENA_CL_BASE`         ``addr``               :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_ARENA_SIZE`            ``size``               :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_AWL_FIND_DEPENDENT`    ``addr_method``        :c:func:`mps_class_awl`
     :c:macro:`MPS_KEY_CHAIN`                 ``chain``              :c:func:`mps_class_amc`, :c:func:`mps_class_amcz`, :c:func:`mps_class_ams`
@@ -138,15 +135,16 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     be used like this::
 
         MPS_ARGS_BEGIN(args) {
-            MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size, 6553600);
-            MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_ADDR, addr, base_address);
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 6553600);
+            MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, base_address);
             MPS_ARGS_DONE(args);
             res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
         } MPS_ARGS_END(args);
 
-    That is, you must call :c:func:`MPS_ARGS_ADD` zero or more times,
-    and then call :c:func:`MPS_ARGS_DONE` before passing the arguments
-    to a function.
+    That is, you must call :c:func:`MPS_ARGS_ADD` (or
+    :c:func:`MPS_ARGS_ADD_FIELD`) zero or more times, and then call
+    :c:func:`MPS_ARGS_DONE` before passing the arguments to a
+    function.
 
     ``args`` is the name of the array that contains the keyword
     arguments. The array is stack-allocated, and exists between
@@ -165,6 +163,35 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     ``args`` is the name of array that contains the keyword arguments.
     It must match the argument to the preceding call to
     :c:func:`MPS_ARGS_BEGIN`.
+
+    ``key`` is the keyword identifying this argument. It must be one
+    of the key names starting with ``MPS_KEY_`` that are listed in the
+    table in the documentation for :c:type:`mps_key_t`.
+
+    ``value`` is the value for this argument.
+
+
+.. c:function:: MPS_ARGS_ADD_FIELD(mps_arg_s args[], mps_key_t key, field, value)
+
+    Add an argument to a list of keyword arguments. This macro must be
+    used only between :c:macro:`MPS_ARGS_BEGIN` and
+    :c:macro:`MPS_ARGS_END`.
+
+    ``args`` is the name of array that contains the keyword arguments.
+    It must match the argument to the preceding call to
+    :c:func:`MPS_ARGS_BEGIN`.
+
+    ``key`` is the keyword identifying this argument.
+
+    ``field`` is the name of the field in the ``val`` union in the
+    structure :c:type:`mps_args_s`.
+
+    ``value`` is the value for this argument.
+
+    .. note::
+
+        You should prefer to use :c:func:`MPS_ARGS_ADD`, because then
+        you don't need to look up the name of the field.
 
 
 .. c:function:: MPS_ARGS_DONE(args)

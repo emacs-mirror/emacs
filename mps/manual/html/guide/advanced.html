@@ -679,21 +679,26 @@ methods:</p>
 
 <span class="cm">/* Create an Automatic Weak Linked (AWL) pool to manage the hash table</span>
 <span class="cm">   buckets. */</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buckets_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_awl</span><span class="p">(),</span>
-       <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">buckets_fmt</span><span class="p">},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_AWL_FIND_DEPENDENT</span><span class="p">,</span>
-                         <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">addr_method</span> <span class="o">=</span> <span class="n">buckets_find_dependent</span><span class="p">},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
+<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="n">buckets_fmt</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_AWL_FIND_DEPENDENT</span><span class="p">,</span> <span class="n">buckets_find_dependent</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buckets_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_awl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create buckets pool&quot;</span><span class="p">);</span>
 
 <span class="cm">/* Create allocation points for weak and strong buckets. */</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">strong_buckets_ap</span><span class="p">,</span> <span class="n">buckets_pool</span><span class="p">,</span>
-       <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_RANK</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">rank</span> <span class="o">=</span> <span class="n">mps_rank_exact</span><span class="p">()},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
+<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_RANK</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">());</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">strong_buckets_ap</span><span class="p">,</span> <span class="n">buckets_pool</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create strong buckets allocation point&quot;</span><span class="p">);</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">weak_buckets_ap</span><span class="p">,</span> <span class="n">buckets_pool</span><span class="p">,</span>
-       <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_RANK</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">rank</span> <span class="o">=</span> <span class="n">mps_rank_weak</span><span class="p">()},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
+<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_RANK</span><span class="p">,</span> <span class="n">mps_rank_weak</span><span class="p">());</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">weak_buckets_ap</span><span class="p">,</span> <span class="n">buckets_pool</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create weak buckets allocation point&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -835,10 +840,12 @@ and its <a class="reference internal" href="../glossary/a.html#term-allocation-p
 <tt class="docutils literal"><span class="pre">obj_ap</span></tt>. And third, the pool and its allocation point must be created:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cm">/* Create an Automatic Mostly-Copying Zero-rank (AMCZ) pool to</span>
 <span class="cm">   manage the leaf objects. */</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">leaf_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_amcz</span><span class="p">(),</span>
-       <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_CHAIN</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">chain</span> <span class="o">=</span> <span class="n">obj_chain</span><span class="p">},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">obj_fmt</span><span class="p">},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
+<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_CHAIN</span><span class="p">,</span> <span class="n">obj_chain</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="n">obj_fmt</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">leaf_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_amcz</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create leaf pool&quot;</span><span class="p">);</span>
 
 <span class="cm">/* Create allocation point for leaf objects. */</span>

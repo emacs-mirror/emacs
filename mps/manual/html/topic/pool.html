@@ -69,8 +69,8 @@ and making it available to the <a class="reference internal" href="../glossary/c
 </dd></dl>
 
 <dl class="function">
-<dt id="mps_pool_create">
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, <a class="reference internal" href="keyword.html#mps_arg_s" title="mps_arg_s">mps_arg_s</a><em>&nbsp;args[]</em><big>)</big><a class="headerlink" href="#mps_pool_create" title="Permalink to this definition">¶</a></dt>
+<dt id="mps_pool_create_k">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create_k</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, <a class="reference internal" href="keyword.html#mps_arg_s" title="mps_arg_s">mps_arg_s</a><em>&nbsp;args[]</em><big>)</big><a class="headerlink" href="#mps_pool_create_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a> in an <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a>.</p>
 <p><tt class="docutils literal"><span class="pre">pool_o</span></tt> points to a location that will hold a pointer to the new
 pool.</p>
@@ -85,16 +85,16 @@ or another <a class="reference internal" href="../glossary/r.html#term-result-co
 </dd></dl>
 
 <dl class="function">
-<dt>
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, ...<big>)</big></dt>
+<dt id="mps_pool_create">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, ...<big>)</big><a class="headerlink" href="#mps_pool_create" title="Permalink to this definition">¶</a></dt>
 <dd><div class="admonition-deprecated admonition">
 <p class="first admonition-title">Deprecated</p>
 <p>starting with version 1.112.</p>
-<p class="last">Use <tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+<p class="last">Use <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
 arguments</em></a> interface is more reliable and produces better
 error messages.</p>
 </div>
-<p>An alternative to <tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt> that takes its
+<p>An alternative to <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> that takes its
 extra arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> variable argument
 list mechanism.</p>
 </dd></dl>
@@ -105,11 +105,11 @@ list mechanism.</p>
 <dd><div class="admonition-deprecated admonition">
 <p class="first admonition-title">Deprecated</p>
 <p>starting with version 1.112.</p>
-<p class="last">Use <tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+<p class="last">Use <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
 arguments</em></a> interface is more reliable and produces better
 error messages.</p>
 </div>
-<p>An alternative to <tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt> that takes its extra
+<p>An alternative to <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> that takes its extra
 arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> <tt class="docutils literal"><span class="pre">va_list</span></tt> mechanism.</p>
 </dd></dl>
 

@@ -122,9 +122,11 @@ of.</p>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
 <span class="cm">/* obj_fmt created successfully */</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">pool_class</span><span class="p">,</span>
-       <span class="p">(</span><span class="n">mps_arg_s</span><span class="p">[]){{</span><span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="p">.</span><span class="n">val</span><span class="p">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">obj_fmt</span><span class="p">},</span>
-                     <span class="p">{</span><span class="n">MPS_KEY_ARGS_END</span><span class="p">}});</span>
+<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="n">obj_fmt</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">pool_class</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj pool&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
