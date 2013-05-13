@@ -2995,8 +2995,9 @@ which is the value of the user option
   (add-to-invisibility-spec 'todos)
   (setq buffer-read-only t)
   (set (make-local-variable 'hl-line-range-function)
-       (lambda() (when (todos-item-end)
-		   (cons (todos-item-start) (todos-item-end))))))
+       (lambda() (save-excursion
+		   (when (todos-item-end)
+		     (cons (todos-item-start) (todos-item-end)))))))
 
 (defun todos-modes-set-3 ()
   ""
