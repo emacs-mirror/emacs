@@ -175,9 +175,11 @@ times larger than your peak memory usage.
 Let's reserve 32 megabytes::
 
     mps_res_t res;
-    res = mps_arena_create_k(&arena, mps_arena_class_vm(), 
-           (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024),
-                         {MPS_KEY_ARGS_END}});
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024);
+        MPS_ARGS_DONE(args);
+        res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create arena");
 
 :c:func:`mps_arena_create_k` is typical of functions in the MPS
@@ -770,10 +772,12 @@ Third, the :term:`generation chain`::
 And finally the :term:`pool`::
 
     mps_pool_t obj_pool;
-    res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(),
-           (mps_arg_s[]){MPS_ARG(MPS_KEY_CHAIN, obj_chain),
-                         MPS_ARG(MPS_KEY_FORMAT, obj_fmt),
-                         {MPS_KEY_ARGS_END}});
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
+        MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
+        MPS_ARGS_DONE(args);
+        res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(), args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj pool");
 
 

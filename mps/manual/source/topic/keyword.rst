@@ -35,16 +35,6 @@ help with forming keyword argument lists::
         MPS_ARGS_DONE(args);
         res = mps_arena_create_k(&arena, mps_arena_class_cl(), args);
     } MPS_ARGS_END(args);
-    
-But if you are writing :term:`C99`, you can write this more concisely
-using the helper macro :c:func:`MPS_ARG`::
-
-    mps_res_t res;
-    mps_arena_t arena;
-    res = mps_arena_create_k(&arena, mps_arena_class_cl(),
-           (mps_arg_s[]){MPS_ARG(MPS_KEY_ARENA_SIZE, 6553600),
-                         MPS_ARG(MPS_KEY_ARENA_CL_BASE, base_address),
-                         {MPS_KEY_ARGS_END}});
 
 The argument array must not be ``NULL``, and must end with
 :c:macro:`MPS_KEY_ARGS_END`.  If you don't want to pass any arguments, you can

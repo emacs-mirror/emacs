@@ -90,13 +90,15 @@ MV interface
     The mean and maximum sizes are *hints* to the MPS: the pool will be
     less efficient if these are wrong, but nothing will break.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_mfs(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_MEAN_SIZE, 32),
-                             MPS_ARG(MPS_KEY_MAX_SIZE, 1024),
-                             MPS_ARG(MPS_KEY_EXTEND_BY, 1024 * 1024),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MAX_SIZE, 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_EXTEND_BY, 1024 * 1024);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

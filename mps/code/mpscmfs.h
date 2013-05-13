@@ -11,7 +11,7 @@
 
 extern const struct mps_key_s _mps_key_mfs_unit_size;
 #define MPS_KEY_MFS_UNIT_SIZE (&_mps_key_mfs_unit_size)
-#define MPS_KEY_MFS_UNIT_SIZE_FIELD() size
+#define MPS_KEY_MFS_UNIT_SIZE_FIELD size
 
 extern mps_class_t mps_class_mfs(void);
 

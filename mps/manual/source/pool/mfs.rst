@@ -91,12 +91,14 @@ MFS interface
       argument. If this is not a multiple of the unit size, there will
       be wasted space in each segment.
 
-    For example, in :term:`C99`::
+    For example::
 
-        res = mps_pool_create_k(&pool, arena, mps_class_mfs(),
-               (mps_arg_s[]){MPS_ARG(MPS_KEY_MFS_UNIT_SIZE, 1024),
-                             MPS_ARG(MPS_KEY_EXTEND_BY, 1024 * 1024),
-                             {MPS_KEY_ARGS_END}});
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MFS_UNIT_SIZE, 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_EXTEND_BY, 1024 * 1024);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
+        } MPS_ARGS_END(args);
 
     .. deprecated:: starting with version 1.112.
 

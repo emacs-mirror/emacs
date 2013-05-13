@@ -12,7 +12,7 @@
 
 extern const struct mps_key_s _mps_key_ams_support_ambiguous;
 #define MPS_KEY_AMS_SUPPORT_AMBIGUOUS (&_mps_key_ams_support_ambiguous)
-#define MPS_KEY_AMS_SUPPORT_AMBIGUOUS_FIELD() b
+#define MPS_KEY_AMS_SUPPORT_AMBIGUOUS_FIELD b
 
 extern mps_class_t mps_class_ams(void);
 extern mps_class_t mps_class_ams_debug(void);
