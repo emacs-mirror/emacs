@@ -123,69 +123,67 @@ extern mps_arg_s mps_args_none[];
 
 extern const struct mps_key_s _mps_key_arena_size;
 #define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
-#define MPS_KEY_ARENA_SIZE_FIELD() size
+#define MPS_KEY_ARENA_SIZE_FIELD size
 extern const struct mps_key_s _mps_key_format;
 #define MPS_KEY_FORMAT          (&_mps_key_format)
-#define MPS_KEY_FORMAT_FIELD()    format
+#define MPS_KEY_FORMAT_FIELD    format
 extern const struct mps_key_s _mps_key_chain;
 #define MPS_KEY_CHAIN           (&_mps_key_chain)
-#define MPS_KEY_CHAIN_FIELD()     chain
+#define MPS_KEY_CHAIN_FIELD     chain
 extern const struct mps_key_s _mps_key_rank;
 #define MPS_KEY_RANK            (&_mps_key_rank)
-#define MPS_KEY_RANK_FIELD()      rank
+#define MPS_KEY_RANK_FIELD      rank
 
 extern const struct mps_key_s _mps_key_extend_by;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_extend_by)
-#define MPS_KEY_EXTEND_BY_FIELD() size
+#define MPS_KEY_EXTEND_BY_FIELD size
 extern const struct mps_key_s _mps_key_min_size;
 #define MPS_KEY_MIN_SIZE        (&_mps_key_min_size)
-#define MPS_KEY_MIN_SIZE_FIELD()  size
+#define MPS_KEY_MIN_SIZE_FIELD  size
 extern const struct mps_key_s _mps_key_mean_size;
 #define MPS_KEY_MEAN_SIZE       (&_mps_key_mean_size)
-#define MPS_KEY_MEAN_SIZE_FIELD() size
+#define MPS_KEY_MEAN_SIZE_FIELD size
 extern const struct mps_key_s _mps_key_max_size;
 #define MPS_KEY_MAX_SIZE        (&_mps_key_max_size)
-#define MPS_KEY_MAX_SIZE_FIELD()  size
+#define MPS_KEY_MAX_SIZE_FIELD  size
 extern const struct mps_key_s _mps_key_align;
 #define MPS_KEY_ALIGN           (&_mps_key_align)
-#define MPS_KEY_ALIGN_FIELD()     align
+#define MPS_KEY_ALIGN_FIELD     align
 
 extern const struct mps_key_s _mps_key_vmw3_top_down;
 #define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
-#define MPS_KEY_VMW3_TOP_DOWN_FIELD() b
+#define MPS_KEY_VMW3_TOP_DOWN_FIELD b
 
 /* Maximum length of a keyword argument list. */
 #define MPS_ARGS_MAX          32
 
 #define MPS_ARGS_BEGIN(_var) \
-  BEGIN \
+  MPS_BEGIN \
       mps_arg_s _var[MPS_ARGS_MAX]; \
       unsigned _var##_i = 0; \
-      BEGIN
+      MPS_BEGIN
 
 #define MPS_ARGS_ADD_FIELD(_var, _key, _field, _val)  \
-  BEGIN \
-    AVER(_var##_i < MPS_ARGS_MAX); \
+  MPS_BEGIN \
+    /* TODO: AVER(_var##_i < MPS_ARGS_MAX); */ \
     _var[_var##_i].key = (_key); \
     _var[_var##_i].val._field = (_val); \
     ++_var##_i; \
-  END
+  MPS_END
 
 #define MPS_ARGS_ADD(_var, _key, _val) \
-  MPS_ARGS_ADD_FIELD(_var, _key, _key##_FIELD(), _val)
+  MPS_ARGS_ADD_FIELD(_var, _key, _key##_FIELD, _val)
 
 #define MPS_ARGS_DONE(_var) \
-  BEGIN \
-    AVER(_var##_i < MPS_ARGS_MAX); \
+  MPS_BEGIN \
+    /* TODO: AVER(_var##_i < MPS_ARGS_MAX); */ \
     _var[_var##_i].key = MPS_KEY_ARGS_END; \
-    _var##_i = MPS_ARGS_MAX; \
-  END
+    /* TODO: _var##_i = MPS_ARGS_MAX; */ \
+  MPS_END
 
 #define MPS_ARGS_END(_var) \
-    END; \
-  END
-
-#define MPS_ARG(_key, _val) ((mps_arg_s){(_key), {._key##_FIELD() = (_val)}})
+    MPS_END; \
+  MPS_END
 
 
 /* <a id="message.types"> Keep in sync with

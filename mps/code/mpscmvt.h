@@ -11,10 +11,10 @@
 
 extern const struct mps_key_s _mps_key_mvt_reserve_depth;
 #define MPS_KEY_MVT_RESERVE_DEPTH (&_mps_key_mvt_reserve_depth)
-#define MPS_KEY_MVT_RESERVE_DEPTH_FIELD() count
+#define MPS_KEY_MVT_RESERVE_DEPTH_FIELD count
 extern const struct mps_key_s _mps_key_mvt_frag_limit;
 #define MPS_KEY_MVT_FRAG_LIMIT (&_mps_key_mvt_frag_limit)
-#define MPS_KEY_MVT_FRAG_LIMIT_FIELD() count
+#define MPS_KEY_MVT_FRAG_LIMIT_FIELD count
 
 /* The mvt pool class has five extra parameters to mps_pool_create:
  *  mps_res_t mps_pool_create(mps_pool_t * pool, mps_arena_t arena,
