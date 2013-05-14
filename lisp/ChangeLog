@@ -1,5 +1,8 @@
 2013-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/flymake.el (flymake-xml-program): New option.
+	(flymake-xml-init): Use it.
+
 	* term/xterm.el: Provide a feature.
 
 	* term/sup-mouse.el: Move to obsolete/.  Provide a feature.
