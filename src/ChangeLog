@@ -1,3 +1,9 @@
+2013-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't call WINDOW_HEADER_LINE_HEIGHT
+	unless we know that the window w is a leaf window.  Another
+	attempt at solving bug#14062.
+
 2013-05-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfont.m (ns_spec_to_descriptor): Retain and autorelease
