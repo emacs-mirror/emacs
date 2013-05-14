@@ -2643,6 +2643,13 @@ Various programs in Emacs store information in this directory.
 Note that this should end with a directory separator.
 See also `locate-user-emacs-file'.")
 
+(custom-declare-variable-early 'user-emacs-directory-warning t
+  "Non-nil means warn if cannot access `user-emacs-directory'.
+Set this to nil at your own risk..."
+  :type 'boolean
+  :group 'initialization
+  :version "24.4")
+
 (defun locate-user-emacs-file (new-name &optional old-name)
   "Return an absolute per-user Emacs-specific file name.
 If NEW-NAME exists in `user-emacs-directory', return it.
@@ -2658,17 +2665,33 @@ directory if it does not exist."
               (file-readable-p at-home))
 	 at-home
        ;; Make sure `user-emacs-directory' exists,
-       ;; unless we're in batch mode or dumping Emacs
+       ;; unless we're in batch mode or dumping Emacs.
        (or noninteractive
 	   purify-flag
-	   (file-accessible-directory-p
-	    (directory-file-name user-emacs-directory))
-	   (let ((umask (default-file-modes)))
-	     (unwind-protect
-		 (progn
-		   (set-default-file-modes ?\700)
-		   (make-directory user-emacs-directory))
-	       (set-default-file-modes umask))))
+	   (let (errtype)
+	     (if (file-directory-p user-emacs-directory)
+		 (or (file-accessible-directory-p user-emacs-directory)
+		     (setq errtype "access"))
+	       (let ((umask (default-file-modes)))
+		 (unwind-protect
+		     (progn
+		       (set-default-file-modes ?\700)
+		       (condition-case nil
+			   (make-directory user-emacs-directory)
+			 (error (setq errtype "create"))))
+		   (set-default-file-modes umask))))
+	     (when (and errtype
+			user-emacs-directory-warning
+			(not (get 'user-emacs-directory-warning 'this-session)))
+	       ;; Only warn once per Emacs session.
+	       (put 'user-emacs-directory-warning 'this-session t)
+	       (display-warning 'initialization
+				(format "\
+Unable to %s `user-emacs-directory' (%s).
+Any data that would normally be written there may be lost!
+If you never want to see this message again,
+customize the variable `user-emacs-directory-warning'."
+					errtype user-emacs-directory)))))
        bestname))))
 
 ;;;; Misc. useful functions.
