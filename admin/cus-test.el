@@ -30,11 +30,11 @@
 ;;
 ;; The basic tests can be run in batch mode.  Invoke them with
 ;;
-;;   src/emacs -batch -l admin/cus-test.el -f cus-test-opts
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-opts [all]
 ;;
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-deps
 ;;
-;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs [all]
 ;;
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-noloads
 ;;
@@ -314,7 +314,7 @@ If it is \"all\", load all Lisp files."
 
 (defun cus-test-get-lisp-files (&optional all)
   "Return list of all Lisp files with defcustoms.
-Optional argument ALL non-nil means list all Lisp files."
+Optional argument ALL non-nil means list all (non-obsolete) Lisp files."
   (let ((default-directory (expand-file-name "lisp/" source-directory))
 	(msg "Finding files..."))
     (message "%s" msg)
@@ -322,8 +322,10 @@ Optional argument ALL non-nil means list all Lisp files."
 	;; Hack to remove leading "./".
 	(mapcar (lambda (e) (substring e 2))
 		(apply 'process-lines find-program
+		       "-name" "obsolete" "-prune" "-o"
 		       "-name" "[^.]*.el" ; ignore .dir-locals.el
-		       (unless all
+		       (if all
+			   '("-print")
 			 (list "-exec" grep-program
 			       "-l" "^[ \t]*(defcustom" "{}" "+"))))
       (message "%sdone" msg))))
@@ -448,11 +450,11 @@ If it is \"all\", load all Lisp files."
        command-line-args-left
        (setq more (pop command-line-args-left)))
   (cus-test-load-1
-   (let ((default-directory source-directory)
-	 (emacs (expand-file-name "src/emacs"))
-	 skipped)
+   (let* ((default-directory source-directory)
+	  (emacs (expand-file-name "src/emacs"))
+	  skipped)
      (or (file-executable-p emacs)
-	 (error "No Emacs executable in %ssrc" default-directory))
+	 (error "No such executable `%s'" emacs))
      (mapc
       (lambda (file)
 	(if (member file cus-test-libs-noloads)
@@ -498,7 +500,7 @@ in the Emacs source directory."
 	  (cus-test-get-options ""))
 
     (message "Running %s" 'cus-test-load-libs)
-    (cus-test-load-libs)
+    (cus-test-load-libs "all")
     (setq cus-test-vars-not-cus-loaded
 	  (cus-test-get-options ""))
 

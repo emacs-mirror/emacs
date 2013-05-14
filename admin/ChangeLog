@@ -1,3 +1,9 @@
+2013-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* cus-test.el (cus-test-get-lisp-files): Ignore obsolete/.
+	(cus-test-libs): Fix let-binding of default-directory.
+	(cus-test-noloads): Load all libs for the comparison.
+
 2013-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* cus-test.el (cus-test-libs-noloads): Add a few more files.
