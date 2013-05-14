@@ -6,6 +6,7 @@
 ;; Created: 10 Mar 2007
 ;; Version: 1.0.1
 ;; Keywords: tools
+;; Package-Requires: ((tabulated-list "1.0"))
 
 ;; This file is part of GNU Emacs.
 
