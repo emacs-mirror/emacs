@@ -1185,23 +1185,26 @@ done items are shown.  Its value is determined by user option
 	      (overlay-put new-ov 'display todos-done-separator)
 	      (delete-overlay ov))))))))
 
-(defun todos-category-completions ()
+(defun todos-category-completions (&optional archive)
   "Return a list of completions for `todos-read-category'.
 Each element of the list is a cons of a category name and the
 file or list of files (as short file names) it is in.  The files
-are the current (or else the default) Todos file plus all other
-Todos files named in `todos-category-completions-files'."
+are either the current (or if there is none, the default) todo
+file plus the files listed in `todos-category-completions-files',
+or, with non-nil ARCHIVE, the current archive file."
   (let* ((curfile (or todos-current-todos-file
 		      (and todos-show-current-file
 			   todos-global-current-todos-file)
 		      (todos-absolute-file-name todos-default-todos-file)))
-	 (files (or (mapcar 'todos-absolute-file-name
-			    todos-category-completions-files)
+	 (files (or (unless archive
+		      (mapcar 'todos-absolute-file-name
+			      todos-category-completions-files))
 		    (list curfile)))
 	 listall listf)
     ;; If file was just added, it has no category completions.
     (unless (zerop (buffer-size (find-buffer-visiting curfile)))
-      (add-to-list 'files curfile)
+      (unless (member curfile todos-archives)
+	(add-to-list 'files curfile))
       (dolist (f files listall)
 	(with-current-buffer (find-file-noselect f 'nowarn)
 	  ;; Ensure category is properly displayed in case user
@@ -1663,10 +1666,11 @@ otherwise, a new file name is allowed."
 Show completions for existing categories with TAB or SPC.
 
 The argument MATCH-TYPE specifies the matching requirements on
-the category name: with the value `merge' the name must complete
-to that of an existing category; with the value `add' the name
-must not be that of an existing category; with all other values
-both existing and new valid category names are accepted.
+the category name: with the value `todo' or `archive' the name
+must complete to that of an existing todo or archive category,
+respectively; with the value `add' the name must not be that of
+an existing category; with all other values both existing and new
+valid category names are accepted.
 
 With non-nil argument FILE prompt for a file and complete only
 against categories in that file; otherwise complete against all
@@ -1675,9 +1679,13 @@ categories from `todos-category-completions-files'."
   (let ((map minibuffer-local-completion-map))
     (define-key map " " nil)
     (let* ((add (eq match-type 'add))
+	   (archive (eq match-type 'archive))
 	   (file0 (when (and file (> (length todos-files) 1))
-		    (todos-read-file-name "Choose a Todos file: " nil t)))
-	   (completions (unless file0 (todos-category-completions)))
+		    (todos-read-file-name (concat "Choose a" (if archive
+								 "n archive"
+							       " todo")
+						  " file: ") archive t)))
+	   (completions (unless file0 (todos-category-completions archive)))
 	   (categories (cond (file0
 			      (with-current-buffer
 				  (find-file-noselect file0 'nowarn)
@@ -1716,8 +1724,8 @@ categories from `todos-category-completions-files'."
 		     (if (atom catfil)
 			 catfil
 		       (todos-absolute-file-name
-			(completing-read (format str cat)
-					 todos-category-completions-files))))))
+			(let ((files (mapcar 'todos-short-file-name catfil)))
+			  (completing-read (format str cat) files)))))))
       ;; Default to the current file.
       (unless file0 (setq file0 todos-current-todos-file))
       ;; First validate only a name passed interactively from
@@ -2916,6 +2924,7 @@ which is the value of the user option
     (define-key map "PF" 'todos-print-buffer-to-file)
     (define-key map "S" 'todos-search)
     (define-key map "X" 'todos-clear-matches)
+    (define-key map "a" 'todos-jump-to-archive-category)
     (define-key map "b" 'todos-backward-category)
     (define-key map "f" 'todos-forward-category)
     (define-key map "j" 'todos-jump-to-category)
@@ -3581,39 +3590,48 @@ category."
   (todos-forward-category t))
 
 ;;;###autoload
-(defun todos-jump-to-category (&optional file cat)
+(defun todos-jump-to-category (&optional file where)
   "Prompt for a category in a Todos file and jump to it.
 
-With prefix argument FILE, prompt for a specific Todos file and
-choose (with TAB completion) a category in it to jump to;
-otherwise, choose and jump to any category in either the current
-Todos file or a file in `todos-category-completions-files'.
+With non-nil FILE (interactively a prefix argument), prompt for a
+specific Todos file and choose (with TAB completion) a category
+in it to jump to; otherwise, choose and jump to any category in
+either the current Todos file or a file in
+`todos-category-completions-files'.
 
 You can also enter a non-existing category name, triggering a
 prompt whether to add a new category by that name; on
-confirmation it is added and jumped to.
+confirmation it is added and you jump to that category.
 
-Noninteractively, jump directly to the category named by argument
-CAT; this is used in Todos Categories mode."
+In noninteractive calls non-nil WHERE specifies either the goal
+category or its file.  If its value is `archive', the choice of
+categories is restricted to the current archive file or the
+archive you were prompted to choose; this is used by
+`todos-jump-to-archive-category'.  If its value is the name of a
+category, jump directly to that category; this is used in Todos
+Categories mode."
   (interactive "P")
   ;; If invoked outside of Todos mode and there is not yet any Todos
   ;; file, initialize one.
   (if (null todos-files)
       (todos-show)
-    (let ((file0 (when cat		; We're in Todos Categories mode.
-		   ;; With non-nil `todos-skip-archived-categories'
-		   ;; jump to archive file of a category with only
-		   ;; archived items.
-		   (if (and todos-skip-archived-categories
-			    (zerop (todos-get-count 'todo cat))
-			    (zerop (todos-get-count 'done cat))
-			    (not (zerop (todos-get-count 'archived cat))))
-		       (concat (file-name-sans-extension
-				todos-current-todos-file) ".toda")
-		     ;; Otherwise, jump to current todos file.
-		     todos-current-todos-file)))
+    (let* ((archive (eq where 'archive))
+	   (cat (unless archive noninteractive))
+	   (file0 (when cat		; We're in Todos Categories mode.
+		    ;; With non-nil `todos-skip-archived-categories'
+		    ;; jump to archive file of a category with only
+		    ;; archived items.
+		    (if (and todos-skip-archived-categories
+			     (zerop (todos-get-count 'todo cat))
+			     (zerop (todos-get-count 'done cat))
+			     (not (zerop (todos-get-count 'archived cat))))
+			(concat (file-name-sans-extension
+				 todos-current-todos-file) ".toda")
+		      ;; Otherwise, jump to current todos file.
+		      todos-current-todos-file)))
 	  (cat+file (unless cat
-		      (todos-read-category "Jump to category: " nil file))))
+		      (todos-read-category "Jump to category: "
+					   (if archive 'archive) file))))
       (setq category (or cat (car cat+file)))
       (unless cat (setq file0 (cdr cat+file)))
       (with-current-buffer (find-file-noselect file0 'nowarn)
@@ -3628,6 +3646,14 @@ CAT; this is used in Todos Categories mode."
 	(todos-category-number category)
 	(todos-category-select)
 	(goto-char (point-min))))))
+
+(defun todos-jump-to-archive-category (&optional file)
+  "Prompt for a category in a Todos archive and jump to it.
+With prefix argument FILE, prompt for an archive and choose (with
+TAB completion) a category in it to jump to; otherwise, choose
+and jump to any category in the current archive."
+  (interactive "P")
+  (todos-jump-to-category file 'archive))
 
 (defun todos-go-to-source-item ()
   "Display the file and category of the filtered item at point."

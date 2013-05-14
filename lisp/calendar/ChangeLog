@@ -1,3 +1,20 @@
+2013-05-14  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Improve handling of jumping to a category, in
+	particular that of an archive.
+	(todos-category-completions): Add optional parameter to restrict
+	completions of archive categories to current archive.  Exclude
+	archive from completion files.
+	(todos-read-category): When called from an archive, restrict
+	category completions to the archive.  Fix mistaken use of all
+	completion files instead of just those in which the chosen
+	category occurs.
+	(todos-archive-mode-map): Add new key binding.
+	(todos-jump-to-category): Rename second optional parameter and
+	extend its use to restricting category completions to the current
+	archive.
+	(todos-jump-to-archive-category): New command.
+
 2013-05-13  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-modes-set-2): Restore point after finding start
