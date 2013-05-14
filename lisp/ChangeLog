@@ -1,3 +1,8 @@
+2013-05-14  Juri Linkov  <juri@jurta.org>
+
+	* subr.el (find-tag-default-as-regexp): Return nil if `tag' is nil.
+	(Bug#14390)
+
 2013-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-imenu-generic-expression):

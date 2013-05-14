@@ -2738,7 +2738,7 @@ symbol at point exactly."
 		   (get major-mode 'find-tag-default-function)
 		   'find-tag-default))
 	 (tag (funcall tagf)))
-    (cond ((not tag))
+    (cond ((null tag) nil)
 	  ((eq tagf 'find-tag-default)
 	   (format "\\_<%s\\_>" (regexp-quote tag)))
 	  (t (regexp-quote tag)))))
