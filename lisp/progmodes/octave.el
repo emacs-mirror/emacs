@@ -459,13 +459,14 @@ Non-nil means always go to the next Octave code line after sending."
              (let ((beg (match-beginning 0))
                    (end (match-end 0)))
                (unless (octave-in-string-or-comment-p)
-                 (unwind-protect
+                 (condition-case nil
                      (progn
                        (goto-char beg)
                        (backward-up-list)
                        (when (memq (char-after) '(?\( ?\[ ?\{))
-                         (put-text-property beg end 'face nil)))
-                   (goto-char end)))))
+                         (put-text-property beg end 'face nil))
+                       (goto-char end))
+                   (error (goto-char end))))))
            nil))
    ;; Fontify all operators.
    (cons octave-operator-regexp 'font-lock-builtin-face)
@@ -929,9 +930,9 @@ directory and makes this the current buffer's default directory."
 
 (defun octave-goto-function-definition ()
   "Go to the first function definition."
-  (when (save-excursion
-          (goto-char (point-min))
-          (re-search-forward octave-function-header-regexp nil t))
+  (goto-char (point-min))
+  (if (not (re-search-forward octave-function-header-regexp nil t))
+      (forward-comment (point-max))
     (goto-char (match-beginning 3))
     (match-string 3)))
 
@@ -1681,9 +1682,10 @@ if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
         (user-error "%s" (or line (format "`%s' not found" fn)))
       (require 'etags)
       (ring-insert find-tag-marker-ring (point-marker))
-      (find-file (funcall octave-find-definition-filename-function file))
-      (or (octave-goto-function-definition)
-          (forward-comment (point-max))))))
+      (setq file (funcall octave-find-definition-filename-function file))
+      (when file
+        (find-file file)
+        (octave-goto-function-definition)))))
 
 
 (provide 'octave)
