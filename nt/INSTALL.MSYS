@@ -100,9 +100,9 @@ Windows 9X as well).
   (This installer only supports packages downloaded from the MinGW
   site; for the rest you will still need the manual method.)
 
-  After installing mingw-get, invoke it install the packages that are
-  already selected by default on the "Select Components" screen of its
-  wizard.
+  After installing mingw-get, invoke it to install the packages that
+  are already selected by default on the "Select Components" screen of
+  its wizard.
 
   After that, use "ming-get install PACKAGE" to install the following
   additional packages:
@@ -110,6 +110,11 @@ Windows 9X as well).
    . msys-base
    . mingw-developer-toolkit
    . msys-automake
+
+  (We recommend that you refrain from installing the MSYS Texinfo
+  package, which is part of msys-base, because it might produce mixed
+  EOL format when installing Info files.  Instead, install the MinGW
+  port of Texinfo, see the URL below.)
 
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
@@ -162,7 +167,8 @@ Windows 9X as well).
   Additional MinGW packages are required/recommended, especially if
   you are building from the Bazaar repository:
 
-   . Texinfo (needed to produce the Info manuals when building from bzr)
+   . Texinfo (needed to produce the Info manuals when building from
+     bzr, and for "make install")
 
      Available from http://sourceforge.net/projects/ezwinports/files/.
 
@@ -460,25 +466,26 @@ Windows 9X as well).
   support for svg.
 
   To build Emacs with support for them, the corresponding headers must
-  be in the include path when the configure script is run.  This is be
-  set up using the CPPFLAGS and CFLAGS variable specified on the
-  configure command line.  The configure script will report whether it
-  was able to detect the headers.  If the results of this testing
-  appear to be incorrect, please look for details in the file
-  config.log: it will show the failed test programs and compiler error
-  messages that should explain what is wrong.  (Usually, any such
-  failures happen because some headers are missing due to bad
-  packaging of the image support libraries.)
+  be in the include path and libraries should be where the linker
+  looks for them, when the configure script is run.  If needed, this
+  can be set up using the CPPFLAGS and CFLAGS variable specified on
+  the configure command line.  The configure script will report
+  whether it was able to detect the headers and libraries.  If the
+  results of this testing appear to be incorrect, please look for
+  details in the file config.log: it will show the failed test
+  programs and compiler error messages that should explain what is
+  wrong.  (Usually, any such failures happen because some headers are
+  missing due to bad packaging of the image support libraries.)
 
   Note that any file path passed to the compiler or linker must use
   forward slashes, or double each backslash, as that is how Bash
   works.
 
-  If the configure script finds the necessary headers, but they are
-  for some reason incompatible, or if you want to omit support for
-  some image library that is installed on your system for some other
-  reason, use the --without-PACKAGE option to configure, such as
-  --without-gif to omit GIF, --without-tiff to omit TIFF, etc.
+  If the configure script finds the necessary headers and libraries,
+  but they are for some reason incompatible, or if you want to omit
+  support for some image library that is installed on your system for
+  some other reason, use the --without-PACKAGE option to configure,
+  such as --without-gif to omit GIF, --without-tiff to omit TIFF, etc.
   Passing the --help option to the configure script displays all of
   the supported --without-PACKAGE options.
 
@@ -529,8 +536,13 @@ Windows 9X as well).
   switches to use for GnuTLS.  See above for the URL where you can
   find pkg-config for Windows.
 
-  If the configure script finds the gnutls/gnutls.h file in the
-  include path, Emacs is built with GnuTLS support by default; to
+  You will also need to install the p11-kit package, which is a
+  dependency of GnuTLS, and its header files are needed for
+  compilation of programs that use GnuTLS.  You can find p11-kit on
+  the same site as GnuTLS, see the URL below.
+
+  If the configure script finds the GnuTLS header files and libraries
+  on your system, Emacs is built with GnuTLS support by default; to
   avoid that you can pass the argument --without-gnutls.
 
   In order to support GnuTLS at runtime, a GnuTLS-enabled Emacs must
@@ -548,8 +560,8 @@ Windows 9X as well).
   compiler switches to use for libxml2.  See above for the URL where
   you can find pkg-config for Windows.
 
-  If the configure script finds the libxml/HTMLparser.h file in the
-  include path, Emacs is built with libxml2 support by default; to
+  If the configure script finds the libxml2 header files and libraries
+  on your system, Emacs is built with libxml2 support by default; to
   avoid that you can pass the argument --without-libxml2.
 
   In order to support libxml2 at runtime, a libxml2-enabled Emacs must
