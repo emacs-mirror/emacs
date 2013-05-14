@@ -1067,7 +1067,8 @@ q: Don't fix\n" func file))
     (font-lock-add-keywords
      nil
      `((,(lambda (limit)
-           (while (and (search-forward "-*- texinfo -*-" limit t)
+           (while (and (< (point) limit)
+                       (search-forward "-*- texinfo -*-" limit t)
                        (octave-in-comment-p))
              (let ((beg (nth 8 (syntax-ppss)))
                    (end (progn
