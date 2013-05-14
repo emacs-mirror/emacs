@@ -1,5 +1,31 @@
 2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
+	* progmodes/gdb-mi.el: Fix non-responsive gud commands (bug#13845)
+	(gdb-handler-alist, gdb-handler-number): Remove variables.
+	(gdb-handler-list): New variable.
+	(gdb-add-handler, gdb-delete-handler, gdb-get-handler-function)
+	(gdb-pending-handler-p, gdb-handle-reply)
+	(gdb-remove-all-pending-triggers): New functions.
+	(gdb-discard-unordered-replies): New defcustom.
+	(gdb-handler): New defstruct.
+	(gdb-wait-for-pending): Fix invalid backquote.  Use gdb-handler-list.
+	instead of gdb-pending-triggers.  Update docstring.
+	(gdb-init-1): Remove dead variables.  Initialize gdb-handler-list.
+	(gdb-speedbar-update, gdb-speedbar-timer-fn, gdb-var-update)
+	(gdb-var-update-handler, def-gdb-auto-update-trigger)
+	(def-gdb-auto-update-handler, gdb-get-changed-registers)
+	(gdb-changed-registers-handler, gdb-get-main-selected-frame)
+	(gdb-frame-handler): Pending triggers are now automatically managed.
+	(def-gdb-trigger-and-handler, def-gdb-auto-update-handler):
+	Remove argument.
+	(gdb-input): Automatically handles pending triggers.  Update docstring.
+	(gdb-resync): Replace gdb-pending-triggers by gdb-handler-list.
+	(gdb-thread-exited, gdb-thread-selected, gdb-register-names-handler):
+	Update comments.
+	(gdb-done-or-error): Now use gdb-handle-reply.
+
+2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
+
 	* progmodes/gdb-mi.el (gdb-input): Include token numbers in
 	gdb-debug-log.
 
