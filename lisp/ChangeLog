@@ -1,5 +1,10 @@
 2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
+	* progmodes/gdb-mi.el (gdb-running, gdb-starting): Remove
+	signals for which replies are never received.
+
+2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
+
 	* progmodes/gdb-mi.el: Fix non-responsive gud commands (bug#13845)
 	(gdb-handler-alist, gdb-handler-number): Remove variables.
 	(gdb-handler-list): New variable.

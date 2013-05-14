@@ -2376,8 +2376,7 @@ Sets `gdb-thread-number' to new id."
    (propertize gdb-inferior-status 'face font-lock-type-face))
   (when (not gdb-non-stop)
     (setq gud-running t))
-  (setq gdb-active-process t)
-  (gdb-emit-signal gdb-buf-publisher 'update-threads))
+  (setq gdb-active-process t))
 
 (defun gdb-starting (_output-field _result)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
@@ -2385,11 +2384,7 @@ Sets `gdb-thread-number' to new id."
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
   (setq gdb-active-process t)
-  (setq gud-running t)
-  ;; GDB doesn't seem to respond to -thread-info before first stop or
-  ;; thread exit (even in non-stop mode), so this is useless.
-  ;; Behavior may change in the future.
-  (gdb-emit-signal gdb-buf-publisher 'update-threads))
+  (setq gud-running t))
 
 ;; -break-insert -t didn't give a reason before gdb 6.9
 
