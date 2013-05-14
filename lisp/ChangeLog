@@ -1,6 +1,8 @@
 2013-05-14  Glenn Morris  <rgm@gnu.org>
 
-	* term/sup-mouse.el: Move to obsolete/.
+	* term/xterm.el: Provide a feature.
+
+	* term/sup-mouse.el: Move to obsolete/.  Provide a feature.
 
 2013-05-13  Glenn Morris  <rgm@gnu.org>
 
