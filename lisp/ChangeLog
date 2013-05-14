@@ -1,3 +1,7 @@
+2013-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* term/sup-mouse.el: Move to obsolete/.
+
 2013-05-13  Glenn Morris  <rgm@gnu.org>
 
 	* cus-dep.el (defcustom-mh, defgroup-mh, defface-mh):

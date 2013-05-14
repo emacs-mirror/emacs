@@ -298,6 +298,9 @@ module.
 
 *** longlines.el is obsolete; use visual-line-mode instead.
 
++++
+*** sup-mouse.el.
+
 *** terminal.el is obsolete; use term.el instead.
 
 +++

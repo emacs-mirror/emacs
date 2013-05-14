@@ -1,3 +1,7 @@
+2013-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Don't mention obsolete sup-mouse.el.
+
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* sending.texi (Mail Sending): Fix typo.
