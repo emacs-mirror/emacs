@@ -981,7 +981,7 @@ Set subexpression 1 in the match-data to the name of the type."
       ("Submodules" "^[ \t0-9]*submodule[ \t]*([^)\n]+)[ \t]*\
 \\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*\\(!\\|$\\)" 1)
       ("Modules" "^[ \t0-9]*module[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*\\(!\\|$\\)" 1)
-      '("Types" f90-imenu-type-matcher 1)
+      ("Types" f90-imenu-type-matcher 1)
       ;; Does not handle: "type[, stuff] :: foo".
       ;;(format "^[ \t0-9]*type[ \t]+\\(\\(%s\\|i%s\\|is\\(?:\\sw\\|\\s_\\)\\)\\(?:\\sw\\|\\s_\\)*\\)"
       ;;        not-ib not-s)

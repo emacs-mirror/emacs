@@ -1,3 +1,8 @@
+2013-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-imenu-generic-expression):
+	Fix typo in 2013-05-08 change.  (Bug#14402)
+
 2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
 	* progmodes/gdb-mi.el (gdb-running, gdb-starting): Remove
