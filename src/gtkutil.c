@@ -70,13 +70,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define gtk_adjustment_get_step_increment(w) ((w)->step_increment)
 #define gtk_adjustment_set_step_increment(w, s) ((w)->step_increment = (s))
 #endif
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 11
+#if GTK_CHECK_VERSION (2, 12, 0)
 #define remove_submenu(w) gtk_menu_item_set_submenu ((w), NULL)
 #else
 #define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
 #endif
 
-#if GTK_MAJOR_VERSION > 3 || (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION >= 2)
+#if GTK_CHECK_VERSION (3, 2, 0)
 #define USE_NEW_GTK_FONT_CHOOSER 1
 #else
 #define USE_NEW_GTK_FONT_CHOOSER 0
@@ -202,7 +202,7 @@ xg_display_close (Display *dpy)
       gdpy_def = gdpy_new;
     }
 
-#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 10
+#if GTK_CHECK_VERSION (2, 0, 0) && ! GTK_CHECK_VERSION (2, 10, 0)
   /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash (bug
      http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way we
      can continue running, but there will be memory leaks.  */
@@ -1155,7 +1155,8 @@ xg_create_frame_widgets (FRAME_PTR f)
      has backported it to Gtk+ 2.0 and they add the resize grip for
      Gtk+ 2.0 applications also.  But it has a bug that makes Emacs loop
      forever, so disable the grip.  */
-#if GTK_MAJOR_VERSION < 3 && defined (HAVE_GTK_WINDOW_SET_HAS_RESIZE_GRIP)
+#if (! GTK_CHECK_VERSION (3, 0, 0) \
+     && defined HAVE_GTK_WINDOW_SET_HAS_RESIZE_GRIP)
   gtk_window_set_has_resize_grip (GTK_WINDOW (wtop), FALSE);
 #endif
 

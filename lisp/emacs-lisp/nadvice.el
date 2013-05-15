@@ -167,7 +167,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
       (if (or (equal function (advice--car definition))
               (when name
                 (equal name (cdr (assq 'name (advice--props definition))))))
-          (setq found t)
+          (setq found definition)
         (setq definition (advice--cdr definition))))
     found))
 
@@ -260,8 +260,12 @@ is also interactive.  There are 3 cases:
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (unless (advice--member-p function (cdr (assq 'name props))
-                            (gv-deref ref))
+  (let ((a (advice--member-p function (cdr (assq 'name props))
+                             (gv-deref ref))))
+    (when a
+      ;; The advice is already present.  Remove the old one, first.
+      (setf (gv-deref ref)
+            (advice--remove-function (gv-deref ref) (advice--car a))))
     (setf (gv-deref ref)
           (advice--make where function (gv-deref ref) props))))
 

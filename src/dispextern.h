@@ -1423,13 +1423,14 @@ struct glyph_string
 /* Value is true if window W wants a header line.  */
 
 #define WINDOW_WANTS_HEADER_LINE_P(W)					\
-  (!MINI_WINDOW_P ((W))							\
-   && !(W)->pseudo_window_p						\
-   && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
-   && BUFFERP ((W)->contents)						\
-   && !NILP (BVAR (XBUFFER ((W)->contents), header_line_format))	\
-   && WINDOW_TOTAL_LINES (W) > 1					\
-   + !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format)))
+  (BUFFERP ((W)->contents)						\
+   ? (!MINI_WINDOW_P ((W))						\
+      && !(W)->pseudo_window_p						\
+      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
+      && !NILP (BVAR (XBUFFER ((W)->contents), header_line_format))	\
+      && WINDOW_TOTAL_LINES (W) >					\
+          (1 + !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format)))) \
+   : 0)
 
 /* Return proper value to be used as baseline offset of font that has
    ASCENT and DESCENT to draw characters by the font at the vertical

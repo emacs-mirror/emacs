@@ -257,6 +257,13 @@ are the string substitutions (see `format')."
   :version "23.1"
   :group 'tools)
 
+(defcustom flymake-xml-program
+  (if (executable-find "xmlstarlet") "xmlstarlet" "xml")
+  "Program to use for XML validation."
+  :type 'file
+  :group 'flymake
+  :version "24.4")
+
 (defcustom flymake-allowed-file-name-masks
   '(("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'" flymake-simple-make-init)
     ("\\.xml\\'" flymake-xml-init)
@@ -279,9 +286,24 @@ are the string substitutions (see `format')."
     ;; ("[ \t]*\\input[ \t]*{\\(.*\\)\\(%s\\)}" 1 2 ))
     ;; ("\\.tex\\'" 1)
     )
-  "Files syntax checking is allowed for."
+  "Files syntax checking is allowed for.
+This is an alist with elements of the form:
+  REGEXP INIT [CLEANUP [NAME]]
+REGEXP is a regular expression that matches a file name.
+INIT is the init function to use.
+CLEANUP is the cleanup function to use, default `flymake-simple-cleanup'.
+NAME is the file name function to use, default `flymake-get-real-file-name'."
   :group 'flymake
-  :type '(repeat (string symbol symbol symbol)))
+  :type '(alist :key-type (regexp :tag "File regexp")
+                :value-type
+                (list :tag "Handler functions"
+                      (function :tag "Init function")
+                      (choice :tag "Cleanup function"
+                              (const :tag "flymake-simple-cleanup" nil)
+                              function)
+                      (choice :tag "Name function"
+                              (const :tag "flymake-get-real-file-name" nil)
+                              function))))
 
 (defun flymake-get-file-name-mode-and-masks (file-name)
   "Return the corresponding entry from `flymake-allowed-file-name-masks'."
@@ -1837,7 +1859,9 @@ Use CREATE-TEMP-F for creating temp copy."
 
 ;;;; xml-specific init-cleanup routines
 (defun flymake-xml-init ()
-  (list "xml" (list "val" (flymake-init-create-temp-buffer-copy 'flymake-create-temp-inplace))))
+  (list flymake-xml-program
+        (list "val" (flymake-init-create-temp-buffer-copy
+                     'flymake-create-temp-inplace))))
 
 (provide 'flymake)
 

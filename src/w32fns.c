@@ -3183,28 +3183,9 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  form.ptCurrentPos.y = w32_system_caret_y;
 
 	  form.rcArea.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, 0);
-
-#ifdef ENABLE_CHECKING
-	  /* Temporary code to catch crashes in computing form.rcArea.top.  */
-	  eassert (FRAMEP (w->frame));
-	  eassert (BUFFERP (w->contents));
-	  {
-	    int wmbp = WINDOW_MENU_BAR_P (w);
-	    int wtbp = WINDOW_TOOL_BAR_P (w);
-	    struct frame *wf = WINDOW_XFRAME (w);
-	    int fibw = FRAME_INTERNAL_BORDER_WIDTH (wf);
-	    int wtel = WINDOW_TOP_EDGE_LINE (w);
-	    int wflh = FRAME_LINE_HEIGHT (wf);
-	    int wwhlp= WINDOW_WANTS_HEADER_LINE_P (w);
-	    int chlh = CURRENT_HEADER_LINE_HEIGHT (w);
-	    int whlh = (wwhlp ? chlh : 0);
-
-	    form.rcArea.top = ((wmbp || wtbp) ? 0 : fibw) + wtel * wflh + whlh;
-	  }
-#else
-	  form.rcArea.top = (WINDOW_TOP_EDGE_Y (w)
-			     + WINDOW_HEADER_LINE_HEIGHT (w));
-#endif
+	  form.rcArea.top = WINDOW_TOP_EDGE_Y (w);
+	  if (BUFFERP (w->contents))
+	    form.rcArea.top += WINDOW_HEADER_LINE_HEIGHT (w);
 	  form.rcArea.right = (WINDOW_BOX_RIGHT_EDGE_X (w)
 			       - WINDOW_RIGHT_MARGIN_WIDTH (w)
 			       - WINDOW_RIGHT_FRINGE_WIDTH (w));

@@ -1,3 +1,57 @@
+2013-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-vm.el: Make it loadable without VM.
+	(gnus-vm-make-folder, gnus-summary-save-in-vm): Require 'vm.
+	(vm-forward-message, vm-reply, vm-mail): Remove unused autoloads.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* mml1991.el: Make it loadable.  (Bug#13456)
+
+	* gnus-art.el (gnus-article-date-headers, gnus-blocked-images):
+	* gnus-async.el (gnus-async-post-fetch-function):
+	* gnus-gravatar.el (gnus-gravatar-size, gnus-gravatar-properties):
+	* gnus-html.el (gnus-html-image-cache-ttl):
+	* gnus-notifications.el (gnus-notifications-timeout):
+	* gnus-picon.el (gnus-picon-properties):
+	* gnus-util.el (gnus-completion-styles):
+	* gnus.el (gnus-other-frame-resume-function):
+	* message.el (message-user-organization-file)
+	(message-cite-reply-position):
+	* nnir.el (nnir-summary-line-format)
+	(nnir-retrieve-headers-override-function):
+	* shr-color.el (shr-color-visible-luminance-min):
+	* shr.el (shr-blocked-images):
+	* spam-report.el (spam-report-resend-to):
+	* spam.el (spam-summary-exit-behavior): Fix custom types.
+
+	* gnus-salt.el (gnus-selected-tree-face): Fix default.
+
+2013-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): Require help-mode
+	because of let-binding help-xref-following.  (Bug#14356)
+
+2013-05-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* message.el (message-bury, message-send-and-exit):
+	Revert 2013-05-04 change.
+
+2013-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* mml2015.el (mml2015-epg-sign): Add name="signature.asc".  (Bug#13465)
+
+2013-05-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* message.el (message-bury): Make `buffer' optional.
+	(message-send-and-exit): Don't pass `buf' so as to hide the buffer
+	(bug#14085).
+
+2013-05-04  Andrew Cohen  <cohen@bu.edu>
+
+	* gnus-sum.el (gnus-read-header): Ensure groups are prefixed when
+	entering into the registry.
+
 2013-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-emacs-completing-read): Fix a filter for XEmacs.

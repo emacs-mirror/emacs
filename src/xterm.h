@@ -53,13 +53,25 @@ typedef GtkWidget *xt_or_gtk_widget;
 #undef XSync
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (0)
+#endif /* USE_GTK */
 
-/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 13
-#define USE_GTK_TOOLTIP
+/* True iff GTK's version is at least I.J.K.  */
+#ifndef GTK_CHECK_VERSION
+# ifdef USE_GTK
+#  define GTK_CHECK_VERSION(i, j, k) \
+     ((i) \
+      < GTK_MAJOR_VERSION + ((j) \
+			     < GTK_MINOR_VERSION + ((k) \
+						    <= GTK_MICRO_VERSION)))
+# else
+#  define GTK_CHECK_VERSION(i, j, k) 0
+# endif
 #endif
 
-#endif /* USE_GTK */
+/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
+#if GTK_CHECK_VERSION (2, 14, 0)
+#define USE_GTK_TOOLTIP
+#endif
 
 
 /* Bookkeeping to distinguish X versions.  */
@@ -346,7 +358,8 @@ struct x_display_info
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_hidden,
-    Xatom_net_frame_extents;
+    Xatom_net_frame_extents,
+    Xatom_net_current_desktop, Xatom_net_workarea;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;

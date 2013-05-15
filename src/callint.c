@@ -251,6 +251,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 `this-command-keys-vector' is used.  */)
   (Lisp_Object function, Lisp_Object record_flag, Lisp_Object keys)
 {
+  /* `args' will contain the array of arguments to pass to the function.
+     `visargs' will contain the same list but in a nicer form, so that if we
+     pass it to `Fformat' it will be understandable to a human.  */
   Lisp_Object *args, *visargs;
   Lisp_Object specs;
   Lisp_Object filter_specs;
@@ -685,6 +688,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
 	  args[i] = call1 (Qread_number, callint_message);
+	  /* Passing args[i] directly stimulates compiler bug.  */
+	  teml = args[i];
+	  visargs[i] = Fnumber_to_string (teml);
 	  break;
 
 	case 'P':		/* Prefix arg in raw form.  Does no I/O.  */
@@ -733,12 +739,12 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'x':		/* Lisp expression read but not evaluated.  */
-	  args[i] = Fread_minibuffer (callint_message, Qnil);
+	  args[i] = call1 (intern ("read-minibuffer"), callint_message);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'X':		/* Lisp expression read and evaluated.  */
-	  args[i] = Feval_minibuffer (callint_message, Qnil);
+	  args[i] = call1 (intern ("eval-minibuffer"), callint_message);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
@@ -790,6 +796,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   if (arg_from_tty || !NILP (record_flag))
     {
+      /* We don't need `visargs' any more, so let's recycle it since we need
+	 an array of just the same size.  */
       visargs[0] = function;
       for (i = 1; i < nargs; i++)
 	{

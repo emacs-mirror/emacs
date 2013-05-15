@@ -1256,6 +1256,23 @@ bars (top, bottom, or nil)."
     (unless (memq vert '(left right nil))
       (setq vert default-frame-scroll-bars))
     (cons vert hor)))
+
+(defun frame-monitor-attributes (&optional frame)
+  "Return the attributes of the physical monitor dominating FRAME.
+If FRAME is omitted, describe the currently selected frame.
+
+A frame is dominated by a physical monitor when either the
+largest area of the frame resides in the monitor, or the monitor
+is the closest to the frame if the frame does not intersect any
+physical monitors.
+
+See `display-monitor-attributes-list' for the list of attribute
+keys and their meanings."
+  (or frame (setq frame (selected-frame)))
+  (cl-loop for attributes in (display-monitor-attributes-list frame)
+	   for frames = (cdr (assq 'frames attributes))
+	   if (memq frame frames) return attributes))
+
 
 ;;;; Frame/display capabilities.
 (defun selected-terminal ()
@@ -1475,6 +1492,54 @@ The value is one of the symbols `static-gray', `gray-scale',
       'static-color)
      (t
       'static-gray))))
+
+(declare-function x-display-monitor-attributes-list "xfns.c"
+		  (&optional terminal))
+(declare-function ns-display-monitor-attributes-list "nsfns.m"
+		  (&optional terminal))
+
+(defun display-monitor-attributes-list (&optional display)
+  "Return a list of physical monitor attributes on DISPLAY.
+Each element of the list represents the attributes of each
+physical monitor.  The first element corresponds to the primary
+monitor.
+
+Attributes for a physical monitor is represented as an alist of
+attribute keys and values as follows:
+
+ geometry -- Position and size in pixels in the form of
+	     (X Y WIDTH HEIGHT)
+ workarea -- Position and size of the workarea in pixels in the
+	     form of (X Y WIDTH HEIGHT)
+ mm-size  -- Width and height in millimeters in the form of
+ 	     (WIDTH HEIGHT)
+ frames   -- List of frames dominated by the physical monitor
+ name (*) -- Name of the physical monitor as a string
+
+where X, Y, WIDTH, and HEIGHT are integers.  Keys labeled
+with (*) are optional.
+
+A frame is dominated by a physical monitor when either the
+largest area of the frame resides in the monitor, or the monitor
+is the closest to the frame if the frame does not intersect any
+physical monitors.  Every non-tip frame (including invisible one)
+in a graphical display is dominated by exactly one physical
+monitor at a time, though it can span multiple (or no) physical
+monitors."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((eq frame-type 'x)
+      (x-display-monitor-attributes-list display))
+     ((eq frame-type 'ns)
+      (ns-display-monitor-attributes-list display))
+     (t
+      (let ((geometry (list 0 0 (display-pixel-width display)
+			    (display-pixel-height display))))
+	`(((geometry . ,geometry)
+	   (workarea . ,geometry)
+	   (mm-size . (,(display-mm-width display)
+		       ,(display-mm-height display)))
+	   (frames . ,(frames-on-display-list display)))))))))
 
 
 ;;;; Frame geometry values

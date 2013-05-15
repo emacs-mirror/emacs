@@ -752,4 +752,6 @@ versions of xterm."
     (set-terminal-parameter nil 'background-mode 'dark)
     t))
 
+(provide 'xterm)
+
 ;;; xterm.el ends here

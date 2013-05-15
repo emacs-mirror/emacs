@@ -374,7 +374,7 @@ This is the default, unless you have already set the variables for
 sending mail via @code{smtpmail-send-it} (see below).
 
 @item smtpmail-send-it
-Send mail using the through an external mail host, such as your
+Send mail through an external mail host, such as your
 Internet service provider's outgoing SMTP mail server.  If you have
 not told Emacs how to contact the SMTP server, it prompts for this
 information, which is saved in the @code{smtpmail-smtp-server} variable

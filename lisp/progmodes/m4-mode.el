@@ -45,15 +45,10 @@
   :prefix "m4-"
   :group 'languages)
 
-(defcustom m4-program
-  (cond
-   ((file-exists-p "/usr/local/bin/m4") "/usr/local/bin/m4")
-   ((file-exists-p "/usr/bin/m4") "/usr/bin/m4")
-   ((file-exists-p "/bin/m4") "/bin/m4")
-   ((file-exists-p "/usr/ccs/bin/m4") "/usr/ccs/bin/m4")
-   ( t "m4")
-   )
-  "File name of the m4 executable."
+(defcustom m4-program "m4"
+  "File name of the m4 executable.
+If m4 is not in your PATH, set this to an absolute file name."
+  :version "24.4"
   :type 'file
   :group 'm4)
 
@@ -85,19 +80,24 @@
   :group 'm4)
 
 ;;this may still need some work
-(defvar m4-mode-syntax-table nil
+(defvar m4-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?` "('" table)
+    (modify-syntax-entry ?' ")`" table)
+    (modify-syntax-entry ?# "<\n" table)
+    (modify-syntax-entry ?\n ">#" table)
+    (modify-syntax-entry ?{  "_" table)
+    (modify-syntax-entry ?}  "_" table)
+    ;; FIXME: This symbol syntax for underscore looks OK on its own, but it's
+    ;; odd that it should have the same syntax as { and } are these really
+    ;; valid in m4 symbols?
+    (modify-syntax-entry ?_  "_" table)
+    ;; FIXME: These three chars with word syntax look wrong.
+    (modify-syntax-entry ?*  "w" table)
+    (modify-syntax-entry ?\"  "w" table)
+    (modify-syntax-entry ?\"  "w" table)
+    table)
   "Syntax table used while in `m4-mode'.")
-(setq m4-mode-syntax-table (make-syntax-table))
-(modify-syntax-entry ?` "('" m4-mode-syntax-table)
-(modify-syntax-entry ?' ")`" m4-mode-syntax-table)
-(modify-syntax-entry ?# "<\n" m4-mode-syntax-table)
-(modify-syntax-entry ?\n ">#" m4-mode-syntax-table)
-(modify-syntax-entry ?{  "_" m4-mode-syntax-table)
-(modify-syntax-entry ?}  "_" m4-mode-syntax-table)
-(modify-syntax-entry ?*  "w" m4-mode-syntax-table)
-(modify-syntax-entry ?_  "w" m4-mode-syntax-table)
-(modify-syntax-entry ?\"  "w" m4-mode-syntax-table)
-(modify-syntax-entry ?\"  "w" m4-mode-syntax-table)
 
 (defvar m4-mode-map
   (let ((map (make-sparse-keymap))
@@ -116,12 +116,6 @@
       '(menu-item "M4 Region" m4-m4-region
 		  :help "Send contents of the current region to m4"))
     map))
-
-(defvar m4-mode-abbrev-table nil
-  "Abbrev table used while in `m4-mode'.")
-
-(unless m4-mode-abbrev-table
-  (define-abbrev-table 'm4-mode-abbrev-table ()))
 
 (defun m4-m4-buffer ()
   "Send contents of the current buffer to m4."
@@ -151,7 +145,6 @@
 ;;;###autoload
 (define-derived-mode m4-mode prog-mode "m4"
   "A major mode to edit m4 macro files."
-  :abbrev-table m4-mode-abbrev-table
   (setq-local comment-start "#")
   (setq-local parse-sexp-ignore-comments t)
   (setq-local add-log-current-defun-function #'m4-current-defun-name)

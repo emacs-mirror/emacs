@@ -4,6 +4,7 @@
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords: extensions, lisp
+;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 

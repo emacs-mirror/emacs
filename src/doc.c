@@ -215,14 +215,20 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   if (CONSP (filepos))
     {
       int test = 1;
-      if (get_doc_string_buffer[offset - test++] != ' ')
-	return Qnil;
-      while (get_doc_string_buffer[offset - test] >= '0'
-	     && get_doc_string_buffer[offset - test] <= '9')
-	test++;
-      if (get_doc_string_buffer[offset - test++] != '@'
-	  || get_doc_string_buffer[offset - test] != '#')
-	return Qnil;
+      /* A dynamic docstring should be either at the very beginning of a "#@
+	 comment" or right after a dynamic docstring delimiter (in case we
+	 pack several such docstrings within the same comment).  */
+      if (get_doc_string_buffer[offset - test] != '\037')
+	{
+	  if (get_doc_string_buffer[offset - test++] != ' ')
+	    return Qnil;
+	  while (get_doc_string_buffer[offset - test] >= '0'
+		 && get_doc_string_buffer[offset - test] <= '9')
+	    test++;
+	  if (get_doc_string_buffer[offset - test++] != '@'
+	      || get_doc_string_buffer[offset - test] != '#')
+	    return Qnil;
+	}
     }
   else
     {

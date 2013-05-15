@@ -527,7 +527,7 @@ If t, use `message-user-organization-file'."
 	(setq orgfile f)))
     orgfile)
   "*Local news organization file."
-  :type 'file
+  :type '(choice (const nil) file)
   :link '(custom-manual "(message)News Headers")
   :group 'message-headers)
 
@@ -1098,9 +1098,9 @@ e.g. using `gnus-posting-styles':
 
   (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
   :version "24.1"
-  :type '(choice (const :tag "Reply inline" 'traditional)
-		 (const :tag "Reply above" 'above)
-		 (const :tag "Reply below" 'below))
+  :type '(choice (const :tag "Reply inline" traditional)
+		 (const :tag "Reply above" above)
+		 (const :tag "Reply below" below))
   :group 'message-insertion)
 
 (defcustom message-cite-style nil

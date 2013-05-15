@@ -215,6 +215,75 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
 
+/* Define to 1 if you have the `aclsort' function. */
+#undef HAVE_ACLSORT
+
+/* Define to 1 if you have the <aclv.h> header file. */
+#undef HAVE_ACLV_H
+
+/* Define to 1 if you have the `aclx_get' function. */
+#undef HAVE_ACLX_GET
+
+/* Define to 1 if you have the `acl_copy_ext_native' function. */
+#undef HAVE_ACL_COPY_EXT_NATIVE
+
+/* Define to 1 if you have the `acl_create_entry_np' function. */
+#undef HAVE_ACL_CREATE_ENTRY_NP
+
+/* Define to 1 if you have the `acl_delete_def_file' function. */
+#undef HAVE_ACL_DELETE_DEF_FILE
+
+/* Define to 1 if you have the `acl_delete_fd_np' function. */
+#undef HAVE_ACL_DELETE_FD_NP
+
+/* Define to 1 if you have the `acl_delete_file_np' function. */
+#undef HAVE_ACL_DELETE_FILE_NP
+
+/* Define to 1 if you have the `acl_entries' function. */
+#undef HAVE_ACL_ENTRIES
+
+/* Define to 1 if you have the `acl_extended_file' function. */
+#undef HAVE_ACL_EXTENDED_FILE
+
+/* Define to 1 if the constant ACL_FIRST_ENTRY exists. */
+#undef HAVE_ACL_FIRST_ENTRY
+
+/* Define to 1 if you have the `acl_free' function. */
+#define HAVE_ACL_FREE 1
+
+/* Define to 1 if you have the `acl_free_text' function. */
+#undef HAVE_ACL_FREE_TEXT
+
+/* Define to 1 if you have the `acl_from_mode' function. */
+#undef HAVE_ACL_FROM_MODE
+
+/* Define to 1 if you have the `acl_from_text' function. */
+#define HAVE_ACL_FROM_TEXT 1
+
+/* Define to 1 if you have the `acl_get_fd' function. */
+#undef HAVE_ACL_GET_FD
+
+/* Define to 1 if you have the `acl_get_file' function. */
+#define HAVE_ACL_GET_FILE 1
+
+/* Define to 1 if you have the <acl/libacl.h> header file. */
+#undef HAVE_ACL_LIBACL_H
+
+/* Define to 1 if you have the `acl_set_fd' function. */
+#undef HAVE_ACL_SET_FD
+
+/* Define to 1 if you have the `acl_set_file' function. */
+#define HAVE_ACL_SET_FILE 1
+
+/* Define to 1 if you have the `acl_to_short_text' function. */
+#undef HAVE_ACL_TO_SHORT_TEXT
+
+/* Define to 1 if you have the `acl_trivial' function. */
+#undef HAVE_ACL_TRIVIAL
+
+/* Define to 1 if the ACL type ACL_TYPE_EXTENDED exists. */
+#undef HAVE_ACL_TYPE_EXTENDED
+
 /* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
 #undef HAVE_AIX_SMT_EXP
 
@@ -382,6 +451,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `faccessat' function. */
 #undef HAVE_FACCESSAT
 
+/* Define to 1 if you have the `facl' function. */
+#undef HAVE_FACL
+
 /* Define to 1 if you have the `fdatasync' function. */
 #undef HAVE_FDATASYNC
 
@@ -420,6 +492,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using GConf. */
 #undef HAVE_GCONF
+
+/* Define to 1 if you have the `getacl' function. */
+#undef HAVE_GETACL
 
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
@@ -755,9 +830,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <png.h> header file. */
 #undef HAVE_PNG_H
 
-/* Define to 1 if using POSIX ACL support. */
-#define HAVE_POSIX_ACL 1
-
 /* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN
 
@@ -865,6 +937,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `speed_t' is declared by <termios.h>. */
 #undef HAVE_SPEED_T
 
+/* Define to 1 if you have the `statacl' function. */
+#undef HAVE_STATACL
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -952,6 +1027,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `sync' function. */
 #undef HAVE_SYNC
+
+/* Define to 1 if you have the <sys/acl.h> header file. */
+#define HAVE_SYS_ACL_H 1
 
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 #undef HAVE_SYS_BITYPES_H
@@ -1113,14 +1191,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
+/* Define to 1 if you have the Xinerama extension. */
+#undef HAVE_XINERAMA
+
 /* Define to 1 if you have the Xkb extension. */
 #undef HAVE_XKB
 
 /* Define to 1 if you have the Xpm library (-lXpm). */
 #undef HAVE_XPM
 
+/* Define to 1 if you have the XRandr extension. */
+#undef HAVE_XRANDR
+
 /* Define to 1 if you have the `XrmSetDatabase' function. */
 #undef HAVE_XRMSETDATABASE
+
+/* Define to 1 if you have the `XRRGetOutputPrimary' function. */
+#undef HAVE_XRRGETOUTPUTPRIMARY
+
+/* Define to 1 if you have the `XRRGetScreenResourcesCurrent' function. */
+#undef HAVE_XRRGETSCREENRESOURCESCURRENT
 
 /* Define to 1 if you have the `XScreenNumberOfScreen' function. */
 #undef HAVE_XSCREENNUMBEROFSCREEN
@@ -1404,6 +1494,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* How to get a user's full name. */
 #define USER_FULL_NAME pw->pw_gecos
 
+/* Define to nonzero if you want access control list support. */
+#undef USE_ACL
+
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
@@ -1585,13 +1678,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Suppress extern inline with HP-UX cc, as it appears to be broken; see
    <http://lists.gnu.org/archive/html/bug-texinfo/2013-02/msg00030.html>.
 
-   Suppress the use of extern inline on Apple's platforms,
-   as Libc-825.25 (2012-09-19) is incompatible with it; see
+   Suppress extern inline with Sun C in standards-conformance mode, as it
+   mishandles inline functions that call each other.  E.g., for 'inline void f
+   (void) { } inline void g (void) { f (); }', c99 incorrectly complains
+   'reference to static identifier "f" in extern inline function'.
+   This bug was observed with Sun C 5.12 SunOS_i386 2011/11/16.
+
+   Suppress the use of extern inline on Apple's platforms, as Libc at least
+   through Libc-825.26 (2013-04-09) is incompatible with it; see, e.g.,
    <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
    Perhaps Apple will fix this some day.  */
 #if ((__GNUC__ \
       ? defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__ \
-      : 199901L <= __STDC_VERSION__ && !defined __HP_cc) \
+      : (199901L <= __STDC_VERSION__ \
+         && !defined __HP_cc \
+         && !(defined __SUNPRO_C && __STDC__))) \
      && !defined __APPLE__)
 # define _GL_INLINE inline
 # define _GL_EXTERN_INLINE extern inline

@@ -148,10 +148,10 @@
 
 (defvar perl-imenu-generic-expression
   '(;; Functions
-    (nil "^[ \t]*sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
+    (nil "^[ \t]*sub\\s-+\\([-[:alnum:]+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^\\(?:my\\|our\\)\\s-+\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
-    ("Packages" "^[ \t]*package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
+    ("Variables" "^\\(?:my\\|our\\)\\s-+\\([$@%][-[:alnum:]+_:]+\\)\\s-*=" 1)
+    ("Packages" "^[ \t]*package\\s-+\\([-[:alnum:]+_:]+\\);" 1)
     ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
 
@@ -160,6 +160,7 @@
 
 (defcustom perl-prettify-symbols t
   "If non-nil, some symbols will be displayed using Unicode chars."
+  :version "24.4"
   :type 'boolean)
 
 (defconst perl--prettify-symbols-alist
@@ -275,7 +276,6 @@ Regexp match data 0 points to the chars."
   (let ((case-fold-search nil))
     (goto-char start)
     (perl-syntax-propertize-special-constructs end)
-    ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
     (funcall
      (syntax-propertize-rules
       ;; Turn POD into b-style comments.  Place the cut rule first since it's
@@ -287,7 +287,7 @@ Regexp match data 0 points to the chars."
       ;; check that it occurs inside a '..' string.
       ("\\(\\$\\)[{']" (1 ". p"))
       ;; Handle funny names like $DB'stop.
-      ("\\$ ?{?^?[_a-zA-Z][_a-zA-Z0-9]*\\('\\)[_a-zA-Z]" (1 "_"))
+      ("\\$ ?{?^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
       ("^[ \t]*format.*=[ \t]*\\(\n\\)"
        (1 (prog1 "\"" (perl-syntax-propertize-special-constructs end))))
@@ -345,7 +345,29 @@ Regexp match data 0 points to the chars."
                                            perl-quote-like-pairs)
                                     (string-to-syntax "|")
                                   (string-to-syntax "\"")))
-             (perl-syntax-propertize-special-constructs end))))))
+             (perl-syntax-propertize-special-constructs end)))))
+      ;; Here documents.
+      ;; TODO: Handle <<WORD.  These are trickier because you need to
+      ;; disambiguate with the shift operator.
+      ("<<[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\).*\\(\n\\)"
+       (2 (let* ((st (get-text-property (match-beginning 2) 'syntax-table))
+                 (name (match-string 1)))
+            (goto-char (match-end 1))
+            (if (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+                ;; Leave the property of the newline unchanged.
+                st
+              (cons (car (string-to-syntax "< c"))
+                    ;; Remember the names of heredocs found on this line.
+                    (cons (pcase (aref name 0)
+                            (`?\\ (substring name 1))
+                            (_ (substring name 1 -1)))
+                          (cdr st)))))))
+      ;; We don't call perl-syntax-propertize-special-constructs directly
+      ;; from the << rule, because there might be other elements (between
+      ;; the << and the \n) that need to be propertized.
+      ("\\(?:$\\)\\s<"
+       (0 (ignore (perl-syntax-propertize-special-constructs end))))
+      )
      (point) end)))
 
 (defvar perl-empty-syntax-table
@@ -370,6 +392,22 @@ Regexp match data 0 points to the chars."
   (let ((state (syntax-ppss))
         char)
     (cond
+     ((eq 2 (nth 7 state))
+      ;; A Here document.
+      (let ((names (cdr (get-text-property (nth 8 state) 'syntax-table))))
+        (when (cdr names)
+          (setq names (reverse names))
+          ;; Multiple heredocs on a single line, we have to search from the
+          ;; beginning, since we don't know which names might be
+          ;; before point.
+          (goto-char (nth 8 state)))
+        (while (and names
+                    (re-search-forward
+                     (concat "^" (regexp-quote (pop names)) "\n")
+                     limit 'move))
+          (unless names
+            (put-text-property (1- (point)) (point) 'syntax-table
+                               (string-to-syntax "> c"))))))
      ((or (null (setq char (nth 3 state)))
           (and (characterp char) (eq (char-syntax (nth 3 state)) ?\")))
       ;; Normal text, or comment, or docstring, or normal string.

@@ -44,6 +44,10 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "fontset.h"
 #include "font.h"
 
+#ifdef NS_IMPL_COCOA
+#include <IOKit/graphics/IOGraphicsLib.h>
+#endif
+
 #if 0
 int fns_trace_num = 1;
 #define NSTRACE(x)        fprintf (stderr, "%s:%d: [%d] " #x "\n",        \
@@ -100,6 +104,8 @@ static int as_status;
 #ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
 #endif
+
+static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 
 /* ==========================================================================
 
@@ -1502,7 +1508,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
 
   ret = (ret == NSOKButton) || panelOK;
 
-  if (ret) 
+  if (ret)
     {
       NSString *str = [panel getFilename];
       if (! str) str = [panel getDirectory];
@@ -1699,7 +1705,7 @@ If omitted or nil, the selected frame's display is used.  */)
      (Lisp_Object display)
 {
   NSWindowDepth depth;
-  
+
   check_ns_display_info (display);
   depth = [ns_get_screen (display) depth];
 
@@ -2267,7 +2273,7 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
 {
   NSWindowDepth depth;
   NSString *colorSpace;
-  
+
   check_ns_display_info (display);
   depth = [ns_get_screen (display) depth];
   colorSpace = NSColorSpaceFromDepth (depth);
@@ -2321,35 +2327,221 @@ If omitted or nil, that stands for the selected frame's display.  */)
   return make_number ((int) [ns_get_screen (display) frame].size.height);
 }
 
+struct MonitorInfo {
+  XRectangle geom, work;
+  int mm_width, mm_height;
+  char *name;
+};
 
-DEFUN ("display-usable-bounds", Fns_display_usable_bounds,
-       Sns_display_usable_bounds, 0, 1, 0,
-       doc: /* Return the bounds of the usable part of the screen.
-The return value is a list of integers (LEFT TOP WIDTH HEIGHT), which
-are the boundaries of the usable part of the screen, excluding areas
-reserved for the Mac menu, dock, and so forth.
-
-The screen queried corresponds to DISPLAY, which should be either a
-frame, a display name (a string), or terminal ID.  If omitted or nil,
-that stands for the selected frame's display. */)
-     (Lisp_Object display)
+static void
+free_monitors (struct MonitorInfo *monitors, int n_monitors)
 {
-  NSScreen *screen;
-  NSRect vScreen;
+  int i;
+  for (i = 0; i < n_monitors; ++i)
+    xfree (monitors[i].name);
+  xfree (monitors);
+}
 
-  check_ns_display_info (display);
-  screen = ns_get_screen (display);
-  if (!screen)
+#ifdef NS_IMPL_COCOA
+/* Returns the name for the screen that DICT came from, or NULL.
+   Caller must free return value.
+*/
+
+char *
+ns_screen_name (CGDirectDisplayID did)
+{
+  char *name = NULL;
+  NSDictionary *info = (NSDictionary *)
+    IODisplayCreateInfoDictionary (CGDisplayIOServicePort (did),
+                                   kIODisplayOnlyPreferredName);
+  NSDictionary *names
+    = [info objectForKey:
+              [NSString stringWithUTF8String:kDisplayProductName]];
+
+  if ([names count] > 0) {
+    NSString *n = [names objectForKey: [[names allKeys] objectAtIndex:0]];
+    if (n != nil)
+      name = xstrdup ([n UTF8String]);
+  }
+
+  [info release];
+  return name;
+}
+#endif
+
+static Lisp_Object
+ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
+                                int n_monitors,
+                                int primary_monitor,
+                                const char *source)
+{
+  Lisp_Object monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  Lisp_Object frame, rest, attributes_list = Qnil;
+  Lisp_Object primary_monitor_attributes = Qnil;
+  NSArray *screens = [NSScreen screens];
+  int i;
+
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *f = XFRAME (frame);
+
+      if (FRAME_NS_P (f))
+	{
+          NSView *view = FRAME_NS_VIEW (f);
+          NSScreen *screen = [[view window] screen];
+          NSUInteger k;
+
+          i = -1;
+          for (k = 0; i == -1 && k < [screens count]; ++k)
+            {
+              if ([screens objectAtIndex: k] == screen)
+                i = (int)k;
+            }
+
+          if (i > -1)
+            ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
+	}
+    }
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      Lisp_Object geometry, workarea, attributes = Qnil;
+      struct MonitorInfo *mi = &monitors[i];
+
+      if (mi->geom.width == 0) continue;
+
+      workarea = list4i (mi->work.x, mi->work.y,
+			 mi->work.width, mi->work.height);
+      geometry = list4i (mi->geom.x, mi->geom.y,
+			 mi->geom.width, mi->geom.height);
+      attributes = Fcons (Fcons (Qsource,
+                                 make_string (source, strlen (source))),
+                          attributes);
+      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
+			  attributes);
+      attributes = Fcons (Fcons (Qmm_size,
+                                 list2i (mi->mm_width, mi->mm_height)),
+                          attributes);
+      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
+      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
+      if (mi->name)
+        attributes = Fcons (Fcons (Qname, make_string (mi->name,
+                                                       strlen (mi->name))),
+                            attributes);
+
+      if (i == primary_monitor)
+        primary_monitor_attributes = attributes;
+      else
+        attributes_list = Fcons (attributes, attributes_list);
+    }
+
+  if (!NILP (primary_monitor_attributes))
+    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
+  return attributes_list;
+}
+
+DEFUN ("ns-display-monitor-attributes-list",
+       Fns_display_monitor_attributes_list,
+       Sns_display_monitor_attributes_list,
+       0, 1, 0,
+       doc: /* Return a list of physical monitor attributes on the X display TERMINAL.
+
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+In addition to the standard attribute keys listed in
+`display-monitor-attributes-list', the following keys are contained in
+the attributes:
+
+ source -- String describing the source from which multi-monitor
+	   information is obtained, \"NS\" is always the source."
+
+Internal use only, use `display-monitor-attributes-list' instead.  */)
+  (Lisp_Object terminal)
+{
+  struct terminal *term = get_terminal (terminal, 1);
+  NSArray *screens;
+  NSUInteger i, n_monitors;
+  struct MonitorInfo *monitors;
+  Lisp_Object attributes_list = Qnil;
+  CGFloat primary_display_height = 0;
+
+  if (term->type != output_ns)
     return Qnil;
 
-  vScreen = [screen visibleFrame];
+  screens = [NSScreen screens];
+  n_monitors = [screens count];
+  if (n_monitors == 0)
+    return Qnil;
 
-  /* NS coordinate system is upside-down.
-     Transform to screen-specific coordinates. */
-  return list4i (vScreen.origin.x,
-		 [screen frame].size.height
-		 - vScreen.size.height - vScreen.origin.y,
-		 vScreen.size.width, vScreen.size.height);
+  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+
+  for (i = 0; i < [screens count]; ++i)
+    {
+      NSScreen *s = [screens objectAtIndex:i];
+      struct MonitorInfo *m = &monitors[i];
+      NSRect fr = [s frame];
+      NSRect vfr = [s visibleFrame];
+      NSDictionary *dict = [s deviceDescription];
+      NSValue *resval = [dict valueForKey:NSDeviceResolution];
+      short y, vy;
+
+#ifdef NS_IMPL_COCOA
+      NSNumber *nid = [dict objectForKey:@"NSScreenNumber"];
+      CGDirectDisplayID did = [nid unsignedIntValue];
+#endif
+      if (i == 0)
+        {
+          primary_display_height = fr.size.height;
+          y = (short) fr.origin.y;
+          vy = (short) vfr.origin.y;
+        }
+      else
+        {
+          // Flip y coordinate as NS has y starting from the bottom.
+          y = (short) (primary_display_height - fr.size.height - fr.origin.y);
+          vy = (short) (primary_display_height -
+                        vfr.size.height - vfr.origin.y);
+        }
+      
+      m->geom.x = (short) fr.origin.x;
+      m->geom.y = y;
+      m->geom.width = (unsigned short) fr.size.width;
+      m->geom.height = (unsigned short) fr.size.height;
+
+      m->work.x = (short) vfr.origin.x;
+      // y is flipped on NS, so vy - y are pixels missing at the bottom,
+      // and fr.size.height - vfr.size.height are pixels missing in total.
+      // Pixels missing at top are
+      // fr.size.height - vfr.size.height - vy + y.
+      // work.y is then pixels missing at top + y.
+      m->work.y = (short) (fr.size.height - vfr.size.height) - vy + y + y;
+      m->work.width = (unsigned short) vfr.size.width;
+      m->work.height = (unsigned short) vfr.size.height;
+
+#ifdef NS_IMPL_COCOA
+      m->name = ns_screen_name (did);
+
+      {
+        CGSize mms = CGDisplayScreenSize (did);
+        m->mm_width = (int) mms.width;
+        m->mm_height = (int) mms.height;
+      }
+
+#else
+      // Assume 92 dpi as x-display-mm-height/x-display-mm-width does.
+      m->mm_width = (int) (25.4 * fr.size.width / 92.0);
+      m->mm_height = (int) (25.4 * fr.size.height / 92.0);
+#endif
+    }
+
+  // Primary monitor is always first for NS.
+  attributes_list = ns_make_monitor_attribute_list (monitors, n_monitors,
+                                                    0, "NS");
+
+  free_monitors (monitors, n_monitors);
+  return attributes_list;
 }
 
 
@@ -2546,7 +2738,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 /*
   Handle arrow/function/control keys and copy/paste/cut in file dialogs.
-  Return YES if handeled, NO if not.
+  Return YES if handled, NO if not.
  */
 static BOOL
 handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
@@ -2729,6 +2921,11 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 void
 syms_of_nsfns (void)
 {
+  DEFSYM (Qgeometry, "geometry");
+  DEFSYM (Qworkarea, "workarea");
+  DEFSYM (Qmm_size, "mm-size");
+  DEFSYM (Qframes, "frames");
+  DEFSYM (Qsource, "source");
   Qfontsize = intern_c_string ("fontsize");
   staticpro (&Qfontsize);
 
@@ -2774,7 +2971,7 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sx_server_version);
   defsubr (&Sx_display_pixel_width);
   defsubr (&Sx_display_pixel_height);
-  defsubr (&Sns_display_usable_bounds);
+  defsubr (&Sns_display_monitor_attributes_list);
   defsubr (&Sx_display_mm_width);
   defsubr (&Sx_display_mm_height);
   defsubr (&Sx_display_screens);

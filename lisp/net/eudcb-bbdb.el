@@ -29,10 +29,10 @@
 ;;; Code:
 
 (require 'eudc)
-(if (not (featurep 'bbdb))
-    (load-library "bbdb"))
-(if (not (featurep 'bbdb-com))
-    (load-library "bbdb-com"))
+
+;; Make it loadable on systems without bbdb.
+(require 'bbdb nil t)
+(require 'bbdb-com nil t)
 
 ;;{{{      Internal cooking
 
@@ -71,6 +71,7 @@
 
 (defun eudc-bbdb-filter-non-matching-record (record)
   "Return RECORD if it matches `eudc-bbdb-current-query', nil otherwise."
+  (require 'bbdb)
   (catch 'unmatch
     (progn
       (dolist (condition eudc-bbdb-current-query)
@@ -112,6 +113,7 @@
                   (&optional dont-check-disk already-in-db-buffer))
 
 (defun eudc-bbdb-extract-phones (record)
+  (require 'bbdb)
   (mapcar (function
 	   (lambda (phone)
 	     (if eudc-bbdb-use-locations-as-attribute-names
@@ -123,6 +125,7 @@
 	  (bbdb-record-phones record)))
 
 (defun eudc-bbdb-extract-addresses (record)
+  (require 'bbdb)
   (let (s c val)
     (mapcar (lambda (address)
               (setq c (bbdb-address-streets address))
@@ -146,6 +149,7 @@
 (defun eudc-bbdb-format-record-as-result (record)
   "Format the BBDB RECORD as a EUDC query result record.
 The record is filtered according to `eudc-bbdb-current-return-attributes'"
+  (require 'bbdb)
   (let ((attrs (or eudc-bbdb-current-return-attributes
 		   '(firstname lastname aka company phones addresses net notes)))
 	attr
@@ -188,7 +192,7 @@ QUERY is a list of cons cells (ATTR . VALUE) where ATTRs should be valid
 BBDB attribute names.
 RETURN-ATTRS is a list of attributes to return, defaulting to
 `eudc-default-return-attributes'."
-
+  (require 'bbdb)
   (let ((eudc-bbdb-current-query query)
 	(eudc-bbdb-current-return-attributes return-attrs)
 	(query-attrs (eudc-bbdb-format-query query))

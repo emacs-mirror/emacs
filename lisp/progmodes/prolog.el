@@ -772,6 +772,8 @@ Relevant only when `prolog-imenu-flag' is non-nil."
   :version "24.1"
   :group 'prolog-other
   :type 'boolean)
+(make-obsolete-variable 'prolog-underscore-wordchar-flag
+                        'superword-mode "24.4")
 
 (defcustom prolog-use-sicstus-sd nil
   "If non-nil, use the source level debugger of SICStus 3#7 and later."
@@ -785,6 +787,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
   :version "24.1"
   :group 'prolog-other
   :type 'boolean)
+(make-obsolete-variable 'prolog-char-quote-workaround nil "24.1")
 
 
 ;;-------------------------------------------------------------------
@@ -802,10 +805,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
   ;; - In atoms \x<hex> sometimes needs a terminating \ (ISO-style)
   ;;   and sometimes not.
   (let ((table (make-syntax-table)))
-    (if prolog-underscore-wordchar-flag
-        (modify-syntax-entry ?_ "w" table)
-      (modify-syntax-entry ?_ "_" table))
-
+    (modify-syntax-entry ?_ (if prolog-underscore-wordchar-flag "w" "_") table)
     (modify-syntax-entry ?+ "." table)
     (modify-syntax-entry ?- "." table)
     (modify-syntax-entry ?= "." table)
@@ -815,7 +815,8 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
     (modify-syntax-entry ?\' "\"" table)
 
     ;; Any better way to handle the 0'<char> construct?!?
-    (when prolog-char-quote-workaround
+    (when (and prolog-char-quote-workaround
+               (not (fboundp 'syntax-propertize-rules)))
       (modify-syntax-entry ?0 "\\" table))
 
     (modify-syntax-entry ?% "<" table)

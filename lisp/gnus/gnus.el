@@ -2507,6 +2507,7 @@ Disabling the agent may result in noticeable loss of performance."
   :version "24.4"
   :group 'gnus-start
   :type '(choice (function-item gnus)
+		 (function-item gnus-group-get-new-news)
 		 (function-item gnus-no-server)
 		 (function-item gnus-slave)
 		 (function-item gnus-slave-no-server)))

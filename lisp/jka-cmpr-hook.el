@@ -308,7 +308,7 @@ variables.  Setting this through Custom does that automatically."
 (defcustom jka-compr-mode-alist-additions
   (purecopy '(("\\.tgz\\'" . tar-mode)
               ("\\.tbz2?\\'" . tar-mode)
-              ("\\.txz\\'" . 'tar-mode)))
+              ("\\.txz\\'" . tar-mode)))
   "List of pairs added to `auto-mode-alist' when installing jka-compr.
 Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
 installing added.
@@ -318,6 +318,7 @@ already enabled \(as it is by default), you have to call
 `jka-compr-update' after setting it to properly update other
 variables.  Setting this through Custom does that automatically."
   :type '(repeat (cons string symbol))
+  :version "24.4"			; add txz
   :set 'jka-compr-set
   :group 'jka-compr)
 

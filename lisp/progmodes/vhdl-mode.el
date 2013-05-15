@@ -1872,14 +1872,11 @@ NOTE: Activate the new setting by restarting Emacs."
   "Non-nil means consider the underscore character `_' as part of word.
 An identifier containing underscores is then treated as a single word in
 select and move operations.  All parts of an identifier separated by underscore
-are treated as single words otherwise.
-
-NOTE: Activate the new setting in a VHDL buffer by using the menu entry
-      \"Activate Options\"."
+are treated as single words otherwise."
   :type 'boolean
-  :set (lambda (variable value)
-	 (vhdl-custom-set variable value 'vhdl-mode-syntax-table-init))
   :group 'vhdl-misc)
+(make-obsolete-variable 'vhdl-underscore-is-part-of-word
+                        'superword-mode "24.4")
 
 
 (defgroup vhdl-related nil
@@ -2433,6 +2430,7 @@ old environment.  Used for consistent searching."
 		       (progn (set-buffer (create-file-buffer ,file-name))
 			      (setq file-opened t)
 			      (vhdl-insert-file-contents ,file-name)
+                              ;; FIXME: This modifies a global syntax-table!
 			      (modify-syntax-entry ?\- ". 12" (syntax-table))
 			      (modify-syntax-entry ?\n ">" (syntax-table))
 			      (modify-syntax-entry ?\^M ">" (syntax-table))
@@ -2864,55 +2862,50 @@ STRING are replaced by `-' and substrings are converted to lower case."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax table
 
-(defvar vhdl-mode-syntax-table nil
+(defvar vhdl-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; define punctuation
+    (modify-syntax-entry ?\# "."    st)
+    (modify-syntax-entry ?\$ "."    st)
+    (modify-syntax-entry ?\% "."    st)
+    (modify-syntax-entry ?\& "."    st)
+    (modify-syntax-entry ?\' "."    st)
+    (modify-syntax-entry ?\* "."    st)
+    (modify-syntax-entry ?\+ "."    st)
+    (modify-syntax-entry ?\. "."    st)
+    (modify-syntax-entry ?\/ "."    st)
+    (modify-syntax-entry ?\: "."    st)
+    (modify-syntax-entry ?\; "."    st)
+    (modify-syntax-entry ?\< "."    st)
+    (modify-syntax-entry ?\= "."    st)
+    (modify-syntax-entry ?\> "."    st)
+    (modify-syntax-entry ?\\ "."    st)
+    (modify-syntax-entry ?\| "."    st)
+    ;; define string
+    (modify-syntax-entry ?\" "\""   st)
+    ;; define underscore
+    (modify-syntax-entry ?\_ (if vhdl-underscore-is-part-of-word "w" "_") st)
+    ;; a single hyphen is punctuation, but a double hyphen starts a comment
+    (modify-syntax-entry ?\- ". 12" st)
+    ;; and \n and \^M end a comment
+    (modify-syntax-entry ?\n ">"    st)
+    (modify-syntax-entry ?\^M ">"   st)
+    ;; define parentheses to match
+    (modify-syntax-entry ?\( "()"   st)
+    (modify-syntax-entry ?\) ")("   st)
+    (modify-syntax-entry ?\[ "(]"   st)
+    (modify-syntax-entry ?\] ")["   st)
+    (modify-syntax-entry ?\{ "(}"   st)
+    (modify-syntax-entry ?\} "){"   st)
+    st)
   "Syntax table used in `vhdl-mode' buffers.")
 
-(defvar vhdl-mode-ext-syntax-table nil
+(defvar vhdl-mode-ext-syntax-table
+  ;; Extended syntax table including '_' (for simpler search regexps).
+  (let ((st (copy-syntax-table vhdl-mode-syntax-table)))
+    (modify-syntax-entry ?_ "w" st)
+    st)
   "Syntax table extended by `_' used in `vhdl-mode' buffers.")
-
-(defun vhdl-mode-syntax-table-init ()
-  "Initialize `vhdl-mode-syntax-table'."
-  (setq vhdl-mode-syntax-table (make-syntax-table))
-  ;; define punctuation
-  (modify-syntax-entry ?\# "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\$ "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\% "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\& "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\' "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\* "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\+ "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\. "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\/ "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\: "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\; "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\< "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\= "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\> "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\\ "."    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\| "."    vhdl-mode-syntax-table)
-  ;; define string
-  (modify-syntax-entry ?\" "\""   vhdl-mode-syntax-table)
-  ;; define underscore
-  (when vhdl-underscore-is-part-of-word
-    (modify-syntax-entry ?\_ "w"   vhdl-mode-syntax-table))
-  ;; a single hyphen is punctuation, but a double hyphen starts a comment
-  (modify-syntax-entry ?\- ". 12" vhdl-mode-syntax-table)
-  ;; and \n and \^M end a comment
-  (modify-syntax-entry ?\n ">"    vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\^M ">"   vhdl-mode-syntax-table)
-  ;; define parentheses to match
-  (modify-syntax-entry ?\( "()"   vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\) ")("   vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\[ "(]"   vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\] ")["   vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\{ "(}"   vhdl-mode-syntax-table)
-  (modify-syntax-entry ?\} "){"   vhdl-mode-syntax-table)
-  ;; extended syntax table including '_' (for simpler search regexps)
-  (setq vhdl-mode-ext-syntax-table (copy-syntax-table vhdl-mode-syntax-table))
-  (modify-syntax-entry ?_ "w" vhdl-mode-ext-syntax-table))
-
-;; initialize syntax table for VHDL Mode
-(vhdl-mode-syntax-table-init)
 
 (defvar vhdl-syntactic-context nil
   "Buffer local variable containing syntactic analysis list.")

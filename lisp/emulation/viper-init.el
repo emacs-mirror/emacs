@@ -424,7 +424,7 @@ delete the text being replaced, as in standard Vi."
 ;; (defcustom viper-emacs-state-cursor-color "Magenta"
 (defcustom viper-emacs-state-cursor-color nil
   "Cursor color when Viper is in Emacs state."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'viper)
 
 ;; internal var, used to remember the default cursor color of emacs frames

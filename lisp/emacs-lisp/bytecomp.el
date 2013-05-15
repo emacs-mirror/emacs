@@ -1978,7 +1978,7 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       (widen)
       (delete-char delta))))
 
-(defun byte-compile-insert-header (filename outbuffer)
+(defun byte-compile-insert-header (_filename outbuffer)
   "Insert a header at the start of OUTBUFFER.
 Call from the source buffer."
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings)

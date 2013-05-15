@@ -1,3 +1,43 @@
+2013-05-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (LD_SWITCH_SYSTEM_TEMACS): OpenBSD needs -nopie.
+	Reported privately by Han Boetes <han@boetes.org>.
+
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (ACL_H): New macro.
+	($(BLD)/acl-errno-valid.$(O)): Update dependencies.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	* configure.ac: Remove -with-acl option, since Gnulib does that for
+	us now.
+	(LIBACL_LIBS): Remove; no longer needed.
+	* lib/Makefile.am (CLEANFILES, SUFFIXES): New (empty) macros,
+	for the benefit of the new ACL implementation.
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/acl-errno-valid.$(O).
+	($(BLD)/acl-errno-valid.$(O)): New rule.
+	* lib/acl-errno-valid.c, lib/acl-internal.h, lib/acl.h:
+	* lib/acl_entries.c, lib/errno.in.h, lib/file-has-acl.c:
+	* lib/qcopy-acl.c, lib/qset-acl.c, m4/acl.m4, m4/errno_h.m4:
+	New files, taken from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2013-05-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_XRANDR, HAVE_XINERAMA): Define if available.
+	(XRANDR_LIBS, XINERAMA_LIBS): New AC_SUBSTs.
+
+2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-04-30 utimens, utimensat: work around Solaris UTIME_OMIT bug
+
+2013-05-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-dist: Keep necessary restrictions on file access.
+
 2013-04-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

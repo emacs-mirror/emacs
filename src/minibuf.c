@@ -986,34 +986,6 @@ and some related functions, which use zero-indexing for POSITION.  */)
   return val;
 }
 
-DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
-       doc: /* Return a Lisp object read using the minibuffer, unevaluated.
-Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
-is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.
-Such arguments are used as in `read-from-minibuffer'.)  */)
-  (Lisp_Object prompt, Lisp_Object initial_contents)
-{
-  CHECK_STRING (prompt);
-  return read_minibuf (Vminibuffer_local_map, initial_contents,
-		       prompt, 1, Qminibuffer_history,
-		       make_number (0), Qnil, 0, 0);
-}
-
-DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
-       doc: /* Return value of Lisp expression read using the minibuffer.
-Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
-is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.
-Such arguments are used as in `read-from-minibuffer'.)  */)
-  (Lisp_Object prompt, Lisp_Object initial_contents)
-{
-  return Feval (read_minibuf (Vread_expression_map, initial_contents,
-			      prompt, 1, Qread_expression_history,
-			      make_number (0), Qnil, 0, 0),
-		Qnil);
-}
-
 /* Functions that use the minibuffer to read various things.  */
 
 DEFUN ("read-string", Fread_string, Sread_string, 1, 5, 0,
@@ -2137,15 +2109,9 @@ properties.  */);
   Vminibuffer_prompt_properties
     = Fcons (intern_c_string ("read-only"), Fcons (Qt, Qnil));
 
-  DEFVAR_LISP ("read-expression-map", Vread_expression_map,
-	       doc: /* Minibuffer keymap used for reading Lisp expressions.  */);
-  Vread_expression_map = Qnil;
-
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);
-  defsubr (&Seval_minibuffer);
-  defsubr (&Sread_minibuffer);
   defsubr (&Sread_string);
   defsubr (&Sread_command);
   defsubr (&Sread_variable);

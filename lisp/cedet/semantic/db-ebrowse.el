@@ -660,4 +660,8 @@ Return a list of tags."
 
 (provide 'semantic/db-ebrowse)
 
+;; Local variables:
+;; generated-autoload-load-name: "semantic/db-ebrowse"
+;; End:
+
 ;;; semantic/db-ebrowse.el ends here

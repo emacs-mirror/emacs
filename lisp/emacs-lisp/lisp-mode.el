@@ -394,7 +394,7 @@ font-lock keywords will not be case sensitive."
 		  :enable mark-active))
     (bindings--define-key menu-map [eval-sexp]
       '(menu-item "Evaluate Last S-expression" eval-last-sexp
-		  :help "Evaluate sexp before point; print value in minibuffer"))
+		  :help "Evaluate sexp before point; print value in echo area"))
     (bindings--define-key menu-map [separator-format] menu-bar-separator)
     (bindings--define-key menu-map [comment-region]
       '(menu-item "Comment Out Region" comment-region
@@ -772,7 +772,7 @@ If CHAR is not a character, return nil."
 
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
-  "Evaluate sexp before point; print value in minibuffer.
+  "Evaluate sexp before point; print value in the echo area.
 With argument, print output into current buffer."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     ;; Setup the lexical environment if lexical-binding is enabled.
@@ -825,7 +825,7 @@ POS specifies the starting position where EXP was found and defaults to point."
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
-  "Evaluate sexp before point; print value in minibuffer.
+  "Evaluate sexp before point; print value in the echo area.
 Interactively, with prefix argument, print output into current buffer.
 Truncates long output according to the value of the variables
 `eval-expression-print-length' and `eval-expression-print-level'.
@@ -891,14 +891,13 @@ Reinitialize the face according to the `defface' specification."
 
 (defun eval-defun-2 ()
   "Evaluate defun that point is in or before.
-The value is displayed in the minibuffer.
+The value is displayed in the echo area.
 If the current defun is actually a call to `defvar',
 then reset the variable using the initial value expression
 even if the variable already has some other value.
 \(Normally `defvar' does not change the variable's value
 if it already has a value.\)
 
-With argument, insert value in current buffer after the defun.
 Return the result of evaluation."
   ;; FIXME: the print-length/level bindings should only be applied while
   ;; printing, not while evaluating.
@@ -950,11 +949,11 @@ this command arranges for all errors to enter the debugger.
 With a prefix argument, instrument the code for Edebug.
 
 If acting on a `defun' for FUNCTION, and the function was
-instrumented, `Edebug: FUNCTION' is printed in the minibuffer.  If not
+instrumented, `Edebug: FUNCTION' is printed in the echo area.  If not
 instrumented, just FUNCTION is printed.
 
 If not acting on a `defun', the result of evaluation is displayed in
-the minibuffer.  This display is controlled by the variables
+the echo area.  This display is controlled by the variables
 `eval-expression-print-length' and `eval-expression-print-level',
 which see."
   (interactive "P")

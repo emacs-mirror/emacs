@@ -297,7 +297,7 @@ X resource class for the attribute."
 
 
 (declare-function internal-face-x-get-resource "xfaces.c"
-		  (resource class frame))
+		  (resource class &optional frame))
 
 (declare-function internal-set-lisp-face-attribute-from-resource "xfaces.c"
 		  (face attr value &optional frame))
@@ -932,6 +932,8 @@ of the default face.  Value is FACE."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactively modifying faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar crm-separator) ; from crm.el
 
 (defun read-face-name (prompt &optional default multiple)
   "Read one or more face names, prompting with PROMPT.

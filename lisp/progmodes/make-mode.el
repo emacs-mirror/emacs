@@ -241,7 +241,7 @@ to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
   "List of special targets.
 You will be offered to complete on one of those in the minibuffer whenever
 you enter a \".\" at the beginning of a line in `makefile-mode'."
-  :type '(repeat (list string))
+  :type '(repeat string)
   :group 'makefile)
 (put 'makefile-special-targets-list 'risky-local-variable t)
 

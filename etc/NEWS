@@ -23,10 +23,10 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.4
 
-** Emacs can be compiled with POSIX ACL support.
+** Emacs can be compiled with ACL support.
 This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
-configure option `--without-acl'.
+configure option `--disable-acl'.
 
 ** The configure option --with-crt-dir has been removed.
 It is no longer needed, as the crt*.o files are no longer linked specially.
@@ -61,6 +61,8 @@ simply disabling Transient Mark mode does the same thing.
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
 
+** `write-region-inhibit-fsync' now defaults to t in batch mode.
+
 ** ACL support has been added.
 +++
 *** Emacs preserves the ACL entries of files when backing up.
@@ -76,6 +78,12 @@ using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
 
 ** In compiled Lisp files, the header no longer includes a timestamp.
+
+** Multi-monitor support has been added.
+
+*** New functions `display-monitor-attributes-list' and
+`frame-monitor-attributes' can be used to obtain information about
+each physical monitor on multi-monitor setups.
 
 
 * Editing Changes in Emacs 24.4
@@ -146,6 +154,12 @@ The default separator is changed to allow surrounding spaces around the comma.
 
 *** Battery information via the BSD `apm' utility is now supported.
 
+** Calendar and Diary
+
++++
+*** New variable `diary-from-outlook-function', used by the command
+`diary-from-outlook'.
+
 ** cl-lib
 
 *** New macro cl-tagbody.
@@ -183,6 +197,9 @@ auto-saves of the desktop.
 *** New option `erc-accidental-paste-threshold-seconds'.
 If set to a number, this can be used to avoid accidentally paste large
 amounts of data into the ERC input.
+
+---
+** New F90 mode option `f90-smart-end-names'.
 
 ** Icomplete is a bit more like IDO.
 *** key bindings to navigate through and select the completions.
@@ -280,6 +297,9 @@ module.
 ** Obsolete packages:
 
 *** longlines.el is obsolete; use visual-line-mode instead.
+
++++
+*** sup-mouse.el.
 
 *** terminal.el is obsolete; use term.el instead.
 

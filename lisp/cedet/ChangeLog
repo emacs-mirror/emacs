@@ -1,3 +1,26 @@
+2013-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* ede/simple.el, semantic/java.el: Set generated-autoload-load-name.
+
+2013-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* ede/project-am.el, semantic/db-ebrowse.el, semantic/grammar.el:
+	* semantic/sb.el, semantic/bovine/grammar.el, semantic/wisent/comp.el:
+	* semantic/wisent/grammar.el, semantic/wisent/wisent.el:
+	* srecode/fields.el: Set generated-autoload-load-name (for cus-load).
+
+	* ede/locate.el (cedet-cscope-version-check)
+	(cedet-cscope-support-for-directory):
+	* semantic/grammar.el (semantic-grammar-wy--install-parser):
+	Fix declarations.
+
+	* ede/project-am.el (project-am-compile-project-command): Fix :type.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/db-find.el (semanticdb-find-throttle-custom-list):
+	Fix value.
+
 2013-04-27  David Engster  <deng@randomsample.de>
 
 	* semantic/complete.el

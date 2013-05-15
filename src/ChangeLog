@@ -1,3 +1,232 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (regex_compile) [\=, \>, \<]: Don't forget to set laststart.
+
+2013-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't call WINDOW_HEADER_LINE_HEIGHT
+	unless we know that the window w is a leaf window.
+	Another attempt at solving bug#14062.
+
+2013-05-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (ns_spec_to_descriptor): Retain and autorelease
+	fdesc (Bug#14375).
+
+2013-05-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (gif_load): Check that subimages fit (Bug#14345).
+
+2013-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (skip_dyn_eof): New function.
+	(read1): Use it to skip the end of a file in response to #@00.
+
+	* doc.c (get_doc_string): Slightly relax the sanity checking.
+
+2013-05-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: Include IOGraphicsLib.h if Cocoa.
+	(Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): Declare.
+	(MonitorInfo): New struct.
+	(free_monitors, ns_screen_name, ns_make_monitor_attribute_list)
+	(Fns_display_monitor_attributes_list): New functions.
+	(display-usable-bounds): Remove.
+	(syms_of_nsfns): DEFSYM Qgeometry, Qworkarea, Qmm_size, Qframes and
+	Qsource.
+
+2013-05-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.h (GTK_PREREQ): Remove, replacing with GTK_CHECK_VERSION.
+	(GTK_CHECK_VERSION): New macro, if not already defined.
+	All uses of GTK_PREREQ, GTK_MAJOR_VERSION, etc.
+	replaced by GTK_CHECK_VERSION.
+
+2013-05-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.h (GTK_PREREQ): New macro.
+	All simple uses of GTK_MAJOR_VERSION and GTK_MINOR_VERSION changed
+	to use this macro instead, for consistency and clarity.
+
+2013-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (row_for_charpos_p): New function, with code of
+	cursor_row_p, but accepts an additional argument CHARPOS instead
+	of using a hardcoded PT.
+	(cursor_row_p): Call row_for_charpos_p with 2nd argument PT.
+	(row_containing_pos): Call row_for_charpos_p instead of partially
+	doing the same.  Fixes cursor positioning under longlines-mode
+	when longlines-show-effect includes more than one newline, when
+	moving the cursor vertically up.
+
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (ACL_H): New macro.
+	($(BLD)/fileio.$(O)): Update dependencies.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	* Makefile.in (LIB_ACL): New macro.
+	(LIBACL_LIBS): Remove.
+	(LIBES): Use LIB_ACL, not LIBACL_LIBS.
+	* fileio.c: Include <acl.h>.
+	Use HAVE_ACL_SET_FILE rather than HAVE_POSIX_ACL.
+	(ACL_NOT_WELL_SUPPORTED): Remove.  All uses replaced by
+	!acl_errno_valid.
+	(Fcopy_file) [!WINDOWSNT]: Use qcopy_acl instead of rolling
+	it ourselves.
+
+	* unexelf.c: Don't assume ElfW (Half) fits in int.
+	(entry_address, find_section, unexec): Use ptrdiff_t, not int,
+	when dealing with ElfW (Half) values, since they can exceed 2**31
+	on 64-bit OpenBSD hosts.  Problem reported privately by Han Boetes.
+	(entry_address): Omit unused NUM arg.  All uses changed.
+
+2013-05-07  Juri Linkov  <juri@jurta.org>
+
+	* callint.c (Fcall_interactively): Set `visargs[i]' for code 'n'
+	to the string converted from number with `Fnumber_to_string'.
+	(Bug#14254)
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfns.c (x_get_net_workarea): Define only if !GTK || GTK<3.4.
+	This fixes a problem introduced by my previous change.
+
+2013-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (readchar): Don't read from a dead buffer.  (Bug#14280)
+
+2013-05-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c: Move misplaced ifndef USE_GTK from previous checkin.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checking by GCC 4.8.0.
+	* xfns.c (x_get_net_workarea, struct MonitorInfo, free_monitors)
+	(x_get_monitor_for_frame, x_make_monitor_attribute_list)
+	(x_get_monitor_attributes_fallback)
+	(x_get_monitor_attributes_xinerama)
+	(x_get_monitor_attributes_xrandr, x_get_monitor_attributes):
+	Define only if USE_GTK.
+	(free_monitors): Define only if HAVE_XINERAMA || HAVE_XRANDR.
+	(x_get_monitor_attributes_fallback): Omit unused locals.
+	(x_get_monitor_attributes_xinerama, Fx_display_monitor_attributes_list):
+	Use double, not float, to avoid mixed-mode floating point arithmetic.
+
+2013-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+	    Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (XRANDR_LIBS, XRANDR_CFLAGS, XINERAMA_LIBS)
+	(XINERAMA_CFLAGS): New macros.
+	(ALL_CFLAGS, LIBES): Use them.
+
+	* xfns.c: Include <X11/extensions/Xrandr.h> if HAVE_XRANDR, and
+	include <X11/extensions/Xinerama.h> if HAVE_XINERAMA.
+	(Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): New variables.
+	(syms_of_xfns): DEFSYM them.
+	(struct MonitorInfo): New struct.
+	(x_get_net_workarea, free_monitors, x_get_monitor_for_frame)
+	(x_make_monitor_attribute_list, x_get_monitor_attributes_fallback)
+	(x_get_monitor_attributes_xrandr, x_get_monitor_attributes)
+	(x_get_monitor_attributes_xinerama): New functions.
+	(Fx_display_monitor_attributes_list): New primitive.
+	(syms_of_xfns): Defsubr it.
+
+	* xterm.h (x_display_info): Add Xatom_net_workarea and
+	Xatom_net_current_desktop.
+
+	* xterm.c (x_term_init): Initialize dpyinfo->Xatom_net_workarea
+	and dpyinfo->Xatom_net_current_desktop.
+
+2013-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): Use the special code for finding the
+	beginning of a display property or overlay for any "replacing"
+	display property, not just for display strings.  This solves
+	incorrect reporting of position by posn-at-point.  (Bug#14241)
+
+2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* unexelf.c: Fix some 32-bit integer problems, notably when debugging.
+	Include <limits.h>, <stdbool.h>, <intprops.h>, <verify.h>.
+	Verify that ElfW (Half) fits in int.
+	(fatal): Use same signature as lisp.h.
+	(UNEXELF_DEBUG): New macro, replacing DEBUG, so that people can
+	configure and build with -DUNEXELF_DEBUG without worrying about
+	other modules that use DEBUG.
+	(DEBUG_LOG) [UNEXELF_DEBUG]: New macro.  All debug code that prints
+	possibly-wide integers now uses it instead of plain fprintf.
+	(entry_address): New function, which avoids problems with 32-bit
+	overflow on 64-bit hosts.
+	(OLD_SECTION_H, NEW_SECTION_H, NEW_PROGRAM_H): Use it.
+	(round_up): Don't assume the remainder fits in int.
+	(find_section): Use bool for boolean.  Simplify debug code.
+	(unexec): Don't assume file sizes fit in int or size_t.
+	Omit unnecessary trailing newline in 'fatal' format.
+	Use strerror rather than outputting decimal error number.
+	Remove unused code when emacs is not defined;
+	this file relies on Emacs now.
+	Don't assume e_phnum and e_shnum are positive.
+
+	* regex.c: Fix problems when DEBUG is defined.
+	(extract_number, extract_number_and_incr): Define regardless of
+	whether DEBUG is defined; that's simpler and makes the code less
+	likely to go stale in the normal case when DEBUG is not defined.
+	Return int rather than taking an int * arg.  All callers changed.
+	(DEBUG_PRINT1, DEBUG_PRINT2, DEBUG_PRINT3, DEBUG_PRINT4):
+	Remove, replacing with ...
+	(DEBUG_PRINT): New macro.  All callers changed.
+	(DEBUG_COMPILES_ARGUMENTS): New macro.
+	(print_fastmap, print_partial_compiled_pattern) [DEBUG]:
+	(print_compiled_pattern, print_double_string) [DEBUG]:
+	Use prototype rather than old-style definition.
+	(print_partial_compiled_pattern, print_compiled_pattern) [DEBUG]:
+	(ENSURE_FAIL_STACK, PUSH_FAILURE_REG) [DEBUG]:
+	(POP_FAILURE_REG_OR_COUNT, PUSH_FAILURE_POINT) [DEBUG]:
+	(POP_FAILURE_POINT, re_match_2_internal) [DEBUG]:
+	Don't assume ptrdiff_t, size_t, and long are the same width as int.
+	(POINTER_TO_OFFSET): Return ptrdiff_t, not regoff_t.
+	This matters only when DEBUG is defined.
+
+2013-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_iterator_to_next): Set the
+	ignore_overlay_strings_at_pos_p flag only if we are _really_
+	iterating over an overlay string, as indicated by the
+	current.overlay_string_index member.  (Bug#14306)
+
+2013-05-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (ns_update_menubar): Move initialization of submenuTitle
+	to where it is used, to avoid autorelease issues (Bug#14050).
+
+2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).
+	* fileio.c (syms_of_fileio): Implement this.
+	* filelock.c (create_lock_file): If symbolic links don't work, so
+	we use a regular file as a lock file, do not fsync the lock file;
+	it's not needed.
+
+2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Move to Elisp.
+	(syms_of_minibuf): Adjust accodingly.
+	* lread.c (Fread):
+	* callint.c (Fcall_interactively): Adjust calls accordingly.
+
+2013-05-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (WINDOW_WANTS_HEADER_LINE_P): Verify that
+	w->contents is a buffer before computing everything else.
+	Use parentheses to disambiguate last part of the condition.
+
+	* w32fns.c (w32_wnd_proc): Remove temporary code used to trap
+	assertion violations.  (Bug#14062)
+
 2013-05-01  David Reitter  <david.reitter@gmail.com>
 
 	* nsfns.m (ns_tooltip): Initialize.
@@ -35,6 +264,7 @@
 	size.
 
 2013-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Port better to AIX (Bug#14258).
 	* lisp.h (ENUM_BF) [__IBMC__]: Make it 'unsigned int' here, too,
 	to pacify AIX xlc.

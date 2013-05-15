@@ -125,7 +125,9 @@ argument."
   "List of strings of options to request page headings in the printer program.
 If nil, we run `lpr-page-header-program' to make page headings
 and print the result."
-  :type '(repeat (string :tag "Argument"))
+  :type '(choice (const nil)
+		 (string :tag "Single argument")
+		 (repeat :tag "Multiple arguments" (string :tag "Argument")))
   :group 'lpr)
 
 (defcustom print-region-function nil

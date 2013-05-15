@@ -55,7 +55,7 @@
 (defcustom project-am-compile-project-command nil
   "*Default command used to compile a project."
   :group 'project-am
-  :type 'string)
+  :type '(choice (const nil) string))
 
 (defcustom project-am-compile-target-command (concat ede-make-command " -k %s")
   "*Default command used to compile a project."
@@ -1013,5 +1013,9 @@ per file or in .dir-locals.el or similar."
 
 
 (provide 'ede/project-am)
+
+;; Local variables:
+;; generated-autoload-load-name: "ede/project-am"
+;; End:
 
 ;;; ede/project-am.el ends here

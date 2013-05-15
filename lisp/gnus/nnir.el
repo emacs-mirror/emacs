@@ -326,7 +326,7 @@ with three items unique to nnir summary buffers:
 
 If nil this will use `gnus-summary-line-format'."
   :version "24.1"
-  :type '(string)
+  :type '(choice (const :tag "gnus-summary-line-format" nil) string)
   :group 'nnir)
 
 (defcustom nnir-retrieve-headers-override-function nil
@@ -338,7 +338,7 @@ retrieved header format.
 If this variable is nil, or if the provided function returns nil for a search
 result, `gnus-retrieve-headers' will be called instead."
   :version "24.1"
-  :type '(function)
+  :type '(choice (const :tag "gnus-retrieve-headers" nil) function)
   :group 'nnir)
 
 (defcustom nnir-imap-default-search-key "whole message"

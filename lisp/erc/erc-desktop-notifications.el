@@ -44,7 +44,7 @@
 (defcustom erc-notifications-icon nil
   "Icon to use for notification."
   :group 'erc-notifications
-  :type 'file)
+  :type '(choice (const :tag "No icon" nil) file))
 
 (defun erc-notifications-notify (nick msg)
   "Notify that NICK send some MSG.

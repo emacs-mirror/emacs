@@ -128,20 +128,27 @@ positions of the thing found."
 	(error nil)))))
 
 ;;;###autoload
-(defun thing-at-point (thing)
+(defun thing-at-point (thing &optional no-properties)
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
 `filename', `url', `email', `word', `sentence', `whitespace',
 `line', `number', and `page'.
 
+When the optional argument NO-PROPERTIES is non-nil,
+strip text properties from the return value.
+
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
-  (if (get thing 'thing-at-point)
-      (funcall (get thing 'thing-at-point))
-    (let ((bounds (bounds-of-thing-at-point thing)))
-      (if bounds
-	  (buffer-substring (car bounds) (cdr bounds))))))
+  (let ((text
+         (if (get thing 'thing-at-point)
+             (funcall (get thing 'thing-at-point))
+           (let ((bounds (bounds-of-thing-at-point thing)))
+             (when bounds
+               (buffer-substring (car bounds) (cdr bounds)))))))
+    (when (and text no-properties)
+      (set-text-properties 0 (length text) nil text))
+    text))
 
 ;; Go to beginning/end
 

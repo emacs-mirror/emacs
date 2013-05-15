@@ -133,8 +133,10 @@ This information is useful, but it takes screen space away from file names."
   :group 'tar)
 
 (defvar tar-parse-info nil)
-(defvar tar-superior-buffer nil)
-(defvar tar-superior-descriptor nil)
+(defvar tar-superior-buffer nil
+  "Buffer containing the tar archive from which a member was extracted.")
+(defvar tar-superior-descriptor nil
+  "Tar descriptor for a member extracted from an archive.")
 (defvar tar-file-name-coding-system nil)
 
 (put 'tar-superior-buffer 'permanent-local t)

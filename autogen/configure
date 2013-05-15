@@ -781,6 +781,8 @@ GL_GENERATE_STDALIGN_H_TRUE
 STDALIGN_H
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H
 NEXT_SIGNAL_H
+USE_ACL
+LIB_ACL
 LIB_PTHREAD_SIGMASK
 REPLACE_RAISE
 REPLACE_PTHREAD_SIGMASK
@@ -1076,6 +1078,17 @@ GL_GENERATE_EXECINFO_H_FALSE
 GL_GENERATE_EXECINFO_H_TRUE
 LIB_EXECINFO
 EXECINFO_H
+EOVERFLOW_VALUE
+EOVERFLOW_HIDDEN
+ENOLINK_VALUE
+ENOLINK_HIDDEN
+EMULTIHOP_VALUE
+EMULTIHOP_HIDDEN
+GL_GENERATE_ERRNO_H_FALSE
+GL_GENERATE_ERRNO_H_TRUE
+ERRNO_H
+NEXT_AS_FIRST_DIRECTIVE_ERRNO_H
+NEXT_ERRNO_H
 HAVE_DIRENT_H
 NEXT_AS_FIRST_DIRECTIVE_DIRENT_H
 NEXT_DIRENT_H
@@ -1286,6 +1299,10 @@ LIBS_MAIL
 liblockfile
 LIBXML2_LIBS
 LIBXML2_CFLAGS
+XINERAMA_LIBS
+XINERAMA_CFLAGS
+XRANDR_LIBS
+XRANDR_CFLAGS
 LIBXSM
 LIBGPM
 LIBGIF
@@ -1305,7 +1322,6 @@ FONTCONFIG_LIBS
 FONTCONFIG_CFLAGS
 LIBXMU
 LIBXTR6
-LIBACL_LIBS
 LIBGNUTLS_LIBS
 LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
@@ -1497,7 +1513,6 @@ with_dbus
 with_gconf
 with_gsettings
 with_selinux
-with_acl
 with_gnutls
 with_inotify
 with_makeinfo
@@ -1517,6 +1532,7 @@ enable_largefile
 enable_gcc_warnings
 enable_link_time_optimization
 with_x
+enable_acl
 '
       ac_precious_vars='build_alias
 host_alias
@@ -2183,6 +2199,7 @@ Optional Features:
   --enable-link-time-optimization
                           build emacs with link-time optimization. This is
                           supported only for GCC since 4.5.0.
+  --disable-acl           do not support ACLs
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2224,7 +2241,6 @@ Optional Packages:
   --without-gconf         don't compile with GConf support
   --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
-  --without-acl           don't compile with ACL support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
   --without-inotify       don't compile with inotify (file-watch) support
   --without-makeinfo      don't require makeinfo for building manuals
@@ -4290,14 +4306,6 @@ if test "${with_selinux+set}" = set; then :
   withval=$with_selinux;
 else
      with_selinux=$with_features
-fi
-
-
-# Check whether --with-acl was given.
-if test "${with_acl+set}" = set; then :
-  withval=$with_acl;
-else
-     with_acl=$with_features
 fi
 
 
@@ -7185,6 +7193,7 @@ esac
   # Code from module dtotimespec:
   # Code from module dup2:
   # Code from module environ:
+  # Code from module errno:
   # Code from module euidaccess:
   # Code from module execinfo:
   # Code from module extensions:
@@ -7223,6 +7232,7 @@ esac
   # Code from module pselect:
   # Code from module pthread_sigmask:
   # Code from module putenv:
+  # Code from module qacl:
   # Code from module readlink:
   # Code from module readlinkat:
   # Code from module root-uid:
@@ -8525,7 +8535,7 @@ case "$opsys" in
    ;;
 
   openbsd)
-   ## Han Boetes <han@mijncomputer.nl> says this is necessary,
+   ## Han Boetes <han@boetes.org> says this is necessary,
    ## otherwise Emacs dumps core on elf systems.
    LD_SWITCH_SYSTEM="-Z"
    ;;
@@ -11669,73 +11679,6 @@ $as_echo "#define HAVE_INOTIFY 1" >>confdefs.h
 
 fi
 
-HAVE_POSIX_ACL=no
-LIBACL_LIBS=
-if test "${with_acl}" = "yes"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for acl_set_file in -lacl" >&5
-$as_echo_n "checking for acl_set_file in -lacl... " >&6; }
-if test "${ac_cv_lib_acl_acl_set_file+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lacl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char acl_set_file ();
-int
-main ()
-{
-return acl_set_file ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_acl_acl_set_file=yes
-else
-  ac_cv_lib_acl_acl_set_file=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_acl_acl_set_file" >&5
-$as_echo "$ac_cv_lib_acl_acl_set_file" >&6; }
-if test "x$ac_cv_lib_acl_acl_set_file" = x""yes; then :
-  HAVE_POSIX_ACL=yes
-else
-  HAVE_POSIX_ACL=no
-fi
-
-  if test "$HAVE_POSIX_ACL" = yes; then
-
-$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
-
-    LIBACL_LIBS=-lacl
-  else
-    ac_fn_c_check_func "$LINENO" "acl_set_file" "ac_cv_func_acl_set_file"
-if test "x$ac_cv_func_acl_set_file" = x""yes; then :
-  HAVE_POSIX_ACL=yes
-else
-  HAVE_POSIX_ACL=no
-fi
-
-    if test "$HAVE_POSIX_ACL" = yes; then
-
-$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
-
-    fi
- fi
-fi
-
-
 HAVE_XAW3D=no
 LUCID_LIBW=
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
@@ -13466,6 +13409,257 @@ $as_echo "#define HAVE_X_SM 1" >>confdefs.h
       *-lSM*) ;;
       *)      LIBS="$LIBXSM $LIBS" ;;
     esac
+  fi
+fi
+
+
+### Use XRandr (-lXrandr) if available
+HAVE_XRANDR=no
+if test "${HAVE_X11}" = "yes"; then
+  XRANDR_REQUIRED=1.2.2
+  XRANDR_MODULES="xrandr >= $XRANDR_REQUIRED"
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_XRANDR=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $XRANDR_MODULES" >&5
+$as_echo_n "checking for $XRANDR_MODULES... " >&6; }
+
+        if "$PKG_CONFIG" --exists "$XRANDR_MODULES" 2>&5 &&
+	   XRANDR_CFLAGS=`"$PKG_CONFIG" --cflags "$XRANDR_MODULES" 2>&5` &&
+	   XRANDR_LIBS=`"$PKG_CONFIG" --libs "$XRANDR_MODULES" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    XRANDR_CFLAGS=`$as_echo "$XRANDR_CFLAGS" | sed -e "$edit_cflags"`
+	    XRANDR_LIBS=`$as_echo "$XRANDR_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XRANDR_CFLAGS' LIBS='$XRANDR_LIBS'" >&5
+$as_echo "yes CFLAGS='$XRANDR_CFLAGS' LIBS='$XRANDR_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            XRANDR_CFLAGS=""
+            XRANDR_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XRANDR_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$XRANDR_MODULES") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_XRANDR=yes
+  else
+     HAVE_XRANDR=no
+  fi
+
+  if test $HAVE_XRANDR = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xrandr.h" "ac_cv_header_X11_extensions_Xrandr_h" "$ac_includes_default"
+if test "x$ac_cv_header_X11_extensions_Xrandr_h" = x""yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XRRQueryExtension in -lXrandr" >&5
+$as_echo_n "checking for XRRQueryExtension in -lXrandr... " >&6; }
+if test "${ac_cv_lib_Xrandr_XRRQueryExtension+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXrandr  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XRRQueryExtension ();
+int
+main ()
+{
+return XRRQueryExtension ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xrandr_XRRQueryExtension=yes
+else
+  ac_cv_lib_Xrandr_XRRQueryExtension=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xrandr_XRRQueryExtension" >&5
+$as_echo "$ac_cv_lib_Xrandr_XRRQueryExtension" >&6; }
+if test "x$ac_cv_lib_Xrandr_XRRQueryExtension" = x""yes; then :
+  HAVE_XRANDR=yes
+fi
+
+fi
+
+
+    if test $HAVE_XRANDR = yes; then
+      XRANDR_LIBS=-lXrandr
+
+    fi
+  fi
+  if test $HAVE_XRANDR = yes; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LIBS="$LIBS"
+    CFLAGS="$XRANDR_CFLAGS $CFLAGS"
+    LIBS="$XRANDR_LIBS $LIBS"
+    for ac_func in XRRGetOutputPrimary XRRGetScreenResourcesCurrent
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+    CFLAGS="$SAVE_CFLAGS"
+    LIBS="$SAVE_LIBS"
+
+
+$as_echo "#define HAVE_XRANDR 1" >>confdefs.h
+
+  fi
+fi
+
+### Use Xinerama (-lXinerama) if available
+HAVE_XINERAMA=no
+if test "${HAVE_X11}" = "yes"; then
+  XINERAMA_REQUIRED=1.0.2
+  XINERAMA_MODULES="xinerama >= $XINERAMA_REQUIRED"
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_XINERAMA=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $XINERAMA_MODULES" >&5
+$as_echo_n "checking for $XINERAMA_MODULES... " >&6; }
+
+        if "$PKG_CONFIG" --exists "$XINERAMA_MODULES" 2>&5 &&
+	   XINERAMA_CFLAGS=`"$PKG_CONFIG" --cflags "$XINERAMA_MODULES" 2>&5` &&
+	   XINERAMA_LIBS=`"$PKG_CONFIG" --libs "$XINERAMA_MODULES" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    XINERAMA_CFLAGS=`$as_echo "$XINERAMA_CFLAGS" | sed -e "$edit_cflags"`
+	    XINERAMA_LIBS=`$as_echo "$XINERAMA_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XINERAMA_CFLAGS' LIBS='$XINERAMA_LIBS'" >&5
+$as_echo "yes CFLAGS='$XINERAMA_CFLAGS' LIBS='$XINERAMA_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            XINERAMA_CFLAGS=""
+            XINERAMA_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XINERAMA_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$XINERAMA_MODULES") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_XINERAMA=yes
+  else
+     HAVE_XINERAMA=no
+  fi
+
+  if test $HAVE_XINERAMA = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xinerama.h" "ac_cv_header_X11_extensions_Xinerama_h" "$ac_includes_default"
+if test "x$ac_cv_header_X11_extensions_Xinerama_h" = x""yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XineramaQueryExtension in -lXinerama" >&5
+$as_echo_n "checking for XineramaQueryExtension in -lXinerama... " >&6; }
+if test "${ac_cv_lib_Xinerama_XineramaQueryExtension+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXinerama  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XineramaQueryExtension ();
+int
+main ()
+{
+return XineramaQueryExtension ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xinerama_XineramaQueryExtension=yes
+else
+  ac_cv_lib_Xinerama_XineramaQueryExtension=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xinerama_XineramaQueryExtension" >&5
+$as_echo "$ac_cv_lib_Xinerama_XineramaQueryExtension" >&6; }
+if test "x$ac_cv_lib_Xinerama_XineramaQueryExtension" = x""yes; then :
+  HAVE_XINERAMA=yes
+fi
+
+fi
+
+
+    if test $HAVE_XINERAMA = yes; then
+      XINERAMA_LIBS=-lXinerama
+
+    fi
+  fi
+  if test $HAVE_XINERAMA = yes; then
+
+$as_echo "#define HAVE_XINERAMA 1" >>confdefs.h
+
   fi
 fi
 
@@ -17216,6 +17410,378 @@ $as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
   if test $gt_cv_var_environ_declaration != yes; then
     HAVE_DECL_ENVIRON=0
   fi
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for complete errno.h" >&5
+$as_echo_n "checking for complete errno.h... " >&6; }
+if test "${gl_cv_header_errno_h_complete+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#if !defined ETXTBSY
+booboo
+#endif
+#if !defined ENOMSG
+booboo
+#endif
+#if !defined EIDRM
+booboo
+#endif
+#if !defined ENOLINK
+booboo
+#endif
+#if !defined EPROTO
+booboo
+#endif
+#if !defined EMULTIHOP
+booboo
+#endif
+#if !defined EBADMSG
+booboo
+#endif
+#if !defined EOVERFLOW
+booboo
+#endif
+#if !defined ENOTSUP
+booboo
+#endif
+#if !defined ENETRESET
+booboo
+#endif
+#if !defined ECONNABORTED
+booboo
+#endif
+#if !defined ESTALE
+booboo
+#endif
+#if !defined EDQUOT
+booboo
+#endif
+#if !defined ECANCELED
+booboo
+#endif
+#if !defined EOWNERDEAD
+booboo
+#endif
+#if !defined ENOTRECOVERABLE
+booboo
+#endif
+#if !defined EILSEQ
+booboo
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "booboo" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_complete=no
+else
+  gl_cv_header_errno_h_complete=yes
+fi
+rm -f conftest*
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_complete" >&5
+$as_echo "$gl_cv_header_errno_h_complete" >&6; }
+  if test $gl_cv_header_errno_h_complete = yes; then
+    ERRNO_H=''
+  else
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_errno_h='<'errno.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <errno.h>" >&5
+$as_echo_n "checking absolute name of <errno.h>... " >&6; }
+if test "${gl_cv_next_errno_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <errno.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='\/'
+                   ;;
+               esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
+
+               gl_header_literal_regex=`echo 'errno.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
+                   s|^/[^/]|//&|
+                   p
+                   q
+                 }'
+                                                            gl_cv_next_errno_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                      sed -n "$gl_absolute_header_sed"`'"'
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_errno_h" >&5
+$as_echo "$gl_cv_next_errno_h" >&6; }
+     fi
+     NEXT_ERRNO_H=$gl_cv_next_errno_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'errno.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_errno_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_ERRNO_H=$gl_next_as_first_directive
+
+
+
+
+    ERRNO_H='errno.h'
+  fi
+
+   if test -n "$ERRNO_H"; then
+  GL_GENERATE_ERRNO_H_TRUE=
+  GL_GENERATE_ERRNO_H_FALSE='#'
+else
+  GL_GENERATE_ERRNO_H_TRUE='#'
+  GL_GENERATE_ERRNO_H_FALSE=
+fi
+
+
+  if test -n "$ERRNO_H"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for EMULTIHOP value" >&5
+$as_echo_n "checking for EMULTIHOP value... " >&6; }
+if test "${gl_cv_header_errno_h_EMULTIHOP+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#ifdef EMULTIHOP
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EMULTIHOP=yes
+else
+  gl_cv_header_errno_h_EMULTIHOP=no
+fi
+rm -f conftest*
+
+      if test $gl_cv_header_errno_h_EMULTIHOP = no; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+#ifdef EMULTIHOP
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EMULTIHOP=hidden
+fi
+rm -f conftest*
+
+        if test $gl_cv_header_errno_h_EMULTIHOP = hidden; then
+                              if ac_fn_c_compute_int "$LINENO" "EMULTIHOP" "gl_cv_header_errno_h_EMULTIHOP"        "
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+/* The following two lines are a workaround against an autoconf-2.52 bug.  */
+#include <stdio.h>
+#include <stdlib.h>
+"; then :
+
+fi
+
+        fi
+      fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_EMULTIHOP" >&5
+$as_echo "$gl_cv_header_errno_h_EMULTIHOP" >&6; }
+    case $gl_cv_header_errno_h_EMULTIHOP in
+      yes | no)
+        EMULTIHOP_HIDDEN=0; EMULTIHOP_VALUE=
+        ;;
+      *)
+        EMULTIHOP_HIDDEN=1; EMULTIHOP_VALUE="$gl_cv_header_errno_h_EMULTIHOP"
+        ;;
+    esac
+
+
+  fi
+
+
+  if test -n "$ERRNO_H"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ENOLINK value" >&5
+$as_echo_n "checking for ENOLINK value... " >&6; }
+if test "${gl_cv_header_errno_h_ENOLINK+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#ifdef ENOLINK
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_ENOLINK=yes
+else
+  gl_cv_header_errno_h_ENOLINK=no
+fi
+rm -f conftest*
+
+      if test $gl_cv_header_errno_h_ENOLINK = no; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+#ifdef ENOLINK
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_ENOLINK=hidden
+fi
+rm -f conftest*
+
+        if test $gl_cv_header_errno_h_ENOLINK = hidden; then
+                              if ac_fn_c_compute_int "$LINENO" "ENOLINK" "gl_cv_header_errno_h_ENOLINK"        "
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+/* The following two lines are a workaround against an autoconf-2.52 bug.  */
+#include <stdio.h>
+#include <stdlib.h>
+"; then :
+
+fi
+
+        fi
+      fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_ENOLINK" >&5
+$as_echo "$gl_cv_header_errno_h_ENOLINK" >&6; }
+    case $gl_cv_header_errno_h_ENOLINK in
+      yes | no)
+        ENOLINK_HIDDEN=0; ENOLINK_VALUE=
+        ;;
+      *)
+        ENOLINK_HIDDEN=1; ENOLINK_VALUE="$gl_cv_header_errno_h_ENOLINK"
+        ;;
+    esac
+
+
+  fi
+
+
+  if test -n "$ERRNO_H"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for EOVERFLOW value" >&5
+$as_echo_n "checking for EOVERFLOW value... " >&6; }
+if test "${gl_cv_header_errno_h_EOVERFLOW+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#ifdef EOVERFLOW
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EOVERFLOW=yes
+else
+  gl_cv_header_errno_h_EOVERFLOW=no
+fi
+rm -f conftest*
+
+      if test $gl_cv_header_errno_h_EOVERFLOW = no; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+#ifdef EOVERFLOW
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EOVERFLOW=hidden
+fi
+rm -f conftest*
+
+        if test $gl_cv_header_errno_h_EOVERFLOW = hidden; then
+                              if ac_fn_c_compute_int "$LINENO" "EOVERFLOW" "gl_cv_header_errno_h_EOVERFLOW"        "
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+/* The following two lines are a workaround against an autoconf-2.52 bug.  */
+#include <stdio.h>
+#include <stdlib.h>
+"; then :
+
+fi
+
+        fi
+      fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_EOVERFLOW" >&5
+$as_echo "$gl_cv_header_errno_h_EOVERFLOW" >&6; }
+    case $gl_cv_header_errno_h_EOVERFLOW in
+      yes | no)
+        EOVERFLOW_HIDDEN=0; EOVERFLOW_VALUE=
+        ;;
+      *)
+        EOVERFLOW_HIDDEN=1; EOVERFLOW_VALUE="$gl_cv_header_errno_h_EOVERFLOW"
+        ;;
+    esac
+
+
+  fi
+
 
 
 
@@ -21125,6 +21691,7 @@ $as_echo "$gl_cv_func_dup2_works" >&6; }
 
 
 
+
   LIB_EXECINFO=''
   EXECINFO_H='execinfo.h'
 
@@ -23487,6 +24054,449 @@ _ACEOF
 
 
 
+
+
+
+  # Check whether --enable-acl was given.
+if test "${enable_acl+set}" = set; then :
+  enableval=$enable_acl;
+else
+  enable_acl=auto
+fi
+
+
+  LIB_ACL=
+  use_acl=0
+  if test "x$enable_acl" != "xno"; then
+        for ac_header in sys/acl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/acl.h" "ac_cv_header_sys_acl_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_acl_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_ACL_H 1
+_ACEOF
+
+fi
+
+done
+
+    if test $ac_cv_header_sys_acl_h = yes; then
+      ac_save_LIBS=$LIBS
+
+                  if test $use_acl = 0; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing acl_get_file" >&5
+$as_echo_n "checking for library containing acl_get_file... " >&6; }
+if test "${ac_cv_search_acl_get_file+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char acl_get_file ();
+int
+main ()
+{
+return acl_get_file ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' acl pacl; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_acl_get_file=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_acl_get_file+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_acl_get_file+set}" = set; then :
+
+else
+  ac_cv_search_acl_get_file=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_acl_get_file" >&5
+$as_echo "$ac_cv_search_acl_get_file" >&6; }
+ac_res=$ac_cv_search_acl_get_file
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test "$ac_cv_search_acl_get_file" != "none required"; then
+             LIB_ACL=$ac_cv_search_acl_get_file
+           fi
+           for ac_func in acl_get_file acl_get_fd acl_set_file acl_set_fd \
+              acl_free acl_from_mode acl_from_text \
+              acl_delete_def_file acl_extended_file \
+              acl_delete_fd_np acl_delete_file_np \
+              acl_copy_ext_native acl_create_entry_np \
+              acl_to_short_text acl_free_text
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+           # If the acl_get_file bug is detected, don't enable the ACL support.
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working acl_get_file" >&5
+$as_echo_n "checking for working acl_get_file... " >&6; }
+if test "${gl_cv_func_working_acl_get_file+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  gl_cv_func_working_acl_get_file=cross-compiling
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+           #include <sys/acl.h>
+           #include <errno.h>
+
+int
+main ()
+{
+if (!acl_get_file (".", ACL_TYPE_ACCESS) && errno == ENOENT)
+              return 1;
+            return 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_working_acl_get_file=yes
+else
+  gl_cv_func_working_acl_get_file=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_working_acl_get_file" >&5
+$as_echo "$gl_cv_func_working_acl_get_file" >&6; }
+
+  if test $gl_cv_func_working_acl_get_file = yes; then :
+  use_acl=1
+fi
+
+           if test $use_acl = 1; then
+                          for ac_header in acl/libacl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "acl/libacl.h" "ac_cv_header_acl_libacl_h" "$ac_includes_default"
+if test "x$ac_cv_header_acl_libacl_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACL_LIBACL_H 1
+_ACEOF
+
+fi
+
+done
+
+
+
+
+
+
+
+
+
+  for ac_func in acl_entries
+do :
+  ac_fn_c_check_func "$LINENO" "acl_entries" "ac_cv_func_acl_entries"
+if test "x$ac_cv_func_acl_entries" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACL_ENTRIES 1
+_ACEOF
+
+else
+
+    gl_LIBOBJS="$gl_LIBOBJS $ac_func.$ac_objext"
+
+fi
+done
+
+
+             { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ACL_FIRST_ENTRY" >&5
+$as_echo_n "checking for ACL_FIRST_ENTRY... " >&6; }
+if test "${gl_cv_acl_ACL_FIRST_ENTRY+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <sys/acl.h>
+int type = ACL_FIRST_ENTRY;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_acl_ACL_FIRST_ENTRY=yes
+else
+  gl_cv_acl_ACL_FIRST_ENTRY=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_acl_ACL_FIRST_ENTRY" >&5
+$as_echo "$gl_cv_acl_ACL_FIRST_ENTRY" >&6; }
+             if test $gl_cv_acl_ACL_FIRST_ENTRY = yes; then
+
+$as_echo "#define HAVE_ACL_FIRST_ENTRY 1" >>confdefs.h
+
+             fi
+                          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ACL_TYPE_EXTENDED" >&5
+$as_echo_n "checking for ACL_TYPE_EXTENDED... " >&6; }
+if test "${gl_cv_acl_ACL_TYPE_EXTENDED+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <sys/acl.h>
+int type = ACL_TYPE_EXTENDED;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_acl_ACL_TYPE_EXTENDED=yes
+else
+  gl_cv_acl_ACL_TYPE_EXTENDED=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_acl_ACL_TYPE_EXTENDED" >&5
+$as_echo "$gl_cv_acl_ACL_TYPE_EXTENDED" >&6; }
+             if test $gl_cv_acl_ACL_TYPE_EXTENDED = yes; then
+
+$as_echo "#define HAVE_ACL_TYPE_EXTENDED 1" >>confdefs.h
+
+             fi
+           else
+             LIB_ACL=
+           fi
+
+fi
+
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in facl
+do :
+  ac_fn_c_check_func "$LINENO" "facl" "ac_cv_func_facl"
+if test "x$ac_cv_func_facl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FACL 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_facl = yes; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing acl_trivial" >&5
+$as_echo_n "checking for library containing acl_trivial... " >&6; }
+if test "${ac_cv_search_acl_trivial+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char acl_trivial ();
+int
+main ()
+{
+return acl_trivial ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' sec; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_acl_trivial=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_acl_trivial+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_acl_trivial+set}" = set; then :
+
+else
+  ac_cv_search_acl_trivial=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_acl_trivial" >&5
+$as_echo "$ac_cv_search_acl_trivial" >&6; }
+ac_res=$ac_cv_search_acl_trivial
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test "$ac_cv_search_acl_trivial" != "none required"; then
+               LIB_ACL=$ac_cv_search_acl_trivial
+             fi
+
+fi
+
+          for ac_func in acl_trivial
+do :
+  ac_fn_c_check_func "$LINENO" "acl_trivial" "ac_cv_func_acl_trivial"
+if test "x$ac_cv_func_acl_trivial" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACL_TRIVIAL 1
+_ACEOF
+
+fi
+done
+
+          use_acl=1
+        fi
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in getacl
+do :
+  ac_fn_c_check_func "$LINENO" "getacl" "ac_cv_func_getacl"
+if test "x$ac_cv_func_getacl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETACL 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_getacl = yes; then
+          use_acl=1
+        fi
+                for ac_header in aclv.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "aclv.h" "ac_cv_header_aclv_h" "#include <sys/types.h>
+"
+if test "x$ac_cv_header_aclv_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACLV_H 1
+_ACEOF
+
+fi
+
+done
+
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in aclx_get
+do :
+  ac_fn_c_check_func "$LINENO" "aclx_get" "ac_cv_func_aclx_get"
+if test "x$ac_cv_func_aclx_get" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACLX_GET 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_aclx_get = yes; then
+          use_acl=1
+        fi
+      fi
+
+            if test $use_acl = 0 || test "$ac_cv_func_aclx_get" = yes; then
+        for ac_func in statacl
+do :
+  ac_fn_c_check_func "$LINENO" "statacl" "ac_cv_func_statacl"
+if test "x$ac_cv_func_statacl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STATACL 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_statacl = yes; then
+          use_acl=1
+        fi
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in aclsort
+do :
+  ac_fn_c_check_func "$LINENO" "aclsort" "ac_cv_func_aclsort"
+if test "x$ac_cv_func_aclsort" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACLSORT 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_aclsort = yes; then
+          use_acl=1
+        fi
+      fi
+
+      LIBS=$ac_save_LIBS
+    fi
+    if test "x$enable_acl$use_acl" = "xyes0"; then
+      as_fn_error "ACLs enabled but support not detected" "$LINENO" 5
+    elif test "x$enable_acl$use_acl" = "xauto0"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libacl development library was not found or not usable." >&5
+$as_echo "$as_me: WARNING: libacl development library was not found or not usable." >&2;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: emacs will be built without ACL support." >&5
+$as_echo "$as_me: WARNING: emacs will be built without ACL support." >&2;}
+    fi
+  fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define USE_ACL $use_acl
+_ACEOF
+
+  USE_ACL=$use_acl
 
 
 
@@ -26705,6 +27715,9 @@ case "$opsys" in
    ## each); under Cocoa 31 commands are required.
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
+     if test "$NS_IMPL_COCOA" = "yes"; then
+        libs_nsgui="$libs_nsgui -framework IOKit"
+     fi
      headerpad_extra=6C8
    else
      libs_nsgui=
@@ -26727,6 +27740,8 @@ case "$opsys" in
   ## had different values in configure (in ac_link) and src/Makefile.in.
   ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
   gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_RPATH)" ;;
+
+  openbsd) LD_SWITCH_SYSTEM_TEMACS='-nopie' ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
@@ -27014,6 +28029,10 @@ if test -z "${GL_GENERATE_ALLOCA_H_TRUE}" && test -z "${GL_GENERATE_ALLOCA_H_FAL
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${GL_GENERATE_ERRNO_H_TRUE}" && test -z "${GL_GENERATE_ERRNO_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_ERRNO_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${GL_GENERATE_EXECINFO_H_TRUE}" && test -z "${GL_GENERATE_EXECINFO_H_FALSE}"; then
   as_fn_error "conditional \"GL_GENERATE_EXECINFO_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5

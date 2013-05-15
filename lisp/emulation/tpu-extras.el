@@ -436,6 +436,8 @@ A repeat count means scroll that many sections."
   (interactive)
   (tpu-cursor-free-mode -1))
 
+(provide 'tpu-extras)
+
 ;; Local Variables:
 ;; generated-autoload-file: "tpu-edt.el"
 ;; End:

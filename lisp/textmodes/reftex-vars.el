@@ -932,7 +932,7 @@ The function will be called with two arguments, the LABEL and the DEFAULT
 FORMAT, which usually is `\\label{%s}'.  The function should return the
 string to insert into the buffer."
   :group 'reftex-making-and-inserting-labels
-  :type 'function)
+  :type '(choice (const nil) function))
 
 ;; Label referencing
 

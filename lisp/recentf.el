@@ -72,6 +72,7 @@ See the command `recentf-save-list'."
 (defcustom recentf-save-file (locate-user-emacs-file "recentf" ".recentf")
   "File to save the recent list into."
   :group 'recentf
+  :version "24.4"
   :type 'file
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)

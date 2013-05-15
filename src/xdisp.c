@@ -794,6 +794,7 @@ static void set_iterator_to_next (struct it *, int);
 static void mark_window_display_accurate_1 (struct window *, int);
 static int single_display_spec_string_p (Lisp_Object, Lisp_Object);
 static int display_prop_string_p (Lisp_Object, Lisp_Object);
+static int row_for_charpos_p (struct glyph_row *, ptrdiff_t);
 static int cursor_row_p (struct glyph_row *);
 static int redisplay_mode_lines (Lisp_Object, int);
 static char *decode_mode_spec_coding (Lisp_Object, char *, int);
@@ -1392,23 +1393,34 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	      Lisp_Object cpos = make_number (charpos);
 	      Lisp_Object spec = Fget_char_property (cpos, Qdisplay, Qnil);
 	      Lisp_Object string = string_from_display_spec (spec);
+	      struct text_pos tpos;
+	      int replacing_spec_p;
 	      bool newline_in_string
 		= (STRINGP (string)
 		   && memchr (SDATA (string), '\n', SBYTES (string)));
+
+	      SET_TEXT_POS (tpos, charpos, CHAR_TO_BYTE (charpos));
+	      replacing_spec_p
+		= (!NILP (spec)
+		   && handle_display_spec (NULL, spec, Qnil, Qnil, &tpos,
+					   charpos, FRAME_WINDOW_P (it.f)));
 	      /* The tricky code below is needed because there's a
 		 discrepancy between move_it_to and how we set cursor
-		 when the display line ends in a newline from a
-		 display string.  move_it_to will stop _after_ such
-		 display strings, whereas set_cursor_from_row
-		 conspires with cursor_row_p to place the cursor on
-		 the first glyph produced from the display string.  */
+		 when PT is at the beginning of a portion of text
+		 covered by a display property or an overlay with a
+		 display property, or the display line ends in a
+		 newline from a display string.  move_it_to will stop
+		 _after_ such display strings, whereas
+		 set_cursor_from_row conspires with cursor_row_p to
+		 place the cursor on the first glyph produced from the
+		 display string.  */
 
 	      /* We have overshoot PT because it is covered by a
-		 display property whose value is a string.  If the
-		 string includes embedded newlines, we are also in the
-		 wrong display line.  Backtrack to the correct line,
-		 where the display string begins.  */
-	      if (newline_in_string)
+		 display property that replaces the text it covers.
+		 If the string includes embedded newlines, we are also
+		 in the wrong display line.  Backtrack to the correct
+		 line, where the display property begins.  */
+	      if (replacing_spec_p)
 		{
 		  Lisp_Object startpos, endpos;
 		  EMACS_INT start, end;
@@ -1434,7 +1446,8 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     rightmost character on a line that is
 		     continued or word-wrapped.  */
 		  if (it3.method == GET_FROM_BUFFER
-		      && it3.c == '\n')
+		      && (it3.c == '\n'
+			  || FETCH_BYTE (IT_BYTEPOS (it3)) == '\n'))
 		    move_it_by_lines (&it3, 1);
 		  else if (move_it_in_display_line_to (&it3, -1,
 						       it3.current_x
@@ -1502,6 +1515,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     produced from the string, until we find the
 		     rightmost glyph not from the string.  */
 		  if (it3_moved
+		      && newline_in_string
 		      && IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
 		    {
 		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]
@@ -7153,6 +7167,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 	  else if (it->dpvec_char_len > 0)
 	    {
 	      if (it->method == GET_FROM_STRING
+		  && it->current.overlay_string_index >= 0
 		  && it->n_overlay_strings > 0)
 		it->ignore_overlay_strings_at_pos_p = 1;
 	      it->len = it->dpvec_char_len;
@@ -16895,10 +16910,9 @@ row_containing_pos (struct window *w, ptrdiff_t charpos,
 	     || (MATRIX_ROW_END_CHARPOS (row) == charpos
 		 /* The end position of a row equals the start
 		    position of the next row.  If CHARPOS is there, we
-		    would rather display it in the next line, except
-		    when this line ends in ZV.  */
-		 && !row->ends_at_zv_p
-		 && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
+		    would rather consider it displayed in the next
+		    line, except when this line ends in ZV.  */
+		 && !row_for_charpos_p (row, charpos)))
 	  && charpos >= MATRIX_ROW_START_CHARPOS (row))
 	{
 	  struct glyph *g;
@@ -16906,10 +16920,10 @@ row_containing_pos (struct window *w, ptrdiff_t charpos,
 	  if (NILP (BVAR (XBUFFER (w->contents), bidi_display_reordering))
 	      || (!best_row && !row->continued_p))
 	    return row;
-	  /* In bidi-reordered rows, there could be several rows
-	     occluding point, all of them belonging to the same
-	     continued line.  We need to find the row which fits
-	     CHARPOS the best.  */
+	  /* In bidi-reordered rows, there could be several rows whose
+	     edges surround CHARPOS, all of these rows belonging to
+	     the same continued line.  We need to find the row which
+	     fits CHARPOS the best.  */
 	  for (g = row->glyphs[TEXT_AREA];
 	       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
 	       g++)
@@ -18713,15 +18727,15 @@ highlight_trailing_whitespace (struct frame *f, struct glyph_row *row)
 
 
 /* Value is non-zero if glyph row ROW should be
-   used to hold the cursor.  */
+   considered to hold the buffer position CHARPOS.  */
 
 static int
-cursor_row_p (struct glyph_row *row)
+row_for_charpos_p (struct glyph_row *row, ptrdiff_t charpos)
 {
   int result = 1;
 
-  if (PT == CHARPOS (row->end.pos)
-      || PT == MATRIX_ROW_END_CHARPOS (row))
+  if (charpos == CHARPOS (row->end.pos)
+      || charpos == MATRIX_ROW_END_CHARPOS (row))
     {
       /* Suppose the row ends on a string.
 	 Unless the row is continued, that means it ends on a newline
@@ -18747,7 +18761,7 @@ cursor_row_p (struct glyph_row *row)
 		if (STRINGP (glyph->object))
 		  {
 		    Lisp_Object prop
-		      = Fget_char_property (make_number (PT),
+		      = Fget_char_property (make_number (charpos),
 					    Qdisplay, Qnil);
 		    result =
 		      (!NILP (prop)
@@ -18799,6 +18813,15 @@ cursor_row_p (struct glyph_row *row)
     }
 
   return result;
+}
+
+/* Value is non-zero if glyph row ROW should be
+   used to hold the cursor.  */
+
+static int
+cursor_row_p (struct glyph_row *row)
+{
+  return row_for_charpos_p (row, PT);
 }
 
 

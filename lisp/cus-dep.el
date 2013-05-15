@@ -36,12 +36,25 @@
 ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
   "Regexp matching file names not to scan for `custom-make-dependencies'.")
 
-(autoload 'autoload-rubric "autoload")
+(require 'autoload)
+
+;; Hack workaround for bug#14384.
+;; Define defcustom-mh as an alias for defcustom, etc.
+;; Only do this in batch mode to avoid messing up a normal Emacs session.
+;; Alternative would be to load mh-e when making cus-load.
+;; (Would be better to split just the necessary parts of mh-e into a
+;; separate file and only load that.)
+(when (and noninteractive)
+  (mapc (lambda (e) (let ((sym (intern (format "%s-mh" e))))
+		      (or (fboundp sym)
+			  (defalias sym e))))
+	'(defcustom defface defgroup)))
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (let ((enable-local-eval nil)
+	(enable-local-variables :safe)
 	subdir)
     (with-temp-buffer
       ;; Use up command-line-args-left else Emacs can try to open
@@ -60,14 +73,17 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                         (string-match preloaded file)
                         (not (file-exists-p file)))
               (erase-buffer)
+              (kill-all-local-variables)
               (insert-file-contents file)
+              (hack-local-variables)
               (goto-char (point-min))
               (string-match "\\`\\(.*\\)\\.el\\'" file)
-              (let ((name (file-name-nondirectory (match-string 1 file)))
+              (let ((name (or generated-autoload-load-name ; see bug#5277
+                              (file-name-nondirectory (match-string 1 file))))
                     (load-file-name file))
                 (if (save-excursion
                       (re-search-forward
-		     (concat "(provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
+		     (concat "(\\(cc-\\)?provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
 			     (regexp-quote name) "[ \t\n)]")
 		     nil t))
                     (setq name (intern name)))
@@ -78,6 +94,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                       (let ((expr (read (current-buffer))))
                         (condition-case nil
                             (let ((custom-dont-initialize t))
+                              ;; Why do we need to eval just for the name?
                               (eval expr)
                               (put (nth 1 expr) 'custom-where name))
                           (error nil))))

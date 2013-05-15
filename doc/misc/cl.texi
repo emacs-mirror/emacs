@@ -4850,10 +4850,27 @@ generated directly inside Emacs will not be caught since they make
 direct C-language calls to the message routines rather than going
 through the Lisp @code{message} function.
 
+For those cases where the dynamic scoping of @code{flet} is desired,
+@code{cl-flet} is clearly not a substitute.  The most direct replacement would
+be instead to use @code{cl-letf} to temporarily rebind @code{(symbol-function
+'@var{fun})}.  But in most cases, a better substitute is to use an advice, such
+as:
+
+@example
+(defvar my-fun-advice-enable nil)
+(add-advice '@var{fun} :around
+            (lambda (orig &rest args)
+              (if my-fun-advice-enable (do-something)
+                (apply orig args))))
+@end example
+
+so that you can then replace the @code{flet} with a simple dynamically scoped
+binding of @code{my-fun-advice-enable}.
+
 @c Bug#411.
-Note that many primitives (e.g., @code{+}) have special byte-compile
-handling.  Attempts to redefine such functions using @code{flet} will
-fail if byte-compiled.
+Note that many primitives (e.g., @code{+}) have special byte-compile handling.
+Attempts to redefine such functions using @code{flet}, @code{cl-letf}, or an
+advice will fail when byte-compiled.
 @c Or cl-flet.
 @c In such cases, use @code{labels} instead.
 @end defmac

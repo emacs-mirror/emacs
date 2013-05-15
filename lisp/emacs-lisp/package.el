@@ -6,6 +6,7 @@
 ;; Created: 10 Mar 2007
 ;; Version: 1.0.1
 ;; Keywords: tools
+;; Package-Requires: ((tabulated-list "1.0"))
 
 ;; This file is part of GNU Emacs.
 
@@ -613,8 +614,8 @@ EXTRA-PROPERTIES is currently unused."
 
 (defvar tar-parse-info)
 (declare-function tar-untar-buffer "tar-mode" ())
-(declare-function tar-header-name "tar-mode" (tar-header))
-(declare-function tar-header-link-type "tar-mode" (tar-header))
+(declare-function tar-header-name "tar-mode" (tar-header) t)
+(declare-function tar-header-link-type "tar-mode" (tar-header) t)
 
 (defun package-untar-buffer (dir)
   "Untar the current buffer.
