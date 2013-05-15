@@ -1,8 +1,10 @@
 2013-05-15  Glenn Morris  <rgm@gnu.org>
 
-	* cus-dep.el (custom-make-dependencies): Ignore dotfiles (dir-locals).
+	* cus-dep.el: Provide a feature.
+	(custom-make-dependencies): Ignore dotfiles (dir-locals).
 	Don't mistakenly ignore files whose basenames match a basename
 	from preloaded-file-list (eg cedet/ede/simple.el).
+	Add a fallback method for getting :group.
 
 2013-05-15  Juri Linkov  <juri@jurta.org>
 
