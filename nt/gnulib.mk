@@ -463,6 +463,14 @@ EXTRA_libgnu_a_SOURCES += putenv.c
 
 ## end   gnulib module putenv
 
+## begin gnulib module qacl
+
+libgnu_a_SOURCES += acl-errno-valid.c
+
+EXTRA_DIST += acl.h
+
+## end   gnulib module qacl
+
 ## begin gnulib module readlink
 
 
