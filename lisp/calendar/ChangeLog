@@ -1,3 +1,8 @@
+2013-05-15  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-jump-to-category): Fix wrong variable left over
+	from previous change.
+
 2013-05-14  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Improve handling of jumping to a category, in

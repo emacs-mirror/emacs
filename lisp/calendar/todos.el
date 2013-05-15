@@ -3616,7 +3616,7 @@ Categories mode."
   (if (null todos-files)
       (todos-show)
     (let* ((archive (eq where 'archive))
-	   (cat (unless archive noninteractive))
+	   (cat (unless archive where))
 	   (file0 (when cat		; We're in Todos Categories mode.
 		    ;; With non-nil `todos-skip-archived-categories'
 		    ;; jump to archive file of a category with only
