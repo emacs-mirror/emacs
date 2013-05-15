@@ -515,12 +515,12 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-so" 'isearch-occur)
     (define-key map "\M-shr" 'isearch-highlight-regexp)
 
-    ;; The key translations defined in the C-x 8 prefix should insert
-    ;; characters into the search string.  See iso-transl.el.
+    ;; The key translations defined in the C-x 8 prefix should add
+    ;; characters to the search string.  See iso-transl.el.
     (define-key map "\C-x" nil)
     (define-key map [?\C-x t] 'isearch-other-control-char)
     (define-key map "\C-x8" nil)
-    (define-key map "\C-x8\r" 'isearch-insert-char-by-name)
+    (define-key map "\C-x8\r" 'isearch-char-by-name)
 
     map)
   "Keymap for `isearch-mode'.")
@@ -679,6 +679,8 @@ Type \\[isearch-yank-kill] to yank the last string of killed text.
 Type \\[isearch-yank-pop] to replace string just yanked into search prompt
  with string killed before it.
 Type \\[isearch-quote-char] to quote control character to search for it.
+Type \\[isearch-char-by-name] to add a character to search by Unicode name,\
+ with completion.
 \\[isearch-abort] while searching or when search has failed cancels input\
  back to what has
  been found successfully.
@@ -1870,11 +1872,12 @@ Subword is used when `subword-mode' is activated. "
    (lambda () (let ((inhibit-field-text-motion t))
 		(line-end-position (if (eolp) 2 1))))))
 
-(defun isearch-insert-char-by-name ()
-  "Read a character by its Unicode name and insert it into search string."
+(defun isearch-char-by-name ()
+  "Read a character by its Unicode name and add it to the search string.
+Completion is available like in `read-char-by-name' used by `insert-char'."
   (interactive)
   (with-isearch-suspended
-   (let ((char (read-char-by-name "Insert character (Unicode name or hex): ")))
+   (let ((char (read-char-by-name "Add character to search (Unicode name or hex): ")))
      (when char
        (setq isearch-new-string (concat isearch-string (string char))
 	     isearch-new-message (concat isearch-message

@@ -1,5 +1,10 @@
 2013-05-15  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-char-by-name): Rename from
+	`isearch-insert-char-by-name'.  Doc fix.
+	(isearch-forward): Mention `isearch-char-by-name' in
+	the docstring.  (Bug#13348)
+
 	* isearch.el (minibuffer-local-isearch-map): Bind "\r" to
 	`exit-minibuffer' instead of
 	`isearch-nonincremental-exit-minibuffer'.
