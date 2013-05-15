@@ -1,5 +1,8 @@
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-extra.el (cl-getf): Return the proper value in
+	the setter (bug#14387).
+
 	* progmodes/f90.el (f90-blocks-re): Include the terminating \> in the
 	surrounding group (bug#14402).
 
