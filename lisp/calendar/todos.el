@@ -399,7 +399,7 @@ The amount of indentation is given by user option
   (unless (member '(continuation) fringe-indicator-alist)
     (push '(continuation) fringe-indicator-alist)))
 
-(defcustom todos-indent-to-here 6
+(defcustom todos-indent-to-here 3
   "Number of spaces `todos-line-wrapping-function' indents to."
   :type '(integer :validate
 		  (lambda (widget)
@@ -2996,6 +2996,7 @@ which is the value of the user option
 (defun todos-modes-set-1 ()
   ""
   (set (make-local-variable 'font-lock-defaults) '(todos-font-lock-keywords t))
+  (set (make-local-variable 'tab-width) todos-indent-to-here)
   (set (make-local-variable 'indent-line-function) 'todos-indent)
   (when todos-wrap-lines (funcall todos-line-wrapping-function)))
 
@@ -4759,10 +4760,8 @@ the priority is not given by HERE but by prompting."
 			  todos-nondiary-end)
 			" " new-item))
 	  ;; Indent newlines inserted by C-q C-j if nonspace char follows.
-	  (setq new-item (replace-regexp-in-string
-			  "\\(\n\\)[^[:blank:]]"
-			  (concat "\n" (make-string todos-indent-to-here 32))
-			  new-item nil nil 1))
+	  (setq new-item (replace-regexp-in-string "\\(\n\\)[^[:blank:]]"
+						   "\n\t" new-item nil nil 1))
 	  (unwind-protect
 	      (progn
 		;; Make sure the correct category is selected.  There
@@ -4945,10 +4944,8 @@ minibuffer; otherwise, edit it in Todos Edit mode."
 	      (setq new (read-from-minibuffer
 			 "Item must start with a date: " new))))
 	  ;; Ensure lines following hard newlines are indented.
-	  (setq new (replace-regexp-in-string
-		     "\\(\n\\)[^[:blank:]]"
-		     (concat "\n" (make-string todos-indent-to-here 32)) new
-		     nil nil 1))
+	  (setq new (replace-regexp-in-string "\\(\n\\)[^[:blank:]]"
+					      "\n\t" new nil nil 1))
 	  ;; If user moved point during editing, make sure it moves back.
 	  (goto-char opoint)
 	  (todos-remove-item)
@@ -4996,9 +4993,7 @@ in the number or names of categories."
 	    (regex "\\(\n\\)[^[:blank:]]"))
 	;; Ensure lines following hard newlines are indented.
 	(when (string-match regex (buffer-string))
-	  (replace-regexp-in-string
-	   regex (concat "\n" (make-string todos-indent-to-here 32))
-	   nil nil 1)
+	  (setq item (replace-regexp-in-string regex "\n\t" item nil nil 1))
 	  (delete-region (point-min) (point-max))
 	  (insert item))
 	(kill-buffer))

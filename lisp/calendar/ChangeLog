@@ -1,5 +1,14 @@
 2013-05-15  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: Use tab instead of spaces to indent.
+	(todos-indent-to-here): Change default value.
+	(todos-modes-set-1): Make tab-width a local variable and set it to
+	todos-indent-to-here.
+	(todos-insert-item-1, todos-edit-item): Use tab not spaces to indent.
+	(todos-edit-quit): Use tab not spaces to indent and fix omission of item.
+
+2013-05-15  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-jump-to-category): Fix wrong variable left over
 	from previous change.
 
