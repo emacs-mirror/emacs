@@ -4,8 +4,13 @@
 # We want to use getopt.h from gnulib
 ac_cv_header_getopt_h=no
 
-# Implemented in w32.c
+# ACL functions are implemented in w32.c
+ac_cv_search_acl_get_file="none required"
+ac_cv_func_acl_get_file=yes
 ac_cv_func_acl_set_file=yes
+ac_cv_func_acl_free=yes
+ac_cv_func_acl_from_text=yes
+gl_cv_func_working_acl_get_file=yes
 # Autoconf's test program is not smart enough, and fails to detect gethostname
 ac_cv_func_gethostname=yes
 # Implemented as sys_select in w32proc.c
