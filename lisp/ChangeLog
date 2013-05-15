@@ -1,7 +1,34 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nxml/nxml-mode.el: Treat unclosed <[[, <?, comment, and other
+	literals as extending to EOB.
+	(nxml-last-fontify-end): Remove unused variable.
+	(nxml-after-change1): Use with-silent-modifications.
+	(nxml-extend-after-change-region): Simplify.
+	(nxml-extend-after-change-region1): Remove function.
+	(nxml-after-change1): Don't adjust for dependent regions.
+	(nxml-fontify-matcher): Simplify.
+	* nxml/xmltok.el (xmltok-dependent-regions): Remove variable.
+	(xmltok-add-dependent): Remove function.
+	(xmltok-scan-after-lt, xmltok-scan-after-processing-instruction-open)
+	(xmltok-scan-after-comment-open, xmltok-scan-prolog-literal)
+	(xmltok-scan-prolog-after-processing-instruction-open): Treat
+	unclosed <[[, <?, comment, and other literals as extending to EOB.
+	* nxml/rng-valid.el (rng-mark-xmltok-dependent-regions)
+	(rng-mark-xmltok-dependent-region, rng-dependent-region-changed):
+	Remove functions.
+	(rng-do-some-validation-1): Don't mark dependent regions.
+	* nxml/nxml-rap.el (nxml-adjust-start-for-dependent-regions)
+	(nxml-mark-parse-dependent-regions, nxml-mark-parse-dependent-region)
+	(nxml-clear-dependent-regions): Remove functions.
+	(nxml-scan-after-change, nxml-scan-prolog, nxml-tokenize-forward)
+	(nxml-ensure-scan-up-to-date):
+	Don't clear&mark dependent regions.
+
 2013-05-15  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (octave-goto-function-definition): Improve
-	and fix callers.
+	* progmodes/octave.el (octave-goto-function-definition):
+	Improve and fix callers.
 
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -277,7 +304,8 @@
 	their declaration.
 	(vhdl-mode-syntax-table-init): Remove.
 
-	* progmodes/m4-mode.el (m4-mode-syntax-table): Add comment on last change.
+	* progmodes/m4-mode.el (m4-mode-syntax-table): Add comment on
+	last change.
 
 	* progmodes/ld-script.el (ld-script-mode-syntax-table): Use symbol
 	syntax for "_".
@@ -292,7 +320,8 @@
 	Handle a _ with symbol syntax.
 	(autoconf-mode): Don't change the syntax-table for imenu and font-lock.
 
-	* progmodes/ada-mode.el (ada-mode-abbrev-table): Consolidate declaration.
+	* progmodes/ada-mode.el (ada-mode-abbrev-table):
+	Consolidate declaration.
 	(ada-mode-syntax-table, ada-mode-symbol-syntax-table): Initialize in
 	the declaration.
 	(ada-create-syntax-table): Remove.
