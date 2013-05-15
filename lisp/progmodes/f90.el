@@ -249,8 +249,8 @@
   "Qualification of END statements according to the matching block start.
 For example, change the END that closes an IF block to END IF.
 If the block has a label, add it as well (unless `f90-smart-end-names'
-says not to).  Allowed values are 'blink, 'no-blink, and nil.  If nil,
-nothing is done.  The other two settings have the same effect, but 'blink
+says not to).  Allowed values are `blink', `no-blink', and nil.  If nil,
+nothing is done.  The other two settings have the same effect, but `blink'
 additionally blinks the cursor to the start of the block."
   :type  '(choice (const blink) (const no-blink) (const nil))
   :safe  (lambda (value) (memq value '(blink no-blink nil)))
@@ -842,14 +842,14 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 ;; Regexps for finding program structures.
 (defconst f90-blocks-re
-  (concat "\\(block[ \t]*data\\|"
+  (concat "\\(\\(?:block[ \t]*data\\|"
           (regexp-opt '("do" "if" "interface" "function" "module" "program"
                         "select" "subroutine" "type" "where" "forall"
                         ;; F2003.
                         "enum" "associate"
                         ;; F2008.
                         "submodule" "block" "critical"))
-          "\\)\\_>")
+          "\\)\\_>\\)")
   "Regexp potentially indicating a \"block\" of F90 code.")
 
 (defconst f90-program-block-re
@@ -1138,8 +1138,8 @@ Variables controlling indentation style and extra features:
   Automatic insertion of \& at beginning of continuation lines (default t).
 `f90-smart-end'
   From an END statement, check and fill the end using matching block start.
-  Allowed values are 'blink, 'no-blink, and nil, which determine
-  whether to blink the matching beginning (default 'blink).
+  Allowed values are `blink', `no-blink', and nil, which determine
+  whether to blink the matching beginning (default `blink').
 `f90-auto-keyword-case'
   Automatic change of case of keywords (default nil).
   The possibilities are `downcase-word', `upcase-word', `capitalize-word'.

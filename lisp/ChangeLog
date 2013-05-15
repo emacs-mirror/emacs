@@ -1,3 +1,8 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/f90.el (f90-blocks-re): Include the terminating \> in the
+	surrounding group (bug#14402).
+
 2013-05-14  Juri Linkov  <juri@jurta.org>
 
 	* subr.el (find-tag-default-as-regexp): Return nil if `tag' is nil.
@@ -10,8 +15,8 @@
 
 2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
-	* progmodes/gdb-mi.el (gdb-running, gdb-starting): Remove
-	signals for which replies are never received.
+	* progmodes/gdb-mi.el (gdb-running, gdb-starting):
+	Remove signals for which replies are never received.
 
 2013-05-14  Jean-Philippe Gravel  <jpgravel@gmail.com>
 
@@ -120,8 +125,8 @@
 
 	* progmodes/octave.el (octave-indent-comment): Improve.
 	(octave-eldoc-message-style, octave-eldoc-cache): New variables.
-	(octave-eldoc-function-signatures, octave-eldoc-function): New
-	functions.
+	(octave-eldoc-function-signatures, octave-eldoc-function):
+	New functions.
 	(octave-mode, inferior-octave-mode): Add eldoc support.
 
 2013-05-11  Richard Stallman  <rms@gnu.org>
@@ -166,8 +171,8 @@
 
 2013-05-10  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/octave.el (inferior-octave-completion-table): No
-	longer a function and all uses changed.  Use cache to speed up
+	* progmodes/octave.el (inferior-octave-completion-table):
+	No longer a function and all uses changed.  Use cache to speed up
 	completion due to bug#11906.
 	(octave-beginning-of-defun): Re-write to be more general.
 
@@ -357,7 +362,7 @@
 	* progmodes/octave.el (octave-syntax-propertize-function): Change
 	\'s syntax to escape when inside double-quoted strings.  (Bug#14332)
 	(octave-font-lock-keywords): Use octave-operator-regexp.
-	(octave-completion-at-point): Renamed from
+	(octave-completion-at-point): Rename from
 	octave-completion-at-point-function.
 	(inferior-octave-directory-tracker): Robustify.
 	(octave-text-functions): Remove and fix its uses.  No such things
