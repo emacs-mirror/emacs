@@ -1,7 +1,7 @@
 /* arenavm.c: VIRTUAL MEMORY ARENA CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -89,8 +89,8 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 /* Forward declarations */
 
 static void sparePagesPurge(VMArena vmArena);
-static ArenaClass VMArenaClassGet(void);
-static ArenaClass VMNZArenaClassGet(void);
+extern ArenaClass VMArenaClassGet(void);
+extern ArenaClass VMNZArenaClassGet(void);
 static void VMCompact(Arena arena, Trace trace);
 
 
@@ -1816,7 +1816,7 @@ mps_arena_class_t mps_arena_class_vmnz(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
