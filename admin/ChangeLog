@@ -1,3 +1,7 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quick-install-emacs: Don't prune DOC-* files a any more.
+
 2013-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* cus-test.el (cus-test-get-lisp-files): Ignore obsolete/.

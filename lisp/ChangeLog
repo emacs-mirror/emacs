@@ -1,5 +1,7 @@
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadup.el: Just use unversioned DOC.
+
 	* nxml/nxml-mode.el: Treat unclosed <[[, <?, comment, and other
 	literals as extending to EOB.
 	(nxml-last-fontify-end): Remove unused variable.

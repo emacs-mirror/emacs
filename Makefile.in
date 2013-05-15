@@ -581,10 +581,6 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 ## guaranteed to do the right thing; eg if we are root and tar is
 ## preserving source permissions.
 
-## We install only the relevant DOC file if possible
-## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
-## (Note "otherwise" is inaccurate since 2009-08-23.)
-
 ## Note that install-arch-indep deletes and recreates the entire
 ## installed etc/ directory, so we need it to run before this does.
 install-doc: src install-arch-indep
@@ -592,13 +588,7 @@ install-doc: src install-arch-indep
 	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
 	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${docdir}; /bin/pwd` ]; \
 	then \
-	   fullversion=`./src/emacs --version | sed -n '1 s/GNU Emacs *//p'`; \
-	   if [ -f "./etc/DOC-$${fullversion}" ]; \
-	   then \
-	     docfile="DOC-$${fullversion}"; \
-	   else \
-	     docfile="DOC"; \
-	   fi; \
+	   docfile="DOC"; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
 	   ${INSTALL_DATA} etc/$${docfile} $(DESTDIR)${docdir}/$${docfile}; \
 	   $(set_installuser); \

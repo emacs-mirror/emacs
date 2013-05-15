@@ -1,3 +1,8 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (install-doc): DOC file is not version specific any more.
+	* .bzrignore: Don't ignore DOC-* any more.
+
 2013-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (LD_SWITCH_SYSTEM_TEMACS): OpenBSD needs -nopie.

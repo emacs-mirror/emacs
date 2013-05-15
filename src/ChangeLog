@@ -1,5 +1,9 @@
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* makefile.w32-in (DOC): Use just "DOC".
+
+	* Makefile.in (bootstrap-clean): DOC-* doesn't exist any more.
+
 	* process.c: Export default filters and sentinels to Elisp.
 	(Qinternal_default_process_sentinel, Qinternal_default_process_filter):
 	New constants.

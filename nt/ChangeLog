@@ -1,3 +1,7 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (clean, top-distclean): DOC-X doesn't exist any more.
+
 2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt: Sync with autogen/config.in.

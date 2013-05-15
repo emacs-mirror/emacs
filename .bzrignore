@@ -23,7 +23,6 @@ configure.lineno
 conftest*
 core
 DOC
-DOC-*
 emacs-*/
 makefile
 Makefile

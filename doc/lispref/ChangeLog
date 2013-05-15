@@ -1,3 +1,9 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loading.texi (Autoload):
+	* help.texi (Documentation Basics, Accessing Documentation)
+	(Accessing Documentation, Accessing Documentation): DOC-* is now DOC.
+
 2013-04-23  Glenn Morris  <rgm@gnu.org>
 
 	* internals.texi (Writing Emacs Primitives): Remove obvious example.
@@ -24,8 +30,8 @@
 2013-04-06  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (Faces): Minor clarifications.
-	(Defining Faces): Clarify default vs custom face specs.  Document
-	face-spec-set.
+	(Defining Faces): Clarify default vs custom face specs.
+	Document face-spec-set.
 
 	* display.texi (Overlay Properties):
 	* text.texi (Special Properties): Use the "anonymous face"
@@ -2050,8 +2056,8 @@
 
 2012-02-04  Chong Yidong  <cyd@gnu.org>
 
-	* functions.texi (What Is a Function): Add closures.  Mention
-	"return value" terminology.  Add xref for command-execute.
+	* functions.texi (What Is a Function): Add closures.
+	Mention "return value" terminology.  Add xref for command-execute.
 	Remove unused "keystroke command" terminology.
 	(Lambda Expressions): Give a different example than in the
 	following subsection.  Add xref to Anonymous Functions.
@@ -11598,7 +11604,7 @@
 
 2002-05-13  Kim F. Storm  <storm@cua.dk>
 
-	* variables.texi (Intro to Buffer-Local): Updated warning and
+	* variables.texi (Intro to Buffer-Local): Update warning and
 	example relating to changing buffer inside let.
 
 2002-03-10  Jan Djärv  <jan.h.d@swipnet.se>
