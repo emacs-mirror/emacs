@@ -83,9 +83,10 @@
 
 ;;; Code:
 
-(defgroup refill nil
-  "Refilling paragraphs on changes."
-  :group 'fill)
+;; Unused.
+;;; (defgroup refill nil
+;;;   "Refilling paragraphs on changes."
+;;;   :group 'fill)
 
 (defvar refill-ignorable-overlay nil
   "Portion of the most recently filled paragraph not needing filling.
@@ -222,7 +223,8 @@ characters only cause refilling if they would cause
 auto-filling.
 
 For true \"word wrap\" behavior, use `visual-line-mode' instead."
-  :group 'refill
+  ;; Not global, so no effect.
+;;;  :group 'refill
   :lighter " Refill"
   :keymap '(("\177" . backward-delete-char-untabify))
   ;; Remove old state if necessary

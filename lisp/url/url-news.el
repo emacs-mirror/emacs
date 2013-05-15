@@ -28,9 +28,10 @@
 (autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
 
-(defgroup url-news nil
-  "News related options."
-  :group 'url)
+;; Unused.
+;;; (defgroup url-news nil
+;;;   "News related options."
+;;;   :group 'url)
 
 (defun url-news-open-host (host port user pass)
   (if (fboundp 'nnheader-init-server-buffer)

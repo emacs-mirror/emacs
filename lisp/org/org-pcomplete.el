@@ -46,6 +46,7 @@
 
 ;;;; Customization variables
 
+;; Unused.  Cf org-completion.
 (defgroup org-complete nil
   "Outline-based notes management and organizer."
   :tag "Org"

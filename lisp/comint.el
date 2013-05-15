@@ -148,10 +148,11 @@
   "Completion facilities in comint."
   :group 'comint)
 
-(defgroup comint-source nil
-  "Source finding facilities in comint."
-  :prefix "comint-"
-  :group 'comint)
+;; Unused.
+;;; (defgroup comint-source nil
+;;;   "Source finding facilities in comint."
+;;;   :prefix "comint-"
+;;;   :group 'comint)
 
 (defvar comint-prompt-regexp "^"
   "Regexp to recognize prompts in the inferior process.

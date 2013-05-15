@@ -111,9 +111,10 @@
   "Directory support in shell mode."
   :group 'shell)
 
-(defgroup shell-faces nil
-  "Faces in shell buffers."
-  :group 'shell)
+;; Unused.
+;;; (defgroup shell-faces nil
+;;;   "Faces in shell buffers."
+;;;   :group 'shell)
 
 ;;;###autoload
 (defcustom shell-dumb-shell-regexp (purecopy "cmd\\(proxy\\)?\\.exe")

@@ -1,5 +1,35 @@
 2013-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* cus-start.el (show-trailing-whitespace): Move to editing basics.
+	* faces.el (trailing-whitespace): Don't use whitespace-faces group.
+	* obsolete/old-whitespace.el (whitespace-faces): Remove group.
+	(whitespace-highlight): Move to whitespace group.
+
+	* comint.el (comint-source):
+	* pcmpl-linux.el (pcmpl-linux):
+	* shell.el (shell-faces):
+	* eshell/esh-opt.el (eshell-opt):
+	* international/ccl.el (ccl): Remove empty custom groups.
+
+	* completion.el (dynamic-completion-mode):
+	* jit-lock.el (jit-lock-debug-mode):
+	* minibuffer.el (completion-in-region-mode):
+	* type-break.el (type-break-mode-line-message-mode)
+	(type-break-query-mode):
+	* emulation/tpu-edt.el (tpu-edt-mode):
+	* progmodes/subword.el (global-subword-mode, global-superword-mode):
+	* progmodes/vhdl-mode.el (vhdl-electric-mode, vhdl-stutter-mode):
+	* term/vt100.el (vt100-wide-mode): Specify explicit :group.
+
+	* term/xterm.el (xterm): Change parent group to terminals.
+
+	* master.el (master): Remove empty custom group.
+	(master-mode): Remove unused :group argument.
+	* textmodes/refill.el (refill): Remove empty custom group.
+	(refill-mode): Remove unused :group argument.
+
+	* textmodes/rst.el (rst-compile-toolsets): Use rst-compile group.
+
 	* cus-dep.el: Provide a feature.
 	(custom-make-dependencies): Ignore dotfiles (dir-locals).
 	Don't mistakenly ignore files whose basenames match a basename

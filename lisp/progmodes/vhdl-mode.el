@@ -8327,14 +8327,14 @@ project is defined."
 With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable it if ARG
 is omitted or nil."
-  :global t)
+  :global t :group 'vhdl-mode)
 
 (define-minor-mode vhdl-stutter-mode
   "Toggle VHDL stuttering mode.
 With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable it if ARG
 is omitted or nil."
-  :global t)
+  :global t :group 'vhdl-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stuttering
