@@ -1,4 +1,4 @@
-;;; use-package --- A use-package declaration for simplifying your .emacs
+;;; use-package.el --- A use-package declaration for simplifying your .emacs
 
 ;; Copyright (C) 2012 John Wiegley
 
