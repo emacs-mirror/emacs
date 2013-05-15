@@ -1,3 +1,14 @@
+2013-05-15  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (minibuffer-local-isearch-map): Bind "\r" to
+	`exit-minibuffer' instead of
+	`isearch-nonincremental-exit-minibuffer'.
+	(isearch-edit-string): Remove mention of
+	`isearch-nonincremental-exit-minibuffer' from docstring.
+	(isearch-nonincremental-exit-minibuffer): Mark as obsolete.
+	(isearch-forward-exit-minibuffer)
+	(isearch-reverse-exit-minibuffer): Add docstring.  (Bug#13348)
+
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loadup.el: Just use unversioned DOC.

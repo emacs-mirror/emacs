@@ -47,7 +47,7 @@
 ;; modify the search string before executing the search.  There are
 ;; three commands to terminate the editing: C-s and C-r exit the
 ;; minibuffer and search forward and reverse respectively, while C-m
-;; exits and does a nonincremental search.
+;; exits and searches in the last search direction.
 
 ;; Exiting immediately from isearch uses isearch-edit-string instead
 ;; of nonincremental-search, if search-nonincremental-instead is non-nil.
@@ -528,7 +528,7 @@ This is like `describe-bindings', but displays only Isearch keys."
 (defvar minibuffer-local-isearch-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\r"    'isearch-nonincremental-exit-minibuffer)
+    (define-key map "\r"    'exit-minibuffer)
     (define-key map "\M-\t" 'isearch-complete-edit)
     (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
     (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
@@ -1273,7 +1273,6 @@ You can update the global isearch variables by setting new values to
 The following additional command keys are active while editing.
 \\<minibuffer-local-isearch-map>
 \\[exit-minibuffer] to resume incremental searching with the edited string.
-\\[isearch-nonincremental-exit-minibuffer] to do one nonincremental search.
 \\[isearch-forward-exit-minibuffer] to resume isearching forward.
 \\[isearch-reverse-exit-minibuffer] to resume isearching backward.
 \\[isearch-complete-edit] to complete the search string using the search ring."
@@ -1307,13 +1306,18 @@ The following additional command keys are active while editing.
   (interactive)
   (setq isearch-nonincremental t)
   (exit-minibuffer))
+;; Changing the value of `isearch-nonincremental' has no effect here,
+;; because `isearch-edit-string' ignores this change.  Thus marked as obsolete.
+(make-obsolete 'isearch-nonincremental-exit-minibuffer 'exit-minibuffer "24.4")
 
 (defun isearch-forward-exit-minibuffer ()
+  "Resume isearching forward from the minibuffer that edits the search string."
   (interactive)
   (setq isearch-new-forward t)
   (exit-minibuffer))
 
 (defun isearch-reverse-exit-minibuffer ()
+  "Resume isearching backward from the minibuffer that edits the search string."
   (interactive)
   (setq isearch-new-forward nil)
   (exit-minibuffer))
