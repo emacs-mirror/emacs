@@ -61,16 +61,14 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
       ;; the args as directories after we are done.
       (while (setq subdir (pop command-line-args-left))
         (message "Directory %s" subdir)
-        (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
+        (let ((files (directory-files subdir nil "\\`[^=.].*\\.el\\'"))
               (default-directory (expand-file-name subdir))
-              (preloaded (concat "\\`"
-                                 (regexp-opt (mapcar
-                                              'file-name-base
-                                              preloaded-file-list) t)
+              (preloaded (concat "\\`\\(\\./+\\)?"
+                                 (regexp-opt preloaded-file-list t)
                                  "\\.el\\'")))
           (dolist (file files)
             (unless (or (string-match custom-dependencies-no-scan-regexp file)
-                        (string-match preloaded file)
+                        (string-match preloaded (format "%s/%s" subdir file))
                         (not (file-exists-p file)))
               (erase-buffer)
               (kill-all-local-variables)
