@@ -928,13 +928,21 @@ directory and makes this the current buffer's default directory."
      inferior-octave-completion-table
      nil nil nil nil def)))
 
-(defun octave-goto-function-definition ()
-  "Go to the first function definition."
+(defun octave-goto-function-definition (fn)
+  "Go to the function definition of FN in current buffer."
   (goto-char (point-min))
-  (if (not (re-search-forward octave-function-header-regexp nil t))
-      (forward-comment (point-max))
-    (goto-char (match-beginning 3))
-    (match-string 3)))
+  (let ((search
+         (lambda (re sub)
+           (let (done)
+             (while (and (not done) (re-search-forward re nil t))
+               (when (and (equal (match-string sub) fn)
+                          (not (nth 8 (syntax-ppss))))
+                 (setq done t)))
+             (or done (goto-char (point-min)))))))
+    (pcase (file-name-extension (buffer-file-name))
+      (`"cc" (funcall search
+                      "\\_<DEFUN\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
+      (t (funcall search octave-function-header-regexp 3)))))
 
 (defun octave-function-file-p ()
   "Return non-nil if the first token is \"function\".
@@ -1686,7 +1694,7 @@ if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
       (setq file (funcall octave-find-definition-filename-function file))
       (when file
         (find-file file)
-        (octave-goto-function-definition)))))
+        (octave-goto-function-definition fn)))))
 
 
 (provide 'octave)
