@@ -327,6 +327,9 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** Default process filers and sentinels are not nil any more.
+Instead they default to a function which does what the nil value used to do.
+
 ** `read-event' does not return decoded chars in ttys any more.
 Just as was the case in Emacs-22 and before, decoding of tty input according to
 keyboard-coding-system is not performed in read-event any more.  But contrary

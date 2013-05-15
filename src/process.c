@@ -174,6 +174,8 @@ static Lisp_Object QClocal, QCremote, QCcoding;
 static Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
 static Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
 static Lisp_Object Qlast_nonmenu_event;
+static Lisp_Object Qinternal_default_process_sentinel;
+static Lisp_Object Qinternal_default_process_filter;
 
 #define NETCONN_P(p) (EQ (XPROCESS (p)->type, Qnetwork))
 #define NETCONN1_P(p) (EQ (p->type, Qnetwork))
@@ -359,7 +361,7 @@ pset_encoding_buf (struct Lisp_Process *p, Lisp_Object val)
 static void
 pset_filter (struct Lisp_Process *p, Lisp_Object val)
 {
-  p->filter = val;
+  p->filter = NILP (val) ? Qinternal_default_process_filter : val;
 }
 static void
 pset_log (struct Lisp_Process *p, Lisp_Object val)
@@ -384,7 +386,7 @@ pset_plist (struct Lisp_Process *p, Lisp_Object val)
 static void
 pset_sentinel (struct Lisp_Process *p, Lisp_Object val)
 {
-  p->sentinel = val;
+  p->sentinel = NILP (val) ? Qinternal_default_process_sentinel : val;
 }
 static void
 pset_status (struct Lisp_Process *p, Lisp_Object val)
@@ -700,6 +702,8 @@ make_process (Lisp_Object name)
     }
   name = name1;
   pset_name (p, name);
+  pset_sentinel (p, Qinternal_default_process_sentinel);
+  pset_filter (p, Qinternal_default_process_filter);
   XSETPROCESS (val, p);
   Vprocess_alist = Fcons (Fcons (name, val), Vprocess_alist);
   return val;
@@ -979,10 +983,10 @@ DEFUN ("process-mark", Fprocess_mark, Sprocess_mark,
 
 DEFUN ("set-process-filter", Fset_process_filter, Sset_process_filter,
        2, 2, 0,
-       doc: /* Give PROCESS the filter function FILTER; nil means no filter.
+       doc: /* Give PROCESS the filter function FILTER; nil means default.
 A value of t means stop accepting output from the process.
 
-When a process has a filter, its buffer is not used for output.
+When a process has a non-default filter, its buffer is not used for output.
 Instead, each time it does output, the entire string of output is
 passed to the filter.
 
@@ -1007,6 +1011,9 @@ The string argument is normally a multibyte string, except:
      (setq process (start-process ...))
      (debug)
      (set-process-filter process ...)  */
+
+  if (NILP (filter))
+    filter = Qinternal_default_process_filter;
 
   if (p->infd >= 0)
     {
@@ -1033,7 +1040,7 @@ The string argument is normally a multibyte string, except:
 
 DEFUN ("process-filter", Fprocess_filter, Sprocess_filter,
        1, 1, 0,
-       doc: /* Returns the filter function of PROCESS; nil if none.
+       doc: /* Return the filter function of PROCESS.
 See `set-process-filter' for more info on filter functions.  */)
   (register Lisp_Object process)
 {
@@ -1043,7 +1050,7 @@ See `set-process-filter' for more info on filter functions.  */)
 
 DEFUN ("set-process-sentinel", Fset_process_sentinel, Sset_process_sentinel,
        2, 2, 0,
-       doc: /* Give PROCESS the sentinel SENTINEL; nil for none.
+       doc: /* Give PROCESS the sentinel SENTINEL; nil for default.
 The sentinel is called as a function when the process changes state.
 It gets two arguments: the process, and a string describing the change.  */)
   (register Lisp_Object process, Lisp_Object sentinel)
@@ -1053,6 +1060,9 @@ It gets two arguments: the process, and a string describing the change.  */)
   CHECK_PROCESS (process);
   p = XPROCESS (process);
 
+  if (NILP (sentinel))
+    sentinel = Qinternal_default_process_sentinel;
+
   pset_sentinel (p, sentinel);
   if (NETCONN1_P (p) || SERIALCONN1_P (p))
     pset_childp (p, Fplist_put (p->childp, QCsentinel, sentinel));
@@ -1061,7 +1071,7 @@ It gets two arguments: the process, and a string describing the change.  */)
 
 DEFUN ("process-sentinel", Fprocess_sentinel, Sprocess_sentinel,
        1, 1, 0,
-       doc: /* Return the sentinel of PROCESS; nil if none.
+       doc: /* Return the sentinel of PROCESS.
 See `set-process-sentinel' for more info on sentinels.  */)
   (register Lisp_Object process)
 {
@@ -1378,8 +1388,8 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   pset_plist (XPROCESS (proc), Qnil);
   pset_type (XPROCESS (proc), Qreal);
   pset_buffer (XPROCESS (proc), buffer);
-  pset_sentinel (XPROCESS (proc), Qnil);
-  pset_filter (XPROCESS (proc), Qnil);
+  pset_sentinel (XPROCESS (proc), Qinternal_default_process_sentinel);
+  pset_filter (XPROCESS (proc), Qinternal_default_process_filter);
   pset_command (XPROCESS (proc), Flist (nargs - 2, args + 2));
 
 #ifdef HAVE_GNUTLS
@@ -4039,7 +4049,8 @@ server_accept_connection (Lisp_Object server, int channel)
      process name of the server process concatenated with the caller
      identification.  */
 
-  if (!NILP (ps->filter) && !EQ (ps->filter, Qt))
+  if (!(EQ (ps->filter, Qinternal_default_process_filter)
+	|| EQ (ps->filter, Qt)))
     buffer = Qnil;
   else
     {
@@ -4108,7 +4119,7 @@ server_accept_connection (Lisp_Object server, int channel)
   /* Setup coding system for new process based on server process.
      This seems to be the proper thing to do, as the coding system
      of the new process should reflect the settings at the time the
-     server socket was opened; not the current settings. */
+     server socket was opened; not the current settings.  */
 
   pset_decode_coding_system (p, ps->decode_coding_system);
   pset_encode_coding_system (p, ps->encode_coding_system);
@@ -4127,11 +4138,10 @@ server_accept_connection (Lisp_Object server, int channel)
 		      (STRINGP (host) ? host : build_string ("-")),
 		      build_string ("\n")));
 
-  if (!NILP (p->sentinel))
-    exec_sentinel (proc,
-		   concat3 (build_string ("open from "),
-			    (STRINGP (host) ? host : build_string ("-")),
-			    build_string ("\n")));
+  exec_sentinel (proc,
+		 concat3 (build_string ("open from "),
+			  (STRINGP (host) ? host : build_string ("-")),
+			  build_string ("\n")));
 }
 
 /* This variable is different from waiting_for_input in keyboard.c.
@@ -4263,8 +4273,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
 
-      /* Compute time from now till when time limit is up */
-      /* Exit if already run out */
+      /* Compute time from now till when time limit is up.  */
+      /* Exit if already run out.  */
       if (nsecs < 0)
 	{
 	  /* A negative timeout means
@@ -4871,8 +4881,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		}
 	    }
 #endif /* NON_BLOCKING_CONNECT */
-	}			/* end for each file descriptor */
-    }				/* end while exit conditions not met */
+	}			/* End for each file descriptor.  */
+    }				/* End while exit conditions not met.  */
 
   unbind_to (count, Qnil);
 
@@ -4907,6 +4917,11 @@ read_process_output_error_handler (Lisp_Object error_val)
   return Qt;
 }
 
+static void
+read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
+				    ssize_t nbytes,
+				    struct coding_system *coding);
+
 /* Read pending output from the process channel,
    starting with our buffered-ahead character if we have one.
    Yield number of decoded characters read.
@@ -4923,9 +4938,7 @@ read_process_output (Lisp_Object proc, register int channel)
 {
   register ssize_t nbytes;
   char *chars;
-  register Lisp_Object outstream;
   register struct Lisp_Process *p = XPROCESS (proc);
-  register ptrdiff_t opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
   int readmax = 4096;
@@ -5013,122 +5026,144 @@ read_process_output (Lisp_Object proc, register int channel)
      friends don't expect current-buffer to be changed from under them.  */
   record_unwind_current_buffer ();
 
-  /* Read and dispose of the process output.  */
-  outstream = p->filter;
-  if (!NILP (outstream))
-    {
-      Lisp_Object text;
-      bool outer_running_asynch_code = running_asynch_code;
-      int waiting = waiting_for_user_input_p;
+  read_and_dispose_of_process_output (p, chars, nbytes, coding);
 
-      /* No need to gcpro these, because all we do with them later
-	 is test them for EQness, and none of them should be a string.  */
+  /* Handling the process output should not deactivate the mark.  */
+  Vdeactivate_mark = odeactivate;
+
+  unbind_to (count, Qnil);
+  return nbytes;
+}
+
+static void
+read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
+				    ssize_t nbytes,
+				    struct coding_system *coding)
+{
+  Lisp_Object outstream = p->filter;
+  Lisp_Object text;
+  bool outer_running_asynch_code = running_asynch_code;
+  int waiting = waiting_for_user_input_p;
+
+  /* No need to gcpro these, because all we do with them later
+     is test them for EQness, and none of them should be a string.  */
 #if 0
-      Lisp_Object obuffer, okeymap;
-      XSETBUFFER (obuffer, current_buffer);
-      okeymap = BVAR (current_buffer, keymap);
+  Lisp_Object obuffer, okeymap;
+  XSETBUFFER (obuffer, current_buffer);
+  okeymap = BVAR (current_buffer, keymap);
 #endif
 
-      /* We inhibit quit here instead of just catching it so that
-	 hitting ^G when a filter happens to be running won't screw
-	 it up.  */
-      specbind (Qinhibit_quit, Qt);
-      specbind (Qlast_nonmenu_event, Qt);
+  /* We inhibit quit here instead of just catching it so that
+     hitting ^G when a filter happens to be running won't screw
+     it up.  */
+  specbind (Qinhibit_quit, Qt);
+  specbind (Qlast_nonmenu_event, Qt);
 
-      /* In case we get recursively called,
-	 and we already saved the match data nonrecursively,
-	 save the same match data in safely recursive fashion.  */
-      if (outer_running_asynch_code)
-	{
-	  Lisp_Object tem;
-	  /* Don't clobber the CURRENT match data, either!  */
-	  tem = Fmatch_data (Qnil, Qnil, Qnil);
-	  restore_search_regs ();
-	  record_unwind_save_match_data ();
-	  Fset_match_data (tem, Qt);
-	}
-
-      /* For speed, if a search happens within this code,
-	 save the match data in a special nonrecursive fashion.  */
-      running_asynch_code = 1;
-
-      decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
-      text = coding->dst_object;
-      Vlast_coding_system_used = CODING_ID_NAME (coding->id);
-      /* A new coding system might be found.  */
-      if (!EQ (p->decode_coding_system, Vlast_coding_system_used))
-	{
-	  pset_decode_coding_system (p, Vlast_coding_system_used);
-
-	  /* Don't call setup_coding_system for
-	     proc_decode_coding_system[channel] here.  It is done in
-	     detect_coding called via decode_coding above.  */
-
-	  /* If a coding system for encoding is not yet decided, we set
-	     it as the same as coding-system for decoding.
-
-	     But, before doing that we must check if
-	     proc_encode_coding_system[p->outfd] surely points to a
-	     valid memory because p->outfd will be changed once EOF is
-	     sent to the process.  */
-	  if (NILP (p->encode_coding_system)
-	      && proc_encode_coding_system[p->outfd])
-	    {
-	      pset_encode_coding_system
-		(p, coding_inherit_eol_type (Vlast_coding_system_used, Qnil));
-	      setup_coding_system (p->encode_coding_system,
-				   proc_encode_coding_system[p->outfd]);
-	    }
-	}
-
-      if (coding->carryover_bytes > 0)
-	{
-	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
-	    pset_decoding_buf (p, make_uninit_string (coding->carryover_bytes));
-	  memcpy (SDATA (p->decoding_buf), coding->carryover,
-		  coding->carryover_bytes);
-	  p->decoding_carryover = coding->carryover_bytes;
-	}
-      if (SBYTES (text) > 0)
-	/* FIXME: It's wrong to wrap or not based on debug-on-error, and
-	   sometimes it's simply wrong to wrap (e.g. when called from
-	   accept-process-output).  */
-	internal_condition_case_1 (read_process_output_call,
-				   Fcons (outstream,
-					  Fcons (proc, Fcons (text, Qnil))),
-				   !NILP (Vdebug_on_error) ? Qnil : Qerror,
-				   read_process_output_error_handler);
-
-      /* If we saved the match data nonrecursively, restore it now.  */
+  /* In case we get recursively called,
+     and we already saved the match data nonrecursively,
+     save the same match data in safely recursive fashion.  */
+  if (outer_running_asynch_code)
+    {
+      Lisp_Object tem;
+      /* Don't clobber the CURRENT match data, either!  */
+      tem = Fmatch_data (Qnil, Qnil, Qnil);
       restore_search_regs ();
-      running_asynch_code = outer_running_asynch_code;
+      record_unwind_save_match_data ();
+      Fset_match_data (tem, Qt);
+    }
 
-      /* Restore waiting_for_user_input_p as it was
-	 when we were called, in case the filter clobbered it.  */
-      waiting_for_user_input_p = waiting;
+  /* For speed, if a search happens within this code,
+     save the match data in a special nonrecursive fashion.  */
+  running_asynch_code = 1;
+
+  decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
+  text = coding->dst_object;
+  Vlast_coding_system_used = CODING_ID_NAME (coding->id);
+  /* A new coding system might be found.  */
+  if (!EQ (p->decode_coding_system, Vlast_coding_system_used))
+    {
+      pset_decode_coding_system (p, Vlast_coding_system_used);
+
+      /* Don't call setup_coding_system for
+	 proc_decode_coding_system[channel] here.  It is done in
+	 detect_coding called via decode_coding above.  */
+
+      /* If a coding system for encoding is not yet decided, we set
+	 it as the same as coding-system for decoding.
+
+	 But, before doing that we must check if
+	 proc_encode_coding_system[p->outfd] surely points to a
+	 valid memory because p->outfd will be changed once EOF is
+	 sent to the process.  */
+      if (NILP (p->encode_coding_system)
+	  && proc_encode_coding_system[p->outfd])
+	{
+	  pset_encode_coding_system
+	    (p, coding_inherit_eol_type (Vlast_coding_system_used, Qnil));
+	  setup_coding_system (p->encode_coding_system,
+			       proc_encode_coding_system[p->outfd]);
+	}
+    }
+
+  if (coding->carryover_bytes > 0)
+    {
+      if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
+	pset_decoding_buf (p, make_uninit_string (coding->carryover_bytes));
+      memcpy (SDATA (p->decoding_buf), coding->carryover,
+	      coding->carryover_bytes);
+      p->decoding_carryover = coding->carryover_bytes;
+    }
+  if (SBYTES (text) > 0)
+    /* FIXME: It's wrong to wrap or not based on debug-on-error, and
+       sometimes it's simply wrong to wrap (e.g. when called from
+       accept-process-output).  */
+    internal_condition_case_1 (read_process_output_call,
+			       Fcons (outstream,
+				      Fcons (make_lisp_proc (p),
+					     Fcons (text, Qnil))),
+			       !NILP (Vdebug_on_error) ? Qnil : Qerror,
+			       read_process_output_error_handler);
+
+  /* If we saved the match data nonrecursively, restore it now.  */
+  restore_search_regs ();
+  running_asynch_code = outer_running_asynch_code;
+
+  /* Restore waiting_for_user_input_p as it was
+     when we were called, in case the filter clobbered it.  */
+  waiting_for_user_input_p = waiting;
 
 #if 0 /* Call record_asynch_buffer_change unconditionally,
 	 because we might have changed minor modes or other things
 	 that affect key bindings.  */
-      if (! EQ (Fcurrent_buffer (), obuffer)
-	  || ! EQ (current_buffer->keymap, okeymap))
+  if (! EQ (Fcurrent_buffer (), obuffer)
+      || ! EQ (current_buffer->keymap, okeymap))
 #endif
-	/* But do it only if the caller is actually going to read events.
-	   Otherwise there's no need to make him wake up, and it could
-	   cause trouble (for example it would make sit_for return).  */
-	if (waiting_for_user_input_p == -1)
-	  record_asynch_buffer_change ();
-    }
+    /* But do it only if the caller is actually going to read events.
+       Otherwise there's no need to make him wake up, and it could
+       cause trouble (for example it would make sit_for return).  */
+    if (waiting_for_user_input_p == -1)
+      record_asynch_buffer_change ();
+}
 
-  /* If no filter, write into buffer if it isn't dead.  */
-  else if (!NILP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
+DEFUN ("internal-default-process-filter", Finternal_default_process_filter,
+       Sinternal_default_process_filter, 2, 2, 0,
+       doc: /* Function used as default process filter.  */)
+  (Lisp_Object proc, Lisp_Object text)
+{
+  struct Lisp_Process *p;
+  ptrdiff_t opoint;
+
+  CHECK_PROCESS (proc);
+  p = XPROCESS (proc);
+  CHECK_STRING (text);
+
+  if (!NILP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
     {
       Lisp_Object old_read_only;
       ptrdiff_t old_begv, old_zv;
       ptrdiff_t old_begv_byte, old_zv_byte;
       ptrdiff_t before, before_byte;
       ptrdiff_t opoint_byte;
-      Lisp_Object text;
       struct buffer *b;
 
       Fset_buffer (p->buffer);
@@ -5161,31 +5196,6 @@ read_process_output (Lisp_Object proc, register int channel)
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
 
-      decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
-      text = coding->dst_object;
-      Vlast_coding_system_used = CODING_ID_NAME (coding->id);
-      /* A new coding system might be found.  See the comment in the
-	 similar code in the previous `if' block.  */
-      if (!EQ (p->decode_coding_system, Vlast_coding_system_used))
-	{
-	  pset_decode_coding_system (p, Vlast_coding_system_used);
-	  if (NILP (p->encode_coding_system)
-	      && proc_encode_coding_system[p->outfd])
-	    {
-	      pset_encode_coding_system
-		(p, coding_inherit_eol_type (Vlast_coding_system_used, Qnil));
-	      setup_coding_system (p->encode_coding_system,
-				   proc_encode_coding_system[p->outfd]);
-	    }
-	}
-      if (coding->carryover_bytes > 0)
-	{
-	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
-	    pset_decoding_buf (p, make_uninit_string (coding->carryover_bytes));
-	  memcpy (SDATA (p->decoding_buf), coding->carryover,
-		  coding->carryover_bytes);
-	  p->decoding_carryover = coding->carryover_bytes;
-	}
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  != ! STRING_MULTIBYTE (text))
@@ -5230,18 +5240,13 @@ read_process_output (Lisp_Object proc, register int channel)
       if (old_begv != BEGV || old_zv != ZV)
 	Fnarrow_to_region (make_number (old_begv), make_number (old_zv));
 
-
       bset_read_only (current_buffer, old_read_only);
       SET_PT_BOTH (opoint, opoint_byte);
     }
-  /* Handling the process output should not deactivate the mark.  */
-  Vdeactivate_mark = odeactivate;
-
-  unbind_to (count, Qnil);
-  return nbytes;
+  return Qnil;
 }
 
-/* Sending data to subprocess */
+/* Sending data to subprocess.  */
 
 /* In send_process, when a write fails temporarily,
    wait_reading_process_output is called.  It may execute user code,
@@ -6188,13 +6193,6 @@ deliver_child_signal (int sig)
 
 
 static Lisp_Object
-exec_sentinel_unwind (Lisp_Object data)
-{
-  pset_sentinel (XPROCESS (XCAR (data)), XCDR (data));
-  return Qnil;
-}
-
-static Lisp_Object
 exec_sentinel_error_handler (Lisp_Object error_val)
 {
   cmd_error_internal (error_val, "error in process sentinel: ");
@@ -6231,13 +6229,7 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   record_unwind_current_buffer ();
 
   sentinel = p->sentinel;
-  if (NILP (sentinel))
-    return;
 
-  /* Zilch the sentinel while it's running, to avoid recursive invocations;
-     assure that it gets restored no matter how the sentinel exits.  */
-  pset_sentinel (p, Qnil);
-  record_unwind_protect (exec_sentinel_unwind, Fcons (proc, sentinel));
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
   specbind (Qlast_nonmenu_event, Qt); /* Why? --Stef  */
@@ -6295,7 +6287,7 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
 static void
 status_notify (struct Lisp_Process *deleting_process)
 {
-  register Lisp_Object proc, buffer;
+  register Lisp_Object proc;
   Lisp_Object tail, msg;
   struct gcpro gcpro1, gcpro2;
 
@@ -6333,8 +6325,6 @@ status_notify (struct Lisp_Process *deleting_process)
 		 && p != deleting_process
 		 && read_process_output (proc, p->infd) > 0);
 
-	  buffer = p->buffer;
-
 	  /* Get the text to use for the message.  */
 	  if (p->raw_status_new)
 	    update_status (p);
@@ -6355,64 +6345,81 @@ status_notify (struct Lisp_Process *deleting_process)
 	    }
 
 	  /* The actions above may have further incremented p->tick.
-	     So set p->update_tick again
-	     so that an error in the sentinel will not cause
-	     this code to be run again.  */
+	     So set p->update_tick again so that an error in the sentinel will
+	     not cause this code to be run again.  */
 	  p->update_tick = p->tick;
 	  /* Now output the message suitably.  */
-	  if (!NILP (p->sentinel))
-	    exec_sentinel (proc, msg);
-	  /* Don't bother with a message in the buffer
-	     when a process becomes runnable.  */
-	  else if (!EQ (symbol, Qrun) && !NILP (buffer))
-	    {
-	      Lisp_Object tem;
-	      struct buffer *old = current_buffer;
-	      ptrdiff_t opoint, opoint_byte;
-	      ptrdiff_t before, before_byte;
-
-	      /* Avoid error if buffer is deleted
-		 (probably that's why the process is dead, too) */
-	      if (!BUFFER_LIVE_P (XBUFFER (buffer)))
-		continue;
-	      Fset_buffer (buffer);
-
-	      opoint = PT;
-	      opoint_byte = PT_BYTE;
-	      /* Insert new output into buffer
-		 at the current end-of-output marker,
-		 thus preserving logical ordering of input and output.  */
-	      if (XMARKER (p->mark)->buffer)
-		Fgoto_char (p->mark);
-	      else
-		SET_PT_BOTH (ZV, ZV_BYTE);
-
-	      before = PT;
-	      before_byte = PT_BYTE;
-
-	      tem = BVAR (current_buffer, read_only);
-	      bset_read_only (current_buffer, Qnil);
-	      insert_string ("\nProcess ");
-	      { /* FIXME: temporary kludge */
-		Lisp_Object tem2 = p->name; Finsert (1, &tem2); }
-	      insert_string (" ");
-	      Finsert (1, &msg);
-	      bset_read_only (current_buffer, tem);
-	      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
-
-	      if (opoint >= before)
-		SET_PT_BOTH (opoint + (PT - before),
-			     opoint_byte + (PT_BYTE - before_byte));
-	      else
-		SET_PT_BOTH (opoint, opoint_byte);
-
-	      set_buffer_internal (old);
-	    }
+	  exec_sentinel (proc, msg);
 	}
     } /* end for */
 
-  update_mode_lines++;  /* in case buffers use %s in mode-line-format */
+  update_mode_lines++;  /* In case buffers use %s in mode-line-format.  */
   UNGCPRO;
+}
+
+DEFUN ("internal-default-process-sentinel", Finternal_default_process_sentinel,
+       Sinternal_default_process_sentinel, 2, 2, 0,
+       doc: /* Function used as default sentinel for processes.  */)
+     (Lisp_Object proc, Lisp_Object msg)
+{
+  Lisp_Object buffer, symbol;
+  struct Lisp_Process *p;
+  CHECK_PROCESS (proc);
+  p = XPROCESS (proc);
+  buffer = p->buffer;
+  symbol = p->status;
+  if (CONSP (symbol))
+    symbol = XCAR (symbol);
+
+  if (!EQ (symbol, Qrun) && !NILP (buffer))
+    {
+      Lisp_Object tem;
+      struct buffer *old = current_buffer;
+      ptrdiff_t opoint, opoint_byte;
+      ptrdiff_t before, before_byte;
+
+      /* Avoid error if buffer is deleted
+	 (probably that's why the process is dead, too).  */
+      if (!BUFFER_LIVE_P (XBUFFER (buffer)))
+	return Qnil;
+      Fset_buffer (buffer);
+
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	msg = (code_convert_string_norecord
+	       (msg, Vlocale_coding_system, 1));
+
+      opoint = PT;
+      opoint_byte = PT_BYTE;
+      /* Insert new output into buffer
+	 at the current end-of-output marker,
+	 thus preserving logical ordering of input and output.  */
+      if (XMARKER (p->mark)->buffer)
+	Fgoto_char (p->mark);
+      else
+	SET_PT_BOTH (ZV, ZV_BYTE);
+
+      before = PT;
+      before_byte = PT_BYTE;
+
+      tem = BVAR (current_buffer, read_only);
+      bset_read_only (current_buffer, Qnil);
+      insert_string ("\nProcess ");
+      { /* FIXME: temporary kludge.  */
+	Lisp_Object tem2 = p->name; Finsert (1, &tem2); }
+      insert_string (" ");
+      Finsert (1, &msg);
+      bset_read_only (current_buffer, tem);
+      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
+
+      if (opoint >= before)
+	SET_PT_BOTH (opoint + (PT - before),
+		     opoint_byte + (PT_BYTE - before_byte));
+      else
+	SET_PT_BOTH (opoint, opoint_byte);
+
+      set_buffer_internal (old);
+    }
+  return Qnil;
 }
 
 
@@ -6606,13 +6613,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
 
-      /* Compute time from now till when time limit is up */
-      /* Exit if already run out */
+      /* Compute time from now till when time limit is up.  */
+      /* Exit if already run out.  */
       if (nsecs < 0)
 	{
 	  /* A negative timeout means
 	     gobble output available now
-	     but don't wait at all. */
+	     but don't wait at all.  */
 
 	  timeout = make_emacs_time (0, 0);
 	}
@@ -6805,9 +6812,8 @@ setup_process_coding_systems (Lisp_Object process)
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch] = xmalloc (sizeof (struct coding_system));
   coding_system = p->decode_coding_system;
-  if (! NILP (p->filter))
-    ;
-  else if (BUFFERP (p->buffer))
+  if (EQ (p->filter, Qinternal_default_process_filter)
+      && BUFFERP (p->buffer))
     {
       if (NILP (BVAR (XBUFFER (p->buffer), enable_multibyte_characters)))
 	coding_system = raw_text_coding_system (coding_system);
@@ -6916,7 +6922,7 @@ kill_buffer_processes (Lisp_Object buffer)
 
 DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p,
        Swaiting_for_user_input_p, 0, 0, 0,
-       doc: /* Returns non-nil if Emacs is waiting for input from the user.
+       doc: /* Return non-nil if Emacs is waiting for input from the user.
 This is intended for use by asynchronous process output filters and sentinels.  */)
   (void)
 {
@@ -7222,6 +7228,10 @@ syms_of_process (void)
   DEFSYM (Qcutime, "cutime");
   DEFSYM (Qcstime, "cstime");
   DEFSYM (Qctime, "ctime");
+  DEFSYM (Qinternal_default_process_sentinel,
+	  "internal-default-process-sentinel");
+  DEFSYM (Qinternal_default_process_filter,
+	  "internal-default-process-filter");
   DEFSYM (Qpri, "pri");
   DEFSYM (Qnice, "nice");
   DEFSYM (Qthcount, "thcount");
@@ -7317,6 +7327,8 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Ssignal_process);
   defsubr (&Swaiting_for_user_input_p);
   defsubr (&Sprocess_type);
+  defsubr (&Sinternal_default_process_sentinel);
+  defsubr (&Sinternal_default_process_filter);
   defsubr (&Sset_process_coding_system);
   defsubr (&Sprocess_coding_system);
   defsubr (&Sset_process_filter_multibyte);
