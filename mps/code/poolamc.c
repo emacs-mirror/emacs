@@ -1,7 +1,7 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
@@ -29,9 +29,9 @@ static Bool amcSegHasNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-static PoolClass AMCPoolClassGet(void);
-static BufferClass amcBufClassGet(void);
-static SegClass amcSegClassGet(void);
+extern PoolClass AMCPoolClassGet(void);
+extern BufferClass amcBufClassGet(void);
+extern SegClass amcSegClassGet(void);
 
 
 /* amcGenStruct -- pool AMC generation descriptor */
@@ -1741,7 +1741,7 @@ fixInPlace: /* see <design/poolamc/>.Nailboard.emergency */
  *
  * See <design/poolamc/#fix>.
  */
-Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   Arena arena;
   AMC amc;
@@ -2528,7 +2528,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
