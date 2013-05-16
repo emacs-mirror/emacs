@@ -26,10 +26,6 @@
  * check that protocols are obeyed by the client.  It probably doesn't
  * meet checking requirements.
  *
- * .varargs: (rule.universal.complete) The varargs passed to
- * mps_alloc(_v) are ignored at the moment.  None of the pool
- * implementations use them.
- *
  * .poll: (rule.universal.complete) Various allocation methods call
  * ArenaPoll to allow the MPM to "steal" CPU time and get on with
  * background tasks such as incremental GC.
@@ -677,7 +673,7 @@ void mps_pool_destroy(mps_pool_t pool)
 }
 
 
-mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
+mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
 {
   Arena arena;
   Addr p;
@@ -708,6 +704,8 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
   return MPS_RES_OK;
 }
 
+
+/* mps_alloc_v -- allocate in pool with varargs.  Deprecated in 1.112. */
 
 mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
                       va_list args)
