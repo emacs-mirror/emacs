@@ -9537,7 +9537,15 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 
       shown = buffer_window_count (current_buffer) > 0;
       set_buffer_internal (oldbuf);
-      if (!shown)
+      /* We called insert_1_both above with its 5th argument (PREPARE)
+	 zero, which prevents insert_1_both from calling
+	 prepare_to_modify_buffer, which in turns prevents us from
+	 incrementing windows_or_buffers_changed even if *Messages* is
+	 shown in some window.  So we must manually incrementing
+	 windows_or_buffers_changed here to make up for that.  */
+      if (shown)
+	windows_or_buffers_changed++;
+      else
 	windows_or_buffers_changed = old_windows_or_buffers_changed;
       message_log_need_newline = !nlflag;
       Vdeactivate_mark = old_deactivate_mark;

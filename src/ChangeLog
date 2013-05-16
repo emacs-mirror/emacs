@@ -1,5 +1,9 @@
 2013-05-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (message_dolog): If the *Messages* buffer is shown in
+	some window, increment windows_or_buffers_changed, so that
+	*Messages* display in that window is updated.  (Bug#14408)
+
 	* w32.c: Include epaths.h.
 	(init_environment): Use cmdproxy.exe without leading directories.
 	Support emacs.exe in src; point SHELL to cmdproxy in ../nt in that
