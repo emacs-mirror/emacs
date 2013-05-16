@@ -9,7 +9,7 @@ MV (Manual Variable)
 
 .. deprecated:: starting with version 1.111.
 
-    :ref:`pool-mvt` or :ref:`pool-mvff` should be used instead.
+    :ref:`pool-mvff` should be used instead.
 
 **MV** is a general-purpose :term:`manually managed <manual memory
 management>` :term:`pool class` that manages :term:`blocks` of
