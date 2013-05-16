@@ -92,12 +92,12 @@ Return a notification id if any, or t on success."
        :body subject
        :actions '("read" "Read")
        :on-action 'gnus-notifications-action
-       :app-icon (gnus-funcall-no-warning
-		  'image-search-load-path "gnus/gnus.png")
+       :app-icon (or photo-file
+                     (gnus-funcall-no-warning
+                      'image-search-load-path "gnus/gnus.png"))
        :app-name "Gnus"
        :category "email.arrived"
-       :timeout gnus-notifications-timeout
-       :image-path photo-file)
+       :timeout gnus-notifications-timeout)
     (message "New message from %s: %s" from subject)
     ;; Don't return an id
     t))
