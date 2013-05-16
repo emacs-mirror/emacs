@@ -203,8 +203,9 @@ static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
   args[2].val.size = va_arg(varargs, Size);
   args[3].key = MPS_KEY_MVT_RESERVE_DEPTH;
   args[3].val.count = va_arg(varargs, Count);
+  /* Divide the old "percentage" argument by 100, fixing job003319. */
   args[4].key = MPS_KEY_MVT_FRAG_LIMIT;
-  args[4].val.count = va_arg(varargs, Count);
+  args[4].val.d = (double)va_arg(varargs, Count) / 100.0;
   args[5].key = MPS_KEY_ARGS_END;
   AVER(ArgListCheck(args));
 }
@@ -220,7 +221,7 @@ ARG_DEFINE_KEY(mvt_min_size, Size);
 ARG_DEFINE_KEY(mvt_mean_size, Size);
 ARG_DEFINE_KEY(mvt_max_size, Size);
 ARG_DEFINE_KEY(mvt_reserve_depth, Count);
-ARG_DEFINE_KEY(mvt_frag_limit, Count);
+ARG_DEFINE_KEY(mvt_frag_limit, double);
 
 static Res MVTInit(Pool pool, ArgList args)
 {
@@ -250,8 +251,11 @@ static Res MVTInit(Pool pool, ArgList args)
     maxSize = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_MVT_RESERVE_DEPTH))
     reserveDepth = arg.val.count;
-  if (ArgPick(&arg, args, MPS_KEY_MVT_FRAG_LIMIT))
-    fragLimit = arg.val.count;
+  if (ArgPick(&arg, args, MPS_KEY_MVT_FRAG_LIMIT)) {
+    /* pending complete fix for job003319 */
+    AVER(0 <= arg.val.d <= 1);
+    fragLimit = (Count)(arg.val.d * 100);
+  }
 
   AVER(0 < minSize);
   AVER(minSize <= meanSize);
