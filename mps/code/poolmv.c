@@ -184,7 +184,7 @@ static Bool MVSpanCheck(MVSpan span)
 
 /* MVVarargs -- decode obsolete varargs */
 
-static void MVVarargs(ArgStruct args[], va_list varargs)
+static void MVVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_EXTEND_BY;
   args[0].val.size = va_arg(varargs, Size);
@@ -196,7 +196,7 @@ static void MVVarargs(ArgStruct args[], va_list varargs)
   AVER(ArgListCheck(args));
 }
 
-static void MVDebugVarargs(ArgStruct args[], va_list varargs)
+static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
   args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);

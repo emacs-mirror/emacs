@@ -219,7 +219,7 @@ extern void PoolTraceEnd(Pool pool, Trace trace);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
-extern void PoolTrivVarargs(ArgStruct args[], va_list varargs);
+extern void PoolTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
 extern Res PoolTrivInit(Pool pool, ArgList arg);
 extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,

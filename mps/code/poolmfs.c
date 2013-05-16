@@ -79,7 +79,7 @@ Pool (MFSPool)(MFS mfs)
 
 /* MFSVarargs -- decode obsolete varargs */
 
-static void MFSVarargs(ArgStruct args[], va_list varargs)
+static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_EXTEND_BY;
   args[0].val.size = va_arg(varargs, Size);

@@ -937,7 +937,7 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 
 /* amcVarargs -- decode obsolete varargs */
 
-static void AMCVarargs(ArgStruct args[], va_list varargs)
+static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_FORMAT;
   args[0].val.format = va_arg(varargs, Format);
