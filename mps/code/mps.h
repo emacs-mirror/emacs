@@ -104,6 +104,8 @@ typedef struct mps_arg_s {
     unsigned u;
     long l;
     unsigned long ul;
+    float f;
+    double d;
     size_t size;
     mps_addr_t addr;
     mps_fmt_t format;
