@@ -1,5 +1,32 @@
 #! /bin/sh
 # Site defaults for the MinGW configuration of GNU Emacs.
+#
+# This file's purpose is to short-circuit configure-time tests for
+# which we want to provide the results instead of letting the
+# 'configure' script do that.  This is mainly for features that
+# 'configure' tests that are implemented as part of Emacs sources, not
+# as part of system libraries.  The idea is to set shell variables
+# that appear to the script as cached values.
+#
+# For each header file foo.h you want to supply test results, set the
+# value of a shell variable ac_cv_header_foo_h.  The value should be
+# yes if the header is deemed to exist, no otherwise.  Or it could be
+# something else, if the value computed by 'configure' requires that.
+# In general, since nt/msysconfig.sh instructs GCC to use header files
+# in nt/inc, you should not need to futz with header file tests.  But
+# there are exceptions, like with getopt.h below (which is a MinGW
+# system header, but we do not want to use it).
+#
+# For each library function foo you want to supply test results, set
+# the value of a shell variable ac_cv_func_foo.  Again, the value is
+# determined by what 'configure' expects; sometimes it could be "not
+# needed" or whatever, see the examples below.  In addition, you may
+# need to set the various gl_cv_* variables for those tests that come
+# from gnulib.
+#
+# In short, examine the test in 'configure' and push the knobs that
+# are necessary to steer the test in the direction you need, by
+# judicioulsy setting variables that control the test results.
 
 # We want to use getopt.h from gnulib
 ac_cv_header_getopt_h=no

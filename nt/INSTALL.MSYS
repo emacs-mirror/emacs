@@ -114,14 +114,16 @@ Windows 9X as well).
   (We recommend that you refrain from installing the MSYS Texinfo
   package, which is part of msys-base, because it might produce mixed
   EOL format when installing Info files.  Instead, install the MinGW
-  port of Texinfo, see the URL below.)
+  port of Texinfo, see the ezwinports URL below.)
 
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
   script" section for the build instructions.  If you want to build it
   with image support and other optional libraries, read about the
   optional libraries near the end of this document, before you start
-  the build.
+  the build.  Also, consider installing additional MinGW packages that
+  are required/recommended, especially if you are building from the
+  Bazaar repository, as described in the next section.
 
 ** Installing MinGW and MSYS manually
 
@@ -193,9 +195,9 @@ Windows 9X as well).
   building a trivial "hello, world!" program, and make sure that it
   builds without any error messages and the binary works when run.
 
-*** Installing MSYS
+*** MSYS
 
-  You will also need a reasonably full MSYS installation.  MSYS is an
+  You will need a reasonably full MSYS installation.  MSYS is an
   environment needed to run the Posix configure scripts and the
   resulting Makefile's, in order to produce native Windows binaries
   using the MinGW compiler and runtime libraries.  Here's the list of

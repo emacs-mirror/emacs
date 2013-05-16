@@ -27,7 +27,7 @@
 ## results when running under MSYS with the purpose of configuring
 ## Emacs for the MinGW MS-Windows build.  Rather than asking users to
 ## type these tweaks every time they configure the package, we provide
-## this helper scripts which takes care of the mundane things.
+## this helper script which takes care of the mundane things.
 
 ### Code:
 
