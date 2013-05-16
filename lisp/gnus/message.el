@@ -7960,19 +7960,29 @@ those headers."
 
 (defun message-expand-group ()
   "Expand the group name under point."
-  (let* ((b (save-excursion
-	      (save-restriction
-		(narrow-to-region
-		 (save-excursion
-		   (beginning-of-line)
-		   (skip-chars-forward "^:")
-		   (1+ (point)))
-		 (point))
-		(skip-chars-backward "^, \t\n") (point))))
-	 (completion-ignore-case t)
-         (e (progn (skip-chars-forward "^,\t\n ") (point)))
-	 (hashtb (and (boundp 'gnus-active-hashtb) gnus-active-hashtb)))
-    (message-completion-in-region e b hashtb)))
+  (let ((b (save-excursion
+	     (save-restriction
+	       (narrow-to-region
+		(save-excursion
+		  (beginning-of-line)
+		  (skip-chars-forward "^:")
+		  (1+ (point)))
+		(point))
+	       (skip-chars-backward "^, \t\n") (point))))
+	(completion-ignore-case t)
+	(e (progn (skip-chars-forward "^,\t\n ") (point)))
+	group collection)
+    (when (and (boundp 'gnus-active-hashtb)
+	       gnus-active-hashtb)
+      (mapatoms
+       (lambda (symbol)
+	 (setq group (symbol-name symbol))
+	 (push (if (string-match "[^\000-\177]" group)
+		   (gnus-group-decoded-name group)
+		 group)
+	       collection))
+       gnus-active-hashtb))
+    (message-completion-in-region e b collection)))
 
 (defalias 'message-completion-in-region
   (if (fboundp 'completion-in-region)
