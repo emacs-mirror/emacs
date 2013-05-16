@@ -29,7 +29,15 @@ build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--disable-acl'.
 
 ** The configure option --with-crt-dir has been removed.
-It is no longer needed, as the crt*.o files are no longer linked specially.
+It is no longer needed, as the crt*.o files are no longer linked
+specially.
+
+** Emacs for MS-Windows can now be built by running the configure script
+using the MSYS environment and MinGW development tools.
+This is from now on the preferred method of building Emacs on
+MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
+files are deprecated.  See the file nt/INSTALL.MSYS for detailed
+instructions.
 
 
 * Startup Changes in Emacs 24.4
