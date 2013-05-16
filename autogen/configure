@@ -7445,14 +7445,51 @@ else
        nw="$nw -Wwrite-strings"
        ;;
     *)
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror" >&5
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror -Wunknown-warning-option" >&5
+$as_echo_n "checking whether C compiler handles -Werror -Wunknown-warning-option... " >&6; }
+if test "${gl_cv_warn_c__Werror__Wunknown_warning_option+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Werror -Wunknown-warning-option"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Werror__Wunknown_warning_option=yes
+else
+  gl_cv_warn_c__Werror__Wunknown_warning_option=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Werror__Wunknown_warning_option" >&5
+$as_echo "$gl_cv_warn_c__Werror__Wunknown_warning_option" >&6; }
+if test "x$gl_cv_warn_c__Werror__Wunknown_warning_option" = x""yes; then :
+  gl_unknown_warnings_are_errors='-Wunknown-warning-option -Werror'
+else
+  gl_unknown_warnings_are_errors=
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror" >&5
 $as_echo_n "checking whether C compiler handles -Werror... " >&6; }
 if test "${gl_cv_warn_c__Werror+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Werror"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7635,6 +7672,7 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -W \
     -Wabi \
     -Waddress \
+    -Waggressive-loop-optimizations \
     -Wall \
     -Warray-bounds \
     -Wattributes \
@@ -7662,7 +7700,6 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wformat-security \
     -Wformat-y2k \
     -Wformat-zero-length \
-    -Wformat=2 \
     -Wfree-nonheap-object \
     -Wignored-qualifiers \
     -Wimplicit \
@@ -7680,9 +7717,7 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wmissing-braces \
     -Wmissing-declarations \
     -Wmissing-field-initializers \
-    -Wmissing-format-attribute \
     -Wmissing-include-dirs \
-    -Wmissing-noreturn \
     -Wmissing-parameter-type \
     -Wmissing-prototypes \
     -Wmudflap \
@@ -7703,6 +7738,7 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wpointer-sign \
     -Wpointer-to-int-cast \
     -Wpragmas \
+    -Wreturn-local-addr \
     -Wreturn-type \
     -Wsequence-point \
     -Wshadow \
@@ -7724,7 +7760,6 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wtype-limits \
     -Wuninitialized \
     -Wunknown-pragmas \
-    -Wunreachable-code \
     -Wunsafe-loop-optimizations \
     -Wunused \
     -Wunused-but-set-parameter \
@@ -7775,7 +7810,8 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
   ws=$gl_warn_set
 
   for w in $ws; do
-    as_gl_Warn=`$as_echo "gl_cv_warn_c_$w" | $as_tr_sh`
+
+as_gl_Warn=`$as_echo "gl_cv_warn_c_$w" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles $w" >&5
 $as_echo_n "checking whether C compiler handles $w... " >&6; }
 if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
@@ -7783,7 +7819,7 @@ if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $w"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors $w"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7814,14 +7850,15 @@ fi
 
 
   done
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-missing-field-initializers" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-missing-field-initializers" >&5
 $as_echo_n "checking whether C compiler handles -Wno-missing-field-initializers... " >&6; }
 if test "${gl_cv_warn_c__Wno_missing_field_initializers+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-missing-field-initializers"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-missing-field-initializers"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7849,14 +7886,15 @@ if test "x$gl_cv_warn_c__Wno_missing_field_initializers" = x""yes; then :
 fi
 
  # We need this one
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-sign-compare" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-sign-compare" >&5
 $as_echo_n "checking whether C compiler handles -Wno-sign-compare... " >&6; }
 if test "${gl_cv_warn_c__Wno_sign_compare+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-sign-compare"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-sign-compare"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7884,14 +7922,15 @@ if test "x$gl_cv_warn_c__Wno_sign_compare" = x""yes; then :
 fi
 
      # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-type-limits" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-type-limits" >&5
 $as_echo_n "checking whether C compiler handles -Wno-type-limits... " >&6; }
 if test "${gl_cv_warn_c__Wno_type_limits+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-type-limits"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-type-limits"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7919,14 +7958,15 @@ if test "x$gl_cv_warn_c__Wno_type_limits" = x""yes; then :
 fi
 
       # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
 $as_echo_n "checking whether C compiler handles -Wno-switch... " >&6; }
 if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-switch"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-switch"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7954,14 +7994,15 @@ if test "x$gl_cv_warn_c__Wno_switch" = x""yes; then :
 fi
 
            # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-parameter" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-parameter" >&5
 $as_echo_n "checking whether C compiler handles -Wno-unused-parameter... " >&6; }
 if test "${gl_cv_warn_c__Wno_unused_parameter+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-unused-parameter"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-parameter"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7989,14 +8030,15 @@ if test "x$gl_cv_warn_c__Wno_unused_parameter" = x""yes; then :
 fi
 
  # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-format-nonliteral" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-format-nonliteral" >&5
 $as_echo_n "checking whether C compiler handles -Wno-format-nonliteral... " >&6; }
 if test "${gl_cv_warn_c__Wno_format_nonliteral+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-format-nonliteral"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-format-nonliteral"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8027,14 +8069,15 @@ fi
 
   # In spite of excluding -Wlogical-op above, it is enabled, as of
   # gcc 4.5.0 20090517.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-logical-op" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-logical-op" >&5
 $as_echo_n "checking whether C compiler handles -Wno-logical-op... " >&6; }
 if test "${gl_cv_warn_c__Wno_logical_op+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-logical-op"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-logical-op"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8063,14 +8106,15 @@ fi
 
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -fdiagnostics-show-option" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -fdiagnostics-show-option" >&5
 $as_echo_n "checking whether C compiler handles -fdiagnostics-show-option... " >&6; }
 if test "${gl_cv_warn_c__fdiagnostics_show_option+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -fdiagnostics-show-option"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -fdiagnostics-show-option"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8098,14 +8142,15 @@ if test "x$gl_cv_warn_c__fdiagnostics_show_option" = x""yes; then :
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -funit-at-a-time" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -funit-at-a-time" >&5
 $as_echo_n "checking whether C compiler handles -funit-at-a-time... " >&6; }
 if test "${gl_cv_warn_c__funit_at_a_time+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -funit-at-a-time"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -funit-at-a-time"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
