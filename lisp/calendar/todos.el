@@ -2981,13 +2981,15 @@ which is the value of the user option
     (define-key map "h" 'todos-toggle-item-header)
     (define-key map "PB" 'todos-print-buffer)
     (define-key map "PF" 'todos-print-buffer-to-file)
-    (define-key map "j" 'todos-go-to-source-item)
+    (define-key map "g" 'todos-go-to-source-item)
+    (define-key map "j" 'todos-jump-to-category)
     (define-key map "l" 'todos-lower-item-priority)
     (define-key map "n" 'todos-next-item)
     (define-key map "p" 'todos-previous-item)
     (define-key map "q" 'todos-quit)
     (define-key map "r" 'todos-raise-item-priority)
     (define-key map "s" 'todos-save)
+    (define-key map "t" 'todos-show)
     (define-key map "#" 'todos-set-item-priority)
     (define-key map [remap newline] 'todos-go-to-source-item)
     map)
@@ -3147,19 +3149,23 @@ corresponding Todos file, displaying the corresponding category."
   (interactive "P")
   (let* ((cat)
 	 (show-first todos-show-first)
-	 (file (cond ((or (eq major-mode 'todos-mode)
-			  solicit-file)
+	 (file (cond ((or solicit-file
+			  (and (called-interactively-p 'any)
+			       (memq major-mode '(todos-mode
+						  todos-archive-mode
+						  todos-filtered-items-mode))))
 		      (if (funcall todos-files-function)
 			  (todos-read-file-name "Choose a Todos file to visit: "
 						nil t)
 			(error "There are no Todos files")))
 		     ((and (eq major-mode 'todos-archive-mode)
-			   ;; Called noninteractively via todos-quit from
-			   ;; Todos Categories mode to return to archive file.
-			   (called-interactively-p 'any))
+		     	   ;; Called noninteractively via todos-quit
+		     	   ;; to jump to corresponding category in
+		     	   ;; todo file.
+		     	   (not (called-interactively-p 'any)))
 		      (setq cat (todos-current-category))
 		      (concat (file-name-sans-extension todos-current-todos-file)
-			      ".todo"))
+		     	      ".todo"))
 		     (t
 		      (or todos-current-todos-file
 			  (and todos-show-current-file
@@ -3202,10 +3208,10 @@ corresponding Todos file, displaying the corresponding category."
 	      (eq todos-show-first 'first))
       (set-window-buffer (selected-window)
 			 (set-buffer (find-file-noselect file 'nowarn)))
-      ;; If called from archive file, show corresponding
-      ;; category in Todos file, if it exists.
+      ;; When quitting archive file, show corresponding category in
+      ;; Todos file, if it exists.
       (when (assoc cat todos-categories)
-	(setq todos-category-number (todos-category-number cat)))
+      	(setq todos-category-number (todos-category-number cat)))
       ;; If this is a new Todos file, add its first category.
       (when (zerop (buffer-size))
 	(setq todos-category-number
@@ -3344,25 +3350,31 @@ displayed."
 Depending on the specific mode, this either kills the buffer or
 buries it and restores state as needed."
   (interactive)
-  (cond ((eq major-mode 'todos-categories-mode)
-	 ;; Postpone killing buffer till after calling todos-show, to
-	 ;; prevent killing todos-mode buffer.
-	 (let ((buf (current-buffer)))
+  (let ((buf (current-buffer)))
+    (cond ((eq major-mode 'todos-categories-mode)
+	   ;; Postpone killing buffer till after calling todos-show, to
+	   ;; prevent killing todos-mode buffer.
 	   (setq todos-descending-counts nil)
 	   ;; Ensure todos-show calls todos-show-categories-table only on
 	   ;; first invocation per file.
 	   (when (eq todos-show-first 'table)
 	     (add-to-list 'todos-visited todos-current-todos-file))
 	   (todos-show)
-	   (kill-buffer buf)))
-	((eq major-mode 'todos-filtered-items-mode)
-	 (kill-buffer)
-	 (unless (eq major-mode 'todos-mode) (todos-show)))
-	((member major-mode (list 'todos-mode 'todos-archive-mode))
-	 ;; Have to write previously nonexistant archives to file, and might
-	 ;; as well save Todos file also.
-	 (todos-save)
-	 (bury-buffer))))
+	   (kill-buffer buf))
+	  ((eq major-mode 'todos-filtered-items-mode)
+	   (kill-buffer)
+	   (unless (eq major-mode 'todos-mode) (todos-show)))
+	  ((eq major-mode 'todos-archive-mode)
+	   (todos-save)	; Have to write previously nonexistant archives to file.
+	   (todos-show)
+	   (bury-buffer buf))
+	  ((eq major-mode 'todos-mode)
+	   (todos-save)
+	   ;; If we just quit archive mode, just burying the buffer
+	   ;; in todos-mode would return to archive.
+	   (set-window-buffer (selected-window)
+			      (set-buffer (other-buffer)))
+	   (bury-buffer buf)))))
 
 (defun todos-print-buffer (&optional to-file)
   "Produce a printable version of the current Todos buffer.

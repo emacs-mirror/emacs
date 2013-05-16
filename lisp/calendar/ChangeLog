@@ -1,5 +1,14 @@
 2013-05-16  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el (todos-filtered-items-mode-map): Update some bindings.
+	(todos-show): Make it work the same in todos-archive-mode and
+	todos-filtered-items-mode as in todos-mode.
+	(todos-quit): When called in todos-archive-mode, switch to
+	corresponding category in todo file.  When called in todos-mode,
+	avoid going right back to archive.
+
+2013-05-16  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el: Improve toggling of item numbering and headers.
 	(todos-prefix-overlays): Don't reset item numbering for
 	done items unless in todos-mode.
