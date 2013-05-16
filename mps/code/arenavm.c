@@ -446,7 +446,7 @@ static void VMChunkFinish(Chunk chunk)
 
 /* VMArenaVarargs -- parse obsolete varargs */
 
-static void VMArenaVarargs(ArgStruct args[], va_list varargs)
+static void VMArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_ARENA_SIZE;
   args[0].val.size = va_arg(varargs, Size);

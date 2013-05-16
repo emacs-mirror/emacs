@@ -1066,7 +1066,7 @@ void BufferRampReset(Buffer buffer)
 
 /* bufferTrivVarargs -- basic buffer varargs method */
 
-static void bufferTrivVarargs(ArgStruct args[], va_list varargs) {
+static void bufferTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs) {
   UNUSED(varargs);
   args[0].key = MPS_KEY_ARGS_END;
   AVER(ArgListCheck(args));
@@ -1486,7 +1486,7 @@ DEFINE_CLASS(SegBufClass, class)
 
 /* rankBufVarargs -- parse obsolete varargs into keywords */
 
-static void rankBufVarargs(ArgStruct args[], va_list varargs)
+static void rankBufVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_RANK;
   args[0].val.rank = va_arg(varargs, Rank);

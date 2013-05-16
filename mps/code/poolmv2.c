@@ -27,7 +27,7 @@ SRCID(poolmv2, "$Id$");
 /* Private prototypes */
 
 typedef struct MVTStruct *MVT;
-static void MVTVarargs(ArgStruct args[], va_list varargs);
+static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
 static Res MVTInit(Pool pool, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
@@ -193,7 +193,7 @@ static SegPref MVTSegPref(MVT mvt)
 
 /* MVTVarargs -- decode obsolete varargs */
 
-static void MVTVarargs(ArgStruct args[], va_list varargs)
+static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_MIN_SIZE;
   args[0].val.size = va_arg(varargs, Size);

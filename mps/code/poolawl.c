@@ -521,7 +521,7 @@ static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
 
 /* AWLVarargs -- decode obsolete varargs */
 
-static void AWLVarargs(ArgStruct args[], va_list varargs)
+static void AWLVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_FORMAT;
   args[0].val.format = va_arg(varargs, Format);

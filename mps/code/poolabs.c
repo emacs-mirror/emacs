@@ -195,7 +195,7 @@ void PoolTrivFinish(Pool pool)
   NOOP;
 }
 
-void PoolTrivVarargs(ArgStruct args[], va_list varargs)
+void PoolTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   UNUSED(varargs);
   args[0].key = MPS_KEY_ARGS_END;

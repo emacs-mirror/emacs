@@ -48,7 +48,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 
 /* ArenaTrivVarargs -- ignore obsolete varargs for future arena classes */
 
-static void ArenaTrivVarargs(ArgStruct args[], va_list varargs)
+static void ArenaTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   UNUSED(varargs);
   args[0].key = MPS_KEY_ARGS_END;
