@@ -1,3 +1,31 @@
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/Makefile.am: If building for MS-Windows, include
+	nt/gnulib.mk instead of lib/gnulib.mk.
+
+	* configure.ac: Adapt to MSYS build on MS-Windows.
+
+	* Makefile.in (NTDIR): New variable, for the MSYS build on
+	MS-Windows.
+	(SUBDIR): Add $(NTDIR).
+	(.PHONY): Add epaths-force-w32.
+	(msys_to_w32): New variable.
+	(epaths-force-w32, install-nt, uninstall-nt): New targets.
+	(lib-src src): Add $(NTLIB) to prerequisites.
+	(lib lib-src lisp leim nt): Add 'nt'.
+	(config.status): Use $(CFG).
+	(.PHONY): Add install-$(NTDIR) and uninstall-$(NTDIR).
+	(install, install-arch-dep): Add install-$(NTDIR).
+	(uninstall): Depend on uninstall-$(NTDIR).
+	(mostlyclean, clean, distclean, bootstrap-clean): Add 'nt'.
+
+	* GNUmakefile (CFG): New variable, uses mingw-cfg.site as
+	CONFIG_SITE for the MSYS build on MS-Windows.
+	(Makefile): Use $(CFG).
+
+	* .bzrignore: Ignore *.res, *.tmp, and *.map.  Remove
+	src/emacs.res.
+
 2013-05-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

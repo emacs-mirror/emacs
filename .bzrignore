@@ -95,6 +95,7 @@ lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
 lib/dirent.h
+lib/errno.h
 lib/execinfo.h
 lib/fcntl.h
 lib/getopt.h
