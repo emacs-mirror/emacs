@@ -1,6 +1,6 @@
 /* clock.h -- Fast clocks and timers
  *
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * $Id$
  */
 
@@ -20,17 +20,6 @@
  * be quarantined in its own header with KEEP OUT signs attached.
  * RB 2012-09-11
  */
-
-/* Clang provides a cross-platform builtin for a fast timer, but it
-   was not available on Mac OS X 10.8 until the release of XCode 4.6.
-   <http://clang.llvm.org/docs/LanguageExtensions.html#builtins> */
-#if defined(MPS_BUILD_LL)
-
-#if __has_builtin(__builtin_readcyclecounter)
-/* TODO: use this for EVENT_CLOCK. See job003411. */
-#endif /* __has_builtin(__builtin_readcyclecounter) */
-
-#endif
 
 /* Microsoft C provides an intrinsic for the Intel rdtsc instruction.
    <http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx> */
@@ -104,8 +93,27 @@ typedef union EventClockUnion {
     (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && \
       (defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL))
 
-/* Use __extension__ to enable use of a 64-bit type on 32-bit pedantic GCC */
+/* Use __extension__ to enable use of a 64-bit type on 32-bit pedantic
+   GCC or Clang. */
 __extension__ typedef unsigned long long EventClock;
+
+/* Clang provides a cross-platform builtin for a fast timer, but it
+   was not available on Mac OS X 10.8 until the release of XCode 4.6.
+   <http://clang.llvm.org/docs/LanguageExtensions.html#builtins> */
+#if defined(MPS_BUILD_LL)
+
+#if __has_builtin(__builtin_readcyclecounter)
+
+#define EVENT_CLOCK(lvalue) \
+  BEGIN \
+    (lvalue) = __builtin_readcyclecounter(); \
+  END
+
+#endif /* __has_builtin(__builtin_readcyclecounter) */
+
+#endif /* Clang */
+
+#ifndef EVENT_CLOCK
 
 #define EVENT_CLOCK(lvalue) \
   BEGIN \
@@ -113,6 +121,8 @@ __extension__ typedef unsigned long long EventClock;
     __asm__ __volatile__("rdtsc" : "=a"(_l), "=d"(_h)); \
     (lvalue) = ((EventClock)_h << 32) | _l; \
   END
+
+#endif
 
 /* The __extension__ keyword doesn't work on printf formats, so we
    concatenate two 32-bit hex numbers to print the 64-bit value. */
@@ -150,7 +160,7 @@ typedef mps_clock_t EventClock;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
