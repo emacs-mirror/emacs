@@ -1,5 +1,7 @@
 2013-05-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* inc/stdint.h (SIZE_MAX) [!__GNUC__]: Define.  (Bug#14409)
+
 	* msysconfig.sh: New file.
 
 	* mingw-cfg.site: New file.
