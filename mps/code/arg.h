@@ -38,6 +38,7 @@ extern Bool ArgListCheck(ArgList args);
 
 extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
 extern void ArgRequire(ArgStruct *argOut, ArgList args, Key key);
+extern void ArgTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
 
 extern Bool ArgCheckCant(Arg arg);
 extern Bool ArgCheckFormat(Arg arg);

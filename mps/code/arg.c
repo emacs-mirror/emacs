@@ -167,6 +167,17 @@ void ArgRequire(ArgStruct *argOut, ArgList args, Key key) {
 }
 
 
+/* ArgTrivVarargs -- class method to ignore deprecated varargs */
+
+void ArgTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  UNUSED(varargs);
+  args[0].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.

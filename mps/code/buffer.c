@@ -1064,15 +1064,6 @@ void BufferRampReset(Buffer buffer)
 /* BufferClass -- support for the basic Buffer class */
 
 
-/* bufferTrivVarargs -- basic buffer varargs method */
-
-static void bufferTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs) {
-  UNUSED(varargs);
-  args[0].key = MPS_KEY_ARGS_END;
-  AVER(ArgListCheck(args));
-}
-
-
 /* bufferTrivInit -- basic buffer init method */
 
 static Res bufferTrivInit(Buffer buffer, Pool pool, ArgList args)
@@ -1215,7 +1206,7 @@ DEFINE_CLASS(BufferClass, class)
   INHERIT_CLASS(&class->protocol, ProtocolClass);
   class->name = "BUFFER";
   class->size = sizeof(BufferStruct);
-  class->varargs = bufferTrivVarargs;
+  class->varargs = ArgTrivVarargs;
   class->init = bufferTrivInit;
   class->finish = bufferTrivFinish;
   class->attach = bufferTrivAttach;
