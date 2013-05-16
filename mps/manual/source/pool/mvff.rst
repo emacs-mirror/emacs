@@ -132,17 +132,26 @@ MVFF interface
       class is ``sizeof(void *)``.
 
     * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`)
-      indicates whether new segments for buffered allocation are
-      acquired at high addresses (if true), or at low addresses (if
-      false).
+      determines whether new segments are acquired at high addresses (if
+      true), or at low addresses (if false).
 
-    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` (type :c:type:`mps_bool_t`) is
-      undocumented. It must have the same value as
-      :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`.
+    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` (type :c:type:`mps_bool_t`)
+      determines whether to search for the highest addressed free area
+      (if true) or lowest (if false) when allocating using
+      :c:func:`mps_alloc`.
 
-    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` (type :c:type:`mps_bool_t`) is
-      undocumented and must be set to true.
+    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` (type :c:type:`mps_bool_t`)
+      determines whether to allocate from the highest address in a found
+      free area (if true) or lowest (if false) when allocating using
+      :c:func:`mps_alloc`.
 
+    To get a simple first-fit allocator, specify
+    :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` and
+    :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` false, and
+    :c:macro:`MPS_KEY_MVFF_FIRST_FIT` true.  To get a first-fit
+    allocator that works from the top of memory downwards, invert all three.
+    Other combinations may be useful in special circumstances.
+    
     For example::
 
         MPS_ARGS_BEGIN(args) {
@@ -155,6 +164,14 @@ MVFF interface
             MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_mvff(), args);
         } MPS_ARGS_END(args);
+
+    .. note::
+    
+       Allocation points are not affected by
+       :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` or
+       :c:macro:`MPS_KEY_MVFF_FIRST_FIT`.
+       They use a worst-fit policy in order to maximise the number of
+       in-line allocations.
 
     .. deprecated:: starting with version 1.112.
 

@@ -9,7 +9,7 @@
  * policy.  Provision is made to allocate in reverse.  This pool
  * can allocate across segment boundaries.
  *
- * .design: <design/poolmvff/>
+ * .design: <design/poolmvff>
  *
  *
  * TRANSGRESSIONS
