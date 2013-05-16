@@ -325,21 +325,25 @@ sig2str (int signum, char *signame)
   {
     int rtmin = SIGRTMIN;
     int rtmax = SIGRTMAX;
+    int base, delta;
 
     if (! (rtmin <= signum && signum <= rtmax))
       return -1;
 
     if (signum <= rtmin + (rtmax - rtmin) / 2)
       {
-        int delta = signum - rtmin;
-        sprintf (signame, delta ? "RTMIN+%d" : "RTMIN", delta);
+        strcpy (signame, "RTMIN");
+        base = rtmin;
       }
     else
       {
-        int delta = rtmax - signum;
-        sprintf (signame, delta ? "RTMAX-%d" : "RTMAX", delta);
+        strcpy (signame, "RTMAX");
+        base = rtmax;
       }
 
+    delta = signum - base;
+    if (delta != 0)
+      sprintf (signame + 5, "%+d", delta);
     return 0;
   }
 }
