@@ -114,7 +114,9 @@ Windows 9X as well).
   (We recommend that you refrain from installing the MSYS Texinfo
   package, which is part of msys-base, because it might produce mixed
   EOL format when installing Info files.  Instead, install the MinGW
-  port of Texinfo, see the ezwinports URL below.)
+  port of Texinfo, see the ezwinports URL below.  To uninstall the
+  MSYS Texinfo, after installing it as part of msys-base, invoke the
+  command "mingw-get remove msys-texinfo".)
 
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
