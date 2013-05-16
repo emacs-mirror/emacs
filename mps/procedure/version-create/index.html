@@ -6,7 +6,7 @@
 
 <head>
 
-<title>Memory Pool System Version Create Procedure</title>
+<title>Memory Pool System Version Creation Procedure</title>
 
 </head>
 
@@ -27,7 +27,7 @@
 <hr />
 
 
-<h1>Memory Pool System Version Create Procedure</h1>
+<h1>Memory Pool System Version Creation Procedure</h1>
 
 <address>
 <a href="mailto:rb@ravenbrook.com">Richard Kistruck</a>,
@@ -87,6 +87,8 @@ View:
 <h2><a id="section-3" name="section-3">3. Procedure: How to make a new version</a></h2>
 
 <ol>
+
+<li><p>Consider each deprecated feature (by grepping the manual sources for <code>deprecated::</code> sections) and decide whether it needs to be removed from the version you are about to make (and all subsequent versions). Remove features from the master sources before making the version branch.</p></li>
 
 <li><p>Choose the version number for the new version. Typically this has the same major version number as the previous version, and the next minor version number. Thus 1.104 is followed by 1.105. [TODO: when does the major version number change?]</p></li>
 
