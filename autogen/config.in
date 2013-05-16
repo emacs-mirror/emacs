@@ -110,6 +110,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you are using the GNU C Library. */
 #undef DOUG_LEA_MALLOC
 
+/* Define to 1 to enable w32 debug facilities. */
+#undef EMACSDEBUG
+
 /* Define to the canonical Emacs configuration name. */
 #undef EMACS_CONFIGURATION
 
@@ -792,6 +795,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
+
+/* Define to 1 if you have the <mmsystem.h> header file. */
+#undef HAVE_MMSYSTEM_H
 
 /* Define to 1 if you have the `nanotime' function. */
 #undef HAVE_NANOTIME
@@ -1568,6 +1574,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use long long for EMACS_INT if available. */
 #undef WIDE_EMACS_INT
+
+/* Define if compiling for native MS Windows. */
+#undef WINDOWSNT
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wint_t'. */
