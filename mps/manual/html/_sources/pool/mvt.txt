@@ -159,17 +159,17 @@ MVT interface
       reserve does not guarantee any particular amount of allocation.
 
     * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (type :c:type:`mps_count_t`)
-      is a percentage from 1 to 100 (inclusive). It sets an upper
+      is a double from 0.0 to 1.0 (inclusive). It sets an upper
       limit on the space overhead of an MVT pool, in case block death
       times and allocations do not correlate well. If the free space
       managed by the pool as a ratio of all the space managed by the
       pool exceeds the fragmentation limit, the pool falls back to a
       first fit allocation policy, exploiting space more efficiently
-      at a cost in time efficiency. A fragmentation limit of 0 would
+      at a cost in time efficiency. A fragmentation limit of 0.0 would
       cause the pool to operate as a first-fit pool, at a significant
       cost in time efficiency: therefore this is not permitted.
 
-      A fragmentation limit of 100 causes the pool to always use
+      A fragmentation limit of 1.0 causes the pool to always use
       temporal fit (unless resources are exhausted). If the objects
       allocated in the pool have similar lifetime expectancies, this
       mode will have the best time- and space-efficiency. If the
@@ -185,7 +185,7 @@ MVT interface
             MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
             MPS_ARGS_ADD(ARGS, MPS_KEY_MAX_SIZE, 1024);
             MPS_ARGS_ADD(ARGS, MPS_KEY_MVT_RESERVE_DEPTH, 256);
-            MPS_ARGS_ADD(ARGS, MPS_KEY_MVT_FRAG_LIMIT, 50);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVT_FRAG_LIMIT, 0.5);
             MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_mvt(), args);
         } MPS_ARGS_END(args);
@@ -202,6 +202,12 @@ MVT interface
                                       size_t maximum_size,
                                       mps_count_t reserve_depth,
                                       mps_count_t fragmentation_limit)
+
+        .. note::
+
+           The fragmentation_limit is a percentage from 0 to 100
+           inclusive when passed to :c:func:`mps_pool_create`, not a
+           double from 0.0 to 1.0 as in :c:func:`mps_pool_create_k`.
 
 
 .. index::
