@@ -112,44 +112,53 @@ MVFF interface
     Return the :term:`pool class` for an MVFF (Manual Variable First
     Fit) :term:`pool`.
 
-    When creating an MVFF pool, :c:func:`mps_pool_create_k` requires
-    six :term:`keyword arguments`:
+    When creating an MVFF pool, :c:func:`mps_pool_create_k` may take
+    the following :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`) is the
-      :term:`size` of segment that the pool will request from the
-      :term:`arena`.
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default
+      65536) is the :term:`size` of segment that the pool will request
+      from the :term:`arena`.
 
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`) is the
-      predicted mean size of blocks that will be allocated from the
-      pool. This is a *hint* to the MPS: the pool will be less
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
+      is the predicted mean size of blocks that will be allocated from
+      the pool. This is a *hint* to the MPS: the pool will be less
       efficient if this is wrong, but nothing will break.
 
-    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`) is the
+    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
+      smallest general purpose alignment for the architecture) is the
       :term:`alignment` of addresses for allocation (and freeing) in
-      the pool. If an unaligned size is passed to :c:func:`mps_alloc`
-      or :c:func:`mps_free`, it will be rounded up to the pool's
-      alignment. The minimum alignment supported by pools of this
-      class is ``sizeof(void *)``.
+      the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
+      :c:func:`mps_free`, it will be rounded up to the pool's alignment.
+      The minimum alignment supported by pools of this class is
+      ``sizeof(void *)``.
 
-    * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`)
-      determines whether new segments are acquired at high addresses (if
-      true), or at low addresses (if false).
+    * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`,
+      default false) determines whether new segments are acquired at high
+      addresses (if true), or at low addresses (if false).
 
-    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` (type :c:type:`mps_bool_t`)
-      determines whether to search for the highest addressed free area
-      (if true) or lowest (if false) when allocating using
-      :c:func:`mps_alloc`.
+    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` [#not-ap]_ (type :c:type:`mps_bool_t`,
+      default false) determines whether to search for the highest
+      addressed free area (if true) or lowest (if false) when allocating
+      using :c:func:`mps_alloc`.
 
-    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` (type :c:type:`mps_bool_t`)
-      determines whether to allocate from the highest address in a found
-      free area (if true) or lowest (if false) when allocating using
-      :c:func:`mps_alloc`.
+    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` [#not-ap]_ (type :c:type:`mps_bool_t`, default
+      true) determines whether to allocate from the highest address in a
+      found free area (if true) or lowest (if false) when allocating
+      using :c:func:`mps_alloc`.
 
-    To get a simple first-fit allocator, specify
+    .. [#not-ap]
+    
+       Allocation points are not affected by
+       :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` or
+       :c:macro:`MPS_KEY_MVFF_FIRST_FIT`.
+       They use a worst-fit policy in order to maximise the number of
+       in-line allocations.
+
+    The defaults yield a a simple first-fit allocator.  Specify
     :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` and
-    :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` false, and
-    :c:macro:`MPS_KEY_MVFF_FIRST_FIT` true.  To get a first-fit
-    allocator that works from the top of memory downwards, invert all three.
+    :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` true, and
+    :c:macro:`MPS_KEY_MVFF_FIRST_FIT` false to get a first-fit
+    allocator that works from the top of memory downwards.
     Other combinations may be useful in special circumstances.
     
     For example::
@@ -158,20 +167,12 @@ MVFF interface
             MPS_ARGS_ADD(ARGS, MPS_KEY_EXTEND_BY, 1024 * 1024);
             MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
             MPS_ARGS_ADD(ARGS, MPS_KEY_ALIGN, 8);
-            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_ARENA_HIGH, 0);
-            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_SLOT_HIGH, 0);
-            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_FIRST_FIT, 1);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_ARENA_HIGH, 1);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_SLOT_HIGH, 1);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_FIRST_FIT, 0);
             MPS_ARGS_DONE(args);
             res = mps_pool_create_k(&pool, arena, mps_class_mvff(), args);
         } MPS_ARGS_END(args);
-
-    .. note::
-    
-       Allocation points are not affected by
-       :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` or
-       :c:macro:`MPS_KEY_MVFF_FIRST_FIT`.
-       They use a worst-fit policy in order to maximise the number of
-       in-line allocations.
 
     .. deprecated:: starting with version 1.112.
 

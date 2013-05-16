@@ -10,11 +10,12 @@ Design of the Manually-Managed Variable-Size First-Fit Pool
 Introduction
 ------------
 
-_`.intro`: The pool was created in a response to a belief that EPDL/EPDR's first 
-fit policy is beneficial for some classes of client behaviour, but the 
-performance of a linear free list was unacceptable.  This pool implements a 
-first (or last) fit policy for variable-sized manually-managed objects, with 
-control over first/last, segment preference high/low, and slot fit low/high.
+_`.intro`: The pool was created in a response to a belief that the
+ScriptWorks EPDL/EPDR's first fit policy is beneficial for some classes
+of client behaviour, but the performance of a linear free list was
+unacceptable.  This pool implements a first (or last) fit policy for
+variable-sized manually-managed objects, with control over first/last,
+segment preference high/low, and slot fit low/high.
 
 
 Document History

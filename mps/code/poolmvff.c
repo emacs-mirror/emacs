@@ -445,7 +445,7 @@ static Res MVFFInit(Pool pool, ArgList args)
 {
   Size extendBy = MVFF_EXTEND_BY_DEFAULT;
   Size avgSize = MVFF_AVG_SIZE_DEFAULT;
-  Size align;
+  Size align = MVFF_ALIGN_DEFAULT;
   Bool slotHigh = MVFF_SLOT_HIGH_DEFAULT;
   Bool arenaHigh = MVFF_ARENA_HIGH_DEFAULT;
   Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
@@ -458,7 +458,6 @@ static Res MVFFInit(Pool pool, ArgList args)
 
   AVERT(Pool, pool);
   arena = PoolArena(pool);
-  align = ArenaAlign(arena);
 
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
