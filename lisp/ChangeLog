@@ -1,3 +1,18 @@
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (reveal-filename): New function.
+
+	* loadup.el: Compute Emacs executable versions on MS-Windows,
+	where executables have the .exe extension.  Add a hard link
+	emacs-XX.YY.ZZ.exe on MS-Windows.
+
+	* Makefile.in (XARGS_LIMIT): New variable.
+	(custom-deps, finder-data, autoloads)
+	($(MH_E_DIR)/mh-loaddefs.el, $(TRAMP_DIR)/tramp-loaddefs.el)
+	($(CAL_DIR)/cal-loaddefs.el, $(CAL_DIR)/diary-loaddefs.el)
+	($(CAL_DIR)/hol-loaddefs.el): Use reveal-filename.
+	(compile-main): Limit xargs according to $(XARGS_LIMIT).
+
 2013-05-16  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-indent-defun): Mark obsolete.

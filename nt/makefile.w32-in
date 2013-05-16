@@ -29,6 +29,8 @@ TMP_DIST_DIR 	= emacs-$(VERSION)
 TRES		= $(BLD)/emacs.res
 CLIENTRES	= $(BLD)/emacsclient.res
 
+LOCAL_FLAGS	= -DOLD_PATHS=1
+
 XMFLAGS		=
 
 ALL		= $(BLD)/addpm.exe $(BLD)/ddeclient.exe $(BLD)/runemacs.exe \

@@ -50,6 +50,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <shlobj.h>
 #include <ddeml.h>
 
+#ifndef OLD_PATHS
+#include "../src/epaths.h"
+#endif
+
 HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 	     HSZ hsz1, HSZ hsz2, HDDEDATA hdata,
@@ -76,6 +80,7 @@ static struct entry
 }
 env_vars[] =
 {
+#ifdef OLD_PATHS
   {"emacs_dir", NULL},
   {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp;%emacs_dir%/leim"},
   {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
@@ -86,6 +91,18 @@ env_vars[] =
   /*  {"INFOPATH", "%emacs_dir%/info"},  */
   {"EMACSDOC", "%emacs_dir%/etc"},
   {"TERM", "cmd"}
+#else  /* !OLD_PATHS */
+  {"emacs_dir", NULL},
+  {"EMACSLOADPATH", PATH_SITELOADSEARCH ";" PATH_LOADSEARCH},
+  {"SHELL", PATH_EXEC "/cmdproxy.exe"},
+  {"EMACSDATA", PATH_DATA},
+  {"EMACSPATH", PATH_EXEC},
+  /* We no longer set INFOPATH because Info-default-directory-list
+     is then ignored.  */
+  /*  {"INFOPATH", "%emacs_dir%/info"},  */
+  {"EMACSDOC", PATH_DOC},
+  {"TERM", "cmd"}
+#endif
 };
 
 BOOL

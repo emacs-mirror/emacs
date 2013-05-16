@@ -4678,4 +4678,20 @@ as alpha versions."
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
 
+;; This is used in lisp/Makefile.in and in leim/Makefile.in to
+;; generate file names for autoloads, custom-deps, and finder-data.
+(defun reveal-filename (file)
+  "Produce the real file name for FILE.
+
+On systems other than MS-Windows, just returns FILE.
+On MS-Windows, converts /d/foo/bar form of file names
+passed by MSYS Make into d:/foo/bar that Emacs can grok.
+
+This function is called from lisp/Makefile."
+  (when (and (eq system-type 'windows-nt)
+	     (string-match "\\`/[a-zA-Z]/" file))
+    (setq file (concat (substring file 1 2) ":" (substring file 2))))
+  file)
+
+
 ;;; subr.el ends here

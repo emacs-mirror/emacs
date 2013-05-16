@@ -267,10 +267,13 @@ W32_OBJ=@W32_OBJ@
 W32_LIBS=@W32_LIBS@
 
 ## emacs.res if HAVE_W32
-W32_RES=@W32_RES@
+EMACSRES = @EMACSRES@
+## emacs-*.manifest if HAVE_W32
+EMACS_MANIFEST = @EMACS_MANIFEST@
 ## If HAVE_W32, compiler arguments for including
 ## the resource file in the binary.
-## XXX -Wl,-b -Wl,pe-i386 -Wl,emacs.res
+## Cygwin: -Wl,emacs.res
+## MinGW: emacs.res
 W32_RES_LINK=@W32_RES_LINK@
 
 ## Empty if !HAVE_X_WINDOWS
@@ -278,6 +281,9 @@ W32_RES_LINK=@W32_RES_LINK@
 ## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
 ## else xfont.o
 FONT_OBJ=@FONT_OBJ@
+
+## Empty for MinGW, cm.o for the rest.
+CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
 
@@ -296,6 +302,14 @@ INTERVALS_H = dispextern.h intervals.h composite.h
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = `/bin/pwd`/temacs
+
+## Invoke ../nt/addsection for MinGW, ":" elsewhere.
+TEMACS_POST_LINK = @TEMACS_POST_LINK@
+ADDSECTION = @ADDSECTION@
+EMACS_HEAPSIZE = @EMACS_HEAPSIZE@
+MINGW_TEMACS_POST_LINK = \
+ mv temacs$(EXEEXT) temacs.tmp; \
+ ../nt/addsection temacs.tmp temacs$(EXEEXT) EMHEAP $(EMACS_HEAPSIZE)
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
@@ -339,7 +353,7 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 ## be dumped as pure by dump-emacs.
 base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
-	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
+	$(CM_OBJ) term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o \
@@ -377,9 +391,9 @@ VMLIMIT_OBJ=@VMLIMIT_OBJ@
 ## ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.
 RALLOC_OBJ=@RALLOC_OBJ@
 
-## Empty on Cygwin, lastfile.o elsewhere.
+## Empty on Cygwin and MinGW, lastfile.o elsewhere.
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-## lastfile.o on Cygwin, empty elsewhere.
+## lastfile.o on Cygwin and MinGW, empty elsewhere.
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 ## List of object files that make-docfile should not be told about.
@@ -387,7 +401,9 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
   $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 ## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
-ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
+## (On MinGW, firstfile.o should be before vm-limit.o.)
+FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
+ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 ## Configure inserts the file lisp.mk at this point, defining $lisp.
 @lisp_frag@
@@ -416,7 +432,8 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
-emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
+emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
+                $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  rm -f emacs$(EXEEXT); \
 	  ln temacs$(EXEEXT) emacs$(EXEEXT); \
@@ -468,10 +485,10 @@ $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
 temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
-	         $(lib)/libgnu.a $(W32_RES)
+	         $(lib)/libgnu.a $(EMACSRES)
 	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(LIBES) \
-	  $(W32_RES_LINK)
+	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
+	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 
@@ -514,8 +531,9 @@ doc.o: buildobj.h
 
 emacs.res: $(ntsource)/emacs.rc \
 	   $(ntsource)/icons/emacs.ico \
-	   $(ntsource)/emacs-x86.manifest
-	$(WINDRES) -O COFF -o $@ $(ntsource)/emacs.rc
+	   $(ntsource)/$(EMACS_MANIFEST)
+	$(WINDRES) -O COFF --include-dir=$(srcdir)/../nt \
+	  -o $@ $(ntsource)/emacs.rc
 
 ns-app: emacs$(EXEEXT)
 	cd ../nextstep && $(MAKE) $(MFLAGS) all

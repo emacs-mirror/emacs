@@ -1,3 +1,48 @@
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* msysconfig.sh: New file.
+
+	* mingw-cfg.site: New file.
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -DOLD_PATHS=1.
+
+	* inc/unistd.h: Include pwd.h and sys/types.h.
+
+	* inc/sys/time.h (_TIMEVAL_DEFINED, timerisset, timercmp)
+	(timerclear): Define.
+	(gettimeofday): Adjust signature to be Posix compatible, by using
+	the 'restrict' keyword.
+
+	* inc/sys/stat.h (UTIME_NOW, UTIME_OMIT): Define.
+	(struct _stat, struct _stati64): Define.
+
+	* inc/sys/socket.h (timeval): Define only for MSVC.
+	(FD_SET, FD_CLR, FD_ISSET, fd_set): Redefine only if
+	EMACS_CONFIG_H is defined.
+	(timeval): Undefine only for MSVC.
+
+	* inc/ms-w32.h (HAVE___BUILTIN_UNWIND_INIT, restrict)
+	(HAVE_WINDOW_SYSTEM, HAVE_MENUS, EMACS_CONFIGURATION)
+	(EMACS_CONFIG_OPTIONS, HAVE_LONG_LONG_INT)
+	(HAVE_UNSIGNED_LONG_LONG_INT): Define only if not already defined.
+	(fileno): Move definition after including stdio.h.
+	(sigset_t): Guard typedef by _W64.
+
+	* gnulib.mk: New file.
+
+	* epaths.nt: New file.
+
+	* addpm.c [!OLD_PATHS]: Include src/epaths.h, instead of having a
+	copy of the file names there.
+	<env_vars> [!OLD_PATHS]: Use macros from epaths.h instead of
+	literal strings.
+
+	* Makefile.in: New file.
+
+	* INSTALL.MSYS: New file.
+
+	* INSTALL: Mention INSTALL.MSYS.
+
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* makefile.w32-in (clean, top-distclean): DOC-X doesn't exist any more.

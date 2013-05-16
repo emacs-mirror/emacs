@@ -290,9 +290,12 @@
 	     (equal (nth 4 command-line-args) "dump"))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
+	   (exelen (if (eq system-type 'windows-nt) -4))
 	   (files (file-name-all-completions base default-directory))
-	   (versions (mapcar (function (lambda (name)
-					 (string-to-number (substring name (length base)))))
+	   (versions (mapcar (function
+			      (lambda (name)
+				(string-to-number
+				 (substring name (length base) exelen))))
 			     files)))
       (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
                               (error nil)))
@@ -376,18 +379,25 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (memq system-type '(ms-dos windows-nt))
+      (if (not (or (eq system-type 'ms-dos)
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (nth 3 command-line-args) "bootstrap")
                    (equal (nth 4 command-line-args) "bootstrap")))
-	  (let ((name (concat "emacs-" emacs-version)))
+	  (let ((name (concat "emacs-" emacs-version))
+		(exe (if (eq system-type 'windows-nt) ".exe" "")))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 				 "-"
 				 (substring name (match-end 0)))))
+	    (setq name (concat name exe))
             (message "Adding name %s" name)
-	    (add-name-to-file "emacs" name t)))
+	    ;; When this runs on Windows, invocation-directory is not
+	    ;; necessarily the current directory.
+	    (add-name-to-file (expand-file-name (concat "emacs" exe)
+						invocation-directory)
+			      (expand-file-name name invocation-directory)
+			      t)))
       (kill-emacs)))
 
 ;; For machines with CANNOT_DUMP defined in config.h,

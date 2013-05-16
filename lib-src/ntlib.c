@@ -49,10 +49,11 @@ struct timezone
 /* Emulate sleep...we could have done this with a define, but that
    would necessitate including windows.h in the files that used it.
    This is much easier.  */
-void
-sleep (unsigned long seconds)
+unsigned
+sleep (unsigned seconds)
 {
   Sleep (seconds * 1000);
+  return 0;
 }
 
 /* Get the current working directory.  */
@@ -135,6 +136,12 @@ unsigned
 getuid (void)
 {
   return 0;
+}
+
+unsigned
+geteuid (void)
+{
+  return getuid ();
 }
 
 unsigned
@@ -415,4 +422,3 @@ lstat (const char * path, struct stat * buf)
 {
   return stat (path, buf);
 }
-
