@@ -1,3 +1,9 @@
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/symref/list.el (semantic-symref-auto-expand-results)
+	(semantic-symref-results-mode-hook)
+	(semantic-symref-results-summary-function): Fix :group.
+
 2013-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* ede/simple.el, semantic/java.el: Set generated-autoload-load-name.

@@ -93,13 +93,12 @@ When you define a variable with a @code{defvar} or related form
 (@pxref{Defining Variables}), the documentation is stored in the
 variable's @code{variable-documentation} property.
 
-@cindex @file{DOC-@var{version}} (documentation) file
+@cindex @file{DOC} (documentation) file
 @item
 To save memory, the documentation for preloaded functions and
 variables (including primitive functions and autoloaded functions) is
 not kept in memory, but in the file
-@file{emacs/etc/DOC-@var{version}}, where @var{version} is the Emacs
-version number (@pxref{Version Info}).
+@file{emacs/etc/DOC}).
 
 @item
 When a function or variable is loaded from a byte-compiled file during
@@ -126,7 +125,7 @@ customization groups (but for function documentation, use the
 @code{documentation} command, below).
 
 If the value recorded in the property list refers to a documentation
-string stored in a @file{DOC-@var{version}} file or a byte-compiled
+string stored in a @file{DOC} file or a byte-compiled
 file, it looks up that string and returns it.  If the property value
 isn't @code{nil}, isn't a string, and doesn't refer to text in a file,
 then it is evaluated as a Lisp expression to obtain a string.
@@ -296,12 +295,12 @@ memory in the function definitions and variable property lists.
 Emacs reads the file @var{filename} from the @file{emacs/etc} directory.
 When the dumped Emacs is later executed, the same file will be looked
 for in the directory @code{doc-directory}.  Usually @var{filename} is
-@code{"DOC-@var{version}"}.
+@code{"DOC"}.
 @end defun
 
 @defvar doc-directory
 This variable holds the name of the directory which should contain the
-file @code{"DOC-@var{version}"} that contains documentation strings for
+file @code{"DOC"} that contains documentation strings for
 built-in and preloaded functions and variables.
 
 In most cases, this is the same as @code{data-directory}.  They may be

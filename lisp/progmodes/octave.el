@@ -98,8 +98,6 @@ parenthetical grouping.")
   (let ((map (make-sparse-keymap)))
     (define-key map "\M-."     'octave-find-definition)
     (define-key map "\M-\C-j"  'octave-indent-new-comment-line)
-    ;; C-c C-q is also used by cc modes for similar command
-    (define-key map "\C-c\C-q" 'octave-indent-defun)
     (define-key map "\C-c\C-p" 'octave-previous-code-line)
     (define-key map "\C-c\C-n" 'octave-next-code-line)
     (define-key map "\C-c\C-a" 'octave-beginning-of-line)
@@ -134,27 +132,26 @@ parenthetical grouping.")
   "Menu for Octave mode."
   '("Octave"
     ("Lines"
-      ["Previous Code Line"	octave-previous-code-line t]
-      ["Next Code Line"		octave-next-code-line t]
-      ["Begin of Continuation"	octave-beginning-of-line t]
-      ["End of Continuation"	octave-end-of-line t]
-      ["Split Line at Point"	octave-indent-new-comment-line t])
+     ["Previous Code Line"	octave-previous-code-line t]
+     ["Next Code Line"		octave-next-code-line t]
+     ["Begin of Continuation"	octave-beginning-of-line t]
+     ["End of Continuation"	octave-end-of-line t]
+     ["Split Line at Point"	octave-indent-new-comment-line t])
     ("Blocks"
-      ["Mark Block"		octave-mark-block t]
-      ["Close Block"		smie-close-block t])
+     ["Mark Block"		octave-mark-block t]
+     ["Close Block"		smie-close-block t])
     ("Functions"
-      ["Indent Function"	octave-indent-defun t]
-      ["Insert Function"	octave-insert-defun t]
-      ["Update function file comment" octave-update-function-file-comment t])
+     ["Insert Function"	octave-insert-defun t]
+     ["Update function file comment" octave-update-function-file-comment t])
     "-"
     ("Debug"
-      ["Send Current Line"	octave-send-line t]
-      ["Send Current Block"	octave-send-block t]
-      ["Send Current Function"	octave-send-defun t]
-      ["Send Region"		octave-send-region t]
-      ["Show Process Buffer"	octave-show-process-buffer t]
-      ["Hide Process Buffer"	octave-hide-process-buffer t]
-      ["Kill Process"		octave-kill-process t])
+     ["Send Current Line"	octave-send-line t]
+     ["Send Current Block"	octave-send-block t]
+     ["Send Current Function"	octave-send-defun t]
+     ["Send Region"		octave-send-region t]
+     ["Show Process Buffer"	octave-show-process-buffer t]
+     ["Hide Process Buffer"	octave-hide-process-buffer t]
+     ["Kill Process"		octave-kill-process t])
     "-"
     ["Indent Line"		indent-according-to-mode t]
     ["Complete Symbol"		completion-at-point t]
@@ -1111,14 +1108,8 @@ The new line is properly indented."
     (insert (concat " " octave-continuation-string))
     (reindent-then-newline-and-indent))))
 
-(defun octave-indent-defun ()
-  "Properly indent the Octave function which contains point."
-  (interactive)
-  (save-excursion
-    (mark-defun)
-    (message "Indenting function...")
-    (indent-region (point) (mark) nil))
-  (message "Indenting function...done."))
+(define-obsolete-function-alias
+  'octave-indent-defun 'prog-indent-sexp "24.4")
 
 
 ;;; Motion

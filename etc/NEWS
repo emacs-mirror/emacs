@@ -282,6 +282,12 @@ when possible.
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
 which support POSIX ACLs.
 
+** VHDL mode
+
+*** New options: `vhdl-actual-generic-name', `vhdl-beautify-options'.
+
+*** New commands: `vhdl-fix-statement-region', `vhdl-fix-statement-buffer'.
+
 ** Woman
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
@@ -326,6 +332,9 @@ It is layered as:
 
 
 * Incompatible Lisp Changes in Emacs 24.4
+
+** Default process filers and sentinels are not nil any more.
+Instead they default to a function which does what the nil value used to do.
 
 ** `read-event' does not return decoded chars in ttys any more.
 Just as was the case in Emacs-22 and before, decoding of tty input according to

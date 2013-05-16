@@ -483,7 +483,7 @@ For example,
 @noindent
 In this case, @code{"prolog"} is the name of the file to load, 169681
 refers to the documentation string in the
-@file{emacs/etc/DOC-@var{version}} file (@pxref{Documentation Basics}),
+@file{emacs/etc/DOC} file (@pxref{Documentation Basics}),
 @code{t} means the function is interactive, and @code{nil} that it is
 not a macro or a keymap.
 @end defun

@@ -1,3 +1,7 @@
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* url-news.el (url-news): Remove empty custom group.
+
 2013-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* url-http.el (url-http-wait-for-headers-change-function):

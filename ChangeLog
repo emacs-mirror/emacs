@@ -1,3 +1,15 @@
+2013-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-05-15 manywarnings: update for GCC 4.8.0
+	2013-05-15 stdio: use __REDIRECT for fwrite, fwrite_unlocked
+	2013-05-15 sig2str, stdio, warnings: port to clang
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (install-doc): DOC file is not version specific any more.
+	* .bzrignore: Don't ignore DOC-* any more.
+
 2013-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (LD_SWITCH_SYSTEM_TEMACS): OpenBSD needs -nopie.

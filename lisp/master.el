@@ -53,10 +53,11 @@
 
 ;;; Code:
 
-(defgroup master nil
-  "Support for master/slave relationships between buffers."
-  :version "22.1"
-  :group 'convenience)
+;; Unused.
+;;; (defgroup master nil
+;;;   "Support for master/slave relationships between buffers."
+;;;   :version "22.1"
+;;;   :group 'convenience)
 
 ;; Variables that don't need initialization.
 
@@ -84,7 +85,8 @@ using the following commands:
 The slave buffer is stored in the buffer-local variable `master-of'.
 You can set this variable using `master-set-slave'.  You can show
 yourself the value of `master-of' by calling `master-show-slave'."
-  :group 'master
+  ;; Not global, so no effect.
+;;;  :group 'master
   :keymap
   '(("\C-c\C-n" . master-says-scroll-up)
     ("\C-c\C-p" . master-says-scroll-down)

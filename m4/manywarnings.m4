@@ -98,6 +98,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -W \
     -Wabi \
     -Waddress \
+    -Waggressive-loop-optimizations \
     -Wall \
     -Warray-bounds \
     -Wattributes \
@@ -125,7 +126,6 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wformat-security \
     -Wformat-y2k \
     -Wformat-zero-length \
-    -Wformat=2 \
     -Wfree-nonheap-object \
     -Wignored-qualifiers \
     -Wimplicit \
@@ -143,9 +143,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wmissing-braces \
     -Wmissing-declarations \
     -Wmissing-field-initializers \
-    -Wmissing-format-attribute \
     -Wmissing-include-dirs \
-    -Wmissing-noreturn \
     -Wmissing-parameter-type \
     -Wmissing-prototypes \
     -Wmudflap \
@@ -166,6 +164,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wpointer-sign \
     -Wpointer-to-int-cast \
     -Wpragmas \
+    -Wreturn-local-addr \
     -Wreturn-type \
     -Wsequence-point \
     -Wshadow \
@@ -187,7 +186,6 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wtype-limits \
     -Wuninitialized \
     -Wunknown-pragmas \
-    -Wunreachable-code \
     -Wunsafe-loop-optimizations \
     -Wunused \
     -Wunused-but-set-parameter \

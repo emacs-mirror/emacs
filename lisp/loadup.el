@@ -308,32 +308,10 @@
 (message "Finding pointers to doc strings...")
 (if (or (equal (nth 3 command-line-args) "dump")
 	(equal (nth 4 command-line-args) "dump"))
-    (let ((name emacs-version))
-      (while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			   "-"
-			   (substring name (match-end 0)))))
-      (if (memq system-type '(ms-dos windows-nt))
-	  (let ((name1 (expand-file-name
-			(if (fboundp 'x-create-frame) "DOC-X" "DOC")
-			"../etc")))
-	    ;; There will be no DOC-X on MS-Windows when we build
-	    ;; using the Posix Makefile's.  In that case, we want
-	    ;; to create DOC-XX.YY.ZZ, as on Unix.
-	    (if (file-exists-p name1)
-		(setq name name1)
-	      (setq name (concat (expand-file-name "../etc/DOC-") name))
-	      (if (file-exists-p name)
-		  (delete-file name))
-	      (copy-file (expand-file-name "../etc/DOC") name t)))
-	(setq name (concat (expand-file-name "../etc/DOC-") name))
-	(if (file-exists-p name)
-	    (delete-file name))
-	(copy-file (expand-file-name "../etc/DOC") name t))
-      (Snarf-documentation (file-name-nondirectory name)))
-    (condition-case nil
-	(Snarf-documentation "DOC")
-      (error nil)))
+    (Snarf-documentation "DOC")
+  (condition-case nil
+      (Snarf-documentation "DOC")
+    (error nil)))
 (message "Finding pointers to doc strings...done")
 
 ;; Note: You can cause additional libraries to be preloaded

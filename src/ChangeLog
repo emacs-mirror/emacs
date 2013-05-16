@@ -1,5 +1,33 @@
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* makefile.w32-in (DOC): Use just "DOC".
+
+	* Makefile.in (bootstrap-clean): DOC-* doesn't exist any more.
+
+	* process.c: Export default filters and sentinels to Elisp.
+	(Qinternal_default_process_sentinel, Qinternal_default_process_filter):
+	New constants.
+	(pset_filter, pset_sentinel, make_process, Fset_process_filter)
+	(Fset_process_sentinel, Fformat_network_address):
+	Default to them instead of nil.
+	(server_accept_connection): Sentinels can't be nil any more.
+	(read_and_dispose_of_process_output): New function, extracted from
+	read_process_output.
+	(read_process_output): Use it; filters can't be nil.
+	(Finternal_default_process_filter): New function, extracted from
+	read_process_output.
+	(exec_sentinel_unwind): Remove function.
+	(exec_sentinel): Don't zilch sentinel while running.
+	(status_notify): Sentinels can't be nil.
+	(Finternal_default_process_sentinel): New function extracted from
+	status_notify.
+	(setup_process_coding_systems): Default filter is not nil any more.
+	(syms_of_process): Export new Elisp functions and initialize
+	new constants.
+	* lisp.h (make_lisp_proc): New function.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* regex.c (regex_compile) [\=, \>, \<]: Don't forget to set laststart.
 
 2013-05-14  Eli Zaretskii  <eliz@gnu.org>

@@ -29,7 +29,7 @@ See the end of the file for license conditions.
   Along with this file should be six subdirectories (bin, etc, info,
   lisp, leim, site-lisp).  If you have downloaded the barebin
   distribution, then it will contain only the bin directory and the
-  built in documentation in etc/DOC-X, the rest of the subdirectories
+  built in documentation in etc/DOC, the rest of the subdirectories
   are in the src distribution, which the barebin distribution is
   designed to be used with.
 

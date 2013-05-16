@@ -2292,7 +2292,6 @@ terminal type to a different value."
     (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
-  :group 'whitespace-faces	; like `show-trailing-whitespace'
   :group 'basic-faces)
 
 (defface escape-glyph

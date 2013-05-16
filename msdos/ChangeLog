@@ -1,3 +1,7 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sed1x.inp: Don't rewrite DOC any more.
+
 2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sedlibmk.inp: Sync with changes in lib/Makefile.in.

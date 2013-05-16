@@ -61,16 +61,14 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
       ;; the args as directories after we are done.
       (while (setq subdir (pop command-line-args-left))
         (message "Directory %s" subdir)
-        (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
+        (let ((files (directory-files subdir nil "\\`[^=.].*\\.el\\'"))
               (default-directory (expand-file-name subdir))
-              (preloaded (concat "\\`"
-                                 (regexp-opt (mapcar
-                                              'file-name-base
-                                              preloaded-file-list) t)
+              (preloaded (concat "\\`\\(\\./+\\)?"
+                                 (regexp-opt preloaded-file-list t)
                                  "\\.el\\'")))
           (dolist (file files)
             (unless (or (string-match custom-dependencies-no-scan-regexp file)
-                        (string-match preloaded file)
+                        (string-match preloaded (format "%s/%s" subdir file))
                         (not (file-exists-p file)))
               (erase-buffer)
               (kill-all-local-variables)
@@ -91,13 +89,30 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                     (while (re-search-forward
                             "^(def\\(custom\\|face\\|group\\)" nil t)
                       (beginning-of-line)
-                      (let ((expr (read (current-buffer))))
+                      (let ((type (match-string 1))
+			    (expr (read (current-buffer))))
                         (condition-case nil
                             (let ((custom-dont-initialize t))
-                              ;; Why do we need to eval just for the name?
-                              (eval expr)
-                              (put (nth 1 expr) 'custom-where name))
-                          (error nil))))
+                              ;; Eval to get the 'custom-group, -tag,
+                              ;; -version, group-documentation etc properties.
+                              (put (nth 1 expr) 'custom-where name)
+                              (eval expr))
+                          ;; Eval failed for some reason.  Eg maybe the
+                          ;; defcustom uses something defined earlier
+                          ;; in the file (we haven't loaded the file).
+                          ;; In most cases, we can still get the :group.
+                          (error
+                           (ignore-errors
+                             (let ((group (cadr (memq :group expr))))
+                               (and group
+                                    (eq (car group) 'quote)
+                                    (custom-add-to-group
+                                     (cadr group)
+                                     (nth 1 expr)
+                                     (intern (format "custom-%s"
+                                                     (if (equal type "custom")
+                                                         "variable"
+                                                       type)))))))))))
                   (error nil)))))))))
   (message "Generating %s..." generated-custom-dependencies-file)
   (set-buffer (find-file-noselect generated-custom-dependencies-file))
@@ -187,5 +202,6 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (message "Generating %s...done" generated-custom-dependencies-file))
 
 
+(provide 'cus-dep)
 
 ;;; cus-dep.el ends here

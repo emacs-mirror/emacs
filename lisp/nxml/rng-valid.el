@@ -530,7 +530,6 @@ Return t if there is work to do, nil otherwise."
 	xmltok-replacement
 	xmltok-attributes
 	xmltok-namespace-attributes
-	xmltok-dependent-regions
 	xmltok-errors)
     (when (= (point) 1)
       (let ((regions (xmltok-forward-prolog)))
@@ -566,7 +565,6 @@ Return t if there is work to do, nil otherwise."
 	       ;; do this before setting rng-validate-up-to-date-end
 	       ;; in case we get a quit
 	       (rng-mark-xmltok-errors)
-	       (rng-mark-xmltok-dependent-regions)
 	       (setq rng-validate-up-to-date-end
 		     (marker-position rng-conditional-up-to-date-end))
 	       (rng-clear-conditional-region)
@@ -591,7 +589,6 @@ Return t if there is work to do, nil otherwise."
 		 (when (not have-remaining-chars)
 		   (rng-process-end-document))
 		 (rng-mark-xmltok-errors)
-		 (rng-mark-xmltok-dependent-regions)
 		 (setq rng-validate-up-to-date-end pos)
 		 (when rng-conditional-up-to-date-end
 		   (cond ((<= rng-conditional-up-to-date-end pos)
@@ -661,56 +658,8 @@ Return t if there is work to do, nil otherwise."
 		   ;; if overlays left over from a previous use
 		   ;; of rng-validate-mode that ended with a change of mode
 		   (when rng-error-count
-		     (setq rng-error-count (1- rng-error-count)))))
-		((and (eq category 'rng-dependent)
-		      (<= beg (overlay-start overlay)))
-		 (delete-overlay overlay))))
+		     (setq rng-error-count (1- rng-error-count)))))))
 	(setq overlays (cdr overlays))))))
-
-;;; Dependent regions
-
-(defun rng-mark-xmltok-dependent-regions ()
-  (while xmltok-dependent-regions
-    (apply 'rng-mark-xmltok-dependent-region
-	   (car xmltok-dependent-regions))
-    (setq xmltok-dependent-regions
-	  (cdr xmltok-dependent-regions))))
-
-(defun rng-mark-xmltok-dependent-region (fun start end &rest args)
-  (let ((overlay (make-overlay start end nil t t)))
-    (overlay-put overlay 'category 'rng-dependent)
-    (overlay-put overlay 'rng-funargs (cons fun args))))
-
-(put 'rng-dependent 'evaporate t)
-(put 'rng-dependent 'modification-hooks '(rng-dependent-region-changed))
-(put 'rng-dependent 'insert-behind-hooks '(rng-dependent-region-changed))
-
-(defun rng-dependent-region-changed (overlay
-				     after-p
-				     change-start
-				     change-end
-				     &optional pre-change-length)
-  (when (and after-p
-	     ;; Emacs sometimes appears to call deleted overlays
-	     (overlay-start overlay)
-	     (let ((funargs (overlay-get overlay 'rng-funargs)))
-	       (save-match-data
-		 (save-excursion
-		   (save-restriction
-		     (widen)
-		     (apply (car funargs)
-			    (append (list change-start
-					  change-end
-					  pre-change-length
-					  (overlay-start overlay)
-					  (overlay-end overlay))
-				    (cdr funargs))))))))
-    (rng-after-change-function (overlay-start overlay)
-			       change-end
-			       (+ pre-change-length
-				  (- (overlay-start overlay)
-				     change-start)))
-    (delete-overlay overlay)))
 
 ;;; Error state
 

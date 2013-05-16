@@ -1,3 +1,11 @@
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* erc-list.el (erc-list):
+	* erc-menu.el (erc-menu):
+	* erc-ring.el (erc-ring): Define custom groups, for define-erc-module.
+
+	* erc-list.el: Provide a feature.
+
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* erc-desktop-notifications.el (erc-notifications-icon):

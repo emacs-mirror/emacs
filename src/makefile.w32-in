@@ -41,7 +41,7 @@ TRES		= $(BLD)/emacs.res
 TLASTLIB	= $(BLD)/lastfile.$(A)
 GNULIB		= ../lib/$(BLD)/libgnu.$(A)
 
-DOC		= $(OBJDIR)/etc/DOC-X
+DOC		= $(OBJDIR)/etc/DOC
 
 FULL_LINK_FLAGS = $(LINK_FLAGS) $(TEMACS_EXTRA_LINK)
 

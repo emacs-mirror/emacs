@@ -983,7 +983,7 @@ and the total number of lines in the buffer."
 With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
-  :global t
+  :global t :group 'tpu
   (if tpu-edt-mode (tpu-edt-on) (tpu-edt-off)))
 
 (defalias 'TPU-EDT-MODE 'tpu-edt-mode)

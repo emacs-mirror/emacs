@@ -38,6 +38,10 @@
 (require 'comint)
 (require 'ring)
 
+(defgroup erc-ring nil
+  "An input ring for ERC."
+  :group 'erc)
+
 ;;;###autoload (autoload 'erc-ring-mode "erc-ring" nil t)
 (define-erc-module ring nil
   "Stores input in a ring so that previous commands and messages can

@@ -232,17 +232,38 @@ The detected problematic options are stored in `cus-test-errors'."
 	   (length cus-test-tested-variables))
   (cus-test-errors-display))
 
-(defun cus-test-get-options (regexp)
-  "Return a list of custom options matching REGEXP."
-  (let (found)
+(defun cus-test-cus-load-groups (&optional cus-load)
+  "Return a list of current custom groups.
+If CUS-LOAD is non-nil, include groups from cus-load.el."
+  (append (mapcar 'cdr custom-current-group-alist)
+	  (if cus-load
+	      (with-temp-buffer
+		(insert-file-contents (locate-library "cus-load.el"))
+		(search-forward "(put '")
+		(beginning-of-line)
+		(let (res)
+		  (while (and (looking-at "^(put '\\(\\S-+\\)")
+			      (zerop (forward-line 1)))
+		    (push (intern (match-string 1)) res))
+		  res)))))
+
+(defun cus-test-get-options (regexp &optional group)
+  "Return a list of custom options matching REGEXP.
+If GROUP is non-nil, return groups rather than options.
+If GROUP is `cus-load', include groups listed in cus-loads as well as
+currently defined groups."
+  (let ((groups (if group (cus-test-cus-load-groups (eq group 'cus-load))))
+	found)
     (mapatoms
      (lambda (symbol)
        (and
-	(or
-	 ;; (user-variable-p symbol)
-	 (get symbol 'standard-value)
-	 ;; (get symbol 'saved-value)
-	 (get symbol 'custom-type))
+	(if group
+	    (memq symbol groups)
+	  (or
+	   ;; (user-variable-p symbol)
+	   (get symbol 'standard-value)
+	   ;; (get symbol 'saved-value)
+	   (get symbol 'custom-type)))
 	(string-match regexp (symbol-name symbol))
 	(not (member symbol cus-test-skip-list))
 	(push symbol found))))
@@ -492,17 +513,17 @@ It is suitable for batch mode.  E.g., invoke
 
 in the Emacs source directory."
   (interactive)
-  (let (cus-loaded)
+  (let ((groups-loaded (cus-test-get-options "" 'cus-load))
+	cus-loaded groups-not-loaded)
 
     (message "Running %s" 'cus-test-load-custom-loads)
     (cus-test-load-custom-loads)
-    (setq cus-loaded
-	  (cus-test-get-options ""))
+    (setq cus-loaded (cus-test-get-options ""))
 
     (message "Running %s" 'cus-test-load-libs)
     (cus-test-load-libs "all")
-    (setq cus-test-vars-not-cus-loaded
-	  (cus-test-get-options ""))
+    (setq cus-test-vars-not-cus-loaded (cus-test-get-options "")
+	  groups-not-loaded (cus-test-get-options "" t))
 
     (dolist (o cus-loaded)
       (setq cus-test-vars-not-cus-loaded
@@ -512,7 +533,15 @@ in the Emacs source directory."
 	(message "No options not loaded by custom-load-symbol found")
       (message "The following options were not loaded by custom-load-symbol:")
       (cus-test-message
-       (sort cus-test-vars-not-cus-loaded 'string<)))))
+       (sort cus-test-vars-not-cus-loaded 'string<)))
+
+    (dolist (o groups-loaded)
+      (setq groups-not-loaded (delete o groups-not-loaded)))
+
+    (if (not groups-not-loaded)
+	(message "No groups not in cus-load.el found")
+      (message "The following groups are not in cus-load.el:")
+      (cus-test-message (sort groups-not-loaded 'string<)))))
 
 (provide 'cus-test)
 
