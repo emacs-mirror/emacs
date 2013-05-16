@@ -104,7 +104,7 @@ Windows 9X as well).
   are already selected by default on the "Select Components" screen of
   its wizard.
 
-  After that, use "ming-get install PACKAGE" to install the following
+  After that, use "mingw-get install PACKAGE" to install the following
   additional packages:
 
    . msys-base
