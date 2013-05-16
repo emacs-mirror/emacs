@@ -651,9 +651,9 @@ extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
-                    Bool withReservoirPermit, ...);
+                    Bool withReservoirPermit);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
-                    Bool withReservoirPermit, ...);
+                    Bool withReservoirPermit);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
