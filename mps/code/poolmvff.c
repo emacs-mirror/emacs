@@ -409,7 +409,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
 
 /* MVFFVarargs -- decode obsolete varargs */
 
-static void MVFFVarargs(ArgStruct args[], va_list varargs)
+static void MVFFVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_EXTEND_BY;
   args[0].val.size = va_arg(varargs, Size);
@@ -427,7 +427,7 @@ static void MVFFVarargs(ArgStruct args[], va_list varargs)
   AVER(ArgListCheck(args));
 }
 
-static void MVFFDebugVarargs(ArgStruct args[], va_list varargs)
+static void MVFFDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
   args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
   args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
