@@ -180,7 +180,7 @@ static void amstSegFinish(Seg seg)
  */
 static Res amstSegMerge(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit, va_list args)
+                        Bool withReservoirPermit)
 {
   SegClass super;
   AMST amst;
@@ -198,7 +198,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   /* Merge the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
@@ -218,7 +218,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 failDeliberate:
   /* Call the anti-method (see .fail) */
   res = super->split(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -232,7 +232,7 @@ failSuper:
 
 static Res amstSegSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit, va_list args)
+                        Bool withReservoirPermit)
 {
   SegClass super;
   AMST amst;
@@ -249,7 +249,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   /* Split the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->split(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
@@ -273,7 +273,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 failDeliberate:
   /* Call the anti-method. (see .fail) */
   res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
