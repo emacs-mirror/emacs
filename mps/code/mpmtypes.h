@@ -160,10 +160,10 @@ typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
-                              Bool withReservoirPermit, va_list args);
+                              Bool withReservoirPermit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
-                              Bool withReservoirPermit, va_list args);
+                              Bool withReservoirPermit);
 
 /* Buffer*Method -- see <design/buffer/> */
 

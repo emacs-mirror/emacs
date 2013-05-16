@@ -318,7 +318,7 @@ static void AMSSegFinish(Seg seg)
 
 static Res AMSSegMerge(Seg seg, Seg segHi,
                        Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit, va_list args)
+                       Bool withReservoirPermit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -357,7 +357,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
   res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
@@ -402,7 +402,7 @@ failCreateTables:
 
 static Res AMSSegSplit(Seg seg, Seg segHi,
                        Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit, va_list args)
+                       Bool withReservoirPermit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -449,7 +449,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->split(seg, segHi, base, mid, limit, withReservoirPermit, args);
+  res = super->split(seg, segHi, base, mid, limit, withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
