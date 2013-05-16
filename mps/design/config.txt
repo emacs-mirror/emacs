@@ -275,8 +275,6 @@ Publishing division of Harlequin.
 Implementation
 --------------
 
-[ Now in impl.h.config, may symbols out of date.  GavinM 1997-08-07 ]
-
 _`.impl`: The two implementation files `config.h`_ and `mpstd.h`_ can be
 seen as preprocessor programs which "accept" build parameters and "emit"
 configuration parameters (`.fig.impl`_).  The build parameters are
