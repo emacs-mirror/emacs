@@ -1,3 +1,15 @@
+2013-05-16  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Improve toggling of item numbering and headers.
+	(todos-prefix-overlays): Don't reset item numbering for
+	done items unless in todos-mode.
+	(todos-archive-mode-map): Add bindings for todos-toggle-item-header.
+	(todos-toggle-prefix-numbers): Reimplement without using
+	todos-reset-prefix and make it work in Todos Archive mode and
+	Todos Filtered Items mode.
+	(todos-toggle-item-header): Make it work in Todos Archive mode and
+	Todos Filtered Items mode.
+
 2013-05-15  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Use tab instead of spaces to indent.

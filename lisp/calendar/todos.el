@@ -1607,7 +1607,8 @@ of each other."
 	  (goto-char (match-beginning 0))
 	  (setq num (1+ num))
 	  ;; Reset number to 1 for first done item.
-	  (when (and (looking-at todos-done-string-start)
+	  (when (and (eq major-mode 'todos-mode)
+		     (looking-at todos-done-string-start)
 		     (looking-back (concat "^"
 					   (regexp-quote todos-category-done)
 					   "\n")))
@@ -1620,8 +1621,9 @@ of each other."
 				'face
 				;; Prefix of top priority items has a
 				;; distinct face in Todos mode.
-				(if (and (not done) (<= num cat-tp)
-					 (eq major-mode 'todos-mode))
+				(if (and (eq major-mode 'todos-mode)
+					 (not done)
+					 (<= num cat-tp))
 				    'todos-top-priority
 				  'todos-prefix-string))
 			       " "))
@@ -2919,7 +2921,8 @@ which is the value of the user option
     (define-key map "H" 'todos-toggle-item-highlighting)
     (define-key map "FN" 'todos-toggle-prefix-numbers)
     (define-key map "N" 'todos-toggle-prefix-numbers)
-    ;; (define-key map "" 'todos-toggle-item-header)
+    (define-key map "Fh" 'todos-toggle-item-header)
+    (define-key map "h" 'todos-toggle-item-header)
     (define-key map "PB" 'todos-print-buffer)
     (define-key map "PF" 'todos-print-buffer-to-file)
     (define-key map "S" 'todos-search)
@@ -3868,9 +3871,19 @@ face."
 ;;; Display Commands
 
 (defun todos-toggle-prefix-numbers ()
-  ""
+  "Hide item numbering if shown, show if hidden."
   (interactive)
-  (todos-reset-prefix 'todos-number-prefix (not todos-number-prefix)))
+  (save-excursion
+    (save-restriction
+      (goto-char (point-min))
+      (let* ((ov (todos-get-overlay 'prefix))
+	     (show-done (re-search-forward todos-done-string-start nil t))
+	     (todos-show-with-done show-done)
+	     (todos-number-prefix (not (equal (overlay-get ov 'before-string)
+					      "1 "))))
+	(if (eq major-mode 'todos-filtered-items-mode)
+	    (todos-prefix-overlays)
+	  (todos-category-select))))))
 
 (defun todos-toggle-view-done-items ()
   "Show hidden or hide visible done items in current category."
@@ -3908,7 +3921,9 @@ face."
     (hl-line-mode 1)))
 
 (defun todos-toggle-item-header ()
-  "Hide or show date-time header of todo items in the current file."
+  "Hide or show item date-time headers in the current file.
+With done items, this hides only the done date-time string, not
+the the original date-time string."
   (interactive)
   (save-excursion
     (save-restriction
@@ -3919,14 +3934,13 @@ face."
 	(goto-char (point-min))
 	(while (not (eobp))
 	  (when (re-search-forward
-		 (concat todos-date-string-start todos-date-pattern
+		 (concat todos-item-start
 			 "\\( " diary-time-regexp "\\)?"
 			 (regexp-quote todos-nondiary-end) "? ")
 		 nil t)
-	    (unless (save-match-data (todos-done-item-p))
-	      (setq ov (make-overlay (match-beginning 0) (match-end 0) nil t))
-	      (overlay-put ov 'todos 'header)
-	      (overlay-put ov 'display "")))
+	    (setq ov (make-overlay (match-beginning 0) (match-end 0) nil t))
+	    (overlay-put ov 'todos 'header)
+	    (overlay-put ov 'display ""))
 	  (todos-forward-item))))))
 
 (defun todos-toggle-mark-item (&optional n)
