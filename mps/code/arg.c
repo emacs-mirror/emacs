@@ -92,6 +92,13 @@ Bool ArgCheckRank(Arg arg) {
   return TRUE;
 }
 
+Bool ArgCheckdouble(Arg arg) {
+  /* It would be nice if we could check doubles with C89, but
+     it doesn't have isfinite() etc. which are in C99. */
+  UNUSED(arg);
+  return TRUE;
+}
+
 
 ARG_DEFINE_KEY(args_end, Shouldnt);
 
