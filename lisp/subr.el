@@ -4678,8 +4678,8 @@ as alpha versions."
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
 
-;; This is used in lisp/Makefile.in to generate file names for
-;; autoloads, custom-deps, and finder-data.
+;; This is used in lisp/Makefile.in and in leim/Makefile.in to
+;; generate file names for autoloads, custom-deps, and finder-data.
 (defun reveal-filename (file)
   "Produce the real file name for FILE.
 
