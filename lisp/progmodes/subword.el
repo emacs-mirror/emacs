@@ -148,8 +148,8 @@ as words.
 
 ;;;###autoload
 (define-global-minor-mode global-subword-mode subword-mode
-  :group 'convenience
-  (lambda () (subword-mode 1)))
+  (lambda () (subword-mode 1))
+  :group 'convenience)
 
 (defun subword-forward (&optional arg)
   "Do the same as `forward-word' but on subwords.
@@ -302,8 +302,8 @@ edit them as words.
 
 ;;;###autoload
 (define-global-minor-mode global-superword-mode superword-mode
-  :group 'convenience
-  (lambda () (superword-mode 1)))
+  (lambda () (superword-mode 1))
+  :group 'convenience)
 
 
 ;;
