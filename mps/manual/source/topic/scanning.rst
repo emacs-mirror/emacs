@@ -229,7 +229,7 @@ code. The MPS provides a convenience macro :c:func:`MPS_FIX12` for the
 common case of calling :c:func:`MPS_FIX1` and then immediately calling
 :c:func:`MPS_FIX2` if the reference is "of interest".
 
-.. warning::
+.. note::
 
     Some compilers generate better code if you use
     :c:func:`MPS_FIX12`, and some if you use :c:func:`MPS_FIX1` and

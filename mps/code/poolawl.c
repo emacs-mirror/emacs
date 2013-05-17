@@ -132,7 +132,7 @@ typedef struct AWLSegStruct {
 #define AWLSeg2Seg(awlseg)          ((Seg)(awlseg))
 
 
-static SegClass AWLSegClassGet(void);
+extern SegClass AWLSegClassGet(void);
 
 
 static Bool AWLSegCheck(AWLSeg awlseg)

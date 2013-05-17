@@ -168,8 +168,8 @@ typedef struct MRGRefSegStruct {
 
 /* forward declarations */
 
-static SegClass MRGLinkSegClassGet(void);
-static SegClass MRGRefSegClassGet(void);
+extern SegClass MRGLinkSegClassGet(void);
+extern SegClass MRGRefSegClassGet(void);
 
 
 /* MRGLinkSegCheck -- check a link segment
