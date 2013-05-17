@@ -1,5 +1,13 @@
 2013-05-17  Leo Liu  <sdl.web@gmail.com>
 
+	* newcomment.el (comment-search-backward): Stricter in finding
+	comment start.  (Bug#14303)
+
+	* progmodes/octave.el (octave-comment-start): Remove the SPC char.
+	(octave-comment-start-skip): Properly anchored.
+
+2013-05-17  Leo Liu  <sdl.web@gmail.com>
+
 	* emacs-lisp/smie.el (smie-highlight-matching-block-mode): Clean
 	up when turned off.  (Bug#14395)
 	(smie--highlight-matching-block-overlay): No longer buffer-local.

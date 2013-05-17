@@ -62,12 +62,11 @@ Used in `octave-mode' and `inferior-octave-mode' buffers.")
 (defvar octave-comment-char ?#
   "Character to start an Octave comment.")
 
-(defvar octave-comment-start
-  (string octave-comment-char ?\s)
-  "String to insert to start a new Octave in-line comment.")
+(defvar octave-comment-start (char-to-string octave-comment-char)
+  "Octave-specific `comment-start' (which see).")
 
-(defvar octave-comment-start-skip "\\(?:%!\\|\\s<+\\)\\s-*"
-  "Regexp to match the start of an Octave comment up to its body.")
+(defvar octave-comment-start-skip "\\(^\\|\\S<\\)\\(?:%!\\|\\s<+\\)\\s-*"
+  "Octave-specific `comment-start-skip' (which see).")
 
 (defvar octave-begin-keywords
   '("classdef" "do" "enumeration" "events" "for" "function" "if" "methods"

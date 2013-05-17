@@ -485,27 +485,29 @@ and raises an error or returns nil if NOERROR is non-nil."
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
 and raises an error or returns nil if NOERROR is non-nil."
-  ;; FIXME: If a comment-start appears inside a comment, we may erroneously
-  ;; stop there.  This can be rather bad in general, but since
-  ;; comment-search-backward is only used to find the comment-column (in
-  ;; comment-set-column) and to find the comment-start string (via
-  ;; comment-beginning) in indent-new-comment-line, it should be harmless.
-  (if (not (re-search-backward comment-start-skip limit t))
-      (unless noerror (error "No comment"))
-    (beginning-of-line)
-    (let* ((end (match-end 0))
-	   (cs (comment-search-forward end t))
-	   (pt (point)))
-      (if (not cs)
-	  (progn (beginning-of-line)
-		 (comment-search-backward limit noerror))
-	(while (progn (goto-char cs)
-		      (comment-forward)
-		      (and (< (point) end)
-			   (setq cs (comment-search-forward end t))))
-	  (setq pt (point)))
-	(goto-char pt)
-	cs))))
+  (let (found end)
+    (while (and (not found)
+		(re-search-backward comment-start-skip limit t))
+      (setq end (match-end 0))
+      (unless (and comment-use-syntax
+		   (nth 8 (syntax-ppss (or (match-end 1)
+					   (match-beginning 0)))))
+	(setq found t)))
+    (if (not found)
+	(unless noerror (error "No comment"))
+      (beginning-of-line)
+      (let ((cs (comment-search-forward end t))
+	    (pt (point)))
+	(if (not cs)
+	    (progn (beginning-of-line)
+		   (comment-search-backward limit noerror))
+	  (while (progn (goto-char cs)
+			(comment-forward)
+			(and (< (point) end)
+			     (setq cs (comment-search-forward end t))))
+	    (setq pt (point)))
+	  (goto-char pt)
+	  cs)))))
 
 (defun comment-beginning ()
   "Find the beginning of the enclosing comment.
