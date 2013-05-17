@@ -1,3 +1,8 @@
+2013-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (WinMain): Support invocation of un-installed
+	nt/runemacs.exe, by looking for src/emacs.exe.
+
 2013-05-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/stdint.h (SIZE_MAX) [!__GNUC__]: Define.  (Bug#14409)
