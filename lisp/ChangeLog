@@ -1,3 +1,10 @@
+2013-05-17  Leo Liu  <sdl.web@gmail.com>
+
+	* subr.el (delete-consecutive-dups): New function.
+	* ido.el (ido-set-matches-1): Use it.
+	* progmodes/octave.el (inferior-octave-completion-table): Use it.
+	* ido.el (ido-remove-consecutive-dups): Remove.
+
 2013-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/f90.el (f90-keywords-re, f90-keywords-level-3-re)

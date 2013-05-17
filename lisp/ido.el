@@ -3785,7 +3785,7 @@ This is to make them appear as if they were \"virtual buffers\"."
 	   (if (string-match re name)
 	       (setq matches (cons item matches)))))
        items))
-    matches))
+    (delete-consecutive-dups matches t)))
 
 
 (defun ido-set-matches ()
@@ -4676,21 +4676,6 @@ For details of keybindings, see `ido-find-file'."
 			      ido-temp-list))))
     (ido-to-end summaries)))
 
-(defun ido-remove-consecutive-dups (list)
-  "Remove consecutive duplicates in LIST.
-Use `equal' for comparison.  First and last elements are
-considered consecutive."
-  (let ((tail list)
-	(last (make-symbol ""))
-	(result nil))
-    (while (consp tail)
-      (unless (equal (car tail) last)
-	(push (setq last (car tail)) result))
-      (setq tail (cdr tail)))
-    (nreverse (or (and (equal last (car list))
-		       (cdr result))
-		  result))))
-
 ;;; Helper functions for other programs
 
 (put 'dired-do-rename 'ido 'ignore)
@@ -4808,7 +4793,7 @@ DEF, if non-nil, is the default value."
 	(ido-directory-nonreadable nil)
 	(ido-directory-too-big nil)
 	(ido-context-switch-command 'ignore)
-	(ido-choice-list (ido-remove-consecutive-dups choices)))
+	(ido-choice-list choices))
     ;; Initialize ido before invoking ido-read-internal
     (ido-common-initialization)
     (ido-read-internal 'list prompt hist def require-match initial-input)))

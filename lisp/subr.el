@@ -376,6 +376,23 @@ one is kept."
       (setq tail (cdr tail))))
   list)
 
+;; See http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00204.html
+(defun delete-consecutive-dups (list &optional circular)
+  "Destructively remove `equal' consecutive duplicates from LIST.
+First and last elements are considered consecutive if CIRCULAR is
+non-nil."
+  (let ((tail list) last)
+    (while (consp tail)
+      (if (equal (car tail) (cadr tail))
+	  (setcdr tail (cddr tail))
+	(setq last (car tail)
+	      tail (cdr tail))))
+    (if (and circular
+	     (cdr list)
+	     (equal last (car list)))
+	(nbutlast list)
+      list)))
+
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
 INC is the increment used between numbers in the sequence and defaults to 1.

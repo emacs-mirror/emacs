@@ -38,7 +38,9 @@
 (require 'newcomment)
 (eval-and-compile
   (unless (fboundp 'user-error)
-    (defalias 'user-error 'error)))
+    (defalias 'user-error 'error))
+  (unless (fboundp 'delete-consecutive-dups)
+    (defalias 'delete-consecutive-dups 'delete-dups)))
 (eval-when-compile
   (unless (fboundp 'setq-local)
     (defmacro setq-local (var val)
@@ -777,8 +779,8 @@ startup file, `~/.emacs-octave'."
          (inferior-octave-send-list-and-digest
           (list (concat "completion_matches (\"" command "\");\n")))
          (setq cache (list command (float-time)
-                           (sort (delete-dups inferior-octave-output-list)
-                                 'string-lessp))))
+                           (delete-consecutive-dups
+                            (sort inferior-octave-output-list 'string-lessp)))))
        (car (cddr cache))))))
 
 (defun inferior-octave-completion-at-point ()
