@@ -1,3 +1,8 @@
+2013-05-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-category-completions): Restore point after
+	ensuring category is properly displayed.
+
 2013-05-16  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-filtered-items-mode-map): Update some bindings.

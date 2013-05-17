@@ -1216,7 +1216,7 @@ or, with non-nil ARCHIVE, the current archive file."
 		(goto-char (point-min))
 		(setq done (re-search-forward todos-done-string-start nil t))))
 	    (let ((todos-show-with-done done))
-	      (todos-category-select)))
+	      (save-excursion (todos-category-select))))
 	  (save-excursion
 	    (save-restriction
 	      (widen)
