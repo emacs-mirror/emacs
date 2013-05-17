@@ -1147,14 +1147,14 @@ number as its value."
   "Return string used as value of variable `todos-done-separator'."
   (let ((sep todos-done-separator-string))
     (propertize (if (= 1 (length sep))
-		    ;; If separator's length is window-width, then
-		    ;; with non-nil todos-wrap-lines and
-		    ;; todos-wrap-and-indent as value of
-		    ;; todos-line-wrapping-function, an indented empty
-		    ;; line appears between the separator and the
-		    ;; first done item.
-		    (make-string (1- (window-width)) (string-to-char sep))
-		    ;; (make-string (window-width) (string-to-char sep))
+		    ;; Until bug#2749 is fixed, if separator's length
+		    ;; is window-width, then with non-nil
+		    ;; todos-wrap-lines and todos-wrap-and-indent as
+		    ;; value of todos-line-wrapping-function, an
+		    ;; indented empty line appears between the
+		    ;; separator and the first done item.
+		    ;; (make-string (1- (window-width)) (string-to-char sep))
+		    (make-string (window-width) (string-to-char sep))
 		  todos-done-separator-string)
 		'face 'todos-done-sep)))
 

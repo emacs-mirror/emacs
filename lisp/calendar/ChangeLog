@@ -1,5 +1,10 @@
 2013-05-17  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el (todos-done-separator): Use window-width for length, in
+	anticipation of bug#2749 being fixed.
+
+2013-05-17  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-category-completions): Restore point after
 	ensuring category is properly displayed.
 
