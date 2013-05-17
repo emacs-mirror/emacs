@@ -29,9 +29,9 @@ static Bool amcSegHasNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
 static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-static PoolClass AMCPoolClassGet(void);
-static BufferClass amcBufClassGet(void);
-static SegClass amcSegClassGet(void);
+extern PoolClass AMCPoolClassGet(void);
+extern BufferClass amcBufClassGet(void);
+extern SegClass amcSegClassGet(void);
 
 
 /* amcGenStruct -- pool AMC generation descriptor */
@@ -1768,7 +1768,7 @@ fixInPlace: /* see <design/poolamc/>.Nailboard.emergency */
  *
  * See <design/poolamc/#fix>.
  */
-Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   Arena arena;
   AMC amc;
