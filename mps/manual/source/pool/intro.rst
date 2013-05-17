@@ -51,15 +51,15 @@ yes         no                      none         :ref:`pool-lo`
 yes         no                      exact        :ref:`pool-ams`
 yes         no                      ambiguous    nothing suitable
 yes         no                      weak         nothing suitable
-no          *any*                   none         :ref:`pool-mvt`
-no          *any*                   exact        :ref:`pool-mvt` [1]_
-no          *any*                   ambiguous    :ref:`pool-mvt` [1]_
-no          *any*                   weak         :ref:`pool-mvt` [1]_
+no          *any*                   none         :ref:`pool-mvff`
+no          *any*                   exact        :ref:`pool-mvff` [1]_
+no          *any*                   ambiguous    :ref:`pool-mvff` [1]_
+no          *any*                   weak         :ref:`pool-mvff` [1]_
 ==========  ======================  ===========  ====================================
 
 .. note::
 
-    .. [1] :ref:`pool-mvt` doesn't scan for references, but you can
+    .. [1] :ref:`pool-mvff` doesn't scan for references, but you can
            work around this by registering your blocks as
            :term:`roots` (with the appropriate :term:`rank`) just
            after they are allocated, and deregistering them just
