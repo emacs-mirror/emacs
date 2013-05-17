@@ -1025,7 +1025,7 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
   "Face used to highlight matching block."
   :group 'smie)
 
-(defvar-local smie--highlight-matching-block-overlay nil)
+(defvar smie--highlight-matching-block-overlay nil)
 (defvar-local smie--highlight-matching-block-lastpos -1)
 
 (defun smie-highlight-matching-block ()
@@ -1056,7 +1056,8 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                  nil))))
           (highlight
            (lambda (beg end)
-             (move-overlay smie--highlight-matching-block-overlay beg end)
+             (move-overlay smie--highlight-matching-block-overlay
+                           beg end (current-buffer))
              (overlay-put smie--highlight-matching-block-overlay
                           'face 'smie-matching-block-highlight))))
       (save-excursion
@@ -1095,10 +1096,15 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
   (when (timerp smie--highlight-matching-block-timer)
     (cancel-timer smie--highlight-matching-block-timer))
   (setq smie--highlight-matching-block-timer nil)
-  (when smie-highlight-matching-block-mode
-    (remove-hook 'post-self-insert-hook #'smie-blink-matching-open 'local)
-    (setq smie--highlight-matching-block-timer
-          (run-with-idle-timer 0.2 t #'smie-highlight-matching-block))))
+  (if smie-highlight-matching-block-mode
+      (progn
+        (remove-hook 'post-self-insert-hook #'smie-blink-matching-open 'local)
+        (setq smie--highlight-matching-block-timer
+              (run-with-idle-timer 0.2 t #'smie-highlight-matching-block)))
+    (when smie--highlight-matching-block-overlay
+      (delete-overlay smie--highlight-matching-block-overlay)
+      (setq smie--highlight-matching-block-overlay nil))
+    (kill-local-variable 'smie--highlight-matching-block-lastpos)))
 
 ;;; The indentation engine.
 
