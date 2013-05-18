@@ -738,8 +738,10 @@ startup file, `~/.emacs-octave'."
       (inferior-octave-send-list-and-digest (list "PS2 (\"> \");\n")))
 
     (inferior-octave-send-list-and-digest
-     (list "if exist(\"__octave_srcdir__\") disp(__octave_srcdir__) endif\n"))
-    (process-put proc 'octave-srcdir (car inferior-octave-output-list))
+     (list "disp(getenv(\"OCTAVE_SRCDIR\"))\n"))
+    (process-put proc 'octave-srcdir
+                 (unless (equal (car inferior-octave-output-list) "")
+                   (car inferior-octave-output-list)))
 
     ;; O.K., now we are ready for the Inferior Octave startup commands.
     (inferior-octave-send-list-and-digest
@@ -1627,14 +1629,16 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
                                 :type 'octave-help-function))))))))
 
 (defcustom octave-source-directories nil
-  "A list of directories for Octave sources."
+  "A list of directories for Octave sources.
+If the environment variable OCTAVE_SRCDIR is set, it is searched first."
   :type '(repeat directory)
   :group 'octave
   :version "24.4")
 
 (defun octave-source-directories ()
-  (inferior-octave-check-process)
-  (let ((srcdir (process-get inferior-octave-process 'octave-srcdir)))
+  (let ((srcdir (or (and inferior-octave-process
+                         (process-get inferior-octave-process 'octave-srcdir))
+                    (getenv "OCTAVE_SRCDIR"))))
     (if srcdir
         (cons srcdir octave-source-directories)
       octave-source-directories)))
@@ -1668,7 +1672,7 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
 
 (defun octave-find-definition (fn)
   "Find the definition of FN.
-Definitions for functions implemented in C++ can be found if
+Functions implemented in C++ can be found if
 `octave-source-directories' is set correctly."
   (interactive (list (octave-completing-read)))
   (inferior-octave-send-list-and-digest

@@ -1,3 +1,10 @@
+2013-05-18  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup): Use OCTAVE_SRCDIR
+	instead.
+	(octave-source-directories): Don't check process.
+	(octave-source-directories, octave-find-definition): Doc fix.
+
 2013-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/vhdl-mode.el (vhdl-mode-map-init):
