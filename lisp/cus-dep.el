@@ -121,35 +121,31 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (insert (autoload-rubric generated-custom-dependencies-file
                            "custom dependencies" t))
   (search-backward "")
-  (mapatoms (lambda (symbol)
-	      (let ((members (get symbol 'custom-group))
-                    where found)
-		(when members
-		  (dolist (member
-                           ;; So x and no-x builds won't differ.
-                           (sort (mapcar 'car members) 'string<))
-		    (setq where (get member 'custom-where))
-		    (unless (or (null where)
-				(member where found))
-		      (push where found)))
-		  (when found
-		    (insert "(put '" (symbol-name symbol)
-                            " 'custom-loads '")
-                    (prin1 (nreverse found) (current-buffer))
-                    (insert ")\n"))))))
+  (let (alist)
+    (mapatoms (lambda (symbol)
+		(let ((members (get symbol 'custom-group))
+		      where found)
+		  (when members
+		    (dolist (member (mapcar 'car members))
+		      (setq where (get member 'custom-where))
+		      (unless (or (null where)
+				  (member where found))
+			(push where found)))
+		    (when found
+		      (push (cons (symbol-name symbol)
+				  (with-output-to-string
+				    (prin1 (sort found 'string<)))) alist))))))
+    (dolist (e (sort alist (lambda (e1 e2) (string< (car e1) (car e2)))))
+      (insert "(put '" (car e) " 'custom-loads '" (cdr e) ")\n")))
   (insert "\
-;; These are for handling :version.  We need to have a minimum of
-;; information so `customize-changed-options' could do its job.
+
+;; The remainder of this file is for handling :version.
+;; We provide a minimum of information so that `customize-changed-options'
+;; can do its job.
 
 ;; For groups we set `custom-version', `group-documentation' and
 ;; `custom-tag' (which are shown in the customize buffer), so we
 ;; don't have to load the file containing the group.
-
-;; `custom-versions-load-alist' is an alist that has as car a version
-;; number and as elts the files that have variables or faces that
-;; contain that version. These files should be loaded before showing
-;; the customization buffer that `customize-changed-options'
-;; generates.
 
 ;; This macro is used so we don't modify the information about
 ;; variables and groups if it's already set. (We don't know when
@@ -161,7 +157,8 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
      (put ,symbol ,propname ,value)))
 
 ")
-  (let ((version-alist nil))
+  (let ((version-alist nil)
+	groups)
     (mapatoms (lambda (symbol)
 		(let ((version (get symbol 'custom-version))
 		      where)
@@ -179,25 +176,32 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 				  (push where (cdr (assoc version version-alist))))
 			      (push (list version where) version-alist)))
 			;; This is a group
-			(insert "(custom-put-if-not '" (symbol-name symbol)
-				" 'custom-version ")
-			(prin1 version (current-buffer))
-			(insert ")\n")
-			(insert "(custom-put-if-not '" (symbol-name symbol))
-			(insert " 'group-documentation ")
-			(prin1 (get symbol 'group-documentation) (current-buffer))
-			(insert ")\n")
-			(when (get symbol 'custom-tag)
-			  (insert "(custom-put-if-not '" (symbol-name symbol))
-			  (insert " 'custom-tag ")
-			  (prin1 (get symbol 'custom-tag) (current-buffer))
-			  (insert ")\n"))
-			))))))
+			(push (list (symbol-name symbol)
+				    (with-output-to-string (prin1 version))
+				    (with-output-to-string
+				      (prin1 (get symbol 'group-documentation)))
+				    (if (get symbol 'custom-tag)
+					(with-output-to-string
+					  (prin1 (get symbol 'custom-tag)))))
+			      groups)))))))
+    (dolist (e (sort groups (lambda (e1 e2) (string< (car e1) (car e2)))))
+      (insert "(custom-put-if-not '" (car e) " 'custom-version '"
+	      (nth 1 e) ")\n")
+      (insert "(custom-put-if-not '" (car e) " 'group-documentation "
+	      (nth 2 e) ")\n")
+      (if (nth 3 e)
+	  (insert "(custom-put-if-not '" (car e) " 'custom-tag "
+		  (nth 3 e) ")\n")))
 
     (insert "\n(defvar custom-versions-load-alist "
 	    (if version-alist "'" ""))
-    (prin1 version-alist (current-buffer))
-    (insert "\n \"For internal use by custom.\")\n"))
+    (prin1 (sort version-alist (lambda (e1 e2) (version< (car e1) (car e2))))
+	   (current-buffer))
+    (insert "\n  \"For internal use by custom.
+This is an alist whose members have as car a version string, and as
+elements the files that have variables or faces that contain that
+version.  These files should be loaded before showing the customization
+buffer that `customize-changed-options' generates.\")\n\n"))
   (save-buffer)
   (message "Generating %s...done" generated-custom-dependencies-file))
 

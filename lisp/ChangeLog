@@ -1,3 +1,8 @@
+2013-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* cus-dep.el (custom-make-dependencies): Sort the output.
+	(custom-versions-load-alist): Convert comment to doc.
+
 2013-05-17  Leo Liu  <sdl.web@gmail.com>
 
 	* newcomment.el (comment-search-backward): Stricter in finding
