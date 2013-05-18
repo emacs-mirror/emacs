@@ -1,3 +1,8 @@
+2013-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist (files): Add nt/msysconfig.sh, nt/mingw-cfg.site,
+	nt/epaths.nt, and nt/INSTALL.MSYS.
+
 2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port --enable-gcc-warnings to clang.
