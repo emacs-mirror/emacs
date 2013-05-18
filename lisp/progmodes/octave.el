@@ -707,6 +707,11 @@ startup file, `~/.emacs-octave'."
                inferior-octave-buffer
                inferior-octave-program
                (append (list "-i" "--no-line-editing")
+                       ;; --no-gui is introduced in Octave > 3.7
+                       (when (zerop (process-file inferior-octave-program
+                                                  nil nil nil
+                                                  "--no-gui" "--help"))
+                         (list "--no-gui"))
                        inferior-octave-startup-args))))
     (set-process-filter proc 'inferior-octave-output-digest)
     (setq inferior-octave-process proc
