@@ -1,3 +1,8 @@
+2013-05-18  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-default-man-entry): Remove `-' from the end
+	of the default value.  (Bug#14400)
+
 2013-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp):
