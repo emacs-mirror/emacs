@@ -1,5 +1,5 @@
 #! /bin/sh
-### msysconfig.sh - Run the top-level 'configure' script as approriate
+### msysconfig.sh - Run the top-level 'configure' script as appropriate
 ### for the MinGW/MSYS build of a native MS-Windows port of Emacs.
 
 ## Copyright (C) 2013 Free Software Foundation, Inc.

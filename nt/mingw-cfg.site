@@ -26,7 +26,7 @@
 #
 # In short, examine the test in 'configure' and push the knobs that
 # are necessary to steer the test in the direction you need, by
-# judicioulsy setting variables that control the test results.
+# judiciously setting variables that control the test results.
 
 # We want to use getopt.h from gnulib
 ac_cv_header_getopt_h=no
