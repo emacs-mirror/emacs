@@ -351,7 +351,7 @@ This variable is buffer-local."
     '("password" "Password" "passphrase" "Passphrase"
       "pass phrase" "Pass phrase" "Response"))
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?\
-\\(?: for [^:]+\\)?:\\s *\\'")
+\\(?: for .+\\)?:\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :version "24.1"
