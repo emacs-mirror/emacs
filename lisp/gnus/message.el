@@ -2939,7 +2939,6 @@ C-c M-n  `message-insert-disposition-notification-to'  (request receipt).
 C-c M-m  `message-mark-inserted-region' (mark region with enclosing tags).
 C-c M-f  `message-mark-insert-file' (insert file marked with enclosing tags).
 M-RET    `message-newline-and-reformat' (break the line and reformat)."
-  (setq local-abbrev-table text-mode-abbrev-table)
   (set (make-local-variable 'message-reply-buffer) nil)
   (set (make-local-variable 'message-inserted-headers) nil)
   (set (make-local-variable 'message-send-actions) nil)
