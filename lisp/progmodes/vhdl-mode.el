@@ -2784,11 +2784,6 @@ STRING are replaced by `-' and substrings are converted to lower case."
     (define-key vhdl-mode-map "\M-\C-h"	   'vhdl-mark-defun))
   (define-key vhdl-mode-map "\M-\C-q"	   'vhdl-indent-sexp)
   (define-key vhdl-mode-map "\M-^"	   'vhdl-delete-indentation)
-  ;; backspace/delete key bindings
-  (define-key vhdl-mode-map [backspace]	   'backward-delete-char-untabify)
-  (unless (boundp 'delete-key-deletes-forward) ; XEmacs variable
-    (define-key vhdl-mode-map [delete]	     'delete-char)
-    (define-key vhdl-mode-map [(meta delete)] 'kill-word))
   ;; mode specific key bindings
   (define-key vhdl-mode-map "\C-c\C-m\C-e" 'vhdl-electric-mode)
   (define-key vhdl-mode-map "\C-c\C-m\C-s" 'vhdl-stutter-mode)

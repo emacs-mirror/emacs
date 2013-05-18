@@ -1,5 +1,8 @@
 2013-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/vhdl-mode.el (vhdl-mode-map-init):
+	Remove backspace/delete bindings.  (Bug#14392)
+
 	* cus-dep.el (custom-make-dependencies): Sort the output.
 	(custom-versions-load-alist): Convert comment to doc.
 
