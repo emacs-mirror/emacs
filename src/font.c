@@ -1219,7 +1219,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 		return -1;
 	      f[j] = p = alloca (alloc);
 	      sprintf (p, "%s%s-*", SDATA (val),
-		       "*" + (SDATA (val)[SBYTES (val) - 1] == '*'));
+		       &"*"[SDATA (val)[SBYTES (val) - 1] == '*']);
 	    }
 	  else
 	    f[j] = SSDATA (val);
@@ -1618,7 +1618,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
     }
   if (point_size > 0)
     {
-      int len = snprintf (p, lim - p, "-%d" + (p == name), point_size);
+      int len = snprintf (p, lim - p, &"-%d"[p == name], point_size);
       if (! (0 <= len && len < lim - p))
 	return -1;
       p += len;

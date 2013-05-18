@@ -882,7 +882,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 #endif
       {
 	dbus_uint32_t val;
-	unsigned int pval = val;
+	unsigned int pval;
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %u", dtype, pval);

@@ -1,5 +1,13 @@
 2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port --enable-gcc-warnings to clang.
+	* configure.ac (nw): Remove obsolescent warnings.
+	These aren't needed for clang, or for gcc for that matter.
+	(emacs_cv_clang): New var, which tests for clang.
+	Omit warnings that clang is too picky about.
+	(GLIB_DISABLE_DEPRECATION_WARNINGS): Define this;
+	needed for Ubuntu 13.04 + clang + --enable-gcc-warnings.
+
 	* make-dist (files): Add nt/Makefile.in, nt/gnulib.mk.
 	Otherwise, 'configure; make' fails on non-Windows builds.
 

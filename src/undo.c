@@ -445,12 +445,6 @@ truncate_undo_list (struct buffer *b)
   unbind_to (count, Qnil);
 }
 
-static _Noreturn void
-user_error (const char *msg)
-{
-  xsignal1 (Quser_error, build_string (msg));
-}
-
 
 void
 syms_of_undo (void)

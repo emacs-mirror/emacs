@@ -1,3 +1,16 @@
+2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --enable-gcc-warnings to clang.
+	* bytecode.c (exec_byte_code):
+	* regex.c:
+	Redo diagnostic pragmas to pacify clang, too.
+	* dbusbind.c (xd_retrieve_arg): Do not use uninitialized variable.
+	* editfns.c (Fencode_time):
+	* fileio.c (file_accessible_directory_p):
+	* font.c (font_unparse_xlfd):
+	Use '&"string"[index]' instead of '"string" + (index)'.
+	* undo.c (user_error): Remove; unused.
+
 2013-05-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* insdel.c (insert_1_both): Document the arguments, instead of

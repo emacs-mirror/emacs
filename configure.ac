@@ -554,7 +554,7 @@ case "${canonical}" in
   i[3456]86-*-* )
     case "${canonical}" in
       *-darwin* )               opsys=darwin ;;
-      *-mingw32 )		
+      *-mingw32 )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
 		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
@@ -747,27 +747,13 @@ else
   esac
   AC_SUBST([WERROR_CFLAGS])
 
-  nw="$nw -Waggregate-return"       # anachronistic
-  nw="$nw -Wlong-long"              # C90 is anachronistic
-  nw="$nw -Wc++-compat"             # We don't care about C++ compilers
-  nw="$nw -Wundef"                  # Warns on '#if GNULIB_FOO' etc in gnulib
-  nw="$nw -Wtraditional"            # Warns on #elif which we use often
-  nw="$nw -Wcast-qual"              # Too many warnings for now
-  nw="$nw -Wconversion"             # Too many warnings for now
   nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
-  nw="$nw -Wsign-conversion"        # Too many warnings for now
   nw="$nw -Woverlength-strings"     # Not a problem these days
-  nw="$nw -Wtraditional-conversion" # Too many warnings for now
-  nw="$nw -Wunreachable-code"       # so buggy that it's now silently ignored
-  nw="$nw -Wpadded"                 # Our structs are not padded
-  nw="$nw -Wredundant-decls"        # we regularly (re)declare functions
   nw="$nw -Wlogical-op"             # any use of fwrite provokes this
   nw="$nw -Wformat-nonliteral"      # we do this a lot
   nw="$nw -Wvla"                    # warnings in gettext.h
   nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
-  nw="$nw -Wswitch-enum"            # Too many warnings for now
   nw="$nw -Wswitch-default"         # Too many warnings for now
-  nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
   nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
@@ -785,6 +771,20 @@ else
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
 
+  # clang is unduly picky about some things.
+  AC_CACHE_CHECK([whether the compiler is clang], [emacs_cv_clang],
+    [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([[
+	    #ifndef __clang__
+	      #error "not clang"
+	    #endif
+          ]])],
+       [emacs_cv_clang=yes],
+       [emacs_cv_clang=no])])
+  if test $emacs_cv_clang = yes; then
+    nw="$nw -Wcast-align"
+  fi
+
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
   for w in $ws; do
@@ -800,6 +800,14 @@ else
   # In spite of excluding -Wlogical-op above, it is enabled, as of
   # gcc 4.5.0 20090517.
   gl_WARN_ADD([-Wno-logical-op])
+
+  # More things that clang is unduly picky about.
+  if test $emacs_cv_clang = yes; then
+    gl_WARN_ADD([-Wno-format-extra-args])
+    gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
+    gl_WARN_ADD([-Wno-unused-command-line-argument])
+    gl_WARN_ADD([-Wno-unused-value])
+  fi
 
   gl_WARN_ADD([-fdiagnostics-show-option])
   gl_WARN_ADD([-funit-at-a-time])
@@ -1604,15 +1612,15 @@ W32_RES_LINK=
 EMACS_MANIFEST=
 if test "${with_w32}" != no; then
   case "${opsys}" in
-    cygwin) 
+    cygwin)
       AC_CHECK_HEADER([windows.h], [HAVE_W32=yes],
              [AC_MSG_ERROR([`--with-w32' was specified, but windows.h
-                   cannot be found.])]) 
+                   cannot be found.])])
     ;;
     mingw32)
     ## Using --with-w32 with MinGW is a no-op, but we allow it.
     ;;
-    *) 
+    *)
       AC_MSG_ERROR([Using w32 with an autotools build is only supported for Cygwin and MinGW32.])
     ;;
   esac
@@ -1626,7 +1634,7 @@ if test "${opsys}" = "mingw32"; then
    [[void test(PIMAGE_NT_HEADERS pHeader)
      {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}]])],
    [emacs_cv_w32api=yes
-    HAVE_W32=yes], 
+    HAVE_W32=yes],
    emacs_cv_w32api=no)
   AC_MSG_RESULT($emacs_cv_w32api)
   if test "${emacs_cv_w32api}" = "no"; then
@@ -2074,6 +2082,7 @@ if test "${opsys}" != "mingw32"; then
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
        	  GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
+       	  GTK_CFLAGS="$GTK_CFLAGS -DGLIB_DISABLE_DEPRECATION_WARNINGS"
        fi
     else
        check_gtk2=yes

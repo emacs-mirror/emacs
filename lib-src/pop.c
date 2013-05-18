@@ -1075,28 +1075,22 @@ socket_connection (char *host, int flags)
 	}
     } while (ret != 0);
 
-  if (ret == 0)
+  for (it = res; it; it = it->ai_next)
+    if (it->ai_addrlen == sizeof addr)
+      {
+	struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
+	addr.sin_addr = in_a->sin_addr;
+	if (! connect (sock, (struct sockaddr *) &addr, sizeof addr))
+	  break;
+      }
+  connect_ok = it != NULL;
+  if (connect_ok)
     {
-      it = res;
-      while (it)
-        {
-          if (it->ai_addrlen == sizeof (addr))
-            {
-              struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
-              addr.sin_addr = in_a->sin_addr;
-              if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
-                break;
-            }
-          it = it->ai_next;
-        }
-      connect_ok = it != NULL;
-      if (connect_ok)
-        {
-          realhost = alloca (strlen (it->ai_canonname) + 1);
-          strcpy (realhost, it->ai_canonname);
-        }
-      freeaddrinfo (res);
+      realhost = alloca (strlen (it->ai_canonname) + 1);
+      strcpy (realhost, it->ai_canonname);
     }
+  freeaddrinfo (res);
+
 #else /* !HAVE_GETADDRINFO */
   do
     {

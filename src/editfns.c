@@ -1946,7 +1946,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 	  EMACS_INT zone_hr = abszone / (60*60);
 	  int zone_min = (abszone/60) % 60;
 	  int zone_sec = abszone % 60;
-	  sprintf (tzbuf, tzbuf_format, "-" + (XINT (zone) < 0),
+	  sprintf (tzbuf, tzbuf_format, &"-"[XINT (zone) < 0],
 		   zone_hr, zone_min, zone_sec);
 	  tzstring = tzbuf;
 	}

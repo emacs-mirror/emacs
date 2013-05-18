@@ -316,15 +316,7 @@ static void Texinfo_nodes (FILE *);
 static void Yacc_entries (FILE *);
 static void just_read_file (FILE *);
 
-static void print_language_names (void);
-static void print_version (void);
-static void print_help (argument *);
-int main (int, char **);
-
-static compressor *get_compressor_from_suffix (char *, char **);
 static language *get_language_from_langname (const char *);
-static language *get_language_from_interpreter (char *);
-static language *get_language_from_filename (char *, bool);
 static void readline (linebuffer *, FILE *);
 static long readline_internal (linebuffer *, FILE *);
 static bool nocase_tail (const char *);
@@ -346,7 +338,6 @@ static void find_entries (FILE *);
 static void free_tree (node *);
 static void free_fdesc (fdesc *);
 static void pfnote (char *, bool, char *, int, int, long);
-static void make_tag (const char *, int, bool, char *, int, int, long);
 static void invalidate_nodes (fdesc *, node **);
 static void put_entries (node *);
 
@@ -816,7 +807,7 @@ etags --help --lang=ada.");
 #ifndef VERSION
 # define VERSION "17.38.1.4"
 #endif
-static void
+static _Noreturn void
 print_version (void)
 {
   char emacs_copyright[] = COPYRIGHT;
@@ -832,7 +823,7 @@ print_version (void)
 # define PRINT_UNDOCUMENTED_OPTIONS_HELP FALSE
 #endif
 
-static void
+static _Noreturn void
 print_help (argument *argbuffer)
 {
   bool help_for_lang = FALSE;

@@ -33,15 +33,18 @@
 
 /* Ignore some GCC warnings for now.  This section should go away
    once the Emacs and Gnulib regex code is merged.  */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#if 4 < __GNUC__ + (5 <= __GNUC_MINOR__) || defined __clang__
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 # ifndef emacs
-#  pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #  pragma GCC diagnostic ignored "-Wunused-function"
 #  pragma GCC diagnostic ignored "-Wunused-macros"
 #  pragma GCC diagnostic ignored "-Wunused-result"
 #  pragma GCC diagnostic ignored "-Wunused-variable"
 # endif
+#endif
+
+#if 4 < __GNUC__ + (5 <= __GNUC_MINOR__) && ! defined __clang__
+# pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
 #include <config.h>
