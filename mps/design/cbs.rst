@@ -456,53 +456,18 @@ the largest block in the CBS from the root of the tree (using
 ``SplayRoot``), and does ``SplayFindFirst`` for a block of that size.
 This is O(log(*n*)) in the size of the free list, so it's about the
 best you can do without maintaining a separate priority queue, just to
-do ``CBSFindLargest``. Except when the emergency lists (see
-`.impl.low-mem`_) are in use, they are also searched.
+do ``CBSFindLargest``.
 
 
 Low memory behaviour
 ....................
 
-_`impl.low-mem`: Low memory situations cause problems when the CBS
-tries to allocate a new ``CBSBlock`` structure for a new isolated
-range as a result of either ``CBSInsert`` or ``CBSDelete``, and there
-is insufficient memory to allocation the ``CBSBlock`` structure:
-
-_`impl.low-mem.no-inline`: If ``mayUseInline`` is ``FALSE``, then the
-range is not added to the CBS, and the call to ``CBSInsert`` or
-``CBSDelete`` returns ``ResMEMORY``.
-
-_`impl.low-mem.inline`: If ``mayUseInline`` is ``TRUE``:
-
-_`impl.low-mem.inline.block`: If the range is large enough to contain
-an inline block descriptor consisting of two pointers, then it is kept
-on an emergency block list. The CBS will eagerly attempt to add this
-block back into the splay tree during subsequent calls to
-``CBSInsert`` and ``CBSDelete``. The CBS will also keep its emergency
-block list in address order, and will coalesce this list eagerly. Some
-performance degradation will be seen when the emergency block list is
-in use. Ranges on this emergency block list will not be made available
-to the CBS's client via callbacks. ``CBSIterate`` and
-``CBSIterateLarge`` will not iterate over ranges on this list.
-
-_`impl.low-mem.inline.block.structure`: The two pointers stored are to
-the next such block (or ``NULL``), and to the limit of the block, in
-that order.
-
-_`impl.low-mem.inline.grain`: Otherwise, the range must be large
-enough to contain an inline grain descriptor consisting of one
-pointer, then it is kept on an emergency grain list. The CBS will
-eagerly attempt to add this grain back into either the splay tree or
-the emergency block list during subsequent calls to ``CBSInsert`` and
-``CBSDelete``. The CBS will also keep its emergency grain list in
-address order. Some performance degradation will be seen when the
-emergency grain list is in use. Ranges on this emergency grain list
-will not be made available to the CBS's client via callbacks.
-``CBSIterate`` and ``CBSIterateLarge`` will not iterate over ranges on
-this list.
-
-_`impl.low-mem.inline.grain.structure`: The pointer stored is to the
-next such grain, or ``NULL``.
+_`impl.low-mem`: When the CBS tries to allocate a new ``CBSBlock``
+structure for a new isolated range as a result of either ``CBSInsert``
+or ``CBSDelete``, and there is insufficient memory to allocation the
+``CBSBlock`` structure, then the range is not added to the CBS or
+deleted from it, and the call to ``CBSInsert`` or ``CBSDelete``
+returns ``ResMEMORY``.
 
 
 The CBS block
@@ -562,111 +527,9 @@ _`risk.overhead`: Clients should note that the current implementation
 of CBSs has a space overhead proportional to the number of isolated
 contiguous ranges. [Four words per range.] If the CBS contains every
 other grain in an area, then the overhead will be large compared to
-the size of that area. [Four words per two grains.] See
-`.future.hybrid`_ for a suggestion to solve this problem. An
-alternative solution is to use CBSs only for managing long ranges.
+the size of that area. [Four words per two grains.] The CBS structure
+is thus suitable only for managing large enough ranges.
 
-
-Proposed hybrid implementation
-------------------------------
-
-.. note::
-
-    The following relates to a pending re-design and does not yet
-    relate to any working source version. GavinM 1998-09-25
-
-The CBS system provides its services by combining the services
-provided by three subsidiary CBS modules:
-
-- ``CBSST`` -- Splay Tree: Based on out-of-line splay trees; must
-  allocate to insert isolated, which may therefore fail.
-
-- ``CBSBL`` -- Block List: Based on a singly-linked list of variable
-  sized ranges with inline descriptors; ranges must be at least large
-  enough to store the inline descriptor.
-
-- ``CBSGL`` -- Grain List: Based on a singly-linked list of fixed size
-  ranges with inline descriptors; the ranges must be the alignment of
-  the CBS.
-
-The three sub-modules have a lot in common. Although their methods are
-not invoked via a dispatcher, they have been given consistent
-interfaces, and consistent internal appearance, to aid maintenance.
-
-Methods supported by sub-modules (not all sub-modules support all
-methods):
-
-- ``MergeRange`` -- Finds any ranges in the specific CBS adjacent to
-  the supplied one. If there are any, it extends the ranges, possibly
-  deleting one of them. This cannot fail, but should return ``FALSE``
-  if there is an intersection between the supplied range and a range
-  in the specific CBS.
-
-- ``InsertIsolatedRange`` -- Adds a range to the specific CBS that is
-  not adjacent to any range already in there. Depending on the
-  specific CBS, this may be able to fail for allocation reasons, in
-  which case it should return ``FALSE``. It should ``AVER`` if the
-  range is adjacent to or intersects with a range already there.
-
-- ``RemoveAdjacentRanges`` -- Finds and removes from the specific CBS
-  any ranges that are adjacent to the supplied range. Should return
-  ``FALSE`` if the supplied range intersects with any ranges already
-  there.
-
-- ``DeleteRange`` -- Finds and deletes the supplied range from the
-  specific CBS. Returns a tri-state result:
-
-  - ``Success`` -- The range was successfully deleted. This may have
-    involved the creation of a new range, which should be done via
-    ``CBSInsertIsolatedRange``.
-
-  - ``ProtocolError`` -- Either some non-trivial strict subset of the
-    supplied range was in the specific CBS, or a range adjacent to the
-    supplied range was in the specific CBS. Either of these indicates
-    a protocol error.
-
-  - ``NoIntersection`` -- The supplied range was not found in the CBS.
-    This may or not be a protocol error, depending on the invocation
-    context.
-
-- ``FindFirst`` -- Returns the first (in address order) range in the
-  specific CBS that is at least as large as the supplied size, or
-  ``FALSE`` if there is no such range.
-
-- ``FindFirstBefore`` -- As ``FindFirst``, but only finds ranges prior
-  to the supplied address.
-
-- ``FindLast`` -- As ``FindFirst``, but finds the last such range in
-  address order.
-
-- ``FindLastAfter`` -- ``FindLast`` equivalent of ``FindFirstBefore``.
-
-- ``Init`` -- Initialise the control structure embedded in the CBS.
-
-- ``Finish`` -- Finish the control structure embedded in the CBS.
-
-- ``InlineDescriptorSize`` -- Returns the aligned size of the inline
-  descriptor.
-
-- ``Check`` -- Checks the control structure embedded in the CBS.
-
-The CBS supplies the following utilities:
-
-- ``CBSAlignment`` -- Returns the alignment of the CBS.
-
-- ``CBSMayUseInline`` -- Returns whether the CBS may use the memory in
-  the ranges stored.
-
-- ``CBSInsertIsolatedRange`` -- Wrapper for ``CBS*InsertIsolatedRange``.
-
-Internally, the ``CBS*`` sub-modules each have an internal structure
-``CBS*Block`` that represents an isolated range within the module. It
-supports the following methods (for sub-module internal use):
-
-- ``BlockBase`` -- Returns the base of the associated range;
-- ``BlockLimit`` 
-- ``BlockRange``
-- ``BlockSize``
 
 
 B. Document history
@@ -686,6 +549,9 @@ B. Document history
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-04-14 GDR_ Converted to reStructuredText.
+
+- 2013-05-19 GDR_ Remove the "emergency" free list allocator and the
+  design notes on an unimplemented "future hybrid" scheme.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

@@ -21,13 +21,6 @@ typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block,
 typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block, void *closureP);
 
 
-/* See <design/cbs/#impl.low-mem.inline.block> */
-typedef void **CBSEmergencyBlock; /* next, limit */
-
-/* See <design/cbs/#impl.low-mem.inline.block> */
-typedef void **CBSEmergencyGrain; /* next */
-
-
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
 
 typedef struct CBSStruct {
@@ -40,17 +33,10 @@ typedef struct CBSStruct {
   CBSChangeSizeMethod shrink;
   Size minSize;
   Align alignment;
-  Bool mayUseInline;
   Bool fastFind;
   Bool inCBS; /* prevent reentrance */
-  CBSEmergencyBlock emergencyBlockList;
-  Count eblSize;
-  CBSEmergencyGrain emergencyGrainList;
-  Count eglSize;
   /* meters for sizes of search structures at each op */
   METER_DECL(splaySearch);
-  METER_DECL(eblSearch);
-  METER_DECL(eglSearch);
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
 
@@ -72,7 +58,6 @@ extern Res CBSInit(Arena arena, CBS cbs, void *owner,
                    CBSChangeSizeMethod shrink,
                    Size minSize,
                    Align alignment,
-                   Bool mayUseInline,
                    Bool fastFind);
 extern void CBSFinish(CBS cbs);
 
