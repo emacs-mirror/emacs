@@ -122,16 +122,17 @@ managed pools (unless these are registered as <a class="reference internal" href
 <a class="reference internal" href="../topic/pool.html#mps_class_t" title="mps_class_t">mps_class_t</a> <tt class="descname">mps_class_mvt</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_class_mvt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> for an MVT (Manual Variable
 Temporal) <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
-<p>When creating an MVT pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> requires
+<p>When creating an MVT pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> may take
 five <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>:</p>
 <ul class="simple">
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MIN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>) is the
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MIN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default is
+smallest general purpose alignment for the architecture) is the
 predicted minimum size of blocks that will be allocated from the
 pool.</li>
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>) is the
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32) is the
 predicted mean size of blocks that will be allocated from the
 pool.</li>
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MAX_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>) is the
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MAX_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 8192) is the
 predicted maximum size of blocks that will be allocated from the
 pool. Partial freeing is not supported for blocks larger than
 this; doing so will result in the storage of the block never
@@ -164,16 +165,16 @@ object population does vary, at a slight cost in efficiency. The
 reserve does not guarantee any particular amount of allocation.</p>
 </li>
 <li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVT_FRAG_LIMIT</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">mps_count_t</span></tt>)
-is a percentage from 1 to 100 (inclusive). It sets an upper
+is a double from 0.0 to 1.0 (inclusive). It sets an upper
 limit on the space overhead of an MVT pool, in case block death
 times and allocations do not correlate well. If the free space
 managed by the pool as a ratio of all the space managed by the
 pool exceeds the fragmentation limit, the pool falls back to a
 first fit allocation policy, exploiting space more efficiently
-at a cost in time efficiency. A fragmentation limit of 0 would
+at a cost in time efficiency. A fragmentation limit of 0.0 would
 cause the pool to operate as a first-fit pool, at a significant
 cost in time efficiency: therefore this is not permitted.</p>
-<p>A fragmentation limit of 100 causes the pool to always use
+<p>A fragmentation limit of 1.0 causes the pool to always use
 temporal fit (unless resources are exhausted). If the objects
 allocated in the pool have similar lifetime expectancies, this
 mode will have the best time- and space-efficiency. If the
@@ -189,7 +190,7 @@ of temporal fit due to varying object life expectancies.</p>
     <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MEAN_SIZE</span><span class="p">,</span> <span class="mi">32</span><span class="p">);</span>
     <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MAX_SIZE</span><span class="p">,</span> <span class="mi">1024</span><span class="p">);</span>
     <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MVT_RESERVE_DEPTH</span><span class="p">,</span> <span class="mi">256</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MVT_FRAG_LIMIT</span><span class="p">,</span> <span class="mi">50</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MVT_FRAG_LIMIT</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">);</span>
     <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_mvt</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
 <span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
@@ -200,14 +201,20 @@ of temporal fit due to varying object life expectancies.</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the arguments like
 this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="n">mps_class_t</span> <span class="n">mps_class_mvt</span><span class="p">(),</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mvt</span><span class="p">(),</span>
                           <span class="kt">size_t</span> <span class="n">minimum_size</span><span class="p">,</span>
                           <span class="kt">size_t</span> <span class="n">mean_size</span><span class="p">,</span>
                           <span class="kt">size_t</span> <span class="n">maximum_size</span><span class="p">,</span>
-                          <span class="n">mps_count_t</span> <span class="n">reserve_depth</span><span class="p">,</span>
-                          <span class="n">mps_count_t</span> <span class="n">fragmentation_limit</span><span class="p">)</span>
+                          <span class="kt">mps_count_t</span> <span class="n">reserve_depth</span><span class="p">,</span>
+                          <span class="kt">mps_count_t</span> <span class="n">fragmentation_limit</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition-note last admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The fragmentation_limit is a percentage from 0 to 100
+inclusive when passed to <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, not a
+double from 0.0 to 1.0 as in <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a>.</p>
 </div>
 </div>
 </dd></dl>

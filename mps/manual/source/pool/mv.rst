@@ -72,18 +72,18 @@ MV interface
     Return the :term:`pool class` for an MV (Manual Variable)
     :term:`pool`.
 
-    When creating an MV pool, :c:func:`mps_pool_create_k` requires
+    When creating an MV pool, :c:func:`mps_pool_create_k` may take
     three :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`) is the
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default 4096) is the
       :term:`size` of segment that the pool will request from the
       :term:`arena`.
 
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`) is the
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32) is the
       predicted mean size of blocks that will be allocated from the
       pool.
 
-    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`) is the
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`, default 65536) is the
       predicted maximum size of blocks that will be allocated from the
       pool.
 
