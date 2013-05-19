@@ -75,7 +75,7 @@ MV interface
     When creating an MV pool, :c:func:`mps_pool_create_k` may take
     three :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default 4096) is the
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default 65536) is the
       :term:`size` of segment that the pool will request from the
       :term:`arena`.
 
