@@ -1,3 +1,7 @@
+2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* shr.el (shr-tag-span): New function.
+
 2013-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-mode): Use message-mode-abbrev-table,
