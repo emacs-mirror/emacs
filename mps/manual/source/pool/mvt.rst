@@ -112,18 +112,19 @@ MVT interface
     Return the :term:`pool class` for an MVT (Manual Variable
     Temporal) :term:`pool`.
 
-    When creating an MVT pool, :c:func:`mps_pool_create_k` requires
+    When creating an MVT pool, :c:func:`mps_pool_create_k` may take
     five :term:`keyword arguments`:
 
-    * :c:macro:`MPS_KEY_MIN_SIZE` (type :c:type:`size_t`) is the
+    * :c:macro:`MPS_KEY_MIN_SIZE` (type :c:type:`size_t`, default is
+      smallest general purpose alignment for the architecture) is the
       predicted minimum size of blocks that will be allocated from the
       pool.
 
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`) is the
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32) is the
       predicted mean size of blocks that will be allocated from the
       pool.
 
-    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`) is the
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`, default 8192) is the
       predicted maximum size of blocks that will be allocated from the
       pool. Partial freeing is not supported for blocks larger than
       this; doing so will result in the storage of the block never
