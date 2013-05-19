@@ -313,8 +313,12 @@ Res ControlInit(Arena arena)
   Res res;
 
   AVERT(Arena, arena);
-  res = PoolInit(&arena->controlPoolStruct.poolStruct, arena,
-                 PoolClassMV(), argsNone);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
+    MPS_ARGS_DONE(args);
+    res = PoolInit(&arena->controlPoolStruct.poolStruct, arena,
+                   PoolClassMV(), args);
+  } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
   arena->poolReady = TRUE;      /* <design/arena/#pool.ready> */

@@ -240,7 +240,7 @@
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
-#define MV_EXTEND_BY_DEFAULT  ((Size)4096)
+#define MV_EXTEND_BY_DEFAULT  ((Size)65536)
 #define MV_AVG_SIZE_DEFAULT   ((Size)32)
 #define MV_MAX_SIZE_DEFAULT   ((Size)65536)
 
@@ -298,6 +298,11 @@
 }
 
 #define LDHistoryLENGTH ((Size)4)
+
+/* Value of MPS_KEY_EXTEND_BY for the arena control pool.
+   Deliberately smaller than the default, because we don't expect the control
+   pool to be very heavily used. */
+#define CONTROL_EXTEND_BY 4096
 
 
 /* Stack configuration */
