@@ -237,7 +237,7 @@ static Res MVTInit(Pool pool, va_list arg)
     abqDepth = 3;
 
   res = CBSInit(arena, MVTCBS(mvt), (void *)mvt, &MVTNoteNew, &MVTNoteDelete,
-                NULL, NULL, reuseSize, MPS_PF_ALIGN, TRUE, FALSE);
+                NULL, NULL, reuseSize, MPS_PF_ALIGN, FALSE);
   if (res != ResOK)
     goto failCBS;
  

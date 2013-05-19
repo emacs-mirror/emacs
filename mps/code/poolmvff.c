@@ -466,7 +466,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   mvff->free = 0;
 
   res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, NULL, NULL, NULL, NULL,
-                mvff->extendBy, align, TRUE, TRUE);
+                mvff->extendBy, align, TRUE);
 
   if (res != ResOK)
     goto failInit;
@@ -686,8 +686,8 @@ void mps_mvff_stat(mps_pool_t mps_pool)
   AVERT(MVFF, mvff);
 
   METER_EMIT(&CBSOfMVFF(mvff)->splaySearch);
-  METER_EMIT(&CBSOfMVFF(mvff)->eblSearch);
-  METER_EMIT(&CBSOfMVFF(mvff)->eglSearch);
+  /* FIXME: METER_EMIT(&CBSOfMVFF(mvff)->eblSearch); */
+  /* FIXME: METER_EMIT(&CBSOfMVFF(mvff)->eglSearch); */
 }
 
 

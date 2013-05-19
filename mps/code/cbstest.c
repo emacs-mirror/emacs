@@ -591,7 +591,7 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)CBSInit(arena, &cbsStruct, NULL, &cbsNewCallback,
                          &cbsDeleteCallback, &cbsGrowCallback,
                          &cbsShrinkCallback, MinSize,
-                         Alignment, TRUE, TRUE),
+                         Alignment, TRUE),
       "failed to initialise CBS");
   cbs = &cbsStruct;
 
