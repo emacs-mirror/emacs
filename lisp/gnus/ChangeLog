@@ -1,5 +1,10 @@
 2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
 
+	* message.el (message-insert-formatted-citation-line): Handle finding
+	first/lastname when more than 2 names appear.
+
+2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
+
 	* shr.el (shr-tag-span): New function.
 
 2013-05-18  Glenn Morris  <rgm@gnu.org>

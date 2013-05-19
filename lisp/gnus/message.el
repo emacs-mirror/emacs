@@ -3944,18 +3944,19 @@ See `message-citation-line-format'."
 	    (let ((i ?A) lst)
 	      (when (stringp name)
 		;; Guess first name and last name:
-		(cond ((string-match
-			"\\`\\(\\w\\|[-.]\\)+ \\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname (nth 0 (split-string name "[ \t]+"))
-			     lname (nth 1 (split-string name "[ \t]+"))))
-		      ((string-match
-			"\\`\\(\\w\\|[-.]\\)+, \\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname (nth 1 (split-string name "[ \t,]+"))
-			     lname (nth 0 (split-string name "[ \t,]+"))))
-		      ((string-match
-			"\\`\\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname name
-			     lname ""))))
+                (let* ((names (delq nil (mapcar (lambda (x)
+                                                 (if (string-match "\\`\\(\\w\\|[-.]\\)+\\'" x) x nil))
+                                               (split-string name "[ \t]+"))))
+                      (count (length names)))
+                  (cond ((= count 1) (setq fname (car names)
+                                           lname ""))
+                        ((or (= count 2) (= count 3)) (setq fname (car names)
+                                                            lname (mapconcat 'identity (cdr names) " ")))
+                        ((> count 3) (setq fname (mapconcat 'identity (butlast names (- count 2)) " ")
+                                           lname (mapconcat 'identity (nthcdr 2 names) " "))) )
+                  (when (string-match "\\(.*\\),\\'" fname)
+                    (let ((newlname (match-string 1 fname)))
+                      (setq fname lname lname newlname)))))
 	      ;; The following letters are not used in `format-time-string':
 	      (push ?E lst) (push "<E>" lst)
 	      (push ?F lst) (push fname lst)
