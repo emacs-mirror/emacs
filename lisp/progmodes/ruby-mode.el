@@ -1435,7 +1435,7 @@ It will be properly highlighted even when the call omits parens.")
                                         (line-end-position) t)
                 (unless (ruby-singleton-class-p (match-beginning 0))
                   (push (concat (ruby-here-doc-end-match) "\n") res))))
-            (let ((start (point)))
+            (save-excursion
               ;; With multiple openers on the same line, we don't know in which
               ;; part `start' is, so we have to go back to the beginning.
               (when (cdr res)
@@ -1445,11 +1445,9 @@ It will be properly highlighted even when the call omits parens.")
                 (if (null res)
                     (put-text-property (1- (point)) (point)
                                        'syntax-table (string-to-syntax "\""))))
-              ;; Make extra sure we don't move back, lest we could fall into an
-              ;; inf-loop.
-              (if (< (point) start)
-                  (goto-char start)
-                (ruby-syntax-propertize-expansions start (point)))))))
+              ;; End up at bol following the heredoc openers.
+              ;; Propertize expression expansions from this point forward.
+              ))))
 
       (defun ruby-syntax-enclosing-percent-literal (limit)
         (let ((state (syntax-ppss))

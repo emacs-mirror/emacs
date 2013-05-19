@@ -16,11 +16,12 @@
 	call to `ruby-syntax-propertize-function'.
 	(ruby-syntax-propertize-expansion): Extracted from
 	`ruby-syntax-propertize-expansions'.  Handles one expansion.
-	(ruby-syntax-propertize-heredoc): Explicitly call
-	`ruby-syntax-propertize-expansions'.
 	(ruby-syntax-propertize-percent-literal): Leave point right after
 	the percent symbol, so that the expression expansion rule can
 	propertize the contents.
+	(ruby-syntax-propertize-heredoc): Leave point at bol following the
+	heredoc openers.
+	(ruby-syntax-propertize-expansions): Remove.
 
 2013-05-18  Juri Linkov  <juri@jurta.org>
 
