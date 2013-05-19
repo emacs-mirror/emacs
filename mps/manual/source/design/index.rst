@@ -17,7 +17,6 @@ Design
 
     arena
     bt
-    cbs
     check
     class-interface
     collection
