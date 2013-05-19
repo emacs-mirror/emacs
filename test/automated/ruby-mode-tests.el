@@ -84,6 +84,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-singleton-class-no-heredoc-font-lock ()
   (ruby-assert-face "class<<a" 8 nil))
 
+(ert-deftest ruby-heredoc-highlights-interpolations ()
+  (ruby-assert-face "s = <<EOS\n  #{foo}\nEOS" 15 font-lock-variable-name-face))
+
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
         (ruby-deep-indent-paren '(?\( ?\{ ?\[ ?\] t)))
@@ -108,6 +111,15 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-regexp-starts-after-string ()
   (ruby-assert-state "'(/', /\d+/" 3 ?/ 8))
+
+(ert-deftest ruby-regexp-skips-over-interpolation ()
+  (ruby-assert-state "/#{foobs.join('/')}/" 3 nil))
+
+(ert-deftest ruby-regexp-continues-till-end-when-unclosed ()
+  (ruby-assert-state "/bars" 3 ?/))
+
+(ert-deftest ruby-regexp-can-be-multiline ()
+  (ruby-assert-state "/bars\ntees # toots \nfoos/" 3 nil))
 
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
@@ -324,6 +336,13 @@ VALUES-PLIST is a list with alternating index and value elements."
       (font-lock-fontify-buffer)
       (search-forward "tee")
       (should (string= (thing-at-point 'symbol) "tee")))))
+
+(ert-deftest ruby-interpolation-inside-percent-literal ()
+  (let ((s "%( #{boo} )"))
+    (ruby-assert-face s 1 font-lock-string-face)
+    (ruby-assert-face s 4 font-lock-variable-name-face)
+    (ruby-assert-face s 10 font-lock-string-face)
+    (ruby-assert-state s 8 nil)))
 
 (ert-deftest ruby-interpolation-inside-percent-literal-with-paren ()
   :expected-result :failed

@@ -1,3 +1,27 @@
+2013-05-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-expression-expansion-re): Allow to
+	start at point, so that expansion starting right after opening
+	slash in a regexp is recognized.
+	(ruby-syntax-before-regexp-re): New defvar, extracted from
+	ruby-syntax-propertize-function.  Since the value of this regexp
+	is looked up at runtime now, we should be able to turn
+	`ruby-syntax-methods-before-regexp' into a defcustom later.
+	(ruby-syntax-propertize-function): Split regexp matching into two
+	parts, for opening and closing slashes.  That allows us to skip
+	over string interpolations and support multiline regexps.
+	Don't call `ruby-syntax-propertize-expansions', instead use another rule
+	for them, which calls `ruby-syntax-propertize-expansion'.
+	(ruby-syntax-propertize-expansions): Move `remove-text-properties'
+	call to `ruby-syntax-propertize-function'.
+	(ruby-syntax-propertize-expansion): Extracted from
+	`ruby-syntax-propertize-expansions'.  Handles one expansion.
+	(ruby-syntax-propertize-heredoc): Explicitly call
+	`ruby-syntax-propertize-expansions'.
+	(ruby-syntax-propertize-percent-literal): Leave point right after
+	the percent symbol, so that the expression expansion rule can
+	propertize the contents.
+
 2013-05-18  Juri Linkov  <juri@jurta.org>
 
 	* man.el (Man-default-man-entry): Remove `-' from the end

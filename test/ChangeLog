@@ -1,3 +1,13 @@
+2013-05-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add multiline regexp example.
+
+	* automated/ruby-mode-tests.el (ruby-heredoc-highlights-interpolations)
+	(ruby-regexp-skips-over-interpolation)
+	(ruby-regexp-continues-till-end-when-unclosed)
+	(ruby-regexp-can-be-multiline)
+	(ruby-interpolation-inside-percent-literal): New tests.
+
 2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/ruby.rb: Fix indentation after =; add more cases.
