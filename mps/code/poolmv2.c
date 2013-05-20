@@ -469,6 +469,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
       res = MVTContingencySearch(&base, &limit, MVTCBS(mvt), minSize);
     }
   } else {
+    AVERT(Range, &range);
     base = RangeBase(&range);
     limit = RangeLimit(&range);
     METER_ACC(mvt->finds, minSize);
@@ -595,6 +596,7 @@ static Res MVTReserve(MVT mvt, Range range)
     RangeStruct oldRange;
     res = ABQPeek(MVTABQ(mvt), (Addr)&oldRange);
     AVER(res == ResOK);
+    AVERT(Range, &oldRange);
     success = MVTReturnRangeSegs(mvt, &oldRange, arena);
     AVER(success);
     res = ABQPush(MVTABQ(mvt), (Addr)&range);
