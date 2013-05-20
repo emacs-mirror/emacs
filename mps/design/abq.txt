@@ -80,12 +80,6 @@ the memory pointed to by ``elementReturn`` and return ``ResOK``. If
 the queue is empty, return ``ResFAIL``. (This is the same as
 :c:func:`ABQPop` except that the queue is unchanged.)
 
-.. c:function:: Res ABQDelete(ABQ abq, Addr element)
-
-If any elements in the queue compare equal to the element pointed to
-by ``element``, delete them from the queue and return ``ResOK``.
-Otherwise, return ``ResFAIL``.
-
 .. c:function:: Bool ABQIsEmpty(ABQ abq)
 
 If the queue is empty, return ``TRUE``, otherwise return ``FALSE``.

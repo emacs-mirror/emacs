@@ -33,7 +33,6 @@ extern void ABQFinish(Arena arena, ABQ abq);
 extern Res ABQPush(ABQ abq, Addr element);
 extern Res ABQPop(ABQ abq, Addr elementReturn);
 extern Res ABQPeek(ABQ abq, Addr elementReturn);
-extern Res ABQDelete(ABQ abq, Addr element);
 extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream);
 extern Bool ABQIsEmpty(ABQ abq);
 extern Bool ABQIsFull(ABQ abq);
