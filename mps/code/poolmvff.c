@@ -93,7 +93,7 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   limit = *limitIO;
   AVER(limit > base);
 
-  res = CBSInsertReturningRange(baseIO, limitIO, CBSOfMVFF(mvff), base, limit);
+  res = CBSInsert(baseIO, limitIO, CBSOfMVFF(mvff), base, limit);
   AVER(res == ResOK);
   mvff->free += AddrOffset(base, limit);
 
@@ -136,10 +136,11 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
 
   while(segLimit <= limit) { /* segment ends in range */
     if (segBase >= base) { /* segment starts in range */
-      /* Must remove from free list first, in case free list */
-      /* is using inline data structures. */
-      res = CBSDelete(CBSOfMVFF(mvff), segBase, segLimit);
+      Addr oldBase, oldLimit;
+      res = CBSDelete(&oldBase, &oldLimit, CBSOfMVFF(mvff), segBase, segLimit);
       AVER(res == ResOK);
+      AVER(oldBase <= segBase);
+      AVER(segLimit <= oldLimit);
       mvff->free -= AddrOffset(segBase, segLimit);
       mvff->total -= AddrOffset(segBase, segLimit);
       SegFree(seg);
@@ -239,6 +240,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
 {
   Bool foundBlock;
   CBSFindDelete findDelete;
+  Addr oldBase, oldLimit;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -250,7 +252,8 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
 
   foundBlock =
     (mvff->firstFit ? CBSFindFirst : CBSFindLast)
-      (baseReturn, limitReturn, CBSOfMVFF(mvff), size, findDelete);
+    (baseReturn, limitReturn, &oldBase, &oldLimit, 
+     CBSOfMVFF(mvff), size, findDelete);
 
   if (foundBlock)
     mvff->free -= size;
@@ -343,7 +346,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
 {
   Res res;
   MVFF mvff;
-  Addr base, limit;
+  Addr base, limit, oldBase, oldLimit;
   Bool foundBlock;
   Seg seg = NULL;
 
@@ -358,19 +361,22 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Bool, withReservoirPermit);
 
   /* Hoping the largest is big enough, delete it and return if small. */
-  foundBlock = CBSFindLargest(&base, &limit, CBSOfMVFF(mvff),
-                              CBSFindDeleteENTIRE);
+  foundBlock = CBSFindLargest(&base, &limit, &oldBase, &oldLimit,
+                              CBSOfMVFF(mvff), CBSFindDeleteENTIRE);
   if (foundBlock && AddrOffset(base, limit) < size) {
+    Addr newBase, newLimit;
     foundBlock = FALSE;
-    res = CBSInsert(CBSOfMVFF(mvff), base, limit);
+    res = CBSInsert(&newBase, &newLimit, CBSOfMVFF(mvff), base, limit);
+    AVER(newBase == base);
+    AVER(newLimit == limit);
     AVER(res == ResOK);
   }
   if (!foundBlock) {
     res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
     if (res != ResOK)
       return res;
-    foundBlock = CBSFindLargest(&base, &limit, CBSOfMVFF(mvff),
-                                CBSFindDeleteENTIRE);
+    foundBlock = CBSFindLargest(&base, &limit, &oldBase, &oldLimit,
+                                CBSOfMVFF(mvff), CBSFindDeleteENTIRE);
     AVER(foundBlock); /* We will find the new segment. */
   }
 
@@ -465,9 +471,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   mvff->total = 0;
   mvff->free = 0;
 
-  res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, NULL, NULL, NULL, NULL,
-                mvff->extendBy, align, TRUE);
-
+  res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, align, TRUE);
   if (res != ResOK)
     goto failInit;
 
