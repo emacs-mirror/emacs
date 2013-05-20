@@ -234,13 +234,12 @@ all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
 # Runs the automatic tests that are built with CONFIG_PROD_MPS.
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
-#   mv2test cannot be run because MV2 is broken
 # %%TARGET: When adding a new target, if target is suitable for the
 # overnight tests, then add it here.
 TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv awlut \
           awluthe btcv cbstest finalcv finaltest lockcov locv \
-          messtest mpmss mpsicv poolncv qs sacss segsmss steptest \
-          walkt0
+          messtest mpmss mpsicv mv2test poolncv qs sacss segsmss \
+          steptest walkt0
 testrun: $(TESTCASES)
 	OUTPUT=$$(mktemp /tmp/mps.log.XXXXXX); \
 	echo "Logging test output to $$OUTPUT"; \
