@@ -172,7 +172,7 @@ MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
             bt.c ring.c shield.c ld.c event.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli.c \
             boot.c meter.c splay.c cbs.c diag.c \
-            ss.c table.c
+            ss.c table.c arg.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
 
