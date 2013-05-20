@@ -1,6 +1,9 @@
 2013-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xfns.c (check_x_display_info): Don't use XINT for terminal object.
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fx_display_mm_width, Fx_display_mm_height): Mention
+	`display-monitor-attributes-list' in docstrings.
 
 2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
