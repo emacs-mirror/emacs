@@ -31,8 +31,8 @@
  * is a shame.
  */
 
-
 #include "mpscmfs.h"
+#include "dbgpool.h"
 #include "poolmfs.h"
 #include "mpm.h"
 
@@ -77,16 +77,39 @@ Pool (MFSPool)(MFS mfs)
 }
 
 
-static Res MFSInit(Pool pool, va_list arg)
+/* MFSVarargs -- decode obsolete varargs */
+
+static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 {
-  Size extendBy, unitSize;
+  args[0].key = MPS_KEY_EXTEND_BY;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MFS_UNIT_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+ARG_DEFINE_KEY(mfs_unit_size, Size);
+
+static Res MFSInit(Pool pool, ArgList args)
+{
+  Size extendBy = MFS_EXTEND_BY_DEFAULT;
+  Size unitSize;
   MFS mfs;
   Arena arena;
+  ArgStruct arg;
 
   AVER(pool != NULL);
-
-  extendBy = va_arg(arg, Size);
-  unitSize = va_arg(arg, Size);
+  AVER(ArgListCheck(args));
+  
+  ArgRequire(&arg, args, MPS_KEY_MFS_UNIT_SIZE);
+  unitSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
+    extendBy = arg.val.size;
+  else {
+    if (extendBy < unitSize)
+      extendBy = unitSize;
+  }
 
   AVER(unitSize >= UNIT_MIN);
   AVER(extendBy >= unitSize);
@@ -269,6 +292,7 @@ DEFINE_POOL_CLASS(MFSPoolClass, this)
   this->name = "MFS";
   this->size = sizeof(MFSStruct);
   this->offset = offsetof(MFSStruct, poolStruct);
+  this->varargs = MFSVarargs;
   this->init = MFSInit;
   this->finish = MFSFinish;
   this->alloc = MFSAlloc;

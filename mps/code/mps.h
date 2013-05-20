@@ -1,7 +1,7 @@
 /* mps.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * THIS HEADER IS NOT DOCUMENTATION.
@@ -62,6 +62,7 @@ typedef struct mps_alloc_pattern_s
   *mps_alloc_pattern_t;                    /* allocation patterns */
 typedef struct mps_frame_s
   *mps_frame_t;                            /* allocation frames */
+typedef const struct mps_key_s *mps_key_t; /* argument key */
 
 /* Concrete Types */
 
@@ -90,6 +91,102 @@ enum {
   MPS_RES_COMMIT_LIMIT,         /* arena commit limit exceeded */
   MPS_RES_PARAM                 /* illegal user parameter value */
 };
+
+/* Keyword argument lists */
+
+typedef struct mps_arg_s {
+  mps_key_t key;
+  union {
+    mps_bool_t b;
+    char c;
+    const char *string;
+    int i;
+    unsigned u;
+    long l;
+    unsigned long ul;
+    float f;
+    double d;
+    size_t size;
+    mps_addr_t addr;
+    mps_fmt_t format;
+    mps_chain_t chain;
+    struct mps_pool_debug_option_s *pool_debug_options;
+    mps_addr_t (*addr_method)(mps_addr_t);
+    mps_align_t align;
+    mps_word_t count;
+    void *p;
+    mps_rank_t rank;
+  } val;
+} mps_arg_s;
+
+extern const struct mps_key_s _mps_key_args_end;
+#define MPS_KEY_ARGS_END        (&_mps_key_args_end)
+extern mps_arg_s mps_args_none[];
+
+extern const struct mps_key_s _mps_key_arena_size;
+#define MPS_KEY_ARENA_SIZE      (&_mps_key_arena_size)
+#define MPS_KEY_ARENA_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_format;
+#define MPS_KEY_FORMAT          (&_mps_key_format)
+#define MPS_KEY_FORMAT_FIELD    format
+extern const struct mps_key_s _mps_key_chain;
+#define MPS_KEY_CHAIN           (&_mps_key_chain)
+#define MPS_KEY_CHAIN_FIELD     chain
+extern const struct mps_key_s _mps_key_rank;
+#define MPS_KEY_RANK            (&_mps_key_rank)
+#define MPS_KEY_RANK_FIELD      rank
+
+extern const struct mps_key_s _mps_key_extend_by;
+#define MPS_KEY_EXTEND_BY       (&_mps_key_extend_by)
+#define MPS_KEY_EXTEND_BY_FIELD size
+extern const struct mps_key_s _mps_key_min_size;
+#define MPS_KEY_MIN_SIZE        (&_mps_key_min_size)
+#define MPS_KEY_MIN_SIZE_FIELD  size
+extern const struct mps_key_s _mps_key_mean_size;
+#define MPS_KEY_MEAN_SIZE       (&_mps_key_mean_size)
+#define MPS_KEY_MEAN_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_max_size;
+#define MPS_KEY_MAX_SIZE        (&_mps_key_max_size)
+#define MPS_KEY_MAX_SIZE_FIELD  size
+extern const struct mps_key_s _mps_key_align;
+#define MPS_KEY_ALIGN           (&_mps_key_align)
+#define MPS_KEY_ALIGN_FIELD     align
+
+extern const struct mps_key_s _mps_key_vmw3_top_down;
+#define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
+#define MPS_KEY_VMW3_TOP_DOWN_FIELD b
+
+/* Maximum length of a keyword argument list. */
+#define MPS_ARGS_MAX          32
+
+#define MPS_ARGS_BEGIN(_var) \
+  MPS_BEGIN \
+      mps_arg_s _var[MPS_ARGS_MAX]; \
+      unsigned _var##_i = 0; \
+      MPS_BEGIN
+
+#define MPS_ARGS_ADD_FIELD(_var, _key, _field, _val)  \
+  MPS_BEGIN \
+    /* TODO: AVER(_var##_i < MPS_ARGS_MAX); */ \
+    _var[_var##_i].key = (_key); \
+    _var[_var##_i].val._field = (_val); \
+    ++_var##_i; \
+  MPS_END
+
+#define MPS_ARGS_ADD(_var, _key, _val) \
+  MPS_ARGS_ADD_FIELD(_var, _key, _key##_FIELD, _val)
+
+#define MPS_ARGS_DONE(_var) \
+  MPS_BEGIN \
+    /* TODO: AVER(_var##_i < MPS_ARGS_MAX); */ \
+    _var[_var##_i].key = MPS_KEY_ARGS_END; \
+    /* TODO: _var##_i = MPS_ARGS_MAX; */ \
+  MPS_END
+
+#define MPS_ARGS_END(_var) \
+    MPS_END; \
+  MPS_END
+
 
 /* <a id="message.types"> Keep in sync with
  * <code/mpmtypes.h#message.types> */
@@ -272,6 +369,8 @@ extern mps_bool_t mps_arena_step(mps_arena_t, double, double);
 
 extern mps_res_t mps_arena_create(mps_arena_t *, mps_arena_class_t, ...);
 extern mps_res_t mps_arena_create_v(mps_arena_t *, mps_arena_class_t, va_list);
+extern mps_res_t mps_arena_create_k(mps_arena_t *, mps_arena_class_t,
+                                    mps_arg_s []);
 extern void mps_arena_destroy(mps_arena_t);
 
 extern size_t mps_arena_reserved(mps_arena_t);
@@ -314,6 +413,8 @@ extern mps_res_t mps_pool_create(mps_pool_t *, mps_arena_t,
                                  mps_class_t, ...);
 extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_arena_t,
                                    mps_class_t, va_list);
+extern mps_res_t mps_pool_create_k(mps_pool_t *, mps_arena_t,
+                                   mps_class_t, mps_arg_s []);
 extern void mps_pool_destroy(mps_pool_t);
 
 /* .gen-param: This structure must match <code/chain.h#gen-param>. */
@@ -326,7 +427,7 @@ extern mps_res_t mps_chain_create(mps_chain_t *, mps_arena_t,
                                   size_t, mps_gen_param_s *);
 extern void mps_chain_destroy(mps_chain_t);
 
-extern mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t, ...);
+extern mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);
 extern mps_res_t mps_alloc_v(mps_addr_t *, mps_pool_t, size_t, va_list);
 extern void mps_free(mps_pool_t, mps_addr_t, size_t);
 
@@ -335,6 +436,7 @@ extern void mps_free(mps_pool_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_create(mps_ap_t *, mps_pool_t, ...);
 extern mps_res_t mps_ap_create_v(mps_ap_t *, mps_pool_t, va_list);
+extern mps_res_t mps_ap_create_k(mps_ap_t *, mps_pool_t, mps_arg_s []);
 extern void mps_ap_destroy(mps_ap_t);
 
 extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
@@ -601,6 +703,10 @@ typedef struct mps_pool_debug_option_s {
   size_t free_size;
 } mps_pool_debug_option_s;
 
+extern const struct mps_key_s _mps_key_pool_debug_options;
+#define MPS_KEY_POOL_DEBUG_OPTIONS (&_mps_key_pool_debug_options)
+#define MPS_KEY_VAL_POOL_DEBUG_OPTIONS pool_debug_options
+
 extern void mps_pool_check_fenceposts(mps_pool_t);
 extern void mps_pool_check_free_space(mps_pool_t);
 
@@ -650,7 +756,7 @@ extern mps_res_t _mps_fix2(mps_ss_t, mps_addr_t *);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

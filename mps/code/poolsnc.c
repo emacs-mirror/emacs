@@ -127,7 +127,7 @@ static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 
 /* SNCBufInit -- Initialize an SNCBuf */
 
-static Res SNCBufInit (Buffer buffer, Pool pool, va_list args)
+static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
 {
   SNCBuf sncbuf;
   Res res;
@@ -228,7 +228,7 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 /* sncSegInit -- Init method for SNC segments */
 
 static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, va_list args)
+                      Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   SNCSeg sncseg;
@@ -361,17 +361,19 @@ static Bool sncFindFreeSeg(Seg *segReturn, SNC snc, Size size)
 
 /* SNCInit -- initialize an SNC pool */
 
-static Res SNCInit(Pool pool, va_list arg)
+static Res SNCInit(Pool pool, ArgList args)
 {
   SNC snc;
   Format format;
+  ArgStruct arg;
 
   /* weak check, as half-way through initialization */
   AVER(pool != NULL);
 
   snc = Pool2SNC(pool);
 
-  format = va_arg(arg, Format);
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
 
   AVERT(Format, format);
   pool->format = format;
@@ -437,7 +439,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   arena = PoolArena(pool);
   asize = SizeAlignUp(size, ArenaAlign(arena));
   res = SegAlloc(&seg, SNCSegClassGet(), &snc->segPrefStruct,
-                 asize, pool, withReservoirPermit);
+                 asize, pool, withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
 

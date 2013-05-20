@@ -8,6 +8,39 @@ Memory Management Glossary: C
 
 .. glossary::
 
+    C89
+
+        .. see:: :term:`C90`.
+
+    C90
+
+        .. aka:: *C89*.
+
+        A revision of the ANSI/ISO Standard for the :term:`C`
+        programming language. Although more than twenty years old, it
+        remains the only form of Standard C that is supported by all
+        the major compilers, including Microsoft Visual C.
+
+        .. mps:specific::
+
+            The public interface conforms to this standard. See
+            :ref:`topic-interface`.
+
+        .. bibref:: :ref:`ISO/IEC 9899:1990 <C1990>`.
+
+    C99
+
+        A revision of the ANSI/ISO Standard for C the :term:`C`
+        programming language.
+
+        .. mps:specific::
+
+            :term:`Keyword arguments` can be conveniently passed to
+            functions using C99's compound literal syntax. See
+            :ref:`topic-keyword`.
+
+        .. bibref:: :ref:`ISO/IEC 9899:1999 <C1999>`.
+
     cache (1)
 
         .. aka:: *memory cache*, *cache memory*.

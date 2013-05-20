@@ -203,7 +203,7 @@ static void amsDestroyTables(AMS ams, BT allocTable,
 /* AMSSegInit -- Init method for AMS segments */
 
 static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, va_list args)
+                      Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   AMSSeg amsseg;
@@ -318,7 +318,7 @@ static void AMSSegFinish(Seg seg)
 
 static Res AMSSegMerge(Seg seg, Seg segHi,
                        Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit, va_list args)
+                       Bool withReservoirPermit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -357,7 +357,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
   res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
@@ -402,7 +402,7 @@ failCreateTables:
 
 static Res AMSSegSplit(Seg seg, Seg segHi,
                        Addr base, Addr mid, Addr limit,
-                       Bool withReservoirPermit, va_list args)
+                       Bool withReservoirPermit)
 {
   SegClass super;
   Count loGrains, hiGrains, allGrains;
@@ -449,7 +449,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->split(seg, segHi, base, mid, limit, withReservoirPermit, args);
+  res = super->split(seg, segHi, base, mid, limit, withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
@@ -679,14 +679,14 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
     goto failSize;
 
   res = SegAlloc(&seg, (*ams->segClass)(), segPref, prefSize,
-                 pool, withReservoirPermit);
+                 pool, withReservoirPermit, argsNone);
   if (res != ResOK) { /* try to allocate one that's just large enough */
     Size minSize = SizeAlignUp(size, ArenaAlign(arena));
 
     if (minSize == prefSize)
       goto failSeg;
     res = SegAlloc(&seg, (*ams->segClass)(), segPref, minSize,
-                   pool, withReservoirPermit);
+                   pool, withReservoirPermit, argsNone);
     if (res != ResOK)
       goto failSeg;
   }
@@ -728,23 +728,54 @@ static void AMSSegsDestroy(AMS ams)
 }
 
 
+/* AMSVarargs -- decode obsolete varargs */
+
+static void AMSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_CHAIN;
+  args[1].val.chain = va_arg(varargs, Chain);
+  args[2].key = MPS_KEY_AMS_SUPPORT_AMBIGUOUS;
+  args[2].val.b = va_arg(varargs, Bool);
+  args[3].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
+  args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
+  AMSVarargs(args + 1, varargs);
+}
+
+
 /* AMSInit -- the pool class initialization method
  *
  *  Takes one additional argument: the format of the objects
  *  allocated in the pool.  See <design/poolams/#init>.
  */
-static Res AMSInit(Pool pool, va_list args)
+
+ARG_DEFINE_KEY(ams_support_ambiguous, Bool);
+
+static Res AMSInit(Pool pool, ArgList args)
 {
   Res res;
   Format format;
   Chain chain;
   Bool supportAmbiguous;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
+  AVER(ArgListCheck(args));
 
-  format = va_arg(args, Format);
-  chain = va_arg(args, Chain);
-  supportAmbiguous = va_arg(args, Bool);
+  ArgRequire(&arg, args, MPS_KEY_CHAIN);
+  chain = arg.val.chain;
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
+  ArgRequire(&arg, args, MPS_KEY_AMS_SUPPORT_AMBIGUOUS);
+  supportAmbiguous = arg.val.b;
+
   /* .ambiguous.noshare: If the pool is required to support ambiguous */
   /* references, the alloc and white tables cannot be shared. */
   res = AMSInitInternal(Pool2AMS(pool), format, chain, !supportAmbiguous);
@@ -1642,6 +1673,7 @@ DEFINE_CLASS(AMSPoolClass, this)
   this->name = "AMS";
   this->size = sizeof(AMSStruct);
   this->offset = offsetof(AMSStruct, poolStruct);
+  this->varargs = AMSVarargs;
   this->init = AMSInit;
   this->finish = AMSFinish;
   this->bufferClass = RankBufClassGet;
@@ -1680,6 +1712,7 @@ DEFINE_POOL_CLASS(AMSDebugPoolClass, this)
   PoolClassMixInDebug(this);
   this->name = "AMSDBG";
   this->size = sizeof(AMSDebugStruct);
+  this->varargs = AMSDebugVarargs;
   this->debugMixin = AMSDebugMixin;
 }
 

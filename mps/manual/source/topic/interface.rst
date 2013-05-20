@@ -54,8 +54,8 @@ Support policy
 Language
 --------
 
-1.  The MPS public interface conforms to ANSI/ISO Standard C (IEC
-    9899:1990).
+1.  The MPS public interface conforms to :ref:`ANSI/ISO Standard C (IEC
+    9899:1990) <C1990>`.
 
 
 .. index::
@@ -170,6 +170,10 @@ Functions
     is read by the function. See for example :c:func:`MPS_FIX12`.
 
 7.  In/out parameters have names ending with ``_io``.
+
+8.  A function that takes optional arguments does so in the form of an
+    array of keyword argument structures. These functions have names
+    ending with ``_k``. See :ref:`topic-keyword`.
 
 
 .. index::

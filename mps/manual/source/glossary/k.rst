@@ -12,6 +12,18 @@ Memory Management Glossary: K
 
         .. see:: :term:`kilobyte`.
 
+    keyword argument
+
+        A argument to a function call that's identified by an
+        associated keyword rather than by its position in the argument
+        list.
+
+        .. mps:specific::
+
+            Keyword arguments are passed to functions in the MPS
+            interface as arrays of structures of type
+            :c:type:`mps_arg_s`. See :ref:`topic-keyword`.
+
     kilobyte
 
         .. aka:: *kB*.
