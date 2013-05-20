@@ -512,7 +512,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 
   /* Copy the stack-allocated VM parameters into their home in the VMArena. */
   AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
-  memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
+  mps_lib_memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
 
   /* .blacklist: We blacklist the zones that could be referenced by small
      integers misinterpreted as references.  This isn't a perfect simulation,
