@@ -59,6 +59,9 @@ truenames (those with the extension \".toda\")."
 				      (cis2 (upcase s2)))
 				  (string< cis1 cis2))))))
 
+;; (defun todos-filtered-items-files ()
+;;   (directory-files todos-directory t "\.tod[rty]$" t))
+
 (defcustom todos-files-function 'todos-files
   "Function returning the value of the variable `todos-files'.
 This function should take an optional argument that, if non-nil,
@@ -330,7 +333,7 @@ the value of `todos-done-separator'."
   :group 'todos-mode-display)
 
 (defun todos-mode-line-control (cat)
-  "Return a mode line control for Todos buffers.
+  "Return a mode line control for todo or archive file buffers.
 Argument CAT is the name of the current Todos category.
 This function is the value of the user variable
 `todos-mode-line-function'."
@@ -1653,7 +1656,11 @@ otherwise, a new file name is allowed."
 	 (files (mapcar 'todos-short-file-name
 			(if archive todos-archives todos-files)))
 	 (file (completing-read prompt files nil mustmatch nil nil
-				(unless files
+				(if files
+				    ;; If user hit RET without choosing
+				    ;; a file, default to current file.
+				    (todos-short-file-name
+				     todos-current-todos-file)
 				  ;; Trigger prompt for initial file.
 				  ""))))
     (unless (file-exists-p todos-directory)
@@ -2004,10 +2011,10 @@ corresponding multifile commands for further details. "
 	   (todos-check-filtered-items-file))
 	  (t
 	   (todos-filter-items-1 filter flist)))
-    (when (or new (not file-exists))
-      (setq fname (replace-regexp-in-string "-" ", " fname))
-      (rename-buffer (format (concat "%s for file" (if multi "s" "")
-				   " \"%s\"") buf fname)))))
+    (setq fname (replace-regexp-in-string "-" ", "
+					  (todos-short-file-name fname)))
+    (rename-buffer (format (concat "%s for file" (if multi "s" "")
+				   " \"%s\"") buf fname))))
 
 (defun todos-filter-items-1 (filter file-list)
   "Internal subroutine called by `todos-filter-items'.
@@ -2241,7 +2248,7 @@ its priority has changed, and `same' otherwise."
 	(archive (string= (match-string 3 str) "(archive) "))
 	(filcat (match-string 4 str))
 	(tpriority 1)
-	(tpbuf (string-match "top" (buffer-name)))
+	(tpbuf (save-match-data (string-match "top" (buffer-name))))
 	found)
     (setq str (replace-match "" nil nil str 4))
     (when tpbuf
@@ -3390,7 +3397,7 @@ otherwise, send it to the default printer."
 			  (todos-short-file-name todos-current-todos-file)
 			  "\nCategory: " (todos-current-category)))
 		 ((eq major-mode 'todos-filtered-items-mode)
-		  "Todos Top Priorities")))
+		  (buffer-name))))
 	(prefix (propertize (concat todos-prefix " ")
 			    'face 'todos-prefix-string))
 	(num 0)

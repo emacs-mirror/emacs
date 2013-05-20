@@ -1,3 +1,13 @@
+2013-05-20  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Fixes concerning filtered items.
+	(todos-mode-line-control): Make doc string more precise.
+	(todos-read-file-name): Default to current file when user hits RET
+	without choosing a file, to avoid creating file with empty base name.
+	(todos-filter-items): Rename buffer of filtered items files.
+	(todos-find-item): Save match data to avoid arg out of range error.
+	(todos-print-buffer): Fix header of filtered items buffer output.
+
 2013-05-17  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-done-separator): Use window-width for length, in
