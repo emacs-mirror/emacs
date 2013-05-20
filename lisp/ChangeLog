@@ -1,3 +1,7 @@
+2013-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* format-spec.el (format-spec): Allow spec chars with nil.  (Bug#14420)
+
 2013-05-19  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-expression-expansion-re): Allow to
