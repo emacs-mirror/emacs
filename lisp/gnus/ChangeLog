@@ -1,3 +1,8 @@
+2013-05-20  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-spec.el (gnus-parse-complex-format): Use unicode escape for left
+	double angle quotation mark.
+
 2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* message.el (message-insert-formatted-citation-line): Handle finding
