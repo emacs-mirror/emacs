@@ -70,6 +70,8 @@
 #include "ss.c"
 #include "version.c"
 #include "table.c"
+#include "abq.c"
+#include "range.c"
 
 /* Additional pool classes */
 
@@ -80,6 +82,7 @@
 #include "poollo.c"
 #include "poolsnc.c"
 #include "pooln.c"
+#include "poolmv2.c"
 #include "poolmvff.c"
 
 /* ANSI Plinth */
