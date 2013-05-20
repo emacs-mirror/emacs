@@ -1587,14 +1587,54 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
             (octave-help
              (buffer-substring (button-start b) (button-end b)))))
 
-(defvar help-xref-following)
+(defvar octave-help-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\M-." 'octave-find-definition)
+    (define-key map "\C-hd" 'octave-help)
+    map))
+
+(define-derived-mode octave-help-mode help-mode "OctHelp"
+  "Major mode for displaying Octave documentation."
+  :abbrev-table nil
+  :syntax-table octave-mode-syntax-table
+  (eval-and-compile (require 'help-mode))
+  ;; Mostly stolen from `help-make-xrefs'.
+  (let ((inhibit-read-only t))
+    (setq-local info-lookup-mode 'octave-mode)
+    ;; Delete extraneous newlines at the end of the docstring
+    (goto-char (point-max))
+    (while (and (not (bobp)) (bolp))
+      (delete-char -1))
+    (insert "\n")
+    (when (or help-xref-stack help-xref-forward-stack)
+      (insert "\n"))
+    (when help-xref-stack
+      (help-insert-xref-button help-back-label 'help-back
+                               (current-buffer)))
+    (when help-xref-forward-stack
+      (when help-xref-stack
+        (insert "\t"))
+      (help-insert-xref-button help-forward-label 'help-forward
+                               (current-buffer)))
+    (when (or help-xref-stack help-xref-forward-stack)
+      (insert "\n"))))
+
+(defvar octave-help-mode-finish-hook nil
+  "Octave specific hook for `temp-buffer-show-hook'.")
+
+(defun octave-help-mode-finish ()
+  (when (eq major-mode 'octave-help-mode)
+    (run-hooks 'octave-help-mode-finish-hook)))
+
+(add-hook 'temp-buffer-show-hook 'octave-help-mode-finish)
 
 (defun octave-help (fn)
   "Display the documentation of FN."
   (interactive (list (octave-completing-read)))
   (inferior-octave-send-list-and-digest
    (list (format "help \"%s\"\n" fn)))
-  (let ((lines inferior-octave-output-list))
+  (let ((lines inferior-octave-output-list)
+        (inhibit-read-only t))
     (when (string-match "error: \\(.*\\)$" (car lines))
       (error "%s" (match-string 1 (car lines))))
     (with-help-window octave-help-buffer
@@ -1605,7 +1645,6 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
         (let ((help-xref-following t))
           (help-setup-xref (list 'octave-help fn)
                            (called-interactively-p 'interactive)))
-        (setq-local info-lookup-mode 'octave-mode)
         ;; Note: can be turned off by suppress_verbose_help_message.
         ;;
         ;; Remove boring trailing text: Additional help for built-in functions
@@ -1631,7 +1670,8 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
             (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" nil t)
               (make-text-button (match-beginning 0)
                                 (match-end 0)
-                                :type 'octave-help-function))))))))
+                                :type 'octave-help-function))))
+        (octave-help-mode)))))
 
 (defcustom octave-source-directories nil
   "A list of directories for Octave sources.
