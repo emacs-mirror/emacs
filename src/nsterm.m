@@ -3913,15 +3913,31 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 int
 x_display_pixel_height (struct ns_display_info *dpyinfo)
 {
-  NSScreen *screen = [NSScreen mainScreen];
-  return [screen frame].size.height;
+  NSArray *screens = [NSScreen screens];
+  NSEnumerator *enumerator = [screens objectEnumerator];
+  NSScreen *screen;
+  NSRect frame;
+
+  frame = NSZeroRect;
+  while ((screen = [enumerator nextObject]) != nil)
+    frame = NSUnionRect (frame, [screen frame]);
+
+  return NSHeight (frame);
 }
 
 int
 x_display_pixel_width (struct ns_display_info *dpyinfo)
 {
-  NSScreen *screen = [NSScreen mainScreen];
-  return [screen frame].size.width;
+  NSArray *screens = [NSScreen screens];
+  NSEnumerator *enumerator = [screens objectEnumerator];
+  NSScreen *screen;
+  NSRect frame;
+
+  frame = NSZeroRect;
+  while ((screen = [enumerator nextObject]) != nil)
+    frame = NSUnionRect (frame, [screen frame]);
+
+  return NSWidth (frame);
 }
 
 

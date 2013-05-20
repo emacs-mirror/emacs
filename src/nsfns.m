@@ -113,44 +113,45 @@ static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 
    ========================================================================== */
 
-/* Let the user specify an Nextstep display with a frame.
-   nil stands for the selected frame--or, if that is not an Nextstep frame,
+/* Let the user specify a Nextstep display with a Lisp object.
+   OBJECT may be nil, a frame or a terminal object.
+   nil stands for the selected frame--or, if that is not a Nextstep frame,
    the first Nextstep display on the list.  */
+
 static struct ns_display_info *
-check_ns_display_info (Lisp_Object frame)
+check_ns_display_info (Lisp_Object object)
 {
-  if (NILP (frame))
+  struct ns_display_info *dpyinfo = NULL;
+
+  if (NILP (object))
     {
-      struct frame *f = SELECTED_FRAME ();
-      if (FRAME_NS_P (f) && FRAME_LIVE_P (f) )
-        return FRAME_NS_DISPLAY_INFO (f);
+      struct frame *sf = XFRAME (selected_frame);
+
+      if (FRAME_NS_P (sf) && FRAME_LIVE_P (sf))
+	dpyinfo = FRAME_NS_DISPLAY_INFO (sf);
       else if (x_display_list != 0)
-        return x_display_list;
+	dpyinfo = x_display_list;
       else
         error ("Nextstep windows are not in use or not initialized");
     }
-  else if (INTEGERP (frame))
+  else if (TERMINALP (object))
     {
-      struct terminal *t = get_terminal (frame, 1);
+      struct terminal *t = get_terminal (object, 1);
 
       if (t->type != output_ns)
-        error ("Terminal %"pI"d is not a Nextstep display", XINT (frame));
+        error ("Terminal %d is not a Nextstep display", t->id);
 
-      return t->display_info.ns;
+      dpyinfo = t->display_info.ns;
     }
-  else if (STRINGP (frame))
-    return ns_display_info_for_name (frame);
+  else if (STRINGP (object))
+    dpyinfo = ns_display_info_for_name (object);
   else
     {
-      FRAME_PTR f;
-
-      CHECK_LIVE_FRAME (frame);
-      f = XFRAME (frame);
-      if (! FRAME_NS_P (f))
-        error ("non-Nextstep frame used");
-      return FRAME_NS_DISPLAY_INFO (f);
+      FRAME_PTR f = decode_window_system_frame (object);
+      dpyinfo = FRAME_NS_DISPLAY_INFO (f);
     }
-  return NULL;  /* shut compiler up */
+
+  return dpyinfo;
 }
 
 
@@ -167,35 +168,6 @@ ns_get_window (Lisp_Object maybeFrame)
   if (view) window =[view window];
 
   return window;
-}
-
-
-static NSScreen *
-ns_get_screen (Lisp_Object screen)
-{
-  struct frame *f;
-  struct terminal *terminal;
-
-  if (EQ (Qt, screen)) /* not documented */
-    return [NSScreen mainScreen];
-
-  terminal = get_terminal (screen, 1);
-  if (terminal->type != output_ns)
-    return NULL;
-
-  if (NILP (screen))
-    f = SELECTED_FRAME ();
-  else if (FRAMEP (screen))
-    f = XFRAME (screen);
-  else
-    {
-      struct ns_display_info *dpyinfo = terminal->display_info.ns;
-      f = dpyinfo->x_focus_frame
-        ? dpyinfo->x_focus_frame : dpyinfo->x_highlight_frame;
-    }
-
-  return ((f && FRAME_NS_P (f)) ? [[FRAME_NS_VIEW (f) window] screen]
-	  : NULL);
 }
 
 
@@ -1586,9 +1558,9 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
        doc: /* This function is a no-op.  It is only present for completeness.  */)
-     (Lisp_Object display)
+     (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
+  check_ns_display_info (terminal);
   /* This function has no real equivalent under NeXTstep.  Return nil to
      indicate this. */
   return Qnil;
@@ -1596,11 +1568,15 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
 
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Return the vendor ID string of Nextstep display server DISPLAY.
-DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, the selected frame's display is used.  */)
-     (Lisp_Object display)
+       doc: /* Return the "vendor ID" string of Nextstep display server TERMINAL.
+\(Labeling every distributor as a "vendor" embodies the false assumption
+that operating systems cannot be developed and distributed noncommercially.)
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
+  (Lisp_Object terminal)
 {
+  check_ns_display_info (terminal);
 #ifdef NS_IMPL_GNUSTEP
   return build_string ("GNU");
 #else
@@ -1610,16 +1586,17 @@ If omitted or nil, the selected frame's display is used.  */)
 
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Return the version numbers of the server of DISPLAY.
+       doc: /* Return the version numbers of the server of display TERMINAL.
 The value is a list of three integers: the major and minor
-version numbers of the X Protocol in use, and the distributor-specific
-release number.  See also the function `x-server-vendor'.
+version numbers of the X Protocol in use, and the distributor-specific release
+number.  See also the function `x-server-vendor'.
 
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (Lisp_Object display)
+  (Lisp_Object terminal)
 {
+  check_ns_display_info (terminal);
   /*NOTE: it is unclear what would best correspond with "protocol";
           we return 10.3, meaning Panther, since this is roughly the
           level that GNUstep's APIs correspond to.
@@ -1631,56 +1608,66 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
-       doc: /* Return the number of screens on Nextstep display server DISPLAY.
-DISPLAY should be a frame, the display name as a string, or a terminal ID.
-If omitted or nil, the selected frame's display is used.  */)
-     (Lisp_Object display)
+       doc: /* Return the number of screens on Nextstep display server TERMINAL.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+Note: "screen" here is not in Nextstep terminology but in X11's.  For
+the number of physical monitors, use `(length
+(display-monitor-attributes-list TERMINAL))' instead.  */)
+  (Lisp_Object terminal)
 {
-  int num;
-
-  check_ns_display_info (display);
-  num = [[NSScreen screens] count];
-
-  return (num != 0) ? make_number (num) : Qnil;
+  check_ns_display_info (terminal);
+  return make_number (1);
 }
 
 
-DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height,
-       0, 1, 0,
-       doc: /* Return the height of Nextstep display server DISPLAY, in millimeters.
-DISPLAY should be a frame, the display name as a string, or a terminal ID.
-If omitted or nil, the selected frame's display is used.  */)
-     (Lisp_Object display)
+DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
+       doc: /* Return the height in millimeters of the Nextstep display TERMINAL.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the height in millimeters for
+all physical monitors associated with TERMINAL.  To get information
+for each physical monitor, use `display-monitor-attributes-list'.  */)
+  (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
-  return make_number ((int)
-                     ([ns_get_screen (display) frame].size.height/(92.0/25.4)));
+  struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
+
+  return make_number (x_display_pixel_height (dpyinfo) / (92.0/25.4));
 }
 
 
-DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width,
-       0, 1, 0,
-       doc: /* Return the width of Nextstep display server DISPLAY, in millimeters.
-DISPLAY should be a frame, the display name as a string, or a terminal ID.
-If omitted or nil, the selected frame's display is used.  */)
-     (Lisp_Object display)
+DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
+       doc: /* Return the width in millimeters of the Nextstep display TERMINAL.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the width in millimeters for
+all physical monitors associated with TERMINAL.  To get information
+for each physical monitor, use `display-monitor-attributes-list'.  */)
+  (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
-  return make_number ((int)
-                     ([ns_get_screen (display) frame].size.width/(92.0/25.4)));
+  struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
+
+  return make_number (x_display_pixel_width (dpyinfo) / (92.0/25.4));
 }
 
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Return whether the Nextstep display DISPLAY supports backing store.
+       doc: /* Return an indication of whether the Nextstep display TERMINAL does backing store.
 The value may be `buffered', `retained', or `non-retained'.
-DISPLAY should be a frame, the display name as a string, or a terminal ID.
-If omitted or nil, the selected frame's display is used.  */)
-     (Lisp_Object display)
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
+  (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
-  switch ([ns_get_window (display) backingType])
+  check_ns_display_info (terminal);
+  switch ([ns_get_window (terminal) backingType])
     {
     case NSBackingStoreBuffered:
       return intern ("buffered");
@@ -1697,17 +1684,19 @@ If omitted or nil, the selected frame's display is used.  */)
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
        Sx_display_visual_class, 0, 1, 0,
-       doc: /* Return the visual class of the Nextstep display server DISPLAY.
+       doc: /* Return the visual class of the Nextstep display TERMINAL.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
-DISPLAY should be a frame, the display name as a string, or a terminal ID.
-If omitted or nil, the selected frame's display is used.  */)
-     (Lisp_Object display)
+
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
+  (Lisp_Object terminal)
 {
   NSWindowDepth depth;
 
-  check_ns_display_info (display);
-  depth = [ns_get_screen (display) depth];
+  check_ns_display_info (terminal);
+  depth = [[[NSScreen screens] objectAtIndex:0] depth];
 
   if ( depth == NSBestDepth (NSCalibratedWhiteColorSpace, 2, 2, YES, NULL))
     return intern ("static-gray");
@@ -1727,14 +1716,14 @@ If omitted or nil, the selected frame's display is used.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Return t if DISPLAY supports the save-under feature.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be a frame, the display name as a string, or a terminal ID.
-If omitted or nil, the selected frame's display is used.  */)
-     (Lisp_Object display)
+       doc: /* Return t if TERMINAL supports the save-under feature.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
+  (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
-  switch ([ns_get_window (display) backingType])
+  check_ns_display_info (terminal);
+  switch ([ns_get_window (terminal) backingType])
     {
     case NSBackingStoreBuffered:
       return Qt;
@@ -1782,11 +1771,13 @@ terminate Emacs if we can't open the connection.
 
 DEFUN ("x-close-connection", Fx_close_connection, Sx_close_connection,
        1, 1, 0,
-       doc: /* Close the connection to the current Nextstep display server.
-DISPLAY should be a frame, the display name as a string, or a terminal ID.  */)
-     (Lisp_Object display)
+       doc: /* Close the connection to TERMINAL's Nextstep display server.
+For TERMINAL, specify a terminal object, a frame or a display name (a
+string).  If TERMINAL is nil, that stands for the selected frame's
+terminal.  */)
+     (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
+  check_ns_display_info (terminal);
   [NSApp terminate: NSApp];
   return Qnil;
 }
@@ -2269,13 +2260,13 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* Internal function called by `display-color-p', which see.  */)
-     (Lisp_Object display)
+     (Lisp_Object terminal)
 {
   NSWindowDepth depth;
   NSString *colorSpace;
 
-  check_ns_display_info (display);
-  depth = [ns_get_screen (display) depth];
+  check_ns_display_info (terminal);
+  depth = [[[NSScreen screens] objectAtIndex:0] depth];
   colorSpace = NSColorSpaceFromDepth (depth);
 
   return    [colorSpace isEqualToString: NSDeviceWhiteColorSpace]
@@ -2284,19 +2275,19 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
 }
 
 
-DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
-       Sx_display_grayscale_p, 0, 1, 0,
+DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
+       0, 1, 0,
        doc: /* Return t if the Nextstep display supports shades of gray.
 Note that color displays do support shades of gray.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame, a display name (a string), or terminal ID.
-If omitted or nil, that stands for the selected frame's display. */)
-     (Lisp_Object display)
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.  */)
+  (Lisp_Object terminal)
 {
   NSWindowDepth depth;
 
-  check_ns_display_info (display);
-  depth = [ns_get_screen (display) depth];
+  check_ns_display_info (terminal);
+  depth = [[[NSScreen screens] objectAtIndex:0] depth];
 
   return NSBitsPerPixelFromDepth (depth) > 1 ? Qt : Qnil;
 }
@@ -2304,27 +2295,37 @@ If omitted or nil, that stands for the selected frame's display. */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
-       doc: /* Return the width in pixels of the Nextstep display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame, a display name (a string), or terminal ID.
-If omitted or nil, that stands for the selected frame's display.  */)
-     (Lisp_Object display)
+       doc: /* Return the width in pixels of the Nextstep display TERMINAL.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the pixel width for all
+physical monitors associated with TERMINAL.  To get information for
+each physical monitor, use `display-monitor-attributes-list'.  */)
+  (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
-  return make_number ((int) [ns_get_screen (display) frame].size.width);
+  struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
+
+  return make_number (x_display_pixel_width (dpyinfo));
 }
 
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Return the height in pixels of the Nextstep display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame, a display name (a string), or terminal ID.
-If omitted or nil, that stands for the selected frame's display.  */)
-     (Lisp_Object display)
+       doc: /* Return the height in pixels of the Nextstep display TERMINAL.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the pixel height for all
+physical monitors associated with TERMINAL.  To get information for
+each physical monitor, use `display-monitor-attributes-list'.  */)
+  (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
-  return make_number ((int) [ns_get_screen (display) frame].size.height);
+  struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
+
+  return make_number (x_display_pixel_height (dpyinfo));
 }
 
 struct MonitorInfo {
@@ -2547,27 +2548,27 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Return the number of bitplanes of the Nextstep display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame, a display name (a string), or terminal ID.
+       doc: /* Return the number of bitplanes of the Nextstep display TERMINAL.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (Lisp_Object display)
+  (Lisp_Object terminal)
 {
-  check_ns_display_info (display);
+  check_ns_display_info (terminal);
   return make_number
-    (NSBitsPerPixelFromDepth ([ns_get_screen (display) depth]));
+    (NSBitsPerPixelFromDepth ([[[NSScreen screens] objectAtIndex:0] depth]));
 }
 
 
-DEFUN ("x-display-color-cells", Fx_display_color_cells,
-       Sx_display_color_cells, 0, 1, 0,
-       doc: /* Returns the number of color cells of the Nextstep display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame, a display name (a string), or terminal ID.
+DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
+       0, 1, 0,
+       doc: /* Returns the number of color cells of the Nextstep display TERMINAL.
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (Lisp_Object display)
+  (Lisp_Object terminal)
 {
-  struct ns_display_info *dpyinfo = check_ns_display_info (display);
+  struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
   /* We force 24+ bit depths to 24-bit to prevent an overflow.  */
   return make_number (1 << min (dpyinfo->n_planes, 24));
 }
