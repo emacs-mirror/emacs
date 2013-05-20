@@ -12,6 +12,7 @@
 #include "testlib.h"
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include "mpstd.h"
 #ifdef MPS_OS_IA
 struct itimerspec; /* stop complaints from time.h */
@@ -88,6 +89,27 @@ static void DestroyTestBlock(TestBlock b)
   free(b);
 }
 
+typedef struct TestClosureStruct *TestClosure;
+typedef struct TestClosureStruct {
+  TestBlock b;
+  Res res;
+} TestClosureStruct;
+
+static Res TestDeleteCallback(ABQDisposition *dispositionReturn, Addr element,
+                              void *closureP)
+{
+  TestBlock *a = (TestBlock *)element;
+  TestClosure cl = (TestClosure)closureP;
+  if (*a == cl->b) {
+    *dispositionReturn = ABQDispositionDELETE;
+    cl->res = ResOK;
+    return ResFAIL;
+  } else {
+    *dispositionReturn = ABQDispositionKEEP;
+    return ResOK;
+  }
+}
+
 
 static void step(void)
 {
@@ -121,14 +143,16 @@ static void step(void)
     default:
       if (!deleted & (pushee > popee)) {
         TestBlock b;
-     
+        TestClosureStruct cl;
         deleted = (unsigned)abqRnd (pushee - popee) + popee;
         for (b = testBlocks; b != NULL; b = b->next)
           if (b->id == deleted)
             break;
         cdie(b != NULL, "found to delete");
-        res = ABQDelete(&abq, (Addr)&b);
-        cdie(res == ResOK, "ABQDelete");
+        cl.b = b;
+        cl.res = ResFAIL;
+        ABQIterate(&abq, TestDeleteCallback, &cl);
+        cdie(cl.res == ResOK, "ABQIterate");
       }
   }
 }
