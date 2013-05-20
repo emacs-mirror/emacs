@@ -337,7 +337,7 @@ static Size ClientArenaReserved(Arena arena)
 static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
                       SegPref pref, Size pages, Pool pool, Chunk chunk)
 {
-  Index baseIndex, limitIndex, index;
+  Index baseIndex, limitIndex, indx;
   Bool b;
   Arena arena;
   ClientChunk clChunk;
@@ -371,8 +371,8 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
 
   /* Initialize the generic tract structures. */
   AVER(limitIndex > baseIndex);
-  for(index = baseIndex; index < limitIndex; ++index) {
-    PageAlloc(chunk, index, pool);
+  for(indx = baseIndex; indx < limitIndex; ++indx) {
+    PageAlloc(chunk, indx, pool);
   }
 
   clChunk->freePages -= pages;
