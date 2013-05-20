@@ -22,6 +22,7 @@
 #include "mpslib.h"
 #include "ring.h"
 #include "tract.h" /* only for certain Seg macros */
+#include "arg.h"
 #include "mpmtypes.h"
 #include "mpmst.h"
 
@@ -178,8 +179,7 @@ extern char *MPSVersion(void);
 
 /* Pool Interface -- see impl.c.pool */
 
-extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ...);
-extern Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args);
+extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args);
 extern void PoolFinish(Pool pool);
 extern Bool PoolClassCheck(PoolClass class);
 extern Bool PoolCheck(Pool pool);
@@ -196,9 +196,8 @@ extern double PoolMutatorAllocSize(Pool pool);
 extern Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
 
-extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class, ...);
-extern Res PoolCreateV(Pool *poolReturn, Arena arena, PoolClass class,
-                       va_list arg);
+extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class,
+                      ArgList args);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
@@ -220,7 +219,7 @@ extern void PoolTraceEnd(Pool pool, Trace trace);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
-extern Res PoolTrivInit(Pool pool, va_list arg);
+extern Res PoolTrivInit(Pool pool, ArgList arg);
 extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
                        Bool withReservoirPermit);
@@ -485,7 +484,7 @@ extern AbstractArenaClass AbstractArenaClassGet(void);
 extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
-extern Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args);
+extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, mps_arg_s args[]);
 extern void ArenaDestroy(Arena arena);
 extern Res ArenaInit(Arena arena, ArenaClass class);
 extern void ArenaFinish(Arena arena);
@@ -640,7 +639,8 @@ extern Bool LocusCheck(Arena arena);
 /* Segment interface */
 
 extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
-                    Size size, Pool pool, Bool withReservoirPermit, ...);
+                    Size size, Pool pool, Bool withReservoirPermit,
+                    ArgList args);
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
@@ -650,9 +650,9 @@ extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
-                    Bool withReservoirPermit, ...);
+                    Bool withReservoirPermit);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
-                    Bool withReservoirPermit, ...);
+                    Bool withReservoirPermit);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
@@ -707,9 +707,7 @@ extern Addr (SegLimit)(Seg seg);
 /* Buffer Interface -- see <code/buffer.c> */
 
 extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
-                        Pool pool, Bool isMutator, ...);
-extern Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
-                         Pool pool, Bool isMutator, va_list args);
+                        Pool pool, Bool isMutator, ArgList args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
 extern Bool SegBufCheck(SegBuf segbuf);
@@ -966,7 +964,8 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 extern Align VMAlign(VM vm);
 extern Bool VMCheck(VM vm);
-extern Res VMCreate(VM *VMReturn, Size size);
+extern Res VMParamFromArgs(void *params, size_t paramSize, ArgList args);
+extern Res VMCreate(VM *VMReturn, Size size, void *params);
 extern void VMDestroy(VM vm);
 extern Addr VMBase(VM vm);
 extern Addr VMLimit(VM vm);

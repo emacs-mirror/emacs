@@ -100,20 +100,36 @@ AMC interface
     Return the :term:`pool class` for an AMC (Automatic
     Mostly-Copying) :term:`pool`.
 
-    When creating an AMC pool, :c:func:`mps_pool_create` takes two
-    extra arguments::
+    When creating an AMC pool, :c:func:`mps_pool_create_k` requires
+    two :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_amc(),
-                                  mps_fmt_t fmt,
-                                  mps_chain_t chain)
+    * :c:macro:`MPS_KEY_FORMAT` (type :c:type:`mps_fmt_t`) specifies
+      the :term:`object format` for the objects allocated in the pool.
+      The format must provide a :term:`scan method`, a :term:`skip
+      method`, a :term:`forward method`, an :term:`is-forwarded
+      method` and a :term:`padding method`.
 
-    ``fmt`` specifies the :term:`object format` for the objects
-    allocated in the pool. The format must provide a :term:`scan
-    method`, a :term:`skip method`, a :term:`forward method`, an
-    :term:`is-forwarded method` and a :term:`padding method`.
+    * :c:macro:`MPS_KEY_CHAIN` (type :c:type:`mps_chain_t`) specifies
+      the :term:`generation chain` for the pool.
 
-    ``chain`` specifies the :term:`generation chain` for the pool.
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+            MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_amc(), args);
+        } MPS_ARGS_END(args);
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_pool_create`, pass the format and
+        chain like this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_amc(),
+                                      mps_fmt_t fmt,
+                                      mps_chain_t chain)
 
 
 .. index::

@@ -9,7 +9,7 @@
  * policy.  Provision is made to allocate in reverse.  This pool
  * can allocate across segment boundaries.
  *
- * .design: <design/poolmvff/>
+ * .design: <design/poolmvff>
  *
  *
  * TRANSGRESSIONS
@@ -198,13 +198,13 @@ static Res MVFFAddSeg(Seg *segReturn,
   segSize = SizeAlignUp(segSize, align);
 
   res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
-                 withReservoirPermit);
+                 withReservoirPermit, argsNone);
   if (res != ResOK) {
     /* try again for a seg just large enough for object */
     /* see <design/poolmvff/#design.seg-fail> */
     segSize = SizeAlignUp(size, align);
     res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
-                   withReservoirPermit);
+                   withReservoirPermit, argsNone);
     if (res != ResOK) {
       return res;
     }
@@ -407,30 +407,81 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
 }
 
 
+/* MVFFVarargs -- decode obsolete varargs */
+
+static void MVFFVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_EXTEND_BY;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MEAN_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_ALIGN;
+  args[2].val.align = va_arg(varargs, Size); /* promoted type */
+  args[3].key = MPS_KEY_MVFF_SLOT_HIGH;
+  args[3].val.b = va_arg(varargs, Bool);
+  args[4].key = MPS_KEY_MVFF_ARENA_HIGH;
+  args[4].val.b = va_arg(varargs, Bool);
+  args[5].key = MPS_KEY_MVFF_FIRST_FIT;
+  args[5].val.b = va_arg(varargs, Bool);
+  args[6].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+static void MVFFDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
+  args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
+  MVFFVarargs(args + 1, varargs);
+}
+
+
 /* MVFFInit -- initialize method for MVFF */
 
-static Res MVFFInit(Pool pool, va_list arg)
+ARG_DEFINE_KEY(mvff_slot_high, Bool);
+ARG_DEFINE_KEY(mvff_arena_high, Bool);
+ARG_DEFINE_KEY(mvff_first_fit, Bool);
+
+static Res MVFFInit(Pool pool, ArgList args)
 {
-  Size extendBy, avgSize, align;
-  Bool slotHigh, arenaHigh, firstFit;
+  Size extendBy = MVFF_EXTEND_BY_DEFAULT;
+  Size avgSize = MVFF_AVG_SIZE_DEFAULT;
+  Size align = MVFF_ALIGN_DEFAULT;
+  Bool slotHigh = MVFF_SLOT_HIGH_DEFAULT;
+  Bool arenaHigh = MVFF_ARENA_HIGH_DEFAULT;
+  Bool firstFit = MVFF_FIRST_FIT_DEFAULT;
   MVFF mvff;
   Arena arena;
   Res res;
   void *p;
   ZoneSet zones;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
+  arena = PoolArena(pool);
 
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
   /* .arg.check: we do the same checks here and in MVFFCheck */
   /* except for arenaHigh, which is stored only in the segPref. */
-  extendBy = va_arg(arg, Size);
-  avgSize = va_arg(arg, Size);
-  align = va_arg(arg, Size);
-  slotHigh = va_arg(arg, Bool);
-  arenaHigh = va_arg(arg, Bool);
-  firstFit = va_arg(arg, Bool);
+  
+  if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
+    extendBy = arg.val.size;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
+    avgSize = arg.val.size;
+  
+  if (ArgPick(&arg, args, MPS_KEY_ALIGN))
+    align = arg.val.align;
+
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_SLOT_HIGH))
+    slotHigh = arg.val.b;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_ARENA_HIGH))
+    arenaHigh = arg.val.b;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MVFF_FIRST_FIT))
+    firstFit = arg.val.b;
+
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
@@ -439,7 +490,6 @@ static Res MVFFInit(Pool pool, va_list arg)
   AVER(BoolCheck(firstFit));
 
   mvff = Pool2MVFF(pool);
-  arena = PoolArena(pool);
 
   mvff->extendBy = extendBy;
   if (extendBy < ArenaAlign(arena))
@@ -571,6 +621,7 @@ DEFINE_POOL_CLASS(MVFFPoolClass, this)
   this->name = "MVFF";
   this->size = sizeof(MVFFStruct);
   this->offset = offsetof(MVFFStruct, poolStruct);
+  this->varargs = MVFFVarargs;
   this->init = MVFFInit;
   this->finish = MVFFFinish;
   this->alloc = MVFFAlloc;
@@ -595,6 +646,7 @@ DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
   PoolClassMixInDebug(this);
   this->name = "MVFFDBG";
   this->size = sizeof(MVFFDebugStruct);
+  this->varargs = MVFFDebugVarargs;
   this->debugMixin = MVFFDebugMixin;
 }
 

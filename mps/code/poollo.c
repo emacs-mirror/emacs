@@ -63,7 +63,7 @@ typedef struct LOSegStruct {
 
 /* forward decls */
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool reservoirPermit, va_list args);
+                     Bool reservoirPermit, ArgList args);
 static void loSegFinish(Seg seg);
 
 
@@ -99,7 +99,7 @@ static Bool LOSegCheck(LOSeg loseg)
 /* loSegInit -- Init method for LO segments */
 
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
-                     Bool reservoirPermit, va_list args)
+                     Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   LOSeg loseg;
@@ -305,7 +305,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
   res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct,
-                 asize, pool, withReservoirPermit);
+                 asize, pool, withReservoirPermit, argsNone);
   if (res != ResOK)
     return res;
   PoolGenUpdateZones(&lo->pgen, seg);
@@ -467,21 +467,35 @@ static void LOWalk(Pool pool, Seg seg,
 }
 
 
+/* LOVarargs -- decode obsolete varargs */
+
+static void LOVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* LOInit -- initialize an LO pool */
 
-static Res LOInit(Pool pool, va_list arg)
+static Res LOInit(Pool pool, ArgList args)
 {
   Format format;
   LO lo;
   Arena arena;
   Res res;
   static GenParamStruct loGenParam = { 1024, 0.2 };
+  ArgStruct arg;
 
   AVERT(Pool, pool);
 
   arena = PoolArena(pool);
-
-  format = va_arg(arg, Format);
+  
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
+  
   AVERT(Format, format);
 
   lo = PoolPoolLO(pool);
@@ -507,6 +521,7 @@ static Res LOInit(Pool pool, va_list arg)
 
 failGenInit:
   ChainDestroy(lo->chain);
+  AVER(res != ResOK);
   return res;
 }
 
@@ -779,6 +794,7 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
   this->size = sizeof(LOStruct);
   this->offset = offsetof(LOStruct, poolStruct);
   this->attr &= ~(AttrSCAN | AttrINCR_RB);
+  this->varargs = LOVarargs;
   this->init = LOInit;
   this->finish = LOFinish;
   this->bufferFill = LOBufferFill;

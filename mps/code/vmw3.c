@@ -90,9 +90,33 @@ Bool VMCheck(VM vm)
 }
 
 
+typedef struct VMParamsStruct {
+  Bool topDown;
+} VMParamsStruct, *VMParams;
+
+static const VMParamsStruct vmParamsDefaults = {
+  /* .topDown = */ FALSE,
+};
+
+Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
+{
+  VMParams vmParams;
+  ArgStruct arg;
+  AVER(params != NULL);
+  AVERT(ArgList, args);
+  AVER(paramSize >= sizeof(VMParamsStruct));
+  UNUSED(paramSize);
+  vmParams = (VMParams)params;
+  memcpy(vmParams, &vmParamsDefaults, sizeof(VMParamsStruct));
+  if (ArgPick(&arg, args, MPS_KEY_VMW3_TOP_DOWN))
+    vmParams->topDown = arg.val.b;
+  return ResOK;
+}
+
+
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size)
+Res VMCreate(VM *vmReturn, Size size, void *params)
 {
   LPVOID vbase;
   SYSTEM_INFO si;
@@ -100,8 +124,10 @@ Res VMCreate(VM *vmReturn, Size size)
   VM vm;
   Res res;
   BOOL b;
+  VMParams vmParams = params;
 
   AVER(vmReturn != NULL);
+  AVER(params != NULL); /* FIXME: Should have full AVERT? */
 
   AVER(COMPATTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
   AVER(COMPATTYPE(SIZE_T, Size));
@@ -122,7 +148,12 @@ Res VMCreate(VM *vmReturn, Size size)
   vm = (VM)vbase;
 
   /* Allocate the address space. */
-  vbase = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
+  vbase = VirtualAlloc(NULL,
+                       size,
+                       vmParams->topDown ?
+                         MEM_RESERVE | MEM_TOP_DOWN :
+                         MEM_RESERVE,
+                       PAGE_NOACCESS);
   if (vbase == NULL) {
     res = ResRESOURCE;
     goto failReserve;

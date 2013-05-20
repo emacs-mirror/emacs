@@ -211,7 +211,7 @@ static Bool MRGRefSegCheck(MRGRefSeg refseg)
 /* MRGLinkSegInit -- initialise a link segment */
 
 static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
-                          Bool reservoirPermit, va_list args)
+                          Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   MRGLinkSeg linkseg;
@@ -239,21 +239,27 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
 }
 
 
-/* MRGRefSegInit -- initialise a ref segment 
- *
- * .ref.initarg: The paired link segment is passed as an additional
- * (vararg) parameter when creating the ref segment. Initially the
- * refSeg field of the link segment is NULL (see .link.nullref).
- * It's initialized here to the newly initialized ref segment.
- */
+/* MRGRefSegInit -- initialise a ref segment */
+
+ARG_DEFINE_KEY(mrg_seg_link_seg, Pointer);
+#define mrgKeyLinkSeg (&_mps_key_mrg_seg_link_seg)
+
 static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
-                         Bool reservoirPermit, va_list args)
+                         Bool reservoirPermit, ArgList args)
 {
-  MRGLinkSeg linkseg = va_arg(args, MRGLinkSeg);  /* .ref.initarg */
+  MRGLinkSeg linkseg;
   MRGRefSeg refseg;
   MRG mrg;
   SegClass super;
   Res res;
+  ArgStruct arg;
+  
+  /* .ref.initarg: The paired link segment is passed as a keyword
+     argument when creating the ref segment. Initially the
+     refSeg field of the link segment is NULL (see .link.nullref).
+     It's initialized here to the newly initialized ref segment. */
+  ArgRequire(&arg, args, mrgKeyLinkSeg);
+  linkseg = arg.val.p;
 
   AVERT(Seg, seg);
   refseg = Seg2RefSeg(seg);
@@ -513,15 +519,18 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
 
   res = SegAlloc(&segLink, EnsureMRGLinkSegClass(),
                  SegPrefDefault(), linkSegSize, pool,
-                 withReservoirPermit);
+                 withReservoirPermit, argsNone);
   if (res != ResOK)
     goto failLinkSegAlloc;
   linkseg = Seg2LinkSeg(segLink);
-
-  res = SegAlloc(&segRefPart, EnsureMRGRefSegClass(),
-                 SegPrefDefault(), mrg->extendBy, pool,
-                 withReservoirPermit,
-                 linkseg); /* .ref.initarg */
+  
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD_FIELD(args, mrgKeyLinkSeg, p, linkseg); /* .ref.initarg */
+    MPS_ARGS_DONE(args);
+    res = SegAlloc(&segRefPart, EnsureMRGRefSegClass(),
+                   SegPrefDefault(), mrg->extendBy, pool,
+                   withReservoirPermit, args);
+  } MPS_ARGS_END(args);
   if (res != ResOK)
     goto failRefPartSegAlloc;
   refseg = Seg2RefSeg(segRefPart);
@@ -616,11 +625,12 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 
 /* MRGInit -- init method for MRG */
 
-static Res MRGInit(Pool pool, va_list args)
+static Res MRGInit(Pool pool, ArgList args)
 {
   MRG mrg;
  
   AVER(pool != NULL); /* Can't check more; see pool contract @@@@ */
+  AVER(ArgListCheck(args));
   UNUSED(args);
  
   mrg = Pool2MRG(pool);

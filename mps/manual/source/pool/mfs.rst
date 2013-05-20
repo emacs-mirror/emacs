@@ -77,19 +77,37 @@ MFS interface
     Return the :term:`pool class` for an MFS (Manual Fixed Small)
     :term:`pool`.
 
-    When creating an MFS pool, :c:func:`mps_pool_create` takes two
-    extra arguments::
+    When creating an MFS pool, :c:func:`mps_pool_create_k` requires
+    one :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mfs(),
-                                  mps_size_t extend_size,
-                                  mps_size_t unit_size)
+    * :c:macro:`MPS_KEY_MFS_UNIT_SIZE` (type :c:type:`size_t`) is the
+      :term:`size` of blocks that will be allocated from this pool, in
+      :term:`bytes (1)`. It must be at least one :term:`word`.
 
-    ``extend_size`` is the :term:`size` of segment that the pool will
-    request from the :term:`arena`. It must be at least as big as
-    ``unit_size``. If this is not a multiple of ``unit_size``, there
-    will be wasted space in each segment.
+    In addition, :c:func:`mps_pool_create_k` may take:
 
-    ``unit_size`` is the :term:`size` of blocks that will be allocated
-    from this pool, in :term:`bytes (1)`. It must be at least one
-    :term:`word`.
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default 65536) is the
+      :term:`size` of segment that the pool will request from the
+      :term:`arena`. It must be at least as big as the unit size
+      specified by the :c:macro:`MPS_KEY_MFS_UNIT_SIZE` keyword
+      argument. If this is not a multiple of the unit size, there will
+      be wasted space in each segment.
+
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MFS_UNIT_SIZE, 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_EXTEND_BY, 1024 * 1024);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
+        } MPS_ARGS_END(args);
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_pool_create`, pass the segment size and
+        unit size like this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_mfs(),
+                                      mps_size_t extend_size,
+                                      mps_size_t unit_size)
