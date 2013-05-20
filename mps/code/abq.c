@@ -154,47 +154,6 @@ Res ABQPeek(ABQ abq, Addr elementReturn)
 }
 
 
-typedef struct ABQDeleteClosureStruct *ABQDeleteClosure;
-typedef struct ABQDeleteClosureStruct {
-  Addr element;
-  Size elementSize;
-  Res res;
-} ABQDeleteClosureStruct;
-
-
-static Res ABQDeleteCallback(ABQDisposition *dispositionReturn, Addr element,
-                             void *closureP)
-{
-  ABQDeleteClosure closure = closureP;
-  if (mps_lib_memcmp(element, closure->element, closure->elementSize) == 0) {
-    *dispositionReturn = ABQDispositionDELETE;
-    closure->res = ResOK;
-  } else {
-    *dispositionReturn = ABQDispositionKEEP;
-  }
-  return ResOK;
-}
-
-
-/* ABQDelete -- delete an element from the ABQ */
-Res ABQDelete(ABQ abq, Addr element)
-{
-  ABQDeleteClosureStruct closure;
-
-  AVERT(ABQ, abq);
-
-  METER_ACC(abq->delete, ABQDepth(abq));
-
-  closure.element = element;
-  closure.elementSize = abq->elementSize;
-  closure.res = ResFAIL;
-
-  ABQIterate(abq, ABQDeleteCallback, &closure);
-  
-  return closure.res;
-}
-
-
 /* ABQDescribe -- Describe an ABQ */
 Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream)
 {
