@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>11. Messages &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>12. Messages &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="12. Finalization" href="finalization.html" />
-    <link rel="prev" title="10. Garbage collection" href="collection.html" /> 
+    <link rel="next" title="13. Finalization" href="finalization.html" />
+    <link rel="prev" title="11. Garbage collection" href="collection.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="finalization.html" title="12. Finalization"
+          <a href="finalization.html" title="13. Finalization"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="collection.html" title="10. Garbage collection"
+          <a href="collection.html" title="11. Garbage collection"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="messages">
-<span id="topic-message"></span><span id="index-0"></span><h1>11. Messages<a class="headerlink" href="#messages" title="Permalink to this headline">¶</a></h1>
+<span id="topic-message"></span><span id="index-0"></span><h1>12. Messages<a class="headerlink" href="#messages" title="Permalink to this headline">¶</a></h1>
 <p>The MPS sometimes needs to communicate with the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a>
 about events which occur <a class="reference internal" href="../glossary/a.html#term-asynchronous-garbage-collector"><em class="xref std std-term">asynchronously</em></a>, and so information cannot be returned as function call
 results.</p>
@@ -79,7 +79,7 @@ message queue to grow without limit will eventually find that new
 garbage collections no longer start until some of these messages are
 retrieved and discarded.</p>
 <div class="section" id="finalization-messages">
-<span id="index-1"></span><h2>11.1. Finalization messages<a class="headerlink" href="#finalization-messages" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>12.1. Finalization messages<a class="headerlink" href="#finalization-messages" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">Finalization</em></a> is implemented by posting a finalization message
 (of type <a class="reference internal" href="finalization.html#mps_message_type_finalization" title="mps_message_type_finalization"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_type_finalization()</span></tt></a>) to the arena&#8217;s
 message queue. This allows the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> to perform the
@@ -91,7 +91,7 @@ removed from the message queue and discarded, by calling
 <p>See <a class="reference internal" href="finalization.html#topic-finalization"><em>Finalization</em></a>.</p>
 </div>
 <div class="section" id="example-interactive-chatter">
-<span id="index-2"></span><h2>11.2. Example: interactive chatter<a class="headerlink" href="#example-interactive-chatter" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>12.2. Example: interactive chatter<a class="headerlink" href="#example-interactive-chatter" title="Permalink to this headline">¶</a></h2>
 <p>The toy Scheme interpreter enables garbage collection messages when
 started in interactive mode:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_message_type_enable</span><span class="p">(</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_message_type_gc</span><span class="p">());</span>
@@ -103,11 +103,11 @@ messages from the message queue and prints a description of the
 contents of each one:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">mps_chat</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">mps_message_type_t</span> <span class="n">type</span><span class="p">;</span>
+    <span class="n">mps_message_type_t</span> <span class="n">type</span><span class="p">;</span>
 
     <span class="k">while</span> <span class="p">(</span><span class="n">mps_message_queue_type</span><span class="p">(</span><span class="o">&amp;</span><span class="n">type</span><span class="p">,</span> <span class="n">arena</span><span class="p">))</span> <span class="p">{</span>
-        <span class="kt">mps_message_t</span> <span class="n">message</span><span class="p">;</span>
-        <span class="kt">mps_bool_t</span> <span class="n">b</span><span class="p">;</span>
+        <span class="n">mps_message_t</span> <span class="n">message</span><span class="p">;</span>
+        <span class="n">mps_bool_t</span> <span class="n">b</span><span class="p">;</span>
         <span class="n">b</span> <span class="o">=</span> <span class="n">mps_message_get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">message</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>
         <span class="n">assert</span><span class="p">(</span><span class="n">b</span><span class="p">);</span> <span class="cm">/* we just checked there was one */</span>
 
@@ -165,7 +165,7 @@ slowing Emacs down and tell them that it had been sped up.</div></blockquote>
 </div>
 </div>
 <div class="section" id="message-types">
-<span id="index-3"></span><h2>11.3. Message types<a class="headerlink" href="#message-types" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>12.3. Message types<a class="headerlink" href="#message-types" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_message_type_t">
 <tt class="descname">mps_message_type_t</tt><a class="headerlink" href="#mps_message_type_t" title="Permalink to this definition">¶</a></dt>
@@ -221,7 +221,7 @@ already enabled, in which case it has no effect.</p>
 
 </div>
 <div class="section" id="message-interface">
-<span id="index-4"></span><h2>11.4. Message interface<a class="headerlink" href="#message-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>12.4. Message interface<a class="headerlink" href="#message-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_message_t">
 <tt class="descname">mps_message_t</tt><a class="headerlink" href="#mps_message_t" title="Permalink to this definition">¶</a></dt>
@@ -297,7 +297,7 @@ not yet discarded.</p>
 
 </div>
 <div class="section" id="message-queue-interface">
-<span id="index-5"></span><h2>11.5. Message queue interface<a class="headerlink" href="#message-queue-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>12.5. Message queue interface<a class="headerlink" href="#message-queue-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_message_get">
 <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t">mps_bool_t</a> <tt class="descname">mps_message_get</tt><big>(</big><a class="reference internal" href="#mps_message_t" title="mps_message_t">mps_message_t</a><em>&nbsp;*message_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_message_type_t" title="mps_message_type_t">mps_message_type_t</a><em>&nbsp;message_type</em><big>)</big><a class="headerlink" href="#mps_message_get" title="Permalink to this definition">¶</a></dt>
@@ -362,22 +362,22 @@ usually simpler to call <a class="reference internal" href="#mps_message_get" ti
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">11. Messages</a><ul>
-<li><a class="reference internal" href="#finalization-messages">11.1. Finalization messages</a></li>
-<li><a class="reference internal" href="#example-interactive-chatter">11.2. Example: interactive chatter</a></li>
-<li><a class="reference internal" href="#message-types">11.3. Message types</a></li>
-<li><a class="reference internal" href="#message-interface">11.4. Message interface</a></li>
-<li><a class="reference internal" href="#message-queue-interface">11.5. Message queue interface</a></li>
+<li><a class="reference internal" href="#">12. Messages</a><ul>
+<li><a class="reference internal" href="#finalization-messages">12.1. Finalization messages</a></li>
+<li><a class="reference internal" href="#example-interactive-chatter">12.2. Example: interactive chatter</a></li>
+<li><a class="reference internal" href="#message-types">12.3. Message types</a></li>
+<li><a class="reference internal" href="#message-interface">12.4. Message interface</a></li>
+<li><a class="reference internal" href="#message-queue-interface">12.5. Message queue interface</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="collection.html"
-                        title="previous chapter">10. Garbage collection</a></p>
+                        title="previous chapter">11. Garbage collection</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="finalization.html"
-                        title="next chapter">12. Finalization</a></p><h4>Downloads</h4>
+                        title="next chapter">13. Finalization</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -403,10 +403,10 @@ usually simpler to call <a class="reference internal" href="#mps_message_get" ti
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="finalization.html" title="12. Finalization"
+          <a href="finalization.html" title="13. Finalization"
              >next</a> |</li>
         <li class="right" >
-          <a href="collection.html" title="10. Garbage collection"
+          <a href="collection.html" title="11. Garbage collection"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>18. Telemetry &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>19. Telemetry &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="19. Weak references" href="weak.html" />
-    <link rel="prev" title="17. Debugging pools" href="debugging.html" /> 
+    <link rel="next" title="20. Weak references" href="weak.html" />
+    <link rel="prev" title="18. Debugging pools" href="debugging.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="weak.html" title="19. Weak references"
+          <a href="weak.html" title="20. Weak references"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="debugging.html" title="17. Debugging pools"
+          <a href="debugging.html" title="18. Debugging pools"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="telemetry">
-<span id="topic-telemetry"></span><h1>18. Telemetry<a class="headerlink" href="#telemetry" title="Permalink to this headline">¶</a></h1>
+<span id="topic-telemetry"></span><h1>19. Telemetry<a class="headerlink" href="#telemetry" title="Permalink to this headline">¶</a></h1>
 <p>In its <a class="reference internal" href="../glossary/c.html#term-cool"><em class="xref std std-term">cool</em></a> and <a class="reference internal" href="../glossary/h.html#term-hot"><em class="xref std std-term">hot</em></a> <a class="reference internal" href="../glossary/v.html#term-variety"><em class="xref std std-term">varieties</em></a>, the MPS is
 capable of outputting a configurable stream of events to assist with
 debugging and profiling.</p>
@@ -93,7 +93,7 @@ audience were incapacitated with laughter. I think some of them
 thought we were victims of a practical joker.</p>
 </div></blockquote>
 <div class="section" id="telemetry-utilities">
-<span id="index-2"></span><h2>18.1. Telemetry utilities<a class="headerlink" href="#telemetry-utilities" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>19.1. Telemetry utilities<a class="headerlink" href="#telemetry-utilities" title="Permalink to this headline">¶</a></h2>
 <p>The telemetry system relies on three utility programs:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#telemetry-mpseventcnv"><em>mpseventcnv</em></a> decodes the
@@ -111,7 +111,7 @@ SQLite database for further analysis.</li>
 <a class="reference internal" href="../guide/build.html#guide-build"><em>Building the Memory Pool System</em></a>. Thee programs are described in more detail below.</p>
 </div>
 <div class="section" id="example">
-<span id="index-3"></span><h2>18.2. Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>19.2. Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>Here&#8217;s an example of turning on telemetry in the debugger and then
 encountering a corrupted object:</p>
 <div class="highlight-none"><div class="highlight"><pre>$ gdb ./scheme
@@ -190,7 +190,7 @@ address was never fixed (no <tt class="docutils literal"><span class="pre">Trace
 </div>
 </div>
 <div class="section" id="event-categories">
-<span id="index-4"></span><h2>18.3. Event categories<a class="headerlink" href="#event-categories" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>19.3. Event categories<a class="headerlink" href="#event-categories" title="Permalink to this headline">¶</a></h2>
 <p>The &#8220;bit&#8221; column gives the bit number in the <a class="reference internal" href="../glossary/t.html#term-telemetry-filter"><em class="xref std std-term">telemetry filter</em></a>.
 These numbers are liable to change, but the current meanings (zero
 being the least significant bit) are:</p>
@@ -239,7 +239,7 @@ being the least significant bit) are:</p>
 </table>
 </div>
 <div class="section" id="environment-variables">
-<span id="index-5"></span><h2>18.4. Environment variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>19.4. Environment variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h2>
 <p>In the ANSI <a class="reference internal" href="../glossary/p.html#term-plinth"><em class="xref std std-term">plinth</em></a> (the plinth that comes as default with the
 MPS), these two environment variables control the behaviour of the
 telemetry feature.</p>
@@ -285,7 +285,7 @@ with the <tt class="docutils literal"><span class="pre">-d</span></tt> option. I
 
 </div>
 <div class="section" id="decoding-the-telemetry-stream">
-<span id="telemetry-mpseventcnv"></span><span id="index-6"></span><h2>18.5. Decoding the telemetry stream<a class="headerlink" href="#decoding-the-telemetry-stream" title="Permalink to this headline">¶</a></h2>
+<span id="telemetry-mpseventcnv"></span><span id="index-6"></span><h2>19.5. Decoding the telemetry stream<a class="headerlink" href="#decoding-the-telemetry-stream" title="Permalink to this headline">¶</a></h2>
 <p>The MPS writes the telemetry stream in a binary encoded format for
 speed. The encoding is specific to the platform the program was
 running on, and so the output needs to be decoded before it can be
@@ -328,7 +328,7 @@ columns contain parameters related to the event.</p>
 </div>
 </div>
 <div class="section" id="making-the-telemetry-stream-readable">
-<span id="telemetry-mpseventtxt"></span><span id="index-7"></span><h2>18.6. Making the telemetry stream readable<a class="headerlink" href="#making-the-telemetry-stream-readable" title="Permalink to this headline">¶</a></h2>
+<span id="telemetry-mpseventtxt"></span><span id="index-7"></span><h2>19.6. Making the telemetry stream readable<a class="headerlink" href="#making-the-telemetry-stream-readable" title="Permalink to this headline">¶</a></h2>
 <p>The output of <a class="reference internal" href="#telemetry-mpseventcnv"><em>mpseventcnv</em></a> can be made
 more readable by passing it through <strong class="program">mpseventtxt</strong>, which
 takes the following options:</p>
@@ -360,7 +360,7 @@ through <strong class="program">mpseventtxt</strong>:</p>
 </div>
 </div>
 <div class="section" id="loading-the-telemetry-stream-into-sqlite">
-<span id="telemetry-mpseventsql"></span><span id="index-8"></span><h2>18.7. Loading the telemetry stream into SQLite<a class="headerlink" href="#loading-the-telemetry-stream-into-sqlite" title="Permalink to this headline">¶</a></h2>
+<span id="telemetry-mpseventsql"></span><span id="index-8"></span><h2>19.7. Loading the telemetry stream into SQLite<a class="headerlink" href="#loading-the-telemetry-stream-into-sqlite" title="Permalink to this headline">¶</a></h2>
 <p>The decoded telemetry stream (as output by <a class="reference internal" href="#telemetry-mpseventcnv"><em>mpseventcnv</em></a>) can be loaded into a SQLite database for
 further analysis by running <strong class="program">mpseventsql</strong>.</p>
 <p><strong class="program">mpseventsql</strong> takes the following options:</p>
@@ -431,7 +431,7 @@ descriptions in <tt class="docutils literal"><span class="pre">eventdef.h</span>
 
 </div>
 <div class="section" id="telemetry-interface">
-<span id="index-10"></span><h2>18.8. Telemetry interface<a class="headerlink" href="#telemetry-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-10"></span><h2>19.8. Telemetry interface<a class="headerlink" href="#telemetry-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_telemetry_control">
 <a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a> <tt class="descname">mps_telemetry_control</tt><big>(</big><a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a><em>&nbsp;reset_mask</em>, <a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a><em>&nbsp;flip_mask</em><big>)</big><a class="headerlink" href="#mps_telemetry_control" title="Permalink to this definition">¶</a></dt>
@@ -528,7 +528,7 @@ telemetry filter that should be reset.</p>
 
 </div>
 <div class="section" id="telemetry-labels">
-<span id="index-11"></span><h2>18.9. Telemetry labels<a class="headerlink" href="#telemetry-labels" title="Permalink to this headline">¶</a></h2>
+<span id="index-11"></span><h2>19.9. Telemetry labels<a class="headerlink" href="#telemetry-labels" title="Permalink to this headline">¶</a></h2>
 <p>Telemetry labels allow the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> to associate strings
 with addresses in the telemetry stream. The string must first be
 <em>interned</em> by calling <a class="reference internal" href="#mps_telemetry_intern" title="mps_telemetry_intern"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_intern()</span></tt></a>, returning a
@@ -613,26 +613,26 @@ then calling this function has no effect.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">18. Telemetry</a><ul>
-<li><a class="reference internal" href="#telemetry-utilities">18.1. Telemetry utilities</a></li>
-<li><a class="reference internal" href="#example">18.2. Example</a></li>
-<li><a class="reference internal" href="#event-categories">18.3. Event categories</a></li>
-<li><a class="reference internal" href="#environment-variables">18.4. Environment variables</a></li>
-<li><a class="reference internal" href="#decoding-the-telemetry-stream">18.5. Decoding the telemetry stream</a></li>
-<li><a class="reference internal" href="#making-the-telemetry-stream-readable">18.6. Making the telemetry stream readable</a></li>
-<li><a class="reference internal" href="#loading-the-telemetry-stream-into-sqlite">18.7. Loading the telemetry stream into SQLite</a></li>
-<li><a class="reference internal" href="#telemetry-interface">18.8. Telemetry interface</a></li>
-<li><a class="reference internal" href="#telemetry-labels">18.9. Telemetry labels</a></li>
+<li><a class="reference internal" href="#">19. Telemetry</a><ul>
+<li><a class="reference internal" href="#telemetry-utilities">19.1. Telemetry utilities</a></li>
+<li><a class="reference internal" href="#example">19.2. Example</a></li>
+<li><a class="reference internal" href="#event-categories">19.3. Event categories</a></li>
+<li><a class="reference internal" href="#environment-variables">19.4. Environment variables</a></li>
+<li><a class="reference internal" href="#decoding-the-telemetry-stream">19.5. Decoding the telemetry stream</a></li>
+<li><a class="reference internal" href="#making-the-telemetry-stream-readable">19.6. Making the telemetry stream readable</a></li>
+<li><a class="reference internal" href="#loading-the-telemetry-stream-into-sqlite">19.7. Loading the telemetry stream into SQLite</a></li>
+<li><a class="reference internal" href="#telemetry-interface">19.8. Telemetry interface</a></li>
+<li><a class="reference internal" href="#telemetry-labels">19.9. Telemetry labels</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="debugging.html"
-                        title="previous chapter">17. Debugging pools</a></p>
+                        title="previous chapter">18. Debugging pools</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="weak.html"
-                        title="next chapter">19. Weak references</a></p><h4>Downloads</h4>
+                        title="next chapter">20. Weak references</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -658,10 +658,10 @@ then calling this function has no effect.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="weak.html" title="19. Weak references"
+          <a href="weak.html" title="20. Weak references"
              >next</a> |</li>
         <li class="right" >
-          <a href="debugging.html" title="17. Debugging pools"
+          <a href="debugging.html" title="18. Debugging pools"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

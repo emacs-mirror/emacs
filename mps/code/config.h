@@ -238,16 +238,44 @@
 #define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
+/* Pool MV Configuration -- see <code/poolmv.c> */
+
+#define MV_EXTEND_BY_DEFAULT  ((Size)65536)
+#define MV_AVG_SIZE_DEFAULT   ((Size)32)
+#define MV_MAX_SIZE_DEFAULT   ((Size)65536)
+
+
+/* Pool MFS Configuration -- see <code/poolmfs.c> */
+
+#define MFS_EXTEND_BY_DEFAULT ((Size)65536)
+
+
+/* Pool MVFF Configuration -- see <code/poolmvff.c> */
+
+#define MVFF_EXTEND_BY_DEFAULT   ((Size)65536)
+#define MVFF_AVG_SIZE_DEFAULT    ((Size)32)
+#define MVFF_ALIGN_DEFAULT       MPS_PF_ALIGN
+#define MVFF_SLOT_HIGH_DEFAULT   FALSE
+#define MVFF_ARENA_HIGH_DEFAULT  FALSE
+#define MVFF_FIRST_FIT_DEFAULT   TRUE
+
+
+/* Pool MVT Configuration -- see <code.poolmv2.c> */
+/* FIXME: These numbers were lifted from mv2test and need thought. */
+
+#define MVT_MIN_SIZE_DEFAULT      MPS_PF_ALIGN
+#define MVT_MEAN_SIZE_DEFAULT     32
+#define MVT_MAX_SIZE_DEFAULT      8192
+#define MVT_RESERVE_DEPTH_DEFAULT 1024
+#define MVT_FRAG_LIMIT_DEFAULT    30
+
+
 /* Arena Configuration -- see <code/arena.c>
  *
  * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a
  * "page" (i.e., segment granule) in the client arena.  It's set at 8192
  * with no particular justification.
  */
-
-#define ARENA_CONTROL_EXTENDBY  ((Size)4096)
-#define ARENA_CONTROL_AVGSIZE   ((Size)32)
-#define ARENA_CONTROL_MAXSIZE   ((Size)65536)
 
 #define ArenaPollALLOCTIME (65536.0)
 
@@ -270,6 +298,11 @@
 }
 
 #define LDHistoryLENGTH ((Size)4)
+
+/* Value of MPS_KEY_EXTEND_BY for the arena control pool.
+   Deliberately smaller than the default, because we don't expect the control
+   pool to be very heavily used. */
+#define CONTROL_EXTEND_BY 4096
 
 
 /* Stack configuration */
@@ -294,6 +327,8 @@
 
 #define VMANPageALIGNMENT ((Align)4096)
 #define VMJunkBYTE ((unsigned char)0xA9)
+#define VMParamSize (sizeof(Word))
+
 
 /* Protection Configuration see <code/prot*.c>
 

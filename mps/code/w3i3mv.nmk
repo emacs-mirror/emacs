@@ -19,7 +19,7 @@ MPM = <ring> <mpm> <bt> <protocol> <boot> \
       <shield> <vmw3> <table> \
       <thw3> <thw3i3> <ss> <ssw3i3mv> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
-      <abq> <meter> <cbs> <poolmv2> <splay> <diag>
+      <abq> <meter> <cbs> <poolmv2> <splay> <diag> <arg>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams> <poolamsi>

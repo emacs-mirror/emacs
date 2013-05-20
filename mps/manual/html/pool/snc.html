@@ -112,25 +112,57 @@ a format of variant auto-header.</li>
 <a class="reference internal" href="../topic/pool.html#mps_class_t" title="mps_class_t">mps_class_t</a> <tt class="descname">mps_class_snc</tt><big>(</big>void<big>)</big><a class="headerlink" href="#mps_class_snc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> for an SNC (Stack No Check)
 <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
-<p>When creating an SNC pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a> takes one
-extra argument:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="kt">mps_class_t</span> <span class="n">mps_class_snc</span><span class="p">(),</span>
-                          <span class="kt">mps_fmt_t</span> <span class="n">fmt</span><span class="p">)</span>
+<p>When creating an SNC pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> requires one
+<a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a>:</p>
+<ul class="simple">
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FORMAT</span></tt> (type <a class="reference internal" href="../topic/format.html#mps_fmt_t" title="mps_fmt_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_t</span></tt></a>) specifies
+the <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> for the objects allocated in the pool.
+The format must provide a <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a>, a <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip
+method</em></a>, and a <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a>.</li>
+</ul>
+<p>For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="n">fmt</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_snc</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 </pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">fmt</span></tt> specifies the <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> for the objects
-allocated in the pool. The format must provide a <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan
-method</em></a>, a <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a>, and a <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a>.</p>
-<p>When creating an allocation point on an SNC pool,
-<a class="reference internal" href="../topic/allocation.html#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a> takes one extra argument:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="kt">mps_ap_t</span> <span class="o">*</span><span class="n">ap_o</span><span class="p">,</span> <span class="kt">mps_pool_t</span> <span class="n">pool</span><span class="p">,</span>
-                        <span class="kt">mps_rank_t</span> <span class="n">rank</span><span class="p">)</span>
+<div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the format like
+this:</p>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="n">mps_class_t</span> <span class="n">mps_class_snc</span><span class="p">(),</span>
+                          <span class="n">mps_fmt_t</span> <span class="n">fmt</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">rank</span></tt> specifies the <a class="reference internal" href="../glossary/r.html#term-rank"><em class="xref std std-term">rank</em></a> of references in objects
-allocated on this allocation point. It must be
-<a class="reference internal" href="../topic/root.html#mps_rank_exact" title="mps_rank_exact"><tt class="xref c c-func docutils literal"><span class="pre">mps_rank_exact()</span></tt></a>.</p>
+</div>
+<p>When creating an <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a> on an SNC pool,
+<a class="reference internal" href="../topic/allocation.html#mps_ap_create_k" title="mps_ap_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create_k()</span></tt></a> requires one keyword argument:</p>
+<ul class="simple">
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_RANK</span></tt> (type <a class="reference internal" href="../topic/root.html#mps_rank_t" title="mps_rank_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_rank_t</span></tt></a>) specifies
+the <a class="reference internal" href="../glossary/r.html#term-rank"><em class="xref std std-term">rank</em></a> of references in objects allocated on this
+allocation point. It must be <a class="reference internal" href="../topic/root.html#mps_rank_exact" title="mps_rank_exact"><tt class="xref c c-func docutils literal"><span class="pre">mps_rank_exact()</span></tt></a>.</li>
+</ul>
+<p>For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_RANK</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">());</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ap</span><span class="p">,</span> <span class="n">awl_pool</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p>When using <a class="reference internal" href="../topic/allocation.html#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a>, pass the rank like this:</p>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="n">mps_ap_t</span> <span class="o">*</span><span class="n">ap_o</span><span class="p">,</span> <span class="n">mps_pool_t</span> <span class="n">pool</span><span class="p">,</span>
+                        <span class="n">mps_rank_t</span> <span class="n">rank</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </dd></dl>
 
 </div>

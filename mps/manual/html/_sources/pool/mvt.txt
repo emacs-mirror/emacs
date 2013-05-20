@@ -112,70 +112,103 @@ MVT interface
     Return the :term:`pool class` for an MVT (Manual Variable
     Temporal) :term:`pool`.
 
-    When creating an MVT pool, :c:func:`mps_pool_create` takes five
-    extra arguments::
+    When creating an MVT pool, :c:func:`mps_pool_create_k` may take
+    five :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mvt(),
-                                  size_t minimum_size,
-                                  size_t mean_size,
-                                  size_t maximum_size,
-                                  mps_count_t reserve_depth,
-                                  mps_count_t fragmentation_limit)
+    * :c:macro:`MPS_KEY_MIN_SIZE` (type :c:type:`size_t`, default is
+      smallest general purpose alignment for the architecture) is the
+      predicted minimum size of blocks that will be allocated from the
+      pool.
 
-    ``minimum_size``, ``mean_size``, and ``maximum_size`` are the
-    predicted minimum, mean, and maximum :term:`size` of
-    :term:`blocks` expected to be allocated in the pool. Blocks
-    smaller than ``minimum_size`` and larger than ``maximum_size`` may
-    be allocated, but the pool is not guaranteed to manage them
-    space-efficiently. Furthermore, partial freeing is not supported
-    for blocks larger than ``maximum_size``; doing so will result in
-    the storage of the block never being reused. ``mean_size`` need
-    not be an accurate mean, although the pool will manage
-    ``mean_size`` blocks more efficiently if it is.
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32) is the
+      predicted mean size of blocks that will be allocated from the
+      pool.
 
-    ``reserve_depth`` is the expected hysteresis of the population of
-    the pool. When blocks are freed, the pool will retain sufficient
-    storage to allocate ``reserve_depth`` blocks of ``mean_size`` for
-    near term allocations (rather than immediately making that storage
-    available to other pools).
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`, default 8192) is the
+      predicted maximum size of blocks that will be allocated from the
+      pool. Partial freeing is not supported for blocks larger than
+      this; doing so will result in the storage of the block never
+      being reused.
 
-    If a pool has a stable population, or one which only grows over
-    the lifetime of the pool, or one which grows steadily and then
-    shrinks steadily, use a reserve depth of 0.
+    These three arguments are *hints* to the MPS: the pool will be
+    less efficient if they are wrong, but the only thing that will
+    break is the partial freeing of large blocks.
 
-    It is always safe to use a reserve depth of 0, but if the
-    population typically fluctuates in a range (for example, the
-    client program repeatedly creates and destroys a subset of blocks
-    in a loop), it is more efficient for the pool to retain enough
-    storage to satisfy that fluctuation. For example, if a pool has an
-    object population that typically fluctuates between 8,000 and
-    10,000, use a reserve depth of 2,000.
+    * :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH` (type
+      :c:type:`mps_count_t`) is the expected hysteresis of the
+      population of the pool. When blocks are freed, the pool will
+      retain sufficient storage to allocate this many blocks of the
+      mean size for near term allocations (rather than immediately
+      making that storage available to other pools).
 
-    The reserve will not normally be available to other pools for
-    allocation, even when it is not used by the pool. If this is
-    undesirable, a reserve depth of 0 may be used for a pool whose
-    object population does vary, at a slight cost in efficiency. The
-    reserve does not guarantee any particular amount of allocation.
+      If a pool has a stable population, or one which only grows over
+      the lifetime of the pool, or one which grows steadily and then
+      shrinks steadily, use a reserve depth of 0.
 
-    ``fragmentation_limit`` is a percentage from 1 to 100 (inclusive).
-    It sets an upper limit on the space overhead of MVT, in case block
-    death times and allocations do not correlate well. If the free
-    space managed by the pool as a ratio of all the space managed by
-    the pool exceeds ``fragmentation_limit``, the pool falls back to a
-    first fit allocation policy, exploiting space more efficiently at
-    a cost in time efficiency. A fragmentation limit of 0 would cause
-    the pool to operate as a first-fit pool, at a significant cost in
-    time efficiency: therefore this is not permitted.
+      It is always safe to use a reserve depth of 0, but if the
+      population typically fluctuates in a range (for example, the
+      client program repeatedly creates and destroys a subset of
+      blocks in a loop), it is more efficient for the pool to retain
+      enough storage to satisfy that fluctuation. For example, if a
+      pool has an object population that typically fluctuates between
+      8,000 and 10,000, use a reserve depth of 2,000.
 
-    A fragmentation limit of 100 causes the pool to always use
-    temporal fit (unless resources are exhausted). If the objects
-    allocated in the pool have similar lifetime expectancies, this
-    mode will have the best time- and space-efficiency. If the objects
-    have widely varying lifetime expectancies, this mode will be
-    time-efficient, but may be space-inefficient. An intermediate
-    setting can be used to limit the space-inefficiency of temporal
-    fit due to varying object life expectancies.
+      The reserve will not normally be available to other pools for
+      allocation, even when it is not used by the pool. If this is
+      undesirable, a reserve depth of 0 may be used for a pool whose
+      object population does vary, at a slight cost in efficiency. The
+      reserve does not guarantee any particular amount of allocation.
+
+    * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (type :c:type:`mps_count_t`)
+      is a double from 0.0 to 1.0 (inclusive). It sets an upper
+      limit on the space overhead of an MVT pool, in case block death
+      times and allocations do not correlate well. If the free space
+      managed by the pool as a ratio of all the space managed by the
+      pool exceeds the fragmentation limit, the pool falls back to a
+      first fit allocation policy, exploiting space more efficiently
+      at a cost in time efficiency. A fragmentation limit of 0.0 would
+      cause the pool to operate as a first-fit pool, at a significant
+      cost in time efficiency: therefore this is not permitted.
+
+      A fragmentation limit of 1.0 causes the pool to always use
+      temporal fit (unless resources are exhausted). If the objects
+      allocated in the pool have similar lifetime expectancies, this
+      mode will have the best time- and space-efficiency. If the
+      objects have widely varying lifetime expectancies, this mode
+      will be time-efficient, but may be space-inefficient. An
+      intermediate setting can be used to limit the space-inefficiency
+      of temporal fit due to varying object life expectancies.
+
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MIN_SIZE, 4);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MAX_SIZE, 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVT_RESERVE_DEPTH, 256);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVT_FRAG_LIMIT, 0.5);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mvt(), args);
+        } MPS_ARGS_END(args);
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_pool_create`, pass the arguments like
+        this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_mvt(),
+                                      size_t minimum_size,
+                                      size_t mean_size,
+                                      size_t maximum_size,
+                                      mps_count_t reserve_depth,
+                                      mps_count_t fragmentation_limit)
+
+        .. note::
+
+           The fragmentation_limit is a percentage from 0 to 100
+           inclusive when passed to :c:func:`mps_pool_create`, not a
+           double from 0.0 to 1.0 as in :c:func:`mps_pool_create_k`.
 
 
 .. index::

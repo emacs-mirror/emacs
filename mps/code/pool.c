@@ -47,6 +47,7 @@ Bool PoolClassCheck(PoolClass class)
   /* greater than the size of the class-specific portion of the instance */
   CHECKL(class->offset <= (size_t)(class->size - sizeof(PoolStruct)));
   CHECKL(AttrCheck(class->attr));
+  CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
   CHECKL(FUNCHECK(class->alloc));
@@ -105,22 +106,24 @@ Bool PoolCheck(Pool pool)
 }
 
 
-/* PoolInit, PoolInitV -- initialize a pool
+/* Common keywords to PoolInit */
+
+ARG_DEFINE_KEY(format, Format);
+ARG_DEFINE_KEY(chain, Chain);
+ARG_DEFINE_KEY(rank, Rank);
+ARG_DEFINE_KEY(extend_by, Size);
+ARG_DEFINE_KEY(min_size, Size);
+ARG_DEFINE_KEY(mean_size, Size);
+ARG_DEFINE_KEY(max_size, Size);
+ARG_DEFINE_KEY(align, Align);
+
+
+/* PoolInit -- initialize a pool
  *
  * Initialize the generic fields of the pool and calls class-specific
  * init.  See <design/pool/#align>.  */
 
-Res PoolInit(Pool pool, Arena arena, PoolClass class, ...)
-{
-  Res res;
-  va_list args;
-  va_start(args, class);
-  res = PoolInitV(pool, arena, class, args);
-  va_end(args);
-  return res;
-}
-
-Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args)
+Res PoolInit(Pool pool, Arena arena, PoolClass class, ArgList args)
 {
   Res res;
   Word classId;
@@ -185,18 +188,7 @@ failInit:
 /* PoolCreate, PoolCreateV: Allocate and initialise pool */
 
 Res PoolCreate(Pool *poolReturn, Arena arena,
-               PoolClass class, ...)
-{
-  Res res;
-  va_list args;
-  va_start(args, class);
-  res = PoolCreateV(poolReturn, arena, class, args);
-  va_end(args);
-  return res;
-}
-
-Res PoolCreateV(Pool *poolReturn, Arena arena, 
-                PoolClass class, va_list args)
+               PoolClass class, ArgList args)
 {
   Res res;
   Pool pool;
@@ -219,7 +211,7 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
   pool = (Pool)PointerAdd(base, class->offset);
 
   /* Initialize the pool. */ 
-  res = PoolInitV(pool, arena, class, args);
+  res = PoolInit(pool, arena, class, args);
   if (res != ResOK)
     goto failPoolInit;
  

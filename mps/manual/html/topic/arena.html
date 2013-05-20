@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Arenas &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>4. Arenas &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="4. Pools" href="pool.html" />
-    <link rel="prev" title="2. Error handing" href="error.html" /> 
+    <link rel="next" title="5. Pools" href="pool.html" />
+    <link rel="prev" title="3. Error handing" href="error.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="pool.html" title="4. Pools"
+          <a href="pool.html" title="5. Pools"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="error.html" title="2. Error handing"
+          <a href="error.html" title="3. Error handing"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,11 +55,11 @@
           <div class="body">
             
   <div class="section" id="arenas">
-<span id="topic-arena"></span><span id="index-0"></span><h1>3. Arenas<a class="headerlink" href="#arenas" title="Permalink to this headline">¶</a></h1>
+<span id="topic-arena"></span><span id="index-0"></span><h1>4. Arenas<a class="headerlink" href="#arenas" title="Permalink to this headline">¶</a></h1>
 <p>An arena is an object that encapsulates the state of the Memory Pool
 System, and tells it where to get the memory it manages. You typically
 start a session with the MPS by creating an arena with
-<a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> and end the session by destroying it with
+<a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> and end the session by destroying it with
 <a class="reference internal" href="#mps_arena_destroy" title="mps_arena_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_destroy()</span></tt></a>. The only function you might need to call
 before making an arena is <a class="reference internal" href="telemetry.html#mps_telemetry_control" title="mps_telemetry_control"><tt class="xref c c-func docutils literal"><span class="pre">mps_telemetry_control()</span></tt></a>.</p>
 <p>Before destroying an arena, you must first destroy all objects and
@@ -110,32 +110,48 @@ and for <a class="reference internal" href="../glossary/g.html#term-garbage-coll
 </dd></dl>
 
 <dl class="function">
-<dt id="mps_arena_create">
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_arena_create</tt><big>(</big><a class="reference internal" href="#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;*arena_o</em>, <a class="reference internal" href="#mps_arena_class_t" title="mps_arena_class_t">mps_arena_class_t</a><em>&nbsp;arena_class</em>, ...<big>)</big><a class="headerlink" href="#mps_arena_create" title="Permalink to this definition">¶</a></dt>
+<dt id="mps_arena_create_k">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_arena_create_k</tt><big>(</big><a class="reference internal" href="#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;*arena_o</em>, <a class="reference internal" href="#mps_arena_class_t" title="mps_arena_class_t">mps_arena_class_t</a><em>&nbsp;arena_class</em>, <a class="reference internal" href="keyword.html#mps_arg_s" title="mps_arg_s">mps_arg_s</a><em>&nbsp;args[]</em><big>)</big><a class="headerlink" href="#mps_arena_create_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a>.</p>
 <p><tt class="docutils literal"><span class="pre">arena_o</span></tt> points to a location that will hold a pointer to the new
 arena.</p>
 <p><tt class="docutils literal"><span class="pre">arena_class</span></tt> is the <a class="reference internal" href="../glossary/a.html#term-arena-class"><em class="xref std std-term">arena class</em></a>.</p>
-<p>Some arena classes require additional arguments to be passed to
-<a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>. See the documentation for the arena
-class.</p>
+<p><tt class="docutils literal"><span class="pre">args</span></tt> are <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a> specific to the arena
+class. See the documentation for the arena class.</p>
 <p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if the arena is created
 successfully, or another <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> otherwise.</p>
 <p>The arena persists until it is destroyed by calling
 <a class="reference internal" href="#mps_arena_destroy" title="mps_arena_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_destroy()</span></tt></a>.</p>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p class="last">There&#8217;s an alternative function <a class="reference internal" href="#mps_arena_create_v" title="mps_arena_create_v"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_v()</span></tt></a>
-that takes its extra arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a>
-<tt class="docutils literal"><span class="pre">va_list</span></tt> mechanism.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_arena_create">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_arena_create</tt><big>(</big><a class="reference internal" href="#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;*arena_o</em>, <a class="reference internal" href="#mps_arena_class_t" title="mps_arena_class_t">mps_arena_class_t</a><em>&nbsp;arena_class</em>, ...<big>)</big><a class="headerlink" href="#mps_arena_create" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p class="last">Use <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+arguments</em></a> interface is more reliable and produces better
+error messages.</p>
 </div>
+<p>An alternative to <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> that takes its
+extra arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> variable argument
+list mechanism.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="mps_arena_create_v">
 <a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_arena_create_v</tt><big>(</big><a class="reference internal" href="#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;*arena_o</em>, <a class="reference internal" href="#mps_arena_class_t" title="mps_arena_class_t">mps_arena_class_t</a><em>&nbsp;arena_class</em>, va_list<em>&nbsp;args</em><big>)</big><a class="headerlink" href="#mps_arena_create_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>An alternative to <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> that takes its extra
-arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> <tt class="docutils literal"><span class="pre">va_list</span></tt> mechanism.</p>
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p class="last">Use <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+arguments</em></a> interface is more reliable and produces better
+error messages.</p>
+</div>
+<p>An alternative to <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> that takes its
+extra arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> <tt class="docutils literal"><span class="pre">va_list</span></tt>
+mechanism.</p>
 </dd></dl>
 
 <dl class="function">
@@ -154,7 +170,7 @@ and <a class="reference internal" href="../glossary/r.html#term-root"><em class=
 </dd></dl>
 
 <div class="section" id="client-arenas">
-<span id="topic-arena-client"></span><span id="index-2"></span><h2>3.1. Client arenas<a class="headerlink" href="#client-arenas" title="Permalink to this headline">¶</a></h2>
+<span id="topic-arena-client"></span><span id="index-2"></span><h2>4.1. Client arenas<a class="headerlink" href="#client-arenas" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#include &quot;mpsacl.h&quot;</span>
 </pre></div>
 </div>
@@ -164,24 +180,43 @@ and <a class="reference internal" href="../glossary/r.html#term-root"><em class=
 <dd><p>Return the <a class="reference internal" href="../glossary/a.html#term-arena-class"><em class="xref std std-term">arena class</em></a> for a <a class="reference internal" href="../glossary/c.html#term-client-arena"><em class="xref std std-term">client arena</em></a>.</p>
 <p>A client arena gets its managed memory from the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client
 program</em></a>. This memory chunk is passed when the arena is created.</p>
-<p>When creating a client arena, <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> takes two
-extra arguments:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="kt">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
-                           <span class="kt">mps_arena_class_t</span> <span class="n">mps_arena_class_cl</span><span class="p">,</span>
-                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
+<p>When creating a client arena, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> requires two
+<a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>:</p>
+<ul class="simple">
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_CL_BASE</span></tt> (type <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_addr_t</span></tt></a>) is
+the <a class="reference internal" href="../glossary/a.html#term-address"><em class="xref std std-term">address</em></a> of the chunk of memory that will be managed
+by the arena.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>) is its
+size.</li>
+</ul>
+<p>For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_CL_BASE</span><span class="p">,</span> <span class="n">base</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 </pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">base</span></tt> is the <a class="reference internal" href="../glossary/a.html#term-address"><em class="xref std std-term">address</em></a> of the chunk of memory that will
-be managed by the arena.</p>
-<p><tt class="docutils literal"><span class="pre">size</span></tt> is its <a class="reference internal" href="../glossary/s.html#term-size"><em class="xref std std-term">size</em></a>.</p>
 <p>If the chunk is too small to hold the internal arena structures,
-<a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> returns <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a>. In
+<a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> returns <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a>. In
 this case, you need to use a (much) larger chunk.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p>You don&#8217;t have to provide all the memory up front: you can
 call <a class="reference internal" href="#mps_arena_extend" title="mps_arena_extend"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_extend()</span></tt></a> later on.</p>
 <p class="last">Client arenas have no mechanism for returning unused memory.</p>
+</div>
+<div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p>When using <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>, pass the size and base
+address like this:</p>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="n">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
+                           <span class="n">mps_arena_class_t</span> <span class="n">mps_arena_class_cl</span><span class="p">,</span>
+                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 </dd></dl>
 
@@ -198,7 +233,7 @@ managed by the arena.</p>
 
 </div>
 <div class="section" id="virtual-memory-arenas">
-<span id="topic-arena-vm"></span><span id="index-3"></span><h2>3.2. Virtual memory arenas<a class="headerlink" href="#virtual-memory-arenas" title="Permalink to this headline">¶</a></h2>
+<span id="topic-arena-vm"></span><span id="index-3"></span><h2>4.2. Virtual memory arenas<a class="headerlink" href="#virtual-memory-arenas" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#include &quot;mpsavm.h&quot;</span>
 </pre></div>
 </div>
@@ -213,41 +248,72 @@ it needs to commit memory to. This gives it flexibility as to
 where to place <a class="reference internal" href="../glossary/b.html#term-block"><em class="xref std std-term">blocks</em></a>, which reduces
 <a class="reference internal" href="../glossary/f.html#term-fragmentation"><em class="xref std std-term">fragmentation</em></a> and helps make <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a>
 more efficient.</p>
-<p>When creating a virtual memory arena, <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>
-takes one extra argument:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="kt">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
-                           <span class="kt">mps_arena_class_t</span> <span class="n">arena_class_vm</span><span class="p">(),</span>
-                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><tt class="docutils literal"><span class="pre">size</span></tt> is the initial amount of virtual address space, in
-<a class="reference internal" href="../glossary/b.html#term-byte-1"><em class="xref std std-term">bytes<sup>(1)</sup></em></a>, that the arena will reserve (this space is
-initially reserved so that the arena can subsequently use it
-without interference from other parts of the program, but most of
-it is not committed, so it doesn&#8217;t require any RAM or backing
-store). The arena may allocate more virtual address space beyond
-this initial reservation as and when it deems it necessary. The
-MPS is most efficient if you reserve an address space that is
-several times larger than your peak memory usage.</p>
+<p>When creating a virtual memory arena, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a>
+requires one <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a>:</p>
+<ul>
+<li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>). is the
+initial amount of virtual address space, in <a class="reference internal" href="../glossary/b.html#term-byte-1"><em class="xref std std-term">bytes<sup>(1)</sup></em></a>,
+that the arena will reserve (this space is initially reserved so
+that the arena can subsequently use it without interference from
+other parts of the program, but most of it is not committed, so
+it doesn&#8217;t require any RAM or backing store). The arena may
+allocate more virtual address space beyond this initial
+reservation as and when it deems it necessary. The MPS is most
+efficient if you reserve an address space that is several times
+larger than your peak memory usage.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">The MPS asks for more address space if it runs out, but the
 more times it has to extend its address space, the less
 efficient garbage collection will become.</p>
 </div>
+</li>
+</ul>
+<p>An optional <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a> may be passed, but is
+only used on the Windows operating system:</p>
+<ul>
+<li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_VMW3_TOP_DOWN</span></tt> (type <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>). If
+true, the arena will allocate address space starting at the
+highest possible address and working downwards through memory.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">This causes the arena to pass the <tt class="docutils literal"><span class="pre">MEM_TOP_DOWN</span></tt> flag to
+<a class="reference external" href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.aspx">VirtualAlloc</a>.</p>
+</div>
+</li>
+</ul>
 <p>If the MPS fails to reserve adequate address space to place the
-arena in, <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> returns
+arena in, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> returns
 <a class="reference internal" href="error.html#MPS_RES_RESOURCE" title="MPS_RES_RESOURCE"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_RESOURCE</span></tt></a>. Possibly this means that other parts
 of the program are reserving too much virtual memory.</p>
 <p>If the MPS fails to allocate memory for the internal arena
-structures, <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> returns
+structures, <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> returns
 <a class="reference internal" href="error.html#MPS_RES_MEMORY" title="MPS_RES_MEMORY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_MEMORY</span></tt></a>. Either <tt class="docutils literal"><span class="pre">size</span></tt> was far too small or
 the operating system refused to provide enough memory.</p>
+<p>For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_arena_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">arena</span><span class="p">,</span> <span class="n">mps_arena_class_cl</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p>When using <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>, pass the size like
+this:</p>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="n">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
+                           <span class="n">mps_arena_class_t</span> <span class="n">arena_class_vm</span><span class="p">(),</span>
+                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </dd></dl>
 
 </div>
 <div class="section" id="arena-properties">
-<span id="index-4"></span><h2>3.3. Arena properties<a class="headerlink" href="#arena-properties" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>4.3. Arena properties<a class="headerlink" href="#arena-properties" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_collections">
 <a class="reference internal" href="interface.html#mps_word_t" title="mps_word_t">mps_word_t</a> <tt class="descname">mps_collections</tt><big>(</big><a class="reference internal" href="#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em><big>)</big><a class="headerlink" href="#mps_collections" title="Permalink to this definition">¶</a></dt>
@@ -349,15 +415,16 @@ size_t <tt class="descname">mps_arena_reserved</tt><big>(</big><a class="referen
 reserved via the operating system&#8217;s virtual memory interface.</p>
 <p>For a <a class="reference internal" href="../glossary/c.html#term-client-arena"><em class="xref std std-term">client arena</em></a>, this is the sum of the usable portions
 of the chunks of memory passed to the arena by the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client
-program</em></a> via <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> and
+program</em></a> via <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> and
 <a class="reference internal" href="#mps_arena_extend" title="mps_arena_extend"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_extend()</span></tt></a>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">For a client arena, the reserved address may be lower than the
-sum of the <tt class="docutils literal"><span class="pre">size</span></tt> arguments passed to
-<a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a> and <a class="reference internal" href="#mps_arena_extend" title="mps_arena_extend"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_extend()</span></tt></a>,
-because the arena may be unable to use the whole of each chunk
-for reasons of alignment.</p>
+sum of the <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt> keyword argument
+passed to <a class="reference internal" href="#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> and the <tt class="docutils literal"><span class="pre">size</span></tt>
+arguments passed to <a class="reference internal" href="#mps_arena_extend" title="mps_arena_extend"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_extend()</span></tt></a>, because the
+arena may be unable to use the whole of each chunk for reasons
+of alignment.</p>
 </div>
 </dd></dl>
 
@@ -418,7 +485,7 @@ memory.</p>
 
 </div>
 <div class="section" id="arena-states">
-<span id="index-5"></span><h2>3.4. Arena states<a class="headerlink" href="#arena-states" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>4.4. Arena states<a class="headerlink" href="#arena-states" title="Permalink to this headline">¶</a></h2>
 <p>An arena is always in one of three states.</p>
 <ol class="arabic">
 <li><p id="index-6">In the <em>unclamped state</em>, garbage collection may take place,
@@ -496,7 +563,7 @@ motion, and other background activity can take place.</p>
 
 </div>
 <div class="section" id="running-garbage-collections">
-<span id="index-9"></span><h2>3.5. Running garbage collections<a class="headerlink" href="#running-garbage-collections" title="Permalink to this headline">¶</a></h2>
+<span id="index-9"></span><h2>4.5. Running garbage collections<a class="headerlink" href="#running-garbage-collections" title="Permalink to this headline">¶</a></h2>
 <p>The Memory Pool System&#8217;s garbage collector runs <a class="reference internal" href="../glossary/a.html#term-asynchronous-garbage-collector"><em class="xref std std-term">asynchronously</em></a> and <a class="reference internal" href="../glossary/i.html#term-incremental-garbage-collection"><em class="xref std std-term">incrementally</em></a>. This means that it is not normally
 necessary to tell it when to start garbage collections, or to wait
 until it has finished collecting. (But if your program has idle time
@@ -550,7 +617,7 @@ return until the collection has completed.</p>
 
 </div>
 <div class="section" id="using-idle-time-for-collection">
-<span id="topic-arena-idle"></span><span id="index-10"></span><h2>3.6. Using idle time for collection<a class="headerlink" href="#using-idle-time-for-collection" title="Permalink to this headline">¶</a></h2>
+<span id="topic-arena-idle"></span><span id="index-10"></span><h2>4.6. Using idle time for collection<a class="headerlink" href="#using-idle-time-for-collection" title="Permalink to this headline">¶</a></h2>
 <p>Some types of program have &#8220;idle time&#8221; in which they are waiting for
 an external event such as user input or network activity. The MPS
 provides a function, <a class="reference internal" href="#mps_arena_step" title="mps_arena_step"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_step()</span></tt></a>, for making use of idle
@@ -620,7 +687,7 @@ state</em></a>, it remains there.</p>
 
 </div>
 <div class="section" id="arena-introspection">
-<span id="index-11"></span><h2>3.7. Arena introspection<a class="headerlink" href="#arena-introspection" title="Permalink to this headline">¶</a></h2>
+<span id="index-11"></span><h2>4.7. Arena introspection<a class="headerlink" href="#arena-introspection" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p>Introspection functions covered in other chapters are:</p>
@@ -664,7 +731,7 @@ in the <a class="reference internal" href="../glossary/p.html#term-parked-state"
 
 </div>
 <div class="section" id="protection-interface">
-<span id="index-12"></span><h2>3.8. Protection interface<a class="headerlink" href="#protection-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-12"></span><h2>4.8. Protection interface<a class="headerlink" href="#protection-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_arena_expose">
 void <tt class="descname">mps_arena_expose</tt><big>(</big><a class="reference internal" href="#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em><big>)</big><a class="headerlink" href="#mps_arena_expose" title="Permalink to this definition">¶</a></dt>
@@ -776,25 +843,25 @@ cannot be restored more than once.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. Arenas</a><ul>
-<li><a class="reference internal" href="#client-arenas">3.1. Client arenas</a></li>
-<li><a class="reference internal" href="#virtual-memory-arenas">3.2. Virtual memory arenas</a></li>
-<li><a class="reference internal" href="#arena-properties">3.3. Arena properties</a></li>
-<li><a class="reference internal" href="#arena-states">3.4. Arena states</a></li>
-<li><a class="reference internal" href="#running-garbage-collections">3.5. Running garbage collections</a></li>
-<li><a class="reference internal" href="#using-idle-time-for-collection">3.6. Using idle time for collection</a></li>
-<li><a class="reference internal" href="#arena-introspection">3.7. Arena introspection</a></li>
-<li><a class="reference internal" href="#protection-interface">3.8. Protection interface</a></li>
+<li><a class="reference internal" href="#">4. Arenas</a><ul>
+<li><a class="reference internal" href="#client-arenas">4.1. Client arenas</a></li>
+<li><a class="reference internal" href="#virtual-memory-arenas">4.2. Virtual memory arenas</a></li>
+<li><a class="reference internal" href="#arena-properties">4.3. Arena properties</a></li>
+<li><a class="reference internal" href="#arena-states">4.4. Arena states</a></li>
+<li><a class="reference internal" href="#running-garbage-collections">4.5. Running garbage collections</a></li>
+<li><a class="reference internal" href="#using-idle-time-for-collection">4.6. Using idle time for collection</a></li>
+<li><a class="reference internal" href="#arena-introspection">4.7. Arena introspection</a></li>
+<li><a class="reference internal" href="#protection-interface">4.8. Protection interface</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="error.html"
-                        title="previous chapter">2. Error handing</a></p>
+                        title="previous chapter">3. Error handing</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pool.html"
-                        title="next chapter">4. Pools</a></p><h4>Downloads</h4>
+                        title="next chapter">5. Pools</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -820,10 +887,10 @@ cannot be restored more than once.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="pool.html" title="4. Pools"
+          <a href="pool.html" title="5. Pools"
              >next</a> |</li>
         <li class="right" >
-          <a href="error.html" title="2. Error handing"
+          <a href="error.html" title="3. Error handing"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 
