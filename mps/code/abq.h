@@ -1,18 +1,17 @@
-/* abq.h: ABQ INTERFACE
+/* abq.h: QUEUE INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: A FIFO queue substrate for <code/poolmv2.c>
+ * .purpose: A fixed-length FIFO queue.
  *
- * .source: <design/poolmvt/>
+ * .design: <design/abq/>
  */
 
 #ifndef abq_h
 #define abq_h
 
 #include "meter.h"
-#include "cbs.h"
 #include "mpm.h"
 
 
@@ -24,17 +23,22 @@
 /* Prototypes  */
 
 typedef struct ABQStruct *ABQ;
-extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count items);
+typedef Res (*ABQDescribeElement)(Addr element, mps_lib_FILE *stream);
+typedef unsigned ABQDisposition;
+typedef Res (*ABQIterateMethod)(ABQDisposition *dispositionReturn, Addr element, void *closureP);
+
+extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
 extern Bool ABQCheck(ABQ abq);
 extern void ABQFinish(Arena arena, ABQ abq);
-extern Res ABQPush(ABQ abq, CBSBlock block);
-extern Res ABQPop(ABQ abq, CBSBlock *blockReturn);
-extern Res ABQPeek(ABQ abq, CBSBlock *blockReturn);
-extern Res ABQDelete(ABQ abq, CBSBlock block);
-extern Res ABQDescribe(ABQ abq, mps_lib_FILE *stream);
+extern Res ABQPush(ABQ abq, Addr element);
+extern Res ABQPop(ABQ abq, Addr elementReturn);
+extern Res ABQPeek(ABQ abq, Addr elementReturn);
+extern Res ABQDelete(ABQ abq, Addr element);
+extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream);
 extern Bool ABQIsEmpty(ABQ abq);
 extern Bool ABQIsFull(ABQ abq);
 extern Count ABQDepth(ABQ abq);
+extern void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP);
 
 
 /* Types */
@@ -42,9 +46,10 @@ extern Count ABQDepth(ABQ abq);
 typedef struct ABQStruct
 {
   Count elements;
+  Size elementSize;
   Index in;
   Index out;
-  CBSBlock *queue;
+  Addr queue;
 
   /* Meter queue depth at each operation */
   METER_DECL(push);
@@ -54,6 +59,12 @@ typedef struct ABQStruct
  
   Sig sig;
 } ABQStruct;
+
+enum {
+  ABQDispositionKEEP = 1, /* keep item in queue */
+  ABQDispositionDELETE,   /* delete element from queue */
+  ABQDispositionNONE      /* no disposition (error) */
+};
 
 #endif /* abq_h */
 
