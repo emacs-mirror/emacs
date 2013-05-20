@@ -159,6 +159,7 @@ AWL = poolawl.c
 LO = poollo.c
 SNC = poolsnc.c
 POOLN = pooln.c
+MV2 = poolmv2.c
 MVFF = poolmvff.c
 TESTLIB = testlib.c
 FMTDY = fmtdy.c fmtno.c
@@ -172,7 +173,7 @@ MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
             bt.c ring.c shield.c ld.c event.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli.c \
             boot.c meter.c splay.c cbs.c diag.c \
-            ss.c table.c
+            ss.c table.c abq.c range.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
 
@@ -198,6 +199,8 @@ SNCOBJ = $(SNC:%.c=$(PFM)/$(VARIETY)/%.o)
 SNCDEP = $(SNC:%.c=$(PFM)/$(VARIETY)/%.d)
 POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
 POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
+MV2OBJ = $(MV2:%.c=$(PFM)/$(VARIETY)/%.o)
+MV2DEP = $(MV2:%.c=$(PFM)/$(VARIETY)/%.d)
 MVFFOBJ = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.o)
 MVFFDEP = $(MVFF:%.c=$(PFM)/$(VARIETY)/%.d)
 
@@ -325,10 +328,10 @@ $(PFM)/hot/mps.a: $(PFM)/hot/mps.o
 
 $(PFM)/diag/mps.a: \
   $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+  $(MV2OBJ) $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
 $(PFM)/cool/mps.a: \
   $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
+  $(MV2OBJ) $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
 
 
 # OTHER GENUINE TARGETS
@@ -412,7 +415,7 @@ $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
-	$(PFM)/$(VARIETY)/abq.o $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/cbstest: $(PFM)/$(VARIETY)/cbstest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
@@ -421,7 +424,6 @@ $(PFM)/$(VARIETY)/btcv: $(PFM)/$(VARIETY)/btcv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
-	$(PFM)/$(VARIETY)/poolmv2.o $(PFM)/$(VARIETY)/abq.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
