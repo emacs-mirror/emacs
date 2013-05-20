@@ -21,6 +21,24 @@
 SRCID(cbs, "$Id$");
 
 
+typedef struct CBSBlockStruct *CBSBlock;
+typedef struct CBSBlockStruct {
+  SplayNodeStruct splayNode;
+  Addr base;
+  Addr limit;
+  Size maxSize; /* accurate maximum block size of sub-tree */
+} CBSBlockStruct;
+
+
+extern Bool CBSBlockCheck(CBSBlock block);
+/* CBSBlockBase -- See <design/cbs/#function.cbs.block.base> */
+#define CBSBlockBase(block) ((block)->base)
+/* CBSBlockLimit -- See <design/cbs/#function.cbs.block.limit> */
+#define CBSBlockLimit(block) ((block)->limit)
+#define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
+extern Size (CBSBlockSize)(CBSBlock block);
+
+
 #define cbsOfSplayTree(tree) PARENT(CBSStruct, splayTree, (tree))
 #define cbsBlockOfSplayNode(node) PARENT(CBSBlockStruct, splayNode, (node))
 #define splayTreeOfCBS(tree) (&((cbs)->splayTree))
@@ -65,10 +83,6 @@ Bool CBSCheck(CBS cbs)
   CHECKD(Pool, cbs->blockPool);
   CHECKL(BoolCheck(cbs->fastFind));
   CHECKL(BoolCheck(cbs->inCBS));
-  CHECKL(cbs->new == NULL || FUNCHECK(cbs->new));
-  CHECKL(cbs->delete == NULL || FUNCHECK(cbs->delete));
-  CHECKL(cbs->grow == NULL || FUNCHECK(cbs->grow));
-  CHECKL(cbs->shrink == NULL || FUNCHECK(cbs->shrink));
   /* No MeterCheck */
 
   return TRUE;
@@ -206,17 +220,11 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
  * See <design/cbs/#function.cbs.init>.
  */
 
-Res CBSInit(Arena arena, CBS cbs, void *owner,
-            CBSChangeSizeMethod new, CBSChangeSizeMethod delete,
-            CBSChangeSizeMethod grow, CBSChangeSizeMethod shrink,
-            Size minSize, Align alignment,
-            Bool fastFind)
+Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment, Bool fastFind)
 {
   Res res;
 
   AVERT(Arena, arena);
-  AVER(new == NULL || FUNCHECK(new));
-  AVER(delete == NULL || FUNCHECK(delete));
 
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
@@ -226,11 +234,6 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
     return res;
   cbs->splayTreeSize = 0;
 
-  cbs->new = new;
-  cbs->delete = delete;
-  cbs->grow = grow;
-  cbs->shrink = shrink;
-  cbs->minSize = minSize;
   cbs->fastFind = fastFind;
   cbs->alignment = alignment;
   cbs->inCBS = TRUE;
@@ -292,9 +295,6 @@ static void cbsBlockDelete(CBS cbs, CBSBlock block)
   /* make invalid */
   block->limit = block->base;
 
-  if (cbs->delete != NULL && oldSize >= cbs->minSize)
-    (*(cbs->delete))(cbs, block, oldSize, (Size)0);
-
   PoolFree(cbs->blockPool, (Addr)block, sizeof(CBSBlockStruct));
 
   return;
@@ -315,11 +315,6 @@ static void cbsBlockShrink(CBS cbs, CBSBlock block, Size oldSize)
                      keyOfCBSBlock(block));
     AVER(CBSBlockSize(block) <= block->maxSize);
   }
-
-  if (cbs->delete != NULL && oldSize >= cbs->minSize && newSize < cbs->minSize)
-    (*(cbs->delete))(cbs, block, oldSize, newSize);
-  else if (cbs->shrink != NULL && newSize >= cbs->minSize)
-    (*(cbs->shrink))(cbs, block, oldSize, newSize);
 }
 
 static void cbsBlockGrow(CBS cbs, CBSBlock block, Size oldSize)
@@ -337,11 +332,6 @@ static void cbsBlockGrow(CBS cbs, CBSBlock block, Size oldSize)
                      keyOfCBSBlock(block));
     AVER(CBSBlockSize(block) <= block->maxSize);
   }
-
-  if (cbs->new != NULL && oldSize < cbs->minSize && newSize >= cbs->minSize)
-    (*(cbs->new))(cbs, block, oldSize, newSize);
-  else if (cbs->grow != NULL && oldSize >= cbs->minSize)
-    (*(cbs->grow))(cbs, block, oldSize, newSize);
 }
 
 static Res cbsBlockNew(CBS cbs, Addr base, Addr limit)
@@ -372,9 +362,6 @@ static Res cbsBlockNew(CBS cbs, Addr base, Addr limit)
                         keyOfCBSBlock(block));
   AVER(res == ResOK);
   STATISTIC(++cbs->splayTreeSize);
-
-  if (cbs->new != NULL && newSize >= cbs->minSize)
-    (*(cbs->new))(cbs, block, (Size)0, newSize);
 
   return ResOK;
 
@@ -485,12 +472,14 @@ fail:
  * See <design/cbs/#functions.cbs.insert>.
  */
 
-Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
-                            CBS cbs, Addr base, Addr limit)
+Res CBSInsert(Addr *baseReturn, Addr *limitReturn,
+              CBS cbs, Addr base, Addr limit)
 {
   Addr newBase, newLimit;
   Res res;
 
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
   AVERT(CBS, cbs);
   CBSEnter(cbs);
 
@@ -511,24 +500,11 @@ Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
   return res;
 }
 
-Res CBSInsert(CBS cbs, Addr base, Addr limit)
-{
-  Res res;
-  Addr newBase, newLimit;
-
-  /* all parameters checked by CBSInsertReturningRange */
-  /* CBSEnter/Leave done by CBSInsertReturningRange */
-
-  res = CBSInsertReturningRange(&newBase, &newLimit,
-                                cbs, base, limit);
-
-  return res;
-}
-
 
 /* cbsDeleteFrom* -- delete blocks from different parts of the CBS */
 
-static Res cbsDeleteFromTree(CBS cbs, Addr base, Addr limit)
+static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
+                             CBS cbs, Addr base, Addr limit)
 {
   Res res;
   CBSBlock cbsBlock;
@@ -547,6 +523,9 @@ static Res cbsDeleteFromTree(CBS cbs, Addr base, Addr limit)
     res = ResFAIL;
     goto failLimitCheck;
   }
+
+  *baseReturn = cbsBlock->base;
+  *limitReturn = cbsBlock->limit;
 
   if (base == cbsBlock->base) {
     if (limit == cbsBlock->limit) { /* entire block */
@@ -609,7 +588,8 @@ failSplayTreeSearch:
  * See <design/cbs/#function.cbs.delete>.
  */
 
-Res CBSDelete(CBS cbs, Addr base, Addr limit)
+Res CBSDelete(Addr *baseReturn, Addr *limitReturn,
+              CBS cbs, Addr base, Addr limit)
 {
   Res res;
 
@@ -621,14 +601,14 @@ Res CBSDelete(CBS cbs, Addr base, Addr limit)
   AVER(AddrIsAligned(base, cbs->alignment));
   AVER(AddrIsAligned(limit, cbs->alignment));
 
-  res = cbsDeleteFromTree(cbs, base, limit);
+  res = cbsDeleteFromTree(baseReturn, limitReturn, cbs, base, limit);
 
   CBSLeave(cbs);
   return res;
 }
 
 
-Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
+static Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
 {
   Res res;
 
@@ -678,7 +658,7 @@ static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate, void *closureP
   splayNode = SplayTreeFirst(splayTree, NULL);
   while(splayNode != NULL) {
     cbsBlock = cbsBlockOfSplayNode(splayNode);
-    if (!(*iterate)(cbs, cbsBlock, closureP)) {
+    if (!(*iterate)(cbs, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock), closureP)) {
       break;
     }
     METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
@@ -700,110 +680,6 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP)
 }
 
 
-/* CBSIterateLarge -- Iterate only large blocks
- *
- * This function iterates only blocks that are larger than or equal
- * to the minimum size.
- */
-
-typedef struct CBSIterateLargeClosureStruct {
-  void *p;
-  CBSIterateMethod f;
-} CBSIterateLargeClosureStruct, *CBSIterateLargeClosure;
-
-static Bool cbsIterateLargeAction(CBS cbs, CBSBlock block, void *p)
-{
-  Bool b = TRUE;
-  CBSIterateLargeClosure closure;
-
-  closure = (CBSIterateLargeClosure)p;
-  AVER(closure != NULL);
-
-  if (CBSBlockSize(block) >= cbs->minSize)
-    b = (closure->f)(cbs, block, closure->p);
-
-  return b;
-}
-
-
-void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, void *closureP)
-{
-  CBSIterateLargeClosureStruct closure;
-
-  AVERT(CBS, cbs);
-  CBSEnter(cbs);
-
-  AVER(FUNCHECK(iterate));
-
-  closure.p = closureP;
-  closure.f = iterate;
-  cbsIterateInternal(cbs, &cbsIterateLargeAction, (void *)&closure);
-
-  CBSLeave(cbs);
-  return;
-}
-
-
-/* CBSSetMinSize -- Set minimum interesting size for cbs
- *
- * This function may invoke the shrink and grow methods as
- * appropriate.  See <design/cbs/#function.cbs.set.min-size>.
- */
-
-typedef struct {
-  Size old;
-  Size new;
-} CBSSetMinSizeClosureStruct, *CBSSetMinSizeClosure;
-
-static Bool cbsSetMinSizeGrow(CBS cbs, CBSBlock block, void *p)
-{
-  CBSSetMinSizeClosure closure;
-  Size size;
- 
-  closure = (CBSSetMinSizeClosure)p;
-  AVER(closure->old > closure->new);
-  size = CBSBlockSize(block);
-  if (size < closure->old && size >= closure->new)
-    (*cbs->new)(cbs, block, size, size);
-
-  return TRUE;
-}
-
-static Bool cbsSetMinSizeShrink(CBS cbs, CBSBlock block, void *p)
-{
-  CBSSetMinSizeClosure closure;
-  Size size;
- 
-  closure = (CBSSetMinSizeClosure)p;
-  AVER(closure->old < closure->new);
-  size = CBSBlockSize(block);
-  if (size >= closure->old && size < closure->new)
-    (*cbs->delete)(cbs, block, size, size);
-
-  return TRUE;
-}
-
-void CBSSetMinSize(CBS cbs, Size minSize)
-{
-  CBSSetMinSizeClosureStruct closure;
-
-  AVERT(CBS, cbs);
-  CBSEnter(cbs);
-
-  closure.old = cbs->minSize;
-  closure.new = minSize;
-
-  if (minSize < cbs->minSize)
-    cbsIterateInternal(cbs, &cbsSetMinSizeGrow, (void *)&closure);
-  else if (minSize > cbs->minSize)
-    cbsIterateInternal(cbs, &cbsSetMinSizeShrink, (void *)&closure);
-
-  cbs->minSize = minSize;
-
-  CBSLeave(cbs);
-}
-
-
 /* CBSFindDeleteCheck -- check method for a CBSFindDelete value */
 
 static Bool CBSFindDeleteCheck(CBSFindDelete findDelete)
@@ -817,13 +693,11 @@ static Bool CBSFindDeleteCheck(CBSFindDelete findDelete)
 }
 
 
-/* cbsFindDeleteRange -- delete approriate range of block found */
-
-typedef Res (*cbsDeleteMethod)(CBS cbs, Addr base, Addr limit);
+/* cbsFindDeleteRange -- delete appropriate range of block found */
 
 static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
+                               Addr *oldBaseReturn, Addr *oldLimitReturn,
                                CBS cbs, Addr base, Addr limit, Size size,
-                               cbsDeleteMethod delete,
                                CBSFindDelete findDelete)
 {
   Bool callDelete = TRUE;
@@ -834,7 +708,6 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
   AVER(base < limit);
   AVER(size > 0);
   AVER(AddrOffset(base, limit) >= size);
-  AVER(FUNCHECK(delete));
   AVERT(CBSFindDelete, findDelete);
 
   switch(findDelete) {
@@ -862,7 +735,7 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
 
   if (callDelete) {
     Res res;
-    res = (*delete)(cbs, base, limit);
+    res = cbsDeleteFromTree(oldBaseReturn, oldLimitReturn, cbs, base, limit);
     AVER(res == ResOK);
   }
 
@@ -874,11 +747,11 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
 /* CBSFindFirst -- find the first block of at least the given size */
 
 Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
+                  Addr *oldBaseReturn, Addr *oldLimitReturn,
                   CBS cbs, Size size, CBSFindDelete findDelete)
 {
   Bool found;
   Addr base = (Addr)0, limit = (Addr)0; /* only defined when found is TRUE */
-  cbsDeleteMethod deleteMethod = NULL;
 
   AVERT(CBS, cbs);
   CBSEnter(cbs);
@@ -904,14 +777,13 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
       AVER(CBSBlockSize(block) >= size);
       base = CBSBlockBase(block);
       limit = CBSBlockLimit(block);
-      deleteMethod = &cbsDeleteFromTree;
     }
   }
 
   if (found) {
     AVER(AddrOffset(base, limit) >= size);
-    cbsFindDeleteRange(baseReturn, limitReturn, cbs, base, limit, size,
-                       deleteMethod, findDelete);
+    cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
+                       cbs, base, limit, size, findDelete);
   }
 
   CBSLeave(cbs);
@@ -922,11 +794,11 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
 /* CBSFindLast -- find the last block of at least the given size */
 
 Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
+                 Addr *oldBaseReturn, Addr *oldLimitReturn,
                  CBS cbs, Size size, CBSFindDelete findDelete)
 {
   Bool found;
   Addr base = (Addr)0, limit = (Addr)0; /* only defined in found is TRUE */
-  cbsDeleteMethod deleteMethod = NULL;
 
   AVERT(CBS, cbs);
   CBSEnter(cbs);
@@ -951,14 +823,13 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
       AVER(CBSBlockSize(block) >= size);
       base = CBSBlockBase(block);
       limit = CBSBlockLimit(block);
-      deleteMethod = &cbsDeleteFromTree;
     }
   }
 
   if (found) {
     AVER(AddrOffset(base, limit) >= size);
-    cbsFindDeleteRange(baseReturn, limitReturn, cbs, base, limit, size,
-                       deleteMethod, findDelete);
+    cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
+                       cbs, base, limit, size, findDelete);
   }
 
   CBSLeave(cbs);
@@ -969,11 +840,11 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 /* CBSFindLargest -- find the largest block in the CBS */
 
 Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
+                    Addr *oldBaseReturn, Addr *oldLimitReturn,
                     CBS cbs, CBSFindDelete findDelete)
 {
   Bool found = FALSE;
   Addr base = (Addr)0, limit = (Addr)0; /* only defined when found is TRUE */
-  cbsDeleteMethod deleteMethod = NULL;
   Size size = 0; /* suppress bogus warning from MSVC */
 
   AVERT(CBS, cbs);
@@ -1002,13 +873,12 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
       AVER(CBSBlockSize(block) >= size);
       base = CBSBlockBase(block);
       limit = CBSBlockLimit(block);
-      deleteMethod = &cbsDeleteFromTree;
     }
   }
 
   if (found) {
-    cbsFindDeleteRange(baseReturn, limitReturn, cbs, base, limit, size,
-                       deleteMethod, findDelete);
+    cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
+                       cbs, base, limit, size, findDelete);
   }
 
   CBSLeave(cbs);
@@ -1031,8 +901,6 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
                "  blockPool: $P\n", (WriteFP)cbs->blockPool,
-               "  new: $F ", (WriteFF)cbs->new,
-               "  delete: $F \n", (WriteFF)cbs->delete,
                NULL);
   if (res != ResOK) return res;
 
