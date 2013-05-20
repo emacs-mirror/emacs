@@ -341,7 +341,7 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
   Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Bool b;
   Link linkBase;
-  Index index;
+  Index indx;
   MRGLinkSeg linkseg;
 
   AVER(link != NULL); /* Better checks done by SegOfAddr */
@@ -353,10 +353,10 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
   AVERT(MRGLinkSeg, linkseg);
   linkBase = (Link)SegBase(seg);
   AVER(link >= linkBase);
-  index = (Index)(link - linkBase);
-  AVER(index < MRGGuardiansPerSeg(Pool2MRG(SegPool(seg))));
+  indx = (Index)(link - linkBase);
+  AVER(indx < MRGGuardiansPerSeg(Pool2MRG(SegPool(seg))));
 
-  return refPartOfIndex(linkseg->refSeg, index);
+  return refPartOfIndex(linkseg->refSeg, indx);
 }
 
 
@@ -370,7 +370,7 @@ static Link MRGLinkOfRefPart(RefPart refPart, Arena arena)
   Seg seg;
   Bool b;
   RefPart refPartBase;
-  Index index;
+  Index indx;
   MRGRefSeg refseg;
 
   AVER(refPart != NULL); /* Better checks done by SegOfAddr */
@@ -382,10 +382,10 @@ static Link MRGLinkOfRefPart(RefPart refPart, Arena arena)
   AVERT(MRGRefSeg, refseg);
   refPartBase = (RefPart)SegBase(seg);
   AVER(refPart >= refPartBase);
-  index = refPart - refPartBase;
-  AVER(index < MRGGuardiansPerSeg(Pool2MRG(SegPool(seg))));
+  indx = refPart - refPartBase;
+  AVER(indx < MRGGuardiansPerSeg(Pool2MRG(SegPool(seg))));
 
-  return linkOfIndex(refseg->linkSeg, index);
+  return linkOfIndex(refseg->linkSeg, indx);
 }
 #endif
 
@@ -556,14 +556,14 @@ failLinkSegAlloc:
 
 /* MRGFinalize -- finalize the indexth guardian in the segment */
 
-static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index index)
+static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index indx)
 {
   Link link;
   Message message;
 
-  AVER(index < MRGGuardiansPerSeg(Pool2MRG(SegPool(LinkSeg2Seg(linkseg)))));
+  AVER(indx < MRGGuardiansPerSeg(Pool2MRG(SegPool(LinkSeg2Seg(linkseg)))));
 
-  link = linkOfIndex(linkseg, index);
+  link = linkOfIndex(linkseg, indx);
 
   /* only finalize it if it hasn't been finalized already */
   if (link->state != MRGGuardianFINAL) {
