@@ -239,12 +239,11 @@ TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv awlut \
           messtest mpmss mpsicv poolncv qs sacss segsmss steptest \
           walkt0
 testrun: $(TESTCASES)
-	OUTPUT=$$(mktemp /tmp/mps.log.XXXXXX); \
+	OUTPUT=$$(mktemp -d /tmp/mps.log.XXXXXX); \
 	echo "Logging test output to $$OUTPUT"; \
 	$(^:%=(TESTCASE=$(PFM)/$(VARIETY)/%; \
-              echo "\n\n-- Running $$TESTCASE at $$(date) --" >> $$OUTPUT && \
-              echo "Running $$TESTCASE" && \
-              $$TESTCASE >> $$OUTPUT) &&) true
+         echo "Running $$TESTCASE" && \
+         $$TESTCASE > $$OUTPUT/$$TEST || (cat $$OUTPUT/$$TEST; exit 1)) &&) true
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
