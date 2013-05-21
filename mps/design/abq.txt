@@ -60,20 +60,20 @@ queue; ``owner`` is passed to :c:func:`MeterInit` for the statistics; ``elements
 
 Finish ``abq`` and free all resources associated with it.
 
-.. c:function:: Res ABQPush(ABQ abq, Addr element)
+.. c:function:: Res ABQPush(ABQ abq, void *element)
 
 If the queue is not full, push ``element`` on to the queue and return
 ``ResOK``. If the queue is full, leave it unchanged and return
 ``ResFAIL``.
 
-.. c:function:: Res ABQPop(ABQ abq, Addr elementReturn)
+.. c:function:: Res ABQPop(ABQ abq, void *elementReturn)
 
 If the queue is not empty, copy the first element on the queue into
 the memory pointed to by ``elementReturn``, remove the element from
 the queue, and return ``ResOK``. If the queue is empty, return
 ``ResFAIL``.
 
-.. c:function:: Res ABQPeek(ABQ abq, Addr elementReturn)
+.. c:function:: Res ABQPeek(ABQ abq, void *elementReturn)
 
 If the queue is not empty, copy the first element on the queue into
 the memory pointed to by ``elementReturn`` and return ``ResOK``. If
@@ -101,7 +101,7 @@ means that the element must be kept in the queue;
 ``ABQDispositionDELETE`` means that the element must be deleted from
 the queue.
 
-.. c:type:: Res (*ABQIterateMethod)(ABQDisposition *dispositionReturn, Addr element, void *closureP)
+.. c:type:: Res (*ABQIterateMethod)(ABQDisposition *dispositionReturn, void *element, void *closureP)
 
 A callback function for :c:func:`ABQIterate`. The parameter
 ``element`` is an element in the queue, and ``closureP`` is the value

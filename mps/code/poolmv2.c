@@ -494,7 +494,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
  
   /* Attempt to retrieve a free block from the ABQ */
   ABQRefillIfNecessary(mvt, minSize);
-  res = ABQPeek(MVTABQ(mvt), (Addr)&range);
+  res = ABQPeek(MVTABQ(mvt), &range);
   if (res != ResOK) {
     METER_ACC(mvt->underflows, minSize);
     /* <design/poolmvt/#arch.contingency.fragmentation-limit> */
@@ -591,7 +591,7 @@ done:
  * with it, and the KEEP disposition for ranges that do not.
  */
 static Res MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
-                                Addr element, void *closureP)
+                                void *element, void *closureP)
 {
   Range oldRange, newRange;
 
@@ -599,8 +599,8 @@ static Res MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
   AVER(element != NULL);
   AVER(closureP != NULL);
 
-  oldRange = (Range)element;
-  newRange = (Range)closureP;
+  oldRange = element;
+  newRange = closureP;
 
   if (RangeOverlap(oldRange, newRange)) {
     *dispositionReturn = ABQDispositionDELETE;
@@ -622,19 +622,19 @@ static Res MVTReserve(MVT mvt, Range range)
   AVERT(Range, range);
   AVER(RangeSize(range) >= mvt->reuseSize);
 
-  res = ABQPush(MVTABQ(mvt), (Addr)range);
+  res = ABQPush(MVTABQ(mvt), range);
 
   /* See <design/poolmvt/#impl.c.free.merge> */
   if (res != ResOK) {
     Arena arena = PoolArena(MVT2Pool(mvt));
     RangeStruct oldRange;
-    res = ABQPeek(MVTABQ(mvt), (Addr)&oldRange);
+    res = ABQPeek(MVTABQ(mvt), &oldRange);
     AVER(res == ResOK);
     AVERT(Range, &oldRange);
     if (!MVTReturnRangeSegs(mvt, &oldRange, arena))
       goto failOverflow;
     METER_ACC(mvt->returns, RangeSize(&oldRange));
-    res = ABQPush(MVTABQ(mvt), (Addr)range);
+    res = ABQPush(MVTABQ(mvt), range);
     if (res != ResOK)
       goto failOverflow;
   }

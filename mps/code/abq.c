@@ -19,7 +19,7 @@ SRCID(abq, "$Id$");
 
 static Size ABQQueueSize(Count elements, Size elementSize);
 static Index ABQNextIndex(ABQ abq, Index index);
-static Addr ABQElement(ABQ abq, Index index);
+static void *ABQElement(ABQ abq, Index index);
 
 
 /* Methods */
@@ -97,7 +97,7 @@ void ABQFinish(Arena arena, ABQ abq)
 
 
 /* ABQPush -- push an element onto the tail of the ABQ */
-Res ABQPush(ABQ abq, Addr element)
+Res ABQPush(ABQ abq, void *element)
 {
   AVERT(ABQ, abq);
 
@@ -115,7 +115,7 @@ Res ABQPush(ABQ abq, Addr element)
 
 
 /* ABQPop -- pop an element from the head of the ABQ */
-Res ABQPop(ABQ abq, Addr elementReturn)
+Res ABQPop(ABQ abq, void *elementReturn)
 {
   AVER(elementReturn != NULL);
   AVERT(ABQ, abq);
@@ -135,7 +135,7 @@ Res ABQPop(ABQ abq, Addr elementReturn)
 
 
 /* ABQPeek -- peek at the head of the ABQ */
-Res ABQPeek(ABQ abq, Addr elementReturn)
+Res ABQPeek(ABQ abq, void *elementReturn)
 {
   AVER(elementReturn != NULL);
   AVERT(ABQ, abq);
@@ -265,7 +265,7 @@ void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP)
   in = abq->in;
  
   while (index != in) {
-    Addr element = ABQElement(abq, index);
+    void *element = ABQElement(abq, index);
     ABQDisposition disposition = ABQDispositionNONE;
     res = (*iterate)(&disposition, element, closureP);
     AVERT(ABQDisposition, disposition);
@@ -314,8 +314,8 @@ static Index ABQNextIndex(ABQ abq, Index index)
 
 /* ABQElement -- return pointer to the index'th element in the queue
    vector. */
-static Addr ABQElement(ABQ abq, Index index) {
-  return AddrAdd(abq->queue, index * abq->elementSize);
+static void *ABQElement(ABQ abq, Index index) {
+  return PointerAdd(abq->queue, index * abq->elementSize);
 }
 
 
