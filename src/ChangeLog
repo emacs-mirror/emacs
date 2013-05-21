@@ -1,3 +1,8 @@
+2013-05-21  Barry OReilly <gundaetiapo@gmail.com>
+
+	* search.c (looking_at_1): Only set last_thing_searched if the match
+	changed the match-data (bug#14281).
+
 2013-05-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (reseat_at_previous_visible_line_start):
@@ -8,8 +13,8 @@
 
 	* xfns.c (check_x_display_info): Don't use XINT for terminal object.
 	(Fx_display_pixel_width, Fx_display_pixel_height)
-	(Fx_display_mm_width, Fx_display_mm_height): Mention
-	`display-monitor-attributes-list' in docstrings.
+	(Fx_display_mm_width, Fx_display_mm_height):
+	Mention `display-monitor-attributes-list' in docstrings.
 
 	* nsfns.m (ns_get_screen): Remove function.  All uses removed.
 	(check_ns_display_info): Sync with check_x_display_info	in xfns.c.
@@ -25,8 +30,8 @@
 	(Fx_display_pixel_width, Fx_display_pixel_width): Return width or
 	height for all physical monitors as in X11.
 
-	* nsterm.m (x_display_pixel_width, x_display_pixel_height): Return
-	pixel width or height for all physical monitors as in X11.
+	* nsterm.m (x_display_pixel_width, x_display_pixel_height):
+	Return pixel width or height for all physical monitors as in X11.
 
 2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
