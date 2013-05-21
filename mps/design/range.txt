@@ -41,8 +41,8 @@ Interface
 
 ``Range`` is the type of a range. It is an alias for ``RangeStruct
 *``. ``RangeStruct`` is defined in the header so that it can be
-inlined in clients structures or allocated on the stack. Clients must
-must not depend on its implementation details.
+inlined in client structures or allocated on the stack. Clients must
+not depend on its implementation details.
 
 .. c:function:: Res RangeInit(Range range, Addr base, Addr limit)
 
@@ -60,15 +60,18 @@ invalid.
 
 .. c:function:: Addr RangeBase(Range range)
 
-Return the base of the range.
+Return the base of the range. (This is implemented as a macro, but
+there is a function too.)
 
 .. c:function:: Addr RangeLimit(Range range);
 
-Return the limit of the range.
+Return the limit of the range. (This is implemented as a macro, but
+there is a function too.)
 
-.. c:function:: Size (RangeSize)(Range range)
+.. c:function:: Size RangeSize(Range range)
 
-Return the size of the range.
+Return the size of the range. (This is implemented as a macro, but
+there is a function too. The macro evaluates its argument twice.)
 
 .. c:function:: Bool RangeOverlap(Range range1, Range range2)
 
