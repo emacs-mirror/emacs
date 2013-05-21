@@ -540,11 +540,11 @@ definitions can also be stored in files and used in batch mode."
   (setq-local paragraph-separate paragraph-start)
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local fill-paragraph-function 'octave-fill-paragraph)
-  ;; FIXME: Why disable it?
-  ;; (setq-local adaptive-fill-regexp nil)
-  ;; Again, this is not a property of the language, don't set it here.
-  ;; (setq fill-column 72)
-  (setq-local normal-auto-fill-function 'octave-auto-fill)
+
+  ;; Use `smie-auto-fill' after fixing bug#14381.
+  (setq-local normal-auto-fill-function 'do-auto-fill)
+  (setq-local fill-nobreak-predicate #'octave-in-string-p)
+  (setq-local comment-line-break-function #'octave-indent-new-comment-line)
 
   (setq font-lock-defaults '(octave-font-lock-keywords))
 
@@ -946,7 +946,7 @@ directory and makes this the current buffer's default directory."
              (or done (goto-char (point-min)))))))
     (pcase (file-name-extension (buffer-file-name))
       (`"cc" (funcall search
-                      "\\_<DEFUN\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
+                      "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
       (t (funcall search octave-function-header-regexp 3)))))
 
 (defun octave-function-file-p ()
@@ -1100,21 +1100,25 @@ q: Don't fix\n" func file))
 
 ;;; Indentation
 
-(defun octave-indent-new-comment-line ()
+(defun octave-indent-new-comment-line (&optional soft)
   "Break Octave line at point, continuing comment if within one.
-If within code, insert `octave-continuation-string' before breaking the
-line.  If within a string, signal an error.
-The new line is properly indented."
+Insert `octave-continuation-string' before breaking the line
+unless inside a list.  Signal an error if within a single-quoted
+string."
   (interactive)
-  (delete-horizontal-space)
   (cond
-   ((octave-in-comment-p)
-    (indent-new-comment-line))
-   ((octave-in-string-p)
-    (error "Cannot split a code line inside a string"))
+   ((octave-in-comment-p) nil)
+   ((eq (octave-in-string-p) ?')
+    (error "Cannot split a single-quoted string"))
+   ((eq (octave-in-string-p) ?\")
+    (insert octave-continuation-string))
    (t
-    (insert (concat " " octave-continuation-string))
-    (reindent-then-newline-and-indent))))
+    (delete-horizontal-space)
+    (unless (and (cadr (syntax-ppss))
+                 (eq (char-after (cadr (syntax-ppss))) ?\())
+      (insert " " octave-continuation-string))))
+  (indent-new-comment-line soft)
+  (indent-according-to-mode))
 
 (define-obsolete-function-alias
   'octave-indent-defun 'prog-indent-sexp "24.4")
@@ -1224,70 +1228,8 @@ The block marked is the one that contains point or follows point."
     (when (and (> arg 0) (/= orig (point)))
       (setq arg (1- arg)))
     (forward-sexp (- arg))
+    (and (< arg 0) (forward-sexp -1))
     (/= orig (point))))
-
-
-;;; Filling
-(defun octave-auto-fill ()
-  "Perform auto-fill in Octave mode.
-Returns nil if no feasible place to break the line could be found, and t
-otherwise."
-  (let (fc give-up)
-    (if (or (null (setq fc (current-fill-column)))
-	    (save-excursion
-	      (beginning-of-line)
-	      (and auto-fill-inhibit-regexp
-		   (octave-looking-at-kw auto-fill-inhibit-regexp))))
-	nil				; Can't do anything
-      (if (and (not (octave-in-comment-p))
-	       (> (current-column) fc))
-	  (setq fc (- fc (+ (length octave-continuation-string) 1))))
-      (while (and (not give-up) (> (current-column) fc))
-	(let* ((opoint (point))
-	       (fpoint
-		(save-excursion
-		  (move-to-column (+ fc 1))
-		  (skip-chars-backward "^ \t\n")
-		  ;; If we're at the beginning of the line, break after
-		  ;; the first word
-		  (if (bolp)
-		      (re-search-forward "[ \t]" opoint t))
-		  ;; If we're in a comment line, don't break after the
-		  ;; comment chars
-		  (if (save-excursion
-			(skip-syntax-backward " <")
-			(bolp))
-		      (re-search-forward "[ \t]" (line-end-position)
-					 'move))
-		  ;; If we're not in a comment line and just ahead the
-		  ;; continuation string, don't break here.
-		  (if (and (not (octave-in-comment-p))
-			   (looking-at
-			    (concat "\\s-*"
-				    (regexp-quote
-				     octave-continuation-string)
-				    "\\s-*$")))
-		      (end-of-line))
-		  (skip-chars-backward " \t")
-		  (point))))
-	  (if (save-excursion
-		(goto-char fpoint)
-		(not (or (bolp) (eolp))))
-	      (let ((prev-column (current-column)))
-		(if (save-excursion
-		      (skip-chars-backward " \t")
-		      (= (point) fpoint))
-		    (progn
-		      (octave-maybe-insert-continuation-string)
-		      (indent-new-comment-line t))
-		  (save-excursion
-		    (goto-char fpoint)
-		    (octave-maybe-insert-continuation-string)
-		    (indent-new-comment-line t)))
-		(if (>= (current-column) prev-column)
-		    (setq give-up t)))
-	    (setq give-up t))))
-      (not give-up))))
 
 (defun octave-fill-paragraph (&optional _arg)
   "Fill paragraph of Octave code, handling Octave comments."
@@ -1354,11 +1296,10 @@ otherwise."
                 (and (= (current-column) cfc) (eolp)))
             (forward-line 1)
           (if (not (eolp)) (insert " "))
-          (or (octave-auto-fill)
+          (or (do-auto-fill)
               (forward-line 1))))
       t)))
 
-
 ;;; Completions
 
 (defun octave-completion-at-point ()
@@ -1658,10 +1599,14 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
         (when (re-search-forward "from the file \\(.*\\)$"
                                  (line-end-position)
                                  t)
-          (let ((file (match-string 1)))
+          (let* ((file (match-string 1))
+                 (dir (file-name-directory
+                       (directory-file-name (file-name-directory file)))))
             (replace-match "" nil nil nil 1)
             (insert "`")
-            (help-insert-xref-button (file-name-nondirectory file)
+            ;; Include the parent directory which may be regarded as
+            ;; the category for the FN.
+            (help-insert-xref-button (file-relative-name file dir)
                                      'octave-help-file fn)
             (insert "'")))
         ;; Make 'See also' clickable

@@ -1,3 +1,13 @@
+2013-05-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-auto-fill): Remove.
+	(octave-indent-new-comment-line): Improve.
+	(octave-mode): Use auto fill mode through
+	comment-line-break-function and fill-nobreak-predicate
+	(octave-goto-function-definition): Support DEFUN_DLD.
+	(octave-beginning-of-defun): Small Tweak
+	(octave-help): Show parent directory.
+
 2013-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (dired-unmark):
