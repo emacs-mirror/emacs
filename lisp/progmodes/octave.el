@@ -141,7 +141,7 @@ parenthetical grouping.")
     ["Close Block"                  smie-close-block t]
     "---"
     ["Start Octave Process"         run-octave t]
-    ["Lookup Documentation"         info-lookup-symbol t]
+    ["Documentation Lookup"         info-lookup-symbol t]
     ["Help on Function"             octave-help t]
     ["Find Function Definition"     octave-find-definition t]
     ["Insert Function"              octave-insert-defun t]
