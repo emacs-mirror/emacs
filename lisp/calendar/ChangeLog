@@ -1,5 +1,12 @@
 2013-05-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: Use visual-line-mode instead of custom code.
+	(todos-line-wrapping-function, todos-wrap-and-indent): Remove.
+	(todos-wrap-lines, todos-indent-to-here): Update doc string.
+	(todos-modes-set-1): Use visual-line-mode.
+
+2013-05-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-read-file-name): Fix previous change to ensure
 	it works when invoked outside of a Todos file.
 

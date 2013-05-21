@@ -384,26 +384,14 @@ Categories mode visits the archived categories."
 		(hl-line-mode -1)))))))))
 
 (defcustom todos-wrap-lines t
-  "Non-nil to wrap long lines via `todos-line-wrapping-function'."
+  "Non-nil to activate Visual Line mode and use wrap prefix."
   :group 'todos-mode-display
   :type 'boolean)
 
-(defcustom todos-line-wrapping-function 'todos-wrap-and-indent
-  "Line wrapping function used with non-nil `todos-wrap-lines'."
-  :group 'todos-mode-display
-  :type 'function)
-
-(defun todos-wrap-and-indent ()
-  "Use word wrapping on long lines and indent with a wrap prefix.
-The amount of indentation is given by user option
-`todos-indent-to-here'."
-  (set (make-local-variable 'word-wrap) t)
-  (set (make-local-variable 'wrap-prefix) (make-string todos-indent-to-here 32))
-  (unless (member '(continuation) fringe-indicator-alist)
-    (push '(continuation) fringe-indicator-alist)))
-
 (defcustom todos-indent-to-here 3
-  "Number of spaces `todos-line-wrapping-function' indents to."
+  "Number of spaces to indent continuation lines of items.
+This must be a positive number to ensure such items are fully
+shown in the Fancy Diary display."
   :type '(integer :validate
 		  (lambda (widget)
 		    (unless (> (widget-value widget) 0)
@@ -1152,10 +1140,8 @@ number as its value."
     (propertize (if (= 1 (length sep))
 		    ;; Until bug#2749 is fixed, if separator's length
 		    ;; is window-width, then with non-nil
-		    ;; todos-wrap-lines and todos-wrap-and-indent as
-		    ;; value of todos-line-wrapping-function, an
-		    ;; indented empty line appears between the
-		    ;; separator and the first done item.
+		    ;; todos-wrap-lines an indented empty line appears
+		    ;; between the separator and the first done item.
 		    ;; (make-string (1- (window-width)) (string-to-char sep))
 		    (make-string (window-width) (string-to-char sep))
 		  todos-done-separator-string)
@@ -3015,7 +3001,9 @@ which is the value of the user option
   (set (make-local-variable 'font-lock-defaults) '(todos-font-lock-keywords t))
   (set (make-local-variable 'tab-width) todos-indent-to-here)
   (set (make-local-variable 'indent-line-function) 'todos-indent)
-  (when todos-wrap-lines (funcall todos-line-wrapping-function)))
+  (when todos-wrap-lines
+    (visual-line-mode)
+    (setq wrap-prefix (make-string todos-indent-to-here 32))))
 
 (defun todos-modes-set-2 ()
   ""
