@@ -279,8 +279,6 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
     if (verbose)
       putchar('\n');
   }
-   
-  PoolDescribe((Pool)pool, mps_lib_stdout);
  
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
