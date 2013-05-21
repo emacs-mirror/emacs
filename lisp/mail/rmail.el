@@ -4310,7 +4310,6 @@ This has an effect only if a summary buffer exists."
                  (restore-buffer-modified-p nil)))))))
 
 ;;; Speedbar support for RMAIL files.
-(eval-when-compile (require 'speedbar))
 
 (defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
   "Regexp matching Rmail folder names to be displayed in Speedbar.
@@ -4326,12 +4325,12 @@ browsing, and moving of messages."
 (defvar rmail-speedbar-key-map nil
   "Keymap used when in rmail display mode.")
 
+(declare-function speedbar-make-specialized-keymap "speedbar" ())
+
 (defun rmail-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance rmail."
-  (if rmail-speedbar-key-map
-      nil
+  (unless rmail-speedbar-key-map
     (setq rmail-speedbar-key-map (speedbar-make-specialized-keymap))
-
     (define-key rmail-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key rmail-speedbar-key-map "r" 'speedbar-edit-line)
     (define-key rmail-speedbar-key-map "\C-m" 'speedbar-edit-line)
@@ -4346,11 +4345,15 @@ browsing, and moving of messages."
 		     (looking-at "<M> "))])
   "Additional menu-items to add to speedbar frame.")
 
+(declare-function speedbar-insert-button "speedbar"
+		  (text face mouse function &optional token prevline))
+
 ;; Make sure our special speedbar major mode is loaded
 (if (featurep 'speedbar)
     (rmail-install-speedbar-variables)
   (add-hook 'speedbar-load-hook 'rmail-install-speedbar-variables))
 
+;; Called from speedbar-add-localized-speedbar-support.
 (defun rmail-speedbar-buttons (buffer)
   "Create buttons for BUFFER containing rmail messages.
 Click on the address under Reply to: to reply to this person.
@@ -4387,6 +4390,8 @@ current message into that RMAIL folder."
 	    (speedbar-insert-button file 'speedbar-file-face 'highlight
 				    'rmail-speedbar-find-file nil t)))))))
 
+(declare-function speedbar-with-attached-buffer "speedbar" (&rest forms) t)
+
 (defun rmail-speedbar-button (text token indent)
   "Execute an rmail command specified by TEXT.
 The command used is TOKEN.  INDENT is not used."
@@ -4399,6 +4404,8 @@ TOKEN and INDENT are not used."
   (speedbar-with-attached-buffer
    (message "Loading in RMAIL file %s..." text)
    (rmail text)))
+
+(declare-function speedbar-do-function-pointer "speedbar" ())
 
 (defun rmail-speedbar-move-message-to-folder-on-line ()
   "If the current line is a folder, move current message to it."
