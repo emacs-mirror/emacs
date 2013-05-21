@@ -24,13 +24,11 @@ Requirements
 ------------
 
 _`.req.range` A range object must be able to represent an arbitrary
-range of addresses.
+range of addresses that does not include the top byte of the address
+space.
 
 _`.req.empty` A range object must be able to represent the empty
 range.
-
-_`.req.whole` A range object must be able to represent the whole of
-address space.
 
 _`.req.stack-alloc` It must be possible to allocate range objects on
 the stack: that is, they do not require any heap resource.
