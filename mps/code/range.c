@@ -2,6 +2,8 @@
  *
  * $Id$
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ *
+ * .design: <design/range/>
  */
 
 #include "range.h"

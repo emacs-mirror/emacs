@@ -1,0 +1,130 @@
+.. mode:: -*- rst -*-
+
+Range design
+============
+
+:Tag: design.mps.range
+:Author: Gareth Rees
+:Date: 2013-05-21
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `C. Copyright and License`_.
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the Range module, which implements
+objects representing address ranges.
+
+_`readership`: This document is intended for any MPS developer.
+
+
+Requirements
+------------
+
+_`.req.range` A range object must be able to represent an arbitrary
+range of addresses.
+
+_`.req.empty` A range object must be able to represent the empty
+range.
+
+_`.req.whole` A range object must be able to represent the whole of
+address space.
+
+_`.req.stack-alloc` It must be possible to allocate range objects on
+the stack: that is, they do not require any heap resource.
+
+
+Interface
+---------
+
+.. c:type:: Range
+
+``Range`` is the type of a range. It is an alias for ``RangeStruct
+*``. ``RangeStruct`` is defined in the header so that it can be
+inlined in clients structures or allocated on the stack. Clients must
+must not depend on its implementation details.
+
+.. c:function:: Res RangeInit(Range range, Addr base, Addr limit)
+
+Initialize a range object to represent the half-open address range
+between ``base`` (inclusive) and ``limit`` (exclusive). It must be the
+case that ``base <= limit``. If ``base == limit`` then the range is
+empty.
+
+.. c:function:: void RangeFinish(Range range)
+
+Finish a range object. Because a range object uses no heap resources
+(`.req.stack-alloc`_) it is not necessary to call this. However,
+clients may wish to do so in order to ensure that the range object is
+invalid.
+
+.. c:function:: Addr RangeBase(Range range)
+
+Return the base of the range.
+
+.. c:function:: Addr RangeLimit(Range range);
+
+Return the limit of the range.
+
+.. c:function:: Size (RangeSize)(Range range)
+
+Return the size of the range.
+
+.. c:function:: Bool RangeOverlap(Range range1, Range range2)
+
+Return ``TRUE`` if the two ranges overlap (have at least one address
+in common), or ``FALSE`` if they do not. Note that ranges [A, B) and
+[B, C) do not overlap.
+
+
+B. Document history
+-------------------
+
+- 2013-05-21 GDR_ Created.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+C. Copyright and License
+------------------------
+
+Copyright (C) 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

@@ -4,6 +4,8 @@
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Representation of address ranges.
+ *
+ * .design: <design/range/>
  */
 
 #ifndef range_h
