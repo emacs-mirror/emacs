@@ -8,3 +8,14 @@
 # Patch results
 *.orig
 *.rej
+Makefile
+autom4te.cache
+config.log
+config.status
+TAGS
+*.dSYM
+example/scheme/scheme
+example/scheme/scheme.dSYM
+code/*/*/*.d
+manual/doctrees
+*.pyc
