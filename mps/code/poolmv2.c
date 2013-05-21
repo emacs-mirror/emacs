@@ -107,8 +107,7 @@ typedef struct MVTStruct
   METER_DECL(underflows);
   METER_DECL(refills);
   METER_DECL(refillPushes);
-  METER_DECL(refillOverflows);
-  METER_DECL(refillReturns);
+  METER_DECL(returns);
   /* fragmentation meters */
   METER_DECL(perfectFits);
   METER_DECL(firstFits);
@@ -288,8 +287,7 @@ static Res MVTInit(Pool pool, va_list arg)
   METER_INIT(mvt->underflows, "ABQ underflows", (void *)mvt);
   METER_INIT(mvt->refills, "ABQ refills", (void *)mvt);
   METER_INIT(mvt->refillPushes, "ABQ refill pushes", (void *)mvt);
-  METER_INIT(mvt->refillOverflows, "ABQ refill overflows", (void *)mvt);
-  METER_INIT(mvt->refillReturns, "ABQ refill returns", (void *)mvt);
+  METER_INIT(mvt->returns, "ABQ returns", (void *)mvt);
   METER_INIT(mvt->perfectFits, "perfect fits", (void *)mvt);
   METER_INIT(mvt->firstFits, "first fits", (void *)mvt);
   METER_INIT(mvt->secondFits, "second fits", (void *)mvt);
@@ -591,24 +589,25 @@ static Res MVTReserve(MVT mvt, Range range)
 
   /* See <design/poolmvt/#impl.c.free.merge> */
   if (res != ResOK) {
-    Bool success;
     Arena arena = PoolArena(MVT2Pool(mvt));
     RangeStruct oldRange;
     res = ABQPeek(MVTABQ(mvt), (Addr)&oldRange);
     AVER(res == ResOK);
     AVERT(Range, &oldRange);
-    success = MVTReturnRangeSegs(mvt, &oldRange, arena);
-    AVER(success);
-    res = ABQPush(MVTABQ(mvt), (Addr)&range);
-    if (res != ResOK) {
-      unless(MVTReturnRangeSegs(mvt, range, arena)) {
-        mvt->abqOverflow = TRUE;
-        METER_ACC(mvt->overflows, RangeSize(range));
-      }
-    }
+    if (!MVTReturnRangeSegs(mvt, &oldRange, arena))
+      goto failOverflow;
+    METER_ACC(mvt->returns, RangeSize(&oldRange));
+    res = ABQPush(MVTABQ(mvt), (Addr)range);
+    if (res != ResOK)
+      goto failOverflow;
   }
 
-  return res;
+  return ResOK;
+
+failOverflow:
+  mvt->abqOverflow = TRUE;
+  METER_ACC(mvt->overflows, RangeSize(range));
+  return ResFAIL;
 }
 
 
@@ -628,14 +627,12 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
   if (res != ResOK)
     return res;
 
-  /* The CBS might have coalesced the inserted range on both sides,
-   * either of which might be on the ABQ. But if the returned range is
-   * smaller than the reuse size, then it cannot have coalesced with
-   * any ranges that were in the ABQ, so we can skip the deletion
-   * step.
-   */
-  RangeInit(&range, base, limit);
+  RangeInit(&range, newBase, newLimit);
   if (RangeSize(&range) >= mvt->reuseSize) {
+    /* The new range is big enough that it might have been coalesced
+     * with ranges on the ABQ, so ensure that they are removed before
+     * reserving the new range.
+     */
     ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range);
     MVTReserve(mvt, &range);
   }
@@ -649,33 +646,32 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
  */
 static Res MVTDelete(MVT mvt, Addr base, Addr limit)
 {
-  Addr newBase, newLimit;
+  Addr oldBase, oldLimit;
   RangeStruct range, rangeLeft, rangeRight;
   Res res;
 
   AVERT(MVT, mvt);
   AVER(base < limit);
 
-  RangeInit(&range, base, limit);
-
-  /* If the address range is smaller than the reuse size, then it can't
-   * be on the ABQ, so there's no need to delete it.
-   */
-  if (RangeSize(&range) >= mvt->reuseSize)
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range);
-
-  res = CBSDelete(&newBase, &newLimit, MVTCBS(mvt), base, limit);
+  res = CBSDelete(&oldBase, &oldLimit, MVTCBS(mvt), base, limit);
   if (res != ResOK)
     return res;
 
-  /* There might be fragments at the left or the right of the deleted
-   * range, and either might be big enough to go on the ABQ.
+  /* If the old address range was larger than the reuse size, then it
+   * might be on the ABQ, so ensure it is removed.
    */
-  RangeInit(&rangeLeft, newBase, base);
+  RangeInit(&range, oldBase, oldLimit);
+  if (RangeSize(&range) >= mvt->reuseSize)
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range);
+
+  /* There might be fragments at the left or the right of the deleted
+   * range, and either might be big enough to go back on the ABQ.
+   */
+  RangeInit(&rangeLeft, oldBase, base);
   if (RangeSize(&rangeLeft) >= mvt->reuseSize)
     MVTReserve(mvt, &rangeLeft);
 
-  RangeInit(&rangeRight, limit, newLimit);
+  RangeInit(&rangeRight, limit, oldLimit);
   if (RangeSize(&rangeRight) >= mvt->reuseSize)
     MVTReserve(mvt, &rangeRight);
 
@@ -880,9 +876,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK) return res;
   res = METER_WRITE(mvt->refillPushes, stream);
   if (res != ResOK) return res;
-  res = METER_WRITE(mvt->refillOverflows, stream);
-  if (res != ResOK) return res;
-  res = METER_WRITE(mvt->refillReturns, stream);
+  res = METER_WRITE(mvt->returns, stream);
   if (res != ResOK) return res;
   res = METER_WRITE(mvt->perfectFits, stream);
   if (res != ResOK) return res;
@@ -1061,7 +1055,7 @@ static Bool MVTReturnRangeSegs(MVT mvt, Range range, Arena arena)
 
 
 /* ABQRefillIfNecessary -- refill the ABQ from the CBS if it had
- * overflown and is now empty
+ * overflowed and is now empty.
  */
 static void ABQRefillIfNecessary(MVT mvt, Size size)
 {
@@ -1099,17 +1093,9 @@ static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit, void *closureP)
 
   METER_ACC(mvt->refillPushes, ABQDepth(MVTABQ(mvt)));
   RangeInit(&range, base, limit);
-  res = ABQPush(MVTABQ(mvt), (Addr)&range);
-  if (res != ResOK) {
-    if (MVTReturnRangeSegs(mvt, &range, PoolArena(MVT2Pool(mvt)))) {
-      METER_ACC(mvt->refillReturns, size);
-      return TRUE;
-    } else {
-      mvt->abqOverflow = TRUE;
-      METER_ACC(mvt->refillOverflows, size);
-      return FALSE;
-    }
-  }
+  res = MVTReserve(mvt, &range);
+  if (res != ResOK)
+    return FALSE;
 
   return TRUE;
 }
