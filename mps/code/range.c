@@ -27,10 +27,10 @@ Res RangeInit(Range range, Addr base, Addr limit)
   AVER(base != NULL);
   AVER(base <= limit);
 
-  range->sig = RangeSig;
   range->base = base;
   range->limit = limit;
 
+  range->sig = RangeSig;
   AVERT(Range, range);
   return ResOK;
 }
@@ -38,9 +38,9 @@ Res RangeInit(Range range, Addr base, Addr limit)
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
+  range->sig = SigInvalid;
 
   range->base = range->limit = NULL;
-  range->sig = SigInvalid;
 }
 
 Res RangeDescribe(Range range, mps_lib_FILE *stream)
