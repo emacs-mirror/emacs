@@ -23,16 +23,16 @@
 /* Prototypes  */
 
 typedef struct ABQStruct *ABQ;
-typedef Res (*ABQDescribeElement)(Addr element, mps_lib_FILE *stream);
+typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream);
 typedef unsigned ABQDisposition;
-typedef Res (*ABQIterateMethod)(ABQDisposition *dispositionReturn, Addr element, void *closureP);
+typedef Res (*ABQIterateMethod)(ABQDisposition *dispositionReturn, void *element, void *closureP);
 
 extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
 extern Bool ABQCheck(ABQ abq);
 extern void ABQFinish(Arena arena, ABQ abq);
-extern Res ABQPush(ABQ abq, Addr element);
-extern Res ABQPop(ABQ abq, Addr elementReturn);
-extern Res ABQPeek(ABQ abq, Addr elementReturn);
+extern Res ABQPush(ABQ abq, void *element);
+extern Res ABQPop(ABQ abq, void *elementReturn);
+extern Res ABQPeek(ABQ abq, void *elementReturn);
 extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream);
 extern Bool ABQIsEmpty(ABQ abq);
 extern Bool ABQIsFull(ABQ abq);
@@ -48,7 +48,7 @@ typedef struct ABQStruct
   Size elementSize;
   Index in;
   Index out;
-  Addr queue;
+  void *queue;
 
   /* Meter queue depth at each operation */
   METER_DECL(push);

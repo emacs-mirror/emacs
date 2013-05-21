@@ -95,7 +95,7 @@ typedef struct TestClosureStruct {
   Res res;
 } TestClosureStruct;
 
-static Res TestDeleteCallback(ABQDisposition *dispositionReturn, Addr element,
+static Res TestDeleteCallback(ABQDisposition *dispositionReturn, void *element,
                               void *closureP)
 {
   TestBlock *a = (TestBlock *)element;
@@ -120,7 +120,7 @@ static void step(void)
     case 0: case 1: case 2: case 3:
   push:
       a = CreateTestBlock(pushee);
-      res = ABQPush(&abq, (Addr)&a);
+      res = ABQPush(&abq, &a);
       if (res != ResOK) {
         goto pop;
       }
@@ -128,7 +128,7 @@ static void step(void)
       break;
     case 5: case 6: case 7: case 8:
   pop:
-      res = ABQPop(&abq, (Addr)&a);
+      res = ABQPop(&abq, &a);
       if (res != ResOK){
         goto push;
       }
