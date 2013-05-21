@@ -1,5 +1,12 @@
 2013-05-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el (todos-key-bindings, todos-archive-mode-map)
+	(todos-filtered-items-mode-map): Update bindings.
+	(todos-find-archive): Rename from todos-show-archive and adjust uses.
+	(todos-find-filtered-items-file): New command.
+
+2013-05-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el: Use visual-line-mode instead of custom code.
 	(todos-line-wrapping-function, todos-wrap-and-indent): Remove.
 	(todos-wrap-lines, todos-indent-to-here): Update doc string.

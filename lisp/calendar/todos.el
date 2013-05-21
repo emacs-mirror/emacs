@@ -59,9 +59,6 @@ truenames (those with the extension \".toda\")."
 				      (cis2 (upcase s2)))
 				  (string< cis1 cis2))))))
 
-;; (defun todos-filtered-items-files ()
-;;   (directory-files todos-directory t "\.tod[rty]$" t))
-
 (defcustom todos-files-function 'todos-files
   "Function returning the value of the variable `todos-files'.
 This function should take an optional argument that, if non-nil,
@@ -127,7 +124,7 @@ Called after adding or deleting a Todos file."
 (defcustom todos-visit-files-commands (list 'find-file 'dired-find-file)
   "List of file finding commands for `todos-display-as-todos-file'.
 Invoking these commands to visit a Todos or Todos Archive file
-calls `todos-show' or `todos-show-archive', so that the file is
+calls `todos-show' or `todos-find-archive', so that the file is
 displayed correctly."
   :type '(repeat function)
   :group 'todos)
@@ -2771,7 +2768,7 @@ which is the value of the user option
 
 (defvar todos-key-bindings
   `(
-    ("As"	     . todos-show-archive)
+    ("Af"	     . todos-find-archive)
     ("Ac"	     . todos-choose-archive)
     ("Ad"	     . todos-archive-done-item)
     ("C*"	     . todos-mark-category)
@@ -2788,6 +2785,7 @@ which is the value of the user option
     ("Cek"	     . todos-edit-category-diary-nonmarking)
     ("Fa"	     . todos-add-file)
     ("Fc"	     . todos-show-categories-table)
+    ("Ff"	     . todos-find-filtered-items-file)
     ("Fh"	     . todos-toggle-item-header)
     ("h"	     . todos-toggle-item-header)
     ("Fe"	     . todos-edit-file)
@@ -2915,6 +2913,7 @@ which is the value of the user option
     (define-key map "C*" 'todos-mark-category)
     (define-key map "Cu" 'todos-unmark-category)
     (define-key map "Fc" 'todos-show-categories-table)
+    (define-key map "Ff" 'todos-find-filtered-items-file)
     (define-key map "FH" 'todos-toggle-item-highlighting)
     (define-key map "H" 'todos-toggle-item-highlighting)
     (define-key map "FN" 'todos-toggle-prefix-numbers)
@@ -2971,6 +2970,7 @@ which is the value of the user option
 (defvar todos-filtered-items-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
+    (define-key map "Ff" 'todos-find-filtered-items-file)
     (define-key map "FH" 'todos-toggle-item-highlighting)
     (define-key map "H" 'todos-toggle-item-highlighting)
     (define-key map "FN" 'todos-toggle-prefix-numbers)
@@ -3295,7 +3295,7 @@ are shown in `todos-archived-only' face."
     (forward-line 2)
     (todos-update-categories-display 'archived)))
 
-(defun todos-show-archive (&optional ask)
+(defun todos-find-archive (&optional ask)
   "Visit the archive of the current Todos category, if it exists.
 If the category has no archived items, prompt to visit the
 archive anyway.  If there is no archive for this file or with
@@ -3334,7 +3334,23 @@ displayed."
 (defun todos-choose-archive ()
   "Choose an archive and visit it."
   (interactive)
-  (todos-show-archive t))
+  (todos-find-archive t))
+
+(defun todos-find-filtered-items-file ()
+  "Choose a filtered items file and visit it."
+  (interactive)
+  (let ((files (directory-files todos-directory t "\.tod[rty]$" t))
+	falist file)
+    (dolist (f files)
+      (let ((type (cond ((equal (file-name-extension f) "todr") "regexp")
+			((equal (file-name-extension f) "todt") "top")
+			((equal (file-name-extension f) "tody") "diary"))))
+	(push (cons (concat (todos-short-file-name f) " (" type ")") f)
+	      falist)))
+    (setq file (completing-read "Choose a filtered items file: "
+				falist nil t nil nil (car falist)))
+    (setq file (cdr (assoc-string file falist)))
+    (find-file file)))
 
 (defun todos-save ()
   "Save the current Todos file."
