@@ -98,9 +98,18 @@ Bool VMCheck(VM vm)
 }
 
 
+Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
+{
+  AVER(params != NULL);
+  AVERT(ArgList, args);
+  UNUSED(paramSize);
+  return ResOK;
+}
+
+
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
-Res VMCreate(VM *vmReturn, Size size)
+Res VMCreate(VM *vmReturn, Size size, void *params)
 {
   Align align;
   VM vm;
@@ -109,6 +118,7 @@ Res VMCreate(VM *vmReturn, Size size)
   Res res;
 
   AVER(vmReturn != NULL);
+  AVER(params != NULL);
 
   /* Find out the page size from the OS */
   pagesize = getpagesize();

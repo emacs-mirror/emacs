@@ -73,6 +73,7 @@ typedef struct VMArenaStruct *VMArena;
 typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaStruct arenaStruct;
   VM vm;                        /* VM where the arena itself is stored */
+  char vmParams[VMParamSize];   /* VM parameter block */
   Size spareSize;              /* total size of spare pages */
   ZoneSet blacklist;             /* zones to use last */
   ZoneSet genZoneSet[VMArenaGenCount]; /* .gencount.const */
@@ -190,6 +191,9 @@ static Bool VMArenaCheck(VMArena vmArena)
     /* count of committed, but we don't have all day. */
     CHECKL(VMMapped(primary->vm) <= arena->committed);
   }
+  
+  /* FIXME: Can't check VMParams */
+
   return TRUE;
 }
 
@@ -311,7 +315,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   AVERT(VMArena, vmArena);
   AVER(size > 0);
 
-  res = VMCreate(&vm, size);
+  res = VMCreate(&vm, size, vmArena->vmParams);
   if (res != ResOK)
     goto failVMCreate;
 
@@ -440,12 +444,23 @@ static void VMChunkFinish(Chunk chunk)
 }
 
 
+/* VMArenaVarargs -- parse obsolete varargs */
+
+static void VMArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_ARENA_SIZE;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* VMArenaInit -- create and initialize the VM arena
  *
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
-static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
+static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Size userSize;        /* size requested by user */
   Size chunkSize;       /* size actually created */
@@ -456,15 +471,28 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   Index gen;
   VM arenaVM;
   Chunk chunk;
-
-  userSize = va_arg(args, Size);
+  mps_arg_s arg;
+  char vmParams[VMParamSize];
+  
   AVER(arenaReturn != NULL);
   AVER(class == VMArenaClassGet() || class == VMNZArenaClassGet());
+  AVER(ArgListCheck(args));
+
+  ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
+  userSize = arg.val.size;
+
   AVER(userSize > 0);
+  
+  /* Parse the arguments into VM parameters, if any.  We must do this into
+     some stack-allocated memory for the moment, since we don't have anywhere
+     else to put it.  It gets copied later. */
+  res = VMParamFromArgs(vmParams, sizeof(vmParams), args);
+  if (res != ResOK)
+    goto failVMCreate;
 
   /* Create a VM to hold the arena and map it. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
-  res = VMCreate(&arenaVM, vmArenaSize);
+  res = VMCreate(&arenaVM, vmArenaSize, vmParams);
   if (res != ResOK)
     goto failVMCreate;
   res = VMMap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
@@ -481,6 +509,10 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
 
   vmArena->vm = arenaVM;
   vmArena->spareSize = 0;
+
+  /* Copy the stack-allocated VM parameters into their home in the VMArena. */
+  AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
+  mps_lib_memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
 
   /* .blacklist: We blacklist the zones that could be referenced by small
      integers misinterpreted as references.  This isn't a perfect simulation,
@@ -1773,6 +1805,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->name = "VM";
   this->size = sizeof(VMArenaStruct);
   this->offset = offsetof(VMArenaStruct, arenaStruct);
+  this->varargs = VMArenaVarargs;
   this->init = VMArenaInit;
   this->finish = VMArenaFinish;
   this->reserved = VMArenaReserved;

@@ -1,13 +1,17 @@
 /* mpscamfs.h: MEMORY POOL SYSTEM CLASS "MFS"
  *
  * $Id$
- * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef mpscmfs_h
 #define mpscmfs_h
 
 #include "mps.h"
+
+extern const struct mps_key_s _mps_key_mfs_unit_size;
+#define MPS_KEY_MFS_UNIT_SIZE (&_mps_key_mfs_unit_size)
+#define MPS_KEY_MFS_UNIT_SIZE_FIELD size
 
 extern mps_class_t mps_class_mfs(void);
 
@@ -16,7 +20,7 @@ extern mps_class_t mps_class_mfs(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

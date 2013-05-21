@@ -26,10 +26,6 @@
  * check that protocols are obeyed by the client.  It probably doesn't
  * meet checking requirements.
  *
- * .varargs: (rule.universal.complete) The varargs passed to
- * mps_alloc(_v) are ignored at the moment.  None of the pool
- * implementations use them.
- *
  * .poll: (rule.universal.complete) Various allocation methods call
  * ArenaPoll to allow the MPM to "steal" CPU time and get on with
  * background tasks such as incremental GC.
@@ -51,6 +47,14 @@
 #include "mps.h"
 #include "sac.h"
 #include "chain.h"
+
+/* TODO: Remove these includes when varargs support is removed. */
+#include "mpsacl.h"
+#include "mpsavm.h"
+
+#include <stdarg.h>
+#include <string.h>
+
 
 SRCID(mpsi, "$Id$");
 
@@ -311,11 +315,10 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
                            mps_arena_class_t mps_arena_class, ...)
 {
   mps_res_t res;
-  va_list args;
-
-  va_start(args, mps_arena_class);
-  res = mps_arena_create_v(mps_arena_o, mps_arena_class, args);
-  va_end(args);
+  va_list varargs;
+  va_start(varargs, mps_arena_class);
+  res = mps_arena_create_v(mps_arena_o, mps_arena_class, varargs);
+  va_end(varargs);
   return res;
 }
 
@@ -323,7 +326,21 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
 /* mps_arena_create_v -- create an arena object */
 
 mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
-                             mps_arena_class_t arena_class, va_list args)
+                             mps_arena_class_t arena_class,
+                             va_list varargs)
+{
+  mps_arg_s args[MPS_ARGS_MAX];
+  AVERT(ArenaClass, arena_class);
+  arena_class->varargs(args, varargs);
+  return mps_arena_create_k(mps_arena_o, arena_class, args);
+}
+
+
+/* mps_arena_create_k -- create an arena object */
+
+mps_res_t mps_arena_create_k(mps_arena_t *mps_arena_o,
+                             mps_arena_class_t arena_class,
+                             mps_arg_s mps_args[])
 {
   Arena arena;
   Res res;
@@ -334,7 +351,7 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
 
   AVER(mps_arena_o != NULL);
 
-  res = ArenaCreateV(&arena, arena_class, args);
+  res = ArenaCreate(&arena, arena_class, mps_args);
   if (res != ResOK)
     return res;
 
@@ -342,6 +359,7 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   *mps_arena_o = (mps_arena_t)arena;
   return MPS_RES_OK;
 }
+
 
 /* mps_arena_destroy -- destroy an arena object */
 
@@ -602,15 +620,24 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t arena,
                           mps_class_t mps_class, ...)
 {
   mps_res_t res;
-  va_list args;
-  va_start(args, mps_class);
-  res = mps_pool_create_v(mps_pool_o, arena, mps_class, args);
-  va_end(args);
+  va_list varargs;
+  va_start(varargs, mps_class);
+  res = mps_pool_create_v(mps_pool_o, arena, mps_class, varargs);
+  va_end(varargs);
   return res;
 }
 
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
-                            mps_class_t class, va_list args)
+                            mps_class_t class, va_list varargs)
+{
+  mps_arg_s args[MPS_ARGS_MAX];
+  AVERT(PoolClass, class);
+  class->varargs(args, varargs);
+  return mps_pool_create_k(mps_pool_o, arena, class, args);
+}
+
+mps_res_t mps_pool_create_k(mps_pool_t *mps_pool_o, mps_arena_t arena,
+                            mps_class_t class, mps_arg_s args[])
 {
   Pool pool;
   Res res;
@@ -620,8 +647,9 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t arena,
   AVER(mps_pool_o != NULL);
   AVERT(Arena, arena);
   AVERT(PoolClass, class);
+  AVER(ArgListCheck(args));
 
-  res = PoolCreateV(&pool, arena, class, args);
+  res = PoolCreate(&pool, arena, class, args);
 
   ArenaLeave(arena);
 
@@ -645,7 +673,7 @@ void mps_pool_destroy(mps_pool_t pool)
 }
 
 
-mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
+mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
 {
   Arena arena;
   Addr p;
@@ -676,6 +704,8 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size, ...)
   return MPS_RES_OK;
 }
 
+
+/* mps_alloc_v -- allocate in pool with varargs.  Deprecated in 1.112. */
 
 mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
                       va_list args)
@@ -712,39 +742,42 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
 
 mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t pool, ...)
 {
-  Arena arena;
-  Buffer buf;
-  BufferClass bufclass;
-  Res res;
-  va_list args;
-
-  AVER(mps_ap_o != NULL);
-  AVER(TESTT(Pool, pool));
-  arena = PoolArena(pool);
-
-  ArenaEnter(arena);
-
-  AVERT(Pool, pool);
-
-  va_start(args, pool);
-  bufclass = PoolDefaultBufferClass(pool);
-  res = BufferCreateV(&buf, bufclass, pool, TRUE, args);
-  va_end(args);
-
-  ArenaLeave(arena);
-
-  if (res != ResOK)
-    return res;
-  *mps_ap_o = BufferAP(buf);
-  return MPS_RES_OK;
+  mps_res_t res;
+  va_list varargs;
+  va_start(varargs, pool);
+  res = mps_ap_create_v(mps_ap_o, pool, varargs);
+  va_end(varargs);
+  return res;
 }
 
 
 /* mps_ap_create_v -- create an allocation point, with varargs */
 
 mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t pool,
-                          va_list args)
+                          va_list varargs)
 {
+  Arena arena;
+  BufferClass bufclass;
+  mps_arg_s args[MPS_ARGS_MAX];
+
+  AVER(mps_ap_o != NULL);
+  AVER(TESTT(Pool, pool));
+  arena = PoolArena(pool);
+  
+  ArenaEnter(arena);
+  AVERT(Pool, pool);
+  bufclass = PoolDefaultBufferClass(pool);
+  bufclass->varargs(args, varargs);
+  ArenaLeave(arena);
+
+  return mps_ap_create_k(mps_ap_o, pool, args);
+}
+
+/* mps_ap_create_k -- create an allocation point, with keyword args */
+
+mps_res_t mps_ap_create_k(mps_ap_t *mps_ap_o,
+                          mps_pool_t pool,
+                          mps_arg_s args[]) {
   Arena arena;
   Buffer buf;
   BufferClass bufclass;
@@ -759,12 +792,13 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t pool,
   AVERT(Pool, pool);
 
   bufclass = PoolDefaultBufferClass(pool);
-  res = BufferCreateV(&buf, bufclass, pool, TRUE, args);
+  res = BufferCreate(&buf, bufclass, pool, TRUE, args);
 
   ArenaLeave(arena);
 
   if (res != ResOK)
     return res;
+
   *mps_ap_o = BufferAP(buf);
   return MPS_RES_OK;
 }

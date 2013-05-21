@@ -1,7 +1,7 @@
 /* dbgpool.c: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .source: design.mps.object-debug
@@ -97,7 +97,7 @@ PoolDebugMixin PoolNoDebugMixin(Pool pool)
 
 /* PoolDebugOptionsCheck -- check a PoolDebugOptions */
 
-static Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
+Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
 {
   CHECKL(opt != NULL);
   if (opt->fenceSize != 0) {
@@ -117,17 +117,26 @@ static Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
  * Someday, this could be split into fence and tag init methods.
  */
 
-static Res DebugPoolInit(Pool pool, va_list args)
+ARG_DEFINE_KEY(pool_debug_options, PoolDebugOptions);
+
+static Res DebugPoolInit(Pool pool, ArgList args)
 {
   Res res;
   PoolDebugOptions options;
   PoolDebugMixin debug;
   TagInitMethod tagInit;
   Size tagSize;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
-  options = va_arg(args, PoolDebugOptions);
+
+  /* TODO: Split this structure into separate keyword arguments,
+     now that we can support them. */
+  ArgRequire(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS);
+  options = (PoolDebugOptions)arg.val.pool_debug_options;
+  
   AVERT(PoolDebugOptions, options);
+
   /* @@@@ Tag parameters should be taken from options, but tags have */
   /* not been published yet. */
   tagInit = NULL; tagSize = 0;
@@ -176,8 +185,12 @@ static Res DebugPoolInit(Pool pool, va_list args)
     debug->tagSize = tagSize + sizeof(tagStruct) - 1;
     /* This pool has to be like the arena control pool: the blocks */
     /* allocated must be accessible using void*. */
-    res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(),
-                     debug->tagSize, debug->tagSize);
+    MPS_ARGS_BEGIN(pcArgs) {
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, debug->tagSize); /* FIXME: Check this */
+      MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, debug->tagSize);
+      MPS_ARGS_DONE(pcArgs);
+      res = PoolCreate(&debug->tagPool, PoolArena(pool), PoolClassMFS(), pcArgs);
+    } MPS_ARGS_END(pcArgs);
     if (res != ResOK)
       goto tagFail;
     debug->missingTags = 0;
@@ -191,6 +204,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
 tagFail:
 alignFail:
   SuperclassOfPool(pool)->finish(pool);
+  AVER(res != ResOK);
   return res;
 }
 
@@ -673,7 +687,7 @@ void PoolClassMixInDebug(PoolClass class)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -52,6 +52,15 @@ Align VMAlign(VM vm)
 }
 
 
+Res VMParamFromArgs(void *params, size_t paramSize, ArgList args)
+{
+  AVER(params != NULL);
+  AVERT(ArgList, args);
+  UNUSED(paramSize);
+  return ResOK;
+}
+
+
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
 Res VMCreate(VM *vmReturn, Size size)

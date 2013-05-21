@@ -44,6 +44,11 @@ typedef void *Pointer;                  /* <design/type/#pointer> */
 typedef Word Clock;                     /* processor time */
 typedef MPS_T_ULONGEST ULongest;        /* <design/type/#ulongest> */
 
+typedef mps_arg_s ArgStruct;
+typedef mps_arg_s *Arg;
+typedef mps_arg_s *ArgList;
+typedef mps_key_t Key;
+
 typedef Word RefSet;                    /* design.mps.refset */
 typedef Word ZoneSet;                   /* design.mps.refset */
 typedef unsigned Rank;
@@ -108,8 +113,9 @@ typedef struct StackContextStruct *StackContext;
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
 
+typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
-                               ArenaClass class, va_list args);
+                               ArenaClass class, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef void (*ArenaSpareCommitExceededMethod)(Arena arena);
@@ -141,7 +147,7 @@ typedef void (*FreeBlockStepMethod)(Addr base, Addr limit, Pool pool, void *p);
 /* Seg*Method -- see <design/seg/> */
 
 typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
-                             Bool withReservoirPermit, va_list args);
+                             Bool withReservoirPermit, ArgList args);
 typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
@@ -154,14 +160,15 @@ typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
-                              Bool withReservoirPermit, va_list args);
+                              Bool withReservoirPermit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
-                              Bool withReservoirPermit, va_list args);
+                              Bool withReservoirPermit);
 
 /* Buffer*Method -- see <design/buffer/> */
 
-typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, va_list args);
+typedef void (*BufferVarargsMethod)(ArgStruct args[], va_list varargs);
+typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, ArgList args);
 typedef void (*BufferFinishMethod)(Buffer buffer);
 typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit,
                                    Addr init, Size size);
@@ -177,7 +184,8 @@ typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream);
 
 /* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
-typedef Res (*PoolInitMethod)(Pool pool, va_list args);
+typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
+typedef Res (*PoolInitMethod)(Pool pool, ArgList args);
 typedef void (*PoolFinishMethod)(Pool pool);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size,
                                Bool withReservoirPermit);

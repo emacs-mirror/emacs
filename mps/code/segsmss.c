@@ -115,7 +115,7 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
 /* amstSegInit -- initialise an amst segment */
 
 static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
-                       Bool reservoirPermit, va_list args)
+                       Bool reservoirPermit, ArgList args)
 {
   SegClass super;
   AMSTSeg amstseg;
@@ -180,7 +180,7 @@ static void amstSegFinish(Seg seg)
  */
 static Res amstSegMerge(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit, va_list args)
+                        Bool withReservoirPermit)
 {
   SegClass super;
   AMST amst;
@@ -198,7 +198,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   /* Merge the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
@@ -218,7 +218,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 failDeliberate:
   /* Call the anti-method (see .fail) */
   res = super->split(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -232,7 +232,7 @@ failSuper:
 
 static Res amstSegSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
-                        Bool withReservoirPermit, va_list args)
+                        Bool withReservoirPermit)
 {
   SegClass super;
   AMST amst;
@@ -249,7 +249,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   /* Split the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
   res = super->split(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   if (res != ResOK)
     goto failSuper;
 
@@ -273,7 +273,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 failDeliberate:
   /* Call the anti-method. (see .fail) */
   res = super->merge(seg, segHi, base, mid, limit,
-                     withReservoirPermit, args);
+                     withReservoirPermit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -330,17 +330,20 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
 /* AMSTInit -- the pool class initialization method */
 
-static Res AMSTInit(Pool pool, va_list args)
+static Res AMSTInit(Pool pool, ArgList args)
 {
   AMST amst; AMS ams;
   Format format;
   Chain chain;
   Res res;
   static GenParamStruct genParam = { 1024, 0.2 };
+  ArgStruct arg;
 
   AVERT(Pool, pool);
-
-  format = va_arg(args, Format);
+  
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  format = arg.val.format;
+  
   res = ChainCreate(&chain, pool->arena, 1, &genParam);
   if (res != ResOK)
     return res;
@@ -761,8 +764,12 @@ static void *test(void *arg, size_t s)
 
   die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
 
-  die(mps_pool_create(&pool, arena, mps_class_amst(), format),
-      "pool_create(amst)");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, format);
+    MPS_ARGS_DONE(args);
+    die(mps_pool_create_k(&pool, arena, mps_class_amst(), args),
+        "pool_create(amst)");
+  } MPS_ARGS_END(args);
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
   die(mps_ap_create(&busy_ap, pool, mps_rank_exact()), "BufferCreate 2");
