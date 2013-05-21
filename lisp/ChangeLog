@@ -1,5 +1,7 @@
 2013-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* printing.el (pr-menu-bar): Define when compiling.
+
 	* mail/rmail.el (speedbar): No need to load when compiling.
 	(speedbar-make-specialized-keymap, speedbar-with-attached-buffer)
 	(speedbar-do-function-pointer): Declare.

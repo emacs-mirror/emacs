@@ -1342,6 +1342,10 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GNU Emacs Definitions
 
+(eval-and-compile
+  (unless (featurep 'xemacs)
+    (defvar pr-menu-bar nil
+      "Specify Printing menu-bar entry.")))
 
 (cond
  ((featurep 'xemacs)			; XEmacs
@@ -1371,9 +1375,6 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   ;; GNU Emacs
   (defun pr-menu-char-width ()
     (frame-char-width))
-
-  (defvar pr-menu-bar nil
-    "Specify Printing menu-bar entry.")
 
   ;; GNU Emacs
   ;; Menu binding
