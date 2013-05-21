@@ -881,7 +881,6 @@ static void next_overlay_string (struct it *);
 static void reseat (struct it *, struct text_pos, int);
 static void reseat_1 (struct it *, struct text_pos, int);
 static void back_to_previous_visible_line_start (struct it *);
-void reseat_at_previous_visible_line_start (struct it *);
 static void reseat_at_next_visible_line_start (struct it *, int);
 static int next_element_from_ellipsis (struct it *);
 static int next_element_from_display_vector (struct it *);
@@ -900,7 +899,6 @@ static int get_next_display_element (struct it *);
 static enum move_it_result
        move_it_in_display_line_to (struct it *, ptrdiff_t, int,
 				   enum move_operation_enum);
-void move_it_vertically_backward (struct it *, int);
 static void get_visually_first_element (struct it *);
 static void init_to_row_start (struct it *, struct window *,
                                struct glyph_row *);

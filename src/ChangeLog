@@ -1,3 +1,9 @@
+2013-05-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (reseat_at_previous_visible_line_start):
+	Already	declared in dispextern.h, so remove it here.
+	(move_it_vertically_backward): Likewise.
+
 2013-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xfns.c (check_x_display_info): Don't use XINT for terminal object.
