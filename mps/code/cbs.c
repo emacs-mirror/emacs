@@ -900,7 +900,11 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "CBS $P {\n", (WriteFP)cbs,
+               "  alignment: $U\n", (WriteFU)cbs->alignment,
                "  blockPool: $P\n", (WriteFP)cbs->blockPool,
+               "  fastFind: $B\n", (WriteFB)cbs->fastFind,
+               "  inCBS: $B\n", (WriteFB)cbs->inCBS,
+               "  splayTreeSize: $U\n", (WriteFU)cbs->splayTreeSize,
                NULL);
   if (res != ResOK) return res;
 
