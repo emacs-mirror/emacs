@@ -241,7 +241,7 @@ TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv awlut \
 testrun: $(TESTCASES)
 	OUTPUT=$$(mktemp -d /tmp/mps.log.XXXXXX); \
 	echo "Logging test output to $$OUTPUT"; \
-	$(^:%=(TESTCASE=$(PFM)/$(VARIETY)/%; \
+	$(^:%=(TEST=%; TESTCASE=$(PFM)/$(VARIETY)/$$TEST; \
          echo "Running $$TESTCASE" && \
          $$TESTCASE > $$OUTPUT/$$TEST || (cat $$OUTPUT/$$TEST; exit 1)) &&) true
 
