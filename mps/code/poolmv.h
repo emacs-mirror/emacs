@@ -43,6 +43,7 @@
 
 
 #include "mpmtypes.h"
+#include "mpscmv.h"
 
 typedef struct MVStruct *MV;
 

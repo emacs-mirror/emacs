@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>7. Scanning &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>8. Scanning &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="8. Threads" href="thread.html" />
-    <link rel="prev" title="6. Object formats" href="format.html" /> 
+    <link rel="next" title="9. Threads" href="thread.html" />
+    <link rel="prev" title="7. Object formats" href="format.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="thread.html" title="8. Threads"
+          <a href="thread.html" title="9. Threads"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="format.html" title="6. Object formats"
+          <a href="format.html" title="7. Object formats"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="scanning">
-<span id="topic-scanning"></span><span id="index-0"></span><h1>7. Scanning<a class="headerlink" href="#scanning" title="Permalink to this headline">¶</a></h1>
+<span id="topic-scanning"></span><span id="index-0"></span><h1>8. Scanning<a class="headerlink" href="#scanning" title="Permalink to this headline">¶</a></h1>
 <p><a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">Scanning</em></a> is the process of identifying the
 <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a> in a block of memory and
 <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">&#8220;fixing&#8221;</em></a> them. It&#8217;s the process at the heart of the
@@ -69,7 +69,7 @@ references that need to be updated to point to the new locations of
 these objects. Both tasks use the same scanning protocol, described
 here.</p>
 <div class="section" id="scanning-protocol">
-<span id="topic-scanning-protocol"></span><span id="index-1"></span><h2>7.1. Scanning protocol<a class="headerlink" href="#scanning-protocol" title="Permalink to this headline">¶</a></h2>
+<span id="topic-scanning-protocol"></span><span id="index-1"></span><h2>8.1. Scanning protocol<a class="headerlink" href="#scanning-protocol" title="Permalink to this headline">¶</a></h2>
 <p>There are several types of scanning functions (the <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a>
 in an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>, of type <a class="reference internal" href="format.html#mps_fmt_scan_t" title="mps_fmt_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_scan_t</span></tt></a>, and
 root scanning functions of various types) but all take a <a class="reference internal" href="../glossary/s.html#term-scan-state"><em class="xref std std-term">scan
@@ -101,7 +101,7 @@ reference is stored back to the region being scanned.</li>
 details, which are covered in the following sections.</p>
 </div>
 <div class="section" id="tagged-references">
-<span id="topic-scanning-tag"></span><span id="index-2"></span><h2>7.2. Tagged references<a class="headerlink" href="#tagged-references" title="Permalink to this headline">¶</a></h2>
+<span id="topic-scanning-tag"></span><span id="index-2"></span><h2>8.2. Tagged references<a class="headerlink" href="#tagged-references" title="Permalink to this headline">¶</a></h2>
 <p>If your references are <a class="reference internal" href="../glossary/t.html#term-tagged-reference"><em class="xref std std-term">tagged</em></a> (or otherwise
 &#8220;encrypted&#8221;), then you must remove the tag (or decrypt them) before
 passing them to <a class="reference internal" href="#MPS_FIX1" title="MPS_FIX1"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX1()</span></tt></a> and <a class="reference internal" href="#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a>.</p>
@@ -121,12 +121,12 @@ reference is within the object and need not be stripped. So your code
 might look like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">))</span> <span class="p">{</span>
     <span class="cm">/* strip the tag */</span>
-    <span class="kt">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0x7</span><span class="p">;</span>
-    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+    <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0x7</span><span class="p">;</span>
+    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
     <span class="cm">/* restore the tag and update reference */</span>
-    <span class="kt">mps_word_t</span> <span class="n">tag</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="mh">0x7</span><span class="p">;</span>
-    <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">=</span> <span class="p">(</span><span class="kt">obj_t</span><span class="p">)((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span> <span class="o">+</span> <span class="n">tag</span><span class="p">);</span>
+    <span class="n">mps_word_t</span> <span class="n">tag</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="mh">0x7</span><span class="p">;</span>
+    <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">=</span> <span class="p">(</span><span class="n">obj_t</span><span class="p">)((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span> <span class="o">+</span> <span class="n">tag</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -138,7 +138,7 @@ before calling <a class="reference internal" href="#MPS_FIX2" title="MPS_FIX2"><
 belongs to an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> of variant auto-header).</p>
 </div>
 <div class="section" id="critical-path">
-<span id="index-3"></span><h2>7.3. Critical path<a class="headerlink" href="#critical-path" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>8.3. Critical path<a class="headerlink" href="#critical-path" title="Permalink to this headline">¶</a></h2>
 <p>Scanning is an operation on the critical path of the MPS and so it is
 vital that it runs fast. The scanning protocol is designed to ensure
 that as much of the scanning code can be run inline in the client
@@ -176,7 +176,7 @@ references into <a class="reference internal" href="../glossary/l.html#term-leaf
 objects do not need to be scanned at all.</p>
 </div>
 <div class="section" id="ambiguous-references">
-<span id="index-4"></span><h2>7.4. Ambiguous references<a class="headerlink" href="#ambiguous-references" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>8.4. Ambiguous references<a class="headerlink" href="#ambiguous-references" title="Permalink to this headline">¶</a></h2>
 <p>If the references in the object being scanned are <a class="reference internal" href="../glossary/a.html#term-ambiguous-reference"><em class="xref std std-term">ambiguous</em></a> then <a class="reference internal" href="#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a> does not update the
 reference (because it can&#8217;t know if it&#8217;s a genuine reference). The MPS
 handles an ambiguous reference by <a class="reference internal" href="../glossary/p.html#term-pinning"><em class="xref std std-term">pinning</em></a> the block pointed to
@@ -193,7 +193,7 @@ encounter this case.</p>
 </div>
 </div>
 <div class="section" id="unfixed-references">
-<span id="index-5"></span><h2>7.5. Unfixed references<a class="headerlink" href="#unfixed-references" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>8.5. Unfixed references<a class="headerlink" href="#unfixed-references" title="Permalink to this headline">¶</a></h2>
 <p>The MPS does not require you to <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">fix</em></a> all your <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a>. But if a reference is not fixed:</p>
 <ol class="arabic simple">
 <li>it does not keep its target alive (this might be acceptable if you
@@ -212,7 +212,7 @@ different <a class="reference internal" href="../glossary/p.html#term-pool-class
 references.</p>
 </div>
 <div class="section" id="example-scheme-objects">
-<span id="index-6"></span><h2>7.6. Example: Scheme objects<a class="headerlink" href="#example-scheme-objects" title="Permalink to this headline">¶</a></h2>
+<span id="index-6"></span><h2>8.6. Example: Scheme objects<a class="headerlink" href="#example-scheme-objects" title="Permalink to this headline">¶</a></h2>
 <p>Scanning tends to be a repetitive procedure and so you&#8217;ll find it is
 usually helpful to define macros to reduce the size of the source
 code. The MPS provides a convenience macro <a class="reference internal" href="#MPS_FIX12" title="MPS_FIX12"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX12()</span></tt></a> for the
@@ -244,11 +244,11 @@ reference and cast it to this type. The behaviour of such a cast
 is not defined by the C standard. See <a class="reference internal" href="interface.html#topic-interface-pun"><em>Type punning</em></a>.</p>
 </div>
 <p>Here&#8217;s the Scheme scanner:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
             <span class="k">switch</span> <span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>
                 <span class="k">case</span> <span class="n">TYPE_PAIR</span>:
                     <span class="n">FIX</span><span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">pair</span><span class="p">.</span><span class="n">car</span><span class="p">);</span>
@@ -285,7 +285,7 @@ not at all optimized.</p>
 </div>
 </div>
 <div class="section" id="scanning-interface">
-<span id="index-7"></span><h2>7.7. Scanning interface<a class="headerlink" href="#scanning-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-7"></span><h2>8.7. Scanning interface<a class="headerlink" href="#scanning-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_ss_t">
 <tt class="descname">mps_ss_t</tt><a class="headerlink" href="#mps_ss_t" title="Permalink to this definition">¶</a></dt>
@@ -366,10 +366,10 @@ references inside the object&#8217;s <tt class="docutils literal"><span class="p
 <tt class="docutils literal"><span class="pre">data_scan</span></tt>. In order to ensure that the scan state is passed
 correctly to <tt class="docutils literal"><span class="pre">data_scan</span></tt>, the call must be wrapped in
 <a class="reference internal" href="#MPS_FIX_CALL" title="MPS_FIX_CALL"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX_CALL()</span></tt></a>.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+    <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span> <span class="n">obj</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">;</span> <span class="n">obj</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX12</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">)</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>
@@ -395,7 +395,7 @@ need to be measured against the loss in performance.</p>
 
 </div>
 <div class="section" id="fixing-interface">
-<span id="index-8"></span><h2>7.8. Fixing interface<a class="headerlink" href="#fixing-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-8"></span><h2>8.8. Fixing interface<a class="headerlink" href="#fixing-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="MPS_FIX1">
 <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t">mps_bool_t</a> <tt class="descname">MPS_FIX1</tt><big>(</big><a class="reference internal" href="#mps_ss_t" title="mps_ss_t">mps_ss_t</a><em>&nbsp;ss</em>, <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;ref</em><big>)</big><a class="headerlink" href="#MPS_FIX1" title="Permalink to this definition">¶</a></dt>
@@ -508,25 +508,25 @@ ensure that the scan state is passed correctly.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">7. Scanning</a><ul>
-<li><a class="reference internal" href="#scanning-protocol">7.1. Scanning protocol</a></li>
-<li><a class="reference internal" href="#tagged-references">7.2. Tagged references</a></li>
-<li><a class="reference internal" href="#critical-path">7.3. Critical path</a></li>
-<li><a class="reference internal" href="#ambiguous-references">7.4. Ambiguous references</a></li>
-<li><a class="reference internal" href="#unfixed-references">7.5. Unfixed references</a></li>
-<li><a class="reference internal" href="#example-scheme-objects">7.6. Example: Scheme objects</a></li>
-<li><a class="reference internal" href="#scanning-interface">7.7. Scanning interface</a></li>
-<li><a class="reference internal" href="#fixing-interface">7.8. Fixing interface</a></li>
+<li><a class="reference internal" href="#">8. Scanning</a><ul>
+<li><a class="reference internal" href="#scanning-protocol">8.1. Scanning protocol</a></li>
+<li><a class="reference internal" href="#tagged-references">8.2. Tagged references</a></li>
+<li><a class="reference internal" href="#critical-path">8.3. Critical path</a></li>
+<li><a class="reference internal" href="#ambiguous-references">8.4. Ambiguous references</a></li>
+<li><a class="reference internal" href="#unfixed-references">8.5. Unfixed references</a></li>
+<li><a class="reference internal" href="#example-scheme-objects">8.6. Example: Scheme objects</a></li>
+<li><a class="reference internal" href="#scanning-interface">8.7. Scanning interface</a></li>
+<li><a class="reference internal" href="#fixing-interface">8.8. Fixing interface</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="format.html"
-                        title="previous chapter">6. Object formats</a></p>
+                        title="previous chapter">7. Object formats</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="thread.html"
-                        title="next chapter">8. Threads</a></p><h4>Downloads</h4>
+                        title="next chapter">9. Threads</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -552,10 +552,10 @@ ensure that the scan state is passed correctly.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="thread.html" title="8. Threads"
+          <a href="thread.html" title="9. Threads"
              >next</a> |</li>
         <li class="right" >
-          <a href="format.html" title="6. Object formats"
+          <a href="format.html" title="7. Object formats"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

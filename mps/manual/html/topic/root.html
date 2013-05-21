@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>9. Roots &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>10. Roots &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="10. Garbage collection" href="collection.html" />
-    <link rel="prev" title="8. Threads" href="thread.html" /> 
+    <link rel="next" title="11. Garbage collection" href="collection.html" />
+    <link rel="prev" title="9. Threads" href="thread.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="collection.html" title="10. Garbage collection"
+          <a href="collection.html" title="11. Garbage collection"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="thread.html" title="8. Threads"
+          <a href="thread.html" title="9. Threads"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="roots">
-<span id="topic-root"></span><span id="index-0"></span><h1>9. Roots<a class="headerlink" href="#roots" title="Permalink to this headline">¶</a></h1>
+<span id="topic-root"></span><span id="index-0"></span><h1>10. Roots<a class="headerlink" href="#roots" title="Permalink to this headline">¶</a></h1>
 <p><a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">Roots</em></a> tell the <a class="reference internal" href="../glossary/g.html#term-garbage-collector"><em class="xref std std-term">garbage collector</em></a> where to start
 <a class="reference internal" href="../glossary/t.html#term-trace"><em class="xref std std-term">tracing</em></a>. The garbage collector determines which blocks
 are <a class="reference internal" href="../glossary/r.html#term-reachable"><em class="xref std std-term">reachable</em></a> from the roots, and (in <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically
@@ -70,7 +70,7 @@ all references stored in static data are roots; the Memory Pool System
 is more flexible, but requires the client program to declare which
 references are roots.</p>
 <div class="section" id="registering-roots">
-<span id="index-1"></span><h2>9.1. Registering roots<a class="headerlink" href="#registering-roots" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>10.1. Registering roots<a class="headerlink" href="#registering-roots" title="Permalink to this headline">¶</a></h2>
 <p>You can register a root at any time by calling one of the
 <tt class="docutils literal"><span class="pre">mps_root_create</span></tt> functions. Roots may not be registered twice, and
 no two roots may overlap (that is, each reference is <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">fixed</em></a> by
@@ -129,7 +129,7 @@ registers and control stack of a thread. See
 </ol>
 </div>
 <div class="section" id="cautions">
-<span id="index-2"></span><h2>9.2. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>10.2. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
 <p>Creating a root and then registering is similar to reserving a block
 and then committing it (in the
 <a class="reference internal" href="allocation.html#topic-allocation-point-protocol"><em>Allocation point protocol</em></a>), and similar <a class="reference internal" href="allocation.html#topic-allocation-cautions"><em>cautions</em></a> apply. Before registering a root:</p>
@@ -152,7 +152,7 @@ values.</li>
 </ol>
 </div>
 <div class="section" id="thread-roots">
-<span id="topic-root-thread"></span><span id="index-3"></span><h2>9.3. Thread roots<a class="headerlink" href="#thread-roots" title="Permalink to this headline">¶</a></h2>
+<span id="topic-root-thread"></span><span id="index-3"></span><h2>10.3. Thread roots<a class="headerlink" href="#thread-roots" title="Permalink to this headline">¶</a></h2>
 <p>Every thread&#8217;s registers and control stack potentially contain
 references to allocated objects, so should be registered as a root by
 calling <a class="reference internal" href="#mps_root_create_reg" title="mps_root_create_reg"><tt class="xref c c-func docutils literal"><span class="pre">mps_root_create_reg()</span></tt></a>. It&#8217;s not easy to write a
@@ -168,8 +168,8 @@ the work function is not inlined so that the address is definitely in
 the stack frame below any potential roots.</p>
 <p id="index-4">For example, here&#8217;s the code from the toy Scheme interpreter that
 registers a thread root and then calls the program:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
-<span class="kt">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
+<span class="n">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">exit_code</span><span class="p">;</span>
 <span class="kt">void</span> <span class="o">*</span><span class="n">marker</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">marker</span><span class="p">;</span>
 
@@ -194,7 +194,7 @@ registers a thread root and then calls the program:</p>
 </div>
 </div>
 <div class="section" id="ranks">
-<span id="index-5"></span><h2>9.4. Ranks<a class="headerlink" href="#ranks" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>10.4. Ranks<a class="headerlink" href="#ranks" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_rank_t">
 <tt class="descname">mps_rank_t</tt><a class="headerlink" href="#mps_rank_t" title="Permalink to this definition">¶</a></dt>
@@ -222,7 +222,7 @@ and clarity.</p>
 
 </div>
 <div class="section" id="root-modes">
-<span id="index-6"></span><h2>9.5. Root modes<a class="headerlink" href="#root-modes" title="Permalink to this headline">¶</a></h2>
+<span id="index-6"></span><h2>10.5. Root modes<a class="headerlink" href="#root-modes" title="Permalink to this headline">¶</a></h2>
 <p>The root mode provides a way for the client to declare various facts
 about a root that allow the MPS to make optimizations. Roots that are
 declared to be <em>constant</em> need not be re-scanned, and roots that are
@@ -291,7 +291,7 @@ operating systems can&#8217;t cope with writing to protected pages.</p>
 
 </div>
 <div class="section" id="root-interface">
-<span id="index-7"></span><h2>9.6. Root interface<a class="headerlink" href="#root-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-7"></span><h2>10.6. Root interface<a class="headerlink" href="#root-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_root_t">
 <tt class="descname">mps_root_t</tt><a class="headerlink" href="#mps_root_t" title="Permalink to this definition">¶</a></dt>
@@ -499,17 +499,17 @@ calling <a class="reference internal" href="#mps_root_destroy" title="mps_root_d
 <span class="cm">/* Global symbol table. */</span>
 <span class="kt">size_t</span> <span class="n">symtab_size</span><span class="p">;</span>
 <span class="k">struct</span> <span class="p">{</span>
-    <span class="kt">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
-    <span class="kt">obj_t</span> <span class="n">value</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">value</span><span class="p">;</span>
 <span class="p">}</span> <span class="o">*</span><span class="n">symtab</span><span class="p">;</span>
 
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-<span class="kt">mps_root_t</span> <span class="n">root</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="n">mps_root_t</span> <span class="n">root</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table_masked</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span>
                                    <span class="n">mps_rank_exact</span><span class="p">(),</span>
-                                   <span class="p">(</span><span class="kt">mps_rm_t</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span>
+                                   <span class="p">(</span><span class="n">mps_rm_t</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span>
                                    <span class="n">symtab</span><span class="p">,</span> <span class="n">symtab_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
-                                   <span class="p">(</span><span class="kt">mps_word_t</span><span class="p">)</span><span class="n">TAG_MASK</span><span class="p">);</span>
+                                   <span class="p">(</span><span class="n">mps_word_t</span><span class="p">)</span><span class="n">TAG_MASK</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">errror</span><span class="p">(</span><span class="s">&quot;can&#39;t create symtab root&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -524,7 +524,7 @@ void <tt class="descname">mps_root_destroy</tt><big>(</big><a class="reference i
 
 </div>
 <div class="section" id="root-introspection">
-<span id="index-8"></span><h2>9.7. Root introspection<a class="headerlink" href="#root-introspection" title="Permalink to this headline">¶</a></h2>
+<span id="index-8"></span><h2>10.7. Root introspection<a class="headerlink" href="#root-introspection" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_arena_roots_walk">
 void <tt class="descname">mps_arena_roots_walk</tt><big>(</big><a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_roots_stepper_t" title="mps_roots_stepper_t">mps_roots_stepper_t</a><em>&nbsp;f</em>, void<em>&nbsp;*p</em>, size_t<em>&nbsp;s</em><big>)</big><a class="headerlink" href="#mps_arena_roots_walk" title="Permalink to this definition">¶</a></dt>
@@ -598,24 +598,24 @@ it might point to somewhere in the middle of an allocated block.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">9. Roots</a><ul>
-<li><a class="reference internal" href="#registering-roots">9.1. Registering roots</a></li>
-<li><a class="reference internal" href="#cautions">9.2. Cautions</a></li>
-<li><a class="reference internal" href="#thread-roots">9.3. Thread roots</a></li>
-<li><a class="reference internal" href="#ranks">9.4. Ranks</a></li>
-<li><a class="reference internal" href="#root-modes">9.5. Root modes</a></li>
-<li><a class="reference internal" href="#root-interface">9.6. Root interface</a></li>
-<li><a class="reference internal" href="#root-introspection">9.7. Root introspection</a></li>
+<li><a class="reference internal" href="#">10. Roots</a><ul>
+<li><a class="reference internal" href="#registering-roots">10.1. Registering roots</a></li>
+<li><a class="reference internal" href="#cautions">10.2. Cautions</a></li>
+<li><a class="reference internal" href="#thread-roots">10.3. Thread roots</a></li>
+<li><a class="reference internal" href="#ranks">10.4. Ranks</a></li>
+<li><a class="reference internal" href="#root-modes">10.5. Root modes</a></li>
+<li><a class="reference internal" href="#root-interface">10.6. Root interface</a></li>
+<li><a class="reference internal" href="#root-introspection">10.7. Root introspection</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="thread.html"
-                        title="previous chapter">8. Threads</a></p>
+                        title="previous chapter">9. Threads</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="collection.html"
-                        title="next chapter">10. Garbage collection</a></p><h4>Downloads</h4>
+                        title="next chapter">11. Garbage collection</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -641,10 +641,10 @@ it might point to somewhere in the middle of an allocated block.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="collection.html" title="10. Garbage collection"
+          <a href="collection.html" title="11. Garbage collection"
              >next</a> |</li>
         <li class="right" >
-          <a href="thread.html" title="8. Threads"
+          <a href="thread.html" title="9. Threads"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

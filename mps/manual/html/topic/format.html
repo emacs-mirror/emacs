@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>6. Object formats &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>7. Object formats &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="7. Scanning" href="scanning.html" />
-    <link rel="prev" title="5. Allocation" href="allocation.html" /> 
+    <link rel="next" title="8. Scanning" href="scanning.html" />
+    <link rel="prev" title="6. Allocation" href="allocation.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="scanning.html" title="7. Scanning"
+          <a href="scanning.html" title="8. Scanning"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="allocation.html" title="5. Allocation"
+          <a href="allocation.html" title="6. Allocation"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="object-formats">
-<span id="topic-format"></span><span id="index-0"></span><h1>6. Object formats<a class="headerlink" href="#object-formats" title="Permalink to this headline">¶</a></h1>
+<span id="topic-format"></span><span id="index-0"></span><h1>7. Object formats<a class="headerlink" href="#object-formats" title="Permalink to this headline">¶</a></h1>
 <p>The need for some means of describing objects in the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client
 program</em></a> comes from <a class="reference internal" href="../glossary/t.html#term-trace"><em class="xref std std-term">tracing</em></a> and <a class="reference internal" href="../glossary/m.html#term-moving-memory-manager"><em class="xref std std-term">moving</em></a>. During tracing, when an object is <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scanned</em></a>, all the <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a> in the object must be
 identified so that the objects they point to can be scanned in their
@@ -82,7 +82,7 @@ has moved with a <a class="reference internal" href="../glossary/f.html#term-for
 </dd></dl>
 
 <div class="section" id="creating-an-object-format">
-<span id="index-1"></span><h2>6.1. Creating an object format<a class="headerlink" href="#creating-an-object-format" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>7.1. Creating an object format<a class="headerlink" href="#creating-an-object-format" title="Permalink to this headline">¶</a></h2>
 <p>Different <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> use different sets of format methods
 and values (for example, a non-moving pool does not need forwarding
 objects, so its object formats do not need to contain a forward
@@ -114,15 +114,19 @@ of.</p>
     <span class="n">obj_pad</span>
 <span class="p">};</span>
 
-<span class="kt">mps_pool_t</span> <span class="n">obj_pool</span><span class="p">;</span>
-<span class="kt">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="n">mps_pool_t</span> <span class="n">obj_pool</span><span class="p">;</span>
+<span class="n">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj_fmt_s</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
 <span class="cm">/* obj_fmt created successfully */</span>
 
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">pool_class</span><span class="p">,</span> <span class="n">obj_fmt</span><span class="p">);</span>
+<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="n">obj_fmt</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">pool_class</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj pool&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -132,13 +136,13 @@ of.</p>
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant A.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="p">{</span>
-    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="n">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_A_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -189,14 +193,14 @@ calling <a class="reference internal" href="#mps_fmt_destroy" title="mps_fmt_des
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant B.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_B_s</span> <span class="p">{</span>
-    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
-    <span class="kt">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
+    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="n">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="n">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_B_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -223,12 +227,12 @@ return an appropriate <a class="reference internal" href="../glossary/r.html#ter
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant auto-header.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_auto_header_s</span> <span class="p">{</span>
-    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
     <span class="kt">size_t</span>          <span class="n">mps_headerSize</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_auto_header_s</span><span class="p">;</span>
 </pre></div>
@@ -301,7 +305,7 @@ void <tt class="descname">mps_fmt_destroy</tt><big>(</big><a class="reference in
 
 </div>
 <div class="section" id="cautions">
-<span id="topic-format-cautions"></span><span id="index-2"></span><h2>6.2. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
+<span id="topic-format-cautions"></span><span id="index-2"></span><h2>7.2. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first">The MPS guarantees that format methods have exclusive access to the
 object for the duration of the call. This guarantee may entail
@@ -353,7 +357,7 @@ their contents;</li>
 </ol>
 </div>
 <div class="section" id="format-methods">
-<span id="index-3"></span><h2>6.3. Format methods<a class="headerlink" href="#format-methods" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>7.3. Format methods<a class="headerlink" href="#format-methods" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_fmt_class_t">
 <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a> <tt class="descname">(*mps_fmt_class_t)</tt><big>(</big><a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;addr</em><big>)</big><a class="headerlink" href="#mps_fmt_class_t" title="Permalink to this definition">¶</a></dt>
@@ -495,7 +499,7 @@ them.</p>
 
 </div>
 <div class="section" id="object-format-introspection">
-<span id="index-4"></span><h2>6.4. Object format introspection<a class="headerlink" href="#object-format-introspection" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>7.4. Object format introspection<a class="headerlink" href="#object-format-introspection" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_addr_fmt">
 <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t">mps_bool_t</a> <tt class="descname">mps_addr_fmt</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;addr</em><big>)</big><a class="headerlink" href="#mps_addr_fmt" title="Permalink to this definition">¶</a></dt>
@@ -598,21 +602,21 @@ their contents;</li>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">6. Object formats</a><ul>
-<li><a class="reference internal" href="#creating-an-object-format">6.1. Creating an object format</a></li>
-<li><a class="reference internal" href="#cautions">6.2. Cautions</a></li>
-<li><a class="reference internal" href="#format-methods">6.3. Format methods</a></li>
-<li><a class="reference internal" href="#object-format-introspection">6.4. Object format introspection</a></li>
+<li><a class="reference internal" href="#">7. Object formats</a><ul>
+<li><a class="reference internal" href="#creating-an-object-format">7.1. Creating an object format</a></li>
+<li><a class="reference internal" href="#cautions">7.2. Cautions</a></li>
+<li><a class="reference internal" href="#format-methods">7.3. Format methods</a></li>
+<li><a class="reference internal" href="#object-format-introspection">7.4. Object format introspection</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="allocation.html"
-                        title="previous chapter">5. Allocation</a></p>
+                        title="previous chapter">6. Allocation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="scanning.html"
-                        title="next chapter">7. Scanning</a></p><h4>Downloads</h4>
+                        title="next chapter">8. Scanning</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -638,10 +642,10 @@ their contents;</li>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="scanning.html" title="7. Scanning"
+          <a href="scanning.html" title="8. Scanning"
              >next</a> |</li>
         <li class="right" >
-          <a href="allocation.html" title="5. Allocation"
+          <a href="allocation.html" title="6. Allocation"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

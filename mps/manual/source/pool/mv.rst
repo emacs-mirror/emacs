@@ -72,22 +72,44 @@ MV interface
     Return the :term:`pool class` for an MV (Manual Variable)
     :term:`pool`.
 
-    When creating an MV pool, :c:func:`mps_pool_create` takes three
-    extra arguments::
+    When creating an MV pool, :c:func:`mps_pool_create_k` may take
+    three :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mv(),
-                                  mps_size_t extend_size,
-                                  mps_size_t average_size,
-                                  mps_size_t maximum_size)
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default 65536) is the
+      :term:`size` of segment that the pool will request from the
+      :term:`arena`.
 
-    ``extend_size`` is the :term:`size` of segment that the pool will
-    request from the :term:`arena`.
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32) is the
+      predicted mean size of blocks that will be allocated from the
+      pool.
 
-    ``average_size`` and ``maximum size`` are the predicted average
-    and maximum size of blocks that will be allocated from the pool.
-    These are hints to the MPS: the pool will be less efficient if
-    these are wrong.
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`, default 65536) is the
+      predicted maximum size of blocks that will be allocated from the
+      pool.
+
+    The mean and maximum sizes are *hints* to the MPS: the pool will be
+    less efficient if these are wrong, but nothing will break.
+
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MAX_SIZE, 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_EXTEND_BY, 1024 * 1024);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
+        } MPS_ARGS_END(args);
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_pool_create`, pass the segment size,
+        mean size, and maximum size like this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_mv(),
+                                      mps_size_t extend_size,
+                                      mps_size_t average_size,
+                                      mps_size_t maximum_size)
 
 
 .. c:function:: mps_class_t mps_class_mv_debug(void)
@@ -95,21 +117,23 @@ MV interface
     A :ref:`debugging <topic-debugging>` version of the MV pool
     class.
 
-    When creating a debugging MV pool, :c:func:`mps_pool_create`
-    takes four extra arguments::
+    When creating a debugging MV pool, :c:func:`mps_pool_create_k`
+    requires four keyword arguments: :c:macro:`MPS_KEY_EXTEND_SIZE`,
+    :c:macro:`MPS_KEY_MEAN_SIZE`, :c:macro:`MPS_KEY_MAX_SIZE` are as
+    described above, and :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`
+    specifies the debugging options. See :c:type:`mps_debug_option_s`.
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mv_debug(),
-                                  mps_debug_option_s debug_option,
-                                  mps_size_t extend_size,
-                                  mps_size_t average_size,
-                                  mps_size_t maximum_size)
+    .. deprecated:: starting with version 1.112.
 
-    ``debug_option`` specifies the debugging options. See
-    :c:type:`mps_debug_option_s`.
+        When using :c:func:`mps_pool_create`, pass the debugging
+        options, segment size, mean size, and maximum size like this::
 
-    ``extend_size``, ``average_size`` and ``maximum_size`` are as
-    documented in :c:func:`mps_class_mv`.
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_mv_debug(),
+                                      mps_debug_option_s debug_option,
+                                      mps_size_t extend_size,
+                                      mps_size_t average_size,
+                                      mps_size_t maximum_size)
 
 
 .. index::

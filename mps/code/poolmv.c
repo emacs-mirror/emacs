@@ -1,7 +1,7 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -182,18 +182,47 @@ static Bool MVSpanCheck(MVSpan span)
 }
 
 
+/* MVVarargs -- decode obsolete varargs */
+
+static void MVVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_EXTEND_BY;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MEAN_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_MAX_SIZE;
+  args[2].val.size = va_arg(varargs, Size);
+  args[3].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
+  args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
+  MVVarargs(args + 1, varargs);
+}
+
+
 /* MVInit -- init method for class MV */
 
-static Res MVInit(Pool pool, va_list arg)
+static Res MVInit(Pool pool, ArgList args)
 {
-  Size extendBy, avgSize, maxSize, blockExtendBy, spanExtendBy;
+  Size extendBy = MV_EXTEND_BY_DEFAULT;
+  Size avgSize = MV_AVG_SIZE_DEFAULT;
+  Size maxSize = MV_MAX_SIZE_DEFAULT;
+  Size blockExtendBy, spanExtendBy;
   MV mv;
   Arena arena;
   Res res;
-
-  extendBy = va_arg(arg, Size);
-  avgSize = va_arg(arg, Size);
-  maxSize = va_arg(arg, Size);
+  ArgStruct arg;
+  
+  if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
+    extendBy = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
+    avgSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
+    maxSize = arg.val.size;
 
   AVER(extendBy > 0);
   AVER(avgSize > 0);
@@ -211,17 +240,23 @@ static Res MVInit(Pool pool, va_list arg)
     blockExtendBy = sizeof(MVBlockStruct);
   }
 
-  res = PoolInit(&mv->blockPoolStruct.poolStruct,
-                 arena, PoolClassMFS(),
-                 blockExtendBy, sizeof(MVBlockStruct));
+  MPS_ARGS_BEGIN(piArgs) {
+    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, blockExtendBy);
+    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(MVBlockStruct));
+    MPS_ARGS_DONE(piArgs);
+    res = PoolInit(&mv->blockPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
+  } MPS_ARGS_END(piArgs);
   if(res != ResOK)
     return res;
 
   spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
-  res = PoolInit(&mv->spanPoolStruct.poolStruct,
-                 arena, PoolClassMFS(),
-                 spanExtendBy, sizeof(MVSpanStruct));
+  MPS_ARGS_BEGIN(piArgs) {
+    MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, spanExtendBy);
+    MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(MVSpanStruct));
+    MPS_ARGS_DONE(piArgs);
+    res = PoolInit(&mv->spanPoolStruct.poolStruct, arena, PoolClassMFS(), piArgs);
+  } MPS_ARGS_END(piArgs);
   if(res != ResOK)
     return res;
 
@@ -753,6 +788,7 @@ DEFINE_POOL_CLASS(MVPoolClass, this)
   this->name = "MV";
   this->size = sizeof(MVStruct);
   this->offset = offsetof(MVStruct, poolStruct);
+  this->varargs = MVVarargs;
   this->init = MVInit;
   this->finish = MVFinish;
   this->alloc = MVAlloc;
@@ -775,6 +811,7 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
   PoolClassMixInDebug(this);
   this->name = "MVDBG";
   this->size = sizeof(MVDebugStruct);
+  this->varargs = MVDebugVarargs;
   this->debugMixin = MVDebugMixin;
 }
 
@@ -866,7 +903,7 @@ Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

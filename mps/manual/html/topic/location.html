@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>13. Location dependency &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>14. Location dependency &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="14. Segregated allocation caches" href="cache.html" />
-    <link rel="prev" title="12. Finalization" href="finalization.html" /> 
+    <link rel="next" title="15. Segregated allocation caches" href="cache.html" />
+    <link rel="prev" title="13. Finalization" href="finalization.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="cache.html" title="14. Segregated allocation caches"
+          <a href="cache.html" title="15. Segregated allocation caches"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="finalization.html" title="12. Finalization"
+          <a href="finalization.html" title="13. Finalization"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="location-dependency">
-<span id="topic-location"></span><span id="index-0"></span><h1>13. Location dependency<a class="headerlink" href="#location-dependency" title="Permalink to this headline">¶</a></h1>
+<span id="topic-location"></span><span id="index-0"></span><h1>14. Location dependency<a class="headerlink" href="#location-dependency" title="Permalink to this headline">¶</a></h1>
 <p>Location dependencies provide a means by which the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client
 program</em></a> can depend on the <em class="dfn">location</em> of blocks (that is, on the
 bits in pointers to the blocks) in the presence of a <a class="reference internal" href="../glossary/m.html#term-moving-memory-manager"><em class="xref std std-term">moving
@@ -66,7 +66,7 @@ address-based hash tables and that will be used as a running example.
 See the section <a class="reference internal" href="../guide/advanced.html#guide-advanced-location"><em>Location dependency</em></a> in the Guide for a more
 detailed look at this example.</p>
 <div class="section" id="terminology">
-<h2>13.1. Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h2>
+<h2>14.1. Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h2>
 <p>A <em class="dfn">location dependency</em> is represented by an structure of type
 <a class="reference internal" href="#mps_ld_s" title="mps_ld_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_ld_s</span></tt></a>. It encapsulates a set of dependencies on the
 locations of blocks. It can be used to determine whether any of the
@@ -85,7 +85,7 @@ if any of the blocks whose location has been depended on might have
 moved since the respective dependency was made.</p>
 </div>
 <div class="section" id="creating-dependencies">
-<span id="index-1"></span><h2>13.2. Creating dependencies<a class="headerlink" href="#creating-dependencies" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>14.2. Creating dependencies<a class="headerlink" href="#creating-dependencies" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> must provide space for the
 <a class="reference internal" href="#mps_ld_s" title="mps_ld_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_ld_s</span></tt></a> structure. Typically, this will be inlined in some
 larger structure. This structure can be in memory managed by the MPS
@@ -93,11 +93,11 @@ or elsewhere; that doesn&#8217;t matter.</p>
 <p>For example, the toy Scheme interpreter inlines the location
 dependency in its hash table structure:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">table_s</span> <span class="p">{</span>
-  <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_TABLE */</span>
-  <span class="kt">hash_t</span> <span class="n">hash</span><span class="p">;</span>                  <span class="cm">/* hash function */</span>
-  <span class="kt">cmp_t</span> <span class="n">cmp</span><span class="p">;</span>                    <span class="cm">/* comparison function */</span>
+  <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_TABLE */</span>
+  <span class="n">hash_t</span> <span class="n">hash</span><span class="p">;</span>                  <span class="cm">/* hash function */</span>
+  <span class="n">cmp_t</span> <span class="n">cmp</span><span class="p">;</span>                    <span class="cm">/* comparison function */</span>
 <span class="hll">  <span class="n">mps_ld_s</span> <span class="n">ld</span><span class="p">;</span>                  <span class="cm">/* location dependency */</span>
-</span>  <span class="kt">obj_t</span> <span class="n">buckets</span><span class="p">;</span>                <span class="cm">/* hash buckets */</span>
+</span>  <span class="n">obj_t</span> <span class="n">buckets</span><span class="p">;</span>                <span class="cm">/* hash buckets */</span>
 <span class="p">}</span> <span class="n">table_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -113,7 +113,7 @@ dependencies from the structure. For example, this is normally done
 whenever <a class="reference internal" href="#mps_ld_isstale" title="mps_ld_isstale"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_isstale()</span></tt></a> returns true.</p>
 </div>
 <div class="section" id="adding-dependencies">
-<span id="index-2"></span><h2>13.3. Adding dependencies<a class="headerlink" href="#adding-dependencies" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>14.3. Adding dependencies<a class="headerlink" href="#adding-dependencies" title="Permalink to this headline">¶</a></h2>
 <p><em>Before</em> the location of a block is depended on (for example,
 hashed) a reference to the block may be added to a location
 dependency by calling <a class="reference internal" href="#mps_ld_add" title="mps_ld_add"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_add()</span></tt></a>. Dependencies on many
@@ -125,18 +125,18 @@ references from one dependency to another.</p>
 that is added to the table must be added to the dependency before its
 address is hashed. In the toy Scheme interpreter this is most easily
 done in the function that hashes an address:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eq_hash</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="kt">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eq_hash</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="n">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="k">union</span> <span class="p">{</span><span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">obj_t</span><span class="p">)];</span> <span class="kt">obj_t</span> <span class="n">addr</span><span class="p">;}</span> <span class="n">u</span><span class="p">;</span>
+    <span class="k">union</span> <span class="p">{</span><span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="k">sizeof</span><span class="p">(</span><span class="n">obj_t</span><span class="p">)];</span> <span class="n">obj_t</span> <span class="n">addr</span><span class="p">;}</span> <span class="n">u</span><span class="p">;</span>
 <span class="hll">    <span class="k">if</span> <span class="p">(</span><span class="n">ld</span><span class="p">)</span> <span class="n">mps_ld_add</span><span class="p">(</span><span class="n">ld</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
 </span>    <span class="n">u</span><span class="p">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="k">return</span> <span class="n">hash</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">s</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">obj_t</span><span class="p">));</span>
+    <span class="k">return</span> <span class="n">hash</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">s</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">obj_t</span><span class="p">));</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="testing-dependencies-for-staleness">
-<span id="index-3"></span><h2>13.4. Testing dependencies for staleness<a class="headerlink" href="#testing-dependencies-for-staleness" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>14.4. Testing dependencies for staleness<a class="headerlink" href="#testing-dependencies-for-staleness" title="Permalink to this headline">¶</a></h2>
 <p>When the locations of blocks are used (during a hash table lookup for
 example), the computation should be carried out and the result used in
 the usual way (for example, the pointer is hashed and the has used to
@@ -168,7 +168,7 @@ old locations of the blocks; and</li>
 </ol>
 <p>For example, in the case of a hash table you should rehash based on
 the new locations of the blocks.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">table_ref</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">key</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">table_ref</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">key</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">struct</span> <span class="n">bucket_s</span> <span class="o">*</span><span class="n">b</span> <span class="o">=</span> <span class="n">buckets_find</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">tbl</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">buckets</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="n">obj_deleted</span><span class="p">)</span>
@@ -195,7 +195,7 @@ it might as well find the bucket containing <tt class="docutils literal"><span c
 and return it.</p>
 </div>
 <div class="section" id="thread-safety">
-<span id="index-4"></span><h2>13.5. Thread safety<a class="headerlink" href="#thread-safety" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>14.5. Thread safety<a class="headerlink" href="#thread-safety" title="Permalink to this headline">¶</a></h2>
 <p>The functions are all thread-safe with respect to operations on
 different location dependencies. That means that it is not necessary
 for threads to interlock if they are performing operations on
@@ -204,7 +204,7 @@ functions detail their thread-safety attributes if multiple threads
 need to access the same location dependency.</p>
 </div>
 <div class="section" id="location-dependency-interface">
-<span id="index-5"></span><h2>13.6. Location dependency interface<a class="headerlink" href="#location-dependency-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>14.6. Location dependency interface<a class="headerlink" href="#location-dependency-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_ld_t">
 <tt class="descname">mps_ld_t</tt><a class="headerlink" href="#mps_ld_t" title="Permalink to this definition">¶</a></dt>
@@ -229,7 +229,7 @@ found in the table.</p>
 <dd><p>The type of the structure used to represent a <a class="reference internal" href="../glossary/l.html#term-location-dependency"><em class="xref std std-term">location
 dependency</em></a>.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_ld_s</span> <span class="p">{</span>
-    <span class="kt">mps_word_t</span> <span class="n">w0</span><span class="p">,</span> <span class="n">w1</span><span class="p">;</span>
+    <span class="n">mps_word_t</span> <span class="n">w0</span><span class="p">,</span> <span class="n">w1</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_ld_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -353,23 +353,23 @@ other location dependency function.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">13. Location dependency</a><ul>
-<li><a class="reference internal" href="#terminology">13.1. Terminology</a></li>
-<li><a class="reference internal" href="#creating-dependencies">13.2. Creating dependencies</a></li>
-<li><a class="reference internal" href="#adding-dependencies">13.3. Adding dependencies</a></li>
-<li><a class="reference internal" href="#testing-dependencies-for-staleness">13.4. Testing dependencies for staleness</a></li>
-<li><a class="reference internal" href="#thread-safety">13.5. Thread safety</a></li>
-<li><a class="reference internal" href="#location-dependency-interface">13.6. Location dependency interface</a></li>
+<li><a class="reference internal" href="#">14. Location dependency</a><ul>
+<li><a class="reference internal" href="#terminology">14.1. Terminology</a></li>
+<li><a class="reference internal" href="#creating-dependencies">14.2. Creating dependencies</a></li>
+<li><a class="reference internal" href="#adding-dependencies">14.3. Adding dependencies</a></li>
+<li><a class="reference internal" href="#testing-dependencies-for-staleness">14.4. Testing dependencies for staleness</a></li>
+<li><a class="reference internal" href="#thread-safety">14.5. Thread safety</a></li>
+<li><a class="reference internal" href="#location-dependency-interface">14.6. Location dependency interface</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="finalization.html"
-                        title="previous chapter">12. Finalization</a></p>
+                        title="previous chapter">13. Finalization</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="cache.html"
-                        title="next chapter">14. Segregated allocation caches</a></p><h4>Downloads</h4>
+                        title="next chapter">15. Segregated allocation caches</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -395,10 +395,10 @@ other location dependency function.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="cache.html" title="14. Segregated allocation caches"
+          <a href="cache.html" title="15. Segregated allocation caches"
              >next</a> |</li>
         <li class="right" >
-          <a href="finalization.html" title="12. Finalization"
+          <a href="finalization.html" title="13. Finalization"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

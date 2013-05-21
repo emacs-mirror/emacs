@@ -227,7 +227,7 @@ this documentation.
 
 ``format.c: SigCheck Format: format``
 
-    The client program called :c:func:`mps_pool_create` for a
+    The client program called :c:func:`mps_pool_create_k` for a
     :term:`pool class` like :ref:`pool-amc` that requires a
     :term:`object format`, but passed something other than a
     :c:type:`mps_fmt_t` for this argument.

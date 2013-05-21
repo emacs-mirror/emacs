@@ -180,7 +180,7 @@ static Res allocAsSeg(AllocInfoStruct *aiReturn, SegPref pref,
 {
   Res res;
   Seg seg;
-  res = SegAlloc(&seg, SegClassGet(), pref, size, pool, FALSE);
+  res = SegAlloc(&seg, SegClassGet(), pref, size, pool, FALSE, argsNone);
   if (res == ResOK) {
     aiReturn->the.segData.seg = seg;
   }
@@ -332,20 +332,20 @@ static void testAllocAndIterate(Arena arena, Pool pool,
 }
 
 
-static void testPageTable(ArenaClass class, ...)
+static void testPageTable(ArenaClass class, Size size, Addr addr)
 {
   Arena arena; Pool pool;
   Size pageSize;
   Count tractsPerPage;
-  va_list args;
+  
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, addr);
+    MPS_ARGS_DONE(args);
+    die(ArenaCreate(&arena, class, args), "ArenaCreate");
+  } MPS_ARGS_END(args);
 
-  va_start(args, class);
-  die(ArenaCreateV(&arena, class, args), "ArenaCreate");
-  va_end(args);
-
-  die(PoolCreate(&pool, arena, PoolClassMV(),
-                 (Size)65536, (Size)32, (Size)65536),
-      "PoolCreate");
+  die(PoolCreate(&pool, arena, PoolClassMV(), argsNone), "PoolCreate");
 
   pageSize = ArenaAlign(arena);
   tractsPerPage = pageSize / sizeof(TractStruct);
@@ -364,18 +364,6 @@ static void testPageTable(ArenaClass class, ...)
 }
 
 
-static Res makeArena(Arena *arenaOut, ArenaClass class, ...)
-{
-  va_list args;
-  Res res;
-
-  va_start(args, class);
-  res = ArenaCreateV(arenaOut, class, args);
-  va_end(args);
-  return res;
-}
-
-
 /* testSize -- test arena size overflow
  *
  * Just try allocating larger arenas, doubling the size each time, until
@@ -389,7 +377,11 @@ static void testSize(Size size)
   Res res;
 
   do {
-    res = makeArena(&arena, class, size);
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
+      MPS_ARGS_DONE(args);
+      res = ArenaCreate(&arena, class, args);
+    } MPS_ARGS_END(args);
     if (res == ResOK)
       ArenaDestroy(arena);
     else
@@ -407,13 +399,12 @@ int main(int argc, char *argv[])
   void *block;
   testlib_unused(argc);
 
-  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
-  testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE);
+  testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE, 0);
+  testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE, 0);
 
   block = malloc(TEST_ARENA_SIZE);
   cdie(block != NULL, "malloc");
-  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE,
-                (Addr)block);
+  testPageTable((ArenaClass)mps_arena_class_cl(), TEST_ARENA_SIZE, block);
 
   testSize(TEST_ARENA_SIZE);
 

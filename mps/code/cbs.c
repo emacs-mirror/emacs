@@ -1,7 +1,7 @@
 /* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -228,8 +228,12 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment, Bool fastFind)
 
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
-  res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(),
-                   sizeof(CBSBlockStruct) * 64, sizeof(CBSBlockStruct));
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, sizeof(CBSBlockStruct) * 64);
+    MPS_ARGS_DONE(args);
+    res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), args);
+  } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
   cbs->splayTreeSize = 0;
@@ -921,7 +925,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

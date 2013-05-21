@@ -93,18 +93,15 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
-                        size_t (*size)(int i), ...)
+                        size_t (*size)(int i), mps_arg_s args[])
 {
   mps_res_t res;
   mps_ap_t ap;
-  va_list arg;
   int i, k;
   int *ps[TEST_SET_SIZE];
   size_t ss[TEST_SET_SIZE];
 
-  va_start(arg, size);
-  res = mps_pool_create_v(&pool, arena, class, arg);
-  va_end(arg);
+  res = mps_pool_create_k(&pool, arena, class, args);
   if(res != MPS_RES_OK) return res;
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
@@ -184,15 +181,16 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
   min = MPS_PF_ALIGN;
   mean = 42;
   max = 8192;
- 
-  die(stress(mps_class_mvt(), arena, randomSize,
-             min,               /* min_size */
-             mean,              /* median_size */
-             max,               /* maximum_size */
-             (mps_count_t)TEST_SET_SIZE/2, /* reserve_depth */
-             (mps_count_t)30    /* fragmentation_limit */
-             ),
-      "stress MVT");
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MIN_SIZE, min);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, mean);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, max);
+    MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, TEST_SET_SIZE/2);
+    MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, 0.3);
+    MPS_ARGS_DONE(args);
+    die(stress(mps_class_mvt(), arena, randomSize, args), "stress MVT");
+  } MPS_ARGS_END(args);
 
   mps_arena_destroy(arena);
 

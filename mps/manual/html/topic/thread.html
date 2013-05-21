@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>8. Threads &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>9. Threads &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="9. Roots" href="root.html" />
-    <link rel="prev" title="7. Scanning" href="scanning.html" /> 
+    <link rel="next" title="10. Roots" href="root.html" />
+    <link rel="prev" title="8. Scanning" href="scanning.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="root.html" title="9. Roots"
+          <a href="root.html" title="10. Roots"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="scanning.html" title="7. Scanning"
+          <a href="scanning.html" title="8. Scanning"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="threads">
-<span id="topic-thread"></span><span id="index-0"></span><h1>8. Threads<a class="headerlink" href="#threads" title="Permalink to this headline">¶</a></h1>
+<span id="topic-thread"></span><span id="index-0"></span><h1>9. Threads<a class="headerlink" href="#threads" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="thread-safety">
-<span id="index-1"></span><h2>8.1. Thread safety<a class="headerlink" href="#thread-safety" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>9.1. Thread safety<a class="headerlink" href="#thread-safety" title="Permalink to this headline">¶</a></h2>
 <p>The MPS is designed to run in an environment with multiple threads all
 calling into the MPS. Some code is known to operate with exclusive
 access to the data it manipulates (for example, allocation via
@@ -70,7 +70,7 @@ at most a single thread (per arena) running &#8220;inside&#8221; the MPS at a
 time.</p>
 </div>
 <div class="section" id="thread-registration">
-<span id="topic-thread-register"></span><span id="index-2"></span><h2>8.2. Thread registration<a class="headerlink" href="#thread-registration" title="Permalink to this headline">¶</a></h2>
+<span id="topic-thread-register"></span><span id="index-2"></span><h2>9.2. Thread registration<a class="headerlink" href="#thread-registration" title="Permalink to this headline">¶</a></h2>
 <p>In order to scan a thread&#8217;s registers for references (which happens at
 each <a class="reference internal" href="../glossary/f.html#term-flip"><em class="xref std std-term">flip</em></a>), the MPS needs to be able to suspend that thread,
 and in order to gain exclusive atomic access to memory in order to
@@ -100,7 +100,7 @@ needs to co-operate with the MPS.</p>
 </div>
 </div>
 <div class="section" id="signal-handling-issues">
-<span id="index-3"></span><h2>8.3. Signal handling issues<a class="headerlink" href="#signal-handling-issues" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>9.3. Signal handling issues<a class="headerlink" href="#signal-handling-issues" title="Permalink to this headline">¶</a></h2>
 <p>The MPS uses <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barriers<sup>(1)</sup></em></a> to <a class="reference internal" href="../glossary/p.html#term-protection"><em class="xref std std-term">protect</em></a>
 memory from the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> and handles the signals that
 result from barrier hits.</p>
@@ -115,7 +115,7 @@ the MPS.</p>
 </div>
 </div>
 <div class="section" id="thread-interface">
-<span id="index-4"></span><h2>8.4. Thread interface<a class="headerlink" href="#thread-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>9.4. Thread interface<a class="headerlink" href="#thread-interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_thr_t">
 <tt class="descname">mps_thr_t</tt><a class="headerlink" href="#mps_thr_t" title="Permalink to this definition">¶</a></dt>
@@ -223,21 +223,21 @@ to <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">8. Threads</a><ul>
-<li><a class="reference internal" href="#thread-safety">8.1. Thread safety</a></li>
-<li><a class="reference internal" href="#thread-registration">8.2. Thread registration</a></li>
-<li><a class="reference internal" href="#signal-handling-issues">8.3. Signal handling issues</a></li>
-<li><a class="reference internal" href="#thread-interface">8.4. Thread interface</a></li>
+<li><a class="reference internal" href="#">9. Threads</a><ul>
+<li><a class="reference internal" href="#thread-safety">9.1. Thread safety</a></li>
+<li><a class="reference internal" href="#thread-registration">9.2. Thread registration</a></li>
+<li><a class="reference internal" href="#signal-handling-issues">9.3. Signal handling issues</a></li>
+<li><a class="reference internal" href="#thread-interface">9.4. Thread interface</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="scanning.html"
-                        title="previous chapter">7. Scanning</a></p>
+                        title="previous chapter">8. Scanning</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="root.html"
-                        title="next chapter">9. Roots</a></p><h4>Downloads</h4>
+                        title="next chapter">10. Roots</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -263,10 +263,10 @@ to <a class="reference internal" href="#mps_tramp" title="mps_tramp"><tt class="
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="root.html" title="9. Roots"
+          <a href="root.html" title="10. Roots"
              >next</a> |</li>
         <li class="right" >
-          <a href="scanning.html" title="7. Scanning"
+          <a href="scanning.html" title="8. Scanning"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

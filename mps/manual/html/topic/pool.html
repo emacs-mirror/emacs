@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>4. Pools &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>5. Pools &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Reference" href="index.html" />
-    <link rel="next" title="5. Allocation" href="allocation.html" />
-    <link rel="prev" title="3. Arenas" href="arena.html" /> 
+    <link rel="next" title="6. Allocation" href="allocation.html" />
+    <link rel="prev" title="4. Arenas" href="arena.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="allocation.html" title="5. Allocation"
+          <a href="allocation.html" title="6. Allocation"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="arena.html" title="3. Arenas"
+          <a href="arena.html" title="4. Arenas"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <div class="section" id="pools">
-<span id="topic-pool"></span><span id="index-0"></span><h1>4. Pools<a class="headerlink" href="#pools" title="Permalink to this headline">¶</a></h1>
+<span id="topic-pool"></span><span id="index-0"></span><h1>5. Pools<a class="headerlink" href="#pools" title="Permalink to this headline">¶</a></h1>
 <p>Within an <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a> a client program creates one or more pools. A
 pool is responsible for requesting memory from the <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a> and
 making it available for allocation.</p>
@@ -69,32 +69,47 @@ and making it available to the <a class="reference internal" href="../glossary/c
 </dd></dl>
 
 <dl class="function">
-<dt id="mps_pool_create">
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, ...<big>)</big><a class="headerlink" href="#mps_pool_create" title="Permalink to this definition">¶</a></dt>
+<dt id="mps_pool_create_k">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create_k</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, <a class="reference internal" href="keyword.html#mps_arg_s" title="mps_arg_s">mps_arg_s</a><em>&nbsp;args[]</em><big>)</big><a class="headerlink" href="#mps_pool_create_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a> in an <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a>.</p>
 <p><tt class="docutils literal"><span class="pre">pool_o</span></tt> points to a location that will hold a pointer to the new
 pool.</p>
 <p><tt class="docutils literal"><span class="pre">arena</span></tt> is the arena in which to create the pool.</p>
 <p><tt class="docutils literal"><span class="pre">class</span></tt> is the <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> of the new pool.</p>
-<p>Some pool classes require additional arguments to be passed to
-<a class="reference internal" href="#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>. See the documentation for the pool
-class.</p>
+<p><tt class="docutils literal"><span class="pre">args</span></tt> are <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a> specific to the pool class.
+See the documentation for the pool class.</p>
 <p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if the pool is created successfully,
 or another <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> otherwise.</p>
 <p>The pool persists until it is destroyed by calling
 <a class="reference internal" href="#mps_pool_destroy" title="mps_pool_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_destroy()</span></tt></a>.</p>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p class="last">There&#8217;s an alternative function <tt class="xref c c-func docutils literal"><span class="pre">pool_create_v()</span></tt> that
-takes its extra arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a>
-<tt class="docutils literal"><span class="pre">va_list</span></tt> mechanism.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_pool_create">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, ...<big>)</big><a class="headerlink" href="#mps_pool_create" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p class="last">Use <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+arguments</em></a> interface is more reliable and produces better
+error messages.</p>
 </div>
+<p>An alternative to <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> that takes its
+extra arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> variable argument
+list mechanism.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="mps_pool_create_v">
 <a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_pool_create_v</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em>, va_list<em>&nbsp;args</em><big>)</big><a class="headerlink" href="#mps_pool_create_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>An alternative to <a class="reference internal" href="#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a> that takes its extra
+<dd><div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p class="last">Use <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+arguments</em></a> interface is more reliable and produces better
+error messages.</p>
+</div>
+<p>An alternative to <a class="reference internal" href="#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> that takes its extra
 arguments using the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a> <tt class="docutils literal"><span class="pre">va_list</span></tt> mechanism.</p>
 </dd></dl>
 
@@ -114,7 +129,7 @@ created in the pool.</p>
 </dd></dl>
 
 <div class="section" id="pool-classes">
-<span id="index-1"></span><h2>4.1. Pool classes<a class="headerlink" href="#pool-classes" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>5.1. Pool classes<a class="headerlink" href="#pool-classes" title="Permalink to this headline">¶</a></h2>
 <p>Pools belong to <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> that specify policies for how
 their memory is managed. Some pools are <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manually managed</em></a> (you must call <a class="reference internal" href="allocation.html#mps_free" title="mps_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_free()</span></tt></a> to
 return a block of memory to the pool) and others are
@@ -134,7 +149,7 @@ it is too late to change it now.</p>
 
 </div>
 <div class="section" id="pool-introspection">
-<span id="index-2"></span><h2>4.2. Pool introspection<a class="headerlink" href="#pool-introspection" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>5.2. Pool introspection<a class="headerlink" href="#pool-introspection" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_addr_pool">
 <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t">mps_bool_t</a> <tt class="descname">mps_addr_pool</tt><big>(</big><a class="reference internal" href="#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;*pool_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;addr</em><big>)</big><a class="headerlink" href="#mps_addr_pool" title="Permalink to this definition">¶</a></dt>
@@ -178,19 +193,19 @@ the <a class="reference internal" href="../glossary/p.html#term-parked-state"><e
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">4. Pools</a><ul>
-<li><a class="reference internal" href="#pool-classes">4.1. Pool classes</a></li>
-<li><a class="reference internal" href="#pool-introspection">4.2. Pool introspection</a></li>
+<li><a class="reference internal" href="#">5. Pools</a><ul>
+<li><a class="reference internal" href="#pool-classes">5.1. Pool classes</a></li>
+<li><a class="reference internal" href="#pool-introspection">5.2. Pool introspection</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="arena.html"
-                        title="previous chapter">3. Arenas</a></p>
+                        title="previous chapter">4. Arenas</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="allocation.html"
-                        title="next chapter">5. Allocation</a></p><h4>Downloads</h4>
+                        title="next chapter">6. Allocation</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -216,10 +231,10 @@ the <a class="reference internal" href="../glossary/p.html#term-parked-state"><e
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="allocation.html" title="5. Allocation"
+          <a href="allocation.html" title="6. Allocation"
              >next</a> |</li>
         <li class="right" >
-          <a href="arena.html" title="3. Arenas"
+          <a href="arena.html" title="4. Arenas"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Reference</a> &raquo;</li> 

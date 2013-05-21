@@ -52,6 +52,7 @@ typedef struct mps_class_s {
   size_t size;                  /* size of outer structure */
   size_t offset;                /* offset of generic struct in outer struct */
   Attr attr;                    /* attributes */
+  PoolVarargsMethod varargs;    /* convert deprecated varargs into keywords */
   PoolInitMethod init;          /* initialize the pool descriptor */
   PoolFinishMethod finish;      /* finish the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
@@ -330,6 +331,7 @@ typedef struct BufferClassStruct {
   ProtocolClassStruct protocol;
   const char *name;             /* class name string */
   size_t size;                  /* size of outer structure */
+  BufferVarargsMethod varargs;  /* parse obsolete varargs */
   BufferInitMethod init;        /* initialize the buffer */
   BufferFinishMethod finish;    /* finish the buffer */
   BufferAttachMethod attach;    /* attach the buffer */
@@ -535,6 +537,7 @@ typedef struct mps_arena_class_s {
   char *name;                   /* class name string */
   size_t size;                  /* size of outer structure */
   size_t offset;                /* offset of generic struct in outer struct */
+  ArenaVarargsMethod varargs;
   ArenaInitMethod init;
   ArenaFinishMethod finish;
   ArenaReservedMethod reserved;

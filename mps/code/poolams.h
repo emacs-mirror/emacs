@@ -13,6 +13,7 @@
 #include "mpmst.h"
 #include "ring.h"
 #include "bt.h"
+#include "mpscams.h"
 #include <stdarg.h>
 
 

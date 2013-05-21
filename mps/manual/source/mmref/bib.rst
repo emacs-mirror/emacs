@@ -215,6 +215,14 @@ Bibliography
 
   Richard Brooksby. 2002. "`The Memory Pool System: Thirty person-years of memory management development goes Open Source <http://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>`_". ISMM'02.
 
+* .. _C1990:
+
+  International Standard ISO/IEC 9899:1990. "Programming languages — C".
+
+* .. _C1999:
+
+  International Standard ISO/IEC 9899:1999. "`Programming languages — C <http://www.open-std.org/jtc1/sc22/WG14/www/docs/n1256.pdf>`_".
+
 * .. _CGZ94:
 
   Brad Calder, Dirk Grunwald, Benjamin Zorn. 1994. "`Quantifying Behavioral Differences Between C and C++ Programs <http://cseclassic.ucsd.edu/users/calder/papers/JplVersion.pdf>`_". *Journal of Programming Languages.* 2(4):313--351.

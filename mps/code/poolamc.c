@@ -142,13 +142,20 @@ static Bool amcSegCheck(amcSeg amcseg)
 
 /* AMCSegInit -- initialise an AMC segment */
 
+ARG_DEFINE_KEY(amc_seg_type, Pointer);
+#define amcKeySegType (&_mps_key_amc_seg_type)
+
 static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, va_list args)
+                      Bool reservoirPermit, ArgList args)
 {
-  int *segtype = va_arg(args, int*);  /* .segtype */
+  int *segtype;
   SegClass super;
   amcSeg amcseg;
   Res res;
+  ArgStruct arg;
+  
+  ArgRequire(&arg, args, amcKeySegType); /* .segtype */
+  segtype = arg.val.p;
 
   AVERT(Seg, seg);
   amcseg = Seg2amcSeg(seg);
@@ -604,7 +611,7 @@ static void amcBufSetGen(Buffer buffer, amcGen gen)
 
 /* AMCBufInit -- Initialize an amcBuf */
 
-static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
+static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
 {
   AMC amc;
   amcBuf amcbuf;
@@ -689,7 +696,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, Serial genNr)
     goto failControlAlloc;
   gen = (amcGen)p;
 
-  res = BufferCreate(&buffer, EnsureamcBufClass(), pool, FALSE);
+  res = BufferCreate(&buffer, EnsureamcBufClass(), pool, FALSE, argsNone);
   if(res != ResOK)
     goto failBufferCreate;
 
@@ -928,12 +935,25 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 }
 
 
+/* amcVarargs -- decode obsolete varargs */
+
+static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_CHAIN;
+  args[1].val.chain = va_arg(varargs, Chain);
+  args[2].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* amcInitComm -- initialize AMC/Z pool
  *
  * See <design/poolamc/#init>.
  * Shared by AMCInit and AMCZinit.
  */
-static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
+static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
 {
   AMC amc;
   Res res;
@@ -943,6 +963,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   Index i;
   size_t genArraySize;
   size_t genCount;
+  ArgStruct arg;
   
   /* Suppress a warning about this structure not being used when there
      are no statistics.  Note that simply making the declaration conditional
@@ -959,11 +980,14 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   amc = Pool2AMC(pool);
   arena = PoolArena(pool);
 
-  pool->format = va_arg(arg, Format);
+  ArgRequire(&arg, args, MPS_KEY_FORMAT);
+  pool->format = arg.val.format;
+  ArgRequire(&arg, args, MPS_KEY_CHAIN);
+  amc->chain = arg.val.chain;
+  
   AVERT(Format, pool->format);
-  pool->alignment = pool->format->alignment;
-  amc->chain = va_arg(arg, Chain);
   AVERT(Chain, amc->chain);
+  pool->alignment = pool->format->alignment;
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);
@@ -1038,14 +1062,14 @@ failGensAlloc:
   return res;
 }
 
-static Res AMCInit(Pool pool, va_list arg)
+static Res AMCInit(Pool pool, ArgList args)
 {
-  return amcInitComm(pool, RankSetSingle(RankEXACT), arg);
+  return amcInitComm(pool, RankSetSingle(RankEXACT), args);
 }
 
-static Res AMCZInit(Pool pool, va_list arg)
+static Res AMCZInit(Pool pool, ArgList args)
 {
-  return amcInitComm(pool, RankSetEMPTY, arg);
+  return amcInitComm(pool, RankSetEMPTY, args);
 }
 
 
@@ -1146,9 +1170,12 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   genNr = PoolGenNr(&gen->pgen);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &genNr);
-  res = SegAlloc(&seg, amcSegClassGet(), &segPrefStruct,
-                 alignedSize, pool, withReservoirPermit,
-                 &gen->type); /* .segtype */
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD_FIELD(args, amcKeySegType, p, &gen->type); /* .segtype */
+    MPS_ARGS_DONE(args);
+    res = SegAlloc(&seg, amcSegClassGet(), &segPrefStruct,
+                   alignedSize, pool, withReservoirPermit, args);
+  } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
   AVER(alignedSize == SegSize(seg));
@@ -2396,6 +2423,7 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->size = sizeof(AMCStruct);
   this->offset = offsetof(AMCStruct, poolStruct);
   this->attr |= AttrMOVINGGC;
+  this->varargs = AMCVarargs;
   this->init = AMCInit;
   this->finish = AMCFinish;
   this->bufferFill = AMCBufferFill;

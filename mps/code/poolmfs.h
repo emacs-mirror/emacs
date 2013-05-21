@@ -29,6 +29,7 @@
 #define poolmfs_h
 
 #include "mpm.h"
+#include "mpscmfs.h"
 
 typedef struct MFSStruct *MFS;
 

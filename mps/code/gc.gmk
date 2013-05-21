@@ -15,7 +15,7 @@ CFLAGSOPT = -O2 -g3
 CFLAGSCOMPILER :=  -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
-	-Wcast-qual -Wshadow -Wstrict-aliasing=2
+	-Wcast-qual -Wshadow # -Wstrict-aliasing=2
 CFLAGSCOMPILERSTRICT := -ansi -pedantic -Wshadow
 
 # A different set of compiler flags for less strict compilation, for
