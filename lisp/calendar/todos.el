@@ -1657,10 +1657,15 @@ otherwise, a new file name is allowed."
 			(if archive todos-archives todos-files)))
 	 (file (completing-read prompt files nil mustmatch nil nil
 				(if files
-				    ;; If user hit RET without choosing
-				    ;; a file, default to current file.
+				    ;; If user hit RET without
+				    ;; choosing a file, default to
+				    ;; current or default file.
 				    (todos-short-file-name
-				     todos-current-todos-file)
+				     (or todos-current-todos-file
+					 (and todos-show-current-file
+					      todos-global-current-todos-file)
+					 (todos-absolute-file-name
+					  todos-default-todos-file)))
 				  ;; Trigger prompt for initial file.
 				  ""))))
     (unless (file-exists-p todos-directory)

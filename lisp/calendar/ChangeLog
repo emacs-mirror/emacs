@@ -1,3 +1,8 @@
+2013-05-21  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-read-file-name): Fix previous change to ensure
+	it works when invoked outside of a Todos file.
+
 2013-05-20  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Fixes concerning filtered items.
