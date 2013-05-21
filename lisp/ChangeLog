@@ -1,3 +1,12 @@
+2013-05-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-mode-menu): Update and re-organize
+	menu items.
+	(octave-mode): Tweak fill-nobreak-predicate.
+	(inferior-octave-startup): Check process to avoid infinite loop.
+	(inferior-octave): Pop to buffer first to show abornmal process
+	exit information.
+
 2013-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* printing.el (pr-menu-bar): Define when compiling.

@@ -132,38 +132,49 @@ parenthetical grouping.")
 (easy-menu-define octave-mode-menu octave-mode-map
   "Menu for Octave mode."
   '("Octave"
-    ("Lines"
-     ["Previous Code Line"	octave-previous-code-line t]
-     ["Next Code Line"		octave-next-code-line t]
-     ["Begin of Continuation"	octave-beginning-of-line t]
-     ["End of Continuation"	octave-end-of-line t]
-     ["Split Line at Point"	octave-indent-new-comment-line t])
-    ("Blocks"
-     ["Mark Block"		octave-mark-block t]
-     ["Close Block"		smie-close-block t])
-    ("Functions"
-     ["Insert Function"	octave-insert-defun t]
-     ["Update function file comment" octave-update-function-file-comment t])
-    "-"
+    ["Split Line at Point"          octave-indent-new-comment-line t]
+    ["Previous Code Line"           octave-previous-code-line t]
+    ["Next Code Line"               octave-next-code-line t]
+    ["Begin of Line"                octave-beginning-of-line t]
+    ["End of Line"                  octave-end-of-line t]
+    ["Mark Block"                   octave-mark-block t]
+    ["Close Block"                  smie-close-block t]
+    "---"
+    ["Start Octave Process"         run-octave t]
+    ["Lookup Documentation"         info-lookup-symbol t]
+    ["Help on Function"             octave-help t]
+    ["Find Function Definition"     octave-find-definition t]
+    ["Insert Function"              octave-insert-defun t]
+    ["Update Function File Comment" octave-update-function-file-comment t]
+    "---"
+    ["Function Syntax Hints" (call-interactively
+                              (if (fboundp 'eldoc-post-insert-mode)
+                                  'eldoc-post-insert-mode
+                                'eldoc-mode))
+     :style toggle :selected (or eldoc-post-insert-mode eldoc-mode)
+     :help "Display function signatures after typing `SPC' or `('"]
+    ["Delimiter Matching"           smie-highlight-matching-block-mode
+     :style toggle :selected smie-highlight-matching-block-mode
+     :help "Highlight matched pairs such as `if ... end'"
+     :visible (fboundp 'smie-highlight-matching-block-mode)]
+    ["Auto Fill"                    auto-fill-mode
+     :style toggle :selected auto-fill-function
+     :help "Automatic line breaking"]
+    ["Electric Layout"              electric-layout-mode
+     :style toggle :selected electric-layout-mode
+     :help "Automatically insert newlines around some chars"]
+    "---"
     ("Debug"
-     ["Send Current Line"	octave-send-line t]
-     ["Send Current Block"	octave-send-block t]
-     ["Send Current Function"	octave-send-defun t]
-     ["Send Region"		octave-send-region t]
-     ["Show Process Buffer"	octave-show-process-buffer t]
-     ["Hide Process Buffer"	octave-hide-process-buffer t]
-     ["Kill Process"		octave-kill-process t])
-    "-"
-    ["Indent Line"		indent-according-to-mode t]
-    ["Complete Symbol"		completion-at-point t]
-    ["Toggle Auto-Fill Mode"	auto-fill-mode
-     :style toggle :selected auto-fill-function]
-    "-"
-    ["Describe Octave Mode"	describe-mode t]
-    ["Lookup Octave Index"	info-lookup-symbol t]
-    ["Customize Octave" (customize-group 'octave) t]
-    "-"
-    ["Submit Bug Report"	report-emacs-bug t]))
+     ["Send Current Line"       octave-send-line t]
+     ["Send Current Block"      octave-send-block t]
+     ["Send Current Function"   octave-send-defun t]
+     ["Send Region"             octave-send-region t]
+     ["Show Process Buffer"     octave-show-process-buffer t]
+     ["Hide Process Buffer"     octave-hide-process-buffer t]
+     ["Kill Process"            octave-kill-process t])
+    "---"
+    ["Customize Octave"         (customize-group 'octave) t]
+    ["Submit Bug Report"        report-emacs-bug t]))
 
 (defvar octave-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -543,7 +554,8 @@ definitions can also be stored in files and used in batch mode."
 
   ;; Use `smie-auto-fill' after fixing bug#14381.
   (setq-local normal-auto-fill-function 'do-auto-fill)
-  (setq-local fill-nobreak-predicate #'octave-in-string-p)
+  (setq-local fill-nobreak-predicate
+              (lambda () (eq (octave-in-string-p) ?')))
   (setq-local comment-line-break-function #'octave-indent-new-comment-line)
 
   (setq font-lock-defaults '(octave-font-lock-keywords))
@@ -689,12 +701,12 @@ the file specified by `inferior-octave-startup-file' or by the default
 startup file, `~/.emacs-octave'."
   (interactive "P")
   (let ((buffer (get-buffer-create inferior-octave-buffer)))
+    (unless arg
+      (pop-to-buffer buffer))
     (unless (comint-check-proc buffer)
       (with-current-buffer buffer
         (inferior-octave-startup)
         (inferior-octave-mode)))
-    (unless arg
-      (pop-to-buffer buffer))
     buffer))
 
 ;;;###autoload
@@ -724,6 +736,8 @@ startup file, `~/.emacs-octave'."
     ;; output may be mixed up).  Hence, we need to digest the Octave
     ;; output to see when it issues a prompt.
     (while inferior-octave-receive-in-progress
+      (or (process-live-p inferior-octave-process)
+          (error "Process `%s' died" inferior-octave-process))
       (accept-process-output inferior-octave-process))
     (goto-char (point-max))
     (set-marker (process-mark proc) (point))
@@ -1296,7 +1310,7 @@ The block marked is the one that contains point or follows point."
                 (and (= (current-column) cfc) (eolp)))
             (forward-line 1)
           (if (not (eolp)) (insert " "))
-          (or (do-auto-fill)
+          (or (funcall normal-auto-fill-function)
               (forward-line 1))))
       t)))
 
