@@ -69,6 +69,18 @@ Bool RangeOverlap(Range range1, Range range2)
       && RangeBase(range2) < RangeLimit(range1);
 }
 
+Addr (RangeBase)(Range range) {
+  return RangeBase(range);
+}
+
+Addr (RangeLimit)(Range range) {
+  return RangeLimit(range);
+}
+
+Size (RangeSize)(Range range) {
+  return RangeSize(range);
+}
+
 
 /* C. COPYRIGHT AND LICENSE
  *
