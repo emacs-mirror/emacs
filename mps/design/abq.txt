@@ -1,7 +1,7 @@
 .. mode:: -*- rst -*-
 
-Queue
-=====
+Queue design
+============
 
 :Tag: design.mps.abq
 :Author: Gareth Rees
@@ -91,10 +91,6 @@ If the queue is full, return ``TRUE``, otherwise return ``FALSE``.
 .. c:function:: Count ABQDepth(ABQ abq)
 
 Return the number of elements in the queue.
-
-.. c:type:: Res (*ABQDescribeElement)(Addr element, mps_lib_FILE *stream)
-
-A function that can describe an element that has been pushed onto a queue.
 
 .. c:type:: typedef unsigned ABQDisposition
 
