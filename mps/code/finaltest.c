@@ -162,7 +162,7 @@ static void *test(void *arg, size_t s)
   mps_ap_t ap;
   mps_fmt_t fmt;
   mps_chain_t chain;
-  mps_pool_t amc, amc2;
+  mps_pool_t amc;
   mps_root_t mps_root;
   mps_arena_t arena;
   size_t i;
@@ -174,8 +174,6 @@ static void *test(void *arg, size_t s)
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
       "pool_create amc\n");
-  die(mps_pool_create(&amc2, arena, mps_class_amc(), fmt, chain),
-      "pool_create amc2\n");
   die(mps_root_create_table(&mps_root, arena, mps_rank_exact(), (mps_rm_t)0,
                             root, (size_t)rootCOUNT),
       "root_create\n");
@@ -207,16 +205,28 @@ static void *test(void *arg, size_t s)
     root[i] = (void *)make_numbered_tree(maxtreeDEPTH, ap);
     register_numbered_tree((mps_word_t)root[i], arena);
   }
+
   /* Regression test for job003341: wait until after pool is destroyed
-     before collecting. */
+     (and a new pool has been created and lots of memory allocated in
+     it) before starting the next collection. */
+
+  mps_ap_destroy(ap);
+  mps_pool_destroy(amc);
+
+  die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
+      "pool_create amc\n");
+  die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create\n");
+  for(i = 0; i < rootCOUNT; ++i) {
+    root[i] = (void *)make_numbered_tree(maxtreeDEPTH, ap);
+  }
+
+  collect_and_finalize(arena);
 
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root);
   mps_pool_destroy(amc);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
-
-  collect_and_finalize(arena);
 
   return NULL;
 }
