@@ -4391,9 +4391,11 @@ int main(int argc, char *argv[])
   
   /* Create an MPS arena.  There is usually only one of these in a process.
      It holds all the MPS "global" state and is where everything happens. */
-  res = mps_arena_create(&arena,
-                         mps_arena_class_vm(), 
-                         (size_t)(32 * 1024 * 1024));
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024);
+    MPS_ARGS_DONE(args);
+    res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+  } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
   /* Create the object format. */
@@ -4409,18 +4411,19 @@ int main(int argc, char *argv[])
 
   /* Create an Automatic Mostly-Copying (AMC) pool to manage the Scheme
      objects.  This is a kind of copying garbage collector. */
-  res = mps_pool_create(&obj_pool,
-                        arena,
-                        mps_class_amc(),
-                        obj_fmt,
-                        obj_chain);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
+    MPS_ARGS_DONE(args);
+    res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(), args);
+  } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj pool");
 
   /* Create an allocation point for fast in-line allocation of objects
      from the `obj_pool`.  You'd usually want one of these per thread
      for your primary pools.  This interpreter is single threaded, though,
      so we just have it in a global. See topic/allocation. */
-  res = mps_ap_create(&obj_ap, obj_pool);
+  res = mps_ap_create_k(&obj_ap, obj_pool, mps_args_none);
   if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
 
   /* Register the current thread with the MPS.  The MPS must sometimes

@@ -1,7 +1,7 @@
 /* arenacl.c: ARENA CLASS USING CLIENT MEMORY
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/arena/#client>.
  *
@@ -179,6 +179,19 @@ static void ClientChunkFinish(Chunk chunk)
 }
 
 
+/* ClientArenaVarargs -- parse obsolete varargs */
+
+static void ClientArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_ARENA_SIZE;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_ARENA_CL_BASE;
+  args[1].val.addr = va_arg(varargs, Addr);
+  args[2].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* ClientArenaInit -- create and initialize the client arena
  *
  * .init.memory: Creates the arena structure in the chuck given, and
@@ -186,8 +199,10 @@ static void ClientChunkFinish(Chunk chunk)
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
-static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
-                           va_list args)
+
+ARG_DEFINE_KEY(arena_cl_addr, Addr);
+
+static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Arena arena;
   ClientArena clientArena;
@@ -196,11 +211,17 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   Addr base, limit, chunkBase;
   Res res;
   Chunk chunk;
- 
-  size = va_arg(args, Size);
-  base = va_arg(args, Addr);
+  mps_arg_s arg;
+  
   AVER(arenaReturn != NULL);
   AVER((ArenaClass)mps_arena_class_cl() == class);
+  AVER(ArgListCheck(args));
+  
+  ArgRequire(&arg, args, MPS_KEY_ARENA_SIZE);
+  size = arg.val.size;
+  ArgRequire(&arg, args, MPS_KEY_ARENA_CL_BASE);
+  base = arg.val.addr;
+
   AVER(base != (Addr)0);
 
   clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN);
@@ -243,6 +264,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
 
 failChunkCreate:
   ArenaFinish(arena);
+  AVER(res != ResOK);
   return res;
 }
 
@@ -315,7 +337,7 @@ static Size ClientArenaReserved(Arena arena)
 static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
                       SegPref pref, Size pages, Pool pool, Chunk chunk)
 {
-  Index baseIndex, limitIndex, index;
+  Index baseIndex, limitIndex, indx;
   Bool b;
   Arena arena;
   ClientChunk clChunk;
@@ -349,8 +371,8 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
 
   /* Initialize the generic tract structures. */
   AVER(limitIndex > baseIndex);
-  for(index = baseIndex; index < limitIndex; ++index) {
-    PageAlloc(chunk, index, pool);
+  for(indx = baseIndex; indx < limitIndex; ++indx) {
+    PageAlloc(chunk, indx, pool);
   }
 
   clChunk->freePages -= pages;
@@ -457,6 +479,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->name = "CL";
   this->size = sizeof(ClientArenaStruct);
   this->offset = offsetof(ClientArenaStruct, arenaStruct);
+  this->varargs = ClientArenaVarargs;
   this->init = ClientArenaInit;
   this->finish = ClientArenaFinish;
   this->reserved = ClientArenaReserved;
@@ -478,7 +501,7 @@ mps_arena_class_t mps_arena_class_cl(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

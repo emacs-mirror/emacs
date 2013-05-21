@@ -834,7 +834,7 @@ Res ArenaFinalize(Arena arena, Ref obj)
   if (!arena->isFinalPool) {
     Pool pool;
 
-    res = PoolCreate(&pool, arena, PoolClassMRG());
+    res = PoolCreate(&pool, arena, PoolClassMRG(), argsNone);
     if (res != ResOK)
       return res;
     arena->finalPool = pool;

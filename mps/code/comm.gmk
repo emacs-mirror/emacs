@@ -173,7 +173,7 @@ MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
             bt.c ring.c shield.c ld.c event.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli.c \
             boot.c meter.c splay.c cbs.c diag.c \
-            ss.c table.c abq.c range.c
+            ss.c table.c arg.c abq.c range.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
 
@@ -241,12 +241,11 @@ TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv awlut \
           messtest mpmss mpsicv mv2test poolncv qs sacss segsmss \
           steptest walkt0
 testrun: $(TESTCASES)
-	OUTPUT=$$(mktemp /tmp/mps.log.XXXXXX); \
+	OUTPUT=$$(mktemp -d /tmp/mps.log.XXXXXX); \
 	echo "Logging test output to $$OUTPUT"; \
-	$(^:%=(TESTCASE=$(PFM)/$(VARIETY)/%; \
-              echo "\n\n-- Running $$TESTCASE at $$(date) --" >> $$OUTPUT && \
-              echo "Running $$TESTCASE" && \
-              $$TESTCASE >> $$OUTPUT) &&) true
+	$(^:%=(TEST=%; TESTCASE=$(PFM)/$(VARIETY)/$$TEST; \
+         echo "Running $$TESTCASE" && \
+         $$TESTCASE > $$OUTPUT/$$TEST || (cat $$OUTPUT/$$TEST; exit 1)) &&) true
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).

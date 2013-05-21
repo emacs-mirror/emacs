@@ -155,24 +155,34 @@ rather than having to pass it around everywhere::
 
     static mps_arena_t arena;
 
-Create an arena by calling :c:func:`mps_arena_create`. This function
-takes a third argument when creating a virtual memory arena: the size of
-the amount of virtual virtual :term:`address space` (*not* :term:`RAM`),
-in bytes, that the arena will reserve initially. The MPS will ask for
+Create an arena by calling :c:func:`mps_arena_create_k`. This function
+takes a :term:`keyword argument` when creating a virtual memory arena:
+the size of virtual :term:`address space` (*not* :term:`RAM`), in
+bytes, that the arena will reserve initially. The MPS will ask for
 more address space if it runs out, but the more times it has to extend
 its address space, the less efficient garbage collection will become.
-The MPS works best if you reserve an address space that is several times
-larger than your peak memory usage.
+The MPS works best if you reserve an address space that is several
+times larger than your peak memory usage.
+
+.. note::
+
+    Functions in the MPS interface take :term:`keyword arguments` for
+    arguments that are optional, or are only required in some
+    circumstances. These argument are passed in the form of an array
+    of structures of type :c:type:`mps_arg_s`. See
+    :ref:`topic-keyword` for the full details.
 
 Let's reserve 32 megabytes::
 
     mps_res_t res;
-    res = mps_arena_create(&arena,
-                           mps_arena_class_vm(), 
-                           (size_t)(32 * 1024 * 1024));
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 32 * 1024 * 1024);
+        MPS_ARGS_DONE(args);
+        res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create arena");
 
-:c:func:`mps_arena_create` is typical of functions in the MPS
+:c:func:`mps_arena_create_k` is typical of functions in the MPS
 interface in that it stores its result in a location pointed to by an
 :term:`out parameter` (here, ``&arena``) and returns a :term:`result
 code`, which is :c:macro:`MPS_RES_OK` if the function succeeded, or
@@ -762,11 +772,12 @@ Third, the :term:`generation chain`::
 And finally the :term:`pool`::
 
     mps_pool_t obj_pool;
-    res = mps_pool_create(&obj_pool,
-                          arena,
-                          mps_class_amc(),
-                          obj_fmt,
-                          obj_chain);
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_CHAIN, obj_chain);
+        MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
+        MPS_ARGS_DONE(args);
+        res = mps_pool_create_k(&obj_pool, arena, mps_class_amc(), args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj pool");
 
 
@@ -1080,13 +1091,13 @@ may abort.
 The MPS solves this problem via the fast, nearly lock-free
 :ref:`topic-allocation-point-protocol`. This needs an additional
 structure, an :term:`allocation point`, to be attached to the pool by
-calling :c:func:`mps_ap_create`::
+calling :c:func:`mps_ap_create_k`::
 
     static mps_ap_t obj_ap;
 
     /* ... */
 
-    res = mps_ap_create(&obj_ap, obj_pool, mps_rank_exact());
+    res = mps_ap_create_k(&obj_ap, obj_pool, mps_args_none);
     if (res != MPS_RES_OK) error("Couldn't create obj allocation point");
 
 And then the constructor can be implemented like this::

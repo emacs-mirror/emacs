@@ -112,37 +112,81 @@ MVFF interface
     Return the :term:`pool class` for an MVFF (Manual Variable First
     Fit) :term:`pool`.
 
-    When creating an MVFF pool, :c:func:`mps_pool_create` takes six
-    extra arguments::
+    When creating an MVFF pool, :c:func:`mps_pool_create_k` may take
+    the following :term:`keyword arguments`:
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mvff(),
-                                  mps_size_t extend_size,
-                                  mps_size_t average_size,
-                                  mps_align_t alignment,
-                                  mps_bool_t slot_high,
-                                  mps_bool_t arena_high,
-                                  mps_bool_t first_fit)
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`, default
+      65536) is the :term:`size` of segment that the pool will request
+      from the :term:`arena`.
 
-    ``extend_size`` is the :term:`size` of segment that the pool will
-    request from the :term:`arena`.
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
+      is the predicted mean size of blocks that will be allocated from
+      the pool. This is a *hint* to the MPS: the pool will be less
+      efficient if this is wrong, but nothing will break.
 
-    ``average_size`` is the predicted average size of blocks that will
-    be allocated from the pool.
+    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
+      smallest general purpose alignment for the architecture) is the
+      :term:`alignment` of addresses for allocation (and freeing) in
+      the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
+      :c:func:`mps_free`, it will be rounded up to the pool's alignment.
+      The minimum alignment supported by pools of this class is
+      ``sizeof(void *)``.
 
-    ``alignment`` is the :term:`alignment` of addresses for allocation
-    (and freeing) in the pool. If an unaligned size is passed to
-    :c:func:`mps_alloc` or :c:func:`mps_free`, it will be rounded up
-    to the pool's alignment. The minimum alignment supported by pools
-    of this class is ``sizeof(void *)``.
+    * :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` (type :c:type:`mps_bool_t`,
+      default false) determines whether new segments are acquired at high
+      addresses (if true), or at low addresses (if false).
 
-    ``slot_high`` is undocumented. It must have the same value as
-    ``arena_high``.
+    * :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` [#not-ap]_ (type :c:type:`mps_bool_t`,
+      default false) determines whether to search for the highest
+      addressed free area (if true) or lowest (if false) when allocating
+      using :c:func:`mps_alloc`.
 
-    If ``arena_high`` is true, new segments for buffered allocation
-    are acquired at high addresses; if false, at low addresses.
+    * :c:macro:`MPS_KEY_MVFF_FIRST_FIT` [#not-ap]_ (type :c:type:`mps_bool_t`, default
+      true) determines whether to allocate from the highest address in a
+      found free area (if true) or lowest (if false) when allocating
+      using :c:func:`mps_alloc`.
 
-    ``first_fit`` is undocumented and must be set to true.
+    .. [#not-ap]
+    
+       Allocation points are not affected by
+       :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` or
+       :c:macro:`MPS_KEY_MVFF_FIRST_FIT`.
+       They use a worst-fit policy in order to maximise the number of
+       in-line allocations.
+
+    The defaults yield a a simple first-fit allocator.  Specify
+    :c:macro:`MPS_KEY_MVFF_ARENA_HIGH` and
+    :c:macro:`MPS_KEY_MVFF_SLOT_HIGH` true, and
+    :c:macro:`MPS_KEY_MVFF_FIRST_FIT` false to get a first-fit
+    allocator that works from the top of memory downwards.
+    Other combinations may be useful in special circumstances.
+    
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(ARGS, MPS_KEY_EXTEND_BY, 1024 * 1024);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MEAN_SIZE, 32);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_ALIGN, 8);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_ARENA_HIGH, 1);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_SLOT_HIGH, 1);
+            MPS_ARGS_ADD(ARGS, MPS_KEY_MVFF_FIRST_FIT, 0);
+            MPS_ARGS_DONE(args);
+            res = mps_pool_create_k(&pool, arena, mps_class_mvff(), args);
+        } MPS_ARGS_END(args);
+
+    .. deprecated:: starting with version 1.112.
+
+        When using :c:func:`mps_pool_create`, pass the arguments like
+        this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_mvff(),
+                                      mps_size_t extend_size,
+                                      mps_size_t average_size,
+                                      mps_align_t alignment,
+                                      mps_bool_t slot_high,
+                                      mps_bool_t arena_high,
+                                      mps_bool_t first_fit)
 
 
 .. c:function:: mps_class_t mps_class_mvff_debug(void)
@@ -150,23 +194,30 @@ MVFF interface
     A :ref:`debugging <topic-debugging>` version of the MVFF pool
     class.
 
-    When creating a debugging MVFF pool, :c:func:`mps_pool_create`
-    takes seven extra arguments::
+    When creating a debugging MVFF pool, :c:func:`mps_pool_create_k`
+    requires seven :term:`keyword arguments`.
 
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
-                                  mps_class_t mps_class_mvff_debug(),
-                                  mps_debug_option_s debug_option,
-                                  mps_size_t extend_size,
-                                  mps_size_t average_size,
-                                  mps_align_t alignment,
-                                  mps_bool_t slot_high,
-                                  mps_bool_t arena_high,
-                                  mps_bool_t first_fit)
+    * :c:macro:`MPS_KEY_EXTEND_BY`, :c:macro:`MPS_KEY_MEAN_SIZE`,
+      :c:macro:`MPS_KEY_ALIGN`, :c:macro:`MPS_KEY_MVFF_ARENA_HIGH`,
+      :c:macro:`MPS_KEY_MVFF_SLOT_HIGH`, and
+      :c:macro:`MPS_KEY_MVFF_FIRST_FIT` are as described above, and
+      :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
+      :c:options. See :c:type:`mps_debug_option_s`.
 
-    ``debug_option`` specifies the debugging options. See
-    :c:type:`mps_debug_option_s`.
+    .. deprecated:: starting with version 1.112.
 
-    The other arguments are the same as for :c:func:`mps_class_mvff`.
+        When using :c:func:`mps_pool_create`, pass the debugging
+        options, and other arguments like this::
+
+            mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
+                                      mps_class_t mps_class_mvff_debug(),
+                                      mps_debug_option_s debug_option,
+                                      mps_size_t extend_size,
+                                      mps_size_t average_size,
+                                      mps_align_t alignment,
+                                      mps_bool_t slot_high,
+                                      mps_bool_t arena_high,
+                                      mps_bool_t first_fit)
 
 
 .. index::

@@ -179,6 +179,7 @@
 		3124CAFB156BE82000753214 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3124CAFC156BE82900753214 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		3150AE53156ABA2500A6E22A /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		317B3C2B1731830100F9A469 /* arg.c in Sources */ = {isa = PBXBuildFile; fileRef = 317B3C2A1731830100F9A469 /* arg.c */; };
 		31A47BA4156C1E130039B1C2 /* mps.c in Sources */ = {isa = PBXBuildFile; fileRef = 31A47BA3156C1E130039B1C2 /* mps.c */; };
 		31D60007156D3C6200337B26 /* segsmss.c in Sources */ = {isa = PBXBuildFile; fileRef = 31D60006156D3C5F00337B26 /* segsmss.c */; };
 		31D60008156D3C7400337B26 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -984,8 +985,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2219DEFF174BE51900F112E9 /* mpscmvt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpscmvt.h; sourceTree = "<group>"; };
 		226FDF2D174AC32C008E5B4F /* range.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = range.c; sourceTree = "<group>"; };
-		226FDF2E174AC35E008E5B4F /* poolams.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolams.c; sourceTree = "<group>"; };
 		22FA177516E8D6FC0098B23F /* amcssth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcssth; sourceTree = BUILT_PRODUCTS_DIR; };
 		22FA177616E8D7A80098B23F /* amcssth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcssth.c; sourceTree = "<group>"; };
 		2D07B96C1636FC7200DB751B /* eventsql.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = eventsql.c; sourceTree = "<group>"; };
@@ -1005,6 +1006,7 @@
 		3104B022156D39D4000A585A /* amssshe */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amssshe; sourceTree = BUILT_PRODUCTS_DIR; };
 		3104B02F156D39F2000A585A /* amssshe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amssshe.c; sourceTree = "<group>"; };
 		3104B03D156D3AD7000A585A /* segsmss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = segsmss; sourceTree = BUILT_PRODUCTS_DIR; };
+		3107DC4E173B03D100F705C8 /* arg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arg.h; sourceTree = "<group>"; };
 		3114A590156E913C001E0AA3 /* locv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = locv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A5A1156E9168001E0AA3 /* locv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locv.c; sourceTree = "<group>"; };
 		3114A5A7156E92C0001E0AA3 /* qs */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qs; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1028,7 +1030,7 @@
 		3114A66C156E95EB001E0AA3 /* btcv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = btcv.c; sourceTree = "<group>"; };
 		3114A67C156E9668001E0AA3 /* mv2test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mv2test; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A686156E9674001E0AA3 /* mv2test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mv2test.c; sourceTree = "<group>"; };
-		3114A68E156E96B6001E0AA3 /* poolmv2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmv2.c; sourceTree = "<group>"; };
+		3114A68E156E96B6001E0AA3 /* poolmv2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmv2.c; sourceTree = "<group>"; };
 		3114A695156E971B001E0AA3 /* messtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = messtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A69F156E9725001E0AA3 /* messtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = messtest.c; sourceTree = "<group>"; };
 		3114A6AC156E9759001E0AA3 /* walkt0 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = walkt0; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1036,6 +1038,51 @@
 		3114A6C6156E9815001E0AA3 /* mpseventcnv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventcnv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A6D0156E9829001E0AA3 /* eventcnv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventcnv.c; sourceTree = "<group>"; };
 		3114A6D9156E9950001E0AA3 /* eventpro.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventpro.c; sourceTree = "<group>"; };
+		311F2F5017398AD500C15B6A /* boot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = boot.h; sourceTree = "<group>"; };
+		311F2F5117398AE900C15B6A /* bt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bt.h; sourceTree = "<group>"; };
+		311F2F5217398AE900C15B6A /* cbs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cbs.h; sourceTree = "<group>"; };
+		311F2F5317398AE900C15B6A /* chain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = chain.h; sourceTree = "<group>"; };
+		311F2F5417398AE900C15B6A /* check.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = check.h; sourceTree = "<group>"; };
+		311F2F5517398AE900C15B6A /* clock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = clock.h; sourceTree = "<group>"; };
+		311F2F5617398AE900C15B6A /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		311F2F5717398AE900C15B6A /* dbgpool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbgpool.h; sourceTree = "<group>"; };
+		311F2F5817398AE900C15B6A /* event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = event.h; sourceTree = "<group>"; };
+		311F2F5917398AE900C15B6A /* eventcom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventcom.h; sourceTree = "<group>"; };
+		311F2F5A17398AE900C15B6A /* eventdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventdef.h; sourceTree = "<group>"; };
+		311F2F5B17398AE900C15B6A /* eventpro.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventpro.h; sourceTree = "<group>"; };
+		311F2F5C17398AE900C15B6A /* eventrep.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventrep.h; sourceTree = "<group>"; };
+		311F2F5D17398B0400C15B6A /* lo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lo.h; sourceTree = "<group>"; };
+		311F2F5E17398B0E00C15B6A /* lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lock.h; sourceTree = "<group>"; };
+		311F2F5F17398B0E00C15B6A /* meter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = meter.h; sourceTree = "<group>"; };
+		311F2F6017398B0E00C15B6A /* misc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = misc.h; sourceTree = "<group>"; };
+		311F2F6117398B0E00C15B6A /* mpm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpm.h; sourceTree = "<group>"; };
+		311F2F6217398B1A00C15B6A /* mpmst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpmst.h; sourceTree = "<group>"; };
+		311F2F6317398B1A00C15B6A /* mpmtypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpmtypes.h; sourceTree = "<group>"; };
+		311F2F6417398B1A00C15B6A /* mps.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = mps.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		311F2F6517398B3B00C15B6A /* mpsacl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsacl.h; sourceTree = "<group>"; };
+		311F2F6617398B3B00C15B6A /* mpsavm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsavm.h; sourceTree = "<group>"; };
+		311F2F6717398B3B00C15B6A /* mpsio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsio.h; sourceTree = "<group>"; };
+		311F2F6817398B3B00C15B6A /* mpslib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpslib.h; sourceTree = "<group>"; };
+		311F2F6917398B3B00C15B6A /* mpstd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpstd.h; sourceTree = "<group>"; };
+		311F2F6A17398B4C00C15B6A /* mpsw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsw3.h; sourceTree = "<group>"; };
+		311F2F6B17398B4C00C15B6A /* mpswin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpswin.h; sourceTree = "<group>"; };
+		311F2F6C17398B5800C15B6A /* osxc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxc.h; sourceTree = "<group>"; };
+		311F2F6D17398B6300C15B6A /* prmci3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci3.h; sourceTree = "<group>"; };
+		311F2F6E17398B6300C15B6A /* prmci6.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci6.h; sourceTree = "<group>"; };
+		311F2F6F17398B6300C15B6A /* prmcix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmcix.h; sourceTree = "<group>"; };
+		311F2F7017398B6300C15B6A /* prmcw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmcw3.h; sourceTree = "<group>"; };
+		311F2F7117398B7100C15B6A /* protocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = protocol.h; sourceTree = "<group>"; };
+		311F2F7217398B7100C15B6A /* pthrdext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pthrdext.h; sourceTree = "<group>"; };
+		311F2F7317398B7100C15B6A /* ring.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ring.h; sourceTree = "<group>"; };
+		311F2F7417398B7100C15B6A /* sac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sac.h; sourceTree = "<group>"; };
+		311F2F7517398B8E00C15B6A /* sc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sc.h; sourceTree = "<group>"; };
+		311F2F7617398B8E00C15B6A /* splay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = splay.h; sourceTree = "<group>"; };
+		311F2F7717398B8E00C15B6A /* ss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ss.h; sourceTree = "<group>"; };
+		311F2F7817398B8E00C15B6A /* th.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = th.h; sourceTree = "<group>"; };
+		311F2F7917398B8E00C15B6A /* thw3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = thw3.h; sourceTree = "<group>"; };
+		311F2F7A17398B8E00C15B6A /* tract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tract.h; sourceTree = "<group>"; };
+		311F2F7B17398E7600C15B6A /* poolmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmv.h; sourceTree = "<group>"; };
+		311F2F7C17398E9A00C15B6A /* mpscmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscmv.h; sourceTree = "<group>"; };
 		3124CAB8156BE3EC00753214 /* awlut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlut; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAC2156BE40100753214 /* awlut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awlut.c; sourceTree = "<group>"; };
 		3124CAC6156BE48D00753214 /* fmtdy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmtdy.c; sourceTree = "<group>"; };
@@ -1048,8 +1095,13 @@
 		3124CAE4156BE6D500753214 /* fmthe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmthe.c; sourceTree = "<group>"; };
 		3124CAEB156BE7F300753214 /* amcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAF5156BE81100753214 /* amcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcss.c; sourceTree = "<group>"; };
+		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
 		31A47BA3156C1E130039B1C2 /* mps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mps.c; sourceTree = "<group>"; };
 		31A47BA5156C1E5E0039B1C2 /* ssixi3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssixi3.c; sourceTree = "<group>"; };
+		31CD33BB173A9F1500524741 /* mpscams.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscams.h; sourceTree = "<group>"; };
+		31CD33BC173A9F1500524741 /* poolams.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = poolams.c; sourceTree = "<group>"; };
+		31CD33BD173A9F1500524741 /* poolams.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolams.h; sourceTree = "<group>"; };
+		31CD33BE173ABB3000524741 /* poolmv2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmv2.h; sourceTree = "<group>"; };
 		31D60006156D3C5F00337B26 /* segsmss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = segsmss.c; sourceTree = "<group>"; };
 		31D6000D156D3CB200337B26 /* awluthe */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awluthe; sourceTree = BUILT_PRODUCTS_DIR; };
 		31D60017156D3CC300337B26 /* awluthe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awluthe.c; sourceTree = "<group>"; };
@@ -1092,7 +1144,7 @@
 		31EEAC2C156AB2F200714D05 /* message.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = message.c; sourceTree = "<group>"; };
 		31EEAC2D156AB2F200714D05 /* poolmfs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmfs.c; sourceTree = "<group>"; };
 		31EEAC2E156AB2F200714D05 /* poolmrg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmrg.c; sourceTree = "<group>"; };
-		31EEAC2F156AB2F200714D05 /* poolmv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmv.c; sourceTree = "<group>"; };
+		31EEAC2F156AB2F200714D05 /* poolmv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmv.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		31EEAC30156AB2F200714D05 /* ring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ring.c; sourceTree = "<group>"; };
 		31EEAC31156AB2F200714D05 /* sac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sac.c; sourceTree = "<group>"; };
 		31EEAC32156AB2F200714D05 /* shield.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shield.c; sourceTree = "<group>"; };
@@ -1110,13 +1162,18 @@
 		31EEAC53156AB3E300714D05 /* vmix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmix.c; sourceTree = "<group>"; };
 		31EEAC5B156AB41900714D05 /* poolamc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolamc.c; sourceTree = "<group>"; };
 		31EEAC5D156AB43F00714D05 /* poolsnc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolsnc.c; sourceTree = "<group>"; };
-		31EEAC5F156AB44D00714D05 /* poolmvff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmvff.c; sourceTree = "<group>"; };
+		31EEAC5F156AB44D00714D05 /* poolmvff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmvff.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		31EEAC65156AB52600714D05 /* mpmss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpmss; sourceTree = BUILT_PRODUCTS_DIR; };
 		31EEAC70156AB56000714D05 /* mpsioan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpsioan.c; sourceTree = "<group>"; };
 		31EEAC71156AB56000714D05 /* mpsliban.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpsliban.c; sourceTree = "<group>"; };
 		31EEAC74156AB58E00714D05 /* mpmss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpmss.c; sourceTree = SOURCE_ROOT; };
 		31EEAC9E156AB73400714D05 /* testlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = testlib.c; sourceTree = "<group>"; };
 		31EEACA7156AB79800714D05 /* span.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = span.c; sourceTree = "<group>"; };
+		31F6CCA91739B0CF00C48748 /* mpscamc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscamc.h; sourceTree = "<group>"; };
+		31F6CCAA1739B0CF00C48748 /* mpscawl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscawl.h; sourceTree = "<group>"; };
+		31F6CCAB1739B0CF00C48748 /* mpsclo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsclo.h; sourceTree = "<group>"; };
+		31F6CCAC1739B0CF00C48748 /* mpscmvff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscmvff.h; sourceTree = "<group>"; };
+		31F6CCAD1739B0CF00C48748 /* mpscsnc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscsnc.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1558,39 +1615,85 @@
 				31EEAC05156AB27B00714D05 /* arena.c */,
 				31EEAC06156AB27B00714D05 /* arenacl.c */,
 				31EEAC03156AB23A00714D05 /* arenavm.c */,
+				317B3C2A1731830100F9A469 /* arg.c */,
+				3107DC4E173B03D100F705C8 /* arg.h */,
 				31EEAC3F156AB32500714D05 /* boot.c */,
+				311F2F5017398AD500C15B6A /* boot.h */,
 				31EEAC27156AB2F200714D05 /* bt.c */,
+				311F2F5117398AE900C15B6A /* bt.h */,
 				31EEAC19156AB2B200714D05 /* buffer.c */,
 				31EEAC40156AB32500714D05 /* cbs.c */,
+				311F2F5217398AE900C15B6A /* cbs.h */,
+				311F2F5317398AE900C15B6A /* chain.h */,
+				311F2F5417398AE900C15B6A /* check.h */,
+				311F2F5517398AE900C15B6A /* clock.h */,
+				311F2F5617398AE900C15B6A /* config.h */,
 				31EEAC28156AB2F200714D05 /* dbgpool.c */,
+				311F2F5717398AE900C15B6A /* dbgpool.h */,
 				31EEAC29156AB2F200714D05 /* dbgpooli.c */,
 				31EEAC41156AB32500714D05 /* diag.c */,
 				31EEAC2A156AB2F200714D05 /* event.c */,
+				311F2F5817398AE900C15B6A /* event.h */,
+				311F2F5917398AE900C15B6A /* eventcom.h */,
+				311F2F5A17398AE900C15B6A /* eventdef.h */,
+				311F2F5B17398AE900C15B6A /* eventpro.h */,
+				311F2F5C17398AE900C15B6A /* eventrep.h */,
 				31EEAC1A156AB2B200714D05 /* format.c */,
 				31EEAC07156AB27B00714D05 /* global.c */,
 				31EEAC2B156AB2F200714D05 /* ld.c */,
+				311F2F5E17398B0E00C15B6A /* lock.h */,
 				31EEAC08156AB27B00714D05 /* locus.c */,
 				31EEAC2C156AB2F200714D05 /* message.c */,
 				31EEAC42156AB32500714D05 /* meter.c */,
+				311F2F5F17398B0E00C15B6A /* meter.h */,
+				311F2F6017398B0E00C15B6A /* misc.h */,
 				31EEAC01156AB21B00714D05 /* mpm.c */,
+				311F2F6117398B0E00C15B6A /* mpm.h */,
+				311F2F6217398B1A00C15B6A /* mpmst.h */,
+				311F2F6317398B1A00C15B6A /* mpmtypes.h */,
+				311F2F6417398B1A00C15B6A /* mps.h */,
+				311F2F6517398B3B00C15B6A /* mpsacl.h */,
+				311F2F6617398B3B00C15B6A /* mpsavm.h */,
+				311F2F7C17398E9A00C15B6A /* mpscmv.h */,
 				31EEABF5156AAF7C00714D05 /* mpsi.c */,
+				311F2F6717398B3B00C15B6A /* mpsio.h */,
+				311F2F6817398B3B00C15B6A /* mpslib.h */,
+				311F2F6917398B3B00C15B6A /* mpstd.h */,
+				311F2F6A17398B4C00C15B6A /* mpsw3.h */,
+				311F2F6B17398B4C00C15B6A /* mpswin.h */,
+				311F2F6C17398B5800C15B6A /* osxc.h */,
 				31EEAC09156AB27B00714D05 /* pool.c */,
 				31EEAC0A156AB27B00714D05 /* poolabs.c */,
 				31EEAC2D156AB2F200714D05 /* poolmfs.c */,
 				31EEAC2E156AB2F200714D05 /* poolmrg.c */,
+				311F2F7B17398E7600C15B6A /* poolmv.h */,
+				311F2F6D17398B6300C15B6A /* prmci3.h */,
+				311F2F6E17398B6300C15B6A /* prmci6.h */,
+				311F2F6F17398B6300C15B6A /* prmcix.h */,
+				311F2F7017398B6300C15B6A /* prmcw3.h */,
 				31EEAC0B156AB27B00714D05 /* protocol.c */,
+				311F2F7117398B7100C15B6A /* protocol.h */,
+				311F2F7217398B7100C15B6A /* pthrdext.h */,
 				226FDF2D174AC32C008E5B4F /* range.c */,
 				31EEAC1B156AB2B200714D05 /* ref.c */,
 				31EEAC0C156AB27B00714D05 /* reserv.c */,
 				31EEAC30156AB2F200714D05 /* ring.c */,
+				311F2F7317398B7100C15B6A /* ring.h */,
 				31EEAC1C156AB2B200714D05 /* root.c */,
 				31EEAC31156AB2F200714D05 /* sac.c */,
+				311F2F7417398B7100C15B6A /* sac.h */,
+				311F2F7517398B8E00C15B6A /* sc.h */,
 				31EEAC1D156AB2B200714D05 /* seg.c */,
 				31EEAC32156AB2F200714D05 /* shield.c */,
 				31EEAC43156AB32500714D05 /* splay.c */,
+				311F2F7617398B8E00C15B6A /* splay.h */,
+				311F2F7717398B8E00C15B6A /* ss.h */,
+				311F2F7817398B8E00C15B6A /* th.h */,
+				311F2F7917398B8E00C15B6A /* thw3.h */,
 				31EEAC1E156AB2B200714D05 /* trace.c */,
 				31EEAC1F156AB2B200714D05 /* traceanc.c */,
 				31EEAC0D156AB27B00714D05 /* tract.c */,
+				311F2F7A17398B8E00C15B6A /* tract.h */,
 				31EEAC44156AB32500714D05 /* version.c */,
 				31EEAC0E156AB27B00714D05 /* walk.c */,
 			);
@@ -1616,11 +1719,21 @@
 		31EEAC5A156AB40800714D05 /* Extra pools */ = {
 			isa = PBXGroup;
 			children = (
-				226FDF2E174AC35E008E5B4F /* poolams.c */,
+				311F2F5D17398B0400C15B6A /* lo.h */,
+				31F6CCA91739B0CF00C48748 /* mpscamc.h */,
+				31CD33BB173A9F1500524741 /* mpscams.h */,
+				31F6CCAA1739B0CF00C48748 /* mpscawl.h */,
+				31F6CCAB1739B0CF00C48748 /* mpsclo.h */,
+				31F6CCAC1739B0CF00C48748 /* mpscmvff.h */,
+				2219DEFF174BE51900F112E9 /* mpscmvt.h */,
+				31F6CCAD1739B0CF00C48748 /* mpscsnc.h */,
 				31EEAC5B156AB41900714D05 /* poolamc.c */,
+				31CD33BC173A9F1500524741 /* poolams.c */,
+				31CD33BD173A9F1500524741 /* poolams.h */,
 				3124CACE156BE4CF00753214 /* poolawl.c */,
 				3124CACA156BE4A300753214 /* poollo.c */,
 				31EEAC2F156AB2F200714D05 /* poolmv.c */,
+				31CD33BE173ABB3000524741 /* poolmv2.h */,
 				3114A68E156E96B6001E0AA3 /* poolmv2.c */,
 				31EEAC5F156AB44D00714D05 /* poolmvff.c */,
 				31EEAC5D156AB43F00714D05 /* poolsnc.c */,
@@ -2331,7 +2444,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#   bttest & teletest cannot be run unattended\n#   amcssth doesn't work on OS X (job001621)\nTESTCASES=\"abqtest amcss amcsshe amsss amssshe apss arenacv awlut \\\n           awluthe btcv cbstest finalcv finaltest lockcov locv \\\n           messtest mpmss mpsicv mv2test poolncv qs sacss segsmss \\\n           steptest walkt0\"\nOUTPUT=$(mktemp /tmp/mps.log.XXXXXX)\necho \"Logging test output to $OUTPUT\"\nfor TEST in $TESTCASES; do\n    TESTCASE=$TARGET_BUILD_DIR/$TEST\n    printf \"\\n\\n-- Running $TESTCASE at $(date) --\\n\" >> $OUTPUT\n    echo \"Running $TEST ($CONFIGURATION)\"\n    $TESTCASE >> $OUTPUT || exit 1\ndone\necho \"All tests pass.\"\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2>>$OUTPUT) |\n    python gcovfmt.py $OUTPUT\nfi";
+			shellScript = "#   bttest & teletest cannot be run unattended\n#   amcssth doesn't work on OS X (job001621)\nTESTCASES=\"abqtest amcss amcsshe amsss amssshe apss arenacv awlut \\\n           awluthe btcv cbstest finalcv finaltest lockcov locv \\\n           messtest mpmss mpsicv mv2test poolncv qs sacss segsmss \\\n           steptest walkt0\"\nOUTPUT=$(mktemp -d /tmp/mps.log.XXXXXX)\necho \"Logging test output to $OUTPUT\"\nfor TEST in $TESTCASES; do\n    TESTCASE=$TARGET_BUILD_DIR/$TEST\n    echo \"Running $TEST ($CONFIGURATION)\"\n    $TESTCASE > $OUTPUT/$TEST || (cat $OUTPUT/$TEST; exit 1)\ndone\necho \"All tests pass.\"\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> $OUTPUT/gcov) |\n    python ../tool/gcovfmt.py $OUTPUT/coverage\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -2680,6 +2793,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				31A47BA4156C1E130039B1C2 /* mps.c in Sources */,
+				317B3C2B1731830100F9A469 /* arg.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

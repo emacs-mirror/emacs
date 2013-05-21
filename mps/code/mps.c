@@ -70,6 +70,7 @@
 #include "ss.c"
 #include "version.c"
 #include "table.c"
+#include "arg.c"
 #include "abq.c"
 #include "range.c"
 

@@ -43,7 +43,7 @@ def main():
     else:
         out = stdout
     fmt1 = "{:<16s} {:<7s} {:<7s} {:<7s}\n"
-    fmt2 = "{:<16s} {:7d} {:7d} {:7.2f}\n"
+    fmt2 = "{:<16s} {:7d} {:7d} {:6.2f}%\n"
     underlines = "---------------- ------- ------- -------".split()
     out.write(fmt1.format(*"File Lines Covered Percent".split()))
     out.write(fmt1.format(*underlines))

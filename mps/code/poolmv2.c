@@ -28,8 +28,8 @@ SRCID(poolmv2, "$Id$");
 /* Private prototypes */
 
 typedef struct MVTStruct *MVT;
-
-static Res MVTInit(Pool pool, va_list arg);
+static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
+static Res MVTInit(Pool pool, ArgList arg);
 static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Pool pool);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
@@ -139,6 +139,7 @@ DEFINE_POOL_CLASS(MVTPoolClass, this)
   this->size = sizeof(MVTStruct);
   this->offset = offsetof(MVTStruct, poolStruct);
   this->attr |= AttrFREE;
+  this->varargs = MVTVarargs;
   this->init = MVTInit;
   this->finish = MVTFinish;
   this->free = MVTFree;
@@ -189,43 +190,78 @@ static SegPref MVTSegPref(MVT mvt)
 /* Methods */
 
 
+/* MVTVarargs -- decode obsolete varargs */
+
+static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_MIN_SIZE;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MEAN_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_MAX_SIZE;
+  args[2].val.size = va_arg(varargs, Size);
+  args[3].key = MPS_KEY_MVT_RESERVE_DEPTH;
+  args[3].val.count = va_arg(varargs, Count);
+  /* Divide the old "percentage" argument by 100, fixing job003319. */
+  args[4].key = MPS_KEY_MVT_FRAG_LIMIT;
+  args[4].val.d = (double)va_arg(varargs, Count) / 100.0;
+  args[5].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* MVTInit -- initialize an MVT pool
  *
  * Parameters are:
  * minSize, meanSize, maxSize, reserveDepth, fragLimit
  */
-static Res MVTInit(Pool pool, va_list arg)
+
+ARG_DEFINE_KEY(mvt_min_size, Size);
+ARG_DEFINE_KEY(mvt_mean_size, Size);
+ARG_DEFINE_KEY(mvt_max_size, Size);
+ARG_DEFINE_KEY(mvt_reserve_depth, Count);
+ARG_DEFINE_KEY(mvt_frag_limit, double);
+
+static Res MVTInit(Pool pool, ArgList args)
 {
   Arena arena;
-  Size minSize, meanSize, maxSize, reuseSize, fillSize;
-  Count reserveDepth, abqDepth, fragLimit;
+  Size minSize = MVT_MIN_SIZE_DEFAULT;
+  Size meanSize = MVT_MEAN_SIZE_DEFAULT;
+  Size maxSize = MVT_MAX_SIZE_DEFAULT;
+  Count reserveDepth = MVT_RESERVE_DEPTH_DEFAULT;
+  Count fragLimit = MVT_FRAG_LIMIT_DEFAULT;
+  Size reuseSize, fillSize;
+  Count abqDepth;
   MVT mvt;
   Res res;
+  ArgStruct arg;
 
   AVERT(Pool, pool);
   mvt = Pool2MVT(pool);
   /* can't AVERT mvt, yet */
   arena = PoolArena(pool);
   AVERT(Arena, arena);
- 
-  /* --- Should there be a ResBADARG ? */
-  minSize = va_arg(arg, Size);
-  unless (minSize > 0)
-    return ResLIMIT;
-  meanSize = va_arg(arg, Size);
-  unless (meanSize >= minSize)
-    return ResLIMIT;
-  maxSize = va_arg(arg, Size);
-  unless (maxSize >= meanSize)
-    return ResLIMIT;
-  /* --- check that maxSize is not too large */
-  reserveDepth = va_arg(arg, Count);
-  unless (reserveDepth > 0)
-    return ResLIMIT;
-  /* --- check that reserveDepth is not too large or small */
-  fragLimit = va_arg(arg, Count);
-  unless (fragLimit <= 100)
-    return ResLIMIT;
+  
+  if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE))
+    minSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
+    meanSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
+    maxSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_MVT_RESERVE_DEPTH))
+    reserveDepth = arg.val.count;
+  if (ArgPick(&arg, args, MPS_KEY_MVT_FRAG_LIMIT)) {
+    /* pending complete fix for job003319 */
+    AVER(0 <= arg.val.d && arg.val.d <= 1);
+    fragLimit = (Count)(arg.val.d * 100);
+  }
+
+  AVER(0 < minSize);
+  AVER(minSize <= meanSize);
+  AVER(meanSize <= maxSize);
+  AVER(reserveDepth > 0);
+  AVER(fragLimit <= 100);
+  /* TODO: More sanity checks possible? */
 
   /* see <design/poolmvt/#arch.parameters> */
   fillSize = SizeAlignUp(maxSize, ArenaAlign(arena));
@@ -985,7 +1021,8 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Pool pool, Bool withReservoirPermit)
 {
   Res res = SegAlloc(segReturn, GCSegClassGet(),
-                     MVTSegPref(mvt), size, pool, withReservoirPermit);
+                     MVTSegPref(mvt), size, pool, withReservoirPermit,
+                     argsNone);
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);

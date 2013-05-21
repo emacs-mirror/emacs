@@ -1,65 +1,67 @@
-/* poolmv.h: MANUAL VARIABLE POOL
+/* arg.h: Keyword argument lists
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- * Portions copyright (C) 2002 Global Graphics Software.
+ * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This is the interface to the manual-variable pool class.
- *
- * .mv: Manual-variable pools manage variably-sized blocks of memory in a
- *  flexible manner.  They have higher overheads than a fixed-size pool.
- *
- * .init: This class adds the following arguments to PoolCreate:
- *
- *    Size extendBy
- *
- *  extendBy is the default number of bytes reserved by the pool at a time.
- *  A large size will make allocation cheaper but have a higher resource
- *  overhead.  A typical value might be 65536.  See note 2.
- *
- *    Size avgSize
- *
- *  avgSize is an estimate of the average size of an allocation, and is used
- *  to choose the size of internal tables.  An accurate estimate will
- *  improve the efficiency of the pool.  A low estimate will make the pool
- *  less space efficient.  A high estimate will make the pool less time
- *  efficient.  A typical value might be 32.  avgSize must not be less than
- *  extendBy.
- *
- *    Size maxSize
- *
- *  maxSize is an estimate of the maximum total size that the pool will
- *  reach.  Setting this parameter does not actually contrain the pool, but
- *  an accurate estimate will improve the efficiency of the pool.  maxSize
- *  must not be less than extendBy.
- *
- *  Notes
- *   2. The documentation could suggest a segment size according to the
- *      distribution of allocation size requests.  richard 1994-11-08
+ * .source: See <design/keyword-arguments.rst>.
  */
 
-#ifndef poolmv_h
-#define poolmv_h
-
+#ifndef arg_h
+#define arg_h
 
 #include "mpmtypes.h"
-#include "mpscmv.h"
-
-typedef struct MVStruct *MV;
-
-extern PoolClass PoolClassMV(void);
-
-extern Bool MVCheck(MV mv);
-
-#define MV2Pool(mv) (&(mv)->poolStruct)
 
 
-#endif /* poolmv_h */
+/* KeyStruct -- keyword argument structure
+ *
+ * NOTE: Whether or not to have an argument checking field and functions
+ * could be conditional on build variety.  Checking arguments isn't on
+ * the critical path, but this might save space if the MPS is being
+ * deployed in a tight memory situation.
+ */
+
+#define KeySig          ((Sig)0x519CE111) /* SIGnature KEYyy */
+typedef struct mps_key_s {
+  Sig sig;
+  const char *name;
+  Bool (*check)(Arg arg);
+} KeyStruct;
+
+#define ARG_DEFINE_KEY(id, type) \
+  const KeyStruct _mps_key_##id = {KeySig, #id, ArgCheck##type}
+
+#define argsNone mps_args_none
+
+extern Bool KeyCheck(Key key);
+extern Bool ArgCheck(Arg arg);
+extern Bool ArgListCheck(ArgList args);
+
+extern Bool ArgPick(ArgStruct *argOut, ArgList args, Key key);
+extern void ArgRequire(ArgStruct *argOut, ArgList args, Key key);
+extern void ArgTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
+
+extern Bool ArgCheckCant(Arg arg);
+extern Bool ArgCheckFormat(Arg arg);
+extern Bool ArgCheckChain(Arg arg);
+extern Bool ArgCheckSize(Arg arg);
+extern Bool ArgCheckAddr(Arg arg);
+extern Bool ArgCheckPoolDebugOptions(Arg arg);
+extern Bool ArgCheckFun(Arg arg);
+extern Bool ArgCheckAlign(Arg arg);
+extern Bool ArgCheckBool(Arg arg);
+extern Bool ArgCheckCount(Arg arg);
+extern Bool ArgCheckPointer(Arg arg);
+extern Bool ArgCheckRankSet(Arg arg);
+extern Bool ArgCheckRank(Arg arg);
+extern Bool ArgCheckdouble(Arg arg);
+
+
+#endif /* arg_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
