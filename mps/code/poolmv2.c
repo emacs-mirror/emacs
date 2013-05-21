@@ -1188,7 +1188,7 @@ static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit, void *closure
 
 
 /* MVTCheckFit -- verify that segment-aligned block of size min can
- * fit in a candidate CBSblock
+ * fit in a candidate address range.
  */
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 {

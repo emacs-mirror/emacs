@@ -230,6 +230,11 @@ mps_addr_t rnd_addr(void)
   return (mps_addr_t)res;
 }
 
+double rnd_double(void)
+{
+  return rnd() / R_m_float;
+}
+
 
 /* randomize -- randomize the generator, or initialize to replay
  *
