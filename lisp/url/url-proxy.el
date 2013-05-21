@@ -63,6 +63,8 @@
       (url-warn 'url (format "Unknown proxy directive: %s" proxy) 'critical)
       nil))))
 
+(autoload 'url-http "url-http")
+
 (defun url-proxy (url callback &optional cbargs)
   ;; Retrieve URL from a proxy.
   ;; Expects `url-using-proxy' to be bound to the specific proxy to use."
@@ -73,7 +75,7 @@
     (url-http url callback cbargs))
    (t
     (error "Don't know how to use proxy `%s'" url-using-proxy))))
-  
+
 (provide 'url-proxy)
 
 ;;; url-proxy.el ends here

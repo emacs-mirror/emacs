@@ -1,3 +1,42 @@
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dired-unmark):
+	* progmodes/gud.el (gdb-input): Update declarations.
+
+	* calculator.el (electric, ehelp): No need to load when compiling.
+	(Electric-command-loop, electric-describe-mode): Declare.
+
+	* doc-view.el (doc-view-current-converter-processes): Move before use.
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Move MODE-set-explicitly definition before use.
+
+	* international/mule-diag.el (mule-diag):
+	Don't use obsolete window-system-version.
+
+	* mail/feedmail.el (smtpmail): No need to load when compiling.
+	(smtpmail-via-smtp, smtpmail-smtp-server): Declare.
+
+	* mail/mail-utils.el (rfc822): No need to load when compiling.
+	(rfc822-addresses): Autoload it.
+	(mail-strip-quoted-names): Trivial simplification.
+
+	* mail/rmail.el (rmail-mime-message-p, rmail-mime-toggle-raw): Declare.
+	(rmail-retry-failure): Don't assume that rmail-mime-feature == rmailmm.
+
+	* net/snmp-mode.el (tempo): Don't duplicate requires.
+
+	* progmodes/prolog.el (info): No need to load when compiling.
+	(comint): Require before shell requires it.
+	(Info-goto-node): Autoload it.
+	(Info-follow-nearest-node): Declare.
+	(prolog-help-info, prolog-goto-predicate-info): No need to require info.
+
+	* textmodes/artist.el (picture-mode-exit): Declare.
+
+	* textmodes/reftex-parse.el (reftex-parse-from-file):
+	Trivial rewrite so the compiler can parse it better.
+
 2013-05-20  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-help-mode-map)

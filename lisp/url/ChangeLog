@@ -1,3 +1,10 @@
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* url-dav.el (url-http): Require it.
+	(url-http-head-file-attributes): Don't autoload it.
+
+	* url-proxy.el (url-http): Autoload it.
+
 2013-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* url-news.el (url-news): Remove empty custom group.

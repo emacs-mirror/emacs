@@ -668,7 +668,9 @@ more information.
 
 \\{calculator-mode-map}")
 
-(eval-when-compile (require 'electric) (require 'ehelp))
+(declare-function Electric-command-loop "electric"
+                  (return-tag &optional prompt inhibit-quitting
+                              loop-function loop-state))
 
 ;;;###autoload
 (defun calculator ()
@@ -1667,6 +1669,8 @@ Used by `calculator-paste' and `get-register'."
   (interactive "cRegister to get value from: ")
   (calculator-put-value (cdr (assq reg calculator-registers))))
 
+(declare-function electric-describe-mode "ehelp" ())
+
 (defun calculator-help ()
   ;; this is used as the quick reference screen you get with `h'
   "Quick reference:
@@ -1697,7 +1701,7 @@ Used by `calculator-paste' and `get-register'."
       (if (or (not calculator-electric-mode)
               ;; XEmacs has a problem with electric-describe-mode
               (featurep 'xemacs))
-        (describe-mode)
+          (describe-mode)
         (electric-describe-mode))
       (if calculator-electric-mode
         (use-global-map g-map))

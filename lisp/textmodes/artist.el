@@ -1449,6 +1449,8 @@ Keymap summary
 	(message "")))
   (artist-mode-line-show-curr-operation artist-key-is-drawing))
 
+(declare-function picture-mode-exit "picture" (&optional nostrip))
+
 (defun artist-mode-exit ()
   "Exit Artist mode.  This will call the hook `artist-mode-hook'."
   (if (and artist-picture-compatibility (eq major-mode 'picture-mode))

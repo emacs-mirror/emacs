@@ -1104,8 +1104,7 @@ system which uses fontsets)."
 
       (insert-section 2 "Display")
       (if window-system
-	  (insert (format "Window-system: %s, version %s"
-			  window-system window-system-version))
+	  (insert (format "Window-system: %s" window-system))
 	(insert "Terminal: " (getenv "TERM")))
       (insert "\n\n")
 

@@ -4105,6 +4105,9 @@ The message should be narrowed to just the headers."
 
 (autoload 'mail-position-on-field "sendmail")
 
+(declare-function rmail-mime-message-p "rmailmm" ())
+(declare-function rmail-mime-toggle-raw "rmailmm" (&optional state))
+
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
@@ -4117,7 +4120,13 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  (if rmail-enable-mime
+  ;; FIXME This does not handle rmail-mime-feature != 'rmailmm.
+  ;; There is no API defined for rmail-mime-feature to provide
+  ;; rmail-mime-message-p, rmail-mime-toggle-raw equivalents.
+  ;; But does anyone actually use rmail-mime-feature != 'rmailmm?
+  (if (and rmail-enable-mime
+	   (eq rmail-mime-feature 'rmailmm)
+	   (featurep rmail-mime-feature))
       (with-current-buffer rmail-buffer
 	(if (rmail-mime-message-p)
 	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)

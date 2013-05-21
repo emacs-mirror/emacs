@@ -3429,7 +3429,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
     ((or `xdb `pdb) (concat "p " expr))
     (`sdb (concat expr "/"))))
 
-(declare-function gdb-input "gdb-mi" (command handler))
+(declare-function gdb-input "gdb-mi" (command handler &optional trigger))
 (declare-function tooltip-expr-to-print "tooltip" (event))
 (declare-function tooltip-event-buffer "tooltip" (event))
 

@@ -1,6 +1,5 @@
 ;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs -*- lexical-binding: t -*-
 
-
 ;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
@@ -306,6 +305,10 @@ of the page moves to the previous page."
 
 ;;;; Internal Variables
 
+(defvar doc-view-current-converter-processes nil
+  "Only used internally.")
+(make-variable-buffer-local 'doc-view-current-converter-processes)
+
 (defun doc-view-new-window-function (winprops)
   ;; (message "New window %s for buf %s" (car winprops) (current-buffer))
   (cl-assert (or (eq t (car winprops))
@@ -347,10 +350,6 @@ of the page moves to the previous page."
 (defvar doc-view-current-files nil
   "Only used internally.")
 (make-variable-buffer-local 'doc-view-current-files)
-
-(defvar doc-view-current-converter-processes nil
-  "Only used internally.")
-(make-variable-buffer-local 'doc-view-current-converter-processes)
 
 (defvar doc-view-current-timer nil
   "Only used internally.")

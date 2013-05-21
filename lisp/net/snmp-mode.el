@@ -85,8 +85,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'imenu)   ; Need this stuff when compiling for imenu macros, etc.
-  (require 'tempo))
+  (require 'imenu))   ; Need this stuff when compiling for imenu macros, etc.
+
+(require 'tempo)
 
 ;;;----------------------------------------------------------------------------
 ;;
@@ -539,8 +540,6 @@ lines for the purposes of this function."
 ;;                              Tempo Setup
 ;;
 ;;;----------------------------------------------------------------------------
-
-(require 'tempo)
 
 ;; Perform a completing-read with info given
 ;;
