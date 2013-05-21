@@ -549,9 +549,10 @@ done:
 }
 
 
-/* MVTDeleteOverlapping -- CBSIterate callback used by MVTInsert and
- * MVTDelete. It receives a Range in its closureP argument, and return
- * the DELETE disposition for ranges in the CBS that overlap with it.
+/* MVTDeleteOverlapping -- ABQIterate callback used by MVTInsert and
+ * MVTDelete. It receives a Range in its closureP argument, and
+ * returns the DELETE disposition for ranges in the ABQ that overlap
+ * with it, and the KEEP disposition for ranges that do not.
  */
 static Res MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
                                 Addr element, void *closureP)
