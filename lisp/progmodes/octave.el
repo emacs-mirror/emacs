@@ -770,20 +770,17 @@ startup file, `~/.emacs-octave'."
            (when (and inferior-octave-startup-file
                       (file-exists-p inferior-octave-startup-file))
              (format "source (\"%s\");\n" inferior-octave-startup-file))))
-    (insert-before-markers
-     (concat
-      (if inferior-octave-output-list
-          (concat (mapconcat
-                   'identity inferior-octave-output-list "\n")
-                  "\n"))
-      inferior-octave-output-string))
+    (when inferior-octave-output-list
+      (insert-before-markers
+       (mapconcat 'identity inferior-octave-output-list "\n")))
 
     ;; And finally, everything is back to normal.
     (set-process-filter proc 'comint-output-filter)
     ;; Just in case, to be sure a cd in the startup file
     ;; won't have detrimental effects.
     (inferior-octave-resync-dirs)
-    ;; A trick to get the prompt highlighted.
+    ;; Generate a proper prompt, which is critical to
+    ;; `comint-history-isearch-backward-regexp'.  Bug#14433.
     (comint-send-string proc "\n")))
 
 (defvar inferior-octave-completion-table
