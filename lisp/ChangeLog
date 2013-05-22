@@ -1,5 +1,24 @@
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/viper-cmd.el (viper-set-searchstyle-toggling-macros)
+	(viper-set-parsing-style-toggling-macro)
+	(viper-set-emacs-state-searchstyle-macros):
+	Use called-interactively-p on Emacs.
+	(viper-looking-back): Make it an obsolete alias.  Update callers.
+	* emulation/viper-ex.el: Load viper-keym, not viper-cmd.
+	Use looking-back rather than viper-looking-back.
+	(viper-tmp-insert-at-eob, viper-enlarge-region)
+	(viper-read-string-with-history, viper-register-to-point)
+	(viper-append-to-register, viper-change-state-to-vi)
+	(viper-backward-char-carefully, viper-forward-char-carefully)
+	(viper-Put-back, viper-put-back, viper-add-newline-at-eob-if-necessary)
+	(viper-change-state-to-emacs): Declare.
+	* emulation/viper-macs.el: Load viper-mous, viper-ex, not viper-cmd.
+	(viper-change-state-to-insert, viper-change-state-to-vi): Declare.
+	* emulation/viper-mous.el: Do not load viper-cmd.
+	(viper-backward-char-carefully, viper-forward-char-carefully)
+	(viper-forward-word, viper-adjust-window): Declare.
+
 	* vc/ediff.el (ediff-version): Use called-interactively-p on Emacs.
 
 	* progmodes/idlw-help.el (idlwave-help-fontify):
