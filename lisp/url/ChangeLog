@@ -1,3 +1,8 @@
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* url-handlers.el (mm-save-part-to-file, mm-destroy-parts)
+	(mm-decode-string, mail-content-type-get): Declare.
+
 2013-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* url-dav.el (url-http): Require it.
