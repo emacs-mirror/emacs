@@ -1,4 +1,4 @@
-2013-05-21  Barry OReilly <gundaetiapo@gmail.com>
+2013-05-21  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
 
 	* search.c (looking_at_1): Only set last_thing_searched if the match
 	changed the match-data (bug#14281).
