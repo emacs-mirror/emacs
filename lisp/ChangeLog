@@ -1,5 +1,10 @@
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
+	* allout.el: No need to load epa, epg, overlay when compiling.
+	(epg-context-set-passphrase-callback, epg-list-keys)
+	(epg-decrypt-string, epg-encrypt-string, epg-user-id-string)
+	(epg-key-user-id-list): Declare.
+
 	* emulation/viper-cmd.el (viper-set-searchstyle-toggling-macros)
 	(viper-set-parsing-style-toggling-macro)
 	(viper-set-emacs-state-searchstyle-macros):

@@ -77,11 +77,6 @@
 ;;;_* Dependency loads
 (require 'overlay)
 (eval-when-compile
-  ;; Most of the requires here are for stuff covered by autoloads, which
-  ;; byte-compiling doesn't trigger.
-  (require 'epg)
-  (require 'epa)
-  (require 'overlay)
   ;; `cl' is required for `assert'.  `assert' is not covered by a standard
   ;; autoload, but it is a macro, so that eval-when-compile is sufficient
   ;; to byte-compile it in, or to do the require when the buffer evalled.
@@ -6046,6 +6041,16 @@ See `allout-toggle-current-subtree-encryption' for more details."
 
       (run-hook-with-args 'allout-structure-added-functions
                           bullet-pos subtree-end))))
+
+(declare-function epg-context-set-passphrase-callback "epg"
+                  (context passphrase-callback))
+(declare-function epg-list-keys "epg" (context &optional name mode))
+(declare-function epg-decrypt-string "epg" (context cipher))
+(declare-function epg-encrypt-string "epg"
+                  (context plain recipients &optional sign always-trust))
+(declare-function epg-user-id-string "epg" (user-id))
+(declare-function epg-key-user-id-list "epg" (key))
+
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer keymode-cue
 ;;;                                 &optional rejected)
 (defun allout-encrypt-string (text decrypt allout-buffer keymode-cue
