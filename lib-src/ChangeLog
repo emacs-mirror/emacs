@@ -1,3 +1,38 @@
+2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --enable-gcc-warnings to clang.
+	* etags.c: Omit unnecessary forward decls.
+	(print_version, print_help): Declare _Noreturn.
+	* pop.c (socket_connection) [HAVE_GETADDRINFO]: Simplify.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c [WINDOWSNT]: Include "ntlib.h".
+
+	* ntlib.h (sleep): Update prototype.
+	(geteuid): Add prototype.
+
+	* ntlib.c (sleep): Now returns an unsigned value.
+	(getgid): New function.
+
+	* Makefile.in (CLIENTW, LIB_WSOCK32, LIBS_ECLIENT, NTLIB)
+	(CLIENTRES, WINDRES, NTINC, NTDEPS): New variables.
+	(INSTALLABLES): Add $(CLIENTW).
+	(LIBS_MOVE): Use $(LIB_WSOCK32).
+	($(DESTDIR)${archlibdir}): Use $(EXEEXT) on update-game-score.
+	(test-distrib${EXEEXT}): Use $(EXEEXT) on test-distrib.
+	(etags${EXEEXT}, ebrowse${EXEEXT}, ctags${EXEEXT})
+	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
+	(emacsclient${EXEEXT}, hexl${EXEEXT}, update-game-score${EXEEXT}):
+	Add $(NTLIB) to prerequisites.  Use $(EXEEXT).
+	(pop.o): Add pop.h to prerequisites.
+	(emacsclientw${EXEEXT}, ntlib.o): New targets.
+	(emacsclient.res): New target.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in ($(DOC)): Use DOC rather than DOC-X.
+
 2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-docfile.c (search_lisp_doc_at_eol) [DEBUG]: Fix typo,

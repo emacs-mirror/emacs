@@ -1,3 +1,47 @@
+2013-05-22  Daiki Ueno  <ueno@gnu.org>
+
+	* mml2015.el (mml2015-epg-sign): Make sure to insert newline after the
+	signed data to conform the standard.  (Bug#14232)
+
+2013-05-20  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-spec.el (gnus-parse-complex-format): Use unicode escape for left
+	double angle quotation mark.
+
+2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* message.el (message-insert-formatted-citation-line): Handle finding
+	first/lastname when more than 2 names appear.
+
+2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* shr.el (shr-tag-span): New function.
+
+2013-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-mode): Use message-mode-abbrev-table,
+	with text-mode-abbrev-table as parent.  (Bug#14413)
+
+2013-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-expand-group): Decode group names.
+
+2013-05-16  Julien Danjou  <julien@danjou.info>
+
+	* gnus-notifications.el (gnus-notifications-notify): Use photo-file as
+	app-icon.
+
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* shr-color.el (shr-color-visible-luminance-min)
+	(shr-color-visible-distance-min): Use shr-color group.
+
+2013-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-vm.el: Make it loadable without VM.
+	(gnus-vm-make-folder, gnus-summary-save-in-vm): Require 'vm.
+	(vm-forward-message, vm-reply, vm-mail): Remove unused autoloads.
+
 2013-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* mml1991.el: Make it loadable.  (Bug#13456)

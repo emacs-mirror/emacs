@@ -899,13 +899,12 @@ If no elements match, then the empty string is used.
 
 As an example:
   (setq erc-quit-reason-various-alist
-      '((\"zippy\" erc-quit-reason-zippy)
-	(\"xmms\" dme:now-playing)
+      '((\"xmms\" dme:now-playing)
 	(\"version\" erc-quit-reason-normal)
 	(\"home\" \"Gone home !\")
 	(\"^$\" \"Default Reason\")))
-If the user types \"/quit zippy\", then a Zippy the Pinhead quotation
-will be used as the quit message."
+If the user types \"/quit home\", then \"Gone home !\" will be used
+as the quit message."
   :group 'erc-quit-and-part
   :type '(repeat (list regexp (choice (string) (function)))))
 
@@ -923,13 +922,12 @@ If no elements match, then the empty string is used.
 
 As an example:
   (setq erc-part-reason-various-alist
-      '((\"zippy\" erc-part-reason-zippy)
-	(\"xmms\" dme:now-playing)
+      '((\"xmms\" dme:now-playing)
 	(\"version\" erc-part-reason-normal)
 	(\"home\" \"Gone home !\")
 	(\"^$\" \"Default Reason\")))
-If the user types \"/part zippy\", then a Zippy the Pinhead quotation
-will be used as the part message."
+If the user types \"/part home\", then \"Gone home !\" will be used
+as the part message."
   :group 'erc-quit-and-part
   :type '(repeat (list regexp (choice (string) (function)))))
 
@@ -940,7 +938,6 @@ The function is passed a single argument, the string typed by the
 user after \"/quit\"."
   :group 'erc-quit-and-part
   :type '(choice (const erc-quit-reason-normal)
-		 (const erc-quit-reason-zippy)
 		 (const erc-quit-reason-various)
 		 (symbol)))
 
@@ -951,7 +948,6 @@ The function is passed a single argument, the string typed by the
 user after \"/PART\"."
   :group 'erc-quit-and-part
   :type '(choice (const erc-part-reason-normal)
-		 (const erc-part-reason-zippy)
 		 (const erc-part-reason-various)
 		 (symbol)))
 
@@ -3398,7 +3394,11 @@ If S is non-nil, it will be used as the quit reason."
 
 If S is non-nil, it will be used as the quit reason."
   (or s
-      (erc-replace-regexp-in-string "\n" "" (yow))))
+      (if (fboundp 'yow)
+	  (erc-replace-regexp-in-string "\n" "" (yow))
+	(erc-quit-reason-normal))))
+
+(make-obsolete 'erc-quit-reason-zippy "it will be removed." "24.4")
 
 (defun erc-quit-reason-various (s)
   "Choose a quit reason based on S (a string)."
@@ -3425,7 +3425,11 @@ If S is non-nil, it will be used as the quit reason."
 
 If S is non-nil, it will be used as the quit reason."
   (or s
-      (erc-replace-regexp-in-string "\n" "" (yow))))
+      (if (fboundp 'yow)
+	  (erc-replace-regexp-in-string "\n" "" (yow))
+	(erc-part-reason-normal))))
+
+(make-obsolete 'erc-part-reason-zippy "it will be removed." "24.4")
 
 (defun erc-part-reason-various (s)
   "Choose a part reason based on S (a string)."

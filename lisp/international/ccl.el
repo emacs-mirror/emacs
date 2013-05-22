@@ -43,10 +43,11 @@
 
 ;;; Code:
 
-(defgroup ccl nil
-  "CCL (Code Conversion Language) compiler."
-  :prefix "ccl-"
-  :group 'i18n)
+;; Unused.
+;;; (defgroup ccl nil
+;;;   "CCL (Code Conversion Language) compiler."
+;;;   :prefix "ccl-"
+;;;   :group 'i18n)
 
 (defconst ccl-command-table
   [if branch loop break repeat write-repeat write-read-repeat

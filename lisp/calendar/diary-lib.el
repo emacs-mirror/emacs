@@ -366,7 +366,7 @@ Returns a string using match elements 1-5, where:
     ;; use the standard function calendar-date-string.
     (concat (if month
                 (calendar-date-string (list month (string-to-number day)
-                                            (string-to-number year)))
+                                            (string-to-number year)) nil t)
               (cond ((eq calendar-date-style 'iso) "\\3 \\1 \\2") ; YMD
                     ((eq calendar-date-style 'european) "\\2 \\1 \\3") ; DMY
                     (t "\\1 \\2 \\3"))) ; MDY

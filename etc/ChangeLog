@@ -1,3 +1,11 @@
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Advertise the MSYS build on MS-Windows.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gitignore: Don't ignore DOC-* any more.
+
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)

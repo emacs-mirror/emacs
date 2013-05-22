@@ -47,6 +47,8 @@
 
 (declare-function x-setup-function-keys "term/common-win" (frame))
 (declare-function get-screen-color "w32console.c" ())
+(declare-function w32-get-console-codepage "w32proc.c" ())
+(declare-function w32-get-console-output-codepage "w32proc.c" ())
 
 (defun terminal-init-w32console ()
   "Terminal initialization function for w32 console."

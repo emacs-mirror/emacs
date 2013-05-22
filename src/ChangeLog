@@ -19,6 +19,157 @@
 	character numbers counted by detect_coding_utf_8.  Fix detection
 	of BOM for utf-8.
 
+2013-05-21  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
+
+	* search.c (looking_at_1): Only set last_thing_searched if the match
+	changed the match-data (bug#14281).
+
+2013-05-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xdisp.c (reseat_at_previous_visible_line_start):
+	Already	declared in dispextern.h, so remove it here.
+	(move_it_vertically_backward): Likewise.
+
+2013-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xfns.c (check_x_display_info): Don't use XINT for terminal object.
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fx_display_mm_width, Fx_display_mm_height):
+	Mention `display-monitor-attributes-list' in docstrings.
+
+	* nsfns.m (ns_get_screen): Remove function.  All uses removed.
+	(check_ns_display_info): Sync with check_x_display_info	in xfns.c.
+	(Fx_server_max_request_size, Fx_server_vendor, Fx_server_version)
+	(Fx_display_screens, Fx_display_mm_width, Fx_display_mm_height)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fx_display_save_under, Fx_close_connection, Fxw_display_color_p)
+	(Fx_display_grayscale_p, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells): Sync args and docstrings with xfns.c.
+	(Fx_display_screens): Don't confuse X11 screens with NS screens.
+	(Fx_display_mm_width, Fx_display_mm_height)
+	(Fx_display_pixel_width, Fx_display_pixel_width): Return width or
+	height for all physical monitors as in X11.
+
+	* nsterm.m (x_display_pixel_width, x_display_pixel_height):
+	Return pixel width or height for all physical monitors as in X11.
+
+2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --enable-gcc-warnings to clang.
+	* bytecode.c (exec_byte_code):
+	* regex.c:
+	Redo diagnostic pragmas to pacify clang, too.
+	* dbusbind.c (xd_retrieve_arg): Do not use uninitialized variable.
+	* editfns.c (Fencode_time):
+	* fileio.c (file_accessible_directory_p):
+	* font.c (font_unparse_xlfd):
+	Use '&"string"[index]' instead of '"string" + (index)'.
+	* undo.c (user_error): Remove; unused.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* insdel.c (insert_1_both): Document the arguments, instead of
+	referring to insert_1, which no longer exists.
+
+	* xdisp.c (message_dolog): If the *Messages* buffer is shown in
+	some window, increment windows_or_buffers_changed, so that
+	*Messages* display in that window is updated.  (Bug#14408)
+
+	* w32.c: Include epaths.h.
+	(init_environment): Use cmdproxy.exe without leading directories.
+	Support emacs.exe in src; point SHELL to cmdproxy in ../nt in that
+	case.
+	(gettimeofday): Adjust signature and return value to Posix
+	expectations.
+
+	* unexw32.c (open_output_file): Delete the existing emacs.exe
+	before creating it, to break the hard link to the versioned
+	executable.
+
+	* Makefile.in (EMACS_MANIFEST, CM_OBJ, TEMACS_POST_LINK)
+	(ADDSECTION, EMACS_HEAPSIZE, MINGW_TEMACS_POST_LINK)
+	(FIRSTFILE_OBJ): New variables.
+	(W32_RES): Rename to EMACSRES.  All users changed.
+	(base_obj): Use $(CM_OBJ).
+	(ALLOBJS): Use $(FIRSTFILE_OBJ).
+	(emacs$(EXEEXT)): Depend on $(ADDSECTION).
+	(temacs$(EXEEXT)): Use $(TEMACS_POST_LINK), and move
+	$(W32_RES_LINK) before $(LIBES).
+	(emacs.res): Depend on $(EMACS_MANIFEST).  Put emacs.rc in nt.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (DOC): Use just "DOC".
+
+	* Makefile.in (bootstrap-clean): DOC-* doesn't exist any more.
+
+	* process.c: Export default filters and sentinels to Elisp.
+	(Qinternal_default_process_sentinel, Qinternal_default_process_filter):
+	New constants.
+	(pset_filter, pset_sentinel, make_process, Fset_process_filter)
+	(Fset_process_sentinel, Fformat_network_address):
+	Default to them instead of nil.
+	(server_accept_connection): Sentinels can't be nil any more.
+	(read_and_dispose_of_process_output): New function, extracted from
+	read_process_output.
+	(read_process_output): Use it; filters can't be nil.
+	(Finternal_default_process_filter): New function, extracted from
+	read_process_output.
+	(exec_sentinel_unwind): Remove function.
+	(exec_sentinel): Don't zilch sentinel while running.
+	(status_notify): Sentinels can't be nil.
+	(Finternal_default_process_sentinel): New function extracted from
+	status_notify.
+	(setup_process_coding_systems): Default filter is not nil any more.
+	(syms_of_process): Export new Elisp functions and initialize
+	new constants.
+	* lisp.h (make_lisp_proc): New function.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (regex_compile) [\=, \>, \<]: Don't forget to set laststart.
+
+2013-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't call WINDOW_HEADER_LINE_HEIGHT
+	unless we know that the window w is a leaf window.
+	Another attempt at solving bug#14062.
+
+2013-05-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (ns_spec_to_descriptor): Retain and autorelease
+	fdesc (Bug#14375).
+
+2013-05-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (gif_load): Check that subimages fit (Bug#14345).
+
+2013-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (skip_dyn_eof): New function.
+	(read1): Use it to skip the end of a file in response to #@00.
+
+	* doc.c (get_doc_string): Slightly relax the sanity checking.
+
+2013-05-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: Include IOGraphicsLib.h if Cocoa.
+	(Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): Declare.
+	(MonitorInfo): New struct.
+	(free_monitors, ns_screen_name, ns_make_monitor_attribute_list)
+	(Fns_display_monitor_attributes_list): New functions.
+	(display-usable-bounds): Remove.
+	(syms_of_nsfns): DEFSYM Qgeometry, Qworkarea, Qmm_size, Qframes and
+	Qsource.
+
+2013-05-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xterm.h (GTK_PREREQ): Remove, replacing with GTK_CHECK_VERSION.
+	(GTK_CHECK_VERSION): New macro, if not already defined.
+	All uses of GTK_PREREQ, GTK_MAJOR_VERSION, etc.
+	replaced by GTK_CHECK_VERSION.
+
 2013-05-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.h (GTK_PREREQ): New macro.

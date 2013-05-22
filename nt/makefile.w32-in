@@ -29,6 +29,8 @@ TMP_DIST_DIR 	= emacs-$(VERSION)
 TRES		= $(BLD)/emacs.res
 CLIENTRES	= $(BLD)/emacsclient.res
 
+LOCAL_FLAGS	= -DOLD_PATHS=1
+
 XMFLAGS		=
 
 ALL		= $(BLD)/addpm.exe $(BLD)/ddeclient.exe $(BLD)/runemacs.exe \
@@ -313,7 +315,7 @@ clean:	clean-other-dirs-$(MAKETYPE)
 	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
 	- $(DEL) stamp_BLD
-	- $(DEL) ../etc/DOC ../etc/DOC-X
+	- $(DEL) ../etc/DOC
 
 clean-other-dirs-nmake:
 	cd ..\lib
@@ -373,7 +375,7 @@ top-distclean:
 	- $(DEL_TREE) oo
 	- $(DEL_TREE) oo-spd
 	- $(DEL) stamp_BLD
-	- $(DEL) ../etc/DOC ../etc/DOC-X
+	- $(DEL) ../etc/DOC
 	- $(DEL) config.log Makefile
 	- $(DEL) ../README.W32
 

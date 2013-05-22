@@ -352,11 +352,6 @@ Use `nxml-parent-document-set' to set it.")
 See the function `xmltok-forward-prolog' for more information.")
 (make-variable-buffer-local 'nxml-prolog-regions)
 
-(defvar nxml-last-fontify-end nil
-  "Position where fontification last ended.
-It is nil if the buffer changed since the last fontification.")
-(make-variable-buffer-local 'nxml-last-fontify-end)
-
 (defvar nxml-degraded nil
   "Non-nil if currently operating in degraded mode.
 Degraded mode is enabled when an internal error is encountered in the
@@ -538,7 +533,6 @@ Many aspects this mode can be customized using
   (save-excursion
     (save-restriction
       (widen)
-      (nxml-clear-dependent-regions (point-min) (point-max))
       (setq nxml-scan-end (copy-marker (point-min) nil))
       (with-silent-modifications
         (nxml-clear-inside (point-min) (point-max))
@@ -583,12 +577,9 @@ Many aspects this mode can be customized using
   ;; Clean up fontification.
   (save-excursion
     (widen)
-    (let ((inhibit-read-only t)
-	  (buffer-undo-list t)
-	  (modified (buffer-modified-p)))
+    (with-silent-modifications
       (nxml-with-invisible-motion
-       (remove-text-properties (point-min) (point-max) '(face)))
-      (set-buffer-modified-p modified)))
+       (remove-text-properties (point-min) (point-max) '(face)))))
   (remove-hook 'change-major-mode-hook 'nxml-cleanup t))
 
 (defun nxml-degrade (context err)
@@ -638,10 +629,6 @@ the full extent of the area needing refontification.
 For bookkeeping, call this function even when fontification is
 disabled."
   (let ((pre-change-end (+ start pre-change-length)))
-    (setq start
-	  (nxml-adjust-start-for-dependent-regions start
-						   end
-						   pre-change-length))
     ;; If the prolog might have changed, rescan the prolog
     (when (<= start
 	      ;; Add 2 so as to include the < and following char that
@@ -902,26 +889,16 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
 
 (defun nxml-extend-after-change-region (start end pre-change-length)
   (unless nxml-degraded
-    (setq nxml-last-fontify-end nil)
-    (let ((region (nxml-with-degradation-on-error
-		   'nxml-extend-after-change-region
-		   (save-excursion
-		     (save-restriction
-		       (widen)
-		       (save-match-data
-			 (nxml-with-invisible-motion
-			   (with-silent-modifications
-			     (nxml-extend-after-change-region1
-			      start end pre-change-length)))))))))
-      (if (consp region) region))))
-
-(defun nxml-extend-after-change-region1 (start end pre-change-length)
-  (let* ((region (nxml-after-change1 start end pre-change-length))
-         (font-lock-beg (car region))
-         (font-lock-end (cdr region)))
-
-    (nxml-extend-region)
-    (cons font-lock-beg font-lock-end)))
+    (nxml-with-degradation-on-error
+     'nxml-extend-after-change-region
+     (save-excursion
+       (save-restriction
+         (widen)
+         (save-match-data
+           (nxml-with-invisible-motion
+             (with-silent-modifications
+               (nxml-after-change1
+                start end pre-change-length)))))))))
 
 (defun nxml-fontify-matcher (bound)
   "Called as font-lock keyword matcher."
@@ -936,13 +913,12 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
       (nxml-fontify-prolog)
       (goto-char nxml-prolog-end))
 
-    (let (xmltok-dependent-regions
-          xmltok-errors)
+    (let (xmltok-errors)
       (while (and (nxml-tokenize-forward)
                   (<= (point) bound))   ; Intervals are open-ended.
         (nxml-apply-fontify-rule)))
 
-    (setq nxml-last-fontify-end (point)))
+    )
 
   ;; Since we did the fontification internally, tell font-lock to not
   ;; do anything itself.

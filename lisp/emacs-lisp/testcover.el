@@ -118,7 +118,7 @@ calls to one of the `testcover-1value-functions', so if that's true then no
 brown splotch is shown for these.  This list is quite incomplete!  Most
 side-effect-free functions should be here."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-progn-functions
   '(define-key fset function goto-char mapc overlay-put progn

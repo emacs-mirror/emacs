@@ -480,4 +480,8 @@ removed from the result list."
 
 (provide 'semantic/java)
 
+;; Local variables:
+;; generated-autoload-load-name: "semantic/java"
+;; End:
+
 ;;; semantic/java.el ends here

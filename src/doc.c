@@ -58,7 +58,7 @@ read_bytecode_char (bool unreadflag)
 }
 
 /* Extract a doc string from a file.  FILEPOS says where to get it.
-   If it is an integer, use that position in the standard DOC-... file.
+   If it is an integer, use that position in the standard DOC file.
    If it is (FILE . INTEGER), use FILE as the file name
    and INTEGER as the position in that file.
    But if INTEGER is negative, make it positive.
@@ -215,14 +215,20 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   if (CONSP (filepos))
     {
       int test = 1;
-      if (get_doc_string_buffer[offset - test++] != ' ')
-	return Qnil;
-      while (get_doc_string_buffer[offset - test] >= '0'
-	     && get_doc_string_buffer[offset - test] <= '9')
-	test++;
-      if (get_doc_string_buffer[offset - test++] != '@'
-	  || get_doc_string_buffer[offset - test] != '#')
-	return Qnil;
+      /* A dynamic docstring should be either at the very beginning of a "#@
+	 comment" or right after a dynamic docstring delimiter (in case we
+	 pack several such docstrings within the same comment).  */
+      if (get_doc_string_buffer[offset - test] != '\037')
+	{
+	  if (get_doc_string_buffer[offset - test++] != ' ')
+	    return Qnil;
+	  while (get_doc_string_buffer[offset - test] >= '0'
+		 && get_doc_string_buffer[offset - test] <= '9')
+	    test++;
+	  if (get_doc_string_buffer[offset - test++] != '@'
+	      || get_doc_string_buffer[offset - test] != '#')
+	    return Qnil;
+	}
     }
   else
     {
@@ -602,7 +608,7 @@ the same file name is found in the `doc-directory'.  */)
         while (*beg && c_isspace (*beg)) ++beg;
 
         for (end = beg; *end && ! c_isspace (*end); ++end)
-          if (*end == '/') beg = end+1;  /* skip directory part  */
+          if (*end == '/') beg = end + 1;  /* Skip directory part.  */
 
         len = end - beg;
         if (len > 4 && end[-4] == '.' && end[-3] == 'o')

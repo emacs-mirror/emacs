@@ -1497,10 +1497,8 @@ If COMP or STD is non-nil, put that in the units table instead."
    ((memq (car-safe expr) '(* /))
     (cons (car expr)
           (mapcar 'math-extract-units (cdr expr))))
-   ((and
-     (eq (car-safe expr) '^)
-     (math-check-unit-name (nth 1 expr)))
-    expr)
+   ((eq (car-safe expr) '^)
+    (list '^ (math-extract-units (nth 1 expr)) (nth 2 expr)))
    ((math-check-unit-name expr) expr)
    (t 1)))
 

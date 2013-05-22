@@ -441,7 +441,7 @@ characters when given a pad value."
 	      (delim (aref (match-string 2) 0)))
 	  (if (or (= delim ?\()
 		  (= delim ?\{)
-		  (= delim ?\«))
+		  (= delim ?\u00AB)) ; «
 	      (replace-match (concat "\"("
 				     (cond ((= delim ?\() "mouse")
 					   ((= delim ?\{) "face")

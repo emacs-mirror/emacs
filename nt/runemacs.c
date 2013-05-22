@@ -75,6 +75,11 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   /* Quote executable name in case of spaces in the path. */
   *new_cmdline = '"';
   strcpy (new_cmdline + 1, modname);
+  /* Detect and handle un-installed runemacs.exe in nt/ subdirectory,
+     while emacs.exe is in src/.  */
+  if ((p = strrchr (new_cmdline, '\\')) != NULL
+      && stricmp (p, "\\nt") == 0)
+    strcpy (p, "\\src");
 
 #ifdef CHOOSE_NEWEST_EXE
   {

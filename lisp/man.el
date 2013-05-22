@@ -752,7 +752,7 @@ POS defaults to `point'."
 	(setq word (concat word (match-string-no-properties 1)))
 	;; Make sure the section number gets included by the code below.
 	(goto-char (match-end 1)))
-      (when (string-match "[._]+$" word)
+      (when (string-match "[-._]+$" word)
 	(setq word (substring word 0 (match-beginning 0))))
       ;; The following was commented out since the preceding code
       ;; should not produce a leading "*" in the first place.

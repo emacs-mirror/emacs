@@ -418,7 +418,7 @@ Variables controlling the display of messages in the mode line include:
         `global-mode-string'
         `type-break-mode-line-break-message'
         `type-break-mode-line-warning'"
-  :global t)
+  :global t :group 'type-break)
 
 (define-minor-mode type-break-query-mode
   "Toggle typing break queries.
@@ -428,7 +428,7 @@ enable them if ARG is omitted or nil.
 
 The user may also enable or disable this mode simply by setting
 the variable of the same name."
-  :global t)
+  :global t :group 'type-break)
 
 
 ;;; session file functions

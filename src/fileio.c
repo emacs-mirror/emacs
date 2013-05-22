@@ -2873,7 +2873,7 @@ file_accessible_directory_p (char const *file)
 	 and it's a safe optimization here.  */
       char *buf = SAFE_ALLOCA (len + 3);
       memcpy (buf, file, len);
-      strcpy (buf + len, "/." + (file[len - 1] == '/'));
+      strcpy (buf + len, &"/."[file[len - 1] == '/']);
       dir = buf;
     }
 

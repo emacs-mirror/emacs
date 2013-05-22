@@ -1058,8 +1058,7 @@ contributed extensively to the MS-Windows port of Emacs.
 
 @item
 Wolfgang Rupprecht wrote Emacs 19's floating-point support (including
-@file{float-sup.el} and @file{floatfns.c}), and @file{sup-mouse.el},
-support for the Supdup mouse on lisp machines.
+@file{float-sup.el} and @file{floatfns.c}).
 
 @item
 Kevin Ryde wrote @file{info-xref.el}, a library for checking

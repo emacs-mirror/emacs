@@ -30,11 +30,11 @@
 ;;
 ;; The basic tests can be run in batch mode.  Invoke them with
 ;;
-;;   src/emacs -batch -l admin/cus-test.el -f cus-test-opts
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-opts [all]
 ;;
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-deps
 ;;
-;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs [all]
 ;;
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-noloads
 ;;
@@ -99,8 +99,14 @@
 (defvar cus-test-skip-list nil
   "List of variables to disregard by `cus-test-apropos'.")
 
-;; Loading dunnet in batch mode leads to a Dead end.
-(defvar cus-test-libs-noloads '("play/dunnet.el")
+(defvar cus-test-libs-noloads
+  ;; Loading dunnet in batch mode leads to a Dead end.
+  ;; blessmail writes a file.
+  ;; characters cannot be loaded twice ("Category `a' is already defined").
+  '("play/dunnet.el" "emulation/edt-mapper.el"
+    "loadup.el" "mail/blessmail.el" "international/characters.el"
+    "cedet/ede/loaddefs.el" "cedet/semantic/loaddefs.el"
+    "net/tramp-loaddefs.el")
   "List of files not to load by `cus-test-load-libs'.
 Names should be as they appear in loaddefs.el.")
 
@@ -226,17 +232,38 @@ The detected problematic options are stored in `cus-test-errors'."
 	   (length cus-test-tested-variables))
   (cus-test-errors-display))
 
-(defun cus-test-get-options (regexp)
-  "Return a list of custom options matching REGEXP."
-  (let (found)
+(defun cus-test-cus-load-groups (&optional cus-load)
+  "Return a list of current custom groups.
+If CUS-LOAD is non-nil, include groups from cus-load.el."
+  (append (mapcar 'cdr custom-current-group-alist)
+	  (if cus-load
+	      (with-temp-buffer
+		(insert-file-contents (locate-library "cus-load.el"))
+		(search-forward "(put '")
+		(beginning-of-line)
+		(let (res)
+		  (while (and (looking-at "^(put '\\(\\S-+\\)")
+			      (zerop (forward-line 1)))
+		    (push (intern (match-string 1)) res))
+		  res)))))
+
+(defun cus-test-get-options (regexp &optional group)
+  "Return a list of custom options matching REGEXP.
+If GROUP is non-nil, return groups rather than options.
+If GROUP is `cus-load', include groups listed in cus-loads as well as
+currently defined groups."
+  (let ((groups (if group (cus-test-cus-load-groups (eq group 'cus-load))))
+	found)
     (mapatoms
      (lambda (symbol)
        (and
-	(or
-	 ;; (user-variable-p symbol)
-	 (get symbol 'standard-value)
-	 ;; (get symbol 'saved-value)
-	 (get symbol 'custom-type))
+	(if group
+	    (memq symbol groups)
+	  (or
+	   ;; (user-variable-p symbol)
+	   (get symbol 'standard-value)
+	   ;; (get symbol 'saved-value)
+	   (get symbol 'custom-type)))
 	(string-match regexp (symbol-name symbol))
 	(not (member symbol cus-test-skip-list))
 	(push symbol found))))
@@ -276,9 +303,11 @@ The detected problematic options are stored in `cus-test-errors'."
      (run-hooks 'cus-test-after-load-libs-hook)))
 
 ;; This is just cus-test-libs, but loading in the current Emacs process.
-(defun cus-test-load-libs ()
+(defun cus-test-load-libs (&optional more)
   "Load the libraries with autoloads.
-Don't load libraries in `cus-test-libs-noloads'."
+Don't load libraries in `cus-test-libs-noloads'.
+If optional argument MORE is \"defcustom\", load all files with defcustoms.
+If it is \"all\", load all Lisp files."
   (interactive)
   (cus-test-load-1
    (let ((lispdir (file-name-directory (locate-library "loaddefs"))))
@@ -291,7 +320,9 @@ Don't load libraries in `cus-test-libs-noloads'."
 	  (error
 	   (push (cons file alpha) cus-test-libs-errors)
 	   (message "Error for %s: %s" file alpha))))
-      (cus-test-get-autoload-deps)))))
+      (if more
+	  (cus-test-get-lisp-files (equal more "all"))
+	(cus-test-get-autoload-deps))))))
 
 (defun cus-test-get-autoload-deps ()
   "Return the list of files with autoloads."
@@ -302,6 +333,24 @@ Don't load libraries in `cus-test-libs-noloads'."
 	(push (buffer-substring (match-end 0) (line-end-position)) files))
       files)))
 
+(defun cus-test-get-lisp-files (&optional all)
+  "Return list of all Lisp files with defcustoms.
+Optional argument ALL non-nil means list all (non-obsolete) Lisp files."
+  (let ((default-directory (expand-file-name "lisp/" source-directory))
+	(msg "Finding files..."))
+    (message "%s" msg)
+    (prog1
+	;; Hack to remove leading "./".
+	(mapcar (lambda (e) (substring e 2))
+		(apply 'process-lines find-program
+		       "-name" "obsolete" "-prune" "-o"
+		       "-name" "[^.]*.el" ; ignore .dir-locals.el
+		       (if all
+			   '("-print")
+			 (list "-exec" grep-program
+			       "-l" "^[ \t]*(defcustom" "{}" "+"))))
+      (message "%sdone" msg))))
+
 (defun cus-test-message (list)
   "Print the members of LIST line by line."
   (dolist (m list) (message "%s" m)))
@@ -309,16 +358,21 @@ Don't load libraries in `cus-test-libs-noloads'."
 
 ;;; The routines for batch mode:
 
-(defun cus-test-opts ()
+(defun cus-test-opts (&optional all)
   "Test custom options.
 This function is suitable for batch mode.  E.g., invoke
 
   src/emacs -batch -l admin/cus-test.el -f cus-test-opts
 
-in the Emacs source directory."
+in the Emacs source directory.
+Normally only tests options belonging to files in loaddefs.el.
+If optional argument ALL is non-nil, test all files with defcustoms."
   (interactive)
+  (and noninteractive
+       command-line-args-left
+       (setq all (pop command-line-args-left)))
   (message "Running %s" 'cus-test-load-libs)
-  (cus-test-load-libs)
+  (cus-test-load-libs (if all "defcustom"))
   (message "Running %s" 'cus-test-load-custom-loads)
   (cus-test-load-custom-loads)
   (message "Running %s" 'cus-test-apropos)
@@ -401,21 +455,27 @@ in the Emacs source directory."
     (cus-test-message cus-test-deps-errors))
   (run-hooks 'cus-test-after-load-libs-hook))
 
-(defun cus-test-libs ()
+(defun cus-test-libs (&optional more)
   "Load the libraries with autoloads in separate processes.
 This function is useful to detect load problems of libraries.
 It is suitable for batch mode.  E.g., invoke
 
   ./src/emacs -batch -l admin/cus-test.el -f cus-test-libs
 
-in the Emacs source directory."
+in the Emacs source directory.
+
+If optional argument MORE is \"defcustom\", load all files with defcustoms.
+If it is \"all\", load all Lisp files."
   (interactive)
+  (and noninteractive
+       command-line-args-left
+       (setq more (pop command-line-args-left)))
   (cus-test-load-1
-   (let ((default-directory source-directory)
-	 (emacs (expand-file-name "src/emacs"))
-	 skipped)
+   (let* ((default-directory source-directory)
+	  (emacs (expand-file-name "src/emacs"))
+	  skipped)
      (or (file-executable-p emacs)
-	 (error "No Emacs executable in %ssrc" default-directory))
+	 (error "No such executable `%s'" emacs))
      (mapc
       (lambda (file)
 	(if (member file cus-test-libs-noloads)
@@ -436,7 +496,9 @@ in the Emacs source directory."
 	    (error
 	     (push (cons file alpha) cus-test-libs-errors)
 	     (message "Error for %s: %s" file alpha)))))
-      (cus-test-get-autoload-deps))
+      (if more
+	  (cus-test-get-lisp-files (equal more "all"))
+	(cus-test-get-autoload-deps)))
      (message "Default directory: %s" default-directory)
      (when skipped
        (message "The following libraries were skipped:")
@@ -451,17 +513,17 @@ It is suitable for batch mode.  E.g., invoke
 
 in the Emacs source directory."
   (interactive)
-  (let (cus-loaded)
+  (let ((groups-loaded (cus-test-get-options "" 'cus-load))
+	cus-loaded groups-not-loaded)
 
     (message "Running %s" 'cus-test-load-custom-loads)
     (cus-test-load-custom-loads)
-    (setq cus-loaded
-	  (cus-test-get-options ""))
+    (setq cus-loaded (cus-test-get-options ""))
 
     (message "Running %s" 'cus-test-load-libs)
-    (cus-test-load-libs)
-    (setq cus-test-vars-not-cus-loaded
-	  (cus-test-get-options ""))
+    (cus-test-load-libs "all")
+    (setq cus-test-vars-not-cus-loaded (cus-test-get-options "")
+	  groups-not-loaded (cus-test-get-options "" t))
 
     (dolist (o cus-loaded)
       (setq cus-test-vars-not-cus-loaded
@@ -471,7 +533,15 @@ in the Emacs source directory."
 	(message "No options not loaded by custom-load-symbol found")
       (message "The following options were not loaded by custom-load-symbol:")
       (cus-test-message
-       (sort cus-test-vars-not-cus-loaded 'string<)))))
+       (sort cus-test-vars-not-cus-loaded 'string<)))
+
+    (dolist (o groups-loaded)
+      (setq groups-not-loaded (delete o groups-not-loaded)))
+
+    (if (not groups-not-loaded)
+	(message "No groups not in cus-load.el found")
+      (message "The following groups are not in cus-load.el:")
+      (cus-test-message (sort groups-not-loaded 'string<)))))
 
 (provide 'cus-test)
 

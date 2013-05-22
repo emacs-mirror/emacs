@@ -105,8 +105,8 @@ and build directories reside.
 
 Optionally, $me can also remove old versions of
 automatically generated files that are version-specific (such as the
-versioned emacs executables in the \`src' directory, and the DOC-* files
-in the \`etc' directory).  The latter action is called \`pruning,' and
+versioned emacs executables in the \`src' directory).
+The latter action is called \`pruning,' and
 can be enabled using the \`-p' or \`--prune' options.
 EOF
       exit 0
@@ -209,10 +209,6 @@ maybe_mkdir "$DST_INFO"
 
 PRUNED=""
 if test x"$PRUNE" != xno; then
-  for D in `ls -1t $BUILD/etc/DOC-* | sed 1d`; do
-    echo $REMOVE_CMD $D
-    PRUNED="$PRUNED $D"
-  done
   for D in `ls -1t $BUILD/src/emacs-$VERSION.* | sed 1d`; do
     echo $REMOVE_CMD $D
     PRUNED="$PRUNED $D"

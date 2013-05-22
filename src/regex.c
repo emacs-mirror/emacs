@@ -33,15 +33,18 @@
 
 /* Ignore some GCC warnings for now.  This section should go away
    once the Emacs and Gnulib regex code is merged.  */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#if 4 < __GNUC__ + (5 <= __GNUC_MINOR__) || defined __clang__
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 # ifndef emacs
-#  pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #  pragma GCC diagnostic ignored "-Wunused-function"
 #  pragma GCC diagnostic ignored "-Wunused-macros"
 #  pragma GCC diagnostic ignored "-Wunused-result"
 #  pragma GCC diagnostic ignored "-Wunused-variable"
 # endif
+#endif
+
+#if 4 < __GNUC__ + (5 <= __GNUC_MINOR__) && ! defined __clang__
+# pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
 #include <config.h>
@@ -2622,7 +2625,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 	    goto normal_char;
 	handle_plus:
 	case '*':
-	  /* If there is no previous pattern... */
+	  /* If there is no previous pattern...  */
 	  if (!laststart)
 	    {
 	      if (syntax & RE_CONTEXT_INVALID_OPS)
@@ -2730,7 +2733,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 		  }
 	      }
 	    else		/* not greedy */
-	      { /* I wish the greedy and non-greedy cases could be merged. */
+	      { /* I wish the greedy and non-greedy cases could be merged.  */
 
 		GET_BUFFER_SPACE (7); /* We might use less.  */
 		if (many_times_ok)
@@ -3034,7 +3037,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 
 		/* Allocate space for COUNT + RANGE_TABLE.  Needs two
 		   bytes for flags, two for COUNT, and three bytes for
-		   each character. */
+		   each character.  */
 		GET_BUFFER_SPACE (4 + used * 3);
 
 		/* Indicate the existence of range table.  */
@@ -3461,6 +3464,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 	    /* There is no way to specify the before_dot and after_dot
 	       operators.  rms says this is ok.  --karl  */
 	    case '=':
+	      laststart = b;
 	      BUF_PUSH (at_dot);
 	      break;
 
@@ -3509,12 +3513,14 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 	    case '<':
 	      if (syntax & RE_NO_GNU_OPS)
 		goto normal_char;
+	      laststart = b;
 	      BUF_PUSH (wordbeg);
 	      break;
 
 	    case '>':
 	      if (syntax & RE_NO_GNU_OPS)
 		goto normal_char;
+	      laststart = b;
 	      BUF_PUSH (wordend);
 	      break;
 

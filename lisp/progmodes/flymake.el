@@ -257,6 +257,13 @@ are the string substitutions (see `format')."
   :version "23.1"
   :group 'tools)
 
+(defcustom flymake-xml-program
+  (if (executable-find "xmlstarlet") "xmlstarlet" "xml")
+  "Program to use for XML validation."
+  :type 'file
+  :group 'flymake
+  :version "24.4")
+
 (defcustom flymake-allowed-file-name-masks
   '(("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'" flymake-simple-make-init)
     ("\\.xml\\'" flymake-xml-init)
@@ -1852,7 +1859,9 @@ Use CREATE-TEMP-F for creating temp copy."
 
 ;;;; xml-specific init-cleanup routines
 (defun flymake-xml-init ()
-  (list "xml" (list "val" (flymake-init-create-temp-buffer-copy 'flymake-create-temp-inplace))))
+  (list flymake-xml-program
+        (list "val" (flymake-init-create-temp-buffer-copy
+                     'flymake-create-temp-inplace))))
 
 (provide 'flymake)
 

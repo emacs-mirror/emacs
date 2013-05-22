@@ -43,10 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 typedef Widget xt_or_gtk_widget;
 #endif
 
-/* True iff GTK's version is at least MAJOR.MINOR.  */
-#define GTK_PREREQ(major, minor) \
-    ((major) < GTK_MAJOR_VERSION + ((minor) <= GTK_MINOR_VERSION))
-
 #ifdef USE_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
@@ -57,13 +53,25 @@ typedef GtkWidget *xt_or_gtk_widget;
 #undef XSync
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (0)
+#endif /* USE_GTK */
 
-/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_PREREQ (2, 14)
-#define USE_GTK_TOOLTIP
+/* True iff GTK's version is at least I.J.K.  */
+#ifndef GTK_CHECK_VERSION
+# ifdef USE_GTK
+#  define GTK_CHECK_VERSION(i, j, k) \
+     ((i) \
+      < GTK_MAJOR_VERSION + ((j) \
+			     < GTK_MINOR_VERSION + ((k) \
+						    <= GTK_MICRO_VERSION)))
+# else
+#  define GTK_CHECK_VERSION(i, j, k) 0
+# endif
 #endif
 
-#endif /* USE_GTK */
+/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
+#if GTK_CHECK_VERSION (2, 14, 0)
+#define USE_GTK_TOOLTIP
+#endif
 
 
 /* Bookkeeping to distinguish X versions.  */

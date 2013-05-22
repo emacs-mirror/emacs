@@ -43,8 +43,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FD_ZERO
 #endif
 
-/* avoid duplicate definition of timeval */
-#ifdef HAVE_TIMEVAL
+/* Avoid duplicate definition of timeval.  MinGW uses _TIMEVAL_DEFINED
+   in sys/time.h to avoid that.  */
+#if defined (HAVE_TIMEVAL) && defined (_MSC_VER)
 #define timeval ws_timeval
 #endif
 
@@ -62,7 +63,9 @@ typedef unsigned short uint16_t;
 #undef MUST_REDEF_SELECT
 #endif
 
-/* revert to our version of FD_SET */
+/* Revert to our version of FD_SET, but not when included from test
+   programs run by configure.  */
+#ifdef EMACS_CONFIG_H
 #undef FD_SET
 #undef FD_CLR
 #undef FD_ISSET
@@ -71,8 +74,9 @@ typedef unsigned short uint16_t;
 /* allow us to provide our own version of fd_set */
 #define fd_set ws_fd_set
 #include "w32.h"
+#endif	/* EMACS_CONFIG_H */
 
-#ifdef HAVE_TIMEVAL
+#if defined (HAVE_TIMEVAL) && defined (_MSC_VER)
 #undef timeval
 #endif
 

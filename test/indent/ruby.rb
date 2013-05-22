@@ -21,6 +21,11 @@ a = asub / aslb + bsub / bslb;
 # Highlight the regexp after "if".
 x = toto / foo if /do bar/ =~ "dobar"
 
+# Multiline regexp.
+/bars
+ tees # toots
+ nfoos/
+
 def test1(arg)
   puts "hello"
 end
@@ -47,6 +52,8 @@ def test2 (arg)
   case a
   when "a"
     6
+  # Support for this syntax was removed in Ruby 1.9, so we
+  # probably don't need to handle it either.
   # when "b" :
   #   7
   # when "c" : 2

@@ -297,7 +297,7 @@ X resource class for the attribute."
 
 
 (declare-function internal-face-x-get-resource "xfaces.c"
-		  (resource class frame))
+		  (resource class &optional frame))
 
 (declare-function internal-set-lisp-face-attribute-from-resource "xfaces.c"
 		  (face attr value &optional frame))
@@ -2292,7 +2292,6 @@ terminal type to a different value."
     (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
-  :group 'whitespace-faces	; like `show-trailing-whitespace'
   :group 'basic-faces)
 
 (defface escape-glyph

@@ -447,4 +447,8 @@ PRE-LEN is used in the after mode for the length of the changed text."
 
 (provide 'srecode/fields)
 
+;; Local variables:
+;; generated-autoload-load-name: "srecode/fields"
+;; End:
+
 ;;; srecode/fields.el ends here

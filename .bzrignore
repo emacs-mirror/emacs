@@ -15,6 +15,9 @@ oo-spd
 *.dSYM
 *.elc
 *.exe
+*.res
+*.tmp
+*.map
 ./aclocal.m4
 autom4te.cache
 confdefs.h
@@ -23,7 +26,6 @@ configure.lineno
 conftest*
 core
 DOC
-DOC-*
 emacs-*/
 makefile
 Makefile
@@ -93,6 +95,7 @@ lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
 lib/dirent.h
+lib/errno.h
 lib/execinfo.h
 lib/fcntl.h
 lib/getopt.h
@@ -161,7 +164,6 @@ src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
 src/stamp-h.in
-src/emacs.res
 src/temacs
 test/indent/*.new
 +*

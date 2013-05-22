@@ -178,12 +178,12 @@ Display the references in`semantic-symref-results-mode'."
 
 (defcustom semantic-symref-auto-expand-results nil
   "Non-nil to expand symref results on buffer creation."
-  :group 'semantic-symref
+  :group 'semantic-symref-results-mode
   :type 'boolean)
 
 (defcustom semantic-symref-results-mode-hook nil
   "Hook run when `semantic-symref-results-mode' starts."
-  :group 'semantic-symref
+  :group 'semantic-symref-results-mode
   :type 'hook)
 
 (defvar semantic-symref-current-results nil
@@ -217,7 +217,7 @@ RESULTS is an object of class `semantic-symref-results'."
 (defcustom semantic-symref-results-summary-function 'semantic-format-tag-prototype
   "*Function to use when creating items in Imenu.
 Some useful functions are found in `semantic-format-tag-functions'."
-  :group 'semantic-symref
+  :group 'semantic-symref-results-mode
   :type semantic-format-tag-custom-list)
 
 (defun semantic-symref-results-dump (results)

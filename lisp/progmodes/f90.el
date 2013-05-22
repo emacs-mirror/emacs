@@ -249,8 +249,8 @@
   "Qualification of END statements according to the matching block start.
 For example, change the END that closes an IF block to END IF.
 If the block has a label, add it as well (unless `f90-smart-end-names'
-says not to).  Allowed values are 'blink, 'no-blink, and nil.  If nil,
-nothing is done.  The other two settings have the same effect, but 'blink
+says not to).  Allowed values are `blink', `no-blink', and nil.  If nil,
+nothing is done.  The other two settings have the same effect, but `blink'
 additionally blinks the cursor to the start of the block."
   :type  '(choice (const blink) (const no-blink) (const nil))
   :safe  (lambda (value) (memq value '(blink no-blink nil)))
@@ -319,51 +319,57 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 ;; User options end here.
 
 (defconst f90-keywords-re
-  (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
-                "block" "call" "case" "character" "close" "common" "complex"
-                "contains" "continue" "cycle" "data" "deallocate"
-                "dimension" "do" "double" "else" "elseif" "elsewhere" "end"
-                "enddo" "endfile" "endif" "entry" "equivalence" "exit"
-                "external" "forall" "format" "function" "goto" "if"
-                "implicit" "include" "inquire" "integer" "intent"
-                "interface" "intrinsic" "logical" "module" "namelist" "none"
-                "nullify" "only" "open" "operator" "optional" "parameter"
-                "pause" "pointer" "precision" "print" "private" "procedure"
-                "program" "public" "read" "real" "recursive" "result" "return"
-                "rewind" "save" "select" "sequence" "stop" "subroutine"
-                "target" "then" "type" "use" "where" "while" "write"
-                ;; F95 keywords.
-                "elemental" "pure"
-                ;; F2003
-                "abstract" "associate" "asynchronous" "bind" "class"
-                "deferred" "enum" "enumerator" "extends" "extends_type_of"
-                "final" "generic" "import" "non_intrinsic" "non_overridable"
-                "nopass" "pass" "protected" "same_type_as" "value" "volatile"
-                ;; F2008.
-                "contiguous" "submodule" "concurrent" "codimension"
-                "sync all" "sync memory" "critical" "image_index"
-                ) 'words)
+  (concat
+   "\\_<"
+   (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
+                 "block" "call" "case" "character" "close" "common" "complex"
+                 "contains" "continue" "cycle" "data" "deallocate"
+                 "dimension" "do" "double" "else" "elseif" "elsewhere" "end"
+                 "enddo" "endfile" "endif" "entry" "equivalence" "exit"
+                 "external" "forall" "format" "function" "goto" "if"
+                 "implicit" "include" "inquire" "integer" "intent"
+                 "interface" "intrinsic" "logical" "module" "namelist" "none"
+                 "nullify" "only" "open" "operator" "optional" "parameter"
+                 "pause" "pointer" "precision" "print" "private" "procedure"
+                 "program" "public" "read" "real" "recursive" "result" "return"
+                 "rewind" "save" "select" "sequence" "stop" "subroutine"
+                 "target" "then" "type" "use" "where" "while" "write"
+                 ;; F95 keywords.
+                 "elemental" "pure"
+                 ;; F2003
+                 "abstract" "associate" "asynchronous" "bind" "class"
+                 "deferred" "enum" "enumerator" "extends" "extends_type_of"
+                 "final" "generic" "import" "non_intrinsic" "non_overridable"
+                 "nopass" "pass" "protected" "same_type_as" "value" "volatile"
+                 ;; F2008.
+                 "contiguous" "submodule" "concurrent" "codimension"
+                 "sync all" "sync memory" "critical" "image_index"
+                 ))
+   "\\_>")
   "Regexp used by the function `f90-change-keywords'.")
 
 (defconst f90-keywords-level-3-re
-  (regexp-opt
-   '("allocatable" "allocate" "assign" "assignment" "backspace"
-     "close" "deallocate" "dimension" "endfile" "entry" "equivalence"
-     "external" "inquire" "intent" "intrinsic" "nullify" "only" "open"
-     ;; FIXME operator and assignment should be F2003 procedures?
-     "operator" "optional" "parameter" "pause" "pointer" "print" "private"
-     "public" "read" "recursive" "result" "rewind" "save" "select"
-     "sequence" "target" "write"
-     ;; F95 keywords.
-     "elemental" "pure"
-     ;; F2003. asynchronous separate.
-     "abstract" "deferred" "import" "final" "non_intrinsic" "non_overridable"
-     "nopass" "pass" "protected" "value" "volatile"
-     ;; F2008.
-     ;; "concurrent" is only in the sense of "do [,] concurrent", but given
-     ;; the [,] it's simpler to just do every instance (cf "do while").
-     "contiguous" "concurrent" "codimension" "sync all" "sync memory"
-     ) 'words)
+  (concat
+   "\\_<"
+   (regexp-opt
+    '("allocatable" "allocate" "assign" "assignment" "backspace"
+      "close" "deallocate" "dimension" "endfile" "entry" "equivalence"
+      "external" "inquire" "intent" "intrinsic" "nullify" "only" "open"
+      ;; FIXME operator and assignment should be F2003 procedures?
+      "operator" "optional" "parameter" "pause" "pointer" "print" "private"
+      "public" "read" "recursive" "result" "rewind" "save" "select"
+      "sequence" "target" "write"
+      ;; F95 keywords.
+      "elemental" "pure"
+      ;; F2003. asynchronous separate.
+      "abstract" "deferred" "import" "final" "non_intrinsic" "non_overridable"
+      "nopass" "pass" "protected" "value" "volatile"
+      ;; F2008.
+      ;; "concurrent" is only in the sense of "do [,] concurrent", but given
+      ;; the [,] it's simpler to just do every instance (cf "do while").
+      "contiguous" "concurrent" "codimension" "sync all" "sync memory"
+      ))
+   "\\_>")
   "Keyword-regexp for font-lock level >= 3.")
 
 (defconst f90-procedures-re
@@ -428,61 +434,67 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   "Regexp matching intrinsic operators.")
 
 (defconst f90-hpf-keywords-re
-  (regexp-opt
-   ;; Intrinsic procedures.
-   '("all_prefix" "all_scatter" "all_suffix" "any_prefix"
-     "any_scatter" "any_suffix" "copy_prefix" "copy_scatter"
-     "copy_suffix" "count_prefix" "count_scatter" "count_suffix"
-     "grade_down" "grade_up"
-     "hpf_alignment" "hpf_distribution" "hpf_template" "iall" "iall_prefix"
-     "iall_scatter" "iall_suffix" "iany" "iany_prefix" "iany_scatter"
-     "iany_suffix" "ilen" "iparity" "iparity_prefix"
-     "iparity_scatter" "iparity_suffix" "leadz" "maxval_prefix"
-     "maxval_scatter" "maxval_suffix" "minval_prefix" "minval_scatter"
-     "minval_suffix" "number_of_processors" "parity"
-     "parity_prefix" "parity_scatter" "parity_suffix" "popcnt" "poppar"
-     "processors_shape" "product_prefix" "product_scatter"
-     "product_suffix" "sum_prefix" "sum_scatter" "sum_suffix"
-     ;; Directives.
-     "align" "distribute" "dynamic" "independent" "inherit" "processors"
-     "realign" "redistribute" "template"
-     ;; Keywords.
-     "block" "cyclic" "extrinsic" "new" "onto" "pure" "with") 'words)
+  (concat
+   "\\_<"
+   (regexp-opt
+    ;; Intrinsic procedures.
+    '("all_prefix" "all_scatter" "all_suffix" "any_prefix"
+      "any_scatter" "any_suffix" "copy_prefix" "copy_scatter"
+      "copy_suffix" "count_prefix" "count_scatter" "count_suffix"
+      "grade_down" "grade_up"
+      "hpf_alignment" "hpf_distribution" "hpf_template" "iall" "iall_prefix"
+      "iall_scatter" "iall_suffix" "iany" "iany_prefix" "iany_scatter"
+      "iany_suffix" "ilen" "iparity" "iparity_prefix"
+      "iparity_scatter" "iparity_suffix" "leadz" "maxval_prefix"
+      "maxval_scatter" "maxval_suffix" "minval_prefix" "minval_scatter"
+      "minval_suffix" "number_of_processors" "parity"
+      "parity_prefix" "parity_scatter" "parity_suffix" "popcnt" "poppar"
+      "processors_shape" "product_prefix" "product_scatter"
+      "product_suffix" "sum_prefix" "sum_scatter" "sum_suffix"
+      ;; Directives.
+      "align" "distribute" "dynamic" "independent" "inherit" "processors"
+      "realign" "redistribute" "template"
+      ;; Keywords.
+      "block" "cyclic" "extrinsic" "new" "onto" "pure" "with"))
+   "\\_>")
   "Regexp for all HPF keywords, procedures and directives.")
 
 (defconst f90-constants-re
-  (regexp-opt '( ;; F2003 iso_fortran_env constants.
-                "iso_fortran_env"
-                "input_unit" "output_unit" "error_unit"
-                "iostat_end" "iostat_eor"
-                "numeric_storage_size" "character_storage_size"
-                "file_storage_size"
-                ;; F2003 iso_c_binding constants.
-                "iso_c_binding"
-                "c_int" "c_short" "c_long" "c_long_long" "c_signed_char"
-                "c_size_t"
-                "c_int8_t" "c_int16_t" "c_int32_t" "c_int64_t"
-                "c_int_least8_t" "c_int_least16_t" "c_int_least32_t"
-                "c_int_least64_t"
-                "c_int_fast8_t" "c_int_fast16_t" "c_int_fast32_t"
-                "c_int_fast64_t"
-                "c_intmax_t" "c_intptr_t"
-                "c_float" "c_double" "c_long_double"
-                "c_float_complex" "c_double_complex" "c_long_double_complex"
-                "c_bool" "c_char"
-                "c_null_char" "c_alert" "c_backspace" "c_form_feed"
-                "c_new_line" "c_carriage_return" "c_horizontal_tab"
-                "c_vertical_tab"
-                "c_ptr" "c_funptr" "c_null_ptr" "c_null_funptr"
-                "ieee_exceptions"
-                "ieee_arithmetic"
-                "ieee_features"
-                ;; F2008 iso_fortran_env constants.
-                "character_kinds" "int8" "int16" "int32" "int64"
-                "integer_kinds" "iostat_inquire_internal_unit"
-                "logical_kinds" "real_kinds" "real32" "real64" "real128"
-                "lock_type" "atomic_int_kind" "atomic_logical_kind"
-                ) 'words)
+  (concat
+   "\\_<"
+   (regexp-opt '( ;; F2003 iso_fortran_env constants.
+                 "iso_fortran_env"
+                 "input_unit" "output_unit" "error_unit"
+                 "iostat_end" "iostat_eor"
+                 "numeric_storage_size" "character_storage_size"
+                 "file_storage_size"
+                 ;; F2003 iso_c_binding constants.
+                 "iso_c_binding"
+                 "c_int" "c_short" "c_long" "c_long_long" "c_signed_char"
+                 "c_size_t"
+                 "c_int8_t" "c_int16_t" "c_int32_t" "c_int64_t"
+                 "c_int_least8_t" "c_int_least16_t" "c_int_least32_t"
+                 "c_int_least64_t"
+                 "c_int_fast8_t" "c_int_fast16_t" "c_int_fast32_t"
+                 "c_int_fast64_t"
+                 "c_intmax_t" "c_intptr_t"
+                 "c_float" "c_double" "c_long_double"
+                 "c_float_complex" "c_double_complex" "c_long_double_complex"
+                 "c_bool" "c_char"
+                 "c_null_char" "c_alert" "c_backspace" "c_form_feed"
+                 "c_new_line" "c_carriage_return" "c_horizontal_tab"
+                 "c_vertical_tab"
+                 "c_ptr" "c_funptr" "c_null_ptr" "c_null_funptr"
+                 "ieee_exceptions"
+                 "ieee_arithmetic"
+                 "ieee_features"
+                 ;; F2008 iso_fortran_env constants.
+                 "character_kinds" "int8" "int16" "int32" "int64"
+                 "integer_kinds" "iostat_inquire_internal_unit"
+                 "logical_kinds" "real_kinds" "real32" "real64" "real128"
+                 "lock_type" "atomic_int_kind" "atomic_logical_kind"
+                 ))
+   "\\_>")
   "Regexp for Fortran intrinsic constants.")
 
 ;; cf f90-looking-at-type-like.
@@ -842,14 +854,14 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 ;; Regexps for finding program structures.
 (defconst f90-blocks-re
-  (concat "\\(block[ \t]*data\\|"
+  (concat "\\(\\(?:block[ \t]*data\\|"
           (regexp-opt '("do" "if" "interface" "function" "module" "program"
                         "select" "subroutine" "type" "where" "forall"
                         ;; F2003.
                         "enum" "associate"
                         ;; F2008.
                         "submodule" "block" "critical"))
-          "\\)\\_>")
+          "\\)\\_>\\)")
   "Regexp potentially indicating a \"block\" of F90 code.")
 
 (defconst f90-program-block-re
@@ -981,7 +993,7 @@ Set subexpression 1 in the match-data to the name of the type."
       ("Submodules" "^[ \t0-9]*submodule[ \t]*([^)\n]+)[ \t]*\
 \\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*\\(!\\|$\\)" 1)
       ("Modules" "^[ \t0-9]*module[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*\\(!\\|$\\)" 1)
-      '("Types" f90-imenu-type-matcher 1)
+      ("Types" f90-imenu-type-matcher 1)
       ;; Does not handle: "type[, stuff] :: foo".
       ;;(format "^[ \t0-9]*type[ \t]+\\(\\(%s\\|i%s\\|is\\(?:\\sw\\|\\s_\\)\\)\\(?:\\sw\\|\\s_\\)*\\)"
       ;;        not-ib not-s)
@@ -1138,8 +1150,8 @@ Variables controlling indentation style and extra features:
   Automatic insertion of \& at beginning of continuation lines (default t).
 `f90-smart-end'
   From an END statement, check and fill the end using matching block start.
-  Allowed values are 'blink, 'no-blink, and nil, which determine
-  whether to blink the matching beginning (default 'blink).
+  Allowed values are `blink', `no-blink', and nil, which determine
+  whether to blink the matching beginning (default `blink').
 `f90-auto-keyword-case'
   Automatic change of case of keywords (default nil).
   The possibilities are `downcase-word', `upcase-word', `capitalize-word'.

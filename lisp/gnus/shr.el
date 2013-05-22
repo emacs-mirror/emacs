@@ -1088,6 +1088,14 @@ ones, in case fg and bg are nil."
     (shr-indent))
   (shr-generic cont))
 
+(defun shr-tag-span (cont)
+  (let ((title (cdr (assq :title cont))))
+    (shr-generic cont)
+    (when title
+      (when shr-start
+        (let ((overlay (shr-make-overlay shr-start (point))))
+          (overlay-put overlay 'help-echo title))))))
+
 (defun shr-tag-h1 (cont)
   (shr-heading cont 'bold 'underline))
 

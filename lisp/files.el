@@ -206,7 +206,7 @@ have fast storage with limited space, such as a RAM disk."
 (declare-function msdos-long-file-names "msdos.c")
 (declare-function w32-long-file-name "w32proc.c")
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
-(declare-function dired-unmark "dired" (arg))
+(declare-function dired-unmark "dired" (arg &optional interactive))
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))
 (declare-function dos-8+3-filename "dos-fns" (filename))
 (declare-function dosified-file-name "dos-fns" (file-name))

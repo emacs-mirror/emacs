@@ -328,18 +328,18 @@ looking_at_1 (Lisp_Object string, bool posix)
 
   val = (i >= 0 ? Qt : Qnil);
   if (NILP (Vinhibit_changing_match_data) && i >= 0)
+  {
     for (i = 0; i < search_regs.num_regs; i++)
       if (search_regs.start[i] >= 0)
 	{
 	  search_regs.start[i]
 	    = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
-	  search_regs.end[i]
-	    = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
-	}
-
-  /* Set last_thing_searched only when match data is changed.  */
-  if (NILP (Vinhibit_changing_match_data))
+         search_regs.end[i]
+           = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
+       }
+    /* Set last_thing_searched only when match data is changed.  */
     XSETBUFFER (last_thing_searched, current_buffer);
+  }
 
   return val;
 }

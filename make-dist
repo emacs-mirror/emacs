@@ -389,6 +389,8 @@ echo "Making links to \`nt'"
  ln emacs-x86.manifest emacs-x64.manifest emacs.rc ../${tempdir}/nt
  ln config.nt emacsclient.rc emacs-src.tags ../${tempdir}/nt
  ln nmake.defs gmake.defs subdirs.el [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
+ ln Makefile.in gnulib.mk ../${tempdir}/nt
+ ln msysconfig.sh mingw-cfg.site epaths.nt INSTALL.MSYS ../${tempdir}/nt
  ln ChangeLog INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc' and its subdirectories"

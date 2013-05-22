@@ -795,9 +795,9 @@ Argument INDENT is the depth of indentation."
 (defun eieio-describe-class-sb (text token indent)
   "Describe the class TEXT in TOKEN.
 INDENT is the current indentation level."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (eieio-describe-class token))
-  (speedbar-maybee-jump-to-attached-frame))
+  (dframe-maybee-jump-to-attached-frame))
 
 (provide 'eieio-opt)
 

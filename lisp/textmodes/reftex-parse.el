@@ -238,12 +238,13 @@ of master file."
 			   ;; \label{} defs should always be honored,
 			   ;; just no keyval style [label=foo] defs.
 			   (string-equal "\label{" (substring (reftex-match-string 0) 0 7))
-			   (not (fboundp 'TeX-current-macro))
-			   (not (fboundp 'LaTeX-current-environment))
-			   (not (or (member (save-match-data (TeX-current-macro))
-					    reftex-label-ignored-macros-and-environments)
-				    (member (save-match-data (LaTeX-current-environment))
-					    reftex-label-ignored-macros-and-environments))))
+                           (if (and (fboundp 'TeX-current-macro)
+                                    (fboundp 'LaTeX-current-environment))
+                               (not (or (member (save-match-data (TeX-current-macro))
+                                                reftex-label-ignored-macros-and-environments)
+                                        (member (save-match-data (LaTeX-current-environment))
+                                                reftex-label-ignored-macros-and-environments)))
+                             t))
 		   (push (reftex-label-info (reftex-match-string 1) file bound)
 			 docstruct)))
 

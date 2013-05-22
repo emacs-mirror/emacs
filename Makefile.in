@@ -93,6 +93,9 @@ version=@version@
 ### for, like `mips-dec-ultrix' or `sparc-sun-sunos'.
 configuration=@configuration@
 
+### The nt/ subdirectory gets built only for MinGW
+NTDIR=@NTDIR@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / Mac OS X.
@@ -272,23 +275,23 @@ EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
-SUBDIR = lib lib-src src lisp leim
+SUBDIR = $(NTDIR) lib lib-src src lisp leim
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
 SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 
-# Subdirectories to install, and where they'll go.
-# lib-src's makefile knows how to install it, so we don't do that here.
-# Directories that cannot simply be copied, eg info,
-# are treated separately.
-# quail appears twice because in out-of-tree builds, it exists twice.
+# Subdirectories to install, and where they'll go.  lib-src's and nt's
+# makefiles know how to install them, so we don't do that here.
+# Directories that cannot simply be copied, eg info, are treated
+# separately.  quail appears twice because in out-of-tree builds, it
+# exists twice.
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp ${srcdir}/leim/ja-dic ${srcdir}/leim/quail leim/quail
 COPYDESTS = $(DESTDIR)${etcdir} $(DESTDIR)${lispdir} $(DESTDIR)${leimdir}/ja-dic $(DESTDIR)${leimdir}/quail $(DESTDIR)${leimdir}/quail
 
 all: ${SUBDIR}
 
-.PHONY: all ${SUBDIR} blessmail epaths-force FRC
+.PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 FRC
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
@@ -315,7 +318,20 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
-lib-src src: lib
+# Convert MSYS-style /x/foo file name into x:/foo that Windows can grok.
+msys_to_w32=sed -e 's,^/\([A-Za-z]\)/,\1:/,'
+
+# The w32 build needs a slightly different editing, and it uses
+# nt/epaths.nt as the template.
+epaths-force-w32: FRC
+	@(w32srcdir=`echo "${srcdir}" | ${msys_to_w32}` ; 	\
+	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
+	  -e '/^.*#/s/@VER@/${version}/g' 			\
+	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
+	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
+	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
+
+lib-src src: $(NTDIR) lib
 
 src:	lib-src FRC
 
@@ -324,7 +340,7 @@ src:	lib-src FRC
 lisp leim: src
 
 # These targets should be "${SUBDIR} without `src'".
-lib lib-src lisp leim: Makefile FRC
+lib lib-src lisp leim nt: Makefile FRC
 	cd $@ && $(MAKE) all $(MFLAGS)                         \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -378,9 +394,9 @@ $(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
 
 config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	if [ -x ./config.status ]; then	\
-	    ./config.status --recheck;	\
+	    $(CFG) ./config.status --recheck;	\
 	else				\
-	    $(srcdir)/configure $(CONFIGURE_FLAGS); \
+	    $(CFG) $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
 
 AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
@@ -417,13 +433,14 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 # ==================== Installation ====================
 
 .PHONY: install install-arch-dep install-arch-indep install-doc install-info
-.PHONY: install-man install-etc install-strip uninstall
+.PHONY: install-man install-etc install-strip install-$(NTDIR)
+.PHONY: uninstall uninstall-$(NTDIR)
 
 ## If we let lib-src do its own installation, that means we
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: all install-arch-indep install-doc install-arch-dep blessmail
+install: all install-arch-indep install-doc install-arch-dep install-$(NTDIR) blessmail
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -444,7 +461,7 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Install the executables that were compiled specifically for this machine.
 ### We do install-arch-indep first because the executable needs the
 ### Lisp files and DOC file to work properly.
-install-arch-dep: src install-arch-indep install-doc
+install-arch-dep: src install-arch-indep install-doc install-$(NTDIR)
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	cd lib-src && \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
@@ -463,6 +480,16 @@ install-arch-dep: src install-arch-indep install-doc
 	  ${write_subdir} || exit 1; \
 	  rm -rf ${ns_appresdir}/share; \
 	fi
+
+### Windows-specific install target for installing programs produced
+### in nt/, and its Posix do-nothing shadow.
+install-:
+install-nt:
+	cd $(NTDIR) && \
+	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
+	    exec_prefix=${exec_prefix} bindir=${bindir} \
+	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	    INSTALL_STRIP=${INSTALL_STRIP}
 
 ## In the share directory, we are deleting:
 ## applications (with emacs.desktop, also found in etc/)
@@ -581,10 +608,6 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 ## guaranteed to do the right thing; eg if we are root and tar is
 ## preserving source permissions.
 
-## We install only the relevant DOC file if possible
-## (ie DOC-${version}.buildnumber), otherwise DOC-${version}*.
-## (Note "otherwise" is inaccurate since 2009-08-23.)
-
 ## Note that install-arch-indep deletes and recreates the entire
 ## installed etc/ directory, so we need it to run before this does.
 install-doc: src install-arch-indep
@@ -592,13 +615,7 @@ install-doc: src install-arch-indep
 	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
 	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${docdir}; /bin/pwd` ]; \
 	then \
-	   fullversion=`./src/emacs --version | sed -n '1 s/GNU Emacs *//p'`; \
-	   if [ -f "./etc/DOC-$${fullversion}" ]; \
-	   then \
-	     docfile="DOC-$${fullversion}"; \
-	   else \
-	     docfile="DOC"; \
-	   fi; \
+	   docfile="DOC"; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
 	   ${INSTALL_DATA} etc/$${docfile} $(DESTDIR)${docdir}/$${docfile}; \
 	   $(set_installuser); \
@@ -688,11 +705,12 @@ install-strip:
 ### create (but not the noninstalled files such as `make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
-uninstall:
+uninstall: uninstall-$(NTDIR)
 	cd lib-src && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
 	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
+
 	-unset CDPATH; \
 	for dir in $(DESTDIR)${lispdir} $(DESTDIR)${etcdir} ; do 	\
 	  if [ -d $${dir} ]; then			\
@@ -737,6 +755,15 @@ uninstall:
 	  [ -s $${file} ] || rm -f $$file; \
 	done
 
+### Windows-specific uninstall target for removing programs produced
+### in nt/, and its Posix do-nothing shadow.
+uninstall-:
+uninstall-nt:
+	cd $(NTDIR) && 					\
+	 $(MAKE) $(MFLAGS) uninstall			\
+	    prefix=${prefix} exec_prefix=${exec_prefix}	\
+	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir}
+
 FRC:
 
 # ==================== Cleaning up and miscellanea ====================
@@ -754,6 +781,7 @@ mostlyclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
+	(cd nt;       $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) mostlyclean)
@@ -775,6 +803,7 @@ clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib;      $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
+	(cd nt;       $(MAKE) $(MFLAGS) clean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
@@ -801,6 +830,7 @@ distclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
 	(cd lib;      $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
+	(cd nt;       $(MAKE) $(MFLAGS) distclean)
 	(cd doc/emacs &&    $(MAKE) $(MFLAGS) distclean)
 	(cd doc/misc &&    $(MAKE) $(MFLAGS) distclean)
 	(cd doc/lispref &&    $(MAKE) $(MFLAGS) distclean)
@@ -819,6 +849,7 @@ bootstrap-clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib;      $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd nt;       $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)

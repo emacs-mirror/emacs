@@ -551,7 +551,7 @@ with CEDET 1.0pre4) or later.
 
 *** Self-documentation messages are garbled.
 
-This means that the file `etc/DOC-...' doesn't properly correspond
+This means that the file `etc/DOC' doesn't properly correspond
 with the Emacs executable.  Redumping Emacs and then installing the
 corresponding pair of files should fix the problem.
 

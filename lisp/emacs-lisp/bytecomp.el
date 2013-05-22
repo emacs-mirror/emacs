@@ -2213,13 +2213,15 @@ list that represents a doc string reference.
   (when (and (consp (nth 1 form))
 	   (eq (car (nth 1 form)) 'quote)
 	   (consp (cdr (nth 1 form)))
-             (symbolp (nth 1 (nth 1 form)))
-             ;; Don't add it if it's already defined.  Otherwise, it might
-             ;; hide the actual definition.
-             (not (fboundp (nth 1 (nth 1 form)))))
-    (push (cons (nth 1 (nth 1 form))
-		(cons 'autoload (cdr (cdr form))))
-	  byte-compile-function-environment)
+	   (symbolp (nth 1 (nth 1 form))))
+    ;; Don't add it if it's already defined.  Otherwise, it might
+    ;; hide the actual definition.  However, do remove any entry from
+    ;; byte-compile-noruntime-functions, in case we have an autoload
+    ;; of foo-func following an (eval-when-compile (require 'foo)).
+    (unless (fboundp (nth 1 (nth 1 form)))
+      (push (cons (nth 1 (nth 1 form))
+		  (cons 'autoload (cdr (cdr form))))
+	    byte-compile-function-environment))
     ;; If an autoload occurs _before_ the first call to a function,
     ;; byte-compile-callargs-warn does not add an entry to
     ;; byte-compile-unresolved-functions.  Here we mimic the logic
@@ -2227,11 +2229,14 @@ list that represents a doc string reference.
     ;; autoload comes _after_ the function call.
     ;; Alternatively, similar logic could go in
     ;; byte-compile-warn-about-unresolved-functions.
-    (or (memq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
-	(setq byte-compile-unresolved-functions
-	      (delq (assq (nth 1 (nth 1 form))
-			  byte-compile-unresolved-functions)
-		    byte-compile-unresolved-functions))))
+    (if (memq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
+	(setq byte-compile-noruntime-functions
+	      (delq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
+	      byte-compile-noruntime-functions)
+      (setq byte-compile-unresolved-functions
+	    (delq (assq (nth 1 (nth 1 form))
+			byte-compile-unresolved-functions)
+		  byte-compile-unresolved-functions))))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.

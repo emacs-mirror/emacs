@@ -1634,7 +1634,9 @@
            (Info-goto-node "Help Commands"))])
   "Menu for Calc's help functions.")
 
-(defvar calc-mode-map)
+;; Needed to make this file loadable in isolation.
+;; Another option would be to use calc-load-hook.
+(require 'calc)
 
 (easy-menu-define
   calc-menu

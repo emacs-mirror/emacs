@@ -113,7 +113,7 @@
   "Regexp to match the beginning of a heredoc.")
 
   (defconst ruby-expression-expansion-re
-    "[^\\]\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)"))
+    "\\(?:[^\\]\\|\\=\\)\\(\\\\\\\\\\)*\\(#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -1360,11 +1360,26 @@ If the result is do-end block, it will always be multiline."
           '("gsub" "gsub!" "sub" "sub!" "scan" "split" "split!" "index" "match"
             "assert_match" "Given" "Then" "When")
           "Methods that can take regexp as the first argument.
-It will be properly highlighted even when the call omits parens."))
+It will be properly highlighted even when the call omits parens.")
+
+        (defvar ruby-syntax-before-regexp-re
+          (concat
+           ;; Special tokens that can't be followed by a division operator.
+           "\\(^\\|[[=(,~?:;<>]"
+           ;; Control flow keywords and operators following bol or whitespace.
+           "\\|\\(?:^\\|\\s \\)"
+           (regexp-opt '("if" "elsif" "unless" "while" "until" "when" "and"
+                         "or" "not" "&&" "||"))
+           ;; Method name from the list.
+           "\\|\\_<"
+           (regexp-opt ruby-syntax-methods-before-regexp)
+           "\\)\\s *")
+          "Regexp to match text that can be followed by a regular expression."))
 
       (defun ruby-syntax-propertize-function (start end)
         "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
         (goto-char start)
+        (remove-text-properties start end '(ruby-expansion-match-data))
         (ruby-syntax-propertize-heredoc end)
         (ruby-syntax-enclosing-percent-literal end)
         (funcall
@@ -1376,25 +1391,26 @@ It will be properly highlighted even when the call omits parens."))
                         ;; Not within a string.
                         (nth 3 (syntax-ppss (match-beginning 0))))
                 (string-to-syntax "\\"))))
-          ;; Regexps: regexps are distinguished from division because
-          ;; of the keyword, symbol, or method name before them.
-          ((concat
-            ;; Special tokens that can't be followed by a division operator.
-            "\\(^\\|[[=(,~?:;<>]"
-            ;; Control flow keywords and operators following bol or whitespace.
-            "\\|\\(?:^\\|\\s \\)"
-            (regexp-opt '("if" "elsif" "unless" "while" "until" "when" "and"
-                          "or" "not" "&&" "||"))
-            ;; Method name from the list.
-            "\\|\\_<"
-            (regexp-opt ruby-syntax-methods-before-regexp)
-            "\\)\\s *"
-            ;; The regular expression itself.
-            "\\(/\\)[^/\n\\\\]*\\(?:\\\\.[^/\n\\\\]*\\)*\\(/\\)")
-           (3 (unless (nth 3 (syntax-ppss (match-beginning 2)))
-                (put-text-property (match-beginning 2) (match-end 2)
-                                   'syntax-table (string-to-syntax "\"/"))
-                (string-to-syntax "\"/"))))
+          ;; Regular expressions.  Start with matching unescaped slash.
+          ("\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(/\\)"
+           (1 (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
+                (when (or
+                       ;; Beginning of a regexp.
+                       (and (null (nth 8 state))
+                            (save-excursion
+                              (forward-char -1)
+                              (looking-back ruby-syntax-before-regexp-re
+                                            (point-at-bol))))
+                       ;; End of regexp.  We don't match the whole
+                       ;; regexp at once because it can have
+                       ;; string interpolation inside, or span
+                       ;; several lines.
+                       (eq ?/ (nth 3 state)))
+                  (string-to-syntax "\"/")))))
+          ;; Expression expansions in strings.  We're handling them
+          ;; here, so that the regexp rule never matches inside them.
+          (ruby-expression-expansion-re
+           (0 (ignore (ruby-syntax-propertize-expansion))))
           ("^=en\\(d\\)\\_>" (1 "!"))
           ("^\\(=\\)begin\\_>" (1 "!"))
           ;; Handle here documents.
@@ -1406,8 +1422,7 @@ It will be properly highlighted even when the call omits parens."))
           ;; Handle percent literals: %w(), %q{}, etc.
           ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
            (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
-         (point) end)
-        (ruby-syntax-propertize-expansions start end))
+         (point) end))
 
       (defun ruby-syntax-propertize-heredoc (limit)
         (let ((ppss (syntax-ppss))
@@ -1420,7 +1435,7 @@ It will be properly highlighted even when the call omits parens."))
                                         (line-end-position) t)
                 (unless (ruby-singleton-class-p (match-beginning 0))
                   (push (concat (ruby-here-doc-end-match) "\n") res))))
-            (let ((start (point)))
+            (save-excursion
               ;; With multiple openers on the same line, we don't know in which
               ;; part `start' is, so we have to go back to the beginning.
               (when (cdr res)
@@ -1430,9 +1445,9 @@ It will be properly highlighted even when the call omits parens."))
                 (if (null res)
                     (put-text-property (1- (point)) (point)
                                        'syntax-table (string-to-syntax "\""))))
-              ;; Make extra sure we don't move back, lest we could fall into an
-              ;; inf-loop.
-              (if (< (point) start) (goto-char start))))))
+              ;; End up at bol following the heredoc openers.
+              ;; Propertize expression expansions from this point forward.
+              ))))
 
       (defun ruby-syntax-enclosing-percent-literal (limit)
         (let ((state (syntax-ppss))
@@ -1453,44 +1468,47 @@ It will be properly highlighted even when the call omits parens."))
                  (cl (or (cdr (aref (syntax-table) op))
                          (cdr (assoc op '((?< . ?>))))))
                  parse-sexp-lookup-properties)
-            (condition-case nil
-                (progn
-                  (if cl ; Paired delimiters.
-                      ;; Delimiter pairs of the same kind can be nested
-                      ;; inside the literal, as long as they are balanced.
-                      ;; Create syntax table that ignores other characters.
-                      (with-syntax-table (make-char-table 'syntax-table nil)
-                        (modify-syntax-entry op (concat "(" (char-to-string cl)))
-                        (modify-syntax-entry cl (concat ")" ops))
-                        (modify-syntax-entry ?\\ "\\")
-                        (save-restriction
-                          (narrow-to-region (point) limit)
-                          (forward-list))) ; skip to the paired character
-                    ;; Single character delimiter.
-                    (re-search-forward (concat "[^\\]\\(?:\\\\\\\\\\)*"
-                                               (regexp-quote ops)) limit nil))
-                  ;; Found the closing delimiter.
-                  (put-text-property (1- (point)) (point) 'syntax-table
-                                     (string-to-syntax "|")))
-              ;; Unclosed literal, leave the following text unpropertized.
-              ((scan-error search-failed) (goto-char limit))))))
+            (save-excursion
+              (condition-case nil
+                  (progn
+                    (if cl              ; Paired delimiters.
+                        ;; Delimiter pairs of the same kind can be nested
+                        ;; inside the literal, as long as they are balanced.
+                        ;; Create syntax table that ignores other characters.
+                        (with-syntax-table (make-char-table 'syntax-table nil)
+                          (modify-syntax-entry op (concat "(" (char-to-string cl)))
+                          (modify-syntax-entry cl (concat ")" ops))
+                          (modify-syntax-entry ?\\ "\\")
+                          (save-restriction
+                            (narrow-to-region (point) limit)
+                            (forward-list))) ; skip to the paired character
+                      ;; Single character delimiter.
+                      (re-search-forward (concat "[^\\]\\(?:\\\\\\\\\\)*"
+                                                 (regexp-quote ops)) limit nil))
+                    ;; Found the closing delimiter.
+                    (put-text-property (1- (point)) (point) 'syntax-table
+                                       (string-to-syntax "|")))
+                ;; Unclosed literal, do nothing.
+                ((scan-error search-failed)))))))
+
+      (defun ruby-syntax-propertize-expansion ()
+        ;; Save the match data to a text property, for font-locking later.
+        ;; Set the syntax of all double quotes and backticks to punctuation.
+        (let ((beg (match-beginning 2))
+              (end (match-end 2)))
+          (when (and beg (save-excursion (nth 3 (syntax-ppss beg))))
+            (put-text-property beg (1+ beg) 'ruby-expansion-match-data
+                               (match-data))
+            (goto-char beg)
+            (while (re-search-forward "[\"`]" end 'move)
+              (put-text-property (match-beginning 0) (match-end 0)
+                                 'syntax-table (string-to-syntax "."))))))
 
       (defun ruby-syntax-propertize-expansions (start end)
-        (remove-text-properties start end '(ruby-expansion-match-data))
-        (goto-char start)
-        ;; Find all expression expansions and
-        ;; - save the match data to a text property, for font-locking later,
-        ;; - set the syntax of all double quotes and backticks to punctuation.
-        (while (re-search-forward ruby-expression-expansion-re end 'move)
-          (let ((beg (match-beginning 2))
-                (end (match-end 2)))
-            (when (and beg (save-excursion (nth 3 (syntax-ppss beg))))
-              (put-text-property beg (1+ beg) 'ruby-expansion-match-data
-                                 (match-data))
-              (goto-char beg)
-              (while (re-search-forward "[\"`]" end 'move)
-                (put-text-property (match-beginning 0) (match-end 0)
-                                   'syntax-table (string-to-syntax ".")))))))
+        (save-excursion
+          (goto-char start)
+          (while (re-search-forward ruby-expression-expansion-re end 'move)
+            (ruby-syntax-propertize-expansion))))
       )
 
   ;; For Emacsen where syntax-propertize-rules is not (yet) available,

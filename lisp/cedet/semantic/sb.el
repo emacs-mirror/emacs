@@ -323,7 +323,7 @@ TEXT TOKEN and INDENT are the details."
     ;; that other timer.
     ;; (speedbar-set-timer dframe-update-speed)
     ;;(recenter)
-    (speedbar-maybee-jump-to-attached-frame)
+    (dframe-maybee-jump-to-attached-frame)
     (run-hooks 'speedbar-visiting-tag-hook)))
 
 (defun semantic-sb-expand-group (text token indent)
@@ -424,5 +424,9 @@ Returns the tag list, or t for an error."
 	     '(semantic-sb-fetch-tag-table  . semantic-sb-insert-tag-table))
 
 (provide 'semantic/sb)
+
+;; Local variables:
+;; generated-autoload-load-name: "semantic/sb"
+;; End:
 
 ;;; semantic/sb.el ends here

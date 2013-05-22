@@ -258,7 +258,7 @@ the variable `jit-lock-stealth-nice'."
 When this minor mode is enabled, jit-lock runs as little code as possible
 during redisplay and moves the rest to a timer, where things
 like `debug-on-error' and Edebug can be used."
-  :global t
+  :global t :group 'jit-lock
   (when jit-lock-defer-timer
     (cancel-timer jit-lock-defer-timer)
     (setq jit-lock-defer-timer nil))

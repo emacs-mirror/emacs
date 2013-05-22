@@ -380,12 +380,18 @@ Other major modes are defined by comparison with this one."
     map)
   "Keymap used for programming modes.")
 
-(defun prog-indent-sexp ()
-  "Indent the expression after point."
-  (interactive)
-  (let ((start (point))
-        (end (save-excursion (forward-sexp 1) (point))))
-    (indent-region start end nil)))
+(defun prog-indent-sexp (&optional defun)
+  "Indent the expression after point.
+When interactively called with prefix, indent the enclosing defun
+instead."
+  (interactive "P")
+  (save-excursion
+    (when defun
+      (end-of-line)
+      (beginning-of-defun))
+    (let ((start (point))
+	  (end (progn (forward-sexp 1) (point))))
+      (indent-region start end nil))))
 
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."

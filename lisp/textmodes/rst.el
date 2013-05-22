@@ -3932,7 +3932,7 @@ string)) to be used for converting the document."
                              (choice :tag "Command options"
                                      (const :tag "No options" nil)
                                      (string :tag "Options"))))
-  :group 'rst
+  :group 'rst-compile
   :package-version "1.2.0")
 (rst-testcover-defcustom)
 

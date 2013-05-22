@@ -585,10 +585,12 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
   (eassert (KBOARD_OBJFWDP (a)), &((a)->u_kboard_objfwd))
 
 /* Pseudovector types.  */
-
+struct Lisp_Process;
+LISP_INLINE Lisp_Object make_lisp_proc (struct Lisp_Process *p)
+{ return make_lisp_ptr (p, Lisp_Vectorlike); }
 #define XPROCESS(a) (eassert (PROCESSP (a)), \
 		     (struct Lisp_Process *) XUNTAG (a, Lisp_Vectorlike))
-#define XWINDOW(a) (eassert (WINDOWP (a)), \
+#define XWINDOW(a) (eassert (WINDOWP (a)),				\
 		    (struct window *) XUNTAG (a, Lisp_Vectorlike))
 #define XTERMINAL(a) (eassert (TERMINALP (a)), \
 		      (struct terminal *) XUNTAG (a, Lisp_Vectorlike))

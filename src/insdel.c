@@ -771,8 +771,13 @@ count_combining_after (const unsigned char *string,
 
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
-   starting at STRING.  INHERIT, PREPARE and BEFORE_MARKERS
-   are the same as in insert_1.  */
+   starting at STRING.  INHERIT non-zero means inherit the text
+   properties from neighboring characters; zero means inserted text
+   will have no text properties.  PREPARE non-zero means call
+   prepare_to_modify_buffer, which checks that the region is not
+   read-only, and calls before-change-function and any modification
+   properties the text may have.  BEFORE_MARKERS non-zero means adjust
+   all markers that point at the insertion place to point after it.  */
 
 void
 insert_1_both (const char *string,

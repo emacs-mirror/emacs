@@ -292,10 +292,10 @@ $(DOC):		stamp_BLD $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(l
 		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp1)
 		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp2)
 		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(OTHER_PLATFORM_SUPPORT)
-		$(CP) $(DOC) ../etc/DOC-X
+		$(CP) $(DOC) ../etc/DOC
 		- mkdir "../src/$(OBJDIR)"
 		- mkdir "../src/$(OBJDIR)/etc"
-		$(CP) $(DOC) ../src/$(OBJDIR)/etc/DOC-X
+		$(CP) $(DOC) ../src/$(OBJDIR)/etc/DOC
 
 {$(BLD)}.$(O){$(BLD)}.exe:
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $*.$(O) $(LIBS)

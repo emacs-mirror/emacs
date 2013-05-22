@@ -449,7 +449,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (other :tag "Always (t)" :value t))
 	      "24.3")
 	     ;; xdisp.c
-	     (show-trailing-whitespace whitespace-faces boolean nil
+	     ;; The whitespace group is for whitespace.el.
+	     (show-trailing-whitespace editing-basics boolean nil
 				       :safe booleanp)
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)

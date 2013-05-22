@@ -288,12 +288,6 @@ To disable timer scans, set this to zero."
   :type 'boolean
   :group 'whitespace)
 
-(defgroup whitespace-faces nil
-  "Faces used in whitespace."
-  :prefix "whitespace-"
-  :group 'whitespace
-  :group 'faces)
-
 (defface whitespace-highlight '((((class color) (background light))
 				 (:background "green1"))
 				(((class color) (background dark))
@@ -305,7 +299,7 @@ To disable timer scans, set this to zero."
 				  (background dark))
 				 (:background "white")))
   "Face used for highlighting the bogus whitespaces that exist in the buffer."
-  :group 'whitespace-faces)
+  :group 'whitespace)
 (define-obsolete-face-alias 'whitespace-highlight-face
   'whitespace-highlight "22.1")
 

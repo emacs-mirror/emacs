@@ -175,7 +175,7 @@ element in the minibuffer, where you can edit it.
 
 @kindex M-e @r{(Incremental search)}
   To edit the current search string in the minibuffer without
-replacing it with items from the search ring, type @kbd{M-e}.  Type
+replacing it with items from the search ring, type @kbd{M-e}.  Type @key{RET},
 @kbd{C-s} or @kbd{C-r} to finish editing the string and search for it.
 
 @node Error in Isearch

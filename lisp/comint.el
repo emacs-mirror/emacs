@@ -148,10 +148,11 @@
   "Completion facilities in comint."
   :group 'comint)
 
-(defgroup comint-source nil
-  "Source finding facilities in comint."
-  :prefix "comint-"
-  :group 'comint)
+;; Unused.
+;;; (defgroup comint-source nil
+;;;   "Source finding facilities in comint."
+;;;   :prefix "comint-"
+;;;   :group 'comint)
 
 (defvar comint-prompt-regexp "^"
   "Regexp to recognize prompts in the inferior process.
@@ -350,7 +351,7 @@ This variable is buffer-local."
     '("password" "Password" "passphrase" "Passphrase"
       "pass phrase" "Pass phrase" "Response"))
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?\
-\\(?: for [^:]+\\)?:\\s *\\'")
+\\(?: for .+\\)?:\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :version "24.1"
@@ -631,10 +632,10 @@ to continue it.
 
 Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq mode-line-process '(":%s"))
-  (set (make-local-variable 'window-point-insertion-type) t)
-  (set (make-local-variable 'comint-last-input-start) (point-min-marker))
-  (set (make-local-variable 'comint-last-input-end) (point-min-marker))
-  (set (make-local-variable 'comint-last-output-start) (make-marker))
+  (setq-local window-point-insertion-type t)
+  (setq-local comint-last-input-start (point-min-marker))
+  (setq-local comint-last-input-end (point-min-marker))
+  (setq-local comint-last-output-start (make-marker))
   (make-local-variable 'comint-last-prompt-overlay)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
@@ -676,17 +677,15 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
   ;; dir tracking on remote files
-  (set (make-local-variable 'comint-file-name-prefix)
-       (or (file-remote-p default-directory) ""))
-  (make-local-variable 'comint-accum-marker)
-  (setq comint-accum-marker (make-marker))
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(nil t))
+  (setq-local comint-file-name-prefix
+              (or (file-remote-p default-directory) ""))
+  (setq-local comint-accum-marker (make-marker))
+  (setq-local font-lock-defaults '(nil t))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'comint-history-isearch-setup nil t)
   (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
-  (set (make-local-variable 'next-line-add-newlines) nil))
+  (setq-local next-line-add-newlines nil))
 
 (defun comint-check-proc (buffer)
   "Return non-nil if there is a living process associated w/buffer BUFFER.
@@ -778,8 +777,7 @@ series of processes in the same Comint buffer.  The hook
 	       (open-network-stream name buffer (car command) (cdr command))
 	     (comint-exec-1 name buffer command switches))))
       (set-process-filter proc 'comint-output-filter)
-      (make-local-variable 'comint-ptyp)
-      (setq comint-ptyp process-connection-type) ; t if pty, nil if pipe.
+      (setq-local comint-ptyp process-connection-type) ; t if pty, nil if pipe.
       ;; Jump to the end, and set the process mark.
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
@@ -1415,8 +1413,7 @@ If nil, Isearch operates on the whole comint buffer."
   (let ((comint-history-isearch t))
     (isearch-backward-regexp)))
 
-(defvar comint-history-isearch-message-overlay nil)
-(make-variable-buffer-local 'comint-history-isearch-message-overlay)
+(defvar-local comint-history-isearch-message-overlay nil)
 
 (defun comint-history-isearch-setup ()
   "Set up a comint for using Isearch to search the input history.
@@ -1426,14 +1423,14 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
 		 ;; Point is at command line.
 		 (comint-after-pmark-p)))
     (setq isearch-message-prefix-add "history ")
-    (set (make-local-variable 'isearch-search-fun-function)
-	 'comint-history-isearch-search)
-    (set (make-local-variable 'isearch-message-function)
-	 'comint-history-isearch-message)
-    (set (make-local-variable 'isearch-wrap-function)
-	 'comint-history-isearch-wrap)
-    (set (make-local-variable 'isearch-push-state-function)
-	 'comint-history-isearch-push-state)
+    (setq-local isearch-search-fun-function
+                #'comint-history-isearch-search)
+    (setq-local isearch-message-function
+                #'comint-history-isearch-message)
+    (setq-local isearch-wrap-function
+                #'comint-history-isearch-wrap)
+    (setq-local isearch-push-state-function
+                #'comint-history-isearch-push-state)
     (add-hook 'isearch-mode-end-hook 'comint-history-isearch-end nil t)))
 
 (defun comint-history-isearch-end ()
@@ -2589,10 +2586,8 @@ text matching `comint-prompt-regexp'."
   (comint-next-prompt (- n)))
 
 ;; State used by `comint-insert-previous-argument' when cycling.
-(defvar comint-insert-previous-argument-last-start-pos nil)
-(make-variable-buffer-local 'comint-insert-previous-argument-last-start-pos)
-(defvar comint-insert-previous-argument-last-index nil)
-(make-variable-buffer-local 'comint-insert-previous-argument-last-index)
+(defvar-local comint-insert-previous-argument-last-start-pos nil)
+(defvar-local comint-insert-previous-argument-last-index nil)
 
 ;; Needs fixing:
 ;;  make comint-arguments understand negative indices as bash does
@@ -3319,8 +3314,8 @@ Typing SPC flushes the completions buffer."
     ;; Read the next key, to process SPC.
     (let (key first)
       (if (with-current-buffer (get-buffer "*Completions*")
-	    (set (make-local-variable 'comint-displayed-dynamic-completions)
-		 completions)
+	    (setq-local comint-displayed-dynamic-completions
+                        completions)
 	    (setq key (read-key-sequence nil)
 		  first (aref key 0))
 	    (and (consp first) (consp (event-start first))
@@ -3528,23 +3523,17 @@ This function is called by `comint-redirect-send-command-to-process',
 and does not normally need to be invoked by the end user or programmer."
   (with-current-buffer comint-buffer
 
-    (make-local-variable 'comint-redirect-original-mode-line-process)
-    (setq comint-redirect-original-mode-line-process mode-line-process)
+    (setq-local comint-redirect-original-mode-line-process mode-line-process)
 
-    (make-local-variable 'comint-redirect-output-buffer)
-    (setq comint-redirect-output-buffer output-buffer)
+    (setq-local comint-redirect-output-buffer output-buffer)
 
-    (make-local-variable 'comint-redirect-finished-regexp)
-    (setq comint-redirect-finished-regexp finished-regexp)
+    (setq-local comint-redirect-finished-regexp finished-regexp)
 
-    (make-local-variable 'comint-redirect-echo-input)
-    (setq comint-redirect-echo-input echo-input)
+    (setq-local comint-redirect-echo-input echo-input)
 
-    (make-local-variable 'comint-redirect-completed)
-    (setq comint-redirect-completed nil)
+    (setq-local comint-redirect-completed nil)
 
-    (make-local-variable 'comint-redirect-previous-input-string)
-    (setq comint-redirect-previous-input-string "")
+    (setq-local comint-redirect-previous-input-string "")
 
     (setq mode-line-process
 	  (if mode-line-process
@@ -3568,7 +3557,7 @@ and does not normally need to be invoked by the end user or programmer."
 ;; that it really occurs.
 (defalias 'comint-redirect-remove-redirection 'comint-redirect-cleanup)
 
-(defun comint-redirect-filter (process input-string)
+(defun comint-redirect-filter (orig-filter process input-string)
   "Filter function which redirects output from PROCESS to a buffer or buffers.
 The variable `comint-redirect-output-buffer' says which buffer(s) to
 place output in.
@@ -3582,9 +3571,8 @@ end user."
 	 (comint-redirect-preoutput-filter input-string)
 	 ;; If we have to echo output, give it to the original filter function
 	 (and comint-redirect-echo-input
-	      comint-redirect-original-filter-function
-	      (funcall comint-redirect-original-filter-function
-		       process input-string)))))
+	      orig-filter
+	      (funcall orig-filter process input-string)))))
 
 
 (defun comint-redirect-preoutput-filter (input-string)
@@ -3701,7 +3689,7 @@ If NO-DISPLAY is non-nil, do not show the output buffer."
        echo)                            ; Echo input
 
       ;; Set the filter.
-      (add-function :override (process-filter proc) #'comint-redirect-filter)
+      (add-function :around (process-filter proc) #'comint-redirect-filter)
 
       ;; Send the command
       (process-send-string (current-buffer) (concat command "\n"))
@@ -3820,8 +3808,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;;   (setq major-mode 'shell-mode)
 ;;   (setq mode-name "Shell")
 ;;   (use-local-map shell-mode-map)
-;;   (make-local-variable 'shell-directory-stack)
-;;   (setq shell-directory-stack nil)
+;;   (setq-local shell-directory-stack nil)
 ;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
 ;;   (run-mode-hooks 'shell-mode-hook))
 ;;

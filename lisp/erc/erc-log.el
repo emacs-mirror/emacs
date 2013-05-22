@@ -378,6 +378,8 @@ This function is a possible value for `erc-generate-log-file-name-function'."
     ;; we need a make-safe-file-name function.
     (convert-standard-filename file)))
 
+(declare-function erc-network-name "erc-networks" ())
+
 (defun erc-generate-log-file-name-network (buffer target nick server port)
   "Generates a log-file name using the network name rather than server name.
 This results in a file name of the form #channel!nick@network.txt.

@@ -378,6 +378,19 @@ skip_dyn_bytes (Lisp_Object readcharfun, ptrdiff_t n)
     }
 }
 
+static void
+skip_dyn_eof (Lisp_Object readcharfun)
+{
+  if (FROM_FILE_P (readcharfun))
+    {
+      block_input ();		/* FIXME: Not sure if it's needed.  */
+      fseek (instream, 0, SEEK_END);
+      unblock_input ();
+    }
+  else
+    while (READCHAR >= 0);
+}
+
 /* Unread the character C in the way appropriate for the stream READCHARFUN.
    If the stream is a user function, call it with the char as argument.  */
 
@@ -2622,7 +2635,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
       if (c == '@')
 	{
 	  enum { extra = 100 };
-	  ptrdiff_t i, nskip = 0;
+	  ptrdiff_t i, nskip = 0, digits = 0;
 
 	  /* Read a decimal integer.  */
 	  while ((c = READCHAR) >= 0
@@ -2630,8 +2643,14 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    {
 	      if ((STRING_BYTES_BOUND - extra) / 10 <= nskip)
 		string_overflow ();
+	      digits++;
 	      nskip *= 10;
 	      nskip += c - '0';
+	      if (digits == 2 && nskip == 0)
+		{ /* We've just seen #@00, which means "skip to end".  */
+		  skip_dyn_eof (readcharfun);
+		  return Qnil;
+		}
 	    }
 	  if (nskip > 0)
 	    /* We can't use UNREAD here, because in the code below we side-step
@@ -3538,7 +3557,7 @@ read_list (bool flag, Lisp_Object readcharfun)
 	{
 	  if (NILP (Vdoc_file_name))
 	    /* We have not yet called Snarf-documentation, so assume
-	       this file is described in the DOC-MM.NN file
+	       this file is described in the DOC file
 	       and Snarf-documentation will fill in the right value later.
 	       For now, replace the whole list with 0.  */
 	    doc_reference = 1;
