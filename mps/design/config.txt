@@ -1,3 +1,5 @@
+.. mode: -*- rst -*-
+
 MPS Configuration
 =================
 
@@ -6,7 +8,7 @@ MPS Configuration
 :Date: 1997-02-19
 :Status: incomplete design
 :Revision: $Id$
-:Copyright: See section `C. Copyright and License`_.
+:Copyright: See `Copyright and License`_.
 
 
 Introduction
@@ -61,7 +63,7 @@ Definitions
 -----------
 
 _`.def.platform`: A *platform* is a combination of an architecture
-(.def.arch_), an operating system (.def.os_), and a builder
+(`.def.arch`_), an operating system (`.def.os`_), and a builder
 (`.def.builder`_).  The set of supported platforms is maintained in the
 `Platforms section of "Building the Memory Pool System"
 <../manual/html/guide/build.html#platforms>`_.
@@ -77,7 +79,7 @@ Most importantly for the MPS it determines the low level interface to
 virtual memory (if any) and threading.
 
 _`.def.builder`: A *builder* is the tools (C compiler, etc.) used to make
-the target (.def.target).  The MPS minimises use of compiler-specific
+the target (`.def.target`_).  The MPS minimises use of compiler-specific
 extensions, but this is handy for suppressing warnings, inlining hints,
 etc.
 
@@ -89,7 +91,7 @@ is the same.
 
 _`.def.prod`: A *product* is the intended product into which the MPS will
 fit, e.g. ScriptWorks, Dylan, etc.  We no longer maintain this concept
-as a dimension of configuration since .req.prod_ has been retired.
+as a dimension of configuration since `.req.prod`_ has been retired.
 
 _`.def.target`: The *target* is the result of the build.
 
@@ -521,8 +523,8 @@ To document
   elsewhere.)
 
 
-A. References
--------------
+References
+----------
 
 .. [MPS_Manual] "Memory Pool System documentation"; Ravenbrook Limited;
    <http://www.ravenbrook.com/project/mps/master/manual/html/>.
@@ -539,8 +541,8 @@ A. References
    <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0.txt>.
 
 
-B. Document History
--------------------
+Document History
+----------------
 
 - 1997-02-19 RB_  Initial draft based on discussions of configuration at
   meeting.general.1997-02-05.
@@ -561,10 +563,10 @@ B. Document History
 .. _NB: http://www.ravenbrook.com/consultants/nb/
 
 
-C. Copyright and License
-------------------------
+Copyright and License
+---------------------
 
-Copyright (C) 2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
