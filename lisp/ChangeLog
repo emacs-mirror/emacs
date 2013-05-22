@@ -1,5 +1,8 @@
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/idlw-help.el (idlwave-help-fontify):
+	Use called-interactively-p.
+
 	* term/w32console.el (w32-get-console-codepage)
 	(w32-get-console-output-codepage): Declare.
 

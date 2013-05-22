@@ -1178,7 +1178,7 @@ Useful when source code is displayed as help.  See the option
   (if (featurep 'font-lock)
       (let ((major-mode 'idlwave-mode)
 	    (font-lock-verbose
-	     (if (interactive-p) font-lock-verbose nil))
+	     (if (called-interactively-p 'interactive) font-lock-verbose nil))
 	    (syntax-table (syntax-table)))
 	(unwind-protect
 	    (progn
