@@ -1,3 +1,5 @@
+.. mode: -*- rst -*-
+
 Signatures in the MPS
 =====================
 
@@ -6,11 +8,11 @@ Signatures in the MPS
 :Organization: Ravenbrook Limited
 :Date: 2013-05-09
 :Revision: $Id$
-:Copyright: See section `C. Copyright and License`_.
+:Copyright: See section `Copyright and License`_.
 
 
-1. Introduction
----------------
+Introduction
+------------
 Integrity of data structures is absolutely critical to the cost of
 deploying the Memory Pool System.  Memory corruption and memory
 management bugs are incredibly hard to detect and debug, often
@@ -20,8 +22,8 @@ ways the MPS detects corruption or the passing of illegal data is using
 defects early.
 
 
-2. Overview
------------
+Overview
+--------
 Signatures are magic numbers which are written into structures when they
 are created and invalidated (by overwriting with ``SigInvalid``) when
 they are destroyed.  They provide a limited form of run-time type
@@ -29,8 +31,8 @@ checking and dynamic scope checking.  They are a simplified form of
 "Structure Marking", a technique used in the Multics filesystem [THVV_1995]_.
 
 
-3. Definitions
---------------
+Definitions
+-----------
 Nearly every structure should start with a field of type ``Sig`` with the name
 ``sig``.  For example::
 
@@ -57,8 +59,8 @@ This allows the structure to be recognised when looking at memory in a hex
 dump or memory window, or found using memory searches.
 
 
-4. Init and Finish
-------------------
+Init and Finish
+---------------
 When the structure is initialised, the signature is initialised as the
 *last* action, just before validating it.  (Think of it as putting your
 signature at the bottom of a document to say it's done.)  This ensures
@@ -91,8 +93,8 @@ being torn down.  For example::
 Do not do anything else with signatures.  See `.rule.purpose`_.
 
 
-5. Checking
------------
+Checking
+--------
 The signature is checked in various ways.  Every function that takes a
 (pointer to) a signed structure should check its argument using the ``AVERT``
 macro.  This macro has different definitions depending on how the MPS is
@@ -115,8 +117,8 @@ pointer into a function.
 
 .. _check.h: ../code/check.h
 
-6. Rules
---------
+Rules
+-----
 _`.rule.purpose`: **Do not** use signatures for any other purpose.  For
 example, don't use them to make any actual decisions within the code. 
 They must not be used to discriminate between structure variants (or
@@ -126,8 +128,8 @@ double-check whether these facts are true. They lose their value as a
 consistency check if the code uses them as well.
 
 
-7. Tools
---------
+Tools
+-----
 _`.test.uniq`: The Unix command::
 
     sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' code/*.[ch] | sort | uniq -c
@@ -138,8 +140,8 @@ same signature value is being used for different signatures.  This is
 undesirable and the problem should be investigated.
 
 
-A. References
--------------
+References
+----------
 .. [RB_1995-08-25] "design.mps.sig: The design of the Memory Pool System
    Signature System"; Richard Brooksby; Harlequin; 1995-08-25.
 
@@ -147,14 +149,16 @@ A. References
    <http://www.multicians.org/thvv/marking.html>.
 
 
-B. Document History
--------------------
-2013-05-09  RB  Created based on scanty MM document [RB_1995-08-25]_.
+Document History
+----------------
+- 2013-05-09  RB  Created based on scanty MM document [RB_1995-08-25]_.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
 
 
-C. Copyright and License
-------------------------
-Copyright (C) 2013 Ravenbrook Limited. All rights reserved. 
+Copyright and License
+---------------------
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
@@ -180,16 +184,15 @@ It does not include source code for modules or files that typically
 accompany the major components of the operating system on which the
 executable file runs.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-$Id$
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

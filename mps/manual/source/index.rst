@@ -11,8 +11,8 @@ Memory Pool System
     guide/index
     topic/index
     pool/index
-    topic/internals
     design/index
+    design/old
 
 
 Memory Management Reference
