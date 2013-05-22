@@ -576,7 +576,7 @@ as refilling the buffer.
 The *reserve* operation thus looks like this::
 
     if (ap->alloc + size <= ap->limit) {
-        ap->alloc += ap->size;
+        ap->alloc += size;
         p = ap->init;
     } else {
         res = mps_ap_fill(&p, ap, size);
