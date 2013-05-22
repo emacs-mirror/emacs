@@ -1,5 +1,9 @@
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-autoload):
+	Always delete the autoloaded function from the noruntime and
+	unresolved functions lists.
+
 	* allout.el: No need to load epa, epg, overlay when compiling.
 	(epg-context-set-passphrase-callback, epg-list-keys)
 	(epg-decrypt-string, epg-encrypt-string, epg-user-id-string)
