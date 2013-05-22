@@ -521,8 +521,9 @@ will use an up-to-date value of `auto-revert-interval'"
 	     (not auto-revert-notify-watch-descriptor))
     (let ((func (if (fboundp 'inotify-add-watch)
 		    'inotify-add-watch 'w32notify-add-watch))
+	  ;; `attrib' is needed for file modification time.
 	  (aspect (if (fboundp 'inotify-add-watch)
-		      '(create modify moved-to) '(size last-write-time)))
+		      '(attrib create modify moved-to) '(size last-write-time)))
 	  (file (if (fboundp 'inotify-add-watch)
 		    (directory-file-name (expand-file-name default-directory))
 		  (buffer-file-name))))
@@ -576,7 +577,8 @@ will use an up-to-date value of `auto-revert-interval'"
 	;; TODO: Filter events which stop watching, like `move' or `removed'.
 	(cl-assert descriptor)
 	(when (featurep 'inotify)
-	  (cl-assert (or (memq 'create action)
+	  (cl-assert (or (memq 'attrib action)
+			 (memq 'create action)
 			 (memq 'modify action)
 			 (memq 'moved-to action))))
 	(when (featurep 'w32notify) (cl-assert (eq 'modified action)))

@@ -1,3 +1,9 @@
+2013-05-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-add-watch)
+	(auto-revert-notify-handler): Add `attrib' for the inotify case,
+	it indicates changes in file modification time.
+
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-autoload):
