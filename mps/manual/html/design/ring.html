@@ -68,7 +68,7 @@
 </tr>
 <tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/ring.txt#3 $</td>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/ring.txt#4 $</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See section <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
 </tr>
@@ -139,7 +139,7 @@ iterator.</p>
 iteration.</p>
 <p><span class="target" id="for-ex">.for.ex</span>: An example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">Ring</span> <span class="n">node</span><span class="p">,</span> <span class="n">nextNode</span><span class="p">;</span>
-<span class="n">RING_FOR</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">foo</span><span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span><span class="n">barRing</span><span class="p">,</span> <span class="n">nextNode</span><span class="p">)</span> <span class="p">{</span>
+<span class="n">RING_FOR</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">foo</span><span class="o">-&gt;</span><span class="n">barRing</span><span class="p">,</span> <span class="n">nextNode</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">Bar</span> <span class="n">bar</span> <span class="o">=</span> <span class="n">RING_ELT</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="n">FooRing</span><span class="p">,</span> <span class="n">node</span><span class="p">);</span>
   <span class="n">frob</span><span class="p">(</span><span class="n">bar</span><span class="p">);</span>
 <span class="p">}</span>

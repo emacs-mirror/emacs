@@ -68,7 +68,7 @@
 </tr>
 <tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">2013-05-09</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/sig.txt#3 $</td>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/sig.txt#4 $</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See section <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
 </tr>
@@ -86,11 +86,12 @@ defects early.</p>
 </div>
 <div class="section" id="overview">
 <h2>6.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>Signatures are magic numbers which are written into structures when they
-are created and invalidated (by overwriting with <tt class="docutils literal"><span class="pre">SigInvalid</span></tt>) when
-they are destroyed.  They provide a limited form of run-time type
-checking and dynamic scope checking.  They are a simplified form of
-&#8220;Structure Marking&#8221;, a technique used in the Multics filesystem <a class="reference internal" href="#thvv-1995">[THVV_1995]</a>.</p>
+<p>Signatures are magic numbers which are written into structures when
+they are created and invalidated (by overwriting with <tt class="docutils literal"><span class="pre">SigInvalid</span></tt>)
+when they are destroyed. They provide a limited form of run-time type
+checking and dynamic scope checking. They are a simplified form of
+&#8220;Structure Marking&#8221;, a technique used in the Multics filesystem
+<a class="reference internal" href="#thvv-1995">[THVV 1995]</a>.</p>
 </div>
 <div class="section" id="definitions">
 <h2>6.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
@@ -193,25 +194,18 @@ undesirable and the problem should be investigated.</p>
 </div>
 <div class="section" id="references">
 <h2>6.8. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<table class="docutils citation" frame="void" id="rb-1995-08-25" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[RB_1995-08-25]</a></td><td>&#8220;design.mps.sig: The design of the Memory Pool System
-Signature System&#8221;; Richard Brooksby; Harlequin; 1995-08-25.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="thvv-1995" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[THVV_1995]</a></td><td>&#8220;Structure Marking&#8221;; Tom Van Vleck; 1995;
-&lt;<a class="reference external" href="http://www.multicians.org/thvv/marking.html">http://www.multicians.org/thvv/marking.html</a>&gt;.</td></tr>
-</tbody>
-</table>
+<ul class="simple">
+<li><p id="rb-1995-08-25">Richard Brooksby. Harlequin. 1995-08-25. &#8220;design.mps.sig: The design
+of the Memory Pool System Signature System&#8221;.</p>
+</li>
+<li><p id="thvv-1995">Tom Van Vleck. 1995. &#8220;<a class="reference external" href="http://www.multicians.org/thvv/marking.html">Structure Marking</a>&#8221;.</p>
+</li>
+</ul>
 </div>
 <div class="section" id="document-history">
 <h2>6.9. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>2013-05-09  RB  Created based on scanty MM document <a class="reference internal" href="#rb-1995-08-25">[RB_1995-08-25]</a>.</li>
+<li>2013-05-09 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Created based on scanty MM document <a class="reference internal" href="#rb-1995-08-25">[RB 1995-08-25]</a>.</li>
 </ul>
 </div>
 <div class="section" id="copyright-and-license">

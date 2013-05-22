@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>13. General MPS types &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>20. General MPS types &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="14. Software versions" href="version.html" />
-    <link rel="prev" title="12. Protocol inheritance" href="protocol.html" /> 
+    <link rel="next" title="21. Library version mechanism" href="version-library.html" />
+    <link rel="prev" title="19. Tracer" href="trace.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="version.html" title="14. Software versions"
+          <a href="version-library.html" title="21. Library version mechanism"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="12. Protocol inheritance"
+          <a href="trace.html" title="19. Tracer"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,7 +55,7 @@
           <div class="body">
             
   <span class="target" id="design-type"><span id="index-0"></span></span><div class="section" id="general-mps-types">
-<h1>13. General MPS types<a class="headerlink" href="#general-mps-types" title="Permalink to this headline">¶</a></h1>
+<h1>20. General MPS types<a class="headerlink" href="#general-mps-types" title="Permalink to this headline">¶</a></h1>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -75,11 +75,11 @@
 </tbody>
 </table>
 <div class="section" id="introduction">
-<h2>13.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>20.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="intro">.intro</span>: See impl.h.mpmtypes.</p>
 </div>
 <div class="section" id="rationale">
-<h2>13.2. Rationale<a class="headerlink" href="#rationale" title="Permalink to this headline">¶</a></h2>
+<h2>20.2. Rationale<a class="headerlink" href="#rationale" title="Permalink to this headline">¶</a></h2>
 <p>Some types are declared to resolve a point of design, such as the best
 type to use for array indexing.</p>
 <p>Some types are declared so that the intention of code is clearer. For
@@ -87,7 +87,7 @@ example, <tt class="docutils literal"><span class="pre">Byte</span></tt> is nece
 say <tt class="docutils literal"><span class="pre">Byte</span></tt> in your code if it&#8217;s what you mean.</p>
 </div>
 <div class="section" id="concrete-types">
-<h2>13.3. Concrete types<a class="headerlink" href="#concrete-types" title="Permalink to this headline">¶</a></h2>
+<h2>20.3. Concrete types<a class="headerlink" href="#concrete-types" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="Bool">
 <tt class="descname">Bool</tt><a class="headerlink" href="#Bool" title="Permalink to this definition">¶</a></dt>
@@ -622,7 +622,7 @@ where any integer might be passed. Notably, it is used in <tt class="docutils li
 to print any integer.</p>
 </div>
 <div class="section" id="abstract-types">
-<h2>13.4. Abstract types<a class="headerlink" href="#abstract-types" title="Permalink to this headline">¶</a></h2>
+<h2>20.4. Abstract types<a class="headerlink" href="#abstract-types" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="adts">.adts</span>: The following types are abstract data types, implemented as
 pointers to structures. For example, <tt class="docutils literal"><span class="pre">Ring</span></tt> is a pointer to a
 <tt class="docutils literal"><span class="pre">RingStruct</span></tt>. They are described elsewhere</p>
@@ -642,7 +642,7 @@ pointers to structures. For example, <tt class="docutils literal"><span class="p
 exists to sanctify functions such as <tt class="docutils literal"><span class="pre">PointerAdd</span></tt>.</p>
 </div>
 <div class="section" id="document-history">
-<h2>13.5. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<h2>20.5. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>1996-10-23 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Incomplete document.</li>
 <li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
@@ -650,7 +650,7 @@ exists to sanctify functions such as <tt class="docutils literal"><span class="p
 </ul>
 </div>
 <div class="section" id="copyright-and-license">
-<h2>13.6. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<h2>20.6. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
 <p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
 &lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
 Ravenbrook for commercial licensing options.</p>
@@ -700,23 +700,23 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">13. General MPS types</a><ul>
-<li><a class="reference internal" href="#introduction">13.1. Introduction</a></li>
-<li><a class="reference internal" href="#rationale">13.2. Rationale</a></li>
-<li><a class="reference internal" href="#concrete-types">13.3. Concrete types</a></li>
-<li><a class="reference internal" href="#abstract-types">13.4. Abstract types</a></li>
-<li><a class="reference internal" href="#document-history">13.5. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">13.6. Copyright and License</a></li>
+<li><a class="reference internal" href="#">20. General MPS types</a><ul>
+<li><a class="reference internal" href="#introduction">20.1. Introduction</a></li>
+<li><a class="reference internal" href="#rationale">20.2. Rationale</a></li>
+<li><a class="reference internal" href="#concrete-types">20.3. Concrete types</a></li>
+<li><a class="reference internal" href="#abstract-types">20.4. Abstract types</a></li>
+<li><a class="reference internal" href="#document-history">20.5. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">20.6. Copyright and License</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="protocol.html"
-                        title="previous chapter">12. Protocol inheritance</a></p>
+  <p class="topless"><a href="trace.html"
+                        title="previous chapter">19. Tracer</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="version.html"
-                        title="next chapter">14. Software versions</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="version-library.html"
+                        title="next chapter">21. Library version mechanism</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -742,10 +742,10 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="version.html" title="14. Software versions"
+          <a href="version-library.html" title="21. Library version mechanism"
              >next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="12. Protocol inheritance"
+          <a href="trace.html" title="19. Tracer"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

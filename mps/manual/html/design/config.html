@@ -103,7 +103,7 @@ we can build variants of the MPS for use in different products.  This
 requirement has been retired on 2012-09-03 as part of work on the
 <a class="reference external" href="http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/">variety-reform</a> branch.  Client-specific customisation of the MPS will
 be handled in source control, while the MPS source remains generic, to
-reduce costs and increase reliability.  See <a class="reference internal" href="#rb-2012-09-13">[RB_2012-09-13]</a>.</p>
+reduce costs and increase reliability.  See <a class="reference internal" href="#rb-2012-09-13">[RB 2012-09-13]</a>.</p>
 </div>
 </div>
 <div class="section" id="definitions">
@@ -188,8 +188,7 @@ upper case. Currently (2012-09-03):</p>
 <dl class="docutils">
 <dt><span class="target" id="var-hot">.var.hot</span>: <tt class="docutils literal"><span class="pre">HOT</span></tt></dt>
 <dd>Intended for release in products.  Optimised, reduced internal
-checking, especially on the <a class="reference external" href="critical-path.txt">critical path</a>
-<a class="reference internal" href="#rb-2012-09-07">[RB_2012-09-07]</a>.</dd>
+checking, especially on the critical path <a class="reference internal" href="#rb-2012-09-07">[RB 2012-09-07]</a>.</dd>
 <dt><span class="target" id="var-cool">.var.cool</span>: <tt class="docutils literal"><span class="pre">COOL</span></tt></dt>
 <dd>Intended for use during development.  Moderately thorough internal
 consistency checking.  Reduced optimisation to allow for
@@ -312,10 +311,10 @@ defined below (<a class="reference internal" href="#conf">.conf</a>).</p>
 <span class="cp">#define MPS_OS_&lt;operating system code&gt;</span>
 <span class="cp">#define MPS_ARCH_&lt;architecture code&gt;</span>
 <span class="cp">#define MPS_BUILD_&lt;builder code&gt;</span>
-<span class="cp">#define MPS_T_WORD           &lt;word type&gt;</span>
-<span class="cp">#define MPS_T_ULONGEST       &lt;longest unsigned integer type&gt;</span>
-<span class="cp">#define MPS_WORD_SHIFT       &lt;word shift&gt;</span>
-<span class="cp">#define MPS_PF_ALIGN         &lt;minimum alignment&gt;</span>
+<span class="cp">#define MPS_T_WORD     &lt;word type&gt;</span>
+<span class="cp">#define MPS_T_ULONGEST &lt;longest unsigned integer type&gt;</span>
+<span class="cp">#define MPS_WORD_SHIFT &lt;word shift&gt;</span>
+<span class="cp">#define MPS_PF_ALIGN   &lt;minimum alignment&gt;</span>
 </pre></div>
 </div>
 <p><span class="target" id="pf-detect">.pf.detect</span>: The conjunction of builder predefinitions is a constant
@@ -511,36 +510,18 @@ elsewhere.)</li>
 </div>
 <div class="section" id="references">
 <h2>1.9. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<table class="docutils citation" frame="void" id="mps-manual" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[MPS_Manual]</td><td>&#8220;Memory Pool System documentation&#8221;; Ravenbrook Limited;
-&lt;<a class="reference external" href="http://www.ravenbrook.com/project/mps/master/manual/html/">http://www.ravenbrook.com/project/mps/master/manual/html/</a>&gt;.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="rb-2012-09-07" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[RB_2012-09-07]</a></td><td>&#8220;The critical path through the MPS&#8221;; <a class="reference external" href="RB">Richard Brooksby</a>;
-Ravenbrook Limited; 2012-09-07;
-&lt;<a class="reference external" href="http://www.ravenbrook.com/project/mps/master/design/critical-path">http://www.ravenbrook.com/project/mps/master/design/critical-path</a>&gt;.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="rb-2012-09-13" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[RB_2012-09-13]</a></td><td>&#8220;The Configura CET custom mainline&#8221;; <a class="reference external" href="RB">Richard
-Brooksby</a>; Ravenbrook Limited; 2013-09-13;
-&lt;<a class="reference external" href="https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/">https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/</a>&gt;.</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="pp-2005-03-01" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[PP_2005-03-01]</td><td>&#8220;MPS platforms&#8221;; Pekka Pirinen; Global Graphics;
-&lt;<a class="reference external" href="https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0.txt">https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0.txt</a>&gt;.</td></tr>
-</tbody>
-</table>
+<ul class="simple">
+<li><p id="mps-manual">Ravenbrook Limited. &#8220;<a class="reference external" href="http://www.ravenbrook.com/project/mps/master/manual/html/">Memory Pool System documentation</a>&#8221;.</p>
+</li>
+<li><p id="rb-2012-09-13">Richard Brooksby. Ravenbrook Limited. 2012-09-13. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/">The Configura
+CET custom mainline</a>&#8221;.</p>
+</li>
+<li><p id="pp-2005-03-01">Pekka P. Pirinen. Global Graphics. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/">MPS platforms</a>&#8221;.</p>
+</li>
+<li><p id="rb-2012-09-07">Richard Brooksby. Ravenbrook Limited. 2012-09-07. &#8220;<a class="reference external" href="http://www.ravenbrook.com/project/mps/master/design/critical-path">The critical
+path through the MPS</a>&#8221;.</p>
+</li>
+</ul>
 </div>
 <div class="section" id="document-history">
 <h2>1.10. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
