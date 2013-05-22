@@ -1085,6 +1085,10 @@ If no one is selected, default secret key is used.  "
 	(epg-context-set-passphrase-callback
 	 context
 	 #'mml2015-epg-passphrase-callback))
+    ;; Signed data must end with a newline (RFC 3156, 5).
+    (goto-char (point-max))
+    (unless (bolp)
+      (insert "\n"))
     (condition-case error
 	(setq signature (epg-sign-string context (buffer-string) t)
 	      mml2015-epg-secret-key-id-list nil)

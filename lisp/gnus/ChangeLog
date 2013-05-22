@@ -1,3 +1,8 @@
+2013-05-22  Daiki Ueno  <ueno@gnu.org>
+
+	* mml2015.el (mml2015-epg-sign): Make sure to insert newline after the
+	signed data to conform the standard.  (Bug#14232)
+
 2013-05-20  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* gnus-spec.el (gnus-parse-complex-format): Use unicode escape for left
