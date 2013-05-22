@@ -79,6 +79,11 @@ Return ``TRUE`` if the two ranges overlap (have at least one address
 in common), or ``FALSE`` if they do not. Note that ranges [A, B) and
 [B, C) do not overlap.
 
+.. c:function:: Bool RangeIsAligned(Range range, Align alignment)
+
+Return ``TRUE`` if the base and limit of the range are both aligned to
+the given alignment, or ``FALSE`` if either is not.
+
 
 B. Document history
 -------------------
