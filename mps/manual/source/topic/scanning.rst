@@ -143,7 +143,7 @@ references to non-references, on how often genuine references turn out
 to be "of interest", and what kind of code the compiler has
 generated. There is no substitute for measurement.
 
-See :ref:`topic-critical`.
+See :ref:`design-critical-path`.
 
 .. note::
 
