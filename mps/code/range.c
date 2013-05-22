@@ -66,20 +66,29 @@ Bool RangeOverlap(Range range1, Range range2)
 {
   AVERT(Range, range1);
   AVERT(Range, range2);
-
   return RangeBase(range1) < RangeLimit(range2)
       && RangeBase(range2) < RangeLimit(range1);
 }
 
+Bool RangeIsAligned(Range range, Align alignment)
+{
+  AVERT(Range, range);
+  return AddrIsAligned(RangeBase(range), alignment)
+      && AddrIsAligned(RangeLimit(range), alignment);
+}
+
 Addr (RangeBase)(Range range) {
+  AVERT(Range, range);
   return RangeBase(range);
 }
 
 Addr (RangeLimit)(Range range) {
+  AVERT(Range, range);
   return RangeLimit(range);
 }
 
 Size (RangeSize)(Range range) {
+  AVERT(Range, range);
   return RangeSize(range);
 }
 
