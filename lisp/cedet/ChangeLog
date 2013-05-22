@@ -1,3 +1,9 @@
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* ede/speedbar.el (ede-file-find, ede-tag-find):
+	* semantic/sb.el (semantic-sb-token-jump):
+	Use dframe-maybee-jump-to-attached-frame rather than speedbar- alias.
+
 2013-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/symref/list.el (semantic-symref-auto-expand-results)

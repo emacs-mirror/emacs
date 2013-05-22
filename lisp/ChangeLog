@@ -1,3 +1,57 @@
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* dframe.el (x-sensitive-text-pointer-shape, x-pointer-shape):
+	Remove unnecessary declarations.
+	(dframe-message): Doc fix.
+
+	* info.el (dframe-select-attached-frame, dframe-current-frame):
+	Declare.
+
+	* speedbar.el (speedbar-message): Make it an obsolete alias.
+	Update all callers.
+	(speedbar-with-attached-buffer)
+	(speedbar-maybee-jump-to-attached-frame): Make these aliases obsolete.
+	(speedbar-with-writable): Use backquote.
+	* emacs-lisp/eieio-opt.el (eieio-describe-class-sb):
+	* emacs-lisp/eieio-speedbar.el (eieio-speedbar-handle-click):
+	Use dframe-with-attached-buffer, dframe-maybee-jump-to-attached-frame
+	rather than speedbar- aliases.
+	* mail/rmail.el: Load dframe rather than speedbar when compiling.
+	(speedbar-make-specialized-keymap, speedbar-insert-button)
+	(dframe-select-attached-frame, dframe-maybee-jump-to-attached-frame)
+	(speedbar-do-function-pointer): Declare.
+	(rmail-speedbar-button, rmail-speedbar-find-file)
+	(rmail-speedbar-move-message):
+	Use dframe-with-attached-buffer rather than speedbar- alias.
+	* progmodes/gud.el: Load dframe rather than speedbar when compiling.
+	(dframe-message, speedbar-make-specialized-keymap)
+	(speedbar-add-expansion-list, speedbar-mode-functions-list)
+	(speedbar-make-tag-line, speedbar-remove-localized-speedbar-support)
+	(speedbar-insert-button, dframe-select-attached-frame)
+	(dframe-maybee-jump-to-attached-frame)
+	(speedbar-change-initial-expansion-list)
+	(speedbar-previously-used-expansion-list-name): Declare.
+	(gud-speedbar-item-info, gud-gdb-goto-stackframe):
+	Use dframe-message, dframe-with-attached-buffer rather than
+	speedbar- aliases.
+	(gud-sentinel): Silence compiler.
+	* progmodes/vhdl-mode.el (speedbar-refresh)
+	(speedbar-do-function-pointer, speedbar-add-supported-extension)
+	(speedbar-add-mode-functions-list, speedbar-make-specialized-keymap)
+	(speedbar-change-initial-expansion-list, speedbar-add-expansion-list)
+	(speedbar-extension-list-to-regex, speedbar-directory-buttons)
+	(speedbar-file-lists, speedbar-make-tag-line)
+	(speedbar-line-directory, speedbar-goto-this-file)
+	(speedbar-center-buffer-smartly, speedbar-change-expand-button-char)
+	(speedbar-delete-subblock, speedbar-position-cursor-on-line)
+	(speedbar-make-button, speedbar-reset-scanners)
+	(speedbar-files-item-info, speedbar-line-text)
+	(speedbar-find-file-in-frame, speedbar-set-timer)
+	(dframe-maybee-jump-to-attached-frame, speedbar-line-file): Declare.
+	(speedbar-with-writable): Do not (re)define it.
+	(vhdl-speedbar-find-file): Use dframe-maybee-jump-to-attached-frame
+	rather than speedbar- alias.
+
 2013-05-21  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-mode-menu): Update and re-organize

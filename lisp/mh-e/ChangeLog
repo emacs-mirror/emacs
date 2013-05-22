@@ -1,3 +1,8 @@
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* mh-speed.el (mh-speed-view):
+	Use dframe-with-attached-buffer rather than speedbar- alias.
+
 2013-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* mh-comp.el (mh-regexp-in-field-p): Fix previous change.

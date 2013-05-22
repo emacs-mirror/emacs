@@ -2135,7 +2135,7 @@ your style, only those that are different from the default.")
 (eval-when-compile
   (require 'font-lock)
   (require 'ps-print)
-    (require 'speedbar)))
+    (require 'speedbar)))		; for speedbar-with-writable
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2552,6 +2552,9 @@ conversion."
     (when list
       (setcdr list1 (cddr list1))))
   (cdr list))
+
+(declare-function speedbar-refresh "speedbar" (&optional arg))
+(declare-function speedbar-do-function-pointer "speedbar" ())
 
 (defun vhdl-speedbar-refresh (&optional key)
   "Refresh directory or project with name KEY."
@@ -14515,6 +14518,13 @@ if required."
 (defvar vhdl-speedbar-menu-items nil
   "Additional menu-items to add to speedbar frame.")
 
+(declare-function speedbar-add-supported-extension "speedbar" (extension))
+(declare-function speedbar-add-mode-functions-list "speedbar" (new-list))
+(declare-function speedbar-make-specialized-keymap "speedbar" ())
+(declare-function speedbar-change-initial-expansion-list "speedbar"
+		  (new-default))
+(declare-function speedbar-add-expansion-list "speedbar" (new-list))
+
 (defun vhdl-speedbar-initialize ()
   "Initialize speedbar."
   ;; general settings
@@ -14644,11 +14654,15 @@ if required."
   "Name of last selected project.")
 
 ;; macros must be defined in the file they are used (copied from `speedbar.el')
-(defmacro speedbar-with-writable (&rest forms)
-  "Allow the buffer to be writable and evaluate FORMS."
-  (list 'let '((inhibit-read-only t))
-	(cons 'progn forms)))
-(put 'speedbar-with-writable 'lisp-indent-function 0)
+;;; (defmacro speedbar-with-writable (&rest forms)
+;;;   "Allow the buffer to be writable and evaluate FORMS."
+;;;   (list 'let '((inhibit-read-only t))
+;;; 	(cons 'progn forms)))
+;;; (put 'speedbar-with-writable 'lisp-indent-function 0)
+
+(declare-function speedbar-extension-list-to-regex "speedbar" (extlist))
+(declare-function speedbar-directory-buttons "speedbar" (directory _index))
+(declare-function speedbar-file-lists "speedbar" (directory))
 
 (defun vhdl-speedbar-display-directory (directory depth &optional rescan)
   "Display directory and hierarchy information in speedbar."
@@ -14683,6 +14697,9 @@ if required."
 	(vhdl-speedbar-insert-projects)
       (error (vhdl-warning-when-idle "ERROR:  Invalid hierarchy information, unable to display correctly"))))
   (setq speedbar-full-text-cache nil)) ; prevent caching
+
+(declare-function speedbar-make-tag-line "speedbar"
+		  (type char func data tag tfunc tdata tface depth))
 
 (defun vhdl-speedbar-insert-projects ()
   "Insert all projects in speedbar."
@@ -14787,6 +14804,8 @@ otherwise use cached data."
 	 depth)
 	(setq pack-alist (cdr pack-alist))))))
 
+(declare-function speedbar-line-directory "speedbar" (&optional depth))
+
 (defun vhdl-speedbar-rescan-hierarchy ()
   "Rescan hierarchy for the directory or project under the cursor."
   (interactive)
@@ -14807,6 +14826,8 @@ otherwise use cached data."
 	(vhdl-scan-directory-contents
 	 (abbreviate-file-name (match-string 1 path)))))
     (vhdl-speedbar-refresh key)))
+
+(declare-function speedbar-goto-this-file "speedbar" (file))
 
 (defun vhdl-speedbar-expand-dirs (directory)
   "Expand subdirectories in DIRECTORY according to
@@ -14856,6 +14877,8 @@ otherwise use cached data."
 	     (setq arch-alist (cdr arch-alist))))
 	 (setq unit-alist (cdr unit-alist))))))
   (vhdl-speedbar-update-current-unit nil t))
+
+(declare-function speedbar-center-buffer-smartly "speedbar" ())
 
 (defun vhdl-speedbar-contract-level ()
   "Contract current level in current directory/project."
@@ -14911,6 +14934,9 @@ otherwise use cached data."
     (vhdl-speedbar-refresh)
     (when (memq 'display vhdl-speedbar-save-cache)
       (add-to-list 'vhdl-updated-project-list key))))
+
+(declare-function speedbar-change-expand-button-char "speedbar" (char))
+(declare-function speedbar-delete-subblock "speedbar" (indent))
 
 (defun vhdl-speedbar-expand-project (text token indent)
   "Expand/contract the project under the cursor."
@@ -15240,6 +15266,8 @@ otherwise use cached data."
       (setq vhdl-speedbar-last-selected-project vhdl-project)))
   t)
 
+(declare-function speedbar-position-cursor-on-line "speedbar" ())
+
 (defun vhdl-speedbar-update-current-unit (&optional no-position always)
   "Highlight all design units that are contained in the current file.
 NO-POSITION non-nil means do not re-position cursor."
@@ -15328,6 +15356,9 @@ NO-POSITION non-nil means do not re-position cursor."
 	(put-text-property (match-beginning 1) (match-end 1) 'face face)))
     (setq unit-list (cdr unit-list)))
   pos)
+
+(declare-function speedbar-make-button "speedbar"
+		  (start end face mouse function &optional token))
 
 (defun vhdl-speedbar-make-inst-line (inst-name inst-file-marker
 					       ent-name ent-file-marker
@@ -15515,6 +15546,8 @@ NO-POSITION non-nil means do not re-position cursor."
 			      'speedbar-directory-face level)
       (setq dirs (cdr dirs)))))
 
+(declare-function speedbar-reset-scanners "speedbar" ())
+
 (defun vhdl-speedbar-dired (text token indent)
   "Speedbar click handler for directory expand button in hierarchy mode."
   (cond ((string-match "+" text)	; we have to expand this dir
@@ -15553,6 +15586,8 @@ NO-POSITION non-nil means do not re-position cursor."
 	(t (error "Nothing to display")))
   (when (equal (selected-frame) speedbar-frame)
     (speedbar-center-buffer-smartly)))
+
+(declare-function speedbar-files-item-info "speedbar" ())
 
 (defun vhdl-speedbar-item-info ()
   "Derive and display information about this line item."
@@ -15601,6 +15636,8 @@ NO-POSITION non-nil means do not re-position cursor."
 	      "?")
 	  (vhdl-default-directory)))))
      (t (message "")))))
+
+(declare-function speedbar-line-text "speedbar" (&optional p))
 
 (defun vhdl-speedbar-line-text ()
   "Calls `speedbar-line-text' and removes text properties."
@@ -15696,6 +15733,11 @@ NO-POSITION non-nil means do not re-position cursor."
       (goto-char dest)
       nil)))
 
+(declare-function speedbar-find-file-in-frame "speedbar" (file))
+(declare-function speedbar-set-timer "speedbar" (timeout))
+;; speedbar loads dframe at runtime.
+(declare-function dframe-maybee-jump-to-attached-frame "dframe" ())
+
 (defun vhdl-speedbar-find-file (text token indent)
   "When user clicks on TEXT, load file with name and position in TOKEN.
 Jump to the design unit if `vhdl-speedbar-jump-to-unit' is t or if the file
@@ -15709,7 +15751,7 @@ is already shown in a buffer."
 	(recenter))
       (vhdl-speedbar-update-current-unit t t)
       (speedbar-set-timer dframe-update-speed)
-      (speedbar-maybee-jump-to-attached-frame))))
+      (dframe-maybee-jump-to-attached-frame))))
 
 (defun vhdl-speedbar-port-copy ()
   "Copy the port of the entity/component or subprogram under the cursor."
@@ -15768,6 +15810,8 @@ is already shown in a buffer."
 	   (ent-entry (aget ent-alist ent-key t)))
       (setcar (cddr (cddr ent-entry)) arch-key) ; (nth 4 ent-entry)
       (speedbar-refresh))))
+
+(declare-function speedbar-line-file "speedbar" (&optional p))
 
 (defun vhdl-speedbar-make-design ()
   "Make (compile) design unit or directory/project under the cursor."

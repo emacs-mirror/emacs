@@ -413,7 +413,7 @@ we're in the GUD buffer)."
 
 ;; ======================================================================
 ;; speedbar support functions and variables.
-(eval-when-compile (require 'speedbar))	;For speedbar-with-attached-buffer.
+(eval-when-compile (require 'dframe)) ; for dframe-with-attached-buffer
 
 (defvar gud-last-speedbar-stackframe nil
   "Description of the currently displayed GUD stack.
@@ -422,19 +422,24 @@ The value t means that there is no stack, and we are in display-file mode.")
 (defvar gud-speedbar-key-map nil
   "Keymap used when in the buffers display mode.")
 
+;; At runtime, will be pulled in as a require of speedbar.
+(declare-function dframe-message "dframe" (fmt &rest args))
+
 (defun gud-speedbar-item-info ()
   "Display the data type of the watch expression element."
   (let ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list)))
     (if (nth 7 var)
-	(speedbar-message "%s: %s" (nth 7 var) (nth 3 var))
-      (speedbar-message "%s" (nth 3 var)))))
+	(dframe-message "%s: %s" (nth 7 var) (nth 3 var))
+      (dframe-message "%s" (nth 3 var)))))
+
+(declare-function speedbar-make-specialized-keymap "speedbar" ())
+(declare-function speedbar-add-expansion-list "speedbar" (new-list))
+(defvar speedbar-mode-functions-list)
 
 (defun gud-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance gud/gdb."
-  (if gud-speedbar-key-map
-      nil
+  (unless gud-speedbar-key-map
     (setq gud-speedbar-key-map (speedbar-make-specialized-keymap))
-
     (define-key gud-speedbar-key-map "j" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
@@ -482,6 +487,13 @@ The value t means that there is no stack, and we are in display-file mode.")
   "Wrapper for call to `speedbar-add-expansion-list'.
 DIRECTORY and ZERO are not used, but are required by the caller."
   (gud-speedbar-buttons gud-comint-buffer))
+
+(declare-function speedbar-make-tag-line "speedbar"
+                  (type char func data tag tfunc tdata tface depth))
+(declare-function speedbar-remove-localized-speedbar-support "speedbar"
+                  (buffer))
+(declare-function speedbar-insert-button "speedbar"
+		  (text face mouse function &optional token prevline))
 
 (defun gud-speedbar-buttons (buffer)
   "Create a speedbar display based on the current state of GUD.
@@ -881,9 +893,14 @@ It is passed through `gud-gdb-marker-filter' before we look at it."
 
 ;; gdb speedbar functions
 
+;; Part of the macro expansion of dframe-with-attached-buffer.
+;; At runtime, will be pulled in as a require of speedbar.
+(declare-function dframe-select-attached-frame "dframe" (&optional frame))
+(declare-function dframe-maybee-jump-to-attached-frame "dframe" ())
+
 (defun gud-gdb-goto-stackframe (_text token _indent)
   "Goto the stackframe described by TEXT, TOKEN, and INDENT."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (gud-basic-call (concat "server frame " (nth 1 token)))
    (sit-for 1)))
 
@@ -2633,6 +2650,8 @@ It is saved for when this flag is not set.")
 (add-to-list 'overlay-arrow-variable-list 'gud-overlay-arrow-position)
 
 (declare-function gdb-reset "gdb-mi" ())
+(declare-function speedbar-change-initial-expansion-list "speedbar" (new))
+(defvar speedbar-previously-used-expansion-list-name)
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
@@ -2640,7 +2659,7 @@ It is saved for when this flag is not set.")
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
-	 (if (and (boundp 'speedbar-frame)
+	 (if (and (boundp 'speedbar-initial-expansion-list-name)
 		  (string-equal speedbar-initial-expansion-list-name "GUD"))
 	     (speedbar-change-initial-expansion-list
 	      speedbar-previously-used-expansion-list-name))
