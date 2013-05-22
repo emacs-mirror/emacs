@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-The Design of the Ring Data Structure
-=====================================
+Ring data structure
+===================
 
 :Tag: design.mps.ring
 :Author: Richard Brooksby
@@ -121,9 +121,7 @@ type of a pointer to the enclosing structure, ``field``, the name of
 the ring structure field within it, ``ring``, the ring node. The
 result is a pointer to the enclosing structure.
 
-[Why does ``RING_ELT`` not use ``PARENT`` or even ``offsetof``?
-Apparently it's so that it can cope with arrays of rings. GavinM
-1997-04-15]
+.. note:: ``RING_ELT`` does not work for arrays of rings.
 
 
 Append / Remove
@@ -192,7 +190,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright (C) 1995-2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 1995-2013 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
