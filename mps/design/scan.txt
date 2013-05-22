@@ -1,0 +1,150 @@
+.. mode: -*- rst -*-
+
+The generic scanner
+===================
+
+:Tag: design.mps.scan
+:Author: Richard Brooksby
+:Date: 1995-08-25
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+
+
+Summaries
+---------
+
+Scanned summary
+...............
+
+_`.summary.subset`: The summary of reference seens by scan
+(ss.unfixedSummary) is a subset of the summary previously computed
+(SegSummary).
+
+There are two reasons that it is not an equality relation:
+
+1. If the segment has had objects forwarded onto it then its summary
+   will get unioned with the summary of the segment that the object
+   was forwarded from. This may increase the summary. The forwarded
+   object of course may have a smaller summary (if such a thing were
+   to be computed) and so subsequent scanning of the segment may
+   reduce the summary. (The forwarding process may erroneously
+   introduce zones into the destination's summary).
+
+2. A write barrier hit will set the summary to ``RefSetUNIV``.
+
+The reason that ss.unfixedSummary is always a subset of the previous
+summary is due to an "optimization" which has not been made in
+``TraceFix``. See impl.c.trace.fix.fixed.all.
+
+
+Partial scans
+.............
+
+_`.clever-summary`: With enough cleverness, it's possible to have
+partial scans of condemned segments contribute to the segment summary.
+[We had a system which nearly worked -- see MMsrc(MMdevel_poolams at
+1997/08/14 13:02:55 BST), but it did not handle the situation in which
+a segment was not under the write barrier when it was condemned.]
+
+_`.clever-summary.acc`: Each time we partially scan a segment, we
+accumulate the post-scan summary of the scanned objects into a field
+in the group, called 'summarySoFar'. The post-scan summary is (summary
+\ white) U fixed.
+
+_`.clever-summary.acc.condemn`: The cumulative summary is only
+meaningful while the segment is condemned. Otherwise it is set to
+``RefSetEMPTY`` (a value which we can check).
+
+_`.clever-summary.acc.reclaim`: Then when we reclaim the segment, we
+set the segment summary to the cumulative summary, as it is a
+post-scan summary of all the scanned objects.
+
+_`.clever-summary.acc.other-trace`: If the segment is scanned by
+another trace while it is condemned, the cumulative summary must be
+set to the post-scan summary of this scan (otherwise it becomes
+out-of-date).
+
+_`.clever-summary.scan`: The scan summary is expected to be a summary
+of all scanned references in the segment. We don't know this
+accurately until we've scanned everything in the segment. So we add in
+the segment summary each time.
+
+_`.clever-summary.scan.fix`: TraceScan also expects the scan state
+fixed summary to include the post-scan summary of all references which
+were white. Since we don't scan all white references, we need to add
+in an approximation to the summary of all white references which we
+didn't scan. This is the intersection of the segment summary and the
+white summary.
+
+_`.clever-summary.wb`: If the cumulative summary is smaller than the
+mutator's summary, a write-barrier is needed to prevent the mutator
+from invalidating it. This means that sometimes we'd have to put the
+segment under the write-barrier at condemn [this is not an operation
+currently available to pool class implementations pekka 1998-02-26],
+which might not be very efficient.
+
+_`.clever-summary.method.wb`: We need a new pool class method, called
+when the write barrier is hit (or possibly any barrier hit). The
+generic method will do the usual TraceAccess work, the trivial method
+will do nothing.
+
+_`.clever-summary.acc.wb`: When the write barrier is hit, we need to
+correct the cumulative summary to the mutator summary. This is
+approximated by setting the summary to ``RefSetUNIV``.
+
+
+Document History
+----------------
+
+- 1995-08-25 RB_ Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-22 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2001-2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

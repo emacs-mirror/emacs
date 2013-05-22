@@ -337,9 +337,12 @@ review around the critical path is especially vigilant.
 And we write long documents about it.
 
 
-A. References
--------------
-.. [MMRef] "The Memory Management Reference"; <http://www.memorymanagement.org/>.
+References
+----------
+* .. _[MMRef]:
+
+  "`The Memory Management Reference <http://www.memorymanagement.org/>`_".
+
 .. _scanning: http://www.memorymanagement.org/glossary/s.html#scan
 .. _marking: http://www.memorymanagement.org/glossary/m.html#marking
 .. _copying: http://www.memorymanagement.org/glossary/c.html#copying.garbage.collection
