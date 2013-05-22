@@ -1,7 +1,7 @@
 /* traceanc.c: ANCILLARY SUPPORT FOR TRACER
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006-2008 Ravenbrook Limited.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -637,13 +637,13 @@ Res ArenaCollect(Globals globals, int why)
 
 /* Low level stuff for Expose / Remember / Restore */
 
-struct RememberedSummaryBlockStruct {
+typedef struct RememberedSummaryBlockStruct {
   RingStruct globalRing;        /* link on globals->rememberedSummaryRing */
   struct SummaryPair {
     Addr base;
     RefSet summary;
   } the[RememberedSummaryBLOCK];
-};
+} RememberedSummaryBlockStruct;
 
 typedef struct RememberedSummaryBlockStruct *RememberedSummaryBlock;
 
@@ -793,7 +793,7 @@ static void arenaForgetProtection(Globals globals)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006-2008 Ravenbrook Limited
+ * Copyright (C) 2001-2013 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
