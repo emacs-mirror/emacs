@@ -444,6 +444,8 @@ struct coding_system
      the eol format.  */
   ptrdiff_t head_ascii;
 
+  ptrdiff_t detected_utf8_chars;
+
   /* Used internally in coding.c.  See the comment of detect_ascii.  */
   int eol_seen;
 

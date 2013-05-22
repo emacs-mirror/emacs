@@ -1,3 +1,24 @@
+2013-05-22  Kenichi Handa  <handa@gnu.org>
+
+	The following changes are to fix the setting of
+	buffer-file-coding-system on, for instance, C-x RET c unix RET
+	_FILE_OF_DOS_EOL_TYPE_ RET.
+
+	* coding.h (struct coding_system): New member detected_utf8_chars.
+
+	* coding.c (detect_coding_utf_8): Count characters and check EOL
+	format.  Include CATEGORY_MASK_UTF_8_AUTO in detect_info->found if
+	BOM is there.
+	(setup_coding_system): Do not initialize coding->head_ascii.
+	(check_ascii): Do not set coding->eol_seen but update it.  Do not
+	call adjust_coding_eol_type here.
+	(detect_coding): Fix detection of BOM for utf-8 and utf-16.  If
+	the eol-type of CODING is already specified, adjust the eol type
+	of the found coding-system.
+	(decode_coding_gap): Cancel previous change.  Utilize the
+	character numbers counted by detect_coding_utf_8.  Fix detection
+	of BOM for utf-8.
+
 2013-05-21  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
 
 	* search.c (looking_at_1): Only set last_thing_searched if the match
