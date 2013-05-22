@@ -634,7 +634,7 @@ Memory Management Glossary: C
             majority of its time, consisting of :term:`scanning
             <scan>`, :term:`fixing <fix>`, :term:`marking` and
             :term:`copying <copying garbage collection>`. See
-            :ref:`topic-critical`.
+            :ref:`design-critical-path`.
 
     crossing map
 

@@ -100,7 +100,7 @@ iteration.
 _`.for.ex`: An example::
 
     Ring node, nextNode;
-    RING_FOR(node, &amp;foo-&gt;barRing, nextNode) {
+    RING_FOR(node, &foo->barRing, nextNode) {
       Bar bar = RING_ELT(Bar, FooRing, node);
       frob(bar);
     }
