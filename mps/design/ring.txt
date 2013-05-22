@@ -8,7 +8,7 @@ Ring data structure
 :Date: 1996-09-26
 :Status: incomplete design
 :Revision: $Id$
-:Copyright: See section `C. Copyright and License`_.
+:Copyright: See section `Copyright and License`_.
 
 
 Introduction
@@ -97,9 +97,7 @@ iterator.
 _`.for.safe`: It is safe to delete the current node during the
 iteration.
 
-_`.for.ex`:
-
-An example::
+_`.for.ex`: An example::
 
     Ring node, nextNode;
     RING_FOR(node, &amp;foo-&gt;barRing, nextNode) {
@@ -174,8 +172,8 @@ _`.check.improve`: There is no method for performing a full integrity
 check. This could be added.
 
 
-B. Document History
--------------------
+Document History
+----------------
 
 - 1996-09-26 RB_ Created.
 
@@ -187,8 +185,8 @@ B. Document History
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
-C. Copyright and License
-------------------------
+Copyright and License
+---------------------
 
 Copyright © 1995-2013 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
