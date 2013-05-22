@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>3. Transliterating the alphabet into hexadecimal &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Design" href="index.html" />
+    <link rel="next" title="4. Keyword arguments in the MPS" href="keyword-arguments.html" />
+    <link rel="prev" title="2. The critical path through the MPS" href="critical-path.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="keyword-arguments.html" title="4. Keyword arguments in the MPS"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="critical-path.html" title="2. The critical path through the MPS"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-guide-hex-trans"><span id="index-0"></span></span><div class="section" id="transliterating-the-alphabet-into-hexadecimal">
+<h1>3. Transliterating the alphabet into hexadecimal<a class="headerlink" href="#transliterating-the-alphabet-into-hexadecimal" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">guide.hex.trans</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete documentation</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body">Gavin Matthews</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Organization:</th><td class="field-body">Harlequin</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1997-04-11</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/guide.hex.trans.txt#4 $</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Copyright:</th><td class="field-body">See section <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="introduction">
+<h2>3.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="scope">.scope</span>: This document explains how to represent the alphabet as
+hexadecimal digits.</p>
+<p><span class="target" id="readership">.readership</span>: This document is intended for anyone devising
+arbitrary constants which may appear in hex-dumps.</p>
+<p><span class="target" id="sources">.sources</span>: This transliteration was supplied by RichardK in
+mail.richardk.1997-04-07.13-44.</p>
+</div>
+<div class="section" id="transliteration">
+<h2>3.2. Transliteration<a class="headerlink" href="#transliteration" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="forward">.forward</span>: The chosen transliteration is as follows:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span>
+<span class="n">ABCDEF9811C7340BC6520F3812</span>
+</pre></div>
+</div>
+<p><span class="target" id="backward">.backward</span>: The backwards transliteration is as follows:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="mi">0</span> <span class="n">OU</span>
+<span class="mi">1</span> <span class="n">IJY</span>
+<span class="mi">2</span> <span class="n">TZ</span>
+<span class="mi">3</span> <span class="n">MW</span>
+<span class="mi">4</span> <span class="n">N</span>
+<span class="mi">5</span> <span class="n">S</span>
+<span class="mi">6</span> <span class="n">R</span>
+<span class="mi">7</span> <span class="n">L</span>
+<span class="mi">8</span> <span class="n">HX</span>
+<span class="mi">9</span> <span class="n">G</span>
+<span class="n">A</span> <span class="n">A</span>
+<span class="n">B</span> <span class="n">BP</span>
+<span class="n">C</span> <span class="n">CKQ</span>
+<span class="n">D</span> <span class="n">D</span>
+<span class="n">E</span> <span class="n">E</span>
+<span class="n">F</span> <span class="n">FV</span>
+</pre></div>
+</div>
+<p><span class="target" id="pad">.pad</span>: If padding is required (to fill a hex constant length), you
+should use 9&#8217;s, because G is rare and can usually be inferred from
+context.</p>
+<p><span class="target" id="punc">.punc</span>: There is no formal scheme for spaces, or punctuation. It is
+suggested that you use 9 (as <a class="reference internal" href="#pad">.pad</a>).</p>
+</div>
+<div class="section" id="justification">
+<h2>3.3. Justification<a class="headerlink" href="#justification" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="letters">.letters</span>: The hexadecimal letters (A-F) are all formed by
+similarity of sound. B and P sound similar, as do F and V, and C, K, &amp;
+Q can all sound similar.</p>
+<p><span class="target" id="numbers">.numbers</span>: The numbers (0-9) are all formed by similarity of shape
+(but see <a class="reference internal" href="#trans-t">.trans.t</a>). Nevertheless, 1=IJY retains some similarity of
+sound.</p>
+<p><span class="target" id="trans-t">.trans.t</span>: T is an exception to <a class="reference internal" href="#numbers">.numbers</a>, but is such a common
+letter that it deserves it.</p>
+</div>
+<div class="section" id="notes">
+<h2>3.4. 4. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="change">.change</span>: This transliteration differs from the old transliteration
+used for signatures (see design.mps.sig(0)), as follows: J:6-&gt;1;
+L:1-&gt;7; N:9-&gt;4; R:4-&gt;6; W:8-&gt;3; X:5-&gt;8; Y:E-&gt;I.</p>
+<p><span class="target" id="problem-mw">.problem.mw</span>: There is a known problem that M and W are both common,
+map to the same digit (3), and are hard to distinguish in context.</p>
+<p><span class="target" id="find-c">.find.c</span>: It is possible to find all 8-digit hexadecimal constants
+and how many times they&#8217;re used in C files, using the following Perl
+script:</p>
+<div class="highlight-c"><pre>perl5 -n -e 'BEGIN { %C=(); } if(/0x([0-9A-Fa-f]{8})/) { $C{$1} = +[] if(
+!defined($C{$1})); push(@{$C{$1}}, $ARGV); } END { foreach $H (sort(keys(%C)))
+{ printf "%3d %s %s\n", scalar(@{$C{$H}}), $H, join(", ", @{@C{$H}}); } }' *.c
+*.h</pre>
+</div>
+<p><span class="target" id="comment">.comment</span>: It is a good idea to add a comment to any constant
+declaration indicating the English version and which letters were
+selected (by capitalisation), e.g.:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="cp">#define SpaceSig        ((Sig)0x5195BACE) </span><span class="cm">/* SIGnature SPACE */</span><span class="cp"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="document-history">
+<h2>3.5. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<p>2013-05-10  <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a>  Converted to reStructuredText and imported to MPS design.</p>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>3.6. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ol class="arabic simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</li>
+</ol>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">3. Transliterating the alphabet into hexadecimal</a><ul>
+<li><a class="reference internal" href="#introduction">3.1. Introduction</a></li>
+<li><a class="reference internal" href="#transliteration">3.2. Transliteration</a></li>
+<li><a class="reference internal" href="#justification">3.3. Justification</a></li>
+<li><a class="reference internal" href="#notes">3.4. 4. Notes</a></li>
+<li><a class="reference internal" href="#document-history">3.5. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">3.6. Copyright and License</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="critical-path.html"
+                        title="previous chapter">2. The critical path through the MPS</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="keyword-arguments.html"
+                        title="next chapter">4. Keyword arguments in the MPS</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="keyword-arguments.html" title="4. Keyword arguments in the MPS"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="critical-path.html" title="2. The critical path through the MPS"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

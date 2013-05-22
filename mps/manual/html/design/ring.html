@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>5. Ring data structure &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Design" href="index.html" />
+    <link rel="next" title="6. Signatures in the MPS" href="sig.html" />
+    <link rel="prev" title="4. Keyword arguments in the MPS" href="keyword-arguments.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="sig.html" title="6. Signatures in the MPS"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="keyword-arguments.html" title="4. Keyword arguments in the MPS"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-ring"><span id="index-0"></span></span><div class="section" id="ring-data-structure">
+<h1>5. Ring data structure<a class="headerlink" href="#ring-data-structure" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.ring</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1996-09-26</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/ring.txt#3 $</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See section <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="introduction">
+<h2>5.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="source">.source</span>: rings are derived from the earlier use of Deques. See
+design.mps.deque.</p>
+</div>
+<div class="section" id="description">
+<h2>5.2. Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="def-ring">.def.ring</span>: Rings are circular doubly-linked lists of ring &#8220;nodes&#8221;.
+The nodes are fields of structures which are the &#8220;elements&#8221; of the
+ring.</p>
+<p>Ring node structures (<tt class="docutils literal"><span class="pre">RingStruct</span></tt>) are inlined in the structures on
+the ring, like this:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">FooStruct</span> <span class="o">*</span><span class="n">Foo</span><span class="p">;</span>     <span class="cm">/* the element type */</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">FooStruct</span> <span class="p">{</span>         <span class="cm">/* the element structure */</span>
+  <span class="kt">int</span> <span class="n">baz</span><span class="p">,</span> <span class="n">bim</span><span class="p">;</span>
+  <span class="n">RingStruct</span> <span class="n">ring</span><span class="p">;</span>                 <span class="cm">/* the ring node */</span>
+  <span class="kt">float</span> <span class="n">bip</span><span class="p">,</span> <span class="n">bop</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">FooStruct</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This arrangement means that they do not need to be managed separately.
+This is especially useful in avoiding re-entrancy and bootstrapping
+problems in the memory manager. Rings also provide flexible insertion
+and deletion because the entire ring can be found from any node.</p>
+<p>In the MPS, rings are used to connect a &#8220;parent&#8221; structure (such as a
+<tt class="docutils literal"><span class="pre">Arena</span></tt>) to a number of &#8220;child&#8221; structures (such as <tt class="docutils literal"><span class="pre">Pool</span></tt>), as
+shown in <a class="reference internal" href="#fig-ring">.fig.ring</a>. Note the slight abuse of naming convention, in
+that <tt class="docutils literal"><span class="pre">barRing</span></tt> is not called <tt class="docutils literal"><span class="pre">barRingStruct</span></tt>.</p>
+<p><span class="target" id="fig-ring">.fig.ring</span>: A ring of <tt class="docutils literal"><span class="pre">Bar</span></tt> objects owned by a <tt class="docutils literal"><span class="pre">Foo</span></tt> object.</p>
+<p><span class="target" id="fig-empty">.fig.empty</span>: An empty ring of <tt class="docutils literal"><span class="pre">Bar</span></tt> objects owned by a <tt class="docutils literal"><span class="pre">Foo</span></tt>
+object.</p>
+<p><span class="target" id="def-singleton">.def.singleton</span>: A &#8220;singleton&#8221; ring is a ring containing one node,
+whose previous and next nodes are itself (see <a class="reference internal" href="#fig-single">.fig.single</a>).</p>
+<p><span class="target" id="fig-single">.fig.single</span>: A singleton <tt class="docutils literal"><span class="pre">Bar</span></tt> object not on any ring.</p>
+<p><span class="target" id="fig-elt">.fig.elt</span>: How <tt class="docutils literal"><span class="pre">RING_ELT</span></tt> gets a parent pointer from a node pointer.</p>
+</div>
+<div class="section" id="init-finish">
+<h2>5.3. Init / Finish<a class="headerlink" href="#init-finish" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="init">.init</span>: Rings are initialized with the <tt class="docutils literal"><span class="pre">RingInit</span></tt> function. They
+are initialized to be a singleton ring (<a class="reference internal" href="#def-singleton">.def.singleton</a>).</p>
+<p><span class="target" id="finish">.finish</span>: Rings are finished with the <tt class="docutils literal"><span class="pre">RingFinish</span></tt> function. A
+ring must be a singleton ring before it can be finished (it is an
+error to attempt to finish a non-singleton ring).</p>
+</div>
+<div class="section" id="iteration">
+<h2>5.4. Iteration<a class="headerlink" href="#iteration" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="for">.for</span>: A macro is used for iterating over the elements in a ring.
+This macro is called <tt class="docutils literal"><span class="pre">RING_FOR</span></tt>. <tt class="docutils literal"><span class="pre">RING_FOR</span></tt> takes three arguments.
+The first is an iteration variable: <tt class="docutils literal"><span class="pre">node</span></tt>. The second is the
+&#8220;parent&#8221; element in the ring: <tt class="docutils literal"><span class="pre">ring</span></tt>. The third is a variable used
+by the iterator for working state (it holds a pointer to the next
+node): <tt class="docutils literal"><span class="pre">next</span></tt>. All arguments must be of type <tt class="docutils literal"><span class="pre">Ring</span></tt>. The <tt class="docutils literal"><span class="pre">node</span></tt>
+and <tt class="docutils literal"><span class="pre">next</span></tt> variables must be declared and in scope already. All
+elements except for the &#8220;parent&#8221; element are iterated over. The macro
+expands to a <tt class="docutils literal"><span class="pre">for</span></tt> statement. During execution of the loop, the
+<tt class="docutils literal"><span class="pre">node</span></tt> variable (the first argument to the macro) will be the value
+of successive elements in the Ring (at the beginning of the statement
+in the body of the loop).</p>
+<p><span class="target" id="for-error">.for.error</span>: It is an error (possibly unchecked) for the <tt class="docutils literal"><span class="pre">node</span></tt>
+and <tt class="docutils literal"><span class="pre">next</span></tt> variables to be modified except implicitly by using this
+iterator.</p>
+<p><span class="target" id="for-safe">.for.safe</span>: It is safe to delete the current node during the
+iteration.</p>
+<p><span class="target" id="for-ex">.for.ex</span>: An example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">Ring</span> <span class="n">node</span><span class="p">,</span> <span class="n">nextNode</span><span class="p">;</span>
+<span class="n">RING_FOR</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">foo</span><span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span><span class="n">barRing</span><span class="p">,</span> <span class="n">nextNode</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Bar</span> <span class="n">bar</span> <span class="o">=</span> <span class="n">RING_ELT</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="n">FooRing</span><span class="p">,</span> <span class="n">node</span><span class="p">);</span>
+  <span class="n">frob</span><span class="p">(</span><span class="n">bar</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><span class="target" id="for-ex-elt">.for.ex.elt</span>: Notice the idiomatic use of <tt class="docutils literal"><span class="pre">RING_ELT</span></tt> which is
+almost universal when using <tt class="docutils literal"><span class="pre">RING_FOR</span></tt>.</p>
+</div>
+<div class="section" id="subclass">
+<h2>5.5. Subclass<a class="headerlink" href="#subclass" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="elt">.elt</span>: <tt class="docutils literal"><span class="pre">RING_ELT</span></tt> is a macro that converts a pointer to a ring
+structure into a pointer to the enclosing parent structure.
+<tt class="docutils literal"><span class="pre">RING_ELT</span></tt> has three arguments which are, in order: <tt class="docutils literal"><span class="pre">type</span></tt>, the
+type of a pointer to the enclosing structure, <tt class="docutils literal"><span class="pre">field</span></tt>, the name of
+the ring structure field within it, <tt class="docutils literal"><span class="pre">ring</span></tt>, the ring node. The
+result is a pointer to the enclosing structure.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last"><tt class="docutils literal"><span class="pre">RING_ELT</span></tt> does not work for arrays of rings.</p>
+</div>
+</div>
+<div class="section" id="append-remove">
+<h2>5.6. Append / Remove<a class="headerlink" href="#append-remove" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="append">.append</span>: <tt class="docutils literal"><span class="pre">RingAppend</span></tt> appends a singleton ring to a ring (such
+that the newly added element will be last in the iteration sequence).</p>
+<p><span class="target" id="insert">.insert</span>: <tt class="docutils literal"><span class="pre">RingInsert</span></tt> adds a singleton rung to a ring (such that
+the newly added element will be first in the iteration sequence).</p>
+<p><span class="target" id="remove">.remove</span>: <tt class="docutils literal"><span class="pre">RingRemove</span></tt> removes an element from a ring. The newly
+removed element becomes a singleton ring. It is an error for the
+element to already be a singleton.</p>
+<p><span class="target" id="improve-join">.improve.join</span>: It would be possible to add a <tt class="docutils literal"><span class="pre">RingJoin</span></tt> operation
+that joined two rings. This is not done as it is not required.</p>
+</div>
+<div class="section" id="naming">
+<h2>5.7. Naming<a class="headerlink" href="#naming" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="id1">.naming</span>: By convention, when one structure <tt class="docutils literal"><span class="pre">Foo</span></tt> contains one
+ring of <tt class="docutils literal"><span class="pre">Bar</span></tt> structures, the field in <tt class="docutils literal"><span class="pre">Foo</span></tt> is usually known as
+<tt class="docutils literal"><span class="pre">barRing</span></tt>, and the field in <tt class="docutils literal"><span class="pre">Bar</span></tt> is known as <tt class="docutils literal"><span class="pre">fooRing</span></tt>. If the
+<tt class="docutils literal"><span class="pre">Foo</span></tt> structure contains more than one ring of <tt class="docutils literal"><span class="pre">Bar</span></tt> structures,
+then they will have names such as <tt class="docutils literal"><span class="pre">spongRing</span></tt> and <tt class="docutils literal"><span class="pre">frobRing</span></tt>.</p>
+</div>
+<div class="section" id="deques">
+<h2>5.8. Deques<a class="headerlink" href="#deques" title="Permalink to this headline">¶</a></h2>
+<p>This section documents where rings differ significantly from deques.</p>
+<p><span class="target" id="head">.head</span>: Deques used a distinguished head structure for the head of
+the ring. Rings still have a separate head structure, but it is not
+distinguished by type.</p>
+</div>
+<div class="section" id="defects">
+<h2>5.9. Defects<a class="headerlink" href="#defects" title="Permalink to this headline">¶</a></h2>
+<p>This section documents known defects with the current design.</p>
+<p><span class="target" id="app-for-misuse">.app_for.misuse</span>: It is easy to pass <tt class="docutils literal"><span class="pre">RingAppend</span></tt> and <tt class="docutils literal"><span class="pre">RING_FOR</span></tt>
+the arguments in the wrong order as all the arguments have the same
+type. see <a class="reference internal" href="#head">.head</a>.</p>
+<p><span class="target" id="check-improve">.check.improve</span>: There is no method for performing a full integrity
+check. This could be added.</p>
+</div>
+<div class="section" id="document-history">
+<h2>5.10. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>1996-09-26 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Created.</li>
+<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
+<li>2013-05-22 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
+</ul>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>5.11. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 1995-2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ol class="arabic simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</li>
+</ol>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">5. Ring data structure</a><ul>
+<li><a class="reference internal" href="#introduction">5.1. Introduction</a></li>
+<li><a class="reference internal" href="#description">5.2. Description</a></li>
+<li><a class="reference internal" href="#init-finish">5.3. Init / Finish</a></li>
+<li><a class="reference internal" href="#iteration">5.4. Iteration</a></li>
+<li><a class="reference internal" href="#subclass">5.5. Subclass</a></li>
+<li><a class="reference internal" href="#append-remove">5.6. Append / Remove</a></li>
+<li><a class="reference internal" href="#naming">5.7. Naming</a></li>
+<li><a class="reference internal" href="#deques">5.8. Deques</a></li>
+<li><a class="reference internal" href="#defects">5.9. Defects</a></li>
+<li><a class="reference internal" href="#document-history">5.10. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">5.11. Copyright and License</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="keyword-arguments.html"
+                        title="previous chapter">4. Keyword arguments in the MPS</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sig.html"
+                        title="next chapter">6. Signatures in the MPS</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="sig.html" title="6. Signatures in the MPS"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="keyword-arguments.html" title="4. Keyword arguments in the MPS"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

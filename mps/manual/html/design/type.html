@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>17. General MPS types &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>13. General MPS types &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -27,9 +27,9 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
-    <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="18. Software versions" href="version.html" />
-    <link rel="prev" title="16. Protocol inheritance" href="protocol.html" /> 
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="14. Software versions" href="version.html" />
+    <link rel="prev" title="12. Protocol inheritance" href="protocol.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,13 +39,13 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="version.html" title="18. Software versions"
+          <a href="version.html" title="14. Software versions"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="16. Protocol inheritance"
+          <a href="protocol.html" title="12. Protocol inheritance"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,67 +54,84 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="general-mps-types">
-<span id="design.mps.type"></span><h1>17. General MPS types<a class="headerlink" href="#general-mps-types" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-type"><span id="index-0"></span></span><div class="section" id="general-mps-types">
+<h1>13. General MPS types<a class="headerlink" href="#general-mps-types" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.type</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1996-10-23</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete document</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/type.txt#1 $</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
 <div class="section" id="introduction">
-<h2>17.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design.mps.type.intro"></span><a class="mpstag reference internal" href="#design.mps.type.intro">.intro:</a> See impl.h.mpmtypes.</p>
+<h2>13.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="intro">.intro</span>: See impl.h.mpmtypes.</p>
 </div>
 <div class="section" id="rationale">
-<h2>17.2. Rationale<a class="headerlink" href="#rationale" title="Permalink to this headline">¶</a></h2>
+<h2>13.2. Rationale<a class="headerlink" href="#rationale" title="Permalink to this headline">¶</a></h2>
 <p>Some types are declared to resolve a point of design, such as the best
 type to use for array indexing.</p>
 <p>Some types are declared so that the intention of code is clearer. For
-example, <a class="reference internal" href="#Byte" title="Byte"><tt class="xref c c-type docutils literal"><span class="pre">Byte</span></tt></a> is necessarily <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">char</span></tt>, but it&#8217;s
-better to say <a class="reference internal" href="#Byte" title="Byte"><tt class="xref c c-type docutils literal"><span class="pre">Byte</span></tt></a> in your code if it&#8217;s what you mean.</p>
+example, <tt class="docutils literal"><span class="pre">Byte</span></tt> is necessarily <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">char</span></tt>, but it&#8217;s better to
+say <tt class="docutils literal"><span class="pre">Byte</span></tt> in your code if it&#8217;s what you mean.</p>
 </div>
 <div class="section" id="concrete-types">
-<h2>17.3. Concrete types<a class="headerlink" href="#concrete-types" title="Permalink to this headline">¶</a></h2>
+<h2>13.3. Concrete types<a class="headerlink" href="#concrete-types" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="Bool">
 <tt class="descname">Bool</tt><a class="headerlink" href="#Bool" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.bool"></span><a class="mpstag reference internal" href="#design.mps.type.bool">.bool:</a> The <tt class="docutils literal"><span class="pre">Bool</span></tt> type is mostly defined so that the
-intention of code is clearer. In C, Boolean expressions evaluate to
-<tt class="docutils literal"><span class="pre">int</span></tt>, so <tt class="docutils literal"><span class="pre">Bool</span></tt> is in fact an alias for <tt class="docutils literal"><span class="pre">int</span></tt>.</p>
-<p><span class="target" id="design.mps.type.bool.value"></span><a class="mpstag reference internal" href="#design.mps.type.bool.value">.bool.value:</a> <tt class="docutils literal"><span class="pre">Bool</span></tt> has two values, <tt class="docutils literal"><span class="pre">TRUE</span></tt> and <tt class="docutils literal"><span class="pre">FALSE</span></tt>.
-These are defined to be <tt class="docutils literal"><span class="pre">1</span></tt> and <tt class="docutils literal"><span class="pre">0</span></tt> respectively, for
-compatibility with C Boolean expressions (so one may set a <tt class="docutils literal"><span class="pre">Bool</span></tt> to
-the result of a C Boolean expression).</p>
-<p><span class="target" id="design.mps.type.bool.use"></span><a class="mpstag reference internal" href="#design.mps.type.bool.use">.bool.use:</a> <tt class="docutils literal"><span class="pre">Bool</span></tt> is a type which should be used when a
-Boolean value is intended, for example, as the result of a function.
-Using a Boolean type in C is a tricky thing. Non-zero values are
-&#8220;true&#8221; (when used as control conditions) but are not all equal to
-<tt class="docutils literal"><span class="pre">TRUE</span></tt>. Use with care.</p>
-<p><span class="target" id="design.mps.type.bool.check"></span><a class="mpstag reference internal" href="#design.mps.type.bool.check">.bool.check:</a> <tt class="xref c c-func docutils literal"><span class="pre">BoolCheck()</span></tt> simply checks whether the
-argument is <tt class="docutils literal"><span class="pre">TRUE</span></tt> (<tt class="docutils literal"><span class="pre">1</span></tt>) or <tt class="docutils literal"><span class="pre">FALSE</span></tt> (<tt class="docutils literal"><span class="pre">0</span></tt>).</p>
-<p><span class="target" id="design.mps.type.bool.check.inline"></span><a class="mpstag reference internal" href="#design.mps.type.bool.check.inline">.bool.check.inline:</a> The inline macro version of
-<tt class="xref c c-func docutils literal"><span class="pre">BoolCheck()</span></tt> casts the <tt class="docutils literal"><span class="pre">in``t</span> <span class="pre">to</span> <span class="pre">``unsigned</span></tt> and checks that
-it is <tt class="docutils literal"><span class="pre">&lt;=</span> <span class="pre">1</span></tt>. This is safe, well-defined, uses the argument exactly
-once, and generates reasonable code.</p>
-<p><span class="target" id="design.mps.type.bool.check.inline.smaller"></span><a class="mpstag reference internal" href="#design.mps.type.bool.check.inline.smaller">.bool.check.inline.smaller:</a> In fact we can expect that the
-&#8220;inline&#8221; version of <tt class="xref c c-func docutils literal"><span class="pre">BoolCheck()</span></tt> to be smaller than the
-equivalent function call. On IA-32 for example, a function call will
-be 3 instructions (total 9 bytes), the inline code for
-<tt class="xref c c-func docutils literal"><span class="pre">BoolCheck()</span></tt> will be 1 instruction (total 3 bytes) (both
-sequences not including the test which is the same length in either
-case).</p>
-<p><span class="target" id="design.mps.type.bool.check.inline.why"></span><a class="mpstag reference internal" href="#design.mps.type.bool.check.inline.why">.bool.check.inline.why:</a> As well as being smaller (see
-<a class="reference internal" href="#design.mps.type.bool.check.inline.smaller">.bool.check.inline.smaller</a>) it is faster. On 1998-11-16
-drj compared <tt class="docutils literal"><span class="pre">w3i3mv\hi\amcss.exe</span></tt> running with and without the
-macro for <tt class="xref c c-func docutils literal"><span class="pre">BoolCheck()</span></tt> on the PC Aaron. &#8220;With&#8221; ran in 97.7% of
-the time (averaged over 3 runs).</p>
+<p><span class="target" id="bool">.bool</span>: The <tt class="docutils literal"><span class="pre">Bool</span></tt> type is mostly defined so that the intention of
+code is clearer. In C, Boolean expressions evaluate to <tt class="docutils literal"><span class="pre">int</span></tt>, so
+<tt class="docutils literal"><span class="pre">Bool</span></tt> is in fact an alias for <tt class="docutils literal"><span class="pre">int</span></tt>.</p>
+<p><span class="target" id="bool-value">.bool.value</span>: <tt class="docutils literal"><span class="pre">Bool</span></tt> has two values, <tt class="docutils literal"><span class="pre">TRUE</span></tt> and <tt class="docutils literal"><span class="pre">FALSE</span></tt>. These
+are defined to be <tt class="docutils literal"><span class="pre">1</span></tt> and <tt class="docutils literal"><span class="pre">0</span></tt> respectively, for compatibility with
+C Boolean expressions (so one may set a <tt class="docutils literal"><span class="pre">Bool</span></tt> to the result of a C
+Boolean expression).</p>
+<p><span class="target" id="bool-use">.bool.use</span>: <tt class="docutils literal"><span class="pre">Bool</span></tt> is a type which should be used when a Boolean
+value is intended, for example, as the result of a function. Using a
+Boolean type in C is a tricky thing. Non-zero values are &#8220;true&#8221; (when
+used as control conditions) but are not all equal to <tt class="docutils literal"><span class="pre">TRUE</span></tt>. Use
+with care.</p>
+<p><span class="target" id="bool-check">.bool.check</span>: <tt class="docutils literal"><span class="pre">BoolCheck</span></tt> simply checks whether the argument is
+<tt class="docutils literal"><span class="pre">TRUE</span></tt> (<tt class="docutils literal"><span class="pre">1</span></tt>) or <tt class="docutils literal"><span class="pre">FALSE</span></tt> (<tt class="docutils literal"><span class="pre">0</span></tt>).</p>
+<p><span class="target" id="bool-check-inline">.bool.check.inline</span>: The inline macro version of <tt class="docutils literal"><span class="pre">BoolCheck</span></tt> casts
+the <tt class="docutils literal"><span class="pre">in``t</span> <span class="pre">to</span> <span class="pre">``unsigned</span></tt> and checks that it is <tt class="docutils literal"><span class="pre">&lt;=</span> <span class="pre">1</span></tt>. This is
+safe, well-defined, uses the argument exactly once, and generates
+reasonable code.</p>
+<p><span class="target" id="bool-check-inline-smaller">.bool.check.inline.smaller</span>: In fact we can expect that the &#8220;inline&#8221;
+version of <tt class="docutils literal"><span class="pre">BoolCheck</span></tt> to be smaller than the equivalent function
+call. On IA-32 for example, a function call will be 3 instructions
+(total 9 bytes), the inline code for <tt class="docutils literal"><span class="pre">BoolCheck</span></tt> will be 1
+instruction (total 3 bytes) (both sequences not including the test
+which is the same length in either case).</p>
+<p><span class="target" id="bool-check-inline-why">.bool.check.inline.why</span>: As well as being smaller (see
+<a class="reference internal" href="#bool-check-inline-smaller">.bool.check.inline.smaller</a>) it is faster. On 1998-11-16 drj
+compared <tt class="docutils literal"><span class="pre">w3i3mv\hi\amcss.exe</span></tt> running with and without the macro
+for <tt class="docutils literal"><span class="pre">BoolCheck</span></tt> on the PC Aaron. &#8220;With&#8221; ran in 97.7% of the time
+(averaged over 3 runs).</p>
 <dl class="type">
 <dt id="Res">
 <tt class="descname">Res</tt><a class="headerlink" href="#Res" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.res"></span><a class="mpstag reference internal" href="#design.mps.type.res">.res:</a> <tt class="docutils literal"><span class="pre">Res</span></tt> is the type of result codes. A result code
-indicates the success or failure of an operation, along with the
-reason for failure. Like Unix error codes, the meaning of the code
-depends on the call that returned it. These codes are just broad
-categories with mnemonic names for various sorts of problems.</p>
+<p><span class="target" id="res">.res</span>: <tt class="docutils literal"><span class="pre">Res</span></tt> is the type of result codes. A result code indicates
+the success or failure of an operation, along with the reason for
+failure. Like Unix error codes, the meaning of the code depends on the
+call that returned it. These codes are just broad categories with
+mnemonic names for various sorts of problems.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="26%" />
@@ -174,69 +191,69 @@ parameters passed from the client.</td>
 </tr>
 </tbody>
 </table>
-<p><span class="target" id="design.mps.type.res.use"></span><a class="mpstag reference internal" href="#design.mps.type.res.use">.res.use:</a> <tt class="docutils literal"><span class="pre">Res</span></tt> should be returned from any function which
-might fail. Any other results of the function should be passed back in
+<p><span class="target" id="res-use">.res.use</span>: <tt class="docutils literal"><span class="pre">Res</span></tt> should be returned from any function which might
+fail. Any other results of the function should be passed back in
 &#8220;return&#8221; parameters (pointers to locations to fill in with the
 results).</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">This is documented elsewhere, I think &#8211; richard</p>
 </div>
-<p><span class="target" id="design.mps.type.res.use.spec"></span><a class="mpstag reference internal" href="#design.mps.type.res.use.spec">.res.use.spec:</a> The most specific code should be returned.</p>
+<p><span class="target" id="res-use-spec">.res.use.spec</span>: The most specific code should be returned.</p>
 <dl class="type">
 <dt id="Fun">
 <tt class="descname">Fun</tt><a class="headerlink" href="#Fun" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.fun"></span><a class="mpstag reference internal" href="#design.mps.type.fun">.fun:</a> <tt class="docutils literal"><span class="pre">Fun</span></tt> is the type of a pointer to a function about
-which nothing more is known.</p>
-<p><span class="target" id="design.mps.type.fun.use"></span><a class="mpstag reference internal" href="#design.mps.type.fun.use">.fun.use:</a> <tt class="docutils literal"><span class="pre">Fun</span></tt> should be used where it&#8217;s necessary to
-handle a function in a polymorphic way without calling it. For
-example, if you need to write a function <tt class="docutils literal"><span class="pre">g</span></tt> which passes another
-function <tt class="docutils literal"><span class="pre">f</span></tt> through to a third function <tt class="docutils literal"><span class="pre">h</span></tt>, where <tt class="docutils literal"><span class="pre">h</span></tt> knows
-the real type of <tt class="docutils literal"><span class="pre">f</span></tt> but <tt class="docutils literal"><span class="pre">g</span></tt> doesn&#8217;t.</p>
+<p><span class="target" id="fun">.fun</span>: <tt class="docutils literal"><span class="pre">Fun</span></tt> is the type of a pointer to a function about which
+nothing more is known.</p>
+<p><span class="target" id="fun-use">.fun.use</span>: <tt class="docutils literal"><span class="pre">Fun</span></tt> should be used where it&#8217;s necessary to handle a
+function in a polymorphic way without calling it. For example, if you
+need to write a function <tt class="docutils literal"><span class="pre">g</span></tt> which passes another function <tt class="docutils literal"><span class="pre">f</span></tt>
+through to a third function <tt class="docutils literal"><span class="pre">h</span></tt>, where <tt class="docutils literal"><span class="pre">h</span></tt> knows the real type of
+<tt class="docutils literal"><span class="pre">f</span></tt> but <tt class="docutils literal"><span class="pre">g</span></tt> doesn&#8217;t.</p>
 <dl class="type">
 <dt id="Word">
 <tt class="descname">Word</tt><a class="headerlink" href="#Word" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.word"></span><a class="mpstag reference internal" href="#design.mps.type.word">.word:</a> <tt class="docutils literal"><span class="pre">Word</span></tt> is an unsigned integral type which matches
-the size of the machine word, that is, the natural size of the machine
+<p><span class="target" id="word">.word</span>: <tt class="docutils literal"><span class="pre">Word</span></tt> is an unsigned integral type which matches the size
+of the machine word, that is, the natural size of the machine
 registers and addresses.</p>
-<p><span class="target" id="design.mps.type.word.use"></span><a class="mpstag reference internal" href="#design.mps.type.word.use">.word.use:</a> <tt class="docutils literal"><span class="pre">Word</span></tt> should be used where an unsigned integer
-is required that might range as large as the machine word.</p>
-<p><span class="target" id="design.mps.type.word.source"></span><a class="mpstag reference internal" href="#design.mps.type.word.source">.word.source:</a> <tt class="docutils literal"><span class="pre">Word</span></tt> is derived from the macro
-<tt class="docutils literal"><span class="pre">MPS_T_WORD</span></tt> which is declared in impl.h.mpstd according
-to the target platform (design.mps.config.pf.word).</p>
-<p><span class="target" id="design.mps.type.word.conv.c"></span><a class="mpstag reference internal" href="#design.mps.type.word.conv.c">.word.conv.c:</a> <tt class="docutils literal"><span class="pre">Word</span></tt> is converted to <a class="reference internal" href="../topic/interface.html#mps_word_t" title="mps_word_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_word_t</span></tt></a>
-in the MPS C Interface.</p>
+<p><span class="target" id="word-use">.word.use</span>: <tt class="docutils literal"><span class="pre">Word</span></tt> should be used where an unsigned integer is
+required that might range as large as the machine word.</p>
+<p><span class="target" id="word-source">.word.source</span>: <tt class="docutils literal"><span class="pre">Word</span></tt> is derived from the macro <tt class="docutils literal"><span class="pre">MPS_T_WORD</span></tt>
+which is declared in impl.h.mpstd according to the target platform
+(design.mps.config.pf.word).</p>
+<p><span class="target" id="word-conv-c">.word.conv.c</span>: <tt class="docutils literal"><span class="pre">Word</span></tt> is converted to <tt class="docutils literal"><span class="pre">mps_word_t</span></tt> in the MPS C
+Interface.</p>
 <dl class="type">
 <dt id="Byte">
 <tt class="descname">Byte</tt><a class="headerlink" href="#Byte" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.byte"></span><a class="mpstag reference internal" href="#design.mps.type.byte">.byte:</a> <tt class="docutils literal"><span class="pre">Byte</span></tt> is an unsigned integral type corresponding to
-the unit in which most sizes are measured, and also the units of
-<tt class="xref c c-func docutils literal"><span class="pre">sizeof()</span></tt>.</p>
-<p><span class="target" id="design.mps.type.byte.use"></span><a class="mpstag reference internal" href="#design.mps.type.byte.use">.byte.use:</a> <tt class="docutils literal"><span class="pre">Byte</span></tt> should be used in preference to <tt class="docutils literal"><span class="pre">char</span></tt>
-or <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">char</span></tt> wherever it is necessary to deal with bytes
+<p><span class="target" id="byte">.byte</span>: <tt class="docutils literal"><span class="pre">Byte</span></tt> is an unsigned integral type corresponding to the
+unit in which most sizes are measured, and also the units of
+<tt class="docutils literal"><span class="pre">sizeof</span></tt>.</p>
+<p><span class="target" id="byte-use">.byte.use</span>: <tt class="docutils literal"><span class="pre">Byte</span></tt> should be used in preference to <tt class="docutils literal"><span class="pre">char</span></tt> or
+<tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">char</span></tt> wherever it is necessary to deal with bytes
 directly.</p>
-<p><span class="target" id="design.mps.type.byte.source"></span><a class="mpstag reference internal" href="#design.mps.type.byte.source">.byte.source:</a> <tt class="docutils literal"><span class="pre">Byte</span></tt> is a just pedagogic version of
-<tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">char</span></tt>, since <tt class="docutils literal"><span class="pre">char</span></tt> is the unit of <tt class="xref c c-func docutils literal"><span class="pre">sizeof()</span></tt>.</p>
+<p><span class="target" id="byte-source">.byte.source</span>: <tt class="docutils literal"><span class="pre">Byte</span></tt> is a just pedagogic version of <tt class="docutils literal"><span class="pre">unsigned</span>
+<span class="pre">char</span></tt>, since <tt class="docutils literal"><span class="pre">char</span></tt> is the unit of <tt class="docutils literal"><span class="pre">sizeof</span></tt>.</p>
 <dl class="type">
 <dt id="Index">
 <tt class="descname">Index</tt><a class="headerlink" href="#Index" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.index"></span><a class="mpstag reference internal" href="#design.mps.type.index">.index:</a> <tt class="docutils literal"><span class="pre">Index</span></tt> is an unsigned integral type which is large
+<p><span class="target" id="index">.index</span>: <tt class="docutils literal"><span class="pre">Index</span></tt> is an unsigned integral type which is large
 enough to hold any array index.</p>
-<p><span class="target" id="design.mps.type.index.use"></span><a class="mpstag reference internal" href="#design.mps.type.index.use">.index.use:</a> <tt class="docutils literal"><span class="pre">Index</span></tt> should be used where the maximum size
-of the array cannot be statically determined. If the maximum size can
-be determined then the smallest unsigned integer with a large enough
+<p><span class="target" id="index-use">.index.use</span>: <tt class="docutils literal"><span class="pre">Index</span></tt> should be used where the maximum size of the
+array cannot be statically determined. If the maximum size can be
+determined then the smallest unsigned integer with a large enough
 range may be used instead.</p>
-<p><span class="target" id="design.mps.type.count"></span><a class="mpstag reference internal" href="#design.mps.type.count">.count:</a> <tt class="docutils literal"><span class="pre">Count</span></tt> is an unsigned integral type which is large
+<p><span class="target" id="count">.count</span>: <tt class="docutils literal"><span class="pre">Count</span></tt> is an unsigned integral type which is large
 enough to hold the size of any collection of objects in the MPS.</p>
-<p><span class="target" id="design.mps.type.count.use"></span><a class="mpstag reference internal" href="#design.mps.type.count.use">.count.use:</a> <tt class="docutils literal"><span class="pre">Count</span></tt> should be used for a number of objects
+<p><span class="target" id="count-use">.count.use</span>: <tt class="docutils literal"><span class="pre">Count</span></tt> should be used for a number of objects
 (control or managed) where the maximum number of objects cannot be
 statically determined. If the maximum number can be statically
 determined then the smallest unsigned integer with a large enough
@@ -258,23 +275,23 @@ than the number of objects. pekka 1998-07-21</p>
 <tt class="descname">Accumulation</tt><a class="headerlink" href="#Accumulation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.accumulation"></span><a class="mpstag reference internal" href="#design.mps.type.accumulation">.accumulation:</a> <tt class="docutils literal"><span class="pre">Accumulation</span></tt> is an arithmetic type which
-is large enough to hold accumulated totals of objects of bytes (for
+<p><span class="target" id="accumulation">.accumulation</span>: <tt class="docutils literal"><span class="pre">Accumulation</span></tt> is an arithmetic type which is
+large enough to hold accumulated totals of objects of bytes (for
 example, total number of objects allocated, total number of bytes
 allocated).</p>
-<p><span class="target" id="design.mps.type.accumulation.type"></span><a class="mpstag reference internal" href="#design.mps.type.accumulation.type">.accumulation.type:</a> Currently it is <tt class="docutils literal"><span class="pre">double</span></tt>, but the
-reason for the interface is so that we can more easily change it if we
-want to (if we decide we need more accuracy for example).</p>
-<p><span class="target" id="design.mps.type.accumulation.use"></span><a class="mpstag reference internal" href="#design.mps.type.accumulation.use">.accumulation.use:</a> Currently the only way to use an
-<tt class="docutils literal"><span class="pre">Accumulation</span></tt> is to reset it (by calling
-<tt class="xref c c-func docutils literal"><span class="pre">AccumulatorReset()</span></tt>) and accumulate amounts into it (by calling
-<tt class="xref c c-func docutils literal"><span class="pre">Accumulate()</span></tt>). There is no way to read it at the moment, but
-that&#8217;s okay, because no one seems to want to.</p>
-<p><span class="target" id="design.mps.type.accumulation.future"></span><a class="mpstag reference internal" href="#design.mps.type.accumulation.future">.accumulation.future:</a> Probably we should have methods which
-return the accumulation into an <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span></tt>, and also a
-<tt class="docutils literal"><span class="pre">double</span></tt>; these functions should return <a class="reference internal" href="#Bool" title="Bool"><tt class="xref c c-type docutils literal"><span class="pre">Bool</span></tt></a> to indicate
-whether the accumulation can fit in the requested type. Possibly we
-could have functions which returned scaled accumulations. For example,
+<p><span class="target" id="accumulation-type">.accumulation.type</span>: Currently it is <tt class="docutils literal"><span class="pre">double</span></tt>, but the reason for
+the interface is so that we can more easily change it if we want to
+(if we decide we need more accuracy for example).</p>
+<p><span class="target" id="accumulation-use">.accumulation.use</span>: Currently the only way to use an
+<tt class="docutils literal"><span class="pre">Accumulation</span></tt> is to reset it (by calling <tt class="docutils literal"><span class="pre">AccumulatorReset</span></tt>) and
+accumulate amounts into it (by calling <tt class="docutils literal"><span class="pre">Accumulate</span></tt>). There is no
+way to read it at the moment, but that&#8217;s okay, because no one seems to
+want to.</p>
+<p><span class="target" id="accumulation-future">.accumulation.future</span>: Probably we should have methods which return
+the accumulation into an <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span></tt>, and also a <tt class="docutils literal"><span class="pre">double</span></tt>;
+these functions should return <tt class="docutils literal"><span class="pre">Bool</span></tt> to indicate whether the
+accumulation can fit in the requested type. Possibly we could have
+functions which returned scaled accumulations. For example,
 <tt class="docutils literal"><span class="pre">AccumulatorScale(a,</span> <span class="pre">d)</span></tt> would divide the <tt class="docutils literal"><span class="pre">Accumulation</span> <span class="pre">a</span></tt> by
 <tt class="docutils literal"><span class="pre">double</span> <span class="pre">d</span></tt> and return the <tt class="docutils literal"><span class="pre">double</span></tt> result if it fitted into a
 <tt class="docutils literal"><span class="pre">double</span></tt>.</p>
@@ -283,92 +300,91 @@ could have functions which returned scaled accumulations. For example,
 <tt class="descname">Addr</tt><a class="headerlink" href="#Addr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.addr"></span><a class="mpstag reference internal" href="#design.mps.type.addr">.addr:</a> <tt class="docutils literal"><span class="pre">Addr</span></tt> is the type used for &#8220;managed addresses&#8221;,
-that is, addresses of objects managed by the MPS.</p>
-<p><span class="target" id="design.mps.type.addr.def"></span><a class="mpstag reference internal" href="#design.mps.type.addr.def">.addr.def:</a> <tt class="docutils literal"><span class="pre">Addr</span></tt> is defined as <tt class="docutils literal"><span class="pre">struct</span> <span class="pre">AddrStruct</span> <span class="pre">*</span></tt>,
-but <tt class="docutils literal"><span class="pre">AddrStruct</span></tt> is never defined. This means that <tt class="docutils literal"><span class="pre">Addr</span></tt> is
-always an incomplete type, which prevents accidental dereferencing,
-arithmetic, or assignment to other pointer types.</p>
-<p><span class="target" id="design.mps.type.addr.use"></span><a class="mpstag reference internal" href="#design.mps.type.addr.use">.addr.use:</a> <tt class="docutils literal"><span class="pre">Addr</span></tt> should be used whenever the code needs to
-deal with addresses. It should not be used for the addresses of memory
+<p><span class="target" id="addr">.addr</span>: <tt class="docutils literal"><span class="pre">Addr</span></tt> is the type used for &#8220;managed addresses&#8221;, that is,
+addresses of objects managed by the MPS.</p>
+<p><span class="target" id="addr-def">.addr.def</span>: <tt class="docutils literal"><span class="pre">Addr</span></tt> is defined as <tt class="docutils literal"><span class="pre">struct</span> <span class="pre">AddrStruct</span> <span class="pre">*</span></tt>, but
+<tt class="docutils literal"><span class="pre">AddrStruct</span></tt> is never defined. This means that <tt class="docutils literal"><span class="pre">Addr</span></tt> is always an
+incomplete type, which prevents accidental dereferencing, arithmetic,
+or assignment to other pointer types.</p>
+<p><span class="target" id="addr-use">.addr.use</span>: <tt class="docutils literal"><span class="pre">Addr</span></tt> should be used whenever the code needs to deal
+with addresses. It should not be used for the addresses of memory
 manager data structures themselves, so that the memory manager remains
 amenable to working in a separate address space. Be careful not to
 confuse <tt class="docutils literal"><span class="pre">Addr</span></tt> with <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>.</p>
-<p><span class="target" id="design.mps.type.addr.ops"></span><a class="mpstag reference internal" href="#design.mps.type.addr.ops">.addr.ops:</a> Limited arithmetic is allowed on addresses using
-<tt class="xref c c-func docutils literal"><span class="pre">AddrAdd()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">AddrOffset()</span></tt> (impl.c.mpm).
-Addresses may also be compared using the relational operators <tt class="docutils literal"><span class="pre">==</span></tt>,
-<tt class="docutils literal"><span class="pre">!=</span></tt>, <tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&lt;=</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, and <tt class="docutils literal"><span class="pre">&gt;=</span></tt>.</p>
-<p><span class="target" id="design.mps.type.addr.ops.mem"></span><a class="mpstag reference internal" href="#design.mps.type.addr.ops.mem">.addr.ops.mem:</a> We need efficient operators similar to
-<tt class="xref c c-func docutils literal"><span class="pre">memset()</span></tt>, <tt class="xref c c-func docutils literal"><span class="pre">memcpy()</span></tt>, and <tt class="xref c c-func docutils literal"><span class="pre">memcmp()</span></tt> on <tt class="docutils literal"><span class="pre">Addr</span></tt>;
-these are called <tt class="xref c c-func docutils literal"><span class="pre">AddrSet()</span></tt>, <tt class="xref c c-func docutils literal"><span class="pre">AddrCopy()</span></tt>, and
-<tt class="xref c c-func docutils literal"><span class="pre">AddrComp()</span></tt>. When <tt class="docutils literal"><span class="pre">Addr</span></tt> is compatible with <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, these
-are implemented through the functions <a class="reference internal" href="../topic/plinth.html#mps_lib_memset" title="mps_lib_memset"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_memset()</span></tt></a>,
-<a class="reference internal" href="../topic/plinth.html#mps_lib_memcpy" title="mps_lib_memcpy"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_memcpy()</span></tt></a>, and <a class="reference internal" href="../topic/plinth.html#mps_lib_memcmp" title="mps_lib_memcmp"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_memcmp()</span></tt></a> functions in
-the plinth (impl.h.mpm).</p>
+<p><span class="target" id="addr-ops">.addr.ops</span>: Limited arithmetic is allowed on addresses using
+<tt class="docutils literal"><span class="pre">AddrAdd</span></tt> and <tt class="docutils literal"><span class="pre">AddrOffset</span></tt> (impl.c.mpm). Addresses may also be
+compared using the relational operators <tt class="docutils literal"><span class="pre">==</span></tt>, <tt class="docutils literal"><span class="pre">!=</span></tt>, <tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&lt;=</span></tt>,
+<tt class="docutils literal"><span class="pre">&gt;</span></tt>, and <tt class="docutils literal"><span class="pre">&gt;=</span></tt>.</p>
+<p><span class="target" id="addr-ops-mem">.addr.ops.mem</span>: We need efficient operators similar to <tt class="docutils literal"><span class="pre">memset</span></tt>,
+<tt class="docutils literal"><span class="pre">memcpy</span></tt>, and <tt class="docutils literal"><span class="pre">memcmp</span></tt> on <tt class="docutils literal"><span class="pre">Addr</span></tt>; these are called <tt class="docutils literal"><span class="pre">AddrSet</span></tt>,
+<tt class="docutils literal"><span class="pre">AddrCopy</span></tt>, and <tt class="docutils literal"><span class="pre">AddrComp</span></tt>. When <tt class="docutils literal"><span class="pre">Addr</span></tt> is compatible with
+<tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, these are implemented through the functions
+<tt class="docutils literal"><span class="pre">mps_lib_memset</span></tt>, <tt class="docutils literal"><span class="pre">mps_lib_memcpy</span></tt>, and <tt class="docutils literal"><span class="pre">mps_lib_memcmp</span></tt>
+functions in the plinth (impl.h.mpm).</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">No other implementation exists at present. pekka 1998-09-07</p>
 </div>
-<p><span class="target" id="design.mps.type.addr.conv.c"></span><a class="mpstag reference internal" href="#design.mps.type.addr.conv.c">.addr.conv.c:</a> <tt class="docutils literal"><span class="pre">Addr</span></tt> is converted to <a class="reference internal" href="../topic/interface.html#mps_addr_t" title="mps_addr_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_addr_t</span></tt></a>
-in the MPS C Interface. <a class="reference internal" href="../topic/interface.html#mps_addr_t" title="mps_addr_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_addr_t</span></tt></a> is defined to be the same
-as <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, so using the MPS C Interface confines the memory
-manager to the same address space as the client data.</p>
+<p><span class="target" id="addr-conv-c">.addr.conv.c</span>: <tt class="docutils literal"><span class="pre">Addr</span></tt> is converted to <tt class="docutils literal"><span class="pre">mps_addr_t</span></tt> in the MPS C
+Interface. <tt class="docutils literal"><span class="pre">mps_addr_t</span></tt> is defined to be the same as <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, so
+using the MPS C Interface confines the memory manager to the same
+address space as the client data.</p>
 <dl class="type">
 <dt id="Size">
 <tt class="descname">Size</tt><a class="headerlink" href="#Size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.size"></span><a class="mpstag reference internal" href="#design.mps.type.size">.size:</a> <tt class="docutils literal"><span class="pre">Size</span></tt> is an unsigned integral type large enough to
+<p><span class="target" id="size">.size</span>: <tt class="docutils literal"><span class="pre">Size</span></tt> is an unsigned integral type large enough to
 hold the size of any object which the MPS might manage.</p>
-<p><span class="target" id="design.mps.type.size.byte"></span><a class="mpstag reference internal" href="#design.mps.type.size.byte">.size.byte:</a> <tt class="docutils literal"><span class="pre">Size</span></tt> should hold a size calculated in bytes.</p>
+<p><span class="target" id="size-byte">.size.byte</span>: <tt class="docutils literal"><span class="pre">Size</span></tt> should hold a size calculated in bytes.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">This may not be true for all existing code.</p>
 </div>
-<p><span class="target" id="design.mps.type.size.use"></span><a class="mpstag reference internal" href="#design.mps.type.size.use">.size.use:</a> <tt class="docutils literal"><span class="pre">Size</span></tt> should be used whenever the code needs to
-deal with the size of managed memory or client objects. It should not
-be used for the sizes of the memory manager&#8217;s own data structures, so
+<p><span class="target" id="size-use">.size.use</span>: <tt class="docutils literal"><span class="pre">Size</span></tt> should be used whenever the code needs to deal
+with the size of managed memory or client objects. It should not be
+used for the sizes of the memory manager&#8217;s own data structures, so
 that the memory manager is amenable to working in a separate address
 space. Be careful not to confuse it with <tt class="docutils literal"><span class="pre">size_t</span></tt>.</p>
-<p><span class="target" id="design.mps.type.size.ops"></span><a class="mpstag reference internal" href="#design.mps.type.size.ops">.size.ops:</a> [Size operations?]</p>
-<p><span class="target" id="design.mps.type.size.conv.c"></span><a class="mpstag reference internal" href="#design.mps.type.size.conv.c">.size.conv.c:</a> <tt class="docutils literal"><span class="pre">Size</span></tt> is converted to <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt> in
-the MPS C Interface. This constrains the memory manager to the same
-address space as the client data.</p>
+<p><span class="target" id="size-ops">.size.ops</span>: [Size operations?]</p>
+<p><span class="target" id="size-conv-c">.size.conv.c</span>: <tt class="docutils literal"><span class="pre">Size</span></tt> is converted to <tt class="docutils literal"><span class="pre">size_t</span></tt> in the MPS C
+Interface. This constrains the memory manager to the same address
+space as the client data.</p>
 <dl class="type">
 <dt id="Align">
 <tt class="descname">Align</tt><a class="headerlink" href="#Align" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.align"></span><a class="mpstag reference internal" href="#design.mps.type.align">.align:</a> <tt class="docutils literal"><span class="pre">Align</span></tt> is an unsigned integral type which is used
-to represent the alignment of managed addresses. All alignments are
+<p><span class="target" id="align">.align</span>: <tt class="docutils literal"><span class="pre">Align</span></tt> is an unsigned integral type which is used to
+represent the alignment of managed addresses. All alignments are
 positive powers of two. <tt class="docutils literal"><span class="pre">Align</span></tt> is large enough to hold the maximum
 possible alignment.</p>
-<p><span class="target" id="design.mps.type.align.use"></span><a class="mpstag reference internal" href="#design.mps.type.align.use">.align.use:</a> <tt class="docutils literal"><span class="pre">Align</span></tt> should be used whenever the code needs
-to deal with the alignment of a managed address.</p>
-<p><span class="target" id="design.mps.type.align.conv.c"></span><a class="mpstag reference internal" href="#design.mps.type.align.conv.c">.align.conv.c:</a> <tt class="docutils literal"><span class="pre">Align</span></tt> is converted to
-<a class="reference internal" href="../topic/interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a> in the MPS C Interface.</p>
+<p><span class="target" id="align-use">.align.use</span>: <tt class="docutils literal"><span class="pre">Align</span></tt> should be used whenever the code needs to
+deal with the alignment of a managed address.</p>
+<p><span class="target" id="align-conv-c">.align.conv.c</span>: <tt class="docutils literal"><span class="pre">Align</span></tt> is converted to <tt class="docutils literal"><span class="pre">mps_align_t</span></tt> in the MPS
+C Interface.</p>
 <dl class="type">
 <dt id="Shift">
 <tt class="descname">Shift</tt><a class="headerlink" href="#Shift" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.shift"></span><a class="mpstag reference internal" href="#design.mps.type.shift">.shift:</a> <tt class="docutils literal"><span class="pre">Shift</span></tt> is an unsigned integral type which can hold
-the amount by which a <a class="reference internal" href="#Word" title="Word"><tt class="xref c c-type docutils literal"><span class="pre">Word</span></tt></a> can be shifted. It is therefore
-large enough to hold the word width (in bits).</p>
-<p><span class="target" id="design.mps.type.shift.use"></span><a class="mpstag reference internal" href="#design.mps.type.shift.use">.shift.use:</a> <tt class="docutils literal"><span class="pre">Shift</span></tt> should be used whenever a shift value
-(the right-hand operand of the <tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt> or <tt class="docutils literal"><span class="pre">&gt;&gt;</span></tt> operators) is
-intended, to make the code clear. It should also be used for structure
-fields which have this use.</p>
-<p><span class="target" id="design.mps.type.shift.conv.c"></span><a class="mpstag reference internal" href="#design.mps.type.shift.conv.c">.shift.conv.c:</a> <tt class="docutils literal"><span class="pre">Shift</span></tt> is converted to
-<tt class="xref c c-type docutils literal"><span class="pre">mps_shift_t</span></tt> in the MPS C Interface.</p>
+<p><span class="target" id="shift">.shift</span>: <tt class="docutils literal"><span class="pre">Shift</span></tt> is an unsigned integral type which can hold the
+amount by which a <tt class="docutils literal"><span class="pre">Word</span></tt> can be shifted. It is therefore large
+enough to hold the word width (in bits).</p>
+<p><span class="target" id="shift-use">.shift.use</span>: <tt class="docutils literal"><span class="pre">Shift</span></tt> should be used whenever a shift value (the
+right-hand operand of the <tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt> or <tt class="docutils literal"><span class="pre">&gt;&gt;</span></tt> operators) is intended, to
+make the code clear. It should also be used for structure fields which
+have this use.</p>
+<p><span class="target" id="shift-conv-c">.shift.conv.c</span>: <tt class="docutils literal"><span class="pre">Shift</span></tt> is converted to <tt class="docutils literal"><span class="pre">mps_shift_t</span></tt> in the MPS
+C Interface.</p>
 <dl class="type">
 <dt id="Ref">
 <tt class="descname">Ref</tt><a class="headerlink" href="#Ref" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.ref"></span><a class="mpstag reference internal" href="#design.mps.type.ref">.ref:</a> <tt class="docutils literal"><span class="pre">Ref</span></tt> is a reference to a managed object (as opposed
-to any old managed address). <tt class="docutils literal"><span class="pre">Ref</span></tt> should be used where a reference
-is intended.</p>
+<p><span class="target" id="ref">.ref</span>: <tt class="docutils literal"><span class="pre">Ref</span></tt> is a reference to a managed object (as opposed to any
+old managed address). <tt class="docutils literal"><span class="pre">Ref</span></tt> should be used where a reference is
+intended.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">This isn&#8217;t too clear &#8211; richard</p>
@@ -378,15 +394,15 @@ is intended.</p>
 <tt class="descname">RefSet</tt><a class="headerlink" href="#RefSet" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.refset"></span><a class="mpstag reference internal" href="#design.mps.type.refset">.refset:</a> <tt class="docutils literal"><span class="pre">RefSet</span></tt> is a conservative approximation to a set
-of references. See design.mps.refset.</p>
+<p><span class="target" id="refset">.refset</span>: <tt class="docutils literal"><span class="pre">RefSet</span></tt> is a conservative approximation to a set of
+references. See design.mps.refset.</p>
 <dl class="type">
 <dt id="Rank">
 <tt class="descname">Rank</tt><a class="headerlink" href="#Rank" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.rank"></span><a class="mpstag reference internal" href="#design.mps.type.rank">.rank:</a> <tt class="docutils literal"><span class="pre">Rank</span></tt> is an enumeration which represents the rank
-of a reference. The ranks are:</p>
+<p><span class="target" id="rank">.rank</span>: <tt class="docutils literal"><span class="pre">Rank</span></tt> is an enumeration which represents the rank of a
+reference. The ranks are:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="18%" />
@@ -424,7 +440,7 @@ if only weak references remain to the object.</td>
 </tbody>
 </table>
 <p><tt class="docutils literal"><span class="pre">Rank</span></tt> is stored with segments and roots, and passed around.</p>
-<p><tt class="docutils literal"><span class="pre">Rank</span></tt> is converted to <a class="reference internal" href="../topic/root.html#mps_rank_t" title="mps_rank_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_rank_t</span></tt></a> in the MPS C Interface.</p>
+<p><tt class="docutils literal"><span class="pre">Rank</span></tt> is converted to <tt class="docutils literal"><span class="pre">mps_rank_t</span></tt> in the MPS C Interface.</p>
 <p>The ordering of the ranks is important. It is the order in which the
 references must be scanned in order to respect the properties of
 references of the ranks. Therefore they are declared explicitly with
@@ -443,26 +459,26 @@ document, then referenced from the implementation more thoroughly.</p>
 <tt class="descname">Epoch</tt><a class="headerlink" href="#Epoch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.epoch"></span><a class="mpstag reference internal" href="#design.mps.type.epoch">.epoch:</a> An <tt class="docutils literal"><span class="pre">Epoch</span></tt> is a count of the number of flips that
-the mutator have occurred. [Is it more general than that?] It is used
-in the implementation of location dependencies.</p>
-<p><tt class="docutils literal"><span class="pre">Epoch</span></tt> is converted to <a class="reference internal" href="../topic/interface.html#mps_word_t" title="mps_word_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_word_t</span></tt></a> in the MPS C Interface,
-as a field of <a class="reference internal" href="../topic/location.html#mps_ld_s" title="mps_ld_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_ld_s</span></tt></a>.</p>
+<p><span class="target" id="epoch">.epoch</span>: An <tt class="docutils literal"><span class="pre">Epoch</span></tt> is a count of the number of flips that the
+mutator have occurred. [Is it more general than that?] It is used in
+the implementation of location dependencies.</p>
+<p><tt class="docutils literal"><span class="pre">Epoch</span></tt> is converted to <tt class="docutils literal"><span class="pre">mps_word_t</span></tt> in the MPS C Interface, as a
+field of <tt class="docutils literal"><span class="pre">mps_ld_s</span></tt>.</p>
 <dl class="type">
 <dt id="TraceId">
 <tt class="descname">TraceId</tt><a class="headerlink" href="#TraceId" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.traceid"></span><a class="mpstag reference internal" href="#design.mps.type.traceid">.traceid:</a> A <tt class="docutils literal"><span class="pre">TraceId</span></tt> is an unsigned integer which is less
-than <tt class="docutils literal"><span class="pre">TRACE_MAX</span></tt>. Each running trace has a different <tt class="docutils literal"><span class="pre">TraceId</span></tt>
-which is used to index into tables and bitfields used to remember the
-state of that trace.</p>
+<p><span class="target" id="traceid">.traceid</span>: A <tt class="docutils literal"><span class="pre">TraceId</span></tt> is an unsigned integer which is less than
+<tt class="docutils literal"><span class="pre">TRACE_MAX</span></tt>. Each running trace has a different <tt class="docutils literal"><span class="pre">TraceId</span></tt> which is
+used to index into tables and bitfields used to remember the state of
+that trace.</p>
 <dl class="type">
 <dt id="TraceSet">
 <tt class="descname">TraceSet</tt><a class="headerlink" href="#TraceSet" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.traceset"></span><a class="mpstag reference internal" href="#design.mps.type.traceset">.traceset:</a> A <tt class="docutils literal"><span class="pre">TraceSet</span></tt> is a bitset of <a class="reference internal" href="#TraceId" title="TraceId"><tt class="xref c c-type docutils literal"><span class="pre">TraceId</span></tt></a>,
+<p><span class="target" id="traceset">.traceset</span>: A <tt class="docutils literal"><span class="pre">TraceSet</span></tt> is a bitset of <tt class="docutils literal"><span class="pre">TraceId</span></tt>,
 represented in the obvious way:</p>
 <div class="highlight-c"><pre>member(ti, ts) ⇔ ((1&lt;&lt;ti) &amp; ts) != 0</pre>
 </div>
@@ -476,7 +492,7 @@ represented in the obvious way:</p>
 <tt class="descname">AccessSet</tt><a class="headerlink" href="#AccessSet" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.access-set"></span><a class="mpstag reference internal" href="#design.mps.type.access-set">.access-set:</a> An <tt class="docutils literal"><span class="pre">AccessSet</span></tt> is a bitset of <tt class="xref c c-type docutils literal"><span class="pre">Access</span></tt>
+<p><span class="target" id="access-set">.access-set</span>: An <tt class="docutils literal"><span class="pre">AccessSet</span></tt> is a bitset of <tt class="docutils literal"><span class="pre">Access</span></tt>
 modes, which are <tt class="docutils literal"><span class="pre">AccessREAD</span></tt> and <tt class="docutils literal"><span class="pre">AccessWRITE</span></tt>. <tt class="docutils literal"><span class="pre">AccessNONE</span></tt> is
 the empty <tt class="docutils literal"><span class="pre">AccessSet</span></tt>.</p>
 <dl class="type">
@@ -484,7 +500,7 @@ the empty <tt class="docutils literal"><span class="pre">AccessSet</span></tt>.<
 <tt class="descname">Attr</tt><a class="headerlink" href="#Attr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.attr"></span><a class="mpstag reference internal" href="#design.mps.type.attr">.attr:</a> Pool attributes. A bitset of pool or pool class
+<p><span class="target" id="attr">.attr</span>: Pool attributes. A bitset of pool or pool class
 attributes, which are:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -510,10 +526,10 @@ attributes, which are:</p>
 <td>May not be write protected.</td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">AttrALLOC</span></tt></td>
-<td>Supports the <tt class="xref c c-func docutils literal"><span class="pre">PoolAlloc()</span></tt> interface.</td>
+<td>Supports the <tt class="docutils literal"><span class="pre">PoolAlloc</span></tt> interface.</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">AttrFREE</span></tt></td>
-<td>Supports the <tt class="xref c c-func docutils literal"><span class="pre">PoolFree()</span></tt> interface.</td>
+<td>Supports the <tt class="docutils literal"><span class="pre">PoolFree</span></tt> interface.</td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">AttrBUF</span></tt></td>
 <td>Supports the allocation buffer interface.</td>
@@ -548,28 +564,29 @@ checking &#8211; drj 1998-05-07</p>
 <tt class="descname">RootVar</tt><a class="headerlink" href="#RootVar" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.rootvar"></span><a class="mpstag reference internal" href="#design.mps.type.rootvar">.rootvar:</a> The type <tt class="docutils literal"><span class="pre">RootVar</span></tt> is the type of the
+<p><span class="target" id="rootvar">.rootvar</span>: The type <tt class="docutils literal"><span class="pre">RootVar</span></tt> is the type of the
 discriminator for the union within <tt class="docutils literal"><span class="pre">RootStruct</span></tt>.</p>
 <dl class="type">
 <dt id="Serial">
 <tt class="descname">Serial</tt><a class="headerlink" href="#Serial" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.serial"></span><a class="mpstag reference internal" href="#design.mps.type.serial">.serial:</a> A <tt class="docutils literal"><span class="pre">Serial</span></tt> is a number which is assigned to a
-structure when it is initialized. The serial number is taken from a
-field in the parent structure, which is incremented. Thus, every
-instance of a structure has a unique &#8220;name&#8221; which is a path of
-structures from the global root. For example:</p>
+<p><span class="target" id="serial">.serial</span>: A <tt class="docutils literal"><span class="pre">Serial</span></tt> is a number which is assigned to a structure
+when it is initialized. The serial number is taken from a field in the
+parent structure, which is incremented. Thus, every instance of a
+structure has a unique &#8220;name&#8221; which is a path of structures from the
+global root. For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">space</span><span class="p">[</span><span class="mi">3</span><span class="p">].</span><span class="n">pool</span><span class="p">[</span><span class="mi">5</span><span class="p">].</span><span class="n">buffer</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Why? Consistency checking, debugging, and logging. Not well thought out.</p>
+<p>Why? Consistency checking, debugging, and logging. Not well thought
+out.</p>
 <dl class="type">
 <dt id="Compare">
 <tt class="descname">Compare</tt><a class="headerlink" href="#Compare" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.compare"></span><a class="mpstag reference internal" href="#design.mps.type.compare">.compare:</a> <tt class="docutils literal"><span class="pre">Compare</span></tt> is the type of tri-state comparison
+<p><span class="target" id="compare">.compare</span>: <tt class="docutils literal"><span class="pre">Compare</span></tt> is the type of tri-state comparison
 values.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -598,33 +615,77 @@ values.</p>
 <tt class="descname">ULongest</tt><a class="headerlink" href="#ULongest" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.ulongest"></span><a class="mpstag reference internal" href="#design.mps.type.ulongest">.ulongest:</a> <tt class="docutils literal"><span class="pre">ULongest</span></tt> is the longest unsigned integer on
-the platform. (We used to use <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span></tt> but this assumption is
+<p><span class="target" id="ulongest">.ulongest</span>: <tt class="docutils literal"><span class="pre">ULongest</span></tt> is the longest unsigned integer on the
+platform. (We used to use <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">long</span></tt> but this assumption is
 violated by 64-bit Windows.) This type should be used for calculations
 where any integer might be passed. Notably, it is used in <tt class="docutils literal"><span class="pre">WriteF</span></tt>
 to print any integer.</p>
 </div>
 <div class="section" id="abstract-types">
-<h2>17.4. Abstract types<a class="headerlink" href="#abstract-types" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design.mps.type.adts"></span><a class="mpstag reference internal" href="#design.mps.type.adts">.adts:</a> The following types are abstract data types,
-implemented as pointers to structures. For example, <tt class="xref c c-type docutils literal"><span class="pre">Ring</span></tt> is
-a pointer to a <tt class="xref c c-type docutils literal"><span class="pre">RingStruct</span></tt>. They are described elsewhere</p>
+<h2>13.4. Abstract types<a class="headerlink" href="#abstract-types" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="adts">.adts</span>: The following types are abstract data types, implemented as
+pointers to structures. For example, <tt class="docutils literal"><span class="pre">Ring</span></tt> is a pointer to a
+<tt class="docutils literal"><span class="pre">RingStruct</span></tt>. They are described elsewhere</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">where?</p>
 </div>
-<p><tt class="xref c c-type docutils literal"><span class="pre">Ring</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Buffer</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">AP</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Format</span></tt>,
-<tt class="xref c c-type docutils literal"><span class="pre">LD</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Lock</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Pool</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Space</span></tt>,
-<tt class="xref c c-type docutils literal"><span class="pre">PoolClass</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Trace</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">ScanState</span></tt>,
-<tt class="xref c c-type docutils literal"><span class="pre">Seg</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Arena</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">VM</span></tt>, <tt class="xref c c-type docutils literal"><span class="pre">Root</span></tt>,
-<tt class="xref c c-type docutils literal"><span class="pre">Thread</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">Ring</span></tt>, <tt class="docutils literal"><span class="pre">Buffer</span></tt>, <tt class="docutils literal"><span class="pre">AP</span></tt>, <tt class="docutils literal"><span class="pre">Format</span></tt>, <tt class="docutils literal"><span class="pre">LD</span></tt>, <tt class="docutils literal"><span class="pre">Lock</span></tt>, <tt class="docutils literal"><span class="pre">Pool</span></tt>,
+<tt class="docutils literal"><span class="pre">Space</span></tt>, <tt class="docutils literal"><span class="pre">PoolClass</span></tt>, <tt class="docutils literal"><span class="pre">Trace</span></tt>, <tt class="docutils literal"><span class="pre">ScanState</span></tt>, <tt class="docutils literal"><span class="pre">Seg</span></tt>,
+<tt class="docutils literal"><span class="pre">Arena</span></tt>, <tt class="docutils literal"><span class="pre">VM</span></tt>, <tt class="docutils literal"><span class="pre">Root</span></tt>, <tt class="docutils literal"><span class="pre">Thread</span></tt>.</p>
 <dl class="type">
 <dt id="Pointer">
 <tt class="descname">Pointer</tt><a class="headerlink" href="#Pointer" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="design.mps.type.pointer"></span><a class="mpstag reference internal" href="#design.mps.type.pointer">.pointer:</a> The type <tt class="docutils literal"><span class="pre">Pointer</span></tt> is the same as <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, and
-exists to sanctify functions such as <tt class="xref c c-func docutils literal"><span class="pre">PointerAdd()</span></tt>.</p>
+<p><span class="target" id="pointer">.pointer</span>: The type <tt class="docutils literal"><span class="pre">Pointer</span></tt> is the same as <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, and
+exists to sanctify functions such as <tt class="docutils literal"><span class="pre">PointerAdd</span></tt>.</p>
+</div>
+<div class="section" id="document-history">
+<h2>13.5. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>1996-10-23 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Incomplete document.</li>
+<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
+<li>2013-03-12 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
+</ul>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>13.6. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ol class="arabic simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</li>
+</ol>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -639,21 +700,23 @@ exists to sanctify functions such as <tt class="xref c c-func docutils literal">
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">17. General MPS types</a><ul>
-<li><a class="reference internal" href="#introduction">17.1. Introduction</a></li>
-<li><a class="reference internal" href="#rationale">17.2. Rationale</a></li>
-<li><a class="reference internal" href="#concrete-types">17.3. Concrete types</a></li>
-<li><a class="reference internal" href="#abstract-types">17.4. Abstract types</a></li>
+<li><a class="reference internal" href="#">13. General MPS types</a><ul>
+<li><a class="reference internal" href="#introduction">13.1. Introduction</a></li>
+<li><a class="reference internal" href="#rationale">13.2. Rationale</a></li>
+<li><a class="reference internal" href="#concrete-types">13.3. Concrete types</a></li>
+<li><a class="reference internal" href="#abstract-types">13.4. Abstract types</a></li>
+<li><a class="reference internal" href="#document-history">13.5. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">13.6. Copyright and License</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="protocol.html"
-                        title="previous chapter">16. Protocol inheritance</a></p>
+                        title="previous chapter">12. Protocol inheritance</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="version.html"
-                        title="next chapter">18. Software versions</a></p><h4>Downloads</h4>
+                        title="next chapter">14. Software versions</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -679,13 +742,13 @@ exists to sanctify functions such as <tt class="xref c c-func docutils literal">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="version.html" title="18. Software versions"
+          <a href="version.html" title="14. Software versions"
              >next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="16. Protocol inheritance"
+          <a href="protocol.html" title="12. Protocol inheritance"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" >Design</a> &raquo;</li> 
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
-    <link rel="up" title="Design" href="index.html" />
+    <link rel="up" title="Old design" href="old.html" />
     <link rel="next" title="6. Collection framework" href="collection.html" />
     <link rel="prev" title="4. Checking" href="check.html" /> 
   </head>
@@ -45,7 +45,7 @@
           <a href="check.html" title="4. Checking"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,68 +54,72 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="pool-class-interface">
-<span id="design.mps.class-interface"></span><h1>5. Pool class interface<a class="headerlink" href="#pool-class-interface" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-class-interface"><span id="index-0"></span></span><div class="section" id="pool-class-interface">
+<h1>5. Pool class interface<a class="headerlink" href="#pool-class-interface" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.class-interface</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1997-08-19</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/class-interface.txt#1 $</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
 <div class="section" id="introduction">
 <h2>5.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>This document describes the interface and protocols between the MPM
-and the pool class implementations. [This document should be merged
-into design.mps.pool. pekka 1999-07-20]</p>
-</div>
-<div class="section" id="document-history">
-<h2>5.2. Document history<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design.mps.class-interface.hist.1"></span><a class="mpstag reference internal" href="#design.mps.class-interface.hist.1">.hist.1:</a> Richard Brooksby started it. David Jones added
-comments about how accurate this document is at 1997-08-19.</p>
-<p><span class="target" id="design.mps.class-interface.hist.2"></span><a class="mpstag reference internal" href="#design.mps.class-interface.hist.2">.hist.2:</a> Converted from MMInfo database design document.
-Richard Brooksby, 2002-06-07.</p>
-<p><span class="target" id="design.mps.class-interface.hist.3"></span><a class="mpstag reference internal" href="#design.mps.class-interface.hist.3">.hist.3:</a> Converted to reStructuredText. Gareth Rees,
-2013-03-12.</p>
-</div>
-<div class="section" id="architecture">
-<h2>5.3. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="intro">.intro</span>: This document describes the interface and protocols between
+the MPM and the pool class implementations. [This document should be
+merged into design.mps.pool. pekka 1999-07-20]</p>
 </div>
 <div class="section" id="methods">
-<h2>5.4. Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design.mps.class-interface.methods"></span><a class="mpstag reference internal" href="#design.mps.class-interface.methods">.methods:</a> These methods are provided by pool classes as part
-of the <tt class="xref c c-type docutils literal"><span class="pre">PoolClass</span></tt> object (see impl.h.mpmst.class).
-They form the interface which allows the MPM to treat pools in a
-uniform manner.</p>
+<h2>5.2. Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="id1">.methods</span>: These methods are provided by pool classes as part of the
+<tt class="docutils literal"><span class="pre">PoolClass</span></tt> object (see impl.h.mpmst.class). They form the interface
+which allows the MPM to treat pools in a uniform manner.</p>
 <p>The following description is based on the definition of the
-<tt class="xref c c-type docutils literal"><span class="pre">PoolClassStruct</span></tt> (impl.h.mpmst.class).</p>
+<tt class="docutils literal"><span class="pre">PoolClassStruct</span></tt> (impl.h.mpmst.class).</p>
 <p>If a class is not required to provide a certain method then it should
 set the appropriate <tt class="docutils literal"><span class="pre">PoolNo*</span></tt> method for that method. It is not
 acceptable to use <tt class="docutils literal"><span class="pre">NULL</span></tt>. [there are also some <tt class="docutils literal"><span class="pre">PoolTriv*</span></tt> methods
 &#8211; drj 1997-08-19]</p>
-<p><span class="target" id="design.mps.class-interface.method.name"></span><a class="mpstag reference internal" href="#design.mps.class-interface.method.name">.method.name:</a> The name field should be a short, pithy,
-cryptic name for the pool class. Examples are &#8220;AMC&#8221;, &#8220;MV&#8221;.</p>
+<p><span class="target" id="method-name">.method.name</span>: The name field should be a short, pithy, cryptic name
+for the pool class. Examples are &#8220;AMC&#8221;, &#8220;MV&#8221;.</p>
 <p>The <tt class="docutils literal"><span class="pre">size</span></tt> field is the size of the pool instance structure. For the
-<tt class="docutils literal"><span class="pre">Foo</span></tt> <tt class="xref c c-type docutils literal"><span class="pre">PoolClass</span></tt> this can reasonably be expected to be
+<tt class="docutils literal"><span class="pre">Foo</span></tt> <tt class="docutils literal"><span class="pre">PoolClass</span></tt> this can reasonably be expected to be
 <tt class="docutils literal"><span class="pre">sizeof(FooStruct)</span></tt>.</p>
 <p>The <tt class="docutils literal"><span class="pre">offset</span></tt> field is the offset into the pool instance structure of
-the generic <tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</span></tt>. Typically this field is called
+the generic <tt class="docutils literal"><span class="pre">PoolStruct</span></tt>. Typically this field is called
 <tt class="docutils literal"><span class="pre">poolStruct</span></tt>, so something like <tt class="docutils literal"><span class="pre">offsetof(FooStruct,</span> <span class="pre">poolStruct)</span></tt>
 is typical. If possible, arrange for this to be zero.</p>
 <p>The <tt class="docutils literal"><span class="pre">init</span></tt> field is the class&#8217;s init method. This method is called
-via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolInit()</span></tt>, which is in turn called
-by <tt class="xref c c-func docutils literal"><span class="pre">PoolCreate()</span></tt>. The generic function allocates the pool&#8217;s
-structure (using the size and offset information), initializes the
-<tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</span></tt> (generic part) then calls the <tt class="docutils literal"><span class="pre">init</span></tt> method to
-do any class-specific initialization. Typically this means
-initializing the fields in the class instance structure. If <tt class="docutils literal"><span class="pre">init</span></tt>
-returns a non-OK result code the instance structure will be
-deallocated and the code returned to the caller of <tt class="xref c c-func docutils literal"><span class="pre">PoolInit`()</span></tt>
-or <tt class="xref c c-func docutils literal"><span class="pre">PoolCreate()</span></tt>. Note that the <tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</span></tt> isn&#8217;t made
-fully valid until <tt class="xref c c-func docutils literal"><span class="pre">PoolInit()</span></tt> returns.</p>
+via the generic function <tt class="docutils literal"><span class="pre">PoolInit</span></tt>, which is in turn called by
+<tt class="docutils literal"><span class="pre">PoolCreate</span></tt>. The generic function allocates the pool&#8217;s structure
+(using the size and offset information), initializes the
+<tt class="docutils literal"><span class="pre">PoolStruct</span></tt> (generic part) then calls the <tt class="docutils literal"><span class="pre">init</span></tt> method to do any
+class-specific initialization. Typically this means initializing the
+fields in the class instance structure. If <tt class="docutils literal"><span class="pre">init</span></tt> returns a non-OK
+result code the instance structure will be deallocated and the code
+returned to the caller of <tt class="docutils literal"><span class="pre">PoolInit`</span></tt> or <tt class="docutils literal"><span class="pre">PoolCreate</span></tt>. Note that
+the <tt class="docutils literal"><span class="pre">PoolStruct</span></tt> isn&#8217;t made fully valid until <tt class="docutils literal"><span class="pre">PoolInit</span></tt> returns.</p>
 <p>The <tt class="docutils literal"><span class="pre">finish</span></tt> field is the class&#8217;s finish method. This method is
-called via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolFinish()</span></tt>, which is in turn
-called by <tt class="xref c c-func docutils literal"><span class="pre">PoolDestroy()</span></tt>. It is expected to finalise the pool
+called via the generic function <tt class="docutils literal"><span class="pre">PoolFinish</span></tt>, which is in turn
+called by <tt class="docutils literal"><span class="pre">PoolDestroy</span></tt>. It is expected to finalise the pool
 instance structure and release any resources allocated to the pool, it
 is expected to release the memory associated with the pool instance
 structure. Note that the pool is valid when it is passed to
-<tt class="docutils literal"><span class="pre">finish</span></tt>. The <tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</span></tt> (generic part) is finished off
-when the class&#8217;s <tt class="docutils literal"><span class="pre">finish</span></tt> method returns.</p>
+<tt class="docutils literal"><span class="pre">finish</span></tt>. The <tt class="docutils literal"><span class="pre">PoolStruct</span></tt> (generic part) is finished off when the
+class&#8217;s <tt class="docutils literal"><span class="pre">finish</span></tt> method returns.</p>
 <p>The <tt class="docutils literal"><span class="pre">alloc</span></tt> field is the class&#8217;s allocation method. This method is
-called via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolAlloc()</span></tt>. It is expected to
+called via the generic function <tt class="docutils literal"><span class="pre">PoolAlloc</span></tt>. It is expected to
 return a pointer to a fresh (that is, not overlapping with any other
 live object) object of the required size. Failure to allocate should
 be indicated by returning an appropriate Error code, and in such a
@@ -124,25 +128,25 @@ provide this method, but they should provide at least one of <tt class="docutils
 and <tt class="docutils literal"><span class="pre">bufferCreate</span></tt>. [There is no <tt class="docutils literal"><span class="pre">bufferCreate</span></tt> &#8211; gdr 2013-04-14]</p>
 <p>The <tt class="docutils literal"><span class="pre">free_</span></tt> field is the class&#8217;s free method. This is intended
 primarily for manual style pools. this method is called via the
-generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolFree()</span></tt>. The parameters to this method are
+generic function <tt class="docutils literal"><span class="pre">PoolFree</span></tt>. The parameters to this method are
 required to correspond to a previous allocation request (possibly via
 a buffer). It is an assertion by the client that the indicated object
 is no longer required and the resources associated with it can be
 recycled. Pools are not required to provide this method.</p>
 <p>The <tt class="docutils literal"><span class="pre">bufferInit</span></tt> field is the class&#8217;s buffer initialization method.
-It is called by the generic function <tt class="xref c c-func docutils literal"><span class="pre">BufferCreate()</span></tt>, which
-allocates the buffer descriptor and initializes the generic fields.
-The pool may optionally adjust these fields or fill in extra values
-when <tt class="docutils literal"><span class="pre">bufferInit</span></tt> is called, but often pools set <tt class="docutils literal"><span class="pre">bufferInit</span></tt> to
-<tt class="xref c c-func docutils literal"><span class="pre">PoolTrivBufferInit()</span></tt> because they don&#8217;t need to do any. If
-<tt class="docutils literal"><span class="pre">bufferInit</span></tt> returns a result code other than <tt class="xref c c-macro docutils literal"><span class="pre">ResOK</span></tt>, the
-buffer structure is deallocated and the code is returned to the called
-of <tt class="xref c c-func docutils literal"><span class="pre">BufferCreate()</span></tt>. Note that the <tt class="xref c c-type docutils literal"><span class="pre">BufferStruct</span></tt> isn&#8217;t
-fully valid until <tt class="xref c c-func docutils literal"><span class="pre">BufferCreate()</span></tt> returns.</p>
+It is called by the generic function <tt class="docutils literal"><span class="pre">BufferCreate</span></tt>, which allocates
+the buffer descriptor and initializes the generic fields. The pool may
+optionally adjust these fields or fill in extra values when
+<tt class="docutils literal"><span class="pre">bufferInit</span></tt> is called, but often pools set <tt class="docutils literal"><span class="pre">bufferInit</span></tt> to
+<tt class="docutils literal"><span class="pre">PoolTrivBufferInit</span></tt> because they don&#8217;t need to do any. If
+<tt class="docutils literal"><span class="pre">bufferInit</span></tt> returns a result code other than <tt class="docutils literal"><span class="pre">ResOK</span></tt>, the buffer
+structure is deallocated and the code is returned to the called of
+<tt class="docutils literal"><span class="pre">BufferCreate</span></tt>. Note that the <tt class="docutils literal"><span class="pre">BufferStruct</span></tt> isn&#8217;t fully valid
+until <tt class="docutils literal"><span class="pre">BufferCreate</span></tt> returns.</p>
 <p>The <tt class="docutils literal"><span class="pre">bufferFinish</span></tt> field is the class&#8217;s buffer finishing method. It
-is called by the the generic function <tt class="xref c c-func docutils literal"><span class="pre">BufferDestroy()</span></tt>. The
-pool is expected to detach the buffer from any memory and prepare the
-buffer for destruction. The class is expected to release the resources
+is called by the the generic function <tt class="docutils literal"><span class="pre">BufferDestroy</span></tt>. The pool is
+expected to detach the buffer from any memory and prepare the buffer
+for destruction. The class is expected to release the resources
 associated with the buffer structure, and any unreserved memory in the
 buffer may be recycled. It is illegal for a buffer to be destroyed
 when there are pending allocations on it (that is, an allocation has
@@ -151,19 +155,19 @@ function. This method should be provided if and only if
 <tt class="docutils literal"><span class="pre">bufferCreate</span></tt> is provided. [there is no <tt class="docutils literal"><span class="pre">bufferCreate</span></tt> &#8211; drj
 1997-08-19]</p>
 <p>The <tt class="docutils literal"><span class="pre">condemn</span></tt> field is used to condemn a pool. This method is called
-via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolCondemn()</span></tt>. The class is expected
-to condemn a subset (possible the whole set) of objects it manages and
+via the generic function <tt class="docutils literal"><span class="pre">PoolCondemn</span></tt>. The class is expected to
+condemn a subset (possible the whole set) of objects it manages and
 participate in a global trace to determine liveness. The class should
 register the refsig of the condemned set with the trace using
-<tt class="xref c c-func docutils literal"><span class="pre">TraceCondemn()</span></tt>. The class should expect fix requests (via the
-fix method below) during a global trace. Classes are not required to
+<tt class="docutils literal"><span class="pre">TraceCondemn</span></tt>. The class should expect fix requests (via the fix
+method below) during a global trace. Classes are not required to
 provide this method, but it is expected that automatic style classes
 will. This interface is expected to change in the future. [<tt class="docutils literal"><span class="pre">condemn</span></tt>
 now takes an action and a segment and should condemn the segment (turn
 it white) if it corresponds to the interpretation of the action &#8211; drj
 1997-08-19 and is called <tt class="docutils literal"><span class="pre">Whiten</span></tt> drj 1998-02-02]</p>
 <p>The <tt class="docutils literal"><span class="pre">mark</span></tt> field is used to mark an entire pool. This method is
-called via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolMark()</span></tt>. The class should
+called via the generic function <tt class="docutils literal"><span class="pre">PoolMark</span></tt>. The class should
 consider all of its objects, except any set that has been condemned in
 this trace, to be marked, that is ready for scanning. The class should
 arrange that any appropriate invariants are preserved possibly by the
@@ -172,85 +176,130 @@ and not doing so indicates that all instances of this class will have
 no fixable or traceable references in them. [no longer present,
 <tt class="docutils literal"><span class="pre">grey</span></tt> turns an entire segment grey &#8211; drj 1997-08-19]</p>
 <p>The <tt class="docutils literal"><span class="pre">scan</span></tt> field is used to perform scanning. This method is called
-via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolScan()</span></tt>. The class should scan the
+via the generic function <tt class="docutils literal"><span class="pre">PoolScan</span></tt>. The class should scan the
 segment specified. It should scan all the known live (marked, that is,
 those objects on which fix has been called) on the segment and
 accumulate a summary of <em>all</em> the objects on the segment. This means
 that mark and sweep pools may have to jump through hoops a little bit
-(see design.mps.poolasm.summary for a pedagogical example).
-Classes are not required to provide this method, and not doing so
-indicates that all instances of this class will have no fixable or
-traceable reference in them. [<tt class="docutils literal"><span class="pre">scan</span></tt> method now takes an extra
-return parameter which classes should use to indicate whether they
-scanned all objects in segment or not. Classes should return summary
-only of object they scanned. Caller of this method
-(<tt class="xref c c-func docutils literal"><span class="pre">TraceScan()</span></tt>) is responsible for updating summaries correctly
-when not a total scan. Hence no jumping through hoops required. drj
-1998-01-30]</p>
+(see design.mps.poolasm.summary for a pedagogical example). Classes
+are not required to provide this method, and not doing so indicates
+that all instances of this class will have no fixable or traceable
+reference in them. [<tt class="docutils literal"><span class="pre">scan</span></tt> method now takes an extra return
+parameter which classes should use to indicate whether they scanned
+all objects in segment or not. Classes should return summary only of
+object they scanned. Caller of this method (<tt class="docutils literal"><span class="pre">TraceScan</span></tt>) is
+responsible for updating summaries correctly when not a total scan.
+Hence no jumping through hoops required. drj 1998-01-30]</p>
 <p>The <tt class="docutils literal"><span class="pre">fix</span></tt> field is used to perform fixing. This method is called via
-the generic function <tt class="xref c c-func docutils literal"><span class="pre">TraceFix()</span></tt>. It indicates that the
-specified reference has been found and the class should consider the
-object live. There is provision for adjusting the value of the
-reference (to allow for classes that move objects). Classes are not
-required to provide this method, and not doing so indicates that the
-class is not automatic style (ie it does not use global tracing to
-determine liveness).</p>
+the generic function <tt class="docutils literal"><span class="pre">TraceFix</span></tt>. It indicates that the specified
+reference has been found and the class should consider the object
+live. There is provision for adjusting the value of the reference (to
+allow for classes that move objects). Classes are not required to
+provide this method, and not doing so indicates that the class is not
+automatic style (ie it does not use global tracing to determine
+liveness).</p>
 <p>The <tt class="docutils literal"><span class="pre">reclaim</span></tt> field is used to reclaim memory. This method is called
-via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolReclaim()</span></tt>. It indicates that the
-trace has fixed all references to reachable objects [actually it
-indicates that any remaining white objects have now been proved
-unreachable, hence are dead]. The class should consider objects that
-have been condemned and not fixed in this trace to be dead and may
-reclaim the resources associated with them. Classes are not required
-to provide this method. [<tt class="docutils literal"><span class="pre">reclaim</span></tt> is now called on each segment &#8211;
-drj 1997-08-19]</p>
+via the generic function <tt class="docutils literal"><span class="pre">PoolReclaim</span></tt>. It indicates that the trace
+has fixed all references to reachable objects [actually it indicates
+that any remaining white objects have now been proved unreachable,
+hence are dead]. The class should consider objects that have been
+condemned and not fixed in this trace to be dead and may reclaim the
+resources associated with them. Classes are not required to provide
+this method. [<tt class="docutils literal"><span class="pre">reclaim</span></tt> is now called on each segment &#8211; drj
+1997-08-19]</p>
 <p>The <tt class="docutils literal"><span class="pre">access</span></tt> field is used to indicate client access. This method is
-called via the generic functions <tt class="xref c c-func docutils literal"><span class="pre">SpaceAccess()</span></tt> and
-<tt class="xref c c-func docutils literal"><span class="pre">PoolAccess()</span></tt>. It indicates that the client has attempted to
-access the specified region, but has been denied and the request
-trapped due to a protection state. The class should perform any work
-necessary to remove the protection whilst still preserving appropriate
-invariants (typically this will be scanning work). Classes are not
-required to provide this method, and not doing so indicates they never
-protect any memory managed by the pool. [<tt class="docutils literal"><span class="pre">access</span></tt> is no longer
-present &#8211; drj 1997-08-19]</p>
-<p><span class="target" id="design.mps.class-interface.method.act"></span><a class="mpstag reference internal" href="#design.mps.class-interface.method.act">.method.act:</a> <tt class="docutils literal"><span class="pre">Act</span></tt> is called when the MPM has decided to
-execute an action that the class declared. The Class should arrange
-execution of the associated work (usually by beginning an incremental
-trace).</p>
-<p><span class="target" id="design.mps.class-interface.method.walk"></span><a class="mpstag reference internal" href="#design.mps.class-interface.method.walk">.method.walk:</a> <tt class="docutils literal"><span class="pre">Walk</span></tt> is used by the heap walker. <tt class="docutils literal"><span class="pre">Walk</span></tt>
-is only required to be implemented by classes which specify the
-AttrFMT attribute (formatted pools). The <tt class="docutils literal"><span class="pre">Walk</span></tt> method should apply
-the passed in function (along with its closure variables (which are
-also passed in) and the object format) to all <em>black</em> objects in the
+called via the generic functions <tt class="docutils literal"><span class="pre">SpaceAccess</span></tt> and <tt class="docutils literal"><span class="pre">PoolAccess</span></tt>.
+It indicates that the client has attempted to access the specified
+region, but has been denied and the request trapped due to a
+protection state. The class should perform any work necessary to
+remove the protection whilst still preserving appropriate invariants
+(typically this will be scanning work). Classes are not required to
+provide this method, and not doing so indicates they never protect any
+memory managed by the pool. [<tt class="docutils literal"><span class="pre">access</span></tt> is no longer present &#8211; drj
+1997-08-19]</p>
+<p><span class="target" id="method-act">.method.act</span>: <tt class="docutils literal"><span class="pre">Act</span></tt> is called when the MPM has decided to execute
+an action that the class declared. The Class should arrange execution
+of the associated work (usually by beginning an incremental trace).</p>
+<p><span class="target" id="method-walk">.method.walk</span>: <tt class="docutils literal"><span class="pre">Walk</span></tt> is used by the heap walker. <tt class="docutils literal"><span class="pre">Walk</span></tt> is only
+required to be implemented by classes which specify the AttrFMT
+attribute (formatted pools). The <tt class="docutils literal"><span class="pre">Walk</span></tt> method should apply the
+passed in function (along with its closure variables (which are also
+passed in) and the object format) to all <em>black</em> objects in the
 segment. Padding objects may or may not be included in the walk at the
 classes discretion, in any case in will be the responsibility of the
 client to do something sensible with padding objects. [what about
 broken hearts? drj 1998-01-30]</p>
 <p>The <tt class="docutils literal"><span class="pre">describe</span></tt> field is used to print out a description of a pool.
-This method is called via the generic function <tt class="xref c c-func docutils literal"><span class="pre">PoolDescribe()</span></tt>.
-The class should emit an textual description of the pool&#8217;s contents
-onto the specified stream. Each line should begin with two spaces.
-Classes are not required to provide this method.</p>
+This method is called via the generic function <tt class="docutils literal"><span class="pre">PoolDescribe</span></tt>. The
+class should emit an textual description of the pool&#8217;s contents onto
+the specified stream. Each line should begin with two spaces. Classes
+are not required to provide this method.</p>
 </div>
 <div class="section" id="events">
-<h2>5.5. Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design.mps.class-interface.replay"></span><a class="mpstag reference internal" href="#design.mps.class-interface.replay">.replay:</a> To work with the allocation replayer (see
-design.mps.telemetry.replayer), the pool has to emit an
-event for each call to an external interface, containing all the
-parameters passed by the user. If a new event type is required to
-carry this information, the replayer (impl.c.eventrep) must
-then be extended to recreate the call.</p>
-<p><span class="target" id="design.mps.class-interface.replay.Init"></span><a class="mpstag reference internal" href="#design.mps.class-interface.replay.Init">.replay.Init:</a> In particular, the <tt class="docutils literal"><span class="pre">Init</span></tt> method should emit
-a <tt class="docutils literal"><span class="pre">PoolInit&lt;foo&gt;</span></tt> event with all the pool parameters.</p>
+<h2>5.3. Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="replay">.replay</span>: To work with the allocation replayer (see
+design.mps.telemetry.replayer), the pool has to emit an event for each
+call to an external interface, containing all the parameters passed by
+the user. If a new event type is required to carry this information,
+the replayer (impl.c.eventrep) must then be extended to recreate the
+call.</p>
+<p><span class="target" id="replay-init">.replay.Init</span>: In particular, the <tt class="docutils literal"><span class="pre">Init</span></tt> method should emit a
+<tt class="docutils literal"><span class="pre">PoolInit&lt;foo&gt;</span></tt> event with all the pool parameters.</p>
 </div>
 <div class="section" id="text">
-<h2>5.6. Text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design.mps.class-interface.alloc.size"></span><a class="mpstag reference internal" href="#design.mps.class-interface.alloc.size">.alloc.size:</a> The pool class implementation defines the
-meaning of the &#8220;size&#8221; parameter to the <tt class="docutils literal"><span class="pre">alloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt> methods.
-It may not actually correspond to a number of bytes of memory.</p>
-<p><span class="target" id="design.mps.class-interface.alloc.size.align"></span><a class="mpstag reference internal" href="#design.mps.class-interface.alloc.size.align">.alloc.size.align:</a> In particular, the class may allow an
-unaligned size to be passed.</p>
+<h2>5.4. Text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="alloc-size">.alloc.size</span>: The pool class implementation defines the meaning of
+the &#8220;size&#8221; parameter to the <tt class="docutils literal"><span class="pre">alloc</span></tt> and <tt class="docutils literal"><span class="pre">free</span></tt> methods. It may not
+actually correspond to a number of bytes of memory.</p>
+<p><span class="target" id="alloc-size-align">.alloc.size.align</span>: In particular, the class may allow an unaligned
+size to be passed.</p>
+</div>
+<div class="section" id="document-history">
+<h2>5.5. Document history<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>1997-08-19 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Initial draft. David Jones added comments about how
+accurate this document is.</li>
+<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
+<li>2013-03-12 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
+</ul>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>5.6. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ol class="arabic simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</li>
+</ol>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -267,11 +316,11 @@ unaligned size to be passed.</p>
   <ul>
 <li><a class="reference internal" href="#">5. Pool class interface</a><ul>
 <li><a class="reference internal" href="#introduction">5.1. Introduction</a></li>
-<li><a class="reference internal" href="#document-history">5.2. Document history</a></li>
-<li><a class="reference internal" href="#architecture">5.3. Architecture</a></li>
-<li><a class="reference internal" href="#methods">5.4. Methods</a></li>
-<li><a class="reference internal" href="#events">5.5. Events</a></li>
-<li><a class="reference internal" href="#text">5.6. Text</a></li>
+<li><a class="reference internal" href="#methods">5.2. Methods</a></li>
+<li><a class="reference internal" href="#events">5.3. Events</a></li>
+<li><a class="reference internal" href="#text">5.4. Text</a></li>
+<li><a class="reference internal" href="#document-history">5.5. Document history</a></li>
+<li><a class="reference internal" href="#copyright-and-license">5.6. Copyright and License</a></li>
 </ul>
 </li>
 </ul>
@@ -313,7 +362,7 @@ unaligned size to be passed.</p>
           <a href="check.html" title="4. Checking"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" >Design</a> &raquo;</li> 
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
