@@ -5031,35 +5031,41 @@ recalculate the Todos categories sexp, in case changes were made
 in the number or names of categories."
   (interactive)
   (if (> (buffer-size) (- (point-max) (point-min)))
+      ;; We got here via `e m'.
       (let ((item (buffer-string))
 	    (regex "\\(\n\\)[^[:blank:]]"))
+	(while (not (string-match (concat todos-date-string-start
+					  todos-date-pattern) item))
+	  (setq item (read-from-minibuffer
+		     "Item must start with a date: " item)))
 	;; Ensure lines following hard newlines are indented.
 	(when (string-match regex (buffer-string))
 	  (setq item (replace-regexp-in-string regex "\n\t" item nil nil 1))
 	  (delete-region (point-min) (point-max))
 	  (insert item))
 	(kill-buffer))
-      (when (todos-check-format)
-	;; FIXME: separate out sexp check?
-	;; If manual editing makes e.g. item counts change, have to
-	;; call this to update todos-categories, but it restores
-	;; category order to list order.
-	;; (todos-repair-categories-sexp)
-	;; Compare (todos-make-categories-list t) with sexp and if
-	;; different ask (todos-update-categories-sexp) ?
-	(todos-mode)
-	(let* ((cat-beg (concat "^" (regexp-quote todos-category-beg)
-				"\\(.*\\)$"))
-	       (curline (buffer-substring-no-properties
-			 (line-beginning-position) (line-end-position)))
-	       (cat (cond ((string-match cat-beg curline)
-			   (match-string-no-properties 1 curline))
-			  ((or (re-search-backward cat-beg nil t)
-			       (re-search-forward cat-beg nil t))
-			   (match-string-no-properties 1)))))
-	  (todos-category-number cat)
-	  (todos-category-select)
-	  (goto-char (point-min))))))
+    ;; We got here via `F e'.
+    (when (todos-check-format)
+      ;; FIXME: separate out sexp check?
+      ;; If manual editing makes e.g. item counts change, have to
+      ;; call this to update todos-categories, but it restores
+      ;; category order to list order.
+      ;; (todos-repair-categories-sexp)
+      ;; Compare (todos-make-categories-list t) with sexp and if
+      ;; different ask (todos-update-categories-sexp) ?
+      (todos-mode)
+      (let* ((cat-beg (concat "^" (regexp-quote todos-category-beg)
+			      "\\(.*\\)$"))
+	     (curline (buffer-substring-no-properties
+		       (line-beginning-position) (line-end-position)))
+	     (cat (cond ((string-match cat-beg curline)
+			 (match-string-no-properties 1 curline))
+			((or (re-search-backward cat-beg nil t)
+			     (re-search-forward cat-beg nil t))
+			 (match-string-no-properties 1)))))
+	(todos-category-number cat)
+	(todos-category-select)
+	(goto-char (point-min))))))
 
 (defun todos-edit-item-header-1 (what &optional inc)
   "Function underlying commands to edit item date/time header.
