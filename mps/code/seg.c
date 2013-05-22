@@ -991,6 +991,7 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
      if (res != ResOK) return res;
   }
   res = WriteF(stream, "\n  ranks:", NULL);
+  if (res != ResOK) return res;
   /* This bit ought to be in a RankSetDescribe in ref.c. */
   if (RankSetIsMember(seg->rankSet, RankAMBIG)) {
      res = WriteF(stream, " ambiguous", NULL);
