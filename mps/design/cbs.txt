@@ -105,6 +105,11 @@ parameter ``owner`` is passed to ``MeterInit``, an ``alignment``
 indicates the alignment of ranges to be maintained. An initialised CBS
 contains no ranges.
 
+``fastFind``, if set, causes the CBS to maintain, for each subtree, the
+size of the largest block in that subtree.  This must be true if any of
+the ``CBSFindFirst``, ``CBSFindLast``, or ``CBSFindLargest`` functions
+are going to be used on the CBS.
+
 .. c:function:: void CBSFinish(CBS cbs)
 
 _`function.cbs.finish`: ``CBSFinish`` is the function that finishes
@@ -117,7 +122,7 @@ _`function.cbs.insert`: ``CBSInsert`` is the function used to add a
 contiguous range specified by ``[base,limit)`` to the CBS. If any part
 of the range is already in the CBS, then ``ResFAIL`` is returned, and
 the CBS is unchanged. This function may cause allocation; if this
-allocation fails, and any contingency mechanism fails, then
+allocation fails, then
 ``ResMEMORY`` is returned, and the CBS is unchanged. If it succeeds,
 then ``*baseReturn`` and ``*limitReturn`` are updated to point to the
 range containing the inserted range (these may differ from ``base``
@@ -130,7 +135,7 @@ _`function.cbs.delete`: ``CBSDelete`` is the function used to remove a
 contiguous range specified by ``[base,limit)`` from the CBS. If any
 part of the range is not in the CBS, then ``ResFAIL`` is returned, and
 the CBS is unchanged. This function may cause allocation; if this
-allocation fails, and any contingency mechanism fails, then
+allocation fails, then
 ``ResMEMORY`` is returned, and the CBS is unchanged.
 
 .. c:function:: void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP, unsigned long closureS)
@@ -166,12 +171,16 @@ where we found the range), which must come from this enumeration::
         CBSFindDeleteENTIRE   /* delete entire range */
     };
 
+``CBSFindFirst`` requires that ``fastFind`` was true when ``CBSInit`` was called.
+
 .. c:function:: Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn, CBS cbs, Size size, CBSFindDelete findDelete)
 
 _`function.cbs.find.last`: The ``CBSFindLast`` function locates the
 last block (in address order) within the CBS of at least the specified
 size, and returns its range. If there are no such blocks, it returns
 ``FALSE``. Like ``CBSFindFirst``, it optionally deletes the range.
+
+``CBSFindLast`` requires that ``fastFind`` was true when ``CBSInit`` was called.
 
 .. c:function:: Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn, CBS cbs, CBSFindDelete findDelete)
 
@@ -180,6 +189,8 @@ the largest block within the CBS, and returns its range. If there are
 no blocks, it returns ``FALSE``. Like ``CBSFindFirst``, it optionally
 deletes the range (specifying ``CBSFindDeleteLOW`` or
 ``CBSFindDeleteHIGH`` has the same effect as ``CBSFindDeleteENTIRE``).
+
+``CBSFindLargest`` requires that ``fastFind`` was true when ``CBSInit`` was called.
 
 
 Implementation
@@ -310,6 +321,10 @@ B. Document history
   callbacks, block interface, and minimum size interface. Updated the
   arguments for ``CBSIterateMethod``, ``CBSInit``, ``CBSInsert``, and
   ``CBSDelete``.
+
+- 2013-05-23 RB_ Removed references to "contingency methods" that were
+  talking about the deleted "emergency" free list allocator.  Documenting
+  ``fastFind`` argument to ``CBSInit``.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
