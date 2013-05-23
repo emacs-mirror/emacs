@@ -1,5 +1,9 @@
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/js.el: No need to load comint when compiling.
+	(ring-insert, comint-send-string, comint-send-input)
+	(comint-last-input-end, ido-chop): Declare.
+
 	* vc/ediff-diff.el, vc/ediff-merg.el: Require ediff-util at run-time.
 	* vc/ediff-mult.el: Adjust requires.
 	(ediff-directories-internal, ediff-directory-revisions-internal)
