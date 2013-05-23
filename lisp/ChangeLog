@@ -1,5 +1,10 @@
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/checkdoc.el: No need to load ispell when compiling.
+	(ispell-process, ispell-buffer-local-words, lm-summary)
+	(lm-section-start, lm-section-end): Declare.
+	(checkdoc-ispell-init): Simplify.
+
 	* progmodes/vera-mode.el (he-init-string, he-dabbrev-beg)
 	(he-string-member, he-reset-string, he-substitute-string): Declare.
 
