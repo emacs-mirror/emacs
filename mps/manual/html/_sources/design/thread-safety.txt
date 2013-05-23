@@ -3,4 +3,4 @@
 
 .. _design-thread-safety:
 
-.. include:: ../../../design/thread-safety.txt
+.. include:: ../../converted/thread-safety.rst

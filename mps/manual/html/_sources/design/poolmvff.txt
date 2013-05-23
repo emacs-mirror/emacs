@@ -4,4 +4,4 @@
 
 .. _design-poolmvff:
 
-.. include:: ../../../design/poolmvff.txt
+.. include:: ../../converted/poolmvff.rst

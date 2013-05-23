@@ -54,143 +54,97 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-check"><span id="index-0"></span></span><div class="section" id="checking">
-<h1>4. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.check</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Gavin Matthews</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1996-08-05</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/check.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See section <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="checking">
+<span id="design-design-check"></span><span id="design-check"></span><span id="index-0"></span><h1>4. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>4.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="intro">.intro</span>: This documents the design of structure checking within the
+<span id="design.mps.check"></span><h2>4.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.check.intro"></span><a class="mpstag reference internal" href="#design.mps.check.intro">.intro:</a> This documents the design of structure checking within the
 MPS.</p>
-<p><span class="target" id="readership">.readership</span>: MPS developers.</p>
+<p><span class="target" id="design.mps.check.readership"></span><a class="mpstag reference internal" href="#design.mps.check.readership">.readership:</a> MPS developers.</p>
 </div>
 <div class="section" id="implementation">
 <h2>4.2. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="level">.level</span>: There are three levels of checking:</p>
+<p><span class="target" id="design.mps.check.level"></span><a class="mpstag reference internal" href="#design.mps.check.level">.level:</a> There are three levels of checking:</p>
 <ol class="arabic simple">
-<li><span class="target" id="level-sig">.level.sig</span>: The lowest level checks only that the
+<li><span class="target" id="design.mps.check.level.sig"></span><a class="mpstag reference internal" href="#design.mps.check.level.sig">.level.sig:</a> The lowest level checks only that the
 structure has a valid <tt class="docutils literal"><span class="pre">Signature</span></tt> (see
 design.mps.sig).</li>
-<li><span class="target" id="level-shallow">.level.shallow</span>: Shallow checking checks all local fields
+<li><span class="target" id="design.mps.check.level.shallow"></span><a class="mpstag reference internal" href="#design.mps.check.level.shallow">.level.shallow:</a> Shallow checking checks all local fields
 (including signature) and also checks the signatures of any parent
 or child structures.</li>
-<li><span class="target" id="level-deep">.level.deep</span>: Deep checking checks all local fields
+<li><span class="target" id="design.mps.check.level.deep"></span><a class="mpstag reference internal" href="#design.mps.check.level.deep">.level.deep:</a> Deep checking checks all local fields
 (including signatures), the signatures of any parent structures,
 and does full recursive checking on any child structures.</li>
 </ol>
-<p><span class="target" id="level-control">.level.control</span>: Control over the levels of checking is via the
-definition of at most one of the macros <tt class="docutils literal"><span class="pre">TARGET_CHECK_SHALLOW</span></tt>
-(which if defined gives <a class="reference internal" href="#level-shallow">.level.shallow</a>), <tt class="docutils literal"><span class="pre">TARGET_CHECK_DEEP</span></tt>
-(which if defined gives <a class="reference internal" href="#level-deep">.level.deep</a>). If neither macro is defined
-then <a class="reference internal" href="#level-sig">.level.sig</a> is used. These macros are not intended to be
+<p><span class="target" id="design.mps.check.level.control"></span><a class="mpstag reference internal" href="#design.mps.check.level.control">.level.control:</a> Control over the levels of checking is via the
+definition of at most one of the macros <tt class="xref c c-macro docutils literal"><span class="pre">TARGET_CHECK_SHALLOW</span></tt>
+(which if defined gives <a class="reference internal" href="#design.mps.check.level.shallow">.level.shallow</a>), <tt class="xref c c-macro docutils literal"><span class="pre">TARGET_CHECK_DEEP</span></tt>
+(which if defined gives <a class="reference internal" href="#design.mps.check.level.deep">.level.deep</a>). If neither macro is defined
+then <a class="reference internal" href="#design.mps.check.level.sig">.level.sig</a> is used. These macros are not intended to be
 manipulated directly by developers, they should use the interface in
 impl.h.target.</p>
-<p><span class="target" id="order">.order</span>: Because deep checking (<a class="reference internal" href="#level-deep">.level.deep</a>) uses unchecked
+<p><span class="target" id="design.mps.check.order"></span><a class="mpstag reference internal" href="#design.mps.check.order">.order:</a> Because deep checking (<a class="reference internal" href="#design.mps.check.level.deep">.level.deep</a>) uses unchecked
 recursion, it is important that child relationships are acyclic
-(<a class="reference internal" href="#macro-down">.macro.down</a>).</p>
-<p><span class="target" id="fun">.fun</span>: Every abstract data type which is a structure pointer should
+(<a class="reference internal" href="#design.mps.check.macro.down">.macro.down</a>).</p>
+<p><span class="target" id="design.mps.check.fun"></span><a class="mpstag reference internal" href="#design.mps.check.fun">.fun:</a> Every abstract data type which is a structure pointer should
 have a function <tt class="docutils literal"><span class="pre">&lt;type&gt;Check</span></tt> which takes a pointer of type
-<tt class="docutils literal"><span class="pre">&lt;type&gt;</span></tt> and returns a <tt class="docutils literal"><span class="pre">Bool</span></tt>. It should check all fields in
-order, using one of the macros in <a class="reference internal" href="#macro">.macro</a>, or document why not.</p>
-<p><span class="target" id="fun-omit">.fun.omit</span>: The only fields which should be omitted from a check
+<tt class="docutils literal"><span class="pre">&lt;type&gt;</span></tt> and returns a <a class="reference internal" href="type.html#Bool" title="Bool"><tt class="xref c c-type docutils literal"><span class="pre">Bool</span></tt></a>. It should check all fields in
+order, using one of the macros in <a class="reference internal" href="#design.mps.check.macro">.macro</a>, or document why not.</p>
+<p><span class="target" id="design.mps.check.fun.omit"></span><a class="mpstag reference internal" href="#design.mps.check.fun.omit">.fun.omit:</a> The only fields which should be omitted from a check
 function are those for which there is no meaningful check (for
 example, an unlimited unsigned integer with no relation to other
 fields).</p>
-<p><span class="target" id="fun-return">.fun.return</span>: Although the function returns a <tt class="docutils literal"><span class="pre">Bool</span></tt>, if the assert
+<p><span class="target" id="design.mps.check.fun.return"></span><a class="mpstag reference internal" href="#design.mps.check.fun.return">.fun.return:</a> Although the function returns a <a class="reference internal" href="type.html#Bool" title="Bool"><tt class="xref c c-type docutils literal"><span class="pre">Bool</span></tt></a>, if the assert
 handler returns (or there is no assert handler), then this is taken to
 mean &#8220;ignore and continue&#8221;, and the check function hence returns
-<tt class="docutils literal"><span class="pre">TRUE</span></tt>.</p>
-<p><span class="target" id="macro">.macro</span>: Checking is implemented by invoking four macros in
+<tt class="xref c c-macro docutils literal"><span class="pre">TRUE</span></tt>.</p>
+<p><span class="target" id="design.mps.check.macro"></span><a class="mpstag reference internal" href="#design.mps.check.macro">.macro:</a> Checking is implemented by invoking four macros in
 impl.h.assert:</p>
-<ul class="simple">
-<li><span class="target" id="macro-sig">.macro.sig</span>: <tt class="docutils literal"><span class="pre">CHECKS(type,</span> <span class="pre">val)</span></tt> checks the signature only, and
+<dl class="function">
+<dt id="CHECKS">
+<tt class="descname">CHECKS</tt><big>(</big>type, val<big>)</big><a class="headerlink" href="#CHECKS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.check.macro.sig"></span><a class="mpstag reference internal" href="#design.mps.check.macro.sig">.macro.sig:</a> <tt class="docutils literal"><span class="pre">CHECKS(type,</span> <span class="pre">val)</span></tt> checks the signature only, and
 should be called precisely on <tt class="docutils literal"><span class="pre">type</span></tt> and the received object
-pointer.</li>
-<li><span class="target" id="macro-local">.macro.local</span>: <tt class="docutils literal"><span class="pre">CHECKL(cond)</span></tt> checks a local field (depending on
-level; see <a class="reference internal" href="#level">.level</a>), and should be called on each local field that
+pointer.</p>
+<dl class="function">
+<dt id="CHECKL">
+<tt class="descname">CHECKL</tt><big>(</big>cond<big>)</big><a class="headerlink" href="#CHECKL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.check.macro.local"></span><a class="mpstag reference internal" href="#design.mps.check.macro.local">.macro.local:</a> <tt class="docutils literal"><span class="pre">CHECKL(cond)</span></tt> checks a local field (depending on
+level; see <a class="reference internal" href="#design.mps.check.level">.level</a>), and should be called on each local field that
 is not an abstract data type structure pointer itself (apart from
-the signature), with an appropriate normally-true test condition.</li>
-<li><span class="target" id="macro-up">.macro.up</span>: <tt class="docutils literal"><span class="pre">CHECKU(type,</span> <span class="pre">val)</span></tt> checks a parent abstract data
+the signature), with an appropriate normally-true test condition.</p>
+<dl class="function">
+<dt id="CHECKU">
+<tt class="descname">CHECKU</tt><big>(</big>type, val<big>)</big><a class="headerlink" href="#CHECKU" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.check.macro.up"></span><a class="mpstag reference internal" href="#design.mps.check.macro.up">.macro.up:</a> <tt class="docutils literal"><span class="pre">CHECKU(type,</span> <span class="pre">val)</span></tt> checks a parent abstract data
 type structure pointer, performing at most signature checks
-(depending on level; see <a class="reference internal" href="#level">.level</a>). It should be called with the
-parent type and pointer.</li>
-<li><span class="target" id="macro-down">.macro.down</span>: <tt class="docutils literal"><span class="pre">CHECKD(type,</span> <span class="pre">val)</span></tt> checks a child abstract data
+(depending on level; see <a class="reference internal" href="#design.mps.check.level">.level</a>). It should be called with the
+parent type and pointer.</p>
+<dl class="function">
+<dt id="CHECKD">
+<tt class="descname">CHECKD</tt><big>(</big>type, val<big>)</big><a class="headerlink" href="#CHECKD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.check.macro.down"></span><a class="mpstag reference internal" href="#design.mps.check.macro.down">.macro.down:</a> <tt class="docutils literal"><span class="pre">CHECKD(type,</span> <span class="pre">val)</span></tt> checks a child abstract data
 type structure pointer, possibly invoking <tt class="docutils literal"><span class="pre">&lt;type&gt;Check</span></tt> (depending
-on level; see <a class="reference internal" href="#level">.level</a>). It should be called with the child type
-and pointer.</li>
-</ul>
-<p><span class="target" id="full-type">.full-type</span>: <tt class="docutils literal"><span class="pre">CHECKS</span></tt>, <tt class="docutils literal"><span class="pre">CHECKD</span></tt>, <tt class="docutils literal"><span class="pre">CHECKU</span></tt>, all operate only on
-fully fledged types. This means the type has to provide a function
-<tt class="docutils literal"><span class="pre">Bool</span> <span class="pre">TypeCheck(Type</span> <span class="pre">type)</span></tt> where <tt class="docutils literal"><span class="pre">Type</span></tt> is substituted for the
-name of the type (for example, <tt class="docutils literal"><span class="pre">PoolCheck</span></tt>), and the expression
-<tt class="docutils literal"><span class="pre">obj-&gt;sig</span></tt> must be a valid value of type <tt class="docutils literal"><span class="pre">Sig</span></tt> whenever <tt class="docutils literal"><span class="pre">obj</span></tt> is
-a valid value of type <tt class="docutils literal"><span class="pre">Type</span></tt>.</p>
-<p><span class="target" id="type-no-sig">.type.no-sig</span>: This tag is to be referenced in implementations
+on level; see <a class="reference internal" href="#design.mps.check.level">.level</a>). It should be called with the child type
+and pointer.</p>
+<p><span class="target" id="design.mps.check.full-type"></span><a class="mpstag reference internal" href="#design.mps.check.full-type">.full-type:</a> <a class="reference internal" href="#CHECKS" title="CHECKS"><tt class="xref c c-func docutils literal"><span class="pre">CHECKS()</span></tt></a>, <a class="reference internal" href="#CHECKD" title="CHECKD"><tt class="xref c c-func docutils literal"><span class="pre">CHECKD()</span></tt></a>, <a class="reference internal" href="#CHECKU" title="CHECKU"><tt class="xref c c-func docutils literal"><span class="pre">CHECKU()</span></tt></a>, all operate
+only on fully fledged types. This means the type has to provide a
+function <tt class="docutils literal"><span class="pre">Bool</span> <span class="pre">TypeCheck(Type</span> <span class="pre">type)</span></tt> where <tt class="docutils literal"><span class="pre">Type</span></tt> is substituted
+for the name of the type (for example, <tt class="xref c c-func docutils literal"><span class="pre">PoolCheck()</span></tt>), and the
+expression <tt class="docutils literal"><span class="pre">obj-&gt;sig</span></tt> must be a valid value of type <tt class="xref c c-type docutils literal"><span class="pre">Sig</span></tt> whenever
+<tt class="docutils literal"><span class="pre">obj</span></tt> is a valid value of type <tt class="docutils literal"><span class="pre">Type</span></tt>.</p>
+<p><span class="target" id="design.mps.check.type.no-sig"></span><a class="mpstag reference internal" href="#design.mps.check.type.no-sig">.type.no-sig:</a> This tag is to be referenced in implementations
 whenever the form <tt class="docutils literal"><span class="pre">CHECKL(ThingCheck(thing))</span></tt> is used instead of
 <tt class="docutils literal"><span class="pre">CHECK{U,D}(Thing,</span> <span class="pre">thing)</span></tt> because <tt class="docutils literal"><span class="pre">Thing</span></tt> is not a fully fledged
-type (<a class="reference internal" href="#full-type">.full-type</a>).</p>
-</div>
-<div class="section" id="document-history">
-<h2>4.3. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1996-08-05 Gavin Matthews Incomplete design.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-03-12 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>4.4. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
+type (<a class="reference internal" href="#design.mps.check.full-type">.full-type</a>).</p>
 </div>
 </div>
 
@@ -208,8 +162,6 @@ possibility of such damage.</strong></p>
 <li><a class="reference internal" href="#">4. Checking</a><ul>
 <li><a class="reference internal" href="#introduction">4.1. Introduction</a></li>
 <li><a class="reference internal" href="#implementation">4.2. Implementation</a></li>
-<li><a class="reference internal" href="#document-history">4.3. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">4.4. Copyright and License</a></li>
 </ul>
 </li>
 </ul>

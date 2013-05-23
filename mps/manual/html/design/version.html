@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>22. Software versions &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>27. Software versions &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="23. The WriteF function" href="writef.html" />
-    <link rel="prev" title="21. Library version mechanism" href="version-library.html" /> 
+    <link rel="next" title="28. Virtual mapping" href="vm.html" />
+    <link rel="prev" title="26. Library version mechanism" href="version-library.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="writef.html" title="23. The WriteF function"
+          <a href="vm.html" title="28. Virtual mapping"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="version-library.html" title="21. Library version mechanism"
+          <a href="version-library.html" title="26. Library version mechanism"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,34 +54,16 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-version"><span id="index-0"></span></span><div class="section" id="software-versions">
-<h1>22. Software versions<a class="headerlink" href="#software-versions" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.version</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">David Jones</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1998-08-19</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete document</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/version.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="software-versions">
+<span id="design-design-version"></span><span id="design-version"></span><span id="index-0"></span><h1>27. Software versions<a class="headerlink" href="#software-versions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>22.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="intro">.intro</span>: This is the design of the support in the MPS for
+<span id="design.mps.version"></span><h2>27.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.version.intro"></span><a class="mpstag reference internal" href="#design.mps.version.intro">.intro:</a> This is the design of the support in the MPS for
 describing and inspecting versions.</p>
 </div>
 <div class="section" id="overview">
-<h2>22.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="id1">.overview</span>: There are three different sorts of version under
+<h2>27.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.version.overview"></span><a class="mpstag reference internal" href="#design.mps.version.overview">.overview:</a> There are three different sorts of version under
 consideration:</p>
 <ol class="arabic simple">
 <li>versions of the (MPS) library used (linked with);</li>
@@ -91,56 +73,10 @@ the client&#8217;s program; and</li>
 program.</li>
 </ol>
 <p>There are issues of programmatic and human access to these versions.</p>
-<p><span class="target" id="overview-split">.overview.split</span>: The design is split accordingly. See
+<p><span class="target" id="design.mps.version.overview.split"></span><a class="mpstag reference internal" href="#design.mps.version.overview.split">.overview.split:</a> The design is split accordingly. See
 design.mps.version-library for the design of a system for
 determining the version of the library one is using. And other
 non-existent documents for the others.</p>
-</div>
-<div class="section" id="document-history">
-<h2>22.3. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1998-08-19 David Jones. Incomplete document.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-03-11 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>22.4. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -155,21 +91,19 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">22. Software versions</a><ul>
-<li><a class="reference internal" href="#introduction">22.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">22.2. Overview</a></li>
-<li><a class="reference internal" href="#document-history">22.3. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">22.4. Copyright and License</a></li>
+<li><a class="reference internal" href="#">27. Software versions</a><ul>
+<li><a class="reference internal" href="#introduction">27.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">27.2. Overview</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="version-library.html"
-                        title="previous chapter">21. Library version mechanism</a></p>
+                        title="previous chapter">26. Library version mechanism</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="writef.html"
-                        title="next chapter">23. The WriteF function</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="vm.html"
+                        title="next chapter">28. Virtual mapping</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -195,10 +129,10 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="writef.html" title="23. The WriteF function"
+          <a href="vm.html" title="28. Virtual mapping"
              >next</a> |</li>
         <li class="right" >
-          <a href="version-library.html" title="21. Library version mechanism"
+          <a href="version-library.html" title="26. Library version mechanism"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

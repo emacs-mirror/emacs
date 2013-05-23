@@ -54,24 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-critical-path"><span id="index-0"></span></span><div class="section" id="the-critical-path-through-the-mps">
-<h1>2. The critical path through the MPS<a class="headerlink" href="#the-critical-path-through-the-mps" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Organization:</th><td class="field-body">Ravenbrook Limited</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">2012-09-07</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/critical-path.txt#9 $</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Copyright:</th><td class="field-body">See section <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="the-critical-path-through-the-mps">
+<span id="design-design-critical-path"></span><span id="design-critical-path"></span><span id="index-0"></span><h1>2. The critical path through the MPS<a class="headerlink" href="#the-critical-path-through-the-mps" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>2.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>The critical path is a key concept in the design of the <a class="reference external" href="http://www.ravenbrook.com/project/mps/">Memory Pool
@@ -150,11 +134,11 @@ all of theirs many times.)</p>
 <ol class="arabic simple">
 <li>The scanner, which iterates over pointers in objects.  The MPS has
 several internal scanners, but the most important ones will be format
-scanners in client code registered through <tt class="docutils literal"><span class="pre">mps_format_create</span></tt>
+scanners in client code registered through <tt class="xref c c-func docutils literal"><span class="pre">mps_format_create()</span></tt>
 functions.  [Insert ref to manual explaining how to write a good
 scanner.]</li>
 <li>The first-stage fix, which filters out pointers inline in the
-scanner.  This is implemented in <tt class="docutils literal"><span class="pre">MPS_FIX</span></tt> macros in
+scanner.  This is implemented in <tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX()</span></tt> macros in
 <a class="reference external" href="../code/mps.h">mps.h</a>.</li>
 </ol>
 <ol class="arabic" start="3">
@@ -163,8 +147,8 @@ information about segments.  This is <tt class="docutils literal"><span class="p
 <a class="reference external" href="../code/trace.c">trace.c</a>.</p>
 </li>
 <li><p class="first">The third-stage fix, which filters out pointers using pool-specific
-information.  Implemented in pool class functions called <tt class="docutils literal"><span class="pre">AMCFix</span></tt>,
-<tt class="docutils literal"><span class="pre">LOFix</span></tt>, etc. in pool*.c.</p>
+information.  Implemented in pool class functions called <a class="reference internal" href="poolamc.html#AMCFix" title="AMCFix"><tt class="xref c c-func docutils literal"><span class="pre">AMCFix()</span></tt></a>,
+<tt class="xref c c-func docutils literal"><span class="pre">LOFix()</span></tt>, etc. in pool*.c.</p>
 </li>
 <li><p class="first">Preserving the object, which might entail</p>
 <ul class="simple">
@@ -182,8 +166,8 @@ contains pointers.</li>
 <div class="section" id="the-format-scanner">
 <h2>2.5. The format scanner<a class="headerlink" href="#the-format-scanner" title="Permalink to this headline">¶</a></h2>
 <p>The critical path starts when a format scan method is called.  That is a
-call from the MPS to a client function of type <tt class="docutils literal"><span class="pre">mps_fmt_scan_t</span></tt>
-registered with one of the <tt class="docutils literal"><span class="pre">mps_format_create</span></tt> functions in <a class="reference external" href="../code/mps.h">mps.h</a>.</p>
+call from the MPS to a client function of type <a class="reference internal" href="../topic/format.html#mps_fmt_scan_t" title="mps_fmt_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_scan_t</span></tt></a>
+registered with one of the <tt class="xref c c-func docutils literal"><span class="pre">mps_format_create()</span></tt> functions in <a class="reference external" href="../code/mps.h">mps.h</a>.</p>
 <p>Here is an example of part of a format scanner for scanning contiguous
 runs of pointers, from <a class="reference external" href="../code/fmtdy.c">fmtdy.c</a>, the scanner for the <a class="reference external" href="http://opendylan.org/">Open Dylan</a>
 runtime:</p>
@@ -211,43 +195,44 @@ runtime:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>(To help with understanding optimisation of this code, it&#8217;s written in a
-pseudo-assembler style, with one line roughly corresponding to each
+<p>(To help with understanding optimisation of this code, it&#8217;s written in
+a pseudo-assembler style, with one line roughly corresponding to each
 instruction of an idealized intermediate code.)</p>
 <p>The MPS C interface provides macros to try to help optimise this code.
-The <tt class="docutils literal"><span class="pre">mps_ss</span></tt> object is a &#8220;scan state&#8221; and contains data that is used to
-eliminate uninteresting pointers now, and record information which will
-be used to reduce scanning in future by maintaining the remembered set.</p>
-<p>The macros <tt class="docutils literal"><span class="pre">MPS_SCAN_BEGIN</span></tt> and <tt class="docutils literal"><span class="pre">MPS_SCAN_END</span></tt> load key data from the
-scan state into local variables, and hopefully into processor registers.
-This avoids aliasing values that we know won&#8217;t change when calls are
-made to <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt> later, and so allows the compiler to keep the scan
-loop small and avoid unnecessary memory references.</p>
+The <tt class="docutils literal"><span class="pre">mps_ss</span></tt> object is a &#8220;scan state&#8221; and contains data that is used
+to eliminate uninteresting pointers now, and record information which
+will be used to reduce scanning in future by maintaining the
+remembered set.</p>
+<p>The macros <a class="reference internal" href="../topic/scanning.html#MPS_SCAN_BEGIN" title="MPS_SCAN_BEGIN"><tt class="xref c c-func docutils literal"><span class="pre">MPS_SCAN_BEGIN()</span></tt></a> and <a class="reference internal" href="../topic/scanning.html#MPS_SCAN_END" title="MPS_SCAN_END"><tt class="xref c c-func docutils literal"><span class="pre">MPS_SCAN_END()</span></tt></a> load key data
+from the scan state into local variables, and hopefully into processor
+registers. This avoids aliasing values that we know won&#8217;t change when
+calls are made to <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt> later, and so allows the compiler to
+keep the scan loop small and avoid unnecessary memory references.</p>
 <p>This scanner knows that words not ending in 0b00 aren&#8217;t pointers to
-objects, so it eliminates them straight away.  This is a kind of
+objects, so it eliminates them straight away. This is a kind of
 <a class="reference external" href="http://www.memorymanagement.org/glossary/t.html#tag">reference tag</a> chosen by the client for its object representation.</p>
-<p>Next, the pointer is tested using <tt class="docutils literal"><span class="pre">MPS_FIX1</span></tt>.  This performs fast tests
-on the pointer without using any other memory.  In particular, it does
-the &#8220;zone check&#8221; described in section 3.  If a pointer fails these
-tests, it isn&#8217;t interesting and can be skipped.  It is very important to
-proceed to the next pointer as fast as possible in this case.</p>
+<p>Next, the pointer is tested using <a class="reference internal" href="../topic/scanning.html#MPS_FIX1" title="MPS_FIX1"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX1()</span></tt></a>. This performs fast
+tests on the pointer without using any other memory. In particular, it
+does the &#8220;zone check&#8221; described in section 3. If a pointer fails these
+tests, it isn&#8217;t interesting and can be skipped. It is very important
+to proceed to the next pointer as fast as possible in this case.</p>
 <p>Having passed these tests, we need to fix the pointer using other data
-in memory, and possibly call the MPS to preserve the object.  This is
-what <tt class="docutils literal"><span class="pre">MPS_FIX2</span></tt> does.  The important distinction here is that <tt class="docutils literal"><span class="pre">MPS_FIX2</span></tt>
-can fail and return an error code, which must be propagated without ado
-by returning from the scanner.  Separating <tt class="docutils literal"><span class="pre">MPS_FIX1</span></tt> from <tt class="docutils literal"><span class="pre">MPS_FIX2</span></tt>
-helps keep the error handling code away from the tight loop with the
-zone check.</p>
-<p><tt class="docutils literal"><span class="pre">MPS_FIX*</span></tt>, the macro/inline part of the fix operation, are referred to
-as &#8220;fix stage 1&#8221; or &#8220;the first stage fix&#8221; in other documents and comments.</p>
-<p>If these inline checks pass, <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt> is called.  If the MPS has been
-built as a separate object file or library, this is where the function
-call out of the scan loop happens.  Since version 1.110 of the MPS, we
-encourage clients to compile the MPS in the same translation unit as
-their format code, so that the compiler can be intelligent about
-inlining parts of <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt> in the format scanner.  The instructions
-for doing this are in <a class="reference external" href="../manual/build.txt">Building the Memory Pool
-System</a>, part of the manual.</p>
+in memory, and possibly call the MPS to preserve the object. This is
+what <a class="reference internal" href="../topic/scanning.html#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a> does. The important distinction here is that
+<a class="reference internal" href="../topic/scanning.html#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a> can fail and return an error code, which must be
+propagated without ado by returning from the scanner. Separating
+<a class="reference internal" href="../topic/scanning.html#MPS_FIX1" title="MPS_FIX1"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX1()</span></tt></a> from <a class="reference internal" href="../topic/scanning.html#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a> helps keep the error handling code
+away from the tight loop with the zone check.</p>
+<p><tt class="docutils literal"><span class="pre">MPS_FIX*</span></tt>, the macro/inline part of the fix operation, are referred
+to as &#8220;fix stage 1&#8221; or &#8220;the first stage fix&#8221; in other documents and
+comments.</p>
+<p>If these inline checks pass, <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt> is called. If the MPS has
+been built as a separate object file or library, this is where the
+function call out of the scan loop happens. Since version 1.110 of the
+MPS, we encourage clients to compile the MPS in the same translation
+unit as their format code, so that the compiler can be intelligent
+about inlining parts of <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt> in the format scanner. The
+instructions for doing this are in <a class="reference external" href="../manual/build.txt">Building the Memory Pool System</a>, part of the manual.</p>
 </div>
 <div class="section" id="the-second-stage-fix-in-the-mpm">
 <h2>2.6. The second stage fix in the MPM<a class="headerlink" href="#the-second-stage-fix-in-the-mpm" title="Permalink to this headline">¶</a></h2>
@@ -255,44 +240,44 @@ System</a>, part of the manual.</p>
 <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt>, the &#8220;second stage fix&#8221;.  The second stage can filter out
 yet more pointers using information about segments before it has to
 consult the pool class.</p>
-<p>The first test applied is the &#8220;tract test&#8221;.  The MPS looks up the tract
+<p>The first test applied is the &#8220;tract test&#8221;. The MPS looks up the tract
 containing the address in the tract table, which is a simple linear
 table indexed by the address shifted &#8211; a kind of flat page table.</p>
 <p>Note that if the arena has been extended, the tract table becomes less
-simple, and this test may involved looking in more than one table.  This
-will cause a considerable slow-down in garbage collection scanning.
-This is the reason that it&#8217;s important to give a good estimate of the
-amount of address space you will ever occupy with objects when you
-initialize the arena.</p>
+simple, and this test may involved looking in more than one table.
+This will cause a considerable slow-down in garbage collection
+scanning. This is the reason that it&#8217;s important to give a good
+estimate of the amount of address space you will ever occupy with
+objects when you initialize the arena.</p>
 <p>The pointer might not even be in the arena (and so not in any tract).
-The first stage fix doesn&#8217;t guarantee it.  So we eliminate any pointers
+The first stage fix doesn&#8217;t guarantee it. So we eliminate any pointers
 not in the arena at this stage.</p>
-<p>If the pointer is in an allocated tract, then the table also contains a
-cache of the &#8220;white set&#8221; &#8211; the set of garbage collection traces for
-which the tract is &#8220;interesting&#8221;.  If a tract isn&#8217;t interesting, then we
-know that it contains no condemned objects, and we can filter out the
-pointer.</p>
+<p>If the pointer is in an allocated tract, then the table also contains
+a cache of the &#8220;white set&#8221; &#8211; the set of garbage collection traces for
+which the tract is &#8220;interesting&#8221;. If a tract isn&#8217;t interesting, then
+we know that it contains no condemned objects, and we can filter out
+the pointer.</p>
 <p>If the tract is interesting them it&#8217;s part of a segment containing
-objects that have been condemned.  The MPM can&#8217;t know anything about the
-internal layout of the segment, so at this point we dispatch to the
-third stage fix.</p>
-<p>This dispatch is slightly subtle.  We have a cache of the function to
-dispatch to in the scan state, which has recently been looked at and is
-with luck still in the processor cache.  The reason there is a dispatch
-at all is to allow for a fast changeover to emergency garbage
+objects that have been condemned. The MPM can&#8217;t know anything about
+the internal layout of the segment, so at this point we dispatch to
+the third stage fix.</p>
+<p>This dispatch is slightly subtle. We have a cache of the function to
+dispatch to in the scan state, which has recently been looked at and
+is with luck still in the processor cache. The reason there is a
+dispatch at all is to allow for a fast changeover to emergency garbage
 collection, or overriding of garbage collection with extra operations.
-Those are beyond the scope of this document.  Normally, <tt class="docutils literal"><span class="pre">ss-&gt;fix</span></tt> points
-at <tt class="docutils literal"><span class="pre">PoolFix</span></tt>, and we rely somewhat on modern processor <a class="reference external" href="https://en.wikipedia.org/wiki/Branch_target_predictor">branch target
-prediction</a>).
-<tt class="docutils literal"><span class="pre">PoolFix</span></tt> is passed the pool, which is fetched from the tract table
-entry, and that should be in the cache.</p>
-<p><tt class="docutils literal"><span class="pre">PoolFix</span></tt> itself dispatches to the pool class.  Normally, a dispatch to
-a pool class would indirect through the pool class object.  That would
-be a double indirection from the tract, so instead we have a cache of
-the pool&#8217;s fix method in the pool object.  This also allows a pool class
-to vary its fix method per pool instance, a fact that is exploited to
-optimize fixing in the AMC Pool depending on what kind of object format
-it is managing.</p>
+Those are beyond the scope of this document. Normally, <tt class="docutils literal"><span class="pre">ss-&gt;fix</span></tt>
+points at <tt class="xref c c-func docutils literal"><span class="pre">PoolFix()</span></tt>, and we rely somewhat on modern processor
+<a class="reference external" href="https://en.wikipedia.org/wiki/Branch_target_predictor">branch target prediction</a>).
+<tt class="xref c c-func docutils literal"><span class="pre">PoolFix()</span></tt> is passed the pool, which is fetched from the tract
+table entry, and that should be in the cache.</p>
+<p><tt class="xref c c-func docutils literal"><span class="pre">PoolFix()</span></tt> itself dispatches to the pool class. Normally, a
+dispatch to a pool class would indirect through the pool class object.
+That would be a double indirection from the tract, so instead we have
+a cache of the pool&#8217;s fix method in the pool object. This also allows
+a pool class to vary its fix method per pool instance, a fact that is
+exploited to optimize fixing in the AMC Pool depending on what kind of
+object format it is managing.</p>
 </div>
 <div class="section" id="the-third-stage-fix-in-the-pool-class">
 <h2>2.7. The third stage fix in the pool class<a class="headerlink" href="#the-third-stage-fix-in-the-pool-class" title="Permalink to this headline">¶</a></h2>
@@ -317,19 +302,19 @@ scanned at some point in the future, if it contains more pointers.</p>
 implements a copying GC), or was already moved when fixing a previous
 reference to it, the reference being fixed must be updated (this is
 the origin of the term &#8220;fix&#8221;).</p>
-<p>As a simple example, <tt class="docutils literal"><span class="pre">LOFix</span></tt> is the pool fix method for the Leaf Only
-pool class.  It implements a [marking] garbage collector, and does not
-have to worry about scanning preserved objects because it is used to
-store objects that don&#8217;t contain pointers.  (It is used in compiler
+<p>As a simple example, <tt class="xref c c-func docutils literal"><span class="pre">LOFix()</span></tt> is the pool fix method for the Leaf
+Only pool class. It implements a [marking] garbage collector, and does
+not have to worry about scanning preserved objects because it is used
+to store objects that don&#8217;t contain pointers. (It is used in compiler
 run-time systems to store binary data such as character strings, thus
 avoiding any scanning, decoding, or remembered set overhead for them.)</p>
-<p><tt class="docutils literal"><span class="pre">LOFix</span></tt> filters any ambiguous pointers that aren&#8217;t aligned, since they
-can&#8217;t point to objects it allocated.  Otherwise it subtracts the segment
-base address and shifts the result to get an index into a mark bit
-table.  If the object wasn&#8217;t marked and the pointer is weak, then it
-sets the pointer to zero, since the object is about to be recycled.
+<p><tt class="xref c c-func docutils literal"><span class="pre">LOFix()</span></tt> filters any ambiguous pointers that aren&#8217;t aligned, since
+they can&#8217;t point to objects it allocated. Otherwise it subtracts the
+segment base address and shifts the result to get an index into a mark
+bit table. If the object wasn&#8217;t marked and the pointer is weak, then
+it sets the pointer to zero, since the object is about to be recycled.
 Otherwise, the mark bit is set, which preserves the object from
-recycling when <cite>LOReclaim</cite> is called later on.  <cite>LOFix</cite> illustrates
+recycling when <cite>LOReclaim</cite> is called later on. <cite>LOFix</cite> illustrates
 about the minimum and most efficient thing a pool fix method can do.</p>
 </div>
 <div class="section" id="other-considerations">
@@ -360,51 +345,6 @@ review around the critical path is especially vigilant.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="document-history">
-<h2>2.10. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>2012-09-07  <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a>  First draft.</li>
-<li>2013-05-10  <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a>  Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>2.11. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2012-2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
-</div>
 </div>
 
 
@@ -428,8 +368,6 @@ possibility of such damage.</strong></p>
 <li><a class="reference internal" href="#the-third-stage-fix-in-the-pool-class">2.7. The third stage fix in the pool class</a></li>
 <li><a class="reference internal" href="#other-considerations">2.8. Other considerations</a></li>
 <li><a class="reference internal" href="#references">2.9. References</a></li>
-<li><a class="reference internal" href="#document-history">2.10. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">2.11. Copyright and License</a></li>
 </ul>
 </li>
 </ul>

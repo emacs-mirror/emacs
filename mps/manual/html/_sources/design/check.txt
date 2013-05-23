@@ -3,4 +3,4 @@
 
 .. _design-check:
 
-.. include:: ../../../design/check.txt
+.. include:: ../../converted/check.rst

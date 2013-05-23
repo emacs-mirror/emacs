@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>10. Debugging features for client objects &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>11. Debugging features for client objects &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="11. Manually-Managed Variable-Size First-Fit Pool" href="poolmvff.html" />
-    <link rel="prev" title="9. The lock module" href="lock.html" /> 
+    <link rel="next" title="12. Pool and pool class mechanisms" href="pool.html" />
+    <link rel="prev" title="10. Client message protocol" href="message.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="poolmvff.html" title="11. Manually-Managed Variable-Size First-Fit Pool"
+          <a href="pool.html" title="12. Pool and pool class mechanisms"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="lock.html" title="9. The lock module"
+          <a href="message.html" title="10. Client message protocol"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,96 +54,78 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-object-debug"><span id="index-0"></span></span><div class="section" id="debugging-features-for-client-objects">
-<h1>10. Debugging features for client objects<a class="headerlink" href="#debugging-features-for-client-objects" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.object-debug</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Pekka P. Pirinen</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1998-09-10</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/object-debug.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="debugging-features-for-client-objects">
+<span id="design-design-object-debug"></span><span id="design-object-debug"></span><span id="index-0"></span><h1>11. Debugging features for client objects<a class="headerlink" href="#debugging-features-for-client-objects" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>10.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="intro">.intro</span>: This is the design for all the various debugging features
+<span id="design.mps.object-debug"></span><h2>11.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.intro"></span><a class="mpstag reference internal" href="#design.mps.object-debug.intro">.intro:</a> This is the design for all the various debugging features
 that MPS clients (and sometimes MPS developers) can use to discover
 what is happening to their objects and the memory space.</p>
-<p><span class="target" id="readership">.readership</span>: MPS developers.</p>
+<p><span class="target" id="design.mps.object-debug.readership"></span><a class="mpstag reference internal" href="#design.mps.object-debug.readership">.readership:</a> MPS developers.</p>
 </div>
 <div class="section" id="overview">
-<h2>10.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="over-fenceposts">.over.fenceposts</span>: In its current state, this document mostly talks
+<h2>11.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.over.fenceposts"></span><a class="mpstag reference internal" href="#design.mps.object-debug.over.fenceposts">.over.fenceposts:</a> In its current state, this document mostly talks
 about fenceposts, straying a little into tagging where theses features
 have an effect on each other. [There exist other documents that list
 other required features, and propose interfaces and implementations.
 These will eventually be folded into this one. pekka 1998-09-10]</p>
 </div>
 <div class="section" id="requirements">
-<h2>10.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="req-fencepost">.req.fencepost</span>: Try to detect overwrites and underwrites of
+<h2>11.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.req.fencepost"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.fencepost">.req.fencepost:</a> Try to detect overwrites and underwrites of
 allocated blocks by adding fenceposts (source req.product.??? VC++,
 req.epcore.fun.debug.support).</p>
-<p><span class="target" id="req-fencepost-size">.req.fencepost.size</span>: The fenceposts should be at least 4 bytes on
+<p><span class="target" id="design.mps.object-debug.req.fencepost.size"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.fencepost.size">.req.fencepost.size:</a> The fenceposts should be at least 4 bytes on
 either side or 8 bytes if on one side only, with an adjustable content
 (although VC++ only has 4 bytes with pattern 0xFDFDFDFD, having
 unwisely combined the implementation with other debug features).</p>
-<p><span class="target" id="req-fencepost-check">.req.fencepost.check</span>: There should be a function to check all the
+<p><span class="target" id="design.mps.object-debug.req.fencepost.check"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.fencepost.check">.req.fencepost.check:</a> There should be a function to check all the
 fenceposts (source req.epcore.fun.debug.support).</p>
-<p><span class="target" id="req-free-block">.req.free-block</span>: Try to detect attempts to write and read free
+<p><span class="target" id="design.mps.object-debug.req.free-block"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.free-block">.req.free-block:</a> Try to detect attempts to write and read free
 blocks.</p>
-<p><span class="target" id="req-walk">.req.walk</span>: There should be a way to map (&#8220;walk&#8221;) a user function
+<p><span class="target" id="design.mps.object-debug.req.walk"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.walk">.req.walk:</a> There should be a way to map (&#8220;walk&#8221;) a user function
 over all allocated objects (except PS VM objects), possibly only in a
 separate debugging variety/mode (source req.epcore.fun.debug.support).</p>
-<p><span class="target" id="req-tag">.req.tag</span>: There should be a way to store at least a word of user
+<p><span class="target" id="design.mps.object-debug.req.tag"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.tag">.req.tag:</a> There should be a way to store at least a word of user
 data (a &#8220;tag&#8221;, borrowing the SW term) with every object in debugging
 mode, to be used in memory dumps (source req.product.??? VC++).</p>
-<p><span class="target" id="req-tag-walk">.req.tag.walk</span>: The walking function (as required by <a class="reference internal" href="#req-walk">.req.walk</a>)
+<p><span class="target" id="design.mps.object-debug.req.tag.walk"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.tag.walk">.req.tag.walk:</a> The walking function (as required by <a class="reference internal" href="#design.mps.object-debug.req.walk">.req.walk</a>)
 should have access to this data (source req.epcore.fun.debug.support).</p>
-<p><span class="target" id="req-dump-aver">.req.dump.aver</span>: It must be possible to perform a memory dump after
-an <tt class="docutils literal"><span class="pre">AVER</span></tt> has fired (naturally, if the information required for the
+<p><span class="target" id="design.mps.object-debug.req.dump.aver"></span><a class="mpstag reference internal" href="#design.mps.object-debug.req.dump.aver">.req.dump.aver:</a> It must be possible to perform a memory dump after
+an <tt class="xref c c-func docutils literal"><span class="pre">AVER()</span></tt> has fired (naturally, if the information required for the
 dump has been corrupted, it will fail, as softly as possible). (source
 &#64;&#64;&#64;&#64;)</p>
 <p>[There are more, especially about memory dumps and allocation
 locations. pekka 1998-09-10]</p>
 </div>
 <div class="section" id="solution-ideas">
-<h2>10.4. Solution ideas<a class="headerlink" href="#solution-ideas" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="note-assumptions">.note.assumptions</span>: I&#8217;ve tried not to assume anything about the
+<h2>11.4. Solution ideas<a class="headerlink" href="#solution-ideas" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.note.assumptions"></span><a class="mpstag reference internal" href="#design.mps.object-debug.note.assumptions">.note.assumptions:</a> I&#8217;ve tried not to assume anything about the
 coincidence of manual/automatic, formatted/unformatted, and
 ap/mps_alloc. I think those questions deserve to be decided on their
 own merits. instead of being constrained by a debug feature.</p>
-<p><span class="target" id="fence-content-repeat">.fence.content.repeat</span>: The content of a fencepost could be
+<p><span class="target" id="design.mps.object-debug.fence.content.repeat"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.content.repeat">.fence.content.repeat:</a> The content of a fencepost could be
 specified as a byte/word which used repeatedly to fill the fencepost.</p>
-<p><span class="target" id="fence-content-template">.fence.content.template</span>: The content could be given as a template
+<p><span class="target" id="design.mps.object-debug.fence.content.template"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.content.template">.fence.content.template:</a> The content could be given as a template
 which is of the right size and is simply copied onto the fencepost.</p>
-<p><span class="target" id="fence-walk">.fence.walk</span>: <a class="reference internal" href="#req-fencepost-check">.req.fencepost.check</a> requires the ability to find
+<p><span class="target" id="design.mps.object-debug.fence.walk"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.walk">.fence.walk:</a> <a class="reference internal" href="#design.mps.object-debug.req.fencepost.check">.req.fencepost.check</a> requires the ability to find
 all the allocated objects. In formatted pools, this is not a problem.
 In unformatted pools, we could use the walker. It&#8217;s a feasible
 strategy to bet that any pool that might have to support fenceposting
 will also have a walking requirement.</p>
-<p><span class="target" id="fence-tag">.fence.tag</span>: Fenceposting also needs to keep track which objects
+<p><span class="target" id="design.mps.object-debug.fence.tag"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.tag">.fence.tag:</a> Fenceposting also needs to keep track which objects
 have fenceposts. unless we manage to do them all. It would be easiest
 to put this in the tags.</p>
-<p><span class="target" id="fence-check-object">.fence.check.object</span>: A function to check the fenceposts on a given
+<p><span class="target" id="design.mps.object-debug.fence.check.object"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.check.object">.fence.check.object:</a> A function to check the fenceposts on a given
 object would be nice.</p>
-<p><span class="target" id="fence-ap">.fence.ap</span>: AP&#8217;s could support fenceposting transparently by having
-a mode where <tt class="docutils literal"><span class="pre">mps_reserve</span></tt> always goes out-of-line and fills in the
-fenceposts (the pool&#8217;s <tt class="docutils literal"><span class="pre">BufferFill</span></tt> method isn&#8217;t involved). This
+<p><span class="target" id="design.mps.object-debug.fence.ap"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.ap">.fence.ap:</a> AP&#8217;s could support fenceposting transparently by having
+a mode where <a class="reference internal" href="../topic/allocation.html#mps_reserve" title="mps_reserve"><tt class="xref c c-func docutils literal"><span class="pre">mps_reserve()</span></tt></a> always goes out-of-line and fills in the
+fenceposts (the pool&#8217;s <tt class="xref c c-func docutils literal"><span class="pre">BufferFill()</span></tt> method isn&#8217;t involved). This
 would leave the MPS with more freedom of implementation, especially
 when combined with some of the other ideas. We think doing a function
 call for every allocation is not too bad for debugging.</p>
-<p><span class="target" id="fence-outside-ap">.fence.outside-ap</span>: We could also let the client insert their own
+<p><span class="target" id="design.mps.object-debug.fence.outside-ap"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.outside-ap">.fence.outside-ap:</a> We could also let the client insert their own
 fenceposts outside the MPS allocation mechanism. Even if fenceposting
 were done like this, we&#8217;d still want it to be an MPS feature, so we&#8217;d
 offer sample C macros for adding the size of the fencepost and filling
@@ -159,7 +141,7 @@ constants to gain effiency):</p>
 <p>The client would need to supply their own fencepost checking function,
 obviously, but again we could offer one that matches the sample
 macros.</p>
-<p><span class="target" id="fence-tail-only">.fence.tail-only</span>: In automatic pools, the presence of a fencepost
+<p><span class="target" id="design.mps.object-debug.fence.tail-only"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.tail-only">.fence.tail-only:</a> In automatic pools, the presence of a fencepost
 at the head of the allocated block results in the object reference
 being an internal pointer. This means that the format or the pool
 would need to know about fenceposting and convert between references
@@ -171,7 +153,7 @@ twice as large), especially in copying pools, where there are normally
 no gaps between allocated blocks. In addition to the inescapable
 effects on allocation and freeing (including copying and reclaim
 thereunder), only scanning would have to know about fenceposts.</p>
-<p><span class="target" id="fence-tail-only-under">.fence.tail-only.under</span>: Walking over all the objects in the pool
+<p><span class="target" id="design.mps.object-debug.fence.tail-only.under"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.tail-only.under">.fence.tail-only.under:</a> Walking over all the objects in the pool
 would be necessary to detect underwrites, as one couldn&#8217;t be sure that
 there is a fencepost before any given object (or where it&#8217;s located
 exactly). If the pool were doing the checking, it could be sure: it
@@ -182,7 +164,7 @@ a segment, which is not a major problem, and could be fixed by adding
 a padding object at the beginning of every segment). This requires
 some cleverness to avoid splinters smaller than the fencepost size,
 but it can be done.</p>
-<p><span class="target" id="fence-wrapper">.fence.wrapper</span>: On formatted pools, fenceposting could be
+<p><span class="target" id="design.mps.object-debug.fence.wrapper"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.wrapper">.fence.wrapper:</a> On formatted pools, fenceposting could be
 implemented by &#8220;wrapping&#8221; the client-supplied format at creation time.
 The wrapper can handle the conversion from the fenceposted object and
 back. This will be invisible to the client and gives the added benefit
@@ -192,11 +174,11 @@ of the client object, but the client would only see its object; the
 format wrapper would translate between the two. Note that hiding the
 fenceposts from scan methods, which are required to take a contiguous
 range of objects, is a bit complicated.</p>
-<p><span class="target" id="fence-client-format">.fence.client-format</span>: The MPS would supply such a wrapper, but
+<p><span class="target" id="design.mps.object-debug.fence.client-format"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.client-format">.fence.client-format:</a> The MPS would supply such a wrapper, but
 clients could also be allowed to write their own fenceposted formats
 (provided they coordinate with allocation, see below). This would make
 scanning fenceposted segments more efficient.</p>
-<p><span class="target" id="fence-wrapper-variable">.fence.wrapper.variable</span>: Furthermore, you could create different
+<p><span class="target" id="design.mps.object-debug.fence.wrapper.variable"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.wrapper.variable">.fence.wrapper.variable:</a> Furthermore, you could create different
 classes of fencepost within a pool, because the fencepost itself could
 have a variable format. For instance, you might choose to have the
 fencepost be minimal (one to two words) for small objects, and more
@@ -204,79 +186,79 @@ detailed/complex for large objects (imagining that large objects are
 likely vector-ish and subject to overruns). You could get really fancy
 and have the fencepost class keyed to the object class (for example,
 different allocation points create different classes of fenceposting).</p>
-<p><span class="target" id="fence-wrapper-alloc">.fence.wrapper.alloc</span>: Even with a wrapped format, allocation and
+<p><span class="target" id="design.mps.object-debug.fence.wrapper.alloc"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.wrapper.alloc">.fence.wrapper.alloc:</a> Even with a wrapped format, allocation and
 freeing would still have know about the fenceposts. If allocation
-points are used, either MPS-side (<a class="reference internal" href="#fence-ap">.fence.ap</a>) or client-side
-(<a class="reference internal" href="#fence-outside-ap">.fence.outside-ap</a>) fenceposting could be used, with the obvious
+points are used, either MPS-side (<a class="reference internal" href="#design.mps.object-debug.fence.ap">.fence.ap</a>) or client-side
+(<a class="reference internal" href="#design.mps.object-debug.fence.outside-ap">.fence.outside-ap</a>) fenceposting could be used, with the obvious
 modifications.</p>
-<p><span class="target" id="fence-wrapper-alloc-format">.fence.wrapper.alloc.format</span>: We could add three format methods, to
+<p><span class="target" id="design.mps.object-debug.fence.wrapper.alloc.format"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.wrapper.alloc.format">.fence.wrapper.alloc.format:</a> We could add three format methods, to
 adjust the pointer and the size for alloc and free, to put down the
 fenceposts during alloc, and to check them; to avoid slowing down all
 allocation, this would require some MOPping to make the format class
 affect the choice of the alloc and free methods (see
 mail.pekka.1998-06-11.18-18).</p>
-<p><span class="target" id="fence-wrapper-alloc-size">.fence.wrapper.alloc.size</span>: We could just communicate the size of
+<p><span class="target" id="design.mps.object-debug.fence.wrapper.alloc.size"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.wrapper.alloc.size">.fence.wrapper.alloc.size:</a> We could just communicate the size of
 the fenceposts between the format and the allocation routines, but
 then you couldn&#8217;t use variable fenceposts (.fence.wrapper.variable).
 [All this applies to copying and reclaim in a straight-forward manner,
 I think.]</p>
-<p><span class="target" id="fence-pool-wrapper">.fence.pool.wrapper</span>: Pools can be wrapped as well. This could be a
+<p><span class="target" id="design.mps.object-debug.fence.pool.wrapper"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.pool.wrapper">.fence.pool.wrapper:</a> Pools can be wrapped as well. This could be a
 natural way to represent/implement the fenceposting changes to the
 Alloc and Free methods. [&#64;&#64;&#64;&#64;alignment]</p>
-<p><span class="target" id="fence-pool-new-class">.fence.pool.new-class</span>: We could simply offer a debugging version of
-each pool class (e.g., <tt class="docutils literal"><span class="pre">mps_pool_class_mv_debug</span></tt>). As we have seen,
+<p><span class="target" id="design.mps.object-debug.fence.pool.new-class"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.pool.new-class">.fence.pool.new-class:</a> We could simply offer a debugging version of
+each pool class (e.g., <tt class="xref c c-func docutils literal"><span class="pre">mps_pool_class_mv_debug()</span></tt>). As we have seen,
 debugging features have synergies which make it advantageous to have a
 coordinated implementation, so splitting them up would not just
 complicate the client interface, it would also be an implementation
 problem; we can turn features on or off with pool init parameters.</p>
-<p><span class="target" id="fence-pool-abstract">.fence.pool.abstract</span>: We could simply use pool init parameters only
+<p><span class="target" id="design.mps.object-debug.fence.pool.abstract"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.pool.abstract">.fence.pool.abstract:</a> We could simply use pool init parameters only
 to control all debugging features (optargs would be useful here).
 While there migh be subclasses and wrappers internally, the client
 would only see a single pool class; in the internal view, this would
 be an abstract class, and the parameters would determine which
 concrete class actually gets instantiated.</p>
-<p><span class="target" id="tag-out-of-line">.tag.out-of-line</span>: It would be nice if tags were stored out-of-line,
+<p><span class="target" id="design.mps.object-debug.tag.out-of-line"></span><a class="mpstag reference internal" href="#design.mps.object-debug.tag.out-of-line">.tag.out-of-line:</a> It would be nice if tags were stored out-of-line,
 so they can be used to study allocation patterns and fragmentation
 behaviours. Such an implementation of tagging could also easily be
 shared among several pools.</p>
 </div>
 <div class="section" id="architecture">
-<h2>10.5. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="pool">.pool</span>: The implementation is at the pool level, because pools
+<h2>11.5. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.pool"></span><a class="mpstag reference internal" href="#design.mps.object-debug.pool">.pool:</a> The implementation is at the pool level, because pools
 manage allocated objects. A lot of the code will be generic,
 naturally, but the data structures and the control interfaces attach
 to pools. In particular, clients will be able to use tagging and
 fenceposting separately on each pool.</p>
-<p><span class="target" id="fence-size">.fence.size</span>: Having fenceposts of adjustable size and pattern is
+<p><span class="target" id="design.mps.object-debug.fence.size"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.size">.fence.size:</a> Having fenceposts of adjustable size and pattern is
 quite useful. We feel that restricting the size to an integral
 multiple of the [pool or format?] alignment is harmless and simplifies
 the implementation enormously.</p>
-<p><span class="target" id="fence-template">.fence.template</span>: We use templates (<a class="reference internal" href="#fence-content-template">.fence.content.template</a>) to
+<p><span class="target" id="design.mps.object-debug.fence.template"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.template">.fence.template:</a> We use templates (<a class="reference internal" href="#design.mps.object-debug.fence.content.template">.fence.content.template</a>) to
 fill in the fenceposts, but we do not give any guarantees about the
 location of the fenceposts, only that they&#8217;re properly aligned. This
 leaves us the opportunity to do tail-only fenceposting, if we choose.</p>
-<p><span class="target" id="fence-slop">.fence.slop</span>: [see impl.c.dbgpool.FenceAlloc &#64;&#64;&#64;&#64;]</p>
-<p><span class="target" id="fence-check-free">.fence.check.free</span>: We check the fenceposts when freeing an object.</p>
-<p><span class="target" id="unified-walk">.unified-walk</span>: Combine the walking and tagging requirements
-(<a class="reference internal" href="#req-tag-walk">.req.tag.walk</a> and &#64;&#64;&#64;&#64;) into a generic facility for walking and
+<p><span class="target" id="design.mps.object-debug.fence.slop"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.slop">.fence.slop:</a> [see impl.c.dbgpool.FenceAlloc &#64;&#64;&#64;&#64;]</p>
+<p><span class="target" id="design.mps.object-debug.fence.check.free"></span><a class="mpstag reference internal" href="#design.mps.object-debug.fence.check.free">.fence.check.free:</a> We check the fenceposts when freeing an object.</p>
+<p><span class="target" id="design.mps.object-debug.unified-walk"></span><a class="mpstag reference internal" href="#design.mps.object-debug.unified-walk">.unified-walk:</a> Combine the walking and tagging requirements
+(<a class="reference internal" href="#design.mps.object-debug.req.tag.walk">.req.tag.walk</a> and &#64;&#64;&#64;&#64;) into a generic facility for walking and
 tagging objects with just one interface and one name: tagging. Also
 combine the existing formatted object walker into this metaphor, but
 allowing the format and tag parameters of the step function be
 optional [this part has not been implemented yet pekka 1998-09-10].</p>
-<p><span class="target" id="init">.init</span>: It simplifies the implementation of both tagging and
+<p><span class="target" id="design.mps.object-debug.init"></span><a class="mpstag reference internal" href="#design.mps.object-debug.init">.init:</a> It simplifies the implementation of both tagging and
 fenceposting if they are always on, so that we don&#8217;t have to keep
 track of which objects have been fenceposted and which have not, and
 don&#8217;t have to have three kinds of tags: for user data, for
 fenceposting, and for both. So we determine this at pool init time
 (and let fenceposting turn on tagging, if necessary).</p>
-<p><span class="target" id="pool-parameters">.pool-parameters</span>: Fencepost templates and tag formats are passed in
+<p><span class="target" id="design.mps.object-debug.pool-parameters"></span><a class="mpstag reference internal" href="#design.mps.object-debug.pool-parameters">.pool-parameters:</a> Fencepost templates and tag formats are passed in
 as pool parameters.</p>
-<p><span class="target" id="modularity">.modularity</span>: While a combined generic implementation of tags and
+<p><span class="target" id="design.mps.object-debug.modularity"></span><a class="mpstag reference internal" href="#design.mps.object-debug.modularity">.modularity:</a> While a combined generic implementation of tags and
 fenceposts is provided, it is structured so that each part of it could
 be implemented by a pool-specific mechanism with a minimum of new
 protocol. [This will be improved, when we figure out formatted pools
 &#8211; they don&#8217;t need tags for fenceposting.]</p>
-<p><span class="target" id="out-of-space">.out-of-space</span>: If there&#8217;s no room for tags, we will not dip into
+<p><span class="target" id="design.mps.object-debug.out-of-space"></span><a class="mpstag reference internal" href="#design.mps.object-debug.out-of-space">.out-of-space:</a> If there&#8217;s no room for tags, we will not dip into
 the reservoir, just fail to allocate the tag. If the alloc call had a
 reservoir permit, we let it succeed even without a tag, and just make
 sure the free method will not complain if it can&#8217;t find a tag. If the
@@ -289,64 +271,52 @@ cannot be made, but we do count the &#8220;lost&#8221; tags.</p>
 <p>[need to hash out how to do fenceposting in formatted pools]</p>
 </div>
 <div class="section" id="client-interface">
-<h2>10.6. Client interface<a class="headerlink" href="#client-interface" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="interface-fenceposting-check">.interface.fenceposting.check</span>:
-<tt class="docutils literal"><span class="pre">mps_pool_check_fenceposts</span></tt> is a function to check all
-fenceposts in a pool (<tt class="docutils literal"><span class="pre">AVER</span></tt> if a problem is found)</p>
+<h2>11.6. Client interface<a class="headerlink" href="#client-interface" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.interface.fenceposting.check"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.fenceposting.check">.interface.fenceposting.check:</a>
+<a class="reference internal" href="../topic/debugging.html#mps_pool_check_fenceposts" title="mps_pool_check_fenceposts"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_check_fenceposts()</span></tt></a> is a function to check all
+fenceposts in a pool (<tt class="xref c c-func docutils literal"><span class="pre">AVER()</span></tt> if a problem is found)</p>
 <p>[from here on, these are tentative and incomplete]</p>
 <dl class="function">
 <dt id="mps_fmt_fencepost_wrap">
 <a class="reference internal" href="../topic/error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_fencepost_wrap</tt><big>(</big><a class="reference internal" href="../topic/format.html#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*format_return</em>, <a class="reference internal" href="../topic/arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="../topic/format.html#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;format</em>, [fp<em>&nbsp;parameters]</em><big>)</big><a class="headerlink" href="#mps_fmt_fencepost_wrap" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="interface-fenceposting-format">.interface.fenceposting.format</span>: A function to wrap a format
+<p><span class="target" id="design.mps.object-debug.interface.fenceposting.format"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.fenceposting.format">.interface.fenceposting.format:</a> A function to wrap a format
 (class) to provide fenceposting.</p>
 <dl class="function">
 <dt id="mps_fmt_adjust_fencepost_t">
 void <tt class="descname">(*mps_fmt_adjust_fencepost_t)</tt><big>(</big>size_t<em>&nbsp;*size_io</em><big>)</big><a class="headerlink" href="#mps_fmt_adjust_fencepost_t" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="interface-fenceposting-adjust">.interface.fenceposting.adjust</span>: A format method to adjust size of a
+<p><span class="target" id="design.mps.object-debug.interface.fenceposting.adjust"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.fenceposting.adjust">.interface.fenceposting.adjust:</a> A format method to adjust size of a
 block about to be allocted to allow for fenceposts.</p>
 <dl class="function">
 <dt id="mps_fmt_put_fencepost_t">
 void <tt class="descname">(*mps_fmt_put_fencepost_t)</tt><big>(</big><a class="reference internal" href="../topic/interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a> *<em>&nbsp;addr_io</em>, size_t<em>&nbsp;size</em><big>)</big><a class="headerlink" href="#mps_fmt_put_fencepost_t" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="interface-fenceposting-add">.interface.fenceposting.add</span>: A format method to add a fencepost
-around a block about to be allocated [the <tt class="docutils literal"><span class="pre">NULL</span></tt> method adds a tail
+<p><span class="target" id="design.mps.object-debug.interface.fenceposting.add"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.fenceposting.add">.interface.fenceposting.add:</a> A format method to add a fencepost
+around a block about to be allocated [the <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt> method adds a tail
 fencepost]</p>
 <dl class="function">
 <dt id="mps_fmt_check_fenceposts_t">
 <a class="reference internal" href="../topic/interface.html#mps_bool_t" title="mps_bool_t">mps_bool_t</a> <tt class="descname">(*mps_fmt_check_fenceposts_t)</tt><big>(</big><a class="reference internal" href="../topic/interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><big>)</big><a class="headerlink" href="#mps_fmt_check_fenceposts_t" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="interface-fenceposting-checker">.interface.fenceposting.checker</span>: A format method to check the
-fenceposts around an object [the <tt class="docutils literal"><span class="pre">NULL</span></tt> method checks tails].</p>
+<p><span class="target" id="design.mps.object-debug.interface.fenceposting.checker"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.fenceposting.checker">.interface.fenceposting.checker:</a> A format method to check the
+fenceposts around an object [the <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt> method checks tails].</p>
 <dl class="function">
 <dt id="mps_debug_class">
 <a class="reference internal" href="../topic/pool.html#mps_class_t" title="mps_class_t">mps_class_t</a> <tt class="descname">mps_debug_class</tt><big>(</big><a class="reference internal" href="../topic/pool.html#mps_class_t" title="mps_class_t">mps_class_t</a><em>&nbsp;class</em><big>)</big><a class="headerlink" href="#mps_debug_class" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="interface-fenceposting-pool">.interface.fenceposting.pool</span>: A function to wrap a pool class
+<p><span class="target" id="design.mps.object-debug.interface.fenceposting.pool"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.fenceposting.pool">.interface.fenceposting.pool:</a> A function to wrap a pool class
 to provide fenceposting (note absence of arena parameter).</p>
-<dl class="function">
-<dt>
-<tt class="descname">mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);</tt></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<tt class="descname">mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...);</tt></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<tt class="descname">mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list);</tt></dt>
-<dd></dd></dl>
-
-<p><span class="target" id="interface-tags-alloc">.interface.tags.alloc</span>: Three functions to replace existing
-<tt class="docutils literal"><span class="pre">mps_alloc</span></tt> (request.???.??? proposes to remove the varargs)</p>
+<p><tt class="docutils literal"><span class="pre">mps_res_t</span> <span class="pre">mps_alloc(mps_addr_t</span> <span class="pre">*,</span> <span class="pre">mps_pool_t,</span> <span class="pre">size_t);</span></tt>
+<tt class="docutils literal"><span class="pre">mps_res_t</span> <span class="pre">mps_alloc_dbg(mps_addr_t</span> <span class="pre">*,</span> <span class="pre">mps_pool_t,</span> <span class="pre">size_t,</span> <span class="pre">...);</span></tt>
+<tt class="docutils literal"><span class="pre">mps_res_t</span> <span class="pre">mps_alloc_dbg_v(mps_addr_t</span> <span class="pre">*,</span> <span class="pre">mps_pool_t,</span> <span class="pre">size_t,</span> <span class="pre">va_list);</span></tt></p>
+<p><span class="target" id="design.mps.object-debug.interface.tags.alloc"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.tags.alloc">.interface.tags.alloc:</a> Three functions to replace existing
+<a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a> (request.???.??? proposes to remove the varargs)</p>
 <dl class="function">
 <dt id="mps_objects_step_t">
 void <tt class="descname">(*mps_objects_step_t)</tt><big>(</big><a class="reference internal" href="../topic/interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;addr</em>, size_t<em>&nbsp;size</em>, <a class="reference internal" href="../topic/format.html#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;format</em>, <a class="reference internal" href="../topic/pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a><em>&nbsp;pool</em>, void<em>&nbsp;*tag_data</em>, void<em>&nbsp;*p</em><big>)</big><a class="headerlink" href="#mps_objects_step_t" title="Permalink to this definition">¶</a></dt>
@@ -362,15 +332,15 @@ void <tt class="descname">mps_pool_walk</tt><big>(</big><a class="reference inte
 void <tt class="descname">mps_arena_walk</tt><big>(</big><a class="reference internal" href="../topic/arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_objects_step_t" title="mps_objects_step_t">mps_objects_step_t</a><em>&nbsp;step</em>, void<em>&nbsp;*p</em><big>)</big><a class="headerlink" href="#mps_arena_walk" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="interface-tags-walker">.interface.tags.walker</span>: Functions to walk all the allocated
+<p><span class="target" id="design.mps.object-debug.interface.tags.walker"></span><a class="mpstag reference internal" href="#design.mps.object-debug.interface.tags.walker">.interface.tags.walker:</a> Functions to walk all the allocated
 objects in a pool or an arena (only client pools in this case),
-<tt class="docutils literal"><span class="pre">format</span></tt> and <tt class="docutils literal"><span class="pre">tag_data</span></tt> can be <tt class="docutils literal"><span class="pre">NULL</span></tt> (<tt class="docutils literal"><span class="pre">tag_data</span></tt> really wants
-to be <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, not <tt class="docutils literal"><span class="pre">mps_addr_t</span></tt>, because it&#8217;s stored
+<tt class="docutils literal"><span class="pre">format</span></tt> and <tt class="docutils literal"><span class="pre">tag_data</span></tt> can be <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt> (<tt class="docutils literal"><span class="pre">tag_data</span></tt> really wants
+to be <tt class="docutils literal"><span class="pre">void</span> <span class="pre">*</span></tt>, not <a class="reference internal" href="../topic/interface.html#mps_addr_t" title="mps_addr_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_addr_t</span></tt></a>, because it&#8217;s stored
 together with the internal tag data in an MPS internal pool)</p>
 </div>
 <div class="section" id="examples">
-<h2>10.7. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="example-debug-alloc">.example.debug-alloc</span>:</p>
+<h2>11.7. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.example.debug-alloc"></span><a class="mpstag reference internal" href="#design.mps.object-debug.example.debug-alloc">.example.debug-alloc:</a></p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#define MPS_ALLOC_DBG(res_io, addr_io, pool, size)</span>
   <span class="n">MPS_BEGIN</span>
     <span class="k">static</span> <span class="n">mps_tag_A_s</span> <span class="n">_ts</span> <span class="o">=</span> <span class="p">{</span> <span class="n">__FILE__</span><span class="p">,</span> <span class="n">__LINE__</span> <span class="p">};</span>
@@ -381,80 +351,30 @@ together with the internal tag data in an MPS internal pool)</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>10.8. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="new-pool">.new-pool</span>: The client interface to control fenceposting
-consists of the new classes <tt class="docutils literal"><span class="pre">mps_pool_class_mv_debug</span></tt>,
-<tt class="docutils literal"><span class="pre">mps_pool_class_epdl_debug</span></tt>, and
-<tt class="docutils literal"><span class="pre">mps_pool_class_epdr_debug</span></tt>, and their new init parameter of
-type <tt class="docutils literal"><span class="pre">mps_pool_debug_option_s</span></tt>. [This is a temporary solution,
+<h2>11.8. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.object-debug.new-pool"></span><a class="mpstag reference internal" href="#design.mps.object-debug.new-pool">.new-pool:</a> The client interface to control fenceposting
+consists of the new classes <tt class="xref c c-func docutils literal"><span class="pre">mps_pool_class_mv_debug()</span></tt>,
+<tt class="xref c c-func docutils literal"><span class="pre">mps_pool_class_epdl_debug()</span></tt>, and
+<tt class="xref c c-func docutils literal"><span class="pre">mps_pool_class_epdr_debug()</span></tt>, and their new init parameter of
+type <a class="reference internal" href="../topic/debugging.html#mps_pool_debug_option_s" title="mps_pool_debug_option_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_pool_debug_option_s</span></tt></a>. [This is a temporary solution,
 to get it out without writing lots of new interface. pekka 1998-09-10]</p>
-<p><span class="target" id="new-pool-impl">.new-pool.impl</span>: The debug pools are implemented using the
-&#8220;class wrapper&#8221; <tt class="docutils literal"><span class="pre">EnsureDebugClass</span></tt>, which produces a subclass
-with modified <tt class="docutils literal"><span class="pre">init</span></tt>, <tt class="docutils literal"><span class="pre">finish</span></tt>, <tt class="docutils literal"><span class="pre">alloc</span></tt>, and <tt class="docutils literal"><span class="pre">free</span></tt> methods.
-These methods are implemented in the generic debug class code
-(<tt class="docutils literal"><span class="pre">impl.c.dbgpool</span></tt>), and are basically wrappers around the
-superclass methods (invoked through the <tt class="docutils literal"><span class="pre">pool-&gt;class-&gt;super</span></tt> field).
-To find the data stored in the class for the debugging features, they
-use the <tt class="docutils literal"><span class="pre">debugMixin</span></tt> method provided by the subclass. So to make a
-debug subclass, three things should be provided: a structure
-definition of the instance containing a
-<tt class="docutils literal"><span class="pre">PoolDebugMixinStruct</span></tt>, a pool class function that uses
-<tt class="docutils literal"><span class="pre">EnsureDebugClass</span></tt>, and a <tt class="docutils literal"><span class="pre">debugMixin</span></tt> method that locates
-the <tt class="docutils literal"><span class="pre">PoolDebugMixinStruct</span></tt> within an instance.</p>
-<p><span class="target" id="tags-splay">.tags.splay</span>: The tags are stored in a splay tree of tags
+<p><span class="target" id="design.mps.object-debug.new-pool.impl"></span><a class="mpstag reference internal" href="#design.mps.object-debug.new-pool.impl">.new-pool.impl:</a> The debug pools are implemented using the &#8220;class
+wrapper&#8221; <tt class="xref c c-func docutils literal"><span class="pre">EnsureDebugClass()</span></tt>, which produces a subclass with
+modified <tt class="docutils literal"><span class="pre">init</span></tt>, <tt class="docutils literal"><span class="pre">finish</span></tt>, <tt class="docutils literal"><span class="pre">alloc</span></tt>, and <tt class="docutils literal"><span class="pre">free</span></tt> methods. These
+methods are implemented in the generic debug class code
+(<tt class="docutils literal"><span class="pre">impl.c.dbgpool</span></tt>), and are basically wrappers around the superclass
+methods (invoked through the <tt class="docutils literal"><span class="pre">pool-&gt;class-&gt;super</span></tt> field). To find
+the data stored in the class for the debugging features, they use the
+<tt class="docutils literal"><span class="pre">debugMixin</span></tt> method provided by the subclass. So to make a debug
+subclass, three things should be provided: a structure definition of
+the instance containing a <tt class="xref c c-type docutils literal"><span class="pre">PoolDebugMixinStruct</span></tt>, a pool class
+function that uses <tt class="xref c c-func docutils literal"><span class="pre">EnsureDebugClass()</span></tt>, and a <tt class="docutils literal"><span class="pre">debugMixin</span></tt> method
+that locates the <tt class="xref c c-type docutils literal"><span class="pre">PoolDebugMixinStruct</span></tt> within an instance.</p>
+<p><span class="target" id="design.mps.object-debug.tags.splay"></span><a class="mpstag reference internal" href="#design.mps.object-debug.tags.splay">.tags.splay:</a> The tags are stored in a splay tree of tags
 allocated from a subsidiary MFS pool. The client needs to specify the
 (maximum) size of the client data in a tag, so that the pool can be
 created.</p>
 <p>[Lots more should be said, eventually. pekka 1998-09-10]</p>
-</div>
-<div class="section" id="document-history">
-<h2>10.9. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1998-09-10 Pekka Pirinen The first draft merely records all the
-various ideas about fenceposting that came up in discussions in
-June, July and September 1998. This includes the format wrapping
-idea from mail.ptw.1998-06-19.21-13(0).</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-04-14 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>10.10. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -469,27 +389,25 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">10. Debugging features for client objects</a><ul>
-<li><a class="reference internal" href="#introduction">10.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">10.2. Overview</a></li>
-<li><a class="reference internal" href="#requirements">10.3. Requirements</a></li>
-<li><a class="reference internal" href="#solution-ideas">10.4. Solution ideas</a></li>
-<li><a class="reference internal" href="#architecture">10.5. Architecture</a></li>
-<li><a class="reference internal" href="#client-interface">10.6. Client interface</a></li>
-<li><a class="reference internal" href="#examples">10.7. Examples</a></li>
-<li><a class="reference internal" href="#implementation">10.8. Implementation</a></li>
-<li><a class="reference internal" href="#document-history">10.9. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">10.10. Copyright and License</a></li>
+<li><a class="reference internal" href="#">11. Debugging features for client objects</a><ul>
+<li><a class="reference internal" href="#introduction">11.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">11.2. Overview</a></li>
+<li><a class="reference internal" href="#requirements">11.3. Requirements</a></li>
+<li><a class="reference internal" href="#solution-ideas">11.4. Solution ideas</a></li>
+<li><a class="reference internal" href="#architecture">11.5. Architecture</a></li>
+<li><a class="reference internal" href="#client-interface">11.6. Client interface</a></li>
+<li><a class="reference internal" href="#examples">11.7. Examples</a></li>
+<li><a class="reference internal" href="#implementation">11.8. Implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="lock.html"
-                        title="previous chapter">9. The lock module</a></p>
+  <p class="topless"><a href="message.html"
+                        title="previous chapter">10. Client message protocol</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="poolmvff.html"
-                        title="next chapter">11. Manually-Managed Variable-Size First-Fit Pool</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="pool.html"
+                        title="next chapter">12. Pool and pool class mechanisms</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -515,10 +433,10 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="poolmvff.html" title="11. Manually-Managed Variable-Size First-Fit Pool"
+          <a href="pool.html" title="12. Pool and pool class mechanisms"
              >next</a> |</li>
         <li class="right" >
-          <a href="lock.html" title="9. The lock module"
+          <a href="message.html" title="10. Client message protocol"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

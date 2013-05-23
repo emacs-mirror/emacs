@@ -3,4 +3,4 @@
 
 .. _design-splay:
 
-.. include:: ../../../design/splay.txt
+.. include:: ../../converted/splay.rst

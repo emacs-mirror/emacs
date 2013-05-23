@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>12. The low-memory reservoir &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>17. The low-memory reservoir &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="13. Root manager" href="root.html" />
-    <link rel="prev" title="11. Protocol inheritance" href="protocol.html" /> 
+    <link rel="next" title="18. Root manager" href="root.html" />
+    <link rel="prev" title="16. Protocol inheritance" href="protocol.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="root.html" title="13. Root manager"
+          <a href="root.html" title="18. Root manager"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="11. Protocol inheritance"
+          <a href="protocol.html" title="16. Protocol inheritance"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,142 +54,119 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-reservoir"><span id="index-0"></span></span><div class="section" id="the-low-memory-reservoir">
-<h1>12. The low-memory reservoir<a class="headerlink" href="#the-low-memory-reservoir" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.reservoir</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Tony Mann</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1998-07-30</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/reservoir.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="the-low-memory-reservoir">
+<span id="design-design-reservoir"></span><span id="design-reservoir"></span><span id="index-0"></span><h1>17. The low-memory reservoir<a class="headerlink" href="#the-low-memory-reservoir" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>12.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="intro">.intro</span>: The low-memory reservoir provides client support for
+<span id="design.mps.reservoir"></span><h2>17.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.reservoir.intro"></span><a class="mpstag reference internal" href="#design.mps.reservoir.intro">.intro:</a> The low-memory reservoir provides client support for
 implementing handlers for low-memory situations which allocate. The
 reservoir is implemented inside the arena as a pool of unallocatable
 segments.</p>
 </div>
 <div class="section" id="architecture">
-<h2>12.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="adt">.adt</span>: The reservoir interface looks (almost) like an abstract data
-type of type <tt class="docutils literal"><span class="pre">Reservoir</span></tt>. It&#8217;s not quite abstract because the arena
-embeds the structure of the reservoir (of type <tt class="docutils literal"><span class="pre">ReservoirStruct</span></tt>)
+<h2>17.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<dl class="type">
+<dt id="Reservoir">
+struct ReservoirStruct *<tt class="descname">Reservoir</tt><a class="headerlink" href="#Reservoir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.adt"></span><a class="mpstag reference internal" href="#design.mps.reservoir.adt">.adt:</a> The reservoir interface looks (almost) like an abstract data
+type of type <a class="reference internal" href="#Reservoir" title="Reservoir"><tt class="xref c c-type docutils literal"><span class="pre">Reservoir</span></tt></a>. It&#8217;s not quite abstract because the arena
+embeds the structure of the reservoir (of type <tt class="xref c c-type docutils literal"><span class="pre">ReservoirStruct</span></tt>)
 into its own structure, for simplicity of initialization.</p>
-<p><span class="target" id="align">.align</span>: The reservoir is implemented as a pool of available tracts,
+<p><span class="target" id="design.mps.reservoir.align"></span><a class="mpstag reference internal" href="#design.mps.reservoir.align">.align:</a> The reservoir is implemented as a pool of available tracts,
 along with a size and limit which must always be aligned to the arena
 alignment. The size corresponds to the amount of memory currently
 maintained in the reservoir. The limit is the maximum amount that it
 is desired to maintain.</p>
-<p><span class="target" id="wastage">.wastage</span>: When the reservoir limit is set by the client, the actual
+<p><span class="target" id="design.mps.reservoir.wastage"></span><a class="mpstag reference internal" href="#design.mps.reservoir.wastage">.wastage:</a> When the reservoir limit is set by the client, the actual
 limit should be increased by an arena alignment amount for every
 active mutator buffer.</p>
-<p><span class="target" id="really-empty">.really-empty</span>: When the reservoir limit is set to 0, assume that
+<p><span class="target" id="design.mps.reservoir.really-empty"></span><a class="mpstag reference internal" href="#design.mps.reservoir.really-empty">.really-empty:</a> When the reservoir limit is set to 0, assume that
 the client really doesn&#8217;t have a need for a reservoir at all. In this
 case, the client won&#8217;t even want an allowance to be made for wastage
 in active buffers.</p>
 </div>
 <div class="section" id="implementation">
-<h2>12.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="interface">.interface</span>: The following functions comprise the interface to the
+<h2>17.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.reservoir.interface"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface">.interface:</a> The following functions comprise the interface to the
 reservoir module:</p>
-<p><span class="target" id="interface-check">.interface.check</span>: <tt class="docutils literal"><span class="pre">ReservoirCheck</span></tt> checks the reservoir for
-consistency:</p>
-<p><tt class="docutils literal"><span class="pre">Bool</span> <span class="pre">ReservoirCheck(Reservoir</span> <span class="pre">reservoir)</span></tt></p>
-<p><span class="target" id="interface-init">.interface.init</span>: <tt class="docutils literal"><span class="pre">ReservoirInit</span></tt> initializes the reservoir and
-its associated pool, setting the size and limit to 0:</p>
-<p><tt class="docutils literal"><span class="pre">Res</span> <span class="pre">ReservoirInit(Reservoir</span> <span class="pre">reservoir,</span> <span class="pre">Arena</span> <span class="pre">arena)</span></tt></p>
-<p><span class="target" id="interface-finish">.interface.finish</span>: <tt class="docutils literal"><span class="pre">ReservoirFinish</span></tt> de-initializes the reservoir
+<dl class="function">
+<dt id="ReservoirCheck">
+<a class="reference internal" href="type.html#Bool" title="Bool">Bool</a> <tt class="descname">ReservoirCheck</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em><big>)</big><a class="headerlink" href="#ReservoirCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.check"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.check">.interface.check:</a> <a class="reference internal" href="#ReservoirCheck" title="ReservoirCheck"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirCheck()</span></tt></a> checks the reservoir for
+consistency.</p>
+<dl class="function">
+<dt id="ReservoirInit">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">ReservoirInit</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em>, <a class="reference internal" href="arena.html#Arena" title="Arena">Arena</a><em>&nbsp;arena</em><big>)</big><a class="headerlink" href="#ReservoirInit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.init"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.init">.interface.init:</a> <a class="reference internal" href="#ReservoirInit" title="ReservoirInit"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirInit()</span></tt></a> initializes the reservoir and
+its associated pool, setting the size and limit to 0.</p>
+<dl class="function">
+<dt id="ReservoirFinish">
+void <tt class="descname">ReservoirFinish</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em><big>)</big><a class="headerlink" href="#ReservoirFinish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.finish"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.finish">.interface.finish:</a> <a class="reference internal" href="#ReservoirFinish" title="ReservoirFinish"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirFinish()</span></tt></a> de-initializes the reservoir
 and its associated pool:</p>
-<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">ReservoirFinish</span> <span class="pre">(Reservoir</span> <span class="pre">reservoir)</span></tt></p>
-<p><span class="target" id="interface-limit">.interface.limit</span>: <tt class="docutils literal"><span class="pre">ReservoirLimit</span></tt> returns the limit of the
+<dl class="function">
+<dt id="ReservoirLimit">
+<a class="reference internal" href="type.html#Size" title="Size">Size</a> <tt class="descname">ReservoirLimit</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em><big>)</big><a class="headerlink" href="#ReservoirLimit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.limit"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.limit">.interface.limit:</a> <a class="reference internal" href="#ReservoirLimit" title="ReservoirLimit"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirLimit()</span></tt></a> returns the limit of the
 reservoir:</p>
-<p><tt class="docutils literal"><span class="pre">Size</span> <span class="pre">ReservoirLimit(Reservoir</span> <span class="pre">reservoir)</span></tt></p>
-<p><span class="target" id="interface-set-limit">.interface.set-limit</span>: <tt class="docutils literal"><span class="pre">ReservoirSetLimit</span></tt> sets the limit of the
+<dl class="function">
+<dt id="ReservoirSetLimit">
+void <tt class="descname">ReservoirSetLimit</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em><big>)</big><a class="headerlink" href="#ReservoirSetLimit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.set-limit"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.set-limit">.interface.set-limit:</a> <a class="reference internal" href="#ReservoirSetLimit" title="ReservoirSetLimit"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirSetLimit()</span></tt></a> sets the limit of the
 reservoir, making an allowance for wastage in mutator buffers:</p>
-<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">ReservoirSetLimit(Reservoir</span> <span class="pre">reservoir,</span> <span class="pre">Size</span> <span class="pre">size)</span></tt></p>
-<p><span class="target" id="interface-available">.interface.available</span>: <tt class="docutils literal"><span class="pre">ReservoirAvailable</span></tt> returns the available
+<dl class="function">
+<dt id="ReservoirAvailable">
+<a class="reference internal" href="type.html#Size" title="Size">Size</a> <tt class="descname">ReservoirAvailable</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em><big>)</big><a class="headerlink" href="#ReservoirAvailable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.available"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.available">.interface.available:</a> <a class="reference internal" href="#ReservoirAvailable" title="ReservoirAvailable"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirAvailable()</span></tt></a> returns the available
 size of the reservoir:</p>
-<p><tt class="docutils literal"><span class="pre">Size</span> <span class="pre">ReservoirAvailable(Reservoir</span> <span class="pre">reservoir)</span></tt></p>
-<p><span class="target" id="interface-ensure-full">.interface.ensure-full</span>: <tt class="docutils literal"><span class="pre">ReservoirEnsureFull</span></tt> attempts to fill
+<dl class="function">
+<dt id="ReservoirEnsureFull">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">ReservoirEnsureFull</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em><big>)</big><a class="headerlink" href="#ReservoirEnsureFull" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.ensure-full"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.ensure-full">.interface.ensure-full:</a> <a class="reference internal" href="#ReservoirEnsureFull" title="ReservoirEnsureFull"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirEnsureFull()</span></tt></a> attempts to fill
 the reservoir with memory from the arena, until it is full:</p>
-<p><tt class="docutils literal"><span class="pre">Res</span> <span class="pre">ReservoirEnsureFull(Reservoir</span> <span class="pre">reservoir)</span></tt></p>
-<p><span class="target" id="interface-deposit">.interface.deposit</span>: <tt class="docutils literal"><span class="pre">ReservoirDeposit</span></tt> attempts to fill the
+<dl class="function">
+<dt id="ReservoirDeposit">
+void <tt class="descname">ReservoirDeposit</tt><big>(</big><a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;base</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em><big>)</big><a class="headerlink" href="#ReservoirDeposit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.deposit"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.deposit">.interface.deposit:</a> <a class="reference internal" href="#ReservoirDeposit" title="ReservoirDeposit"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirDeposit()</span></tt></a> attempts to fill the
 reservoir with memory in the supplied range, until it is full. This is
-called by the arena from <tt class="docutils literal"><span class="pre">ArenaFree</span></tt> if the reservoir is not known
+called by the arena from <tt class="xref c c-func docutils literal"><span class="pre">ArenaFree()</span></tt> if the reservoir is not known
 to be full. Any memory which is not added to the reservoir (because
 the reservoir is full) is freed via the arena class&#8217;s free method.</p>
-<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">ReservoirDeposit(Reservoir</span> <span class="pre">reservoir,</span> <span class="pre">Addr</span> <span class="pre">base,</span> <span class="pre">Size</span> <span class="pre">size)</span></tt></p>
-<p><span class="target" id="interface-withdraw">.interface.withdraw</span>: <tt class="docutils literal"><span class="pre">ReservoirWithdraw</span></tt> attempts to allocate
+<dl class="function">
+<dt id="ReservoirWithdraw">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">ReservoirWithdraw</tt><big>(</big><a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;*baseReturn</em>, Tract<em>&nbsp;*baseTractReturn</em>, <a class="reference internal" href="#Reservoir" title="Reservoir">Reservoir</a><em>&nbsp;reservoir</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em>, Pool<em>&nbsp;pool</em><big>)</big><a class="headerlink" href="#ReservoirWithdraw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.reservoir.interface.withdraw"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.withdraw">.interface.withdraw:</a> <a class="reference internal" href="#ReservoirWithdraw" title="ReservoirWithdraw"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirWithdraw()</span></tt></a> attempts to allocate
 memory of the specified size to the specified pool to the reservoir.
 If no suitable memory can be found it returns <tt class="docutils literal"><span class="pre">ResMEMORY</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">Res</span> <span class="pre">ReservoirWithdraw(Addr</span> <span class="pre">*baseReturn,</span> <span class="pre">Tract</span> <span class="pre">*baseTractReturn,</span> <span class="pre">Reservoir</span> <span class="pre">reservoir,</span> <span class="pre">Size</span> <span class="pre">size,</span> <span class="pre">Pool</span> <span class="pre">pool)</span></tt></p>
-<p><span class="target" id="interface-withdraw-align">.interface.withdraw.align</span>: Currently, <tt class="docutils literal"><span class="pre">ReservoirWithdraw</span></tt> can
+<p><span class="target" id="design.mps.reservoir.interface.withdraw.align"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface.withdraw.align">.interface.withdraw.align:</a> Currently, <a class="reference internal" href="#ReservoirWithdraw" title="ReservoirWithdraw"><tt class="xref c c-func docutils literal"><span class="pre">ReservoirWithdraw()</span></tt></a> can
 only withdraw memory in chunks of the size of the arena alignment.
 This is because the reservoir doesn&#8217;t attempt to coalesce adjacent
 memory blocks. This deficiency should be fixed in the future.</p>
-<p><span class="target" id="pool">.pool</span>: The memory managed by the reservoir is owned by the
+<p><span class="target" id="design.mps.reservoir.pool"></span><a class="mpstag reference internal" href="#design.mps.reservoir.pool">.pool:</a> The memory managed by the reservoir is owned by the
 reservoir pool. This memory is never sub-allocated. Each tract
 belonging to the pool is linked onto a list. The head of the list is
-in the <tt class="docutils literal"><span class="pre">Reservoir</span></tt> object. Links are stored in the <tt class="docutils literal"><span class="pre">TractP</span></tt> fields
+in the <a class="reference internal" href="#Reservoir" title="Reservoir"><tt class="xref c c-type docutils literal"><span class="pre">Reservoir</span></tt></a> object. Links are stored in the <tt class="docutils literal"><span class="pre">TractP</span></tt> fields
 of each tract object.</p>
-</div>
-<div class="section" id="document-history">
-<h2>12.4. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1998-07-30 Tony Mann. Incomplete design.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-05-22 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>12.5. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -204,22 +181,20 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">12. The low-memory reservoir</a><ul>
-<li><a class="reference internal" href="#introduction">12.1. Introduction</a></li>
-<li><a class="reference internal" href="#architecture">12.2. Architecture</a></li>
-<li><a class="reference internal" href="#implementation">12.3. Implementation</a></li>
-<li><a class="reference internal" href="#document-history">12.4. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">12.5. Copyright and License</a></li>
+<li><a class="reference internal" href="#">17. The low-memory reservoir</a><ul>
+<li><a class="reference internal" href="#introduction">17.1. Introduction</a></li>
+<li><a class="reference internal" href="#architecture">17.2. Architecture</a></li>
+<li><a class="reference internal" href="#implementation">17.3. Implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="protocol.html"
-                        title="previous chapter">11. Protocol inheritance</a></p>
+                        title="previous chapter">16. Protocol inheritance</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="root.html"
-                        title="next chapter">13. Root manager</a></p><h4>Downloads</h4>
+                        title="next chapter">18. Root manager</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -245,10 +220,10 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="root.html" title="13. Root manager"
+          <a href="root.html" title="18. Root manager"
              >next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="11. Protocol inheritance"
+          <a href="protocol.html" title="16. Protocol inheritance"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 
