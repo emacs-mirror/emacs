@@ -275,9 +275,8 @@ void CBSFinish(CBS cbs)
 /* Node change operators
  *
  * These four functions are called whenever blocks are created,
- * destroyed, grow, or shrink.  They report to the client, and
- * perform the necessary memory management.  They are responsible
- * for the client interaction logic.
+ * destroyed, grow, or shrink.  They maintain the maxSize if fastFind is
+ * enabled.
  */
 
 static void cbsBlockDelete(CBS cbs, CBSBlock block)
@@ -301,7 +300,7 @@ static void cbsBlockDelete(CBS cbs, CBSBlock block)
   return;
 }
 
-static void cbsBlockShrink(CBS cbs, CBSBlock block, Size oldSize)
+static void cbsBlockShrunk(CBS cbs, CBSBlock block, Size oldSize)
 {
   Size newSize;
 
@@ -318,7 +317,7 @@ static void cbsBlockShrink(CBS cbs, CBSBlock block, Size oldSize)
   }
 }
 
-static void cbsBlockGrow(CBS cbs, CBSBlock block, Size oldSize)
+static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
 {
   Size newSize;
 
@@ -431,23 +430,23 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
         Addr rightLimit = rightCBS->limit;
         cbsBlockDelete(cbs, rightCBS);
         leftCBS->limit = rightLimit;
-        cbsBlockGrow(cbs, leftCBS, oldLeftSize);
+        cbsBlockGrew(cbs, leftCBS, oldLeftSize);
       } else { /* left block is smaller */
         Addr leftBase = leftCBS->base;
         cbsBlockDelete(cbs, leftCBS);
         rightCBS->base = leftBase;
-        cbsBlockGrow(cbs, rightCBS, oldRightSize);
+        cbsBlockGrew(cbs, rightCBS, oldRightSize);
       }
     } else { /* leftMerge, !rightMerge */
       oldSize = CBSBlockSize(leftCBS);
       leftCBS->limit = limit;
-      cbsBlockGrow(cbs, leftCBS, oldSize);
+      cbsBlockGrew(cbs, leftCBS, oldSize);
     }
   } else { /* !leftMerge */
     if (rightMerge) {
       oldSize = CBSBlockSize(rightCBS);
       rightCBS->base = base;
-      cbsBlockGrow(cbs, rightCBS, oldSize);
+      cbsBlockGrew(cbs, rightCBS, oldSize);
     } else { /* !leftMerge, !rightMerge */
       res = cbsBlockNew(cbs, base, limit);
       if (res != ResOK)
@@ -535,14 +534,14 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
       AVER(limit < cbsBlock->limit);
       oldSize = CBSBlockSize(cbsBlock);
       cbsBlock->base = limit;
-      cbsBlockShrink(cbs, cbsBlock, oldSize);
+      cbsBlockShrunk(cbs, cbsBlock, oldSize);
     }
   } else {
     AVER(base > cbsBlock->base);
     if (limit == cbsBlock->limit) { /* remaining fragment at left */
       oldSize = CBSBlockSize(cbsBlock);
       cbsBlock->limit = base;
-      cbsBlockShrink(cbs, cbsBlock, oldSize);
+      cbsBlockShrunk(cbs, cbsBlock, oldSize);
     } else { /* two remaining fragments */
       Size leftNewSize = AddrOffset(cbsBlock->base, base);
       Size rightNewSize = AddrOffset(limit, cbsBlock->limit);
@@ -553,7 +552,7 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
         AVER(limit < cbsBlock->limit);
         oldSize = CBSBlockSize(cbsBlock);
         cbsBlock->limit = base;
-        cbsBlockShrink(cbs, cbsBlock, oldSize);
+        cbsBlockShrunk(cbs, cbsBlock, oldSize);
         res = cbsBlockNew(cbs, limit, oldLimit);
         if (res != ResOK) {
           AVER(ResIsAllocFailure(res));
@@ -564,7 +563,7 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
         AVER(base > cbsBlock->base);
         oldSize = CBSBlockSize(cbsBlock);
         cbsBlock->base = limit;
-        cbsBlockShrink(cbs, cbsBlock, oldSize);
+        cbsBlockShrunk(cbs, cbsBlock, oldSize);
         res = cbsBlockNew(cbs, oldBase, base);
         if (res != ResOK) {
           AVER(ResIsAllocFailure(res));
@@ -713,25 +712,25 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
 
   switch(findDelete) {
 
-  case CBSFindDeleteNONE: {
+  case CBSFindDeleteNONE:
     callDelete = FALSE;
-  } break;
+    break;
 
-  case CBSFindDeleteLOW: {
+  case CBSFindDeleteLOW:
     limit = AddrAdd(base, size);
-  } break;
+    break;
 
-  case CBSFindDeleteHIGH: {
+  case CBSFindDeleteHIGH:
     base = AddrSub(limit, size);
-  } break;
+    break;
 
-  case CBSFindDeleteENTIRE: {
+  case CBSFindDeleteENTIRE:
     /* do nothing */
-  } break;
+    break;
 
-  default: {
+  default:
     NOTREACHED;
-  } break;
+    break;
   }
 
   if (callDelete) {
@@ -752,7 +751,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
                   CBS cbs, Size size, CBSFindDelete findDelete)
 {
   Bool found;
-  Addr base = (Addr)0, limit = (Addr)0; /* only defined when found is TRUE */
+  SplayNode node;
 
   AVERT(CBS, cbs);
   CBSEnter(cbs);
@@ -764,24 +763,16 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
 
-  {
-    SplayNode node;
-
-    METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
-    found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
-                           &cbsTestTree, NULL, size);
-
-    if (found) {
-      CBSBlock block;
-
-      block = cbsBlockOfSplayNode(node);
-      AVER(CBSBlockSize(block) >= size);
-      base = CBSBlockBase(block);
-      limit = CBSBlockLimit(block);
-    }
-  }
-
+  METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
+  found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
+                         &cbsTestTree, NULL, size);
   if (found) {
+    CBSBlock block;
+    Addr base, limit;
+    block = cbsBlockOfSplayNode(node);
+    AVER(CBSBlockSize(block) >= size);
+    base = CBSBlockBase(block);
+    limit = CBSBlockLimit(block);
     AVER(AddrOffset(base, limit) >= size);
     cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
                        cbs, base, limit, size, findDelete);
@@ -799,7 +790,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
                  CBS cbs, Size size, CBSFindDelete findDelete)
 {
   Bool found;
-  Addr base = (Addr)0, limit = (Addr)0; /* only defined in found is TRUE */
+  SplayNode node;
 
   AVERT(CBS, cbs);
   CBSEnter(cbs);
@@ -811,23 +802,16 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
 
-  {
-    SplayNode node;
-
-    METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
-    found = SplayFindLast(&node, splayTreeOfCBS(cbs), &cbsTestNode,
-                          &cbsTestTree, NULL, size);
-    if (found) {
-      CBSBlock block;
-
-      block = cbsBlockOfSplayNode(node);
-      AVER(CBSBlockSize(block) >= size);
-      base = CBSBlockBase(block);
-      limit = CBSBlockLimit(block);
-    }
-  }
-
+  METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
+  found = SplayFindLast(&node, splayTreeOfCBS(cbs), &cbsTestNode,
+                        &cbsTestTree, NULL, size);
   if (found) {
+    CBSBlock block;
+    Addr base, limit;
+    block = cbsBlockOfSplayNode(node);
+    AVER(CBSBlockSize(block) >= size);
+    base = CBSBlockBase(block);
+    limit = CBSBlockLimit(block);
     AVER(AddrOffset(base, limit) >= size);
     cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
                        cbs, base, limit, size, findDelete);
@@ -845,8 +829,8 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
                     CBS cbs, CBSFindDelete findDelete)
 {
   Bool found = FALSE;
-  Addr base = (Addr)0, limit = (Addr)0; /* only defined when found is TRUE */
-  Size size = 0; /* suppress bogus warning from MSVC */
+  SplayNode root;
+  Bool notEmpty;
 
   AVERT(CBS, cbs);
   CBSEnter(cbs);
@@ -856,28 +840,22 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
   AVER(cbs->fastFind);
   AVERT(CBSFindDelete, findDelete);
 
-  {
-    SplayNode root;
-    Bool notEmpty;
+  notEmpty = SplayRoot(&root, splayTreeOfCBS(cbs));
+  if (notEmpty) {
+    CBSBlock block;
+    SplayNode node = NULL;    /* suppress "may be used uninitialized" */
+    Addr base, limit;
+    Size size;
 
-    notEmpty = SplayRoot(&root, splayTreeOfCBS(cbs));
-    if (notEmpty) {
-      CBSBlock block;
-      SplayNode node = NULL;    /* suppress "may be used uninitialized" */
-
-      size = cbsBlockOfSplayNode(root)->maxSize;
-      METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
-      found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
-                             &cbsTestTree, NULL, size);
-      AVER(found); /* maxSize is exact, so we will find it. */
-      block = cbsBlockOfSplayNode(node);
-      AVER(CBSBlockSize(block) >= size);
-      base = CBSBlockBase(block);
-      limit = CBSBlockLimit(block);
-    }
-  }
-
-  if (found) {
+    size = cbsBlockOfSplayNode(root)->maxSize;
+    METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
+    found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
+                           &cbsTestTree, NULL, size);
+    AVER(found); /* maxSize is exact, so we will find it. */
+    block = cbsBlockOfSplayNode(node);
+    AVER(CBSBlockSize(block) >= size);
+    base = CBSBlockBase(block);
+    limit = CBSBlockLimit(block);
     cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
                        cbs, base, limit, size, findDelete);
   }
