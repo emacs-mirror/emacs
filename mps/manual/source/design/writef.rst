@@ -3,4 +3,4 @@
 
 .. _design-writef:
 
-.. include:: ../../../design/writef.txt
+.. include:: ../../converted/writef.rst

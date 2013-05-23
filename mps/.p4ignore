@@ -15,5 +15,4 @@ config.status
 TAGS
 *.dSYM
 code/*/*/*.d
-manual/doctrees
 *.pyc

@@ -3,4 +3,4 @@
 
 .. _design-scan:
 
-.. include:: ../../../design/scan.txt
+.. include:: ../../converted/scan.rst

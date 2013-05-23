@@ -273,7 +273,7 @@ to be fast.
 Interface
 ---------
 
-.. c:type:: typedef Word *BT;
+``typedef Word *BT``
 
 _`.if.representation.abstract`: A Bit Table is represented by the type
 ``BT``.
@@ -287,7 +287,7 @@ in fact implemented as macros in the usual way
 _`.if.general.index`: Many of the functions specified below take
 indexes. If otherwise unspecified an index must be in the interval [0,
 *n*) (note, up to, but not including, *n*) where *n* is the number of
-bits in the relevant Bit Table (as passed to the ``BTCreate``
+bits in the relevant Bit Table (as passed to the ``BTCreate()``
 function).
 
 _`.if.general.range`: Where a range is specified by two indexes (*base*
@@ -298,74 +298,74 @@ can be *n*), and *base* must be strictly less than *limit* (empty
 ranges are not allowed). Sometimes *i* and *j* are used instead of
 *base* and *limit*.
 
-.. c:function:: Res BTCreate(BT *btReturn, Arena arena, Count n)
+``Res BTCreate(BT *btReturn, Arena arena, Count n)``
 
 _`.if.create`: Attempts to create a table of length ``n`` in the arena
 control pool, putting the table in ``*btReturn``. Returns ``ResOK`` if
 and only if the table is created OK. The initial values of the bits in
 the table are undefined (so the client should probably call
-``BTResRange`` on the entire range before using the ``BT``). Meets
+``BTResRange()`` on the entire range before using the ``BT``). Meets
 `.req.create`_.
 
-.. c:function:: void BTDestroy(BT t, Arena arena, Count n)
+``void BTDestroy(BT t, Arena arena, Count n)``
 
 _`.if.destroy`: Destroys the table ``t``, which must have been created
-with ``BTCreate``. The value of argument ``n`` must be same as the
-value of the argument passed to ``BTCreate``. Meets
-mps:ref:`.req.destroy`.
+with ``BTCreate()``. The value of argument ``n`` must be same as the
+value of the argument passed to ``BTCreate()``. Meets
+`.req.destroy`_.
 
-.. c:function:: size_t BTSize(Count n)
+``size_t BTSize(Count n)``
 
 _`.if.size`: ``BTSize(n)`` returns the number of bytes needed for a Bit
-Table of ``n`` bits. ``BTSize`` is a macro, but ``(BTSize)(n)`` will
-assert if ``n`` exceeds `COUNT_MAX - MPS_WORD_WIDTH + 1``. This is
+Table of ``n`` bits. ``BTSize()`` is a macro, but ``(BTSize)(n)`` will
+assert if ``n`` exceeds ``COUNT_MAX - MPS_WORD_WIDTH + 1``. This is
 used by clients that allocate storage for the ``BT`` themselves.
-Before ``BTCreate`` and ``BTDestroy`` were implemented that was the
+Before ``BTCreate()`` and ``BTDestroy()`` were implemented that was the
 only way to allocate a Bit Table, but is now deprecated.
 
-.. c:function:: int BTGet(BT t, Index i)
+``int BTGet(BT t, Index i)``
 
 _`.if.get`: ``BTGet(t, i)`` returns the ``i``-th bit of the table ``t``
 (that is, the image of ``i`` under the mapping). Meets
 `.req.ops.get`_.
 
-.. c:function:: void BTSet(BT t, Index i)
+``void BTSet(BT t, Index i)``
 
 _`.if.set`: ``BTSet(t, i)`` sets the ``i``-th bit of the table ``t`` (to
 1). ``BTGet(t, i)`` will now return 1. Meets `.req.ops.set`_.
 
-.. c:function:: void BTRes(BT t, Index i)
+``void BTRes(BT t, Index i)``
 
 _`.if.res`: ``BTRes(t, i)`` resets the ``i``-th bit of the table ``t``
 (to 0). ``BTGet(t, i)`` will now return 0. Meets `.req.ops.reset`_.
 
-.. c:function:: void BTSetRange(BT t, Index base, Index limit)
+``void BTSetRange(BT t, Index base, Index limit)``
 
 _`.if.set-range`: ``BTSetRange(t, base, limit)`` sets the range of bits
 [``base``, ``limit``) in the table ``t``. ``BTGet(t, x)`` will now
 return 1 for ``base`` ≤ ``x`` < ``limit``. Meets
 `.req.ops.test.range.set`_.
 
-.. c:function:: void BTResRange(BT t, Index base, Index limit)
+``void BTResRange(BT t, Index base, Index limit)``
 
 _`.if.res-range`: ``BTResRange(t, base, limit)`` resets the range of
 bits [``base``, ``limit``) in the table ``t``. ``BTGet(t, x)`` will
 now return 0 for ``base`` ≤ ``x`` < ``limit``. Meets
 `.req.ops.test.range.reset`_.
 
-.. c:function:: Bool BTIsSetRange(BT bt, Index base, Index limit)
+``Bool BTIsSetRange(BT bt, Index base, Index limit)``
 
 _`.if.test.range.set`: Returns ``TRUE`` if all the bits in the range
 [``base``, ``limit``) are set, ``FALSE`` otherwise. Meets
 `.req.ops.test.range.set`_.
 
-.. c:function:: Bool BTIsResRange(BT bt, Index base, Index limit)
+``Bool BTIsResRange(BT bt, Index base, Index limit)``
 
 _`.if.test.range.reset`: Returns ``TRUE`` if all the bits in the range
 [``base``, ``limit``) are reset, ``FALSE`` otherwise. Meets
 `.req.ops.test.range.reset`_.
 
-.. c:function:: Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);
+``Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);``
 
 _`.if.test.range.same`: returns ``TRUE`` if ``BTGet(BTx,i)`` equals
 ``BTGet(BTy,i)`` for ``i`` in [``base``, ``limit``), and ``FALSE``
@@ -394,7 +394,7 @@ range cannot be found the function returns ``FALSE`` (0) and leaves
 found then the function returns the range's base in ``*baseReturn``
 and its limit in ``*limitReturn`` and returns ``TRUE`` (1).
 
-.. c:function:: Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)
+``Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)``
 
 _`.if.find-short-res-range`: Finds a range of reset bits in the table,
 starting at ``searchBase`` and working upwards. This function is
@@ -403,7 +403,7 @@ leftmost range that will do, and never finds a range longer than the
 requested length (the intention is that it will not waste time
 looking).
 
-.. c:function:: Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)
+``Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)``
 
 _`.if.find-short-res-range-high`: Finds a range of reset bits in the
 table, starting at ``searchLimit`` and working downwards. This
@@ -411,7 +411,7 @@ function is intended to meet `.req.ops.find.short.high`_ so it will
 find the rightmost range that will do, and never finds a range longer
 than the requested length.
 
-.. c:function:: Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)
+``Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)``
 
 _`.if.find-long-res-range`: Finds a range of reset bits in the table,
 starting at ``searchBase`` and working upwards. This function is
@@ -419,7 +419,7 @@ intended to meet `.req.ops.find.long.low`_ so it will find the
 leftmost range that will do and returns all of that range (which can
 be longer than the requested length).
 
-.. c:function:: Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)
+``Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count length)``
 
 _`.if.find-long-res-range-high`: Finds a range of reset bits in the
 table, starting at ``searchLimit`` and working downwards. This
@@ -427,22 +427,22 @@ function is intended to meet `.req.ops.find.long.high`_ so it will
 find the rightmost range that will do and returns all that range
 (which can be longer than the requested length).
 
-.. c:function:: void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit)
+``void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit)``
 
 _`.if.copy-range`: Overwrites the ``i``-th bit of ``toBT`` with the
 ``i``-th bit of ``fromBT``, for all ``i`` in [``base``, ``limit``).
 Meets `.req.ops.copy.simple`_.
 
-.. c:function:: void BTCopyOffsetRange(BT fromBT, BT toBT, Index fromBase, Index fromLimit, Index toBase, Index toLimit)
+``void BTCopyOffsetRange(BT fromBT, BT toBT, Index fromBase, Index fromLimit, Index toBase, Index toLimit)``
 
 _`.if.copy-offset-range`: Overwrites the ``i``-th bit of ``toBT`` with
 the ``j``-th bit of ``fromBT``, for all ``i`` in [``toBase``,
 ``toLimit``) and corresponding ``j`` in [``fromBase``, ``fromLimit``).
 Each of these ranges must be the same size. This might be
-significantly less efficient than ``BTCopyRange``. Meets
+significantly less efficient than ``BTCopyRange()``. Meets
 `.req.ops.copy.offset`_.
 
-.. c:function:: void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
+``void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)``
 
 _`.if.copy-invert-range`: Overwrites the ``i``-th bit of ``toBT`` with
 the inverse of the ``i``-th bit of ``fromBT``, for all ``i`` in
@@ -473,11 +473,11 @@ use the usual abstract data type style.
 Functions
 .........
 
-_`.fun.size`: ``BTSize``. Since a Bit Table is an array of ``Word``, the
+_`.fun.size`: ``BTSize()``. Since a Bit Table is an array of ``Word``, the
 size of a Bit Table of *n* bits is simply the number of words that it
 takes to store *n* bits times the number of bytes in a word. This is
-ceiling(n/MPS_WORD_WIDTH)*sizeof(Word). _`.fun.size.justify`: Since
-there can be at most `MPS_WORD_WIDTH - 1` unused bits in the entire
+``ceiling(n/MPS_WORD_WIDTH)*sizeof(Word).`` _`.fun.size.justify`: Since
+there can be at most ``MPS_WORD_WIDTH - 1`` unused bits in the entire
 table, this satisfies `.req.bit`_.
 
 _`.index`: The designs for the following functions use a decomposition
@@ -509,14 +509,14 @@ for the following two functions::
        return (i>>5) + (i&31);
     }
 
-.. c:function:: ACT_ON_RANGE(Index base, Index limit, single_action, bits_action, word_action)
-.. c:function:: ACT_ON_RANGE_HIGH(Index base, Index limit, single_action, bits_action, word_action)
+``ACT_ON_RANGE(Index base, Index limit, single_action, bits_action, word_action)``
+``ACT_ON_RANGE_HIGH(Index base, Index limit, single_action, bits_action, word_action)``
 
 _`.iteration`: Many of the following functions involve iteration over
 ranges in a Bit Table. This is performed on whole words rather than
 individual bits, whenever possible (to improve speed). This is
-implemented internally by the macros ``ACT_ON_RANGE`` and
-``ACT_ON_RANGE_HIGH`` for iterating over the range forwards and
+implemented internally by the macros ``ACT_ON_RANGE()`` and
+``ACT_ON_RANGE_HIGH()`` for iterating over the range forwards and
 backwards respectively. These macros do not form part of the interface
 of the module, but are used extensively in the implementation. The
 macros are often used even when speed is not an issue because it
@@ -532,7 +532,7 @@ macros take the parameters ``base``, ``limit``, ``single_action``,
   a single ``Index`` parameter corresponding to the index for the bit.
   The expansion of the macro must not contain ``break`` or
   ``continue`` because it will be called from within a loop from the
-  expansion of ``ACT_ON_RANGE``.
+  expansion of ``ACT_ON_RANGE()``.
 
 * ``bits_action`` is the name of a macro which will be used for
   iterating over part-words. This macro must take parameters
@@ -545,7 +545,7 @@ macros take the parameters ``base``, ``limit``, ``single_action``,
   parameter ``wordIndex`` which is the index of the whole-word in the
   array. The expansion of the macro must not contain ``break`` or
   ``continue`` because it will be called from within a loop from the
-  expansion of ``ACT_ON_RANGE``.
+  expansion of ``ACT_ON_RANGE()``.
 
 _`.iteration.exit`: The expansion of the ``single_action``,
 ``bits_action``, and ``word_action`` macros is allowed to contain
@@ -564,66 +564,66 @@ either end of the range (or the whole of the range it if it fits in a
 single word), and ``word_action`` is used on the words that comprise
 the inner portion of the range.
 
-The implementation of ``ACT_ON_RANGE`` (and ``ACT_ON_RANGE_HIGH``) is
+The implementation of ``ACT_ON_RANGE()`` (and ``ACT_ON_RANGE_HIGH()``) is
 simple enough. It decides which macros it should invoke and invokes
 them. ``single_action`` and ``word_action`` are invoked inside loops.
 
-_`.fun.get`: ``BTGet``. The bit-index will be converted in the usual
+_`.fun.get`: ``BTGet()``. The bit-index will be converted in the usual
 way, see `.index`_. The relevant ``Word`` will be read out of the Bit
 Table and shifted right by the sub-``Word`` index (this brings the
 relevant bit down to the least significant bit of the ``Word``), the
 ``Word`` will then be masked with 1, producing the answer.
 
-_`.fun.set`: ``BTSet``.
+_`.fun.set`: ``BTSet()``.
 
-_`.fun.res`: ``BTRes``.
+_`.fun.res`: ``BTRes()``.
 
-In both ``BTSet`` and ``BTRes`` a mask is constructed by shifting 1
-left by the sub-word-index (see `.index`_). For ``BTSet`` the mask is
+In both ``BTSet()`` and ``BTRes()`` a mask is constructed by shifting 1
+left by the sub-word-index (see `.index`_). For ``BTSet()`` the mask is
 or-ed into the relevant word (thereby setting a single bit). For
-``BTRes`` the mask is inverted and and-ed into the relevant word
+``BTRes()`` the mask is inverted and and-ed into the relevant word
 (thereby resetting a single bit).
 
-_`.fun.set-range`: ``BTSetRange``. ``ACT_ON_RANGE`` (see `.iteration`_
-above) is used with macros that set a single bit (using ``BTSet``),
+_`.fun.set-range`: ``BTSetRange()``. ``ACT_ON_RANGE()`` (see `.iteration`_
+above) is used with macros that set a single bit (using ``BTSet()``),
 set a range of bits in a word, and set a whole word.
 
-_`.fun.res-range`: ``BTResRange`` This is implemented similarly to
-``BTSetRange`` (`.fun.set-range`_) except using ``BTRes`` and reverse
+_`.fun.res-range`: ``BTResRange()`` This is implemented similarly to
+``BTSetRange()`` (`.fun.set-range`_) except using ``BTRes()`` and reverse
 bit-masking logic.
 
-_`.fun.test.range.set`: ``BTIsSetRange``. ``ACT_ON_RANGE`` (see
+_`.fun.test.range.set`: ``BTIsSetRange()``. ``ACT_ON_RANGE()`` (see
 `.iteration`_ above) is used with macros that test whether all the
 relevant bits are set; if some of the relevant bits are not set then
 ``return FALSE`` is used to terminate the iteration early and return
-from the ``BTIsSetRange`` function. If the iteration completes then
+from the ``BTIsSetRange()`` function. If the iteration completes then
 ``TRUE`` is returned.
 
-_`.fun.test.range.reset`: ``BTIsResRange``. As for ``BTIsSetRange``
+_`.fun.test.range.reset`: ``BTIsResRange()``. As for ``BTIsSetRange()``
 (`.fun.test.range.set`_ above) but testing whether the bits are reset.
 
-_`.fun.test.range.same`: ``BTRangesSame``. As for ``BTIsSetRange``
+_`.fun.test.range.same`: ``BTRangesSame()``. As for ``BTIsSetRange()``
 (`.fun.test.range.set`_ above) but testing whether corresponding
 ranges in the two Bit Tables are the same. Note there are no speed
-requirements, but ``ACT_ON_RANGE`` is used for simplicity and
+requirements, but ``ACT_ON_RANGE()`` is used for simplicity and
 uniformity.
 
-_`.fun.find`: The four external find functions (``BTFindShortResRange``,
-``BTFindShortResRangeHigh``, ``BTFindLongResRange``,
-``BTFindLongResRangeHigh``) simply call through to one of the two
-internal functions: ``BTFindResRange`` and ``BTFindResRangeHigh``.
+_`.fun.find`: The four external find functions (``BTFindShortResRange()``,
+``BTFindShortResRangeHigh()``, ``BTFindLongResRange()``,
+``BTFindLongResRangeHigh()``) simply call through to one of the two
+internal functions: ``BTFindResRange()`` and ``BTFindResRangeHigh()``.
 
-.. c:function:: Bool BTFindResRange(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count minLength, Count maxLength)
-.. c:function:: Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count minLength, Count maxLength)
+``Bool BTFindResRange(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count minLength, Count maxLength)``
+``Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn, BT bt, Index searchBase, Index searchLimit, Count minLength, Count maxLength)``
 
 There are two length parameters, one specifying the minimum length of
 the range to be found, the other the maximum length. For
-``BTFindShort`` and ``BTFindShortHigh``, ``maxLength`` is equal to
-``minLength`` when passed; for ``BTFindLong`` and ``BTFindLongHigh``,
+``BTFindShort()`` and ``BTFindShortHigh()``, ``maxLength`` is equal to
+``minLength`` when passed; for ``BTFindLong()`` and ``BTFindLongHigh()``,
 ``maxLength` is equal to the maximum possible range, namely
 ``searchLimit - searchBase``.
 
-_`.fun.find-res-range`: ``BTFindResRange``. Iterate within the search
+_`.fun.find-res-range`: ``BTFindResRange()``. Iterate within the search
 boundaries, identifying candidate ranges by searching for a reset bit.
 The :ref:`Boyer–Moore algorithm <BM77>` is used (it's particularly
 easy to implement when there are only two symbols, 0 and 1, in the
@@ -641,10 +641,10 @@ for one. If during the backwards search no set bit is found, then we
 have found a sufficiently large range of reset bits; now extend the
 valid range as far as possible up to the maximum length by iterating
 forwards up to the maximum limit looking for a set bit. The iterations
-make use of the ``ACT_ON_RANGE`` and ``ACT_ON_RANGE_HIGH`` macros,
+make use of the ``ACT_ON_RANGE()`` and ``ACT_ON_RANGE_HIGH()`` macros,
 which can use ``goto`` to effect an early termination of the iteration
 when a set/reset (as appropriate) bit is found. The macro
-``ACTION_FIND_SET_BIT`` is used in the iterations. It efficiently
+``ACTION_FIND_SET_BIT()`` is used in the iterations. It efficiently
 finds the first (that is, with lowest index or weight) set bit in a
 word or subword.
 
@@ -663,19 +663,19 @@ improvements in practice:
   for (for example) index of first set bit, index of last set bit,
   number of reset bits, length of maximum run of reset bits.
 
-_`.fun.find-res-range-high`: ``BTFindResRangeHigh``. Exactly the same
-algorithm as in ``BTFindResRange`` (see `.fun.find-res-range`_ above),
+_`.fun.find-res-range-high`: ``BTFindResRangeHigh()``. Exactly the same
+algorithm as in ``BTFindResRange()`` (see `.fun.find-res-range`_ above),
 but moving over the table in the opposite direction.
 
-_`.fun.copy-simple-range`: ``BTCopyRange``. Uses ``ACT_ON_RANGE`` (see
+_`.fun.copy-simple-range`: ``BTCopyRange()``. Uses ``ACT_ON_RANGE()`` (see
 `.iteration`_ above) with the obvious implementation. Should be fast.
 
-_`.fun.copy-offset-range`: ``BTCopyOffsetRange``. Uses a simple
-iteration loop, reading bits with ``BTGet`` and setting them with
-``BTSet``. Doesn't use ``ACT_ON_RANGE`` because the two ranges will
+_`.fun.copy-offset-range`: ``BTCopyOffsetRange()``. Uses a simple
+iteration loop, reading bits with ``BTGet()`` and setting them with
+``BTSet()``. Doesn't use ``ACT_ON_RANGE()`` because the two ranges will
 not, in general, be similarly word-aligned.
 
-_`.fun.copy-invert-range`: ``BTCopyInvertRange``. Uses ``ACT_ON_RANGE``
+_`.fun.copy-invert-range`: ``BTCopyInvertRange()``. Uses ``ACT_ON_RANGE()``
 (see `.iteration`_ above) with the obvious implementation. Should be
 fast---although there are no speed requirements.
 

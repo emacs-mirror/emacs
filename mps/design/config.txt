@@ -141,12 +141,12 @@ the result with a set of libraries to form the target::
 
 _`.build.sep`: Separate compilation and linkage can be seen as a
 memoization of this function, and is not strictly necessary for the
-build.  Indeed, since `version 1.110` we found that modern compilers are
-quite happy to compile the whole MPS in one go `.import.source`_.
+build. Indeed, since `version 1.110` we found that modern compilers
+are quite happy to compile the whole MPS in one go `.import.source`_.
 
-_`.build.cc`: A consequence of this approach is that it should always be possible 
-to build a complete target with a single UNIX command line calling the compiler 
-driver (usually "cc" or "gcc"), for example::
+_`.build.cc`: A consequence of this approach is that it should always
+be possible to build a complete target with a single UNIX command line
+calling the compiler driver (usually "cc" or "gcc"), for example::
 
     cc -o main -DCONFIG_VAR_DF foo.c bar.c baz.s -lz
 
@@ -160,21 +160,25 @@ the tag of the relevant variety document (see variety.*) converted to
 upper case. Currently (2012-09-03):
 
 _`.var.hot`: ``HOT``
+
     Intended for release in products.  Optimised, reduced internal
     checking, especially on the critical path `[RB 2012-09-07]`_.
 
 _`.var.cool`: ``COOL``
+
     Intended for use during development.  Moderately thorough internal
     consistency checking.  Reduced optimisation to allow for
     single-stepping.
 
 _`.var.rash`: ``RASH``
+
     No internal checking at all.  Slight performance improvement over
     `.var.hot`_ at the cost of early detection of memory management
     bugs.  We do not advise use of this variety, as memory management
     bugs tend to be extremely expensive to deal with.
 
 _`.var.diag`: ``DIAG`` (deprecated)
+
     This variety does some client-specific analysis and produces some
     specialised diagnostic output, and is not intended for general use.
     It will be phased out of the open sources.
@@ -182,16 +186,17 @@ _`.var.diag`: ``DIAG`` (deprecated)
 _`.default.hot`: If no ``CONFIG_VAR`` is present, ``HOT`` is assumed in
 `config.h`_.
 
-_`.build.srcs`: The "srcs" are the set of sources that must be compiled in order 
-to build the target.  The set of sources may vary depending on the 
-configuration.  For example, different sets of sources may be required to build 
-different architectures.  [This is a dependency between the makefile (or whatever) 
-and the module configuration in `config.h`_.]
+_`.build.srcs`: The "srcs" are the set of sources that must be
+compiled in order to build the target. The set of sources may vary
+depending on the configuration. For example, different sets of sources
+may be required to build different architectures. [This is a
+dependency between the makefile (or whatever) and the module
+configuration in `config.h`_.]
 
-_`.build.libs`: The "libs" are the set of libraries to which the compiled sources 
-must be linked in order to build the target.  For example, when building a test 
-program, it might include the ANSI C library and an operating system interface 
-library.
+_`.build.libs`: The "libs" are the set of libraries to which the
+compiled sources must be linked in order to build the target. For
+example, when building a test program, it might include the ANSI C
+library and an operating system interface library.
 
 
 File Structure
@@ -547,6 +552,8 @@ References
   path through the MPS
   <http://www.ravenbrook.com/project/mps/master/design/critical-path>`_".
 
+.. _variety-reform: http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/
+
 
 Document History
 ----------------
@@ -565,7 +572,6 @@ Document History
 - 2013-05-11 RB_ Converted to reStructuredText.  Clarified various
   sections, brought some up-to-date, and removed obsolete junk.
 
-.. _variety-reform: http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _NB: http://www.ravenbrook.com/consultants/nb/
 

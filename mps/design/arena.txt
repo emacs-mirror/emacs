@@ -39,7 +39,7 @@ Definitions
 -----------
 
 _`.def.tract`: Pools request memory from the arena by calling
-``ArenaAlloc``. This returns a block comprising a contiguous sequence
+``ArenaAlloc()``. This returns a block comprising a contiguous sequence
 of "tracts". A tract has a specific size (also known as the "arena
 alignment", which typically corresponds to the operating system page
 size) and all tracts are aligned to that size. "Tract" is also used
@@ -176,15 +176,17 @@ checked.
 Arena classes
 .............
 
+``typedef mps_arena_s *Arena``
+
 _`.class`: The ``Arena`` data structure is designed to be subclassable
 (see design.mps.protocol(0)). Clients can select what arena class
-they'd like when instantiating one with ``mps_arena_create``. The
-arguments to ``mps_arena_create`` are class dependent.
+they'd like when instantiating one with ``mps_arena_create()``. The
+arguments to ``mps_arena_create()`` are class-dependent.
 
-_`.class.init`: However, the generic ``ArenaInit`` is called from the
+_`.class.init`: However, the generic ``ArenaInit()`` is called from the
 class-specific method, rather than vice versa, because the method is
 responsible for allocating the memory for the arena descriptor and the
-arena lock in the first place. Likewise, ``ArenaFinish`` is called
+arena lock in the first place. Likewise, ``ArenaFinish()`` is called
 from the finish method.
 
 _`.class.fields`: The ``alignment`` (for tract allocations) and
@@ -215,7 +217,7 @@ each abstract method is initialized to ``NULL``.
 Tracts
 ......
 
-_`.tract`: The arena allocation function ``ArenaAlloc`` allocates a
+_`.tract`: The arena allocation function ``ArenaAlloc()`` allocates a
 block of memory to pools, of a size which is aligned to the arena
 alignment. Each alignment unit (grain) of allocation is represented by
 a tract. Tracts are the hook on which the segment module is
@@ -273,21 +275,21 @@ adding the arena alignment to the base address.
 _`.tract.iteration`: Iteration over tracts is described in
 design.mps.arena.tract-iter(0).
 
-_`.tract.if.tractofaddr`: The function ``TractOfAddr`` finds the tract
-corresponding to an address in memory. (See `.req.fun.trans`_)::
+``Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)``
 
-    Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr);
+_`.tract.if.tractofaddr`: The function ``TractOfAddr()`` finds the tract
+corresponding to an address in memory. (See `.req.fun.trans`_.)
 
 If ``addr`` is an address which has been allocated to some pool, then
-``TractOfAddr`` returns ``TRUE``, and sets ``*tractReturn`` to the
+``TractOfAddr()`` returns ``TRUE``, and sets ``*tractReturn`` to the
 tract corresponding to that address. Otherwise, it returns ``FALSE``.
-This function is similar to ``TractOfBaseAddr`` (see
+This function is similar to ``TractOfBaseAddr()`` (see
 design.mps.arena.tract-iter.if.contig-base) but serves a more general
 purpose and is less efficient.
 
-_`.tract.if.TRACT_OF_ADDR`: ``TRACT_OF_ADDR`` is a macro version of
-``TractOfAddr``. It's provided for efficiency during a call to
-``TraceFix`` (see design.mps.trace.fix.tractofaddr).
+_`.tract.if.TRACT_OF_ADDR`: ``TRACT_OF_ADDR()`` is a macro version of
+``TractOfAddr()``. It's provided for efficiency during a call to
+``TraceFix()`` (see design.mps.trace.fix.tractofaddr).
 
 
 Control pool
@@ -295,17 +297,17 @@ Control pool
 
 _`.pool`: Each arena has a "control pool",
 ``arena->controlPoolStruct``, which is used for allocating MPS control
-data structures by calling ``ControlAlloc``.
+data structures by calling ``ControlAlloc()``.
 
 
 Polling
 .......
 
-_`.poll`: ``ArenaPoll`` is called "often" by other code (for instance,
+_`.poll`: ``ArenaPoll()`` is called "often" by other code (for instance,
 on buffer fill or allocation). It is the entry point for doing tracing
 work. If the polling clock exceeds a set threshold, and we're not
 already doing some tracing work (that is, ``insidePoll`` is not set),
-it calls ``TracePoll`` on all busy traces.
+it calls ``TracePoll()`` on all busy traces.
 
 _`.poll.size`: The actual clock is ``arena->fillMutatorSize``. This is
 because internal allocation is only significant when copy segments are
@@ -321,13 +323,13 @@ for allocation and we are wary of the clock running backward.
 _`.poll.clamp`: Polling is disabled when the arena is "clamped", in
 which case ``arena->clamped`` is ``TRUE``. Clamping the arena prevents
 background tracing work, and further new garbage collections from
-starting. Clamping and releasing are implemented by the ``ArenaClamp``
-and ``ArenaRelease`` methods.
+starting. Clamping and releasing are implemented by the ``ArenaClamp()``
+and ``ArenaRelease()`` methods.
 
 _`.poll.park`: The arena is "parked" by clamping it, then polling until
 there are no active traces. This finishes all the active collections
 and prevents further collection. Parking is implemented by the
-``ArenaPark`` method.
+``ArenaPark()`` method.
 
 
 Commit limit
@@ -337,22 +339,22 @@ _`.commit-limit`: The arena supports a client configurable "commit
 limit" which is a limit on the total amount of committed memory. The
 generic arena structure contains a field to hold the value of the
 commit limit and the implementation provides two functions for
-manipulating it: ``ArenaCommitLimit`` to read it, and
-``ArenaSetCommitLimit`` to set it. Actually abiding by the contract of
+manipulating it: ``ArenaCommitLimit()`` to read it, and
+``ArenaSetCommitLimit()`` to set it. Actually abiding by the contract of
 not committing more memory than the commit limit is left up to the
 individual arena classes.
 
 _`.commit-limit.err`: When allocation from the arena would otherwise
 succeed but cause the MPS to use more committed memory than specified
-by the commit limit ``ArenaAlloc`` should refuse the request and
+by the commit limit ``ArenaAlloc()`` should refuse the request and
 return ``ResCOMMIT_LIMIT``.
 
-_`.commit-limit.err.multi`: In the case where an ``ArenaAlloc`` request
+_`.commit-limit.err.multi`: In the case where an ``ArenaAlloc()`` request
 cannot be fulfilled for more than one reason including exceeding the
 commit limit then class implementations should strive to return a
 result code other than ``ResCOMMIT_LIMIT``. That is,
 ``ResCOMMIT_LIMIT`` should only be returned if the *only* reason for
-failing the ``ArenaAlloc`` request is that the commit limit would be
+failing the ``ArenaAlloc()`` request is that the commit limit would be
 exceeded. The client documentation allows implementations to be
 ambiguous with respect to which result code in returned in such a
 situation however.
@@ -361,22 +363,22 @@ situation however.
 Spare committed (aka "hysteresis")
 ..................................
 
-_`.spare-committed`: See ``mps_arena_spare_committed``. The generic
+_`.spare-committed`: See ``mps_arena_spare_committed()``. The generic
 arena structure contains two fields for the spare committed memory
 fund: ``spareCommitted`` records the total number of spare committed
 bytes; ``spareCommitLimit`` records the limit (set by the user) on the
 amount of spare committed memory. ``spareCommitted`` is modified by
 the arena class but its value is used by the generic arena code. There
 are two uses: a getter function for this value is provided through the
-MPS interface (``mps_arena_spare_commit_limit_set``), and by the
-``SetSpareCommitLimit`` function to determine whether the amount of
+MPS interface (``mps_arena_spare_commit_limit_set()``), and by the
+``SetSpareCommitLimit()`` function to determine whether the amount of
 spare committed memory needs to be reduced. ``spareCommitLimit`` is
 manipulated by generic arena code, however the associated semantics
 are the responsibility of the class. It is the class's responsibility
 to ensure that it doesn't use more spare committed bytes than the
 value in ``spareCommitLimit``.
 
-_`.spare-commit-limit`: The function ``ArenaSetSpareCommitLimit`` sets
+_`.spare-commit-limit`: The function ``ArenaSetSpareCommitLimit()`` sets
 the ``spareCommitLimit`` field. If the limit is set to a value lower
 than the amount of spare committed memory (stored in
 ``spareCommitted``) then the class specific function
@@ -386,11 +388,11 @@ than the amount of spare committed memory (stored in
 Locks
 .....
 
-_`.lock.ring`: ``ArenaAccess`` is called when we fault on a barrier.
+_`.lock.ring`: ``ArenaAccess()`` is called when we fault on a barrier.
 The first thing it does is claim the non-recursive global lock to
 protect the arena ring (see design.mps.lock(0)).
 
-_`.lock.arena`: After the arena ring lock is claimed, ``ArenaEnter`` is
+_`.lock.arena`: After the arena ring lock is claimed, ``ArenaEnter()`` is
 called on one or more arenas. This claims the lock for that arena.
 When the correct arena is identified or we run out of arenas, the lock
 on the ring is released.
@@ -435,17 +437,17 @@ Implementation
 Tract cache
 ...........
 
-_`.tract.cache`: When tracts are allocated to pools by ``ArenaAlloc``,
+_`.tract.cache`: When tracts are allocated to pools by ``ArenaAlloc()``,
 the first tract of the block and it's base address are cached in arena
 fields ``lastTract`` and ``lastTractBase``. The function
-``TractOfBaseAddr`` (see design.mps.arena.tract-iter.if.block-base(0))
+``TractOfBaseAddr()`` (see design.mps.arena.tract-iter.if.block-base(0))
 checks against these cached values and only calls the class method on
 a cache miss. This optimizes for the common case where a pool
 allocates a block and then iterates over all its tracts (for example,
 to attach them to a segment).
 
 _`.tract.uncache`: When blocks of memory are freed by pools,
-``ArenaFree`` checks to see if the cached value for the most recently
+``ArenaFree()`` checks to see if the cached value for the most recently
 allocated tract (see `.tract.cache`_) is being freed. If so, the cache
 is invalid, and must be reset. The ``lastTract`` and ``lastTractBase``
 fields are set to ``NULL``.
@@ -455,13 +457,13 @@ Control pool
 ............
 
 _`.pool.init`: The control pool is initialized by a call to
-``PoolInit`` during ``ArenaCreate``.
+``PoolInit()`` during ``ArenaCreate()``.
 
 _`.pool.ready`: All the other fields in the arena are made checkable
-before calling ``PoolInit``, so ``PoolInit`` can call
+before calling ``PoolInit()``, so ``PoolInit()`` can call
 ``ArenaCheck(arena)``. The pool itself is, of course, not checkable,
 so we have a field ``arena->poolReady``, which is false until after
-the return from ``PoolInit``. ``ArenaCheck`` only checks the pool if
+the return from ``PoolInit()``. ``ArenaCheck()`` only checks the pool if
 ``poolReady``.
 
 
@@ -471,7 +473,7 @@ Traces
 _`.trace`: ``arena->trace[ti]`` is valid if and only if
 ``TraceSetIsMember(arena->busyTraces, ti)``.
 
-_`.trace.create`: Since the arena created by ``ArenaCreate`` has
+_`.trace.create`: Since the arena created by ``ArenaCreate()`` has
 ``arena->busyTraces = TraceSetEMPTY``, none of the traces are
 meaningful.
 
@@ -485,7 +487,7 @@ Polling
 _`.poll.fields`: There are three fields of a arena used for polling:
 ``pollThreshold``, ``insidePoll``, and ``clamped`` (see above).
 ``pollThreshold`` is the threshold for the next poll: it is set at the
-end of ``ArenaPoll`` to the current polling time plus
+end of ``ArenaPoll()`` to the current polling time plus
 ``ARENA_POLL_MAX``.
 
 

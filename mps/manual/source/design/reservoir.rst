@@ -3,4 +3,4 @@
 
 .. _design-reservoir:
 
-.. include:: ../../../design/reservoir.txt
+.. include:: ../../converted/reservoir.rst

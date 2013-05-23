@@ -5,4 +5,4 @@
 
 .. _design-critical-path:
 
-.. include:: ../../../design/critical-path.txt
+.. include:: ../../converted/critical-path.rst

@@ -3,4 +3,4 @@
 
 .. _design-config:
 
-.. include:: ../../../design/config.txt
+.. include:: ../../converted/config.rst

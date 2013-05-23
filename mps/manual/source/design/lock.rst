@@ -3,4 +3,4 @@
 
 .. _design-lock:
 
-.. include:: ../../../design/lock.txt
+.. include:: ../../converted/lock.rst

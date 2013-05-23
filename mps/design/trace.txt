@@ -38,16 +38,16 @@ arena (to non-managed address space) or to a tract allocated to a
 pool. Exact references that are to addresses which the arena has
 reserved but hasn't allocated memory to are illegal (the exact
 reference couldn't possibly refer to a real object). Depending on the
-future semantics of ``PoolDestroy`` we might need to adjust our
+future semantics of ``PoolDestroy()`` we might need to adjust our
 strategy here. See mail.dsm.1996-02-14.18-18 for a strategy of coping
-gracefully with ``PoolDestroy``. We check that this is the case in the
+gracefully with ``PoolDestroy()``. We check that this is the case in the
 fixer. It may be sensible to make this check CRITICAL in certain
 configurations.
 
 _`.fix.fixed.all`: ``ss->fixedSummary`` is accumulated (in the fixer)
 for all the pointers whether or not they are genuine references. We
 could accumulate fewer pointers here; if a pointer fails the
-``TractOfAddr`` test then we know it isn't a reference, so we needn't
+``TractOfAddr()`` test then we know it isn't a reference, so we needn't
 accumulate it into the fixed summary. The design allows this, but it
 breaks a useful post-condition on scanning (if the accumulation of
 ``ss->fixedSummary`` was moved the accuracy of ``ss->fixedSummary``
@@ -91,23 +91,23 @@ fix path is still critical to system performance. Various
 modifications to and aspects of the system are concerned with
 maintaining the speed along this path.
 
-_`.fix.tractofaddr`: ``TractOfAddr`` is called on every reference that
+_`.fix.tractofaddr`: ``TractOfAddr()`` is called on every reference that
 passes the zone test and is on the critical path, to determine whether
 the segment is white. There is no need to examine the segment to
 perform this test, since whiteness information is duplicated in
-tracts, specifically to optimize this test. ``TractOfAddr`` itself is
+tracts, specifically to optimize this test. ``TractOfAddr()`` itself is
 a simple class dispatch function (which dispatches to the arena
-class's ``TractOfAddr`` method). Inlining the dispatch and inlining
-the functions called by ``VMTractOfAddr`` makes a small but noticable
+class's ``TractOfAddr()`` method). Inlining the dispatch and inlining
+the functions called by ``VMTractOfAddr()`` makes a small but noticable
 difference to the speed of the dylan compiler.
 
-_`.fix.noaver`: ``AVER`` statements in the code add bulk to the code
+_`.fix.noaver`: ``AVER()`` statements in the code add bulk to the code
 (reducing I-cache efficacy) and add branches to the path (polluting
 the branch pedictors) resulting in a slow down. Removing all the
-``AVER`` statements from the fix path improves the overall speed of
+``AVER()`` statements from the fix path improves the overall speed of
 the Dylan compiler by as much as 9%.
 
-_`.fix.nocopy`: ``AMCFix`` used to copy objects by using the format's
+_`.fix.nocopy`: ``AMCFix()`` used to copy objects by using the format's
 copy method. This involved a function call (through an indirection)
 and in ``dylan_copy`` a call to ``dylan_skip`` (to recompute the
 length) and call to ``memcpy`` with general parameters. Replacing this
@@ -117,30 +117,30 @@ inlined by the C compiler. This change results in a 4–5% speed-up in
 the Dylan compiler.
 
 _`.reclaim`: Because the reclaim phase of the trace (implemented by
-``TraceReclaim``) examines every segment it is fairly time intensive.
+``TraceReclaim()``) examines every segment it is fairly time intensive.
 rit's profiles presented in request.dylan.170551 show a gap between
 the two varieties variety.hi and variety.wi.
 
-_`.reclaim.noaver`: Converting ``AVER`` statements in the loops of
-``TraceReclaim``, ``PoolReclaim``, ``AMCReclaim`` (``LOReclaim``?
-``AWLReclaim``?) will result in a noticeable speed improvement [insert
+_`.reclaim.noaver`: Converting ``AVER()`` statements in the loops of
+``TraceReclaim()``, ``PoolReclaim()``, ``AMCReclaim()`` (``LOReclaim()``?
+``AWLReclaim()``?) will result in a noticeable speed improvement [insert
 actual speed improvement here].
 
 
 Life cycle of a trace object
 ----------------------------
 
-``TraceCreate`` creates a trace in state ``TraceINIT``
+``TraceCreate()`` creates a trace in state ``TraceINIT``
 
 Some segments get condemned (made white).
 
-``TraceStart`` gets called which:
+``TraceStart()`` gets called which:
 
 - Derives an initial reference partition based on the existing
   white set.  The white zone set and the segments' summaries are used to
   create an initial grey set.
 
-- Emits a ``GCStart`` message.
+- Emits a ``GCStart()`` message.
 
 - Initialises ``trace->rate`` by estimating the required scanning
   rate.
@@ -151,7 +151,7 @@ Some segments get condemned (made white).
   it into state ``TraceFLIPPED``.
 
 Whilst a trace is alive every so often its ``traceQuantum`` method
-gets invoked (via ``TracePoll``) in order to do a quantum of tracing
+gets invoked (via ``TracePoll()``) in order to do a quantum of tracing
 work. ``traceQuantum`` is responsible for ticking through the trace's
 top-level state machine. Most of the interesting work, the tracing,
 happens in the ``TraceFLIPPED`` state.
@@ -199,7 +199,7 @@ ranks. And so on. The description of the tracer working like this
 originated in `[RHSK 2007-06-25]`_.
 
 A trace keep track of which band it is tracing. This is returned by
-the ``TraceBand`` method. Keeping this band information helps it
+the ``TraceBand()`` method. Keeping this band information helps it
 implement the semantics of finalization and weakness. The band used to
 not be explicitly stored, but this hindered the implementation of good
 finalization semantics (essentially in some circumstances finalization
@@ -209,7 +209,7 @@ messages were delayed by at least one collection cycle, see
 .. _job001658: https://info.ravenbrook.com/project/mps/issue/job001658/
 
 The band is used when selecting a grey segment to scan (the selection
-occurs in ``traceFindGrey``). The tracer attempts to first find
+occurs in ``traceFindGrey()``). The tracer attempts to first find
 segments whose rank is the current band, then segments whose rank is
 previous to the current band, and so on. If there are no segments
 found then the current band is exhausted and the current band is

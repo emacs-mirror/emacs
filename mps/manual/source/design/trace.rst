@@ -3,4 +3,4 @@
 
 .. _design-trace:
 
-.. include:: ../../../design/trace.txt
+.. include:: ../../converted/trace.rst

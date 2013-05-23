@@ -3,4 +3,4 @@
 
 .. _design-object-debug:
 
-.. include:: ../../../design/Object-debug.txt
+.. include:: ../../converted/Object-debug.rst

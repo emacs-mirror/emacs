@@ -3,4 +3,4 @@
 
 .. _design-finalize:
 
-.. include:: ../../../design/finalize.txt
+.. include:: ../../converted/finalize.rst

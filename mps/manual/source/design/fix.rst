@@ -3,4 +3,4 @@
 
 .. _design-fix:
 
-.. include:: ../../../design/fix.txt
+.. include:: ../../converted/fix.rst

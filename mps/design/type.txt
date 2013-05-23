@@ -31,7 +31,7 @@ say ``Byte`` in your code if it's what you mean.
 Concrete types
 --------------
 
-.. c:type:: Bool
+``typedef int Bool``
 
 _`.bool`: The ``Bool`` type is mostly defined so that the intention of
 code is clearer. In C, Boolean expressions evaluate to ``int``, so
@@ -48,7 +48,7 @@ Boolean type in C is a tricky thing. Non-zero values are "true" (when
 used as control conditions) but are not all equal to ``TRUE``. Use
 with care.
 
-_`.bool.check`: ``BoolCheck`` simply checks whether the argument is
+_`.bool.check`: ``BoolCheck()`` simply checks whether the argument is
 ``TRUE`` (``1``) or ``FALSE`` (``0``).
 
 _`.bool.check.inline`: The inline macro version of ``BoolCheck`` casts
@@ -57,9 +57,9 @@ safe, well-defined, uses the argument exactly once, and generates
 reasonable code.
 
 _`.bool.check.inline.smaller`: In fact we can expect that the "inline"
-version of ``BoolCheck`` to be smaller than the equivalent function
+version of ``BoolCheck()`` to be smaller than the equivalent function
 call. On IA-32 for example, a function call will be 3 instructions
-(total 9 bytes), the inline code for ``BoolCheck`` will be 1
+(total 9 bytes), the inline code for ``BoolCheck()`` will be 1
 instruction (total 3 bytes) (both sequences not including the test
 which is the same length in either case).
 
@@ -70,7 +70,7 @@ for ``BoolCheck`` on the PC Aaron. "With" ran in 97.7% of the time
 (averaged over 3 runs).
 
 
-.. c:type:: Res
+``typedef int Res``
 
 _`.res`: ``Res`` is the type of result codes. A result code indicates
 the success or failure of an operation, along with the reason for
@@ -129,7 +129,7 @@ results).
 _`.res.use.spec`: The most specific code should be returned.
 
 
-.. c:type:: Fun
+``typedef void (*Fun)(void)``
 
 _`.fun`: ``Fun`` is the type of a pointer to a function about which
 nothing more is known.
@@ -141,7 +141,7 @@ through to a third function ``h``, where ``h`` knows the real type of
 ``f`` but ``g`` doesn't.
 
 
-.. c:type:: Word
+``typedef MPS_T_WORD Word``
 
 _`.word`: ``Word`` is an unsigned integral type which matches the size
 of the machine word, that is, the natural size of the machine
@@ -158,7 +158,7 @@ _`.word.conv.c`: ``Word`` is converted to ``mps_word_t`` in the MPS C
 Interface.
 
 
-.. c:type:: Byte
+``typedef unsigned char Byte``
 
 _`.byte`: ``Byte`` is an unsigned integral type corresponding to the
 unit in which most sizes are measured, and also the units of
@@ -172,7 +172,7 @@ _`.byte.source`: ``Byte`` is a just pedagogic version of ``unsigned
 char``, since ``char`` is the unit of ``sizeof``.
 
 
-.. c:type:: Index
+``typedef Word Index``
 
 _`.index`: ``Index`` is an unsigned integral type which is large
 enough to hold any array index.
@@ -183,7 +183,7 @@ determined then the smallest unsigned integer with a large enough
 range may be used instead.
 
 
-.. c:type: Count
+``typedef Word Count``
 
 _`.count`: ``Count`` is an unsigned integral type which is large
 enough to hold the size of any collection of objects in the MPS.
@@ -207,7 +207,7 @@ clarity).
     than the number of objects. pekka 1998-07-21
 
 
-.. c:type:: Accumulation
+``typedef Word Accumulation``
 
 _`.accumulation`: ``Accumulation`` is an arithmetic type which is
 large enough to hold accumulated totals of objects of bytes (for
@@ -234,7 +234,7 @@ functions which returned scaled accumulations. For example,
 ``double``.
 
 
-.. c:type:: Addr
+``typedef struct AddrStruct *Addr``
 
 _`.addr`: ``Addr`` is the type used for "managed addresses", that is,
 addresses of objects managed by the MPS.
@@ -251,15 +251,15 @@ amenable to working in a separate address space. Be careful not to
 confuse ``Addr`` with ``void *``.
 
 _`.addr.ops`: Limited arithmetic is allowed on addresses using
-``AddrAdd`` and ``AddrOffset`` (impl.c.mpm). Addresses may also be
+``AddrAdd()`` and ``AddrOffset()`` (impl.c.mpm). Addresses may also be
 compared using the relational operators ``==``, ``!=``, ``<``, ``<=``,
 ``>``, and ``>=``.
 
-_`.addr.ops.mem`: We need efficient operators similar to ``memset``,
-``memcpy``, and ``memcmp`` on ``Addr``; these are called ``AddrSet``,
-``AddrCopy``, and ``AddrComp``. When ``Addr`` is compatible with
+_`.addr.ops.mem`: We need efficient operators similar to ``memset()``,
+``memcpy()``, and ``memcmp()`` on ``Addr``; these are called ``AddrSet()``,
+``AddrCopy()``, and ``AddrComp()``. When ``Addr`` is compatible with
 ``void *``, these are implemented through the functions
-``mps_lib_memset``, ``mps_lib_memcpy``, and ``mps_lib_memcmp``
+``mps_lib_memset()``, ``mps_lib_memcpy()``, and ``mps_lib_memcmp()``
 functions in the plinth (impl.h.mpm).
 
 .. note::
@@ -272,7 +272,7 @@ using the MPS C Interface confines the memory manager to the same
 address space as the client data.
 
 
-.. c:type:: Size
+``typedef Word Size``
 
 _`.size`: ``Size`` is an unsigned integral type large enough to
 hold the size of any object which the MPS might manage.
@@ -294,7 +294,7 @@ Interface. This constrains the memory manager to the same address
 space as the client data.
 
 
-.. c:type:: Align
+``typedef Word Align``
 
 _`.align`: ``Align`` is an unsigned integral type which is used to
 represent the alignment of managed addresses. All alignments are
@@ -308,7 +308,7 @@ _`.align.conv.c`: ``Align`` is converted to ``mps_align_t`` in the MPS
 C Interface.
 
 
-.. c:type:: Shift
+``typedef unsigned Shift``
 
 _`.shift`: ``Shift`` is an unsigned integral type which can hold the
 amount by which a ``Word`` can be shifted. It is therefore large
@@ -323,7 +323,7 @@ _`.shift.conv.c`: ``Shift`` is converted to ``mps_shift_t`` in the MPS
 C Interface.
 
 
-.. c:type:: Ref
+``typedef Addr Ref``
 
 _`.ref`: ``Ref`` is a reference to a managed object (as opposed to any
 old managed address). ``Ref`` should be used where a reference is
@@ -332,13 +332,13 @@ intended.
 .. note:: This isn't too clear -- richard
 
 
-.. c:type:: RefSet
+``typedef Word RefSet``
 
 _`.refset`: ``RefSet`` is a conservative approximation to a set of
 references. See design.mps.refset.
 
 
-.. c:type:: Rank
+``typedef unsigned Rank``
 
 _`.rank`: ``Rank`` is an enumeration which represents the rank of a
 reference. The ranks are:
@@ -377,7 +377,7 @@ their integer values.
     document, then referenced from the implementation more thoroughly.
 
 
-.. c:type:: Epoch
+``typedef Size Epoch``
 
 _`.epoch`: An ``Epoch`` is a count of the number of flips that the
 mutator have occurred. [Is it more general than that?] It is used in
@@ -387,7 +387,7 @@ the implementation of location dependencies.
 field of ``mps_ld_s``.
 
 
-.. c:type:: TraceId
+``typedef unsigned TraceId``
 
 _`.traceid`: A ``TraceId`` is an unsigned integer which is less than
 ``TRACE_MAX``. Each running trace has a different ``TraceId`` which is
@@ -395,7 +395,7 @@ used to index into tables and bitfields used to remember the state of
 that trace.
 
 
-.. c:type:: TraceSet
+``typedef unsigned TraceSet``
 
 _`.traceset`: A ``TraceSet`` is a bitset of ``TraceId``,
 represented in the obvious way::
@@ -407,14 +407,14 @@ represented in the obvious way::
 .. note:: Expand on this.
 
 
-.. c:type:: AccessSet
+``typedef unsigned AccessSet``
 
 _`.access-set`: An ``AccessSet`` is a bitset of ``Access``
 modes, which are ``AccessREAD`` and ``AccessWRITE``. ``AccessNONE`` is
 the empty ``AccessSet``.
 
 
-.. c:type:: Attr
+``typedef unsigned Attr``
 
 _`.attr`: Pool attributes. A bitset of pool or pool class
 attributes, which are:
@@ -457,13 +457,13 @@ used for consistency checking at the moment.
     checking -- drj 1998-05-07
 
 
-.. c:type:: RootVar
+``typedef int RootVar``
 
 _`.rootvar`: The type ``RootVar`` is the type of the
 discriminator for the union within ``RootStruct``.
 
 
-.. c:type:: Serial
+``typedef unsigned Serial``
 
 _`.serial`: A ``Serial`` is a number which is assigned to a structure
 when it is initialized. The serial number is taken from a field in the
@@ -477,7 +477,7 @@ Why? Consistency checking, debugging, and logging. Not well thought
 out.
 
 
-.. c:type:: Compare
+``typedef unsigned Compare``
 
 _`.compare`: ``Compare`` is the type of tri-state comparison
 values.
@@ -493,12 +493,12 @@ Value               Description
 ==================  ===========================================
 
 
-.. c:type:: ULongest
+``typedef MPS_T_ULONGEST ULongest``
 
 _`.ulongest`: ``ULongest`` is the longest unsigned integer on the
 platform. (We used to use ``unsigned long`` but this assumption is
 violated by 64-bit Windows.) This type should be used for calculations
-where any integer might be passed. Notably, it is used in ``WriteF``
+where any integer might be passed. Notably, it is used in ``WriteF()``
 to print any integer.
 
 
@@ -507,19 +507,14 @@ Abstract types
 
 _`.adts`: The following types are abstract data types, implemented as
 pointers to structures. For example, ``Ring`` is a pointer to a
-``RingStruct``. They are described elsewhere
+``RingStruct``. They are described elsewhere.
 
-.. note:: where?
+``AP``, ``Arena``, ``Buffer``, ``Format``, ``LD``, ``Lock``, ``PoolClass``, ``Pool``, ``Ring``, ``Root``, ``ScanState``, ``Seg``, ``Space``, ``Thread``, ``Trace``, ``VM``.
 
-``Ring``, ``Buffer``, ``AP``, ``Format``, ``LD``, ``Lock``, ``Pool``,
-``Space``, ``PoolClass``, ``Trace``, ``ScanState``, ``Seg``,
-``Arena``, ``VM``, ``Root``, ``Thread``.
-
-
-.. c:type:: Pointer
+``typedef void *Pointer``
 
 _`.pointer`: The type ``Pointer`` is the same as ``void *``, and
-exists to sanctify functions such as ``PointerAdd``.
+exists to sanctify functions such as ``PointerAdd()``.
 
 
 Document History

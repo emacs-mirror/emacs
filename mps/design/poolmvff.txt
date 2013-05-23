@@ -3,11 +3,12 @@
 Manually-Managed Variable-Size First-Fit Pool
 =============================================
 
-:author: Gavin Matthews
-:date: 1998-09-09
-:organization: Harlequin
-:status: incomplete doc
-:revision: $Id$
+:Tag: design.mps.poolmvff
+:Author: Gavin Matthews
+:Date: 1998-09-09
+:Organization: Harlequin
+:Status: incomplete doc
+:Revision: $Id$
 
 
 Introduction

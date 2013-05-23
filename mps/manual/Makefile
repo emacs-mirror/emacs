@@ -14,7 +14,10 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sou
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
+# Converted design documents.
+CONVERTED = $(patsubst %.txt,converted/%.rst,$(notdir $(wildcard ../design/*.txt)))
+
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext converted
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -40,40 +43,40 @@ help:
 	@echo "  tools      to install a local copy of the Python tools using virtualenv"
 
 clean:
-	-rm -rf $(BUILDDIR)/{changes,devhelp,dirhtml,doctest,doctrees,epub,html,htmlhelp,json,latex,linkcheck,locale,man,pickle,qthelp,singlehtml,texinfo,text}
+	-rm -rf $(BUILDDIR)/{changes,devhelp,dirhtml,doctest,doctrees,epub,html,htmlhelp,json,latex,linkcheck,locale,man,pickle,qthelp,singlehtml,texinfo,text,converted}
 
-html:
+html: $(CONVERTED)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
-dirhtml:
+dirhtml: $(CONVERTED)
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
 
-singlehtml:
+singlehtml: $(CONVERTED)
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
 	@echo
 	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
 
-pickle:
+pickle: $(CONVERTED)
 	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files."
 
-json:
+json: $(CONVERTED)
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
 	@echo
 	@echo "Build finished; now you can process the JSON files."
 
-htmlhelp:
+htmlhelp: $(CONVERTED)
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in $(BUILDDIR)/htmlhelp."
 
-qthelp:
+qthelp: $(CONVERTED)
 	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
@@ -82,7 +85,7 @@ qthelp:
 	@echo "To view the help file:"
 	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/MemoryPoolSystem.qhc"
 
-devhelp:
+devhelp: $(CONVERTED)
 	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
 	@echo
 	@echo "Build finished."
@@ -91,72 +94,76 @@ devhelp:
 	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/MemoryPoolSystem"
 	@echo "# devhelp"
 
-epub:
+epub: $(CONVERTED)
 	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
-latex:
+latex: $(CONVERTED)
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
 	@echo "Run \`make' in that directory to run these through (pdf)latex" \
 	      "(use \`make latexpdf' here to do that automatically)."
 
-latexpdf:
+latexpdf: $(CONVERTED)
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
-text:
+text: $(CONVERTED)
 	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
 	@echo
 	@echo "Build finished. The text files are in $(BUILDDIR)/text."
 
-man:
+man: $(CONVERTED)
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
 
-texinfo:
+texinfo: $(CONVERTED)
 	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
 	@echo
 	@echo "Build finished. The Texinfo files are in $(BUILDDIR)/texinfo."
 	@echo "Run \`make' in that directory to run these through makeinfo" \
 	      "(use \`make info' here to do that automatically)."
 
-info:
+info: $(CONVERTED)
 	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
 	@echo "Running Texinfo files through makeinfo..."
 	make -C $(BUILDDIR)/texinfo info
 	@echo "makeinfo finished; the Info files are in $(BUILDDIR)/texinfo."
 
-gettext:
+gettext: $(CONVERTED)
 	$(SPHINXBUILD) -b gettext $(I18NSPHINXOPTS) $(BUILDDIR)/locale
 	@echo
 	@echo "Build finished. The message catalogs are in $(BUILDDIR)/locale."
 
-changes:
+changes: $(CONVERTED)
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
 	@echo
 	@echo "The overview file is in $(BUILDDIR)/changes."
 
-linkcheck:
+linkcheck: $(CONVERTED)
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
-doctest:
+doctest: $(CONVERTED)
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
+converted/%.rst: ../design/%.txt tool/convert.py
+	@mkdir -p converted
+	tool/convert.py $< > $@
+
 checkin: html
-	@p4 reconcile $(BUILDDIR)/html/...
-	@p4 reopen -t +w $(BUILDDIR)/html/...
-	@if p4 -s opened -m 1 $(BUILDDIR)/html/... | grep -q ^info; then p4 submit -d "Updated manual HTML" $(BUILDDIR)/html/...; fi
+	p4 reconcile $(BUILDDIR)/html/...
+	p4 reopen -t +w $(BUILDDIR)/html/...
+	if p4 -s opened -m 1 $(BUILDDIR)/html/... | grep -q ^info; then p4 submit -d "Updated manual HTML" $(BUILDDIR)/html/...; fi
 
 tools: tool/bin/sphinx-build
 

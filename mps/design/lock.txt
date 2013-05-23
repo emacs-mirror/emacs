@@ -94,55 +94,55 @@ Detailed design
 
 _`.interface`: The interface comprises the following functions:
 
-.. c:function:: size_t LockSize(void)
+``size_t LockSize(void)``
 
 Return the size of a ``LockStruct`` for allocation purposes.
 
-.. c:function:: void LockInit(Lock lock)
+``void LockInit(Lock lock)``
 
 After initialisation the lock is not owned by any thread. 
 
-.. c:function:: void LockFinish(Lock lock)
+``void LockFinish(Lock lock)``
 
 Before finalisation the lock must not beowned by any thread.
 
-.. c:function:: void LockClaim(Lock lock)
+``void LockClaim(Lock lock)``
 
 Claims ownership of a lock that was previously not held by current
 thread.
 
-.. c:function:: void LockReleaseMPM(Lock lock)
+``void LockReleaseMPM(Lock lock)``
 
 Releases ownership of a lock that is currently owned.
 
-.. c:function:: void LockClaimRecursive(Lock lock)
+``void LockClaimRecursive(Lock lock)``
 
 Remembers the previous state of the lock with respect to the current
 thread and claims the lock (if not already held).
 
-.. c:function:: void LockReleaseRecursive(Lock lock)
+``void LockReleaseRecursive(Lock lock)``
 
 Testores the previous state of the lock stored by corresponding
-``LockClaimRecursive`` call.
+``LockClaimRecursive()`` call.
 
-.. c:function:: void LockClaimGlobal(void)
+``void LockClaimGlobal(void)``
 
 Claims ownership of the binary global lock which was previously not
 held by current thread.
 
-.. c:function:: void LockReleaseGlobal(void)
+``void LockReleaseGlobal(void)``
 
 Releases ownership of the binary global lock that is currently owned.
 
-.. c:function:: void LockClaimGlobalRecursive(void)
+``void LockClaimGlobalRecursive(void)``
 
 Remembers the previous state of the recursive global lock with respect
 to the current thread and claims the lock (if not already held).
 
-.. c:function:: void LockReleaseGlobalRecursive(void)
+``void LockReleaseGlobalRecursive(void)``
 
 Restores the previous state of the recursive global lock stored by
-corresponding ``LockClaimGlobalRecursive`` call.
+corresponding ``LockClaimGlobalRecursive()`` call.
 
 _`.impl.recursive`: For recursive claims, the list of previous states
 can be simply implemented by keeping a count of the number of claims
@@ -177,9 +177,9 @@ PThreads implementations):
 - locking structure contains a mutex, initialized to check for
   recursive locking;
 - locking structure contains a count of the number of active claims;
-- non-recursive locking calls pthread_mutex_lock and expects success;
-- recursive locking calls pthread_mutex_lock and expects either
-  success or EDEADLK (indicating a recursive claim);
+- non-recursive locking calls ``pthread_mutex_lock()`` and expects success;
+- recursive locking calls ``pthread_mutex_lock()`` and expects either
+  success or ``EDEADLK`` (indicating a recursive claim);
 - also performs checking.
 
 Document History

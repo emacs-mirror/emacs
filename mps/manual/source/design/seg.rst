@@ -3,4 +3,4 @@
 
 .. _design-seg:
 
-.. include:: ../../../design/seg.txt
+.. include:: ../../converted/seg.rst

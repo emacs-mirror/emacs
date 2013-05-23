@@ -14,7 +14,7 @@ The WriteF function
 Introduction
 ------------
 
-_`.intro`: This document describes the ``WriteF`` function, which
+_`.intro`: This document describes the ``WriteF()`` function, which
 allows formatted output in a manner similar to ANSI C ``printf``, but
 allows the MPM to operate in a freestanding environment (see
 design.mps.exec-env).
@@ -27,19 +27,19 @@ exists.
 Design
 ------
 
-_`.no-printf`: There is no dependency on ``printf``. The MPM only
-depends on ``fputc`` and ``fputs``, via the Library Interface
+_`.no-printf`: There is no dependency on ``printf()``. The MPM only
+depends on ``fputc()`` and ``fputs()``, via the Library Interface
 (design.mps.lib). This makes it much easier to deploy the MPS in a
 freestanding environment. This is achieved by implementing our own
 internal output routines in mpm.c.
 
 Our output requirements are few, so the code is short. The only output
-function which should be used in the rest of the MPM is ``WriteF``,
-which is similar to ``fprintf``:
+function which should be used in the rest of the MPM is ``WriteF()``,
+which is similar to ``fprintf()``:
 
 ``Res WriteF(mps_lib_FILE *stream, ...)``
 
-``WriteF`` expects a format string followed by zero or more items to
+``WriteF()`` expects a format string followed by zero or more items to
 insert into the output, followed by another format string, more items,
 and so on, and finally a ``NULL`` format string. For example::
 
@@ -48,7 +48,7 @@ and so on, and finally a ``NULL`` format string. For example::
            "Spong: $U ($S)\n", number, string,
            NULL);
 
-This makes ``Describe`` methods much easier to write. For example, ``BufferDescribe`` might contain the following code::
+This makes ``Describe()`` methods much easier to write. For example, ``BufferDescribe()`` might contain the following code::
 
     WriteF(stream,
            "Buffer $P ($U) {\n", (WriteFP)buffer, (WriteFU)buffer->serial,
@@ -65,8 +65,8 @@ This makes ``Describe`` methods much easier to write. For example, ``BufferDescr
            "} Buffer $P ($U)\n", (WriteFP)buffer, (WriteFU)buffer->serial,
            NULL);
 
-_`.types`: For each format ``$X`` that ``WriteF`` supports, there is a
-type defined in impl.h.mpmtypes ``WriteFX`` which is the promoted
+_`.types`: For each format ``$X`` that ``WriteF()`` supports, there is a
+type defined in impl.h.mpmtypes ``WriteFX()`` which is the promoted
 version of that type. These are provided both to ensure promotion and
 to avoid any confusion about what type should be used in a cast. It is
 easy to check the casts against the formats to ensure that they
@@ -77,25 +77,25 @@ used in future in some generalisation of varargs in the MPS.
 
 _`.formats`: The formats supported are as follows.
 
-======= =========== =============== ======================================
-Code    Bame        Type            Example rendering
-======= =========== =============== ======================================
-``$A``  address     ``Addr``        ``000000019EF60010``
-``$P``  pointer     ``void *``      ``000000019EF60100``
-``$F``  function    ``void *(*)()`` ``000000019EF60100``
-``$S``  string      ``char *``      ``hello``
-``$C``  character   ``char``        ``x``
-``$W``  word        ``ULongest``    ``0000000000109AE0``
-``$U``  decimal     ``ULongest``    ``42``
-``$B``  binary      ``ULongest``    ``00000000000000001011011110010001``
-``$$``  dollar      --              ``$``
-======= =========== =============== ======================================
+======= =========== ================== ======================================
+Code    Bame        Type               Example rendering
+======= =========== ================== ======================================
+``$A``  address     ``Addr``           ``000000019EF60010``
+``$P``  pointer     ``void *``         ``000000019EF60100``
+``$F``  function    ``void *(*)()``    ``000000019EF60100``
+``$S``  string      ``char *``         ``hello``
+``$C``  character   ``char``           ``x``
+``$W``  word        ``ULongest``       ``0000000000109AE0``
+``$U``  decimal     ``ULongest``       ``42``
+``$B``  binary      ``ULongest``       ``00000000000000001011011110010001``
+``$$``  dollar      --                 ``$``
+======= =========== ================== ======================================
 
 Note that ``WriteFC`` is an ``int``, because that is the default
 promotion of a ``char`` (see `.types`_).
 
-_`.snazzy`: We should resist the temptation to make ``WriteF`` an
-incredible snazzy output engine. We only need it for ``Describe``
+_`.snazzy`: We should resist the temptation to make ``WriteF()`` an
+incredible snazzy output engine. We only need it for ``Describe()``
 methods and assertion messages. At the moment it's a very simple bit
 of code -- let's keep it that way.
 

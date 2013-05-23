@@ -67,31 +67,39 @@ mean "ignore and continue", and the check function hence returns
 _`.macro`: Checking is implemented by invoking four macros in
 impl.h.assert:
 
-* _`.macro.sig`: ``CHECKS(type, val)`` checks the signature only, and
-  should be called precisely on ``type`` and the received object
-  pointer.
+``CHECKS(type, val)``
 
-* _`.macro.local`: ``CHECKL(cond)`` checks a local field (depending on
-  level; see `.level`_), and should be called on each local field that
-  is not an abstract data type structure pointer itself (apart from
-  the signature), with an appropriate normally-true test condition.
+_`.macro.sig`: ``CHECKS(type, val)`` checks the signature only, and
+should be called precisely on ``type`` and the received object
+pointer.
 
-* _`.macro.up`: ``CHECKU(type, val)`` checks a parent abstract data
-  type structure pointer, performing at most signature checks
-  (depending on level; see `.level`_). It should be called with the
-  parent type and pointer.
+``CHECKL(cond)``
 
-* _`.macro.down`: ``CHECKD(type, val)`` checks a child abstract data
-  type structure pointer, possibly invoking ``<type>Check`` (depending
-  on level; see `.level`_). It should be called with the child type
-  and pointer.
+_`.macro.local`: ``CHECKL(cond)`` checks a local field (depending on
+level; see `.level`_), and should be called on each local field that
+is not an abstract data type structure pointer itself (apart from
+the signature), with an appropriate normally-true test condition.
 
-_`.full-type`: ``CHECKS``, ``CHECKD``, ``CHECKU``, all operate only on
-fully fledged types. This means the type has to provide a function
-``Bool TypeCheck(Type type)`` where ``Type`` is substituted for the
-name of the type (for example, ``PoolCheck``), and the expression
-``obj->sig`` must be a valid value of type ``Sig`` whenever ``obj`` is
-a valid value of type ``Type``.
+``CHECKU(type, val)``
+
+_`.macro.up`: ``CHECKU(type, val)`` checks a parent abstract data
+type structure pointer, performing at most signature checks
+(depending on level; see `.level`_). It should be called with the
+parent type and pointer.
+
+``CHECKD(type, val)``
+
+_`.macro.down`: ``CHECKD(type, val)`` checks a child abstract data
+type structure pointer, possibly invoking ``<type>Check`` (depending
+on level; see `.level`_). It should be called with the child type
+and pointer.
+
+_`.full-type`: ``CHECKS()``, ``CHECKD()``, ``CHECKU()``, all operate
+only on fully fledged types. This means the type has to provide a
+function ``Bool TypeCheck(Type type)`` where ``Type`` is substituted
+for the name of the type (for example, ``PoolCheck()``), and the
+expression ``obj->sig`` must be a valid value of type ``Sig`` whenever
+``obj`` is a valid value of type ``Type``.
 
 _`.type.no-sig`: This tag is to be referenced in implementations
 whenever the form ``CHECKL(ThingCheck(thing))`` is used instead of

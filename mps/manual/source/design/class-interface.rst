@@ -3,4 +3,4 @@
 
 .. _design-class-interface:
 
-.. include:: ../../../design/class-interface.txt
+.. include:: ../../converted/class-interface.rst

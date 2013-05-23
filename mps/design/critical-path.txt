@@ -102,12 +102,12 @@ Very briefly, the critical path consists of five stages:
 
 1. The scanner, which iterates over pointers in objects.  The MPS has
    several internal scanners, but the most important ones will be format
-   scanners in client code registered through ``mps_format_create``
+   scanners in client code registered through ``mps_format_create()``
    functions.  [Insert ref to manual explaining how to write a good
    scanner.]
 
 2. The first-stage fix, which filters out pointers inline in the
-   scanner.  This is implemented in ``MPS_FIX`` macros in
+   scanner.  This is implemented in ``MPS_FIX()`` macros in
    mps.h_.
 
 .. _mps.h: ../code/mps.h
@@ -117,8 +117,8 @@ Very briefly, the critical path consists of five stages:
    `trace.c <../code/trace.c>`_.
 
 4. The third-stage fix, which filters out pointers using pool-specific
-   information.  Implemented in pool class functions called ``AMCFix``,
-   ``LOFix``, etc. in pool*.c.
+   information.  Implemented in pool class functions called ``AMCFix()``,
+   ``LOFix()``, etc. in pool*.c.
    
 5. Preserving the object, which might entail
 
@@ -138,7 +138,7 @@ The format scanner
 ------------------
 The critical path starts when a format scan method is called.  That is a
 call from the MPS to a client function of type ``mps_fmt_scan_t``
-registered with one of the ``mps_format_create`` functions in mps.h_.
+registered with one of the ``mps_format_create()`` functions in mps.h_.
 
 Here is an example of part of a format scanner for scanning contiguous
 runs of pointers, from `fmtdy.c <../code/fmtdy.c>`_, the scanner for the `Open Dylan`_
@@ -167,50 +167,52 @@ runtime::
       return MPS_RES_OK;
     }
 
-(To help with understanding optimisation of this code, it's written in a
-pseudo-assembler style, with one line roughly corresponding to each
+(To help with understanding optimisation of this code, it's written in
+a pseudo-assembler style, with one line roughly corresponding to each
 instruction of an idealized intermediate code.)
 
-The MPS C interface provides macros to try to help optimise this code. 
-The ``mps_ss`` object is a "scan state" and contains data that is used to
-eliminate uninteresting pointers now, and record information which will
-be used to reduce scanning in future by maintaining the remembered set.
+The MPS C interface provides macros to try to help optimise this code.
+The ``mps_ss`` object is a "scan state" and contains data that is used
+to eliminate uninteresting pointers now, and record information which
+will be used to reduce scanning in future by maintaining the
+remembered set.
 
-The macros ``MPS_SCAN_BEGIN`` and ``MPS_SCAN_END`` load key data from the
-scan state into local variables, and hopefully into processor registers.
-This avoids aliasing values that we know won't change when calls are
-made to ``_mps_fix2`` later, and so allows the compiler to keep the scan
-loop small and avoid unnecessary memory references.
+The macros ``MPS_SCAN_BEGIN()`` and ``MPS_SCAN_END()`` load key data
+from the scan state into local variables, and hopefully into processor
+registers. This avoids aliasing values that we know won't change when
+calls are made to ``_mps_fix2`` later, and so allows the compiler to
+keep the scan loop small and avoid unnecessary memory references.
 
 This scanner knows that words not ending in 0b00 aren't pointers to
-objects, so it eliminates them straight away.  This is a kind of
+objects, so it eliminates them straight away. This is a kind of
 `reference tag`_ chosen by the client for its object representation.
 
-Next, the pointer is tested using ``MPS_FIX1``.  This performs fast tests
-on the pointer without using any other memory.  In particular, it does
-the "zone check" described in section 3.  If a pointer fails these
-tests, it isn't interesting and can be skipped.  It is very important to
-proceed to the next pointer as fast as possible in this case.
+Next, the pointer is tested using ``MPS_FIX1()``. This performs fast
+tests on the pointer without using any other memory. In particular, it
+does the "zone check" described in section 3. If a pointer fails these
+tests, it isn't interesting and can be skipped. It is very important
+to proceed to the next pointer as fast as possible in this case.
 
 Having passed these tests, we need to fix the pointer using other data
-in memory, and possibly call the MPS to preserve the object.  This is
-what ``MPS_FIX2`` does.  The important distinction here is that ``MPS_FIX2``
-can fail and return an error code, which must be propagated without ado
-by returning from the scanner.  Separating ``MPS_FIX1`` from ``MPS_FIX2``
-helps keep the error handling code away from the tight loop with the
-zone check.
+in memory, and possibly call the MPS to preserve the object. This is
+what ``MPS_FIX2()`` does. The important distinction here is that
+``MPS_FIX2()`` can fail and return an error code, which must be
+propagated without ado by returning from the scanner. Separating
+``MPS_FIX1()`` from ``MPS_FIX2()`` helps keep the error handling code
+away from the tight loop with the zone check.
 
-``MPS_FIX*``, the macro/inline part of the fix operation, are referred to
-as "fix stage 1" or "the first stage fix" in other documents and comments.
+``MPS_FIX*``, the macro/inline part of the fix operation, are referred
+to as "fix stage 1" or "the first stage fix" in other documents and
+comments.
 
-If these inline checks pass, ``_mps_fix2`` is called.  If the MPS has been
-built as a separate object file or library, this is where the function
-call out of the scan loop happens.  Since version 1.110 of the MPS, we
-encourage clients to compile the MPS in the same translation unit as
-their format code, so that the compiler can be intelligent about
-inlining parts of ``_mps_fix2`` in the format scanner.  The instructions
-for doing this are in `Building the Memory Pool
-System <../manual/build.txt>`_, part of the manual.
+If these inline checks pass, ``_mps_fix2`` is called. If the MPS has
+been built as a separate object file or library, this is where the
+function call out of the scan loop happens. Since version 1.110 of the
+MPS, we encourage clients to compile the MPS in the same translation
+unit as their format code, so that the compiler can be intelligent
+about inlining parts of ``_mps_fix2`` in the format scanner. The
+instructions for doing this are in `Building the Memory Pool System
+<../manual/build.txt>`_, part of the manual.
 
 
 The second stage fix in the MPM
@@ -220,50 +222,51 @@ If a pointer gets past the first-stage fix filters, it is passed to
 yet more pointers using information about segments before it has to
 consult the pool class.
 
-The first test applied is the "tract test".  The MPS looks up the tract
+The first test applied is the "tract test". The MPS looks up the tract
 containing the address in the tract table, which is a simple linear
 table indexed by the address shifted -- a kind of flat page table.
 
 Note that if the arena has been extended, the tract table becomes less
-simple, and this test may involved looking in more than one table.  This
-will cause a considerable slow-down in garbage collection scanning. 
-This is the reason that it's important to give a good estimate of the
-amount of address space you will ever occupy with objects when you
-initialize the arena.
+simple, and this test may involved looking in more than one table.
+This will cause a considerable slow-down in garbage collection
+scanning. This is the reason that it's important to give a good
+estimate of the amount of address space you will ever occupy with
+objects when you initialize the arena.
 
-The pointer might not even be in the arena (and so not in any tract). 
-The first stage fix doesn't guarantee it.  So we eliminate any pointers
+The pointer might not even be in the arena (and so not in any tract).
+The first stage fix doesn't guarantee it. So we eliminate any pointers
 not in the arena at this stage.
 
-If the pointer is in an allocated tract, then the table also contains a
-cache of the "white set" -- the set of garbage collection traces for
-which the tract is "interesting".  If a tract isn't interesting, then we
-know that it contains no condemned objects, and we can filter out the
-pointer.
+If the pointer is in an allocated tract, then the table also contains
+a cache of the "white set" -- the set of garbage collection traces for
+which the tract is "interesting". If a tract isn't interesting, then
+we know that it contains no condemned objects, and we can filter out
+the pointer.
 
 If the tract is interesting them it's part of a segment containing
-objects that have been condemned.  The MPM can't know anything about the
-internal layout of the segment, so at this point we dispatch to the
-third stage fix.
+objects that have been condemned. The MPM can't know anything about
+the internal layout of the segment, so at this point we dispatch to
+the third stage fix.
 
-This dispatch is slightly subtle.  We have a cache of the function to
-dispatch to in the scan state, which has recently been looked at and is
-with luck still in the processor cache.  The reason there is a dispatch
-at all is to allow for a fast changeover to emergency garbage
-collection, or overriding of garbage collection with extra operations. 
-Those are beyond the scope of this document.  Normally, ``ss->fix`` points
-at ``PoolFix``, and we rely somewhat on modern processor `branch target
-prediction <https://en.wikipedia.org/wiki/Branch_target_predictor>`_). 
-``PoolFix`` is passed the pool, which is fetched from the tract table
-entry, and that should be in the cache.
+This dispatch is slightly subtle. We have a cache of the function to
+dispatch to in the scan state, which has recently been looked at and
+is with luck still in the processor cache. The reason there is a
+dispatch at all is to allow for a fast changeover to emergency garbage
+collection, or overriding of garbage collection with extra operations.
+Those are beyond the scope of this document. Normally, ``ss->fix``
+points at ``PoolFix()``, and we rely somewhat on modern processor
+`branch target prediction
+<https://en.wikipedia.org/wiki/Branch_target_predictor>`_).
+``PoolFix()`` is passed the pool, which is fetched from the tract
+table entry, and that should be in the cache.
 
-``PoolFix`` itself dispatches to the pool class.  Normally, a dispatch to
-a pool class would indirect through the pool class object.  That would
-be a double indirection from the tract, so instead we have a cache of
-the pool's fix method in the pool object.  This also allows a pool class
-to vary its fix method per pool instance, a fact that is exploited to
-optimize fixing in the AMC Pool depending on what kind of object format
-it is managing.
+``PoolFix()`` itself dispatches to the pool class. Normally, a
+dispatch to a pool class would indirect through the pool class object.
+That would be a double indirection from the tract, so instead we have
+a cache of the pool's fix method in the pool object. This also allows
+a pool class to vary its fix method per pool instance, a fact that is
+exploited to optimize fixing in the AMC Pool depending on what kind of
+object format it is managing.
 
 
 The third stage fix in the pool class
@@ -294,20 +297,20 @@ implements a copying GC), or was already moved when fixing a previous
 reference to it, the reference being fixed must be updated (this is
 the origin of the term "fix").
 
-As a simple example, ``LOFix`` is the pool fix method for the Leaf Only
-pool class.  It implements a [marking] garbage collector, and does not
-have to worry about scanning preserved objects because it is used to
-store objects that don't contain pointers.  (It is used in compiler
+As a simple example, ``LOFix()`` is the pool fix method for the Leaf
+Only pool class. It implements a [marking] garbage collector, and does
+not have to worry about scanning preserved objects because it is used
+to store objects that don't contain pointers. (It is used in compiler
 run-time systems to store binary data such as character strings, thus
 avoiding any scanning, decoding, or remembered set overhead for them.)
 
-``LOFix`` filters any ambiguous pointers that aren't aligned, since they
-can't point to objects it allocated.  Otherwise it subtracts the segment
-base address and shifts the result to get an index into a mark bit
-table.  If the object wasn't marked and the pointer is weak, then it
-sets the pointer to zero, since the object is about to be recycled. 
+``LOFix()`` filters any ambiguous pointers that aren't aligned, since
+they can't point to objects it allocated. Otherwise it subtracts the
+segment base address and shifts the result to get an index into a mark
+bit table. If the object wasn't marked and the pointer is weak, then
+it sets the pointer to zero, since the object is about to be recycled.
 Otherwise, the mark bit is set, which preserves the object from
-recycling when `LOReclaim` is called later on.  `LOFix` illustrates
+recycling when `LOReclaim` is called later on. `LOFix` illustrates
 about the minimum and most efficient thing a pool fix method can do.
 
 

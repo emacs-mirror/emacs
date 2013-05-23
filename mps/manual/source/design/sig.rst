@@ -4,4 +4,4 @@
 
 .. _design-sig:
 
-.. include:: ../../../design/sig.txt
+.. include:: ../../converted/sig.rst

@@ -61,7 +61,7 @@ _`.req.tag.walk`: The walking function (as required by `.req.walk`_)
 should have access to this data (source req.epcore.fun.debug.support).
 
 _`.req.dump.aver`: It must be possible to perform a memory dump after
-an ``AVER`` has fired (naturally, if the information required for the
+an ``AVER()`` has fired (naturally, if the information required for the
 dump has been corrupted, it will fail, as softly as possible). (source
 @@@@)
 
@@ -97,8 +97,8 @@ _`.fence.check.object`: A function to check the fenceposts on a given
 object would be nice.
 
 _`.fence.ap`: AP's could support fenceposting transparently by having
-a mode where ``mps_reserve`` always goes out-of-line and fills in the
-fenceposts (the pool's ``BufferFill`` method isn't involved). This
+a mode where ``mps_reserve()`` always goes out-of-line and fills in the
+fenceposts (the pool's ``BufferFill()`` method isn't involved). This
 would leave the MPS with more freedom of implementation, especially
 when combined with some of the other ideas. We think doing a function
 call for every allocation is not too bad for debugging.
@@ -194,7 +194,7 @@ natural way to represent/implement the fenceposting changes to the
 Alloc and Free methods. [@@@@alignment]
 
 _`.fence.pool.new-class`: We could simply offer a debugging version of
-each pool class (e.g., ``mps_pool_class_mv_debug``). As we have seen,
+each pool class (e.g., ``mps_pool_class_mv_debug()``). As we have seen,
 debugging features have synergies which make it advantageous to have a
 coordinated implementation, so splitting them up would not just
 complicate the client interface, it would also be an implementation
@@ -277,47 +277,47 @@ Client interface
 ----------------
 
 _`.interface.fenceposting.check`:
-``mps_pool_check_fenceposts`` is a function to check all
-fenceposts in a pool (``AVER`` if a problem is found)
+``mps_pool_check_fenceposts()`` is a function to check all
+fenceposts in a pool (``AVER()`` if a problem is found)
 
 [from here on, these are tentative and incomplete]
 
-.. c:function:: mps_res_t mps_fmt_fencepost_wrap(mps_fmt_t *format_return, mps_arena_t arena, mps_fmt_t format, [fp parameters])
+``mps_res_t mps_fmt_fencepost_wrap(mps_fmt_t *format_return, mps_arena_t arena, mps_fmt_t format, [fp parameters])``
 
 _`.interface.fenceposting.format`: A function to wrap a format
 (class) to provide fenceposting.
 
-.. c:function:: void (*mps_fmt_adjust_fencepost_t)(size_t *size_io)
+``void (*mps_fmt_adjust_fencepost_t)(size_t *size_io)``
 
 _`.interface.fenceposting.adjust`: A format method to adjust size of a
 block about to be allocted to allow for fenceposts.
 
-.. c:function::  void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)
+``void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)``
 
 _`.interface.fenceposting.add`: A format method to add a fencepost
 around a block about to be allocated [the ``NULL`` method adds a tail
 fencepost]
 
-.. c:function::  mps_bool_t (*mps_fmt_check_fenceposts_t)(mps_addr_t)
+``mps_bool_t (*mps_fmt_check_fenceposts_t)(mps_addr_t)``
 
 _`.interface.fenceposting.checker`: A format method to check the
 fenceposts around an object [the ``NULL`` method checks tails].
 
-.. c:function:: mps_class_t mps_debug_class(mps_class_t class)
+``mps_class_t mps_debug_class(mps_class_t class)``
 
 _`.interface.fenceposting.pool`: A function to wrap a pool class
 to provide fenceposting (note absence of arena parameter).
 
-.. c:function:: mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);
-.. c:function:: mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...);
-.. c:function:: mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list);
+``mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t);``
+``mps_res_t mps_alloc_dbg(mps_addr_t *, mps_pool_t, size_t, ...);``
+``mps_res_t mps_alloc_dbg_v(mps_addr_t *, mps_pool_t, size_t, va_list);``
 
 _`.interface.tags.alloc`: Three functions to replace existing
-``mps_alloc`` (request.???.??? proposes to remove the varargs)
+``mps_alloc()`` (request.???.??? proposes to remove the varargs)
 
-.. c:function:: void (*mps_objects_step_t)(mps_addr_t addr, size_t size, mps_fmt_t format, mps_pool_t pool, void *tag_data, void *p)
-.. c:function:: void mps_pool_walk(mps_arena_t arena, mps_pool_t pool, mps_objects_step_t step, void *p)
-.. c:function:: void mps_arena_walk(mps_arena_t arena, mps_objects_step_t step, void *p)
+``void (*mps_objects_step_t)(mps_addr_t addr, size_t size, mps_fmt_t format, mps_pool_t pool, void *tag_data, void *p)``
+``void mps_pool_walk(mps_arena_t arena, mps_pool_t pool, mps_objects_step_t step, void *p)``
+``void mps_arena_walk(mps_arena_t arena, mps_objects_step_t step, void *p)``
 
 _`.interface.tags.walker`: Functions to walk all the allocated
 objects in a pool or an arena (only client pools in this case),
@@ -343,25 +343,24 @@ Implementation
 --------------
 
 _`.new-pool`: The client interface to control fenceposting
-consists of the new classes ``mps_pool_class_mv_debug``,
-``mps_pool_class_epdl_debug``, and
-``mps_pool_class_epdr_debug``, and their new init parameter of
+consists of the new classes ``mps_pool_class_mv_debug()``,
+``mps_pool_class_epdl_debug()``, and
+``mps_pool_class_epdr_debug()``, and their new init parameter of
 type ``mps_pool_debug_option_s``. [This is a temporary solution,
 to get it out without writing lots of new interface. pekka 1998-09-10]
 
-_`.new-pool.impl`: The debug pools are implemented using the
-"class wrapper" ``EnsureDebugClass``, which produces a subclass
-with modified ``init``, ``finish``, ``alloc``, and ``free`` methods.
-These methods are implemented in the generic debug class code
-(``impl.c.dbgpool``), and are basically wrappers around the
-superclass methods (invoked through the ``pool->class->super`` field).
-To find the data stored in the class for the debugging features, they
-use the ``debugMixin`` method provided by the subclass. So to make a
-debug subclass, three things should be provided: a structure
-definition of the instance containing a
-``PoolDebugMixinStruct``, a pool class function that uses
-``EnsureDebugClass``, and a ``debugMixin`` method that locates
-the ``PoolDebugMixinStruct`` within an instance.
+_`.new-pool.impl`: The debug pools are implemented using the "class
+wrapper" ``EnsureDebugClass()``, which produces a subclass with
+modified ``init``, ``finish``, ``alloc``, and ``free`` methods. These
+methods are implemented in the generic debug class code
+(``impl.c.dbgpool``), and are basically wrappers around the superclass
+methods (invoked through the ``pool->class->super`` field). To find
+the data stored in the class for the debugging features, they use the
+``debugMixin`` method provided by the subclass. So to make a debug
+subclass, three things should be provided: a structure definition of
+the instance containing a ``PoolDebugMixinStruct``, a pool class
+function that uses ``EnsureDebugClass()``, and a ``debugMixin`` method
+that locates the ``PoolDebugMixinStruct`` within an instance.
 
 _`.tags.splay`: The tags are stored in a splay tree of tags
 allocated from a subsidiary MFS pool. The client needs to specify the

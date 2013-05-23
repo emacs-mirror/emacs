@@ -17,7 +17,7 @@ Overview
 _`.overview`: Finalization is implemented internally using the
 Guardian Pool Class (design.mps.poolmrg). Objects can be registered
 for finalization using an interface function (called
-``mps_finalize``). Notification of finalization is given to the client
+``mps_finalize()``). Notification of finalization is given to the client
 via the messaging interface. ``PoolClassMRG`` (design.mps.poolmrg)
 implements a Message Class which implements the finalization messages.
 
@@ -36,28 +36,22 @@ Architecture
 External interface
 ..................
 
-``mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t obj)``
+_`.if.register`: ``mps_finalize()`` increases the number of times that
+an object has been registered for finalization by one. The object must
+have been allocated from the arena (space). Any finalization messages
+that are created for this object will appear on the arena's message
+queue. The MPS will attempt to finalize the object that number of
+times.
 
-_`.if.register`: Increases the number of times that the object located
-at ``obj`` has been registered for finalization by one. The object
-must have been allocated from the arena (space). Any finalization
-messages that are created for this object will appear on the arena's
-message queue. The MPS will attempt to finalize the object that number
-of times.
-
-``void mps_definalize(mps_arena_t arena, mps_addr_t obj)``
-
-_`.if.deregister`: ``mps_definalize`` reduces the number of times that
+_`.if.deregister`: ``mps_definalize()`` reduces the number of times that
 the object located at ``obj`` has been registered for finalization by
 one. It is an error to definalize an object that has not been
 registered for finalization.
 
-_`.if.deregister.not`: At the moment (1997-08-20) ``mps_definalize``
+_`.if.deregister.not`: At the moment (1997-08-20) ``mps_definalize()``
 is not implemented.
 
-``void mps_message_finalization_ref(mps_addr_t *mps_addr_return, mps_arena_t mps_arena, mps_message_t mps_message)``
-
-_`.if.get-ref`: ``mps_message_finalization_ref`` returns the reference
+_`.if.get-ref`: ``mps_message_finalization_ref()`` returns the reference
 to the finalized object stored in the finalization message.
 
 
@@ -78,7 +72,7 @@ until the first object is registered for finalization.
 _`.int.arena.flag`: There is a flag in the Arena that indicates
 whether the final pool has been created yet or not.
 
-.. c:function:: Res ArenaFinalize(Arena arena, Ref addr)
+``Res ArenaFinalize(Arena arena, Ref addr)``
 
 _`.int.finalize.create`: Creates the final pool if it has not been
 created yet.
@@ -98,26 +92,26 @@ _`.int.finalize.error.no-unwind`: This function does not need to do
 any unwinding in the error cases because the creation of the pool is
 not something that needs to be undone.
 
-_`.int.arena-destroy.empty`: ``ArenaDestroy`` empties the message
-queue by calling ``MessageEmpty``.
+_`.int.arena-destroy.empty`: ``ArenaDestroy()`` empties the message
+queue by calling ``MessageEmpty()``.
 
 _`.int.arena-destroy.final-pool`: If the final pool has been created
-then ``ArenaDestroy`` destroys the final pool.
+then ``ArenaDestroy()`` destroys the final pool.
 
-_`.access`: ``mps_message_finalization_ref`` needs to access the
+_`.access`: ``mps_message_finalization_ref()`` needs to access the
 finalization message to retrieve the reference and then write it to
 where the client asks. This must be done carefully, in order to avoid
 breaking the invariants or creating a hidden root.
 
 _`.access.invariants`: We protect the invariants by using special
-routines ``ArenaRead`` and ``ArenaPoke`` to read and write the
+routines ``ArenaRead()`` and ``ArenaPoke()`` to read and write the
 reference. This works as long as there's no write-barrier collection.
-[Instead of ``ArenaPoke``, we could put in an ``ArenaWrite`` that
-would be identical to ``ArenaPoke``, except for AVERring the invariant
+[Instead of ``ArenaPoke()``, we could put in an ``ArenaWrite()`` that
+would be identical to ``ArenaPoke()``, except for AVERring the invariant
 (or it can just AVER there are no busy traces unflipped). When we get
 write-barrier collection, we could change it to do the real thing, but
 in the absence of a write-barrier, it's functionally identical to
-``ArenaPoke``. Pekka 1997-12-09]
+``ArenaPoke()``. Pekka 1997-12-09]
 
 
 Document History
