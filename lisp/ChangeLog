@@ -1,5 +1,23 @@
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
+	* vc/ediff-diff.el, vc/ediff-merg.el: Require ediff-util at run-time.
+	* vc/ediff-mult.el: Adjust requires.
+	(ediff-directories-internal, ediff-directory-revisions-internal)
+	(ediff-patch-file-internal): Declare.
+	* vc/ediff-ptch.el: Adjust requires.
+	(ediff-use-last-dir, ediff-buffers-internal): Declare.
+	(ediff-find-file): Autoload.
+	* vc/ediff-util.el: No need to load ediff when compiling.
+	(ediff-regions-internal): Declare.
+	* vc/ediff-wind.el: Adjust requires.
+	(ediff-compute-toolbar-width): Define when compiling.
+	(ediff-setup-control-buffer, ediff-make-bottom-toolbar): Declare.
+	* vc/ediff.el: No need to load dired, ediff-ptch when compiling.
+	(dired-get-filename, dired-get-marked-files)
+	(ediff-last-dir-patch, ediff-patch-default-directory)
+	(ediff-get-patch-buffer, ediff-dispatch-file-patching-job)
+	(ediff-patch-buffer-internal): Declare.
+
 	* emacs-lisp/checkdoc.el: No need to load ispell when compiling.
 	(ispell-process, ispell-buffer-local-words, lm-summary)
 	(lm-section-start, lm-section-end): Declare.

@@ -110,14 +110,11 @@
   :prefix "ediff-"
   :group 'ediff)
 
-
-;; compiler pacifier
-(eval-when-compile
-  (require 'ediff-ptch)
-  (require 'ediff))
-;; end pacifier
-
 (require 'ediff-init)
+(require 'ediff-diff)
+(require 'ediff-wind)
+(require 'ediff-util)
+
 
 ;; meta-buffer
 (ediff-defvar-local ediff-meta-buffer nil "")
@@ -1795,6 +1792,14 @@ all marked sessions must be active."
 	    ))
       (error "The patch buffer wasn't found"))))
 
+(declare-function ediff-directories-internal "ediff"
+		  (dir1 dir2 dir3 regexp action jobname
+			&optional startup-hooks merge-autostore-dir))
+
+(declare-function ediff-directory-revisions-internal "ediff"
+		  (dir1 regexp action jobname
+			&optional startup-hooks merge-autostore-dir))
+
 
 ;; This function executes in meta buffer.  It knows where event happened.
 (defun ediff-filegroup-action ()
@@ -2359,6 +2364,8 @@ If this is a session registry buffer then just bury it."
 	(or (car (overlays-at point))
 	    (setq point (point-min)))
 	point))))
+
+(autoload 'ediff-patch-file-internal "ediff-ptch")
 
 ;; this is the action invoked when the user selects a patch from the meta
 ;; buffer.

@@ -27,10 +27,8 @@
 
 (provide 'ediff-diff)
 
-(eval-when-compile
-  (require 'ediff-util))
-
 (require 'ediff-init)
+(require 'ediff-util)
 
 (defgroup ediff-diff nil
   "Diff related utilities."
