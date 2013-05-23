@@ -293,7 +293,8 @@ no further processing).  URL is either a string or a parsed URL."
 ;; url-mm-callback called from url-mm, which requires mm-decode.
 (declare-function mm-dissect-buffer "mm-decode"
 		  (&optional no-strict-mime loose-mime from))
-(declare-function mm-display-part "mm-decode" (handle &optional no-default))
+(declare-function mm-display-part "mm-decode"
+		  (handle &optional no-default force))
 
 (defun url-mm-callback (&rest ignored)
   (let ((handle (mm-dissect-buffer t)))
