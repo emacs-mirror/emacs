@@ -274,6 +274,7 @@ void randomize(int argc, char *argv[])
            argv[0], seed0);
     rnd_state_set(seed0);
   }
+  fflush(stdout); /* ensure seed is not lost in case of failure */
 }
 
 unsigned long rnd_state(void)
