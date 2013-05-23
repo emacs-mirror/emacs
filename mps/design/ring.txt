@@ -21,6 +21,8 @@ design.mps.deque.
 Description
 -----------
 
+``typedef RingStruct *Ring``
+
 _`.def.ring`: Rings are circular doubly-linked lists of ring "nodes".
 The nodes are fields of structures which are the "elements" of the
 ring.
@@ -47,29 +49,36 @@ that ``barRing`` is not called ``barRingStruct``.
 
 _`.fig.ring`: A ring of ``Bar`` objects owned by a ``Foo`` object.
 
-
+[missing figure]
 
 _`.fig.empty`: An empty ring of ``Bar`` objects owned by a ``Foo``
 object.
 
+[missing figure]
 
 _`.def.singleton`: A "singleton" ring is a ring containing one node,
 whose previous and next nodes are itself (see `.fig.single`_).
 
 _`.fig.single`: A singleton ``Bar`` object not on any ring.
 
+[missing figure]
 
-_`.fig.elt`: How ``RING_ELT`` gets a parent pointer from a node pointer.
+_`.fig.elt`: How ``RING_ELT()`` gets a parent pointer from a node pointer.
 
+[missing figure]
 
 
 Init / Finish
 -------------
 
-_`.init`: Rings are initialized with the ``RingInit`` function. They
+``void RingInit(Ring ring)``
+
+_`.init`: Rings are initialized with the ``RingInit()`` function. They
 are initialized to be a singleton ring (`.def.singleton`_).
 
-_`.finish`: Rings are finished with the ``RingFinish`` function. A
+``void RingFinish(Ring ring)``
+
+_`.finish`: Rings are finished with the ``RingFinish()`` function. A
 ring must be a singleton ring before it can be finished (it is an
 error to attempt to finish a non-singleton ring).
 
@@ -77,8 +86,10 @@ error to attempt to finish a non-singleton ring).
 Iteration
 ---------
 
+``RING_FOR(Ring node, Ring ring, Ring next)``
+
 _`.for`: A macro is used for iterating over the elements in a ring.
-This macro is called ``RING_FOR``. ``RING_FOR`` takes three arguments.
+This macro is called ``RING_FOR()``. ``RING_FOR()`` takes three arguments.
 The first is an iteration variable: ``node``. The second is the
 "parent" element in the ring: ``ring``. The third is a variable used
 by the iterator for working state (it holds a pointer to the next
@@ -105,37 +116,45 @@ _`.for.ex`: An example::
       frob(bar);
     }
 
-_`.for.ex.elt`: Notice the idiomatic use of ``RING_ELT`` which is
-almost universal when using ``RING_FOR``.
+_`.for.ex.elt`: Notice the idiomatic use of ``RING_ELT()`` which is
+almost universal when using ``RING_FOR()``.
 
 
 Subclass
 --------
 
-_`.elt`: ``RING_ELT`` is a macro that converts a pointer to a ring
+``RING_ELT(type, field, Ring node)``
+
+_`.elt`: ``RING_ELT()`` is a macro that converts a pointer to a ring
 structure into a pointer to the enclosing parent structure.
-``RING_ELT`` has three arguments which are, in order: ``type``, the
+``RING_ELT()`` has three arguments which are, in order: ``type``, the
 type of a pointer to the enclosing structure, ``field``, the name of
 the ring structure field within it, ``ring``, the ring node. The
 result is a pointer to the enclosing structure.
 
-.. note:: ``RING_ELT`` does not work for arrays of rings.
+.. note:: ``RING_ELT()`` does not work for arrays of rings.
 
 
 Append / Remove
 ---------------
 
-_`.append`: ``RingAppend`` appends a singleton ring to a ring (such
+``void RingAppend(Ring ring, Ring new)``
+
+_`.append`: ``RingAppend()`` appends a singleton ring to a ring (such
 that the newly added element will be last in the iteration sequence).
 
-_`.insert`: ``RingInsert`` adds a singleton rung to a ring (such that
+``void (RingInsert)(Ring ring, Ring new)``
+
+_`.insert`: ``RingInsert()`` adds a singleton rung to a ring (such that
 the newly added element will be first in the iteration sequence).
 
-_`.remove`: ``RingRemove`` removes an element from a ring. The newly
+``void (RingRemove)(Ring old)``
+
+_`.remove`: ``RingRemove()`` removes an element from a ring. The newly
 removed element becomes a singleton ring. It is an error for the
 element to already be a singleton.
 
-_`.improve.join`: It would be possible to add a ``RingJoin`` operation
+_`.improve.join`: It would be possible to add a ``RingJoin()`` operation
 that joined two rings. This is not done as it is not required.
 
 
@@ -164,9 +183,9 @@ Defects
 
 This section documents known defects with the current design.
 
-_`.app_for.misuse`: It is easy to pass ``RingAppend`` and ``RING_FOR``
-the arguments in the wrong order as all the arguments have the same
-type. see `.head`_.
+_`.app_for.misuse`: It is easy to pass ``RingAppend()`` and
+``RING_FOR()`` the arguments in the wrong order as all the arguments
+have the same type. see `.head`_.
 
 _`.check.improve`: There is no method for performing a full integrity
 check. This could be added.

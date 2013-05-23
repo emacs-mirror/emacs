@@ -4,4 +4,4 @@
 
 .. _design-version:
 
-.. include:: ../../../design/version.txt
+.. include:: ../../converted/version.rst

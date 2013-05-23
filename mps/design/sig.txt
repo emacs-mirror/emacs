@@ -102,8 +102,9 @@ macro.  This macro has different definitions depending on how the MPS is
 compiled.  It may simply check the signature directly, or call the full
 checking function for the structure.
 
-The checking function for the structure should also validate the signature
-as its first step using the ``CHECKS`` macro (see check.h_).  For example::
+The checking function for the structure should also validate the
+signature as its first step using the ``CHECKS()`` macro (see
+check.h_). For example::
 
     Bool MessageCheck(Message message)
     {

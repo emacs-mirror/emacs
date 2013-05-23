@@ -3,7 +3,7 @@
 Splay trees
 ===========
 
-:Tag: design.mps.
+:Tag: design.mps.splay
 :Author: Gavin Matthews
 :Date: 1998-05-01
 :Status: draft document
@@ -143,13 +143,17 @@ exists).
 External types
 --------------
 
+``typedef struct SplayTreeStruct SplayTreeStruct``
+``typedef struct SplayTreeStruct *SplayTree``
+
 _`.type.splay.tree`: ``SplayTree`` is the type of the main object at
 the root of the splay tree. It is intended that the
 ``SplayTreeStruct`` can be embedded in another structure (see
 `.usage.client-tree`_ for an example). No convenience functions are
 provided for allocation or deallocation.
 
-``typedef struct SplayTreeStruct SplayTreeStruct, *SplayTree;``
+``typedef struct SplayNodeStruct SplayNodeStruct``
+``typedef struct SplayNodeStruct *SplayNode``
 
 _`.type.splay.node`: ``SplayNode`` is the type of a node of the splay
 tree. ``SplayNodeStruct`` contains no fields to store the key
@@ -159,70 +163,57 @@ structure, and that this is how the association will be made (see
 `.usage.client-node`_ for an example). No convenience functions are
 provided for allocation or deallocation.
 
-``typedef struct SplayNodeStruct SplayNodeStruct, *SplayNode;``
+``typedef Compare (*SplayCompareMethod)(void *key, SplayNode node)``
 
-_`.type.splay.compare.method`: ``SplayCompareMethod`` is a pointer to
-a function with the following prototype::
-
-
-``Compare compare(void *key, SplayNode node);``
-
-The function is required to compare the key with the key the client
-associates with that splay tree node, and return the appropriate
-Compare value (see `.usage.compare`_ for an example). The function
-compares a key with a node, rather than a pair of keys or nodes as
-might seem more obvious. This is because the details of the mapping
-between nodes and keys is left to the client (see
+_`.type.splay.compare.method`: A function of type
+``SplayCompareMethod`` is required to compare ``key`` with the key the
+client associates with that splay tree node ``node``, and return the
+appropriate Compare value (see `.usage.compare`_ for an example). The
+function compares a key with a node, rather than a pair of keys or
+nodes as might seem more obvious. This is because the details of the
+mapping between nodes and keys is left to the client (see
 `.type.splay.node`_), and the splaying operations compare keys with
 nodes (see `.impl.splay`_).
 
-_`.type.splay.node.describe.method`: ``SplayNodeDescribeMethod`` is a
-pointer to a function with the following prototype:
+``typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream)``
 
-``Res nodeDescribe(SplayNode node, mps_lib_FILE *stream)``
+_`.type.splay.node.describe.method`: A function of type
+``SplayNodeDescribeMethod`` is required to write (via ``WriteF()``) a
+client-oriented representation of the splay node. The output should be
+non-empty, short, and without return characters. This is provided for
+debugging purposes only.
 
-The function is required to write (via ``WriteF``) a client-oriented
-representation of the splay node. The output should be non-empty,
-short, and without return characters. This is provided for debugging
-purposes only.
+``typedef Bool (*SplayTestNodeMethod)(SplayTree tree, SplayNode node, void *closureP, unsigned long closureS)``
 
-_`.type.splay.test.node.method`: ``SplayTestNodeMethod`` is a pointer to a
-function with the following prototype:
+_`.type.splay.test.node.method`: A function of type
+``SplayTestNodeMethod`` required to determine whether the node itself
+meets some client determined property (see `.prop`_ and
+`.usage.test.node`_ for an example). Parameters ``closureP`` and
+``closureS`` describe the environment for the function (see
+`.function.splay.find.first`_ and `.function.splay.find.last`_).
 
-``Bool testNode(SplayTree tree, SplayNode node, void *closureP, unsigned long closureS);``
+``typedef Bool (*SplayTestTreeMethod)(SplayTree tree, SplayNode node, void *closureP, unsigned long closureS)``
 
-The function is required to determine whether the node itself meets
-some client determined property (see `.prop`_ and `.usage.test.node`_
-for an example). Parameters ``closureP`` and ``closureS`` describe the
+_`.type.splay.test.tree.method`: A function of type
+``SplayTestTreeMethod`` is required to determine whether any of the
+nodes in the sub-tree rooted at the given node meet some client
+determined property (see `.prop`_ and `.usage.test.tree`_ for an
+example). In particular, it must be a precise (not conservative)
+indication of whether there are any nodes in the sub-tree for which
+the ``testNode`` method (see `.type.splay.test.node.method`_) would
+return ``TRUE``. Parameters ``closureP`` and ``closureS`` describe the
 environment for the function (see `.function.splay.find.first`_ and
 `.function.splay.find.last`_).
 
-_`.type.splay.test.tree.method`: ``SplayTestTreeMethod`` is a pointer
-to a function with the following prototype:
+``typedef void (*SplayUpdateNodeMethod)(SplayTree tree, SplayNode node, SplayNode leftChild, SplayNode rightChild)``
 
-``Bool testTree(SplayTree tree, SplayNode node, void *closureP, unsigned long closureS);``
-
-The function is required to determine whether any of the nodes in the
-sub-tree rooted at the given node meet some client determined property
-(see `.prop`_ and `.usage.test.tree`_ for an example). In particular,
-it must be a precise (not conservative) indication of whether there
-are any nodes in the sub-tree for which the ``testNode`` method (see
-`.type.splay.test.node.method`_) would return ``TRUE``. Parameters
-``closureP`` and ``closureS`` describe the environment for the
-function (see `.function.splay.find.first`_ and
-`.function.splay.find.last`_).
-
-_`.type.splay.update.node.method`: SplayUpdateNodeMethod is a pointer to a 
-function with the following prototype:
-
-``void updateNode(SplayTree tree, SplayNode node, SplayNode leftChild, SplayNode rightChild);``
-
-The function is required to update any client datastructures
-associated with a node to maintain some client determined property
-(see `.prop`_) given that the children of the node have changed. If
-the node does not have one or both children, then ``NULL`` will be
-passed as the relevant parameter. (See `.usage.callback`_ for an
-example)
+_`.type.splay.update.node.method`: A function of type
+``SplayUpdateNodeMethod`` is required to update any client
+datastructures associated with a node to maintain some client
+determined property (see `.prop`_) given that the children of the node
+have changed. If the node does not have one or both children, then
+``NULL`` will be passed as the relevant parameter. (See
+`.usage.callback`_ for an example)
 
 
 External functions
@@ -236,17 +227,19 @@ methods invoked by the splay module (`.type.splay.compare.method`_,
 `.type.splay.update.node.method`_) do not call functions of the splay
 module.
 
+``Bool SplayTreeCheck(SplayTree tree)``
+
 _`.function.splay.tree.check`: This is a check function for the
 SplayTree type (see guide.impl.c.adt.method.check &
-design.mps.check(0)):
+design.mps.check(0)).
 
-``Bool SplayTreeCheck(SplayTree tree);``
+``Bool SplayNodeCheck(SplayNode node)``
 
 _`.function.splay.node.check`: This is a check function for the
 ``SplayNode`` type (see guide.impl.c.adt.method.check &
-design.mps.check(0)):
+design.mps.check(0)).
 
-``Bool SplayNodeCheck(SplayNode node);``
+``void SplayTreeInit(SplayTree tree, SplayCompareMethod compare, SplayUpdateNodeMethod updateNode)``
 
 _`.function.splay.tree.init`: This function initialises a
 ``SplayTree`` (see guide.impl.c.adt.method.init). It requires a
@@ -259,35 +252,35 @@ to date when the tree structure changes; the value
 need to maintain client properties. (See `.usage.initialization`_ for
 an example use).
 
-``void SplayTreeInit(SplayTree tree, SplayCompareMethod compare, SplayUpdateNodeMethod updateNode);``
+``void SplayTreeFinish(SplayTree tree)``
 
 _`.function.splay.tree.finish`: This function clears the fields of a
 ``SplayTree`` (see guide.impl.c.adt.method.finish). Note that it does
 not attempt to finish or deallocate any associated ``SplayNode``
 objects; clients wishing to destroy a non-empty ``SplayTree`` must
-first explicitly descend the tree and call ``SplayNodeFinish`` on each
-node from the bottom up.
+first explicitly descend the tree and call ``SplayNodeFinish()`` on
+each node from the bottom up.
 
-``void SplayTreeFinish(SplayTree tree);``
+``void SplayNodeInit(SplayNode node)``
 
 _`.function.splay.node.init`: This function initialises a
 ``SplayNode`` (see guide.impl.c.adt.method.init).
 
-``void SplayNodeInit(SplayNode node);``
+``void SplayNodeFinish(SplayNode node)``
 
 _`.function.splay.node.finish`: This function clears the fields of a
 ``SplayNode`` (see guide.impl.c.adt.method.finish). Note that it does
 not attempt to finish or deallocate any referenced ``SplayNode``
 objects (see.function.splay.tree.finish).
 
-``void SplayNodeFinish(SplayNode node);``
+``Bool SplayRoot(SplayNode *nodeReturn, SplayTree tree)``
 
 _`.function.splay.root`: This function returns the root node of the
 tree, if any (see `.req.root`_). If the tree is empty, ``FALSE`` is
 returned and ``*nodeReturn`` is not changed. Otherwise, ``TRUE`` is
 returned and ``*nodeReturn`` is set to the root.
 
-``Bool SplayRoot(SplayNode *nodeReturn, SplayTree tree);``
+``Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key)``
 
 _`.function.splay.tree.insert`: This function is used to insert into a
 splay tree a new node which is associated with the supplied key (see
@@ -296,7 +289,7 @@ made to insert a node that compares ``CompareEQUAL`` to an existing
 node in the tree, then ``ResFAIL`` will be returned and the node will
 not be inserted. (See `.usage.insert`_ for an example use).
 
-``Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key);``
+``Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key)``
 
 _`.function.splay.tree.delete`: This function is used to delete from a
 splay tree a node which is associated with the supplied key (see
@@ -306,7 +299,7 @@ given node does not compare ``CompareEQUAL`` with the given key, then
 function first splays the tree at the given key. (See `.usage.delete`_
 for an example use).
 
-``Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key);``
+``Res SplayTreeSearch(SplayNode *nodeReturn, SplayTree tree, void *key)``
 
 _`.function.splay.tree.search`: This function searches the splay tree
 for a node that compares ``CompareEQUAL`` to the given key (see
@@ -314,26 +307,26 @@ for a node that compares ``CompareEQUAL`` to the given key (see
 if there is no such node in the tree, otherwise ``*nodeReturn`` will
 be set to the node.
 
-``Res SplayTreeSearch(SplayNode *nodeReturn, SplayTree tree, void *key);``
+``Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn, SplayTree tree, void *key)``
 
 _`.function.splay.tree.neighbours`: This function searches a splay
 tree for the two nodes that are the neighbours of the given key (see
 `.req.neighbours`_). It splays the tree at the key. ``*leftReturn``
 will be the neighbour which compares less than the key if such a
-neighbour exists; otherwise it will be ``NULL``. *rightReturn will be
-the neighbour which compares greater than the key if such a neighbour
-exists; otherwise it will be ``NULL``. The function returns
+neighbour exists; otherwise it will be ``NULL``. ``*rightReturn`` will
+be the neighbour which compares greater than the key if such a
+neighbour exists; otherwise it will be ``NULL``. The function returns
 ``ResFAIL`` if any node in the tree compares ``CompareEQUAL`` with the
 given key. (See `.usage.insert`_ for an example use).
 
-``Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn, SplayTree tree, void *key);``
+``SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey)``
 
 _`.function.splay.tree.first`: This function splays the tree at the
 first node, and returns that node (see `.req.iterate`_). The supplied
 key should compare ``CompareLESS`` with all nodes in the tree. It will
 return ``NULL`` if the tree has no nodes.
 
-``SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey);``
+``SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode, void *oldKey)``
 
 _`.function.splay.tree.next`: This function receives a node and key
 and returns the successor node to that node (see `.req.iterate`_).
@@ -348,16 +341,16 @@ tree was previously beneficially balanced for a small working set of
 accesses, then this local optimization will be lost. (see
 `.future.parent`_).
 
-``SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode, void *oldKey);``
+``Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream, SplayNodeDescribeMethod nodeDescribe)``
 
 _`.function.splay.tree.describe`: This function prints (using
 ``WriteF``) to the stream a textual representation of the given splay
 tree, using ``nodeDescribe`` to print client-oriented representations
 of the nodes (see `.req.debug`_).
 
-``Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream, SplayNodeDescribeMethod nodeDescribe);``
+``Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree, SplayTestNodeMethod testNode, SplayTestTreeMethod testTree, void *closureP, unsigned long closureS)``
 
-_`.function.splay.find.first`: ``SplayFindFirst`` finds the first node
+_`.function.splay.find.first`: ``SplayFindFirst()`` finds the first node
 in the tree that satisfies some client property (as determined by the
 ``testNode`` and ``testTree`` methods) (see `.req.property.find`_).
 ``closureP`` and ``closureS`` are arbitrary values, and are passed to
@@ -366,26 +359,24 @@ closure environments. If there is no satisfactory node, then ``FALSE``
 is returned, otherwise ``*nodeReturn`` is set to the node. (See
 `.usage.delete`_ for an example use).
 
-``Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree, SplayTestNodeMethod testNode, SplayTestTreeMethod testTree, void *closureP, unsigned long closureS);``
+``Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree, SplayTestNodeMethod testNode, SplayTestTreeMethod testTree, void *closureP, unsigned long closureS)``
 
-_`.function.splay.find.last`: ``SplayFindLast`` finds the last node in
-the tree that satisfies some client property (as determined by the
+_`.function.splay.find.last`: ``SplayFindLast()`` finds the last node
+in the tree that satisfies some client property (as determined by the
 ``testNode`` and ``testTree`` methods) (see `.req.property.find`_).
 ``closureP`` and ``closureS`` are arbitrary values, and are passed to
 the ``testNode`` and ``testTree`` methods which may use the values as
 closure environments. If there is no satisfactory node, then ``FALSE``
 is returned, otherwise ``*nodeReturn`` is set to the node.
 
-``Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree, SplayTestNodeMethod testNode, SplayTestTreeMethod testTree, void *closureP, unsigned long closureS);``
+``void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key)``
 
-_`.function.splay.node.refresh`: ``SplayNodeRefresh`` must be called
+_`.function.splay.node.refresh`: ``SplayNodeRefresh()`` must be called
 whenever the client property (see `.prop`_) at a node changes (see
 `.req.property.change`_). It will call the ``updateNode`` method on
 the given node, and any other nodes that may require update. The
 client key for the node must also be supplied; the function splays the
 tree at this key. (See `.usage.insert`_ for an example use).
-
-``void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key);``
 
 
 Client-determined properties
@@ -669,13 +660,14 @@ the start of an operation. Tree restructuring happens as the tree is
 descended, whilst looking for the node.
 
 _`.impl.splay`: The key to the operation of the splay tree is the
-internal function SplaySplay. It searches the tree for a node with a
-given key and returns whether it suceeded. In the process, it brings
-the found node, or an arbitrary neighbour if not found, to the root of
-the tree. This "bring-to-root" operation is performed top-down during
-the search, and it is not the simplest possible bring-to-root
+internal function ``SplaySplay()``. It searches the tree for a node
+with a given key and returns whether it suceeded. In the process, it
+brings the found node, or an arbitrary neighbour if not found, to the
+root of the tree. This "bring-to-root" operation is performed top-down
+during the search, and it is not the simplest possible bring-to-root
 operation, but the resulting tree is well-balanced, and will give good
-amortised cost for future calls to SplaySplay. (See paper.st85(0))
+amortised cost for future calls to ``SplaySplay()``. (See
+paper.st85(0))
 
 _`.impl.splay.how`: To perform this top-down splay, the tree is broken
 into three parts, a left tree, a middle tree and a right tree. We
@@ -707,7 +699,7 @@ _`.impl.splay.zig`: The "zig" case is where ``key < root``, and either:
 
 The operation for the zig case is: link right (see `.impl.link.right`_).
 
-_`.impl.splay.zag`: The "zag" case is where key > root, and either:
+_`.impl.splay.zag`: The "zag" case is where ``key > root``, and either:
 
 - ``key == root->right``;
 - ``key < root->right && root->right->left == NULL``; or
@@ -807,7 +799,7 @@ follows (where any of sub-trees A, B, L and R may be empty):
 Top-level operations
 ....................
 
-_`.impl.insert`: ``SplayTreeInsert``: (See paper.sleator96(0), chapter
+_`.impl.insert`: ``SplayTreeInsert()``: (See paper.sleator96(0), chapter
 4, function insert). If the tree has no nodes, [how does it smell?]
 add the inserted node and we're done; otherwise splay the tree around
 the supplied key. If the splay successfully found a matching node,
@@ -816,7 +808,7 @@ the old (newly splayed, but non-matching) root as its left or right
 child as appropriate, and the opposite child of the old root as the
 other child of the new root.
 
-_`.impl.delete`: ``SplayTreeDelete``: (See paper.sleator96(0), chapter
+_`.impl.delete`: ``SplayTreeDelete()``: (See paper.sleator96(0), chapter
 4, function delete). Splay the tree around the supplied key. Check
 that the newly splayed root is the same node as given by the caller,
 and that it matches the key; return failure if not. If the given node
@@ -827,11 +819,11 @@ splay around the same key. The new root will be the last node in the
 sub-tree and will have a null right child; this is set to be the right
 child of the node to be deleted.
 
-_`.impl.search`: ``SplayTreeSearch``: Splay the node around the
+_`.impl.search`: ``SplayTreeSearch()``: Splay the node around the
 supplied key. If the splay found a matching node, return it; otherwise
 return failure.
 
-_`.impl.neighbours`: ``SplayTreeNeighbours``: Splay the tree around
+_`.impl.neighbours`: ``SplayTreeNeighbours()``: Splay the tree around
 the supplied key. If the splay found a matching node, return failure.
 Otherwise, determine whether the (non-matching) found node is the left
 or right neighbour of the key (by comparison with the key). Set the
@@ -842,18 +834,19 @@ right child respectively. Set this null child to be the first
 neighbour. Return the two neighbours.
 
 _`.impl.neighbours.note`: Note that it would be possible to implement
-``SplayTreeNeighbours`` with only one splay, and then a normal binary
-tree search for the left or right neighbour of the root. This would be
-a cheaper operation, but would give poorer amortised cost if the call
-to ``SplayTreeNeighbours`` typically precedes a call to
-``SplayTreeInsert`` (which is expected to be a common usage pattern -
-see `.usage.insert`_). It's also possible to implement
-``SplayTreeNeighbours`` by simply keeping track of both neighbours during
-a single splay. This has about the same cost as a single splay, and
-hence about the same amortised cost if the call to ``SplayTreeNeighbours``
-typically precedes a call to ``SplayTreeInsert``.
+``SplayTreeNeighbours()`` with only one splay, and then a normal
+binary tree search for the left or right neighbour of the root. This
+would be a cheaper operation, but would give poorer amortised cost if
+the call to ``SplayTreeNeighbours()`` typically precedes a call to
+``SplayTreeInsert()`` (which is expected to be a common usage
+pattern - see `.usage.insert`_). It's also possible to implement
+``SplayTreeNeighbours()`` by simply keeping track of both neighbours
+during a single splay. This has about the same cost as a single splay,
+and hence about the same amortised cost if the call to
+``SplayTreeNeighbours()`` typically precedes a call to
+``SplayTreeInsert()``.
 
-_`.impl.next`: ``SplayTreeNext``: Splay the tree around the supplied
+_`.impl.next`: ``SplayTreeNext()``: Splay the tree around the supplied
 ``oldKey``. During iteration the "old node" found is probably already
 at the root, in which case this will be a null operation with little
 cost. If this old node has no right child, return ``NULL``. Otherwise,
@@ -890,9 +883,9 @@ function that is not a valid compare function, or which doesn't
 implement a total ordering on splay nodes.
 
 _`.error.bad-describe`: Passing an invalid describe method to
-``SplayTreeDescribe``.
+``SplayTreeDescribe()``.
 
-_`.error.out-of-stack`: Stack exhaustion under ``SplayTreeDescribe``.
+_`.error.out-of-stack`: Stack exhaustion under ``SplayTreeDescribe()``.
 
 
 Future

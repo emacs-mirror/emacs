@@ -66,6 +66,8 @@ several classes which do not themselves support identical protocols.
 Overview
 --------
 
+``typedef struct ProtocolClassStruct *ProtocolClass``
+
 _`.overview.root`: We start with the root of all conformant class
 hierarchies, which is called ``ProtocolClass``. This is an "abstract"
 class (that is, it has no direct instances, but it is intended to have
@@ -128,7 +130,7 @@ the appropriate field in the superclass object and calling it. The
 superclass may be accessed indirectly from the class's "Ensure"
 function when it is statically known (see `.overview.access`_). This
 permits "next-method" calls, and is fully scalable in that it allows
-arbitrary length method chains. The ``SUPERCLASS`` macro helps with
+arbitrary length method chains. The ``SUPERCLASS()`` macro helps with
 this (see `.int.static-superclass`_).
 
 _`.overview.next-method.naive`: In some cases it is necessary to write
@@ -156,24 +158,24 @@ obligatory because it is assumed by the macros which support the
 definition and inheritance mechanism. For every class ``SomeClass``,
 we insist upon the following naming conventions:-
 
-``SomeClassStruct``
+* ``SomeClassStruct``
 
-    names the type of the structure for the protocol class. This might
-    be a ``typedef`` which aliases the type to the type of the
-    superclass, but if the class has extended the protocols of the
-    superclass the it will be a type which contains the new class
-    fields.
+   names the type of the structure for the protocol class. This might
+   be a ``typedef`` which aliases the type to the type of the
+   superclass, but if the class has extended the protocols of the
+   superclass the it will be a type which contains the new class
+   fields.
 
-``SomeClass``
+* ``SomeClass``
 
-    names the type ``*SomeClassStruct``. This might be a ``typedef``
-    which aliases the type to the type of the superclass, but if the
-    class has extended the protocols of the superclass then it will be
-    a type which contains the new class fields.
+   names the type ``*SomeClassStruct``. This might be a ``typedef``
+   which aliases the type to the type of the superclass, but if the
+   class has extended the protocols of the superclass then it will be
+   a type which contains the new class fields.
 
-``EnsureSomeClass()``
+* ``EnsureSomeClass()``
 
-    names the function that returns the initialized class object.
+   names the function that returns the initialized class object.
 
 
 
@@ -183,27 +185,31 @@ Interface
 Class definition
 ................
 
-_`.int.define-class`: Class definition is performed by the macro
-``DEFINE_CLASS(className, var)``. A call to the macro must be followed
-by a body of initialization code in braces ``{}``. The parameter
-``className`` is used to name the class being defined. The parameter
-``var`` is used to name a local variable of type ``className``, which
-is defined by the macro; it refers to the canonical storage for the
-class being defined. This variable may be used in the initialization
-code. (The macro doesn't just pick a name implicitly because of the
-danger of a name clash with other names used by the programmer). A
-call to ``DEFINE_CLASS(SomeClass, var)`` defines the
-``EnsureSomeClass()`` function, defines some static storage for the
-canonical class object, and defines some other things to ensure the
-class gets initialized exactly once.
+``DEFINE_CLASS(className, var)``
 
-_`.int.define-alias-class`: A convenience macro ``DEFINE_ALIAS_CLASS``
-is provided which both performs the class definition and defines the
-types ``SomeClass`` and ``SomeClass struct`` as aliases for some other
-class types. This is particularly useful for classes which simply
-inherit, and don't extend protocols. The macro call
-``DEFINE_ALIAS_CLASS(className, superName, var)`` is exactly
-equivalent to the following::
+_`.int.define-class`: Class definition is performed by the macro
+``DEFINE_CLASS()``. A call to the macro must be followed by a body of
+initialization code in braces ``{}``. The parameter ``className`` is
+used to name the class being defined. The parameter ``var`` is used to
+name a local variable of type ``className``, which is defined by the
+macro; it refers to the canonical storage for the class being defined.
+This variable may be used in the initialization code. (The macro
+doesn't just pick a name implicitly because of the danger of a name
+clash with other names used by the programmer). A call to
+``DEFINE_CLASS(SomeClass, var)`` defines the ``EnsureSomeClass()``
+function, defines some static storage for the canonical class object,
+and defines some other things to ensure the class gets initialized
+exactly once.
+
+``DEFINE_ALIAS_CLASS(className, typeName, var)``
+
+_`.int.define-alias-class`: A convenience macro
+``DEFINE_ALIAS_CLASS()`` is provided which both performs the class
+definition and defines the types ``SomeClass`` and ``SomeClass
+struct`` as aliases for some other class types. This is particularly
+useful for classes which simply inherit, and don't extend protocols.
+The macro call ``DEFINE_ALIAS_CLASS(className, superName, var)`` is
+exactly equivalent to the following::
 
      typedef superName className;
      typedef superNameStruct classNameStruct;
@@ -211,7 +217,7 @@ equivalent to the following::
 
 _`.int.define-special`: If classes are particularly likely to be
 subclassed without extension, the class implementor may choose to
-provide a convenience macro which expands into ``DEFINE_ALIAS_CLASS``
+provide a convenience macro which expands into ``DEFINE_ALIAS_CLASS()``
 with an appropriate name for the superclass. For example, there might
 be a macro for defining pool classes such that the macro call
 ``DEFINE_POOL_CLASS(className, var)`` is exactly equivalent to the
@@ -223,18 +229,19 @@ same time (see `.int.static-superclass.special`_).
 Single inheritance
 ..................
 
+``INHERIT_CLASS(thisClassCoerced, parentName)``
+
 _`.int.inheritance`: Class inheritance details must be provided in the
 class initialization code (see `.int.define-class`_). Inheritance is
-performed by the macro ``INHERIT_CLASS(thisClassCoerced,
-parentClassName)``. A call to this macro will make the class being
-defined a direct subclass of ``parentClassName`` by ensuring that all
-the fields of the parent class are copied into ``thisClass``, and
-setting the superclass field of ``thisClass`` to be the parent class
-object. The parameter ``thisClassCoerced`` must be of type
-``parentClassName``. If the class definition defines an alias class
-(see `.int.define-alias-class`_), then the variable named as the
-second parameter to ``DEFINE_CLASS`` will be appropriate to pass to
-``INHERIT_CLASS``.
+performed by the macro ``INHERIT_CLASS()``. A call to this macro will
+make the class being defined a direct subclass of ``parentClassName``
+by ensuring that all the fields of the parent class are copied into
+``thisClass``, and setting the superclass field of ``thisClass`` to be
+the parent class object. The parameter ``thisClassCoerced`` must be of
+type ``parentClassName``. If the class definition defines an alias
+class (see `.int.define-alias-class`_), then the variable named as the
+second parameter to ``DEFINE_CLASS()`` will be appropriate to pass to
+``INHERIT_CLASS()``.
 
 
 Specialization
@@ -275,18 +282,21 @@ can't be expressed directly in C function syntax. These functions all
 have names ending in ``Poly`` to identify them as polymorphic
 functions.
 
-_`.int.superclass`: ``ProtocolClassSuperclassPoly(class)`` is an
-introspection function which returns the direct superclass of class
-object class.
+``ProtocolClassSuperclassPoly(class)``
 
-_`.int.static-superclass`: ``SUPERCLASS(className)`` is an
-introspection macro which returns the direct superclass given a class
-name, which must (obviously) be statically known. The macro expands
-into a call to the ensure function for the class name, so this must be
-in scope (which may require a forward declaration). The macro is
-useful for next-method calls (see `.overview.next-method`_). The
-superclass is returned with type ``ProtocolClass`` so it may be
-necessary to cast it to the type for the appropriate subclass.
+_`.int.superclass`: An introspection function which returns the direct
+superclass of class object ``class``.
+
+``SUPERCLASS(className)``
+
+_`.int.static-superclass`: An introspection macro which returns the
+direct superclass given a class name, which must (obviously) be
+statically known. The macro expands into a call to the ensure function
+for the class name, so this must be in scope (which may require a
+forward declaration). The macro is useful for next-method calls (see
+`.overview.next-method`_). The superclass is returned with type
+``ProtocolClass`` so it may be necessary to cast it to the type for
+the appropriate subclass.
 
 _`.int.static-superclass.special`: Implementors of classes which are
 designed to be subclassed without extension may choose to provide a
@@ -297,13 +307,16 @@ is exactly equivalent to ``(PoolClass)SUPERCLASS(className)``. It's
 convenient to define these macros alongside the convenience class
 definition macro (see `.int.define-special`_).
 
-_`.int.class`: ``ClassOfPoly(inst)`` is an introspection function
-which returns the class of which inst is a direct instance.
+``ClassOfPoly(inst)``
 
-_`.int.subclass`: ``IsSubclassPoly(sub, super)`` is an introspection
-function which returns a Boolean indicating whether sub is a subclass
-of super. That is, it is a predicate for testing subclass
-relationships.
+_`.int.class`: An introspection function which returns the class of
+which ``inst`` is a direct instance.
+
+``IsSubclassPoly(sub, super)``
+
+_`.int.subclass`: An introspection function which returns a ``Bool``
+indicating whether ``sub`` is a subclass of ``super``. That is, it is
+a predicate for testing subclass relationships.
 
 
 Multiple inheritance
@@ -443,29 +456,29 @@ anti-method::
 Implementation
 --------------
 
-_`.impl.derived-names`: The ``DEFINE_CLASS`` macro derives some
+_`.impl.derived-names`: The ``DEFINE_CLASS()`` macro derives some
 additional names from the class name as part of it's implementation.
 These should not appear in the source code - but it may be useful to
 know about this for debugging purposes. For each class definition for
 class ``SomeClass``, the macro defines the following:
 
-``extern SomeClass EnsureSomeClass(void);``
+* ``extern SomeClass EnsureSomeClass(void);``
 
-    The class accessor function. See `.overview.naming`_.
+  The class accessor function. See `.overview.naming`_.
 
-``static Bool protocolSomeClassGuardian;``
+* ``static Bool protocolSomeClassGuardian;``
 
-    A Boolean which indicates whether the class has been initialized
-    yet.
+  A Boolean which indicates whether the class has been initialized
+  yet.
 
-``static void protocolEnsureSomeClass(SomeClass);``
+* ``static void protocolEnsureSomeClass(SomeClass);``
 
-    A function called by ``EnsureSomeClass``. All the class
-    initialization code is actually in this function.
+  A function called by ``EnsureSomeClass()``. All the class
+  initialization code is actually in this function.
 
-``static SomeClassStruct protocolSomeClassStruct;``
+* ``static SomeClassStruct protocolSomeClassStruct;``
 
-    Static storage for the canonical class object.
+  Static storage for the canonical class object.
 
 _`.impl.init-once`: Class objects only behave according to their
 definition after they have been initialized, and class protocols may
@@ -479,22 +492,22 @@ state is not necessarily consistent in the middle of an initialization
 function. The initialization state for each class is stored in a
 Boolean "guardian" variable whose name is derived from the class name
 (see `.impl.derived-names`_). This ensures the initialization happens
-only once. The path through the ``EnsureSomeClass`` function should be
+only once. The path through the ``EnsureSomeClass()`` function should be
 very fast for the common case when this variable is ``TRUE``, and the
 class has already been initialized, as the canonical static storage
 can simply be returned in that case. However, when the value of the
 guardian is ``FALSE``, the class is not initialized. In this case, a
-call to ``EnsureSomeClass`` must first execute the initialization code
+call to ``EnsureSomeClass()`` must first execute the initialization code
 and then set the guardian to ``TRUE``. However, this must happen
 atomically (see `.impl.init-lock`_).
 
 _`.impl.init-lock`: There would be the possibility of a race condition
-if ``EnsureSomeClass`` were called concurrently on separate threads
+if ``EnsureSomeClass()`` were called concurrently on separate threads
 before ``SomeClass`` has been initialized. The class must not be
 initialized more than once, so the sequence test-guard, init-class,
 set-guard must be run as a critical region. It's not sufficient to use
 the arena lock to protect the critical region, because the class
-object might be shared between multiple arenas. The ``DEFINE_CLASS``
+object might be shared between multiple arenas. The ``DEFINE_CLASS()``
 macro uses a global recursive lock instead. The lock is only claimed
 after an initial unlocked access of the guard variable shows that the
 class is not initialized. This avoids any locking overhead for the
