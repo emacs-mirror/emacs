@@ -225,6 +225,11 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
     left = AddrOffset(outerBase, base);
     right = AddrOffset(limit, outerLimit);
     total = AddrOffset(outerBase, outerLimit);
+
+    /* TODO: check these values */
+    UNUSED(left);
+    UNUSED(right);
+    UNUSED(total);
   }
 
   res = CBSDelete(&oldBase, &oldLimit, cbs, base, limit);
@@ -285,6 +290,11 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
     left = AddrOffset(outerBase, base);
     right = AddrOffset(limit, outerLimit);
     total = AddrOffset(outerBase, outerLimit);
+
+    /* TODO: check these values */
+    UNUSED(left);
+    UNUSED(right);
+    UNUSED(total);
   }
 
   res = CBSInsert(&freeBase, &freeLimit, cbs, base, limit);
@@ -313,6 +323,7 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
   Addr oldBase, oldLimit, origBase, origLimit;
   Size oldSize, newSize;
 
+  origBase = origLimit = NULL;
   expected = (high ? BTFindLongResRangeHigh : BTFindLongResRange)
                (&expectedBase, &expectedLimit, alloc,
                 (Index)0, (Index)ArraySize, (Count)size);
@@ -342,6 +353,10 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
     if (findDelete != CBSFindDeleteNONE) {
       newSize = AddrOffset(remainderBase, remainderLimit);
     }
+
+    /* TODO: check these values */
+    UNUSED(oldSize);
+    UNUSED(newSize);
   }
 
   found = (high ? CBSFindLast : CBSFindFirst)
