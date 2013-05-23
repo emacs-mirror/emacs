@@ -1025,6 +1025,15 @@ with potentially long computations."
 
 (declare-function mm-append-to-file "mm-util"
                   (start end filename &optional codesys inhibit))
+(declare-function rmail-swap-buffers-maybe "rmail" ())
+(declare-function rmail-maybe-set-message-counters "rmail" ())
+(declare-function rmail-count-new-messages "rmail" (&optional nomsg))
+(declare-function rmail-summary-exists "rmail" ())
+(declare-function rmail-show-message "rmail" (&optional n no-summary))
+;; Macroexpansion of rmail-select-summary:
+(declare-function rmail-summary-displayed "rmail" ())
+(declare-function rmail-pop-to-buffer "rmail" (&rest args))
+(declare-function rmail-maybe-display-summary "rmail" ())
 
 (defun gnus-output-to-rmail (filename &optional ask)
   "Append the current article to an Rmail file named FILENAME.

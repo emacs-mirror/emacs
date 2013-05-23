@@ -1,5 +1,10 @@
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-util.el (rmail-swap-buffers-maybe)
+	(rmail-maybe-set-message-counters, rmail-count-new-messages)
+	(rmail-summary-exists, rmail-show-message, rmail-summary-displayed)
+	(rmail-pop-to-buffer, rmail-maybe-display-summary): Declare.
+
 	* mm-decode.el: No need to load term when compiling.
 	(term-mode, term-char-mode): Declare.
 
