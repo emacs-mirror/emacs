@@ -1,3 +1,5 @@
+.. mode: -*- rst -*-
+
 MPS Configuration
 =================
 
@@ -6,7 +8,7 @@ MPS Configuration
 :Date: 1997-02-19
 :Status: incomplete design
 :Revision: $Id$
-:Copyright: See section `C. Copyright and License`_.
+:Copyright: See `Copyright and License`_.
 
 
 Introduction
@@ -53,7 +55,7 @@ we can build variants of the MPS for use in different products.  This
 requirement has been retired on 2012-09-03 as part of work on the
 variety-reform_ branch.  Client-specific customisation of the MPS will
 be handled in source control, while the MPS source remains generic, to
-reduce costs and increase reliability.  See [RB_2012-09-13]_.
+reduce costs and increase reliability.  See `[RB 2012-09-13]`_.
 
 
 
@@ -61,7 +63,7 @@ Definitions
 -----------
 
 _`.def.platform`: A *platform* is a combination of an architecture
-(.def.arch_), an operating system (.def.os_), and a builder
+(`.def.arch`_), an operating system (`.def.os`_), and a builder
 (`.def.builder`_).  The set of supported platforms is maintained in the
 `Platforms section of "Building the Memory Pool System"
 <../manual/html/guide/build.html#platforms>`_.
@@ -77,7 +79,7 @@ Most importantly for the MPS it determines the low level interface to
 virtual memory (if any) and threading.
 
 _`.def.builder`: A *builder* is the tools (C compiler, etc.) used to make
-the target (.def.target).  The MPS minimises use of compiler-specific
+the target (`.def.target`_).  The MPS minimises use of compiler-specific
 extensions, but this is handy for suppressing warnings, inlining hints,
 etc.
 
@@ -89,7 +91,7 @@ is the same.
 
 _`.def.prod`: A *product* is the intended product into which the MPS will
 fit, e.g. ScriptWorks, Dylan, etc.  We no longer maintain this concept
-as a dimension of configuration since .req.prod_ has been retired.
+as a dimension of configuration since `.req.prod`_ has been retired.
 
 _`.def.target`: The *target* is the result of the build.
 
@@ -139,12 +141,12 @@ the result with a set of libraries to form the target::
 
 _`.build.sep`: Separate compilation and linkage can be seen as a
 memoization of this function, and is not strictly necessary for the
-build.  Indeed, since `version 1.110` we found that modern compilers are
-quite happy to compile the whole MPS in one go `.import.source`_.
+build. Indeed, since `version 1.110` we found that modern compilers
+are quite happy to compile the whole MPS in one go `.import.source`_.
 
-_`.build.cc`: A consequence of this approach is that it should always be possible 
-to build a complete target with a single UNIX command line calling the compiler 
-driver (usually "cc" or "gcc"), for example::
+_`.build.cc`: A consequence of this approach is that it should always
+be possible to build a complete target with a single UNIX command line
+calling the compiler driver (usually "cc" or "gcc"), for example::
 
     cc -o main -DCONFIG_VAR_DF foo.c bar.c baz.s -lz
 
@@ -158,22 +160,25 @@ the tag of the relevant variety document (see variety.*) converted to
 upper case. Currently (2012-09-03):
 
 _`.var.hot`: ``HOT``
+
     Intended for release in products.  Optimised, reduced internal
-    checking, especially on the `critical path <critical-path.txt>`_
-    [RB_2012-09-07]_.
+    checking, especially on the critical path `[RB 2012-09-07]`_.
 
 _`.var.cool`: ``COOL``
+
     Intended for use during development.  Moderately thorough internal
     consistency checking.  Reduced optimisation to allow for
     single-stepping.
 
 _`.var.rash`: ``RASH``
+
     No internal checking at all.  Slight performance improvement over
     `.var.hot`_ at the cost of early detection of memory management
     bugs.  We do not advise use of this variety, as memory management
     bugs tend to be extremely expensive to deal with.
 
 _`.var.diag`: ``DIAG`` (deprecated)
+
     This variety does some client-specific analysis and produces some
     specialised diagnostic output, and is not intended for general use.
     It will be phased out of the open sources.
@@ -181,16 +186,17 @@ _`.var.diag`: ``DIAG`` (deprecated)
 _`.default.hot`: If no ``CONFIG_VAR`` is present, ``HOT`` is assumed in
 `config.h`_.
 
-_`.build.srcs`: The "srcs" are the set of sources that must be compiled in order 
-to build the target.  The set of sources may vary depending on the 
-configuration.  For example, different sets of sources may be required to build 
-different architectures.  [This is a dependency between the makefile (or whatever) 
-and the module configuration in `config.h`_.]
+_`.build.srcs`: The "srcs" are the set of sources that must be
+compiled in order to build the target. The set of sources may vary
+depending on the configuration. For example, different sets of sources
+may be required to build different architectures. [This is a
+dependency between the makefile (or whatever) and the module
+configuration in `config.h`_.]
 
-_`.build.libs`: The "libs" are the set of libraries to which the compiled sources 
-must be linked in order to build the target.  For example, when building a test 
-program, it might include the ANSI C library and an operating system interface 
-library.
+_`.build.libs`: The "libs" are the set of libraries to which the
+compiled sources must be linked in order to build the target. For
+example, when building a test program, it might include the ANSI C
+library and an operating system interface library.
 
 
 File Structure
@@ -312,10 +318,10 @@ _`.pf.form`: This file consists of sets of directives of the form::
     #define MPS_OS_<operating system code>
     #define MPS_ARCH_<architecture code>
     #define MPS_BUILD_<builder code>
-    #define MPS_T_WORD           <word type>
-    #define MPS_T_ULONGEST       <longest unsigned integer type>
-    #define MPS_WORD_SHIFT       <word shift>
-    #define MPS_PF_ALIGN         <minimum alignment>
+    #define MPS_T_WORD     <word type>
+    #define MPS_T_ULONGEST <longest unsigned integer type>
+    #define MPS_WORD_SHIFT <word shift>
+    #define MPS_PF_ALIGN   <minimum alignment>
 
 _`.pf.detect`: The conjunction of builder predefinitions is a constant
 expression which detects the target platform.  It is a logical AND of
@@ -521,26 +527,36 @@ To document
   elsewhere.)
 
 
-A. References
--------------
+References
+----------
 
-.. [MPS_Manual] "Memory Pool System documentation"; Ravenbrook Limited;
-   <http://www.ravenbrook.com/project/mps/master/manual/html/>.
+* .. _[MPS Manual]:
 
-.. [RB_2012-09-07] "The critical path through the MPS"; `Richard Brooksby <RB>`_;
-   Ravenbrook Limited; 2012-09-07;
-   <http://www.ravenbrook.com/project/mps/master/design/critical-path>.
+  Ravenbrook Limited. "`Memory Pool System documentation
+  <http://www.ravenbrook.com/project/mps/master/manual/html/>`_".
 
-.. [RB_2012-09-13] "The Configura CET custom mainline"; `Richard
-   Brooksby <RB>`_; Ravenbrook Limited; 2013-09-13;
-   <https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/>.
+* .. _[RB 2012-09-13]:
 
-.. [PP_2005-03-01] "MPS platforms"; Pekka Pirinen; Global Graphics;
-   <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0.txt>.
+  Richard Brooksby. Ravenbrook Limited. 2012-09-13. "`The Configura
+  CET custom mainline
+  <https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/>`_".
+
+* .. _[PP 2005-03-01]:
+
+  Pekka P. Pirinen. Global Graphics. "`MPS platforms
+  <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/>`_".
+
+* .. _[RB 2012-09-07]:
+
+  Richard Brooksby. Ravenbrook Limited. 2012-09-07. "`The critical
+  path through the MPS
+  <http://www.ravenbrook.com/project/mps/master/design/critical-path>`_".
+
+.. _variety-reform: http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/
 
 
-B. Document History
--------------------
+Document History
+----------------
 
 - 1997-02-19 RB_  Initial draft based on discussions of configuration at
   meeting.general.1997-02-05.
@@ -556,15 +572,14 @@ B. Document History
 - 2013-05-11 RB_ Converted to reStructuredText.  Clarified various
   sections, brought some up-to-date, and removed obsolete junk.
 
-.. _variety-reform: http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _NB: http://www.ravenbrook.com/consultants/nb/
 
 
-C. Copyright and License
-------------------------
+Copyright and License
+---------------------
 
-Copyright (C) 2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
