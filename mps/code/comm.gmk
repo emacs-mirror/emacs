@@ -219,7 +219,7 @@ endif
 
 # %%TARGET: When adding a new target, add it to the all dependencies
 
-all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
+all: mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
      finalcv finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
