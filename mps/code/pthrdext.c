@@ -1,7 +1,7 @@
 /* pthreadext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Provides extension to Pthreads.
  *
@@ -17,7 +17,7 @@
 
 #include <pthread.h>
 #include <sched.h>
-#include <signal.h>
+#include <signal.h> /* see .feature.li in config.h */
 #include <semaphore.h>
 #include <errno.h>
 #include <stdio.h>
@@ -365,7 +365,7 @@ unlock:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

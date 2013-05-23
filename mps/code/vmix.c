@@ -18,11 +18,11 @@
  * (MAP_PRIVATE) mapping with the flag MAP_ANON.
  *
  * .non-standard: Note that the MAP_ANON flag is non-standard; it is
- * available on Darwin and FreeBSD.  .non-standard.linux: Linux
- * seems to use MAP_ANONYMOUS instead.  Some Linux systems make MAP_ANON
- * available and deprecate it.  .non-standard.sesame: On Linux getting
- * a definition of MAP_ANON requires a macro to be defined prior to
- * <sys/mman.h>.
+ * available on Darwin and FreeBSD. .non-standard.linux: Linux seems
+ * to use MAP_ANONYMOUS instead. Some Linux systems make MAP_ANON
+ * available and deprecate it. .non-standard.sesame: On Linux getting
+ * a definition of MAP_ANON requires a _BSD_SOURCE to be defined prior
+ * to <sys/mman.h>; see config.h.
  *
  * .assume.not-last: The implementation of VMCreate assumes that
  * mmap() will not choose a region which contains the last page
@@ -38,20 +38,17 @@
  * seem to be a problem.
  */
 
-/* .non-standard.sesame */
-#define _BSD_SOURCE 1
+#include "mpm.h"
 
 /* for mmap(2), munmap(2) */
 #include <sys/types.h>
-#include <sys/mman.h>
+#include <sys/mman.h> /* see .feature.li in config.h */
 
 /* for errno(2) */
 #include <errno.h>
 
 /* for getpagesize(3) */
 #include <unistd.h>
-
-#include "mpm.h"
 
 
 #if !defined(MPS_OS_FR) && !defined(MPS_OS_XC) && !defined(MPS_OS_LI)
@@ -322,7 +319,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
