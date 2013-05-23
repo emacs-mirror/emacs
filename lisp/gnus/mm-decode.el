@@ -29,8 +29,7 @@
 
 (require 'mail-parse)
 (require 'mm-bodies)
-(eval-when-compile (require 'cl)
-		   (require 'term))
+(eval-when-compile (require 'cl))
 
 (autoload 'gnus-map-function "gnus-util")
 (autoload 'gnus-replace-in-string "gnus-util")
@@ -813,6 +812,8 @@ external if displayed external."
 
 (declare-function gnus-configure-windows "gnus-win" (setting &optional force))
 (defvar mailcap-mime-extensions)	; mailcap-mime-info autoloads
+(declare-function term-mode "term" ())
+(declare-function term-char-mode "term" ())
 
 (defun mm-display-external (handle method)
   "Display HANDLE using METHOD."

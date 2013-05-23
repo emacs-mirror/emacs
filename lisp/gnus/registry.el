@@ -249,6 +249,11 @@ With assert non-nil, errors out if the key does not exist already."
 	  (remhash key data)))
       keys))
 
+  (defmethod registry-size ((db registry-db))
+    "Returns the size of the registry-db object THIS.
+This is the key count of the :data slot."
+    (hash-table-count (oref db :data)))
+
   (defmethod registry-full ((db registry-db))
     "Checks if registry-db THIS is full."
     (>= (registry-size db)
@@ -296,11 +301,6 @@ Errors out if the key exists already."
 		 (push key value-keys)
 		 (registry-lookup-secondary-value db tr val value-keys))))
 	   (oref db :data))))))
-
-  (defmethod registry-size ((db registry-db))
-    "Returns the size of the registry-db object THIS.
-This is the key count of the :data slot."
-    (hash-table-count (oref db :data)))
 
   (defmethod registry-prune ((db registry-db) &optional sortfun)
     "Prunes the registry-db object THIS.
