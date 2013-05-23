@@ -238,6 +238,11 @@
 #define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
+/* CBS Configuration -- see <code/cbs.c> */
+
+#define CBS_EXTEND_BY_DEFAULT ((Size)4096)
+
+
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
 #define MV_EXTEND_BY_DEFAULT  ((Size)65536)
@@ -260,7 +265,7 @@
 #define MVFF_FIRST_FIT_DEFAULT   TRUE
 
 
-/* Pool MVT Configuration -- see <code.poolmv2.c> */
+/* Pool MVT Configuration -- see <code/poolmv2.c> */
 /* FIXME: These numbers were lifted from mv2test and need thought. */
 
 #define MVT_MIN_SIZE_DEFAULT      MPS_PF_ALIGN

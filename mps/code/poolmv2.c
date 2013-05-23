@@ -46,9 +46,11 @@ static Bool MVTReturnRangeSegs(MVT mvt, Range range, Arena arena);
 static Res MVTInsert(MVT mvt, Addr base, Addr limit);
 static Res MVTDelete(MVT mvt, Addr base, Addr limit);
 static void ABQRefillIfNecessary(MVT mvt, Size size);
-static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit, void *closureP);
+static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit,
+                              void *closureP, Size closureS);
 static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Size min);
-static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit, void *closureP);
+static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit,
+                                   void *closureP, Size closureS);
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
 static CBS MVTCBS(MVT mvt);
@@ -272,7 +274,7 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = CBSInit(arena, MVTCBS(mvt), (void *)mvt, MPS_PF_ALIGN, FALSE);
+  res = CBSInit(arena, MVTCBS(mvt), (void *)mvt, MPS_PF_ALIGN, FALSE, args);
   if (res != ResOK)
     goto failCBS;
  
@@ -590,14 +592,15 @@ done:
  * returns the DELETE disposition for ranges in the ABQ that overlap
  * with it, and the KEEP disposition for ranges that do not.
  */
-static Res MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
-                                void *element, void *closureP)
+static Bool MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
+                                 void *element, void *closureP, Size closureS)
 {
   Range oldRange, newRange;
 
   AVER(dispositionReturn != NULL);
   AVER(element != NULL);
   AVER(closureP != NULL);
+  UNUSED(closureS);
 
   oldRange = element;
   newRange = closureP;
@@ -608,7 +611,7 @@ static Res MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
     *dispositionReturn = ABQDispositionKEEP;
   }
 
-  return ResOK;
+  return TRUE;
 }
 
 
@@ -670,7 +673,7 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
      * with ranges on the ABQ, so ensure that they are removed before
      * reserving the new range.
      */
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range, 0);
     MVTReserve(mvt, &range);
   }
 
@@ -699,7 +702,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
    */
   RangeInit(&range, oldBase, oldLimit);
   if (RangeSize(&range) >= mvt->reuseSize)
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range, 0);
 
   /* There might be fragments at the left or the right of the deleted
    * range, and either might be big enough to go back on the ABQ.
@@ -1103,7 +1106,7 @@ static void ABQRefillIfNecessary(MVT mvt, Size size)
   if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
     mvt->abqOverflow = FALSE;
     METER_ACC(mvt->refills, size);
-    CBSIterate(MVTCBS(mvt), &ABQRefillCallback, NULL);
+    CBSIterate(MVTCBS(mvt), &ABQRefillCallback, NULL, 0);
   }
 }
 
@@ -1111,7 +1114,8 @@ static void ABQRefillIfNecessary(MVT mvt, Size size)
 /* ABQRefillCallback -- called from CBSIterate at the behest of
  * ABQRefillIfNecessary
  */
-static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit, void *closureP)
+static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit,
+                              void *closureP, Size closureS)
 {
   Res res;
   MVT mvt;
@@ -1124,6 +1128,7 @@ static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit, void *closureP)
   AVERT(ABQ, MVTABQ(mvt));
   AVER(base < limit);
   UNUSED(closureP);
+  UNUSED(closureS);
 
   size = AddrOffset(base, limit);
   if (size < mvt->reuseSize)
@@ -1167,7 +1172,7 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Si
   cls.steps = 0;
   cls.hardSteps = 0;
  
-  CBSIterate(cbs, MVTContingencyCallback, (void *)&cls);
+  CBSIterate(cbs, MVTContingencyCallback, (void *)&cls, 0);
   if (cls.found) {
     AVER(AddrOffset(cls.base, cls.limit) >= min);
     METER_ACC(CBSMVT(cbs)->contingencySearches, cls.steps);
@@ -1186,7 +1191,8 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Si
 /* MVTContingencyCallback -- called from CBSIterate at the behest of
  * MVTContingencySearch
  */
-static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit, void *closureP)
+static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit,
+                                   void *closureP, Size closureS)
 {
   MVTContigency cl;
   Size size;
@@ -1194,6 +1200,7 @@ static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit, void *closure
   AVERT(CBS, cbs);
   AVER(base < limit);
   AVER(closureP != NULL);
+  UNUSED(closureS);
 
   cl = (MVTContigency)closureP;
   size = AddrOffset(base, limit);

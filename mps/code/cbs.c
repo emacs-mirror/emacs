@@ -31,9 +31,7 @@ typedef struct CBSBlockStruct {
 
 
 extern Bool CBSBlockCheck(CBSBlock block);
-/* CBSBlockBase -- See <design/cbs/#function.cbs.block.base> */
 #define CBSBlockBase(block) ((block)->base)
-/* CBSBlockLimit -- See <design/cbs/#function.cbs.block.limit> */
 #define CBSBlockLimit(block) ((block)->limit)
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 extern Size (CBSBlockSize)(CBSBlock block);
@@ -89,8 +87,6 @@ Bool CBSCheck(CBS cbs)
 }
 
 
-/* CBSBlockCheck -- See <design/cbs/#function.cbs.block.check> */
-
 Bool CBSBlockCheck(CBSBlock block)
 {
   /* See .enter-leave.simple. */
@@ -105,8 +101,6 @@ Bool CBSBlockCheck(CBSBlock block)
   return TRUE;
 }
 
-
-/* CBSBlockSize -- see <design/cbs/#function.cbs.block.size> */
 
 Size (CBSBlockSize)(CBSBlock block)
 {
@@ -220,20 +214,28 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
  * See <design/cbs/#function.cbs.init>.
  */
 
-Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment, Bool fastFind)
+ARG_DEFINE_KEY(cbs_extend_by, Size);
+
+Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
+            Bool fastFind, ArgList args)
 {
+  Size extendBy = CBS_EXTEND_BY_DEFAULT;
+  ArgStruct arg;
   Res res;
 
   AVERT(Arena, arena);
 
+  if (ArgPick(&arg, args, MPS_KEY_CBS_EXTEND_BY))
+    extendBy = arg.val.size;
+
   SplayTreeInit(splayTreeOfCBS(cbs), &cbsSplayCompare,
                 fastFind ? &cbsUpdateNode : NULL);
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
-    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, sizeof(CBSBlockStruct) * 64);
-    MPS_ARGS_DONE(args);
-    res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), args);
-  } MPS_ARGS_END(args);
+  MPS_ARGS_BEGIN(pcArgs) {
+    MPS_ARGS_ADD(pcArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSBlockStruct));
+    MPS_ARGS_ADD(pcArgs, MPS_KEY_EXTEND_BY, extendBy);
+    MPS_ARGS_DONE(pcArgs);
+    res = PoolCreate(&(cbs->blockPool), arena, PoolClassMFS(), pcArgs);
+  } MPS_ARGS_END(pcArgs);
   if (res != ResOK)
     return res;
   cbs->splayTreeSize = 0;
@@ -395,12 +397,21 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
   if (res != ResOK)
     goto fail;
 
+  /* The two cases below are not quite symmetrical, because base was
+   * passed into the call to SplayTreeNeighbours(), but limit was not.
+   * So we know that if there is a left neighbour, then leftCBS->limit
+   * <= base (this is ensured by cbsSplayCompare, which is the
+   * comparison method on the splay tree). But if there is a right
+   * neighbour, all we know is that base < rightCBS->base. But for the
+   * range to fit, we need limit <= rightCBS->base too. Hence the extra
+   * check and the possibility of failure in the second case.
+   */
   if (leftSplay == NULL) {
     leftCBS = NULL;
     leftMerge = FALSE;
   } else {
     leftCBS = cbsBlockOfSplayNode(leftSplay);
-    AVER(leftCBS->limit <= base); /* by cbsSplayCompare */
+    AVER(leftCBS->limit <= base);
     leftMerge = leftCBS->limit == base;
   }
 
@@ -424,8 +435,7 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
       Size oldLeftSize = CBSBlockSize(leftCBS);
       Size oldRightSize = CBSBlockSize(rightCBS);
 
-      /* must block larger neighbour and destroy smaller neighbour; */
-      /* see <design/cbs/#function.cbs.insert.callback> */
+      /* must block larger neighbour and destroy smaller neighbour */
       if (oldLeftSize >= oldRightSize) {
         Addr rightLimit = rightCBS->limit;
         cbsBlockDelete(cbs, rightCBS);
@@ -501,7 +511,7 @@ Res CBSInsert(Addr *baseReturn, Addr *limitReturn,
 }
 
 
-/* cbsDeleteFrom* -- delete blocks from different parts of the CBS */
+/* cbsDeleteFromTree -- delete blocks from the splay tree */
 
 static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
                              CBS cbs, Addr base, Addr limit)
@@ -511,7 +521,13 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
   SplayNode splayNode;
   Size oldSize;
 
-  /* parameters already checked */
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVERT(CBS, cbs);
+  AVER(base != NULL);
+  AVER(limit > base);
+  AVER(AddrIsAligned(base, cbs->alignment));
+  AVER(AddrIsAligned(limit, cbs->alignment));
 
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
   res = SplayTreeSearch(&splayNode, splayTreeOfCBS(cbs), (void *)&base);
@@ -545,8 +561,7 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
     } else { /* two remaining fragments */
       Size leftNewSize = AddrOffset(cbsBlock->base, base);
       Size rightNewSize = AddrOffset(limit, cbsBlock->limit);
-      /* must shrink larger fragment and create smaller; */
-      /* see <design/cbs/#function.cbs.delete.callback> */
+      /* must shrink larger fragment and create smaller */
       if (leftNewSize >= rightNewSize) {
         Addr oldLimit = cbsBlock->limit;
         AVER(limit < cbsBlock->limit);
@@ -642,7 +657,8 @@ static Res CBSSplayNodeDescribe(SplayNode splayNode, mps_lib_FILE *stream)
  */
 
 /* Internal version without enter/leave checking. */
-static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate, void *closureP)
+static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate,
+                               void *closureP, Size closureS)
 {
   SplayNode splayNode;
   SplayTree splayTree;
@@ -658,7 +674,7 @@ static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate, void *closureP
   splayNode = SplayTreeFirst(splayTree, NULL);
   while(splayNode != NULL) {
     cbsBlock = cbsBlockOfSplayNode(splayNode);
-    if (!(*iterate)(cbs, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock), closureP)) {
+    if (!(*iterate)(cbs, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock), closureP, closureS)) {
       break;
     }
     METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
@@ -667,13 +683,14 @@ static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate, void *closureP
   return;
 }
 
-void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP)
+void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+                void *closureP, Size closureS)
 {
   AVERT(CBS, cbs);
   AVER(FUNCHECK(iterate));
   CBSEnter(cbs);
 
-  cbsIterateInternal(cbs, iterate, closureP);
+  cbsIterateInternal(cbs, iterate, closureP, closureS);
 
   CBSLeave(cbs);
   return;
