@@ -37,7 +37,8 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)
   AVER(abq != NULL);
   AVER(elements > 0);
 
-  /* Necessary in order to be able to distinguish "empty" from "full" */
+  /* Allocate a dummy extra element in order to be able to distinguish
+     "empty" from "full" */
   elements = elements + 1;
 
   res = ControlAlloc(&p, arena, ABQQueueSize(elements, elementSize),
